@@ -75,7 +75,6 @@ impl MemPool {
         self.read()
             .await
             .last_pending_nonce(&address)
-            .cloned()
             .map(From::from)
     }
 
@@ -104,10 +103,13 @@ impl MemPool {
 
     #[doc = "Updates the instance, moving any future transactions to the pending status, if their nonces are high enough."]
     #[napi]
-    pub async fn update(&self, state_manager: &StateManager) {
+    pub async fn update(&self, state_manager: &StateManager) -> napi::Result<()> {
         let state = state_manager.read().await;
 
-        self.write().await.update(&*state);
+        self.write()
+            .await
+            .update(&*state)
+            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
 
     #[doc = "Returns all transactions in the mem pool."]
@@ -117,8 +119,7 @@ impl MemPool {
 
         mempool
             .pending_transactions()
-            .iter()
-            .chain(mempool.future_transactions().iter())
+            .chain(mempool.future_transactions())
             .cloned()
             .map(PendingTransaction::from)
             .collect()
@@ -130,7 +131,6 @@ impl MemPool {
         self.read()
             .await
             .future_transactions()
-            .iter()
             .cloned()
             .map(PendingTransaction::from)
             .collect()
@@ -142,7 +142,6 @@ impl MemPool {
         self.read()
             .await
             .pending_transactions()
-            .iter()
             .cloned()
             .map(PendingTransaction::from)
             .collect()
@@ -151,16 +150,16 @@ impl MemPool {
     #[doc = "Returns whether the [`MemPool`] contains any future transactions."]
     #[napi]
     pub async fn has_future_transactions(&self) -> bool {
-        !self.read().await.future_transactions().is_empty()
+        self.read().await.future_transactions().next().is_some()
     }
 
     #[doc = "Returns whether the [`MemPool`] contains any pending transactions."]
     #[napi]
     pub async fn has_pending_transactions(&self) -> bool {
-        !self.read().await.pending_transactions().is_empty()
+        self.read().await.pending_transactions().next().is_some()
     }
 
-    #[doc = "Returns the pending transaction corresponding to the provided hash, if it exists."]
+    #[doc = "Returns the transaction corresponding to the provided hash, if it exists."]
     #[napi]
     pub async fn transaction_by_hash(&self, hash: Buffer) -> Option<PendingTransaction> {
         let hash = B256::from_slice(&hash);
