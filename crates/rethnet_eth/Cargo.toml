@@ -20,7 +20,7 @@ revm-primitives = { git = "https://github.com/Wodann/revm", rev = "9fdf446", ver
 rlp = { version = "0.5.2", default-features = false, features = ["derive"] }
 secp256k1 = { version = "0.24.0", default-features = false, features = ["alloc", "recovery"] }
 serde = { version = "1.0.147", default-features = false, features = ["derive"], optional = true }
-serde_json = { version = "1.0.89", optional = true, features = ["preserve_order"] }
+serde_json = { version = "1.0.89", optional = true }
 sha3 = { version = "0.10.8", default-features = false }
 thiserror = { version = "1.0.37", default-features = false }
 tokio = { version = "1.21.2", default-features = false, features = ["fs", "sync"] }
