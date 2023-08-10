@@ -31,9 +31,8 @@ export function buildAdaptersFrom(provider: EIP1193Provider): Adapters {
       // return 1.5x estimated gas
       return (gasLimit * 15n) / 10n;
     },
-    estimateGasPrice: (): Promise<bigint> => {
-      //return ethersProvider.getGasPrice();
-      throw new Error("Not implemented");
+    estimateGasPrice: async (): Promise<bigint> => {
+      return BigInt("0.000000001"); // 1 gwei
     },
   };
 
