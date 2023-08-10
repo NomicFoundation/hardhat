@@ -1,10 +1,17 @@
+import { type } from "os";
 import { FutureType, SolidityParameterType } from "../../types/module";
+
+export interface RawStaticCallResult {
+  returnData: string;
+  success: boolean;
+  customErrorReported: boolean;
+}
 
 /**
  * A list of (possibly named) values returned by a function, or used as
  * arguments for a custom error.
  */
-export interface Values {
+export interface EvmValues {
   /**
    * The values in defintion order.
    */
@@ -22,8 +29,14 @@ export interface Values {
 /**
  * The result of executing a contract function/constructor.
  */
-export type ExecutionResult =
-  | SuccessfulExecutionResult
+export type EvmExecutionResult =
+  | SuccessfulEvmExecutionResult
+  | FailedEvmExecutionResult;
+
+/**
+ * The result of executing a contract function/constructor that failed.
+ */
+export type FailedEvmExecutionResult =
   | InvalidResultError
   | RevertWithoutReason
   | RevertWithReason
@@ -36,7 +49,7 @@ export type ExecutionResult =
 /**
  * Each of the possible execution results that Ignition can handle.
  */
-export enum ExecutionResultTypes {
+export enum EvmExecutionResultTypes {
   SUCESSFUL_RESULT = "SUCESSFUL_RESULT",
   INVALID_RESULT_ERROR = "INVALID_RESULT_ERROR",
   REVERT_WITHOUT_REASON = "REVERT_WITHOUT_REASON",
@@ -52,20 +65,20 @@ export enum ExecutionResultTypes {
  * The results returned by Solidity either as a function result, or as
  * custom error parameters.
  */
-export interface SuccessfulExecutionResult {
-  type: ExecutionResultTypes.SUCESSFUL_RESULT;
+export interface SuccessfulEvmExecutionResult {
+  type: EvmExecutionResultTypes.SUCESSFUL_RESULT;
 
   /**
    * The values returned by the execution.
    */
-  values: Values;
+  values: EvmValues;
 }
 
 /**
  * The execution was seemgly succseful, but the data returned by it was invalid.
  */
 export interface InvalidResultError {
-  type: ExecutionResultTypes.INVALID_RESULT_ERROR;
+  type: EvmExecutionResultTypes.INVALID_RESULT_ERROR;
   data: string;
 }
 
@@ -73,14 +86,14 @@ export interface InvalidResultError {
  * The execution reverted without a reason string nor any other kind of error.
  */
 export interface RevertWithoutReason {
-  type: ExecutionResultTypes.REVERT_WITHOUT_REASON;
+  type: EvmExecutionResultTypes.REVERT_WITHOUT_REASON;
 }
 
 /**
  * The execution reverted with a reason string by calling `revert("reason")`.
  */
 export interface RevertWithReason {
-  type: ExecutionResultTypes.REVERT_WITH_REASON;
+  type: EvmExecutionResultTypes.REVERT_WITH_REASON;
   message: string;
 }
 
@@ -88,7 +101,7 @@ export interface RevertWithReason {
  * The execution reverted with a panic code due to some error that solc handled.
  */
 export interface RevertWithPanicCode {
-  type: ExecutionResultTypes.REVERT_WITH_PANIC_CODE;
+  type: EvmExecutionResultTypes.REVERT_WITH_PANIC_CODE;
   panicCode: number;
   panicName: string;
 }
@@ -97,9 +110,9 @@ export interface RevertWithPanicCode {
  * The execution reverted with a custom error that was defined by the contract.
  */
 export interface RevertWithCustomError {
-  type: ExecutionResultTypes.REVERT_WITH_CUSTOM_ERROR;
+  type: EvmExecutionResultTypes.REVERT_WITH_CUSTOM_ERROR;
   errorName: string;
-  args: Values;
+  args: EvmValues;
 }
 
 /**
@@ -114,7 +127,7 @@ export interface RevertWithCustomError {
  * that would be loosing information.
  */
 export interface RevertWithUnknownCustomError {
-  type: ExecutionResultTypes.REVERT_WITH_UNKNOWN_CUSTOM_ERROR;
+  type: EvmExecutionResultTypes.REVERT_WITH_UNKNOWN_CUSTOM_ERROR;
   signature: string;
   data: string;
 }
@@ -125,7 +138,7 @@ export interface RevertWithUnknownCustomError {
  * of the error fails, or when a panic code is invalid.
  */
 export interface RevertWithInvalidData {
-  type: ExecutionResultTypes.REVERT_WITH_INVALID_DATA;
+  type: EvmExecutionResultTypes.REVERT_WITH_INVALID_DATA;
   data: string;
 }
 
@@ -134,7 +147,7 @@ export interface RevertWithInvalidData {
  * data, or a custom error that we can't recognize and the JSON-RPC server can't recognize either.
  */
 export interface RevertWithInvalidDataOrUnknownCustomError {
-  type: ExecutionResultTypes.REVERT_WITH_INVALID_DATA_OR_UNKNOWN_CUSTOM_ERROR;
+  type: EvmExecutionResultTypes.REVERT_WITH_INVALID_DATA_OR_UNKNOWN_CUSTOM_ERROR;
   signature: string;
   data: string;
 }
@@ -221,13 +234,84 @@ export interface OnchainInteraction {
  **/
 export interface StaticCall {
   id: number;
-  type: NetworkInteractionType.ONCHAIN_INTERACTION;
+  type: NetworkInteractionType.STATIC_CALL;
   to: string | undefined; // Undefined when it's a deployment transaction
   data: string;
   value: bigint;
   from: string;
-  result: ExecutionResult;
+  result: RawStaticCallResult;
 }
+
+export enum ExecutionResultType {
+  SUCCESS = "SUCCESS",
+  REVERTED_TRANSACTION = "REVERTED_TRANSACTION",
+  STATIC_CALL_ERROR = "STATIC_CALL_ERROR",
+  SIMULATION_ERROR = "SIMULATION_ERROR",
+  STRATEGY_ERROR = "STRATEGY_ERROR",
+}
+
+export interface RevertedTransactionExecutionResult {
+  type: ExecutionResultType.REVERTED_TRANSACTION;
+}
+
+export interface FailedStaticCallExecutionResult {
+  type: ExecutionResultType.STATIC_CALL_ERROR;
+  error: FailedEvmExecutionResult;
+}
+
+export interface SimulationErrorExecutionResult {
+  type: ExecutionResultType.SIMULATION_ERROR;
+  error: FailedEvmExecutionResult;
+}
+
+export interface StrategyErrorExecutionResult {
+  type: ExecutionResultType.STRATEGY_ERROR;
+  error: string;
+}
+
+export interface SuccessfulDeploymentExecutionResult {
+  type: ExecutionResultType.SUCCESS;
+  address: string;
+}
+
+export type DeploymentExecutionResult =
+  | SuccessfulDeploymentExecutionResult
+  | RevertedTransactionExecutionResult
+  | FailedStaticCallExecutionResult
+  | SimulationErrorExecutionResult
+  | StrategyErrorExecutionResult;
+
+export interface SuccessfulCallExecutionResult {
+  type: ExecutionResultType.SUCCESS;
+}
+
+export type CallExecutionResult =
+  | SuccessfulCallExecutionResult
+  | RevertedTransactionExecutionResult
+  | FailedStaticCallExecutionResult
+  | SimulationErrorExecutionResult
+  | StrategyErrorExecutionResult;
+
+interface SuccessfulSendDataExecutionResult {
+  type: ExecutionResultType.SUCCESS;
+}
+
+export type SendDataExecutionResult =
+  | SuccessfulSendDataExecutionResult
+  | RevertedTransactionExecutionResult
+  | FailedStaticCallExecutionResult
+  | SimulationErrorExecutionResult
+  | StrategyErrorExecutionResult;
+
+export interface SuccessfulStaticCallExecutionResult {
+  type: ExecutionResultType.SUCCESS;
+  result: SuccessfulEvmExecutionResult;
+}
+
+export type StaticCallExecutionResult =
+  | SuccessfulStaticCallExecutionResult
+  | FailedStaticCallExecutionResult
+  | StrategyErrorExecutionResult;
 
 /**
  * An execution state is used to keep track of the execution of a future.
@@ -303,7 +387,7 @@ export interface DeploymentExecutionState
   value: bigint;
   from: string | undefined;
   networkInteractions: NetworkInteraction[];
-  result?: string;
+  result?: DeploymentExecutionResult;
 }
 
 /**
@@ -324,6 +408,7 @@ export interface CallExecutionState
   value: bigint;
   from: string | undefined;
   networkInteractions: NetworkInteraction[];
+  result?: CallExecutionResult;
 }
 
 /**
@@ -346,6 +431,7 @@ export interface StaticCallExecutionState
   args: SolidityParameterType[];
   from: string | undefined;
   networkInteractions: StaticCall[];
+  result?: StaticCallExecutionResult;
 }
 
 /**
@@ -402,6 +488,7 @@ export interface SendDataExecutionState
   value: bigint;
   from: string | undefined;
   networkInteractions: NetworkInteraction[];
+  result?: SendDataExecutionResult;
 }
 
 /**
