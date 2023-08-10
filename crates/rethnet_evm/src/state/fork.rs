@@ -371,10 +371,13 @@ mod tests {
 
         let hash_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed")));
 
+        let tempdir = tempfile::tempdir().expect("can create tempdir");
+
         let fork_state = ForkState::new(
             runtime,
             hash_generator,
             &get_alchemy_url().expect("failed to get alchemy url"),
+            tempdir.path().to_path_buf(),
             U256::from(16220843),
             HashMap::default(),
         );
@@ -412,10 +415,13 @@ mod tests {
 
         let hash_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed")));
 
+        let tempdir = tempfile::tempdir().expect("can create tempdir");
+
         let mut fork_state = ForkState::new(
             runtime,
             hash_generator,
             &get_alchemy_url().expect("failed to get alchemy url"),
+            tempdir.path().to_path_buf(),
             U256::from(16220843),
             HashMap::default(),
         );
@@ -499,10 +505,13 @@ mod tests {
 
         let hash_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed")));
 
+        let tempdir = tempfile::tempdir().expect("can create tempdir");
+
         let mut fork_state = ForkState::new(
             runtime,
             hash_generator,
             &get_alchemy_url().expect("failed to get alchemy url"),
+            tempdir.path().to_path_buf(),
             U256::from(16220843),
             HashMap::default(),
         );
