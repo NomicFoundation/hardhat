@@ -1188,24 +1188,7 @@ impl Server {
                 .unzip()
         };
 
-        // TODO: only declare here the things that are needed to instantiate blockchain, state and
-        // fork_block_number. everything else here should be moved into the AppState declaration
-        // afterwards.
-
-        let allow_blocks_with_same_timestamp = config.allow_blocks_with_same_timestamp;
-        let block_time_offset_seconds =
-            RwLock::new(if let Some(initial_date) = config.initial_date {
-                U256::from(
-                    SystemTime::now()
-                        .duration_since(initial_date)
-                        .map_err(|_e| Error::InitialDateInFuture(initial_date))?
-                        .as_secs(),
-                )
-            } else {
-                U256::ZERO
-            });
         let chain_id = config.chain_id;
-        let next_block_timestamp: RwLock<Option<U256>> = RwLock::default();
         let hardfork = config.hardfork;
 
         let (rethnet_state, blockchain, fork_block_number): (
@@ -1267,11 +1250,22 @@ impl Server {
         };
 
         let app_state = Arc::new(AppState {
-            allow_blocks_with_same_timestamp,
+            allow_blocks_with_same_timestamp: config.allow_blocks_with_same_timestamp,
             allow_unlimited_contract_size: config.allow_unlimited_contract_size,
             block_gas_limit: config.block_gas_limit,
             blockchain,
-            block_time_offset_seconds,
+            block_time_offset_seconds: RwLock::new(
+                if let Some(initial_date) = config.initial_date {
+                    U256::from(
+                        SystemTime::now()
+                            .duration_since(initial_date)
+                            .map_err(|_e| Error::InitialDateInFuture(initial_date))?
+                            .as_secs(),
+                    )
+                } else {
+                    U256::ZERO
+                },
+            ),
             rethnet_state,
             chain_id,
             coinbase: config.coinbase,
@@ -1283,7 +1277,7 @@ impl Server {
             local_accounts,
             mem_pool: Arc::new(RwLock::new(MemPool::new(config.block_gas_limit))),
             network_id: config.network_id,
-            next_block_timestamp,
+            next_block_timestamp: RwLock::default(),
         });
 
         Ok(Self {
