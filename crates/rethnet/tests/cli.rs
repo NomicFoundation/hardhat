@@ -12,11 +12,11 @@ use rethnet_eth::{
     remote::{
         client::Request as RpcRequest,
         jsonrpc,
-        methods::{MethodInvocation as EthMethodInvocation, U256OrUsize},
+        methods::{MethodInvocation as EthMethodInvocation, TransactionInput, U256OrUsize},
         BlockSpec,
     },
     signature::private_key_to_address,
-    Bytes, U256,
+    Address, Bytes, U256,
 };
 use rethnet_rpc_server::{HardhatMethodInvocation, MethodInvocation};
 
@@ -69,6 +69,14 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
         MethodInvocation::Eth(EthMethodInvocation::NetPeerCount()),
         MethodInvocation::Eth(EthMethodInvocation::NetVersion()),
         MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()),
+        MethodInvocation::Eth(EthMethodInvocation::SendTransaction(TransactionInput {
+            from: Some(Address::from_low_u64_ne(1)),
+            to: Some(Address::from_low_u64_ne(1)),
+            gas: Some(U256::ZERO),
+            gas_price: Some(U256::ZERO),
+            value: Some(U256::ZERO),
+            data: Some(Bytes::from_static(b"whatever").into()),
+        })),
         MethodInvocation::Eth(EthMethodInvocation::UninstallFilter(U256::from(1))),
         MethodInvocation::Eth(EthMethodInvocation::Unsubscribe(U256::from(1))),
         MethodInvocation::Eth(EthMethodInvocation::Unsubscribe(U256::from(1))),
@@ -215,6 +223,9 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             }
             MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()) => {
                 String::from("eth_newPendingTransactionFilter()")
+            }
+            MethodInvocation::Eth(EthMethodInvocation::SendTransaction(transaction)) => {
+                format!("eth_sendTransaction({transaction:?})")
             }
             MethodInvocation::Eth(EthMethodInvocation::UninstallFilter(filter_id)) => {
                 format!("eth_uninstallFilter({filter_id:?})")

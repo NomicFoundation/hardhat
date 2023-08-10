@@ -8,7 +8,7 @@ use rethnet_eth::{
         client::Request as RpcRequest,
         filter::FilteredEvents,
         jsonrpc,
-        methods::{MethodInvocation as EthMethodInvocation, U256OrUsize},
+        methods::{MethodInvocation as EthMethodInvocation, TransactionInput, U256OrUsize},
         BlockSpec,
     },
     serde::ZeroXPrefixedBytes,
@@ -345,6 +345,23 @@ async fn test_new_pending_transaction_filter_success() {
         &start_server().await,
         MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()),
         U256::from(1),
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_send_transaction() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::SendTransaction(TransactionInput {
+            from: Some(Address::from_low_u64_ne(1)),
+            to: Some(Address::from_low_u64_ne(1)),
+            gas: Some(U256::ZERO),
+            gas_price: Some(U256::ZERO),
+            value: Some(U256::ZERO),
+            data: Some(Bytes::from_static(b"whatever").into()),
+        })),
+        KECCAK_EMPTY,
     )
     .await;
 }

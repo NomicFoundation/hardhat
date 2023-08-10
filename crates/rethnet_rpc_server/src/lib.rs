@@ -8,6 +8,7 @@ use axum::{
     Router,
 };
 use hashbrown::{HashMap, HashSet};
+use rethnet_eth::remote::methods::TransactionInput;
 use rethnet_eth::{
     remote::{
         client::Request as RpcRequest,
@@ -735,6 +736,17 @@ async fn handle_new_pending_transaction_filter(state: StateType) -> ResponseData
     ResponseData::Success { result: filter_id }
 }
 
+async fn handle_send_transaction(
+    _state: StateType,
+    transaction: TransactionInput,
+) -> ResponseData<B256> {
+    event!(Level::INFO, "eth_sendTransaction({transaction:?})");
+
+    ResponseData::Success {
+        result: KECCAK_EMPTY,
+    }
+}
+
 async fn handle_set_balance(
     state: StateType,
     address: Address,
@@ -1019,6 +1031,12 @@ async fn handle_request(
                 }
                 MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()) => {
                     response(id, handle_new_pending_transaction_filter(state).await)
+                }
+                MethodInvocation::Eth(EthMethodInvocation::SendTransaction(transaction)) => {
+                    response(
+                        id,
+                        handle_send_transaction(state, transaction.clone()).await,
+                    )
                 }
                 MethodInvocation::Eth(EthMethodInvocation::Sign(address, message)) => {
                     response(id, handle_sign(state, address, message))
