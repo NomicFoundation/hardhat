@@ -3,9 +3,6 @@ use std::str::FromStr;
 use std::time::SystemTime;
 
 use hashbrown::HashMap;
-use secp256k1::{Secp256k1, SecretKey};
-use tracing::Level;
-
 use rethnet_eth::{
     remote::{
         client::Request as RpcRequest,
@@ -19,6 +16,8 @@ use rethnet_eth::{
     Address, Bytes, SpecId, B256, U256, U64,
 };
 use rethnet_evm::{AccountInfo, KECCAK_EMPTY};
+use secp256k1::{Secp256k1, SecretKey};
+use tracing::Level;
 
 use rethnet_rpc_server::{
     AccountConfig, Config, HardhatMethodInvocation, MethodInvocation, RpcHardhatNetworkConfig,
