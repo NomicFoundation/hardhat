@@ -6,14 +6,14 @@
 /// adapted to handle errors.
 ///////////////////////////////////////////////////////////////////////////////
 
-import { Artifact } from "../../../types/artifact";
-import { NetworkInteraction } from "../transaction-types";
+import { Artifact } from "../../types/artifact";
+import { NetworkInteraction } from "../execution/transaction-types";
 import {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../types";
+} from "../execution/types";
 import { ExecutionResult } from "./execution-results";
 
 export enum DecodingResultType {

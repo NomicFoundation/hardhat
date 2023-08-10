@@ -8,17 +8,20 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 import type { Result } from "ethers";
+import { SolidityParameterType } from "../../types/module";
+import { NetworkInteraction } from "../execution/transaction-types";
+import {
+  CallExecutionState,
+  DeploymentExecutionState,
+  SendDataExecutionState,
+  StaticCallExecutionState,
+} from "../execution/types";
 import {
   isDeploymentExecutionState,
   isSendDataExecutionState,
-} from "../../type-guards";
-import { NetworkInteraction } from "../transaction-types";
-import {
-  DeploymentExecutionState,
-  CallExecutionState,
-  SendDataExecutionState,
-  StaticCallExecutionState,
-} from "../types";
+} from "../type-guards";
+import { assertIgnitionInvariant } from "../utils/assertions";
+import { ExecutionResult } from "./execution-results";
 import {
   CustomError,
   DecodingResultType,
@@ -27,9 +30,6 @@ import {
   InvalidReturnData,
   LoadArtifactFunction,
 } from "./execution-stratey-adaption";
-import { SolidityParameterType } from "../../../types/module";
-import { assertIgnitionInvariant } from "../../utils/assertions";
-import { ExecutionResult } from "./execution-results";
 
 export class BasicExecutionStrategy implements ExecutionStrategy {
   async decodeNetworkInteractionResult(

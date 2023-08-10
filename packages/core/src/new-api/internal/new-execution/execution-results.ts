@@ -5,7 +5,7 @@
 /// The possible result types of an execution, including the possible errors.
 ///////////////////////////////////////////////////////////////////////////////
 
-import { SolidityParameterType } from "../../../types/module";
+import { SolidityParameterType } from "../../types/module";
 
 /**
  * The results returned by Solidity either as a function result, or as

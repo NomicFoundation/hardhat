@@ -29,7 +29,7 @@
 ///  the system. We don't need to be exhaustive.
 ///////////////////////////////////////////////////////////////////////////////
 
-import { EIP1193Provider } from "../../../types/provider";
+import { EIP1193Provider } from "../../types/provider";
 
 /**
  * The params to make an `eth_call`.

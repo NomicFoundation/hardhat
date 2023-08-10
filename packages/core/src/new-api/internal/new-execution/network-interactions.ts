@@ -5,15 +5,22 @@
 /// This module executes the NetworkInteractions.
 ///////////////////////////////////////////////////////////////////////////////
 
-import { EIP1193Provider } from "../../../types/provider";
-import { DeploymentLoader } from "../../deployment-loader/types";
-import { OnchainInteraction, StaticCall } from "../transaction-types";
+import { EIP1193Provider } from "../../types/provider";
+import { DeploymentLoader } from "../deployment-loader/types";
+import { OnchainInteraction, StaticCall } from "../execution/transaction-types";
 import {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../types";
+} from "../execution/types";
+import { decodeError, decodeResult } from "./execution-result-decoding";
+import {
+  ExecutionError,
+  ExecutionResult,
+  isExecutionError,
+} from "./execution-results";
+import { ExecutionStrategy } from "./execution-stratey-adaption";
 import {
   NetworkFees,
   call,
@@ -21,13 +28,6 @@ import {
   getNetworkFees,
   sendTransaction,
 } from "./jsonrpc-calls";
-import { ExecutionStrategy } from "./execution-stratey-adaption";
-import { decodeResult, decodeError } from "./execution-result-decoding";
-import {
-  ExecutionError,
-  ExecutionResult,
-  isExecutionError,
-} from "./execution-results";
 
 /**
  * This function tries to send a transaction to the network as a result of an onchain interaction.
