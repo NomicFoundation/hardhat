@@ -982,6 +982,7 @@ impl Server {
         let chain_id = config.chain_id;
         let next_block_timestamp = RwLock::new(U256::ZERO);
         let spec_id = config.hardfork;
+        let cache_dir = config.cache_dir;
 
         let (rethnet_state, blockchain, fork_block_number): (
             RethnetStateType,
@@ -1002,6 +1003,7 @@ impl Server {
                 Arc::clone(&runtime),
                 spec_id,
                 &config.json_rpc_url,
+                cache_dir.clone(),
                 config.block_number.map(U256::from),
             )
             .await?;
@@ -1014,6 +1016,7 @@ impl Server {
                 Arc::clone(&runtime),
                 Arc::new(parking_lot::Mutex::new(hash_generator)),
                 &config.json_rpc_url,
+                cache_dir,
                 fork_block_number,
                 genesis_accounts,
             )));

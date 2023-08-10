@@ -1,4 +1,5 @@
 use std::net::SocketAddr;
+use std::path::PathBuf;
 use std::{str::FromStr, time::SystemTime};
 
 use anyhow::anyhow;
@@ -41,6 +42,8 @@ pub const DEFAULT_PRIVATE_KEYS: [&str; 20] = [
     "df57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e",
 ];
 
+pub const DEFAULT_CACHE_DIR: &str = "./edr-cache";
+
 /// struct representing the deserialized conifguration file, eg hardhat.config.json
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(default)]
@@ -61,6 +64,7 @@ pub struct ConfigFile {
     pub initial_date: Option<SystemTime>,
     #[serde(deserialize_with = "u64_number")]
     pub network_id: Number,
+    pub cache_dir: PathBuf,
 }
 
 impl ConfigFile {
@@ -97,6 +101,7 @@ impl ConfigFile {
             initial_base_fee_per_gas: Some(self.initial_base_fee_per_gas.into()),
             initial_date: self.initial_date,
             network_id: cli_args.network_id.unwrap_or(self.network_id.try_into()?),
+            cache_dir: cli_args.cache_dir.unwrap_or(self.cache_dir),
         })
     }
 }
@@ -128,6 +133,7 @@ impl Default for ConfigFile {
             initial_base_fee_per_gas: Number::U256(U256::from(1000000000)),
             initial_date: None,
             network_id: chain_id,
+            cache_dir: DEFAULT_CACHE_DIR.into(),
         }
     }
 }

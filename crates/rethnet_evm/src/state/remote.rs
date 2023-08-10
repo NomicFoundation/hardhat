@@ -1,5 +1,6 @@
 mod cached;
 
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use revm::{
@@ -28,9 +29,9 @@ pub struct RemoteState {
 impl RemoteState {
     /// Construct a new instance using the URL of a remote Ethereum node and a
     /// block number from which data will be pulled.
-    pub fn new(runtime: Arc<Runtime>, url: &str, block_number: U256) -> Self {
+    pub fn new(runtime: Arc<Runtime>, url: &str, cache_dir: PathBuf, block_number: U256) -> Self {
         Self {
-            client: RpcClient::new(url),
+            client: RpcClient::new(url, cache_dir),
             runtime,
             block_number,
         }

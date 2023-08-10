@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use hashbrown::{HashMap, HashSet};
@@ -43,12 +44,13 @@ impl ForkState {
         runtime: Arc<Runtime>,
         hash_generator: Arc<Mutex<RandomHashGenerator>>,
         url: &str,
+        cache_dir: PathBuf,
         fork_block_number: U256,
         mut accounts: HashMap<Address, AccountInfo>,
     ) -> Self {
-        let rpc_client = RpcClient::new(url);
+        let rpc_client = RpcClient::new(url, cache_dir.clone());
 
-        let remote_state = RemoteState::new(runtime.clone(), url, fork_block_number);
+        let remote_state = RemoteState::new(runtime.clone(), url, cache_dir, fork_block_number);
 
         accounts.iter_mut().for_each(|(address, mut account_info)| {
             let nonce = runtime
