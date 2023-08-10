@@ -45,12 +45,11 @@ export async function getRemappings() {
 
         const [from, to] = fromTo;
 
-        // source names with "node_modules" in it have special treatment in hardhat core, so we skip them
-        if (to.includes("node_modules")) {
-          continue;
-        }
-
-        remappings[from] = to;
+        // if a remapping result starts with 'node_modules',
+        // we remove it from the string so that Hardhat can
+        // use node.js resolution to get this kind of dependencies
+        const nodeModulesPrefixRegex = /^\/?node_modules\/?/;
+        remappings[from] = to.replace(nodeModulesPrefixRegex, "");
       }
 
       return remappings;
