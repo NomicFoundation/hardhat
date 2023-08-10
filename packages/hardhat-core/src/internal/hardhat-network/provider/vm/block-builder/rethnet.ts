@@ -1,14 +1,9 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
-import {
-  BlockBuilder,
-  Blockchain,
-  Config,
-  PendingTransaction,
-} from "rethnet-evm";
+import { BlockBuilder, Blockchain, PendingTransaction } from "rethnet-evm";
 import { BlockBuilderAdapter, BuildBlockOpts, Reward } from "../block-builder";
-import { globalRethnetContext } from "../rethnet";
+import { globalRethnetContext, makeConfigOptions } from "../rethnet";
 import { RunTxResult } from "../vm-adapter";
 import { RethnetStateManager } from "../../RethnetState";
 import {
@@ -34,23 +29,15 @@ export class RethnetBlockBuilder implements BlockBuilderAdapter {
     blockchain: Blockchain,
     state: RethnetStateManager,
     vmTracer: VMTracer,
-    vmConfig: Config,
     common: Common,
-    opts: BuildBlockOpts
+    opts: BuildBlockOpts,
+    limitContractCodeSize: bigint | null
   ): Promise<RethnetBlockBuilder> {
     const blockBuilder = await BlockBuilder.create(
       globalRethnetContext,
       blockchain,
       state.asInner(),
-      {
-        chainId: common.chainId(),
-        specId: ethereumsjsHardforkToRethnet(
-          getHardforkName(common.hardfork())
-        ),
-        limitContractCodeSize: vmConfig.limitContractCodeSize ?? undefined,
-        disableBlockGasLimit: vmConfig.disableBlockGasLimit,
-        disableEip3607: vmConfig.disableEip3607,
-      },
+      makeConfigOptions(common, false, true, limitContractCodeSize),
       ethereumjsBlockHeaderToRethnet(opts.parentBlock.header),
       ethereumjsHeaderDataToRethnetBlockOptions(opts.headerData)
     );
