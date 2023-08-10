@@ -1,6 +1,6 @@
-///////////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////////
 ///                             EXPLANATION                                 ///
-///////////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////////
 ///
 /// This is meant to be a lower-level equivalent of chain dispatcher.
 /// This should be the ONLY module accessing the network, and the only
@@ -12,11 +12,11 @@
 ///
 /// This module is intentionally low-level and should be used by modules
 /// that construct on top of it. For that reason, it's stateless.
-///////////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////////
 ///                                   TODO                                  ///
-///////////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////////
 ///
 /// This module is missing the following functions:
 /// `getTransactionCount(provider:EIP1193Provider, address:string, blockTag:"pending"|"latest"|number):Promise<number>`
@@ -27,7 +27,7 @@
 ///  And the following type defintions: Transaction, TransactionReceipt, Block
 ///  These types should only contain the fields that are used by the rest of
 ///  the system. We don't need to be exhaustive.
-///////////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////////
 
 import { EIP1193Provider } from "../../types/provider";
 
@@ -111,7 +111,7 @@ export async function call(
     });
 
     if (typeof response !== "string") {
-      throw new Error("Invalid response " + response);
+      throw new Error(`Invalid response ${response}`);
     }
 
     return response;
@@ -126,7 +126,7 @@ export async function call(
 
       // Geth returns an error object with this code when the call fails
       // without ruturning data.
-      if ("code" in error && error.code == -32000) {
+      if ("code" in error && error.code === -32000) {
         return {
           returnData: "0x",
           isCustomError: false,
@@ -173,7 +173,7 @@ export async function sendTransaction(
     });
 
     if (typeof response !== "string") {
-      throw new Error("Invalid response " + response);
+      throw new Error(`Invalid response ${response}`);
     }
 
     return response;
@@ -216,7 +216,7 @@ export async function estimateGas(
   });
 
   if (typeof response !== "string") {
-    throw new Error("Invalid response " + response);
+    throw new Error(`Invalid response ${response}`);
   }
 
   return jsonRpcQuantityToBigInt(response);
@@ -263,7 +263,7 @@ function bigIntToJsonRpcQuantity(value: bigint): string {
   const hex = value.toString(16);
   const trimmedLeadingZeros = hex.replace(/^0+/, "");
 
-  return "0x" + trimmedLeadingZeros;
+  return `0x${trimmedLeadingZeros}`;
 }
 
 /**

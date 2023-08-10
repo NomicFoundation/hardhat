@@ -1,7 +1,9 @@
 import type { Result } from "ethers";
+
 import { Artifact } from "../../types/artifact";
 import { SolidityParameterType } from "../../types/module";
 import { collectLibrariesAndLink } from "../utils/collectLibrariesAndLink";
+
 import {
   EvmExecutionResultTypes,
   EvmValues,
@@ -9,7 +11,7 @@ import {
   RevertWithCustomError,
   RevertWithInvalidData,
   SuccessfulEvmExecutionResult,
-} from "./new-state-types";
+} from "./types/evm-execution";
 
 // TODO: This should be sync, it's only async because of collectLibrariesAndLink
 export async function encodeArtifactDeploymentData(
