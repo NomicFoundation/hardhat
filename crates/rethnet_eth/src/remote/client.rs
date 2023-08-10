@@ -5,7 +5,7 @@ use std::{
 
 use itertools::Itertools;
 use revm_primitives::{AccountInfo, Address, Bytecode, B256, KECCAK_EMPTY, U256};
-use tokio::sync::RwLock;
+use tokio::sync::OnceCell;
 
 use crate::{log::FilterLog, receipt::BlockReceipt, serde::ZeroXPrefixedBytes};
 
@@ -84,7 +84,7 @@ struct BatchResponse {
 #[derive(Debug)]
 pub struct RpcClient {
     url: String,
-    chain_id: RwLock<Option<U256>>,
+    chain_id: OnceCell<U256>,
     client: reqwest::Client,
     next_id: AtomicU64,
 }
@@ -278,7 +278,7 @@ impl RpcClient {
     pub fn new(url: &str) -> Self {
         RpcClient {
             url: url.to_string(),
-            chain_id: RwLock::default(),
+            chain_id: OnceCell::new(),
             client: reqwest::Client::new(),
             next_id: AtomicU64::new(0),
         }
@@ -291,24 +291,13 @@ impl RpcClient {
 
     /// Calls `eth_chainId` and returns the chain ID.
     pub async fn chain_id(&self) -> Result<U256, RpcClientError> {
-        // It's important to drop the read guard here, otherwise we'll deadlock when trying to
-        // acquire the write guard.
-        let chain_id = { *self.chain_id.read().await };
-
-        if let Some(chain_id) = chain_id {
-            Ok(chain_id)
-        } else {
-            // It's important to call without cache here to avoid infinite recursion as this method
-            // is called as part of constructing the cache path.
-            let chain_id: U256 = self
-                .call_without_cache(&MethodInvocation::ChainId())
-                .await?;
-            {
-                let mut chain_id_guard = self.chain_id.write().await;
-                *chain_id_guard = Some(chain_id);
-            }
-            Ok(chain_id)
-        }
+        let chain_id = *self
+            .chain_id
+            .get_or_try_init(|| async {
+                self.call_without_cache(&MethodInvocation::ChainId()).await
+            })
+            .await?;
+        Ok(chain_id)
     }
 
     /// Submit a consolidated batch of RPC method invocations in order to obtain the set of data
