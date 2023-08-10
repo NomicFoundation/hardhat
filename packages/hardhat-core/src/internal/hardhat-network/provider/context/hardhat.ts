@@ -1,6 +1,11 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import { Address } from "@nomicfoundation/ethereumjs-util";
+import {
+  Address,
+  bufArrToArr,
+  bufferToHex,
+  toBuffer,
+} from "@nomicfoundation/ethereumjs-util";
 import { EthContextAdapter } from "../context";
 import { MemPoolAdapter } from "../mem-pool";
 import { BlockMinerAdapter } from "../miner";
@@ -29,6 +34,7 @@ import { HardhatBlockchain } from "../HardhatBlockchain";
 import { HardhatMemPool } from "../mem-pool/hardhat";
 import { makeGenesisBlock } from "../utils/putGenesisBlock";
 import { BlockchainAdapter } from "../blockchain";
+import { RLP } from "@nomicfoundation/ethereumjs-rlp";
 
 export class HardhatEthContext implements EthContextAdapter {
   constructor(

@@ -37,13 +37,13 @@ export class RethnetMemPool implements MemPoolAdapter {
   }
 
   public async getNextPendingNonce(accountAddress: Address): Promise<bigint> {
-    const lastNonce =
-      (await this._memPool.lastPendingNonce(accountAddress.buf)) ??
-      (await this._stateManager.getAccountByAddress(accountAddress.buf))
-        ?.nonce ??
-      0n;
-
-    return BigInt(lastNonce) + 1n;
+    const lastPendingNonce = await this._memPool.lastPendingNonce(
+      accountAddress.buf
+    );
+    return lastPendingNonce !== null
+      ? lastPendingNonce + 1n
+      : (await this._stateManager.getAccountByAddress(accountAddress.buf))
+          ?.nonce ?? 0n;
   }
 
   public async addTransaction(transaction: TypedTransaction): Promise<void> {

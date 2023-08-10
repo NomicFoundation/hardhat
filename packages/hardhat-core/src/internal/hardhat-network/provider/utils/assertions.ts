@@ -2,9 +2,10 @@ import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Log } from "@nomicfoundation/ethereumjs-evm";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
+import { TxReceipt } from "@nomicfoundation/ethereumjs-vm";
 import { InternalError } from "../../../core/providers/errors";
 import { ExitCode } from "../vm/exit";
-import { RunTxResult } from "../vm/vm-adapter";
+import { RunBlockResult, RunTxResult } from "../vm/vm-adapter";
 import { RpcLogOutput, RpcReceiptOutput } from "../output";
 
 export function assertHardhatNetworkInvariant(
@@ -211,6 +212,7 @@ export function assertEqualBlocks(ethereumJSBlock: Block, rethnetBlock: Block) {
   }
 
   if (differences.length !== 0) {
+    console.trace(`Different blocks: ${differences}`);
     throw new Error(`Different blocks: ${differences}`);
   }
 }
@@ -301,6 +303,64 @@ export function transactionDifferences(
   }
 
   return differences;
+}
+
+export function assertEqualRunBlockResults(
+  ethereumJSResult: RunBlockResult,
+  rethnetResult: RunBlockResult
+) {
+  if (ethereumJSResult.results.length !== rethnetResult.results.length) {
+    console.log(
+      `Different results length: ${ethereumJSResult.results.length} (ethereumjs) !== ${rethnetResult.results.length} (rethnet)`
+    );
+    throw new Error("Different results length");
+  }
+
+  for (let txIdx = 0; txIdx < ethereumJSResult.results.length; ++txIdx) {
+    assertEqualRunTxResults(
+      ethereumJSResult.results[txIdx],
+      rethnetResult.results[txIdx]
+    );
+  }
+
+  for (
+    let receiptIdx = 0;
+    receiptIdx < ethereumJSResult.receipts.length;
+    ++receiptIdx
+  ) {
+    assertEqualTxReceipts(
+      ethereumJSResult.receipts[receiptIdx],
+      rethnetResult.receipts[receiptIdx]
+    );
+  }
+
+  if (!ethereumJSResult.stateRoot.equals(rethnetResult.stateRoot)) {
+    console.log(
+      `Different stateRoot: ${ethereumJSResult.stateRoot} (ethereumjs) !== ${rethnetResult.stateRoot} (rethnet)`
+    );
+    throw new Error("Different stateRoot");
+  }
+
+  if (!ethereumJSResult.logsBloom.equals(rethnetResult.logsBloom)) {
+    console.log(
+      `Different logsBloom: ${ethereumJSResult.logsBloom} (ethereumjs) !== ${rethnetResult.logsBloom} (rethnet)`
+    );
+    throw new Error("Different logsBloom");
+  }
+
+  if (!ethereumJSResult.receiptsRoot.equals(rethnetResult.receiptsRoot)) {
+    console.log(
+      `Different receiptsRoot: ${ethereumJSResult.receiptsRoot} (ethereumjs) !== ${rethnetResult.receiptsRoot} (rethnet)`
+    );
+    throw new Error("Different receiptsRoot");
+  }
+
+  if (ethereumJSResult.gasUsed !== rethnetResult.gasUsed) {
+    console.log(
+      `Different gasUsed: ${ethereumJSResult.gasUsed} (ethereumjs) !== ${rethnetResult.gasUsed} (rethnet)`
+    );
+    throw new Error("Different gasUsed");
+  }
 }
 
 export function assertEqualRunTxResults(
@@ -472,6 +532,32 @@ export function assertEqualOptionalReceipts(
 
     assertEqualReceipts(hardhatReceipt, rethnetReceipt);
   }
+}
+
+export function assertEqualTxReceipts(
+  hardhatReceipt: TxReceipt,
+  rethnetReceipt: TxReceipt
+) {
+  // TODO: check stateRoot and status
+
+  if (!hardhatReceipt.bitvector.equals(rethnetReceipt.bitvector)) {
+    console.log(
+      `Different bitvector: ${hardhatReceipt.bitvector} (hardhat) !== ${rethnetReceipt.bitvector} (rethnet)`
+    );
+    throw new Error("Different bitvector");
+  }
+
+  if (
+    hardhatReceipt.cumulativeBlockGasUsed !==
+    rethnetReceipt.cumulativeBlockGasUsed
+  ) {
+    console.log(
+      `Different cumulativeBlockGasUsed: ${hardhatReceipt.cumulativeBlockGasUsed} (hardhat) !== ${rethnetReceipt.cumulativeBlockGasUsed} (rethnet)`
+    );
+    throw new Error("Different cumulativeBlockGasUsed");
+  }
+
+  assertEqualExecutionLogs(hardhatReceipt.logs, rethnetReceipt.logs);
 }
 
 export function assertEqualReceipts(

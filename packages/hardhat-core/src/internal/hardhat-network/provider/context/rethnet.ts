@@ -25,6 +25,8 @@ import { RethnetMemPool } from "../mem-pool/rethnet";
 import { makeCommon } from "../utils/makeCommon";
 import { HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS } from "../../../core/config/default-config";
 import { makeGenesisBlock } from "../utils/putGenesisBlock";
+import { RandomBufferGenerator } from "../utils/random";
+import { Block } from "@nomicfoundation/ethereumjs-block";
 
 // Only one is allowed to exist
 export const globalRethnetContext = new RethnetContext();
@@ -81,19 +83,27 @@ export class RethnetEthContext implements EthContextAdapter {
         ? initialBaseFeePerGas
         : undefined;
 
+      const prevRandaoGenerator =
+        RandomBufferGenerator.create("randomMixHashSeed");
+
       const genesisBlockHeader = makeGenesisBlock(
         config,
         await state.getStateRoot(),
         hardforkName,
-        globalRethnetContext.nextMixHash(),
+        prevRandaoGenerator.next(),
         genesisBlockBaseFeePerGas
       );
+
+      const withdrawals = common.gteHardfork(HardforkName.SHANGHAI)
+        ? []
+        : undefined;
 
       blockchain = new RethnetBlockchain(
         Blockchain.withGenesisBlock(
           common.chainId(),
           ethereumsjsHardforkToRethnetSpecId(hardforkName),
-          ethereumjsHeaderDataToRethnetBlockOptions(genesisBlockHeader)
+          ethereumjsHeaderDataToRethnetBlockOptions(genesisBlockHeader),
+          withdrawals
         ),
         common
       );

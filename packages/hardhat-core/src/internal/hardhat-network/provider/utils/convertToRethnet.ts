@@ -445,7 +445,7 @@ export function rethnetResultToRunTxResult(
     receipt: {
       // Receipts have a 0 as status on error
       status: exit.isError() ? 0 : 1,
-      cumulativeBlockGasUsed: blockGasUsed + rethnetResult.result.gasUsed,
+      cumulativeBlockGasUsed: blockGasUsed,
       bitvector: bloom.bitvector,
       logs: isSuccessResult(rethnetResult.result)
         ? rethnetResult.result.logs.map((log) => {

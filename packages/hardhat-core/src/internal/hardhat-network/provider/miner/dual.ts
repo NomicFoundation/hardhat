@@ -1,4 +1,8 @@
 import { BlockMinerAdapter, PartialMineBlockResult } from "../miner";
+import {
+  assertEqualBlocks,
+  assertEqualRunBlockResults,
+} from "../utils/assertions";
 
 export class DualBlockMiner implements BlockMinerAdapter {
   constructor(
@@ -11,7 +15,7 @@ export class DualBlockMiner implements BlockMinerAdapter {
     minerReward: bigint,
     baseFeePerGas?: bigint
   ): Promise<PartialMineBlockResult> {
-    const _ethereumJSResult = await this._ethereumJSMiner.mineBlock(
+    const ethereumJSResult = await this._ethereumJSMiner.mineBlock(
       blockTimestamp,
       minerReward,
       baseFeePerGas
@@ -22,7 +26,13 @@ export class DualBlockMiner implements BlockMinerAdapter {
       baseFeePerGas
     );
 
-    // TODO: assert
+    assertEqualBlocks(ethereumJSResult.block, rethnetResult.block);
+    assertEqualRunBlockResults(
+      ethereumJSResult.blockResult,
+      rethnetResult.blockResult
+    );
+
+    // TODO: assert traces
 
     return rethnetResult;
   }
