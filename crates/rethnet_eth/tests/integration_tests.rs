@@ -6,7 +6,7 @@ use rethnet_eth::{
         filter::{
             FilterBlockTarget, FilterOptions, LogOutput, OneOrMoreAddresses, SubscriptionType,
         },
-        methods::{GetLogsInput, MethodInvocation, TransactionInput, U256OrUsize},
+        methods::{GetLogsInput, MethodInvocation, OneUsizeOrTwo, TransactionInput, U256OrUsize},
         BlockSpec, BlockTag,
     },
     Address, B256, U256,
@@ -448,6 +448,16 @@ fn test_serde_web3_sha3() {
 #[test]
 fn test_evm_set_automine() {
     help_test_method_invocation_serde(MethodInvocation::EvmSetAutomine(false));
+}
+
+#[test]
+fn test_evm_set_interval_mining() {
+    help_test_method_invocation_serde(MethodInvocation::EvmSetIntervalMining(OneUsizeOrTwo::One(
+        1000,
+    )));
+    help_test_method_invocation_serde(MethodInvocation::EvmSetIntervalMining(OneUsizeOrTwo::Two(
+        [1000, 5000],
+    )));
 }
 
 #[test]
