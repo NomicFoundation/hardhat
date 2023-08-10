@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-chai-matchers
 
+## 2.0.2
+
+### Patch Changes
+
+- f324b3a33: Forbid chaining incompatible chai matchers
+
 ## 2.0.1
 
 ### Patch Changes

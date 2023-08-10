@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-foundry
 
+## 1.0.3
+
+### Patch Changes
+
+- 3bdc9d6bb: Fixed a bug related to remappings that use the node_modules directory
+
 ## 1.0.2
 
 ### Patch Changes

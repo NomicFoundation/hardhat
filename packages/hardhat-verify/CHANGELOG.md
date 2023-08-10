@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 1.1.1
+
+### Patch Changes
+
+- 4ed196924: Added `base` mainnet
+
 ## 1.1.0
 
 ### Minor Changes
