@@ -91,26 +91,28 @@ pub struct RpcClient {
 
 impl RpcClient {
     fn extract_response<T>(
-        response: &str,
-        request_id: &jsonrpc::Id,
-        request: String,
+        request: SerializedRequest,
+        response: String,
     ) -> Result<T, RpcClientError>
     where
         T: for<'a> serde::Deserialize<'a>,
     {
         let response: jsonrpc::Response<T> =
-            serde_json::from_str(response).map_err(|error| RpcClientError::InvalidResponse {
-                response: response.to_string(),
+            serde_json::from_str(&response).map_err(|error| RpcClientError::InvalidResponse {
+                response,
                 expected_type: std::any::type_name::<T>(),
                 error,
             })?;
 
-        debug_assert_eq!(response.id, *request_id);
+        debug_assert_eq!(response.id, request.id);
 
         response
             .data
             .into_result()
-            .map_err(|error| RpcClientError::JsonRpcError { error, request })
+            .map_err(|error| RpcClientError::JsonRpcError {
+                error,
+                request: request.request,
+            })
     }
 
     fn hash_string(input: &str) -> String {
@@ -217,26 +219,27 @@ impl RpcClient {
             .map_err(RpcClientError::CorruptedResponse)
     }
 
-    fn request_to_string(&self, input: &MethodInvocation) -> (jsonrpc::Id, String) {
-        let request_id = jsonrpc::Id::Num(self.next_id.fetch_add(1, Ordering::Relaxed));
+    fn serialize_request(&self, input: &MethodInvocation) -> SerializedRequest {
+        let id = jsonrpc::Id::Num(self.next_id.fetch_add(1, Ordering::Relaxed));
         let request = serde_json::json!(Request {
             version: crate::remote::jsonrpc::Version::V2_0,
-            id: request_id.clone(),
+            id: id.clone(),
             method: input.clone(),
         })
         .to_string();
-        (request_id, request)
+
+        SerializedRequest { id, request }
     }
 
     async fn call<T>(&self, input: &MethodInvocation) -> Result<T, RpcClientError>
     where
         T: for<'a> serde::Deserialize<'a>,
     {
-        let (request_id, request) = self.request_to_string(input);
+        let request = self.serialize_request(input);
 
-        self.send_request_body_with_cache(&request)
+        self.send_request_body_with_cache(&request.request)
             .await
-            .and_then(|response| Self::extract_response(&response, &request_id, request))
+            .and_then(|response| Self::extract_response(request, response))
     }
 
     // We have two different `call` methods to avoid creating recursive async functions as the
@@ -245,11 +248,11 @@ impl RpcClient {
     where
         T: for<'a> serde::Deserialize<'a>,
     {
-        let (request_id, request) = self.request_to_string(input);
+        let request = self.serialize_request(input);
 
-        self.send_request_body(&request)
+        self.send_request_body(&request.request)
             .await
-            .and_then(|response| Self::extract_response(&response, &request_id, request))
+            .and_then(|response| Self::extract_response(request, response))
     }
 
     async fn batch_call(
@@ -258,10 +261,7 @@ impl RpcClient {
     ) -> Result<BatchResponse, RpcClientError> {
         let request_strings: Vec<String> = inputs
             .iter()
-            .map(|i| {
-                let (_, request) = self.request_to_string(i);
-                request
-            })
+            .map(|i| self.serialize_request(i).request)
             .collect();
 
         let request_body = format!("[{}]", request_strings.join(","));
@@ -518,6 +518,12 @@ impl RpcClient {
     pub async fn network_id(&self) -> Result<U256, RpcClientError> {
         self.call(&MethodInvocation::NetVersion()).await
     }
+}
+
+#[derive(Debug)]
+struct SerializedRequest {
+    id: jsonrpc::Id,
+    request: String,
 }
 
 #[cfg(test)]
