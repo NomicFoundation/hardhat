@@ -13,6 +13,11 @@ import {
   SuccessfulEvmExecutionResult,
 } from "./types/evm-execution";
 
+/**
+ * Links the libraries in the artifact's deployment bytecode, encodes the constructor
+ * arguments and returns the result, which can be used as the `data` field of a
+ * deployment.
+ */
 // TODO: This should be sync, it's only async because of collectLibrariesAndLink
 export async function encodeArtifactDeploymentData(
   artifact: Artifact,
@@ -28,6 +33,9 @@ export async function encodeArtifactDeploymentData(
   return linkedBytecode + encodedArgs.slice(2);
 }
 
+/**
+ * Encodes a function call for the given artifact and function name.
+ */
 // TODO: Handle overloads
 export function encodeArtifactFunctionCall(
   artifact: Artifact,
@@ -39,6 +47,10 @@ export function encodeArtifactFunctionCall(
   return iface.encodeFunctionData(functionName, args);
 }
 
+/**
+ * Decodes a custom error from the given return data, if it's recognized
+ * as one of the artifact's custom errors.
+ */
 export function decodeArtifactCustomError(
   artifact: Artifact,
   returnData: string
@@ -74,6 +86,9 @@ export function decodeArtifactCustomError(
   }
 }
 
+/**
+ * Decode the result of a successful function call.
+ */
 export function decodeArtifactFunctionCallResult(
   artifact: Artifact,
   functionName: string,
