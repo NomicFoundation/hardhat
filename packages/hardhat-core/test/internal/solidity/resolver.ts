@@ -612,7 +612,7 @@ describe("TASK_COMPILE: the file to compile is trying to import a directory", fu
   });
 
   describe("Import folder from path", () => {
-    useFixtureProject("compilation-import-folder-relative-path");
+    useFixtureProject("compilation-import-folder-from-path");
     useEnvironment();
 
     it("should throw an error because a directory is trying to be imported", async function () {
@@ -621,23 +621,40 @@ describe("TASK_COMPILE: the file to compile is trying to import a directory", fu
           await this.env.run(TASK_COMPILE);
         },
         ERRORS.RESOLVER.INVALID_IMPORT_OF_DIRECTORY,
-        "HH414: Invalid import ../contracts/dependency from contracts/A.sol. Attempting to import a directory. Directories cannot be imported."
+        "HH414: Invalid import ../contracts from contracts/A.sol. Attempting to import a directory. Directories cannot be imported."
       );
     });
   });
 });
 
 describe("TASK_COMPILE: the file to compile is trying to import a non existing file", function () {
-  useFixtureProject("compilation-import-non-existing-file");
-  useEnvironment();
+  describe("Trying to import file from module", () => {
+    useFixtureProject("compilation-import-non-existing-file-from-module");
+    useEnvironment();
 
-  it("should throw an error because a directory is trying to be imported", async function () {
-    await expectHardhatErrorAsync(
-      async () => {
-        await this.env.run(TASK_COMPILE);
-      },
-      ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND,
-      "HH404: File some-lib/nonExistingFile.sol, imported from contracts/A.sol, not found."
-    );
+    it("should throw an error because a directory is trying to be imported", async function () {
+      await expectHardhatErrorAsync(
+        async () => {
+          await this.env.run(TASK_COMPILE);
+        },
+        ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND,
+        "HH404: File some-lib/nonExistingFile.sol, imported from contracts/A.sol, not found."
+      );
+    });
+  });
+
+  describe("Trying to import file from path", () => {
+    useFixtureProject("compilation-import-non-existing-file-from-path");
+    useEnvironment();
+
+    it("should throw an error because a directory is trying to be imported", async function () {
+      await expectHardhatErrorAsync(
+        async () => {
+          await this.env.run(TASK_COMPILE);
+        },
+        ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND,
+        "HH404: File ../nonExistingFile.sol, imported from contracts/A.sol, not found."
+      );
+    });
   });
 });

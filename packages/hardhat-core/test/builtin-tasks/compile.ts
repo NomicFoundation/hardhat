@@ -144,7 +144,7 @@ describe("compile task", function () {
   describe("TASK_COMPILE_SOLIDITY_READ_FILE", function () {
     describe("Import folder", () => {
       const folderName = "compilation-single-file";
-      useFixtureProject(folderName); // Random hardhat project, the test result depends on the value stored inside var 'absolutePath'
+      useFixtureProject(folderName); // Random hardhat project, the test result depends on the value stored inside the var 'absolutePath'
       useEnvironment();
 
       it("should throw an error because a directory is trying to be imported", async function () {
@@ -163,8 +163,8 @@ describe("compile task", function () {
     });
 
     describe("A non specific Hardhat error is thrown (expected default error)", () => {
-      const folderName = "compilation-import-non-existing-file";
-      useFixtureProject("compilation-import-non-existing-file");
+      const folderName = "compilation-import-non-existing-file-from-path";
+      useFixtureProject(folderName);
       useEnvironment();
 
       it("should throw an error because the file does not exist", async function () {
