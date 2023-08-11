@@ -21,6 +21,13 @@ export enum NetworkInteractionType {
 /**
  * This interface represents an any kind of interaction between Ethereum accounts that
  * needs to be executed onchain.
+ *
+ * Note that an onchain interaction nonce is only available when a transaction using it
+ * was send. That means that `nonce === undefined` if and only if the transactions array
+ * is empty.
+ *
+ * If the `nonce` is not undefined, all the transactions in the transactions array have
+ * been sent using that nonce.
  **/
 export interface OnchainInteraction {
   id: number;
@@ -35,9 +42,6 @@ export interface OnchainInteraction {
 
 /**
  * This interface represents a static call to the Ethereum network.
- *
- * Note that static calls are always immediately resolved, so their result
- * is always available.
  **/
 export interface StaticCall {
   id: number;
