@@ -123,7 +123,7 @@ describe("Debug module", function () {
           });
         });
 
-        it.skip("Should return the right values for successful contract tx", async function () {
+        it("Should return the right values for successful contract tx", async function () {
           const contractAddress = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`,
@@ -245,7 +245,7 @@ describe("Debug module", function () {
       );
     });
 
-    it.skip("Should return the right values for a successful tx", async function () {
+    it("Should return the right values for a successful tx", async function () {
       const trace: RpcDebugTraceOutput = await provider.send(
         "debug_traceTransaction",
         ["0x89ebeb319fcd7bda9c7f8c1b78a7571842a705425b175f24f34fe8e6c60580d4"]
@@ -255,7 +255,7 @@ describe("Debug module", function () {
       assertEqualTraces(trace, mainnetReturnsDataTraceGeth);
     });
 
-    it.skip("Should return the right values for a reverted tx", async function () {
+    it("Should return the right values for a reverted tx", async function () {
       const trace: RpcDebugTraceOutput = await provider.send(
         "debug_traceTransaction",
         ["0x6214b912cc9916d8b7bf5f4ff876e259f5f3754ddebb6df8c8e897cad31ae148"]
@@ -285,7 +285,7 @@ describe("Debug module", function () {
       });
     });
 
-    it.skip("Should respect the disableStack option", async function () {
+    it("Should respect the disableStack option", async function () {
       const trace: RpcDebugTraceOutput = await provider.send(
         "debug_traceTransaction",
         [
@@ -306,7 +306,7 @@ describe("Debug module", function () {
       });
     });
 
-    it.skip("Should respect the disableStorage option", async function () {
+    it("Should respect the disableStorage option", async function () {
       const trace: RpcDebugTraceOutput = await provider.send(
         "debug_traceTransaction",
         [
@@ -370,7 +370,7 @@ describe("Debug module", function () {
     });
 
     // see https://github.com/NomicFoundation/hardhat/issues/3519
-    it.skip("Should return the right values for a successful tx", async function () {
+    it("Should return the right values for a successful tx", async function () {
       const trace: RpcDebugTraceOutput = await provider.send(
         "debug_traceTransaction",
         ["0xe0b1f8e11eb822107ddc35ce2d944147cc043acf680c39332ee95dd6508d107e"]

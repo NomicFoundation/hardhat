@@ -283,7 +283,11 @@ export class VMDebugTracer {
         // the increase in memory size of a revert is immediately
         // reflected, so we don't treat it as a memory expansion
         // of the previous step
-        if (structLog.op !== "REVERT") {
+        if (
+          structLog.op !== "REVERT" &&
+          (previousStructLog.op === "MSTORE" ||
+            previousStructLog.op === "MLOAD")
+        ) {
           const memoryLengthDifference =
             structLog.memory.length - previousStructLog.memory.length;
           for (let k = 0; k < memoryLengthDifference; k++) {
@@ -319,9 +323,9 @@ export class VMDebugTracer {
       .toString("hex")
       .match(/.{1,64}/g);
 
-    const result = memory === null ? [] : [...memory];
-
-    return result;
+    return memory === null
+      ? []
+      : memory?.slice(0, Number(step.memoryWordCount)); // Remove the additional non allocated memory
   }
 
   private _getStack(step: InterpreterStep): string[] {
