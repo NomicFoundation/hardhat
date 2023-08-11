@@ -13,8 +13,10 @@ use crate::{
 };
 
 /// Asynchronous implementation of the Database super-trait
-pub type SyncDatabase<'b, 's, BlockchainErrorT, StateErrorT> =
-    DatabaseComponents<&'s dyn SyncState<StateErrorT>, &'b dyn SyncBlockchain<BlockchainErrorT>>;
+pub type SyncDatabase<'blockchain, 'state, BlockchainErrorT, StateErrorT> = DatabaseComponents<
+    &'state dyn SyncState<StateErrorT>,
+    &'blockchain dyn SyncBlockchain<BlockchainErrorT>,
+>;
 
 /// Runs a transaction without committing the state.
 #[cfg_attr(feature = "tracing", tracing::instrument)]
