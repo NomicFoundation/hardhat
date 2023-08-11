@@ -1336,7 +1336,10 @@ describe("Artifacts class", function () {
       const artifacts = new Artifacts(this.tmpDir);
 
       // FQN, missing artifact
-      assert.isFalse(await artifacts.artifactExists("invalid/source.sol:A"));
+      // FQN, missing file
+      assert.isFalse(await artifacts.artifactExists("invalid/source.sol:Interface"));
+      // FQN, missing artifact
+      assert.isFalse(await artifacts.artifactExists("source.sol:A"));
       // FQN, wrong casing
       assert.isFalse(await artifacts.artifactExists("source.sol:interface"));
       // non-FQN, missing artifact
