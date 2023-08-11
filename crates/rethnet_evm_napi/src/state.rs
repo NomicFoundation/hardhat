@@ -14,7 +14,6 @@ use napi::{
     Env, JsFunction, JsObject, JsString, NapiRaw, Status,
 };
 use napi_derive::napi;
-use rethnet::config::DEFAULT_CACHE_DIR;
 use rethnet_eth::{signature::private_key_to_address, Address, Bytes, B256, U256};
 use rethnet_evm::{
     state::{AccountModifierFn, ForkState, HybridState, StateError, StateHistory, SyncState},
@@ -161,7 +160,9 @@ impl StateManager {
         cache_dir: Option<String>,
     ) -> napi::Result<Self> {
         let fork_block_number: U256 = BigInt::try_cast(fork_block_number)?;
-        let cache_dir: PathBuf = cache_dir.unwrap_or_else(|| DEFAULT_CACHE_DIR.into()).into();
+        let cache_dir: PathBuf = cache_dir
+            .unwrap_or_else(|| rethnet_defaults::CACHE_DIR.into())
+            .into();
 
         let accounts = genesis_accounts(accounts)?;
         Self::with_state(

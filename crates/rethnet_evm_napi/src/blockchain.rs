@@ -9,7 +9,6 @@ use napi::{
 };
 use napi_derive::napi;
 
-use rethnet::config::DEFAULT_CACHE_DIR;
 use rethnet_eth::{B256, U256};
 use rethnet_evm::blockchain::{BlockchainError, SyncBlockchain};
 
@@ -133,7 +132,7 @@ impl Blockchain {
         })?;
         let cache_dir = cache_dir
             .map(PathBuf::from)
-            .unwrap_or_else(|| DEFAULT_CACHE_DIR.into());
+            .unwrap_or_else(|| rethnet_defaults::CACHE_DIR.into());
 
         let runtime = context.runtime().clone();
 

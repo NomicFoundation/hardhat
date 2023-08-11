@@ -12,6 +12,7 @@ crossbeam-channel = { version = "0.5.6", default-features = false }
 napi = { version = "2.12.4", default-features = false, features = ["async", "error_anyhow", "napi8", "serde-json"] }
 napi-derive = "2.12.3"
 rethnet = { version = "0.1.0-dev", path = "../rethnet" }
+rethnet_defaults = { version = "0.1.0-dev", path = "../rethnet_defaults" }
 rethnet_evm = { version = "0.1.0-dev", path = "../rethnet_evm" }
 rethnet_eth = { version = "0.1.0-dev", path = "../rethnet_eth" }
 secp256k1 = { version = "0.24.0", default-features = false, features = ["alloc"] }
