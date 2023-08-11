@@ -144,7 +144,7 @@ describe("compile task", function () {
   describe("TASK_COMPILE_SOLIDITY_READ_FILE", function () {
     describe("Import folder", () => {
       const folderName = "compilation-single-file";
-      useFixtureProject(folderName); // Random hardhat project
+      useFixtureProject(folderName); // Random hardhat project, the test result depends on the value stored inside var 'absolutePath'
       useEnvironment();
 
       it("should throw an error because a directory is trying to be imported", async function () {
