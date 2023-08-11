@@ -40,7 +40,7 @@ impl From<u64> for U64 {
 }
 
 /// for representing block specifications per EIP-1898
-#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum Eip1898BlockSpec {
     /// to represent the Object { blockHash, requireCanonical } in EIP-1898
@@ -65,7 +65,7 @@ impl Display for Eip1898BlockSpec {
 }
 
 /// possible block tags as defined by the Ethereum JSON-RPC specification
-#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub enum BlockTag {
     /// earliest
     #[serde(rename = "earliest")]
@@ -97,7 +97,7 @@ impl Display for BlockTag {
 }
 
 /// For specifying a block
-#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum BlockSpec {
     /// as a block number

@@ -12,7 +12,7 @@ use rethnet_eth::{
         client::Request as RpcRequest,
         filter::FilteredEvents,
         jsonrpc,
-        methods::{MethodInvocation as EthMethodInvocation, U256OrUsize},
+        methods::{CacheableMethodInvocation::*, NonCacheableMethodInvocation::*, U256OrUsize},
         BlockSpec,
     },
     serde::ZeroXPrefixedBytes,
@@ -22,7 +22,7 @@ use rethnet_eth::{
 use rethnet_evm::{AccountInfo, KECCAK_EMPTY};
 
 use rethnet_rpc_server::{
-    AccountConfig, Config, HardhatMethodInvocation, MethodInvocation, RpcHardhatNetworkConfig,
+    AccountConfig, Config, HardhatMethodInvocation::*, MethodInvocation, RpcHardhatNetworkConfig,
     Server,
 };
 
@@ -102,7 +102,7 @@ async fn submit_request(address: &SocketAddr, request: &RpcRequest<MethodInvocat
 
 async fn verify_response<ResponseT>(
     fixture: &TestFixture,
-    method: MethodInvocation,
+    method: impl Into<MethodInvocation>,
     response: ResponseT,
 ) where
     ResponseT: serde::de::DeserializeOwned + std::fmt::Debug + std::cmp::PartialEq,
@@ -110,7 +110,7 @@ async fn verify_response<ResponseT>(
     let request = RpcRequest {
         version: jsonrpc::Version::V2_0,
         id: jsonrpc::Id::Num(0),
-        method,
+        method: method.into(),
     };
 
     let expected_response = jsonrpc::Response::<ResponseT> {
@@ -131,7 +131,7 @@ async fn verify_response<ResponseT>(
 async fn test_accounts() {
     verify_response(
         &start_server().await,
-        MethodInvocation::Eth(EthMethodInvocation::Accounts()),
+        Accounts(),
         vec![private_key_to_address(&Secp256k1::signing_only(), PRIVATE_KEY).unwrap()],
     )
     .await;
@@ -139,29 +139,19 @@ async fn test_accounts() {
 
 #[tokio::test]
 async fn test_block_number() {
-    verify_response(
-        &start_server().await,
-        MethodInvocation::Eth(EthMethodInvocation::BlockNumber()),
-        U256::ZERO,
-    )
-    .await;
+    verify_response(&start_server().await, BlockNumber(), U256::ZERO).await;
 }
 
 #[tokio::test]
 async fn test_chain_id() {
-    verify_response(
-        &start_server().await,
-        MethodInvocation::Eth(EthMethodInvocation::ChainId()),
-        U64::from(1),
-    )
-    .await;
+    verify_response(&start_server().await, ChainId(), U64::from(1)).await;
 }
 
 #[tokio::test]
 async fn test_coinbase() {
     verify_response(
         &start_server().await,
-        MethodInvocation::Eth(EthMethodInvocation::Coinbase()),
+        Coinbase(),
         Address::from_low_u64_ne(1),
     )
     .await;
@@ -171,9 +161,7 @@ async fn test_coinbase() {
 async fn test_evm_increase_time() {
     verify_response(
         &start_server().await,
-        MethodInvocation::Eth(EthMethodInvocation::EvmIncreaseTime(U256OrUsize::U256(
-            U256::from(12345),
-        ))),
+        EvmIncreaseTime(U256OrUsize::U256(U256::from(12345))),
         String::from("12345"),
     )
     .await;
@@ -183,9 +171,7 @@ async fn test_evm_increase_time() {
 async fn test_evm_set_next_block_timestamp() {
     verify_response(
         &start_server().await,
-        MethodInvocation::Eth(EthMethodInvocation::EvmSetNextBlockTimestamp(
-            U256OrUsize::U256(U256::from(2147483647)),
-        )),
+        EvmSetNextBlockTimestamp(U256OrUsize::U256(U256::from(2147483647))),
         String::from("2147483647"),
     )
     .await;
@@ -195,10 +181,7 @@ async fn test_evm_set_next_block_timestamp() {
 async fn test_get_balance_nonexistent_account() {
     verify_response(
         &start_server().await,
-        MethodInvocation::Eth(EthMethodInvocation::GetBalance(
-            Address::from_low_u64_ne(2),
-            Some(BlockSpec::latest()),
-        )),
+        GetBalance(Address::from_low_u64_ne(2), Some(BlockSpec::latest())),
         U256::ZERO,
     )
     .await;
@@ -208,10 +191,7 @@ async fn test_get_balance_nonexistent_account() {
 async fn test_get_balance_success() {
     verify_response(
         &start_server().await,
-        MethodInvocation::Eth(EthMethodInvocation::GetBalance(
-            Address::from_low_u64_ne(1),
-            Some(BlockSpec::latest()),
-        )),
+        GetBalance(Address::from_low_u64_ne(1), Some(BlockSpec::latest())),
         U256::ZERO,
     )
     .await;
@@ -221,10 +201,7 @@ async fn test_get_balance_success() {
 async fn test_get_code_success() {
     verify_response(
         &start_server().await,
-        MethodInvocation::Eth(EthMethodInvocation::GetCode(
-            Address::from_low_u64_ne(1),
-            Some(BlockSpec::latest()),
-        )),
+        GetCode(Address::from_low_u64_ne(1), Some(BlockSpec::latest())),
         ZeroXPrefixedBytes::from(Bytes::from_static(b"")),
     )
     .await;
@@ -237,16 +214,11 @@ async fn test_get_filter_changes() {
     let filter_id = U256::from(1);
 
     // install a filter so that we can get its changes
-    verify_response(
-        &server,
-        MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()),
-        filter_id,
-    )
-    .await;
+    verify_response(&server, NewPendingTransactionFilter(), filter_id).await;
 
     verify_response(
         &server,
-        MethodInvocation::Eth(EthMethodInvocation::GetFilterChanges(filter_id)),
+        GetFilterChanges(filter_id),
         FilteredEvents::NewPendingTransactions(Vec::<B256>::new()),
     )
     .await;
@@ -261,11 +233,11 @@ async fn test_get_filter_logs() {
 async fn test_get_storage_success() {
     verify_response(
         &start_server().await,
-        MethodInvocation::Eth(EthMethodInvocation::GetStorageAt(
+        GetStorageAt(
             Address::from_low_u64_ne(1),
             U256::ZERO,
             Some(BlockSpec::latest()),
-        )),
+        ),
         U256::ZERO,
     )
     .await;
@@ -275,10 +247,7 @@ async fn test_get_storage_success() {
 async fn test_get_transaction_count_nonexistent_account() {
     verify_response(
         &start_server().await,
-        MethodInvocation::Eth(EthMethodInvocation::GetTransactionCount(
-            Address::from_low_u64_ne(2),
-            Some(BlockSpec::latest()),
-        )),
+        GetTransactionCount(Address::from_low_u64_ne(2), Some(BlockSpec::latest())),
         U256::ZERO,
     )
     .await;
@@ -288,10 +257,7 @@ async fn test_get_transaction_count_nonexistent_account() {
 async fn test_get_transaction_count_success() {
     verify_response(
         &start_server().await,
-        MethodInvocation::Eth(EthMethodInvocation::GetTransactionCount(
-            Address::from_low_u64_ne(1),
-            Some(BlockSpec::latest()),
-        )),
+        GetTransactionCount(Address::from_low_u64_ne(1), Some(BlockSpec::latest())),
         U256::ZERO,
     )
     .await;
@@ -299,39 +265,24 @@ async fn test_get_transaction_count_success() {
 
 #[tokio::test]
 async fn test_net_listening() {
-    verify_response(
-        &start_server().await,
-        MethodInvocation::Eth(EthMethodInvocation::NetListening()),
-        true,
-    )
-    .await;
+    verify_response(&start_server().await, NetListening(), true).await;
 }
 
 #[tokio::test]
 async fn test_net_peer_count() {
-    verify_response(
-        &start_server().await,
-        MethodInvocation::Eth(EthMethodInvocation::NetPeerCount()),
-        U64::ZERO,
-    )
-    .await;
+    verify_response(&start_server().await, NetPeerCount(), U64::ZERO).await;
 }
 
 #[tokio::test]
 async fn test_net_version() {
-    verify_response(
-        &start_server().await,
-        MethodInvocation::Eth(EthMethodInvocation::NetVersion()),
-        String::from("123"),
-    )
-    .await;
+    verify_response(&start_server().await, NetVersion(), String::from("123")).await;
 }
 
 #[tokio::test]
 async fn test_new_pending_transaction_filter_success() {
     verify_response(
         &start_server().await,
-        MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()),
+        NewPendingTransactionFilter(),
         U256::from(1),
     )
     .await;
@@ -341,9 +292,7 @@ async fn test_new_pending_transaction_filter_success() {
 async fn test_impersonate_account() {
     verify_response(
         &start_server().await,
-        MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(
-            Address::from_low_u64_ne(1),
-        )),
+        ImpersonateAccount(Address::from_low_u64_ne(1)),
         true,
     )
     .await;
@@ -356,19 +305,11 @@ async fn test_set_balance_success() {
     let address = Address::from_low_u64_ne(1);
     let new_balance = U256::from(100);
 
-    verify_response(
-        &server_address,
-        MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, new_balance)),
-        true,
-    )
-    .await;
+    verify_response(&server_address, SetBalance(address, new_balance), true).await;
 
     verify_response(
         &server_address,
-        MethodInvocation::Eth(EthMethodInvocation::GetBalance(
-            address,
-            Some(BlockSpec::latest()),
-        )),
+        GetBalance(address, Some(BlockSpec::latest())),
         new_balance,
     )
     .await;
@@ -381,19 +322,11 @@ async fn test_set_nonce_success() {
     let address = Address::from_low_u64_ne(1);
     let new_nonce = U256::from(100);
 
-    verify_response(
-        &server_address,
-        MethodInvocation::Hardhat(HardhatMethodInvocation::SetNonce(address, new_nonce)),
-        true,
-    )
-    .await;
+    verify_response(&server_address, SetNonce(address, new_nonce), true).await;
 
     verify_response(
         &server_address,
-        MethodInvocation::Eth(EthMethodInvocation::GetTransactionCount(
-            address,
-            Some(BlockSpec::latest()),
-        )),
+        GetTransactionCount(address, Some(BlockSpec::latest())),
         new_nonce,
     )
     .await;
@@ -406,19 +339,11 @@ async fn test_set_code_success() {
     let address = Address::from_low_u64_ne(1);
     let new_code = ZeroXPrefixedBytes::from(Bytes::from_static(b"deadbeef"));
 
-    verify_response(
-        &server_address,
-        MethodInvocation::Hardhat(HardhatMethodInvocation::SetCode(address, new_code.clone())),
-        true,
-    )
-    .await;
+    verify_response(&server_address, SetCode(address, new_code.clone()), true).await;
 
     verify_response(
         &server_address,
-        MethodInvocation::Eth(EthMethodInvocation::GetCode(
-            address,
-            Some(BlockSpec::latest()),
-        )),
+        GetCode(address, Some(BlockSpec::latest())),
         new_code.clone(),
     )
     .await;
@@ -433,22 +358,14 @@ async fn test_set_storage_at_success() {
 
     verify_response(
         &server_address,
-        MethodInvocation::Hardhat(HardhatMethodInvocation::SetStorageAt(
-            address,
-            U256::ZERO,
-            new_storage_value,
-        )),
+        SetStorageAt(address, U256::ZERO, new_storage_value),
         true,
     )
     .await;
 
     verify_response(
         &server_address,
-        MethodInvocation::Eth(EthMethodInvocation::GetStorageAt(
-            address,
-            U256::ZERO,
-            Some(BlockSpec::latest()),
-        )),
+        GetStorageAt(address, U256::ZERO, Some(BlockSpec::latest())),
         new_storage_value,
     )
     .await;
@@ -460,10 +377,10 @@ async fn test_sign() {
     // default-configured instance of Hardhat Network.
     verify_response(
         &start_server().await,
-        MethodInvocation::Eth(EthMethodInvocation::Sign(
+        Sign(
             Address::from_str("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266").unwrap(),
             Bytes::from(hex::decode("deadbeef").unwrap()).into(),
-        )),
+        ),
         Signature::from_str("0xa114c834af73872c6c9efe918d85b0b1b34a486d10f9011e2630e28417c828c060dbd65cda67e73d52ebb7c555260621dbc1b0b4036acb61086bba091ac3f1641b").unwrap(),
     ).await;
 }
@@ -476,9 +393,7 @@ async fn test_stop_impersonating_account() {
     // results in a `false` return value:
     verify_response(
         &server_address,
-        MethodInvocation::Hardhat(HardhatMethodInvocation::StopImpersonatingAccount(
-            Address::from_low_u64_ne(1),
-        )),
+        StopImpersonatingAccount(Address::from_low_u64_ne(1)),
         false,
     )
     .await;
@@ -487,17 +402,13 @@ async fn test_stop_impersonating_account() {
     // results in a `false` return value:
     verify_response(
         &server_address,
-        MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(
-            Address::from_low_u64_ne(1),
-        )),
+        ImpersonateAccount(Address::from_low_u64_ne(1)),
         true,
     )
     .await;
     verify_response(
         &server_address,
-        MethodInvocation::Hardhat(HardhatMethodInvocation::StopImpersonatingAccount(
-            Address::from_low_u64_ne(1),
-        )),
+        StopImpersonatingAccount(Address::from_low_u64_ne(1)),
         true,
     )
     .await;
@@ -510,19 +421,9 @@ async fn test_uninstall_filter_success() {
     let filter_id = U256::from(1);
 
     // install a filter so that we can uninstall it
-    verify_response(
-        &server,
-        MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()),
-        filter_id,
-    )
-    .await;
+    verify_response(&server, NewPendingTransactionFilter(), filter_id).await;
 
-    verify_response(
-        &server,
-        MethodInvocation::Eth(EthMethodInvocation::UninstallFilter(filter_id)),
-        true,
-    )
-    .await;
+    verify_response(&server, UninstallFilter(filter_id), true).await;
 }
 
 #[tokio::test]
@@ -531,12 +432,7 @@ async fn test_uninstall_filter_nonexistent_filter() {
 
     let filter_id = U256::from(99);
 
-    verify_response(
-        &server,
-        MethodInvocation::Eth(EthMethodInvocation::UninstallFilter(filter_id)),
-        false,
-    )
-    .await;
+    verify_response(&server, UninstallFilter(filter_id), false).await;
 }
 
 #[tokio::test]
@@ -548,7 +444,7 @@ async fn test_unsubscribe() {
 async fn test_web3_client_version() {
     verify_response(
         &start_server().await,
-        MethodInvocation::Eth(EthMethodInvocation::Web3ClientVersion()),
+        Web3ClientVersion(),
         String::from(&format!(
             "edr/{}/revm/{}",
             env!("CARGO_PKG_VERSION"),
@@ -562,9 +458,7 @@ async fn test_web3_client_version() {
 async fn test_web3_sha3() {
     verify_response(
         &start_server().await,
-        MethodInvocation::Eth(EthMethodInvocation::Web3Sha3(
-            Bytes::from_static(b"").into(),
-        )),
+        Web3Sha3(Bytes::from_static(b"").into()),
         KECCAK_EMPTY,
     )
     .await;

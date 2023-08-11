@@ -7,11 +7,12 @@ use std::{
 use itertools::Itertools;
 use revm_primitives::{AccountInfo, Address, Bytecode, B256, KECCAK_EMPTY, U256};
 
+use crate::remote::methods::{MethodInvocation, NonCacheableMethodInvocation};
 use crate::{log::FilterLog, receipt::BlockReceipt, serde::ZeroXPrefixedBytes};
 
 use super::{
     eth, jsonrpc,
-    methods::{GetLogsInput, MethodInvocation},
+    methods::{CacheableMethodInvocation, GetLogsInput},
     BlockSpec,
 };
 
@@ -152,7 +153,10 @@ impl RpcClient {
         }
     }
 
-    async fn call<T>(&self, input: &MethodInvocation) -> Result<T, RpcClientError>
+    async fn call<T>(
+        &self,
+        method_invocation: impl Into<MethodInvocation>,
+    ) -> Result<T, RpcClientError>
     where
         T: for<'a> serde::Deserialize<'a>,
     {
@@ -160,7 +164,7 @@ impl RpcClient {
         let request = serde_json::json!(Request {
             version: crate::remote::jsonrpc::Version::V2_0,
             id: request_id.clone(),
-            method: input.clone(),
+            method: method_invocation.into(),
         })
         .to_string();
 
@@ -172,16 +176,16 @@ impl RpcClient {
 
     async fn batch_call(
         &self,
-        inputs: &[MethodInvocation],
+        inputs: impl IntoIterator<Item = impl Into<MethodInvocation>>,
     ) -> Result<BatchResponse, RpcClientError> {
         let request_strings: Vec<String> = inputs
-            .iter()
-            .map(|i| {
+            .into_iter()
+            .map(|method_invocation| {
                 let request_id = self.next_id.fetch_add(1, Ordering::Relaxed);
                 serde_json::json!(Request {
                     version: crate::remote::jsonrpc::Version::V2_0,
                     id: jsonrpc::Id::Num(request_id),
-                    method: i.clone(),
+                    method: method_invocation.into(),
                 })
                 .to_string()
             })
@@ -210,12 +214,12 @@ impl RpcClient {
 
     /// Calls `eth_blockNumber` and returns the block number.
     pub async fn block_number(&self) -> Result<U256, RpcClientError> {
-        self.call(&MethodInvocation::BlockNumber()).await
+        self.call(NonCacheableMethodInvocation::BlockNumber()).await
     }
 
     /// Calls `eth_chainId` and returns the chain ID.
     pub async fn chain_id(&self) -> Result<U256, RpcClientError> {
-        self.call(&MethodInvocation::ChainId()).await
+        self.call(CacheableMethodInvocation::ChainId()).await
     }
 
     /// Submit a consolidated batch of RPC method invocations in order to obtain the set of data
@@ -226,12 +230,12 @@ impl RpcClient {
         block: Option<BlockSpec>,
     ) -> Result<AccountInfo, RpcClientError> {
         let inputs = Vec::from([
-            MethodInvocation::GetBalance(*address, block.clone()),
-            MethodInvocation::GetTransactionCount(*address, block.clone()),
-            MethodInvocation::GetCode(*address, block),
+            CacheableMethodInvocation::GetBalance(*address, block.clone()),
+            CacheableMethodInvocation::GetTransactionCount(*address, block.clone()),
+            CacheableMethodInvocation::GetCode(*address, block),
         ]);
 
-        let response = self.batch_call(&inputs).await?;
+        let response = self.batch_call(inputs).await?;
 
         let responses: Vec<serde_json::Value> = serde_json::from_str(&response.text)
             .unwrap_or_else(|error| {
@@ -347,7 +351,7 @@ impl RpcClient {
         &self,
         hash: &B256,
     ) -> Result<Option<eth::Block<B256>>, RpcClientError> {
-        self.call(&MethodInvocation::GetBlockByHash(*hash, false))
+        self.call(CacheableMethodInvocation::GetBlockByHash(*hash, false))
             .await
     }
 
@@ -356,7 +360,7 @@ impl RpcClient {
         &self,
         hash: &B256,
     ) -> Result<Option<eth::Block<eth::Transaction>>, RpcClientError> {
-        self.call(&MethodInvocation::GetBlockByHash(*hash, true))
+        self.call(CacheableMethodInvocation::GetBlockByHash(*hash, true))
             .await
     }
 
@@ -365,7 +369,7 @@ impl RpcClient {
         &self,
         spec: BlockSpec,
     ) -> Result<eth::Block<B256>, RpcClientError> {
-        self.call(&MethodInvocation::GetBlockByNumber(spec, false))
+        self.call(CacheableMethodInvocation::GetBlockByNumber(spec, false))
             .await
     }
 
@@ -374,7 +378,7 @@ impl RpcClient {
         &self,
         spec: BlockSpec,
     ) -> Result<eth::Block<eth::Transaction>, RpcClientError> {
-        self.call(&MethodInvocation::GetBlockByNumber(spec, true))
+        self.call(CacheableMethodInvocation::GetBlockByNumber(spec, true))
             .await
     }
 
@@ -385,7 +389,7 @@ impl RpcClient {
         to_block: BlockSpec,
         address: &Address,
     ) -> Result<Vec<FilterLog>, RpcClientError> {
-        self.call(&MethodInvocation::GetLogs(GetLogsInput {
+        self.call(CacheableMethodInvocation::GetLogs(GetLogsInput {
             from_block,
             to_block,
             address: *address,
@@ -398,7 +402,7 @@ impl RpcClient {
         &self,
         tx_hash: &B256,
     ) -> Result<Option<eth::Transaction>, RpcClientError> {
-        self.call(&MethodInvocation::GetTransactionByHash(*tx_hash))
+        self.call(CacheableMethodInvocation::GetTransactionByHash(*tx_hash))
             .await
     }
 
@@ -408,8 +412,10 @@ impl RpcClient {
         address: &Address,
         block: Option<BlockSpec>,
     ) -> Result<U256, RpcClientError> {
-        self.call(&MethodInvocation::GetTransactionCount(*address, block))
-            .await
+        self.call(CacheableMethodInvocation::GetTransactionCount(
+            *address, block,
+        ))
+        .await
     }
 
     /// Calls `eth_getTransactionReceipt`.
@@ -417,7 +423,7 @@ impl RpcClient {
         &self,
         tx_hash: &B256,
     ) -> Result<Option<BlockReceipt>, RpcClientError> {
-        self.call(&MethodInvocation::GetTransactionReceipt(*tx_hash))
+        self.call(CacheableMethodInvocation::GetTransactionReceipt(*tx_hash))
             .await
     }
 
@@ -428,13 +434,15 @@ impl RpcClient {
         position: U256,
         block: Option<BlockSpec>,
     ) -> Result<U256, RpcClientError> {
-        self.call(&MethodInvocation::GetStorageAt(*address, position, block))
-            .await
+        self.call(CacheableMethodInvocation::GetStorageAt(
+            *address, position, block,
+        ))
+        .await
     }
 
     /// Calls `net_version`.
     pub async fn network_id(&self) -> Result<U256, RpcClientError> {
-        self.call(&MethodInvocation::NetVersion()).await
+        self.call(CacheableMethodInvocation::NetVersion()).await
     }
 }
 
@@ -492,7 +500,7 @@ mod tests {
                 .expect("failed to parse hash from string");
 
         let error = TestRpcClient::new(&server.url())
-            .call::<Option<eth::Transaction>>(&MethodInvocation::GetTransactionByHash(hash))
+            .call::<Option<eth::Transaction>>(CacheableMethodInvocation::GetTransactionByHash(hash))
             .await
             .expect_err("should have failed to interpret response as a Transaction");
 
@@ -535,7 +543,9 @@ mod tests {
             .expect("failed to parse hash from string");
 
             let error = TestRpcClient::new(alchemy_url)
-                .call::<Option<eth::Transaction>>(&MethodInvocation::GetTransactionByHash(hash))
+                .call::<Option<eth::Transaction>>(CacheableMethodInvocation::GetTransactionByHash(
+                    hash,
+                ))
                 .await
                 .expect_err("should have failed to interpret response as a Transaction");
 
@@ -556,7 +566,9 @@ mod tests {
             .expect("failed to parse hash from string");
 
             let error = TestRpcClient::new(alchemy_url)
-                .call::<Option<eth::Transaction>>(&MethodInvocation::GetTransactionByHash(hash))
+                .call::<Option<eth::Transaction>>(CacheableMethodInvocation::GetTransactionByHash(
+                    hash,
+                ))
                 .await
                 .expect_err("should have failed to connect due to a garbage domain name");
 

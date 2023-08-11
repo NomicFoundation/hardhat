@@ -4,7 +4,7 @@ use hashbrown::HashMap;
 use revm_primitives::{Address, B256, U256};
 
 /// field type
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct FieldType {
     /// name
     pub name: String,
@@ -16,7 +16,7 @@ pub struct FieldType {
 pub type MessageTypes = HashMap<String, Vec<FieldType>>;
 
 /// domain
-#[derive(serde::Deserialize, serde::Serialize, Debug, Clone, PartialEq)]
+#[derive(serde::Deserialize, serde::Serialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Domain {
     /// name
@@ -37,7 +37,7 @@ pub struct Domain {
 }
 
 /// message to be signed
-#[derive(serde::Deserialize, serde::Serialize, Debug, Clone, PartialEq)]
+#[derive(serde::Deserialize, serde::Serialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct Message {

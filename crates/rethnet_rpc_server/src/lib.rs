@@ -14,7 +14,7 @@ use rethnet_eth::{
         filter::{FilteredEvents, LogOutput},
         jsonrpc,
         jsonrpc::{Response, ResponseData},
-        methods::{MethodInvocation as EthMethodInvocation, U256OrUsize},
+        methods::{CacheableMethodInvocation, NonCacheableMethodInvocation, U256OrUsize},
         BlockSpec, BlockTag, Eip1898BlockSpec,
     },
     serde::{U256WithoutLeadingZeroes, U64WithoutLeadingZeroes, ZeroXPrefixedBytes},
@@ -51,10 +51,30 @@ use filter::{new_filter_deadline, Filter};
 #[serde(untagged)]
 #[allow(clippy::large_enum_variant)]
 pub enum MethodInvocation {
-    /// an eth_* method invocation
-    Eth(EthMethodInvocation),
+    /// A cacheable standard Ethereum method invocation
+    Cacheable(CacheableMethodInvocation),
+    /// A non-cacheable standard Ethereum method invocation
+    NonCacheable(NonCacheableMethodInvocation),
     /// a hardhat_* method invocation
     Hardhat(HardhatMethodInvocation),
+}
+
+impl From<CacheableMethodInvocation> for MethodInvocation {
+    fn from(value: CacheableMethodInvocation) -> Self {
+        Self::Cacheable(value)
+    }
+}
+
+impl From<NonCacheableMethodInvocation> for MethodInvocation {
+    fn from(value: NonCacheableMethodInvocation) -> Self {
+        Self::NonCacheable(value)
+    }
+}
+
+impl From<HardhatMethodInvocation> for MethodInvocation {
+    fn from(value: HardhatMethodInvocation) -> Self {
+        Self::Hardhat(value)
+    }
 }
 
 type RethnetStateType = Arc<RwLock<dyn SyncState<StateError>>>;
@@ -712,6 +732,11 @@ async fn handle_request(
     state: StateType,
     request: &RpcRequest<MethodInvocation>,
 ) -> Result<serde_json::Value, String> {
+    use CacheableMethodInvocation::*;
+    use HardhatMethodInvocation::*;
+    use MethodInvocation::*;
+    use NonCacheableMethodInvocation::*;
+
     fn response<T>(id: &jsonrpc::Id, data: ResponseData<T>) -> Result<serde_json::Value, String>
     where
         T: serde::Serialize,
@@ -746,104 +771,73 @@ async fn handle_request(
             method,
         } => {
             match method {
-                MethodInvocation::Eth(EthMethodInvocation::Accounts()) => {
-                    response(id, handle_accounts(state).await)
-                }
-                MethodInvocation::Eth(EthMethodInvocation::BlockNumber()) => {
-                    response(id, handle_block_number(state).await)
-                }
-                MethodInvocation::Eth(EthMethodInvocation::ChainId()) => {
-                    response(id, handle_chain_id(state))
-                }
-                MethodInvocation::Eth(EthMethodInvocation::Coinbase()) => {
-                    response(id, handle_coinbase(state).await)
-                }
-                MethodInvocation::Eth(EthMethodInvocation::EvmIncreaseTime(increment)) => {
+                NonCacheable(Accounts()) => response(id, handle_accounts(state).await),
+                NonCacheable(BlockNumber()) => response(id, handle_block_number(state).await),
+                Cacheable(ChainId()) => response(id, handle_chain_id(state)),
+                NonCacheable(Coinbase()) => response(id, handle_coinbase(state).await),
+                NonCacheable(EvmIncreaseTime(increment)) => {
                     response(id, handle_evm_increase_time(state, increment.clone()).await)
                 }
-                MethodInvocation::Eth(EthMethodInvocation::EvmSetNextBlockTimestamp(timestamp)) => {
-                    response(
-                        id,
-                        handle_evm_set_next_block_timestamp(state, timestamp.clone()).await,
-                    )
-                }
-                MethodInvocation::Eth(EthMethodInvocation::GetBalance(address, block)) => {
+                NonCacheable(EvmSetNextBlockTimestamp(timestamp)) => response(
+                    id,
+                    handle_evm_set_next_block_timestamp(state, timestamp.clone()).await,
+                ),
+                Cacheable(GetBalance(address, block)) => {
                     response(id, handle_get_balance(state, *address, block.clone()).await)
                 }
-                MethodInvocation::Eth(EthMethodInvocation::GetCode(address, block)) => {
+                Cacheable(GetCode(address, block)) => {
                     response(id, handle_get_code(state, *address, block.clone()).await)
                 }
-                MethodInvocation::Eth(EthMethodInvocation::GetFilterChanges(filter_id)) => {
+                NonCacheable(GetFilterChanges(filter_id)) => {
                     response(id, handle_get_filter_changes(state, *filter_id).await)
                 }
-                MethodInvocation::Eth(EthMethodInvocation::GetFilterLogs(filter_id)) => {
+                Cacheable(GetFilterLogs(filter_id)) => {
                     response(id, handle_get_filter_logs(state, *filter_id).await)
                 }
-                MethodInvocation::Eth(EthMethodInvocation::GetStorageAt(
-                    address,
-                    position,
-                    block,
-                )) => response(
+                Cacheable(GetStorageAt(address, position, block)) => response(
                     id,
                     handle_get_storage_at(state, *address, *position, block.clone()).await,
                 ),
-                MethodInvocation::Eth(EthMethodInvocation::GetTransactionCount(address, block)) => {
-                    response(
-                        id,
-                        handle_get_transaction_count(state, *address, block.clone()).await,
-                    )
-                }
-                MethodInvocation::Eth(EthMethodInvocation::NetListening()) => {
-                    response(id, handle_net_listening())
-                }
-                MethodInvocation::Eth(EthMethodInvocation::NetPeerCount()) => {
-                    response(id, handle_net_peer_count())
-                }
-                MethodInvocation::Eth(EthMethodInvocation::NetVersion()) => {
-                    response(id, handle_net_version(state).await)
-                }
-                MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()) => {
+                Cacheable(GetTransactionCount(address, block)) => response(
+                    id,
+                    handle_get_transaction_count(state, *address, block.clone()).await,
+                ),
+                NonCacheable(NetListening()) => response(id, handle_net_listening()),
+                NonCacheable(NetPeerCount()) => response(id, handle_net_peer_count()),
+                Cacheable(NetVersion()) => response(id, handle_net_version(state).await),
+                NonCacheable(NewPendingTransactionFilter()) => {
                     response(id, handle_new_pending_transaction_filter(state).await)
                 }
-                MethodInvocation::Eth(EthMethodInvocation::Sign(address, message)) => {
+                NonCacheable(Sign(address, message)) => {
                     response(id, handle_sign(state, address, message))
                 }
-                MethodInvocation::Eth(EthMethodInvocation::Web3ClientVersion()) => {
-                    response(id, handle_web3_client_version())
-                }
-                MethodInvocation::Eth(EthMethodInvocation::Web3Sha3(message)) => {
-                    response(id, handle_web3_sha3(message.clone()))
-                }
-                MethodInvocation::Eth(EthMethodInvocation::UninstallFilter(filter_id)) => {
+                NonCacheable(Web3ClientVersion()) => response(id, handle_web3_client_version()),
+                NonCacheable(Web3Sha3(message)) => response(id, handle_web3_sha3(message.clone())),
+                NonCacheable(UninstallFilter(filter_id)) => {
                     response(id, handle_uninstall_filter(state, *filter_id).await)
                 }
-                MethodInvocation::Eth(EthMethodInvocation::Unsubscribe(subscription_id)) => {
+                NonCacheable(Unsubscribe(subscription_id)) => {
                     response(id, handle_unsubscribe(state, *subscription_id).await)
                 }
-                MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(address)) => {
+                Hardhat(ImpersonateAccount(address)) => {
                     response(id, handle_impersonate_account(state, *address).await)
                 }
-                MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(
-                    address,
-                    balance,
-                )) => response(id, handle_set_balance(state, *address, *balance).await),
-                MethodInvocation::Hardhat(HardhatMethodInvocation::SetCode(address, code)) => {
+                Hardhat(SetBalance(address, balance)) => {
+                    response(id, handle_set_balance(state, *address, *balance).await)
+                }
+                Hardhat(SetCode(address, code)) => {
                     response(id, handle_set_code(state, *address, code.clone()).await)
                 }
-                MethodInvocation::Hardhat(HardhatMethodInvocation::SetNonce(address, nonce)) => {
+                Hardhat(SetNonce(address, nonce)) => {
                     response(id, handle_set_nonce(state, *address, *nonce).await)
                 }
-                MethodInvocation::Hardhat(HardhatMethodInvocation::SetStorageAt(
-                    address,
-                    position,
-                    value,
-                )) => response(
+                Hardhat(SetStorageAt(address, position, value)) => response(
                     id,
                     handle_set_storage_at(state, *address, *position, *value).await,
                 ),
-                MethodInvocation::Hardhat(HardhatMethodInvocation::StopImpersonatingAccount(
-                    address,
-                )) => response(id, handle_stop_impersonating_account(state, *address).await),
+                Hardhat(StopImpersonatingAccount(address)) => {
+                    response(id, handle_stop_impersonating_account(state, *address).await)
+                }
                 // TODO: after adding all the methods here, eliminate this
                 // catch-all match arm:
                 _ => {
