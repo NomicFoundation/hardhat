@@ -872,7 +872,7 @@ Please double check your imports and installed libraries.`,
       title: "Invalid import: a directory cannot be imported",
       description: `A Solidity file is attempting to import a directory, which is not possible.
 
-  Please double check your imports.`,
+Please double check your imports.`,
       shouldBeReported: false,
     },
   },
