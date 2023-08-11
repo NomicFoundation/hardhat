@@ -4,16 +4,20 @@ import type {
   TransactionResponse,
   default as EthersT,
 } from "ethers";
+import type { BalanceChangeOptions } from "./misc/balance";
 
 import { buildAssert } from "../utils";
 import { ensure } from "./calledOnContract/utils";
 import { getAddressOf } from "./misc/account";
-import { BalanceChangeOptions } from "./misc/balance";
-import { assertIsNotNull } from "./utils";
+import { CHANGE_ETHER_BALANCE_MATCHER } from "./constants";
+import { assertIsNotNull, preventAsyncMatcherChaining } from "./utils";
 
-export function supportChangeEtherBalance(Assertion: Chai.AssertionStatic) {
+export function supportChangeEtherBalance(
+  Assertion: Chai.AssertionStatic,
+  chaiUtils: Chai.ChaiUtils
+) {
   Assertion.addMethod(
-    "changeEtherBalance",
+    CHANGE_ETHER_BALANCE_MATCHER,
     function (
       this: any,
       account: Addressable | string,
@@ -24,6 +28,12 @@ export function supportChangeEtherBalance(Assertion: Chai.AssertionStatic) {
       // capture negated flag before async code executes; see buildAssert's jsdoc
       const negated = this.__flags.negate;
       const subject = this._obj;
+
+      preventAsyncMatcherChaining(
+        this,
+        CHANGE_ETHER_BALANCE_MATCHER,
+        chaiUtils
+      );
 
       const checkBalanceChange = ([actualChange, address]: [
         bigint,

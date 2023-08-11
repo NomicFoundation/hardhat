@@ -356,12 +356,7 @@ subtask(TASK_VERIFY_ETHERSCAN_GET_CONTRACT_INFORMATION)
       let contractInformation: ContractInformation | null;
 
       if (contractFQN !== undefined) {
-        let artifactExists;
-        try {
-          artifactExists = await artifacts.artifactExists(contractFQN);
-        } catch (error) {
-          artifactExists = false;
-        }
+        const artifactExists = await artifacts.artifactExists(contractFQN);
 
         if (!artifactExists) {
           throw new ContractNotFoundError(contractFQN);

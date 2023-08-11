@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-foundry",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Hardhat plugin that adds Hardhat support to Foundry projects",
   "repository": "github:nomicfoundation/hardhat",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-foundry",
@@ -20,6 +20,7 @@
     "lint:fix": "yarn prettier --write && yarn eslint --fix",
     "eslint": "eslint 'src/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
+    "pretest": "cd ../.. && yarn build",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
     "build": "tsc --build .",
     "prepublishOnly": "yarn build",

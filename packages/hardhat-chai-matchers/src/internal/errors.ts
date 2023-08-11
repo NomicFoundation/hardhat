@@ -23,3 +23,11 @@ export class HardhatChaiMatchersAssertionError extends HardhatChaiMatchersError 
     super(`Assertion error: ${message}`);
   }
 }
+
+export class HardhatChaiMatchersNonChainableMatcherError extends HardhatChaiMatchersError {
+  constructor(matcherName: string, previousMatcherName: string) {
+    super(
+      `The matcher '${matcherName}' cannot be chained after '${previousMatcherName}'. For more information, please refer to the documentation at: https://hardhat.org/chaining-async-matchers.`
+    );
+  }
+}

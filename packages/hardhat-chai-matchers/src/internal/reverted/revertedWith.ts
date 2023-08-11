@@ -1,11 +1,16 @@
 import type EthersT from "ethers";
 
 import { buildAssert } from "../../utils";
+import { REVERTED_WITH_MATCHER } from "../constants";
+import { preventAsyncMatcherChaining } from "../utils";
 import { decodeReturnData, getReturnDataFromError } from "./utils";
 
-export function supportRevertedWith(Assertion: Chai.AssertionStatic) {
+export function supportRevertedWith(
+  Assertion: Chai.AssertionStatic,
+  chaiUtils: Chai.ChaiUtils
+) {
   Assertion.addMethod(
-    "revertedWith",
+    REVERTED_WITH_MATCHER,
     function (this: any, expectedReason: string | RegExp) {
       // capture negated flag before async code executes; see buildAssert's jsdoc
       const negated = this.__flags.negate;
@@ -27,6 +32,8 @@ export function supportRevertedWith(Assertion: Chai.AssertionStatic) {
         expectedReason instanceof RegExp
           ? expectedReason.source
           : expectedReason;
+
+      preventAsyncMatcherChaining(this, REVERTED_WITH_MATCHER, chaiUtils);
 
       const onSuccess = () => {
         const assert = buildAssert(negated, onSuccess);

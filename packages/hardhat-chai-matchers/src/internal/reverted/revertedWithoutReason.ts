@@ -1,12 +1,23 @@
 import type EthersT from "ethers";
 
 import { buildAssert } from "../../utils";
+import { REVERTED_WITHOUT_REASON_MATCHER } from "../constants";
+import { preventAsyncMatcherChaining } from "../utils";
 import { decodeReturnData, getReturnDataFromError } from "./utils";
 
-export function supportRevertedWithoutReason(Assertion: Chai.AssertionStatic) {
-  Assertion.addMethod("revertedWithoutReason", function (this: any) {
+export function supportRevertedWithoutReason(
+  Assertion: Chai.AssertionStatic,
+  chaiUtils: Chai.ChaiUtils
+) {
+  Assertion.addMethod(REVERTED_WITHOUT_REASON_MATCHER, function (this: any) {
     // capture negated flag before async code executes; see buildAssert's jsdoc
     const negated = this.__flags.negate;
+
+    preventAsyncMatcherChaining(
+      this,
+      REVERTED_WITHOUT_REASON_MATCHER,
+      chaiUtils
+    );
 
     const onSuccess = () => {
       const assert = buildAssert(negated, onSuccess);
