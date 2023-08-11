@@ -258,9 +258,16 @@ const communityPlugins: IPlugin[] = [
     ],
   },
   {
+    name: "hardhat-storage-layout",
+    author: "Aurora Labs",
+    authorUrl: "https://github.com/aurora-is-near",
+    description: "Exporting solidity contract storage layout",
+    tags: ["solidity", "storage-layout"],
+  },
+  {
     name: "hardhat-storage-layout-json",
     npmPackage: "hardhat-storage-layout-json",
-    author: "Aurora Labs + 3obby",
+    author: "(Aurora Labs, mostly!) + 3obby",
     authorUrl: "https://github.com/3obby/hardhat-storage-layout-json",
     description: "View contracts' layouts with CLI and .json output",
     tags: ["solidity", "storage"],
