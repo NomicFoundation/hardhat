@@ -63,6 +63,7 @@ Currently, the following matchers do not support chaining:
 - `changeEtherBalances`
 - `changeTokenBalance`
 - `changeTokenBalances`
+- `emit` (with the only exception of chaining multiple `emit` matchers)
 
 Which means you can't do:
 
