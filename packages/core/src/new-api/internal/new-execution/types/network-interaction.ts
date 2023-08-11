@@ -29,7 +29,7 @@ export interface OnchainInteraction {
   data: string;
   value: bigint;
   from: string;
-  nonce: number;
+  nonce?: number;
   transactions: Transaction[];
 }
 
@@ -46,5 +46,5 @@ export interface StaticCall {
   data: string;
   value: bigint;
   from: string;
-  result: RawStaticCallResult;
+  result?: RawStaticCallResult;
 }
