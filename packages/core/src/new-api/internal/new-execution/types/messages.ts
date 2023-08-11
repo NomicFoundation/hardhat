@@ -1,17 +1,20 @@
 import { SolidityParameterType } from "../../../types/module";
 
 import { DeploymentExecutionStateFutureTypes } from "./execution-state";
+import { Transaction } from "./jsonrpc";
 import { NetworkInteraction } from "./network-interaction";
 
 export type JournalMessage =
   | RunStartMessage
   | DeploymentExecutionStateInitializeMessage
-  | NetworkInteractionRequestMessage;
+  | NetworkInteractionRequestMessage
+  | SendTransactionMessage;
 
 export enum JournalMessageType {
   RUN_START = "RUN_START",
-  NETWORK_INTERACTION_REQUEST = "NETWORK_INTERACTION_REQUEST",
   DEPLOYMENT_EXECUTION_STATE_INITIALIZE = "DEPLOYMENT_EXECUTION_STATE_INITIALIZE",
+  NETWORK_INTERACTION_REQUEST = "NETWORK_INTERACTION_REQUEST",
+  TRANSACTION_SEND = "TRANSACTION_SEND",
 }
 
 export interface RunStartMessage {
@@ -37,4 +40,11 @@ export interface NetworkInteractionRequestMessage {
   type: JournalMessageType.NETWORK_INTERACTION_REQUEST;
   futureId: string;
   networkInteraction: NetworkInteraction;
+}
+
+export interface SendTransactionMessage {
+  type: JournalMessageType.TRANSACTION_SEND;
+  futureId: string;
+  networkInteractionId: number;
+  transaction: Transaction;
 }

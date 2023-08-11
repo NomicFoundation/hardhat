@@ -1,12 +1,14 @@
 import { assert } from "chai";
 import { deploymentStateReducer } from "../../../../src/new-api/internal/new-execution/reducers/deployment-state-reducer";
 import { isDeploymentExecutionState } from "../../../../src/new-api/internal/new-execution/type-guards/execution-state";
+import { isOnchainInteraction } from "../../../../src/new-api/internal/new-execution/type-guards/network-interaction";
 import { DeploymentState } from "../../../../src/new-api/internal/new-execution/types/deployment-state";
 import {
   DeploymentExecutionStateInitializeMessage,
   JournalMessage,
   JournalMessageType,
   NetworkInteractionRequestMessage,
+  SendTransactionMessage,
 } from "../../../../src/new-api/internal/new-execution/types/messages";
 import { NetworkInteractionType } from "../../../../src/new-api/internal/new-execution/types/network-interaction";
 import { assertIgnitionInvariant } from "../../../../src/new-api/internal/utils/assertions";
@@ -53,7 +55,7 @@ describe("DeploymentStateReducer", () => {
         from: undefined,
       };
 
-    const requestNetworkInteraction: NetworkInteractionRequestMessage = {
+    const requestNetworkInteractionMessage: NetworkInteractionRequestMessage = {
       type: JournalMessageType.NETWORK_INTERACTION_REQUEST,
       futureId: "future1",
       networkInteraction: {
@@ -65,6 +67,17 @@ describe("DeploymentStateReducer", () => {
         from: "string",
         nonce: 0,
         transactions: [],
+      },
+    };
+
+    const sendTransactionMessage: SendTransactionMessage = {
+      type: JournalMessageType.TRANSACTION_SEND,
+      futureId: "future1",
+      networkInteractionId: 1,
+      transaction: {
+        hash: "0xdeadbeef",
+        maxFeePerGas: BigInt(10),
+        maxPriorityFeePerGas: BigInt(5),
       },
     };
 
@@ -80,15 +93,15 @@ describe("DeploymentStateReducer", () => {
       });
     });
 
-    describe("requesting an onchain interaction", () => {
+    describe("strategy requesting an onchain interaction", () => {
       beforeEach(() => {
         updatedState = applyMessages([
           initializeNamedContractDeployMessage,
-          requestNetworkInteraction,
+          requestNetworkInteractionMessage,
         ]);
       });
 
-      it("should populate a transaction", () => {
+      it("should populate a new onchain interaction", () => {
         const exState = updatedState.executionStates["future1"];
 
         assertIgnitionInvariant(
@@ -101,9 +114,44 @@ describe("DeploymentStateReducer", () => {
 
         assert.isDefined(networkInteraction);
         assert.deepStrictEqual(
-          requestNetworkInteraction.networkInteraction,
+          requestNetworkInteractionMessage.networkInteraction,
           networkInteraction
         );
+      });
+    });
+
+    describe("execution engine sends transaction", () => {
+      beforeEach(() => {
+        updatedState = applyMessages([
+          initializeNamedContractDeployMessage,
+          requestNetworkInteractionMessage,
+          sendTransactionMessage,
+        ]);
+      });
+
+      it("should populate the transaction against the network interaction", () => {
+        const exState = updatedState.executionStates["future1"];
+
+        assertIgnitionInvariant(
+          isDeploymentExecutionState(exState),
+          "has to be a deployment execution state"
+        );
+
+        assert.equal(exState.networkInteractions.length, 1);
+        const networkInteraction = exState.networkInteractions[0];
+
+        assert.isDefined(networkInteraction);
+
+        assertIgnitionInvariant(
+          isOnchainInteraction(networkInteraction),
+          "has to be an onchain interaction"
+        );
+
+        assert.equal(networkInteraction.transactions.length, 1);
+        const transaction = networkInteraction.transactions[0];
+
+        assert.isDefined(transaction);
+        assert.deepStrictEqual(sendTransactionMessage.transaction, transaction);
       });
     });
   });
