@@ -76,7 +76,7 @@ where
             &parent_block.header,
             BlockOptions {
                 beneficiary: Some(beneficiary),
-                number: Some(parent_block.header.number),
+                number: Some(parent_block.header.number + U256::from(1)),
                 gas_limit: Some(block_gas_limit),
                 timestamp: Some(timestamp),
                 mix_hash: if cfg.spec_id >= SpecId::MERGE {
