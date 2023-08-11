@@ -2,7 +2,7 @@ import { SolidityParameterType } from "../../../types/module";
 
 /**
  * A list of (possibly named) values returned by a function, or used as
- * arguments for a custom error.
+ * arguments for a custom error or event.
  */
 export interface EvmValues {
   /**
