@@ -1,6 +1,5 @@
 mod cached;
 
-use std::path::PathBuf;
 use std::sync::Arc;
 
 use revm::{
@@ -27,11 +26,11 @@ pub struct RemoteState {
 }
 
 impl RemoteState {
-    /// Construct a new instance using the URL of a remote Ethereum node and a
-    /// block number from which data will be pulled.
-    pub fn new(runtime: Arc<Runtime>, url: &str, cache_dir: PathBuf, block_number: U256) -> Self {
+    /// Construct a new instance using an RPC client for a remote Ethereum node and a block number
+    /// from which data will be pulled.
+    pub fn new(runtime: Arc<Runtime>, client: RpcClient, block_number: U256) -> Self {
         Self {
-            client: RpcClient::new(url, cache_dir),
+            client,
             runtime,
             block_number,
         }
@@ -117,18 +116,15 @@ mod tests {
             .into_string()
             .expect("couldn't convert OsString into a String");
 
+        let rpc_client = RpcClient::new(&alchemy_url, tempdir.path().to_path_buf());
+
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");
 
-        let account_info: AccountInfo = RemoteState::new(
-            runtime,
-            &alchemy_url,
-            tempdir.path().to_path_buf(),
-            U256::from(16643427),
-        )
-        .basic(dai_address)
-        .expect("should succeed")
-        .unwrap();
+        let account_info: AccountInfo = RemoteState::new(runtime, rpc_client, U256::from(16643427))
+            .basic(dai_address)
+            .expect("should succeed")
+            .unwrap();
 
         assert_eq!(account_info.balance, U256::from(0));
         assert_eq!(account_info.nonce, 1);
