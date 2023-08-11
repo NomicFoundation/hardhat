@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
-// The file has to not exist for test purposes
+// For test purposes this import must point to a folder
 import "../contracts/dependency";
 
 contract A {}
