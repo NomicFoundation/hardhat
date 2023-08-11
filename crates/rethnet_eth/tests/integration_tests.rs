@@ -9,6 +9,7 @@ use rethnet_eth::{
         methods::{GetLogsInput, MethodInvocation, OneUsizeOrTwo, TransactionInput, U256OrUsize},
         BlockSpec, BlockTag,
     },
+    transaction::EthTransactionRequest,
     Address, B256, U256,
 };
 use rethnet_test_utils::{
@@ -298,13 +299,19 @@ fn test_serde_eth_send_raw_transaction() {
 
 #[test]
 fn test_serde_eth_send_transaction() {
-    help_test_method_invocation_serde(MethodInvocation::SendTransaction(TransactionInput {
+    help_test_method_invocation_serde(MethodInvocation::SendTransaction(EthTransactionRequest {
         from: Some(Address::from_low_u64_ne(1)),
         to: Some(Address::from_low_u64_ne(2)),
-        gas: Some(U256::from(3)),
+        gas: Some(3),
         gas_price: Some(U256::from(4)),
+        max_fee_per_gas: Some(U256::from(5)),
+        max_priority_fee_per_gas: Some(U256::from(6)),
+        nonce: Some(7),
+        access_list: Some(Vec::new()),
+        transaction_type: Some(U256::ZERO),
         value: Some(U256::from(123568919)),
-        data: Some(Bytes::from(&b"whatever"[..]).into()),
+        data: Some(Bytes::from(&b"whatever"[..])),
+        chain_id: Some(12345),
     }));
 }
 

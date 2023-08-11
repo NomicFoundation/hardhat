@@ -8,7 +8,7 @@ use axum::{
     Router,
 };
 use hashbrown::{HashMap, HashSet};
-use rethnet_eth::remote::methods::TransactionInput;
+use rethnet_eth::transaction::{EthTransactionRequest, SignedTransaction};
 use rethnet_eth::{
     remote::{
         client::Request as RpcRequest,
@@ -22,6 +22,7 @@ use rethnet_eth::{
     signature::{public_key_to_address, Signature},
     Address, Bytes, SpecId, B256, U256,
 };
+use rethnet_evm::PendingTransaction;
 use rethnet_evm::{
     blockchain::{
         Blockchain, BlockchainError, ForkedBlockchain, ForkedCreationError, LocalBlockchain,
@@ -65,6 +66,7 @@ type BlockchainType = Arc<RwLock<dyn SyncBlockchain<BlockchainError>>>;
 struct AppState {
     allow_blocks_with_same_timestamp: bool,
     allow_unlimited_contract_size: bool,
+    automine: bool,
     block_gas_limit: U256,
     blockchain: BlockchainType,
     block_time_offset_seconds: RwLock<U256>,
@@ -736,11 +738,91 @@ async fn handle_new_pending_transaction_filter(state: StateType) -> ResponseData
     ResponseData::Success { result: filter_id }
 }
 
+fn validate_eip_3860_max_int_code_size(
+    _state: &StateType,
+    _to: Option<Address>,
+    _data: Option<Bytes>,
+) -> Result<(), Error> {
+    // TODO
+    Ok(())
+}
+
 async fn handle_send_transaction(
-    _state: StateType,
-    transaction: TransactionInput,
+    state: StateType,
+    transaction: EthTransactionRequest,
 ) -> ResponseData<B256> {
     event!(Level::INFO, "eth_sendTransaction({transaction:?})");
+
+    if let Err(error) =
+        validate_eip_3860_max_int_code_size(&state, transaction.to, transaction.data.clone())
+    {
+        return error_response_data(0, &format!("{error}"));
+    }
+
+    // validate chain ID
+    if let Some(chain_id) = transaction.chain_id {
+        if chain_id != state.chain_id {
+            return error_response_data(
+                0,
+                &format!(
+                    "Invalid chainId {chain_id} provided, expected {} instead.",
+                    state.chain_id
+                ),
+            );
+        }
+    }
+
+    // TODO: convert RPC request to internal request
+
+    // TODO: sign the transaction
+
+    // TODO: send transaction and get hash
+
+    let caller = if let Some(from) = transaction.from {
+        from
+    } else {
+        return error_response_data(0, "cannot submit a transaction without a from address");
+    };
+
+    let secret_key = if let Some(secret_key) = state.local_accounts.get(&caller) {
+        secret_key
+    } else {
+        return error_response_data(0, &format!("cannot sign transaction because from address {caller} is not a locally controlled account"));
+    };
+    let transaction = match transaction.into_typed_request(state.hardfork) {
+        Ok(transaction) => transaction,
+        Err(e) => {
+            return error_response_data(0, &format!("{e}"));
+        }
+    };
+    let hash = transaction.hash();
+    let signature = Signature::new(hash, secret_key);
+
+    let transaction: SignedTransaction =
+        SignedTransaction::from_unsigned_and_signature(transaction, signature);
+    let transaction = match PendingTransaction::new(
+        &*state.rethnet_state.read().await,
+        state.hardfork,
+        transaction,
+    ) {
+        Ok(transaction) => transaction,
+        Err(e) => {
+            return error_response_data(0, &format!("failed to construct PendingTransaction: {e}"));
+        }
+    };
+
+    if state.automine {
+        // TODO: validate automined transaction
+        // TODO: add transaction to the mempool
+        // TODO: mine_block() repeatedly, until `transaction` has been included in a block
+    } else {
+        state
+            .mem_pool
+            .write()
+            .await
+            .add_transaction(&*state.rethnet_state.read().await, transaction)
+            .unwrap();
+    }
 
     ResponseData::Success {
         result: KECCAK_EMPTY,
@@ -1270,6 +1352,7 @@ impl Server {
         let app_state = Arc::new(AppState {
             allow_blocks_with_same_timestamp: config.allow_blocks_with_same_timestamp,
             allow_unlimited_contract_size: config.allow_unlimited_contract_size,
+            automine: config.automine,
             block_gas_limit: config.block_gas_limit,
             blockchain,
             block_time_offset_seconds: RwLock::new(

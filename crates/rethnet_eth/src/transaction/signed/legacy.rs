@@ -23,6 +23,21 @@ pub struct LegacySignedTransaction {
 }
 
 impl LegacySignedTransaction {
+    pub fn from_unsigned_and_signature(
+        unsigned: LegacyTransactionRequest,
+        signature: Signature,
+    ) -> Self {
+        Self {
+            nonce: unsigned.nonce,
+            gas_price: unsigned.gas_price,
+            gas_limit: unsigned.gas_limit,
+            kind: unsigned.kind,
+            value: unsigned.value,
+            input: unsigned.input,
+            signature,
+        }
+    }
+
     pub fn nonce(&self) -> &u64 {
         &self.nonce
     }

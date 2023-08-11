@@ -8,6 +8,7 @@ use crate::{
         optional_single_to_sequence, sequence_to_optional_single, sequence_to_single,
         single_to_sequence, ZeroXPrefixedBytes,
     },
+    transaction::EthTransactionRequest,
     Address, B256, U256,
 };
 
@@ -244,7 +245,7 @@ pub enum MethodInvocation {
         serialize_with = "single_to_sequence",
         deserialize_with = "sequence_to_single"
     )]
-    SendTransaction(TransactionInput),
+    SendTransaction(EthTransactionRequest),
     /// eth_sign
     #[serde(rename = "eth_sign", alias = "personal_sign")]
     Sign(Address, ZeroXPrefixedBytes),

@@ -2,6 +2,8 @@ mod eip1559;
 mod eip2930;
 mod legacy;
 
+use revm_primitives::B256;
+
 pub use self::{
     eip1559::EIP1559TransactionRequest, eip2930::EIP2930TransactionRequest,
     legacy::LegacyTransactionRequest,
@@ -21,4 +23,14 @@ pub enum TransactionRequest {
     EIP2930(EIP2930TransactionRequest),
     /// An EIP-1559 transaction request
     EIP1559(EIP1559TransactionRequest),
+}
+
+impl TransactionRequest {
+    pub fn hash(&self) -> B256 {
+        match self {
+            Self::Legacy(t) => t.hash(),
+            Self::EIP2930(t) => t.hash(),
+            Self::EIP1559(t) => t.hash(),
+        }
+    }
 }

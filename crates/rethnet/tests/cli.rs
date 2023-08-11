@@ -12,10 +12,11 @@ use rethnet_eth::{
     remote::{
         client::Request as RpcRequest,
         jsonrpc,
-        methods::{MethodInvocation as EthMethodInvocation, TransactionInput, U256OrUsize},
+        methods::{MethodInvocation as EthMethodInvocation, U256OrUsize},
         BlockSpec,
     },
     signature::private_key_to_address,
+    transaction::EthTransactionRequest,
     Address, Bytes, U256,
 };
 use rethnet_rpc_server::{HardhatMethodInvocation, MethodInvocation};
@@ -69,14 +70,22 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
         MethodInvocation::Eth(EthMethodInvocation::NetPeerCount()),
         MethodInvocation::Eth(EthMethodInvocation::NetVersion()),
         MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()),
-        MethodInvocation::Eth(EthMethodInvocation::SendTransaction(TransactionInput {
-            from: Some(Address::from_low_u64_ne(1)),
-            to: Some(Address::from_low_u64_ne(1)),
-            gas: Some(U256::ZERO),
-            gas_price: Some(U256::ZERO),
-            value: Some(U256::ZERO),
-            data: Some(Bytes::from_static(b"whatever").into()),
-        })),
+        MethodInvocation::Eth(EthMethodInvocation::SendTransaction(
+            EthTransactionRequest {
+                from: Some(Address::from_low_u64_ne(1)),
+                to: Some(Address::from_low_u64_ne(1)),
+                gas: Some(0),
+                gas_price: Some(U256::ZERO),
+                max_fee_per_gas: Some(U256::from(1)),
+                max_priority_fee_per_gas: Some(U256::from(1)),
+                nonce: Some(123),
+                chain_id: None,
+                access_list: None,
+                transaction_type: Some(U256::ZERO),
+                value: Some(U256::ZERO),
+                data: Some(Bytes::from_static(b"whatever")),
+            },
+        )),
         MethodInvocation::Eth(EthMethodInvocation::UninstallFilter(U256::from(1))),
         MethodInvocation::Eth(EthMethodInvocation::Unsubscribe(U256::from(1))),
         MethodInvocation::Eth(EthMethodInvocation::Unsubscribe(U256::from(1))),

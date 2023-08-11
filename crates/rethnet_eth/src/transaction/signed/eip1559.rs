@@ -29,6 +29,25 @@ pub struct EIP1559SignedTransaction {
 }
 
 impl EIP1559SignedTransaction {
+    pub fn from_unsigned_and_signature(
+        unsigned: EIP1559TransactionRequest,
+        signature: Signature,
+    ) -> Self {
+        Self {
+            chain_id: unsigned.chain_id,
+            nonce: unsigned.nonce,
+            max_priority_fee_per_gas: unsigned.max_priority_fee_per_gas,
+            max_fee_per_gas: unsigned.max_fee_per_gas,
+            gas_limit: unsigned.gas_limit,
+            kind: unsigned.kind,
+            value: unsigned.value,
+            input: unsigned.input,
+            access_list: AccessList(unsigned.access_list),
+            odd_y_parity: signature.v != 0,
+            r: signature.r.into(),
+            s: signature.s.into(),
+        }
+    }
     pub fn nonce(&self) -> &u64 {
         &self.nonce
     }

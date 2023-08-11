@@ -11,7 +11,7 @@ use crate::{
     utils::enveloped,
 };
 
-use super::{kind::TransactionKind, TransactionEssentials};
+use super::{kind::TransactionKind, TransactionEssentials, TransactionRequest};
 
 pub use self::{
     eip1559::EIP1559SignedTransaction, eip2930::EIP2930SignedTransaction,
@@ -30,6 +30,20 @@ pub enum SignedTransaction {
 }
 
 impl SignedTransaction {
+    pub fn from_unsigned_and_signature(unsigned: TransactionRequest, signature: Signature) -> Self {
+        match unsigned {
+            TransactionRequest::Legacy(t) => SignedTransaction::Legacy(
+                LegacySignedTransaction::from_unsigned_and_signature(t, signature),
+            ),
+            TransactionRequest::EIP2930(t) => SignedTransaction::EIP2930(
+                EIP2930SignedTransaction::from_unsigned_and_signature(t, signature),
+            ),
+            TransactionRequest::EIP1559(t) => SignedTransaction::EIP1559(
+                EIP1559SignedTransaction::from_unsigned_and_signature(t, signature),
+            ),
+        }
+    }
+
     /// Returns the gas price of the transaction.
     pub fn gas_price(&self) -> U256 {
         match self {

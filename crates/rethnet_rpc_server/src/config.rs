@@ -10,6 +10,7 @@ pub use crate::hardhat_methods::reset::{RpcForkConfig, RpcHardhatNetworkConfig};
 pub struct Config {
     pub allow_blocks_with_same_timestamp: bool,
     pub allow_unlimited_contract_size: bool,
+    pub automine: bool,
     pub address: SocketAddr,
     pub rpc_hardhat_network_config: RpcHardhatNetworkConfig,
     pub accounts: Vec<AccountConfig>,

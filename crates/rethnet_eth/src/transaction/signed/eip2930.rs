@@ -28,6 +28,25 @@ pub struct EIP2930SignedTransaction {
 }
 
 impl EIP2930SignedTransaction {
+    pub fn from_unsigned_and_signature(
+        unsigned: EIP2930TransactionRequest,
+        _signature: Signature,
+    ) -> Self {
+        Self {
+            chain_id: unsigned.chain_id,
+            nonce: unsigned.nonce,
+            gas_price: unsigned.gas_price,
+            gas_limit: unsigned.gas_limit,
+            kind: unsigned.kind,
+            value: unsigned.value,
+            input: unsigned.input,
+            access_list: AccessList(unsigned.access_list),
+            odd_y_parity: true, // TODO: use a value from the signature
+            r: B256::random(),  // TODO: use a value from the signature
+            s: B256::random(),  // TODO: use a value from the signature
+        }
+    }
+
     pub fn nonce(&self) -> &u64 {
         &self.nonce
     }

@@ -3,12 +3,13 @@ use std::str::FromStr;
 use std::time::SystemTime;
 
 use hashbrown::HashMap;
+use rethnet_eth::transaction::EthTransactionRequest;
 use rethnet_eth::{
     remote::{
         client::Request as RpcRequest,
         filter::FilteredEvents,
         jsonrpc,
-        methods::{MethodInvocation as EthMethodInvocation, TransactionInput, U256OrUsize},
+        methods::{MethodInvocation as EthMethodInvocation, U256OrUsize},
         BlockSpec,
     },
     serde::ZeroXPrefixedBytes,
@@ -39,6 +40,7 @@ async fn start_server() -> SocketAddr {
     );
 
     let server = Server::new(Config {
+        automine: true,
         address: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0),
         allow_blocks_with_same_timestamp: false,
         allow_unlimited_contract_size: false,
@@ -353,14 +355,24 @@ async fn test_new_pending_transaction_filter_success() {
 async fn test_send_transaction() {
     verify_response(
         &start_server().await,
-        MethodInvocation::Eth(EthMethodInvocation::SendTransaction(TransactionInput {
-            from: Some(Address::from_low_u64_ne(1)),
-            to: Some(Address::from_low_u64_ne(1)),
-            gas: Some(U256::ZERO),
-            gas_price: Some(U256::ZERO),
-            value: Some(U256::ZERO),
-            data: Some(Bytes::from_static(b"whatever").into()),
-        })),
+        MethodInvocation::Eth(EthMethodInvocation::SendTransaction(
+            EthTransactionRequest {
+                from: Some(
+                    Address::from_str("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266").unwrap(),
+                ),
+                to: Some(Address::from_low_u64_ne(1)),
+                gas: Some(21128),
+                gas_price: None,
+                max_fee_per_gas: None,
+                max_priority_fee_per_gas: Some(U256::from(1)),
+                nonce: Some(123),
+                chain_id: None,
+                access_list: None,
+                value: Some(U256::ZERO),
+                transaction_type: Some(U256::from(2)),
+                data: Some(Bytes::from_static(b"whatever")),
+            },
+        )),
         KECCAK_EMPTY,
     )
     .await;

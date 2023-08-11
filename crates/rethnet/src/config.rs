@@ -49,6 +49,7 @@ pub struct ConfigFile {
     pub accounts: Vec<AccountConfig>,
     pub allow_blocks_with_same_timestamp: bool,
     pub allow_unlimited_contract_size: bool,
+    pub automine: bool,
     #[serde(deserialize_with = "u256_number")]
     pub block_gas_limit: Number,
     #[serde(deserialize_with = "u64_number")]
@@ -70,6 +71,7 @@ impl ConfigFile {
             address: SocketAddr::new(cli_args.host, cli_args.port),
             allow_blocks_with_same_timestamp: cli_args.allow_blocks_with_same_timestamp
                 || self.allow_blocks_with_same_timestamp,
+            automine: cli_args.automine || self.automine,
             rpc_hardhat_network_config: RpcHardhatNetworkConfig {
                 forking: if let Some(json_rpc_url) = cli_args.fork_url {
                     Some(RpcForkConfig {
@@ -112,6 +114,7 @@ impl Default for ConfigFile {
         Self {
             allow_blocks_with_same_timestamp: false,
             allow_unlimited_contract_size: false,
+            automine: true,
             accounts: DEFAULT_PRIVATE_KEYS
                 .into_iter()
                 .map(|s| AccountConfig {

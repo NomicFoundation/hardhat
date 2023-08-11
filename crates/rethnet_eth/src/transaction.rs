@@ -9,6 +9,8 @@ mod kind;
 mod request;
 mod signed;
 
+use revm_primitives::SpecId;
+
 use crate::{
     access_list::{AccessList, AccessListItem},
     Address, Bytes, U256,
@@ -60,11 +62,54 @@ pub struct EthTransactionRequest {
     /// EIP-2718 type
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
     pub transaction_type: Option<U256>,
+    /// chain identifier
+    pub chain_id: Option<u64>, // like in Hardhat's `rpcTransactionRequest`
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum TransactionRequestError {
+    #[error("Access list received but is not supported by the current hardfork.\n\nYou can use it by running Hardhat Network with 'hardfork' BERLIN or later.")]
+    AccessListUnsupported(),
+    #[error("EIP-1559 style fee params (maxFeePerGas or maxPriorityFeePerGas) received but they are not supported by the current hardfork.\n\nYou can use them by running Hardhat Network with 'hardfork' LONDON or later.")]
+    Eip1559Unsupported(),
+    #[error("Cannot send both gasPrice and maxFeePerGas params")]
+    GasSpecConflict(),
+    #[error("maxPriorityFeePerGas ({max_priority_fee_per_gas}) is bigger than maxFeePerGas ({max_fee_per_gas})")]
+    MaxPriorityFeeExceedsMaxFee {
+        max_priority_fee_per_gas: U256,
+        max_fee_per_gas: U256,
+    },
+    #[error("The given transaction did not conform to any known transaction types")]
+    Unknown(),
 }
 
 impl EthTransactionRequest {
     /// Converts the request into a [`TransactionRequest`].
-    pub fn into_typed_request(self) -> Option<TransactionRequest> {
+    pub fn into_typed_request(
+        self,
+        hardfork: SpecId,
+    ) -> Result<TransactionRequest, TransactionRequestError> {
+        if (self.max_priority_fee_per_gas.is_some() || self.max_priority_fee_per_gas.is_some())
+            && hardfork < SpecId::LONDON
+        {
+            return Err(TransactionRequestError::Eip1559Unsupported());
+        }
+        if self.gas_price.is_some() && self.max_priority_fee_per_gas.is_some() {
+            return Err(TransactionRequestError::GasSpecConflict());
+        }
+        if self.access_list.is_some() && hardfork < SpecId::BERLIN {
+            return Err(TransactionRequestError::AccessListUnsupported());
+        }
+        if let Some(max_fee_per_gas) = self.max_fee_per_gas {
+            if let Some(max_priority_fee_per_gas) = self.max_priority_fee_per_gas {
+                if max_priority_fee_per_gas > max_fee_per_gas {
+                    return Err(TransactionRequestError::MaxPriorityFeeExceedsMaxFee {
+                        max_priority_fee_per_gas,
+                        max_fee_per_gas,
+                    });
+                }
+            }
+        }
         let EthTransactionRequest {
             to,
             gas_price,
@@ -75,11 +120,12 @@ impl EthTransactionRequest {
             data,
             nonce,
             mut access_list,
+            chain_id,
             ..
         } = self;
         match (gas_price, max_fee_per_gas, access_list.take()) {
             // legacy transaction
-            (Some(_), None, None) => Some(TransactionRequest::Legacy(LegacyTransactionRequest {
+            (Some(_), None, None) => Ok(TransactionRequest::Legacy(LegacyTransactionRequest {
                 nonce: nonce.unwrap_or(0),
                 gas_price: gas_price.unwrap_or_default(),
                 gas_limit: gas.unwrap_or_default(),
@@ -89,11 +135,11 @@ impl EthTransactionRequest {
                     Some(to) => TransactionKind::Call(to),
                     None => TransactionKind::Create,
                 },
-                chain_id: None,
+                chain_id,
             })),
             // EIP2930
             (_, None, Some(access_list)) => {
-                Some(TransactionRequest::EIP2930(EIP2930TransactionRequest {
+                Ok(TransactionRequest::EIP2930(EIP2930TransactionRequest {
                     nonce: nonce.unwrap_or(0),
                     gas_price: gas_price.unwrap_or_default(),
                     gas_limit: gas.unwrap_or_default(),
@@ -103,14 +149,14 @@ impl EthTransactionRequest {
                         Some(to) => TransactionKind::Call(to),
                         None => TransactionKind::Create,
                     },
-                    chain_id: 0,
+                    chain_id: chain_id.unwrap_or(0),
                     access_list,
                 }))
             }
             // EIP1559
             (None, Some(_), access_list) | (None, None, access_list @ None) => {
                 // Empty fields fall back to the canonical transaction schema.
-                Some(TransactionRequest::EIP1559(EIP1559TransactionRequest {
+                Ok(TransactionRequest::EIP1559(EIP1559TransactionRequest {
                     nonce: nonce.unwrap_or(0),
                     max_fee_per_gas: max_fee_per_gas.unwrap_or_default(),
                     max_priority_fee_per_gas: max_priority_fee_per_gas.unwrap_or(U256::ZERO),
@@ -121,11 +167,11 @@ impl EthTransactionRequest {
                         Some(to) => TransactionKind::Call(to),
                         None => TransactionKind::Create,
                     },
-                    chain_id: 0,
+                    chain_id: chain_id.unwrap_or(0),
                     access_list: access_list.unwrap_or_default(),
                 }))
             }
-            _ => None,
+            _ => Err(TransactionRequestError::Unknown()),
         }
     }
 }
