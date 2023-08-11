@@ -7,9 +7,9 @@ import {
   RevertWithReason,
 } from "./types/evm-execution";
 
-export const REVERT_REASON_SIGNATURE = "0x08c379a0";
-export const PANIC_CODE_SIGNATURE = "0x4e487b71";
-export const PANIC_CODE_NAMES: { [key: number]: string | undefined } = {
+const REVERT_REASON_SIGNATURE = "0x08c379a0";
+const PANIC_CODE_SIGNATURE = "0x4e487b71";
+const PANIC_CODE_NAMES: { [key: number]: string | undefined } = {
   [0x00]: "GENERIC_PANIC",
   [0x01]: "ASSERT_FALSE",
   [0x11]: "OVERFLOW",
@@ -22,9 +22,21 @@ export const PANIC_CODE_NAMES: { [key: number]: string | undefined } = {
   [0x51]: "UNINITIALIZED_FUNCTION_CALL",
 };
 
+/**
+ * Decodes an error from a failed evm execution.
+ *
+ * @param returnData The data, as returned by the JSON-RPC.
+ * @param customErrorReported A value indicating if the JSON-RPC error
+ *  reported that it was due to a custom error.
+ * @param decodeCustomError A function that decodes custom errors, returning
+ *  `RevertWithCustomError` if succesfully decoded, `RevertWithInvalidData`
+ *  if a custom error was recognized but couldn't be decoded, and `undefined`
+ *  it it wasn't recognized.
+ * @returns A `FailedEvmExecutionResult` with the decoded error.
+ */
 export function decodeError(
   returnData: string,
-  isCustomError: boolean,
+  customErrorReported: boolean,
   decodeCustomError?: (
     returnData: string
   ) => RevertWithCustomError | RevertWithInvalidData | undefined
@@ -50,7 +62,7 @@ export function decodeError(
     }
   }
 
-  if (isCustomError === true) {
+  if (customErrorReported === true) {
     return {
       type: EvmExecutionResultTypes.REVERT_WITH_UNKNOWN_CUSTOM_ERROR,
       signature: returnData.slice(0, 10),
