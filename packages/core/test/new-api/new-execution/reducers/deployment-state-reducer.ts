@@ -1,4 +1,5 @@
 import { assert } from "chai";
+
 import { deploymentStateReducer } from "../../../../src/new-api/internal/new-execution/reducers/deployment-state-reducer";
 import { isDeploymentExecutionState } from "../../../../src/new-api/internal/new-execution/type-guards/execution-state";
 import { isOnchainInteraction } from "../../../../src/new-api/internal/new-execution/type-guards/network-interaction";
@@ -87,7 +88,7 @@ describe("DeploymentStateReducer", () => {
       });
 
       it("should populate a deployment execution state for the future", () => {
-        const exState = updatedState.executionStates["future1"];
+        const exState = updatedState.executionStates.future1;
         assert.isDefined(exState);
         assert(isDeploymentExecutionState(exState));
       });
@@ -102,7 +103,7 @@ describe("DeploymentStateReducer", () => {
       });
 
       it("should populate a new onchain interaction", () => {
-        const exState = updatedState.executionStates["future1"];
+        const exState = updatedState.executionStates.future1;
 
         assertIgnitionInvariant(
           isDeploymentExecutionState(exState),
@@ -130,7 +131,7 @@ describe("DeploymentStateReducer", () => {
       });
 
       it("should populate the transaction against the network interaction", () => {
-        const exState = updatedState.executionStates["future1"];
+        const exState = updatedState.executionStates.future1;
 
         assertIgnitionInvariant(
           isDeploymentExecutionState(exState),
