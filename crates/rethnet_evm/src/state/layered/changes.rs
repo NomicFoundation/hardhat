@@ -89,7 +89,7 @@ impl<Layer: Default> Default for LayeredChanges<Layer> {
     }
 }
 
-/// A layer with information needed for [`crate::runtime::Rethnet`].
+/// A layer with information needed for implementing the [`crate::state::StateHistory`] trait.
 #[derive(Clone, Debug)]
 pub struct RethnetLayer {
     /// Accounts, where the Option signals deletion.
