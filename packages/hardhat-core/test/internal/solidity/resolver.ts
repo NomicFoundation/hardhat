@@ -596,17 +596,34 @@ describe("Resolver regression tests", function () {
 });
 
 describe("TASK_COMPILE: the file to compile is trying to import a directory", function () {
-  useFixtureProject("compilation-import-folder");
-  useEnvironment();
+  describe("Import folder from module", () => {
+    useFixtureProject("compilation-import-folder-from-module");
+    useEnvironment();
 
-  it("should throw an error because a directory is trying to be imported", async function () {
-    await expectHardhatErrorAsync(
-      async () => {
-        await this.env.run(TASK_COMPILE);
-      },
-      ERRORS.RESOLVER.INVALID_IMPORT_OF_DIRECTORY,
-      "HH414: Invalid import some-plugin from contracts/A.sol. Attempting to import a directory. Directories cannot be imported."
-    );
+    it("should throw an error because a directory is trying to be imported", async function () {
+      await expectHardhatErrorAsync(
+        async () => {
+          await this.env.run(TASK_COMPILE);
+        },
+        ERRORS.RESOLVER.INVALID_IMPORT_OF_DIRECTORY,
+        "HH414: Invalid import some-lib from contracts/A.sol. Attempting to import a directory. Directories cannot be imported."
+      );
+    });
+  });
+
+  describe("Import folder from path", () => {
+    useFixtureProject("compilation-import-folder-relative-path");
+    useEnvironment();
+
+    it("should throw an error because a directory is trying to be imported", async function () {
+      await expectHardhatErrorAsync(
+        async () => {
+          await this.env.run(TASK_COMPILE);
+        },
+        ERRORS.RESOLVER.INVALID_IMPORT_OF_DIRECTORY,
+        "HH414: Invalid import ../contracts/dependency from contracts/A.sol. Attempting to import a directory. Directories cannot be imported."
+      );
+    });
   });
 });
 
@@ -620,7 +637,7 @@ describe("TASK_COMPILE: the file to compile is trying to import a non existing f
         await this.env.run(TASK_COMPILE);
       },
       ERRORS.RESOLVER.IMPORTED_FILE_NOT_FOUND,
-      "HH404: File some-plugin/nonExistingFile.sol, imported from contracts/A.sol, not found."
+      "HH404: File some-lib/nonExistingFile.sol, imported from contracts/A.sol, not found."
     );
   });
 });
