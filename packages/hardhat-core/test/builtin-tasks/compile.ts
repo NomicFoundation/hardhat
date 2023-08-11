@@ -143,11 +143,12 @@ describe("compile task", function () {
 
   describe("TASK_COMPILE_SOLIDITY_READ_FILE", function () {
     describe("Import folder", () => {
-      useFixtureProject("compilation-import-folder");
+      const folderName = "compilation-single-file";
+      useFixtureProject(folderName); // Random hardhat project
       useEnvironment();
 
       it("should throw an error because a directory is trying to be imported", async function () {
-        const absolutePath = `${__dirname}/../fixture-projects/compilation-import-folder/contracts/`;
+        const absolutePath = `${__dirname}/../fixture-projects/${folderName}/contracts/`;
 
         await expectHardhatErrorAsync(
           async () => {
