@@ -5,6 +5,7 @@ use std::sync::Arc;
 use criterion::{BatchSize, BenchmarkId, Criterion};
 #[cfg(all(test, feature = "test-remote"))]
 use parking_lot::Mutex;
+use tempfile::TempDir;
 #[cfg(all(test, feature = "test-remote"))]
 use tokio::runtime::Builder;
 
@@ -35,10 +36,14 @@ pub struct RethnetStates {
     fork_checkpoints: Vec<B256>,
     #[allow(dead_code)]
     fork_snapshots: Vec<B256>,
+    // We have to keep the cache dir around to prevent it from being deleted
+    #[allow(dead_code)]
+    cache_dir: TempDir,
 }
 
 impl RethnetStates {
     pub fn new(#[cfg(all(test, feature = "test-remote"))] fork_block_number: U256) -> Self {
+        let cache_dir = TempDir::new().expect("can create temp dir");
         Self {
             layered: LayeredState::<RethnetLayer>::default(),
             layered_checkpoints: Vec::default(),
@@ -60,11 +65,13 @@ impl RethnetStates {
                     .expect("ALCHEMY_URL environment variable not defined")
                     .into_string()
                     .unwrap(),
+                cache_dir.path().to_path_buf(),
                 fork_block_number,
                 HashMap::default(),
             ),
             fork_checkpoints: Vec::default(),
             fork_snapshots: Vec::default(),
+            cache_dir,
         }
     }
 

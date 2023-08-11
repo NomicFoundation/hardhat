@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use hashbrown::HashMap;
@@ -58,11 +59,12 @@ impl ForkedBlockchain {
         runtime: Arc<Runtime>,
         spec_id: SpecId,
         remote_url: &str,
+        cache_dir: PathBuf,
         fork_block_number: Option<U256>,
     ) -> Result<Self, CreationError> {
         const FALLBACK_MAX_REORG: u64 = 30;
 
-        let rpc_client = RpcClient::new(remote_url);
+        let rpc_client = RpcClient::new(remote_url, cache_dir);
 
         let (chain_id, network_id, latest_block_number) = tokio::join!(
             rpc_client.chain_id(),
