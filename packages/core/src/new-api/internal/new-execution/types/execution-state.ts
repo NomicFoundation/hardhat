@@ -68,11 +68,6 @@ export type DeploymentExecutionStateFutureTypes =
 /**
  * The execution state used for the different kinds of futures
  * that deploy contracts.
- *
- * If the execution is successful, the result will be the address of the deployed contract.
- *
- * If the execution fails, the result will be undefined and information about its failure
- * should be fetched from the latest network interaction.
  */
 export interface DeploymentExecutionState
   extends BaseExecutionState<
@@ -91,9 +86,6 @@ export interface DeploymentExecutionState
 
 /**
  * An execution state used for the future that performs on-chain calls to contracts.
- *
- * If the execution fails, information about its failure should be fetched from the
- * latest network interaction.
  */
 export interface CallExecutionState
   extends BaseExecutionState<
@@ -115,9 +107,6 @@ export interface CallExecutionState
  *
  * Static calls' network interactions are limited to `StaticCall`. They cannot
  * perform any on-chain interaction.
- *
- * If its status is SUCCESS or FAILURE, its result will be available in the latest
- * network interaction.
  */
 export interface StaticCallExecutionState
   extends BaseExecutionState<
@@ -135,9 +124,6 @@ export interface StaticCallExecutionState
 
 /**
  * An execution state that tracks the execution of an arbitrary send data future.
- *
- * If the execution fails, information about its failure should be fetched from the
- * latest network interaction.
  */
 export interface SendDataExecutionState
   extends BaseExecutionState<
