@@ -1,5 +1,4 @@
 ---
-"@nomicfoundation/hardhat-verify": patch
 "hardhat": patch
 ---
 

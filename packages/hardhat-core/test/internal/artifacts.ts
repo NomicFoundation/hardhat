@@ -1333,11 +1333,20 @@ describe("Artifacts class", function () {
     });
 
     it("should check that the artifact doesn't exist", async function () {
-      const artifacts = new Artifacts(this.tmpDir);
+      const artifact = getArtifactFromContractOutput(
+        "source.sol",
+        "Interface",
+        {
+          ...COMPILER_OUTPUTS.Interface,
+          evm: undefined,
+        }
+      );
 
-      // FQN, missing artifact
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
+
       // FQN, missing file
-      assert.isFalse(await artifacts.artifactExists("invalid/source.sol:Interface"));
+      assert.isFalse(await artifacts.artifactExists("invalid/path.sol:A"));
       // FQN, missing artifact
       assert.isFalse(await artifacts.artifactExists("source.sol:A"));
       // FQN, wrong casing
