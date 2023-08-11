@@ -26,16 +26,16 @@ where
 
 /// Creates an evm from the provided database, config, transaction, and block.
 #[cfg_attr(feature = "tracing", tracing::instrument)]
-pub fn build_evm<'b, 's, BE, SE>(
-    blockchain: &'b dyn SyncBlockchain<BE>,
-    state: &'s dyn SyncState<SE>,
+pub fn build_evm<'b, 's, BlockchainErrorT, StateErrorT>(
+    blockchain: &'b dyn SyncBlockchain<BlockchainErrorT>,
+    state: &'s dyn SyncState<StateErrorT>,
     cfg: CfgEnv,
     transaction: TxEnv,
     block: BlockEnv,
-) -> revm::EVM<SyncDatabase<'b, 's, BE, SE>>
+) -> revm::EVM<SyncDatabase<'b, 's, BlockchainErrorT, StateErrorT>>
 where
-    BE: Debug + Send + 'static,
-    SE: Debug + Send + 'static,
+    BlockchainErrorT: Debug + Send,
+    StateErrorT: Debug + Send,
 {
     let mut evm = revm::EVM::new();
     evm.database(DatabaseComponents {
@@ -55,8 +55,8 @@ pub fn run_transaction<BE, SE>(
     inspector: Option<&mut dyn SyncInspector<BE, SE>>,
 ) -> Result<ResultAndState, EVMError<DatabaseComponentError<SE, BE>>>
 where
-    BE: Debug + Send + 'static,
-    SE: Debug + Send + 'static,
+    BE: Debug + Send,
+    SE: Debug + Send,
 {
     if let Some(inspector) = inspector {
         evm.inspect_ref(inspector)
