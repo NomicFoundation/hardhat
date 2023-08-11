@@ -384,9 +384,6 @@ pub enum PercentileError {
     /// Out of bounds value error
     #[error("Percentile must be between 0 and 100 inclusive, instead it is {0}")]
     OutOfBounds(f64),
-    /// Non-finite value error
-    #[error("Percentile must be a finite value, instead it is {0}")]
-    NonFiniteValue(f64),
 }
 
 /// The `rewardPercentiles` argument for `eth_feeHistory`.
@@ -427,9 +424,7 @@ impl TryFrom<f64> for Percentile {
     type Error = PercentileError;
 
     fn try_from(value: f64) -> Result<Self, Self::Error> {
-        if !value.is_finite() {
-            Err(PercentileError::NonFiniteValue(value))
-        } else if !(0. ..=100.).contains(&value) {
+        if !(0. ..=100.).contains(&value) {
             Err(PercentileError::OutOfBounds(value))
         } else {
             Ok(Self(value))
@@ -471,11 +466,12 @@ mod tests {
     #[test]
     fn test_infinite_percentile() {
         assert!(Percentile::try_from(f64::INFINITY).is_err());
+        assert!(Percentile::try_from(f64::NEG_INFINITY).is_err());
     }
 
     #[test]
     fn test_nan_percentile() {
-        assert!(Percentile::try_from(f64::INFINITY).is_err());
+        assert!(Percentile::try_from(f64::NAN).is_err());
     }
 
     #[test]
