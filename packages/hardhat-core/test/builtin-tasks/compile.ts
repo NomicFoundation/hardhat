@@ -149,17 +149,19 @@ describe("compile task", function () {
       it("should throw an error because a directory is trying to be imported", async function () {
         const absolutePath = `${__dirname}/../fixture-projects/compilation-import-folder/contracts/`;
 
-        await expect(
-          this.env.run(TASK_COMPILE_SOLIDITY_READ_FILE, { absolutePath })
-        )
-          .to.be.rejectedWith(
-            "HH414: Invalid import %imported% from %from%. Attempting to import a directory. Directories cannot be imported."
-          )
-          .and.eventually.have.property("name", "HardhatError");
+        await expectHardhatErrorAsync(
+          async () => {
+            await this.env.run(TASK_COMPILE_SOLIDITY_READ_FILE, {
+              absolutePath,
+            });
+          },
+          ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY,
+          `HH22: Invalid file path ${absolutePath}. Attempting to read a directory instead of a file.`
+        );
       });
     });
 
-    describe("Import non existing file", () => {
+    describe("A non specific Hardhat error is thrown (expected default error)", () => {
       useFixtureProject("compilation-import-non-existing-file");
       useEnvironment();
 
@@ -169,8 +171,10 @@ describe("compile task", function () {
         await expect(
           this.env.run(TASK_COMPILE_SOLIDITY_READ_FILE, { absolutePath })
         )
-          .to.be.rejectedWith("HH400: File %file% doesn't exist.")
-          .and.eventually.have.property("name", "HardhatError");
+          .to.be.rejectedWith(
+            `ENOENT: no such file or directory, lstat '${absolutePath}'`
+          )
+          .and.eventually.have.property("name", "Error"); // Default js error
       });
     });
   });

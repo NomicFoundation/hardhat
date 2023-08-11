@@ -244,7 +244,7 @@ export class Resolver {
       if (
         HardhatError.isHardhatErrorType(
           error,
-          ERRORS.RESOLVER.INVALID_IMPORT_OF_DIRECTORY
+          ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY
         )
       ) {
         throw new HardhatError(

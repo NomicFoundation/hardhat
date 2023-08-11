@@ -278,6 +278,16 @@ Rename the file to use the .cjs to fix this problem.`,
 To initialize the provider, make sure you first call \`.init()\` or any method that hits a node like request, send or sendAsync.`,
       shouldBeReported: true,
     },
+    INVALID_READ_OF_DIRECTORY: {
+      number: 22,
+      message:
+        "Invalid file path %absolutePath%. Attempting to read a directory instead of a file.",
+      title: "Invalid read: a directory cannot be read",
+      description: `An attempt was made to read a file, but a path to a directory was provided.
+
+Please double check the file path.`,
+      shouldBeReported: false,
+    },
   },
   NETWORK: {
     CONFIG_NOT_FOUND: {
@@ -862,7 +872,7 @@ Please double check your imports and installed libraries.`,
       title: "Invalid import: a directory cannot be imported",
       description: `A Solidity file is attempting to import a directory, which is not possible.
 
-      Please double check your imports.`,
+  Please double check your imports.`,
       shouldBeReported: false,
     },
   },
