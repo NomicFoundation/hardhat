@@ -58,6 +58,13 @@ interface BaseExecutionState<
   dependencies: Set<string>;
 }
 
+/** The future types that can be used with a DeploymentExecutionState */
+export type DeploymentExecutionStateFutureTypes =
+  | FutureType.NAMED_CONTRACT_DEPLOYMENT
+  | FutureType.ARTIFACT_CONTRACT_DEPLOYMENT
+  | FutureType.NAMED_LIBRARY_DEPLOYMENT
+  | FutureType.ARTIFACT_LIBRARY_DEPLOYMENT;
+
 /**
  * The execution state used for the different kinds of futures
  * that deploy contracts.
@@ -70,10 +77,7 @@ interface BaseExecutionState<
 export interface DeploymentExecutionState
   extends BaseExecutionState<
     ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
-    | FutureType.NAMED_CONTRACT_DEPLOYMENT
-    | FutureType.ARTIFACT_CONTRACT_DEPLOYMENT
-    | FutureType.NAMED_LIBRARY_DEPLOYMENT
-    | FutureType.ARTIFACT_LIBRARY_DEPLOYMENT
+    DeploymentExecutionStateFutureTypes
   > {
   artifactFutureId: string;
   contractName: string;
