@@ -163,11 +163,12 @@ describe("compile task", function () {
     });
 
     describe("A non specific Hardhat error is thrown (expected default error)", () => {
+      const folderName = "compilation-import-non-existing-file";
       useFixtureProject("compilation-import-non-existing-file");
       useEnvironment();
 
       it("should throw an error because the file does not exist", async function () {
-        const absolutePath = `${__dirname}/../fixture-projects/compilation-import-non-existing-file/contracts/file.sol`;
+        const absolutePath = `${__dirname}/../fixture-projects/${folderName}/contracts/file.sol`;
 
         await expect(
           this.env.run(TASK_COMPILE_SOLIDITY_READ_FILE, { absolutePath })
