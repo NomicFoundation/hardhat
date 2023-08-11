@@ -25,10 +25,6 @@ module.exports = {
   },
 
   rules: {
-    "import/no-unused-modules": [
-      2,
-      { unusedExports: true, missingExports: true },
-    ],
     "@typescript-eslint/adjacent-overload-signatures": "error",
     "@typescript-eslint/array-type": [
       "error",
@@ -253,3 +249,10 @@ module.exports = {
     ],
   },
 };
+
+if (process.env.CI !== undefined) {
+  module.exports.rules["import/no-unused-modules"] = [
+    2,
+    { unusedExports: true, missingExports: true },
+  ];
+}
