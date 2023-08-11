@@ -78,7 +78,7 @@ export class Artifacts implements IArtifacts {
   }
 
   public async artifactExists(name: string): Promise<boolean> {
-    let artifactPath = "";
+    let artifactPath;
     try {
       artifactPath = await this._getArtifactPath(name);
     } catch (e) {
