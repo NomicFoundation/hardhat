@@ -82,7 +82,7 @@ export class Artifacts implements IArtifacts {
     try {
       artifactPath = await this._getArtifactPath(name);
     } catch (e) {
-      if (e instanceof HardhatError) {
+      if (HardhatError.isHardhatError(e)) {
         return false;
       }
 
