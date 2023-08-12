@@ -265,6 +265,14 @@ const communityPlugins: IPlugin[] = [
     tags: ["solidity", "storage-layout"],
   },
   {
+    name: "hardhat-storage-layout-json",
+    npmPackage: "hardhat-storage-layout-json",
+    author: "(Aurora Labs, mostly!) + 3obby",
+    authorUrl: "https://github.com/3obby/hardhat-storage-layout-json",
+    description: "View contracts' layouts with CLI and .json output",
+    tags: ["solidity", "storage"],
+  },
+  {
     name: "hardhat-change-network",
     author: "David Mihal",
     authorUrl: "https://github.com/dmihal",
@@ -814,6 +822,14 @@ const communityPlugins: IPlugin[] = [
     npmPackage: "https://www.npmjs.com/package/hardhat-gasless-deployer",
     description: "Deploy contracts with Hardhat using Gas Station Network",
     tags: ["GSN", "Gasless", "Deployment"],
+  },
+  {
+    name: "hardhat-generate-storage-namespace",
+    npmPackage: "hardhat-generate-storage-namespace",
+    author: "3obby",
+    authorUrl: "https://github.com/3obby/hardhat-generate-storage-namespace",
+    description: "Generate unique storage namespaces within a script/task",
+    tags: ["solidity", "storage", "namespace", "router"],
   },
 ];
 
