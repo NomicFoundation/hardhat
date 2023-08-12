@@ -153,7 +153,7 @@ describe("HardhatBlockchain", () => {
       await blockchain.addBlock(blockTwo);
       await blockchain.addBlock(blockThree);
 
-      blockchain.deleteBlock(blockOne.hash());
+      await blockchain.deleteBlock(blockOne.hash());
 
       await assert.isRejected(
         blockchain.getBlock(blockOne.hash()),
@@ -176,7 +176,7 @@ describe("HardhatBlockchain", () => {
 
       await blockchain.addBlock(blockOne);
       await blockchain.addBlock(blockTwo);
-      blockchain.deleteBlock(blockTwo.hash());
+      await blockchain.deleteBlock(blockTwo.hash());
 
       assert.equal(await blockchain.getLatestBlock(), blockOne);
       await assert.isRejected(
@@ -190,7 +190,7 @@ describe("HardhatBlockchain", () => {
       const block = createBlock(0);
       const otherBlock = createBlock(0, randomHashBuffer());
       await blockchain.addBlock(block);
-      blockchain.deleteBlock(block.hash());
+      await blockchain.deleteBlock(block.hash());
       await blockchain.addBlock(otherBlock);
       assert.equal(await blockchain.getBlock(otherBlock.hash()), otherBlock);
     });
@@ -215,7 +215,7 @@ describe("HardhatBlockchain", () => {
       await blockchain.addBlock(blockTwo);
       await blockchain.addBlock(blockThree);
 
-      blockchain.revertToBlock(blockOne.header.number);
+      await blockchain.revertToBlock(blockOne.header.number);
 
       assert.equal(await blockchain.getBlock(blockOne.hash()), blockOne);
       await assert.isRejected(
@@ -293,7 +293,7 @@ describe("HardhatBlockchain", () => {
       await blockchain.addBlock(blockOne);
       await blockchain.addBlock(blockTwo);
 
-      blockchain.revertToBlock(blockOne.header.number);
+      await blockchain.revertToBlock(blockOne.header.number);
 
       assert.equal(
         await blockchain.getTotalDifficultyByHash(blockOne.hash()),
@@ -336,7 +336,7 @@ describe("HardhatBlockchain", () => {
       const transaction = createTestTransaction();
       block.transactions.push(transaction);
       await blockchain.addBlock(block);
-      blockchain.deleteBlock(block.hash());
+      await blockchain.deleteBlock(block.hash());
 
       assert.isUndefined(await getTransaction(transaction.hash()));
     });
@@ -380,7 +380,7 @@ describe("HardhatBlockchain", () => {
       const transaction = createTestTransaction();
       block.transactions.push(transaction);
       await blockchain.addBlock(block);
-      blockchain.deleteBlock(block.hash());
+      await blockchain.deleteBlock(block.hash());
 
       assert.equal(
         await blockchain.getBlockByTransactionHash(transaction.hash()),
@@ -442,7 +442,7 @@ describe("HardhatBlockchain", () => {
 
       await blockchain.addBlock(block);
       blockchain.addTransactionReceipts([receipt]);
-      blockchain.deleteBlock(block.hash());
+      await blockchain.deleteBlock(block.hash());
 
       assert.equal(
         await blockchain.getReceiptByTransactionHash(transaction.hash()),

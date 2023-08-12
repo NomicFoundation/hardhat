@@ -266,7 +266,7 @@ describe("ForkBlockchain", () => {
       await fb.addBlock(blockTwo);
       await fb.addBlock(blockThree);
 
-      fb.deleteBlock(blockOne.hash());
+      await fb.deleteBlock(blockOne.hash());
 
       await assert.isRejected(
         fb.getBlock(blockOne.hash()),
@@ -292,7 +292,7 @@ describe("ForkBlockchain", () => {
 
       await fb.addBlock(blockOne);
       await fb.addBlock(blockTwo);
-      fb.deleteBlock(blockTwo.hash());
+      await fb.deleteBlock(blockTwo.hash());
 
       assert.equal(await fb.getLatestBlock(), blockOne);
       await assert.isRejected(
@@ -309,7 +309,7 @@ describe("ForkBlockchain", () => {
         bufferToBigInt(randomHashBuffer())
       );
       await fb.addBlock(block);
-      fb.deleteBlock(block.hash());
+      await fb.deleteBlock(block.hash());
       await fb.addBlock(otherBlock);
       assert.equal(await fb.getBlock(otherBlock.hash()), otherBlock);
     });
@@ -359,7 +359,7 @@ describe("ForkBlockchain", () => {
       await fb.addBlock(blockTwo);
       await fb.addBlock(blockThree);
 
-      fb.revertToBlock(blockOne.header.number);
+      await fb.revertToBlock(blockOne.header.number);
 
       assert.equal(await fb.getBlock(blockOne.hash()), blockOne);
       await assert.isRejected(
@@ -430,7 +430,7 @@ describe("ForkBlockchain", () => {
     it("does not return total difficulty of a deleted block", async () => {
       const block = createBlock(await fb.getLatestBlock());
       await fb.addBlock(block);
-      fb.deleteBlock(block.hash());
+      await fb.deleteBlock(block.hash());
 
       await assert.isRejected(
         fb.getTotalDifficultyByHash(block.hash()),
@@ -485,7 +485,7 @@ describe("ForkBlockchain", () => {
       const transaction = createTestTransaction();
       block.transactions.push(transaction);
       await fb.addBlock(block);
-      fb.deleteBlock(block.hash());
+      await fb.deleteBlock(block.hash());
 
       assert.isUndefined(await getTransaction(transaction.hash()));
     });
@@ -568,7 +568,7 @@ describe("ForkBlockchain", () => {
       const transaction = createTestTransaction();
       block.transactions.push(transaction);
       await fb.addBlock(block);
-      fb.deleteBlock(block.hash());
+      await fb.deleteBlock(block.hash());
 
       assert.equal(
         await fb.getBlockByTransactionHash(transaction.hash()),
@@ -645,7 +645,7 @@ describe("ForkBlockchain", () => {
 
       await fb.addBlock(block);
       fb.addTransactionReceipts([receipt]);
-      fb.deleteBlock(block.hash());
+      await fb.deleteBlock(block.hash());
 
       assert.equal(
         await fb.getReceiptByTransactionHash(transaction.hash()),
