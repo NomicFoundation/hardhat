@@ -82,7 +82,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
     const tx = transactionOrResult.transaction;
     const contractAddress = tx.receipt.contractAddress;
 
-    if (contractAddress === null) {
+    if (contractAddress === undefined) {
       return {
         type: ExecutionResultType.STRATEGY_ERROR,
         error: `Transaction ${tx.hash} confirmed but it didn't create a contract`,

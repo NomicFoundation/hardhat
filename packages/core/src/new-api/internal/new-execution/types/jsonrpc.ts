@@ -24,7 +24,7 @@ export interface RawStaticCallResult {
  */
 export interface TransactionLog {
   address: string;
-  logIndex: string;
+  logIndex: number;
   data: string;
   topics: string[];
 }
@@ -38,10 +38,12 @@ export enum TransactionReceiptStatus {
 }
 
 /**
- * The relevant subset of the receipt, as returned by eth_getTransactionReceipt.
+ * The relevant subset of the receipt.
  */
 export interface TransactionReceipt {
-  contractAddress: string | null;
+  blockHash: string;
+  blockNumber: number;
+  contractAddress?: string;
   status: TransactionReceiptStatus;
   logs: TransactionLog[];
 }
