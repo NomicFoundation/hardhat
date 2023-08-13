@@ -54,6 +54,13 @@ export interface TransactionReceipt {
 export interface Transaction {
   hash: string;
 
+  // Only available after the transaction has confirmed.
+  // Note that these not being undefined does not mean that the transaction
+  // has enough confirmations for Ignition. We should wait for the right
+  // amount of confirmations.
+  blockNumber?: number;
+  blockHash?: string;
+
   // We store this data in case we need to bump the transaction fees.
   maxFeePerGas: bigint;
   maxPriorityFeePerGas: bigint;

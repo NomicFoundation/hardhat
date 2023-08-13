@@ -19,6 +19,8 @@ export interface CallParams {
   data: string;
   from: string;
   nonce?: number;
+  maxPriorityFeePerGas?: bigint;
+  maxFeePerGas?: bigint;
 }
 
 /**
@@ -57,6 +59,28 @@ export interface Block {
   hash: string;
   number: number;
   baseFeePerGas: bigint;
+}
+
+/**
+ * Returns the balance of an account.
+ *
+ * @param provider An EIP-1193 provider to fetch the balance from.
+ * @param address The account's address.
+ * @param blockTag Weather if we should fetch the latest block balance or the pending balance.
+ */
+export async function getBalance(
+  provider: EIP1193Provider,
+  address: string,
+  blockTag: "latest" | "pending"
+): Promise<bigint> {
+  const balance = await provider.request({
+    method: "eth_getBalance",
+    params: [address, blockTag],
+  });
+
+  assertResponseType("eth_getBalance", balance, typeof balance === "string");
+
+  return jsonRpcQuantityToBigInt(balance);
 }
 
 /**
@@ -107,9 +131,21 @@ export async function call(
         };
       }
 
-      // Geth returns an error object with this code when the call fails
-      // without ruturning data.
-      if ("code" in error && error.code === -32000) {
+      // Geth, and potentially other nodes, may return an error without a data
+      // field if there was no reason returned
+      if (
+        error.message.includes("execution reverted") ||
+        error.message.includes("invalid opcode")
+      ) {
+        return {
+          success: false,
+          returnData: "0x",
+          customErrorReported: false,
+        };
+      }
+
+      // Catch all for other nodes and services
+      if (error.message.includes("revert")) {
         return {
           success: false,
           returnData: "0x",
@@ -206,6 +242,11 @@ export async function estimateGas(
   return jsonRpcQuantityToBigInt(response);
 }
 
+/**
+ * Returns the latest block.
+ *
+ * @param provider The provider to fetch the block from.
+ */
 export async function getLatestBlock(
   provider: EIP1193Provider
 ): Promise<Block> {
@@ -244,6 +285,13 @@ export async function getLatestBlock(
   };
 }
 
+/**
+ * Returns the transaction count of an account.
+ *
+ * @param provider The transaction to fetch the count from.
+ * @param address The account's address.
+ * @param blockTag The block to use for the count. If "pending", the mempool is taken into account.
+ */
 export async function getTransactionCount(
   provider: EIP1193Provider,
   address: string,
@@ -266,6 +314,12 @@ export async function getTransactionCount(
   return jsonRpcQuantityToNumber(response);
 }
 
+/**
+ * Returns a transaction, or undefined if it doesn't exist.
+ *
+ * @param provider The provider to fetch the transaction from.
+ * @param txHash The transaction hash.
+ */
 export async function getTransaction(
   provider: EIP1193Provider,
   txHash: string
@@ -289,6 +343,21 @@ export async function getTransaction(
     "hash" in response && typeof response.hash === "string"
   );
 
+  assertResponseType(
+    method,
+    response,
+    "blockNumber" in response &&
+      (typeof response.blockNumber === "string" ||
+        response.blockNumber === null)
+  );
+
+  assertResponseType(
+    method,
+    response,
+    "blockHash" in response &&
+      (typeof response.blockHash === "string" || response.blockHash === null)
+  );
+
   assertIgnitionInvariant(
     "maxFeePerGas" in response && typeof response.maxFeePerGas === "string",
     "Ignition sent a non-EIP-1559 transaction or we got an invalid response"
@@ -302,6 +371,11 @@ export async function getTransaction(
 
   return {
     hash: response.hash,
+    blockNumber:
+      response.blockNumber !== null
+        ? jsonRpcQuantityToNumber(response.blockNumber)
+        : undefined,
+    blockHash: response.blockHash ?? undefined,
     maxFeePerGas: jsonRpcQuantityToBigInt(response.maxFeePerGas),
     maxPriorityFeePerGas: jsonRpcQuantityToBigInt(
       response.maxPriorityFeePerGas
@@ -309,6 +383,13 @@ export async function getTransaction(
   };
 }
 
+/**
+ * Returns a transaction's receipt, or undefined if the transaction doesn't
+ * exist or it hasn't confirmed yet.
+ *
+ * @param provider The provider to fetch the receipt from.
+ * @param txHash The transaction's hash.
+ */
 export async function getTransactionReceipt(
   provider: EIP1193Provider,
   txHash: string
@@ -356,15 +437,22 @@ export async function getTransactionReceipt(
         typeof response.contractAddress === "string")
   );
 
+  const status =
+    jsonRpcQuantityToNumber(response.status) ===
+    TransactionReceiptStatus.SUCCESS
+      ? TransactionReceiptStatus.SUCCESS
+      : TransactionReceiptStatus.FAILURE;
+
+  const contractAddress =
+    status === TransactionReceiptStatus.SUCCESS
+      ? response.contractAddress ?? undefined
+      : undefined;
+
   return {
     blockHash: response.blockHash,
     blockNumber: jsonRpcQuantityToNumber(response.blockNumber),
-    contractAddress: response.contractAddress ?? undefined,
-    status:
-      jsonRpcQuantityToNumber(response.status) ===
-      TransactionReceiptStatus.SUCCESS
-        ? TransactionReceiptStatus.SUCCESS
-        : TransactionReceiptStatus.FAILURE,
+    contractAddress,
+    status,
     logs: formatReceiptLogs(method, response),
   };
 }

@@ -1,5 +1,3 @@
-import { EventEmitter } from "events";
-
 /**
  * Arguments for a request to an EIP-1193 Provider.
  *
@@ -15,6 +13,6 @@ export interface RequestArguments {
  *
  * @beta
  */
-export interface EIP1193Provider extends EventEmitter {
+export interface EIP1193Provider {
   request(args: RequestArguments): Promise<unknown>;
 }
