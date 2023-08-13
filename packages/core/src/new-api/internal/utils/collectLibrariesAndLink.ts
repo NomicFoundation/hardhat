@@ -35,7 +35,11 @@ export async function collectLibrariesAndLink(
   )) {
     if (!isAddress(linkedLibraryAddress)) {
       throw new IgnitionValidationError(
-        `You tried to link the contract ${artifact.contractName} with the library ${linkedLibraryName}, but provided this invalid address: ${linkedLibraryAddress}`
+        `You tried to link the contract ${
+          artifact.contractName
+        } with the library ${linkedLibraryName}, but provided this invalid address: ${
+          linkedLibraryAddress as any
+        }`
       );
     }
 
