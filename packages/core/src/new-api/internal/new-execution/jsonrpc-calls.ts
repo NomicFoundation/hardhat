@@ -1,35 +1,14 @@
-/// ////////////////////////////////////////////////////////////////////////////
-///                             EXPLANATION                                 ///
-/// ////////////////////////////////////////////////////////////////////////////
-///
-/// This is meant to be a lower-level equivalent of chain dispatcher.
-/// This should be the ONLY module accessing the network, and the only
-/// place requiring a provider.
-///
-/// This module does not use ethers. Why? We want more control over the
-/// network, including when each request is performed, and how to handle
-/// errors.
-///
-/// This module is intentionally low-level and should be used by modules
-/// that construct on top of it. For that reason, it's stateless.
-/// ////////////////////////////////////////////////////////////////////////////
-
-/// ////////////////////////////////////////////////////////////////////////////
-///                                   TODO                                  ///
-/// ////////////////////////////////////////////////////////////////////////////
-///
-/// This module is missing the following functions:
-/// `getTransactionCount(provider:EIP1193Provider, address:string, blockTag:"pending"|"latest"|number):Promise<number>`
-/// `getTransaction(provider:EIP1193Provider, txHash:string):Promise<Transaction|undefined>`
-/// `getTransactionReceipt(provider:EIP1193Provider, txHash:string):Promise<TransactionReceipt|undefined>`
-/// `getLatestBlock(provider:EIP1193Provider):Promise<Block>`
-///
-///  And the following type defintions: Transaction, TransactionReceipt, Block
-///  These types should only contain the fields that are used by the rest of
-///  the system. We don't need to be exhaustive.
-/// ////////////////////////////////////////////////////////////////////////////
-
+import { IgnitionError } from "../../../errors";
 import { EIP1193Provider } from "../../types/provider";
+import { assertIgnitionInvariant } from "../utils/assertions";
+
+import {
+  RawStaticCallResult,
+  Transaction,
+  TransactionLog,
+  TransactionReceipt,
+  TransactionReceiptStatus,
+} from "./types/jsonrpc";
 
 /**
  * The params to make an `eth_call`.
@@ -72,11 +51,12 @@ export interface NetworkFees {
 }
 
 /**
- * The error returned by `call()`, if any.
+ * An Ethereum block.
  */
-export interface CallErrorResult {
-  returnData: string;
-  isCustomError: boolean;
+export interface Block {
+  hash: string;
+  number: number;
+  baseFeePerGas: bigint;
 }
 
 /**
@@ -92,7 +72,7 @@ export async function call(
   provider: EIP1193Provider,
   callParams: CallParams,
   blockTag: "latest" | "pending"
-): Promise<string | CallErrorResult> {
+): Promise<RawStaticCallResult> {
   try {
     const jsonRpcEncodedParams = {
       to: callParams.to,
@@ -102,7 +82,7 @@ export async function call(
       nonce:
         callParams.nonce !== undefined
           ? numberToJsonRpcQuantity(callParams.nonce)
-          : null,
+          : undefined,
     };
 
     const response = await provider.request({
@@ -110,17 +90,20 @@ export async function call(
       params: [jsonRpcEncodedParams, blockTag],
     });
 
-    if (typeof response !== "string") {
-      throw new Error(`Invalid response ${response}`);
-    }
+    assertResponseType("eth_call", response, typeof response === "string");
 
-    return response;
+    return {
+      success: true,
+      returnData: response,
+      customErrorReported: false,
+    };
   } catch (error) {
     if (error instanceof Error) {
       if ("data" in error && typeof error.data === "string") {
         return {
+          success: false,
           returnData: error.data,
-          isCustomError: isCustomErrorError(error),
+          customErrorReported: isCustomErrorError(error),
         };
       }
 
@@ -128,8 +111,9 @@ export async function call(
       // without ruturning data.
       if ("code" in error && error.code === -32000) {
         return {
+          success: false,
           returnData: "0x",
-          isCustomError: false,
+          customErrorReported: false,
         };
       }
     }
@@ -172,9 +156,11 @@ export async function sendTransaction(
       params: [jsonRpcEncodedParams],
     });
 
-    if (typeof response !== "string") {
-      throw new Error(`Invalid response ${response}`);
-    }
+    assertResponseType(
+      "eth_sendTransaction",
+      response,
+      typeof response === "string"
+    );
 
     return response;
   } catch (error) {
@@ -215,11 +201,172 @@ export async function estimateGas(
     params: [jsonRpcEncodedParams],
   });
 
-  if (typeof response !== "string") {
-    throw new Error(`Invalid response ${response}`);
-  }
+  assertResponseType("eth_estimateGas", response, typeof response === "string");
 
   return jsonRpcQuantityToBigInt(response);
+}
+
+export async function getLatestBlock(
+  provider: EIP1193Provider
+): Promise<Block> {
+  const response = await provider.request({
+    method: "eth_getBlockByNumber",
+    params: ["latest", false],
+  });
+
+  assertResponseType(
+    "eth_getBlockByNumber",
+    response,
+    typeof response === "object" && response !== null
+  );
+
+  assertResponseType(
+    "eth_getBlockByNumber",
+    response,
+    "number" in response && typeof response.number === "string"
+  );
+
+  assertResponseType(
+    "eth_getBlockByNumber",
+    response,
+    "hash" in response && typeof response.hash === "string"
+  );
+
+  assertIgnitionInvariant(
+    "baseFeePerGas" in response && typeof response.baseFeePerGas === "string",
+    "Ignition only supports networks with EIP-1559 and the latest block doesn't have a baseFeePerGas"
+  );
+
+  return {
+    number: jsonRpcQuantityToNumber(response.number),
+    hash: response.hash,
+    baseFeePerGas: jsonRpcQuantityToBigInt(response.baseFeePerGas),
+  };
+}
+
+export async function getTransactionCount(
+  provider: EIP1193Provider,
+  address: string,
+  blockTag: "pending" | "latest" | number
+): Promise<number> {
+  const encodedBlockTag =
+    typeof blockTag === "number" ? numberToJsonRpcQuantity(blockTag) : blockTag;
+
+  const response = await provider.request({
+    method: "eth_getTransactionCount",
+    params: [address, encodedBlockTag],
+  });
+
+  assertResponseType(
+    "eth_getTransactionCount",
+    response,
+    typeof response === "string"
+  );
+
+  return jsonRpcQuantityToNumber(response);
+}
+
+export async function getTransaction(
+  provider: EIP1193Provider,
+  txHash: string
+): Promise<Omit<Transaction, "receipt"> | undefined> {
+  const method = "eth_getTransactionByHash";
+
+  const response = await provider.request({
+    method,
+    params: [txHash],
+  });
+
+  if (response === null) {
+    return undefined;
+  }
+
+  assertResponseType(method, response, typeof response === "object");
+
+  assertResponseType(
+    method,
+    response,
+    "hash" in response && typeof response.hash === "string"
+  );
+
+  assertIgnitionInvariant(
+    "maxFeePerGas" in response && typeof response.maxFeePerGas === "string",
+    "Ignition sent a non-EIP-1559 transaction or we got an invalid response"
+  );
+
+  assertIgnitionInvariant(
+    "maxPriorityFeePerGas" in response &&
+      typeof response.maxPriorityFeePerGas === "string",
+    "Ignition sent a non-EIP-1559 transaction or we got an invalid response"
+  );
+
+  return {
+    hash: response.hash,
+    maxFeePerGas: jsonRpcQuantityToBigInt(response.maxFeePerGas),
+    maxPriorityFeePerGas: jsonRpcQuantityToBigInt(
+      response.maxPriorityFeePerGas
+    ),
+  };
+}
+
+export async function getTransactionReceipt(
+  provider: EIP1193Provider,
+  txHash: string
+): Promise<TransactionReceipt | undefined> {
+  const method = "eth_getTransactionReceipt";
+
+  const response = await provider.request({
+    method,
+    params: [txHash],
+  });
+
+  if (response === null) {
+    return undefined;
+  }
+
+  assertResponseType(
+    method,
+    response,
+    typeof response === "object" // de aca le borre un distinto a null al pedo
+  );
+
+  assertResponseType(
+    method,
+    response,
+    "blockHash" in response && typeof response.blockHash === "string"
+  );
+
+  assertResponseType(
+    method,
+    response,
+    "blockNumber" in response && typeof response.blockNumber === "string"
+  );
+
+  assertResponseType(
+    method,
+    response,
+    "status" in response && typeof response.status === "string"
+  );
+
+  assertResponseType(
+    method,
+    response,
+    "contractAddress" in response &&
+      (response.contractAddress === null ||
+        typeof response.contractAddress === "string")
+  );
+
+  return {
+    blockHash: response.blockHash,
+    blockNumber: jsonRpcQuantityToNumber(response.blockNumber),
+    contractAddress: response.contractAddress ?? undefined,
+    status:
+      jsonRpcQuantityToNumber(response.status) ===
+      TransactionReceiptStatus.SUCCESS
+        ? TransactionReceiptStatus.SUCCESS
+        : TransactionReceiptStatus.FAILURE,
+    logs: formatReceiptLogs(method, response),
+  };
 }
 
 /**
@@ -229,9 +376,14 @@ export async function estimateGas(
 export async function getNetworkFees(
   provider: EIP1193Provider
 ): Promise<NetworkFees> {
+  const latestBlock = await getLatestBlock(provider);
+  // Logic copied from ethers v6
+  const maxPriorityFeePerGas = 1_000_000_000n; // 1gwei
+  const maxFeePerGas = latestBlock.baseFeePerGas * 2n + maxPriorityFeePerGas;
+
   return {
-    maxFeePerGas: 1n,
-    maxPriorityFeePerGas: 1n,
+    maxFeePerGas,
+    maxPriorityFeePerGas,
   };
 }
 
@@ -274,6 +426,13 @@ function jsonRpcQuantityToBigInt(value: string): bigint {
 }
 
 /**
+ * Converts a JSON-RPC quantity string to a number.
+ */
+function jsonRpcQuantityToNumber(value: string): number {
+  return Number(BigInt(value));
+}
+
+/**
  * Converts a number to a JSON-RPC quantity string.
  *
  * @param value The number to convert.
@@ -281,4 +440,74 @@ function jsonRpcQuantityToBigInt(value: string): bigint {
  */
 function numberToJsonRpcQuantity(value: number): string {
   return bigIntToJsonRpcQuantity(BigInt(value));
+}
+
+function assertResponseType(
+  method: string,
+  response: unknown,
+  assertion: boolean
+): asserts assertion {
+  if (!assertion) {
+    throw new IgnitionError(
+      `Invalid JSON-RPC response for ${method}: ${JSON.stringify(response)}`
+    );
+  }
+}
+function formatReceiptLogs(method: string, response: object): TransactionLog[] {
+  const formattedLogs: TransactionLog[] = [];
+
+  assertResponseType(
+    method,
+    response,
+    "logs" in response && Array.isArray(response.logs)
+  );
+
+  const logs: unknown[] = response.logs;
+
+  for (const rawLog of logs) {
+    assertResponseType(
+      method,
+      response,
+      typeof rawLog === "object" && rawLog !== null
+    );
+
+    assertResponseType(
+      method,
+      response,
+      "address" in rawLog && typeof rawLog.address === "string"
+    );
+
+    assertResponseType(
+      method,
+      response,
+      "logIndex" in rawLog && typeof rawLog.logIndex === "string"
+    );
+
+    assertResponseType(
+      method,
+      response,
+      "data" in rawLog && typeof rawLog.data === "string"
+    );
+
+    assertResponseType(
+      method,
+      response,
+      "topics" in rawLog && Array.isArray(rawLog.topics)
+    );
+
+    assertResponseType(
+      method,
+      response,
+      rawLog.topics.every((t: any) => typeof t === "string")
+    );
+
+    formattedLogs.push({
+      address: rawLog.address,
+      logIndex: jsonRpcQuantityToNumber(rawLog.logIndex),
+      data: rawLog.data,
+      topics: rawLog.topics,
+    });
+  }
+
+  return formattedLogs;
 }
