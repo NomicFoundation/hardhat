@@ -48,6 +48,8 @@ jobs:
       - name: Build
         run: npm run build
       - name: Lint
+        env:
+          CI: true
         run: npm run lint
       - name: Run tests
         run: npm run test
@@ -73,6 +75,8 @@ jobs:
       - name: Build
         run: npm run build
       - name: Lint
+        env:
+          CI: true
         run: npm run lint
       - name: Run tests
         run: npm run test

@@ -15,7 +15,7 @@
     "postlint": "prettier --check *.{md,json} ./docs/*.md ./config/**/*.{js,json}",
     "lint:fix": "npm run lint:fix --workspaces",
     "postlint:fix": "prettier --write *.{md,json} ./docs/*.md ./config/**/*.{js,json}",
-    "test": "npm run test -w packages",
+    "test": "npm run test -w packages && npm run test:integrations -w packages/core",
     "test:coverage": "npm run test:coverage -w packages",
     "test:examples": "npm run test -w examples --if-present",
     "watch": "tsc --build --watch packages/core packages/hardhat-plugin",
