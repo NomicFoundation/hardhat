@@ -27,10 +27,18 @@ export async function encodeArtifactDeploymentData(
   const { ethers } = require("ethers") as typeof import("ethers");
   const iface = new ethers.Interface(artifact.abi);
 
-  const linkedBytecode = await collectLibrariesAndLink(artifact, libraries);
+  const linkedBytecode = await linkLibraries(artifact, libraries);
   const encodedArgs = iface.encodeDeploy(args);
 
   return linkedBytecode + encodedArgs.slice(2);
+}
+
+// TODO: This should be sync, it's only async because of collectLibrariesAndLink
+export async function linkLibraries(
+  artifact: Artifact,
+  libraries: { [libraryName: string]: string }
+): Promise<string> {
+  return collectLibrariesAndLink(artifact, libraries);
 }
 
 /**
