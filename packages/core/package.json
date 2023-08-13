@@ -32,7 +32,7 @@
     "build": "tsc --build",
     "lint": "npm run prettier -- --check && npm run eslint && npm run api-extractor",
     "lint:fix": "npm run prettier -- --write && npm run eslint -- --fix",
-    "eslint": "eslint \"src/**/*.{ts,tsx}\" \"test/**/*.{ts,tsx}\"",
+    "eslint": "eslint \"src/**/*.{ts,tsx}\" \"test/**/*.{ts,tsx}\" \"test-integrations/**/*.{ts,tsx}\"",
     "prettier": "prettier \"**/*.{js,ts,md,json}\"",
     "preapi-extractor": "npm run build",
     "api-extractor": "api-extractor run --local --verbose",
