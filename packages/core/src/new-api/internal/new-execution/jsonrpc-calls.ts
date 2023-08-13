@@ -438,8 +438,7 @@ export async function getTransactionReceipt(
   );
 
   const status =
-    jsonRpcQuantityToNumber(response.status) ===
-    TransactionReceiptStatus.SUCCESS
+    jsonRpcQuantityToNumber(response.status) === 1
       ? TransactionReceiptStatus.SUCCESS
       : TransactionReceiptStatus.FAILURE;
 

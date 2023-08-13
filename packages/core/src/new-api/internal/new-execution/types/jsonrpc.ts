@@ -33,8 +33,8 @@ export interface TransactionLog {
  * The status of a transaction, as represented in its receipt.
  */
 export enum TransactionReceiptStatus {
-  FAILURE = 0,
-  SUCCESS = 1,
+  FAILURE = "FAILURE",
+  SUCCESS = "SUCCESS",
 }
 
 /**
