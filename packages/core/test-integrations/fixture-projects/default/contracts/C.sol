@@ -120,6 +120,36 @@ contract C {
     return (1, true, "hello");
   }
 
+  function withReturnTypes()
+    public
+    pure
+    returns (
+      int8,
+      uint8,
+      int128,
+      uint128,
+      bytes10,
+      bytes memory,
+      uint8[2] memory,
+      uint16[] memory
+    )
+  {
+    uint8[2] memory twoUints = [uint8(1), 2];
+    uint16[] memory uints = new uint16[](1);
+    uints[0] = 123;
+
+    return (
+      int8(2),
+      uint8(3),
+      int128(4),
+      uint128(5),
+      hex"11",
+      hex"AA",
+      twoUints,
+      uints
+    );
+  }
+
   function events() public {
     emit Event(true);
     d.events();
