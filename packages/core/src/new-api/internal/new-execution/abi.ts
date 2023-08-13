@@ -2,6 +2,7 @@ import type { Result } from "ethers";
 
 import { Artifact } from "../../types/artifact";
 import { SolidityParameterType } from "../../types/module";
+import { assertIgnitionInvariant } from "../utils/assertions";
 import { collectLibrariesAndLink } from "../utils/collectLibrariesAndLink";
 
 import {
@@ -132,6 +133,14 @@ export function decodeArtifactFunctionCallResult(
 
 function ethersResultIntoEvmValues(result: Result, names: string[]): EvmValues {
   const positional = Array.from(result);
+
+  for (const value of positional) {
+    const { ethers } = require("ethers") as typeof import("ethers");
+    assertIgnitionInvariant(
+      !(value instanceof ethers.FixedNumber),
+      "Ignition doesn't support Solidity Fixed and UFixed types"
+    );
+  }
 
   const named = Object.fromEntries(
     names
