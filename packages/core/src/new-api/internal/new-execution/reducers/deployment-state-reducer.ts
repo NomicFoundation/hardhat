@@ -9,7 +9,6 @@ import {
 } from "../types/messages";
 
 import { deploymentExecutionStateReducer } from "./deployment-execution-state-reducer";
-import { assertUnknownAction } from "./utils";
 
 const initialState: DeploymentState = {
   chainId: 0,
@@ -42,8 +41,6 @@ export function deploymentStateReducer(
         ...state,
         executionStates: executionStatesReducer(state.executionStates, action),
       };
-    default:
-      return assertUnknownAction(action);
   }
 }
 
@@ -87,10 +84,6 @@ function dispatchToPerExecutionStateReducer(
         case ExecutionSateType.SEND_DATA_EXECUTION_STATE:
         case ExecutionSateType.STATIC_CALL_EXECUTION_STATE:
           throw new IgnitionError("Not implemented");
-        default:
-          return assertUnknownAction(state);
       }
-    default:
-      return assertUnknownAction(action);
   }
 }
