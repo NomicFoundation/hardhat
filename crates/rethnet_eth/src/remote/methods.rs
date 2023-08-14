@@ -473,7 +473,7 @@ mod tests {
     }
 
     #[test]
-    fn test_percentile_serialization() {
+    fn test_percentile_serialization_matches_f64() {
         let n = 12.34;
         let percentile = Percentile::try_from(n).unwrap();
         assert_eq!(
@@ -483,7 +483,7 @@ mod tests {
     }
 
     #[test]
-    fn test_percentile_deserialization() {
+    fn test_percentile_serde() {
         let percentile = Percentile::try_from(22.33).unwrap();
         let serialized = serde_json::to_string(&percentile).unwrap();
         let deserialized = serde_json::from_str::<Percentile>(&serialized).unwrap();
