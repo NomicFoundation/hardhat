@@ -34,6 +34,7 @@ import {
 import { sendDummyTransaction } from "../../helpers/sendDummyTransaction";
 import { deployContract } from "../../helpers/transactions";
 import { assertEqualTraces } from "../utils/assertEqualTraces";
+import { numberToRpcQuantity } from "../../../../../src/internal/core/jsonrpc/types/base-types";
 
 // TODO: temporarily skip some of the tests because the latest version of ethereumjs
 // sometimes wrongly adds dummy empty words in the memory field
@@ -86,7 +87,7 @@ describe("Debug module", function () {
           );
         });
 
-        it.skip("Should return the right values for fake sender txs", async function () {
+        it("Should return the right values for fake sender txs", async function () {
           const impersonatedAddress =
             "0xC014BA5EC014ba5ec014Ba5EC014ba5Ec014bA5E";
 
@@ -98,7 +99,7 @@ describe("Debug module", function () {
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               to: impersonatedAddress,
-              value: "0x100",
+              value: numberToRpcQuantity(10n ** 18n),
             },
           ]);
 
