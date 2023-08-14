@@ -2,17 +2,16 @@ use std::{collections::VecDeque, fmt::Debug, sync::Arc};
 
 use rethnet_eth::{
     block::{BlockOptions, DetailedBlock, Header},
-    Address, B64, U256, U64,
+    Address, B256, B64, U256, U64,
 };
 use revm::primitives::{CfgEnv, ExecutionResult, SpecId};
-use tokio::sync::RwLock;
 
 use crate::{
     block::BlockBuilderCreationError,
     blockchain::SyncBlockchain,
     state::SyncState,
     trace::{Trace, TraceCollector},
-    BlockBuilder, BlockTransactionError, MemPool, RandomHashGenerator,
+    BlockBuilder, BlockTransactionError, MemPool,
 };
 
 /// The result of mining a block.
@@ -43,155 +42,108 @@ pub enum MineBlockError<BE, SE> {
     /// A blockchain error
     #[error(transparent)]
     Blockchain(BE),
+    /// The block is expected to have a prevrandao, as the executor's config is on a post-merge hardfork.
+    #[error("Post-merge transaction is missing prevrandao")]
+    MissingPrevrandao,
 }
 
-/// Type for mining blocks.
-#[derive(Clone, Debug)]
-pub struct BlockMiner<BE, SE>
-where
-    BE: Debug + Send + 'static,
-    SE: Debug + Send + 'static,
-{
-    blockchain: Arc<RwLock<dyn SyncBlockchain<BE>>>,
-    state: Arc<RwLock<dyn SyncState<SE>>>,
-    mem_pool: Arc<RwLock<MemPool>>,
-    prevrandao_generator: RandomHashGenerator,
-    cfg: CfgEnv,
+/// Mines a block using as many transactions as can fit in it.
+#[allow(clippy::too_many_arguments)]
+pub fn mine_block<BlockchainErrorT, StateErrorT>(
+    blockchain: &mut dyn SyncBlockchain<BlockchainErrorT>,
+    state: &mut dyn SyncState<StateErrorT>,
+    mem_pool: &mut MemPool,
+    cfg: &CfgEnv,
+    timestamp: U256,
     block_gas_limit: U256,
     beneficiary: Address,
-}
-
-impl<BE, SE> BlockMiner<BE, SE>
+    reward: U256,
+    base_fee: Option<U256>,
+    prevrandao: Option<B256>,
+) -> Result<MineBlockResult, MineBlockError<BlockchainErrorT, StateErrorT>>
 where
-    BE: Debug + Send + 'static,
-    SE: Debug + Send + 'static,
+    BlockchainErrorT: Debug + Send + 'static,
+    StateErrorT: Debug + Send + 'static,
 {
-    /// Constructs a new [`BlockMiner`].
-    pub fn new(
-        blockchain: Arc<RwLock<dyn SyncBlockchain<BE>>>,
-        state: Arc<RwLock<dyn SyncState<SE>>>,
-        mem_pool: Arc<RwLock<MemPool>>,
-        prevrandao_generator: RandomHashGenerator,
-        cfg: CfgEnv,
-        block_gas_limit: U256,
-        beneficiary: Address,
-    ) -> Self {
-        Self {
-            blockchain,
-            state,
-            mem_pool,
-            prevrandao_generator,
-            cfg,
-            block_gas_limit,
-            beneficiary,
-        }
-    }
-
-    /// Mines a block using as many transactions as can fit in it.
-    pub async fn mine_block(
-        &mut self,
-        timestamp: U256,
-        reward: U256,
-        base_fee: Option<U256>,
-    ) -> Result<MineBlockResult, MineBlockError<BE, SE>> {
-        let mut block_builder = {
-            let blockchain = self.blockchain.read().await;
-            let parent_block = blockchain
-                .last_block()
-                .map_err(MineBlockError::Blockchain)?;
-
-            BlockBuilder::new(
-                self.blockchain.clone(),
-                self.state.clone(),
-                self.cfg.clone(),
-                &parent_block.header,
-                BlockOptions {
-                    beneficiary: Some(self.beneficiary),
-                    number: Some(parent_block.header.number + U256::from(1)),
-                    gas_limit: Some(self.block_gas_limit),
-                    timestamp: Some(timestamp),
-                    mix_hash: if self.cfg.spec_id >= SpecId::MERGE {
-                        Some(self.prevrandao_generator.next_value())
-                    } else {
-                        None
-                    },
-                    nonce: Some(if self.cfg.spec_id >= SpecId::MERGE {
-                        B64::ZERO
-                    } else {
-                        B64::from(U64::from(42))
-                    }),
-                    base_fee: if self.cfg.spec_id >= SpecId::LONDON {
-                        Some(
-                            base_fee
-                                .unwrap_or_else(|| calculate_next_base_fee(&parent_block.header)),
-                        )
-                    } else {
-                        None
-                    },
-                    ..Default::default()
-                },
-            )
-            .await?
-        };
-
-        let mut transaction_pool = self.mem_pool.write().await;
-        let mut pending_transactions: VecDeque<_> = transaction_pool
-            .pending_transactions()
-            .iter()
-            .cloned()
-            .collect();
-
-        let mut results = Vec::new();
-        let mut traces = Vec::new();
-
-        while let Some(transaction) = pending_transactions.pop_front() {
-            let mut tracer = TraceCollector::default();
-
-            let transaction_hash = *transaction.hash();
-
-            match block_builder
-                .add_transaction(transaction, Some(&mut tracer))
-                .await
-            {
-                Err(BlockTransactionError::ExceedsBlockGasLimit) => continue,
-                Err(e) => {
-                    block_builder
-                        .abort()
-                        .await
-                        .map_err(MineBlockError::BlockAbort)?;
-
-                    return Err(MineBlockError::BlockTransaction(e));
-                }
-                Ok(result) => {
-                    results.push(result);
-                    traces.push(tracer.into_trace());
-
-                    transaction_pool.remove_transaction(&transaction_hash);
-                }
-            }
-        }
-
-        let rewards = vec![(self.beneficiary, reward)];
-        let block = block_builder
-            .finalize(rewards, None)
-            .await
-            .map_err(MineBlockError::BlockFinalize)?;
-
-        let block = self
-            .blockchain
-            .write()
-            .await
-            .insert_block(block)
+    let mut block_builder = {
+        let parent_block = blockchain
+            .last_block()
             .map_err(MineBlockError::Blockchain)?;
 
-        transaction_pool.update(&*self.state.read().await);
+        BlockBuilder::new(
+            state,
+            cfg.clone(),
+            &parent_block.header,
+            BlockOptions {
+                beneficiary: Some(beneficiary),
+                number: Some(parent_block.header.number + U256::from(1)),
+                gas_limit: Some(block_gas_limit),
+                timestamp: Some(timestamp),
+                mix_hash: if cfg.spec_id >= SpecId::MERGE {
+                    Some(prevrandao.ok_or(MineBlockError::MissingPrevrandao)?)
+                } else {
+                    None
+                },
+                nonce: Some(if cfg.spec_id >= SpecId::MERGE {
+                    B64::ZERO
+                } else {
+                    B64::from(U64::from(42))
+                }),
+                base_fee: if cfg.spec_id >= SpecId::LONDON {
+                    Some(base_fee.unwrap_or_else(|| calculate_next_base_fee(&parent_block.header)))
+                } else {
+                    None
+                },
+                ..Default::default()
+            },
+        )?
+    };
 
-        Ok(MineBlockResult {
-            block,
-            transaction_results: results,
-            transaction_traces: traces,
-        })
+    let mut pending_transactions: VecDeque<_> =
+        mem_pool.pending_transactions().iter().cloned().collect();
+
+    let mut results = Vec::new();
+    let mut traces = Vec::new();
+
+    while let Some(transaction) = pending_transactions.pop_front() {
+        let mut tracer = TraceCollector::default();
+
+        let transaction_hash = *transaction.hash();
+
+        match block_builder.add_transaction(blockchain, state, transaction, Some(&mut tracer)) {
+            Err(BlockTransactionError::ExceedsBlockGasLimit) => continue,
+            Err(e) => {
+                block_builder
+                    .abort(state)
+                    .map_err(MineBlockError::BlockAbort)?;
+
+                return Err(MineBlockError::BlockTransaction(e));
+            }
+            Ok(result) => {
+                results.push(result);
+                traces.push(tracer.into_trace());
+
+                mem_pool.remove_transaction(&transaction_hash);
+            }
+        }
     }
+
+    let rewards = vec![(beneficiary, reward)];
+    let block = block_builder
+        .finalize(state, rewards, None)
+        .map_err(MineBlockError::BlockFinalize)?;
+
+    let block = blockchain
+        .insert_block(block)
+        .map_err(MineBlockError::Blockchain)?;
+
+    mem_pool.update(state);
+
+    Ok(MineBlockResult {
+        block,
+        transaction_results: results,
+        transaction_traces: traces,
+    })
 }
 
 /// Calculates the next base fee for a post-London block, given the parent's header.

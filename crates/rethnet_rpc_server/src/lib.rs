@@ -8,6 +8,7 @@ use axum::{
     Router,
 };
 use hashbrown::{HashMap, HashSet};
+use parking_lot::Mutex;
 use rethnet_eth::{
     remote::{
         client::Request as RpcRequest,
@@ -27,8 +28,8 @@ use rethnet_evm::{
         LocalCreationError, SyncBlockchain,
     },
     state::{AccountModifierFn, ForkState, HybridState, StateError, SyncState},
-    AccountInfo, BlockMiner, Bytecode, CfgEnv, MemPool, MineBlockError, MineBlockResult,
-    RandomHashGenerator, KECCAK_EMPTY,
+    AccountInfo, Bytecode, CfgEnv, MemPool, MineBlockError, MineBlockResult, RandomHashGenerator,
+    KECCAK_EMPTY,
 };
 use secp256k1::{Secp256k1, SecretKey};
 use sha3::{Digest, Keccak256};
@@ -73,6 +74,7 @@ struct AppState {
     filters: RwLock<HashMap<U256, Filter>>,
     fork_block_number: Option<U256>,
     hardfork: SpecId,
+    hash_generator: Arc<Mutex<RandomHashGenerator>>,
     impersonated_accounts: RwLock<HashSet<Address>>,
     last_filter_id: RwLock<U256>,
     local_accounts: HashMap<Address, SecretKey>,
@@ -401,17 +403,18 @@ async fn mine_block(state: &StateType, timestamp: Option<U256>) -> Result<MineBl
 
     let reward = U256::ZERO; // TODO: https://github.com/NomicFoundation/rethnet/issues/156
 
-    let result = BlockMiner::<BlockchainError, StateError>::new(
-        Arc::clone(&state.blockchain),
-        Arc::clone(&state.rethnet_state),
-        Arc::clone(&state.mem_pool),
-        RandomHashGenerator::with_seed("BlockMiner"),
-        CfgEnv::from(&**state),
+    let result = rethnet_evm::mine_block(
+        &mut *state.blockchain.write().await,
+        &mut *state.rethnet_state.write().await,
+        &mut *state.mem_pool.write().await,
+        &CfgEnv::from(&**state),
+        block_timestamp,
         state.block_gas_limit,
         state.coinbase,
-    )
-    .mine_block(block_timestamp, reward, base_fee)
-    .await;
+        reward,
+        base_fee,
+        Some(state.hash_generator.lock().next_value()),
+    );
 
     if result.is_ok() {
         if let Some(new_offset) = new_offset {
@@ -1190,6 +1193,8 @@ impl Server {
 
         let chain_id = config.chain_id;
         let hardfork = config.hardfork;
+        let cache_dir = config.cache_dir;
+        let hash_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed("EDR")));
 
         let (rethnet_state, blockchain, fork_block_number): (
             RethnetStateType,
@@ -1204,12 +1209,11 @@ impl Server {
                     .expect("failed to construct async runtime"),
             );
 
-            let hash_generator = rethnet_evm::RandomHashGenerator::with_seed("seed");
-
             let blockchain = ForkedBlockchain::new(
                 Arc::clone(&runtime),
                 hardfork,
                 &config.json_rpc_url,
+                cache_dir.clone(),
                 config.block_number.map(U256::from),
             )
             .await?;
@@ -1220,8 +1224,9 @@ impl Server {
 
             let rethnet_state = Arc::new(RwLock::new(ForkState::new(
                 Arc::clone(&runtime),
-                Arc::new(parking_lot::Mutex::new(hash_generator)),
+                Arc::clone(&hash_generator),
                 &config.json_rpc_url,
+                cache_dir,
                 fork_block_number,
                 genesis_accounts,
             )));
@@ -1272,6 +1277,7 @@ impl Server {
             filters: RwLock::new(HashMap::default()),
             fork_block_number,
             hardfork,
+            hash_generator,
             impersonated_accounts: RwLock::new(HashSet::new()),
             last_filter_id: RwLock::new(U256::ZERO),
             local_accounts,

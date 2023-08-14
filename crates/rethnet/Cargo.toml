@@ -9,6 +9,7 @@ clap = { version = "3.2.22", default-features = false, features = ["std", "deriv
 hashbrown = { version = "0.13", default-features = false, features = ["ahash"] }
 hex = { version = "0.4.3", default-features = false }
 pretty_env_logger = { version = "0.4.0", default-features = false }
+rethnet_defaults = { version = "0.1.0-dev", path = "../rethnet_defaults" }
 rethnet_eth = { version = "0.1.0-dev", path = "../rethnet_eth" }
 rethnet_evm = { version = "0.1.0-dev", path = "../rethnet_evm" }
 rethnet_rpc_server = { version = "0.1.0-dev", path = "../rethnet_rpc_server" }

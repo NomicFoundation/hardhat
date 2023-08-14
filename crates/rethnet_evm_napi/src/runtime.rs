@@ -1,3 +1,5 @@
+//! Functionality for running transactions in the EVM
+
 use napi::Status;
 use napi_derive::napi;
 use rethnet_evm::{
@@ -8,142 +10,127 @@ use rethnet_evm::{
 use crate::{
     block::BlockConfig,
     blockchain::Blockchain,
-    config::{Config, ConfigOptions},
+    config::ConfigOptions,
     state::StateManager,
     transaction::{result::TransactionResult, TransactionRequest},
 };
 
-/// The Rethnet runtime, which can execute individual transactions.
+/// Executes the provided transaction without changing state.
 #[napi]
-#[derive(Debug)]
-pub struct Rethnet {
-    runtime: rethnet_evm::Rethnet<BlockchainError, StateError>,
+#[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+pub async fn dry_run(
+    blockchain: &Blockchain,
+    state_manager: &StateManager,
+    cfg: ConfigOptions,
+    transaction: TransactionRequest,
+    block: BlockConfig,
+    with_trace: bool,
+) -> napi::Result<TransactionResult> {
+    let cfg = CfgEnv::try_from(cfg)?;
+    let transaction = TxEnv::try_from(transaction)?;
+    let block = BlockEnv::try_from(block)?;
+
+    let mut tracer = TraceCollector::default();
+    let inspector: Option<&mut dyn SyncInspector<BlockchainError, StateError>> =
+        if with_trace { Some(&mut tracer) } else { None };
+
+    let ResultAndState { result, state } = rethnet_evm::dry_run(
+        &*blockchain.read().await,
+        &*state_manager.read().await,
+        cfg,
+        transaction,
+        block,
+        inspector,
+    )
+    .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
+
+    let trace = if with_trace {
+        Some(tracer.into_trace())
+    } else {
+        None
+    };
+
+    Ok(TransactionResult::new(result, Some(state), trace))
 }
 
+/// Executes the provided transaction without changing state, ignoring validation checks in the process.
 #[napi]
-impl Rethnet {
-    /// Constructs a `Rethnet` runtime.
-    #[napi(constructor)]
-    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn new(
-        blockchain: &Blockchain,
-        state_manager: &StateManager,
-        cfg: ConfigOptions,
-    ) -> napi::Result<Self> {
-        let cfg = CfgEnv::try_from(cfg)?;
+#[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+pub async fn guaranteed_dry_run(
+    blockchain: &Blockchain,
+    state_manager: &StateManager,
+    cfg: ConfigOptions,
+    transaction: TransactionRequest,
+    block: BlockConfig,
+    with_trace: bool,
+) -> napi::Result<TransactionResult> {
+    let cfg = CfgEnv::try_from(cfg)?;
+    let transaction = TxEnv::try_from(transaction)?;
+    let block = BlockEnv::try_from(block)?;
 
-        let runtime =
-            rethnet_evm::Rethnet::new((*blockchain).clone(), (*state_manager).clone(), cfg);
+    let mut tracer = TraceCollector::default();
+    let inspector: Option<&mut dyn SyncInspector<BlockchainError, StateError>> =
+        if with_trace { Some(&mut tracer) } else { None };
 
-        Ok(Self { runtime })
-    }
+    let ResultAndState { result, state } = rethnet_evm::guaranteed_dry_run(
+        &*blockchain.read().await,
+        &*state_manager.read().await,
+        cfg,
+        transaction,
+        block,
+        inspector,
+    )
+    .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
 
-    /// Retrieves the runtime's config.
-    #[napi]
-    pub fn config(&self) -> Config {
-        Config::new(self.runtime.config().clone())
-    }
+    let trace = if with_trace {
+        Some(tracer.into_trace())
+    } else {
+        None
+    };
 
-    /// Executes the provided transaction without changing state.
-    #[napi]
-    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub async fn dry_run(
-        &self,
-        transaction: TransactionRequest,
-        block: BlockConfig,
-        with_trace: bool,
-    ) -> napi::Result<TransactionResult> {
-        let transaction = TxEnv::try_from(transaction)?;
-        let block = BlockEnv::try_from(block)?;
+    Ok(TransactionResult::new(result, Some(state), trace))
+}
 
-        let mut tracer = TraceCollector::default();
-        let inspector: Option<&mut dyn SyncInspector<BlockchainError, StateError>> =
-            if with_trace { Some(&mut tracer) } else { None };
+/// Executes the provided transaction, changing state in the process.
+#[napi]
+#[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+pub async fn run(
+    blockchain: &Blockchain,
+    state_manager: &StateManager,
+    cfg: ConfigOptions,
+    transaction: TransactionRequest,
+    block: BlockConfig,
+    with_trace: bool,
+) -> napi::Result<TransactionResult> {
+    let cfg = CfgEnv::try_from(cfg)?;
+    let transaction = TxEnv::try_from(transaction)?;
+    let block = BlockEnv::try_from(block)?;
 
-        let ResultAndState { result, state } = self
-            .runtime
-            .dry_run(transaction, block, inspector)
-            .await
-            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
+    let mut tracer = TraceCollector::default();
+    let inspector: Option<&mut dyn SyncInspector<BlockchainError, StateError>> =
+        if with_trace { Some(&mut tracer) } else { None };
 
-        let trace = if with_trace {
-            Some(tracer.into_trace())
-        } else {
-            None
-        };
+    let result = rethnet_evm::run(
+        &*blockchain.read().await,
+        &mut *state_manager.write().await,
+        cfg, transaction, block, inspector)
+    .map_err(|e| {
+        napi::Error::new(
+            Status::GenericFailure,
+            match e {
+                TransactionError::InvalidTransaction(
+                    InvalidTransaction::LackOfFundForMaxFee { fee, balance }
+                ) => format!("sender doesn't have enough funds to send tx. The max upfront cost is: {fee} and the sender's account only has: {balance}"),
+                e => e.to_string(),
+            },
+        )
+    })?;
 
-        Ok(TransactionResult::new(result, Some(state), trace))
-    }
+    let trace = if with_trace {
+        Some(tracer.into_trace())
+    } else {
+        None
+    };
 
-    /// Executes the provided transaction without changing state, ignoring validation checks in the process.
-    #[napi]
-    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub async fn guaranteed_dry_run(
-        &self,
-        transaction: TransactionRequest,
-        block: BlockConfig,
-        with_trace: bool,
-    ) -> napi::Result<TransactionResult> {
-        let transaction = TxEnv::try_from(transaction)?;
-        let block = BlockEnv::try_from(block)?;
-
-        let mut tracer = TraceCollector::default();
-        let inspector: Option<&mut dyn SyncInspector<BlockchainError, StateError>> =
-            if with_trace { Some(&mut tracer) } else { None };
-
-        let ResultAndState { result, state } = self
-            .runtime
-            .guaranteed_dry_run(transaction, block, inspector)
-            .await
-            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
-
-        let trace = if with_trace {
-            Some(tracer.into_trace())
-        } else {
-            None
-        };
-
-        Ok(TransactionResult::new(result, Some(state), trace))
-    }
-
-    /// Executes the provided transaction, changing state in the process.
-    #[napi]
-    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub async fn run(
-        &self,
-        transaction: TransactionRequest,
-        block: BlockConfig,
-        with_trace: bool,
-    ) -> napi::Result<TransactionResult> {
-        let transaction = TxEnv::try_from(transaction)?;
-        let block = BlockEnv::try_from(block)?;
-
-        let mut tracer = TraceCollector::default();
-        let inspector: Option<&mut dyn SyncInspector<BlockchainError, StateError>> =
-            if with_trace { Some(&mut tracer) } else { None };
-
-        let result = self
-        .runtime
-        .run(transaction, block, inspector)
-        .await
-        .map_err(|e| {
-            napi::Error::new(
-                Status::GenericFailure,
-                match e {
-                    TransactionError::InvalidTransaction(
-                        InvalidTransaction::LackOfFundForMaxFee { fee, balance }
-                    ) => format!("sender doesn't have enough funds to send tx. The max upfront cost is: {fee} and the sender's account only has: {balance}"),
-                    e => e.to_string(),
-                },
-            )
-        })?;
-
-        let trace = if with_trace {
-            Some(tracer.into_trace())
-        } else {
-            None
-        };
-
-        Ok(TransactionResult::new(result, None, trace))
-    }
+    Ok(TransactionResult::new(result, None, trace))
 }

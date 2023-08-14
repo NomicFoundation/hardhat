@@ -8,8 +8,10 @@ use napi::{
 use napi_derive::napi;
 use rethnet_eth::{block::Header, Address, U256};
 use rethnet_evm::{
-    blockchain::BlockchainError, state::StateError, trace::TraceCollector, BlockTransactionError,
-    CfgEnv, InvalidTransaction, SyncInspector,
+    blockchain::{BlockchainError, SyncBlockchain},
+    state::{StateError, SyncState},
+    trace::TraceCollector,
+    BlockTransactionError, CfgEnv, InvalidTransaction, SyncInspector,
 };
 
 use crate::{
@@ -25,7 +27,9 @@ use super::{Block, BlockHeader, BlockOptions};
 
 #[napi]
 pub struct BlockBuilder {
-    inner: Arc<RwLock<Option<rethnet_evm::BlockBuilder<BlockchainError, StateError>>>>,
+    builder: Arc<RwLock<Option<rethnet_evm::BlockBuilder>>>,
+    blockchain: Arc<RwLock<dyn SyncBlockchain<BlockchainError>>>,
+    state: Arc<RwLock<dyn SyncState<StateError>>>,
     runtime: Arc<Runtime>,
 }
 
@@ -55,17 +59,23 @@ impl BlockBuilder {
 
         let (deferred, promise) = env.create_deferred()?;
         context.runtime().spawn(async move {
-            let result = rethnet_evm::BlockBuilder::new(blockchain, state, config, &parent, block)
-                .await
-                .map_or_else(
-                    |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
-                    |builder| {
-                        Ok(Self {
-                            inner: Arc::new(RwLock::new(Some(builder))),
-                            runtime,
-                        })
-                    },
-                );
+            let result = rethnet_evm::BlockBuilder::new(
+                &mut *state.clone().write().await,
+                config,
+                &parent,
+                block,
+            )
+            .map_or_else(
+                |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+                |builder| {
+                    Ok(Self {
+                        builder: Arc::new(RwLock::new(Some(builder))),
+                        blockchain,
+                        state,
+                        runtime,
+                    })
+                },
+            );
 
             deferred.resolve(|_| result);
         });
@@ -76,7 +86,7 @@ impl BlockBuilder {
     /// Retrieves the amount of gas used by the builder.
     #[napi(getter)]
     pub async fn gas_used(&self) -> napi::Result<BigInt> {
-        let builder = self.inner.read().await;
+        let builder = self.builder.read().await;
         if let Some(builder) = builder.as_ref() {
             Ok(BigInt {
                 sign_bit: false,
@@ -99,8 +109,11 @@ impl BlockBuilder {
         transaction: &PendingTransaction,
         with_trace: bool,
     ) -> napi::Result<JsObject> {
-        let builder = self.inner.clone();
+        let builder = self.builder.clone();
         let transaction = (*transaction).clone();
+
+        let blockchain = self.blockchain.clone();
+        let state = self.state.clone();
 
         let (deferred, promise) = env.create_deferred()?;
         self.runtime.spawn(async move {
@@ -111,8 +124,7 @@ impl BlockBuilder {
                     if with_trace { Some(&mut tracer) } else { None };
 
                 builder
-                    .add_transaction(transaction, inspector)
-                    .await
+                    .add_transaction(&mut *blockchain.write().await, &mut *state.write().await, transaction, inspector)
                     .map_or_else(
                         |e| Err(napi::Error::new(Status::GenericFailure, match e {
                             BlockTransactionError::InvalidTransaction(
@@ -152,7 +164,7 @@ impl BlockBuilder {
         rewards: Vec<(Buffer, BigInt)>,
         timestamp: Option<BigInt>,
     ) -> napi::Result<Block> {
-        let mut builder = self.inner.write().await;
+        let mut builder = self.builder.write().await;
         if let Some(builder) = builder.take() {
             let rewards = rewards
                 .into_iter()
@@ -166,10 +178,12 @@ impl BlockBuilder {
                 BigInt::try_cast(timestamp).map(Option::Some)
             })?;
 
-            builder.finalize(rewards, timestamp).await.map_or_else(
-                |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
-                |block| Ok(Block::from(Arc::new(block))),
-            )
+            builder
+                .finalize(&mut *self.state.write().await, rewards, timestamp)
+                .map_or_else(
+                    |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+                    |block| Ok(Block::from(Arc::new(block))),
+                )
         } else {
             Err(napi::Error::new(
                 Status::InvalidArg,
@@ -183,11 +197,10 @@ impl BlockBuilder {
     #[napi]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn abort(&self) -> napi::Result<()> {
-        let mut builder = self.inner.write().await;
+        let mut builder = self.builder.write().await;
         if let Some(builder) = builder.take() {
             builder
-                .abort()
-                .await
+                .abort(&mut *self.state.write().await)
                 .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
         } else {
             Err(napi::Error::new(

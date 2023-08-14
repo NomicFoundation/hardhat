@@ -1,4 +1,5 @@
 use std::net::SocketAddr;
+use std::path::PathBuf;
 use std::time::SystemTime;
 
 use secp256k1::SecretKey;
@@ -21,6 +22,7 @@ pub struct Config {
     pub initial_base_fee_per_gas: Option<U256>,
     pub initial_date: Option<SystemTime>,
     pub network_id: u64,
+    pub cache_dir: PathBuf,
 }
 
 /// configuration input for a single account
