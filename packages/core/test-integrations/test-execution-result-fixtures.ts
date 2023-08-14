@@ -10,7 +10,7 @@ import {
   getTransactionReceipt,
   sendTransaction,
 } from "../src/new-api/internal/new-execution/jsonrpc-calls";
-import { fixture, artifact } from "../test/helpers/execution-result-fixtures";
+import { fixtures, artifacts } from "../test/helpers/execution-result-fixtures";
 
 import { useHardhatProject } from "./helpers/hardhat-projects";
 
@@ -19,65 +19,94 @@ describe("execution-result-fixture tests", function () {
   useHardhatProject("default");
 
   it("Should have the right values", async function () {
-    const expectedArtifact = await this.hre.artifacts.readArtifact("C");
+    for (const [name, artifact] of Object.entries(artifacts)) {
+      const expectedArtifact = await this.hre.artifacts.readArtifact(name);
+      assert.deepEqual(
+        artifact,
+        expectedArtifact,
+        `Artifact ${name} doesn't match`
+      );
+    }
 
-    assert.deepEqual(artifact, expectedArtifact);
+    const addresses: {
+      [contractName: string]: string;
+    } = {};
 
-    const fees = await getNetworkFees(this.hre.network.provider);
+    let nonce = 0;
 
-    const tx = await sendTransaction(this.hre.network.provider, {
-      data: await encodeArtifactDeploymentData(artifact, [], {}),
-      value: 0n,
-      from: this.accounts[0],
-      nonce: 0,
-      ...fees,
-      gasLimit: 1_000_000n,
-    });
+    for (const [name, artifact] of Object.entries(artifacts)) {
+      const fees = await getNetworkFees(this.hre.network.provider);
+      const tx = await sendTransaction(this.hre.network.provider, {
+        data: await encodeArtifactDeploymentData(artifact, [], {}),
+        value: 0n,
+        from: this.accounts[0],
+        nonce: nonce++,
+        ...fees,
+        gasLimit: 1_000_000n,
+      });
 
-    const receipt = await getTransactionReceipt(this.hre.network.provider, tx);
-    assert.isDefined(receipt);
-    assert.isDefined(receipt!.contractAddress);
+      const receipt = await getTransactionReceipt(
+        this.hre.network.provider,
+        tx
+      );
+      assert.isDefined(receipt, `No receipt for deployment of ${name}`);
+      assert.isDefined(
+        receipt!.contractAddress,
+        `No receipt address from deployment of ${name}`
+      );
 
-    const contractAddress = receipt!.contractAddress!;
+      addresses[name] = receipt!.contractAddress!;
+    }
 
     const assertFunctionFixtureMatches = async (
-      functionName: keyof typeof fixture
+      contractName: string,
+      functionName: string
     ) => {
+      assert(
+        contractName in artifacts,
+        `Artifact ${contractName} missing from the fixture`
+      );
+
       const expected = await call(
         this.hre.network.provider,
         {
-          data: encodeArtifactFunctionCall(artifact, functionName, []),
+          data: encodeArtifactFunctionCall(
+            artifacts[contractName],
+            functionName,
+            []
+          ),
           value: 0n,
           from: this.accounts[0],
-          to: contractAddress,
+          to: addresses[contractName]!,
         },
         "latest"
       );
 
       assert.deepEqual(
-        fixture[functionName],
+        fixtures[contractName][functionName],
         expected,
-        `Fixture for ${functionName} doesn't match`
+        `Fixture for [${contractName}]${functionName} doesn't match`
       );
     };
 
-    await assertFunctionFixtureMatches("returnString");
-    await assertFunctionFixtureMatches("returnNothing");
-    await assertFunctionFixtureMatches("revertWithoutReasonClash");
-    await assertFunctionFixtureMatches("revertWithoutReasonWithoutClash");
-    await assertFunctionFixtureMatches("revertWithReasonMessage");
-    await assertFunctionFixtureMatches("revertWithEmptyReasonMessage");
-    await assertFunctionFixtureMatches("revertWithInvalidErrorMessage");
-    await assertFunctionFixtureMatches("revertWithPanicCode");
-    await assertFunctionFixtureMatches("revertWithInvalidPanicCode");
-    await assertFunctionFixtureMatches("revertWithNonExistentPanicCode");
-    await assertFunctionFixtureMatches("revertWithCustomError");
-    await assertFunctionFixtureMatches("revertWithInvalidCustomError");
-    await assertFunctionFixtureMatches("revertWithUnknownCustomError");
-    await assertFunctionFixtureMatches("revertWithInvalidData");
-    await assertFunctionFixtureMatches("invalidOpcode");
-    await assertFunctionFixtureMatches("invalidOpcodeClash");
-    await assertFunctionFixtureMatches("withNamedAndUnamedOutputs");
-    await assertFunctionFixtureMatches("withReturnTypes");
+    const contractNames = Object.keys(artifacts) as string[];
+
+    for (const contractName of contractNames) {
+      const artifact = artifacts[contractName];
+
+      for (const abiItem of artifact.abi) {
+        if (abiItem.type !== "function") {
+          continue;
+        }
+
+        assert(contractName in fixtures, `Fixture for ${contractName} missing`);
+        assert(
+          abiItem.name in fixtures[contractName],
+          `Fixture for ${contractName}.${abiItem.name} missing`
+        );
+
+        await assertFunctionFixtureMatches(contractName, abiItem.name);
+      }
+    }
   });
 });

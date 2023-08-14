@@ -22,6 +22,10 @@ contract C {
 
   D d = new D();
 
+  struct S {
+    uint i;
+  }
+
   function returnString() public pure returns (string memory) {
     return "hello";
   }
@@ -148,6 +152,10 @@ contract C {
       twoUints,
       uints
     );
+  }
+
+  function getStruct() public pure returns (S memory) {
+    return S({i: 123});
   }
 
   function events() public {

@@ -2,7 +2,7 @@ import { assert } from "chai";
 
 import { decodeArtifactFunctionCallResult } from "../../../src/new-api/internal/new-execution/abi";
 import { EvmExecutionResultTypes } from "../../../src/new-api/internal/new-execution/types/evm-execution";
-import { artifact, fixture } from "../../helpers/execution-result-fixtures";
+import { artifacts, fixtures } from "../../helpers/execution-result-fixtures";
 
 describe("abi", () => {
   // These tests validate that type conversions from the underlying abi library
@@ -13,18 +13,34 @@ describe("abi", () => {
   });
 
   describe("decodeArtifactFunctionCallResult", () => {
-    function decodeResult(functionName: keyof typeof fixture) {
-      const decoded = decodeArtifactFunctionCallResult(
-        artifact,
-        functionName,
-        fixture[functionName].returnData
+    function decodeResult(contractName: string, functionName: string) {
+      assert.isDefined(
+        artifacts[contractName],
+        `No artifact for ${contractName}`
+      );
+      assert.isDefined(
+        fixtures[contractName],
+        `No fixtures for ${contractName}`
+      );
+      assert.isDefined(
+        fixtures[contractName][functionName],
+        `No fixtures for ${contractName}.${functionName}`
       );
 
-      return { decoded, returnData: fixture[functionName].returnData };
+      const decoded = decodeArtifactFunctionCallResult(
+        artifacts[contractName],
+        functionName,
+        fixtures[contractName][functionName].returnData
+      );
+
+      return {
+        decoded,
+        returnData: fixtures[contractName][functionName].returnData,
+      };
     }
 
     it("Should be able to decode a single successful result", () => {
-      const { decoded } = decodeResult("returnString");
+      const { decoded } = decodeResult("C", "returnString");
 
       assert.deepEqual(decoded, {
         type: EvmExecutionResultTypes.SUCESSFUL_RESULT,
@@ -36,7 +52,7 @@ describe("abi", () => {
     });
 
     it("Should be able to decode a succesful result without return values", () => {
-      const { decoded } = decodeResult("returnNothing");
+      const { decoded } = decodeResult("C", "returnNothing");
 
       assert.deepEqual(decoded, {
         type: EvmExecutionResultTypes.SUCESSFUL_RESULT,
@@ -48,7 +64,7 @@ describe("abi", () => {
     });
 
     it("Should be able to decode a succesful result with named and unnamed values", () => {
-      const { decoded } = decodeResult("withNamedAndUnamedOutputs");
+      const { decoded } = decodeResult("C", "withNamedAndUnamedOutputs");
 
       assert.deepEqual(decoded, {
         type: EvmExecutionResultTypes.SUCESSFUL_RESULT,
@@ -60,7 +76,7 @@ describe("abi", () => {
     });
 
     it("Should decode all numbers as bigint and byte types as 0x-prefixed hex strings", () => {
-      const { decoded } = decodeResult("withReturnTypes");
+      const { decoded } = decodeResult("C", "withReturnTypes");
       assert.deepEqual(decoded, {
         type: EvmExecutionResultTypes.SUCESSFUL_RESULT,
         values: {
@@ -119,15 +135,15 @@ describe("abi", () => {
   });
 
   describe("linkLibraries", () => {
-    it("Should throw a library name is not recognized", () => {
+    it("Should throw if a library name is not recognized", () => {
       // TODO @alcuadrado
     });
 
-    it("Should throw a library name is ambiguous", () => {
+    it("Should throw if a library name is ambiguous", () => {
       // TODO @alcuadrado
     });
 
-    it("Should throw a library is missing", () => {
+    it("Should throw if a library is missing", () => {
       // TODO @alcuadrado
     });
 
