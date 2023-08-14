@@ -9,18 +9,8 @@ use revm_primitives::{Address, B256};
 // remains consistent if new variants are added or if variants are reordered.
 #[repr(u8)]
 pub(super) enum CacheableMethodInvocation<'a> {
-    /// eth_call
-    Call {
-        transaction_input: &'a TransactionInput,
-        block_spec: &'a Option<BlockSpec>,
-    } = 0,
     /// eth_chainId
     ChainId = 1,
-    /// eth_estimateGas
-    EstimateGas {
-        transaction_input: &'a TransactionInput,
-        block_spec: &'a Option<BlockSpec>,
-    } = 2,
     /// eth_feeHistory
     FeeHistory {
         /// block count
@@ -99,19 +89,7 @@ impl<'a> TryFrom<&'a MethodInvocation> for CacheableMethodInvocation<'a> {
 
     fn try_from(value: &'a MethodInvocation) -> Result<Self, Self::Error> {
         match value {
-            MethodInvocation::Call(transaction_input, block_spec) => {
-                Ok(CacheableMethodInvocation::Call {
-                    transaction_input,
-                    block_spec,
-                })
-            }
             MethodInvocation::ChainId() => Ok(CacheableMethodInvocation::ChainId),
-            MethodInvocation::EstimateGas(transaction_input, block_spec) => {
-                Ok(CacheableMethodInvocation::EstimateGas {
-                    transaction_input,
-                    block_spec,
-                })
-            }
             MethodInvocation::FeeHistory(block_count, block_spec, percentiles) => {
                 Ok(CacheableMethodInvocation::FeeHistory {
                     block_count,
@@ -183,7 +161,9 @@ impl<'a> TryFrom<&'a MethodInvocation> for CacheableMethodInvocation<'a> {
             // Explicit to make sure if a new method is added, it is not forgotten here.
             MethodInvocation::Accounts()
             | MethodInvocation::BlockNumber()
+            | MethodInvocation::Call(_, _)
             | MethodInvocation::Coinbase()
+            | MethodInvocation::EstimateGas(_, _)
             | MethodInvocation::GasPrice()
             | MethodInvocation::GetFilterChanges(_)
             | MethodInvocation::GetFilterLogs(_)
