@@ -6,6 +6,8 @@ use std::{
 
 use itertools::Itertools;
 use revm_primitives::{AccountInfo, Address, Bytecode, B256, KECCAK_EMPTY, U256};
+use sha3::digest::FixedOutput;
+use sha3::{Digest, Sha3_256};
 
 use crate::{log::FilterLog, receipt::BlockReceipt, serde::ZeroXPrefixedBytes};
 
@@ -93,10 +95,8 @@ impl RpcClient {
     }
 
     fn hash_string(input: &str) -> String {
-        use std::hash::Hasher;
-        let mut hasher = std::collections::hash_map::DefaultHasher::new();
-        hasher.write(input.as_bytes());
-        hasher.finish().to_string()
+        let hasher = Sha3_256::new_with_prefix(input.as_bytes());
+        hex::encode(hasher.finalize_fixed())
     }
 
     fn make_cache_path(&self, request_body: &str) -> PathBuf {
