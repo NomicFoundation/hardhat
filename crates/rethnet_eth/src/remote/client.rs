@@ -452,8 +452,7 @@ mod tests {
         client: RpcClient,
 
         // Need to keep the tempdir around to prevent it from being deleted
-        #[allow(dead_code)]
-        cache_dir: TempDir,
+        _cache_dir: TempDir,
     }
 
     impl TestRpcClient {
@@ -461,7 +460,7 @@ mod tests {
             let tempdir = TempDir::new().unwrap();
             Self {
                 client: RpcClient::new(url, tempdir.path().into()),
-                cache_dir: tempdir,
+                _cache_dir: tempdir,
             }
         }
     }

@@ -37,8 +37,7 @@ pub struct RethnetStates {
     #[allow(dead_code)]
     fork_snapshots: Vec<B256>,
     // We have to keep the cache dir around to prevent it from being deleted
-    #[allow(dead_code)]
-    cache_dir: TempDir,
+    _cache_dir: TempDir,
 }
 
 impl RethnetStates {
@@ -71,7 +70,7 @@ impl RethnetStates {
             ),
             fork_checkpoints: Vec::default(),
             fork_snapshots: Vec::default(),
-            cache_dir,
+            _cache_dir: cache_dir,
         }
     }
 

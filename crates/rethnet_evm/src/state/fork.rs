@@ -354,8 +354,7 @@ mod tests {
     struct TestForkState {
         fork_state: ForkState,
         // We need to keep it around as long as the fork state is alive
-        #[allow(dead_code)]
-        tempdir: tempfile::TempDir,
+        _tempdir: tempfile::TempDir,
     }
 
     impl TestForkState {
@@ -395,7 +394,7 @@ mod tests {
             );
             Self {
                 fork_state,
-                tempdir,
+                _tempdir: tempdir,
             }
         }
     }
