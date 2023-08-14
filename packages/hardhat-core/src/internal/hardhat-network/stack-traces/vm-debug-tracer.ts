@@ -280,13 +280,11 @@ export class VMDebugTracer {
           "There shouldn't be two messages one after another"
         );
 
-        // the increase in memory size of a revert is immediately
-        // reflected, so we don't treat it as a memory expansion
-        // of the previous step
+        // memory opcodes reflect the expanded memory in that step,
+        // so we correct them
         if (
-          structLog.op !== "REVERT" &&
-          (previousStructLog.op === "MSTORE" ||
-            previousStructLog.op === "MLOAD")
+          previousStructLog.op === "MSTORE" ||
+          previousStructLog.op === "MLOAD"
         ) {
           const memoryLengthDifference =
             structLog.memory.length - previousStructLog.memory.length;
