@@ -1,5 +1,6 @@
 import { SolidityParameterType } from "../../../types/module";
 
+import { DeploymentExecutionResult } from "./execution-result";
 import { DeploymentExecutionStateFutureTypes } from "./execution-state";
 import { Transaction, TransactionReceipt } from "./jsonrpc";
 import { NetworkInteraction } from "./network-interaction";
@@ -7,6 +8,7 @@ import { NetworkInteraction } from "./network-interaction";
 export type JournalMessage =
   | RunStartMessage
   | DeploymentExecutionStateInitializeMessage
+  | DeploymentExecutionStateCompleteMessage
   | NetworkInteractionRequestMessage
   | TransactionSendMessage
   | TransactionConfirmMessage;
@@ -14,6 +16,7 @@ export type JournalMessage =
 export enum JournalMessageType {
   RUN_START = "RUN_START",
   DEPLOYMENT_EXECUTION_STATE_INITIALIZE = "DEPLOYMENT_EXECUTION_STATE_INITIALIZE",
+  DEPLOYMENT_EXECUTION_STATE_COMPLETE = "DEPLOYMENT_EXECUTION_STATE_COMPLETE",
   NETWORK_INTERACTION_REQUEST = "NETWORK_INTERACTION_REQUEST",
   TRANSACTION_SEND = "TRANSACTION_SEND",
   TRANSACTION_CONFIRM = "TRANSACTION_CONFIRM",
@@ -36,6 +39,12 @@ export interface DeploymentExecutionStateInitializeMessage {
   libraries: Record<string, string>;
   value: bigint;
   from: string | undefined;
+}
+
+export interface DeploymentExecutionStateCompleteMessage {
+  type: JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE;
+  futureId: string;
+  result: DeploymentExecutionResult;
 }
 
 export interface NetworkInteractionRequestMessage {

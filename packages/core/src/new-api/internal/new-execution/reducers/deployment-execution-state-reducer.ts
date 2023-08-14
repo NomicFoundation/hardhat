@@ -1,5 +1,10 @@
+import { IgnitionError } from "../../../../errors";
 import { assertIgnitionInvariant } from "../../utils/assertions";
 import { isOnchainInteraction } from "../type-guards/network-interaction";
+import {
+  DeploymentExecutionResult,
+  ExecutionResultType,
+} from "../types/execution-result";
 import {
   DeploymentExecutionState,
   ExecutionSateType,
@@ -7,6 +12,7 @@ import {
 } from "../types/execution-state";
 import { Transaction } from "../types/jsonrpc";
 import {
+  DeploymentExecutionStateCompleteMessage,
   DeploymentExecutionStateInitializeMessage,
   JournalMessageType,
   NetworkInteractionRequestMessage,
@@ -18,8 +24,6 @@ import {
   OnchainInteraction,
 } from "../types/network-interaction";
 
-import { assertUnknownAction } from "./utils";
-
 export function deploymentExecutionStateReducer(
   state: DeploymentExecutionState,
   action:
@@ -27,6 +31,7 @@ export function deploymentExecutionStateReducer(
     | NetworkInteractionRequestMessage
     | TransactionSendMessage
     | TransactionConfirmMessage
+    | DeploymentExecutionStateCompleteMessage
 ): DeploymentExecutionState {
   switch (action.type) {
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE:
@@ -64,8 +69,8 @@ export function deploymentExecutionStateReducer(
           };
         }
       );
-    default:
-      return assertUnknownAction(action);
+    case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE:
+      return completeDeploymentExecutionState(state, action.result);
   }
 }
 
@@ -140,26 +145,34 @@ function appendTransaction(
   );
 }
 
-function updateTransaction(
+function completeDeploymentExecutionState(
   state: DeploymentExecutionState,
-  networkInteractionId: number,
-  hash: string,
-  update: (transaction: Transaction) => Transaction
+  result: DeploymentExecutionResult
 ): DeploymentExecutionState {
-  return updateOnchainInteraction(
-    state,
-    networkInteractionId,
-    (onchainInteraction) => {
+  switch (result.type) {
+    case ExecutionResultType.SUCCESS: {
       return {
-        ...onchainInteraction,
-        transactions: onchainInteraction.transactions.map((tx) => {
-          if (tx.hash === hash) {
-            return update(tx);
-          }
-
-          return tx;
-        }),
+        ...state,
+        status: ExecutionStatus.SUCCESS,
+        result,
       };
     }
-  );
+    case ExecutionResultType.REVERTED_TRANSACTION: {
+      return {
+        ...state,
+        status: ExecutionStatus.FAILED,
+        result,
+      };
+    }
+    case ExecutionResultType.STATIC_CALL_ERROR: {
+      throw new IgnitionError(
+        `Static call error not expected for deployment execution state ${state.id}`
+      );
+    }
+    case ExecutionResultType.STRATEGY_ERROR: {
+      throw new IgnitionError(
+        `Strategy error should not be written to state (${state.id})`
+      );
+    }
+  }
 }

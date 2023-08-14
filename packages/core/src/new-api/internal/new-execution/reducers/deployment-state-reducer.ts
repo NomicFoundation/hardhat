@@ -37,6 +37,7 @@ export function deploymentStateReducer(
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
     case JournalMessageType.TRANSACTION_SEND:
     case JournalMessageType.TRANSACTION_CONFIRM:
+    case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE:
       return {
         ...state,
         executionStates: executionStatesReducer(state.executionStates, action),
@@ -68,6 +69,7 @@ function dispatchToPerExecutionStateReducer(
   switch (action.type) {
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE:
       return deploymentExecutionStateReducer(null as any, action);
+    case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE:
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
     case JournalMessageType.TRANSACTION_SEND:
     case JournalMessageType.TRANSACTION_CONFIRM:
