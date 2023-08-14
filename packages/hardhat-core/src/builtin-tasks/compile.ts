@@ -161,9 +161,20 @@ subtask(TASK_COMPILE_SOLIDITY_READ_FILE)
   .addParam("absolutePath", undefined, undefined, types.string)
   .setAction(
     async ({ absolutePath }: { absolutePath: string }): Promise<string> => {
-      return fsExtra.readFile(absolutePath, {
-        encoding: "utf8",
-      });
+      try {
+        return await fsExtra.readFile(absolutePath, {
+          encoding: "utf8",
+        });
+      } catch (e) {
+        if (fsExtra.lstatSync(absolutePath).isDirectory()) {
+          throw new HardhatError(ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY, {
+            absolutePath,
+          });
+        }
+
+        // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+        throw e;
+      }
     }
   );
 
