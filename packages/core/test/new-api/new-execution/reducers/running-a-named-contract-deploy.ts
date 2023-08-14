@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
 import { deploymentStateReducer } from "../../../../src/new-api/internal/new-execution/reducers/deployment-state-reducer";
-import { isOnchainInteraction } from "../../../../src/new-api/internal/new-execution/type-guards/network-interaction";
+import { DeploymentState } from "../../../../src/new-api/internal/new-execution/types/deployment-state";
 import { EvmExecutionResultTypes } from "../../../../src/new-api/internal/new-execution/types/evm-execution";
 import { ExecutionResultType } from "../../../../src/new-api/internal/new-execution/types/execution-result";
 import {
@@ -21,13 +21,15 @@ import {
 } from "../../../../src/new-api/internal/new-execution/types/messages";
 import { NetworkInteractionType } from "../../../../src/new-api/internal/new-execution/types/network-interaction";
 import { findDeploymentExecutionStateBy } from "../../../../src/new-api/internal/new-execution/views/find-deployment-execution-state-by";
-import { assertIgnitionInvariant } from "../../../../src/new-api/internal/utils/assertions";
+import { findOnchainInteractionBy } from "../../../../src/new-api/internal/new-execution/views/find-onchain-interaction-by";
+import { findTransactionBy } from "../../../../src/new-api/internal/new-execution/views/find-transaction-by";
 import { FutureType } from "../../../../src/new-api/types/module";
 
 describe("DeploymentStateReducer", () => {
   describe("running a named contract deploy", () => {
     const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 
+    let updatedDeploymentState: DeploymentState;
     let updatedDepExState: DeploymentExecutionState;
 
     const initializeNamedContractDeployMessage: DeploymentExecutionStateInitializeMessage =
@@ -151,9 +153,14 @@ describe("DeploymentStateReducer", () => {
 
     describe("initialization", () => {
       beforeEach(() => {
-        updatedDepExState = setupDeploymentExecutionState("future1", [
+        updatedDeploymentState = applyMessages([
           initializeNamedContractDeployMessage,
         ]);
+
+        updatedDepExState = findDeploymentExecutionStateBy(
+          updatedDeploymentState,
+          "future1"
+        );
       });
 
       it("should populate a deployment execution state for the future", () => {
@@ -166,10 +173,15 @@ describe("DeploymentStateReducer", () => {
 
     describe("strategy requesting an onchain interaction", () => {
       beforeEach(() => {
-        updatedDepExState = setupDeploymentExecutionState("future1", [
+        updatedDeploymentState = applyMessages([
           initializeNamedContractDeployMessage,
           requestNetworkInteractionMessage,
         ]);
+
+        updatedDepExState = findDeploymentExecutionStateBy(
+          updatedDeploymentState,
+          "future1"
+        );
       });
 
       it("should populate a new onchain interaction", () => {
@@ -184,58 +196,61 @@ describe("DeploymentStateReducer", () => {
 
     describe("execution engine sends transaction", () => {
       beforeEach(() => {
-        updatedDepExState = setupDeploymentExecutionState("future1", [
+        updatedDeploymentState = applyMessages([
           initializeNamedContractDeployMessage,
           requestNetworkInteractionMessage,
           sendTransactionMessage,
         ]);
+
+        updatedDepExState = findDeploymentExecutionStateBy(
+          updatedDeploymentState,
+          "future1"
+        );
       });
 
       it("should populate the transaction against the network interaction", () => {
-        assert.equal(updatedDepExState.networkInteractions.length, 1);
-        const networkInteraction = updatedDepExState.networkInteractions[0];
-
-        assertIgnitionInvariant(
-          networkInteraction.type ===
-            NetworkInteractionType.ONCHAIN_INTERACTION,
-          "has to be an onchain interaction"
+        const networkInteraction = findOnchainInteractionBy(
+          updatedDeploymentState,
+          "future1",
+          1
         );
 
         assert.equal(networkInteraction.transactions.length, 1);
-        const transaction = networkInteraction.transactions[0];
 
-        assert.isDefined(transaction);
+        const transaction = findTransactionBy(
+          updatedDeploymentState,
+          "future1",
+          1,
+          "0xdeadbeef"
+        );
+
         assert.deepStrictEqual(sendTransactionMessage.transaction, transaction);
       });
     });
 
     describe("transaction confirms successfully", () => {
       beforeEach(() => {
-        updatedDepExState = setupDeploymentExecutionState("future1", [
+        updatedDeploymentState = applyMessages([
           initializeNamedContractDeployMessage,
           requestNetworkInteractionMessage,
           sendTransactionMessage,
           sendAnotherTransactionMessage,
           confirmTransactionMessage,
         ]);
+
+        updatedDepExState = findDeploymentExecutionStateBy(
+          updatedDeploymentState,
+          "future1"
+        );
       });
 
       it("should set the receipt against the successful transaction", () => {
-        assert.equal(updatedDepExState.networkInteractions.length, 1);
-        const networkInteraction = updatedDepExState.networkInteractions[0];
-
-        assert.isDefined(networkInteraction);
-
-        assertIgnitionInvariant(
-          isOnchainInteraction(networkInteraction),
-          "has to be an onchain interaction"
+        const transaction = findTransactionBy(
+          updatedDeploymentState,
+          "future1",
+          1,
+          "0xdeadbeef"
         );
-
-        const transaction = networkInteraction.transactions.find(
-          (tx) => tx.hash === "0xdeadbeef"
-        );
-
-        assertIgnitionInvariant(transaction !== undefined, "tx not found");
 
         assert.deepStrictEqual(
           transaction.receipt,
@@ -244,14 +259,10 @@ describe("DeploymentStateReducer", () => {
       });
 
       it("should clear all other transactions for the network interaction", () => {
-        assert.equal(updatedDepExState.networkInteractions.length, 1);
-        const networkInteraction = updatedDepExState.networkInteractions[0];
-
-        assert.isDefined(networkInteraction);
-
-        assertIgnitionInvariant(
-          isOnchainInteraction(networkInteraction),
-          "has to be an onchain interaction"
+        const networkInteraction = findOnchainInteractionBy(
+          updatedDeploymentState,
+          "future1",
+          1
         );
 
         assert.equal(networkInteraction.transactions.length, 1);
@@ -260,7 +271,7 @@ describe("DeploymentStateReducer", () => {
 
     describe("deployment completes successfully", () => {
       beforeEach(() => {
-        updatedDepExState = setupDeploymentExecutionState("future1", [
+        updatedDeploymentState = applyMessages([
           initializeNamedContractDeployMessage,
           requestNetworkInteractionMessage,
           sendTransactionMessage,
@@ -268,6 +279,11 @@ describe("DeploymentStateReducer", () => {
           confirmTransactionMessage,
           deploymentSuccessMessage,
         ]);
+
+        updatedDepExState = findDeploymentExecutionStateBy(
+          updatedDeploymentState,
+          "future1"
+        );
       });
 
       it("should set the result against the execution state", () => {
@@ -287,7 +303,7 @@ describe("DeploymentStateReducer", () => {
 
     describe("deployment errors on a revert", () => {
       beforeEach(() => {
-        updatedDepExState = setupDeploymentExecutionState("future1", [
+        updatedDeploymentState = applyMessages([
           initializeNamedContractDeployMessage,
           requestNetworkInteractionMessage,
           sendTransactionMessage,
@@ -295,6 +311,11 @@ describe("DeploymentStateReducer", () => {
           confirmTransactionMessage,
           deploymentFailsWithRevertMessage,
         ]);
+
+        updatedDepExState = findDeploymentExecutionStateBy(
+          updatedDeploymentState,
+          "future1"
+        );
       });
 
       it("should set the result as a revert", () => {
@@ -314,7 +335,7 @@ describe("DeploymentStateReducer", () => {
      */
     describe("deployment errors after a failed static call", () => {
       beforeEach(() => {
-        updatedDepExState = setupDeploymentExecutionState("future1", [
+        updatedDeploymentState = applyMessages([
           initializeNamedContractDeployMessage,
           requestNetworkInteractionMessage,
           sendTransactionMessage,
@@ -322,6 +343,11 @@ describe("DeploymentStateReducer", () => {
           confirmTransactionMessage,
           deploymentFailsOnStaticCall,
         ]);
+
+        updatedDepExState = findDeploymentExecutionStateBy(
+          updatedDeploymentState,
+          "future1"
+        );
       });
 
       it("should set the result as a revert", () => {
@@ -341,7 +367,7 @@ describe("DeploymentStateReducer", () => {
 
     describe("deployment errors after a strategy error", () => {
       beforeEach(() => {
-        updatedDepExState = setupDeploymentExecutionState("future1", [
+        updatedDeploymentState = applyMessages([
           initializeNamedContractDeployMessage,
           requestNetworkInteractionMessage,
           sendTransactionMessage,
@@ -349,6 +375,11 @@ describe("DeploymentStateReducer", () => {
           confirmTransactionMessage,
           deploymentFailOnStrategyError,
         ]);
+
+        updatedDepExState = findDeploymentExecutionStateBy(
+          updatedDeploymentState,
+          "future1"
+        );
       });
 
       it("should set the result as a revert", () => {
@@ -366,7 +397,7 @@ describe("DeploymentStateReducer", () => {
 
     describe("deployment errors after a simulation error", () => {
       beforeEach(() => {
-        updatedDepExState = setupDeploymentExecutionState("future1", [
+        updatedDeploymentState = applyMessages([
           initializeNamedContractDeployMessage,
           requestNetworkInteractionMessage,
           sendTransactionMessage,
@@ -374,6 +405,11 @@ describe("DeploymentStateReducer", () => {
           confirmTransactionMessage,
           deploymentFailOnSimulationError,
         ]);
+
+        updatedDepExState = findDeploymentExecutionStateBy(
+          updatedDeploymentState,
+          "future1"
+        );
       });
 
       it("should set the result as a revert", () => {
@@ -393,27 +429,10 @@ describe("DeploymentStateReducer", () => {
   });
 });
 
-function setupDeploymentExecutionState(
-  futureId: string,
-  messages: JournalMessage[]
-): DeploymentExecutionState {
-  const updatedState = applyMessages(messages);
-
-  const deploymentExecutionState = findDeploymentExecutionStateBy(
-    updatedState,
-    futureId
-  );
-
-  assertIgnitionInvariant(
-    deploymentExecutionState !== undefined,
-    `Deployment state not found for ${futureId}`
-  );
-
-  return deploymentExecutionState;
-}
-
-function applyMessages(messages: JournalMessage[]) {
+function applyMessages(messages: JournalMessage[]): DeploymentState {
   const initialState = deploymentStateReducer(undefined);
 
-  return messages.reduce(deploymentStateReducer, initialState);
+  const updatedState = messages.reduce(deploymentStateReducer, initialState);
+
+  return updatedState;
 }

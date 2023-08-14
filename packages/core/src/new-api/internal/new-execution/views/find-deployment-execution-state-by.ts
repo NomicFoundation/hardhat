@@ -5,12 +5,13 @@ import { DeploymentExecutionState } from "../types/execution-state";
 export function findDeploymentExecutionStateBy(
   deployment: DeploymentState,
   futureId: string
-): DeploymentExecutionState | undefined {
+): DeploymentExecutionState {
   const exState = deployment.executionStates[futureId];
 
-  if (exState === undefined) {
-    return undefined;
-  }
+  assertIgnitionInvariant(
+    exState !== undefined,
+    `Expected execution state for ${futureId} to exist, but it did not`
+  );
 
   assertIgnitionInvariant(
     exState.type === "DEPLOYMENT_EXECUTION_STATE",

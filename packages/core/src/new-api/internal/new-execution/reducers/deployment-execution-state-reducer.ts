@@ -1,5 +1,4 @@
 import { assertIgnitionInvariant } from "../../utils/assertions";
-import { isOnchainInteraction } from "../type-guards/network-interaction";
 import {
   DeploymentExecutionResult,
   ExecutionResultType,
@@ -20,6 +19,7 @@ import {
 } from "../types/messages";
 import {
   NetworkInteraction,
+  NetworkInteractionType,
   OnchainInteraction,
 } from "../types/network-interaction";
 
@@ -172,7 +172,7 @@ function _updateOnchainInteraction(
     networkInteractions: state.networkInteractions.map((interaction) => {
       if (interaction.id === networkInteractionId) {
         assertIgnitionInvariant(
-          isOnchainInteraction(interaction),
+          interaction.type === NetworkInteractionType.ONCHAIN_INTERACTION,
           "Can only update onchain interactions"
         );
 
