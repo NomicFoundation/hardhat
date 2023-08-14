@@ -377,7 +377,7 @@ impl TryFrom<Vec<f64>> for Percentiles {
 }
 
 /// A reward percentile value for `eth_feeHistory`. It's a floating point value in the range [0,
-/// 100] as per the Ethereum docs: https://ethereum.github.io/execution-apis/api-documentation/
+/// 100] as per the Ethereum docs: <https://ethereum.github.io/execution-apis/api-documentation/>
 #[derive(Clone, Copy, Debug, serde::Serialize)]
 #[repr(transparent)]
 #[serde(transparent)]
