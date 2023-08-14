@@ -52,7 +52,7 @@ pub enum HardhatMethodInvocation {
     #[serde(rename = "hardhat_mine")]
     Mine(
         /// block count:
-        #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[serde(default)]
         Option<U256>,
         /// interval:
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -213,6 +213,7 @@ mod tests {
             Some(U256::from(1)),
         ));
         help_test_method_invocation_serde(HardhatMethodInvocation::Mine(Some(U256::from(1)), None));
+        help_test_method_invocation_serde(HardhatMethodInvocation::Mine(None, Some(U256::from(1))));
         help_test_method_invocation_serde(HardhatMethodInvocation::Mine(None, None));
     }
 

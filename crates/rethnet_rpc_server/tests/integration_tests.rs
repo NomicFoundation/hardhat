@@ -400,6 +400,15 @@ async fn test_hardhat_mine() {
     verify_response(
         &server,
         MethodInvocation::Hardhat(HardhatMethodInvocation::Mine(
+            None,                 // block count
+            Some(U256::from(10)), // interval
+        )),
+        true,
+    )
+    .await;
+    verify_response(
+        &server,
+        MethodInvocation::Hardhat(HardhatMethodInvocation::Mine(
             Some(U256::from(10)),   // block count
             Some(U256::from(5000)), // interval
         )),
