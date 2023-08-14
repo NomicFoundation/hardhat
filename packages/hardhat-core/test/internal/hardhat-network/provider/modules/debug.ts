@@ -172,7 +172,7 @@ describe("Debug module", function () {
         });
 
         // Regression test, see issue: https://github.com/NomicFoundation/hardhat/issues/3858
-        it("The memory property should not have additional zeros", async function () {
+        it("The memory property should not have additional superfluous zeros", async function () {
           // push0 push0 mstore push0
           const bytecode = "0x5F5F525F";
           const address = "0x1234567890123456789012345678901234567890";
