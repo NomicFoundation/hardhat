@@ -1,4 +1,4 @@
-use crate::remote::methods::{GetLogsInput, MethodInvocation, Percentiles, TransactionInput};
+use crate::remote::methods::{GetLogsInput, MethodInvocation};
 use crate::remote::BlockSpec;
 use crate::U256;
 use revm_primitives::{Address, B256};
@@ -11,15 +11,6 @@ use revm_primitives::{Address, B256};
 pub(super) enum CacheableMethodInvocation<'a> {
     /// eth_chainId
     ChainId = 1,
-    /// eth_feeHistory
-    FeeHistory {
-        /// block count
-        block_count: &'a U256,
-        /// newest block
-        block_spec: &'a BlockSpec,
-        /// reward percentiles
-        percentiles: &'a Percentiles,
-    } = 3,
     /// eth_getBalance
     GetBalance {
         address: &'a Address,
@@ -90,13 +81,6 @@ impl<'a> TryFrom<&'a MethodInvocation> for CacheableMethodInvocation<'a> {
     fn try_from(value: &'a MethodInvocation) -> Result<Self, Self::Error> {
         match value {
             MethodInvocation::ChainId() => Ok(CacheableMethodInvocation::ChainId),
-            MethodInvocation::FeeHistory(block_count, block_spec, percentiles) => {
-                Ok(CacheableMethodInvocation::FeeHistory {
-                    block_count,
-                    block_spec,
-                    percentiles,
-                })
-            }
             MethodInvocation::GetBalance(address, block_spec) => {
                 Ok(CacheableMethodInvocation::GetBalance {
                     address,
@@ -164,6 +148,7 @@ impl<'a> TryFrom<&'a MethodInvocation> for CacheableMethodInvocation<'a> {
             | MethodInvocation::Call(_, _)
             | MethodInvocation::Coinbase()
             | MethodInvocation::EstimateGas(_, _)
+            | MethodInvocation::FeeHistory(_, _, _)
             | MethodInvocation::GasPrice()
             | MethodInvocation::GetFilterChanges(_)
             | MethodInvocation::GetFilterLogs(_)
