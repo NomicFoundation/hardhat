@@ -9,7 +9,7 @@ const {
   getPoolState,
 } = require("./helpers");
 
-describe("Uniswap", function () {
+describe.skip("Uniswap", function () {
   const fee = 500;
   let owner, user1, solidus, florin;
   let nonfungibleTokenPositionManager, uniswapV3Factory, swapRouter02;

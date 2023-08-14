@@ -8,9 +8,7 @@ const TEN_YEAR_IN_SECS: number = 10 * 365 * 24 * 60 * 60;
 const TEN_YEARS_IN_FUTURE: number =
   currentTimestampInSeconds + TEN_YEAR_IN_SECS;
 
-const ONE_GWEI: bigint = BigInt(
-  hre.ethers.utils.parseUnits("1", "gwei").toString()
-);
+const ONE_GWEI: bigint = BigInt(hre.ethers.parseUnits("1", "gwei").toString());
 
 const LockModule = buildModule("LockModule", (m) => {
   const unlockTime = m.getParameter("unlockTime", TEN_YEARS_IN_FUTURE);

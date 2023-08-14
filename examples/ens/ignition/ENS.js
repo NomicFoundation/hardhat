@@ -2,8 +2,8 @@ const { buildModule } = require("@ignored/hardhat-ignition");
 
 const namehash = require("eth-ens-namehash");
 const ethers = hre.ethers;
-const utils = ethers.utils;
-const labelhash = (label) => utils.keccak256(utils.toUtf8Bytes(label));
+
+const labelhash = (label) => ethers.keccak256(ethers.toUtf8Bytes(label));
 
 const reverseTld = "reverse";
 const reverseTldHash = namehash.hash(reverseTld);

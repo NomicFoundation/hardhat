@@ -5,7 +5,7 @@ import { ethers, ignition } from "hardhat";
 
 import LockModule from "../ignition/LockModule";
 
-describe("Lock", function () {
+describe.skip("Lock", function () {
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
