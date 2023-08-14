@@ -189,7 +189,7 @@ describe("Eth module", function () {
           //
           // this method uses the first default account, and it assumes that
           // that account sent a tx before, so it uses a nonce of 1
-          async function sendRawTransaction({ to, data }: any) {
+          async function sendRawTransaction({ to, data }: any): Promise<any> {
             const tx = TransactionFactory.fromTxData(
               {
                 to,

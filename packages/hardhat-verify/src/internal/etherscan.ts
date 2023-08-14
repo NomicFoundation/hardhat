@@ -97,7 +97,7 @@ export class Etherscan {
     url.search = parameters.toString();
 
     const response = await sendGetRequest(url);
-    const json = await response.body.json();
+    const json: any = await response.body.json();
 
     if (json.message !== "OK") {
       return false;
