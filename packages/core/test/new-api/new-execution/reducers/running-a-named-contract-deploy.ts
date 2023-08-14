@@ -20,9 +20,9 @@ import {
   TransactionSendMessage,
 } from "../../../../src/new-api/internal/new-execution/types/messages";
 import { NetworkInteractionType } from "../../../../src/new-api/internal/new-execution/types/network-interaction";
+import { findOnchainInteractionBy } from "../../../../src/new-api/internal/new-execution/views/deployment-execution-state/find-onchain-interaction-by";
+import { findTransactionBy } from "../../../../src/new-api/internal/new-execution/views/deployment-execution-state/find-transaction-by";
 import { findDeploymentExecutionStateBy } from "../../../../src/new-api/internal/new-execution/views/find-deployment-execution-state-by";
-import { findOnchainInteractionBy } from "../../../../src/new-api/internal/new-execution/views/find-onchain-interaction-by";
-import { findTransactionBy } from "../../../../src/new-api/internal/new-execution/views/find-transaction-by";
 import { FutureType } from "../../../../src/new-api/types/module";
 
 describe("DeploymentStateReducer", () => {
@@ -210,16 +210,14 @@ describe("DeploymentStateReducer", () => {
 
       it("should populate the transaction against the network interaction", () => {
         const networkInteraction = findOnchainInteractionBy(
-          updatedDeploymentState,
-          "future1",
+          updatedDepExState,
           1
         );
 
         assert.equal(networkInteraction.transactions.length, 1);
 
         const transaction = findTransactionBy(
-          updatedDeploymentState,
-          "future1",
+          updatedDepExState,
           1,
           "0xdeadbeef"
         );
@@ -246,8 +244,7 @@ describe("DeploymentStateReducer", () => {
 
       it("should set the receipt against the successful transaction", () => {
         const transaction = findTransactionBy(
-          updatedDeploymentState,
-          "future1",
+          updatedDepExState,
           1,
           "0xdeadbeef"
         );
@@ -260,8 +257,7 @@ describe("DeploymentStateReducer", () => {
 
       it("should clear all other transactions for the network interaction", () => {
         const networkInteraction = findOnchainInteractionBy(
-          updatedDeploymentState,
-          "future1",
+          updatedDepExState,
           1
         );
 

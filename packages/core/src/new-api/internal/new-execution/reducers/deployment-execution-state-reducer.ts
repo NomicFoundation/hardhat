@@ -1,4 +1,5 @@
-import { assertIgnitionInvariant } from "../../utils/assertions";
+import { produce } from "immer";
+
 import {
   DeploymentExecutionResult,
   ExecutionResultType,
@@ -8,7 +9,6 @@ import {
   ExecutionSateType,
   ExecutionStatus,
 } from "../types/execution-state";
-import { Transaction } from "../types/jsonrpc";
 import {
   DeploymentExecutionStateCompleteMessage,
   DeploymentExecutionStateInitializeMessage,
@@ -17,11 +17,8 @@ import {
   TransactionConfirmMessage,
   TransactionSendMessage,
 } from "../types/messages";
-import {
-  NetworkInteraction,
-  NetworkInteractionType,
-  OnchainInteraction,
-} from "../types/network-interaction";
+import { findOnchainInteractionBy } from "../views/deployment-execution-state/find-onchain-interaction-by";
+import { findTransactionBy } from "../views/deployment-execution-state/find-transaction-by";
 
 export function deploymentExecutionStateReducer(
   state: DeploymentExecutionState,
@@ -36,13 +33,9 @@ export function deploymentExecutionStateReducer(
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE:
       return initialiseDeploymentExecutionStateFrom(action);
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
-      return appendNetworkInteraction(state, action.networkInteraction);
+      return appendNetworkInteraction(state, action);
     case JournalMessageType.TRANSACTION_SEND:
-      return appendTransaction(
-        state,
-        action.networkInteractionId,
-        action.transaction
-      );
+      return appendTransactionToOnchainInteraction(state, action);
     case JournalMessageType.TRANSACTION_CONFIRM:
       return confirmTransaction(state, action);
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE:
@@ -74,70 +67,56 @@ function initialiseDeploymentExecutionStateFrom(
 
 function appendNetworkInteraction(
   state: DeploymentExecutionState,
-  networkInteraction: NetworkInteraction
+  action: NetworkInteractionRequestMessage
 ) {
-  return {
-    ...state,
-    networkInteractions: [...state.networkInteractions, networkInteraction],
-  };
+  return produce(state, (draft: DeploymentExecutionState): void => {
+    draft.networkInteractions.push(action.networkInteraction);
+  });
 }
 
-function appendTransaction(
+function appendTransactionToOnchainInteraction(
   state: DeploymentExecutionState,
-  networkInteractionId: number,
-  transaction: Transaction
+  action: TransactionSendMessage
 ): DeploymentExecutionState {
-  return _updateOnchainInteraction(
-    state,
-    networkInteractionId,
-    (onchainInteraction) => {
-      return {
-        ...onchainInteraction,
-        transactions: [...onchainInteraction.transactions, transaction],
-      };
-    }
-  );
+  return produce(state, (draft: DeploymentExecutionState): void => {
+    const onchainInteraction = findOnchainInteractionBy(
+      draft,
+      action.networkInteractionId
+    );
+
+    onchainInteraction.transactions.push(action.transaction);
+  });
 }
 
 function confirmTransaction(
   state: DeploymentExecutionState,
   action: TransactionConfirmMessage
 ) {
-  return _updateOnchainInteraction(
-    state,
-    action.networkInteractionId,
-    (interaction) => {
-      const confirmedTransaction = interaction.transactions.find(
-        (tx) => tx.hash === action.hash
-      );
+  return produce(state, (draft: DeploymentExecutionState): void => {
+    const onchainInteraction = findOnchainInteractionBy(
+      draft,
+      action.networkInteractionId
+    );
 
-      assertIgnitionInvariant(
-        confirmedTransaction !== undefined,
-        `Unable to find confirmed transaction ${action.hash} in interaction ${action.networkInteractionId}`
-      );
+    const transaction = findTransactionBy(
+      draft,
+      action.networkInteractionId,
+      action.hash
+    );
 
-      return {
-        ...interaction,
-        transactions: [
-          {
-            ...confirmedTransaction,
-            receipt: action.receipt,
-          },
-        ],
-      };
-    }
-  );
+    transaction.receipt = action.receipt;
+    onchainInteraction.transactions = [transaction];
+  });
 }
 
 function completeDeploymentExecutionState(
   state: DeploymentExecutionState,
   result: DeploymentExecutionResult
 ): DeploymentExecutionState {
-  return {
-    ...state,
-    status: _mapExecutionResultTypeToExecutionStatus(result),
-    result,
-  };
+  return produce(state, (draft: DeploymentExecutionState): void => {
+    draft.status = _mapExecutionResultTypeToExecutionStatus(result);
+    draft.result = result;
+  });
 }
 
 function _mapExecutionResultTypeToExecutionStatus(
@@ -160,26 +139,4 @@ function _mapExecutionResultTypeToExecutionStatus(
       return ExecutionStatus.FAILED;
     }
   }
-}
-
-function _updateOnchainInteraction(
-  state: DeploymentExecutionState,
-  networkInteractionId: number,
-  update: (onchainInteraction: OnchainInteraction) => OnchainInteraction
-) {
-  return {
-    ...state,
-    networkInteractions: state.networkInteractions.map((interaction) => {
-      if (interaction.id === networkInteractionId) {
-        assertIgnitionInvariant(
-          interaction.type === NetworkInteractionType.ONCHAIN_INTERACTION,
-          "Can only update onchain interactions"
-        );
-
-        return update(interaction);
-      }
-
-      return interaction;
-    }),
-  };
 }
