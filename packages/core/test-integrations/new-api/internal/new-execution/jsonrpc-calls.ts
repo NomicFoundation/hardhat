@@ -39,7 +39,7 @@ describe("JSON-RPC calls", function () {
       const fees = await getNetworkFees(hre.network.provider);
 
       const tx = await sendTransaction(hre.network.provider, {
-        data: await encodeArtifactDeploymentData(artifact, [], {}),
+        data: encodeArtifactDeploymentData(artifact, [], {}),
         value: 0n,
         from: accounts[0],
         nonce: 0,
@@ -91,7 +91,7 @@ describe("JSON-RPC calls", function () {
         const result = await call(
           this.hre.network.provider,
           {
-            data: await encodeArtifactDeploymentData(artifact, [], {}),
+            data: encodeArtifactDeploymentData(artifact, [], {}),
             value: 0n,
             from: this.accounts[0],
           },
@@ -309,7 +309,7 @@ describe("JSON-RPC calls", function () {
         const fees = await getNetworkFees(this.hre.network.provider);
 
         await sendTransaction(this.hre.network.provider, {
-          data: await encodeArtifactDeploymentData(artifact, [], {}),
+          data: encodeArtifactDeploymentData(artifact, [], {}),
           value: 0n,
           from: this.accounts[0],
           nonce: 0,
@@ -830,7 +830,7 @@ describe("JSON-RPC calls", function () {
             maxFeePerGas: 1_000_000_000n,
             maxPriorityFeePerGas: 1n,
             gasLimit: 1_000_000n,
-            data: await encodeArtifactDeploymentData(artifact, [], {}),
+            data: encodeArtifactDeploymentData(artifact, [], {}),
             nonce: 0,
           });
 

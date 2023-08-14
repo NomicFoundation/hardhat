@@ -4,8 +4,8 @@ import { IgnitionError } from "../../../errors";
 import { Artifact } from "../../types/artifact";
 import { SolidityParameterType } from "../../types/module";
 import { assertIgnitionInvariant } from "../utils/assertions";
-import { collectLibrariesAndLink } from "../utils/collectLibrariesAndLink";
 
+import { linkLibraries } from "./libraries";
 import {
   EvmExecutionResultTypes,
   EvmTuple,
@@ -22,26 +22,18 @@ import {
  * deployment.
  */
 // TODO: This should be sync, it's only async because of collectLibrariesAndLink
-export async function encodeArtifactDeploymentData(
+export function encodeArtifactDeploymentData(
   artifact: Artifact,
   args: SolidityParameterType[],
   libraries: { [libraryName: string]: string }
-): Promise<string> {
+): string {
   const { ethers } = require("ethers") as typeof import("ethers");
   const iface = new ethers.Interface(artifact.abi);
 
-  const linkedBytecode = await linkLibraries(artifact, libraries);
+  const linkedBytecode = linkLibraries(artifact, libraries);
   const encodedArgs = iface.encodeDeploy(args);
 
   return linkedBytecode + encodedArgs.slice(2);
-}
-
-// TODO: This should be sync, it's only async because of collectLibrariesAndLink
-export async function linkLibraries(
-  artifact: Artifact,
-  libraries: { [libraryName: string]: string }
-): Promise<string> {
-  return collectLibrariesAndLink(artifact, libraries);
 }
 
 /**

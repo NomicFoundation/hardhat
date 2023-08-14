@@ -61,7 +61,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
         type: NetworkInteractionType.ONCHAIN_INTERACTION,
         to: undefined,
         from: executionState.from ?? fallbackSender,
-        data: await encodeArtifactDeploymentData(
+        data: encodeArtifactDeploymentData(
           artifact,
           executionState.constructorArgs,
           executionState.libraries
