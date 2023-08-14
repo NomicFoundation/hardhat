@@ -31,8 +31,7 @@ const PRIVATE_KEY: &str = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784
 struct TestFixture {
     server_address: SocketAddr,
     // We need to keep the tempdir alive for the duration of the test
-    #[allow(dead_code)]
-    cache_dir: TempDir,
+    _cache_dir: TempDir,
 }
 
 async fn start_server() -> TestFixture {
@@ -76,7 +75,7 @@ async fn start_server() -> TestFixture {
 
     TestFixture {
         server_address: address,
-        cache_dir,
+        _cache_dir: cache_dir,
     }
 }
 
