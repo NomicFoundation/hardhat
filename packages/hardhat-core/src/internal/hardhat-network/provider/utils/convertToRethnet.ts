@@ -221,8 +221,8 @@ export function ethereumjsTransactionToRethnetSignedTransaction(
         };
       }),
       oddYParity: (tx.v ?? BigInt(0)) > 0,
-      r: setLengthLeft(toBuffer(tx.r ?? BigInt(0)), 32),
-      s: setLengthLeft(toBuffer(tx.s ?? BigInt(0)), 32),
+      r: tx.r ?? BigInt(0),
+      s: tx.s ?? BigInt(0),
     };
 
     return transaction;
