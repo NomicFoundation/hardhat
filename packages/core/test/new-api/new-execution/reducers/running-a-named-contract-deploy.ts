@@ -20,32 +20,12 @@ import { NetworkInteractionType } from "../../../../src/new-api/internal/new-exe
 import { assertIgnitionInvariant } from "../../../../src/new-api/internal/utils/assertions";
 import { FutureType } from "../../../../src/new-api/types/module";
 
-describe.only("DeploymentStateReducer", () => {
-  const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
-
-  let initialState: DeploymentState;
-  let updatedState: DeploymentState;
-
-  describe("starting a new run", () => {
-    beforeEach(() => {
-      initialState = deploymentStateReducer(undefined);
-
-      updatedState = deploymentStateReducer(initialState, {
-        type: JournalMessageType.RUN_START,
-        chainId: 31337,
-      });
-    });
-
-    it("should set the chainId", () => {
-      assert.equal(updatedState.chainId, 31337);
-    });
-
-    it("should leave the previous execution states", () => {
-      assert.equal(initialState.executionStates, updatedState.executionStates);
-    });
-  });
-
+describe("DeploymentStateReducer", () => {
   describe("running a named contract deploy", () => {
+    const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
+
+    let updatedState: DeploymentState;
+
     const initializeNamedContractDeployMessage: DeploymentExecutionStateInitializeMessage =
       {
         type: JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE,
