@@ -1,11 +1,14 @@
 import { assert } from "chai";
 
 import { deploymentStateReducer } from "../../../../src/new-api/internal/new-execution/reducers/deployment-state-reducer";
-import { isDeploymentExecutionState } from "../../../../src/new-api/internal/new-execution/type-guards/execution-state";
 import { isOnchainInteraction } from "../../../../src/new-api/internal/new-execution/type-guards/network-interaction";
 import { DeploymentState } from "../../../../src/new-api/internal/new-execution/types/deployment-state";
 import { ExecutionResultType } from "../../../../src/new-api/internal/new-execution/types/execution-result";
-import { ExecutionStatus } from "../../../../src/new-api/internal/new-execution/types/execution-state";
+import {
+  DeploymentExecutionState,
+  ExecutionSateType,
+  ExecutionStatus,
+} from "../../../../src/new-api/internal/new-execution/types/execution-state";
 import { TransactionReceiptStatus } from "../../../../src/new-api/internal/new-execution/types/jsonrpc";
 import {
   DeploymentExecutionStateCompleteMessage,
@@ -25,6 +28,7 @@ describe("DeploymentStateReducer", () => {
     const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 
     let updatedState: DeploymentState;
+    let updatedDepExState: DeploymentExecutionState;
 
     const initializeNamedContractDeployMessage: DeploymentExecutionStateInitializeMessage =
       {
@@ -116,8 +120,11 @@ describe("DeploymentStateReducer", () => {
 
       it("should populate a deployment execution state for the future", () => {
         const exState = updatedState.executionStates.future1;
-        assert.isDefined(exState);
-        assert(isDeploymentExecutionState(exState));
+
+        assert.equal(
+          exState?.type,
+          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE
+        );
       });
     });
 
@@ -127,23 +134,16 @@ describe("DeploymentStateReducer", () => {
           initializeNamedContractDeployMessage,
           requestNetworkInteractionMessage,
         ]);
+
+        updatedDepExState = lookupDepExState(updatedState, "future1");
       });
 
       it("should populate a new onchain interaction", () => {
-        const exState = updatedState.executionStates.future1;
+        assert.equal(updatedDepExState.networkInteractions.length, 1);
 
-        assertIgnitionInvariant(
-          isDeploymentExecutionState(exState),
-          "has to be a deployment execution state"
-        );
-
-        assert.equal(exState.networkInteractions.length, 1);
-        const networkInteraction = exState.networkInteractions[0];
-
-        assert.isDefined(networkInteraction);
         assert.deepStrictEqual(
-          requestNetworkInteractionMessage.networkInteraction,
-          networkInteraction
+          updatedDepExState.networkInteractions[0],
+          requestNetworkInteractionMessage.networkInteraction
         );
       });
     });
@@ -155,23 +155,17 @@ describe("DeploymentStateReducer", () => {
           requestNetworkInteractionMessage,
           sendTransactionMessage,
         ]);
+
+        updatedDepExState = lookupDepExState(updatedState, "future1");
       });
 
       it("should populate the transaction against the network interaction", () => {
-        const exState = updatedState.executionStates.future1;
+        assert.equal(updatedDepExState.networkInteractions.length, 1);
+        const networkInteraction = updatedDepExState.networkInteractions[0];
 
         assertIgnitionInvariant(
-          isDeploymentExecutionState(exState),
-          "has to be a deployment execution state"
-        );
-
-        assert.equal(exState.networkInteractions.length, 1);
-        const networkInteraction = exState.networkInteractions[0];
-
-        assert.isDefined(networkInteraction);
-
-        assertIgnitionInvariant(
-          isOnchainInteraction(networkInteraction),
+          networkInteraction.type ===
+            NetworkInteractionType.ONCHAIN_INTERACTION,
           "has to be an onchain interaction"
         );
 
@@ -192,18 +186,13 @@ describe("DeploymentStateReducer", () => {
           sendAnotherTransactionMessage,
           confirmTransactionMessage,
         ]);
+
+        updatedDepExState = lookupDepExState(updatedState, "future1");
       });
 
       it("should set the receipt against the successful transaction", () => {
-        const exState = updatedState.executionStates.future1;
-
-        assertIgnitionInvariant(
-          isDeploymentExecutionState(exState),
-          "has to be a deployment execution state"
-        );
-
-        assert.equal(exState.networkInteractions.length, 1);
-        const networkInteraction = exState.networkInteractions[0];
+        assert.equal(updatedDepExState.networkInteractions.length, 1);
+        const networkInteraction = updatedDepExState.networkInteractions[0];
 
         assert.isDefined(networkInteraction);
 
@@ -225,15 +214,8 @@ describe("DeploymentStateReducer", () => {
       });
 
       it("should clear all other transactions for the network interaction", () => {
-        const exState = updatedState.executionStates.future1;
-
-        assertIgnitionInvariant(
-          isDeploymentExecutionState(exState),
-          "has to be a deployment execution state"
-        );
-
-        assert.equal(exState.networkInteractions.length, 1);
-        const networkInteraction = exState.networkInteractions[0];
+        assert.equal(updatedDepExState.networkInteractions.length, 1);
+        const networkInteraction = updatedDepExState.networkInteractions[0];
 
         assert.isDefined(networkInteraction);
 
@@ -256,31 +238,22 @@ describe("DeploymentStateReducer", () => {
           confirmTransactionMessage,
           deploymentSuccessMessage,
         ]);
+
+        updatedDepExState = lookupDepExState(updatedState, "future1");
       });
 
       it("should set the result against the execution state", () => {
-        const exState = updatedState.executionStates.future1;
-
-        assertIgnitionInvariant(
-          isDeploymentExecutionState(exState),
-          "has to be a deployment execution state"
-        );
-
-        assert.deepStrictEqual(exState.result, {
+        assert.deepStrictEqual(updatedDepExState.result, {
           type: ExecutionResultType.SUCCESS,
           address: exampleAddress,
         });
       });
 
       it("should update the status to success", () => {
-        const exState = updatedState.executionStates.future1;
-
-        assertIgnitionInvariant(
-          isDeploymentExecutionState(exState),
-          "has to be a deployment execution state"
+        assert.deepStrictEqual(
+          updatedDepExState.status,
+          ExecutionStatus.SUCCESS
         );
-
-        assert.deepStrictEqual(exState.status, ExecutionStatus.SUCCESS);
       });
     });
 
@@ -294,30 +267,18 @@ describe("DeploymentStateReducer", () => {
           confirmTransactionMessage,
           deploymentFailsWithRevertMessage,
         ]);
+
+        updatedDepExState = lookupDepExState(updatedState, "future1");
       });
 
       it("should set the result as a revert", () => {
-        const exState = updatedState.executionStates.future1;
-
-        assertIgnitionInvariant(
-          isDeploymentExecutionState(exState),
-          "has to be a deployment execution state"
-        );
-
-        assert.deepStrictEqual(exState.result, {
+        assert.deepStrictEqual(updatedDepExState.result, {
           type: ExecutionResultType.REVERTED_TRANSACTION,
         });
       });
 
       it("should update the status to failed", () => {
-        const exState = updatedState.executionStates.future1;
-
-        assertIgnitionInvariant(
-          isDeploymentExecutionState(exState),
-          "has to be a deployment execution state"
-        );
-
-        assert.equal(exState.status, ExecutionStatus.FAILED);
+        assert.equal(updatedDepExState.status, ExecutionStatus.FAILED);
       });
     });
   });
@@ -327,4 +288,15 @@ function applyMessages(messages: JournalMessage[]) {
   const initialState = deploymentStateReducer(undefined);
 
   return messages.reduce(deploymentStateReducer, initialState);
+}
+
+function lookupDepExState(state: DeploymentState, futureId: string) {
+  const depExState = state.executionStates[futureId];
+
+  assertIgnitionInvariant(
+    depExState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+    "has to be a deployment execution state"
+  );
+
+  return depExState;
 }
