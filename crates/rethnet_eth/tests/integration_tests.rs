@@ -80,7 +80,9 @@ fn test_serde_eth_fee_history() {
     help_test_method_invocation_serde(MethodInvocation::FeeHistory(
         U256::from(3),
         BlockSpec::Number(U256::from(100)),
-        vec![0.5_f64, 10_f64, 80_f64, 90_f64, 99.5_f64],
+        vec![0.5_f64, 10_f64, 80_f64, 90_f64, 99.5_f64]
+            .try_into()
+            .unwrap(),
     ));
 }
 

@@ -5,7 +5,7 @@ use bytes::Bytes;
 use crate::{remote::BlockSpec, Address, B256, U256};
 
 /// used to specify addresses for [`FilterOptions`]
-#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub enum OneOrMoreAddresses {
     /// one address
     One(Address),
@@ -14,7 +14,7 @@ pub enum OneOrMoreAddresses {
 }
 
 /// used to specify the target block(s) for [`FilterOptions`]
-#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub enum FilterBlockTarget {
     /// a range of blocks
     Range {
@@ -28,7 +28,7 @@ pub enum FilterBlockTarget {
 }
 
 /// for specifying the inputs to `eth_newFilter`
-#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FilterOptions {
     /// block target
@@ -89,7 +89,7 @@ impl FilteredEvents {
 }
 
 /// subscription type to be used with `eth_subscribe`
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum SubscriptionType {
     /// Induces the emission of logs attached to a new block that match certain topic filters.
     Logs,
