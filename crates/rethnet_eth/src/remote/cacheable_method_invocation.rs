@@ -77,78 +77,85 @@ impl<'a> TryFrom<&'a MethodInvocation> for CacheableMethodInvocation<'a> {
     type Error = MethodNotCacheableError;
 
     fn try_from(value: &'a MethodInvocation) -> Result<Self, Self::Error> {
-        use CacheableMethodInvocation as CMI;
-        use MethodInvocation as MI;
-
         match value {
-            MI::Call(transaction_input, block_spec) => Ok(CMI::Call(transaction_input, block_spec)),
-            MI::ChainId() => Ok(CMI::ChainId()),
-            MI::EstimateGas(transaction_input, block_spec) => {
-                Ok(CMI::EstimateGas(transaction_input, block_spec))
-            }
-            MI::FeeHistory(block_count, newest_block, percentiles) => {
-                Ok(CMI::FeeHistory(block_count, newest_block, percentiles))
-            }
-            MI::GetBalance(address, block_spec) => Ok(CMI::GetBalance(address, block_spec)),
-            MI::GetBlockByNumber(block_spec, include_tx_data) => {
-                Ok(CMI::GetBlockByNumber(block_spec, *include_tx_data))
-            }
-            MI::GetBlockByHash(hash, include_tx_data) => {
-                Ok(CMI::GetBlockByHash(hash, *include_tx_data))
-            }
-            MI::GetBlockTransactionCountByHash(hash) => {
-                Ok(CMI::GetBlockTransactionCountByHash(hash))
-            }
-            MI::GetBlockTransactionCountByNumber(block_spec) => {
-                Ok(CMI::GetBlockTransactionCountByNumber(block_spec))
-            }
-            MI::GetCode(address, block_spec) => Ok(CMI::GetCode(address, block_spec)),
-            MI::GetLogs(params) => Ok(CMI::GetLogs(params)),
-            MI::GetStorageAt(address, position, block_spec) => {
-                Ok(CMI::GetStorageAt(address, position, block_spec))
-            }
-            MI::GetTransactionByBlockHashAndIndex(block_hash, index) => {
-                Ok(CMI::GetTransactionByBlockHashAndIndex(block_hash, index))
-            }
-            MI::GetTransactionByBlockNumberAndIndex(block_number, index) => Ok(
-                CMI::GetTransactionByBlockNumberAndIndex(block_number, index),
+            MethodInvocation::Call(transaction_input, block_spec) => Ok(
+                CacheableMethodInvocation::Call(transaction_input, block_spec),
             ),
-            MI::GetTransactionByHash(hash) => Ok(CMI::GetTransactionByHash(hash)),
-            MI::GetTransactionCount(address, block_spec) => {
-                Ok(CMI::GetTransactionCount(address, block_spec))
+            MethodInvocation::ChainId() => Ok(CacheableMethodInvocation::ChainId()),
+            MethodInvocation::EstimateGas(transaction_input, block_spec) => Ok(
+                CacheableMethodInvocation::EstimateGas(transaction_input, block_spec),
+            ),
+            MethodInvocation::FeeHistory(block_count, newest_block, percentiles) => Ok(
+                CacheableMethodInvocation::FeeHistory(block_count, newest_block, percentiles),
+            ),
+            MethodInvocation::GetBalance(address, block_spec) => {
+                Ok(CacheableMethodInvocation::GetBalance(address, block_spec))
             }
-            MI::GetTransactionReceipt(hash) => Ok(CMI::GetTransactionReceipt(hash)),
-            MI::NetVersion() => Ok(CMI::NetVersion()),
+            MethodInvocation::GetBlockByNumber(block_spec, include_tx_data) => Ok(
+                CacheableMethodInvocation::GetBlockByNumber(block_spec, *include_tx_data),
+            ),
+            MethodInvocation::GetBlockByHash(hash, include_tx_data) => Ok(
+                CacheableMethodInvocation::GetBlockByHash(hash, *include_tx_data),
+            ),
+            MethodInvocation::GetBlockTransactionCountByHash(hash) => Ok(
+                CacheableMethodInvocation::GetBlockTransactionCountByHash(hash),
+            ),
+            MethodInvocation::GetBlockTransactionCountByNumber(block_spec) => Ok(
+                CacheableMethodInvocation::GetBlockTransactionCountByNumber(block_spec),
+            ),
+            MethodInvocation::GetCode(address, block_spec) => {
+                Ok(CacheableMethodInvocation::GetCode(address, block_spec))
+            }
+            MethodInvocation::GetLogs(params) => Ok(CacheableMethodInvocation::GetLogs(params)),
+            MethodInvocation::GetStorageAt(address, position, block_spec) => Ok(
+                CacheableMethodInvocation::GetStorageAt(address, position, block_spec),
+            ),
+            MethodInvocation::GetTransactionByBlockHashAndIndex(block_hash, index) => {
+                Ok(CacheableMethodInvocation::GetTransactionByBlockHashAndIndex(block_hash, index))
+            }
+            MethodInvocation::GetTransactionByBlockNumberAndIndex(block_number, index) => Ok(
+                CacheableMethodInvocation::GetTransactionByBlockNumberAndIndex(block_number, index),
+            ),
+            MethodInvocation::GetTransactionByHash(hash) => {
+                Ok(CacheableMethodInvocation::GetTransactionByHash(hash))
+            }
+            MethodInvocation::GetTransactionCount(address, block_spec) => Ok(
+                CacheableMethodInvocation::GetTransactionCount(address, block_spec),
+            ),
+            MethodInvocation::GetTransactionReceipt(hash) => {
+                Ok(CacheableMethodInvocation::GetTransactionReceipt(hash))
+            }
+            MethodInvocation::NetVersion() => Ok(CacheableMethodInvocation::NetVersion()),
 
             // Explicit to make sure if a new method is added, it is not forgotten here.
-            MI::Accounts()
-            | MI::BlockNumber()
-            | MI::Coinbase()
-            | MI::GasPrice()
-            | MI::GetFilterChanges(_)
-            | MI::GetFilterLogs(_)
-            | MI::Mining()
-            | MI::NetListening()
-            | MI::NetPeerCount()
-            | MI::NewBlockFilter()
-            | MI::NewFilter(_)
-            | MI::NewPendingTransactionFilter()
-            | MI::PendingTransactions()
-            | MI::SendRawTransaction(_)
-            | MI::SendTransaction(_)
-            | MI::Sign(_, _)
-            | MI::SignTypedDataV4(_, _)
-            | MI::Subscribe(_)
-            | MI::Syncing()
-            | MI::UninstallFilter(_)
-            | MI::Unsubscribe(_)
-            | MI::Web3ClientVersion()
-            | MI::Web3Sha3(_)
-            | MI::EvmIncreaseTime(_)
-            | MI::EvmMine(_)
-            | MI::EvmSetAutomine(_)
-            | MI::EvmSetNextBlockTimestamp(_)
-            | MI::EvmSnapshot() => Err(MethodNotCacheableError(value.clone())),
+            MethodInvocation::Accounts()
+            | MethodInvocation::BlockNumber()
+            | MethodInvocation::Coinbase()
+            | MethodInvocation::GasPrice()
+            | MethodInvocation::GetFilterChanges(_)
+            | MethodInvocation::GetFilterLogs(_)
+            | MethodInvocation::Mining()
+            | MethodInvocation::NetListening()
+            | MethodInvocation::NetPeerCount()
+            | MethodInvocation::NewBlockFilter()
+            | MethodInvocation::NewFilter(_)
+            | MethodInvocation::NewPendingTransactionFilter()
+            | MethodInvocation::PendingTransactions()
+            | MethodInvocation::SendRawTransaction(_)
+            | MethodInvocation::SendTransaction(_)
+            | MethodInvocation::Sign(_, _)
+            | MethodInvocation::SignTypedDataV4(_, _)
+            | MethodInvocation::Subscribe(_)
+            | MethodInvocation::Syncing()
+            | MethodInvocation::UninstallFilter(_)
+            | MethodInvocation::Unsubscribe(_)
+            | MethodInvocation::Web3ClientVersion()
+            | MethodInvocation::Web3Sha3(_)
+            | MethodInvocation::EvmIncreaseTime(_)
+            | MethodInvocation::EvmMine(_)
+            | MethodInvocation::EvmSetAutomine(_)
+            | MethodInvocation::EvmSetNextBlockTimestamp(_)
+            | MethodInvocation::EvmSnapshot() => Err(MethodNotCacheableError(value.clone())),
         }
     }
 }
