@@ -1,5 +1,6 @@
-import type { Result } from "ethers";
+import type { Result, ParamType } from "ethers";
 
+import { IgnitionError } from "../../../errors";
 import { Artifact } from "../../types/artifact";
 import { SolidityParameterType } from "../../types/module";
 import { assertIgnitionInvariant } from "../utils/assertions";
@@ -7,7 +8,8 @@ import { collectLibrariesAndLink } from "../utils/collectLibrariesAndLink";
 
 import {
   EvmExecutionResultTypes,
-  EvmValues,
+  EvmTuple,
+  EvmValue,
   InvalidResultError,
   RevertWithCustomError,
   RevertWithInvalidData,
@@ -80,12 +82,7 @@ export function decodeArtifactCustomError(
     return {
       type: EvmExecutionResultTypes.REVERT_WITH_CUSTOM_ERROR,
       errorName: errorFragment.name,
-      args: ethersResultIntoEvmValues(
-        decoded,
-        errorFragment.inputs
-          .map((input) => input.name)
-          .filter((name) => name !== "")
-      ),
+      args: ethersResultIntoEvmTuple(decoded, errorFragment.inputs),
     };
   } catch {
     return {
@@ -115,12 +112,7 @@ export function decodeArtifactFunctionCallResult(
 
   try {
     const decoded = iface.decodeFunctionResult(functionFragment, returnData);
-    const values = ethersResultIntoEvmValues(
-      decoded,
-      functionFragment.outputs
-        .map((output) => output.name)
-        .filter((name) => name !== "")
-    );
+    const values = ethersResultIntoEvmTuple(decoded, functionFragment.outputs);
 
     return { type: EvmExecutionResultTypes.SUCESSFUL_RESULT, values };
   } catch {
@@ -131,31 +123,78 @@ export function decodeArtifactFunctionCallResult(
   }
 }
 
-function ethersResultIntoEvmValues(result: Result, names: string[]): EvmValues {
-  const positional = Array.from(result);
+function ethersValueIntoEvmValue(
+  ethersValue: any,
+  paramType: ParamType
+): EvmValue {
+  const { ethers } = require("ethers") as typeof import("ethers");
 
-  for (const value of positional) {
-    const { ethers } = require("ethers") as typeof import("ethers");
-    assertIgnitionInvariant(
-      !(value instanceof ethers.FixedNumber),
-      "Ignition doesn't support Solidity Fixed and UFixed types"
-    );
+  if (typeof ethersValue === "bigint") {
+    return ethersValue;
   }
 
-  const named = Object.fromEntries(
-    names
-      .map((name) => {
-        try {
-          return [name, result.getValue(name)];
-        } catch (error) {
-          return error;
-        }
-      })
-      .filter(
-        (value): value is [string, SolidityParameterType] =>
-          !(value instanceof Error)
-      )
+  if (typeof ethersValue === "string") {
+    return ethersValue;
+  }
+
+  if (typeof ethersValue === "number") {
+    return BigInt(ethersValue);
+  }
+
+  if (typeof ethersValue === "boolean") {
+    return ethersValue;
+  }
+
+  if (ethersValue instanceof ethers.Result) {
+    if (paramType.baseType === "array") {
+      assertIgnitionInvariant(
+        paramType.arrayChildren !== null,
+        "Components must be defined for tuples"
+      );
+      return ethersResultIntoEvmValueArray(
+        ethersValue,
+        paramType.arrayChildren
+      );
+    }
+
+    assertIgnitionInvariant(
+      paramType.components !== null,
+      "Components must be defined for tuples"
+    );
+
+    return ethersResultIntoEvmTuple(ethersValue, paramType.components);
+  }
+
+  throw new IgnitionError(
+    `Can't decode ethers value into our own type: ${typeof ethersValue}`
   );
+}
+
+function ethersResultIntoEvmValueArray(
+  result: Result,
+  elementParamType: ParamType
+): EvmValue[] {
+  return Array.from(result).map((ethersValue) =>
+    ethersValueIntoEvmValue(ethersValue, elementParamType)
+  );
+}
+
+function ethersResultIntoEvmTuple(
+  result: Result,
+  paramsParamType: readonly ParamType[]
+): EvmTuple {
+  const positional: EvmValue[] = [];
+  const named: Record<string, EvmValue> = {};
+
+  for (const [i, param] of paramsParamType.entries()) {
+    const transformedValue = ethersValueIntoEvmValue(result[i], param);
+
+    positional[i] = transformedValue;
+
+    if (param.name !== "") {
+      named[param.name] = transformedValue;
+    }
+  }
 
   return { positional, named };
 }
