@@ -8,7 +8,7 @@ export type JournalMessage =
   | RunStartMessage
   | DeploymentExecutionStateInitializeMessage
   | NetworkInteractionRequestMessage
-  | SendTransactionMessage
+  | TransactionSendMessage
   | TransactionConfirmMessage;
 
 export enum JournalMessageType {
@@ -44,7 +44,7 @@ export interface NetworkInteractionRequestMessage {
   networkInteraction: NetworkInteraction;
 }
 
-export interface SendTransactionMessage {
+export interface TransactionSendMessage {
   type: JournalMessageType.TRANSACTION_SEND;
   futureId: string;
   networkInteractionId: number;

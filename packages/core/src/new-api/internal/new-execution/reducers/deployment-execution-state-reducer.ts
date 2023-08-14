@@ -10,8 +10,8 @@ import {
   DeploymentExecutionStateInitializeMessage,
   JournalMessageType,
   NetworkInteractionRequestMessage,
-  SendTransactionMessage,
   TransactionConfirmMessage,
+  TransactionSendMessage,
 } from "../types/messages";
 import {
   NetworkInteraction,
@@ -25,7 +25,7 @@ export function deploymentExecutionStateReducer(
   action:
     | DeploymentExecutionStateInitializeMessage
     | NetworkInteractionRequestMessage
-    | SendTransactionMessage
+    | TransactionSendMessage
     | TransactionConfirmMessage
 ): DeploymentExecutionState {
   switch (action.type) {

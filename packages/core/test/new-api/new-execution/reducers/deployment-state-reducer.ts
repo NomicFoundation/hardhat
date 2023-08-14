@@ -10,8 +10,8 @@ import {
   JournalMessage,
   JournalMessageType,
   NetworkInteractionRequestMessage,
-  SendTransactionMessage,
   TransactionConfirmMessage,
+  TransactionSendMessage,
 } from "../../../../src/new-api/internal/new-execution/types/messages";
 import { NetworkInteractionType } from "../../../../src/new-api/internal/new-execution/types/network-interaction";
 import { assertIgnitionInvariant } from "../../../../src/new-api/internal/utils/assertions";
@@ -72,7 +72,7 @@ describe("DeploymentStateReducer", () => {
       },
     };
 
-    const sendTransactionMessage: SendTransactionMessage = {
+    const sendTransactionMessage: TransactionSendMessage = {
       type: JournalMessageType.TRANSACTION_SEND,
       futureId: "future1",
       networkInteractionId: 1,
@@ -83,7 +83,7 @@ describe("DeploymentStateReducer", () => {
       },
     };
 
-    const sendAnotherTransactionMessage: SendTransactionMessage = {
+    const sendAnotherTransactionMessage: TransactionSendMessage = {
       type: JournalMessageType.TRANSACTION_SEND,
       futureId: "future1",
       networkInteractionId: 1,
