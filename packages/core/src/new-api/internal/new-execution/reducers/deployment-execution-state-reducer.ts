@@ -163,8 +163,11 @@ function completeDeploymentExecutionState(
       };
     }
     case ExecutionResultType.SIMULATION_ERROR: {
-      // TODO @kanej
-      throw new Error("Not implemented");
+      return {
+        ...state,
+        status: ExecutionStatus.FAILED,
+        result,
+      };
     }
   }
 }

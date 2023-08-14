@@ -137,6 +137,19 @@ describe("DeploymentStateReducer", () => {
         },
       };
 
+    const deploymentFailOnSimulationError: DeploymentExecutionStateCompleteMessage =
+      {
+        type: JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE,
+        futureId: "future1",
+        result: {
+          type: ExecutionResultType.SIMULATION_ERROR,
+          error: {
+            type: EvmExecutionResultTypes.REVERT_WITH_REASON,
+            message: "Not a valid parameter value",
+          },
+        },
+      };
+
     describe("initialization", () => {
       beforeEach(() => {
         updatedState = applyMessages([initializeNamedContractDeployMessage]);
@@ -358,6 +371,35 @@ describe("DeploymentStateReducer", () => {
           type: ExecutionResultType.STRATEGY_ERROR,
           error:
             "Transaction 0xdeadbeaf confirmed but it didn't create a contract",
+        });
+      });
+
+      it("should update the status to failed", () => {
+        assert.equal(updatedDepExState.status, ExecutionStatus.FAILED);
+      });
+    });
+
+    describe("deployment errors after a simulation error", () => {
+      beforeEach(() => {
+        updatedState = applyMessages([
+          initializeNamedContractDeployMessage,
+          requestNetworkInteractionMessage,
+          sendTransactionMessage,
+          sendAnotherTransactionMessage,
+          confirmTransactionMessage,
+          deploymentFailOnSimulationError,
+        ]);
+
+        updatedDepExState = lookupDepExState(updatedState, "future1");
+      });
+
+      it("should set the result as a revert", () => {
+        assert.deepStrictEqual(updatedDepExState.result, {
+          type: ExecutionResultType.SIMULATION_ERROR,
+          error: {
+            type: EvmExecutionResultTypes.REVERT_WITH_REASON,
+            message: "Not a valid parameter value",
+          },
         });
       });
 
