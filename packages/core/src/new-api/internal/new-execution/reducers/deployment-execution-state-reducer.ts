@@ -133,41 +133,31 @@ function completeDeploymentExecutionState(
   state: DeploymentExecutionState,
   result: DeploymentExecutionResult
 ): DeploymentExecutionState {
+  return {
+    ...state,
+    status: _mapExecutionResultTypeToExecutionStatus(result),
+    result,
+  };
+}
+
+function _mapExecutionResultTypeToExecutionStatus(
+  result: DeploymentExecutionResult
+) {
   switch (result.type) {
     case ExecutionResultType.SUCCESS: {
-      return {
-        ...state,
-        status: ExecutionStatus.SUCCESS,
-        result,
-      };
+      return ExecutionStatus.SUCCESS;
     }
     case ExecutionResultType.REVERTED_TRANSACTION: {
-      return {
-        ...state,
-        status: ExecutionStatus.FAILED,
-        result,
-      };
+      return ExecutionStatus.FAILED;
     }
     case ExecutionResultType.STATIC_CALL_ERROR: {
-      return {
-        ...state,
-        status: ExecutionStatus.FAILED,
-        result,
-      };
+      return ExecutionStatus.FAILED;
     }
     case ExecutionResultType.STRATEGY_ERROR: {
-      return {
-        ...state,
-        status: ExecutionStatus.FAILED,
-        result,
-      };
+      return ExecutionStatus.FAILED;
     }
     case ExecutionResultType.SIMULATION_ERROR: {
-      return {
-        ...state,
-        status: ExecutionStatus.FAILED,
-        result,
-      };
+      return ExecutionStatus.FAILED;
     }
   }
 }
