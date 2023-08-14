@@ -9,6 +9,7 @@ import {
 import {
   ExecutionResultType,
   FailedStaticCallExecutionResult,
+  SimulationErrorExecutionResult,
   StrategyErrorExecutionResult,
   SuccessfulCallExecutionResult,
   SuccessfulDeploymentExecutionResult,
@@ -30,7 +31,6 @@ import {
   StaticCallRequest,
   StaticCallResponse,
   ExecutionStrategy,
-  SimulationError,
 } from "./types/execution-strategy";
 import { NetworkInteractionType } from "./types/network-interaction";
 
@@ -47,9 +47,9 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
   ): AsyncGenerator<
     OnchainInteractionRequest | SimulationSuccessSignal | StaticCallRequest,
     | SuccessfulDeploymentExecutionResult
+    | SimulationErrorExecutionResult
     | FailedStaticCallExecutionResult
-    | StrategyErrorExecutionResult
-    | SimulationError,
+    | StrategyErrorExecutionResult,
     OnchainInteractionResponse | StaticCallResponse
   > {
     const artifact = await loadArtifact(executionState.artifactFutureId);
@@ -102,9 +102,9 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
   ): AsyncGenerator<
     OnchainInteractionRequest | SimulationSuccessSignal | StaticCallRequest,
     | SuccessfulCallExecutionResult
+    | SimulationErrorExecutionResult
     | FailedStaticCallExecutionResult
-    | StrategyErrorExecutionResult
-    | SimulationError,
+    | StrategyErrorExecutionResult,
     OnchainInteractionResponse | StaticCallResponse
   > {
     const artifact = await loadArtifact(executionState.artifactFutureId);
@@ -151,9 +151,9 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
   ): AsyncGenerator<
     OnchainInteractionRequest | SimulationSuccessSignal | StaticCallRequest,
     | SuccessfulSendDataExecutionResult
+    | SimulationErrorExecutionResult
     | FailedStaticCallExecutionResult
-    | StrategyErrorExecutionResult
-    | SimulationError,
+    | StrategyErrorExecutionResult,
     OnchainInteractionResponse | StaticCallResponse
   > {
     const transactionOrResult = yield* executeOnchainInteractionRequest(

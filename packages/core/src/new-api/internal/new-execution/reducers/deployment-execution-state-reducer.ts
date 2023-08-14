@@ -174,5 +174,9 @@ function completeDeploymentExecutionState(
         `Strategy error should not be written to state (${state.id})`
       );
     }
+    case ExecutionResultType.SIMULATION_ERROR: {
+      // TODO @kanej
+      throw new Error("Not implemented");
+    }
   }
 }

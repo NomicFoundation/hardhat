@@ -1,8 +1,8 @@
 import { Artifact } from "../../../types/artifact";
 
-import { FailedEvmExecutionResult } from "./evm-execution";
 import {
   FailedStaticCallExecutionResult,
+  SimulationErrorExecutionResult,
   StrategyErrorExecutionResult,
   SuccessfulCallExecutionResult,
   SuccessfulDeploymentExecutionResult,
@@ -89,11 +89,6 @@ export interface SimulationSuccessSignal {
 }
 
 /**
- * An error that occurs when simulating an onchain interaction.
- */
-export type SimulationError = FailedEvmExecutionResult;
-
-/**
  * A request to perform a static call. This leads to the execution engine
  * seding an `eth_call` to the network.
  */
@@ -138,8 +133,8 @@ export type StaticCallResponse = RawStaticCallResult;
  *    a `SimulationResult`. The execution strategy can then decide if it wants to
  *    proceed with the onchain interaction or not.
  *
- *    If the strategy doesn't want to proceed, it should return a `SimulationError` or
- *    a `StrategyErrorExecutionResult`.
+ *    If the strategy doesn't want to proceed, it should return a `SimulationErrorExecutionResult`
+ *    or a `StrategyErrorExecutionResult`.
  *
  *    If a `SimulationError` is returned, the execution will be considered failed, but no
  *    failed result will be stored in the execution journal.
@@ -187,9 +182,9 @@ export interface ExecutionStrategy {
   ) => AsyncGenerator<
     OnchainInteractionRequest | SimulationSuccessSignal | StaticCallRequest,
     | SuccessfulDeploymentExecutionResult
+    | SimulationErrorExecutionResult
     | FailedStaticCallExecutionResult
-    | StrategyErrorExecutionResult
-    | SimulationError,
+    | StrategyErrorExecutionResult,
     OnchainInteractionResponse | StaticCallResponse
   >;
 
@@ -203,9 +198,9 @@ export interface ExecutionStrategy {
   ) => AsyncGenerator<
     OnchainInteractionRequest | SimulationSuccessSignal | StaticCallRequest,
     | SuccessfulCallExecutionResult
+    | SimulationErrorExecutionResult
     | FailedStaticCallExecutionResult
-    | StrategyErrorExecutionResult
-    | SimulationError,
+    | StrategyErrorExecutionResult,
     OnchainInteractionResponse | StaticCallResponse
   >;
 
@@ -218,9 +213,9 @@ export interface ExecutionStrategy {
   ) => AsyncGenerator<
     OnchainInteractionRequest | SimulationSuccessSignal | StaticCallRequest,
     | SuccessfulSendDataExecutionResult
+    | SimulationErrorExecutionResult
     | FailedStaticCallExecutionResult
-    | StrategyErrorExecutionResult
-    | SimulationError,
+    | StrategyErrorExecutionResult,
     OnchainInteractionResponse | StaticCallResponse
   >;
 

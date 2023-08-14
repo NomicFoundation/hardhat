@@ -8,9 +8,20 @@ import {
  */
 export enum ExecutionResultType {
   SUCCESS = "SUCCESS",
+  SIMULATION_ERROR = "SIMULATION_ERROR",
   REVERTED_TRANSACTION = "REVERTED_TRANSACTION",
   STATIC_CALL_ERROR = "STATIC_CALL_ERROR",
   STRATEGY_ERROR = "STRATEGY_ERROR",
+}
+
+/**
+ * A simulation of an onchain interaction failed, making the execution fail.
+ *
+ * Note: We don't journal this result.
+ */
+export interface SimulationErrorExecutionResult {
+  type: ExecutionResultType.SIMULATION_ERROR;
+  error: FailedEvmExecutionResult;
 }
 
 /**
@@ -50,6 +61,7 @@ export interface SuccessfulDeploymentExecutionResult {
  */
 export type DeploymentExecutionResult =
   | SuccessfulDeploymentExecutionResult
+  | SimulationErrorExecutionResult
   | RevertedTransactionExecutionResult
   | FailedStaticCallExecutionResult
   | StrategyErrorExecutionResult;
@@ -66,6 +78,7 @@ export interface SuccessfulCallExecutionResult {
  */
 export type CallExecutionResult =
   | SuccessfulCallExecutionResult
+  | SimulationErrorExecutionResult
   | RevertedTransactionExecutionResult
   | FailedStaticCallExecutionResult
   | StrategyErrorExecutionResult;
@@ -82,6 +95,7 @@ export interface SuccessfulSendDataExecutionResult {
  */
 export type SendDataExecutionResult =
   | SuccessfulSendDataExecutionResult
+  | SimulationErrorExecutionResult
   | RevertedTransactionExecutionResult
   | FailedStaticCallExecutionResult
   | StrategyErrorExecutionResult;

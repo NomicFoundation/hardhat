@@ -17,12 +17,12 @@ import {
 import {
   ExecutionResultType,
   FailedStaticCallExecutionResult,
+  SimulationErrorExecutionResult,
 } from "./types/execution-result";
 import {
   OnchainInteractionRequest,
   OnchainInteractionResponse,
   OnchainInteractionResponseType,
-  SimulationError,
   SimulationSuccessSignal,
   StaticCallRequest,
   StaticCallResponse,
@@ -84,7 +84,7 @@ export async function* executeOnchainInteractionRequest(
   decodeCustomError?: DecodeCustomError
 ): AsyncGenerator<
   OnchainInteractionRequest | SimulationSuccessSignal,
-  SuccessfulTransaction | SimulationError,
+  SuccessfulTransaction | SimulationErrorExecutionResult,
   OnchainInteractionResponse | StaticCallResponse
 > {
   const simulationResponse = yield onchainInteractionRequest;
@@ -103,11 +103,16 @@ export async function* executeOnchainInteractionRequest(
   );
 
   if (!simulationResponse.result.success) {
-    return decodeError(
+    const error = decodeError(
       simulationResponse.result.returnData,
       simulationResponse.result.customErrorReported,
       decodeCustomError
     );
+
+    return {
+      type: ExecutionResultType.SIMULATION_ERROR,
+      error,
+    };
   }
 
   if (decodeSuccessfulSimulationResult !== undefined) {
@@ -116,7 +121,10 @@ export async function* executeOnchainInteractionRequest(
     );
 
     if (result.type === EvmExecutionResultTypes.INVALID_RESULT_ERROR) {
-      return result;
+      return {
+        type: ExecutionResultType.SIMULATION_ERROR,
+        error: result,
+      };
     }
   }
 
