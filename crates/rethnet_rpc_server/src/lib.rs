@@ -463,9 +463,10 @@ async fn handle_evm_set_next_block_timestamp(
                         error_response_data(0, &format!("Timestamp {timestamp:?} is equal to the previous block's timestamp. Enable the 'allowBlocksWithSameTimestamp' option to allow this"))
                     } else {
                         let mut next_block_timestamp = state.next_block_timestamp.write().await;
-                        *next_block_timestamp = Some(timestamp.into());
+                        let timestamp: U256 = timestamp.into();
+                        *next_block_timestamp = Some(timestamp);
                         ResponseData::Success {
-                            result: next_block_timestamp.unwrap().to_string(),
+                            result: timestamp.to_string(),
                         }
                     }
                 }
