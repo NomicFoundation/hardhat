@@ -13,6 +13,7 @@ import { trace as mainnetReturnsDataTrace } from "../../../../fixture-debug-trac
 import { trace as mainnetReturnsDataTraceGeth } from "../../../../fixture-debug-traces/mainnetReturnsDataTraceGeth";
 import { trace as mainnetRevertTrace } from "../../../../fixture-debug-traces/mainnetRevertTrace";
 import { trace as modifiesStateTrace } from "../../../../fixture-debug-traces/modifiesStateTrace";
+import { trace as elongatedMemoryRegressionTestTrace } from "../../../../fixture-debug-traces/elongatedMemoryRegressionTestTrace";
 import { ALCHEMY_URL } from "../../../../setup";
 import {
   assertInvalidArgumentsError,
@@ -168,6 +169,28 @@ describe("Debug module", function () {
             returnValue: "",
             structLogs: [],
           });
+        });
+
+        // Regression test, see issue: https://github.com/NomicFoundation/hardhat/issues/3858
+        it("The memory property should not have additional zeros", async function () {
+          // push0 push0 mstore push0
+          const bytecode = "0x5F5F525F";
+          const address = "0x1234567890123456789012345678901234567890";
+
+          await this.provider.send("hardhat_setCode", [address, bytecode]);
+
+          const tx = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[2],
+              to: address,
+            },
+          ]);
+
+          const trace = await this.provider.send("debug_traceTransaction", [
+            tx,
+          ]);
+
+          assertEqualTraces(trace, elongatedMemoryRegressionTestTrace);
         });
 
         describe("berlin", function () {
