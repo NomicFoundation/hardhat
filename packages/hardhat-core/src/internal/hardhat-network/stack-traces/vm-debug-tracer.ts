@@ -323,9 +323,7 @@ export class VMDebugTracer {
       .toString("hex")
       .match(/.{1,64}/g);
 
-    return memory === null
-      ? []
-      : memory?.slice(0, Number(step.memoryWordCount)); // Remove the additional non allocated memory
+    return memory === null ? [] : memory.slice(0, Number(step.memoryWordCount)); // Remove the additional non allocated memory
   }
 
   private _getStack(step: InterpreterStep): string[] {
