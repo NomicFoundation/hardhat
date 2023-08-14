@@ -1,14 +1,19 @@
-import { SolidityParameterType } from "../../../types/module";
+/**
+ * The basic types that we use to represent EVM values
+ */
+export type BaseEvmValue = number | bigint | string | boolean;
 
 /**
- * A list of (possibly named) values returned by a function, or used as
- * arguments for a custom error or event.
+ * A tuple of values, where each value can have a name or not.
+ *
+ * This are used to encode structs, tuples, and list of arguments returned
+ * by a function, or used as arguments for a custom error or event.
  */
-export interface EvmValues {
+export interface EvmTuple {
   /**
    * The values in defintion order.
    */
-  positional: SolidityParameterType[];
+  positional: EvmValue[];
 
   /**
    * A mapping from the return/param name to their value.
@@ -16,8 +21,13 @@ export interface EvmValues {
    * Note that not every value will be named, so this mapping may
    * have less values than the `positional` array.
    */
-  named: Record<string, SolidityParameterType>;
+  named: Record<string, EvmValue>;
 }
+
+/**
+ * A value used in the EVM. Either accepted as an argument or returned as a result.
+ */
+export type EvmValue = BaseEvmValue | EvmValue[] | EvmTuple;
 
 /**
  * The result of executing a contract function/constructor.
@@ -64,7 +74,7 @@ export interface SuccessfulEvmExecutionResult {
   /**
    * The values returned by the execution.
    */
-  values: EvmValues;
+  values: EvmTuple;
 }
 
 /**
@@ -105,7 +115,7 @@ export interface RevertWithPanicCode {
 export interface RevertWithCustomError {
   type: EvmExecutionResultTypes.REVERT_WITH_CUSTOM_ERROR;
   errorName: string;
-  args: EvmValues;
+  args: EvmTuple;
 }
 
 /**
