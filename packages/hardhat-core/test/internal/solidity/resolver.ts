@@ -621,7 +621,7 @@ describe("TASK_COMPILE: the file to compile is trying to import a directory", fu
           await this.env.run(TASK_COMPILE);
         },
         ERRORS.RESOLVER.INVALID_IMPORT_OF_DIRECTORY,
-        "HH414: Invalid import ../contracts from contracts/A.sol. Attempting to import a directory. Directories cannot be imported."
+        "HH414: Invalid import ../dir from contracts/A.sol. Attempting to import a directory. Directories cannot be imported."
       );
     });
   });
