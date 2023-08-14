@@ -11,6 +11,7 @@ import {
   JournalMessageType,
   NetworkInteractionRequestMessage,
   SendTransactionMessage,
+  TransactionConfirmMessage,
 } from "../types/messages";
 import {
   NetworkInteraction,
@@ -25,6 +26,7 @@ export function deploymentExecutionStateReducer(
     | DeploymentExecutionStateInitializeMessage
     | NetworkInteractionRequestMessage
     | SendTransactionMessage
+    | TransactionConfirmMessage
 ): DeploymentExecutionState {
   switch (action.type) {
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE:
@@ -36,6 +38,31 @@ export function deploymentExecutionStateReducer(
         state,
         action.networkInteractionId,
         action.transaction
+      );
+    case JournalMessageType.TRANSACTION_CONFIRM:
+      return updateOnchainInteraction(
+        state,
+        action.networkInteractionId,
+        (interaction) => {
+          const confirmedTransaction = interaction.transactions.find(
+            (tx) => tx.hash === action.hash
+          );
+
+          assertIgnitionInvariant(
+            confirmedTransaction !== undefined,
+            `Unable to find confirmed transaction ${action.hash} in interaction ${action.networkInteractionId}`
+          );
+
+          return {
+            ...interaction,
+            transactions: [
+              {
+                ...confirmedTransaction,
+                receipt: action.receipt,
+              },
+            ],
+          };
+        }
       );
     default:
       return assertUnknownAction(action);
@@ -108,6 +135,30 @@ function appendTransaction(
       return {
         ...onchainInteraction,
         transactions: [...onchainInteraction.transactions, transaction],
+      };
+    }
+  );
+}
+
+function updateTransaction(
+  state: DeploymentExecutionState,
+  networkInteractionId: number,
+  hash: string,
+  update: (transaction: Transaction) => Transaction
+): DeploymentExecutionState {
+  return updateOnchainInteraction(
+    state,
+    networkInteractionId,
+    (onchainInteraction) => {
+      return {
+        ...onchainInteraction,
+        transactions: onchainInteraction.transactions.map((tx) => {
+          if (tx.hash === hash) {
+            return update(tx);
+          }
+
+          return tx;
+        }),
       };
     }
   );

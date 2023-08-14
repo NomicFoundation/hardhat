@@ -36,6 +36,7 @@ export function deploymentStateReducer(
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE:
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
     case JournalMessageType.TRANSACTION_SEND:
+    case JournalMessageType.TRANSACTION_CONFIRM:
       return {
         ...state,
         executionStates: executionStatesReducer(state.executionStates, action),
@@ -69,6 +70,7 @@ function dispatchToPerExecutionStateReducer(
       return deploymentExecutionStateReducer(null as any, action);
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
     case JournalMessageType.TRANSACTION_SEND:
+    case JournalMessageType.TRANSACTION_CONFIRM:
       assertIgnitionInvariant(
         state !== undefined,
         "Cannot network interact before initialising"

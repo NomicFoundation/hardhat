@@ -4,12 +4,14 @@ import { deploymentStateReducer } from "../../../../src/new-api/internal/new-exe
 import { isDeploymentExecutionState } from "../../../../src/new-api/internal/new-execution/type-guards/execution-state";
 import { isOnchainInteraction } from "../../../../src/new-api/internal/new-execution/type-guards/network-interaction";
 import { DeploymentState } from "../../../../src/new-api/internal/new-execution/types/deployment-state";
+import { TransactionReceiptStatus } from "../../../../src/new-api/internal/new-execution/types/jsonrpc";
 import {
   DeploymentExecutionStateInitializeMessage,
   JournalMessage,
   JournalMessageType,
   NetworkInteractionRequestMessage,
   SendTransactionMessage,
+  TransactionConfirmMessage,
 } from "../../../../src/new-api/internal/new-execution/types/messages";
 import { NetworkInteractionType } from "../../../../src/new-api/internal/new-execution/types/network-interaction";
 import { assertIgnitionInvariant } from "../../../../src/new-api/internal/utils/assertions";
@@ -62,11 +64,10 @@ describe("DeploymentStateReducer", () => {
       networkInteraction: {
         id: 1,
         type: NetworkInteractionType.ONCHAIN_INTERACTION,
-        to: exampleAddress,
+        to: undefined,
         data: "fake-data",
         value: BigInt(0),
         from: "string",
-        nonce: 0,
         transactions: [],
       },
     };
@@ -79,6 +80,31 @@ describe("DeploymentStateReducer", () => {
         hash: "0xdeadbeef",
         maxFeePerGas: BigInt(10),
         maxPriorityFeePerGas: BigInt(5),
+      },
+    };
+
+    const sendAnotherTransactionMessage: SendTransactionMessage = {
+      type: JournalMessageType.TRANSACTION_SEND,
+      futureId: "future1",
+      networkInteractionId: 1,
+      transaction: {
+        hash: "0xanother",
+        maxFeePerGas: BigInt(20),
+        maxPriorityFeePerGas: BigInt(10),
+      },
+    };
+
+    const confirmTransactionMessage: TransactionConfirmMessage = {
+      type: JournalMessageType.TRANSACTION_CONFIRM,
+      futureId: "future1",
+      networkInteractionId: 1,
+      hash: "0xdeadbeef",
+      receipt: {
+        blockHash: "0xblockhash",
+        blockNumber: 0,
+        contractAddress: exampleAddress,
+        status: TransactionReceiptStatus.SUCCESS,
+        logs: [],
       },
     };
 
@@ -153,6 +179,69 @@ describe("DeploymentStateReducer", () => {
 
         assert.isDefined(transaction);
         assert.deepStrictEqual(sendTransactionMessage.transaction, transaction);
+      });
+    });
+
+    describe("transaction confirms successfully", () => {
+      beforeEach(() => {
+        updatedState = applyMessages([
+          initializeNamedContractDeployMessage,
+          requestNetworkInteractionMessage,
+          sendTransactionMessage,
+          sendAnotherTransactionMessage,
+          confirmTransactionMessage,
+        ]);
+      });
+
+      it("should set the receipt against the successful transaction", () => {
+        const exState = updatedState.executionStates.future1;
+
+        assertIgnitionInvariant(
+          isDeploymentExecutionState(exState),
+          "has to be a deployment execution state"
+        );
+
+        assert.equal(exState.networkInteractions.length, 1);
+        const networkInteraction = exState.networkInteractions[0];
+
+        assert.isDefined(networkInteraction);
+
+        assertIgnitionInvariant(
+          isOnchainInteraction(networkInteraction),
+          "has to be an onchain interaction"
+        );
+
+        const transaction = networkInteraction.transactions.find(
+          (tx) => tx.hash === "0xdeadbeef"
+        );
+
+        assertIgnitionInvariant(transaction !== undefined, "tx not found");
+
+        assert.deepStrictEqual(
+          transaction.receipt,
+          confirmTransactionMessage.receipt
+        );
+      });
+
+      it("should clear all other transactions for the network interaction", () => {
+        const exState = updatedState.executionStates.future1;
+
+        assertIgnitionInvariant(
+          isDeploymentExecutionState(exState),
+          "has to be a deployment execution state"
+        );
+
+        assert.equal(exState.networkInteractions.length, 1);
+        const networkInteraction = exState.networkInteractions[0];
+
+        assert.isDefined(networkInteraction);
+
+        assertIgnitionInvariant(
+          isOnchainInteraction(networkInteraction),
+          "has to be an onchain interaction"
+        );
+
+        assert.equal(networkInteraction.transactions.length, 1);
       });
     });
   });
