@@ -1,4 +1,3 @@
-import { IgnitionError } from "../../../../errors";
 import { assertIgnitionInvariant } from "../../utils/assertions";
 import { isOnchainInteraction } from "../type-guards/network-interaction";
 import {
@@ -45,30 +44,7 @@ export function deploymentExecutionStateReducer(
         action.transaction
       );
     case JournalMessageType.TRANSACTION_CONFIRM:
-      return updateOnchainInteraction(
-        state,
-        action.networkInteractionId,
-        (interaction) => {
-          const confirmedTransaction = interaction.transactions.find(
-            (tx) => tx.hash === action.hash
-          );
-
-          assertIgnitionInvariant(
-            confirmedTransaction !== undefined,
-            `Unable to find confirmed transaction ${action.hash} in interaction ${action.networkInteractionId}`
-          );
-
-          return {
-            ...interaction,
-            transactions: [
-              {
-                ...confirmedTransaction,
-                receipt: action.receipt,
-              },
-            ],
-          };
-        }
-      );
+      return confirmTransaction(state, action);
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE:
       return completeDeploymentExecutionState(state, action.result);
   }
@@ -106,40 +82,48 @@ function appendNetworkInteraction(
   };
 }
 
-function updateOnchainInteraction(
-  state: DeploymentExecutionState,
-  networkInteractionId: number,
-  update: (onchainInteraction: OnchainInteraction) => OnchainInteraction
-) {
-  return {
-    ...state,
-    networkInteractions: state.networkInteractions.map((interaction) => {
-      if (interaction.id === networkInteractionId) {
-        assertIgnitionInvariant(
-          isOnchainInteraction(interaction),
-          "Can only update onchain interactions"
-        );
-
-        return update(interaction);
-      }
-
-      return interaction;
-    }),
-  };
-}
-
 function appendTransaction(
   state: DeploymentExecutionState,
   networkInteractionId: number,
   transaction: Transaction
 ): DeploymentExecutionState {
-  return updateOnchainInteraction(
+  return _updateOnchainInteraction(
     state,
     networkInteractionId,
     (onchainInteraction) => {
       return {
         ...onchainInteraction,
         transactions: [...onchainInteraction.transactions, transaction],
+      };
+    }
+  );
+}
+
+function confirmTransaction(
+  state: DeploymentExecutionState,
+  action: TransactionConfirmMessage
+) {
+  return _updateOnchainInteraction(
+    state,
+    action.networkInteractionId,
+    (interaction) => {
+      const confirmedTransaction = interaction.transactions.find(
+        (tx) => tx.hash === action.hash
+      );
+
+      assertIgnitionInvariant(
+        confirmedTransaction !== undefined,
+        `Unable to find confirmed transaction ${action.hash} in interaction ${action.networkInteractionId}`
+      );
+
+      return {
+        ...interaction,
+        transactions: [
+          {
+            ...confirmedTransaction,
+            receipt: action.receipt,
+          },
+        ],
       };
     }
   );
@@ -165,18 +149,44 @@ function completeDeploymentExecutionState(
       };
     }
     case ExecutionResultType.STATIC_CALL_ERROR: {
-      throw new IgnitionError(
-        `Static call error not expected for deployment execution state ${state.id}`
-      );
+      return {
+        ...state,
+        status: ExecutionStatus.FAILED,
+        result,
+      };
     }
     case ExecutionResultType.STRATEGY_ERROR: {
-      throw new IgnitionError(
-        `Strategy error should not be written to state (${state.id})`
-      );
+      return {
+        ...state,
+        status: ExecutionStatus.FAILED,
+        result,
+      };
     }
     case ExecutionResultType.SIMULATION_ERROR: {
       // TODO @kanej
       throw new Error("Not implemented");
     }
   }
+}
+
+function _updateOnchainInteraction(
+  state: DeploymentExecutionState,
+  networkInteractionId: number,
+  update: (onchainInteraction: OnchainInteraction) => OnchainInteraction
+) {
+  return {
+    ...state,
+    networkInteractions: state.networkInteractions.map((interaction) => {
+      if (interaction.id === networkInteractionId) {
+        assertIgnitionInvariant(
+          isOnchainInteraction(interaction),
+          "Can only update onchain interactions"
+        );
+
+        return update(interaction);
+      }
+
+      return interaction;
+    }),
+  };
 }

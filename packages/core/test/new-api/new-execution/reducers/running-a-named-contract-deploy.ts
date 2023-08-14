@@ -3,6 +3,7 @@ import { assert } from "chai";
 import { deploymentStateReducer } from "../../../../src/new-api/internal/new-execution/reducers/deployment-state-reducer";
 import { isOnchainInteraction } from "../../../../src/new-api/internal/new-execution/type-guards/network-interaction";
 import { DeploymentState } from "../../../../src/new-api/internal/new-execution/types/deployment-state";
+import { EvmExecutionResultTypes } from "../../../../src/new-api/internal/new-execution/types/evm-execution";
 import { ExecutionResultType } from "../../../../src/new-api/internal/new-execution/types/execution-result";
 import {
   DeploymentExecutionState,
@@ -110,6 +111,29 @@ describe("DeploymentStateReducer", () => {
         futureId: "future1",
         result: {
           type: ExecutionResultType.REVERTED_TRANSACTION,
+        },
+      };
+
+    const deploymentFailsOnStaticCall: DeploymentExecutionStateCompleteMessage =
+      {
+        type: JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE,
+        futureId: "future1",
+        result: {
+          type: ExecutionResultType.STATIC_CALL_ERROR,
+          error: {
+            type: EvmExecutionResultTypes.REVERT_WITH_REASON,
+            message: "Not a valid parameter value",
+          },
+        },
+      };
+
+    const deploymentFailOnStrategyError: DeploymentExecutionStateCompleteMessage =
+      {
+        type: JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE,
+        futureId: "future1",
+        result: {
+          type: ExecutionResultType.STRATEGY_ERROR,
+          error: `Transaction 0xdeadbeaf confirmed but it didn't create a contract`,
         },
       };
 
@@ -274,6 +298,66 @@ describe("DeploymentStateReducer", () => {
       it("should set the result as a revert", () => {
         assert.deepStrictEqual(updatedDepExState.result, {
           type: ExecutionResultType.REVERTED_TRANSACTION,
+        });
+      });
+
+      it("should update the status to failed", () => {
+        assert.equal(updatedDepExState.status, ExecutionStatus.FAILED);
+      });
+    });
+
+    /**
+     * This is possible because an execution strategy can make static calls
+     * for a deployment.
+     */
+    describe("deployment errors after a failed static call", () => {
+      beforeEach(() => {
+        updatedState = applyMessages([
+          initializeNamedContractDeployMessage,
+          requestNetworkInteractionMessage,
+          sendTransactionMessage,
+          sendAnotherTransactionMessage,
+          confirmTransactionMessage,
+          deploymentFailsOnStaticCall,
+        ]);
+
+        updatedDepExState = lookupDepExState(updatedState, "future1");
+      });
+
+      it("should set the result as a revert", () => {
+        assert.deepStrictEqual(updatedDepExState.result, {
+          type: ExecutionResultType.STATIC_CALL_ERROR,
+          error: {
+            type: EvmExecutionResultTypes.REVERT_WITH_REASON,
+            message: "Not a valid parameter value",
+          },
+        });
+      });
+
+      it("should update the status to failed", () => {
+        assert.equal(updatedDepExState.status, ExecutionStatus.FAILED);
+      });
+    });
+
+    describe("deployment errors after a strategy error", () => {
+      beforeEach(() => {
+        updatedState = applyMessages([
+          initializeNamedContractDeployMessage,
+          requestNetworkInteractionMessage,
+          sendTransactionMessage,
+          sendAnotherTransactionMessage,
+          confirmTransactionMessage,
+          deploymentFailOnStrategyError,
+        ]);
+
+        updatedDepExState = lookupDepExState(updatedState, "future1");
+      });
+
+      it("should set the result as a revert", () => {
+        assert.deepStrictEqual(updatedDepExState.result, {
+          type: ExecutionResultType.STRATEGY_ERROR,
+          error:
+            "Transaction 0xdeadbeaf confirmed but it didn't create a contract",
         });
       });
 
