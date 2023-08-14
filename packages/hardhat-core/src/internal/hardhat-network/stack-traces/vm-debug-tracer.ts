@@ -319,11 +319,13 @@ export class VMDebugTracer {
   }
 
   private _getMemory(step: InterpreterStep): string[] {
-    const memory = Buffer.from(step.memory)
-      .toString("hex")
-      .match(/.{1,64}/g);
+    const rawMemory =
+      Buffer.from(step.memory)
+        .toString("hex")
+        .match(/.{1,64}/g) ?? [];
 
-    return memory === null ? [] : memory.slice(0, Number(step.memoryWordCount)); // Remove the additional non allocated memory
+    // Remove the additional non allocated memory
+    return rawMemory.slice(0, Number(step.memoryWordCount));
   }
 
   private _getStack(step: InterpreterStep): string[] {
