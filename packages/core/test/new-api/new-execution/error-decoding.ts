@@ -3,23 +3,30 @@ import { assert } from "chai";
 import { decodeArtifactCustomError } from "../../../src/new-api/internal/new-execution/abi";
 import { decodeError } from "../../../src/new-api/internal/new-execution/error-decoding";
 import { EvmExecutionResultTypes } from "../../../src/new-api/internal/new-execution/types/evm-execution";
-import { fixtures, artifacts } from "../../helpers/execution-result-fixtures";
+import {
+  staticCallResultFixtures,
+  staticCallResultFixturesArtifacts,
+} from "../../helpers/execution-result-fixtures";
 
 describe("Error decoding", () => {
   function decode(
-    contractName: keyof typeof fixtures,
-    functionName: keyof typeof fixtures[typeof contractName]
+    contractName: keyof typeof staticCallResultFixtures,
+    functionName: keyof typeof staticCallResultFixtures[typeof contractName]
   ) {
     const decoded = decodeError(
-      fixtures[contractName][functionName].returnData,
-      fixtures[contractName][functionName].customErrorReported,
+      staticCallResultFixtures[contractName][functionName].returnData,
+      staticCallResultFixtures[contractName][functionName].customErrorReported,
       (returnData) =>
-        decodeArtifactCustomError(artifacts[contractName], returnData)
+        decodeArtifactCustomError(
+          staticCallResultFixturesArtifacts[contractName],
+          returnData
+        )
     );
 
     return {
       decoded,
-      returnData: fixtures[contractName][functionName].returnData,
+      returnData:
+        staticCallResultFixtures[contractName][functionName].returnData,
     };
   }
 

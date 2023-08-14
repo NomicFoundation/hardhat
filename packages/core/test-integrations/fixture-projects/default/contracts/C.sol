@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "./Libs.sol" as Libs;
+
 contract D {
   event Event2(uint);
 
@@ -161,5 +163,49 @@ contract C {
   function events() public {
     emit Event(true);
     d.events();
+  }
+}
+
+contract WithComplexDeploymentArguments {
+  struct S {
+    uint i;
+  }
+
+  constructor(S memory s) {
+    require(s.i == 123);
+  }
+}
+
+library Lib {
+  function f() public pure returns (uint) {
+    return 1;
+  }
+}
+
+contract WithLibrary {
+  constructor() {
+    require(Lib.f() == 1);
+  }
+}
+
+contract WithAmbiguousLibraryName {
+  constructor() {
+    require(Lib.f() == 1);
+    require(Libs.Lib.g() == 2);
+  }
+}
+
+contract WithComplexArguments {
+  struct S {
+    uint i;
+  }
+
+  function foo(
+    S memory s,
+    bytes32 b32,
+    bytes memory b,
+    string[] memory ss
+  ) public pure returns (S memory, bytes32, bytes memory, string[] memory) {
+    return (s, b32, b, ss);
   }
 }

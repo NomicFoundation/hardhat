@@ -1,8 +1,18 @@
 import { assert } from "chai";
 
-import { decodeArtifactFunctionCallResult } from "../../../src/new-api/internal/new-execution/abi";
+import {
+  decodeArtifactFunctionCallResult,
+  encodeArtifactDeploymentData,
+  encodeArtifactFunctionCall,
+} from "../../../src/new-api/internal/new-execution/abi";
+import { linkLibraries } from "../../../src/new-api/internal/new-execution/libraries";
 import { EvmExecutionResultTypes } from "../../../src/new-api/internal/new-execution/types/evm-execution";
-import { artifacts, fixtures } from "../../helpers/execution-result-fixtures";
+import {
+  staticCallResultFixturesArtifacts,
+  staticCallResultFixtures,
+  deploymentFixturesArtifacts,
+  callEncodingFixtures,
+} from "../../helpers/execution-result-fixtures";
 
 describe("abi", () => {
   // These tests validate that type conversions from the underlying abi library
@@ -15,27 +25,28 @@ describe("abi", () => {
   describe("decodeArtifactFunctionCallResult", () => {
     function decodeResult(contractName: string, functionName: string) {
       assert.isDefined(
-        artifacts[contractName],
+        staticCallResultFixturesArtifacts[contractName],
         `No artifact for ${contractName}`
       );
       assert.isDefined(
-        fixtures[contractName],
+        staticCallResultFixtures[contractName],
         `No fixtures for ${contractName}`
       );
       assert.isDefined(
-        fixtures[contractName][functionName],
+        staticCallResultFixtures[contractName][functionName],
         `No fixtures for ${contractName}.${functionName}`
       );
 
       const decoded = decodeArtifactFunctionCallResult(
-        artifacts[contractName],
+        staticCallResultFixturesArtifacts[contractName],
         functionName,
-        fixtures[contractName][functionName].returnData
+        staticCallResultFixtures[contractName][functionName].returnData
       );
 
       return {
         decoded,
-        returnData: fixtures[contractName][functionName].returnData,
+        returnData:
+          staticCallResultFixtures[contractName][functionName].returnData,
       };
     }
 
@@ -96,81 +107,107 @@ describe("abi", () => {
     });
 
     it("Should be able to decode structs", () => {
-      // TODO @alcuadrado
+      const { decoded } = decodeResult("C", "getStruct");
+      assert.deepEqual(decoded, {
+        type: EvmExecutionResultTypes.SUCESSFUL_RESULT,
+        values: {
+          positional: [
+            {
+              named: {
+                i: 123n,
+              },
+              positional: [123n],
+            },
+          ],
+          named: {},
+        },
+      });
     });
 
-    it("Should throw if a result type is a function", () => {
-      // TODO @alcuadrado
-    });
-
-    it("Should throw if a result type is a fixed<M>x<N>", () => {
-      // TODO @alcuadrado
-    });
-
-    it("Should throw if a result type is a ufixed<M>x<N>", () => {
-      // TODO @alcuadrado
+    // TODO: Validate that we throw a nice error in these cases
+    describe.skip("Unsupported return types", () => {
+      it("Should throw if a result type is a function", () => {});
+      it("Should throw if a result type is a fixed<M>x<N>", () => {});
+      it("Should throw if a result type is a ufixed<M>x<N>", () => {});
     });
   });
 
   describe("encodeArtifactDeploymentData", () => {
-    it("Should encode the constructor arguments and append them", () => {
-      // TODO @alcuadrado
+    it("Should encode the constructor arguments and append them", async () => {
+      const artifact =
+        deploymentFixturesArtifacts.WithComplexDeploymentArguments;
+
+      const encoded = encodeArtifactDeploymentData(artifact, [[1n]], {});
+
+      // It should include the number padded to 32 bytes
+      assert.equal(encoded, artifact.bytecode + "1".padStart(64, "0"));
     });
 
-    it("Should link libraries", () => {
-      // TODO @alcuadrado
+    it("Should link libraries", async () => {
+      const artifact = deploymentFixturesArtifacts.WithLibrary;
+      const libAddress = "0x00000000219ab540356cBB839Cbe05303d7705Fa";
+
+      const libraries = { Lib: libAddress };
+
+      const encoded = encodeArtifactDeploymentData(artifact, [], libraries);
+
+      assert.notEqual(encoded, artifact.bytecode);
+      assert.isTrue(encoded.startsWith(linkLibraries(artifact, libraries)));
     });
 
-    it("Should throw if an argument type is a function", () => {
-      // TODO @alcuadrado
-    });
-
-    it("Should throw if an argument type is a fixed<M>x<N>", () => {
-      // TODO @alcuadrado
-    });
-
-    it("Should throw if an argument type is a ufixed<M>x<N>", () => {
-      // TODO @alcuadrado
-    });
-  });
-
-  describe("linkLibraries", () => {
-    it("Should throw if a library name is not recognized", () => {
-      // TODO @alcuadrado
-    });
-
-    it("Should throw if a library name is ambiguous", () => {
-      // TODO @alcuadrado
-    });
-
-    it("Should throw if a library is missing", () => {
-      // TODO @alcuadrado
-    });
-
-    it("Should support bare names if non-ambiguous", () => {
-      // TODO @alcuadrado
-    });
-
-    it("Should support fully qualified names", () => {
-      // TODO @alcuadrado
+    // TODO: Validate that we throw a nice error in these cases
+    describe.skip("Unsupported return types", () => {
+      it("Should throw if an argument type is a function", () => {});
+      it("Should throw if an argument type is a fixed<M>x<N>", () => {});
+      it("Should throw if an argument type is a ufixed<M>x<N>", () => {});
     });
   });
 
   describe("encodeArtifactFunctionCall", () => {
-    it("Should throw if an argument type is a function", () => {
-      // TODO @alcuadrado
-    });
-
-    it("Should throw if an argument type is a fixed<M>x<N>", () => {
-      // TODO @alcuadrado
-    });
-
-    it("Should throw if an argument type is a ufixed<M>x<N>", () => {
-      // TODO @alcuadrado
-    });
-
     it("Should encode the arguments and return them", () => {
-      // TODO @alcuadrado
+      const artifact = callEncodingFixtures.WithComplexArguments;
+      // S memory s,
+      // bytes32 b32,
+      // bytes memory b,
+      // string[] memory ss
+
+      const args = [
+        [1n],
+        "0x1122334455667788990011223344556677889900112233445566778899001122",
+        "0x1234",
+        ["hello", "world"],
+      ];
+      const encoded = encodeArtifactFunctionCall(artifact, "foo", args);
+
+      // If we remove the selector we should be able to decode the arguments
+      // because the result has the same ABI
+      const decodeResult = decodeArtifactFunctionCallResult(
+        artifact,
+        "foo",
+        `0x${encoded.substring(10)}` // Remove the selector
+      );
+
+      assert(decodeResult.type === EvmExecutionResultTypes.SUCESSFUL_RESULT);
+
+      assert.deepEqual(decodeResult.values, {
+        positional: [
+          {
+            positional: [1n],
+            named: { i: 1n },
+          },
+          "0x1122334455667788990011223344556677889900112233445566778899001122",
+          "0x1234",
+          ["hello", "world"],
+        ],
+        named: {},
+      });
+    });
+
+    // TODO: Validate that we throw a nice error in these cases
+    describe.skip("Unsupported return types", () => {
+      it("Should throw if an argument type is a function", () => {});
+      it("Should throw if an argument type is a fixed<M>x<N>", () => {});
+      it("Should throw if an argument type is a ufixed<M>x<N>", () => {});
     });
   });
 
