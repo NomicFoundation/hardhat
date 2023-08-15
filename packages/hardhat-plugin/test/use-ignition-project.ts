@@ -47,6 +47,7 @@ export function useEphemeralIgnitionProject(fixtureProjectName: string) {
     ) => {
       return this.hre.ignition.deploy(moduleDefinition, {
         parameters,
+        config: hre.config.ignition,
       });
     };
   });
