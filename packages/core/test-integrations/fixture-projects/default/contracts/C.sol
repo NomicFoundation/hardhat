@@ -274,3 +274,29 @@ contract ToTestEthersEncodingConversion {
     return (ss, sss);
   }
 }
+
+contract FunctionNameValidation {
+  struct S {
+    uint i;
+    uint32 j;
+    string s;
+  }
+
+  function noOverloads() public pure {}
+
+  function withTypeBasedOverloads(uint u) public pure {}
+
+  function withTypeBasedOverloads(int i) public pure {}
+
+  function withParamCountOverloads() public pure {}
+
+  function withParamCountOverloads(int i) public pure {}
+
+  function _$_weirdName() public pure {}
+
+  function $_weirdName2() public pure {}
+
+  function complexTypeOverload() public pure {}
+
+  function complexTypeOverload(S[] memory ss) public pure {}
+}
