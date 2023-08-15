@@ -18,17 +18,15 @@ import { Artifact } from "../../types/artifact";
 
 /**
  * This function validates that the libraries object ensures that libraries:
- * (1) Have valid addresses.
- * (2) Are not repeated (i.e. only the FQN or bare name should be used).
- * (3) Are needed by the contract.
- * (4) Are not ambiguous.
- * (5) Are not missing.
+ *  - Are not repeated (i.e. only the FQN or bare name should be used).
+ *  - Are needed by the contract.
+ *  - Are not ambiguous.
+ *  - Are not missing.
  */
-export function validateLibraries(
+export function validateLibraryNames(
   artifact: Artifact,
   libraries: { [libraryName: string]: string }
 ) {
-  validateAddresses(artifact, libraries);
   validateNotRepeatedLibraries(artifact, libraries);
 
   const requiredLibraries = new Set<string>();
@@ -69,7 +67,8 @@ export function linkLibraries(
   artifact: Artifact,
   libraries: { [libraryName: string]: string }
 ): string {
-  validateLibraries(artifact, libraries);
+  validateLibraryNames(artifact, libraries);
+  validateAddresses(artifact, libraries);
 
   let bytecode = artifact.bytecode;
   for (const [name, address] of Object.entries(libraries)) {
@@ -112,23 +111,7 @@ function validateNotRepeatedLibraries(
 
     if (sourceName !== undefined && libraries[libName] !== undefined) {
       throw new IgnitionValidationError(
-        `Invalid libraries for contract ${artifact.contractName}: ${inputName} and ${libName} clash with each other, please use qualified names for both.`
-      );
-    }
-  }
-}
-
-/**
- * Validates that every address is valid.
- */
-function validateAddresses(
-  artifact: Artifact,
-  libraries: { [libraryName: string]: string }
-) {
-  for (const [libraryName, address] of Object.entries(libraries)) {
-    if (address.match(/^0x[0-9a-fA-F]{40}$/) === null) {
-      throw new IgnitionValidationError(
-        `Invalid address ${address} for library ${libraryName} of contract ${artifact.contractName}`
+        `Invalid libraries for contract ${artifact.contractName}: The names "${inputName}" and "${libName}" clash with each other, please use qualified names for both.`
       );
     }
   }
@@ -222,11 +205,27 @@ function getActualNameForArtifactLibrary(
       .join("\n");
 
     throw new IgnitionValidationError(
-      `Invalid libraries for contract ${artifact.contractName}: ${libraryName} is ambiguous, please use one of the following fully qualified names:
+      `Invalid libraries for contract ${artifact.contractName}: The name "${libraryName}" is ambiguous, please use one of the following fully qualified names:
 
 ${fullyQualifiedNames}`
     );
   }
 
   return bareNameToParsedNames[libName][0];
+}
+
+/**
+ * Validates that every address is valid.
+ */
+function validateAddresses(
+  artifact: Artifact,
+  libraries: { [libraryName: string]: string }
+) {
+  for (const [libraryName, address] of Object.entries(libraries)) {
+    if (address.match(/^0x[0-9a-fA-F]{40}$/) === null) {
+      throw new IgnitionValidationError(
+        `Invalid address ${address} for library ${libraryName} of contract ${artifact.contractName}`
+      );
+    }
+  }
 }
