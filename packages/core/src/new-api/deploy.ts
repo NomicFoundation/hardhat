@@ -48,12 +48,37 @@ export async function deploy({
 
   const chainDispatcher = new ChainDispatcherImpl(buildAdaptersFrom(provider));
 
+  const isAutominedNetwork = await checkAutominedNetwork(provider);
+
   const deployer = new Deployer({
     config,
     artifactResolver,
     deploymentLoader,
     chainDispatcher,
+    isAutominedNetwork,
   });
 
   return deployer.deploy(moduleDefinition, deploymentParameters, accounts);
+}
+
+async function checkAutominedNetwork(
+  provider: EIP1193Provider
+): Promise<boolean> {
+  const isHardhat = Boolean(
+    await provider.request({ method: "hardhat_getAutomine" })
+  );
+
+  if (isHardhat) {
+    return true;
+  }
+
+  const isGanache = /ganache/i.test(
+    (await provider.request({ method: "web3_clientVersion" })) as string
+  );
+
+  if (isGanache) {
+    return true;
+  }
+
+  return false;
 }

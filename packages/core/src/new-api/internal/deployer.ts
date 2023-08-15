@@ -19,12 +19,12 @@ import {
 } from "../types/deployer";
 
 import { Batcher } from "./batcher";
-import { defaultConfig } from "./defaultConfig";
+import { defaultAutominedConfig, defaultConfig } from "./defaultConfig";
 import { DeploymentLoader } from "./deployment-loader/types";
 import { ExecutionEngine } from "./execution/execution-engine";
 import { executionStateReducer } from "./execution/execution-state-reducer";
 import { BasicExecutionStrategy } from "./execution/execution-strategy";
-import { TranactionLookupTimerImpl } from "./execution/transaction-lookup-timer";
+import { TransactionLookupTimerImpl } from "./execution/transaction-lookup-timer";
 import {
   ChainDispatcher,
   ContractAtExecutionState,
@@ -61,9 +61,12 @@ export class Deployer {
     artifactResolver: ArtifactResolver;
     deploymentLoader: DeploymentLoader;
     chainDispatcher: ChainDispatcher;
+    isAutominedNetwork?: boolean;
   }) {
+    options.isAutominedNetwork ??= false;
+
     this._config = {
-      ...defaultConfig,
+      ...(options.isAutominedNetwork ? defaultAutominedConfig : defaultConfig),
       ...options.config,
     };
 
@@ -75,7 +78,7 @@ export class Deployer {
 
     this._moduleConstructor = new ModuleConstructor();
     this._executionEngine = new ExecutionEngine();
-    this._transactionLookupTimer = new TranactionLookupTimerImpl(
+    this._transactionLookupTimer = new TransactionLookupTimerImpl(
       this._config.transactionTimeoutInterval
     );
   }
