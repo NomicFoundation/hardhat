@@ -102,6 +102,9 @@ export async function sendTransactionForOnchainInteraction(
     onchainInteraction.nonce ?? (await getNonce(onchainInteraction.from));
   const fees = await getNextTransactionFees(client, onchainInteraction);
 
+  // TODO: Should we check the balance here? Before or after estimating gas?
+  //  Before or after simulating?
+
   const estimateGasPrams: Omit<TransactionParams, "gasLimit"> = {
     to: onchainInteraction.to,
     from: onchainInteraction.from,
