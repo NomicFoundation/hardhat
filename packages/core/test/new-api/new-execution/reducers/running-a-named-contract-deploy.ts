@@ -1,6 +1,5 @@
 import { assert } from "chai";
 
-import { deploymentStateReducer } from "../../../../src/new-api/internal/new-execution/reducers/deployment-state-reducer";
 import { DeploymentState } from "../../../../src/new-api/internal/new-execution/types/deployment-state";
 import { EvmExecutionResultTypes } from "../../../../src/new-api/internal/new-execution/types/evm-execution";
 import { ExecutionResultType } from "../../../../src/new-api/internal/new-execution/types/execution-result";
@@ -13,7 +12,6 @@ import { TransactionReceiptStatus } from "../../../../src/new-api/internal/new-e
 import {
   DeploymentExecutionStateCompleteMessage,
   DeploymentExecutionStateInitializeMessage,
-  JournalMessage,
   JournalMessageType,
   NetworkInteractionRequestMessage,
   TransactionConfirmMessage,
@@ -24,6 +22,8 @@ import { findOnchainInteractionBy } from "../../../../src/new-api/internal/new-e
 import { findTransactionBy } from "../../../../src/new-api/internal/new-execution/views/deployment-execution-state/find-transaction-by";
 import { findDeploymentExecutionStateBy } from "../../../../src/new-api/internal/new-execution/views/find-deployment-execution-state-by";
 import { FutureType } from "../../../../src/new-api/types/module";
+
+import { applyMessages } from "./utils";
 
 describe("DeploymentStateReducer", () => {
   describe("running a named contract deploy", () => {
@@ -424,11 +424,3 @@ describe("DeploymentStateReducer", () => {
     });
   });
 });
-
-function applyMessages(messages: JournalMessage[]): DeploymentState {
-  const initialState = deploymentStateReducer(undefined);
-
-  const updatedState = messages.reduce(deploymentStateReducer, initialState);
-
-  return updatedState;
-}
