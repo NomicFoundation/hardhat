@@ -4,12 +4,7 @@ import {
   encodeArtifactDeploymentData,
   encodeArtifactFunctionCall,
 } from "../src/new-api/internal/new-execution/abi";
-import {
-  call,
-  getNetworkFees,
-  getTransactionReceipt,
-  sendTransaction,
-} from "../src/new-api/internal/new-execution/jsonrpc-calls";
+import { EIP1193JsonRpcClient } from "../src/new-api/internal/new-execution/jsonrpc-calls";
 import {
   callEncodingFixtures,
   deploymentFixturesArtifacts,
@@ -24,6 +19,8 @@ describe("execution-result-fixture tests", function () {
   useHardhatProject("default");
 
   it("Should have the right values", async function () {
+    const client = new EIP1193JsonRpcClient(this.hre.network.provider);
+
     for (const [name, artifact] of Object.entries(
       staticCallResultFixturesArtifacts
     )) {
@@ -44,8 +41,8 @@ describe("execution-result-fixture tests", function () {
     for (const [name, artifact] of Object.entries(
       staticCallResultFixturesArtifacts
     )) {
-      const fees = await getNetworkFees(this.hre.network.provider);
-      const tx = await sendTransaction(this.hre.network.provider, {
+      const fees = await client.getNetworkFees();
+      const tx = await client.sendTransaction({
         data: encodeArtifactDeploymentData(artifact, [], {}),
         value: 0n,
         from: this.accounts[0],
@@ -54,10 +51,7 @@ describe("execution-result-fixture tests", function () {
         gasLimit: 1_000_000n,
       });
 
-      const receipt = await getTransactionReceipt(
-        this.hre.network.provider,
-        tx
-      );
+      const receipt = await client.getTransactionReceipt(tx);
       assert.isDefined(receipt, `No receipt for deployment of ${name}`);
       assert.isDefined(
         receipt!.contractAddress,
@@ -76,8 +70,7 @@ describe("execution-result-fixture tests", function () {
         `Artifact ${contractName} missing from the fixture`
       );
 
-      const expected = await call(
-        this.hre.network.provider,
+      const expected = await client.call(
         {
           data: encodeArtifactFunctionCall(
             staticCallResultFixturesArtifacts[contractName],

@@ -62,416 +62,446 @@ export interface Block {
 }
 
 /**
- * Returns the balance of an account.
- *
- * @param provider An EIP-1193 provider to fetch the balance from.
- * @param address The account's address.
- * @param blockTag Weather if we should fetch the latest block balance or the pending balance.
+ * This interface has methods for every JSON-RPC call that we need.
  */
-export async function getBalance(
-  provider: EIP1193Provider,
-  address: string,
-  blockTag: "latest" | "pending"
-): Promise<bigint> {
-  const balance = await provider.request({
-    method: "eth_getBalance",
-    params: [address, blockTag],
-  });
+export interface JsonRpcClient {
+  /**
+   * Returns the recommended for the network fees.
+   */
+  getNetworkFees: () => Promise<NetworkFees>;
 
-  assertResponseType("eth_getBalance", balance, typeof balance === "string");
+  /**
+   * Returns the latest block.
+   */
+  getLatestBlock: () => Promise<Block>;
 
-  return jsonRpcQuantityToBigInt(balance);
+  /**
+   * Returns the balance of an account.
+   *
+   * @param address The account's address.
+   * @param blockTag Weather if we should fetch the latest block balance or the pending balance.
+   */
+  getBalance: (
+    address: string,
+    blockTag: "latest" | "pending"
+  ) => Promise<bigint>;
+
+  /**
+   * Performs an `eth_call` JSON-RPC request, and returns the result or an error
+   * object with the return data and a boolean indicating if the request failed
+   * with an error message that telling that the call failed with a custom error.
+   *
+   * @param callParams The params for the call.
+   * @param blockTag The block tag to use for the call.
+   */
+  call: (
+    callParams: CallParams,
+    blockTag: "latest" | "pending"
+  ) => Promise<RawStaticCallResult>;
+
+  /**
+   * Estimates the gas required to execute a transaction.
+   *
+   * @param transactionParams The transaction parameters, excluding gasLimit.
+   */
+  estimateGas: (
+    transactionParams: Omit<TransactionParams, "gasLimit">
+  ) => Promise<bigint>;
+
+  /**
+   * Sends a transaction to the Ethereum network and returns its hash,
+   * if the transaction is valid and accepted in the node's mempool.
+   *
+   * In automined networks eth_sendTransaction may still fail while accepting
+   * a transaction in its mempool. In those cases, this function will still
+   * return its hash, ignoring any error information.
+   *
+   * @param transactionParams The parameters of the transaction to send.
+   */
+  sendTransaction: (transactionParams: TransactionParams) => Promise<string>;
+
+  /**
+   * Returns the transaction count of an account.
+   *
+   * @param address The account's address.
+   * @param blockTag The block to use for the count. If "pending", the mempool is taken into account.
+   */
+  getTransactionCount: (
+    address: string,
+    blockTag: "pending" | "latest" | number
+  ) => Promise<number>;
+
+  /**
+   * Returns a transaction, or undefined if it doesn't exist.
+   *
+   * @param txHash The transaction hash.
+   */
+  getTransaction: (
+    txHash: string
+  ) => Promise<Omit<Transaction, "receipt"> | undefined>;
+
+  /**
+   * Returns a transaction's receipt, or undefined if the transaction doesn't
+   * exist or it hasn't confirmed yet.
+   *
+   * @param txHash The transaction's hash.
+   */
+  getTransactionReceipt: (
+    txHash: string
+  ) => Promise<TransactionReceipt | undefined>;
 }
 
 /**
- * Performs an `eth_call` JSON-RPC request, and returns the result or an error
- * object with the return data and a boolean indicating if the request failed
- * with an error message that telling that the call failed with a custom error.
- *
- * @param provider An EIP-1193 provider to perform the call.
- * @param callParams The params for the call.
- * @param blockTag The block tag to use for the call.
+ * A JsonRpcClient that uses an EIP-1193 provider to make the calls.
  */
-export async function call(
-  provider: EIP1193Provider,
-  callParams: CallParams,
-  blockTag: "latest" | "pending"
-): Promise<RawStaticCallResult> {
-  try {
-    const jsonRpcEncodedParams = {
-      to: callParams.to,
-      value: bigIntToJsonRpcQuantity(callParams.value),
-      data: callParams.data,
-      from: callParams.from,
-      nonce:
-        callParams.nonce !== undefined
-          ? numberToJsonRpcQuantity(callParams.nonce)
-          : undefined,
-    };
+export class EIP1193JsonRpcClient implements JsonRpcClient {
+  constructor(private readonly _provider: EIP1193Provider) {}
 
-    const response = await provider.request({
-      method: "eth_call",
-      params: [jsonRpcEncodedParams, blockTag],
-    });
-
-    assertResponseType("eth_call", response, typeof response === "string");
+  public async getNetworkFees(): Promise<NetworkFees> {
+    const latestBlock = await this.getLatestBlock();
+    // Logic copied from ethers v6
+    const maxPriorityFeePerGas = 1_000_000_000n; // 1gwei
+    const maxFeePerGas = latestBlock.baseFeePerGas * 2n + maxPriorityFeePerGas;
 
     return {
-      success: true,
-      returnData: response,
-      customErrorReported: false,
+      maxFeePerGas,
+      maxPriorityFeePerGas,
     };
-  } catch (error) {
-    if (error instanceof Error) {
-      if ("data" in error && typeof error.data === "string") {
-        return {
-          success: false,
-          returnData: error.data,
-          customErrorReported: isCustomErrorError(error),
-        };
-      }
-
-      // Geth, and potentially other nodes, may return an error without a data
-      // field if there was no reason returned
-      if (
-        error.message.includes("execution reverted") ||
-        error.message.includes("invalid opcode")
-      ) {
-        return {
-          success: false,
-          returnData: "0x",
-          customErrorReported: false,
-        };
-      }
-
-      // Catch all for other nodes and services
-      if (error.message.includes("revert")) {
-        return {
-          success: false,
-          returnData: "0x",
-          customErrorReported: false,
-        };
-      }
-    }
-
-    throw error;
   }
-}
 
-/**
- * Sends a transaction to the Ethereum network and returns its hash,
- * if the transaction is valid and accepted in the node's mempool.
- *
- * In automined networks eth_sendTransaction may still fail while accepting
- * a transaction in its mempool. In those cases, this function will still
- * return its hash, ignoring any error information.
- *
- * @param provider The EIP-1193 provider to use for sending the transaction.
- * @param transactionParams The parameters of the transaction to send.
- */
-export async function sendTransaction(
-  provider: EIP1193Provider,
-  transactionParams: TransactionParams
-): Promise<string> {
-  try {
+  public async getLatestBlock(): Promise<Block> {
+    const response = await this._provider.request({
+      method: "eth_getBlockByNumber",
+      params: ["latest", false],
+    });
+
+    assertResponseType(
+      "eth_getBlockByNumber",
+      response,
+      typeof response === "object" && response !== null
+    );
+
+    assertResponseType(
+      "eth_getBlockByNumber",
+      response,
+      "number" in response && typeof response.number === "string"
+    );
+
+    assertResponseType(
+      "eth_getBlockByNumber",
+      response,
+      "hash" in response && typeof response.hash === "string"
+    );
+
+    assertIgnitionInvariant(
+      "baseFeePerGas" in response && typeof response.baseFeePerGas === "string",
+      "Ignition only supports networks with EIP-1559 and the latest block doesn't have a baseFeePerGas"
+    );
+
+    return {
+      number: jsonRpcQuantityToNumber(response.number),
+      hash: response.hash,
+      baseFeePerGas: jsonRpcQuantityToBigInt(response.baseFeePerGas),
+    };
+  }
+
+  public async getBalance(
+    address: string,
+    blockTag: "latest" | "pending"
+  ): Promise<bigint> {
+    const balance = await this._provider.request({
+      method: "eth_getBalance",
+      params: [address, blockTag],
+    });
+
+    assertResponseType("eth_getBalance", balance, typeof balance === "string");
+
+    return jsonRpcQuantityToBigInt(balance);
+  }
+
+  public async call(
+    callParams: CallParams,
+    blockTag: "latest" | "pending"
+  ): Promise<RawStaticCallResult> {
+    try {
+      const jsonRpcEncodedParams = {
+        to: callParams.to,
+        value: bigIntToJsonRpcQuantity(callParams.value),
+        data: callParams.data,
+        from: callParams.from,
+        nonce:
+          callParams.nonce !== undefined
+            ? numberToJsonRpcQuantity(callParams.nonce)
+            : undefined,
+      };
+
+      const response = await this._provider.request({
+        method: "eth_call",
+        params: [jsonRpcEncodedParams, blockTag],
+      });
+
+      assertResponseType("eth_call", response, typeof response === "string");
+
+      return {
+        success: true,
+        returnData: response,
+        customErrorReported: false,
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        if ("data" in error && typeof error.data === "string") {
+          return {
+            success: false,
+            returnData: error.data,
+            customErrorReported: isCustomErrorError(error),
+          };
+        }
+
+        // Geth, and potentially other nodes, may return an error without a data
+        // field if there was no reason returned
+        if (
+          error.message.includes("execution reverted") ||
+          error.message.includes("invalid opcode")
+        ) {
+          return {
+            success: false,
+            returnData: "0x",
+            customErrorReported: false,
+          };
+        }
+
+        // Catch all for other nodes and services
+        if (error.message.includes("revert")) {
+          return {
+            success: false,
+            returnData: "0x",
+            customErrorReported: false,
+          };
+        }
+      }
+
+      throw error;
+    }
+  }
+
+  public async estimateGas(
+    transactionParams: Omit<TransactionParams, "gasLimit">
+  ): Promise<bigint> {
     const jsonRpcEncodedParams = {
       to: transactionParams.to,
       value: bigIntToJsonRpcQuantity(transactionParams.value),
       data: transactionParams.data,
       from: transactionParams.from,
       nonce: numberToJsonRpcQuantity(transactionParams.nonce),
-      maxPriorityFeePerGas: bigIntToJsonRpcQuantity(
-        transactionParams.maxPriorityFeePerGas
-      ),
-      maxFeePerGas: bigIntToJsonRpcQuantity(transactionParams.maxFeePerGas),
-      gas: bigIntToJsonRpcQuantity(transactionParams.gasLimit),
     };
 
-    const response = await provider.request({
-      method: "eth_sendTransaction",
+    const response = await this._provider.request({
+      method: "eth_estimateGas",
       params: [jsonRpcEncodedParams],
     });
 
     assertResponseType(
-      "eth_sendTransaction",
+      "eth_estimateGas",
       response,
       typeof response === "string"
     );
 
-    return response;
-  } catch (error) {
-    // If we are in an automined error we may get an error and still
-    // the transaction gets mined. In that case we just return its hash.
-    if (
-      error instanceof Error &&
-      "transactionHash" in error &&
-      typeof error.transactionHash === "string"
-    ) {
-      return error.transactionHash;
+    return jsonRpcQuantityToBigInt(response);
+  }
+
+  public async sendTransaction(
+    transactionParams: TransactionParams
+  ): Promise<string> {
+    try {
+      const jsonRpcEncodedParams = {
+        to: transactionParams.to,
+        value: bigIntToJsonRpcQuantity(transactionParams.value),
+        data: transactionParams.data,
+        from: transactionParams.from,
+        nonce: numberToJsonRpcQuantity(transactionParams.nonce),
+        maxPriorityFeePerGas: bigIntToJsonRpcQuantity(
+          transactionParams.maxPriorityFeePerGas
+        ),
+        maxFeePerGas: bigIntToJsonRpcQuantity(transactionParams.maxFeePerGas),
+        gas: bigIntToJsonRpcQuantity(transactionParams.gasLimit),
+      };
+
+      const response = await this._provider.request({
+        method: "eth_sendTransaction",
+        params: [jsonRpcEncodedParams],
+      });
+
+      assertResponseType(
+        "eth_sendTransaction",
+        response,
+        typeof response === "string"
+      );
+
+      return response;
+    } catch (error) {
+      // If we are in an automined error we may get an error and still
+      // the transaction gets mined. In that case we just return its hash.
+      if (
+        error instanceof Error &&
+        "transactionHash" in error &&
+        typeof error.transactionHash === "string"
+      ) {
+        return error.transactionHash;
+      }
+
+      throw error;
+    }
+  }
+
+  public async getTransactionCount(
+    address: string,
+    blockTag: number | "latest" | "pending"
+  ): Promise<number> {
+    const encodedBlockTag =
+      typeof blockTag === "number"
+        ? numberToJsonRpcQuantity(blockTag)
+        : blockTag;
+
+    const response = await this._provider.request({
+      method: "eth_getTransactionCount",
+      params: [address, encodedBlockTag],
+    });
+
+    assertResponseType(
+      "eth_getTransactionCount",
+      response,
+      typeof response === "string"
+    );
+
+    return jsonRpcQuantityToNumber(response);
+  }
+
+  public async getTransaction(
+    txHash: string
+  ): Promise<Omit<Transaction, "receipt"> | undefined> {
+    const method = "eth_getTransactionByHash";
+
+    const response = await this._provider.request({
+      method,
+      params: [txHash],
+    });
+
+    if (response === null) {
+      return undefined;
     }
 
-    throw error;
-  }
-}
+    assertResponseType(method, response, typeof response === "object");
 
-/**
- * Estimates the gas required to execute a transaction.
- *
- * @param provider The EIP-1193 provider to use for the estimate.
- * @param transactionParams The transaction parameters, excluding gasLimit.
- */
-export async function estimateGas(
-  provider: EIP1193Provider,
-  transactionParams: Omit<TransactionParams, "gasLimit">
-): Promise<bigint> {
-  const jsonRpcEncodedParams = {
-    to: transactionParams.to,
-    value: bigIntToJsonRpcQuantity(transactionParams.value),
-    data: transactionParams.data,
-    from: transactionParams.from,
-    nonce: numberToJsonRpcQuantity(transactionParams.nonce),
-  };
+    assertResponseType(
+      method,
+      response,
+      "hash" in response && typeof response.hash === "string"
+    );
 
-  const response = await provider.request({
-    method: "eth_estimateGas",
-    params: [jsonRpcEncodedParams],
-  });
+    assertResponseType(
+      method,
+      response,
+      "blockNumber" in response &&
+        (typeof response.blockNumber === "string" ||
+          response.blockNumber === null)
+    );
 
-  assertResponseType("eth_estimateGas", response, typeof response === "string");
+    assertResponseType(
+      method,
+      response,
+      "blockHash" in response &&
+        (typeof response.blockHash === "string" || response.blockHash === null)
+    );
 
-  return jsonRpcQuantityToBigInt(response);
-}
+    assertIgnitionInvariant(
+      "maxFeePerGas" in response && typeof response.maxFeePerGas === "string",
+      "Ignition sent a non-EIP-1559 transaction or we got an invalid response"
+    );
 
-/**
- * Returns the latest block.
- *
- * @param provider The provider to fetch the block from.
- */
-export async function getLatestBlock(
-  provider: EIP1193Provider
-): Promise<Block> {
-  const response = await provider.request({
-    method: "eth_getBlockByNumber",
-    params: ["latest", false],
-  });
+    assertIgnitionInvariant(
+      "maxPriorityFeePerGas" in response &&
+        typeof response.maxPriorityFeePerGas === "string",
+      "Ignition sent a non-EIP-1559 transaction or we got an invalid response"
+    );
 
-  assertResponseType(
-    "eth_getBlockByNumber",
-    response,
-    typeof response === "object" && response !== null
-  );
-
-  assertResponseType(
-    "eth_getBlockByNumber",
-    response,
-    "number" in response && typeof response.number === "string"
-  );
-
-  assertResponseType(
-    "eth_getBlockByNumber",
-    response,
-    "hash" in response && typeof response.hash === "string"
-  );
-
-  assertIgnitionInvariant(
-    "baseFeePerGas" in response && typeof response.baseFeePerGas === "string",
-    "Ignition only supports networks with EIP-1559 and the latest block doesn't have a baseFeePerGas"
-  );
-
-  return {
-    number: jsonRpcQuantityToNumber(response.number),
-    hash: response.hash,
-    baseFeePerGas: jsonRpcQuantityToBigInt(response.baseFeePerGas),
-  };
-}
-
-/**
- * Returns the transaction count of an account.
- *
- * @param provider The transaction to fetch the count from.
- * @param address The account's address.
- * @param blockTag The block to use for the count. If "pending", the mempool is taken into account.
- */
-export async function getTransactionCount(
-  provider: EIP1193Provider,
-  address: string,
-  blockTag: "pending" | "latest" | number
-): Promise<number> {
-  const encodedBlockTag =
-    typeof blockTag === "number" ? numberToJsonRpcQuantity(blockTag) : blockTag;
-
-  const response = await provider.request({
-    method: "eth_getTransactionCount",
-    params: [address, encodedBlockTag],
-  });
-
-  assertResponseType(
-    "eth_getTransactionCount",
-    response,
-    typeof response === "string"
-  );
-
-  return jsonRpcQuantityToNumber(response);
-}
-
-/**
- * Returns a transaction, or undefined if it doesn't exist.
- *
- * @param provider The provider to fetch the transaction from.
- * @param txHash The transaction hash.
- */
-export async function getTransaction(
-  provider: EIP1193Provider,
-  txHash: string
-): Promise<Omit<Transaction, "receipt"> | undefined> {
-  const method = "eth_getTransactionByHash";
-
-  const response = await provider.request({
-    method,
-    params: [txHash],
-  });
-
-  if (response === null) {
-    return undefined;
+    return {
+      hash: response.hash,
+      blockNumber:
+        response.blockNumber !== null
+          ? jsonRpcQuantityToNumber(response.blockNumber)
+          : undefined,
+      blockHash: response.blockHash ?? undefined,
+      maxFeePerGas: jsonRpcQuantityToBigInt(response.maxFeePerGas),
+      maxPriorityFeePerGas: jsonRpcQuantityToBigInt(
+        response.maxPriorityFeePerGas
+      ),
+    };
   }
 
-  assertResponseType(method, response, typeof response === "object");
+  public async getTransactionReceipt(
+    txHash: string
+  ): Promise<TransactionReceipt | undefined> {
+    const method = "eth_getTransactionReceipt";
 
-  assertResponseType(
-    method,
-    response,
-    "hash" in response && typeof response.hash === "string"
-  );
+    const response = await this._provider.request({
+      method,
+      params: [txHash],
+    });
 
-  assertResponseType(
-    method,
-    response,
-    "blockNumber" in response &&
-      (typeof response.blockNumber === "string" ||
-        response.blockNumber === null)
-  );
+    if (response === null) {
+      return undefined;
+    }
 
-  assertResponseType(
-    method,
-    response,
-    "blockHash" in response &&
-      (typeof response.blockHash === "string" || response.blockHash === null)
-  );
+    assertResponseType(
+      method,
+      response,
+      typeof response === "object" // de aca le borre un distinto a null al pedo
+    );
 
-  assertIgnitionInvariant(
-    "maxFeePerGas" in response && typeof response.maxFeePerGas === "string",
-    "Ignition sent a non-EIP-1559 transaction or we got an invalid response"
-  );
+    assertResponseType(
+      method,
+      response,
+      "blockHash" in response && typeof response.blockHash === "string"
+    );
 
-  assertIgnitionInvariant(
-    "maxPriorityFeePerGas" in response &&
-      typeof response.maxPriorityFeePerGas === "string",
-    "Ignition sent a non-EIP-1559 transaction or we got an invalid response"
-  );
+    assertResponseType(
+      method,
+      response,
+      "blockNumber" in response && typeof response.blockNumber === "string"
+    );
 
-  return {
-    hash: response.hash,
-    blockNumber:
-      response.blockNumber !== null
-        ? jsonRpcQuantityToNumber(response.blockNumber)
-        : undefined,
-    blockHash: response.blockHash ?? undefined,
-    maxFeePerGas: jsonRpcQuantityToBigInt(response.maxFeePerGas),
-    maxPriorityFeePerGas: jsonRpcQuantityToBigInt(
-      response.maxPriorityFeePerGas
-    ),
-  };
-}
+    assertResponseType(
+      method,
+      response,
+      "status" in response && typeof response.status === "string"
+    );
 
-/**
- * Returns a transaction's receipt, or undefined if the transaction doesn't
- * exist or it hasn't confirmed yet.
- *
- * @param provider The provider to fetch the receipt from.
- * @param txHash The transaction's hash.
- */
-export async function getTransactionReceipt(
-  provider: EIP1193Provider,
-  txHash: string
-): Promise<TransactionReceipt | undefined> {
-  const method = "eth_getTransactionReceipt";
+    assertResponseType(
+      method,
+      response,
+      "contractAddress" in response &&
+        (response.contractAddress === null ||
+          typeof response.contractAddress === "string")
+    );
 
-  const response = await provider.request({
-    method,
-    params: [txHash],
-  });
+    const status =
+      jsonRpcQuantityToNumber(response.status) === 1
+        ? TransactionReceiptStatus.SUCCESS
+        : TransactionReceiptStatus.FAILURE;
 
-  if (response === null) {
-    return undefined;
+    const contractAddress =
+      status === TransactionReceiptStatus.SUCCESS
+        ? response.contractAddress ?? undefined
+        : undefined;
+
+    return {
+      blockHash: response.blockHash,
+      blockNumber: jsonRpcQuantityToNumber(response.blockNumber),
+      contractAddress,
+      status,
+      logs: formatReceiptLogs(method, response),
+    };
   }
-
-  assertResponseType(
-    method,
-    response,
-    typeof response === "object" // de aca le borre un distinto a null al pedo
-  );
-
-  assertResponseType(
-    method,
-    response,
-    "blockHash" in response && typeof response.blockHash === "string"
-  );
-
-  assertResponseType(
-    method,
-    response,
-    "blockNumber" in response && typeof response.blockNumber === "string"
-  );
-
-  assertResponseType(
-    method,
-    response,
-    "status" in response && typeof response.status === "string"
-  );
-
-  assertResponseType(
-    method,
-    response,
-    "contractAddress" in response &&
-      (response.contractAddress === null ||
-        typeof response.contractAddress === "string")
-  );
-
-  const status =
-    jsonRpcQuantityToNumber(response.status) === 1
-      ? TransactionReceiptStatus.SUCCESS
-      : TransactionReceiptStatus.FAILURE;
-
-  const contractAddress =
-    status === TransactionReceiptStatus.SUCCESS
-      ? response.contractAddress ?? undefined
-      : undefined;
-
-  return {
-    blockHash: response.blockHash,
-    blockNumber: jsonRpcQuantityToNumber(response.blockNumber),
-    contractAddress,
-    status,
-    logs: formatReceiptLogs(method, response),
-  };
-}
-
-/**
- * Returns recommended for the network fees.
- * @param provider The EIP-1193 provider to use for the estimate.
- */
-export async function getNetworkFees(
-  provider: EIP1193Provider
-): Promise<NetworkFees> {
-  const latestBlock = await getLatestBlock(provider);
-  // Logic copied from ethers v6
-  const maxPriorityFeePerGas = 1_000_000_000n; // 1gwei
-  const maxFeePerGas = latestBlock.baseFeePerGas * 2n + maxPriorityFeePerGas;
-
-  return {
-    maxFeePerGas,
-    maxPriorityFeePerGas,
-  };
 }
 
 /**

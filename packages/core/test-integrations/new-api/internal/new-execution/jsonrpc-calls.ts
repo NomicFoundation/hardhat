@@ -6,16 +6,8 @@ import {
   encodeArtifactFunctionCall,
 } from "../../../../src/new-api/internal/new-execution/abi";
 import {
-  getLatestBlock,
-  getNetworkFees,
-  call,
-  estimateGas,
-  getTransaction,
-  getTransactionCount,
-  getTransactionReceipt,
-  sendTransaction,
+  EIP1193JsonRpcClient,
   NetworkFees,
-  getBalance,
 } from "../../../../src/new-api/internal/new-execution/jsonrpc-calls";
 import { TransactionReceiptStatus } from "../../../../src/new-api/internal/new-execution/types/jsonrpc";
 import { assertIgnitionInvariant } from "../../../../src/new-api/internal/utils/assertions";
@@ -24,6 +16,11 @@ import { useHardhatProject } from "../../../helpers/hardhat-projects";
 describe("JSON-RPC calls", function () {
   describe("With default hardhat project", function () {
     useHardhatProject("default");
+
+    let client: EIP1193JsonRpcClient;
+    before("Creating client", function () {
+      client = new EIP1193JsonRpcClient(this.hre.network.provider);
+    });
 
     async function deployContract({
       hre,
@@ -36,9 +33,9 @@ describe("JSON-RPC calls", function () {
       address: string;
     }> {
       const artifact = await hre.artifacts.readArtifact("C");
-      const fees = await getNetworkFees(hre.network.provider);
+      const fees = await client.getNetworkFees();
 
-      const tx = await sendTransaction(hre.network.provider, {
+      const tx = await client.sendTransaction({
         data: encodeArtifactDeploymentData(artifact, [], {}),
         value: 0n,
         from: accounts[0],
@@ -47,7 +44,7 @@ describe("JSON-RPC calls", function () {
         gasLimit: 1_000_000n,
       });
 
-      const receipt = await getTransactionReceipt(hre.network.provider, tx);
+      const receipt = await client.getTransactionReceipt(tx);
 
       assert.isDefined(receipt);
       assert.equal(receipt!.status, TransactionReceiptStatus.SUCCESS);
@@ -58,7 +55,7 @@ describe("JSON-RPC calls", function () {
 
     describe("getLatestBlock", async function () {
       it("Should return the first block in the correct format", async function () {
-        const block = await getLatestBlock(this.hre.network.provider);
+        const block = await client.getLatestBlock();
 
         assert.equal(block.number, 0);
         assert.isString(block.hash);
@@ -67,7 +64,7 @@ describe("JSON-RPC calls", function () {
 
       it("Should return the second block in the correct format", async function () {
         await this.hre.network.provider.send("evm_mine");
-        const block = await getLatestBlock(this.hre.network.provider);
+        const block = await client.getLatestBlock();
 
         assert.equal(block.number, 1);
         assert.isString(block.hash);
@@ -77,7 +74,7 @@ describe("JSON-RPC calls", function () {
 
     describe("getNetworkFees", async function () {
       it("Should return information about EIP-159 fees", async function () {
-        const fees = await getNetworkFees(this.hre.network.provider);
+        const fees = await client.getNetworkFees();
 
         assert.typeOf(fees.maxFeePerGas, "bigint");
         assert.typeOf(fees.maxPriorityFeePerGas, "bigint");
@@ -88,8 +85,7 @@ describe("JSON-RPC calls", function () {
     describe("call", function () {
       it("Should return the raw result in succesful deployment calls", async function () {
         const artifact = await this.hre.artifacts.readArtifact("C");
-        const result = await call(
-          this.hre.network.provider,
+        const result = await client.call(
           {
             data: encodeArtifactDeploymentData(artifact, [], {}),
             value: 0n,
@@ -106,8 +102,7 @@ describe("JSON-RPC calls", function () {
       it("Should return the raw result in succesful non-deployment calls", async function () {
         const { artifact, address } = await deployContract(this);
 
-        const result = await call(
-          this.hre.network.provider,
+        const result = await client.call(
           {
             data: encodeArtifactFunctionCall(artifact, "returnString", []),
             value: 0n,
@@ -128,8 +123,7 @@ describe("JSON-RPC calls", function () {
 
       it("Should not throw on execution failures, but return a result", async function () {
         // We send an invalid deployment transaction
-        const result = await call(
-          this.hre.network.provider,
+        const result = await client.call(
           {
             data: "0x1234123120",
             value: 0n,
@@ -146,8 +140,7 @@ describe("JSON-RPC calls", function () {
       it("Should return the returnData on execution failures", async function () {
         const { artifact, address } = await deployContract(this);
 
-        const result = await call(
-          this.hre.network.provider,
+        const result = await client.call(
           {
             data: encodeArtifactFunctionCall(
               artifact,
@@ -195,8 +188,9 @@ describe("JSON-RPC calls", function () {
           }
         }
 
-        const result1 = await call(
-          new MockProvider(),
+        const mockClient = new EIP1193JsonRpcClient(new MockProvider());
+
+        const result1 = await mockClient.call(
           {
             data: "0x",
             value: 0n,
@@ -209,8 +203,7 @@ describe("JSON-RPC calls", function () {
         assert.equal(result1.returnData, "0x");
         assert.isFalse(result1.customErrorReported);
 
-        const result2 = await call(
-          new MockProvider(),
+        const result2 = await mockClient.call(
           {
             data: "0x",
             value: 0n,
@@ -238,8 +231,9 @@ describe("JSON-RPC calls", function () {
           }
         }
 
-        const result1 = await call(
-          new MockProvider(),
+        const mockClient = new EIP1193JsonRpcClient(new MockProvider());
+
+        const result1 = await mockClient.call(
           {
             data: "0x",
             value: 0n,
@@ -256,8 +250,7 @@ describe("JSON-RPC calls", function () {
       it("Should return customErrorReported true when the server reports a custom error", async function () {
         const { artifact, address } = await deployContract(this);
 
-        const result = await call(
-          this.hre.network.provider,
+        const result = await client.call(
           {
             data: encodeArtifactFunctionCall(
               artifact,
@@ -279,8 +272,7 @@ describe("JSON-RPC calls", function () {
       it("Should return customErrorReported false when the server does not reports a custom error", async function () {
         const { artifact, address } = await deployContract(this);
 
-        const result = await call(
-          this.hre.network.provider,
+        const result = await client.call(
           {
             data: encodeArtifactFunctionCall(
               artifact,
@@ -306,9 +298,9 @@ describe("JSON-RPC calls", function () {
         await this.hre.network.provider.send("evm_setAutomine", [false]);
 
         const artifact = await this.hre.artifacts.readArtifact("C");
-        const fees = await getNetworkFees(this.hre.network.provider);
+        const fees = await client.getNetworkFees();
 
-        await sendTransaction(this.hre.network.provider, {
+        await client.sendTransaction({
           data: encodeArtifactDeploymentData(artifact, [], {}),
           value: 0n,
           from: this.accounts[0],
@@ -320,8 +312,7 @@ describe("JSON-RPC calls", function () {
         // We know the address from other tests doing the same
         const address = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
 
-        const resultLatest = await call(
-          this.hre.network.provider,
+        const resultLatest = await client.call(
           {
             data: encodeArtifactFunctionCall(
               artifact,
@@ -339,8 +330,7 @@ describe("JSON-RPC calls", function () {
         assert.equal(resultLatest.returnData, "0x");
         assert.isFalse(resultLatest.customErrorReported);
 
-        const resultPending = await call(
-          this.hre.network.provider,
+        const resultPending = await client.call(
           {
             data: encodeArtifactFunctionCall(
               artifact,
@@ -366,12 +356,12 @@ describe("JSON-RPC calls", function () {
     describe("sendTransaction", function () {
       let fees: NetworkFees;
       before("Fetching fees", async function () {
-        fees = await getNetworkFees(this.hre.network.provider);
+        fees = await client.getNetworkFees();
       });
 
       it("Should return the tx hash, even on execution failures", async function () {
         // We send an invalid deployment transaction
-        const result = await sendTransaction(this.hre.network.provider, {
+        const result = await client.sendTransaction({
           data: "0x1234123120",
           value: 0n,
           from: this.accounts[0],
@@ -386,7 +376,7 @@ describe("JSON-RPC calls", function () {
       it("Should return the tx hash in a network without automining", async function () {
         // We disable the automining first
         await this.hre.network.provider.send("evm_setAutomine", [false]);
-        const result = await sendTransaction(this.hre.network.provider, {
+        const result = await client.sendTransaction({
           to: this.accounts[0],
           data: "0x",
           value: 0n,
@@ -405,7 +395,7 @@ describe("JSON-RPC calls", function () {
         const defaultHardhatNetworkBalance = 10n ** 18n * 10_000n;
         const nextBlockBaseFee = 875000000n;
 
-        await sendTransaction(this.hre.network.provider, {
+        await client.sendTransaction({
           to: this.accounts[1],
           from: this.accounts[0],
           value: 1n,
@@ -416,11 +406,7 @@ describe("JSON-RPC calls", function () {
           nonce: 0,
         });
 
-        const balance = await getBalance(
-          this.hre.network.provider,
-          this.accounts[0],
-          "latest"
-        );
+        const balance = await client.getBalance(this.accounts[0], "latest");
 
         assert.equal(
           balance,
@@ -434,7 +420,7 @@ describe("JSON-RPC calls", function () {
         // We disable the automining first
         await this.hre.network.provider.send("evm_setAutomine", [false]);
 
-        await sendTransaction(this.hre.network.provider, {
+        await client.sendTransaction({
           to: this.accounts[1],
           from: this.accounts[0],
           value: 1n,
@@ -447,11 +433,7 @@ describe("JSON-RPC calls", function () {
 
         const defaultHardhatNetworkBalance = 10n ** 18n * 10_000n;
 
-        const balance = await getBalance(
-          this.hre.network.provider,
-          this.accounts[0],
-          "pending"
-        );
+        const balance = await client.getBalance(this.accounts[0], "pending");
 
         assert.equal(balance, defaultHardhatNetworkBalance - 21_000n * 1n - 1n);
       });
@@ -459,7 +441,7 @@ describe("JSON-RPC calls", function () {
 
     describe("estimateGas", function () {
       it("Should return the estimate gas if the tx would succeed", async function () {
-        const estimation = await estimateGas(this.hre.network.provider, {
+        const estimation = await client.estimateGas({
           to: this.accounts[1],
           from: this.accounts[0],
           value: 1n,
@@ -477,7 +459,7 @@ describe("JSON-RPC calls", function () {
         const { artifact, address } = await deployContract(this);
 
         await assert.isRejected(
-          estimateGas(this.hre.network.provider, {
+          client.estimateGas({
             to: address,
             from: this.accounts[0],
             data: encodeArtifactFunctionCall(
@@ -496,15 +478,14 @@ describe("JSON-RPC calls", function () {
 
     describe("getTransactionCount", function () {
       it("`latest` should return the amount of confirmed transactions", async function () {
-        let count = await getTransactionCount(
-          this.hre.network.provider,
+        let count = await client.getTransactionCount(
           this.accounts[0],
           "latest"
         );
 
         assert.equal(count, 0);
 
-        await sendTransaction(this.hre.network.provider, {
+        await client.sendTransaction({
           to: this.accounts[1],
           from: this.accounts[0],
           value: 1n,
@@ -515,15 +496,11 @@ describe("JSON-RPC calls", function () {
           nonce: 0,
         });
 
-        count = await getTransactionCount(
-          this.hre.network.provider,
-          this.accounts[0],
-          "latest"
-        );
+        count = await client.getTransactionCount(this.accounts[0], "latest");
 
         assert.equal(count, 1);
 
-        await sendTransaction(this.hre.network.provider, {
+        await client.sendTransaction({
           to: this.accounts[1],
           from: this.accounts[0],
           value: 1n,
@@ -534,25 +511,19 @@ describe("JSON-RPC calls", function () {
           nonce: 1,
         });
 
-        count = await getTransactionCount(
-          this.hre.network.provider,
-          this.accounts[0],
-          "latest"
-        );
+        count = await client.getTransactionCount(this.accounts[0], "latest");
 
         assert.equal(count, 2);
       });
 
       it("`pending` should return the amount of unconfirmed transactions", async function () {
         await this.hre.network.provider.send("evm_setAutomine", [false]);
-        let latestCount = await getTransactionCount(
-          this.hre.network.provider,
+        let latestCount = await client.getTransactionCount(
           this.accounts[0],
           "latest"
         );
 
-        let pendingCount = await getTransactionCount(
-          this.hre.network.provider,
+        let pendingCount = await client.getTransactionCount(
           this.accounts[0],
           "pending"
         );
@@ -560,7 +531,7 @@ describe("JSON-RPC calls", function () {
         assert.equal(latestCount, 0);
         assert.equal(pendingCount, 0);
 
-        await sendTransaction(this.hre.network.provider, {
+        await client.sendTransaction({
           to: this.accounts[1],
           from: this.accounts[0],
           value: 1n,
@@ -571,14 +542,12 @@ describe("JSON-RPC calls", function () {
           nonce: 0,
         });
 
-        latestCount = await getTransactionCount(
-          this.hre.network.provider,
+        latestCount = await client.getTransactionCount(
           this.accounts[0],
           "latest"
         );
 
-        pendingCount = await getTransactionCount(
-          this.hre.network.provider,
+        pendingCount = await client.getTransactionCount(
           this.accounts[0],
           "pending"
         );
@@ -586,7 +555,7 @@ describe("JSON-RPC calls", function () {
         assert.equal(latestCount, 0);
         assert.equal(pendingCount, 1);
 
-        await sendTransaction(this.hre.network.provider, {
+        await client.sendTransaction({
           to: this.accounts[1],
           from: this.accounts[0],
           value: 1n,
@@ -597,14 +566,12 @@ describe("JSON-RPC calls", function () {
           nonce: 1,
         });
 
-        latestCount = await getTransactionCount(
-          this.hre.network.provider,
+        latestCount = await client.getTransactionCount(
           this.accounts[0],
           "latest"
         );
 
-        pendingCount = await getTransactionCount(
-          this.hre.network.provider,
+        pendingCount = await client.getTransactionCount(
           this.accounts[0],
           "pending"
         );
@@ -614,7 +581,7 @@ describe("JSON-RPC calls", function () {
       });
 
       it("using a number should return the amount of confirmed transactions up to and including that block", async function () {
-        await sendTransaction(this.hre.network.provider, {
+        await client.sendTransaction({
           to: this.accounts[1],
           from: this.accounts[0],
           value: 1n,
@@ -625,14 +592,12 @@ describe("JSON-RPC calls", function () {
           nonce: 0,
         });
 
-        let latestCount = await getTransactionCount(
-          this.hre.network.provider,
+        let latestCount = await client.getTransactionCount(
           this.accounts[0],
           "latest"
         );
 
-        let blockOneCount = await getTransactionCount(
-          this.hre.network.provider,
+        let blockOneCount = await client.getTransactionCount(
           this.accounts[0],
           1
         );
@@ -640,7 +605,7 @@ describe("JSON-RPC calls", function () {
         assert.equal(latestCount, 1);
         assert.equal(blockOneCount, 1);
 
-        await sendTransaction(this.hre.network.provider, {
+        await client.sendTransaction({
           to: this.accounts[1],
           from: this.accounts[0],
           value: 1n,
@@ -651,17 +616,12 @@ describe("JSON-RPC calls", function () {
           nonce: 1,
         });
 
-        latestCount = await getTransactionCount(
-          this.hre.network.provider,
+        latestCount = await client.getTransactionCount(
           this.accounts[0],
           "latest"
         );
 
-        blockOneCount = await getTransactionCount(
-          this.hre.network.provider,
-          this.accounts[0],
-          1
-        );
+        blockOneCount = await client.getTransactionCount(this.accounts[0], 1);
 
         assert.equal(latestCount, 2);
         assert.equal(blockOneCount, 1);
@@ -682,10 +642,10 @@ describe("JSON-RPC calls", function () {
             nonce: 0,
           };
 
-          const hash = await sendTransaction(this.hre.network.provider, req);
+          const hash = await client.sendTransaction(req);
 
-          const tx = await getTransaction(this.hre.network.provider, hash);
-          const block = await getLatestBlock(this.hre.network.provider);
+          const tx = await client.getTransaction(hash);
+          const block = await client.getLatestBlock();
 
           assert.isDefined(tx);
 
@@ -712,9 +672,9 @@ describe("JSON-RPC calls", function () {
             nonce: 0,
           };
 
-          const hash = await sendTransaction(this.hre.network.provider, req);
+          const hash = await client.sendTransaction(req);
 
-          const tx = await getTransaction(this.hre.network.provider, hash);
+          const tx = await client.getTransaction(hash);
 
           assert.isDefined(tx);
           assert.equal(tx!.hash, hash);
@@ -725,8 +685,7 @@ describe("JSON-RPC calls", function () {
         });
 
         it("Should return undefined if the transaction was never sent", async function () {
-          const tx = await getTransaction(
-            this.hre.network.provider,
+          const tx = await client.getTransaction(
             "0x0000000000000000000000000000000000000000000000000000000000000001"
           );
 
@@ -747,10 +706,7 @@ describe("JSON-RPC calls", function () {
             nonce: 0,
           };
 
-          const firstTxHash = await sendTransaction(
-            this.hre.network.provider,
-            firstReq
-          );
+          const firstTxHash = await client.sendTransaction(firstReq);
 
           const secondReq = {
             ...firstReq,
@@ -758,12 +714,9 @@ describe("JSON-RPC calls", function () {
             maxPriorityFeePerGas: 2n,
           };
 
-          await sendTransaction(this.hre.network.provider, secondReq);
+          await client.sendTransaction(secondReq);
 
-          const tx = await getTransaction(
-            this.hre.network.provider,
-            firstTxHash
-          );
+          const tx = await client.getTransaction(firstTxHash);
 
           assert.isUndefined(tx);
         });
@@ -771,7 +724,7 @@ describe("JSON-RPC calls", function () {
         it("Should return undefined if the transaction was dropped", async function () {
           await this.hre.network.provider.send("evm_setAutomine", [false]);
 
-          const txHash = await sendTransaction(this.hre.network.provider, {
+          const txHash = await client.sendTransaction({
             to: this.accounts[1],
             from: this.accounts[0],
             value: 1n,
@@ -786,7 +739,7 @@ describe("JSON-RPC calls", function () {
             txHash,
           ]);
 
-          const tx = await getTransaction(this.hre.network.provider, txHash);
+          const tx = await client.getTransaction(txHash);
 
           assert.isUndefined(tx);
         });
@@ -796,7 +749,7 @@ describe("JSON-RPC calls", function () {
     describe("getTransactionReceipt", function () {
       describe("Confirmed transactions", function () {
         it("Should return the receipt if the transaction was successful", async function () {
-          const hash = await sendTransaction(this.hre.network.provider, {
+          const hash = await client.sendTransaction({
             to: this.accounts[1],
             from: this.accounts[0],
             value: 1n,
@@ -807,12 +760,9 @@ describe("JSON-RPC calls", function () {
             nonce: 0,
           });
 
-          const block = await getLatestBlock(this.hre.network.provider);
+          const block = await client.getLatestBlock();
 
-          const receipt = await getTransactionReceipt(
-            this.hre.network.provider,
-            hash
-          );
+          const receipt = await client.getTransactionReceipt(hash);
 
           assert.isDefined(receipt);
           assert.equal(receipt!.blockHash, block.hash);
@@ -824,7 +774,7 @@ describe("JSON-RPC calls", function () {
 
         it("Should return the contract address for successful deployment transactions", async function () {
           const artifact = await this.hre.artifacts.readArtifact("C");
-          const hash = await sendTransaction(this.hre.network.provider, {
+          const hash = await client.sendTransaction({
             from: this.accounts[0],
             value: 0n,
             maxFeePerGas: 1_000_000_000n,
@@ -834,12 +784,9 @@ describe("JSON-RPC calls", function () {
             nonce: 0,
           });
 
-          const block = await getLatestBlock(this.hre.network.provider);
+          const block = await client.getLatestBlock();
 
-          const receipt = await getTransactionReceipt(
-            this.hre.network.provider,
-            hash
-          );
+          const receipt = await client.getTransactionReceipt(hash);
 
           assert.isDefined(receipt);
           assert.equal(receipt!.blockHash, block.hash);
@@ -850,7 +797,7 @@ describe("JSON-RPC calls", function () {
         });
 
         it("Should return the receipt for reverted transactions", async function () {
-          const hash = await sendTransaction(this.hre.network.provider, {
+          const hash = await client.sendTransaction({
             data: "0x1234123120",
             value: 0n,
             from: this.accounts[0],
@@ -860,12 +807,9 @@ describe("JSON-RPC calls", function () {
             maxPriorityFeePerGas: 1n,
           });
 
-          const block = await getLatestBlock(this.hre.network.provider);
+          const block = await client.getLatestBlock();
 
-          const receipt = await getTransactionReceipt(
-            this.hre.network.provider,
-            hash
-          );
+          const receipt = await client.getTransactionReceipt(hash);
 
           assert.isDefined(receipt);
           assert.equal(receipt!.blockHash, block.hash);
@@ -877,7 +821,7 @@ describe("JSON-RPC calls", function () {
 
         it("Should return the right logs", async function () {
           const { artifact, address } = await deployContract(this);
-          const hash = await sendTransaction(this.hre.network.provider, {
+          const hash = await client.sendTransaction({
             to: address,
             data: encodeArtifactFunctionCall(artifact, "events", []),
             value: 0n,
@@ -888,12 +832,9 @@ describe("JSON-RPC calls", function () {
             maxPriorityFeePerGas: 1n,
           });
 
-          const block = await getLatestBlock(this.hre.network.provider);
+          const block = await client.getLatestBlock();
 
-          const receipt = await getTransactionReceipt(
-            this.hre.network.provider,
-            hash
-          );
+          const receipt = await client.getTransactionReceipt(hash);
 
           assert.isDefined(receipt);
           assert.equal(receipt!.blockHash, block.hash);
@@ -930,7 +871,7 @@ describe("JSON-RPC calls", function () {
         it("Should return undefined if the transaction is in the mempool", async function () {
           await this.hre.network.provider.send("evm_setAutomine", [false]);
 
-          const hash = await sendTransaction(this.hre.network.provider, {
+          const hash = await client.sendTransaction({
             to: this.accounts[1],
             from: this.accounts[0],
             value: 1n,
@@ -941,17 +882,13 @@ describe("JSON-RPC calls", function () {
             nonce: 0,
           });
 
-          const receipt = await getTransactionReceipt(
-            this.hre.network.provider,
-            hash
-          );
+          const receipt = await client.getTransactionReceipt(hash);
 
           assert.isUndefined(receipt);
         });
 
         it("Should return undefined if the transaction was never sent", async function () {
-          const receipt = await getTransactionReceipt(
-            this.hre.network.provider,
+          const receipt = await client.getTransactionReceipt(
             "0x0000000000000000000000000000000000000000000000000000000000000001"
           );
 
@@ -972,10 +909,7 @@ describe("JSON-RPC calls", function () {
             nonce: 0,
           };
 
-          const firstTxHash = await sendTransaction(
-            this.hre.network.provider,
-            firstReq
-          );
+          const firstTxHash = await client.sendTransaction(firstReq);
 
           const secondReq = {
             ...firstReq,
@@ -983,12 +917,9 @@ describe("JSON-RPC calls", function () {
             maxPriorityFeePerGas: 2n,
           };
 
-          await sendTransaction(this.hre.network.provider, secondReq);
+          await client.sendTransaction(secondReq);
 
-          const receipt = await getTransactionReceipt(
-            this.hre.network.provider,
-            firstTxHash
-          );
+          const receipt = await client.getTransactionReceipt(firstTxHash);
 
           assert.isUndefined(receipt);
         });
@@ -996,7 +927,7 @@ describe("JSON-RPC calls", function () {
         it("Should return undefined if the transaction was dropped", async function () {
           await this.hre.network.provider.send("evm_setAutomine", [false]);
 
-          const txHash = await sendTransaction(this.hre.network.provider, {
+          const txHash = await client.sendTransaction({
             to: this.accounts[1],
             from: this.accounts[0],
             value: 1n,
@@ -1011,10 +942,7 @@ describe("JSON-RPC calls", function () {
             txHash,
           ]);
 
-          const receipt = await getTransactionReceipt(
-            this.hre.network.provider,
-            txHash
-          );
+          const receipt = await client.getTransactionReceipt(txHash);
 
           assert.isUndefined(receipt);
         });
@@ -1027,8 +955,10 @@ describe("JSON-RPC calls", function () {
 
     describe("sendTransaction", function () {
       it("Should return the tx hash, even on execution failures", async function () {
+        const client = new EIP1193JsonRpcClient(this.hre.network.provider);
+
         // We send an invalid deployment transaction
-        const result = await sendTransaction(this.hre.network.provider, {
+        const result = await client.sendTransaction({
           data: "0x1234123120",
           value: 0n,
           from: this.accounts[0],
