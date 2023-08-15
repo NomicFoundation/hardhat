@@ -70,6 +70,11 @@ export class Deployer {
       ...options.config,
     };
 
+    assertIgnitionInvariant(
+      this._config.blockConfirmations >= 1,
+      `Configured value 'blockConfirmations' cannot be less than 1. Value given: '${this._config.blockConfirmations}'`
+    );
+
     this._strategy = new BasicExecutionStrategy();
     this._artifactResolver = options.artifactResolver;
     this._deploymentLoader = options.deploymentLoader;

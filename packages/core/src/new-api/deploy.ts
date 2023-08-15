@@ -3,6 +3,7 @@ import { EphemeralDeploymentLoader } from "./internal/deployment-loader/ephemera
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader";
 import { ChainDispatcherImpl } from "./internal/execution/chain-dispatcher";
 import { buildAdaptersFrom } from "./internal/utils/build-adapters-from";
+import { checkAutominedNetwork } from "./internal/utils/check-automined-network";
 import { ArtifactResolver } from "./types/artifact";
 import {
   DeployConfig,
@@ -59,26 +60,4 @@ export async function deploy({
   });
 
   return deployer.deploy(moduleDefinition, deploymentParameters, accounts);
-}
-
-async function checkAutominedNetwork(
-  provider: EIP1193Provider
-): Promise<boolean> {
-  const isHardhat = Boolean(
-    await provider.request({ method: "hardhat_getAutomine" })
-  );
-
-  if (isHardhat) {
-    return true;
-  }
-
-  const isGanache = /ganache/i.test(
-    (await provider.request({ method: "web3_clientVersion" })) as string
-  );
-
-  if (isGanache) {
-    return true;
-  }
-
-  return false;
 }
