@@ -16,8 +16,6 @@ pub mod jsonrpc;
 /// RPC methods
 pub mod methods;
 
-mod withdrawal;
-
 use crate::{B256, U256};
 
 pub use client::{RpcClient, RpcClientError};

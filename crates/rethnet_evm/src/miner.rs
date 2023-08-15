@@ -42,6 +42,9 @@ pub enum MineBlockError<BE, SE> {
     /// A blockchain error
     #[error(transparent)]
     Blockchain(BE),
+    /// An error that occurred while updating the mempool.
+    #[error(transparent)]
+    MemPoolUpdate(SE),
     /// The block is expected to have a prevrandao, as the executor's config is on a post-merge hardfork.
     #[error("Post-merge transaction is missing prevrandao")]
     MissingPrevrandao,
@@ -99,8 +102,7 @@ where
         )?
     };
 
-    let mut pending_transactions: VecDeque<_> =
-        mem_pool.pending_transactions().iter().cloned().collect();
+    let mut pending_transactions: VecDeque<_> = mem_pool.pending_transactions().cloned().collect();
 
     let mut results = Vec::new();
     let mut traces = Vec::new();
@@ -137,7 +139,9 @@ where
         .insert_block(block)
         .map_err(MineBlockError::Blockchain)?;
 
-    mem_pool.update(state);
+    mem_pool
+        .update(state)
+        .map_err(MineBlockError::MemPoolUpdate)?;
 
     Ok(MineBlockResult {
         block,
