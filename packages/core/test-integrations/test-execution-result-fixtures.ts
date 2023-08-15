@@ -4,7 +4,7 @@ import {
   encodeArtifactDeploymentData,
   encodeArtifactFunctionCall,
 } from "../src/new-api/internal/new-execution/abi";
-import { EIP1193JsonRpcClient } from "../src/new-api/internal/new-execution/jsonrpc-calls";
+import { EIP1193JsonRpcClient } from "../src/new-api/internal/new-execution/jsonrpc-client";
 import {
   callEncodingFixtures,
   deploymentFixturesArtifacts,

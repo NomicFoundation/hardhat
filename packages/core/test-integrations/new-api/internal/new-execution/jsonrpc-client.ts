@@ -8,12 +8,12 @@ import {
 import {
   EIP1193JsonRpcClient,
   NetworkFees,
-} from "../../../../src/new-api/internal/new-execution/jsonrpc-calls";
+} from "../../../../src/new-api/internal/new-execution/jsonrpc-client";
 import { TransactionReceiptStatus } from "../../../../src/new-api/internal/new-execution/types/jsonrpc";
 import { assertIgnitionInvariant } from "../../../../src/new-api/internal/utils/assertions";
 import { useHardhatProject } from "../../../helpers/hardhat-projects";
 
-describe("JSON-RPC calls", function () {
+describe("JSON-RPC client", function () {
   describe("With default hardhat project", function () {
     useHardhatProject("default");
 
