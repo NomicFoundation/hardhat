@@ -49,7 +49,7 @@ describe("config", () => {
         return { foo };
       });
 
-      assert.isRejected(
+      await assert.isRejected(
         this.deploy(moduleDefinition),
         `Configured value 'blockConfirmations' cannot be less than 1. Value given: '0'`
       );
