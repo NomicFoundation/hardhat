@@ -3,6 +3,7 @@ import { Artifact } from "hardhat/types";
 
 import { SolidityParameterType } from "../../../src";
 import {
+  decodeArtifactCustomError,
   decodeArtifactFunctionCallResult,
   encodeArtifactDeploymentData,
   encodeArtifactFunctionCall,
@@ -408,15 +409,49 @@ describe("abi", () => {
 
   describe("decodeArtifactCustomError", () => {
     it("Should succesfully decode a custom error", () => {
-      // TODO @alcuadrado
+      const artifact = staticCallResultFixturesArtifacts.C;
+
+      const decoded = decodeArtifactCustomError(
+        artifact,
+        staticCallResultFixtures.C.revertWithCustomError.returnData
+      );
+
+      assert.deepEqual(decoded, {
+        type: EvmExecutionResultTypes.REVERT_WITH_CUSTOM_ERROR,
+        errorName: "CustomError",
+        args: {
+          positional: [1n, true],
+          named: {
+            b: true,
+          },
+        },
+      });
     });
 
     it("Should return invalid data error if the custom error is recognized but can't be decoded", () => {
-      // TODO @alcuadrado
+      const artifact = staticCallResultFixturesArtifacts.C;
+
+      const decoded = decodeArtifactCustomError(
+        artifact,
+        staticCallResultFixtures.C.revertWithInvalidCustomError.returnData
+      );
+
+      assert.deepEqual(decoded, {
+        type: EvmExecutionResultTypes.REVERT_WITH_INVALID_DATA,
+        data: staticCallResultFixtures.C.revertWithInvalidCustomError
+          .returnData,
+      });
     });
 
     it("Should return undefined if no custom error is recognized", () => {
-      // TODO @alcuadrado
+      const artifact = staticCallResultFixturesArtifacts.C;
+
+      const decoded = decodeArtifactCustomError(
+        artifact,
+        staticCallResultFixtures.C.revertWithUnknownCustomError.returnData
+      );
+
+      assert.isUndefined(decoded);
     });
   });
 
