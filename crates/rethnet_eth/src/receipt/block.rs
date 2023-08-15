@@ -39,7 +39,6 @@ impl rlp::Encodable for BlockReceipt {
 
 #[cfg(test)]
 mod test {
-
     use ethbloom::Bloom;
     use revm_primitives::Address;
 

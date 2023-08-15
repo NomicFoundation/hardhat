@@ -28,6 +28,7 @@ pub struct Log {
     /// Topics
     pub topics: Vec<B256>,
     /// Data
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::bytes"))]
     pub data: Bytes,
 }
 

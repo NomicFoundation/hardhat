@@ -123,6 +123,7 @@ pub struct Header {
     pub gas_used: U256,
     /// The block's timestamp
     pub timestamp: U256,
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::bytes"))]
     /// The block's extra data
     pub extra_data: Bytes,
     /// The block's mix hash
