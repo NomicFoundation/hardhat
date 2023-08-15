@@ -8,6 +8,7 @@ import {
   RunStartMessage,
 } from "../types/messages";
 
+import { callExecutionStateReducer } from "./call-execution-state-reducer";
 import { deploymentExecutionStateReducer } from "./deployment-execution-state-reducer";
 
 const initialState: DeploymentState = {
@@ -33,6 +34,7 @@ export function deploymentStateReducer(
         chainId: action.chainId,
       };
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE:
+    case JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE:
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
     case JournalMessageType.TRANSACTION_SEND:
     case JournalMessageType.TRANSACTION_CONFIRM:
@@ -66,6 +68,8 @@ function dispatchToPerExecutionStateReducer(
   switch (action.type) {
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE:
       return deploymentExecutionStateReducer(null as any, action);
+    case JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE:
+      return callExecutionStateReducer(null as any, action);
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE:
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
     case JournalMessageType.TRANSACTION_SEND:

@@ -1,14 +1,14 @@
 import { assertIgnitionInvariant } from "../../utils/assertions";
 import { DeploymentState } from "../types/deployment-state";
 import {
-  DeploymentExecutionState,
+  CallExecutionState,
   ExecutionSateType,
 } from "../types/execution-state";
 
-export function findDeploymentExecutionStateBy(
+export function findCallExecutionStateBy(
   deployment: DeploymentState,
   futureId: string
-): DeploymentExecutionState {
+): CallExecutionState {
   const exState = deployment.executionStates[futureId];
 
   assertIgnitionInvariant(
@@ -17,8 +17,8 @@ export function findDeploymentExecutionStateBy(
   );
 
   assertIgnitionInvariant(
-    exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
-    `Expected execution state for ${futureId} to be a deployment execution state, but instead it was ${exState.type}`
+    exState.type === ExecutionSateType.CALL_EXECUTION_STATE,
+    `Expected execution state for ${futureId} to be a call execution state, but instead it was ${exState.type}`
   );
 
   return exState;
