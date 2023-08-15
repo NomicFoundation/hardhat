@@ -17,8 +17,12 @@ import {
   TransactionConfirmMessage,
   TransactionSendMessage,
 } from "../types/messages";
-import { findOnchainInteractionBy } from "../views/deployment-execution-state/find-onchain-interaction-by";
-import { findTransactionBy } from "../views/deployment-execution-state/find-transaction-by";
+
+import {
+  appendNetworkInteraction,
+  appendTransactionToOnchainInteraction,
+  confirmTransaction,
+} from "./network-interaction-helpers";
 
 export function deploymentExecutionStateReducer(
   state: DeploymentExecutionState,
@@ -32,14 +36,14 @@ export function deploymentExecutionStateReducer(
   switch (action.type) {
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE:
       return initialiseDeploymentExecutionStateFrom(action);
+    case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE:
+      return completeDeploymentExecutionState(state, action.result);
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
       return appendNetworkInteraction(state, action);
     case JournalMessageType.TRANSACTION_SEND:
       return appendTransactionToOnchainInteraction(state, action);
     case JournalMessageType.TRANSACTION_CONFIRM:
       return confirmTransaction(state, action);
-    case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE:
-      return completeDeploymentExecutionState(state, action.result);
   }
 }
 
@@ -63,50 +67,6 @@ function initialiseDeploymentExecutionStateFrom(
   };
 
   return deploymentExecutionInitialState;
-}
-
-function appendNetworkInteraction(
-  state: DeploymentExecutionState,
-  action: NetworkInteractionRequestMessage
-) {
-  return produce(state, (draft: DeploymentExecutionState): void => {
-    draft.networkInteractions.push(action.networkInteraction);
-  });
-}
-
-function appendTransactionToOnchainInteraction(
-  state: DeploymentExecutionState,
-  action: TransactionSendMessage
-): DeploymentExecutionState {
-  return produce(state, (draft: DeploymentExecutionState): void => {
-    const onchainInteraction = findOnchainInteractionBy(
-      draft,
-      action.networkInteractionId
-    );
-
-    onchainInteraction.transactions.push(action.transaction);
-  });
-}
-
-function confirmTransaction(
-  state: DeploymentExecutionState,
-  action: TransactionConfirmMessage
-) {
-  return produce(state, (draft: DeploymentExecutionState): void => {
-    const onchainInteraction = findOnchainInteractionBy(
-      draft,
-      action.networkInteractionId
-    );
-
-    const transaction = findTransactionBy(
-      draft,
-      action.networkInteractionId,
-      action.hash
-    );
-
-    transaction.receipt = action.receipt;
-    onchainInteraction.transactions = [transaction];
-  });
 }
 
 function completeDeploymentExecutionState(

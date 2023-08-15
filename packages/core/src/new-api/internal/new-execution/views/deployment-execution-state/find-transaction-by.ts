@@ -1,16 +1,19 @@
 import { assertIgnitionInvariant } from "../../../utils/assertions";
-import { DeploymentExecutionState } from "../../types/execution-state";
+import {
+  CallExecutionState,
+  DeploymentExecutionState,
+} from "../../types/execution-state";
 import { Transaction } from "../../types/jsonrpc";
 
 import { findOnchainInteractionBy } from "./find-onchain-interaction-by";
 
 export function findTransactionBy(
-  deploymentExecutionState: DeploymentExecutionState,
+  executionState: DeploymentExecutionState | CallExecutionState,
   networkInteractionId: number,
   hash: string
 ): Transaction {
   const onchainInteraction = findOnchainInteractionBy(
-    deploymentExecutionState,
+    executionState,
     networkInteractionId
   );
 
@@ -20,7 +23,7 @@ export function findTransactionBy(
 
   assertIgnitionInvariant(
     transaction !== undefined,
-    `Expected transaction ${deploymentExecutionState.id}/${networkInteractionId}/${hash} to exist, but it did not`
+    `Expected transaction ${executionState.id}/${networkInteractionId}/${hash} to exist, but it did not`
   );
 
   return transaction;

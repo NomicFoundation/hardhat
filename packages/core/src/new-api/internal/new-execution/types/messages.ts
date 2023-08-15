@@ -1,6 +1,9 @@
 import { SolidityParameterType } from "../../../types/module";
 
-import { DeploymentExecutionResult } from "./execution-result";
+import {
+  CallExecutionResult,
+  DeploymentExecutionResult,
+} from "./execution-result";
 import { DeploymentExecutionStateFutureTypes } from "./execution-state";
 import { Transaction, TransactionReceipt } from "./jsonrpc";
 import { NetworkInteraction } from "./network-interaction";
@@ -10,6 +13,7 @@ export type JournalMessage =
   | DeploymentExecutionStateInitializeMessage
   | DeploymentExecutionStateCompleteMessage
   | CallExecutionStateInitializeMessage
+  | CallExecutionStateCompleteMessage
   | NetworkInteractionRequestMessage
   | TransactionSendMessage
   | TransactionConfirmMessage;
@@ -62,6 +66,12 @@ export interface CallExecutionStateInitializeMessage {
   args: SolidityParameterType[];
   value: bigint;
   from: string | undefined;
+}
+
+export interface CallExecutionStateCompleteMessage {
+  type: JournalMessageType.CALL_EXECUTION_STATE_COMPLETE;
+  futureId: string;
+  result: CallExecutionResult;
 }
 
 export interface NetworkInteractionRequestMessage {

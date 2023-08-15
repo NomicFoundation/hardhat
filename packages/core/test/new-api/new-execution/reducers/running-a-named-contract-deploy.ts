@@ -28,6 +28,7 @@ import { applyMessages } from "./utils";
 describe("DeploymentStateReducer", () => {
   describe("running a named contract deploy", () => {
     const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
+    const differentAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
 
     let updatedDeploymentState: DeploymentState;
     let updatedDepExState: DeploymentExecutionState;
@@ -56,10 +57,24 @@ describe("DeploymentStateReducer", () => {
         to: undefined,
         data: "fake-data",
         value: BigInt(0),
-        from: "string",
+        from: differentAddress,
         transactions: [],
       },
     };
+
+    const requestStaticCallInteractionMessage: NetworkInteractionRequestMessage =
+      {
+        type: JournalMessageType.NETWORK_INTERACTION_REQUEST,
+        futureId: "future1",
+        networkInteraction: {
+          id: 1,
+          type: NetworkInteractionType.STATIC_CALL,
+          to: undefined,
+          data: "fake-data",
+          value: BigInt(0),
+          from: differentAddress,
+        },
+      };
 
     const sendTransactionMessage: TransactionSendMessage = {
       type: JournalMessageType.TRANSACTION_SEND,
@@ -265,7 +280,7 @@ describe("DeploymentStateReducer", () => {
       });
     });
 
-    describe("deployment completes successfully", () => {
+    describe("strategy indicates deployment completes successfully", () => {
       beforeEach(() => {
         updatedDeploymentState = applyMessages([
           initializeNamedContractDeployMessage,
@@ -303,8 +318,6 @@ describe("DeploymentStateReducer", () => {
           initializeNamedContractDeployMessage,
           requestNetworkInteractionMessage,
           sendTransactionMessage,
-          sendAnotherTransactionMessage,
-          confirmTransactionMessage,
           deploymentFailsWithRevertMessage,
         ]);
 
@@ -333,10 +346,7 @@ describe("DeploymentStateReducer", () => {
       beforeEach(() => {
         updatedDeploymentState = applyMessages([
           initializeNamedContractDeployMessage,
-          requestNetworkInteractionMessage,
-          sendTransactionMessage,
-          sendAnotherTransactionMessage,
-          confirmTransactionMessage,
+          requestStaticCallInteractionMessage,
           deploymentFailsOnStaticCall,
         ]);
 
@@ -346,7 +356,7 @@ describe("DeploymentStateReducer", () => {
         );
       });
 
-      it("should set the result as a revert", () => {
+      it("should set the result as a static call error", () => {
         assert.deepStrictEqual(updatedDepExState.result, {
           type: ExecutionResultType.STATIC_CALL_ERROR,
           error: {
@@ -378,7 +388,7 @@ describe("DeploymentStateReducer", () => {
         );
       });
 
-      it("should set the result as a revert", () => {
+      it("should set the result as a strategy error", () => {
         assert.deepStrictEqual(updatedDepExState.result, {
           type: ExecutionResultType.STRATEGY_ERROR,
           error:
@@ -408,7 +418,7 @@ describe("DeploymentStateReducer", () => {
         );
       });
 
-      it("should set the result as a revert", () => {
+      it("should set the result as a simulation error", () => {
         assert.deepStrictEqual(updatedDepExState.result, {
           type: ExecutionResultType.SIMULATION_ERROR,
           error: {

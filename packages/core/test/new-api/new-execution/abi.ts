@@ -1,5 +1,7 @@
 import { assert } from "chai";
+import { Artifact } from "hardhat/types";
 
+import { SolidityParameterType } from "../../../src";
 import {
   decodeArtifactFunctionCallResult,
   encodeArtifactDeploymentData,
@@ -8,13 +10,11 @@ import {
 import { linkLibraries } from "../../../src/new-api/internal/new-execution/libraries";
 import { EvmExecutionResultTypes } from "../../../src/new-api/internal/new-execution/types/evm-execution";
 import {
-  staticCallResultFixturesArtifacts,
-  staticCallResultFixtures,
-  deploymentFixturesArtifacts,
   callEncodingFixtures,
+  deploymentFixturesArtifacts,
+  staticCallResultFixtures,
+  staticCallResultFixturesArtifacts,
 } from "../../helpers/execution-result-fixtures";
-import { Artifact } from "hardhat/types";
-import { SolidityParameterType } from "../../../src";
 
 describe("abi", () => {
   // These tests validate that type conversions from the underlying abi library
