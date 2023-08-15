@@ -1,6 +1,6 @@
 import type { Result, ParamType } from "ethers";
 
-import { IgnitionError } from "../../../errors";
+import { UnsupportedOperationError } from "../../../errors";
 import { Artifact } from "../../types/artifact";
 import { SolidityParameterType } from "../../types/module";
 import { assertIgnitionInvariant } from "../utils/assertions";
@@ -141,8 +141,9 @@ function ethersValueIntoEvmValue(
     if (paramType.baseType === "array") {
       assertIgnitionInvariant(
         paramType.arrayChildren !== null,
-        "Components must be defined for tuples"
+        `[ethers.js values decoding] arrayChildren must be defined for array ${paramType.type}`
       );
+
       return ethersResultIntoEvmValueArray(
         ethersValue,
         paramType.arrayChildren
@@ -151,14 +152,16 @@ function ethersValueIntoEvmValue(
 
     assertIgnitionInvariant(
       paramType.components !== null,
-      "Components must be defined for tuples"
+      `[ethers.js values decoding] components must be defined for tuple ${paramType.type}`
     );
 
     return ethersResultIntoEvmTuple(ethersValue, paramType.components);
   }
 
-  throw new IgnitionError(
-    `Can't decode ethers value into our own type: ${typeof ethersValue}`
+  throw new UnsupportedOperationError(
+    `Ignition can't decode ethers.js value of type ${
+      paramType.type
+    }: ${JSON.stringify(ethersValue, undefined, 2)}`
   );
 }
 

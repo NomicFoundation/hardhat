@@ -44,3 +44,15 @@ export class IgnitionValidationError extends IgnitionError {
     Error.captureStackTrace(this, f);
   }
 }
+
+/**
+ * This error class is thrown in situations where Ignition
+ * intentionally doesn't support a certain operation.
+ *
+ * @alpha
+ */
+export class UnsupportedOperationError extends IgnitionError {
+  constructor(message: string) {
+    super(message);
+  }
+}
