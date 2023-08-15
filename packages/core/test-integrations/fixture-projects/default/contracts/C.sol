@@ -209,3 +209,68 @@ contract WithComplexArguments {
     return (s, b32, b, ss);
   }
 }
+
+contract ToTestEthersEncodingConversion {
+  struct S {
+    uint i;
+  }
+
+  function numberTypes(
+    uint8 a,
+    int8 b,
+    uint32 c,
+    int32 d,
+    uint128 e,
+    int128 f,
+    uint g,
+    int h
+  )
+    public
+    pure
+    returns (uint8, int8, uint32, int32, uint128, int128, uint, int)
+  {
+    return (a, b, c, d, e, f, g, h);
+  }
+
+  function booleans(bool a, bool b) public pure returns (bool, bool f) {
+    return (a, b);
+  }
+
+  function byteArrays(
+    bytes10 b10,
+    bytes memory bs
+  ) public pure returns (bytes10, bytes memory) {
+    return (b10, bs);
+  }
+
+  function strings(string memory s) public pure returns (string memory) {
+    return s;
+  }
+
+  function structs(S memory s) public pure returns (S memory) {
+    return s;
+  }
+
+  function arrays(
+    uint[] memory uis,
+    string[] memory ss,
+    int[10] memory ints
+  ) public pure returns (uint[] memory, string[] memory, int[10] memory) {
+    return (uis, ss, ints);
+  }
+
+  function addresses(address addy) public pure returns (address) {
+    return addy;
+  }
+
+  function tuple(uint8 u, uint16 u2) public pure returns (uint8, uint16 named) {
+    return (u, u2);
+  }
+
+  function recursiveApplication(
+    S[] memory ss,
+    S[][] memory sss
+  ) public pure returns (S[] memory, S[][] memory) {
+    return (ss, sss);
+  }
+}

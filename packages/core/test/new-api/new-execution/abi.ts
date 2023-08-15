@@ -13,13 +13,208 @@ import {
   deploymentFixturesArtifacts,
   callEncodingFixtures,
 } from "../../helpers/execution-result-fixtures";
+import { Artifact } from "hardhat/types";
+import { SolidityParameterType } from "../../../src";
 
 describe("abi", () => {
   // These tests validate that type conversions from the underlying abi library
   // (ethers v6 as of this writing) are working as expected, and that no type
   // of the library is used directly in the public API.
   describe("Type conversions", () => {
-    // TODO @alcuadrado
+    // To decrease the amount of fixtures, these tests work like this:
+    // We have functions that take and receive the same values.
+    // Encoding the call and removing the selector would be equivalent to
+    // an encoded result, which we decode and test.
+
+    function getDecodedResults(
+      artifact: Artifact,
+      functionName: string,
+      args: SolidityParameterType[]
+    ) {
+      const encoded = encodeArtifactFunctionCall(artifact, functionName, args);
+
+      // If we remove the selector we should be able to decode the arguments
+      // because the result has the same ABI
+      const decodeResult = decodeArtifactFunctionCallResult(
+        artifact,
+        functionName,
+        `0x${encoded.substring(10)}` // Remove the selector
+      );
+
+      assert(decodeResult.type === EvmExecutionResultTypes.SUCESSFUL_RESULT);
+      return decodeResult.values;
+    }
+
+    it("Should decode number types as bigint", () => {
+      const args = [1n, -1n, 2n, -2n, 3n, -3n, 4n, -4n];
+
+      const decoded = getDecodedResults(
+        callEncodingFixtures.ToTestEthersEncodingConversion,
+        "numberTypes",
+        args
+      );
+
+      assert.deepEqual(decoded, {
+        positional: args,
+        named: {},
+      });
+    });
+
+    it("Should decode booleans as booleans", () => {
+      const args = [true, false];
+
+      const decoded = getDecodedResults(
+        callEncodingFixtures.ToTestEthersEncodingConversion,
+        "booleans",
+        args
+      );
+
+      assert.deepEqual(decoded, {
+        positional: args,
+        named: { f: false },
+      });
+    });
+
+    it("Should decode byte arrays (sized and dynamic) as strings", () => {
+      const args = ["0x00112233445566778899", "0x100122"];
+
+      const decoded = getDecodedResults(
+        callEncodingFixtures.ToTestEthersEncodingConversion,
+        "byteArrays",
+        args
+      );
+
+      assert.deepEqual(decoded, {
+        positional: args,
+        named: {},
+      });
+    });
+
+    it("Should decode strings as strings", () => {
+      const args = ["hello"];
+
+      const decoded = getDecodedResults(
+        callEncodingFixtures.ToTestEthersEncodingConversion,
+        "strings",
+        args
+      );
+
+      assert.deepEqual(decoded, {
+        positional: args,
+        named: {},
+      });
+    });
+
+    it("Should decode addresses as strings", () => {
+      const args = ["0x1122334455667788990011223344556677889900"];
+
+      const decoded = getDecodedResults(
+        callEncodingFixtures.ToTestEthersEncodingConversion,
+        "addresses",
+        args
+      );
+
+      assert.deepEqual(decoded, {
+        positional: args,
+        named: {},
+      });
+    });
+
+    it("Should decode array (sized and dynamic) as arrays", () => {
+      const args = [
+        [1n, 2n, 3n],
+        ["a", "b"],
+        [1n, -2n, 3n, 4n, 5n, 6n, 7n, 8n, 9n, 0n],
+      ];
+
+      const decoded = getDecodedResults(
+        callEncodingFixtures.ToTestEthersEncodingConversion,
+        "arrays",
+        args
+      );
+
+      assert.deepEqual(decoded, {
+        positional: args,
+        named: {},
+      });
+    });
+
+    it("Should decode structs as EvmTuples", () => {
+      const args = [{ i: 1n }];
+
+      const decoded = getDecodedResults(
+        callEncodingFixtures.ToTestEthersEncodingConversion,
+        "structs",
+        args
+      );
+
+      assert.deepEqual(decoded, {
+        positional: [
+          {
+            positional: [1n],
+            named: {
+              i: 1n,
+            },
+          },
+        ],
+        named: {},
+      });
+    });
+
+    it("Should decode tuples as EvmTuples (including named and unnamed fields)", () => {
+      const args = [1n, 2n];
+
+      const decoded = getDecodedResults(
+        callEncodingFixtures.ToTestEthersEncodingConversion,
+        "tuple",
+        args
+      );
+
+      assert.deepEqual(decoded, {
+        positional: args,
+        named: {
+          named: 2n,
+        },
+      });
+    });
+
+    it("Should apply this rules recursively", () => {
+      const args = [[{ i: 1n }, [2n]], [[{ i: 3n }]]];
+
+      const decoded = getDecodedResults(
+        callEncodingFixtures.ToTestEthersEncodingConversion,
+        "recursiveApplication",
+        args
+      );
+
+      assert.deepEqual(decoded, {
+        positional: [
+          [
+            {
+              positional: [1n],
+              named: {
+                i: 1n,
+              },
+            },
+            {
+              positional: [2n],
+              named: { i: 2n },
+            },
+          ],
+          [
+            [
+              {
+                positional: [3n],
+                named: {
+                  i: 3n,
+                },
+              },
+            ],
+          ],
+        ],
+        named: {},
+      });
+    });
   });
 
   describe("decodeArtifactFunctionCallResult", () => {
