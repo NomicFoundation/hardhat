@@ -77,6 +77,13 @@ pub struct Transaction {
     pub max_priority_fee_per_gas: Option<U256>,
 }
 
+impl Transaction {
+    /// Returns whether the transaction is a legacy transaction.
+    pub fn is_legacy(&self) -> bool {
+        self.transaction_type == 0 && (self.v == 27 || self.v == 28)
+    }
+}
+
 /// Error that occurs when trying to convert the JSON-RPC `TransactionReceipt` type.
 #[derive(Debug, thiserror::Error)]
 pub enum ReceiptConversionError {
@@ -173,8 +180,8 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
 
         let transaction = match value.transaction_type {
             0 => {
-                if value.v > 36 {
-                    SignedTransaction::EIP155(EIP155SignedTransaction {
+                if value.is_legacy() {
+                    SignedTransaction::Legacy(LegacySignedTransaction {
                         nonce: value.nonce,
                         gas_price: value.gas_price,
                         gas_limit: value.gas.to(),
@@ -188,7 +195,7 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
                         },
                     })
                 } else {
-                    SignedTransaction::Legacy(LegacySignedTransaction {
+                    SignedTransaction::EIP155(EIP155SignedTransaction {
                         nonce: value.nonce,
                         gas_price: value.gas_price,
                         gas_limit: value.gas.to(),
