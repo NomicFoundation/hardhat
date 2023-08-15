@@ -136,8 +136,8 @@ export type StaticCallResponse = RawStaticCallResult;
  *    If the strategy doesn't want to proceed, it should return a `SimulationErrorExecutionResult`
  *    or a `StrategyErrorExecutionResult`.
  *
- *    If a `SimulationError` is returned, the execution will be considered failed, but no
- *    failed result will be stored in the execution journal.
+ *    If an error is returned, the execution will be considered failed, but no failed result
+ *    will be stored in the execution journal.
  *
  *    If the execution strategy wants to proceed, it should yield a `SimulationSuccessSignal`.
  *
