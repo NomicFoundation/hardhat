@@ -13,6 +13,7 @@ import { trace as mainnetReturnsDataTrace } from "../../../../fixture-debug-trac
 import { trace as mainnetReturnsDataTraceGeth } from "../../../../fixture-debug-traces/mainnetReturnsDataTraceGeth";
 import { trace as mainnetRevertTrace } from "../../../../fixture-debug-traces/mainnetRevertTrace";
 import { trace as modifiesStateTrace } from "../../../../fixture-debug-traces/modifiesStateTrace";
+import { trace as elongatedMemoryRegressionTestTrace } from "../../../../fixture-debug-traces/elongatedMemoryRegressionTestTrace";
 import { ALCHEMY_URL } from "../../../../setup";
 import {
   assertInvalidArgumentsError,
@@ -33,6 +34,7 @@ import {
 import { sendDummyTransaction } from "../../helpers/sendDummyTransaction";
 import { deployContract } from "../../helpers/transactions";
 import { assertEqualTraces } from "../utils/assertEqualTraces";
+import { numberToRpcQuantity } from "../../../../../src/internal/core/jsonrpc/types/base-types";
 
 // TODO: temporarily skip some of the tests because the latest version of ethereumjs
 // sometimes wrongly adds dummy empty words in the memory field
@@ -85,7 +87,7 @@ describe("Debug module", function () {
           );
         });
 
-        it.skip("Should return the right values for fake sender txs", async function () {
+        it("Should return the right values for fake sender txs", async function () {
           const impersonatedAddress =
             "0xC014BA5EC014ba5ec014Ba5EC014ba5Ec014bA5E";
 
@@ -97,7 +99,7 @@ describe("Debug module", function () {
             {
               from: DEFAULT_ACCOUNTS_ADDRESSES[0],
               to: impersonatedAddress,
-              value: "0x100",
+              value: numberToRpcQuantity(10n ** 18n),
             },
           ]);
 
@@ -123,7 +125,7 @@ describe("Debug module", function () {
           });
         });
 
-        it.skip("Should return the right values for successful contract tx", async function () {
+        it("Should return the right values for successful contract tx", async function () {
           const contractAddress = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`,
@@ -168,6 +170,28 @@ describe("Debug module", function () {
             returnValue: "",
             structLogs: [],
           });
+        });
+
+        // Regression test, see issue: https://github.com/NomicFoundation/hardhat/issues/3858
+        it("The memory property should not have additional superfluous zeros", async function () {
+          // push0 push0 mstore push0
+          const bytecode = "0x5F5F525F";
+          const address = "0x1234567890123456789012345678901234567890";
+
+          await this.provider.send("hardhat_setCode", [address, bytecode]);
+
+          const tx = await this.provider.send("eth_sendTransaction", [
+            {
+              from: DEFAULT_ACCOUNTS_ADDRESSES[2],
+              to: address,
+            },
+          ]);
+
+          const trace = await this.provider.send("debug_traceTransaction", [
+            tx,
+          ]);
+
+          assertEqualTraces(trace, elongatedMemoryRegressionTestTrace);
         });
 
         describe("berlin", function () {
@@ -245,7 +269,7 @@ describe("Debug module", function () {
       );
     });
 
-    it.skip("Should return the right values for a successful tx", async function () {
+    it("Should return the right values for a successful tx", async function () {
       const trace: RpcDebugTraceOutput = await provider.send(
         "debug_traceTransaction",
         ["0x89ebeb319fcd7bda9c7f8c1b78a7571842a705425b175f24f34fe8e6c60580d4"]
@@ -255,7 +279,7 @@ describe("Debug module", function () {
       assertEqualTraces(trace, mainnetReturnsDataTraceGeth);
     });
 
-    it.skip("Should return the right values for a reverted tx", async function () {
+    it("Should return the right values for a reverted tx", async function () {
       const trace: RpcDebugTraceOutput = await provider.send(
         "debug_traceTransaction",
         ["0x6214b912cc9916d8b7bf5f4ff876e259f5f3754ddebb6df8c8e897cad31ae148"]
@@ -285,7 +309,7 @@ describe("Debug module", function () {
       });
     });
 
-    it.skip("Should respect the disableStack option", async function () {
+    it("Should respect the disableStack option", async function () {
       const trace: RpcDebugTraceOutput = await provider.send(
         "debug_traceTransaction",
         [
@@ -306,7 +330,7 @@ describe("Debug module", function () {
       });
     });
 
-    it.skip("Should respect the disableStorage option", async function () {
+    it("Should respect the disableStorage option", async function () {
       const trace: RpcDebugTraceOutput = await provider.send(
         "debug_traceTransaction",
         [
