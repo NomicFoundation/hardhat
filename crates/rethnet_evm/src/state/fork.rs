@@ -346,6 +346,7 @@ mod tests {
     use std::ops::{Deref, DerefMut};
     use std::str::FromStr;
 
+    use rethnet_test_utils::env::get_alchemy_url;
     use tokio::runtime::Builder;
 
     use super::*;
@@ -359,19 +360,6 @@ mod tests {
     }
 
     impl TestForkState {
-        fn get_alchemy_url() -> String {
-            let url = std::env::var_os("ALCHEMY_URL")
-                .expect("ALCHEMY_URL environment variable not defined")
-                .into_string()
-                .expect("couldn't convert OsString into a String");
-
-            if url.is_empty() {
-                panic!("ALCHEMY_URL environment variable is empty")
-            } else {
-                url
-            }
-        }
-
         fn new() -> Self {
             let runtime = Arc::new(
                 Builder::new_multi_thread()
@@ -388,7 +376,7 @@ mod tests {
             let fork_state = ForkState::new(
                 runtime,
                 hash_generator,
-                &Self::get_alchemy_url(),
+                &get_alchemy_url(),
                 tempdir.path().to_path_buf(),
                 U256::from(FORK_BLOCK),
                 HashMap::default(),
