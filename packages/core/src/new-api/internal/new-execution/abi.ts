@@ -24,7 +24,6 @@ import {
  * arguments and returns the result, which can be used as the `data` field of a
  * deployment.
  */
-// TODO: This should be sync, it's only async because of collectLibrariesAndLink
 export function encodeArtifactDeploymentData(
   artifact: Artifact,
   args: SolidityParameterType[],
@@ -42,7 +41,6 @@ export function encodeArtifactDeploymentData(
 /**
  * Encodes a function call for the given artifact and function name.
  */
-// TODO: Handle overloads
 export function encodeArtifactFunctionCall(
   artifact: Artifact,
   functionName: string,
