@@ -18,8 +18,8 @@ import {
   TransactionSendMessage,
 } from "../../../../src/new-api/internal/new-execution/types/messages";
 import { NetworkInteractionType } from "../../../../src/new-api/internal/new-execution/types/network-interaction";
-import { findOnchainInteractionBy } from "../../../../src/new-api/internal/new-execution/views/deployment-execution-state/find-onchain-interaction-by";
-import { findTransactionBy } from "../../../../src/new-api/internal/new-execution/views/deployment-execution-state/find-transaction-by";
+import { findOnchainInteractionBy } from "../../../../src/new-api/internal/new-execution/views/execution-state/find-onchain-interaction-by";
+import { findTransactionBy } from "../../../../src/new-api/internal/new-execution/views/execution-state/find-transaction-by";
 import { findSendDataExecutionStateBy } from "../../../../src/new-api/internal/new-execution/views/find-send-data-execution-state-by";
 import { assertIgnitionInvariant } from "../../../../src/new-api/internal/utils/assertions";
 

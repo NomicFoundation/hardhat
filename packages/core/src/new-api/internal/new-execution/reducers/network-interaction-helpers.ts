@@ -15,9 +15,9 @@ import {
   TransactionConfirmMessage,
   TransactionSendMessage,
 } from "../types/messages";
-import { findOnchainInteractionBy } from "../views/deployment-execution-state/find-onchain-interaction-by";
-import { findStaticCallBy } from "../views/deployment-execution-state/find-static-call-by";
-import { findTransactionBy } from "../views/deployment-execution-state/find-transaction-by";
+import { findOnchainInteractionBy } from "../views/execution-state/find-onchain-interaction-by";
+import { findStaticCallBy } from "../views/execution-state/find-static-call-by";
+import { findTransactionBy } from "../views/execution-state/find-transaction-by";
 
 /**
  * Add a new network interaction to the execution state.

@@ -1,6 +1,5 @@
 import { IgnitionError } from "../../../errors";
 import { EIP1193Provider } from "../../types/provider";
-import { assertIgnitionInvariant } from "../utils/assertions";
 
 import {
   NetworkFees,
