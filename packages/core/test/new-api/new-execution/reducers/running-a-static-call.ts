@@ -1,6 +1,5 @@
 import { assert } from "chai";
 
-import { FutureType } from "../../../../src";
 import { DeploymentState } from "../../../../src/new-api/internal/new-execution/types/deployment-state";
 import { EvmExecutionResultTypes } from "../../../../src/new-api/internal/new-execution/types/evm-execution";
 import { ExecutionResultType } from "../../../../src/new-api/internal/new-execution/types/execution-result";
@@ -33,7 +32,6 @@ describe("DeploymentStateReducer", () => {
       {
         type: JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE,
         futureId: "StaticCall1",
-        futureType: FutureType.NAMED_STATIC_CALL,
         strategy: "basic",
         dependencies: [],
         artifactFutureId: "Contract1",

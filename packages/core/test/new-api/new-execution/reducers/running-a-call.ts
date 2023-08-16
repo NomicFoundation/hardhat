@@ -22,7 +22,6 @@ import { findOnchainInteractionBy } from "../../../../src/new-api/internal/new-e
 import { findTransactionBy } from "../../../../src/new-api/internal/new-execution/views/deployment-execution-state/find-transaction-by";
 import { findCallExecutionStateBy } from "../../../../src/new-api/internal/new-execution/views/find-call-execution-state-by";
 import { assertIgnitionInvariant } from "../../../../src/new-api/internal/utils/assertions";
-import { FutureType } from "../../../../src/new-api/types/module";
 
 import { applyMessages } from "./utils";
 
@@ -38,7 +37,6 @@ describe("DeploymentStateReducer", () => {
       {
         type: JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE,
         futureId: "Call1",
-        futureType: FutureType.NAMED_CONTRACT_CALL,
         strategy: "basic",
         dependencies: [],
         artifactFutureId: "Contract1",

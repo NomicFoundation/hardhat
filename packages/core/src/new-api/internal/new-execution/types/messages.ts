@@ -80,7 +80,6 @@ export interface DeploymentExecutionStateCompleteMessage {
 export interface CallExecutionStateInitializeMessage {
   type: JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE;
   futureId: string;
-  futureType: FutureType.NAMED_CONTRACT_CALL;
   strategy: string;
   dependencies: string[];
   artifactFutureId: string;
@@ -100,7 +99,6 @@ export interface CallExecutionStateCompleteMessage {
 export interface StaticCallExecutionStateInitializeMessage {
   type: JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE;
   futureId: string;
-  futureType: FutureType.NAMED_STATIC_CALL;
   strategy: string;
   dependencies: string[];
   artifactFutureId: string;
