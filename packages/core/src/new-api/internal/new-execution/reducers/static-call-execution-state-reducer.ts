@@ -16,15 +16,11 @@ import {
   StaticCallCompleteMessage,
   StaticCallExecutionStateCompleteMessage,
   StaticCallExecutionStateInitializeMessage,
-  TransactionConfirmMessage,
-  TransactionSendMessage,
 } from "../types/messages";
 
 import {
   appendNetworkInteraction,
-  appendTransactionToOnchainInteraction,
   completeStaticCall,
-  confirmTransaction,
 } from "./network-interaction-helpers";
 
 export function staticCallExecutionStateReducer(
@@ -33,8 +29,6 @@ export function staticCallExecutionStateReducer(
     | StaticCallExecutionStateInitializeMessage
     | StaticCallExecutionStateCompleteMessage
     | NetworkInteractionRequestMessage
-    | TransactionSendMessage
-    | TransactionConfirmMessage
     | StaticCallCompleteMessage
 ): StaticCallExecutionState {
   switch (action.type) {
@@ -44,10 +38,6 @@ export function staticCallExecutionStateReducer(
       return completeStaticCallExecutionState(state, action);
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
       return appendNetworkInteraction(state, action);
-    case JournalMessageType.TRANSACTION_SEND:
-      return appendTransactionToOnchainInteraction(state, action);
-    case JournalMessageType.TRANSACTION_CONFIRM:
-      return confirmTransaction(state, action);
     case JournalMessageType.STATIC_CALL_COMPLETE:
       return completeStaticCall(state, action);
   }

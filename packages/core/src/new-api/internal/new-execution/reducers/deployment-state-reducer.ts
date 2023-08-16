@@ -131,8 +131,6 @@ function dispatchToPerExecutionStateReducer(
 
       return sendDataExecutionStateReducer(state, action);
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
-    case JournalMessageType.TRANSACTION_SEND:
-    case JournalMessageType.TRANSACTION_CONFIRM:
     case JournalMessageType.STATIC_CALL_COMPLETE:
       assertIgnitionInvariant(
         state !== undefined,
@@ -151,7 +149,28 @@ function dispatchToPerExecutionStateReducer(
         case ExecutionSateType.CONTRACT_AT_EXECUTION_STATE:
         case ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE:
           throw new IgnitionError(
-            `Unexpected network-level message ${action.type} for execution state ${state.type} (futurei Id: ${state.id})`
+            `Unexpected network-level message ${action.type} for execution state ${state.type} (futureId: ${state.id})`
+          );
+      }
+    case JournalMessageType.TRANSACTION_SEND:
+    case JournalMessageType.TRANSACTION_CONFIRM:
+      assertIgnitionInvariant(
+        state !== undefined,
+        "Cannot network interact before initialising"
+      );
+
+      switch (state.type) {
+        case ExecutionSateType.DEPLOYMENT_EXECUTION_STATE:
+          return deploymentExecutionStateReducer(state, action);
+        case ExecutionSateType.CALL_EXECUTION_STATE:
+          return callExecutionStateReducer(state, action);
+        case ExecutionSateType.SEND_DATA_EXECUTION_STATE:
+          return sendDataExecutionStateReducer(state, action);
+        case ExecutionSateType.STATIC_CALL_EXECUTION_STATE:
+        case ExecutionSateType.CONTRACT_AT_EXECUTION_STATE:
+        case ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE:
+          throw new IgnitionError(
+            `Unexpected network-level message ${action.type} for execution state ${state.type} (futureId: ${state.id})`
           );
       }
   }
