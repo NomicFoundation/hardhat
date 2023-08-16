@@ -2,13 +2,17 @@ import { assertIgnitionInvariant } from "../../../utils/assertions";
 import {
   CallExecutionState,
   DeploymentExecutionState,
+  StaticCallExecutionState,
 } from "../../types/execution-state";
 import { Transaction } from "../../types/jsonrpc";
 
 import { findOnchainInteractionBy } from "./find-onchain-interaction-by";
 
 export function findTransactionBy(
-  executionState: DeploymentExecutionState | CallExecutionState,
+  executionState:
+    | DeploymentExecutionState
+    | CallExecutionState
+    | StaticCallExecutionState,
   networkInteractionId: number,
   hash: string
 ): Transaction {

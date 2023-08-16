@@ -14,6 +14,7 @@ import {
   DeploymentExecutionStateInitializeMessage,
   JournalMessageType,
   NetworkInteractionRequestMessage,
+  StaticCallCompleteMessage,
   TransactionConfirmMessage,
   TransactionSendMessage,
 } from "../types/messages";
@@ -21,6 +22,7 @@ import {
 import {
   appendNetworkInteraction,
   appendTransactionToOnchainInteraction,
+  completeStaticCall,
   confirmTransaction,
 } from "./network-interaction-helpers";
 
@@ -31,6 +33,7 @@ export function deploymentExecutionStateReducer(
     | NetworkInteractionRequestMessage
     | TransactionSendMessage
     | TransactionConfirmMessage
+    | StaticCallCompleteMessage
     | DeploymentExecutionStateCompleteMessage
 ): DeploymentExecutionState {
   switch (action.type) {
@@ -44,6 +47,8 @@ export function deploymentExecutionStateReducer(
       return appendTransactionToOnchainInteraction(state, action);
     case JournalMessageType.TRANSACTION_CONFIRM:
       return confirmTransaction(state, action);
+    case JournalMessageType.STATIC_CALL_COMPLETE:
+      return completeStaticCall(state, action);
   }
 }
 

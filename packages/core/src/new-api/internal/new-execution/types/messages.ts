@@ -1,12 +1,20 @@
-import { SolidityParameterType } from "../../../types/module";
+import { FutureType, SolidityParameterType } from "../../../types/module";
 
 import {
   CallExecutionResult,
   DeploymentExecutionResult,
+  StaticCallExecutionResult,
 } from "./execution-result";
 import { DeploymentExecutionStateFutureTypes } from "./execution-state";
-import { Transaction, TransactionReceipt } from "./jsonrpc";
-import { NetworkInteraction } from "./network-interaction";
+import {
+  OnchainInteractionRequest,
+  StaticCallRequest,
+} from "./execution-strategy";
+import {
+  RawStaticCallResult,
+  Transaction,
+  TransactionReceipt,
+} from "./jsonrpc";
 
 export type JournalMessage =
   | RunStartMessage
@@ -14,9 +22,12 @@ export type JournalMessage =
   | DeploymentExecutionStateCompleteMessage
   | CallExecutionStateInitializeMessage
   | CallExecutionStateCompleteMessage
+  | StaticCallExecutionStateInitializeMessage
+  | StaticCallExecutionStateCompleteMessage
   | NetworkInteractionRequestMessage
   | TransactionSendMessage
-  | TransactionConfirmMessage;
+  | TransactionConfirmMessage
+  | StaticCallCompleteMessage;
 
 export enum JournalMessageType {
   RUN_START = "RUN_START",
@@ -24,9 +35,12 @@ export enum JournalMessageType {
   DEPLOYMENT_EXECUTION_STATE_COMPLETE = "DEPLOYMENT_EXECUTION_STATE_COMPLETE",
   CALL_EXECUTION_STATE_INITIALIZE = "CALL_EXECUTION_STATE_INITIALIZE",
   CALL_EXECUTION_STATE_COMPLETE = "CALL_EXECUTION_STATE_COMPLETE",
+  STATIC_CALL_EXECUTION_STATE_INITIALIZE = "STATIC_CALL_EXECUTION_STATE_INITIALIZE",
+  STATIC_CALL_EXECUTION_STATE_COMPLETE = "STATIC_CALL_EXECUTION_STATE_COMPLETE",
   NETWORK_INTERACTION_REQUEST = "NETWORK_INTERACTION_REQUEST",
   TRANSACTION_SEND = "TRANSACTION_SEND",
   TRANSACTION_CONFIRM = "TRANSACTION_CONFIRM",
+  STATIC_CALL_COMPLETE = "STATIC_CALL_COMPLETE",
 }
 
 export interface RunStartMessage {
@@ -57,7 +71,7 @@ export interface DeploymentExecutionStateCompleteMessage {
 export interface CallExecutionStateInitializeMessage {
   type: JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE;
   futureId: string;
-  futureType: DeploymentExecutionStateFutureTypes;
+  futureType: FutureType.NAMED_CONTRACT_CALL;
   strategy: string;
   dependencies: string[];
   artifactFutureId: string;
@@ -74,10 +88,29 @@ export interface CallExecutionStateCompleteMessage {
   result: CallExecutionResult;
 }
 
+export interface StaticCallExecutionStateInitializeMessage {
+  type: JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE;
+  futureId: string;
+  futureType: FutureType.NAMED_STATIC_CALL;
+  strategy: string;
+  dependencies: string[];
+  artifactFutureId: string;
+  contractAddress: string;
+  functionName: string;
+  args: SolidityParameterType[];
+  from: string | undefined;
+}
+
+export interface StaticCallExecutionStateCompleteMessage {
+  type: JournalMessageType.STATIC_CALL_EXECUTION_STATE_COMPLETE;
+  futureId: string;
+  result: StaticCallExecutionResult;
+}
+
 export interface NetworkInteractionRequestMessage {
   type: JournalMessageType.NETWORK_INTERACTION_REQUEST;
   futureId: string;
-  networkInteraction: NetworkInteraction;
+  networkInteraction: OnchainInteractionRequest | StaticCallRequest;
 }
 
 export interface TransactionSendMessage {
@@ -93,4 +126,11 @@ export interface TransactionConfirmMessage {
   networkInteractionId: number;
   hash: string;
   receipt: TransactionReceipt;
+}
+
+export interface StaticCallCompleteMessage {
+  type: JournalMessageType.STATIC_CALL_COMPLETE;
+  futureId: string;
+  networkInteractionId: number;
+  result: RawStaticCallResult;
 }

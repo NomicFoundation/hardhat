@@ -10,6 +10,7 @@ import {
 
 import { callExecutionStateReducer } from "./call-execution-state-reducer";
 import { deploymentExecutionStateReducer } from "./deployment-execution-state-reducer";
+import { staticCallExecutionStateReducer } from "./static-call-execution-state-reducer";
 
 const initialState: DeploymentState = {
   chainId: 0,
@@ -35,11 +36,14 @@ export function deploymentStateReducer(
       };
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE:
     case JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE:
+    case JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE:
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
     case JournalMessageType.TRANSACTION_SEND:
     case JournalMessageType.TRANSACTION_CONFIRM:
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE:
     case JournalMessageType.CALL_EXECUTION_STATE_COMPLETE:
+    case JournalMessageType.STATIC_CALL_EXECUTION_STATE_COMPLETE:
+    case JournalMessageType.STATIC_CALL_COMPLETE:
       return {
         ...state,
         executionStates: executionStatesReducer(state.executionStates, action),
@@ -71,6 +75,8 @@ function dispatchToPerExecutionStateReducer(
       return deploymentExecutionStateReducer(null as any, action);
     case JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE:
       return callExecutionStateReducer(null as any, action);
+    case JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE:
+      return staticCallExecutionStateReducer(null as any, action);
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE:
       assertIgnitionInvariant(
         state !== undefined &&
@@ -91,9 +97,20 @@ function dispatchToPerExecutionStateReducer(
       );
 
       return callExecutionStateReducer(state, action);
+    case JournalMessageType.STATIC_CALL_EXECUTION_STATE_COMPLETE:
+      assertIgnitionInvariant(
+        state !== undefined &&
+          state.type === ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
+        `To complete the execution state must be a static call but is ${
+          state === undefined ? "undefined" : state.type
+        }`
+      );
+
+      return staticCallExecutionStateReducer(state, action);
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
     case JournalMessageType.TRANSACTION_SEND:
     case JournalMessageType.TRANSACTION_CONFIRM:
+    case JournalMessageType.STATIC_CALL_COMPLETE:
       assertIgnitionInvariant(
         state !== undefined,
         "Cannot network interact before initialising"
@@ -104,11 +121,14 @@ function dispatchToPerExecutionStateReducer(
           return deploymentExecutionStateReducer(state, action);
         case ExecutionSateType.CALL_EXECUTION_STATE:
           return callExecutionStateReducer(state, action);
+        case ExecutionSateType.STATIC_CALL_EXECUTION_STATE:
+          return staticCallExecutionStateReducer(state, action);
         case ExecutionSateType.CONTRACT_AT_EXECUTION_STATE:
         case ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE:
         case ExecutionSateType.SEND_DATA_EXECUTION_STATE:
-        case ExecutionSateType.STATIC_CALL_EXECUTION_STATE:
-          throw new IgnitionError("Not implemented");
+          throw new IgnitionError(
+            `Unexpected network-level message ${action.type} for execution state ${state.type} (futurei Id: ${state.id})`
+          );
       }
   }
 }

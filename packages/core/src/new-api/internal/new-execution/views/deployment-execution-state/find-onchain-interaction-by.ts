@@ -2,11 +2,18 @@ import { assertIgnitionInvariant } from "../../../utils/assertions";
 import {
   CallExecutionState,
   DeploymentExecutionState,
+  StaticCallExecutionState,
 } from "../../types/execution-state";
-import { OnchainInteraction } from "../../types/network-interaction";
+import {
+  NetworkInteractionType,
+  OnchainInteraction,
+} from "../../types/network-interaction";
 
 export function findOnchainInteractionBy(
-  executionState: DeploymentExecutionState | CallExecutionState,
+  executionState:
+    | DeploymentExecutionState
+    | CallExecutionState
+    | StaticCallExecutionState,
   networkInteractionId: number
 ): OnchainInteraction {
   const onchainInteraction = executionState.networkInteractions.find(
@@ -19,7 +26,7 @@ export function findOnchainInteractionBy(
   );
 
   assertIgnitionInvariant(
-    onchainInteraction.type === "ONCHAIN_INTERACTION",
+    onchainInteraction.type === NetworkInteractionType.ONCHAIN_INTERACTION,
     `Expected network interaction ${executionState.id}/${networkInteractionId} to be an onchain interaction, but instead it was ${onchainInteraction.type}`
   );
 

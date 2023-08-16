@@ -21,6 +21,7 @@ import { NetworkInteractionType } from "../../../../src/new-api/internal/new-exe
 import { findOnchainInteractionBy } from "../../../../src/new-api/internal/new-execution/views/deployment-execution-state/find-onchain-interaction-by";
 import { findTransactionBy } from "../../../../src/new-api/internal/new-execution/views/deployment-execution-state/find-transaction-by";
 import { findCallExecutionStateBy } from "../../../../src/new-api/internal/new-execution/views/find-call-execution-state-by";
+import { assertIgnitionInvariant } from "../../../../src/new-api/internal/utils/assertions";
 import { FutureType } from "../../../../src/new-api/types/module";
 
 import { applyMessages } from "./utils";
@@ -37,7 +38,7 @@ describe("DeploymentStateReducer", () => {
       {
         type: JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE,
         futureId: "Call1",
-        futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
+        futureType: FutureType.NAMED_CONTRACT_CALL,
         strategy: "basic",
         dependencies: [],
         artifactFutureId: "Contract1",
@@ -58,7 +59,6 @@ describe("DeploymentStateReducer", () => {
         data: "fake-data",
         value: BigInt(0),
         from: differentAddress,
-        transactions: [],
       },
     };
 
@@ -201,10 +201,21 @@ describe("DeploymentStateReducer", () => {
       it("should populate a new onchain interaction", () => {
         assert.equal(updatedCallExState.networkInteractions.length, 1);
 
+        const networkInteraction = updatedCallExState.networkInteractions[0];
+
+        assertIgnitionInvariant(
+          networkInteraction.type ===
+            NetworkInteractionType.ONCHAIN_INTERACTION,
+          "Added Network interaction is of the wrong type "
+        );
+
+        const { transactions, ...rest } = networkInteraction;
+
         assert.deepStrictEqual(
-          updatedCallExState.networkInteractions[0],
+          rest,
           requestNetworkInteractionMessage.networkInteraction
         );
+        assert.isDefined(transactions);
       });
     });
 

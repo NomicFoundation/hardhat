@@ -6,16 +6,16 @@ import {
   ExecutionResultType,
 } from "../types/execution-result";
 import {
-  CallExecutionState,
   ExecutionSateType,
   ExecutionStatus,
+  StaticCallExecutionState,
 } from "../types/execution-state";
 import {
-  CallExecutionStateCompleteMessage,
-  CallExecutionStateInitializeMessage,
   JournalMessageType,
   NetworkInteractionRequestMessage,
   StaticCallCompleteMessage,
+  StaticCallExecutionStateCompleteMessage,
+  StaticCallExecutionStateInitializeMessage,
   TransactionConfirmMessage,
   TransactionSendMessage,
 } from "../types/messages";
@@ -27,21 +27,21 @@ import {
   confirmTransaction,
 } from "./network-interaction-helpers";
 
-export function callExecutionStateReducer(
-  state: CallExecutionState,
+export function staticCallExecutionStateReducer(
+  state: StaticCallExecutionState,
   action:
-    | CallExecutionStateInitializeMessage
-    | CallExecutionStateCompleteMessage
+    | StaticCallExecutionStateInitializeMessage
     | NetworkInteractionRequestMessage
     | TransactionSendMessage
     | TransactionConfirmMessage
+    | StaticCallExecutionStateCompleteMessage
     | StaticCallCompleteMessage
-): CallExecutionState {
+): StaticCallExecutionState {
   switch (action.type) {
-    case JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE:
-      return initialiseCallExecutionStateFrom(action);
-    case JournalMessageType.CALL_EXECUTION_STATE_COMPLETE:
-      return completeCallExecutionState(state, action);
+    case JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE:
+      return initialiseStaticCallExecutionStateFrom(action);
+    case JournalMessageType.STATIC_CALL_EXECUTION_STATE_COMPLETE:
+      return completeStaticCallExecutionState(state, action);
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
       return appendNetworkInteraction(state, action);
     case JournalMessageType.TRANSACTION_SEND:
@@ -53,13 +53,13 @@ export function callExecutionStateReducer(
   }
 }
 
-function initialiseCallExecutionStateFrom(
-  action: CallExecutionStateInitializeMessage
-): CallExecutionState {
-  const callExecutionInitialState: CallExecutionState = {
+function initialiseStaticCallExecutionStateFrom(
+  action: StaticCallExecutionStateInitializeMessage
+): StaticCallExecutionState {
+  const callExecutionInitialState: StaticCallExecutionState = {
     id: action.futureId,
-    type: ExecutionSateType.CALL_EXECUTION_STATE,
-    futureType: FutureType.NAMED_CONTRACT_CALL,
+    type: ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
+    futureType: FutureType.NAMED_STATIC_CALL,
     strategy: action.strategy,
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(action.dependencies),
@@ -67,7 +67,6 @@ function initialiseCallExecutionStateFrom(
     contractAddress: action.contractAddress,
     functionName: action.functionName,
     args: action.args,
-    value: action.value,
     from: action.from,
     networkInteractions: [],
   };
@@ -75,11 +74,11 @@ function initialiseCallExecutionStateFrom(
   return callExecutionInitialState;
 }
 
-function completeCallExecutionState(
-  state: CallExecutionState,
-  message: CallExecutionStateCompleteMessage
-): CallExecutionState {
-  return produce(state, (draft: CallExecutionState): void => {
+function completeStaticCallExecutionState(
+  state: StaticCallExecutionState,
+  message: StaticCallExecutionStateCompleteMessage
+): StaticCallExecutionState {
+  return produce(state, (draft: StaticCallExecutionState): void => {
     draft.status = _mapCallExecutionResultTypeToExecutionStatus(message.result);
     draft.result = message.result;
   });

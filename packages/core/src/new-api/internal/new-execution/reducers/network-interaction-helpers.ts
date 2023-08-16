@@ -1,15 +1,21 @@
 import { produce } from "immer";
 
+import { NetworkInteractionType } from "../../execution/transaction-types";
+import { assertIgnitionInvariant } from "../../utils/assertions";
 import {
   CallExecutionState,
   DeploymentExecutionState,
+  ExecutionSateType,
+  StaticCallExecutionState,
 } from "../types/execution-state";
 import {
   NetworkInteractionRequestMessage,
+  StaticCallCompleteMessage,
   TransactionConfirmMessage,
   TransactionSendMessage,
 } from "../types/messages";
 import { findOnchainInteractionBy } from "../views/deployment-execution-state/find-onchain-interaction-by";
+import { findStaticCallBy } from "../views/deployment-execution-state/find-static-call-by";
 import { findTransactionBy } from "../views/deployment-execution-state/find-transaction-by";
 
 /**
@@ -20,10 +26,32 @@ import { findTransactionBy } from "../views/deployment-execution-state/find-tran
  * @returns a copy of the execution state with the addition network interaction
  */
 export function appendNetworkInteraction<
-  ExState extends DeploymentExecutionState | CallExecutionState
+  ExState extends
+    | DeploymentExecutionState
+    | CallExecutionState
+    | StaticCallExecutionState
 >(state: ExState, action: NetworkInteractionRequestMessage): ExState {
-  return produce(state, (draft: DeploymentExecutionState): void => {
-    draft.networkInteractions.push(action.networkInteraction);
+  return produce(state, (draft: ExState): void => {
+    if (draft.type === ExecutionSateType.STATIC_CALL_EXECUTION_STATE) {
+      assertIgnitionInvariant(
+        action.networkInteraction.type === NetworkInteractionType.STATIC_CALL,
+        `Static call execution states like ${draft.id} cannot have onchain interactions`
+      );
+
+      draft.networkInteractions.push(action.networkInteraction);
+
+      return;
+    }
+
+    draft.networkInteractions.push(
+      action.networkInteraction.type ===
+        NetworkInteractionType.ONCHAIN_INTERACTION
+        ? {
+            ...action.networkInteraction,
+            transactions: [],
+          }
+        : action.networkInteraction
+    );
   });
 }
 
@@ -35,9 +63,12 @@ export function appendNetworkInteraction<
  * @returns a copy of the execution state with the additional transaction
  */
 export function appendTransactionToOnchainInteraction<
-  ExState extends DeploymentExecutionState | CallExecutionState
+  ExState extends
+    | DeploymentExecutionState
+    | CallExecutionState
+    | StaticCallExecutionState
 >(state: ExState, action: TransactionSendMessage): ExState {
-  return produce(state, (draft: DeploymentExecutionState): void => {
+  return produce(state, (draft: ExState): void => {
     const onchainInteraction = findOnchainInteractionBy(
       draft,
       action.networkInteractionId
@@ -55,9 +86,12 @@ export function appendTransactionToOnchainInteraction<
  * @returns a copy of the execution state with transaction confirmed
  */
 export function confirmTransaction<
-  ExState extends DeploymentExecutionState | CallExecutionState
+  ExState extends
+    | DeploymentExecutionState
+    | CallExecutionState
+    | StaticCallExecutionState
 >(state: ExState, action: TransactionConfirmMessage): ExState {
-  return produce(state, (draft: DeploymentExecutionState): void => {
+  return produce(state, (draft: ExState): void => {
     const onchainInteraction = findOnchainInteractionBy(
       draft,
       action.networkInteractionId
@@ -72,5 +106,28 @@ export function confirmTransaction<
     transaction.receipt = action.receipt;
     // we intentionally clear other transactions
     onchainInteraction.transactions = [transaction];
+  });
+}
+
+/**
+ * Complete the static call network interaction within an execution state.
+ *
+ * @param state - the execution state that will be updated
+ * @param action - the request message that contains the static call result details
+ * @returns a copy of the execution state with the static call confirmed
+ */
+export function completeStaticCall<
+  ExState extends
+    | DeploymentExecutionState
+    | CallExecutionState
+    | StaticCallExecutionState
+>(state: ExState, action: StaticCallCompleteMessage) {
+  return produce(state, (draft: ExState): void => {
+    const onchainInteraction = findStaticCallBy(
+      draft,
+      action.networkInteractionId
+    );
+
+    onchainInteraction.result = action.result;
   });
 }
