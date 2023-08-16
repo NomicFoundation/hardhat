@@ -280,7 +280,7 @@ jobs:
           ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
         with:
           command: test
-          args: --workspace --all-targets --features tracing,bench-once
+          args: --workspace --all-targets --all-features
 
       - name: Doctests
         uses: actions-rs/cargo@v1
