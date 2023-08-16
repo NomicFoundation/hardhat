@@ -11,6 +11,7 @@ import {
 import { callExecutionStateReducer } from "./call-execution-state-reducer";
 import { contractAtExecutionStateReducer } from "./contract-at-execution-state-reducer";
 import { deploymentExecutionStateReducer } from "./deployment-execution-state-reducer";
+import { readEventArgumentExecutionStateReducer } from "./read-event-argument-execution-state-reducer";
 import { sendDataExecutionStateReducer } from "./send-data-execution-state-reducer";
 import { staticCallExecutionStateReducer } from "./static-call-execution-state-reducer";
 
@@ -41,6 +42,7 @@ export function deploymentStateReducer(
     case JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE:
     case JournalMessageType.SEND_DATA_EXECUTION_STATE_INITIALIZE:
     case JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE:
+    case JournalMessageType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE:
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
     case JournalMessageType.TRANSACTION_SEND:
     case JournalMessageType.TRANSACTION_CONFIRM:
@@ -86,6 +88,8 @@ function dispatchToPerExecutionStateReducer(
       return sendDataExecutionStateReducer(null as any, action);
     case JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE:
       return contractAtExecutionStateReducer(null as any, action);
+    case JournalMessageType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE:
+      return readEventArgumentExecutionStateReducer(null as any, action);
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE:
       assertIgnitionInvariant(
         state !== undefined &&

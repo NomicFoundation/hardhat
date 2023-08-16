@@ -173,5 +173,5 @@ export interface ReadEventArgumentExecutionState
   txToReadFrom: string;
   emitterAddress: string;
   eventIndex: number;
-  result?: SolidityParameterType;
+  result: SolidityParameterType;
 }
