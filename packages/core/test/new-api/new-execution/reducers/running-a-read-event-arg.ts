@@ -10,7 +10,7 @@ import {
   JournalMessageType,
   ReadEventArgExecutionStateInitializeMessage,
 } from "../../../../src/new-api/internal/new-execution/types/messages";
-import { findReadEventArgumentExecutionStateBy } from "../../../../src/new-api/internal/new-execution/views/find-read-event-argument-execution-state-by";
+import { findExecutionStateById } from "../../../../src/new-api/internal/new-execution/views/find-execution-state-by-id";
 
 import { applyMessages } from "./utils";
 
@@ -42,7 +42,8 @@ describe("DeploymentStateReducer", () => {
           initializeReadEventArgExecutionStateMessage,
         ]);
 
-        updatedReadEventExState = findReadEventArgumentExecutionStateBy(
+        updatedReadEventExState = findExecutionStateById(
+          ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE,
           updatedDeploymentState,
           "ReadEventArg1"
         );

@@ -20,7 +20,7 @@ import {
 import { NetworkInteractionType } from "../../../../src/new-api/internal/new-execution/types/network-interaction";
 import { findOnchainInteractionBy } from "../../../../src/new-api/internal/new-execution/views/execution-state/find-onchain-interaction-by";
 import { findTransactionBy } from "../../../../src/new-api/internal/new-execution/views/execution-state/find-transaction-by";
-import { findDeploymentExecutionStateBy } from "../../../../src/new-api/internal/new-execution/views/find-deployment-execution-state-by";
+import { findExecutionStateById } from "../../../../src/new-api/internal/new-execution/views/find-execution-state-by-id";
 import { assertIgnitionInvariant } from "../../../../src/new-api/internal/utils/assertions";
 import { FutureType } from "../../../../src/new-api/types/module";
 
@@ -176,7 +176,8 @@ describe("DeploymentStateReducer", () => {
           initializeNamedContractDeployMessage,
         ]);
 
-        updatedDepExState = findDeploymentExecutionStateBy(
+        updatedDepExState = findExecutionStateById(
+          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
           "future1"
         );
@@ -197,7 +198,8 @@ describe("DeploymentStateReducer", () => {
           requestNetworkInteractionMessage,
         ]);
 
-        updatedDepExState = findDeploymentExecutionStateBy(
+        updatedDepExState = findExecutionStateById(
+          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
           "future1"
         );
@@ -232,7 +234,8 @@ describe("DeploymentStateReducer", () => {
           sendTransactionMessage,
         ]);
 
-        updatedDepExState = findDeploymentExecutionStateBy(
+        updatedDepExState = findExecutionStateById(
+          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
           "future1"
         );
@@ -266,7 +269,8 @@ describe("DeploymentStateReducer", () => {
           confirmTransactionMessage,
         ]);
 
-        updatedDepExState = findDeploymentExecutionStateBy(
+        updatedDepExState = findExecutionStateById(
+          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
           "future1"
         );
@@ -306,7 +310,8 @@ describe("DeploymentStateReducer", () => {
           deploymentSuccessMessage,
         ]);
 
-        updatedDepExState = findDeploymentExecutionStateBy(
+        updatedDepExState = findExecutionStateById(
+          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
           "future1"
         );
@@ -336,7 +341,8 @@ describe("DeploymentStateReducer", () => {
           deploymentFailsWithRevertMessage,
         ]);
 
-        updatedDepExState = findDeploymentExecutionStateBy(
+        updatedDepExState = findExecutionStateById(
+          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
           "future1"
         );
@@ -365,7 +371,8 @@ describe("DeploymentStateReducer", () => {
           deploymentFailsOnStaticCall,
         ]);
 
-        updatedDepExState = findDeploymentExecutionStateBy(
+        updatedDepExState = findExecutionStateById(
+          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
           "future1"
         );
@@ -397,7 +404,8 @@ describe("DeploymentStateReducer", () => {
           deploymentFailOnStrategyError,
         ]);
 
-        updatedDepExState = findDeploymentExecutionStateBy(
+        updatedDepExState = findExecutionStateById(
+          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
           "future1"
         );
@@ -427,7 +435,8 @@ describe("DeploymentStateReducer", () => {
           deploymentFailOnSimulationError,
         ]);
 
-        updatedDepExState = findDeploymentExecutionStateBy(
+        updatedDepExState = findExecutionStateById(
+          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
           "future1"
         );

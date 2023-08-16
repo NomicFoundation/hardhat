@@ -10,7 +10,7 @@ import {
   ContractAtExecutionStateInitializeMessage,
   JournalMessageType,
 } from "../../../../src/new-api/internal/new-execution/types/messages";
-import { findContractAtExecutionStateBy } from "../../../../src/new-api/internal/new-execution/views/find-contract-at-execution-state-by";
+import { findExecutionStateById } from "../../../../src/new-api/internal/new-execution/views/find-execution-state-by-id";
 import { FutureType } from "../../../../src/new-api/types/module";
 
 import { applyMessages } from "./utils";
@@ -41,7 +41,8 @@ describe("DeploymentStateReducer", () => {
           initializeContractAtExecutionStateMessage,
         ]);
 
-        updatedContractAtExState = findContractAtExecutionStateBy(
+        updatedContractAtExState = findExecutionStateById(
+          ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
           updatedDeploymentState,
           "ContractAt1"
         );

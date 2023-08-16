@@ -20,7 +20,7 @@ import {
 import { NetworkInteractionType } from "../../../../src/new-api/internal/new-execution/types/network-interaction";
 import { findOnchainInteractionBy } from "../../../../src/new-api/internal/new-execution/views/execution-state/find-onchain-interaction-by";
 import { findTransactionBy } from "../../../../src/new-api/internal/new-execution/views/execution-state/find-transaction-by";
-import { findCallExecutionStateBy } from "../../../../src/new-api/internal/new-execution/views/find-call-execution-state-by";
+import { findExecutionStateById } from "../../../../src/new-api/internal/new-execution/views/find-execution-state-by-id";
 import { assertIgnitionInvariant } from "../../../../src/new-api/internal/utils/assertions";
 
 import { applyMessages } from "./utils";
@@ -169,7 +169,8 @@ describe("DeploymentStateReducer", () => {
           initializeCallExecutionStateMessage,
         ]);
 
-        updatedStaticCallExState = findCallExecutionStateBy(
+        updatedStaticCallExState = findExecutionStateById(
+          ExecutionSateType.CALL_EXECUTION_STATE,
           updatedDeploymentState,
           "Call1"
         );
@@ -190,7 +191,8 @@ describe("DeploymentStateReducer", () => {
           requestNetworkInteractionMessage,
         ]);
 
-        updatedStaticCallExState = findCallExecutionStateBy(
+        updatedStaticCallExState = findExecutionStateById(
+          ExecutionSateType.CALL_EXECUTION_STATE,
           updatedDeploymentState,
           "Call1"
         );
@@ -226,7 +228,8 @@ describe("DeploymentStateReducer", () => {
           sendTransactionMessage,
         ]);
 
-        updatedStaticCallExState = findCallExecutionStateBy(
+        updatedStaticCallExState = findExecutionStateById(
+          ExecutionSateType.CALL_EXECUTION_STATE,
           updatedDeploymentState,
           "Call1"
         );
@@ -260,7 +263,8 @@ describe("DeploymentStateReducer", () => {
           confirmTransactionMessage,
         ]);
 
-        updatedStaticCallExState = findCallExecutionStateBy(
+        updatedStaticCallExState = findExecutionStateById(
+          ExecutionSateType.CALL_EXECUTION_STATE,
           updatedDeploymentState,
           "Call1"
         );
@@ -300,7 +304,8 @@ describe("DeploymentStateReducer", () => {
           callSuccessMessage,
         ]);
 
-        updatedStaticCallExState = findCallExecutionStateBy(
+        updatedStaticCallExState = findExecutionStateById(
+          ExecutionSateType.CALL_EXECUTION_STATE,
           updatedDeploymentState,
           "Call1"
         );
@@ -329,7 +334,8 @@ describe("DeploymentStateReducer", () => {
           callFailsWithRevertMessage,
         ]);
 
-        updatedStaticCallExState = findCallExecutionStateBy(
+        updatedStaticCallExState = findExecutionStateById(
+          ExecutionSateType.CALL_EXECUTION_STATE,
           updatedDeploymentState,
           "Call1"
         );
@@ -354,7 +360,8 @@ describe("DeploymentStateReducer", () => {
           callFailsOnStaticCall,
         ]);
 
-        updatedStaticCallExState = findCallExecutionStateBy(
+        updatedStaticCallExState = findExecutionStateById(
+          ExecutionSateType.CALL_EXECUTION_STATE,
           updatedDeploymentState,
           "Call1"
         );
@@ -382,7 +389,8 @@ describe("DeploymentStateReducer", () => {
           callFailsOnStrategyError,
         ]);
 
-        updatedStaticCallExState = findCallExecutionStateBy(
+        updatedStaticCallExState = findExecutionStateById(
+          ExecutionSateType.CALL_EXECUTION_STATE,
           updatedDeploymentState,
           "Call1"
         );
@@ -409,7 +417,8 @@ describe("DeploymentStateReducer", () => {
           callFailOnSimulationError,
         ]);
 
-        updatedStaticCallExState = findCallExecutionStateBy(
+        updatedStaticCallExState = findExecutionStateById(
+          ExecutionSateType.CALL_EXECUTION_STATE,
           updatedDeploymentState,
           "Call1"
         );

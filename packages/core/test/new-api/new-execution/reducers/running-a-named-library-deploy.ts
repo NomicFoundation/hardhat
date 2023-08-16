@@ -17,7 +17,7 @@ import {
   TransactionConfirmMessage,
   TransactionSendMessage,
 } from "../../../../src/new-api/internal/new-execution/types/messages";
-import { findDeploymentExecutionStateBy } from "../../../../src/new-api/internal/new-execution/views/find-deployment-execution-state-by";
+import { findExecutionStateById } from "../../../../src/new-api/internal/new-execution/views/find-execution-state-by-id";
 import { FutureType } from "../../../../src/new-api/types/module";
 
 import { applyMessages } from "./utils";
@@ -99,7 +99,8 @@ describe("DeploymentStateReducer", () => {
           initializeNamedLibraryDeployMessage,
         ]);
 
-        updatedDepExState = findDeploymentExecutionStateBy(
+        updatedDepExState = findExecutionStateById(
+          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
           "future1"
         );
@@ -123,7 +124,8 @@ describe("DeploymentStateReducer", () => {
           deploymentSuccessMessage,
         ]);
 
-        updatedDepExState = findDeploymentExecutionStateBy(
+        updatedDepExState = findExecutionStateById(
+          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
           "future1"
         );

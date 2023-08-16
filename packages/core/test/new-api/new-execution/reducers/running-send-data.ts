@@ -20,7 +20,7 @@ import {
 import { NetworkInteractionType } from "../../../../src/new-api/internal/new-execution/types/network-interaction";
 import { findOnchainInteractionBy } from "../../../../src/new-api/internal/new-execution/views/execution-state/find-onchain-interaction-by";
 import { findTransactionBy } from "../../../../src/new-api/internal/new-execution/views/execution-state/find-transaction-by";
-import { findSendDataExecutionStateBy } from "../../../../src/new-api/internal/new-execution/views/find-send-data-execution-state-by";
+import { findExecutionStateById } from "../../../../src/new-api/internal/new-execution/views/find-execution-state-by-id";
 import { assertIgnitionInvariant } from "../../../../src/new-api/internal/utils/assertions";
 
 import { applyMessages } from "./utils";
@@ -157,7 +157,8 @@ describe("DeploymentStateReducer", () => {
           initializeSendDataExecutionStateMessage,
         ]);
 
-        updatedSendDataExState = findSendDataExecutionStateBy(
+        updatedSendDataExState = findExecutionStateById(
+          ExecutionSateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
           "SendData1"
         );
@@ -178,7 +179,8 @@ describe("DeploymentStateReducer", () => {
           requestNetworkInteractionMessage,
         ]);
 
-        updatedSendDataExState = findSendDataExecutionStateBy(
+        updatedSendDataExState = findExecutionStateById(
+          ExecutionSateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
           "SendData1"
         );
@@ -214,7 +216,8 @@ describe("DeploymentStateReducer", () => {
           sendTransactionMessage,
         ]);
 
-        updatedSendDataExState = findSendDataExecutionStateBy(
+        updatedSendDataExState = findExecutionStateById(
+          ExecutionSateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
           "SendData1"
         );
@@ -248,7 +251,8 @@ describe("DeploymentStateReducer", () => {
           confirmTransactionMessage,
         ]);
 
-        updatedSendDataExState = findSendDataExecutionStateBy(
+        updatedSendDataExState = findExecutionStateById(
+          ExecutionSateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
           "SendData1"
         );
@@ -287,7 +291,8 @@ describe("DeploymentStateReducer", () => {
           revertedTransactionMessage,
         ]);
 
-        updatedSendDataExState = findSendDataExecutionStateBy(
+        updatedSendDataExState = findExecutionStateById(
+          ExecutionSateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
           "SendData1"
         );
@@ -327,7 +332,8 @@ describe("DeploymentStateReducer", () => {
           sendDataSuccessMessage,
         ]);
 
-        updatedSendDataExState = findSendDataExecutionStateBy(
+        updatedSendDataExState = findExecutionStateById(
+          ExecutionSateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
           "SendData1"
         );
@@ -356,7 +362,8 @@ describe("DeploymentStateReducer", () => {
           sendDataFailsWithRevertMessage,
         ]);
 
-        updatedSendDataExState = findSendDataExecutionStateBy(
+        updatedSendDataExState = findExecutionStateById(
+          ExecutionSateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
           "SendData1"
         );
@@ -383,7 +390,8 @@ describe("DeploymentStateReducer", () => {
           sendDataFailOnStrategyError,
         ]);
 
-        updatedSendDataExState = findSendDataExecutionStateBy(
+        updatedSendDataExState = findExecutionStateById(
+          ExecutionSateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
           "SendData1"
         );
@@ -412,7 +420,8 @@ describe("DeploymentStateReducer", () => {
           sendDataFailOnSimulationError,
         ]);
 
-        updatedSendDataExState = findSendDataExecutionStateBy(
+        updatedSendDataExState = findExecutionStateById(
+          ExecutionSateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
           "SendData1"
         );

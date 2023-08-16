@@ -16,7 +16,7 @@ import {
   StaticCallExecutionStateInitializeMessage,
 } from "../../../../src/new-api/internal/new-execution/types/messages";
 import { NetworkInteractionType } from "../../../../src/new-api/internal/new-execution/types/network-interaction";
-import { findStaticCallExecutionStateBy } from "../../../../src/new-api/internal/new-execution/views/find-static-call-execution-state-by";
+import { findExecutionStateById } from "../../../../src/new-api/internal/new-execution/views/find-execution-state-by-id";
 
 import { applyMessages } from "./utils";
 
@@ -124,7 +124,8 @@ describe("DeploymentStateReducer", () => {
           initializeCallExecutionStateMessage,
         ]);
 
-        updatedStaticCallExState = findStaticCallExecutionStateBy(
+        updatedStaticCallExState = findExecutionStateById(
+          ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
           updatedDeploymentState,
           "StaticCall1"
         );
@@ -145,7 +146,8 @@ describe("DeploymentStateReducer", () => {
           requestStaticCallInteractionMessage,
         ]);
 
-        updatedStaticCallExState = findStaticCallExecutionStateBy(
+        updatedStaticCallExState = findExecutionStateById(
+          ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
           updatedDeploymentState,
           "StaticCall1"
         );
@@ -169,7 +171,8 @@ describe("DeploymentStateReducer", () => {
           completeStaticCallInteractionMessage,
         ]);
 
-        updatedStaticCallExState = findStaticCallExecutionStateBy(
+        updatedStaticCallExState = findExecutionStateById(
+          ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
           updatedDeploymentState,
           "StaticCall1"
         );
@@ -201,7 +204,8 @@ describe("DeploymentStateReducer", () => {
           staticCallExStateSuccessMessage,
         ]);
 
-        updatedStaticCallExState = findStaticCallExecutionStateBy(
+        updatedStaticCallExState = findExecutionStateById(
+          ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
           updatedDeploymentState,
           "StaticCall1"
         );
@@ -239,7 +243,8 @@ describe("DeploymentStateReducer", () => {
           staticCallFailedMessage,
         ]);
 
-        updatedStaticCallExState = findStaticCallExecutionStateBy(
+        updatedStaticCallExState = findExecutionStateById(
+          ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
           updatedDeploymentState,
           "StaticCall1"
         );
@@ -271,7 +276,8 @@ describe("DeploymentStateReducer", () => {
           staticCallStrategyErrorMessage,
         ]);
 
-        updatedStaticCallExState = findStaticCallExecutionStateBy(
+        updatedStaticCallExState = findExecutionStateById(
+          ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
           updatedDeploymentState,
           "StaticCall1"
         );
