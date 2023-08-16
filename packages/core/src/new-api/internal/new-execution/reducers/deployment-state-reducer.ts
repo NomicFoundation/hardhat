@@ -10,6 +10,7 @@ import {
 
 import { callExecutionStateReducer } from "./call-execution-state-reducer";
 import { deploymentExecutionStateReducer } from "./deployment-execution-state-reducer";
+import { sendDataExecutionStateReducer } from "./send-data-execution-state-reducer";
 import { staticCallExecutionStateReducer } from "./static-call-execution-state-reducer";
 
 const initialState: DeploymentState = {
@@ -37,6 +38,7 @@ export function deploymentStateReducer(
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE:
     case JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE:
     case JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE:
+    case JournalMessageType.SEND_DATA_EXECUTION_STATE_INITIALIZE:
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
     case JournalMessageType.TRANSACTION_SEND:
     case JournalMessageType.TRANSACTION_CONFIRM:
@@ -44,6 +46,7 @@ export function deploymentStateReducer(
     case JournalMessageType.CALL_EXECUTION_STATE_COMPLETE:
     case JournalMessageType.STATIC_CALL_EXECUTION_STATE_COMPLETE:
     case JournalMessageType.STATIC_CALL_COMPLETE:
+    case JournalMessageType.SEND_DATA_EXECUTION_STATE_COMPLETE:
       return {
         ...state,
         executionStates: executionStatesReducer(state.executionStates, action),
@@ -77,6 +80,8 @@ function dispatchToPerExecutionStateReducer(
       return callExecutionStateReducer(null as any, action);
     case JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE:
       return staticCallExecutionStateReducer(null as any, action);
+    case JournalMessageType.SEND_DATA_EXECUTION_STATE_INITIALIZE:
+      return sendDataExecutionStateReducer(null as any, action);
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE:
       assertIgnitionInvariant(
         state !== undefined &&
@@ -107,6 +112,16 @@ function dispatchToPerExecutionStateReducer(
       );
 
       return staticCallExecutionStateReducer(state, action);
+    case JournalMessageType.SEND_DATA_EXECUTION_STATE_COMPLETE:
+      assertIgnitionInvariant(
+        state !== undefined &&
+          state.type === ExecutionSateType.SEND_DATA_EXECUTION_STATE,
+        `To complete the execution state must be a send data but is ${
+          state === undefined ? "undefined" : state.type
+        }`
+      );
+
+      return sendDataExecutionStateReducer(state, action);
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
     case JournalMessageType.TRANSACTION_SEND:
     case JournalMessageType.TRANSACTION_CONFIRM:
@@ -123,9 +138,10 @@ function dispatchToPerExecutionStateReducer(
           return callExecutionStateReducer(state, action);
         case ExecutionSateType.STATIC_CALL_EXECUTION_STATE:
           return staticCallExecutionStateReducer(state, action);
+        case ExecutionSateType.SEND_DATA_EXECUTION_STATE:
+          return sendDataExecutionStateReducer(state, action);
         case ExecutionSateType.CONTRACT_AT_EXECUTION_STATE:
         case ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE:
-        case ExecutionSateType.SEND_DATA_EXECUTION_STATE:
           throw new IgnitionError(
             `Unexpected network-level message ${action.type} for execution state ${state.type} (futurei Id: ${state.id})`
           );

@@ -2,20 +2,20 @@ import { produce } from "immer";
 
 import { FutureType } from "../../../types/module";
 import {
-  CallExecutionResult,
   ExecutionResultType,
+  SendDataExecutionResult,
 } from "../types/execution-result";
 import {
   ExecutionSateType,
   ExecutionStatus,
-  StaticCallExecutionState,
+  SendDataExecutionState,
 } from "../types/execution-state";
 import {
   JournalMessageType,
   NetworkInteractionRequestMessage,
+  SendDataExecutionStateCompleteMessage,
+  SendDataExecutionStateInitializeMessage,
   StaticCallCompleteMessage,
-  StaticCallExecutionStateCompleteMessage,
-  StaticCallExecutionStateInitializeMessage,
   TransactionConfirmMessage,
   TransactionSendMessage,
 } from "../types/messages";
@@ -27,21 +27,21 @@ import {
   confirmTransaction,
 } from "./network-interaction-helpers";
 
-export function staticCallExecutionStateReducer(
-  state: StaticCallExecutionState,
+export function sendDataExecutionStateReducer(
+  state: SendDataExecutionState,
   action:
-    | StaticCallExecutionStateInitializeMessage
-    | StaticCallExecutionStateCompleteMessage
+    | SendDataExecutionStateInitializeMessage
+    | SendDataExecutionStateCompleteMessage
     | NetworkInteractionRequestMessage
     | TransactionSendMessage
     | TransactionConfirmMessage
     | StaticCallCompleteMessage
-): StaticCallExecutionState {
+): SendDataExecutionState {
   switch (action.type) {
-    case JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE:
-      return initialiseStaticCallExecutionStateFrom(action);
-    case JournalMessageType.STATIC_CALL_EXECUTION_STATE_COMPLETE:
-      return completeStaticCallExecutionState(state, action);
+    case JournalMessageType.SEND_DATA_EXECUTION_STATE_INITIALIZE:
+      return initialiseSendDataExecutionStateFrom(action);
+    case JournalMessageType.SEND_DATA_EXECUTION_STATE_COMPLETE:
+      return completeSendDataExecutionState(state, action);
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
       return appendNetworkInteraction(state, action);
     case JournalMessageType.TRANSACTION_SEND:
@@ -53,20 +53,19 @@ export function staticCallExecutionStateReducer(
   }
 }
 
-function initialiseStaticCallExecutionStateFrom(
-  action: StaticCallExecutionStateInitializeMessage
-): StaticCallExecutionState {
-  const callExecutionInitialState: StaticCallExecutionState = {
+function initialiseSendDataExecutionStateFrom(
+  action: SendDataExecutionStateInitializeMessage
+): SendDataExecutionState {
+  const callExecutionInitialState: SendDataExecutionState = {
     id: action.futureId,
-    type: ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
-    futureType: FutureType.NAMED_STATIC_CALL,
+    type: ExecutionSateType.SEND_DATA_EXECUTION_STATE,
+    futureType: FutureType.SEND_DATA,
     strategy: action.strategy,
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(action.dependencies),
-    artifactFutureId: action.artifactFutureId,
-    contractAddress: action.contractAddress,
-    functionName: action.functionName,
-    args: action.args,
+    to: action.to,
+    data: action.data,
+    value: action.value,
     from: action.from,
     networkInteractions: [],
   };
@@ -74,20 +73,20 @@ function initialiseStaticCallExecutionStateFrom(
   return callExecutionInitialState;
 }
 
-function completeStaticCallExecutionState(
-  state: StaticCallExecutionState,
-  message: StaticCallExecutionStateCompleteMessage
-): StaticCallExecutionState {
-  return produce(state, (draft: StaticCallExecutionState): void => {
-    draft.status = _mapStaticCallExecutionResultTypeToExecutionStatus(
+function completeSendDataExecutionState(
+  state: SendDataExecutionState,
+  message: SendDataExecutionStateCompleteMessage
+): SendDataExecutionState {
+  return produce(state, (draft: SendDataExecutionState): void => {
+    draft.status = _mapSendDataExecutionResultTypeToExecutionStatus(
       message.result
     );
     draft.result = message.result;
   });
 }
 
-function _mapStaticCallExecutionResultTypeToExecutionStatus(
-  result: CallExecutionResult
+function _mapSendDataExecutionResultTypeToExecutionStatus(
+  result: SendDataExecutionResult
 ) {
   switch (result.type) {
     case ExecutionResultType.SUCCESS:

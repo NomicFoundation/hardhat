@@ -2,6 +2,7 @@ import { assertIgnitionInvariant } from "../../../utils/assertions";
 import {
   CallExecutionState,
   DeploymentExecutionState,
+  SendDataExecutionState,
   StaticCallExecutionState,
 } from "../../types/execution-state";
 import { Transaction } from "../../types/jsonrpc";
@@ -12,7 +13,8 @@ export function findTransactionBy(
   executionState:
     | DeploymentExecutionState
     | CallExecutionState
-    | StaticCallExecutionState,
+    | StaticCallExecutionState
+    | SendDataExecutionState,
   networkInteractionId: number,
   hash: string
 ): Transaction {

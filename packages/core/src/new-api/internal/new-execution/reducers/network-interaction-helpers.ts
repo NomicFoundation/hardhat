@@ -6,6 +6,7 @@ import {
   CallExecutionState,
   DeploymentExecutionState,
   ExecutionSateType,
+  SendDataExecutionState,
   StaticCallExecutionState,
 } from "../types/execution-state";
 import {
@@ -30,6 +31,7 @@ export function appendNetworkInteraction<
     | DeploymentExecutionState
     | CallExecutionState
     | StaticCallExecutionState
+    | SendDataExecutionState
 >(state: ExState, action: NetworkInteractionRequestMessage): ExState {
   return produce(state, (draft: ExState): void => {
     if (draft.type === ExecutionSateType.STATIC_CALL_EXECUTION_STATE) {
@@ -67,6 +69,7 @@ export function appendTransactionToOnchainInteraction<
     | DeploymentExecutionState
     | CallExecutionState
     | StaticCallExecutionState
+    | SendDataExecutionState
 >(state: ExState, action: TransactionSendMessage): ExState {
   return produce(state, (draft: ExState): void => {
     const onchainInteraction = findOnchainInteractionBy(
@@ -90,6 +93,7 @@ export function confirmTransaction<
     | DeploymentExecutionState
     | CallExecutionState
     | StaticCallExecutionState
+    | SendDataExecutionState
 >(state: ExState, action: TransactionConfirmMessage): ExState {
   return produce(state, (draft: ExState): void => {
     const onchainInteraction = findOnchainInteractionBy(
@@ -121,6 +125,7 @@ export function completeStaticCall<
     | DeploymentExecutionState
     | CallExecutionState
     | StaticCallExecutionState
+    | SendDataExecutionState
 >(state: ExState, action: StaticCallCompleteMessage) {
   return produce(state, (draft: ExState): void => {
     const onchainInteraction = findStaticCallBy(

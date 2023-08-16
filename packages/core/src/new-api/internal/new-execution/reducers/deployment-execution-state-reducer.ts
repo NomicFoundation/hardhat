@@ -30,11 +30,11 @@ export function deploymentExecutionStateReducer(
   state: DeploymentExecutionState,
   action:
     | DeploymentExecutionStateInitializeMessage
+    | DeploymentExecutionStateCompleteMessage
     | NetworkInteractionRequestMessage
     | TransactionSendMessage
     | TransactionConfirmMessage
     | StaticCallCompleteMessage
-    | DeploymentExecutionStateCompleteMessage
 ): DeploymentExecutionState {
   switch (action.type) {
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE:

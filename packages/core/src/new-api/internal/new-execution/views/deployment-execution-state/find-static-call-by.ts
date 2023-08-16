@@ -2,6 +2,7 @@ import { assertIgnitionInvariant } from "../../../utils/assertions";
 import {
   CallExecutionState,
   DeploymentExecutionState,
+  SendDataExecutionState,
   StaticCallExecutionState,
 } from "../../types/execution-state";
 import {
@@ -13,7 +14,8 @@ export function findStaticCallBy(
   executionState:
     | DeploymentExecutionState
     | CallExecutionState
-    | StaticCallExecutionState,
+    | StaticCallExecutionState
+    | SendDataExecutionState,
   networkInteractionId: number
 ): StaticCall {
   const staticCall = executionState.networkInteractions.find(
