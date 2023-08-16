@@ -16,6 +16,8 @@ pub mod jsonrpc;
 /// RPC methods
 pub mod methods;
 
+// TODO remove once PR is ready
+#[allow(dead_code)]
 mod cacheable_method_invocation;
 mod withdrawal;
 
