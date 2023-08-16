@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.2.0 - 2023-08-16
+
+### Added
+
+- The execution config is now exposed through deploy and wired into the `hardhat-ignition` plugin config.
+
+### Fixed
+
+- Switch default deploy configurations depending on whether the current network is automined.
+
 ## 0.1.2 - 2023-07-31
 
 ### Fixed
