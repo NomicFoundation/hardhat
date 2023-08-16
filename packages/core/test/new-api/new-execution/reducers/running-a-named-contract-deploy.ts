@@ -82,8 +82,10 @@ describe("DeploymentStateReducer", () => {
       networkInteractionId: 1,
       transaction: {
         hash: "0xdeadbeef",
-        maxFeePerGas: BigInt(10),
-        maxPriorityFeePerGas: BigInt(5),
+        fees: {
+          maxFeePerGas: BigInt(10),
+          maxPriorityFeePerGas: BigInt(5),
+        },
       },
     };
 
@@ -93,8 +95,10 @@ describe("DeploymentStateReducer", () => {
       networkInteractionId: 1,
       transaction: {
         hash: "0xanother",
-        maxFeePerGas: BigInt(20),
-        maxPriorityFeePerGas: BigInt(10),
+        fees: {
+          maxFeePerGas: BigInt(20),
+          maxPriorityFeePerGas: BigInt(10),
+        },
       },
     };
 

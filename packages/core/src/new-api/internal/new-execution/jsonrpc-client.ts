@@ -3,6 +3,7 @@ import { EIP1193Provider } from "../../types/provider";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
 import {
+  NetworkFees,
   RawStaticCallResult,
   Transaction,
   TransactionLog,
@@ -41,16 +42,6 @@ export interface TransactionParams {
  * The params to estimate the gas of a transaction.
  */
 export type EstimateGasParams = Omit<TransactionParams, "gasLimit">;
-
-/**
- * The params to pay for the network fees.
- *
- * Note: Currently only EIP-1559 transactions are supported.
- */
-export interface NetworkFees {
-  maxPriorityFeePerGas: bigint;
-  maxFeePerGas: bigint;
-}
 
 /**
  * An Ethereum block.
@@ -431,10 +422,12 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
           ? jsonRpcQuantityToNumber(response.blockNumber)
           : undefined,
       blockHash: response.blockHash ?? undefined,
-      maxFeePerGas: jsonRpcQuantityToBigInt(response.maxFeePerGas),
-      maxPriorityFeePerGas: jsonRpcQuantityToBigInt(
-        response.maxPriorityFeePerGas
-      ),
+      fees: {
+        maxFeePerGas: jsonRpcQuantityToBigInt(response.maxFeePerGas),
+        maxPriorityFeePerGas: jsonRpcQuantityToBigInt(
+          response.maxPriorityFeePerGas
+        ),
+      },
     };
   }
 

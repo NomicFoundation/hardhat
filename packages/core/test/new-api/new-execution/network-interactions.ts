@@ -4,11 +4,11 @@ import {
   Block,
   CallParams,
   JsonRpcClient,
-  NetworkFees,
   TransactionParams,
 } from "../../../src/new-api/internal/new-execution/jsonrpc-client";
 import { runStaticCall } from "../../../src/new-api/internal/new-execution/network-interactions";
 import {
+  NetworkFees,
   RawStaticCallResult,
   Transaction,
   TransactionReceipt,

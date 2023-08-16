@@ -49,6 +49,16 @@ export interface TransactionReceipt {
 }
 
 /**
+ * The params to pay for the network fees.
+ *
+ * Note: Currently only EIP-1559 transactions are supported.
+ */
+export interface NetworkFees {
+  maxPriorityFeePerGas: bigint;
+  maxFeePerGas: bigint;
+}
+
+/**
  * This interface represents a transaction that was sent to the network.
  */
 export interface Transaction {
@@ -62,8 +72,7 @@ export interface Transaction {
   blockHash?: string;
 
   // We store this data in case we need to bump the transaction fees.
-  maxFeePerGas: bigint;
-  maxPriorityFeePerGas: bigint;
+  fees: NetworkFees;
 
   // Only available after the transaction has confirmed, with enough confirmations.
   receipt?: TransactionReceipt;

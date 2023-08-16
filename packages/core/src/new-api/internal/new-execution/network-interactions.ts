@@ -7,16 +7,12 @@
 
 import { assertIgnitionInvariant } from "../utils/assertions";
 
-import {
-  JsonRpcClient,
-  NetworkFees,
-  TransactionParams,
-} from "./jsonrpc-client";
+import { JsonRpcClient, TransactionParams } from "./jsonrpc-client";
 import {
   SimulationErrorExecutionResult,
   StrategyErrorExecutionResult,
 } from "./types/execution-result";
-import { RawStaticCallResult } from "./types/jsonrpc";
+import { NetworkFees, RawStaticCallResult } from "./types/jsonrpc";
 import { OnchainInteraction, StaticCall } from "./types/network-interaction";
 
 /**
@@ -189,9 +185,9 @@ async function getNextTransactionFees(
     onchainInteraction.transactions[onchainInteraction.transactions.length - 1];
 
   const bumpedFees = {
-    maxFeePerGas: (transactionWithHighestFees.maxFeePerGas * 110n) / 100n,
+    maxFeePerGas: (transactionWithHighestFees.fees.maxFeePerGas * 110n) / 100n,
     maxPriorityFeePerGas:
-      (transactionWithHighestFees.maxPriorityFeePerGas * 110n) / 100n,
+      (transactionWithHighestFees.fees.maxPriorityFeePerGas * 110n) / 100n,
   };
 
   const maxFeePerGas =

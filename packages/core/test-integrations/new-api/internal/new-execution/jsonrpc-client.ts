@@ -5,11 +5,11 @@ import {
   encodeArtifactDeploymentData,
   encodeArtifactFunctionCall,
 } from "../../../../src/new-api/internal/new-execution/abi";
+import { EIP1193JsonRpcClient } from "../../../../src/new-api/internal/new-execution/jsonrpc-client";
 import {
-  EIP1193JsonRpcClient,
   NetworkFees,
-} from "../../../../src/new-api/internal/new-execution/jsonrpc-client";
-import { TransactionReceiptStatus } from "../../../../src/new-api/internal/new-execution/types/jsonrpc";
+  TransactionReceiptStatus,
+} from "../../../../src/new-api/internal/new-execution/types/jsonrpc";
 import { assertIgnitionInvariant } from "../../../../src/new-api/internal/utils/assertions";
 import { useHardhatProject } from "../../../helpers/hardhat-projects";
 
@@ -652,8 +652,8 @@ describe("JSON-RPC client", function () {
           assert.equal(tx!.hash, hash);
           assert.equal(tx!.blockNumber, block.number);
           assert.equal(tx!.blockHash, block.hash);
-          assert.equal(tx!.maxFeePerGas, req.maxFeePerGas);
-          assert.equal(tx!.maxPriorityFeePerGas, req.maxPriorityFeePerGas);
+          assert.equal(tx!.fees.maxFeePerGas, req.maxFeePerGas);
+          assert.equal(tx!.fees.maxPriorityFeePerGas, req.maxPriorityFeePerGas);
         });
       });
 
@@ -680,8 +680,8 @@ describe("JSON-RPC client", function () {
           assert.equal(tx!.hash, hash);
           assert.isUndefined(tx!.blockNumber);
           assert.isUndefined(tx!.blockHash);
-          assert.equal(tx!.maxFeePerGas, req.maxFeePerGas);
-          assert.equal(tx!.maxPriorityFeePerGas, req.maxPriorityFeePerGas);
+          assert.equal(tx!.fees.maxFeePerGas, req.maxFeePerGas);
+          assert.equal(tx!.fees.maxPriorityFeePerGas, req.maxPriorityFeePerGas);
         });
 
         it("Should return undefined if the transaction was never sent", async function () {
