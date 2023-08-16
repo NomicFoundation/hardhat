@@ -101,14 +101,13 @@ export async function sendTransactionForOnchainInteraction(
   // TODO: Should we check the balance here? Before or after estimating gas?
   //  Before or after simulating?
 
-  const estimateGasPrams: Omit<TransactionParams, "gasLimit"> = {
+  const estimateGasPrams = {
     to: onchainInteraction.to,
     from: onchainInteraction.from,
     data: onchainInteraction.data,
     value: onchainInteraction.value,
     nonce,
-    maxFeePerGas: fees.maxFeePerGas,
-    maxPriorityFeePerGas: fees.maxPriorityFeePerGas,
+    fees,
   };
 
   let gasLimit: bigint;
@@ -184,21 +183,49 @@ async function getNextTransactionFees(
   const transactionWithHighestFees =
     onchainInteraction.transactions[onchainInteraction.transactions.length - 1];
 
-  const bumpedFees = {
-    maxFeePerGas: (transactionWithHighestFees.fees.maxFeePerGas * 110n) / 100n,
-    maxPriorityFeePerGas:
-      (transactionWithHighestFees.fees.maxPriorityFeePerGas * 110n) / 100n,
-  };
+  if ("maxFeePerGas" in recommendedFees) {
+    let previousFees: NetworkFees;
+    if (!("maxFeePerGas" in transactionWithHighestFees.fees)) {
+      // If the previous transaction was not EIP-1559, we use gasPrice in
+      // both fields
+      previousFees = {
+        maxFeePerGas: transactionWithHighestFees.fees.gasPrice,
+        maxPriorityFeePerGas: transactionWithHighestFees.fees.gasPrice,
+      };
+    } else {
+      previousFees = transactionWithHighestFees.fees;
+    }
 
-  const maxFeePerGas =
-    recommendedFees.maxFeePerGas > bumpedFees.maxFeePerGas
-      ? recommendedFees.maxFeePerGas
-      : bumpedFees.maxFeePerGas;
+    const bumpedFees = {
+      maxFeePerGas: (previousFees.maxFeePerGas * 110n) / 100n,
+      maxPriorityFeePerGas: (previousFees.maxPriorityFeePerGas * 110n) / 100n,
+    };
 
-  const maxPriorityFeePerGas =
-    recommendedFees.maxPriorityFeePerGas > bumpedFees.maxPriorityFeePerGas
-      ? recommendedFees.maxPriorityFeePerGas
-      : bumpedFees.maxPriorityFeePerGas;
+    const maxFeePerGas =
+      recommendedFees.maxFeePerGas > bumpedFees.maxFeePerGas
+        ? recommendedFees.maxFeePerGas
+        : bumpedFees.maxFeePerGas;
 
-  return { maxFeePerGas, maxPriorityFeePerGas };
+    const maxPriorityFeePerGas =
+      recommendedFees.maxPriorityFeePerGas > bumpedFees.maxPriorityFeePerGas
+        ? recommendedFees.maxPriorityFeePerGas
+        : bumpedFees.maxPriorityFeePerGas;
+
+    return { maxFeePerGas, maxPriorityFeePerGas };
+  }
+
+  assertIgnitionInvariant(
+    "gasPrice" in transactionWithHighestFees.fees,
+    "EIP-1559 transaction was already sent but the currently recommended fees are not EIP-1559"
+  );
+
+  const bumpedGasPrice =
+    (transactionWithHighestFees.fees.gasPrice * 110n) / 100n;
+
+  const maxGasPrice =
+    recommendedFees.gasPrice > bumpedGasPrice
+      ? recommendedFees.gasPrice
+      : bumpedGasPrice;
+
+  return { gasPrice: maxGasPrice };
 }

@@ -48,15 +48,19 @@ export interface TransactionReceipt {
   logs: TransactionLog[];
 }
 
-/**
- * The params to pay for the network fees.
- *
- * Note: Currently only EIP-1559 transactions are supported.
- */
-export interface NetworkFees {
+export interface EIP1559NetworkFees {
   maxPriorityFeePerGas: bigint;
   maxFeePerGas: bigint;
 }
+
+export interface LegacyNetworkFees {
+  gasPrice: bigint;
+}
+
+/**
+ * The params to pay for the network fees.
+ */
+export type NetworkFees = EIP1559NetworkFees | LegacyNetworkFees;
 
 /**
  * This interface represents a transaction that was sent to the network.

@@ -47,7 +47,7 @@ describe("execution-result-fixture tests", function () {
         value: 0n,
         from: this.accounts[0],
         nonce: nonce++,
-        ...fees,
+        fees,
         gasLimit: 1_000_000n,
       });
 

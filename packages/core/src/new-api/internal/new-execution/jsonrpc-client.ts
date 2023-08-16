@@ -20,8 +20,7 @@ export interface CallParams {
   data: string;
   from: string;
   nonce?: number;
-  maxPriorityFeePerGas?: bigint;
-  maxFeePerGas?: bigint;
+  fees?: NetworkFees;
 }
 
 /**
@@ -33,15 +32,17 @@ export interface TransactionParams {
   data: string;
   from: string;
   nonce: number;
-  maxPriorityFeePerGas: bigint;
-  maxFeePerGas: bigint;
+  fees: NetworkFees;
   gasLimit: bigint;
 }
 
 /**
  * The params to estimate the gas of a transaction.
  */
-export type EstimateGasParams = Omit<TransactionParams, "gasLimit">;
+export interface EstimateGasParams
+  extends Omit<TransactionParams, "gasLimit" | "fees"> {
+  fees?: NetworkFees;
+}
 
 /**
  * An Ethereum block.
@@ -49,7 +50,7 @@ export type EstimateGasParams = Omit<TransactionParams, "gasLimit">;
 export interface Block {
   hash: string;
   number: number;
-  baseFeePerGas: bigint;
+  baseFeePerGas?: bigint;
 }
 
 /**
@@ -95,9 +96,7 @@ export interface JsonRpcClient {
    *
    * @param transactionParams The transaction parameters, excluding gasLimit.
    */
-  estimateGas: (
-    transactionParams: Omit<TransactionParams, "gasLimit">
-  ) => Promise<bigint>;
+  estimateGas: (transactionParams: EstimateGasParams) => Promise<bigint>;
 
   /**
    * Sends a transaction to the Ethereum network and returns its hash,
@@ -150,14 +149,28 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
 
   public async getNetworkFees(): Promise<NetworkFees> {
     const latestBlock = await this.getLatestBlock();
-    // Logic copied from ethers v6
-    const maxPriorityFeePerGas = 1_000_000_000n; // 1gwei
-    const maxFeePerGas = latestBlock.baseFeePerGas * 2n + maxPriorityFeePerGas;
 
-    return {
-      maxFeePerGas,
-      maxPriorityFeePerGas,
-    };
+    // We prioritize EIP-1559 fees over legacy gasPrice fees
+    if (latestBlock.baseFeePerGas !== undefined) {
+      // Logic copied from ethers v6
+      const maxPriorityFeePerGas = 1_000_000_000n; // 1gwei
+      const maxFeePerGas =
+        latestBlock.baseFeePerGas * 2n + maxPriorityFeePerGas;
+
+      return {
+        maxFeePerGas,
+        maxPriorityFeePerGas,
+      };
+    }
+
+    const response = await this._provider.request({
+      method: "eth_gasPrice",
+      params: [],
+    });
+
+    assertResponseType("eth_gasPrice", response, typeof response === "string");
+
+    return { gasPrice: jsonRpcQuantityToBigInt(response) };
   }
 
   public async getLatestBlock(): Promise<Block> {
@@ -184,15 +197,21 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
       "hash" in response && typeof response.hash === "string"
     );
 
-    assertIgnitionInvariant(
-      "baseFeePerGas" in response && typeof response.baseFeePerGas === "string",
-      "Ignition only supports networks with EIP-1559 and the latest block doesn't have a baseFeePerGas"
-    );
+    let baseFeePerGas: bigint | undefined;
+    if ("baseFeePerGas" in response) {
+      assertResponseType(
+        "eth_getBlockByNumber",
+        response,
+        typeof response.baseFeePerGas === "string"
+      );
+
+      baseFeePerGas = jsonRpcQuantityToBigInt(response.baseFeePerGas);
+    }
 
     return {
       number: jsonRpcQuantityToNumber(response.number),
       hash: response.hash,
-      baseFeePerGas: jsonRpcQuantityToBigInt(response.baseFeePerGas),
+      baseFeePerGas,
     };
   }
 
@@ -224,6 +243,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
           callParams.nonce !== undefined
             ? numberToJsonRpcQuantity(callParams.nonce)
             : undefined,
+        ...jsonRpcEncodeNetworkFees(callParams.fees),
       };
 
       const response = await this._provider.request({
@@ -276,14 +296,15 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
   }
 
   public async estimateGas(
-    transactionParams: Omit<TransactionParams, "gasLimit">
+    estimateGasParams: EstimateGasParams
   ): Promise<bigint> {
     const jsonRpcEncodedParams = {
-      to: transactionParams.to,
-      value: bigIntToJsonRpcQuantity(transactionParams.value),
-      data: transactionParams.data,
-      from: transactionParams.from,
-      nonce: numberToJsonRpcQuantity(transactionParams.nonce),
+      to: estimateGasParams.to,
+      value: bigIntToJsonRpcQuantity(estimateGasParams.value),
+      data: estimateGasParams.data,
+      from: estimateGasParams.from,
+      nonce: numberToJsonRpcQuantity(estimateGasParams.nonce),
+      ...jsonRpcEncodeNetworkFees(estimateGasParams.fees),
     };
 
     const response = await this._provider.request({
@@ -310,11 +331,8 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
         data: transactionParams.data,
         from: transactionParams.from,
         nonce: numberToJsonRpcQuantity(transactionParams.nonce),
-        maxPriorityFeePerGas: bigIntToJsonRpcQuantity(
-          transactionParams.maxPriorityFeePerGas
-        ),
-        maxFeePerGas: bigIntToJsonRpcQuantity(transactionParams.maxFeePerGas),
         gas: bigIntToJsonRpcQuantity(transactionParams.gasLimit),
+        ...jsonRpcEncodeNetworkFees(transactionParams.fees),
       };
 
       const response = await this._provider.request({
@@ -404,16 +422,38 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
         (typeof response.blockHash === "string" || response.blockHash === null)
     );
 
-    assertIgnitionInvariant(
-      "maxFeePerGas" in response && typeof response.maxFeePerGas === "string",
-      "Ignition sent a non-EIP-1559 transaction or we got an invalid response"
-    );
+    let networkFees: NetworkFees;
+    if ("maxFeePerGas" in response) {
+      assertResponseType(
+        method,
+        response,
+        "maxFeePerGas" in response && typeof response.maxFeePerGas === "string"
+      );
 
-    assertIgnitionInvariant(
-      "maxPriorityFeePerGas" in response &&
-        typeof response.maxPriorityFeePerGas === "string",
-      "Ignition sent a non-EIP-1559 transaction or we got an invalid response"
-    );
+      assertResponseType(
+        method,
+        response,
+        "maxPriorityFeePerGas" in response &&
+          typeof response.maxPriorityFeePerGas === "string"
+      );
+
+      networkFees = {
+        maxFeePerGas: jsonRpcQuantityToBigInt(response.maxFeePerGas),
+        maxPriorityFeePerGas: jsonRpcQuantityToBigInt(
+          response.maxPriorityFeePerGas
+        ),
+      };
+    } else {
+      assertResponseType(
+        method,
+        response,
+        "gasPrice" in response && typeof response.gasPrice === "string"
+      );
+
+      networkFees = {
+        gasPrice: jsonRpcQuantityToBigInt(response.gasPrice),
+      };
+    }
 
     return {
       hash: response.hash,
@@ -422,12 +462,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
           ? jsonRpcQuantityToNumber(response.blockNumber)
           : undefined,
       blockHash: response.blockHash ?? undefined,
-      fees: {
-        maxFeePerGas: jsonRpcQuantityToBigInt(response.maxFeePerGas),
-        maxPriorityFeePerGas: jsonRpcQuantityToBigInt(
-          response.maxPriorityFeePerGas
-        ),
-      },
+      fees: networkFees,
     };
   }
 
@@ -445,11 +480,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
       return undefined;
     }
 
-    assertResponseType(
-      method,
-      response,
-      typeof response === "object" // de aca le borre un distinto a null al pedo
-    );
+    assertResponseType(method, response, typeof response === "object");
 
     assertResponseType(
       method,
@@ -620,4 +651,19 @@ function formatReceiptLogs(method: string, response: object): TransactionLog[] {
   }
 
   return formattedLogs;
+}
+
+function jsonRpcEncodeNetworkFees(fees?: NetworkFees) {
+  if (fees === undefined) {
+    return undefined;
+  }
+
+  if ("gasPrice" in fees) {
+    return { gasPrice: bigIntToJsonRpcQuantity(fees.gasPrice) };
+  }
+
+  return {
+    maxFeePerGas: bigIntToJsonRpcQuantity(fees.maxFeePerGas),
+    maxPriorityFeePerGas: bigIntToJsonRpcQuantity(fees.maxPriorityFeePerGas),
+  };
 }

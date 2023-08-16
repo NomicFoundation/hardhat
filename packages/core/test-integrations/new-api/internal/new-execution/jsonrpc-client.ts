@@ -40,7 +40,7 @@ describe("JSON-RPC client", function () {
         value: 0n,
         from: accounts[0],
         nonce: 0,
-        ...fees,
+        fees,
         gasLimit: 1_000_000n,
       });
 
@@ -73,12 +73,17 @@ describe("JSON-RPC client", function () {
     });
 
     describe("getNetworkFees", async function () {
-      it("Should return information about EIP-159 fees", async function () {
-        const fees = await client.getNetworkFees();
+      describe("With an EIP-1559 network (i.e. Hardhat Network)", function () {
+        it("Should return information about EIP-159 fees", async function () {
+          const fees = await client.getNetworkFees();
 
-        assert.typeOf(fees.maxFeePerGas, "bigint");
-        assert.typeOf(fees.maxPriorityFeePerGas, "bigint");
-        assert.isTrue(fees.maxFeePerGas > fees.maxPriorityFeePerGas);
+          assert("maxFeePerGas" in fees);
+          assert("maxPriorityFeePerGas" in fees);
+
+          assert.typeOf(fees.maxFeePerGas, "bigint");
+          assert.typeOf(fees.maxPriorityFeePerGas, "bigint");
+          assert.isTrue(fees.maxFeePerGas > fees.maxPriorityFeePerGas);
+        });
       });
     });
 
@@ -305,7 +310,7 @@ describe("JSON-RPC client", function () {
           value: 0n,
           from: this.accounts[0],
           nonce: 0,
-          ...fees,
+          fees,
           gasLimit: 1_000_000n,
         });
 
@@ -367,7 +372,7 @@ describe("JSON-RPC client", function () {
           from: this.accounts[0],
           nonce: 0,
           gasLimit: 5_000_000n,
-          ...fees,
+          fees,
         });
 
         assert.isString(result);
@@ -383,7 +388,7 @@ describe("JSON-RPC client", function () {
           from: this.accounts[0],
           nonce: 0,
           gasLimit: 5_000_000n,
-          ...fees,
+          fees,
         });
 
         assert.isString(result);
@@ -399,8 +404,10 @@ describe("JSON-RPC client", function () {
           to: this.accounts[1],
           from: this.accounts[0],
           value: 1n,
-          maxFeePerGas: nextBlockBaseFee,
-          maxPriorityFeePerGas: 1n,
+          fees: {
+            maxFeePerGas: nextBlockBaseFee,
+            maxPriorityFeePerGas: 1n,
+          },
           gasLimit: 21_000n,
           data: "0x",
           nonce: 0,
@@ -424,8 +431,10 @@ describe("JSON-RPC client", function () {
           to: this.accounts[1],
           from: this.accounts[0],
           value: 1n,
-          maxFeePerGas: 1n,
-          maxPriorityFeePerGas: 1n,
+          fees: {
+            maxFeePerGas: 1n,
+            maxPriorityFeePerGas: 1n,
+          },
           gasLimit: 21_000n,
           data: "0x",
           nonce: 0,
@@ -445,8 +454,10 @@ describe("JSON-RPC client", function () {
           to: this.accounts[1],
           from: this.accounts[0],
           value: 1n,
-          maxFeePerGas: 1_000_000_000n,
-          maxPriorityFeePerGas: 1n,
+          fees: {
+            maxFeePerGas: 1_000_000_000n,
+            maxPriorityFeePerGas: 1n,
+          },
           data: "0x",
           nonce: 0,
         });
@@ -468,8 +479,10 @@ describe("JSON-RPC client", function () {
               []
             ),
             nonce: 0,
-            maxFeePerGas: 1_000_000_000n,
-            maxPriorityFeePerGas: 1n,
+            fees: {
+              maxFeePerGas: 1_000_000_000n,
+              maxPriorityFeePerGas: 1n,
+            },
             value: 0n,
           })
         );
@@ -489,8 +502,10 @@ describe("JSON-RPC client", function () {
           to: this.accounts[1],
           from: this.accounts[0],
           value: 1n,
-          maxFeePerGas: 1_000_000_000n,
-          maxPriorityFeePerGas: 1n,
+          fees: {
+            maxFeePerGas: 1_000_000_000n,
+            maxPriorityFeePerGas: 1n,
+          },
           gasLimit: 21_000n,
           data: "0x",
           nonce: 0,
@@ -504,8 +519,10 @@ describe("JSON-RPC client", function () {
           to: this.accounts[1],
           from: this.accounts[0],
           value: 1n,
-          maxFeePerGas: 1_000_000_000n,
-          maxPriorityFeePerGas: 1n,
+          fees: {
+            maxFeePerGas: 1_000_000_000n,
+            maxPriorityFeePerGas: 1n,
+          },
           gasLimit: 21_000n,
           data: "0x",
           nonce: 1,
@@ -535,8 +552,10 @@ describe("JSON-RPC client", function () {
           to: this.accounts[1],
           from: this.accounts[0],
           value: 1n,
-          maxFeePerGas: 1_000_000_000n,
-          maxPriorityFeePerGas: 1n,
+          fees: {
+            maxFeePerGas: 1_000_000_000n,
+            maxPriorityFeePerGas: 1n,
+          },
           gasLimit: 21_000n,
           data: "0x",
           nonce: 0,
@@ -559,8 +578,10 @@ describe("JSON-RPC client", function () {
           to: this.accounts[1],
           from: this.accounts[0],
           value: 1n,
-          maxFeePerGas: 1_000_000_000n,
-          maxPriorityFeePerGas: 1n,
+          fees: {
+            maxFeePerGas: 1_000_000_000n,
+            maxPriorityFeePerGas: 1n,
+          },
           gasLimit: 21_000n,
           data: "0x",
           nonce: 1,
@@ -585,8 +606,10 @@ describe("JSON-RPC client", function () {
           to: this.accounts[1],
           from: this.accounts[0],
           value: 1n,
-          maxFeePerGas: 1_000_000_000n,
-          maxPriorityFeePerGas: 1n,
+          fees: {
+            maxFeePerGas: 1_000_000_000n,
+            maxPriorityFeePerGas: 1n,
+          },
           gasLimit: 21_000n,
           data: "0x",
           nonce: 0,
@@ -609,8 +632,10 @@ describe("JSON-RPC client", function () {
           to: this.accounts[1],
           from: this.accounts[0],
           value: 1n,
-          maxFeePerGas: 1_000_000_000n,
-          maxPriorityFeePerGas: 1n,
+          fees: {
+            maxFeePerGas: 1_000_000_000n,
+            maxPriorityFeePerGas: 1n,
+          },
           gasLimit: 21_000n,
           data: "0x",
           nonce: 1,
@@ -629,119 +654,143 @@ describe("JSON-RPC client", function () {
     });
 
     describe("getTransaction", function () {
-      describe("Confirmed transactions", function () {
-        it("Should return its hash, network fees, blockNumber and blockHash", async function () {
-          const req = {
-            to: this.accounts[1],
-            from: this.accounts[0],
-            value: 1n,
-            maxFeePerGas: 1_000_000_000n,
-            maxPriorityFeePerGas: 1n,
-            gasLimit: 21_000n,
-            data: "0x",
-            nonce: 0,
-          };
+      describe("On a EIP-1559 network", function () {
+        describe("Confirmed transactions", function () {
+          it("Should return its hash, network fees, blockNumber and blockHash", async function () {
+            const req = {
+              to: this.accounts[1],
+              from: this.accounts[0],
+              value: 1n,
+              fees: {
+                maxFeePerGas: 1_000_000_000n,
+                maxPriorityFeePerGas: 1n,
+              },
+              gasLimit: 21_000n,
+              data: "0x",
+              nonce: 0,
+            };
 
-          const hash = await client.sendTransaction(req);
+            const hash = await client.sendTransaction(req);
 
-          const tx = await client.getTransaction(hash);
-          const block = await client.getLatestBlock();
+            const tx = await client.getTransaction(hash);
+            const block = await client.getLatestBlock();
 
-          assert.isDefined(tx);
+            assert.isDefined(tx);
 
-          assert.equal(tx!.hash, hash);
-          assert.equal(tx!.blockNumber, block.number);
-          assert.equal(tx!.blockHash, block.hash);
-          assert.equal(tx!.fees.maxFeePerGas, req.maxFeePerGas);
-          assert.equal(tx!.fees.maxPriorityFeePerGas, req.maxPriorityFeePerGas);
-        });
-      });
-
-      describe("Pending transactions", function () {
-        it("Should the tx if it is in the mempool", async function () {
-          await this.hre.network.provider.send("evm_setAutomine", [false]);
-
-          const req = {
-            to: this.accounts[1],
-            from: this.accounts[0],
-            value: 1n,
-            maxFeePerGas: 1_000_000_000n,
-            maxPriorityFeePerGas: 1n,
-            gasLimit: 21_000n,
-            data: "0x",
-            nonce: 0,
-          };
-
-          const hash = await client.sendTransaction(req);
-
-          const tx = await client.getTransaction(hash);
-
-          assert.isDefined(tx);
-          assert.equal(tx!.hash, hash);
-          assert.isUndefined(tx!.blockNumber);
-          assert.isUndefined(tx!.blockHash);
-          assert.equal(tx!.fees.maxFeePerGas, req.maxFeePerGas);
-          assert.equal(tx!.fees.maxPriorityFeePerGas, req.maxPriorityFeePerGas);
+            assert.equal(tx!.hash, hash);
+            assert.equal(tx!.blockNumber, block.number);
+            assert.equal(tx!.blockHash, block.hash);
+            assert("maxFeePerGas" in tx!.fees);
+            assert("maxPriorityFeePerGas" in tx!.fees);
+            assert("maxFeePerGas" in tx!.fees);
+            assert("maxPriorityFeePerGas" in tx!.fees);
+            assert.equal(tx!.fees.maxFeePerGas, req.fees.maxFeePerGas);
+            assert.equal(
+              tx!.fees.maxPriorityFeePerGas,
+              req.fees.maxPriorityFeePerGas
+            );
+          });
         });
 
-        it("Should return undefined if the transaction was never sent", async function () {
-          const tx = await client.getTransaction(
-            "0x0000000000000000000000000000000000000000000000000000000000000001"
-          );
+        describe("Pending transactions", function () {
+          it("Should the tx if it is in the mempool", async function () {
+            await this.hre.network.provider.send("evm_setAutomine", [false]);
 
-          assert.isUndefined(tx);
-        });
+            const req = {
+              to: this.accounts[1],
+              from: this.accounts[0],
+              value: 1n,
+              fees: {
+                maxFeePerGas: 1_000_000_000n,
+                maxPriorityFeePerGas: 1n,
+              },
+              gasLimit: 21_000n,
+              data: "0x",
+              nonce: 0,
+            };
 
-        it("Should return undefined if the transaction was replaced by a different one", async function () {
-          await this.hre.network.provider.send("evm_setAutomine", [false]);
+            const hash = await client.sendTransaction(req);
 
-          const firstReq = {
-            to: this.accounts[1],
-            from: this.accounts[0],
-            value: 1n,
-            maxFeePerGas: 1_000_000_000n,
-            maxPriorityFeePerGas: 1n,
-            gasLimit: 21_000n,
-            data: "0x",
-            nonce: 0,
-          };
+            const tx = await client.getTransaction(hash);
 
-          const firstTxHash = await client.sendTransaction(firstReq);
-
-          const secondReq = {
-            ...firstReq,
-            maxFeePerGas: 2_000_000_000n,
-            maxPriorityFeePerGas: 2n,
-          };
-
-          await client.sendTransaction(secondReq);
-
-          const tx = await client.getTransaction(firstTxHash);
-
-          assert.isUndefined(tx);
-        });
-
-        it("Should return undefined if the transaction was dropped", async function () {
-          await this.hre.network.provider.send("evm_setAutomine", [false]);
-
-          const txHash = await client.sendTransaction({
-            to: this.accounts[1],
-            from: this.accounts[0],
-            value: 1n,
-            maxFeePerGas: 1_000_000_000n,
-            maxPriorityFeePerGas: 1n,
-            gasLimit: 21_000n,
-            data: "0x",
-            nonce: 0,
+            assert.isDefined(tx);
+            assert.equal(tx!.hash, hash);
+            assert.isUndefined(tx!.blockNumber);
+            assert.isUndefined(tx!.blockHash);
+            assert("maxFeePerGas" in tx!.fees);
+            assert("maxPriorityFeePerGas" in tx!.fees);
+            assert.equal(tx!.fees.maxFeePerGas, req.fees.maxFeePerGas);
+            assert.equal(
+              tx!.fees.maxPriorityFeePerGas,
+              req.fees.maxPriorityFeePerGas
+            );
           });
 
-          await this.hre.network.provider.send("hardhat_dropTransaction", [
-            txHash,
-          ]);
+          it("Should return undefined if the transaction was never sent", async function () {
+            const tx = await client.getTransaction(
+              "0x0000000000000000000000000000000000000000000000000000000000000001"
+            );
 
-          const tx = await client.getTransaction(txHash);
+            assert.isUndefined(tx);
+          });
 
-          assert.isUndefined(tx);
+          it("Should return undefined if the transaction was replaced by a different one", async function () {
+            await this.hre.network.provider.send("evm_setAutomine", [false]);
+
+            const firstReq = {
+              to: this.accounts[1],
+              from: this.accounts[0],
+              value: 1n,
+              fees: {
+                maxFeePerGas: 1_000_000_000n,
+                maxPriorityFeePerGas: 1n,
+              },
+              gasLimit: 21_000n,
+              data: "0x",
+              nonce: 0,
+            };
+
+            const firstTxHash = await client.sendTransaction(firstReq);
+
+            const secondReq = {
+              ...firstReq,
+              fees: {
+                maxFeePerGas: 2_000_000_000n,
+                maxPriorityFeePerGas: 2n,
+              },
+            };
+
+            await client.sendTransaction(secondReq);
+
+            const tx = await client.getTransaction(firstTxHash);
+
+            assert.isUndefined(tx);
+          });
+
+          it("Should return undefined if the transaction was dropped", async function () {
+            await this.hre.network.provider.send("evm_setAutomine", [false]);
+
+            const txHash = await client.sendTransaction({
+              to: this.accounts[1],
+              from: this.accounts[0],
+              value: 1n,
+              fees: {
+                maxFeePerGas: 1_000_000_000n,
+                maxPriorityFeePerGas: 1n,
+              },
+              gasLimit: 21_000n,
+              data: "0x",
+              nonce: 0,
+            });
+
+            await this.hre.network.provider.send("hardhat_dropTransaction", [
+              txHash,
+            ]);
+
+            const tx = await client.getTransaction(txHash);
+
+            assert.isUndefined(tx);
+          });
         });
       });
     });
@@ -753,8 +802,10 @@ describe("JSON-RPC client", function () {
             to: this.accounts[1],
             from: this.accounts[0],
             value: 1n,
-            maxFeePerGas: 1_000_000_000n,
-            maxPriorityFeePerGas: 1n,
+            fees: {
+              maxFeePerGas: 1_000_000_000n,
+              maxPriorityFeePerGas: 1n,
+            },
             gasLimit: 21_000n,
             data: "0x",
             nonce: 0,
@@ -777,8 +828,10 @@ describe("JSON-RPC client", function () {
           const hash = await client.sendTransaction({
             from: this.accounts[0],
             value: 0n,
-            maxFeePerGas: 1_000_000_000n,
-            maxPriorityFeePerGas: 1n,
+            fees: {
+              maxFeePerGas: 1_000_000_000n,
+              maxPriorityFeePerGas: 1n,
+            },
             gasLimit: 1_000_000n,
             data: encodeArtifactDeploymentData(artifact, [], {}),
             nonce: 0,
@@ -803,8 +856,10 @@ describe("JSON-RPC client", function () {
             from: this.accounts[0],
             nonce: 0,
             gasLimit: 5_000_000n,
-            maxFeePerGas: 1_000_000_000n,
-            maxPriorityFeePerGas: 1n,
+            fees: {
+              maxFeePerGas: 1_000_000_000n,
+              maxPriorityFeePerGas: 1n,
+            },
           });
 
           const block = await client.getLatestBlock();
@@ -828,8 +883,10 @@ describe("JSON-RPC client", function () {
             from: this.accounts[0],
             nonce: 1,
             gasLimit: 5_000_000n,
-            maxFeePerGas: 1_000_000_000n,
-            maxPriorityFeePerGas: 1n,
+            fees: {
+              maxFeePerGas: 1_000_000_000n,
+              maxPriorityFeePerGas: 1n,
+            },
           });
 
           const block = await client.getLatestBlock();
@@ -875,8 +932,10 @@ describe("JSON-RPC client", function () {
             to: this.accounts[1],
             from: this.accounts[0],
             value: 1n,
-            maxFeePerGas: 1_000_000_000n,
-            maxPriorityFeePerGas: 1n,
+            fees: {
+              maxFeePerGas: 1_000_000_000n,
+              maxPriorityFeePerGas: 1n,
+            },
             gasLimit: 21_000n,
             data: "0x",
             nonce: 0,
@@ -902,8 +961,10 @@ describe("JSON-RPC client", function () {
             to: this.accounts[1],
             from: this.accounts[0],
             value: 1n,
-            maxFeePerGas: 1_000_000_000n,
-            maxPriorityFeePerGas: 1n,
+            fees: {
+              maxFeePerGas: 1_000_000_000n,
+              maxPriorityFeePerGas: 1n,
+            },
             gasLimit: 21_000n,
             data: "0x",
             nonce: 0,
@@ -913,8 +974,10 @@ describe("JSON-RPC client", function () {
 
           const secondReq = {
             ...firstReq,
-            maxFeePerGas: 2_000_000_000n,
-            maxPriorityFeePerGas: 2n,
+            fees: {
+              maxFeePerGas: 2_000_000_000n,
+              maxPriorityFeePerGas: 2n,
+            },
           };
 
           await client.sendTransaction(secondReq);
@@ -931,8 +994,10 @@ describe("JSON-RPC client", function () {
             to: this.accounts[1],
             from: this.accounts[0],
             value: 1n,
-            maxFeePerGas: 1_000_000_000n,
-            maxPriorityFeePerGas: 1n,
+            fees: {
+              maxFeePerGas: 1_000_000_000n,
+              maxPriorityFeePerGas: 1n,
+            },
             gasLimit: 21_000n,
             data: "0x",
             nonce: 0,
@@ -964,8 +1029,10 @@ describe("JSON-RPC client", function () {
           from: this.accounts[0],
           nonce: 0,
           gasLimit: 5_000_000n,
-          maxFeePerGas: 1_000_000_000n,
-          maxPriorityFeePerGas: 1n,
+          fees: {
+            maxFeePerGas: 1_000_000_000n,
+            maxPriorityFeePerGas: 1n,
+          },
         });
 
         assert.isString(result);

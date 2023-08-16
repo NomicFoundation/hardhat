@@ -3,6 +3,7 @@ import { assert } from "chai";
 import {
   Block,
   CallParams,
+  EstimateGasParams,
   JsonRpcClient,
   TransactionParams,
 } from "../../../src/new-api/internal/new-execution/jsonrpc-client";
@@ -41,7 +42,7 @@ class StubJsonRpcClient implements JsonRpcClient {
   }
 
   public async estimateGas(
-    _transactionParams: Omit<TransactionParams, "gasLimit">
+    _transactionParams: EstimateGasParams
   ): Promise<bigint> {
     throw new Error("Mock not implemented.");
   }
@@ -102,8 +103,7 @@ describe("Network interactions", () => {
           assert.equal(callParams.to, staticCall.to);
           assert.equal(callParams.data, staticCall.data);
           assert.equal(callParams.value, staticCall.value);
-          assert.isUndefined(callParams.maxFeePerGas);
-          assert.isUndefined(callParams.maxPriorityFeePerGas);
+          assert.isUndefined(callParams.fees);
           assert.isUndefined(callParams.nonce);
           assert.equal(blockTag, "latest");
 
