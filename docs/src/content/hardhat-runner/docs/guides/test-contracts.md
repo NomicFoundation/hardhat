@@ -289,7 +289,7 @@ There are several other things you can test, like [which events are emitted](/ha
 
 ### Measuring code coverage
 
-The Hardhat Toolbox includes the [`solidity-coverage`](https://github.com/sc-forks/solidity-coverage) plugin to measure the test coverage in your project. Just run the `coverage` task and you'll get a report:
+The Hardhat Toolbox includes the [`solidity-coverage`](https://github.com/sc-forks/solidity-coverage) plugin to measure the test coverage in your project. Just run the `coverage` task and you'll get a report in tabular format for how many percentage of your code lines are tested in your test case. basically up to 80 % coverage for any project. sometimes it is also based on your requirement. It also give option for skip perticular files for check code coverage for that visit [`solidity-coverage`](https://github.com/sc-forks/solidity-coverage) :
 
 ```
 npx hardhat coverage
