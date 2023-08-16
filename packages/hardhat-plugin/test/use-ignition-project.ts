@@ -18,13 +18,10 @@ import { waitForPendingTxs } from "./helpers";
 const defaultTestConfig: DeployConfig = {
   transactionTimeoutInterval: 1000,
   blockPollingInterval: 200,
-  blockConfirmations: 0,
+  blockConfirmations: 1,
 };
 
-export function useEphemeralIgnitionProject(
-  fixtureProjectName: string,
-  config?: Partial<DeployConfig>
-) {
+export function useEphemeralIgnitionProject(fixtureProjectName: string) {
   beforeEach("Load environment", async function () {
     process.chdir(
       path.join(__dirname, "./fixture-projects", fixtureProjectName)
@@ -40,13 +37,6 @@ export function useEphemeralIgnitionProject(
 
     await hre.run("compile", { quiet: true });
 
-    const testConfig: Partial<DeployConfig> = {
-      ...defaultTestConfig,
-      ...config,
-    };
-
-    this.config = testConfig;
-
     this.deploy = (
       moduleDefinition: IgnitionModuleDefinition<
         string,
@@ -57,7 +47,7 @@ export function useEphemeralIgnitionProject(
     ) => {
       return this.hre.ignition.deploy(moduleDefinition, {
         parameters,
-        config: testConfig,
+        config: hre.config.ignition,
       });
     };
   });
