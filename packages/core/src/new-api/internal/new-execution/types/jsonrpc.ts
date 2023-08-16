@@ -48,11 +48,17 @@ export interface TransactionReceipt {
   logs: TransactionLog[];
 }
 
+/**
+ * Network fees for EIP-1559 transactions.
+ */
 export interface EIP1559NetworkFees {
   maxPriorityFeePerGas: bigint;
   maxFeePerGas: bigint;
 }
 
+/**
+ * Network fees for non-EIP-1559 transactions.
+ */
 export interface LegacyNetworkFees {
   gasPrice: bigint;
 }
