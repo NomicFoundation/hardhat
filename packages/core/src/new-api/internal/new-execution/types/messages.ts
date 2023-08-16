@@ -27,6 +27,7 @@ export type JournalMessage =
   | StaticCallExecutionStateCompleteMessage
   | SendDataExecutionStateInitializeMessage
   | SendDataExecutionStateCompleteMessage
+  | ContractAtExecutionStateInitializeMessage
   | NetworkInteractionRequestMessage
   | TransactionSendMessage
   | TransactionConfirmMessage
@@ -42,6 +43,7 @@ export enum JournalMessageType {
   STATIC_CALL_EXECUTION_STATE_COMPLETE = "STATIC_CALL_EXECUTION_STATE_COMPLETE",
   SEND_DATA_EXECUTION_STATE_INITIALIZE = "SEND_DATA_EXECUTION_STATE_INITIALIZE",
   SEND_DATA_EXECUTION_STATE_COMPLETE = "SEND_DATA_EXECUTION_STATE_COMPLETE",
+  CONTRACT_AT_EXECUTION_STATE_INITIALIZE = "CONTRACT_AT_EXECUTION_STATE_INITIALIZE",
   NETWORK_INTERACTION_REQUEST = "NETWORK_INTERACTION_REQUEST",
   TRANSACTION_SEND = "TRANSACTION_SEND",
   TRANSACTION_CONFIRM = "TRANSACTION_CONFIRM",
@@ -127,6 +129,17 @@ export interface SendDataExecutionStateCompleteMessage {
   type: JournalMessageType.SEND_DATA_EXECUTION_STATE_COMPLETE;
   futureId: string;
   result: SendDataExecutionResult;
+}
+
+export interface ContractAtExecutionStateInitializeMessage {
+  type: JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE;
+  futureType: FutureType.NAMED_CONTRACT_AT | FutureType.ARTIFACT_CONTRACT_AT;
+  futureId: string;
+  strategy: string;
+  dependencies: string[];
+  artifactFutureId: string;
+  contractName: string;
+  contractAddress: string;
 }
 
 export interface NetworkInteractionRequestMessage {
