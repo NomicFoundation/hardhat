@@ -43,7 +43,7 @@ export function staticCallExecutionStateReducer(
   }
 }
 
-function initialiseStaticCallExecutionStateFrom(
+export function initialiseStaticCallExecutionStateFrom(
   action: StaticCallExecutionStateInitializeMessage
 ): StaticCallExecutionState {
   const callExecutionInitialState: StaticCallExecutionState = {
@@ -64,7 +64,7 @@ function initialiseStaticCallExecutionStateFrom(
   return callExecutionInitialState;
 }
 
-function completeStaticCallExecutionState(
+export function completeStaticCallExecutionState(
   state: StaticCallExecutionState,
   message: StaticCallExecutionStateCompleteMessage
 ): StaticCallExecutionState {

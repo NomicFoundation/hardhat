@@ -4,22 +4,9 @@ import {
   ExecutionStatus,
   ReadEventArgumentExecutionState,
 } from "../types/execution-state";
-import {
-  JournalMessageType,
-  ReadEventArgExecutionStateInitializeMessage,
-} from "../types/messages";
+import { ReadEventArgExecutionStateInitializeMessage } from "../types/messages";
 
-export function readEventArgumentExecutionStateReducer(
-  _state: ReadEventArgumentExecutionState,
-  action: ReadEventArgExecutionStateInitializeMessage
-): ReadEventArgumentExecutionState {
-  switch (action.type) {
-    case JournalMessageType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE:
-      return initialiseReadEventArgumentExecutionStateFrom(action);
-  }
-}
-
-function initialiseReadEventArgumentExecutionStateFrom(
+export function initialiseReadEventArgumentExecutionStateFrom(
   action: ReadEventArgExecutionStateInitializeMessage
 ): ReadEventArgumentExecutionState {
   const readEventArgumentExecutionInitialState: ReadEventArgumentExecutionState =

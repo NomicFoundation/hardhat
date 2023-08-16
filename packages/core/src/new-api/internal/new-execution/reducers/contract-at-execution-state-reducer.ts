@@ -3,22 +3,9 @@ import {
   ExecutionSateType,
   ExecutionStatus,
 } from "../types/execution-state";
-import {
-  ContractAtExecutionStateInitializeMessage,
-  JournalMessageType,
-} from "../types/messages";
+import { ContractAtExecutionStateInitializeMessage } from "../types/messages";
 
-export function contractAtExecutionStateReducer(
-  _state: ContractAtExecutionState,
-  action: ContractAtExecutionStateInitializeMessage
-): ContractAtExecutionState {
-  switch (action.type) {
-    case JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE:
-      return initialiseContractAtExecutionStateFrom(action);
-  }
-}
-
-function initialiseContractAtExecutionStateFrom(
+export function initialiseContractAtExecutionStateFrom(
   action: ContractAtExecutionStateInitializeMessage
 ): ContractAtExecutionState {
   const contractAtExecutionInitialState: ContractAtExecutionState = {

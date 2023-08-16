@@ -40,7 +40,7 @@ export function deploymentExecutionStateReducer(
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE:
       return initialiseDeploymentExecutionStateFrom(action);
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE:
-      return completeDeploymentExecutionState(state, action.result);
+      return completeDeploymentExecutionState(state, action);
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
       return appendNetworkInteraction(state, action);
     case JournalMessageType.TRANSACTION_SEND:
@@ -52,7 +52,7 @@ export function deploymentExecutionStateReducer(
   }
 }
 
-function initialiseDeploymentExecutionStateFrom(
+export function initialiseDeploymentExecutionStateFrom(
   action: DeploymentExecutionStateInitializeMessage
 ): DeploymentExecutionState {
   const deploymentExecutionInitialState: DeploymentExecutionState = {
@@ -74,13 +74,13 @@ function initialiseDeploymentExecutionStateFrom(
   return deploymentExecutionInitialState;
 }
 
-function completeDeploymentExecutionState(
+export function completeDeploymentExecutionState(
   state: DeploymentExecutionState,
-  result: DeploymentExecutionResult
+  action: DeploymentExecutionStateCompleteMessage
 ): DeploymentExecutionState {
   return produce(state, (draft: DeploymentExecutionState): void => {
-    draft.status = _mapExecutionResultTypeToExecutionStatus(result);
-    draft.result = result;
+    draft.status = _mapExecutionResultTypeToExecutionStatus(action.result);
+    draft.result = action.result;
   });
 }
 

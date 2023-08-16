@@ -53,7 +53,7 @@ export function sendDataExecutionStateReducer(
   }
 }
 
-function initialiseSendDataExecutionStateFrom(
+export function initialiseSendDataExecutionStateFrom(
   action: SendDataExecutionStateInitializeMessage
 ): SendDataExecutionState {
   const callExecutionInitialState: SendDataExecutionState = {
@@ -73,7 +73,7 @@ function initialiseSendDataExecutionStateFrom(
   return callExecutionInitialState;
 }
 
-function completeSendDataExecutionState(
+export function completeSendDataExecutionState(
   state: SendDataExecutionState,
   message: SendDataExecutionStateCompleteMessage
 ): SendDataExecutionState {

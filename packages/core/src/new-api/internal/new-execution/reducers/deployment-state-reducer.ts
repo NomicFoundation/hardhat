@@ -1,5 +1,6 @@
 import { IgnitionError } from "../../../../errors";
 import { assertIgnitionInvariant } from "../../utils/assertions";
+import { MapExStateTypeToExState } from "../type-helpers";
 import { DeploymentState, ExecutionStateMap } from "../types/deployment-state";
 import { ExecutionSateType, ExecutionState } from "../types/execution-state";
 import {
@@ -8,12 +9,28 @@ import {
   RunStartMessage,
 } from "../types/messages";
 
-import { callExecutionStateReducer } from "./call-execution-state-reducer";
-import { contractAtExecutionStateReducer } from "./contract-at-execution-state-reducer";
-import { deploymentExecutionStateReducer } from "./deployment-execution-state-reducer";
-import { readEventArgumentExecutionStateReducer } from "./read-event-argument-execution-state-reducer";
-import { sendDataExecutionStateReducer } from "./send-data-execution-state-reducer";
-import { staticCallExecutionStateReducer } from "./static-call-execution-state-reducer";
+import {
+  callExecutionStateReducer,
+  completeCallExecutionState,
+  initialiseCallExecutionStateFrom,
+} from "./call-execution-state-reducer";
+import { initialiseContractAtExecutionStateFrom } from "./contract-at-execution-state-reducer";
+import {
+  completeDeploymentExecutionState,
+  deploymentExecutionStateReducer,
+  initialiseDeploymentExecutionStateFrom,
+} from "./deployment-execution-state-reducer";
+import { initialiseReadEventArgumentExecutionStateFrom } from "./read-event-argument-execution-state-reducer";
+import {
+  completeSendDataExecutionState,
+  initialiseSendDataExecutionStateFrom,
+  sendDataExecutionStateReducer,
+} from "./send-data-execution-state-reducer";
+import {
+  completeStaticCallExecutionState,
+  initialiseStaticCallExecutionStateFrom,
+  staticCallExecutionStateReducer,
+} from "./static-call-execution-state-reducer";
 
 const initialState: DeploymentState = {
   chainId: 0,
@@ -25,37 +42,20 @@ export function deploymentStateReducer(
   action?: JournalMessage
 ): DeploymentState {
   if (action === undefined) {
+    return state;
+  }
+
+  if (action.type === JournalMessageType.RUN_START) {
     return {
-      chainId: 0,
-      executionStates: {},
+      ...state,
+      chainId: action.chainId,
     };
   }
 
-  switch (action.type) {
-    case JournalMessageType.RUN_START:
-      return {
-        ...state,
-        chainId: action.chainId,
-      };
-    case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE:
-    case JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE:
-    case JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE:
-    case JournalMessageType.SEND_DATA_EXECUTION_STATE_INITIALIZE:
-    case JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE:
-    case JournalMessageType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE:
-    case JournalMessageType.NETWORK_INTERACTION_REQUEST:
-    case JournalMessageType.TRANSACTION_SEND:
-    case JournalMessageType.TRANSACTION_CONFIRM:
-    case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE:
-    case JournalMessageType.CALL_EXECUTION_STATE_COMPLETE:
-    case JournalMessageType.STATIC_CALL_EXECUTION_STATE_COMPLETE:
-    case JournalMessageType.STATIC_CALL_COMPLETE:
-    case JournalMessageType.SEND_DATA_EXECUTION_STATE_COMPLETE:
-      return {
-        ...state,
-        executionStates: executionStatesReducer(state.executionStates, action),
-      };
-  }
+  return {
+    ...state,
+    executionStates: executionStatesReducer(state.executionStates, action),
+  };
 }
 
 function executionStatesReducer(
@@ -66,70 +66,55 @@ function executionStatesReducer(
 
   return {
     ...state,
-    [action.futureId]: dispatchToPerExecutionStateReducer(
-      previousExState,
-      action
-    ),
+    [action.futureId]: executionStateReducer(previousExState, action),
   };
 }
 
-function dispatchToPerExecutionStateReducer(
+function executionStateReducer(
   state: ExecutionState | undefined,
   action: Exclude<JournalMessage, RunStartMessage>
 ): ExecutionState {
   switch (action.type) {
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE:
-      return deploymentExecutionStateReducer(null as any, action);
+      return initialiseDeploymentExecutionStateFrom(action);
     case JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE:
-      return callExecutionStateReducer(null as any, action);
+      return initialiseCallExecutionStateFrom(action);
     case JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE:
-      return staticCallExecutionStateReducer(null as any, action);
+      return initialiseStaticCallExecutionStateFrom(action);
     case JournalMessageType.SEND_DATA_EXECUTION_STATE_INITIALIZE:
-      return sendDataExecutionStateReducer(null as any, action);
+      return initialiseSendDataExecutionStateFrom(action);
     case JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE:
-      return contractAtExecutionStateReducer(null as any, action);
+      return initialiseContractAtExecutionStateFrom(action);
     case JournalMessageType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE:
-      return readEventArgumentExecutionStateReducer(null as any, action);
+      return initialiseReadEventArgumentExecutionStateFrom(action);
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE:
-      assertIgnitionInvariant(
-        state !== undefined &&
-          state.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
-        `To complete the execution state must be deployment but is ${
-          state === undefined ? "undefined" : state.type
-        }`
+      return _ensureExStateThen(
+        ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+        state,
+        action,
+        completeDeploymentExecutionState
       );
-
-      return deploymentExecutionStateReducer(state, action);
     case JournalMessageType.CALL_EXECUTION_STATE_COMPLETE:
-      assertIgnitionInvariant(
-        state !== undefined &&
-          state.type === ExecutionSateType.CALL_EXECUTION_STATE,
-        `To complete the execution state must be call but is ${
-          state === undefined ? "undefined" : state.type
-        }`
+      return _ensureExStateThen(
+        ExecutionSateType.CALL_EXECUTION_STATE,
+        state,
+        action,
+        completeCallExecutionState
       );
-
-      return callExecutionStateReducer(state, action);
     case JournalMessageType.STATIC_CALL_EXECUTION_STATE_COMPLETE:
-      assertIgnitionInvariant(
-        state !== undefined &&
-          state.type === ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
-        `To complete the execution state must be a static call but is ${
-          state === undefined ? "undefined" : state.type
-        }`
+      return _ensureExStateThen(
+        ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
+        state,
+        action,
+        completeStaticCallExecutionState
       );
-
-      return staticCallExecutionStateReducer(state, action);
     case JournalMessageType.SEND_DATA_EXECUTION_STATE_COMPLETE:
-      assertIgnitionInvariant(
-        state !== undefined &&
-          state.type === ExecutionSateType.SEND_DATA_EXECUTION_STATE,
-        `To complete the execution state must be a send data but is ${
-          state === undefined ? "undefined" : state.type
-        }`
+      return _ensureExStateThen(
+        ExecutionSateType.SEND_DATA_EXECUTION_STATE,
+        state,
+        action,
+        completeSendDataExecutionState
       );
-
-      return sendDataExecutionStateReducer(state, action);
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
     case JournalMessageType.STATIC_CALL_COMPLETE:
       assertIgnitionInvariant(
@@ -174,4 +159,32 @@ function dispatchToPerExecutionStateReducer(
           );
       }
   }
+}
+
+function _ensureExStateThen<
+  ExStateT extends ExecutionSateType,
+  Message extends JournalMessage
+>(
+  exStateType: ExStateT,
+  state: ExecutionState | undefined,
+  action: Message,
+  reducer: (
+    state: MapExStateTypeToExState<ExStateT>,
+    action: Message
+  ) => MapExStateTypeToExState<ExStateT>
+): MapExStateTypeToExState<ExStateT> {
+  assertIgnitionInvariant(
+    state !== undefined,
+    `Exeuction state must be defined`
+  );
+
+  assertIgnitionInvariant(
+    state.type === exStateType,
+    `Expected execution state for ${state.id} to be a ${exStateType}, but instead it was ${state.type}`
+  );
+
+  return reducer(
+    state as MapExStateTypeToExState<ExStateT>,
+    action
+  ) as MapExStateTypeToExState<ExStateT>;
 }

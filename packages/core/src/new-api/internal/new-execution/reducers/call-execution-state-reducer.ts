@@ -53,7 +53,7 @@ export function callExecutionStateReducer(
   }
 }
 
-function initialiseCallExecutionStateFrom(
+export function initialiseCallExecutionStateFrom(
   action: CallExecutionStateInitializeMessage
 ): CallExecutionState {
   const callExecutionInitialState: CallExecutionState = {
@@ -75,7 +75,7 @@ function initialiseCallExecutionStateFrom(
   return callExecutionInitialState;
 }
 
-function completeCallExecutionState(
+export function completeCallExecutionState(
   state: CallExecutionState,
   message: CallExecutionStateCompleteMessage
 ): CallExecutionState {
