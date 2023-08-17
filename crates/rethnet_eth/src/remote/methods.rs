@@ -348,6 +348,7 @@ pub struct GetLogsInput {
     /// address for get_logs request
     pub address: Address,
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
