@@ -1,7 +1,4 @@
-use std::{
-    ops::Deref,
-    sync::{Arc, OnceLock},
-};
+use std::{ops::Deref, sync::Arc};
 
 use crate::{
     block::Block,
@@ -11,16 +8,14 @@ use crate::{
     Address,
 };
 use itertools::izip;
-use revm_primitives::B256;
 
 /// A type that combines the block with transaction details about caller addresses
 /// and receipts.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct DetailedBlock {
     block: Block,
     transaction_callers: Vec<Address>,
     transaction_receipts: Vec<Arc<BlockReceipt>>,
-    hash: OnceLock<B256>,
 }
 
 impl DetailedBlock {
@@ -34,7 +29,6 @@ impl DetailedBlock {
             block,
             transaction_callers,
             transaction_receipts,
-            hash: OnceLock::new(),
         }
     }
 
@@ -96,11 +90,6 @@ impl DetailedBlock {
         Self::new(block, transaction_callers, transaction_receipts)
     }
 
-    /// Retrieves the block's hash.
-    pub fn hash(&self) -> &B256 {
-        self.hash.get_or_init(|| self.block.header.hash())
-    }
-
     /// Retrieves the receipts of the block's transactions.
     pub fn transaction_receipts(&self) -> &[Arc<BlockReceipt>] {
         &self.transaction_receipts
@@ -124,13 +113,5 @@ impl Deref for DetailedBlock {
 
     fn deref(&self) -> &Self::Target {
         &self.block
-    }
-}
-
-impl PartialEq for DetailedBlock {
-    fn eq(&self, other: &Self) -> bool {
-        self.block == other.block
-            && self.transaction_callers == other.transaction_callers
-            && self.transaction_receipts == other.transaction_receipts
     }
 }

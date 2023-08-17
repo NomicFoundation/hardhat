@@ -11,11 +11,8 @@ pub mod eip712;
 
 use std::fmt::Debug;
 
-use revm_primitives::ruint::aliases::B64;
-
 use crate::{
     access_list::AccessListItem,
-    block::BlockAndCallers,
     signature::Signature,
     transaction::{
         EIP1559SignedTransaction, EIP155SignedTransaction, EIP2930SignedTransaction,
@@ -258,66 +255,5 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
         };
 
         Ok((transaction, value.from))
-    }
-}
-
-/// Error that occurs when trying to convert the JSON-RPC `Block` type.
-#[derive(Debug, thiserror::Error)]
-pub enum BlockConversionError {
-    /// Missing miner
-    #[error("Missing miner")]
-    MissingMiner,
-    /// Missing nonce
-    #[error("Missing nonce")]
-    MissingNonce,
-    /// Missing number
-    #[error("Missing numbeer")]
-    MissingNumber,
-    /// Transaction conversion error
-    #[error(transparent)]
-    TransactionConversionError(#[from] TransactionConversionError),
-}
-
-impl TryFrom<Block<Transaction>> for BlockAndCallers {
-    type Error = BlockConversionError;
-
-    fn try_from(value: Block<Transaction>) -> Result<Self, Self::Error> {
-        let (transactions, transaction_callers): (Vec<SignedTransaction>, Vec<Address>) =
-            itertools::process_results(
-                value.transactions.into_iter().map(TryInto::try_into),
-                #[allow(clippy::redundant_closure_for_method_calls)]
-                |iter| iter.unzip(),
-            )?;
-
-        let block = crate::block::Block {
-            header: crate::block::Header {
-                parent_hash: value.parent_hash,
-                ommers_hash: value.sha3_uncles,
-                beneficiary: value.miner.ok_or(BlockConversionError::MissingMiner)?,
-                state_root: value.state_root,
-                transactions_root: value.transactions_root,
-                receipts_root: value.receipts_root,
-                logs_bloom: value.logs_bloom,
-                difficulty: value.difficulty,
-                number: value.number.ok_or(BlockConversionError::MissingNumber)?,
-                gas_limit: value.gas_limit,
-                gas_used: value.gas_used,
-                timestamp: value.timestamp,
-                extra_data: value.extra_data,
-                mix_hash: value.mix_hash,
-                nonce: B64::from_limbs([value.nonce.ok_or(BlockConversionError::MissingNonce)?]),
-                base_fee_per_gas: value.base_fee_per_gas,
-                withdrawals_root: value.withdrawals_root,
-            },
-            transactions,
-            // TODO: Include headers
-            ommers: Vec::new(),
-            withdrawals: value.withdrawals,
-        };
-
-        Ok(Self {
-            block,
-            transaction_callers,
-        })
     }
 }
