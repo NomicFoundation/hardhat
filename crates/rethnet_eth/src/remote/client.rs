@@ -557,7 +557,9 @@ mod tests {
         client: RpcClient,
 
         // Need to keep the tempdir around to prevent it from being deleted
-        _cache_dir: TempDir,
+        // Only accessed when feature = "test-remote", hence the allow.
+        #[allow(dead_code)]
+        cache_dir: TempDir,
     }
 
     impl TestRpcClient {
@@ -565,7 +567,7 @@ mod tests {
             let tempdir = TempDir::new().unwrap();
             Self {
                 client: RpcClient::new(url, tempdir.path().into()),
-                _cache_dir: tempdir,
+                cache_dir: tempdir,
             }
         }
     }
@@ -614,11 +616,36 @@ mod tests {
 
     #[cfg(feature = "test-remote")]
     mod alchemy {
-        use rethnet_test_utils::env::get_alchemy_url;
+        use rethnet_test_utils::env::{get_alchemy_url, get_infura_url};
 
         use crate::Bytes;
 
         use super::*;
+
+        use walkdir::WalkDir;
+
+        impl TestRpcClient {
+            fn new_with_dir(url: &str, cache_dir: TempDir) -> Self {
+                Self {
+                    client: RpcClient::new(url, cache_dir.path().into()),
+                    cache_dir,
+                }
+            }
+
+            fn files_in_cache(&self) -> Vec<PathBuf> {
+                let mut files = Vec::new();
+                for entry in WalkDir::new(&self.cache_dir)
+                    .follow_links(true)
+                    .into_iter()
+                    .filter_map(|e| e.ok())
+                {
+                    if entry.file_type().is_file() {
+                        files.push(entry.path().to_owned());
+                    }
+                }
+                files
+            }
+        }
 
         #[tokio::test]
         async fn call_bad_api_key() {
@@ -1350,6 +1377,28 @@ mod tests {
                 .expect("should have succeeded");
 
             assert_eq!(version, U256::from(1));
+        }
+
+        #[tokio::test]
+        async fn switching_provider_doesnt_invalidate_cache() {
+            let alchemy_url = get_alchemy_url();
+            let infura_url = get_infura_url();
+
+            let alchemy_client = TestRpcClient::new(&alchemy_url);
+            alchemy_client
+                .network_id()
+                .await
+                .expect("should have succeeded");
+            let alchemy_cached_files = alchemy_client.files_in_cache();
+            assert_eq!(alchemy_cached_files.len(), 1);
+
+            let infura_client = TestRpcClient::new_with_dir(&infura_url, alchemy_client.cache_dir);
+            infura_client
+                .network_id()
+                .await
+                .expect("should have succeeded");
+            let infura_cached_files = infura_client.files_in_cache();
+            assert_eq!(alchemy_cached_files, infura_cached_files);
         }
     }
 }

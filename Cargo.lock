@@ -2335,6 +2335,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "triehash",
+ "walkdir",
 ]
 
 [[package]]
