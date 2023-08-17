@@ -215,6 +215,11 @@ mod tests {
         help_test_method_invocation_serde(HardhatMethodInvocation::Mine(Some(U256::from(1)), None));
         help_test_method_invocation_serde(HardhatMethodInvocation::Mine(None, Some(U256::from(1))));
         help_test_method_invocation_serde(HardhatMethodInvocation::Mine(None, None));
+
+        let json = r#"{"jsonrpc":"2.0","method":"hardhat_mine","params":[],"id":2}"#;
+        let deserialized: HardhatMethodInvocation = serde_json::from_str(json)
+            .unwrap_or_else(|_| panic!("should have successfully deserialized json {json}"));
+        assert_eq!(HardhatMethodInvocation::Mine(None, None), deserialized);
     }
 
     #[test]
