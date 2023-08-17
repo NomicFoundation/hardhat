@@ -51,12 +51,13 @@ impl ForkState {
         let rpc_client = RpcClient::new(url, cache_dir);
 
         accounts.iter_mut().for_each(|(address, mut account_info)| {
-            let nonce = runtime
-                .block_on(
+            let nonce = tokio::task::block_in_place(|| {
+                runtime.block_on(
                     rpc_client
                         .get_transaction_count(address, Some(BlockSpec::Number(fork_block_number))),
                 )
-                .expect("failed to retrieve remote account info for local account initialization");
+            })
+            .expect("failed to retrieve remote account info for local account initialization");
 
             account_info.nonce = nonce.to();
         });
@@ -345,6 +346,7 @@ mod tests {
     use std::ops::{Deref, DerefMut};
     use std::str::FromStr;
 
+    use rethnet_test_utils::env::get_alchemy_url;
     use tokio::runtime::Builder;
 
     use super::*;
@@ -354,24 +356,10 @@ mod tests {
     struct TestForkState {
         fork_state: ForkState,
         // We need to keep it around as long as the fork state is alive
-        #[allow(dead_code)]
-        tempdir: tempfile::TempDir,
+        _tempdir: tempfile::TempDir,
     }
 
     impl TestForkState {
-        fn get_alchemy_url() -> String {
-            let url = std::env::var_os("ALCHEMY_URL")
-                .expect("ALCHEMY_URL environment variable not defined")
-                .into_string()
-                .expect("couldn't convert OsString into a String");
-
-            if url.is_empty() {
-                panic!("ALCHEMY_URL environment variable is empty")
-            } else {
-                url
-            }
-        }
-
         fn new() -> Self {
             let runtime = Arc::new(
                 Builder::new_multi_thread()
@@ -388,14 +376,14 @@ mod tests {
             let fork_state = ForkState::new(
                 runtime,
                 hash_generator,
-                &Self::get_alchemy_url(),
+                &get_alchemy_url(),
                 tempdir.path().to_path_buf(),
                 U256::from(FORK_BLOCK),
                 HashMap::default(),
             );
             Self {
                 fork_state,
-                tempdir,
+                _tempdir: tempdir,
             }
         }
     }

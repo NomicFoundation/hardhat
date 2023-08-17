@@ -42,6 +42,9 @@ pub enum MineBlockError<BE, SE> {
     /// A blockchain error
     #[error(transparent)]
     Blockchain(BE),
+    /// An error that occurred while updating the mempool.
+    #[error(transparent)]
+    MemPoolUpdate(SE),
     /// The block is expected to have a prevrandao, as the executor's config is on a post-merge hardfork.
     #[error("Post-merge transaction is missing prevrandao")]
     MissingPrevrandao,
@@ -99,8 +102,7 @@ where
         )?
     };
 
-    let mut pending_transactions: VecDeque<_> =
-        mem_pool.pending_transactions().iter().cloned().collect();
+    let mut pending_transactions: VecDeque<_> = mem_pool.pending_transactions().cloned().collect();
 
     let mut results = Vec::new();
     let mut traces = Vec::new();
@@ -137,7 +139,9 @@ where
         .insert_block(block)
         .map_err(MineBlockError::Blockchain)?;
 
-    mem_pool.update(state);
+    mem_pool
+        .update(state)
+        .map_err(MineBlockError::MemPoolUpdate)?;
 
     Ok(MineBlockResult {
         block,
@@ -147,6 +151,10 @@ where
 }
 
 /// Calculates the next base fee for a post-London block, given the parent's header.
+///
+/// # Panics
+///
+/// Panics if the parent header does not contain a base fee.
 fn calculate_next_base_fee(parent: &Header) -> U256 {
     let elasticity = U256::from(2);
     let base_fee_max_change_denominator = U256::from(8);
@@ -164,7 +172,7 @@ fn calculate_next_base_fee(parent: &Header) -> U256 {
                 / parent_gas_target
                 / base_fee_max_change_denominator;
 
-            (parent_base_fee - delta).max(U256::ZERO)
+            parent_base_fee.saturating_sub(delta)
         }
         std::cmp::Ordering::Equal => parent_base_fee,
         std::cmp::Ordering::Greater => {
@@ -173,11 +181,51 @@ fn calculate_next_base_fee(parent: &Header) -> U256 {
             let delta = parent_base_fee * gas_used_delta
                 / parent_gas_target
                 / base_fee_max_change_denominator;
-            if delta > U256::from(1) {
-                delta
-            } else {
-                parent_base_fee + U256::from(1)
-            }
+
+            parent_base_fee + delta.max(U256::from(1))
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use itertools::izip;
+
+    use super::*;
+
+    #[test]
+    fn test_calculate_next_base_fee() {
+        let base_fee = [
+            1000000000, 1000000000, 1000000000, 1072671875, 1059263476, 1049238967, 1049238967, 0,
+            1, 2,
+        ];
+        let gas_used = [
+            10000000, 10000000, 10000000, 9000000, 10001000, 0, 10000000, 10000000, 10000000,
+            10000000,
+        ];
+        let gas_limit = [
+            10000000, 12000000, 14000000, 10000000, 14000000, 2000000, 18000000, 18000000,
+            18000000, 18000000,
+        ];
+        let next_base_fee = [
+            1125000000, 1083333333, 1053571428, 1179939062, 1116028649, 918084097, 1063811730, 1,
+            2, 3,
+        ];
+
+        for (base_fee, gas_used, gas_limit, next_base_fee) in
+            izip!(base_fee, gas_used, gas_limit, next_base_fee)
+        {
+            let parent_header = Header {
+                base_fee_per_gas: Some(U256::from(base_fee)),
+                gas_used: U256::from(gas_used),
+                gas_limit: U256::from(gas_limit),
+                ..Default::default()
+            };
+
+            assert_eq!(
+                U256::from(next_base_fee),
+                calculate_next_base_fee(&parent_header)
+            );
         }
     }
 }

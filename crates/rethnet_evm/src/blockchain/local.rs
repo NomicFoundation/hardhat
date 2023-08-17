@@ -33,8 +33,11 @@ pub enum CreationError<SE> {
 
 #[derive(Debug, thiserror::Error)]
 pub enum InsertBlockError {
-    #[error("Invalid block number: ${actual}. Expected: ${expected}")]
+    #[error("Invalid block number: {actual}. Expected: {expected}")]
     InvalidBlockNumber { actual: U256, expected: U256 },
+    /// Missing withdrawals for post-Shanghai blockchain
+    #[error("Missing withdrawals for post-Shanghai blockchain")]
+    MissingWithdrawals,
 }
 
 /// A blockchain consisting of locally created blocks.
@@ -57,6 +60,12 @@ impl LocalBlockchain {
         base_fee: Option<U256>,
     ) -> Result<Self, CreationError<S::Error>> {
         const EXTRA_DATA: &[u8] = b"124";
+
+        let withdrawals = if spec_id >= SpecId::SHANGHAI {
+            Some(Vec::new())
+        } else {
+            None
+        };
 
         let genesis_block = Block::new(
             PartialHeader {
@@ -98,6 +107,7 @@ impl LocalBlockchain {
             },
             Vec::new(),
             Vec::new(),
+            withdrawals,
         );
 
         Ok(unsafe {
@@ -120,6 +130,10 @@ impl LocalBlockchain {
                 actual: genesis_block.header.number,
                 expected: U256::ZERO,
             });
+        }
+
+        if spec_id >= SpecId::SHANGHAI && genesis_block.header.withdrawals_root.is_none() {
+            return Err(InsertBlockError::MissingWithdrawals);
         }
 
         Ok(unsafe { Self::with_genesis_block_unchecked(chain_id, spec_id, genesis_block) })
@@ -213,7 +227,7 @@ impl BlockchainMut for LocalBlockchain {
     fn insert_block(&mut self, block: DetailedBlock) -> Result<Arc<DetailedBlock>, Self::Error> {
         let last_block = self.last_block()?;
 
-        validate_next_block(&last_block, &block)?;
+        validate_next_block(self.spec_id, &last_block, &block)?;
 
         let previous_total_difficulty = self
             .storage

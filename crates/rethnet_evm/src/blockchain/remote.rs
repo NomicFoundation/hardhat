@@ -55,10 +55,12 @@ impl RemoteBlockchain {
         if let Some(block) = cache.block_by_number(number).cloned() {
             Ok(block)
         } else {
-            let block = self.runtime.block_on(
-                self.client
-                    .get_block_by_number_with_transaction_data(BlockSpec::Number(*number)),
-            )?;
+            let block = tokio::task::block_in_place(move || {
+                self.runtime.block_on(
+                    self.client
+                        .get_block_by_number_with_transaction_data(BlockSpec::Number(*number)),
+                )
+            })?;
 
             self.fetch_and_cache_block(cache, block)
         }

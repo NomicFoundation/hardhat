@@ -19,7 +19,6 @@ pub mod methods;
 // TODO remove once PR is ready
 #[allow(dead_code)]
 mod cacheable_method_invocation;
-mod withdrawal;
 
 use crate::{B256, U256};
 

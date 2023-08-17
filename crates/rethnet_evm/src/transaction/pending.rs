@@ -65,7 +65,7 @@ impl PendingTransaction {
         let sender = state.basic(caller)?.unwrap_or_default();
 
         // We need to validate funds at this stage to avoid DOS
-        let max_upfront_cost = transaction.max_cost().saturating_add(transaction.value());
+        let max_upfront_cost = transaction.upfront_cost();
         if max_upfront_cost > sender.balance {
             return Err(TransactionCreationError::InsufficientFunds {
                 max_upfront_cost,

@@ -257,7 +257,7 @@ impl BlockchainMut for ForkedBlockchain {
     fn insert_block(&mut self, block: DetailedBlock) -> Result<Arc<DetailedBlock>, Self::Error> {
         let last_block = self.last_block()?;
 
-        validate_next_block(&last_block, &block)?;
+        validate_next_block(self.spec_id, &last_block, &block)?;
 
         let previous_total_difficulty = self
             .total_difficulty_by_hash(last_block.hash())

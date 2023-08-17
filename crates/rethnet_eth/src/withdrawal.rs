@@ -1,8 +1,7 @@
+//! Ethereum withdrawal type
+
 use revm_primitives::{
-    ruint::{
-        self,
-        aliases::{U128, U160},
-    },
+    ruint::{self, aliases::U160},
     Address, U256,
 };
 
@@ -12,9 +11,11 @@ use revm_primitives::{
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct Withdrawal {
     /// The index of withdrawal
-    pub index: U128,
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
+    pub index: u64,
     /// The index of the validator that generated the withdrawal
-    pub validator_index: U128,
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
+    pub validator_index: u64,
     /// The recipient address for withdrawal value
     pub address: Address,
     /// The value contained in withdrawal
