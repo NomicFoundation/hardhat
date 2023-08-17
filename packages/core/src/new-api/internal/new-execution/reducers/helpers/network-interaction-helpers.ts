@@ -1,23 +1,23 @@
 import { produce } from "immer";
 
-import { NetworkInteractionType } from "../../execution/transaction-types";
-import { assertIgnitionInvariant } from "../../utils/assertions";
+import { NetworkInteractionType } from "../../../execution/transaction-types";
+import { assertIgnitionInvariant } from "../../../utils/assertions";
 import {
   CallExecutionState,
   DeploymentExecutionState,
   ExecutionSateType,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../types/execution-state";
+} from "../../types/execution-state";
 import {
   NetworkInteractionRequestMessage,
   StaticCallCompleteMessage,
   TransactionConfirmMessage,
   TransactionSendMessage,
-} from "../types/messages";
-import { findOnchainInteractionBy } from "../views/execution-state/find-onchain-interaction-by";
-import { findStaticCallBy } from "../views/execution-state/find-static-call-by";
-import { findTransactionBy } from "../views/execution-state/find-transaction-by";
+} from "../../types/messages";
+import { findOnchainInteractionBy } from "../../views/execution-state/find-onchain-interaction-by";
+import { findStaticCallBy } from "../../views/execution-state/find-static-call-by";
+import { findTransactionBy } from "../../views/execution-state/find-transaction-by";
 
 /**
  * Add a new network interaction to the execution state.
@@ -92,7 +92,6 @@ export function confirmTransaction<
   ExState extends
     | DeploymentExecutionState
     | CallExecutionState
-    | StaticCallExecutionState
     | SendDataExecutionState
 >(state: ExState, action: TransactionConfirmMessage): ExState {
   return produce(state, (draft: ExState): void => {
@@ -124,8 +123,8 @@ export function completeStaticCall<
   ExState extends
     | DeploymentExecutionState
     | CallExecutionState
-    | StaticCallExecutionState
     | SendDataExecutionState
+    | StaticCallExecutionState
 >(state: ExState, action: StaticCallCompleteMessage) {
   return produce(state, (draft: ExState): void => {
     const onchainInteraction = findStaticCallBy(
