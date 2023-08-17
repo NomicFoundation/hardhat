@@ -1,7 +1,7 @@
 use std::ffi::OsString;
 use std::fs;
 use std::net::{IpAddr, Ipv4Addr};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::anyhow;
 use clap::{Args, Parser, Subcommand};
@@ -51,6 +51,8 @@ pub struct NodeArgs {
     coinbase: Option<Address>,
     #[clap(long)]
     network_id: Option<u64>,
+    #[clap(long)]
+    cache_dir: Option<PathBuf>,
     #[clap(short, long, action = clap::ArgAction::Count)]
     verbose: u8,
 }

@@ -1,3 +1,4 @@
+use std::path::{Path, PathBuf};
 use std::{
     io,
     sync::atomic::{AtomicU64, Ordering},
@@ -5,8 +6,13 @@ use std::{
 
 use itertools::Itertools;
 use revm_primitives::{AccountInfo, Address, Bytecode, B256, KECCAK_EMPTY, U256};
+use sha3::digest::FixedOutput;
+use sha3::{Digest, Sha3_256};
 use tokio::sync::OnceCell;
 
+use crate::remote::cacheable_method_invocation::{
+    CacheKey, CacheableMethodInvocation, CacheableMethodInvocations,
+};
 use crate::{log::FilterLog, receipt::BlockReceipt, serde::ZeroXPrefixedBytes};
 
 use super::{
@@ -14,6 +20,8 @@ use super::{
     methods::{GetLogsInput, MethodInvocation},
     BlockSpec,
 };
+
+const RPC_CACHE_DIR: &str = "rpc_cache";
 
 /// Specialized error types
 #[derive(thiserror::Error, Debug)]
@@ -87,6 +95,7 @@ pub struct RpcClient {
     chain_id: OnceCell<U256>,
     client: reqwest::Client,
     next_id: AtomicU64,
+    rpc_cache_dir: PathBuf,
 }
 
 impl RpcClient {
@@ -115,30 +124,16 @@ impl RpcClient {
             })
     }
 
-    fn hash_string(input: &str) -> String {
-        Self::hash_bytes(input.as_bytes())
-    }
-
     fn hash_bytes(input: &[u8]) -> String {
-        use std::hash::Hasher;
-        let mut hasher = std::collections::hash_map::DefaultHasher::new();
-        hasher.write(input);
-        hasher.finish().to_string()
+        let hasher = Sha3_256::new_with_prefix(input);
+        hex::encode(hasher.finalize_fixed())
     }
 
-    async fn make_cache_path(
-        &self,
-        request_body: &str,
-    ) -> Result<std::path::PathBuf, RpcClientError> {
+    async fn make_cache_path(&self, cache_key: &CacheKey) -> Result<PathBuf, RpcClientError> {
         let chain_id = self.chain_id().await?;
-
-        // TODO: consider using a better path for this directory. currently, for test runs,
-        // it's going to crates/rethnet_eth/remote_node_cache. shouldn't it be rooted somewhere
-        // more accessible/convenient?
-        let directory = format!(
-            "remote_node_cache/{}",
-            Self::hash_bytes(chain_id.as_le_bytes().as_ref())
-        );
+        let directory = self
+            .rpc_cache_dir
+            .join(Self::hash_bytes(chain_id.as_le_bytes().as_ref()));
 
         // ensure directory exists
         tokio::fs::DirBuilder::new()
@@ -150,16 +145,15 @@ impl RpcClient {
                 error,
             })?;
 
-        let path = std::path::Path::new(&directory)
-            .join(format!("{}.json", Self::hash_string(request_body)));
+        let path = Path::new(&directory).join(format!("{}.json", cache_key));
         Ok(path)
     }
 
     async fn read_response_from_cache(
         &self,
-        request_body: &str,
+        cache_key: Option<&CacheKey>,
     ) -> Result<Option<String>, RpcClientError> {
-        let path = self.make_cache_path(request_body).await?;
+        let path = self.make_cache_path(cache_key?).await?;
         match tokio::fs::read_to_string(path).await {
             Ok(response) => Ok(Some(response)),
             Err(error) => {
@@ -175,16 +169,18 @@ impl RpcClient {
 
     async fn write_response_to_cache(
         &self,
-        request_body: &str,
+        cache_key: Option<&CacheKey>,
         response: &str,
     ) -> Result<(), RpcClientError> {
-        let cache_path = self.make_cache_path(request_body).await?;
-        tokio::fs::write(cache_path, response.as_bytes())
-            .await
-            .map_err(|error| RpcClientError::CacheError {
-                message: "failed to write to on-disk RPC response cache".to_string(),
-                error,
-            })?;
+        if let Some(cache_key) = cache_key {
+            let cache_path = self.make_cache_path(cache_key).await?;
+            tokio::fs::write(cache_path, response.as_bytes())
+                .await
+                .map_err(|error| RpcClientError::CacheError {
+                    message: "failed to write to on-disk RPC response cache".to_string(),
+                    error,
+                })?;
+        }
         Ok(())
     }
 
@@ -192,13 +188,14 @@ impl RpcClient {
     async fn send_request_body_with_cache(
         &self,
         request_body: &str,
+        cache_key: Option<CacheKey>,
     ) -> Result<String, RpcClientError> {
-        if let Some(cached_response) = self.read_response_from_cache(request_body).await? {
+        if let Some(cached_response) = self.read_response_from_cache(cache_key.as_ref()).await? {
             Ok(cached_response)
         } else {
             let response = self.send_request_body(request_body).await?;
 
-            self.write_response_to_cache(request_body, &response)
+            self.write_response_to_cache(cache_key.as_ref(), &response)
                 .await?;
 
             Ok(response)
@@ -235,9 +232,13 @@ impl RpcClient {
     where
         T: for<'a> serde::Deserialize<'a>,
     {
+        let cache_key = CacheableMethodInvocation::try_from(input)
+            .ok()
+            .and_then(|v| v.cache_key());
+
         let request = self.serialize_request(input);
 
-        self.send_request_body_with_cache(&request.request)
+        self.send_request_body_with_cache(&request.request, cache_key)
             .await
             .and_then(|response| Self::extract_response(request, response))
     }
@@ -259,6 +260,10 @@ impl RpcClient {
         &self,
         inputs: &[MethodInvocation],
     ) -> Result<BatchResponse, RpcClientError> {
+        let cache_key = CacheableMethodInvocations::try_from(inputs)
+            .ok()
+            .and_then(|v| v.cache_key());
+
         let request_strings: Vec<String> = inputs
             .iter()
             .map(|i| self.serialize_request(i).request)
@@ -266,7 +271,7 @@ impl RpcClient {
 
         let request_body = format!("[{}]", request_strings.join(","));
 
-        self.send_request_body_with_cache(&request_body)
+        self.send_request_body_with_cache(&request_body, cache_key)
             .await
             .map(|response| BatchResponse {
                 text: response,
@@ -275,12 +280,14 @@ impl RpcClient {
     }
 
     /// Create a new instance, given a remote node URL.
-    pub fn new(url: &str) -> Self {
+    /// The cache directory is the global EDR cache directory configured by the user.
+    pub fn new(url: &str, cache_dir: PathBuf) -> Self {
         RpcClient {
             url: url.to_string(),
             chain_id: OnceCell::new(),
             client: reqwest::Client::new(),
             next_id: AtomicU64::new(0),
+            rpc_cache_dir: cache_dir.join(RPC_CACHE_DIR),
         }
     }
 
@@ -528,11 +535,38 @@ struct SerializedRequest {
 
 #[cfg(test)]
 mod tests {
+    use std::ops::Deref;
+    use std::str::FromStr;
+
     use reqwest::StatusCode;
+    use tempfile::TempDir;
 
     use super::*;
 
-    use std::str::FromStr;
+    struct TestRpcClient {
+        client: RpcClient,
+
+        // Need to keep the tempdir around to prevent it from being deleted
+        _cache_dir: TempDir,
+    }
+
+    impl TestRpcClient {
+        fn new(url: &str) -> Self {
+            let tempdir = TempDir::new().unwrap();
+            Self {
+                client: RpcClient::new(url, tempdir.path().into()),
+                _cache_dir: tempdir,
+            }
+        }
+    }
+
+    impl Deref for TestRpcClient {
+        type Target = RpcClient;
+
+        fn deref(&self) -> &Self::Target {
+            &self.client
+        }
+    }
 
     #[tokio::test]
     async fn send_request_body_500_status() {
@@ -551,7 +585,7 @@ mod tests {
             B256::from_str("0xc008e9f9bb92057dd0035496fbf4fb54f66b4b18b370928e46d6603933022222")
                 .expect("failed to parse hash from string");
 
-        let error = RpcClient::new(&server.url())
+        let error = TestRpcClient::new(&server.url())
             .call::<Option<eth::Transaction>>(&MethodInvocation::GetTransactionByHash(hash))
             .await
             .expect_err("should have failed to interpret response as a Transaction");
@@ -570,20 +604,11 @@ mod tests {
 
     #[cfg(feature = "test-remote")]
     mod alchemy {
+        use rethnet_test_utils::env::get_alchemy_url;
+
         use crate::Bytes;
 
         use super::*;
-
-        fn get_alchemy_url() -> String {
-            match std::env::var_os("ALCHEMY_URL")
-                .expect("ALCHEMY_URL environment variable not defined")
-                .into_string()
-                .expect("Couldn't convert OsString into a String")
-            {
-                url if url.is_empty() => panic!("ALCHEMY_URL environment variable is empty"),
-                url => url,
-            }
-        }
 
         #[tokio::test]
         async fn call_bad_api_key() {
@@ -594,7 +619,7 @@ mod tests {
             )
             .expect("failed to parse hash from string");
 
-            let error = RpcClient::new(alchemy_url)
+            let error = TestRpcClient::new(alchemy_url)
                 .call::<Option<eth::Transaction>>(&MethodInvocation::GetTransactionByHash(hash))
                 .await
                 .expect_err("should have failed to interpret response as a Transaction");
@@ -615,7 +640,7 @@ mod tests {
             )
             .expect("failed to parse hash from string");
 
-            let error = RpcClient::new(alchemy_url)
+            let error = TestRpcClient::new(alchemy_url)
                 .call::<Option<eth::Transaction>>(&MethodInvocation::GetTransactionByHash(hash))
                 .await
                 .expect_err("should have failed to connect due to a garbage domain name");
@@ -634,7 +659,7 @@ mod tests {
             let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
                 .expect("failed to parse address");
 
-            let account_info = RpcClient::new(&alchemy_url)
+            let account_info = TestRpcClient::new(&alchemy_url)
                 .get_account_info(&dai_address, Some(BlockSpec::Number(U256::from(16220843))))
                 .await
                 .expect("should have succeeded");
@@ -652,7 +677,7 @@ mod tests {
             let empty_address = Address::from_str("0xffffffffffffffffffffffffffffffffffffffff")
                 .expect("failed to parse address");
 
-            let account_info = RpcClient::new(&alchemy_url)
+            let account_info = TestRpcClient::new(&alchemy_url)
                 .get_account_info(&empty_address, Some(BlockSpec::Number(U256::from(1))))
                 .await
                 .expect("should have succeeded");
@@ -670,7 +695,7 @@ mod tests {
             let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
                 .expect("failed to parse address");
 
-            let error = RpcClient::new(&alchemy_url)
+            let error = TestRpcClient::new(&alchemy_url)
                 .get_account_info(&dai_address, Some(BlockSpec::Number(U256::MAX)))
                 .await
                 .expect_err("should have failed");
@@ -691,7 +716,7 @@ mod tests {
             let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
                 .expect("failed to parse address");
 
-            let account_info = RpcClient::new(&alchemy_url)
+            let account_info = TestRpcClient::new(&alchemy_url)
                 .get_account_info(&dai_address, Some(BlockSpec::latest()))
                 .await
                 .expect("should have succeeded");
@@ -709,7 +734,7 @@ mod tests {
             )
             .expect("failed to parse hash from string");
 
-            let block = RpcClient::new(&alchemy_url)
+            let block = TestRpcClient::new(&alchemy_url)
                 .get_block_by_hash(&hash)
                 .await
                 .expect("should have succeeded");
@@ -730,7 +755,7 @@ mod tests {
             )
             .expect("failed to parse hash from string");
 
-            let block = RpcClient::new(&alchemy_url)
+            let block = TestRpcClient::new(&alchemy_url)
                 .get_block_by_hash(&hash)
                 .await
                 .expect("should have succeeded");
@@ -747,7 +772,7 @@ mod tests {
             )
             .expect("failed to parse hash from string");
 
-            let block = RpcClient::new(&alchemy_url)
+            let block = TestRpcClient::new(&alchemy_url)
                 .get_block_by_hash_with_transaction_data(&hash)
                 .await
                 .expect("should have succeeded");
@@ -768,7 +793,7 @@ mod tests {
             )
             .expect("failed to parse hash from string");
 
-            let block = RpcClient::new(&alchemy_url)
+            let block = TestRpcClient::new(&alchemy_url)
                 .get_block_by_hash_with_transaction_data(&hash)
                 .await
                 .expect("should have succeeded");
@@ -782,7 +807,7 @@ mod tests {
 
             let block_number = U256::from(16222385);
 
-            let block = RpcClient::new(&alchemy_url)
+            let block = TestRpcClient::new(&alchemy_url)
                 .get_block_by_number(BlockSpec::Number(block_number))
                 .await
                 .expect("should have succeeded");
@@ -797,7 +822,7 @@ mod tests {
 
             let block_number = U256::MAX;
 
-            let error = RpcClient::new(&alchemy_url)
+            let error = TestRpcClient::new(&alchemy_url)
                 .get_block_by_number(BlockSpec::Number(block_number))
                 .await
                 .expect_err("should have failed to retrieve non-existent block number");
@@ -815,7 +840,7 @@ mod tests {
 
             let block_number = U256::from(16222385);
 
-            let block = RpcClient::new(&alchemy_url)
+            let block = TestRpcClient::new(&alchemy_url)
                 .get_block_by_number(BlockSpec::Number(block_number))
                 .await
                 .expect("should have succeeded");
@@ -830,7 +855,7 @@ mod tests {
 
             let block_number = U256::MAX;
 
-            let error = RpcClient::new(&alchemy_url)
+            let error = TestRpcClient::new(&alchemy_url)
                 .get_block_by_number(BlockSpec::Number(block_number))
                 .await
                 .expect_err("should have failed to retrieve non-existent block number");
@@ -846,7 +871,7 @@ mod tests {
         async fn get_earliest_block() {
             let alchemy_url = get_alchemy_url();
 
-            let _block = RpcClient::new(&alchemy_url)
+            let _block = TestRpcClient::new(&alchemy_url)
                 .get_block_by_number(BlockSpec::earliest())
                 .await
                 .expect("should have succeeded");
@@ -856,7 +881,7 @@ mod tests {
         async fn get_earliest_block_with_transaction_data() {
             let alchemy_url = get_alchemy_url();
 
-            let _block = RpcClient::new(&alchemy_url)
+            let _block = TestRpcClient::new(&alchemy_url)
                 .get_block_by_number_with_transaction_data(BlockSpec::earliest())
                 .await
                 .expect("should have succeeded");
@@ -866,7 +891,7 @@ mod tests {
         async fn get_latest_block() {
             let alchemy_url = get_alchemy_url();
 
-            let _block = RpcClient::new(&alchemy_url)
+            let _block = TestRpcClient::new(&alchemy_url)
                 .get_block_by_number(BlockSpec::latest())
                 .await
                 .expect("should have succeeded");
@@ -876,7 +901,7 @@ mod tests {
         async fn get_latest_block_with_transaction_data() {
             let alchemy_url = get_alchemy_url();
 
-            let _block = RpcClient::new(&alchemy_url)
+            let _block = TestRpcClient::new(&alchemy_url)
                 .get_block_by_number_with_transaction_data(BlockSpec::latest())
                 .await
                 .expect("should have succeeded");
@@ -886,7 +911,7 @@ mod tests {
         async fn get_pending_block() {
             let alchemy_url = get_alchemy_url();
 
-            let _block = RpcClient::new(&alchemy_url)
+            let _block = TestRpcClient::new(&alchemy_url)
                 .get_block_by_number(BlockSpec::pending())
                 .await
                 .expect("should have succeeded");
@@ -896,7 +921,7 @@ mod tests {
         async fn get_pending_block_with_transaction_data() {
             let alchemy_url = get_alchemy_url();
 
-            let _block = RpcClient::new(&alchemy_url)
+            let _block = TestRpcClient::new(&alchemy_url)
                 .get_block_by_number_with_transaction_data(BlockSpec::pending())
                 .await
                 .expect("should have succeeded");
@@ -905,7 +930,7 @@ mod tests {
         #[tokio::test]
         async fn get_logs_some() {
             let alchemy_url = get_alchemy_url();
-            let logs = RpcClient::new(&alchemy_url)
+            let logs = TestRpcClient::new(&alchemy_url)
                 .get_logs(
                     BlockSpec::Number(U256::from(10496585)),
                     BlockSpec::Number(U256::from(10496585)),
@@ -923,7 +948,7 @@ mod tests {
         #[tokio::test]
         async fn get_logs_future_from_block() {
             let alchemy_url = get_alchemy_url();
-            let error = RpcClient::new(&alchemy_url)
+            let error = TestRpcClient::new(&alchemy_url)
                 .get_logs(
                     BlockSpec::Number(U256::MAX),
                     BlockSpec::Number(U256::MAX),
@@ -943,7 +968,7 @@ mod tests {
         #[tokio::test]
         async fn get_logs_future_to_block() {
             let alchemy_url = get_alchemy_url();
-            let error = RpcClient::new(&alchemy_url)
+            let error = TestRpcClient::new(&alchemy_url)
                 .get_logs(
                     BlockSpec::Number(U256::from(10496585)),
                     BlockSpec::Number(U256::MAX),
@@ -963,7 +988,7 @@ mod tests {
         #[tokio::test]
         async fn get_logs_missing_address() {
             let alchemy_url = get_alchemy_url();
-            let logs = RpcClient::new(&alchemy_url)
+            let logs = TestRpcClient::new(&alchemy_url)
                 .get_logs(
                     BlockSpec::Number(U256::from(10496585)),
                     BlockSpec::Number(U256::from(10496585)),
@@ -985,7 +1010,7 @@ mod tests {
             )
             .expect("failed to parse hash from string");
 
-            let tx = RpcClient::new(&alchemy_url)
+            let tx = TestRpcClient::new(&alchemy_url)
                 .get_transaction_by_hash(&hash)
                 .await
                 .expect("failed to get transaction by hash");
@@ -1074,7 +1099,7 @@ mod tests {
             )
             .expect("failed to parse hash from string");
 
-            let tx = RpcClient::new(&alchemy_url)
+            let tx = TestRpcClient::new(&alchemy_url)
                 .get_transaction_by_hash(&hash)
                 .await
                 .expect("failed to get transaction by hash");
@@ -1089,7 +1114,7 @@ mod tests {
             let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
                 .expect("failed to parse address");
 
-            let transaction_count = RpcClient::new(&alchemy_url)
+            let transaction_count = TestRpcClient::new(&alchemy_url)
                 .get_transaction_count(&dai_address, Some(BlockSpec::Number(U256::from(16220843))))
                 .await
                 .expect("should have succeeded");
@@ -1104,7 +1129,7 @@ mod tests {
             let missing_address = Address::from_str("0xffffffffffffffffffffffffffffffffffffffff")
                 .expect("failed to parse address");
 
-            let transaction_count = RpcClient::new(&alchemy_url)
+            let transaction_count = TestRpcClient::new(&alchemy_url)
                 .get_transaction_count(
                     &missing_address,
                     Some(BlockSpec::Number(U256::from(16220843))),
@@ -1122,7 +1147,7 @@ mod tests {
             let missing_address = Address::from_str("0xffffffffffffffffffffffffffffffffffffffff")
                 .expect("failed to parse address");
 
-            let error = RpcClient::new(&alchemy_url)
+            let error = TestRpcClient::new(&alchemy_url)
                 .get_transaction_count(&missing_address, Some(BlockSpec::Number(U256::MAX)))
                 .await
                 .expect_err("should have failed");
@@ -1145,7 +1170,7 @@ mod tests {
             )
             .expect("failed to parse hash from string");
 
-            let receipt = RpcClient::new(&alchemy_url)
+            let receipt = TestRpcClient::new(&alchemy_url)
                 .get_transaction_receipt(&hash)
                 .await
                 .expect("failed to get transaction by hash");
@@ -1206,7 +1231,7 @@ mod tests {
             )
             .expect("failed to parse hash from string");
 
-            let receipt = RpcClient::new(&alchemy_url)
+            let receipt = TestRpcClient::new(&alchemy_url)
                 .get_transaction_receipt(&hash)
                 .await
                 .expect("failed to get transaction receipt");
@@ -1221,7 +1246,7 @@ mod tests {
             let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
                 .expect("failed to parse address");
 
-            let total_supply = RpcClient::new(&alchemy_url)
+            let total_supply = TestRpcClient::new(&alchemy_url)
                 .get_storage_at(
                     &dai_address,
                     U256::from(1),
@@ -1247,7 +1272,7 @@ mod tests {
             let missing_address = Address::from_str("0xffffffffffffffffffffffffffffffffffffffff")
                 .expect("failed to parse address");
 
-            let value = RpcClient::new(&alchemy_url)
+            let value = TestRpcClient::new(&alchemy_url)
                 .get_storage_at(
                     &missing_address,
                     U256::from(1),
@@ -1266,7 +1291,7 @@ mod tests {
             let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
                 .expect("failed to parse address");
 
-            let _total_supply = RpcClient::new(&alchemy_url)
+            let _total_supply = TestRpcClient::new(&alchemy_url)
                 .get_storage_at(
                     &dai_address,
                     U256::from_str_radix(
@@ -1287,7 +1312,7 @@ mod tests {
             let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
                 .expect("failed to parse address");
 
-            let error = RpcClient::new(&alchemy_url)
+            let error = TestRpcClient::new(&alchemy_url)
                 .get_storage_at(
                     &dai_address,
                     U256::from(1),
@@ -1309,7 +1334,7 @@ mod tests {
         async fn network_id_success() {
             let alchemy_url = get_alchemy_url();
 
-            let version = RpcClient::new(&alchemy_url)
+            let version = TestRpcClient::new(&alchemy_url)
                 .network_id()
                 .await
                 .expect("should have succeeded");

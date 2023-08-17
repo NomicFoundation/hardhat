@@ -80,6 +80,11 @@ impl SignedTransaction {
         U256::from(self.gas_limit()).saturating_mul(self.gas_price())
     }
 
+    /// Upfront cost of the transaction
+    pub fn upfront_cost(&self) -> U256 {
+        self.max_cost().saturating_add(self.value())
+    }
+
     /// Returns a helper type that contains commonly used values as fields
     pub fn essentials(&self) -> TransactionEssentials {
         match self {

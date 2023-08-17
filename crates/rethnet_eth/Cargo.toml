@@ -28,6 +28,7 @@ triehash = { version = "0.8.4", default-features = false }
 
 [dev-dependencies]
 mockito = { version = "1.0.2", default-features = false }
+tempfile = "3.7.1"
 tokio = { version = "1.23.0", features = ["macros"] }
 rethnet_test_utils = { version = "0.1.0-dev", path = "../rethnet_test_utils" }
 

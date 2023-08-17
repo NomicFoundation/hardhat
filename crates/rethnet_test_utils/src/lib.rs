@@ -1,3 +1,5 @@
+pub mod env;
+
 pub fn help_test_method_invocation_serde<MethodInvocation>(call: MethodInvocation)
 where
     MethodInvocation:

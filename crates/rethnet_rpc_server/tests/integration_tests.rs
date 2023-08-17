@@ -4,6 +4,7 @@ use std::time::SystemTime;
 
 use hashbrown::HashMap;
 use secp256k1::{Secp256k1, SecretKey};
+use tempfile::TempDir;
 use tracing::Level;
 
 use rethnet_eth::{
@@ -27,7 +28,13 @@ use rethnet_rpc_server::{
 
 const PRIVATE_KEY: &str = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 
-async fn start_server() -> SocketAddr {
+struct TestFixture {
+    server_address: SocketAddr,
+    // We need to keep the tempdir alive for the duration of the test
+    _cache_dir: TempDir,
+}
+
+async fn start_server() -> TestFixture {
     let mut accounts: HashMap<Address, AccountInfo> = HashMap::default();
     accounts.insert(
         Address::from_low_u64_ne(1),
@@ -38,6 +45,8 @@ async fn start_server() -> SocketAddr {
             nonce: 0,
         },
     );
+
+    let cache_dir = TempDir::new().expect("should create temp dir");
 
     let server = Server::new(Config {
         address: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0),
@@ -56,13 +65,18 @@ async fn start_server() -> SocketAddr {
         initial_base_fee_per_gas: Some(U256::from(1000000000)),
         initial_date: Some(SystemTime::now()),
         network_id: 123,
+        cache_dir: cache_dir.path().to_path_buf(),
     })
     .await
     .unwrap();
 
     let address = server.local_addr();
     tokio::spawn(async move { server.serve().await.unwrap() });
-    address
+
+    TestFixture {
+        server_address: address,
+        _cache_dir: cache_dir,
+    }
 }
 
 async fn submit_request(address: &SocketAddr, request: &RpcRequest<MethodInvocation>) -> String {
@@ -86,7 +100,7 @@ async fn submit_request(address: &SocketAddr, request: &RpcRequest<MethodInvocat
 }
 
 async fn verify_response<ResponseT>(
-    server: &SocketAddr,
+    fixture: &TestFixture,
     method: MethodInvocation,
     response: ResponseT,
 ) where
@@ -104,7 +118,7 @@ async fn verify_response<ResponseT>(
         data: jsonrpc::ResponseData::Success { result: response },
     };
 
-    let unparsed_response = submit_request(server, &request).await;
+    let unparsed_response = submit_request(&fixture.server_address, &request).await;
 
     let actual_response: jsonrpc::Response<ResponseT> =
         serde_json::from_str(&unparsed_response).expect("should deserialize from JSON");

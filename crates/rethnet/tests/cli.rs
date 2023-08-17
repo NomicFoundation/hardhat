@@ -7,7 +7,6 @@ use assert_cmd::{
 use predicates::str::contains;
 use secp256k1::Secp256k1;
 
-use rethnet::config::DEFAULT_PRIVATE_KEYS;
 use rethnet_eth::{
     remote::{
         client::Request as RpcRequest,
@@ -22,8 +21,11 @@ use rethnet_rpc_server::{HardhatMethodInvocation, MethodInvocation};
 
 #[tokio::test]
 async fn node() -> Result<(), Box<dyn std::error::Error>> {
-    let address =
-        private_key_to_address(&Secp256k1::signing_only(), DEFAULT_PRIVATE_KEYS[0]).unwrap();
+    let address = private_key_to_address(
+        &Secp256k1::signing_only(),
+        rethnet_defaults::PRIVATE_KEYS[0],
+    )
+    .unwrap();
 
     // the order of operations is a little weird in this test, because we spawn a separate process
     // for the server, and we want to make sure that we end that process gracefully. more
@@ -145,7 +147,7 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
     // assert that the standard output of the server process contains the expected log entries:
     Assert::new(output.clone()).stdout(contains("Listening on 127.0.0.1:8549"));
     let context = Secp256k1::signing_only();
-    for (i, default_private_key) in DEFAULT_PRIVATE_KEYS.to_vec().iter().enumerate() {
+    for (i, default_private_key) in rethnet_defaults::PRIVATE_KEYS.to_vec().iter().enumerate() {
         Assert::new(output.clone())
             .stdout(contains(format!("Private Key: 0x{default_private_key}")))
             .stdout(contains(format!(

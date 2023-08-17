@@ -21,10 +21,9 @@ use crate::{
         EIP1559SignedTransaction, EIP2930SignedTransaction, LegacySignedTransaction,
         SignedTransaction, TransactionKind,
     },
+    withdrawal::Withdrawal,
     Address, Bloom, Bytes, B256, U256,
 };
-
-use super::withdrawal::Withdrawal;
 
 /// transaction
 #[derive(Clone, Debug, PartialEq, Eq, Default, serde::Deserialize, serde::Serialize)]
@@ -65,7 +64,7 @@ pub struct Transaction {
     #[serde(default, deserialize_with = "crate::serde::optional_u64_from_hex")]
     pub chain_id: Option<u64>,
     /// integer of the transaction type, 0x0 for legacy transactions, 0x1 for access list types, 0x2 for dynamic fees
-    #[serde(default, with = "crate::serde::u64")]
+    #[serde(rename = "type", default, with = "crate::serde::u64")]
     pub transaction_type: u64,
     /// access list
     #[serde(default)]
@@ -136,9 +135,8 @@ pub struct Block<TX> {
     pub base_fee_per_gas: Option<U256>,
     /// the address of the beneficiary to whom the mining rewards were given
     pub miner: Option<Address>,
-    #[serde(default)]
     /// withdrawals
-    pub withdrawals: Vec<Withdrawal>,
+    pub withdrawals: Option<Vec<Withdrawal>>,
     /// withdrawals root
     pub withdrawals_root: Option<B256>,
 }
@@ -288,6 +286,7 @@ impl TryFrom<Block<Transaction>> for BlockAndCallers {
             transactions,
             // TODO: Include headers
             ommers: Vec::new(),
+            withdrawals: value.withdrawals,
         };
 
         Ok(Self {

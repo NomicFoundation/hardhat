@@ -1,6 +1,5 @@
 use std::{
     fmt::Debug,
-    sync::Arc,
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -19,12 +18,11 @@ use revm::{
         ResultAndState, SpecId,
     },
 };
-use tokio::sync::{RwLock, RwLockReadGuard};
 
 use crate::{
     blockchain::SyncBlockchain,
     evm::{build_evm, run_transaction, SyncInspector},
-    state::{AccountModifierFn, SyncState},
+    state::{AccountModifierFn, StateHistory, SyncState},
     PendingTransaction,
 };
 
@@ -72,13 +70,7 @@ where
 }
 
 /// A builder for constructing Ethereum blocks.
-pub struct BlockBuilder<BE, SE>
-where
-    BE: Debug + Send + 'static,
-    SE: Debug + Send + 'static,
-{
-    blockchain: Arc<RwLock<dyn SyncBlockchain<BE>>>,
-    state: Arc<RwLock<dyn SyncState<SE>>>,
+pub struct BlockBuilder {
     cfg: CfgEnv,
     header: PartialHeader,
     callers: Vec<Address>,
@@ -87,24 +79,19 @@ where
     parent_gas_limit: Option<U256>,
 }
 
-impl<BE, SE> BlockBuilder<BE, SE>
-where
-    BE: Debug + Send + 'static,
-    SE: Debug + Send + 'static,
-{
+impl BlockBuilder {
     /// Creates an intance of [`BlockBuilder`], creating a checkpoint in the process.
-    pub async fn new(
-        blockchain: Arc<RwLock<dyn SyncBlockchain<BE>>>,
-        state: Arc<RwLock<dyn SyncState<SE>>>,
+    pub fn new<StateT: StateHistory + ?Sized>(
+        state: &mut StateT,
         cfg: CfgEnv,
         parent: &Header,
         options: BlockOptions,
-    ) -> Result<Self, BlockBuilderCreationError<SE>> {
+    ) -> Result<Self, BlockBuilderCreationError<StateT::Error>> {
         if cfg.spec_id < SpecId::BYZANTIUM {
             return Err(BlockBuilderCreationError::UnsupportedHardfork(cfg.spec_id));
         }
 
-        state.write().await.checkpoint()?;
+        state.checkpoint()?;
 
         let parent_gas_limit = if options.gas_limit.is_none() {
             Some(parent.gas_limit)
@@ -131,8 +118,6 @@ where
         // }
 
         Ok(Self {
-            blockchain,
-            state,
             cfg,
             header,
             callers: Vec::new(),
@@ -157,11 +142,6 @@ where
         self.header.gas_limit - self.gas_used()
     }
 
-    /// Retrieves the instance's state.
-    pub async fn state(&self) -> RwLockReadGuard<'_, dyn SyncState<SE>> {
-        self.state.read().await
-    }
-
     // fn miner_reward(num_ommers: u64) -> U256 {
     //     // TODO: This is the LONDON block reward. Did it change?
     //     const BLOCK_REWARD: u64 = 2 * 10u64.pow(18);
@@ -171,11 +151,17 @@ where
     // }
 
     /// Adds a pending transaction to
-    pub async fn add_transaction(
+    pub fn add_transaction<BlockchainErrorT, StateErrorT>(
         &mut self,
+        blockchain: &mut dyn SyncBlockchain<BlockchainErrorT>,
+        state: &mut dyn SyncState<StateErrorT>,
         transaction: PendingTransaction,
-        inspector: Option<&mut dyn SyncInspector<BE, SE>>,
-    ) -> Result<ExecutionResult, BlockTransactionError<BE, SE>> {
+        inspector: Option<&mut dyn SyncInspector<BlockchainErrorT, StateErrorT>>,
+    ) -> Result<ExecutionResult, BlockTransactionError<BlockchainErrorT, StateErrorT>>
+    where
+        BlockchainErrorT: Debug + Send + 'static,
+        StateErrorT: Debug + Send + 'static,
+    {
         //  transaction's gas limit cannot be greater than the remaining gas in the block
         if U256::from(transaction.gas_limit()) > self.gas_remaining() {
             return Err(BlockTransactionError::ExceedsBlockGasLimit);
@@ -195,12 +181,9 @@ where
             },
         };
 
-        let mut state = self.state.write().await;
-        let blockchain = self.blockchain.read().await;
-
         let evm = build_evm(
-            &*blockchain,
-            &*state,
+            blockchain,
+            state,
             self.cfg.clone(),
             transaction.clone().into(),
             block.clone(),
@@ -274,12 +257,16 @@ where
     }
 
     /// Finalizes the block, returning the block and the callers of the transactions.
-    pub async fn finalize(
+    pub fn finalize<StateT, StateErrorT>(
         mut self,
+        state: &mut StateT,
         rewards: Vec<(Address, U256)>,
         timestamp: Option<U256>,
-    ) -> Result<DetailedBlock, SE> {
-        let mut state = self.state.write().await;
+    ) -> Result<DetailedBlock, StateErrorT>
+    where
+        StateT: SyncState<StateErrorT> + ?Sized,
+        StateErrorT: Debug + Send,
+    {
         for (address, reward) in rewards {
             state
                 .modify_account(
@@ -334,8 +321,14 @@ where
             );
         }
 
+        let withdrawals = if self.cfg.spec_id >= SpecId::SHANGHAI {
+            Some(Vec::new())
+        } else {
+            None
+        };
+
         // TODO: handle ommers
-        let block = Block::new(self.header, self.transactions, vec![]);
+        let block = Block::new(self.header, self.transactions, Vec::new(), withdrawals);
 
         Ok(DetailedBlock::with_partial_receipts(
             block,
@@ -345,8 +338,10 @@ where
     }
 
     /// Aborts building of the block, reverting all transactions in the process.
-    pub async fn abort(self) -> Result<(), SE> {
-        let mut state = self.state.write().await;
+    pub fn abort<StateT>(self, state: &mut StateT) -> Result<(), StateT::Error>
+    where
+        StateT: StateHistory + ?Sized,
+    {
         state.revert()
     }
 }

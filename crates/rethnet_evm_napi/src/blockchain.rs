@@ -1,6 +1,6 @@
 mod js_blockchain;
 
-use std::{fmt::Debug, ops::Deref, sync::Arc};
+use std::{fmt::Debug, ops::Deref, path::PathBuf, sync::Arc};
 
 use napi::{
     bindgen_prelude::{BigInt, Buffer, ObjectFinalize},
@@ -20,6 +20,7 @@ use crate::{
     receipt::Receipt,
     sync::{await_promise, handle_error},
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction},
+    withdrawal::Withdrawal,
 };
 
 use self::js_blockchain::{GetBlockHashCall, JsBlockchain};
@@ -96,13 +97,22 @@ impl Blockchain {
         chain_id: BigInt,
         spec_id: SpecId,
         genesis_block: BlockOptions,
+        withdrawals: Option<Vec<Withdrawal>>,
     ) -> napi::Result<Self> {
         let chain_id: U256 = chain_id.try_cast()?;
         let spec_id = rethnet_evm::SpecId::from(spec_id);
         let options = rethnet_eth::block::BlockOptions::try_from(genesis_block)?;
+        let withdrawals = withdrawals.map_or(Ok(None), |withdrawals| {
+            withdrawals
+                .into_iter()
+                .map(rethnet_eth::withdrawal::Withdrawal::try_from)
+                .collect::<napi::Result<Vec<_>>>()
+                .map(Some)
+        })?;
 
         let header = rethnet_eth::block::PartialHeader::new(spec_id, options, None);
-        let genesis_block = rethnet_eth::block::Block::new(header, Vec::new(), Vec::new());
+        let genesis_block =
+            rethnet_eth::block::Block::new(header, Vec::new(), Vec::new(), withdrawals);
         let genesis_block =
             rethnet_eth::block::DetailedBlock::new(genesis_block, Vec::new(), Vec::new());
 
@@ -124,11 +134,13 @@ impl Blockchain {
         spec_id: SpecId,
         remote_url: String,
         fork_block_number: Option<BigInt>,
+        cache_dir: Option<String>,
     ) -> napi::Result<JsObject> {
         let spec_id = rethnet_evm::SpecId::from(spec_id);
         let fork_block_number: Option<U256> = fork_block_number.map_or(Ok(None), |number| {
             BigInt::try_cast(number).map(Option::Some)
         })?;
+        let cache_dir = cache_dir.map_or_else(|| rethnet_defaults::CACHE_DIR.into(), PathBuf::from);
 
         let runtime = context.runtime().clone();
 
@@ -138,6 +150,7 @@ impl Blockchain {
                 runtime,
                 spec_id,
                 &remote_url,
+                cache_dir,
                 fork_block_number,
             )
             .await

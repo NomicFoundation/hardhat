@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use hashbrown::{HashMap, HashSet};
@@ -43,23 +44,25 @@ impl ForkState {
         runtime: Arc<Runtime>,
         hash_generator: Arc<Mutex<RandomHashGenerator>>,
         url: &str,
+        cache_dir: PathBuf,
         fork_block_number: U256,
         mut accounts: HashMap<Address, AccountInfo>,
     ) -> Self {
-        let rpc_client = RpcClient::new(url);
-
-        let remote_state = RemoteState::new(runtime.clone(), url, fork_block_number);
+        let rpc_client = RpcClient::new(url, cache_dir);
 
         accounts.iter_mut().for_each(|(address, mut account_info)| {
-            let nonce = runtime
-                .block_on(
+            let nonce = tokio::task::block_in_place(|| {
+                runtime.block_on(
                     rpc_client
                         .get_transaction_count(address, Some(BlockSpec::Number(fork_block_number))),
                 )
-                .expect("failed to retrieve remote account info for local account initialization");
+            })
+            .expect("failed to retrieve remote account info for local account initialization");
 
             account_info.nonce = nonce.to();
         });
+
+        let remote_state = RemoteState::new(runtime, rpc_client, fork_block_number);
 
         let mut local_state = HybridState::with_accounts(accounts);
         local_state.checkpoint().unwrap();
@@ -340,42 +343,68 @@ impl StateHistory for ForkState {
 
 #[cfg(all(test, feature = "test-remote"))]
 mod tests {
+    use std::ops::{Deref, DerefMut};
     use std::str::FromStr;
 
+    use rethnet_test_utils::env::get_alchemy_url;
     use tokio::runtime::Builder;
 
     use super::*;
 
-    fn get_alchemy_url() -> Result<String, String> {
-        match std::env::var_os("ALCHEMY_URL")
-            .expect("ALCHEMY_URL environment variable not defined")
-            .into_string()
-            .expect("couldn't convert OsString into a String")
-        {
-            url if url.is_empty() => panic!("ALCHEMY_URL environment variable is empty"),
-            url => Ok(url),
+    const FORK_BLOCK: u64 = 16220843;
+
+    struct TestForkState {
+        fork_state: ForkState,
+        // We need to keep it around as long as the fork state is alive
+        _tempdir: tempfile::TempDir,
+    }
+
+    impl TestForkState {
+        fn new() -> Self {
+            let runtime = Arc::new(
+                Builder::new_multi_thread()
+                    .enable_io()
+                    .enable_time()
+                    .build()
+                    .expect("failed to construct async runtime"),
+            );
+
+            let hash_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed")));
+
+            let tempdir = tempfile::tempdir().expect("can create tempdir");
+
+            let fork_state = ForkState::new(
+                runtime,
+                hash_generator,
+                &get_alchemy_url(),
+                tempdir.path().to_path_buf(),
+                U256::from(FORK_BLOCK),
+                HashMap::default(),
+            );
+            Self {
+                fork_state,
+                _tempdir: tempdir,
+            }
+        }
+    }
+
+    impl Deref for TestForkState {
+        type Target = ForkState;
+
+        fn deref(&self) -> &Self::Target {
+            &self.fork_state
+        }
+    }
+
+    impl DerefMut for TestForkState {
+        fn deref_mut(&mut self) -> &mut Self::Target {
+            &mut self.fork_state
         }
     }
 
     #[test]
     fn basic_success() {
-        let runtime = Arc::new(
-            Builder::new_multi_thread()
-                .enable_io()
-                .enable_time()
-                .build()
-                .expect("failed to construct async runtime"),
-        );
-
-        let hash_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed")));
-
-        let fork_state = ForkState::new(
-            runtime,
-            hash_generator,
-            &get_alchemy_url().expect("failed to get alchemy url"),
-            U256::from(16220843),
-            HashMap::default(),
-        );
+        let fork_state = TestForkState::new();
 
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");
@@ -400,23 +429,7 @@ mod tests {
         const STORAGE_SLOT_INDEX: u64 = 1;
         const DUMMY_STORAGE_VALUE: u64 = 1000;
 
-        let runtime = Arc::new(
-            Builder::new_multi_thread()
-                .enable_io()
-                .enable_time()
-                .build()
-                .expect("failed to construct async runtime"),
-        );
-
-        let hash_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed")));
-
-        let mut fork_state = ForkState::new(
-            runtime,
-            hash_generator,
-            &get_alchemy_url().expect("failed to get alchemy url"),
-            U256::from(16220843),
-            HashMap::default(),
-        );
+        let mut fork_state = TestForkState::new();
 
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");
@@ -487,23 +500,7 @@ mod tests {
 
     #[test]
     fn remove_remote_account_success() {
-        let runtime = Arc::new(
-            Builder::new_multi_thread()
-                .enable_io()
-                .enable_time()
-                .build()
-                .expect("failed to construct async runtime"),
-        );
-
-        let hash_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed")));
-
-        let mut fork_state = ForkState::new(
-            runtime,
-            hash_generator,
-            &get_alchemy_url().expect("failed to get alchemy url"),
-            U256::from(16220843),
-            HashMap::default(),
-        );
+        let mut fork_state = TestForkState::new();
 
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");
