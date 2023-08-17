@@ -844,7 +844,7 @@ describe("call", () => {
     it("should not validate a non-existant function", async () => {
       const fakeArtifact: Artifact = {
         abi: [],
-        contractName: "",
+        contractName: "Another",
         bytecode: "",
         linkReferences: {},
       };
@@ -869,7 +869,7 @@ describe("call", () => {
           {},
           []
         ),
-        /Contract 'Another' doesn't have a function test/
+        /Function "test" not found in contract Another/
       );
     });
 
@@ -954,14 +954,14 @@ describe("call", () => {
             type: "function",
           },
         ],
-        contractName: "",
+        contractName: "Another",
         bytecode: "",
         linkReferences: {},
       };
 
       const moduleDef = buildModule("Module1", (m) => {
         const another = m.contractFromArtifact("Another", fakeArtifact, []);
-        m.call(another, "inc", [1, 2, 3]);
+        m.call(another, "inc(bool,uint256)", [1, 2, 3]);
 
         return { another };
       });
@@ -979,7 +979,7 @@ describe("call", () => {
           {},
           []
         ),
-        /Function inc in contract Another is overloaded, but no overload expects 3 arguments/
+        /Function inc\(bool,uint256\) in contract Another is overloaded, but no overload expects 3 arguments/
       );
     });
 

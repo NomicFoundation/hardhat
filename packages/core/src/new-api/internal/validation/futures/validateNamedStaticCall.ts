@@ -9,6 +9,7 @@ import {
 import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deployer";
 import { NamedStaticCallFuture } from "../../../types/module";
+import { validateArtifactFunctionName } from "../../new-execution/abi";
 import {
   retrieveNestedRuntimeValues,
   validateAccountRuntimeValue,
@@ -52,6 +53,8 @@ export async function validateNamedStaticCall(
     );
   }
 
+  validateArtifactFunctionName(artifact, future.functionName);
+
   const argsLength = future.args.length;
 
   const iface = new Interface(artifact.abi);
@@ -62,12 +65,6 @@ export async function validateNamedStaticCall(
       funcs.push(func);
     }
   });
-
-  if (funcs.length === 0) {
-    throw new IgnitionValidationError(
-      `Contract '${future.contract.contractName}' doesn't have a function ${future.functionName}`
-    );
-  }
 
   const matchingFunctionFragments = funcs.filter(
     (f) => f.inputs.length === argsLength
