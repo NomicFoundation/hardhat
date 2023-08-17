@@ -24,6 +24,7 @@ pub struct ConfigFile {
     // TODO: expand this per https://github.com/NomicFoundation/rethnet/issues/111
     pub accounts: Vec<AccountConfig>,
     pub allow_blocks_with_same_timestamp: bool,
+    pub allow_unlimited_contract_size: bool,
     #[serde(deserialize_with = "u256_number")]
     pub block_gas_limit: Number,
     #[serde(deserialize_with = "u64_number")]
@@ -66,6 +67,8 @@ impl ConfigFile {
                 .into_iter()
                 .map(ServerAccountConfig::try_from)
                 .collect::<Result<Vec<_>, _>>()?,
+            allow_unlimited_contract_size: cli_args.allow_unlimited_contract_size
+                || self.allow_unlimited_contract_size,
             block_gas_limit: self.block_gas_limit.into(),
             chain_id: cli_args.chain_id.unwrap_or(self.chain_id.try_into()?),
             coinbase: cli_args.coinbase.unwrap_or(self.coinbase),
@@ -86,6 +89,7 @@ impl Default for ConfigFile {
         let chain_id = Number::U64(31337);
         Self {
             allow_blocks_with_same_timestamp: false,
+            allow_unlimited_contract_size: false,
             accounts: rethnet_defaults::PRIVATE_KEYS
                 .into_iter()
                 .map(|s| AccountConfig {

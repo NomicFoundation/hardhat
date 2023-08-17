@@ -51,6 +51,7 @@ async fn start_server() -> TestFixture {
     let server = Server::new(Config {
         address: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0),
         allow_blocks_with_same_timestamp: false,
+        allow_unlimited_contract_size: false,
         rpc_hardhat_network_config: RpcHardhatNetworkConfig { forking: None },
         accounts: vec![AccountConfig {
             private_key: SecretKey::from_str(PRIVATE_KEY)
@@ -174,6 +175,33 @@ async fn test_evm_increase_time() {
             U256::from(12345),
         ))),
         String::from("12345"),
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_evm_mine() {
+    let server = start_server().await;
+    verify_response(
+        &server,
+        MethodInvocation::Eth(EthMethodInvocation::EvmMine(Some(U256OrUsize::U256(
+            U256::from(2147483647),
+        )))),
+        String::from("0"),
+    )
+    .await;
+    verify_response(
+        &server,
+        MethodInvocation::Eth(EthMethodInvocation::EvmMine(Some(U256OrUsize::Usize(
+            2147483647,
+        )))),
+        String::from("0"),
+    )
+    .await;
+    verify_response(
+        &server,
+        MethodInvocation::Eth(EthMethodInvocation::EvmMine(None)),
+        String::from("0"),
     )
     .await;
 }
@@ -343,6 +371,57 @@ async fn test_impersonate_account() {
         MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(
             Address::from_low_u64_ne(1),
         )),
+        true,
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_hardhat_mine() {
+    let server = start_server().await;
+    verify_response(
+        &server,
+        MethodInvocation::Hardhat(HardhatMethodInvocation::Mine(
+            None, // block count
+            None, // interval
+        )),
+        true,
+    )
+    .await;
+    verify_response(
+        &server,
+        MethodInvocation::Hardhat(HardhatMethodInvocation::Mine(
+            Some(U256::from(10)), // block count
+            None,                 // interval
+        )),
+        true,
+    )
+    .await;
+    verify_response(
+        &server,
+        MethodInvocation::Hardhat(HardhatMethodInvocation::Mine(
+            None,                 // block count
+            Some(U256::from(10)), // interval
+        )),
+        true,
+    )
+    .await;
+    verify_response(
+        &server,
+        MethodInvocation::Hardhat(HardhatMethodInvocation::Mine(
+            Some(U256::from(10)),   // block count
+            Some(U256::from(5000)), // interval
+        )),
+        true,
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_interval_mine() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Hardhat(HardhatMethodInvocation::IntervalMine()),
         true,
     )
     .await;

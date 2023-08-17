@@ -42,6 +42,9 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
         MethodInvocation::Eth(EthMethodInvocation::EvmIncreaseTime(U256OrUsize::U256(
             U256::from(12345),
         ))),
+        MethodInvocation::Eth(EthMethodInvocation::EvmMine(Some(U256OrUsize::U256(
+            U256::from(12345),
+        )))),
         MethodInvocation::Eth(EthMethodInvocation::EvmSetNextBlockTimestamp(
             U256OrUsize::U256(U256::from(12345)),
         )),
@@ -80,6 +83,11 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             Bytes::from_static(b"").into(),
         )),
         MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(address)),
+        MethodInvocation::Hardhat(HardhatMethodInvocation::IntervalMine()),
+        MethodInvocation::Hardhat(HardhatMethodInvocation::Mine(
+            Some(U256::from(10)),   // block count
+            Some(U256::from(5000)), // interval
+        )),
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, U256::ZERO)),
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetCode(
             address,
@@ -171,6 +179,9 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             MethodInvocation::Eth(EthMethodInvocation::EvmIncreaseTime(increment)) => {
                 format!("evm_increaseTime({increment:?})")
             }
+            MethodInvocation::Eth(EthMethodInvocation::EvmMine(timestamp)) => {
+                format!("evm_mine({timestamp:?})")
+            }
             MethodInvocation::Eth(EthMethodInvocation::EvmSetNextBlockTimestamp(timestamp)) => {
                 format!("evm_setNextBlockTimestamp({timestamp:?})")
             }
@@ -224,6 +235,12 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             }
             MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(address)) => {
                 format!("hardhat_impersonateAccount({address:?}")
+            }
+            MethodInvocation::Hardhat(HardhatMethodInvocation::IntervalMine()) => {
+                String::from("hardhat_intervalMine()")
+            }
+            MethodInvocation::Hardhat(HardhatMethodInvocation::Mine(count, interval)) => {
+                format!("hardhat_mine({count:?}, {interval:?})")
             }
             MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, balance)) => {
                 format!("hardhat_setBalance({address:?}, {balance:?}")

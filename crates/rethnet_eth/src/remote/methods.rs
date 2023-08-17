@@ -306,6 +306,13 @@ pub enum MethodInvocation {
         deserialize_with = "sequence_to_single"
     )]
     EvmSetAutomine(bool),
+    /// evm_setIntervalMining
+    #[serde(
+        rename = "evm_setIntervalMining",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
+    EvmSetIntervalMining(OneUsizeOrTwo),
     /// evm_setNextBlockTimestamp
     #[serde(
         rename = "evm_setNextBlockTimestamp",
@@ -316,6 +323,16 @@ pub enum MethodInvocation {
     /// evm_snapshot
     #[serde(rename = "evm_snapshot")]
     EvmSnapshot(),
+}
+
+/// an input that can be either a single usize or an array of two usize values
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
+pub enum OneUsizeOrTwo {
+    /// a single usize
+    One(usize),
+    /// an array of two usize values
+    Two([usize; 2]),
 }
 
 /// an input that can be either a U256 or a usize
