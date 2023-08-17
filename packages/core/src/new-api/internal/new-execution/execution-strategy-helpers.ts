@@ -87,50 +87,52 @@ export async function* executeOnchainInteractionRequest(
   SuccessfulTransaction | SimulationErrorExecutionResult,
   OnchainInteractionResponse | StaticCallResponse
 > {
-  const simulationResponse = yield onchainInteractionRequest;
+  const firstResponse = yield onchainInteractionRequest;
 
   const assertionPrefix = `[ExecutionState ${executionStateId} - Network Interaction ${onchainInteractionRequest.id}] `;
 
   assertIgnitionInvariant(
-    isOnchainInteractionResponse(simulationResponse),
+    isOnchainInteractionResponse(firstResponse),
     `${assertionPrefix}Expected onchain interaction response and got raw static call result`
   );
 
-  assertIgnitionInvariant(
-    simulationResponse.type ===
-      OnchainInteractionResponseType.SIMULATION_RESULT,
-    `${assertionPrefix}Expected simulation result and got a successful transaction`
-  );
+  let onchainInteractionResponse:
+    | OnchainInteractionResponse
+    | StaticCallResponse;
 
-  if (!simulationResponse.result.success) {
-    const error = decodeError(
-      simulationResponse.result.returnData,
-      simulationResponse.result.customErrorReported,
-      decodeCustomError
-    );
+  if (firstResponse.type === OnchainInteractionResponseType.SIMULATION_RESULT) {
+    if (!firstResponse.result.success) {
+      const error = decodeError(
+        firstResponse.result.returnData,
+        firstResponse.result.customErrorReported,
+        decodeCustomError
+      );
 
-    return {
-      type: ExecutionResultType.SIMULATION_ERROR,
-      error,
-    };
-  }
-
-  if (decodeSuccessfulSimulationResult !== undefined) {
-    const result = decodeSuccessfulSimulationResult(
-      simulationResponse.result.returnData
-    );
-
-    if (result.type === EvmExecutionResultTypes.INVALID_RESULT_ERROR) {
       return {
         type: ExecutionResultType.SIMULATION_ERROR,
-        error: result,
+        error,
       };
     }
-  }
 
-  const onchainInteractionResponse = yield {
-    type: "SIMULATION_SUCCESS_SIGNAL",
-  };
+    if (decodeSuccessfulSimulationResult !== undefined) {
+      const result = decodeSuccessfulSimulationResult(
+        firstResponse.result.returnData
+      );
+
+      if (result.type === EvmExecutionResultTypes.INVALID_RESULT_ERROR) {
+        return {
+          type: ExecutionResultType.SIMULATION_ERROR,
+          error: result,
+        };
+      }
+    }
+
+    onchainInteractionResponse = yield {
+      type: "SIMULATION_SUCCESS_SIGNAL",
+    };
+  } else {
+    onchainInteractionResponse = firstResponse;
+  }
 
   assertIgnitionInvariant(
     isOnchainInteractionResponse(onchainInteractionResponse),
