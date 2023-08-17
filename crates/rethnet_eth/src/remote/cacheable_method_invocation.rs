@@ -1,12 +1,13 @@
 use revm_primitives::{Address, B256};
 use sha3::digest::FixedOutput;
 use sha3::{Digest, Sha3_256};
+use std::fmt;
 
 use crate::remote::methods::{GetLogsInput, MethodInvocation};
 use crate::remote::{BlockSpec, Eip1898BlockSpec};
 use crate::U256;
 
-/// These method invocations are hashable and can be potentially cached.
+/// Potentially cacheable Ethereum JSON-RPC method invocation.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub(super) enum CacheableMethodInvocation<'a> {
     /// eth_chainId
@@ -71,92 +72,8 @@ pub(super) enum CacheableMethodInvocation<'a> {
 }
 
 impl<'a> CacheableMethodInvocation<'a> {
-    fn hasher(&self) -> Hasher {
-        Hasher::new(self)
-    }
-
-    pub(super) fn cache_key(&self) -> Option<String> {
-        use CacheableMethodInvocation::*;
-        match self {
-            ChainId => self.hasher().finalize(),
-            GetBalance {
-                address,
-                block_spec,
-            } => self
-                .hasher()
-                .hash_address(address)
-                .hash_maybe_block_spec(block_spec)?
-                .finalize(),
-            GetBlockByNumber {
-                block_spec,
-                include_tx_data,
-            } => self
-                .hasher()
-                .hash_block_spec(block_spec)?
-                .hash_bool(include_tx_data)
-                .finalize(),
-            GetBlockByHash {
-                block_hash,
-                include_tx_data,
-            } => self
-                .hasher()
-                .hash_b256(block_hash)
-                .hash_bool(include_tx_data)
-                .finalize(),
-            GetBlockTransactionCountByHash { block_hash } => {
-                self.hasher().hash_b256(block_hash).finalize()
-            }
-            GetBlockTransactionCountByNumber { block_spec } => {
-                self.hasher().hash_block_spec(block_spec)?.finalize()
-            }
-            GetCode {
-                address,
-                block_spec,
-            } => self
-                .hasher()
-                .hash_address(address)
-                .hash_maybe_block_spec(block_spec)?
-                .finalize(),
-            GetLogs { params } => self.hasher().hash_get_logs_input(params)?.finalize(),
-            GetStorageAt {
-                address,
-                position,
-                block_spec,
-            } => self
-                .hasher()
-                .hash_address(address)
-                .hash_u256(position)
-                .hash_maybe_block_spec(block_spec)?
-                .finalize(),
-            GetTransactionByBlockHashAndIndex { block_hash, index } => self
-                .hasher()
-                .hash_b256(block_hash)
-                .hash_u256(index)
-                .finalize(),
-            GetTransactionByBlockNumberAndIndex {
-                block_number,
-                index,
-            } => self
-                .hasher()
-                .hash_u256(block_number)
-                .hash_u256(index)
-                .finalize(),
-            GetTransactionByHash { transaction_hash } => {
-                self.hasher().hash_b256(transaction_hash).finalize()
-            }
-            GetTransactionCount {
-                address,
-                block_spec,
-            } => self
-                .hasher()
-                .hash_address(address)
-                .hash_maybe_block_spec(block_spec)?
-                .finalize(),
-            GetTransactionReceipt { transaction_hash } => {
-                self.hasher().hash_b256(transaction_hash).finalize()
-            }
-            NetVersion => self.hasher().finalize(),
-        }
+    pub(super) fn cache_key(&self) -> Option<CacheKey> {
+        Hasher::new().hash_method_invocation(self)?.finalize()
     }
 }
 
@@ -268,6 +185,52 @@ impl<'a> TryFrom<&'a MethodInvocation> for CacheableMethodInvocation<'a> {
     }
 }
 
+/// Potentially cacheable Ethereum JSON-RPC method invocations for a batch call.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[repr(transparent)]
+pub(super) struct CacheableMethodInvocations<'a>(Vec<CacheableMethodInvocation<'a>>);
+
+impl<'a> CacheableMethodInvocations<'a> {
+    pub(super) fn cache_key(&self) -> Option<CacheKey> {
+        Hasher::new().hash_method_invocations(self)?.finalize()
+    }
+
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+}
+
+impl<'a> IntoIterator for &'a CacheableMethodInvocations<'a> {
+    type Item = &'a CacheableMethodInvocation<'a>;
+    type IntoIter = core::slice::Iter<'a, CacheableMethodInvocation<'a>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter()
+    }
+}
+
+impl<'a> TryFrom<&'a [MethodInvocation]> for CacheableMethodInvocations<'a> {
+    type Error = MethodNotCacheableError;
+
+    fn try_from(value: &'a [MethodInvocation]) -> Result<Self, Self::Error> {
+        let result = value
+            .iter()
+            .map(CacheableMethodInvocation::try_from)
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(Self(result))
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[repr(transparent)]
+pub(super) struct CacheKey(String);
+
+impl fmt::Display for CacheKey {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(formatter)
+    }
+}
+
 #[derive(Debug)]
 struct Hasher {
     hasher: Sha3_256,
@@ -291,9 +254,9 @@ struct Hasher {
 // collisions](https://doc.rust-lang.org/std/hash/trait.Hash.html#prefix-collisions) should be
 // considered.
 impl Hasher {
-    fn new(value: impl CacheKeyVariant) -> Self {
+    fn new() -> Self {
         Self {
-            hasher: Sha3_256::new_with_prefix(value.cache_key_variant().to_le_bytes()),
+            hasher: Sha3_256::new(),
         }
     }
 
@@ -304,6 +267,10 @@ impl Hasher {
     }
 
     fn hash_u8(self, value: u8) -> Self {
+        self.hash_bytes(value.to_le_bytes())
+    }
+
+    fn hash_usize(self, value: usize) -> Self {
         self.hash_bytes(value.to_le_bytes())
     }
 
@@ -376,9 +343,79 @@ impl Hasher {
         Some(this)
     }
 
-    fn finalize(self) -> Option<String> {
+    fn hash_method_invocation(self, method: &CacheableMethodInvocation) -> Option<Self> {
+        use CacheableMethodInvocation::*;
+
+        let this = self.hash_u8(method.cache_key_variant());
+
+        let this = match method {
+            ChainId => this,
+            GetBalance {
+                address,
+                block_spec,
+            } => this
+                .hash_address(address)
+                .hash_maybe_block_spec(block_spec)?,
+            GetBlockByNumber {
+                block_spec,
+                include_tx_data,
+            } => this.hash_block_spec(block_spec)?.hash_bool(include_tx_data),
+            GetBlockByHash {
+                block_hash,
+                include_tx_data,
+            } => this.hash_b256(block_hash).hash_bool(include_tx_data),
+            GetBlockTransactionCountByHash { block_hash } => this.hash_b256(block_hash),
+            GetBlockTransactionCountByNumber { block_spec } => this.hash_block_spec(block_spec)?,
+            GetCode {
+                address,
+                block_spec,
+            } => this
+                .hash_address(address)
+                .hash_maybe_block_spec(block_spec)?,
+            GetLogs { params } => this.hash_get_logs_input(params)?,
+            GetStorageAt {
+                address,
+                position,
+                block_spec,
+            } => this
+                .hash_address(address)
+                .hash_u256(position)
+                .hash_maybe_block_spec(block_spec)?,
+            GetTransactionByBlockHashAndIndex { block_hash, index } => {
+                this.hash_b256(block_hash).hash_u256(index)
+            }
+            GetTransactionByBlockNumberAndIndex {
+                block_number,
+                index,
+            } => this.hash_u256(block_number).hash_u256(index),
+            GetTransactionByHash { transaction_hash } => this.hash_b256(transaction_hash),
+            GetTransactionCount {
+                address,
+                block_spec,
+            } => this
+                .hash_address(address)
+                .hash_maybe_block_spec(block_spec)?,
+            GetTransactionReceipt { transaction_hash } => this.hash_b256(transaction_hash),
+            NetVersion => this,
+        };
+
+        Some(this)
+    }
+
+    fn hash_method_invocations(self, methods: &CacheableMethodInvocations) -> Option<Self> {
+        // Make sure it's prefix-free
+        let mut this = self.hash_usize(methods.len());
+
+        for method_invocation in methods {
+            this = this.hash_method_invocation(method_invocation)?;
+        }
+
+        Some(this)
+    }
+
+    fn finalize(self) -> Option<CacheKey> {
         // Returns Option for chaining convenience.
-        Some(hex::encode(self.hasher.finalize_fixed()))
+        Some(CacheKey(hex::encode(self.hasher.finalize_fixed())))
     }
 }
 
@@ -446,23 +483,16 @@ mod test {
     use super::*;
     use crate::remote::BlockTag;
 
-    // Implemented just for tests on purpose.
-    impl CacheKeyVariant for u8 {
-        fn cache_key_variant(&self) -> u8 {
-            *self
-        }
-    }
-
     #[test]
     fn test_hash_length() {
-        let hash = Hasher::new(0).finalize().unwrap();
+        let hash = Hasher::new().hash_u8(0).finalize().unwrap();
         // 32 bytes as hex
-        assert_eq!(hash.len(), 2 * 32)
+        assert_eq!(hash.0.len(), 2 * 32)
     }
 
     #[test]
     fn test_hasher_block_spec_tag() {
-        let result = Hasher::new(0u8).hash_block_spec(&BlockSpec::Tag(BlockTag::Latest));
+        let result = Hasher::new().hash_block_spec(&BlockSpec::Tag(BlockTag::Latest));
 
         assert!(result.is_none());
     }
@@ -471,12 +501,12 @@ mod test {
     fn test_hasher_block_spec_number_variants_not_equal() {
         let block_number: U256 = Default::default();
 
-        let hash_one = Hasher::new(0u8)
+        let hash_one = Hasher::new()
             .hash_block_spec(&BlockSpec::Number(block_number))
             .unwrap()
             .finalize()
             .unwrap();
-        let hash_two = Hasher::new(0u8)
+        let hash_two = Hasher::new()
             .hash_block_spec(&BlockSpec::Eip1898(Eip1898BlockSpec::Number {
                 block_number,
             }))
@@ -494,7 +524,7 @@ mod test {
 
         assert_eq!(block_number.as_le_bytes(), block_hash.as_bytes());
 
-        let hash_one = Hasher::new(0u8)
+        let hash_one = Hasher::new()
             .hash_block_spec(&BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
                 block_hash,
                 require_canonical: None,
@@ -502,7 +532,7 @@ mod test {
             .unwrap()
             .finalize()
             .unwrap();
-        let hash_two = Hasher::new(0u8)
+        let hash_two = Hasher::new()
             .hash_block_spec(&BlockSpec::Eip1898(Eip1898BlockSpec::Number {
                 block_number,
             }))
@@ -515,27 +545,23 @@ mod test {
 
     #[test]
     fn test_hash_maybe_block_spec() {
-        let variant = 0u8;
-
-        let hash_one = Hasher::new(variant)
+        let hash_one = Hasher::new()
             .hash_maybe_block_spec(&None)
             .unwrap()
             .finalize()
             .unwrap();
-        let hash_two = Hasher::new(variant).finalize().unwrap();
+        let hash_two = Hasher::new().finalize().unwrap();
 
         assert_ne!(hash_one, hash_two);
     }
 
     #[test]
     fn test_get_logs_input_from_to_matters() {
-        let variant = 0u8;
-
         let from = BlockSpec::Number(U256::try_from(1).unwrap());
         let to = BlockSpec::Number(U256::try_from(2).unwrap());
         let address: Address = Default::default();
 
-        let hash_one = Hasher::new(variant)
+        let hash_one = Hasher::new()
             .hash_get_logs_input(&GetLogsInput {
                 from_block: from.clone(),
                 to_block: to.clone(),
@@ -545,7 +571,7 @@ mod test {
             .finalize()
             .unwrap();
 
-        let hash_two = Hasher::new(variant)
+        let hash_two = Hasher::new()
             .hash_get_logs_input(&GetLogsInput {
                 from_block: to,
                 to_block: from,
@@ -559,7 +585,7 @@ mod test {
     }
 
     #[test]
-    fn no_arguments_keys_not_equal() {
+    fn test_no_arguments_keys_not_equal() {
         let key_one = CacheableMethodInvocation::ChainId.cache_key().unwrap();
         let key_two = CacheableMethodInvocation::NetVersion.cache_key().unwrap();
 
@@ -567,7 +593,7 @@ mod test {
     }
 
     #[test]
-    fn same_arguments_keys_not_equal() {
+    fn test_same_arguments_keys_not_equal() {
         let value: B256 = Default::default();
         let key_one = CacheableMethodInvocation::GetTransactionByHash {
             transaction_hash: &value,
@@ -584,7 +610,7 @@ mod test {
     }
 
     #[test]
-    fn get_storage_at_block_spec_is_taken_into_account() {
+    fn test_get_storage_at_block_spec_is_taken_into_account() {
         let address: Address = Default::default();
         let position: U256 = Default::default();
 
@@ -608,7 +634,7 @@ mod test {
     }
 
     #[test]
-    fn get_storage_at_block_same_matches() {
+    fn test_get_storage_at_block_same_matches() {
         let address: Address = Default::default();
         let position: U256 = Default::default();
         let block_spec = Some(BlockSpec::Number(Default::default()));
@@ -630,5 +656,25 @@ mod test {
         .unwrap();
 
         assert_eq!(key_one, key_two);
+    }
+
+    #[test]
+    fn test_method_invocations_prefix() {
+        let key_one = CacheableMethodInvocation::ChainId.cache_key().unwrap();
+
+        let key_two = CacheableMethodInvocations(vec![CacheableMethodInvocation::ChainId])
+            .cache_key()
+            .unwrap();
+
+        assert_ne!(key_one, key_two);
+    }
+
+    #[test]
+    fn test_no_uncacheable_method_invocations() {
+        let result: Result<CacheableMethodInvocations, _> =
+            [MethodInvocation::ChainId(), MethodInvocation::Accounts()]
+                .as_slice()
+                .try_into();
+        assert!(result.is_err())
     }
 }
