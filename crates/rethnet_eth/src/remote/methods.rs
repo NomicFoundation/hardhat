@@ -10,11 +10,10 @@ use crate::{
     },
     Address, B256, U256,
 };
-use std::hash::{Hash, Hasher};
 
 /// for specifying input to methods requiring a transaction object, like `eth_call`,
 /// `eth_sendTransaction` and `eth_estimateGas`
-#[derive(Clone, Debug, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct TransactionInput {
     /// the address from which the transaction should be sent
     pub from: Option<Address>,
@@ -87,7 +86,7 @@ pub enum MethodInvocation {
         /// newest block
         BlockSpec,
         /// reward percentiles
-        Percentiles,
+        Vec<f64>,
     ),
     /// eth_gasPrice
     #[serde(rename = "eth_gasPrice")]
@@ -320,7 +319,7 @@ pub enum MethodInvocation {
 }
 
 /// an input that can be either a U256 or a usize
-#[derive(Clone, Debug, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum U256OrUsize {
     /// usize
@@ -339,7 +338,7 @@ impl From<U256OrUsize> for U256 {
 }
 
 /// for specifying the inputs to `eth_getLogs`
-#[derive(Clone, Debug, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GetLogsInput {
     /// starting block for get_logs request
@@ -349,86 +348,9 @@ pub struct GetLogsInput {
     /// address for get_logs request
     pub address: Address,
 }
-
-/// Invalid percentile value error
-#[derive(thiserror::Error, Debug)]
-pub enum PercentileError {
-    /// Out of bounds value error
-    #[error("Percentile must be between 0 and 100 inclusive, instead it is {0}")]
-    OutOfBounds(f64),
-}
-
-/// The `rewardPercentiles` argument for `eth_feeHistory`.
-#[derive(Clone, Debug, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
-#[repr(transparent)]
-#[serde(transparent)]
-pub struct Percentiles(Vec<Percentile>);
-
-impl TryFrom<Vec<f64>> for Percentiles {
-    type Error = PercentileError;
-
-    fn try_from(value: Vec<f64>) -> Result<Self, Self::Error> {
-        let percentiles = value
-            .into_iter()
-            .map(Percentile::try_from)
-            .collect::<Result<Vec<_>, _>>()?;
-        Ok(Self(percentiles))
-    }
-}
-
-/// A reward percentile value for `eth_feeHistory`. It's a floating point value in the range [0,
-/// 100] as per the Ethereum docs: <https://ethereum.github.io/execution-apis/api-documentation/>
-#[derive(Clone, Copy, Debug, serde::Serialize)]
-#[repr(transparent)]
-#[serde(transparent)]
-pub struct Percentile(f64);
-
-impl Percentile {
-    /// Treat the percentile as a u64 for equality and hashing purposes.
-    /// This is safe since we check on construction that it's a finite value in the [0, 100] range
-    /// and we don't perform any arithmetic on it which could lead to surprising results.
-    fn key(&self) -> u64 {
-        self.0.to_bits()
-    }
-}
-
-impl TryFrom<f64> for Percentile {
-    type Error = PercentileError;
-
-    fn try_from(value: f64) -> Result<Self, Self::Error> {
-        if (0. ..=100.).contains(&value) {
-            Ok(Self(value))
-        } else {
-            Err(PercentileError::OutOfBounds(value))
-        }
-    }
-}
-
-impl<'de> serde::Deserialize<'de> for Percentile {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = f64::deserialize(deserializer)?;
-        Self::try_from(value).map_err(serde::de::Error::custom)
-    }
-}
-
-impl PartialEq for Percentile {
-    fn eq(&self, other: &Self) -> bool {
-        self.key() == other.key()
-    }
-}
-
-impl Eq for Percentile {}
-
-impl Hash for Percentile {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.key().hash(state)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::hash_map::DefaultHasher;
 
     #[test]
     #[should_panic(expected = "string \\\"deadbeef\\\" does not have a '0x' prefix")]
@@ -440,99 +362,5 @@ mod tests {
     #[should_panic(expected = "string \\\"0deadbeef\\\" does not have a '0x' prefix")]
     fn test_zero_x_prefixed_bytes_deserialization_with_0_prefix_but_no_x() {
         serde_json::from_str::<ZeroXPrefixedBytes>("\"0deadbeef\"").unwrap();
-    }
-
-    #[test]
-    fn test_infinite_percentile() {
-        assert!(Percentile::try_from(f64::INFINITY).is_err());
-    }
-
-    #[test]
-    fn test_nan_percentile() {
-        assert!(Percentile::try_from(f64::INFINITY).is_err());
-    }
-
-    #[test]
-    fn test_negative_percentile() {
-        assert!(Percentile::try_from(-1.).is_err());
-    }
-
-    #[test]
-    fn test_too_large_percentile() {
-        assert!(Percentile::try_from(1000.).is_err());
-    }
-
-    #[test]
-    fn test_zero_percentile() {
-        assert!(Percentile::try_from(0.).is_ok());
-    }
-
-    #[test]
-    fn test_hundred_percentile() {
-        assert!(Percentile::try_from(100.).is_ok());
-    }
-
-    #[test]
-    fn test_percentile_serialization_matches_f64() {
-        let n = 12.34;
-        let percentile = Percentile::try_from(n).unwrap();
-        assert_eq!(
-            serde_json::to_string(&percentile).unwrap(),
-            serde_json::to_string(&n).unwrap()
-        );
-    }
-
-    #[test]
-    fn test_percentile_serde() {
-        let percentile = Percentile::try_from(22.33).unwrap();
-        let serialized = serde_json::to_string(&percentile).unwrap();
-        let deserialized = serde_json::from_str::<Percentile>(&serialized).unwrap();
-        assert_eq!(percentile, deserialized);
-    }
-
-    #[test]
-    fn test_invalid_percentile_deserialization() {
-        let result = serde_json::from_str::<Percentile>("-1.0");
-        assert!(result.is_err())
-    }
-
-    #[test]
-    fn test_percentile_eq() {
-        let n = 12.34;
-        assert_eq!(
-            Percentile::try_from(n).unwrap(),
-            Percentile::try_from(n).unwrap()
-        );
-    }
-
-    #[test]
-    fn test_percentile_neq() {
-        assert_ne!(
-            Percentile::try_from(12.34).unwrap(),
-            Percentile::try_from(12.345).unwrap()
-        );
-    }
-
-    fn calculate_hash<T: Hash>(t: &T) -> u64 {
-        let mut s = DefaultHasher::new();
-        t.hash(&mut s);
-        s.finish()
-    }
-
-    #[test]
-    fn test_percentile_hash_eq() {
-        let n = 12.34;
-        assert_eq!(
-            calculate_hash(&Percentile::try_from(n).unwrap()),
-            calculate_hash(&Percentile::try_from(n).unwrap())
-        );
-    }
-
-    #[test]
-    fn test_percentile_hash_neq() {
-        assert_ne!(
-            calculate_hash(&Percentile::try_from(12.34).unwrap()),
-            calculate_hash(&Percentile::try_from(12.345).unwrap())
-        );
     }
 }

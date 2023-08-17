@@ -8,7 +8,7 @@ use crate::remote::{BlockSpec, Eip1898BlockSpec};
 use crate::U256;
 
 /// Potentially cacheable Ethereum JSON-RPC method invocation.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug)]
 pub(super) enum CacheableMethodInvocation<'a> {
     /// eth_chainId
     ChainId,
@@ -186,7 +186,7 @@ impl<'a> TryFrom<&'a MethodInvocation> for CacheableMethodInvocation<'a> {
 }
 
 /// Potentially cacheable Ethereum JSON-RPC method invocations for a batch call.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug)]
 #[repr(transparent)]
 pub(super) struct CacheableMethodInvocations<'a>(Vec<CacheableMethodInvocation<'a>>);
 

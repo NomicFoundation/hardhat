@@ -44,7 +44,7 @@ impl From<u64> for U64WithoutLeadingZeroes {
 
 /// Type for specifying a byte string that will have a 0x prefix when serialized and
 /// deserialized
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ZeroXPrefixedBytes {
     inner: Bytes,
 }
