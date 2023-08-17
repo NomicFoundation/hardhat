@@ -98,48 +98,6 @@ jobs:
       - name: Install package
         run: yarn --frozen-lockfile
 
-      - name: Build
-        run: yarn build
-
-      - name: Run tests
-        env:
-          HARDHAT_EXPERIMENTAL_VM_MODE: ${{ matrix.vm }}
-          DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
-          FORCE_COLOR: 3
-        run: yarn test:except-tracing
-
-  test-fork:
-    name: Test forking (${{ matrix.os }}, Node ${{ matrix.node }}, ${{ matrix.vm }})
-    runs-on: ${{ matrix.os }}
-    needs: check-rethnet
-    strategy:
-      fail-fast: false
-      matrix:
-        node: [18.15]
-        # disable until actions/virtual-environments#4896 is fixed
-        # os: ["macos-latest", "ubuntu-latest", "windows-latest"]
-        os: ["ubuntu-latest", "windows-latest"]
-        vm: ["dual", "rethnet"]
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Install Node
-        uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.node }}
-          cache: yarn
-
-      - name: Install Rust (stable)
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          override: true
-
-      - uses: Swatinem/rust-cache@v2
-
-      - name: Install package
-        run: yarn --frozen-lockfile
-
       - name: Cache network requests
         uses: actions/cache@v2
         with:
@@ -157,10 +115,10 @@ jobs:
           HARDHAT_EXPERIMENTAL_VM_MODE: ${{ matrix.vm }}
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
-        run: yarn test:except-tracing
+        run: yarn test:except-provider
 
-  test-tracing:
-    name: Test stack tracing (${{ matrix.os }}, Node ${{ matrix.node }}, ${{ matrix.vm }})
+  test-provider:
+    name: Test provider (${{ matrix.os }}, Node ${{ matrix.node }}, ${{ matrix.vm }})
     runs-on: ${{ matrix.os }}
     needs: check-rethnet
     strategy:
@@ -203,11 +161,12 @@ jobs:
 
       - name: Run tests
         env:
+          INFURA_URL: ${{ secrets.INFURA_URL }}
+          ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
           HARDHAT_EXPERIMENTAL_VM_MODE: ${{ matrix.vm }}
-          NODE_OPTIONS: "--max-old-space-size=4096"
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
-        run: yarn test:tracing
+        run: yarn test:provider
 
   test-rethnet-js:
     name: Test Rethnet bindings (${{ matrix.os }}, Node ${{ matrix.node }})
