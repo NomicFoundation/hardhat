@@ -151,9 +151,9 @@ impl RpcClient {
 
     async fn read_response_from_cache(
         &self,
-        cache_key: Option<&CacheKey>,
+        cache_key: &CacheKey,
     ) -> Result<Option<String>, RpcClientError> {
-        let path = self.make_cache_path(cache_key?).await?;
+        let path = self.make_cache_path(cache_key).await?;
         match tokio::fs::read_to_string(path).await {
             Ok(response) => Ok(Some(response)),
             Err(error) => {
@@ -167,20 +167,29 @@ impl RpcClient {
         }
     }
 
-    async fn write_response_to_cache(
+    async fn try_from_cache(
         &self,
         cache_key: Option<&CacheKey>,
+    ) -> Result<Option<String>, RpcClientError> {
+        if let Some(cache_key) = cache_key {
+            self.read_response_from_cache(cache_key).await
+        } else {
+            Ok(None)
+        }
+    }
+
+    async fn write_response_to_cache(
+        &self,
+        cache_key: &CacheKey,
         response: &str,
     ) -> Result<(), RpcClientError> {
-        if let Some(cache_key) = cache_key {
-            let cache_path = self.make_cache_path(cache_key).await?;
-            tokio::fs::write(cache_path, response.as_bytes())
-                .await
-                .map_err(|error| RpcClientError::CacheError {
-                    message: "failed to write to on-disk RPC response cache".to_string(),
-                    error,
-                })?;
-        }
+        let cache_path = self.make_cache_path(cache_key).await?;
+        tokio::fs::write(cache_path, response.as_bytes())
+            .await
+            .map_err(|error| RpcClientError::CacheError {
+                message: "failed to write to on-disk RPC response cache".to_string(),
+                error,
+            })?;
         Ok(())
     }
 
@@ -190,13 +199,14 @@ impl RpcClient {
         request_body: &str,
         cache_key: Option<CacheKey>,
     ) -> Result<String, RpcClientError> {
-        if let Some(cached_response) = self.read_response_from_cache(cache_key.as_ref()).await? {
+        if let Some(cached_response) = self.try_from_cache(cache_key.as_ref()).await? {
             Ok(cached_response)
         } else {
             let response = self.send_request_body(request_body).await?;
 
-            self.write_response_to_cache(cache_key.as_ref(), &response)
-                .await?;
+            if let Some(cache_key) = cache_key {
+                self.write_response_to_cache(&cache_key, &response).await?;
+            }
 
             Ok(response)
         }
