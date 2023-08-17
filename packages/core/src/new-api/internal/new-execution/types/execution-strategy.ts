@@ -1,13 +1,11 @@
 import { Artifact } from "../../../types/artifact";
 
 import {
-  FailedStaticCallExecutionResult,
-  SimulationErrorExecutionResult,
-  StrategyErrorExecutionResult,
-  SuccessfulCallExecutionResult,
-  SuccessfulDeploymentExecutionResult,
-  SuccessfulSendDataExecutionResult,
-  SuccessfulStaticCallExecutionResult,
+  CallExecutionResult,
+  DeploymentExecutionResult,
+  RevertedTransactionExecutionResult,
+  SendDataExecutionResult,
+  StaticCallExecutionResult,
 } from "./execution-result";
 import {
   CallExecutionState,
@@ -66,7 +64,9 @@ export enum OnchainInteractionResponseType {
 export interface SuccessfulTransaction {
   type: OnchainInteractionResponseType.SUCCESSFUL_TRANSACTION;
   transaction: Required<Transaction> & {
-    status: TransactionReceiptStatus.SUCCESS;
+    receipt: {
+      status: TransactionReceiptStatus.SUCCESS;
+    };
   };
 }
 
@@ -99,6 +99,30 @@ export type StaticCallRequest = Omit<StaticCall, "result">;
  */
 export type StaticCallResponse = RawStaticCallResult;
 
+export type DeploymentStrategyGenerator = AsyncGenerator<
+  OnchainInteractionRequest | SimulationSuccessSignal | StaticCallRequest,
+  Exclude<DeploymentExecutionResult, RevertedTransactionExecutionResult>,
+  OnchainInteractionResponse | StaticCallResponse
+>;
+
+export type CallStrategyGenerator = AsyncGenerator<
+  OnchainInteractionRequest | SimulationSuccessSignal | StaticCallRequest,
+  Exclude<CallExecutionResult, RevertedTransactionExecutionResult>,
+  OnchainInteractionResponse | StaticCallResponse
+>;
+
+export type SendDataStrategyGenerator = AsyncGenerator<
+  OnchainInteractionRequest | SimulationSuccessSignal | StaticCallRequest,
+  Exclude<SendDataExecutionResult, RevertedTransactionExecutionResult>,
+  OnchainInteractionResponse | StaticCallResponse
+>;
+
+export type StaticCallStrategyGenerator = AsyncGenerator<
+  StaticCallRequest,
+  StaticCallExecutionResult,
+  StaticCallResponse
+>;
+
 /**
  * Each execution strategy defines how each type of execution state is executed.
  *
@@ -122,19 +146,29 @@ export type StaticCallResponse = RawStaticCallResult;
  *
  * If the execution strategy considers a response to have failed for reasons other than
  * a failed contract execution or simulation, it can return a custom error using
- * `StrategyErrorExecutionResult`.
+ * `StrategySimulationErrorExecutionResult` and `StrategyErrorExecutionResult`.
+ *
+ * Execution strategies are also use to resume a partial execution, hence, they must be
+ * prepared to receive the results of their requests immediately. This affects to the
+ * process of requestsing `OnchainInteraction`s, which differs weather if the request
+ * has already being resolved or not. See below for more details.
  *
  * There are two types of request, which follow a different protocol:
  *
  *   - `OnchainInteractionRequest`: This request is used to perform an onchain
  *    interaction.
  *
- *    The execution engine will simulate the onchain interaction first, and respond with
- *    a `SimulationResult`. The execution strategy can then decide if it wants to
- *    proceed with the onchain interaction or not.
+ *    If this `OnchainInteractionRequest` hasn't been executed yet, the execution engine
+ *    will simulate the onchain interaction first, and respond with a `SimulationResult`.
+ *    The execution strategy can then decide if it wants to proceed with the onchain
+ *    interaction or not.
+ *
+ *    If this `OnchainInteractionRequest` was already executed (e.g. we are resuming an
+ *    existing deployment), the strategy will immedately get a `SuccessfulTransaction` as
+ *    a response.
  *
  *    If the strategy doesn't want to proceed, it should return a `SimulationErrorExecutionResult`
- *    or a `StrategyErrorExecutionResult`.
+ *    or a `StrategySimulationErrorExecutionResult`.
  *
  *    If an error is returned, the execution will be considered failed, but no failed result
  *    will be stored in the execution journal.
@@ -179,14 +213,7 @@ export interface ExecutionStrategy {
     executionState: DeploymentExecutionState,
     fallbackSender: string,
     loadArtifact: LoadArtifactFunction
-  ) => AsyncGenerator<
-    OnchainInteractionRequest | SimulationSuccessSignal | StaticCallRequest,
-    | SuccessfulDeploymentExecutionResult
-    | SimulationErrorExecutionResult
-    | FailedStaticCallExecutionResult
-    | StrategyErrorExecutionResult,
-    OnchainInteractionResponse | StaticCallResponse
-  >;
+  ) => DeploymentStrategyGenerator;
 
   /**
    * Executes a deployment execution state.
@@ -195,14 +222,7 @@ export interface ExecutionStrategy {
     executionState: CallExecutionState,
     fallbackSender: string,
     loadArtifact: LoadArtifactFunction
-  ) => AsyncGenerator<
-    OnchainInteractionRequest | SimulationSuccessSignal | StaticCallRequest,
-    | SuccessfulCallExecutionResult
-    | SimulationErrorExecutionResult
-    | FailedStaticCallExecutionResult
-    | StrategyErrorExecutionResult,
-    OnchainInteractionResponse | StaticCallResponse
-  >;
+  ) => CallStrategyGenerator;
 
   /**
    * Executes a deployment execution state.
@@ -210,14 +230,7 @@ export interface ExecutionStrategy {
   executeSendData: (
     executionState: SendDataExecutionState,
     fallbackSender: string
-  ) => AsyncGenerator<
-    OnchainInteractionRequest | SimulationSuccessSignal | StaticCallRequest,
-    | SuccessfulSendDataExecutionResult
-    | SimulationErrorExecutionResult
-    | FailedStaticCallExecutionResult
-    | StrategyErrorExecutionResult,
-    OnchainInteractionResponse | StaticCallResponse
-  >;
+  ) => SendDataStrategyGenerator;
 
   /**
    * Executes a deployment execution state.
@@ -228,9 +241,7 @@ export interface ExecutionStrategy {
     loadArtifact: LoadArtifactFunction
   ) => AsyncGenerator<
     StaticCallRequest,
-    | SuccessfulStaticCallExecutionResult
-    | FailedStaticCallExecutionResult
-    | StrategyErrorExecutionResult,
+    StaticCallExecutionResult,
     StaticCallResponse
   >;
 }

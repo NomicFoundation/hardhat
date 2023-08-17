@@ -64,6 +64,8 @@ function _mapResultTypeToStatus(
       return ExecutionStatus.SUCCESS;
     case ExecutionResultType.SIMULATION_ERROR:
       return ExecutionStatus.FAILED;
+    case ExecutionResultType.STRATEGY_SIMULATION_ERROR:
+      return ExecutionStatus.FAILED;
     case ExecutionResultType.REVERTED_TRANSACTION:
       return ExecutionStatus.FAILED;
     case ExecutionResultType.STATIC_CALL_ERROR:

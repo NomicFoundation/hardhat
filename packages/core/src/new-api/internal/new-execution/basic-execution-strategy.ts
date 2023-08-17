@@ -6,16 +6,7 @@ import {
   executeOnchainInteractionRequest,
   executeStaticCallRequest,
 } from "./execution-strategy-helpers";
-import {
-  ExecutionResultType,
-  FailedStaticCallExecutionResult,
-  SimulationErrorExecutionResult,
-  StrategyErrorExecutionResult,
-  SuccessfulCallExecutionResult,
-  SuccessfulDeploymentExecutionResult,
-  SuccessfulSendDataExecutionResult,
-  SuccessfulStaticCallExecutionResult,
-} from "./types/execution-result";
+import { ExecutionResultType } from "./types/execution-result";
 import {
   CallExecutionState,
   DeploymentExecutionState,
@@ -23,14 +14,13 @@ import {
   StaticCallExecutionState,
 } from "./types/execution-state";
 import {
-  OnchainInteractionResponse,
   OnchainInteractionResponseType,
   LoadArtifactFunction,
-  OnchainInteractionRequest,
-  SimulationSuccessSignal,
-  StaticCallRequest,
-  StaticCallResponse,
   ExecutionStrategy,
+  DeploymentStrategyGenerator,
+  CallStrategyGenerator,
+  SendDataStrategyGenerator,
+  StaticCallStrategyGenerator,
 } from "./types/execution-strategy";
 import { NetworkInteractionType } from "./types/network-interaction";
 
@@ -44,14 +34,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
     executionState: DeploymentExecutionState,
     fallbackSender: string,
     loadArtifact: LoadArtifactFunction
-  ): AsyncGenerator<
-    OnchainInteractionRequest | SimulationSuccessSignal | StaticCallRequest,
-    | SuccessfulDeploymentExecutionResult
-    | SimulationErrorExecutionResult
-    | FailedStaticCallExecutionResult
-    | StrategyErrorExecutionResult,
-    OnchainInteractionResponse | StaticCallResponse
-  > {
+  ): DeploymentStrategyGenerator {
     const artifact = await loadArtifact(executionState.artifactFutureId);
 
     const transactionOrResult = yield* executeOnchainInteractionRequest(
@@ -99,14 +82,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
     executionState: CallExecutionState,
     fallbackSender: string,
     loadArtifact: LoadArtifactFunction
-  ): AsyncGenerator<
-    OnchainInteractionRequest | SimulationSuccessSignal | StaticCallRequest,
-    | SuccessfulCallExecutionResult
-    | SimulationErrorExecutionResult
-    | FailedStaticCallExecutionResult
-    | StrategyErrorExecutionResult,
-    OnchainInteractionResponse | StaticCallResponse
-  > {
+  ): CallStrategyGenerator {
     const artifact = await loadArtifact(executionState.artifactFutureId);
 
     const transactionOrResult = yield* executeOnchainInteractionRequest(
@@ -148,14 +124,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
   public async *executeSendData(
     executionState: SendDataExecutionState,
     fallbackSender: string
-  ): AsyncGenerator<
-    OnchainInteractionRequest | SimulationSuccessSignal | StaticCallRequest,
-    | SuccessfulSendDataExecutionResult
-    | SimulationErrorExecutionResult
-    | FailedStaticCallExecutionResult
-    | StrategyErrorExecutionResult,
-    OnchainInteractionResponse | StaticCallResponse
-  > {
+  ): SendDataStrategyGenerator {
     const transactionOrResult = yield* executeOnchainInteractionRequest(
       executionState.id,
       {
@@ -184,13 +153,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
     executionState: StaticCallExecutionState,
     fallbackSender: string,
     loadArtifact: LoadArtifactFunction
-  ): AsyncGenerator<
-    StaticCallRequest,
-    | SuccessfulStaticCallExecutionResult
-    | FailedStaticCallExecutionResult
-    | StrategyErrorExecutionResult,
-    StaticCallResponse
-  > {
+  ): StaticCallStrategyGenerator {
     const artifact = await loadArtifact(executionState.artifactFutureId);
 
     const decodedResultOrError = yield* executeStaticCallRequest(
