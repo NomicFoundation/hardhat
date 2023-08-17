@@ -18,6 +18,28 @@ import {
   StaticCallExecutionStateInitializeMessage,
 } from "../../types/messages";
 
+export function initialiseDeploymentExecutionStateFrom(
+  action: DeploymentExecutionStateInitializeMessage
+): DeploymentExecutionState {
+  const deploymentExecutionInitialState: DeploymentExecutionState = {
+    id: action.futureId,
+    type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+    futureType: action.futureType,
+    strategy: action.strategy,
+    status: ExecutionStatus.STARTED,
+    dependencies: new Set<string>(action.dependencies),
+    artifactFutureId: action.artifactFutureId,
+    contractName: action.contractName,
+    constructorArgs: action.constructorArgs,
+    libraries: action.libraries,
+    value: action.value,
+    from: action.from,
+    networkInteractions: [],
+  };
+
+  return deploymentExecutionInitialState;
+}
+
 export function initialiseStaticCallExecutionStateFrom(
   action: StaticCallExecutionStateInitializeMessage
 ): StaticCallExecutionState {
@@ -80,28 +102,6 @@ export function initialiseReadEventArgumentExecutionStateFrom(
     };
 
   return readEventArgumentExecutionInitialState;
-}
-
-export function initialiseDeploymentExecutionStateFrom(
-  action: DeploymentExecutionStateInitializeMessage
-): DeploymentExecutionState {
-  const deploymentExecutionInitialState: DeploymentExecutionState = {
-    id: action.futureId,
-    type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
-    futureType: action.futureType,
-    strategy: action.strategy,
-    status: ExecutionStatus.STARTED,
-    dependencies: new Set<string>(action.dependencies),
-    artifactFutureId: action.artifactFutureId,
-    contractName: action.contractName,
-    constructorArgs: action.constructorArgs,
-    libraries: action.libraries,
-    value: action.value,
-    from: action.from,
-    networkInteractions: [],
-  };
-
-  return deploymentExecutionInitialState;
 }
 
 export function initialiseContractAtExecutionStateFrom(

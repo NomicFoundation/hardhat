@@ -1,0 +1,85 @@
+import { Future } from "../../../types/module";
+import { DeploymentLoader } from "../../deployment-loader/types";
+import { deploymentStateReducer } from "../reducers/deployment-state-reducer";
+import { DeploymentState } from "../types/deployment-state";
+import { ExecutionResultType } from "../types/execution-result";
+import { JournalMessage, JournalMessageType } from "../types/messages";
+import { isExecutionStateComplete } from "../views/is-execution-state-complete";
+import {
+  NextAction,
+  nextActionForFuture,
+} from "../views/next-action-for-future";
+
+import { buildInitializeMessageFor } from "./helpers/build-initialization-message-for";
+
+export class FutureProcessor {
+  constructor(
+    private _executionEngineState: {
+      deploymentState: DeploymentState;
+      deploymentLoader: DeploymentLoader;
+    },
+    private _nextActionDispatch: (
+      futureId: string,
+      nextAction: NextAction
+    ) => Promise<JournalMessage>
+  ) {}
+
+  /**
+   *
+   * @param future
+   * @returns true if the future is complete, or false if need to continue
+   * processing later
+   */
+  public async processFuture(future: Future): Promise<boolean> {
+    const exState =
+      this._executionEngineState.deploymentState.executionStates[future.id];
+
+    if (exState === undefined) {
+      const initMessage = buildInitializeMessageFor(future);
+
+      await this._applyMessage(initMessage);
+    }
+
+    while (
+      !isExecutionStateComplete(
+        this._executionEngineState.deploymentState,
+        future.id
+      )
+    ) {
+      const nextAction = nextActionForFuture(
+        this._executionEngineState.deploymentState,
+        future.id
+      );
+
+      const resultMessage: JournalMessage = await this._nextActionDispatch(
+        future.id,
+        nextAction
+      );
+
+      await this._applyMessage(resultMessage);
+    }
+
+    return true;
+  }
+
+  private async _applyMessage(message: JournalMessage): Promise<void> {
+    await this._executionEngineState.deploymentLoader.recordToJournal(
+      message as any
+    );
+
+    if (
+      message.type === JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE &&
+      message.result.type === ExecutionResultType.SUCCESS
+    ) {
+      await this._executionEngineState.deploymentLoader.recordDeployedAddress(
+        message.futureId,
+        message.result.address
+      );
+    }
+
+    this._executionEngineState.deploymentState = deploymentStateReducer(
+      this._executionEngineState.deploymentState,
+      message
+    );
+  }
+}
