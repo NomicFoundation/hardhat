@@ -278,13 +278,18 @@ struct Hasher {
 //
 // Before variants of an enum are hashed, a variant marker is hashed before hashing the values of
 // the variants to distinguish between them. E.g. the hash of `Enum::Foo(1u8)` should not equal the
-// hash of `Enum::Bar(1u8)`, since these are not logically equivalent.
+// hash of `Enum::Bar(1u8)`, since these are not logically equivalent. This matches the behavior of
+// the `Hash` derivation of the Rust standard library for enums.
 //
 // Instead of ignoring `None` values, the same pattern is followed for Options in order to let us
 // distinguish between `[None, Some("a")]` and `[Some("a")]`. Note that if we use the cache key
 // variant `0u8` for `None`, it's ok if `None` and `0u8`, hash to the same values since a type where
 // `Option` and `u8` are valid values must be wrapped in an enum in Rust and the enum cache key
 // variant prefix will distinguish between them. This wouldn't be the case with JSON though.
+//
+// When adding new types such as sequences or strings, [prefix
+// collisions](https://doc.rust-lang.org/std/hash/trait.Hash.html#prefix-collisions) should be
+// considered.
 impl Hasher {
     fn new(value: impl CacheKeyVariant) -> Self {
         Self {
@@ -293,9 +298,6 @@ impl Hasher {
     }
 
     fn hash_bytes(mut self, bytes: impl AsRef<[u8]>) -> Self {
-        // Hashing a separator marker to distinguish between ["a", "b"] and ["ab"].
-        self.hasher.update([255u8]);
-
         self.hasher.update(bytes);
 
         self
@@ -380,6 +382,9 @@ impl Hasher {
     }
 }
 
+// This could be replaced by the unstable
+// [`core::intrinsics::discriminant_value`](https://dev-doc.rust-lang.org/beta/core/intrinsics/fn.discriminant_value.html)
+// function once it becomes stable.
 trait CacheKeyVariant {
     fn cache_key_variant(&self) -> u8;
 }
@@ -453,23 +458,6 @@ mod test {
         let hash = Hasher::new(0).finalize().unwrap();
         // 32 bytes as hex
         assert_eq!(hash.len(), 2 * 32)
-    }
-
-    #[test]
-    fn test_hasher_separator() {
-        let variant = 0u8;
-        let hash_one = Hasher::new(variant)
-            .hash_bytes("a".as_bytes())
-            .hash_bytes("b".as_bytes())
-            .finalize()
-            .unwrap();
-
-        let hash_two = Hasher::new(variant)
-            .hash_bytes("ab".as_bytes())
-            .finalize()
-            .unwrap();
-
-        assert_ne!(hash_one, hash_two);
     }
 
     #[test]
