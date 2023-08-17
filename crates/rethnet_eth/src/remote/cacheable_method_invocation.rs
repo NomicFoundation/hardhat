@@ -343,7 +343,7 @@ impl Hasher {
         Some(this)
     }
 
-    fn hash_method_invocation(self, method: &CacheableMethodInvocation) -> Option<Self> {
+    fn hash_method_invocation(self, method: &CacheableMethodInvocation<'_>) -> Option<Self> {
         use CacheableMethodInvocation::*;
 
         let this = self.hash_u8(method.cache_key_variant());
@@ -402,7 +402,7 @@ impl Hasher {
         Some(this)
     }
 
-    fn hash_method_invocations(self, methods: &CacheableMethodInvocations) -> Option<Self> {
+    fn hash_method_invocations(self, methods: &CacheableMethodInvocations<'_>) -> Option<Self> {
         // Make sure it's prefix-free
         let mut this = self.hash_usize(methods.len());
 
@@ -671,7 +671,7 @@ mod test {
 
     #[test]
     fn test_no_uncacheable_method_invocations() {
-        let result: Result<CacheableMethodInvocations, _> =
+        let result: Result<CacheableMethodInvocations<'_>, _> =
             [MethodInvocation::ChainId(), MethodInvocation::Accounts()]
                 .as_slice()
                 .try_into();
