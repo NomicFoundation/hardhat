@@ -41,6 +41,8 @@ pub struct NodeArgs {
     config_file: String,
     #[clap(long, action = clap::ArgAction::SetTrue)]
     allow_blocks_with_same_timestamp: bool,
+    #[clap(long, action = clap::ArgAction::SetTrue)]
+    allow_unlimited_contract_size: bool,
     #[clap(long)]
     fork_url: Option<String>,
     #[clap(long)]
