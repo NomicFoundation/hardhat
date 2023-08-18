@@ -24,10 +24,15 @@ import {
 } from "./types/network-interaction";
 
 /**
- * This function creates and replays an ExecutionStrategy generator upto the request
- * of its latest NetworkInteraction.
+ * This function creates and replays an ExecutionStrategy generator, and
+ * is meant to be used in these situations:
+ *  - An execution state is starting to be run.
+ *  - The execution engine got a new result for a network interaction and
+ *    wants to process it.
+ *  - The execution engine wants to resend a transaction, and hence,
+ *    re-simulate it.
  *
- * Neither the ExecutionState nor its latest NetworkInteraction should be completed yet.
+ * The ExecutionState must not be completed yet.
  *
  * If the ExecutionState has no NetworkInteraction, a new generator is returned.
  */
@@ -127,8 +132,7 @@ export async function replayExecutionStartegyWithOnchainInteractions(
   assertValidGeneratorResult(
     executionState.id,
     lastInteraction,
-    generatorResult,
-    false
+    generatorResult
   );
 
   return generator;
@@ -178,8 +182,7 @@ export async function replayStaticCallExecutionStrategy(
   assertValidGeneratorResult(
     executionState.id,
     lastInteraction,
-    generatorResult,
-    false
+    generatorResult
   );
 
   return generator;
@@ -192,7 +195,7 @@ function assertValidGeneratorResult(
     | Awaited<ReturnType<DeploymentStrategyGenerator["next"]>>
     | Awaited<ReturnType<CallStrategyGenerator["next"]>>
     | Awaited<ReturnType<SendDataStrategyGenerator["next"]>>,
-  shouldBeResolved: boolean
+  shouldBeResolved?: true
 ) {
   assertIgnitionInvariant(
     generatorResult.done !== true,
@@ -209,56 +212,40 @@ function assertValidGeneratorResult(
     `Unexpected difference between execution strategy request and wat was already executed while replaying ${executionStateId}/${interaction.id}`
   );
 
-  if (shouldBeResolved) {
-    if (interaction.type === NetworkInteractionType.STATIC_CALL) {
-      assertIgnitionInvariant(
-        interaction.result !== undefined,
-        `Unexpected unresolved StaticCall request when replaying ${executionStateId}/${interaction.id}`
-      );
-
-      return;
-    }
-
-    const confirmedTx = interaction.transactions.find(
-      (tx) => tx.receipt !== undefined
-    );
-
-    assertIgnitionInvariant(
-      confirmedTx !== undefined,
-      `Unexpected unresolved OnchainInteraction request when replaying ${executionStateId}/${interaction.id}`
-    );
-
-    assertIgnitionInvariant(
-      confirmedTx.blockHash !== undefined,
-      `Unexpected unresolved OnchainInteraction request when replaying ${executionStateId}/${interaction.id}`
-    );
-
-    assertIgnitionInvariant(
-      confirmedTx.blockNumber !== undefined,
-      `Unexpected unresolved OnchainInteraction request when replaying ${executionStateId}/${interaction.id}`
-    );
-
-    assertIgnitionInvariant(
-      confirmedTx.receipt !== undefined,
-      `Unexpected unresolved OnchainInteraction request when replaying ${executionStateId}/${interaction.id}`
-    );
-
+  if (shouldBeResolved === undefined) {
     return;
   }
 
   if (interaction.type === NetworkInteractionType.STATIC_CALL) {
     assertIgnitionInvariant(
-      interaction.result === undefined,
-      `Unexpected resolved StaticCall request when replaying ${executionStateId}/${interaction.id}`
+      interaction.result !== undefined,
+      `Unexpected unresolved StaticCall request when replaying ${executionStateId}/${interaction.id}`
     );
 
     return;
   }
 
-  const noTx = interaction.transactions.find((tx) => tx.receipt !== undefined);
+  const confirmedTx = interaction.transactions.find(
+    (tx) => tx.receipt !== undefined
+  );
 
   assertIgnitionInvariant(
-    noTx === undefined,
-    `Unexpected resolved OnchainInteraction request when replaying ${executionStateId}/${interaction.id}`
+    confirmedTx !== undefined,
+    `Unexpected unresolved OnchainInteraction request when replaying ${executionStateId}/${interaction.id}`
+  );
+
+  assertIgnitionInvariant(
+    confirmedTx.blockHash !== undefined,
+    `Unexpected unresolved OnchainInteraction request when replaying ${executionStateId}/${interaction.id}`
+  );
+
+  assertIgnitionInvariant(
+    confirmedTx.blockNumber !== undefined,
+    `Unexpected unresolved OnchainInteraction request when replaying ${executionStateId}/${interaction.id}`
+  );
+
+  assertIgnitionInvariant(
+    confirmedTx.receipt !== undefined,
+    `Unexpected unresolved OnchainInteraction request when replaying ${executionStateId}/${interaction.id}`
   );
 }
