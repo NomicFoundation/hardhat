@@ -63,9 +63,11 @@ export class FutureProcessor {
   }
 
   private async _applyMessage(message: JournalMessage): Promise<void> {
-    await this._executionEngineState.deploymentLoader.recordToJournal(
-      message as any
-    );
+    if (this._shouldBeJournaled(message)) {
+      await this._executionEngineState.deploymentLoader.recordToJournal(
+        message as any
+      );
+    }
 
     if (
       message.type === JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE &&
@@ -81,5 +83,23 @@ export class FutureProcessor {
       this._executionEngineState.deploymentState,
       message
     );
+  }
+
+  private _shouldBeJournaled(message: JournalMessage): boolean {
+    if (
+      message.type === JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE ||
+      message.type === JournalMessageType.CALL_EXECUTION_STATE_COMPLETE
+    ) {
+      // We do not journal simulation errors, as we want to re-run those simulations
+      // if the deployment gets resumed.
+      if (
+        message.result.type === ExecutionResultType.SIMULATION_ERROR ||
+        message.result.type === ExecutionResultType.STRATEGY_SIMULATION_ERROR
+      ) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }
