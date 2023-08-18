@@ -73,7 +73,7 @@ pub(super) enum CacheableMethodInvocation<'a> {
 
 impl<'a> CacheableMethodInvocation<'a> {
     pub(super) fn cache_key(&self) -> Option<CacheKey> {
-        Hasher::new().hash_method_invocation(self)?.finalize()
+        Some(Hasher::new().hash_method_invocation(self)?.finalize())
     }
 }
 
@@ -192,7 +192,7 @@ pub(super) struct CacheableMethodInvocations<'a>(Vec<CacheableMethodInvocation<'
 
 impl<'a> CacheableMethodInvocations<'a> {
     pub(super) fn cache_key(&self) -> Option<CacheKey> {
-        Hasher::new().hash_method_invocations(self)?.finalize()
+        Some(Hasher::new().hash_method_invocations(self)?.finalize())
     }
 
     fn len(&self) -> usize {
@@ -413,9 +413,8 @@ impl Hasher {
         Some(this)
     }
 
-    fn finalize(self) -> Option<CacheKey> {
-        // Returns Option for chaining convenience.
-        Some(CacheKey(hex::encode(self.hasher.finalize_fixed())))
+    fn finalize(self) -> CacheKey {
+        CacheKey(hex::encode(self.hasher.finalize_fixed()))
     }
 }
 
@@ -485,7 +484,7 @@ mod test {
 
     #[test]
     fn test_hash_length() {
-        let hash = Hasher::new().hash_u8(0).finalize().unwrap();
+        let hash = Hasher::new().hash_u8(0).finalize();
         // 32 bytes as hex
         assert_eq!(hash.0.len(), 2 * 32)
     }
@@ -504,15 +503,13 @@ mod test {
         let hash_one = Hasher::new()
             .hash_block_spec(&BlockSpec::Number(block_number))
             .unwrap()
-            .finalize()
-            .unwrap();
+            .finalize();
         let hash_two = Hasher::new()
             .hash_block_spec(&BlockSpec::Eip1898(Eip1898BlockSpec::Number {
                 block_number,
             }))
             .unwrap()
-            .finalize()
-            .unwrap();
+            .finalize();
 
         assert_ne!(hash_one, hash_two);
     }
@@ -530,15 +527,13 @@ mod test {
                 require_canonical: None,
             }))
             .unwrap()
-            .finalize()
-            .unwrap();
+            .finalize();
         let hash_two = Hasher::new()
             .hash_block_spec(&BlockSpec::Eip1898(Eip1898BlockSpec::Number {
                 block_number,
             }))
             .unwrap()
-            .finalize()
-            .unwrap();
+            .finalize();
 
         assert_ne!(hash_one, hash_two);
     }
@@ -548,9 +543,8 @@ mod test {
         let hash_one = Hasher::new()
             .hash_maybe_block_spec(&None)
             .unwrap()
-            .finalize()
-            .unwrap();
-        let hash_two = Hasher::new().finalize().unwrap();
+            .finalize();
+        let hash_two = Hasher::new().finalize();
 
         assert_ne!(hash_one, hash_two);
     }
@@ -568,8 +562,7 @@ mod test {
                 address,
             })
             .unwrap()
-            .finalize()
-            .unwrap();
+            .finalize();
 
         let hash_two = Hasher::new()
             .hash_get_logs_input(&GetLogsInput {
@@ -578,8 +571,7 @@ mod test {
                 address,
             })
             .unwrap()
-            .finalize()
-            .unwrap();
+            .finalize();
 
         assert_ne!(hash_one, hash_two);
     }
