@@ -52,9 +52,11 @@ pub enum HardhatMethodInvocation {
     #[serde(rename = "hardhat_mine")]
     Mine(
         /// block count:
-        U256,
+        #[serde(default)]
+        Option<U256>,
         /// interval:
-        U256,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        Option<U256>,
     ),
     /// hardhat_reset
     #[serde(
@@ -207,9 +209,17 @@ mod tests {
     #[test]
     fn test_serde_hardhat_mine() {
         help_test_method_invocation_serde(HardhatMethodInvocation::Mine(
-            U256::from(1),
-            U256::from(1),
+            Some(U256::from(1)),
+            Some(U256::from(1)),
         ));
+        help_test_method_invocation_serde(HardhatMethodInvocation::Mine(Some(U256::from(1)), None));
+        help_test_method_invocation_serde(HardhatMethodInvocation::Mine(None, Some(U256::from(1))));
+        help_test_method_invocation_serde(HardhatMethodInvocation::Mine(None, None));
+
+        let json = r#"{"jsonrpc":"2.0","method":"hardhat_mine","params":[],"id":2}"#;
+        let deserialized: HardhatMethodInvocation = serde_json::from_str(json)
+            .unwrap_or_else(|_| panic!("should have successfully deserialized json {json}"));
+        assert_eq!(HardhatMethodInvocation::Mine(None, None), deserialized);
     }
 
     #[test]
