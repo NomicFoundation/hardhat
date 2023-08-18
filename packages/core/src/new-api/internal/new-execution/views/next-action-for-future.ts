@@ -1,5 +1,3 @@
-import maxBy from "lodash/maxBy";
-
 import { IgnitionError } from "../../../../errors";
 import { assertIgnitionInvariant } from "../../utils/assertions";
 import { DeploymentState } from "../types/deployment-state";
@@ -50,35 +48,37 @@ export function nextActionForFuture(
 function nextActionForDeployment(
   depExState: DeploymentExecutionState
 ): NextAction {
-  if (depExState.networkInteractions.length === 0) {
+  const interaction =
+    depExState.networkInteractions[depExState.networkInteractions.length - 1];
+
+  if (interaction === undefined) {
     return NextAction.RUN_STRATEGY;
   }
 
-  const interaction = maxBy(depExState.networkInteractions, (ni) => ni.id);
-  if (interaction !== undefined) {
-    switch (interaction.type) {
-      case NetworkInteractionType.ONCHAIN_INTERACTION: {
-        if (interaction.transactions.length === 0) {
-          return NextAction.SEND_TRANSACTION;
-        } else if (interaction.transactions.length === 1) {
-          const transaction = interaction.transactions[0];
+  switch (interaction.type) {
+    case NetworkInteractionType.ONCHAIN_INTERACTION: {
+      if (interaction.transactions.length === 0) {
+        return NextAction.SEND_TRANSACTION;
+      } else {
+        const receipt = interaction.transactions.find((tx) => tx.receipt);
 
-          if (transaction.receipt === undefined) {
-            return NextAction.RECEIPT_ONCHAIN_INTERACTION;
-          }
-
+        if (receipt !== undefined) {
+          // We got a confirmed transaction
           return NextAction.RUN_STRATEGY;
         }
-      }
-      case NetworkInteractionType.STATIC_CALL: {
-        return NextAction.QUERY_STATIC_CALL;
+
+        // Wait for confirmations
+        return NextAction.RECEIPT_ONCHAIN_INTERACTION;
       }
     }
-  }
+    case NetworkInteractionType.STATIC_CALL: {
+      if (interaction.result !== undefined) {
+        return NextAction.RUN_STRATEGY;
+      }
 
-  throw new IgnitionError(
-    `Unable to determine next action for deployment execution state ${depExState.id}`
-  );
+      return NextAction.QUERY_STATIC_CALL;
+    }
+  }
 }
 
 function nextActionForCall(_exState: CallExecutionState): NextAction {
