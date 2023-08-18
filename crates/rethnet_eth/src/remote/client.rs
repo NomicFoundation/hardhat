@@ -6,7 +6,12 @@ use std::{
 
 use itertools::Itertools;
 use revm_primitives::{AccountInfo, Address, Bytecode, B256, KECCAK_EMPTY, U256};
+use sha3::digest::FixedOutput;
+use sha3::{Digest, Sha3_256};
 
+use crate::remote::cacheable_method_invocation::{
+    CacheKey, CacheableMethodInvocation, CacheableMethodInvocations,
+};
 use crate::{log::FilterLog, receipt::BlockReceipt, serde::ZeroXPrefixedBytes};
 
 use super::{
@@ -93,13 +98,11 @@ impl RpcClient {
     }
 
     fn hash_string(input: &str) -> String {
-        use std::hash::Hasher;
-        let mut hasher = std::collections::hash_map::DefaultHasher::new();
-        hasher.write(input.as_bytes());
-        hasher.finish().to_string()
+        let hasher = Sha3_256::new_with_prefix(input.as_bytes());
+        hex::encode(hasher.finalize_fixed())
     }
 
-    fn make_cache_path(&self, request_body: &str) -> PathBuf {
+    fn make_cache_path(&self, cache_key: &CacheKey) -> PathBuf {
         let directory = self.rpc_cache_dir.join(Self::hash_string(&self.url));
 
         // ensure directory exists
@@ -108,11 +111,11 @@ impl RpcClient {
             .create(directory.clone())
             .expect("failed to create on-disk RPC response cache");
 
-        Path::new(&directory).join(format!("{}.json", Self::hash_string(request_body)))
+        Path::new(&directory).join(format!("{}.json", cache_key))
     }
 
-    fn read_response_from_cache(&self, request_body: &str) -> Option<String> {
-        if let Ok(mut file) = std::fs::File::open(self.make_cache_path(request_body)) {
+    fn read_response_from_cache(&self, cache_key: Option<&CacheKey>) -> Option<String> {
+        if let Ok(mut file) = std::fs::File::open(self.make_cache_path(cache_key?)) {
             let mut response = String::new();
             if io::Read::read_to_string(&mut file, &mut response).is_ok() {
                 Some(response)
@@ -124,14 +127,20 @@ impl RpcClient {
         }
     }
 
-    fn write_response_to_cache(&self, request_body: &str, response: &str) {
-        std::fs::write(self.make_cache_path(request_body), response.as_bytes())
-            .expect("failed to write to on-disk RPC response cache");
+    fn write_response_to_cache(&self, cache_key: Option<&CacheKey>, response: &str) {
+        if let Some(cache_key) = cache_key {
+            std::fs::write(self.make_cache_path(cache_key), response.as_bytes())
+                .expect("failed to write to on-disk RPC response cache");
+        }
     }
 
     /// returns response text
-    async fn send_request_body(&self, request_body: &str) -> Result<String, RpcClientError> {
-        if let Some(cached_response) = self.read_response_from_cache(request_body) {
+    async fn send_request_body(
+        &self,
+        request_body: &str,
+        cache_key: Option<CacheKey>,
+    ) -> Result<String, RpcClientError> {
+        if let Some(cached_response) = self.read_response_from_cache(cache_key.as_ref()) {
             Ok(cached_response)
         } else {
             let response = self
@@ -147,7 +156,7 @@ impl RpcClient {
                 .await
                 .map_err(RpcClientError::CorruptedResponse)?;
 
-            self.write_response_to_cache(request_body, &response);
+            self.write_response_to_cache(cache_key.as_ref(), &response);
             Ok(response)
         }
     }
@@ -156,6 +165,10 @@ impl RpcClient {
     where
         T: for<'a> serde::Deserialize<'a>,
     {
+        let cache_key = CacheableMethodInvocation::try_from(input)
+            .ok()
+            .and_then(|v| v.cache_key());
+
         let request_id = jsonrpc::Id::Num(self.next_id.fetch_add(1, Ordering::Relaxed));
         let request = serde_json::json!(Request {
             version: crate::remote::jsonrpc::Version::V2_0,
@@ -164,16 +177,22 @@ impl RpcClient {
         })
         .to_string();
 
-        self.send_request_body(&request).await.and_then(|response| {
-            Self::extract_response(&response, &request_id)
-                .map_err(|error| RpcClientError::JsonRpcError { error, request })
-        })
+        self.send_request_body(&request, cache_key)
+            .await
+            .and_then(|response| {
+                Self::extract_response(&response, &request_id)
+                    .map_err(|error| RpcClientError::JsonRpcError { error, request })
+            })
     }
 
     async fn batch_call(
         &self,
         inputs: &[MethodInvocation],
     ) -> Result<BatchResponse, RpcClientError> {
+        let cache_key = CacheableMethodInvocations::try_from(inputs)
+            .ok()
+            .and_then(|v| v.cache_key());
+
         let request_strings: Vec<String> = inputs
             .iter()
             .map(|i| {
@@ -189,7 +208,7 @@ impl RpcClient {
 
         let request_body = format!("[{}]", request_strings.join(","));
 
-        self.send_request_body(&request_body)
+        self.send_request_body(&request_body, cache_key)
             .await
             .map(|response| BatchResponse {
                 text: response,

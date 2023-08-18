@@ -16,6 +16,8 @@ pub mod jsonrpc;
 /// RPC methods
 pub mod methods;
 
+mod cacheable_method_invocation;
+
 use crate::{B256, U256};
 
 pub use client::{RpcClient, RpcClientError};
