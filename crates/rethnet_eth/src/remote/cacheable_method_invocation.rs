@@ -179,6 +179,7 @@ impl<'a> TryFrom<&'a MethodInvocation> for CacheableMethodInvocation<'a> {
             | MethodInvocation::EvmIncreaseTime(_)
             | MethodInvocation::EvmMine(_)
             | MethodInvocation::EvmSetAutomine(_)
+            | MethodInvocation::EvmSetIntervalMining(_)
             | MethodInvocation::EvmSetNextBlockTimestamp(_)
             | MethodInvocation::EvmSnapshot() => Err(MethodNotCacheableError(value.clone())),
         }
