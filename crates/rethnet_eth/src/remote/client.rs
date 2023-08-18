@@ -8,6 +8,7 @@ use itertools::Itertools;
 use revm_primitives::{AccountInfo, Address, Bytecode, B256, KECCAK_EMPTY, U256};
 use sha3::digest::FixedOutput;
 use sha3::{Digest, Sha3_256};
+use tokio::sync::OnceCell;
 
 use crate::remote::cacheable_method_invocation::{
     CacheKey, CacheableMethodInvocation, CacheableMethodInvocations,
@@ -37,6 +38,17 @@ pub enum RpcClientError {
     #[error("The Http server returned error status code: {0}")]
     HttpStatus(reqwest::Error),
 
+    /// The server returned an invalid JSON-RPC response.
+    #[error("Response '{response}' failed to parse with expected type '{expected_type}', due to error: '{error}'")]
+    InvalidResponse {
+        /// The response text
+        response: String,
+        /// The expected type of the response
+        expected_type: &'static str,
+        /// The parse error
+        error: serde_json::Error,
+    },
+
     /// The JSON-RPC returned an error.
     #[error("{error}. Request: {request}")]
     JsonRpcError {
@@ -46,9 +58,14 @@ pub enum RpcClientError {
         request: String,
     },
 
-    /// Some other error from an underlying dependency
-    #[error(transparent)]
-    OtherError(#[from] io::Error),
+    /// There was a problem with the local cache.
+    #[error("{message} with error: '{error}'")]
+    CacheError {
+        /// Description of the cache error
+        message: String,
+        /// The underlying error
+        error: io::Error,
+    },
 }
 
 /// a JSON-RPC method invocation request
@@ -70,95 +87,155 @@ struct BatchResponse {
     request_strings: Vec<String>,
 }
 
-/// A client for executing RPC methods on a remote Ethereum node
+/// A client for executing RPC methods on a remote Ethereum node.
+/// The client caches responses based on chain id, so it's important to not use it with local nodes.
 #[derive(Debug)]
 pub struct RpcClient {
     url: String,
+    chain_id: OnceCell<U256>,
     client: reqwest::Client,
     next_id: AtomicU64,
     rpc_cache_dir: PathBuf,
 }
 
 impl RpcClient {
-    fn extract_response<T>(response: &str, request_id: &jsonrpc::Id) -> Result<T, jsonrpc::Error>
+    fn extract_response<T>(
+        request: SerializedRequest,
+        response: String,
+    ) -> Result<T, RpcClientError>
     where
         T: for<'a> serde::Deserialize<'a>,
     {
         let response: jsonrpc::Response<T> =
-            serde_json::from_str(response).unwrap_or_else(|error| {
-                panic!(
-                    "Response `{response}` failed to parse with expected type `{expected_type}`, due to error: {error}",
-                    expected_type = std::any::type_name::<T>()
-                )
-            });
+            serde_json::from_str(&response).map_err(|error| RpcClientError::InvalidResponse {
+                response,
+                expected_type: std::any::type_name::<T>(),
+                error,
+            })?;
 
-        debug_assert_eq!(response.id, *request_id);
+        debug_assert_eq!(response.id, request.id);
 
-        response.data.into_result()
+        response
+            .data
+            .into_result()
+            .map_err(|error| RpcClientError::JsonRpcError {
+                error,
+                request: request.request,
+            })
     }
 
-    fn hash_string(input: &str) -> String {
-        let hasher = Sha3_256::new_with_prefix(input.as_bytes());
+    fn hash_bytes(input: &[u8]) -> String {
+        let hasher = Sha3_256::new_with_prefix(input);
         hex::encode(hasher.finalize_fixed())
     }
 
-    fn make_cache_path(&self, cache_key: &CacheKey) -> PathBuf {
-        let directory = self.rpc_cache_dir.join(Self::hash_string(&self.url));
+    async fn make_cache_path(&self, cache_key: &CacheKey) -> Result<PathBuf, RpcClientError> {
+        let chain_id = self.chain_id().await?;
+        let directory = self
+            .rpc_cache_dir
+            .join(Self::hash_bytes(chain_id.as_le_bytes().as_ref()));
 
         // ensure directory exists
-        std::fs::DirBuilder::new()
+        tokio::fs::DirBuilder::new()
             .recursive(true)
             .create(directory.clone())
-            .expect("failed to create on-disk RPC response cache");
+            .await
+            .map_err(|error| RpcClientError::CacheError {
+                message: "failed to create on-disk RPC response cache".to_string(),
+                error,
+            })?;
 
-        Path::new(&directory).join(format!("{}.json", cache_key))
+        let path = Path::new(&directory).join(format!("{}.json", cache_key));
+        Ok(path)
     }
 
-    fn read_response_from_cache(&self, cache_key: Option<&CacheKey>) -> Option<String> {
-        if let Ok(mut file) = std::fs::File::open(self.make_cache_path(cache_key?)) {
-            let mut response = String::new();
-            if io::Read::read_to_string(&mut file, &mut response).is_ok() {
-                Some(response)
-            } else {
-                None
+    async fn read_response_from_cache(
+        &self,
+        cache_key: &CacheKey,
+    ) -> Result<Option<String>, RpcClientError> {
+        let path = self.make_cache_path(cache_key).await?;
+        match tokio::fs::read_to_string(path).await {
+            Ok(response) => Ok(Some(response)),
+            Err(error) => {
+                let cache_error = RpcClientError::CacheError {
+                    message: "failed to read from on-disk RPC response cache".to_string(),
+                    error,
+                };
+                log::error!("{cache_error}");
+                Ok(None)
             }
-        } else {
-            None
         }
     }
 
-    fn write_response_to_cache(&self, cache_key: Option<&CacheKey>, response: &str) {
+    async fn try_from_cache(
+        &self,
+        cache_key: Option<&CacheKey>,
+    ) -> Result<Option<String>, RpcClientError> {
         if let Some(cache_key) = cache_key {
-            std::fs::write(self.make_cache_path(cache_key), response.as_bytes())
-                .expect("failed to write to on-disk RPC response cache");
+            self.read_response_from_cache(cache_key).await
+        } else {
+            Ok(None)
         }
+    }
+
+    async fn write_response_to_cache(
+        &self,
+        cache_key: &CacheKey,
+        response: &str,
+    ) -> Result<(), RpcClientError> {
+        let cache_path = self.make_cache_path(cache_key).await?;
+        tokio::fs::write(cache_path, response.as_bytes())
+            .await
+            .map_err(|error| RpcClientError::CacheError {
+                message: "failed to write to on-disk RPC response cache".to_string(),
+                error,
+            })?;
+        Ok(())
     }
 
     /// returns response text
-    async fn send_request_body(
+    async fn send_request_body_with_cache(
         &self,
         request_body: &str,
         cache_key: Option<CacheKey>,
     ) -> Result<String, RpcClientError> {
-        if let Some(cached_response) = self.read_response_from_cache(cache_key.as_ref()) {
+        if let Some(cached_response) = self.try_from_cache(cache_key.as_ref()).await? {
             Ok(cached_response)
         } else {
-            let response = self
-                .client
-                .post(self.url.clone())
-                .body(request_body.to_owned())
-                .send()
-                .await
-                .map_err(RpcClientError::FailedToSend)?
-                .error_for_status()
-                .map_err(RpcClientError::HttpStatus)?
-                .text()
-                .await
-                .map_err(RpcClientError::CorruptedResponse)?;
+            let response = self.send_request_body(request_body).await?;
 
-            self.write_response_to_cache(cache_key.as_ref(), &response);
+            if let Some(cache_key) = cache_key {
+                self.write_response_to_cache(&cache_key, &response).await?;
+            }
+
             Ok(response)
         }
+    }
+
+    async fn send_request_body(&self, request_body: &str) -> Result<String, RpcClientError> {
+        self.client
+            .post(self.url.clone())
+            .body(request_body.to_owned())
+            .send()
+            .await
+            .map_err(RpcClientError::FailedToSend)?
+            .error_for_status()
+            .map_err(RpcClientError::HttpStatus)?
+            .text()
+            .await
+            .map_err(RpcClientError::CorruptedResponse)
+    }
+
+    fn serialize_request(&self, input: &MethodInvocation) -> SerializedRequest {
+        let id = jsonrpc::Id::Num(self.next_id.fetch_add(1, Ordering::Relaxed));
+        let request = serde_json::json!(Request {
+            version: crate::remote::jsonrpc::Version::V2_0,
+            id: id.clone(),
+            method: input.clone(),
+        })
+        .to_string();
+
+        SerializedRequest { id, request }
     }
 
     async fn call<T>(&self, input: &MethodInvocation) -> Result<T, RpcClientError>
@@ -169,20 +246,24 @@ impl RpcClient {
             .ok()
             .and_then(|v| v.cache_key());
 
-        let request_id = jsonrpc::Id::Num(self.next_id.fetch_add(1, Ordering::Relaxed));
-        let request = serde_json::json!(Request {
-            version: crate::remote::jsonrpc::Version::V2_0,
-            id: request_id.clone(),
-            method: input.clone(),
-        })
-        .to_string();
+        let request = self.serialize_request(input);
 
-        self.send_request_body(&request, cache_key)
+        self.send_request_body_with_cache(&request.request, cache_key)
             .await
-            .and_then(|response| {
-                Self::extract_response(&response, &request_id)
-                    .map_err(|error| RpcClientError::JsonRpcError { error, request })
-            })
+            .and_then(|response| Self::extract_response(request, response))
+    }
+
+    // We have two different `call` methods to avoid creating recursive async functions as the
+    // cached path calls `eth_chainId` without caching.
+    async fn call_without_cache<T>(&self, input: &MethodInvocation) -> Result<T, RpcClientError>
+    where
+        T: for<'a> serde::Deserialize<'a>,
+    {
+        let request = self.serialize_request(input);
+
+        self.send_request_body(&request.request)
+            .await
+            .and_then(|response| Self::extract_response(request, response))
     }
 
     async fn batch_call(
@@ -195,20 +276,12 @@ impl RpcClient {
 
         let request_strings: Vec<String> = inputs
             .iter()
-            .map(|i| {
-                let request_id = self.next_id.fetch_add(1, Ordering::Relaxed);
-                serde_json::json!(Request {
-                    version: crate::remote::jsonrpc::Version::V2_0,
-                    id: jsonrpc::Id::Num(request_id),
-                    method: i.clone(),
-                })
-                .to_string()
-            })
+            .map(|i| self.serialize_request(i).request)
             .collect();
 
         let request_body = format!("[{}]", request_strings.join(","));
 
-        self.send_request_body(&request_body, cache_key)
+        self.send_request_body_with_cache(&request_body, cache_key)
             .await
             .map(|response| BatchResponse {
                 text: response,
@@ -221,6 +294,7 @@ impl RpcClient {
     pub fn new(url: &str, cache_dir: PathBuf) -> Self {
         RpcClient {
             url: url.to_string(),
+            chain_id: OnceCell::new(),
             client: reqwest::Client::new(),
             next_id: AtomicU64::new(0),
             rpc_cache_dir: cache_dir.join(RPC_CACHE_DIR),
@@ -234,7 +308,13 @@ impl RpcClient {
 
     /// Calls `eth_chainId` and returns the chain ID.
     pub async fn chain_id(&self) -> Result<U256, RpcClientError> {
-        self.call(&MethodInvocation::ChainId()).await
+        let chain_id = *self
+            .chain_id
+            .get_or_try_init(|| async {
+                self.call_without_cache(&MethodInvocation::ChainId()).await
+            })
+            .await?;
+        Ok(chain_id)
     }
 
     /// Submit a consolidated batch of RPC method invocations in order to obtain the set of data
@@ -457,6 +537,12 @@ impl RpcClient {
     }
 }
 
+#[derive(Debug)]
+struct SerializedRequest {
+    id: jsonrpc::Id,
+    request: String,
+}
+
 #[cfg(test)]
 mod tests {
     use std::ops::Deref;
@@ -471,7 +557,9 @@ mod tests {
         client: RpcClient,
 
         // Need to keep the tempdir around to prevent it from being deleted
-        _cache_dir: TempDir,
+        // Only accessed when feature = "test-remote", hence the allow.
+        #[allow(dead_code)]
+        cache_dir: TempDir,
     }
 
     impl TestRpcClient {
@@ -479,7 +567,7 @@ mod tests {
             let tempdir = TempDir::new().unwrap();
             Self {
                 client: RpcClient::new(url, tempdir.path().into()),
-                _cache_dir: tempdir,
+                cache_dir: tempdir,
             }
         }
     }
@@ -528,11 +616,36 @@ mod tests {
 
     #[cfg(feature = "test-remote")]
     mod alchemy {
-        use rethnet_test_utils::env::get_alchemy_url;
+        use rethnet_test_utils::env::{get_alchemy_url, get_infura_url};
 
         use crate::Bytes;
 
         use super::*;
+
+        use walkdir::WalkDir;
+
+        impl TestRpcClient {
+            fn new_with_dir(url: &str, cache_dir: TempDir) -> Self {
+                Self {
+                    client: RpcClient::new(url, cache_dir.path().into()),
+                    cache_dir,
+                }
+            }
+
+            fn files_in_cache(&self) -> Vec<PathBuf> {
+                let mut files = Vec::new();
+                for entry in WalkDir::new(&self.cache_dir)
+                    .follow_links(true)
+                    .into_iter()
+                    .filter_map(|e| e.ok())
+                {
+                    if entry.file_type().is_file() {
+                        files.push(entry.path().to_owned());
+                    }
+                }
+                files
+            }
+        }
 
         #[tokio::test]
         async fn call_bad_api_key() {
@@ -1264,6 +1377,28 @@ mod tests {
                 .expect("should have succeeded");
 
             assert_eq!(version, U256::from(1));
+        }
+
+        #[tokio::test]
+        async fn switching_provider_doesnt_invalidate_cache() {
+            let alchemy_url = get_alchemy_url();
+            let infura_url = get_infura_url();
+
+            let alchemy_client = TestRpcClient::new(&alchemy_url);
+            alchemy_client
+                .network_id()
+                .await
+                .expect("should have succeeded");
+            let alchemy_cached_files = alchemy_client.files_in_cache();
+            assert_eq!(alchemy_cached_files.len(), 1);
+
+            let infura_client = TestRpcClient::new_with_dir(&infura_url, alchemy_client.cache_dir);
+            infura_client
+                .network_id()
+                .await
+                .expect("should have succeeded");
+            let infura_cached_files = infura_client.files_in_cache();
+            assert_eq!(alchemy_cached_files, infura_cached_files);
         }
     }
 }

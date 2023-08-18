@@ -238,6 +238,7 @@ jobs:
         env:
           RUSTFLAGS: ${{ matrix.RUSTFLAGS }}
           ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
+          INFURA_URL: ${{ secrets.INFURA_URL }}
         with:
           command: test
           args: --workspace --all-targets --all-features

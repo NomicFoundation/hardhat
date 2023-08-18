@@ -2319,6 +2319,7 @@ dependencies = [
  "hashbrown 0.13.2",
  "hex",
  "itertools 0.10.5",
+ "log",
  "mockito",
  "open-fastrlp",
  "primitive-types 0.11.1",
@@ -2334,6 +2335,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "triehash",
+ "walkdir",
 ]
 
 [[package]]
