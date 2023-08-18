@@ -9,6 +9,7 @@ import {
 import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deployer";
 import { NamedContractDeploymentFuture } from "../../../types/module";
+import { validateLibraryNames } from "../../new-execution/libraries";
 import {
   retrieveNestedRuntimeValues,
   validateAccountRuntimeValue,
@@ -65,6 +66,8 @@ export async function validateNamedContractDeployment(
       `Artifact for contract '${future.contractName}' is invalid`
     );
   }
+
+  validateLibraryNames(artifact, Object.keys(future.libraries));
 
   const argsLength = future.constructorArgs.length;
 

@@ -13,17 +13,15 @@ describe("Libraries handling", () => {
   describe("validateLibraryNames", () => {
     it("Should not throw if all libraries are provided, no name is ambiguos, repreated or not recognized", () => {
       assert.doesNotThrow(() => {
-        validateLibraryNames(deploymentFixturesArtifacts.WithLibrary, {
-          Lib: mockAddress,
-        });
+        validateLibraryNames(deploymentFixturesArtifacts.WithLibrary, ["Lib"]);
       });
     });
 
     it("Should throw if a library name is not recognized", async () => {
       assert.throws(() => {
-        validateLibraryNames(deploymentFixturesArtifacts.WithLibrary, {
-          NotALibrary: mockAddress,
-        });
+        validateLibraryNames(deploymentFixturesArtifacts.WithLibrary, [
+          "NotALibrary",
+        ]);
       }, "not needed");
     });
 
@@ -31,9 +29,7 @@ describe("Libraries handling", () => {
       try {
         validateLibraryNames(
           deploymentFixturesArtifacts.WithAmbiguousLibraryName,
-          {
-            Lib: mockAddress,
-          }
+          ["Lib"]
         );
       } catch (error: any) {
         assert.include(error.message, `The name "Lib" is ambiguous`);
@@ -47,7 +43,7 @@ describe("Libraries handling", () => {
 
     it("Should throw if a library is missing", () => {
       try {
-        validateLibraryNames(deploymentFixturesArtifacts.WithLibrary, {});
+        validateLibraryNames(deploymentFixturesArtifacts.WithLibrary, []);
       } catch (error: any) {
         assert.include(error.message, `The following libraries are missing:`);
         assert.include(error.message, `contracts/C.sol:Lib`);
@@ -59,40 +55,29 @@ describe("Libraries handling", () => {
 
     it("Should throw if a name is used twice, as FQN and bare name", () => {
       assert.throws(() => {
-        validateLibraryNames(deploymentFixturesArtifacts.WithLibrary, {
-          Lib: mockAddress,
-          ["contracts/C.sol:Lib"]: mockAddress,
-        });
+        validateLibraryNames(deploymentFixturesArtifacts.WithLibrary, [
+          "Lib",
+          "contracts/C.sol:Lib",
+        ]);
       }, `The names "contracts/C.sol:Lib" and "Lib" clash with each other`);
     });
 
     it("Should accept bare names if non-ambiguous", () => {
       assert.doesNotThrow(() => {
-        validateLibraryNames(deploymentFixturesArtifacts.WithLibrary, {
-          Lib: mockAddress,
-        });
+        validateLibraryNames(deploymentFixturesArtifacts.WithLibrary, ["Lib"]);
       });
     });
 
     it("Should accept fully qualified names", () => {
       assert.doesNotThrow(() => {
-        validateLibraryNames(deploymentFixturesArtifacts.WithLibrary, {
-          ["contracts/C.sol:Lib"]: mockAddress,
-        });
+        validateLibraryNames(deploymentFixturesArtifacts.WithLibrary, [
+          "contracts/C.sol:Lib",
+        ]);
       });
     });
   });
 
   describe("linkLibraries", () => {
-    it("Should validate the libraries", () => {
-      assert.throws(() => {
-        linkLibraries(deploymentFixturesArtifacts.WithLibrary, {
-          Lib: mockAddress,
-          ["contracts/C.sol:Lib"]: mockAddress,
-        });
-      }, `The names "contracts/C.sol:Lib" and "Lib" clash with each other`);
-    });
-
     it("Should validate that the librearies addressses are valid", () => {
       assert.throws(() => {
         linkLibraries(deploymentFixturesArtifacts.WithLibrary, {

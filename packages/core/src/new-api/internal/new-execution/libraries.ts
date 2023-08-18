@@ -25,9 +25,9 @@ import { Artifact } from "../../types/artifact";
  */
 export function validateLibraryNames(
   artifact: Artifact,
-  libraries: { [libraryName: string]: string }
+  libraryNames: string[]
 ) {
-  validateNotRepeatedLibraries(artifact, libraries);
+  validateNotRepeatedLibraries(artifact, libraryNames);
 
   const requiredLibraries = new Set<string>();
   for (const sourceName of Object.keys(artifact.linkReferences)) {
@@ -36,7 +36,7 @@ export function validateLibraryNames(
     }
   }
 
-  const libraryNameToParsedName = Object.keys(libraries).map((libraryName) =>
+  const libraryNameToParsedName = libraryNames.map((libraryName) =>
     getActualNameForArtifactLibrary(artifact, libraryName)
   );
 
@@ -67,7 +67,6 @@ export function linkLibraries(
   artifact: Artifact,
   libraries: { [libraryName: string]: string }
 ): string {
-  validateLibraryNames(artifact, libraries);
   validateAddresses(artifact, libraries);
 
   let bytecode = artifact.bytecode;
@@ -101,15 +100,15 @@ function linkReference(
  */
 function validateNotRepeatedLibraries(
   artifact: Artifact,
-  libraries: { [libraryName: string]: string }
+  libraryNames: string[]
 ) {
-  for (const inputName of Object.keys(libraries)) {
+  for (const inputName of libraryNames) {
     const { sourceName, libName } = parseLibraryName(
       artifact.contractName,
       inputName
     );
 
-    if (sourceName !== undefined && libraries[libName] !== undefined) {
+    if (sourceName !== undefined && libraryNames.includes(libName)) {
       throw new IgnitionValidationError(
         `Invalid libraries for contract ${artifact.contractName}: The names "${inputName}" and "${libName}" clash with each other, please use qualified names for both.`
       );
