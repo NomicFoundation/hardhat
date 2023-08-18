@@ -21,7 +21,7 @@ export class FutureProcessor {
     private _nextActionDispatch: (
       futureId: string,
       nextAction: NextAction
-    ) => Promise<JournalMessage>
+    ) => Promise<JournalMessage | undefined>
   ) {}
 
   /**
@@ -51,10 +51,13 @@ export class FutureProcessor {
         future.id
       );
 
-      const resultMessage: JournalMessage = await this._nextActionDispatch(
-        future.id,
-        nextAction
-      );
+      const resultMessage: JournalMessage | undefined =
+        await this._nextActionDispatch(future.id, nextAction);
+
+      if (resultMessage === undefined) {
+        // continue with the next future
+        return false;
+      }
 
       await this._applyMessage(resultMessage);
     }
