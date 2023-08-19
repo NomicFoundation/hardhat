@@ -45,7 +45,7 @@ export async function _getPublicClient(
 export async function getWalletClients(
   provider: EthereumProvider,
   walletClientConfig?: Partial<WalletClientConfig>
-): Promise<WalletClient> {
+): Promise<WalletClient[]> {
   const chain = walletClientConfig?.chain ?? (await getChain(provider));
   return _getWalletClients(provider, chain, walletClientConfig);
 }
@@ -53,6 +53,24 @@ export async function getWalletClients(
 export async function _getWalletClients(
   provider: EthereumProvider,
   chain: Chain,
+  walletClientConfig?: Partial<WalletClientConfig>
+): Promise<WalletClient[]> {
+  return Promise.resolve([]);
+}
+
+export async function getWalletClient(
+  provider: EthereumProvider,
+  address: string,
+  walletClientConfig?: Partial<WalletClientConfig>
+): Promise<WalletClient> {
+  const chain = walletClientConfig?.chain ?? (await getChain(provider));
+  return _getWalletClient(provider, chain, address, walletClientConfig);
+}
+
+export async function _getWalletClient(
+  provider: EthereumProvider,
+  chain: Chain,
+  address: string,
   walletClientConfig?: Partial<WalletClientConfig>
 ): Promise<WalletClient> {
   return Promise.resolve({} as WalletClient);

@@ -1,14 +1,9 @@
-import type {
-  PublicClientConfig,
-  TestClientConfig,
-  WalletClientConfig,
-} from "viem";
-
 import { extendEnvironment } from "hardhat/config";
 
 import {
   getPublicClient,
   getWalletClients,
+  getWalletClient,
   getTestClient,
 } from "./internal/clients";
 import "./type-extensions";
@@ -16,11 +11,13 @@ import "./internal/tasks";
 
 extendEnvironment((hre) => {
   hre.viem = {
-    getPublicClient: (publicClientConfig?: Partial<PublicClientConfig>) =>
+    getPublicClient: (publicClientConfig?) =>
       getPublicClient(hre.network.provider, publicClientConfig),
-    getWalletClients: (walletClientConfig?: Partial<WalletClientConfig>) =>
+    getWalletClients: (walletClientConfig?) =>
       getWalletClients(hre.network.provider, walletClientConfig),
-    getTestClient: (testClientConfig?: Partial<TestClientConfig>) =>
+    getWalletClient: (address, walletClientConfig) =>
+      getWalletClient(hre.network.provider, address, walletClientConfig),
+    getTestClient: (testClientConfig) =>
       getTestClient(hre.network.provider, testClientConfig),
   };
 });
