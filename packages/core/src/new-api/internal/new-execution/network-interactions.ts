@@ -10,7 +10,7 @@ import { assertIgnitionInvariant } from "../utils/assertions";
 import { JsonRpcClient, TransactionParams } from "./jsonrpc-client";
 import {
   SimulationErrorExecutionResult,
-  StrategyErrorExecutionResult,
+  StrategySimulationErrorExecutionResult,
 } from "./types/execution-result";
 import { NetworkFees, RawStaticCallResult } from "./types/jsonrpc";
 import { OnchainInteraction, StaticCall } from "./types/network-interaction";
@@ -87,7 +87,9 @@ export async function sendTransactionForOnchainInteraction(
   decodeSimulationResult: (
     simulationResult: RawStaticCallResult
   ) => Promise<
-    SimulationErrorExecutionResult | StrategyErrorExecutionResult | undefined
+    | SimulationErrorExecutionResult
+    | StrategySimulationErrorExecutionResult
+    | undefined
   >
 ): Promise<
   | SimulationErrorExecutionResult
