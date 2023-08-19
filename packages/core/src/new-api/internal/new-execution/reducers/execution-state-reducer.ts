@@ -19,8 +19,11 @@ import {
 import {
   appendNetworkInteraction,
   appendTransactionToOnchainInteraction,
+  bumpOnchainInteractionFees,
   completeStaticCall,
   confirmTransaction,
+  resendDroppedOnchainInteraction,
+  resetOnchainInteractionReplacedByUser,
 } from "./helpers/network-interaction-helpers";
 
 const exStateTypesThatSupportOnchainInteractions: Array<
@@ -115,6 +118,27 @@ export function executionStateReducer(
         action,
         exStateTypesThatSupportOnchainInteractions,
         confirmTransaction
+      );
+    case JournalMessageType.ONCHAIN_INTERACTION_BUMP_FEES:
+      return _ensureStateThen(
+        state,
+        action,
+        exStateTypesThatSupportOnchainInteractions,
+        bumpOnchainInteractionFees
+      );
+    case JournalMessageType.ONCHAIN_INTERACTION_DROPPED:
+      return _ensureStateThen(
+        state,
+        action,
+        exStateTypesThatSupportOnchainInteractions,
+        resendDroppedOnchainInteraction
+      );
+    case JournalMessageType.ONCHAIN_INTERACTION_REPLACED_BY_USER:
+      return _ensureStateThen(
+        state,
+        action,
+        exStateTypesThatSupportOnchainInteractions,
+        resetOnchainInteractionReplacedByUser
       );
   }
 }

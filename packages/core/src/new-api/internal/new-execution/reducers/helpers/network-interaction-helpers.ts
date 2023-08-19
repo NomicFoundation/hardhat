@@ -11,6 +11,9 @@ import {
 } from "../../types/execution-state";
 import {
   NetworkInteractionRequestMessage,
+  OnchainInteractionBumpFeesMessage,
+  OnchainInteractionDroppedMessage,
+  OnchainInteractionReplacedByUserMessage,
   StaticCallCompleteMessage,
   TransactionConfirmMessage,
   TransactionSendMessage,
@@ -151,5 +154,79 @@ export function completeStaticCall<
     );
 
     onchainInteraction.result = action.result;
+  });
+}
+
+/**
+ * Sets the state `shouldBeResent` of an OnchainInteraction to `true`
+ * so that a new transaction with higher fees is sent.
+ *
+ * @param state - the execution state that will be updated within
+ * @param action - the request message that contains the onchain interaction details
+ * @returns a copy of the execution state with transaction confirmed
+ */
+export function bumpOnchainInteractionFees<
+  ExState extends
+    | DeploymentExecutionState
+    | CallExecutionState
+    | SendDataExecutionState
+>(state: ExState, action: OnchainInteractionBumpFeesMessage): ExState {
+  return produce(state, (draft: ExState): void => {
+    const onchainInteraction = findOnchainInteractionBy(
+      draft,
+      action.networkInteractionId
+    );
+
+    onchainInteraction.shouldBeResent = true;
+  });
+}
+
+/**
+ * Sets the state `shouldBeResent` of a dropped OnchainInteraction to `true`
+ * so that a new transaction is sent.
+ *
+ * @param state - the execution state that will be updated within
+ * @param action - the request message that contains the onchain interaction details
+ * @returns a copy of the execution state with transaction confirmed
+ */
+export function resendDroppedOnchainInteraction<
+  ExState extends
+    | DeploymentExecutionState
+    | CallExecutionState
+    | SendDataExecutionState
+>(state: ExState, action: OnchainInteractionDroppedMessage): ExState {
+  return produce(state, (draft: ExState): void => {
+    const onchainInteraction = findOnchainInteractionBy(
+      draft,
+      action.networkInteractionId
+    );
+
+    onchainInteraction.shouldBeResent = true;
+  });
+}
+
+/**
+ * Resets an OnchainInteraction's nonce, transactions and shouldBeResent
+ * due to the user having invalidated the nonce that has been used.
+ *
+ * @param state - the execution state that will be updated within
+ * @param action - the request message that contains the onchain interaction details
+ * @returns a copy of the execution state with transaction confirmed
+ */
+export function resetOnchainInteractionReplacedByUser<
+  ExState extends
+    | DeploymentExecutionState
+    | CallExecutionState
+    | SendDataExecutionState
+>(state: ExState, action: OnchainInteractionReplacedByUserMessage): ExState {
+  return produce(state, (draft: ExState): void => {
+    const onchainInteraction = findOnchainInteractionBy(
+      draft,
+      action.networkInteractionId
+    );
+
+    onchainInteraction.transactions = [];
+    onchainInteraction.nonce = undefined;
+    onchainInteraction.shouldBeResent = false;
   });
 }

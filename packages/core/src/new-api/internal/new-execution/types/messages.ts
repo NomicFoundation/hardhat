@@ -32,7 +32,10 @@ export type JournalMessage =
   | NetworkInteractionRequestMessage
   | TransactionSendMessage
   | TransactionConfirmMessage
-  | StaticCallCompleteMessage;
+  | StaticCallCompleteMessage
+  | OnchainInteractionBumpFeesMessage
+  | OnchainInteractionDroppedMessage
+  | OnchainInteractionReplacedByUserMessage;
 
 export enum JournalMessageType {
   RUN_START = "RUN_START",
@@ -50,6 +53,9 @@ export enum JournalMessageType {
   TRANSACTION_SEND = "TRANSACTION_SEND",
   TRANSACTION_CONFIRM = "TRANSACTION_CONFIRM",
   STATIC_CALL_COMPLETE = "STATIC_CALL_COMPLETE",
+  ONCHAIN_INTERACTION_BUMP_FEES = "ONCHAIN_INTERACTION_BUMP_FEES",
+  ONCHAIN_INTERACTION_DROPPED = "ONCHAIN_INTERACTION_DROPPED",
+  ONCHAIN_INTERACTION_REPLACED_BY_USER = "ONCHAIN_INTERACTION_REPLACED_BY_USER",
 }
 
 export interface RunStartMessage {
@@ -183,4 +189,22 @@ export interface StaticCallCompleteMessage {
   futureId: string;
   networkInteractionId: number;
   result: RawStaticCallResult;
+}
+
+export interface OnchainInteractionBumpFeesMessage {
+  type: JournalMessageType.ONCHAIN_INTERACTION_BUMP_FEES;
+  futureId: string;
+  networkInteractionId: number;
+}
+
+export interface OnchainInteractionDroppedMessage {
+  type: JournalMessageType.ONCHAIN_INTERACTION_DROPPED;
+  futureId: string;
+  networkInteractionId: number;
+}
+
+export interface OnchainInteractionReplacedByUserMessage {
+  type: JournalMessageType.ONCHAIN_INTERACTION_REPLACED_BY_USER;
+  futureId: string;
+  networkInteractionId: number;
 }
