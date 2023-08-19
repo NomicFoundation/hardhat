@@ -12,7 +12,7 @@ import {
   SimulationErrorExecutionResult,
   StrategySimulationErrorExecutionResult,
 } from "./types/execution-result";
-import { NetworkFees, RawStaticCallResult } from "./types/jsonrpc";
+import { NetworkFees, RawStaticCallResult, Transaction } from "./types/jsonrpc";
 import { OnchainInteraction, StaticCall } from "./types/network-interaction";
 
 /**
@@ -36,6 +36,11 @@ export async function runStaticCall(
     "latest"
   );
 }
+
+/**
+ * The type of a successful response from `sendTransactionForOnchainInteraction`.
+ */
+export const TRANSACTION_SENT_TYPE = "TRANSACTION";
 
 /**
  * Sends the a transaction to run an OnchainInteraction.
@@ -93,8 +98,12 @@ export async function sendTransactionForOnchainInteraction(
   >
 ): Promise<
   | SimulationErrorExecutionResult
-  | StrategyErrorExecutionResult
-  | { txHash: string; nonce: number }
+  | StrategySimulationErrorExecutionResult
+  | {
+      type: typeof TRANSACTION_SENT_TYPE;
+      transaction: Transaction;
+      nonce: number;
+    }
 > {
   const nonce =
     onchainInteraction.nonce ?? (await getNonce(onchainInteraction.from));
@@ -158,7 +167,14 @@ export async function sendTransactionForOnchainInteraction(
 
   const txHash = await client.sendTransaction(transactionParams);
 
-  return { txHash, nonce };
+  return {
+    type: TRANSACTION_SENT_TYPE,
+    nonce,
+    transaction: {
+      hash: txHash,
+      fees,
+    },
+  };
 }
 
 /**
