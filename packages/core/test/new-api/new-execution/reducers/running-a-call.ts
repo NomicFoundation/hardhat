@@ -212,13 +212,17 @@ describe("DeploymentStateReducer", () => {
           "Added Network interaction is of the wrong type "
         );
 
-        const { transactions, ...rest } = networkInteraction;
+        const { transactions, shouldBeResent, nonce, ...rest } =
+          networkInteraction;
 
         assert.deepStrictEqual(
           rest,
           requestNetworkInteractionMessage.networkInteraction
         );
-        assert.isDefined(transactions);
+        assert.isArray(transactions);
+        assert.lengthOf(transactions, 0);
+        assert.isFalse(shouldBeResent);
+        assert.isUndefined(nonce);
       });
     });
 

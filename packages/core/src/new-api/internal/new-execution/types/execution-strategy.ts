@@ -34,7 +34,7 @@ export type LoadArtifactFunction = (
  */
 export type OnchainInteractionRequest = Omit<
   OnchainInteraction,
-  "transactions" | "nonce"
+  "transactions" | "nonce" | "shouldBeResent"
 >;
 
 /**

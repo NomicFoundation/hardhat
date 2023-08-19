@@ -34,6 +34,11 @@ export enum NetworkInteractionType {
  * If the `nonce` is `undefined`, we either haven't sent any transaction for this
  * OnchainInteraction, or the ones we sent were replaced by transactions sent by the user
  * so we need to restart this OnchainInteraction's execution.
+ *
+ * The `shouldBeResent` field is `true` only in cases where we want to send a new
+ * transaction for this `OnchainInteraction` using the same nonce. This can happen if
+ * we need to bump the gas price, or if all of the transactions were dropped from the
+ * mempool, yet the nonce is still valid.
  **/
 export interface OnchainInteraction {
   id: number;
@@ -44,6 +49,7 @@ export interface OnchainInteraction {
   from: string;
   nonce?: number;
   transactions: Transaction[];
+  shouldBeResent: boolean;
 }
 
 /**

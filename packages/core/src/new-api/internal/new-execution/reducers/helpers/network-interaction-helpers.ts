@@ -51,6 +51,8 @@ export function appendNetworkInteraction<
         ? {
             ...action.networkInteraction,
             transactions: [],
+            nonce: undefined,
+            shouldBeResent: false,
           }
         : action.networkInteraction
     );
@@ -59,8 +61,12 @@ export function appendNetworkInteraction<
 
 /**
  * Add a transaction to an onchain interaction within an execution state.
+ *
  * If the onchain interaction didn't have a nonce yet, it will be set to
  * the nonce of the transaction.
+ *
+ * This function also sets the onchain interaction's `shouldBeResent` flag
+ * to `false`.
  *
  * @param state - the execution state that will be added to
  * @param action - the request message that contains the transaction
@@ -88,6 +94,7 @@ export function appendTransactionToOnchainInteraction<
       );
     }
 
+    onchainInteraction.shouldBeResent = false;
     onchainInteraction.transactions.push(action.transaction);
   });
 }
