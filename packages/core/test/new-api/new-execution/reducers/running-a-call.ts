@@ -85,6 +85,7 @@ describe("DeploymentStateReducer", () => {
           maxPriorityFeePerGas: BigInt(5),
         },
       },
+      nonce: 0,
     };
 
     const sendAnotherTransactionMessage: TransactionSendMessage = {
@@ -98,6 +99,7 @@ describe("DeploymentStateReducer", () => {
           maxPriorityFeePerGas: BigInt(15),
         },
       },
+      nonce: 0,
     };
 
     const confirmTransactionMessage: TransactionConfirmMessage = {

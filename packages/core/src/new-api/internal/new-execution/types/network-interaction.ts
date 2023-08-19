@@ -19,15 +19,21 @@ export enum NetworkInteractionType {
 }
 
 /**
- * This interface represents an any kind of interaction between Ethereum accounts that
+ * This interface represents any kind of interaction between Ethereum accounts that
  * needs to be executed onchain.
  *
- * Note that an onchain interaction nonce is only available when a transaction using it
- * was send. That means that `nonce === undefined` if and only if the transactions array
- * is empty.
+ * To execute this interaction, we need to send a transaction. As not every transaction
+ * that we send gets confirmed, we may need to send multiple ones per OnchainInteraction.
  *
- * If the `nonce` is not undefined, all the transactions in the transactions array have
- * been sent using that nonce.
+ * All the transactions of an OnchainInteraction are sent with the same nonce, so that
+ * only one of them can be confirmed.
+ *
+ * The `nonce` field is only available if we have sent at least one transaction, and we
+ * are tracking its progress.
+ *
+ * If the `nonce` is `undefined`, we either haven't sent any transaction for this
+ * OnchainInteraction, or the ones we sent were replaced by transactions sent by the user
+ * so we need to restart this OnchainInteraction's execution.
  **/
 export interface OnchainInteraction {
   id: number;

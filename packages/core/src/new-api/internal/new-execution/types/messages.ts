@@ -167,6 +167,7 @@ export interface TransactionSendMessage {
   futureId: string;
   networkInteractionId: number;
   transaction: Transaction;
+  nonce: number;
 }
 
 export interface TransactionConfirmMessage {

@@ -59,6 +59,8 @@ export function appendNetworkInteraction<
 
 /**
  * Add a transaction to an onchain interaction within an execution state.
+ * If the onchain interaction didn't have a nonce yet, it will be set to
+ * the nonce of the transaction.
  *
  * @param state - the execution state that will be added to
  * @param action - the request message that contains the transaction
@@ -76,6 +78,15 @@ export function appendTransactionToOnchainInteraction<
       draft,
       action.networkInteractionId
     );
+
+    if (onchainInteraction.nonce === undefined) {
+      onchainInteraction.nonce = action.nonce;
+    } else {
+      assertIgnitionInvariant(
+        onchainInteraction.nonce === action.nonce,
+        `New transaction sent for ${state.id}/${onchainInteraction.id} with nonce ${action.nonce} but expected ${onchainInteraction.nonce}`
+      );
+    }
 
     onchainInteraction.transactions.push(action.transaction);
   });

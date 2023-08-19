@@ -94,6 +94,7 @@ describe("future processor", () => {
                   maxFeePerGas: BigInt(10),
                 },
               },
+              nonce: 0,
             };
 
             return transactionSentMessage;
