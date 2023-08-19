@@ -1,17 +1,29 @@
-import "hardhat/types/runtime";
-
 import type {
-  HardhatViemPublicClient,
-  HardhatViemTestClient,
-  HardhatViemWalletClients,
-} from "./types";
+  PublicClient,
+  WalletClient,
+  TestClient,
+  PublicClientConfig,
+  WalletClientConfig,
+  TestClientConfig,
+} from "viem";
+import "hardhat/types/runtime";
 
 declare module "hardhat/types/runtime" {
   interface HardhatRuntimeEnvironment {
     viem: {
-      getPublicClient(): Promise<HardhatViemPublicClient>;
-      getWalletClients(): Promise<HardhatViemWalletClients>;
-      getTestClient(): Promise<HardhatViemTestClient>;
+      getPublicClient(
+        publicClientConfig?: Partial<PublicClientConfig>
+      ): Promise<PublicClient>;
+      getWalletClients(
+        walletClientConfig?: Partial<WalletClientConfig>
+      ): Promise<WalletClient[]>;
+      getWalletClient(
+        address: string,
+        walletClientConfig?: Partial<WalletClientConfig>
+      ): Promise<WalletClient>;
+      getTestClient(
+        testClientConfig?: Partial<TestClientConfig>
+      ): Promise<TestClient>;
     };
   }
 }
