@@ -36,25 +36,7 @@ import {
  *
  * If the ExecutionState has no NetworkInteraction, a new generator is returned.
  */
-export async function replayExecutionStartegyWithOnchainInteractions(
-  executionState: DeploymentExecutionState,
-  strategy: ExecutionStrategy,
-  fallbackSender: string,
-  loadArtifact: LoadArtifactFunction
-): Promise<DeploymentStrategyGenerator>;
-export async function replayExecutionStartegyWithOnchainInteractions(
-  executionState: CallExecutionState | SendDataExecutionState,
-  strategy: ExecutionStrategy,
-  fallbackSender: string,
-  loadArtifact: LoadArtifactFunction
-): Promise<CallStrategyGenerator>;
-export async function replayExecutionStartegyWithOnchainInteractions(
-  executionState: SendDataExecutionState,
-  strategy: ExecutionStrategy,
-  fallbackSender: string,
-  loadArtifact: LoadArtifactFunction
-): Promise<SendDataStrategyGenerator>;
-export async function replayExecutionStartegyWithOnchainInteractions(
+async function replayExecutionStartegyWithOnchainInteractions(
   executionState:
     | DeploymentExecutionState
     | CallExecutionState
@@ -141,7 +123,7 @@ export async function replayExecutionStartegyWithOnchainInteractions(
 /**
  * This function is the StaticCall-only version of replayExecutionStartegyWithOnchainInteractions.
  */
-export async function replayStaticCallExecutionStrategy(
+async function replayStaticCallExecutionStrategy(
   executionState: StaticCallExecutionState,
   strategy: ExecutionStrategy,
   fallbackSender: string,
@@ -186,6 +168,68 @@ export async function replayStaticCallExecutionStrategy(
   );
 
   return generator;
+}
+
+/**
+ * This function returns a strategy generator for the executionState that has been replayed
+ * up to the request that lead to the last network interaction of the exectionState being
+ * created.
+ *
+ * IMPORTANT: This function is NOT type-safe. It is the responsibility of the caller to
+ * interpret the returned generator as the correct type. This is allows us to have a single
+ * function replay all the different types of execution states.
+ *
+ * @param executionState The execution state.
+ * @param strategy The strategy to use to create the generator.
+ * @param fallbackSender The fallback sender passed to the strategy.
+ * @param loadArtifact The load artifact function passed to the strtegy.
+ * @returns The replayed strategy generator.
+ */
+export async function replayStrategy(
+  executionState:
+    | DeploymentExecutionState
+    | CallExecutionState
+    | SendDataExecutionState
+    | StaticCallExecutionState,
+  strategy: ExecutionStrategy,
+  fallbackSender: string,
+  loadArtifact: LoadArtifactFunction
+): Promise<
+  | DeploymentStrategyGenerator
+  | CallStrategyGenerator
+  | SendDataStrategyGenerator
+  | StaticCallStrategyGenerator
+> {
+  switch (executionState.type) {
+    case ExecutionSateType.DEPLOYMENT_EXECUTION_STATE:
+      return replayExecutionStartegyWithOnchainInteractions(
+        executionState,
+        strategy,
+        fallbackSender,
+        loadArtifact
+      );
+    case ExecutionSateType.CALL_EXECUTION_STATE:
+      return replayExecutionStartegyWithOnchainInteractions(
+        executionState,
+        strategy,
+        fallbackSender,
+        loadArtifact
+      );
+    case ExecutionSateType.SEND_DATA_EXECUTION_STATE:
+      return replayExecutionStartegyWithOnchainInteractions(
+        executionState,
+        strategy,
+        fallbackSender,
+        loadArtifact
+      );
+    case ExecutionSateType.STATIC_CALL_EXECUTION_STATE:
+      return replayStaticCallExecutionStrategy(
+        executionState,
+        strategy,
+        fallbackSender,
+        loadArtifact
+      );
+  }
 }
 
 function assertValidGeneratorResult(
