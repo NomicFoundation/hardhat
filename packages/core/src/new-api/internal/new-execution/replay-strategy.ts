@@ -250,16 +250,6 @@ function assertValidGeneratorResult(
   );
 
   assertIgnitionInvariant(
-    confirmedTx.blockHash !== undefined,
-    `Unexpected unresolved OnchainInteraction request when replaying ${executionStateId}/${interaction.id}`
-  );
-
-  assertIgnitionInvariant(
-    confirmedTx.blockNumber !== undefined,
-    `Unexpected unresolved OnchainInteraction request when replaying ${executionStateId}/${interaction.id}`
-  );
-
-  assertIgnitionInvariant(
     confirmedTx.receipt !== undefined,
     `Unexpected unresolved OnchainInteraction request when replaying ${executionStateId}/${interaction.id}`
   );

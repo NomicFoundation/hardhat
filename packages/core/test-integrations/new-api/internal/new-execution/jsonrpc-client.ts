@@ -673,13 +673,10 @@ describe("JSON-RPC client", function () {
             const hash = await client.sendTransaction(req);
 
             const tx = await client.getTransaction(hash);
-            const block = await client.getLatestBlock();
 
             assert.isDefined(tx);
 
             assert.equal(tx!.hash, hash);
-            assert.equal(tx!.blockNumber, block.number);
-            assert.equal(tx!.blockHash, block.hash);
             assert("maxFeePerGas" in tx!.fees);
             assert("maxPriorityFeePerGas" in tx!.fees);
             assert("maxFeePerGas" in tx!.fees);
@@ -715,8 +712,6 @@ describe("JSON-RPC client", function () {
 
             assert.isDefined(tx);
             assert.equal(tx!.hash, hash);
-            assert.isUndefined(tx!.blockNumber);
-            assert.isUndefined(tx!.blockHash);
             assert("maxFeePerGas" in tx!.fees);
             assert("maxPriorityFeePerGas" in tx!.fees);
             assert.equal(tx!.fees.maxFeePerGas, req.fees.maxFeePerGas);

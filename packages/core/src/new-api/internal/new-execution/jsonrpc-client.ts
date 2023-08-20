@@ -456,11 +456,6 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
 
     return {
       hash: response.hash,
-      blockNumber:
-        response.blockNumber !== null
-          ? jsonRpcQuantityToNumber(response.blockNumber)
-          : undefined,
-      blockHash: response.blockHash ?? undefined,
       fees: networkFees,
     };
   }
