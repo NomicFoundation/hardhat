@@ -6,7 +6,7 @@
 
 import { assertIgnitionInvariant } from "../utils/assertions";
 
-import { decodeError } from "./error-decoding";
+import { decodeError } from "./abi";
 import {
   RevertWithCustomError,
   RevertWithInvalidData,
@@ -193,5 +193,4 @@ export async function* executeStaticCallRequest(
   return decodedResult;
 }
 
-export * from "./error-decoding";
 export * from "./abi";
