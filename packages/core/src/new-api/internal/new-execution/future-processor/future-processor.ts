@@ -2,7 +2,7 @@ import { DeploymentParameters } from "../../../types/deployer";
 import { Future } from "../../../types/module";
 import { DeploymentLoader } from "../../deployment-loader/types";
 import { assertIgnitionInvariant } from "../../utils/assertions";
-import { applyMessage } from "../apply-message";
+import { applyNewMessage } from "../deployment-state-helpers";
 import { JsonRpcClient } from "../jsonrpc-client";
 import { NonceManager } from "../nonce-management";
 import { TransactionTrackingTimer } from "../transaction-tracking-timer";
@@ -61,7 +61,7 @@ export class FutureProcessor {
     if (exState === undefined) {
       const initMessage = buildInitializeMessageFor(future);
 
-      deploymentState = await applyMessage(
+      deploymentState = await applyNewMessage(
         initMessage,
         deploymentState,
         this._deploymentLoader
@@ -93,7 +93,7 @@ export class FutureProcessor {
         return { futureCompleted: false, newState: deploymentState };
       }
 
-      deploymentState = await applyMessage(
+      deploymentState = await applyNewMessage(
         nextMessage,
         deploymentState,
         this._deploymentLoader
