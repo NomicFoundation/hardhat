@@ -53,6 +53,14 @@ describe("JSON-RPC client", function () {
       return { artifact, address: receipt!.contractAddress! };
     }
 
+    describe("getChainId", async function () {
+      it("Should return the chainId as number", async function () {
+        const chainId = await client.getChainId();
+
+        assert.equal(chainId, 31337);
+      });
+    });
+
     describe("getLatestBlock", async function () {
       it("Should return the first block in the correct format", async function () {
         const block = await client.getLatestBlock();

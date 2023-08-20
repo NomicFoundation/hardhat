@@ -20,6 +20,10 @@ import {
 } from "../../../../../src/new-api/internal/new-execution/types/network-interaction";
 
 class StubJsonRpcClient implements JsonRpcClient {
+  public async getChainId(): Promise<number> {
+    throw new Error("Mock not implemented.");
+  }
+
   public async getNetworkFees(): Promise<NetworkFees> {
     throw new Error("Mock not implemented.");
   }

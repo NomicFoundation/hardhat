@@ -57,6 +57,11 @@ export interface Block {
  */
 export interface JsonRpcClient {
   /**
+   * Returns the chain ID of the network.
+   */
+  getChainId: () => Promise<number>;
+
+  /**
    * Returns the recommended for the network fees.
    */
   getNetworkFees: () => Promise<NetworkFees>;
@@ -145,6 +150,17 @@ export interface JsonRpcClient {
  */
 export class EIP1193JsonRpcClient implements JsonRpcClient {
   constructor(private readonly _provider: EIP1193Provider) {}
+
+  public async getChainId(): Promise<number> {
+    const response = await this._provider.request({
+      method: "eth_chainId",
+      params: [],
+    });
+
+    assertResponseType("eth_chainId", response, typeof response === "string");
+
+    return jsonRpcQuantityToNumber(response);
+  }
 
   public async getNetworkFees(): Promise<NetworkFees> {
     const latestBlock = await this.getLatestBlock();
