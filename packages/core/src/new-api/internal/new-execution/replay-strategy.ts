@@ -12,8 +12,8 @@ import {
   CallStrategyGenerator,
   DeploymentStrategyGenerator,
   ExecutionStrategy,
-  LoadArtifactFunction,
   OnchainInteractionResponseType,
+  SIMULATION_SUCCESS_SIGNAL_TYPE,
   SendDataStrategyGenerator,
   StaticCallStrategyGenerator,
   SuccessfulTransaction,
@@ -41,9 +41,7 @@ async function replayExecutionStartegyWithOnchainInteractions(
     | DeploymentExecutionState
     | CallExecutionState
     | SendDataExecutionState,
-  strategy: ExecutionStrategy,
-  fallbackSender: string,
-  loadArtifact: LoadArtifactFunction
+  strategy: ExecutionStrategy
 ): Promise<
   | DeploymentStrategyGenerator
   | CallStrategyGenerator
@@ -61,21 +59,13 @@ async function replayExecutionStartegyWithOnchainInteractions(
 
   switch (executionState.type) {
     case ExecutionSateType.DEPLOYMENT_EXECUTION_STATE:
-      generator = strategy.executeDeployment(
-        executionState,
-        fallbackSender,
-        loadArtifact
-      );
+      generator = strategy.executeDeployment(executionState);
       break;
     case ExecutionSateType.CALL_EXECUTION_STATE:
-      generator = strategy.executeCall(
-        executionState,
-        fallbackSender,
-        loadArtifact
-      );
+      generator = strategy.executeCall(executionState);
       break;
     case ExecutionSateType.SEND_DATA_EXECUTION_STATE:
-      generator = strategy.executeSendData(executionState, fallbackSender);
+      generator = strategy.executeSendData(executionState);
       break;
   }
 
@@ -125,20 +115,14 @@ async function replayExecutionStartegyWithOnchainInteractions(
  */
 async function replayStaticCallExecutionStrategy(
   executionState: StaticCallExecutionState,
-  strategy: ExecutionStrategy,
-  fallbackSender: string,
-  loadArtifact: LoadArtifactFunction
+  strategy: ExecutionStrategy
 ): Promise<StaticCallStrategyGenerator> {
   assertIgnitionInvariant(
     executionState.status === ExecutionStatus.STARTED,
     `Unexpected completed execution state ${executionState.id} when replaying it.`
   );
 
-  const generator = strategy.executeStaticCall(
-    executionState,
-    fallbackSender,
-    loadArtifact
-  );
+  const generator = strategy.executeStaticCall(executionState);
 
   const networkInteractions = executionState.networkInteractions;
 
@@ -191,9 +175,7 @@ export async function replayStrategy(
     | CallExecutionState
     | SendDataExecutionState
     | StaticCallExecutionState,
-  strategy: ExecutionStrategy,
-  fallbackSender: string,
-  loadArtifact: LoadArtifactFunction
+  strategy: ExecutionStrategy
 ): Promise<
   | DeploymentStrategyGenerator
   | CallStrategyGenerator
@@ -204,31 +186,20 @@ export async function replayStrategy(
     case ExecutionSateType.DEPLOYMENT_EXECUTION_STATE:
       return replayExecutionStartegyWithOnchainInteractions(
         executionState,
-        strategy,
-        fallbackSender,
-        loadArtifact
+        strategy
       );
     case ExecutionSateType.CALL_EXECUTION_STATE:
       return replayExecutionStartegyWithOnchainInteractions(
         executionState,
-        strategy,
-        fallbackSender,
-        loadArtifact
+        strategy
       );
     case ExecutionSateType.SEND_DATA_EXECUTION_STATE:
       return replayExecutionStartegyWithOnchainInteractions(
         executionState,
-        strategy,
-        fallbackSender,
-        loadArtifact
+        strategy
       );
     case ExecutionSateType.STATIC_CALL_EXECUTION_STATE:
-      return replayStaticCallExecutionStrategy(
-        executionState,
-        strategy,
-        fallbackSender,
-        loadArtifact
-      );
+      return replayStaticCallExecutionStrategy(executionState, strategy);
   }
 }
 
@@ -247,8 +218,8 @@ function assertValidGeneratorResult(
   );
 
   assertIgnitionInvariant(
-    generatorResult.value.type !== "SIMULATION_SUCCESS_SIGNAL",
-    `Unexpected SIMULATION_SUCCESS_SIGNAL when replaying ${executionStateId}/${interaction.id}`
+    generatorResult.value.type !== SIMULATION_SUCCESS_SIGNAL_TYPE,
+    `Unexpected ${SIMULATION_SUCCESS_SIGNAL_TYPE} when replaying ${executionStateId}/${interaction.id}`
   );
 
   assertIgnitionInvariant(

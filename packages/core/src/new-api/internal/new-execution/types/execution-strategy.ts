@@ -80,12 +80,17 @@ export interface SimulationResult {
 }
 
 /**
+ * The type of a SimulationSuccessSignal
+ */
+export const SIMULATION_SUCCESS_SIGNAL_TYPE = "SIMULATION_SUCCESS_SIGNAL";
+
+/**
  * An type that signals to the execution engine that the simulation of an
  * onchain interaction was successful, so the execution engine can proceed
  * to send a transaction.
  */
 export interface SimulationSuccessSignal {
-  type: "SIMULATION_SUCCESS_SIGNAL";
+  type: typeof SIMULATION_SUCCESS_SIGNAL_TYPE;
 }
 
 /**
@@ -210,35 +215,26 @@ export interface ExecutionStrategy {
    * Executes a deployment execution state.
    */
   executeDeployment: (
-    executionState: DeploymentExecutionState,
-    fallbackSender: string,
-    loadArtifact: LoadArtifactFunction
+    executionState: DeploymentExecutionState
   ) => DeploymentStrategyGenerator;
 
   /**
    * Executes a deployment execution state.
    */
-  executeCall: (
-    executionState: CallExecutionState,
-    fallbackSender: string,
-    loadArtifact: LoadArtifactFunction
-  ) => CallStrategyGenerator;
+  executeCall: (executionState: CallExecutionState) => CallStrategyGenerator;
 
   /**
    * Executes a deployment execution state.
    */
   executeSendData: (
-    executionState: SendDataExecutionState,
-    fallbackSender: string
+    executionState: SendDataExecutionState
   ) => SendDataStrategyGenerator;
 
   /**
    * Executes a deployment execution state.
    */
   executeStaticCall: (
-    executionState: StaticCallExecutionState,
-    fallbackSender: string,
-    loadArtifact: LoadArtifactFunction
+    executionState: StaticCallExecutionState
   ) => AsyncGenerator<
     StaticCallRequest,
     StaticCallExecutionResult,

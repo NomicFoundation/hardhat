@@ -23,6 +23,7 @@ import {
   OnchainInteractionRequest,
   OnchainInteractionResponse,
   OnchainInteractionResponseType,
+  SIMULATION_SUCCESS_SIGNAL_TYPE,
   SimulationSuccessSignal,
   StaticCallRequest,
   StaticCallResponse,
@@ -128,7 +129,7 @@ export async function* executeOnchainInteractionRequest(
     }
 
     onchainInteractionResponse = yield {
-      type: "SIMULATION_SUCCESS_SIGNAL",
+      type: SIMULATION_SUCCESS_SIGNAL_TYPE,
     };
   } else {
     onchainInteractionResponse = firstResponse;

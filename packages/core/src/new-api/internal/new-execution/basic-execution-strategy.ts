@@ -30,12 +30,15 @@ import { NetworkInteractionType } from "./types/network-interaction";
  * per static call execution.
  */
 export class BasicExecutionStrategy implements ExecutionStrategy {
+  constructor(
+    private readonly _fallbackSender: string,
+    private readonly _loadArtifact: LoadArtifactFunction
+  ) {}
+
   public async *executeDeployment(
-    executionState: DeploymentExecutionState,
-    fallbackSender: string,
-    loadArtifact: LoadArtifactFunction
+    executionState: DeploymentExecutionState
   ): DeploymentStrategyGenerator {
-    const artifact = await loadArtifact(executionState.artifactFutureId);
+    const artifact = await this._loadArtifact(executionState.artifactFutureId);
 
     const transactionOrResult = yield* executeOnchainInteractionRequest(
       executionState.id,
@@ -43,7 +46,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
         id: 1,
         type: NetworkInteractionType.ONCHAIN_INTERACTION,
         to: undefined,
-        from: executionState.from ?? fallbackSender,
+        from: executionState.from ?? this._fallbackSender,
         data: encodeArtifactDeploymentData(
           artifact,
           executionState.constructorArgs,
@@ -79,11 +82,9 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
   }
 
   public async *executeCall(
-    executionState: CallExecutionState,
-    fallbackSender: string,
-    loadArtifact: LoadArtifactFunction
+    executionState: CallExecutionState
   ): CallStrategyGenerator {
-    const artifact = await loadArtifact(executionState.artifactFutureId);
+    const artifact = await this._loadArtifact(executionState.artifactFutureId);
 
     const transactionOrResult = yield* executeOnchainInteractionRequest(
       executionState.id,
@@ -91,7 +92,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
         id: 1,
         type: NetworkInteractionType.ONCHAIN_INTERACTION,
         to: undefined,
-        from: executionState.from ?? fallbackSender,
+        from: executionState.from ?? this._fallbackSender,
         data: encodeArtifactFunctionCall(
           artifact,
           executionState.functionName,
@@ -122,8 +123,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
   }
 
   public async *executeSendData(
-    executionState: SendDataExecutionState,
-    fallbackSender: string
+    executionState: SendDataExecutionState
   ): SendDataStrategyGenerator {
     const transactionOrResult = yield* executeOnchainInteractionRequest(
       executionState.id,
@@ -131,7 +131,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
         id: 1,
         type: NetworkInteractionType.ONCHAIN_INTERACTION,
         to: undefined,
-        from: executionState.from ?? fallbackSender,
+        from: executionState.from ?? this._fallbackSender,
         data: executionState.data,
         value: executionState.value,
       }
@@ -150,18 +150,16 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
   }
 
   public async *executeStaticCall(
-    executionState: StaticCallExecutionState,
-    fallbackSender: string,
-    loadArtifact: LoadArtifactFunction
+    executionState: StaticCallExecutionState
   ): StaticCallStrategyGenerator {
-    const artifact = await loadArtifact(executionState.artifactFutureId);
+    const artifact = await this._loadArtifact(executionState.artifactFutureId);
 
     const decodedResultOrError = yield* executeStaticCallRequest(
       {
         id: 1,
         type: NetworkInteractionType.STATIC_CALL,
         to: executionState.contractAddress,
-        from: executionState.from ?? fallbackSender,
+        from: executionState.from ?? this._fallbackSender,
         data: encodeArtifactFunctionCall(
           artifact,
           executionState.functionName,
