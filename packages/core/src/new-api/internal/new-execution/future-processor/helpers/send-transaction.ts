@@ -1,7 +1,6 @@
 import { assertIgnitionInvariant } from "../../../utils/assertions";
 import { JsonRpcClient } from "../../jsonrpc-client";
 import { NonceManager } from "../../nonce-management";
-import { replayStrategy } from "../../replay-strategy";
 import { TransactionTrackingTimer } from "../../transaction-tracking-timer";
 import { ExecutionResultType } from "../../types/execution-result";
 import {
@@ -27,6 +26,7 @@ import {
   sendTransactionForOnchainInteraction,
   TRANSACTION_SENT_TYPE,
 } from "./network-interaction-execution";
+import { replayStrategy } from "./replay-strategy";
 
 /**
  * Sends a transaction for the execution state's latest NetworkInteraction

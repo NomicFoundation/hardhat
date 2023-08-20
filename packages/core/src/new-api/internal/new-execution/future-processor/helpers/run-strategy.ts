@@ -1,5 +1,4 @@
 import { assertIgnitionInvariant } from "../../../utils/assertions";
-import { replayStrategy } from "../../replay-strategy";
 import {
   RevertedTransactionExecutionResult,
   ExecutionResultType,
@@ -34,6 +33,7 @@ import {
   createExecutionStateCompleteMessage,
   createExecutionStateCompleteMessageForExecutionsWithOnchainInteractions,
 } from "./messages-helpers";
+import { replayStrategy } from "./replay-strategy";
 
 /**
  * Runs the strategy for the execution state, and returns a message that can be

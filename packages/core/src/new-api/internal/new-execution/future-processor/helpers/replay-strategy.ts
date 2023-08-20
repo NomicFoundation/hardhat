@@ -1,5 +1,4 @@
-import { assertIgnitionInvariant } from "../utils/assertions";
-
+import { assertIgnitionInvariant } from "../../../utils/assertions";
 import {
   CallExecutionState,
   DeploymentExecutionState,
@@ -7,7 +6,7 @@ import {
   ExecutionStatus,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "./types/execution-state";
+} from "../../types/execution-state";
 import {
   CallStrategyGenerator,
   DeploymentStrategyGenerator,
@@ -17,11 +16,11 @@ import {
   SendDataStrategyGenerator,
   StaticCallStrategyGenerator,
   SuccessfulTransaction,
-} from "./types/execution-strategy";
+} from "../../types/execution-strategy";
 import {
   NetworkInteraction,
   NetworkInteractionType,
-} from "./types/network-interaction";
+} from "../../types/network-interaction";
 
 /**
  * This function creates and replays an ExecutionStrategy generator, and
