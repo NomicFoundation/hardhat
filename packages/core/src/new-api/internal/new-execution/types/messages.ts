@@ -19,6 +19,7 @@ import {
 
 export type JournalMessage =
   | RunStartMessage
+  | WipeExecutionStateMessage
   | DeploymentExecutionStateInitializeMessage
   | DeploymentExecutionStateCompleteMessage
   | CallExecutionStateInitializeMessage
@@ -35,10 +36,12 @@ export type JournalMessage =
   | StaticCallCompleteMessage
   | OnchainInteractionBumpFeesMessage
   | OnchainInteractionDroppedMessage
-  | OnchainInteractionReplacedByUserMessage;
+  | OnchainInteractionReplacedByUserMessage
+  | OnchainInteractionTimeoutMessage;
 
 export enum JournalMessageType {
   RUN_START = "RUN_START",
+  WIPE_EXECUTION_STATE = "WIPE_EXECUTION_STATE",
   DEPLOYMENT_EXECUTION_STATE_INITIALIZE = "DEPLOYMENT_EXECUTION_STATE_INITIALIZE",
   DEPLOYMENT_EXECUTION_STATE_COMPLETE = "DEPLOYMENT_EXECUTION_STATE_COMPLETE",
   CALL_EXECUTION_STATE_INITIALIZE = "CALL_EXECUTION_STATE_INITIALIZE",
@@ -56,6 +59,7 @@ export enum JournalMessageType {
   ONCHAIN_INTERACTION_BUMP_FEES = "ONCHAIN_INTERACTION_BUMP_FEES",
   ONCHAIN_INTERACTION_DROPPED = "ONCHAIN_INTERACTION_DROPPED",
   ONCHAIN_INTERACTION_REPLACED_BY_USER = "ONCHAIN_INTERACTION_REPLACED_BY_USER",
+  ONCHAIN_INTERACTION_TIMEOUT = "ONCHAIN_INTERACTION_TIMEOUT",
 }
 
 export interface RunStartMessage {
@@ -207,4 +211,15 @@ export interface OnchainInteractionReplacedByUserMessage {
   type: JournalMessageType.ONCHAIN_INTERACTION_REPLACED_BY_USER;
   futureId: string;
   networkInteractionId: number;
+}
+
+export interface OnchainInteractionTimeoutMessage {
+  type: JournalMessageType.ONCHAIN_INTERACTION_TIMEOUT;
+  futureId: string;
+  networkInteractionId: number;
+}
+
+export interface WipeExecutionStateMessage {
+  type: JournalMessageType.WIPE_EXECUTION_STATE;
+  futureId: string;
 }

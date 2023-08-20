@@ -6,6 +6,7 @@ import {
   CallExecutionState,
   DeploymentExecutionState,
   ExecutionSateType,
+  ExecutionStatus,
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "../../types/execution-state";
@@ -14,6 +15,7 @@ import {
   OnchainInteractionBumpFeesMessage,
   OnchainInteractionDroppedMessage,
   OnchainInteractionReplacedByUserMessage,
+  OnchainInteractionTimeoutMessage,
   StaticCallCompleteMessage,
   TransactionConfirmMessage,
   TransactionSendMessage,
@@ -228,5 +230,20 @@ export function resetOnchainInteractionReplacedByUser<
     onchainInteraction.transactions = [];
     onchainInteraction.nonce = undefined;
     onchainInteraction.shouldBeResent = false;
+  });
+}
+
+/**
+ * Sets an execution state to `TIMEOUT` due to an onchain interaction
+ * not being confirmed within the timeout period.
+ */
+export function onchainInteractionTimedOut<
+  ExState extends
+    | DeploymentExecutionState
+    | CallExecutionState
+    | SendDataExecutionState
+>(state: ExState, _action: OnchainInteractionTimeoutMessage): ExState {
+  return produce(state, (draft: ExState): void => {
+    draft.status = ExecutionStatus.TIMEOUT;
   });
 }

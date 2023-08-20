@@ -2,6 +2,7 @@ import { DeploymentState } from "../types/deployment-state";
 import { JournalMessage, JournalMessageType } from "../types/messages";
 
 import { executionStateReducer } from "./execution-state-reducer";
+import { wipeExecutionState } from "./helpers/deployment-state-helpers";
 
 const initialState: DeploymentState = {
   chainId: 0,
@@ -28,6 +29,10 @@ export function deploymentStateReducer(
       ...state,
       chainId: action.chainId,
     };
+  }
+
+  if (action.type === JournalMessageType.WIPE_EXECUTION_STATE) {
+    return wipeExecutionState(state, action);
   }
 
   const previousExState = state.executionStates[action.futureId];

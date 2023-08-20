@@ -2,9 +2,26 @@ import { assertIgnitionInvariant } from "../../utils/assertions";
 import { MapExStateTypeToExState } from "../type-helpers";
 import { ExecutionSateType, ExecutionState } from "../types/execution-state";
 import {
+  CallExecutionStateCompleteMessage,
+  CallExecutionStateInitializeMessage,
+  ContractAtExecutionStateInitializeMessage,
+  DeploymentExecutionStateCompleteMessage,
+  DeploymentExecutionStateInitializeMessage,
   JournalMessage,
   JournalMessageType,
-  RunStartMessage,
+  NetworkInteractionRequestMessage,
+  OnchainInteractionBumpFeesMessage,
+  OnchainInteractionDroppedMessage,
+  OnchainInteractionReplacedByUserMessage,
+  OnchainInteractionTimeoutMessage,
+  ReadEventArgExecutionStateInitializeMessage,
+  SendDataExecutionStateCompleteMessage,
+  SendDataExecutionStateInitializeMessage,
+  StaticCallCompleteMessage,
+  StaticCallExecutionStateCompleteMessage,
+  StaticCallExecutionStateInitializeMessage,
+  TransactionConfirmMessage,
+  TransactionSendMessage,
 } from "../types/messages";
 
 import { completeExecutionState } from "./helpers/complete-execution-state";
@@ -22,6 +39,7 @@ import {
   bumpOnchainInteractionFees,
   completeStaticCall,
   confirmTransaction,
+  onchainInteractionTimedOut,
   resendDroppedOnchainInteraction,
   resetOnchainInteractionReplacedByUser,
 } from "./helpers/network-interaction-helpers";
@@ -48,7 +66,25 @@ const exStateTypesThatSupportOnchainInteractionsAndStaticCalls: Array<
 
 export function executionStateReducer(
   state: ExecutionState | undefined,
-  action: Exclude<JournalMessage, RunStartMessage>
+  action:
+    | DeploymentExecutionStateInitializeMessage
+    | DeploymentExecutionStateCompleteMessage
+    | CallExecutionStateInitializeMessage
+    | CallExecutionStateCompleteMessage
+    | StaticCallExecutionStateInitializeMessage
+    | StaticCallExecutionStateCompleteMessage
+    | SendDataExecutionStateInitializeMessage
+    | SendDataExecutionStateCompleteMessage
+    | ContractAtExecutionStateInitializeMessage
+    | ReadEventArgExecutionStateInitializeMessage
+    | NetworkInteractionRequestMessage
+    | TransactionSendMessage
+    | TransactionConfirmMessage
+    | StaticCallCompleteMessage
+    | OnchainInteractionBumpFeesMessage
+    | OnchainInteractionDroppedMessage
+    | OnchainInteractionReplacedByUserMessage
+    | OnchainInteractionTimeoutMessage
 ): ExecutionState {
   switch (action.type) {
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE:
@@ -139,6 +175,13 @@ export function executionStateReducer(
         action,
         exStateTypesThatSupportOnchainInteractions,
         resetOnchainInteractionReplacedByUser
+      );
+    case JournalMessageType.ONCHAIN_INTERACTION_TIMEOUT:
+      return _ensureStateThen(
+        state,
+        action,
+        exStateTypesThatSupportOnchainInteractions,
+        onchainInteractionTimedOut
       );
   }
 }
