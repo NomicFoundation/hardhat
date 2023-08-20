@@ -20,6 +20,7 @@ import { TransactionTrackingTimer } from "./transaction-tracking-timer";
 import { DeploymentState } from "./types/deployment-state";
 import { ExecutionStrategy } from "./types/execution-strategy";
 import { getPendingNonceAndSender } from "./views/execution-state/get-pending-nonce-and-sender";
+import { hasExecutionFailed } from "./views/has-execution-failed";
 
 /**
  * This class is used to execute a module to completion, returning the new
@@ -90,6 +91,10 @@ export class ExecutionEngine {
         executionBatch,
         deploymentState
       );
+
+      if (executionBatch.some((f) => hasExecutionFailed(f, deploymentState))) {
+        return deploymentState;
+      }
     }
 
     return deploymentState;
