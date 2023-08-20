@@ -2,13 +2,13 @@ import { IgnitionError } from "../../../errors";
 
 import { JsonRpcClient } from "./jsonrpc-client";
 import { DeploymentState } from "./types/deployment-state";
-import { ExecutionSateType } from "./types/execution-state";
 import {
   JournalMessageType,
   OnchainInteractionDroppedMessage,
   OnchainInteractionReplacedByUserMessage,
 } from "./types/messages";
-import { NetworkInteractionType } from "./types/network-interaction";
+import { getPendingNonceAndSender } from "./views/execution-state/get-pending-nonce-and-sender";
+import { getPendingOnchainInteraction } from "./views/execution-state/get-pending-onchain-interaction";
 
 /**
  * This function is meant to be used to sync the local state's nonces
@@ -196,31 +196,18 @@ export function getMaxNonceUsedBySender(deploymentState: DeploymentState): {
     [sender: string]: number;
   } = {};
   for (const executionState of Object.values(deploymentState.executionStates)) {
-    if (
-      executionState.type !== ExecutionSateType.DEPLOYMENT_EXECUTION_STATE &&
-      executionState.type !== ExecutionSateType.CALL_EXECUTION_STATE &&
-      executionState.type !== ExecutionSateType.SEND_DATA_EXECUTION_STATE
-    ) {
+    const pendingNonceAndSender = getPendingNonceAndSender(executionState);
+
+    if (pendingNonceAndSender === undefined) {
       continue;
     }
 
-    for (const interaction of executionState.networkInteractions) {
-      if (interaction.type !== NetworkInteractionType.ONCHAIN_INTERACTION) {
-        continue;
-      }
+    const { sender, nonce } = pendingNonceAndSender;
 
-      if (interaction.nonce === undefined) {
-        continue;
-      }
-
-      if (nonces[interaction.from] === undefined) {
-        nonces[interaction.from] = interaction.nonce;
-      } else {
-        nonces[interaction.from] = Math.max(
-          nonces[interaction.from],
-          interaction.nonce
-        );
-      }
+    if (nonces[sender] === undefined) {
+      nonces[sender] = nonce;
+    } else {
+      nonces[sender] = Math.max(nonces[sender], nonce);
     }
   }
 
@@ -247,46 +234,26 @@ function createMapFromSenderToNonceAndTransactions(
   } = {};
 
   for (const executionState of Object.values(deploymentState.executionStates)) {
-    if (
-      executionState.type !== ExecutionSateType.DEPLOYMENT_EXECUTION_STATE &&
-      executionState.type !== ExecutionSateType.CALL_EXECUTION_STATE &&
-      executionState.type !== ExecutionSateType.SEND_DATA_EXECUTION_STATE
-    ) {
+    const onchainInteraction = getPendingOnchainInteraction(executionState);
+
+    if (onchainInteraction === undefined) {
       continue;
     }
 
-    for (const interaction of executionState.networkInteractions) {
-      if (interaction.type !== NetworkInteractionType.ONCHAIN_INTERACTION) {
-        continue;
-      }
-
-      if (interaction.nonce === undefined) {
-        continue;
-      }
-
-      if (interaction.transactions.length === 0) {
-        continue;
-      }
-
-      const confirmedTx = interaction.transactions.find(
-        (tx) => tx.receipt !== undefined
-      );
-
-      if (confirmedTx !== undefined) {
-        continue;
-      }
-
-      if (pendingTransactionsPerAccount[interaction.from] === undefined) {
-        pendingTransactionsPerAccount[interaction.from] = [];
-      }
-
-      pendingTransactionsPerAccount[interaction.from].push({
-        nonce: interaction.nonce,
-        transactions: interaction.transactions.map((tx) => tx.hash),
-        executionStateId: executionState.id,
-        networkInteractionId: interaction.id,
-      });
+    if (onchainInteraction.nonce === undefined) {
+      continue;
     }
+
+    if (pendingTransactionsPerAccount[onchainInteraction.from] === undefined) {
+      pendingTransactionsPerAccount[onchainInteraction.from] = [];
+    }
+
+    pendingTransactionsPerAccount[onchainInteraction.from].push({
+      nonce: onchainInteraction.nonce,
+      transactions: onchainInteraction.transactions.map((tx) => tx.hash),
+      executionStateId: executionState.id,
+      networkInteractionId: onchainInteraction.id,
+    });
   }
 
   for (const pendingTransactions of Object.values(
