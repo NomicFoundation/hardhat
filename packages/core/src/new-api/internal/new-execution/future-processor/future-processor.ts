@@ -29,6 +29,11 @@ import {
   nextActionForExecutionState as nextActionExecutionState,
 } from "./helpers/next-action-for-execution-state";
 
+/**
+ * This class is used to process a future, executing as much as possible, and
+ * returning the new deployment state and a boolean indicating if the future
+ * was completed.
+ */
 export class FutureProcessor {
   constructor(
     private readonly _deploymentLoader: DeploymentLoader,
@@ -59,6 +64,9 @@ export class FutureProcessor {
     let exState = deploymentState.executionStates[future.id];
 
     if (exState === undefined) {
+      // TODO: initialize messages require access to the entire
+      //   deployment state, deployment loader, accounts, and
+      //   deploymentParameters.
       const initMessage = buildInitializeMessageFor(future);
 
       deploymentState = await applyNewMessage(
@@ -66,6 +74,8 @@ export class FutureProcessor {
         deploymentState,
         this._deploymentLoader
       );
+
+      // TODO: save artifacts if needed
 
       exState = deploymentState.executionStates[future.id];
 
