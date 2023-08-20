@@ -28,12 +28,11 @@ import {
   JournalMessageType,
 } from "../../types/messages";
 import { NetworkInteractionType } from "../../types/network-interaction";
-
 import {
   createExecutionStateCompleteMessage,
   createExecutionStateCompleteMessageForExecutionsWithOnchainInteractions,
-} from "./messages-helpers";
-import { replayStrategy } from "./replay-strategy";
+} from "../helpers/messages-helpers";
+import { replayStrategy } from "../helpers/replay-strategy";
 
 /**
  * Runs the strategy for the execution state, and returns a message that can be

@@ -20,13 +20,12 @@ import {
   JournalMessageType,
 } from "../../types/messages";
 import { NetworkInteractionType } from "../../types/network-interaction";
-
-import { createExecutionStateCompleteMessageForExecutionsWithOnchainInteractions } from "./messages-helpers";
+import { createExecutionStateCompleteMessageForExecutionsWithOnchainInteractions } from "../helpers/messages-helpers";
 import {
   sendTransactionForOnchainInteraction,
   TRANSACTION_SENT_TYPE,
-} from "./network-interaction-execution";
-import { replayStrategy } from "./replay-strategy";
+} from "../helpers/network-interaction-execution";
+import { replayStrategy } from "../helpers/replay-strategy";
 
 /**
  * Sends a transaction for the execution state's latest NetworkInteraction

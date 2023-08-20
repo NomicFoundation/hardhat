@@ -18,15 +18,15 @@ import { ExecutionStrategy } from "../types/execution-strategy";
 import { JournalMessage, JournalMessageType } from "../types/messages";
 import { isExecutionStateComplete } from "../views/is-execution-state-complete";
 
+import { monitorOnchainInteraction } from "./handlers/monitor-onchain-interaction";
+import { queryStaticCall } from "./handlers/query-static-call";
+import { runStrategy } from "./handlers/run-strategy";
+import { sendTransaction } from "./handlers/send-transaction";
 import { buildInitializeMessageFor } from "./helpers/build-initialization-message-for";
-import { monitorOnchainInteraction } from "./helpers/monitor-onchain-interaction";
 import {
   NextAction,
   nextActionForExecutionState as nextActionExecutionState,
 } from "./helpers/next-action-for-execution-state";
-import { queryStaticCall } from "./helpers/query-static-call";
-import { runStrategy } from "./helpers/run-strategy";
-import { sendTransaction } from "./helpers/send-transaction";
 
 export class FutureProcessor {
   constructor(
