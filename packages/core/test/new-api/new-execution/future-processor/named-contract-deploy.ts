@@ -4,6 +4,7 @@ import { NamedContractDeploymentFuture } from "../../../../src";
 import { MemoryJournal } from "../../../../src/new-api/internal/journal/memory-journal";
 import { NamedContractDeploymentFutureImplementation } from "../../../../src/new-api/internal/module";
 import { FutureProcessor } from "../../../../src/new-api/internal/new-execution/future-processor/future-processor";
+import { NextAction } from "../../../../src/new-api/internal/new-execution/future-processor/helpers/next-action-for-execution-state";
 import { deploymentStateReducer } from "../../../../src/new-api/internal/new-execution/reducers/deployment-state-reducer";
 import { ExecutionResultType } from "../../../../src/new-api/internal/new-execution/types/execution-result";
 import { TransactionReceiptStatus } from "../../../../src/new-api/internal/new-execution/types/jsonrpc";
@@ -16,7 +17,6 @@ import {
   TransactionSendMessage,
 } from "../../../../src/new-api/internal/new-execution/types/messages";
 import { NetworkInteractionType } from "../../../../src/new-api/internal/new-execution/types/network-interaction";
-import { NextAction } from "../../../../src/new-api/internal/new-execution/views/next-action-for-future";
 import { setupMockDeploymentLoader } from "../../helpers";
 
 describe("future processor", () => {

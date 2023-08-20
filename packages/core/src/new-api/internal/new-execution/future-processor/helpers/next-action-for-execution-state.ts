@@ -3,8 +3,8 @@ import {
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../types/execution-state";
-import { NetworkInteractionType } from "../types/network-interaction";
+} from "../../types/execution-state";
+import { NetworkInteractionType } from "../../types/network-interaction";
 
 /**
  * The next action that the FutureProcessor should take.
@@ -39,7 +39,7 @@ export enum NextAction {
 /**
  * Returns the next action to be run for an execution state.
  */
-export function nextActionForFuture(
+export function nextActionForExecutionState(
   exState:
     | DeploymentExecutionState
     | CallExecutionState

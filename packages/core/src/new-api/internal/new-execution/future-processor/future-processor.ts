@@ -53,12 +53,12 @@ import {
   TransactionSendMessage,
 } from "../types/messages";
 import { NetworkInteractionType } from "../types/network-interaction";
-import {
-  NextAction,
-  nextActionForFuture as nextActionExecutionState,
-} from "../views/next-action-for-future";
 
 import { buildInitializeMessageFor } from "./helpers/build-initialization-message-for";
+import {
+  NextAction,
+  nextActionForExecutionState as nextActionExecutionState,
+} from "./helpers/next-action-for-execution-state";
 
 export class FutureProcessor {
   constructor(
