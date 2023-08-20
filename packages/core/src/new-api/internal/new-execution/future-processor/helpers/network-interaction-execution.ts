@@ -5,15 +5,21 @@
  * @file
  */
 
-import { assertIgnitionInvariant } from "../utils/assertions";
-
-import { JsonRpcClient, TransactionParams } from "./jsonrpc-client";
+import { assertIgnitionInvariant } from "../../../utils/assertions";
+import { JsonRpcClient, TransactionParams } from "../../jsonrpc-client";
 import {
   SimulationErrorExecutionResult,
   StrategySimulationErrorExecutionResult,
-} from "./types/execution-result";
-import { NetworkFees, RawStaticCallResult, Transaction } from "./types/jsonrpc";
-import { OnchainInteraction, StaticCall } from "./types/network-interaction";
+} from "../../types/execution-result";
+import {
+  NetworkFees,
+  RawStaticCallResult,
+  Transaction,
+} from "../../types/jsonrpc";
+import {
+  OnchainInteraction,
+  StaticCall,
+} from "../../types/network-interaction";
 
 /**
  * Runs a StaticCall NetworkInteraction to completion, returning its raw result.

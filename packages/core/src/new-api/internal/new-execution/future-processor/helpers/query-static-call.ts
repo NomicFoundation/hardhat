@@ -1,6 +1,5 @@
 import { assertIgnitionInvariant } from "../../../utils/assertions";
 import { JsonRpcClient } from "../../jsonrpc-client";
-import { runStaticCall } from "../../network-interactions";
 import {
   CallExecutionState,
   DeploymentExecutionState,
@@ -12,6 +11,8 @@ import {
   JournalMessageType,
 } from "../../types/messages";
 import { NetworkInteractionType } from "../../types/network-interaction";
+
+import { runStaticCall } from "./network-interaction-execution";
 
 /**
  * Runs a static call and returns a message indicating its completion.

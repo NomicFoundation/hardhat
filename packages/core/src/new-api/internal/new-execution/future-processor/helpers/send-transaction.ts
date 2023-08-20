@@ -1,9 +1,5 @@
 import { assertIgnitionInvariant } from "../../../utils/assertions";
 import { JsonRpcClient } from "../../jsonrpc-client";
-import {
-  sendTransactionForOnchainInteraction,
-  TRANSACTION_SENT_TYPE,
-} from "../../network-interactions";
 import { NonceManager } from "../../nonce-management";
 import { replayStrategy } from "../../replay-strategy";
 import { TransactionTrackingTimer } from "../../transaction-tracking-timer";
@@ -27,6 +23,10 @@ import {
 import { NetworkInteractionType } from "../../types/network-interaction";
 
 import { createExecutionStateCompleteMessageForExecutionsWithOnchainInteractions } from "./messages-helpers";
+import {
+  sendTransactionForOnchainInteraction,
+  TRANSACTION_SENT_TYPE,
+} from "./network-interaction-execution";
 
 /**
  * Sends a transaction for the execution state's latest NetworkInteraction
