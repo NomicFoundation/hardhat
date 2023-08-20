@@ -41,7 +41,7 @@ import { NetworkInteractionType } from "../../types/network-interaction";
  * @returns A message indicating the result of checking the transactions of the latest
  *  network interaction.
  */
-export async function receiptOnchainInteraction(
+export async function monitorOnchainInteraction(
   exState:
     | DeploymentExecutionState
     | CallExecutionState

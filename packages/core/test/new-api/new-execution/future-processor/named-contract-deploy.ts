@@ -99,7 +99,7 @@ describe("future processor", () => {
 
             return transactionSentMessage;
           }
-          case NextAction.RECEIPT_ONCHAIN_INTERACTION: {
+          case NextAction.MONITOR_ONCHAIN_INTERACTION: {
             const confirmTransactionMessage: TransactionConfirmMessage = {
               type: JournalMessageType.TRANSACTION_CONFIRM,
               futureId,

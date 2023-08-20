@@ -19,12 +19,12 @@ import { ExecutionStrategy } from "../types/execution-strategy";
 import { JournalMessage, JournalMessageType } from "../types/messages";
 
 import { buildInitializeMessageFor } from "./helpers/build-initialization-message-for";
+import { monitorOnchainInteraction } from "./helpers/monitor-onchain-interaction";
 import {
   NextAction,
   nextActionForExecutionState as nextActionExecutionState,
 } from "./helpers/next-action-for-execution-state";
 import { queryStaticCall } from "./helpers/query-static-call";
-import { receiptOnchainInteraction } from "./helpers/receipt-onchain-interactions";
 import { runStrategy } from "./helpers/run-strategy";
 import { sendTransaction } from "./helpers/send-transaction";
 
@@ -157,13 +157,13 @@ export class FutureProcessor {
       case NextAction.QUERY_STATIC_CALL:
         return queryStaticCall(exState, this._jsonRpcClient);
 
-      case NextAction.RECEIPT_ONCHAIN_INTERACTION:
+      case NextAction.MONITOR_ONCHAIN_INTERACTION:
         assertIgnitionInvariant(
           exState.type !== ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
           `Unexpected transaction request in StaticCallExecutionState ${exState.id}`
         );
 
-        return receiptOnchainInteraction(
+        return monitorOnchainInteraction(
           exState,
           this._jsonRpcClient,
           this._transactionTrackingTimer,

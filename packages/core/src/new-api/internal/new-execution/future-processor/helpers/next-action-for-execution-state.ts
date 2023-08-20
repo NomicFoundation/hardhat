@@ -33,7 +33,7 @@ export enum NextAction {
    * This action is used when the latest network interaction is an OnchainInteraction
    * that has one or more in-flight transactions, and we need to monitor them.
    */
-  RECEIPT_ONCHAIN_INTERACTION = "RECEIPT_ONCHAIN_INTERACTION",
+  MONITOR_ONCHAIN_INTERACTION = "MONITOR_ONCHAIN_INTERACTION",
 }
 
 /**
@@ -70,7 +70,7 @@ export function nextActionForExecutionState(
         }
 
         // Wait for confirmations, drops, or nonce invalidation
-        return NextAction.RECEIPT_ONCHAIN_INTERACTION;
+        return NextAction.MONITOR_ONCHAIN_INTERACTION;
       }
     }
     case NetworkInteractionType.STATIC_CALL: {
