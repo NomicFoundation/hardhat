@@ -11,12 +11,12 @@ import {
   CallExecutionState,
   DeploymentExecutionState,
   ExecutionSateType,
-  ExecutionStatus,
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "../types/execution-state";
 import { ExecutionStrategy } from "../types/execution-strategy";
 import { JournalMessage, JournalMessageType } from "../types/messages";
+import { isExecutionStateComplete } from "../views/is-execution-state-complete";
 
 import { buildInitializeMessageFor } from "./helpers/build-initialization-message-for";
 import { monitorOnchainInteraction } from "./helpers/monitor-onchain-interaction";
@@ -72,7 +72,7 @@ export class FutureProcessor {
       );
     }
 
-    while (exState.status === ExecutionStatus.STARTED) {
+    while (!isExecutionStateComplete(exState)) {
       assertIgnitionInvariant(
         exState.type !== ExecutionSateType.CONTRACT_AT_EXECUTION_STATE &&
           exState.type !==
