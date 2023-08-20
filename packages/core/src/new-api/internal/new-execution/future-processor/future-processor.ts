@@ -1,3 +1,4 @@
+import { DeploymentParameters } from "../../../types/deployer";
 import { Future } from "../../../types/module";
 import { DeploymentLoader } from "../../deployment-loader/types";
 import { assertIgnitionInvariant } from "../../utils/assertions";
@@ -37,7 +38,9 @@ export class FutureProcessor {
     private readonly _nonceManager: NonceManager,
     private readonly _requiredConfirmations: number,
     private readonly _millisecondBeforeBumpingFees: number,
-    private readonly _maxFeeBumps: number
+    private readonly _maxFeeBumps: number,
+    private readonly _accounts: string[],
+    private readonly _deploymentParameters: DeploymentParameters
   ) {}
 
   /**
