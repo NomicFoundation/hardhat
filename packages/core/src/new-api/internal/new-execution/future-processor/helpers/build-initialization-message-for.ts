@@ -2,12 +2,14 @@ import { DeploymentParameters } from "../../../../types/deployer";
 import { Future, FutureType } from "../../../../types/module";
 import { DeploymentState } from "../../types/deployment-state";
 import {
+  CallExecutionStateInitializeMessage,
   DeploymentExecutionStateInitializeMessage,
   JournalMessage,
   JournalMessageType,
 } from "../../types/messages";
 
 import {
+  resolveAddressForContract,
   resolveArgs,
   resolveFutureFrom,
   resolveLibraries,
@@ -30,6 +32,7 @@ export function buildInitializeMessageFor(
           future,
           strategy,
           {
+            futureType: future.type,
             artifactFutureId: future.id,
             contractName: future.contractName,
             constructorArgs: resolveArgs(
@@ -53,6 +56,7 @@ export function buildInitializeMessageFor(
           future,
           strategy,
           {
+            futureType: future.type,
             artifactFutureId: future.id,
             contractName: future.contractName,
             constructorArgs: [],
@@ -64,9 +68,30 @@ export function buildInitializeMessageFor(
 
       return libraryDeploymentInit;
     case FutureType.NAMED_CONTRACT_CALL: {
-      throw new Error(
-        "Not implemented yet: FutureType.NAMED_CONTRACT_CALL case"
-      );
+      const namedContractCall: CallExecutionStateInitializeMessage =
+        _extendBaseExecutionStateWith(
+          JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE,
+          future,
+          strategy,
+          {
+            args: resolveArgs(
+              future.args,
+              deploymentState,
+              deploymentParameters,
+              accounts
+            ),
+            functionName: future.functionName,
+            contractAddress: resolveAddressForContract(
+              future.contract,
+              deploymentState
+            ),
+            artifactFutureId: future.contract.id,
+            value: resolveValue(future.value, deploymentParameters),
+            from: resolveFutureFrom(future.from, accounts),
+          }
+        );
+
+      return namedContractCall;
     }
     case FutureType.NAMED_STATIC_CALL: {
       throw new Error("Not implemented yet: FutureType.NAMED_STATIC_CALL case");
@@ -102,14 +127,12 @@ function _extendBaseExecutionStateWith<
 ): {
   type: MessageT;
   futureId: string;
-  futureType: FutureT["type"];
   strategy: string;
   dependencies: string[];
 } & ExtensionT {
   return {
     type: messageType,
     futureId: future.id,
-    futureType: future.type,
     strategy: strategy.name,
     dependencies: [...future.dependencies].map((f) => f.id),
     ...extension,

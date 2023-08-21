@@ -5,6 +5,7 @@ import {
   ArtifactContractDeploymentFutureImplementation,
   ArtifactLibraryDeploymentFutureImplementation,
   ModuleParameterRuntimeValueImplementation,
+  NamedContractCallFutureImplementation,
   NamedContractDeploymentFutureImplementation,
   NamedLibraryDeploymentFutureImplementation,
 } from "../../../../../src/new-api/internal/module";
@@ -14,6 +15,7 @@ import { DeploymentState } from "../../../../../src/new-api/internal/new-executi
 import { ExecutionResultType } from "../../../../../src/new-api/internal/new-execution/types/execution-result";
 import { ExecutionSateType } from "../../../../../src/new-api/internal/new-execution/types/execution-state";
 import {
+  CallExecutionStateInitializeMessage,
   DeploymentExecutionStateInitializeMessage,
   JournalMessageType,
 } from "../../../../../src/new-api/internal/new-execution/types/messages";
@@ -21,6 +23,7 @@ import {
   ArtifactContractDeploymentFuture,
   ArtifactLibraryDeploymentFuture,
   FutureType,
+  NamedContractCallFuture,
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
 } from "../../../../../src/new-api/types/module";
@@ -37,6 +40,7 @@ describe("buildInitializeMessageFor", () => {
   let artifactContractDeployment: ArtifactContractDeploymentFuture;
   let namedLibraryDeployment: NamedLibraryDeploymentFuture<string>;
   let artifactLibraryDeployment: ArtifactLibraryDeploymentFuture;
+  let namedContractCall: NamedContractCallFuture<string, string>;
 
   let exampleDeploymentState: DeploymentState;
 
@@ -120,6 +124,16 @@ describe("buildInitializeMessageFor", () => {
       );
 
     artifactLibraryDeployment.dependencies.add(safeMathLibraryDeployment);
+
+    namedContractCall = new NamedContractCallFutureImplementation(
+      "MyModule:Call",
+      fakeModule,
+      "test",
+      anotherNamedContractDeployment,
+      [],
+      0n,
+      exampleAccounts[0]
+    );
 
     exampleDeploymentState = deploymentStateReducer(undefined as any);
 
@@ -353,6 +367,37 @@ describe("buildInitializeMessageFor", () => {
 
       it("should record the value", async () => {
         assert.deepStrictEqual(message.from, undefined);
+      });
+    });
+  });
+
+  describe("contract call state", () => {
+    let message: CallExecutionStateInitializeMessage;
+
+    describe("named library", () => {
+      beforeEach(() => {
+        message = buildInitializeMessageFor(
+          namedContractCall,
+          basicStrategy,
+          exampleDeploymentState,
+          {},
+          exampleAccounts
+        ) as CallExecutionStateInitializeMessage;
+      });
+
+      it("should build an initialize message for a deployment", async () => {
+        assert.deepStrictEqual(message, {
+          type: JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE,
+          futureId: "MyModule:Call",
+          strategy: "basic",
+          dependencies: [],
+          artifactFutureId: "MyModule:AnotherContract",
+          contractAddress: differentAddress,
+          functionName: "test",
+          args: [],
+          value: 0n,
+          from: exampleAccounts[0],
+        });
       });
     });
   });

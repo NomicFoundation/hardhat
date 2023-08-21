@@ -112,3 +112,10 @@ export function resolveLibraries(
     ])
   );
 }
+
+export function resolveAddressForContract(
+  contract: ContractFuture<string>,
+  deploymentState: DeploymentState
+): string {
+  return findAddressForContractFuture(deploymentState, contract.id);
+}
