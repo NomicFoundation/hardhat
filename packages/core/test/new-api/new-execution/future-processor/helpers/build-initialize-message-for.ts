@@ -1,6 +1,9 @@
 import { assert } from "chai";
 
-import { NamedContractDeploymentFutureImplementation } from "../../../../../src/new-api/internal/module";
+import {
+  ModuleParameterRuntimeValueImplementation,
+  NamedContractDeploymentFutureImplementation,
+} from "../../../../../src/new-api/internal/module";
 import { buildInitializeMessageFor } from "../../../../../src/new-api/internal/new-execution/future-processor/helpers/build-initialization-message-for";
 import {
   DeploymentExecutionStateInitializeMessage,
@@ -75,6 +78,31 @@ describe("buildInitializeMessageFor", () => {
 
       it("should record the value", async () => {
         assert.deepStrictEqual(message.value, BigInt(10));
+      });
+    });
+
+    describe("resolves value when module parameter is used", () => {
+      beforeEach(() => {
+        namedContractDeployment.value =
+          new ModuleParameterRuntimeValueImplementation<bigint>(
+            "MyModule",
+            "passedValue",
+            undefined
+          );
+
+        message = buildInitializeMessageFor(
+          namedContractDeployment,
+          basicStrategy,
+          {
+            MyModule: {
+              passedValue: BigInt(99),
+            },
+          }
+        ) as DeploymentExecutionStateInitializeMessage;
+      });
+
+      it("should record the value", async () => {
+        assert.deepStrictEqual(message.value, BigInt(99));
       });
     });
   });
