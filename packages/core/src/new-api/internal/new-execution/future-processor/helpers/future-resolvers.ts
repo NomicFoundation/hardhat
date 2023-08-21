@@ -95,6 +95,8 @@ export function resolveLibraries(
   return Object.fromEntries(
     Object.entries(libraries).map(([key, lib]) => [
       key,
+      // TODO: should this be expanded to static call and other future types?
+      // we could swap to findResult and assert the result is an address?
       findAddressForContractFuture(deploymentState, lib.id),
     ])
   );
