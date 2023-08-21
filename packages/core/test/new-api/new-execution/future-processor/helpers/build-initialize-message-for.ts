@@ -8,6 +8,7 @@ import {
   NamedContractCallFutureImplementation,
   NamedContractDeploymentFutureImplementation,
   NamedLibraryDeploymentFutureImplementation,
+  NamedStaticCallFutureImplementation,
 } from "../../../../../src/new-api/internal/module";
 import { buildInitializeMessageFor } from "../../../../../src/new-api/internal/new-execution/future-processor/helpers/build-initialization-message-for";
 import { deploymentStateReducer } from "../../../../../src/new-api/internal/new-execution/reducers/deployment-state-reducer";
@@ -18,6 +19,7 @@ import {
   CallExecutionStateInitializeMessage,
   DeploymentExecutionStateInitializeMessage,
   JournalMessageType,
+  StaticCallExecutionStateInitializeMessage,
 } from "../../../../../src/new-api/internal/new-execution/types/messages";
 import {
   ArtifactContractDeploymentFuture,
@@ -26,6 +28,7 @@ import {
   NamedContractCallFuture,
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
+  NamedStaticCallFuture,
 } from "../../../../../src/new-api/types/module";
 import { exampleAccounts, fakeArtifact } from "../../../helpers";
 
@@ -41,6 +44,7 @@ describe("buildInitializeMessageFor", () => {
   let namedLibraryDeployment: NamedLibraryDeploymentFuture<string>;
   let artifactLibraryDeployment: ArtifactLibraryDeploymentFuture;
   let namedContractCall: NamedContractCallFuture<string, string>;
+  let staticCall: NamedStaticCallFuture<string, string>;
 
   let exampleDeploymentState: DeploymentState;
 
@@ -62,7 +66,7 @@ describe("buildInitializeMessageFor", () => {
         fakeModule,
         [],
         {},
-        BigInt(0),
+        0n,
         exampleAccounts[0]
       );
 
@@ -70,11 +74,11 @@ describe("buildInitializeMessageFor", () => {
       "MyModule:TestContract",
       fakeModule,
       "TestContract",
-      [BigInt(1), "b", anotherNamedContractDeployment, { sub: "d" }],
+      [1n, "b", anotherNamedContractDeployment, { sub: "d" }],
       {
         SafeMath: safeMathLibraryDeployment,
       },
-      BigInt(10),
+      10n,
       exampleAccounts[0]
     );
 
@@ -87,12 +91,12 @@ describe("buildInitializeMessageFor", () => {
         "MyModule:ArtifactContract",
         fakeModule,
         "ArtifactContract",
-        [BigInt(1), "b", anotherNamedContractDeployment, { sub: "d" }],
+        [1n, "b", anotherNamedContractDeployment, { sub: "d" }],
         fakeArtifact,
         {
           SafeMath: safeMathLibraryDeployment,
         },
-        BigInt(10),
+        10n,
         exampleAccounts[0]
       );
 
@@ -130,10 +134,25 @@ describe("buildInitializeMessageFor", () => {
       fakeModule,
       "test",
       anotherNamedContractDeployment,
-      [],
+      [1n, "b", safeMathLibraryDeployment, { sub: "d" }],
       0n,
       exampleAccounts[0]
     );
+
+    namedContractCall.dependencies.add(anotherNamedContractDeployment);
+    namedContractCall.dependencies.add(safeMathLibraryDeployment);
+
+    staticCall = new NamedStaticCallFutureImplementation(
+      "MyModule:StaticCall",
+      fakeModule,
+      "staticTest",
+      anotherNamedContractDeployment,
+      [BigInt(1), "b", safeMathLibraryDeployment, { sub: "d" }],
+      exampleAccounts[0]
+    );
+
+    staticCall.dependencies.add(anotherNamedContractDeployment);
+    staticCall.dependencies.add(safeMathLibraryDeployment);
 
     exampleDeploymentState = deploymentStateReducer(undefined as any);
 
@@ -390,12 +409,42 @@ describe("buildInitializeMessageFor", () => {
           type: JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE,
           futureId: "MyModule:Call",
           strategy: "basic",
-          dependencies: [],
+          dependencies: ["MyModule:AnotherContract", "MyModule:SafeMath"],
           artifactFutureId: "MyModule:AnotherContract",
           contractAddress: differentAddress,
           functionName: "test",
-          args: [],
+          args: [1n, "b", libraryAddress, { sub: "d" }],
           value: 0n,
+          from: exampleAccounts[0],
+        });
+      });
+    });
+  });
+
+  describe("static call state", () => {
+    let message: StaticCallExecutionStateInitializeMessage;
+
+    describe("named library", () => {
+      beforeEach(() => {
+        message = buildInitializeMessageFor(
+          staticCall,
+          basicStrategy,
+          exampleDeploymentState,
+          {},
+          exampleAccounts
+        ) as StaticCallExecutionStateInitializeMessage;
+      });
+
+      it("should build an initialize message for a deployment", async () => {
+        assert.deepStrictEqual(message, {
+          type: JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE,
+          futureId: "MyModule:StaticCall",
+          strategy: "basic",
+          dependencies: ["MyModule:AnotherContract", "MyModule:SafeMath"],
+          artifactFutureId: "MyModule:AnotherContract",
+          contractAddress: differentAddress,
+          functionName: "staticTest",
+          args: [1n, "b", libraryAddress, { sub: "d" }],
           from: exampleAccounts[0],
         });
       });

@@ -6,6 +6,7 @@ import {
   DeploymentExecutionStateInitializeMessage,
   JournalMessage,
   JournalMessageType,
+  StaticCallExecutionStateInitializeMessage,
 } from "../../types/messages";
 
 import {
@@ -68,7 +69,7 @@ export function buildInitializeMessageFor(
 
       return libraryDeploymentInit;
     case FutureType.NAMED_CONTRACT_CALL: {
-      const namedContractCall: CallExecutionStateInitializeMessage =
+      const namedContractCallInit: CallExecutionStateInitializeMessage =
         _extendBaseExecutionStateWith(
           JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE,
           future,
@@ -91,10 +92,32 @@ export function buildInitializeMessageFor(
           }
         );
 
-      return namedContractCall;
+      return namedContractCallInit;
     }
     case FutureType.NAMED_STATIC_CALL: {
-      throw new Error("Not implemented yet: FutureType.NAMED_STATIC_CALL case");
+      const namedStaticCallInit: StaticCallExecutionStateInitializeMessage =
+        _extendBaseExecutionStateWith(
+          JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE,
+          future,
+          strategy,
+          {
+            args: resolveArgs(
+              future.args,
+              deploymentState,
+              deploymentParameters,
+              accounts
+            ),
+            functionName: future.functionName,
+            contractAddress: resolveAddressForContract(
+              future.contract,
+              deploymentState
+            ),
+            artifactFutureId: future.contract.id,
+            from: resolveFutureFrom(future.from, accounts),
+          }
+        );
+
+      return namedStaticCallInit;
     }
     case FutureType.NAMED_CONTRACT_AT: {
       throw new Error("Not implemented yet: FutureType.NAMED_CONTRACT_AT case");
