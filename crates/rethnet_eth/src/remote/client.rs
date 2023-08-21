@@ -652,6 +652,21 @@ mod tests {
         }
     }
 
+    #[test]
+    fn get_ids_zero() {
+        let client = RpcClient::new("http://localhost:8545", PathBuf::new());
+        let ids = client.get_ids(0);
+        assert!(ids.is_empty());
+    }
+
+    #[test]
+    fn get_ids_more() {
+        let client = RpcClient::new("http://localhost:8545", PathBuf::new());
+        let count = 11;
+        let ids = client.get_ids(count);
+        assert_eq!(ids.len(), 11);
+    }
+
     #[tokio::test]
     async fn send_request_body_500_status() {
         const STATUS_CODE: u16 = 500;
