@@ -70,7 +70,9 @@ export class FutureProcessor {
       const initMessage = buildInitializeMessageFor(
         future,
         this._executionStrategy,
-        this._deploymentParameters
+        deploymentState,
+        this._deploymentParameters,
+        this._accounts
       );
 
       deploymentState = await applyNewMessage(

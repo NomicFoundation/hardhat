@@ -1,21 +1,30 @@
+import identity from "lodash/identity";
+
 import { DeploymentParameters } from "../../../../types/deployer";
 import {
+  ArgumentType,
   Future,
   FutureType,
   ModuleParameterRuntimeValue,
+  SolidityParameterType,
 } from "../../../../types/module";
 import { assertIgnitionInvariant } from "../../../utils/assertions";
+import { replaceWithinArg } from "../../../utils/replace-within-arg";
 import { resolveModuleParameter } from "../../../utils/resolve-module-parameter";
+import { DeploymentState } from "../../types/deployment-state";
 import {
   DeploymentExecutionStateInitializeMessage,
   JournalMessage,
   JournalMessageType,
 } from "../../types/messages";
+import { findResultForFutureById } from "../../views/find-result-for-future-by-id";
 
 export function buildInitializeMessageFor(
   future: Future,
   strategy: { name: string },
-  deploymentParameters: DeploymentParameters
+  deploymentState: DeploymentState,
+  deploymentParameters: DeploymentParameters,
+  accounts: string[]
 ): JournalMessage {
   switch (future.type) {
     case FutureType.NAMED_CONTRACT_DEPLOYMENT: {
@@ -28,7 +37,12 @@ export function buildInitializeMessageFor(
           dependencies: [...future.dependencies].map((f) => f.id),
           artifactFutureId: future.id,
           contractName: future.contractName,
-          constructorArgs: [],
+          constructorArgs: _resolveArgs(
+            future.constructorArgs,
+            deploymentState,
+            deploymentParameters,
+            accounts
+          ),
           libraries: {},
           value: _resolveValue(future.value, deploymentParameters),
           from: future.from as string,
@@ -96,4 +110,27 @@ function _resolveValue(
   );
 
   return moduleParam;
+}
+
+function _resolveArgs(
+  args: ArgumentType[],
+  deploymentState: DeploymentState,
+  deploymentParameters: DeploymentParameters,
+  accounts: string[]
+): SolidityParameterType[] {
+  const replace = (arg: ArgumentType) =>
+    replaceWithinArg<SolidityParameterType>(arg, {
+      bigint: identity,
+      future: (f) => {
+        return findResultForFutureById(deploymentState, f.id);
+      },
+      accountRuntimeValue: (arv) => {
+        return accounts[arv.accountIndex];
+      },
+      moduleParameterRuntimeValue: (mprv) => {
+        return resolveModuleParameter(mprv, { deploymentParameters });
+      },
+    });
+
+  return args.map(replace);
 }
