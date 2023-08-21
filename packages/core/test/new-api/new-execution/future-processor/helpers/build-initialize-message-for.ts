@@ -2,9 +2,11 @@ import { assert } from "chai";
 
 import {
   AccountRuntimeValueImplementation,
+  ArtifactContractAtFutureImplementation,
   ArtifactContractDeploymentFutureImplementation,
   ArtifactLibraryDeploymentFutureImplementation,
   ModuleParameterRuntimeValueImplementation,
+  NamedContractAtFutureImplementation,
   NamedContractCallFutureImplementation,
   NamedContractDeploymentFutureImplementation,
   NamedLibraryDeploymentFutureImplementation,
@@ -17,14 +19,17 @@ import { ExecutionResultType } from "../../../../../src/new-api/internal/new-exe
 import { ExecutionSateType } from "../../../../../src/new-api/internal/new-execution/types/execution-state";
 import {
   CallExecutionStateInitializeMessage,
+  ContractAtExecutionStateInitializeMessage,
   DeploymentExecutionStateInitializeMessage,
   JournalMessageType,
   StaticCallExecutionStateInitializeMessage,
 } from "../../../../../src/new-api/internal/new-execution/types/messages";
 import {
+  ArtifactContractAtFuture,
   ArtifactContractDeploymentFuture,
   ArtifactLibraryDeploymentFuture,
   FutureType,
+  NamedContractAtFuture,
   NamedContractCallFuture,
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
@@ -45,6 +50,8 @@ describe("buildInitializeMessageFor", () => {
   let artifactLibraryDeployment: ArtifactLibraryDeploymentFuture;
   let namedContractCall: NamedContractCallFuture<string, string>;
   let staticCall: NamedStaticCallFuture<string, string>;
+  let namedContractAt: NamedContractAtFuture<string>;
+  let artifactContractAt: ArtifactContractAtFuture;
 
   let exampleDeploymentState: DeploymentState;
 
@@ -153,6 +160,21 @@ describe("buildInitializeMessageFor", () => {
 
     staticCall.dependencies.add(anotherNamedContractDeployment);
     staticCall.dependencies.add(safeMathLibraryDeployment);
+
+    namedContractAt = new NamedContractAtFutureImplementation(
+      "MyModule:NamedContractAt",
+      fakeModule,
+      "NamedContractAt",
+      differentAddress
+    );
+
+    artifactContractAt = new ArtifactContractAtFutureImplementation(
+      "MyModule:ArtifactContractAt",
+      fakeModule,
+      "ArtifactContractAt",
+      differentAddress,
+      fakeArtifact
+    );
 
     exampleDeploymentState = deploymentStateReducer(undefined as any);
 
@@ -404,7 +426,7 @@ describe("buildInitializeMessageFor", () => {
         ) as CallExecutionStateInitializeMessage;
       });
 
-      it("should build an initialize message for a deployment", async () => {
+      it("should build an initialize message", async () => {
         assert.deepStrictEqual(message, {
           type: JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE,
           futureId: "MyModule:Call",
@@ -435,7 +457,7 @@ describe("buildInitializeMessageFor", () => {
         ) as StaticCallExecutionStateInitializeMessage;
       });
 
-      it("should build an initialize message for a deployment", async () => {
+      it("should build an initialize message", async () => {
         assert.deepStrictEqual(message, {
           type: JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE,
           futureId: "MyModule:StaticCall",
@@ -448,6 +470,66 @@ describe("buildInitializeMessageFor", () => {
           from: exampleAccounts[0],
         });
       });
+    });
+  });
+
+  describe("contract at state", () => {
+    let message: ContractAtExecutionStateInitializeMessage;
+
+    describe("named contract at", () => {
+      beforeEach(() => {
+        message = buildInitializeMessageFor(
+          namedContractAt,
+          basicStrategy,
+          exampleDeploymentState,
+          {},
+          exampleAccounts
+        ) as ContractAtExecutionStateInitializeMessage;
+      });
+
+      it("should build an initialize message", async () => {
+        assert.deepStrictEqual(message, {
+          type: JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE,
+          futureId: "MyModule:NamedContractAt",
+          futureType: FutureType.NAMED_CONTRACT_AT,
+          strategy: "basic",
+          dependencies: [],
+          artifactFutureId: "MyModule:NamedContractAt",
+          contractAddress: differentAddress,
+          contractName: "NamedContractAt",
+        });
+      });
+    });
+
+    describe("artifact contract at", () => {
+      beforeEach(() => {
+        message = buildInitializeMessageFor(
+          artifactContractAt,
+          basicStrategy,
+          exampleDeploymentState,
+          {},
+          exampleAccounts
+        ) as ContractAtExecutionStateInitializeMessage;
+      });
+
+      it("should build an initialize message", async () => {
+        assert.deepStrictEqual(message, {
+          type: JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE,
+          futureId: "MyModule:ArtifactContractAt",
+          futureType: FutureType.ARTIFACT_CONTRACT_AT,
+          strategy: "basic",
+          dependencies: [],
+          artifactFutureId: "MyModule:ArtifactContractAt",
+          contractAddress: differentAddress,
+          contractName: "ArtifactContractAt",
+        });
+      });
+
+      it.skip("should resolve address from module param", async () => {});
+      it.skip("should resolve address from deployment", async () => {});
+      it.skip("should resolve address from contractAt", async () => {});
+      it.skip("should resolve address from read event arg", async () => {});
+      it.skip("should resolve address from static call", async () => {});
     });
   });
 });

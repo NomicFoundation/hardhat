@@ -3,6 +3,7 @@ import { Future, FutureType } from "../../../../types/module";
 import { DeploymentState } from "../../types/deployment-state";
 import {
   CallExecutionStateInitializeMessage,
+  ContractAtExecutionStateInitializeMessage,
   DeploymentExecutionStateInitializeMessage,
   JournalMessage,
   JournalMessageType,
@@ -11,6 +12,7 @@ import {
 
 import {
   resolveAddressForContract,
+  resolveAddressForContractAtAddress,
   resolveArgs,
   resolveFutureFrom,
   resolveLibraries,
@@ -119,13 +121,26 @@ export function buildInitializeMessageFor(
 
       return namedStaticCallInit;
     }
-    case FutureType.NAMED_CONTRACT_AT: {
-      throw new Error("Not implemented yet: FutureType.NAMED_CONTRACT_AT case");
-    }
+    case FutureType.NAMED_CONTRACT_AT:
     case FutureType.ARTIFACT_CONTRACT_AT: {
-      throw new Error(
-        "Not implemented yet: FutureType.ARTIFACT_CONTRACT_AT case"
-      );
+      const contractAtInit: ContractAtExecutionStateInitializeMessage =
+        _extendBaseExecutionStateWith(
+          JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE,
+          future,
+          strategy,
+          {
+            futureType: future.type,
+            contractName: future.contractName,
+            contractAddress: resolveAddressForContractAtAddress(
+              future.address,
+              deploymentState,
+              deploymentParameters
+            ),
+            artifactFutureId: future.id,
+          }
+        );
+
+      return contractAtInit;
     }
     case FutureType.READ_EVENT_ARGUMENT: {
       throw new Error(

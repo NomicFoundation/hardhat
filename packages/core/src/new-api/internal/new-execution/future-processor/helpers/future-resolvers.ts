@@ -1,6 +1,14 @@
+import { isAddress } from "ethers";
+
+import { IgnitionError } from "../../../../../errors";
+import {
+  isFuture,
+  isModuleParameterRuntimeValue,
+} from "../../../../type-guards";
 import { DeploymentParameters } from "../../../../types/deployer";
 import {
   AccountRuntimeValue,
+  AddressResolvableFuture,
   ArgumentType,
   ContractFuture,
   ModuleParameterRuntimeValue,
@@ -10,6 +18,8 @@ import { assertIgnitionInvariant } from "../../../utils/assertions";
 import { replaceWithinArg } from "../../../utils/replace-within-arg";
 import { resolveModuleParameter } from "../../../utils/resolve-module-parameter";
 import { DeploymentState } from "../../types/deployment-state";
+import { ExecutionResultType } from "../../types/execution-result";
+import { ExecutionSateType } from "../../types/execution-state";
 import { findAddressForContractFuture } from "../../views/find-address-for-contract-future-by-id";
 import { findResultForFutureById } from "../../views/find-result-for-future-by-id";
 
@@ -118,4 +128,88 @@ export function resolveAddressForContract(
   deploymentState: DeploymentState
 ): string {
   return findAddressForContractFuture(deploymentState, contract.id);
+}
+
+export function resolveAddressForContractAtAddress(
+  contractAtAddress:
+    | string
+    | AddressResolvableFuture
+    | ModuleParameterRuntimeValue<string>,
+  deploymentState: DeploymentState,
+  deploymentParameters: DeploymentParameters
+): string {
+  if (typeof contractAtAddress === "string") {
+    return contractAtAddress;
+  } else if (isModuleParameterRuntimeValue(contractAtAddress)) {
+    const addressFromParam = resolveModuleParameter(contractAtAddress, {
+      deploymentParameters,
+    });
+
+    assertIgnitionInvariant(
+      typeof addressFromParam === "string",
+      "Module parameter used as address must be a string"
+    );
+
+    return addressFromParam;
+  } else if (isFuture(contractAtAddress)) {
+    const exState = deploymentState.executionStates[contractAtAddress.id];
+
+    if (exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE) {
+      assertIgnitionInvariant(
+        exState.result !== undefined &&
+          exState.result.type === ExecutionResultType.SUCCESS,
+        `Internal error - dependency ${contractAtAddress.id} does not have a successful deployment result`
+      );
+
+      return exState.result.address;
+    } else if (exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE) {
+      const contractAddress = exState.contractAddress;
+
+      assertIgnitionInvariant(
+        contractAddress !== undefined,
+        `Internal error - dependency ${contractAtAddress.id} used before it's resolved`
+      );
+
+      assertIgnitionInvariant(
+        typeof contractAddress === "string" && isAddress(contractAddress),
+        `Future '${contractAtAddress.id}' must be a valid address`
+      );
+
+      return contractAddress;
+    } else if (
+      exState.type === ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE
+    ) {
+      const contractAddress = exState.result;
+
+      assertIgnitionInvariant(
+        typeof contractAddress === "string" && isAddress(contractAddress),
+        `Future '${contractAtAddress.id}' must be a valid address`
+      );
+
+      return contractAddress;
+    } else if (exState.type === ExecutionSateType.STATIC_CALL_EXECUTION_STATE) {
+      assertIgnitionInvariant(
+        exState.result !== undefined &&
+          exState.result.type === ExecutionResultType.SUCCESS,
+        `Internal error - dependency ${contractAtAddress.id} does not have a successful static call result`
+      );
+
+      const contractAddress = exState.result.value;
+
+      assertIgnitionInvariant(
+        typeof contractAddress === "string" && isAddress(contractAddress),
+        `Future '${contractAtAddress.id}' must be a valid address`
+      );
+
+      return contractAddress;
+    } else {
+      throw new IgnitionError(
+        `Cannot resolve address of ${contractAtAddress.id}, not an allowed future type ${contractAtAddress.type}`
+      );
+    }
+  } else {
+    throw new IgnitionError(
+      `Unable to resolve address of ${JSON.stringify(contractAtAddress)}`
+    );
+  }
 }
