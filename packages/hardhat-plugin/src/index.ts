@@ -1,4 +1,9 @@
-import { deploy, DeploymentParameters, wipe } from "@ignored/ignition-core";
+import {
+  deploy,
+  DeploymentParameters,
+  plan,
+  wipe,
+} from "@ignored/ignition-core";
 import "@nomiclabs/hardhat-ethers";
 import { existsSync, readdirSync, readJSONSync } from "fs-extra";
 import { extendConfig, extendEnvironment, task } from "hardhat/config";
@@ -216,19 +221,20 @@ task("plan")
         })
       );
 
-      // const artifactResolver = new HardhatArtifactResolver(hre);
-      // todo: validation
+      const artifactResolver = new HardhatArtifactResolver(hre);
 
-      await writePlan(
-        {
+      const serializedModule = await plan({
+        artifactResolver,
+        storedDeployment: {
           details: {
             networkName: hre.network.name,
             chainId,
           },
           module: userModule,
         },
-        { cacheDir: hre.config.paths.cache }
-      );
+      });
+
+      await writePlan(serializedModule, { cacheDir: hre.config.paths.cache });
 
       if (!quiet) {
         const indexFile = path.join(

@@ -1,4 +1,10 @@
-import { IgnitionModule, SerializedStoredDeployment } from "../ui-helpers";
+import {
+  SerializedStoredDeployment,
+  StoredDeployment,
+  StoredDeploymentSerializer,
+} from "../ui-helpers";
+
+import { validateStageOne } from "./internal/validation/validateStageOne";
 import { ArtifactResolver } from "./types/artifact";
 
 /**
@@ -6,13 +12,14 @@ import { ArtifactResolver } from "./types/artifact";
  *
  * @beta
  */
-// @ts-ignore
 export async function plan({
   artifactResolver,
-  moduleDefinition,
-  verbose,
+  storedDeployment,
 }: {
   artifactResolver: ArtifactResolver;
-  moduleDefinition: IgnitionModule;
-  verbose: boolean;
-}): Promise<SerializedStoredDeployment>;
+  storedDeployment: StoredDeployment;
+}): Promise<SerializedStoredDeployment> {
+  await validateStageOne(storedDeployment.module, artifactResolver);
+
+  return StoredDeploymentSerializer.serialize(storedDeployment);
+}
