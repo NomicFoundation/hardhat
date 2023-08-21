@@ -212,6 +212,11 @@ export type StaticCallStrategyGenerator = AsyncGenerator<
  */
 export interface ExecutionStrategy {
   /**
+   * The name of the strategy as will be recorded in the journal.
+   */
+  name: string;
+
+  /**
    * Executes a deployment execution state.
    */
   executeDeployment: (

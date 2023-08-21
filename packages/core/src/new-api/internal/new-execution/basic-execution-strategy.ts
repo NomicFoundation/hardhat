@@ -14,11 +14,11 @@ import {
   StaticCallExecutionState,
 } from "./types/execution-state";
 import {
-  OnchainInteractionResponseType,
-  LoadArtifactFunction,
-  ExecutionStrategy,
-  DeploymentStrategyGenerator,
   CallStrategyGenerator,
+  DeploymentStrategyGenerator,
+  ExecutionStrategy,
+  LoadArtifactFunction,
+  OnchainInteractionResponseType,
   SendDataStrategyGenerator,
   StaticCallStrategyGenerator,
 } from "./types/execution-strategy";
@@ -30,6 +30,8 @@ import { NetworkInteractionType } from "./types/network-interaction";
  * per static call execution.
  */
 export class BasicExecutionStrategy implements ExecutionStrategy {
+  public readonly name: string = "basic";
+
   constructor(
     private readonly _fallbackSender: string,
     private readonly _loadArtifact: LoadArtifactFunction

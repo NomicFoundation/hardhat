@@ -1,11 +1,22 @@
-import { Future, FutureType } from "../../../../types/module";
+import { DeploymentParameters } from "../../../../types/deployer";
+import {
+  Future,
+  FutureType,
+  ModuleParameterRuntimeValue,
+} from "../../../../types/module";
+import { assertIgnitionInvariant } from "../../../utils/assertions";
+import { resolveModuleParameter } from "../../../utils/resolve-module-parameter";
 import {
   DeploymentExecutionStateInitializeMessage,
   JournalMessage,
   JournalMessageType,
 } from "../../types/messages";
 
-export function buildInitializeMessageFor(future: Future): JournalMessage {
+export function buildInitializeMessageFor(
+  future: Future,
+  strategy: { name: string },
+  deploymentParameters: DeploymentParameters
+): JournalMessage {
   switch (future.type) {
     case FutureType.NAMED_CONTRACT_DEPLOYMENT: {
       const namedContractInitMessage: DeploymentExecutionStateInitializeMessage =
@@ -13,13 +24,13 @@ export function buildInitializeMessageFor(future: Future): JournalMessage {
           type: JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE,
           futureId: future.id,
           futureType: future.type,
-          strategy: "basic",
-          dependencies: [],
+          strategy: strategy.name,
+          dependencies: [...future.dependencies].map((f) => f.id),
           artifactFutureId: future.id,
           contractName: future.contractName,
           constructorArgs: [],
           libraries: {},
-          value: BigInt(0),
+          value: _resolveValue(future.value, deploymentParameters),
           from: future.from as string,
         };
 
@@ -65,4 +76,24 @@ export function buildInitializeMessageFor(future: Future): JournalMessage {
       throw new Error("Not implemented yet: FutureType.SEND_DATA case");
     }
   }
+}
+
+function _resolveValue(
+  givenValue: bigint | ModuleParameterRuntimeValue<bigint>,
+  deploymentParameters: DeploymentParameters
+): bigint {
+  if (typeof givenValue === "bigint") {
+    return givenValue;
+  }
+
+  const moduleParam = resolveModuleParameter(givenValue, {
+    deploymentParameters,
+  });
+
+  assertIgnitionInvariant(
+    typeof moduleParam === "bigint",
+    "Module parameter used as value must be a bigint"
+  );
+
+  return moduleParam;
 }
