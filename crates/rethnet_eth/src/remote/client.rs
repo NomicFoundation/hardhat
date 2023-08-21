@@ -1,18 +1,21 @@
+use std::collections::VecDeque;
 use std::path::{Path, PathBuf};
 use std::{
     io,
     sync::atomic::{AtomicU64, Ordering},
 };
 
-use itertools::Itertools;
+use bytes::Bytes;
+use itertools::{izip, Itertools};
 use revm_primitives::{AccountInfo, Address, Bytecode, B256, KECCAK_EMPTY, U256};
+use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
 use sha3::digest::FixedOutput;
 use sha3::{Digest, Sha3_256};
 use tokio::sync::OnceCell;
 
-use crate::remote::cacheable_method_invocation::{
-    CacheKey, CacheableMethodInvocation, CacheableMethodInvocations,
-};
+use crate::remote::cacheable_method_invocation::{CacheKey, CacheableMethodInvocation};
+use crate::remote::jsonrpc::Id;
 use crate::{log::FilterLog, receipt::BlockReceipt, serde::ZeroXPrefixedBytes};
 
 use super::{
@@ -38,6 +41,10 @@ pub enum RpcClientError {
     #[error("The Http server returned error status code: {0}")]
     HttpStatus(reqwest::Error),
 
+    /// The request cannot be serialized as JSON.
+    #[error(transparent)]
+    InvalidJsonRequest(serde_json::Error),
+
     /// The server returned an invalid JSON-RPC response.
     #[error("Response '{response}' failed to parse with expected type '{expected_type}', due to error: '{error}'")]
     InvalidResponse {
@@ -47,6 +54,24 @@ pub enum RpcClientError {
         expected_type: &'static str,
         /// The parse error
         error: serde_json::Error,
+    },
+
+    /// The server returned an invalid JSON-RPC id.
+    #[error("The server returned an invalid id: '{id:?}' in response: '{response}'")]
+    InvalidId {
+        /// The response text
+        response: String,
+        /// The invalid id
+        id: Id,
+    },
+
+    /// A response is missing from a batch request.
+    #[error("Missing response for method: '{method_invocation:?}' for request id: '{id:?}' in batch request")]
+    MissingResponse {
+        /// The method invocation for which the response is missing.
+        method_invocation: MethodInvocation,
+        /// The id of the request iwth the missing response
+        id: Id,
     },
 
     /// The JSON-RPC returned an error.
@@ -59,17 +84,30 @@ pub enum RpcClientError {
     },
 
     /// There was a problem with the local cache.
-    #[error("{message} with error: '{error}'")]
+    #[error("{message} for '{cache_key}' with error: '{error}'")]
     CacheError {
         /// Description of the cache error
         message: String,
+        /// The cache key for the error
+        cache_key: String,
         /// The underlying error
-        error: io::Error,
+        error: CacheError,
     },
 }
 
+/// Wrapper for IO and JSON errors specific to the cache.
+#[derive(thiserror::Error, Debug)]
+pub enum CacheError {
+    /// An IO error
+    #[error(transparent)]
+    Io(#[from] io::Error),
+    /// A JSON parsing error
+    #[error(transparent)]
+    Json(#[from] serde_json::Error),
+}
+
 /// a JSON-RPC method invocation request
-#[derive(serde::Deserialize, serde::Serialize)]
+#[derive(Deserialize, Serialize)]
 pub struct Request<MethodInvocation> {
     /// JSON-RPC version
     #[serde(rename = "jsonrpc")]
@@ -78,13 +116,7 @@ pub struct Request<MethodInvocation> {
     #[serde(flatten)]
     pub method: MethodInvocation,
     /// the request ID, to be correlated via the response's ID
-    pub id: jsonrpc::Id,
-}
-
-#[derive(Debug)]
-struct BatchResponse {
-    text: String,
-    request_strings: Vec<String>,
+    pub id: Id,
 }
 
 /// A client for executing RPC methods on a remote Ethereum node.
@@ -99,28 +131,36 @@ pub struct RpcClient {
 }
 
 impl RpcClient {
-    fn extract_response<T>(
+    fn parse_response_str<T: DeserializeOwned>(response: &str) -> Result<T, RpcClientError> {
+        serde_json::from_str(response).map_err(|error| RpcClientError::InvalidResponse {
+            response: response.to_string(),
+            expected_type: std::any::type_name::<T>(),
+            error,
+        })
+    }
+
+    fn parse_response_value<T: DeserializeOwned>(
+        response: serde_json::Value,
+    ) -> Result<T, RpcClientError> {
+        serde_json::from_value(response.clone()).map_err(|error| RpcClientError::InvalidResponse {
+            response: response.to_string(),
+            expected_type: std::any::type_name::<T>(),
+            error,
+        })
+    }
+
+    fn extract_result<T: DeserializeOwned>(
         request: SerializedRequest,
         response: String,
-    ) -> Result<T, RpcClientError>
-    where
-        T: for<'a> serde::Deserialize<'a>,
-    {
-        let response: jsonrpc::Response<T> =
-            serde_json::from_str(&response).map_err(|error| RpcClientError::InvalidResponse {
-                response,
-                expected_type: std::any::type_name::<T>(),
-                error,
-            })?;
-
-        debug_assert_eq!(response.id, request.id);
+    ) -> Result<T, RpcClientError> {
+        let response: jsonrpc::Response<T> = Self::parse_response_str(&response)?;
 
         response
             .data
             .into_result()
             .map_err(|error| RpcClientError::JsonRpcError {
                 error,
-                request: request.request,
+                request: request.to_json_string(),
             })
     }
 
@@ -131,6 +171,9 @@ impl RpcClient {
 
     async fn make_cache_path(&self, cache_key: &CacheKey) -> Result<PathBuf, RpcClientError> {
         let chain_id = self.chain_id().await?;
+
+        // TODO We should use a human readable name for the chain id as directory name once
+        // available.
         let directory = self
             .rpc_cache_dir
             .join(Self::hash_bytes(chain_id.as_le_bytes().as_ref()));
@@ -141,28 +184,68 @@ impl RpcClient {
             .create(directory.clone())
             .await
             .map_err(|error| RpcClientError::CacheError {
-                message: "failed to create on-disk RPC response cache".to_string(),
-                error,
+                message: "failed to create RPC response cache".to_string(),
+                cache_key: cache_key.to_string(),
+                error: error.into(),
             })?;
 
         let path = Path::new(&directory).join(format!("{}.json", cache_key));
         Ok(path)
     }
 
+    /// Don't fail the request, just log an error if we fail to read from cache.
+    fn log_cache_error(cache_key: CacheKey, message: &'static str, error: impl Into<CacheError>) {
+        let cache_error = RpcClientError::CacheError {
+            message: message.to_string(),
+            cache_key: cache_key.to_string(),
+            error: error.into(),
+        };
+        log::error!("{cache_error}");
+    }
+
     async fn read_response_from_cache(
         &self,
         cache_key: &CacheKey,
-    ) -> Result<Option<String>, RpcClientError> {
+    ) -> Result<Option<serde_json::Value>, RpcClientError> {
         let path = self.make_cache_path(cache_key).await?;
         match tokio::fs::read_to_string(path).await {
-            Ok(response) => Ok(Some(response)),
+            Ok(contents) => match serde_json::from_str(&contents) {
+                Ok(value) => Ok(Some(value)),
+                Err(error) => {
+                    Self::log_cache_error(
+                        cache_key.clone(),
+                        "failed to deserialize item from RPC response cache",
+                        error,
+                    );
+                    self.remove_from_cache(cache_key).await?;
+                    Ok(None)
+                }
+            },
             Err(error) => {
-                let cache_error = RpcClientError::CacheError {
-                    message: "failed to read from on-disk RPC response cache".to_string(),
-                    error,
-                };
-                log::error!("{cache_error}");
+                match error.kind() {
+                    io::ErrorKind::NotFound => (),
+                    _ => Self::log_cache_error(
+                        cache_key.clone(),
+                        "failed to read from RPC response cache",
+                        error,
+                    ),
+                }
                 Ok(None)
+            }
+        }
+    }
+
+    async fn remove_from_cache(&self, cache_key: &CacheKey) -> Result<(), RpcClientError> {
+        let path = self.make_cache_path(cache_key).await?;
+        match tokio::fs::remove_file(path).await {
+            Ok(_) => Ok(()),
+            Err(error) => {
+                Self::log_cache_error(
+                    cache_key.clone(),
+                    "failed to remove from RPC response cache",
+                    error,
+                );
+                Ok(())
             }
         }
     }
@@ -170,7 +253,7 @@ impl RpcClient {
     async fn try_from_cache(
         &self,
         cache_key: Option<&CacheKey>,
-    ) -> Result<Option<String>, RpcClientError> {
+    ) -> Result<Option<serde_json::Value>, RpcClientError> {
         if let Some(cache_key) = cache_key {
             self.read_response_from_cache(cache_key).await
         } else {
@@ -181,41 +264,32 @@ impl RpcClient {
     async fn write_response_to_cache(
         &self,
         cache_key: &CacheKey,
-        response: &str,
+        result: impl Serialize,
     ) -> Result<(), RpcClientError> {
         let cache_path = self.make_cache_path(cache_key).await?;
-        tokio::fs::write(cache_path, response.as_bytes())
-            .await
-            .map_err(|error| RpcClientError::CacheError {
-                message: "failed to write to on-disk RPC response cache".to_string(),
-                error,
-            })?;
+        let contents = serde_json::to_string(&result).expect(
+            "result serializes successfully as it was just deserialized from a JSON string",
+        );
+        match tokio::fs::write(cache_path, contents).await {
+            Ok(_) => (),
+            Err(error) => {
+                Self::log_cache_error(
+                    cache_key.clone(),
+                    "failed to write to RPC response cache",
+                    error,
+                );
+            }
+        }
         Ok(())
     }
 
-    /// returns response text
-    async fn send_request_body_with_cache(
+    async fn send_request_body(
         &self,
-        request_body: &str,
-        cache_key: Option<CacheKey>,
+        request_body: &SerializedRequest,
     ) -> Result<String, RpcClientError> {
-        if let Some(cached_response) = self.try_from_cache(cache_key.as_ref()).await? {
-            Ok(cached_response)
-        } else {
-            let response = self.send_request_body(request_body).await?;
-
-            if let Some(cache_key) = cache_key {
-                self.write_response_to_cache(&cache_key, &response).await?;
-            }
-
-            Ok(response)
-        }
-    }
-
-    async fn send_request_body(&self, request_body: &str) -> Result<String, RpcClientError> {
         self.client
             .post(self.url.clone())
-            .body(request_body.to_owned())
+            .body(request_body.to_json_string())
             .send()
             .await
             .map_err(RpcClientError::FailedToSend)?
@@ -226,67 +300,148 @@ impl RpcClient {
             .map_err(RpcClientError::CorruptedResponse)
     }
 
-    fn serialize_request(&self, input: &MethodInvocation) -> SerializedRequest {
-        let id = jsonrpc::Id::Num(self.next_id.fetch_add(1, Ordering::Relaxed));
-        let request = serde_json::json!(Request {
-            version: crate::remote::jsonrpc::Version::V2_0,
-            id: id.clone(),
-            method: input.clone(),
-        })
-        .to_string();
-
-        SerializedRequest { id, request }
+    fn get_ids(&self, count: u64) -> Vec<Id> {
+        let start = self.next_id.fetch_add(count, Ordering::Relaxed);
+        let end = start + count;
+        (start..end).map(Id::Num).collect()
     }
 
-    async fn call<T>(&self, input: &MethodInvocation) -> Result<T, RpcClientError>
-    where
-        T: for<'a> serde::Deserialize<'a>,
-    {
-        let cache_key = CacheableMethodInvocation::try_from(input)
+    fn serialize_request(
+        &self,
+        input: MethodInvocation,
+    ) -> Result<SerializedRequest, RpcClientError> {
+        let id = Id::Num(self.next_id.fetch_add(1, Ordering::Relaxed));
+        Self::serialize_request_with_id(input, id)
+    }
+
+    fn serialize_request_with_id(
+        method: MethodInvocation,
+        id: Id,
+    ) -> Result<SerializedRequest, RpcClientError> {
+        let request = serde_json::to_value(&Request {
+            version: jsonrpc::Version::V2_0,
+            id,
+            method,
+        })
+        .map_err(RpcClientError::InvalidJsonRequest)?;
+
+        Ok(SerializedRequest(request))
+    }
+
+    async fn call<T: DeserializeOwned + Serialize>(
+        &self,
+        method_invocation: MethodInvocation,
+    ) -> Result<T, RpcClientError> {
+        let cache_key = CacheableMethodInvocation::try_from(&method_invocation)
             .ok()
             .and_then(|v| v.cache_key());
 
-        let request = self.serialize_request(input);
+        let request = self.serialize_request(method_invocation)?;
 
-        self.send_request_body_with_cache(&request.request, cache_key)
-            .await
-            .and_then(|response| Self::extract_response(request, response))
+        let result = if let Some(cached_response) = self.try_from_cache(cache_key.as_ref()).await? {
+            serde_json::from_value(cached_response).expect("cache item matches return type")
+        } else {
+            let result: T = self
+                .send_request_body(&request)
+                .await
+                .and_then(|response| Self::extract_result(request, response))?;
+
+            if let Some(cache_key) = cache_key {
+                self.write_response_to_cache(&cache_key, &result).await?;
+            }
+
+            result
+        };
+        Ok(result)
     }
 
     // We have two different `call` methods to avoid creating recursive async functions as the
     // cached path calls `eth_chainId` without caching.
-    async fn call_without_cache<T>(&self, input: &MethodInvocation) -> Result<T, RpcClientError>
-    where
-        T: for<'a> serde::Deserialize<'a>,
-    {
-        let request = self.serialize_request(input);
+    async fn call_without_cache<T: DeserializeOwned>(
+        &self,
+        method_invocation: MethodInvocation,
+    ) -> Result<T, RpcClientError> {
+        let request = self.serialize_request(method_invocation)?;
 
-        self.send_request_body(&request.request)
+        self.send_request_body(&request)
             .await
-            .and_then(|response| Self::extract_response(request, response))
+            .and_then(|response| Self::extract_result(request, response))
     }
 
+    /// Returns the results of the given method invocations.
     async fn batch_call(
         &self,
-        inputs: &[MethodInvocation],
-    ) -> Result<BatchResponse, RpcClientError> {
-        let cache_key = CacheableMethodInvocations::try_from(inputs)
-            .ok()
-            .and_then(|v| v.cache_key());
+        method_invocations: &[MethodInvocation],
+    ) -> Result<VecDeque<serde_json::Value>, RpcClientError> {
+        let ids = self.get_ids(method_invocations.len() as u64);
 
-        let request_strings: Vec<String> = inputs
+        let cache_keys = method_invocations
             .iter()
-            .map(|i| self.serialize_request(i).request)
-            .collect();
-
-        let request_body = format!("[{}]", request_strings.join(","));
-
-        self.send_request_body_with_cache(&request_body, cache_key)
-            .await
-            .map(|response| BatchResponse {
-                text: response,
-                request_strings,
+            .map(|m| {
+                CacheableMethodInvocation::try_from(m)
+                    .ok()
+                    .and_then(|v| v.cache_key())
             })
+            .collect::<Vec<_>>();
+
+        let mut results: Vec<Option<serde_json::Value>> =
+            Vec::with_capacity(method_invocations.len());
+        for cache_key in cache_keys.iter() {
+            let result = self.try_from_cache(cache_key.as_ref()).await?;
+            results.push(result)
+        }
+
+        let mut requests: Vec<SerializedRequest> = Vec::new();
+        for (id, method_invocation, cache_response) in izip!(&ids, method_invocations, &results) {
+            if cache_response.is_none() {
+                let request =
+                    Self::serialize_request_with_id(method_invocation.clone(), id.clone())?;
+                requests.push(request);
+            }
+        }
+
+        let request_body = SerializedRequest(
+            serde_json::to_value(&requests).map_err(RpcClientError::InvalidJsonRequest)?,
+        );
+        let remote_response = self.send_request_body(&request_body).await?;
+        let remote_responses: Vec<jsonrpc::Response<serde_json::Value>> =
+            Self::parse_response_str(&remote_response)?;
+
+        for response in remote_responses {
+            let index = ids
+                .iter()
+                .position(|id| id == &response.id)
+                .ok_or_else(|| RpcClientError::InvalidId {
+                    response: remote_response.clone(),
+                    id: response.id,
+                })?;
+
+            let result =
+                response
+                    .data
+                    .into_result()
+                    .map_err(|error| RpcClientError::JsonRpcError {
+                        error,
+                        request: request_body.to_json_string(),
+                    })?;
+
+            if let Some(cache_key) = cache_keys[index].as_ref() {
+                self.write_response_to_cache(cache_key, &result).await?;
+            }
+
+            results[index] = Some(result);
+        }
+
+        results
+            .into_iter()
+            .enumerate()
+            .map(|(index, result)| {
+                result.ok_or_else(|| RpcClientError::MissingResponse {
+                    method_invocation: method_invocations[index].clone(),
+                    id: ids[index].clone(),
+                })
+            })
+            .collect()
     }
 
     /// Create a new instance, given a remote node URL.
@@ -303,7 +458,7 @@ impl RpcClient {
 
     /// Calls `eth_blockNumber` and returns the block number.
     pub async fn block_number(&self) -> Result<U256, RpcClientError> {
-        self.call(&MethodInvocation::BlockNumber()).await
+        self.call(MethodInvocation::BlockNumber()).await
     }
 
     /// Calls `eth_chainId` and returns the chain ID.
@@ -311,7 +466,7 @@ impl RpcClient {
         let chain_id = *self
             .chain_id
             .get_or_try_init(|| async {
-                self.call_without_cache(&MethodInvocation::ChainId()).await
+                self.call_without_cache(MethodInvocation::ChainId()).await
             })
             .await?;
         Ok(chain_id)
@@ -324,114 +479,26 @@ impl RpcClient {
         address: &Address,
         block: Option<BlockSpec>,
     ) -> Result<AccountInfo, RpcClientError> {
-        let inputs = Vec::from([
+        let inputs = &[
             MethodInvocation::GetBalance(*address, block.clone()),
             MethodInvocation::GetTransactionCount(*address, block.clone()),
             MethodInvocation::GetCode(*address, block),
-        ]);
+        ];
 
-        let response = self.batch_call(&inputs).await?;
-
-        let responses: Vec<serde_json::Value> = serde_json::from_str(&response.text)
-            .unwrap_or_else(|error| {
-                panic!("Batch response `{response:?}` failed to parse due to error: {error}")
-            });
-
-        let response_ids: Vec<u64> = responses
-            .iter()
-            .map(|value| {
-                value
-                    .get("id")
-                    .expect("Response must have ID")
-                    .as_u64()
-                    .expect("Response ID must be a `u64`")
-            })
-            .collect();
-
-        let (balance_response, nonce_response, code_response) = responses
+        let responses = self.batch_call(inputs).await?;
+        let (balance, nonce, code) = responses
             .into_iter()
-            .zip(response_ids.into_iter())
-            .sorted_by(|(_, id1), (_, id2)| id1.cmp(id2))
-            .map(|(response, _)| response)
-            .tuples()
-            .next()
-            .unwrap_or_else(|| {
-                panic!(
-                    "Batch response must contain 3 elements. Response: {}",
-                    response.text.clone(),
-                )
-            });
+            .collect_tuple()
+            .expect("batch call checks responses");
 
-        let (balance_request, nonce_request, code_request) = response
-            .request_strings
-            .into_iter()
-            .tuples()
-            .next()
-            .expect("request strings must contain 3 elements");
-
-        let balance = serde_json::from_value::<jsonrpc::Response<U256>>(balance_response)
-            .map_err(|err| {
-                panic!(
-                    "Failed to deserialize balance due to error: {:?}. Response: {}",
-                    err,
-                    response.text.clone()
-                )
-            })
-            .and_then(|response| {
-                response
-                    .data
-                    .into_result()
-                    .map_err(|error| RpcClientError::JsonRpcError {
-                        error,
-                        request: balance_request,
-                    })
-            })?;
-
-        let nonce = serde_json::from_value::<jsonrpc::Response<U256>>(nonce_response)
-            .map_err(|err| {
-                panic!(
-                    "Failed to deserialize nonce due to error: {:?}. Response: {}",
-                    err,
-                    response.text.clone()
-                )
-            })
-            .and_then(|response| {
-                response.data.into_result().map_or_else(
-                    |error| {
-                        Err(RpcClientError::JsonRpcError {
-                            error,
-                            request: nonce_request,
-                        })
-                    },
-                    |nonce| Ok(nonce.to()),
-                )
-            })?;
-
-        let code = serde_json::from_value::<jsonrpc::Response<ZeroXPrefixedBytes>>(code_response)
-            .map_err(|err| {
-                panic!(
-                    "Failed to deserialize code due to error: {:?}. Response: {}",
-                    err,
-                    response.text.clone(),
-                )
-            })
-            .and_then(|response| {
-                response.data.into_result().map_or_else(
-                    |error| {
-                        Err(RpcClientError::JsonRpcError {
-                            error,
-                            request: code_request,
-                        })
-                    },
-                    |bytes| {
-                        Ok(if bytes.is_empty() {
-                            None
-                        } else {
-                            Some(Bytecode::new_raw(bytes.into()))
-                        })
-                    },
-                )
-            })?;
+        let balance = Self::parse_response_value::<U256>(balance)?;
+        let nonce: u64 = Self::parse_response_value::<U256>(nonce)?.to();
+        let code: Bytes = Self::parse_response_value::<ZeroXPrefixedBytes>(code)?.into();
+        let code = if code.is_empty() {
+            None
+        } else {
+            Some(Bytecode::new_raw(code))
+        };
 
         Ok(AccountInfo {
             balance,
@@ -446,7 +513,7 @@ impl RpcClient {
         &self,
         hash: &B256,
     ) -> Result<Option<eth::Block<B256>>, RpcClientError> {
-        self.call(&MethodInvocation::GetBlockByHash(*hash, false))
+        self.call(MethodInvocation::GetBlockByHash(*hash, false))
             .await
     }
 
@@ -455,7 +522,7 @@ impl RpcClient {
         &self,
         hash: &B256,
     ) -> Result<Option<eth::Block<eth::Transaction>>, RpcClientError> {
-        self.call(&MethodInvocation::GetBlockByHash(*hash, true))
+        self.call(MethodInvocation::GetBlockByHash(*hash, true))
             .await
     }
 
@@ -464,7 +531,7 @@ impl RpcClient {
         &self,
         spec: BlockSpec,
     ) -> Result<eth::Block<B256>, RpcClientError> {
-        self.call(&MethodInvocation::GetBlockByNumber(spec, false))
+        self.call(MethodInvocation::GetBlockByNumber(spec, false))
             .await
     }
 
@@ -473,7 +540,7 @@ impl RpcClient {
         &self,
         spec: BlockSpec,
     ) -> Result<eth::Block<eth::Transaction>, RpcClientError> {
-        self.call(&MethodInvocation::GetBlockByNumber(spec, true))
+        self.call(MethodInvocation::GetBlockByNumber(spec, true))
             .await
     }
 
@@ -484,7 +551,7 @@ impl RpcClient {
         to_block: BlockSpec,
         address: &Address,
     ) -> Result<Vec<FilterLog>, RpcClientError> {
-        self.call(&MethodInvocation::GetLogs(GetLogsInput {
+        self.call(MethodInvocation::GetLogs(GetLogsInput {
             from_block,
             to_block,
             address: *address,
@@ -497,7 +564,7 @@ impl RpcClient {
         &self,
         tx_hash: &B256,
     ) -> Result<Option<eth::Transaction>, RpcClientError> {
-        self.call(&MethodInvocation::GetTransactionByHash(*tx_hash))
+        self.call(MethodInvocation::GetTransactionByHash(*tx_hash))
             .await
     }
 
@@ -507,7 +574,7 @@ impl RpcClient {
         address: &Address,
         block: Option<BlockSpec>,
     ) -> Result<U256, RpcClientError> {
-        self.call(&MethodInvocation::GetTransactionCount(*address, block))
+        self.call(MethodInvocation::GetTransactionCount(*address, block))
             .await
     }
 
@@ -516,7 +583,7 @@ impl RpcClient {
         &self,
         tx_hash: &B256,
     ) -> Result<Option<BlockReceipt>, RpcClientError> {
-        self.call(&MethodInvocation::GetTransactionReceipt(*tx_hash))
+        self.call(MethodInvocation::GetTransactionReceipt(*tx_hash))
             .await
     }
 
@@ -527,20 +594,25 @@ impl RpcClient {
         position: U256,
         block: Option<BlockSpec>,
     ) -> Result<U256, RpcClientError> {
-        self.call(&MethodInvocation::GetStorageAt(*address, position, block))
+        self.call(MethodInvocation::GetStorageAt(*address, position, block))
             .await
     }
 
     /// Calls `net_version`.
     pub async fn network_id(&self) -> Result<U256, RpcClientError> {
-        self.call(&MethodInvocation::NetVersion()).await
+        self.call(MethodInvocation::NetVersion()).await
     }
 }
 
-#[derive(Debug)]
-struct SerializedRequest {
-    id: jsonrpc::Id,
-    request: String,
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[repr(transparent)]
+#[serde(transparent)]
+struct SerializedRequest(serde_json::Value);
+
+impl SerializedRequest {
+    fn to_json_string(&self) -> String {
+        self.0.to_string()
+    }
 }
 
 #[cfg(test)]
@@ -598,7 +670,7 @@ mod tests {
                 .expect("failed to parse hash from string");
 
         let error = TestRpcClient::new(&server.url())
-            .call::<Option<eth::Transaction>>(&MethodInvocation::GetTransactionByHash(hash))
+            .call::<Option<eth::Transaction>>(MethodInvocation::GetTransactionByHash(hash))
             .await
             .expect_err("should have failed to interpret response as a Transaction");
 
@@ -617,6 +689,7 @@ mod tests {
     #[cfg(feature = "test-remote")]
     mod alchemy {
         use rethnet_test_utils::env::{get_alchemy_url, get_infura_url};
+        use std::fs::File;
 
         use crate::Bytes;
 
@@ -657,7 +730,7 @@ mod tests {
             .expect("failed to parse hash from string");
 
             let error = TestRpcClient::new(alchemy_url)
-                .call::<Option<eth::Transaction>>(&MethodInvocation::GetTransactionByHash(hash))
+                .call::<Option<eth::Transaction>>(MethodInvocation::GetTransactionByHash(hash))
                 .await
                 .expect_err("should have failed to interpret response as a Transaction");
 
@@ -678,7 +751,7 @@ mod tests {
             .expect("failed to parse hash from string");
 
             let error = TestRpcClient::new(alchemy_url)
-                .call::<Option<eth::Transaction>>(&MethodInvocation::GetTransactionByHash(hash))
+                .call::<Option<eth::Transaction>>(MethodInvocation::GetTransactionByHash(hash))
                 .await
                 .expect_err("should have failed to connect due to a garbage domain name");
 
@@ -700,6 +773,71 @@ mod tests {
                 .get_account_info(&dai_address, Some(BlockSpec::Number(U256::from(16220843))))
                 .await
                 .expect("should have succeeded");
+
+            assert_eq!(account_info.balance, U256::ZERO);
+            assert_eq!(account_info.nonce, 1);
+            assert_ne!(account_info.code_hash, KECCAK_EMPTY);
+            assert!(account_info.code.is_some());
+        }
+
+        #[tokio::test]
+        async fn get_account_info_works_from_cache() {
+            let alchemy_url = get_alchemy_url();
+            let client = TestRpcClient::new(&alchemy_url);
+
+            let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
+                .expect("failed to parse address");
+            let block_spec = BlockSpec::Number(U256::from(16220843));
+
+            assert_eq!(client.files_in_cache().len(), 0);
+
+            // Populate cache
+            client
+                .get_account_info(&dai_address, Some(block_spec.clone()))
+                .await
+                .expect("should have succeeded");
+
+            assert_eq!(client.files_in_cache().len(), 3);
+
+            // Returned from cache
+            let account_info = client
+                .get_account_info(&dai_address, Some(block_spec))
+                .await
+                .expect("should have succeeded");
+
+            assert_eq!(client.files_in_cache().len(), 3);
+
+            assert_eq!(account_info.balance, U256::ZERO);
+            assert_eq!(account_info.nonce, 1);
+            assert_ne!(account_info.code_hash, KECCAK_EMPTY);
+            assert!(account_info.code.is_some());
+        }
+
+        #[tokio::test]
+        async fn get_account_info_works_with_partial_cache() {
+            let alchemy_url = get_alchemy_url();
+            let client = TestRpcClient::new(&alchemy_url);
+
+            let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
+                .expect("failed to parse address");
+            let block_spec = BlockSpec::Number(U256::from(16220843));
+
+            assert_eq!(client.files_in_cache().len(), 0);
+
+            // Populate cache
+            client
+                .get_transaction_count(&dai_address, Some(block_spec.clone()))
+                .await
+                .expect("should have succeeded");
+
+            assert_eq!(client.files_in_cache().len(), 1);
+
+            let account_info = client
+                .get_account_info(&dai_address, Some(block_spec.clone()))
+                .await
+                .expect("should have succeeded");
+
+            assert_eq!(client.files_in_cache().len(), 3);
 
             assert_eq!(account_info.balance, U256::ZERO);
             assert_eq!(account_info.nonce, 1);
@@ -1399,6 +1537,31 @@ mod tests {
                 .expect("should have succeeded");
             let infura_cached_files = infura_client.files_in_cache();
             assert_eq!(alchemy_cached_files, infura_cached_files);
+        }
+
+        #[tokio::test]
+        async fn stores_result_in_cache() {
+            let alchemy_url = get_alchemy_url();
+            let client = TestRpcClient::new(&alchemy_url);
+            let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
+                .expect("failed to parse address");
+
+            let total_supply = client
+                .get_storage_at(
+                    &dai_address,
+                    U256::from(1),
+                    Some(BlockSpec::Number(U256::from(16220843))),
+                )
+                .await
+                .expect("should have succeeded");
+
+            let cached_files = client.files_in_cache();
+            assert_eq!(cached_files.len(), 1);
+
+            let mut file = File::open(&cached_files[0]).expect("failed to open file");
+            let cached_result: U256 = serde_json::from_reader(&mut file).expect("failed to parse");
+
+            assert_eq!(total_supply, cached_result);
         }
     }
 }
