@@ -1,9 +1,4 @@
-import {
-  deploy,
-  DeploymentParameters,
-  ModuleConstructor,
-  wipe,
-} from "@ignored/ignition-core";
+import { deploy, DeploymentParameters, wipe } from "@ignored/ignition-core";
 import "@nomiclabs/hardhat-ethers";
 import { existsSync, readdirSync, readJSONSync } from "fs-extra";
 import { extendConfig, extendEnvironment, task } from "hardhat/config";
@@ -221,8 +216,8 @@ task("plan")
         })
       );
 
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(userModule);
+      // const artifactResolver = new HardhatArtifactResolver(hre);
+      // todo: validation
 
       await writePlan(
         {
@@ -230,7 +225,7 @@ task("plan")
             networkName: hre.network.name,
             chainId,
           },
-          module,
+          module: userModule,
         },
         { cacheDir: hre.config.paths.cache }
       );

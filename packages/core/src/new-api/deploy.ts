@@ -10,8 +10,7 @@ import {
   DeploymentParameters,
   DeploymentResult,
 } from "./types/deployer";
-import { IgnitionModuleResult } from "./types/module";
-import { IgnitionModuleDefinition } from "./types/module-builder";
+import { IgnitionModule } from "./types/module";
 import { EIP1193Provider } from "./types/provider";
 
 /**
@@ -33,11 +32,7 @@ export async function deploy({
   artifactResolver: ArtifactResolver;
   provider: EIP1193Provider;
   deploymentDir?: string;
-  moduleDefinition: IgnitionModuleDefinition<
-    string,
-    string,
-    IgnitionModuleResult<string>
-  >;
+  moduleDefinition: IgnitionModule;
   deploymentParameters: DeploymentParameters;
   accounts: string[];
   verbose: boolean;

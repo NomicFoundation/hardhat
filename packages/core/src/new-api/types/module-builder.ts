@@ -8,6 +8,7 @@ import {
   ArtifactLibraryDeploymentFuture,
   ContractFuture,
   Future,
+  IgnitionModule,
   IgnitionModuleResult,
   ModuleParameterRuntimeValue,
   ModuleParameterType,
@@ -19,20 +20,6 @@ import {
   ReadEventArgumentFuture,
   SendDataFuture,
 } from "./module";
-
-/**
- * The definition used to construct an Ignition module.
- *
- * @beta
- */
-export interface IgnitionModuleDefinition<
-  ModuleIdT extends string,
-  ContractNameT extends string,
-  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
-> {
-  id: ModuleIdT;
-  moduleDefintionFunction: (m: IgnitionModuleBuilder) => IgnitionModuleResultsT;
-}
 
 /**
  * The options for a `ContractOptions` call.
@@ -245,7 +232,7 @@ export interface IgnitionModuleBuilder {
     ContractNameT extends string,
     IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
   >(
-    submoduleDefinition: IgnitionModuleDefinition<
+    ignitionSubmodule: IgnitionModule<
       ModuleIdT,
       ContractNameT,
       IgnitionModuleResultsT

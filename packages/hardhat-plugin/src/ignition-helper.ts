@@ -4,8 +4,7 @@ import {
   DeploymentResultSuccess,
   EIP1193Provider,
   IgnitionError,
-  IgnitionModuleDefinition,
-  IgnitionModuleResult,
+  IgnitionModule,
   ModuleParameters,
 } from "@ignored/ignition-core";
 import { Contract } from "ethers";
@@ -28,11 +27,7 @@ export class IgnitionHelper {
   }
 
   public async deploy(
-    ignitionModuleDefinition: IgnitionModuleDefinition<
-      string,
-      string,
-      IgnitionModuleResult<string>
-    >,
+    ignitionModuleDefinition: IgnitionModule,
     {
       parameters = {},
       config: perDeployConfig,
