@@ -2,6 +2,7 @@ import identity from "lodash/identity";
 
 import { DeploymentParameters } from "../../../../types/deployer";
 import {
+  AccountRuntimeValue,
   ArgumentType,
   Future,
   FutureType,
@@ -10,6 +11,7 @@ import {
 } from "../../../../types/module";
 import { assertIgnitionInvariant } from "../../../utils/assertions";
 import { replaceWithinArg } from "../../../utils/replace-within-arg";
+import { resolveFromAddress } from "../../../utils/resolve-from-address";
 import { resolveModuleParameter } from "../../../utils/resolve-module-parameter";
 import { DeploymentState } from "../../types/deployment-state";
 import {
@@ -45,7 +47,7 @@ export function buildInitializeMessageFor(
           ),
           libraries: {},
           value: _resolveValue(future.value, deploymentParameters),
-          from: future.from as string,
+          from: _resolveAddress(future.from, accounts),
         };
 
       return namedContractInitMessage;
@@ -133,4 +135,15 @@ function _resolveArgs(
     });
 
   return args.map(replace);
+}
+
+function _resolveAddress(
+  from: string | AccountRuntimeValue | undefined,
+  accounts: string[]
+) {
+  if (from === undefined) {
+    return undefined;
+  }
+
+  return resolveFromAddress(from, { accounts });
 }

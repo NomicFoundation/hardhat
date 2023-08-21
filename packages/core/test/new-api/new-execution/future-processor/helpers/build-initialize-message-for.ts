@@ -1,6 +1,7 @@
 import { assert } from "chai";
 
 import {
+  AccountRuntimeValueImplementation,
   ModuleParameterRuntimeValueImplementation,
   NamedContractDeploymentFutureImplementation,
 } from "../../../../../src/new-api/internal/module";
@@ -105,6 +106,10 @@ describe("buildInitializeMessageFor", () => {
           { sub: "d" },
         ]);
       });
+
+      it("should resolve the address", () => {
+        assert.deepStrictEqual(message.from, exampleAddress);
+      });
     });
 
     describe("resolves value when module parameter is used", () => {
@@ -131,6 +136,42 @@ describe("buildInitializeMessageFor", () => {
 
       it("should record the value", async () => {
         assert.deepStrictEqual(message.value, BigInt(99));
+      });
+    });
+
+    describe("resolves from when runtime account used", () => {
+      beforeEach(() => {
+        namedContractDeployment.from = new AccountRuntimeValueImplementation(1);
+
+        message = buildInitializeMessageFor(
+          namedContractDeployment,
+          basicStrategy,
+          exampleDeploymentState,
+          {},
+          exampleAccounts
+        ) as DeploymentExecutionStateInitializeMessage;
+      });
+
+      it("should record the value", async () => {
+        assert.deepStrictEqual(message.from, exampleAccounts[1]);
+      });
+    });
+
+    describe("defers resolving from when provided with undefined - it will be taken from accounts at execution", () => {
+      beforeEach(() => {
+        namedContractDeployment.from = undefined;
+
+        message = buildInitializeMessageFor(
+          namedContractDeployment,
+          basicStrategy,
+          exampleDeploymentState,
+          {},
+          exampleAccounts
+        ) as DeploymentExecutionStateInitializeMessage;
+      });
+
+      it("should record the value", async () => {
+        assert.deepStrictEqual(message.from, undefined);
       });
     });
   });
