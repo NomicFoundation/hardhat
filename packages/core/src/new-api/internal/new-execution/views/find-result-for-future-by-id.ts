@@ -3,7 +3,6 @@ import { assertIgnitionInvariant } from "../../utils/assertions";
 import { DeploymentState } from "../types/deployment-state";
 import { ExecutionResultType } from "../types/execution-result";
 import { ExecutionSateType } from "../types/execution-state";
-import { convertEvmTupleToSolidityParam } from "../utils/convert-evm-tuple-to-solidity-param";
 
 export function findResultForFutureById(
   deploymentState: DeploymentState,
@@ -46,7 +45,7 @@ export function findResultForFutureById(
     case ExecutionSateType.DEPLOYMENT_EXECUTION_STATE:
       return exState.result.address;
     case ExecutionSateType.STATIC_CALL_EXECUTION_STATE: {
-      return convertEvmTupleToSolidityParam(exState.result.result.values);
+      return exState.result.value;
     }
   }
 }

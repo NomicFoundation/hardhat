@@ -4,6 +4,7 @@
  * @file
  */
 
+import { SolidityParameterType } from "../../types/module";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
 import { decodeError } from "./abi";
@@ -19,6 +20,7 @@ import {
   FailedStaticCallExecutionResult,
   SimulationErrorExecutionResult,
 } from "./types/execution-result";
+import { StaticCallExecutionState } from "./types/execution-state";
 import {
   OnchainInteractionRequest,
   OnchainInteractionResponse,
@@ -29,6 +31,7 @@ import {
   StaticCallResponse,
   SuccessfulTransaction,
 } from "./types/execution-strategy";
+import { convertEvmTupleToSolidityParam } from "./utils/convert-evm-tuple-to-solidity-param";
 
 /**
  * Returns true if the given response is an onchain interaction response.
@@ -191,6 +194,23 @@ export async function* executeStaticCallRequest(
   }
 
   return decodedResult;
+}
+
+/**
+ * Returns the right value from the last static call result that should be used
+ * as the whole result of the static call execution state.
+ *
+ * @param _exState The execution state
+ * @param lastStaticCallResult The result of the last network interaction.
+ * @returns The value that should be used as the result of the static call execution state.
+ */
+export function getStaticCallExecutionStateResultValue(
+  _exState: StaticCallExecutionState,
+  lastStaticCallResult: SuccessfulEvmExecutionResult
+): SolidityParameterType {
+  const values = convertEvmTupleToSolidityParam(lastStaticCallResult.values);
+  // TODO: We should have a way to handle other results.
+  return values[0];
 }
 
 export * from "./abi";

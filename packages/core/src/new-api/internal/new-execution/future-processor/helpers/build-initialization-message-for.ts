@@ -8,8 +8,8 @@ import {
 } from "../../types/messages";
 
 import {
-  resolveAddress,
   resolveArgs,
+  resolveFutureFrom,
   resolveLibraries,
   resolveValue,
 } from "./future-resolvers";
@@ -40,7 +40,7 @@ export function buildInitializeMessageFor(
           ),
           libraries: resolveLibraries(future.libraries, deploymentState),
           value: resolveValue(future.value, deploymentParameters),
-          from: resolveAddress(future.from, accounts),
+          from: resolveFutureFrom(future.from, accounts),
         };
 
       return namedContractInitMessage;

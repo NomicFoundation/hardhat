@@ -1,6 +1,5 @@
 import { assert } from "chai";
 
-import { EvmExecutionResultTypes } from "../../../../src/new-api/internal/new-execution/types/evm-execution";
 import { ExecutionResultType } from "../../../../src/new-api/internal/new-execution/types/execution-result";
 import { ExecutionSateType } from "../../../../src/new-api/internal/new-execution/types/execution-state";
 import { findResultForFutureById } from "../../../../src/new-api/internal/new-execution/views/find-result-for-future-by-id";
@@ -49,13 +48,7 @@ describe("find result by future by", () => {
           type: ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
           result: {
             type: ExecutionResultType.SUCCESS,
-            result: {
-              type: EvmExecutionResultTypes.SUCESSFUL_RESULT,
-              values: {
-                positional: [BigInt(99)],
-                named: {},
-              },
-            },
+            value: 99n,
           },
         },
       },
@@ -63,7 +56,7 @@ describe("find result by future by", () => {
 
     const result = findResultForFutureById(deploymentState, futureId);
 
-    assert.deepStrictEqual(result, [BigInt(99)]);
+    assert.deepStrictEqual(result, 99n);
   });
 
   it("should error on a send data", () => {

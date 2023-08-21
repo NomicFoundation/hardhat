@@ -83,15 +83,7 @@ describe("DeploymentStateReducer", () => {
         futureId: "StaticCall1",
         result: {
           type: ExecutionResultType.SUCCESS,
-          result: {
-            type: EvmExecutionResultTypes.SUCESSFUL_RESULT,
-            values: {
-              positional: [BigInt(1)],
-              named: {
-                output: BigInt(1),
-              },
-            },
-          },
+          value: 1n,
         },
       };
 
@@ -214,15 +206,7 @@ describe("DeploymentStateReducer", () => {
       it("should set the result against the execution state", () => {
         assert.deepStrictEqual(updatedStaticCallExState.result, {
           type: ExecutionResultType.SUCCESS,
-          result: {
-            type: EvmExecutionResultTypes.SUCESSFUL_RESULT,
-            values: {
-              positional: [BigInt(1)],
-              named: {
-                output: BigInt(1),
-              },
-            },
-          },
+          value: 1n,
         });
       });
 

@@ -1,5 +1,3 @@
-import identity from "lodash/identity";
-
 import { DeploymentParameters } from "../../../../types/deployer";
 import {
   AccountRuntimeValue,
@@ -10,7 +8,6 @@ import {
 } from "../../../../types/module";
 import { assertIgnitionInvariant } from "../../../utils/assertions";
 import { replaceWithinArg } from "../../../utils/replace-within-arg";
-import { resolveFromAddress } from "../../../utils/resolve-from-address";
 import { resolveModuleParameter } from "../../../utils/resolve-module-parameter";
 import { DeploymentState } from "../../types/deployment-state";
 import { findAddressForContractFuture } from "../../views/find-address-for-contract-future-by-id";
@@ -55,12 +52,12 @@ export function resolveArgs(
 ): SolidityParameterType[] {
   const replace = (arg: ArgumentType) =>
     replaceWithinArg<SolidityParameterType>(arg, {
-      bigint: identity,
+      bigint: (bi) => bi,
       future: (f) => {
         return findResultForFutureById(deploymentState, f.id);
       },
       accountRuntimeValue: (arv) => {
-        return accounts[arv.accountIndex];
+        return resolveAccountRuntimeValue(arv, accounts);
       },
       moduleParameterRuntimeValue: (mprv) => {
         return resolveModuleParameter(mprv, { deploymentParameters });
@@ -71,18 +68,34 @@ export function resolveArgs(
 }
 
 /**
- * Resolve a futures address to either undefined (meaning defer until execution)
+ * Resolve a future's from field to either undefined (meaning defer until execution)
  * or a string address.
  */
-export function resolveAddress(
+export function resolveFutureFrom(
   from: string | AccountRuntimeValue | undefined,
   accounts: string[]
-) {
-  if (from === undefined) {
-    return undefined;
+): string | undefined {
+  if (from === undefined || typeof from === "string") {
+    return from;
   }
 
-  return resolveFromAddress(from, { accounts });
+  return resolveAccountRuntimeValue(from, accounts);
+}
+
+/**
+ * Resolves an account runtime value to an address.
+ */
+export function resolveAccountRuntimeValue(
+  arv: AccountRuntimeValue,
+  accounts: string[]
+): string {
+  const address = accounts[arv.accountIndex];
+  assertIgnitionInvariant(
+    address !== undefined,
+    `Account ${arv.accountIndex} not found`
+  );
+
+  return address;
 }
 
 /**
@@ -91,7 +104,7 @@ export function resolveAddress(
 export function resolveLibraries(
   libraries: Record<string, ContractFuture<string>>,
   deploymentState: DeploymentState
-) {
+): { [libName: string]: string } {
   return Object.fromEntries(
     Object.entries(libraries).map(([key, lib]) => [
       key,

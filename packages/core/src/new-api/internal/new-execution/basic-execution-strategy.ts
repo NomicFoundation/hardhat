@@ -5,6 +5,7 @@ import {
   encodeArtifactFunctionCall,
   executeOnchainInteractionRequest,
   executeStaticCallRequest,
+  getStaticCallExecutionStateResultValue,
 } from "./execution-strategy-helpers";
 import { ExecutionResultType } from "./types/execution-result";
 import {
@@ -184,7 +185,10 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
 
     return {
       type: ExecutionResultType.SUCCESS,
-      result: decodedResultOrError,
+      value: getStaticCallExecutionStateResultValue(
+        executionState,
+        decodedResultOrError
+      ),
     };
   }
 }

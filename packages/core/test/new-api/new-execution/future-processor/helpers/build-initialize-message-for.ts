@@ -22,7 +22,6 @@ import {
 import { exampleAccounts } from "../../../helpers";
 
 describe("buildInitializeMessageFor", () => {
-  const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
   const differentAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
   const libraryAddress = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
   const basicStrategy = { name: "basic" } as any;

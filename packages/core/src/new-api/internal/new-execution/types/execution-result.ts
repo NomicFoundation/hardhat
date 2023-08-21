@@ -1,7 +1,6 @@
-import {
-  FailedEvmExecutionResult,
-  SuccessfulEvmExecutionResult,
-} from "./evm-execution";
+import { SolidityParameterType } from "../../../types/module";
+
+import { FailedEvmExecutionResult } from "./evm-execution";
 
 /**
  * The differnt types of result that executing a future can produce.
@@ -120,7 +119,7 @@ export type SendDataExecutionResult =
  */
 export interface SuccessfulStaticCallExecutionResult {
   type: ExecutionResultType.SUCCESS;
-  result: SuccessfulEvmExecutionResult;
+  value: SolidityParameterType;
 }
 
 /**

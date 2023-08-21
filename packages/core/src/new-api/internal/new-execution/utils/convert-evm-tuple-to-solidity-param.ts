@@ -1,20 +1,32 @@
 import isArray from "lodash/isArray";
 
 import { SolidityParameterType } from "../../../types/module";
+import { assertIgnitionInvariant } from "../../utils/assertions";
 import { EvmTuple, EvmValue } from "../types/evm-execution";
+
+export function convertEvmValueToSolidityParam(
+  evmValue: EvmValue
+): SolidityParameterType {
+  if (isArray(evmValue)) {
+    return evmValue.map(convertEvmValueToSolidityParam);
+  }
+
+  if (typeof evmValue === "object") {
+    return evmValue.positional.map(convertEvmValueToSolidityParam);
+  }
+
+  return evmValue;
+}
 
 export function convertEvmTupleToSolidityParam(
   evmTuple: EvmTuple
-): SolidityParameterType {
-  return _convertEvmType(evmTuple);
-}
+): SolidityParameterType[] {
+  const converted = convertEvmValueToSolidityParam(evmTuple);
 
-function _convertEvmType(evmValue: EvmValue): SolidityParameterType {
-  if (typeof evmValue === "object" && "positional" in evmValue) {
-    return evmValue.positional.map(_convertEvmType);
-  } else if (isArray(evmValue)) {
-    return evmValue.map(_convertEvmType);
-  } else {
-    return evmValue;
-  }
+  assertIgnitionInvariant(
+    Array.isArray(converted),
+    "Failed to convert an EvmTuple to SolidityParameterType[]"
+  );
+
+  return converted;
 }
