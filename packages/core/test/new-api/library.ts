@@ -7,7 +7,6 @@ import {
   NamedLibraryDeploymentFutureImplementation,
 } from "../../src/new-api/internal/module";
 import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
-import { validateNamedLibraryDeployment } from "../../src/new-api/internal/validation/futures/validateNamedLibraryDeployment";
 import { FutureType } from "../../src/new-api/types/module";
 
 import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
@@ -202,95 +201,121 @@ describe("library", () => {
   });
 
   describe("validation", () => {
-    it("should not validate a non-address from option", () => {
-      assert.throws(
-        () =>
-          buildModule("Module1", (m) => {
-            const another = m.contract("Another", [], { from: 1 as any });
+    describe("module stage", () => {
+      it("should not validate a non-address from option", () => {
+        assert.throws(
+          () =>
+            buildModule("Module1", (m) => {
+              const another = m.contract("Another", [], { from: 1 as any });
 
-            return { another };
-          }),
-        /Invalid type for given option "from": number/
-      );
-    });
-
-    it("should not validate a non-contract library", () => {
-      assert.throws(
-        () =>
-          buildModule("Module1", (m) => {
-            const another = m.contract("Another", []);
-            const call = m.call(another, "test");
-
-            const test = m.library("Test", {
-              libraries: { Call: call as any },
-            });
-
-            return { another, test };
-          }),
-        /Given library 'Call' is not a valid Future/
-      );
-    });
-
-    it("should not validate an invalid artifact", async () => {
-      const module = buildModule("Module1", (m) => {
-        const another = m.library("Another");
-
-        return { another };
+              return { another };
+            }),
+          /Invalid type for given option "from": number/
+        );
       });
 
-      const [future] = getFuturesFromModule(module);
+      it("should not validate a non-contract library", () => {
+        assert.throws(
+          () =>
+            buildModule("Module1", (m) => {
+              const another = m.contract("Another", []);
+              const call = m.call(another, "test");
 
-      await assert.isRejected(
-        validateNamedLibraryDeployment(
-          future as any,
-          setupMockArtifactResolver({ Another: {} as any }),
-          {},
-          []
-        ),
-        /Artifact for contract 'Another' is invalid/
-      );
+              const test = m.library("Test", {
+                libraries: { Call: call as any },
+              });
+
+              return { another, test };
+            }),
+          /Given library 'Call' is not a valid Future/
+        );
+      });
     });
 
-    it("should not validate a negative account index", async () => {
-      const module = buildModule("Module1", (m) => {
-        const account = m.getAccount(-1);
-        const test = m.library("Test", { from: account });
+    describe("stage one", () => {
+      let vm: typeof import("/Users/morgan/ignition/packages/core/src/new-api/internal/validation/stageOne/validateNamedLibraryDeployment");
+      let validateNamedLibraryDeployment: typeof vm.validateNamedLibraryDeployment;
 
-        return { test };
+      before(async () => {
+        vm = await import(
+          "../../src/new-api/internal/validation/stageOne/validateNamedLibraryDeployment"
+        );
+
+        validateNamedLibraryDeployment = vm.validateNamedLibraryDeployment;
       });
 
-      const [future] = getFuturesFromModule(module);
+      it("should not validate an invalid artifact", async () => {
+        const module = buildModule("Module1", (m) => {
+          const another = m.library("Another");
 
-      await assert.isRejected(
-        validateNamedLibraryDeployment(
-          future as any,
-          setupMockArtifactResolver({ Another: {} as any }),
-          {},
-          []
-        ),
-        /Account index cannot be a negative number/
-      );
+          return { another };
+        });
+
+        const [future] = getFuturesFromModule(module);
+
+        await assert.isRejected(
+          validateNamedLibraryDeployment(
+            future as any,
+            setupMockArtifactResolver({ Another: {} as any })
+          ),
+          /Artifact for contract 'Another' is invalid/
+        );
+      });
     });
 
-    it("should not validate an account index greater than the number of available accounts", async () => {
-      const module = buildModule("Module1", (m) => {
-        const account = m.getAccount(1);
-        const test = m.library("Test", { from: account });
+    describe("stage two", () => {
+      let vm: typeof import("/Users/morgan/ignition/packages/core/src/new-api/internal/validation/stageTwo/validateNamedLibraryDeployment");
+      let validateNamedLibraryDeployment: typeof vm.validateNamedLibraryDeployment;
 
-        return { test };
+      before(async () => {
+        vm = await import(
+          "../../src/new-api/internal/validation/stageTwo/validateNamedLibraryDeployment"
+        );
+
+        validateNamedLibraryDeployment = vm.validateNamedLibraryDeployment;
       });
 
-      const [future] = getFuturesFromModule(module);
+      it("should not validate a negative account index", async () => {
+        const module = buildModule("Module1", (m) => {
+          const account = m.getAccount(-1);
+          const test = m.library("Test", { from: account });
 
-      await assert.isRejected(
-        validateNamedLibraryDeployment(
-          future as any,
-          setupMockArtifactResolver({ Another: {} as any }),
-          {},
-          []
-        ),
-        /Requested account index \'1\' is greater than the total number of available accounts \'0\'/
-      );
+          return { test };
+        });
+
+        const [future] = getFuturesFromModule(module);
+
+        await assert.isRejected(
+          validateNamedLibraryDeployment(
+            future as any,
+            setupMockArtifactResolver({ Another: {} as any }),
+            {},
+            []
+          ),
+          /Account index cannot be a negative number/
+        );
+      });
+
+      it("should not validate an account index greater than the number of available accounts", async () => {
+        const module = buildModule("Module1", (m) => {
+          const account = m.getAccount(1);
+          const test = m.library("Test", { from: account });
+
+          return { test };
+        });
+
+        const [future] = getFuturesFromModule(module);
+
+        await assert.isRejected(
+          validateNamedLibraryDeployment(
+            future as any,
+            setupMockArtifactResolver({ Another: {} as any }),
+            {},
+            []
+          ),
+          /Requested account index \'1\' is greater than the total number of available accounts \'0\'/
+        );
+      });
     });
   });
 });

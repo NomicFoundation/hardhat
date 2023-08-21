@@ -3,7 +3,7 @@ import { assert } from "chai";
 
 import { Artifact } from "../../src";
 import { buildModule } from "../../src/new-api/build-module";
-import { validate } from "../../src/new-api/internal/validation/validate";
+import { validateStageTwo } from "../../src/new-api/internal/validation/validateStageTwo";
 
 import { setupMockArtifactResolver } from "./helpers";
 
@@ -130,7 +130,7 @@ describe("useModule", () => {
       };
 
       await assert.isFulfilled(
-        validate(
+        validateStageTwo(
           moduleWithSubmodule,
           setupMockArtifactResolver({
             Contract1: fakeArtifact,
@@ -198,7 +198,7 @@ describe("useModule", () => {
       };
 
       await assert.isRejected(
-        validate(
+        validateStageTwo(
           moduleWithSubmodule,
           setupMockArtifactResolver({
             Contract1: fakeArtifact,

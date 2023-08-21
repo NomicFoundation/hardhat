@@ -5,7 +5,6 @@ import { Artifact, FutureType } from "../../src";
 import { buildModule } from "../../src/new-api/build-module";
 import { ModuleParameterRuntimeValueImplementation } from "../../src/new-api/internal/module";
 import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
-import { validateArtifactContractAt } from "../../src/new-api/internal/validation/futures/validateArtifactContractAt";
 
 import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
 
@@ -215,110 +214,125 @@ describe("contractAtFromArtifact", () => {
   });
 
   describe("validation", () => {
-    it("should not validate an invalid address", () => {
-      assert.throws(
-        () =>
-          buildModule("Module1", (m) => {
-            const another = m.contractAtFromArtifact(
-              "Another",
-              42 as any,
-              fakeArtifact
-            );
+    describe("module stage", () => {
+      it("should not validate an invalid address", () => {
+        assert.throws(
+          () =>
+            buildModule("Module1", (m) => {
+              const another = m.contractAtFromArtifact(
+                "Another",
+                42 as any,
+                fakeArtifact
+              );
 
-            return { another };
-          }),
-        /Invalid address given/
-      );
-    });
-
-    it("should not validate a missing module parameter", async () => {
-      const module = buildModule("Module1", (m) => {
-        const p = m.getParameter("p");
-        const another = m.contractAtFromArtifact("Another", p, fakeArtifact);
-
-        return { another };
+              return { another };
+            }),
+          /Invalid address given/
+        );
       });
 
-      const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.ARTIFACT_CONTRACT_AT
-      );
+      it("should not validate an invalid artifact", () => {
+        assert.throws(
+          () =>
+            buildModule("Module1", (m) => {
+              const another = m.contractAtFromArtifact(
+                "Another",
+                "",
+                {} as Artifact
+              );
 
-      await assert.isRejected(
-        validateArtifactContractAt(
-          future as any,
-          setupMockArtifactResolver({
-            Another: fakeArtifact,
-          }),
-          {},
-          []
-        ),
-        /Module parameter 'p' requires a value but was given none/
-      );
+              return { another };
+            }),
+          /Invalid artifact given/
+        );
+      });
     });
 
-    it("should validate a missing module parameter if a default parameter is present", async () => {
-      const module = buildModule("Module1", (m) => {
-        const p = m.getParameter("p", "0x1234");
-        const another = m.contractAtFromArtifact("Another", p, fakeArtifact);
+    describe("stage two", () => {
+      let vm: typeof import("/Users/morgan/ignition/packages/core/src/new-api/internal/validation/stageTwo/validateArtifactContractAt");
+      let validateArtifactContractAt: typeof vm.validateArtifactContractAt;
 
-        return { another };
+      before(async () => {
+        vm = await import(
+          "../../src/new-api/internal/validation/stageTwo/validateArtifactContractAt"
+        );
+
+        validateArtifactContractAt = vm.validateArtifactContractAt;
       });
 
-      const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.ARTIFACT_CONTRACT_AT
-      );
+      it("should not validate a missing module parameter", async () => {
+        const module = buildModule("Module1", (m) => {
+          const p = m.getParameter("p");
+          const another = m.contractAtFromArtifact("Another", p, fakeArtifact);
 
-      await assert.isFulfilled(
-        validateArtifactContractAt(
-          future as any,
-          setupMockArtifactResolver({
-            Another: fakeArtifact,
-          }),
-          {},
-          []
-        )
-      );
-    });
+          return { another };
+        });
 
-    it("should not validate a module parameter of the wrong type", async () => {
-      const module = buildModule("Module1", (m) => {
-        const p = m.getParameter("p", 123 as unknown as string);
-        const another = m.contractAtFromArtifact("Another", p, fakeArtifact);
+        const future = getFuturesFromModule(module).find(
+          (v) => v.type === FutureType.ARTIFACT_CONTRACT_AT
+        );
 
-        return { another };
+        await assert.isRejected(
+          validateArtifactContractAt(
+            future as any,
+            setupMockArtifactResolver({
+              Another: fakeArtifact,
+            }),
+            {},
+            []
+          ),
+          /Module parameter 'p' requires a value but was given none/
+        );
       });
 
-      const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.ARTIFACT_CONTRACT_AT
-      );
+      it("should validate a missing module parameter if a default parameter is present", async () => {
+        const module = buildModule("Module1", (m) => {
+          const p = m.getParameter("p", "0x1234");
+          const another = m.contractAtFromArtifact("Another", p, fakeArtifact);
 
-      await assert.isRejected(
-        validateArtifactContractAt(
-          future as any,
-          setupMockArtifactResolver({
-            Another: fakeArtifact,
-          }),
-          {},
-          []
-        ),
-        /Module parameter 'p' must be of type 'string' but is 'number'/
-      );
-    });
+          return { another };
+        });
 
-    it("should not validate an invalid artifact", () => {
-      assert.throws(
-        () =>
-          buildModule("Module1", (m) => {
-            const another = m.contractAtFromArtifact(
-              "Another",
-              "",
-              {} as Artifact
-            );
+        const future = getFuturesFromModule(module).find(
+          (v) => v.type === FutureType.ARTIFACT_CONTRACT_AT
+        );
 
-            return { another };
-          }),
-        /Invalid artifact given/
-      );
+        await assert.isFulfilled(
+          validateArtifactContractAt(
+            future as any,
+            setupMockArtifactResolver({
+              Another: fakeArtifact,
+            }),
+            {},
+            []
+          )
+        );
+      });
+
+      it("should not validate a module parameter of the wrong type", async () => {
+        const module = buildModule("Module1", (m) => {
+          const p = m.getParameter("p", 123 as unknown as string);
+          const another = m.contractAtFromArtifact("Another", p, fakeArtifact);
+
+          return { another };
+        });
+
+        const future = getFuturesFromModule(module).find(
+          (v) => v.type === FutureType.ARTIFACT_CONTRACT_AT
+        );
+
+        await assert.isRejected(
+          validateArtifactContractAt(
+            future as any,
+            setupMockArtifactResolver({
+              Another: fakeArtifact,
+            }),
+            {},
+            []
+          ),
+          /Module parameter 'p' must be of type 'string' but is 'number'/
+        );
+      });
     });
   });
 });

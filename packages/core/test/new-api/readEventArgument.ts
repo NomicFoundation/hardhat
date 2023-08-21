@@ -4,7 +4,6 @@ import { assert } from "chai";
 import { Artifact, FutureType, ReadEventArgumentFuture } from "../../src";
 import { buildModule } from "../../src/new-api/build-module";
 import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
-import { validateReadEventArgument } from "../../src/new-api/internal/validation/futures/validateReadEventArgument";
 
 import { setupMockArtifactResolver } from "./helpers";
 
@@ -192,57 +191,63 @@ describe("Read event argument", () => {
   });
 
   describe("validation", () => {
-    it("should not validate a non-existant hardhat contract", async () => {
-      const module = buildModule("Module1", (m) => {
-        const another = m.contract("Another", []);
-        m.readEventArgument(another, "test", "arg");
+    describe("stage one", () => {
+      let vm: typeof import("/Users/morgan/ignition/packages/core/src/new-api/internal/validation/stageOne/validateReadEventArgument");
+      let validateReadEventArgument: typeof vm.validateReadEventArgument;
 
-        return { another };
+      before(async () => {
+        vm = await import(
+          "../../src/new-api/internal/validation/stageOne/validateReadEventArgument"
+        );
+
+        validateReadEventArgument = vm.validateReadEventArgument;
       });
 
-      const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.READ_EVENT_ARGUMENT
-      );
+      it("should not validate a non-existant hardhat contract", async () => {
+        const module = buildModule("Module1", (m) => {
+          const another = m.contract("Another", []);
+          m.readEventArgument(another, "test", "arg");
 
-      await assert.isRejected(
-        validateReadEventArgument(
-          future as any,
-          setupMockArtifactResolver({ Another: {} as any }),
-          {},
-          []
-        ),
-        /Artifact for contract 'Another' is invalid/
-      );
-    });
+          return { another };
+        });
 
-    it("should not validate a non-existant event", async () => {
-      const fakeArtifact: Artifact = {
-        abi: [],
-        contractName: "",
-        bytecode: "",
-        linkReferences: {},
-      };
+        const future = getFuturesFromModule(module).find(
+          (v) => v.type === FutureType.READ_EVENT_ARGUMENT
+        );
 
-      const module = buildModule("Module1", (m) => {
-        const another = m.contractFromArtifact("Another", fakeArtifact, []);
-        m.readEventArgument(another, "test", "arg");
-
-        return { another };
+        await assert.isRejected(
+          validateReadEventArgument(
+            future as any,
+            setupMockArtifactResolver({ Another: {} as any })
+          ),
+          /Artifact for contract 'Another' is invalid/
+        );
       });
 
-      const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.READ_EVENT_ARGUMENT
-      );
+      it("should not validate a non-existant event", async () => {
+        const fakeArtifact: Artifact = {
+          abi: [],
+          contractName: "",
+          bytecode: "",
+          linkReferences: {},
+        };
 
-      await assert.isRejected(
-        validateReadEventArgument(
-          future as any,
-          setupMockArtifactResolver(),
-          {},
-          []
-        ),
-        /Contract 'Another' doesn't have an event test/
-      );
+        const module = buildModule("Module1", (m) => {
+          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          m.readEventArgument(another, "test", "arg");
+
+          return { another };
+        });
+
+        const future = getFuturesFromModule(module).find(
+          (v) => v.type === FutureType.READ_EVENT_ARGUMENT
+        );
+
+        await assert.isRejected(
+          validateReadEventArgument(future as any, setupMockArtifactResolver()),
+          /Contract 'Another' doesn't have an event test/
+        );
+      });
     });
   });
 });

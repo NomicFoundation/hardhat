@@ -8,7 +8,6 @@ import {
   SendDataFutureImplementation,
 } from "../../src/new-api/internal/module";
 import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
-import { validateSendData } from "../../src/new-api/internal/validation/futures/validateSendData";
 import { FutureType } from "../../src/new-api/types/module";
 
 import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
@@ -258,164 +257,179 @@ describe("send", () => {
   });
 
   describe("validation", () => {
-    it("should not validate a non-bignumber value option", () => {
-      assert.throws(
-        () =>
-          buildModule("Module1", (m) => {
-            const another = m.contract("Another", []);
-            m.send("id", "test", 42 as any);
+    describe("module stage", () => {
+      it("should not validate a non-bignumber value option", () => {
+        assert.throws(
+          () =>
+            buildModule("Module1", (m) => {
+              const another = m.contract("Another", []);
+              m.send("id", "test", 42 as any);
 
-            return { another };
-          }),
-        /Given value option '42' is not a `bigint`/
-      );
-    });
-
-    it("should not validate a non-string data option", () => {
-      assert.throws(
-        () =>
-          buildModule("Module1", (m) => {
-            const another = m.contract("Another", []);
-            m.send("id", "test", 0n, 42 as any);
-
-            return { another };
-          }),
-        /Invalid data given/
-      );
-    });
-
-    it("should not validate a non-address from option", () => {
-      assert.throws(
-        () =>
-          buildModule("Module1", (m) => {
-            const another = m.contract("Another", []);
-            m.send("id", another, 0n, "", { from: 1 as any });
-
-            return { another };
-          }),
-        /Invalid type for given option "from": number/
-      );
-    });
-
-    it("should not validate an invalid address", () => {
-      assert.throws(
-        () =>
-          buildModule("Module1", (m) => {
-            const another = m.contract("Another", []);
-            const call = m.call(another, "test");
-
-            m.send("id", call as any, 0n, "");
-
-            return { another };
-          }),
-        /Invalid address given/
-      );
-    });
-
-    it("should not validate a missing module parameter", async () => {
-      const module = buildModule("Module1", (m) => {
-        const p = m.getParameter("p");
-        m.send("id", p, 0n, "");
-
-        return {};
+              return { another };
+            }),
+          /Given value option '42' is not a `bigint`/
+        );
       });
 
-      const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.SEND_DATA
-      );
+      it("should not validate a non-string data option", () => {
+        assert.throws(
+          () =>
+            buildModule("Module1", (m) => {
+              const another = m.contract("Another", []);
+              m.send("id", "test", 0n, 42 as any);
 
-      await assert.isRejected(
-        validateSendData(future as any, setupMockArtifactResolver(), {}, []),
-        /Module parameter 'p' requires a value but was given none/
-      );
-    });
-
-    it("should validate a missing module parameter if a default parameter is present", async () => {
-      const module = buildModule("Module1", (m) => {
-        const p = m.getParameter("p", "0x123");
-        m.send("id", p, 0n, "");
-
-        return {};
+              return { another };
+            }),
+          /Invalid data given/
+        );
       });
 
-      const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.SEND_DATA
-      );
+      it("should not validate a non-address from option", () => {
+        assert.throws(
+          () =>
+            buildModule("Module1", (m) => {
+              const another = m.contract("Another", []);
+              m.send("id", another, 0n, "", { from: 1 as any });
 
-      await assert.isFulfilled(
-        validateSendData(future as any, setupMockArtifactResolver(), {}, [])
-      );
-    });
-
-    it("should not validate a module parameter of the wrong type for value", async () => {
-      const module = buildModule("Module1", (m) => {
-        const p = m.getParameter("p", false as unknown as bigint);
-        m.send("id", "0xasdf", p, "");
-
-        return {};
+              return { another };
+            }),
+          /Invalid type for given option "from": number/
+        );
       });
 
-      const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.SEND_DATA
-      );
+      it("should not validate an invalid address", () => {
+        assert.throws(
+          () =>
+            buildModule("Module1", (m) => {
+              const another = m.contract("Another", []);
+              const call = m.call(another, "test");
 
-      await assert.isRejected(
-        validateSendData(future as any, setupMockArtifactResolver(), {}, []),
-        /Module parameter 'p' must be of type 'bigint' but is 'boolean'/
-      );
+              m.send("id", call as any, 0n, "");
+
+              return { another };
+            }),
+          /Invalid address given/
+        );
+      });
     });
 
-    it("should validate a module parameter of the correct type for value", async () => {
-      const module = buildModule("Module1", (m) => {
-        const p = m.getParameter("p", 42n);
-        m.send("id", "0xasdf", p, "");
+    describe("stage two", () => {
+      let vm: typeof import("/Users/morgan/ignition/packages/core/src/new-api/internal/validation/stageTwo/validateSendData");
+      let validateSendData: typeof vm.validateSendData;
 
-        return {};
+      before(async () => {
+        vm = await import(
+          "../../src/new-api/internal/validation/stageTwo/validateSendData"
+        );
+
+        validateSendData = vm.validateSendData;
       });
 
-      const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.SEND_DATA
-      );
+      it("should not validate a missing module parameter", async () => {
+        const module = buildModule("Module1", (m) => {
+          const p = m.getParameter("p");
+          m.send("id", p, 0n, "");
 
-      await assert.isFulfilled(
-        validateSendData(future as any, setupMockArtifactResolver(), {}, [])
-      );
-    });
+          return {};
+        });
 
-    it("should not validate a negative account index", async () => {
-      const module = buildModule("Module1", (m) => {
-        const account = m.getAccount(-1);
-        m.send("id", "0xasdf", 0n, "", { from: account });
+        const future = getFuturesFromModule(module).find(
+          (v) => v.type === FutureType.SEND_DATA
+        );
 
-        return {};
+        await assert.isRejected(
+          validateSendData(future as any, setupMockArtifactResolver(), {}, []),
+          /Module parameter 'p' requires a value but was given none/
+        );
       });
 
-      const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.SEND_DATA
-      );
+      it("should validate a missing module parameter if a default parameter is present", async () => {
+        const module = buildModule("Module1", (m) => {
+          const p = m.getParameter("p", "0x123");
+          m.send("id", p, 0n, "");
 
-      await assert.isRejected(
-        validateSendData(future as any, setupMockArtifactResolver(), {}, []),
-        /Account index cannot be a negative number/
-      );
-    });
+          return {};
+        });
 
-    it("should not validate an account index greater than the number of available accounts", async () => {
-      const module = buildModule("Module1", (m) => {
-        const account = m.getAccount(1);
-        m.send("id", "0xasdf", 0n, "", { from: account });
+        const future = getFuturesFromModule(module).find(
+          (v) => v.type === FutureType.SEND_DATA
+        );
 
-        return {};
+        await assert.isFulfilled(
+          validateSendData(future as any, setupMockArtifactResolver(), {}, [])
+        );
       });
 
-      const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.SEND_DATA
-      );
+      it("should not validate a module parameter of the wrong type for value", async () => {
+        const module = buildModule("Module1", (m) => {
+          const p = m.getParameter("p", false as unknown as bigint);
+          m.send("id", "0xasdf", p, "");
 
-      await assert.isRejected(
-        validateSendData(future as any, setupMockArtifactResolver(), {}, []),
-        /Requested account index \'1\' is greater than the total number of available accounts \'0\'/
-      );
+          return {};
+        });
+
+        const future = getFuturesFromModule(module).find(
+          (v) => v.type === FutureType.SEND_DATA
+        );
+
+        await assert.isRejected(
+          validateSendData(future as any, setupMockArtifactResolver(), {}, []),
+          /Module parameter 'p' must be of type 'bigint' but is 'boolean'/
+        );
+      });
+
+      it("should validate a module parameter of the correct type for value", async () => {
+        const module = buildModule("Module1", (m) => {
+          const p = m.getParameter("p", 42n);
+          m.send("id", "0xasdf", p, "");
+
+          return {};
+        });
+
+        const future = getFuturesFromModule(module).find(
+          (v) => v.type === FutureType.SEND_DATA
+        );
+
+        await assert.isFulfilled(
+          validateSendData(future as any, setupMockArtifactResolver(), {}, [])
+        );
+      });
+
+      it("should not validate a negative account index", async () => {
+        const module = buildModule("Module1", (m) => {
+          const account = m.getAccount(-1);
+          m.send("id", "0xasdf", 0n, "", { from: account });
+
+          return {};
+        });
+
+        const future = getFuturesFromModule(module).find(
+          (v) => v.type === FutureType.SEND_DATA
+        );
+
+        await assert.isRejected(
+          validateSendData(future as any, setupMockArtifactResolver(), {}, []),
+          /Account index cannot be a negative number/
+        );
+      });
+
+      it("should not validate an account index greater than the number of available accounts", async () => {
+        const module = buildModule("Module1", (m) => {
+          const account = m.getAccount(1);
+          m.send("id", "0xasdf", 0n, "", { from: account });
+
+          return {};
+        });
+
+        const future = getFuturesFromModule(module).find(
+          (v) => v.type === FutureType.SEND_DATA
+        );
+
+        await assert.isRejected(
+          validateSendData(future as any, setupMockArtifactResolver(), {}, []),
+          /Requested account index \'1\' is greater than the total number of available accounts \'0\'/
+        );
+      });
     });
   });
 });
