@@ -4,6 +4,7 @@ import { DeploymentParameters } from "../../../../types/deployer";
 import {
   AccountRuntimeValue,
   ArgumentType,
+  ContractFuture,
   Future,
   FutureType,
   ModuleParameterRuntimeValue,
@@ -19,6 +20,7 @@ import {
   JournalMessage,
   JournalMessageType,
 } from "../../types/messages";
+import { findAddressForContractFuture } from "../../views/find-address-for-contract-future-by-id";
 import { findResultForFutureById } from "../../views/find-result-for-future-by-id";
 
 export function buildInitializeMessageFor(
@@ -45,7 +47,7 @@ export function buildInitializeMessageFor(
             deploymentParameters,
             accounts
           ),
-          libraries: {},
+          libraries: _resolveLibraries(future.libraries, deploymentState),
           value: _resolveValue(future.value, deploymentParameters),
           from: _resolveAddress(future.from, accounts),
         };
@@ -146,4 +148,16 @@ function _resolveAddress(
   }
 
   return resolveFromAddress(from, { accounts });
+}
+
+function _resolveLibraries(
+  libraries: Record<string, ContractFuture<string>>,
+  deploymentState: DeploymentState
+) {
+  return Object.fromEntries(
+    Object.entries(libraries).map(([key, lib]) => [
+      key,
+      findAddressForContractFuture(deploymentState, lib.id),
+    ])
+  );
 }
