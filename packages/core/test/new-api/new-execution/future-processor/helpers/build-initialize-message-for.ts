@@ -2,6 +2,8 @@ import { assert } from "chai";
 
 import {
   AccountRuntimeValueImplementation,
+  ArtifactContractDeploymentFutureImplementation,
+  ArtifactLibraryDeploymentFutureImplementation,
   ModuleParameterRuntimeValueImplementation,
   NamedContractDeploymentFutureImplementation,
   NamedLibraryDeploymentFutureImplementation,
@@ -16,10 +18,13 @@ import {
   JournalMessageType,
 } from "../../../../../src/new-api/internal/new-execution/types/messages";
 import {
+  ArtifactContractDeploymentFuture,
+  ArtifactLibraryDeploymentFuture,
+  FutureType,
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
 } from "../../../../../src/new-api/types/module";
-import { exampleAccounts } from "../../../helpers";
+import { exampleAccounts, fakeArtifact } from "../../../helpers";
 
 describe("buildInitializeMessageFor", () => {
   const differentAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
@@ -29,6 +34,9 @@ describe("buildInitializeMessageFor", () => {
   let namedContractDeployment: NamedContractDeploymentFuture<string>;
   let anotherNamedContractDeployment: NamedContractDeploymentFuture<string>;
   let safeMathLibraryDeployment: NamedLibraryDeploymentFuture<string>;
+  let artifactContractDeployment: ArtifactContractDeploymentFuture;
+  let namedLibraryDeployment: NamedLibraryDeploymentFuture<string>;
+  let artifactLibraryDeployment: ArtifactLibraryDeploymentFuture;
 
   let exampleDeploymentState: DeploymentState;
 
@@ -68,6 +76,50 @@ describe("buildInitializeMessageFor", () => {
 
     // This is typically done by the deployment builder
     namedContractDeployment.dependencies.add(anotherNamedContractDeployment);
+    namedContractDeployment.dependencies.add(safeMathLibraryDeployment);
+
+    artifactContractDeployment =
+      new ArtifactContractDeploymentFutureImplementation(
+        "MyModule:ArtifactContract",
+        fakeModule,
+        "ArtifactContract",
+        [BigInt(1), "b", anotherNamedContractDeployment, { sub: "d" }],
+        fakeArtifact,
+        {
+          SafeMath: safeMathLibraryDeployment,
+        },
+        BigInt(10),
+        exampleAccounts[0]
+      );
+
+    artifactContractDeployment.dependencies.add(anotherNamedContractDeployment);
+    artifactContractDeployment.dependencies.add(safeMathLibraryDeployment);
+
+    namedLibraryDeployment = new NamedLibraryDeploymentFutureImplementation(
+      "MyModule:NamedLibrary",
+      fakeModule,
+      "NamedLibrary",
+      {
+        SafeMath: safeMathLibraryDeployment,
+      },
+      exampleAccounts[0]
+    );
+
+    namedLibraryDeployment.dependencies.add(safeMathLibraryDeployment);
+
+    artifactLibraryDeployment =
+      new ArtifactLibraryDeploymentFutureImplementation(
+        "MyModule:ArtifactLibrary",
+        fakeModule,
+        "ArtifactLibrary",
+        fakeArtifact,
+        {
+          SafeMath: safeMathLibraryDeployment,
+        },
+        exampleAccounts[0]
+      );
+
+    artifactLibraryDeployment.dependencies.add(safeMathLibraryDeployment);
 
     exampleDeploymentState = deploymentStateReducer(undefined as any);
 
@@ -116,6 +168,7 @@ describe("buildInitializeMessageFor", () => {
       it("should copy across the dependencies", async () => {
         assert.deepStrictEqual(message.dependencies, [
           "MyModule:AnotherContract",
+          "MyModule:SafeMath",
         ]);
       });
 
@@ -139,6 +192,103 @@ describe("buildInitializeMessageFor", () => {
       it("should resolve the libraries", () => {
         assert.deepStrictEqual(message.libraries, {
           SafeMath: libraryAddress,
+        });
+      });
+    });
+
+    describe("artifact contract deployment", () => {
+      beforeEach(() => {
+        message = buildInitializeMessageFor(
+          artifactContractDeployment,
+          basicStrategy,
+          exampleDeploymentState,
+          {},
+          exampleAccounts
+        ) as DeploymentExecutionStateInitializeMessage;
+      });
+
+      it("should build an initialize message for a deployment", async () => {
+        assert.deepStrictEqual(message, {
+          type: JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE,
+          futureId: "MyModule:ArtifactContract",
+          futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
+          strategy: "basic",
+          dependencies: ["MyModule:AnotherContract", "MyModule:SafeMath"],
+          artifactFutureId: "MyModule:ArtifactContract",
+          constructorArgs: [
+            1n,
+            "b",
+            differentAddress,
+            {
+              sub: "d",
+            },
+          ],
+          contractName: "ArtifactContract",
+          libraries: {
+            SafeMath: libraryAddress,
+          },
+          value: 10n,
+          from: exampleAccounts[0],
+        });
+      });
+    });
+
+    describe("named library deployment", () => {
+      beforeEach(() => {
+        message = buildInitializeMessageFor(
+          namedLibraryDeployment,
+          basicStrategy,
+          exampleDeploymentState,
+          {},
+          exampleAccounts
+        ) as DeploymentExecutionStateInitializeMessage;
+      });
+
+      it("should build an initialize message for a deployment", async () => {
+        assert.deepStrictEqual(message, {
+          type: JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE,
+          futureId: "MyModule:NamedLibrary",
+          futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
+          strategy: "basic",
+          dependencies: ["MyModule:SafeMath"],
+          artifactFutureId: "MyModule:NamedLibrary",
+          constructorArgs: [],
+          contractName: "NamedLibrary",
+          libraries: {
+            SafeMath: libraryAddress,
+          },
+          value: 0n,
+          from: exampleAccounts[0],
+        });
+      });
+    });
+
+    describe("artifact library deployment", () => {
+      beforeEach(() => {
+        message = buildInitializeMessageFor(
+          artifactLibraryDeployment,
+          basicStrategy,
+          exampleDeploymentState,
+          {},
+          exampleAccounts
+        ) as DeploymentExecutionStateInitializeMessage;
+      });
+
+      it("should build an initialize message for a deployment", async () => {
+        assert.deepStrictEqual(message, {
+          type: JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE,
+          futureId: "MyModule:ArtifactLibrary",
+          futureType: FutureType.ARTIFACT_LIBRARY_DEPLOYMENT,
+          strategy: "basic",
+          dependencies: ["MyModule:SafeMath"],
+          artifactFutureId: "MyModule:ArtifactLibrary",
+          constructorArgs: [],
+          contractName: "ArtifactLibrary",
+          libraries: {
+            SafeMath: libraryAddress,
+          },
+          value: 0n,
+          from: exampleAccounts[0],
         });
       });
     });
