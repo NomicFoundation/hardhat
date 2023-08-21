@@ -1,7 +1,6 @@
 import {
   DeployConfig,
-  IgnitionModuleDefinition,
-  IgnitionModuleResult,
+  IgnitionModule,
   ModuleParameters,
 } from "@ignored/ignition-core";
 import { Contract } from "ethers";
@@ -38,14 +37,10 @@ export function useEphemeralIgnitionProject(fixtureProjectName: string) {
     await hre.run("compile", { quiet: true });
 
     this.deploy = (
-      moduleDefinition: IgnitionModuleDefinition<
-        string,
-        string,
-        IgnitionModuleResult<string>
-      >,
+      ignitionModule: IgnitionModule,
       parameters: { [key: string]: ModuleParameters } = {}
     ) => {
-      return this.hre.ignition.deploy(moduleDefinition, {
+      return this.hre.ignition.deploy(ignitionModule, {
         parameters,
         config: hre.config.ignition,
       });
@@ -90,16 +85,12 @@ export function useFileIgnitionProject(
     ensureDirSync(deploymentDir);
 
     this.deploy = (
-      moduleDefinition: IgnitionModuleDefinition<
-        string,
-        string,
-        IgnitionModuleResult<string>
-      >,
+      ignitionModule: IgnitionModule,
       chainUpdates: (c: TestChainHelper) => Promise<void> = async () => {}
     ) => {
       return runDeploy(
         deploymentDir,
-        moduleDefinition,
+        ignitionModule,
         { hre, config: testConfig },
         chainUpdates
       );
@@ -115,11 +106,7 @@ export function useFileIgnitionProject(
 
 async function runDeploy(
   deploymentDir: string,
-  moduleDefinition: IgnitionModuleDefinition<
-    string,
-    string,
-    IgnitionModuleResult<string>
-  >,
+  ignitionModule: IgnitionModule,
   {
     hre,
     config = {},
@@ -130,7 +117,7 @@ async function runDeploy(
     setupIgnitionHelperRiggedToThrow(hre, deploymentDir, config);
 
   try {
-    const deployPromise = ignitionHelper.deploy(moduleDefinition, {
+    const deployPromise = ignitionHelper.deploy(ignitionModule, {
       parameters: {},
       config,
     });

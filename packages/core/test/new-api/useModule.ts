@@ -3,30 +3,23 @@ import { assert } from "chai";
 
 import { Artifact } from "../../src";
 import { buildModule } from "../../src/new-api/build-module";
-import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import { validate } from "../../src/new-api/internal/validation/validate";
 
 import { setupMockArtifactResolver } from "./helpers";
 
 describe("useModule", () => {
   it("should be able to use a submodule", () => {
-    const submoduleDefinition = buildModule("Submodule1", (m) => {
+    const submodule = buildModule("Submodule1", (m) => {
       const contract1 = m.contract("Contract1");
 
       return { contract1 };
     });
 
-    const moduleWithSubmoduleDefinition = buildModule("Module1", (m) => {
-      const { contract1 } = m.useModule(submoduleDefinition);
+    const moduleWithSubmodule = buildModule("Module1", (m) => {
+      const { contract1 } = m.useModule(submodule);
 
       return { contract1 };
     });
-
-    const constructor = new ModuleConstructor();
-    const submodule = constructor.construct(submoduleDefinition);
-    const moduleWithSubmodule = constructor.construct(
-      moduleWithSubmoduleDefinition
-    );
 
     // the submodule is linked
     assert.equal(moduleWithSubmodule.submodules.size, 1);
@@ -34,24 +27,18 @@ describe("useModule", () => {
   });
 
   it("returns the same result set (object equal) for each usage", () => {
-    const submoduleDefinition = buildModule("Submodule1", (m) => {
+    const submodule = buildModule("Submodule1", (m) => {
       const contract1 = m.contract("Contract1");
 
       return { contract1 };
     });
 
-    const moduleWithSubmoduleDefinition = buildModule("Module1", (m) => {
-      const { contract1: first } = m.useModule(submoduleDefinition);
-      const { contract1: second } = m.useModule(submoduleDefinition);
+    const moduleWithSubmodule = buildModule("Module1", (m) => {
+      const { contract1: first } = m.useModule(submodule);
+      const { contract1: second } = m.useModule(submodule);
 
       return { first, second };
     });
-
-    const constructor = new ModuleConstructor();
-    const submodule = constructor.construct(submoduleDefinition);
-    const moduleWithSubmodule = constructor.construct(
-      moduleWithSubmoduleDefinition
-    );
 
     assert.equal(
       moduleWithSubmodule.results.first,
@@ -63,25 +50,19 @@ describe("useModule", () => {
   });
 
   it("supports dependending on returned results", () => {
-    const submoduleDefinition = buildModule("Submodule1", (m) => {
+    const submodule = buildModule("Submodule1", (m) => {
       const contract1 = m.contract("Contract1");
 
       return { contract1 };
     });
 
-    const moduleWithSubmoduleDefinition = buildModule("Module1", (m) => {
-      const { contract1 } = m.useModule(submoduleDefinition);
+    const moduleWithSubmodule = buildModule("Module1", (m) => {
+      const { contract1 } = m.useModule(submodule);
 
       const contract2 = m.contract("Contract2", [contract1]);
 
       return { contract2 };
     });
-
-    const constructor = new ModuleConstructor();
-    const submodule = constructor.construct(submoduleDefinition);
-    const moduleWithSubmodule = constructor.construct(
-      moduleWithSubmoduleDefinition
-    );
 
     assert(
       moduleWithSubmodule.results.contract2.dependencies.has(
@@ -111,15 +92,15 @@ describe("useModule", () => {
         linkReferences: {},
       };
 
-      const submoduleDefinition = buildModule("Submodule1", (m) => {
+      const submodule = buildModule("Submodule1", (m) => {
         const param1 = m.getParameter("param1");
         const contract1 = m.contract("Contract1", [param1]);
 
         return { contract1 };
       });
 
-      const submodule2Definition = buildModule("Submodule2", (m) => {
-        const { contract1 } = m.useModule(submoduleDefinition);
+      const submodule2 = buildModule("Submodule2", (m) => {
+        const { contract1 } = m.useModule(submodule);
 
         const param2 = m.getParameter("param2");
         const contract2 = m.contract("Contract2", [param2]);
@@ -127,8 +108,8 @@ describe("useModule", () => {
         return { contract1, contract2 };
       });
 
-      const moduleWithSubmoduleDefinition = buildModule("Module1", (m) => {
-        const { contract1, contract2 } = m.useModule(submodule2Definition);
+      const moduleWithSubmodule = buildModule("Module1", (m) => {
+        const { contract1, contract2 } = m.useModule(submodule2);
 
         const param3 = m.getParameter("param3");
         const contract3 = m.contract("Contract3", [param3]);
@@ -147,12 +128,6 @@ describe("useModule", () => {
           param3: 40,
         },
       };
-
-      const constructor = new ModuleConstructor(moduleParams);
-      // const submodule = constructor.construct(submoduleDefinition);
-      const moduleWithSubmodule = constructor.construct(
-        moduleWithSubmoduleDefinition
-      );
 
       await assert.isFulfilled(
         validate(
@@ -188,15 +163,15 @@ describe("useModule", () => {
         linkReferences: {},
       };
 
-      const submoduleDefinition = buildModule("Submodule1", (m) => {
+      const submodule = buildModule("Submodule1", (m) => {
         const param1 = m.getParameter("param1");
         const contract1 = m.contract("Contract1", [param1]);
 
         return { contract1 };
       });
 
-      const submodule2Definition = buildModule("Submodule2", (m) => {
-        const { contract1 } = m.useModule(submoduleDefinition);
+      const submodule2 = buildModule("Submodule2", (m) => {
+        const { contract1 } = m.useModule(submodule);
 
         const param2 = m.getParameter("param2");
         const contract2 = m.contract("Contract2", [param2]);
@@ -204,8 +179,8 @@ describe("useModule", () => {
         return { contract1, contract2 };
       });
 
-      const moduleWithSubmoduleDefinition = buildModule("Module1", (m) => {
-        const { contract1, contract2 } = m.useModule(submodule2Definition);
+      const moduleWithSubmodule = buildModule("Module1", (m) => {
+        const { contract1, contract2 } = m.useModule(submodule2);
 
         const param3 = m.getParameter("param3");
         const contract3 = m.contract("Contract3", [param3]);
@@ -221,12 +196,6 @@ describe("useModule", () => {
           param3: 40,
         },
       };
-
-      const constructor = new ModuleConstructor(moduleParams);
-      // const submodule = constructor.construct(submoduleDefinition);
-      const moduleWithSubmodule = constructor.construct(
-        moduleWithSubmoduleDefinition
-      );
 
       await assert.isRejected(
         validate(
