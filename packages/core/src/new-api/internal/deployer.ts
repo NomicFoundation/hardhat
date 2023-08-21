@@ -37,7 +37,7 @@ import { ArtifactMap } from "./reconciliation/types";
 import { isContractExecutionStateArray } from "./type-guards";
 import { assertIgnitionInvariant } from "./utils/assertions";
 import { getFuturesFromModule } from "./utils/get-futures-from-module";
-import { validate } from "./validation/validate";
+import { validateStageTwo } from "./validation/validateStageTwo";
 
 /**
  * Run an Igntition deployment.
@@ -89,8 +89,7 @@ export class Deployer {
     deploymentParameters: DeploymentParameters,
     accounts: string[]
   ): Promise<DeploymentResult> {
-    // todo: split validation
-    await validate(
+    await validateStageTwo(
       ignitionModule,
       this._artifactResolver,
       deploymentParameters,

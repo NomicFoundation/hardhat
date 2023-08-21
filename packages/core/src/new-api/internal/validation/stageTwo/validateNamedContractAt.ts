@@ -1,15 +1,12 @@
 import { IgnitionValidationError } from "../../../../errors";
-import {
-  isArtifactType,
-  isModuleParameterRuntimeValue,
-} from "../../../type-guards";
+import { isModuleParameterRuntimeValue } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deployer";
 import { NamedContractAtFuture } from "../../../types/module";
 
 export async function validateNamedContractAt(
   future: NamedContractAtFuture<string>,
-  artifactLoader: ArtifactResolver,
+  _artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
   _accounts: string[]
 ) {
@@ -28,13 +25,5 @@ export async function validateNamedContractAt(
         }' must be of type 'string' but is '${typeof param}'`
       );
     }
-  }
-
-  const artifact = await artifactLoader.loadArtifact(future.contractName);
-
-  if (!isArtifactType(artifact)) {
-    throw new IgnitionValidationError(
-      `Artifact for contract '${future.contractName}' is invalid`
-    );
   }
 }

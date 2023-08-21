@@ -3,18 +3,18 @@ import { DeploymentParameters } from "../../types/deployer";
 import { FutureType, IgnitionModule } from "../../types/module";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 
-import { validateArtifactContractAt } from "./futures/validateArtifactContractAt";
-import { validateArtifactContractDeployment } from "./futures/validateArtifactContractDeployment";
-import { validateArtifactLibraryDeployment } from "./futures/validateArtifactLibraryDeployment";
-import { validateNamedContractAt } from "./futures/validateNamedContractAt";
-import { validateNamedContractCall } from "./futures/validateNamedContractCall";
-import { validateNamedContractDeployment } from "./futures/validateNamedContractDeployment";
-import { validateNamedLibraryDeployment } from "./futures/validateNamedLibraryDeployment";
-import { validateNamedStaticCall } from "./futures/validateNamedStaticCall";
-import { validateReadEventArgument } from "./futures/validateReadEventArgument";
-import { validateSendData } from "./futures/validateSendData";
+import { validateArtifactContractAt } from "./stageTwo/validateArtifactContractAt";
+import { validateArtifactContractDeployment } from "./stageTwo/validateArtifactContractDeployment";
+import { validateArtifactLibraryDeployment } from "./stageTwo/validateArtifactLibraryDeployment";
+import { validateNamedContractAt } from "./stageTwo/validateNamedContractAt";
+import { validateNamedContractCall } from "./stageTwo/validateNamedContractCall";
+import { validateNamedContractDeployment } from "./stageTwo/validateNamedContractDeployment";
+import { validateNamedLibraryDeployment } from "./stageTwo/validateNamedLibraryDeployment";
+import { validateNamedStaticCall } from "./stageTwo/validateNamedStaticCall";
+import { validateReadEventArgument } from "./stageTwo/validateReadEventArgument";
+import { validateSendData } from "./stageTwo/validateSendData";
 
-export async function validate(
+export async function validateStageTwo(
   module: IgnitionModule,
   artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
@@ -28,7 +28,12 @@ export async function validate(
   // validating each of those, we achieve the same effect.
   const submodules = module.submodules;
   for (const submodule of submodules) {
-    await validate(submodule, artifactLoader, deploymentParameters, accounts);
+    await validateStageTwo(
+      submodule,
+      artifactLoader,
+      deploymentParameters,
+      accounts
+    );
   }
 
   for (const future of futures) {

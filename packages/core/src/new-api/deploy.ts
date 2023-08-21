@@ -4,6 +4,7 @@ import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployme
 import { ChainDispatcherImpl } from "./internal/execution/chain-dispatcher";
 import { buildAdaptersFrom } from "./internal/utils/build-adapters-from";
 import { checkAutominedNetwork } from "./internal/utils/check-automined-network";
+import { validateStageOne } from "./internal/validation/validateStageOne";
 import { ArtifactResolver } from "./types/artifact";
 import {
   DeployConfig,
@@ -37,6 +38,8 @@ export async function deploy({
   accounts: string[];
   verbose: boolean;
 }): Promise<DeploymentResult> {
+  await validateStageOne(moduleDefinition, artifactResolver);
+
   const deploymentLoader =
     deploymentDir === undefined
       ? new EphemeralDeploymentLoader(artifactResolver, verbose)

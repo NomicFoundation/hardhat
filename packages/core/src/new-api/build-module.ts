@@ -40,7 +40,5 @@ export function buildModule<
     moduleDefintionFunction,
   });
 
-  // todo: validation
-
   return ignitionModule;
 }

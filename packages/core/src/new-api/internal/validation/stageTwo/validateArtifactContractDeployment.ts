@@ -1,5 +1,3 @@
-import { ethers } from "ethers";
-
 import { IgnitionValidationError } from "../../../../errors";
 import {
   isAccountRuntimeValue,
@@ -55,18 +53,5 @@ export async function validateArtifactContractDeployment(
         }' must be of type 'bigint' but is '${typeof param}'`
       );
     }
-  }
-
-  const artifact = future.artifact;
-
-  const argsLength = future.constructorArgs.length;
-
-  const iface = new ethers.utils.Interface(artifact.abi);
-  const expectedArgsLength = iface.deploy.inputs.length;
-
-  if (argsLength !== expectedArgsLength) {
-    throw new IgnitionValidationError(
-      `The constructor of the contract '${future.contractName}' expects ${expectedArgsLength} arguments but ${argsLength} were given`
-    );
   }
 }
