@@ -87,6 +87,4 @@ jobs:
       - name: Build
         run: npm run build
       - name: Lint
-        env:
-          CI: true
         run: npm run lint

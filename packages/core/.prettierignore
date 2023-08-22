@@ -3,5 +3,5 @@
 /coverage
 /.nyc_output
 /temp
-/test-integrations/fixture-projects/default/artifacts
-/test-integrations/fixture-projects/default/cache
+/test-integrations/fixture-projects/*/artifacts
+/test-integrations/fixture-projects/*/cache

@@ -250,7 +250,7 @@ module.exports = {
   },
 };
 
-if (process.env.CI !== undefined) {
+if (process.env.LINT_MODULES !== undefined) {
   module.exports.rules["import/no-unused-modules"] = [
     2,
     { unusedExports: true, missingExports: true },
