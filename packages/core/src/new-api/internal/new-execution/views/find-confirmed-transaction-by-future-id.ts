@@ -1,0 +1,46 @@
+import { TransactionReceipt } from "ethers";
+
+import { Transaction } from "../../execution/transaction-types";
+import { assertIgnitionInvariant } from "../../utils/assertions";
+import { DeploymentState } from "../types/deployment-state";
+import { ExecutionSateType } from "../types/execution-state";
+import { NetworkInteractionType } from "../types/network-interaction";
+
+export function findConfirmedTransactionByFutureId(
+  deploymentState: DeploymentState,
+  futureId: string
+): Omit<Transaction, "receipt"> & {
+  receipt: TransactionReceipt;
+} {
+  const exState = deploymentState.executionStates[futureId];
+
+  assertIgnitionInvariant(
+    exState !== undefined,
+    `Cannot resolve tx hash, no execution state for ${futureId}`
+  );
+
+  assertIgnitionInvariant(
+    exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
+      exState.type === ExecutionSateType.SEND_DATA_EXECUTION_STATE ||
+      exState.type === ExecutionSateType.CALL_EXECUTION_STATE,
+    `Tx hash resolution only supported on execution states with network interactions, ${futureId} is ${exState.type}`
+  );
+
+  const lastNetworkInteraction =
+    exState.networkInteractions[exState.networkInteractions.length - 1];
+
+  assertIgnitionInvariant(
+    lastNetworkInteraction.type === NetworkInteractionType.ONCHAIN_INTERACTION,
+    "Tx hash resolution only supported onchain interaction"
+  );
+
+  // On confirmation only one transaction is preserverd
+  const transaction = lastNetworkInteraction.transactions[0];
+
+  assertIgnitionInvariant(
+    transaction !== undefined && transaction.receipt !== undefined,
+    `Tx hash resolution unable to find confirmed transaction for ${futureId}`
+  );
+
+  return transaction as any;
+}

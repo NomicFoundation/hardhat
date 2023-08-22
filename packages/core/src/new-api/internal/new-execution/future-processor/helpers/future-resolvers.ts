@@ -1,4 +1,4 @@
-import { isAddress } from "ethers";
+import { Contract, isAddress } from "ethers";
 
 import { IgnitionError } from "../../../../../errors";
 import {
@@ -11,9 +11,11 @@ import {
   AddressResolvableFuture,
   ArgumentType,
   ContractFuture,
+  Future,
   ModuleParameterRuntimeValue,
   SolidityParameterType,
 } from "../../../../types/module";
+import { DeploymentLoader } from "../../../deployment-loader/types";
 import { assertIgnitionInvariant } from "../../../utils/assertions";
 import { replaceWithinArg } from "../../../utils/replace-within-arg";
 import { resolveModuleParameter } from "../../../utils/resolve-module-parameter";
@@ -21,6 +23,7 @@ import { DeploymentState } from "../../types/deployment-state";
 import { ExecutionResultType } from "../../types/execution-result";
 import { ExecutionSateType } from "../../types/execution-state";
 import { findAddressForContractFuture } from "../../views/find-address-for-contract-future-by-id";
+import { findConfirmedTransactionByFutureId } from "../../views/find-confirmed-transaction-by-future-id";
 import { findResultForFutureById } from "../../views/find-result-for-future-by-id";
 
 /**
@@ -220,4 +223,67 @@ export function resolveAddressLike(
       `Unable to resolve address of ${JSON.stringify(addressLike)}`
     );
   }
+}
+
+export function resolveTxHash(
+  future: Future,
+  deploymentState: DeploymentState
+) {
+  const confirmedTx = findConfirmedTransactionByFutureId(
+    deploymentState,
+    future.id
+  );
+
+  return confirmedTx.hash;
+}
+
+export async function resolveReadEventArgumentResult(
+  future: Future,
+  emitter: ContractFuture<string>,
+  eventName: string,
+  eventIndex: number,
+  argumentName: string,
+  deploymentState: DeploymentState,
+  deploymentLoader: DeploymentLoader
+): Promise<SolidityParameterType> {
+  const emitterAddress = resolveAddressForContractFuture(
+    emitter,
+    deploymentState
+  );
+
+  const emitterArtifact = await deploymentLoader.loadArtifact(emitter.id);
+
+  const contract = new Contract(emitterAddress, emitterArtifact.abi);
+  const filter = await contract.filters[eventName]().getTopicFilter();
+  const eventNameTopic = filter?.[0];
+
+  const confirmedTx = findConfirmedTransactionByFutureId(
+    deploymentState,
+    future.id
+  );
+
+  const { logs } = confirmedTx.receipt;
+
+  // only keep the requested eventName and ensure they're from the emitter
+  const events = logs.filter(
+    (log) => log.address === emitterAddress && log.topics[0] === eventNameTopic
+  );
+
+  // sanity check to ensure the eventIndex isn't out of range
+  assertIgnitionInvariant(
+    events.length <= 1 || eventIndex < events.length,
+    `Given eventIndex '${eventIndex}' exceeds number of events emitted '${events.length}'`
+  );
+
+  // this works in combination with the check above
+  // because we default eventIndex to 0 if not set by user
+  const eventLog = events[eventIndex];
+
+  // parse the event through the emitter ABI and return the requested arg
+  const result = contract.interface.parseLog({
+    topics: [...eventLog.topics],
+    data: eventLog.data,
+  })!.args[argumentName];
+
+  return result;
 }

@@ -1,5 +1,6 @@
 import { DeploymentParameters } from "../../../../types/deployer";
 import { Future, FutureType } from "../../../../types/module";
+import { DeploymentLoader } from "../../../deployment-loader/types";
 import { DeploymentState } from "../../types/deployment-state";
 import {
   CallExecutionStateInitializeMessage,
@@ -7,6 +8,7 @@ import {
   DeploymentExecutionStateInitializeMessage,
   JournalMessage,
   JournalMessageType,
+  ReadEventArgExecutionStateInitializeMessage,
   SendDataExecutionStateInitializeMessage,
   StaticCallExecutionStateInitializeMessage,
 } from "../../types/messages";
@@ -17,16 +19,19 @@ import {
   resolveArgs,
   resolveFutureFrom,
   resolveLibraries,
+  resolveReadEventArgumentResult,
+  resolveTxHash,
   resolveValue,
 } from "./future-resolvers";
 
-export function buildInitializeMessageFor(
+export async function buildInitializeMessageFor(
   future: Future,
   strategy: { name: string },
   deploymentState: DeploymentState,
   deploymentParameters: DeploymentParameters,
+  deploymentLoader: DeploymentLoader,
   accounts: string[]
-): JournalMessage {
+): Promise<JournalMessage> {
   switch (future.type) {
     case FutureType.NAMED_CONTRACT_DEPLOYMENT:
     case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
@@ -144,9 +149,40 @@ export function buildInitializeMessageFor(
       return contractAtInit;
     }
     case FutureType.READ_EVENT_ARGUMENT: {
-      throw new Error(
-        "Not implemented yet: FutureType.READ_EVENT_ARGUMENT case"
+      const result = await resolveReadEventArgumentResult(
+        future.futureToReadFrom,
+        future.emitter,
+        future.eventName,
+        future.eventIndex,
+        future.argumentName,
+        deploymentState,
+        deploymentLoader
       );
+
+      const readEventArgInit: ReadEventArgExecutionStateInitializeMessage =
+        _extendBaseInitWith(
+          JournalMessageType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE,
+          future,
+          strategy,
+          {
+            futureType: future.type,
+            artifactFutureId: future.emitter.id,
+            eventName: future.eventName,
+            argumentName: future.argumentName,
+            txToReadFrom: resolveTxHash(
+              future.futureToReadFrom,
+              deploymentState
+            ),
+            emitterAddress: resolveAddressForContractFuture(
+              future.emitter,
+              deploymentState
+            ),
+            eventIndex: future.eventIndex,
+            result,
+          }
+        );
+
+      return readEventArgInit;
     }
     case FutureType.SEND_DATA:
       const sendDataInit: SendDataExecutionStateInitializeMessage =

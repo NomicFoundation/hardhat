@@ -1,5 +1,7 @@
 import { assert } from "chai";
 
+import { DeploymentLoader } from "../../../../../src/new-api/internal/deployment-loader/types";
+import { MemoryJournal } from "../../../../../src/new-api/internal/journal/memory-journal";
 import {
   AccountRuntimeValueImplementation,
   ArtifactContractAtFutureImplementation,
@@ -11,6 +13,7 @@ import {
   NamedContractDeploymentFutureImplementation,
   NamedLibraryDeploymentFutureImplementation,
   NamedStaticCallFutureImplementation,
+  ReadEventArgumentFutureImplementation,
   SendDataFutureImplementation,
 } from "../../../../../src/new-api/internal/module";
 import { buildInitializeMessageFor } from "../../../../../src/new-api/internal/new-execution/future-processor/helpers/build-initialization-message-for";
@@ -23,6 +26,7 @@ import {
   ContractAtExecutionStateInitializeMessage,
   DeploymentExecutionStateInitializeMessage,
   JournalMessageType,
+  ReadEventArgExecutionStateInitializeMessage,
   SendDataExecutionStateInitializeMessage,
   StaticCallExecutionStateInitializeMessage,
 } from "../../../../../src/new-api/internal/new-execution/types/messages";
@@ -36,9 +40,14 @@ import {
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
   NamedStaticCallFuture,
+  ReadEventArgumentFuture,
   SendDataFuture,
 } from "../../../../../src/new-api/types/module";
-import { exampleAccounts, fakeArtifact } from "../../../helpers";
+import {
+  exampleAccounts,
+  fakeArtifact,
+  setupMockDeploymentLoader,
+} from "../../../helpers";
 
 describe("buildInitializeMessageFor", () => {
   const differentAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
@@ -55,12 +64,15 @@ describe("buildInitializeMessageFor", () => {
   let staticCall: NamedStaticCallFuture<string, string>;
   let namedContractAt: NamedContractAtFuture<string>;
   let artifactContractAt: ArtifactContractAtFuture;
+  let readEventArgument: ReadEventArgumentFuture;
   let sendData: SendDataFuture;
 
   let exampleDeploymentState: DeploymentState;
+  let mockDeploymentLoader: DeploymentLoader;
 
   beforeEach(() => {
     const fakeModule = {} as any;
+    mockDeploymentLoader = setupMockDeploymentLoader(new MemoryJournal());
 
     safeMathLibraryDeployment = new NamedLibraryDeploymentFutureImplementation(
       "MyModule:SafeMath",
@@ -180,6 +192,16 @@ describe("buildInitializeMessageFor", () => {
       fakeArtifact
     );
 
+    readEventArgument = new ReadEventArgumentFutureImplementation(
+      "MyModule:ReadEventArg",
+      fakeModule,
+      anotherNamedContractDeployment,
+      "event1",
+      "arg1",
+      anotherNamedContractDeployment,
+      0
+    );
+
     sendData = new SendDataFutureImplementation(
       "MyModule:SendData",
       fakeModule,
@@ -212,14 +234,15 @@ describe("buildInitializeMessageFor", () => {
     let message: DeploymentExecutionStateInitializeMessage;
 
     describe("named contract deployment", () => {
-      beforeEach(() => {
-        message = buildInitializeMessageFor(
+      beforeEach(async () => {
+        message = (await buildInitializeMessageFor(
           namedContractDeployment,
           basicStrategy,
           exampleDeploymentState,
           {},
+          mockDeploymentLoader,
           exampleAccounts
-        ) as DeploymentExecutionStateInitializeMessage;
+        )) as DeploymentExecutionStateInitializeMessage;
       });
 
       it("should build an initialize message for a deployment", async () => {
@@ -265,14 +288,15 @@ describe("buildInitializeMessageFor", () => {
     });
 
     describe("artifact contract deployment", () => {
-      beforeEach(() => {
-        message = buildInitializeMessageFor(
+      beforeEach(async () => {
+        message = (await buildInitializeMessageFor(
           artifactContractDeployment,
           basicStrategy,
           exampleDeploymentState,
           {},
+          mockDeploymentLoader,
           exampleAccounts
-        ) as DeploymentExecutionStateInitializeMessage;
+        )) as DeploymentExecutionStateInitializeMessage;
       });
 
       it("should build an initialize message for a deployment", async () => {
@@ -302,14 +326,15 @@ describe("buildInitializeMessageFor", () => {
     });
 
     describe("named library deployment", () => {
-      beforeEach(() => {
-        message = buildInitializeMessageFor(
+      beforeEach(async () => {
+        message = (await buildInitializeMessageFor(
           namedLibraryDeployment,
           basicStrategy,
           exampleDeploymentState,
           {},
+          mockDeploymentLoader,
           exampleAccounts
-        ) as DeploymentExecutionStateInitializeMessage;
+        )) as DeploymentExecutionStateInitializeMessage;
       });
 
       it("should build an initialize message for a deployment", async () => {
@@ -332,14 +357,15 @@ describe("buildInitializeMessageFor", () => {
     });
 
     describe("artifact library deployment", () => {
-      beforeEach(() => {
-        message = buildInitializeMessageFor(
+      beforeEach(async () => {
+        message = (await buildInitializeMessageFor(
           artifactLibraryDeployment,
           basicStrategy,
           exampleDeploymentState,
           {},
+          mockDeploymentLoader,
           exampleAccounts
-        ) as DeploymentExecutionStateInitializeMessage;
+        )) as DeploymentExecutionStateInitializeMessage;
       });
 
       it("should build an initialize message for a deployment", async () => {
@@ -362,7 +388,7 @@ describe("buildInitializeMessageFor", () => {
     });
 
     describe("resolves value when module parameter is used", () => {
-      beforeEach(() => {
+      beforeEach(async () => {
         namedContractDeployment.value =
           new ModuleParameterRuntimeValueImplementation<bigint>(
             "MyModule",
@@ -370,7 +396,7 @@ describe("buildInitializeMessageFor", () => {
             undefined
           );
 
-        message = buildInitializeMessageFor(
+        message = (await buildInitializeMessageFor(
           namedContractDeployment,
           basicStrategy,
           exampleDeploymentState,
@@ -379,8 +405,9 @@ describe("buildInitializeMessageFor", () => {
               passedValue: BigInt(99),
             },
           },
+          mockDeploymentLoader,
           exampleAccounts
-        ) as DeploymentExecutionStateInitializeMessage;
+        )) as DeploymentExecutionStateInitializeMessage;
       });
 
       it("should record the value", async () => {
@@ -389,16 +416,17 @@ describe("buildInitializeMessageFor", () => {
     });
 
     describe("resolves from when runtime account used", () => {
-      beforeEach(() => {
+      beforeEach(async () => {
         namedContractDeployment.from = new AccountRuntimeValueImplementation(1);
 
-        message = buildInitializeMessageFor(
+        message = (await buildInitializeMessageFor(
           namedContractDeployment,
           basicStrategy,
           exampleDeploymentState,
           {},
+          mockDeploymentLoader,
           exampleAccounts
-        ) as DeploymentExecutionStateInitializeMessage;
+        )) as DeploymentExecutionStateInitializeMessage;
       });
 
       it("should record the value", async () => {
@@ -407,16 +435,17 @@ describe("buildInitializeMessageFor", () => {
     });
 
     describe("defers resolving from when provided with undefined - it will be taken from accounts at execution", () => {
-      beforeEach(() => {
+      beforeEach(async () => {
         namedContractDeployment.from = undefined;
 
-        message = buildInitializeMessageFor(
+        message = (await buildInitializeMessageFor(
           namedContractDeployment,
           basicStrategy,
           exampleDeploymentState,
           {},
+          mockDeploymentLoader,
           exampleAccounts
-        ) as DeploymentExecutionStateInitializeMessage;
+        )) as DeploymentExecutionStateInitializeMessage;
       });
 
       it("should record the value", async () => {
@@ -429,14 +458,15 @@ describe("buildInitializeMessageFor", () => {
     let message: CallExecutionStateInitializeMessage;
 
     describe("named library", () => {
-      beforeEach(() => {
-        message = buildInitializeMessageFor(
+      beforeEach(async () => {
+        message = (await buildInitializeMessageFor(
           namedContractCall,
           basicStrategy,
           exampleDeploymentState,
           {},
+          mockDeploymentLoader,
           exampleAccounts
-        ) as CallExecutionStateInitializeMessage;
+        )) as CallExecutionStateInitializeMessage;
       });
 
       it("should build an initialize message", async () => {
@@ -460,14 +490,15 @@ describe("buildInitializeMessageFor", () => {
     let message: StaticCallExecutionStateInitializeMessage;
 
     describe("named library", () => {
-      beforeEach(() => {
-        message = buildInitializeMessageFor(
+      beforeEach(async () => {
+        message = (await buildInitializeMessageFor(
           staticCall,
           basicStrategy,
           exampleDeploymentState,
           {},
+          mockDeploymentLoader,
           exampleAccounts
-        ) as StaticCallExecutionStateInitializeMessage;
+        )) as StaticCallExecutionStateInitializeMessage;
       });
 
       it("should build an initialize message", async () => {
@@ -490,14 +521,15 @@ describe("buildInitializeMessageFor", () => {
     let message: ContractAtExecutionStateInitializeMessage;
 
     describe("named contract at", () => {
-      beforeEach(() => {
-        message = buildInitializeMessageFor(
+      beforeEach(async () => {
+        message = (await buildInitializeMessageFor(
           namedContractAt,
           basicStrategy,
           exampleDeploymentState,
           {},
+          mockDeploymentLoader,
           exampleAccounts
-        ) as ContractAtExecutionStateInitializeMessage;
+        )) as ContractAtExecutionStateInitializeMessage;
       });
 
       it("should build an initialize message", async () => {
@@ -515,14 +547,15 @@ describe("buildInitializeMessageFor", () => {
     });
 
     describe("artifact contract at", () => {
-      beforeEach(() => {
-        message = buildInitializeMessageFor(
+      beforeEach(async () => {
+        message = (await buildInitializeMessageFor(
           artifactContractAt,
           basicStrategy,
           exampleDeploymentState,
           {},
+          mockDeploymentLoader,
           exampleAccounts
-        ) as ContractAtExecutionStateInitializeMessage;
+        )) as ContractAtExecutionStateInitializeMessage;
       });
 
       it("should build an initialize message", async () => {
@@ -546,17 +579,51 @@ describe("buildInitializeMessageFor", () => {
     });
   });
 
+  // TODO: this needs reviewed and expanded - not sure I have understood
+  // resolution.
+  describe("read event argument state", () => {
+    let message: ReadEventArgExecutionStateInitializeMessage;
+
+    beforeEach(async () => {
+      message = (await buildInitializeMessageFor(
+        readEventArgument,
+        basicStrategy,
+        exampleDeploymentState,
+        {},
+        mockDeploymentLoader,
+        exampleAccounts
+      )) as ReadEventArgExecutionStateInitializeMessage;
+    });
+
+    it.skip("should build an initialize message", async () => {
+      assert.deepStrictEqual(message, {
+        type: JournalMessageType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE,
+        futureId: "MyModule:ReadEventArg",
+        strategy: "basic",
+        dependencies: [],
+        artifactFutureId: "MyModule:ReadEventArg",
+        eventName: "event1",
+        argumentName: "arg1",
+        txToReadFrom: "0x1234",
+        emitterAddress: differentAddress,
+        eventIndex: 0,
+        result: "result-text",
+      });
+    });
+  });
+
   describe("send data state", () => {
     let message: SendDataExecutionStateInitializeMessage;
 
-    beforeEach(() => {
-      message = buildInitializeMessageFor(
+    beforeEach(async () => {
+      message = (await buildInitializeMessageFor(
         sendData,
         basicStrategy,
         exampleDeploymentState,
         {},
+        mockDeploymentLoader,
         exampleAccounts
-      ) as SendDataExecutionStateInitializeMessage;
+      )) as SendDataExecutionStateInitializeMessage;
     });
 
     it("should build an initialize message", async () => {
