@@ -245,7 +245,11 @@ export async function resolveReadEventArgumentResult(
   argumentName: string,
   deploymentState: DeploymentState,
   deploymentLoader: DeploymentLoader
-): Promise<SolidityParameterType> {
+): Promise<{
+  result: SolidityParameterType;
+  emitterAddress: string;
+  txToReadFrom: string;
+}> {
   const emitterAddress = resolveAddressForContractFuture(
     emitter,
     deploymentState
@@ -285,5 +289,5 @@ export async function resolveReadEventArgumentResult(
     data: eventLog.data,
   })!.args[argumentName];
 
-  return result;
+  return { result, emitterAddress, txToReadFrom: confirmedTx.hash };
 }

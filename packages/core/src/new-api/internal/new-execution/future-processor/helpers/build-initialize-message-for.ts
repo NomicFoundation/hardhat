@@ -20,7 +20,6 @@ import {
   resolveFutureFrom,
   resolveLibraries,
   resolveReadEventArgumentResult,
-  resolveTxHash,
   resolveValue,
 } from "./future-resolvers";
 
@@ -149,15 +148,16 @@ export async function buildInitializeMessageFor(
       return contractAtInit;
     }
     case FutureType.READ_EVENT_ARGUMENT: {
-      const result = await resolveReadEventArgumentResult(
-        future.futureToReadFrom,
-        future.emitter,
-        future.eventName,
-        future.eventIndex,
-        future.argumentName,
-        deploymentState,
-        deploymentLoader
-      );
+      const { txToReadFrom, emitterAddress, result } =
+        await resolveReadEventArgumentResult(
+          future.futureToReadFrom,
+          future.emitter,
+          future.eventName,
+          future.eventIndex,
+          future.argumentName,
+          deploymentState,
+          deploymentLoader
+        );
 
       const readEventArgInit: ReadEventArgExecutionStateInitializeMessage =
         _extendBaseInitWith(
@@ -169,15 +169,9 @@ export async function buildInitializeMessageFor(
             artifactFutureId: future.emitter.id,
             eventName: future.eventName,
             argumentName: future.argumentName,
-            txToReadFrom: resolveTxHash(
-              future.futureToReadFrom,
-              deploymentState
-            ),
-            emitterAddress: resolveAddressForContractFuture(
-              future.emitter,
-              deploymentState
-            ),
             eventIndex: future.eventIndex,
+            txToReadFrom,
+            emitterAddress,
             result,
           }
         );
