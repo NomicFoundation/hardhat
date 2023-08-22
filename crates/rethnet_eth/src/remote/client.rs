@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 use std::path::{Path, PathBuf};
 use std::{
     io,
@@ -72,6 +72,8 @@ pub enum RpcClientError {
         method_invocation: MethodInvocation,
         /// The id of the request iwth the missing response
         id: Id,
+        /// The response text
+        response: String,
     },
 
     /// The JSON-RPC returned an error.
@@ -382,11 +384,15 @@ impl RpcClient {
         }
 
         let mut requests: Vec<SerializedRequest> = Vec::new();
-        for (id, method_invocation, cache_response) in izip!(&ids, method_invocations, &results) {
+        let mut id_to_index = HashMap::<&Id, usize>::new();
+        for (index, (id, method_invocation, cache_response)) in
+            izip!(&ids, method_invocations, &results).enumerate()
+        {
             if cache_response.is_none() {
                 let request =
                     Self::serialize_request_with_id(method_invocation.clone(), id.clone())?;
                 requests.push(request);
+                id_to_index.insert(id, index);
             }
         }
 
@@ -398,9 +404,9 @@ impl RpcClient {
             Self::parse_response_str(&remote_response)?;
 
         for response in remote_responses {
-            let index = ids
-                .iter()
-                .position(|id| id == &response.id)
+            let index = id_to_index
+                // Remove to make sure no duplicate ids in response
+                .remove(&response.id)
                 .ok_or_else(|| RpcClientError::InvalidId {
                     response: remote_response.clone(),
                     id: response.id,
@@ -429,6 +435,7 @@ impl RpcClient {
                 result.ok_or_else(|| RpcClientError::MissingResponse {
                     method_invocation: method_invocations[index].clone(),
                     id: ids[index].clone(),
+                    response: remote_response.clone(),
                 })
             })
             .collect()
