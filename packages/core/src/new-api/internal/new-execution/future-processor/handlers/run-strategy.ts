@@ -104,7 +104,13 @@ export async function runStrategy(
 
     response = await typedGenerator.next({
       type: OnchainInteractionResponseType.SUCCESSFUL_TRANSACTION,
-      transaction: confirmedTx as any,
+      transaction: {
+        ...confirmedTx,
+        receipt: {
+          ...confirmedTx.receipt,
+          status: TransactionReceiptStatus.SUCCESS,
+        },
+      },
     });
   } else {
     assertIgnitionInvariant(
