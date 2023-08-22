@@ -549,7 +549,7 @@ describe("abi", () => {
               "withTypeBasedOverloads"
             );
           },
-          `Function name "withTypeBasedOverloads" is overloaded in contract FunctionNameValidation. Please use one of these names instead:
+          `Function "withTypeBasedOverloads" is overloaded in contract FunctionNameValidation. Please use one of these names instead:
 
 * withTypeBasedOverloads(uint256)
 * withTypeBasedOverloads(int256)`
@@ -562,7 +562,7 @@ describe("abi", () => {
               "withParamCountOverloads"
             );
           },
-          `Function name "withParamCountOverloads" is overloaded in contract FunctionNameValidation. Please use one of these names instead:
+          `Function "withParamCountOverloads" is overloaded in contract FunctionNameValidation. Please use one of these names instead:
 
 * withParamCountOverloads()
 * withParamCountOverloads(int256)`
@@ -577,7 +577,7 @@ describe("abi", () => {
               "withTypeBasedOverloads(bool)"
             );
           },
-          `Function name "withTypeBasedOverloads(bool)" is not a valid overload of "withTypeBasedOverloads" in contract FunctionNameValidation. Please use one of these names instead:
+          `Function "withTypeBasedOverloads(bool)" is not a valid overload of "withTypeBasedOverloads" in contract FunctionNameValidation. Please use one of these names instead:
 
 * withTypeBasedOverloads(uint256)
 * withTypeBasedOverloads(int256)`
@@ -590,7 +590,7 @@ describe("abi", () => {
               "withParamCountOverloads(bool)"
             );
           },
-          `Function name "withParamCountOverloads(bool)" is not a valid overload of "withParamCountOverloads" in contract FunctionNameValidation. Please use one of these names instead:
+          `Function "withParamCountOverloads(bool)" is not a valid overload of "withParamCountOverloads" in contract FunctionNameValidation. Please use one of these names instead:
 
 * withParamCountOverloads()
 * withParamCountOverloads(int256)`

@@ -272,7 +272,7 @@ describe("Read event argument", () => {
           {},
           []
         ),
-        /Contract 'Another' doesn't have an event test/
+        /Event "test" not found/
       );
     });
   });

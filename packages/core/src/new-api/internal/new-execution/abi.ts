@@ -531,7 +531,7 @@ function validateOverloadedName(
 
   if (bareName === undefined) {
     throw new IgnitionValidationError(
-      `Invalid ${eventOrFunction} name ${name}`
+      `Invalid ${eventOrFunction} name "${name}"`
     );
   }
 
@@ -550,7 +550,7 @@ function validateOverloadedName(
 
   if (fragments.length === 0) {
     throw new IgnitionValidationError(
-      `${eventOrFunctionCapitalized} name "${bareName}" not found in contract ${artifact.contractName}`
+      `${eventOrFunctionCapitalized} "${name}" not found in contract ${artifact.contractName}`
     );
   }
 
@@ -579,7 +579,7 @@ function validateOverloadedName(
 
   if (bareName === name) {
     throw new IgnitionValidationError(
-      `${eventOrFunctionCapitalized} name "${name}" is overloaded in contract ${artifact.contractName}. Please use one of these names instead:
+      `${eventOrFunctionCapitalized} "${name}" is overloaded in contract ${artifact.contractName}. Please use one of these names instead:
 
 ${normalizedNameList}`
     );
@@ -587,7 +587,7 @@ ${normalizedNameList}`
 
   if (!normalizedNames.includes(name)) {
     throw new IgnitionValidationError(
-      `Event name "${name}" is not a valid overload of "${bareName}" in contract ${artifact.contractName}. Please use one of these names instead:
+      `${eventOrFunctionCapitalized} "${name}" is not a valid overload of "${bareName}" in contract ${artifact.contractName}. Please use one of these names instead:
 
 ${normalizedNameList}`
     );
