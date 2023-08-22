@@ -1,9 +1,7 @@
-import { TransactionReceipt } from "ethers";
-
-import { Transaction } from "../../execution/transaction-types";
 import { assertIgnitionInvariant } from "../../utils/assertions";
 import { DeploymentState } from "../types/deployment-state";
 import { ExecutionSateType } from "../types/execution-state";
+import { Transaction, TransactionReceipt } from "../types/jsonrpc";
 import { NetworkInteractionType } from "../types/network-interaction";
 
 export function findConfirmedTransactionByFutureId(
@@ -42,5 +40,5 @@ export function findConfirmedTransactionByFutureId(
     `Tx hash resolution unable to find confirmed transaction for ${futureId}`
   );
 
-  return transaction as any;
+  return { ...transaction, receipt: transaction.receipt };
 }
