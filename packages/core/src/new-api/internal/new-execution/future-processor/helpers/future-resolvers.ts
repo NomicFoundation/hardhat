@@ -123,25 +123,33 @@ export function resolveLibraries(
   );
 }
 
-export function resolveAddressForContract(
+/**
+ * Resolve a contract future down to the address it is deployed at.
+ */
+export function resolveAddressForContractFuture(
   contract: ContractFuture<string>,
   deploymentState: DeploymentState
 ): string {
   return findAddressForContractFuture(deploymentState, contract.id);
 }
 
-export function resolveAddressForContractAtAddress(
-  contractAtAddress:
+/**
+ * Resolve the given address like to a valid ethereum address. Futures
+ * will be resolved to their result then runtime checked to ensure
+ * they are a valid address.
+ */
+export function resolveAddressLike(
+  addressLike:
     | string
     | AddressResolvableFuture
     | ModuleParameterRuntimeValue<string>,
   deploymentState: DeploymentState,
   deploymentParameters: DeploymentParameters
 ): string {
-  if (typeof contractAtAddress === "string") {
-    return contractAtAddress;
-  } else if (isModuleParameterRuntimeValue(contractAtAddress)) {
-    const addressFromParam = resolveModuleParameter(contractAtAddress, {
+  if (typeof addressLike === "string") {
+    return addressLike;
+  } else if (isModuleParameterRuntimeValue(addressLike)) {
+    const addressFromParam = resolveModuleParameter(addressLike, {
       deploymentParameters,
     });
 
@@ -151,14 +159,14 @@ export function resolveAddressForContractAtAddress(
     );
 
     return addressFromParam;
-  } else if (isFuture(contractAtAddress)) {
-    const exState = deploymentState.executionStates[contractAtAddress.id];
+  } else if (isFuture(addressLike)) {
+    const exState = deploymentState.executionStates[addressLike.id];
 
     if (exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE) {
       assertIgnitionInvariant(
         exState.result !== undefined &&
           exState.result.type === ExecutionResultType.SUCCESS,
-        `Internal error - dependency ${contractAtAddress.id} does not have a successful deployment result`
+        `Internal error - dependency ${addressLike.id} does not have a successful deployment result`
       );
 
       return exState.result.address;
@@ -167,12 +175,12 @@ export function resolveAddressForContractAtAddress(
 
       assertIgnitionInvariant(
         contractAddress !== undefined,
-        `Internal error - dependency ${contractAtAddress.id} used before it's resolved`
+        `Internal error - dependency ${addressLike.id} used before it's resolved`
       );
 
       assertIgnitionInvariant(
         typeof contractAddress === "string" && isAddress(contractAddress),
-        `Future '${contractAtAddress.id}' must be a valid address`
+        `Future '${addressLike.id}' must be a valid address`
       );
 
       return contractAddress;
@@ -183,7 +191,7 @@ export function resolveAddressForContractAtAddress(
 
       assertIgnitionInvariant(
         typeof contractAddress === "string" && isAddress(contractAddress),
-        `Future '${contractAtAddress.id}' must be a valid address`
+        `Future '${addressLike.id}' must be a valid address`
       );
 
       return contractAddress;
@@ -191,25 +199,25 @@ export function resolveAddressForContractAtAddress(
       assertIgnitionInvariant(
         exState.result !== undefined &&
           exState.result.type === ExecutionResultType.SUCCESS,
-        `Internal error - dependency ${contractAtAddress.id} does not have a successful static call result`
+        `Internal error - dependency ${addressLike.id} does not have a successful static call result`
       );
 
       const contractAddress = exState.result.value;
 
       assertIgnitionInvariant(
         typeof contractAddress === "string" && isAddress(contractAddress),
-        `Future '${contractAtAddress.id}' must be a valid address`
+        `Future '${addressLike.id}' must be a valid address`
       );
 
       return contractAddress;
     } else {
       throw new IgnitionError(
-        `Cannot resolve address of ${contractAtAddress.id}, not an allowed future type ${contractAtAddress.type}`
+        `Cannot resolve address of ${addressLike.id}, not an allowed future type ${addressLike.type}`
       );
     }
   } else {
     throw new IgnitionError(
-      `Unable to resolve address of ${JSON.stringify(contractAtAddress)}`
+      `Unable to resolve address of ${JSON.stringify(addressLike)}`
     );
   }
 }

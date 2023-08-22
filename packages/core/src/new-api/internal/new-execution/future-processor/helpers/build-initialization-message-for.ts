@@ -12,8 +12,8 @@ import {
 } from "../../types/messages";
 
 import {
-  resolveAddressForContract,
-  resolveAddressForContractAtAddress,
+  resolveAddressForContractFuture,
+  resolveAddressLike,
   resolveArgs,
   resolveFutureFrom,
   resolveLibraries,
@@ -31,7 +31,7 @@ export function buildInitializeMessageFor(
     case FutureType.NAMED_CONTRACT_DEPLOYMENT:
     case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
       const deploymentExecStateInit: DeploymentExecutionStateInitializeMessage =
-        _extendBaseExecutionStateWith(
+        _extendBaseInitWith(
           JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE,
           future,
           strategy,
@@ -55,7 +55,7 @@ export function buildInitializeMessageFor(
     case FutureType.NAMED_LIBRARY_DEPLOYMENT:
     case FutureType.ARTIFACT_LIBRARY_DEPLOYMENT:
       const libraryDeploymentInit: DeploymentExecutionStateInitializeMessage =
-        _extendBaseExecutionStateWith(
+        _extendBaseInitWith(
           JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE,
           future,
           strategy,
@@ -73,7 +73,7 @@ export function buildInitializeMessageFor(
       return libraryDeploymentInit;
     case FutureType.NAMED_CONTRACT_CALL: {
       const namedContractCallInit: CallExecutionStateInitializeMessage =
-        _extendBaseExecutionStateWith(
+        _extendBaseInitWith(
           JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE,
           future,
           strategy,
@@ -85,7 +85,7 @@ export function buildInitializeMessageFor(
               accounts
             ),
             functionName: future.functionName,
-            contractAddress: resolveAddressForContract(
+            contractAddress: resolveAddressForContractFuture(
               future.contract,
               deploymentState
             ),
@@ -99,7 +99,7 @@ export function buildInitializeMessageFor(
     }
     case FutureType.NAMED_STATIC_CALL: {
       const namedStaticCallInit: StaticCallExecutionStateInitializeMessage =
-        _extendBaseExecutionStateWith(
+        _extendBaseInitWith(
           JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE,
           future,
           strategy,
@@ -111,7 +111,7 @@ export function buildInitializeMessageFor(
               accounts
             ),
             functionName: future.functionName,
-            contractAddress: resolveAddressForContract(
+            contractAddress: resolveAddressForContractFuture(
               future.contract,
               deploymentState
             ),
@@ -125,14 +125,14 @@ export function buildInitializeMessageFor(
     case FutureType.NAMED_CONTRACT_AT:
     case FutureType.ARTIFACT_CONTRACT_AT: {
       const contractAtInit: ContractAtExecutionStateInitializeMessage =
-        _extendBaseExecutionStateWith(
+        _extendBaseInitWith(
           JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE,
           future,
           strategy,
           {
             futureType: future.type,
             contractName: future.contractName,
-            contractAddress: resolveAddressForContractAtAddress(
+            contractAddress: resolveAddressLike(
               future.address,
               deploymentState,
               deploymentParameters
@@ -150,12 +150,12 @@ export function buildInitializeMessageFor(
     }
     case FutureType.SEND_DATA:
       const sendDataInit: SendDataExecutionStateInitializeMessage =
-        _extendBaseExecutionStateWith(
+        _extendBaseInitWith(
           JournalMessageType.SEND_DATA_EXECUTION_STATE_INITIALIZE,
           future,
           strategy,
           {
-            to: resolveAddressForContractAtAddress(
+            to: resolveAddressLike(
               future.to,
               deploymentState,
               deploymentParameters
@@ -170,7 +170,7 @@ export function buildInitializeMessageFor(
   }
 }
 
-function _extendBaseExecutionStateWith<
+function _extendBaseInitWith<
   FutureT extends Future,
   MessageT extends JournalMessageType,
   ExtensionT extends object
