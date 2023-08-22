@@ -23,7 +23,7 @@ import { monitorOnchainInteraction } from "./handlers/monitor-onchain-interactio
 import { queryStaticCall } from "./handlers/query-static-call";
 import { runStrategy } from "./handlers/run-strategy";
 import { sendTransaction } from "./handlers/send-transaction";
-import { buildInitializeMessageFor } from "./helpers/build-initialization-message-for";
+import { buildInitializeMessageFor } from "./helpers/build-initialize-message-for";
 import {
   NextAction,
   nextActionForExecutionState as nextActionExecutionState,

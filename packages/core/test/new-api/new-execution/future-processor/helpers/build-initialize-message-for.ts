@@ -16,7 +16,7 @@ import {
   ReadEventArgumentFutureImplementation,
   SendDataFutureImplementation,
 } from "../../../../../src/new-api/internal/module";
-import { buildInitializeMessageFor } from "../../../../../src/new-api/internal/new-execution/future-processor/helpers/build-initialization-message-for";
+import { buildInitializeMessageFor } from "../../../../../src/new-api/internal/new-execution/future-processor/helpers/build-initialize-message-for";
 import { deploymentStateReducer } from "../../../../../src/new-api/internal/new-execution/reducers/deployment-state-reducer";
 import { DeploymentState } from "../../../../../src/new-api/internal/new-execution/types/deployment-state";
 import { ExecutionResultType } from "../../../../../src/new-api/internal/new-execution/types/execution-result";
