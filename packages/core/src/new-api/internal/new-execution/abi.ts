@@ -1,4 +1,11 @@
-import type { Result, ParamType, FunctionFragment, Interface } from "ethers";
+import type {
+  Result,
+  ParamType,
+  FunctionFragment,
+  Interface,
+  EventFragment,
+  Fragment,
+} from "ethers";
 
 import {
   IgnitionValidationError,
@@ -21,6 +28,7 @@ import {
   RevertWithReason,
   SuccessfulEvmExecutionResult,
 } from "./types/evm-execution";
+import { TransactionReceipt } from "./types/jsonrpc";
 
 const REVERT_REASON_SIGNATURE = "0x08c379a0";
 const PANIC_CODE_SIGNATURE = "0x4e487b71";
@@ -146,66 +154,88 @@ export function validateArtifactFunctionName(
   artifact: Artifact,
   functionName: string
 ) {
-  const FUNCTION_NAME_REGEX = /^[_\\$a-zA-Z][_\\$a-zA-Z0-9]*(\(.*\))?$/;
+  validateOverloadedName(artifact, functionName, false);
+}
 
-  if (functionName.match(FUNCTION_NAME_REGEX) === null) {
-    throw new IgnitionValidationError(
-      `Invalid function name "${functionName}"`
-    );
-  }
-
-  const bareFunctionName = functionName.includes("(")
-    ? functionName.substring(0, functionName.indexOf("("))
-    : functionName;
-
+/**
+ * Validates that the event exists in the artifact, it's name is valid, handles overloads
+ * correctly, and that the arugment exists in the event.
+ *
+ * @param emitterArtifact The artifact of the contract emitting the event.
+ * @param eventName The name of the event.
+ * @param argument The argument name or index.
+ */
+export function validateArtifactEventArgumentParams(
+  emitterArtifact: Artifact,
+  eventName: string,
+  argument: string | number
+) {
+  validateOverloadedName(emitterArtifact, eventName, true);
   const { ethers } = require("ethers") as typeof import("ethers");
-  const iface = ethers.Interface.from(artifact.abi);
-  const functionFragments = iface.fragments
-    .filter(ethers.Fragment.isFunction)
-    .filter((fragment) => fragment.name === bareFunctionName);
+  const iface = new ethers.Interface(emitterArtifact.abi);
 
-  if (functionFragments.length === 0) {
-    throw new IgnitionValidationError(
-      `Function "${functionName}" not found in contract ${artifact.contractName}`
-    );
-  }
+  const eventFragment = getEventFragment(iface, eventName);
 
-  // If the function is not overloaded we force the user to use the bare function name
-  // because having a single representation is more friendly with our reconciliation
-  // process.
-  if (functionFragments.length === 1) {
-    if (bareFunctionName !== functionName) {
-      throw new IgnitionValidationError(
-        `Function name "${functionName}" used for contract ${artifact.contractName}, but it's not overloaded. Use "${bareFunctionName}" instead.`
-      );
+  if (typeof argument === "string") {
+    for (const input of eventFragment.inputs) {
+      if (input.name === argument) {
+        return;
+      }
     }
 
-    return;
+    throw new IgnitionValidationError(
+      `Event ${eventName} of contract ${emitterArtifact.contractName} has no argument named ${argument}`
+    );
   }
 
-  const normalizedFunctionNames = functionFragments.map(
-    getFunctionNameWithParams
+  if (eventFragment.inputs.length <= argument) {
+    throw new IgnitionValidationError(
+      `Event ${eventName} of contract ${emitterArtifact.contractName} has only ${eventFragment.inputs.length} arguments, but argument ${argument} was requested`
+    );
+  }
+}
+
+/**
+ * Returns the value of an argument in an event emitted by the contract
+ * at emitterAddress with a certain artifact.
+ *
+ * @param receipt The receipt of the transaction that emitted the event.
+ * @param emitterArtifact The artifact of the contract emitting the event.
+ * @param emitterAddress The address of the contract emitting the event.
+ * @param eventName The name of the event. It MUST be validated first.
+ * @param eventIndex The index of the event, in case there are multiple events emitted with the same name
+ * @param argument The name or index of the argument to extract from the event.
+ * @returns The EvmValue of the argument.
+ */
+export function getEventArgumentFromReceipt(
+  receipt: TransactionReceipt,
+  emitterArtifact: Artifact,
+  emitterAddress: string,
+  eventName: string,
+  eventIndex: number,
+  argument: string | number
+): EvmValue {
+  const emitterLogs = receipt.logs.filter((l) => l.address === emitterAddress);
+
+  const { ethers } = require("ethers") as typeof import("ethers");
+  const iface = new ethers.Interface(emitterArtifact.abi);
+
+  const eventFragment = getEventFragment(iface, eventName);
+  const eventLogs = emitterLogs.filter(
+    (l) => l.topics[0] === eventFragment.topicHash
   );
 
-  const normalizedFunctionNameList = normalizedFunctionNames
-    .map((nn) => `* ${nn}`)
-    .join("\n");
+  const log = eventLogs[eventIndex];
 
-  if (bareFunctionName === functionName) {
-    throw new IgnitionValidationError(
-      `Function name "${functionName}" is overloaded in contract ${artifact.contractName}. Please use one of these names instead:
+  const ethersResult = iface.decodeEventLog(eventFragment, log.data);
 
-${normalizedFunctionNameList}`
-    );
+  const evmTuple = ethersResultIntoEvmTuple(ethersResult, eventFragment.inputs);
+
+  if (typeof argument === "string") {
+    return evmTuple.named[argument];
   }
 
-  if (!normalizedFunctionNames.includes(functionName)) {
-    throw new IgnitionValidationError(
-      `Function name "${functionName}" is not a valid overload of "${bareFunctionName}" in contract ${artifact.contractName}. Please use one of these names instead:
-
-${normalizedFunctionNameList}`
-    );
-  }
+  return evmTuple.positional[argument];
 }
 
 /**
@@ -411,9 +441,9 @@ function ethersResultIntoEvmTuple(
 }
 
 /**
- * Returns a function fragment for the given function name in the given artifact.
+ * Returns a function fragment for the given function name in the given interface.
  *
- * @param artifact The artifact to search in.
+ * @param iface The interface to search in.
  * @param functionName The function name to search for. MUST be validated first.
  */
 function getFunctionFragment(
@@ -438,6 +468,128 @@ function getFunctionFragment(
   return fragment;
 }
 
+/**
+ * Returns an event fragment for the given event name in the given interface.
+ *
+ * @param iface The interface to search in.
+ * @param eventName The event name to search for. MUST be validated first.
+ */
+function getEventFragment(iface: Interface, eventName: string): EventFragment {
+  const { ethers } = require("ethers") as typeof import("ethers");
+
+  // TODO: Add support for event overloading
+  const fragment = iface.fragments
+    .filter(ethers.Fragment.isEvent)
+    .find(
+      (fr) => fr.name === eventName || getEventNameWithParams(fr) === eventName
+    );
+
+  assertIgnitionInvariant(
+    fragment !== undefined,
+    "Called getEventFragment with an invalid event name"
+  );
+
+  return fragment;
+}
+
 function getFunctionNameWithParams(functionFragment: FunctionFragment): string {
   return functionFragment.format("sighash");
+}
+
+function getEventNameWithParams(eventFragment: EventFragment): string {
+  return eventFragment.format("sighash");
+}
+
+/**
+ * Returtns the bare name of a function or event name. The bare name is the
+ * function or event name without the parameter types.
+ *
+ * @param functionOrEventName The name, either with or without parames.
+ * @returns The bare name, or undefined if the given name is not valid.
+ */
+function getBareName(functionOrEventName: string): string | undefined {
+  const NAME_REGEX = /^[_\\$a-zA-Z][_\\$a-zA-Z0-9]*(\(.*\))?$/;
+
+  if (functionOrEventName.match(NAME_REGEX) === null) {
+    return undefined;
+  }
+
+  return functionOrEventName.includes("(")
+    ? functionOrEventName.substring(0, functionOrEventName.indexOf("("))
+    : functionOrEventName;
+}
+
+function validateOverloadedName(
+  artifact: Artifact,
+  name: string,
+  isEvent: boolean
+) {
+  const eventOrFunction = isEvent ? "event" : "function";
+  const eventOrFunctionCapitalized = isEvent ? "Event" : "Function";
+
+  const bareName = getBareName(name);
+
+  if (bareName === undefined) {
+    throw new IgnitionValidationError(
+      `Invalid ${eventOrFunction} name ${name}`
+    );
+  }
+
+  const { ethers } = require("ethers") as typeof import("ethers");
+  const iface = new ethers.Interface(artifact.abi);
+
+  const fragments = iface.fragments
+    .filter((f: Fragment): f is EventFragment | FunctionFragment => {
+      if (isEvent) {
+        return ethers.Fragment.isEvent(f);
+      }
+
+      return ethers.Fragment.isFunction(f);
+    })
+    .filter((fragment) => fragment.name === bareName);
+
+  if (fragments.length === 0) {
+    throw new IgnitionValidationError(
+      `${eventOrFunctionCapitalized} name "${bareName}" not found in contract ${artifact.contractName}`
+    );
+  }
+
+  // If it is not overloaded we force the user to use the bare name
+  // because having a single representation is more friendly with our reconciliation
+  // process.
+  if (fragments.length === 1) {
+    if (bareName !== name) {
+      throw new IgnitionValidationError(
+        `${eventOrFunctionCapitalized} name "${name}" used for contract ${artifact.contractName}, but it's not overloaded. Use "${bareName}" instead.`
+      );
+    }
+
+    return;
+  }
+
+  const normalizedNames = fragments.map((f) => {
+    if (ethers.Fragment.isEvent(f)) {
+      return getEventNameWithParams(f);
+    }
+
+    return getFunctionNameWithParams(f);
+  });
+
+  const normalizedNameList = normalizedNames.map((nn) => `* ${nn}`).join("\n");
+
+  if (bareName === name) {
+    throw new IgnitionValidationError(
+      `${eventOrFunctionCapitalized} name "${name}" is overloaded in contract ${artifact.contractName}. Please use one of these names instead:
+
+${normalizedNameList}`
+    );
+  }
+
+  if (!normalizedNames.includes(name)) {
+    throw new IgnitionValidationError(
+      `Event name "${name}" is not a valid overload of "${bareName}" in contract ${artifact.contractName}. Please use one of these names instead:
+
+${normalizedNameList}`
+    );
+  }
 }
