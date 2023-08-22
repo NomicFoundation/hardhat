@@ -192,7 +192,7 @@ describe("Read event argument", () => {
 
   describe("validation", () => {
     describe("stage one", () => {
-      let vm: typeof import("/Users/morgan/ignition/packages/core/src/new-api/internal/validation/stageOne/validateReadEventArgument");
+      let vm: typeof import("../../src/new-api/internal/validation/stageOne/validateReadEventArgument");
       let validateReadEventArgument: typeof vm.validateReadEventArgument;
 
       before(async () => {

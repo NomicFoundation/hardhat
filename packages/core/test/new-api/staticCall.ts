@@ -437,7 +437,7 @@ describe("static call", () => {
     });
 
     describe("stage one", () => {
-      let vm: typeof import("/Users/morgan/ignition/packages/core/src/new-api/internal/validation/stageOne/validateNamedStaticCall");
+      let vm: typeof import("../../src/new-api/internal/validation/stageOne/validateNamedStaticCall");
       let validateNamedStaticCall: typeof vm.validateNamedStaticCall;
 
       before(async () => {
@@ -631,7 +631,7 @@ describe("static call", () => {
     });
 
     describe("stage two", () => {
-      let vm: typeof import("/Users/morgan/ignition/packages/core/src/new-api/internal/validation/stageTwo/validateNamedStaticCall");
+      let vm: typeof import("../../src/new-api/internal/validation/stageTwo/validateNamedStaticCall");
       let validateNamedStaticCall: typeof vm.validateNamedStaticCall;
 
       before(async () => {

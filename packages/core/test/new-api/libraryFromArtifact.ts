@@ -264,7 +264,7 @@ describe("libraryFromArtifact", () => {
     });
 
     describe("stage two", () => {
-      let vm: typeof import("/Users/morgan/ignition/packages/core/src/new-api/internal/validation/stageTwo/validateArtifactLibraryDeployment");
+      let vm: typeof import("../../src/new-api/internal/validation/stageTwo/validateArtifactLibraryDeployment");
       let validateArtifactLibraryDeployment: typeof vm.validateArtifactLibraryDeployment;
 
       before(async () => {

@@ -467,7 +467,7 @@ describe("call", () => {
     });
 
     describe("stage one", () => {
-      let vm: typeof import("/Users/morgan/ignition/packages/core/src/new-api/internal/validation/stageOne/validateNamedContractCall");
+      let vm: typeof import("../../src/new-api/internal/validation/stageOne/validateNamedContractCall");
       let validateNamedContractCall: typeof vm.validateNamedContractCall;
 
       before(async () => {
@@ -622,7 +622,7 @@ describe("call", () => {
     });
 
     describe("stage two", () => {
-      let vm: typeof import("/Users/morgan/ignition/packages/core/src/new-api/internal/validation/stageTwo/validateNamedContractCall");
+      let vm: typeof import("../../src/new-api/internal/validation/stageTwo/validateNamedContractCall");
       let validateNamedContractCall: typeof vm.validateNamedContractCall;
 
       before(async () => {

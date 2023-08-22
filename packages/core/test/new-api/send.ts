@@ -314,7 +314,7 @@ describe("send", () => {
     });
 
     describe("stage two", () => {
-      let vm: typeof import("/Users/morgan/ignition/packages/core/src/new-api/internal/validation/stageTwo/validateSendData");
+      let vm: typeof import("../../src/new-api/internal/validation/stageTwo/validateSendData");
       let validateSendData: typeof vm.validateSendData;
 
       before(async () => {

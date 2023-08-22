@@ -530,7 +530,7 @@ describe("contractFromArtifact", () => {
     });
 
     describe("stage one", () => {
-      let vm: typeof import("/Users/morgan/ignition/packages/core/src/new-api/internal/validation/stageOne/validateArtifactContractDeployment");
+      let vm: typeof import("../../src/new-api/internal/validation/stageOne/validateArtifactContractDeployment");
       let validateArtifactContractDeployment: typeof vm.validateArtifactContractDeployment;
 
       before(async () => {
@@ -566,7 +566,7 @@ describe("contractFromArtifact", () => {
     });
 
     describe("stage two", () => {
-      let vm: typeof import("/Users/morgan/ignition/packages/core/src/new-api/internal/validation/stageTwo/validateArtifactContractDeployment");
+      let vm: typeof import("../../src/new-api/internal/validation/stageTwo/validateArtifactContractDeployment");
       let validateArtifactContractDeployment: typeof vm.validateArtifactContractDeployment;
 
       before(async () => {

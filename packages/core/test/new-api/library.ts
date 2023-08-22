@@ -233,7 +233,7 @@ describe("library", () => {
     });
 
     describe("stage one", () => {
-      let vm: typeof import("/Users/morgan/ignition/packages/core/src/new-api/internal/validation/stageOne/validateNamedLibraryDeployment");
+      let vm: typeof import("../../src/new-api/internal/validation/stageOne/validateNamedLibraryDeployment");
       let validateNamedLibraryDeployment: typeof vm.validateNamedLibraryDeployment;
 
       before(async () => {
@@ -264,7 +264,7 @@ describe("library", () => {
     });
 
     describe("stage two", () => {
-      let vm: typeof import("/Users/morgan/ignition/packages/core/src/new-api/internal/validation/stageTwo/validateNamedLibraryDeployment");
+      let vm: typeof import("../../src/new-api/internal/validation/stageTwo/validateNamedLibraryDeployment");
       let validateNamedLibraryDeployment: typeof vm.validateNamedLibraryDeployment;
 
       before(async () => {

@@ -249,7 +249,7 @@ describe("contractAtFromArtifact", () => {
     });
 
     describe("stage two", () => {
-      let vm: typeof import("/Users/morgan/ignition/packages/core/src/new-api/internal/validation/stageTwo/validateArtifactContractAt");
+      let vm: typeof import("../../src/new-api/internal/validation/stageTwo/validateArtifactContractAt");
       let validateArtifactContractAt: typeof vm.validateArtifactContractAt;
 
       before(async () => {
