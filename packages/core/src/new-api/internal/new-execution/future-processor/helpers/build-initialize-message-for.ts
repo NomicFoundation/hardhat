@@ -25,8 +25,8 @@ import {
 
 export async function buildInitializeMessageFor(
   future: Future,
-  strategy: { name: string },
   deploymentState: DeploymentState,
+  strategy: { name: string },
   deploymentParameters: DeploymentParameters,
   deploymentLoader: DeploymentLoader,
   accounts: string[]

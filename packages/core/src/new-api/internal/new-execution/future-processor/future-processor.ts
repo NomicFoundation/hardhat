@@ -64,13 +64,10 @@ export class FutureProcessor {
     let exState = deploymentState.executionStates[future.id];
 
     if (exState === undefined) {
-      // TODO: initialize messages require access to the entire
-      //   deployment state, deployment loader, accounts, and
-      //   deploymentParameters.
       const initMessage = await buildInitializeMessageFor(
         future,
-        this._executionStrategy,
         deploymentState,
+        this._executionStrategy,
         this._deploymentParameters,
         this._deploymentLoader,
         this._accounts

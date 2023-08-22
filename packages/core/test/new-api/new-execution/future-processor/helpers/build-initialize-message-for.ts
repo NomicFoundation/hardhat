@@ -237,8 +237,8 @@ describe("buildInitializeMessageFor", () => {
       beforeEach(async () => {
         message = (await buildInitializeMessageFor(
           namedContractDeployment,
-          basicStrategy,
           exampleDeploymentState,
+          basicStrategy,
           {},
           mockDeploymentLoader,
           exampleAccounts
@@ -291,8 +291,8 @@ describe("buildInitializeMessageFor", () => {
       beforeEach(async () => {
         message = (await buildInitializeMessageFor(
           artifactContractDeployment,
-          basicStrategy,
           exampleDeploymentState,
+          basicStrategy,
           {},
           mockDeploymentLoader,
           exampleAccounts
@@ -329,8 +329,8 @@ describe("buildInitializeMessageFor", () => {
       beforeEach(async () => {
         message = (await buildInitializeMessageFor(
           namedLibraryDeployment,
-          basicStrategy,
           exampleDeploymentState,
+          basicStrategy,
           {},
           mockDeploymentLoader,
           exampleAccounts
@@ -360,8 +360,8 @@ describe("buildInitializeMessageFor", () => {
       beforeEach(async () => {
         message = (await buildInitializeMessageFor(
           artifactLibraryDeployment,
-          basicStrategy,
           exampleDeploymentState,
+          basicStrategy,
           {},
           mockDeploymentLoader,
           exampleAccounts
@@ -398,8 +398,8 @@ describe("buildInitializeMessageFor", () => {
 
         message = (await buildInitializeMessageFor(
           namedContractDeployment,
-          basicStrategy,
           exampleDeploymentState,
+          basicStrategy,
           {
             MyModule: {
               passedValue: BigInt(99),
@@ -421,8 +421,8 @@ describe("buildInitializeMessageFor", () => {
 
         message = (await buildInitializeMessageFor(
           namedContractDeployment,
-          basicStrategy,
           exampleDeploymentState,
+          basicStrategy,
           {},
           mockDeploymentLoader,
           exampleAccounts
@@ -440,8 +440,8 @@ describe("buildInitializeMessageFor", () => {
 
         message = (await buildInitializeMessageFor(
           namedContractDeployment,
-          basicStrategy,
           exampleDeploymentState,
+          basicStrategy,
           {},
           mockDeploymentLoader,
           exampleAccounts
@@ -461,8 +461,8 @@ describe("buildInitializeMessageFor", () => {
       beforeEach(async () => {
         message = (await buildInitializeMessageFor(
           namedContractCall,
-          basicStrategy,
           exampleDeploymentState,
+          basicStrategy,
           {},
           mockDeploymentLoader,
           exampleAccounts
@@ -493,8 +493,8 @@ describe("buildInitializeMessageFor", () => {
       beforeEach(async () => {
         message = (await buildInitializeMessageFor(
           staticCall,
-          basicStrategy,
           exampleDeploymentState,
+          basicStrategy,
           {},
           mockDeploymentLoader,
           exampleAccounts
@@ -524,8 +524,8 @@ describe("buildInitializeMessageFor", () => {
       beforeEach(async () => {
         message = (await buildInitializeMessageFor(
           namedContractAt,
-          basicStrategy,
           exampleDeploymentState,
+          basicStrategy,
           {},
           mockDeploymentLoader,
           exampleAccounts
@@ -550,8 +550,8 @@ describe("buildInitializeMessageFor", () => {
       beforeEach(async () => {
         message = (await buildInitializeMessageFor(
           artifactContractAt,
-          basicStrategy,
           exampleDeploymentState,
+          basicStrategy,
           {},
           mockDeploymentLoader,
           exampleAccounts
@@ -587,8 +587,8 @@ describe("buildInitializeMessageFor", () => {
     beforeEach(async () => {
       message = (await buildInitializeMessageFor(
         readEventArgument,
-        basicStrategy,
         exampleDeploymentState,
+        basicStrategy,
         {},
         mockDeploymentLoader,
         exampleAccounts
@@ -618,8 +618,8 @@ describe("buildInitializeMessageFor", () => {
     beforeEach(async () => {
       message = (await buildInitializeMessageFor(
         sendData,
-        basicStrategy,
         exampleDeploymentState,
+        basicStrategy,
         {},
         mockDeploymentLoader,
         exampleAccounts
