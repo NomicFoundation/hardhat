@@ -4,7 +4,7 @@ const namehash = require("eth-ens-namehash");
 const setupENSRegistry = require("./ENS");
 
 const labelhash = (label) =>
-  hre.ethers.utils.keccak256(hre.ethers.utils.toUtf8Bytes(label));
+  hre.ethers.keccak256(hre.ethers.toUtf8Bytes(label));
 
 const ZERO_HASH =
   "0x0000000000000000000000000000000000000000000000000000000000000000";
