@@ -1,12 +1,13 @@
 import type { EthereumProvider } from "hardhat/types";
 
-import { expect, assert } from "chai";
+import { assert } from "chai";
 import * as chains from "viem/chains";
 
 import {
   _getPublicClient,
-  _getTestClient,
   _getWalletClients,
+  _getWalletClient,
+  _getTestClient,
 } from "../src/internal/clients";
 import { EthereumMockedProvider } from "./mocks/provider";
 
@@ -18,8 +19,8 @@ describe("clients", () => {
       const client = await _getPublicClient(provider, chains.mainnet);
 
       assert.isDefined(client);
-      expect(client.type).to.equal("publicClient");
-      expect(client.chain!.id).to.equal(chains.mainnet.id);
+      assert.equal(client.type, "publicClient");
+      assert.equal(client.chain!.id, chains.mainnet.id);
     });
 
     it("should return a public client with custom parameters", async () => {
@@ -30,8 +31,8 @@ describe("clients", () => {
         cacheTime: 2000,
       });
 
-      expect(client.pollingInterval).to.equal(1000);
-      expect(client.cacheTime).to.equal(2000);
+      assert.equal(client.pollingInterval, 1000);
+      assert.equal(client.cacheTime, 2000);
     });
 
     it("should return a public client with default parameters for development networks", async () => {
@@ -39,20 +40,35 @@ describe("clients", () => {
 
       const client = await _getPublicClient(provider, chains.hardhat);
 
-      expect(client.pollingInterval).to.equal(50);
-      expect(client.cacheTime).to.equal(0);
+      assert.equal(client.pollingInterval, 50);
+      assert.equal(client.cacheTime, 0);
     });
   });
 
   describe("_getWalletClients", () => {
+    it("should return a list of wallet clients", async () => {
+      const provider: EthereumProvider = new EthereumMockedProvider();
+
+      const clients = await _getWalletClients(provider, chains.mainnet);
+
+      assert.isArray(clients);
+      assert.isNotEmpty(clients);
+      clients.forEach((client) => {
+        assert.equal(client.type, "walletClient");
+        assert.equal(client.chain!.id, chains.mainnet.id);
+      });
+    });
+  });
+
+  describe("_getWalletClient", () => {
     it("should return a wallet client", async () => {
       const provider: EthereumProvider = new EthereumMockedProvider();
 
-      const client = await _getWalletClients(provider, chains.mainnet);
+      const client = await _getWalletClient(provider, chains.mainnet, "0x0");
 
       assert.isDefined(client);
-      expect(client.type).to.equal("walletClient");
-      expect(client.chain!.id).to.equal(chains.mainnet.id);
+      assert.equal(client.type, "walletClient");
+      assert.equal(client.chain!.id, chains.mainnet.id);
     });
   });
 
@@ -63,8 +79,8 @@ describe("clients", () => {
       const client = await _getTestClient(provider, chains.mainnet);
 
       assert.isDefined(client);
-      expect(client.type).to.equal("testClient");
-      expect(client.chain!.id).to.equal(chains.mainnet.id);
+      assert.equal(client.type, "testClient");
+      assert.equal(client.chain!.id, chains.mainnet.id);
     });
   });
 });
