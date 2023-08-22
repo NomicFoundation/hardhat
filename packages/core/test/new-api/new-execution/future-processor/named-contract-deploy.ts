@@ -7,7 +7,11 @@ import { BasicExecutionStrategy } from "../../../../src/new-api/internal/new-exe
 import { FutureProcessor } from "../../../../src/new-api/internal/new-execution/future-processor/future-processor";
 import { deploymentStateReducer } from "../../../../src/new-api/internal/new-execution/reducers/deployment-state-reducer";
 import { TransactionTrackingTimer } from "../../../../src/new-api/internal/new-execution/transaction-tracking-timer";
-import { exampleAccounts, setupMockDeploymentLoader } from "../../helpers";
+import {
+  exampleAccounts,
+  setupMockArtifactResolver,
+  setupMockDeploymentLoader,
+} from "../../helpers";
 
 describe("future processor", () => {
   describe("deploying a named contract", () => {
@@ -19,6 +23,7 @@ describe("future processor", () => {
       const mockDeploymentLoader = setupMockDeploymentLoader(
         new MemoryJournal()
       );
+      const mockArtifactResolver = setupMockArtifactResolver();
 
       const deploymentFuture: NamedContractDeploymentFuture<string> =
         new NamedContractDeploymentFutureImplementation(
@@ -123,6 +128,7 @@ describe("future processor", () => {
 
       const processor = new FutureProcessor(
         mockDeploymentLoader,
+        mockArtifactResolver,
         basicExecutionStrategy,
         stub,
         transactionTrackingTimer,

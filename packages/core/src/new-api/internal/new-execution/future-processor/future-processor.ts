@@ -1,3 +1,4 @@
+import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deployer";
 import { Future } from "../../../types/module";
 import { DeploymentLoader } from "../../deployment-loader/types";
@@ -28,6 +29,7 @@ import {
   NextAction,
   nextActionForExecutionState as nextActionExecutionState,
 } from "./helpers/next-action-for-execution-state";
+import { saveArtifactsForFuture } from "./helpers/save-artifacts-for-future";
 
 /**
  * This class is used to process a future, executing as much as possible, and
@@ -37,6 +39,7 @@ import {
 export class FutureProcessor {
   constructor(
     private readonly _deploymentLoader: DeploymentLoader,
+    private readonly _artifactResolver: ArtifactResolver,
     private readonly _executionStrategy: ExecutionStrategy,
     private readonly _jsonRpcClient: JsonRpcClient,
     private readonly _transactionTrackingTimer: TransactionTrackingTimer,
@@ -73,13 +76,17 @@ export class FutureProcessor {
         this._accounts
       );
 
+      await saveArtifactsForFuture(
+        future,
+        this._artifactResolver,
+        this._deploymentLoader
+      );
+
       deploymentState = await applyNewMessage(
         initMessage,
         deploymentState,
         this._deploymentLoader
       );
-
-      // TODO: save artifacts if needed
 
       exState = deploymentState.executionStates[future.id];
 

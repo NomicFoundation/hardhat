@@ -1,4 +1,5 @@
 import { IgnitionError } from "../../../errors";
+import { ArtifactResolver } from "../../types/artifact";
 import { DeploymentParameters } from "../../types/deployer";
 import {
   Future,
@@ -29,6 +30,7 @@ import { hasExecutionFailed } from "./views/has-execution-failed";
 export class ExecutionEngine {
   constructor(
     private readonly _deploymentLoader: DeploymentLoader,
+    private readonly _artifactResolver: ArtifactResolver,
     private readonly _executionStrategy: ExecutionStrategy,
     private readonly _jsonRpcClient: JsonRpcClient,
     private readonly _requiredConfirmations: number,
@@ -67,6 +69,7 @@ export class ExecutionEngine {
 
     const futureProcessor = new FutureProcessor(
       this._deploymentLoader,
+      this._artifactResolver,
       this._executionStrategy,
       this._jsonRpcClient,
       transactionTrackingTimer,
