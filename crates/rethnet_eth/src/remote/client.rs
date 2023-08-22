@@ -6,6 +6,7 @@ use std::{
 };
 
 use bytes::Bytes;
+use futures::{stream, StreamExt};
 use itertools::{izip, Itertools};
 use revm_primitives::{AccountInfo, Address, Bytecode, B256, KECCAK_EMPTY, U256};
 use serde::de::DeserializeOwned;
@@ -25,6 +26,9 @@ use super::{
 };
 
 const RPC_CACHE_DIR: &str = "rpc_cache";
+// More than 16 parallel reads does not significantly improve performance on any disk/workload, but
+// it can cause slow downs based on this article <https://pkolaczk.github.io/disk-parallelism/>.
+const PARALLEL_DISK_READS: usize = 16;
 
 /// Specialized error types
 #[derive(Debug, thiserror::Error)]
@@ -376,12 +380,13 @@ impl RpcClient {
             })
             .collect::<Vec<_>>();
 
-        let mut results: Vec<Option<serde_json::Value>> =
-            Vec::with_capacity(method_invocations.len());
-        for cache_key in cache_keys.iter() {
-            let result = self.try_from_cache(cache_key.as_ref()).await?;
-            results.push(result)
-        }
+        let mut results: Vec<Option<serde_json::Value>> = stream::iter(&cache_keys)
+            .map(|cache_key| async { self.try_from_cache(cache_key.as_ref()).await })
+            .buffered(PARALLEL_DISK_READS)
+            .collect::<Vec<Result<_, RpcClientError>>>()
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, RpcClientError>>()?;
 
         let mut requests: Vec<SerializedRequest> = Vec::new();
         let mut id_to_index = HashMap::<&Id, usize>::new();
