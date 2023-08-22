@@ -18,5 +18,7 @@ export const TASK_VERIFY_ETHERSCAN_ATTEMPT_VERIFICATION =
 
 // Sourcify
 export const TASK_VERIFY_SOURCIFY = "verify:sourcify";
+export const TASK_VERIFY_SOURCIFY_ATTEMPT_VERIFICATION =
+  "verify:sourcify-attempt-verification";
 export const TASK_VERIFY_SOURCIFY_DISABLED_WARNING =
   "verify:sourcify-disabled-warning";

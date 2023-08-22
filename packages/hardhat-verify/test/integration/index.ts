@@ -8,6 +8,7 @@ import {
   TASK_VERIFY,
   TASK_VERIFY_ETHERSCAN,
   TASK_VERIFY_VERIFY,
+  TASK_VERIFY_SOURCIFY,
 } from "../../src/internal/task-names";
 import { deployContract, getRandomAddress, useEnvironment } from "../helpers";
 import {
@@ -16,6 +17,11 @@ import {
   interceptVerify,
   mockEnvironment,
 } from "./mocks/etherscan";
+import {
+  interceptSourcifyIsVerified,
+  interceptSourcifyVerify,
+  mockEnvironmentSourcify,
+} from "./mocks/sourcify";
 
 import "../../src/internal/type-extensions";
 
@@ -613,6 +619,55 @@ for verification on the block explorer. Waiting for verification result...
       expect(logStub.getCall(1)).to.be
         .calledWith(`Successfully verified contract BothLibs on the block explorer.
 https://hardhat.etherscan.io/address/${bothLibsContractAddress}#code\n`);
+      logStub.restore();
+      assert.isUndefined(taskResponse);
+    });
+
+    after(async function () {
+      await this.hre.run(TASK_CLEAN);
+    });
+  });
+});
+
+describe("verify task Sourcify's integration tests", () => {
+  useEnvironment("hardhat-project");
+  mockEnvironmentSourcify();
+
+  describe("with a non-verified contract", () => {
+    let simpleContractAddress: string;
+
+    before(async function () {
+      await this.hre.run(TASK_COMPILE, { force: true, quiet: true });
+      simpleContractAddress = await deployContract(
+        "SimpleContract",
+        [],
+        this.hre
+      );
+    });
+
+    it("should verify a contract on Sourcify", async function () {
+      interceptSourcifyIsVerified([
+        { address: simpleContractAddress, status: "false" },
+      ]);
+      interceptSourcifyVerify({
+        result: [
+          {
+            address: simpleContractAddress,
+            status: "perfect",
+          },
+        ],
+      });
+      const logStub = sinon.stub(console, "log");
+
+      const taskResponse = await this.hre.run(TASK_VERIFY_SOURCIFY, {
+        address: simpleContractAddress,
+        contractFQN: "contracts/SimpleContract.sol:SimpleContract",
+      });
+
+      assert.equal(logStub.callCount, 1);
+      (expect(logStub.getCall(0)).to.be as any)
+        .calledWith(`Successfully verified contract SimpleContract on Sourcify.
+https://repo.sourcify.dev/contracts/full_match/31337/${simpleContractAddress}/`);
       logStub.restore();
       assert.isUndefined(taskResponse);
     });
