@@ -184,6 +184,9 @@ export function resolveTxHash(
   return confirmedTx.hash;
 }
 
+/**
+ * Resolves a read event argument result to a SolidityParameterType.
+ */
 export async function resolveReadEventArgumentResult(
   future: Future,
   emitter: ContractFuture<string>,
