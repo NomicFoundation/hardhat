@@ -8,9 +8,7 @@ import {
   ArtifactContractDeploymentFutureImplementation,
   ModuleParameterRuntimeValueImplementation,
 } from "../../src/new-api/internal/module";
-import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
-import { validateArtifactContractDeployment } from "../../src/new-api/internal/validation/futures/validateArtifactContractDeployment";
 
 import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
 
@@ -23,23 +21,15 @@ describe("contractFromArtifact", () => {
   };
 
   it("should be able to deploy with a contract based on an artifact", () => {
-    const moduleWithContractFromArtifactDefinition = buildModule(
-      "Module1",
-      (m) => {
-        const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
-          1,
-          "a",
-          BigInt("9007199254740991"),
-        ]);
+    const moduleWithContractFromArtifact = buildModule("Module1", (m) => {
+      const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
+        1,
+        "a",
+        BigInt("9007199254740991"),
+      ]);
 
-        return { contract1 };
-      }
-    );
-
-    const constructor = new ModuleConstructor();
-    const moduleWithContractFromArtifact = constructor.construct(
-      moduleWithContractFromArtifactDefinition
-    );
+      return { contract1 };
+    });
 
     assert.isDefined(moduleWithContractFromArtifact);
 
@@ -64,22 +54,14 @@ describe("contractFromArtifact", () => {
   });
 
   it("should be able to pass an arg dependency", () => {
-    const moduleWithDependentContractsDefinition = buildModule(
-      "Module1",
-      (m) => {
-        const example = m.contract("Example");
-        const another = m.contractFromArtifact("Another", fakeArtifact, [
-          example,
-        ]);
+    const moduleWithDependentContracts = buildModule("Module1", (m) => {
+      const example = m.contract("Example");
+      const another = m.contractFromArtifact("Another", fakeArtifact, [
+        example,
+      ]);
 
-        return { example, another };
-      }
-    );
-
-    const constructor = new ModuleConstructor();
-    const moduleWithDependentContracts = constructor.construct(
-      moduleWithDependentContractsDefinition
-    );
+      return { example, another };
+    });
 
     assert.equal(moduleWithDependentContracts.futures.size, 2);
 
@@ -91,22 +73,14 @@ describe("contractFromArtifact", () => {
   });
 
   it("should be able to pass an after dependency", () => {
-    const moduleWithDependentContractsDefinition = buildModule(
-      "Module1",
-      (m) => {
-        const example = m.contract("Example");
-        const another = m.contractFromArtifact("Another", fakeArtifact, [], {
-          after: [example],
-        });
+    const moduleWithDependentContracts = buildModule("Module1", (m) => {
+      const example = m.contract("Example");
+      const another = m.contractFromArtifact("Another", fakeArtifact, [], {
+        after: [example],
+      });
 
-        return { example, another };
-      }
-    );
-
-    const constructor = new ModuleConstructor();
-    const moduleWithDependentContracts = constructor.construct(
-      moduleWithDependentContractsDefinition
-    );
+      return { example, another };
+    });
 
     assert.equal(moduleWithDependentContracts.futures.size, 2);
 
@@ -118,22 +92,14 @@ describe("contractFromArtifact", () => {
   });
 
   it("should be able to pass a library as a dependency of a contract", () => {
-    const moduleWithDependentContractsDefinition = buildModule(
-      "Module1",
-      (m) => {
-        const example = m.library("Example");
-        const another = m.contractFromArtifact("Another", fakeArtifact, [], {
-          libraries: { Example: example },
-        });
+    const moduleWithDependentContracts = buildModule("Module1", (m) => {
+      const example = m.library("Example");
+      const another = m.contractFromArtifact("Another", fakeArtifact, [], {
+        libraries: { Example: example },
+      });
 
-        return { example, another };
-      }
-    );
-
-    const constructor = new ModuleConstructor();
-    const moduleWithDependentContracts = constructor.construct(
-      moduleWithDependentContractsDefinition
-    );
+      return { example, another };
+    });
 
     assert.isDefined(moduleWithDependentContracts);
 
@@ -157,21 +123,13 @@ describe("contractFromArtifact", () => {
   });
 
   it("should be able to pass value as an option", () => {
-    const moduleWithDependentContractsDefinition = buildModule(
-      "Module1",
-      (m) => {
-        const another = m.contractFromArtifact("Another", fakeArtifact, [], {
-          value: BigInt(42),
-        });
+    const moduleWithDependentContracts = buildModule("Module1", (m) => {
+      const another = m.contractFromArtifact("Another", fakeArtifact, [], {
+        value: BigInt(42),
+      });
 
-        return { another };
-      }
-    );
-
-    const constructor = new ModuleConstructor();
-    const moduleWithDependentContracts = constructor.construct(
-      moduleWithDependentContractsDefinition
-    );
+      return { another };
+    });
 
     assert.isDefined(moduleWithDependentContracts);
 
@@ -189,21 +147,13 @@ describe("contractFromArtifact", () => {
   });
 
   it("Should be able to pass a ModuleParameterRuntimeValue as a value option", () => {
-    const moduleWithDependentContractsDefinition = buildModule(
-      "Module1",
-      (m) => {
-        const another = m.contractFromArtifact("Another", fakeArtifact, [], {
-          value: m.getParameter("value"),
-        });
+    const moduleWithDependentContracts = buildModule("Module1", (m) => {
+      const another = m.contractFromArtifact("Another", fakeArtifact, [], {
+        value: m.getParameter("value"),
+      });
 
-        return { another };
-      }
-    );
-
-    const constructor = new ModuleConstructor();
-    const moduleWithDependentContracts = constructor.construct(
-      moduleWithDependentContractsDefinition
-    );
+      return { another };
+    });
 
     assert.isDefined(moduleWithDependentContracts);
 
@@ -224,21 +174,13 @@ describe("contractFromArtifact", () => {
   });
 
   it("should be able to pass a string as from option", () => {
-    const moduleWithDependentContractsDefinition = buildModule(
-      "Module1",
-      (m) => {
-        const another = m.contractFromArtifact("Another", fakeArtifact, [], {
-          from: "0x2",
-        });
+    const moduleWithDependentContracts = buildModule("Module1", (m) => {
+      const another = m.contractFromArtifact("Another", fakeArtifact, [], {
+        from: "0x2",
+      });
 
-        return { another };
-      }
-    );
-
-    const constructor = new ModuleConstructor();
-    const moduleWithDependentContracts = constructor.construct(
-      moduleWithDependentContractsDefinition
-    );
+      return { another };
+    });
 
     assert.isDefined(moduleWithDependentContracts);
 
@@ -256,21 +198,13 @@ describe("contractFromArtifact", () => {
   });
 
   it("Should be able to pass an AccountRuntimeValue as from option", () => {
-    const moduleWithDependentContractsDefinition = buildModule(
-      "Module1",
-      (m) => {
-        const another = m.contractFromArtifact("Another", fakeArtifact, [], {
-          from: m.getAccount(1),
-        });
+    const moduleWithDependentContracts = buildModule("Module1", (m) => {
+      const another = m.contractFromArtifact("Another", fakeArtifact, [], {
+        from: m.getAccount(1),
+      });
 
-        return { another };
-      }
-    );
-
-    const constructor = new ModuleConstructor();
-    const moduleWithDependentContracts = constructor.construct(
-      moduleWithDependentContractsDefinition
-    );
+      return { another };
+    });
 
     assert.isDefined(moduleWithDependentContracts);
 
@@ -290,7 +224,7 @@ describe("contractFromArtifact", () => {
 
   describe("Arguments", () => {
     it("Should support base values as arguments", () => {
-      const moduleDefinition = buildModule("Module", (m) => {
+      const module = buildModule("Module", (m) => {
         const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
           1,
           true,
@@ -301,9 +235,6 @@ describe("contractFromArtifact", () => {
         return { contract1 };
       });
 
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(moduleDefinition);
-
       assert.deepEqual(module.results.contract1.constructorArgs, [
         1,
         true,
@@ -313,7 +244,7 @@ describe("contractFromArtifact", () => {
     });
 
     it("Should support arrays as arguments", () => {
-      const moduleDefinition = buildModule("Module", (m) => {
+      const module = buildModule("Module", (m) => {
         const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
           [1, 2, 3n],
         ]);
@@ -321,23 +252,17 @@ describe("contractFromArtifact", () => {
         return { contract1 };
       });
 
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(moduleDefinition);
-
       assert.deepEqual(module.results.contract1.constructorArgs[0], [1, 2, 3n]);
     });
 
     it("Should support objects as arguments", () => {
-      const moduleDefinition = buildModule("Module", (m) => {
+      const module = buildModule("Module", (m) => {
         const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
           { a: 1, b: [1, 2] },
         ]);
 
         return { contract1 };
       });
-
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(moduleDefinition);
 
       assert.deepEqual(module.results.contract1.constructorArgs[0], {
         a: 1,
@@ -346,7 +271,7 @@ describe("contractFromArtifact", () => {
     });
 
     it("Should support futures as arguments", () => {
-      const moduleDefinition = buildModule("Module", (m) => {
+      const module = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract1");
         const contract2 = m.contractFromArtifact("Contract2", fakeArtifact, [
           contract1,
@@ -355,9 +280,6 @@ describe("contractFromArtifact", () => {
         return { contract1, contract2 };
       });
 
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(moduleDefinition);
-
       assert.equal(
         module.results.contract2.constructorArgs[0],
         module.results.contract1
@@ -365,7 +287,7 @@ describe("contractFromArtifact", () => {
     });
 
     it("should support nested futures as arguments", () => {
-      const moduleDefinition = buildModule("Module", (m) => {
+      const module = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract1");
         const contract2 = m.contractFromArtifact("Contract2", fakeArtifact, [
           { arr: [contract1] },
@@ -374,9 +296,6 @@ describe("contractFromArtifact", () => {
         return { contract1, contract2 };
       });
 
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(moduleDefinition);
-
       assert.equal(
         (module.results.contract2.constructorArgs[0] as any).arr[0],
         module.results.contract1
@@ -384,7 +303,7 @@ describe("contractFromArtifact", () => {
     });
 
     it("should support AccountRuntimeValues as arguments", () => {
-      const moduleDefinition = buildModule("Module", (m) => {
+      const module = buildModule("Module", (m) => {
         const account1 = m.getAccount(1);
         const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
           account1,
@@ -392,9 +311,6 @@ describe("contractFromArtifact", () => {
 
         return { contract1 };
       });
-
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(moduleDefinition);
 
       assertInstanceOf(
         module.results.contract1.constructorArgs[0],
@@ -404,7 +320,7 @@ describe("contractFromArtifact", () => {
     });
 
     it("should support nested AccountRuntimeValues as arguments", () => {
-      const moduleDefinition = buildModule("Module", (m) => {
+      const module = buildModule("Module", (m) => {
         const account1 = m.getAccount(1);
         const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
           { arr: [account1] },
@@ -412,9 +328,6 @@ describe("contractFromArtifact", () => {
 
         return { contract1 };
       });
-
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(moduleDefinition);
 
       const account = (module.results.contract1.constructorArgs[0] as any)
         .arr[0];
@@ -425,7 +338,7 @@ describe("contractFromArtifact", () => {
     });
 
     it("should support ModuleParameterRuntimeValue as arguments", () => {
-      const moduleDefinition = buildModule("Module", (m) => {
+      const module = buildModule("Module", (m) => {
         const p = m.getParameter("p", 123);
         const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
           p,
@@ -433,9 +346,6 @@ describe("contractFromArtifact", () => {
 
         return { contract1 };
       });
-
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(moduleDefinition);
 
       assertInstanceOf(
         module.results.contract1.constructorArgs[0],
@@ -449,7 +359,7 @@ describe("contractFromArtifact", () => {
     });
 
     it("should support nested ModuleParameterRuntimeValue as arguments", () => {
-      const moduleDefinition = buildModule("Module", (m) => {
+      const module = buildModule("Module", (m) => {
         const p = m.getParameter("p", 123);
         const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
           { arr: [p] },
@@ -457,9 +367,6 @@ describe("contractFromArtifact", () => {
 
         return { contract1 };
       });
-
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(moduleDefinition);
 
       const param = (module.results.contract1.constructorArgs[0] as any).arr[0];
       assertInstanceOf(param, ModuleParameterRuntimeValueImplementation);
@@ -470,32 +377,24 @@ describe("contractFromArtifact", () => {
 
   describe("passing id", () => {
     it("should use contract from artifact twice by passing an id", () => {
-      const moduleWithSameContractTwiceDefinition = buildModule(
-        "Module1",
-        (m) => {
-          const sameContract1 = m.contractFromArtifact(
-            "SameContract",
-            fakeArtifact,
-            [],
-            { id: "first" }
-          );
-          const sameContract2 = m.contractFromArtifact(
-            "SameContract",
-            fakeArtifact,
-            [],
-            {
-              id: "second",
-            }
-          );
+      const moduleWithSameContractTwice = buildModule("Module1", (m) => {
+        const sameContract1 = m.contractFromArtifact(
+          "SameContract",
+          fakeArtifact,
+          [],
+          { id: "first" }
+        );
+        const sameContract2 = m.contractFromArtifact(
+          "SameContract",
+          fakeArtifact,
+          [],
+          {
+            id: "second",
+          }
+        );
 
-          return { sameContract1, sameContract2 };
-        }
-      );
-
-      const constructor = new ModuleConstructor();
-      const moduleWithSameContractTwice = constructor.construct(
-        moduleWithSameContractTwiceDefinition
-      );
+        return { sameContract1, sameContract2 };
+      });
 
       // Sets ids based on module id and contract name
       assert.equal(moduleWithSameContractTwice.id, "Module1");
@@ -510,142 +409,141 @@ describe("contractFromArtifact", () => {
     });
 
     it("should throw if the same contract is deployed twice without differentiating ids", () => {
-      const moduleDefinition = buildModule("Module1", (m) => {
-        const sameContract1 = m.contractFromArtifact(
-          "SameContract",
-          fakeArtifact
-        );
-        const sameContract2 = m.contractFromArtifact(
-          "SameContract",
-          fakeArtifact
-        );
-
-        return { sameContract1, sameContract2 };
-      });
-      const constructor = new ModuleConstructor();
-
       assert.throws(
-        () => constructor.construct(moduleDefinition),
+        () =>
+          buildModule("Module1", (m) => {
+            const sameContract1 = m.contractFromArtifact(
+              "SameContract",
+              fakeArtifact
+            );
+            const sameContract2 = m.contractFromArtifact(
+              "SameContract",
+              fakeArtifact
+            );
+
+            return { sameContract1, sameContract2 };
+          }),
         /Duplicated id Module1:SameContract found in module Module1/
       );
     });
 
     it("should throw if a contract tries to pass the same id twice", () => {
-      const moduleDefinition = buildModule("Module1", (m) => {
-        const sameContract1 = m.contractFromArtifact(
-          "SameContract",
-          fakeArtifact,
-          [],
-          {
-            id: "same",
-          }
-        );
-        const sameContract2 = m.contractFromArtifact(
-          "SameContract",
-          fakeArtifact,
-          [],
-          {
-            id: "same",
-          }
-        );
-
-        return { sameContract1, sameContract2 };
-      });
-      const constructor = new ModuleConstructor();
-
       assert.throws(
-        () => constructor.construct(moduleDefinition),
+        () =>
+          buildModule("Module1", (m) => {
+            const sameContract1 = m.contractFromArtifact(
+              "SameContract",
+              fakeArtifact,
+              [],
+              {
+                id: "same",
+              }
+            );
+            const sameContract2 = m.contractFromArtifact(
+              "SameContract",
+              fakeArtifact,
+              [],
+              {
+                id: "same",
+              }
+            );
+
+            return { sameContract1, sameContract2 };
+          }),
         /Duplicated id Module1:same found in module Module1/
       );
     });
   });
 
   describe("validation", () => {
-    it("should not validate a non-bignumber value option", () => {
-      const moduleWithDependentContractsDefinition = buildModule(
-        "Module1",
-        (m) => {
-          const another = m.contractFromArtifact("Another", fakeArtifact, [], {
-            value: 42 as any,
-          });
+    describe("module stage", () => {
+      it("should not validate a non-bignumber value option", () => {
+        assert.throws(
+          () =>
+            buildModule("Module1", (m) => {
+              const another = m.contractFromArtifact(
+                "Another",
+                fakeArtifact,
+                [],
+                {
+                  value: 42 as any,
+                }
+              );
 
-          return { another };
-        }
-      );
+              return { another };
+            }),
+          /Given value option '42' is not a `bigint`/
+        );
+      });
 
-      const constructor = new ModuleConstructor();
+      it("should not validate a non-address from option", () => {
+        assert.throws(
+          () =>
+            buildModule("Module1", (m) => {
+              const another = m.contractFromArtifact(
+                "Another",
+                fakeArtifact,
+                [],
+                {
+                  from: 1 as any,
+                }
+              );
 
-      assert.throws(
-        () => constructor.construct(moduleWithDependentContractsDefinition),
-        /Given value option '42' is not a `bigint`/
-      );
+              return { another };
+            }),
+          /Invalid type for given option "from": number/
+        );
+      });
+
+      it("should not validate a non-contract library", () => {
+        assert.throws(
+          () =>
+            buildModule("Module1", (m) => {
+              const another = m.contract("Another", []);
+              const call = m.call(another, "test");
+
+              const test = m.contractFromArtifact("Test", fakeArtifact, [], {
+                libraries: { Call: call as any },
+              });
+
+              return { another, test };
+            }),
+          /Given library 'Call' is not a valid Future/
+        );
+      });
+
+      it("should not validate an invalid artifact", () => {
+        assert.throws(
+          () =>
+            buildModule("Module1", (m) => {
+              const another = m.contractFromArtifact(
+                "Another",
+                {} as Artifact,
+                []
+              );
+
+              return { another };
+            }),
+          /Invalid artifact given/
+        );
+      });
     });
 
-    it("should not validate a non-address from option", () => {
-      const moduleWithDependentContractsDefinition = buildModule(
-        "Module1",
-        (m) => {
-          const another = m.contractFromArtifact("Another", fakeArtifact, [], {
-            from: 1 as any,
-          });
+    describe("stage one", () => {
+      let vm: typeof import("../../src/new-api/internal/validation/stageOne/validateArtifactContractDeployment");
+      let validateArtifactContractDeployment: typeof vm.validateArtifactContractDeployment;
 
-          return { another };
-        }
-      );
+      before(async () => {
+        vm = await import(
+          "../../src/new-api/internal/validation/stageOne/validateArtifactContractDeployment"
+        );
 
-      const constructor = new ModuleConstructor();
+        validateArtifactContractDeployment =
+          vm.validateArtifactContractDeployment;
+      });
 
-      assert.throws(
-        () => constructor.construct(moduleWithDependentContractsDefinition),
-        /Invalid type for given option "from": number/
-      );
-    });
-
-    it("should not validate a non-contract library", () => {
-      const moduleWithDependentContractsDefinition = buildModule(
-        "Module1",
-        (m) => {
-          const another = m.contract("Another", []);
-          const call = m.call(another, "test");
-
-          const test = m.contractFromArtifact("Test", fakeArtifact, [], {
-            libraries: { Call: call as any },
-          });
-
-          return { another, test };
-        }
-      );
-
-      const constructor = new ModuleConstructor();
-
-      assert.throws(
-        () => constructor.construct(moduleWithDependentContractsDefinition),
-        /Given library 'Call' is not a valid Future/
-      );
-    });
-
-    it("should not validate an invalid artifact", () => {
-      const moduleWithDependentContractsDefinition = buildModule(
-        "Module1",
-        (m) => {
-          const another = m.contractFromArtifact("Another", {} as Artifact, []);
-
-          return { another };
-        }
-      );
-
-      const constructor = new ModuleConstructor();
-
-      assert.throws(
-        () => constructor.construct(moduleWithDependentContractsDefinition),
-        /Invalid artifact given/
-      );
-    });
-
-    it("should not validate an incorrect number of constructor args", async () => {
-      const moduleWithContractFromArtifactDefinition = buildModule(
-        "Module1",
-        (m) => {
+      it("should not validate an incorrect number of constructor args", async () => {
+        const module = buildModule("Module1", (m) => {
           const contract1 = m.contractFromArtifact(
             "Test",
             fakeArtifact,
@@ -653,333 +551,285 @@ describe("contractFromArtifact", () => {
           );
 
           return { contract1 };
-        }
-      );
+        });
 
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(
-        moduleWithContractFromArtifactDefinition
-      );
-      const [future] = getFuturesFromModule(module);
+        const [future] = getFuturesFromModule(module);
 
-      await assert.isRejected(
-        validateArtifactContractDeployment(
-          future as any,
-          setupMockArtifactResolver(),
-          {},
-          []
-        ),
-        /The constructor of the contract 'Test' expects 0 arguments but 3 were given/
-      );
+        await assert.isRejected(
+          validateArtifactContractDeployment(
+            future as any,
+            setupMockArtifactResolver()
+          ),
+          /The constructor of the contract 'Test' expects 0 arguments but 3 were given/
+        );
+      });
     });
 
-    it("should not validate a missing module parameter", async () => {
-      const moduleWithContractFromArtifactDefinition = buildModule(
-        "Module1",
-        (m) => {
+    describe("stage two", () => {
+      let vm: typeof import("../../src/new-api/internal/validation/stageTwo/validateArtifactContractDeployment");
+      let validateArtifactContractDeployment: typeof vm.validateArtifactContractDeployment;
+
+      before(async () => {
+        vm = await import(
+          "../../src/new-api/internal/validation/stageTwo/validateArtifactContractDeployment"
+        );
+
+        validateArtifactContractDeployment =
+          vm.validateArtifactContractDeployment;
+      });
+
+      it("should not validate a missing module parameter", async () => {
+        const module = buildModule("Module1", (m) => {
           const p = m.getParameter("p");
           const contract1 = m.contractFromArtifact("Test", fakeArtifact, [p]);
 
           return { contract1 };
-        }
-      );
+        });
 
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(
-        moduleWithContractFromArtifactDefinition
-      );
-      const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.ARTIFACT_CONTRACT_DEPLOYMENT
-      );
+        const future = getFuturesFromModule(module).find(
+          (v) => v.type === FutureType.ARTIFACT_CONTRACT_DEPLOYMENT
+        );
 
-      await assert.isRejected(
-        validateArtifactContractDeployment(
-          future as any,
-          setupMockArtifactResolver({ Test: fakeArtifact }),
-          {},
-          []
-        ),
-        /Module parameter 'p' requires a value but was given none/
-      );
-    });
+        await assert.isRejected(
+          validateArtifactContractDeployment(
+            future as any,
+            setupMockArtifactResolver({ Test: fakeArtifact }),
+            {},
+            []
+          ),
+          /Module parameter 'p' requires a value but was given none/
+        );
+      });
 
-    it("should validate a missing module parameter if a default parameter is present", async () => {
-      const fakerArtifact: Artifact = {
-        abi: [
-          {
-            inputs: [
-              {
-                internalType: "uint256",
-                name: "p",
-                type: "uint256",
-              },
-            ],
-            stateMutability: "payable",
-            type: "constructor",
-          },
-        ],
-        contractName: "",
-        bytecode: "",
-        linkReferences: {},
-      };
+      it("should validate a missing module parameter if a default parameter is present", async () => {
+        const fakerArtifact: Artifact = {
+          abi: [
+            {
+              inputs: [
+                {
+                  internalType: "uint256",
+                  name: "p",
+                  type: "uint256",
+                },
+              ],
+              stateMutability: "payable",
+              type: "constructor",
+            },
+          ],
+          contractName: "",
+          bytecode: "",
+          linkReferences: {},
+        };
 
-      const moduleWithContractFromArtifactDefinition = buildModule(
-        "Module1",
-        (m) => {
+        const module = buildModule("Module1", (m) => {
           const p = m.getParameter("p", 123);
           const contract1 = m.contractFromArtifact("Test", fakerArtifact, [p]);
 
           return { contract1 };
-        }
-      );
+        });
 
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(
-        moduleWithContractFromArtifactDefinition
-      );
-      const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.ARTIFACT_CONTRACT_DEPLOYMENT
-      );
+        const future = getFuturesFromModule(module).find(
+          (v) => v.type === FutureType.ARTIFACT_CONTRACT_DEPLOYMENT
+        );
 
-      await assert.isFulfilled(
-        validateArtifactContractDeployment(
-          future as any,
-          setupMockArtifactResolver({ Test: fakerArtifact }),
-          {},
-          []
-        )
-      );
-    });
+        await assert.isFulfilled(
+          validateArtifactContractDeployment(
+            future as any,
+            setupMockArtifactResolver({ Test: fakerArtifact }),
+            {},
+            []
+          )
+        );
+      });
 
-    it("should not validate a module parameter of the wrong type for value", async () => {
-      const fakerArtifact: Artifact = {
-        abi: [
-          {
-            inputs: [],
-            stateMutability: "payable",
-            type: "constructor",
-          },
-        ],
-        contractName: "",
-        bytecode: "",
-        linkReferences: {},
-      };
+      it("should not validate a module parameter of the wrong type for value", async () => {
+        const fakerArtifact: Artifact = {
+          abi: [
+            {
+              inputs: [],
+              stateMutability: "payable",
+              type: "constructor",
+            },
+          ],
+          contractName: "",
+          bytecode: "",
+          linkReferences: {},
+        };
 
-      const moduleWithContractFromArtifactDefinition = buildModule(
-        "Module1",
-        (m) => {
+        const module = buildModule("Module1", (m) => {
           const p = m.getParameter("p", false as unknown as bigint);
           const contract1 = m.contractFromArtifact("Test", fakerArtifact, [], {
             value: p,
           });
 
           return { contract1 };
-        }
-      );
+        });
 
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(
-        moduleWithContractFromArtifactDefinition
-      );
-      const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.ARTIFACT_CONTRACT_DEPLOYMENT
-      );
+        const future = getFuturesFromModule(module).find(
+          (v) => v.type === FutureType.ARTIFACT_CONTRACT_DEPLOYMENT
+        );
 
-      await assert.isRejected(
-        validateArtifactContractDeployment(
-          future as any,
-          setupMockArtifactResolver({ Test: fakerArtifact }),
-          {},
-          []
-        ),
-        /Module parameter 'p' must be of type 'bigint' but is 'boolean'/
-      );
-    });
+        await assert.isRejected(
+          validateArtifactContractDeployment(
+            future as any,
+            setupMockArtifactResolver({ Test: fakerArtifact }),
+            {},
+            []
+          ),
+          /Module parameter 'p' must be of type 'bigint' but is 'boolean'/
+        );
+      });
 
-    it("should validate a module parameter of the correct type for value", async () => {
-      const fakerArtifact: Artifact = {
-        abi: [
-          {
-            inputs: [],
-            stateMutability: "payable",
-            type: "constructor",
-          },
-        ],
-        contractName: "",
-        bytecode: "",
-        linkReferences: {},
-      };
+      it("should validate a module parameter of the correct type for value", async () => {
+        const fakerArtifact: Artifact = {
+          abi: [
+            {
+              inputs: [],
+              stateMutability: "payable",
+              type: "constructor",
+            },
+          ],
+          contractName: "",
+          bytecode: "",
+          linkReferences: {},
+        };
 
-      const moduleWithContractFromArtifactDefinition = buildModule(
-        "Module1",
-        (m) => {
+        const module = buildModule("Module1", (m) => {
           const p = m.getParameter("p", 42n);
           const contract1 = m.contractFromArtifact("Test", fakerArtifact, [], {
             value: p,
           });
 
           return { contract1 };
-        }
-      );
+        });
 
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(
-        moduleWithContractFromArtifactDefinition
-      );
-      const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.ARTIFACT_CONTRACT_DEPLOYMENT
-      );
+        const future = getFuturesFromModule(module).find(
+          (v) => v.type === FutureType.ARTIFACT_CONTRACT_DEPLOYMENT
+        );
 
-      await assert.isFulfilled(
-        validateArtifactContractDeployment(
-          future as any,
-          setupMockArtifactResolver({ Test: fakerArtifact }),
-          {},
-          []
-        )
-      );
-    });
+        await assert.isFulfilled(
+          validateArtifactContractDeployment(
+            future as any,
+            setupMockArtifactResolver({ Test: fakerArtifact }),
+            {},
+            []
+          )
+        );
+      });
 
-    it("should not validate a missing module parameter (deeply nested)", async () => {
-      const moduleWithContractFromArtifactDefinition = buildModule(
-        "Module1",
-        (m) => {
+      it("should not validate a missing module parameter (deeply nested)", async () => {
+        const module = buildModule("Module1", (m) => {
           const p = m.getParameter("p");
           const contract1 = m.contractFromArtifact("Test", fakeArtifact, [
             [123, { really: { deeply: { nested: [p] } } }],
           ]);
 
           return { contract1 };
-        }
-      );
+        });
 
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(
-        moduleWithContractFromArtifactDefinition
-      );
-      const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.ARTIFACT_CONTRACT_DEPLOYMENT
-      );
+        const future = getFuturesFromModule(module).find(
+          (v) => v.type === FutureType.ARTIFACT_CONTRACT_DEPLOYMENT
+        );
 
-      await assert.isRejected(
-        validateArtifactContractDeployment(
-          future as any,
-          setupMockArtifactResolver({ Test: fakeArtifact }),
-          {},
-          []
-        ),
-        /Module parameter 'p' requires a value but was given none/
-      );
-    });
+        await assert.isRejected(
+          validateArtifactContractDeployment(
+            future as any,
+            setupMockArtifactResolver({ Test: fakeArtifact }),
+            {},
+            []
+          ),
+          /Module parameter 'p' requires a value but was given none/
+        );
+      });
 
-    it("should validate a missing module parameter if a default parameter is present (deeply nested)", async () => {
-      const fakerArtifact: Artifact = {
-        abi: [
-          {
-            inputs: [
-              {
-                internalType: "uint256",
-                name: "p",
-                type: "uint256",
-              },
-            ],
-            stateMutability: "payable",
-            type: "constructor",
-          },
-        ],
-        contractName: "",
-        bytecode: "",
-        linkReferences: {},
-      };
+      it("should validate a missing module parameter if a default parameter is present (deeply nested)", async () => {
+        const fakerArtifact: Artifact = {
+          abi: [
+            {
+              inputs: [
+                {
+                  internalType: "uint256",
+                  name: "p",
+                  type: "uint256",
+                },
+              ],
+              stateMutability: "payable",
+              type: "constructor",
+            },
+          ],
+          contractName: "",
+          bytecode: "",
+          linkReferences: {},
+        };
 
-      const moduleWithContractFromArtifactDefinition = buildModule(
-        "Module1",
-        (m) => {
+        const module = buildModule("Module1", (m) => {
           const p = m.getParameter("p", 123);
           const contract1 = m.contractFromArtifact("Test", fakerArtifact, [
             [123, { really: { deeply: { nested: [p] } } }],
           ]);
 
           return { contract1 };
-        }
-      );
+        });
 
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(
-        moduleWithContractFromArtifactDefinition
-      );
-      const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.ARTIFACT_CONTRACT_DEPLOYMENT
-      );
+        const future = getFuturesFromModule(module).find(
+          (v) => v.type === FutureType.ARTIFACT_CONTRACT_DEPLOYMENT
+        );
 
-      await assert.isFulfilled(
-        validateArtifactContractDeployment(
-          future as any,
-          setupMockArtifactResolver({ Test: fakerArtifact }),
-          {},
-          []
-        )
-      );
-    });
+        await assert.isFulfilled(
+          validateArtifactContractDeployment(
+            future as any,
+            setupMockArtifactResolver({ Test: fakerArtifact }),
+            {},
+            []
+          )
+        );
+      });
 
-    it("should not validate a negative account index", async () => {
-      const moduleWithContractFromArtifactDefinition = buildModule(
-        "Module1",
-        (m) => {
+      it("should not validate a negative account index", async () => {
+        const module = buildModule("Module1", (m) => {
           const account = m.getAccount(-1);
           const contract1 = m.contractFromArtifact("Test", fakeArtifact, [], {
             from: account,
           });
 
           return { contract1 };
-        }
-      );
+        });
 
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(
-        moduleWithContractFromArtifactDefinition
-      );
-      const [future] = getFuturesFromModule(module);
+        const [future] = getFuturesFromModule(module);
 
-      await assert.isRejected(
-        validateArtifactContractDeployment(
-          future as any,
-          setupMockArtifactResolver(),
-          {},
-          []
-        ),
-        /Account index cannot be a negative number/
-      );
-    });
+        await assert.isRejected(
+          validateArtifactContractDeployment(
+            future as any,
+            setupMockArtifactResolver(),
+            {},
+            []
+          ),
+          /Account index cannot be a negative number/
+        );
+      });
 
-    it("should not validate an account index greater than the number of available accounts", async () => {
-      const moduleWithContractFromArtifactDefinition = buildModule(
-        "Module1",
-        (m) => {
+      it("should not validate an account index greater than the number of available accounts", async () => {
+        const module = buildModule("Module1", (m) => {
           const account = m.getAccount(1);
           const contract1 = m.contractFromArtifact("Test", fakeArtifact, [], {
             from: account,
           });
 
           return { contract1 };
-        }
-      );
+        });
 
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(
-        moduleWithContractFromArtifactDefinition
-      );
-      const [future] = getFuturesFromModule(module);
+        const [future] = getFuturesFromModule(module);
 
-      await assert.isRejected(
-        validateArtifactContractDeployment(
-          future as any,
-          setupMockArtifactResolver(),
-          {},
-          []
-        ),
-        /Requested account index \'1\' is greater than the total number of available accounts \'0\'/
-      );
+        await assert.isRejected(
+          validateArtifactContractDeployment(
+            future as any,
+            setupMockArtifactResolver(),
+            {},
+            []
+          ),
+          /Requested account index \'1\' is greater than the total number of available accounts \'0\'/
+        );
+      });
     });
   });
 });

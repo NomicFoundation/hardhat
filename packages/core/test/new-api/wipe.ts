@@ -8,8 +8,7 @@ import {
   JournalMessageType,
 } from "../../src/new-api/internal/journal/types";
 import { Wiper } from "../../src/new-api/internal/wiper";
-import { IgnitionModuleResult } from "../../src/new-api/types/module";
-import { IgnitionModuleDefinition } from "../../src/new-api/types/module-builder";
+import { IgnitionModule } from "../../src/new-api/types/module";
 
 import {
   accumulateMessages,
@@ -21,18 +20,14 @@ describe("wipe", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
   const txId = "0x123";
   let journal: Journal;
-  let moduleDefinition: IgnitionModuleDefinition<
-    string,
-    string,
-    IgnitionModuleResult<string>
-  >;
+  let ignitionModule: IgnitionModule;
   let wiper: Wiper;
 
   beforeEach(async () => {
     journal = new MemoryJournal();
     wiper = new Wiper(journal);
 
-    moduleDefinition = buildModule("Module1", (m) => {
+    ignitionModule = buildModule("Module1", (m) => {
       const contract1 = m.contract("Contract1", [], { after: [] });
       const contract2 = m.contract("Contract2", [], { after: [contract1] });
       const contract3 = m.contract("Contract3", [], { after: [contract2] });
@@ -63,7 +58,7 @@ describe("wipe", () => {
       },
     });
 
-    await deployer.deploy(moduleDefinition, {}, exampleAccounts);
+    await deployer.deploy(ignitionModule, {}, exampleAccounts);
   });
 
   it("should allow wiping of future", async () => {

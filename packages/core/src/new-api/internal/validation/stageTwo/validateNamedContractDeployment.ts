@@ -1,9 +1,6 @@
-import { ethers } from "ethers";
-
 import { IgnitionValidationError } from "../../../../errors";
 import {
   isAccountRuntimeValue,
-  isArtifactType,
   isModuleParameterRuntimeValue,
 } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
@@ -56,24 +53,5 @@ export async function validateNamedContractDeployment(
         }' must be of type 'bigint' but is '${typeof param}'`
       );
     }
-  }
-
-  const artifact = await artifactLoader.loadArtifact(future.contractName);
-
-  if (!isArtifactType(artifact)) {
-    throw new IgnitionValidationError(
-      `Artifact for contract '${future.contractName}' is invalid`
-    );
-  }
-
-  const argsLength = future.constructorArgs.length;
-
-  const iface = new ethers.utils.Interface(artifact.abi);
-  const expectedArgsLength = iface.deploy.inputs.length;
-
-  if (argsLength !== expectedArgsLength) {
-    throw new IgnitionValidationError(
-      `The constructor of the contract '${future.contractName}' expects ${expectedArgsLength} arguments but ${argsLength} were given`
-    );
   }
 }

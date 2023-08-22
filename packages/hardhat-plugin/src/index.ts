@@ -1,7 +1,7 @@
 import {
   deploy,
   DeploymentParameters,
-  ModuleConstructor,
+  plan,
   wipe,
 } from "@ignored/ignition-core";
 import "@nomiclabs/hardhat-ethers";
@@ -221,19 +221,20 @@ task("plan")
         })
       );
 
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(userModule);
+      const artifactResolver = new HardhatArtifactResolver(hre);
 
-      await writePlan(
-        {
+      const serializedModule = await plan({
+        artifactResolver,
+        storedDeployment: {
           details: {
             networkName: hre.network.name,
             chainId,
           },
-          module,
+          module: userModule,
         },
-        { cacheDir: hre.config.paths.cache }
-      );
+      });
+
+      await writePlan(serializedModule, { cacheDir: hre.config.paths.cache });
 
       if (!quiet) {
         const indexFile = path.join(

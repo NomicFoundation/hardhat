@@ -4,14 +4,14 @@ import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployme
 import { ChainDispatcherImpl } from "./internal/execution/chain-dispatcher";
 import { buildAdaptersFrom } from "./internal/utils/build-adapters-from";
 import { checkAutominedNetwork } from "./internal/utils/check-automined-network";
+import { validateStageOne } from "./internal/validation/validateStageOne";
 import { ArtifactResolver } from "./types/artifact";
 import {
   DeployConfig,
   DeploymentParameters,
   DeploymentResult,
 } from "./types/deployer";
-import { IgnitionModuleResult } from "./types/module";
-import { IgnitionModuleDefinition } from "./types/module-builder";
+import { IgnitionModule } from "./types/module";
 import { EIP1193Provider } from "./types/provider";
 
 /**
@@ -33,15 +33,13 @@ export async function deploy({
   artifactResolver: ArtifactResolver;
   provider: EIP1193Provider;
   deploymentDir?: string;
-  moduleDefinition: IgnitionModuleDefinition<
-    string,
-    string,
-    IgnitionModuleResult<string>
-  >;
+  moduleDefinition: IgnitionModule;
   deploymentParameters: DeploymentParameters;
   accounts: string[];
   verbose: boolean;
 }): Promise<DeploymentResult> {
+  await validateStageOne(moduleDefinition, artifactResolver);
+
   const deploymentLoader =
     deploymentDir === undefined
       ? new EphemeralDeploymentLoader(artifactResolver, verbose)
