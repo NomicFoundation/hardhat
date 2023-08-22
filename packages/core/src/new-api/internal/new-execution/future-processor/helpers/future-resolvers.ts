@@ -1,4 +1,4 @@
-import { Contract, isAddress } from "ethers";
+import { isAddress } from "ethers";
 
 import { IgnitionError } from "../../../../../errors";
 import {
@@ -19,9 +19,11 @@ import { DeploymentLoader } from "../../../deployment-loader/types";
 import { assertIgnitionInvariant } from "../../../utils/assertions";
 import { replaceWithinArg } from "../../../utils/replace-within-arg";
 import { resolveModuleParameter } from "../../../utils/resolve-module-parameter";
+import { getEventArgumentFromReceipt } from "../../abi";
 import { DeploymentState } from "../../types/deployment-state";
 import { ExecutionResultType } from "../../types/execution-result";
 import { ExecutionSateType } from "../../types/execution-state";
+import { convertEvmValueToSolidityParam } from "../../utils/convert-evm-tuple-to-solidity-param";
 import { findAddressForContractFuture } from "../../views/find-address-for-contract-future-by-id";
 import { findConfirmedTransactionByFutureId } from "../../views/find-confirmed-transaction-by-future-id";
 import { findResultForFutureById } from "../../views/find-result-for-future-by-id";
@@ -257,37 +259,23 @@ export async function resolveReadEventArgumentResult(
 
   const emitterArtifact = await deploymentLoader.loadArtifact(emitter.id);
 
-  const contract = new Contract(emitterAddress, emitterArtifact.abi);
-  const filter = await contract.filters[eventName]().getTopicFilter();
-  const eventNameTopic = filter?.[0];
-
   const confirmedTx = findConfirmedTransactionByFutureId(
     deploymentState,
     future.id
   );
 
-  const { logs } = confirmedTx.receipt;
-
-  // only keep the requested eventName and ensure they're from the emitter
-  const events = logs.filter(
-    (log) => log.address === emitterAddress && log.topics[0] === eventNameTopic
+  const evmValue = getEventArgumentFromReceipt(
+    confirmedTx.receipt,
+    emitterArtifact,
+    emitterAddress,
+    eventName,
+    eventIndex,
+    argumentName
   );
 
-  // sanity check to ensure the eventIndex isn't out of range
-  assertIgnitionInvariant(
-    events.length <= 1 || eventIndex < events.length,
-    `Given eventIndex '${eventIndex}' exceeds number of events emitted '${events.length}'`
-  );
-
-  // this works in combination with the check above
-  // because we default eventIndex to 0 if not set by user
-  const eventLog = events[eventIndex];
-
-  // parse the event through the emitter ABI and return the requested arg
-  const result = contract.interface.parseLog({
-    topics: [...eventLog.topics],
-    data: eventLog.data,
-  })!.args[argumentName];
-
-  return { result, emitterAddress, txToReadFrom: confirmedTx.hash };
+  return {
+    result: convertEvmValueToSolidityParam(evmValue),
+    emitterAddress,
+    txToReadFrom: confirmedTx.hash,
+  };
 }
