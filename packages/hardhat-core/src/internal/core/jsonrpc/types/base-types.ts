@@ -5,6 +5,7 @@ import {
 } from "@nomicfoundation/ethereumjs-util";
 import * as t from "io-ts";
 
+import { isString } from "lodash";
 import * as BigIntUtils from "../../../util/bigint";
 import { assertHardhatInvariant, HardhatError } from "../../errors";
 import { ERRORS } from "../../errors-list";
@@ -37,6 +38,14 @@ export const rpcStorageSlot = new t.Type<bigint>(
   "Storage slot",
   BigIntUtils.isBigInt,
   validateStorageSlot,
+  t.identity
+);
+
+export const rpcStorageSlotHexStr = new t.Type<string>(
+  "Storage slot hex string",
+  isString,
+  (u, c) =>
+    validateRpcStorageSlotHexString(u) ? t.success(u) : t.failure(u, c),
   t.identity
 );
 
@@ -184,6 +193,10 @@ export function rpcDataToBuffer(data: string): Buffer {
 }
 
 // Type guards
+
+function validateRpcStorageSlotHexString(u: unknown): u is string {
+  return typeof u === "string" && u.match(/^0x([0-9a-fA-F]){64}$/) !== null;
+}
 
 function isRpcQuantityString(u: unknown): u is string {
   return (

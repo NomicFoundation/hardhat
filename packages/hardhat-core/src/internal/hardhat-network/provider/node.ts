@@ -83,6 +83,11 @@ import { VMTracer } from "../stack-traces/vm-tracer";
 import "./ethereumjs-workarounds";
 import { rpcQuantityToBigInt } from "../../core/jsonrpc/types/base-types";
 import { JsonRpcClient } from "../jsonrpc/client";
+import {
+  OptionalStateOverrideSet,
+  StateOverrideOptions,
+  StateOverrideSet,
+} from "../../core/jsonrpc/types/input/callRequest";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
 import { ForkStateManager } from "./fork/ForkStateManager";
@@ -624,7 +629,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   public async runCall(
     call: CallParams,
-    blockNumberOrPending: bigint | "pending"
+    blockNumberOrPending: bigint | "pending",
+    stateOverrideSet?: OptionalStateOverrideSet
   ): Promise<RunCallResult> {
     let txParams: TransactionParams;
 
@@ -659,7 +665,13 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
     const result = await this._runInBlockContext(
       blockNumberOrPending,
-      async () => this._runTxAndRevertMutations(tx, blockNumberOrPending, true)
+      async () =>
+        this._runTxAndRevertMutations(
+          tx,
+          blockNumberOrPending,
+          true,
+          stateOverrideSet
+        )
     );
 
     const traces = await this._gatherTraces(result.execResult);
@@ -2354,6 +2366,80 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     );
   }
 
+  private async _applyStateOverrideSet(stateOverrideSet: StateOverrideSet) {
+    // Multiple state override set can be configured for different addresses, hence the loop
+    for (const [addrToOverride, stateOverrideOptions] of Object.entries(
+      stateOverrideSet
+    )) {
+      const address = new Address(toBuffer(addrToOverride));
+
+      await this._overrideBalanceAndNonce(address, stateOverrideOptions);
+      await this._overrideCode(address, stateOverrideOptions);
+      await this._overrideStateAndStateDiff(address, stateOverrideOptions);
+    }
+  }
+
+  private async _overrideBalanceAndNonce(
+    address: Address,
+    stateOverrideOptions: StateOverrideOptions
+  ) {
+    const MAX_NONCE = 18446744073709551615n; // The max allowed hex value is 8 bytes: 0xFFFFFFFFFFFFFFFF
+    const { balance, nonce } = stateOverrideOptions;
+
+    if (nonce !== undefined && nonce > MAX_NONCE) {
+      throw new InvalidInputError(
+        "The 'nonce' property should occupy a maximum of 8 bytes. The max allowed value is: 0xFFFFFFFFFFFFFFFF."
+      );
+    }
+
+    await this._stateManager.modifyAccountFields(address, {
+      balance,
+      nonce,
+    });
+  }
+
+  private async _overrideCode(
+    address: Address,
+    stateOverrideOptions: StateOverrideOptions
+  ) {
+    if (stateOverrideOptions.code === undefined) return;
+
+    await this._stateManager.putContractCode(
+      address,
+      stateOverrideOptions.code
+    );
+  }
+
+  private async _overrideStateAndStateDiff(
+    address: Address,
+    stateOverrideOptions: StateOverrideOptions
+  ) {
+    const { state, stateDiff } = stateOverrideOptions;
+
+    if (state === undefined && stateDiff === undefined) return;
+
+    if (state !== undefined && stateDiff !== undefined) {
+      throw new InvalidInputError(
+        `The properties 'state' and 'stateDiff' cannot be used simultaneously when configuring the state override set passed to the eth_call method.`
+      );
+    }
+
+    if (stateOverrideOptions.state !== undefined) {
+      // Clear all storage except specified properties which are override
+      await this._stateManager.clearContractStorage(address);
+    }
+
+    const tmpStateProperties = state ?? stateDiff;
+
+    for (const [storageAddr, value] of Object.entries(tmpStateProperties!)) {
+      await this._stateManager.putContractStorage(
+        address,
+        Buffer.from(storageAddr.replace("0x", ""), "hex"),
+        setLengthLeft(bigIntToBuffer(value), 32)
+      );
+    }
+  }
+
   /**
    * This function runs a transaction and reverts all the modifications that it
    * makes.
@@ -2361,9 +2447,14 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   private async _runTxAndRevertMutations(
     tx: TypedTransaction,
     blockNumberOrPending: bigint | "pending",
-    forceBaseFeeZero = false
+    forceBaseFeeZero = false,
+    optionalStateOverrideSet?: OptionalStateOverrideSet
   ): Promise<RunTxResult> {
     const initialStateRoot = await this._stateManager.getStateRoot();
+
+    if (optionalStateOverrideSet !== undefined) {
+      await this._applyStateOverrideSet(optionalStateOverrideSet);
+    }
 
     let blockContext: Block | undefined;
     let originalCommon: Common | undefined;
