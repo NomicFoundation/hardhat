@@ -193,16 +193,6 @@ impl RpcClient {
         Ok(path)
     }
 
-    /// Don't fail the request, just log an error if we fail to read from cache.
-    fn log_cache_error(cache_key: CacheKey, message: &'static str, error: impl Into<CacheError>) {
-        let cache_error = RpcClientError::CacheError {
-            message: message.to_string(),
-            cache_key: cache_key.to_string(),
-            error: error.into(),
-        };
-        log::error!("{cache_error}");
-    }
-
     async fn read_response_from_cache(
         &self,
         cache_key: &CacheKey,
@@ -212,7 +202,7 @@ impl RpcClient {
             Ok(contents) => match serde_json::from_str(&contents) {
                 Ok(value) => Ok(Some(value)),
                 Err(error) => {
-                    Self::log_cache_error(
+                    log_cache_error(
                         cache_key.clone(),
                         "failed to deserialize item from RPC response cache",
                         error,
@@ -224,7 +214,7 @@ impl RpcClient {
             Err(error) => {
                 match error.kind() {
                     io::ErrorKind::NotFound => (),
-                    _ => Self::log_cache_error(
+                    _ => log_cache_error(
                         cache_key.clone(),
                         "failed to read from RPC response cache",
                         error,
@@ -240,7 +230,7 @@ impl RpcClient {
         match tokio::fs::remove_file(path).await {
             Ok(_) => Ok(()),
             Err(error) => {
-                Self::log_cache_error(
+                log_cache_error(
                     cache_key.clone(),
                     "failed to remove from RPC response cache",
                     error,
@@ -273,7 +263,7 @@ impl RpcClient {
         match tokio::fs::write(cache_path, contents).await {
             Ok(_) => (),
             Err(error) => {
-                Self::log_cache_error(
+                log_cache_error(
                     cache_key.clone(),
                     "failed to write to RPC response cache",
                     error,
@@ -602,6 +592,16 @@ impl RpcClient {
     pub async fn network_id(&self) -> Result<U256, RpcClientError> {
         self.call(MethodInvocation::NetVersion()).await
     }
+}
+
+/// Don't fail the request, just log an error if we fail to read/write from cache.
+fn log_cache_error(cache_key: CacheKey, message: &'static str, error: impl Into<CacheError>) {
+    let cache_error = RpcClientError::CacheError {
+        message: message.to_string(),
+        cache_key: cache_key.to_string(),
+        error: error.into(),
+    };
+    log::error!("{cache_error}");
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
