@@ -38,7 +38,6 @@ import {
   ContractFromArtifactOptions,
   ContractOptions,
   IgnitionModuleBuilder,
-  IgnitionModuleDefinition,
   LibraryFromArtifactOptions,
   LibraryOptions,
   ReadEventArgumentOptions,
@@ -78,7 +77,6 @@ const STUB_MODULE_RESULTS = {
  * module params).
  *
  * TODO: Add support for concrete values.
- * @beta
  */
 export class ModuleConstructor {
   private _modules: Map<string, IgnitionModule> = new Map();
@@ -91,13 +89,12 @@ export class ModuleConstructor {
     ModuleIdT extends string,
     ContractNameT extends string,
     IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
-  >(
-    moduleDefintion: IgnitionModuleDefinition<
-      ModuleIdT,
-      ContractNameT,
-      IgnitionModuleResultsT
-    >
-  ): IgnitionModule<ModuleIdT, ContractNameT, IgnitionModuleResultsT> {
+  >(moduleDefintion: {
+    id: ModuleIdT;
+    moduleDefintionFunction: (
+      m: IgnitionModuleBuilder
+    ) => IgnitionModuleResultsT;
+  }): IgnitionModule<ModuleIdT, ContractNameT, IgnitionModuleResultsT> {
     const cachedModule = this._modules.get(moduleDefintion.id);
     if (cachedModule !== undefined) {
       // NOTE: This is actually unsafe, but we accept the risk.
@@ -582,26 +579,24 @@ class IgnitionModuleBuilderImplementation<
     SubmoduleContractNameT extends string,
     SubmoduleIgnitionModuleResultsT extends IgnitionModuleResult<SubmoduleContractNameT>
   >(
-    submoduleDefinition: IgnitionModuleDefinition<
+    ignitionSubmodule: IgnitionModule<
       SubmoduleModuleIdT,
       SubmoduleContractNameT,
       SubmoduleIgnitionModuleResultsT
     >
   ): SubmoduleIgnitionModuleResultsT {
     assert(
-      submoduleDefinition !== undefined,
+      ignitionSubmodule !== undefined,
       "Trying to use `undefined` as submodule. Make sure you don't have a circular dependency of modules."
     );
-
-    const submodule = this._constructor.construct(submoduleDefinition);
 
     // Some things that should be done here:
     //   - Keep track of the submodule
     //   - return the submodule's results
     //
-    this._module.submodules.add(submodule);
+    this._module.submodules.add(ignitionSubmodule);
 
-    return submodule.results;
+    return ignitionSubmodule.results;
   }
 
   private _throwErrorWithStackTrace(

@@ -6,7 +6,7 @@ type TransactionLookupEntry = TransactionLookup & {
   start: Date;
 };
 
-export class TranactionLookupTimerImpl implements TransactionLookupTimer {
+export class TransactionLookupTimerImpl implements TransactionLookupTimer {
   private _startTimes: { [key: string]: TransactionLookupEntry };
 
   constructor(private _timeoutInMilliseconds: number) {

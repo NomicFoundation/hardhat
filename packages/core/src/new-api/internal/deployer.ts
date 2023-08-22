@@ -1,5 +1,4 @@
-import type { ContractFuture, IgnitionModuleResult } from "../types/module";
-import type { IgnitionModuleDefinition } from "../types/module-builder";
+import type { ContractFuture, IgnitionModule } from "../types/module";
 
 import { IgnitionError } from "../../errors";
 import {
@@ -19,12 +18,12 @@ import {
 } from "../types/deployer";
 
 import { Batcher } from "./batcher";
-import { defaultConfig } from "./defaultConfig";
+import { defaultAutominedConfig, defaultConfig } from "./defaultConfig";
 import { DeploymentLoader } from "./deployment-loader/types";
 import { ExecutionEngine } from "./execution/execution-engine";
 import { executionStateReducer } from "./execution/execution-state-reducer";
 import { BasicExecutionStrategy } from "./execution/execution-strategy";
-import { TranactionLookupTimerImpl } from "./execution/transaction-lookup-timer";
+import { TransactionLookupTimerImpl } from "./execution/transaction-lookup-timer";
 import {
   ChainDispatcher,
   ContractAtExecutionState,
@@ -33,13 +32,12 @@ import {
   ExecutionStrategy,
   TransactionLookupTimer,
 } from "./execution/types";
-import { ModuleConstructor } from "./module-builder";
 import { Reconciler } from "./reconciliation/reconciler";
 import { ArtifactMap } from "./reconciliation/types";
 import { isContractExecutionStateArray } from "./type-guards";
 import { assertIgnitionInvariant } from "./utils/assertions";
 import { getFuturesFromModule } from "./utils/get-futures-from-module";
-import { validate } from "./validation/validate";
+import { validateStageTwo } from "./validation/validateStageTwo";
 
 /**
  * Run an Igntition deployment.
@@ -48,7 +46,6 @@ import { validate } from "./validation/validate";
  */
 export class Deployer {
   private _config: DeployConfig;
-  private _moduleConstructor: ModuleConstructor;
   private _executionEngine: ExecutionEngine;
   private _strategy: ExecutionStrategy;
   private _artifactResolver: ArtifactResolver;
@@ -61,11 +58,19 @@ export class Deployer {
     artifactResolver: ArtifactResolver;
     deploymentLoader: DeploymentLoader;
     chainDispatcher: ChainDispatcher;
+    isAutominedNetwork?: boolean;
   }) {
+    options.isAutominedNetwork ??= false;
+
     this._config = {
-      ...defaultConfig,
+      ...(options.isAutominedNetwork ? defaultAutominedConfig : defaultConfig),
       ...options.config,
     };
+
+    assertIgnitionInvariant(
+      this._config.blockConfirmations >= 1,
+      `Configured value 'blockConfirmations' cannot be less than 1. Value given: '${this._config.blockConfirmations}'`
+    );
 
     this._strategy = new BasicExecutionStrategy();
     this._artifactResolver = options.artifactResolver;
@@ -73,26 +78,19 @@ export class Deployer {
 
     this._chainDispatcher = options.chainDispatcher;
 
-    this._moduleConstructor = new ModuleConstructor();
     this._executionEngine = new ExecutionEngine();
-    this._transactionLookupTimer = new TranactionLookupTimerImpl(
+    this._transactionLookupTimer = new TransactionLookupTimerImpl(
       this._config.transactionTimeoutInterval
     );
   }
 
   public async deploy(
-    moduleDefinition: IgnitionModuleDefinition<
-      string,
-      string,
-      IgnitionModuleResult<string>
-    >,
+    ignitionModule: IgnitionModule,
     deploymentParameters: DeploymentParameters,
     accounts: string[]
   ): Promise<DeploymentResult> {
-    const module = this._moduleConstructor.construct(moduleDefinition);
-
-    await validate(
-      module,
+    await validateStageTwo(
+      ignitionModule,
       this._artifactResolver,
       deploymentParameters,
       accounts
@@ -102,7 +100,8 @@ export class Deployer {
       this._deploymentLoader
     );
 
-    const contracts = getFuturesFromModule(module).filter(isContractFuture);
+    const contracts =
+      getFuturesFromModule(ignitionModule).filter(isContractFuture);
     const contractStates = contracts
       .map((contract) => previousStateMap[contract.id])
       .filter((v) => v !== undefined);
@@ -120,7 +119,7 @@ export class Deployer {
     const storedArtifactMap = await this._loadStoredArtifactMap(contractStates);
 
     const reconciliationResult = Reconciler.reconcile(
-      module,
+      ignitionModule,
       previousStateMap,
       deploymentParameters,
       accounts,
@@ -140,7 +139,7 @@ export class Deployer {
       // TODO: indicate to UI that warnings should be shown
     }
 
-    const batches = Batcher.batch(module, previousStateMap);
+    const batches = Batcher.batch(ignitionModule, previousStateMap);
 
     return this._executionEngine.execute({
       config: this._config,
@@ -148,7 +147,7 @@ export class Deployer {
       strategy: this._strategy,
       artifactResolver: this._artifactResolver,
       batches,
-      module,
+      module: ignitionModule,
       executionStateMap: previousStateMap,
       accounts,
       deploymentParameters,

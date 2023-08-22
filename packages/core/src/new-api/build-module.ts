@@ -1,10 +1,8 @@
 import { IgnitionError } from "../errors";
 
-import { IgnitionModuleResult } from "./types/module";
-import {
-  IgnitionModuleBuilder,
-  IgnitionModuleDefinition,
-} from "./types/module-builder";
+import { ModuleConstructor } from "./internal/module-builder";
+import { IgnitionModule, IgnitionModuleResult } from "./types/module";
+import { IgnitionModuleBuilder } from "./types/module-builder";
 
 /**
  * Construct a module definition that can be deployed through Ignition.
@@ -23,7 +21,7 @@ export function buildModule<
 >(
   moduleId: ModuleIdT,
   moduleDefintionFunction: (m: IgnitionModuleBuilder) => IgnitionModuleResultsT
-): IgnitionModuleDefinition<ModuleIdT, ContractNameT, IgnitionModuleResultsT> {
+): IgnitionModule<ModuleIdT, ContractNameT, IgnitionModuleResultsT> {
   if (typeof moduleId !== "string") {
     throw new IgnitionError(`\`moduleId\` must be a string`);
   }
@@ -32,5 +30,15 @@ export function buildModule<
     throw new IgnitionError(`\`moduleDefintionFunction\` must be a function`);
   }
 
-  return { id: moduleId, moduleDefintionFunction };
+  const constructor = new ModuleConstructor();
+  const ignitionModule = constructor.construct<
+    ModuleIdT,
+    ContractNameT,
+    IgnitionModuleResultsT
+  >({
+    id: moduleId,
+    moduleDefintionFunction,
+  });
+
+  return ignitionModule;
 }

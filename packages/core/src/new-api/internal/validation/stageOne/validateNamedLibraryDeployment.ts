@@ -1,21 +1,13 @@
 import { IgnitionValidationError } from "../../../../errors";
-import { isAccountRuntimeValue, isArtifactType } from "../../../type-guards";
+import { isArtifactType } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
-import { DeploymentParameters } from "../../../types/deployer";
 import { NamedLibraryDeploymentFuture } from "../../../types/module";
 import { validateLibraryNames } from "../../new-execution/libraries";
-import { validateAccountRuntimeValue } from "../utils";
 
 export async function validateNamedLibraryDeployment(
   future: NamedLibraryDeploymentFuture<string>,
-  artifactLoader: ArtifactResolver,
-  _deploymentParameters: DeploymentParameters,
-  accounts: string[]
+  artifactLoader: ArtifactResolver
 ) {
-  if (isAccountRuntimeValue(future.from)) {
-    validateAccountRuntimeValue(future.from, accounts);
-  }
-
   const artifact = await artifactLoader.loadArtifact(future.contractName);
 
   if (!isArtifactType(artifact)) {

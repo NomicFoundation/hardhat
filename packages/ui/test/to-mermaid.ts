@@ -1,10 +1,4 @@
-import {
-  Artifact,
-  IgnitionModuleDefinition,
-  IgnitionModuleResult,
-  ModuleConstructor,
-  buildModule,
-} from "@ignored/ignition-core";
+import { Artifact, IgnitionModule, buildModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 import { toMermaid } from "../src/utils/to-mermaid.js";
 
@@ -235,25 +229,15 @@ describe("to-mermaid", () => {
   });
 });
 
-function assertDiagram(
-  moduleDefinition: IgnitionModuleDefinition<
-    string,
-    string,
-    IgnitionModuleResult<string>
-  >,
-  expectedResult: string
-) {
+function assertDiagram(ignitionModule: IgnitionModule, expectedResult: string) {
   const details = {
     networkName: "hardhat",
     chainId: 31117,
   };
 
-  const constructor = new ModuleConstructor();
-  const module = constructor.construct(moduleDefinition);
-
   const result = toMermaid({
     details,
-    module,
+    module: ignitionModule,
   });
 
   assert.equal(result, expectedResult);

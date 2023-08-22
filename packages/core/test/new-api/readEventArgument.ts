@@ -3,9 +3,7 @@ import { assert } from "chai";
 
 import { Artifact, FutureType, ReadEventArgumentFuture } from "../../src";
 import { buildModule } from "../../src/new-api/build-module";
-import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
-import { validateReadEventArgument } from "../../src/new-api/internal/validation/futures/validateReadEventArgument";
 
 import { setupMockArtifactResolver } from "./helpers";
 
@@ -19,7 +17,7 @@ describe("Read event argument", () => {
         linkReferences: {},
       };
 
-      const defintion = buildModule("Module1", (m) => {
+      const mod = buildModule("Module1", (m) => {
         const contract = m.contract("Contract");
         const contractFromArtifact = m.contractFromArtifact(
           "ContractFromArtifact",
@@ -33,9 +31,6 @@ describe("Read event argument", () => {
 
         return { contract, contractFromArtifact };
       });
-
-      const constructor = new ModuleConstructor();
-      const mod = constructor.construct(defintion);
 
       const callFuture = Array.from(mod.futures).find(
         (f) => f.type === FutureType.NAMED_CONTRACT_CALL
@@ -51,7 +46,7 @@ describe("Read event argument", () => {
     });
 
     it("should infer the emitter from the future correctly", () => {
-      const defintion = buildModule("Module1", (m) => {
+      const mod = buildModule("Module1", (m) => {
         const contract = m.contract("Contract");
         const call = m.call(contract, "fuc");
 
@@ -60,9 +55,6 @@ describe("Read event argument", () => {
 
         return { contract };
       });
-
-      const constructor = new ModuleConstructor();
-      const mod = constructor.construct(defintion);
 
       const [read1, read2] = Array.from(mod.futures).filter(
         (f) => f.type === FutureType.READ_EVENT_ARGUMENT
@@ -73,7 +65,7 @@ describe("Read event argument", () => {
     });
 
     it("should accept an explicit emitter", () => {
-      const defintion = buildModule("Module1", (m) => {
+      const mod = buildModule("Module1", (m) => {
         const contract = m.contract("ContractThatCallsEmitter");
         const emitter = m.contract("ContractThatEmittsEvent2");
         const call = m.call(contract, "doSomethingAndCallThEmitter", [emitter]);
@@ -84,9 +76,6 @@ describe("Read event argument", () => {
         return { contract, emitter };
       });
 
-      const constructor = new ModuleConstructor();
-      const mod = constructor.construct(defintion);
-
       const [read1, read2] = Array.from(mod.futures).filter(
         (f) => f.type === FutureType.READ_EVENT_ARGUMENT
       ) as ReadEventArgumentFuture[];
@@ -96,7 +85,7 @@ describe("Read event argument", () => {
     });
 
     it("should set the right eventName and argumentName", () => {
-      const defintion = buildModule("Module1", (m) => {
+      const mod = buildModule("Module1", (m) => {
         const contract = m.contract("Contract");
         const call = m.call(contract, "fuc");
 
@@ -105,9 +94,6 @@ describe("Read event argument", () => {
 
         return { contract };
       });
-
-      const constructor = new ModuleConstructor();
-      const mod = constructor.construct(defintion);
 
       const [read1, read2] = Array.from(mod.futures).filter(
         (f) => f.type === FutureType.READ_EVENT_ARGUMENT
@@ -121,16 +107,13 @@ describe("Read event argument", () => {
     });
 
     it("should default the eventIndex to 0", () => {
-      const defintion = buildModule("Module1", (m) => {
+      const mod = buildModule("Module1", (m) => {
         const contract = m.contract("Contract");
 
         m.readEventArgument(contract, "EventName1", "arg1");
 
         return { contract };
       });
-
-      const constructor = new ModuleConstructor();
-      const mod = constructor.construct(defintion);
 
       const [read1] = Array.from(mod.futures).filter(
         (f) => f.type === FutureType.READ_EVENT_ARGUMENT
@@ -140,16 +123,13 @@ describe("Read event argument", () => {
     });
 
     it("should accept an explicit eventIndex", () => {
-      const defintion = buildModule("Module1", (m) => {
+      const mod = buildModule("Module1", (m) => {
         const contract = m.contract("Contract");
 
         m.readEventArgument(contract, "EventName1", "arg1", { eventIndex: 1 });
 
         return { contract };
       });
-
-      const constructor = new ModuleConstructor();
-      const mod = constructor.construct(defintion);
 
       const [read1] = Array.from(mod.futures).filter(
         (f) => f.type === FutureType.READ_EVENT_ARGUMENT
@@ -165,7 +145,7 @@ describe("Read event argument", () => {
 
   describe("passing ids", () => {
     it("should have a default id based on the emitter's contract name, the event name, argument and index", () => {
-      const defintion = buildModule("Module1", (m) => {
+      const mod = buildModule("Module1", (m) => {
         const main = m.contract("Main");
         const emitter = m.contract("Emitter");
 
@@ -178,9 +158,6 @@ describe("Read event argument", () => {
         return { main, emitter };
       });
 
-      const constructor = new ModuleConstructor();
-      const mod = constructor.construct(defintion);
-
       assert.equal(mod.id, "Module1");
       const futuresIds = Array.from(mod.futures).map((f) => f.id);
 
@@ -189,7 +166,7 @@ describe("Read event argument", () => {
     });
 
     it("should be able to read the same argument twice by passing a explicit id", () => {
-      const moduleWithSameReadEventArgumentTwiceDefinition = buildModule(
+      const moduleWithSameReadEventArgumentTwice = buildModule(
         "Module1",
         (m) => {
           const example = m.contract("Example");
@@ -203,11 +180,6 @@ describe("Read event argument", () => {
         }
       );
 
-      const constructor = new ModuleConstructor();
-      const moduleWithSameReadEventArgumentTwice = constructor.construct(
-        moduleWithSameReadEventArgumentTwiceDefinition
-      );
-
       assert.equal(moduleWithSameReadEventArgumentTwice.id, "Module1");
       const futuresIds = Array.from(
         moduleWithSameReadEventArgumentTwice.futures
@@ -219,61 +191,63 @@ describe("Read event argument", () => {
   });
 
   describe("validation", () => {
-    it("should not validate a non-existant hardhat contract", async () => {
-      const moduleDef = buildModule("Module1", (m) => {
-        const another = m.contract("Another", []);
-        m.readEventArgument(another, "test", "arg");
+    describe("stage one", () => {
+      let vm: typeof import("../../src/new-api/internal/validation/stageOne/validateReadEventArgument");
+      let validateReadEventArgument: typeof vm.validateReadEventArgument;
 
-        return { another };
+      before(async () => {
+        vm = await import(
+          "../../src/new-api/internal/validation/stageOne/validateReadEventArgument"
+        );
+
+        validateReadEventArgument = vm.validateReadEventArgument;
       });
 
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(moduleDef);
-      const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.READ_EVENT_ARGUMENT
-      );
+      it("should not validate a non-existant hardhat contract", async () => {
+        const module = buildModule("Module1", (m) => {
+          const another = m.contract("Another", []);
+          m.readEventArgument(another, "test", "arg");
 
-      await assert.isRejected(
-        validateReadEventArgument(
-          future as any,
-          setupMockArtifactResolver({ Another: {} as any }),
-          {},
-          []
-        ),
-        /Artifact for contract 'Another' is invalid/
-      );
-    });
+          return { another };
+        });
 
-    it("should not validate a non-existant event", async () => {
-      const fakeArtifact: Artifact = {
-        abi: [],
-        contractName: "",
-        bytecode: "",
-        linkReferences: {},
-      };
+        const future = getFuturesFromModule(module).find(
+          (v) => v.type === FutureType.READ_EVENT_ARGUMENT
+        );
 
-      const moduleDef = buildModule("Module1", (m) => {
-        const another = m.contractFromArtifact("Another", fakeArtifact, []);
-        m.readEventArgument(another, "test", "arg");
-
-        return { another };
+        await assert.isRejected(
+          validateReadEventArgument(
+            future as any,
+            setupMockArtifactResolver({ Another: {} as any })
+          ),
+          /Artifact for contract 'Another' is invalid/
+        );
       });
 
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(moduleDef);
-      const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.READ_EVENT_ARGUMENT
-      );
+      it("should not validate a non-existant event", async () => {
+        const fakeArtifact: Artifact = {
+          abi: [],
+          contractName: "",
+          bytecode: "",
+          linkReferences: {},
+        };
 
-      await assert.isRejected(
-        validateReadEventArgument(
-          future as any,
-          setupMockArtifactResolver(),
-          {},
-          []
-        ),
-        /Event "test" not found/
-      );
+        const module = buildModule("Module1", (m) => {
+          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          m.readEventArgument(another, "test", "arg");
+
+          return { another };
+        });
+
+        const future = getFuturesFromModule(module).find(
+          (v) => v.type === FutureType.READ_EVENT_ARGUMENT
+        );
+
+        await assert.isRejected(
+          validateReadEventArgument(future as any, setupMockArtifactResolver()),
+          /Event "test" not found/
+        );
+      });
     });
   });
 });

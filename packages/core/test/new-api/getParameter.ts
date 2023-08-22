@@ -3,7 +3,6 @@ import { assert } from "chai";
 
 import { buildModule } from "../../src/new-api/build-module";
 import { ModuleParameterRuntimeValueImplementation } from "../../src/new-api/internal/module";
-import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import { ModuleParameterType } from "../../src/new-api/types/module";
 
 import { assertInstanceOf } from "./helpers";
@@ -11,16 +10,13 @@ import { assertInstanceOf } from "./helpers";
 describe("getParameter", () => {
   describe("Without default value", function () {
     it("should return the correct RuntimeValue", () => {
-      const defintion = buildModule("MyModule", (m) => {
+      const mod = buildModule("MyModule", (m) => {
         const p = m.getParameter("p");
 
         const contract = m.contract("Contract", [p]);
 
         return { contract };
       });
-
-      const constructor = new ModuleConstructor();
-      const mod = constructor.construct(defintion);
 
       const param = mod.results.contract.constructorArgs[0];
       assertInstanceOf(param, ModuleParameterRuntimeValueImplementation);
@@ -31,7 +27,7 @@ describe("getParameter", () => {
 
   describe("With default value", function () {
     it("should accept base values as default", () => {
-      const defintion = buildModule("MyModule", (m) => {
+      const mod = buildModule("MyModule", (m) => {
         const s = m.getParameter("string", "default");
         const n = m.getParameter("number", 1);
         const bi = m.getParameter("bigint", 1n);
@@ -41,9 +37,6 @@ describe("getParameter", () => {
 
         return { contract };
       });
-
-      const constructor = new ModuleConstructor();
-      const mod = constructor.construct(defintion);
 
       const isS = mod.results.contract.constructorArgs[0];
       const isN = mod.results.contract.constructorArgs[1];
@@ -69,16 +62,13 @@ describe("getParameter", () => {
 
     it("Should accept arrays as deafult", () => {
       const defaultValue: ModuleParameterType = [1, "dos", 3n, false];
-      const defintion = buildModule("MyModule", (m) => {
+      const mod = buildModule("MyModule", (m) => {
         const p = m.getParameter("p", defaultValue);
 
         const contract = m.contract("Contract", [p]);
 
         return { contract };
       });
-
-      const constructor = new ModuleConstructor();
-      const mod = constructor.construct(defintion);
 
       const param = mod.results.contract.constructorArgs[0];
       assertInstanceOf(param, ModuleParameterRuntimeValueImplementation);
@@ -88,16 +78,13 @@ describe("getParameter", () => {
 
     it("Should accept objects as deafult", () => {
       const defaultValue: ModuleParameterType = { a: 1, b: "dos", c: 3n };
-      const defintion = buildModule("MyModule", (m) => {
+      const mod = buildModule("MyModule", (m) => {
         const p = m.getParameter("p", defaultValue);
 
         const contract = m.contract("Contract", [p]);
 
         return { contract };
       });
-
-      const constructor = new ModuleConstructor();
-      const mod = constructor.construct(defintion);
 
       const param = mod.results.contract.constructorArgs[0];
       assertInstanceOf(param, ModuleParameterRuntimeValueImplementation);
@@ -109,16 +96,13 @@ describe("getParameter", () => {
       const defaultValue: ModuleParameterType = {
         arr: [123, { a: [{ o: true }] }],
       };
-      const defintion = buildModule("MyModule", (m) => {
+      const mod = buildModule("MyModule", (m) => {
         const p = m.getParameter("p", defaultValue);
 
         const contract = m.contract("Contract", [p]);
 
         return { contract };
       });
-
-      const constructor = new ModuleConstructor();
-      const mod = constructor.construct(defintion);
 
       const param = mod.results.contract.constructorArgs[0];
       assertInstanceOf(param, ModuleParameterRuntimeValueImplementation);

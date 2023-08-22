@@ -6,25 +6,18 @@ import {
   AccountRuntimeValueImplementation,
   NamedLibraryDeploymentFutureImplementation,
 } from "../../src/new-api/internal/module";
-import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
 import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
-import { validateNamedLibraryDeployment } from "../../src/new-api/internal/validation/futures/validateNamedLibraryDeployment";
 import { FutureType } from "../../src/new-api/types/module";
 
 import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
 
 describe("library", () => {
   it("should be able to setup a deploy library call", () => {
-    const moduleWithASingleContractDefinition = buildModule("Module1", (m) => {
+    const moduleWithASingleContract = buildModule("Module1", (m) => {
       const library1 = m.library("Library1");
 
       return { library1 };
     });
-
-    const constructor = new ModuleConstructor();
-    const moduleWithASingleContract = constructor.construct(
-      moduleWithASingleContractDefinition
-    );
 
     assert.isDefined(moduleWithASingleContract);
 
@@ -47,20 +40,12 @@ describe("library", () => {
   });
 
   it("should be able to pass one library as an after dependency of another", () => {
-    const moduleWithDependentContractsDefinition = buildModule(
-      "Module1",
-      (m) => {
-        const example = m.library("Example");
-        const another = m.library("Another", { after: [example] });
+    const moduleWithDependentContracts = buildModule("Module1", (m) => {
+      const example = m.library("Example");
+      const another = m.library("Another", { after: [example] });
 
-        return { example, another };
-      }
-    );
-
-    const constructor = new ModuleConstructor();
-    const moduleWithDependentContracts = constructor.construct(
-      moduleWithDependentContractsDefinition
-    );
+      return { example, another };
+    });
 
     assert.isDefined(moduleWithDependentContracts);
 
@@ -83,22 +68,14 @@ describe("library", () => {
   });
 
   it("should be able to pass a library as a dependency of a library", () => {
-    const moduleWithDependentContractsDefinition = buildModule(
-      "Module1",
-      (m) => {
-        const example = m.library("Example");
-        const another = m.library("Another", {
-          libraries: { Example: example },
-        });
+    const moduleWithDependentContracts = buildModule("Module1", (m) => {
+      const example = m.library("Example");
+      const another = m.library("Another", {
+        libraries: { Example: example },
+      });
 
-        return { example, another };
-      }
-    );
-
-    const constructor = new ModuleConstructor();
-    const moduleWithDependentContracts = constructor.construct(
-      moduleWithDependentContractsDefinition
-    );
+      return { example, another };
+    });
 
     assert.isDefined(moduleWithDependentContracts);
 
@@ -122,21 +99,13 @@ describe("library", () => {
   });
 
   it("should be able to pass a string as from option", () => {
-    const moduleWithDependentContractsDefinition = buildModule(
-      "Module1",
-      (m) => {
-        const another = m.library("Another", {
-          from: "0x2",
-        });
+    const moduleWithDependentContracts = buildModule("Module1", (m) => {
+      const another = m.library("Another", {
+        from: "0x2",
+      });
 
-        return { another };
-      }
-    );
-
-    const constructor = new ModuleConstructor();
-    const moduleWithDependentContracts = constructor.construct(
-      moduleWithDependentContractsDefinition
-    );
+      return { another };
+    });
 
     assert.isDefined(moduleWithDependentContracts);
 
@@ -154,21 +123,13 @@ describe("library", () => {
   });
 
   it("Should be able to pass an AccountRuntimeValue as from option", () => {
-    const moduleWithDependentContractsDefinition = buildModule(
-      "Module1",
-      (m) => {
-        const another = m.library("Another", {
-          from: m.getAccount(1),
-        });
+    const moduleWithDependentContracts = buildModule("Module1", (m) => {
+      const another = m.library("Another", {
+        from: m.getAccount(1),
+      });
 
-        return { another };
-      }
-    );
-
-    const constructor = new ModuleConstructor();
-    const moduleWithDependentContracts = constructor.construct(
-      moduleWithDependentContractsDefinition
-    );
+      return { another };
+    });
 
     assert.isDefined(moduleWithDependentContracts);
 
@@ -188,22 +149,14 @@ describe("library", () => {
 
   describe("passing id", () => {
     it("should be able to deploy the same library twice by passing an id", () => {
-      const moduleWithSameContractTwiceDefinition = buildModule(
-        "Module1",
-        (m) => {
-          const sameContract1 = m.library("SameContract", { id: "first" });
-          const sameContract2 = m.library("SameContract", {
-            id: "second",
-          });
+      const moduleWithSameContractTwice = buildModule("Module1", (m) => {
+        const sameContract1 = m.library("SameContract", { id: "first" });
+        const sameContract2 = m.library("SameContract", {
+          id: "second",
+        });
 
-          return { sameContract1, sameContract2 };
-        }
-      );
-
-      const constructor = new ModuleConstructor();
-      const moduleWithSameContractTwice = constructor.construct(
-        moduleWithSameContractTwiceDefinition
-      );
+        return { sameContract1, sameContract2 };
+      });
 
       assert.equal(moduleWithSameContractTwice.id, "Module1");
       assert.equal(
@@ -217,163 +170,152 @@ describe("library", () => {
     });
 
     it("should throw if the same library is deployed twice without differentiating ids", () => {
-      const moduleDefinition = buildModule("Module1", (m) => {
-        const sameContract1 = m.library("SameContract");
-        const sameContract2 = m.library("SameContract");
-
-        return { sameContract1, sameContract2 };
-      });
-      const constructor = new ModuleConstructor();
-
       assert.throws(
-        () => constructor.construct(moduleDefinition),
+        () =>
+          buildModule("Module1", (m) => {
+            const sameContract1 = m.library("SameContract");
+            const sameContract2 = m.library("SameContract");
+
+            return { sameContract1, sameContract2 };
+          }),
         /Duplicated id Module1:SameContract found in module Module1/
       );
     });
 
     it("should throw if a library tries to pass the same id twice", () => {
-      const moduleDefinition = buildModule("Module1", (m) => {
-        const sameContract1 = m.library("SameContract", {
-          id: "same",
-        });
-        const sameContract2 = m.library("SameContract", {
-          id: "same",
-        });
-
-        return { sameContract1, sameContract2 };
-      });
-      const constructor = new ModuleConstructor();
-
       assert.throws(
-        () => constructor.construct(moduleDefinition),
+        () =>
+          buildModule("Module1", (m) => {
+            const sameContract1 = m.library("SameContract", {
+              id: "same",
+            });
+            const sameContract2 = m.library("SameContract", {
+              id: "same",
+            });
+
+            return { sameContract1, sameContract2 };
+          }),
         /Duplicated id Module1:same found in module Module1/
       );
     });
   });
 
   describe("validation", () => {
-    it("should not validate a non-address from option", () => {
-      const moduleWithDependentContractsDefinition = buildModule(
-        "Module1",
-        (m) => {
-          const another = m.contract("Another", [], { from: 1 as any });
+    describe("module stage", () => {
+      it("should not validate a non-address from option", () => {
+        assert.throws(
+          () =>
+            buildModule("Module1", (m) => {
+              const another = m.contract("Another", [], { from: 1 as any });
 
-          return { another };
-        }
-      );
+              return { another };
+            }),
+          /Invalid type for given option "from": number/
+        );
+      });
 
-      const constructor = new ModuleConstructor();
+      it("should not validate a non-contract library", () => {
+        assert.throws(
+          () =>
+            buildModule("Module1", (m) => {
+              const another = m.contract("Another", []);
+              const call = m.call(another, "test");
 
-      assert.throws(
-        () => constructor.construct(moduleWithDependentContractsDefinition),
-        /Invalid type for given option "from": number/
-      );
+              const test = m.library("Test", {
+                libraries: { Call: call as any },
+              });
+
+              return { another, test };
+            }),
+          /Given library 'Call' is not a valid Future/
+        );
+      });
     });
 
-    it("should not validate a non-contract library", () => {
-      const moduleWithDependentContractsDefinition = buildModule(
-        "Module1",
-        (m) => {
-          const another = m.contract("Another", []);
-          const call = m.call(another, "test");
+    describe("stage one", () => {
+      let vm: typeof import("../../src/new-api/internal/validation/stageOne/validateNamedLibraryDeployment");
+      let validateNamedLibraryDeployment: typeof vm.validateNamedLibraryDeployment;
 
-          const test = m.library("Test", {
-            libraries: { Call: call as any },
-          });
+      before(async () => {
+        vm = await import(
+          "../../src/new-api/internal/validation/stageOne/validateNamedLibraryDeployment"
+        );
 
-          return { another, test };
-        }
-      );
+        validateNamedLibraryDeployment = vm.validateNamedLibraryDeployment;
+      });
 
-      const constructor = new ModuleConstructor();
-
-      assert.throws(
-        () => constructor.construct(moduleWithDependentContractsDefinition),
-        /Given library 'Call' is not a valid Future/
-      );
-    });
-
-    it("should not validate an invalid artifact", async () => {
-      const moduleWithDependentContractsDefinition = buildModule(
-        "Module1",
-        (m) => {
+      it("should not validate an invalid artifact", async () => {
+        const module = buildModule("Module1", (m) => {
           const another = m.library("Another");
 
           return { another };
-        }
-      );
+        });
 
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(
-        moduleWithDependentContractsDefinition
-      );
-      const [future] = getFuturesFromModule(module);
+        const [future] = getFuturesFromModule(module);
 
-      await assert.isRejected(
-        validateNamedLibraryDeployment(
-          future as any,
-          setupMockArtifactResolver({ Another: {} as any }),
-          {},
-          []
-        ),
-        /Artifact for contract 'Another' is invalid/
-      );
+        await assert.isRejected(
+          validateNamedLibraryDeployment(
+            future as any,
+            setupMockArtifactResolver({ Another: {} as any })
+          ),
+          /Artifact for contract 'Another' is invalid/
+        );
+      });
     });
 
-    it("should not validate a negative account index", async () => {
-      const moduleWithDependentContractsDefinition = buildModule(
-        "Module1",
-        (m) => {
+    describe("stage two", () => {
+      let vm: typeof import("../../src/new-api/internal/validation/stageTwo/validateNamedLibraryDeployment");
+      let validateNamedLibraryDeployment: typeof vm.validateNamedLibraryDeployment;
+
+      before(async () => {
+        vm = await import(
+          "../../src/new-api/internal/validation/stageTwo/validateNamedLibraryDeployment"
+        );
+
+        validateNamedLibraryDeployment = vm.validateNamedLibraryDeployment;
+      });
+
+      it("should not validate a negative account index", async () => {
+        const module = buildModule("Module1", (m) => {
           const account = m.getAccount(-1);
           const test = m.library("Test", { from: account });
 
           return { test };
-        }
-      );
+        });
 
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(
-        moduleWithDependentContractsDefinition
-      );
-      const [future] = getFuturesFromModule(module);
+        const [future] = getFuturesFromModule(module);
 
-      await assert.isRejected(
-        validateNamedLibraryDeployment(
-          future as any,
-          setupMockArtifactResolver({ Another: {} as any }),
-          {},
-          []
-        ),
-        /Account index cannot be a negative number/
-      );
-    });
+        await assert.isRejected(
+          validateNamedLibraryDeployment(
+            future as any,
+            setupMockArtifactResolver({ Another: {} as any }),
+            {},
+            []
+          ),
+          /Account index cannot be a negative number/
+        );
+      });
 
-    it("should not validate an account index greater than the number of available accounts", async () => {
-      const moduleWithDependentContractsDefinition = buildModule(
-        "Module1",
-        (m) => {
+      it("should not validate an account index greater than the number of available accounts", async () => {
+        const module = buildModule("Module1", (m) => {
           const account = m.getAccount(1);
           const test = m.library("Test", { from: account });
 
           return { test };
-        }
-      );
+        });
 
-      const constructor = new ModuleConstructor();
-      const module = constructor.construct(
-        moduleWithDependentContractsDefinition
-      );
-      const [future] = getFuturesFromModule(module);
+        const [future] = getFuturesFromModule(module);
 
-      await assert.isRejected(
-        validateNamedLibraryDeployment(
-          future as any,
-          setupMockArtifactResolver({ Another: {} as any }),
-          {},
-          []
-        ),
-        /Requested account index \'1\' is greater than the total number of available accounts \'0\'/
-      );
+        await assert.isRejected(
+          validateNamedLibraryDeployment(
+            future as any,
+            setupMockArtifactResolver({ Another: {} as any }),
+            {},
+            []
+          ),
+          /Requested account index \'1\' is greater than the total number of available accounts \'0\'/
+        );
+      });
     });
   });
 });

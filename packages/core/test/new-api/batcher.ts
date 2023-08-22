@@ -8,12 +8,7 @@ import {
   ExecutionStateMap,
   ExecutionStatus,
 } from "../../src/new-api/internal/execution/types";
-import { ModuleConstructor } from "../../src/new-api/internal/module-builder";
-import {
-  FutureType,
-  IgnitionModuleResult,
-} from "../../src/new-api/types/module";
-import { IgnitionModuleDefinition } from "../../src/new-api/types/module-builder";
+import { FutureType, IgnitionModule } from "../../src/new-api/types/module";
 
 import { initOnchainState } from "./helpers";
 
@@ -35,17 +30,17 @@ describe("batcher", () => {
   };
 
   it("should batch a contract deploy module", () => {
-    const moduleDefinition = buildModule("Module1", (m) => {
+    const ignitionModule = buildModule("Module1", (m) => {
       const contract1 = m.contract("Contract1");
 
       return { contract1 };
     });
 
-    assertBatching({ moduleDefinition }, [["Module1:Contract1"]]);
+    assertBatching({ ignitionModule }, [["Module1:Contract1"]]);
   });
 
   it("should batch through dependencies", () => {
-    const moduleDefinition = buildModule("Module1", (m) => {
+    const ignitionModule = buildModule("Module1", (m) => {
       const contract1 = m.contract("Contract1");
       const contract2 = m.contract("Contract2");
 
@@ -62,7 +57,7 @@ describe("batcher", () => {
       return { contract1, contract2, contract3, contract4, contract5 };
     });
 
-    assertBatching({ moduleDefinition }, [
+    assertBatching({ ignitionModule }, [
       ["Module1:Contract1", "Module1:Contract2"],
       ["Module1:Contract3"],
       ["Module1:Contract4", "Module1:Contract5"],
@@ -94,7 +89,7 @@ describe("batcher", () => {
       return { contract3 };
     });
 
-    const moduleDefinition = buildModule("Module", (m) => {
+    const ignitionModule = buildModule("Module", (m) => {
       const { contract3 } = m.useModule(submoduleMiddle);
 
       const contract4 = m.contract("Contract4", [contract3]);
@@ -103,7 +98,7 @@ describe("batcher", () => {
       return { contract4 };
     });
 
-    assertBatching({ moduleDefinition }, [
+    assertBatching({ ignitionModule }, [
       ["SubmoduleLeft:Contract1", "SubmoduleRight:Contract2"],
       [
         "SubmoduleLeft:Contract1#configure",
@@ -138,7 +133,7 @@ describe("batcher", () => {
       return { contract3 };
     });
 
-    const moduleDefinition = buildModule("Module", (m) => {
+    const ignitionModule = buildModule("Module", (m) => {
       const { contract3 } = m.useModule(submoduleMiddle);
 
       const contract4 = m.contract("Contract4", [contract3]);
@@ -146,14 +141,14 @@ describe("batcher", () => {
       return { contract4 };
     });
 
-    assertBatching({ moduleDefinition }, [
+    assertBatching({ ignitionModule }, [
       ["Left:Contract1", "Middle:Contract3", "Right:Contract2"],
       ["Module:Contract4"],
     ]);
   });
 
   it("should bypass intermediary successful nodes", () => {
-    const moduleDefinition = buildModule("Module1", (m) => {
+    const ignitionModule = buildModule("Module1", (m) => {
       const contract1 = m.contract("Contract1");
       const contract2 = m.contract("Contract2", [contract1]);
 
@@ -164,7 +159,7 @@ describe("batcher", () => {
 
     assertBatching(
       {
-        moduleDefinition,
+        ignitionModule,
         executionStates: {
           "Module1:Contract2": {
             ...exampleDeploymentState,
@@ -180,24 +175,17 @@ describe("batcher", () => {
 
 function assertBatching(
   {
-    moduleDefinition,
+    ignitionModule,
     executionStates = {},
   }: {
-    moduleDefinition: IgnitionModuleDefinition<
-      string,
-      string,
-      IgnitionModuleResult<string>
-    >;
+    ignitionModule: IgnitionModule;
     executionStates?: ExecutionStateMap;
   },
   expectedBatches: string[][]
 ) {
-  const constructor = new ModuleConstructor();
-  const module = constructor.construct(moduleDefinition);
+  assert.isDefined(ignitionModule);
 
-  assert.isDefined(module);
-
-  const actualBatches = Batcher.batch(module, executionStates);
+  const actualBatches = Batcher.batch(ignitionModule, executionStates);
 
   assert.deepStrictEqual(actualBatches, expectedBatches);
 }

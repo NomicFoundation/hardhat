@@ -1,8 +1,4 @@
-import {
-  IgnitionError,
-  IgnitionModuleDefinition,
-  IgnitionModuleResult,
-} from "@ignored/ignition-core";
+import { IgnitionError, IgnitionModule } from "@ignored/ignition-core";
 import setupDebug from "debug";
 import { existsSync, pathExistsSync } from "fs-extra";
 import path from "path";
@@ -12,9 +8,7 @@ const debug = setupDebug("hardhat-ignition:modules");
 export function loadModule(
   modulesDirectory: string,
   moduleNameOrPath: string
-):
-  | IgnitionModuleDefinition<string, string, IgnitionModuleResult<string>>
-  | undefined {
+): IgnitionModule | undefined {
   debug(`Loading user modules from '${modulesDirectory}'`);
 
   if (!existsSync(modulesDirectory)) {

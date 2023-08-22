@@ -2,7 +2,6 @@ import { assert } from "chai";
 
 import { isContractFuture } from "../../../src";
 import { ExecutionStateMap } from "../../../src/new-api/internal/execution/types";
-import { ModuleConstructor } from "../../../src/new-api/internal/module-builder";
 import { Reconciler } from "../../../src/new-api/internal/reconciliation/reconciler";
 import {
   ArtifactMap,
@@ -10,29 +9,21 @@ import {
 } from "../../../src/new-api/internal/reconciliation/types";
 import { getFuturesFromModule } from "../../../src/new-api/internal/utils/get-futures-from-module";
 import {
-  IgnitionModuleResult,
+  IgnitionModule,
   ModuleParameters,
 } from "../../../src/new-api/types/module";
-import { IgnitionModuleDefinition } from "../../../src/new-api/types/module-builder";
 import { exampleAccounts } from "../helpers";
 
 export const oneAddress = "0x1111111111111111111111111111111111111111";
 export const twoAddress = "0x2222222222222222222222222222222222222222";
 
 export function reconcile(
-  moduleDefinition: IgnitionModuleDefinition<
-    string,
-    string,
-    IgnitionModuleResult<string>
-  >,
+  ignitionModule: IgnitionModule,
   executionStateMap: ExecutionStateMap,
   moduleParameters: { [key: string]: ModuleParameters } = {},
   moduleArtifactMap?: ArtifactMap,
   storedArtifactMap?: ArtifactMap
 ): ReconciliationResult {
-  const constructor = new ModuleConstructor();
-  const module = constructor.construct(moduleDefinition);
-
   // overwrite the id with the execution state map, makes writing tests
   // less error prone
   const updatedExecutionStateMap = Object.fromEntries(
@@ -42,7 +33,8 @@ export function reconcile(
     ])
   );
 
-  const contracts = getFuturesFromModule(module).filter(isContractFuture);
+  const contracts =
+    getFuturesFromModule(ignitionModule).filter(isContractFuture);
 
   moduleArtifactMap ??= Object.fromEntries(
     contracts.map((contract) => [
@@ -59,7 +51,7 @@ export function reconcile(
   storedArtifactMap ??= moduleArtifactMap;
 
   const reconiliationResult = Reconciler.reconcile(
-    module,
+    ignitionModule,
     updatedExecutionStateMap,
     moduleParameters,
     exampleAccounts,
@@ -94,15 +86,11 @@ export function assertNoWarningsOrErrors(
 }
 
 export function assertSuccessReconciliation(
-  moduleDefinition: IgnitionModuleDefinition<
-    string,
-    string,
-    IgnitionModuleResult<string>
-  >,
+  ignitionModule: IgnitionModule,
   previousExecutionState: ExecutionStateMap
 ): void {
   const reconciliationResult = reconcile(
-    moduleDefinition,
+    ignitionModule,
     previousExecutionState
   );
 

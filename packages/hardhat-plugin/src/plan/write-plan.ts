@@ -1,17 +1,11 @@
-import {
-  StoredDeployment,
-  StoredDeploymentSerializer,
-} from "@ignored/ignition-core";
+import { SerializedStoredDeployment } from "@ignored/ignition-core";
 import { ensureDir, pathExists, readFile, writeFile } from "fs-extra";
 import path from "path";
 
 export async function writePlan(
-  storedDeployment: StoredDeployment,
+  serializedStoredDeployment: SerializedStoredDeployment,
   { cacheDir }: { cacheDir: string }
 ) {
-  const serializedStoredDeployment =
-    StoredDeploymentSerializer.serialize(storedDeployment);
-
   const templateDir = path.join(
     require.resolve("@ignored/ignition-ui/package.json"),
     "../dist"
