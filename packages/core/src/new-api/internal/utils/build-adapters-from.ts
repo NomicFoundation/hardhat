@@ -48,10 +48,20 @@ export function buildAdaptersFrom(provider: EIP1193Provider): Adapters {
       return ethersProvider.getTransaction(txHash);
     },
     async getPendingTransactionCount(address: string): Promise<number> {
-      return ethersProvider.getTransactionCount(address, "pending");
+      const countResponse = (await provider.request({
+        method: "eth_getTransactionCount",
+        params: [address, "pending"],
+      })) as string;
+
+      return parseInt(countResponse, 10);
     },
     async getLatestTransactionCount(address: string): Promise<number> {
-      return ethersProvider.getTransactionCount(address, "latest");
+      const countResponse = (await provider.request({
+        method: "eth_getTransactionCount",
+        params: [address, "latest"],
+      })) as string;
+
+      return parseInt(countResponse, 10);
     },
   };
 
