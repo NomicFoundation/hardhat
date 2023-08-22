@@ -1,10 +1,6 @@
 import { isAddress } from "ethers";
 
-import { IgnitionError } from "../../../../../errors";
-import {
-  isFuture,
-  isModuleParameterRuntimeValue,
-} from "../../../../type-guards";
+import { isModuleParameterRuntimeValue } from "../../../../type-guards";
 import { DeploymentParameters } from "../../../../types/deployer";
 import {
   AccountRuntimeValue,
@@ -21,8 +17,6 @@ import { replaceWithinArg } from "../../../utils/replace-within-arg";
 import { resolveModuleParameter } from "../../../utils/resolve-module-parameter";
 import { getEventArgumentFromReceipt } from "../../abi";
 import { DeploymentState } from "../../types/deployment-state";
-import { ExecutionResultType } from "../../types/execution-result";
-import { ExecutionSateType } from "../../types/execution-state";
 import { convertEvmValueToSolidityParam } from "../../utils/convert-evm-tuple-to-solidity-param";
 import { findAddressForContractFuture } from "../../views/find-address-for-contract-future-by-id";
 import { findConfirmedTransactionByFutureId } from "../../views/find-confirmed-transaction-by-future-id";
@@ -153,7 +147,9 @@ export function resolveAddressLike(
 ): string {
   if (typeof addressLike === "string") {
     return addressLike;
-  } else if (isModuleParameterRuntimeValue(addressLike)) {
+  }
+
+  if (isModuleParameterRuntimeValue(addressLike)) {
     const addressFromParam = resolveModuleParameter(addressLike, {
       deploymentParameters,
     });
@@ -164,67 +160,16 @@ export function resolveAddressLike(
     );
 
     return addressFromParam;
-  } else if (isFuture(addressLike)) {
-    const exState = deploymentState.executionStates[addressLike.id];
-
-    if (exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE) {
-      assertIgnitionInvariant(
-        exState.result !== undefined &&
-          exState.result.type === ExecutionResultType.SUCCESS,
-        `Internal error - dependency ${addressLike.id} does not have a successful deployment result`
-      );
-
-      return exState.result.address;
-    } else if (exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE) {
-      const contractAddress = exState.contractAddress;
-
-      assertIgnitionInvariant(
-        contractAddress !== undefined,
-        `Internal error - dependency ${addressLike.id} used before it's resolved`
-      );
-
-      assertIgnitionInvariant(
-        typeof contractAddress === "string" && isAddress(contractAddress),
-        `Future '${addressLike.id}' must be a valid address`
-      );
-
-      return contractAddress;
-    } else if (
-      exState.type === ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE
-    ) {
-      const contractAddress = exState.result;
-
-      assertIgnitionInvariant(
-        typeof contractAddress === "string" && isAddress(contractAddress),
-        `Future '${addressLike.id}' must be a valid address`
-      );
-
-      return contractAddress;
-    } else if (exState.type === ExecutionSateType.STATIC_CALL_EXECUTION_STATE) {
-      assertIgnitionInvariant(
-        exState.result !== undefined &&
-          exState.result.type === ExecutionResultType.SUCCESS,
-        `Internal error - dependency ${addressLike.id} does not have a successful static call result`
-      );
-
-      const contractAddress = exState.result.value;
-
-      assertIgnitionInvariant(
-        typeof contractAddress === "string" && isAddress(contractAddress),
-        `Future '${addressLike.id}' must be a valid address`
-      );
-
-      return contractAddress;
-    } else {
-      throw new IgnitionError(
-        `Cannot resolve address of ${addressLike.id}, not an allowed future type ${addressLike.type}`
-      );
-    }
-  } else {
-    throw new IgnitionError(
-      `Unable to resolve address of ${JSON.stringify(addressLike)}`
-    );
   }
+
+  const result = findResultForFutureById(deploymentState, addressLike.id);
+
+  assertIgnitionInvariant(
+    typeof result === "string" && isAddress(result),
+    `Future '${addressLike.id}' must be a valid address`
+  );
+
+  return result;
 }
 
 export function resolveTxHash(
