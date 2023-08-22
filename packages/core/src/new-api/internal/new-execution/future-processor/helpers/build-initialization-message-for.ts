@@ -7,6 +7,7 @@ import {
   DeploymentExecutionStateInitializeMessage,
   JournalMessage,
   JournalMessageType,
+  SendDataExecutionStateInitializeMessage,
   StaticCallExecutionStateInitializeMessage,
 } from "../../types/messages";
 
@@ -147,9 +148,25 @@ export function buildInitializeMessageFor(
         "Not implemented yet: FutureType.READ_EVENT_ARGUMENT case"
       );
     }
-    case FutureType.SEND_DATA: {
-      throw new Error("Not implemented yet: FutureType.SEND_DATA case");
-    }
+    case FutureType.SEND_DATA:
+      const sendDataInit: SendDataExecutionStateInitializeMessage =
+        _extendBaseExecutionStateWith(
+          JournalMessageType.SEND_DATA_EXECUTION_STATE_INITIALIZE,
+          future,
+          strategy,
+          {
+            to: resolveAddressForContractAtAddress(
+              future.to,
+              deploymentState,
+              deploymentParameters
+            ),
+            value: resolveValue(future.value, deploymentParameters),
+            data: future.data ?? "0x",
+            from: resolveFutureFrom(future.from, accounts),
+          }
+        );
+
+      return sendDataInit;
   }
 }
 

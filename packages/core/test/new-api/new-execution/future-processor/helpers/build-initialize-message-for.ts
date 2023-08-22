@@ -11,6 +11,7 @@ import {
   NamedContractDeploymentFutureImplementation,
   NamedLibraryDeploymentFutureImplementation,
   NamedStaticCallFutureImplementation,
+  SendDataFutureImplementation,
 } from "../../../../../src/new-api/internal/module";
 import { buildInitializeMessageFor } from "../../../../../src/new-api/internal/new-execution/future-processor/helpers/build-initialization-message-for";
 import { deploymentStateReducer } from "../../../../../src/new-api/internal/new-execution/reducers/deployment-state-reducer";
@@ -22,6 +23,7 @@ import {
   ContractAtExecutionStateInitializeMessage,
   DeploymentExecutionStateInitializeMessage,
   JournalMessageType,
+  SendDataExecutionStateInitializeMessage,
   StaticCallExecutionStateInitializeMessage,
 } from "../../../../../src/new-api/internal/new-execution/types/messages";
 import {
@@ -34,6 +36,7 @@ import {
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
   NamedStaticCallFuture,
+  SendDataFuture,
 } from "../../../../../src/new-api/types/module";
 import { exampleAccounts, fakeArtifact } from "../../../helpers";
 
@@ -52,6 +55,7 @@ describe("buildInitializeMessageFor", () => {
   let staticCall: NamedStaticCallFuture<string, string>;
   let namedContractAt: NamedContractAtFuture<string>;
   let artifactContractAt: ArtifactContractAtFuture;
+  let sendData: SendDataFuture;
 
   let exampleDeploymentState: DeploymentState;
 
@@ -174,6 +178,15 @@ describe("buildInitializeMessageFor", () => {
       "ArtifactContractAt",
       differentAddress,
       fakeArtifact
+    );
+
+    sendData = new SendDataFutureImplementation(
+      "MyModule:SendData",
+      fakeModule,
+      exampleAccounts[4],
+      2n,
+      "fake-data",
+      exampleAccounts[3]
     );
 
     exampleDeploymentState = deploymentStateReducer(undefined as any);
@@ -530,6 +543,33 @@ describe("buildInitializeMessageFor", () => {
       it.skip("should resolve address from contractAt", async () => {});
       it.skip("should resolve address from read event arg", async () => {});
       it.skip("should resolve address from static call", async () => {});
+    });
+  });
+
+  describe("send data state", () => {
+    let message: SendDataExecutionStateInitializeMessage;
+
+    beforeEach(() => {
+      message = buildInitializeMessageFor(
+        sendData,
+        basicStrategy,
+        exampleDeploymentState,
+        {},
+        exampleAccounts
+      ) as SendDataExecutionStateInitializeMessage;
+    });
+
+    it("should build an initialize message", async () => {
+      assert.deepStrictEqual(message, {
+        type: JournalMessageType.SEND_DATA_EXECUTION_STATE_INITIALIZE,
+        futureId: "MyModule:SendData",
+        strategy: "basic",
+        dependencies: [],
+        to: exampleAccounts[4],
+        data: "fake-data",
+        from: exampleAccounts[3],
+        value: 2n,
+      });
     });
   });
 });
