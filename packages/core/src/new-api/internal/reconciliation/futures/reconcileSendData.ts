@@ -37,5 +37,10 @@ export function reconcileSendData(
     return result;
   }
 
+  result = compare(future, "Data", executionState.data, future.data);
+  if (result !== undefined) {
+    return result;
+  }
+
   return { success: true };
 }
