@@ -3,10 +3,7 @@ import type CborT from "cbor";
 
 import { Future, ModuleParameterType } from "../../types/module";
 
-import {
-  ReconciliationFutureResult,
-  ReconciliationFutureResultFailure,
-} from "./types";
+import { ReconciliationFutureResultFailure } from "./types";
 
 export function fail(
   future: Future,
@@ -17,22 +14,6 @@ export function fail(
     failure: {
       futureId: future.id,
       failure,
-    },
-  };
-}
-
-export function failWithError(
-  future: Future,
-  error: unknown
-): ReconciliationFutureResult {
-  return {
-    success: false,
-    failure: {
-      futureId: future.id,
-      failure:
-        error instanceof Error
-          ? error.message
-          : "unknown failure during reconciliation",
     },
   };
 }

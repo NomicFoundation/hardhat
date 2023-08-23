@@ -1,6 +1,7 @@
-import { Artifact } from "../../types/artifact";
+import { ArtifactResolver } from "../../types/artifact";
 import { DeploymentParameters } from "../../types/deployer";
 import { Future } from "../../types/module";
+import { DeploymentLoader } from "../deployment-loader/types";
 import { DeploymentState } from "../new-execution/types/deployment-state";
 import { ExecutionState } from "../new-execution/types/execution-state";
 
@@ -31,16 +32,12 @@ export interface ReconciliationContext {
   deploymentState: DeploymentState;
   deploymentParameters: DeploymentParameters;
   accounts: string[];
-  moduleArtifactMap: ArtifactMap;
-  storedArtifactMap: ArtifactMap;
+  artifactResolver: ArtifactResolver;
+  deploymentLoader: DeploymentLoader;
 }
 
 export type ReconciliationCheck = (
   future: Future,
   executionState: ExecutionState,
   context: ReconciliationContext
-) => ReconciliationFutureResult;
-
-export interface ArtifactMap {
-  [futureId: string]: Artifact;
-}
+) => ReconciliationFutureResult | Promise<ReconciliationFutureResult>;

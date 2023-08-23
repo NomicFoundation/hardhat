@@ -16,7 +16,7 @@ import {
 } from "../types";
 import { fail, getBytecodeWithoutMetadata } from "../utils";
 
-export function reconcileArtifacts(
+export async function reconcileArtifacts(
   future:
     | NamedContractDeploymentFuture<string>
     | ArtifactContractDeploymentFuture
@@ -24,11 +24,17 @@ export function reconcileArtifacts(
     | ArtifactLibraryDeploymentFuture
     | NamedContractAtFuture<string>
     | ArtifactContractAtFuture,
-  _exState: DeploymentExecutionState | ContractAtExecutionState,
+  exState: DeploymentExecutionState | ContractAtExecutionState,
   context: ReconciliationContext
-): ReconciliationFutureResultFailure | undefined {
-  const moduleArtifact = context.moduleArtifactMap[future.id];
-  const storedArtifact = context.storedArtifactMap[future.id];
+): Promise<ReconciliationFutureResultFailure | undefined> {
+  const moduleArtifact =
+    "artifact" in future
+      ? future.artifact
+      : await context.artifactResolver.loadArtifact(future.contractName);
+
+  const storedArtifact = await context.deploymentLoader.loadArtifact(
+    exState.artifactFutureId
+  );
 
   const moduleArtifactBytecode = getBytecodeWithoutMetadata(
     moduleArtifact.bytecode

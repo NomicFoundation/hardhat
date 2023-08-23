@@ -6,17 +6,17 @@ import { reconcileFrom } from "../helpers/reconcile-from";
 import { reconcileLibraries } from "../helpers/reconcile-libraries";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 
-export function reconcileNamedLibraryDeployment(
+export async function reconcileNamedLibraryDeployment(
   future: NamedLibraryDeploymentFuture<string>,
   executionState: DeploymentExecutionState,
   context: ReconciliationContext
-): ReconciliationFutureResult {
+): Promise<ReconciliationFutureResult> {
   let result = reconcileContractName(future, executionState, context);
   if (result !== undefined) {
     return result;
   }
 
-  result = reconcileArtifacts(future, executionState, context);
+  result = await reconcileArtifacts(future, executionState, context);
   if (result !== undefined) {
     return result;
   }

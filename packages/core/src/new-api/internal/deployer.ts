@@ -1,16 +1,8 @@
-import type { ContractFuture, IgnitionModule } from "../types/module";
+import type { IgnitionModule } from "../types/module";
 
 import { IgnitionError } from "../../errors";
-import {
-  isArtifactContractAtFuture,
-  isArtifactContractDeploymentFuture,
-  isArtifactLibraryDeploymentFuture,
-  isContractFuture,
-  isNamedContractAtFuture,
-  isNamedContractDeploymentFuture,
-  isNamedLibraryDeploymentFuture,
-} from "../type-guards";
-import { Artifact, ArtifactResolver } from "../types/artifact";
+import { isContractFuture } from "../type-guards";
+import { ArtifactResolver } from "../types/artifact";
 import {
   DeployConfig,
   DeploymentParameters,
@@ -26,14 +18,9 @@ import {
 import { ExecutionEngine } from "./new-execution/execution-engine";
 import { JsonRpcClient } from "./new-execution/jsonrpc-client";
 import { DeploymentState } from "./new-execution/types/deployment-state";
-import {
-  ContractAtExecutionState,
-  DeploymentExecutionState,
-  ExecutionState,
-} from "./new-execution/types/execution-state";
+import { ExecutionState } from "./new-execution/types/execution-state";
 import { ExecutionStrategy } from "./new-execution/types/execution-strategy";
 import { Reconciler } from "./reconciliation/reconciler";
-import { ArtifactMap } from "./reconciliation/types";
 import { isContractExecutionStateArray } from "./type-guards";
 import { assertIgnitionInvariant } from "./utils/assertions";
 import { getFuturesFromModule } from "./utils/get-futures-from-module";
@@ -86,18 +73,13 @@ export class Deployer {
       "Invalid state map"
     );
 
-    // since the reconciler is purely synchronous, we load all of the artifacts at once here.
-    // if reconciler was async, we could pass it the artifact loaders and load them JIT instead.
-    const moduleArtifactMap = await this._loadModuleArtifactMap(contracts);
-    const storedArtifactMap = await this._loadStoredArtifactMap(contractStates);
-
-    const reconciliationResult = Reconciler.reconcile(
+    const reconciliationResult = await Reconciler.reconcile(
       ignitionModule,
       deploymentState,
       deploymentParameters,
       accounts,
-      moduleArtifactMap,
-      storedArtifactMap
+      this._deploymentLoader,
+      this._artifactResolver
     );
 
     if (reconciliationResult.reconciliationFailures.length > 0) {
@@ -141,66 +123,6 @@ export class Deployer {
   ): Promise<DeploymentResult> {
     // TODO: Create the deployment result
     return null as any;
-  }
-
-  private async _loadModuleArtifactMap(
-    contracts: Array<ContractFuture<string>>
-  ): Promise<ArtifactMap> {
-    const entries: Array<[string, Artifact]> = [];
-
-    for (const contract of contracts) {
-      if (
-        isNamedContractDeploymentFuture(contract) ||
-        isNamedContractAtFuture(contract) ||
-        isNamedLibraryDeploymentFuture(contract)
-      ) {
-        const artifact = await this._artifactResolver.loadArtifact(
-          contract.contractName
-        );
-
-        entries.push([contract.id, artifact]);
-
-        continue;
-      }
-
-      if (
-        isArtifactContractDeploymentFuture(contract) ||
-        isArtifactContractAtFuture(contract) ||
-        isArtifactLibraryDeploymentFuture(contract)
-      ) {
-        const artifact = contract.artifact;
-
-        entries.push([contract.id, artifact]);
-
-        continue;
-      }
-
-      this._assertNeverContract(contract);
-    }
-
-    return Object.fromEntries(entries);
-  }
-
-  private async _loadStoredArtifactMap(
-    contractStates: Array<DeploymentExecutionState | ContractAtExecutionState>
-  ): Promise<ArtifactMap> {
-    const entries: Array<[string, Artifact]> = [];
-
-    for (const contract of contractStates) {
-      const artifact = await this._deploymentLoader.loadArtifact(
-        contract.artifactFutureId
-      );
-
-      entries.push([contract.id, artifact]);
-    }
-
-    return Object.fromEntries(entries);
-  }
-
-  private _assertNeverContract(contract: never) {
-    throw new IgnitionError(
-      `Unexpected contract future type: ${JSON.stringify(contract)}`
-    );
   }
 
   private async _getOrInitializeDeploymentState(): Promise<DeploymentState> {

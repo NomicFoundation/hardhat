@@ -8,17 +8,17 @@ import { reconcileLibraries } from "../helpers/reconcile-libraries";
 import { reconcileValue } from "../helpers/reconcile-value";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 
-export function reconcileNamedContractDeployment(
+export async function reconcileNamedContractDeployment(
   future: NamedContractDeploymentFuture<string>,
   executionState: DeploymentExecutionState,
   context: ReconciliationContext
-): ReconciliationFutureResult {
+): Promise<ReconciliationFutureResult> {
   let result = reconcileContractName(future, executionState, context);
   if (result !== undefined) {
     return result;
   }
 
-  result = reconcileArtifacts(future, executionState, context);
+  result = await reconcileArtifacts(future, executionState, context);
   if (result !== undefined) {
     return result;
   }

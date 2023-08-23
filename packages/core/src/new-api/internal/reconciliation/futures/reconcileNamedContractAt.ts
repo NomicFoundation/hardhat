@@ -5,17 +5,17 @@ import { reconcileArtifacts } from "../helpers/reconcile-artifacts";
 import { reconcileContractName } from "../helpers/reconcile-contract-name";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 
-export function reconcileNamedContractAt(
+export async function reconcileNamedContractAt(
   future: NamedContractAtFuture<string>,
   executionState: ContractAtExecutionState,
   context: ReconciliationContext
-): ReconciliationFutureResult {
+): Promise<ReconciliationFutureResult> {
   let result = reconcileContractName(future, executionState, context);
   if (result !== undefined) {
     return result;
   }
 
-  result = reconcileArtifacts(future, executionState, context);
+  result = await reconcileArtifacts(future, executionState, context);
   if (result !== undefined) {
     return result;
   }

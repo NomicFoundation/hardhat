@@ -3,7 +3,6 @@ import { resolveAddressForContractFuture } from "../../new-execution/future-proc
 import { ReadEventArgumentExecutionState } from "../../new-execution/types/execution-state";
 import { compare } from "../helpers/compare";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
-import { fail } from "../utils";
 
 export function reconcileReadEventArgument(
   future: ReadEventArgumentFuture,
