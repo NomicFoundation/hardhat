@@ -4,11 +4,6 @@ import { JournalMessage, JournalMessageType } from "../types/messages";
 import { executionStateReducer } from "./execution-state-reducer";
 import { wipeExecutionState } from "./helpers/deployment-state-helpers";
 
-const initialState: DeploymentState = {
-  chainId: 0,
-  executionStates: {},
-};
-
 /**
  * The root level reducer for the overall deployment state.
  *
@@ -17,17 +12,24 @@ const initialState: DeploymentState = {
  * @returns a copy of the deployment state with the message applied
  */
 export function deploymentStateReducer(
-  state: DeploymentState = initialState,
+  state?: DeploymentState,
   action?: JournalMessage
 ): DeploymentState {
+  if (state === undefined) {
+    state = {
+      chainId: -1,
+      executionStates: {},
+    };
+  }
+
   if (action === undefined) {
     return state;
   }
 
   if (action.type === JournalMessageType.RUN_START) {
     return {
-      ...state,
       chainId: action.chainId,
+      executionStates: {},
     };
   }
 
