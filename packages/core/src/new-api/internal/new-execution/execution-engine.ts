@@ -50,7 +50,7 @@ export class ExecutionEngine {
    * @param batches The result of batching the futures of the module.
    * @param accounts The accounts to use for executing the module.
    * @param deploymentParameters The deployment parameters provided by the user.
-   * @param fallbackSender The default sender to use as `from` of futures, transactions and static calls.
+   * @param defaultSender The default sender to use as `from` of futures, transactions and static calls.
    * @returns The new deployment state.
    */
   public async executeModule(
@@ -59,7 +59,7 @@ export class ExecutionEngine {
     batches: string[][],
     accounts: string[],
     deploymentParameters: DeploymentParameters,
-    fallbackSender: string
+    defaultSender: string
   ): Promise<DeploymentState> {
     deploymentState = await this._syncNonces(deploymentState);
 
@@ -81,7 +81,7 @@ export class ExecutionEngine {
       this._maxFeeBumps,
       accounts,
       deploymentParameters,
-      fallbackSender
+      defaultSender
     );
 
     const futures = getFuturesFromModule(module);

@@ -7,7 +7,7 @@ import {
   ExecutionSateType,
   ExecutionStatus,
 } from "../../../src/new-api/internal/new-execution/types/execution-state";
-import { getFallbackSender } from "../../../src/new-api/internal/new-execution/utils/get-fallback-sender";
+import { getDefaultSender } from "../../../src/new-api/internal/new-execution/utils/get-default-sender";
 import { FutureType } from "../../../src/new-api/types/module";
 import { exampleAccounts } from "../helpers";
 
@@ -130,7 +130,7 @@ describe("Reconciliation", () => {
   });
 
   describe("from and accounts interactions", () => {
-    it("should reconcile from where the module's is undefined, and the fallback account is the sender of the started execution state", async () => {
+    it("should reconcile from where the module's is undefined, and the default account is the sender of the started execution state", async () => {
       const moduleDefinition = buildModule("Module1", (m) => {
         const contract1 = m.contract("Contract1", [], { from: undefined });
 
@@ -144,7 +144,7 @@ describe("Reconciliation", () => {
             ...exampleDeploymentState,
             futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.STARTED,
-            from: getFallbackSender(exampleAccounts),
+            from: getDefaultSender(exampleAccounts),
           },
         },
       });

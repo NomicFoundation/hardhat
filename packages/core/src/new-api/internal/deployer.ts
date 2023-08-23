@@ -49,7 +49,7 @@ export class Deployer {
     ignitionModule: IgnitionModule,
     deploymentParameters: DeploymentParameters,
     accounts: string[],
-    fallbackSender: string
+    defaultSender: string
   ): Promise<DeploymentResult> {
     await validateStageTwo(
       ignitionModule,
@@ -81,7 +81,7 @@ export class Deployer {
       accounts,
       this._deploymentLoader,
       this._artifactResolver,
-      fallbackSender
+      defaultSender
     );
 
     if (reconciliationResult.reconciliationFailures.length > 0) {
@@ -115,7 +115,7 @@ export class Deployer {
       batches,
       accounts,
       deploymentParameters,
-      fallbackSender
+      defaultSender
     );
 
     return this._getDeploymentResult(deploymentState);

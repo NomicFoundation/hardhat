@@ -40,7 +40,7 @@ export function reconcileFrom(
   const resolvedFrom = resolveFutureFrom(
     future.from,
     context.accounts,
-    context.fallbackSender
+    context.defaultSender
   );
 
   return compare(future, "From account", exState.from, resolvedFrom);

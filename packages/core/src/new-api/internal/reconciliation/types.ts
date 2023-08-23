@@ -34,7 +34,7 @@ export interface ReconciliationContext {
   accounts: string[];
   artifactResolver: ArtifactResolver;
   deploymentLoader: DeploymentLoader;
-  fallbackSender: string;
+  defaultSender: string;
 }
 
 export type ReconciliationCheck = (

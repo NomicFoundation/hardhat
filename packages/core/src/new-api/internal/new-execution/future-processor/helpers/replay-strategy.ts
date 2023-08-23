@@ -164,8 +164,6 @@ async function replayStaticCallExecutionStrategy(
  *
  * @param executionState The execution state.
  * @param strategy The strategy to use to create the generator.
- * @param fallbackSender The fallback sender passed to the strategy.
- * @param loadArtifact The load artifact function passed to the strtegy.
  * @returns The replayed strategy generator.
  */
 export async function replayStrategy(

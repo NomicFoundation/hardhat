@@ -83,10 +83,10 @@ export function resolveArgs(
 export function resolveFutureFrom(
   from: string | AccountRuntimeValue | undefined,
   accounts: string[],
-  fallbackSender: string
+  defaultSender: string
 ): string {
   if (from === undefined) {
-    return fallbackSender;
+    return defaultSender;
   }
 
   if (typeof from === "string") {

@@ -9,7 +9,7 @@ import {
   ExecutionStatus,
   StaticCallExecutionState,
 } from "../../../../src/new-api/internal/new-execution/types/execution-state";
-import { getFallbackSender } from "../../../../src/new-api/internal/new-execution/utils/get-fallback-sender";
+import { getDefaultSender } from "../../../../src/new-api/internal/new-execution/utils/get-default-sender";
 import { FutureType } from "../../../../src/new-api/types/module";
 import { exampleAccounts } from "../../helpers";
 import {
@@ -47,7 +47,7 @@ describe("Reconciliation - artifact contract at", () => {
     value: BigInt("0"),
     constructorArgs: [],
     libraries: {},
-    from: getFallbackSender(exampleAccounts),
+    from: getDefaultSender(exampleAccounts),
     networkInteractions: [],
   };
 
@@ -62,7 +62,7 @@ describe("Reconciliation - artifact contract at", () => {
     artifactFutureId: "./artifact.json",
     functionName: "function",
     args: [],
-    from: getFallbackSender(exampleAccounts),
+    from: getDefaultSender(exampleAccounts),
     networkInteractions: [],
   };
 

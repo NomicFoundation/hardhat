@@ -44,7 +44,7 @@ import {
   NetworkInteractionType,
   OnchainInteraction,
 } from "../../../../../src/new-api/internal/new-execution/types/network-interaction";
-import { getFallbackSender } from "../../../../../src/new-api/internal/new-execution/utils/get-fallback-sender";
+import { getDefaultSender } from "../../../../../src/new-api/internal/new-execution/utils/get-default-sender";
 import {
   ArtifactContractAtFuture,
   ArtifactContractDeploymentFuture,
@@ -326,7 +326,7 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getFallbackSender(exampleAccounts)
+          getDefaultSender(exampleAccounts)
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
@@ -381,7 +381,7 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getFallbackSender(exampleAccounts)
+          getDefaultSender(exampleAccounts)
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
@@ -420,7 +420,7 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getFallbackSender(exampleAccounts)
+          getDefaultSender(exampleAccounts)
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
@@ -452,7 +452,7 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getFallbackSender(exampleAccounts)
+          getDefaultSender(exampleAccounts)
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
@@ -495,7 +495,7 @@ describe("buildInitializeMessageFor", () => {
           },
           mockDeploymentLoader,
           exampleAccounts,
-          getFallbackSender(exampleAccounts)
+          getDefaultSender(exampleAccounts)
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
@@ -515,7 +515,7 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getFallbackSender(exampleAccounts)
+          getDefaultSender(exampleAccounts)
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
@@ -533,15 +533,12 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getFallbackSender(exampleAccounts)
+          getDefaultSender(exampleAccounts)
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
-      it("should record the fallback sender", async () => {
-        assert.deepStrictEqual(
-          message.from,
-          getFallbackSender(exampleAccounts)
-        );
+      it("should record the default sender", async () => {
+        assert.deepStrictEqual(message.from, getDefaultSender(exampleAccounts));
       });
     });
   });
@@ -558,7 +555,7 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getFallbackSender(exampleAccounts)
+          getDefaultSender(exampleAccounts)
         )) as CallExecutionStateInitializeMessage;
       });
 
@@ -591,7 +588,7 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getFallbackSender(exampleAccounts)
+          getDefaultSender(exampleAccounts)
         )) as StaticCallExecutionStateInitializeMessage;
       });
 
@@ -623,7 +620,7 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getFallbackSender(exampleAccounts)
+          getDefaultSender(exampleAccounts)
         )) as ContractAtExecutionStateInitializeMessage;
       });
 
@@ -650,7 +647,7 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getFallbackSender(exampleAccounts)
+          getDefaultSender(exampleAccounts)
         )) as ContractAtExecutionStateInitializeMessage;
       });
 
@@ -690,7 +687,7 @@ describe("buildInitializeMessageFor", () => {
           },
           mockDeploymentLoader,
           exampleAccounts,
-          getFallbackSender(exampleAccounts)
+          getDefaultSender(exampleAccounts)
         );
 
         assert.deepStrictEqual(m, {
@@ -720,7 +717,7 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getFallbackSender(exampleAccounts)
+          getDefaultSender(exampleAccounts)
         );
 
         assert.deepStrictEqual(m, {
@@ -766,7 +763,7 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getFallbackSender(exampleAccounts)
+          getDefaultSender(exampleAccounts)
         );
 
         assert.deepStrictEqual(m, {
@@ -811,7 +808,7 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getFallbackSender(exampleAccounts)
+          getDefaultSender(exampleAccounts)
         );
 
         assert.deepStrictEqual(m, {
@@ -859,7 +856,7 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getFallbackSender(exampleAccounts)
+          getDefaultSender(exampleAccounts)
         );
 
         assert.deepStrictEqual(m, {
@@ -887,7 +884,7 @@ describe("buildInitializeMessageFor", () => {
         {},
         mockDeploymentLoader,
         exampleAccounts,
-        getFallbackSender(exampleAccounts)
+        getDefaultSender(exampleAccounts)
       )) as ReadEventArgExecutionStateInitializeMessage;
     });
 
@@ -919,7 +916,7 @@ describe("buildInitializeMessageFor", () => {
         {},
         mockDeploymentLoader,
         exampleAccounts,
-        getFallbackSender(exampleAccounts)
+        getDefaultSender(exampleAccounts)
       )) as SendDataExecutionStateInitializeMessage;
     });
 
