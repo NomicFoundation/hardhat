@@ -18,7 +18,7 @@ export class Wiper {
 
     if (deploymentState === undefined) {
       throw new IgnitionError(
-        `Cannot wipe ${futureId} as thie deployment hasn't been started`
+        `Cannot wipe ${futureId} as the deployment hasn't been intialialized yet`
       );
     }
 
@@ -47,6 +47,10 @@ export class Wiper {
       futureId,
     };
 
-    await applyNewMessage(wipeMessage, deploymentState, this._deploymentLoader);
+    return applyNewMessage(
+      wipeMessage,
+      deploymentState,
+      this._deploymentLoader
+    );
   }
 }
