@@ -284,7 +284,6 @@ describe("buildInitializeMessageFor", () => {
       to: undefined,
       data: "0x",
       value: 0n,
-      from: exampleAccounts[0],
       nonce: 1,
       transactions: [exampleConfirmedTransaction],
       shouldBeResent: false,

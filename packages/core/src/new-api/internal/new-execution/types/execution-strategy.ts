@@ -97,7 +97,9 @@ export interface SimulationSuccessSignal {
  * A request to perform a static call. This leads to the execution engine
  * seding an `eth_call` to the network.
  */
-export type StaticCallRequest = Omit<StaticCall, "result">;
+export type StaticCallRequest = Omit<StaticCall, "result" | "from"> & {
+  from?: string;
+};
 
 /**
  * The response of a static call request.

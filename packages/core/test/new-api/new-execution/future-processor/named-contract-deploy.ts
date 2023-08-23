@@ -116,7 +116,6 @@ describe("future processor", () => {
       // };
 
       const basicExecutionStrategy = new BasicExecutionStrategy(
-        "0x0",
         mockDeploymentLoader.loadArtifact
       );
 

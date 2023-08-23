@@ -82,6 +82,7 @@ export const TRANSACTION_SENT_TYPE = "TRANSACTION";
  * different nonce.
  *
  * @param client The JsonRpcClient to use to interact with the network.
+ * @param sender The account to send the transaction from.
  * @param onchainInteraction The OnchainInteraction to send the transaction for.
  * @param getNonce A callback to fetch the nonce for the transaction.
  * @param decodeSimulationResult A callback to decode the result of the simulation.
@@ -93,6 +94,7 @@ export const TRANSACTION_SENT_TYPE = "TRANSACTION";
  */
 export async function sendTransactionForOnchainInteraction(
   client: JsonRpcClient,
+  sender: string,
   onchainInteraction: OnchainInteraction,
   getNonce: (sender: string) => Promise<number>,
   decodeSimulationResult: (
@@ -111,8 +113,7 @@ export async function sendTransactionForOnchainInteraction(
       nonce: number;
     }
 > {
-  const nonce =
-    onchainInteraction.nonce ?? (await getNonce(onchainInteraction.from));
+  const nonce = onchainInteraction.nonce ?? (await getNonce(sender));
   const fees = await getNextTransactionFees(client, onchainInteraction);
 
   // TODO: Should we check the balance here? Before or after estimating gas?
@@ -120,7 +121,7 @@ export async function sendTransactionForOnchainInteraction(
 
   const estimateGasPrams = {
     to: onchainInteraction.to,
-    from: onchainInteraction.from,
+    from: sender,
     data: onchainInteraction.data,
     value: onchainInteraction.value,
     nonce,

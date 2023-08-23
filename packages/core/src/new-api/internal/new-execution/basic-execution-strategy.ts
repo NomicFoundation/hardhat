@@ -33,10 +33,7 @@ import { NetworkInteractionType } from "./types/network-interaction";
 export class BasicExecutionStrategy implements ExecutionStrategy {
   public readonly name: string = "basic";
 
-  constructor(
-    private readonly _fallbackSender: string,
-    private readonly _loadArtifact: LoadArtifactFunction
-  ) {}
+  constructor(private readonly _loadArtifact: LoadArtifactFunction) {}
 
   public async *executeDeployment(
     executionState: DeploymentExecutionState
@@ -49,7 +46,6 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
         id: 1,
         type: NetworkInteractionType.ONCHAIN_INTERACTION,
         to: undefined,
-        from: executionState.from ?? this._fallbackSender,
         data: encodeArtifactDeploymentData(
           artifact,
           executionState.constructorArgs,
@@ -95,7 +91,6 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
         id: 1,
         type: NetworkInteractionType.ONCHAIN_INTERACTION,
         to: undefined,
-        from: executionState.from ?? this._fallbackSender,
         data: encodeArtifactFunctionCall(
           artifact,
           executionState.functionName,
@@ -134,7 +129,6 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
         id: 1,
         type: NetworkInteractionType.ONCHAIN_INTERACTION,
         to: undefined,
-        from: executionState.from ?? this._fallbackSender,
         data: executionState.data,
         value: executionState.value,
       }
@@ -162,7 +156,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
         id: 1,
         type: NetworkInteractionType.STATIC_CALL,
         to: executionState.contractAddress,
-        from: executionState.from ?? this._fallbackSender,
+        from: executionState.from,
         data: encodeArtifactFunctionCall(
           artifact,
           executionState.functionName,

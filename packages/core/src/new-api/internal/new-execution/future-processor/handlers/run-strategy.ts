@@ -17,6 +17,8 @@ import {
   OnchainInteractionResponseType,
   SIMULATION_SUCCESS_SIGNAL_TYPE,
   ExecutionStrategy,
+  OnchainInteractionRequest,
+  StaticCallRequest,
 } from "../../types/execution-strategy";
 import { TransactionReceiptStatus } from "../../types/jsonrpc";
 import {
@@ -130,9 +132,30 @@ export async function runStrategy(
     return {
       type: JournalMessageType.NETWORK_INTERACTION_REQUEST,
       futureId: exState.id,
-      networkInteraction: response.value,
+      networkInteraction: resolveNetworkInteractionRequest(
+        exState,
+        response.value
+      ),
     };
   }
 
   return createExecutionStateCompleteMessage(exState, response.value);
+}
+
+function resolveNetworkInteractionRequest(
+  exState:
+    | DeploymentExecutionState
+    | CallExecutionState
+    | SendDataExecutionState
+    | StaticCallExecutionState,
+  req: OnchainInteractionRequest | StaticCallRequest
+): NetworkInteractionRequestMessage["networkInteraction"] {
+  if (req.type === NetworkInteractionType.STATIC_CALL) {
+    return {
+      ...req,
+      from: req.from ?? exState.from,
+    };
+  }
+
+  return req;
 }

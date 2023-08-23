@@ -1,4 +1,4 @@
-import { ExecutionState } from "../../types/execution-state";
+import { ExecutionSateType, ExecutionState } from "../../types/execution-state";
 
 import { getPendingOnchainInteraction } from "./get-pending-onchain-interaction";
 
@@ -13,11 +13,18 @@ import { getPendingOnchainInteraction } from "./get-pending-onchain-interaction"
 export function getPendingNonceAndSender(
   exState: ExecutionState
 ): { nonce: number; sender: string } | undefined {
+  if (
+    exState.type === ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE ||
+    exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE
+  ) {
+    return undefined;
+  }
+
   const interaction = getPendingOnchainInteraction(exState);
 
   if (interaction === undefined || interaction.nonce === undefined) {
     return undefined;
   }
 
-  return { nonce: interaction.nonce, sender: interaction.from };
+  return { nonce: interaction.nonce, sender: exState.from };
 }

@@ -57,7 +57,6 @@ describe("DeploymentStateReducer", () => {
         to: undefined,
         data: "fake-data",
         value: BigInt(0),
-        from: differentAddress,
       },
     };
 

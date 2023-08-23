@@ -2,6 +2,7 @@ import { IgnitionError } from "../../../errors";
 
 import { JsonRpcClient } from "./jsonrpc-client";
 import { DeploymentState } from "./types/deployment-state";
+import { ExecutionSateType } from "./types/execution-state";
 import {
   JournalMessageType,
   OnchainInteractionDroppedMessage,
@@ -234,6 +235,14 @@ function createMapFromSenderToNonceAndTransactions(
   } = {};
 
   for (const executionState of Object.values(deploymentState.executionStates)) {
+    if (
+      executionState.type ===
+        ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE ||
+      executionState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE
+    ) {
+      continue;
+    }
+
     const onchainInteraction = getPendingOnchainInteraction(executionState);
 
     if (onchainInteraction === undefined) {
@@ -244,11 +253,11 @@ function createMapFromSenderToNonceAndTransactions(
       continue;
     }
 
-    if (pendingTransactionsPerAccount[onchainInteraction.from] === undefined) {
-      pendingTransactionsPerAccount[onchainInteraction.from] = [];
+    if (pendingTransactionsPerAccount[executionState.from] === undefined) {
+      pendingTransactionsPerAccount[executionState.from] = [];
     }
 
-    pendingTransactionsPerAccount[onchainInteraction.from].push({
+    pendingTransactionsPerAccount[executionState.from].push({
       nonce: onchainInteraction.nonce,
       transactions: onchainInteraction.transactions.map((tx) => tx.hash),
       executionStateId: executionState.id,

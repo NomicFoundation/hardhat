@@ -46,7 +46,6 @@ export interface OnchainInteraction {
   to: string | undefined; // Undefined when it's a deployment transaction
   data: string;
   value: bigint;
-  from: string;
   nonce?: number;
   transactions: Transaction[];
   shouldBeResent: boolean;

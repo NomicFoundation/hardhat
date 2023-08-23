@@ -73,6 +73,7 @@ export async function sendTransaction(
 
   const result = await sendTransactionForOnchainInteraction(
     jsonRpcClient,
+    exState.from,
     lastNetworkInteraction,
     async (_sender: string) => nonceManager.getNextNonce(_sender),
     async (simulationResult) => {
