@@ -6,7 +6,7 @@ import {
   getWalletClient,
   getTestClient,
 } from "./internal/clients";
-import "./type-extensions";
+import "./internal/type-extensions";
 import "./internal/tasks";
 
 extendEnvironment((hre) => {
