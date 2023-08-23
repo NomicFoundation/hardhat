@@ -20,7 +20,13 @@ import { buildInitializeMessageFor } from "../../../../../src/new-api/internal/n
 import { deploymentStateReducer } from "../../../../../src/new-api/internal/new-execution/reducers/deployment-state-reducer";
 import { DeploymentState } from "../../../../../src/new-api/internal/new-execution/types/deployment-state";
 import { ExecutionResultType } from "../../../../../src/new-api/internal/new-execution/types/execution-result";
-import { ExecutionSateType } from "../../../../../src/new-api/internal/new-execution/types/execution-state";
+import {
+  ContractAtExecutionState,
+  DeploymentExecutionState,
+  ExecutionSateType,
+  ReadEventArgumentExecutionState,
+  StaticCallExecutionState,
+} from "../../../../../src/new-api/internal/new-execution/types/execution-state";
 import {
   Transaction,
   TransactionReceiptStatus,
@@ -283,22 +289,29 @@ describe("buildInitializeMessageFor", () => {
       shouldBeResent: false,
     };
 
-    exampleDeploymentState.executionStates["MyModule:SafeMath"] = {
+    const safeMathExState: Partial<DeploymentExecutionState> = {
       type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+      futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
       result: {
         type: ExecutionResultType.SUCCESS,
         address: libraryAddress,
       },
-    } as any;
+    };
 
-    exampleDeploymentState.executionStates["MyModule:AnotherContract"] = {
+    exampleDeploymentState.executionStates["MyModule:SafeMath"] =
+      safeMathExState as any;
+
+    const anotherContractExState: Partial<DeploymentExecutionState> = {
       type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
       networkInteractions: [exampleOnchainInteraction],
       result: {
         type: ExecutionResultType.SUCCESS,
         address: differentAddress,
       },
-    } as any;
+    };
+
+    exampleDeploymentState.executionStates["MyModule:AnotherContract"] =
+      anotherContractExState as any;
   });
 
   describe("deployment state", () => {
@@ -641,12 +654,208 @@ describe("buildInitializeMessageFor", () => {
           contractName: "ArtifactContractAt",
         });
       });
+    });
 
-      it.skip("should resolve address from module param", async () => {});
-      it.skip("should resolve address from deployment", async () => {});
-      it.skip("should resolve address from contractAt", async () => {});
-      it.skip("should resolve address from read event arg", async () => {});
-      it.skip("should resolve address from static call", async () => {});
+    describe("resolving address from module param", () => {
+      it("should work based on the passed in deployment parameter", async () => {
+        const m = await buildInitializeMessageFor(
+          new NamedContractAtFutureImplementation(
+            "MyModule:NamedContractAt",
+            {} as any,
+            "ArtifactContractAt",
+            new ModuleParameterRuntimeValueImplementation<string>(
+              "MyModule",
+              "diffAddress",
+              undefined
+            )
+          ),
+          exampleDeploymentState,
+          basicStrategy,
+          {
+            MyModule: {
+              diffAddress: differentAddress,
+            },
+          },
+          mockDeploymentLoader,
+          exampleAccounts
+        );
+
+        assert.deepStrictEqual(m, {
+          type: JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE,
+          futureId: "MyModule:NamedContractAt",
+          futureType: FutureType.NAMED_CONTRACT_AT,
+          strategy: "basic",
+          dependencies: [],
+          artifactFutureId: "MyModule:NamedContractAt",
+          contractAddress: differentAddress,
+          contractName: "ArtifactContractAt",
+        });
+      });
+    });
+
+    describe("resolving address from a deployment future", () => {
+      it("should work based on the address of the deployed future", async () => {
+        const m = await buildInitializeMessageFor(
+          new NamedContractAtFutureImplementation(
+            "MyModule:NamedContractAt",
+            {} as any,
+            "NamedContractAt",
+            anotherNamedContractDeployment
+          ),
+          exampleDeploymentState,
+          basicStrategy,
+          {},
+          mockDeploymentLoader,
+          exampleAccounts
+        );
+
+        assert.deepStrictEqual(m, {
+          type: JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE,
+          futureId: "MyModule:NamedContractAt",
+          futureType: FutureType.NAMED_CONTRACT_AT,
+          strategy: "basic",
+          dependencies: [],
+          artifactFutureId: "MyModule:NamedContractAt",
+          contractAddress: differentAddress,
+          contractName: "NamedContractAt",
+        });
+      });
+    });
+
+    describe("resolving address from another contractAt", () => {
+      beforeEach(() => {
+        const namedContractAtExState: Partial<ContractAtExecutionState> = {
+          type: ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
+          futureType: FutureType.NAMED_CONTRACT_AT,
+          contractAddress: differentAddress,
+        };
+
+        exampleDeploymentState = {
+          ...exampleDeploymentState,
+          executionStates: {
+            ...exampleDeploymentState.executionStates,
+            ["MyModule:NamedContractAt"]: namedContractAtExState as any,
+          },
+        };
+      });
+
+      it("should work based on the address of the deployed future", async () => {
+        const m = await buildInitializeMessageFor(
+          new NamedContractAtFutureImplementation(
+            "MyModule:SecondNamedContractAt",
+            {} as any,
+            "SecondNamedContractAt",
+            namedContractAt
+          ),
+          exampleDeploymentState,
+          basicStrategy,
+          {},
+          mockDeploymentLoader,
+          exampleAccounts
+        );
+
+        assert.deepStrictEqual(m, {
+          type: JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE,
+          futureId: "MyModule:SecondNamedContractAt",
+          futureType: FutureType.NAMED_CONTRACT_AT,
+          strategy: "basic",
+          dependencies: [],
+          artifactFutureId: "MyModule:SecondNamedContractAt",
+          contractAddress: differentAddress,
+          contractName: "SecondNamedContractAt",
+        });
+      });
+    });
+
+    describe("resolving address from read event argument future", () => {
+      beforeEach(() => {
+        const readEventArgExState: Partial<ReadEventArgumentExecutionState> = {
+          type: ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE,
+          result: differentAddress,
+        };
+
+        exampleDeploymentState = {
+          ...exampleDeploymentState,
+          executionStates: {
+            ...exampleDeploymentState.executionStates,
+            ["MyModule:ReadEventArg"]: readEventArgExState as any,
+          },
+        };
+      });
+
+      it("should work based on the arg result", async () => {
+        const m = await buildInitializeMessageFor(
+          new NamedContractAtFutureImplementation(
+            "MyModule:NamedContractAt",
+            {} as any,
+            "NamedContractAt",
+            readEventArgument
+          ),
+          exampleDeploymentState,
+          basicStrategy,
+          {},
+          mockDeploymentLoader,
+          exampleAccounts
+        );
+
+        assert.deepStrictEqual(m, {
+          type: JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE,
+          futureId: "MyModule:NamedContractAt",
+          futureType: FutureType.NAMED_CONTRACT_AT,
+          strategy: "basic",
+          dependencies: [],
+          artifactFutureId: "MyModule:NamedContractAt",
+          contractName: "NamedContractAt",
+          contractAddress: differentAddress,
+        });
+      });
+    });
+
+    describe("resolving address from static call", () => {
+      beforeEach(() => {
+        const staticCallExState: Partial<StaticCallExecutionState> = {
+          type: ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            value: differentAddress,
+          },
+        };
+
+        exampleDeploymentState = {
+          ...exampleDeploymentState,
+          executionStates: {
+            ...exampleDeploymentState.executionStates,
+            ["MyModule:StaticCall"]: staticCallExState as any,
+          },
+        };
+      });
+
+      it("should work based on the result of the static call", async () => {
+        const m = await buildInitializeMessageFor(
+          new NamedContractAtFutureImplementation(
+            "MyModule:NamedContractAt",
+            {} as any,
+            "NamedContractAt",
+            staticCall
+          ),
+          exampleDeploymentState,
+          basicStrategy,
+          {},
+          mockDeploymentLoader,
+          exampleAccounts
+        );
+
+        assert.deepStrictEqual(m, {
+          type: JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE,
+          futureId: "MyModule:NamedContractAt",
+          futureType: FutureType.NAMED_CONTRACT_AT,
+          strategy: "basic",
+          dependencies: [],
+          artifactFutureId: "MyModule:NamedContractAt",
+          contractName: "NamedContractAt",
+          contractAddress: differentAddress,
+        });
+      });
     });
   });
 
