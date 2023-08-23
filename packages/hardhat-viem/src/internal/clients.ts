@@ -1,5 +1,6 @@
 import type { EthereumProvider } from "hardhat/types";
 import type {
+  Address,
   Chain,
   PublicClient,
   PublicClientConfig,
@@ -8,8 +9,10 @@ import type {
   TestClient,
   TestClientConfig,
 } from "viem";
+import type { TestClientMode } from "viem/src/clients/createTestClient";
 
-import { getChain, isDevelopmentNetwork } from "./chains";
+import { getChain, getMode, isDevelopmentNetwork } from "./chains";
+import { getAccounts } from "./accounts";
 
 export async function getPublicClient(
   provider: EthereumProvider,
@@ -47,33 +50,45 @@ export async function getWalletClients(
   walletClientConfig?: Partial<WalletClientConfig>
 ): Promise<WalletClient[]> {
   const chain = walletClientConfig?.chain ?? (await getChain(provider));
-  return _getWalletClients(provider, chain, walletClientConfig);
+  const accounts = await getAccounts(provider);
+  return _getWalletClients(provider, chain, accounts, walletClientConfig);
 }
 
 export async function _getWalletClients(
   provider: EthereumProvider,
   chain: Chain,
+  accounts: Address[],
   walletClientConfig?: Partial<WalletClientConfig>
 ): Promise<WalletClient[]> {
-  return Promise.resolve([]);
+  const viem = await import("viem");
+  const parameters = {
+    ...(isDevelopmentNetwork(chain.id) && {
+      pollingInterval: 50,
+      cacheTime: 0,
+    }),
+    ...walletClientConfig,
+  };
+
+  const walletClients = accounts.map((account) =>
+    viem.createWalletClient({
+      chain,
+      account,
+      transport: viem.custom(provider),
+      ...parameters,
+    })
+  );
+  return walletClients;
 }
 
 export async function getWalletClient(
   provider: EthereumProvider,
-  address: string,
+  address: Address,
   walletClientConfig?: Partial<WalletClientConfig>
 ): Promise<WalletClient> {
   const chain = walletClientConfig?.chain ?? (await getChain(provider));
-  return _getWalletClient(provider, chain, address, walletClientConfig);
-}
-
-export async function _getWalletClient(
-  provider: EthereumProvider,
-  chain: Chain,
-  address: string,
-  walletClientConfig?: Partial<WalletClientConfig>
-): Promise<WalletClient> {
-  return Promise.resolve({} as WalletClient);
+  return (
+    await _getWalletClients(provider, chain, [address], walletClientConfig)
+  )[0];
 }
 
 export async function getTestClient(
@@ -81,13 +96,29 @@ export async function getTestClient(
   testClientConfig?: Partial<TestClientConfig>
 ): Promise<TestClient> {
   const chain = testClientConfig?.chain ?? (await getChain(provider));
-  return _getTestClient(provider, chain, testClientConfig);
+  const mode = await getMode(provider);
+  return _getTestClient(provider, chain, mode, testClientConfig);
 }
 
 export async function _getTestClient(
   provider: EthereumProvider,
   chain: Chain,
+  mode: TestClientMode,
   testClientConfig?: Partial<TestClientConfig>
 ): Promise<TestClient> {
-  return Promise.resolve({} as TestClient);
+  const viem = await import("viem");
+  const parameters = {
+    pollingInterval: 50,
+    cacheTime: 0,
+    ...testClientConfig,
+  };
+
+  const testClient = viem.createTestClient({
+    mode,
+    chain,
+    transport: viem.custom(provider),
+    ...parameters,
+  });
+
+  return testClient;
 }
