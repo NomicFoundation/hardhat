@@ -1,6 +1,5 @@
 import { produce } from "immer";
 
-import { NetworkInteractionType } from "../../../execution/transaction-types";
 import { assertIgnitionInvariant } from "../../../utils/assertions";
 import {
   CallExecutionState,
@@ -20,6 +19,7 @@ import {
   TransactionConfirmMessage,
   TransactionSendMessage,
 } from "../../types/messages";
+import { NetworkInteractionType } from "../../types/network-interaction";
 import { findOnchainInteractionBy } from "../../views/execution-state/find-onchain-interaction-by";
 import { findStaticCallBy } from "../../views/execution-state/find-static-call-by";
 import { findTransactionBy } from "../../views/execution-state/find-transaction-by";
