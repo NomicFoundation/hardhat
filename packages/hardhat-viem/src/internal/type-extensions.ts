@@ -1,12 +1,10 @@
 import type {
   Address,
-  PublicClient,
   PublicClientConfig,
-  WalletClient,
   WalletClientConfig,
-  TestClient,
   TestClientConfig,
 } from "viem";
+import type { PublicClient, TestClient, WalletClient } from "./types";
 import "hardhat/types/runtime";
 
 declare module "hardhat/types/runtime" {
