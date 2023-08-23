@@ -381,7 +381,7 @@ impl RpcClient {
             .collect::<Vec<_>>();
 
         let mut results: Vec<Option<serde_json::Value>> = stream::iter(&cache_keys)
-            .map(|cache_key| async { self.try_from_cache(cache_key.as_ref()).await })
+            .map(|cache_key| self.try_from_cache(cache_key.as_ref()))
             .buffered(PARALLEL_DISK_READS)
             .collect::<Vec<Result<_, RpcClientError>>>()
             .await
