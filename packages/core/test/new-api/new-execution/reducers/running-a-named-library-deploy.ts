@@ -24,6 +24,7 @@ import { applyMessages } from "./utils";
 
 describe("DeploymentStateReducer", () => {
   describe("running a named library deploy", () => {
+    const senderAddress = "0x0011223344556677889900112233445566778899";
     const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 
     let updatedDeploymentState: DeploymentState;
@@ -41,7 +42,7 @@ describe("DeploymentStateReducer", () => {
         constructorArgs: [],
         libraries: {},
         value: BigInt(0),
-        from: undefined,
+        from: senderAddress,
       };
 
     const requestNetworkInteractionMessage: NetworkInteractionRequestMessage = {

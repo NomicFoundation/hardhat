@@ -44,6 +44,7 @@ import {
   NetworkInteractionType,
   OnchainInteraction,
 } from "../../../../../src/new-api/internal/new-execution/types/network-interaction";
+import { getFallbackSender } from "../../../../../src/new-api/internal/new-execution/utils/get-fallback-sender";
 import {
   ArtifactContractAtFuture,
   ArtifactContractDeploymentFuture,
@@ -518,10 +519,8 @@ describe("buildInitializeMessageFor", () => {
       });
     });
 
-    describe("defers resolving from when provided with undefined - it will be taken from accounts at execution", () => {
+    describe("When the from is undefined", () => {
       beforeEach(async () => {
-        namedContractDeployment.from = undefined;
-
         message = (await buildInitializeMessageFor(
           namedContractDeployment,
           exampleDeploymentState,
@@ -532,8 +531,11 @@ describe("buildInitializeMessageFor", () => {
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
-      it("should record the value", async () => {
-        assert.deepStrictEqual(message.from, undefined);
+      it("should record the fallback sender", async () => {
+        assert.deepStrictEqual(
+          message.from,
+          getFallbackSender(exampleAccounts)
+        );
       });
     });
   });

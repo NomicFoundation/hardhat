@@ -78,7 +78,7 @@ export interface DeploymentExecutionStateInitializeMessage {
   constructorArgs: SolidityParameterType[];
   libraries: Record<string, string>;
   value: bigint;
-  from: string | undefined;
+  from: string;
 }
 
 export interface DeploymentExecutionStateCompleteMessage {
@@ -97,7 +97,7 @@ export interface CallExecutionStateInitializeMessage {
   functionName: string;
   args: SolidityParameterType[];
   value: bigint;
-  from: string | undefined;
+  from: string;
 }
 
 export interface CallExecutionStateCompleteMessage {
@@ -115,7 +115,7 @@ export interface StaticCallExecutionStateInitializeMessage {
   contractAddress: string;
   functionName: string;
   args: SolidityParameterType[];
-  from: string | undefined;
+  from: string;
 }
 
 export interface StaticCallExecutionStateCompleteMessage {
@@ -132,7 +132,7 @@ export interface SendDataExecutionStateInitializeMessage {
   to: string;
   data: string;
   value: bigint;
-  from: string | undefined;
+  from: string;
 }
 
 export interface SendDataExecutionStateCompleteMessage {

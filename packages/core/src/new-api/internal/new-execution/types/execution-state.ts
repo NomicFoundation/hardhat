@@ -79,7 +79,7 @@ export interface DeploymentExecutionState
   constructorArgs: SolidityParameterType[];
   libraries: Record<string, string>;
   value: bigint;
-  from: string | undefined;
+  from: string;
   networkInteractions: NetworkInteraction[];
   result?: DeploymentExecutionResult;
 }
@@ -97,7 +97,7 @@ export interface CallExecutionState
   functionName: string;
   args: SolidityParameterType[];
   value: bigint;
-  from: string | undefined;
+  from: string;
   networkInteractions: NetworkInteraction[];
   result?: CallExecutionResult;
 }
@@ -117,7 +117,7 @@ export interface StaticCallExecutionState
   contractAddress: string;
   functionName: string;
   args: SolidityParameterType[];
-  from: string | undefined;
+  from: string;
   networkInteractions: StaticCall[];
   result?: StaticCallExecutionResult;
 }
@@ -133,7 +133,7 @@ export interface SendDataExecutionState
   to: string;
   data: string;
   value: bigint;
-  from: string | undefined;
+  from: string;
   networkInteractions: NetworkInteraction[];
   result?: SendDataExecutionResult;
 }
