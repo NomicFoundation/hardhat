@@ -4,7 +4,11 @@ import { expect, assert } from "chai";
 import sinon from "sinon";
 import * as chains from "viem/chains";
 
-import { getChain, isDevelopmentNetwork } from "../src/internal/chains";
+import {
+  getChain,
+  getMode,
+  isDevelopmentNetwork,
+} from "../src/internal/chains";
 import { EthereumMockedProvider } from "./mocks/provider";
 
 describe("chains", () => {
@@ -93,6 +97,42 @@ Please report this issue if you're using Hardhat or Foundry.`
 
     it("should return false if the chain id is not 31337", () => {
       assert.notOk(isDevelopmentNetwork(1));
+    });
+  });
+
+  describe("getMode", () => {
+    it("should return hardhat if the network is hardhat", async () => {
+      const provider: EthereumProvider = new EthereumMockedProvider();
+      const sendStub = sinon.stub(provider, "send");
+      sendStub.withArgs("hardhat_metadata").returns(Promise.resolve({}));
+      sendStub.withArgs("anvil_nodeInfo").throws();
+
+      const mode = await getMode(provider);
+
+      expect(mode).to.equal("hardhat");
+    });
+
+    it("should return anvil if the network is foundry", async () => {
+      const provider: EthereumProvider = new EthereumMockedProvider();
+      const sendStub = sinon.stub(provider, "send");
+      sendStub.withArgs("hardhat_metadata").throws();
+      sendStub.withArgs("anvil_nodeInfo").returns(Promise.resolve({}));
+
+      const mode = await getMode(provider);
+
+      expect(mode).to.equal("anvil");
+    });
+
+    it("should throw if the network is neither hardhat nor foundry", async () => {
+      const provider: EthereumProvider = new EthereumMockedProvider();
+      const sendStub = sinon.stub(provider, "send");
+      sendStub.withArgs("hardhat_metadata").throws();
+      sendStub.withArgs("anvil_nodeInfo").throws();
+
+      await expect(getMode(provider)).to.be.rejectedWith(
+        `The chain id corresponds to a development network but we couldn't detect which one.
+Please report this issue if you're using Hardhat or Foundry.`
+      );
     });
   });
 });

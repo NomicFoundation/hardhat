@@ -11,9 +11,9 @@ import "./internal/tasks";
 
 extendEnvironment((hre) => {
   hre.viem = {
-    getPublicClient: (publicClientConfig?) =>
+    getPublicClient: (publicClientConfig) =>
       getPublicClient(hre.network.provider, publicClientConfig),
-    getWalletClients: (walletClientConfig?) =>
+    getWalletClients: (walletClientConfig) =>
       getWalletClients(hre.network.provider, walletClientConfig),
     getWalletClient: (address, walletClientConfig) =>
       getWalletClient(hre.network.provider, address, walletClientConfig),
