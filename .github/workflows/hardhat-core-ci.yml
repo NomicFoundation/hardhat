@@ -20,6 +20,7 @@ on:
     paths:
       - ".github/workflows/hardhat-core-ci.yml"
       - "rust-toolchain"
+      - "Cargo.lock"
       - "Cargo.toml"
       - "config/**"
       - "crates/**"
