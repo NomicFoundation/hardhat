@@ -7,8 +7,8 @@ import {
   StaticCallExecutionState,
 } from "../../types/execution-state";
 import {
-  StaticCallCompleteMessage,
   JournalMessageType,
+  StaticCallCompleteMessage,
 } from "../../types/messages";
 import { NetworkInteractionType } from "../../types/network-interaction";
 import { runStaticCall } from "../helpers/network-interaction-execution";
@@ -30,8 +30,12 @@ export async function queryStaticCall(
     | StaticCallExecutionState,
   jsonRpcClient: JsonRpcClient
 ): Promise<StaticCallCompleteMessage> {
-  const lastNetworkInteraction =
-    exState.networkInteractions[exState.networkInteractions.length];
+  const lastNetworkInteraction = exState.networkInteractions.at(-1);
+
+  assertIgnitionInvariant(
+    lastNetworkInteraction !== undefined,
+    `Network interaction not found for ExecutionState ${exState.id} when trying to run a StaticCall`
+  );
 
   assertIgnitionInvariant(
     lastNetworkInteraction.type === NetworkInteractionType.STATIC_CALL,

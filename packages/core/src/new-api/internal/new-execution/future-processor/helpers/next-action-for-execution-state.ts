@@ -46,8 +46,7 @@ export function nextActionForExecutionState(
     | SendDataExecutionState
     | StaticCallExecutionState
 ): NextAction {
-  const interaction =
-    exState.networkInteractions[exState.networkInteractions.length - 1];
+  const interaction = exState.networkInteractions.at(-1);
 
   if (interaction === undefined) {
     return NextAction.RUN_STRATEGY;

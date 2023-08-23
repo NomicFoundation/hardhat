@@ -85,8 +85,13 @@ export function setupMockArtifactResolver(artifacts?: {
   };
 }
 
-export function setupMockDeploymentLoader(journal: Journal): DeploymentLoader {
+export function setupMockDeploymentLoader(
+  journal: Journal,
+  deployedAddresses?: { [key: string]: string }
+): DeploymentLoader {
   const storedArtifacts: { [key: string]: Artifact } = {};
+  const storedDeployedAddresses: { [key: string]: string } =
+    deployedAddresses ?? {};
 
   return {
     recordToJournal: async (message) => {
@@ -95,7 +100,9 @@ export function setupMockDeploymentLoader(journal: Journal): DeploymentLoader {
     readFromJournal: () => {
       return journal.read();
     },
-    recordDeployedAddress: async () => {},
+    recordDeployedAddress: async (futureId, contractAddress) => {
+      storedDeployedAddresses[futureId] = contractAddress;
+    },
     storeUserProvidedArtifact: async (artifactFutureId, artifact) => {
       storedArtifacts[artifactFutureId] = artifact;
     },

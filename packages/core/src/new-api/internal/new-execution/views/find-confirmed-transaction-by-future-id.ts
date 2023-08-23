@@ -24,8 +24,12 @@ export function findConfirmedTransactionByFutureId(
     `Tx hash resolution only supported on execution states with network interactions, ${futureId} is ${exState.type}`
   );
 
-  const lastNetworkInteraction =
-    exState.networkInteractions[exState.networkInteractions.length - 1];
+  const lastNetworkInteraction = exState.networkInteractions.at(-1);
+
+  assertIgnitionInvariant(
+    lastNetworkInteraction !== undefined,
+    `Tx hash resolution unable to find a network interaction for ${futureId}`
+  );
 
   assertIgnitionInvariant(
     lastNetworkInteraction.type === NetworkInteractionType.ONCHAIN_INTERACTION,

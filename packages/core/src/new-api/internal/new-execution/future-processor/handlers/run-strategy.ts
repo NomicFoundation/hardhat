@@ -1,33 +1,33 @@
 import { assertIgnitionInvariant } from "../../../utils/assertions";
 import {
-  RevertedTransactionExecutionResult,
   ExecutionResultType,
+  RevertedTransactionExecutionResult,
 } from "../../types/execution-result";
 import {
-  DeploymentExecutionState,
   CallExecutionState,
+  DeploymentExecutionState,
+  ExecutionSateType,
   SendDataExecutionState,
   StaticCallExecutionState,
-  ExecutionSateType,
 } from "../../types/execution-state";
 import {
-  DeploymentStrategyGenerator,
   CallStrategyGenerator,
-  SendDataStrategyGenerator,
-  OnchainInteractionResponseType,
-  SIMULATION_SUCCESS_SIGNAL_TYPE,
+  DeploymentStrategyGenerator,
   ExecutionStrategy,
   OnchainInteractionRequest,
+  OnchainInteractionResponseType,
+  SIMULATION_SUCCESS_SIGNAL_TYPE,
+  SendDataStrategyGenerator,
   StaticCallRequest,
 } from "../../types/execution-strategy";
 import { TransactionReceiptStatus } from "../../types/jsonrpc";
 import {
-  NetworkInteractionRequestMessage,
-  DeploymentExecutionStateCompleteMessage,
   CallExecutionStateCompleteMessage,
+  DeploymentExecutionStateCompleteMessage,
+  JournalMessageType,
+  NetworkInteractionRequestMessage,
   SendDataExecutionStateCompleteMessage,
   StaticCallExecutionStateCompleteMessage,
-  JournalMessageType,
 } from "../../types/messages";
 import { NetworkInteractionType } from "../../types/network-interaction";
 import {
@@ -65,11 +65,13 @@ export async function runStrategy(
 > {
   const strategyGenerator = await replayStrategy(exState, executionStrategy);
 
-  const lastNetworkInteraction =
-    exState.networkInteractions[exState.networkInteractions.length];
+  const lastNetworkInteraction = exState.networkInteractions.at(-1);
 
   let response;
-  if (
+
+  if (lastNetworkInteraction === undefined) {
+    response = await strategyGenerator.next();
+  } else if (
     lastNetworkInteraction.type === NetworkInteractionType.ONCHAIN_INTERACTION
   ) {
     assertIgnitionInvariant(

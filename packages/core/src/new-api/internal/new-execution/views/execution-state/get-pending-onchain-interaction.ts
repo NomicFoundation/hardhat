@@ -1,3 +1,4 @@
+import { assertIgnitionInvariant } from "../../../utils/assertions";
 import { ExecutionSateType, ExecutionState } from "../../types/execution-state";
 import {
   NetworkInteractionType,
@@ -23,8 +24,12 @@ export function getPendingOnchainInteraction(
     return undefined;
   }
 
-  const interaction =
-    exState.networkInteractions[exState.networkInteractions.length - 1];
+  const interaction = exState.networkInteractions.at(-1);
+
+  assertIgnitionInvariant(
+    interaction !== undefined,
+    `Unable to find network interaction for ${exState.id} when trying to get pending onchain interaction`
+  );
 
   if (
     interaction.type === NetworkInteractionType.STATIC_CALL ||

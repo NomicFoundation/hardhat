@@ -1,150 +1,84 @@
 import { assert } from "chai";
 
 import { NamedContractDeploymentFuture } from "../../../../src";
-import { MemoryJournal } from "../../../../src/new-api/internal/journal/memory-journal";
 import { NamedContractDeploymentFutureImplementation } from "../../../../src/new-api/internal/module";
-import { BasicExecutionStrategy } from "../../../../src/new-api/internal/new-execution/basic-execution-strategy";
-import { FutureProcessor } from "../../../../src/new-api/internal/new-execution/future-processor/future-processor";
+import { TransactionParams } from "../../../../src/new-api/internal/new-execution/jsonrpc-client";
 import { deploymentStateReducer } from "../../../../src/new-api/internal/new-execution/reducers/deployment-state-reducer";
-import { TransactionTrackingTimer } from "../../../../src/new-api/internal/new-execution/transaction-tracking-timer";
+import { ExecutionResultType } from "../../../../src/new-api/internal/new-execution/types/execution-result";
 import {
-  exampleAccounts,
-  setupMockArtifactResolver,
-  setupMockDeploymentLoader,
-} from "../../helpers";
+  ExecutionSateType,
+  ExecutionStatus,
+} from "../../../../src/new-api/internal/new-execution/types/execution-state";
+import { TransactionReceiptStatus } from "../../../../src/new-api/internal/new-execution/types/jsonrpc";
+import { assertIgnitionInvariant } from "../../../../src/new-api/internal/utils/assertions";
+import { exampleAccounts } from "../../helpers";
+
+import { setupFutureProcessor } from "./utils";
+
+const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 
 describe("future processor", () => {
-  describe("deploying a named contract", () => {
-    const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
-    // const differentAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
+  const exampleTxHash =
+    "0xeef10fc5170f669b86c4cd0444882a96087221325f8bf2f55d6188633aa7be7c";
+  const initialDeploymentState = deploymentStateReducer(undefined);
 
-    it.skip("should deploy a named contract", async () => {
-      const initialDeploymentState = deploymentStateReducer(undefined);
-      const mockDeploymentLoader = setupMockDeploymentLoader(
-        new MemoryJournal()
-      );
-      const mockArtifactResolver = setupMockArtifactResolver();
+  describe("deploying a named contract", () => {
+    it("should deploy a named contract", async () => {
+      // Arrange
+      const fakeModule = {} as any;
 
       const deploymentFuture: NamedContractDeploymentFuture<string> =
         new NamedContractDeploymentFutureImplementation(
           "MyModule:TestContract",
-          {} as any,
-          "MyModule",
+          fakeModule,
+          "TestContract",
           [],
           {},
           BigInt(0),
-          exampleAddress
+          exampleAccounts[0]
         );
 
-      // const firstStrategyRun = true;
-      // const mockNextActionDispatch = async (
-      //   futureId: string,
-      //   nextAction: NextAction
-      // ): Promise<JournalMessage> => {
-      //   switch (nextAction) {
-      //     case NextAction.RUN_STRATEGY: {
-      //       if (firstStrategyRun) {
-      //         const requestNetworkInteractionMessage: NetworkInteractionRequestMessage =
-      //           {
-      //             type: JournalMessageType.NETWORK_INTERACTION_REQUEST,
-      //             futureId,
-      //             networkInteraction: {
-      //               id: 1,
-      //               type: NetworkInteractionType.ONCHAIN_INTERACTION,
-      //               to: undefined,
-      //               data: "fake-data",
-      //               value: BigInt(0),
-      //               from: differentAddress,
-      //             },
-      //           };
-
-      //         firstStrategyRun = false;
-
-      //         return requestNetworkInteractionMessage;
-      //       }
-
-      //       const deploymentSuccessMessage: DeploymentExecutionStateCompleteMessage =
-      //         {
-      //           type: JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE,
-      //           futureId,
-      //           result: {
-      //             type: ExecutionResultType.SUCCESS,
-      //             address: exampleAddress,
-      //           },
-      //         };
-
-      //       return deploymentSuccessMessage;
-      //     }
-      //     case NextAction.SEND_TRANSACTION: {
-      //       const transactionSentMessage: TransactionSendMessage = {
-      //         type: JournalMessageType.TRANSACTION_SEND,
-      //         futureId,
-      //         networkInteractionId: 1,
-      //         transaction: {
-      //           hash: "0xdeadbeef",
-      //           fees: {
-      //             maxPriorityFeePerGas: BigInt(100),
-      //             maxFeePerGas: BigInt(10),
-      //           },
-      //         },
-      //         nonce: 0,
-      //       };
-
-      //       return transactionSentMessage;
-      //     }
-      //     case NextAction.MONITOR_ONCHAIN_INTERACTION: {
-      //       const confirmTransactionMessage: TransactionConfirmMessage = {
-      //         type: JournalMessageType.TRANSACTION_CONFIRM,
-      //         futureId,
-      //         networkInteractionId: 1,
-      //         hash: "0xdeadbeef",
-      //         receipt: {
-      //           blockHash: "0xblockhash",
-      //           blockNumber: 0,
-      //           contractAddress: exampleAddress,
-      //           status: TransactionReceiptStatus.SUCCESS,
-      //           logs: [],
-      //         },
-      //       };
-
-      //       return confirmTransactionMessage;
-      //     }
-      //     case NextAction.QUERY_STATIC_CALL: {
-      //       throw new Error("TBD");
-      //     }
-      //   }
-      // };
-
-      const basicExecutionStrategy = new BasicExecutionStrategy(
-        mockDeploymentLoader.loadArtifact
+      const { processor, storedDeployedAddresses } = setupFutureProcessor(
+        async (_transactionParams: TransactionParams) => {
+          return exampleTxHash;
+        },
+        {
+          [exampleTxHash]: {
+            blockHash: `0xblockhash-5`,
+            blockNumber: 1,
+            contractAddress: exampleAddress,
+            status: TransactionReceiptStatus.SUCCESS,
+            logs: [],
+          },
+        }
       );
 
-      const stub = {} as any;
-
-      const transactionTrackingTimer = new TransactionTrackingTimer();
-
-      const mockNonceManager = {} as any;
-
-      const processor = new FutureProcessor(
-        mockDeploymentLoader,
-        mockArtifactResolver,
-        basicExecutionStrategy,
-        stub,
-        transactionTrackingTimer,
-        mockNonceManager,
-        1,
-        10,
-        100,
-        exampleAccounts,
-        {}
-      );
-
+      // Act
       const result = await processor.processFuture(
         deploymentFuture,
         initialDeploymentState
       );
 
+      // Assert
       assert.isTrue(result.futureCompleted);
+      assert.equal(
+        storedDeployedAddresses["MyModule:TestContract"],
+        exampleAddress
+      );
+
+      const updatedExState =
+        result.newState.executionStates["MyModule:TestContract"];
+
+      assertIgnitionInvariant(
+        updatedExState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+        "to be honest this was unexpected"
+      );
+
+      assert.equal(updatedExState.status, ExecutionStatus.SUCCESS);
+      assert.deepStrictEqual(updatedExState.result, {
+        type: ExecutionResultType.SUCCESS,
+        address: exampleAddress,
+      });
     });
   });
 });

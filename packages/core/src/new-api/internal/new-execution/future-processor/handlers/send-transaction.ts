@@ -4,26 +4,29 @@ import { NonceManager } from "../../nonce-management";
 import { TransactionTrackingTimer } from "../../transaction-tracking-timer";
 import { ExecutionResultType } from "../../types/execution-result";
 import {
-  DeploymentExecutionState,
   CallExecutionState,
+  DeploymentExecutionState,
   SendDataExecutionState,
 } from "../../types/execution-state";
 import {
+  CallStrategyGenerator,
+  DeploymentStrategyGenerator,
   ExecutionStrategy,
+  OnchainInteractionResponseType,
   SIMULATION_SUCCESS_SIGNAL_TYPE,
 } from "../../types/execution-strategy";
 import {
-  TransactionSendMessage,
-  DeploymentExecutionStateCompleteMessage,
   CallExecutionStateCompleteMessage,
-  SendDataExecutionStateCompleteMessage,
+  DeploymentExecutionStateCompleteMessage,
   JournalMessageType,
+  SendDataExecutionStateCompleteMessage,
+  TransactionSendMessage,
 } from "../../types/messages";
 import { NetworkInteractionType } from "../../types/network-interaction";
 import { createExecutionStateCompleteMessageForExecutionsWithOnchainInteractions } from "../helpers/messages-helpers";
 import {
-  sendTransactionForOnchainInteraction,
   TRANSACTION_SENT_TYPE,
+  sendTransactionForOnchainInteraction,
 } from "../helpers/network-interaction-execution";
 import { replayStrategy } from "../helpers/replay-strategy";
 
@@ -61,15 +64,24 @@ export async function sendTransaction(
   | CallExecutionStateCompleteMessage
   | SendDataExecutionStateCompleteMessage
 > {
-  const lastNetworkInteraction =
-    exState.networkInteractions[exState.networkInteractions.length];
+  const lastNetworkInteraction = exState.networkInteractions.at(-1);
+
+  assertIgnitionInvariant(
+    lastNetworkInteraction !== undefined,
+    `No network interaction found for ExecutionState ${exState.id} when trying to send a transaction`
+  );
 
   assertIgnitionInvariant(
     lastNetworkInteraction.type === NetworkInteractionType.ONCHAIN_INTERACTION,
     `StaticCall found as last network interaction of ExecutionState ${exState.id} when trying to send a transaction`
   );
 
-  const strategyGenerator = await replayStrategy(exState, executionStrategy);
+  const generator = await replayStrategy(exState, executionStrategy);
+
+  // This cast is safe because the execution state is of static call type.
+  const strategyGenerator = generator as
+    | DeploymentStrategyGenerator
+    | CallStrategyGenerator;
 
   const result = await sendTransactionForOnchainInteraction(
     jsonRpcClient,
@@ -77,7 +89,10 @@ export async function sendTransaction(
     lastNetworkInteraction,
     async (_sender: string) => nonceManager.getNextNonce(_sender),
     async (simulationResult) => {
-      const response = await strategyGenerator.next(simulationResult);
+      const response = await strategyGenerator.next({
+        type: OnchainInteractionResponseType.SIMULATION_RESULT,
+        result: simulationResult,
+      });
 
       assertIgnitionInvariant(
         response.value.type === SIMULATION_SUCCESS_SIGNAL_TYPE ||

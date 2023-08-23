@@ -3,15 +3,15 @@ import { assertIgnitionInvariant } from "../../../utils/assertions";
 import { JsonRpcClient } from "../../jsonrpc-client";
 import { TransactionTrackingTimer } from "../../transaction-tracking-timer";
 import {
-  DeploymentExecutionState,
   CallExecutionState,
+  DeploymentExecutionState,
   SendDataExecutionState,
 } from "../../types/execution-state";
 import {
-  TransactionConfirmMessage,
+  JournalMessageType,
   OnchainInteractionBumpFeesMessage,
   OnchainInteractionTimeoutMessage,
-  JournalMessageType,
+  TransactionConfirmMessage,
 } from "../../types/messages";
 import { NetworkInteractionType } from "../../types/network-interaction";
 
@@ -57,8 +57,12 @@ export async function monitorOnchainInteraction(
   | OnchainInteractionTimeoutMessage
   | undefined
 > {
-  const lastNetworkInteraction =
-    exState.networkInteractions[exState.networkInteractions.length];
+  const lastNetworkInteraction = exState.networkInteractions.at(-1);
+
+  assertIgnitionInvariant(
+    lastNetworkInteraction !== undefined,
+    `No network interaction for ExecutionState ${exState.id} when trying to check its transactions`
+  );
 
   assertIgnitionInvariant(
     lastNetworkInteraction.type === NetworkInteractionType.ONCHAIN_INTERACTION,
@@ -82,7 +86,7 @@ export async function monitorOnchainInteraction(
   if (transaction === undefined) {
     throw new IgnitionError(
       `Error while executing ${exState.id}: all the transactions of its network interaction ${lastNetworkInteraction.id} were dropped.
-      
+
 Please try rerunning Ignition.`
     );
   }

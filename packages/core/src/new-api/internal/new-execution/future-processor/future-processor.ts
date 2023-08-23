@@ -120,6 +120,8 @@ export class FutureProcessor {
         this._deploymentLoader
       );
 
+      exState = deploymentState.executionStates[future.id];
+
       await this._recordDeployedAddressIfNeeded(nextMessage);
     }
 
