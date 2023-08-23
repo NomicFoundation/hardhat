@@ -2,13 +2,11 @@ import type { EthereumProvider } from "hardhat/types";
 import type {
   Address,
   Chain,
-  PublicClient,
   PublicClientConfig,
-  WalletClient,
   WalletClientConfig,
-  TestClient,
   TestClientConfig,
 } from "viem";
+import type { PublicClient, TestClient, WalletClient } from "./types";
 import type { TestClientMode } from "viem/src/clients/createTestClient";
 
 import { getChain, getMode, isDevelopmentNetwork } from "./chains";
