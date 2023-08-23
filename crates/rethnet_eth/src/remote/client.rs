@@ -15,7 +15,9 @@ use sha3::digest::FixedOutput;
 use sha3::{Digest, Sha3_256};
 use tokio::sync::OnceCell;
 
-use crate::remote::cacheable_method_invocation::{CacheKey, CacheableMethodInvocation};
+use crate::remote::cacheable_method_invocation::{
+    CacheKeyForUncheckedBlockNumber, CacheableMethodInvocation, ReadCacheKey, WriteCacheKey,
+};
 use crate::remote::jsonrpc::Id;
 use crate::{log::FilterLog, receipt::BlockReceipt, serde::ZeroXPrefixedBytes};
 
@@ -175,7 +177,7 @@ impl RpcClient {
         hex::encode(hasher.finalize_fixed())
     }
 
-    async fn make_cache_path(&self, cache_key: &CacheKey) -> Result<PathBuf, RpcClientError> {
+    async fn make_cache_path(&self, cache_key: &str) -> Result<PathBuf, RpcClientError> {
         let chain_id = self.chain_id().await?;
 
         // TODO We should use a human readable name for the chain id
@@ -201,15 +203,15 @@ impl RpcClient {
 
     async fn read_response_from_cache(
         &self,
-        cache_key: &CacheKey,
+        cache_key: &ReadCacheKey,
     ) -> Result<Option<serde_json::Value>, RpcClientError> {
-        let path = self.make_cache_path(cache_key).await?;
+        let path = self.make_cache_path(cache_key.as_ref()).await?;
         match tokio::fs::read_to_string(path).await {
             Ok(contents) => match serde_json::from_str(&contents) {
                 Ok(value) => Ok(Some(value)),
                 Err(error) => {
                     log_cache_error(
-                        cache_key.clone(),
+                        cache_key.as_ref(),
                         "failed to deserialize item from RPC response cache",
                         error,
                     );
@@ -221,7 +223,7 @@ impl RpcClient {
                 match error.kind() {
                     io::ErrorKind::NotFound => (),
                     _ => log_cache_error(
-                        cache_key.clone(),
+                        cache_key.as_ref(),
                         "failed to read from RPC response cache",
                         error,
                     ),
@@ -231,13 +233,13 @@ impl RpcClient {
         }
     }
 
-    async fn remove_from_cache(&self, cache_key: &CacheKey) -> Result<(), RpcClientError> {
-        let path = self.make_cache_path(cache_key).await?;
+    async fn remove_from_cache(&self, cache_key: &ReadCacheKey) -> Result<(), RpcClientError> {
+        let path = self.make_cache_path(cache_key.as_ref()).await?;
         match tokio::fs::remove_file(path).await {
             Ok(_) => Ok(()),
             Err(error) => {
                 log_cache_error(
-                    cache_key.clone(),
+                    cache_key.as_ref(),
                     "failed to remove from RPC response cache",
                     error,
                 );
@@ -248,7 +250,7 @@ impl RpcClient {
 
     async fn try_from_cache(
         &self,
-        cache_key: Option<&CacheKey>,
+        cache_key: Option<&ReadCacheKey>,
     ) -> Result<Option<serde_json::Value>, RpcClientError> {
         if let Some(cache_key) = cache_key {
             self.read_response_from_cache(cache_key).await
@@ -257,9 +259,77 @@ impl RpcClient {
         }
     }
 
+    async fn validate_block_number(
+        &self,
+        safety_checker: CacheKeyForUncheckedBlockNumber<'_>,
+    ) -> Result<Option<String>, RpcClientError> {
+        let chain_id = self.chain_id().await?;
+        let latest_block_number = self.block_number().await?;
+        Ok(safety_checker.validate_block_number(&chain_id, &latest_block_number))
+    }
+
+    async fn resolve_write_key<T>(
+        &self,
+        method_invocation: &MethodInvocation,
+        result: &T,
+        resolve_block_number: impl Fn(&T) -> Option<U256>,
+    ) -> Result<Option<String>, RpcClientError> {
+        let write_cache_key = CacheableMethodInvocation::try_from(method_invocation)
+            .ok()
+            .and_then(|v| v.write_cache_key());
+
+        let maybe_cache_key = if let Some(cache_key) = write_cache_key {
+            match cache_key {
+                WriteCacheKey::NeedsSafetyCheck(safety_checker) => {
+                    self.validate_block_number(safety_checker).await?
+                }
+                WriteCacheKey::NeedsBlockNumber(block_tag_resolver) => {
+                    if let Some(block_number) = resolve_block_number(result) {
+                        if let Some(resolved_cache_key) =
+                            block_tag_resolver.resolve_symbolic_tag(&block_number)
+                        {
+                            match resolved_cache_key {
+                                WriteCacheKey::NeedsSafetyCheck(safety_checker) => {
+                                    self.validate_block_number(safety_checker).await?
+                                }
+                                WriteCacheKey::NeedsBlockNumber(_) => None,
+                                WriteCacheKey::Resolved(cache_key) => Some(cache_key),
+                            }
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                }
+                WriteCacheKey::Resolved(cache_key) => Some(cache_key),
+            }
+        } else {
+            None
+        };
+
+        Ok(maybe_cache_key)
+    }
+
+    async fn handle_response_to_cache<T: Serialize>(
+        &self,
+        method_invocation: &MethodInvocation,
+        result: &T,
+        resolve_block_number: impl Fn(&&T) -> Option<U256>,
+    ) -> Result<(), RpcClientError> {
+        if let Some(cache_key) = self
+            .resolve_write_key(method_invocation, &result, resolve_block_number)
+            .await?
+        {
+            self.write_response_to_cache(&cache_key, result).await?;
+        }
+
+        Ok(())
+    }
+
     async fn write_response_to_cache(
         &self,
-        cache_key: &CacheKey,
+        cache_key: &str,
         result: impl Serialize,
     ) -> Result<(), RpcClientError> {
         let cache_path = self.make_cache_path(cache_key).await?;
@@ -269,11 +339,7 @@ impl RpcClient {
         match tokio::fs::write(cache_path, contents).await {
             Ok(_) => (),
             Err(error) => {
-                log_cache_error(
-                    cache_key.clone(),
-                    "failed to write to RPC response cache",
-                    error,
-                );
+                log_cache_error(cache_key, "failed to write to RPC response cache", error);
             }
         }
         Ok(())
@@ -304,17 +370,17 @@ impl RpcClient {
 
     fn serialize_request(
         &self,
-        input: MethodInvocation,
+        input: &MethodInvocation,
     ) -> Result<SerializedRequest, RpcClientError> {
         let id = Id::Num(self.next_id.fetch_add(1, Ordering::Relaxed));
         Self::serialize_request_with_id(input, id)
     }
 
     fn serialize_request_with_id(
-        method: MethodInvocation,
+        method: &MethodInvocation,
         id: Id,
     ) -> Result<SerializedRequest, RpcClientError> {
-        let request = serde_json::to_value(&Request {
+        let request = serde_json::to_value(Request {
             version: jsonrpc::Version::V2_0,
             id,
             method,
@@ -328,26 +394,34 @@ impl RpcClient {
         &self,
         method_invocation: MethodInvocation,
     ) -> Result<T, RpcClientError> {
-        let cache_key = CacheableMethodInvocation::try_from(&method_invocation)
+        self.call_with_resolver(method_invocation, |_| None).await
+    }
+
+    async fn call_with_resolver<T: DeserializeOwned + Serialize>(
+        &self,
+        method_invocation: MethodInvocation,
+        resolve_block_number: impl Fn(&&T) -> Option<U256>,
+    ) -> Result<T, RpcClientError> {
+        let read_cache_key = CacheableMethodInvocation::try_from(&method_invocation)
             .ok()
-            .and_then(|v| v.cache_key());
+            .and_then(|v| v.read_cache_key());
 
-        let request = self.serialize_request(method_invocation)?;
+        let request = self.serialize_request(&method_invocation)?;
 
-        let result = if let Some(cached_response) = self.try_from_cache(cache_key.as_ref()).await? {
-            serde_json::from_value(cached_response).expect("cache item matches return type")
-        } else {
-            let result: T = self
-                .send_request_body(&request)
-                .await
-                .and_then(|response| Self::extract_result(request, response))?;
+        let result =
+            if let Some(cached_response) = self.try_from_cache(read_cache_key.as_ref()).await? {
+                serde_json::from_value(cached_response).expect("cache item matches return type")
+            } else {
+                let result: T = self
+                    .send_request_body(&request)
+                    .await
+                    .and_then(|response| Self::extract_result(request, response))?;
 
-            if let Some(cache_key) = cache_key {
-                self.write_response_to_cache(&cache_key, &result).await?;
-            }
+                self.handle_response_to_cache(&method_invocation, &result, resolve_block_number)
+                    .await?;
 
-            result
-        };
+                result
+            };
         Ok(result)
     }
 
@@ -357,7 +431,7 @@ impl RpcClient {
         &self,
         method_invocation: MethodInvocation,
     ) -> Result<T, RpcClientError> {
-        let request = self.serialize_request(method_invocation)?;
+        let request = self.serialize_request(&method_invocation)?;
 
         self.send_request_body(&request)
             .await
@@ -376,7 +450,7 @@ impl RpcClient {
             .map(|m| {
                 CacheableMethodInvocation::try_from(m)
                     .ok()
-                    .and_then(|v| v.cache_key())
+                    .and_then(|v| v.read_cache_key())
             })
             .collect::<Vec<_>>();
 
@@ -394,8 +468,7 @@ impl RpcClient {
             izip!(&ids, method_invocations, &results).enumerate()
         {
             if cache_response.is_none() {
-                let request =
-                    Self::serialize_request_with_id(method_invocation.clone(), id.clone())?;
+                let request = Self::serialize_request_with_id(method_invocation, id.clone())?;
                 requests.push(request);
                 id_to_index.insert(id, index);
             }
@@ -426,9 +499,9 @@ impl RpcClient {
                         request: request_body.to_json_string(),
                     })?;
 
-            if let Some(cache_key) = cache_keys[index].as_ref() {
-                self.write_response_to_cache(cache_key, &result).await?;
-            }
+            // TODO figure out how to extract
+            self.handle_response_to_cache(&method_invocations[index], &result, |_| None)
+                .await?;
 
             results[index] = Some(result);
         }
@@ -460,7 +533,8 @@ impl RpcClient {
 
     /// Calls `eth_blockNumber` and returns the block number.
     pub async fn block_number(&self) -> Result<U256, RpcClientError> {
-        self.call(MethodInvocation::BlockNumber()).await
+        self.call_without_cache(MethodInvocation::BlockNumber())
+            .await
     }
 
     /// Calls `eth_chainId` and returns the chain ID.
@@ -533,8 +607,11 @@ impl RpcClient {
         &self,
         spec: BlockSpec,
     ) -> Result<eth::Block<B256>, RpcClientError> {
-        self.call(MethodInvocation::GetBlockByNumber(spec, false))
-            .await
+        self.call_with_resolver(
+            MethodInvocation::GetBlockByNumber(spec, false),
+            |block: &&eth::Block<B256>| block.number,
+        )
+        .await
     }
 
     /// Calls `eth_getBlockByNumber` and returns the transaction's data.
@@ -542,8 +619,11 @@ impl RpcClient {
         &self,
         spec: BlockSpec,
     ) -> Result<eth::Block<eth::Transaction>, RpcClientError> {
-        self.call(MethodInvocation::GetBlockByNumber(spec, true))
-            .await
+        self.call_with_resolver(
+            MethodInvocation::GetBlockByNumber(spec, true),
+            |block: &&eth::Block<eth::Transaction>| block.number,
+        )
+        .await
     }
 
     /// Calls `eth_getLogs`.
@@ -607,7 +687,7 @@ impl RpcClient {
 }
 
 /// Don't fail the request, just log an error if we fail to read/write from cache.
-fn log_cache_error(cache_key: CacheKey, message: &'static str, error: impl Into<CacheError>) {
+fn log_cache_error(cache_key: &str, message: &'static str, error: impl Into<CacheError>) {
     let cache_error = RpcClientError::CacheError {
         message: message.to_string(),
         cache_key: cache_key.to_string(),

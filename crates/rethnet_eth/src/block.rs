@@ -6,6 +6,7 @@
 mod detailed;
 mod difficulty;
 mod options;
+mod reorg;
 
 use revm_primitives::{
     keccak256,
@@ -25,7 +26,11 @@ use crate::{
 };
 
 use self::difficulty::calculate_ethash_canonical_difficulty;
-pub use self::{detailed::DetailedBlock, options::BlockOptions};
+pub use self::{
+    detailed::DetailedBlock,
+    options::BlockOptions,
+    reorg::{largest_possible_reorg, largest_safe_block_number},
+};
 
 /// Ethereum block
 #[derive(Clone, Debug, PartialEq, Eq)]
