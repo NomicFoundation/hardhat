@@ -26,7 +26,8 @@ export class Reconciler {
     deploymentParameters: DeploymentParameters,
     accounts: string[],
     deploymentLoader: DeploymentLoader,
-    artifactResolver: ArtifactResolver
+    artifactResolver: ArtifactResolver,
+    fallbackSender: string
   ): Promise<ReconciliationResult> {
     const reconciliationFailures = await this._reconcileEachFutureInModule(
       module,
@@ -36,6 +37,7 @@ export class Reconciler {
         accounts,
         deploymentLoader,
         artifactResolver,
+        fallbackSender,
       },
       [
         reconcileCurrentAndPreviousTypeMatch,

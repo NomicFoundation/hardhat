@@ -10,6 +10,7 @@ import { DeploymentLoader } from "../../../src/new-api/internal/deployment-loade
 import { DeploymentState } from "../../../src/new-api/internal/new-execution/types/deployment-state";
 import { ExecutionState } from "../../../src/new-api/internal/new-execution/types/execution-state";
 import { JournalMessage } from "../../../src/new-api/internal/new-execution/types/messages";
+import { getFallbackSender } from "../../../src/new-api/internal/new-execution/utils/get-fallback-sender";
 import { Reconciler } from "../../../src/new-api/internal/reconciliation/reconciler";
 import { ReconciliationResult } from "../../../src/new-api/internal/reconciliation/types";
 import { IgnitionModule } from "../../../src/new-api/types/module";
@@ -125,7 +126,8 @@ export async function reconcile(
     deploymentParameters,
     exampleAccounts,
     deploymentLoader,
-    artifactLoader
+    artifactLoader,
+    getFallbackSender(exampleAccounts)
   );
 
   return reconiliationResult;

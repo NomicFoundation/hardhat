@@ -16,6 +16,7 @@ import {
   Transaction,
   TransactionReceipt,
 } from "../../../../src/new-api/internal/new-execution/types/jsonrpc";
+import { getFallbackSender } from "../../../../src/new-api/internal/new-execution/utils/get-fallback-sender";
 import { assertIgnitionInvariant } from "../../../../src/new-api/internal/utils/assertions";
 import {
   exampleAccounts,
@@ -63,7 +64,8 @@ export function setupFutureProcessor(
     10, // millisecondBeforeBumpingFees
     100, // maxFeeBumps
     exampleAccounts,
-    {}
+    {},
+    getFallbackSender(exampleAccounts)
   );
 
   return { processor, storedDeployedAddresses };

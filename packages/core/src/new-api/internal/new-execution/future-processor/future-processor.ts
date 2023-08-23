@@ -48,7 +48,8 @@ export class FutureProcessor {
     private readonly _millisecondBeforeBumpingFees: number,
     private readonly _maxFeeBumps: number,
     private readonly _accounts: string[],
-    private readonly _deploymentParameters: DeploymentParameters
+    private readonly _deploymentParameters: DeploymentParameters,
+    private readonly _fallbackSender: string
   ) {}
 
   /**
@@ -73,7 +74,8 @@ export class FutureProcessor {
         this._executionStrategy,
         this._deploymentParameters,
         this._deploymentLoader,
-        this._accounts
+        this._accounts,
+        this._fallbackSender
       );
 
       await saveArtifactsForFuture(

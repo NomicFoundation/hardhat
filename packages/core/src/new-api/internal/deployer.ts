@@ -48,7 +48,8 @@ export class Deployer {
   public async deploy(
     ignitionModule: IgnitionModule,
     deploymentParameters: DeploymentParameters,
-    accounts: string[]
+    accounts: string[],
+    fallbackSender: string
   ): Promise<DeploymentResult> {
     await validateStageTwo(
       ignitionModule,
@@ -79,7 +80,8 @@ export class Deployer {
       deploymentParameters,
       accounts,
       this._deploymentLoader,
-      this._artifactResolver
+      this._artifactResolver,
+      fallbackSender
     );
 
     if (reconciliationResult.reconciliationFailures.length > 0) {
@@ -112,7 +114,8 @@ export class Deployer {
       ignitionModule,
       batches,
       accounts,
-      deploymentParameters
+      deploymentParameters,
+      fallbackSender
     );
 
     return this._getDeploymentResult(deploymentState);

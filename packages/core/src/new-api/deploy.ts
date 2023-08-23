@@ -1,3 +1,5 @@
+import { IgnitionValidationError } from "../errors";
+
 import {
   DEFAULT_AUTOMINE_REQUIRED_CONFIRMATIONS,
   defaultConfig,
@@ -7,6 +9,7 @@ import { EphemeralDeploymentLoader } from "./internal/deployment-loader/ephemera
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader";
 import { BasicExecutionStrategy } from "./internal/new-execution/basic-execution-strategy";
 import { EIP1193JsonRpcClient } from "./internal/new-execution/jsonrpc-client";
+import { getFallbackSender } from "./internal/new-execution/utils/get-fallback-sender";
 import { checkAutominedNetwork } from "./internal/utils/check-automined-network";
 import { validateStageOne } from "./internal/validation/validateStageOne";
 import { ArtifactResolver } from "./types/artifact";
@@ -32,6 +35,7 @@ export async function deploy({
   deploymentParameters,
   accounts,
   verbose,
+  fallbackSender,
 }: {
   config?: Partial<DeployConfig>;
   artifactResolver: ArtifactResolver;
@@ -41,8 +45,19 @@ export async function deploy({
   deploymentParameters: DeploymentParameters;
   accounts: string[];
   verbose: boolean;
+  fallbackSender?: string;
 }): Promise<DeploymentResult> {
   await validateStageOne(ignitionModule, artifactResolver);
+
+  if (fallbackSender !== undefined) {
+    if (!accounts.includes(fallbackSender)) {
+      throw new IgnitionValidationError(
+        `Default sender ${fallbackSender} is not part of the provided accounts`
+      );
+    }
+  } else {
+    fallbackSender = getFallbackSender(accounts);
+  }
 
   const deploymentLoader =
     deploymentDir === undefined
@@ -73,5 +88,10 @@ export async function deploy({
     deploymentLoader
   );
 
-  return deployer.deploy(ignitionModule, deploymentParameters, accounts);
+  return deployer.deploy(
+    ignitionModule,
+    deploymentParameters,
+    accounts,
+    fallbackSender
+  );
 }

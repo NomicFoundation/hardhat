@@ -18,7 +18,6 @@ import { resolveModuleParameter } from "../../../utils/resolve-module-parameter"
 import { getEventArgumentFromReceipt } from "../../abi";
 import { DeploymentState } from "../../types/deployment-state";
 import { convertEvmValueToSolidityParam } from "../../utils/convert-evm-tuple-to-solidity-param";
-import { getFallbackSender } from "../../utils/get-fallback-sender";
 import { findAddressForContractFuture } from "../../views/find-address-for-contract-future-by-id";
 import { findConfirmedTransactionByFutureId } from "../../views/find-confirmed-transaction-by-future-id";
 import { findResultForFutureById } from "../../views/find-result-for-future-by-id";
@@ -83,10 +82,11 @@ export function resolveArgs(
  */
 export function resolveFutureFrom(
   from: string | AccountRuntimeValue | undefined,
-  accounts: string[]
+  accounts: string[],
+  fallbackSender: string
 ): string {
   if (from === undefined) {
-    return getFallbackSender(accounts);
+    return fallbackSender;
   }
 
   if (typeof from === "string") {

@@ -29,7 +29,8 @@ export async function buildInitializeMessageFor(
   strategy: { name: string },
   deploymentParameters: DeploymentParameters,
   deploymentLoader: DeploymentLoader,
-  accounts: string[]
+  accounts: string[],
+  fallbackSender: string
 ): Promise<JournalMessage> {
   switch (future.type) {
     case FutureType.NAMED_CONTRACT_DEPLOYMENT:
@@ -51,7 +52,7 @@ export async function buildInitializeMessageFor(
             ),
             libraries: resolveLibraries(future.libraries, deploymentState),
             value: resolveValue(future.value, deploymentParameters),
-            from: resolveFutureFrom(future.from, accounts),
+            from: resolveFutureFrom(future.from, accounts, fallbackSender),
           }
         );
 
@@ -70,7 +71,7 @@ export async function buildInitializeMessageFor(
             constructorArgs: [],
             libraries: resolveLibraries(future.libraries, deploymentState),
             value: BigInt(0),
-            from: resolveFutureFrom(future.from, accounts),
+            from: resolveFutureFrom(future.from, accounts, fallbackSender),
           }
         );
 
@@ -95,7 +96,7 @@ export async function buildInitializeMessageFor(
             ),
             artifactFutureId: future.contract.id,
             value: resolveValue(future.value, deploymentParameters),
-            from: resolveFutureFrom(future.from, accounts),
+            from: resolveFutureFrom(future.from, accounts, fallbackSender),
           }
         );
 
@@ -120,7 +121,7 @@ export async function buildInitializeMessageFor(
               deploymentState
             ),
             artifactFutureId: future.contract.id,
-            from: resolveFutureFrom(future.from, accounts),
+            from: resolveFutureFrom(future.from, accounts, fallbackSender),
           }
         );
 
@@ -191,7 +192,7 @@ export async function buildInitializeMessageFor(
             ),
             value: resolveValue(future.value, deploymentParameters),
             data: future.data ?? "0x",
-            from: resolveFutureFrom(future.from, accounts),
+            from: resolveFutureFrom(future.from, accounts, fallbackSender),
           }
         );
 

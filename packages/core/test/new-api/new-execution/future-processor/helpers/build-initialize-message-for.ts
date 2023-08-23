@@ -325,7 +325,8 @@ describe("buildInitializeMessageFor", () => {
           basicStrategy,
           {},
           mockDeploymentLoader,
-          exampleAccounts
+          exampleAccounts,
+          getFallbackSender(exampleAccounts)
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
@@ -379,7 +380,8 @@ describe("buildInitializeMessageFor", () => {
           basicStrategy,
           {},
           mockDeploymentLoader,
-          exampleAccounts
+          exampleAccounts,
+          getFallbackSender(exampleAccounts)
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
@@ -417,7 +419,8 @@ describe("buildInitializeMessageFor", () => {
           basicStrategy,
           {},
           mockDeploymentLoader,
-          exampleAccounts
+          exampleAccounts,
+          getFallbackSender(exampleAccounts)
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
@@ -448,7 +451,8 @@ describe("buildInitializeMessageFor", () => {
           basicStrategy,
           {},
           mockDeploymentLoader,
-          exampleAccounts
+          exampleAccounts,
+          getFallbackSender(exampleAccounts)
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
@@ -490,7 +494,8 @@ describe("buildInitializeMessageFor", () => {
             },
           },
           mockDeploymentLoader,
-          exampleAccounts
+          exampleAccounts,
+          getFallbackSender(exampleAccounts)
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
@@ -509,7 +514,8 @@ describe("buildInitializeMessageFor", () => {
           basicStrategy,
           {},
           mockDeploymentLoader,
-          exampleAccounts
+          exampleAccounts,
+          getFallbackSender(exampleAccounts)
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
@@ -526,7 +532,8 @@ describe("buildInitializeMessageFor", () => {
           basicStrategy,
           {},
           mockDeploymentLoader,
-          exampleAccounts
+          exampleAccounts,
+          getFallbackSender(exampleAccounts)
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
@@ -550,7 +557,8 @@ describe("buildInitializeMessageFor", () => {
           basicStrategy,
           {},
           mockDeploymentLoader,
-          exampleAccounts
+          exampleAccounts,
+          getFallbackSender(exampleAccounts)
         )) as CallExecutionStateInitializeMessage;
       });
 
@@ -582,7 +590,8 @@ describe("buildInitializeMessageFor", () => {
           basicStrategy,
           {},
           mockDeploymentLoader,
-          exampleAccounts
+          exampleAccounts,
+          getFallbackSender(exampleAccounts)
         )) as StaticCallExecutionStateInitializeMessage;
       });
 
@@ -613,7 +622,8 @@ describe("buildInitializeMessageFor", () => {
           basicStrategy,
           {},
           mockDeploymentLoader,
-          exampleAccounts
+          exampleAccounts,
+          getFallbackSender(exampleAccounts)
         )) as ContractAtExecutionStateInitializeMessage;
       });
 
@@ -639,7 +649,8 @@ describe("buildInitializeMessageFor", () => {
           basicStrategy,
           {},
           mockDeploymentLoader,
-          exampleAccounts
+          exampleAccounts,
+          getFallbackSender(exampleAccounts)
         )) as ContractAtExecutionStateInitializeMessage;
       });
 
@@ -678,7 +689,8 @@ describe("buildInitializeMessageFor", () => {
             },
           },
           mockDeploymentLoader,
-          exampleAccounts
+          exampleAccounts,
+          getFallbackSender(exampleAccounts)
         );
 
         assert.deepStrictEqual(m, {
@@ -707,7 +719,8 @@ describe("buildInitializeMessageFor", () => {
           basicStrategy,
           {},
           mockDeploymentLoader,
-          exampleAccounts
+          exampleAccounts,
+          getFallbackSender(exampleAccounts)
         );
 
         assert.deepStrictEqual(m, {
@@ -752,7 +765,8 @@ describe("buildInitializeMessageFor", () => {
           basicStrategy,
           {},
           mockDeploymentLoader,
-          exampleAccounts
+          exampleAccounts,
+          getFallbackSender(exampleAccounts)
         );
 
         assert.deepStrictEqual(m, {
@@ -796,7 +810,8 @@ describe("buildInitializeMessageFor", () => {
           basicStrategy,
           {},
           mockDeploymentLoader,
-          exampleAccounts
+          exampleAccounts,
+          getFallbackSender(exampleAccounts)
         );
 
         assert.deepStrictEqual(m, {
@@ -843,7 +858,8 @@ describe("buildInitializeMessageFor", () => {
           basicStrategy,
           {},
           mockDeploymentLoader,
-          exampleAccounts
+          exampleAccounts,
+          getFallbackSender(exampleAccounts)
         );
 
         assert.deepStrictEqual(m, {
@@ -870,7 +886,8 @@ describe("buildInitializeMessageFor", () => {
         basicStrategy,
         {},
         mockDeploymentLoader,
-        exampleAccounts
+        exampleAccounts,
+        getFallbackSender(exampleAccounts)
       )) as ReadEventArgExecutionStateInitializeMessage;
     });
 
@@ -901,7 +918,8 @@ describe("buildInitializeMessageFor", () => {
         basicStrategy,
         {},
         mockDeploymentLoader,
-        exampleAccounts
+        exampleAccounts,
+        getFallbackSender(exampleAccounts)
       )) as SendDataExecutionStateInitializeMessage;
     });
 

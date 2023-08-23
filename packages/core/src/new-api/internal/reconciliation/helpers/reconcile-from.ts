@@ -37,7 +37,11 @@ export function reconcileFrom(
     | StaticCallExecutionState,
   context: ReconciliationContext
 ): ReconciliationFutureResultFailure | undefined {
-  const resolvedFrom = resolveFutureFrom(future.from, context.accounts);
+  const resolvedFrom = resolveFutureFrom(
+    future.from,
+    context.accounts,
+    context.fallbackSender
+  );
 
   return compare(future, "From account", exState.from, resolvedFrom);
 }
