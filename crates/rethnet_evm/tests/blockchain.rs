@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{path::PathBuf, str::FromStr, sync::Arc};
 
 use rethnet_eth::{
     block::{Block, DetailedBlock, PartialHeader},
@@ -6,12 +6,17 @@ use rethnet_eth::{
     Address, Bytes, B256, U256,
 };
 use rethnet_evm::{
-    blockchain::{BlockchainError, LocalBlockchain, SyncBlockchain},
+    blockchain::{BlockchainError, ForkedBlockchain, LocalBlockchain, SyncBlockchain},
     state::HybridState,
     SpecId,
 };
+use rethnet_test_utils::env::get_alchemy_url;
+use tempfile::TempDir;
+use tokio::runtime::Builder;
 
-async fn create_dummy_blockchains() -> Vec<Box<dyn SyncBlockchain<BlockchainError>>> {
+async fn create_dummy_blockchains(
+    cache_dir: PathBuf,
+) -> Vec<Box<dyn SyncBlockchain<BlockchainError>>> {
     const DEFAULT_GAS_LIMIT: u64 = 0xffffffffffffff;
     const DEFAULT_INITIAL_BASE_FEE: u64 = 1000000000;
 
@@ -28,12 +33,16 @@ async fn create_dummy_blockchains() -> Vec<Box<dyn SyncBlockchain<BlockchainErro
     )
     .expect("Should construct without issues");
 
-    // TODO: enable forked blockchain once hashing of transactions works properly
-    // let runtime = Builder::new_multi_thread().enable_all().build().unwrap();
-    // let forked_blockchain =
-    //     ForkedBlockchain::new(Arc::new(runtime), SpecId::LATEST, &get_alchemy_url(), None)
-    //         .await
-    //         .expect("Failed to construct forked blockchain");
+    let runtime = Builder::new_multi_thread().enable_all().build().unwrap();
+    let forked_blockchain = ForkedBlockchain::new(
+        Arc::new(runtime),
+        SpecId::LATEST,
+        &get_alchemy_url(),
+        cache_dir,
+        None,
+    )
+    .await
+    .expect("Failed to construct forked blockchain");
 
     vec![
         Box::new(local_blockchain), // , Box::new(forked_blockchain)
@@ -113,7 +122,8 @@ fn create_dummy_transaction() -> SignedTransaction {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
 async fn test_get_last_block() {
-    let blockchains = create_dummy_blockchains().await;
+    let temp_dir = TempDir::new().unwrap();
+    let blockchains = create_dummy_blockchains(temp_dir.path().into()).await;
 
     for mut blockchain in blockchains {
         let one = create_dummy_block(blockchain.as_ref(), 1);
@@ -127,7 +137,8 @@ async fn test_get_last_block() {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
 async fn test_get_block_by_hash_some() {
-    let blockchains = create_dummy_blockchains().await;
+    let temp_dir = TempDir::new().unwrap();
+    let blockchains = create_dummy_blockchains(temp_dir.path().into()).await;
 
     for mut blockchain in blockchains {
         let one = create_dummy_block(blockchain.as_ref(), 1);
@@ -141,7 +152,8 @@ async fn test_get_block_by_hash_some() {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
 async fn test_get_block_by_hash_none() {
-    let blockchains = create_dummy_blockchains().await;
+    let temp_dir = TempDir::new().unwrap();
+    let blockchains = create_dummy_blockchains(temp_dir.path().into()).await;
 
     for blockchain in blockchains {
         assert_eq!(blockchain.block_by_hash(&B256::zero()).unwrap(), None);
@@ -150,7 +162,8 @@ async fn test_get_block_by_hash_none() {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
 async fn test_get_block_by_number_some() {
-    let blockchains = create_dummy_blockchains().await;
+    let temp_dir = TempDir::new().unwrap();
+    let blockchains = create_dummy_blockchains(temp_dir.path().into()).await;
 
     for mut blockchain in blockchains {
         let one = create_dummy_block(blockchain.as_ref(), 1);
@@ -167,7 +180,8 @@ async fn test_get_block_by_number_some() {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
 async fn test_get_block_by_number_none() {
-    let blockchains = create_dummy_blockchains().await;
+    let temp_dir = TempDir::new().unwrap();
+    let blockchains = create_dummy_blockchains(temp_dir.path().into()).await;
 
     for blockchain in blockchains {
         assert_eq!(blockchain.block_by_number(&U256::from(1)).unwrap(), None);
@@ -176,7 +190,8 @@ async fn test_get_block_by_number_none() {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
 async fn test_insert_block_multiple() {
-    let blockchains = create_dummy_blockchains().await;
+    let temp_dir = TempDir::new().unwrap();
+    let blockchains = create_dummy_blockchains(temp_dir.path().into()).await;
 
     for mut blockchain in blockchains {
         let one = create_dummy_block(blockchain.as_ref(), 1);
@@ -198,7 +213,8 @@ async fn test_insert_block_multiple() {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
 async fn test_insert_block_invalid_block_number() {
-    let blockchains = create_dummy_blockchains().await;
+    let temp_dir = TempDir::new().unwrap();
+    let blockchains = create_dummy_blockchains(temp_dir.path().into()).await;
 
     for mut blockchain in blockchains {
         const INVALID_BLOCK_NUMBER: u64 = 2;
@@ -219,7 +235,8 @@ async fn test_insert_block_invalid_block_number() {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
 async fn test_insert_block_invalid_parent_hash() {
-    let blockchains = create_dummy_blockchains().await;
+    let temp_dir = TempDir::new().unwrap();
+    let blockchains = create_dummy_blockchains(temp_dir.path().into()).await;
 
     for mut blockchain in blockchains {
         const INVALID_BLOCK_HASH: B256 = B256::zero();
@@ -240,7 +257,8 @@ async fn test_insert_block_invalid_parent_hash() {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
 async fn test_revert_to_block() {
-    let blockchains = create_dummy_blockchains().await;
+    let temp_dir = TempDir::new().unwrap();
+    let blockchains = create_dummy_blockchains(temp_dir.path().into()).await;
 
     for mut blockchain in blockchains {
         let genesis = blockchain.last_block().unwrap();
@@ -284,7 +302,8 @@ async fn test_revert_to_block() {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
 async fn test_revert_to_block_invalid_number() {
-    let blockchains = create_dummy_blockchains().await;
+    let temp_dir = TempDir::new().unwrap();
+    let blockchains = create_dummy_blockchains(temp_dir.path().into()).await;
 
     for mut blockchain in blockchains {
         let error = blockchain
@@ -300,8 +319,9 @@ async fn test_revert_to_block_invalid_number() {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
 async fn test_block_total_difficulty_by_hash() {
+    let temp_dir = TempDir::new().unwrap();
     let blockchains: Vec<Box<dyn SyncBlockchain<BlockchainError>>> =
-        create_dummy_blockchains().await;
+        create_dummy_blockchains(temp_dir.path().into()).await;
 
     for mut blockchain in blockchains {
         let genesis = blockchain.last_block().unwrap();
@@ -343,7 +363,8 @@ async fn test_block_total_difficulty_by_hash() {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
 async fn test_block_total_difficulty_by_hash_invalid_hash() {
-    let blockchains = create_dummy_blockchains().await;
+    let temp_dir = TempDir::new().unwrap();
+    let blockchains = create_dummy_blockchains(temp_dir.path().into()).await;
 
     for blockchain in blockchains {
         let difficulty = blockchain.total_difficulty_by_hash(&B256::zero()).unwrap();
@@ -354,7 +375,8 @@ async fn test_block_total_difficulty_by_hash_invalid_hash() {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
 async fn test_transaction_by_hash() {
-    let blockchains = create_dummy_blockchains().await;
+    let temp_dir = TempDir::new().unwrap();
+    let blockchains = create_dummy_blockchains(temp_dir.path().into()).await;
 
     for blockchain in blockchains {
         let transaction = create_dummy_transaction();
