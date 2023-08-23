@@ -18,20 +18,20 @@ import {
 } from "../types/deployer";
 
 import { Batcher } from "./batcher";
-import { defaultAutominedConfig, defaultConfig } from "./defaultConfig";
 import { DeploymentLoader } from "./deployment-loader/types";
-import { ExecutionEngine } from "./execution/execution-engine";
-import { executionStateReducer } from "./execution/execution-state-reducer";
-import { BasicExecutionStrategy } from "./execution/execution-strategy";
-import { TransactionLookupTimerImpl } from "./execution/transaction-lookup-timer";
 import {
-  ChainDispatcher,
+  initializeDeploymentState,
+  loadDeploymentState,
+} from "./new-execution/deployment-state-helpers";
+import { ExecutionEngine } from "./new-execution/execution-engine";
+import { JsonRpcClient } from "./new-execution/jsonrpc-client";
+import { DeploymentState } from "./new-execution/types/deployment-state";
+import {
   ContractAtExecutionState,
   DeploymentExecutionState,
-  ExecutionStateMap,
-  ExecutionStrategy,
-  TransactionLookupTimer,
-} from "./execution/types";
+  ExecutionState,
+} from "./new-execution/types/execution-state";
+import { ExecutionStrategy } from "./new-execution/types/execution-strategy";
 import { Reconciler } from "./reconciliation/reconciler";
 import { ArtifactMap } from "./reconciliation/types";
 import { isContractExecutionStateArray } from "./type-guards";
@@ -45,42 +45,16 @@ import { validateStageTwo } from "./validation/validateStageTwo";
  * @beta
  */
 export class Deployer {
-  private _config: DeployConfig;
-  private _executionEngine: ExecutionEngine;
-  private _strategy: ExecutionStrategy;
-  private _artifactResolver: ArtifactResolver;
-  private _deploymentLoader: DeploymentLoader;
-  private _chainDispatcher: ChainDispatcher;
-  private _transactionLookupTimer: TransactionLookupTimer;
-
-  constructor(options: {
-    config?: Partial<DeployConfig>;
-    artifactResolver: ArtifactResolver;
-    deploymentLoader: DeploymentLoader;
-    chainDispatcher: ChainDispatcher;
-    isAutominedNetwork?: boolean;
-  }) {
-    options.isAutominedNetwork ??= false;
-
-    this._config = {
-      ...(options.isAutominedNetwork ? defaultAutominedConfig : defaultConfig),
-      ...options.config,
-    };
-
+  constructor(
+    private readonly _config: DeployConfig,
+    private readonly _executionStrategy: ExecutionStrategy,
+    private readonly _jsonRpcClient: JsonRpcClient,
+    private readonly _artifactResolver: ArtifactResolver,
+    private readonly _deploymentLoader: DeploymentLoader
+  ) {
     assertIgnitionInvariant(
       this._config.blockConfirmations >= 1,
       `Configured value 'blockConfirmations' cannot be less than 1. Value given: '${this._config.blockConfirmations}'`
-    );
-
-    this._strategy = new BasicExecutionStrategy();
-    this._artifactResolver = options.artifactResolver;
-    this._deploymentLoader = options.deploymentLoader;
-
-    this._chainDispatcher = options.chainDispatcher;
-
-    this._executionEngine = new ExecutionEngine();
-    this._transactionLookupTimer = new TransactionLookupTimerImpl(
-      this._config.transactionTimeoutInterval
     );
   }
 
@@ -96,15 +70,14 @@ export class Deployer {
       accounts
     );
 
-    const previousStateMap = await this._loadExecutionStateFrom(
-      this._deploymentLoader
-    );
+    let deploymentState = await this._getOrInitializeDeploymentState();
 
     const contracts =
       getFuturesFromModule(ignitionModule).filter(isContractFuture);
+
     const contractStates = contracts
-      .map((contract) => previousStateMap[contract.id])
-      .filter((v) => v !== undefined);
+      .map((contract) => deploymentState?.executionStates[contract.id])
+      .filter((v): v is ExecutionState => v !== undefined);
 
     // realistically this should be impossible to fail.
     // just need it here for the type inference
@@ -120,7 +93,7 @@ export class Deployer {
 
     const reconciliationResult = Reconciler.reconcile(
       ignitionModule,
-      previousStateMap,
+      deploymentState,
       deploymentParameters,
       accounts,
       moduleArtifactMap,
@@ -139,34 +112,35 @@ export class Deployer {
       // TODO: indicate to UI that warnings should be shown
     }
 
-    const batches = Batcher.batch(ignitionModule, previousStateMap);
+    const batches = Batcher.batch(ignitionModule, deploymentState);
 
-    return this._executionEngine.execute({
-      config: this._config,
-      block: { number: -1, hash: "-" },
-      strategy: this._strategy,
-      artifactResolver: this._artifactResolver,
+    const executionEngine = new ExecutionEngine(
+      this._deploymentLoader,
+      this._artifactResolver,
+      this._executionStrategy,
+      this._jsonRpcClient,
+      this._config.blockConfirmations,
+      100_000,
+      10,
+      this._config.blockPollingInterval
+    );
+
+    deploymentState = await executionEngine.executeModule(
+      deploymentState,
+      ignitionModule,
       batches,
-      module: ignitionModule,
-      executionStateMap: previousStateMap,
       accounts,
-      deploymentParameters,
-      deploymentLoader: this._deploymentLoader,
-      chainDispatcher: this._chainDispatcher,
-      transactionLookupTimer: this._transactionLookupTimer,
-    });
+      deploymentParameters
+    );
+
+    return this._getDeploymentResult(deploymentState);
   }
 
-  private async _loadExecutionStateFrom(
-    deploymentLoader: DeploymentLoader
-  ): Promise<ExecutionStateMap> {
-    let state: ExecutionStateMap = {};
-
-    for await (const message of deploymentLoader.readFromJournal()) {
-      state = executionStateReducer(state, message);
-    }
-
-    return state;
+  private async _getDeploymentResult(
+    _deploymentState: DeploymentState
+  ): Promise<DeploymentResult> {
+    // TODO: Create the deployment result
+    return null as any;
   }
 
   private async _loadModuleArtifactMap(
@@ -227,5 +201,21 @@ export class Deployer {
     throw new IgnitionError(
       `Unexpected contract future type: ${JSON.stringify(contract)}`
     );
+  }
+
+  private async _getOrInitializeDeploymentState(): Promise<DeploymentState> {
+    const chainId = await this._jsonRpcClient.getChainId();
+    const deploymentState = await loadDeploymentState(this._deploymentLoader);
+
+    if (deploymentState === undefined) {
+      return initializeDeploymentState(chainId, this._deploymentLoader);
+    }
+
+    assertIgnitionInvariant(
+      deploymentState.chainId === chainId,
+      `Trying to continue deployment in a different chain. Previous chain id: ${deploymentState.chainId}. Current chain id: ${chainId}`
+    );
+
+    return deploymentState;
   }
 }

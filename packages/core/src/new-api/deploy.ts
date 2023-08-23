@@ -1,8 +1,9 @@
 import { Deployer } from "./internal/deployer";
 import { EphemeralDeploymentLoader } from "./internal/deployment-loader/ephemeral-deployment-loader";
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader";
-import { ChainDispatcherImpl } from "./internal/execution/chain-dispatcher";
-import { buildAdaptersFrom } from "./internal/utils/build-adapters-from";
+import { BasicExecutionStrategy } from "./internal/new-execution/basic-execution-strategy";
+import { EIP1193JsonRpcClient } from "./internal/new-execution/jsonrpc-client";
+import { getFallbackSender } from "./internal/new-execution/utils/get-fallback-sender";
 import { checkAutominedNetwork } from "./internal/utils/check-automined-network";
 import { validateStageOne } from "./internal/validation/validateStageOne";
 import { ArtifactResolver } from "./types/artifact";
@@ -24,7 +25,7 @@ export async function deploy({
   artifactResolver,
   provider,
   deploymentDir,
-  moduleDefinition,
+  ignitionModule,
   deploymentParameters,
   accounts,
   verbose,
@@ -33,29 +34,35 @@ export async function deploy({
   artifactResolver: ArtifactResolver;
   provider: EIP1193Provider;
   deploymentDir?: string;
-  moduleDefinition: IgnitionModule;
+  ignitionModule: IgnitionModule;
   deploymentParameters: DeploymentParameters;
   accounts: string[];
   verbose: boolean;
 }): Promise<DeploymentResult> {
-  await validateStageOne(moduleDefinition, artifactResolver);
+  await validateStageOne(ignitionModule, artifactResolver);
 
   const deploymentLoader =
     deploymentDir === undefined
       ? new EphemeralDeploymentLoader(artifactResolver, verbose)
       : new FileDeploymentLoader(deploymentDir, verbose);
 
-  const chainDispatcher = new ChainDispatcherImpl(buildAdaptersFrom(provider));
+  const executionStrategy = new BasicExecutionStrategy(
+    getFallbackSender(accounts),
+    (artifactId) => deploymentLoader.loadArtifact(artifactId)
+  );
 
+  const jsonRpcClient = new EIP1193JsonRpcClient(provider);
+
+  // TODO: resolve config here
   const isAutominedNetwork = await checkAutominedNetwork(provider);
 
-  const deployer = new Deployer({
-    config,
+  const deployer = new Deployer(
+    config as any,
+    executionStrategy,
+    jsonRpcClient,
     artifactResolver,
-    deploymentLoader,
-    chainDispatcher,
-    isAutominedNetwork,
-  });
+    deploymentLoader
+  );
 
-  return deployer.deploy(moduleDefinition, deploymentParameters, accounts);
+  return deployer.deploy(ignitionModule, deploymentParameters, accounts);
 }
