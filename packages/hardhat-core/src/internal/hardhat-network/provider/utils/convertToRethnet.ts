@@ -13,7 +13,6 @@ import {
 import {
   Address,
   BufferLike,
-  setLengthLeft,
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
 import {
