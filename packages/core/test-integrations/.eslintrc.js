@@ -11,5 +11,9 @@ module.exports = {
         devDependencies: true,
       },
     ],
+    "import/no-unused-modules": [
+      "error",
+      { unusedExports: true, missingExports: false },
+    ],
   },
 };

@@ -1,7 +1,4 @@
-// eslint-disable-next-line import/default
-import type CborT from "cbor";
-
-import { Future, ModuleParameterType } from "../../types/module";
+import { Future } from "../../types/module";
 
 import { ReconciliationFutureResultFailure } from "./types";
 
@@ -18,18 +15,6 @@ export function fail(
   };
 }
 
-export function moduleParameterToErrorString(potential: ModuleParameterType) {
-  return JSON.stringify(potential);
-}
-
-export function addressToErrorString(potential: string | undefined) {
-  if (potential === undefined) {
-    return "undefined";
-  }
-
-  return potential;
-}
-
 const METADATA_LENGTH = 2;
 function getMetadataSectionLength(bytecode: Buffer): number | undefined {
   try {
@@ -40,7 +25,7 @@ function getMetadataSectionLength(bytecode: Buffer): number | undefined {
 }
 
 function isValidMetadata(data: Buffer): boolean {
-  const { decode } = require("cbor") as typeof CborT;
+  const { decode } = require("cbor") as typeof import("cbor");
   try {
     decode(data);
     return true;

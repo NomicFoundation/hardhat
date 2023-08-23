@@ -18,10 +18,14 @@ import {
 import { ExecutionEngine } from "./new-execution/execution-engine";
 import { JsonRpcClient } from "./new-execution/jsonrpc-client";
 import { DeploymentState } from "./new-execution/types/deployment-state";
-import { ExecutionState } from "./new-execution/types/execution-state";
+import {
+  ContractAtExecutionState,
+  DeploymentExecutionState,
+  ExecutionSateType,
+  ExecutionState,
+} from "./new-execution/types/execution-state";
 import { ExecutionStrategy } from "./new-execution/types/execution-strategy";
 import { Reconciler } from "./reconciliation/reconciler";
-import { isContractExecutionStateArray } from "./type-guards";
 import { assertIgnitionInvariant } from "./utils/assertions";
 import { getFuturesFromModule } from "./utils/get-futures-from-module";
 import { validateStageTwo } from "./validation/validateStageTwo";
@@ -70,7 +74,13 @@ export class Deployer {
     // realistically this should be impossible to fail.
     // just need it here for the type inference
     assertIgnitionInvariant(
-      isContractExecutionStateArray(contractStates),
+      contractStates.every(
+        (
+          exState
+        ): exState is DeploymentExecutionState | ContractAtExecutionState =>
+          exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
+          exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE
+      ),
       "Invalid state map"
     );
 

@@ -26,7 +26,7 @@ export const mockArtifact = {
   abi: [],
 };
 
-export class MockDeploymentLoader implements DeploymentLoader {
+class MockDeploymentLoader implements DeploymentLoader {
   public async recordToJournal(_: JournalMessage): Promise<void> {
     throw new Error("Method not implemented.");
   }
@@ -68,7 +68,7 @@ export class MockDeploymentLoader implements DeploymentLoader {
   }
 }
 
-export class MockArtifactResolver implements ArtifactResolver {
+class MockArtifactResolver implements ArtifactResolver {
   public async loadArtifact(_contractName: string): Promise<Artifact> {
     return mockArtifact;
   }

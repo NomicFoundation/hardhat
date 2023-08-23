@@ -177,18 +177,6 @@ export function resolveAddressLike(
   return result;
 }
 
-export function resolveTxHash(
-  future: Future,
-  deploymentState: DeploymentState
-) {
-  const confirmedTx = findConfirmedTransactionByFutureId(
-    deploymentState,
-    future.id
-  );
-
-  return confirmedTx.hash;
-}
-
 /**
  * Resolves a read event argument result to a SolidityParameterType.
  */

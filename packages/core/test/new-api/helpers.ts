@@ -3,12 +3,6 @@ import { assert } from "chai";
 import { Artifact, ArtifactResolver } from "../../src";
 import { DeploymentLoader } from "../../src/new-api/internal/deployment-loader/types";
 import { Journal } from "../../src/new-api/internal/journal/types";
-import { JournalMessage } from "../../src/new-api/internal/new-execution/types/messages";
-import {
-  DeploymentResult,
-  DeploymentResultContract,
-  DeploymentResultContracts,
-} from "../../src/new-api/types/deployer";
 
 export const exampleAccounts: string[] = [
   "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
@@ -95,62 +89,4 @@ export function setupMockDeploymentLoader(
       return artifact;
     },
   };
-}
-
-export async function accumulateMessages(
-  journal: Journal
-): Promise<JournalMessage[]> {
-  const messages: JournalMessage[] = [];
-
-  for await (const message of journal.read()) {
-    messages.push(message);
-  }
-
-  return messages;
-}
-
-export function assertDeploymentFailure(
-  result: DeploymentResult,
-  expectedErrors: {
-    [key: string]: Error;
-  }
-) {
-  assert.isDefined(result);
-
-  if (result.status !== "failure") {
-    assert.fail("result expected to be failure");
-  }
-
-  assert.deepStrictEqual(result.errors, expectedErrors);
-}
-
-export function assertDeploymentSuccess(
-  result: DeploymentResult,
-  expectedContracts: Record<
-    string,
-    Omit<DeploymentResultContract, "artifact"> & { artifact?: Artifact }
-  >,
-  artifacts?: { [contractName: string]: Artifact }
-) {
-  assert.isDefined(result);
-
-  if (result.status !== "success") {
-    assert.fail("result expected to be success");
-  }
-
-  const modifiedExpected: DeploymentResultContracts = Object.fromEntries(
-    Object.entries(expectedContracts).map(([futureId, details]) => [
-      futureId,
-      {
-        artifact: {
-          ...fakeArtifact,
-          contractName: details.contractName,
-          ...artifacts?.[details.contractName],
-        },
-        ...details,
-      },
-    ])
-  );
-
-  assert.deepStrictEqual(result.contracts, modifiedExpected);
 }
