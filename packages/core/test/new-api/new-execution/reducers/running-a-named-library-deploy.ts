@@ -1,6 +1,5 @@
 import { assert } from "chai";
 
-import { NetworkInteractionType } from "../../../../src/new-api/internal/execution/transaction-types";
 import { DeploymentState } from "../../../../src/new-api/internal/new-execution/types/deployment-state";
 import { ExecutionResultType } from "../../../../src/new-api/internal/new-execution/types/execution-result";
 import {
@@ -17,6 +16,7 @@ import {
   TransactionConfirmMessage,
   TransactionSendMessage,
 } from "../../../../src/new-api/internal/new-execution/types/messages";
+import { NetworkInteractionType } from "../../../../src/new-api/internal/new-execution/types/network-interaction";
 import { findExecutionStateById } from "../../../../src/new-api/internal/new-execution/views/find-execution-state-by-id";
 import { FutureType } from "../../../../src/new-api/types/module";
 
