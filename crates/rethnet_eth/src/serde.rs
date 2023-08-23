@@ -309,3 +309,45 @@ where
     let s: Option<&str> = serde::Deserialize::deserialize(deserializer)?;
     Ok(s.map(|s| u64::from_str_radix(&s[2..], 16).expect("failed to parse u64")))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_bytes_serde() {
+        const BYTES: &[u8] = &[0x01, 0x02, 0x03];
+        let expected = Bytes::from_static(BYTES);
+
+        let serialized = serde_json::to_string(&expected).unwrap();
+        let deserialized: Bytes = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized, expected);
+    }
+
+    #[test]
+    fn test_u8_serde() {
+        let expected = 0x01;
+
+        let serialized = serde_json::to_string(&expected).unwrap();
+        let deserialized: u8 = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized, expected);
+    }
+
+    #[test]
+    fn test_u64_serde() {
+        let expected = 0x01;
+
+        let serialized = serde_json::to_string(&expected).unwrap();
+        let deserialized: u64 = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized, expected);
+    }
+
+    #[test]
+    fn test_u256_serde() {
+        let expected = U256::from(0x01);
+
+        let serialized = serde_json::to_string(&expected).unwrap();
+        let deserialized: U256 = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized, expected);
+    }
+}
