@@ -76,6 +76,11 @@ pub struct Transaction {
 }
 
 impl Transaction {
+    /// Returns whether the transaction has odd Y parity.
+    pub fn odd_y_parity(&self) -> bool {
+        self.v == 1 || self.v == 28
+    }
+
     /// Returns whether the transaction is a legacy transaction.
     pub fn is_legacy(&self) -> bool {
         self.transaction_type == 0 && (self.v == 27 || self.v == 28)
@@ -170,8 +175,8 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
     type Error = TransactionConversionError;
 
     fn try_from(value: Transaction) -> Result<Self, Self::Error> {
-        let kind = if let Some(to) = value.to {
-            TransactionKind::Call(to)
+        let kind = if let Some(to) = &value.to {
+            TransactionKind::Call(*to)
         } else {
             TransactionKind::Create
         };
@@ -209,6 +214,7 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
                 }
             }
             1 => SignedTransaction::EIP2930(EIP2930SignedTransaction {
+                odd_y_parity: value.odd_y_parity(),
                 chain_id: value
                     .chain_id
                     .ok_or(TransactionConversionError::MissingChainId)?,
@@ -222,11 +228,11 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
                     .access_list
                     .ok_or(TransactionConversionError::MissingAccessList)?
                     .into(),
-                odd_y_parity: value.v == 1,
                 r: value.r,
                 s: value.s,
             }),
             2 => SignedTransaction::EIP1559(EIP1559SignedTransaction {
+                odd_y_parity: value.odd_y_parity(),
                 chain_id: value
                     .chain_id
                     .ok_or(TransactionConversionError::MissingChainId)?,
@@ -245,7 +251,6 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
                     .access_list
                     .ok_or(TransactionConversionError::MissingAccessList)?
                     .into(),
-                odd_y_parity: value.v == 1,
                 r: value.r,
                 s: value.s,
             }),
