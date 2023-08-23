@@ -89,7 +89,6 @@ export function logJournalableMessage(message: JournalMessage): void {
     case JournalMessageType.STATIC_CALL_COMPLETE:
       console.log(`Static call completed for future ${message.futureId}`);
       break;
-      break;
 
     case JournalMessageType.ONCHAIN_INTERACTION_BUMP_FEES:
       console.log(
