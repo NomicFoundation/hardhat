@@ -1,6 +1,7 @@
 import { Future, IgnitionModule } from "../types/module";
 
-import { ExecutionStateMap, ExecutionStatus } from "./execution/types";
+import { DeploymentState } from "./new-execution/types/deployment-state";
+import { ExecutionStatus } from "./new-execution/types/execution-state";
 import { AdjacencyList } from "./utils/adjacency-list";
 import { AdjacencyListConverter } from "./utils/adjacency-list-converter";
 import { getFuturesFromModule } from "./utils/get-futures-from-module";
@@ -22,12 +23,9 @@ interface BatchState {
 export class Batcher {
   public static batch(
     module: IgnitionModule,
-    executionStateMap: ExecutionStateMap
+    deploymentState: DeploymentState
   ): string[][] {
-    const batchState = this._initializeBatchStateFrom(
-      module,
-      executionStateMap
-    );
+    const batchState = this._initializeBatchStateFrom(module, deploymentState);
 
     const batches: string[][] = [];
 
@@ -44,13 +42,13 @@ export class Batcher {
 
   private static _initializeBatchStateFrom(
     module: IgnitionModule,
-    executionStateMap: ExecutionStateMap
+    deploymentState: DeploymentState
   ): BatchState {
     const allFutures = getFuturesFromModule(module);
 
     const visitState = this._intializeVisitStateFrom(
       allFutures,
-      executionStateMap
+      deploymentState
     );
 
     const adjacencyList =
@@ -63,11 +61,11 @@ export class Batcher {
 
   private static _intializeVisitStateFrom(
     futures: Future[],
-    executionStateMap: ExecutionStateMap
+    deploymentState: DeploymentState
   ): VisitStatusMap {
     return Object.fromEntries(
       futures.map((f) => {
-        const executionState = executionStateMap[f.id];
+        const executionState = deploymentState.executionStates[f.id];
 
         if (executionState === undefined) {
           return [f.id, VisitStatus.UNVISITED];
@@ -75,7 +73,6 @@ export class Batcher {
 
         switch (executionState.status) {
           case ExecutionStatus.FAILED:
-          case ExecutionStatus.HOLD:
           case ExecutionStatus.TIMEOUT:
           case ExecutionStatus.STARTED:
             return [f.id, VisitStatus.UNVISITED];
