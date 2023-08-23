@@ -48,7 +48,7 @@ impl EIP2930TransactionRequest {
             value: self.value,
             input: self.input,
             access_list: self.access_list.into(),
-            odd_y_parity: signature.v == 28,
+            odd_y_parity: signature.odd_y_parity(),
             r: signature.r,
             s: signature.s,
         }
