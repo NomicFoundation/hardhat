@@ -214,8 +214,8 @@ pub mod bytes {
         Deserializer: serde::Deserializer<'de>,
     {
         let value = String::deserialize(d)?;
-        if let Some(value) = value.strip_prefix("0x") {
-            hex::decode(value)
+        if let Some(remaining) = value.strip_prefix("0x") {
+            hex::decode(remaining)
         } else {
             hex::decode(&value)
         }
