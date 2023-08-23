@@ -7,7 +7,6 @@ import { EphemeralDeploymentLoader } from "./internal/deployment-loader/ephemera
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader";
 import { BasicExecutionStrategy } from "./internal/new-execution/basic-execution-strategy";
 import { EIP1193JsonRpcClient } from "./internal/new-execution/jsonrpc-client";
-import { getFallbackSender } from "./internal/new-execution/utils/get-fallback-sender";
 import { checkAutominedNetwork } from "./internal/utils/check-automined-network";
 import { validateStageOne } from "./internal/validation/validateStageOne";
 import { ArtifactResolver } from "./types/artifact";
@@ -50,9 +49,8 @@ export async function deploy({
       ? new EphemeralDeploymentLoader(artifactResolver, verbose)
       : new FileDeploymentLoader(deploymentDir, verbose);
 
-  const executionStrategy = new BasicExecutionStrategy(
-    getFallbackSender(accounts),
-    (artifactId) => deploymentLoader.loadArtifact(artifactId)
+  const executionStrategy = new BasicExecutionStrategy((artifactId) =>
+    deploymentLoader.loadArtifact(artifactId)
   );
 
   const jsonRpcClient = new EIP1193JsonRpcClient(provider);
