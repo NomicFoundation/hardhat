@@ -1,3 +1,4 @@
+import { SolidityParameterType } from "../../../types/module";
 import { ExecutionResultType } from "../../new-execution/types/execution-result";
 import {
   JournalMessage,
@@ -6,11 +7,9 @@ import {
 import { NetworkInteractionType } from "../../new-execution/types/network-interaction";
 
 export function logJournalableMessage(message: JournalMessage): void {
-  /* run messages */
-
   switch (message.type) {
     case JournalMessageType.RUN_START:
-      console.log(`deployment run starting`);
+      console.log(`Deployment started`);
       break;
 
     case JournalMessageType.WIPE_EXECUTION_STATE: {
@@ -40,18 +39,45 @@ export function logJournalableMessage(message: JournalMessage): void {
       );
       break;
 
-    case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE:
-    case JournalMessageType.CALL_EXECUTION_STATE_COMPLETE:
-    case JournalMessageType.SEND_DATA_EXECUTION_STATE_COMPLETE:
     case JournalMessageType.STATIC_CALL_EXECUTION_STATE_COMPLETE:
       if (message.result.type === ExecutionResultType.SUCCESS) {
         console.log(
-          `Successfully completed the execution of future ${message.futureId}`
+          `Successfully completed the execution of static call future ${
+            message.futureId
+          } with result ${solidityParamToString(message.result.value)}`
         );
       } else {
+        console.log(`Execution of future ${message.futureId} failed`);
+      }
+      break;
+
+    case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE:
+      if (message.result.type === ExecutionResultType.SUCCESS) {
         console.log(
-          `Unsuccessfully completed the execution of future ${message.futureId}`
+          `Successfully completed the execution of deployment future ${message.futureId} with result ${message.result.address}`
         );
+      } else {
+        console.log(`Execution of future ${message.futureId} failed`);
+      }
+      break;
+
+    case JournalMessageType.CALL_EXECUTION_STATE_COMPLETE:
+      if (message.result.type === ExecutionResultType.SUCCESS) {
+        console.log(
+          `Successfully completed the execution of call future ${message.futureId}`
+        );
+      } else {
+        console.log(`Execution of future ${message.futureId} failed`);
+      }
+      break;
+
+    case JournalMessageType.SEND_DATA_EXECUTION_STATE_COMPLETE:
+      if (message.result.type === ExecutionResultType.SUCCESS) {
+        console.log(
+          `Successfully completed the execution of send data future ${message.futureId}`
+        );
+      } else {
+        console.log(`Execution of future ${message.futureId} failed`);
       }
       break;
 
@@ -60,7 +86,11 @@ export function logJournalableMessage(message: JournalMessage): void {
       break;
 
     case JournalMessageType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE:
-      console.log(`Executed read event argument future ${message.futureId}`);
+      console.log(
+        `Executed read event argument future ${
+          message.futureId
+        } with result ${solidityParamToString(message.result)}`
+      );
       break;
 
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
@@ -69,16 +99,18 @@ export function logJournalableMessage(message: JournalMessage): void {
         NetworkInteractionType.ONCHAIN_INTERACTION
       ) {
         console.log(
-          `New onchain interaction requested for future ${message.futureId}`
+          `New onchain interaction ${message.networkInteraction.id} requested for future ${message.futureId}`
         );
       } else {
-        console.log(`New static call requested for future ${message.futureId}`);
+        console.log(
+          `New static call ${message.networkInteraction.id} requested for future ${message.futureId}`
+        );
       }
       break;
 
     case JournalMessageType.TRANSACTION_SEND:
       console.log(
-        `Transaction ${message.transaction.hash} sent for future ${message.futureId}`
+        `Transaction ${message.transaction.hash} sent for onchain interaction ${message.networkInteractionId} of future ${message.futureId}`
       );
       break;
 
@@ -87,24 +119,26 @@ export function logJournalableMessage(message: JournalMessage): void {
       break;
 
     case JournalMessageType.STATIC_CALL_COMPLETE:
-      console.log(`Static call completed for future ${message.futureId}`);
+      console.log(
+        `Static call ${message.networkInteractionId} completed for future ${message.futureId}`
+      );
       break;
 
     case JournalMessageType.ONCHAIN_INTERACTION_BUMP_FEES:
       console.log(
-        `Transaction fee bump for onchain interaction ${message.networkInteractionId} of future ${message.futureId} requested`
+        `A transaction with higher fees will be sent for onchain interaction ${message.networkInteractionId} of future ${message.futureId}`
       );
       break;
 
     case JournalMessageType.ONCHAIN_INTERACTION_DROPPED:
       console.log(
-        `Transactions for onchain interaction ${message.networkInteractionId} of future ${message.futureId} have been dropped and will be resent`
+        `Transactions for onchain interaction ${message.networkInteractionId} of future ${message.futureId} has been dropped and will be resent`
       );
       break;
 
     case JournalMessageType.ONCHAIN_INTERACTION_REPLACED_BY_USER:
       console.log(
-        `Transactions for onchain interaction ${message.networkInteractionId} of future ${message.futureId} have been replaced by the user`
+        `Transactions for onchain interaction ${message.networkInteractionId} of future ${message.futureId} has been replaced by the user and the onchain interaction exection will start again`
       );
       break;
 
@@ -114,4 +148,16 @@ export function logJournalableMessage(message: JournalMessage): void {
       );
       break;
   }
+}
+
+function solidityParamToString(param: SolidityParameterType): string {
+  if (typeof param === "object") {
+    return JSON.stringify(param);
+  }
+
+  if (typeof param === "string") {
+    return param;
+  }
+
+  return param.toString();
 }
