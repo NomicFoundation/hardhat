@@ -7,7 +7,6 @@ import {
   getTestClient,
 } from "./internal/clients";
 import "./internal/type-extensions";
-import "./internal/tasks";
 
 extendEnvironment((hre) => {
   hre.viem = {
