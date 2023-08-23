@@ -178,8 +178,8 @@ impl RpcClient {
     async fn make_cache_path(&self, cache_key: &CacheKey) -> Result<PathBuf, RpcClientError> {
         let chain_id = self.chain_id().await?;
 
-        // TODO We should use a human readable name for the chain id as directory name once
-        // available.
+        // TODO We should use a human readable name for the chain id
+        // Tracking issue: <https://github.com/NomicFoundation/rethnet/issues/172>
         let directory = self
             .rpc_cache_dir
             .join(Self::hash_bytes(chain_id.as_le_bytes().as_ref()));
