@@ -165,7 +165,6 @@ export async function buildInitializeMessageFor(
           future,
           strategy,
           {
-            futureType: future.type,
             artifactFutureId: future.emitter.id,
             eventName: future.eventName,
             argumentName: future.argumentName,

@@ -22,6 +22,10 @@ import { DeploymentState } from "../../../../../src/new-api/internal/new-executi
 import { ExecutionResultType } from "../../../../../src/new-api/internal/new-execution/types/execution-result";
 import { ExecutionSateType } from "../../../../../src/new-api/internal/new-execution/types/execution-state";
 import {
+  Transaction,
+  TransactionReceiptStatus,
+} from "../../../../../src/new-api/internal/new-execution/types/jsonrpc";
+import {
   CallExecutionStateInitializeMessage,
   ContractAtExecutionStateInitializeMessage,
   DeploymentExecutionStateInitializeMessage,
@@ -30,6 +34,10 @@ import {
   SendDataExecutionStateInitializeMessage,
   StaticCallExecutionStateInitializeMessage,
 } from "../../../../../src/new-api/internal/new-execution/types/messages";
+import {
+  NetworkInteractionType,
+  OnchainInteraction,
+} from "../../../../../src/new-api/internal/new-execution/types/network-interaction";
 import {
   ArtifactContractAtFuture,
   ArtifactContractDeploymentFuture,
@@ -70,8 +78,9 @@ describe("buildInitializeMessageFor", () => {
   let exampleDeploymentState: DeploymentState;
   let mockDeploymentLoader: DeploymentLoader;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     const fakeModule = {} as any;
+
     mockDeploymentLoader = setupMockDeploymentLoader(new MemoryJournal());
 
     safeMathLibraryDeployment = new NamedLibraryDeploymentFutureImplementation(
@@ -202,6 +211,30 @@ describe("buildInitializeMessageFor", () => {
       0
     );
 
+    await mockDeploymentLoader.storeNamedArtifact(
+      "MyModule:AnotherContract",
+      "AnotherContract",
+      {
+        ...fakeArtifact,
+        contractName: "AnotherContract",
+        abi: [
+          {
+            type: "event",
+            name: "event1",
+            anonymous: false,
+            inputs: [
+              {
+                name: "arg1",
+                type: "uint256",
+                internalType: "uint256",
+                indexed: false,
+              },
+            ],
+          },
+        ],
+      }
+    );
+
     sendData = new SendDataFutureImplementation(
       "MyModule:SendData",
       fakeModule,
@@ -213,6 +246,43 @@ describe("buildInitializeMessageFor", () => {
 
     exampleDeploymentState = deploymentStateReducer(undefined as any);
 
+    const exampleConfirmedTransaction: Transaction = {
+      hash: "0x1234",
+      fees: {
+        maxPriorityFeePerGas: 10n,
+        maxFeePerGas: 100n,
+      },
+      receipt: {
+        blockHash: "0xblock",
+        blockNumber: 0,
+        contractAddress: differentAddress,
+        status: TransactionReceiptStatus.SUCCESS,
+        logs: [
+          {
+            address: differentAddress,
+            logIndex: 0,
+            // encoded 1000000000000000000n
+            data: "0x0000000000000000000000000000000000000000000000000de0b6b3a7640000",
+            topics: [
+              "0x84e603adc6c5752ecafe165459551af7ba28bb2e6a2bfacc9ccb8f0ae12c76e6", // matches event1
+            ],
+          },
+        ],
+      },
+    };
+
+    const exampleOnchainInteraction: OnchainInteraction = {
+      id: 1,
+      type: NetworkInteractionType.ONCHAIN_INTERACTION,
+      to: undefined,
+      data: "0x",
+      value: 0n,
+      from: exampleAccounts[0],
+      nonce: 1,
+      transactions: [exampleConfirmedTransaction],
+      shouldBeResent: false,
+    };
+
     exampleDeploymentState.executionStates["MyModule:SafeMath"] = {
       type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
       result: {
@@ -223,6 +293,7 @@ describe("buildInitializeMessageFor", () => {
 
     exampleDeploymentState.executionStates["MyModule:AnotherContract"] = {
       type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+      networkInteractions: [exampleOnchainInteraction],
       result: {
         type: ExecutionResultType.SUCCESS,
         address: differentAddress,
@@ -579,8 +650,6 @@ describe("buildInitializeMessageFor", () => {
     });
   });
 
-  // TODO: this needs reviewed and expanded - not sure I have understood
-  // resolution.
   describe("read event argument state", () => {
     let message: ReadEventArgExecutionStateInitializeMessage;
 
@@ -595,19 +664,19 @@ describe("buildInitializeMessageFor", () => {
       )) as ReadEventArgExecutionStateInitializeMessage;
     });
 
-    it.skip("should build an initialize message", async () => {
+    it("should build an initialize message", async () => {
       assert.deepStrictEqual(message, {
         type: JournalMessageType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE,
         futureId: "MyModule:ReadEventArg",
         strategy: "basic",
         dependencies: [],
-        artifactFutureId: "MyModule:ReadEventArg",
+        artifactFutureId: "MyModule:AnotherContract",
         eventName: "event1",
         argumentName: "arg1",
         txToReadFrom: "0x1234",
         emitterAddress: differentAddress,
         eventIndex: 0,
-        result: "result-text",
+        result: 1000000000000000000n,
       });
     });
   });

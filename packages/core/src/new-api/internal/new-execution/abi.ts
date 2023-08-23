@@ -1,10 +1,10 @@
 import type {
-  Result,
-  ParamType,
-  FunctionFragment,
-  Interface,
   EventFragment,
   Fragment,
+  FunctionFragment,
+  Interface,
+  ParamType,
+  Result,
 } from "ethers";
 
 import {
