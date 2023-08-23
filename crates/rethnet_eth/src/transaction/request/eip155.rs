@@ -29,7 +29,7 @@ impl EIP155TransactionRequest {
         let hash = self.hash();
 
         let mut signature = Signature::new(hash, private_key);
-        signature.v += self.chain_id * 2 + 8;
+        signature.v += self.chain_id * 2 + 35 - 27;
 
         EIP155SignedTransaction {
             nonce: self.nonce,
