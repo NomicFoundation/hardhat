@@ -115,11 +115,18 @@ impl ContiguousBlockchainStorage {
     /// Retrieves the total difficulty of the block with the provided hash.
     pub fn total_difficulty_by_hash(&self, hash: &B256) -> Option<&U256> {
         self.hash_to_block.get(hash).map(|block| {
-            let block_number = usize::try_from(block.header.number)
+            let first_block_number = self
+                .blocks
+                .first()
+                .expect("A block must exist since we found one")
+                .header
+                .number;
+
+            let local_block_number = usize::try_from(block.header.number - first_block_number)
                 .expect("No blocks with a number larger than usize::MAX are inserted");
 
             // SAFETY: A total difficulty is inserted for each block
-            unsafe { self.total_difficulties.get_unchecked(block_number) }
+            unsafe { self.total_difficulties.get_unchecked(local_block_number) }
         })
     }
 
