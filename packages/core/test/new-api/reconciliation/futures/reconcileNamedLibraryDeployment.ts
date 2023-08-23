@@ -2,14 +2,17 @@
 import { assert } from "chai";
 
 import { buildModule } from "../../../../src/new-api/build-module";
+import { ExecutionResultType } from "../../../../src/new-api/internal/new-execution/types/execution-result";
 import {
   DeploymentExecutionState,
+  ExecutionSateType,
   ExecutionStatus,
-} from "../../../../src/new-api/internal/execution/types";
+} from "../../../../src/new-api/internal/new-execution/types/execution-state";
 import { FutureType } from "../../../../src/new-api/types/module";
-import { exampleAccounts, initOnchainState } from "../../helpers";
+import { exampleAccounts } from "../../helpers";
 import {
   assertSuccessReconciliation,
+  createDeploymentState,
   oneAddress,
   reconcile,
   twoAddress,
@@ -20,12 +23,12 @@ describe("Reconciliation - named library", () => {
 
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
+    type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
-    history: [],
-    onchain: initOnchainState,
+    networkInteractions: [],
     artifactFutureId: "./artifact.json",
     contractName: "Contract1",
     value: BigInt("0"),
@@ -34,7 +37,7 @@ describe("Reconciliation - named library", () => {
     from: exampleAccounts[0],
   };
 
-  it("should reconcile unchanged", () => {
+  it("should reconcile unchanged", async () => {
     const submoduleDefinition = buildModule("Submodule", (m) => {
       const safeMath = m.library("SafeMath");
 
@@ -51,52 +54,62 @@ describe("Reconciliation - named library", () => {
       return { mainLib };
     });
 
-    assertSuccessReconciliation(moduleDefinition, {
-      "Submodule:SafeMath": {
-        ...exampleDeploymentState,
-        futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
-        status: ExecutionStatus.SUCCESS,
-        contractName: "SafeMath",
-        contractAddress: exampleAddress,
-      },
-      "Submodule:MainLibrary": {
-        ...exampleDeploymentState,
-        futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
-        status: ExecutionStatus.STARTED,
-        contractName: "MainLibrary",
-        libraries: {
-          SafeMath: exampleAddress,
+    await assertSuccessReconciliation(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Submodule:SafeMath",
+          futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
+          status: ExecutionStatus.SUCCESS,
+          contractName: "SafeMath",
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: exampleAddress,
+          },
         },
-      },
-    });
+        {
+          ...exampleDeploymentState,
+          id: "Submodule:MainLibrary",
+          futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
+          status: ExecutionStatus.STARTED,
+          contractName: "MainLibrary",
+          libraries: {
+            SafeMath: exampleAddress,
+          },
+        }
+      )
+    );
   });
 
-  it("should find changes to library name unreconciliable", () => {
+  it("should find changes to library name unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const library = m.library("LibraryChanged", { id: "Library" });
 
       return { library };
     });
 
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:Library": {
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
         ...exampleDeploymentState,
+        id: "Module:Library",
         futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         contractName: "LibraryUnchanged",
-      },
-    });
+      })
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
         futureId: "Module:Library",
         failure:
-          "Library name has been changed from LibraryUnchanged to LibraryChanged",
+          "Contract name has been changed from LibraryUnchanged to LibraryChanged",
       },
     ]);
   });
 
-  it("should find changes to libraries unreconciliable", () => {
+  it("should find changes to libraries unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const safeMath = m.library("SafeMath");
 
@@ -107,49 +120,59 @@ describe("Reconciliation - named library", () => {
       return { safeMath, mainLib };
     });
 
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:SafeMath": {
-        ...exampleDeploymentState,
-        futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
-        status: ExecutionStatus.SUCCESS,
-        contractName: "SafeMath",
-        contractAddress: exampleAddress,
-      },
-      "Module:MainLibrary": {
-        ...exampleDeploymentState,
-        futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
-        status: ExecutionStatus.HOLD,
-        contractName: "MainLibrary",
-        libraries: {
-          Unchanged: exampleAddress,
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Module:SafeMath",
+          futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
+          status: ExecutionStatus.SUCCESS,
+          contractName: "SafeMath",
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: exampleAddress,
+          },
         },
-      },
-    });
+        {
+          ...exampleDeploymentState,
+          id: "Module:MainLibrary",
+          futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
+          status: ExecutionStatus.STARTED,
+          contractName: "MainLibrary",
+          libraries: {
+            Unchanged: exampleAddress,
+          },
+        }
+      )
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
         futureId: "Module:MainLibrary",
-        failure: "Libraries have been changed",
+        failure: "Library Unchanged has been removed",
       },
     ]);
   });
 
-  it("should find changes to from unreconciliable", () => {
+  it("should find changes to from unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const library = m.library("Library", { id: "Library", from: twoAddress });
 
       return { library };
     });
 
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:Library": {
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
         ...exampleDeploymentState,
+        id: "Module:Library",
         futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         contractName: "Library",
         from: oneAddress,
-      },
-    });
+      })
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {

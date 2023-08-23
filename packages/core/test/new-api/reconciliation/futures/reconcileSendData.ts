@@ -3,12 +3,17 @@ import { assert } from "chai";
 
 import { buildModule } from "../../../../src/new-api/build-module";
 import {
+  ExecutionSateType,
   ExecutionStatus,
   SendDataExecutionState,
-} from "../../../../src/new-api/internal/execution/types";
+} from "../../../../src/new-api/internal/new-execution/types/execution-state";
 import { FutureType } from "../../../../src/new-api/types/module";
-import { exampleAccounts, initOnchainState } from "../../helpers";
-import { assertSuccessReconciliation, reconcile } from "../helpers";
+import { exampleAccounts } from "../../helpers";
+import {
+  assertSuccessReconciliation,
+  createDeploymentState,
+  reconcile,
+} from "../helpers";
 
 describe("Reconciliation - send data", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
@@ -16,19 +21,19 @@ describe("Reconciliation - send data", () => {
 
   const exampleSendState: SendDataExecutionState = {
     id: "Example",
+    type: ExecutionSateType.SEND_DATA_EXECUTION_STATE,
     futureType: FutureType.SEND_DATA,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
-    history: [],
-    onchain: initOnchainState,
+    networkInteractions: [],
     to: exampleAddress,
     data: "example_data",
     value: BigInt("0"),
     from: exampleAccounts[0],
   };
 
-  it("should reconcile unchanged", () => {
+  it("should reconcile unchanged", async () => {
     const submoduleDefinition = buildModule("Submodule", (m) => {
       m.send("test_send", exampleAddress, 0n, "example_data");
 
@@ -41,52 +46,58 @@ describe("Reconciliation - send data", () => {
       return {};
     });
 
-    assertSuccessReconciliation(moduleDefinition, {
-      "Submodule:test_send": {
+    await assertSuccessReconciliation(
+      moduleDefinition,
+      createDeploymentState({
         ...exampleSendState,
+        id: "Submodule:test_send",
         status: ExecutionStatus.STARTED,
-      },
-    });
+      })
+    );
   });
 
-  it("should find changes to the to address unreconciliable", () => {
+  it("should find changes to the to address unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       m.send("test_send", differentAddress, 0n, "example_data");
 
       return {};
     });
 
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:test_send": {
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
         ...exampleSendState,
+        id: "Module:test_send",
         status: ExecutionStatus.STARTED,
         to: exampleAddress,
-      },
-    });
+      })
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
         futureId: "Module:test_send",
         failure:
-          "To address has been changed from 0x1F98431c8aD98523631AE4a59f267346ea31F984 to 0xBA12222222228d8Ba445958a75a0704d566BF2C8",
+          'Address "to" has been changed from 0x1F98431c8aD98523631AE4a59f267346ea31F984 to 0xBA12222222228d8Ba445958a75a0704d566BF2C8',
       },
     ]);
   });
 
-  it("should find changes to the to data unreconciliable", () => {
+  it("should find changes to the to data unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       m.send("test_send", exampleAddress, 0n, "changed_data");
 
       return {};
     });
 
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:test_send": {
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
         ...exampleSendState,
+        id: "Module:test_send",
         status: ExecutionStatus.STARTED,
         data: "unchanged_data",
-      },
-    });
+      })
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
@@ -96,20 +107,22 @@ describe("Reconciliation - send data", () => {
     ]);
   });
 
-  it("should find changes to the value unreconciliable", () => {
+  it("should find changes to the value unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       m.send("test_send", exampleAddress, 3n, "example_data");
 
       return {};
     });
 
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:test_send": {
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
         ...exampleSendState,
+        id: "Module:test_send",
         status: ExecutionStatus.STARTED,
         value: 2n,
-      },
-    });
+      })
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
@@ -119,7 +132,7 @@ describe("Reconciliation - send data", () => {
     ]);
   });
 
-  it("should find changes to from unreconciliable", () => {
+  it("should find changes to from unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       m.send("test_send", exampleAddress, 0n, "example_data", {
         from: differentAddress,
@@ -128,13 +141,15 @@ describe("Reconciliation - send data", () => {
       return {};
     });
 
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:test_send": {
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
         ...exampleSendState,
+        id: "Module:test_send",
         status: ExecutionStatus.STARTED,
         from: exampleAddress,
-      },
-    });
+      })
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {

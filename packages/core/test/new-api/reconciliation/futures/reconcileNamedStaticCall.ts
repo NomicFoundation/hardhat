@@ -2,10 +2,18 @@
 import { assert } from "chai";
 
 import { buildModule } from "../../../../src/new-api/build-module";
+import { ExecutionResultType } from "../../../../src/new-api/internal/new-execution/types/execution-result";
+import {
+  DeploymentExecutionState,
+  ExecutionSateType,
+  ExecutionStatus,
+  StaticCallExecutionState,
+} from "../../../../src/new-api/internal/new-execution/types/execution-state";
 import { FutureType } from "../../../../src/new-api/types/module";
-import { exampleAccounts, initOnchainState } from "../../helpers";
+import { exampleAccounts } from "../../helpers";
 import {
   assertSuccessReconciliation,
+  createDeploymentState,
   oneAddress,
   reconcile,
   twoAddress,
@@ -17,12 +25,12 @@ describe("Reconciliation - named static call", () => {
 
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
+    type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
-    history: [],
-    onchain: initOnchainState,
+    networkInteractions: [],
     artifactFutureId: "./artifact.json",
     contractName: "Contract1",
     value: BigInt("0"),
@@ -33,12 +41,12 @@ describe("Reconciliation - named static call", () => {
 
   const exampleStaticCallState: StaticCallExecutionState = {
     id: "Example",
+    type: ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
     futureType: FutureType.NAMED_STATIC_CALL,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
-    history: [],
-    onchain: initOnchainState,
+    networkInteractions: [],
     contractAddress: exampleAddress,
     artifactFutureId: "./artifact.json",
     functionName: "function",
@@ -46,7 +54,7 @@ describe("Reconciliation - named static call", () => {
     from: exampleAccounts[0],
   };
 
-  it("should reconcile unchanged", () => {
+  it("should reconcile unchanged", async () => {
     const submoduleDefinition = buildModule("Submodule", (m) => {
       const contract1 = m.contract("Contract1");
 
@@ -61,24 +69,32 @@ describe("Reconciliation - named static call", () => {
       return { contract1 };
     });
 
-    assertSuccessReconciliation(moduleDefinition, {
-      "Submodule:Contract1": {
-        ...exampleDeploymentState,
-        status: ExecutionStatus.SUCCESS,
-        contractAddress: exampleAddress,
-      },
-      "Submodule:Contract1#function1": {
-        ...exampleStaticCallState,
-        futureType: FutureType.NAMED_STATIC_CALL,
-        status: ExecutionStatus.SUCCESS,
-        contractAddress: exampleAddress,
-        functionName: "function1",
-        args: [1, "a"],
-      },
-    });
+    await assertSuccessReconciliation(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Submodule:Contract1",
+          status: ExecutionStatus.SUCCESS,
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: exampleAddress,
+          },
+        },
+        {
+          ...exampleStaticCallState,
+          id: "Submodule:Contract1#function1",
+          futureType: FutureType.NAMED_STATIC_CALL,
+          status: ExecutionStatus.SUCCESS,
+          contractAddress: exampleAddress,
+          functionName: "function1",
+          args: [1, "a"],
+        }
+      )
+    );
   });
 
-  it("should find changes to contract unreconciliable", () => {
+  it("should find changes to contract unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
@@ -87,30 +103,38 @@ describe("Reconciliation - named static call", () => {
       return { contract1 };
     });
 
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:Contract1": {
-        ...exampleDeploymentState,
-        status: ExecutionStatus.SUCCESS,
-        contractAddress: differentAddress,
-      },
-      "Module:Contract1#config": {
-        ...exampleStaticCallState,
-        status: ExecutionStatus.STARTED,
-        functionName: "function1",
-        contractAddress: exampleAddress,
-      },
-    });
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Module:Contract1",
+          status: ExecutionStatus.SUCCESS,
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: differentAddress,
+          },
+        },
+        {
+          ...exampleStaticCallState,
+          id: "Module:Contract1#config",
+          status: ExecutionStatus.STARTED,
+          functionName: "function1",
+          contractAddress: exampleAddress,
+        }
+      )
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
         futureId: "Module:Contract1#config",
         failure:
-          "Contract address has been changed from 0x1F98431c8aD98523631AE4a59f267346ea31F984 to 0xBA12222222228d8Ba445958a75a0704d566BF2C8",
+          "Contract address has been changed from 0x1F98431c8aD98523631AE4a59f267346ea31F984 to 0xBA12222222228d8Ba445958a75a0704d566BF2C8 (future Module:Contract1)",
       },
     ]);
   });
 
-  it("should find changes to function name unreconciliable", () => {
+  it("should find changes to function name unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
@@ -119,20 +143,28 @@ describe("Reconciliation - named static call", () => {
       return { contract1 };
     });
 
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:Contract1": {
-        ...exampleDeploymentState,
-        status: ExecutionStatus.SUCCESS,
-        contractAddress: exampleAddress,
-      },
-      "Module:Contract1#config": {
-        ...exampleStaticCallState,
-        futureType: FutureType.NAMED_STATIC_CALL,
-        status: ExecutionStatus.STARTED,
-        contractAddress: exampleAddress,
-        functionName: "functionUnchanged",
-      },
-    });
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Module:Contract1",
+          status: ExecutionStatus.SUCCESS,
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: exampleAddress,
+          },
+        },
+        {
+          ...exampleStaticCallState,
+          id: "Module:Contract1#config",
+          futureType: FutureType.NAMED_STATIC_CALL,
+          status: ExecutionStatus.STARTED,
+          contractAddress: exampleAddress,
+          functionName: "functionUnchanged",
+        }
+      )
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
@@ -143,7 +175,7 @@ describe("Reconciliation - named static call", () => {
     ]);
   });
 
-  it("should find changes to function args unreconciliable", () => {
+  it("should find changes to function args unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const ticker = m.getParameter("ticker", "CHANGED");
 
@@ -154,31 +186,39 @@ describe("Reconciliation - named static call", () => {
       return { contract1 };
     });
 
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:Contract1": {
-        ...exampleDeploymentState,
-        status: ExecutionStatus.SUCCESS,
-        contractAddress: exampleAddress,
-      },
-      "Module:Contract1#function1": {
-        ...exampleStaticCallState,
-        futureType: FutureType.NAMED_STATIC_CALL,
-        status: ExecutionStatus.STARTED,
-        contractAddress: exampleAddress,
-        functionName: "function1",
-        args: [{ ticker: "UNCHANGED" }],
-      },
-    });
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Module:Contract1",
+          status: ExecutionStatus.SUCCESS,
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: exampleAddress,
+          },
+        },
+        {
+          ...exampleStaticCallState,
+          id: "Module:Contract1#function1",
+          futureType: FutureType.NAMED_STATIC_CALL,
+          status: ExecutionStatus.STARTED,
+          contractAddress: exampleAddress,
+          functionName: "function1",
+          args: [{ ticker: "UNCHANGED" }],
+        }
+      )
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
         futureId: "Module:Contract1#function1",
-        failure: "Function args have been changed",
+        failure: "Argument at index 0 has been changed",
       },
     ]);
   });
 
-  it("should find changes to from unreconciliable", () => {
+  it("should find changes to from unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
@@ -190,21 +230,29 @@ describe("Reconciliation - named static call", () => {
       return { contract1 };
     });
 
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:Contract1": {
-        ...exampleDeploymentState,
-        status: ExecutionStatus.SUCCESS,
-        contractAddress: exampleAddress,
-      },
-      "Module:Contract1#config": {
-        ...exampleStaticCallState,
-        futureType: FutureType.NAMED_STATIC_CALL,
-        status: ExecutionStatus.STARTED,
-        contractAddress: exampleAddress,
-        functionName: "function1",
-        from: oneAddress,
-      },
-    });
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Module:Contract1",
+          status: ExecutionStatus.SUCCESS,
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: exampleAddress,
+          },
+        },
+        {
+          ...exampleStaticCallState,
+          id: "Module:Contract1#config",
+          futureType: FutureType.NAMED_STATIC_CALL,
+          status: ExecutionStatus.STARTED,
+          contractAddress: exampleAddress,
+          functionName: "function1",
+          from: oneAddress,
+        }
+      )
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
@@ -214,7 +262,7 @@ describe("Reconciliation - named static call", () => {
     ]);
   });
 
-  it("should not reconcile the use of the result of a static call that has changed", () => {
+  it("should not reconcile the use of the result of a static call that has changed", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
@@ -236,52 +284,71 @@ describe("Reconciliation - named static call", () => {
     // This state is the equivalent to above, but contract2's
     // constructor arg points at the result of the first call
     // rather than the second
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:Contract1": {
-        ...exampleDeploymentState,
-        status: ExecutionStatus.SUCCESS,
-        contractAddress: exampleAddress,
-      },
-      "Module:first-call": {
-        ...exampleStaticCallState,
-        futureType: FutureType.NAMED_STATIC_CALL,
-        status: ExecutionStatus.SUCCESS,
-        dependencies: new Set(["Module:Contract1"]),
-        contractAddress: exampleAddress,
-        functionName: "function1",
-        args: ["first"],
-        result: "first",
-      },
-      "Module:Contract1#second-call": {
-        ...exampleStaticCallState,
-        futureType: FutureType.NAMED_STATIC_CALL,
-        status: ExecutionStatus.SUCCESS,
-        dependencies: new Set([
-          "Module:Contract1",
-          "Module:Contract1#first-call",
-        ]),
-        contractAddress: exampleAddress,
-        functionName: "function1",
-        args: ["second"],
-        result: "second",
-      },
-      "Module:Contract2": {
-        ...exampleDeploymentState,
-        status: ExecutionStatus.STARTED,
-        dependencies: new Set([
-          "Module:Contract1#first-call",
-          "Module:Contract1#second-call",
-        ]),
-        contractName: "Contract2",
-        contractAddress: differentAddress,
-        constructorArgs: ["first"],
-      },
-    });
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Module:Contract1",
+          status: ExecutionStatus.SUCCESS,
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: exampleAddress,
+          },
+        },
+        {
+          ...exampleStaticCallState,
+          id: "Module:first-call",
+          futureType: FutureType.NAMED_STATIC_CALL,
+          status: ExecutionStatus.SUCCESS,
+          dependencies: new Set(["Module:Contract1"]),
+          contractAddress: exampleAddress,
+          functionName: "function1",
+          args: ["first"],
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            value: "first",
+          },
+        },
+        {
+          ...exampleStaticCallState,
+          id: "Module:Contract1#second-call",
+          futureType: FutureType.NAMED_STATIC_CALL,
+          status: ExecutionStatus.SUCCESS,
+          dependencies: new Set([
+            "Module:Contract1",
+            "Module:Contract1#first-call",
+          ]),
+          contractAddress: exampleAddress,
+          functionName: "function1",
+          args: ["second"],
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            value: "second",
+          },
+        },
+        {
+          ...exampleDeploymentState,
+          id: "Module:Contract2",
+          status: ExecutionStatus.STARTED,
+          dependencies: new Set([
+            "Module:Contract1#first-call",
+            "Module:Contract1#second-call",
+          ]),
+          contractName: "Contract2",
+          constructorArgs: ["first"],
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: differentAddress,
+          },
+        }
+      )
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
         futureId: "Module:Contract2",
-        failure: "Constructor args have been changed",
+        failure: "Argument at index 0 has been changed",
       },
     ]);
   });

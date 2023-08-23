@@ -29,7 +29,7 @@ export function reconcileContract(
 
   return compare(
     future,
-    "Contract",
+    "Contract address",
     exState.contractAddress,
     resolvedAddress,
     ` (future ${future.contract.id})`

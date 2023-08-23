@@ -39,5 +39,5 @@ export function reconcileFrom(
 ): ReconciliationFutureResultFailure | undefined {
   const resolvedFrom = resolveFutureFrom(future.from, context.accounts);
 
-  return compare(future, "From", exState.from, resolvedFrom);
+  return compare(future, "From account", exState.from, resolvedFrom);
 }

@@ -2,14 +2,17 @@
 import { assert } from "chai";
 
 import { buildModule } from "../../../../src/new-api/build-module";
+import { ExecutionResultType } from "../../../../src/new-api/internal/new-execution/types/execution-result";
 import {
   DeploymentExecutionState,
+  ExecutionSateType,
   ExecutionStatus,
-} from "../../../../src/new-api/internal/execution/types";
+} from "../../../../src/new-api/internal/new-execution/types/execution-state";
 import { FutureType } from "../../../../src/new-api/types/module";
-import { exampleAccounts, initOnchainState } from "../../helpers";
+import { exampleAccounts } from "../../helpers";
 import {
   assertSuccessReconciliation,
+  createDeploymentState,
   oneAddress,
   reconcile,
   twoAddress,
@@ -20,12 +23,12 @@ describe("Reconciliation - named contract", () => {
 
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
+    type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
-    history: [],
-    onchain: initOnchainState,
+    networkInteractions: [],
     artifactFutureId: "./artifact.json",
     contractName: "Contract1",
     value: BigInt("0"),
@@ -34,7 +37,7 @@ describe("Reconciliation - named contract", () => {
     from: exampleAccounts[0],
   };
 
-  it("should reconcile unchanged", () => {
+  it("should reconcile unchanged", async () => {
     const submoduleDefinition = buildModule("Submodule", (m) => {
       const owner = m.getAccount(3);
       const supply = m.getParameter("supply", BigInt(500));
@@ -61,31 +64,39 @@ describe("Reconciliation - named contract", () => {
       return { contract1 };
     });
 
-    assertSuccessReconciliation(moduleDefinition, {
-      "Submodule:SafeMath": {
-        ...exampleDeploymentState,
-        futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
-        status: ExecutionStatus.SUCCESS,
-        contractName: "SafeMath",
-        contractAddress: exampleAddress,
-      },
-      "Submodule:Contract1": {
-        ...exampleDeploymentState,
-        status: ExecutionStatus.STARTED,
-        constructorArgs: [
-          "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
-          { nested: { supply: BigInt(500) } },
-          [1, "CodeCoin", 3],
-          exampleAddress,
-        ],
-        libraries: {
-          SafeMath: exampleAddress,
+    await assertSuccessReconciliation(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Submodule:SafeMath",
+          futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
+          status: ExecutionStatus.SUCCESS,
+          contractName: "SafeMath",
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: exampleAddress,
+          },
         },
-      },
-    });
+        {
+          ...exampleDeploymentState,
+          id: "Submodule:Contract1",
+          status: ExecutionStatus.STARTED,
+          constructorArgs: [
+            "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            { nested: { supply: BigInt(500) } },
+            [1, "CodeCoin", 3],
+            exampleAddress,
+          ],
+          libraries: {
+            SafeMath: exampleAddress,
+          },
+        }
+      )
+    );
   });
 
-  it("should find changes to contract name unreconciliable", () => {
+  it("should find changes to contract name unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("ContractChanged", [], {
         id: "Example",
@@ -94,13 +105,15 @@ describe("Reconciliation - named contract", () => {
       return { contract1 };
     });
 
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:Example": {
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
         ...exampleDeploymentState,
+        id: "Module:Example",
         status: ExecutionStatus.STARTED,
         contractName: "ContractUnchanged",
-      },
-    });
+      })
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
@@ -111,7 +124,7 @@ describe("Reconciliation - named contract", () => {
     ]);
   });
 
-  it("should find changes to constructor args unreconciliable", () => {
+  it("should find changes to constructor args unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const owner = m.getAccount(3);
       const supply = m.getParameter("supply", BigInt(500));
@@ -128,14 +141,16 @@ describe("Reconciliation - named contract", () => {
       return { contract1 };
     });
 
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:Example": {
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
         ...exampleDeploymentState,
+        id: "Module:Example",
         status: ExecutionStatus.STARTED,
         contractName: "ContractUnchanged",
         constructorArgs: [1, 2, 3],
-      },
-    });
+      })
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
@@ -146,7 +161,7 @@ describe("Reconciliation - named contract", () => {
     ]);
   });
 
-  it("should find changes to libraries unreconciliable", () => {
+  it("should find changes to libraries unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const safeMath = m.library("SafeMath");
 
@@ -159,30 +174,38 @@ describe("Reconciliation - named contract", () => {
       return { contract1 };
     });
 
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:SafeMath": {
-        ...exampleDeploymentState,
-        futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
-        status: ExecutionStatus.SUCCESS,
-        contractName: "SafeMath",
-        contractAddress: exampleAddress,
-      },
-      "Module:Contract1": {
-        ...exampleDeploymentState,
-        status: ExecutionStatus.HOLD,
-        libraries: {},
-      },
-    });
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Module:SafeMath",
+          futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
+          status: ExecutionStatus.SUCCESS,
+          contractName: "SafeMath",
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: exampleAddress,
+          },
+        },
+        {
+          ...exampleDeploymentState,
+          id: "Module:Contract1",
+          status: ExecutionStatus.STARTED,
+          libraries: {},
+        }
+      )
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
         futureId: "Module:Contract1",
-        failure: "Libraries have been changed",
+        failure: "Library SafeMath has been added",
       },
     ]);
   });
 
-  it("should find changes to value unreconciliable", () => {
+  it("should find changes to value unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract", [], {
         id: "Example",
@@ -192,14 +215,16 @@ describe("Reconciliation - named contract", () => {
       return { contract1 };
     });
 
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:Example": {
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
         ...exampleDeploymentState,
+        id: "Module:Example",
         status: ExecutionStatus.STARTED,
         contractName: "Contract",
         value: BigInt(2),
-      },
-    });
+      })
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
@@ -209,7 +234,7 @@ describe("Reconciliation - named contract", () => {
     ]);
   });
 
-  it("should find changes to from unreconciliable", () => {
+  it("should find changes to from unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract", [], {
         id: "Example",
@@ -219,14 +244,16 @@ describe("Reconciliation - named contract", () => {
       return { contract1 };
     });
 
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:Example": {
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
         ...exampleDeploymentState,
+        id: "Module:Example",
         status: ExecutionStatus.STARTED,
         contractName: "Contract",
         from: oneAddress,
-      },
-    });
+      })
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {

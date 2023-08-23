@@ -38,7 +38,7 @@ export function reconcileLibraries(
 
   for (const libName of Object.keys(futureLibraries)) {
     if (exState.libraries[libName] === undefined) {
-      return fail(future, `Unexpected library ${libName} has been added`);
+      return fail(future, `Library ${libName} has been added`);
     }
   }
 }

@@ -2,14 +2,20 @@
 import { assert } from "chai";
 
 import { buildModule } from "../../../../src/new-api/build-module";
+import { ExecutionResultType } from "../../../../src/new-api/internal/new-execution/types/execution-result";
 import {
   DeploymentExecutionState,
+  ExecutionSateType,
   ExecutionStatus,
   ReadEventArgumentExecutionState,
-} from "../../../../src/new-api/internal/execution/types";
+} from "../../../../src/new-api/internal/new-execution/types/execution-state";
 import { FutureType } from "../../../../src/new-api/types/module";
-import { exampleAccounts, initOnchainState } from "../../helpers";
-import { assertSuccessReconciliation, reconcile } from "../helpers";
+import { exampleAccounts } from "../../helpers";
+import {
+  assertSuccessReconciliation,
+  createDeploymentState,
+  reconcile,
+} from "../helpers";
 
 describe("Reconciliation - read event argument", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
@@ -18,38 +24,37 @@ describe("Reconciliation - read event argument", () => {
 
   const exampleReadArgState: ReadEventArgumentExecutionState = {
     id: "Example",
+    type: ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE,
     futureType: FutureType.READ_EVENT_ARGUMENT,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
-    history: [],
-    onchain: initOnchainState,
     artifactFutureId: "./artifact.json",
     eventName: "event1",
     argumentName: "argument1",
     eventIndex: 0,
     emitterAddress: exampleAddress,
     txToReadFrom: txId,
+    result: "first",
   };
 
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
+    type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
-    history: [],
-    onchain: initOnchainState,
+    networkInteractions: [],
     artifactFutureId: "./artifact.json",
     contractName: "Contract1",
     value: BigInt("0"),
     constructorArgs: [],
     libraries: {},
     from: exampleAccounts[0],
-    txId,
   };
 
-  it("should reconcile unchanged", () => {
+  it("should reconcile unchanged", async () => {
     const submoduleDefinition = buildModule("Submodule", (m) => {
       const contract = m.contract("Contract");
 
@@ -64,24 +69,32 @@ describe("Reconciliation - read event argument", () => {
       return { contract };
     });
 
-    assertSuccessReconciliation(moduleDefinition, {
-      "Submodule:Contract": {
-        ...exampleDeploymentState,
-        futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
-        status: ExecutionStatus.SUCCESS,
-        contractName: "Contract",
-        contractAddress: exampleAddress,
-      },
-      "Submodule:Contract#EventName1#arg1#0": {
-        ...exampleReadArgState,
-        status: ExecutionStatus.STARTED,
-        eventName: "EventName1",
-        argumentName: "arg1",
-      },
-    });
+    await assertSuccessReconciliation(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Submodule:Contract",
+          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          status: ExecutionStatus.SUCCESS,
+          contractName: "Contract",
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: exampleAddress,
+          },
+        },
+        {
+          ...exampleReadArgState,
+          id: "Submodule:Contract#EventName1#arg1#0",
+          status: ExecutionStatus.STARTED,
+          eventName: "EventName1",
+          argumentName: "arg1",
+        }
+      )
+    );
   });
 
-  it("should find changes to the event unreconciliable", () => {
+  it("should find changes to the event unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract = m.contract("Contract");
 
@@ -92,20 +105,28 @@ describe("Reconciliation - read event argument", () => {
       return { contract };
     });
 
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:Contract": {
-        ...exampleDeploymentState,
-        futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
-        status: ExecutionStatus.SUCCESS,
-        contractName: "Contract",
-        contractAddress: exampleAddress,
-      },
-      "Module:ReadEvent": {
-        ...exampleReadArgState,
-        status: ExecutionStatus.STARTED,
-        eventName: "eventUnchanged",
-      },
-    });
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Module:Contract",
+          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          status: ExecutionStatus.SUCCESS,
+          contractName: "Contract",
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: exampleAddress,
+          },
+        },
+        {
+          ...exampleReadArgState,
+          id: "Module:ReadEvent",
+          status: ExecutionStatus.STARTED,
+          eventName: "eventUnchanged",
+        }
+      )
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
@@ -116,7 +137,7 @@ describe("Reconciliation - read event argument", () => {
     ]);
   });
 
-  it("should find changes to the argument unreconciliable", () => {
+  it("should find changes to the argument unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract = m.contract("Contract");
 
@@ -127,20 +148,28 @@ describe("Reconciliation - read event argument", () => {
       return { contract };
     });
 
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:Contract": {
-        ...exampleDeploymentState,
-        futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
-        status: ExecutionStatus.SUCCESS,
-        contractAddress: exampleAddress,
-        contractName: "Contract",
-      },
-      "Module:ReadEvent": {
-        ...exampleReadArgState,
-        status: ExecutionStatus.STARTED,
-        argumentName: "argUnchanged",
-      },
-    });
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Module:Contract",
+          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          status: ExecutionStatus.SUCCESS,
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: exampleAddress,
+          },
+          contractName: "Contract",
+        },
+        {
+          ...exampleReadArgState,
+          id: "Module:ReadEvent",
+          status: ExecutionStatus.STARTED,
+          argumentName: "argUnchanged",
+        }
+      )
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
@@ -151,7 +180,7 @@ describe("Reconciliation - read event argument", () => {
     ]);
   });
 
-  it("should find changes to the event index unreconciliable", () => {
+  it("should find changes to the event index unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract = m.contract("Contract");
 
@@ -163,20 +192,28 @@ describe("Reconciliation - read event argument", () => {
       return { contract };
     });
 
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:Contract": {
-        ...exampleDeploymentState,
-        futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
-        status: ExecutionStatus.SUCCESS,
-        contractAddress: exampleAddress,
-        contractName: "Contract",
-      },
-      "Module:ReadEvent": {
-        ...exampleReadArgState,
-        status: ExecutionStatus.STARTED,
-        eventIndex: 1,
-      },
-    });
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Module:Contract",
+          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          status: ExecutionStatus.SUCCESS,
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: exampleAddress,
+          },
+          contractName: "Contract",
+        },
+        {
+          ...exampleReadArgState,
+          id: "Module:ReadEvent",
+          status: ExecutionStatus.STARTED,
+          eventIndex: 1,
+        }
+      )
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
@@ -186,7 +223,7 @@ describe("Reconciliation - read event argument", () => {
     ]);
   });
 
-  it("should find changes to the emitter unreconciliable", () => {
+  it("should find changes to the emitter unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
       const contract2 = m.contract("Contract2");
@@ -199,38 +236,50 @@ describe("Reconciliation - read event argument", () => {
       return { contract1, contract2 };
     });
 
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:Contract1": {
-        ...exampleDeploymentState,
-        futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
-        status: ExecutionStatus.SUCCESS,
-        contractName: "Contract1",
-        contractAddress: exampleAddress,
-      },
-      "Module:Contract2": {
-        ...exampleDeploymentState,
-        futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
-        status: ExecutionStatus.SUCCESS,
-        contractName: "Contract2",
-        contractAddress: differentAddress,
-      },
-      "Module:ReadEvent": {
-        ...exampleReadArgState,
-        status: ExecutionStatus.STARTED,
-        emitterAddress: exampleAddress,
-      },
-    });
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Module:Contract1",
+          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          status: ExecutionStatus.SUCCESS,
+          contractName: "Contract1",
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: exampleAddress,
+          },
+        },
+        {
+          ...exampleDeploymentState,
+          id: "Module:Contract2",
+          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          status: ExecutionStatus.SUCCESS,
+          contractName: "Contract2",
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: differentAddress,
+          },
+        },
+        {
+          ...exampleReadArgState,
+          id: "Module:ReadEvent",
+          status: ExecutionStatus.STARTED,
+          emitterAddress: exampleAddress,
+        }
+      )
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
         futureId: "Module:ReadEvent",
         failure:
-          "Emitter has been changed from 0x1F98431c8aD98523631AE4a59f267346ea31F984 to 0xBA12222222228d8Ba445958a75a0704d566BF2C8",
+          "Emitter has been changed from 0x1F98431c8aD98523631AE4a59f267346ea31F984 to 0xBA12222222228d8Ba445958a75a0704d566BF2C8 (future Module:Contract2)",
       },
     ]);
   });
 
-  it("should not reconcile the use of an event argument that has changed", () => {
+  it("should not reconcile the use of an event argument that has changed", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
@@ -252,44 +301,57 @@ describe("Reconciliation - read event argument", () => {
     // This state is the equivalent to above, but contract2's
     // constructor arg points at the result of the first call
     // rather than the second
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:Contract1": {
-        ...exampleDeploymentState,
-        status: ExecutionStatus.SUCCESS,
-        contractAddress: exampleAddress,
-      },
-      "Module:ReadEvent1": {
-        ...exampleReadArgState,
-        status: ExecutionStatus.SUCCESS,
-        dependencies: new Set(["Module:Contract1"]),
-        eventName: "event1",
-        argumentName: "argument1",
-        emitterAddress: exampleAddress,
-        result: "first",
-      },
-      "Module:ReadEvent2": {
-        ...exampleReadArgState,
-        status: ExecutionStatus.SUCCESS,
-        dependencies: new Set(["Module:Contract1"]),
-        eventName: "event2",
-        argumentName: "argument2",
-        emitterAddress: exampleAddress,
-        result: "second",
-      },
-      "Module:Contract2": {
-        ...exampleDeploymentState,
-        status: ExecutionStatus.STARTED,
-        dependencies: new Set(["Module:ReadEvent1", "Module:ReadEvent2"]),
-        contractName: "Contract2",
-        contractAddress: differentAddress,
-        constructorArgs: ["first"],
-      },
-    });
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Module:Contract1",
+          status: ExecutionStatus.SUCCESS,
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: exampleAddress,
+          },
+        },
+        {
+          ...exampleReadArgState,
+          id: "Module:ReadEvent1",
+          status: ExecutionStatus.SUCCESS,
+          dependencies: new Set(["Module:Contract1"]),
+          eventName: "event1",
+          argumentName: "argument1",
+          emitterAddress: exampleAddress,
+          result: "first",
+        },
+        {
+          ...exampleReadArgState,
+          id: "Module:ReadEvent2",
+          status: ExecutionStatus.SUCCESS,
+          dependencies: new Set(["Module:Contract1"]),
+          eventName: "event2",
+          argumentName: "argument2",
+          emitterAddress: exampleAddress,
+          result: "second",
+        },
+        {
+          ...exampleDeploymentState,
+          id: "Module:Contract2",
+          status: ExecutionStatus.STARTED,
+          dependencies: new Set(["Module:ReadEvent1", "Module:ReadEvent2"]),
+          contractName: "Contract2",
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: differentAddress,
+          },
+          constructorArgs: ["first"],
+        }
+      )
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
         futureId: "Module:Contract2",
-        failure: "Constructor args have been changed",
+        failure: "Argument at index 0 has been changed",
       },
     ]);
   });
