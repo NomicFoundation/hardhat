@@ -140,7 +140,7 @@ task("deploy")
           provider: hre.network.provider,
           artifactResolver,
           deploymentDir,
-          moduleDefinition: userModule,
+          ignitionModule: userModule,
           deploymentParameters: parameters ?? {},
           accounts,
           verbose: logs,
@@ -318,7 +318,7 @@ task("wipe")
         deploymentId
       );
 
-      await wipe(deploymentDir, futureId);
+      await wipe(deploymentDir, new HardhatArtifactResolver(hre), futureId);
 
       console.log(`${futureId} state has been cleared`);
     }
