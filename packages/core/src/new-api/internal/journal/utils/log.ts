@@ -1,263 +1,118 @@
-import { SolidityParameterType } from "../../../types/module";
+import { ExecutionResultType } from "../../new-execution/types/execution-result";
 import {
-  isCallFunctionInteraction,
-  isCallFunctionStartMessage,
-  isCalledFunctionExecutionSuccess,
-  isContractAtExecutionSuccess,
-  isContractAtInteraction,
-  isContractAtStartMessage,
-  isDeployContractInteraction,
-  isDeployContractStartMessage,
-  isDeployedContractExecutionSuccess,
-  isExecutionFailure,
-  isExecutionHold,
-  isExecutionTimeout,
-  isOnchainCallFunctionSuccessMessage,
-  isOnchainContractAtSuccessMessage,
-  isOnchainDeployContractSuccessMessage,
-  isOnchainFailureMessage,
-  isOnchainReadEventArgumentSuccessMessage,
-  isOnchainSendDataSuccessMessage,
-  isOnchainStaticCallSuccessMessage,
-  isOnchainTransactionAccept,
-  isOnchainTransactionRequest,
-  isOnchainTransactionReset,
-  isReadEventArgumentExecutionSuccess,
-  isReadEventArgumentInteraction,
-  isReadEventArgumentStartMessage,
-  isSendDataExecutionSuccess,
-  isSendDataInteraction,
-  isSendDataStartMessage,
-  isStartRunMessage,
-  isStaticCallExecutionSuccess,
-  isStaticCallInteraction,
-  isStaticCallStartMessage,
-  isWipeMessage,
-} from "../type-guards";
-import { JournalableMessage } from "../types";
+  JournalMessage,
+  JournalMessageType,
+} from "../../new-execution/types/messages";
+import { NetworkInteractionType } from "../../new-execution/types/network-interaction";
 
-export function logJournalableMessage(message: JournalableMessage): void {
+export function logJournalableMessage(message: JournalMessage): void {
   /* run messages */
 
-  if (isStartRunMessage(message)) {
-    return console.log(`deployment run starting`);
+  switch (message.type) {
+    case JournalMessageType.RUN_START:
+      console.log(`deployment run starting`);
+      break;
+
+    case JournalMessageType.WIPE_EXECUTION_STATE: {
+      console.log(
+        `Removing the execution of future ${message.futureId} from the journal`
+      );
+    }
+    case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE:
+      console.log(
+        `Starting to execute the deployment future ${message.futureId}`
+      );
+      break;
+
+    case JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE:
+      console.log(`Starting to execute the call future ${message.futureId}`);
+      break;
+
+    case JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE:
+      console.log(
+        `Starting to execute the static call future ${message.futureId}`
+      );
+      break;
+
+    case JournalMessageType.SEND_DATA_EXECUTION_STATE_INITIALIZE:
+      console.log(
+        `Started to execute the send data future ${message.futureId}`
+      );
+      break;
+
+    case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE:
+    case JournalMessageType.CALL_EXECUTION_STATE_COMPLETE:
+    case JournalMessageType.SEND_DATA_EXECUTION_STATE_COMPLETE:
+    case JournalMessageType.STATIC_CALL_EXECUTION_STATE_COMPLETE:
+      if (message.result.type === ExecutionResultType.SUCCESS) {
+        console.log(
+          `Successfully completed the execution of future ${message.futureId}`
+        );
+      } else {
+        console.log(
+          `Unsuccessfully completed the execution of future ${message.futureId}`
+        );
+      }
+      break;
+
+    case JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE:
+      console.log(`Executed contract at future ${message.futureId}`);
+      break;
+
+    case JournalMessageType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE:
+      console.log(`Executed read event argument future ${message.futureId}`);
+      break;
+
+    case JournalMessageType.NETWORK_INTERACTION_REQUEST:
+      if (
+        message.networkInteraction.type ===
+        NetworkInteractionType.ONCHAIN_INTERACTION
+      ) {
+        console.log(
+          `New onchain interaction requested for future ${message.futureId}`
+        );
+      } else {
+        console.log(`New static call requested for future ${message.futureId}`);
+      }
+      break;
+
+    case JournalMessageType.TRANSACTION_SEND:
+      console.log(
+        `Transaction ${message.transaction.hash} sent for future ${message.futureId}`
+      );
+      break;
+
+    case JournalMessageType.TRANSACTION_CONFIRM:
+      console.log(`Transaction ${message.hash} confirmed`);
+      break;
+
+    case JournalMessageType.STATIC_CALL_COMPLETE:
+      console.log(`Static call completed for future ${message.futureId}`);
+      break;
+      break;
+
+    case JournalMessageType.ONCHAIN_INTERACTION_BUMP_FEES:
+      console.log(
+        `Transaction fee bump for onchain interaction ${message.networkInteractionId} of future ${message.futureId} requested`
+      );
+      break;
+
+    case JournalMessageType.ONCHAIN_INTERACTION_DROPPED:
+      console.log(
+        `Transactions for onchain interaction ${message.networkInteractionId} of future ${message.futureId} have been dropped and will be resent`
+      );
+      break;
+
+    case JournalMessageType.ONCHAIN_INTERACTION_REPLACED_BY_USER:
+      console.log(
+        `Transactions for onchain interaction ${message.networkInteractionId} of future ${message.futureId} have been replaced by the user`
+      );
+      break;
+
+    case JournalMessageType.ONCHAIN_INTERACTION_TIMEOUT:
+      console.log(
+        `Onchain interaction ${message.networkInteractionId} of future ${message.futureId} failed due to being resent too many times and not having confirmed`
+      );
+      break;
   }
-
-  /* start messages */
-
-  if (isDeployContractStartMessage(message)) {
-    return console.log(`deploy contract start - id: '${message.futureId}'`);
-  }
-
-  if (isCallFunctionStartMessage(message)) {
-    return console.log(`call function start - id: '${message.futureId}'`);
-  }
-
-  if (isStaticCallStartMessage(message)) {
-    return console.log(`static call start - id: '${message.futureId}'`);
-  }
-
-  if (isReadEventArgumentStartMessage(message)) {
-    return console.log(`read event argument start - id: '${message.futureId}'`);
-  }
-
-  if (isSendDataStartMessage(message)) {
-    return console.log(`send data start - id: '${message.futureId}'`);
-  }
-
-  if (isContractAtStartMessage(message)) {
-    return console.log(`contract at start - id: '${message.futureId}'`);
-  }
-
-  /* interaction messages */
-
-  if (isDeployContractInteraction(message)) {
-    return console.log(
-      `deploy contract interaction - id: '${message.futureId}' - executionId: ${message.executionId}`
-    );
-  }
-
-  if (isCallFunctionInteraction(message)) {
-    return console.log(
-      `call function interaction - id: '${message.futureId}' - executionId: ${message.executionId}`
-    );
-  }
-
-  if (isStaticCallInteraction(message)) {
-    return console.log(
-      `static call interaction - id: '${message.futureId}' - executionId: ${message.executionId}`
-    );
-  }
-
-  if (isReadEventArgumentInteraction(message)) {
-    return console.log(
-      `read event argument interaction - id: '${message.futureId}' - executionId: ${message.executionId}`
-    );
-  }
-
-  if (isSendDataInteraction(message)) {
-    return console.log(
-      `send data interaction - id: '${message.futureId}' - executionId: ${message.executionId}`
-    );
-  }
-
-  if (isContractAtInteraction(message)) {
-    return console.log(
-      `contract at interaction - id: '${message.futureId}' - executionId: ${message.executionId}`
-    );
-  }
-
-  /* onchain transaction messages */
-
-  if (isOnchainTransactionRequest(message)) {
-    return console.log(
-      `on-chain transaction requested - id: ${message.futureId} - executionId: ${message.executionId} - from: ${message.from} - nonce: ${message.nonce}`
-    );
-  }
-
-  if (isOnchainTransactionAccept(message)) {
-    return console.log(
-      `on-chain transaction accepted - id: ${message.futureId} - executionId: ${message.executionId} - txId: ${message.txHash}`
-    );
-  }
-
-  if (isOnchainTransactionReset(message)) {
-    return console.log(
-      `on-chain transaction reset - id: ${message.futureId} - executionId: ${message.executionId}`
-    );
-  }
-
-  /* onchain success messages */
-
-  if (isOnchainDeployContractSuccessMessage(message)) {
-    return console.log(
-      `on-chain deploy contract success - id: '${message.futureId}' - executionId: ${message.executionId} - txId: '${message.txId}'`
-    );
-  }
-
-  if (isOnchainCallFunctionSuccessMessage(message)) {
-    return console.log(
-      `on-chain call function success - id: '${message.futureId}' - executionId: ${message.executionId} - txId: '${message.txId}'`
-    );
-  }
-
-  if (isOnchainStaticCallSuccessMessage(message)) {
-    return console.log(
-      `on-chain static call success - id: '${
-        message.futureId
-      }' - executionId: ${
-        message.executionId
-      } - result: '${solidityParamToString(message.result)}'`
-    );
-  }
-
-  if (isOnchainReadEventArgumentSuccessMessage(message)) {
-    return console.log(
-      `on-chain read event argument success - id: '${
-        message.futureId
-      }' - executionId: ${
-        message.executionId
-      } - result: '${solidityParamToString(message.result)}'`
-    );
-  }
-
-  if (isOnchainSendDataSuccessMessage(message)) {
-    return console.log(
-      `on-chain send data success - id: '${message.futureId}' - executionId: ${message.executionId} - txId: '${message.txId}'`
-    );
-  }
-
-  if (isOnchainContractAtSuccessMessage(message)) {
-    return console.log(
-      `on-chain contract at success - id: '${message.futureId}' - executionId: ${message.executionId}`
-    );
-  }
-
-  /* execution success messages */
-
-  if (isDeployedContractExecutionSuccess(message)) {
-    return console.log(
-      `deploy contract execution success - id: '${message.futureId}' - txId: '${message.txId}'`
-    );
-  }
-
-  if (isCalledFunctionExecutionSuccess(message)) {
-    return console.log(
-      `call function execution success - id: '${message.futureId}' - txId: '${message.txId}'`
-    );
-  }
-
-  if (isStaticCallExecutionSuccess(message)) {
-    return console.log(
-      `static call execution success - id: '${
-        message.futureId
-      }' - result: '${solidityParamToString(message.result)}'`
-    );
-  }
-
-  if (isReadEventArgumentExecutionSuccess(message)) {
-    return console.log(
-      `read event argument execution success - id: '${
-        message.futureId
-      }' - result: '${solidityParamToString(message.result)}'`
-    );
-  }
-
-  if (isSendDataExecutionSuccess(message)) {
-    return console.log(
-      `send data execution success - id: '${message.futureId}' - txId: '${message.txId}'`
-    );
-  }
-
-  if (isContractAtExecutionSuccess(message)) {
-    return console.log(
-      `contract at execution success - id: '${message.futureId}'`
-    );
-  }
-
-  /* hold & failure messages */
-
-  if (isExecutionHold(message)) {
-    return console.log(`Execution on hold`);
-  }
-
-  if (isOnchainFailureMessage(message)) {
-    return console.log(
-      `on chain failure - futureId: '${message.futureId}' - executionId: ${message.executionId} - error: '${message.error.message}'`
-    );
-  }
-
-  if (isExecutionTimeout(message)) {
-    return console.log(
-      `execution timeout - futureId: '${message.futureId}' - executionId: ${message.executionId}'`
-    );
-  }
-
-  if (isExecutionFailure(message)) {
-    return console.log(
-      `execution failure - futureId: '${message.futureId}' - error: '${message.error.message}'`
-    );
-  }
-
-  if (isWipeMessage(message)) {
-    return console.log(`wiping journal`);
-  }
-
-  assertNeverJournalableMessag(message);
-}
-
-function solidityParamToString(param: SolidityParameterType): string {
-  if (typeof param === "object") {
-    return JSON.stringify(param);
-  }
-
-  if (typeof param === "string") {
-    return param;
-  }
-
-  return param.toString();
-}
-
-function assertNeverJournalableMessag(message: never): never {
-  throw new Error(`Unknown journal message: ${JSON.stringify(message)}`);
 }

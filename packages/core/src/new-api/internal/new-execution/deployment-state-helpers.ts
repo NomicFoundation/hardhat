@@ -17,13 +17,8 @@ import {
 export async function loadDeploymentState(
   deploymentLoader: DeploymentLoader
 ): Promise<DeploymentState | undefined> {
-  // TODO: This cast is only necessary because we haven't updated the type of the
-  //  deployment loader yet. It must be removed soon.
-  const messages =
-    deploymentLoader.readFromJournal() as AsyncGenerator<JournalMessage>;
-
   let deploymentState: DeploymentState | undefined;
-  for await (const message of messages) {
+  for await (const message of deploymentLoader.readFromJournal()) {
     deploymentState = deploymentStateReducer(deploymentState, message);
   }
 
@@ -46,9 +41,7 @@ export async function initializeDeploymentState(
     chainId,
   };
 
-  // TODO: this cast as `as any` is a temporary hack because we haven't updated the
-  //  type of the deployment loader yet. It must be removed soon.
-  await deploymentLoader.recordToJournal(message as any);
+  await deploymentLoader.recordToJournal(message);
 
   return deploymentStateReducer(undefined, message);
 }
@@ -68,9 +61,7 @@ export async function applyNewMessage(
   deploymentLoader: DeploymentLoader
 ): Promise<DeploymentState> {
   if (shouldBeJournaled(message)) {
-    // TODO: this cast as `as any` is a temporary hack because we haven't updated the
-    //  type of the deployment loader yet. It must be removed soon.
-    await deploymentLoader.recordToJournal(message as any);
+    await deploymentLoader.recordToJournal(message);
   }
 
   return deploymentStateReducer(deploymentState, message);
