@@ -1,5 +1,3 @@
-import { every } from "lodash";
-
 import { FutureType } from "../types/module";
 
 import {
@@ -10,7 +8,7 @@ import {
   ReadEventArgumentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "./execution/types";
+} from "./new-execution/types/execution-state";
 
 export function isDeploymentExecutionState(
   executionState: ExecutionState
@@ -61,8 +59,7 @@ export function isContractExecutionStateArray(
 ): executionStateArray is Array<
   DeploymentExecutionState | ContractAtExecutionState
 > {
-  return every(
-    executionStateArray,
+  return executionStateArray.every(
     (state) =>
       isDeploymentExecutionState(state) || isContractAtExecutionState(state)
   );
