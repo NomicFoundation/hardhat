@@ -55,7 +55,7 @@ export class IgnitionHelper {
       provider: this._provider,
       deploymentDir: this._deploymentDir,
       artifactResolver,
-      moduleDefinition: ignitionModuleDefinition,
+      ignitionModule: ignitionModuleDefinition,
       deploymentParameters: parameters,
       accounts,
       verbose: false,
