@@ -31,8 +31,12 @@ export function addressToErrorString(potential: string | undefined) {
 }
 
 const METADATA_LENGTH = 2;
-function getMetadataSectionLength(bytecode: Buffer): number {
-  return bytecode.slice(-METADATA_LENGTH).readUInt16BE(0) + METADATA_LENGTH;
+function getMetadataSectionLength(bytecode: Buffer): number | undefined {
+  try {
+    return bytecode.slice(-METADATA_LENGTH).readUInt16BE(0) + METADATA_LENGTH;
+  } catch {
+    return undefined;
+  }
 }
 
 function isValidMetadata(data: Buffer): boolean {
@@ -48,6 +52,10 @@ function isValidMetadata(data: Buffer): boolean {
 export function getBytecodeWithoutMetadata(bytecode: string): string {
   const bytecodeBuffer = Buffer.from(bytecode.slice(2), "hex");
   const metadataSectionLength = getMetadataSectionLength(bytecodeBuffer);
+
+  if (metadataSectionLength === undefined) {
+    return bytecode;
+  }
 
   const metadataPayload = bytecodeBuffer.slice(
     -metadataSectionLength,
