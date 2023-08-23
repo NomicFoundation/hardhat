@@ -15,7 +15,8 @@ import { clearPendingTransactionsFromMemoryPool } from "./execution/helpers";
 import { waitForPendingTxs } from "./helpers";
 
 const defaultTestConfig: DeployConfig = {
-  transactionTimeoutInterval: 1000,
+  maxFeeBumps: 5,
+  timeBeforeBumpingFees: 3 * 60 * 1000,
   blockPollingInterval: 200,
   requiredConfirmations: 1,
 };

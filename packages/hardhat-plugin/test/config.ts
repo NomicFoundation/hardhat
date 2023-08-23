@@ -24,15 +24,20 @@ describe("config", () => {
       assert.equal(loadedOptions.blockPollingInterval, 100);
     });
 
-    it("should apply transactionTimeoutInterval", async function () {
-      assert.equal(loadedOptions.transactionTimeoutInterval, 60 * 1000);
+    it("should apply timeBeforeBumpingFees", async function () {
+      assert.equal(loadedOptions.timeBeforeBumpingFees, 3 * 60 * 1000);
+    });
+
+    it("should apply maxFeeBumps", async function () {
+      assert.equal(loadedOptions.maxFeeBumps, 5);
     });
 
     it("should only have known config", () => {
       const configOptions: KeyListOf<DeployConfig> = [
-        "blockConfirmations",
+        "maxFeeBumps",
         "blockPollingInterval",
-        "transactionTimeoutInterval",
+        "requiredConfirmations",
+        "timeBeforeBumpingFees",
       ];
 
       assert.deepStrictEqual(Object.keys(loadedOptions).sort(), configOptions);
