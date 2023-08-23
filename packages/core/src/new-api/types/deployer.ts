@@ -18,16 +18,21 @@ export interface DeployConfig {
   blockPollingInterval: number;
 
   /**
-   * The amount of time, in milliseconds, to wait on a transaction to
-   * confirm before timing out
+   * The amount of time, in milliseconds, to wait on a transaction before
+   * bumping its fees.
    */
-  transactionTimeoutInterval: number;
+  timeBeforeBumpingFees: number;
+
+  /**
+   * The maximum amount of times a transaction is bumped.
+   */
+  maxFeeBumps: number;
 
   /**
    * The number of block confirmations to wait before considering
    * a transaction to be confirmed during Ignition execution.
    */
-  blockConfirmations: number;
+  requiredConfirmations: number;
 }
 
 /**

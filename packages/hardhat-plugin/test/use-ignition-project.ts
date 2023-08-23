@@ -17,7 +17,7 @@ import { waitForPendingTxs } from "./helpers";
 const defaultTestConfig: DeployConfig = {
   transactionTimeoutInterval: 1000,
   blockPollingInterval: 200,
-  blockConfirmations: 1,
+  requiredConfirmations: 1,
 };
 
 export function useEphemeralIgnitionProject(fixtureProjectName: string) {

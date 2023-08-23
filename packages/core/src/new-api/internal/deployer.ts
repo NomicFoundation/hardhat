@@ -53,8 +53,8 @@ export class Deployer {
     private readonly _deploymentLoader: DeploymentLoader
   ) {
     assertIgnitionInvariant(
-      this._config.blockConfirmations >= 1,
-      `Configured value 'blockConfirmations' cannot be less than 1. Value given: '${this._config.blockConfirmations}'`
+      this._config.requiredConfirmations >= 1,
+      `Configured value 'blockConfirmations' cannot be less than 1. Value given: '${this._config.requiredConfirmations}'`
     );
   }
 
@@ -119,9 +119,9 @@ export class Deployer {
       this._artifactResolver,
       this._executionStrategy,
       this._jsonRpcClient,
-      this._config.blockConfirmations,
-      100_000,
-      10,
+      this._config.requiredConfirmations,
+      this._config.timeBeforeBumpingFees,
+      this._config.maxFeeBumps,
       this._config.blockPollingInterval
     );
 

@@ -17,7 +17,7 @@ describe("config", () => {
     });
 
     it("should apply blockConfirmations", async function () {
-      assert.equal(loadedOptions.blockConfirmations, 10);
+      assert.equal(loadedOptions.requiredConfirmations, 10);
     });
 
     it("should apply blockPollingInterval", async function () {

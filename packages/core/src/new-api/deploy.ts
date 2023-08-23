@@ -1,3 +1,7 @@
+import {
+  DEFAULT_AUTOMINE_REQUIRED_CONFIRMATIONS,
+  defaultConfig,
+} from "./internal/defaultConfig";
 import { Deployer } from "./internal/deployer";
 import { EphemeralDeploymentLoader } from "./internal/deployment-loader/ephemeral-deployment-loader";
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader";
@@ -53,11 +57,18 @@ export async function deploy({
 
   const jsonRpcClient = new EIP1193JsonRpcClient(provider);
 
-  // TODO: resolve config here
   const isAutominedNetwork = await checkAutominedNetwork(provider);
 
+  const resolvedConfig: DeployConfig = {
+    ...defaultConfig,
+    ...config,
+    requiredConfirmations: isAutominedNetwork
+      ? DEFAULT_AUTOMINE_REQUIRED_CONFIRMATIONS
+      : config.requiredConfirmations ?? defaultConfig.requiredConfirmations,
+  };
+
   const deployer = new Deployer(
-    config as any,
+    resolvedConfig,
     executionStrategy,
     jsonRpcClient,
     artifactResolver,
