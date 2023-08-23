@@ -55,7 +55,7 @@ mod test {
                     cumulative_gas_used: U256::from(1),
                     logs_bloom: Bloom::default(),
                     logs: vec![],
-                    data: TypedReceiptData::EIP1559 { status: 1 },
+                    data: TypedReceiptData::Eip1559 { status: 1 },
                 },
                 transaction_hash: B256::default(),
                 transaction_index: 5,
