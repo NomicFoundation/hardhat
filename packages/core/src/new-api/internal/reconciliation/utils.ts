@@ -3,12 +3,15 @@ import type CborT from "cbor";
 
 import { Future, ModuleParameterType } from "../../types/module";
 
-import { ReconciliationFutureResult } from "./types";
+import {
+  ReconciliationFutureResult,
+  ReconciliationFutureResultFailure,
+} from "./types";
 
 export function fail(
   future: Future,
   failure: string
-): ReconciliationFutureResult {
+): ReconciliationFutureResultFailure {
   return {
     success: false,
     failure: {

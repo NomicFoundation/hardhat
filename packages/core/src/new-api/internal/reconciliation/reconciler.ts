@@ -1,6 +1,7 @@
 import { DeploymentParameters } from "../../types/deployer";
 import { Future, IgnitionModule } from "../../types/module";
-import { ExecutionState, ExecutionStateMap } from "../execution/types";
+import { DeploymentState } from "../new-execution/types/deployment-state";
+import { ExecutionState } from "../new-execution/types/execution-state";
 import { AdjacencyList } from "../utils/adjacency-list";
 import { AdjacencyListConverter } from "../utils/adjacency-list-converter";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
@@ -21,7 +22,7 @@ import {
 export class Reconciler {
   public static reconcile(
     module: IgnitionModule,
-    executionStateMap: ExecutionStateMap,
+    deploymentState: DeploymentState,
     deploymentParameters: DeploymentParameters,
     accounts: string[],
     moduleArtifactMap: ArtifactMap,
@@ -30,7 +31,7 @@ export class Reconciler {
     const reconciliationFailures = this._reconcileEachFutureInModule(
       module,
       {
-        executionStateMap,
+        deploymentState,
         deploymentParameters,
         accounts,
         moduleArtifactMap,
@@ -43,9 +44,11 @@ export class Reconciler {
       ]
     );
 
+    // TODO: Reconcile sender of incomplete futures.
+
     const missingExecutedFutures = this._missingPreviouslyExecutedFutures(
       module,
-      executionStateMap
+      deploymentState
     );
 
     return { reconciliationFailures, missingExecutedFutures };
@@ -63,7 +66,7 @@ export class Reconciler {
     const failures = futures
       .map<[Future, ExecutionState]>((f) => [
         f,
-        context.executionStateMap[f.id],
+        context.deploymentState.executionStates[f.id],
       ])
       .filter(([, exState]) => exState !== undefined)
       .map(([f, exState]) => this._check(f, exState, context, checks))
@@ -75,15 +78,15 @@ export class Reconciler {
 
   private static _missingPreviouslyExecutedFutures(
     module: IgnitionModule,
-    executionStateMap: ExecutionStateMap
+    deploymentState: DeploymentState
   ) {
     const moduleFutures = new Set(
       getFuturesFromModule(module).map((f) => f.id)
     );
 
-    const previouslyStarted = Object.values(executionStateMap).map(
-      (es) => es.id
-    );
+    const previouslyStarted = Object.values(
+      deploymentState.executionStates
+    ).map((es) => es.id);
 
     const missing = previouslyStarted.filter((sf) => !moduleFutures.has(sf));
 

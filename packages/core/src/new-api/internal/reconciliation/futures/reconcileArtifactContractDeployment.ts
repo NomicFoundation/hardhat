@@ -1,85 +1,46 @@
-import { isEqual } from "lodash";
-
 import { ArtifactContractDeploymentFuture } from "../../../types/module";
-import { DeploymentExecutionState } from "../../execution/types";
-import { resolveFromAddress } from "../../utils/resolve-from-address";
-import { resolveModuleParameter } from "../../utils/resolve-module-parameter";
-import { ExecutionStateResolver } from "../execution-state-resolver";
+import { DeploymentExecutionState } from "../../new-execution/types/execution-state";
+import { reconcileArguments } from "../helpers/reconcile-arguments";
+import { reconcileArtifacts } from "../helpers/reconcile-artifacts";
+import { reconcileContractName } from "../helpers/reconcile-contract-name";
+import { reconcileFrom } from "../helpers/reconcile-from";
+import { reconcileLibraries } from "../helpers/reconcile-libraries";
+import { reconcileValue } from "../helpers/reconcile-value";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
-import {
-  addressToErrorString,
-  fail,
-  getBytecodeWithoutMetadata,
-} from "../utils";
 
 export function reconcileArtifactContractDeployment(
   future: ArtifactContractDeploymentFuture,
   executionState: DeploymentExecutionState,
   context: ReconciliationContext
 ): ReconciliationFutureResult {
-  if (!isEqual(future.contractName, executionState.contractName)) {
-    return fail(
-      future,
-      `Contract name has been changed from ${executionState.contractName} to ${future.contractName}`
-    );
+  let result = reconcileContractName(future, executionState, context);
+  if (result !== undefined) {
+    return result;
   }
 
-  const moduleArtifact = context.moduleArtifactMap[future.id];
-  const storedArtifact = context.storedArtifactMap[future.id];
-
-  const moduleArtifactBytecode = getBytecodeWithoutMetadata(
-    moduleArtifact.bytecode
-  );
-  const storedArtifactBytecode = getBytecodeWithoutMetadata(
-    storedArtifact.bytecode
-  );
-
-  if (!isEqual(moduleArtifactBytecode, storedArtifactBytecode)) {
-    return fail(future, "Artifact bytecodes have been changed");
+  result = reconcileArtifacts(future, executionState, context);
+  if (result !== undefined) {
+    return result;
   }
 
-  const resolvedArgs = ExecutionStateResolver.resolveArgsFromExectuionState(
-    future.constructorArgs,
-    context
-  );
-  if (!isEqual(resolvedArgs, executionState.constructorArgs)) {
-    return fail(future, "Constructor args have been changed");
+  result = reconcileArguments(future, executionState, context);
+  if (result !== undefined) {
+    return result;
   }
 
-  const resolvedLibraries =
-    ExecutionStateResolver.resolveLibrariesFromExecutionState(
-      future.libraries,
-      context
-    );
-  if (!isEqual(resolvedLibraries, executionState.libraries)) {
-    return fail(future, "Libraries have been changed");
+  result = reconcileLibraries(future, executionState, context);
+  if (result !== undefined) {
+    return result;
   }
 
-  const resolvedValue =
-    typeof future.value === "bigint"
-      ? future.value
-      : (resolveModuleParameter(future.value, context) as bigint);
-
-  if (!isEqual(resolvedValue, executionState.value)) {
-    return fail(
-      future,
-      `Value has been changed from ${executionState.value} to ${resolvedValue}`
-    );
+  result = reconcileValue(future, executionState, context);
+  if (result !== undefined) {
+    return result;
   }
 
-  const resolvedFutureFromAddress = resolveFromAddress(future.from, context);
-  const executionStateFrom =
-    ExecutionStateResolver.resolveFromAddress(executionState);
-  if (
-    executionStateFrom !== undefined &&
-    !isEqual(resolvedFutureFromAddress, executionStateFrom)
-  ) {
-    return fail(
-      future,
-      `From account has been changed from ${addressToErrorString(
-        executionStateFrom
-      )} to ${addressToErrorString(resolvedFutureFromAddress)}`
-    );
+  result = reconcileFrom(future, executionState, context);
+  if (result !== undefined) {
+    return result;
   }
 
   return {

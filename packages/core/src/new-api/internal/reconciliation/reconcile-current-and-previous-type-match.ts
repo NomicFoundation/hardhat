@@ -1,13 +1,13 @@
 import { Future, FutureType } from "../../types/module";
-import { ExecutionState, ExecutionStateMap } from "../execution/types";
+import { ExecutionState } from "../new-execution/types/execution-state";
 
-import { ReconciliationFutureResult } from "./types";
+import { ReconciliationContext, ReconciliationFutureResult } from "./types";
 import { fail } from "./utils";
 
 export function reconcileCurrentAndPreviousTypeMatch(
   future: Future,
   executionState: ExecutionState,
-  _context: { executionStateMap: ExecutionStateMap }
+  _context: ReconciliationContext
 ): ReconciliationFutureResult {
   if (executionState.futureType === future.type) {
     return { success: true };
