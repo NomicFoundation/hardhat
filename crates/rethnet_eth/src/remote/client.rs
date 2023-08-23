@@ -26,9 +26,9 @@ use super::{
 };
 
 const RPC_CACHE_DIR: &str = "rpc_cache";
-// More than 16 parallel reads does not significantly improve performance on any disk/workload, but
+// More than 16 concurrent reads does not significantly improve performance on any disk/workload, but
 // it can cause slow downs based on this article <https://pkolaczk.github.io/disk-parallelism/>.
-const PARALLEL_DISK_READS: usize = 16;
+const CONCURRENT_DISK_READS: usize = 16;
 
 /// Specialized error types
 #[derive(Debug, thiserror::Error)]
@@ -382,7 +382,7 @@ impl RpcClient {
 
         let mut results: Vec<Option<serde_json::Value>> = stream::iter(&cache_keys)
             .map(|cache_key| self.try_from_cache(cache_key.as_ref()))
-            .buffered(PARALLEL_DISK_READS)
+            .buffered(CONCURRENT_DISK_READS)
             .collect::<Vec<Result<_, RpcClientError>>>()
             .await
             .into_iter()
