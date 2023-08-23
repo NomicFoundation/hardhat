@@ -1,5 +1,6 @@
 import type { EthereumProvider } from "hardhat/types";
 import type { Chain } from "viem";
+import type { TestClientMode } from "viem/src/clients/createTestClient";
 
 import memoize from "lodash.memoize";
 
@@ -40,6 +41,18 @@ export async function getChain(provider: EthereumProvider): Promise<Chain> {
 
 export function isDevelopmentNetwork(chainId: number) {
   return chainId === 31337;
+}
+
+export async function getMode(
+  provider: EthereumProvider
+): Promise<TestClientMode> {
+  if (await isHardhatNetwork(provider)) {
+    return "hardhat";
+  } else if (await isFoundryNetwork(provider)) {
+    return "anvil";
+  } else {
+    throw new UnknownDevelopmentNetworkError();
+  }
 }
 
 async function getChainId(provider: EthereumProvider) {
