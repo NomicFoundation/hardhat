@@ -6,6 +6,7 @@ import { assert } from "chai";
 import { KeyListOf } from "./type-helper";
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
+// eslint-disable-next-line no-only-tests/no-only-tests
 describe.only("config", () => {
   describe("loading", () => {
     useEphemeralIgnitionProject("with-config");
@@ -47,7 +48,7 @@ describe.only("config", () => {
   describe("validating", () => {
     useEphemeralIgnitionProject("with-invalid-config");
 
-    it.skip("should throw when given a `requiredConfirmations` value less than 1", async function () {
+    it("should throw when given a `requiredConfirmations` value less than 1", async function () {
       const moduleDefinition = buildModule("FooModule", (m) => {
         const foo = m.contract("Foo");
 

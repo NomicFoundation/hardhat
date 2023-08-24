@@ -74,10 +74,10 @@ export async function deploy({
 
   const resolvedConfig: DeployConfig = {
     ...defaultConfig,
-    ...config,
     requiredConfirmations: isAutominedNetwork
       ? DEFAULT_AUTOMINE_REQUIRED_CONFIRMATIONS
       : config.requiredConfirmations ?? defaultConfig.requiredConfirmations,
+    ...config,
   };
 
   const deployer = new Deployer(
