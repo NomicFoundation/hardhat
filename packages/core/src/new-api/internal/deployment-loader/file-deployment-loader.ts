@@ -2,6 +2,7 @@ import { ensureDir, pathExists, readFile, writeFile } from "fs-extra";
 import path from "path";
 
 import { Artifact, BuildInfo } from "../../types/artifact";
+import { UiEventListener } from "../../types/ui-events";
 import { FileJournal } from "../journal/file-journal";
 import { Journal } from "../journal/types";
 import { JournalMessage } from "../new-execution/types/messages";
@@ -22,7 +23,8 @@ export class FileDeploymentLoader implements DeploymentLoader {
 
   constructor(
     private readonly _deploymentDirPath: string,
-    private readonly _verbose: boolean
+    private readonly _verbose: boolean,
+    private readonly _uiEventListener: UiEventListener
   ) {
     const artifactsDir = path.join(this._deploymentDirPath, "artifacts");
     const buildInfoDir = path.join(this._deploymentDirPath, "build-info");
@@ -32,7 +34,11 @@ export class FileDeploymentLoader implements DeploymentLoader {
       "deployed_addresses.json"
     );
 
-    this._journal = new FileJournal(journalPath, this._verbose);
+    this._journal = new FileJournal(
+      journalPath,
+      this._verbose,
+      _uiEventListener
+    );
 
     this._paths = {
       deploymentDir: this._deploymentDirPath,

@@ -2,7 +2,7 @@ import {
   deploy,
   DeploymentParameters,
   plan,
-  UiEventEmitter,
+  UiEventListener,
   wipe,
 } from "@ignored/ignition-core";
 import "@nomicfoundation/hardhat-ethers";
@@ -137,14 +137,12 @@ task("deploy")
 
         const artifactResolver = new HardhatArtifactResolver(hre);
 
-        const uiEventEmitter = new UiEventEmitter();
-
-        setupUiListeners(uiEventEmitter);
+        const uiEventListener = setupUiListeners();
 
         const result = await deploy({
           config: hre.config.ignition,
           provider: hre.network.provider,
-          uiEventEmitter,
+          uiEventListener,
           artifactResolver,
           deploymentDir,
           ignitionModule: userModule,

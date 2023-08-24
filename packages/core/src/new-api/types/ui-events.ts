@@ -1,5 +1,3 @@
-import { EventEmitter } from "node:events";
-
 export type UiEvent =
   | RunStartEvent
   | WipeExecutionStateEvent
@@ -158,21 +156,6 @@ export interface UiEventTypeMap {
   [UiEventType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE]: ReadEventArgExecutionStateInitializeEvent;
 }
 
-export class UiEventEmitter {
-  private _emitter: EventEmitter = new EventEmitter();
-
-  public on<Key extends string & keyof UiEventTypeMap>(
-    eventName: Key,
-    callback: (data: UiEventTypeMap[Key]) => void
-  ): this {
-    this._emitter.on(eventName, callback);
-    return this;
-  }
-
-  public emit<Key extends string & keyof UiEventTypeMap>(
-    eventName: Key,
-    data: UiEventTypeMap[Key]
-  ): boolean {
-    return this._emitter.emit(eventName, data);
-  }
-}
+export type UiEventListener = {
+  [eventType in UiEventType]: (event: UiEventTypeMap[eventType]) => void;
+};

@@ -1,4 +1,19 @@
-import { UiEventEmitter, UiEventType } from "../../../types/ui-events";
+import {
+  UiCallResult,
+  UiDeploymentResult,
+  UiEventListener,
+  UiEventType,
+  UiResultType,
+  UiSendDataResult,
+  UiStaticCallResult,
+} from "../../../types/ui-events";
+import {
+  CallExecutionResult,
+  DeploymentExecutionResult,
+  ExecutionResultType,
+  SendDataExecutionResult,
+  StaticCallExecutionResult,
+} from "../../new-execution/types/execution-result";
 import {
   JournalMessage,
   JournalMessageType,
@@ -6,70 +21,98 @@ import {
 
 export function emitUiEvent(
   message: JournalMessage,
-  uiEventEmitter: UiEventEmitter
+  uiEventListener: UiEventListener
 ): void {
   switch (message.type) {
     case JournalMessageType.RUN_START: {
-      uiEventEmitter.emit(
-        UiEventType.RUN_START,
-        convertJournalMessageToEventData(message) // helper pseudo-code for now
-      );
+      uiEventListener[UiEventType.RUN_START]({
+        type: UiEventType.RUN_START,
+        chainId: message.chainId,
+      });
       break;
     }
     case JournalMessageType.WIPE_EXECUTION_STATE: {
-      throw new Error(
-        "Not implemented yet: JournalMessageType.WIPE_EXECUTION_STATE case"
-      );
+      uiEventListener[UiEventType.WIPE_EXECUTION_STATE]({
+        type: UiEventType.WIPE_EXECUTION_STATE,
+        futureId: message.futureId,
+      });
+      break;
     }
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE: {
-      throw new Error(
-        "Not implemented yet: JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE case"
-      );
+      uiEventListener[UiEventType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE]({
+        type: UiEventType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE,
+        futureId: message.futureId,
+      });
+      break;
     }
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE: {
-      throw new Error(
-        "Not implemented yet: JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE case"
-      );
+      uiEventListener[UiEventType.DEPLOYMENT_EXECUTION_STATE_COMPLETE]({
+        type: UiEventType.DEPLOYMENT_EXECUTION_STATE_COMPLETE,
+        futureId: message.futureId,
+        result: convertDeploymentResultToUiResult(message.result),
+      });
+      break;
     }
     case JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE: {
-      throw new Error(
-        "Not implemented yet: JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE case"
-      );
+      uiEventListener[UiEventType.CALL_EXECUTION_STATE_INITIALIZE]({
+        type: UiEventType.CALL_EXECUTION_STATE_INITIALIZE,
+        futureId: message.futureId,
+      });
+      break;
     }
     case JournalMessageType.CALL_EXECUTION_STATE_COMPLETE: {
-      throw new Error(
-        "Not implemented yet: JournalMessageType.CALL_EXECUTION_STATE_COMPLETE case"
-      );
+      uiEventListener[UiEventType.CALL_EXECUTION_STATE_COMPLETE]({
+        type: UiEventType.CALL_EXECUTION_STATE_COMPLETE,
+        futureId: message.futureId,
+        result: convertCallResultToUiResult(message.result),
+      });
+      break;
     }
     case JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE: {
-      throw new Error(
-        "Not implemented yet: JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE case"
-      );
+      uiEventListener[UiEventType.STATIC_CALL_EXECUTION_STATE_INITIALIZE]({
+        type: UiEventType.STATIC_CALL_EXECUTION_STATE_INITIALIZE,
+        futureId: message.futureId,
+      });
+      break;
     }
     case JournalMessageType.STATIC_CALL_EXECUTION_STATE_COMPLETE: {
-      throw new Error(
-        "Not implemented yet: JournalMessageType.STATIC_CALL_EXECUTION_STATE_COMPLETE case"
-      );
+      uiEventListener[UiEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE]({
+        type: UiEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE,
+        futureId: message.futureId,
+        result: convertStaticCallResultToUiResult(message.result),
+      });
+      break;
     }
     case JournalMessageType.SEND_DATA_EXECUTION_STATE_INITIALIZE: {
-      throw new Error(
-        "Not implemented yet: JournalMessageType.SEND_DATA_EXECUTION_STATE_INITIALIZE case"
-      );
+      uiEventListener[UiEventType.SEND_DATA_EXECUTION_STATE_INITIALIZE]({
+        type: UiEventType.SEND_DATA_EXECUTION_STATE_INITIALIZE,
+        futureId: message.futureId,
+      });
+      break;
     }
     case JournalMessageType.SEND_DATA_EXECUTION_STATE_COMPLETE: {
-      throw new Error(
-        "Not implemented yet: JournalMessageType.SEND_DATA_EXECUTION_STATE_COMPLETE case"
-      );
+      uiEventListener[UiEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE]({
+        type: UiEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE,
+        futureId: message.futureId,
+        result: convertSendDataResultToUiResult(message.result),
+      });
+      break;
     }
     case JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE: {
-      throw new Error(
-        "Not implemented yet: JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE case"
-      );
+      uiEventListener[UiEventType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE]({
+        type: UiEventType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE,
+        futureId: message.futureId,
+      });
+      break;
     }
     case JournalMessageType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE: {
-      throw new Error(
-        "Not implemented yet: JournalMessageType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE case"
-      );
+      uiEventListener[
+        UiEventType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE
+      ]({
+        type: UiEventType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE,
+        futureId: message.futureId,
+      });
+      break;
     }
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
     case JournalMessageType.TRANSACTION_SEND:
@@ -79,6 +122,35 @@ export function emitUiEvent(
     case JournalMessageType.ONCHAIN_INTERACTION_DROPPED:
     case JournalMessageType.ONCHAIN_INTERACTION_REPLACED_BY_USER:
     case JournalMessageType.ONCHAIN_INTERACTION_TIMEOUT:
+      // todo: implement these as well
       return;
   }
 }
+
+function convertDeploymentResultToUiResult(
+  result: DeploymentExecutionResult
+): UiDeploymentResult {
+  if (result.type === ExecutionResultType.SUCCESS) {
+    return {
+      type: UiResultType.SUCCESS,
+      address: result.address,
+    };
+  }
+
+  return {
+    type: UiResultType.ERROR,
+    error: result,
+  };
+}
+
+function convertCallResultToUiResult(
+  result: CallExecutionResult
+): UiCallResult {}
+
+function convertStaticCallResultToUiResult(
+  result: StaticCallExecutionResult
+): UiStaticCallResult {}
+
+function convertSendDataResultToUiResult(
+  result: SendDataExecutionResult
+): UiSendDataResult {}

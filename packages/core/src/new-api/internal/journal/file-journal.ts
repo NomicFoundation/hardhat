@@ -2,10 +2,12 @@
 import fs, { closeSync, constants, openSync, writeFileSync } from "fs";
 import { parse } from "ndjson";
 
+import { UiEventListener } from "../../types/ui-events";
 import { JournalMessage } from "../new-execution/types/messages";
 
 import { Journal } from "./types";
 import { deserializeReplacer } from "./utils/deserialize-replacer";
+import { emitUiEvent } from "./utils/emitUiEvent";
 import { logJournalableMessage } from "./utils/log";
 import { serializeReplacer } from "./utils/serialize-replacer";
 
@@ -15,7 +17,11 @@ import { serializeReplacer } from "./utils/serialize-replacer";
  * @beta
  */
 export class FileJournal implements Journal {
-  constructor(private _filePath: string, private _verbose: boolean = false) {}
+  constructor(
+    private _filePath: string,
+    private _verbose: boolean = false,
+    private _uiEventListener: UiEventListener
+  ) {}
 
   public record(message: JournalMessage): void {
     this._log(message);
@@ -61,7 +67,9 @@ export class FileJournal implements Journal {
 
   private _log(message: JournalMessage): void {
     if (this._verbose) {
-      return logJournalableMessage(message);
+      logJournalableMessage(message);
     }
+
+    emitUiEvent(message, this._uiEventListener);
   }
 }

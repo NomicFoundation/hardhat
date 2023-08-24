@@ -20,7 +20,7 @@ import {
 } from "./types/deployer";
 import { IgnitionModule } from "./types/module";
 import { EIP1193Provider } from "./types/provider";
-import { UiEventEmitter } from "./types/ui-events";
+import { UiEventListener } from "./types/ui-events";
 
 /**
  * Deploy an IgnitionModule to the chain
@@ -31,7 +31,7 @@ export async function deploy({
   config = {},
   artifactResolver,
   provider,
-  uiEventEmitter,
+  uiEventListener,
   deploymentDir,
   ignitionModule,
   deploymentParameters,
@@ -42,7 +42,7 @@ export async function deploy({
   config?: Partial<DeployConfig>;
   artifactResolver: ArtifactResolver;
   provider: EIP1193Provider;
-  uiEventEmitter: UiEventEmitter;
+  uiEventListener: UiEventListener;
   deploymentDir?: string;
   ignitionModule: IgnitionModule;
   deploymentParameters: DeploymentParameters;
@@ -64,8 +64,12 @@ export async function deploy({
 
   const deploymentLoader =
     deploymentDir === undefined
-      ? new EphemeralDeploymentLoader(artifactResolver, verbose, uiEventEmitter)
-      : new FileDeploymentLoader(deploymentDir, verbose, uiEventEmitter);
+      ? new EphemeralDeploymentLoader(
+          artifactResolver,
+          verbose,
+          uiEventListener
+        )
+      : new FileDeploymentLoader(deploymentDir, verbose, uiEventListener);
 
   const executionStrategy = new BasicExecutionStrategy((artifactId) =>
     deploymentLoader.loadArtifact(artifactId)

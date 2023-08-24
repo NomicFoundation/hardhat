@@ -1,4 +1,4 @@
-import { UiEventEmitter } from "../../types/ui-events";
+import { UiEventListener } from "../../types/ui-events";
 import { JournalMessage } from "../new-execution/types/messages";
 
 import { Journal } from "./types";
@@ -15,7 +15,7 @@ export class MemoryJournal implements Journal {
 
   constructor(
     private _verbose: boolean = false,
-    private _uiEventEmitter: UiEventEmitter
+    private _uiEventListener: UiEventListener
   ) {}
 
   public record(message: JournalMessage): void {
@@ -35,6 +35,6 @@ export class MemoryJournal implements Journal {
       logJournalableMessage(message);
     }
 
-    emitUiEvent(message, this._uiEventEmitter);
+    emitUiEvent(message, this._uiEventListener);
   }
 }
