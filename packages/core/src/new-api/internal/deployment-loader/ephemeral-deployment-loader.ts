@@ -1,4 +1,5 @@
 import { Artifact, ArtifactResolver, BuildInfo } from "../../types/artifact";
+import { UiEventEmitter } from "../../types/ui-events";
 import { MemoryJournal } from "../journal/memory-journal";
 import { Journal } from "../journal/types";
 import { JournalMessage } from "../new-execution/types/messages";
@@ -23,9 +24,10 @@ export class EphemeralDeploymentLoader implements DeploymentLoader {
 
   constructor(
     private _artifactResolver: ArtifactResolver,
-    private _verbose: boolean
+    private _verbose: boolean,
+    private _uiEventEmitter: UiEventEmitter
   ) {
-    this._journal = new MemoryJournal(this._verbose);
+    this._journal = new MemoryJournal(this._verbose, this._uiEventEmitter);
     this._deployedAddresses = {};
     this._savedArtifacts = {};
   }
