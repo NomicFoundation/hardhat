@@ -10,6 +10,7 @@
 /.nyc_output
 
 /*.js
+!/.eslintrc.js
 /*.js.map
 /*.d.ts
 /*.d.ts.map
