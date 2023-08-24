@@ -39,17 +39,12 @@ export async function getRemappings() {
       const remappingLines = remappingsTxt.split(/\r\n|\r|\n/);
       for (const remappingLine of remappingLines) {
         const fromTo = remappingLine.split("=");
-        if (fromTo.length !== 2) {
+
+        if (fromTo.length !== 2 || fromTo[0].includes(":")) {
           continue;
         }
 
-        const [from, to] = fromTo;
-
-        // if a remapping result starts with 'node_modules',
-        // we remove it from the string so that Hardhat can
-        // use node.js resolution to get this kind of dependencies
-        const nodeModulesPrefixRegex = /^\/?node_modules\/?/;
-        remappings[from] = to.replace(nodeModulesPrefixRegex, "");
+        remappings[fromTo[0]] = fromTo[1];
       }
 
       return remappings;

@@ -69,6 +69,7 @@ export class Resolver {
   constructor(
     private readonly _projectRoot: string,
     private readonly _parser: Parser,
+    private readonly _remappings: Record<string, string>,
     private readonly _readFile: (absolutePath: string) => Promise<string>,
     private readonly _transformImportName: (
       importName: string
@@ -86,14 +87,22 @@ export class Resolver {
       return cached;
     }
 
-    validateSourceNameFormat(sourceName);
+    const remappedSourceName = this._applyRemapping(sourceName);
+
+    validateSourceNameFormat(remappedSourceName);
 
     let resolvedFile: ResolvedFile;
 
-    if (await isLocalSourceName(this._projectRoot, sourceName)) {
-      resolvedFile = await this._resolveLocalSourceName(sourceName);
+    if (await isLocalSourceName(this._projectRoot, remappedSourceName)) {
+      resolvedFile = await this._resolveLocalSourceName(
+        sourceName,
+        remappedSourceName
+      );
     } else {
-      resolvedFile = await this._resolveLibrarySourceName(sourceName);
+      resolvedFile = await this._resolveLibrarySourceName(
+        sourceName,
+        remappedSourceName
+      );
     }
 
     this._cache.set(sourceName, resolvedFile);
@@ -109,7 +118,14 @@ export class Resolver {
     from: ResolvedFile,
     importName: string
   ): Promise<ResolvedFile> {
-    const imported = await this._transformImportName(importName);
+    // sanity check for deprecated task
+    if (importName !== (await this._transformImportName(importName))) {
+      throw new HardhatError(ERRORS.TASK_DEFINITIONS.DEPRECATED_TASK, {
+        task: "TASK_COMPILE_TRANSFORM_IMPORT_NAME",
+      });
+    }
+
+    const imported = this._applyRemapping(importName);
 
     const scheme = this._getUriScheme(imported);
     if (scheme !== undefined) {
@@ -151,7 +167,7 @@ export class Resolver {
       if (isRelativeImport) {
         sourceName = await this._relativeImportToSourceName(from, imported);
       } else {
-        sourceName = normalizeSourceName(imported);
+        sourceName = normalizeSourceName(importName); // The sourceName of the imported file is not transformed
       }
 
       const cached = this._cache.get(sourceName);
@@ -169,7 +185,10 @@ export class Resolver {
         isRelativeImport &&
         !this._isRelativeImportToLibrary(from, imported)
       ) {
-        resolvedFile = await this._resolveLocalSourceName(sourceName);
+        resolvedFile = await this._resolveLocalSourceName(
+          sourceName,
+          this._applyRemapping(sourceName)
+        );
       } else {
         resolvedFile = await this.resolveSourceName(sourceName);
       }
@@ -263,22 +282,28 @@ export class Resolver {
   }
 
   private async _resolveLocalSourceName(
-    sourceName: string
+    sourceName: string,
+    remappedSourceName: string
   ): Promise<ResolvedFile> {
     await this._validateSourceNameExistenceAndCasing(
       this._projectRoot,
-      sourceName,
+      remappedSourceName,
       false
     );
 
-    const absolutePath = path.join(this._projectRoot, sourceName);
+    const absolutePath = path.join(this._projectRoot, remappedSourceName);
     return this._resolveFile(sourceName, absolutePath);
   }
 
   private async _resolveLibrarySourceName(
-    sourceName: string
+    sourceName: string,
+    remappedSourceName: string
   ): Promise<ResolvedFile> {
-    const libraryName = this._getLibraryName(sourceName);
+    const normalizedSourceName = remappedSourceName.replace(
+      /^node_modules\//,
+      ""
+    );
+    const libraryName = this._getLibraryName(normalizedSourceName);
 
     let packageJsonPath;
     try {
@@ -304,7 +329,7 @@ export class Resolver {
     }
 
     let nodeModulesPath = path.dirname(path.dirname(packageJsonPath));
-    if (this._isScopedPackage(sourceName)) {
+    if (this._isScopedPackage(normalizedSourceName)) {
       nodeModulesPath = path.dirname(nodeModulesPath);
     }
 
@@ -314,7 +339,7 @@ export class Resolver {
       // cases we handle resolution differently
       const packageRoot = path.dirname(packageJsonPath);
       const pattern = new RegExp(`^${libraryName}/?`);
-      const fileName = sourceName.replace(pattern, "");
+      const fileName = normalizedSourceName.replace(pattern, "");
 
       await this._validateSourceNameExistenceAndCasing(
         packageRoot,
@@ -327,10 +352,10 @@ export class Resolver {
     } else {
       await this._validateSourceNameExistenceAndCasing(
         nodeModulesPath,
-        sourceName,
+        normalizedSourceName,
         true
       );
-      absolutePath = path.join(nodeModulesPath, sourceName);
+      absolutePath = path.join(nodeModulesPath, normalizedSourceName);
     }
 
     const packageInfo: {
@@ -533,5 +558,15 @@ export class Resolver {
       // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw error;
     }
+  }
+
+  private _applyRemapping(sourceName: string): string {
+    for (const [from, to] of Object.entries(this._remappings)) {
+      if (sourceName.startsWith(from)) {
+        return sourceName.replace(from, to);
+      }
+    }
+
+    return sourceName;
   }
 }

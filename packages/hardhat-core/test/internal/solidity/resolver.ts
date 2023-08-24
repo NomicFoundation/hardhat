@@ -136,6 +136,7 @@ describe("Resolver", function () {
     resolver = new Resolver(
       projectPath,
       new Parser(),
+      {},
       (absolutePath) => fsExtra.readFile(absolutePath, { encoding: "utf8" }),
       async (sourceName: string) => sourceName
     );
