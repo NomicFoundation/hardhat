@@ -648,7 +648,7 @@ const communityPlugins: IPlugin[] = [
     tags: ["Tooling", "Testing", "Tasks", "Scripts", "Solc", "Compiler"],
   },
   {
-    name: "@dlsl/hardhat-migrate",
+    name: "@solarity/hardhat-migrate",
     author: "Distributed Lab",
     authorUrl: "https://distributedlab.com/",
     description:
@@ -671,7 +671,7 @@ const communityPlugins: IPlugin[] = [
     tags: ["Deployment", "Testing", "Jest", "Smart Contracts", "Solidity"],
   },
   {
-    name: "@dlsl/hardhat-gobind",
+    name: "@solarity/hardhat-gobind",
     author: "Distributed Lab",
     authorUrl: "https://distributedlab.com/",
     description:
@@ -717,7 +717,7 @@ const communityPlugins: IPlugin[] = [
     tags: ["chainlink", "hardhat"],
   },
   {
-    name: "@dlsl/hardhat-markup",
+    name: "@solarity/hardhat-markup",
     author: "Distributed Lab",
     authorUrl: "https://distributedlab.com/",
     description:
@@ -830,6 +830,13 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/3obby/hardhat-generate-storage-namespace",
     description: "Generate unique storage namespaces within a script/task",
     tags: ["solidity", "storage", "namespace", "router"],
+  },
+  {
+    name: "@solarity/hardhat-smart-compare",
+    author: "Distributed Lab",
+    authorUrl: "https://distributedlab.com/",
+    description: "Hardhat plugin to deeply compare smart contracts",
+    tags: ["Storage Layout", "Bytecode", "Diff", "Compare"],
   },
 ];
 
