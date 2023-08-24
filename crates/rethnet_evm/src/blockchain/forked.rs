@@ -135,10 +135,13 @@ impl BlockHashRef for ForkedBlockchain {
                 |block| Ok(block.header.hash()),
             )
         } else {
-            let number = usize::try_from(number).or(Err(BlockchainError::BlockNumberTooLarge))?;
+            let local_number = usize::try_from(number - self.fork_block_number)
+                .or(Err(BlockchainError::BlockNumberTooLarge))?
+                - 1;
+
             self.local_storage
                 .blocks()
-                .get(number)
+                .get(local_number)
                 .map(|block| block.header.hash())
                 .ok_or(BlockchainError::UnknownBlockNumber)
         }
@@ -165,8 +168,11 @@ impl Blockchain for ForkedBlockchain {
                 |block| Ok(Some(block)),
             )
         } else {
-            let number = usize::try_from(number).or(Err(BlockchainError::BlockNumberTooLarge))?;
-            Ok(self.local_storage.blocks().get(number).cloned())
+            let local_number = usize::try_from(number - self.fork_block_number)
+                .or(Err(BlockchainError::BlockNumberTooLarge))?
+                - 1;
+
+            Ok(self.local_storage.blocks().get(local_number).cloned())
         }
     }
 

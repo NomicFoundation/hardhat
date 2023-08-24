@@ -5,7 +5,7 @@ use napi::{
     Env, JsBuffer, JsBufferValue,
 };
 use napi_derive::napi;
-use rethnet_eth::{transaction::TransactionKind, Address, Bytes, B256};
+use rethnet_eth::{transaction::TransactionKind, Address, Bytes};
 
 use crate::{access_list::AccessListItem, cast::TryCast};
 
@@ -22,8 +22,8 @@ pub struct EIP2930SignedTransaction {
     pub input: JsBuffer,
     pub access_list: Vec<AccessListItem>,
     pub odd_y_parity: bool,
-    pub r: Buffer,
-    pub s: Buffer,
+    pub r: BigInt,
+    pub s: BigInt,
 }
 
 impl EIP2930SignedTransaction {
@@ -70,8 +70,14 @@ impl EIP2930SignedTransaction {
                 .map(AccessListItem::from)
                 .collect(),
             odd_y_parity: transaction.odd_y_parity,
-            r: Buffer::from(transaction.r.as_bytes()),
-            s: Buffer::from(transaction.s.as_bytes()),
+            r: BigInt {
+                sign_bit: false,
+                words: transaction.r.as_limbs().to_vec(),
+            },
+            s: BigInt {
+                sign_bit: false,
+                words: transaction.s.as_limbs().to_vec(),
+            },
         })
     }
 }
@@ -100,8 +106,8 @@ impl TryFrom<EIP2930SignedTransaction> for rethnet_eth::transaction::EIP2930Sign
                 .collect::<Vec<rethnet_eth::access_list::AccessListItem>>()
                 .into(),
             odd_y_parity: value.odd_y_parity,
-            r: B256::from_slice(&value.r),
-            s: B256::from_slice(&value.s),
+            r: value.r.try_cast()?,
+            s: value.s.try_cast()?,
         })
     }
 }

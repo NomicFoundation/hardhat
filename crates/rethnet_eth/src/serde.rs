@@ -2,7 +2,7 @@
 
 use std::{fmt::Write, ops::Deref};
 
-use bytes::Bytes;
+use ::bytes::Bytes;
 
 use crate::U256;
 
@@ -201,6 +201,40 @@ where
     s.serialize_str(&result)
 }
 
+/// Helper module for (de)serializing bytes into hexadecimal strings. This is necessary because
+/// the default bytes serialization considers a string as bytes.
+pub mod bytes {
+    use serde::Deserialize;
+
+    use super::Bytes;
+
+    /// Helper function for deserializing [`Bytes`] from a `0x`-prefixed hexadecimal string.
+    pub fn deserialize<'de, Deserializer>(d: Deserializer) -> Result<Bytes, Deserializer::Error>
+    where
+        Deserializer: serde::Deserializer<'de>,
+    {
+        let value = String::deserialize(d)?;
+        if let Some(remaining) = value.strip_prefix("0x") {
+            hex::decode(remaining)
+        } else {
+            hex::decode(&value)
+        }
+        .map(Into::into)
+        .map_err(|e| serde::de::Error::custom(e.to_string()))
+    }
+
+    /// Helper function for serializing [`Bytes`] into a hexadecimal string.
+    pub fn serialize<Serializer>(
+        value: &Bytes,
+        s: Serializer,
+    ) -> Result<Serializer::Ok, Serializer::Error>
+    where
+        Serializer: serde::Serializer,
+    {
+        s.serialize_str(&format!("0x{}", hex::encode(value.as_ref())))
+    }
+}
+
 /// Helper module for (de)serializing [`U256`]s into hexadecimal strings. This is necessary because
 /// the default [`U256`] serialization includes leading zeroes.
 pub mod u256 {
@@ -274,4 +308,46 @@ where
 {
     let s: Option<&str> = serde::Deserialize::deserialize(deserializer)?;
     Ok(s.map(|s| u64::from_str_radix(&s[2..], 16).expect("failed to parse u64")))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_bytes_serde() {
+        const BYTES: &[u8] = &[0x01, 0x02, 0x03];
+        let expected = Bytes::from_static(BYTES);
+
+        let serialized = serde_json::to_string(&expected).unwrap();
+        let deserialized: Bytes = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized, expected);
+    }
+
+    #[test]
+    fn test_u8_serde() {
+        let expected = 0x01;
+
+        let serialized = serde_json::to_string(&expected).unwrap();
+        let deserialized: u8 = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized, expected);
+    }
+
+    #[test]
+    fn test_u64_serde() {
+        let expected = 0x01;
+
+        let serialized = serde_json::to_string(&expected).unwrap();
+        let deserialized: u64 = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized, expected);
+    }
+
+    #[test]
+    fn test_u256_serde() {
+        let expected = U256::from(0x01);
+
+        let serialized = serde_json::to_string(&expected).unwrap();
+        let deserialized: U256 = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized, expected);
+    }
 }

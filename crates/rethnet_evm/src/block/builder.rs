@@ -219,7 +219,7 @@ impl BlockBuilder {
         };
 
         let gas_price = transaction.gas_price();
-        let effective_gas_price = if let SignedTransaction::EIP1559(transaction) = &*transaction {
+        let effective_gas_price = if let SignedTransaction::Eip1559(transaction) = &*transaction {
             block.basefee + (gas_price - block.basefee).min(transaction.max_priority_fee_per_gas)
         } else {
             gas_price
@@ -231,11 +231,20 @@ impl BlockBuilder {
                 logs_bloom,
                 logs,
                 data: match &*transaction {
-                    SignedTransaction::Legacy(_) => {
-                        TypedReceiptData::PostByzantiumLegacy { status }
+                    SignedTransaction::PreEip155Legacy(_)
+                    | SignedTransaction::PostEip155Legacy(_) => {
+                        if self.cfg.spec_id < SpecId::BYZANTIUM {
+                            TypedReceiptData::PreEip658Legacy {
+                                state_root: state
+                                    .state_root()
+                                    .expect("Must be able to calculate state root"),
+                            }
+                        } else {
+                            TypedReceiptData::PostEip658Legacy { status }
+                        }
                     }
-                    SignedTransaction::EIP2930(_) => TypedReceiptData::EIP2930 { status },
-                    SignedTransaction::EIP1559(_) => TypedReceiptData::EIP1559 { status },
+                    SignedTransaction::Eip2930(_) => TypedReceiptData::Eip2930 { status },
+                    SignedTransaction::Eip1559(_) => TypedReceiptData::Eip1559 { status },
                 },
             },
             transaction_hash: *transaction.hash(),

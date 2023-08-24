@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 bytes = { version = "1.2.1", default-features = false }
 ethbloom = { version = "0.13.0", default-features = false, features = ["rlp"] }
+futures = { version = "0.3.28", features = ["alloc", "async-await", "executor"] }
 hash-db = { version = "0.15.2", default-features = false }
 hash256-std-hasher = { version = "0.15.2", default-features = false }
 hashbrown = { version = "0.13", default-features = false, features = ["ahash"] }
@@ -28,14 +29,15 @@ triehash = { version = "0.8.4", default-features = false }
 
 [dev-dependencies]
 mockito = { version = "1.0.2", default-features = false }
+paste = { version = "1.0.14", default-features = false }
+rethnet_test_utils = { version = "0.1.0-dev", path = "../rethnet_test_utils" }
 tempfile = { version = "3.7.1", default-features =  false }
 tokio = { version = "1.23.0", features = ["macros"] }
-rethnet_test_utils = { version = "0.1.0-dev", path = "../rethnet_test_utils" }
 walkdir = { version = "2.3.3", default-features =  false }
 
 [features]
 default = ["std"]
 # fastrlp = ["dep:open-fastrlp", "ruint/fastrlp"] Broken due to lack of support for fastrlp in primitive-types
 serde = ["dep:serde", "bytes/serde", "ethbloom/serialize", "hashbrown/serde", "primitive-types/serde", "revm-primitives/serde", "serde_json"]
-std = ["bytes/std", "ethbloom/std", "hash256-std-hasher/std", "hash-db/std", "hex/std", "itertools/use_std", "open-fastrlp?/std", "primitive-types/std", "revm-primitives/std", "rlp/std", "secp256k1/std", "serde?/std", "sha3/std", "triehash/std"]
+std = ["bytes/std", "ethbloom/std", "futures/std", "hash256-std-hasher/std", "hash-db/std", "hex/std", "itertools/use_std", "open-fastrlp?/std", "primitive-types/std", "revm-primitives/std", "rlp/std", "secp256k1/std", "serde?/std", "sha3/std", "triehash/std"]
 test-remote = ["serde"]

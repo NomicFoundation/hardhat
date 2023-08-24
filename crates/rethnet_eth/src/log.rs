@@ -28,6 +28,7 @@ pub struct Log {
     /// Topics
     pub topics: Vec<B256>,
     /// Data
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::bytes"))]
     pub data: Bytes,
 }
 
@@ -81,7 +82,7 @@ impl rlp::Encodable for Log {
             .collect::<Vec<ruint::aliases::B256>>();
 
         stream.begin_list(3);
-        stream.append(&ruint::aliases::B160::from_be_bytes(self.address.0));
+        stream.append(&self.address.as_bytes());
         stream.append_list(&topics);
         stream.append(&self.data.as_ref());
     }

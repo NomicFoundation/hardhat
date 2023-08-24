@@ -23,7 +23,45 @@ pub struct LegacySignedTransaction {
 }
 
 impl LegacySignedTransaction {
-    pub fn new(
+    pub fn from_eip155(
+        env: &Env,
+        transaction: &rethnet_eth::transaction::EIP155SignedTransaction,
+    ) -> napi::Result<Self> {
+        let input = transaction.input.clone();
+        let input = unsafe {
+            env.create_buffer_with_borrowed_data(
+                input.as_ptr(),
+                input.len(),
+                input,
+                |input: Bytes, _env| {
+                    mem::drop(input);
+                },
+            )
+        }
+        .map(JsBufferValue::into_raw)?;
+
+        Ok(Self {
+            nonce: BigInt::from(transaction.nonce),
+            gas_price: BigInt {
+                sign_bit: false,
+                words: transaction.gas_price.as_limbs().to_vec(),
+            },
+            gas_limit: BigInt::from(transaction.gas_limit),
+            to: if let TransactionKind::Call(to) = transaction.kind {
+                Some(Buffer::from(to.as_bytes()))
+            } else {
+                None
+            },
+            value: BigInt {
+                sign_bit: false,
+                words: transaction.value.as_limbs().to_vec(),
+            },
+            input,
+            signature: Signature::from(&transaction.signature),
+        })
+    }
+
+    pub fn from_legacy(
         env: &Env,
         transaction: &rethnet_eth::transaction::LegacySignedTransaction,
     ) -> napi::Result<Self> {
@@ -58,6 +96,27 @@ impl LegacySignedTransaction {
             },
             input,
             signature: Signature::from(&transaction.signature),
+        })
+    }
+}
+
+impl TryFrom<LegacySignedTransaction> for rethnet_eth::transaction::EIP155SignedTransaction {
+    type Error = napi::Error;
+
+    fn try_from(value: LegacySignedTransaction) -> Result<Self, Self::Error> {
+        Ok(Self {
+            nonce: value.nonce.try_cast()?,
+            gas_price: value.gas_price.try_cast()?,
+            gas_limit: value.gas_limit.try_cast()?,
+            kind: if let Some(to) = value.to {
+                let to = Address::from_slice(&to);
+                TransactionKind::Call(to)
+            } else {
+                TransactionKind::Create
+            },
+            value: value.value.try_cast()?,
+            input: Bytes::copy_from_slice(value.input.into_value()?.as_ref()),
+            signature: value.signature.try_into()?,
         })
     }
 }
