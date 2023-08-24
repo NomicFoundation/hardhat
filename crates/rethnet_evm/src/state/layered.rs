@@ -4,11 +4,10 @@ pub use changes::{LayeredChanges, RethnetLayer};
 
 use std::fmt::Debug;
 
-use hashbrown::HashMap;
 use rethnet_eth::{Address, B256, U256};
 use revm::{
     db::StateRef,
-    primitives::{Account, AccountInfo, Bytecode, KECCAK_EMPTY},
+    primitives::{Account, AccountInfo, Bytecode, HashMap, KECCAK_EMPTY},
     DatabaseCommit,
 };
 
@@ -125,13 +124,13 @@ impl StateDebug for LayeredState<RethnetLayer> {
         );
 
         let new_code = account_info.code.take();
-        let new_code_hash = new_code.as_ref().map_or(KECCAK_EMPTY, Bytecode::hash);
+        let new_code_hash = new_code.as_ref().map_or(KECCAK_EMPTY, Bytecode::hash_slow);
         account_info.code_hash = new_code_hash;
 
         let code_change = old_code_hash != new_code_hash;
         if code_change {
             if let Some(new_code) = new_code {
-                self.changes.insert_code(new_code);
+                self.changes.insert_code(new_code_hash, new_code);
             }
 
             self.changes.remove_code(&old_code_hash);
@@ -279,13 +278,19 @@ mod tests {
     fn code_by_hash_success() {
         let mut state = LayeredState::<RethnetLayer>::default();
         let inserted_bytecode = Bytecode::new_raw(Bytes::from("0x11"));
+        let inserted_bytecode_hash = inserted_bytecode.hash_slow();
         state
             .insert_account(
                 Address::from_low_u64_ne(1234),
-                AccountInfo::new(U256::ZERO, 0, inserted_bytecode.clone()),
+                AccountInfo::new(
+                    U256::ZERO,
+                    0,
+                    inserted_bytecode_hash,
+                    inserted_bytecode.clone(),
+                ),
             )
             .unwrap();
-        let retrieved_bytecode = state.code_by_hash(inserted_bytecode.hash()).unwrap();
+        let retrieved_bytecode = state.code_by_hash(inserted_bytecode_hash).unwrap();
         assert_eq!(retrieved_bytecode, inserted_bytecode);
     }
 
@@ -295,15 +300,13 @@ mod tests {
 
         let seed = 1;
         let address = Address::from_low_u64_ne(seed);
+        let code = Bytecode::new_raw(Bytes::copy_from_slice(address.as_bytes()));
+        let code_hash = code.hash_slow();
         state
             .borrow_mut()
             .insert_account(
                 address,
-                AccountInfo::new(
-                    U256::from(seed),
-                    seed,
-                    Bytecode::new_raw(Bytes::copy_from_slice(address.as_bytes())),
-                ),
+                AccountInfo::new(U256::from(seed), seed, code_hash, code),
             )
             .unwrap();
         state.borrow_mut().checkpoint().unwrap();

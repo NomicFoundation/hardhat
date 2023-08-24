@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use hashbrown::HashMap;
 use rethnet_eth::{block::DetailedBlock, receipt::BlockReceipt, B256, U256};
+use revm::primitives::HashMap;
 
 use super::InsertError;
 

@@ -96,12 +96,14 @@ fn bench_insert_account_doesnt_exist_with_code(c: &mut Criterion) {
         |state, number_of_accounts, _, _| {
             let address = Address::from_low_u64_ne(number_of_accounts + 1);
             debug_assert!(state.basic(address).unwrap().is_none());
+
+            let code = Bytecode::new_raw(Bytes::copy_from_slice(address.as_bytes()));
+            let code_hash = code.hash_slow();
             let result = state.insert_account(
                 address,
                 AccountInfo {
-                    code: Some(Bytecode::new_raw(Bytes::copy_from_slice(
-                        address.as_bytes(),
-                    ))),
+                    code_hash,
+                    code: Some(code),
                     ..AccountInfo::default()
                 },
             );
@@ -174,7 +176,7 @@ fn bench_modify_account_exists_with_code_changed_to_empty(c: &mut Criterion) {
                 .insert_account(
                     address,
                     AccountInfo {
-                        code_hash: code.hash(),
+                        code_hash: code.hash_slow(),
                         code: Some(code),
                         ..AccountInfo::default()
                     },
@@ -303,7 +305,7 @@ fn bench_remove_account_with_code(c: &mut Criterion) {
                 .insert_account(
                     address,
                     AccountInfo {
-                        code_hash: code.hash(),
+                        code_hash: code.hash_slow(),
                         code: Some(code),
                         ..AccountInfo::default()
                     },

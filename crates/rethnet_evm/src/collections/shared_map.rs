@@ -1,6 +1,6 @@
 use std::hash::Hash;
 
-use hashbrown::HashMap;
+use revm::primitives::HashMap;
 
 #[derive(Clone, Debug)]
 pub struct SharedMapEntry<T, const DELETE_UNUSED_ENTRY: bool> {

@@ -1,8 +1,7 @@
-use hashbrown::{hash_map::Entry, HashMap};
 use rethnet_eth::{Address, B256, U256};
 use revm::{
-    db::{State, StateRef},
-    primitives::{AccountInfo, Bytecode},
+    db::components::{State, StateRef},
+    primitives::{hash_map::Entry, AccountInfo, Bytecode, HashMap},
 };
 
 use crate::state::{account::RethnetAccount, StateError};
@@ -56,7 +55,7 @@ impl State for CachedRemoteState {
                     .entry(*self.remote.block_number())
                     .or_default();
 
-                block_code.entry(code.hash()).or_insert(code);
+                block_code.entry(account_info.code_hash).or_insert(code);
             }
 
             block_accounts.insert(address, account_info.clone().into());

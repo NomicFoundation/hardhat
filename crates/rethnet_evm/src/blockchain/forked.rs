@@ -1,14 +1,16 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use hashbrown::HashMap;
 use rethnet_eth::{
     block::DetailedBlock,
     remote::{RpcClient, RpcClientError},
     spec::{chain_name, determine_hardfork},
     B256, U256,
 };
-use revm::{db::BlockHashRef, primitives::SpecId};
+use revm::{
+    db::BlockHashRef,
+    primitives::{HashMap, SpecId},
+};
 use tokio::runtime::Runtime;
 
 use super::{

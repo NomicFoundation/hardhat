@@ -1,15 +1,14 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use hashbrown::{HashMap, HashSet};
 use parking_lot::{Mutex, RwLock, RwLockUpgradableReadGuard};
 use rethnet_eth::{
     remote::{BlockSpec, RpcClient},
     Address, B256, U256,
 };
 use revm::{
-    db::{State, StateRef},
-    primitives::{Account, AccountInfo, Bytecode},
+    db::components::{State, StateRef},
+    primitives::{Account, AccountInfo, Bytecode, HashMap, HashSet},
     DatabaseCommit,
 };
 use tokio::runtime::Runtime;

@@ -1,4 +1,4 @@
-use hashbrown::HashMap;
+use revm_primitives::HashMap;
 
 use crate::{account::BasicAccount, trie::sec_trie_root, Address, B256, U256};
 

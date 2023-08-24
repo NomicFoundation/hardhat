@@ -7,7 +7,7 @@ use napi::Status;
 use rethnet_eth::{B256, U256};
 use rethnet_evm::{
     blockchain::{Blockchain, BlockchainError, BlockchainMut},
-    BlockHashRef,
+    db::BlockHashRef,
 };
 
 use crate::threadsafe_function::{ThreadsafeFunction, ThreadsafeFunctionCallMode};

@@ -7,7 +7,6 @@ use axum::{
     http::StatusCode,
     Router,
 };
-use hashbrown::{HashMap, HashSet};
 use parking_lot::Mutex;
 use rethnet_eth::{
     remote::{
@@ -28,8 +27,8 @@ use rethnet_evm::{
         LocalCreationError, SyncBlockchain,
     },
     state::{AccountModifierFn, ForkState, HybridState, StateError, SyncState},
-    AccountInfo, Bytecode, CfgEnv, MemPool, MineBlockError, MineBlockResult, RandomHashGenerator,
-    KECCAK_EMPTY,
+    AccountInfo, Bytecode, CfgEnv, HashMap, HashSet, MemPool, MineBlockError, MineBlockResult,
+    RandomHashGenerator, KECCAK_EMPTY,
 };
 use secp256k1::{Secp256k1, SecretKey};
 use sha3::{Digest, Keccak256};
@@ -85,16 +84,16 @@ struct AppState {
 
 impl From<&AppState> for CfgEnv {
     fn from(state: &AppState) -> Self {
-        Self {
-            chain_id: U256::from(state.chain_id),
-            spec_id: state.hardfork,
-            limit_contract_code_size: if state.allow_unlimited_contract_size {
-                Some(usize::MAX)
-            } else {
-                None
-            },
-            ..CfgEnv::default()
-        }
+        let mut cfg = CfgEnv::default();
+        cfg.chain_id = U256::from(state.chain_id);
+        cfg.spec_id = state.hardfork;
+        cfg.limit_contract_code_size = if state.allow_unlimited_contract_size {
+            Some(usize::MAX)
+        } else {
+            None
+        };
+
+        cfg
     }
 }
 

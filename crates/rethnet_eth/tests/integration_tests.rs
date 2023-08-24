@@ -14,6 +14,7 @@ use rethnet_eth::{
 use rethnet_test_utils::{
     help_test_method_invocation_serde, help_test_method_invocation_serde_with_expected,
 };
+use revm_primitives::HashMap;
 
 #[test]
 fn test_serde_eth_accounts() {
@@ -321,7 +322,7 @@ fn test_serde_eth_sign_typed_data_v4() {
     help_test_method_invocation_serde(MethodInvocation::SignTypedDataV4(
         Address::from_low_u64_ne(1),
         eip712::Message {
-            types: hashbrown::HashMap::from([(
+            types: HashMap::from([(
                 String::from("typeA"),
                 vec![eip712::FieldType {
                     name: String::from("A"),

@@ -1,8 +1,9 @@
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use std::str::FromStr;
-use std::time::SystemTime;
+use std::{
+    net::{IpAddr, Ipv4Addr, SocketAddr},
+    str::FromStr,
+    time::SystemTime,
+};
 
-use hashbrown::HashMap;
 use secp256k1::{Secp256k1, SecretKey};
 use tempfile::TempDir;
 use tracing::Level;
@@ -19,7 +20,7 @@ use rethnet_eth::{
     signature::{private_key_to_address, Signature},
     Address, Bytes, SpecId, B256, U256, U64,
 };
-use rethnet_evm::{AccountInfo, KECCAK_EMPTY};
+use rethnet_evm::{AccountInfo, HashMap, KECCAK_EMPTY};
 
 use rethnet_rpc_server::{
     AccountConfig, Config, HardhatMethodInvocation, MethodInvocation, RpcHardhatNetworkConfig,
