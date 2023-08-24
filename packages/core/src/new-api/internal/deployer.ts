@@ -149,7 +149,7 @@ export class Deployer {
       )
     ) {
       // TODO: deal with failure cases and error cases
-      throw new Error("TBD");
+      throw new Error("TBD: error result against future");
     }
 
     const deployedContracts: DeploymentResultContracts = {};
