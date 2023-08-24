@@ -195,7 +195,7 @@ impl RpcClient {
                 error: error.into(),
             })?;
 
-        let path = Path::new(&directory).join(format!("{}.json", cache_key));
+        let path = Path::new(&directory).join(format!("{cache_key}.json"));
         Ok(path)
     }
 
@@ -755,7 +755,7 @@ mod tests {
                 for entry in WalkDir::new(&self.cache_dir)
                     .follow_links(true)
                     .into_iter()
-                    .filter_map(|e| e.ok())
+                    .filter_map(Result::ok)
                 {
                     if entry.file_type().is_file() {
                         files.push(entry.path().to_owned());

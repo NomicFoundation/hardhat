@@ -237,11 +237,7 @@ where
             LogT: rlp::Decodable,
         {
             fn normalize_status(status: u8) -> u8 {
-                if status == 1 {
-                    1
-                } else {
-                    0
-                }
+                u8::from(status == 1)
             }
 
             Ok(TypedReceipt {

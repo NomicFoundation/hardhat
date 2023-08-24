@@ -311,7 +311,7 @@ async fn handle_accounts(state: StateType) -> ResponseData<Vec<Address>> {
 async fn handle_block_number(state: StateType) -> ResponseData<U256> {
     event!(Level::INFO, "eth_blockNumber()");
     ResponseData::Success {
-        result: state.blockchain.read().await.last_block_number().into(),
+        result: state.blockchain.read().await.last_block_number(),
     }
 }
 
