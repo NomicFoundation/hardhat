@@ -630,7 +630,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   public async runCall(
     call: CallParams,
     blockNumberOrPending: bigint | "pending",
-    stateOverrideSet: StateOverrideSet
+    stateOverrideSet: OptionalStateOverrideSet = {}
   ): Promise<RunCallResult> {
     let txParams: TransactionParams;
 
@@ -2448,11 +2448,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     tx: TypedTransaction,
     blockNumberOrPending: bigint | "pending",
     forceBaseFeeZero = false,
-    optionalStateOverrideSet: OptionalStateOverrideSet = {}
+    stateOverrideSet: OptionalStateOverrideSet = {}
   ): Promise<RunTxResult> {
     const initialStateRoot = await this._stateManager.getStateRoot();
 
-    await this._applyStateOverrideSet(optionalStateOverrideSet);
+    await this._applyStateOverrideSet(stateOverrideSet);
 
     let blockContext: Block | undefined;
     let originalCommon: Common | undefined;

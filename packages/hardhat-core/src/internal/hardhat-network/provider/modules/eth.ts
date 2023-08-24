@@ -350,7 +350,7 @@ export class EthModule {
   private async _callAction(
     rpcCall: RpcCallRequest,
     blockTag: OptionalRpcNewBlockTag,
-    stateOverrideSet?: OptionalStateOverrideSet
+    stateOverrideSet: OptionalStateOverrideSet = {}
   ): Promise<string> {
     this._validateTransactionAndCallRequest(rpcCall);
 
@@ -366,7 +366,7 @@ export class EthModule {
     } = await this._node.runCall(
       callParams,
       blockNumberOrPending,
-      stateOverrideSet ?? {}
+      stateOverrideSet
     );
 
     const code = await this._node.getCodeFromTrace(trace, blockNumberOrPending);
