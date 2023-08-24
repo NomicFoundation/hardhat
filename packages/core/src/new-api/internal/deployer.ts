@@ -7,6 +7,7 @@ import {
   DeployConfig,
   DeploymentParameters,
   DeploymentResult,
+  DeploymentResultContracts,
 } from "../types/deployer";
 
 import { Batcher } from "./batcher";
@@ -23,8 +24,10 @@ import {
   DeploymentExecutionState,
   ExecutionSateType,
   ExecutionState,
+  ExecutionStatus,
 } from "./new-execution/types/execution-state";
 import { ExecutionStrategy } from "./new-execution/types/execution-strategy";
+import { findDeployedContracts } from "./new-execution/views/find-deployed-contracts";
 import { Reconciler } from "./reconciliation/reconciler";
 import { assertIgnitionInvariant } from "./utils/assertions";
 import { getFuturesFromModule } from "./utils/get-futures-from-module";
@@ -128,14 +131,48 @@ export class Deployer {
       defaultSender
     );
 
-    return this._getDeploymentResult(deploymentState);
+    return this._getDeploymentResult(
+      deploymentState,
+      this._deploymentLoader,
+      ignitionModule
+    );
   }
 
   private async _getDeploymentResult(
-    _deploymentState: DeploymentState
+    deploymentState: DeploymentState,
+    deploymentLoader: DeploymentLoader,
+    module: IgnitionModule
   ): Promise<DeploymentResult> {
-    // TODO: Create the deployment result
-    return null as any;
+    if (
+      Object.values(deploymentState.executionStates).some(
+        (ex) => ex.status !== ExecutionStatus.SUCCESS
+      )
+    ) {
+      // TODO: deal with failure cases and error cases
+      throw new Error("TBD");
+    }
+
+    const deployedContracts: DeploymentResultContracts = {};
+
+    for (const {
+      futureId,
+      contractName,
+      contractAddress,
+    } of findDeployedContracts(deploymentState)) {
+      const artifact = await deploymentLoader.loadArtifact(futureId);
+
+      deployedContracts[futureId] = {
+        contractName,
+        contractAddress,
+        artifact,
+      };
+    }
+
+    return {
+      status: "success",
+      contracts: deployedContracts,
+      module,
+    };
   }
 
   private async _getOrInitializeDeploymentState(): Promise<DeploymentState> {
