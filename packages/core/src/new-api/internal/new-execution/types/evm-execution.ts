@@ -78,7 +78,7 @@ export interface SuccessfulEvmExecutionResult {
 }
 
 /**
- * The execution was seemgly succseful, but the data returned by it was invalid.
+ * The execution was seemingly successful, but the data returned by it was invalid.
  */
 export interface InvalidResultError {
   type: EvmExecutionResultTypes.INVALID_RESULT_ERROR;
@@ -137,7 +137,7 @@ export interface RevertWithUnknownCustomError {
 
 /**
  * The execution failed due to some error whose kind we can recognize, but that
- * we can't decode becase its data is invalid. This happens when the ABI decoding
+ * we can't decode because its data is invalid. This happens when the ABI decoding
  * of the error fails, or when a panic code is invalid.
  */
 export interface RevertWithInvalidData {

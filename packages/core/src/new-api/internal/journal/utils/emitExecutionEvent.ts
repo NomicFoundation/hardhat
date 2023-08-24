@@ -19,6 +19,8 @@ import {
   JournalMessageType,
 } from "../../new-execution/types/messages";
 
+import { failedEvmExecutionResultToErrorDescription } from "./failedEvmExecutionResultToErrorDescription";
+
 export function emitExecutionEvent(
   message: JournalMessage,
   uiEventListener: ExecutionEventListener
@@ -51,7 +53,7 @@ export function emitExecutionEvent(
       uiEventListener[ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_COMPLETE]({
         type: ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_COMPLETE,
         futureId: message.futureId,
-        result: convertDeploymentResultToUiResult(message.result),
+        result: convertDeploymentResultToExecutionEventResult(message.result),
       });
       break;
     }
@@ -66,7 +68,7 @@ export function emitExecutionEvent(
       uiEventListener[ExecutionEventType.CALL_EXECUTION_STATE_COMPLETE]({
         type: ExecutionEventType.CALL_EXECUTION_STATE_COMPLETE,
         futureId: message.futureId,
-        result: convertCallResultToUiResult(message.result),
+        result: convertCallResultToExecutionEventResult(message.result),
       });
       break;
     }
@@ -83,7 +85,7 @@ export function emitExecutionEvent(
       uiEventListener[ExecutionEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE]({
         type: ExecutionEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE,
         futureId: message.futureId,
-        result: convertStaticCallResultToUiResult(message.result),
+        result: convertStaticCallResultToExecutionEventResult(message.result),
       });
       break;
     }
@@ -98,7 +100,7 @@ export function emitExecutionEvent(
       uiEventListener[ExecutionEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE]({
         type: ExecutionEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE,
         futureId: message.futureId,
-        result: convertSendDataResultToUiResult(message.result),
+        result: convertSendDataResultToExecutionEventResult(message.result),
       });
       break;
     }
@@ -133,30 +135,123 @@ export function emitExecutionEvent(
   }
 }
 
-function convertDeploymentResultToUiResult(
+function convertDeploymentResultToExecutionEventResult(
   result: DeploymentExecutionResult
 ): DeploymentExecutionEventResult {
-  if (result.type === ExecutionResultType.SUCCESS) {
-    return {
-      type: ExecutionEventResultType.SUCCESS,
-      address: result.address,
-    };
+  switch (result.type) {
+    case ExecutionResultType.SUCCESS: {
+      return {
+        type: ExecutionEventResultType.SUCCESS,
+        address: result.address,
+      };
+    }
+    case ExecutionResultType.STATIC_CALL_ERROR:
+    case ExecutionResultType.SIMULATION_ERROR: {
+      return {
+        type: ExecutionEventResultType.ERROR,
+        error: failedEvmExecutionResultToErrorDescription(result.error),
+      };
+    }
+    case ExecutionResultType.STRATEGY_ERROR:
+    case ExecutionResultType.STRATEGY_SIMULATION_ERROR: {
+      return {
+        type: ExecutionEventResultType.ERROR,
+        error: result.error,
+      };
+    }
+    case ExecutionResultType.REVERTED_TRANSACTION: {
+      return {
+        type: ExecutionEventResultType.ERROR,
+        error: "Transaction reverted",
+      };
+    }
   }
-
-  return {
-    type: ExecutionEventResultType.ERROR,
-    error: result,
-  };
 }
 
-function convertCallResultToUiResult(
+function convertCallResultToExecutionEventResult(
   result: CallExecutionResult
-): CallExecutionEventResult {}
+): CallExecutionEventResult {
+  switch (result.type) {
+    case ExecutionResultType.SUCCESS: {
+      return {
+        type: ExecutionEventResultType.SUCCESS,
+      };
+    }
+    case ExecutionResultType.STATIC_CALL_ERROR:
+    case ExecutionResultType.SIMULATION_ERROR: {
+      return {
+        type: ExecutionEventResultType.ERROR,
+        error: failedEvmExecutionResultToErrorDescription(result.error),
+      };
+    }
+    case ExecutionResultType.STRATEGY_ERROR:
+    case ExecutionResultType.STRATEGY_SIMULATION_ERROR: {
+      return {
+        type: ExecutionEventResultType.ERROR,
+        error: result.error,
+      };
+    }
+    case ExecutionResultType.REVERTED_TRANSACTION: {
+      return {
+        type: ExecutionEventResultType.ERROR,
+        error: "Transaction reverted",
+      };
+    }
+  }
+}
 
-function convertStaticCallResultToUiResult(
+function convertStaticCallResultToExecutionEventResult(
   result: StaticCallExecutionResult
-): StaticCallExecutionEventResult {}
+): StaticCallExecutionEventResult {
+  switch (result.type) {
+    case ExecutionResultType.SUCCESS: {
+      return {
+        type: ExecutionEventResultType.SUCCESS,
+      };
+    }
+    case ExecutionResultType.STATIC_CALL_ERROR: {
+      return {
+        type: ExecutionEventResultType.ERROR,
+        error: failedEvmExecutionResultToErrorDescription(result.error),
+      };
+    }
+    case ExecutionResultType.STRATEGY_ERROR: {
+      return {
+        type: ExecutionEventResultType.ERROR,
+        error: result.error,
+      };
+    }
+  }
+}
 
-function convertSendDataResultToUiResult(
+function convertSendDataResultToExecutionEventResult(
   result: SendDataExecutionResult
-): SendDataExecutionEventResult {}
+): SendDataExecutionEventResult {
+  switch (result.type) {
+    case ExecutionResultType.SUCCESS: {
+      return {
+        type: ExecutionEventResultType.SUCCESS,
+      };
+    }
+    case ExecutionResultType.STATIC_CALL_ERROR:
+    case ExecutionResultType.SIMULATION_ERROR: {
+      return {
+        type: ExecutionEventResultType.ERROR,
+        error: failedEvmExecutionResultToErrorDescription(result.error),
+      };
+    }
+    case ExecutionResultType.STRATEGY_ERROR:
+    case ExecutionResultType.STRATEGY_SIMULATION_ERROR: {
+      return {
+        type: ExecutionEventResultType.ERROR,
+        error: result.error,
+      };
+    }
+    case ExecutionResultType.REVERTED_TRANSACTION: {
+      return {
+        type: ExecutionEventResultType.ERROR,
+        error: "Transaction reverted",
+      };
+    }
+  }
+}
