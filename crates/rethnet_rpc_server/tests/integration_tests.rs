@@ -1,20 +1,26 @@
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use std::str::FromStr;
+use std::{
+    net::{IpAddr, Ipv4Addr, SocketAddr},
+    str::FromStr,
+    time::SystemTime,
+};
 
-use hashbrown::HashMap;
 use secp256k1::{Secp256k1, SecretKey};
+use tempfile::TempDir;
 use tracing::Level;
 
 use rethnet_eth::{
     remote::{
-        client::Request as RpcRequest, filter::FilteredEvents, jsonrpc,
-        methods::MethodInvocation as EthMethodInvocation, BlockSpec,
+        client::Request as RpcRequest,
+        filter::FilteredEvents,
+        jsonrpc,
+        methods::{MethodInvocation as EthMethodInvocation, U256OrUsize},
+        BlockSpec,
     },
     serde::ZeroXPrefixedBytes,
     signature::{private_key_to_address, Signature},
-    Address, Bytes, B256, U256, U64,
+    Address, Bytes, SpecId, B256, U256, U64,
 };
-use rethnet_evm::{AccountInfo, KECCAK_EMPTY};
+use rethnet_evm::{AccountInfo, HashMap, KECCAK_EMPTY};
 
 use rethnet_rpc_server::{
     AccountConfig, Config, HardhatMethodInvocation, MethodInvocation, RpcHardhatNetworkConfig,
@@ -23,7 +29,13 @@ use rethnet_rpc_server::{
 
 const PRIVATE_KEY: &str = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 
-async fn start_server() -> SocketAddr {
+struct TestFixture {
+    server_address: SocketAddr,
+    // We need to keep the tempdir alive for the duration of the test
+    _cache_dir: TempDir,
+}
+
+async fn start_server() -> TestFixture {
     let mut accounts: HashMap<Address, AccountInfo> = HashMap::default();
     accounts.insert(
         Address::from_low_u64_ne(1),
@@ -35,24 +47,38 @@ async fn start_server() -> SocketAddr {
         },
     );
 
+    let cache_dir = TempDir::new().expect("should create temp dir");
+
     let server = Server::new(Config {
         address: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0),
+        allow_blocks_with_same_timestamp: false,
+        allow_unlimited_contract_size: false,
         rpc_hardhat_network_config: RpcHardhatNetworkConfig { forking: None },
         accounts: vec![AccountConfig {
             private_key: SecretKey::from_str(PRIVATE_KEY)
                 .expect("should construct private key from string"),
             balance: U256::ZERO,
         }],
+        block_gas_limit: U256::from(30_000_000),
         chain_id: 1,
         coinbase: Address::from_low_u64_ne(1),
+        gas: U256::from(30_000_000),
+        hardfork: SpecId::LATEST,
+        initial_base_fee_per_gas: Some(U256::from(1000000000)),
+        initial_date: Some(SystemTime::now()),
         network_id: 123,
+        cache_dir: cache_dir.path().to_path_buf(),
     })
     .await
     .unwrap();
 
     let address = server.local_addr();
     tokio::spawn(async move { server.serve().await.unwrap() });
-    address
+
+    TestFixture {
+        server_address: address,
+        _cache_dir: cache_dir,
+    }
 }
 
 async fn submit_request(address: &SocketAddr, request: &RpcRequest<MethodInvocation>) -> String {
@@ -76,7 +102,7 @@ async fn submit_request(address: &SocketAddr, request: &RpcRequest<MethodInvocat
 }
 
 async fn verify_response<ResponseT>(
-    server: &SocketAddr,
+    fixture: &TestFixture,
     method: MethodInvocation,
     response: ResponseT,
 ) where
@@ -94,7 +120,7 @@ async fn verify_response<ResponseT>(
         data: jsonrpc::ResponseData::Success { result: response },
     };
 
-    let unparsed_response = submit_request(server, &request).await;
+    let unparsed_response = submit_request(&fixture.server_address, &request).await;
 
     let actual_response: jsonrpc::Response<ResponseT> =
         serde_json::from_str(&unparsed_response).expect("should deserialize from JSON");
@@ -108,6 +134,16 @@ async fn test_accounts() {
         &start_server().await,
         MethodInvocation::Eth(EthMethodInvocation::Accounts()),
         vec![private_key_to_address(&Secp256k1::signing_only(), PRIVATE_KEY).unwrap()],
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_block_number() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::BlockNumber()),
+        U256::ZERO,
     )
     .await;
 }
@@ -128,6 +164,57 @@ async fn test_coinbase() {
         &start_server().await,
         MethodInvocation::Eth(EthMethodInvocation::Coinbase()),
         Address::from_low_u64_ne(1),
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_evm_increase_time() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::EvmIncreaseTime(U256OrUsize::U256(
+            U256::from(12345),
+        ))),
+        String::from("12345"),
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_evm_mine() {
+    let server = start_server().await;
+    verify_response(
+        &server,
+        MethodInvocation::Eth(EthMethodInvocation::EvmMine(Some(U256OrUsize::U256(
+            U256::from(2147483647),
+        )))),
+        String::from("0"),
+    )
+    .await;
+    verify_response(
+        &server,
+        MethodInvocation::Eth(EthMethodInvocation::EvmMine(Some(U256OrUsize::Usize(
+            2147483647,
+        )))),
+        String::from("0"),
+    )
+    .await;
+    verify_response(
+        &server,
+        MethodInvocation::Eth(EthMethodInvocation::EvmMine(None)),
+        String::from("0"),
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_evm_set_next_block_timestamp() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::EvmSetNextBlockTimestamp(
+            U256OrUsize::U256(U256::from(2147483647)),
+        )),
+        String::from("2147483647"),
     )
     .await;
 }
@@ -285,6 +372,57 @@ async fn test_impersonate_account() {
         MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(
             Address::from_low_u64_ne(1),
         )),
+        true,
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_hardhat_mine() {
+    let server = start_server().await;
+    verify_response(
+        &server,
+        MethodInvocation::Hardhat(HardhatMethodInvocation::Mine(
+            None, // block count
+            None, // interval
+        )),
+        true,
+    )
+    .await;
+    verify_response(
+        &server,
+        MethodInvocation::Hardhat(HardhatMethodInvocation::Mine(
+            Some(U256::from(10)), // block count
+            None,                 // interval
+        )),
+        true,
+    )
+    .await;
+    verify_response(
+        &server,
+        MethodInvocation::Hardhat(HardhatMethodInvocation::Mine(
+            None,                 // block count
+            Some(U256::from(10)), // interval
+        )),
+        true,
+    )
+    .await;
+    verify_response(
+        &server,
+        MethodInvocation::Hardhat(HardhatMethodInvocation::Mine(
+            Some(U256::from(10)),   // block count
+            Some(U256::from(5000)), // interval
+        )),
+        true,
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_interval_mine() {
+    verify_response(
+        &start_server().await,
+        MethodInvocation::Hardhat(HardhatMethodInvocation::IntervalMine()),
         true,
     )
     .await;

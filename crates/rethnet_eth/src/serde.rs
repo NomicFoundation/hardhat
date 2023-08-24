@@ -144,6 +144,36 @@ where
     Ok(s[0].clone())
 }
 
+/// for use with serde's `serialize_with` on an optional single value that should be serialized as
+/// a sequence
+pub fn optional_single_to_sequence<S, T>(val: &Option<T>, s: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+    T: serde::Serialize,
+{
+    use serde::ser::SerializeSeq;
+    let mut seq = s.serialize_seq(Some(1))?;
+    if val.is_some() {
+        seq.serialize_element(val)?;
+    }
+    seq.end()
+}
+
+/// for use with serde's `deserialize_with` on a sequence that should be deserialized as a single
+/// but optional value.
+pub fn sequence_to_optional_single<'de, D, T>(deserializer: D) -> Result<Option<T>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: serde::Deserialize<'de> + Clone,
+{
+    let s: Vec<T> = serde::de::Deserialize::deserialize(deserializer)?;
+    if s.is_empty() {
+        Ok(None)
+    } else {
+        Ok(Some(s[0].clone()))
+    }
+}
+
 /// Helper function for serializing the little-endian bytes of an unsigned integer into a hexadecimal string.
 fn serialize_uint_bytes_without_leading_zeroes<S, T>(le_bytes: T, s: S) -> Result<S::Ok, S::Error>
 where
@@ -184,8 +214,8 @@ pub mod bytes {
         Deserializer: serde::Deserializer<'de>,
     {
         let value = String::deserialize(d)?;
-        if let Some(value) = value.strip_prefix("0x") {
-            hex::decode(value)
+        if let Some(remaining) = value.strip_prefix("0x") {
+            hex::decode(remaining)
         } else {
             hex::decode(&value)
         }
@@ -278,4 +308,46 @@ where
 {
     let s: Option<&str> = serde::Deserialize::deserialize(deserializer)?;
     Ok(s.map(|s| u64::from_str_radix(&s[2..], 16).expect("failed to parse u64")))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_bytes_serde() {
+        const BYTES: &[u8] = &[0x01, 0x02, 0x03];
+        let expected = Bytes::from_static(BYTES);
+
+        let serialized = serde_json::to_string(&expected).unwrap();
+        let deserialized: Bytes = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized, expected);
+    }
+
+    #[test]
+    fn test_u8_serde() {
+        let expected = 0x01;
+
+        let serialized = serde_json::to_string(&expected).unwrap();
+        let deserialized: u8 = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized, expected);
+    }
+
+    #[test]
+    fn test_u64_serde() {
+        let expected = 0x01;
+
+        let serialized = serde_json::to_string(&expected).unwrap();
+        let deserialized: u64 = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized, expected);
+    }
+
+    #[test]
+    fn test_u256_serde() {
+        let expected = U256::from(0x01);
+
+        let serialized = serde_json::to_string(&expected).unwrap();
+        let deserialized: U256 = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized, expected);
+    }
 }

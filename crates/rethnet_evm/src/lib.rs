@@ -5,13 +5,7 @@
 //! The Rethnet EVM exposes APIs for running and interacting with a multi-threaded Ethereum
 //! Virtual Machine (or EVM).
 
-pub use hashbrown::HashMap;
-
 pub use revm::{
-    db::{
-        BlockHash, BlockHashRef, Database, DatabaseCommit, DatabaseComponentError,
-        DatabaseComponents, State as StateMut, StateRef,
-    },
     interpreter::{
         instruction_result::SuccessOrHalt, opcode, return_revert, CallInputs, CreateInputs, Gas,
         InstructionResult, Interpreter, OPCODE_JUMPMAP,
@@ -24,9 +18,9 @@ pub use crate::{
     block::*,
     evm::SyncInspector,
     mempool::MemPool,
-    miner::{BlockMiner, MineBlockResult},
+    miner::{mine_block, MineBlockError, MineBlockResult},
     random::RandomHashGenerator,
-    runtime::{Rethnet, SyncDatabase},
+    runtime::{dry_run, guaranteed_dry_run, run, SyncDatabase},
     transaction::*,
 };
 

@@ -1,13 +1,16 @@
+use std::path::PathBuf;
 use std::sync::Arc;
 
-use hashbrown::HashMap;
 use rethnet_eth::{
     block::DetailedBlock,
     remote::{RpcClient, RpcClientError},
     spec::{chain_name, determine_hardfork},
     B256, U256,
 };
-use revm::{db::BlockHashRef, primitives::SpecId};
+use revm::{
+    db::BlockHashRef,
+    primitives::{HashMap, SpecId},
+};
 use tokio::runtime::Runtime;
 
 use super::{
@@ -58,11 +61,12 @@ impl ForkedBlockchain {
         runtime: Arc<Runtime>,
         spec_id: SpecId,
         remote_url: &str,
+        cache_dir: PathBuf,
         fork_block_number: Option<U256>,
     ) -> Result<Self, CreationError> {
         const FALLBACK_MAX_REORG: u64 = 30;
 
-        let rpc_client = RpcClient::new(remote_url);
+        let rpc_client = RpcClient::new(remote_url, cache_dir);
 
         let (chain_id, network_id, latest_block_number) = tokio::join!(
             rpc_client.chain_id(),
@@ -133,10 +137,13 @@ impl BlockHashRef for ForkedBlockchain {
                 |block| Ok(block.header.hash()),
             )
         } else {
-            let number = usize::try_from(number).or(Err(BlockchainError::BlockNumberTooLarge))?;
+            let local_number = usize::try_from(number - self.fork_block_number)
+                .or(Err(BlockchainError::BlockNumberTooLarge))?
+                - 1;
+
             self.local_storage
                 .blocks()
-                .get(number)
+                .get(local_number)
                 .map(|block| block.header.hash())
                 .ok_or(BlockchainError::UnknownBlockNumber)
         }
@@ -163,8 +170,11 @@ impl Blockchain for ForkedBlockchain {
                 |block| Ok(Some(block)),
             )
         } else {
-            let number = usize::try_from(number).or(Err(BlockchainError::BlockNumberTooLarge))?;
-            Ok(self.local_storage.blocks().get(number).cloned())
+            let local_number = usize::try_from(number - self.fork_block_number)
+                .or(Err(BlockchainError::BlockNumberTooLarge))?
+                - 1;
+
+            Ok(self.local_storage.blocks().get(local_number).cloned())
         }
     }
 

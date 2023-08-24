@@ -1,10 +1,9 @@
 use std::{collections::BTreeMap, fmt::Debug, sync::Arc};
 
 use cita_trie::{MemoryDB, PatriciaTrie, Trie as CitaTrie};
-use hashbrown::HashMap;
 use hasher::{Hasher, HasherKeccak};
 use rethnet_eth::{account::BasicAccount, Address, B160, B256, U256};
-use revm::primitives::{Account, AccountInfo};
+use revm::primitives::{Account, AccountInfo, HashMap};
 
 /// A change to the account, where `None` implies deletion.
 pub type AccountChange<'a> = (&'a Address, Option<(BasicAccount, &'a HashMap<U256, U256>)>);
@@ -180,7 +179,7 @@ impl AccountTrie {
                     // Removes account only if it exists, so safe to use for empty, touched accounts
                     Self::remove_account_in(address, &mut state_trie, &mut self.storage_trie_dbs);
                 } else {
-                    if account.is_newly_created() {
+                    if account.is_created() {
                         // We can simply remove the storage trie db, as it will get reinitialized in the next operation
                         self.storage_trie_dbs.remove(address);
                     }

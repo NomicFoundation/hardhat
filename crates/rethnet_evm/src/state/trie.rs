@@ -4,7 +4,6 @@ use crate::collections::SharedMap;
 
 pub use self::account::AccountTrie;
 
-use hashbrown::HashMap;
 use rethnet_eth::{
     account::{BasicAccount, KECCAK_EMPTY},
     trie::KECCAK_NULL_RLP,
@@ -12,7 +11,7 @@ use rethnet_eth::{
 };
 use revm::{
     db::StateRef,
-    primitives::{Account, AccountInfo, Bytecode},
+    primitives::{Account, AccountInfo, Bytecode, HashMap},
     DatabaseCommit,
 };
 
@@ -36,8 +35,10 @@ impl TrieState {
     }
 
     /// Inserts the provided bytecode using its hash, potentially overwriting an existing value.
-    pub fn insert_code(&mut self, code: Bytecode) {
-        self.contracts.insert(code.hash(), code);
+    pub fn insert_code(&mut self, code_hash: B256, code: Bytecode) {
+        debug_assert_eq!(code_hash, code.hash_slow());
+
+        self.contracts.insert(code_hash, code);
     }
 
     /// Removes the code corresponding to the provided hash, if it exists.
@@ -98,7 +99,7 @@ impl DatabaseCommit for TrieState {
                 let code_changed = old_code_hash != account.info.code_hash;
                 if code_changed {
                     if let Some(new_code) = account.info.code.take() {
-                        self.insert_code(new_code);
+                        self.insert_code(account.info.code_hash, new_code);
                     }
 
                     self.remove_code(&old_code_hash);
@@ -123,9 +124,7 @@ impl StateDebug for TrieState {
         mut account_info: AccountInfo,
     ) -> Result<(), Self::Error> {
         if let Some(code) = account_info.code.take() {
-            account_info.code_hash = code.hash;
-
-            self.insert_code(code);
+            self.insert_code(account_info.code_hash, code);
         }
 
         self.accounts.set_account(&address, &account_info);
@@ -167,13 +166,13 @@ impl StateDebug for TrieState {
         // Strip the bytecode
         let new_code = account_info.code.take();
 
-        let new_code_hash = new_code.as_ref().map_or(KECCAK_EMPTY, Bytecode::hash);
+        let new_code_hash = new_code.as_ref().map_or(KECCAK_EMPTY, Bytecode::hash_slow);
         account_info.code_hash = new_code_hash;
 
         let code_changed = new_code_hash != old_code_hash;
         if code_changed {
             if let Some(new_code) = new_code {
-                self.insert_code(new_code);
+                self.insert_code(new_code_hash, new_code);
             }
 
             self.remove_code(&old_code_hash);

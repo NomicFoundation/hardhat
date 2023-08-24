@@ -7,10 +7,11 @@ use assert_cmd::{
 use predicates::str::contains;
 use secp256k1::Secp256k1;
 
-use rethnet::config::DEFAULT_PRIVATE_KEYS;
 use rethnet_eth::{
     remote::{
-        client::Request as RpcRequest, jsonrpc, methods::MethodInvocation as EthMethodInvocation,
+        client::Request as RpcRequest,
+        jsonrpc,
+        methods::{MethodInvocation as EthMethodInvocation, U256OrUsize},
         BlockSpec,
     },
     signature::private_key_to_address,
@@ -20,8 +21,11 @@ use rethnet_rpc_server::{HardhatMethodInvocation, MethodInvocation};
 
 #[tokio::test]
 async fn node() -> Result<(), Box<dyn std::error::Error>> {
-    let address =
-        private_key_to_address(&Secp256k1::signing_only(), DEFAULT_PRIVATE_KEYS[0]).unwrap();
+    let address = private_key_to_address(
+        &Secp256k1::signing_only(),
+        rethnet_defaults::PRIVATE_KEYS[0],
+    )
+    .unwrap();
 
     // the order of operations is a little weird in this test, because we spawn a separate process
     // for the server, and we want to make sure that we end that process gracefully. more
@@ -32,8 +36,18 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
     // order to check for corresponding log entries in the server output:
     let method_invocations = [
         MethodInvocation::Eth(EthMethodInvocation::Accounts()),
+        MethodInvocation::Eth(EthMethodInvocation::BlockNumber()),
         MethodInvocation::Eth(EthMethodInvocation::ChainId()),
         MethodInvocation::Eth(EthMethodInvocation::Coinbase()),
+        MethodInvocation::Eth(EthMethodInvocation::EvmIncreaseTime(U256OrUsize::U256(
+            U256::from(12345),
+        ))),
+        MethodInvocation::Eth(EthMethodInvocation::EvmMine(Some(U256OrUsize::U256(
+            U256::from(12345),
+        )))),
+        MethodInvocation::Eth(EthMethodInvocation::EvmSetNextBlockTimestamp(
+            U256OrUsize::U256(U256::from(12345)),
+        )),
         MethodInvocation::Eth(EthMethodInvocation::GetBalance(
             address,
             Some(BlockSpec::latest()),
@@ -69,6 +83,11 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             Bytes::from_static(b"").into(),
         )),
         MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(address)),
+        MethodInvocation::Hardhat(HardhatMethodInvocation::IntervalMine()),
+        MethodInvocation::Hardhat(HardhatMethodInvocation::Mine(
+            Some(U256::from(10)),   // block count
+            Some(U256::from(5000)), // interval
+        )),
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, U256::ZERO)),
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetCode(
             address,
@@ -136,7 +155,7 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
     // assert that the standard output of the server process contains the expected log entries:
     Assert::new(output.clone()).stdout(contains("Listening on 127.0.0.1:8549"));
     let context = Secp256k1::signing_only();
-    for (i, default_private_key) in DEFAULT_PRIVATE_KEYS.to_vec().iter().enumerate() {
+    for (i, default_private_key) in rethnet_defaults::PRIVATE_KEYS.to_vec().iter().enumerate() {
         Assert::new(output.clone())
             .stdout(contains(format!("Private Key: 0x{default_private_key}")))
             .stdout(contains(format!(
@@ -147,10 +166,24 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
     }
     for method_invocation in method_invocations {
         Assert::new(output.clone()).stdout(contains(match method_invocation {
-            MethodInvocation::Eth(EthMethodInvocation::Accounts()) => String::from("eth_accounts"),
+            MethodInvocation::Eth(EthMethodInvocation::Accounts()) => {
+                String::from("eth_accounts()")
+            }
+            MethodInvocation::Eth(EthMethodInvocation::BlockNumber()) => {
+                String::from("eth_blockNumber()")
+            }
             MethodInvocation::Eth(EthMethodInvocation::ChainId()) => String::from("eth_chainId()"),
             MethodInvocation::Eth(EthMethodInvocation::Coinbase()) => {
                 String::from("eth_coinbase()")
+            }
+            MethodInvocation::Eth(EthMethodInvocation::EvmIncreaseTime(increment)) => {
+                format!("evm_increaseTime({increment:?})")
+            }
+            MethodInvocation::Eth(EthMethodInvocation::EvmMine(timestamp)) => {
+                format!("evm_mine({timestamp:?})")
+            }
+            MethodInvocation::Eth(EthMethodInvocation::EvmSetNextBlockTimestamp(timestamp)) => {
+                format!("evm_setNextBlockTimestamp({timestamp:?})")
             }
             MethodInvocation::Eth(EthMethodInvocation::GetBalance(address, block_spec)) => {
                 format!("eth_getBalance({address:?}, {block_spec:?})")
@@ -202,6 +235,12 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             }
             MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(address)) => {
                 format!("hardhat_impersonateAccount({address:?}")
+            }
+            MethodInvocation::Hardhat(HardhatMethodInvocation::IntervalMine()) => {
+                String::from("hardhat_intervalMine()")
+            }
+            MethodInvocation::Hardhat(HardhatMethodInvocation::Mine(count, interval)) => {
+                format!("hardhat_mine({count:?}, {interval:?})")
             }
             MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, balance)) => {
                 format!("hardhat_setBalance({address:?}, {balance:?}")

@@ -1,8 +1,10 @@
 use std::fmt::Debug;
 
-use hashbrown::HashMap;
 use rethnet_eth::{Address, B256, U256};
-use revm::{db::StateRef, primitives::AccountInfo};
+use revm::{
+    db::StateRef,
+    primitives::{AccountInfo, HashMap},
+};
 
 use crate::PendingTransaction;
 

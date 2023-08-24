@@ -7,6 +7,8 @@ mod detailed;
 mod difficulty;
 mod options;
 
+use std::sync::OnceLock;
+
 use revm_primitives::{
     keccak256,
     ruint::{
@@ -18,6 +20,7 @@ use revm_primitives::{
 use rlp::Decodable;
 
 use crate::{
+    remote::eth::{self, TransactionConversionError},
     transaction::SignedTransaction,
     trie::{self, KECCAK_NULL_RLP},
     withdrawal::Withdrawal,
@@ -28,7 +31,7 @@ use self::difficulty::calculate_ethash_canonical_difficulty;
 pub use self::{detailed::DetailedBlock, options::BlockOptions};
 
 /// Ethereum block
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Eq)]
 #[cfg_attr(
     feature = "fastrlp",
     derive(open_fastrlp::RlpEncodable, open_fastrlp::RlpDecodable)
@@ -43,6 +46,9 @@ pub struct Block {
     pub ommers: Vec<Header>,
     /// The block's withdrawals
     pub withdrawals: Option<Vec<Withdrawal>>,
+    #[cfg_attr(feature = "serde", serde(skip))]
+    /// The cached block hash
+    hash: OnceLock<B256>,
 }
 
 impl Block {
@@ -71,31 +77,89 @@ impl Block {
             transactions,
             ommers,
             withdrawals,
+            hash: OnceLock::new(),
         }
+    }
+
+    /// Retrieves the block's hash.
+    pub fn hash(&self) -> &B256 {
+        self.hash.get_or_init(|| self.header.hash())
     }
 }
 
-// impl Encodable for Block {
-//     fn rlp_append(&self, s: &mut RlpStream) {
-//         s.begin_list(3);
-//         s.append(&self.header);
-//         s.append_list(&self.transactions);
-//         s.append_list(&self.ommers);
-//     }
-// }
+impl PartialEq for Block {
+    fn eq(&self, other: &Self) -> bool {
+        self.header == other.header
+            && self.transactions == other.transactions
+            && self.ommers == other.ommers
+            && self.withdrawals == other.withdrawals
+    }
+}
 
-// impl Decodable for Block {
-//     fn decode(rlp: &Rlp<'_>) -> Result<Self, DecoderError> {
-//         Ok(Self {
-//             header: rlp.val_at(0)?,
-//             transactions: rlp.list_at(1)?,
-//             ommers: rlp.list_at(2)?,
-//         })
-//     }
-// }
+/// Error that occurs when trying to convert the JSON-RPC `Block` type.
+#[derive(Debug, thiserror::Error)]
+pub enum BlockConversionError {
+    /// Missing miner
+    #[error("Missing miner")]
+    MissingMiner,
+    /// Missing nonce
+    #[error("Missing nonce")]
+    MissingNonce,
+    /// Missing number
+    #[error("Missing numbeer")]
+    MissingNumber,
+    /// Transaction conversion error
+    #[error(transparent)]
+    TransactionConversionError(#[from] TransactionConversionError),
+}
+
+impl TryFrom<eth::Block<eth::Transaction>> for BlockAndCallers {
+    type Error = BlockConversionError;
+
+    fn try_from(value: eth::Block<eth::Transaction>) -> Result<Self, Self::Error> {
+        let (transactions, transaction_callers): (Vec<SignedTransaction>, Vec<Address>) =
+            itertools::process_results(
+                value.transactions.into_iter().map(TryInto::try_into),
+                #[allow(clippy::redundant_closure_for_method_calls)]
+                |iter| iter.unzip(),
+            )?;
+
+        let block = Block {
+            header: Header {
+                parent_hash: value.parent_hash,
+                ommers_hash: value.sha3_uncles,
+                beneficiary: value.miner.ok_or(BlockConversionError::MissingMiner)?,
+                state_root: value.state_root,
+                transactions_root: value.transactions_root,
+                receipts_root: value.receipts_root,
+                logs_bloom: value.logs_bloom,
+                difficulty: value.difficulty,
+                number: value.number.ok_or(BlockConversionError::MissingNumber)?,
+                gas_limit: value.gas_limit,
+                gas_used: value.gas_used,
+                timestamp: value.timestamp,
+                extra_data: value.extra_data,
+                mix_hash: value.mix_hash,
+                nonce: B64::from_limbs([value.nonce.ok_or(BlockConversionError::MissingNonce)?]),
+                base_fee_per_gas: value.base_fee_per_gas,
+                withdrawals_root: value.withdrawals_root,
+            },
+            transactions,
+            // TODO: Include headers
+            ommers: Vec::new(),
+            withdrawals: value.withdrawals,
+            hash: OnceLock::new(),
+        };
+
+        Ok(Self {
+            block,
+            transaction_callers,
+        })
+    }
+}
 
 /// ethereum block header
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct Header {
@@ -123,7 +187,6 @@ pub struct Header {
     pub gas_used: U256,
     /// The block's timestamp
     pub timestamp: U256,
-    #[cfg_attr(feature = "serde", serde(with = "crate::serde::bytes"))]
     /// The block's extra data
     pub extra_data: Bytes,
     /// The block's mix hash

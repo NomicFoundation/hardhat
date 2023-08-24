@@ -1,6 +1,7 @@
 use std::{
     mem,
     ops::Deref,
+    path::PathBuf,
     sync::{
         mpsc::{channel, Sender},
         Arc,
@@ -156,8 +157,12 @@ impl StateManager {
         remote_node_url: JsString,
         fork_block_number: BigInt,
         accounts: Vec<GenesisAccount>,
+        cache_dir: Option<String>,
     ) -> napi::Result<Self> {
         let fork_block_number: U256 = BigInt::try_cast(fork_block_number)?;
+        let cache_dir: PathBuf = cache_dir
+            .unwrap_or_else(|| rethnet_defaults::CACHE_DIR.into())
+            .into();
 
         let accounts = genesis_accounts(accounts)?;
         Self::with_state(
@@ -167,6 +172,7 @@ impl StateManager {
                 context.runtime().clone(),
                 context.state_root_generator.clone(),
                 remote_node_url.into_utf8()?.as_str()?,
+                cache_dir,
                 fork_block_number,
                 accounts,
             ),
@@ -389,7 +395,7 @@ impl StateManager {
                     let mut bytecode = ctx.env.create_object()?;
 
                     ctx.env
-                        .create_buffer_copy(code.hash())
+                        .create_buffer_copy(code.hash_slow())
                         .and_then(|hash| bytecode.set_named_property("hash", hash.into_raw()))?;
 
                     let code = code.original_bytes();

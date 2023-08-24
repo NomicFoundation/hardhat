@@ -1,3 +1,5 @@
+use rethnet_evm::HashMap;
+
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct RpcHardhatNetworkConfig {
     pub forking: Option<RpcForkConfig>,
@@ -8,5 +10,5 @@ pub struct RpcHardhatNetworkConfig {
 pub struct RpcForkConfig {
     pub json_rpc_url: String,
     pub block_number: Option<usize>,
-    pub http_headers: Option<hashbrown::HashMap<String, String>>,
+    pub http_headers: Option<HashMap<String, String>>,
 }

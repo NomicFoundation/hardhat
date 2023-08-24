@@ -746,14 +746,22 @@ describe("HardhatNode", () => {
       },
     ];
 
-    for (const { url, blockToRun, networkName, chainId } of forkedBlocks) {
-      const remoteCommon = new Common({ chain: chainId });
+    const isDualMode: boolean =
+      process.env.HARDHAT_EXPERIMENTAL_VM_MODE === undefined ||
+      process.env.HARDHAT_EXPERIMENTAL_VM_MODE === "dual";
 
-      it(`should run ${networkName} block ${blockToRun} and produce the same results`, async function () {
-        this.timeout(240000);
+    // Disabled as the dual mode adapter crashes with an out of memory exception when using ethereumjs.
+    // Since we're comparing against an actual block, there is no actual benefit to running this in dual-mode.
+    if (!isDualMode) {
+      for (const { url, blockToRun, networkName, chainId } of forkedBlocks) {
+        const remoteCommon = new Common({ chain: chainId });
 
-        await runFullBlock(url, blockToRun, chainId, remoteCommon);
-      });
+        it(`should run ${networkName} block ${blockToRun} and produce the same results`, async function () {
+          this.timeout(240000);
+
+          await runFullBlock(url, blockToRun, chainId, remoteCommon);
+        });
+      }
     }
   });
 

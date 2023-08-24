@@ -11,10 +11,9 @@ mod config;
 mod context;
 mod log;
 mod mempool;
-mod miner;
+pub mod miner;
 mod receipt;
-/// Rethnet runtime for executing individual transactions
-mod runtime;
+pub mod runtime;
 mod signature;
 mod state;
 mod sync;

@@ -139,6 +139,11 @@ impl Signature {
         Self { r, s, v }
     }
 
+    /// Returns whether the V value has odd Y parity.
+    pub fn odd_y_parity(&self) -> bool {
+        self.v == 28
+    }
+
     /// Verifies that signature on `message` was produced by `address`
     pub fn verify<M, A>(&self, message: M, address: A) -> Result<(), SignatureError>
     where

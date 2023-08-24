@@ -23,62 +23,62 @@ pub use self::{
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum SignedTransaction {
     /// Legacy transaction type
-    Legacy(LegacySignedTransaction),
+    PreEip155Legacy(LegacySignedTransaction),
     /// EIP-155 transaction
-    EIP155(EIP155SignedTransaction),
+    PostEip155Legacy(EIP155SignedTransaction),
     /// EIP-2930 transaction
-    EIP2930(EIP2930SignedTransaction),
+    Eip2930(EIP2930SignedTransaction),
     /// EIP-1559 transaction
-    EIP1559(EIP1559SignedTransaction),
+    Eip1559(EIP1559SignedTransaction),
 }
 
 impl SignedTransaction {
     /// Returns the gas price of the transaction.
     pub fn gas_price(&self) -> U256 {
         match self {
-            SignedTransaction::Legacy(tx) => tx.gas_price,
-            SignedTransaction::EIP155(tx) => tx.gas_price,
-            SignedTransaction::EIP2930(tx) => tx.gas_price,
-            SignedTransaction::EIP1559(tx) => tx.max_fee_per_gas,
+            SignedTransaction::PreEip155Legacy(tx) => tx.gas_price,
+            SignedTransaction::PostEip155Legacy(tx) => tx.gas_price,
+            SignedTransaction::Eip2930(tx) => tx.gas_price,
+            SignedTransaction::Eip1559(tx) => tx.max_fee_per_gas,
         }
     }
 
     /// Returns the gas limit of the transaction.
     pub fn gas_limit(&self) -> u64 {
         match self {
-            SignedTransaction::Legacy(tx) => tx.gas_limit,
-            SignedTransaction::EIP155(tx) => tx.gas_limit,
-            SignedTransaction::EIP2930(tx) => tx.gas_limit,
-            SignedTransaction::EIP1559(tx) => tx.gas_limit,
+            SignedTransaction::PreEip155Legacy(tx) => tx.gas_limit,
+            SignedTransaction::PostEip155Legacy(tx) => tx.gas_limit,
+            SignedTransaction::Eip2930(tx) => tx.gas_limit,
+            SignedTransaction::Eip1559(tx) => tx.gas_limit,
         }
     }
 
     /// Returns the value of the transaction.
     pub fn value(&self) -> U256 {
         match self {
-            SignedTransaction::Legacy(tx) => tx.value,
-            SignedTransaction::EIP155(tx) => tx.value,
-            SignedTransaction::EIP2930(tx) => tx.value,
-            SignedTransaction::EIP1559(tx) => tx.value,
+            SignedTransaction::PreEip155Legacy(tx) => tx.value,
+            SignedTransaction::PostEip155Legacy(tx) => tx.value,
+            SignedTransaction::Eip2930(tx) => tx.value,
+            SignedTransaction::Eip1559(tx) => tx.value,
         }
     }
 
     /// Returns the input data of the transaction.
     pub fn data(&self) -> &Bytes {
         match self {
-            SignedTransaction::Legacy(tx) => &tx.input,
-            SignedTransaction::EIP155(tx) => &tx.input,
-            SignedTransaction::EIP2930(tx) => &tx.input,
-            SignedTransaction::EIP1559(tx) => &tx.input,
+            SignedTransaction::PreEip155Legacy(tx) => &tx.input,
+            SignedTransaction::PostEip155Legacy(tx) => &tx.input,
+            SignedTransaction::Eip2930(tx) => &tx.input,
+            SignedTransaction::Eip1559(tx) => &tx.input,
         }
     }
 
     /// Returns the access list of the transaction, if any.
     pub fn access_list(&self) -> Option<&AccessList> {
         match self {
-            SignedTransaction::Legacy(_) | SignedTransaction::EIP155(_) => None,
-            SignedTransaction::EIP2930(tx) => Some(&tx.access_list),
-            SignedTransaction::EIP1559(tx) => Some(&tx.access_list),
+            SignedTransaction::PreEip155Legacy(_) | SignedTransaction::PostEip155Legacy(_) => None,
+            SignedTransaction::Eip2930(tx) => Some(&tx.access_list),
+            SignedTransaction::Eip1559(tx) => Some(&tx.access_list),
         }
     }
 
@@ -95,67 +95,67 @@ impl SignedTransaction {
     /// Returns the nonce of the transaction.
     pub fn nonce(&self) -> u64 {
         match self {
-            SignedTransaction::Legacy(t) => t.nonce,
-            SignedTransaction::EIP155(t) => t.nonce,
-            SignedTransaction::EIP2930(t) => t.nonce,
-            SignedTransaction::EIP1559(t) => t.nonce,
+            SignedTransaction::PreEip155Legacy(t) => t.nonce,
+            SignedTransaction::PostEip155Legacy(t) => t.nonce,
+            SignedTransaction::Eip2930(t) => t.nonce,
+            SignedTransaction::Eip1559(t) => t.nonce,
         }
     }
 
     /// Returns the chain id of the transaction.
     pub fn chain_id(&self) -> Option<u64> {
         match self {
-            SignedTransaction::Legacy(_) => None,
-            SignedTransaction::EIP155(t) => Some(t.chain_id()),
-            SignedTransaction::EIP2930(t) => Some(t.chain_id),
-            SignedTransaction::EIP1559(t) => Some(t.chain_id),
+            SignedTransaction::PreEip155Legacy(_) => None,
+            SignedTransaction::PostEip155Legacy(t) => Some(t.chain_id()),
+            SignedTransaction::Eip2930(t) => Some(t.chain_id),
+            SignedTransaction::Eip1559(t) => Some(t.chain_id),
         }
     }
 
     pub fn as_legacy(&self) -> Option<&LegacySignedTransaction> {
         match self {
-            SignedTransaction::Legacy(tx) => Some(tx),
+            SignedTransaction::PreEip155Legacy(tx) => Some(tx),
             _ => None,
         }
     }
 
     /// Returns whether this is a legacy transaction
     pub fn is_legacy(&self) -> bool {
-        matches!(self, SignedTransaction::Legacy(_))
+        matches!(self, SignedTransaction::PreEip155Legacy(_))
     }
 
     /// Returns whether this is an EIP-1559 transaction
     pub fn is_eip1559(&self) -> bool {
-        matches!(self, SignedTransaction::EIP1559(_))
+        matches!(self, SignedTransaction::Eip1559(_))
     }
 
     /// Computes the hash of the transaction.
     pub fn hash(&self) -> B256 {
         match self {
-            SignedTransaction::Legacy(t) => t.hash(),
-            SignedTransaction::EIP155(t) => t.hash(),
-            SignedTransaction::EIP2930(t) => t.hash(),
-            SignedTransaction::EIP1559(t) => t.hash(),
+            SignedTransaction::PreEip155Legacy(t) => t.hash(),
+            SignedTransaction::PostEip155Legacy(t) => t.hash(),
+            SignedTransaction::Eip2930(t) => t.hash(),
+            SignedTransaction::Eip1559(t) => t.hash(),
         }
     }
 
     /// Recovers the Ethereum address which was used to sign the transaction.
     pub fn recover(&self) -> Result<Address, SignatureError> {
         match self {
-            SignedTransaction::Legacy(tx) => tx.recover(),
-            SignedTransaction::EIP155(tx) => tx.recover(),
-            SignedTransaction::EIP2930(tx) => tx.recover(),
-            SignedTransaction::EIP1559(tx) => tx.recover(),
+            SignedTransaction::PreEip155Legacy(tx) => tx.recover(),
+            SignedTransaction::PostEip155Legacy(tx) => tx.recover(),
+            SignedTransaction::Eip2930(tx) => tx.recover(),
+            SignedTransaction::Eip1559(tx) => tx.recover(),
         }
     }
 
     /// Returns what kind of transaction this is
     pub fn kind(&self) -> &TransactionKind {
         match self {
-            SignedTransaction::Legacy(tx) => &tx.kind,
-            SignedTransaction::EIP155(tx) => &tx.kind,
-            SignedTransaction::EIP2930(tx) => &tx.kind,
-            SignedTransaction::EIP1559(tx) => &tx.kind,
+            SignedTransaction::PreEip155Legacy(tx) => &tx.kind,
+            SignedTransaction::PostEip155Legacy(tx) => &tx.kind,
+            SignedTransaction::Eip2930(tx) => &tx.kind,
+            SignedTransaction::Eip1559(tx) => &tx.kind,
         }
     }
 
@@ -167,14 +167,14 @@ impl SignedTransaction {
     /// Returns the [`Signature`] of the transaction
     pub fn signature(&self) -> Signature {
         match self {
-            SignedTransaction::Legacy(tx) => tx.signature,
-            SignedTransaction::EIP155(tx) => tx.signature,
-            SignedTransaction::EIP2930(tx) => Signature {
+            SignedTransaction::PreEip155Legacy(tx) => tx.signature,
+            SignedTransaction::PostEip155Legacy(tx) => tx.signature,
+            SignedTransaction::Eip2930(tx) => Signature {
                 r: tx.r,
                 s: tx.s,
                 v: u64::from(tx.odd_y_parity),
             },
-            SignedTransaction::EIP1559(tx) => Signature {
+            SignedTransaction::Eip1559(tx) => Signature {
                 r: tx.r,
                 s: tx.s,
                 v: u64::from(tx.odd_y_parity),
@@ -186,10 +186,10 @@ impl SignedTransaction {
 impl rlp::Encodable for SignedTransaction {
     fn rlp_append(&self, s: &mut rlp::RlpStream) {
         match self {
-            SignedTransaction::Legacy(tx) => tx.rlp_append(s),
-            SignedTransaction::EIP155(tx) => tx.rlp_append(s),
-            SignedTransaction::EIP2930(tx) => enveloped(1, tx, s),
-            SignedTransaction::EIP1559(tx) => enveloped(2, tx, s),
+            SignedTransaction::PreEip155Legacy(tx) => tx.rlp_append(s),
+            SignedTransaction::PostEip155Legacy(tx) => tx.rlp_append(s),
+            SignedTransaction::Eip2930(tx) => enveloped(1, tx, s),
+            SignedTransaction::Eip1559(tx) => enveloped(2, tx, s),
         }
     }
 }
@@ -209,17 +209,17 @@ impl rlp::Decodable for SignedTransaction {
         if rlp.is_list() {
             let v: u64 = rlp.val_at(6)?;
             if v >= 35 {
-                return Ok(SignedTransaction::EIP155(rlp.as_val()?));
+                return Ok(SignedTransaction::PostEip155Legacy(rlp.as_val()?));
             } else {
-                return Ok(SignedTransaction::Legacy(rlp.as_val()?));
+                return Ok(SignedTransaction::PreEip155Legacy(rlp.as_val()?));
             }
         }
 
         if first == 0x01 {
-            return rlp::decode(s).map(SignedTransaction::EIP2930);
+            return rlp::decode(s).map(SignedTransaction::Eip2930);
         }
         if first == 0x02 {
-            return rlp::decode(s).map(SignedTransaction::EIP1559);
+            return rlp::decode(s).map(SignedTransaction::Eip1559);
         }
         Err(rlp::DecoderError::Custom("invalid tx type"))
     }
@@ -237,7 +237,7 @@ mod tests {
 
         let tx: SignedTransaction = rlp::decode(&bytes).expect("decoding TypedTransaction failed");
         let tx = match tx {
-            SignedTransaction::Legacy(tx) => tx,
+            SignedTransaction::PreEip155Legacy(tx) => tx,
             _ => panic!("Invalid typed transaction"),
         };
         assert_eq!(tx.input, Bytes::new());
@@ -266,7 +266,7 @@ mod tests {
     #[test]
     fn test_signed_transaction_encoding_round_trip() {
         let transactions = [
-            SignedTransaction::Legacy(LegacySignedTransaction {
+            SignedTransaction::PreEip155Legacy(LegacySignedTransaction {
                 nonce: 0,
                 gas_price: U256::from(1),
                 gas_limit: 2,
@@ -279,7 +279,7 @@ mod tests {
                     v: 1,
                 },
             }),
-            SignedTransaction::EIP155(EIP155SignedTransaction {
+            SignedTransaction::PostEip155Legacy(EIP155SignedTransaction {
                 nonce: 0,
                 gas_price: U256::from(1),
                 gas_limit: 2,
@@ -292,7 +292,7 @@ mod tests {
                     v: 37,
                 },
             }),
-            SignedTransaction::EIP2930(EIP2930SignedTransaction {
+            SignedTransaction::Eip2930(EIP2930SignedTransaction {
                 chain_id: 1,
                 nonce: 0,
                 gas_price: U256::from(1),
@@ -305,7 +305,7 @@ mod tests {
                 s: U256::default(),
                 access_list: vec![].into(),
             }),
-            SignedTransaction::EIP1559(EIP1559SignedTransaction {
+            SignedTransaction::Eip1559(EIP1559SignedTransaction {
                 chain_id: 1u64,
                 nonce: 0,
                 max_priority_fee_per_gas: U256::from(1),
@@ -334,7 +334,7 @@ mod tests {
         use std::str::FromStr;
 
         let bytes_first = hex::decode("f86b02843b9aca00830186a094d3e8763675e4c425df46cc3b5c0f6cbdac39604687038d7ea4c68000802ba00eb96ca19e8a77102767a41fc85a36afd5c61ccb09911cec5d3e86e193d9c5aea03a456401896b1b6055311536bf00a718568c744d8c1f9df59879e8350220ca18").unwrap();
-        let expected = SignedTransaction::EIP155(EIP155SignedTransaction {
+        let expected = SignedTransaction::PostEip155Legacy(EIP155SignedTransaction {
             nonce: 2u64,
             gas_price: U256::from(1000000000u64),
             gas_limit: 100000,
@@ -358,7 +358,7 @@ mod tests {
         assert_eq!(expected, rlp::decode(&bytes_first).unwrap());
 
         let bytes_second = hex::decode("f86b01843b9aca00830186a094d3e8763675e4c425df46cc3b5c0f6cbdac3960468702769bb01b2a00802ba0e24d8bd32ad906d6f8b8d7741e08d1959df021698b19ee232feba15361587d0aa05406ad177223213df262cb66ccbb2f46bfdccfdfbbb5ffdda9e2c02d977631da").unwrap();
-        let expected = SignedTransaction::EIP155(EIP155SignedTransaction {
+        let expected = SignedTransaction::PostEip155Legacy(EIP155SignedTransaction {
             nonce: 1,
             gas_price: U256::from(1000000000u64),
             gas_limit: 100000,
@@ -382,7 +382,7 @@ mod tests {
         assert_eq!(expected, rlp::decode(&bytes_second).unwrap());
 
         let bytes_third = hex::decode("f86b0384773594008398968094d3e8763675e4c425df46cc3b5c0f6cbdac39604687038d7ea4c68000802ba0ce6834447c0a4193c40382e6c57ae33b241379c5418caac9cdc18d786fd12071a03ca3ae86580e94550d7c071e3a02eadb5a77830947c9225165cf9100901bee88").unwrap();
-        let expected = SignedTransaction::EIP155(EIP155SignedTransaction {
+        let expected = SignedTransaction::PostEip155Legacy(EIP155SignedTransaction {
             nonce: 3,
             gas_price: U256::from(2000000000u64),
             gas_limit: 10000000,
@@ -406,7 +406,7 @@ mod tests {
         assert_eq!(expected, rlp::decode(&bytes_third).unwrap());
 
         let bytes_fourth = hex::decode("02f872041a8459682f008459682f0d8252089461815774383099e24810ab832a5b2a5425c154d58829a2241af62c000080c001a059e6b67f48fb32e7e570dfb11e042b5ad2e55e3ce3ce9cd989c7e06e07feeafda0016b83f4f980694ed2eee4d10667242b1f40dc406901b34125b008d334d47469").unwrap();
-        let expected = SignedTransaction::EIP1559(EIP1559SignedTransaction {
+        let expected = SignedTransaction::Eip1559(EIP1559SignedTransaction {
             chain_id: 4,
             nonce: 26,
             max_priority_fee_per_gas: U256::from(1500000000u64),
@@ -427,7 +427,7 @@ mod tests {
         assert_eq!(expected, rlp::decode(&bytes_fourth).unwrap());
 
         let bytes_fifth = hex::decode("f8650f84832156008287fb94cf7f9e66af820a19257a2108375b180b0ec491678204d2802ca035b7bfeb9ad9ece2cbafaaf8e202e706b4cfaeb233f46198f00b44d4a566a981a0612638fb29427ca33b9a3be2a0a561beecfe0269655be160d35e72d366a6a860").unwrap();
-        let expected = SignedTransaction::EIP155(EIP155SignedTransaction {
+        let expected = SignedTransaction::PostEip155Legacy(EIP155SignedTransaction {
             nonce: 15u64,
             gas_price: U256::from(2200000000u64),
             gas_limit: 34811,

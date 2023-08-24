@@ -10,8 +10,10 @@ import {
   Account as RethnetAccount,
   Blockchain,
   Bytecode,
-  Rethnet,
   SpecId,
+  guaranteedDryRun,
+  run,
+  ConfigOptions,
 } from "rethnet-evm";
 
 import { isForkedNodeConfig, NodeConfig } from "../node-types";
@@ -42,21 +44,17 @@ export class RethnetAdapter implements VMAdapter {
   constructor(
     private _blockchain: Blockchain,
     private _state: RethnetStateManager,
-    private _rethnet: Rethnet,
-    common: Common
+    private readonly _common: Common,
+    private readonly _limitContractCodeSize: bigint | null
   ) {
-    this._vmTracer = new VMTracer(common, false);
+    this._vmTracer = new VMTracer(_common, false);
   }
 
   public static async create(
     config: NodeConfig,
     blockchain: Blockchain,
-    selectHardfork: (blockNumber: bigint) => string,
     common: Common
   ): Promise<RethnetAdapter> {
-    const limitContractCodeSize =
-      config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : undefined;
-
     let state: RethnetStateManager;
     if (isForkedNodeConfig(config)) {
       state = await RethnetStateManager.forkRemote(
@@ -71,18 +69,10 @@ export class RethnetAdapter implements VMAdapter {
       );
     }
 
-    const rethnet = new Rethnet(blockchain, state.asInner(), {
-      chainId: BigInt(config.chainId),
-      specId: ethereumsjsHardforkToRethnetSpecId(
-        getHardforkName(config.hardfork)
-      ),
-      limitContractCodeSize,
-      // Question: Should we set these per transaction, instead of for the entire EVM?
-      disableBlockGasLimit: true,
-      disableEip3607: true,
-    });
+    const limitContractCodeSize =
+      config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : null;
 
-    return new RethnetAdapter(blockchain, state, rethnet, common);
+    return new RethnetAdapter(blockchain, state, common, limitContractCodeSize);
   }
 
   /**
@@ -104,7 +94,10 @@ export class RethnetAdapter implements VMAdapter {
       blockContext.header.mixHash
     );
 
-    const rethnetResult = await this._rethnet.guaranteedDryRun(
+    const rethnetResult = await guaranteedDryRun(
+      this._blockchain,
+      this._state.asInner(),
+      makeConfigOptions(this._common, true, true, this._limitContractCodeSize),
       rethnetTx,
       {
         number: blockContext.header.number,
@@ -299,7 +292,10 @@ export class RethnetAdapter implements VMAdapter {
       block.header.mixHash
     );
 
-    const rethnetResult = await this._rethnet.run(
+    const rethnetResult = await run(
+      this._blockchain,
+      this._state.asInner(),
+      makeConfigOptions(this._common, false, true, this._limitContractCodeSize),
       rethnetTx,
       ethereumjsHeaderDataToRethnetBlockConfig(
         block.header,
@@ -379,9 +375,9 @@ export class RethnetAdapter implements VMAdapter {
       this._blockchain,
       this._state,
       this._vmTracer,
-      this._rethnet.config(),
       common,
-      opts
+      opts,
+      this._limitContractCodeSize
     );
   }
 
@@ -420,4 +416,21 @@ export class RethnetAdapter implements VMAdapter {
 
     return undefined;
   }
+}
+
+export function makeConfigOptions(
+  common: Common,
+  disableBlockGasLimit: boolean,
+  disableEip3607: boolean,
+  limitContractCodeSize: bigint | null
+): ConfigOptions {
+  return {
+    chainId: common.chainId(),
+    specId: ethereumsjsHardforkToRethnetSpecId(
+      getHardforkName(common.hardfork())
+    ),
+    limitContractCodeSize: limitContractCodeSize ?? undefined,
+    disableBlockGasLimit,
+    disableEip3607,
+  };
 }

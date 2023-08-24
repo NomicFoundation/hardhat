@@ -4,7 +4,10 @@ use crate::{
         filter::{FilterOptions, SubscriptionType},
         BlockSpec,
     },
-    serde::{sequence_to_single, single_to_sequence, ZeroXPrefixedBytes},
+    serde::{
+        optional_single_to_sequence, sequence_to_optional_single, sequence_to_single,
+        single_to_sequence, ZeroXPrefixedBytes,
+    },
     Address, B256, U256,
 };
 
@@ -282,6 +285,20 @@ pub enum MethodInvocation {
         deserialize_with = "sequence_to_single"
     )]
     Web3Sha3(ZeroXPrefixedBytes),
+    /// evm_increaseTime
+    #[serde(
+        rename = "evm_increaseTime",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
+    EvmIncreaseTime(U256OrUsize),
+    /// evm_mine
+    #[serde(
+        rename = "evm_mine",
+        serialize_with = "optional_single_to_sequence",
+        deserialize_with = "sequence_to_optional_single"
+    )]
+    EvmMine(Option<U256OrUsize>),
     /// evm_setAutomine
     #[serde(
         rename = "evm_setAutomine",
@@ -289,9 +306,52 @@ pub enum MethodInvocation {
         deserialize_with = "sequence_to_single"
     )]
     EvmSetAutomine(bool),
+    /// evm_setIntervalMining
+    #[serde(
+        rename = "evm_setIntervalMining",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
+    EvmSetIntervalMining(OneUsizeOrTwo),
+    /// evm_setNextBlockTimestamp
+    #[serde(
+        rename = "evm_setNextBlockTimestamp",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
+    EvmSetNextBlockTimestamp(U256OrUsize),
     /// evm_snapshot
     #[serde(rename = "evm_snapshot")]
     EvmSnapshot(),
+}
+
+/// an input that can be either a single usize or an array of two usize values
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
+pub enum OneUsizeOrTwo {
+    /// a single usize
+    One(usize),
+    /// an array of two usize values
+    Two([usize; 2]),
+}
+
+/// an input that can be either a U256 or a usize
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
+pub enum U256OrUsize {
+    /// usize
+    Usize(usize),
+    /// U256
+    U256(U256),
+}
+
+impl From<U256OrUsize> for U256 {
+    fn from(either: U256OrUsize) -> Self {
+        match either {
+            U256OrUsize::U256(u) => u,
+            U256OrUsize::Usize(u) => Self::from(u),
+        }
+    }
 }
 
 /// for specifying the inputs to `eth_getLogs`

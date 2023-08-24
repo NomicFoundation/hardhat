@@ -6,7 +6,7 @@ use rethnet_eth::{
         filter::{
             FilterBlockTarget, FilterOptions, LogOutput, OneOrMoreAddresses, SubscriptionType,
         },
-        methods::{GetLogsInput, MethodInvocation, TransactionInput},
+        methods::{GetLogsInput, MethodInvocation, OneUsizeOrTwo, TransactionInput, U256OrUsize},
         BlockSpec, BlockTag,
     },
     Address, B256, U256,
@@ -14,6 +14,7 @@ use rethnet_eth::{
 use rethnet_test_utils::{
     help_test_method_invocation_serde, help_test_method_invocation_serde_with_expected,
 };
+use revm_primitives::HashMap;
 
 #[test]
 fn test_serde_eth_accounts() {
@@ -321,7 +322,7 @@ fn test_serde_eth_sign_typed_data_v4() {
     help_test_method_invocation_serde(MethodInvocation::SignTypedDataV4(
         Address::from_low_u64_ne(1),
         eip712::Message {
-            types: hashbrown::HashMap::from([(
+            types: HashMap::from([(
                 String::from("typeA"),
                 vec![eip712::FieldType {
                     name: String::from("A"),
@@ -411,6 +412,29 @@ fn test_serde_one_or_more_addresses() {
 }
 
 #[test]
+fn test_evm_increase_time() {
+    help_test_method_invocation_serde(MethodInvocation::EvmIncreaseTime(U256OrUsize::U256(
+        U256::from(12345),
+    )));
+}
+
+#[test]
+fn test_evm_mine() {
+    help_test_method_invocation_serde(MethodInvocation::EvmMine(Some(U256OrUsize::U256(
+        U256::from(12345),
+    ))));
+    help_test_method_invocation_serde(MethodInvocation::EvmMine(Some(U256OrUsize::Usize(12345))));
+    help_test_method_invocation_serde(MethodInvocation::EvmMine(None));
+}
+
+#[test]
+fn test_evm_set_next_block_timestamp() {
+    help_test_method_invocation_serde(MethodInvocation::EvmSetNextBlockTimestamp(
+        U256OrUsize::U256(U256::from(12345)),
+    ));
+}
+
+#[test]
 fn test_serde_web3_client_version() {
     help_test_method_invocation_serde(MethodInvocation::Web3ClientVersion());
 }
@@ -425,6 +449,16 @@ fn test_serde_web3_sha3() {
 #[test]
 fn test_evm_set_automine() {
     help_test_method_invocation_serde(MethodInvocation::EvmSetAutomine(false));
+}
+
+#[test]
+fn test_evm_set_interval_mining() {
+    help_test_method_invocation_serde(MethodInvocation::EvmSetIntervalMining(OneUsizeOrTwo::One(
+        1000,
+    )));
+    help_test_method_invocation_serde(MethodInvocation::EvmSetIntervalMining(OneUsizeOrTwo::Two(
+        [1000, 5000],
+    )));
 }
 
 #[test]

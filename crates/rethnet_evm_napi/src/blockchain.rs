@@ -1,4 +1,4 @@
-use std::{fmt::Debug, ops::Deref, sync::Arc};
+use std::{fmt::Debug, ops::Deref, path::PathBuf, sync::Arc};
 
 use napi::{
     bindgen_prelude::{BigInt, Buffer, ObjectFinalize},
@@ -99,11 +99,13 @@ impl Blockchain {
         spec_id: SpecId,
         remote_url: String,
         fork_block_number: Option<BigInt>,
+        cache_dir: Option<String>,
     ) -> napi::Result<JsObject> {
         let spec_id = rethnet_evm::SpecId::from(spec_id);
         let fork_block_number: Option<U256> = fork_block_number.map_or(Ok(None), |number| {
             BigInt::try_cast(number).map(Option::Some)
         })?;
+        let cache_dir = cache_dir.map_or_else(|| rethnet_defaults::CACHE_DIR.into(), PathBuf::from);
 
         let runtime = context.runtime().clone();
 
@@ -113,6 +115,7 @@ impl Blockchain {
                 runtime,
                 spec_id,
                 &remote_url,
+                cache_dir,
                 fork_block_number,
             )
             .await

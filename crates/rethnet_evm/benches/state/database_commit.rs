@@ -1,5 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use rethnet_evm::AccountStatus;
+use rethnet_evm::{AccountStatus, HashMap};
 use revm::primitives::Bytecode;
 
 use rethnet_eth::{Address, Bytes, U256};
@@ -8,7 +8,6 @@ mod util;
 use util::{bench_sync_state_method, state_prep_no_op};
 
 fn bench_database_commit(c: &mut Criterion) {
-    use hashbrown::HashMap;
     use revm::primitives::KECCAK_EMPTY;
 
     use rethnet_eth::serde::optional_u64_from_hex;
@@ -46,7 +45,7 @@ fn bench_database_commit(c: &mut Criterion) {
             storage.insert(
                 location,
                 StorageSlot {
-                    original_value: U256::ZERO, // TODO: something better?
+                    previous_or_original_value: U256::ZERO, // TODO: something better?
                     present_value: value.unwrap_or(U256::ZERO),
                 },
             );
@@ -58,7 +57,7 @@ fn bench_database_commit(c: &mut Criterion) {
                 balance: account_state.balance.unwrap(),
                 nonce: account_state.nonce.unwrap(),
                 code: code.clone(),
-                code_hash: code.map_or(KECCAK_EMPTY, |code| code.hash()),
+                code_hash: code.map_or(KECCAK_EMPTY, |code| code.hash_slow()),
             },
             storage,
             status: AccountStatus::default(),

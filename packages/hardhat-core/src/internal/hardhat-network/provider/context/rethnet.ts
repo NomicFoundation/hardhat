@@ -1,5 +1,5 @@
-import { toBuffer } from "@nomicfoundation/ethereumjs-util";
-import { BlockMiner, Blockchain, Rethnet, RethnetContext } from "rethnet-evm";
+import { Address } from "@nomicfoundation/ethereumjs-util";
+import { Blockchain, RethnetContext } from "rethnet-evm";
 import { BlockchainAdapter } from "../blockchain";
 import { RethnetBlockchain } from "../blockchain/rethnet";
 import { EthContextAdapter } from "../context";
@@ -41,6 +41,9 @@ export class RethnetEthContext implements EthContextAdapter {
     const common = makeCommon(config);
     const hardforkName = getHardforkName(config.hardfork);
 
+    const prevRandaoGenerator =
+      RandomBufferGenerator.create("randomMixHashSeed");
+
     let blockchain: RethnetBlockchain;
     let state: RethnetStateManager;
 
@@ -80,9 +83,6 @@ export class RethnetEthContext implements EthContextAdapter {
         ? initialBaseFeePerGas
         : undefined;
 
-      const prevRandaoGenerator =
-        RandomBufferGenerator.create("randomMixHashSeed");
-
       const genesisBlockHeader = makeGenesisBlock(
         config,
         await state.getStateRoot(),
@@ -107,17 +107,14 @@ export class RethnetEthContext implements EthContextAdapter {
     }
 
     const limitContractCodeSize =
-      config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : undefined;
+      config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : null;
 
-    const rethnet = new Rethnet(blockchain.asInner(), state.asInner(), {
-      chainId: BigInt(config.chainId),
-      specId: ethereumsjsHardforkToRethnetSpecId(hardforkName),
-      limitContractCodeSize,
-      disableBlockGasLimit: true,
-      disableEip3607: true,
-    });
-
-    const vm = new RethnetAdapter(blockchain.asInner(), state, rethnet, common);
+    const vm = new RethnetAdapter(
+      blockchain.asInner(),
+      state,
+      common,
+      limitContractCodeSize
+    );
 
     const memPool = new RethnetMemPool(
       BigInt(config.blockGasLimit),
@@ -126,16 +123,13 @@ export class RethnetEthContext implements EthContextAdapter {
     );
 
     const miner = new RethnetMiner(
-      new BlockMiner(
-        blockchain.asInner(),
-        state.asInner(),
-        memPool.asInner(),
-        // TODO: Should this be the same config? Split config?
-        rethnet.config(),
-        BigInt(config.blockGasLimit),
-        toBuffer(config.coinbase)
-      ),
-      common
+      blockchain,
+      state,
+      memPool,
+      common,
+      limitContractCodeSize,
+      Address.fromString(config.coinbase),
+      prevRandaoGenerator
     );
 
     return new RethnetEthContext(blockchain, memPool, miner, state, vm);

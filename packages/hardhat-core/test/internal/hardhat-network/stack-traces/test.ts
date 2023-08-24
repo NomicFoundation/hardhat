@@ -134,6 +134,12 @@ function defineTest(
     testDefinition.solc !== undefined &&
     !semver.satisfies(compilerOptions.solidityVersion, testDefinition.solc);
 
+  // Disabled as revm and ethereumjs have slightly different outputs
+  const dualModeDifference: boolean =
+    (process.env.HARDHAT_EXPERIMENTAL_VM_MODE === undefined ||
+      process.env.HARDHAT_EXPERIMENTAL_VM_MODE === "dual") &&
+    dirPath.includes("oog-chaining");
+
   const func = async function (this: Mocha.Context) {
     this.timeout(TEST_TIMEOUT_MILLIS);
 
@@ -144,7 +150,8 @@ function defineTest(
     testDefinition.skip === true ||
     (testDefinition.skipViaIR === true &&
       compilerOptions.optimizer?.viaIR === true) ||
-    solcVersionDoesntMatch
+    solcVersionDoesntMatch ||
+    dualModeDifference
   ) {
     it.skip(desc, func);
   } else if (testDefinition.only !== undefined && testDefinition.only) {

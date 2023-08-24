@@ -15,7 +15,6 @@ import {
   BufferLike,
   bigIntToHex,
   bufferToHex,
-  setLengthLeft,
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
 import { PostByzantiumTxReceipt } from "@nomicfoundation/ethereumjs-vm";

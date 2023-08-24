@@ -168,13 +168,13 @@ impl TryFrom<ConfigOptions> for CfgEnv {
             .unwrap_or(default.disable_block_gas_limit);
         let disable_eip3607 = value.disable_eip3607.unwrap_or(default.disable_eip3607);
 
-        Ok(Self {
-            chain_id,
-            spec_id,
-            limit_contract_code_size,
-            disable_block_gas_limit,
-            disable_eip3607,
-            ..default
-        })
+        let mut cfg = CfgEnv::default();
+        cfg.chain_id = chain_id;
+        cfg.spec_id = spec_id;
+        cfg.limit_contract_code_size = limit_contract_code_size;
+        cfg.disable_block_gas_limit = disable_block_gas_limit;
+        cfg.disable_eip3607 = disable_eip3607;
+
+        Ok(cfg)
     }
 }
