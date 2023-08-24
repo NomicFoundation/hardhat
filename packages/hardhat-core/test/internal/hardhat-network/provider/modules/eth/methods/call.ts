@@ -39,7 +39,6 @@ import {
 } from "../../../../helpers/transactions";
 import { compileLiteral } from "../../../../stack-traces/compilation";
 import { EthereumProvider } from "../../../../../../../src/types";
-import { InvalidInputError } from "../../../../../../../src/internal/core/providers/errors";
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork, chainId }) => {
@@ -505,7 +504,7 @@ describe("Eth module", function () {
           });
         });
 
-        describe.only("eth_call with state override", function () {
+        describe("eth_call with state override", function () {
           const address = DEFAULT_ACCOUNTS_ADDRESSES[2];
           let contractAAddress: string;
           let contractBAddress: string;
