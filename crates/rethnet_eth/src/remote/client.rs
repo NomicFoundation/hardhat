@@ -1070,13 +1070,27 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn get_earliest_block() {
+        async fn get_block_with_transaction_data() {
             let alchemy_url = get_alchemy_url();
+            let client = TestRpcClient::new(&alchemy_url);
 
-            let _block = TestRpcClient::new(&alchemy_url)
-                .get_block_by_number(BlockSpec::earliest())
+            let block_spec = BlockSpec::Number(U256::from(16220843));
+
+            assert_eq!(client.files_in_cache().len(), 0);
+
+            let block_from_remote = client
+                .get_block_by_number_with_transaction_data(block_spec.clone())
                 .await
-                .expect("should have succeeded");
+                .expect("should have from remote");
+
+            assert_eq!(client.files_in_cache().len(), 1);
+
+            let block_from_cache = client
+                .get_block_by_number_with_transaction_data(block_spec.clone())
+                .await
+                .expect("should have from remote");
+
+            assert_eq!(block_from_remote, block_from_cache)
         }
 
         #[tokio::test]
@@ -1248,9 +1262,9 @@ mod tests {
                 U256::from_str_radix("1e449a99b8", 16).expect("couldn't parse data")
             );
             assert_eq!(
-            tx.input,
-            Bytes::from(hex::decode("a9059cbb000000000000000000000000e2c1e729e05f34c07d80083982ccd9154045dcc600000000000000000000000000000000000000000000000000000004a817c800").unwrap())
-        );
+                tx.input,
+                Bytes::from(hex::decode("a9059cbb000000000000000000000000e2c1e729e05f34c07d80083982ccd9154045dcc600000000000000000000000000000000000000000000000000000004a817c800").unwrap())
+            );
             assert_eq!(
                 tx.nonce,
                 u64::from_str_radix("653b", 16).expect("couldn't parse data")
@@ -1548,10 +1562,13 @@ mod tests {
         async fn switching_provider_doesnt_invalidate_cache() {
             let alchemy_url = get_alchemy_url();
             let infura_url = get_infura_url();
+            let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
+                .expect("failed to parse address");
+            let block_spec = Some(BlockSpec::Number(U256::from(16220843)));
 
             let alchemy_client = TestRpcClient::new(&alchemy_url);
-            alchemy_client
-                .network_id()
+            let total_supply = alchemy_client
+                .get_storage_at(&dai_address, U256::from(1), block_spec.clone())
                 .await
                 .expect("should have succeeded");
             let alchemy_cached_files = alchemy_client.files_in_cache();
@@ -1559,33 +1576,13 @@ mod tests {
 
             let infura_client = TestRpcClient::new_with_dir(&infura_url, alchemy_client.cache_dir);
             infura_client
-                .network_id()
+                .get_storage_at(&dai_address, U256::from(1), block_spec)
                 .await
                 .expect("should have succeeded");
             let infura_cached_files = infura_client.files_in_cache();
             assert_eq!(alchemy_cached_files, infura_cached_files);
-        }
 
-        #[tokio::test]
-        async fn stores_result_in_cache() {
-            let alchemy_url = get_alchemy_url();
-            let client = TestRpcClient::new(&alchemy_url);
-            let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
-                .expect("failed to parse address");
-
-            let total_supply = client
-                .get_storage_at(
-                    &dai_address,
-                    U256::from(1),
-                    Some(BlockSpec::Number(U256::from(16220843))),
-                )
-                .await
-                .expect("should have succeeded");
-
-            let cached_files = client.files_in_cache();
-            assert_eq!(cached_files.len(), 1);
-
-            let mut file = File::open(&cached_files[0]).expect("failed to open file");
+            let mut file = File::open(&infura_cached_files[0]).expect("failed to open file");
             let cached_result: U256 = serde_json::from_reader(&mut file).expect("failed to parse");
 
             assert_eq!(total_supply, cached_result);

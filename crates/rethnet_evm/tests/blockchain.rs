@@ -1,5 +1,8 @@
-use std::{path::PathBuf, str::FromStr};
+use std::str::FromStr;
 
+use serial_test::serial;
+
+use lazy_static::lazy_static;
 use rethnet_eth::{
     block::{Block, DetailedBlock, PartialHeader},
     transaction::{EIP155TransactionRequest, SignedTransaction, TransactionKind},
@@ -12,9 +15,14 @@ use rethnet_evm::{
 };
 use tempfile::TempDir;
 
+lazy_static! {
+    // Use same cache dir for all tests
+    static ref CACHE_DIR: TempDir = TempDir::new().unwrap();
+}
+
 // The cache directory is only used when the `test-remote` feature is enabled
 #[allow(unused_variables)]
-fn create_dummy_blockchains(cache_dir: PathBuf) -> Vec<Box<dyn SyncBlockchain<BlockchainError>>> {
+fn create_dummy_blockchains() -> Vec<Box<dyn SyncBlockchain<BlockchainError>>> {
     const DEFAULT_GAS_LIMIT: u64 = 0xffffffffffffff;
     const DEFAULT_INITIAL_BASE_FEE: u64 = 1000000000;
 
@@ -40,6 +48,8 @@ fn create_dummy_blockchains(cache_dir: PathBuf) -> Vec<Box<dyn SyncBlockchain<Bl
         use tokio::runtime::Builder;
 
         let runtime = Arc::new(Builder::new_multi_thread().enable_all().build().unwrap());
+
+        let cache_dir = CACHE_DIR.path().into();
 
         runtime
             .clone()
@@ -135,9 +145,9 @@ fn create_dummy_transaction() -> SignedTransaction {
 }
 
 #[test]
+#[serial]
 fn test_get_last_block() {
-    let temp_dir = TempDir::new().unwrap();
-    let blockchains = create_dummy_blockchains(temp_dir.path().into());
+    let blockchains = create_dummy_blockchains();
 
     for mut blockchain in blockchains {
         let next_block = create_dummy_block(blockchain.as_ref());
@@ -150,9 +160,9 @@ fn test_get_last_block() {
 }
 
 #[test]
+#[serial]
 fn test_get_block_by_hash_some() {
-    let temp_dir = TempDir::new().unwrap();
-    let blockchains = create_dummy_blockchains(temp_dir.path().into());
+    let blockchains = create_dummy_blockchains();
 
     for mut blockchain in blockchains {
         let next_block = create_dummy_block(blockchain.as_ref());
@@ -168,9 +178,9 @@ fn test_get_block_by_hash_some() {
 }
 
 #[test]
+#[serial]
 fn test_get_block_by_hash_none() {
-    let temp_dir = TempDir::new().unwrap();
-    let blockchains = create_dummy_blockchains(temp_dir.path().into());
+    let blockchains = create_dummy_blockchains();
 
     for blockchain in blockchains {
         assert_eq!(blockchain.block_by_hash(&B256::zero()).unwrap(), None);
@@ -178,9 +188,9 @@ fn test_get_block_by_hash_none() {
 }
 
 #[test]
+#[serial]
 fn test_get_block_by_number_some() {
-    let temp_dir = TempDir::new().unwrap();
-    let blockchains = create_dummy_blockchains(temp_dir.path().into());
+    let blockchains = create_dummy_blockchains();
 
     for mut blockchain in blockchains {
         let next_block = create_dummy_block(blockchain.as_ref());
@@ -196,9 +206,9 @@ fn test_get_block_by_number_some() {
 }
 
 #[test]
+#[serial]
 fn test_get_block_by_number_none() {
-    let temp_dir = TempDir::new().unwrap();
-    let blockchains = create_dummy_blockchains(temp_dir.path().into());
+    let blockchains = create_dummy_blockchains();
 
     for blockchain in blockchains {
         let next_block_number = blockchain.last_block_number() + U256::from(1);
@@ -210,9 +220,9 @@ fn test_get_block_by_number_none() {
 }
 
 #[test]
+#[serial]
 fn test_insert_block_multiple() {
-    let temp_dir = TempDir::new().unwrap();
-    let blockchains = create_dummy_blockchains(temp_dir.path().into());
+    let blockchains = create_dummy_blockchains();
 
     for mut blockchain in blockchains {
         let one = create_dummy_block(blockchain.as_ref());
@@ -233,9 +243,9 @@ fn test_insert_block_multiple() {
 }
 
 #[test]
+#[serial]
 fn test_insert_block_invalid_block_number() {
-    let temp_dir = TempDir::new().unwrap();
-    let blockchains = create_dummy_blockchains(temp_dir.path().into());
+    let blockchains = create_dummy_blockchains();
 
     for mut blockchain in blockchains {
         let next_block_number = blockchain.last_block_number() + U256::from(1);
@@ -257,9 +267,9 @@ fn test_insert_block_invalid_block_number() {
 }
 
 #[test]
+#[serial]
 fn test_insert_block_invalid_parent_hash() {
-    let temp_dir = TempDir::new().unwrap();
-    let blockchains = create_dummy_blockchains(temp_dir.path().into());
+    let blockchains = create_dummy_blockchains();
 
     for mut blockchain in blockchains {
         const INVALID_BLOCK_HASH: B256 = B256::zero();
@@ -280,9 +290,9 @@ fn test_insert_block_invalid_parent_hash() {
 }
 
 #[test]
+#[serial]
 fn test_revert_to_block() {
-    let temp_dir = TempDir::new().unwrap();
-    let blockchains = create_dummy_blockchains(temp_dir.path().into());
+    let blockchains = create_dummy_blockchains();
 
     for mut blockchain in blockchains {
         let last_block = blockchain.last_block().unwrap();
@@ -327,9 +337,9 @@ fn test_revert_to_block() {
 }
 
 #[test]
+#[serial]
 fn test_revert_to_block_invalid_number() {
-    let temp_dir = TempDir::new().unwrap();
-    let blockchains = create_dummy_blockchains(temp_dir.path().into());
+    let blockchains = create_dummy_blockchains();
 
     for mut blockchain in blockchains {
         let next_block_number = blockchain.last_block_number() + U256::from(1);
@@ -345,10 +355,9 @@ fn test_revert_to_block_invalid_number() {
 }
 
 #[test]
+#[serial]
 fn test_block_total_difficulty_by_hash() {
-    let temp_dir = TempDir::new().unwrap();
-    let blockchains: Vec<Box<dyn SyncBlockchain<BlockchainError>>> =
-        create_dummy_blockchains(temp_dir.path().into());
+    let blockchains: Vec<Box<dyn SyncBlockchain<BlockchainError>>> = create_dummy_blockchains();
 
     for mut blockchain in blockchains {
         let last_block = blockchain.last_block().unwrap();
@@ -399,9 +408,9 @@ fn test_block_total_difficulty_by_hash() {
 }
 
 #[test]
+#[serial]
 fn test_block_total_difficulty_by_hash_invalid_hash() {
-    let temp_dir = TempDir::new().unwrap();
-    let blockchains = create_dummy_blockchains(temp_dir.path().into());
+    let blockchains = create_dummy_blockchains();
 
     for blockchain in blockchains {
         let difficulty = blockchain.total_difficulty_by_hash(&B256::zero()).unwrap();
@@ -411,9 +420,9 @@ fn test_block_total_difficulty_by_hash_invalid_hash() {
 }
 
 #[test]
+#[serial]
 fn test_transaction_by_hash() {
-    let temp_dir = TempDir::new().unwrap();
-    let blockchains = create_dummy_blockchains(temp_dir.path().into());
+    let blockchains = create_dummy_blockchains();
 
     for blockchain in blockchains {
         let transaction = create_dummy_transaction();

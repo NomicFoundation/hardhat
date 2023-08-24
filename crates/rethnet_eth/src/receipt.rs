@@ -132,8 +132,9 @@ where
                 MapAccessT: serde::de::MapAccess<'deserializer>,
             {
                 use serde::de::Error;
-                let mut transaction_type = None;
-                let mut status_code = None;
+                // These are `String` to support deserializing from `serde_json::Value`
+                let mut transaction_type: Option<String> = None;
+                let mut status_code: Option<String> = None;
                 let mut state_root = None;
                 let mut cumulative_gas_used = None;
                 let mut logs_bloom = None;
@@ -188,14 +189,14 @@ where
                 let data = if let Some(state_root) = state_root {
                     TypedReceiptData::PreEip658Legacy { state_root }
                 } else if let Some(status_code) = status_code {
-                    let status = match status_code {
+                    let status = match status_code.as_str() {
                         "0x0" => 0u8,
                         "0x1" => 1u8,
                         _ => return Err(Error::custom(format!("unknown status: {status_code}"))),
                     };
 
                     if let Some(transaction_type) = transaction_type {
-                        match transaction_type {
+                        match transaction_type.as_str() {
                             "0x0" => TypedReceiptData::PostEip658Legacy { status },
                             "0x1" => TypedReceiptData::Eip2930 { status },
                             "0x2" => TypedReceiptData::Eip1559 { status },
@@ -394,6 +395,12 @@ mod tests {
         for receipt in receipts {
             let serialized = serde_json::to_string(&receipt).unwrap();
             let deserialized: TypedReceipt<Log> = serde_json::from_str(&serialized).unwrap();
+            assert_eq!(receipt, deserialized);
+
+            // This is necessary to ensure that the deser implementation doesn't expect a &str
+            // where a String can be passed.
+            let serialized = serde_json::to_value(&receipt).unwrap();
+            let deserialized: TypedReceipt<Log> = serde_json::from_value(serialized).unwrap();
 
             assert_eq!(receipt, deserialized);
         }

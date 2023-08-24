@@ -1,5 +1,14 @@
 #[cfg(feature = "test-remote")]
-mod alchemy {
+mod remote {
+    use lazy_static::lazy_static;
+    use serial_test::serial;
+    use tempfile::TempDir;
+
+    lazy_static! {
+        // Use same cache dir for all tests
+        static ref CACHE_DIR: TempDir = TempDir::new().unwrap();
+    }
+
     macro_rules! impl_test_remote_block_receipt_root {
         ($(
             $name:ident => $block_number:literal,
@@ -7,15 +16,14 @@ mod alchemy {
             $(
                 paste::item! {
                     #[tokio::test]
+                    #[serial]
                     async fn [<test_remote_block_receipt_root_ $name>]() {
-                        use futures::future::{self, FutureExt};
+                        use futures::{stream, StreamExt};
                         use rethnet_eth::{block::BlockAndCallers, remote::{RpcClient, BlockSpec}, trie::ordered_trie_root};
                         use rethnet_test_utils::env::get_alchemy_url;
                         use revm_primitives::U256;
-                        use tempfile::TempDir;
 
-                        let tempdir = TempDir::new().unwrap();
-                        let client = RpcClient::new(&get_alchemy_url(), tempdir.path().into());
+                        let client = RpcClient::new(&get_alchemy_url(), CACHE_DIR.path().into());
 
                         let block_number = U256::from($block_number);
 
@@ -24,16 +32,21 @@ mod alchemy {
                             .await
                             .expect("Should succeed");
 
-                        let receipts = future::try_join_all(block.transactions.iter().map(|transaction| {
-                            client
-                                .get_transaction_receipt(&transaction.hash)
-                                .map(|result| result.map(|result| result.unwrap()))
-                        })).await.expect("Should succeed");
+                        let receipts = stream::iter(block.transactions.iter())
+                            .map(|transaction|
+                                client
+                                    .get_transaction_receipt(&transaction.hash)
+                            )
+                            // Limit concurrent requests to avoid getting rate limited.
+                            .buffered(rethnet_defaults::MAX_CONCURRENT_REQUESTS)
+                            .collect::<Vec<_>>()
+                            .await.into_iter().collect::<Result<Vec<_>, _>>()
+                            .expect("Should succeed");
 
                         let receipts_root = ordered_trie_root(
                             receipts
                                 .into_iter()
-                                .map(|receipt| rlp::encode(&**receipt).freeze()),
+                                .map(|receipt| rlp::encode(&**receipt.unwrap()).freeze()),
                         );
 
                         let BlockAndCallers { block, .. } = block

@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
-use futures::future::{self, FutureExt};
+use futures::future::FutureExt;
+use futures::{stream, StreamExt};
 use parking_lot::{RwLock, RwLockUpgradableReadGuard};
 use rethnet_eth::{
     block::{BlockAndCallers, DetailedBlock},
@@ -158,12 +159,19 @@ impl RemoteBlockchain {
             .collect();
 
         let receipts = tokio::task::block_in_place(move || {
-            self.runtime.block_on({
-                future::try_join_all(transaction_hashes.iter().map(|hash| {
-                    self.client
-                        .get_transaction_receipt(hash)
-                        .map(|result| result.map(|receipt| Arc::new(receipt.unwrap())))
-                }))
+            self.runtime.block_on(async {
+                stream::iter(transaction_hashes.iter())
+                    .map(|hash| {
+                        self.client
+                            .get_transaction_receipt(hash)
+                            .map(|result| result.map(|receipt| Arc::new(receipt.unwrap())))
+                    })
+                    // Limit concurrent requests to avoid getting rate limited.
+                    .buffered(rethnet_defaults::MAX_CONCURRENT_REQUESTS)
+                    .collect::<Vec<_>>()
+                    .await
+                    .into_iter()
+                    .collect::<Result<Vec<_>, _>>()
             })
         })?;
 
