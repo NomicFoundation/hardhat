@@ -589,6 +589,24 @@ impl RpcClient {
             .await
     }
 
+    /// Methods for retrieving multiple transaction receipts in one batch
+    pub async fn get_transaction_receipts(
+        &self,
+        hashes: impl IntoIterator<Item = &B256>,
+    ) -> Result<Option<Vec<BlockReceipt>>, RpcClientError> {
+        let requests: Vec<MethodInvocation> = hashes
+            .into_iter()
+            .map(|transaction_hash| MethodInvocation::GetTransactionReceipt(*transaction_hash))
+            .collect();
+
+        let responses = self.batch_call(&requests).await?;
+
+        responses
+            .into_iter()
+            .map(Self::parse_response_value::<Option<BlockReceipt>>)
+            .collect::<Result<Option<Vec<BlockReceipt>>, _>>()
+    }
+
     /// Calls `eth_getStorageAt`.
     pub async fn get_storage_at(
         &self,

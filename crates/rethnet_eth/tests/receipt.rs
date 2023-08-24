@@ -18,7 +18,6 @@ mod remote {
                     #[tokio::test]
                     #[serial]
                     async fn [<test_remote_block_receipt_root_ $name>]() {
-                        use futures::{stream, StreamExt};
                         use rethnet_eth::{block::BlockAndCallers, remote::{RpcClient, BlockSpec}, trie::ordered_trie_root};
                         use rethnet_test_utils::env::get_alchemy_url;
                         use revm_primitives::U256;
@@ -32,21 +31,15 @@ mod remote {
                             .await
                             .expect("Should succeed");
 
-                        let receipts = stream::iter(block.transactions.iter())
-                            .map(|transaction|
-                                client
-                                    .get_transaction_receipt(&transaction.hash)
-                            )
-                            // Limit concurrent requests to avoid getting rate limited.
-                            .buffered(rethnet_defaults::MAX_CONCURRENT_REQUESTS)
-                            .collect::<Vec<_>>()
-                            .await.into_iter().collect::<Result<Vec<_>, _>>()
-                            .expect("Should succeed");
+                        let receipts = client.get_transaction_receipts(block.transactions.iter().map(|transaction| &transaction.hash))
+                            .await
+                            .expect("Should succeed")
+                            .expect("All receipts of a block should exist");
 
                         let receipts_root = ordered_trie_root(
                             receipts
                                 .into_iter()
-                                .map(|receipt| rlp::encode(&**receipt.unwrap()).freeze()),
+                                .map(|receipt| rlp::encode(&**receipt).freeze()),
                         );
 
                         let BlockAndCallers { block, .. } = block
