@@ -522,8 +522,8 @@ describe("Eth module", function () {
               `0x${STATE_OVERRIDE_SET_CONTRACT_D.bytecode.object}`
             );
 
-            // Contract A constructor requires the address of contract B.
-            // This value is encoded and appended to the data containing the bytecode of contract A
+            // Contract A constructor requires the addresses of contract B and contract D.
+            // These values are encoded and appended to the data containing the bytecode of contract A
             const abiCoder = new ethers.AbiCoder();
             const encodedParameters = abiCoder
               .encode(
@@ -572,7 +572,6 @@ describe("Eth module", function () {
           });
 
           it("should throw an error because the key address used is invalid", async function () {
-            // The balance should be equal to the value set in the state override properties
             await assertInvalidArgumentsError(
               this.provider,
               "eth_call",
@@ -595,7 +594,6 @@ describe("Eth module", function () {
           });
 
           it("should throw an error because an invalid storage key is used", async function () {
-            // The balance should be equal to the value set in the state override properties
             await assertInvalidArgumentsError(
               this.provider,
               "eth_call",
@@ -1006,7 +1004,7 @@ describe("Eth module", function () {
             });
 
             it("should override the storage and then revert it to the original value after the override", async function () {
-              // Clear all the storage and then set the storage at slot 1 with value 0x0...0C
+              // Clear all the storage and then set the storage at slot 3 with value 0x0...0C
               const storageBefore = await this.provider.send("eth_call", [
                 {
                   from: address,
@@ -1031,7 +1029,7 @@ describe("Eth module", function () {
                 {
                   [contractAAddress]: {
                     state: {
-                      // Memory slot starting at 2, location where y is stored
+                      // Memory slot starting at 3, location where y is stored
                       "0x0000000000000000000000000000000000000000000000000000000000000003":
                         "0x000000000000000000000000000000000000000000000000000000000000000c",
                     },
@@ -1081,8 +1079,7 @@ describe("Eth module", function () {
 
           describe("stateDiff property", function () {
             it("should override the storage and then revert it to the original value after the override", async function () {
-              // Override only the storage starting at slot 2 (variable y)
-
+              // Override only the storage starting at slot 3 (variable y)
               const storageBefore = await this.provider.send("eth_call", [
                 {
                   from: address,
@@ -1133,7 +1130,7 @@ describe("Eth module", function () {
               assert.equal(storageAfter, storageBefore);
             });
 
-            it("should override both the storage starting at slot 1 (variable x), and the storage starting at slot 2 (variable y)", async function () {
+            it("should override both the storage starting at slot 2 (variable x), and the storage starting at slot 3 (variable y)", async function () {
               const storage = await this.provider.send("eth_call", [
                 {
                   from: address,
