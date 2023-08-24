@@ -15,7 +15,7 @@ import { HardhatArtifactResolver } from "./hardhat-artifact-resolver.ts";
 import { IgnitionHelper } from "./ignition-helper";
 import { loadModule } from "./load-module";
 import { writePlan } from "./plan/write-plan";
-import { setupExecutionEventListeners } from "./ui/setupExecutionEventListeners.js";
+import { UiEventHandler } from "./ui/UiEventHandler.js";
 import { open } from "./utils/open";
 
 import "./type-extensions";
@@ -136,7 +136,7 @@ task("deploy")
 
         const artifactResolver = new HardhatArtifactResolver(hre);
 
-        const executionEventListener = setupExecutionEventListeners();
+        const executionEventListener = new UiEventHandler();
 
         const result = await deploy({
           config: hre.config.ignition,

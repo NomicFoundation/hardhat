@@ -37,7 +37,7 @@ export class FileDeploymentLoader implements DeploymentLoader {
     this._journal = new FileJournal(
       journalPath,
       this._verbose,
-      _executionEventListener
+      this._executionEventListener
     );
 
     this._paths = {
