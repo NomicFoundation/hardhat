@@ -15,7 +15,7 @@ export async function wipe(
   deploymentDir: string,
   artifactResolver: ArtifactResolver,
   futureId: string
-) {
+): Promise<void> {
   const deploymentLoader =
     deploymentDir !== undefined
       ? new FileDeploymentLoader(deploymentDir, false)
@@ -23,5 +23,5 @@ export async function wipe(
 
   const wiper = new Wiper(deploymentLoader);
 
-  return wiper.wipe(futureId);
+  await wiper.wipe(futureId);
 }
