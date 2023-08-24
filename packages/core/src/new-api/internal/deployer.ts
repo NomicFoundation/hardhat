@@ -45,7 +45,7 @@ export class Deployer {
   ) {
     assertIgnitionInvariant(
       this._config.requiredConfirmations >= 1,
-      `Configured value 'blockConfirmations' cannot be less than 1. Value given: '${this._config.requiredConfirmations}'`
+      `Configured value 'requiredConfirmations' cannot be less than 1. Value given: '${this._config.requiredConfirmations}'`
     );
   }
 

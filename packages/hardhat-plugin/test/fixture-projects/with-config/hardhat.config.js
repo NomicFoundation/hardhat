@@ -9,8 +9,9 @@ module.exports = {
     },
   },
   ignition: {
-    blockConfirmations: 10,
+    requiredConfirmations: 10,
     blockPollingInterval: 100,
-    transactionTimeoutInterval: 60 * 1000,
+    timeBeforeBumpingFees: 60 * 1000,
+    maxFeeBumps: 2,
   },
 };

@@ -11,7 +11,7 @@ describe.skip("ENS", function () {
 
     // Arrange
     const { ens, resolver } = await ignition.deploy(ENSModule, {
-      config: { blockConfirmations: 1 },
+      config: { requiredConfirmations: 1 },
     });
 
     await ens.setSubnodeOwner(

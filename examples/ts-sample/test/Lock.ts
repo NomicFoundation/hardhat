@@ -26,7 +26,7 @@ describe.skip("Lock", function () {
           lockedAmount,
         },
       },
-      config: { blockConfirmations: 1 },
+      config: { requiredConfirmations: 1 },
     });
 
     return { lock, unlockTime, lockedAmount, owner, otherAccount };

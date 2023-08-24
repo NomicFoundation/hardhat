@@ -16,7 +16,7 @@ describe.skip("Complete", function () {
       duplicateWithLib,
     } = await ignition.deploy(CompleteModule, {
       config: {
-        blockConfirmations: 1,
+        requiredConfirmations: 1,
       },
     });
 

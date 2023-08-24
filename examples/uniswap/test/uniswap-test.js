@@ -23,7 +23,7 @@ describe.skip("Uniswap", function () {
     // Deploy Uniswap
     ({ nonfungibleTokenPositionManager, uniswapV3Factory, swapRouter02 } =
       await ignition.deploy(UniswapModule, {
-        config: { blockConfirmations: 1 },
+        config: { requiredConfirmations: 1 },
       }));
 
     // Deploy example tokens Solidus and Florin
