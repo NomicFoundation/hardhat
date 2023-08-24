@@ -160,11 +160,11 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
     resolver: Resolver,
     file: ResolvedFile
   ): Promise<void> {
-    if (this._visitedFiles.has(file.absolutePath)) {
+    if (this._visitedFiles.has(file.sourceName)) {
       return;
     }
 
-    this._visitedFiles.add(file.absolutePath);
+    this._visitedFiles.add(file.sourceName);
 
     const dependencies = new Set<ResolvedFile>();
     this._resolvedFiles.set(file.sourceName, file);
