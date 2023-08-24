@@ -12,3 +12,4 @@ export * from "./new-api/types/module";
 export * from "./new-api/types/module-builder";
 export * from "./new-api/types/provider";
 export * from "./new-api/types/serialized-deployment";
+export * from "./new-api/types/ui-events";
