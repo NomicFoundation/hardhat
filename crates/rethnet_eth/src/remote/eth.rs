@@ -184,7 +184,7 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
         let transaction = match value.transaction_type {
             0 => {
                 if value.is_legacy() {
-                    SignedTransaction::Legacy(LegacySignedTransaction {
+                    SignedTransaction::PreEip155Legacy(LegacySignedTransaction {
                         nonce: value.nonce,
                         gas_price: value.gas_price,
                         gas_limit: value.gas.to(),
@@ -198,7 +198,7 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
                         },
                     })
                 } else {
-                    SignedTransaction::EIP155(EIP155SignedTransaction {
+                    SignedTransaction::PostEip155Legacy(EIP155SignedTransaction {
                         nonce: value.nonce,
                         gas_price: value.gas_price,
                         gas_limit: value.gas.to(),
@@ -213,7 +213,7 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
                     })
                 }
             }
-            1 => SignedTransaction::EIP2930(EIP2930SignedTransaction {
+            1 => SignedTransaction::Eip2930(EIP2930SignedTransaction {
                 odd_y_parity: value.odd_y_parity(),
                 chain_id: value
                     .chain_id
@@ -231,7 +231,7 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
                 r: value.r,
                 s: value.s,
             }),
-            2 => SignedTransaction::EIP1559(EIP1559SignedTransaction {
+            2 => SignedTransaction::Eip1559(EIP1559SignedTransaction {
                 odd_y_parity: value.odd_y_parity(),
                 chain_id: value
                     .chain_id

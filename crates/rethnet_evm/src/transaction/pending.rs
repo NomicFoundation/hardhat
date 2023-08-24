@@ -198,7 +198,7 @@ impl From<PendingTransaction> for TxEnv {
 
         let chain_id = transaction.transaction.chain_id();
         match transaction.transaction {
-            SignedTransaction::Legacy(LegacySignedTransaction {
+            SignedTransaction::PreEip155Legacy(LegacySignedTransaction {
                 nonce,
                 gas_price,
                 gas_limit,
@@ -207,7 +207,7 @@ impl From<PendingTransaction> for TxEnv {
                 input,
                 ..
             })
-            | SignedTransaction::EIP155(EIP155SignedTransaction {
+            | SignedTransaction::PostEip155Legacy(EIP155SignedTransaction {
                 nonce,
                 gas_price,
                 gas_limit,
@@ -227,7 +227,7 @@ impl From<PendingTransaction> for TxEnv {
                 nonce: Some(nonce),
                 access_list: Vec::new(),
             },
-            SignedTransaction::EIP2930(EIP2930SignedTransaction {
+            SignedTransaction::Eip2930(EIP2930SignedTransaction {
                 nonce,
                 gas_price,
                 gas_limit,
@@ -248,7 +248,7 @@ impl From<PendingTransaction> for TxEnv {
                 nonce: Some(nonce),
                 access_list: access_list.into(),
             },
-            SignedTransaction::EIP1559(EIP1559SignedTransaction {
+            SignedTransaction::Eip1559(EIP1559SignedTransaction {
                 nonce,
                 max_priority_fee_per_gas,
                 max_fee_per_gas,
