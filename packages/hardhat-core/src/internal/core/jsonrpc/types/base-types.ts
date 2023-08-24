@@ -5,7 +5,6 @@ import {
 } from "@nomicfoundation/ethereumjs-util";
 import * as t from "io-ts";
 
-import { isString } from "lodash";
 import * as BigIntUtils from "../../../util/bigint";
 import { assertHardhatInvariant, HardhatError } from "../../errors";
 import { ERRORS } from "../../errors-list";
@@ -41,11 +40,14 @@ export const rpcStorageSlot = new t.Type<bigint>(
   t.identity
 );
 
-export const rpcStorageSlotHexStr = new t.Type<string>(
+// This type is necessary because objects' keys need to be either strings or numbers to be properly handled by the 'io-ts' module.
+// If they are not defined as strings or numbers, the type definition will result in an empty object without the required properties.
+// For example, instead of displaying { ke1: value1 }, it will display {}
+export const rpcStorageSlotHexString = new t.Type<string>(
   "Storage slot hex string",
-  isString,
+  (x): x is string => typeof x === "string",
   (u, c) =>
-    validateRpcStorageSlotHexString(u) ? t.success(u) : t.failure(u, c),
+    validateRpcStorageSlotHexStringing(u) ? t.success(u) : t.failure(u, c),
   t.identity
 );
 
@@ -194,7 +196,7 @@ export function rpcDataToBuffer(data: string): Buffer {
 
 // Type guards
 
-function validateRpcStorageSlotHexString(u: unknown): u is string {
+function validateRpcStorageSlotHexStringing(u: unknown): u is string {
   return typeof u === "string" && u.match(/^0x([0-9a-fA-F]){64}$/) !== null;
 }
 

@@ -630,7 +630,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   public async runCall(
     call: CallParams,
     blockNumberOrPending: bigint | "pending",
-    stateOverrideSet?: OptionalStateOverrideSet
+    stateOverrideSet: StateOverrideSet
   ): Promise<RunCallResult> {
     let txParams: TransactionParams;
 
@@ -2416,25 +2416,25 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   ) {
     const { state, stateDiff } = stateOverrideOptions;
 
-    if (state === undefined && stateDiff === undefined) return;
-
-    if (state !== undefined && stateDiff !== undefined) {
+    let newState;
+    if (state !== undefined && stateDiff === undefined) {
+      await this._stateManager.clearContractStorage(address);
+      newState = state;
+    } else if (state === undefined && stateDiff !== undefined) {
+      newState = stateDiff;
+    } else if (state === undefined && stateDiff === undefined) {
+      // nothing to do
+      return;
+    } else {
       throw new InvalidInputError(
-        `The properties 'state' and 'stateDiff' cannot be used simultaneously when configuring the state override set passed to the eth_call method.`
+        "The properties 'state' and 'stateDiff' cannot be used simultaneously when configuring the state override set passed to the eth_call method."
       );
     }
 
-    if (stateOverrideOptions.state !== undefined) {
-      // Clear all storage except specified properties which are override
-      await this._stateManager.clearContractStorage(address);
-    }
-
-    const tmpStateProperties = state ?? stateDiff;
-
-    for (const [storageAddr, value] of Object.entries(tmpStateProperties!)) {
+    for (const [storageKey, value] of Object.entries(newState)) {
       await this._stateManager.putContractStorage(
         address,
-        Buffer.from(storageAddr.replace("0x", ""), "hex"),
+        toBuffer(storageKey),
         setLengthLeft(bigIntToBuffer(value), 32)
       );
     }
@@ -2448,13 +2448,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     tx: TypedTransaction,
     blockNumberOrPending: bigint | "pending",
     forceBaseFeeZero = false,
-    optionalStateOverrideSet?: OptionalStateOverrideSet
+    optionalStateOverrideSet: OptionalStateOverrideSet = {}
   ): Promise<RunTxResult> {
     const initialStateRoot = await this._stateManager.getStateRoot();
 
-    if (optionalStateOverrideSet !== undefined) {
-      await this._applyStateOverrideSet(optionalStateOverrideSet);
-    }
+    await this._applyStateOverrideSet(optionalStateOverrideSet);
 
     let blockContext: Block | undefined;
     let originalCommon: Common | undefined;

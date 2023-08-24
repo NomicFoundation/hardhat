@@ -366,7 +366,7 @@ export class EthModule {
     } = await this._node.runCall(
       callParams,
       blockNumberOrPending,
-      stateOverrideSet
+      stateOverrideSet ?? {}
     );
 
     const code = await this._node.getCodeFromTrace(trace, blockNumberOrPending);

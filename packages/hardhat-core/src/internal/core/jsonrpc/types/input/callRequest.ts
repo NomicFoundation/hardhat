@@ -7,7 +7,7 @@ import {
   rpcData,
   rpcQuantity,
   rpcStorageSlot,
-  rpcStorageSlotHexStr,
+  rpcStorageSlotHexString,
 } from "../base-types";
 import { address } from "../../../config/config-validation";
 
@@ -30,7 +30,10 @@ export const rpcCallRequest = t.type(
 export type RpcCallRequest = t.TypeOf<typeof rpcCallRequest>;
 
 // Types used by eth_call to configure the state override set
-export const stateProperties = t.record(rpcStorageSlotHexStr, rpcStorageSlot);
+export const stateProperties = t.record(
+  rpcStorageSlotHexString,
+  rpcStorageSlot
+);
 
 export const stateOverrideOptions = t.type(
   {
@@ -44,10 +47,7 @@ export const stateOverrideOptions = t.type(
 );
 
 export const stateOverrideSet = t.record(address, stateOverrideOptions);
-export const optionalStateOverrideSet = t.union([
-  stateOverrideSet,
-  t.undefined,
-]);
+export const optionalStateOverrideSet = optionalOrNullable(stateOverrideSet);
 
 export type StateOverrideOptions = t.TypeOf<typeof stateOverrideOptions>;
 export type StateOverrideSet = t.TypeOf<typeof stateOverrideSet>;
