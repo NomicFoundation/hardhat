@@ -4,8 +4,7 @@ import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
-// eslint-disable-next-line no-only-tests/no-only-tests
-describe.only("calls", () => {
+describe("calls", () => {
   useEphemeralIgnitionProject("minimal-new-api");
 
   it("should be able to call contracts", async function () {
@@ -173,6 +172,4 @@ describe.only("calls", () => {
       );
     });
   });
-
-  it("should note fail if call fails");
 });

@@ -5,8 +5,7 @@ import { loadModule } from "../src/load-module";
 
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
-// eslint-disable-next-line no-only-tests/no-only-tests
-describe.only("loadModule", function () {
+describe("loadModule", function () {
   useEphemeralIgnitionProject("user-modules");
 
   it("should return the module given the module name", () => {

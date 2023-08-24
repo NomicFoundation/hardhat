@@ -6,8 +6,7 @@ import { assert } from "chai";
 import { KeyListOf } from "./type-helper";
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
-// eslint-disable-next-line no-only-tests/no-only-tests
-describe.only("config", () => {
+describe("config", () => {
   describe("loading", () => {
     useEphemeralIgnitionProject("with-config");
 

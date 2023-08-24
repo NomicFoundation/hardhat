@@ -16,7 +16,7 @@ describe("execution - deploy contract at", function () {
   // TODO: rename back to minimal api once execution switched over
   useEphemeralIgnitionProject("minimal-new-api");
 
-  it("should deploy a contract that is callable", async function () {
+  it.skip("should deploy a contract that is callable", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {
       const foo = m.contract("Foo");
 

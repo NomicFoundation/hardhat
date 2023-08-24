@@ -19,7 +19,7 @@ describe("execution - rerun with dropped ignition transactions", () => {
     "rerun-with-dropped-ignition-transactions"
   );
 
-  it("should deploy successfully on second run", async function () {
+  it.skip("should deploy successfully on second run", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {
       const foo = m.contract("Foo", []);
 

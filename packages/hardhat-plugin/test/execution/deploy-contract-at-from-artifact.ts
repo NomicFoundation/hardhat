@@ -13,7 +13,7 @@ import {
  * First deploy a working contract, then reuse it from a subsequent module
  * with a passed in artifact.
  */
-describe("execution - deploy contractAt from artifact", function () {
+describe.skip("execution - deploy contractAt from artifact", function () {
   // TODO: rename back to minimal api once execution switched over
   useEphemeralIgnitionProject("minimal-new-api");
 

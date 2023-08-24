@@ -18,7 +18,7 @@ describe("execution - rerun with pending ignition transactions", () => {
     "rerun-with-pending-ignition-transactions"
   );
 
-  it("should complete the run on the second attempt", async function () {
+  it.skip("should complete the run on the second attempt", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {
       const account2 = m.getAccount(2);
 

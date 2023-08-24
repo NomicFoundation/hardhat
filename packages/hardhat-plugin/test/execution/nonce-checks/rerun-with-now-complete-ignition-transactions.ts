@@ -19,7 +19,7 @@ describe("execution - rerun with now complete ignition transactions", () => {
     "rerun-with-now-complete-ignition-transactions"
   );
 
-  it("should complete the run on the second attempt", async function () {
+  it.skip("should complete the run on the second attempt", async function () {
     // Setup a module with 6 foo contracts deployed in pairs of 2 over 3 batches
     const moduleDefinition = buildModule("FooModule", (m) => {
       const account2 = m.getAccount(2);

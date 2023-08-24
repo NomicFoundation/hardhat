@@ -4,8 +4,7 @@ import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
-// eslint-disable-next-line no-only-tests/no-only-tests
-describe.only("contract deploys", () => {
+describe("contract deploys", () => {
   useEphemeralIgnitionProject("minimal-new-api");
 
   it("should be able to deploy a contract", async function () {

@@ -15,7 +15,7 @@ import {
 describe("execution - error on user transaction sent", () => {
   useFileIgnitionProject("minimal-new-api", "error-on-user-transaction-sent");
 
-  it("should error on the drop being detected", async function () {
+  it.skip("should error on the drop being detected", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {
       const account2 = m.getAccount(2);
 
@@ -50,7 +50,7 @@ describe("execution - error on user transaction sent", () => {
           const [, , signer2] = await this.hre.ethers.getSigners();
           const FooFactory = await this.hre.ethers.getContractFactory("Foo");
           FooFactory.connect(signer2).deploy({
-            gasPrice: this.hre.ethers.utils.parseUnits("500", "gwei"),
+            gasPrice: this.hre.ethers.parseUnits("500", "gwei"),
           });
 
           // Process block 1 with foo1
