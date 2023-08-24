@@ -13,6 +13,7 @@ import { defaultHardhatNetworkParams } from "../../../../src/internal/core/confi
 import { HardhatNode } from "../../../../src/internal/hardhat-network/provider/node";
 import {
   ForkedNodeConfig,
+  LocalNodeConfig,
   NodeConfig,
   RunCallResult,
 } from "../../../../src/internal/hardhat-network/provider/node-types";
@@ -78,6 +79,7 @@ describe("HardhatNode", () => {
     coinbase: "0x0000000000000000000000000000000000000000",
     chains: defaultHardhatNetworkParams.chains,
     allowBlocksWithSameTimestamp: false,
+    enableTransientStorage: false,
   };
   const gasPrice = 20;
   let node: HardhatNode;
@@ -902,6 +904,7 @@ describe("HardhatNode", () => {
       mempoolOrder: "priority",
       coinbase: "0x0000000000000000000000000000000000000000",
       allowBlocksWithSameTimestamp: false,
+      enableTransientStorage: false,
     };
 
     describe("when forking with a default hardfork activation history", function () {
@@ -1068,6 +1071,7 @@ describe("HardhatNode", () => {
       mempoolOrder: "priority",
       coinbase: "0x0000000000000000000000000000000000000000",
       allowBlocksWithSameTimestamp: false,
+      enableTransientStorage: false,
     };
     const [, hardhatNode] = await HardhatNode.create(nodeConfig);
 
@@ -1083,5 +1087,289 @@ describe("HardhatNode", () => {
         hardhatNode
       )
     );
+  });
+
+  describe("enableTransientStorage", function () {
+    const TLOAD_DEPLOYMENT_BYTECODE = "0x60FF5c"; // PUSH1 FF TLOAD
+    const TSTORE_DEPLOYMENT_BYTECODE = "0x60FF60FF5d"; // PUSH1 FF TLOAD
+
+    const nodeConfig: LocalNodeConfig = {
+      automine: true,
+      chainId: 1,
+      networkId: 1,
+      hardfork: "london",
+      blockGasLimit: 1_000_000,
+      minGasPrice: 0n,
+      genesisAccounts: DEFAULT_ACCOUNTS,
+      chains: defaultHardhatNetworkParams.chains,
+      mempoolOrder: "priority",
+      coinbase: "0x0000000000000000000000000000000000000000",
+      allowBlocksWithSameTimestamp: false,
+      enableTransientStorage: false,
+    };
+
+    describe("When not enabled and on a fork that doesn't support it", function () {
+      it("Should revert if trying to run TLOAD in a tx", async function () {
+        const [, hardhatNode] = await HardhatNode.create(nodeConfig);
+
+        const tx = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: undefined,
+          data: TLOAD_DEPLOYMENT_BYTECODE,
+          gasLimit: 1_000_000n,
+          gasPrice: 10n ** 9n,
+        });
+
+        const transactionResult = await hardhatNode.sendTransaction(tx);
+
+        if (
+          typeof transactionResult === "string" ||
+          Array.isArray(transactionResult)
+        ) {
+          assert.fail("Expected a MineBlockResult");
+        }
+
+        const error = transactionResult.traces[0].error;
+        assert.isDefined(error);
+        assert.include(error!.message, "invalid opcode");
+      });
+
+      it("Should revert if trying to run TSTORE in a call", async function () {
+        const [, hardhatNode] = await HardhatNode.create(nodeConfig);
+
+        const tx = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: undefined,
+          data: TSTORE_DEPLOYMENT_BYTECODE,
+          gasLimit: 1_000_000n,
+          gasPrice: 10n ** 9n,
+        });
+
+        const transactionResult = await hardhatNode.sendTransaction(tx);
+
+        if (
+          typeof transactionResult === "string" ||
+          Array.isArray(transactionResult)
+        ) {
+          assert.fail("Expected a MineBlockResult");
+        }
+
+        const error = transactionResult.traces[0].error;
+        assert.isDefined(error);
+        assert.include(error!.message, "invalid opcode");
+      });
+
+      it("Should revert if trying to run TLOAD in a call", async function () {
+        const [, hardhatNode] = await HardhatNode.create(nodeConfig);
+
+        const callResult = await hardhatNode.runCall(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TLOAD_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isDefined(callResult.error);
+        assert.include(callResult.error!.message, "invalid opcode");
+      });
+
+      it("Should revert if trying to run TSTORE in a call", async function () {
+        const [, hardhatNode] = await HardhatNode.create(nodeConfig);
+
+        const callResult = await hardhatNode.runCall(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TSTORE_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isDefined(callResult.error);
+        assert.include(callResult.error!.message, "invalid opcode");
+      });
+
+      it("Should revert if trying to run TLOAD in a gasEstimate", async function () {
+        const [, hardhatNode] = await HardhatNode.create(nodeConfig);
+
+        const estimateGasResult = await hardhatNode.estimateGas(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TLOAD_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isDefined(estimateGasResult.error);
+        assert.include(estimateGasResult.error!.message, "invalid opcode");
+      });
+
+      it("Should revert if trying to run TSTORE in a gasEstimate", async function () {
+        const [, hardhatNode] = await HardhatNode.create(nodeConfig);
+
+        const estimateGasResult = await hardhatNode.estimateGas(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TSTORE_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isDefined(estimateGasResult.error);
+        assert.include(estimateGasResult.error!.message, "invalid opcode");
+      });
+    });
+
+    describe("When enabled", function () {
+      it("Should not revert if trying to run TLOAD in a tx", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          enableTransientStorage: true,
+        });
+
+        const tx = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: undefined,
+          data: TLOAD_DEPLOYMENT_BYTECODE,
+          gasLimit: 1_000_000n,
+          gasPrice: 10n ** 9n,
+        });
+
+        const transactionResult = await hardhatNode.sendTransaction(tx);
+
+        if (
+          typeof transactionResult === "string" ||
+          Array.isArray(transactionResult)
+        ) {
+          assert.fail("Expected a MineBlockResult");
+        }
+
+        const error = transactionResult.traces[0].error;
+        assert.isUndefined(error);
+      });
+
+      it("Should not revert if trying to run TSTORE in a call", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          enableTransientStorage: true,
+        });
+
+        const tx = createTestTransaction({
+          nonce: 0,
+          from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+          to: undefined,
+          data: TSTORE_DEPLOYMENT_BYTECODE,
+          gasLimit: 1_000_000n,
+          gasPrice: 10n ** 9n,
+        });
+
+        const transactionResult = await hardhatNode.sendTransaction(tx);
+
+        if (
+          typeof transactionResult === "string" ||
+          Array.isArray(transactionResult)
+        ) {
+          assert.fail("Expected a MineBlockResult");
+        }
+
+        const error = transactionResult.traces[0].error;
+        assert.isUndefined(error);
+      });
+
+      it("Should not revert if trying to run TLOAD in a call", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          enableTransientStorage: true,
+        });
+
+        const callResult = await hardhatNode.runCall(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TLOAD_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isUndefined(callResult.error);
+      });
+
+      it("Should revert if trying to run TSTORE in a call", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          enableTransientStorage: true,
+        });
+
+        const callResult = await hardhatNode.runCall(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TSTORE_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isUndefined(callResult.error);
+      });
+
+      it("Should not revert if trying to run TLOAD in a gasEstimate", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          enableTransientStorage: true,
+        });
+
+        const estimateGasResult = await hardhatNode.estimateGas(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TLOAD_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isUndefined(estimateGasResult.error);
+      });
+
+      it("Should not revert if trying to run TSTORE in a gasEstimate", async function () {
+        const [, hardhatNode] = await HardhatNode.create({
+          ...nodeConfig,
+          enableTransientStorage: true,
+        });
+
+        const estimateGasResult = await hardhatNode.estimateGas(
+          {
+            to: undefined,
+            from: toBuffer(DEFAULT_ACCOUNTS_ADDRESSES[0]),
+            data: toBuffer(TSTORE_DEPLOYMENT_BYTECODE),
+            value: 0n,
+            gasLimit: 1_000_000n,
+          },
+          0n
+        );
+
+        assert.isUndefined(estimateGasResult.error);
+      });
+    });
   });
 });

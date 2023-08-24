@@ -1,5 +1,5 @@
 import { Block, HeaderData } from "@nomicfoundation/ethereumjs-block";
-import { Common } from "@nomicfoundation/ethereumjs-common";
+import { Common, CustomCommonOpts } from "@nomicfoundation/ethereumjs-common";
 import {
   AccessListEIP2930Transaction,
   FeeMarketEIP1559Transaction,
@@ -146,6 +146,7 @@ export class HardhatNode extends EventEmitter {
       networkId,
       chainId,
       allowBlocksWithSameTimestamp,
+      enableTransientStorage,
     } = config;
 
     const allowUnlimitedContractSize =
@@ -303,7 +304,8 @@ export class HardhatNode extends EventEmitter {
       forkBlockNum,
       forkBlockHash,
       nextBlockBaseFeePerGas,
-      forkClient
+      forkClient,
+      enableTransientStorage
     );
 
     return [common, node];
@@ -390,7 +392,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     private _forkBlockNumber?: bigint,
     private _forkBlockHash?: string,
     nextBlockBaseFee?: bigint,
-    private _forkClient?: JsonRpcClient
+    private _forkClient?: JsonRpcClient,
+    private readonly _enableTransientStorage: boolean = false
   ) {
     super();
 
@@ -2400,6 +2403,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         },
         {
           hardfork: this._selectHardfork(blockContext.header.number),
+          ...this._getTransientStorageSettings(),
         }
       );
 
@@ -2740,6 +2744,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         },
         {
           hardfork: this._selectHardfork(BigInt(blockNumber)),
+          ...this._getTransientStorageSettings(),
         }
       );
 
@@ -2749,5 +2754,13 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         `Network id ${networkId} does not correspond to a network that Hardhat can trace`
       );
     }
+  }
+
+  private _getTransientStorageSettings(): Partial<CustomCommonOpts> {
+    if (this._enableTransientStorage) {
+      return { eips: [1153] };
+    }
+
+    return {};
   }
 }
