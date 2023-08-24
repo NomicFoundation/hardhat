@@ -186,42 +186,6 @@ impl<'a> TryFrom<&'a MethodInvocation> for CacheableMethodInvocation<'a> {
     }
 }
 
-/// Potentially cacheable Ethereum JSON-RPC method invocations for a batch call.
-#[derive(Clone, Debug)]
-#[repr(transparent)]
-pub(super) struct CacheableMethodInvocations<'a>(Vec<CacheableMethodInvocation<'a>>);
-
-impl<'a> CacheableMethodInvocations<'a> {
-    pub(super) fn cache_key(&self) -> Option<CacheKey> {
-        Some(Hasher::new().hash_method_invocations(self)?.finalize())
-    }
-
-    fn len(&self) -> usize {
-        self.0.len()
-    }
-}
-
-impl<'a> IntoIterator for &'a CacheableMethodInvocations<'a> {
-    type Item = &'a CacheableMethodInvocation<'a>;
-    type IntoIter = core::slice::Iter<'a, CacheableMethodInvocation<'a>>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.0.iter()
-    }
-}
-
-impl<'a> TryFrom<&'a [MethodInvocation]> for CacheableMethodInvocations<'a> {
-    type Error = MethodNotCacheableError;
-
-    fn try_from(value: &'a [MethodInvocation]) -> Result<Self, Self::Error> {
-        let result = value
-            .iter()
-            .map(CacheableMethodInvocation::try_from)
-            .collect::<Result<Vec<_>, _>>()?;
-        Ok(Self(result))
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[repr(transparent)]
 pub(super) struct CacheKey(String);
@@ -268,10 +232,6 @@ impl Hasher {
     }
 
     fn hash_u8(self, value: u8) -> Self {
-        self.hash_bytes(value.to_le_bytes())
-    }
-
-    fn hash_usize(self, value: usize) -> Self {
         self.hash_bytes(value.to_le_bytes())
     }
 
@@ -399,17 +359,6 @@ impl Hasher {
             GetTransactionReceipt { transaction_hash } => this.hash_b256(transaction_hash),
             NetVersion => this,
         };
-
-        Some(this)
-    }
-
-    fn hash_method_invocations(self, methods: &CacheableMethodInvocations<'_>) -> Option<Self> {
-        // Make sure it's prefix-free
-        let mut this = self.hash_usize(methods.len());
-
-        for method_invocation in methods {
-            this = this.hash_method_invocation(method_invocation)?;
-        }
 
         Some(this)
     }
@@ -649,25 +598,5 @@ mod test {
         .unwrap();
 
         assert_eq!(key_one, key_two);
-    }
-
-    #[test]
-    fn test_method_invocations_prefix() {
-        let key_one = CacheableMethodInvocation::ChainId.cache_key().unwrap();
-
-        let key_two = CacheableMethodInvocations(vec![CacheableMethodInvocation::ChainId])
-            .cache_key()
-            .unwrap();
-
-        assert_ne!(key_one, key_two);
-    }
-
-    #[test]
-    fn test_no_uncacheable_method_invocations() {
-        let result: Result<CacheableMethodInvocations<'_>, _> =
-            [MethodInvocation::ChainId(), MethodInvocation::Accounts()]
-                .as_slice()
-                .try_into();
-        assert!(result.is_err())
     }
 }

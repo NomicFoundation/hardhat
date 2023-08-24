@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 bytes = { version = "1.2.1", default-features = false }
 ethbloom = { version = "0.13.0", default-features = false, features = ["rlp"] }
-futures = { version = "0.3.28", features = ["alloc", "async-await", "executor"] }
+futures = {version = "0.3.28", default-features = false}
 hash-db = { version = "0.15.2", default-features = false }
 hash256-std-hasher = { version = "0.15.2", default-features = false }
 hashbrown = { version = "0.13", default-features = false, features = ["ahash"] }
