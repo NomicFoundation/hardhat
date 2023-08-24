@@ -1,5 +1,5 @@
 import { Artifact, ArtifactResolver, BuildInfo } from "../../types/artifact";
-import { UiEventListener } from "../../types/ui-events";
+import { ExecutionEventListener } from "../../types/execution-events";
 import { MemoryJournal } from "../journal/memory-journal";
 import { Journal } from "../journal/types";
 import { JournalMessage } from "../new-execution/types/messages";
@@ -25,9 +25,12 @@ export class EphemeralDeploymentLoader implements DeploymentLoader {
   constructor(
     private _artifactResolver: ArtifactResolver,
     private _verbose: boolean,
-    private _uiEventListener: UiEventListener
+    private _executionEventListener: ExecutionEventListener
   ) {
-    this._journal = new MemoryJournal(this._verbose, this._uiEventListener);
+    this._journal = new MemoryJournal(
+      this._verbose,
+      this._executionEventListener
+    );
     this._deployedAddresses = {};
     this._savedArtifacts = {};
   }

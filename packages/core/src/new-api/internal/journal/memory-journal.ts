@@ -1,8 +1,8 @@
-import { UiEventListener } from "../../types/ui-events";
+import { ExecutionEventListener } from "../../types/execution-events";
 import { JournalMessage } from "../new-execution/types/messages";
 
 import { Journal } from "./types";
-import { emitUiEvent } from "./utils/emitUiEvent";
+import { emitExecutionEvent } from "./utils/emitExecutionEvent";
 import { logJournalableMessage } from "./utils/log";
 
 /**
@@ -15,7 +15,7 @@ export class MemoryJournal implements Journal {
 
   constructor(
     private _verbose: boolean = false,
-    private _uiEventListener: UiEventListener
+    private _executionEventListener: ExecutionEventListener
   ) {}
 
   public record(message: JournalMessage): void {
@@ -35,6 +35,6 @@ export class MemoryJournal implements Journal {
       logJournalableMessage(message);
     }
 
-    emitUiEvent(message, this._uiEventListener);
+    emitExecutionEvent(message, this._executionEventListener);
   }
 }

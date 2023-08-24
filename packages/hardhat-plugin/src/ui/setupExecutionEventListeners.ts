@@ -1,4 +1,7 @@
-import { UiEventListener, UiEventType } from "@ignored/ignition-core";
+import {
+  ExecutionEventListener,
+  ExecutionEventType,
+} from "@ignored/ignition-core";
 
 import { callExecutionStateCompleteListener } from "./listeners/callExecutionStateCompleteListener";
 import { callExecutionStateInitializeListener } from "./listeners/callExecutionStateInitializeListener";
@@ -13,29 +16,29 @@ import { staticCallExecutionStateCompleteListener } from "./listeners/staticCall
 import { staticCallExecutionStateInitializeListener } from "./listeners/staticCallExecutionStateInitializeListener";
 import { wipeExecutionStateListener } from "./listeners/wipeExecutionStateListener";
 
-export function setupUiListeners(): UiEventListener {
+export function setupExecutionEventListeners(): ExecutionEventListener {
   return {
-    [UiEventType.RUN_START]: runStartListener,
-    [UiEventType.WIPE_EXECUTION_STATE]: wipeExecutionStateListener,
-    [UiEventType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE]:
+    [ExecutionEventType.RUN_START]: runStartListener,
+    [ExecutionEventType.WIPE_EXECUTION_STATE]: wipeExecutionStateListener,
+    [ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE]:
       deploymentExecutionStateInitializeListener,
-    [UiEventType.DEPLOYMENT_EXECUTION_STATE_COMPLETE]:
+    [ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_COMPLETE]:
       deploymentExecutionStateCompleteListener,
-    [UiEventType.CALL_EXECUTION_STATE_INITIALIZE]:
+    [ExecutionEventType.CALL_EXECUTION_STATE_INITIALIZE]:
       callExecutionStateInitializeListener,
-    [UiEventType.CALL_EXECUTION_STATE_COMPLETE]:
+    [ExecutionEventType.CALL_EXECUTION_STATE_COMPLETE]:
       callExecutionStateCompleteListener,
-    [UiEventType.STATIC_CALL_EXECUTION_STATE_INITIALIZE]:
+    [ExecutionEventType.STATIC_CALL_EXECUTION_STATE_INITIALIZE]:
       staticCallExecutionStateInitializeListener,
-    [UiEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE]:
+    [ExecutionEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE]:
       staticCallExecutionStateCompleteListener,
-    [UiEventType.SEND_DATA_EXECUTION_STATE_INITIALIZE]:
+    [ExecutionEventType.SEND_DATA_EXECUTION_STATE_INITIALIZE]:
       sendDataExecutionStateInitializeListener,
-    [UiEventType.SEND_DATA_EXECUTION_STATE_COMPLETE]:
+    [ExecutionEventType.SEND_DATA_EXECUTION_STATE_COMPLETE]:
       sendDataExecutionStateCompleteListener,
-    [UiEventType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE]:
+    [ExecutionEventType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE]:
       contractAtExecutionStateInitializeListener,
-    [UiEventType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE]:
+    [ExecutionEventType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE]:
       readEventExecutionStateInitializeListener,
   };
 }

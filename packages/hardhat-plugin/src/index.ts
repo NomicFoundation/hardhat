@@ -2,7 +2,6 @@ import {
   deploy,
   DeploymentParameters,
   plan,
-  UiEventListener,
   wipe,
 } from "@ignored/ignition-core";
 import "@nomicfoundation/hardhat-ethers";
@@ -16,7 +15,7 @@ import { HardhatArtifactResolver } from "./hardhat-artifact-resolver.ts";
 import { IgnitionHelper } from "./ignition-helper";
 import { loadModule } from "./load-module";
 import { writePlan } from "./plan/write-plan";
-import { setupUiListeners } from "./ui/setupUiListeners.js";
+import { setupExecutionEventListeners } from "./ui/setupExecutionEventListeners.js";
 import { open } from "./utils/open";
 
 import "./type-extensions";
@@ -137,12 +136,12 @@ task("deploy")
 
         const artifactResolver = new HardhatArtifactResolver(hre);
 
-        const uiEventListener = setupUiListeners();
+        const executionEventListener = setupExecutionEventListeners();
 
         const result = await deploy({
           config: hre.config.ignition,
           provider: hre.network.provider,
-          uiEventListener,
+          executionEventListener,
           artifactResolver,
           deploymentDir,
           ignitionModule: userModule,

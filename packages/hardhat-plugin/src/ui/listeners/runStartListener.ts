@@ -1,7 +1,10 @@
-import { UiEventType, UiEventTypeMap } from "@ignored/ignition-core";
+import {
+  ExecutionEventType,
+  ExecutionEventTypeMap,
+} from "@ignored/ignition-core";
 
 export function runStartListener(
-  data: UiEventTypeMap[UiEventType.RUN_START]
+  data: ExecutionEventTypeMap[ExecutionEventType.RUN_START]
 ): void {
   // todo, render to UI
   console.log(data);
