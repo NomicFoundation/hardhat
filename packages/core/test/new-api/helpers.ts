@@ -1,6 +1,10 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
-import { ethers, providers } from "ethers";
+import {
+  TransactionReceipt,
+  TransactionRequest,
+  TransactionResponse,
+} from "ethers";
 
 import { ArgumentType, Artifact, ArtifactResolver } from "../../src";
 import { Deployer } from "../../src/new-api/internal/deployer";
@@ -81,8 +85,13 @@ export function setupMockArtifactResolver(artifacts?: {
   };
 }
 
-export function setupMockDeploymentLoader(journal: Journal): DeploymentLoader {
+export function setupMockDeploymentLoader(
+  journal: Journal,
+  deployedAddresses?: { [key: string]: string }
+): DeploymentLoader {
   const storedArtifacts: { [key: string]: Artifact } = {};
+  const storedDeployedAddresses: { [key: string]: string } =
+    deployedAddresses ?? {};
 
   return {
     recordToJournal: async (message) => {
@@ -91,7 +100,9 @@ export function setupMockDeploymentLoader(journal: Journal): DeploymentLoader {
     readFromJournal: () => {
       return journal.read();
     },
-    recordDeployedAddress: async () => {},
+    recordDeployedAddress: async (futureId, contractAddress) => {
+      storedDeployedAddresses[futureId] = contractAddress;
+    },
     storeUserProvidedArtifact: async (artifactFutureId, artifact) => {
       storedArtifacts[artifactFutureId] = artifact;
     },
@@ -125,9 +136,9 @@ export function setupDeployerWithMocks({
     [key: string]: {
       [key: number]: {
         blockNumber: number;
-        confirmations: number;
+        confirmations: () => Promise<number>;
         contractAddress?: string;
-        transactionHash: string;
+        hash: string;
         logs?: {};
       };
     };
@@ -234,9 +245,9 @@ export function setupMockChainDispatcher({
     [key: string]: {
       [key: number]: {
         blockNumber: number;
-        confirmations: number;
+        confirmations: () => Promise<number>;
         contractAddress?: string;
-        transactionHash: string;
+        hash: string;
         logs?: {};
       };
     };
@@ -268,7 +279,7 @@ export function setupMockChainDispatcher({
 
 export class MockChainDispatcher implements ChainDispatcher {
   private _accountsState: AccountsState;
-  private _sentTxs: { [key: string]: providers.TransactionRequest };
+  private _sentTxs: { [key: string]: TransactionRequest };
   private _currentBlock: number;
 
   constructor(
@@ -276,9 +287,9 @@ export class MockChainDispatcher implements ChainDispatcher {
       [key: string]: {
         [key: number]: {
           blockNumber: number;
-          confirmations: number;
+          confirmations: () => Promise<number>;
           contractAddress?: string;
-          transactionHash: string;
+          hash: string;
           logs?: {};
         };
       };
@@ -350,7 +361,7 @@ export class MockChainDispatcher implements ChainDispatcher {
     _args: ArgumentType[],
     _value: bigint,
     _from: string
-  ): Promise<ethers.providers.TransactionRequest> {
+  ): Promise<TransactionRequest> {
     const fakeTransaction = { _kind: "TEST-TRANSACTION" } as any;
 
     return fakeTransaction;
@@ -363,7 +374,7 @@ export class MockChainDispatcher implements ChainDispatcher {
     _args: ArgumentType[],
     _value: bigint,
     _from: string
-  ): Promise<ethers.providers.TransactionRequest> {
+  ): Promise<TransactionRequest> {
     const fakeTransaction = { _kind: "TEST-CALL-TRANSACTION" } as any;
 
     return fakeTransaction;
@@ -382,10 +393,7 @@ export class MockChainDispatcher implements ChainDispatcher {
     return onchainNonce;
   }
 
-  public async sendTx(
-    tx: ethers.providers.TransactionRequest,
-    from: string
-  ): Promise<string> {
+  public async sendTx(tx: TransactionRequest, from: string): Promise<string> {
     if (
       from in this._sendErrors &&
       Number(tx.nonce) in this._sendErrors[from]
@@ -401,7 +409,7 @@ export class MockChainDispatcher implements ChainDispatcher {
 
   public async getTransactionReceipt(
     txHash: string
-  ): Promise<ethers.providers.TransactionReceipt> {
+  ): Promise<TransactionReceipt> {
     const [from, nonce] = txHash.split("--");
 
     const addressEntries = this._responses[from];
@@ -423,7 +431,7 @@ export class MockChainDispatcher implements ChainDispatcher {
 
   public async getTransaction(
     txHash: string
-  ): Promise<ethers.providers.TransactionResponse | null | undefined> {
+  ): Promise<TransactionResponse | null | undefined> {
     const [from, nonce] = txHash.split("--");
 
     const addressEntries = this._responses[from];

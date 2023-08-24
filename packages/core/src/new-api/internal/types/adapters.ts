@@ -1,4 +1,9 @@
-import { ethers } from "ethers";
+import {
+  Signer,
+  TransactionRequest,
+  TransactionReceipt,
+  TransactionResponse,
+} from "ethers";
 
 export interface Adapters {
   signer: SignerAdapter;
@@ -8,24 +13,22 @@ export interface Adapters {
 }
 
 export interface SignerAdapter {
-  getSigner(address: string): Promise<ethers.Signer>;
+  getSigner(address: string): Promise<Signer>;
 }
 
 export interface GasAdapter {
-  estimateGasLimit: (
-    tx: ethers.providers.TransactionRequest
-  ) => Promise<ethers.BigNumber>;
-  estimateGasPrice: () => Promise<ethers.BigNumber>;
+  estimateGasLimit: (tx: TransactionRequest) => Promise<bigint>;
+  estimateGasPrice: () => Promise<bigint>;
 }
 
 export interface TransactionsAdapter {
   getTransaction(
     txHash: string
-  ): Promise<ethers.providers.TransactionResponse | null | undefined>;
+  ): Promise<TransactionResponse | null | undefined>;
 
   getTransactionReceipt(
     txHash: string
-  ): Promise<ethers.providers.TransactionReceipt | null | undefined>;
+  ): Promise<TransactionReceipt | null | undefined>;
 
   getPendingTransactionCount(address: string): Promise<number>;
 

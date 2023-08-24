@@ -1,0 +1,1045 @@
+import { assert } from "chai";
+
+import { Artifact } from "../../../../src";
+import {
+  encodeArtifactDeploymentData,
+  encodeArtifactFunctionCall,
+} from "../../../../src/new-api/internal/new-execution/abi";
+import { EIP1193JsonRpcClient } from "../../../../src/new-api/internal/new-execution/jsonrpc-client";
+import {
+  NetworkFees,
+  TransactionReceiptStatus,
+} from "../../../../src/new-api/internal/new-execution/types/jsonrpc";
+import { assertIgnitionInvariant } from "../../../../src/new-api/internal/utils/assertions";
+import { useHardhatProject } from "../../../helpers/hardhat-projects";
+
+describe("JSON-RPC client", function () {
+  describe("With default hardhat project", function () {
+    useHardhatProject("default");
+
+    let client: EIP1193JsonRpcClient;
+    before("Creating client", function () {
+      client = new EIP1193JsonRpcClient(this.hre.network.provider);
+    });
+
+    async function deployContract({
+      hre,
+      accounts,
+    }: {
+      hre: any;
+      accounts: any[];
+    }): Promise<{
+      artifact: Artifact;
+      address: string;
+    }> {
+      const artifact = await hre.artifacts.readArtifact("C");
+      const fees = await client.getNetworkFees();
+
+      const tx = await client.sendTransaction({
+        data: encodeArtifactDeploymentData(artifact, [], {}),
+        value: 0n,
+        from: accounts[0],
+        nonce: 0,
+        fees,
+        gasLimit: 1_000_000n,
+      });
+
+      const receipt = await client.getTransactionReceipt(tx);
+
+      assert.isDefined(receipt);
+      assert.equal(receipt!.status, TransactionReceiptStatus.SUCCESS);
+      assert.isDefined(receipt!.contractAddress);
+
+      return { artifact, address: receipt!.contractAddress! };
+    }
+
+    describe("getChainId", async function () {
+      it("Should return the chainId as number", async function () {
+        const chainId = await client.getChainId();
+
+        assert.equal(chainId, 31337);
+      });
+    });
+
+    describe("getLatestBlock", async function () {
+      it("Should return the first block in the correct format", async function () {
+        const block = await client.getLatestBlock();
+
+        assert.equal(block.number, 0);
+        assert.isString(block.hash);
+        assert.typeOf(block.baseFeePerGas, "bigint");
+      });
+
+      it("Should return the second block in the correct format", async function () {
+        await this.hre.network.provider.send("evm_mine");
+        const block = await client.getLatestBlock();
+
+        assert.equal(block.number, 1);
+        assert.isString(block.hash);
+        assert.typeOf(block.baseFeePerGas, "bigint");
+      });
+    });
+
+    describe("getNetworkFees", async function () {
+      describe("With an EIP-1559 network (i.e. Hardhat Network)", function () {
+        it("Should return information about EIP-159 fees", async function () {
+          const fees = await client.getNetworkFees();
+
+          assert("maxFeePerGas" in fees);
+          assert("maxPriorityFeePerGas" in fees);
+
+          assert.typeOf(fees.maxFeePerGas, "bigint");
+          assert.typeOf(fees.maxPriorityFeePerGas, "bigint");
+          assert.isTrue(fees.maxFeePerGas > fees.maxPriorityFeePerGas);
+        });
+      });
+    });
+
+    describe("call", function () {
+      it("Should return the raw result in succesful deployment calls", async function () {
+        const artifact = await this.hre.artifacts.readArtifact("C");
+        const result = await client.call(
+          {
+            data: encodeArtifactDeploymentData(artifact, [], {}),
+            value: 0n,
+            from: this.accounts[0],
+          },
+          "latest"
+        );
+
+        assert.isTrue(result.success);
+        assert.notEqual(result.returnData, "0x");
+        assert.isFalse(result.customErrorReported);
+      });
+
+      it("Should return the raw result in succesful non-deployment calls", async function () {
+        const { artifact, address } = await deployContract(this);
+
+        const result = await client.call(
+          {
+            data: encodeArtifactFunctionCall(artifact, "returnString", []),
+            value: 0n,
+            from: this.accounts[0],
+            to: address,
+          },
+          "latest"
+        );
+
+        // The ABI encoded representation of "hello"
+        const abiEncodedHello =
+          "0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000568656c6c6f000000000000000000000000000000000000000000000000000000";
+
+        assert.isTrue(result.success);
+        assert.equal(result.returnData, abiEncodedHello);
+        assert.isFalse(result.customErrorReported);
+      });
+
+      it("Should not throw on execution failures, but return a result", async function () {
+        // We send an invalid deployment transaction
+        const result = await client.call(
+          {
+            data: "0x1234123120",
+            value: 0n,
+            from: this.accounts[0],
+          },
+          "latest"
+        );
+
+        assert.isFalse(result.success);
+        assert.equal(result.returnData, "0x");
+        assert.isFalse(result.customErrorReported);
+      });
+
+      it("Should return the returnData on execution failures", async function () {
+        const { artifact, address } = await deployContract(this);
+
+        const result = await client.call(
+          {
+            data: encodeArtifactFunctionCall(
+              artifact,
+              "revertWithReasonMessage",
+              []
+            ),
+            value: 0n,
+            from: this.accounts[0],
+            to: address,
+          },
+          "latest"
+        );
+
+        // The ABI encoded representation of Error("reason")
+        const abiEncodedHello =
+          "0x08c379a000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000006726561736f6e0000000000000000000000000000000000000000000000000000";
+
+        assert.isFalse(result.success);
+        assert.equal(result.returnData, abiEncodedHello);
+        assert.isFalse(result.customErrorReported);
+      });
+
+      it("[Geth specific] Should return an empty returnData even when geth doesn't return it", async function () {
+        // **NOTE**: This tests is mocked with the error messages that Geth returns
+        let formatNumber = 0;
+
+        class MockProvider {
+          public async request(req: { method: string; _: any[] }) {
+            if (req.method === "eth_call") {
+              formatNumber++;
+
+              if (formatNumber === 1) {
+                // Geth error message for reverts without reason
+                throw new Error("execution reverted");
+              }
+
+              // Geth error message for invalid opcodes
+              throw new Error("invalid opcode: INVALID");
+            }
+
+            assertIgnitionInvariant(
+              false,
+              `Unimplemented mock for ${req.method}`
+            );
+          }
+        }
+
+        const mockClient = new EIP1193JsonRpcClient(new MockProvider());
+
+        const result1 = await mockClient.call(
+          {
+            data: "0x",
+            value: 0n,
+            from: this.accounts[0],
+          },
+          "latest"
+        );
+
+        assert.isFalse(result1.success);
+        assert.equal(result1.returnData, "0x");
+        assert.isFalse(result1.customErrorReported);
+
+        const result2 = await mockClient.call(
+          {
+            data: "0x",
+            value: 0n,
+            from: this.accounts[0],
+          },
+          "latest"
+        );
+
+        assert.isFalse(result2.success);
+        assert.equal(result2.returnData, "0x");
+        assert.isFalse(result2.customErrorReported);
+      });
+
+      it("[Other nodes] Should return an empty returnData if the error message indicates a revert", async function () {
+        class MockProvider {
+          public async request(req: { method: string; _: any[] }) {
+            if (req.method === "eth_call") {
+              throw new Error("something revert something");
+            }
+
+            assertIgnitionInvariant(
+              false,
+              `Unimplemented mock for ${req.method}`
+            );
+          }
+        }
+
+        const mockClient = new EIP1193JsonRpcClient(new MockProvider());
+
+        const result1 = await mockClient.call(
+          {
+            data: "0x",
+            value: 0n,
+            from: this.accounts[0],
+          },
+          "latest"
+        );
+
+        assert.isFalse(result1.success);
+        assert.equal(result1.returnData, "0x");
+        assert.isFalse(result1.customErrorReported);
+      });
+
+      it("Should return customErrorReported true when the server reports a custom error", async function () {
+        const { artifact, address } = await deployContract(this);
+
+        const result = await client.call(
+          {
+            data: encodeArtifactFunctionCall(
+              artifact,
+              "revertWithUnknownCustomError",
+              []
+            ),
+            value: 0n,
+            from: this.accounts[0],
+            to: address,
+          },
+          "latest"
+        );
+
+        assert.isFalse(result.success);
+        assert.notEqual(result.returnData, "0x");
+        assert.isTrue(result.customErrorReported);
+      });
+
+      it("Should return customErrorReported false when the server does not reports a custom error", async function () {
+        const { artifact, address } = await deployContract(this);
+
+        const result = await client.call(
+          {
+            data: encodeArtifactFunctionCall(
+              artifact,
+              "revertWithInvalidData",
+              []
+            ),
+            value: 0n,
+            from: this.accounts[0],
+            to: address,
+          },
+          "latest"
+        );
+
+        assert.isFalse(result.success);
+        assert.notEqual(result.returnData, "0x");
+        assert.isFalse(result.customErrorReported);
+      });
+
+      it("Should accept pending as blockTag", async function () {
+        // We disable automining, so the transaction is pending
+        // and calls differt between latest and pending
+
+        await this.hre.network.provider.send("evm_setAutomine", [false]);
+
+        const artifact = await this.hre.artifacts.readArtifact("C");
+        const fees = await client.getNetworkFees();
+
+        await client.sendTransaction({
+          data: encodeArtifactDeploymentData(artifact, [], {}),
+          value: 0n,
+          from: this.accounts[0],
+          nonce: 0,
+          fees,
+          gasLimit: 1_000_000n,
+        });
+
+        // We know the address from other tests doing the same
+        const address = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
+
+        const resultLatest = await client.call(
+          {
+            data: encodeArtifactFunctionCall(
+              artifact,
+              "revertWithInvalidData",
+              []
+            ),
+            value: 0n,
+            from: this.accounts[0],
+            to: address,
+          },
+          "latest"
+        );
+
+        assert.isTrue(resultLatest.success);
+        assert.equal(resultLatest.returnData, "0x");
+        assert.isFalse(resultLatest.customErrorReported);
+
+        const resultPending = await client.call(
+          {
+            data: encodeArtifactFunctionCall(
+              artifact,
+              "revertWithInvalidData",
+              []
+            ),
+            value: 0n,
+            from: this.accounts[0],
+            to: address,
+          },
+          "pending"
+        );
+
+        assert.isFalse(resultPending.success);
+        assert.notEqual(resultPending.returnData, "0x");
+        assert.isFalse(resultPending.customErrorReported);
+      });
+
+      // TODO: Should we test that eth_call validates the account balance?
+      // TODO: Should we test that eth_call validates the nonce, maxFeePerGas, and maxPriorityFeePerGas?
+    });
+
+    describe("sendTransaction", function () {
+      let fees: NetworkFees;
+      before("Fetching fees", async function () {
+        fees = await client.getNetworkFees();
+      });
+
+      it("Should return the tx hash, even on execution failures", async function () {
+        // We send an invalid deployment transaction
+        const result = await client.sendTransaction({
+          data: "0x1234123120",
+          value: 0n,
+          from: this.accounts[0],
+          nonce: 0,
+          gasLimit: 5_000_000n,
+          fees,
+        });
+
+        assert.isString(result);
+      });
+
+      it("Should return the tx hash in a network without automining", async function () {
+        // We disable the automining first
+        await this.hre.network.provider.send("evm_setAutomine", [false]);
+        const result = await client.sendTransaction({
+          to: this.accounts[0],
+          data: "0x",
+          value: 0n,
+          from: this.accounts[0],
+          nonce: 0,
+          gasLimit: 5_000_000n,
+          fees,
+        });
+
+        assert.isString(result);
+      });
+    });
+
+    describe("getBalance", function () {
+      it("Should return the latest balance of an account", async function () {
+        const defaultHardhatNetworkBalance = 10n ** 18n * 10_000n;
+        const nextBlockBaseFee = 875000000n;
+
+        await client.sendTransaction({
+          to: this.accounts[1],
+          from: this.accounts[0],
+          value: 1n,
+          fees: {
+            maxFeePerGas: nextBlockBaseFee,
+            maxPriorityFeePerGas: 1n,
+          },
+          gasLimit: 21_000n,
+          data: "0x",
+          nonce: 0,
+        });
+
+        const balance = await client.getBalance(this.accounts[0], "latest");
+
+        assert.equal(
+          balance,
+          defaultHardhatNetworkBalance - 21_000n * nextBlockBaseFee - 1n
+        );
+      });
+
+      // Skipped because Hardhat Network doesn't implement this correctly and
+      // always returns the latest balance.
+      it.skip("Should return the pending balance of an account", async function () {
+        // We disable the automining first
+        await this.hre.network.provider.send("evm_setAutomine", [false]);
+
+        await client.sendTransaction({
+          to: this.accounts[1],
+          from: this.accounts[0],
+          value: 1n,
+          fees: {
+            maxFeePerGas: 1n,
+            maxPriorityFeePerGas: 1n,
+          },
+          gasLimit: 21_000n,
+          data: "0x",
+          nonce: 0,
+        });
+
+        const defaultHardhatNetworkBalance = 10n ** 18n * 10_000n;
+
+        const balance = await client.getBalance(this.accounts[0], "pending");
+
+        assert.equal(balance, defaultHardhatNetworkBalance - 21_000n * 1n - 1n);
+      });
+    });
+
+    describe("estimateGas", function () {
+      it("Should return the estimate gas if the tx would succeed", async function () {
+        const estimation = await client.estimateGas({
+          to: this.accounts[1],
+          from: this.accounts[0],
+          value: 1n,
+          fees: {
+            maxFeePerGas: 1_000_000_000n,
+            maxPriorityFeePerGas: 1n,
+          },
+          data: "0x",
+          nonce: 0,
+        });
+
+        // The 1n comes from a bug in hardhat network
+        assert.equal(estimation, 21_000n + 1n);
+      });
+
+      it("Should throw if the tx would not succeed", async function () {
+        const { artifact, address } = await deployContract(this);
+
+        await assert.isRejected(
+          client.estimateGas({
+            to: address,
+            from: this.accounts[0],
+            data: encodeArtifactFunctionCall(
+              artifact,
+              "revertWithReasonMessage",
+              []
+            ),
+            nonce: 0,
+            fees: {
+              maxFeePerGas: 1_000_000_000n,
+              maxPriorityFeePerGas: 1n,
+            },
+            value: 0n,
+          })
+        );
+      });
+    });
+
+    describe("getTransactionCount", function () {
+      it("`latest` should return the amount of confirmed transactions", async function () {
+        let count = await client.getTransactionCount(
+          this.accounts[0],
+          "latest"
+        );
+
+        assert.equal(count, 0);
+
+        await client.sendTransaction({
+          to: this.accounts[1],
+          from: this.accounts[0],
+          value: 1n,
+          fees: {
+            maxFeePerGas: 1_000_000_000n,
+            maxPriorityFeePerGas: 1n,
+          },
+          gasLimit: 21_000n,
+          data: "0x",
+          nonce: 0,
+        });
+
+        count = await client.getTransactionCount(this.accounts[0], "latest");
+
+        assert.equal(count, 1);
+
+        await client.sendTransaction({
+          to: this.accounts[1],
+          from: this.accounts[0],
+          value: 1n,
+          fees: {
+            maxFeePerGas: 1_000_000_000n,
+            maxPriorityFeePerGas: 1n,
+          },
+          gasLimit: 21_000n,
+          data: "0x",
+          nonce: 1,
+        });
+
+        count = await client.getTransactionCount(this.accounts[0], "latest");
+
+        assert.equal(count, 2);
+      });
+
+      it("`pending` should return the amount of unconfirmed transactions", async function () {
+        await this.hre.network.provider.send("evm_setAutomine", [false]);
+        let latestCount = await client.getTransactionCount(
+          this.accounts[0],
+          "latest"
+        );
+
+        let pendingCount = await client.getTransactionCount(
+          this.accounts[0],
+          "pending"
+        );
+
+        assert.equal(latestCount, 0);
+        assert.equal(pendingCount, 0);
+
+        await client.sendTransaction({
+          to: this.accounts[1],
+          from: this.accounts[0],
+          value: 1n,
+          fees: {
+            maxFeePerGas: 1_000_000_000n,
+            maxPriorityFeePerGas: 1n,
+          },
+          gasLimit: 21_000n,
+          data: "0x",
+          nonce: 0,
+        });
+
+        latestCount = await client.getTransactionCount(
+          this.accounts[0],
+          "latest"
+        );
+
+        pendingCount = await client.getTransactionCount(
+          this.accounts[0],
+          "pending"
+        );
+
+        assert.equal(latestCount, 0);
+        assert.equal(pendingCount, 1);
+
+        await client.sendTransaction({
+          to: this.accounts[1],
+          from: this.accounts[0],
+          value: 1n,
+          fees: {
+            maxFeePerGas: 1_000_000_000n,
+            maxPriorityFeePerGas: 1n,
+          },
+          gasLimit: 21_000n,
+          data: "0x",
+          nonce: 1,
+        });
+
+        latestCount = await client.getTransactionCount(
+          this.accounts[0],
+          "latest"
+        );
+
+        pendingCount = await client.getTransactionCount(
+          this.accounts[0],
+          "pending"
+        );
+
+        assert.equal(latestCount, 0);
+        assert.equal(pendingCount, 2);
+      });
+
+      it("using a number should return the amount of confirmed transactions up to and including that block", async function () {
+        await client.sendTransaction({
+          to: this.accounts[1],
+          from: this.accounts[0],
+          value: 1n,
+          fees: {
+            maxFeePerGas: 1_000_000_000n,
+            maxPriorityFeePerGas: 1n,
+          },
+          gasLimit: 21_000n,
+          data: "0x",
+          nonce: 0,
+        });
+
+        let latestCount = await client.getTransactionCount(
+          this.accounts[0],
+          "latest"
+        );
+
+        let blockOneCount = await client.getTransactionCount(
+          this.accounts[0],
+          1
+        );
+
+        assert.equal(latestCount, 1);
+        assert.equal(blockOneCount, 1);
+
+        await client.sendTransaction({
+          to: this.accounts[1],
+          from: this.accounts[0],
+          value: 1n,
+          fees: {
+            maxFeePerGas: 1_000_000_000n,
+            maxPriorityFeePerGas: 1n,
+          },
+          gasLimit: 21_000n,
+          data: "0x",
+          nonce: 1,
+        });
+
+        latestCount = await client.getTransactionCount(
+          this.accounts[0],
+          "latest"
+        );
+
+        blockOneCount = await client.getTransactionCount(this.accounts[0], 1);
+
+        assert.equal(latestCount, 2);
+        assert.equal(blockOneCount, 1);
+      });
+    });
+
+    describe("getTransaction", function () {
+      describe("On a EIP-1559 network", function () {
+        describe("Confirmed transactions", function () {
+          it("Should return its hash, network fees, blockNumber and blockHash", async function () {
+            const req = {
+              to: this.accounts[1],
+              from: this.accounts[0],
+              value: 1n,
+              fees: {
+                maxFeePerGas: 1_000_000_000n,
+                maxPriorityFeePerGas: 1n,
+              },
+              gasLimit: 21_000n,
+              data: "0x",
+              nonce: 0,
+            };
+
+            const hash = await client.sendTransaction(req);
+
+            const tx = await client.getTransaction(hash);
+
+            assert.isDefined(tx);
+
+            assert.equal(tx!.hash, hash);
+            assert("maxFeePerGas" in tx!.fees);
+            assert("maxPriorityFeePerGas" in tx!.fees);
+            assert("maxFeePerGas" in tx!.fees);
+            assert("maxPriorityFeePerGas" in tx!.fees);
+            assert.equal(tx!.fees.maxFeePerGas, req.fees.maxFeePerGas);
+            assert.equal(
+              tx!.fees.maxPriorityFeePerGas,
+              req.fees.maxPriorityFeePerGas
+            );
+          });
+        });
+
+        describe("Pending transactions", function () {
+          it("Should the tx if it is in the mempool", async function () {
+            await this.hre.network.provider.send("evm_setAutomine", [false]);
+
+            const req = {
+              to: this.accounts[1],
+              from: this.accounts[0],
+              value: 1n,
+              fees: {
+                maxFeePerGas: 1_000_000_000n,
+                maxPriorityFeePerGas: 1n,
+              },
+              gasLimit: 21_000n,
+              data: "0x",
+              nonce: 0,
+            };
+
+            const hash = await client.sendTransaction(req);
+
+            const tx = await client.getTransaction(hash);
+
+            assert.isDefined(tx);
+            assert.equal(tx!.hash, hash);
+            assert("maxFeePerGas" in tx!.fees);
+            assert("maxPriorityFeePerGas" in tx!.fees);
+            assert.equal(tx!.fees.maxFeePerGas, req.fees.maxFeePerGas);
+            assert.equal(
+              tx!.fees.maxPriorityFeePerGas,
+              req.fees.maxPriorityFeePerGas
+            );
+          });
+
+          it("Should return undefined if the transaction was never sent", async function () {
+            const tx = await client.getTransaction(
+              "0x0000000000000000000000000000000000000000000000000000000000000001"
+            );
+
+            assert.isUndefined(tx);
+          });
+
+          it("Should return undefined if the transaction was replaced by a different one", async function () {
+            await this.hre.network.provider.send("evm_setAutomine", [false]);
+
+            const firstReq = {
+              to: this.accounts[1],
+              from: this.accounts[0],
+              value: 1n,
+              fees: {
+                maxFeePerGas: 1_000_000_000n,
+                maxPriorityFeePerGas: 1n,
+              },
+              gasLimit: 21_000n,
+              data: "0x",
+              nonce: 0,
+            };
+
+            const firstTxHash = await client.sendTransaction(firstReq);
+
+            const secondReq = {
+              ...firstReq,
+              fees: {
+                maxFeePerGas: 2_000_000_000n,
+                maxPriorityFeePerGas: 2n,
+              },
+            };
+
+            await client.sendTransaction(secondReq);
+
+            const tx = await client.getTransaction(firstTxHash);
+
+            assert.isUndefined(tx);
+          });
+
+          it("Should return undefined if the transaction was dropped", async function () {
+            await this.hre.network.provider.send("evm_setAutomine", [false]);
+
+            const txHash = await client.sendTransaction({
+              to: this.accounts[1],
+              from: this.accounts[0],
+              value: 1n,
+              fees: {
+                maxFeePerGas: 1_000_000_000n,
+                maxPriorityFeePerGas: 1n,
+              },
+              gasLimit: 21_000n,
+              data: "0x",
+              nonce: 0,
+            });
+
+            await this.hre.network.provider.send("hardhat_dropTransaction", [
+              txHash,
+            ]);
+
+            const tx = await client.getTransaction(txHash);
+
+            assert.isUndefined(tx);
+          });
+        });
+      });
+    });
+
+    describe("getTransactionReceipt", function () {
+      describe("Confirmed transactions", function () {
+        it("Should return the receipt if the transaction was successful", async function () {
+          const hash = await client.sendTransaction({
+            to: this.accounts[1],
+            from: this.accounts[0],
+            value: 1n,
+            fees: {
+              maxFeePerGas: 1_000_000_000n,
+              maxPriorityFeePerGas: 1n,
+            },
+            gasLimit: 21_000n,
+            data: "0x",
+            nonce: 0,
+          });
+
+          const block = await client.getLatestBlock();
+
+          const receipt = await client.getTransactionReceipt(hash);
+
+          assert.isDefined(receipt);
+          assert.equal(receipt!.blockHash, block.hash);
+          assert.equal(receipt!.blockNumber, block.number);
+          assert.equal(receipt!.status, TransactionReceiptStatus.SUCCESS);
+          assert.isUndefined(receipt!.contractAddress);
+          assert.deepEqual(receipt!.logs, []);
+        });
+
+        it("Should return the contract address for successful deployment transactions", async function () {
+          const artifact = await this.hre.artifacts.readArtifact("C");
+          const hash = await client.sendTransaction({
+            from: this.accounts[0],
+            value: 0n,
+            fees: {
+              maxFeePerGas: 1_000_000_000n,
+              maxPriorityFeePerGas: 1n,
+            },
+            gasLimit: 1_000_000n,
+            data: encodeArtifactDeploymentData(artifact, [], {}),
+            nonce: 0,
+          });
+
+          const block = await client.getLatestBlock();
+
+          const receipt = await client.getTransactionReceipt(hash);
+
+          assert.isDefined(receipt);
+          assert.equal(receipt!.blockHash, block.hash);
+          assert.equal(receipt!.blockNumber, block.number);
+          assert.equal(receipt!.status, TransactionReceiptStatus.SUCCESS);
+          assert.isDefined(receipt!.contractAddress);
+          assert.deepEqual(receipt!.logs, []);
+        });
+
+        it("Should return the receipt for reverted transactions", async function () {
+          const hash = await client.sendTransaction({
+            data: "0x1234123120",
+            value: 0n,
+            from: this.accounts[0],
+            nonce: 0,
+            gasLimit: 5_000_000n,
+            fees: {
+              maxFeePerGas: 1_000_000_000n,
+              maxPriorityFeePerGas: 1n,
+            },
+          });
+
+          const block = await client.getLatestBlock();
+
+          const receipt = await client.getTransactionReceipt(hash);
+
+          assert.isDefined(receipt);
+          assert.equal(receipt!.blockHash, block.hash);
+          assert.equal(receipt!.blockNumber, block.number);
+          assert.equal(receipt!.status, TransactionReceiptStatus.FAILURE);
+          assert.isUndefined(receipt!.contractAddress);
+          assert.deepEqual(receipt!.logs, []);
+        });
+
+        it("Should return the right logs", async function () {
+          const { artifact, address } = await deployContract(this);
+          const hash = await client.sendTransaction({
+            to: address,
+            data: encodeArtifactFunctionCall(artifact, "events", []),
+            value: 0n,
+            from: this.accounts[0],
+            nonce: 1,
+            gasLimit: 5_000_000n,
+            fees: {
+              maxFeePerGas: 1_000_000_000n,
+              maxPriorityFeePerGas: 1n,
+            },
+          });
+
+          const block = await client.getLatestBlock();
+
+          const receipt = await client.getTransactionReceipt(hash);
+
+          assert.isDefined(receipt);
+          assert.equal(receipt!.blockHash, block.hash);
+          assert.equal(receipt!.blockNumber, block.number);
+          assert.equal(receipt!.status, TransactionReceiptStatus.SUCCESS);
+          assert.isUndefined(receipt!.contractAddress);
+
+          assert.isArray(receipt!.logs);
+          assert.lengthOf(receipt!.logs, 2);
+
+          const event0 = receipt!.logs[0];
+          const event1 = receipt!.logs[1];
+
+          assert.equal(event0.address, address);
+          assert.notEqual(event1.address, address);
+
+          assert.equal(event0.logIndex, 0);
+          assert.equal(event1.logIndex, 1);
+
+          assert.notEqual(event0.data, "0x");
+          assert.notEqual(event1.data, "0x");
+
+          assert.isDefined(event0.topics[0]);
+          assert.notEqual(event0.topics[0], "0x");
+
+          assert.isDefined(event1.topics[0]);
+          assert.notEqual(event1.topics[0], "0x");
+
+          assert.notEqual(event0.topics[0], event1.topics[0]);
+        });
+      });
+
+      describe("Pending transactions", function () {
+        it("Should return undefined if the transaction is in the mempool", async function () {
+          await this.hre.network.provider.send("evm_setAutomine", [false]);
+
+          const hash = await client.sendTransaction({
+            to: this.accounts[1],
+            from: this.accounts[0],
+            value: 1n,
+            fees: {
+              maxFeePerGas: 1_000_000_000n,
+              maxPriorityFeePerGas: 1n,
+            },
+            gasLimit: 21_000n,
+            data: "0x",
+            nonce: 0,
+          });
+
+          const receipt = await client.getTransactionReceipt(hash);
+
+          assert.isUndefined(receipt);
+        });
+
+        it("Should return undefined if the transaction was never sent", async function () {
+          const receipt = await client.getTransactionReceipt(
+            "0x0000000000000000000000000000000000000000000000000000000000000001"
+          );
+
+          assert.isUndefined(receipt);
+        });
+
+        it("Should return undefined if the transaction was replaced by a different one", async function () {
+          await this.hre.network.provider.send("evm_setAutomine", [false]);
+
+          const firstReq = {
+            to: this.accounts[1],
+            from: this.accounts[0],
+            value: 1n,
+            fees: {
+              maxFeePerGas: 1_000_000_000n,
+              maxPriorityFeePerGas: 1n,
+            },
+            gasLimit: 21_000n,
+            data: "0x",
+            nonce: 0,
+          };
+
+          const firstTxHash = await client.sendTransaction(firstReq);
+
+          const secondReq = {
+            ...firstReq,
+            fees: {
+              maxFeePerGas: 2_000_000_000n,
+              maxPriorityFeePerGas: 2n,
+            },
+          };
+
+          await client.sendTransaction(secondReq);
+
+          const receipt = await client.getTransactionReceipt(firstTxHash);
+
+          assert.isUndefined(receipt);
+        });
+
+        it("Should return undefined if the transaction was dropped", async function () {
+          await this.hre.network.provider.send("evm_setAutomine", [false]);
+
+          const txHash = await client.sendTransaction({
+            to: this.accounts[1],
+            from: this.accounts[0],
+            value: 1n,
+            fees: {
+              maxFeePerGas: 1_000_000_000n,
+              maxPriorityFeePerGas: 1n,
+            },
+            gasLimit: 21_000n,
+            data: "0x",
+            nonce: 0,
+          });
+
+          await this.hre.network.provider.send("hardhat_dropTransaction", [
+            txHash,
+          ]);
+
+          const receipt = await client.getTransactionReceipt(txHash);
+
+          assert.isUndefined(receipt);
+        });
+      });
+    });
+  });
+
+  describe("With a hardhat network that doesn't throw on transaction errors", function () {
+    useHardhatProject("dont-throw-on-reverts");
+
+    describe("sendTransaction", function () {
+      it("Should return the tx hash, even on execution failures", async function () {
+        const client = new EIP1193JsonRpcClient(this.hre.network.provider);
+
+        // We send an invalid deployment transaction
+        const result = await client.sendTransaction({
+          data: "0x1234123120",
+          value: 0n,
+          from: this.accounts[0],
+          nonce: 0,
+          gasLimit: 5_000_000n,
+          fees: {
+            maxFeePerGas: 1_000_000_000n,
+            maxPriorityFeePerGas: 1n,
+          },
+        });
+
+        assert.isString(result);
+      });
+    });
+  });
+});

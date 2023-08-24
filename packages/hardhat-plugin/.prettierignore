@@ -4,3 +4,6 @@
 /test/fixture-projects/*/cache
 /coverage
 /.nyc_output
+/test/fixture-projects/*/deployments/*/artifacts
+/test/fixture-projects/*/deployments/*/build-info
+

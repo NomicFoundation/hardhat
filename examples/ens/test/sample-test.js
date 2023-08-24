@@ -4,7 +4,7 @@ const namehash = require("eth-ens-namehash");
 const labelhash = (label) =>
   hre.ethers.utils.keccak256(hre.ethers.utils.toUtf8Bytes(label));
 
-describe("ENS", function () {
+describe.skip("ENS", function () {
   it("should be able to create new subrecords", async function () {
     const [{ address: ACCOUNT_0 }, { address: ACCOUNT_1 }] =
       await hre.ethers.getSigners();

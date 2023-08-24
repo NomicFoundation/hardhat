@@ -1,6 +1,7 @@
+import { isAddress } from "ethers";
+
 import { isAccountRuntimeValue } from "../../type-guards";
 import { AccountRuntimeValue } from "../../types/module";
-import { isAddress } from "../utils";
 
 import { assertIgnitionInvariant } from "./assertions";
 

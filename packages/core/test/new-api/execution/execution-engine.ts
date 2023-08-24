@@ -75,9 +75,9 @@ describe("execution engine", () => {
           [accounts[1]]: {
             0: {
               blockNumber: 0,
-              confirmations: 1,
+              confirmations: async () => 1,
               contractAddress: exampleAddress,
-              transactionHash: txId,
+              hash: txId,
             },
           },
         },
@@ -202,9 +202,9 @@ describe("execution engine", () => {
           [accounts[2]]: {
             0: {
               blockNumber: 0,
-              confirmations: 1,
+              confirmations: async () => 1,
               contractAddress: exampleAddress,
-              transactionHash: txId,
+              hash: txId,
             },
           },
         },
@@ -392,9 +392,9 @@ describe("execution engine", () => {
           [accounts[2]]: {
             0: {
               blockNumber: 0,
-              confirmations: 1,
+              confirmations: async () => 1,
               contractAddress: exampleAddress,
-              transactionHash: txId,
+              hash: txId,
             },
           },
         },
@@ -503,9 +503,9 @@ describe("execution engine", () => {
           [accounts[2]]: {
             0: {
               blockNumber: 0,
-              confirmations: 1,
+              confirmations: async () => 1,
               contractAddress: exampleAddress,
-              transactionHash: txId,
+              hash: txId,
             },
           },
         },
@@ -697,14 +697,14 @@ describe("execution engine", () => {
           [accounts[1]]: {
             0: {
               blockNumber: 0,
-              confirmations: 1,
+              confirmations: async () => 1,
               contractAddress: exampleAddress,
-              transactionHash: txId,
+              hash: txId,
             },
             1: {
               blockNumber: 1,
-              confirmations: 1,
-              transactionHash: diffTxId,
+              confirmations: async () => 1,
+              hash: diffTxId,
             },
           },
         },
@@ -861,9 +861,9 @@ describe("execution engine", () => {
           [accounts[1]]: {
             0: {
               blockNumber: 0,
-              confirmations: 1,
+              confirmations: async () => 1,
               contractAddress: exampleAddress,
-              transactionHash: txId,
+              hash: txId,
             },
           },
         },
@@ -1050,14 +1050,14 @@ describe("execution engine", () => {
           [accounts[1]]: {
             0: {
               blockNumber: 0,
-              confirmations: 1,
+              confirmations: async () => 1,
               contractAddress: exampleAddress,
-              transactionHash: txId,
+              hash: txId,
             },
             1: {
               blockNumber: 1,
-              confirmations: 1,
-              transactionHash: diffTxId,
+              confirmations: async () => 1,
+              hash: diffTxId,
             },
           },
         },
@@ -1224,9 +1224,9 @@ describe("execution engine", () => {
           [accounts[1]]: {
             0: {
               blockNumber: 0,
-              confirmations: 1,
+              confirmations: async () => 1,
               contractAddress: exampleAddress,
-              transactionHash: txId,
+              hash: txId,
             },
           },
         },
@@ -1417,9 +1417,9 @@ describe("execution engine", () => {
           [accounts[1]]: {
             0: {
               blockNumber: 0,
-              confirmations: 1,
+              confirmations: async () => 1,
               contractAddress: exampleAddress,
-              transactionHash: txId,
+              hash: txId,
             },
           },
         },
@@ -1573,9 +1573,9 @@ describe("execution engine", () => {
           [accounts[1]]: {
             0: {
               blockNumber: 0,
-              confirmations: 1,
+              confirmations: async () => 1,
               contractAddress: exampleAddress,
-              transactionHash: txId,
+              hash: txId,
             },
           },
         },
@@ -1799,9 +1799,9 @@ describe("execution engine", () => {
           [accounts[1]]: {
             0: {
               blockNumber: 0,
-              confirmations: 1,
+              confirmations: async () => 1,
               contractAddress: exampleAddress,
-              transactionHash: txId,
+              hash: txId,
               logs: { here: "example" },
             },
           },
@@ -1962,9 +1962,9 @@ describe("execution engine", () => {
           [accounts[1]]: {
             0: {
               blockNumber: 0,
-              confirmations: 1,
+              confirmations: async () => 1,
               contractAddress: exampleAddress,
-              transactionHash: txId,
+              hash: txId,
               logs: { here: "example" },
             },
           },
@@ -2158,15 +2158,15 @@ describe("execution engine", () => {
           [accounts[1]]: {
             0: {
               blockNumber: 0,
-              confirmations: 1,
+              confirmations: async () => 1,
               contractAddress: differentAddress,
-              transactionHash: txId,
+              hash: txId,
             },
             1: {
               blockNumber: 0,
-              confirmations: 1,
+              confirmations: async () => 1,
               contractAddress: exampleAddress,
-              transactionHash: diffTxId,
+              hash: diffTxId,
             },
           },
         },
@@ -2395,41 +2395,41 @@ describe("execution engine", () => {
           [accounts[1]]: {
             0: {
               blockNumber: 0,
-              confirmations: 1,
+              confirmations: async () => 1,
               contractAddress: addr1,
-              transactionHash: tx1,
+              hash: tx1,
             },
             1: {
               blockNumber: 0,
-              confirmations: 1,
+              confirmations: async () => 1,
               contractAddress: addr2,
-              transactionHash: tx2,
+              hash: tx2,
             },
             2: {
               blockNumber: 1,
-              confirmations: 1,
+              confirmations: async () => 1,
               contractAddress: addr3,
-              transactionHash: tx3,
+              hash: tx3,
             },
           },
           [accounts[2]]: {
             0: {
               blockNumber: 1,
-              confirmations: 1,
+              confirmations: async () => 1,
               contractAddress: addr4,
-              transactionHash: tx4,
+              hash: tx4,
             },
             1: {
               blockNumber: 2,
-              confirmations: 1,
+              confirmations: async () => 1,
               contractAddress: addr5,
-              transactionHash: tx5,
+              hash: tx5,
             },
             2: {
               blockNumber: 2,
-              confirmations: 1,
+              confirmations: async () => 1,
               contractAddress: addr6,
-              transactionHash: tx6,
+              hash: tx6,
             },
           },
         },

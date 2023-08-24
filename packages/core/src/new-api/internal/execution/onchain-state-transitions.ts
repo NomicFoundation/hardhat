@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { TransactionReceipt, TransactionRequest } from "ethers";
 
 import { IgnitionError } from "../../../errors";
 import { SolidityParameterType } from "../../types/module";
@@ -184,8 +184,8 @@ export const onchainStateTransitions: OnchainStateTransitions = {
         subtype: "deploy-contract-success",
         futureId: next.futureId,
         executionId: next.executionId,
-        contractAddress: receipt.contractAddress,
-        txId: receipt.transactionHash,
+        contractAddress: receipt.contractAddress!,
+        txId: receipt.hash,
       };
 
       return deployResult;
@@ -273,7 +273,7 @@ export const onchainStateTransitions: OnchainStateTransitions = {
         subtype: "call-function-success",
         futureId: next.futureId,
         executionId: next.executionId,
-        txId: receipt.transactionHash,
+        txId: receipt.hash,
       };
 
       return callResult;
@@ -361,7 +361,7 @@ export const onchainStateTransitions: OnchainStateTransitions = {
         subtype: "send-data-success",
         futureId: next.futureId,
         executionId: next.executionId,
-        txId: receipt.transactionHash,
+        txId: receipt.hash,
       };
 
       return sendResult;
@@ -442,7 +442,7 @@ export const onchainStateTransitions: OnchainStateTransitions = {
 async function _convertRequestToDeployTransaction(
   request: DeployContractInteractionMessage,
   state: ExecutionEngineState
-): Promise<ethers.providers.TransactionRequest> {
+): Promise<TransactionRequest> {
   const artifact = await state.deploymentLoader.loadArtifact(
     request.artifactFutureId
   );
@@ -469,7 +469,7 @@ async function _convertRequestToDeployTransaction(
 async function _convertRequestToCallFunctionTransaction(
   request: CallFunctionInteractionMessage,
   state: ExecutionEngineState
-): Promise<ethers.providers.TransactionRequest> {
+): Promise<TransactionRequest> {
   const artifact = await state.deploymentLoader.loadArtifact(
     request.artifactFutureId
   );
@@ -496,8 +496,8 @@ async function _convertRequestToCallFunctionTransaction(
 async function _convertRequestToSendDataTransaction(
   request: SendDataInteractionMessage,
   _state: ExecutionEngineState
-): Promise<ethers.providers.TransactionRequest> {
-  const unsignedTx: ethers.providers.TransactionRequest = {
+): Promise<TransactionRequest> {
+  const unsignedTx: TransactionRequest = {
     from: request.from,
     to: request.to,
     value: BigInt(request.value),
@@ -591,7 +591,7 @@ async function checkTransactionComplete(
   state: ExecutionEngineState,
   next: { txHash: string; futureId: string; executionId: number },
   successConstructor: (
-    receipt: ethers.providers.TransactionReceipt
+    receipt: TransactionReceipt
   ) => ExecutionSuccess | ExecutionFailure | TransactionLevelJournalMessage
 ): Promise<OnchainStateTransitionContinue | OnchainStateTransitionPause> {
   state.transactionLookupTimer.registerStartTimeIfNeeded({
@@ -634,7 +634,9 @@ async function checkTransactionComplete(
   // if the transaction is confirmed but we haven't passed the
   // required number of confirmations, then pause and continue the
   // batch
-  if (currentTransaction.confirmations < state.config.blockConfirmations) {
+  if (
+    (await currentTransaction.confirmations()) < state.config.blockConfirmations
+  ) {
     return { status: "pause" };
   }
 

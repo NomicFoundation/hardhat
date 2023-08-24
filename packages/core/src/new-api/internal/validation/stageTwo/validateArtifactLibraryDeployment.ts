@@ -2,6 +2,7 @@ import { isAccountRuntimeValue } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deployer";
 import { ArtifactLibraryDeploymentFuture } from "../../../types/module";
+import { validateLibraryNames } from "../../new-execution/libraries";
 import { validateAccountRuntimeValue } from "../utils";
 
 export async function validateArtifactLibraryDeployment(
@@ -13,4 +14,6 @@ export async function validateArtifactLibraryDeployment(
   if (isAccountRuntimeValue(future.from)) {
     validateAccountRuntimeValue(future.from, accounts);
   }
+
+  validateLibraryNames(future.artifact, Object.keys(future.libraries));
 }

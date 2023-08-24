@@ -1,3 +1,4 @@
+import { isAddress } from "ethers";
 import identity from "lodash/identity";
 
 import { IgnitionError } from "../../../errors";
@@ -24,7 +25,6 @@ import {
   StaticCallExecutionState,
 } from "../execution/types";
 import { isOnchainInteractionMessage } from "../journal/type-guards";
-import { isAddress } from "../utils";
 import { assertIgnitionInvariant } from "../utils/assertions";
 import { replaceWithinArg } from "../utils/replace-within-arg";
 import { resolveModuleParameter } from "../utils/resolve-module-parameter";

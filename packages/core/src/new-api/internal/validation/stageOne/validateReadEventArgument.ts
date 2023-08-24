@@ -1,9 +1,8 @@
-import { ethers } from "ethers";
-
 import { IgnitionValidationError } from "../../../../errors";
 import { isArtifactType } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { ReadEventArgumentFuture } from "../../../types/module";
+import { validateArtifactEventArgumentParams } from "../../new-execution/abi";
 
 export async function validateReadEventArgument(
   future: ReadEventArgumentFuture,
@@ -20,19 +19,9 @@ export async function validateReadEventArgument(
     );
   }
 
-  const iface = new ethers.utils.Interface(artifact.abi);
-
-  const events = Object.entries(iface.events)
-    .filter(([fname]) => fname === future.eventName)
-    .map(([, fragment]) => fragment);
-
-  const eventFragments = iface.fragments
-    .filter((frag) => frag.name === future.eventName)
-    .concat(events);
-
-  if (eventFragments.length === 0) {
-    throw new IgnitionValidationError(
-      `Contract '${future.emitter.contractName}' doesn't have an event ${future.eventName}`
-    );
-  }
+  validateArtifactEventArgumentParams(
+    artifact,
+    future.eventName,
+    future.argumentName
+  );
 }

@@ -1,9 +1,10 @@
-import { ethers } from "ethers";
+import { Interface } from "ethers";
 
 import { IgnitionValidationError } from "../../../../errors";
 import { isArtifactType } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { NamedContractDeploymentFuture } from "../../../types/module";
+import { validateLibraryNames } from "../../new-execution/libraries";
 
 export async function validateNamedContractDeployment(
   future: NamedContractDeploymentFuture<string>,
@@ -17,9 +18,11 @@ export async function validateNamedContractDeployment(
     );
   }
 
+  validateLibraryNames(artifact, Object.keys(future.libraries));
+
   const argsLength = future.constructorArgs.length;
 
-  const iface = new ethers.utils.Interface(artifact.abi);
+  const iface = new Interface(artifact.abi);
   const expectedArgsLength = iface.deploy.inputs.length;
 
   if (argsLength !== expectedArgsLength) {

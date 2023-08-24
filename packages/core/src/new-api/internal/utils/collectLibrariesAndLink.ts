@@ -15,7 +15,7 @@ export async function collectLibrariesAndLink(
   artifact: Artifact,
   libraries: Libraries
 ) {
-  const { utils } = await import("ethers");
+  const { isAddress } = await import("ethers");
 
   const neededLibraries: Array<{
     sourceName: string;
@@ -33,9 +33,13 @@ export async function collectLibrariesAndLink(
   for (const [linkedLibraryName, linkedLibraryAddress] of Object.entries(
     libraries
   )) {
-    if (!utils.isAddress(linkedLibraryAddress)) {
+    if (!isAddress(linkedLibraryAddress)) {
       throw new IgnitionValidationError(
-        `You tried to link the contract ${artifact.contractName} with the library ${linkedLibraryName}, but provided this invalid address: ${linkedLibraryAddress}`
+        `You tried to link the contract ${
+          artifact.contractName
+        } with the library ${linkedLibraryName}, but provided this invalid address: ${
+          linkedLibraryAddress as any
+        }`
       );
     }
 
