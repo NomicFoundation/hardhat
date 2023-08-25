@@ -23,7 +23,8 @@ use sha3::{Digest, Sha3_256};
 use tokio::sync::OnceCell;
 
 use crate::remote::cacheable_method_invocation::{
-    CacheKeyForUncheckedBlockNumber, CacheableMethodInvocation, ReadCacheKey, WriteCacheKey,
+    CacheKeyForSymbolicBlockTag, CacheKeyForUncheckedBlockNumber, CacheableMethodInvocation,
+    ReadCacheKey, ResolvedSymbolicTag, WriteCacheKey,
 };
 use crate::remote::jsonrpc::Id;
 use crate::{log::FilterLog, receipt::BlockReceipt, serde::ZeroXPrefixedBytes};
@@ -280,6 +281,26 @@ impl RpcClient {
         Ok(safety_checker.validate_block_number(&chain_id, &latest_block_number))
     }
 
+    async fn resolve_block_tag<T>(
+        &self,
+        block_tag_resolver: CacheKeyForSymbolicBlockTag,
+        result: &T,
+        resolve_block_number: impl Fn(&T) -> Option<U256>,
+    ) -> Result<Option<String>, RpcClientError> {
+        if let Some(block_number) = resolve_block_number(result) {
+            if let Some(resolved_cache_key) = block_tag_resolver.resolve_symbolic_tag(&block_number)
+            {
+                return match resolved_cache_key {
+                    ResolvedSymbolicTag::NeedsSafetyCheck(safety_checker) => {
+                        self.validate_block_number(safety_checker).await
+                    }
+                    ResolvedSymbolicTag::Resolved(cache_key) => Ok(Some(cache_key)),
+                };
+            }
+        }
+        Ok(None)
+    }
+
     async fn resolve_write_key<T>(
         &self,
         method_invocation: &MethodInvocation,
@@ -290,37 +311,20 @@ impl RpcClient {
             .ok()
             .and_then(|v| v.write_cache_key());
 
-        let maybe_cache_key = if let Some(cache_key) = write_cache_key {
+        if let Some(cache_key) = write_cache_key {
             match cache_key {
                 WriteCacheKey::NeedsSafetyCheck(safety_checker) => {
-                    self.validate_block_number(safety_checker).await?
+                    self.validate_block_number(safety_checker).await
                 }
                 WriteCacheKey::NeedsBlockNumber(block_tag_resolver) => {
-                    if let Some(block_number) = resolve_block_number(result) {
-                        if let Some(resolved_cache_key) =
-                            block_tag_resolver.resolve_symbolic_tag(&block_number)
-                        {
-                            match resolved_cache_key {
-                                WriteCacheKey::NeedsSafetyCheck(safety_checker) => {
-                                    self.validate_block_number(safety_checker).await?
-                                }
-                                WriteCacheKey::NeedsBlockNumber(_) => None,
-                                WriteCacheKey::Resolved(cache_key) => Some(cache_key),
-                            }
-                        } else {
-                            None
-                        }
-                    } else {
-                        None
-                    }
+                    self.resolve_block_tag(block_tag_resolver, result, resolve_block_number)
+                        .await
                 }
-                WriteCacheKey::Resolved(cache_key) => Some(cache_key),
+                WriteCacheKey::Resolved(cache_key) => Ok(Some(cache_key)),
             }
         } else {
-            None
-        };
-
-        Ok(maybe_cache_key)
+            Ok(None)
+        }
     }
 
     async fn handle_response_to_cache<T: Serialize>(

@@ -417,13 +417,22 @@ impl<'a> CacheKeyForUncheckedBlockNumber<'a> {
 }
 
 #[derive(Debug, Clone)]
+pub(super) enum ResolvedSymbolicTag<'a> {
+    /// It needs to be checked whether the block number is safe (reorg-free) before writing to the
+    /// cache.
+    NeedsSafetyCheck(CacheKeyForUncheckedBlockNumber<'a>),
+    /// The cache key is fully resolved and can be used to write to the cache.
+    Resolved(String),
+}
+
+#[derive(Debug, Clone)]
 pub(super) struct CacheKeyForSymbolicBlockTag {
     method_invocation: MethodWithResolvableSymbolicBlockSpec,
 }
 
 impl<'a> CacheKeyForSymbolicBlockTag {
     /// Check whether the block number is safe to cache before returning a cache key.
-    pub fn resolve_symbolic_tag(self, block_number: &'a U256) -> Option<WriteCacheKey<'a>> {
+    pub fn resolve_symbolic_tag(self, block_number: &'a U256) -> Option<ResolvedSymbolicTag<'a>> {
         let resolved_block_spec = CacheableBlockSpec::Number { block_number };
 
         let resolved_method_invocation = match self.method_invocation {
@@ -435,7 +444,17 @@ impl<'a> CacheKeyForSymbolicBlockTag {
             },
         };
 
-        resolved_method_invocation.write_cache_key()
+        resolved_method_invocation
+            .write_cache_key()
+            .map(|key| match key {
+                WriteCacheKey::NeedsSafetyCheck(cache_key) => {
+                    ResolvedSymbolicTag::NeedsSafetyCheck(cache_key)
+                }
+                WriteCacheKey::Resolved(cache_key) => ResolvedSymbolicTag::Resolved(cache_key),
+                WriteCacheKey::NeedsBlockNumber(_) => {
+                    unreachable!("resolved block spec should not need block number")
+                }
+            })
     }
 }
 
