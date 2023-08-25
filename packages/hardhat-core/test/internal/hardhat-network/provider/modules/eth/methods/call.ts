@@ -8,6 +8,7 @@ import {
   rpcQuantityToNumber,
   rpcDataToBigInt,
   rpcQuantityToBigInt,
+  numberToRpcStorageSlot,
 } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { getCurrentTimestamp } from "../../../../../../../src/internal/hardhat-network/provider/utils/getCurrentTimestamp";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
@@ -991,7 +992,7 @@ describe("Eth module", function () {
                 },
               ]);
 
-              // x and y should be override to 0
+              // x and y should be overriden to 0
               assert.equal(
                 storage,
                 "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
@@ -1032,7 +1033,7 @@ describe("Eth module", function () {
                 },
               ]);
 
-              // x should be cleared, y should be override to c
+              // x should be cleared, y should be overriden to c
               assert.equal(
                 storageOverride,
                 "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c"
@@ -1147,7 +1148,7 @@ describe("Eth module", function () {
                 },
               ]);
 
-              // Both x and y should be override
+              // Both x and y should be overriden
               assert.equal(
                 storage,
                 "0x000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000c"
@@ -1177,6 +1178,11 @@ describe("Eth module", function () {
           });
 
           it("should override multiple addresses and properties at the same time", async function () {
+            const overrideSenderBalance = 0x123456789n;
+            const overrideContractABalance = 0x11223344n;
+            const overrideContractAYValue = 0x222222211111111111n;
+            const overrideContractDNonce = 0x999n;
+
             const result = await this.provider.send("eth_call", [
               {
                 from: address,
@@ -1187,61 +1193,52 @@ describe("Eth module", function () {
               "latest",
               {
                 [address]: {
-                  balance: "0x123456789", // Override sender balance
+                  balance: numberToRpcQuantity(overrideSenderBalance),
                 },
                 [contractAAddress]: {
-                  balance: "0x11223344",
+                  balance: numberToRpcQuantity(overrideContractABalance),
                   // Override y variable at slot 3
                   stateDiff: {
                     "0x0000000000000000000000000000000000000000000000000000000000000003":
-                      "0x0000000000000000000000000000000000000000000000222222211111111111",
+                      numberToRpcStorageSlot(overrideContractAYValue),
                   },
                 },
                 [contractBAddress]: {
                   code: `0x${STATE_OVERRIDE_SET_CONTRACT_C.bytecode.object}`,
                 },
                 [contractDAddress]: {
-                  nonce: "0x999",
+                  nonce: numberToRpcQuantity(overrideContractDNonce),
                 },
               },
             ]);
 
-            const tmpResult = result.replace("0x", "");
+            const abiCoder = new ethers.AbiCoder();
 
-            // Returned values are, in order:
-            // Sender balance
-            assert.equal(
-              tmpResult.substring(0, 64),
-              "0000000000000000000000000000000000000000000000000000000123456789"
+            const [
+              senderBalance,
+              contractABalance,
+              contractDDeployedAddress,
+              contractBMessage,
+              contractAYValue,
+            ] = abiCoder.decode(
+              ["uint", "uint", "address", "string", "uint"],
+              result
             );
 
-            // Contract A balance
+            assert.equal(senderBalance, overrideSenderBalance);
+            assert.equal(contractABalance, overrideContractABalance);
             assert.equal(
-              tmpResult.substring(64, 128),
-              "0000000000000000000000000000000000000000000000000000000011223344"
+              contractDDeployedAddress.toLowerCase(),
+              ethers
+                .getCreateAddress({
+                  from: contractDAddress,
+                  nonce: overrideContractDNonce,
+                })
+                .toLowerCase()
             );
 
-            // Address of deployed ChildContract from D
-            assert.equal(
-              tmpResult.substring(128, 192),
-              // Address in Alchemy is a different one so also the contract address will be different
-              name !== "Alchemy Forked"
-                ? "00000000000000000000000008a2aa3b13b15f53b94a843d8f10dc3d4ef057d2"
-                : "00000000000000000000000005eb04d31bce4f693b91a4b788a325eb402d4f12"
-            );
-
-            // The following two variables are not in the next 32 bytes because of how the result is encoded
-            // Message from contract B
-            assert.equal(
-              tmpResult.substring(384, 449),
-              "48656c6c6f2066726f6d20746865204320636f6e747261637400000000000000"
-            );
-
-            // Variable y from contract A
-            assert.equal(
-              tmpResult.substring(256, 320),
-              "0000000000000000000000000000000000000000000000222222211111111111"
-            );
+            assert.equal(contractBMessage, "Hello from the C contract");
+            assert.equal(contractAYValue, overrideContractAYValue);
           });
         });
 
