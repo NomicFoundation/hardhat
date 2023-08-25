@@ -105,8 +105,8 @@ fn create_dummy_block_with_difficulty(
 
 fn create_dummy_block_with_hash(number: U256, parent_hash: B256) -> DetailedBlock {
     create_dummy_block_with_header(PartialHeader {
-        number,
         parent_hash,
+        number,
         ..PartialHeader::default()
     })
 }
@@ -261,7 +261,7 @@ fn test_insert_block_invalid_block_number() {
             assert_eq!(actual, U256::from(invalid_block_number));
             assert_eq!(expected, U256::from(next_block_number));
         } else {
-            panic!("Unexpected error: {:?}", error);
+            panic!("Unexpected error: {error:?}");
         }
     }
 }
@@ -284,7 +284,7 @@ fn test_insert_block_invalid_parent_hash() {
             assert_eq!(actual, INVALID_BLOCK_HASH);
             assert_eq!(expected, *blockchain.last_block().unwrap().hash());
         } else {
-            panic!("Unexpected error: {:?}", error);
+            panic!("Unexpected error: {error:?}");
         }
     }
 }
@@ -349,7 +349,7 @@ fn test_revert_to_block_invalid_number() {
 
         if let BlockchainError::UnknownBlockNumber = error {
         } else {
-            panic!("Unexpected error: {:?}", error);
+            panic!("Unexpected error: {error:?}");
         }
     }
 }

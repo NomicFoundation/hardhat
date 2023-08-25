@@ -24,18 +24,10 @@ pub struct TransactionReceipt<L> {
     /// The contract address created, if the transaction was a contract creation, otherwise `None`.
     pub contract_address: Option<Address>,
     /// Gas used by this transaction alone.
-    #[cfg_attr(
-        feature = "serde",
-        serde(serialize_with = "crate::serde::u256::serialize")
-    )]
     pub gas_used: U256,
     /// The actual value per gas deducted from the senders account. Before EIP-1559, this is equal
     /// to the transaction's gas price. After, it is equal to baseFeePerGas + min(maxFeePerGas -
     /// baseFeePerGas, maxPriorityFeePerGas).
-    #[cfg_attr(
-        feature = "serde",
-        serde(serialize_with = "crate::serde::u256::serialize")
-    )]
     pub effective_gas_price: U256,
 }
 

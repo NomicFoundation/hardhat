@@ -101,7 +101,6 @@ impl Display for BlockTag {
 #[serde(untagged)]
 pub enum BlockSpec {
     /// as a block number
-    #[serde(serialize_with = "crate::serde::u256::serialize")]
     Number(U256),
     /// as a block tag (eg "latest")
     Tag(BlockTag),
