@@ -1,5 +1,6 @@
 use std::collections::{HashMap, VecDeque};
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 use std::{
     io,
     sync::atomic::{AtomicU64, Ordering},
@@ -8,7 +9,13 @@ use std::{
 use bytes::Bytes;
 use futures::{stream, StreamExt};
 use itertools::{izip, Itertools};
+use reqwest::Client as HttpClient;
+use reqwest_middleware::{ClientBuilder as HttpClientBuilder, ClientWithMiddleware};
+use reqwest_retry::{
+    policies::ExponentialBackoff, RetryTransientMiddleware, Retryable, RetryableStrategy,
+};
 use revm_primitives::{AccountInfo, Address, Bytecode, B256, KECCAK_EMPTY, U256};
+
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use sha3::digest::FixedOutput;
@@ -29,13 +36,18 @@ const RPC_CACHE_DIR: &str = "rpc_cache";
 // More than 16 concurrent reads does not significantly improve performance on any disk/workload, but
 // it can cause slow downs based on this article <https://pkolaczk.github.io/disk-parallelism/>.
 const CONCURRENT_DISK_READS: usize = 16;
+// Retry parameters for rate limited requests.
+const BACKOFF_EXPONENT: u32 = 2;
+const MIN_RETRY_INTERVAL: Duration = Duration::from_secs(1);
+const MAX_RETRY_INTERVAL: Duration = Duration::from_secs(16);
+const TOTAL_RETRY_DURATION: Duration = Duration::from_secs(60);
 
 /// Specialized error types
 #[derive(Debug, thiserror::Error)]
 pub enum RpcClientError {
     /// The message could not be sent to the remote node
     #[error(transparent)]
-    FailedToSend(reqwest::Error),
+    FailedToSend(reqwest_middleware::Error),
 
     /// The remote node failed to reply with the body of the response
     #[error("The response text was corrupted: {0}.")]
@@ -131,7 +143,7 @@ pub struct Request<MethodInvocation> {
 pub struct RpcClient {
     url: String,
     chain_id: OnceCell<U256>,
-    client: reqwest::Client,
+    client: ClientWithMiddleware,
     next_id: AtomicU64,
     rpc_cache_dir: PathBuf,
 }
@@ -449,10 +461,21 @@ impl RpcClient {
     /// Create a new instance, given a remote node URL.
     /// The cache directory is the global EDR cache directory configured by the user.
     pub fn new(url: &str, cache_dir: PathBuf) -> Self {
+        let retry_policy = ExponentialBackoff::builder()
+            .retry_bounds(MIN_RETRY_INTERVAL, MAX_RETRY_INTERVAL)
+            .backoff_exponent(BACKOFF_EXPONENT)
+            .build_with_total_retry_duration(TOTAL_RETRY_DURATION);
+        let client = HttpClientBuilder::new(HttpClient::new())
+            .with(RetryTransientMiddleware::new_with_policy_and_strategy(
+                retry_policy,
+                RetryStrategy,
+            ))
+            .build();
+
         RpcClient {
             url: url.to_string(),
             chain_id: OnceCell::new(),
-            client: reqwest::Client::new(),
+            client,
             next_id: AtomicU64::new(0),
             rpc_cache_dir: cache_dir.join(RPC_CACHE_DIR),
         }
@@ -634,6 +657,97 @@ fn log_cache_error(cache_key: CacheKey, message: &'static str, error: impl Into<
     log::error!("{cache_error}");
 }
 
+struct RetryStrategy;
+
+impl RetryableStrategy for RetryStrategy {
+    fn handle(
+        &self,
+        res: &Result<reqwest::Response, reqwest_middleware::Error>,
+    ) -> Option<Retryable> {
+        match res {
+            Ok(success) => reqwest_retry::default_on_request_success(success),
+            Err(error) => on_request_failure(error),
+        }
+    }
+}
+
+// Adapted from <https://github.com/TrueLayer/reqwest-middleware/blob/a54319a9d65926c899440e5970c04592f30ed048/reqwest-retry/src/retryable_strategy.rs#L134>
+// under the MIT license.
+// With the difference that we don't retry on connection errors as it leads to retrying invalid domains.
+fn on_request_failure(error: &reqwest_middleware::Error) -> Option<Retryable> {
+    use reqwest_middleware::Error;
+
+    match error {
+        // If something fails in the middleware we're screwed.
+        Error::Middleware(_) => Some(Retryable::Fatal),
+        Error::Reqwest(error) => {
+            if error.is_timeout() {
+                Some(Retryable::Transient)
+            } else if error.is_body()
+                || error.is_decode()
+                || error.is_builder()
+                || error.is_redirect()
+            {
+                Some(Retryable::Fatal)
+            } else if error.is_request() {
+                // It seems that hyper::Error(IncompleteMessage) is not correctly handled by reqwest.
+                // Here we check if the Reqwest error was originated by hyper and map it consistently.
+                if let Some(hyper_error) = get_source_error_type::<hyper::Error>(&error) {
+                    // The hyper::Error(IncompleteMessage) is raised if the HTTP response is well formatted but does not contain all the bytes.
+                    // This can happen when the server has started sending back the response but the connection is cut halfway thorugh.
+                    // We can safely retry the call, hence marking this error as [`Retryable::Transient`].
+                    // Instead hyper::Error(Canceled) is raised when the connection is
+                    // gracefully closed on the server side.
+                    if hyper_error.is_incomplete_message() || hyper_error.is_canceled() {
+                        Some(Retryable::Transient)
+
+                        // Try and downcast the hyper error to io::Error if that is the
+                        // underlying error, and try and classify it.
+                    } else if let Some(io_error) = get_source_error_type::<io::Error>(hyper_error) {
+                        Some(classify_io_error(io_error))
+                    } else {
+                        Some(Retryable::Fatal)
+                    }
+                } else {
+                    Some(Retryable::Fatal)
+                }
+            } else {
+                // We omit checking if error.is_status() since we check that already.
+                // However, if Response::error_for_status is used the status will still
+                // remain in the response object.
+                None
+            }
+        }
+    }
+}
+
+// From <https://github.com/TrueLayer/reqwest-middleware/blob/a54319a9d65926c899440e5970c04592f30ed048/reqwest-retry/src/retryable_strategy.rs#L189>
+// under the MIT license.
+fn classify_io_error(error: &io::Error) -> Retryable {
+    match error.kind() {
+        io::ErrorKind::ConnectionReset | io::ErrorKind::ConnectionAborted => Retryable::Transient,
+        _ => Retryable::Fatal,
+    }
+}
+
+/// Downcasts the given err source into T.
+/// From <https://github.com/TrueLayer/reqwest-middleware/blob/a54319a9d65926c899440e5970c04592f30ed048/reqwest-retry/src/retryable_strategy.rs#L200>
+/// under the MIT license.
+fn get_source_error_type<T: std::error::Error + 'static>(
+    err: &dyn std::error::Error,
+) -> Option<&T> {
+    let mut source = err.source();
+
+    while let Some(err) = source {
+        if let Some(err) = err.downcast_ref::<T>() {
+            return Some(err);
+        }
+
+        source = err.source();
+    }
+    None
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[repr(transparent)]
 #[serde(transparent)]
@@ -698,8 +812,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn send_request_body_500_status() {
-        const STATUS_CODE: u16 = 500;
+    async fn send_request_body_400_status() {
+        const STATUS_CODE: u16 = 400;
 
         let mut server = mockito::Server::new_async().await;
 
@@ -717,7 +831,7 @@ mod tests {
         let error = TestRpcClient::new(&server.url())
             .call::<Option<eth::Transaction>>(MethodInvocation::GetTransactionByHash(hash))
             .await
-            .expect_err("should have failed to interpret response as a Transaction");
+            .expect_err("should have failed to due to a HTTP status error");
 
         if let RpcClientError::HttpStatus(error) = error {
             assert_eq!(
@@ -1088,7 +1202,7 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn get_block_with_transaction_data() {
+        async fn get_block_with_transaction_data_cached() {
             let alchemy_url = get_alchemy_url();
             let client = TestRpcClient::new(&alchemy_url);
 
