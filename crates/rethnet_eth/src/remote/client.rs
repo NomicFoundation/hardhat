@@ -211,7 +211,7 @@ impl RpcClient {
                 error: error.into(),
             })?;
 
-        let path = Path::new(&directory).join(format!("{}.json", cache_key));
+        let path = Path::new(&directory).join(format!("{cache_key}.json"));
         Ok(path)
     }
 
@@ -637,7 +637,7 @@ impl RpcClient {
 
         Ok(AccountInfo {
             balance,
-            code_hash: code.as_ref().map_or(KECCAK_EMPTY, Bytecode::hash),
+            code_hash: code.as_ref().map_or(KECCAK_EMPTY, Bytecode::hash_slow),
             code,
             nonce,
         })
@@ -947,7 +947,7 @@ mod tests {
         let error = TestRpcClient::new(&server.url())
             .call::<Option<eth::Transaction>>(MethodInvocation::GetTransactionByHash(hash))
             .await
-            .expect_err("should have failed to interpret response as a Transaction");
+            .expect_err("should have failed to due to a HTTP status error");
 
         if let RpcClientError::HttpStatus(error) = error {
             assert_eq!(
@@ -985,7 +985,7 @@ mod tests {
                 for entry in WalkDir::new(&self.cache_dir)
                     .follow_links(true)
                     .into_iter()
-                    .filter_map(|e| e.ok())
+                    .filter_map(Result::ok)
                 {
                     if entry.file_type().is_file() {
                         files.push(entry.path().to_owned());

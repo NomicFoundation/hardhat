@@ -1,4 +1,4 @@
-use hashbrown::HashMap;
+use rethnet_evm::HashMap;
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]

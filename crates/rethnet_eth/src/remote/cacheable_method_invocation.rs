@@ -540,7 +540,7 @@ impl Hasher {
     }
 
     fn hash_bool(self, value: &bool) -> Self {
-        self.hash_u8(*value as u8)
+        self.hash_u8(u8::from(*value))
     }
 
     fn hash_address(self, address: &Address) -> Self {
@@ -603,32 +603,34 @@ impl Hasher {
         self,
         method: &CacheableMethodInvocation<'_>,
     ) -> Result<Self, SymbolicBlogTagError> {
-        use CacheableMethodInvocation::*;
-
         let this = self.hash_u8(method.cache_key_variant());
 
         let this = match method {
-            ChainId => this,
-            GetBalance {
+            CacheableMethodInvocation::ChainId => this,
+            CacheableMethodInvocation::GetBalance {
                 address,
                 block_spec,
             } => this.hash_address(address).hash_block_spec(block_spec)?,
-            GetBlockByNumber {
+            CacheableMethodInvocation::GetBlockByNumber {
                 block_spec,
                 include_tx_data,
             } => this.hash_block_spec(block_spec)?.hash_bool(include_tx_data),
-            GetBlockByHash {
+            CacheableMethodInvocation::GetBlockByHash {
                 block_hash,
                 include_tx_data,
             } => this.hash_b256(block_hash).hash_bool(include_tx_data),
-            GetBlockTransactionCountByHash { block_hash } => this.hash_b256(block_hash),
-            GetBlockTransactionCountByNumber { block_spec } => this.hash_block_spec(block_spec)?,
-            GetCode {
+            CacheableMethodInvocation::GetBlockTransactionCountByHash { block_hash } => {
+                this.hash_b256(block_hash)
+            }
+            CacheableMethodInvocation::GetBlockTransactionCountByNumber { block_spec } => {
+                this.hash_block_spec(block_spec)?
+            }
+            CacheableMethodInvocation::GetCode {
                 address,
                 block_spec,
             } => this.hash_address(address).hash_block_spec(block_spec)?,
-            GetLogs { params } => this.hash_get_logs_input(params)?,
-            GetStorageAt {
+            CacheableMethodInvocation::GetLogs { params } => this.hash_get_logs_input(params)?,
+            CacheableMethodInvocation::GetStorageAt {
                 address,
                 position,
                 block_spec,
@@ -636,20 +638,24 @@ impl Hasher {
                 .hash_address(address)
                 .hash_u256(position)
                 .hash_block_spec(block_spec)?,
-            GetTransactionByBlockHashAndIndex { block_hash, index } => {
+            CacheableMethodInvocation::GetTransactionByBlockHashAndIndex { block_hash, index } => {
                 this.hash_b256(block_hash).hash_u256(index)
             }
-            GetTransactionByBlockNumberAndIndex {
+            CacheableMethodInvocation::GetTransactionByBlockNumberAndIndex {
                 block_number,
                 index,
             } => this.hash_u256(block_number).hash_u256(index),
-            GetTransactionByHash { transaction_hash } => this.hash_b256(transaction_hash),
-            GetTransactionCount {
+            CacheableMethodInvocation::GetTransactionByHash { transaction_hash } => {
+                this.hash_b256(transaction_hash)
+            }
+            CacheableMethodInvocation::GetTransactionCount {
                 address,
                 block_spec,
             } => this.hash_address(address).hash_block_spec(block_spec)?,
-            GetTransactionReceipt { transaction_hash } => this.hash_b256(transaction_hash),
-            NetVersion => this,
+            CacheableMethodInvocation::GetTransactionReceipt { transaction_hash } => {
+                this.hash_b256(transaction_hash)
+            }
+            CacheableMethodInvocation::NetVersion => this,
         };
 
         Ok(this)
@@ -682,24 +688,22 @@ impl<T> CacheKeyVariant for Option<T> {
 
 impl<'a> CacheKeyVariant for &'a CacheableMethodInvocation<'a> {
     fn cache_key_variant(&self) -> u8 {
-        use CacheableMethodInvocation::*;
-
         match self {
-            ChainId => 0,
-            GetBalance { .. } => 1,
-            GetBlockByNumber { .. } => 2,
-            GetBlockByHash { .. } => 3,
-            GetBlockTransactionCountByHash { .. } => 4,
-            GetBlockTransactionCountByNumber { .. } => 5,
-            GetCode { .. } => 6,
-            GetLogs { .. } => 7,
-            GetStorageAt { .. } => 8,
-            GetTransactionByBlockHashAndIndex { .. } => 9,
-            GetTransactionByBlockNumberAndIndex { .. } => 10,
-            GetTransactionByHash { .. } => 11,
-            GetTransactionCount { .. } => 12,
-            GetTransactionReceipt { .. } => 13,
-            NetVersion => 14,
+            CacheableMethodInvocation::ChainId => 0,
+            CacheableMethodInvocation::GetBalance { .. } => 1,
+            CacheableMethodInvocation::GetBlockByNumber { .. } => 2,
+            CacheableMethodInvocation::GetBlockByHash { .. } => 3,
+            CacheableMethodInvocation::GetBlockTransactionCountByHash { .. } => 4,
+            CacheableMethodInvocation::GetBlockTransactionCountByNumber { .. } => 5,
+            CacheableMethodInvocation::GetCode { .. } => 6,
+            CacheableMethodInvocation::GetLogs { .. } => 7,
+            CacheableMethodInvocation::GetStorageAt { .. } => 8,
+            CacheableMethodInvocation::GetTransactionByBlockHashAndIndex { .. } => 9,
+            CacheableMethodInvocation::GetTransactionByBlockNumberAndIndex { .. } => 10,
+            CacheableMethodInvocation::GetTransactionByHash { .. } => 11,
+            CacheableMethodInvocation::GetTransactionCount { .. } => 12,
+            CacheableMethodInvocation::GetTransactionReceipt { .. } => 13,
+            CacheableMethodInvocation::NetVersion => 14,
         }
     }
 }
@@ -729,8 +733,8 @@ mod test {
 
     #[test]
     fn test_hasher_block_spec_hash_and_number_not_equal() {
-        let block_number: U256 = Default::default();
-        let block_hash: B256 = Default::default();
+        let block_number = U256::default();
+        let block_hash = B256::default();
 
         assert_eq!(block_number.as_le_bytes(), block_hash.as_bytes());
 
@@ -759,7 +763,7 @@ mod test {
         let to = CacheableBlockSpec::Number {
             block_number: &U256::try_from(2).unwrap(),
         };
-        let address: Address = Default::default();
+        let address = Address::default();
 
         let hash_one = Hasher::new()
             .hash_get_logs_input(&CacheableGetLogsInput {
@@ -794,7 +798,7 @@ mod test {
 
     #[test]
     fn test_same_arguments_keys_not_equal() {
-        let value: B256 = Default::default();
+        let value = B256::default();
         let key_one = CacheableMethodInvocation::GetTransactionByHash {
             transaction_hash: &value,
         }
@@ -811,8 +815,8 @@ mod test {
 
     #[test]
     fn test_get_storage_at_block_spec_is_taken_into_account() {
-        let address: Address = Default::default();
-        let position: U256 = Default::default();
+        let address = Address::default();
+        let position = U256::default();
 
         let key_one = CacheableMethodInvocation::GetStorageAt {
             address: &address,
@@ -829,7 +833,7 @@ mod test {
             address: &address,
             position: &position,
             block_spec: CacheableBlockSpec::Number {
-                block_number: &Default::default(),
+                block_number: &U256::default(),
             },
         }
         .read_cache_key()
@@ -840,9 +844,9 @@ mod test {
 
     #[test]
     fn test_get_storage_at_block_same_matches() {
-        let address: Address = Default::default();
-        let position: U256 = Default::default();
-        let block_number: U256 = Default::default();
+        let address = Address::default();
+        let position = U256::default();
+        let block_number = U256::default();
         let block_spec = CacheableBlockSpec::Number {
             block_number: &block_number,
         };

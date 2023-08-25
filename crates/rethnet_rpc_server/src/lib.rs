@@ -7,8 +7,8 @@ use axum::{
     http::StatusCode,
     Router,
 };
-use hashbrown::{HashMap, HashSet};
 use parking_lot::Mutex;
+use rethnet_eth::U64;
 use rethnet_eth::{
     remote::{
         client::Request as RpcRequest,
@@ -18,7 +18,7 @@ use rethnet_eth::{
         methods::{MethodInvocation as EthMethodInvocation, U256OrUsize},
         BlockSpec, BlockTag, Eip1898BlockSpec,
     },
-    serde::{U256WithoutLeadingZeroes, U64WithoutLeadingZeroes, ZeroXPrefixedBytes},
+    serde::ZeroXPrefixedBytes,
     signature::{public_key_to_address, Signature},
     Address, Bytes, SpecId, B256, U256,
 };
@@ -28,8 +28,8 @@ use rethnet_evm::{
         LocalCreationError, SyncBlockchain,
     },
     state::{AccountModifierFn, ForkState, HybridState, StateError, SyncState},
-    AccountInfo, Bytecode, CfgEnv, MemPool, MineBlockError, MineBlockResult, RandomHashGenerator,
-    KECCAK_EMPTY,
+    AccountInfo, Bytecode, CfgEnv, HashMap, HashSet, MemPool, MineBlockError, MineBlockResult,
+    RandomHashGenerator, KECCAK_EMPTY,
 };
 use secp256k1::{Secp256k1, SecretKey};
 use sha3::{Digest, Keccak256};
@@ -85,16 +85,16 @@ struct AppState {
 
 impl From<&AppState> for CfgEnv {
     fn from(state: &AppState) -> Self {
-        Self {
-            chain_id: U256::from(state.chain_id),
-            spec_id: state.hardfork,
-            limit_contract_code_size: if state.allow_unlimited_contract_size {
-                Some(usize::MAX)
-            } else {
-                None
-            },
-            ..CfgEnv::default()
-        }
+        let mut cfg = CfgEnv::default();
+        cfg.chain_id = U256::from(state.chain_id);
+        cfg.spec_id = state.hardfork;
+        cfg.limit_contract_code_size = if state.allow_unlimited_contract_size {
+            Some(usize::MAX)
+        } else {
+            None
+        };
+
+        cfg
     }
 }
 
@@ -308,17 +308,17 @@ async fn handle_accounts(state: StateType) -> ResponseData<Vec<Address>> {
     }
 }
 
-async fn handle_block_number(state: StateType) -> ResponseData<U256WithoutLeadingZeroes> {
+async fn handle_block_number(state: StateType) -> ResponseData<U256> {
     event!(Level::INFO, "eth_blockNumber()");
     ResponseData::Success {
-        result: state.blockchain.read().await.last_block_number().into(),
+        result: state.blockchain.read().await.last_block_number(),
     }
 }
 
-fn handle_chain_id(state: StateType) -> ResponseData<U64WithoutLeadingZeroes> {
+fn handle_chain_id(state: StateType) -> ResponseData<U64> {
     event!(Level::INFO, "eth_chainId()");
     ResponseData::Success {
-        result: state.chain_id.into(),
+        result: U64::from(state.chain_id),
     }
 }
 
@@ -487,7 +487,7 @@ async fn handle_get_balance(
     state: StateType,
     address: Address,
     block: Option<BlockSpec>,
-) -> ResponseData<U256WithoutLeadingZeroes> {
+) -> ResponseData<U256> {
     event!(Level::INFO, "eth_getBalance({address:?}, {block:?})");
     match set_block_context(&state, block).await {
         Ok(previous_state_root) => {
@@ -495,7 +495,7 @@ async fn handle_get_balance(
             match restore_block_context(&state, previous_state_root).await {
                 Ok(()) => match account_info {
                     Ok(account_info) => ResponseData::Success {
-                        result: account_info.balance.into(),
+                        result: account_info.balance,
                     },
                     Err(e) => e,
                 },
@@ -609,7 +609,7 @@ async fn handle_get_transaction_count(
     state: StateType,
     address: Address,
     block: Option<BlockSpec>,
-) -> ResponseData<U256WithoutLeadingZeroes> {
+) -> ResponseData<U256> {
     event!(
         Level::INFO,
         "eth_getTransactionCount({address:?}, {block:?})"
@@ -620,7 +620,7 @@ async fn handle_get_transaction_count(
             match restore_block_context(&state, previous_state_root).await {
                 Ok(()) => match account_info {
                     Ok(account_info) => ResponseData::Success {
-                        result: U256::from(account_info.nonce).into(),
+                        result: U256::from(account_info.nonce),
                     },
                     Err(e) => e,
                 },
@@ -852,9 +852,11 @@ fn handle_net_listening() -> ResponseData<bool> {
     ResponseData::Success { result: true }
 }
 
-fn handle_net_peer_count() -> ResponseData<U64WithoutLeadingZeroes> {
+fn handle_net_peer_count() -> ResponseData<U64> {
     event!(Level::INFO, "net_peerCount()");
-    ResponseData::Success { result: 0.into() }
+    ResponseData::Success {
+        result: U64::from(0),
+    }
 }
 
 fn handle_sign(

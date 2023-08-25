@@ -9,7 +9,6 @@ ethbloom = { version = "0.13.0", default-features = false, features = ["rlp"] }
 futures = {version = "0.3.28", default-features = false}
 hash-db = { version = "0.15.2", default-features = false }
 hash256-std-hasher = { version = "0.15.2", default-features = false }
-hashbrown = { version = "0.13", default-features = false, features = ["ahash"] }
 hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
 hyper = {version = "0.14.27", default-features = false}
 itertools = { version = "0.10.5", default-features = false, features = ["use_alloc"] }
@@ -22,7 +21,7 @@ reqwest = { version = "0.11", features = ["blocking", "json"] }
 reqwest-middleware = { git = "https://github.com/TrueLayer/reqwest-middleware", rev = "a54319a", default-features = false }
 reqwest-retry = { git = "https://github.com/TrueLayer/reqwest-middleware", rev = "a54319a", default-features = false }
 rethnet_defaults = { version = "0.1.0-dev", path = "../rethnet_defaults" }
-revm-primitives = { git = "https://github.com/Wodann/revm", rev = "9fdf446", version = "1.1", default-features = false }
+revm-primitives = { git = "https://github.com/Wodann/revm", rev = "19df2ba", version = "1.1", default-features = false }
 # revm-primitives = { path = "../../../revm/crates/primitives", version = "1.0", default-features = false }
 rlp = { version = "0.5.2", default-features = false, features = ["derive"] }
 secp256k1 = { version = "0.24.0", default-features = false, features = ["alloc", "recovery"] }
@@ -46,6 +45,6 @@ walkdir = { version = "2.3.3", default-features =  false }
 [features]
 default = ["std"]
 # fastrlp = ["dep:open-fastrlp", "ruint/fastrlp"] Broken due to lack of support for fastrlp in primitive-types
-serde = ["dep:serde", "bytes/serde", "ethbloom/serialize", "hashbrown/serde", "primitive-types/serde", "revm-primitives/serde", "serde_json"]
+serde = ["dep:serde", "bytes/serde", "ethbloom/serialize", "primitive-types/serde", "revm-primitives/serde", "serde_json"]
 std = ["bytes/std", "ethbloom/std", "futures/std", "hash256-std-hasher/std", "hash-db/std", "hex/std", "itertools/use_std", "open-fastrlp?/std", "primitive-types/std", "revm-primitives/std", "rlp/std", "secp256k1/std", "serde?/std", "sha3/std", "triehash/std"]
 test-remote = ["serde"]
