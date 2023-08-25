@@ -289,26 +289,36 @@ const trace = await hre.network.provider.send("debug_traceTransaction", [
 
 #### `eth_call`
 
-The method allows you to call a contract's function without making a transaction on the blockchain. This is particularly useful for querying contract data and performing read-only operations. See the [GETH documentation](https://geth.ethereum.org/docs/interacting-with-geth/rpc/ns-eth) for more info.
+This method allows you to simulate a transaction without actually executing it. See the [Geth's documentation](https://geth.ethereum.org/docs/interacting-with-geth/rpc/ns-eth) for more info.
 
-Simple code example:
+Example:
 
 ```js
 const result = await network.provider.send("eth_call", [
   {
-    from: "0x546407C3b56D745d12F3B1Acb5938Be7c7EaE8f8", // The address the transaction is sent from
-    to: "0x0226a298d624fecc41fc226f1350d893ffcc4d3a", // The address the transaction is sent to
-    data: "0x8ce671ec", // Hash of the method signature and encoded parameters
+    from: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    to: "0x4b23ad35Da73fEe8154CDc8b291c814028A4E743",
+    data: "0xc0129d43",
   },
-  "latest", // Block to target
+  "latest",
+]);
+```
+
+You can optionally pass a state override object to modify the chain before running the call:
+
+```js
+const result = await network.provider.send("eth_call", [
   {
-    // The address that we want to override
-    "0x546407C3b56D745d12F3B1Acb5938Be7c7EaE8f8": {
-      // The properties that we want to override:
-      balance: "0x1",
-      nonce: "0x1",
+    from: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    to: "0x4b23ad35Da73fEe8154CDc8b291c814028A4E743",
+    data: "0xc0129d43",
+  },
+  "latest",
+  {
+    "0x6eE6DE5a56910E5353933761305AEF6a414d97BA": {
+      balance: "0xde0b6b3a7640000",
+      nonce: "0x123",
       stateDiff: {
-        // Modify the storage slot that starts at 2
         "0x0000000000000000000000000000000000000000000000000000000000000002":
           "0x000000000000000000000000000000000000000000000000000000000000000c",
       },
