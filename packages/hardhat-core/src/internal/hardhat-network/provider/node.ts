@@ -2382,12 +2382,19 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     address: Address,
     stateOverrideOptions: StateOverrideOptions
   ) {
-    const MAX_NONCE = 0xffffffffffffffffn; // The max allowed hex value is 8 bytes
+    const MAX_NONCE = 2n ** 64n - 1n;
+    const MAX_BALANCE = 2n ** 256n - 1n;
     const { balance, nonce } = stateOverrideOptions;
 
     if (nonce !== undefined && nonce > MAX_NONCE) {
       throw new InvalidInputError(
-        `The 'nonce' property should occupy a maximum of 8 bytes.`
+        `The 'nonce' property should occupy a maximum of 8 bytes (nonce=${nonce}).`
+      );
+    }
+
+    if (balance !== undefined && balance > MAX_BALANCE) {
+      throw new InvalidInputError(
+        `The 'balance' property should occupy a maximum of 32 bytes (balance=${balance}).`
       );
     }
 

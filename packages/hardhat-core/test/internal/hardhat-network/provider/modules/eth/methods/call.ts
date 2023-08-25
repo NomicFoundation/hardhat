@@ -629,11 +629,6 @@ describe("Eth module", function () {
                 "latest",
               ]);
 
-              assert.equal(
-                balanceBefore,
-                "0x00000000000000000000000000000000000000000000003635c9adc5dea00000"
-              );
-
               const overrideBalance = await this.provider.send("eth_call", [
                 {
                   from: address,
@@ -652,6 +647,7 @@ describe("Eth module", function () {
                 overrideBalance,
                 "0x0000000000000000000000000000000000000000000000000000000000000001"
               );
+              assert.notEqual(balanceBefore, overrideBalance);
 
               const balanceAfter = await this.provider.send("eth_call", [
                 {
@@ -687,6 +683,8 @@ describe("Eth module", function () {
             });
 
             describe("test the limit value (32 bytes) for the balance", function () {
+              const maxBalance: bigint = 2n ** 256n - 1n;
+
               it("should be successful, the balance value is the maximum allowed value", async function () {
                 await this.provider.send("eth_call", [
                   {
@@ -697,15 +695,14 @@ describe("Eth module", function () {
                   "latest",
                   {
                     [address]: {
-                      balance:
-                        "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+                      balance: numberToRpcQuantity(maxBalance),
                     },
                   },
                 ]);
               });
 
               it("should throw an error, the balance value is too big", async function () {
-                await assertInvalidArgumentsError(
+                await assertInvalidInputError(
                   this.provider,
                   "eth_call",
                   [
@@ -715,15 +712,14 @@ describe("Eth module", function () {
                       data: STATE_OVERRIDE_SET_CONTRACT_A.selectors
                         .senderBalance,
                     },
-                    "balance",
+                    "latest",
                     {
                       [address]: {
-                        nonce:
-                          "0x10000000000000000000000000000000000000000000000000000000000000000",
+                        balance: numberToRpcQuantity(maxBalance + 1n),
                       },
                     },
                   ],
-                  `Errors encountered in param 1: Invalid value "balance" supplied to : (QUANTITY | { blockNumber: QUANTITY } | { blockHash: DATA, requireCanonical: boolean | undefined } | "earliest" | "latest" | "pending" | "safe" | "finalized") | undefined/0: QUANTITY, Invalid value "balance" supplied to : (QUANTITY | { blockNumber: QUANTITY } | { blockHash: DATA, requireCanonical: boolean | undefined } | "earliest" | "latest" | "pending" | "safe" | "finalized") | undefined/1: { blockNumber: QUANTITY }, Invalid value "balance" supplied to : (QUANTITY | { blockNumber: QUANTITY } | { blockHash: DATA, requireCanonical: boolean | undefined } | "earliest" | "latest" | "pending" | "safe" | "finalized") | undefined/2: { blockHash: DATA, requireCanonical: boolean | undefined }, Invalid value "balance" supplied to : (QUANTITY | { blockNumber: QUANTITY } | { blockHash: DATA, requireCanonical: boolean | undefined } | "earliest" | "latest" | "pending" | "safe" | "finalized") | undefined/3: "earliest" | "latest" | "pending" | "safe" | "finalized`
+                  "The 'balance' property should occupy a maximum of 32 bytes (balance=115792089237316195423570985008687907853269984665640564039457584007913129639936)."
                 );
               });
             });
@@ -844,6 +840,8 @@ describe("Eth module", function () {
             });
 
             describe("test the limit value (8 bytes) for the nonce", function () {
+              const maxNonce: bigint = 2n ** 64n - 1n;
+
               it("should be successful, the nonce value is the maximum allowed value", async function () {
                 await this.provider.send("eth_call", [
                   {
@@ -854,7 +852,7 @@ describe("Eth module", function () {
                   "latest",
                   {
                     [address]: {
-                      nonce: "0xFFFFFFFFFFFFFFFF",
+                      nonce: numberToRpcQuantity(maxNonce),
                     },
                   },
                 ]);
@@ -874,11 +872,11 @@ describe("Eth module", function () {
                     "latest",
                     {
                       [address]: {
-                        nonce: "0x10000000000000000",
+                        nonce: numberToRpcQuantity(maxNonce + 1n),
                       },
                     },
                   ],
-                  "The 'nonce' property should occupy a maximum of 8 bytes."
+                  "The 'nonce' property should occupy a maximum of 8 bytes (nonce=18446744073709551616)."
                 );
               });
             });
