@@ -84,7 +84,6 @@ import "./ethereumjs-workarounds";
 import { rpcQuantityToBigInt } from "../../core/jsonrpc/types/base-types";
 import { JsonRpcClient } from "../jsonrpc/client";
 import {
-  OptionalStateOverrideSet,
   StateOverrideOptions,
   StateOverrideSet,
 } from "../../core/jsonrpc/types/input/callRequest";
@@ -630,7 +629,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   public async runCall(
     call: CallParams,
     blockNumberOrPending: bigint | "pending",
-    stateOverrideSet: OptionalStateOverrideSet = {}
+    stateOverrideSet: StateOverrideSet = {}
   ): Promise<RunCallResult> {
     let txParams: TransactionParams;
 
@@ -2448,7 +2447,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     tx: TypedTransaction,
     blockNumberOrPending: bigint | "pending",
     forceBaseFeeZero = false,
-    stateOverrideSet: OptionalStateOverrideSet = {}
+    stateOverrideSet: StateOverrideSet = {}
   ): Promise<RunTxResult> {
     const initialStateRoot = await this._stateManager.getStateRoot();
 

@@ -350,7 +350,7 @@ export class EthModule {
   private async _callAction(
     rpcCall: RpcCallRequest,
     blockTag: OptionalRpcNewBlockTag,
-    stateOverrideSet: OptionalStateOverrideSet = {}
+    stateOverrideSet: OptionalStateOverrideSet
   ): Promise<string> {
     this._validateTransactionAndCallRequest(rpcCall);
 
