@@ -1,5 +1,6 @@
 use std::collections::{HashMap, VecDeque};
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 use std::{
     io,
     sync::atomic::{AtomicU64, Ordering},
@@ -8,7 +9,13 @@ use std::{
 use bytes::Bytes;
 use futures::{stream, StreamExt};
 use itertools::{izip, Itertools};
+use reqwest::Client as HttpClient;
+use reqwest_middleware::{ClientBuilder as HttpClientBuilder, ClientWithMiddleware};
+use reqwest_retry::{
+    policies::ExponentialBackoff, RetryTransientMiddleware, Retryable, RetryableStrategy,
+};
 use revm_primitives::{AccountInfo, Address, Bytecode, B256, KECCAK_EMPTY, U256};
+
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use sha3::digest::FixedOutput;
@@ -29,13 +36,18 @@ const RPC_CACHE_DIR: &str = "rpc_cache";
 // More than 16 concurrent reads does not significantly improve performance on any disk/workload, but
 // it can cause slow downs based on this article <https://pkolaczk.github.io/disk-parallelism/>.
 const CONCURRENT_DISK_READS: usize = 16;
+// Retry parameters for rate limited requests.
+const BACKOFF_EXPONENT: u32 = 2;
+const MIN_RETRY_INTERVAL: Duration = Duration::from_secs(1);
+const MAX_RETRY_INTERVAL: Duration = Duration::from_secs(16);
+const TOTAL_RETRY_DURATION: Duration = Duration::from_secs(60);
 
 /// Specialized error types
 #[derive(Debug, thiserror::Error)]
 pub enum RpcClientError {
     /// The message could not be sent to the remote node
     #[error(transparent)]
-    FailedToSend(reqwest::Error),
+    FailedToSend(reqwest_middleware::Error),
 
     /// The remote node failed to reply with the body of the response
     #[error("The response text was corrupted: {0}.")]
@@ -131,7 +143,7 @@ pub struct Request<MethodInvocation> {
 pub struct RpcClient {
     url: String,
     chain_id: OnceCell<U256>,
-    client: reqwest::Client,
+    client: ClientWithMiddleware,
     next_id: AtomicU64,
     rpc_cache_dir: PathBuf,
 }
@@ -195,7 +207,7 @@ impl RpcClient {
                 error: error.into(),
             })?;
 
-        let path = Path::new(&directory).join(format!("{}.json", cache_key));
+        let path = Path::new(&directory).join(format!("{cache_key}.json"));
         Ok(path)
     }
 
@@ -449,10 +461,21 @@ impl RpcClient {
     /// Create a new instance, given a remote node URL.
     /// The cache directory is the global EDR cache directory configured by the user.
     pub fn new(url: &str, cache_dir: PathBuf) -> Self {
+        let retry_policy = ExponentialBackoff::builder()
+            .retry_bounds(MIN_RETRY_INTERVAL, MAX_RETRY_INTERVAL)
+            .backoff_exponent(BACKOFF_EXPONENT)
+            .build_with_total_retry_duration(TOTAL_RETRY_DURATION);
+        let client = HttpClientBuilder::new(HttpClient::new())
+            .with(RetryTransientMiddleware::new_with_policy_and_strategy(
+                retry_policy,
+                RetryStrategy,
+            ))
+            .build();
+
         RpcClient {
             url: url.to_string(),
             chain_id: OnceCell::new(),
-            client: reqwest::Client::new(),
+            client,
             next_id: AtomicU64::new(0),
             rpc_cache_dir: cache_dir.join(RPC_CACHE_DIR),
         }
@@ -589,6 +612,24 @@ impl RpcClient {
             .await
     }
 
+    /// Methods for retrieving multiple transaction receipts in one batch
+    pub async fn get_transaction_receipts(
+        &self,
+        hashes: impl IntoIterator<Item = &B256>,
+    ) -> Result<Option<Vec<BlockReceipt>>, RpcClientError> {
+        let requests: Vec<MethodInvocation> = hashes
+            .into_iter()
+            .map(|transaction_hash| MethodInvocation::GetTransactionReceipt(*transaction_hash))
+            .collect();
+
+        let responses = self.batch_call(&requests).await?;
+
+        responses
+            .into_iter()
+            .map(Self::parse_response_value::<Option<BlockReceipt>>)
+            .collect::<Result<Option<Vec<BlockReceipt>>, _>>()
+    }
+
     /// Calls `eth_getStorageAt`.
     pub async fn get_storage_at(
         &self,
@@ -614,6 +655,97 @@ fn log_cache_error(cache_key: CacheKey, message: &'static str, error: impl Into<
         error: error.into(),
     };
     log::error!("{cache_error}");
+}
+
+struct RetryStrategy;
+
+impl RetryableStrategy for RetryStrategy {
+    fn handle(
+        &self,
+        res: &Result<reqwest::Response, reqwest_middleware::Error>,
+    ) -> Option<Retryable> {
+        match res {
+            Ok(success) => reqwest_retry::default_on_request_success(success),
+            Err(error) => on_request_failure(error),
+        }
+    }
+}
+
+// Adapted from <https://github.com/TrueLayer/reqwest-middleware/blob/a54319a9d65926c899440e5970c04592f30ed048/reqwest-retry/src/retryable_strategy.rs#L134>
+// under the MIT license.
+// With the difference that we don't retry on connection errors as it leads to retrying invalid domains.
+fn on_request_failure(error: &reqwest_middleware::Error) -> Option<Retryable> {
+    use reqwest_middleware::Error;
+
+    match error {
+        // If something fails in the middleware we're screwed.
+        Error::Middleware(_) => Some(Retryable::Fatal),
+        Error::Reqwest(error) => {
+            if error.is_timeout() {
+                Some(Retryable::Transient)
+            } else if error.is_body()
+                || error.is_decode()
+                || error.is_builder()
+                || error.is_redirect()
+            {
+                Some(Retryable::Fatal)
+            } else if error.is_request() {
+                // It seems that hyper::Error(IncompleteMessage) is not correctly handled by reqwest.
+                // Here we check if the Reqwest error was originated by hyper and map it consistently.
+                if let Some(hyper_error) = get_source_error_type::<hyper::Error>(&error) {
+                    // The hyper::Error(IncompleteMessage) is raised if the HTTP response is well formatted but does not contain all the bytes.
+                    // This can happen when the server has started sending back the response but the connection is cut halfway thorugh.
+                    // We can safely retry the call, hence marking this error as [`Retryable::Transient`].
+                    // Instead hyper::Error(Canceled) is raised when the connection is
+                    // gracefully closed on the server side.
+                    if hyper_error.is_incomplete_message() || hyper_error.is_canceled() {
+                        Some(Retryable::Transient)
+
+                        // Try and downcast the hyper error to io::Error if that is the
+                        // underlying error, and try and classify it.
+                    } else if let Some(io_error) = get_source_error_type::<io::Error>(hyper_error) {
+                        Some(classify_io_error(io_error))
+                    } else {
+                        Some(Retryable::Fatal)
+                    }
+                } else {
+                    Some(Retryable::Fatal)
+                }
+            } else {
+                // We omit checking if error.is_status() since we check that already.
+                // However, if Response::error_for_status is used the status will still
+                // remain in the response object.
+                None
+            }
+        }
+    }
+}
+
+// From <https://github.com/TrueLayer/reqwest-middleware/blob/a54319a9d65926c899440e5970c04592f30ed048/reqwest-retry/src/retryable_strategy.rs#L189>
+// under the MIT license.
+fn classify_io_error(error: &io::Error) -> Retryable {
+    match error.kind() {
+        io::ErrorKind::ConnectionReset | io::ErrorKind::ConnectionAborted => Retryable::Transient,
+        _ => Retryable::Fatal,
+    }
+}
+
+/// Downcasts the given err source into T.
+/// From <https://github.com/TrueLayer/reqwest-middleware/blob/a54319a9d65926c899440e5970c04592f30ed048/reqwest-retry/src/retryable_strategy.rs#L200>
+/// under the MIT license.
+fn get_source_error_type<T: std::error::Error + 'static>(
+    err: &dyn std::error::Error,
+) -> Option<&T> {
+    let mut source = err.source();
+
+    while let Some(err) = source {
+        if let Some(err) = err.downcast_ref::<T>() {
+            return Some(err);
+        }
+
+        source = err.source();
+    }
+    None
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -680,8 +812,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn send_request_body_500_status() {
-        const STATUS_CODE: u16 = 500;
+    async fn send_request_body_400_status() {
+        const STATUS_CODE: u16 = 400;
 
         let mut server = mockito::Server::new_async().await;
 
@@ -699,7 +831,7 @@ mod tests {
         let error = TestRpcClient::new(&server.url())
             .call::<Option<eth::Transaction>>(MethodInvocation::GetTransactionByHash(hash))
             .await
-            .expect_err("should have failed to interpret response as a Transaction");
+            .expect_err("should have failed to due to a HTTP status error");
 
         if let RpcClientError::HttpStatus(error) = error {
             assert_eq!(
@@ -737,7 +869,7 @@ mod tests {
                 for entry in WalkDir::new(&self.cache_dir)
                     .follow_links(true)
                     .into_iter()
-                    .filter_map(|e| e.ok())
+                    .filter_map(Result::ok)
                 {
                     if entry.file_type().is_file() {
                         files.push(entry.path().to_owned());
@@ -1070,13 +1202,27 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn get_earliest_block() {
+        async fn get_block_with_transaction_data_cached() {
             let alchemy_url = get_alchemy_url();
+            let client = TestRpcClient::new(&alchemy_url);
 
-            let _block = TestRpcClient::new(&alchemy_url)
-                .get_block_by_number(BlockSpec::earliest())
+            let block_spec = BlockSpec::Number(U256::from(16220843));
+
+            assert_eq!(client.files_in_cache().len(), 0);
+
+            let block_from_remote = client
+                .get_block_by_number_with_transaction_data(block_spec.clone())
                 .await
-                .expect("should have succeeded");
+                .expect("should have from remote");
+
+            assert_eq!(client.files_in_cache().len(), 1);
+
+            let block_from_cache = client
+                .get_block_by_number_with_transaction_data(block_spec.clone())
+                .await
+                .expect("should have from remote");
+
+            assert_eq!(block_from_remote, block_from_cache)
         }
 
         #[tokio::test]
@@ -1248,9 +1394,9 @@ mod tests {
                 U256::from_str_radix("1e449a99b8", 16).expect("couldn't parse data")
             );
             assert_eq!(
-            tx.input,
-            Bytes::from(hex::decode("a9059cbb000000000000000000000000e2c1e729e05f34c07d80083982ccd9154045dcc600000000000000000000000000000000000000000000000000000004a817c800").unwrap())
-        );
+                tx.input,
+                Bytes::from(hex::decode("a9059cbb000000000000000000000000e2c1e729e05f34c07d80083982ccd9154045dcc600000000000000000000000000000000000000000000000000000004a817c800").unwrap())
+            );
             assert_eq!(
                 tx.nonce,
                 u64::from_str_radix("653b", 16).expect("couldn't parse data")
@@ -1548,10 +1694,13 @@ mod tests {
         async fn switching_provider_doesnt_invalidate_cache() {
             let alchemy_url = get_alchemy_url();
             let infura_url = get_infura_url();
+            let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
+                .expect("failed to parse address");
+            let block_spec = Some(BlockSpec::Number(U256::from(16220843)));
 
             let alchemy_client = TestRpcClient::new(&alchemy_url);
-            alchemy_client
-                .network_id()
+            let total_supply = alchemy_client
+                .get_storage_at(&dai_address, U256::from(1), block_spec.clone())
                 .await
                 .expect("should have succeeded");
             let alchemy_cached_files = alchemy_client.files_in_cache();
@@ -1559,33 +1708,13 @@ mod tests {
 
             let infura_client = TestRpcClient::new_with_dir(&infura_url, alchemy_client.cache_dir);
             infura_client
-                .network_id()
+                .get_storage_at(&dai_address, U256::from(1), block_spec)
                 .await
                 .expect("should have succeeded");
             let infura_cached_files = infura_client.files_in_cache();
             assert_eq!(alchemy_cached_files, infura_cached_files);
-        }
 
-        #[tokio::test]
-        async fn stores_result_in_cache() {
-            let alchemy_url = get_alchemy_url();
-            let client = TestRpcClient::new(&alchemy_url);
-            let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
-                .expect("failed to parse address");
-
-            let total_supply = client
-                .get_storage_at(
-                    &dai_address,
-                    U256::from(1),
-                    Some(BlockSpec::Number(U256::from(16220843))),
-                )
-                .await
-                .expect("should have succeeded");
-
-            let cached_files = client.files_in_cache();
-            assert_eq!(cached_files.len(), 1);
-
-            let mut file = File::open(&cached_files[0]).expect("failed to open file");
+            let mut file = File::open(&infura_cached_files[0]).expect("failed to open file");
             let cached_result: U256 = serde_json::from_reader(&mut file).expect("failed to parse");
 
             assert_eq!(total_supply, cached_result);

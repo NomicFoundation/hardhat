@@ -10,13 +10,12 @@ use util::{bench_sync_state_method, state_prep_no_op};
 fn bench_database_commit(c: &mut Criterion) {
     use revm::primitives::KECCAK_EMPTY;
 
-    use rethnet_eth::serde::optional_u64_from_hex;
     use rethnet_evm::{Account, AccountInfo, StorageSlot};
 
     #[derive(Debug, serde::Deserialize)]
     #[serde(rename_all = "camelCase")]
     struct AccountState {
-        #[serde(deserialize_with = "optional_u64_from_hex")]
+        #[serde(deserialize_with = "rethnet_eth::serde::optional_u64::deserialize")]
         nonce: Option<u64>,
         balance: Option<U256>,
         storage: HashMap<U256, Option<U256>>,

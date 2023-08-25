@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use futures::future::{self, FutureExt};
 use parking_lot::{RwLock, RwLockUpgradableReadGuard};
 use rethnet_eth::{
     block::{BlockAndCallers, DetailedBlock},
@@ -158,14 +157,13 @@ impl RemoteBlockchain {
             .collect();
 
         let receipts = tokio::task::block_in_place(move || {
-            self.runtime.block_on({
-                future::try_join_all(transaction_hashes.iter().map(|hash| {
-                    self.client
-                        .get_transaction_receipt(hash)
-                        .map(|result| result.map(|receipt| Arc::new(receipt.unwrap())))
-                }))
-            })
-        })?;
+            self.runtime
+                .block_on(self.client.get_transaction_receipts(&transaction_hashes))
+        })?
+        .expect("All receipts of a block should exist")
+        .into_iter()
+        .map(Arc::new)
+        .collect();
 
         let block = DetailedBlock::new(block, transaction_callers, receipts);
         let block = {

@@ -297,7 +297,7 @@ jobs:
         uses: auguwu/clippy-action@1.1.2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --workspace --all-targets --all-features
+          args: --workspace --all-targets --all-features -- -Dwarnings
 
   rethnet-docs:
     name: Build Rethnet Docs

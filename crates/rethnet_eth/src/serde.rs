@@ -1,46 +1,8 @@
 //! Helper utilities for serde
 
-use std::{fmt::Write, ops::Deref};
+use std::ops::Deref;
 
 use ::bytes::Bytes;
-
-use crate::U256;
-
-/// Type that serializes a [`U256`] without leading zeroes.
-#[derive(Clone, Copy, serde::Serialize, serde::Deserialize)]
-pub struct U256WithoutLeadingZeroes(#[serde(serialize_with = "u256::serialize")] U256);
-
-impl Deref for U256WithoutLeadingZeroes {
-    type Target = U256;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl From<U256> for U256WithoutLeadingZeroes {
-    fn from(value: U256) -> Self {
-        Self(value)
-    }
-}
-
-/// Type that serializes a [`std::primitive::u64`] without leading zeroes.
-#[derive(Clone, Copy, serde::Serialize, serde::Deserialize)]
-pub struct U64WithoutLeadingZeroes(#[serde(serialize_with = "u64::serialize")] u64);
-
-impl Deref for U64WithoutLeadingZeroes {
-    type Target = u64;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl From<u64> for U64WithoutLeadingZeroes {
-    fn from(value: u64) -> Self {
-        Self(value)
-    }
-}
 
 /// Type for specifying a byte string that will have a 0x prefix when serialized and
 /// deserialized
@@ -174,33 +136,6 @@ where
     }
 }
 
-/// Helper function for serializing the little-endian bytes of an unsigned integer into a hexadecimal string.
-fn serialize_uint_bytes_without_leading_zeroes<S, T>(le_bytes: T, s: S) -> Result<S::Ok, S::Error>
-where
-    S: serde::Serializer,
-    T: AsRef<[u8]>,
-{
-    let le_bytes = le_bytes.as_ref();
-    let mut bytes = le_bytes.iter().rev().skip_while(|b| **b == 0);
-
-    // We avoid String allocation if there is no non-0 byte
-    // If there is a first byte, we allocate a string, and write the prefix
-    // and first byte to it
-    let mut result = match bytes.next() {
-        Some(b) => {
-            let mut result = String::with_capacity(2 + 8 * 2);
-            write!(result, "0x{b:x}").unwrap();
-            result
-        }
-        None => return s.serialize_str("0x0"),
-    };
-    bytes
-        .try_for_each(|byte| write!(result, "{byte:02x}"))
-        .unwrap();
-
-    s.serialize_str(&result)
-}
-
 /// Helper module for (de)serializing bytes into hexadecimal strings. This is necessary because
 /// the default bytes serialization considers a string as bytes.
 pub mod bytes {
@@ -235,33 +170,17 @@ pub mod bytes {
     }
 }
 
-/// Helper module for (de)serializing [`U256`]s into hexadecimal strings. This is necessary because
-/// the default [`U256`] serialization includes leading zeroes.
-pub mod u256 {
-    use revm_primitives::U256;
-
-    /// Helper function for serializing a [`U256`] into a hexadecimal string.
-    pub fn serialize<S>(value: &U256, s: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        if *value == U256::ZERO {
-            return s.serialize_str("0x0");
-        }
-
-        super::serialize_uint_bytes_without_leading_zeroes(value.to_le_bytes::<32>(), s)
-    }
-}
-
 /// Helper module for (de)serializing [`std::primitive::u64`]s from and into `0x`-prefixed hexadecimal strings.
 pub mod u64 {
+    use revm_primitives::ruint::aliases::U64;
+
     /// Helper function for deserializing a [`std::primitive::u64`] from a `0x`-prefixed hexadecimal string.
     pub fn deserialize<'de, D>(deserializer: D) -> Result<u64, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        let s: &str = serde::Deserialize::deserialize(deserializer)?;
-        Ok(u64::from_str_radix(&s[2..], 16).expect("failed to parse u64"))
+        let value: U64 = serde::Deserialize::deserialize(deserializer)?;
+        Ok(value.to())
     }
 
     /// Helper function for serializing a [`std::primitive::u64`] into a 0x-prefixed hexadecimal string.
@@ -269,23 +188,43 @@ pub mod u64 {
     where
         S: serde::Serializer,
     {
-        if *value == 0 {
-            return s.serialize_str("0x0");
-        }
+        serde::Serialize::serialize(&U64::from(*value), s)
+    }
+}
 
-        super::serialize_uint_bytes_without_leading_zeroes(value.to_le_bytes(), s)
+/// Helper module for (de)serializing an [`Option<std::primitive::u64>`] from a `0x`-prefixed hexadecimal string.
+pub mod optional_u64 {
+    use revm_primitives::ruint::aliases::U64;
+
+    /// Helper function for deserializing an [`Option<std::primitive::u64>`] from a `0x`-prefixed hexadecimal string.
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<u64>, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let value: Option<U64> = serde::Deserialize::deserialize(deserializer)?;
+        Ok(value.map(|value| value.to()))
+    }
+
+    /// Helper function for serializing a [`Option<std::primitive::u64>`] into a `0x`-prefixed hexadecimal string.
+    pub fn serialize<S>(value: &Option<u64>, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serde::Serialize::serialize(&value.map(U64::from), s)
     }
 }
 
 /// Helper module for (de)serializing [`std::primitive::u8`]s from and into `0x`-prefixed hexadecimal strings.
 pub mod u8 {
+    use revm_primitives::ruint::aliases::U8;
+
     /// Helper function for deserializing a [`std::primitive::u8`] from a `0x`-prefixed hexadecimal string.
     pub fn deserialize<'de, D>(deserializer: D) -> Result<u8, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        let s: &str = serde::Deserialize::deserialize(deserializer)?;
-        Ok(u8::from_str_radix(&s[2..], 16).expect("failed to parse u8"))
+        let value: U8 = serde::Deserialize::deserialize(deserializer)?;
+        Ok(value.to())
     }
 
     /// Helper function for serializing a [`std::primitive::u8`] into a `0x`-prefixed hexadecimal string.
@@ -293,61 +232,47 @@ pub mod u8 {
     where
         S: serde::Serializer,
     {
-        if *value == 0 {
-            return s.serialize_str("0x0");
-        }
-
-        super::serialize_uint_bytes_without_leading_zeroes(value.to_le_bytes(), s)
+        serde::Serialize::serialize(&U8::from(*value), s)
     }
-}
-
-/// Helper function for deserializing an [`Option<std::primitive::u64>`] from an optional `0x`-prefixed hexadecimal string.
-pub fn optional_u64_from_hex<'de, D>(deserializer: D) -> Result<Option<u64>, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let s: Option<&str> = serde::Deserialize::deserialize(deserializer)?;
-    Ok(s.map(|s| u64::from_str_radix(&s[2..], 16).expect("failed to parse u64")))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::json;
 
-    #[test]
-    fn test_bytes_serde() {
-        const BYTES: &[u8] = &[0x01, 0x02, 0x03];
-        let expected = Bytes::from_static(BYTES);
-
-        let serialized = serde_json::to_string(&expected).unwrap();
-        let deserialized: Bytes = serde_json::from_str(&serialized).unwrap();
-        assert_eq!(deserialized, expected);
+    #[derive(Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+    struct TestStructSerde {
+        #[serde(with = "u8")]
+        u8: u8,
+        #[serde(with = "u64")]
+        u64: u64,
+        #[serde(with = "optional_u64")]
+        optional_u64: Option<u64>,
+        #[serde(with = "bytes")]
+        bytes: Bytes,
     }
 
-    #[test]
-    fn test_u8_serde() {
-        let expected = 0x01;
-
-        let serialized = serde_json::to_string(&expected).unwrap();
-        let deserialized: u8 = serde_json::from_str(&serialized).unwrap();
-        assert_eq!(deserialized, expected);
+    impl TestStructSerde {
+        fn json() -> serde_json::Value {
+            json!({
+                "u8": "0x01",
+                // 2 bytes (too large for u8)
+                "u64": "0x1234",
+                "optional_u64": "0x1234",
+                // 33 bytes (too large for u256)
+                "bytes": "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            })
+        }
     }
-
     #[test]
-    fn test_u64_serde() {
-        let expected = 0x01;
+    fn test_serde() {
+        let json = TestStructSerde::json();
+        let test_struct: TestStructSerde = serde_json::from_value(json).unwrap();
 
-        let serialized = serde_json::to_string(&expected).unwrap();
-        let deserialized: u64 = serde_json::from_str(&serialized).unwrap();
-        assert_eq!(deserialized, expected);
-    }
+        let serialized = serde_json::to_string(&test_struct).unwrap();
+        let deserialized = serde_json::from_str(&serialized).unwrap();
 
-    #[test]
-    fn test_u256_serde() {
-        let expected = U256::from(0x01);
-
-        let serialized = serde_json::to_string(&expected).unwrap();
-        let deserialized: U256 = serde_json::from_str(&serialized).unwrap();
-        assert_eq!(deserialized, expected);
+        assert_eq!(test_struct, deserialized);
     }
 }

@@ -15,6 +15,7 @@ itertools = { version = "0.11.0", default-features = false, features = ["use_all
 log = { version = "0.4.17", default-features = false }
 once_cell = { version = "1.18.0", default-features = false, features = ["alloc", "race", "std"] }
 parking_lot = { version = "0.12.1", default-features = false }
+rethnet_defaults = { version = "0.1.0-dev", path = "../rethnet_defaults" }
 rethnet_eth = { version = "0.1.0-dev", path = "../rethnet_eth", features = ["serde"] }
 revm = { git = "https://github.com/Wodann/revm", rev = "19df2ba", version = "3.3", default-features = false, features = ["dev", "secp256k1", "serde", "std"] }
 # revm = { path = "../../../revm/crates/revm", version = "3.0", default-features = false, features = ["dev", "serde", "std"] }
@@ -27,7 +28,9 @@ tracing = { version = "0.1.37", features = ["attributes", "std"], optional = tru
 
 [dev-dependencies]
 criterion = { version = "0.4.0", default-features = false, features = ["cargo_bench_support", "html_reports", "plotters"] }
+lazy_static = "1.4.0"
 rethnet_test_utils = { version = "0.1.0-dev", path = "../rethnet_test_utils" }
+serial_test = "2.0.0"
 tempfile = "3.7.1"
 
 [features]
