@@ -47,7 +47,7 @@ export const rpcStorageSlotHexString = new t.Type<string>(
   "Storage slot hex string",
   (x): x is string => typeof x === "string",
   (u, c) =>
-    validateRpcStorageSlotHexStringing(u) ? t.success(u) : t.failure(u, c),
+    validateRpcStorageSlotHexString(u) ? t.success(u) : t.failure(u, c),
   t.identity
 );
 
@@ -196,8 +196,8 @@ export function rpcDataToBuffer(data: string): Buffer {
 
 // Type guards
 
-function validateRpcStorageSlotHexStringing(u: unknown): u is string {
-  return typeof u === "string" && u.match(/^0x([0-9a-fA-F]){64}$/) !== null;
+function validateRpcStorageSlotHexString(u: unknown): u is string {
+  return typeof u === "string" && /^0x([0-9a-fA-F]){64}$/.test(u);
 }
 
 function isRpcQuantityString(u: unknown): u is string {

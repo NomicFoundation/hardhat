@@ -84,8 +84,8 @@ import "./ethereumjs-workarounds";
 import { rpcQuantityToBigInt } from "../../core/jsonrpc/types/base-types";
 import { JsonRpcClient } from "../jsonrpc/client";
 import {
-  StateOverrideOptions,
   StateOverrideSet,
+  StateProperties,
 } from "../../core/jsonrpc/types/input/callRequest";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
 import { ForkBlockchain } from "./fork/ForkBlockchain";
@@ -2372,19 +2372,21 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     )) {
       const address = new Address(toBuffer(addrToOverride));
 
-      await this._overrideBalanceAndNonce(address, stateOverrideOptions);
-      await this._overrideCode(address, stateOverrideOptions);
-      await this._overrideStateAndStateDiff(address, stateOverrideOptions);
+      const { balance, nonce, code, state, stateDiff } = stateOverrideOptions;
+
+      await this._overrideBalanceAndNonce(address, balance, nonce);
+      await this._overrideCode(address, code);
+      await this._overrideStateAndStateDiff(address, state, stateDiff);
     }
   }
 
   private async _overrideBalanceAndNonce(
     address: Address,
-    stateOverrideOptions: StateOverrideOptions
+    balance: bigint | undefined,
+    nonce: bigint | undefined
   ) {
     const MAX_NONCE = 2n ** 64n - 1n;
     const MAX_BALANCE = 2n ** 256n - 1n;
-    const { balance, nonce } = stateOverrideOptions;
 
     if (nonce !== undefined && nonce > MAX_NONCE) {
       throw new InvalidInputError(
@@ -2404,25 +2406,19 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     });
   }
 
-  private async _overrideCode(
-    address: Address,
-    stateOverrideOptions: StateOverrideOptions
-  ) {
-    if (stateOverrideOptions.code === undefined) return;
+  private async _overrideCode(address: Address, code: Buffer | undefined) {
+    if (code === undefined) return;
 
-    await this._stateManager.putContractCode(
-      address,
-      stateOverrideOptions.code
-    );
+    await this._stateManager.putContractCode(address, code);
   }
 
   private async _overrideStateAndStateDiff(
     address: Address,
-    stateOverrideOptions: StateOverrideOptions
+    state: StateProperties | undefined,
+    stateDiff: StateProperties | undefined
   ) {
-    const { state, stateDiff } = stateOverrideOptions;
-
     let newState;
+
     if (state !== undefined && stateDiff === undefined) {
       await this._stateManager.clearContractStorage(address);
       newState = state;

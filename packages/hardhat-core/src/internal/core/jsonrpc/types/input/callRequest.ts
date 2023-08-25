@@ -49,6 +49,7 @@ export const stateOverrideOptions = t.type(
 export const stateOverrideSet = t.record(address, stateOverrideOptions);
 export const optionalStateOverrideSet = optionalOrNullable(stateOverrideSet);
 
+export type StateProperties = t.TypeOf<typeof stateProperties>;
 export type StateOverrideOptions = t.TypeOf<typeof stateOverrideOptions>;
 export type StateOverrideSet = t.TypeOf<typeof stateOverrideSet>;
 export type OptionalStateOverrideSet = t.TypeOf<
