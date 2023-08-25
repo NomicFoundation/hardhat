@@ -327,7 +327,7 @@ impl RpcClient {
         &self,
         method_invocation: &MethodInvocation,
         result: &T,
-        resolve_block_number: impl Fn(&&T) -> Option<U256>,
+        resolve_block_number: &impl Fn(&&T) -> Option<U256>,
     ) -> Result<(), RpcClientError> {
         if let Some(cache_key) = self
             .resolve_write_key(method_invocation, &result, resolve_block_number)
@@ -429,7 +429,7 @@ impl RpcClient {
                     .await
                     .and_then(|response| Self::extract_result(request, response))?;
 
-                self.handle_response_to_cache(&method_invocation, &result, resolve_block_number)
+                self.handle_response_to_cache(&method_invocation, &result, &resolve_block_number)
                     .await?;
 
                 result
@@ -454,6 +454,15 @@ impl RpcClient {
     async fn batch_call(
         &self,
         method_invocations: &[MethodInvocation],
+    ) -> Result<VecDeque<serde_json::Value>, RpcClientError> {
+        self.batch_call_with_resolver(method_invocations, |_| None)
+            .await
+    }
+
+    async fn batch_call_with_resolver(
+        &self,
+        method_invocations: &[MethodInvocation],
+        resolve_block_number: impl Fn(&&serde_json::Value) -> Option<U256>,
     ) -> Result<VecDeque<serde_json::Value>, RpcClientError> {
         let ids = self.get_ids(method_invocations.len() as u64);
 
@@ -511,9 +520,12 @@ impl RpcClient {
                         request: request_body.to_json_string(),
                     })?;
 
-            // TODO figure out how to extract
-            self.handle_response_to_cache(&method_invocations[index], &result, |_| None)
-                .await?;
+            self.handle_response_to_cache(
+                &method_invocations[index],
+                &result,
+                &resolve_block_number,
+            )
+            .await?;
 
             results[index] = Some(result);
         }
