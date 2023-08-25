@@ -273,13 +273,20 @@ impl RpcClient {
         }
     }
 
-    async fn largest_known_block_number(&self) -> Result<U256, RpcClientError> {
+    /// Return the largest known block number if it's considered safe for the given block, otherwise
+    /// fetch the latest block number.
+    async fn largest_known_or_latest_block_number(
+        &self,
+        safety_checker: &CacheKeyForUncheckedBlockNumber<'_>,
+        chain_id: &U256,
+    ) -> Result<U256, RpcClientError> {
         let largest_known_block_number = { *self.largest_known_block_number.read().await };
         if let Some(largest_known_block_number) = largest_known_block_number {
-            Ok(largest_known_block_number)
-        } else {
-            self.block_number().await
-        }
+            if safety_checker.is_safe_block_number(chain_id, &largest_known_block_number) {
+                return Ok(largest_known_block_number);
+            }
+        };
+        self.block_number().await
     }
 
     async fn validate_block_number(
@@ -287,11 +294,12 @@ impl RpcClient {
         safety_checker: CacheKeyForUncheckedBlockNumber<'_>,
     ) -> Result<Option<String>, RpcClientError> {
         let chain_id = self.chain_id().await?;
-        let mut latest_block_number = self.largest_known_block_number().await?;
-        if !safety_checker.is_safe_block_number(&chain_id, &latest_block_number) {
-            latest_block_number = self.block_number().await?;
-        }
-        Ok(safety_checker.validate_block_number(&chain_id, &latest_block_number))
+
+        let block_number = self
+            .largest_known_or_latest_block_number(&safety_checker, &chain_id)
+            .await?;
+
+        Ok(safety_checker.validate_block_number(&chain_id, &block_number))
     }
 
     async fn resolve_block_tag<T>(
