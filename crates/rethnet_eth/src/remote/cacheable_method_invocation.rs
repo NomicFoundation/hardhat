@@ -401,14 +401,19 @@ pub(super) struct CacheKeyForUncheckedBlockNumber<'a> {
 }
 
 impl<'a> CacheKeyForUncheckedBlockNumber<'a> {
+    /// Check whether the block number is safe to cache.
+    pub fn is_safe_block_number(&self, chain_id: &U256, block_number: &U256) -> bool {
+        let safe_block_number = largest_safe_block_number(chain_id, block_number);
+        self.block_number <= &safe_block_number
+    }
+
     /// Check whether the block number is safe to cache before returning a cache key.
     pub fn validate_block_number(
         self,
         chain_id: &U256,
         latest_block_number: &U256,
     ) -> Option<String> {
-        let safe_block_number = largest_safe_block_number(chain_id, latest_block_number);
-        if self.block_number <= &safe_block_number {
+        if self.is_safe_block_number(chain_id, latest_block_number) {
             Some(self.hasher.finalize())
         } else {
             None

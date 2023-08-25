@@ -20,7 +20,7 @@ use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use sha3::digest::FixedOutput;
 use sha3::{Digest, Sha3_256};
-use tokio::sync::OnceCell;
+use tokio::sync::{OnceCell, RwLock};
 
 use crate::remote::cacheable_method_invocation::{
     CacheKeyForSymbolicBlockTag, CacheKeyForUncheckedBlockNumber, CacheableMethodInvocation,
@@ -146,6 +146,7 @@ pub struct Request<MethodInvocation> {
 pub struct RpcClient {
     url: String,
     chain_id: OnceCell<U256>,
+    largest_known_block_number: RwLock<Option<U256>>,
     client: ClientWithMiddleware,
     next_id: AtomicU64,
     rpc_cache_dir: PathBuf,
@@ -272,12 +273,24 @@ impl RpcClient {
         }
     }
 
+    async fn largest_known_block_number(&self) -> Result<U256, RpcClientError> {
+        let largest_known_block_number = { *self.largest_known_block_number.read().await };
+        if let Some(largest_known_block_number) = largest_known_block_number {
+            Ok(largest_known_block_number)
+        } else {
+            self.block_number().await
+        }
+    }
+
     async fn validate_block_number(
         &self,
         safety_checker: CacheKeyForUncheckedBlockNumber<'_>,
     ) -> Result<Option<String>, RpcClientError> {
         let chain_id = self.chain_id().await?;
-        let latest_block_number = self.block_number().await?;
+        let mut latest_block_number = self.largest_known_block_number().await?;
+        if !safety_checker.is_safe_block_number(&chain_id, &latest_block_number) {
+            latest_block_number = self.block_number().await?;
+        }
         Ok(safety_checker.validate_block_number(&chain_id, &latest_block_number))
     }
 
@@ -564,6 +577,7 @@ impl RpcClient {
         RpcClient {
             url: url.to_string(),
             chain_id: OnceCell::new(),
+            largest_known_block_number: RwLock::new(None),
             client,
             next_id: AtomicU64::new(0),
             rpc_cache_dir: cache_dir.join(RPC_CACHE_DIR),
@@ -572,8 +586,14 @@ impl RpcClient {
 
     /// Calls `eth_blockNumber` and returns the block number.
     pub async fn block_number(&self) -> Result<U256, RpcClientError> {
-        self.call_without_cache(MethodInvocation::BlockNumber())
-            .await
+        let block_number: U256 = self
+            .call_without_cache(MethodInvocation::BlockNumber())
+            .await?;
+        {
+            let mut write_guard = self.largest_known_block_number.write().await;
+            *write_guard = Some(block_number);
+        }
+        Ok(block_number)
     }
 
     /// Calls `eth_chainId` and returns the chain ID.
@@ -1288,6 +1308,11 @@ mod tests {
             assert_eq!(client.files_in_cache().len(), 0);
 
             let block_number = client.block_number().await.unwrap();
+
+            // Check that the block number call caches the largest known block number
+            {
+                assert!(client.largest_known_block_number.read().await.is_some());
+            }
 
             assert_eq!(client.files_in_cache().len(), 0);
 
