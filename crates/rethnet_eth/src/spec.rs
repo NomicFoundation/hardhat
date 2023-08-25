@@ -1,7 +1,6 @@
 use std::sync::OnceLock;
 
-use hashbrown::HashMap;
-use revm_primitives::{SpecId, U256};
+use revm_primitives::{HashMap, SpecId, U256};
 
 struct ChainConfig {
     /// Chain name

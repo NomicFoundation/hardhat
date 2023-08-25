@@ -6,7 +6,6 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.65"
 clap = { version = "3.2.22", default-features = false, features = ["std", "derive"] }
-hashbrown = { version = "0.13", default-features = false, features = ["ahash"] }
 hex = { version = "0.4.3", default-features = false }
 pretty_env_logger = { version = "0.4.0", default-features = false }
 rethnet_defaults = { version = "0.1.0-dev", path = "../rethnet_defaults" }

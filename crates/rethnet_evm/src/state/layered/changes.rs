@@ -1,14 +1,13 @@
 use std::{collections::BTreeMap, fmt::Debug};
 
 use cita_trie::Hasher;
-use hashbrown::HashMap;
 use hasher::HasherKeccak;
 use rethnet_eth::{
     account::{BasicAccount, KECCAK_EMPTY},
     state::{state_root, storage_root, Storage},
     Address, B256, U256,
 };
-use revm::primitives::{Account, AccountInfo, Bytecode};
+use revm::primitives::{Account, AccountInfo, Bytecode, HashMap};
 
 use crate::{
     collections::{SharedMap, SharedMapEntry},
@@ -154,13 +153,17 @@ impl From<HashMap<Address, AccountInfo>> for RethnetLayer {
         accounts
             .values_mut()
             .filter_map(|account| {
-                account
-                    .as_mut()
-                    .and_then(|account| account.info.code.take())
+                account.as_mut().and_then(|account| {
+                    account
+                        .info
+                        .code
+                        .take()
+                        .map(|code| (account.info.code_hash, code))
+                })
             })
-            .for_each(|code| {
-                if code.hash() != KECCAK_EMPTY {
-                    contracts.insert(code.hash(), code);
+            .for_each(|(code_hash, code)| {
+                if code_hash != KECCAK_EMPTY {
+                    contracts.insert(code_hash, code);
                 }
             });
 
@@ -244,7 +247,7 @@ impl LayeredChanges<RethnetLayer> {
                         })
                     });
 
-                    if account.is_newly_created() {
+                    if account.is_created() {
                         old_account.storage.clear();
                     }
 
@@ -255,14 +258,15 @@ impl LayeredChanges<RethnetLayer> {
                     let mut account_info = account.info.clone();
 
                     let old_code_hash = old_account.info.code_hash;
-                    let code_changed = old_code_hash != account_info.code_hash;
+                    let new_code_hash = account_info.code_hash;
+                    let code_changed = old_code_hash != new_code_hash;
 
                     let new_code = account_info.code.take();
                     old_account.info = account_info;
 
                     if code_changed {
                         if let Some(new_code) = new_code {
-                            self.insert_code(new_code);
+                            self.insert_code(new_code_hash, new_code);
                         }
 
                         self.remove_code(&old_code_hash);
@@ -455,8 +459,10 @@ impl LayeredChanges<RethnetLayer> {
     }
 
     /// Inserts the provided bytecode using its hash, potentially overwriting an existing value.
-    pub fn insert_code(&mut self, code: Bytecode) {
-        self.last_layer_mut().contracts.insert(code.hash(), code);
+    pub fn insert_code(&mut self, code_hash: B256, code: Bytecode) {
+        debug_assert_eq!(code_hash, code.hash_slow());
+
+        self.last_layer_mut().contracts.insert(code_hash, code);
     }
 
     /// Removes the code corresponding to the provided hash, if it exists.
@@ -468,7 +474,7 @@ impl LayeredChanges<RethnetLayer> {
 
     pub fn insert_account(&mut self, address: &Address, mut account_info: AccountInfo) {
         if let Some(code) = account_info.code.take() {
-            self.insert_code(code);
+            self.insert_code(account_info.code_hash, code);
         }
 
         self.account_or_insert_mut(address, &|| {

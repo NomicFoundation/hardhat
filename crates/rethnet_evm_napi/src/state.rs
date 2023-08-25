@@ -395,7 +395,7 @@ impl StateManager {
                     let mut bytecode = ctx.env.create_object()?;
 
                     ctx.env
-                        .create_buffer_copy(code.hash())
+                        .create_buffer_copy(code.hash_slow())
                         .and_then(|hash| bytecode.set_named_property("hash", hash.into_raw()))?;
 
                     let code = code.original_bytes();

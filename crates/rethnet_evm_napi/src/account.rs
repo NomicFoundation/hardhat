@@ -40,15 +40,6 @@ impl Debug for Bytecode {
     }
 }
 
-impl From<rethnet_evm::Bytecode> for Bytecode {
-    fn from(bytecode: rethnet_evm::Bytecode) -> Self {
-        Self {
-            hash: Buffer::from(bytecode.hash().as_bytes()),
-            code: Buffer::from(&bytecode.bytes()[..bytecode.len()]),
-        }
-    }
-}
-
 #[allow(clippy::fallible_impl_from)]
 impl From<AccountInfo> for Account {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
@@ -59,7 +50,11 @@ impl From<AccountInfo> for Account {
             // We expect the code to always be provided
             // TODO: Make this explicit in the type?
             let code = account_info.code.unwrap();
-            Some(code.into())
+
+            Some(Bytecode {
+                hash: Buffer::from(account_info.code_hash.as_bytes()),
+                code: Buffer::from(code.original_bytes().as_ref()),
+            })
         };
 
         Self {
@@ -77,23 +72,22 @@ impl TryCast<AccountInfo> for Account {
     type Error = napi::Error;
 
     fn try_cast(self) -> std::result::Result<AccountInfo, Self::Error> {
-        let code = self.code.map_or(rethnet_evm::Bytecode::default(), |code| {
+        let (code_hash, code) = self.code.map_or((KECCAK_EMPTY, None), |code| {
             let code_hash = rethnet_eth::B256::from_slice(&code.hash);
+
             let code = Bytes::copy_from_slice(&code.code);
+            let code = rethnet_evm::Bytecode::new_raw(code);
 
-            debug_assert_eq!(
-                code_hash,
-                rethnet_evm::Bytecode::new_raw(code.clone()).hash()
-            );
+            debug_assert_eq!(code_hash, code.hash_slow());
 
-            unsafe { rethnet_evm::Bytecode::new_raw_with_hash(code, code_hash) }
+            (code_hash, Some(code))
         });
 
         Ok(AccountInfo {
             balance: self.balance.try_cast()?,
             nonce: self.nonce.get_u64().1,
-            code_hash: code.hash(),
-            code: Some(code),
+            code_hash,
+            code,
         })
     }
 }

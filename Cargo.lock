@@ -38,6 +38,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "allocator-api2"
+version = "0.2.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0942ffc6dcaadf03badf6e6a2d0228460359d5e34b57ccdc720b7382dfbd5ec5"
+
+[[package]]
 name = "alloy-rlp"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -611,6 +617,40 @@ name = "crossbeam-channel"
 version = "0.5.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a33c2bf77f2df06183c3aa30d1e96c0695a313d4f9c453cc3762a6db39f99200"
+dependencies = [
+ "cfg-if",
+ "crossbeam-utils",
+]
+
+[[package]]
+name = "crossbeam-deque"
+version = "0.8.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ce6fd6f855243022dcecf8702fef0c297d4338e226845fe067f6341ad9fa0cef"
+dependencies = [
+ "cfg-if",
+ "crossbeam-epoch",
+ "crossbeam-utils",
+]
+
+[[package]]
+name = "crossbeam-epoch"
+version = "0.9.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ae211234986c545741a7dc064309f67ee1e5ad243d0e48335adc0484d960bcc7"
+dependencies = [
+ "autocfg",
+ "cfg-if",
+ "crossbeam-utils",
+ "memoffset",
+ "scopeguard",
+]
+
+[[package]]
+name = "crossbeam-utils"
+version = "0.8.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a22b2d63d4d1dc0b7f1b6b2747dd0088008a9be28b6ddf0b1e7d335e3037294"
 dependencies = [
  "cfg-if",
 ]
@@ -1187,19 +1227,14 @@ checksum = "8a9ee70c43aaf417c914396645a0fa852624801b24ebb7ae78fe8272889ac888"
 
 [[package]]
 name = "hashbrown"
-version = "0.13.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43a3c133739dddd0d2990f9a4bdf8eb4b21ef50e4851ca85ab661199821d510e"
-dependencies = [
- "ahash",
- "serde",
-]
-
-[[package]]
-name = "hashbrown"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2c6201b9ff9fd90a5a3bac2e56a830d0caa509576f0e503818ee82c181b3437a"
+dependencies = [
+ "ahash",
+ "allocator-api2",
+ "serde",
+]
 
 [[package]]
 name = "hasher"
@@ -1550,6 +1585,15 @@ name = "memchr"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
+
+[[package]]
+name = "memoffset"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a634b1c61a95585bd15607c6ab0c4e5b226e695ff2800ba0cdccddf208c406c"
+dependencies = [
+ "autocfg",
+]
 
 [[package]]
 name = "mime"
@@ -2199,6 +2243,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "rayon"
+version = "1.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1d2df5196e37bcc87abebc0053e20787d73847bb33134a69841207dd0a47f03b"
+dependencies = [
+ "either",
+ "rayon-core",
+]
+
+[[package]]
+name = "rayon-core"
+version = "1.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4b8f95bd6966f5c87776639160a66bd8ab9895d9d4ab01ddba9fc60661aebe8d"
+dependencies = [
+ "crossbeam-channel",
+ "crossbeam-deque",
+ "crossbeam-utils",
+ "num_cpus",
+]
+
+[[package]]
 name = "redox_syscall"
 version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2297,7 +2363,6 @@ dependencies = [
  "bytes",
  "cargo-husky",
  "clap",
- "hashbrown 0.13.2",
  "hex",
  "predicates",
  "pretty_env_logger",
@@ -2330,7 +2395,6 @@ dependencies = [
  "futures",
  "hash-db",
  "hash256-std-hasher",
- "hashbrown 0.13.2",
  "hex",
  "itertools 0.10.5",
  "lazy_static",
@@ -2364,7 +2428,6 @@ dependencies = [
  "cita_trie",
  "criterion",
  "futures",
- "hashbrown 0.13.2",
  "hasher",
  "itertools 0.11.0",
  "lazy_static",
@@ -2411,7 +2474,6 @@ version = "0.1.0-dev"
 dependencies = [
  "axum",
  "cargo_toml",
- "hashbrown 0.13.2",
  "hex",
  "hyper",
  "parking_lot",
@@ -2442,9 +2504,11 @@ dependencies = [
 [[package]]
 name = "revm"
 version = "3.3.0"
-source = "git+https://github.com/Wodann/revm?rev=9fdf446#9fdf4466f92d6da1b97299ce153ce31d4b3c2c7d"
+source = "git+https://github.com/Wodann/revm?rev=19df2ba#19df2ba525731e2877240036cb78c11df0a10585"
 dependencies = [
  "auto_impl",
+ "once_cell",
+ "rayon",
  "revm-interpreter",
  "revm-precompile",
  "serde",
@@ -2454,7 +2518,7 @@ dependencies = [
 [[package]]
 name = "revm-interpreter"
 version = "1.1.2"
-source = "git+https://github.com/Wodann/revm?rev=9fdf446#9fdf4466f92d6da1b97299ce153ce31d4b3c2c7d"
+source = "git+https://github.com/Wodann/revm?rev=19df2ba#19df2ba525731e2877240036cb78c11df0a10585"
 dependencies = [
  "derive_more",
  "enumn",
@@ -2466,7 +2530,7 @@ dependencies = [
 [[package]]
 name = "revm-precompile"
 version = "2.0.3"
-source = "git+https://github.com/Wodann/revm?rev=9fdf446#9fdf4466f92d6da1b97299ce153ce31d4b3c2c7d"
+source = "git+https://github.com/Wodann/revm?rev=19df2ba#19df2ba525731e2877240036cb78c11df0a10585"
 dependencies = [
  "k256",
  "num",
@@ -2482,7 +2546,7 @@ dependencies = [
 [[package]]
 name = "revm-primitives"
 version = "1.1.2"
-source = "git+https://github.com/Wodann/revm?rev=9fdf446#9fdf4466f92d6da1b97299ce153ce31d4b3c2c7d"
+source = "git+https://github.com/Wodann/revm?rev=19df2ba#19df2ba525731e2877240036cb78c11df0a10585"
 dependencies = [
  "auto_impl",
  "bitflags 2.4.0",
@@ -2491,7 +2555,7 @@ dependencies = [
  "derive_more",
  "enumn",
  "fixed-hash 0.8.0",
- "hashbrown 0.13.2",
+ "hashbrown 0.14.0",
  "hex",
  "hex-literal",
  "primitive-types 0.12.1",
@@ -2499,6 +2563,7 @@ dependencies = [
  "ruint",
  "serde",
  "sha3",
+ "to-binary",
 ]
 
 [[package]]
@@ -3107,6 +3172,15 @@ name = "tinyvec_macros"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
+
+[[package]]
+name = "to-binary"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4424552bc848fd1afbcd81f0e8a54b7401b90fd81bb418655ad6dc6d0823bbe3"
+dependencies = [
+ "hex",
+]
 
 [[package]]
 name = "tokio"

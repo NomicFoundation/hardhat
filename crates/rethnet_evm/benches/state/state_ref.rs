@@ -35,7 +35,7 @@ fn bench_code_by_hash(c: &mut Criterion) {
                     Bytecode::new_raw(Bytes::copy_from_slice(
                         Address::from_low_u64_ne(i).as_bytes(),
                     ))
-                    .hash(),
+                    .hash_slow(),
                 );
                 debug_assert!(result.is_ok());
             }

@@ -504,7 +504,7 @@ impl RpcClient {
 
         Ok(AccountInfo {
             balance,
-            code_hash: code.as_ref().map_or(KECCAK_EMPTY, Bytecode::hash),
+            code_hash: code.as_ref().map_or(KECCAK_EMPTY, Bytecode::hash_slow),
             code,
             nonce,
         })

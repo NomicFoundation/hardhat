@@ -118,13 +118,16 @@ impl RethnetStates {
                             * number_of_accounts_per_checkpoint)
                             + account_number;
                         let address = Address::from_low_u64_ne(account_number);
+                        let code = Bytecode::new_raw(Bytes::copy_from_slice(address.as_bytes()));
+                        let code_hash = code.hash_slow();
                         state
                             .insert_account(
                                 address,
                                 AccountInfo::new(
                                     U256::from(account_number),
                                     account_number,
-                                    Bytecode::new_raw(Bytes::copy_from_slice(address.as_bytes())),
+                                    code_hash,
+                                    code,
                                 ),
                             )
                             .unwrap();
