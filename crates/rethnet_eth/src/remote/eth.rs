@@ -128,6 +128,7 @@ pub struct Block<TX> {
     /// the maximum gas allowed in this block
     pub gas_limit: U256,
     /// the "extra data" field of this block
+    #[serde(with = "crate::serde::bytes")]
     pub extra_data: Bytes,
     /// the bloom filter for the logs of the block. None when its pending block.
     pub logs_bloom: Bloom,
