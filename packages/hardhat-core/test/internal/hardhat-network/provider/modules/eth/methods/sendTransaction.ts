@@ -27,7 +27,7 @@ import {
   DEFAULT_BLOCK_GAS_LIMIT,
   PROVIDERS,
 } from "../../../../helpers/providers";
-import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
+import { retrieveLatestBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 import { sendDummyTransaction } from "../../../../helpers/sendDummyTransaction";
 import {
   deployContract,
@@ -57,7 +57,9 @@ describe("Eth module", function () {
         useHelpers();
 
         const getFirstBlock = async () =>
-          isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
+          isFork
+            ? retrieveLatestBlockNumber(this.ctx.hardhatNetworkProvider)
+            : 0;
 
         // Because of the way we are testing this (i.e. integration testing) it's almost impossible to
         // fully test this method in a reasonable amount of time. This is because it executes the core

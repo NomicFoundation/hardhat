@@ -1438,7 +1438,7 @@ export class EthModule {
     }
 
     if (block === undefined) {
-      const latestBlock = this._node.getLatestBlockNumber();
+      const latestBlock = await this._node.getLatestBlockNumber();
 
       throw new InvalidInputError(
         `Received invalid block tag ${this._newBlockTagToString(

@@ -32,7 +32,7 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   FORKED_PROVIDERS,
 } from "../helpers/providers";
-import { retrieveForkBlockNumber } from "../helpers/retrieveForkBlockNumber";
+import { retrieveLatestBlockNumber } from "../helpers/retrieveForkBlockNumber";
 import { deployContract } from "../helpers/transactions";
 
 const WETH_DEPOSIT_SELECTOR = "0xd0e30db0";
@@ -46,7 +46,7 @@ describe("Forked provider", function () {
       useProvider();
 
       const getForkBlockNumber = async () =>
-        retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider);
+        retrieveLatestBlockNumber(this.ctx.hardhatNetworkProvider);
 
       let gasPrice: string;
       beforeEach(async function () {
