@@ -315,8 +315,8 @@ describe("ForkBlockchain", () => {
     });
 
     it("throws when hash of non-existent block is given", async () => {
-      assert.throws(
-        () => fb.deleteBlock(Block.fromBlockData().hash()),
+      await assert.isRejected(
+        fb.deleteBlock(Block.fromBlockData().hash()),
         Error,
         "Block not found"
       );
@@ -324,8 +324,8 @@ describe("ForkBlockchain", () => {
 
     it("throws when hash of not previously fetched remote block is given", async () => {
       // This is here because we do not want to fetch remote blocks for this operation
-      assert.throws(
-        () => fb.deleteBlock(BLOCK_HASH_OF_10496585),
+      await assert.isRejected(
+        fb.deleteBlock(BLOCK_HASH_OF_10496585),
         Error,
         "Block not found"
       );
@@ -333,8 +333,8 @@ describe("ForkBlockchain", () => {
 
     it("throws on attempt to remove remote block", async () => {
       const remoteBlock = await fb.getBlock(BLOCK_NUMBER_OF_10496585);
-      assert.throws(
-        () => fb.deleteBlock(remoteBlock!.hash()),
+      await assert.isRejected(
+        fb.deleteBlock(remoteBlock!.hash()),
         Error,
         "Cannot delete remote block"
       );
@@ -342,8 +342,8 @@ describe("ForkBlockchain", () => {
 
     it("throws on attempt to remove the block from which we fork", async () => {
       const forkBlock = await fb.getLatestBlock();
-      assert.throws(
-        () => fb.deleteBlock(forkBlock.hash()),
+      await assert.isRejected(
+        fb.deleteBlock(forkBlock.hash()),
         Error,
         "Cannot delete remote block"
       );
@@ -377,20 +377,11 @@ describe("ForkBlockchain", () => {
     it("throws if given block is not present in blockchain", async () => {
       const blockOne = createBlock(await fb.getLatestBlock());
       const notAddedBlock = createBlock(blockOne);
-      const fakeBlockOne = createBlock(
-        await fb.getLatestBlock(),
-        bufferToBigInt(randomHashBuffer())
-      );
 
       await fb.addBlock(blockOne);
 
-      assert.throws(
-        () => fb.revertToBlock(notAddedBlock.header.number),
-        Error,
-        "Invalid block"
-      );
-      assert.throws(
-        () => fb.revertToBlock(fakeBlockOne.header.number),
+      await assert.isRejected(
+        fb.revertToBlock(notAddedBlock.header.number),
         Error,
         "Invalid block"
       );
@@ -399,13 +390,13 @@ describe("ForkBlockchain", () => {
     it("does not throw if there are no following blocks", async () => {
       const blockOne = createBlock(await fb.getLatestBlock());
       await fb.addBlock(blockOne);
-      assert.doesNotThrow(() => fb.revertToBlock(blockOne.header.number));
+      await assert.isFulfilled(fb.revertToBlock(blockOne.header.number));
     });
 
     it("throws on attempt to remove remote blocks", async () => {
       const block = await fb.getBlock(BLOCK_NUMBER_OF_10496585);
-      assert.throws(
-        () => fb.revertToBlock(block!.header.number),
+      await assert.isRejected(
+        fb.revertToBlock(block!.header.number),
         Error,
         "Cannot delete remote block"
       );

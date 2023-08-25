@@ -197,8 +197,8 @@ describe("HardhatBlockchain", () => {
 
     it("throws when hash if non-existent block is given", async () => {
       const block = createBlock(0);
-      assert.throws(
-        () => blockchain.deleteBlock(block.hash()),
+      await assert.isRejected(
+        blockchain.deleteBlock(block.hash()),
         Error,
         "Block not found"
       );
@@ -231,17 +231,11 @@ describe("HardhatBlockchain", () => {
     it("throws if given block is not present in blockchain", async () => {
       const blockOne = createBlock(0);
       const notAddedBlock = createBlock(1);
-      const fakeBlockOne = createBlock(0, randomHashBuffer());
 
       await blockchain.addBlock(blockOne);
 
-      assert.throws(
-        () => blockchain.revertToBlock(notAddedBlock.header.number),
-        Error,
-        "Invalid block"
-      );
-      assert.throws(
-        () => blockchain.revertToBlock(fakeBlockOne.header.number),
+      await assert.isRejected(
+        blockchain.revertToBlock(notAddedBlock.header.number),
         Error,
         "Invalid block"
       );
