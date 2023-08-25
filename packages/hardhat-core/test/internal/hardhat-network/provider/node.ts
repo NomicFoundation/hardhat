@@ -1135,7 +1135,7 @@ describe("HardhatNode", () => {
         assert.include(error!.message, "invalid opcode");
       });
 
-      it("Should revert if trying to run TSTORE in a call", async function () {
+      it("Should revert if trying to run TSTORE in a tx", async function () {
         const [, hardhatNode] = await HardhatNode.create(nodeConfig);
 
         const tx = createTestTransaction({
@@ -1263,7 +1263,7 @@ describe("HardhatNode", () => {
         assert.isUndefined(error);
       });
 
-      it("Should not revert if trying to run TSTORE in a call", async function () {
+      it("Should not revert if trying to run TSTORE in a tx", async function () {
         const [, hardhatNode] = await HardhatNode.create({
           ...nodeConfig,
           enableTransientStorage: true,
