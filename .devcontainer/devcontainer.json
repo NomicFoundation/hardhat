@@ -4,7 +4,7 @@
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
       "version": "18"
-    },
+    }
   },
   "postAttachCommand": "scripts/setup.sh",
   "portsAttributes": {
@@ -13,5 +13,9 @@
       "label": "mdbook",
       "onAutoForward": "openPreview"
     }
-  }
+  },
+  "containerEnv": {
+    "ALCHEMY_URL": "${localEnv:ALCHEMY_URL}",
+    "INFURA_URL": "${localEnv:INFURA_URL}"
+  },
 }

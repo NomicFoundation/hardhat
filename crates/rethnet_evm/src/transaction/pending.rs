@@ -3,8 +3,8 @@ use std::ops::Deref;
 use once_cell::sync::OnceCell;
 use rethnet_eth::{
     transaction::{
-        EIP1559SignedTransaction, EIP2930SignedTransaction, LegacySignedTransaction,
-        SignedTransaction, TransactionKind,
+        EIP1559SignedTransaction, EIP155SignedTransaction, EIP2930SignedTransaction,
+        LegacySignedTransaction, SignedTransaction, TransactionKind,
     },
     Address, B256, U256,
 };
@@ -73,7 +73,7 @@ impl PendingTransaction {
             });
         }
 
-        let transaction_nonce = *transaction.nonce();
+        let transaction_nonce = transaction.nonce();
         if transaction_nonce < sender.nonce {
             return Err(TransactionCreationError::NonceTooLow {
                 transaction_nonce,
@@ -198,7 +198,16 @@ impl From<PendingTransaction> for TxEnv {
 
         let chain_id = transaction.transaction.chain_id();
         match transaction.transaction {
-            SignedTransaction::Legacy(LegacySignedTransaction {
+            SignedTransaction::PreEip155Legacy(LegacySignedTransaction {
+                nonce,
+                gas_price,
+                gas_limit,
+                kind,
+                value,
+                input,
+                ..
+            })
+            | SignedTransaction::PostEip155Legacy(EIP155SignedTransaction {
                 nonce,
                 gas_price,
                 gas_limit,
@@ -218,7 +227,7 @@ impl From<PendingTransaction> for TxEnv {
                 nonce: Some(nonce),
                 access_list: Vec::new(),
             },
-            SignedTransaction::EIP2930(EIP2930SignedTransaction {
+            SignedTransaction::Eip2930(EIP2930SignedTransaction {
                 nonce,
                 gas_price,
                 gas_limit,
@@ -239,7 +248,7 @@ impl From<PendingTransaction> for TxEnv {
                 nonce: Some(nonce),
                 access_list: access_list.into(),
             },
-            SignedTransaction::EIP1559(EIP1559SignedTransaction {
+            SignedTransaction::Eip1559(EIP1559SignedTransaction {
                 nonce,
                 max_priority_fee_per_gas,
                 max_fee_per_gas,

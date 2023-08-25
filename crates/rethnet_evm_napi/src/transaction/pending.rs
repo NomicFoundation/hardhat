@@ -81,13 +81,16 @@ impl PendingTransaction {
         Either3<LegacySignedTransaction, EIP2930SignedTransaction, EIP1559SignedTransaction>,
     > {
         match &*self.inner {
-            rethnet_eth::transaction::SignedTransaction::Legacy(transaction) => {
-                LegacySignedTransaction::new(&env, transaction).map(Either3::A)
+            rethnet_eth::transaction::SignedTransaction::PreEip155Legacy(transaction) => {
+                LegacySignedTransaction::from_legacy(&env, transaction).map(Either3::A)
             }
-            rethnet_eth::transaction::SignedTransaction::EIP2930(transaction) => {
+            rethnet_eth::transaction::SignedTransaction::PostEip155Legacy(transaction) => {
+                LegacySignedTransaction::from_eip155(&env, transaction).map(Either3::A)
+            }
+            rethnet_eth::transaction::SignedTransaction::Eip2930(transaction) => {
                 EIP2930SignedTransaction::new(&env, transaction).map(Either3::B)
             }
-            rethnet_eth::transaction::SignedTransaction::EIP1559(transaction) => {
+            rethnet_eth::transaction::SignedTransaction::Eip1559(transaction) => {
                 EIP1559SignedTransaction::new(&env, transaction).map(Either3::C)
             }
         }

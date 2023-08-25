@@ -1,11 +1,9 @@
 use bytes::Bytes;
-use revm_primitives::{keccak256, ruint::aliases::U64, Address, B256, U256};
+use revm_primitives::{keccak256, Address, B256, U256};
 
 use crate::{
-    access_list::AccessList,
     signature::{Signature, SignatureError},
-    transaction::{kind::TransactionKind, request::EIP2930TransactionRequest},
-    utils::envelop_bytes,
+    transaction::{kind::TransactionKind, request::EIP155TransactionRequest},
 };
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -14,9 +12,7 @@ use crate::{
     derive(open_fastrlp::RlpEncodable, open_fastrlp::RlpDecodable)
 )]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct EIP2930SignedTransaction {
-    #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
-    pub chain_id: u64,
+pub struct EIP155SignedTransaction {
     #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
     pub nonce: u64,
     pub gas_price: U256,
@@ -26,71 +22,58 @@ pub struct EIP2930SignedTransaction {
     pub value: U256,
     #[cfg_attr(feature = "serde", serde(with = "crate::serde::bytes"))]
     pub input: Bytes,
-    pub access_list: AccessList,
-    pub odd_y_parity: bool,
-    pub r: U256,
-    pub s: U256,
+    pub signature: Signature,
 }
 
-impl EIP2930SignedTransaction {
-    pub fn nonce(&self) -> &u64 {
-        &self.nonce
-    }
-
+impl EIP155SignedTransaction {
     pub fn hash(&self) -> B256 {
-        let encoded = rlp::encode(self);
-        let enveloped = envelop_bytes(1, &encoded);
-
-        keccak256(&enveloped)
+        keccak256(&rlp::encode(self))
     }
 
     /// Recovers the Ethereum address which was used to sign the transaction.
     pub fn recover(&self) -> Result<Address, SignatureError> {
-        let signature = Signature {
-            r: self.r,
-            s: self.s,
-            v: u64::from(self.odd_y_parity),
-        };
+        self.signature
+            .recover(EIP155TransactionRequest::from(self).hash())
+    }
 
-        signature.recover(EIP2930TransactionRequest::from(self).hash())
+    pub fn chain_id(&self) -> u64 {
+        (self.signature.v - 35) / 2
     }
 }
 
-impl rlp::Encodable for EIP2930SignedTransaction {
+impl rlp::Encodable for EIP155SignedTransaction {
     fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        s.begin_list(11);
-        s.append(&U64::from(self.chain_id));
-        s.append(&U64::from(self.nonce));
+        s.begin_list(9);
+        s.append(&self.nonce);
         s.append(&self.gas_price);
         s.append(&self.gas_limit);
         s.append(&self.kind);
         s.append(&self.value);
         s.append(&self.input.as_ref());
-        s.append(&self.access_list);
-        s.append(&self.odd_y_parity);
-        s.append(&self.r);
-        s.append(&self.s);
+        s.append(&self.signature.v);
+        s.append(&self.signature.r);
+        s.append(&self.signature.s);
     }
 }
 
-impl rlp::Decodable for EIP2930SignedTransaction {
+impl rlp::Decodable for EIP155SignedTransaction {
     fn decode(rlp: &rlp::Rlp<'_>) -> Result<Self, rlp::DecoderError> {
-        if rlp.item_count()? != 11 {
+        if rlp.item_count()? != 9 {
             return Err(rlp::DecoderError::RlpIncorrectListLen);
         }
 
+        let v = rlp.val_at(6)?;
+        let r = rlp.val_at::<U256>(7)?;
+        let s = rlp.val_at::<U256>(8)?;
+
         Ok(Self {
-            chain_id: rlp.val_at::<U64>(0)?.as_limbs()[0],
-            nonce: rlp.val_at::<U64>(1)?.as_limbs()[0],
-            gas_price: rlp.val_at(2)?,
-            gas_limit: rlp.val_at(3)?,
-            kind: rlp.val_at(4)?,
-            value: rlp.val_at(5)?,
-            input: rlp.val_at::<Vec<u8>>(6)?.into(),
-            access_list: rlp.val_at(7)?,
-            odd_y_parity: rlp.val_at(8)?,
-            r: rlp.val_at(9)?,
-            s: rlp.val_at(10)?,
+            nonce: rlp.val_at(0)?,
+            gas_price: rlp.val_at(1)?,
+            gas_limit: rlp.val_at(2)?,
+            kind: rlp.val_at(3)?,
+            value: rlp.val_at(4)?,
+            input: rlp.val_at::<Vec<u8>>(5)?.into(),
+            signature: Signature { r, s, v },
         })
     }
 }
@@ -102,25 +85,19 @@ mod tests {
     use revm_primitives::Address;
     use secp256k1::SecretKey;
 
-    use crate::access_list::AccessListItem;
-
     use super::*;
 
-    fn dummy_request() -> EIP2930TransactionRequest {
+    fn dummy_request() -> EIP155TransactionRequest {
         let to = Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e").unwrap();
         let input = hex::decode("1234").unwrap();
-        EIP2930TransactionRequest {
-            chain_id: 1,
+        EIP155TransactionRequest {
             nonce: 1,
             gas_price: U256::from(2),
             gas_limit: 3,
             kind: TransactionKind::Call(to),
             value: U256::from(4),
             input: Bytes::from(input),
-            access_list: vec![AccessListItem {
-                address: Address::zero(),
-                storage_keys: vec![B256::zero(), B256::from(U256::from(1))],
-            }],
+            chain_id: 1,
         }
     }
 
@@ -130,10 +107,10 @@ mod tests {
     }
 
     #[test]
-    fn test_eip2930_signed_transaction_encoding() {
+    fn test_eip155_signed_transaction_encoding() {
         // Generated by Hardhat
         let expected =
-            hex::decode("f8bd0101020394c014ba5ec014ba5ec014ba5ec014ba5ec014ba5e04821234f85bf859940000000000000000000000000000000000000000f842a00000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000101a0a9f9f0c845cc2d257838df2679a59af6f19055012ce1de11ba25b4ca9df503cfa02c70c54cf6c49b4a641b269c93308fa07de541aa3bcd3fce0fc722aaabe3a8d8")
+            hex::decode("f85f01020394c014ba5ec014ba5ec014ba5ec014ba5ec014ba5e0482123426a0fc9f82c3002f9ed8c05d6e8e821cf14eab65a1b4647e002957e170149393f40ba077f230fafdb096cf80762af3d3f4243f02e754f363fb9443d914c3a286fa2774")
                 .unwrap();
 
         let request = dummy_request();
@@ -144,10 +121,10 @@ mod tests {
     }
 
     #[test]
-    fn test_eip2930_signed_transaction_hash() {
+    fn test_eip155_signed_transaction_hash() {
         // Generated by hardhat
         let expected = B256::from_slice(
-            &hex::decode("1d4f5ef5c7b4b0bd61d4dd622615ec280ae5b9a57136ce6b7686025999220611")
+            &hex::decode("4da115513cdabaed0e9c9e503acd2fa7af29e5baae7f79a6ffa878b3ff380de6")
                 .unwrap(),
         );
 
@@ -158,7 +135,7 @@ mod tests {
     }
 
     #[test]
-    fn test_eip2930_signed_transaction_rlp() {
+    fn test_eip155_signed_transaction_rlp() {
         let request = dummy_request();
         let signed = request.sign(&dummy_private_key());
 
