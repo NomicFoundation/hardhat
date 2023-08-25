@@ -881,6 +881,11 @@ describe("Eth module", function () {
           });
 
           describe("code", function () {
+            function encodeString(s: string): string {
+              const abiCoder = new ethers.AbiCoder();
+              return abiCoder.encode(["string"], [s]);
+            }
+
             it("should revert the original code after that the code of contract B has been override with the code of contract C", async function () {
               const messageBefore = await this.provider.send("eth_call", [
                 {
@@ -892,10 +897,7 @@ describe("Eth module", function () {
                 "latest",
               ]);
 
-              assert.equal(
-                messageBefore,
-                "0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000d48656c6c6f2066726f6d20422100000000000000000000000000000000000000"
-              );
+              assert.equal(messageBefore, encodeString("Hello from B!"));
 
               const messageOverride = await this.provider.send("eth_call", [
                 {
@@ -912,10 +914,10 @@ describe("Eth module", function () {
                 },
               ]);
 
-              // Message should be the one from contract C: "Hello from the C contract"
+              // Message should be the one from contract C
               assert.equal(
                 messageOverride,
-                "0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000001948656c6c6f2066726f6d20746865204320636f6e747261637400000000000000"
+                encodeString("Hello from the C contract")
               );
 
               const messageAfter = await this.provider.send("eth_call", [
@@ -947,10 +949,7 @@ describe("Eth module", function () {
                 },
               ]);
 
-              assert.equal(
-                message,
-                "0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000d48656c6c6f2066726f6d20422100000000000000000000000000000000000000"
-              );
+              assert.equal(message, encodeString("Hello from B!"));
             });
           });
 
