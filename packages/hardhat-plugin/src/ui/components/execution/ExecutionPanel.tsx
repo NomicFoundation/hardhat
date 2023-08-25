@@ -1,7 +1,8 @@
-import type { ModuleParams } from "@ignored/ignition-core";
+import type { DeploymentParameters } from "@ignored/ignition-core";
 
-import { DeployState } from "@ignored/ignition-core/soon-to-be-removed";
 import { Box } from "ink";
+
+import { UiState } from "../../types";
 
 import { BatchExecution } from "./BatchExecution";
 import { FinalStatus } from "./FinalStatus";
@@ -9,25 +10,25 @@ import { SummarySection } from "./SummarySection";
 import { viewEverthingExecutedAlready } from "./views";
 
 export const ExecutionPanel = ({
-  deployState,
-  moduleParams,
+  state,
+  deployParams,
 }: {
-  deployState: DeployState;
-  moduleParams?: ModuleParams;
+  state: UiState;
+  deployParams?: DeploymentParameters;
 }) => {
-  if (viewEverthingExecutedAlready(deployState)) {
+  if (viewEverthingExecutedAlready(state)) {
     return (
       <Box flexDirection="column">
-        <FinalStatus deployState={deployState} />
+        <FinalStatus state={state} />
       </Box>
     );
   }
 
   return (
     <Box flexDirection="column">
-      <SummarySection deployState={deployState} moduleParams={moduleParams} />
-      <BatchExecution deployState={deployState} />
-      <FinalStatus deployState={deployState} />
+      <SummarySection state={state} deployParams={deployParams} />
+      <BatchExecution state={state} />
+      <FinalStatus state={state} />
     </Box>
   );
 };

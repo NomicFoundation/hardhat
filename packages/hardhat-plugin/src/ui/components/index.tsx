@@ -1,35 +1,20 @@
-import { ModuleParams } from "@ignored/ignition-core";
-import { DeployState } from "@ignored/ignition-core/soon-to-be-removed";
+import type { DeploymentParameters } from "@ignored/ignition-core";
 
-import { ReconciliationFailedPanel } from "./ReconciliationFailedPanel";
+import { UiState } from "../types";
+
 import { StartingPanel } from "./StartingPanel";
-import { UnexpectedErrorPanel } from "./UnexpectedErrorPanel";
-import { ValidationFailedPanel } from "./ValidationFailedPanel";
 import { ExecutionPanel } from "./execution/ExecutionPanel";
 
 export const IgnitionUi = ({
-  deployState,
-  moduleParams,
+  state,
+  deployParams,
 }: {
-  deployState: DeployState;
-  moduleParams?: ModuleParams;
+  state: UiState;
+  deployParams?: DeploymentParameters;
 }) => {
-  switch (deployState.phase) {
-    case "uninitialized":
-    case "validating":
-      return <StartingPanel />;
-    case "validation-failed":
-      return <ValidationFailedPanel deployState={deployState} />;
-    case "failed-unexpectedly":
-      return <UnexpectedErrorPanel deployState={deployState} />;
-    case "reconciliation-failed":
-      return <ReconciliationFailedPanel deployState={deployState} />;
-    case "execution":
-    case "complete":
-    case "failed":
-    case "hold":
-      return (
-        <ExecutionPanel deployState={deployState} moduleParams={moduleParams} />
-      );
+  if (state.futures.length === 0) {
+    return <StartingPanel />;
   }
+
+  return <ExecutionPanel state={state} deployParams={deployParams} />;
 };
