@@ -95,7 +95,7 @@ export class DualMemPool implements MemPoolAdapter {
 
       if (txDifferences.length > 0) {
         console.log(
-          `Different transaction[${transactionIdx}]: ${transactionDifferences}`
+          `Different transaction[${transactionIdx}]: ${txDifferences}`
         );
         differences.push("transactions");
       }
@@ -133,7 +133,7 @@ export class DualMemPool implements MemPoolAdapter {
 
       if (txDifferences.length > 0) {
         console.log(
-          `Different transaction[${transactionIdx}]: ${transactionDifferences}`
+          `Different transaction[${transactionIdx}]: ${txDifferences}`
         );
         differences.push("transactions");
       }
@@ -171,7 +171,7 @@ export class DualMemPool implements MemPoolAdapter {
 
       if (txDifferences.length > 0) {
         console.log(
-          `Different transaction[${transactionIdx}]: ${transactionDifferences}`
+          `Different transaction[${transactionIdx}]: ${txDifferences}`
         );
         differences.push("transactions");
       }
@@ -210,7 +210,7 @@ export class DualMemPool implements MemPoolAdapter {
       );
 
       if (differences.length > 0) {
-        console.log(`Different transaction: ${transactionDifferences}`);
+        console.log(`Different transaction: ${differences}`);
         throw new Error(`Different transaction: ${differences}`);
       }
     }

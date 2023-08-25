@@ -26,7 +26,10 @@ import EventEmitter from "events";
 
 import * as BigIntUtils from "../../util/bigint";
 import { CompilerInput, CompilerOutput } from "../../../types";
-import { HARDHAT_NETWORK_DEFAULT_MAX_PRIORITY_FEE_PER_GAS } from "../../core/config/default-config";
+import {
+  HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS,
+  HARDHAT_NETWORK_DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
+} from "../../core/config/default-config";
 import { assertHardhatInvariant, HardhatError } from "../../core/errors";
 import { RpcDebugTracingConfig } from "../../core/jsonrpc/types/input/debugTraceTransaction";
 import {
@@ -118,10 +121,10 @@ export class HardhatNode extends EventEmitter {
       ? BigInt(
           getDifferenceInSeconds(
             new Date(
-              (
+              Number(
                 (await context.blockchain().getLatestBlock()).header.timestamp *
-                1000n
-              ).toString()
+                  1000n
+              )
             ),
             new Date()
           )
@@ -129,6 +132,27 @@ export class HardhatNode extends EventEmitter {
       : config.initialDate !== undefined
       ? BigInt(getDifferenceInSeconds(config.initialDate, new Date()))
       : 0n;
+
+    let nextBlockBaseFeePerGas: bigint | undefined;
+    if (isForkedNodeConfig(config)) {
+      // If the hardfork is London or later we need a base fee per gas for the
+      // first local block. If initialBaseFeePerGas config was provided we use
+      // that. Otherwise, what we do depends on the block we forked from. If
+      // it's an EIP-1559 block we don't need to do anything here, as we'll
+      // end up automatically computing the next base fee per gas based on it.
+      if (hardforkGte(getHardforkName(config.hardfork), HardforkName.LONDON)) {
+        if (config.initialBaseFeePerGas !== undefined) {
+          nextBlockBaseFeePerGas = BigInt(config.initialBaseFeePerGas);
+        } else {
+          const latestBlock = await context.blockchain().getLatestBlock();
+          if (latestBlock.header.baseFeePerGas === undefined) {
+            nextBlockBaseFeePerGas = BigInt(
+              HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS
+            );
+          }
+        }
+      }
+    }
 
     const {
       automine,
@@ -161,7 +185,8 @@ export class HardhatNode extends EventEmitter {
       prevRandaoGenerator,
       allowUnlimitedContractSize,
       allowBlocksWithSameTimestamp,
-      tracingConfig
+      tracingConfig,
+      nextBlockBaseFeePerGas
     );
 
     return [common, node];
@@ -202,10 +227,10 @@ export class HardhatNode extends EventEmitter {
     public readonly allowUnlimitedContractSize: boolean,
     private _allowBlocksWithSameTimestamp: boolean,
     tracingConfig?: TracingConfig,
+    nextBlockBaseFee?: bigint,
     private _forkNetworkId?: number,
     private _forkBlockNumber?: bigint,
     private _forkBlockHash?: string,
-    nextBlockBaseFee?: bigint,
     private _forkClient?: JsonRpcClient
   ) {
     super();
