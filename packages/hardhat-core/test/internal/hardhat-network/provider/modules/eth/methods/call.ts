@@ -726,33 +726,31 @@ describe("Eth module", function () {
           });
 
           describe("nonce", function () {
-            let currentDAddrNonce: string;
+            let currentDAddrNonce: bigint;
 
             this.beforeEach(async function () {
               // Get the nonce for the D address
-              currentDAddrNonce = await this.provider.send(
-                "eth_getTransactionCount",
-                [contractDAddress, "latest"]
+              currentDAddrNonce = rpcQuantityToBigInt(
+                await this.provider.send("eth_getTransactionCount", [
+                  contractDAddress,
+                  "latest",
+                ])
               );
             });
 
-            function padHexString(hexString: string) {
-              const TOTAL_CHARS = 64;
-              return `0x${hexString
-                .slice(2)
-                .padStart(TOTAL_CHARS, "0")
-                .toLocaleLowerCase()}`;
+            function rpcDataToAddress(hexString: string): string {
+              assert.lengthOf(hexString, 66);
+              return `0x${hexString.slice(-40)}`;
             }
 
             it("should not override the nonce", async function () {
-              const contractAddrNonOverrideNonce = ethers.getCreateAddress({
+              const predictedAddress = ethers.getCreateAddress({
                 from: contractDAddress,
-                nonce: BigInt(currentDAddrNonce),
+                nonce: currentDAddrNonce,
               });
 
-              const nonOverrideNonceAddr = await this.provider.send(
-                "eth_call",
-                [
+              const actualAddress = rpcDataToAddress(
+                await this.provider.send("eth_call", [
                   {
                     from: address,
                     to: contractDAddress,
@@ -760,66 +758,66 @@ describe("Eth module", function () {
                       .deployChildContract,
                   },
                   "latest",
-                ]
+                ])
               );
 
               assert.equal(
-                nonOverrideNonceAddr,
-                padHexString(contractAddrNonOverrideNonce)
+                actualAddress.toLowerCase(),
+                predictedAddress.toLowerCase()
               );
             });
 
             it("should override the nonce and then revert it to the original value after the override", async function () {
               const nonceBefore = currentDAddrNonce;
 
-              assert.equal(nonceBefore, "0x1");
+              const overrideNonce = 0x1234n;
 
-              // Override nonce
-              const overrideNonce = "0x234";
-
-              const overrideNonceAddr = await this.provider.send("eth_call", [
-                {
-                  from: address,
-                  to: contractDAddress,
-                  data: STATE_OVERRIDE_SET_CONTRACT_D.selectors
-                    .deployChildContract,
-                },
-                "latest",
-                {
-                  [contractDAddress]: {
-                    nonce: overrideNonce,
-                  },
-                },
-              ]);
-
-              const contractAddrOverrideNonce = ethers.getCreateAddress({
+              const predictedAddress = ethers.getCreateAddress({
                 from: contractDAddress,
-                nonce: BigInt(overrideNonce),
+                nonce: overrideNonce,
               });
 
+              const actualAddress = rpcDataToAddress(
+                await this.provider.send("eth_call", [
+                  {
+                    from: address,
+                    to: contractDAddress,
+                    data: STATE_OVERRIDE_SET_CONTRACT_D.selectors
+                      .deployChildContract,
+                  },
+                  "latest",
+                  {
+                    [contractDAddress]: {
+                      nonce: numberToRpcQuantity(overrideNonce),
+                    },
+                  },
+                ])
+              );
+
               assert.equal(
-                overrideNonceAddr,
-                padHexString(contractAddrOverrideNonce)
+                actualAddress.toLowerCase(),
+                predictedAddress.toLowerCase()
               );
 
               // Check that nonce has been reverted
-              const nonceAfter = await this.provider.send(
-                "eth_getTransactionCount",
-                [contractDAddress, "latest"]
+              const nonceAfter = rpcQuantityToBigInt(
+                await this.provider.send("eth_getTransactionCount", [
+                  contractDAddress,
+                  "latest",
+                ])
               );
 
               assert.equal(nonceAfter, nonceBefore);
             });
 
             it("should allow the nonce property to be null without throwing an error", async function () {
-              const contractAddrNonOverrideNonce = ethers.getCreateAddress({
+              const predictedAddress = ethers.getCreateAddress({
                 from: contractDAddress,
-                nonce: BigInt(currentDAddrNonce),
+                nonce: currentDAddrNonce,
               });
 
-              const nonOverrideNonceAddr = await this.provider.send(
-                "eth_call",
-                [
+              const actualAddress = rpcDataToAddress(
+                await this.provider.send("eth_call", [
                   {
                     from: address,
                     to: contractDAddress,
@@ -830,12 +828,12 @@ describe("Eth module", function () {
                   {
                     [contractDAddress]: { nonce: null },
                   },
-                ]
+                ])
               );
 
               assert.equal(
-                nonOverrideNonceAddr,
-                padHexString(contractAddrNonOverrideNonce)
+                actualAddress.toLowerCase(),
+                predictedAddress.toLowerCase()
               );
             });
 
