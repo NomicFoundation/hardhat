@@ -1539,7 +1539,7 @@ describe("Tx Pool", () => {
 
   describe("hasPendingTransactions", () => {
     it("returns false when there are no pending transactions", async () => {
-      assert.isFalse(txPool.hasPendingTransactions());
+      assert.isFalse(await txPool.hasPendingTransactions());
     });
 
     it("returns true when there is at least one pending transaction", async () => {
@@ -1550,13 +1550,13 @@ describe("Tx Pool", () => {
         stateManager.getAccount.bind(stateManager),
         tx1
       );
-      assert.isTrue(txPool.hasPendingTransactions());
+      assert.isTrue(await txPool.hasPendingTransactions());
 
       await txPool.addTransaction(
         stateManager.getAccount.bind(stateManager),
         tx2
       );
-      assert.isTrue(txPool.hasPendingTransactions());
+      assert.isTrue(await txPool.hasPendingTransactions());
     });
 
     it("returns false when there are only queued transactions", async () => {
@@ -1571,7 +1571,7 @@ describe("Tx Pool", () => {
         tx2
       );
 
-      assert.isFalse(txPool.hasPendingTransactions());
+      assert.isFalse(await txPool.hasPendingTransactions());
     });
   });
 });
