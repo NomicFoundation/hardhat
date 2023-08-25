@@ -136,7 +136,7 @@ task("deploy")
 
         const artifactResolver = new HardhatArtifactResolver(hre);
 
-        const executionEventListener = new UiEventHandler();
+        const executionEventListener = new UiEventHandler(parameters);
 
         const result = await deploy({
           config: hre.config.ignition,

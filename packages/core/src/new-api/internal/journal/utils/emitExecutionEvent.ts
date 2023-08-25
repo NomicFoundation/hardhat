@@ -1,11 +1,8 @@
 import {
-  CallExecutionEventResult,
-  DeploymentExecutionEventResult,
   ExecutionEventListener,
   ExecutionEventType,
+  ExecutionEventResult,
   ExecutionEventResultType,
-  SendDataExecutionEventResult,
-  StaticCallExecutionEventResult,
 } from "../../../types/execution-events";
 import {
   CallExecutionResult,
@@ -53,7 +50,7 @@ export function emitExecutionEvent(
       uiEventListener[ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_COMPLETE]({
         type: ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_COMPLETE,
         futureId: message.futureId,
-        result: convertDeploymentResultToExecutionEventResult(message.result),
+        result: convertExecutionResultToEventResult(message.result),
       });
       break;
     }
@@ -68,7 +65,7 @@ export function emitExecutionEvent(
       uiEventListener[ExecutionEventType.CALL_EXECUTION_STATE_COMPLETE]({
         type: ExecutionEventType.CALL_EXECUTION_STATE_COMPLETE,
         futureId: message.futureId,
-        result: convertCallResultToExecutionEventResult(message.result),
+        result: convertExecutionResultToEventResult(message.result),
       });
       break;
     }
@@ -100,7 +97,7 @@ export function emitExecutionEvent(
       uiEventListener[ExecutionEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE]({
         type: ExecutionEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE,
         futureId: message.futureId,
-        result: convertSendDataResultToExecutionEventResult(message.result),
+        result: convertExecutionResultToEventResult(message.result),
       });
       break;
     }
@@ -135,46 +132,17 @@ export function emitExecutionEvent(
   }
 }
 
-function convertDeploymentResultToExecutionEventResult(
-  result: DeploymentExecutionResult
-): DeploymentExecutionEventResult {
+function convertExecutionResultToEventResult(
+  result:
+    | DeploymentExecutionResult
+    | CallExecutionResult
+    | SendDataExecutionResult
+): ExecutionEventResult {
   switch (result.type) {
     case ExecutionResultType.SUCCESS: {
       return {
         type: ExecutionEventResultType.SUCCESS,
-        address: result.address,
-      };
-    }
-    case ExecutionResultType.STATIC_CALL_ERROR:
-    case ExecutionResultType.SIMULATION_ERROR: {
-      return {
-        type: ExecutionEventResultType.ERROR,
-        error: failedEvmExecutionResultToErrorDescription(result.error),
-      };
-    }
-    case ExecutionResultType.STRATEGY_ERROR:
-    case ExecutionResultType.STRATEGY_SIMULATION_ERROR: {
-      return {
-        type: ExecutionEventResultType.ERROR,
-        error: result.error,
-      };
-    }
-    case ExecutionResultType.REVERTED_TRANSACTION: {
-      return {
-        type: ExecutionEventResultType.ERROR,
-        error: "Transaction reverted",
-      };
-    }
-  }
-}
-
-function convertCallResultToExecutionEventResult(
-  result: CallExecutionResult
-): CallExecutionEventResult {
-  switch (result.type) {
-    case ExecutionResultType.SUCCESS: {
-      return {
-        type: ExecutionEventResultType.SUCCESS,
+        result: "address" in result ? result.address : undefined,
       };
     }
     case ExecutionResultType.STATIC_CALL_ERROR:
@@ -202,7 +170,7 @@ function convertCallResultToExecutionEventResult(
 
 function convertStaticCallResultToExecutionEventResult(
   result: StaticCallExecutionResult
-): StaticCallExecutionEventResult {
+): ExecutionEventResult {
   switch (result.type) {
     case ExecutionResultType.SUCCESS: {
       return {
@@ -219,38 +187,6 @@ function convertStaticCallResultToExecutionEventResult(
       return {
         type: ExecutionEventResultType.ERROR,
         error: result.error,
-      };
-    }
-  }
-}
-
-function convertSendDataResultToExecutionEventResult(
-  result: SendDataExecutionResult
-): SendDataExecutionEventResult {
-  switch (result.type) {
-    case ExecutionResultType.SUCCESS: {
-      return {
-        type: ExecutionEventResultType.SUCCESS,
-      };
-    }
-    case ExecutionResultType.STATIC_CALL_ERROR:
-    case ExecutionResultType.SIMULATION_ERROR: {
-      return {
-        type: ExecutionEventResultType.ERROR,
-        error: failedEvmExecutionResultToErrorDescription(result.error),
-      };
-    }
-    case ExecutionResultType.STRATEGY_ERROR:
-    case ExecutionResultType.STRATEGY_SIMULATION_ERROR: {
-      return {
-        type: ExecutionEventResultType.ERROR,
-        error: result.error,
-      };
-    }
-    case ExecutionResultType.REVERTED_TRANSACTION: {
-      return {
-        type: ExecutionEventResultType.ERROR,
-        error: "Transaction reverted",
       };
     }
   }

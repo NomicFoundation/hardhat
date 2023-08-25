@@ -40,7 +40,7 @@ export interface DeploymentExecutionStateInitializeEvent {
 export interface DeploymentExecutionStateCompleteEvent {
   type: ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_COMPLETE;
   futureId: string;
-  result: DeploymentExecutionEventResult;
+  result: ExecutionEventResult;
 }
 
 export interface CallExecutionStateInitializeEvent {
@@ -51,7 +51,7 @@ export interface CallExecutionStateInitializeEvent {
 export interface CallExecutionStateCompleteEvent {
   type: ExecutionEventType.CALL_EXECUTION_STATE_COMPLETE;
   futureId: string;
-  result: CallExecutionEventResult;
+  result: ExecutionEventResult;
 }
 
 export interface StaticCallExecutionStateInitializeEvent {
@@ -62,7 +62,7 @@ export interface StaticCallExecutionStateInitializeEvent {
 export interface StaticCallExecutionStateCompleteEvent {
   type: ExecutionEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE;
   futureId: string;
-  result: StaticCallExecutionEventResult;
+  result: ExecutionEventResult;
 }
 
 export interface SendDataExecutionStateInitializeEvent {
@@ -73,7 +73,7 @@ export interface SendDataExecutionStateInitializeEvent {
 export interface SendDataExecutionStateCompleteEvent {
   type: ExecutionEventType.SEND_DATA_EXECUTION_STATE_COMPLETE;
   futureId: string;
-  result: SendDataExecutionEventResult;
+  result: ExecutionEventResult;
 }
 
 export interface ContractAtExecutionStateInitializeEvent {
@@ -96,55 +96,14 @@ export enum ExecutionEventResultType {
   ERROR = "ERROR",
 }
 
-export type DeploymentExecutionEventResult =
-  | DeploymentExecutionEventSuccess
-  | DeploymentExecutionEventError;
+export type ExecutionEventResult = ExecutionEventSuccess | ExecutionEventError;
 
-export interface DeploymentExecutionEventSuccess {
+export interface ExecutionEventSuccess {
   type: ExecutionEventResultType.SUCCESS;
-  address: string;
+  result?: string;
 }
 
-export interface DeploymentExecutionEventError {
-  type: ExecutionEventResultType.ERROR;
-  error: string;
-}
-
-export type CallExecutionEventResult =
-  | CallExecutionEventSuccess
-  | CallExecutionEventError;
-
-export interface CallExecutionEventSuccess {
-  type: ExecutionEventResultType.SUCCESS;
-}
-
-export interface CallExecutionEventError {
-  type: ExecutionEventResultType.ERROR;
-  error: string;
-}
-
-export type StaticCallExecutionEventResult =
-  | StaticCallExecutionEventSuccess
-  | StaticCallExecutionEventError;
-
-export interface StaticCallExecutionEventSuccess {
-  type: ExecutionEventResultType.SUCCESS;
-}
-
-export interface StaticCallExecutionEventError {
-  type: ExecutionEventResultType.ERROR;
-  error: string;
-}
-
-export type SendDataExecutionEventResult =
-  | SendDataExecutionEventSuccess
-  | SendDataExecutionEventError;
-
-export interface SendDataExecutionEventSuccess {
-  type: ExecutionEventResultType.SUCCESS;
-}
-
-export interface SendDataExecutionEventError {
+export interface ExecutionEventError {
   type: ExecutionEventResultType.ERROR;
   error: string;
 }

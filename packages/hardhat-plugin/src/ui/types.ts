@@ -5,6 +5,47 @@ import {
   VertexVisitResultFailure,
 } from "@ignored/ignition-core/soon-to-be-removed";
 
+/* new types */
+
+export enum UiFutureStatusType {
+  SUCCESS = "SUCCESS",
+  PENDING = "PENDING",
+  ERRORED = "ERRORED",
+}
+
+export interface UiFutureSuccess {
+  type: UiFutureStatusType.SUCCESS;
+  result?: string;
+}
+
+export interface UiFuturePending {
+  type: UiFutureStatusType.PENDING;
+}
+
+export interface UiFutureErrored {
+  type: UiFutureStatusType.ERRORED;
+  message: string;
+}
+
+export type UiFutureStatus =
+  | UiFutureSuccess
+  | UiFuturePending
+  | UiFutureErrored;
+
+export interface UiFuture {
+  status: UiFutureStatus;
+  futureId: string;
+}
+
+export interface UiState {
+  chainId: number | null;
+  futures: UiFuture[];
+}
+
+/* end new types */
+
+// keeping old types around for reference until UI fully works again
+
 enum VertexStatusState {
   SUCCESS = "success",
   FAILURE = "failure",
