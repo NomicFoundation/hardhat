@@ -78,8 +78,7 @@ describe("static calls", () => {
     assert.equal(await result.foo.x(), Number(1));
   });
 
-  // TODO: this needs more investigation
-  it.skip("should be able to use the output of a static call function in a contract at (with function signature)", async function () {
+  it("should be able to use the output of a static call function in a contract at (with function signature)", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {
       const account1 = m.getAccount(1);
 

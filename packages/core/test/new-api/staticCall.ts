@@ -586,7 +586,7 @@ describe("static call", () => {
 
         await assert.isRejected(
           validateNamedStaticCall(future as any, setupMockArtifactResolver()),
-          /Function inc\(bool,uint256\) in contract Another is overloaded, but no overload expects 3 arguments/
+          /Function inc\(bool,uint256\) in contract Another expects 2 arguments but 3 were given/
         );
       });
 

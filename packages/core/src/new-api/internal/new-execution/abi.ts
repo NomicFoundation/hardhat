@@ -12,7 +12,7 @@ import {
   UnsupportedOperationError,
 } from "../../../errors";
 import { Artifact } from "../../types/artifact";
-import { SolidityParameterType } from "../../types/module";
+import { ArgumentType, SolidityParameterType } from "../../types/module";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
 import { linkLibraries } from "./libraries";
@@ -139,6 +139,43 @@ export function decodeArtifactFunctionCallResult(
       type: EvmExecutionResultTypes.INVALID_RESULT_ERROR,
       data: returnData,
     };
+  }
+}
+
+/**
+ * Validates that a function is valid for the given artifact. That means:
+ *  - It's a valid function name
+ *    - The function name exists in the artifact's ABI
+ *    - If the function is not overlaoded, its bare name is used.
+ *    - If the function is overloaded, the function name is includes the argument types
+ *      in parentheses.
+ * - The function has the correct number of arguments
+ * - The function is has a pure or view state mutability
+ */
+export function validateArtifactFunction(
+  artifact: Artifact,
+  contractName: string,
+  functionName: string,
+  args: ArgumentType[]
+) {
+  validateOverloadedName(artifact, functionName, false);
+
+  const { ethers } = require("ethers") as typeof import("ethers");
+  const iface = new ethers.Interface(artifact.abi);
+  const fragment = getFunctionFragment(iface, functionName);
+
+  // Check that the number of arguments is correct
+  if (fragment.inputs.length !== args.length) {
+    throw new IgnitionValidationError(
+      `Function ${functionName} in contract ${contractName} expects ${fragment.inputs.length} arguments but ${args.length} were given`
+    );
+  }
+
+  // CHeck that the function is pure or view, which is required for a static call
+  if (!fragment.constant) {
+    throw new IgnitionValidationError(
+      `Function ${functionName} in contract ${contractName} is not 'pure' or 'view' and cannot be statically called`
+    );
   }
 }
 
