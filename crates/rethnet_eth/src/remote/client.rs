@@ -831,7 +831,7 @@ mod tests {
         let error = TestRpcClient::new(&server.url())
             .call::<Option<eth::Transaction>>(MethodInvocation::GetTransactionByHash(hash))
             .await
-            .expect_err("should have failed to interpret response as a Transaction");
+            .expect_err("should have failed to due to a HTTP status error");
 
         if let RpcClientError::HttpStatus(error) = error {
             assert_eq!(
