@@ -883,6 +883,16 @@ Please double check your imports and installed libraries.`,
 Please double check your imports.`,
       shouldBeReported: false,
     },
+    AMBIGUOUS_SOURCE_NAMES: {
+      number: 415,
+      message:
+        "Two different source names (%sourcenames%) resolve to the same file (%file%).",
+      title: "Ambiguous source names",
+      description: `Two different source names map to the same file.
+
+This is probably caused by multiple remappings pointing to the same source file.`,
+      shouldBeReported: false,
+    },
   },
   SOLC: {
     INVALID_VERSION: {
