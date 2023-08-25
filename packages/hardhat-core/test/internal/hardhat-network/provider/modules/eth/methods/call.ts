@@ -506,12 +506,12 @@ describe("Eth module", function () {
         });
 
         describe("eth_call with state override", function () {
-          const address = DEFAULT_ACCOUNTS_ADDRESSES[2];
+          const deployerAddress = DEFAULT_ACCOUNTS_ADDRESSES[2];
           let contractAAddress: string;
           let contractBAddress: string;
           let contractDAddress: string;
 
-          this.beforeEach(async function () {
+          beforeEach(async function () {
             // Contract A imports contract B and D, so first deploy contract B and contract D
             contractBAddress = await deployContract(
               this.provider,
@@ -540,35 +540,35 @@ describe("Eth module", function () {
           });
 
           it("should call eth_call without the optional state override properties", async function () {
-            const balance = await this.provider.send("eth_call", [
+            const xAndy = await this.provider.send("eth_call", [
               {
-                from: address,
+                from: deployerAddress,
                 to: contractAAddress,
-                data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.senderBalance,
+                data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
               },
               "latest",
             ]);
 
             assert.equal(
-              balance,
-              "0x00000000000000000000000000000000000000000000003635c9adc5dea00000"
+              xAndy,
+              "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002"
             );
           });
 
           it("should call eth_call with an empty object passed as state override properties", async function () {
-            const balance = await this.provider.send("eth_call", [
+            const xAndy = await this.provider.send("eth_call", [
               {
-                from: address,
+                from: deployerAddress,
                 to: contractAAddress,
-                data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.senderBalance,
+                data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
               },
               "latest",
               {},
             ]);
 
             assert.equal(
-              balance,
-              "0x00000000000000000000000000000000000000000000003635c9adc5dea00000"
+              xAndy,
+              "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002"
             );
           });
 
@@ -578,14 +578,14 @@ describe("Eth module", function () {
               "eth_call",
               [
                 {
-                  from: address,
+                  from: deployerAddress,
                   to: contractAAddress,
                   data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.senderBalance,
                 },
                 "latest",
                 {
                   // Invalid address
-                  [address.slice(0, -2)]: {
+                  [deployerAddress.slice(0, -2)]: {
                     balance: "0x0",
                   },
                 },
@@ -600,13 +600,13 @@ describe("Eth module", function () {
               "eth_call",
               [
                 {
-                  from: address,
+                  from: deployerAddress,
                   to: contractAAddress,
                   data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.senderBalance,
                 },
                 "latest",
                 {
-                  [address]: {
+                  [deployerAddress]: {
                     stateDiff: {
                       // Invalid storage address (shorter than 64 chars)
                       "0x00000000000000000000000000000000000000000000000000000000000002":
@@ -623,7 +623,7 @@ describe("Eth module", function () {
             it("should override the balance and then revert it to the original value after the override", async function () {
               const balanceBefore = await this.provider.send("eth_call", [
                 {
-                  from: address,
+                  from: deployerAddress,
                   to: contractAAddress,
                   data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.senderBalance,
                 },
@@ -632,13 +632,13 @@ describe("Eth module", function () {
 
               const overrideBalance = await this.provider.send("eth_call", [
                 {
-                  from: address,
+                  from: deployerAddress,
                   to: contractAAddress,
                   data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.senderBalance,
                 },
                 "latest",
                 {
-                  [address]: {
+                  [deployerAddress]: {
                     balance: "0x1",
                   },
                 },
@@ -652,7 +652,7 @@ describe("Eth module", function () {
 
               const balanceAfter = await this.provider.send("eth_call", [
                 {
-                  from: address,
+                  from: deployerAddress,
                   to: contractAAddress,
                   data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.senderBalance,
                 },
@@ -663,9 +663,18 @@ describe("Eth module", function () {
             });
 
             it("should allow the balance property to be null without throwing an error", async function () {
-              const balance = await this.provider.send("eth_call", [
+              const balanceBefore = await this.provider.send("eth_call", [
                 {
-                  from: address,
+                  from: deployerAddress,
+                  to: contractAAddress,
+                  data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.senderBalance,
+                },
+                "latest",
+              ]);
+
+              const balanceAfter = await this.provider.send("eth_call", [
+                {
+                  from: deployerAddress,
                   to: contractAAddress,
                   data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.senderBalance,
                 },
@@ -677,10 +686,7 @@ describe("Eth module", function () {
                 },
               ]);
 
-              assert.equal(
-                balance,
-                "0x00000000000000000000000000000000000000000000003635c9adc5dea00000"
-              );
+              assert.equal(balanceAfter, balanceBefore);
             });
 
             describe("test the limit value (32 bytes) for the balance", function () {
@@ -689,13 +695,13 @@ describe("Eth module", function () {
               it("should be successful, the balance value is the maximum allowed value", async function () {
                 await this.provider.send("eth_call", [
                   {
-                    from: address,
+                    from: deployerAddress,
                     to: contractAAddress,
                     data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.senderBalance,
                   },
                   "latest",
                   {
-                    [address]: {
+                    [deployerAddress]: {
                       balance: numberToRpcQuantity(maxBalance),
                     },
                   },
@@ -708,14 +714,14 @@ describe("Eth module", function () {
                   "eth_call",
                   [
                     {
-                      from: address,
+                      from: deployerAddress,
                       to: contractAAddress,
                       data: STATE_OVERRIDE_SET_CONTRACT_A.selectors
                         .senderBalance,
                     },
                     "latest",
                     {
-                      [address]: {
+                      [deployerAddress]: {
                         balance: numberToRpcQuantity(maxBalance + 1n),
                       },
                     },
@@ -753,7 +759,7 @@ describe("Eth module", function () {
               const actualAddress = rpcDataToAddress(
                 await this.provider.send("eth_call", [
                   {
-                    from: address,
+                    from: deployerAddress,
                     to: contractDAddress,
                     data: STATE_OVERRIDE_SET_CONTRACT_D.selectors
                       .deployChildContract,
@@ -781,7 +787,7 @@ describe("Eth module", function () {
               const actualAddress = rpcDataToAddress(
                 await this.provider.send("eth_call", [
                   {
-                    from: address,
+                    from: deployerAddress,
                     to: contractDAddress,
                     data: STATE_OVERRIDE_SET_CONTRACT_D.selectors
                       .deployChildContract,
@@ -820,7 +826,7 @@ describe("Eth module", function () {
               const actualAddress = rpcDataToAddress(
                 await this.provider.send("eth_call", [
                   {
-                    from: address,
+                    from: deployerAddress,
                     to: contractDAddress,
                     data: STATE_OVERRIDE_SET_CONTRACT_D.selectors
                       .deployChildContract,
@@ -844,13 +850,13 @@ describe("Eth module", function () {
               it("should be successful, the nonce value is the maximum allowed value", async function () {
                 await this.provider.send("eth_call", [
                   {
-                    from: address,
+                    from: deployerAddress,
                     to: contractAAddress,
                     data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.senderBalance,
                   },
                   "latest",
                   {
-                    [address]: {
+                    [deployerAddress]: {
                       nonce: numberToRpcQuantity(maxNonce),
                     },
                   },
@@ -863,14 +869,14 @@ describe("Eth module", function () {
                   "eth_call",
                   [
                     {
-                      from: address,
+                      from: deployerAddress,
                       to: contractAAddress,
                       data: STATE_OVERRIDE_SET_CONTRACT_A.selectors
                         .senderBalance,
                     },
                     "latest",
                     {
-                      [address]: {
+                      [deployerAddress]: {
                         nonce: numberToRpcQuantity(maxNonce + 1n),
                       },
                     },
@@ -890,7 +896,7 @@ describe("Eth module", function () {
             it("should revert the original code after that the code of contract B has been override with the code of contract C", async function () {
               const messageBefore = await this.provider.send("eth_call", [
                 {
-                  from: address,
+                  from: deployerAddress,
                   to: contractAAddress,
                   data: STATE_OVERRIDE_SET_CONTRACT_A.selectors
                     .getMessageFromBContract,
@@ -902,7 +908,7 @@ describe("Eth module", function () {
 
               const messageOverride = await this.provider.send("eth_call", [
                 {
-                  from: address,
+                  from: deployerAddress,
                   to: contractAAddress,
                   data: STATE_OVERRIDE_SET_CONTRACT_A.selectors
                     .getMessageFromBContract,
@@ -923,7 +929,7 @@ describe("Eth module", function () {
 
               const messageAfter = await this.provider.send("eth_call", [
                 {
-                  from: address,
+                  from: deployerAddress,
                   to: contractAAddress,
                   data: STATE_OVERRIDE_SET_CONTRACT_A.selectors
                     .getMessageFromBContract,
@@ -937,7 +943,7 @@ describe("Eth module", function () {
             it("should allow the code property to be null without throwing an error", async function () {
               const message = await this.provider.send("eth_call", [
                 {
-                  from: address,
+                  from: deployerAddress,
                   to: contractAAddress,
                   data: STATE_OVERRIDE_SET_CONTRACT_A.selectors
                     .getMessageFromBContract,
@@ -960,7 +966,7 @@ describe("Eth module", function () {
               "eth_call",
               [
                 {
-                  from: address,
+                  from: deployerAddress,
                   to: contractAAddress,
                   data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
                 },
@@ -980,7 +986,7 @@ describe("Eth module", function () {
             it("should override the state: clear all the storage", async function () {
               const storage = await this.provider.send("eth_call", [
                 {
-                  from: address,
+                  from: deployerAddress,
                   to: contractAAddress,
                   data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
                 },
@@ -1003,7 +1009,7 @@ describe("Eth module", function () {
               // Clear all the storage and then set the storage at slot 3 with value 0x0...0C
               const storageBefore = await this.provider.send("eth_call", [
                 {
-                  from: address,
+                  from: deployerAddress,
                   to: contractAAddress,
                   data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
                 },
@@ -1017,7 +1023,7 @@ describe("Eth module", function () {
 
               const storageOverride = await this.provider.send("eth_call", [
                 {
-                  from: address,
+                  from: deployerAddress,
                   to: contractAAddress,
                   data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
                 },
@@ -1041,7 +1047,7 @@ describe("Eth module", function () {
 
               const storageAfter = await this.provider.send("eth_call", [
                 {
-                  from: address,
+                  from: deployerAddress,
                   to: contractAAddress,
                   data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
                 },
@@ -1054,7 +1060,7 @@ describe("Eth module", function () {
             it("should allow the state property to be null without throwing an error", async function () {
               const storage = await this.provider.send("eth_call", [
                 {
-                  from: address,
+                  from: deployerAddress,
                   to: contractAAddress,
                   data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
                 },
@@ -1078,7 +1084,7 @@ describe("Eth module", function () {
               // Override only the storage starting at slot 3 (variable y)
               const storageBefore = await this.provider.send("eth_call", [
                 {
-                  from: address,
+                  from: deployerAddress,
                   to: contractAAddress,
                   data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
                 },
@@ -1092,7 +1098,7 @@ describe("Eth module", function () {
 
               const storageOverride = await this.provider.send("eth_call", [
                 {
-                  from: address,
+                  from: deployerAddress,
                   to: contractAAddress,
                   data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
                 },
@@ -1116,7 +1122,7 @@ describe("Eth module", function () {
 
               const storageAfter = await this.provider.send("eth_call", [
                 {
-                  from: address,
+                  from: deployerAddress,
                   to: contractAAddress,
                   data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
                 },
@@ -1129,7 +1135,7 @@ describe("Eth module", function () {
             it("should override both the storage starting at slot 2 (variable x), and the storage starting at slot 3 (variable y)", async function () {
               const storage = await this.provider.send("eth_call", [
                 {
-                  from: address,
+                  from: deployerAddress,
                   to: contractAAddress,
                   data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
                 },
@@ -1158,7 +1164,7 @@ describe("Eth module", function () {
             it("should allow the stateDiff property to be null without throwing an error", async function () {
               const storage = await this.provider.send("eth_call", [
                 {
-                  from: address,
+                  from: deployerAddress,
                   to: contractAAddress,
                   data: STATE_OVERRIDE_SET_CONTRACT_A.selectors.getXAndY,
                 },
@@ -1185,14 +1191,14 @@ describe("Eth module", function () {
 
             const result = await this.provider.send("eth_call", [
               {
-                from: address,
+                from: deployerAddress,
                 to: contractAAddress,
                 data: STATE_OVERRIDE_SET_CONTRACT_A.selectors
                   .deployContractAndGetMultipleBalances,
               },
               "latest",
               {
-                [address]: {
+                [deployerAddress]: {
                   balance: numberToRpcQuantity(overrideSenderBalance),
                 },
                 [contractAAddress]: {
