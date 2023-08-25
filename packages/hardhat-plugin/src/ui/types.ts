@@ -8,9 +8,14 @@ import {
 /* new types */
 
 export enum UiFutureStatusType {
+  UNSTARTED = "UNSTARTED",
   SUCCESS = "SUCCESS",
   PENDING = "PENDING",
   ERRORED = "ERRORED",
+}
+
+export interface UiFutureUnstarted {
+  type: UiFutureStatusType.UNSTARTED;
 }
 
 export interface UiFutureSuccess {
@@ -28,6 +33,7 @@ export interface UiFutureErrored {
 }
 
 export type UiFutureStatus =
+  | UiFutureUnstarted
   | UiFutureSuccess
   | UiFuturePending
   | UiFutureErrored;
@@ -37,9 +43,11 @@ export interface UiFuture {
   futureId: string;
 }
 
+export type UiBatches = UiFuture[][];
+
 export interface UiState {
   chainId: number | null;
-  futures: UiFuture[];
+  batches: UiBatches;
 }
 
 /* end new types */

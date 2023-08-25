@@ -1,4 +1,5 @@
 import {
+  BatchInitializeEvent,
   CallExecutionStateCompleteEvent,
   CallExecutionStateInitializeEvent,
   ContractAtExecutionStateInitializeEvent,
@@ -22,6 +23,8 @@ import { render } from "ink";
 
 import { IgnitionUi } from "./components";
 import {
+  UiBatches,
+  UiFuture,
   UiFutureErrored,
   UiFutureStatusType,
   UiFutureSuccess,
@@ -45,10 +48,20 @@ export class UiEventHandler implements ExecutionEventListener {
 
   private _uiState: UiState = {
     chainId: null,
-    futures: [],
+    batches: [],
   };
 
   constructor(private _deploymentParams: DeploymentParameters = {}) {}
+
+  public get state(): UiState {
+    return this._uiState;
+  }
+
+  public set state(uiState: UiState) {
+    this._uiState = uiState;
+
+    this._renderToCli();
+  }
 
   public [ExecutionEventType.RUN_START](event: RunStartEvent): void {
     this.state = {
@@ -60,182 +73,203 @@ export class UiEventHandler implements ExecutionEventListener {
   public [ExecutionEventType.WIPE_EXECUTION_STATE](
     event: WipeExecutionStateEvent
   ): void {
-    const futures = [...this.state.futures];
-    const index = futures.findIndex(
-      ({ futureId }) => futureId === event.futureId
-    );
+    const batches: UiBatches = [];
 
-    futures.splice(index, 1);
+    for (const batch of this.state.batches) {
+      const futureBatch: UiFuture[] = [];
+
+      for (const future of batch) {
+        if (future.futureId === event.futureId) {
+          continue;
+        } else {
+          futureBatch.push(future);
+        }
+      }
+
+      batches.push(futureBatch);
+    }
 
     this.state = {
       ...this.state,
-      futures: [...futures],
+      batches,
     };
   }
 
   public [ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE](
     event: DeploymentExecutionStateInitializeEvent
   ): void {
+    const updatedFuture: UiFuture = {
+      futureId: event.futureId,
+      status: {
+        type: UiFutureStatusType.PENDING,
+      },
+    };
+
     this.state = {
       ...this.state,
-      futures: [
-        ...this.state.futures,
-        {
-          futureId: event.futureId,
-          status: {
-            type: UiFutureStatusType.PENDING,
-          },
-        },
-      ],
+      batches: this._applyUpdateToBatchFuture(updatedFuture),
     };
   }
 
   public [ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_COMPLETE](
     event: DeploymentExecutionStateCompleteEvent
   ): void {
-    const futures = [...this.state.futures];
-    const index = futures.findIndex(
-      ({ futureId }) => futureId === event.futureId
-    );
-
-    futures[index].status = this._getFutureStatusFromEventResult(event.result);
+    const updatedFuture: UiFuture = {
+      futureId: event.futureId,
+      status: this._getFutureStatusFromEventResult(event.result),
+    };
 
     this.state = {
       ...this.state,
-      futures: [...futures],
+      batches: this._applyUpdateToBatchFuture(updatedFuture),
     };
   }
 
   public [ExecutionEventType.CALL_EXECUTION_STATE_INITIALIZE](
     event: CallExecutionStateInitializeEvent
   ): void {
+    const updatedFuture: UiFuture = {
+      futureId: event.futureId,
+      status: {
+        type: UiFutureStatusType.PENDING,
+      },
+    };
+
     this.state = {
       ...this.state,
-      futures: [
-        ...this.state.futures,
-        {
-          futureId: event.futureId,
-          status: {
-            type: UiFutureStatusType.PENDING,
-          },
-        },
-      ],
+      batches: this._applyUpdateToBatchFuture(updatedFuture),
     };
   }
 
   public [ExecutionEventType.CALL_EXECUTION_STATE_COMPLETE](
     event: CallExecutionStateCompleteEvent
   ): void {
-    const futures = [...this.state.futures];
-    const index = futures.findIndex(
-      ({ futureId }) => futureId === event.futureId
-    );
-
-    futures[index].status = this._getFutureStatusFromEventResult(event.result);
+    const updatedFuture: UiFuture = {
+      futureId: event.futureId,
+      status: this._getFutureStatusFromEventResult(event.result),
+    };
 
     this.state = {
       ...this.state,
-      futures: [...futures],
+      batches: this._applyUpdateToBatchFuture(updatedFuture),
     };
   }
 
   public [ExecutionEventType.STATIC_CALL_EXECUTION_STATE_INITIALIZE](
     event: StaticCallExecutionStateInitializeEvent
   ): void {
+    const updatedFuture: UiFuture = {
+      futureId: event.futureId,
+      status: {
+        type: UiFutureStatusType.PENDING,
+      },
+    };
+
     this.state = {
       ...this.state,
-      futures: [
-        ...this.state.futures,
-        {
-          futureId: event.futureId,
-          status: {
-            type: UiFutureStatusType.PENDING,
-          },
-        },
-      ],
+      batches: this._applyUpdateToBatchFuture(updatedFuture),
     };
   }
 
   public [ExecutionEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE](
     event: StaticCallExecutionStateCompleteEvent
   ): void {
-    const futures = [...this.state.futures];
-    const index = futures.findIndex(
-      ({ futureId }) => futureId === event.futureId
-    );
-
-    futures[index].status = this._getFutureStatusFromEventResult(event.result);
+    const updatedFuture: UiFuture = {
+      futureId: event.futureId,
+      status: this._getFutureStatusFromEventResult(event.result),
+    };
 
     this.state = {
       ...this.state,
-      futures: [...futures],
+      batches: this._applyUpdateToBatchFuture(updatedFuture),
     };
   }
 
   public [ExecutionEventType.SEND_DATA_EXECUTION_STATE_INITIALIZE](
     event: SendDataExecutionStateInitializeEvent
   ): void {
+    const updatedFuture: UiFuture = {
+      futureId: event.futureId,
+      status: {
+        type: UiFutureStatusType.PENDING,
+      },
+    };
+
     this.state = {
       ...this.state,
-      futures: [
-        ...this.state.futures,
-        {
-          futureId: event.futureId,
-          status: {
-            type: UiFutureStatusType.PENDING,
-          },
-        },
-      ],
+      batches: this._applyUpdateToBatchFuture(updatedFuture),
     };
   }
 
   public [ExecutionEventType.SEND_DATA_EXECUTION_STATE_COMPLETE](
     event: SendDataExecutionStateCompleteEvent
   ): void {
-    const futures = [...this.state.futures];
-    const index = futures.findIndex(
-      ({ futureId }) => futureId === event.futureId
-    );
-
-    futures[index].status = this._getFutureStatusFromEventResult(event.result);
+    const updatedFuture: UiFuture = {
+      futureId: event.futureId,
+      status: this._getFutureStatusFromEventResult(event.result),
+    };
 
     this.state = {
       ...this.state,
-      futures: [...futures],
+      batches: this._applyUpdateToBatchFuture(updatedFuture),
     };
   }
 
   public [ExecutionEventType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE](
     event: ContractAtExecutionStateInitializeEvent
   ): void {
+    const updatedFuture: UiFuture = {
+      futureId: event.futureId,
+      status: {
+        type: UiFutureStatusType.SUCCESS,
+      },
+    };
+
     this.state = {
       ...this.state,
-      futures: [
-        ...this.state.futures,
-        {
-          futureId: event.futureId,
-          status: {
-            type: UiFutureStatusType.SUCCESS,
-          },
-        },
-      ],
+      batches: this._applyUpdateToBatchFuture(updatedFuture),
     };
   }
 
   public [ExecutionEventType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE](
     event: ReadEventArgExecutionStateInitializeEvent
   ): void {
+    const updatedFuture: UiFuture = {
+      futureId: event.futureId,
+      status: {
+        type: UiFutureStatusType.SUCCESS,
+      },
+    };
+
     this.state = {
       ...this.state,
-      futures: [
-        ...this.state.futures,
-        {
-          futureId: event.futureId,
+      batches: this._applyUpdateToBatchFuture(updatedFuture),
+    };
+  }
+
+  public [ExecutionEventType.BATCH_INITIALIZE](
+    event: BatchInitializeEvent
+  ): void {
+    const batches: UiBatches = [];
+
+    for (const batch of event.batches) {
+      const futureBatch: UiFuture[] = [];
+
+      for (const futureId of batch) {
+        futureBatch.push({
+          futureId,
           status: {
-            type: UiFutureStatusType.SUCCESS,
+            type: UiFutureStatusType.UNSTARTED,
           },
-        },
-      ],
+        });
+      }
+
+      batches.push(futureBatch);
+    }
+
+    this.state = {
+      ...this.state,
+      batches,
     };
   }
 
@@ -252,16 +286,6 @@ export class UiEventHandler implements ExecutionEventListener {
     this._renderState.unmount();
 
     return this._renderState.waitUntilExit();
-  }
-
-  public get state(): UiState {
-    return this._uiState;
-  }
-
-  public set state(uiState: UiState) {
-    this._uiState = uiState;
-
-    this._renderToCli();
   }
 
   private _renderToCli(): void {
@@ -282,6 +306,26 @@ export class UiEventHandler implements ExecutionEventListener {
     this._renderState.rerender(
       <IgnitionUi state={this.state} deployParams={this._deploymentParams} />
     );
+  }
+
+  private _applyUpdateToBatchFuture(updatedFuture: UiFuture): UiBatches {
+    const batches: UiBatches = [];
+
+    for (const batch of this.state.batches) {
+      const futureBatch: UiFuture[] = [];
+
+      for (const future of batch) {
+        if (future.futureId === updatedFuture.futureId) {
+          futureBatch.push(updatedFuture);
+        } else {
+          futureBatch.push(future);
+        }
+      }
+
+      batches.push(futureBatch);
+    }
+
+    return batches;
   }
 
   private _getFutureStatusFromEventResult(
