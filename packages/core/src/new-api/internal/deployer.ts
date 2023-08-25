@@ -111,6 +111,8 @@ export class Deployer {
 
     const batches = Batcher.batch(ignitionModule, deploymentState);
 
+    this._deploymentLoader.emitDeploymentBatchEvent(batches);
+
     const executionEngine = new ExecutionEngine(
       this._deploymentLoader,
       this._artifactResolver,

@@ -10,7 +10,8 @@ export type ExecutionEvent =
   | SendDataExecutionStateInitializeEvent
   | SendDataExecutionStateCompleteEvent
   | ContractAtExecutionStateInitializeEvent
-  | ReadEventArgExecutionStateInitializeEvent;
+  | ReadEventArgExecutionStateInitializeEvent
+  | BatchInitializeEvent;
 
 export enum ExecutionEventType {
   RUN_START = "RUN_START",
@@ -25,6 +26,7 @@ export enum ExecutionEventType {
   SEND_DATA_EXECUTION_STATE_COMPLETE = "SEND_DATA_EXECUTION_STATE_COMPLETE",
   CONTRACT_AT_EXECUTION_STATE_INITIALIZE = "CONTRACT_AT_EXECUTION_STATE_INITIALIZE",
   READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE = "READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE",
+  BATCH_INITIALIZE = "BATCH_INITIALIZE",
 }
 
 export interface RunStartEvent {
@@ -91,6 +93,11 @@ export interface WipeExecutionStateEvent {
   futureId: string;
 }
 
+export interface BatchInitializeEvent {
+  type: ExecutionEventType.BATCH_INITIALIZE;
+  batches: string[][];
+}
+
 export enum ExecutionEventResultType {
   SUCCESS = "SUCCESS",
   ERROR = "ERROR",
@@ -121,6 +128,7 @@ export interface ExecutionEventTypeMap {
   [ExecutionEventType.SEND_DATA_EXECUTION_STATE_COMPLETE]: SendDataExecutionStateCompleteEvent;
   [ExecutionEventType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE]: ContractAtExecutionStateInitializeEvent;
   [ExecutionEventType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE]: ReadEventArgExecutionStateInitializeEvent;
+  [ExecutionEventType.BATCH_INITIALIZE]: BatchInitializeEvent;
 }
 
 export type ExecutionEventListener = {

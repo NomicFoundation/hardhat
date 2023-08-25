@@ -20,34 +20,36 @@ import { failedEvmExecutionResultToErrorDescription } from "./failedEvmExecution
 
 export function emitExecutionEvent(
   message: JournalMessage,
-  uiEventListener: ExecutionEventListener
+  executionEventListener: ExecutionEventListener
 ): void {
   switch (message.type) {
     case JournalMessageType.RUN_START: {
-      uiEventListener[ExecutionEventType.RUN_START]({
+      executionEventListener[ExecutionEventType.RUN_START]({
         type: ExecutionEventType.RUN_START,
         chainId: message.chainId,
       });
       break;
     }
     case JournalMessageType.WIPE_EXECUTION_STATE: {
-      uiEventListener[ExecutionEventType.WIPE_EXECUTION_STATE]({
+      executionEventListener[ExecutionEventType.WIPE_EXECUTION_STATE]({
         type: ExecutionEventType.WIPE_EXECUTION_STATE,
         futureId: message.futureId,
       });
       break;
     }
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE: {
-      uiEventListener[ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE](
-        {
-          type: ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE,
-          futureId: message.futureId,
-        }
-      );
+      executionEventListener[
+        ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE
+      ]({
+        type: ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE,
+        futureId: message.futureId,
+      });
       break;
     }
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE: {
-      uiEventListener[ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_COMPLETE]({
+      executionEventListener[
+        ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_COMPLETE
+      ]({
         type: ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_COMPLETE,
         futureId: message.futureId,
         result: convertExecutionResultToEventResult(message.result),
@@ -55,14 +57,16 @@ export function emitExecutionEvent(
       break;
     }
     case JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE: {
-      uiEventListener[ExecutionEventType.CALL_EXECUTION_STATE_INITIALIZE]({
+      executionEventListener[
+        ExecutionEventType.CALL_EXECUTION_STATE_INITIALIZE
+      ]({
         type: ExecutionEventType.CALL_EXECUTION_STATE_INITIALIZE,
         futureId: message.futureId,
       });
       break;
     }
     case JournalMessageType.CALL_EXECUTION_STATE_COMPLETE: {
-      uiEventListener[ExecutionEventType.CALL_EXECUTION_STATE_COMPLETE]({
+      executionEventListener[ExecutionEventType.CALL_EXECUTION_STATE_COMPLETE]({
         type: ExecutionEventType.CALL_EXECUTION_STATE_COMPLETE,
         futureId: message.futureId,
         result: convertExecutionResultToEventResult(message.result),
@@ -70,7 +74,7 @@ export function emitExecutionEvent(
       break;
     }
     case JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE: {
-      uiEventListener[
+      executionEventListener[
         ExecutionEventType.STATIC_CALL_EXECUTION_STATE_INITIALIZE
       ]({
         type: ExecutionEventType.STATIC_CALL_EXECUTION_STATE_INITIALIZE,
@@ -79,7 +83,9 @@ export function emitExecutionEvent(
       break;
     }
     case JournalMessageType.STATIC_CALL_EXECUTION_STATE_COMPLETE: {
-      uiEventListener[ExecutionEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE]({
+      executionEventListener[
+        ExecutionEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE
+      ]({
         type: ExecutionEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE,
         futureId: message.futureId,
         result: convertStaticCallResultToExecutionEventResult(message.result),
@@ -87,14 +93,18 @@ export function emitExecutionEvent(
       break;
     }
     case JournalMessageType.SEND_DATA_EXECUTION_STATE_INITIALIZE: {
-      uiEventListener[ExecutionEventType.SEND_DATA_EXECUTION_STATE_INITIALIZE]({
+      executionEventListener[
+        ExecutionEventType.SEND_DATA_EXECUTION_STATE_INITIALIZE
+      ]({
         type: ExecutionEventType.SEND_DATA_EXECUTION_STATE_INITIALIZE,
         futureId: message.futureId,
       });
       break;
     }
     case JournalMessageType.SEND_DATA_EXECUTION_STATE_COMPLETE: {
-      uiEventListener[ExecutionEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE]({
+      executionEventListener[
+        ExecutionEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE
+      ]({
         type: ExecutionEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE,
         futureId: message.futureId,
         result: convertExecutionResultToEventResult(message.result),
@@ -102,7 +112,7 @@ export function emitExecutionEvent(
       break;
     }
     case JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE: {
-      uiEventListener[
+      executionEventListener[
         ExecutionEventType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE
       ]({
         type: ExecutionEventType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE,
@@ -111,7 +121,7 @@ export function emitExecutionEvent(
       break;
     }
     case JournalMessageType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE: {
-      uiEventListener[
+      executionEventListener[
         ExecutionEventType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE
       ]({
         type: ExecutionEventType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE,
