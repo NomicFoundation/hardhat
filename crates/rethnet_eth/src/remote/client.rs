@@ -1232,6 +1232,22 @@ mod tests {
         }
 
         #[tokio::test]
+        async fn get_block_by_number_finalized_resolves() {
+            let alchemy_url = get_alchemy_url();
+            let client = TestRpcClient::new(&alchemy_url);
+
+            assert_eq!(client.files_in_cache().len(), 0);
+
+            client
+                .get_block_by_number(BlockSpec::finalized())
+                .await
+                .expect("should have succeeded");
+
+            // Finalized tag should be resolved and stored in cache.
+            assert_eq!(client.files_in_cache().len(), 1);
+        }
+
+        #[tokio::test]
         async fn get_block_by_number_some() {
             let alchemy_url = get_alchemy_url();
 
@@ -1265,18 +1281,25 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn get_block_by_number_with_transaction_data_some() {
+        async fn get_block_by_number_with_transaction_data_unsafe_no_cache() {
             let alchemy_url = get_alchemy_url();
+            let client = TestRpcClient::new(&alchemy_url);
 
-            let block_number = U256::from(16222385);
+            assert_eq!(client.files_in_cache().len(), 0);
 
-            let block = TestRpcClient::new(&alchemy_url)
+            let block_number = client.block_number().await.unwrap();
+
+            assert_eq!(client.files_in_cache().len(), 0);
+
+            let block = client
                 .get_block_by_number(BlockSpec::Number(block_number))
                 .await
                 .expect("should have succeeded");
 
+            // Unsafe block number shouldn't be cached
+            assert_eq!(client.files_in_cache().len(), 0);
+
             assert_eq!(block.number, Some(block_number));
-            assert_eq!(block.transactions.len(), 102);
         }
 
         #[tokio::test]
@@ -1322,13 +1345,19 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn get_earliest_block_with_transaction_data() {
+        async fn get_earliest_block_with_transaction_data_resolves() {
             let alchemy_url = get_alchemy_url();
+            let client = TestRpcClient::new(&alchemy_url);
 
-            let _block = TestRpcClient::new(&alchemy_url)
+            assert_eq!(client.files_in_cache().len(), 0);
+
+            client
                 .get_block_by_number_with_transaction_data(BlockSpec::earliest())
                 .await
                 .expect("should have succeeded");
+
+            // Earliest tag should be resolved to block number and it should be cached.
+            assert_eq!(client.files_in_cache().len(), 1);
         }
 
         #[tokio::test]
