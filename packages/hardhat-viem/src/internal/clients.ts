@@ -6,8 +6,12 @@ import type {
   WalletClientConfig,
   TestClientConfig,
 } from "viem";
-import type { PublicClient, TestClient, WalletClient } from "./types";
-import type { TestClientMode } from "viem/src/clients/createTestClient";
+import type {
+  PublicClient,
+  TestClient,
+  TestClientMode,
+  WalletClient,
+} from "./types";
 
 import { getChain, getMode, isDevelopmentNetwork } from "./chains";
 import { getAccounts } from "./accounts";
