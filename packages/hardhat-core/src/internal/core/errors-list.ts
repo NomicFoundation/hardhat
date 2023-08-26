@@ -595,12 +595,12 @@ Please double check your task definitions.`,
 What makes these types special is that they can be represented as strings, so you can write them down in the terminal.`,
       shouldBeReported: false,
     },
-    DEPRECATED_TASK: {
+    DEPRECATED_TRANSFORM_IMPORT_TASK: {
       number: 213,
-      title: "Use of deprecated task",
+      title: "Use of deprecated remapping task",
       message:
-        "Task %task% is deprecated. Please update any plugins that may use it.",
-      description: `This task has been deprecated and versions of plugins using it are not compatible with this hardhat-core version.`,
+        "Task TASK_COMPILE_TRANSFORM_IMPORT_NAME is deprecated. Please update your @nomicfoundation/hardhat-foundry plugin version.",
+      description: `This task has been deprecated in favor of a new approach.`,
       shouldBeReported: true,
     },
   },
