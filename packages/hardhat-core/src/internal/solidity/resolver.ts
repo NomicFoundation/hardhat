@@ -21,6 +21,7 @@ import { ERRORS } from "../core/errors-list";
 import { createNonCryptographicHashBasedIdentifier } from "../util/hash";
 
 import { getRealPath } from "../util/fs-utils";
+import { applyRemapping } from "../../utils/remappings";
 import { Parser } from "./parse";
 
 export interface ResolvedFilesMap {
@@ -87,7 +88,7 @@ export class Resolver {
       return cached;
     }
 
-    const remappedSourceName = this._applyRemapping(sourceName);
+    const remappedSourceName = applyRemapping(this._remappings, sourceName);
 
     validateSourceNameFormat(remappedSourceName);
 
@@ -125,7 +126,7 @@ export class Resolver {
       });
     }
 
-    const imported = this._applyRemapping(importName);
+    const imported = applyRemapping(this._remappings, importName);
 
     const scheme = this._getUriScheme(imported);
     if (scheme !== undefined) {
@@ -187,7 +188,7 @@ export class Resolver {
       ) {
         resolvedFile = await this._resolveLocalSourceName(
           sourceName,
-          this._applyRemapping(sourceName)
+          applyRemapping(this._remappings, sourceName)
         );
       } else {
         resolvedFile = await this.resolveSourceName(sourceName);
@@ -558,15 +559,5 @@ export class Resolver {
       // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw error;
     }
-  }
-
-  private _applyRemapping(sourceName: string): string {
-    for (const [from, to] of Object.entries(this._remappings)) {
-      if (sourceName.startsWith(from)) {
-        return sourceName.replace(from, to);
-      }
-    }
-
-    return sourceName;
   }
 }
