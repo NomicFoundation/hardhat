@@ -29,7 +29,13 @@ export async function getChain(provider: EthereumProvider): Promise<Chain> {
   );
 
   if (matchingChains.length === 0) {
-    throw new NetworkNotFoundError(chainId);
+    if (await isHardhatNetwork(provider)) {
+      return chains.hardhat;
+    } else if (await isFoundryNetwork(provider)) {
+      return chains.foundry;
+    } else {
+      throw new NetworkNotFoundError(chainId);
+    }
   }
 
   if (matchingChains.length > 1) {
@@ -55,40 +61,31 @@ export async function getMode(
   }
 }
 
-async function getChainId(provider: EthereumProvider) {
-  return _memoizedGetChainId(provider);
-}
-
-const _memoizedGetChainId = memoize(async (provider: EthereumProvider) => {
+const getChainId = memoize(async (provider: EthereumProvider) => {
   return Number(await provider.send("eth_chainId"));
 });
 
-async function isHardhatNetwork(provider: EthereumProvider) {
-  return _memoizedIsHardhatNetwork(provider);
-}
-
-const _memoizedIsHardhatNetwork = memoize(
-  async (provider: EthereumProvider) => {
-    try {
-      await provider.send("hardhat_metadata");
-      return true;
-    } catch {
-      return false;
-    }
-  }
+const isHardhatNetwork = memoize(async (provider: EthereumProvider) =>
+  detectNetworkByMethodName(provider, NetworkMethod.HARDHAT_METADATA)
 );
 
-async function isFoundryNetwork(provider: EthereumProvider) {
-  return _memoizedIsFoundryNetwork(provider);
+const isFoundryNetwork = memoize(async (provider: EthereumProvider) =>
+  detectNetworkByMethodName(provider, NetworkMethod.ANVIL_NODE_INFO)
+);
+
+enum NetworkMethod {
+  HARDHAT_METADATA = "hardhat_metadata",
+  ANVIL_NODE_INFO = "anvil_nodeInfo",
 }
 
-const _memoizedIsFoundryNetwork = memoize(
-  async (provider: EthereumProvider) => {
-    try {
-      await provider.send("anvil_nodeInfo");
-      return true;
-    } catch {
-      return false;
-    }
+async function detectNetworkByMethodName(
+  provider: EthereumProvider,
+  methodName: string
+) {
+  try {
+    await provider.send(methodName);
+    return true;
+  } catch {
+    return false;
   }
-);
+}

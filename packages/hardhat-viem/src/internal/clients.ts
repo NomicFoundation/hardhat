@@ -34,13 +34,10 @@ export async function innerGetPublicClient(
   publicClientConfig?: Partial<PublicClientConfig>
 ): Promise<PublicClient> {
   const viem = await import("viem");
-  const parameters = {
-    ...(isDevelopmentNetwork(chain.id) && {
-      pollingInterval: 50,
-      cacheTime: 0,
-    }),
-    ...publicClientConfig,
-  };
+  const defaultParameters = isDevelopmentNetwork(chain.id)
+    ? { pollingInterval: 50, cacheTime: 0 }
+    : {};
+  const parameters = { ...defaultParameters, ...publicClientConfig };
 
   const publicClient = viem.createPublicClient({
     chain,
@@ -76,13 +73,10 @@ export async function innerGetWalletClients(
   walletClientConfig?: Partial<WalletClientConfig>
 ): Promise<WalletClient[]> {
   const viem = await import("viem");
-  const parameters = {
-    ...(isDevelopmentNetwork(chain.id) && {
-      pollingInterval: 50,
-      cacheTime: 0,
-    }),
-    ...walletClientConfig,
-  };
+  const defaultParameters = isDevelopmentNetwork(chain.id)
+    ? { pollingInterval: 50, cacheTime: 0 }
+    : {};
+  const parameters = { ...defaultParameters, ...walletClientConfig };
 
   const walletClients = accounts.map((account) =>
     viem.createWalletClient({
@@ -140,11 +134,8 @@ export async function innerGetTestClient(
   testClientConfig?: Partial<TestClientConfig>
 ): Promise<TestClient> {
   const viem = await import("viem");
-  const parameters = {
-    pollingInterval: 50,
-    cacheTime: 0,
-    ...testClientConfig,
-  };
+  const defaultParameters = { pollingInterval: 50, cacheTime: 0 };
+  const parameters = { ...defaultParameters, ...testClientConfig };
 
   const testClient = viem.createTestClient({
     mode,
