@@ -87,7 +87,7 @@ internalTask(TASK_COMPILE_TRANSFORM_IMPORT_NAME).setAction(
       return importName;
     }
     throw new HardhatFoundryError(
-      "This version of hardhat-foundry requires a newer version of hardhat"
+      "This version of hardhat-foundry depends on hardhat version >= 2.17.2"
     );
   }
 );
