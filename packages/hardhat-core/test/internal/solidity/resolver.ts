@@ -165,9 +165,11 @@ describe("Resolver", function () {
       });
 
       it("Should be a library if it starts with node_modules", async function () {
-        await expectHardhatErrorAsync(
-          () => resolver.resolveSourceName("node_modules/lib/l.sol"),
-          ERRORS.RESOLVER.LIBRARY_NOT_INSTALLED
+        await assertResolvedFileFromPath(
+          resolver.resolveSourceName("node_modules/lib/l.sol"),
+          "node_modules/lib/l.sol",
+          path.join(projectPath, "node_modules/lib/l.sol"),
+          { name: "lib", version: "1.0.0" }
         );
       });
 
