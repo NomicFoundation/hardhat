@@ -19,7 +19,7 @@ describe("clients", () => {
 
       assert.isDefined(client);
       assert.equal(client.type, "publicClient");
-      assert.equal(client.chain?.id, chains.mainnet.id);
+      assert.equal(client.chain.id, chains.mainnet.id);
     });
 
     it("should return a public client with custom parameters", async () => {
@@ -57,10 +57,10 @@ describe("clients", () => {
       assert.isNotEmpty(clients);
       clients.forEach((client) => {
         assert.equal(client.type, "walletClient");
-        assert.equal(client.chain?.id, chains.mainnet.id);
+        assert.equal(client.chain.id, chains.mainnet.id);
       });
-      assert.equal(clients[0].account?.address, "0x1");
-      assert.equal(clients[1].account?.address, "0x2");
+      assert.equal(clients[0].account.address, "0x1");
+      assert.equal(clients[1].account.address, "0x2");
     });
 
     it("should return a list of wallet clients with custom parameters", async () => {
@@ -113,7 +113,7 @@ describe("clients", () => {
 
       assert.isDefined(client);
       assert.equal(client.type, "testClient");
-      assert.equal(client.chain?.id, chains.hardhat.id);
+      assert.equal(client.chain.id, chains.hardhat.id);
       assert.equal(client.mode, "hardhat");
     });
 
@@ -128,7 +128,7 @@ describe("clients", () => {
 
       assert.isDefined(client);
       assert.equal(client.type, "testClient");
-      assert.equal(client.chain?.id, chains.foundry.id);
+      assert.equal(client.chain.id, chains.foundry.id);
       assert.equal(client.mode, "anvil");
     });
 
