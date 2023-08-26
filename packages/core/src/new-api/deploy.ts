@@ -42,7 +42,7 @@ export async function deploy({
   config?: Partial<DeployConfig>;
   artifactResolver: ArtifactResolver;
   provider: EIP1193Provider;
-  executionEventListener: ExecutionEventListener;
+  executionEventListener?: ExecutionEventListener;
   deploymentDir?: string;
   ignitionModule: IgnitionModule;
   deploymentParameters: DeploymentParameters;

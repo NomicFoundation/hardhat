@@ -28,7 +28,7 @@ export class EphemeralDeploymentLoader implements DeploymentLoader {
   constructor(
     private _artifactResolver: ArtifactResolver,
     private _verbose: boolean,
-    private _executionEventListener: ExecutionEventListener
+    private _executionEventListener?: ExecutionEventListener
   ) {
     this._journal = new MemoryJournal(
       this._verbose,
@@ -102,9 +102,11 @@ export class EphemeralDeploymentLoader implements DeploymentLoader {
   }
 
   public emitDeploymentBatchEvent(batches: string[][]): void {
-    this._executionEventListener.BATCH_INITIALIZE({
-      type: ExecutionEventType.BATCH_INITIALIZE,
-      batches,
-    });
+    if (this._executionEventListener !== undefined) {
+      this._executionEventListener.BATCH_INITIALIZE({
+        type: ExecutionEventType.BATCH_INITIALIZE,
+        batches,
+      });
+    }
   }
 }

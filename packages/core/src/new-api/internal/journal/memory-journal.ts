@@ -15,7 +15,7 @@ export class MemoryJournal implements Journal {
 
   constructor(
     private _verbose: boolean = false,
-    private _executionEventListener: ExecutionEventListener
+    private _executionEventListener?: ExecutionEventListener
   ) {}
 
   public record(message: JournalMessage): void {
@@ -35,6 +35,8 @@ export class MemoryJournal implements Journal {
       logJournalableMessage(message);
     }
 
-    emitExecutionEvent(message, this._executionEventListener);
+    if (this._executionEventListener !== undefined) {
+      emitExecutionEvent(message, this._executionEventListener);
+    }
   }
 }

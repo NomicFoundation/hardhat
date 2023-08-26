@@ -20,7 +20,7 @@ export class FileJournal implements Journal {
   constructor(
     private _filePath: string,
     private _verbose: boolean = false,
-    private _executionEventListener: ExecutionEventListener
+    private _executionEventListener?: ExecutionEventListener
   ) {}
 
   public record(message: JournalMessage): void {
@@ -70,6 +70,8 @@ export class FileJournal implements Journal {
       logJournalableMessage(message);
     }
 
-    emitExecutionEvent(message, this._executionEventListener);
+    if (this._executionEventListener !== undefined) {
+      emitExecutionEvent(message, this._executionEventListener);
+    }
   }
 }

@@ -27,7 +27,7 @@ export class FileDeploymentLoader implements DeploymentLoader {
   constructor(
     private readonly _deploymentDirPath: string,
     private readonly _verbose: boolean,
-    private readonly _executionEventListener: ExecutionEventListener
+    private readonly _executionEventListener?: ExecutionEventListener
   ) {
     const artifactsDir = path.join(this._deploymentDirPath, "artifacts");
     const buildInfoDir = path.join(this._deploymentDirPath, "build-info");
@@ -138,10 +138,12 @@ export class FileDeploymentLoader implements DeploymentLoader {
   }
 
   public emitDeploymentBatchEvent(batches: string[][]): void {
-    this._executionEventListener.BATCH_INITIALIZE({
-      type: ExecutionEventType.BATCH_INITIALIZE,
-      batches,
-    });
+    if (this._executionEventListener !== undefined) {
+      this._executionEventListener.BATCH_INITIALIZE({
+        type: ExecutionEventType.BATCH_INITIALIZE,
+        batches,
+      });
+    }
   }
 
   private async _initialize(): Promise<void> {

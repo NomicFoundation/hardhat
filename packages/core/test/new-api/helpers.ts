@@ -88,5 +88,6 @@ export function setupMockDeploymentLoader(
 
       return artifact;
     },
+    emitDeploymentBatchEvent: () => {},
   };
 }

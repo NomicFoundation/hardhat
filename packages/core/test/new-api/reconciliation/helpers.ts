@@ -66,6 +66,10 @@ class MockDeploymentLoader implements DeploymentLoader {
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
+
+  public emitDeploymentBatchEvent(batches: string[][]): void {
+    throw new Error("Method not implemented.");
+  }
 }
 
 class MockArtifactResolver implements ArtifactResolver {
