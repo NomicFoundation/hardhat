@@ -1,29 +1,31 @@
-import { ModuleParams } from "@ignored/ignition-core";
-import { DeployState } from "@ignored/ignition-core/soon-to-be-removed";
+import { DeploymentParameters } from "@ignored/ignition-core";
 import { Box, Text, Spacer } from "ink";
 
-import { ModuleParameters } from "./ModuleParameters";
+import { UiState } from "../../types";
+
+import { DeployParameters } from "./DeployParameters";
 import { NetworkInfo } from "./NetworkInfo";
 
 export const SummarySection = ({
-  deployState: {
-    details: { moduleName, ...networkInfo },
-  },
-  moduleParams,
+  state: { chainId },
+  deployParams,
 }: {
-  deployState: DeployState;
-  moduleParams?: ModuleParams;
+  state: UiState;
+  deployParams?: DeploymentParameters;
 }) => {
+  // todo: moduleName and networkName
   return (
     <Box marginBottom={0} flexDirection="column">
       <Box marginTop={1} flexDirection="row">
         <Text bold={true}>
-          Deploying module <Text italic={true}>{moduleName}</Text>
+          Deploying module <Text italic={true}>{"moduleName"}</Text>
         </Text>
         <Spacer />
-        <NetworkInfo networkInfo={networkInfo} />
+        <NetworkInfo
+          networkInfo={{ chainId: chainId!, networkName: "networkName" }}
+        />
       </Box>
-      <ModuleParameters moduleParams={moduleParams} />
+      <DeployParameters deployParams={deployParams} />
     </Box>
   );
 };

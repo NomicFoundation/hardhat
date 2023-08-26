@@ -12,7 +12,7 @@ export const IgnitionUi = ({
   state: UiState;
   deployParams?: DeploymentParameters;
 }) => {
-  if (state.futures.length === 0) {
+  if (state.batches.length === 0) {
     return <StartingPanel />;
   }
 

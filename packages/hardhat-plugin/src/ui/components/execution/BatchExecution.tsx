@@ -1,92 +1,71 @@
-import { IgnitionError } from "@ignored/ignition-core";
-import { DeployState } from "@ignored/ignition-core/soon-to-be-removed";
 import { Box, Text } from "ink";
 import Spinner from "ink-spinner";
 
-import { UiBatch, UiVertex, UiVertexStatus } from "../../types";
+import { UiFuture, UiFutureStatusType, UiState } from "../../types";
 
 import { Divider } from "./Divider";
 
-export const BatchExecution = ({
-  deployState,
-}: {
-  deployState: DeployState;
-}) => {
-  const batches = resolveBatchesFrom(deployState);
-
-  if (batches.length === 0) {
-    return null;
-  }
+export const BatchExecution = ({ state }: { state: UiState }) => {
+  const batches = state.batches;
 
   return (
     <>
       <Divider />
 
       <Box paddingBottom={1}>
-        {deployState.phase === "execution" ? (
-          <>
-            <Text bold>
-              Executing <Spinner type="simpleDots" />
-            </Text>
-          </>
-        ) : (
-          <>
-            <Text bold>Executed</Text>
-          </>
-        )}
+        <Text bold>
+          Executing <Spinner type="simpleDots" />
+        </Text>
       </Box>
 
       {batches.map((batch, i) => (
-        <Batch key={`batch-${i}`} batch={batch}></Batch>
+        <Batch key={`batch-${i}`} batch={batch} index={i}></Batch>
       ))}
     </>
   );
 };
 
-const Batch = ({ batch }: { batch: UiBatch }) => {
-  const borderColor = resolveBatchBorderColor(batch.vertexes);
+const Batch = ({ batch, index }: { batch: UiFuture[]; index: number }) => {
+  const borderColor = resolveBatchBorderColor(batch);
 
   return (
     <Box borderStyle="single" flexDirection="column" borderColor={borderColor}>
       <Box flexDirection="row-reverse">
-        <Text>#{batch.batchCount}</Text>
+        <Text>#{index}</Text>
       </Box>
 
-      {batch.vertexes.map((vertex, i) => (
-        <Vertex
-          key={`batch-${batch.batchCount}-vertex-${i}`}
-          vertex={vertex}
-        ></Vertex>
+      {batch.map((future, i) => (
+        <Future key={`batch-${index}-vertex-${i}`} future={future}></Future>
       ))}
     </Box>
   );
 };
 
-const Vertex = ({ vertex }: { vertex: UiVertex }) => {
-  const { borderColor, borderStyle, textColor } = resolveVertexColors(vertex);
+const Future = ({ future }: { future: UiFuture }) => {
+  const { borderColor, borderStyle, textColor } = resolveFutureColors(future);
 
   return (
     <Box borderStyle={borderStyle} borderColor={borderColor}>
-      <StatusBadge vertex={vertex} />
-      <Text color={textColor}>{vertex.label}</Text>
+      <StatusBadge future={future} />
+      <Text color={textColor}>{future.futureId}</Text>
     </Box>
   );
 };
 
-const StatusBadge = ({ vertex }: { vertex: UiVertex }) => {
+const StatusBadge = ({ future }: { future: UiFuture }) => {
   let badge: any = " ";
-  switch (vertex.status) {
-    case "COMPELETED":
+  switch (future.status.type) {
+    case UiFutureStatusType.UNSTARTED:
+      badge = <Spinner />;
+      break;
+    case UiFutureStatusType.SUCCESS:
       badge = <Text>✅</Text>;
       break;
-    case "ERRORED":
-      badge = <Text>❌</Text>;
-      break;
-    case "HELD":
+    case UiFutureStatusType.PENDING:
       badge = <Text>🔶</Text>;
       break;
-    case "RUNNING":
-      badge = <Spinner />;
+    case UiFutureStatusType.ERRORED:
+      badge = <Text>❌</Text>;
       break;
   }
 
@@ -99,51 +78,51 @@ const StatusBadge = ({ vertex }: { vertex: UiVertex }) => {
   );
 };
 
-function resolveBatchBorderColor(vertexes: UiVertex[]) {
-  if (vertexes.some((v) => v.status === "RUNNING")) {
+function resolveBatchBorderColor(futures: UiFuture[]) {
+  if (futures.some((v) => v.status.type === UiFutureStatusType.UNSTARTED)) {
     return "lightgray";
   }
 
-  if (vertexes.some((v) => v.status === "ERRORED")) {
+  if (futures.some((v) => v.status.type === UiFutureStatusType.ERRORED)) {
     return "red";
   }
 
-  if (vertexes.some((v) => v.status === "HELD")) {
+  if (futures.some((v) => v.status.type === UiFutureStatusType.PENDING)) {
     return "yellow";
   }
 
-  if (vertexes.every((v) => v.status === "COMPELETED")) {
+  if (futures.every((v) => v.status.type === UiFutureStatusType.SUCCESS)) {
     return "green";
   }
 
   return "lightgray";
 }
 
-function resolveVertexColors(vertex: UiVertex): {
+function resolveFutureColors(future: UiFuture): {
   borderColor: string;
   borderStyle: "single" | "classic" | "bold" | "singleDouble";
   textColor: string;
 } {
-  switch (vertex.status) {
-    case "COMPELETED":
-      return {
-        borderColor: "greenBright",
-        borderStyle: "single",
-        textColor: "white",
-      };
-    case "RUNNING":
+  switch (future.status.type) {
+    case UiFutureStatusType.UNSTARTED:
       return {
         borderColor: "lightgray",
         borderStyle: "singleDouble",
         textColor: "white",
       };
-    case "HELD":
+    case UiFutureStatusType.SUCCESS:
+      return {
+        borderColor: "greenBright",
+        borderStyle: "single",
+        textColor: "white",
+      };
+    case UiFutureStatusType.PENDING:
       return {
         borderColor: "yellow",
         borderStyle: "bold",
         textColor: "white",
       };
-    case "ERRORED":
+    case UiFutureStatusType.ERRORED:
       return {
         borderColor: "redBright",
         borderStyle: "bold",
@@ -151,62 +130,3 @@ function resolveVertexColors(vertex: UiVertex): {
       };
   }
 }
-
-const resolveBatchesFrom = (deployState: DeployState): UiBatch[] => {
-  const stateBatches =
-    deployState.execution.batch !== null
-      ? [
-          ...deployState.execution.previousBatches,
-          deployState.execution.batch.keys(),
-        ]
-      : deployState.execution.previousBatches;
-
-  return stateBatches.map((sb, i) => ({
-    batchCount: i,
-    vertexes: [...sb]
-      .sort()
-      .map((vertexId): UiVertex | null => {
-        const vertex =
-          deployState.transform.executionGraph?.vertexes.get(vertexId);
-
-        if (vertex === undefined) {
-          return null;
-        }
-
-        const uiVertex: UiVertex = {
-          id: vertex.id,
-          label: vertex.label,
-          type: vertex.type,
-          status: determineStatusOf(deployState, vertex.id),
-        };
-
-        return uiVertex;
-      })
-      .filter((v): v is UiVertex => v !== null),
-  }));
-};
-
-const determineStatusOf = (
-  deployState: DeployState,
-  vertexId: number
-): UiVertexStatus => {
-  const execution = deployState.execution;
-
-  if (execution.vertexes[vertexId]?.status === "RUNNING") {
-    return "RUNNING";
-  }
-
-  if (execution.vertexes[vertexId]?.status === "FAILED") {
-    return "ERRORED";
-  }
-
-  if (execution.vertexes[vertexId]?.status === "HOLD") {
-    return "HELD";
-  }
-
-  if (execution.vertexes[vertexId]?.status === "COMPLETED") {
-    return "COMPELETED";
-  }
-
-  throw new IgnitionError(`Unable to determine vertex status for ${vertexId}`);
-};

@@ -1,32 +1,26 @@
-import { viewExecutionResults } from "@ignored/ignition-core/helpers";
-import {
-  DeployState,
-  VertexResultEnum,
-} from "@ignored/ignition-core/soon-to-be-removed";
 import { Box, Spacer, Text } from "ink";
 
-import { AddressMap } from "../../types";
+import { AddressMap, UiFuture, UiFutureStatusType } from "../../types";
 
 import { NetworkInfo } from "./NetworkInfo";
 
 export const AddressResults = ({
-  deployState,
+  futures,
+  networkName,
+  chainId,
 }: {
-  deployState: DeployState;
+  futures: UiFuture[];
+  networkName: string;
+  chainId: number;
 }) => {
-  const addressMap = resolveDeployAddresses(deployState);
-
-  const networkInfo = {
-    chainId: deployState.details.chainId,
-    networkName: deployState.details.networkName,
-  };
+  const addressMap = resolveDeployAddresses(futures);
 
   return (
     <Box flexDirection="column">
       <Box flexDirection="row" marginBottom={1}>
         <Text>Deployed Addresses</Text>
         <Spacer />
-        <NetworkInfo networkInfo={networkInfo} />
+        <NetworkInfo networkInfo={{ chainId, networkName }} />
       </Box>
 
       {...Object.entries(addressMap).map(([label, address]) => (
@@ -38,19 +32,17 @@ export const AddressResults = ({
   );
 };
 
-const resolveDeployAddresses = (deployState: DeployState) => {
+function resolveDeployAddresses(futures: UiFuture[]): AddressMap {
   const addressMap: AddressMap = {};
 
-  for (const value of viewExecutionResults(deployState).values()) {
+  for (const future of futures) {
     if (
-      value !== undefined &&
-      value._kind === VertexResultEnum.SUCCESS &&
-      "name" in value.result &&
-      "address" in value.result
+      future.status.type === UiFutureStatusType.SUCCESS &&
+      future.status.result !== undefined
     ) {
-      addressMap[value.result.name] = value.result.address;
+      addressMap[future.futureId] = future.status.result;
     }
   }
 
   return addressMap;
-};
+}

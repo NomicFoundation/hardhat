@@ -7,7 +7,7 @@ import { UiState } from "../../types";
 import { BatchExecution } from "./BatchExecution";
 import { FinalStatus } from "./FinalStatus";
 import { SummarySection } from "./SummarySection";
-import { viewEverthingExecutedAlready } from "./views";
+import { viewEverythingExecutedAlready } from "./views";
 
 export const ExecutionPanel = ({
   state,
@@ -16,7 +16,7 @@ export const ExecutionPanel = ({
   state: UiState;
   deployParams?: DeploymentParameters;
 }) => {
-  if (viewEverthingExecutedAlready(state)) {
+  if (viewEverythingExecutedAlready(state)) {
     return (
       <Box flexDirection="column">
         <FinalStatus state={state} />

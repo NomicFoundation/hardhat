@@ -1,63 +1,52 @@
-import { viewExecutionResults } from "@ignored/ignition-core/helpers";
-import {
-  DeployState,
-  ExecutionVertex,
-  VertexResultEnum,
-} from "@ignored/ignition-core/soon-to-be-removed";
 import { Box, Text } from "ink";
+import flattenDeep from "lodash.flattendeep";
 
-import { DeploymentError, DeploymentHold } from "../../types";
+import { UiFuture, UiFutureStatusType, UiState } from "../../types";
 
 import { AddressResults } from "./AddressResults";
 import { Divider } from "./Divider";
-import { viewEverthingExecutedAlready } from "./views";
 
-export const FinalStatus = ({ deployState }: { deployState: DeployState }) => {
-  if (deployState.phase === "complete") {
-    if (viewEverthingExecutedAlready(deployState)) {
-      return (
-        <Box margin={0} flexDirection="column">
-          <Divider />
+export const FinalStatus = ({ state }: { state: UiState }) => {
+  const allFutures = flattenDeep(state.batches);
 
-          <Text>
-            Nothing new to deploy, everything deployed on a previous run of{" "}
-            <Text italic={true}>{deployState.details.moduleName}</Text>
-          </Text>
+  const successfulFutures = allFutures.filter(
+    (f) => f.status.type === UiFutureStatusType.SUCCESS
+  );
 
-          <Divider />
-          <AddressResults deployState={deployState} />
-          <Text> </Text>
-        </Box>
-      );
-    }
-
+  if (successfulFutures.length === allFutures.length) {
+    // todo: moduleName, networkName
     return (
       <Box margin={0} flexDirection="column">
         <Divider />
 
         <Text>
           🚀 Deployment Complete for module{" "}
-          <Text italic={true}>{deployState.details.moduleName}</Text>
+          <Text italic={true}>{"moduleName"}</Text>
         </Text>
 
         <Divider />
-        <AddressResults deployState={deployState} />
+        <AddressResults
+          futures={successfulFutures}
+          chainId={state.chainId!}
+          networkName={"networkName"}
+        />
         <Text> </Text>
       </Box>
     );
   }
 
-  if (deployState.phase === "hold") {
-    const deploymentHolds: DeploymentHold[] = getDeploymentHolds(deployState);
+  const pendingFutures = allFutures.filter(
+    (f) => f.status.type === UiFutureStatusType.PENDING
+  );
 
+  if (pendingFutures.length > 0) {
     return (
       <Box flexDirection="column">
         <Divider />
 
         <Box>
           <Text>
-            🟡 <Text italic={true}>{deployState.details.moduleName}</Text>{" "}
-            deployment{" "}
+            🟡 <Text italic={true}>{"moduleName"}</Text> deployment{" "}
             <Text bold color="yellow">
               on hold
             </Text>
@@ -65,17 +54,22 @@ export const FinalStatus = ({ deployState }: { deployState: DeployState }) => {
         </Box>
 
         <Box flexDirection="column">
-          {deploymentHolds.map((dh) => (
-            <DepHold key={`hold-${dh.id}`} deploymentHold={dh} />
+          {pendingFutures.map((f) => (
+            <Box key={`hold-${f.futureId}`} flexDirection="column" margin={1}>
+              <Text bold={true}>{f.futureId}</Text>
+            </Box>
           ))}
         </Box>
       </Box>
     );
   }
 
-  if (deployState.phase === "failed") {
-    const deploymentErrors: DeploymentError[] =
-      getDeploymentErrors(deployState);
+  const erroredFutures = allFutures.filter(
+    (f) => f.status.type === UiFutureStatusType.ERRORED
+  );
+
+  if (erroredFutures.length > 0) {
+    const errors = getErrors(erroredFutures);
 
     return (
       <Box flexDirection="column">
@@ -83,8 +77,7 @@ export const FinalStatus = ({ deployState }: { deployState: DeployState }) => {
 
         <Box>
           <Text>
-            ⛔ <Text italic={true}>{deployState.details.moduleName}</Text>{" "}
-            deployment{" "}
+            ⛔ <Text italic={true}>{"moduleName"}</Text> deployment{" "}
             <Text bold color="red">
               failed
             </Text>
@@ -92,8 +85,13 @@ export const FinalStatus = ({ deployState }: { deployState: DeployState }) => {
         </Box>
 
         <Box flexDirection="column">
-          {deploymentErrors.map((de) => (
-            <DepError key={`error-${de.id}`} deploymentError={de} />
+          {errors.map((e) => (
+            <Box key={`error-${e.futureId}`} flexDirection="column" margin={1}>
+              <Text bold={true} underline={true}>
+                {e.futureId}
+              </Text>
+              <Text>{e.message}</Text>
+            </Box>
           ))}
         </Box>
       </Box>
@@ -103,128 +101,17 @@ export const FinalStatus = ({ deployState }: { deployState: DeployState }) => {
   return null;
 };
 
-const getDeploymentErrors = (deployState: DeployState): DeploymentError[] => {
-  const executionResults = viewExecutionResults(deployState);
+function getErrors(futures: UiFuture[]) {
+  const output = [];
 
-  return Object.entries(deployState.execution.vertexes)
-    .filter(([_id, v]) => v.status === "FAILED")
-    .map(([id]) => parseInt(id, 10))
-    .map((id) => {
-      const vertexResult = executionResults.get(id);
-
-      if (
-        vertexResult === undefined ||
-        vertexResult === null ||
-        vertexResult._kind === VertexResultEnum.SUCCESS ||
-        vertexResult._kind === VertexResultEnum.HOLD
-      ) {
-        return null;
-      }
-
-      const failure = vertexResult.failure;
-
-      const vertex = deployState.transform.executionGraph?.vertexes.get(id);
-
-      if (vertex === undefined) {
-        return null;
-      }
-
-      const errorDescription = buildErrorDescriptionFrom(failure, vertex);
-
-      return errorDescription;
-    })
-    .filter((x): x is DeploymentError => x !== null);
-};
-
-const getDeploymentHolds = (deployState: DeployState): DeploymentHold[] => {
-  return Object.entries(deployState.execution.vertexes)
-    .filter(([_id, v]) => v.status === "HOLD")
-    .map(([id]) => parseInt(id, 10))
-    .map((id) => {
-      const vertex = deployState.transform.executionGraph?.vertexes.get(id);
-
-      if (vertex === undefined) {
-        return null;
-      }
-
-      const holdDescription = buildHoldDescriptionFrom(vertex);
-
-      return holdDescription;
-    })
-    .filter((x): x is DeploymentError => x !== null);
-};
-
-const buildErrorDescriptionFrom = (
-  error: Error,
-  vertex: ExecutionVertex
-): DeploymentError => {
-  const message = "reason" in error ? (error as any).reason : error.message;
-
-  return {
-    id: vertex.id,
-    vertex: vertex.label,
-    message,
-    failureType: resolveFailureTypeFrom(vertex),
-  };
-};
-
-const buildHoldDescriptionFrom = (vertex: ExecutionVertex): DeploymentHold => {
-  return {
-    id: vertex.id,
-    vertex: vertex.label,
-    event: vertex.type === "AwaitedEvent" ? vertex.event : undefined,
-  };
-};
-
-const resolveFailureTypeFrom = (vertex: ExecutionVertex): string => {
-  switch (vertex.type) {
-    case "ContractCall":
-      return "Failed contract call";
-    case "StaticContractCall":
-      return "Failed static contract call";
-    case "ContractDeploy":
-      return "Failed contract deploy";
-    case "DeployedContract":
-      return "-";
-    case "LibraryDeploy":
-      return "Failed library deploy";
-    case "AwaitedEvent":
-      return "Failed awaited event";
-    case "SentETH":
-      return "Failed to send ETH";
-  }
-};
-
-const DepError = ({
-  deploymentError,
-}: {
-  deploymentError: DeploymentError;
-}) => {
-  return (
-    <Box flexDirection="column" margin={1}>
-      <Text bold={true}>
-        {deploymentError.failureType} - {deploymentError.vertex}
-      </Text>
-      <Text>{deploymentError.message}</Text>
-    </Box>
-  );
-};
-
-const DepHold = ({ deploymentHold }: { deploymentHold: DeploymentHold }) => {
-  if (deploymentHold.event === undefined) {
-    return (
-      <Box flexDirection="column" margin={1}>
-        <Text bold={true}>{deploymentHold.vertex}</Text>
-      </Box>
-    );
+  for (const future of futures) {
+    if (future.status.type === UiFutureStatusType.ERRORED) {
+      output.push({
+        futureId: future.futureId,
+        message: future.status.message,
+      });
+    }
   }
 
-  return (
-    <Box flexDirection="column" margin={1}>
-      <Text>
-        <Text bold={true}>{deploymentHold.vertex}</Text> waiting on event{" "}
-        <Text bold={true}>{deploymentHold.event}</Text>
-      </Text>
-    </Box>
-  );
-};
+  return output;
+}
