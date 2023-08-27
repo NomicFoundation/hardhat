@@ -471,151 +471,6 @@ describe("abi", () => {
     });
   });
 
-  describe("validateArtifactFunctionName", () => {
-    it("Should throw if the function name is not valid", () => {
-      assert.throws(
-        () =>
-          validateArtifactFunctionName(
-            callEncodingFixtures.FunctionNameValidation,
-            "12"
-          ),
-        `Invalid function name "12"`
-      );
-
-      assert.throws(
-        () =>
-          validateArtifactFunctionName(
-            callEncodingFixtures.FunctionNameValidation,
-            "asd(123, asd"
-          ),
-        `Invalid function name "asd(123, asd"`
-      );
-    });
-
-    it("Should throw if the function name is not found", () => {
-      assert.throws(
-        () =>
-          validateArtifactFunctionName(
-            callEncodingFixtures.FunctionNameValidation,
-            "nonExistentFunction"
-          ),
-        `Function "nonExistentFunction" not found in contract FunctionNameValidation`
-      );
-
-      assert.throws(
-        () =>
-          validateArtifactFunctionName(
-            callEncodingFixtures.FunctionNameValidation,
-            "nonExistentFunction2(uint,bytes32)"
-          ),
-        `Function "nonExistentFunction2(uint,bytes32)" not found in contract FunctionNameValidation`
-      );
-    });
-
-    describe("Not overlaoded functions", () => {
-      it("Should not throw if the bare function name is used and the function exists", () => {
-        validateArtifactFunctionName(
-          callEncodingFixtures.FunctionNameValidation,
-          "noOverloads"
-        );
-
-        validateArtifactFunctionName(
-          callEncodingFixtures.FunctionNameValidation,
-          "_$_weirdName"
-        );
-
-        validateArtifactFunctionName(
-          callEncodingFixtures.FunctionNameValidation,
-          "$_weirdName2"
-        );
-      });
-
-      it("Should not throw if the function name with types is used", () => {
-        assert.throws(() => {
-          validateArtifactFunctionName(
-            callEncodingFixtures.FunctionNameValidation,
-            "noOverloads()"
-          );
-        }, `Function name "noOverloads()" used for contract FunctionNameValidation, but it's not overloaded. Use "noOverloads" instead`);
-      });
-    });
-
-    describe("Overloaded functions", () => {
-      it("Should throw if the bare function name is used", () => {
-        assert.throws(
-          () => {
-            validateArtifactFunctionName(
-              callEncodingFixtures.FunctionNameValidation,
-              "withTypeBasedOverloads"
-            );
-          },
-          `Function "withTypeBasedOverloads" is overloaded in contract FunctionNameValidation. Please use one of these names instead:
-
-* withTypeBasedOverloads(uint256)
-* withTypeBasedOverloads(int256)`
-        );
-
-        assert.throws(
-          () => {
-            validateArtifactFunctionName(
-              callEncodingFixtures.FunctionNameValidation,
-              "withParamCountOverloads"
-            );
-          },
-          `Function "withParamCountOverloads" is overloaded in contract FunctionNameValidation. Please use one of these names instead:
-
-* withParamCountOverloads()
-* withParamCountOverloads(int256)`
-        );
-      });
-
-      it("Should throw if the overload described by the function name doesn't exist", () => {
-        assert.throws(
-          () => {
-            validateArtifactFunctionName(
-              callEncodingFixtures.FunctionNameValidation,
-              "withTypeBasedOverloads(bool)"
-            );
-          },
-          `Function "withTypeBasedOverloads(bool)" is not a valid overload of "withTypeBasedOverloads" in contract FunctionNameValidation. Please use one of these names instead:
-
-* withTypeBasedOverloads(uint256)
-* withTypeBasedOverloads(int256)`
-        );
-
-        assert.throws(
-          () => {
-            validateArtifactFunctionName(
-              callEncodingFixtures.FunctionNameValidation,
-              "withParamCountOverloads(bool)"
-            );
-          },
-          `Function "withParamCountOverloads(bool)" is not a valid overload of "withParamCountOverloads" in contract FunctionNameValidation. Please use one of these names instead:
-
-* withParamCountOverloads()
-* withParamCountOverloads(int256)`
-        );
-      });
-
-      it("Should not throw if the overload described by the function name exists", () => {
-        validateArtifactFunctionName(
-          callEncodingFixtures.FunctionNameValidation,
-          "withTypeBasedOverloads(uint256)"
-        );
-
-        validateArtifactFunctionName(
-          callEncodingFixtures.FunctionNameValidation,
-          "withParamCountOverloads(int256)"
-        );
-
-        validateArtifactFunctionName(
-          callEncodingFixtures.FunctionNameValidation,
-          "complexTypeOverload((uint256,uint32,string)[])"
-        );
-      });
-    });
-  });
-
   describe("Error decoding", () => {
     function decode(
       contractName: keyof typeof staticCallResultFixtures,
@@ -783,6 +638,181 @@ describe("abi", () => {
             });
           });
         });
+      });
+    });
+  });
+
+  describe("validations", () => {
+    describe("validateArtifactFunctionName", () => {
+      it("Should throw if the function name is not valid", () => {
+        assert.throws(
+          () =>
+            validateArtifactFunctionName(
+              callEncodingFixtures.FunctionNameValidation,
+              "12"
+            ),
+          `Invalid function name "12"`
+        );
+
+        assert.throws(
+          () =>
+            validateArtifactFunctionName(
+              callEncodingFixtures.FunctionNameValidation,
+              "asd(123, asd"
+            ),
+          `Invalid function name "asd(123, asd"`
+        );
+      });
+
+      it("Should throw if the function name is not found", () => {
+        assert.throws(
+          () =>
+            validateArtifactFunctionName(
+              callEncodingFixtures.FunctionNameValidation,
+              "nonExistentFunction"
+            ),
+          `Function "nonExistentFunction" not found in contract FunctionNameValidation`
+        );
+
+        assert.throws(
+          () =>
+            validateArtifactFunctionName(
+              callEncodingFixtures.FunctionNameValidation,
+              "nonExistentFunction2(uint,bytes32)"
+            ),
+          `Function "nonExistentFunction2(uint,bytes32)" not found in contract FunctionNameValidation`
+        );
+      });
+
+      describe("Not overlaoded functions", () => {
+        it("Should not throw if the bare function name is used and the function exists", () => {
+          validateArtifactFunctionName(
+            callEncodingFixtures.FunctionNameValidation,
+            "noOverloads"
+          );
+
+          validateArtifactFunctionName(
+            callEncodingFixtures.FunctionNameValidation,
+            "_$_weirdName"
+          );
+
+          validateArtifactFunctionName(
+            callEncodingFixtures.FunctionNameValidation,
+            "$_weirdName2"
+          );
+        });
+
+        it("Should not throw if the function name with types is used", () => {
+          assert.throws(() => {
+            validateArtifactFunctionName(
+              callEncodingFixtures.FunctionNameValidation,
+              "noOverloads()"
+            );
+          }, `Function name "noOverloads()" used for contract FunctionNameValidation, but it's not overloaded. Use "noOverloads" instead`);
+        });
+      });
+
+      describe("Overloaded functions", () => {
+        it("Should throw if the bare function name is used", () => {
+          assert.throws(
+            () => {
+              validateArtifactFunctionName(
+                callEncodingFixtures.FunctionNameValidation,
+                "withTypeBasedOverloads"
+              );
+            },
+            `Function "withTypeBasedOverloads" is overloaded in contract FunctionNameValidation. Please use one of these names instead:
+
+* withTypeBasedOverloads(uint256)
+* withTypeBasedOverloads(int256)`
+          );
+
+          assert.throws(
+            () => {
+              validateArtifactFunctionName(
+                callEncodingFixtures.FunctionNameValidation,
+                "withParamCountOverloads"
+              );
+            },
+            `Function "withParamCountOverloads" is overloaded in contract FunctionNameValidation. Please use one of these names instead:
+
+* withParamCountOverloads()
+* withParamCountOverloads(int256)`
+          );
+        });
+
+        it("Should throw if the overload described by the function name doesn't exist", () => {
+          assert.throws(
+            () => {
+              validateArtifactFunctionName(
+                callEncodingFixtures.FunctionNameValidation,
+                "withTypeBasedOverloads(bool)"
+              );
+            },
+            `Function "withTypeBasedOverloads(bool)" is not a valid overload of "withTypeBasedOverloads" in contract FunctionNameValidation. Please use one of these names instead:
+
+* withTypeBasedOverloads(uint256)
+* withTypeBasedOverloads(int256)`
+          );
+
+          assert.throws(
+            () => {
+              validateArtifactFunctionName(
+                callEncodingFixtures.FunctionNameValidation,
+                "withParamCountOverloads(bool)"
+              );
+            },
+            `Function "withParamCountOverloads(bool)" is not a valid overload of "withParamCountOverloads" in contract FunctionNameValidation. Please use one of these names instead:
+
+* withParamCountOverloads()
+* withParamCountOverloads(int256)`
+          );
+        });
+
+        it("Should not throw if the overload described by the function name exists", () => {
+          validateArtifactFunctionName(
+            callEncodingFixtures.FunctionNameValidation,
+            "withTypeBasedOverloads(uint256)"
+          );
+
+          validateArtifactFunctionName(
+            callEncodingFixtures.FunctionNameValidation,
+            "withParamCountOverloads(int256)"
+          );
+
+          validateArtifactFunctionName(
+            callEncodingFixtures.FunctionNameValidation,
+            "complexTypeOverload((uint256,uint32,string)[])"
+          );
+        });
+      });
+    });
+
+    describe("validateArtifactEventArgumentParams", () => {
+      describe("Overloaded event names", () => {
+        // This tests should match those of validateArtifactFunctionName
+      });
+
+      describe("Param existance validation", () => {
+        it("Should throw if the named param doesn't exist", () => {});
+
+        it("Should throw if the positional param doesn't exist", () => {});
+
+        it("Should not throw if the named/positional param doesn't exist", () => {});
+      });
+
+      describe("Indexed params", () => {
+        it("Should throw when trying to read an indexed string", () => {});
+
+        it("Should throw when trying to read an indexed array", () => {});
+
+        it("Should throw when trying to read an indexed struct", () => {});
+
+        it("Should throw when trying to read an indexed bytes", () => {});
+
+        it("Should not throw when trying to read an indexed address", () => {});
+
+        it("Should not throw when trying to read an indexed uint", () => {});
       });
     });
   });
