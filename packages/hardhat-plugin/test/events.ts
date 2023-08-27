@@ -7,7 +7,7 @@ import { useEphemeralIgnitionProject } from "./use-ignition-project";
 describe("events", () => {
   useEphemeralIgnitionProject("minimal-new-api");
 
-  it.skip("should be able to use the output of a readEvent in a contract at", async function () {
+  it("should be able to use the output of a readEvent in a contract at", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {
       const account1 = m.getAccount(1);
 
@@ -32,7 +32,7 @@ describe("events", () => {
     assert.equal(await result.foo.x(), Number(1));
   });
 
-  it.skip("should be able to use the output of a readEvent in an artifact contract at", async function () {
+  it("should be able to use the output of a readEvent in an artifact contract at", async function () {
     const artifact = await this.hre.artifacts.readArtifact("Foo");
 
     const moduleDefinition = buildModule("FooModule", (m) => {
