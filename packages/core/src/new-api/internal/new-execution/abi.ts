@@ -176,22 +176,25 @@ export function validateArtifactEventArgumentParams(
 
   const eventFragment = getEventFragment(iface, eventName);
 
-  if (typeof argument === "string") {
-    for (const input of eventFragment.inputs) {
-      if (input.name === argument) {
-        return;
-      }
+  const paramType = getEventArgumentParamType(
+    emitterArtifact.contractName,
+    eventName,
+    eventFragment,
+    argument
+  );
+
+  if (paramType.indexed === true) {
+    // We can't access the value of indexed arguments with dynamic size
+    if (
+      paramType.isArray() ||
+      paramType.isTuple() ||
+      paramType.type === "bytes" ||
+      paramType.type === "string"
+    ) {
+      throw new IgnitionValidationError(
+        `Indexed argument ${argument} of event ${eventName} of contract ${emitterArtifact.contractName} is not stored in the receipt, but its hash is, so you can't read it.`
+      );
     }
-
-    throw new IgnitionValidationError(
-      `Event ${eventName} of contract ${emitterArtifact.contractName} has no argument named ${argument}`
-    );
-  }
-
-  if (eventFragment.inputs.length <= argument) {
-    throw new IgnitionValidationError(
-      `Event ${eventName} of contract ${emitterArtifact.contractName} has only ${eventFragment.inputs.length} arguments, but argument ${argument} was requested`
-    );
   }
 }
 
@@ -227,7 +230,11 @@ export function getEventArgumentFromReceipt(
 
   const log = eventLogs[eventIndex];
 
-  const ethersResult = iface.decodeEventLog(eventFragment, log.data);
+  const ethersResult = iface.decodeEventLog(
+    eventFragment,
+    log.data,
+    log.topics
+  );
 
   const evmTuple = ethersResultIntoEvmTuple(ethersResult, eventFragment.inputs);
 
@@ -592,4 +599,38 @@ ${normalizedNameList}`
 ${normalizedNameList}`
     );
   }
+}
+
+/**
+ * Returns teh param type of an event argument, throwing a validation error if it's not found.
+ * @param eventFragment
+ * @param argument
+ */
+function getEventArgumentParamType(
+  contractName: string,
+  eventName: string,
+  eventFragment: EventFragment,
+  argument: string | number
+): ParamType {
+  if (typeof argument === "string") {
+    for (const input of eventFragment.inputs) {
+      if (input.name === argument) {
+        return input;
+      }
+    }
+
+    throw new IgnitionValidationError(
+      `Event ${eventName} of contract ${contractName} has no argument named ${argument}`
+    );
+  }
+
+  const paramType = eventFragment.inputs[argument];
+
+  if (paramType === undefined) {
+    throw new IgnitionValidationError(
+      `Event ${eventName} of contract ${contractName} has only ${eventFragment.inputs.length} arguments, but argument ${argument} was requested`
+    );
+  }
+
+  return paramType;
 }
