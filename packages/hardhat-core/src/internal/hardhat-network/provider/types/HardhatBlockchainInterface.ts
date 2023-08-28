@@ -13,5 +13,5 @@ export interface HardhatBlockchainInterface
     previousBlockStateRoot: Buffer,
     previousBlockTotalDifficulty: bigint,
     previousBlockBaseFeePerGas: bigint | undefined
-  ): void;
+  ): Promise<void>;
 }

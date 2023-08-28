@@ -147,9 +147,11 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
     // helper function to mine a block with a timstamp that respects the
     // interval
     const mineBlock = async () => {
-      blockTimestamp += interval;
+      const nextTimestamp =
+        (await this._blockchain.getLatestBlock()).header.timestamp + interval;
+
       mineBlockResults.push(
-        await this.mineBlock(blockTimestamp, minerReward, baseFeePerGas)
+        await this.mineBlock(nextTimestamp, minerReward, baseFeePerGas)
       );
     };
 
@@ -184,7 +186,7 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
 
     // otherwise, we reserve a range and mine the last one
     const latestBlock = await this._blockchain.getLatestBlock();
-    this._blockchain.reserveBlocks(
+    await this._blockchain.reserveBlocks(
       remainingBlockCount - 1n,
       interval,
       await this._vm.getStateRoot(),
