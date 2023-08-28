@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "@ignored/hardhat-ignition": "^0.2.0",
-    "@nomicfoundation/hardhat-toolbox": "2.0.2",
+    "@nomicfoundation/hardhat-toolbox": "3.0.0",
     "hardhat": "^2.14.0",
     "prettier-plugin-solidity": "1.1.3"
   }

@@ -1,12 +1,12 @@
 const {
   time,
   loadFixture,
-} = require("@nomicfoundation/hardhat-network-helpers");
+} = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
 const LockModule = require("../ignition/LockModule");
 
-describe.skip("Lock", function () {
+describe("Lock", function () {
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
@@ -27,7 +27,6 @@ describe.skip("Lock", function () {
           lockedAmount,
         },
       },
-      config: { requiredConfirmations: 1 },
     });
 
     return { lock, unlockTime, lockedAmount, owner, otherAccount };
@@ -51,7 +50,7 @@ describe.skip("Lock", function () {
         deployOneYearLockFixture
       );
 
-      expect(await ethers.provider.getBalance(lock.address)).to.equal(
+      expect(await ethers.provider.getBalance(lock.target)).to.equal(
         lockedAmount
       );
     });
