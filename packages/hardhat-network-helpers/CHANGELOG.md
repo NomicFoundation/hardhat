@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-network-helpers
 
+## 1.0.9
+
+### Patch Changes
+
+- 9715d4195: Added support for receiving Date instances in `increaseTo` network helper (thanks @Saty248)
+
 ## 1.0.8
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-foundry
 
+## 1.1.0
+
+### Minor Changes
+
+- 9cb4f845d: Revamped how remappings are handled. Now they are passed to Hardhat's compile task, which handles them during file resolution.
+
 ## 1.0.3
 
 ### Patch Changes
