@@ -1,4 +1,4 @@
-use crate::block::largest_safe_block_number;
+use crate::block::{is_safe_block_number, IsSafeBlockNumberArgs};
 use revm_primitives::{Address, B256};
 use sha3::digest::FixedOutput;
 use sha3::{Digest, Sha3_256};
@@ -397,23 +397,22 @@ impl<'a> WriteCacheKey<'a> {
 pub(super) struct CacheKeyForUncheckedBlockNumber<'a> {
     // Boxed to keep the size of the enum small.
     hasher: Box<Hasher>,
-    block_number: &'a U256,
+    pub(super) block_number: &'a U256,
 }
 
 impl<'a> CacheKeyForUncheckedBlockNumber<'a> {
-    /// Check whether the block number is safe to cache.
-    pub fn is_safe_block_number(&self, chain_id: &U256, block_number: &U256) -> bool {
-        let safe_block_number = largest_safe_block_number(chain_id, block_number);
-        self.block_number <= &safe_block_number
-    }
-
     /// Check whether the block number is safe to cache before returning a cache key.
     pub fn validate_block_number(
         self,
         chain_id: &U256,
         latest_block_number: &U256,
     ) -> Option<String> {
-        if self.is_safe_block_number(chain_id, latest_block_number) {
+        let is_safe = is_safe_block_number(IsSafeBlockNumberArgs {
+            chain_id,
+            latest_block_number,
+            block_number: self.block_number,
+        });
+        if is_safe {
             Some(self.hasher.finalize())
         } else {
             None

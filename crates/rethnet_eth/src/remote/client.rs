@@ -22,6 +22,7 @@ use sha3::digest::FixedOutput;
 use sha3::{Digest, Sha3_256};
 use tokio::sync::{OnceCell, RwLock};
 
+use crate::block::{is_safe_block_number, IsSafeBlockNumberArgs};
 use crate::remote::cacheable_method_invocation::{
     CacheKeyForSymbolicBlockTag, CacheKeyForUncheckedBlockNumber, CacheableMethodInvocation,
     ReadCacheKey, ResolvedSymbolicTag, WriteCacheKey,
@@ -282,7 +283,11 @@ impl RpcClient {
     ) -> Result<U256, RpcClientError> {
         let largest_known_block_number = { *self.largest_known_block_number.read().await };
         if let Some(largest_known_block_number) = largest_known_block_number {
-            if safety_checker.is_safe_block_number(chain_id, &largest_known_block_number) {
+            if is_safe_block_number(IsSafeBlockNumberArgs {
+                chain_id,
+                latest_block_number: &largest_known_block_number,
+                block_number: safety_checker.block_number,
+            }) {
                 return Ok(largest_known_block_number);
             }
         };
@@ -602,6 +607,37 @@ impl RpcClient {
             *write_guard = Some(block_number);
         }
         Ok(block_number)
+    }
+
+    /// Whether the block number should be cached based on its depth.
+    pub async fn is_cacheable_block_number(
+        &self,
+        block_number: &U256,
+    ) -> Result<bool, RpcClientError> {
+        let chain_id = self.chain_id().await?;
+
+        // See if the block number is safe to cache based on the largest known block number to
+        // avoid having to fetch the latest block number if it is.
+        let largest_known_block_number = { *self.largest_known_block_number.read().await };
+        if let Some(largest_known_block_number) = largest_known_block_number {
+            let is_safe = is_safe_block_number(IsSafeBlockNumberArgs {
+                chain_id: &chain_id,
+                latest_block_number: &largest_known_block_number,
+                block_number,
+            });
+            if is_safe {
+                return Ok(true);
+            }
+        }
+
+        // If it's not safe to cache based on the largest known block number, fetch the latest and
+        // check again.
+        let latest_block_number = self.block_number().await?;
+        Ok(is_safe_block_number(IsSafeBlockNumberArgs {
+            chain_id: &chain_id,
+            latest_block_number: &latest_block_number,
+            block_number,
+        }))
     }
 
     /// Calls `eth_chainId` and returns the chain ID.
@@ -1043,6 +1079,24 @@ mod tests {
             } else {
                 unreachable!("Invalid error: {error}");
             }
+        }
+
+        #[tokio::test]
+        async fn test_is_cacheable_block_number() {
+            let client = TestRpcClient::new(&get_alchemy_url());
+
+            let latest_block_number = client.block_number().await.unwrap();
+
+            // Latest block number is never cacheable
+            assert!(!client
+                .is_cacheable_block_number(&latest_block_number)
+                .await
+                .unwrap());
+
+            assert!(client
+                .is_cacheable_block_number(&U256::from(16220843))
+                .await
+                .unwrap());
         }
 
         #[tokio::test]
