@@ -11,12 +11,20 @@ import {
   ExecutionEventResultType,
   ExecutionEventType,
   IgnitionError,
+  NetworkInteractionRequestEvent,
+  OnchainInteractionBumpFeesEvent,
+  OnchainInteractionDroppedEvent,
+  OnchainInteractionReplacedByUserEvent,
+  OnchainInteractionTimeoutEvent,
   ReadEventArgExecutionStateInitializeEvent,
   RunStartEvent,
   SendDataExecutionStateCompleteEvent,
   SendDataExecutionStateInitializeEvent,
+  StaticCallCompleteEvent,
   StaticCallExecutionStateCompleteEvent,
   StaticCallExecutionStateInitializeEvent,
+  TransactionConfirmEvent,
+  TransactionSendEvent,
   WipeExecutionStateEvent,
 } from "@ignored/ignition-core";
 import { render } from "ink";
@@ -272,6 +280,38 @@ export class UiEventHandler implements ExecutionEventListener {
       batches,
     };
   }
+
+  public [ExecutionEventType.NETWORK_INTERACTION_REQUEST](
+    _event: NetworkInteractionRequestEvent
+  ): void {}
+
+  public [ExecutionEventType.TRANSACTION_SEND](
+    _event: TransactionSendEvent
+  ): void {}
+
+  public [ExecutionEventType.TRANSACTION_CONFIRM](
+    _event: TransactionConfirmEvent
+  ): void {}
+
+  public [ExecutionEventType.STATIC_CALL_COMPLETE](
+    _event: StaticCallCompleteEvent
+  ): void {}
+
+  public [ExecutionEventType.ONCHAIN_INTERACTION_BUMP_FEES](
+    _event: OnchainInteractionBumpFeesEvent
+  ): void {}
+
+  public [ExecutionEventType.ONCHAIN_INTERACTION_DROPPED](
+    _event: OnchainInteractionDroppedEvent
+  ): void {}
+
+  public [ExecutionEventType.ONCHAIN_INTERACTION_REPLACED_BY_USER](
+    _event: OnchainInteractionReplacedByUserEvent
+  ): void {}
+
+  public [ExecutionEventType.ONCHAIN_INTERACTION_TIMEOUT](
+    _event: OnchainInteractionTimeoutEvent
+  ): void {}
 
   public unmountCli(): Promise<void> {
     if (

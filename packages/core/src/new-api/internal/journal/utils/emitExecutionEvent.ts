@@ -129,16 +129,64 @@ export function emitExecutionEvent(
       });
       break;
     }
-    case JournalMessageType.NETWORK_INTERACTION_REQUEST:
-    case JournalMessageType.TRANSACTION_SEND:
-    case JournalMessageType.TRANSACTION_CONFIRM:
-    case JournalMessageType.STATIC_CALL_COMPLETE:
-    case JournalMessageType.ONCHAIN_INTERACTION_BUMP_FEES:
-    case JournalMessageType.ONCHAIN_INTERACTION_DROPPED:
-    case JournalMessageType.ONCHAIN_INTERACTION_REPLACED_BY_USER:
-    case JournalMessageType.ONCHAIN_INTERACTION_TIMEOUT:
-      // todo: implement these as well
-      return;
+    case JournalMessageType.NETWORK_INTERACTION_REQUEST: {
+      executionEventListener[ExecutionEventType.NETWORK_INTERACTION_REQUEST]({
+        type: ExecutionEventType.NETWORK_INTERACTION_REQUEST,
+        futureId: message.futureId,
+      });
+      break;
+    }
+    case JournalMessageType.TRANSACTION_SEND: {
+      executionEventListener[ExecutionEventType.TRANSACTION_SEND]({
+        type: ExecutionEventType.TRANSACTION_SEND,
+        futureId: message.futureId,
+      });
+      break;
+    }
+    case JournalMessageType.TRANSACTION_CONFIRM: {
+      executionEventListener[ExecutionEventType.TRANSACTION_CONFIRM]({
+        type: ExecutionEventType.TRANSACTION_CONFIRM,
+        futureId: message.futureId,
+      });
+      break;
+    }
+    case JournalMessageType.STATIC_CALL_COMPLETE: {
+      executionEventListener[ExecutionEventType.STATIC_CALL_COMPLETE]({
+        type: ExecutionEventType.STATIC_CALL_COMPLETE,
+        futureId: message.futureId,
+      });
+      break;
+    }
+    case JournalMessageType.ONCHAIN_INTERACTION_BUMP_FEES: {
+      executionEventListener[ExecutionEventType.ONCHAIN_INTERACTION_BUMP_FEES]({
+        type: ExecutionEventType.ONCHAIN_INTERACTION_BUMP_FEES,
+        futureId: message.futureId,
+      });
+      break;
+    }
+    case JournalMessageType.ONCHAIN_INTERACTION_DROPPED: {
+      executionEventListener[ExecutionEventType.ONCHAIN_INTERACTION_DROPPED]({
+        type: ExecutionEventType.ONCHAIN_INTERACTION_DROPPED,
+        futureId: message.futureId,
+      });
+      break;
+    }
+    case JournalMessageType.ONCHAIN_INTERACTION_REPLACED_BY_USER: {
+      executionEventListener[
+        ExecutionEventType.ONCHAIN_INTERACTION_REPLACED_BY_USER
+      ]({
+        type: ExecutionEventType.ONCHAIN_INTERACTION_REPLACED_BY_USER,
+        futureId: message.futureId,
+      });
+      break;
+    }
+    case JournalMessageType.ONCHAIN_INTERACTION_TIMEOUT: {
+      executionEventListener[ExecutionEventType.ONCHAIN_INTERACTION_TIMEOUT]({
+        type: ExecutionEventType.ONCHAIN_INTERACTION_TIMEOUT,
+        futureId: message.futureId,
+      });
+      break;
+    }
   }
 }
 
