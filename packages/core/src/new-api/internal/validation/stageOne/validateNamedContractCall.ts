@@ -1,10 +1,11 @@
-import { FunctionFragment, Interface } from "ethers";
-
 import { IgnitionValidationError } from "../../../../errors";
 import { isArtifactType } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { NamedContractCallFuture } from "../../../types/module";
-import { validateArtifactFunctionName } from "../../new-execution/abi";
+import {
+  validateArtifactFunction,
+  validateArtifactFunctionName,
+} from "../../new-execution/abi";
 
 export async function validateNamedContractCall(
   future: NamedContractCallFuture<string, string>,
@@ -23,30 +24,11 @@ export async function validateNamedContractCall(
 
   validateArtifactFunctionName(artifact, future.functionName);
 
-  const argsLength = future.args.length;
-
-  const iface = new Interface(artifact.abi);
-
-  const funcs: FunctionFragment[] = [];
-  iface.forEachFunction((func) => {
-    if (func.name === future.functionName) {
-      funcs.push(func);
-    }
-  });
-
-  const matchingFunctionFragments = funcs.filter(
-    (f) => f.inputs.length === argsLength
+  validateArtifactFunction(
+    artifact,
+    future.contract.contractName,
+    future.functionName,
+    future.args,
+    false
   );
-
-  if (matchingFunctionFragments.length === 0) {
-    if (funcs.length === 1) {
-      throw new IgnitionValidationError(
-        `Function ${future.functionName} in contract ${future.contract.contractName} expects ${funcs[0].inputs.length} arguments but ${argsLength} were given`
-      );
-    } else {
-      throw new IgnitionValidationError(
-        `Function ${future.functionName} in contract ${future.contract.contractName} is overloaded, but no overload expects ${argsLength} arguments`
-      );
-    }
-  }
 }

@@ -23,6 +23,7 @@ export async function validateNamedStaticCall(
     artifact,
     future.contract.contractName,
     future.functionName,
-    future.args
+    future.args,
+    true
   );
 }

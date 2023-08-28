@@ -150,13 +150,16 @@ export function decodeArtifactFunctionCallResult(
  *    - If the function is overloaded, the function name is includes the argument types
  *      in parentheses.
  * - The function has the correct number of arguments
+ *
+ * Optionally checks further static call constraints:
  * - The function is has a pure or view state mutability
  */
 export function validateArtifactFunction(
   artifact: Artifact,
   contractName: string,
   functionName: string,
-  args: ArgumentType[]
+  args: ArgumentType[],
+  isStaticCall: boolean
 ) {
   validateOverloadedName(artifact, functionName, false);
 
@@ -171,8 +174,8 @@ export function validateArtifactFunction(
     );
   }
 
-  // CHeck that the function is pure or view, which is required for a static call
-  if (!fragment.constant) {
+  // Check that the function is pure or view, which is required for a static call
+  if (isStaticCall && !fragment.constant) {
     throw new IgnitionValidationError(
       `Function ${functionName} in contract ${contractName} is not 'pure' or 'view' and cannot be statically called`
     );
