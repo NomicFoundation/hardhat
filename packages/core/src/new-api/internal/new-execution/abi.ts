@@ -143,6 +143,31 @@ export function decodeArtifactFunctionCallResult(
 }
 
 /**
+ * Validate that the given args length matches the artifact's abi's args length.
+ *
+ * @param artifact - the artifact for the contract being validated
+ * @param contractName - the name of the contract for error messages
+ * @param args - the args to validate against
+ */
+export function validateContractConstructorArgsLength(
+  artifact: Artifact,
+  contractName: string,
+  args: ArgumentType[]
+): void {
+  const argsLength = args.length;
+
+  const { ethers } = require("ethers") as typeof import("ethers");
+  const iface = new ethers.Interface(artifact.abi);
+  const expectedArgsLength = iface.deploy.inputs.length;
+
+  if (argsLength !== expectedArgsLength) {
+    throw new IgnitionValidationError(
+      `The constructor of the contract '${contractName}' expects ${expectedArgsLength} arguments but ${argsLength} were given`
+    );
+  }
+}
+
+/**
  * Validates that a function is valid for the given artifact. That means:
  *  - It's a valid function name
  *    - The function name exists in the artifact's ABI
