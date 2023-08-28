@@ -18,8 +18,8 @@ export async function wipe(
 ): Promise<void> {
   const deploymentLoader =
     deploymentDir !== undefined
-      ? new FileDeploymentLoader(deploymentDir, false)
-      : new EphemeralDeploymentLoader(artifactResolver, false);
+      ? new FileDeploymentLoader(deploymentDir)
+      : new EphemeralDeploymentLoader(artifactResolver);
 
   const wiper = new Wiper(deploymentLoader);
 

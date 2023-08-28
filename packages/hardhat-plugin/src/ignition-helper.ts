@@ -58,7 +58,6 @@ export class IgnitionHelper {
       ignitionModule: ignitionModuleDefinition,
       deploymentParameters: parameters,
       accounts,
-      verbose: false,
     });
 
     if (result.status === "timeout") {

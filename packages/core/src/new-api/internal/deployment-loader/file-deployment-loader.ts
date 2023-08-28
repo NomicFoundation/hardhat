@@ -26,7 +26,6 @@ export class FileDeploymentLoader implements DeploymentLoader {
 
   constructor(
     private readonly _deploymentDirPath: string,
-    private readonly _verbose: boolean,
     private readonly _executionEventListener?: ExecutionEventListener
   ) {
     const artifactsDir = path.join(this._deploymentDirPath, "artifacts");
@@ -37,11 +36,7 @@ export class FileDeploymentLoader implements DeploymentLoader {
       "deployed_addresses.json"
     );
 
-    this._journal = new FileJournal(
-      journalPath,
-      this._verbose,
-      this._executionEventListener
-    );
+    this._journal = new FileJournal(journalPath, this._executionEventListener);
 
     this._paths = {
       deploymentDir: this._deploymentDirPath,

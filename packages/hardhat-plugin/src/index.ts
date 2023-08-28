@@ -16,6 +16,7 @@ import { IgnitionHelper } from "./ignition-helper";
 import { loadModule } from "./load-module";
 import { writePlan } from "./plan/write-plan";
 import { UiEventHandler } from "./ui/UiEventHandler.js";
+import { VerboseEventHandler } from "./ui/VerboseEventHandler.js";
 import { open } from "./utils/open";
 
 import "./type-extensions";
@@ -61,19 +62,19 @@ task("deploy")
   )
   .addOptionalParam("id", "set the deployment id")
   .addFlag("force", "restart the deployment ignoring previous history")
-  .addFlag("logs", "output journal logs to the terminal")
+  .addFlag("useVerbose", "use verbose execution output instead of UI")
   .setAction(
     async (
       {
         moduleNameOrPath,
         parameters: parametersInput,
-        logs,
+        useVerbose,
         id: givenDeploymentId,
       }: {
         moduleNameOrPath: string;
         parameters?: string;
         force: boolean;
-        logs: boolean;
+        useVerbose: boolean;
         id: string;
       },
       hre
@@ -136,7 +137,9 @@ task("deploy")
 
         const artifactResolver = new HardhatArtifactResolver(hre);
 
-        const executionEventListener = new UiEventHandler(parameters);
+        const executionEventListener = useVerbose
+          ? new VerboseEventHandler()
+          : new UiEventHandler(parameters);
 
         const result = await deploy({
           config: hre.config.ignition,
@@ -147,7 +150,6 @@ task("deploy")
           ignitionModule: userModule,
           deploymentParameters: parameters ?? {},
           accounts,
-          verbose: logs,
         });
 
         if (result.status === "success") {

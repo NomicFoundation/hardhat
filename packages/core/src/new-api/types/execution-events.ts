@@ -102,6 +102,7 @@ export interface ContractAtExecutionStateInitializeEvent {
 export interface ReadEventArgExecutionStateInitializeEvent {
   type: ExecutionEventType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE;
   futureId: string;
+  result: ExecutionEventSuccess;
 }
 
 export interface WipeExecutionStateEvent {
@@ -116,17 +117,20 @@ export interface BatchInitializeEvent {
 
 export interface NetworkInteractionRequestEvent {
   type: ExecutionEventType.NETWORK_INTERACTION_REQUEST;
+  networkInteractionType: ExecutionEventNetworkInteractionType;
   futureId: string;
 }
 
 export interface TransactionSendEvent {
   type: ExecutionEventType.TRANSACTION_SEND;
   futureId: string;
+  hash: string;
 }
 
 export interface TransactionConfirmEvent {
   type: ExecutionEventType.TRANSACTION_CONFIRM;
   futureId: string;
+  hash: string;
 }
 
 export interface StaticCallCompleteEvent {
@@ -152,6 +156,11 @@ export interface OnchainInteractionReplacedByUserEvent {
 export interface OnchainInteractionTimeoutEvent {
   type: ExecutionEventType.ONCHAIN_INTERACTION_TIMEOUT;
   futureId: string;
+}
+
+export enum ExecutionEventNetworkInteractionType {
+  ONCHAIN_INTERACTION = "ONCHAIN_INTERACTION",
+  STATIC_CALL = "STATIC_CALL",
 }
 
 export enum ExecutionEventResultType {

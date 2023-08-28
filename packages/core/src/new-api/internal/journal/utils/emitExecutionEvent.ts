@@ -3,7 +3,9 @@ import {
   ExecutionEventType,
   ExecutionEventResult,
   ExecutionEventResultType,
+  ExecutionEventNetworkInteractionType,
 } from "../../../types/execution-events";
+import { SolidityParameterType } from "../../../types/module";
 import {
   CallExecutionResult,
   DeploymentExecutionResult,
@@ -15,6 +17,7 @@ import {
   JournalMessage,
   JournalMessageType,
 } from "../../new-execution/types/messages";
+import { NetworkInteractionType } from "../../new-execution/types/network-interaction";
 
 import { failedEvmExecutionResultToErrorDescription } from "./failedEvmExecutionResultToErrorDescription";
 
@@ -126,12 +129,21 @@ export function emitExecutionEvent(
       ]({
         type: ExecutionEventType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE,
         futureId: message.futureId,
+        result: {
+          type: ExecutionEventResultType.SUCCESS,
+          result: solidityParamToString(message.result),
+        },
       });
       break;
     }
     case JournalMessageType.NETWORK_INTERACTION_REQUEST: {
       executionEventListener[ExecutionEventType.NETWORK_INTERACTION_REQUEST]({
         type: ExecutionEventType.NETWORK_INTERACTION_REQUEST,
+        networkInteractionType:
+          message.networkInteraction.type ===
+          NetworkInteractionType.ONCHAIN_INTERACTION
+            ? ExecutionEventNetworkInteractionType.ONCHAIN_INTERACTION
+            : ExecutionEventNetworkInteractionType.STATIC_CALL,
         futureId: message.futureId,
       });
       break;
@@ -140,6 +152,7 @@ export function emitExecutionEvent(
       executionEventListener[ExecutionEventType.TRANSACTION_SEND]({
         type: ExecutionEventType.TRANSACTION_SEND,
         futureId: message.futureId,
+        hash: message.transaction.hash,
       });
       break;
     }
@@ -147,6 +160,7 @@ export function emitExecutionEvent(
       executionEventListener[ExecutionEventType.TRANSACTION_CONFIRM]({
         type: ExecutionEventType.TRANSACTION_CONFIRM,
         futureId: message.futureId,
+        hash: message.hash,
       });
       break;
     }
@@ -248,4 +262,16 @@ function convertStaticCallResultToExecutionEventResult(
       };
     }
   }
+}
+
+function solidityParamToString(param: SolidityParameterType): string {
+  if (typeof param === "object") {
+    return JSON.stringify(param);
+  }
+
+  if (typeof param === "string") {
+    return param;
+  }
+
+  return param.toString();
 }

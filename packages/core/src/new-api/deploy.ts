@@ -36,7 +36,6 @@ export async function deploy({
   ignitionModule,
   deploymentParameters,
   accounts,
-  verbose,
   defaultSender,
 }: {
   config?: Partial<DeployConfig>;
@@ -47,7 +46,6 @@ export async function deploy({
   ignitionModule: IgnitionModule;
   deploymentParameters: DeploymentParameters;
   accounts: string[];
-  verbose: boolean;
   defaultSender?: string;
 }): Promise<DeploymentResult> {
   await validateStageOne(ignitionModule, artifactResolver);
@@ -64,16 +62,8 @@ export async function deploy({
 
   const deploymentLoader =
     deploymentDir === undefined
-      ? new EphemeralDeploymentLoader(
-          artifactResolver,
-          verbose,
-          executionEventListener
-        )
-      : new FileDeploymentLoader(
-          deploymentDir,
-          verbose,
-          executionEventListener
-        );
+      ? new EphemeralDeploymentLoader(artifactResolver, executionEventListener)
+      : new FileDeploymentLoader(deploymentDir, executionEventListener);
 
   const executionStrategy = new BasicExecutionStrategy((artifactId) =>
     deploymentLoader.loadArtifact(artifactId)

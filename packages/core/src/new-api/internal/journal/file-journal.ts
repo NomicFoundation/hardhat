@@ -8,7 +8,6 @@ import { JournalMessage } from "../new-execution/types/messages";
 import { Journal } from "./types";
 import { deserializeReplacer } from "./utils/deserialize-replacer";
 import { emitExecutionEvent } from "./utils/emitExecutionEvent";
-import { logJournalableMessage } from "./utils/log";
 import { serializeReplacer } from "./utils/serialize-replacer";
 
 /**
@@ -19,7 +18,6 @@ import { serializeReplacer } from "./utils/serialize-replacer";
 export class FileJournal implements Journal {
   constructor(
     private _filePath: string,
-    private _verbose: boolean = false,
     private _executionEventListener?: ExecutionEventListener
   ) {}
 
@@ -66,10 +64,6 @@ export class FileJournal implements Journal {
   }
 
   private _log(message: JournalMessage): void {
-    if (this._verbose) {
-      logJournalableMessage(message);
-    }
-
     if (this._executionEventListener !== undefined) {
       emitExecutionEvent(message, this._executionEventListener);
     }

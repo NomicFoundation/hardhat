@@ -27,13 +27,9 @@ export class EphemeralDeploymentLoader implements DeploymentLoader {
 
   constructor(
     private _artifactResolver: ArtifactResolver,
-    private _verbose: boolean,
     private _executionEventListener?: ExecutionEventListener
   ) {
-    this._journal = new MemoryJournal(
-      this._verbose,
-      this._executionEventListener
-    );
+    this._journal = new MemoryJournal(this._executionEventListener);
     this._deployedAddresses = {};
     this._savedArtifacts = {};
   }
