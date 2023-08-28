@@ -180,6 +180,8 @@ subtask(TASK_COMPILE_SOLIDITY_READ_FILE)
   );
 
 /**
+ * DEPRECATED: This subtask is deprecated and will be removed in the future.
+ *
  * This task transform the string literal in an import directive.
  * By default it does nothing, but it can be overriden by plugins.
  */
