@@ -1,4 +1,6 @@
 import * as taskTypes from "../../types/builtin-tasks";
+import { HardhatError } from "../core/errors";
+import { ERRORS } from "../core/errors-list";
 
 import { ResolvedFile, Resolver } from "./resolver";
 
@@ -22,7 +24,8 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
   private _resolvedFiles = new Map<string, ResolvedFile>();
   private _dependenciesPerFile = new Map<string, Set<ResolvedFile>>();
 
-  private readonly _visitedFiles = new Set<string>();
+  // map absolute paths to source names
+  private readonly _visitedFiles = new Map<string, string>();
 
   private constructor() {}
 
@@ -160,11 +163,20 @@ export class DependencyGraph implements taskTypes.DependencyGraph {
     resolver: Resolver,
     file: ResolvedFile
   ): Promise<void> {
-    if (this._visitedFiles.has(file.absolutePath)) {
+    const sourceName = this._visitedFiles.get(file.absolutePath);
+
+    if (sourceName !== undefined) {
+      if (sourceName !== file.sourceName) {
+        throw new HardhatError(ERRORS.RESOLVER.AMBIGUOUS_SOURCE_NAMES, {
+          sourcenames: `'${sourceName}' and '${file.sourceName}'`,
+          file: file.absolutePath,
+        });
+      }
+
       return;
     }
 
-    this._visitedFiles.add(file.absolutePath);
+    this._visitedFiles.set(file.absolutePath, file.sourceName);
 
     const dependencies = new Set<ResolvedFile>();
     this._resolvedFiles.set(file.sourceName, file);

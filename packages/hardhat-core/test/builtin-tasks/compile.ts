@@ -973,4 +973,29 @@ Read about compiler configuration at https://hardhat.org/config
       assertBuildInfoExists(pathToBuildInfoE);
     });
   });
+
+  describe("project with remappings", function () {
+    useFixtureProject("compilation-remappings");
+    useEnvironment();
+
+    it("should compile fine", async function () {
+      await this.env.run("compile");
+
+      assertFileExists(path.join("artifacts", "contracts", "A.sol", "A.json"));
+      assertFileExists(path.join("artifacts", "foo", "Foo.sol", "Foo.json"));
+    });
+  });
+
+  describe("project with ambiguous remappings", function () {
+    useFixtureProject("compilation-ambiguous-remappings");
+    useEnvironment();
+
+    it("should throw an error", async function () {
+      await expectHardhatErrorAsync(
+        () => this.env.run("compile"),
+        ERRORS.RESOLVER.AMBIGUOUS_SOURCE_NAMES,
+        "HH415: Two different source names ('foo/Foo.sol' and 'bar/Foo.sol') resolve to the same file"
+      );
+    });
+  });
 });

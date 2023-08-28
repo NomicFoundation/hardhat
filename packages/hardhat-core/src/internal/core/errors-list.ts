@@ -595,6 +595,14 @@ Please double check your task definitions.`,
 What makes these types special is that they can be represented as strings, so you can write them down in the terminal.`,
       shouldBeReported: false,
     },
+    DEPRECATED_TRANSFORM_IMPORT_TASK: {
+      number: 213,
+      title: "Use of deprecated remapping task",
+      message:
+        "Task TASK_COMPILE_TRANSFORM_IMPORT_NAME is deprecated. Please update your @nomicfoundation/hardhat-foundry plugin version.",
+      description: `This task has been deprecated in favor of a new approach.`,
+      shouldBeReported: true,
+    },
   },
   ARGUMENTS: {
     INVALID_ENV_VAR_VALUE: {
@@ -873,6 +881,16 @@ Please double check your imports and installed libraries.`,
       description: `A Solidity file is attempting to import a directory, which is not possible.
 
 Please double check your imports.`,
+      shouldBeReported: false,
+    },
+    AMBIGUOUS_SOURCE_NAMES: {
+      number: 415,
+      message:
+        "Two different source names (%sourcenames%) resolve to the same file (%file%).",
+      title: "Ambiguous source names",
+      description: `Two different source names map to the same file.
+
+This is probably caused by multiple remappings pointing to the same source file.`,
       shouldBeReported: false,
     },
   },

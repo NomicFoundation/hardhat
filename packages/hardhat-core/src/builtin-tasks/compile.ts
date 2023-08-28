@@ -74,6 +74,7 @@ import {
   TASK_COMPILE_SOLIDITY_RUN_SOLC,
   TASK_COMPILE_SOLIDITY_RUN_SOLCJS,
   TASK_COMPILE_TRANSFORM_IMPORT_NAME,
+  TASK_COMPILE_GET_REMAPPINGS,
 } from "./task-names";
 import {
   getSolidityFilesCachePath,
@@ -179,6 +180,8 @@ subtask(TASK_COMPILE_SOLIDITY_READ_FILE)
   );
 
 /**
+ * DEPRECATED: This subtask is deprecated and will be removed in the future.
+ *
  * This task transform the string literal in an import directive.
  * By default it does nothing, but it can be overriden by plugins.
  */
@@ -189,6 +192,16 @@ subtask(TASK_COMPILE_TRANSFORM_IMPORT_NAME)
       return importName;
     }
   );
+
+/**
+ * This task returns a Record<string, string> representing remappings to be used
+ * by the resolver.
+ */
+subtask(TASK_COMPILE_GET_REMAPPINGS).setAction(
+  async (): Promise<Record<string, string>> => {
+    return {};
+  }
+);
 
 /**
  * Receives a list of source names and returns a dependency graph. This task
@@ -213,13 +226,18 @@ subtask(TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH)
       { config, run }
     ): Promise<taskTypes.DependencyGraph> => {
       const parser = new Parser(solidityFilesCache);
+      const remappings = await run(TASK_COMPILE_GET_REMAPPINGS);
       const resolver = new Resolver(
         rootPath ?? config.paths.root,
         parser,
+        remappings,
         (absolutePath: string) =>
           run(TASK_COMPILE_SOLIDITY_READ_FILE, { absolutePath }),
         (importName: string) =>
-          run(TASK_COMPILE_TRANSFORM_IMPORT_NAME, { importName })
+          run(TASK_COMPILE_TRANSFORM_IMPORT_NAME, {
+            importName,
+            deprecationCheck: true,
+          })
       );
 
       const resolvedFiles = await Promise.all(
