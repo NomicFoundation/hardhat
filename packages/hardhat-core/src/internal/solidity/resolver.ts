@@ -122,10 +122,7 @@ export class Resolver {
     // sanity check for deprecated task
     if (importName !== (await this._transformImportName(importName))) {
       throw new HardhatError(
-        ERRORS.TASK_DEFINITIONS.DEPRECATED_TRANSFORM_IMPORT_TASK,
-        {
-          task: "TASK_COMPILE_TRANSFORM_IMPORT_NAME",
-        }
+        ERRORS.TASK_DEFINITIONS.DEPRECATED_TRANSFORM_IMPORT_TASK
       );
     }
 
