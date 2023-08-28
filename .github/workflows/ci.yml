@@ -5,7 +5,7 @@ on:
     branches: [$default-branch]
   pull_request:
     branches:
-      - "*"
+      - "**"
 
 jobs:
   test_on_windows:
