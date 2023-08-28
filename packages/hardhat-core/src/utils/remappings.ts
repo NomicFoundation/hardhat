@@ -1,4 +1,4 @@
-export function applyRemapping(
+export function applyRemappings(
   remappings: Record<string, string>,
   sourceName: string
 ): string {

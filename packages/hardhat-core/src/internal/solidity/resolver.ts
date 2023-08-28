@@ -21,7 +21,7 @@ import { ERRORS } from "../core/errors-list";
 import { createNonCryptographicHashBasedIdentifier } from "../util/hash";
 
 import { getRealPath } from "../util/fs-utils";
-import { applyRemapping } from "../../utils/remappings";
+import { applyRemappings } from "../../utils/remappings";
 import { Parser } from "./parse";
 
 export interface ResolvedFilesMap {
@@ -88,7 +88,7 @@ export class Resolver {
       return cached;
     }
 
-    const remappedSourceName = applyRemapping(this._remappings, sourceName);
+    const remappedSourceName = applyRemappings(this._remappings, sourceName);
 
     validateSourceNameFormat(remappedSourceName);
 
@@ -129,7 +129,7 @@ export class Resolver {
       );
     }
 
-    const imported = applyRemapping(this._remappings, importName);
+    const imported = applyRemappings(this._remappings, importName);
 
     const scheme = this._getUriScheme(imported);
     if (scheme !== undefined) {
@@ -191,7 +191,7 @@ export class Resolver {
       ) {
         resolvedFile = await this._resolveLocalSourceName(
           sourceName,
-          applyRemapping(this._remappings, sourceName)
+          applyRemappings(this._remappings, sourceName)
         );
       } else {
         resolvedFile = await this.resolveSourceName(sourceName);
