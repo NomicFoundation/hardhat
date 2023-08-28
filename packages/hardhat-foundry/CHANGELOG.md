@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-foundry
 
+## 1.1.1
+
+### Patch Changes
+
+- 8af824dfd: Bump hardhat-foundry's peer dependency on Hardhat
+
 ## 1.1.0
 
 ### Minor Changes
