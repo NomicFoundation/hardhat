@@ -1,5 +1,17 @@
 # hardhat
 
+## 2.17.2
+
+### Patch Changes
+
+- ee9d2ff06: Added support for state overrides in the RPC Method eth_call
+- c00c689ae: Removed the superfluous zeros that were returned in the `memory` property when calling the `debug_traceTransaction` method.
+- 7084d32e2: Deprecated the `TASK_COMPILE_TRANSFORM_IMPORT_NAME` subtask, added a new `TASK_COMPILE_GET_REMAPPINGS` subtask, and added support for remappings in the resolver.
+- fa41db82b: Added an `enableTransientStorage` option to enable EIP-1153 opcodes
+- 8ae64478d: Fixed an issue where artifactExists would throw an error for missing artifacts.
+- 45f49ae20: Improved error message displayed when importing a directory instead of a file.
+- 3ea6c5237: Fixed a problem with receipts of remote transactions returning the wrong tx type when fetched through a fork.
+
 ## 2.17.1
 
 ### Patch Changes
