@@ -7,7 +7,7 @@ export { wipe } from "./new-api/wipe";
 export { StoredDeploymentSerializer } from "./new-api/stored-deployment-serializer";
 export * from "./new-api/type-guards";
 export * from "./new-api/types/artifact";
-export * from "./new-api/types/deployer";
+export * from "./new-api/types/deploy";
 export * from "./new-api/types/module";
 export * from "./new-api/types/module-builder";
 export * from "./new-api/types/provider";

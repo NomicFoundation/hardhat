@@ -1,7 +1,7 @@
 import { IgnitionValidationError } from "../../../../errors";
 import { isModuleParameterRuntimeValue } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
-import { DeploymentParameters } from "../../../types/deployer";
+import { DeploymentParameters } from "../../../types/deploy";
 import { ArtifactContractAtFuture } from "../../../types/module";
 
 export async function validateArtifactContractAt(

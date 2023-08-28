@@ -17,8 +17,8 @@ import {
   DeployConfig,
   DeploymentParameters,
   DeploymentResult,
-} from "./types/deployer";
-import { IgnitionModule } from "./types/module";
+} from "./types/deploy";
+import { IgnitionModule, IgnitionModuleResult } from "./types/module";
 import { EIP1193Provider } from "./types/provider";
 
 /**

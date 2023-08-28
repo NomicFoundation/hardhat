@@ -1,5 +1,5 @@
 import { ArtifactResolver } from "../../types/artifact";
-import { DeploymentParameters } from "../../types/deployer";
+import { DeploymentParameters } from "../../types/deploy";
 import { FutureType, IgnitionModule } from "../../types/module";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 
