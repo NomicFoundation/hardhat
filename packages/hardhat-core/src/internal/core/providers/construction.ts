@@ -116,6 +116,8 @@ export async function createProvider(
         forkConfig,
         forkCachePath:
           paths !== undefined ? getForkCacheDirPath(paths) : undefined,
+        enableTransientStorage:
+          hardhatNetConfig.enableTransientStorage ?? false,
       },
       new ModulesLogger(hardhatNetConfig.loggingEnabled),
       artifacts

@@ -260,6 +260,7 @@ describe("Debug module", function () {
           forkConfig,
           forkCachePath: FORK_TESTS_CACHE_PATH,
           allowBlocksWithSameTimestamp: false,
+          enableTransientStorage: false,
         },
         logger
       );
@@ -384,6 +385,7 @@ describe("Debug module", function () {
           forkConfig,
           forkCachePath: FORK_TESTS_CACHE_PATH,
           allowBlocksWithSameTimestamp: false,
+          enableTransientStorage: false,
         },
         logger
       );
