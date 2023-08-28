@@ -1,14 +1,16 @@
-import type { IgnitionModule } from "../types/module";
+import type { IgnitionModule, IgnitionModuleResult } from "../types/module";
 
-import { IgnitionError } from "../../errors";
 import { isContractFuture } from "../type-guards";
 import { ArtifactResolver } from "../types/artifact";
 import {
   DeployConfig,
   DeploymentParameters,
   DeploymentResult,
-  DeploymentResultContracts,
-} from "../types/deployer";
+  DeploymentResultType,
+  ExecutionErrorDeploymentResult,
+  ReconciliationErrorDeploymentResult,
+  SuccessfulDeploymentResult,
+} from "../types/deploy";
 
 import { Batcher } from "./batcher";
 import { DeploymentLoader } from "./deployment-loader/types";
@@ -19,15 +21,18 @@ import {
 import { ExecutionEngine } from "./new-execution/execution-engine";
 import { JsonRpcClient } from "./new-execution/jsonrpc-client";
 import { DeploymentState } from "./new-execution/types/deployment-state";
+import { ExecutionResultType } from "./new-execution/types/execution-result";
 import {
+  CallExecutionState,
   ContractAtExecutionState,
   DeploymentExecutionState,
   ExecutionSateType,
   ExecutionState,
   ExecutionStatus,
+  SendDataExecutionState,
+  StaticCallExecutionState,
 } from "./new-execution/types/execution-state";
 import { ExecutionStrategy } from "./new-execution/types/execution-strategy";
-import { findDeployedContracts } from "./new-execution/views/find-deployed-contracts";
 import { Reconciler } from "./reconciliation/reconciler";
 import { assertIgnitionInvariant } from "./utils/assertions";
 import { getFuturesFromModule } from "./utils/get-futures-from-module";
@@ -52,12 +57,20 @@ export class Deployer {
     );
   }
 
-  public async deploy(
-    ignitionModule: IgnitionModule,
+  public async deploy<
+    ModuleIdT extends string,
+    ContractNameT extends string,
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+  >(
+    ignitionModule: IgnitionModule<
+      ModuleIdT,
+      ContractNameT,
+      IgnitionModuleResultsT
+    >,
     deploymentParameters: DeploymentParameters,
     accounts: string[],
     defaultSender: string
-  ): Promise<DeploymentResult> {
+  ): Promise<DeploymentResult<ContractNameT, IgnitionModuleResultsT>> {
     await validateStageTwo(
       ignitionModule,
       this._artifactResolver,
@@ -98,11 +111,23 @@ export class Deployer {
     );
 
     if (reconciliationResult.reconciliationFailures.length > 0) {
-      const failures = reconciliationResult.reconciliationFailures
-        .map((rf) => `  ${rf.futureId} - ${rf.failure}`)
-        .join("\n");
+      const errors: ReconciliationErrorDeploymentResult["errors"] = {};
 
-      throw new IgnitionError(`Reconciliation failed\n\n${failures}`);
+      for (const {
+        futureId,
+        failure,
+      } of reconciliationResult.reconciliationFailures) {
+        if (errors[futureId] === undefined) {
+          errors[futureId] = [];
+        }
+
+        errors[futureId].push(failure);
+      }
+
+      return {
+        type: DeploymentResultType.RECONCILIATION_ERROR,
+        errors,
+      };
     }
 
     if (reconciliationResult.missingExecutedFutures.length > 0) {
@@ -131,47 +156,38 @@ export class Deployer {
       defaultSender
     );
 
-    return this._getDeploymentResult(
-      deploymentState,
-      this._deploymentLoader,
-      ignitionModule
-    );
+    return this._getDeploymentResult(deploymentState, ignitionModule);
   }
 
-  private async _getDeploymentResult(
+  private async _getDeploymentResult<
+    ModuleIdT extends string,
+    ContractNameT extends string,
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+  >(
     deploymentState: DeploymentState,
-    deploymentLoader: DeploymentLoader,
-    module: IgnitionModule
-  ): Promise<DeploymentResult> {
-    if (
-      Object.values(deploymentState.executionStates).some(
-        (ex) => ex.status !== ExecutionStatus.SUCCESS
-      )
-    ) {
-      // TODO: deal with failure cases and error cases
-      throw new Error("TBD: error result against future");
-    }
-
-    const deployedContracts: DeploymentResultContracts = {};
-
-    for (const {
-      futureId,
-      contractName,
-      contractAddress,
-    } of findDeployedContracts(deploymentState)) {
-      const artifact = await deploymentLoader.loadArtifact(futureId);
-
-      deployedContracts[futureId] = {
-        contractName,
-        contractAddress,
-        artifact,
-      };
+    module: IgnitionModule<ModuleIdT, ContractNameT, IgnitionModuleResultsT>
+  ): Promise<DeploymentResult<ContractNameT, IgnitionModuleResultsT>> {
+    if (!this._isSuccessful(deploymentState)) {
+      return this._getExecutionErrorResult(deploymentState);
     }
 
     return {
-      status: "success",
-      contracts: deployedContracts,
-      module,
+      type: DeploymentResultType.SUCCESSFUL_DEPLOYMENT,
+      contracts: Object.fromEntries(
+        Object.entries(module.results).map(([name, contractFuture]) => [
+          name,
+          {
+            id: contractFuture.id,
+            contractName: contractFuture.contractName,
+            address: getContractAddress(
+              deploymentState.executionStates[contractFuture.id]
+            ),
+          },
+        ])
+      ) as SuccessfulDeploymentResult<
+        ContractNameT,
+        IgnitionModuleResultsT
+      >["contracts"],
     };
   }
 
@@ -190,4 +206,94 @@ export class Deployer {
 
     return deploymentState;
   }
+
+  private _isSuccessful(deploymentState: DeploymentState): boolean {
+    return Object.values(deploymentState.executionStates).every(
+      (ex) => ex.status === ExecutionStatus.SUCCESS
+    );
+  }
+
+  private _getExecutionErrorResult(
+    deploymentState: DeploymentState
+  ): ExecutionErrorDeploymentResult {
+    return {
+      type: DeploymentResultType.EXECUTION_ERROR,
+      started: Object.values(deploymentState.executionStates)
+        .filter((ex) => ex.status === ExecutionStatus.STARTED)
+        .map((ex) => ex.id),
+      successful: Object.values(deploymentState.executionStates)
+        .filter((ex) => ex.status === ExecutionStatus.SUCCESS)
+        .map((ex) => ex.id),
+      timedOut: Object.values(deploymentState.executionStates)
+        .filter(canTimeout)
+        .filter((ex) => ex.status === ExecutionStatus.TIMEOUT)
+        .map((ex) => ({
+          futureId: ex.id,
+          executionId: ex.networkInteractions.at(-1)!.id,
+        })),
+      failed: Object.values(deploymentState.executionStates)
+        .filter(canFail)
+        .filter((ex) => ex.status === ExecutionStatus.FAILED)
+        .map((ex) => ({
+          futureId: ex.id,
+          executionId: ex.networkInteractions.at(-1)!.id,
+          error: "TODO: format the execution result into a string",
+        })),
+    };
+  }
+}
+
+// TODO: Does this exist anywhere else? It's in fact just checking if it sends txs
+function canTimeout(
+  exState: ExecutionState
+): exState is
+  | DeploymentExecutionState
+  | CallExecutionState
+  | SendDataExecutionState {
+  return (
+    exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
+    exState.type === ExecutionSateType.CALL_EXECUTION_STATE ||
+    exState.type === ExecutionSateType.SEND_DATA_EXECUTION_STATE
+  );
+}
+
+// TODO: Does this exist anywhere else? It's in fact just checking if has network interactions
+function canFail(
+  exState: ExecutionState
+): exState is
+  | DeploymentExecutionState
+  | CallExecutionState
+  | SendDataExecutionState
+  | StaticCallExecutionState {
+  return (
+    exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
+    exState.type === ExecutionSateType.CALL_EXECUTION_STATE ||
+    exState.type === ExecutionSateType.SEND_DATA_EXECUTION_STATE ||
+    exState.type === ExecutionSateType.STATIC_CALL_EXECUTION_STATE
+  );
+}
+
+// TODO: Does this exist somewhere else?
+function getContractAddress(exState: ExecutionState): string {
+  assertIgnitionInvariant(
+    exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
+      exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
+    `Execution state ${exState.id} should be a deployment or contract at execution state`
+  );
+
+  assertIgnitionInvariant(
+    exState.status === ExecutionStatus.SUCCESS,
+    `Cannot get contract address from execution state ${exState.id} because it is not successful`
+  );
+
+  if (exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE) {
+    return exState.contractAddress;
+  }
+
+  assertIgnitionInvariant(
+    exState.result?.type === ExecutionResultType.SUCCESS,
+    `Cannot get contract address from execution state ${exState.id} because it is not successful`
+  );
+
+  return exState.result.address;
 }

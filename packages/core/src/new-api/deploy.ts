@@ -26,7 +26,11 @@ import { EIP1193Provider } from "./types/provider";
  *
  * @beta
  */
-export async function deploy({
+export async function deploy<
+  ModuleIdT extends string,
+  ContractNameT extends string,
+  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+>({
   config = {},
   artifactResolver,
   provider,
@@ -41,12 +45,16 @@ export async function deploy({
   artifactResolver: ArtifactResolver;
   provider: EIP1193Provider;
   deploymentDir?: string;
-  ignitionModule: IgnitionModule;
+  ignitionModule: IgnitionModule<
+    ModuleIdT,
+    ContractNameT,
+    IgnitionModuleResultsT
+  >;
   deploymentParameters: DeploymentParameters;
   accounts: string[];
   verbose: boolean;
   defaultSender?: string;
-}): Promise<DeploymentResult> {
+}): Promise<DeploymentResult<ContractNameT, IgnitionModuleResultsT>> {
   await validateStageOne(ignitionModule, artifactResolver);
 
   if (defaultSender !== undefined) {
