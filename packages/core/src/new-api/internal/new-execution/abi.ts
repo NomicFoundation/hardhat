@@ -185,12 +185,9 @@ export function validateArtifactEventArgumentParams(
 
   if (paramType.indexed === true) {
     // We can't access the value of indexed arguments with dynamic size
-    if (
-      paramType.isArray() ||
-      paramType.isTuple() ||
-      paramType.type === "bytes" ||
-      paramType.type === "string"
-    ) {
+    // as their hash is stored in a topic, and its actual value isn't stored
+    // anywhere
+    if (hasDynamicSize(paramType)) {
       throw new IgnitionValidationError(
         `Indexed argument ${argument} of event ${eventName} of contract ${emitterArtifact.contractName} is not stored in the receipt, but its hash is, so you can't read it.`
       );
@@ -633,4 +630,16 @@ function getEventArgumentParamType(
   }
 
   return paramType;
+}
+
+/**
+ * Returns true if the given param type has a dynamic size.
+ */
+function hasDynamicSize(paramType: ParamType): boolean {
+  return (
+    paramType.isArray() ||
+    paramType.isTuple() ||
+    paramType.type === "bytes" ||
+    paramType.type === "string"
+  );
 }
