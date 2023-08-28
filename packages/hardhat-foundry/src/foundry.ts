@@ -31,24 +31,39 @@ export function getForgeConfig() {
   return JSON.parse(runCmdSync("forge config --json"));
 }
 
+export function parseRemappings(remappingsTxt: string): Remappings {
+  const remappings: Remappings = {};
+  const remappingLines = remappingsTxt.split(/\r\n|\r|\n/);
+  for (const remappingLine of remappingLines) {
+    if (remappingLine.includes(":")) {
+      throw new HardhatFoundryError(
+        `Invalid remapping '${remappingLine}', remapping contexts are not allowed`
+      );
+    }
+
+    if (!remappingLine.includes("=")) {
+      throw new HardhatFoundryError(
+        `Invalid remapping '${remappingLine}', remappings without a target are not allowed`
+      );
+    }
+
+    const fromTo = remappingLine.split("=");
+
+    // if the remapping already exists, we ignore it because the first one wins
+    if (remappings[fromTo[0]] !== undefined) {
+      continue;
+    }
+
+    remappings[fromTo[0]] = fromTo[1];
+  }
+
+  return remappings;
+}
+
 export async function getRemappings() {
   // Get remappings only once
   if (cachedRemappings === undefined) {
-    cachedRemappings = runCmd("forge remappings").then((remappingsTxt) => {
-      const remappings: Remappings = {};
-      const remappingLines = remappingsTxt.split(/\r\n|\r|\n/);
-      for (const remappingLine of remappingLines) {
-        const fromTo = remappingLine.split("=");
-
-        if (fromTo.length !== 2 || fromTo[0].includes(":")) {
-          continue;
-        }
-
-        remappings[fromTo[0]] = fromTo[1];
-      }
-
-      return remappings;
-    });
+    cachedRemappings = runCmd("forge remappings").then(parseRemappings);
   }
 
   return cachedRemappings;
