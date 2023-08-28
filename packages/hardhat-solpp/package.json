@@ -22,6 +22,7 @@
     "lint:fix": "yarn prettier --write && yarn eslint --fix",
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
+    "pretest": "cd ../.. && yarn build",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
     "build": "tsc --build .",
     "prepublishOnly": "yarn build",
@@ -55,7 +56,7 @@
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",
     "ts-node": "^10.8.0",
-    "typescript": "~4.7.4"
+    "typescript": "~5.0.0"
   },
   "peerDependencies": {
     "hardhat": "^2.0.0"

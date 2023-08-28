@@ -4,7 +4,7 @@ import sinon from "sinon";
 import { assert, expect } from "chai";
 import { TASK_CLEAN, TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { SolcConfig } from "hardhat/types/config";
-import { TASK_VERIFY, TASK_VERIFY_VERIFY } from "../../src/task-names";
+import { TASK_VERIFY, TASK_VERIFY_VERIFY } from "../../src/internal/task-names";
 import { deployContract, getRandomAddress, useEnvironment } from "../helpers";
 import {
   interceptGetStatus,
@@ -13,7 +13,7 @@ import {
   mockEnvironment,
 } from "./mocks/etherscan";
 
-import "../../src/type-extensions";
+import "../../src/internal/type-extensions";
 
 describe("verify task integration tests", () => {
   useEnvironment("hardhat-project");
@@ -26,7 +26,7 @@ describe("verify task integration tests", () => {
     });
 
     expect(logStub).to.be.calledOnceWith(
-      sinon.match(/Networks supported by hardhat-etherscan/)
+      sinon.match(/Networks supported by hardhat-verify/)
     );
     logStub.restore();
     assert.isUndefined(taskResponse);
@@ -48,7 +48,7 @@ describe("verify task integration tests", () => {
         constructorArgsParams: [],
       })
     ).to.be.rejectedWith(
-      "The selected network is hardhat. Please select a network supported by Etherscan."
+      /The selected network is "hardhat", which is not supported for contract verification./
     );
 
     this.hre.config.etherscan = originalConfig;

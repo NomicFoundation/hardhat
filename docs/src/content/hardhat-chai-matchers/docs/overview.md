@@ -236,6 +236,10 @@ Finally, the `hexEqual` matcher accepts two hexadecimal strings and compares the
 expect("0x00012AB").to.hexEqual("0x12ab");
 ```
 
+## Known limitations
+
+At the moment, some of these chai matchers only work correctly when Hardhat is running in [automine mode](/hardhat-network/docs/explanation/mining-modes). See [this issue](https://github.com/NomicFoundation/hardhat/issues/3203) for more details.
+
 ## Dig Deeper
 
 For a full listing of all of the matchers supported by this package, see [the reference documentation](./reference.md).

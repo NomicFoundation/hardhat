@@ -1,13 +1,15 @@
 import type EthersT from "ethers";
 import type { Contract, Transaction } from "ethers";
+import type { AssertWithSsfi, Ssfi } from "../utils";
+
 import { AssertionError } from "chai";
 import util from "util";
 import ordinal from "ordinal";
 
-import { AssertWithSsfi, buildAssert, Ssfi } from "../utils";
-import { ASSERTION_ABORTED } from "./constants";
-import { assertIsNotNull } from "./utils";
+import { buildAssert } from "../utils";
+import { ASSERTION_ABORTED, EMIT_MATCHER } from "./constants";
 import { HardhatChaiMatchersAssertionError } from "./errors";
+import { assertIsNotNull, preventAsyncMatcherChaining } from "./utils";
 
 type EventFragment = EthersT.EventFragment;
 type Interface = EthersT.Interface;
@@ -38,11 +40,13 @@ export function supportEmit(
   chaiUtils: Chai.ChaiUtils
 ) {
   Assertion.addMethod(
-    "emit",
+    EMIT_MATCHER,
     function (this: any, contract: Contract, eventName: string) {
       // capture negated flag before async code executes; see buildAssert's jsdoc
       const negated = this.__flags.negate;
       const tx = this._obj;
+
+      preventAsyncMatcherChaining(this, EMIT_MATCHER, chaiUtils, true);
 
       const promise = this.then === undefined ? Promise.resolve() : this;
 

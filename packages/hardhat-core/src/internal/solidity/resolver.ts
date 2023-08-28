@@ -241,6 +241,22 @@ export class Resolver {
         );
       }
 
+      if (
+        HardhatError.isHardhatErrorType(
+          error,
+          ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY
+        )
+      ) {
+        throw new HardhatError(
+          ERRORS.RESOLVER.INVALID_IMPORT_OF_DIRECTORY,
+          {
+            imported,
+            from: from.sourceName,
+          },
+          error
+        );
+      }
+
       // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw error;
     }

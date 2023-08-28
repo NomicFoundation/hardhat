@@ -1,12 +1,15 @@
+import type {
+  AnotherContract,
+  EventsContract,
+  MatchersContract,
+} from "./contracts";
+
 import { expect, AssertionError } from "chai";
 import { ethers } from "ethers";
 
-import { anyUint, anyValue } from "../src/withArgs";
-
-import { useEnvironment, useEnvironmentWithNode } from "./helpers";
-
 import "../src/internal/add-chai-matchers";
-import { AnotherContract, EventsContract, MatchersContract } from "./contracts";
+import { anyUint, anyValue } from "../src/withArgs";
+import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 
 describe(".to.emit (contract events)", () => {
   let contract: EventsContract;

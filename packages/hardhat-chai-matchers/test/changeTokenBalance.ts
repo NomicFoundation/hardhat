@@ -1,17 +1,19 @@
 import type { TransactionResponse } from "ethers";
+import type { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import type { Token } from "../src/internal/changeTokenBalance";
+import type { MatchersContract } from "./contracts";
 
 import assert from "assert";
-import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { AssertionError, expect } from "chai";
 import path from "path";
 import util from "util";
 
 import "../src/internal/add-chai-matchers";
+import { clearTokenDescriptionsCache } from "../src/internal/changeTokenBalance";
 import {
-  clearTokenDescriptionsCache,
-  Token,
-} from "../src/internal/changeTokenBalance";
-import { MatchersContract } from "./contracts";
+  CHANGE_TOKEN_BALANCE_MATCHER,
+  CHANGE_TOKEN_BALANCES_MATCHER,
+} from "../src/internal/constants";
 import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 
 describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", function () {
@@ -398,11 +400,35 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             /Expected the balance of <token at 0x\w{40}> tokens for "0x\w{40}" NOT to change by 50, but it did/
           );
         });
+
+        it("changeTokenBalance: Should throw if chained to another non-chainable method", () => {
+          expect(() =>
+            expect(mockToken.transfer(receiver.address, 50))
+              .to.emit(mockToken, "SomeEvent")
+              .and.to.changeTokenBalance(mockToken, receiver, 50)
+          ).to.throw(
+            /The matcher 'changeTokenBalance' cannot be chained after 'emit'./
+          );
+        });
+
+        it("changeTokenBalances: should throw if chained to another non-chainable method", () => {
+          expect(() =>
+            expect(
+              mockToken.transfer(receiver.address, 50)
+            ).to.be.reverted.and.to.changeTokenBalances(
+              mockToken,
+              [sender, receiver],
+              [-50, 100]
+            )
+          ).to.throw(
+            /The matcher 'changeTokenBalances' cannot be chained after 'reverted'./
+          );
+        });
       });
     });
 
     describe("validation errors", function () {
-      describe("changeTokenBalance", function () {
+      describe(CHANGE_TOKEN_BALANCE_MATCHER, function () {
         it("token is not specified", async function () {
           expect(() =>
             expect(mockToken.transfer(receiver.address, 50))
@@ -471,7 +497,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         });
       });
 
-      describe("changeTokenBalances", function () {
+      describe(CHANGE_TOKEN_BALANCES_MATCHER, function () {
         it("token is not specified", async function () {
           expect(() =>
             expect(mockToken.transfer(receiver.address, 50))
@@ -582,7 +608,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
 
     // smoke tests for stack traces
     describe("stack traces", function () {
-      describe("changeTokenBalance", function () {
+      describe(CHANGE_TOKEN_BALANCE_MATCHER, function () {
         it("includes test file", async function () {
           let hasProperStackTrace = false;
           try {
@@ -599,7 +625,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         });
       });
 
-      describe("changeTokenBalances", function () {
+      describe(CHANGE_TOKEN_BALANCES_MATCHER, function () {
         it("includes test file", async function () {
           try {
             await expect(

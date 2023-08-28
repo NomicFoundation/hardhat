@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "2.16.1",
+  "version": "2.17.1",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "homepage": "https://hardhat.org",
@@ -22,14 +22,12 @@
   "bin": {
     "hardhat": "internal/cli/bootstrap.js"
   },
-  "engines": {
-    "node": ">=16.0.0"
-  },
   "scripts": {
     "lint": "yarn prettier --check && yarn eslint",
     "lint:fix": "yarn prettier --write && yarn eslint --fix",
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
+    "pretest": "cd ../.. && yarn build",
     "test": "mocha --recursive \"test/**/*.ts\"",
     "test:except-tracing": "mocha --recursive \"test/**/*.ts\" --invert --grep \"Stack traces\"",
     "test:tracing": "mocha --recursive \"test/internal/hardhat-network/{helpers,stack-traces}/**/*.ts\"",
@@ -95,26 +93,25 @@
     "sinon": "^9.0.0",
     "time-require": "^0.1.2",
     "ts-node": "^10.8.0",
-    "typescript": "~4.7.4"
+    "typescript": "~5.0.0"
   },
   "dependencies": {
     "@ethersproject/abi": "^5.1.2",
     "@metamask/eth-sig-util": "^4.0.0",
-    "@nomicfoundation/ethereumjs-block": "5.0.1",
-    "@nomicfoundation/ethereumjs-blockchain": "7.0.1",
-    "@nomicfoundation/ethereumjs-common": "4.0.1",
-    "@nomicfoundation/ethereumjs-evm": "2.0.1",
-    "@nomicfoundation/ethereumjs-rlp": "5.0.1",
-    "@nomicfoundation/ethereumjs-statemanager": "2.0.1",
-    "@nomicfoundation/ethereumjs-trie": "6.0.1",
-    "@nomicfoundation/ethereumjs-tx": "5.0.1",
-    "@nomicfoundation/ethereumjs-util": "9.0.1",
-    "@nomicfoundation/ethereumjs-vm": "7.0.1",
+    "@nomicfoundation/ethereumjs-block": "5.0.2",
+    "@nomicfoundation/ethereumjs-blockchain": "7.0.2",
+    "@nomicfoundation/ethereumjs-common": "4.0.2",
+    "@nomicfoundation/ethereumjs-evm": "2.0.2",
+    "@nomicfoundation/ethereumjs-rlp": "5.0.2",
+    "@nomicfoundation/ethereumjs-statemanager": "2.0.2",
+    "@nomicfoundation/ethereumjs-trie": "6.0.2",
+    "@nomicfoundation/ethereumjs-tx": "5.0.2",
+    "@nomicfoundation/ethereumjs-util": "9.0.2",
+    "@nomicfoundation/ethereumjs-vm": "7.0.2",
     "@nomicfoundation/solidity-analyzer": "^0.1.0",
     "@sentry/node": "^5.18.1",
     "@types/bn.js": "^5.1.0",
     "@types/lru-cache": "^5.1.0",
-    "abort-controller": "^3.0.0",
     "adm-zip": "^0.4.16",
     "aggregate-error": "^3.0.0",
     "ansi-escapes": "^4.3.0",

@@ -19,7 +19,7 @@
     "@changesets/cli": "^2.16.0",
     "prettier": "2.4.1",
     "shelljs": "^0.8.5",
-    "typescript": "~4.7.4",
+    "typescript": "~5.0.0",
     "wsrun": "^5.2.2"
   },
   "scripts": {
@@ -29,7 +29,7 @@
     "test": "node scripts/run-tests.js",
     "lint": "wsrun --exclude-missing --stages lint && yarn prettier --check",
     "lint:fix": "wsrun --exclude-missing --stages lint:fix && yarn prettier --write",
-    "prettier": "prettier *.md \"{docs,.github}/**/*.{md,yml,ts}\" \"scripts/**/*.js\""
+    "prettier": "prettier *.md \"{docs,.github}/**/*.{md,yml,ts,js}\" \"scripts/**/*.js\""
   },
   "dependencies": {},
   "resolutions": {

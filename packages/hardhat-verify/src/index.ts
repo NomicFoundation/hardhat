@@ -22,9 +22,8 @@ import {
   TASK_VERIFY_VERIFY,
   TASK_VERIFY_ETHERSCAN,
   TASK_VERIFY_PRINT_SUPPORTED_NETWORKS,
-} from "./task-names";
-import { getCurrentChainConfig } from "./chain-config";
-import { etherscanConfigExtender } from "./config";
+} from "./internal/task-names";
+import { etherscanConfigExtender } from "./internal/config";
 import {
   MissingAddressError,
   InvalidAddressError,
@@ -39,7 +38,7 @@ import {
   UnexpectedNumberOfFilesError,
   VerificationAPIUnexpectedMessageError,
   ContractVerificationFailedError,
-} from "./errors";
+} from "./internal/errors";
 import {
   sleep,
   encodeArguments,
@@ -47,9 +46,9 @@ import {
   printSupportedNetworks,
   resolveConstructorArguments,
   resolveLibraries,
-} from "./utilities";
-import { Etherscan } from "./etherscan";
-import { Bytecode } from "./solc/bytecode";
+} from "./internal/utilities";
+import { Etherscan } from "./internal/etherscan";
+import { Bytecode } from "./internal/solc/bytecode";
 import {
   ContractInformation,
   ExtendedContractInformation,
@@ -57,9 +56,9 @@ import {
   extractMatchingContractInformation,
   getLibraryInformation,
   LibraryToAddress,
-} from "./solc/artifacts";
+} from "./internal/solc/artifacts";
 
-import "./type-extensions";
+import "./internal/type-extensions";
 
 // Main task args
 interface VerifyTaskArgs {
@@ -232,12 +231,16 @@ subtask(TASK_VERIFY_ETHERSCAN)
       { address, constructorArgs, libraries, contractFQN }: VerificationArgs,
       { config, network, run }
     ) => {
-      const chainConfig = await getCurrentChainConfig(
-        network,
+      const chainConfig = await Etherscan.getCurrentChainConfig(
+        network.name,
+        network.provider,
         config.etherscan.customChains
       );
 
-      const etherscan = new Etherscan(config.etherscan.apiKey, chainConfig);
+      const etherscan = Etherscan.fromChainConfig(
+        config.etherscan.apiKey,
+        chainConfig
+      );
 
       const isVerified = await etherscan.isVerified(address);
       if (isVerified) {
@@ -353,12 +356,7 @@ subtask(TASK_VERIFY_ETHERSCAN_GET_CONTRACT_INFORMATION)
       let contractInformation: ContractInformation | null;
 
       if (contractFQN !== undefined) {
-        let artifactExists;
-        try {
-          artifactExists = await artifacts.artifactExists(contractFQN);
-        } catch (error) {
-          artifactExists = false;
-        }
+        const artifactExists = await artifacts.artifactExists(contractFQN);
 
         if (!artifactExists) {
           throw new ContractNotFoundError(contractFQN);
@@ -465,14 +463,13 @@ subtask(TASK_VERIFY_ETHERSCAN_ATTEMPT_VERIFICATION)
       // Ensure the linking information is present in the compiler input;
       compilerInput.settings.libraries = contractInformation.libraries;
 
-      const { message: guid } = await verificationInterface.verify({
+      const { message: guid } = await verificationInterface.verify(
         address,
-        sourceCode: JSON.stringify(compilerInput),
-        sourceName: contractInformation.sourceName,
-        contractName: contractInformation.contractName,
-        compilerVersion: contractInformation.solcLongVersion,
-        encodedConstructorArguments,
-      });
+        JSON.stringify(compilerInput),
+        `${contractInformation.sourceName}:${contractInformation.contractName}`,
+        `v${contractInformation.solcLongVersion}`,
+        encodedConstructorArguments
+      );
 
       console.log(`Successfully submitted source code for contract
 ${contractInformation.sourceName}:${contractInformation.contractName} at ${address}
