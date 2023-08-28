@@ -35,6 +35,10 @@ export function parseRemappings(remappingsTxt: string): Remappings {
   const remappings: Remappings = {};
   const remappingLines = remappingsTxt.split(/\r\n|\r|\n/);
   for (const remappingLine of remappingLines) {
+    if (remappingLine.trim() === "") {
+      continue;
+    }
+
     if (remappingLine.includes(":")) {
       throw new HardhatFoundryError(
         `Invalid remapping '${remappingLine}', remapping contexts are not allowed`

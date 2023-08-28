@@ -32,5 +32,14 @@ describe("foundry module", function () {
         a: "b",
       });
     });
+
+    it("should ignore empty lines", async function () {
+      const remappings = parseRemappings("a=b\n\nb=c");
+
+      expect(remappings).to.deep.equal({
+        a: "b",
+        b: "c",
+      });
+    });
   });
 });
