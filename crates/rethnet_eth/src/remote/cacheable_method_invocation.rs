@@ -78,62 +78,60 @@ impl<'a> CacheableMethodInvocation<'a> {
     }
 
     pub(super) fn write_cache_key(self) -> Option<WriteCacheKey<'a>> {
-        use CacheableMethodInvocation::*;
-
         match Hasher::new().hash_method_invocation(&self) {
             Err(SymbolicBlogTagError) => WriteCacheKey::needs_block_number(self),
             Ok(hasher) => match self {
-                ChainId => Some(WriteCacheKey::finalize(hasher)),
-                GetBalance {
+                CacheableMethodInvocation::ChainId => Some(WriteCacheKey::finalize(hasher)),
+                CacheableMethodInvocation::GetBalance {
                     address: _,
                     block_spec,
                 } => WriteCacheKey::needs_safety_check(hasher, block_spec),
-                GetBlockByNumber {
+                CacheableMethodInvocation::GetBlockByNumber {
                     block_spec,
                     include_tx_data: _,
                 } => WriteCacheKey::needs_safety_check(hasher, block_spec),
-                GetBlockByHash {
+                CacheableMethodInvocation::GetBlockByHash {
                     block_hash: _,
                     include_tx_data: _,
                 } => Some(WriteCacheKey::finalize(hasher)),
-                GetBlockTransactionCountByHash { block_hash: _ } => {
+                CacheableMethodInvocation::GetBlockTransactionCountByHash { block_hash: _ } => {
                     Some(WriteCacheKey::finalize(hasher))
                 }
-                GetBlockTransactionCountByNumber { block_spec } => {
+                CacheableMethodInvocation::GetBlockTransactionCountByNumber { block_spec } => {
                     WriteCacheKey::needs_safety_check(hasher, block_spec)
                 }
-                GetCode {
+                CacheableMethodInvocation::GetCode {
                     address: _,
                     block_spec,
                 } => WriteCacheKey::needs_safety_check(hasher, block_spec),
-                GetLogs {
+                CacheableMethodInvocation::GetLogs {
                     params,
                     // TODO should we check that to < from?
                 } => WriteCacheKey::needs_safety_check(hasher, params.to_block),
-                GetStorageAt {
+                CacheableMethodInvocation::GetStorageAt {
                     address: _,
                     position: _,
                     block_spec,
                 } => WriteCacheKey::needs_safety_check(hasher, block_spec),
-                GetTransactionByBlockHashAndIndex {
+                CacheableMethodInvocation::GetTransactionByBlockHashAndIndex {
                     block_hash: _,
                     index: _,
                 } => Some(WriteCacheKey::finalize(hasher)),
-                GetTransactionByBlockNumberAndIndex {
+                CacheableMethodInvocation::GetTransactionByBlockNumberAndIndex {
                     block_number: _,
                     index: _,
                 } => Some(WriteCacheKey::finalize(hasher)),
-                GetTransactionByHash {
+                CacheableMethodInvocation::GetTransactionByHash {
                     transaction_hash: _,
                 } => Some(WriteCacheKey::finalize(hasher)),
-                GetTransactionCount {
+                CacheableMethodInvocation::GetTransactionCount {
                     address: _,
                     block_spec,
                 } => WriteCacheKey::needs_safety_check(hasher, block_spec),
-                GetTransactionReceipt {
+                CacheableMethodInvocation::GetTransactionReceipt {
                     transaction_hash: _,
                 } => Some(WriteCacheKey::finalize(hasher)),
-                NetVersion => Some(WriteCacheKey::finalize(hasher)),
+                CacheableMethodInvocation::NetVersion => Some(WriteCacheKey::finalize(hasher)),
             },
         }
     }
@@ -472,10 +470,8 @@ pub(super) enum MethodWithResolvableSymbolicBlockSpec {
 
 impl<'a> MethodWithResolvableSymbolicBlockSpec {
     fn new(method_invocation: CacheableMethodInvocation<'a>) -> Option<Self> {
-        use CacheableMethodInvocation::*;
-
         match method_invocation {
-            GetBlockByNumber {
+            CacheableMethodInvocation::GetBlockByNumber {
                 include_tx_data,
                 block_spec: _,
             } => Some(Self::GetBlockByNumber { include_tx_data }),
