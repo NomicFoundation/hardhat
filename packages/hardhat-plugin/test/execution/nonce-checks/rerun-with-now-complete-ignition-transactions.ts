@@ -62,21 +62,24 @@ describe("execution - rerun with now complete ignition transactions", () => {
       };
     });
 
-    await this.deploy(moduleDefinition, async (c: TestChainHelper) => {
-      // Process the first block, include foo1 and foo2
-      await c.mineBlock(2);
+    await this.runControlledDeploy(
+      moduleDefinition,
+      async (c: TestChainHelper) => {
+        // Process the first block, include foo1 and foo2
+        await c.mineBlock(2);
 
-      // Kill the deployment, after foo3 and foo4 are submitted to mempool
-      await c.waitForPendingTxs(2);
-      c.exitDeploy();
-    });
+        // Kill the deployment, after foo3 and foo4 are submitted to mempool
+        await c.waitForPendingTxs(2);
+        c.exitDeploy();
+      }
+    );
 
     // Further blocks are processed confirming foo3 and foo4
     await mineBlock(this.hre);
     await mineBlock(this.hre);
 
     // Rerun the deployment, with foo3 and foo3 now confirmed
-    const result = await this.deploy(
+    const result = await this.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
         await c.mineBlock(2);

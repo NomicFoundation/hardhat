@@ -32,6 +32,8 @@ export interface DeployConfig {
 
 /**
  * The result of running a deployment.
+ *
+ * @beta
  */
 export type DeploymentResult<
   ContractNameT extends string,
@@ -44,6 +46,8 @@ export type DeploymentResult<
 
 /**
  * The different kinds of results that a deployment can produce.
+ *
+ * @beta
  */
 export enum DeploymentResultType {
   /**
@@ -68,6 +72,11 @@ export enum DeploymentResultType {
   SUCCESSFUL_DEPLOYMENT = "SUCCESSFUL_DEPLOYMENT",
 }
 
+/**
+ * A deployment result where one or more futures failed validation.
+ *
+ * @beta
+ */
 export interface ValidationErrorDeploymentResult {
   type: DeploymentResultType.VALIDATION_ERROR;
 
@@ -79,6 +88,11 @@ export interface ValidationErrorDeploymentResult {
   };
 }
 
+/**
+ * A deployment result where one or more futures failed reconciliation.
+ *
+ * @beta
+ */
 export interface ReconciliationErrorDeploymentResult {
   type: DeploymentResultType.RECONCILIATION_ERROR;
 
@@ -90,6 +104,12 @@ export interface ReconciliationErrorDeploymentResult {
   };
 }
 
+/**
+ * A deployment result where one or more futures errored during execution or
+ * timed out.
+ *
+ * @beta
+ */
 export interface ExecutionErrorDeploymentResult {
   type: DeploymentResultType.EXECUTION_ERROR;
 
@@ -117,6 +137,12 @@ export interface ExecutionErrorDeploymentResult {
   successful: string[];
 }
 
+/**
+ * A deployment result where all of the futures of the module have completed
+ * successfully.
+ *
+ * @beta
+ */
 export interface SuccessfulDeploymentResult<
   ContractNameT extends string,
   IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>

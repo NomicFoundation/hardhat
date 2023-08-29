@@ -155,9 +155,12 @@ describe("calls", () => {
       });
 
       const result = await this.deploy(moduleDefinition, {
-        Submodule: {
-          depositValue: BigInt(this.hre.ethers.parseEther("1")),
+        parameters: {
+          Submodule: {
+            depositValue: BigInt(this.hre.ethers.parseEther("1")),
+          },
         },
+        config: {},
       });
 
       assert.isDefined(result.passingValue);

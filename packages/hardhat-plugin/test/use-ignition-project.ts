@@ -15,7 +15,11 @@ declare module "mocha" {
     hre: HardhatRuntimeEnvironment;
     deploymentDir: string | undefined;
     deploy: HardhatRuntimeEnvironment["ignition"]["deploy"];
-    config: DeployConfig;
+    runControlledDeploy: (
+      ignitionModule: IgnitionModule,
+      chainUpdates: (c: TestChainHelper) => Promise<void>
+    ) => ReturnType<typeof runDeploy>;
+    config: Partial<DeployConfig>;
   }
 }
 
@@ -82,7 +86,7 @@ export function useFileIgnitionProject(
 
     ensureDirSync(deploymentDir);
 
-    this.deploy = (
+    this.runControlledDeploy = (
       ignitionModule: IgnitionModule,
       chainUpdates: (c: TestChainHelper) => Promise<void> = async () => {}
     ) => {
@@ -97,6 +101,12 @@ export function useFileIgnitionProject(
 
   afterEach("reset hardhat context", function () {
     resetHardhatContext();
+
+    if (this.deploymentDir === undefined) {
+      throw new Error(
+        "Deployment dir not set during cleanup of file based project"
+      );
+    }
 
     removeSync(this.deploymentDir);
   });

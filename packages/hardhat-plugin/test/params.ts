@@ -37,9 +37,12 @@ describe("module parameters", () => {
     });
 
     const result = await this.deploy(moduleDefinition, {
-      WithDefaultModule: {
-        MyNumber: 20,
+      parameters: {
+        WithDefaultModule: {
+          MyNumber: 20,
+        },
       },
+      config: {},
     });
 
     assert.equal(await result.foo.x(), Number(21));
@@ -71,9 +74,12 @@ describe("module parameters", () => {
     });
 
     const result = await this.deploy(moduleDefinition, {
-      WithDefaultStringModule: {
-        MyString: "NotExample",
+      parameters: {
+        WithDefaultStringModule: {
+          MyString: "NotExample",
+        },
       },
+      config: {},
     });
 
     assert.equal(await result.greeter.getGreeting(), "NotExample");
@@ -123,6 +129,7 @@ describe("params validation", () => {
           NotMyNumber: 11,
         },
       },
+      config: {},
     });
 
     await assert.isRejected(

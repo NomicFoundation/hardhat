@@ -50,6 +50,7 @@ describe("execution - multiple batch contract deploy", function () {
 
     const deployPromise = this.deploy(moduleDefinition, {
       parameters: {},
+      config: {},
     });
 
     await sleep(300);

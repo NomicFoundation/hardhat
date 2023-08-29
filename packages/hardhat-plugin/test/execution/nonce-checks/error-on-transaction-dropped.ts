@@ -39,7 +39,7 @@ describe("execution - error on transaction dropped", () => {
     // is detected
 
     await assert.isRejected(
-      this.deploy(moduleDefinition, async (c: TestChainHelper) => {
+      this.runControlledDeploy(moduleDefinition, async (c: TestChainHelper) => {
         // Process block 1 confirming foo1
         await c.mineBlock(1);
 
