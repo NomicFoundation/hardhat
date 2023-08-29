@@ -112,6 +112,10 @@ impl BlockchainMut for JsBlockchain {
         unimplemented!("Unsupported API")
     }
 
+    fn reserve_blocks(&mut self, _additional: usize, _interval: U256) -> Result<(), Self::Error> {
+        unimplemented!("Unsupported API")
+    }
+
     fn revert_to_block(&mut self, _block_number: &U256) -> Result<(), Self::Error> {
         unimplemented!("Unsupported API")
     }
