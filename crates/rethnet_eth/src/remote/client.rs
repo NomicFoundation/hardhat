@@ -348,7 +348,7 @@ impl RpcClient {
         }
     }
 
-    async fn handle_response_to_cache<T: Serialize>(
+    async fn try_writing_response_to_cache<T: Serialize>(
         &self,
         method_invocation: &MethodInvocation,
         result: &T,
