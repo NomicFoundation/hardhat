@@ -56,6 +56,24 @@ describe("Reconciliation - send data", () => {
     );
   });
 
+  it("should reconcile between undefined and 0x for data", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      m.send("test_send", exampleAddress, 0n, undefined);
+
+      return {};
+    });
+
+    await assertSuccessReconciliation(
+      moduleDefinition,
+      createDeploymentState({
+        ...exampleSendState,
+        id: "Module:test_send",
+        status: ExecutionStatus.STARTED,
+        data: "0x",
+      })
+    );
+  });
+
   it("should find changes to the to address unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       m.send("test_send", differentAddress, 0n, "example_data");
