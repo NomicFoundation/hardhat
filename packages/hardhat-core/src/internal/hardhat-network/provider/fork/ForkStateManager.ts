@@ -267,7 +267,16 @@ export class ForkStateManager implements StateManager {
   }
 
   public async checkpoint(): Promise<void> {
+    // HACK: We use a temporary seed for generating checkpoint state roots, as it's
+    // something unique to ethereumjs, which cannot be mimicked in EDR
+    const generatorSeed = generator.seed();
+    generator.setNext(
+      keccak256(Buffer.from(generatorSeed.toString().concat("eei-checkpoint")))
+    );
+
     const stateRoot = await this.getStateRoot();
+
+    generator.setNext(generatorSeed);
     this._stateCheckpoints.push(bufferToHex(stateRoot));
   }
 
