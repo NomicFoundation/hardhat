@@ -14,6 +14,7 @@ import {
 
 import { Batcher } from "./batcher";
 import { DeploymentLoader } from "./deployment-loader/types";
+import { formatExecutionError } from "./formatters";
 import {
   initializeDeploymentState,
   loadDeploymentState,
@@ -238,11 +239,19 @@ export class Deployer {
       failed: Object.values(deploymentState.executionStates)
         .filter(canFail)
         .filter((ex) => ex.status === ExecutionStatus.FAILED)
-        .map((ex) => ({
-          futureId: ex.id,
-          executionId: ex.networkInteractions.at(-1)!.id,
-          error: "TODO: format the execution result into a string",
-        })),
+        .map((ex) => {
+          assertIgnitionInvariant(
+            ex.result !== undefined &&
+              ex.result.type !== ExecutionResultType.SUCCESS,
+            `Execution state ${ex.id} is marked as failed but has no error result`
+          );
+
+          return {
+            futureId: ex.id,
+            executionId: ex.networkInteractions.at(-1)!.id,
+            error: formatExecutionError(ex.result),
+          };
+        }),
     };
   }
 }
