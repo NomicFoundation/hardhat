@@ -348,7 +348,7 @@ impl RpcClient {
         }
     }
 
-    async fn try_writing_response_to_cache<T: Serialize>(
+    async fn try_write_response_to_cache<T: Serialize>(
         &self,
         method_invocation: &MethodInvocation,
         result: &T,
@@ -445,20 +445,21 @@ impl RpcClient {
 
         let request = self.serialize_request(&method_invocation)?;
 
-        let result =
-            if let Some(cached_response) = self.try_from_cache(read_cache_key.as_ref()).await? {
-                serde_json::from_value(cached_response).expect("cache item matches return type")
-            } else {
-                let result: T = self
-                    .send_request_body(&request)
-                    .await
-                    .and_then(|response| Self::extract_result(request, response))?;
+        let result = if let Some(cached_response) =
+            self.try_from_cache(read_cache_key.as_ref()).await?
+        {
+            serde_json::from_value(cached_response).expect("cache item matches return type")
+        } else {
+            let result: T = self
+                .send_request_body(&request)
+                .await
+                .and_then(|response| Self::extract_result(request, response))?;
 
-                self.handle_response_to_cache(&method_invocation, &result, &resolve_block_number)
-                    .await?;
+            self.try_write_response_to_cache(&method_invocation, &result, &resolve_block_number)
+                .await?;
 
-                result
-            };
+            result
+        };
         Ok(result)
     }
 
@@ -545,7 +546,7 @@ impl RpcClient {
                         request: request_body.to_json_string(),
                     })?;
 
-            self.handle_response_to_cache(
+            self.try_write_response_to_cache(
                 &method_invocations[index],
                 &result,
                 &resolve_block_number,
