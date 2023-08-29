@@ -40,6 +40,7 @@ export interface StrategySimulationErrorExecutionResult {
  */
 export interface RevertedTransactionExecutionResult {
   type: ExecutionResultType.REVERTED_TRANSACTION;
+  txHash: string;
 }
 
 /**
