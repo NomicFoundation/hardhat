@@ -258,7 +258,7 @@ impl<'a> TryFrom<&'a MethodInvocation> for CacheableMethodInvocation<'a> {
     }
 }
 
-/// A block argument specification that is cacheable.
+/// A block argument specification that is potentially cacheable.
 #[derive(Clone, Debug)]
 pub(super) enum CacheableBlockSpec<'a> {
     /// Block number
