@@ -1,10 +1,12 @@
 import {
   BatchInitializeEvent,
+  BeginNextBatchEvent,
   CallExecutionStateCompleteEvent,
   CallExecutionStateInitializeEvent,
   ContractAtExecutionStateInitializeEvent,
   DeploymentExecutionStateCompleteEvent,
   DeploymentExecutionStateInitializeEvent,
+  DeploymentStartEvent,
   ExecutionEventListener,
   ExecutionEventNetworkInteractionType,
   ExecutionEventResultType,
@@ -204,5 +206,17 @@ export class VerboseEventHandler implements ExecutionEventListener {
     console.log(
       `Starting execution for batches: ${JSON.stringify(event.batches)}`
     );
+  }
+
+  public [ExecutionEventType.DEPLOYMENT_START](
+    _event: DeploymentStartEvent
+  ): void {
+    console.log(`Starting execution for new deployment`);
+  }
+
+  public [ExecutionEventType.BEGIN_NEXT_BATCH](
+    _event: BeginNextBatchEvent
+  ): void {
+    console.log(`Starting execution for next batch`);
   }
 }

@@ -1,8 +1,5 @@
 import { Artifact, ArtifactResolver, BuildInfo } from "../../types/artifact";
-import {
-  ExecutionEventListener,
-  ExecutionEventType,
-} from "../../types/execution-events";
+import { ExecutionEventListener } from "../../types/execution-events";
 import { MemoryJournal } from "../journal/memory-journal";
 import { Journal } from "../journal/types";
 import { JournalMessage } from "../new-execution/types/messages";
@@ -94,15 +91,6 @@ export class EphemeralDeploymentLoader implements DeploymentLoader {
 
         return fileArtifact;
       }
-    }
-  }
-
-  public emitDeploymentBatchEvent(batches: string[][]): void {
-    if (this._executionEventListener !== undefined) {
-      this._executionEventListener.BATCH_INITIALIZE({
-        type: ExecutionEventType.BATCH_INITIALIZE,
-        batches,
-      });
     }
   }
 }

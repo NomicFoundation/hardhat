@@ -19,7 +19,9 @@ export type ExecutionEvent =
   | OnchainInteractionDroppedEvent
   | OnchainInteractionReplacedByUserEvent
   | OnchainInteractionTimeoutEvent
-  | BatchInitializeEvent;
+  | BatchInitializeEvent
+  | DeploymentStartEvent
+  | BeginNextBatchEvent;
 
 export enum ExecutionEventType {
   RUN_START = "RUN_START",
@@ -43,6 +45,8 @@ export enum ExecutionEventType {
   ONCHAIN_INTERACTION_REPLACED_BY_USER = "ONCHAIN_INTERACTION_REPLACED_BY_USER",
   ONCHAIN_INTERACTION_TIMEOUT = "ONCHAIN_INTERACTION_TIMEOUT",
   BATCH_INITIALIZE = "BATCH_INITIALIZE",
+  DEPLOYMENT_START = "DEPLOYMENT_START",
+  BEGIN_NEXT_BATCH = "BEGIN_NEXT_BATCH",
 }
 
 export interface RunStartEvent {
@@ -113,6 +117,14 @@ export interface WipeExecutionStateEvent {
 export interface BatchInitializeEvent {
   type: ExecutionEventType.BATCH_INITIALIZE;
   batches: string[][];
+}
+
+export interface DeploymentStartEvent {
+  type: ExecutionEventType.DEPLOYMENT_START;
+}
+
+export interface BeginNextBatchEvent {
+  type: ExecutionEventType.BEGIN_NEXT_BATCH;
 }
 
 export interface NetworkInteractionRequestEvent {
@@ -202,6 +214,8 @@ export interface ExecutionEventTypeMap {
   [ExecutionEventType.ONCHAIN_INTERACTION_REPLACED_BY_USER]: OnchainInteractionReplacedByUserEvent;
   [ExecutionEventType.ONCHAIN_INTERACTION_TIMEOUT]: OnchainInteractionTimeoutEvent;
   [ExecutionEventType.BATCH_INITIALIZE]: BatchInitializeEvent;
+  [ExecutionEventType.DEPLOYMENT_START]: DeploymentStartEvent;
+  [ExecutionEventType.BEGIN_NEXT_BATCH]: BeginNextBatchEvent;
 }
 
 export type ExecutionEventListener = {

@@ -9,6 +9,10 @@ import {
   DeploymentResult,
   DeploymentResultContracts,
 } from "../types/deployer";
+import {
+  ExecutionEventListener,
+  ExecutionEventType,
+} from "../types/execution-events";
 
 import { Batcher } from "./batcher";
 import { DeploymentLoader } from "./deployment-loader/types";
@@ -44,7 +48,8 @@ export class Deployer {
     private readonly _executionStrategy: ExecutionStrategy,
     private readonly _jsonRpcClient: JsonRpcClient,
     private readonly _artifactResolver: ArtifactResolver,
-    private readonly _deploymentLoader: DeploymentLoader
+    private readonly _deploymentLoader: DeploymentLoader,
+    private readonly _executionEventListener?: ExecutionEventListener
   ) {
     assertIgnitionInvariant(
       this._config.requiredConfirmations >= 1,
@@ -111,13 +116,14 @@ export class Deployer {
 
     const batches = Batcher.batch(ignitionModule, deploymentState);
 
-    this._deploymentLoader.emitDeploymentBatchEvent(batches);
+    this._emitDeploymentBatchEvent(batches);
 
     const executionEngine = new ExecutionEngine(
       this._deploymentLoader,
       this._artifactResolver,
       this._executionStrategy,
       this._jsonRpcClient,
+      this._executionEventListener,
       this._config.requiredConfirmations,
       this._config.timeBeforeBumpingFees,
       this._config.maxFeeBumps,
@@ -182,6 +188,8 @@ export class Deployer {
     const deploymentState = await loadDeploymentState(this._deploymentLoader);
 
     if (deploymentState === undefined) {
+      this._emitDeploymentStartEvent();
+
       return initializeDeploymentState(chainId, this._deploymentLoader);
     }
 
@@ -191,5 +199,22 @@ export class Deployer {
     );
 
     return deploymentState;
+  }
+
+  private _emitDeploymentBatchEvent(batches: string[][]): void {
+    if (this._executionEventListener !== undefined) {
+      this._executionEventListener.BATCH_INITIALIZE({
+        type: ExecutionEventType.BATCH_INITIALIZE,
+        batches,
+      });
+    }
+  }
+
+  private _emitDeploymentStartEvent(): void {
+    if (this._executionEventListener !== undefined) {
+      this._executionEventListener.DEPLOYMENT_START({
+        type: ExecutionEventType.DEPLOYMENT_START,
+      });
+    }
   }
 }

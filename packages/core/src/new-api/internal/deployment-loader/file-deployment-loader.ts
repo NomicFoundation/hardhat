@@ -2,10 +2,7 @@ import { ensureDir, pathExists, readFile, writeFile } from "fs-extra";
 import path from "path";
 
 import { Artifact, BuildInfo } from "../../types/artifact";
-import {
-  ExecutionEventListener,
-  ExecutionEventType,
-} from "../../types/execution-events";
+import { ExecutionEventListener } from "../../types/execution-events";
 import { FileJournal } from "../journal/file-journal";
 import { Journal } from "../journal/types";
 import { JournalMessage } from "../new-execution/types/messages";
@@ -130,15 +127,6 @@ export class FileDeploymentLoader implements DeploymentLoader {
       this._paths.deployedAddressesPath,
       `${JSON.stringify(deployedAddresses, undefined, 2)}\n`
     );
-  }
-
-  public emitDeploymentBatchEvent(batches: string[][]): void {
-    if (this._executionEventListener !== undefined) {
-      this._executionEventListener.BATCH_INITIALIZE({
-        type: ExecutionEventType.BATCH_INITIALIZE,
-        batches,
-      });
-    }
   }
 
   private async _initialize(): Promise<void> {

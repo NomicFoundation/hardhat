@@ -86,7 +86,8 @@ export async function deploy({
     executionStrategy,
     jsonRpcClient,
     artifactResolver,
-    deploymentLoader
+    deploymentLoader,
+    executionEventListener
   );
 
   return deployer.deploy(

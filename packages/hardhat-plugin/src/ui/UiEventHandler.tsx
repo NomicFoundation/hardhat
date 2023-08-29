@@ -1,11 +1,13 @@
 import {
   BatchInitializeEvent,
+  BeginNextBatchEvent,
   CallExecutionStateCompleteEvent,
   CallExecutionStateInitializeEvent,
   ContractAtExecutionStateInitializeEvent,
   DeploymentExecutionStateCompleteEvent,
   DeploymentExecutionStateInitializeEvent,
   DeploymentParameters,
+  DeploymentStartEvent,
   ExecutionEventListener,
   ExecutionEventResult,
   ExecutionEventResultType,
@@ -311,6 +313,14 @@ export class UiEventHandler implements ExecutionEventListener {
 
   public [ExecutionEventType.ONCHAIN_INTERACTION_TIMEOUT](
     _event: OnchainInteractionTimeoutEvent
+  ): void {}
+
+  public [ExecutionEventType.DEPLOYMENT_START](
+    _event: DeploymentStartEvent
+  ): void {}
+
+  public [ExecutionEventType.BEGIN_NEXT_BATCH](
+    _event: BeginNextBatchEvent
   ): void {}
 
   public unmountCli(): Promise<void> {

@@ -24,5 +24,4 @@ export interface DeploymentLoader {
     futureId: string,
     contractAddress: string
   ): Promise<void>;
-  emitDeploymentBatchEvent(batches: string[][]): void;
 }
