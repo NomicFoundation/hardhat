@@ -208,3 +208,20 @@ You can configure how your tests are run using the `mocha` entry, which accepts 
 ## Quickly integrating other tools from Hardhat's config
 
 Hardhat's config file will always run before any task, so you can use it to integrate with other tools, like importing `@babel/register`.
+
+## Default EVM Version
+
+The default EVM version is determined by solc's choice for a given compiler version. To specify a different EVM version, modify your `hardhat.config.js`:
+
+```js
+module.exports = {
+  solidity: {
+    version: "0.8.21",
+    settings: {
+      evmVersion: "shanghai",
+    },
+  },
+};
+```
+
+Since `0.8.20`, solc's EVM default is `shanghai`, leading to an issue with the `PUSH0` opcode on L2 chains. To address this, post `0.8.20`, Hardhat defaults to `paris`. This value can be overriden by using the above configuration.
