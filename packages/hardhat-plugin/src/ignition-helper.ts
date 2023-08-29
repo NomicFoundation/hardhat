@@ -158,22 +158,13 @@ export type IgnitionModuleResultsTToEthersContracts<
   ContractNameT extends string,
   IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
 > = {
-  [contract in keyof IgnitionModuleResultsT]: IgnitionModuleResultsT[contract] extends NamedContractAtFuture<
-    infer ThisContractNameT
-  >
-    ? TypechainEthersContractByName<ThisContractNameT>
-    : IgnitionModuleResultsT[contract] extends NamedContractDeploymentFuture<
-        infer ThisContractNameT
-      >
-    ? TypechainEthersContractByName<ThisContractNameT>
+  [contract in keyof IgnitionModuleResultsT]: IgnitionModuleResultsT[contract] extends
+    | NamedContractDeploymentFuture<ContractNameT>
+    | NamedContractAtFuture<ContractNameT>
+    ? TypeChainEthersContractByName<ContractNameT>
     : Contract;
 };
 
-export type TypechainEthersContractByName<ContractNameT extends string> =
-  HardhatEthersHelpers["getContractAt"] extends (
-    name: ContractNameT,
-    address: string | Addressable,
-    signer?: Signer
-  ) => Promise<infer ContractT>
-    ? ContractT
-    : Contract;
+// TODO: Make this work to have support for TypeChain
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export type TypeChainEthersContractByName<ContractNameT> = Contract;
