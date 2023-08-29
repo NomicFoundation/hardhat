@@ -40,7 +40,7 @@ impl _FilterCriteria {
                 (from, to)
             }
             None => {
-                let latest_block_number = blockchain.last_block_number();
+                let latest_block_number = blockchain.last_block_number().await;
                 (latest_block_number, latest_block_number)
             }
         };

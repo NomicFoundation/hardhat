@@ -20,7 +20,7 @@ pub type SyncDatabase<'blockchain, 'state, BlockchainErrorT, StateErrorT> = Data
 
 /// Runs a transaction without committing the state.
 #[cfg_attr(feature = "tracing", tracing::instrument)]
-pub fn dry_run<BlockchainErrorT, StateErrorT>(
+pub async fn dry_run<BlockchainErrorT, StateErrorT>(
     blockchain: &dyn SyncBlockchain<BlockchainErrorT>,
     state: &dyn SyncState<StateErrorT>,
     cfg: CfgEnv,
@@ -37,7 +37,9 @@ where
     }
 
     if transaction.gas_priority_fee.is_some()
-        && !blockchain.block_supports_spec(&block.number, SpecId::LONDON)?
+        && !blockchain
+            .block_supports_spec(&block.number, SpecId::LONDON)
+            .await?
     {
         return Err(TransactionError::Eip1559Unsupported);
     }
@@ -74,7 +76,7 @@ where
 
 /// Runs a transaction, committing the state in the process.
 #[cfg_attr(feature = "tracing", tracing::instrument)]
-pub fn run<BlockchainErrorT, StateErrorT>(
+pub async fn run<BlockchainErrorT, StateErrorT>(
     blockchain: &dyn SyncBlockchain<BlockchainErrorT>,
     state: &mut dyn SyncState<StateErrorT>,
     cfg: CfgEnv,
@@ -91,7 +93,9 @@ where
     }
 
     if transaction.gas_priority_fee.is_some()
-        && !blockchain.block_supports_spec(&block.number, SpecId::LONDON)?
+        && !blockchain
+            .block_supports_spec(&block.number, SpecId::LONDON)
+            .await?
     {
         return Err(TransactionError::Eip1559Unsupported);
     }
