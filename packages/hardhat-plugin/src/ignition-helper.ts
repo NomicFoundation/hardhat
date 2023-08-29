@@ -1,5 +1,5 @@
 import type { HardhatEthersHelpers } from "@nomicfoundation/hardhat-ethers/types";
-import type { Contract, Addressable, Signer } from "ethers";
+import type { Addressable, Contract, Signer } from "ethers";
 
 import {
   deploy,
@@ -20,6 +20,7 @@ import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { HardhatArtifactResolver } from "./hardhat-artifact-resolver.ts";
+import { errorDeploymentResultToExceptionMessage } from "./utils/error-deployment-result-to-exception-message";
 
 export type DeployedContract<ContractNameT extends string> = {
   [contractName in ContractNameT]: Contract;
@@ -87,35 +88,10 @@ export class IgnitionHelper {
       verbose: false,
     });
 
-    if (result.type === DeploymentResultType.VALIDATION_ERROR) {
-      const errorsList = Object.entries(result.errors).flatMap(
-        ([futureId, errors]) => errors.map((err) => `  * ${futureId}: ${err}`)
-      );
+    if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {
+      const message = errorDeploymentResultToExceptionMessage(result);
 
-      throw new IgnitionError(
-        `The deployment wasn't run because of the following validation errors:
-
-${errorsList.join("\n")}`
-      );
-    }
-
-    if (result.type === DeploymentResultType.RECONCILIATION_ERROR) {
-      const errorsList = Object.entries(result.errors).flatMap(
-        ([futureId, errors]) => errors.map((err) => `  * ${futureId}: ${err}`)
-      );
-
-      throw new IgnitionError(
-        `The deployment wasn't run because of the following reconciliation errors:
-
-${errorsList.join("\n")}`
-      );
-    }
-
-    if (result.type === DeploymentResultType.EXECUTION_ERROR) {
-      console.log(result);
-      throw new IgnitionError(
-        `The deployment wan't succesful: TODO: create a good error message`
-      );
+      throw new IgnitionError(message);
     }
 
     return this._toEthersContracts(ignitionModule, result);
