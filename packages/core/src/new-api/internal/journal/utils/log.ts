@@ -1,4 +1,4 @@
-import { SolidityParameterType } from "../../../types/module";
+import { formatSolidityParameter } from "../../formatters";
 import { ExecutionResultType } from "../../new-execution/types/execution-result";
 import {
   JournalMessage,
@@ -44,7 +44,7 @@ export function logJournalableMessage(message: JournalMessage): void {
         console.log(
           `Successfully completed the execution of static call future ${
             message.futureId
-          } with result ${solidityParamToString(message.result.value)}`
+          } with result ${formatSolidityParameter(message.result.value)}`
         );
       } else {
         console.log(`Execution of future ${message.futureId} failed`);
@@ -89,7 +89,7 @@ export function logJournalableMessage(message: JournalMessage): void {
       console.log(
         `Executed read event argument future ${
           message.futureId
-        } with result ${solidityParamToString(message.result)}`
+        } with result ${formatSolidityParameter(message.result)}`
       );
       break;
 
@@ -148,16 +148,4 @@ export function logJournalableMessage(message: JournalMessage): void {
       );
       break;
   }
-}
-
-function solidityParamToString(param: SolidityParameterType): string {
-  if (typeof param === "object") {
-    return JSON.stringify(param);
-  }
-
-  if (typeof param === "string") {
-    return param;
-  }
-
-  return param.toString();
 }
