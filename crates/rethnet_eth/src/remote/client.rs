@@ -305,8 +305,8 @@ impl RpcClient {
     async fn resolve_block_tag<T>(
         &self,
         block_tag_resolver: CacheKeyForSymbolicBlockTag,
-        result: &T,
-        resolve_block_number: impl Fn(&T) -> Option<U256>,
+        result: T,
+        resolve_block_number: impl Fn(T) -> Option<U256>,
     ) -> Result<Option<String>, RpcClientError> {
         if let Some(block_number) = resolve_block_number(result) {
             if let Some(resolved_cache_key) = block_tag_resolver.resolve_symbolic_tag(&block_number)
@@ -325,8 +325,8 @@ impl RpcClient {
     async fn resolve_write_key<T>(
         &self,
         method_invocation: &MethodInvocation,
-        result: &T,
-        resolve_block_number: impl Fn(&T) -> Option<U256>,
+        result: T,
+        resolve_block_number: impl Fn(T) -> Option<U256>,
     ) -> Result<Option<String>, RpcClientError> {
         let write_cache_key = CacheableMethodInvocation::try_from(method_invocation)
             .ok()
@@ -352,10 +352,10 @@ impl RpcClient {
         &self,
         method_invocation: &MethodInvocation,
         result: &T,
-        resolve_block_number: &impl Fn(&&T) -> Option<U256>,
+        resolve_block_number: impl Fn(&T) -> Option<U256>,
     ) -> Result<(), RpcClientError> {
         if let Some(cache_key) = self
-            .resolve_write_key(method_invocation, &result, resolve_block_number)
+            .resolve_write_key(method_invocation, result, resolve_block_number)
             .await?
         {
             self.write_response_to_cache(&cache_key, result).await?;
@@ -437,7 +437,7 @@ impl RpcClient {
     async fn call_with_resolver<T: DeserializeOwned + Serialize>(
         &self,
         method_invocation: MethodInvocation,
-        resolve_block_number: impl Fn(&&T) -> Option<U256>,
+        resolve_block_number: impl Fn(&T) -> Option<U256>,
     ) -> Result<T, RpcClientError> {
         let read_cache_key = CacheableMethodInvocation::try_from(&method_invocation)
             .ok()
@@ -488,7 +488,7 @@ impl RpcClient {
     async fn batch_call_with_resolver(
         &self,
         method_invocations: &[MethodInvocation],
-        resolve_block_number: impl Fn(&&serde_json::Value) -> Option<U256>,
+        resolve_block_number: impl Fn(&serde_json::Value) -> Option<U256>,
     ) -> Result<VecDeque<serde_json::Value>, RpcClientError> {
         let ids = self.get_ids(method_invocations.len() as u64);
 
@@ -677,7 +677,7 @@ impl RpcClient {
     ) -> Result<eth::Block<B256>, RpcClientError> {
         self.call_with_resolver(
             MethodInvocation::GetBlockByNumber(spec, false),
-            |block: &&eth::Block<B256>| block.number,
+            |block: &eth::Block<B256>| block.number,
         )
         .await
     }
@@ -689,7 +689,7 @@ impl RpcClient {
     ) -> Result<eth::Block<eth::Transaction>, RpcClientError> {
         self.call_with_resolver(
             MethodInvocation::GetBlockByNumber(spec, true),
-            |block: &&eth::Block<eth::Transaction>| block.number,
+            |block: &eth::Block<eth::Transaction>| block.number,
         )
         .await
     }
