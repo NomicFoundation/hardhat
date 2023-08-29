@@ -230,9 +230,7 @@ https://hardhat.etherscan.io/address/${address}#code`
           contract: contractFQN,
         })
       ).to.be.rejectedWith(
-        new RegExp(
-          `The contract ${contractFQN} is not present in your project.`
-        )
+        new RegExp(`HH700: Artifact for contract "${contractFQN}" not found. `)
       );
     });
 
@@ -661,7 +659,7 @@ describe("verify task Sourcify's integration tests", () => {
 
       const taskResponse = await this.hre.run(TASK_VERIFY_SOURCIFY, {
         address: simpleContractAddress,
-        contractFQN: "contracts/SimpleContract.sol:SimpleContract",
+        contract: "contracts/SimpleContract.sol:SimpleContract",
       });
 
       assert.equal(logStub.callCount, 1);

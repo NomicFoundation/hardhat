@@ -99,7 +99,6 @@ subtask(TASK_VERIFY_ETHERSCAN)
   // TODO: [remove-verify-subtask] change to types.inputFile
   .addOptionalParam("libraries", undefined, undefined, types.any)
   .addOptionalParam("contract")
-  .addFlag("listNetworks")
   .setAction(async (taskArgs: VerifyTaskArgs, { config, network, run }) => {
     const {
       address,
@@ -286,12 +285,7 @@ subtask(TASK_VERIFY_ETHERSCAN_GET_CONTRACT_INFORMATION)
       let contractInformation: ContractInformation | null;
 
       if (contractFQN !== undefined) {
-        let artifactExists;
-        try {
-          artifactExists = await artifacts.artifactExists(contractFQN);
-        } catch (error) {
-          artifactExists = false;
-        }
+        const artifactExists = await artifacts.artifactExists(contractFQN);
 
         if (!artifactExists) {
           throw new ContractNotFoundError(contractFQN);

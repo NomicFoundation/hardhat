@@ -468,3 +468,33 @@ ${undetectableLibraries.map((x) => `  * ${x}`).join("\n")}`
 }`);
   }
 }
+
+export class HardhatSourcifyError extends HardhatVerifyError {
+  constructor(message: string) {
+    super(`Error while contacting the Sourcify server: ${message}`);
+  }
+}
+
+export class MatchTypeNotSupportedError extends HardhatVerifyError {
+  constructor(matchType: string) {
+    super(`Match type not supported: ${matchType}`);
+  }
+}
+
+export class NonUniqueContractNameError extends HardhatVerifyError {
+  constructor() {
+    super(`Non-unique contract name is used`);
+  }
+}
+
+export class SourcifyHardhatNetworkNotSupportedError extends HardhatVerifyError {
+  constructor() {
+    super(
+      `The selected network is "hardhat", which is not supported for contract verification. Please choose a network supported by Sourcify.
+
+If you intended to use a different network, ensure that you provide the --network parameter when running the command.
+
+For example: npx hardhat verify --network <network-name>`
+    );
+  }
+}
