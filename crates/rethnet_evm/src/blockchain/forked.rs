@@ -1,5 +1,5 @@
-use std::path::PathBuf;
 use std::sync::Arc;
+use std::{num::NonZeroUsize, path::PathBuf};
 
 use rethnet_eth::{
     block::DetailedBlock,
@@ -14,7 +14,7 @@ use revm::{
 use tokio::runtime::Runtime;
 
 use super::{
-    remote::RemoteBlockchain, storage::ContiguousBlockchainStorage, validate_next_block,
+    remote::RemoteBlockchain, storage::ReservableSparseBlockchainStorage, validate_next_block,
     Blockchain, BlockchainError, BlockchainMut,
 };
 
@@ -47,7 +47,7 @@ pub enum CreationError {
 /// A blockchain that forked from a remote blockchain.
 #[derive(Debug)]
 pub struct ForkedBlockchain {
-    local_storage: ContiguousBlockchainStorage,
+    local_storage: ReservableSparseBlockchainStorage,
     remote: RemoteBlockchain,
     fork_block_number: U256,
     chain_id: U256,
@@ -117,7 +117,7 @@ impl ForkedBlockchain {
         }
 
         Ok(Self {
-            local_storage: ContiguousBlockchainStorage::default(),
+            local_storage: ReservableSparseBlockchainStorage::empty(fork_block_number),
             remote: RemoteBlockchain::new(rpc_client, runtime),
             fork_block_number,
             chain_id,
@@ -137,13 +137,8 @@ impl BlockHashRef for ForkedBlockchain {
                 |block| Ok(block.header.hash()),
             )
         } else {
-            let local_number = usize::try_from(number - self.fork_block_number)
-                .or(Err(BlockchainError::BlockNumberTooLarge))?
-                - 1;
-
             self.local_storage
-                .blocks()
-                .get(local_number)
+                .block_by_number(&number)
                 .map(|block| block.header.hash())
                 .ok_or(BlockchainError::UnknownBlockNumber)
         }
@@ -155,7 +150,7 @@ impl Blockchain for ForkedBlockchain {
 
     fn block_by_hash(&self, hash: &B256) -> Result<Option<Arc<DetailedBlock>>, Self::Error> {
         if let Some(block) = self.local_storage.block_by_hash(hash) {
-            Ok(Some(block.clone()))
+            Ok(Some(block))
         } else {
             self.remote
                 .block_by_hash(hash)
@@ -170,11 +165,7 @@ impl Blockchain for ForkedBlockchain {
                 |block| Ok(Some(block)),
             )
         } else {
-            let local_number = usize::try_from(number - self.fork_block_number)
-                .or(Err(BlockchainError::BlockNumberTooLarge))?
-                - 1;
-
-            Ok(self.local_storage.blocks().get(local_number).cloned())
+            Ok(self.local_storage.block_by_number(number))
         }
     }
 
@@ -186,7 +177,7 @@ impl Blockchain for ForkedBlockchain {
             .local_storage
             .block_by_transaction_hash(transaction_hash)
         {
-            Ok(Some(block.clone()))
+            Ok(Some(block))
         } else {
             self.remote
                 .block_by_transaction_hash(transaction_hash)
@@ -219,8 +210,12 @@ impl Blockchain for ForkedBlockchain {
     }
 
     fn last_block(&self) -> Result<Arc<DetailedBlock>, Self::Error> {
-        if let Some(block) = self.local_storage.blocks().last() {
-            Ok(block.clone())
+        let last_block_number = self.last_block_number();
+        if self.fork_block_number < last_block_number {
+            Ok(self
+                .local_storage
+                .block_by_number(&last_block_number)
+                .expect("Block must exist"))
         } else {
             self.remote
                 .block_by_number(&self.fork_block_number)
@@ -229,7 +224,7 @@ impl Blockchain for ForkedBlockchain {
     }
 
     fn last_block_number(&self) -> U256 {
-        self.fork_block_number + U256::from(self.local_storage.blocks().len())
+        *self.local_storage.last_block_number()
     }
 
     fn receipt_by_transaction_hash(
@@ -240,7 +235,7 @@ impl Blockchain for ForkedBlockchain {
             .local_storage
             .receipt_by_transaction_hash(transaction_hash)
         {
-            Ok(Some(receipt.clone()))
+            Ok(Some(receipt))
         } else {
             self.remote
                 .receipt_by_transaction_hash(transaction_hash)
@@ -249,7 +244,7 @@ impl Blockchain for ForkedBlockchain {
     }
 
     fn total_difficulty_by_hash(&self, hash: &B256) -> Result<Option<U256>, Self::Error> {
-        if let Some(difficulty) = self.local_storage.total_difficulty_by_hash(hash).cloned() {
+        if let Some(difficulty) = self.local_storage.total_difficulty_by_hash(hash) {
             Ok(Some(difficulty))
         } else {
             self.remote
@@ -283,11 +278,36 @@ impl BlockchainMut for ForkedBlockchain {
         Ok(block.clone())
     }
 
+    fn reserve_blocks(&mut self, additional: usize, interval: U256) -> Result<(), Self::Error> {
+        let additional = if let Some(additional) = NonZeroUsize::new(additional) {
+            additional
+        } else {
+            return Ok(()); // nothing to do
+        };
+
+        let last_block = self.last_block()?;
+        let previous_total_difficulty = self
+            .total_difficulty_by_hash(last_block.hash())?
+            .expect("Must exist as its block is stored");
+
+        self.local_storage.reserve_blocks(
+            additional,
+            interval,
+            last_block.header.base_fee_per_gas,
+            last_block.header.state_root,
+            previous_total_difficulty,
+            self.spec_id,
+        );
+
+        Ok(())
+    }
+
     fn revert_to_block(&mut self, block_number: &U256) -> Result<(), Self::Error> {
         match block_number.cmp(&self.fork_block_number) {
             std::cmp::Ordering::Less => Err(BlockchainError::CannotDeleteRemote),
             std::cmp::Ordering::Equal => {
-                self.local_storage = ContiguousBlockchainStorage::default();
+                self.local_storage =
+                    ReservableSparseBlockchainStorage::empty(self.fork_block_number);
 
                 Ok(())
             }

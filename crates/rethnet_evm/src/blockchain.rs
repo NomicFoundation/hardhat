@@ -105,6 +105,9 @@ pub trait BlockchainMut {
     /// Inserts the provided block into the blockchain, returning a reference to the inserted block.
     fn insert_block(&mut self, block: DetailedBlock) -> Result<Arc<DetailedBlock>, Self::Error>;
 
+    /// Reserves the provided number of blocks, starting from the next block number.
+    fn reserve_blocks(&mut self, additional: usize, interval: U256) -> Result<(), Self::Error>;
+
     /// Reverts to the block with the provided number, deleting all later blocks.
     fn revert_to_block(&mut self, block_number: &U256) -> Result<(), Self::Error>;
 }
