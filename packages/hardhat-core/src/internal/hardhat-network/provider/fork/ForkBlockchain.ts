@@ -129,20 +129,8 @@ export class ForkBlockchain
     return block;
   }
 
-  public async reserveBlocks(
-    count: bigint,
-    interval: bigint,
-    previousBlockStateRoot: Buffer,
-    previousBlockTotalDifficulty: bigint,
-    previousBlockBaseFeePerGas: bigint | undefined
-  ): Promise<void> {
-    await super.reserveBlocks(
-      count,
-      interval,
-      previousBlockStateRoot,
-      previousBlockTotalDifficulty,
-      previousBlockBaseFeePerGas
-    );
+  public async reserveBlocks(count: bigint, interval: bigint): Promise<void> {
+    await super.reserveBlocks(count, interval);
     this._latestBlockNumber += count;
   }
 

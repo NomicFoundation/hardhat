@@ -120,23 +120,18 @@ export abstract class BlockchainBase {
     await this.addBlock(block);
   }
 
-  public async reserveBlocks(
-    count: bigint,
-    interval: bigint,
-    previousBlockStateRoot: Buffer,
-    previousBlockTotalDifficulty: bigint,
-    previousBlockBaseFeePerGas: bigint | undefined
-  ): Promise<void> {
-    await this.getLatestBlockNumber().then((blockNumber) => {
-      this._data.reserveBlocks(
-        blockNumber + 1n,
-        count,
-        interval,
-        previousBlockStateRoot,
-        previousBlockTotalDifficulty,
-        previousBlockBaseFeePerGas
-      );
-    });
+  public async reserveBlocks(count: bigint, interval: bigint): Promise<void> {
+    const latestBlock = await this.getLatestBlock();
+
+    this._data.reserveBlocks(
+      latestBlock.header.number + 1n,
+      count,
+      interval,
+      // Question: Is this valid? Does this account for the irregular state?
+      latestBlock.header.stateRoot,
+      this._data.getTotalDifficulty(latestBlock.hash())!,
+      latestBlock.header.baseFeePerGas
+    );
   }
 
   public copy(): BlockchainInterface {

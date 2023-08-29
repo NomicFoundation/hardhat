@@ -72,8 +72,10 @@ export class DualBlockchain implements BlockchainAdapter {
   }
 
   public async getLatestBlock(): Promise<Block> {
-    const hardhatBlock = await this._hardhat.getLatestBlock();
-    const rethnetBlock = await this._rethnet.getLatestBlock();
+    const [hardhatBlock, rethnetBlock] = await Promise.all([
+      this._hardhat.getLatestBlock(),
+      this._rethnet.getLatestBlock(),
+    ]);
 
     assertEqualOptionalBlocks(hardhatBlock, rethnetBlock);
     return rethnetBlock;
@@ -179,6 +181,11 @@ export class DualBlockchain implements BlockchainAdapter {
     }
 
     return rethnetTotalDifficulty;
+  }
+
+  public async reserveBlocks(count: bigint, interval: bigint): Promise<void> {
+    await this._hardhat.reserveBlocks(count, interval);
+    await this._rethnet.reserveBlocks(count, interval);
   }
 
   public async revertToBlock(blockNumber: bigint): Promise<void> {

@@ -205,7 +205,7 @@ export function assertEqualBlocks(ethereumJSBlock: Block, rethnetBlock: Block) {
 
     if (txDifferences.length > 0) {
       console.log(`Different transaction[${transactionIdx}]: ${txDifferences}`);
-      differences.push("transactions");
+      differences.push(`transaction[${transactionIdx}]`);
     }
   }
 

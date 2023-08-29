@@ -29,5 +29,7 @@ export interface BlockchainAdapter {
 
   getTotalDifficultyByHash(hash: Buffer): Promise<bigint | undefined>;
 
+  reserveBlocks(count: bigint, interval: bigint): Promise<void>;
+
   revertToBlock(blockNumber: bigint): Promise<void>;
 }

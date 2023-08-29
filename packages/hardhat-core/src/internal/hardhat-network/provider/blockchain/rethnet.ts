@@ -1,6 +1,6 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import { Blockchain } from "rethnet-evm";
+import { Blockchain, Block as EdrBlock } from "rethnet-evm";
 import { HardforkName } from "../../../util/hardforks";
 import { BlockchainAdapter } from "../blockchain";
 import { RpcLogOutput, RpcReceiptOutput } from "../output";
@@ -45,7 +45,7 @@ export class RethnetBlockchain implements BlockchainAdapter {
       return undefined;
     }
 
-    return rethnetBlockToEthereumJS(block, this._common);
+    return rethnetBlockToEthereumJS(block, this._createCommonForBlock(block));
   }
 
   public async getBlockByNumber(number: bigint): Promise<Block | undefined> {
@@ -54,7 +54,7 @@ export class RethnetBlockchain implements BlockchainAdapter {
       return undefined;
     }
 
-    return rethnetBlockToEthereumJS(block, this._common);
+    return rethnetBlockToEthereumJS(block, this._createCommonForBlock(block));
   }
 
   public async getBlockByTransactionHash(
@@ -67,12 +67,12 @@ export class RethnetBlockchain implements BlockchainAdapter {
       return undefined;
     }
 
-    return rethnetBlockToEthereumJS(block, this._common);
+    return rethnetBlockToEthereumJS(block, this._createCommonForBlock(block));
   }
 
   public async getLatestBlock(): Promise<Block> {
     const block = await this._blockchain.lastBlock();
-    return rethnetBlockToEthereumJS(block, this._common);
+    return rethnetBlockToEthereumJS(block, this._createCommonForBlock(block));
   }
 
   public async getLatestBlockNumber(): Promise<bigint> {
@@ -137,7 +137,30 @@ export class RethnetBlockchain implements BlockchainAdapter {
     return (await this._blockchain.totalDifficultyByHash(hash)) ?? undefined;
   }
 
+  public async reserveBlocks(count: bigint, interval: bigint): Promise<void> {
+    await this._blockchain.reserveBlocks(count, interval);
+  }
+
   public async revertToBlock(blockNumber: bigint): Promise<void> {
     await this._blockchain.revertToBlock(blockNumber);
+  }
+
+  private _createCommonForBlock(block: EdrBlock): Common {
+    const common = this._common.copy();
+
+    // We set the common's hardfork depending on the remote block fields, to
+    // prevent ethereumjs from throwing if unsupported fields are passed.
+    // We use "berlin" for pre-EIP-1559 blocks (blocks without baseFeePerGas),
+    // "merge" for blocks that have baseFeePerGas but not withdrawals,
+    // and "shanghai" for blocks with withdrawals
+    if (block.header.baseFeePerGas === undefined) {
+      common.setHardfork("berlin");
+    } else if (block.header.withdrawalsRoot === undefined) {
+      common.setHardfork("merge");
+    } else {
+      common.setHardfork("shanghai");
+    }
+
+    return common;
   }
 }

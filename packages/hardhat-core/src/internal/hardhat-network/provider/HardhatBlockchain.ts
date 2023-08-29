@@ -33,20 +33,8 @@ export class HardhatBlockchain
     return block;
   }
 
-  public async reserveBlocks(
-    count: bigint,
-    interval: bigint,
-    previousBlockStateRoot: Buffer,
-    previousBlockTotalDifficulty: bigint,
-    previousBlockBaseFeePerGas: bigint | undefined
-  ) {
-    await super.reserveBlocks(
-      count,
-      interval,
-      previousBlockStateRoot,
-      previousBlockTotalDifficulty,
-      previousBlockBaseFeePerGas
-    );
+  public async reserveBlocks(count: bigint, interval: bigint) {
+    await super.reserveBlocks(count, interval);
     this._length += count;
   }
 

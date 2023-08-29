@@ -126,7 +126,7 @@ export class RethnetAdapter implements VMAdapter {
     try {
       const result = rethnetResultToRunTxResult(
         rethnetResult.result,
-        blockContext.header.gasUsed
+        blockContext.header.gasUsed + rethnetResult.result.result.gasUsed
       );
       return [result, trace];
     } catch (e) {
@@ -319,7 +319,7 @@ export class RethnetAdapter implements VMAdapter {
     try {
       const result = rethnetResultToRunTxResult(
         rethnetResult.result,
-        block.header.gasUsed
+        rethnetResult.result.result.gasUsed
       );
       return [result, this._vmTracer.getLastTopLevelMessageTrace()];
     } catch (e) {

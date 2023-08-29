@@ -784,7 +784,8 @@ describe("HardhatNode", () => {
       it("when doing mineBlocks() before a snapshot", async function () {
         await node.mineBlocks(10n);
 
-        const latestBlockNumberBeforeSnapshot = await node.getLatestBlockNumber();
+        const latestBlockNumberBeforeSnapshot =
+          await node.getLatestBlockNumber();
 
         const snapshotId = await node.takeSnapshot();
         await node.sendTransaction(

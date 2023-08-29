@@ -15,16 +15,14 @@ export class DualBlockMiner implements BlockMinerAdapter {
     minerReward: bigint,
     baseFeePerGas?: bigint
   ): Promise<PartialMineBlockResult> {
-    const ethereumJSResult = await this._ethereumJSMiner.mineBlock(
-      blockTimestamp,
-      minerReward,
-      baseFeePerGas
-    );
-    const rethnetResult = await this._rethnetMiner.mineBlock(
-      blockTimestamp,
-      minerReward,
-      baseFeePerGas
-    );
+    const [ethereumJSResult, rethnetResult] = await Promise.all([
+      this._ethereumJSMiner.mineBlock(
+        blockTimestamp,
+        minerReward,
+        baseFeePerGas
+      ),
+      this._rethnetMiner.mineBlock(blockTimestamp, minerReward, baseFeePerGas),
+    ]);
 
     assertEqualBlocks(ethereumJSResult.block, rethnetResult.block);
     assertEqualRunBlockResults(
@@ -33,33 +31,6 @@ export class DualBlockMiner implements BlockMinerAdapter {
     );
 
     // TODO: assert traces
-
-    return rethnetResult;
-  }
-
-  public async mineBlocks(
-    blockTimestamp: bigint,
-    minerReward: bigint,
-    count: bigint,
-    interval: bigint,
-    baseFeePerGas?: bigint
-  ): Promise<PartialMineBlockResult[]> {
-    const _ethereumJSResult = await this._ethereumJSMiner.mineBlocks(
-      blockTimestamp,
-      minerReward,
-      count,
-      interval,
-      baseFeePerGas
-    );
-    const rethnetResult = await this._rethnetMiner.mineBlocks(
-      blockTimestamp,
-      minerReward,
-      count,
-      interval,
-      baseFeePerGas
-    );
-
-    // TODO: assert
 
     return rethnetResult;
   }
