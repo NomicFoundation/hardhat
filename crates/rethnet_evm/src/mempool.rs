@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 
+use indexmap::IndexMap;
 use rethnet_eth::{Address, B256, U256};
 use revm::{
     db::StateRef,
@@ -27,11 +28,11 @@ pub struct MemPool {
     /// The block's gas limit
     block_gas_limit: U256,
     /// Transactions that can be executed now
-    pending_transactions: HashMap<Address, Vec<PendingTransaction>>,
+    pending_transactions: IndexMap<Address, Vec<PendingTransaction>>,
     /// Mapping of transaction hashes to transaction
     hash_to_transaction: HashMap<B256, PendingTransaction>,
     /// Transactions that can be executed in the future, once the nonce is high enough
-    future_transactions: HashMap<Address, Vec<PendingTransaction>>,
+    future_transactions: IndexMap<Address, Vec<PendingTransaction>>,
 }
 
 impl MemPool {
@@ -39,9 +40,9 @@ impl MemPool {
     pub fn new(block_gas_limit: U256) -> Self {
         Self {
             block_gas_limit,
-            pending_transactions: HashMap::new(),
+            pending_transactions: IndexMap::new(),
             hash_to_transaction: HashMap::new(),
-            future_transactions: HashMap::new(),
+            future_transactions: IndexMap::new(),
         }
     }
 
