@@ -71,12 +71,16 @@ export class Deployer {
     accounts: string[],
     defaultSender: string
   ): Promise<DeploymentResult<ContractNameT, IgnitionModuleResultsT>> {
-    await validateStageTwo(
+    const validationResult = await validateStageTwo(
       ignitionModule,
       this._artifactResolver,
       deploymentParameters,
       accounts
     );
+
+    if (validationResult !== null) {
+      return validationResult;
+    }
 
     let deploymentState = await this._getOrInitializeDeploymentState();
 
