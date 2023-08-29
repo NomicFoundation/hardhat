@@ -10,7 +10,7 @@ import {
 import { Contract } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { HardhatArtifactResolver } from "./hardhat-artifact-resolver.ts";
+import { HardhatArtifactResolver } from "./hardhat-artifact-resolver";
 
 export class IgnitionHelper {
   private _provider: EIP1193Provider;
