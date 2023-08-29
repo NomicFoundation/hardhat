@@ -1,27 +1,27 @@
 import { assert } from "chai";
 import _ from "lodash";
 
-import { defaultHardhatNetworkParams } from "../../../../../src/internal/core/config/default-config";
-import { BackwardsCompatibilityProviderAdapter } from "../../../../../src/internal/core/providers/backwards-compatibility";
-import { ModulesLogger } from "../../../../../src/internal/hardhat-network/provider/modules/logger";
-import { ForkConfig } from "../../../../../src/internal/hardhat-network/provider/node-types";
-import { RpcDebugTraceOutput } from "../../../../../src/internal/hardhat-network/provider/output";
-import { HardhatNetworkProvider } from "../../../../../src/internal/hardhat-network/provider/provider";
-import { EthereumProvider } from "../../../../../src/types";
-import { trace as mainnetPostLondonTxTrace } from "../../../../fixture-debug-traces/mainnetPostLondonTxTrace";
-import { trace as mainnetReturnsDataTrace } from "../../../../fixture-debug-traces/mainnetReturnsDataTrace";
-import { trace as mainnetReturnsDataTraceGeth } from "../../../../fixture-debug-traces/mainnetReturnsDataTraceGeth";
-import { trace as mainnetRevertTrace } from "../../../../fixture-debug-traces/mainnetRevertTrace";
-import { trace as modifiesStateTrace } from "../../../../fixture-debug-traces/modifiesStateTrace";
-import { trace as elongatedMemoryRegressionTestTrace } from "../../../../fixture-debug-traces/elongatedMemoryRegressionTestTrace";
-import { ALCHEMY_URL } from "../../../../setup";
+import { defaultHardhatNetworkParams } from "../../../../../../src/internal/core/config/default-config";
+import { BackwardsCompatibilityProviderAdapter } from "../../../../../../src/internal/core/providers/backwards-compatibility";
+import { ModulesLogger } from "../../../../../../src/internal/hardhat-network/provider/modules/logger";
+import { ForkConfig } from "../../../../../../src/internal/hardhat-network/provider/node-types";
+import { RpcDebugTraceOutput } from "../../../../../../src/internal/hardhat-network/provider/output";
+import { HardhatNetworkProvider } from "../../../../../../src/internal/hardhat-network/provider/provider";
+import { EthereumProvider } from "../../../../../../src/types";
+import { trace as mainnetPostLondonTxTrace } from "../../../../../fixture-debug-traces/mainnetPostLondonTxTrace";
+import { trace as mainnetReturnsDataTrace } from "../../../../../fixture-debug-traces/mainnetReturnsDataTrace";
+import { trace as mainnetReturnsDataTraceGeth } from "../../../../../fixture-debug-traces/mainnetReturnsDataTraceGeth";
+import { trace as mainnetRevertTrace } from "../../../../../fixture-debug-traces/mainnetRevertTrace";
+import { trace as modifiesStateTrace } from "../../../../../fixture-debug-traces/modifiesStateTrace";
+import { trace as elongatedMemoryRegressionTestTrace } from "../../../../../fixture-debug-traces/elongatedMemoryRegressionTestTrace";
+import { ALCHEMY_URL } from "../../../../../setup";
 import {
   assertInvalidArgumentsError,
   assertInvalidInputError,
-} from "../../helpers/assertions";
-import { FORK_TESTS_CACHE_PATH } from "../../helpers/constants";
-import { EXAMPLE_CONTRACT } from "../../helpers/contracts";
-import { setCWD } from "../../helpers/cwd";
+} from "../../../helpers/assertions";
+import { FORK_TESTS_CACHE_PATH } from "../../../helpers/constants";
+import { EXAMPLE_CONTRACT } from "../../../helpers/contracts";
+import { setCWD } from "../../../helpers/cwd";
 import {
   DEFAULT_ACCOUNTS,
   DEFAULT_ACCOUNTS_ADDRESSES,
@@ -30,11 +30,11 @@ import {
   DEFAULT_HARDFORK,
   DEFAULT_NETWORK_ID,
   PROVIDERS,
-} from "../../helpers/providers";
-import { sendDummyTransaction } from "../../helpers/sendDummyTransaction";
-import { deployContract } from "../../helpers/transactions";
-import { assertEqualTraces } from "../utils/assertEqualTraces";
-import { numberToRpcQuantity } from "../../../../../src/internal/core/jsonrpc/types/base-types";
+} from "../../../helpers/providers";
+import { sendDummyTransaction } from "../../../helpers/sendDummyTransaction";
+import { deployContract } from "../../../helpers/transactions";
+import { assertEqualTraces } from "../../utils/assertEqualTraces";
+import { numberToRpcQuantity } from "../../../../../../src/internal/core/jsonrpc/types/base-types";
 
 // TODO: temporarily skip some of the tests because the latest version of ethereumjs
 // sometimes wrongly adds dummy empty words in the memory field
