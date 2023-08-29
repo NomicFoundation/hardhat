@@ -424,7 +424,7 @@ impl open_fastrlp::Decodable for Header {
 }
 
 /// Partial header definition without ommers hash and transactions root
-#[derive(Clone, Debug, PartialEq, Eq, Default)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PartialHeader {
     /// The parent block's hash
     pub parent_hash: B256,
@@ -505,6 +505,29 @@ impl PartialHeader {
                     None
                 }
             }),
+        }
+    }
+}
+
+impl Default for PartialHeader {
+    fn default() -> Self {
+        const DEFAULT_GAS: u64 = 0xffffffffffffff;
+
+        Self {
+            parent_hash: Default::default(),
+            beneficiary: Default::default(),
+            state_root: Default::default(),
+            receipts_root: KECCAK_NULL_RLP,
+            logs_bloom: Default::default(),
+            difficulty: Default::default(),
+            number: Default::default(),
+            gas_limit: U256::from(DEFAULT_GAS),
+            gas_used: Default::default(),
+            timestamp: Default::default(),
+            extra_data: Default::default(),
+            mix_hash: Default::default(),
+            nonce: Default::default(),
+            base_fee: Default::default(),
         }
     }
 }
