@@ -129,6 +129,58 @@ describe("Reconciliation", () => {
     ]);
   });
 
+  it("should flag as unreconsiliable a future that timed out on the previous run", async () => {
+    const moduleDefinition = buildModule("Module1", (m) => {
+      const contract1 = m.contract("Contract1");
+
+      return { contract1 };
+    });
+
+    const reconiliationResult = await reconcile(moduleDefinition, {
+      chainId: 123,
+      executionStates: {
+        "Module1:Example": {
+          ...exampleDeploymentState,
+          status: ExecutionStatus.TIMEOUT,
+        },
+      },
+    });
+
+    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+      {
+        futureId: "Module1:Contract1",
+        failure:
+          "The previous run of the future Module1:Contract1 timed out, and will need wiped before running again",
+      },
+    ]);
+  });
+
+  it("should flag as unreconsiliable a future that failed on the previous run", async () => {
+    const moduleDefinition = buildModule("Module1", (m) => {
+      const contract1 = m.contract("Contract1");
+
+      return { contract1 };
+    });
+
+    const reconiliationResult = await reconcile(moduleDefinition, {
+      chainId: 123,
+      executionStates: {
+        "Module1:Example": {
+          ...exampleDeploymentState,
+          status: ExecutionStatus.FAILED,
+        },
+      },
+    });
+
+    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+      {
+        futureId: "Module1:Contract1",
+        failure:
+          "The previous run of the future Module1:Contract1 failed, and will need wiped before running again",
+      },
+    ]);
+  });
+
   describe("from and accounts interactions", () => {
     it("should reconcile from where the module's is undefined, and the default account is the sender of the started execution state", async () => {
       const moduleDefinition = buildModule("Module1", (m) => {
