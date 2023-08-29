@@ -96,7 +96,7 @@ impl LocalBlockchain {
                 nonce: if spec_id >= SpecId::MERGE {
                     B64::ZERO
                 } else {
-                    B64::from(U64::from(42))
+                    B64::from_limbs([66u64.to_be()])
                 },
                 base_fee: if spec_id >= SpecId::LONDON {
                     Some(base_fee.ok_or(CreationError::MissingBaseFee)?)
