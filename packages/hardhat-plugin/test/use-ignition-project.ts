@@ -1,8 +1,4 @@
-import {
-  DeployConfig,
-  IgnitionModule,
-  ModuleParameters,
-} from "@ignored/ignition-core";
+import { DeployConfig, IgnitionModule } from "@ignored/ignition-core";
 import { Contract } from "ethers";
 import { ensureDirSync, removeSync } from "fs-extra";
 import { resetHardhatContext } from "hardhat/plugins-testing";
@@ -13,6 +9,15 @@ import { IgnitionHelper } from "../src/ignition-helper";
 
 import { clearPendingTransactionsFromMemoryPool } from "./execution/helpers";
 import { waitForPendingTxs } from "./helpers";
+
+declare module "mocha" {
+  interface Context {
+    hre: HardhatRuntimeEnvironment;
+    deploymentDir: string | undefined;
+    deploy: HardhatRuntimeEnvironment["ignition"]["deploy"];
+    config: DeployConfig;
+  }
+}
 
 const defaultTestConfig: DeployConfig = {
   maxFeeBumps: 5,
@@ -37,15 +42,7 @@ export function useEphemeralIgnitionProject(fixtureProjectName: string) {
 
     await hre.run("compile", { quiet: true });
 
-    this.deploy = (
-      ignitionModule: IgnitionModule,
-      parameters: { [key: string]: ModuleParameters } = {}
-    ) => {
-      return this.hre.ignition.deploy(ignitionModule, {
-        parameters,
-        config: hre.config.ignition,
-      });
-    };
+    this.deploy = this.hre.ignition.deploy.bind(this.hre.ignition);
   });
 
   afterEach("reset hardhat context", function () {
