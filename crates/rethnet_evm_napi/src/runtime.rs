@@ -42,6 +42,7 @@ pub async fn dry_run(
         block,
         inspector,
     )
+    .await
     .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
 
     let trace = if with_trace {
@@ -113,7 +114,7 @@ pub async fn run(
     let result = rethnet_evm::run(
         &*blockchain.read().await,
         &mut *state_manager.write().await,
-        cfg, transaction, block, inspector)
+        cfg, transaction, block, inspector).await
     .map_err(|e| {
         napi::Error::new(
             Status::GenericFailure,

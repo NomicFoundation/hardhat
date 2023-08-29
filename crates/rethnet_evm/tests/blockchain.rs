@@ -22,7 +22,7 @@ lazy_static! {
 
 // The cache directory is only used when the `test-remote` feature is enabled
 #[allow(unused_variables)]
-fn create_dummy_blockchains() -> Vec<Box<dyn SyncBlockchain<BlockchainError>>> {
+async fn create_dummy_blockchains() -> Vec<Box<dyn SyncBlockchain<BlockchainError>>> {
     const DEFAULT_GAS_LIMIT: u64 = 0xffffffffffffff;
     const DEFAULT_INITIAL_BASE_FEE: u64 = 1000000000;
 
@@ -41,23 +41,20 @@ fn create_dummy_blockchains() -> Vec<Box<dyn SyncBlockchain<BlockchainError>>> {
 
     #[cfg(feature = "test-remote")]
     let forked_blockchain = {
-        use std::sync::Arc;
-
         use rethnet_evm::blockchain::ForkedBlockchain;
         use rethnet_test_utils::env::get_alchemy_url;
-        use tokio::runtime::Builder;
-
-        let runtime = Arc::new(Builder::new_multi_thread().enable_all().build().unwrap());
 
         let cache_dir = CACHE_DIR.path().into();
 
-        runtime
-            .clone()
-            .block_on(async move {
-                ForkedBlockchain::new(runtime, SpecId::LATEST, &get_alchemy_url(), cache_dir, None)
-                    .await
-            })
-            .expect("Failed to construct forked blockchain")
+        ForkedBlockchain::new(
+            tokio::runtime::Handle::current().clone(),
+            SpecId::LATEST,
+            &get_alchemy_url(),
+            cache_dir,
+            None,
+        )
+        .await
+        .expect("Failed to construct forked blockchain")
     };
 
     vec![
@@ -67,31 +64,33 @@ fn create_dummy_blockchains() -> Vec<Box<dyn SyncBlockchain<BlockchainError>>> {
     ]
 }
 
-fn create_dummy_block(blockchain: &dyn SyncBlockchain<BlockchainError>) -> DetailedBlock {
-    let block_number = blockchain.last_block_number() + U256::from(1);
+async fn create_dummy_block(blockchain: &dyn SyncBlockchain<BlockchainError>) -> DetailedBlock {
+    let block_number = blockchain.last_block_number().await + U256::from(1);
 
-    create_dummy_block_with_number(blockchain, block_number)
+    create_dummy_block_with_number(blockchain, block_number).await
 }
 
-fn create_dummy_block_with_number(
+async fn create_dummy_block_with_number(
     blockchain: &dyn SyncBlockchain<BlockchainError>,
     number: U256,
 ) -> DetailedBlock {
     let parent_hash = *blockchain
         .last_block()
+        .await
         .expect("Failed to retrieve last block")
         .hash();
 
     create_dummy_block_with_hash(number, parent_hash)
 }
 
-fn create_dummy_block_with_difficulty(
+async fn create_dummy_block_with_difficulty(
     blockchain: &dyn SyncBlockchain<BlockchainError>,
     number: U256,
     difficulty: u64,
 ) -> DetailedBlock {
     let parent_hash = *blockchain
         .last_block()
+        .await
         .expect("Failed to retrieve last block")
         .hash();
 
@@ -144,117 +143,133 @@ fn create_dummy_transaction() -> SignedTransaction {
     SignedTransaction::PostEip155Legacy(transaction.sign(&private_key))
 }
 
-#[test]
+#[tokio::test]
 #[serial]
-fn test_get_last_block() {
-    let blockchains = create_dummy_blockchains();
+async fn test_get_last_block() {
+    let blockchains = create_dummy_blockchains().await;
 
     for mut blockchain in blockchains {
-        let next_block = create_dummy_block(blockchain.as_ref());
+        let next_block = create_dummy_block(blockchain.as_ref()).await;
         let expected = blockchain
             .insert_block(next_block)
+            .await
             .expect("Failed to insert block");
 
-        assert_eq!(blockchain.last_block().unwrap(), expected);
+        assert_eq!(blockchain.last_block().await.unwrap(), expected);
     }
 }
 
-#[test]
+#[tokio::test]
 #[serial]
-fn test_get_block_by_hash_some() {
-    let blockchains = create_dummy_blockchains();
+async fn test_get_block_by_hash_some() {
+    let blockchains = create_dummy_blockchains().await;
 
     for mut blockchain in blockchains {
-        let next_block = create_dummy_block(blockchain.as_ref());
+        let next_block = create_dummy_block(blockchain.as_ref()).await;
         let expected = blockchain
             .insert_block(next_block)
+            .await
             .expect("Failed to insert block");
 
         assert_eq!(
-            blockchain.block_by_hash(expected.hash()).unwrap(),
+            blockchain.block_by_hash(expected.hash()).await.unwrap(),
             Some(expected)
         );
     }
 }
 
-#[test]
+#[tokio::test]
 #[serial]
-fn test_get_block_by_hash_none() {
-    let blockchains = create_dummy_blockchains();
+async fn test_get_block_by_hash_none() {
+    let blockchains = create_dummy_blockchains().await;
 
     for blockchain in blockchains {
-        assert_eq!(blockchain.block_by_hash(&B256::zero()).unwrap(), None);
+        assert_eq!(blockchain.block_by_hash(&B256::zero()).await.unwrap(), None);
     }
 }
 
-#[test]
+#[tokio::test]
 #[serial]
-fn test_get_block_by_number_some() {
-    let blockchains = create_dummy_blockchains();
+async fn test_get_block_by_number_some() {
+    let blockchains = create_dummy_blockchains().await;
 
     for mut blockchain in blockchains {
-        let next_block = create_dummy_block(blockchain.as_ref());
+        let next_block = create_dummy_block(blockchain.as_ref()).await;
         let expected = blockchain
             .insert_block(next_block)
+            .await
             .expect("Failed to insert block");
 
         assert_eq!(
-            blockchain.block_by_number(&expected.header.number).unwrap(),
+            blockchain
+                .block_by_number(&expected.header.number)
+                .await
+                .unwrap(),
             Some(expected),
         );
     }
 }
 
-#[test]
+#[tokio::test]
 #[serial]
-fn test_get_block_by_number_none() {
-    let blockchains = create_dummy_blockchains();
+async fn test_get_block_by_number_none() {
+    let blockchains = create_dummy_blockchains().await;
 
     for blockchain in blockchains {
-        let next_block_number = blockchain.last_block_number() + U256::from(1);
+        let next_block_number = blockchain.last_block_number().await + U256::from(1);
         assert_eq!(
-            blockchain.block_by_number(&next_block_number).unwrap(),
+            blockchain
+                .block_by_number(&next_block_number)
+                .await
+                .unwrap(),
             None
         );
     }
 }
 
-#[test]
+#[tokio::test]
 #[serial]
-fn test_insert_block_multiple() {
-    let blockchains = create_dummy_blockchains();
+async fn test_insert_block_multiple() {
+    let blockchains = create_dummy_blockchains().await;
 
     for mut blockchain in blockchains {
-        let one = create_dummy_block(blockchain.as_ref());
-        let one = blockchain.insert_block(one).unwrap();
+        let one = create_dummy_block(blockchain.as_ref()).await;
+        let one = blockchain.insert_block(one).await.unwrap();
 
-        let two = create_dummy_block(blockchain.as_ref());
-        let two = blockchain.insert_block(two).unwrap();
+        let two = create_dummy_block(blockchain.as_ref()).await;
+        let two = blockchain.insert_block(two).await.unwrap();
 
         assert_eq!(
-            blockchain.block_by_number(&one.header.number).unwrap(),
+            blockchain
+                .block_by_number(&one.header.number)
+                .await
+                .unwrap(),
             Some(one)
         );
         assert_eq!(
-            blockchain.block_by_number(&two.header.number).unwrap(),
+            blockchain
+                .block_by_number(&two.header.number)
+                .await
+                .unwrap(),
             Some(two)
         );
     }
 }
 
-#[test]
+#[tokio::test]
 #[serial]
-fn test_insert_block_invalid_block_number() {
-    let blockchains = create_dummy_blockchains();
+async fn test_insert_block_invalid_block_number() {
+    let blockchains = create_dummy_blockchains().await;
 
     for mut blockchain in blockchains {
-        let next_block_number = blockchain.last_block_number() + U256::from(1);
+        let next_block_number = blockchain.last_block_number().await + U256::from(1);
         let invalid_block_number = next_block_number + U256::from(1);
 
         let invalid_block =
-            create_dummy_block_with_number(blockchain.as_ref(), invalid_block_number);
+            create_dummy_block_with_number(blockchain.as_ref(), invalid_block_number).await;
         let error = blockchain
             .insert_block(invalid_block)
+            .await
             .expect_err("Should fail to insert block");
 
         if let BlockchainError::InvalidBlockNumber { actual, expected } = error {
@@ -266,85 +281,101 @@ fn test_insert_block_invalid_block_number() {
     }
 }
 
-#[test]
+#[tokio::test]
 #[serial]
-fn test_insert_block_invalid_parent_hash() {
-    let blockchains = create_dummy_blockchains();
+async fn test_insert_block_invalid_parent_hash() {
+    let blockchains = create_dummy_blockchains().await;
 
     for mut blockchain in blockchains {
         const INVALID_BLOCK_HASH: B256 = B256::zero();
-        let next_block_number = blockchain.last_block_number() + U256::from(1);
+        let next_block_number = blockchain.last_block_number().await + U256::from(1);
 
         let one = create_dummy_block_with_hash(next_block_number, INVALID_BLOCK_HASH);
         let error = blockchain
             .insert_block(one)
+            .await
             .expect_err("Should fail to insert block");
 
         if let BlockchainError::InvalidParentHash { actual, expected } = error {
             assert_eq!(actual, INVALID_BLOCK_HASH);
-            assert_eq!(expected, *blockchain.last_block().unwrap().hash());
+            assert_eq!(expected, *blockchain.last_block().await.unwrap().hash());
         } else {
             panic!("Unexpected error: {error:?}");
         }
     }
 }
 
-#[test]
+#[tokio::test]
 #[serial]
-fn test_revert_to_block() {
-    let blockchains = create_dummy_blockchains();
+async fn test_revert_to_block() {
+    let blockchains = create_dummy_blockchains().await;
 
     for mut blockchain in blockchains {
-        let last_block = blockchain.last_block().unwrap();
+        let last_block = blockchain.last_block().await.unwrap();
 
-        let one = create_dummy_block(blockchain.as_ref());
-        let one = blockchain.insert_block(one).unwrap();
+        let one = create_dummy_block(blockchain.as_ref()).await;
+        let one = blockchain.insert_block(one).await.unwrap();
 
-        let two = create_dummy_block(blockchain.as_ref());
-        let two = blockchain.insert_block(two).unwrap();
+        let two = create_dummy_block(blockchain.as_ref()).await;
+        let two = blockchain.insert_block(two).await.unwrap();
 
         blockchain
             .revert_to_block(&last_block.header.number)
+            .await
             .unwrap();
 
         // Last block still exists
-        assert_eq!(blockchain.last_block().unwrap(), last_block);
+        assert_eq!(blockchain.last_block().await.unwrap(), last_block);
 
         assert_eq!(
-            blockchain.block_by_hash(last_block.hash()).unwrap(),
+            blockchain.block_by_hash(last_block.hash()).await.unwrap(),
             Some(last_block)
         );
 
         // Blocks 1 and 2 are gone
         assert!(blockchain
             .block_by_number(&one.header.number)
+            .await
             .unwrap()
             .is_none());
 
         assert!(blockchain
             .block_by_number(&two.header.number)
+            .await
             .unwrap()
             .is_none());
 
-        assert!(blockchain.block_by_hash(one.hash()).unwrap().is_none());
-        assert!(blockchain.block_by_hash(two.hash()).unwrap().is_none());
+        assert!(blockchain
+            .block_by_hash(one.hash())
+            .await
+            .unwrap()
+            .is_none());
+        assert!(blockchain
+            .block_by_hash(two.hash())
+            .await
+            .unwrap()
+            .is_none());
 
         // Add block 1 again
-        let one = blockchain.insert_block((*one).clone()).unwrap();
+        let one = blockchain.insert_block((*one).clone()).await.unwrap();
 
-        assert_eq!(blockchain.block_by_hash(one.hash()).unwrap(), Some(one));
+        assert_eq!(
+            blockchain.block_by_hash(one.hash()).await.unwrap(),
+            Some(one)
+        );
     }
 }
 
-#[test]
+#[tokio::test]
 #[serial]
-fn test_revert_to_block_invalid_number() {
-    let blockchains = create_dummy_blockchains();
+async fn test_revert_to_block_invalid_number() {
+    let blockchains = create_dummy_blockchains().await;
 
     for mut blockchain in blockchains {
-        let next_block_number = blockchain.last_block_number() + U256::from(1);
+        let next_block_number = blockchain.last_block_number().await + U256::from(1);
         let error = blockchain
             .revert_to_block(&next_block_number)
+            .await
             .expect_err("Should fail to insert block");
 
         if let BlockchainError::UnknownBlockNumber = error {
@@ -354,81 +385,102 @@ fn test_revert_to_block_invalid_number() {
     }
 }
 
-#[test]
+#[tokio::test]
 #[serial]
-fn test_block_total_difficulty_by_hash() {
-    let blockchains: Vec<Box<dyn SyncBlockchain<BlockchainError>>> = create_dummy_blockchains();
+async fn test_block_total_difficulty_by_hash() {
+    let blockchains: Vec<Box<dyn SyncBlockchain<BlockchainError>>> =
+        create_dummy_blockchains().await;
 
     for mut blockchain in blockchains {
-        let last_block = blockchain.last_block().unwrap();
+        let last_block = blockchain.last_block().await.unwrap();
 
         let one = create_dummy_block_with_difficulty(
             blockchain.as_ref(),
             last_block.header.number + U256::from(1),
             1000,
-        );
-        let one = blockchain.insert_block(one).unwrap();
+        )
+        .await;
+        let one = blockchain.insert_block(one).await.unwrap();
 
         let two = create_dummy_block_with_difficulty(
             blockchain.as_ref(),
             last_block.header.number + U256::from(2),
             2000,
-        );
-        let two = blockchain.insert_block(two).unwrap();
+        )
+        .await;
+        let two = blockchain.insert_block(two).await.unwrap();
 
         let last_block_difficulty = blockchain
             .total_difficulty_by_hash(last_block.hash())
+            .await
             .unwrap()
             .expect("total difficulty must exist");
 
         assert_eq!(
-            blockchain.total_difficulty_by_hash(one.hash()).unwrap(),
+            blockchain
+                .total_difficulty_by_hash(one.hash())
+                .await
+                .unwrap(),
             Some(last_block_difficulty + one.header.difficulty)
         );
 
         assert_eq!(
-            blockchain.total_difficulty_by_hash(two.hash()).unwrap(),
+            blockchain
+                .total_difficulty_by_hash(two.hash())
+                .await
+                .unwrap(),
             Some(last_block_difficulty + one.header.difficulty + two.header.difficulty)
         );
 
-        blockchain.revert_to_block(&one.header.number).unwrap();
+        blockchain
+            .revert_to_block(&one.header.number)
+            .await
+            .unwrap();
 
         // Block 1 has a total difficulty
         assert_eq!(
-            blockchain.total_difficulty_by_hash(one.hash()).unwrap(),
+            blockchain
+                .total_difficulty_by_hash(one.hash())
+                .await
+                .unwrap(),
             Some(last_block_difficulty + one.header.difficulty)
         );
 
         // Block 2 no longer stores a total difficulty
         assert!(blockchain
             .total_difficulty_by_hash(two.hash())
+            .await
             .unwrap()
             .is_none());
     }
 }
 
-#[test]
+#[tokio::test]
 #[serial]
-fn test_block_total_difficulty_by_hash_invalid_hash() {
-    let blockchains = create_dummy_blockchains();
+async fn test_block_total_difficulty_by_hash_invalid_hash() {
+    let blockchains = create_dummy_blockchains().await;
 
     for blockchain in blockchains {
-        let difficulty = blockchain.total_difficulty_by_hash(&B256::zero()).unwrap();
+        let difficulty = blockchain
+            .total_difficulty_by_hash(&B256::zero())
+            .await
+            .unwrap();
 
         assert!(difficulty.is_none());
     }
 }
 
-#[test]
+#[tokio::test]
 #[serial]
-fn test_transaction_by_hash() {
-    let blockchains = create_dummy_blockchains();
+async fn test_transaction_by_hash() {
+    let blockchains = create_dummy_blockchains().await;
 
     for blockchain in blockchains {
         let transaction = create_dummy_transaction();
 
         let block = blockchain
             .block_by_transaction_hash(&transaction.hash())
+            .await
             .unwrap();
 
         assert!(block.is_none());

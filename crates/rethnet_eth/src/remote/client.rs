@@ -7,7 +7,6 @@ use std::{
 };
 
 use bytes::Bytes;
-use futures::{stream, StreamExt};
 use itertools::{izip, Itertools};
 use reqwest::Client as HttpClient;
 use reqwest_middleware::{ClientBuilder as HttpClientBuilder, ClientWithMiddleware};
@@ -37,9 +36,6 @@ use super::{
 };
 
 const RPC_CACHE_DIR: &str = "rpc_cache";
-// More than 16 concurrent reads does not significantly improve performance on any disk/workload, but
-// it can cause slow downs based on this article <https://pkolaczk.github.io/disk-parallelism/>.
-const CONCURRENT_DISK_READS: usize = 16;
 // Retry parameters for rate limited requests.
 const BACKOFF_EXPONENT: u32 = 2;
 const MIN_RETRY_INTERVAL: Duration = Duration::from_secs(1);
@@ -492,13 +488,11 @@ impl RpcClient {
             .map(try_read_cache_key)
             .collect::<Vec<_>>();
 
-        let mut results: Vec<Option<serde_json::Value>> = stream::iter(&cache_keys)
-            .map(|cache_key| self.try_from_cache(cache_key.as_ref()))
-            .buffered(CONCURRENT_DISK_READS)
-            .collect::<Vec<Result<_, RpcClientError>>>()
-            .await
-            .into_iter()
-            .collect::<Result<Vec<_>, RpcClientError>>()?;
+        let mut results: Vec<Option<serde_json::Value>> = Vec::with_capacity(cache_keys.len());
+
+        for cache_key in &cache_keys {
+            results.push(self.try_from_cache(cache_key.as_ref()).await?);
+        }
 
         let mut requests: Vec<SerializedRequest> = Vec::new();
         let mut id_to_index = HashMap::<&Id, usize>::new();

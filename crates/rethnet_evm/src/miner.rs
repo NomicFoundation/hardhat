@@ -52,7 +52,7 @@ pub enum MineBlockError<BE, SE> {
 
 /// Mines a block using as many transactions as can fit in it.
 #[allow(clippy::too_many_arguments)]
-pub fn mine_block<BlockchainErrorT, StateErrorT>(
+pub async fn mine_block<BlockchainErrorT, StateErrorT>(
     blockchain: &mut dyn SyncBlockchain<BlockchainErrorT>,
     state: &mut dyn SyncState<StateErrorT>,
     mem_pool: &mut MemPool,
@@ -71,6 +71,7 @@ where
     let mut block_builder = {
         let parent_block = blockchain
             .last_block()
+            .await
             .map_err(MineBlockError::Blockchain)?;
 
         BlockBuilder::new(
@@ -137,6 +138,7 @@ where
 
     let block = blockchain
         .insert_block(block)
+        .await
         .map_err(MineBlockError::Blockchain)?;
 
     mem_pool
