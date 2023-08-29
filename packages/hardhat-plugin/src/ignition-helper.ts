@@ -1,5 +1,4 @@
-import type { HardhatEthersHelpers } from "@nomicfoundation/hardhat-ethers/types";
-import type { Addressable, Contract, Signer } from "ethers";
+import type { Contract } from "ethers";
 
 import {
   deploy,
