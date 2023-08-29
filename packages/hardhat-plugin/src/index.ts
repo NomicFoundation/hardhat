@@ -11,12 +11,12 @@ import { lazyObject } from "hardhat/plugins";
 import path from "path";
 import Prompt from "prompts";
 
-import { HardhatArtifactResolver } from "./hardhat-artifact-resolver.ts";
+import { HardhatArtifactResolver } from "./hardhat-artifact-resolver";
 import { IgnitionHelper } from "./ignition-helper";
 import { loadModule } from "./load-module";
 import { writePlan } from "./plan/write-plan";
-import { UiEventHandler } from "./ui/UiEventHandler.js";
-import { VerboseEventHandler } from "./ui/VerboseEventHandler.js";
+import { UiEventHandler } from "./ui/UiEventHandler";
+import { VerboseEventHandler } from "./ui/VerboseEventHandler";
 import { open } from "./utils/open";
 
 import "./type-extensions";
