@@ -3,6 +3,7 @@ import type { Contract } from "ethers";
 import {
   deploy,
   DeployConfig,
+  DeploymentParameters,
   DeploymentResultType,
   EIP1193Provider,
   Future,
@@ -10,7 +11,6 @@ import {
   IgnitionModule,
   IgnitionModuleResult,
   isContractFuture,
-  ModuleParameters,
   NamedContractAtFuture,
   NamedContractDeploymentFuture,
   SuccessfulDeploymentResult,
@@ -53,7 +53,7 @@ export class IgnitionHelper {
       parameters = {},
       config: perDeployConfig,
     }: {
-      parameters: { [key: string]: ModuleParameters };
+      parameters: DeploymentParameters;
       config: Partial<DeployConfig>;
     } = {
       parameters: {},
