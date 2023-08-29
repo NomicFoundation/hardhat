@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { subtask } from "hardhat/config";
+import { subtask, types } from "hardhat/config";
 import { Sourcify } from "../sourcify";
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 
@@ -7,6 +7,8 @@ import {
   BuildInfoNotFoundError,
   ContractNotFoundError,
   ContractVerificationFailedError,
+  InvalidContractNameError,
+  NonUniqueContractNameError,
   VerificationAPIUnexpectedMessageError,
 } from "../errors";
 
@@ -15,6 +17,8 @@ import {
   TASK_VERIFY_SOURCIFY_ATTEMPT_VERIFICATION,
   TASK_VERIFY_SOURCIFY_DISABLED_WARNING,
 } from "../task-names";
+import { isFullyQualifiedName } from "hardhat/src/utils/contract-names";
+import { Artifact } from "hardhat/src/types";
 
 interface VerificationResponse {
   success: boolean;
@@ -24,27 +28,12 @@ interface VerificationResponse {
 interface VerificationArgs {
   address: string;
   constructorArgs: string[];
-  contractFQN?: string;
-}
-
-interface VerificationInterfaceVerifyParams {
-  address: string;
-  files?: {
-    [index: string]: string;
-  };
-  chosenContract?: number;
-}
-
-interface VerificationInterface {
-  isVerified(address: string): Promise<Boolean>;
-  verify(params: VerificationInterfaceVerifyParams): Promise<any>;
-  getVerificationStatus(guid: string): Promise<any>;
-  getContractUrl(address: string, status?: string): string;
+  contract?: string;
 }
 
 interface AttemptVerificationArgs {
   address: string;
-  verificationInterface: VerificationInterface;
+  verificationInterface: Sourcify;
   contractFQN: string;
 }
 
@@ -56,35 +45,41 @@ interface AttemptVerificationArgs {
  */
 subtask(TASK_VERIFY_SOURCIFY)
   .addParam("address")
-  .addFlag("listNetworks")
-  .addParam("contractFQN")
+  .addOptionalParam("contract")
   .setAction(
     async (
-      { address, contractFQN }: VerificationArgs,
+      { address, contract }: VerificationArgs,
       { config, network, run, artifacts }
     ) => {
-      if (!network.config.chainId) {
+      if (!contract) {
+        console.log(
+          "In order to verify on Sourcify you must provide a contract fully qualified name"
+        );
+        return;
+      }
+
+      const chainConfig = await Sourcify.getCurrentChainConfig(
+        network.name,
+        network.provider,
+        config.sourcify.customChains || []
+      );
+
+      if (!chainConfig.chainId) {
         console.log("Missing chainId");
         return;
       }
 
-      if (!contractFQN) {
-        console.log("Missing contract fully qualified name");
-        return;
+      if (contract !== undefined && !isFullyQualifiedName(contract)) {
+        throw new InvalidContractNameError(contract || "");
       }
 
-      let artifactExists;
-      try {
-        artifactExists = await artifacts.artifactExists(contractFQN);
-      } catch (error) {
-        artifactExists = false;
-      }
+      const artifactExists = await artifacts.artifactExists(contract);
 
       if (!artifactExists) {
-        throw new ContractNotFoundError(contractFQN);
+        throw new ContractNotFoundError(contract);
       }
 
-      const sourcify = new Sourcify(network.config.chainId);
+      const sourcify = new Sourcify(chainConfig.chainId);
 
       const status = await sourcify.isVerified(address);
       if (status !== false) {
@@ -94,23 +89,18 @@ ${contractURL}`);
         return;
       }
 
-      // Make sure that contract artifacts are up-to-date
-      await run(TASK_COMPILE, { quiet: true });
-
-      // First, try to verify the contract using the minimal input
       const {
-        success: minimalInputVerificationSuccess,
+        success: verificationSuccess,
         message: verificationMessage,
       }: VerificationResponse = await run(
         TASK_VERIFY_SOURCIFY_ATTEMPT_VERIFICATION,
         {
           address,
           verificationInterface: sourcify,
-          contractFQN,
+          contractFQN: contract,
         }
       );
-
-      if (minimalInputVerificationSuccess) {
+      if (verificationSuccess) {
         return;
       }
 
@@ -121,6 +111,7 @@ ${contractURL}`);
 subtask(TASK_VERIFY_SOURCIFY_ATTEMPT_VERIFICATION)
   .addParam("address")
   .addParam("contractFQN")
+  .addParam("verificationInterface", undefined, undefined, types.any)
   .setAction(
     async (
       { address, verificationInterface, contractFQN }: AttemptVerificationArgs,
@@ -131,25 +122,30 @@ subtask(TASK_VERIFY_SOURCIFY_ATTEMPT_VERIFICATION)
         throw new BuildInfoNotFoundError(contractFQN);
       }
 
-      const artifact = await artifacts.readArtifact(contractFQN);
+      let artifact: Artifact;
+      try {
+        artifact = await artifacts.readArtifact(contractFQN);
+      } catch (e) {
+        throw new NonUniqueContractNameError();
+      }
+
       const chosenContract = Object.keys(buildInfo.output.contracts).findIndex(
         (source) => source === artifact.sourceName
       );
 
-      const response = await verificationInterface.verify({
-        address,
-        files: {
-          hardhatOutputBuffer: JSON.stringify(buildInfo),
-        },
-        chosenContract,
-      });
-
-      if (!(response.isFailure() || response.isSuccess())) {
-        // Reaching this point shouldn't be possible unless the API is behaving in a new way.
-        throw new VerificationAPIUnexpectedMessageError(response.message);
+      if (chosenContract === -1) {
+        throw new ContractNotFoundError(artifact.sourceName);
       }
 
-      if (response.isSuccess()) {
+      const response = await verificationInterface.verify(
+        address,
+        {
+          hardhatOutputBuffer: JSON.stringify(buildInfo),
+        },
+        chosenContract
+      );
+
+      if (response.isOk()) {
         const contractURL = verificationInterface.getContractUrl(
           address,
           response.getStatus()

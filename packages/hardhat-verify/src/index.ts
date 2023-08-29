@@ -128,7 +128,10 @@ subtask(
 
     if (config.sourcify.enabled) {
       verificationSubtasks.push(TASK_VERIFY_SOURCIFY);
-    } else if (userConfig.sourcify?.enabled === undefined) {
+    } else if (
+      userConfig.sourcify?.enabled === undefined ||
+      userConfig.sourcify?.enabled === false
+    ) {
       verificationSubtasks.push(TASK_VERIFY_SOURCIFY_DISABLED_WARNING);
     }
 

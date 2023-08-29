@@ -61,6 +61,9 @@ export class Etherscan {
     apiKey: ApiKey | undefined,
     chainConfig: ChainConfig
   ) {
+    if (!chainConfig.urls) {
+      throw new ChainConfigNotFoundError(chainConfig.chainId);
+    }
     const resolvedApiKey = resolveApiKey(apiKey, chainConfig.network);
     const apiUrl = chainConfig.urls.apiURL;
     const browserUrl = chainConfig.urls.browserURL.trim().replace(/\/$/, "");

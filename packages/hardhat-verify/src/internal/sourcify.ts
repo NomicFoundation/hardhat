@@ -2,32 +2,21 @@ import type { Dispatcher } from "undici";
 import {
   ContractVerificationRequestError,
   ContractVerificationInvalidStatusCodeError,
+  HardhatSourcifyError,
+  MatchTypeNotSupportedError,
+  SourcifyHardhatNetworkNotSupportedError,
+  ChainConfigNotFoundError,
 } from "./errors";
-import { sendGetRequest, sendPostJSONRequest } from "./undici";
-import { NomicLabsHardhatPluginError } from "hardhat/plugins";
-
-class HardhatSourcifyError extends NomicLabsHardhatPluginError {
-  constructor(message: string, parent?: Error) {
-    super("@nomicfoundation/hardhat-verify", message, parent);
-  }
-}
-
-interface SourcifyVerifyRequestParams {
-  address: string;
-  files: {
-    [index: string]: string;
-  };
-  sourceName: string;
-  chosenContract?: number;
-}
-
-// Used for polling the result of the contract verification.
-const VERIFICATION_STATUS_POLLING_TIME = 3000;
+import { sendGetRequest, sendPostRequest } from "./undici";
+import { EthereumProvider } from "hardhat/src/types";
+import { ChainConfig } from "../types";
+import { builtinChains } from "./chain-config";
+import { HARDHAT_NETWORK_NAME } from "hardhat/src/plugins";
 
 export class Sourcify {
-  private _apiUrl: string;
-  private _browserUrl: string;
-  private _chainId: number;
+  public _apiUrl: string;
+  public _browserUrl: string;
+  public _chainId: number;
 
   constructor(chainId: number) {
     this._apiUrl = "https://sourcify.dev/server";
@@ -35,7 +24,34 @@ export class Sourcify {
     this._chainId = chainId;
   }
 
-  // https://docs.sourcify.dev/docs/api/server/check-all-by-addresses/
+  public static async getCurrentChainConfig(
+    networkName: string,
+    ethereumProvider: EthereumProvider,
+    customChains: ChainConfig[]
+  ): Promise<ChainConfig> {
+    const currentChainId = parseInt(
+      await ethereumProvider.send("eth_chainId"),
+      16
+    );
+
+    const currentChainConfig = [
+      // custom chains has higher precedence than builtin chains
+      ...[...customChains].reverse(), // the last entry has higher precedence
+      ...builtinChains,
+    ].find(({ chainId }) => chainId === currentChainId);
+
+    if (currentChainConfig === undefined) {
+      if (networkName === HARDHAT_NETWORK_NAME) {
+        throw new SourcifyHardhatNetworkNotSupportedError();
+      }
+
+      throw new ChainConfigNotFoundError(currentChainId);
+    }
+
+    return currentChainConfig;
+  }
+
+  // https://sourcify.dev/server/api-docs/#/Repository/get_check_all_by_addresses
   public async isVerified(address: string) {
     const parameters = new URLSearchParams({
       addresses: address,
@@ -49,8 +65,7 @@ export class Sourcify {
     const json = await response.body.json();
 
     const contract = json.find(
-      (_contract: { address: string; status: string }) =>
-        _contract.address === address
+      (_contract: { address: string }) => _contract.address === address
     );
     if (contract.status === "perfect" || contract.status === "partial") {
       return contract.status;
@@ -59,12 +74,14 @@ export class Sourcify {
     }
   }
 
-  // https://docs.sourcify.dev/docs/api/server/verify/
-  public async verify({
-    address,
-    files,
-    chosenContract,
-  }: SourcifyVerifyRequestParams): Promise<SourcifyResponse> {
+  // https://sourcify.dev/server/api-docs/#/Stateless%20Verification/post_verify
+  public async verify(
+    address: string,
+    files: {
+      [index: string]: string;
+    },
+    chosenContract?: number
+  ): Promise<SourcifyResponse> {
     const parameters = {
       address,
       files,
@@ -74,21 +91,21 @@ export class Sourcify {
 
     let response: Dispatcher.ResponseData;
     try {
-      response = await sendPostJSONRequest(
+      response = await sendPostRequest(
         new URL(this._apiUrl),
-        JSON.stringify(parameters)
+        JSON.stringify(parameters),
+        { "Content-Type": "application/json" }
       );
     } catch (error) {
       throw new ContractVerificationRequestError(this._apiUrl, error as Error);
     }
 
     if (!(response.statusCode >= 200 && response.statusCode <= 299)) {
-      // This could be always interpreted as JSON if there were any such guarantee in the Sourcify API.
-      const responseText = await response.body.text();
+      const responseJson = await response.body.json();
       throw new ContractVerificationInvalidStatusCodeError(
         this._apiUrl,
         response.statusCode,
-        responseText
+        JSON.stringify(responseJson)
       );
     }
 
@@ -96,7 +113,7 @@ export class Sourcify {
     const sourcifyResponse = new SourcifyResponse(responseJson);
 
     if (!sourcifyResponse.isOk()) {
-      throw new HardhatSourcifyError(sourcifyResponse.error);
+      throw new HardhatSourcifyError(sourcifyResponse.error || "");
     }
 
     return sourcifyResponse;
@@ -109,7 +126,7 @@ export class Sourcify {
     } else if (_matchType === "partial") {
       matchType = "partial_match";
     } else {
-      throw "Match type not supported";
+      throw new MatchTypeNotSupportedError(_matchType);
     }
     return `${this._browserUrl}/contracts/${matchType}/${this._chainId}/${address}/`;
   }
@@ -132,21 +149,19 @@ class SourcifyResponse {
     this.result = response.result;
   }
 
-  public isFailure() {
-    return this.error !== undefined;
-  }
-
   public isSuccess() {
-    return this.error === undefined;
+    return this.getError() === undefined;
   }
 
   public isOk() {
-    return (
-      this.result[0].status === "perfect" || this.result[0].status === "partial"
-    );
+    return this.getStatus() === "perfect" || this.getStatus() === "partial";
   }
 
   public getStatus() {
     return this.result[0].status;
+  }
+
+  public getError() {
+    return this.error;
   }
 }
