@@ -42,16 +42,20 @@ export class DualBlockchain implements BlockchainAdapter {
   }
 
   public async getBlockByHash(hash: Buffer): Promise<Block | undefined> {
-    const hardhatBlock = await this._hardhat.getBlockByHash(hash);
-    const rethnetBlock = await this._rethnet.getBlockByHash(hash);
+    const [hardhatBlock, rethnetBlock] = await Promise.all([
+      this._hardhat.getBlockByHash(hash),
+      this._rethnet.getBlockByHash(hash),
+    ]);
 
     assertEqualOptionalBlocks(hardhatBlock, rethnetBlock);
     return rethnetBlock;
   }
 
   public async getBlockByNumber(number: bigint): Promise<Block | undefined> {
-    const hardhatBlock = await this._hardhat.getBlockByNumber(number);
-    const rethnetBlock = await this._rethnet.getBlockByNumber(number);
+    const [hardhatBlock, rethnetBlock] = await Promise.all([
+      this._hardhat.getBlockByNumber(number),
+      this._rethnet.getBlockByNumber(number),
+    ]);
 
     assertEqualOptionalBlocks(hardhatBlock, rethnetBlock);
     return rethnetBlock;
@@ -60,12 +64,10 @@ export class DualBlockchain implements BlockchainAdapter {
   public async getBlockByTransactionHash(
     transactionHash: Buffer
   ): Promise<Block | undefined> {
-    const hardhatBlock = await this._hardhat.getBlockByTransactionHash(
-      transactionHash
-    );
-    const rethnetBlock = await this._rethnet.getBlockByTransactionHash(
-      transactionHash
-    );
+    const [hardhatBlock, rethnetBlock] = await Promise.all([
+      this._hardhat.getBlockByTransactionHash(transactionHash),
+      this._rethnet.getBlockByTransactionHash(transactionHash),
+    ]);
 
     assertEqualOptionalBlocks(hardhatBlock, rethnetBlock);
     return rethnetBlock;
@@ -82,8 +84,10 @@ export class DualBlockchain implements BlockchainAdapter {
   }
 
   public async getLatestBlockNumber(): Promise<bigint> {
-    const hardhatBlockNumber = await this._hardhat.getLatestBlockNumber();
-    const rethnetBlockNumber = await this._rethnet.getLatestBlockNumber();
+    const [hardhatBlockNumber, rethnetBlockNumber] = await Promise.all([
+      this._hardhat.getLatestBlockNumber(),
+      this._rethnet.getLatestBlockNumber(),
+    ]);
 
     if (hardhatBlockNumber !== rethnetBlockNumber) {
       console.trace(
@@ -96,8 +100,10 @@ export class DualBlockchain implements BlockchainAdapter {
   }
 
   public async getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]> {
-    const hardhat = await this._hardhat.getLogs(filterParams);
-    const rethnet = await this._rethnet.getLogs(filterParams);
+    const [hardhat, rethnet] = await Promise.all([
+      this._hardhat.getLogs(filterParams),
+      this._rethnet.getLogs(filterParams),
+    ]);
 
     if (hardhat.length !== rethnet.length) {
       console.trace(
@@ -132,12 +138,10 @@ export class DualBlockchain implements BlockchainAdapter {
   }
 
   public async getReceiptByTransactionHash(transactionHash: Buffer) {
-    const hardhat = await this._hardhat.getReceiptByTransactionHash(
-      transactionHash
-    );
-    const rethnet = await this._rethnet.getReceiptByTransactionHash(
-      transactionHash
-    );
+    const [hardhat, rethnet] = await Promise.all([
+      this._hardhat.getReceiptByTransactionHash(transactionHash),
+      this._rethnet.getReceiptByTransactionHash(transactionHash),
+    ]);
 
     assertEqualOptionalReceipts(hardhat, rethnet);
 
@@ -147,12 +151,10 @@ export class DualBlockchain implements BlockchainAdapter {
   public async getTotalDifficultyByHash(
     hash: Buffer
   ): Promise<bigint | undefined> {
-    const hardhatTotalDifficulty = await this._hardhat.getTotalDifficultyByHash(
-      hash
-    );
-    const rethnetTotalDifficulty = await this._rethnet.getTotalDifficultyByHash(
-      hash
-    );
+    const [hardhatTotalDifficulty, rethnetTotalDifficulty] = await Promise.all([
+      this._hardhat.getTotalDifficultyByHash(hash),
+      this._rethnet.getTotalDifficultyByHash(hash),
+    ]);
 
     if (hardhatTotalDifficulty === undefined) {
       if (rethnetTotalDifficulty !== undefined) {
@@ -184,12 +186,16 @@ export class DualBlockchain implements BlockchainAdapter {
   }
 
   public async reserveBlocks(count: bigint, interval: bigint): Promise<void> {
-    await this._hardhat.reserveBlocks(count, interval);
-    await this._rethnet.reserveBlocks(count, interval);
+    await Promise.all([
+      this._hardhat.reserveBlocks(count, interval),
+      this._rethnet.reserveBlocks(count, interval),
+    ]);
   }
 
   public async revertToBlock(blockNumber: bigint): Promise<void> {
-    await this._hardhat.revertToBlock(blockNumber);
-    await this._rethnet.revertToBlock(blockNumber);
+    await Promise.all([
+      this._hardhat.revertToBlock(blockNumber),
+      this._rethnet.revertToBlock(blockNumber),
+    ]);
   }
 }
