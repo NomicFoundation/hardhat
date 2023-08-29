@@ -4,7 +4,7 @@ import {
   isModuleParameterRuntimeValue,
 } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
-import { DeploymentParameters } from "../../../types/deployer";
+import { DeploymentParameters } from "../../../types/deploy";
 import { NamedContractDeploymentFuture } from "../../../types/module";
 import {
   retrieveNestedRuntimeValues,

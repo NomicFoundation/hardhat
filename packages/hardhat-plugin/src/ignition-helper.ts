@@ -1,16 +1,29 @@
+import type { Contract } from "ethers";
+
 import {
   deploy,
   DeployConfig,
-  DeploymentResultSuccess,
+  DeploymentParameters,
+  DeploymentResultType,
   EIP1193Provider,
+  Future,
   IgnitionError,
   IgnitionModule,
-  ModuleParameters,
+  IgnitionModuleResult,
+  isContractFuture,
+  NamedContractAtFuture,
+  NamedContractDeploymentFuture,
+  SuccessfulDeploymentResult,
 } from "@ignored/ignition-core";
-import { Contract } from "ethers";
+import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { HardhatArtifactResolver } from "./hardhat-artifact-resolver.ts";
+import { errorDeploymentResultToExceptionMessage } from "./utils/error-deployment-result-to-exception-message";
+
+export type DeployedContract<ContractNameT extends string> = {
+  [contractName in ContractNameT]: Contract;
+};
 
 export class IgnitionHelper {
   private _provider: EIP1193Provider;
@@ -26,19 +39,32 @@ export class IgnitionHelper {
     this._deploymentDir = deploymentDir;
   }
 
-  public async deploy(
-    ignitionModuleDefinition: IgnitionModule,
+  public async deploy<
+    ModuleIdT extends string,
+    ContractNameT extends string,
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+  >(
+    ignitionModule: IgnitionModule<
+      ModuleIdT,
+      ContractNameT,
+      IgnitionModuleResultsT
+    >,
     {
       parameters = {},
       config: perDeployConfig,
     }: {
-      parameters: { [key: string]: ModuleParameters };
+      parameters: DeploymentParameters;
       config: Partial<DeployConfig>;
     } = {
       parameters: {},
       config: {},
     }
-  ): Promise<Record<string, Contract>> {
+  ): Promise<
+    IgnitionModuleResultsTToEthersContracts<
+      ContractNameT,
+      IgnitionModuleResultsT
+    >
+  > {
     const accounts = (await this._hre.network.provider.request({
       method: "eth_accounts",
     })) as string[];
@@ -55,52 +81,89 @@ export class IgnitionHelper {
       provider: this._provider,
       deploymentDir: this._deploymentDir,
       artifactResolver,
-      ignitionModule: ignitionModuleDefinition,
+      ignitionModule,
       deploymentParameters: parameters,
       accounts,
       verbose: false,
     });
 
-    if (result.status === "timeout") {
-      throw new IgnitionError(
-        `The deployment has been halted due to transaction timeouts:\n  ${result.timeouts
-          .map((t) => `${t.txHash} (${t.futureId}/${t.executionId})`)
-          .join("\n  ")}`
-      );
+    if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {
+      const message = errorDeploymentResultToExceptionMessage(result);
+
+      throw new IgnitionError(message);
     }
 
-    if (result.status !== "success") {
-      // TODO: Show more information about why it failed
-      throw new IgnitionError("Failed deployment");
-    }
-
-    return this._toEthersContracts(result);
+    return this._toEthersContracts(ignitionModule, result);
   }
 
-  private async _toEthersContracts(
-    result: DeploymentResultSuccess
-  ): Promise<Record<string, Contract>> {
-    const resolvedOutput: { [k: string]: Contract } = {};
+  private async _toEthersContracts<
+    ModuleIdT extends string,
+    ContractNameT extends string,
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+  >(
+    ignitionModule: IgnitionModule<
+      ModuleIdT,
+      ContractNameT,
+      IgnitionModuleResultsT
+    >,
+    result: SuccessfulDeploymentResult<ContractNameT, IgnitionModuleResultsT>
+  ): Promise<
+    IgnitionModuleResultsTToEthersContracts<
+      ContractNameT,
+      IgnitionModuleResultsT
+    >
+  > {
+    return Object.fromEntries(
+      await Promise.all(
+        Object.entries(result.contracts).map(
+          async ([name, deployedContract]) => [
+            name,
+            await this._getContract(
+              ignitionModule.results[name],
+              deployedContract
+            ),
+          ]
+        )
+      )
+    );
+  }
 
-    for (const [key, future] of Object.entries(result.module.results)) {
-      const deployedContract = result.contracts[future.id];
-
-      if (deployedContract === undefined) {
-        throw new IgnitionError(
-          `Contract not among deployed results ${future.id}`
-        );
-      }
-
-      const { contractAddress, artifact } = deployedContract;
-
-      const abi: any[] = artifact.abi;
-
-      resolvedOutput[key] = await this._hre.ethers.getContractAt(
-        abi,
-        contractAddress
+  private async _getContract(
+    future: Future,
+    deployedContract: { address: string }
+  ): Promise<Contract> {
+    if (!isContractFuture(future)) {
+      throw new HardhatPluginError(
+        "@ignored/hardhat-ignition",
+        `Expected contract future but got ${future.id} with type ${future.type} instead`
       );
     }
 
-    return resolvedOutput;
+    if ("artifact" in future) {
+      return this._hre.ethers.getContractAt(
+        future.artifact.abi,
+        deployedContract.address
+      );
+    }
+
+    return this._hre.ethers.getContractAt(
+      future.contractName,
+      deployedContract.address
+    );
   }
 }
+
+export type IgnitionModuleResultsTToEthersContracts<
+  ContractNameT extends string,
+  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+> = {
+  [contract in keyof IgnitionModuleResultsT]: IgnitionModuleResultsT[contract] extends
+    | NamedContractDeploymentFuture<ContractNameT>
+    | NamedContractAtFuture<ContractNameT>
+    ? TypeChainEthersContractByName<ContractNameT>
+    : Contract;
+};
+
+// TODO: Make this work to have support for TypeChain
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export type TypeChainEthersContractByName<ContractNameT> = Contract;

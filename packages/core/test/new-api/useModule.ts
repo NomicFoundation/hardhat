@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { Artifact } from "../../src";
+import { Artifact, DeploymentResultType } from "../../src";
 import { buildModule } from "../../src/new-api/build-module";
 import { validateStageTwo } from "../../src/new-api/internal/validation/validateStageTwo";
 
@@ -197,19 +197,25 @@ describe("useModule", () => {
         },
       };
 
-      await assert.isRejected(
-        validateStageTwo(
-          moduleWithSubmodule,
-          setupMockArtifactResolver({
-            Contract1: fakeArtifact,
-            Contract2: fakeArtifact,
-            Contract3: fakeArtifact,
-          }),
-          moduleParams,
-          []
-        ),
-        /Module parameter 'param1' requires a value but was given none/
+      const result = await validateStageTwo(
+        moduleWithSubmodule,
+        setupMockArtifactResolver({
+          Contract1: fakeArtifact,
+          Contract2: fakeArtifact,
+          Contract3: fakeArtifact,
+        }),
+        moduleParams,
+        []
       );
+
+      assert.deepStrictEqual(result, {
+        type: DeploymentResultType.VALIDATION_ERROR,
+        errors: {
+          "Submodule1:Contract1": [
+            "Module parameter 'param1' requires a value but was given none",
+          ],
+        },
+      });
     });
   });
 });

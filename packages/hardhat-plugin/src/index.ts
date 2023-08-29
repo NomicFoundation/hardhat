@@ -1,7 +1,11 @@
 import {
   deploy,
   DeploymentParameters,
+  DeploymentResult,
+  DeploymentResultType,
+  IgnitionModuleResult,
   plan,
+  SuccessfulDeploymentResult,
   wipe,
 } from "@ignored/ignition-core";
 import "@nomicfoundation/hardhat-ethers";
@@ -15,6 +19,7 @@ import { HardhatArtifactResolver } from "./hardhat-artifact-resolver.ts";
 import { IgnitionHelper } from "./ignition-helper";
 import { loadModule } from "./load-module";
 import { writePlan } from "./plan/write-plan";
+import { errorDeploymentResultToExceptionMessage } from "./utils/error-deployment-result-to-exception-message";
 import { open } from "./utils/open";
 
 import "./type-extensions";
@@ -125,70 +130,27 @@ task("deploy")
         method: "eth_accounts",
       })) as string[];
 
-      try {
-        const deploymentId = givenDeploymentId ?? `network-${chainId}`;
+      const deploymentId = givenDeploymentId ?? `network-${chainId}`;
 
-        const deploymentDir =
-          hre.network.name === "hardhat"
-            ? undefined
-            : path.join(hre.config.paths.ignition, "deployments", deploymentId);
+      const deploymentDir =
+        hre.network.name === "hardhat"
+          ? undefined
+          : path.join(hre.config.paths.ignition, "deployments", deploymentId);
 
-        const artifactResolver = new HardhatArtifactResolver(hre);
+      const artifactResolver = new HardhatArtifactResolver(hre);
 
-        const result = await deploy({
-          config: hre.config.ignition,
-          provider: hre.network.provider,
-          artifactResolver,
-          deploymentDir,
-          ignitionModule: userModule,
-          deploymentParameters: parameters ?? {},
-          accounts,
-          verbose: logs,
-        });
+      const result = await deploy({
+        config: hre.config.ignition,
+        provider: hre.network.provider,
+        artifactResolver,
+        deploymentDir,
+        ignitionModule: userModule,
+        deploymentParameters: parameters ?? {},
+        accounts,
+        verbose: logs,
+      });
 
-        if (result.status === "success") {
-          console.log("Deployment complete");
-          console.log("");
-
-          for (const [
-            futureId,
-            { contractName, contractAddress },
-          ] of Object.entries(result.contracts)) {
-            console.log(`${contractName} (${futureId}) - ${contractAddress}`);
-          }
-        } else if (result.status === "failure") {
-          console.log("Deployment failed");
-          console.log("");
-
-          for (const [futureId, error] of Object.entries(result.errors)) {
-            const errorMessage =
-              "reason" in error ? (error.reason as string) : error.message;
-
-            console.log(`Future ${futureId} failed: ${errorMessage}`);
-          }
-        } else if (result.status === "timeout") {
-          console.log("Deployment halted due to timeout");
-          console.log("");
-
-          for (const { futureId, executionId, txHash } of result.timeouts) {
-            console.log(`  ${txHash} (${futureId}/${executionId})`);
-          }
-        } else if (result.status === "hold") {
-          console.log("Deployment held");
-        } else {
-          assertNeverResult(result);
-        }
-      } catch (err) {
-        // TODO: bring back cli ui
-        // if (DISPLAY_UI) {
-        //   // display of error or on hold is done
-        //   // based on state, thrown error display
-        //   // can be ignored
-        //   process.exit(1);
-        // } else {
-        throw err;
-        // }
-      }
+      displayDeploymentResult(result);
     }
   );
 
@@ -360,6 +322,28 @@ function resolveParametersString(paramString: string): DeploymentParameters {
   }
 }
 
-function assertNeverResult(result: never) {
-  throw new Error(`Unknown result from deploy: ${JSON.stringify(result)}`);
+function displayDeploymentResult(
+  result: DeploymentResult<string, IgnitionModuleResult<string>>
+): void {
+  switch (result.type) {
+    case DeploymentResultType.VALIDATION_ERROR:
+    case DeploymentResultType.RECONCILIATION_ERROR:
+    case DeploymentResultType.EXECUTION_ERROR:
+      return console.log(errorDeploymentResultToExceptionMessage(result));
+    case DeploymentResultType.SUCCESSFUL_DEPLOYMENT:
+      return _displaySuccessfulDeployment(result);
+  }
+}
+
+function _displaySuccessfulDeployment(
+  result: SuccessfulDeploymentResult<string, IgnitionModuleResult<string>>
+): void {
+  console.log("Deployment complete");
+  console.log("");
+
+  for (const [futureId, { contractName, address }] of Object.entries(
+    result.contracts
+  )) {
+    console.log(`${contractName} (${futureId}) - ${address}`);
+  }
 }

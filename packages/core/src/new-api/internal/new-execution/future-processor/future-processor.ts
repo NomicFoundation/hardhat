@@ -1,5 +1,5 @@
 import { ArtifactResolver } from "../../../types/artifact";
-import { DeploymentParameters } from "../../../types/deployer";
+import { DeploymentParameters } from "../../../types/deploy";
 import { Future } from "../../../types/module";
 import { DeploymentLoader } from "../../deployment-loader/types";
 import { assertIgnitionInvariant } from "../../utils/assertions";

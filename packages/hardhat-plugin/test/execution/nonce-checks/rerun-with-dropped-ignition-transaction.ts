@@ -29,13 +29,16 @@ describe("execution - rerun with dropped ignition transactions", () => {
     });
 
     // Start the deploy
-    await this.deploy(moduleDefinition, async (c: TestChainHelper) => {
-      // Wait for the submission of foo to mempool
-      await c.waitForPendingTxs(1);
+    await this.runControlledDeploy(
+      moduleDefinition,
+      async (c: TestChainHelper) => {
+        // Wait for the submission of foo to mempool
+        await c.waitForPendingTxs(1);
 
-      // kill the deployment before confirming foo
-      c.exitDeploy();
-    });
+        // kill the deployment before confirming foo
+        c.exitDeploy();
+      }
+    );
 
     // remove the submitted foo deploy from mempool
     await clearPendingTransactionsFromMemoryPool(this.hre);
@@ -45,7 +48,7 @@ describe("execution - rerun with dropped ignition transactions", () => {
     await mineBlock(this.hre);
 
     // Rerun the deployment
-    const result = await this.deploy(
+    const result = await this.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
         // this block shound include deployment of foo via resend

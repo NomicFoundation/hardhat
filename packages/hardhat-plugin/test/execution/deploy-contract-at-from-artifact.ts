@@ -25,14 +25,14 @@ describe.skip("execution - deploy contractAt from artifact", function () {
       return { foo };
     });
 
-    const result = await this.deploy(
+    const result = await this.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
         await c.mineBlock(1);
       }
     );
 
-    const fooAddress = result.foo.address;
+    const fooAddress = await result.foo.getAddress();
     assert.equal(fooAddress, "0x5FbDB2315678afecb367f032d93F642f64180aa3");
 
     // Act
@@ -44,7 +44,7 @@ describe.skip("execution - deploy contractAt from artifact", function () {
       return { atFoo };
     });
 
-    const contractAtFromArtifactResult = await this.deploy(
+    const contractAtFromArtifactResult = await this.runControlledDeploy(
       contractAtModuleDefinition,
       async (c: TestChainHelper) => {
         await c.mineBlock(1);

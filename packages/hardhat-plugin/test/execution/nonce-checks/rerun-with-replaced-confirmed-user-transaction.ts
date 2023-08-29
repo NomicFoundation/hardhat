@@ -38,12 +38,15 @@ describe("execution - rerun with replaced confirmed user transaction", () => {
     });
 
     // First run fo the deploy
-    await this.deploy(moduleDefinition, async (c: TestChainHelper) => {
-      // Wait for the submission of foo1 foo2 and foo3 to mempool,
-      // then kill the deploy process
-      await c.waitForPendingTxs(3);
-      c.exitDeploy();
-    });
+    await this.runControlledDeploy(
+      moduleDefinition,
+      async (c: TestChainHelper) => {
+        // Wait for the submission of foo1 foo2 and foo3 to mempool,
+        // then kill the deploy process
+        await c.waitForPendingTxs(3);
+        c.exitDeploy();
+      }
+    );
 
     // Submit a user interfering deploy transaction
     // to the mempool reusing nonce 2
@@ -61,7 +64,7 @@ describe("execution - rerun with replaced confirmed user transaction", () => {
 
     // Rerun the deployment with foo3 replaced, causing it to
     // be resubmitted
-    const result = await this.deploy(
+    const result = await this.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
         // this block should confirm foo3

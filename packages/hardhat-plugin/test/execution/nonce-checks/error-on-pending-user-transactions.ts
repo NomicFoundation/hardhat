@@ -40,7 +40,10 @@ describe("execution - error on pending user transactions", () => {
 
     // Deploying the module that uses accounts[2] throws with a warning
     await assert.isRejected(
-      this.deploy(moduleDefinition, async (_c: TestChainHelper) => {}),
+      this.runControlledDeploy(
+        moduleDefinition,
+        async (_c: TestChainHelper) => {}
+      ),
       "Pending transactions for account: 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc, please wait for transactions to complete before running a deploy"
     );
 

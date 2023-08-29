@@ -1,4 +1,4 @@
-import { DeploymentParameters } from "../../../../types/deployer";
+import { DeploymentParameters } from "../../../../types/deploy";
 import { Future, FutureType } from "../../../../types/module";
 import { DeploymentLoader } from "../../../deployment-loader/types";
 import { DeploymentState } from "../../types/deployment-state";

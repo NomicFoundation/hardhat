@@ -1,6 +1,6 @@
 import { isAccountRuntimeValue } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
-import { DeploymentParameters } from "../../../types/deployer";
+import { DeploymentParameters } from "../../../types/deploy";
 import { NamedLibraryDeploymentFuture } from "../../../types/module";
 import { validateAccountRuntimeValue } from "../utils";
 
