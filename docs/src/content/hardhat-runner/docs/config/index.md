@@ -224,4 +224,4 @@ module.exports = {
 };
 ```
 
-Since `0.8.20`, solc's EVM default is `shanghai`, leading to an issue with the `PUSH0` opcode on L2 chains. To address this, post `0.8.20`, Hardhat defaults to `paris`. This value can be overriden by using the above configuration.
+Since version `0.8.20`, solc's EVM default is `shanghai`, which can lead to issues in chains that don't support the `PUSH0` opcode. To address this, starting from `0.8.20` Hardhat defaults to `paris`. This value can be overridden by using the above configuration.
