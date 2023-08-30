@@ -2,7 +2,9 @@
 import fs, { closeSync, constants, openSync, writeFileSync } from "fs";
 import { parse } from "ndjson";
 
-import { Journal, JournalableMessage } from "./types";
+import { JournalMessage } from "../new-execution/types/messages";
+
+import { Journal } from "./types";
 import { deserializeReplacer } from "./utils/deserialize-replacer";
 import { logJournalableMessage } from "./utils/log";
 import { serializeReplacer } from "./utils/serialize-replacer";
@@ -15,13 +17,13 @@ import { serializeReplacer } from "./utils/serialize-replacer";
 export class FileJournal implements Journal {
   constructor(private _filePath: string, private _verbose: boolean = false) {}
 
-  public record(message: JournalableMessage): void {
+  public record(message: JournalMessage): void {
     this._log(message);
 
     this._appendJsonLine(this._filePath, message);
   }
 
-  public async *read(): AsyncGenerator<JournalableMessage> {
+  public async *read(): AsyncGenerator<JournalMessage> {
     if (!fs.existsSync(this._filePath)) {
       return;
     }
@@ -36,11 +38,11 @@ export class FileJournal implements Journal {
         deserializeReplacer.bind(this)
       );
 
-      yield deserializedChunk as JournalableMessage;
+      yield deserializedChunk as JournalMessage;
     }
   }
 
-  private _appendJsonLine(path: string, value: JournalableMessage) {
+  private _appendJsonLine(path: string, value: JournalMessage) {
     const flags =
       constants.O_CREAT |
       constants.O_WRONLY | // Write only
@@ -57,7 +59,7 @@ export class FileJournal implements Journal {
     closeSync(fd);
   }
 
-  private _log(message: JournalableMessage): void {
+  private _log(message: JournalMessage): void {
     if (this._verbose) {
       return logJournalableMessage(message);
     }

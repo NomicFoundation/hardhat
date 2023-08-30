@@ -1,8 +1,10 @@
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
-import { loadFixture, time } from "@nomicfoundation/hardhat-network-helpers";
+import {
+  loadFixture,
+  time,
+} from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import { ethers, ignition } from "hardhat";
-
 import LockModule from "../ignition/LockModule";
 
 describe("Lock", function () {
@@ -26,7 +28,6 @@ describe("Lock", function () {
           lockedAmount,
         },
       },
-      config: { blockConfirmations: 1 },
     });
 
     return { lock, unlockTime, lockedAmount, owner, otherAccount };
@@ -50,7 +51,7 @@ describe("Lock", function () {
         deployOneYearLockFixture
       );
 
-      expect(await ethers.provider.getBalance(lock.address)).to.equal(
+      expect(await ethers.provider.getBalance(lock.target)).to.equal(
         lockedAmount
       );
     });

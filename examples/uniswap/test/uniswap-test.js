@@ -9,7 +9,9 @@ const {
   getPoolState,
 } = require("./helpers");
 
-describe("Uniswap", function () {
+// TODO: We need to decide if we are bringing back the full uniswap example
+// given it depends on ethers-v5.
+describe.skip("Uniswap", function () {
   const fee = 500;
   let owner, user1, solidus, florin;
   let nonfungibleTokenPositionManager, uniswapV3Factory, swapRouter02;
@@ -22,9 +24,7 @@ describe("Uniswap", function () {
 
     // Deploy Uniswap
     ({ nonfungibleTokenPositionManager, uniswapV3Factory, swapRouter02 } =
-      await ignition.deploy(UniswapModule, {
-        config: { blockConfirmations: 1 },
-      }));
+      await ignition.deploy(UniswapModule));
 
     // Deploy example tokens Solidus and Florin
     const Solidus = await hre.ethers.getContractFactory("Solidus");
@@ -33,18 +33,21 @@ describe("Uniswap", function () {
     const Florin = await hre.ethers.getContractFactory("Florin");
     florin = await Florin.deploy();
 
+    const solidusAddress = await solidus.getAddress();
+    const florinAddress = await florin.getAddress();
+
     // Create pool for solidus/florin
     await nonfungibleTokenPositionManager.createAndInitializePoolIfNecessary(
-      solidus.address,
-      florin.address,
+      solidusAddress,
+      florinAddress,
       fee,
       encodePriceSqrt(1, 1),
       { gasLimit: 5000000 }
     );
 
     const poolAddress = await uniswapV3Factory.getPool(
-      solidus.address,
-      florin.address,
+      solidusAddress,
+      florinAddress,
       fee
     );
 
@@ -53,21 +56,24 @@ describe("Uniswap", function () {
       poolAddress
     );
 
+    const nonfungibleTokenPositionManagerAddress =
+      await nonfungibleTokenPositionManager.getAddress();
+
     // Add liquidity to pool
-    await solidus.mint(owner.address, hre.ethers.utils.parseUnits("1000", 18));
+    await solidus.mint(owner.address, hre.ethers.parseUnits("1000", 18));
     await solidus
       .connect(owner)
       .approve(
-        nonfungibleTokenPositionManager.address,
-        hre.ethers.utils.parseUnits("1000", 18)
+        nonfungibleTokenPositionManagerAddress,
+        hre.ethers.parseUnits("1000", 18)
       );
 
-    await florin.mint(owner.address, hre.ethers.utils.parseUnits("1000", 18));
+    await florin.mint(owner.address, hre.ethers.parseUnits("1000", 18));
     await florin
       .connect(owner)
       .approve(
-        nonfungibleTokenPositionManager.address,
-        hre.ethers.utils.parseUnits("1000", 18)
+        nonfungibleTokenPositionManagerAddress,
+        hre.ethers.parseUnits("1000", 18)
       );
 
     const [poolImmutables, poolState] = await Promise.all([
@@ -102,7 +108,7 @@ describe("Uniswap", function () {
 
     const position = new Position({
       pool: poolFromSdk,
-      liquidity: hre.ethers.utils.parseUnits("1", 18),
+      liquidity: hre.ethers.parseUnits("1", 18),
       tickLower:
         nearestUsableTick(poolState.tick, poolImmutables.tickSpacing) -
         poolImmutables.tickSpacing * 2,
@@ -116,8 +122,8 @@ describe("Uniswap", function () {
 
     await nonfungibleTokenPositionManager.connect(owner).mint(
       {
-        token0: solidus.address,
-        token1: florin.address,
+        token0: solidusAddress,
+        token1: florinAddress,
         fee: fee,
         tickLower:
           nearestUsableTick(poolState.tick, poolImmutables.tickSpacing) -
@@ -142,15 +148,15 @@ describe("Uniswap", function () {
 
     // add that amount to the users florin's balance
     await florin.mint(user1.address, 100);
-    await florin.connect(user1).approve(swapRouter02.address, 100);
+    await florin.connect(user1).approve(await swapRouter02.getAddress(), 100);
 
     assert.equal(await florin.balanceOf(user1.address), 100);
     assert.equal(await solidus.balanceOf(user1.address), 0);
 
     // act
     await swapRouter02.connect(user1).exactInputSingle({
-      tokenIn: florin.address,
-      tokenOut: solidus.address,
+      tokenIn: florinAddress,
+      tokenOut: solidusAddress,
       fee,
       recipient: user1.address,
       deadline: Math.floor(Date.now() / 1000) + 60 * 10,

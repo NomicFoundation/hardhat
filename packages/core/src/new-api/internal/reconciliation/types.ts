@@ -1,7 +1,9 @@
-import { Artifact } from "../../types/artifact";
-import { DeploymentParameters } from "../../types/deployer";
+import { ArtifactResolver } from "../../types/artifact";
+import { DeploymentParameters } from "../../types/deploy";
 import { Future } from "../../types/module";
-import { ExecutionState, ExecutionStateMap } from "../execution/types";
+import { DeploymentLoader } from "../deployment-loader/types";
+import { DeploymentState } from "../new-execution/types/deployment-state";
+import { ExecutionState } from "../new-execution/types/execution-state";
 
 export interface ReconciliationFailure {
   futureId: string;
@@ -27,19 +29,16 @@ export interface ReconciliationResult {
 }
 
 export interface ReconciliationContext {
-  executionStateMap: ExecutionStateMap;
+  deploymentState: DeploymentState;
   deploymentParameters: DeploymentParameters;
   accounts: string[];
-  moduleArtifactMap: ArtifactMap;
-  storedArtifactMap: ArtifactMap;
+  artifactResolver: ArtifactResolver;
+  deploymentLoader: DeploymentLoader;
+  defaultSender: string;
 }
 
 export type ReconciliationCheck = (
   future: Future,
   executionState: ExecutionState,
   context: ReconciliationContext
-) => ReconciliationFutureResult;
-
-export interface ArtifactMap {
-  [futureId: string]: Artifact;
-}
+) => ReconciliationFutureResult | Promise<ReconciliationFutureResult>;

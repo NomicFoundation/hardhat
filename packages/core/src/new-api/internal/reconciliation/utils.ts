@@ -1,14 +1,11 @@
-// eslint-disable-next-line import/default
-import type CborT from "cbor";
+import { Future } from "../../types/module";
 
-import { Future, ModuleParameterType } from "../../types/module";
-
-import { ReconciliationFutureResult } from "./types";
+import { ReconciliationFutureResultFailure } from "./types";
 
 export function fail(
   future: Future,
   failure: string
-): ReconciliationFutureResult {
+): ReconciliationFutureResultFailure {
   return {
     success: false,
     failure: {
@@ -18,41 +15,17 @@ export function fail(
   };
 }
 
-export function failWithError(
-  future: Future,
-  error: unknown
-): ReconciliationFutureResult {
-  return {
-    success: false,
-    failure: {
-      futureId: future.id,
-      failure:
-        error instanceof Error
-          ? error.message
-          : "unknown failure during reconciliation",
-    },
-  };
-}
-
-export function moduleParameterToErrorString(potential: ModuleParameterType) {
-  return JSON.stringify(potential);
-}
-
-export function addressToErrorString(potential: string | undefined) {
-  if (potential === undefined) {
-    return "undefined";
-  }
-
-  return potential;
-}
-
 const METADATA_LENGTH = 2;
-function getMetadataSectionLength(bytecode: Buffer): number {
-  return bytecode.slice(-METADATA_LENGTH).readUInt16BE(0) + METADATA_LENGTH;
+function getMetadataSectionLength(bytecode: Buffer): number | undefined {
+  try {
+    return bytecode.slice(-METADATA_LENGTH).readUInt16BE(0) + METADATA_LENGTH;
+  } catch {
+    return undefined;
+  }
 }
 
 function isValidMetadata(data: Buffer): boolean {
-  const { decode } = require("cbor") as typeof CborT;
+  const { decode } = require("cbor") as typeof import("cbor");
   try {
     decode(data);
     return true;
@@ -64,6 +37,10 @@ function isValidMetadata(data: Buffer): boolean {
 export function getBytecodeWithoutMetadata(bytecode: string): string {
   const bytecodeBuffer = Buffer.from(bytecode.slice(2), "hex");
   const metadataSectionLength = getMetadataSectionLength(bytecodeBuffer);
+
+  if (metadataSectionLength === undefined) {
+    return bytecode;
+  }
 
   const metadataPayload = bytecodeBuffer.slice(
     -metadataSectionLength,

@@ -2,16 +2,21 @@
 import { assert } from "chai";
 
 import { buildModule } from "../../../../src/new-api/build-module";
+import { ExecutionResultType } from "../../../../src/new-api/internal/new-execution/types/execution-result";
 import {
   ContractAtExecutionState,
   DeploymentExecutionState,
-  ExecutionStateMap,
+  ExecutionSateType,
   ExecutionStatus,
   StaticCallExecutionState,
-} from "../../../../src/new-api/internal/execution/types";
+} from "../../../../src/new-api/internal/new-execution/types/execution-state";
 import { FutureType } from "../../../../src/new-api/types/module";
-import { exampleAccounts, initOnchainState } from "../../helpers";
-import { assertSuccessReconciliation, reconcile } from "../helpers";
+import { exampleAccounts } from "../../helpers";
+import {
+  assertSuccessReconciliation,
+  createDeploymentState,
+  reconcile,
+} from "../helpers";
 
 describe("Reconciliation - named contract at", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
@@ -19,12 +24,11 @@ describe("Reconciliation - named contract at", () => {
 
   const exampleContractAtState: ContractAtExecutionState = {
     id: "Example",
+    type: ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
     futureType: FutureType.NAMED_CONTRACT_AT,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
-    history: [],
-    onchain: initOnchainState,
     contractName: "Contract1",
     contractAddress: exampleAddress,
     artifactFutureId: "./artifact.json",
@@ -32,12 +36,12 @@ describe("Reconciliation - named contract at", () => {
 
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
+    type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
-    history: [],
-    onchain: initOnchainState,
+    networkInteractions: [],
     artifactFutureId: "./artifact.json",
     contractName: "Contract1",
     value: BigInt("0"),
@@ -48,12 +52,12 @@ describe("Reconciliation - named contract at", () => {
 
   const exampleStaticCallState: StaticCallExecutionState = {
     id: "Example",
+    type: ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
     futureType: FutureType.NAMED_STATIC_CALL,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
-    history: [],
-    onchain: initOnchainState,
+    networkInteractions: [],
     contractAddress: exampleAddress,
     artifactFutureId: "./artifact.json",
     functionName: "function",
@@ -61,7 +65,7 @@ describe("Reconciliation - named contract at", () => {
     from: exampleAccounts[0],
   };
 
-  it("should reconcile unchanged when using an address string", () => {
+  it("should reconcile unchanged when using an address string", async () => {
     const submoduleDefinition = buildModule("Submodule", (m) => {
       const contract1 = m.contractAt("Contract1", exampleAddress);
 
@@ -74,19 +78,18 @@ describe("Reconciliation - named contract at", () => {
       return { contract1 };
     });
 
-    const previousExecutionState: ExecutionStateMap = {
-      [`Submodule:Contract1`]: {
-        ...exampleContractAtState,
-        futureType: FutureType.NAMED_CONTRACT_AT,
-        status: ExecutionStatus.STARTED,
-        contractAddress: exampleAddress,
-      },
-    };
+    const deploymentState = createDeploymentState({
+      ...exampleContractAtState,
+      id: `Submodule:Contract1`,
+      futureType: FutureType.NAMED_CONTRACT_AT,
+      status: ExecutionStatus.STARTED,
+      contractAddress: exampleAddress,
+    });
 
-    assertSuccessReconciliation(moduleDefinition, previousExecutionState);
+    await assertSuccessReconciliation(moduleDefinition, deploymentState);
   });
 
-  it("should reconcile unchanged when using an static call", () => {
+  it("should reconcile unchanged when using an static call", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const example = m.contract("Example");
       const call = m.staticCall(example, "getAddress");
@@ -96,34 +99,43 @@ describe("Reconciliation - named contract at", () => {
       return { another };
     });
 
-    const previousExecutionState: ExecutionStateMap = {
-      "Module:Example": {
+    const previousExecutionState = createDeploymentState(
+      {
         ...exampleDeploymentState,
+        id: "Module:Example",
         futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
         status: ExecutionStatus.SUCCESS,
-        contractAddress: exampleAddress,
         contractName: "Example",
+        result: {
+          type: ExecutionResultType.SUCCESS,
+          address: exampleAddress,
+        },
       },
-      "Module:Example#getAddress": {
+      {
         ...exampleStaticCallState,
+        id: "Module:Example#getAddress",
         futureType: FutureType.NAMED_STATIC_CALL,
         status: ExecutionStatus.SUCCESS,
         functionName: "getAddress",
-        result: differentAddress,
+        result: {
+          type: ExecutionResultType.SUCCESS,
+          value: differentAddress,
+        },
       },
-      "Module:Another": {
+      {
         ...exampleContractAtState,
+        id: "Module:Another",
         futureType: FutureType.NAMED_CONTRACT_AT,
         status: ExecutionStatus.STARTED,
         contractAddress: differentAddress,
         contractName: "Another",
-      },
-    };
+      }
+    );
 
-    assertSuccessReconciliation(moduleDefinition, previousExecutionState);
+    await assertSuccessReconciliation(moduleDefinition, previousExecutionState);
   });
 
-  it("should find changes to contract name unreconciliable", () => {
+  it("should find changes to contract name unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contractAt("ContractChanged", exampleAddress, {
         id: "Factory",
@@ -132,15 +144,17 @@ describe("Reconciliation - named contract at", () => {
       return { contract1 };
     });
 
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:Factory": {
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
         ...exampleContractAtState,
+        id: "Module:Factory",
         futureType: FutureType.NAMED_CONTRACT_AT,
         status: ExecutionStatus.STARTED,
         contractName: "ContractUnchanged",
         contractAddress: exampleAddress,
-      },
-    });
+      })
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
@@ -151,7 +165,7 @@ describe("Reconciliation - named contract at", () => {
     ]);
   });
 
-  it("should find changes to contract address as a literal unreconciliable", () => {
+  it("should find changes to contract address as a literal unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contractAt("Contract1", exampleAddress, {
         id: "Factory",
@@ -160,14 +174,16 @@ describe("Reconciliation - named contract at", () => {
       return { contract1 };
     });
 
-    const reconiliationResult = reconcile(moduleDefinition, {
-      "Module:Factory": {
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
         ...exampleContractAtState,
+        id: "Module:Factory",
         futureType: FutureType.NAMED_CONTRACT_AT,
         status: ExecutionStatus.STARTED,
         contractAddress: differentAddress,
-      },
-    });
+      })
+    );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {

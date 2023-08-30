@@ -60,8 +60,9 @@ There are configurable options you can add to your Hardhat config file to adjust
 ```tsx
 export interface DeployConfig {
   blockPollingInterval: number;
-  transactionTimeoutInterval: number;
-  blockConfirmations: number;
+  timeBeforeBumpingFees: number;
+  maxFeeBumps: number;
+  requiredConfirmations: number;
 }
 ```
 
@@ -72,9 +73,10 @@ const { ethers } = require("ethers");
 
 module.exports = {
   ignition: {
-    blockPollingInterval: 200,
-    transactionTimeoutInterval: 3 * 60 * 1000,
-    blockConfirmations: 5,
+    blockPollingInterval: 1_000,
+    timeBeforeBumpingFees: 3 * 60 * 1_000,
+    maxFeeBumps: 4,
+    requiredConfirmations: 5,
   },
 };
 ```
@@ -87,15 +89,21 @@ The value of `blockPollingInterval` is the time in milliseconds between checks t
 
 ---
 
-#### `transactionTimeoutInterval`
+#### `timeBeforeBumpingFees`
 
-The value of `transactionTimeoutInterval` sets the time in milliseconds to wait for a transaction to be confirmed on-chain before setting it as timed out for this deployment run. The default is 3mins.
+The value of `timeBeforeBumpingFees` sets the time in milliseconds to wait for a transaction to be confirmed on-chain before bumping its fee. The default is 3mins.
 
 ---
 
-#### `blockConfirmations`
+#### `maxFeeBumps`
 
-The value of `blockConfirmations` is the number of blocks after a transaction has been confirmed to wait before Ignition will consider the transaction as complete. This provides control over block re-org risk. The default number of confirmations is five.
+The value of `maxFeeBumps` determines the number of times the transaction will have its fee bumped before Ignition fails it as a timeout. The default is four.
+
+---
+
+#### `requiredConfirmations`
+
+The value of `requiredConfirmations` is the number of blocks after a transaction has been confirmed to wait before Ignition will consider the transaction as complete. This provides control over block re-org risk. The default number of confirmations is five.
 
 ---
 

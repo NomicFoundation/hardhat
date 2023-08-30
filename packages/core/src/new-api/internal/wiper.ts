@@ -1,16 +1,28 @@
 import { IgnitionError } from "../../errors";
 
-import { executionStateReducer } from "./execution/execution-state-reducer";
-import { ExecutionStateMap } from "./execution/types";
-import { Journal, JournalMessageType, WipeMessage } from "./journal/types";
+import { DeploymentLoader } from "./deployment-loader/types";
+import {
+  applyNewMessage,
+  loadDeploymentState,
+} from "./new-execution/deployment-state-helpers";
+import {
+  JournalMessageType,
+  WipeExecutionStateMessage,
+} from "./new-execution/types/messages";
 
 export class Wiper {
-  constructor(private _journal: Journal) {}
+  constructor(private _deploymentLoader: DeploymentLoader) {}
 
   public async wipe(futureId: string) {
-    const previousStateMap = await this._loadExecutionStateFrom(this._journal);
+    const deploymentState = await loadDeploymentState(this._deploymentLoader);
 
-    const executionState = previousStateMap[futureId];
+    if (deploymentState === undefined) {
+      throw new IgnitionError(
+        `Cannot wipe ${futureId} as the deployment hasn't been intialialized yet`
+      );
+    }
+
+    const executionState = deploymentState.executionStates[futureId];
 
     if (executionState === undefined) {
       throw new IgnitionError(
@@ -18,8 +30,8 @@ export class Wiper {
       );
     }
 
-    const dependents = Object.values(previousStateMap).filter((psm) =>
-      psm.dependencies.has(futureId)
+    const dependents = Object.values(deploymentState.executionStates).filter(
+      (psm) => psm.dependencies.has(futureId)
     );
 
     if (dependents.length > 0) {
@@ -30,23 +42,15 @@ export class Wiper {
       );
     }
 
-    const wipeMessage: WipeMessage = {
-      type: JournalMessageType.WIPE,
+    const wipeMessage: WipeExecutionStateMessage = {
+      type: JournalMessageType.WIPE_EXECUTION_STATE,
       futureId,
     };
 
-    return this._journal.record(wipeMessage);
-  }
-
-  private async _loadExecutionStateFrom(
-    journal: Journal
-  ): Promise<ExecutionStateMap> {
-    let state: ExecutionStateMap = {};
-
-    for await (const message of journal.read()) {
-      state = executionStateReducer(state, message);
-    }
-
-    return state;
+    return applyNewMessage(
+      wipeMessage,
+      deploymentState,
+      this._deploymentLoader
+    );
   }
 }

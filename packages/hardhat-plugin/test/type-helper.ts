@@ -7,9 +7,10 @@
  * Where ExpectedConfigOptions is the type level tuple:
  * ```
  * [
- *    "blockConfirmations",
  *    "blockPollingInterval",
- *    "transactionTimeoutInterval",
+ *    "maxFeeBumps",
+ *    "requiredConfirmations",
+ *    "timeBeforeBumpingFees"
  * ]
  * ```
  */

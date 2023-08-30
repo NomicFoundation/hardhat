@@ -1,64 +1,46 @@
-import { isEqual } from "lodash";
-
 import { SendDataFuture } from "../../../types/module";
-import { SendDataExecutionState } from "../../execution/types";
-import { resolveFromAddress } from "../../utils/resolve-from-address";
-import { resolveModuleParameter } from "../../utils/resolve-module-parameter";
-import { ExecutionStateResolver } from "../execution-state-resolver";
+import { resolveAddressLike } from "../../new-execution/future-processor/helpers/future-resolvers";
+import { SendDataExecutionState } from "../../new-execution/types/execution-state";
+import { compare } from "../helpers/compare";
+import { reconcileData } from "../helpers/reconcile-data";
+import { reconcileFrom } from "../helpers/reconcile-from";
+import { reconcileValue } from "../helpers/reconcile-value";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
-import { addressToErrorString, fail } from "../utils";
 
 export function reconcileSendData(
   future: SendDataFuture,
   executionState: SendDataExecutionState,
   context: ReconciliationContext
 ): ReconciliationFutureResult {
-  const toAddress: string = ExecutionStateResolver.resolveSendDataToAddress(
+  const resolvedAddress = resolveAddressLike(
     future.to,
-    context
+    context.deploymentState,
+    context.deploymentParameters
   );
 
-  if (!isEqual(toAddress, executionState.to)) {
-    return fail(
-      future,
-      `To address has been changed from ${executionState.to} to ${toAddress}`
-    );
+  let result = compare(
+    future,
+    'Address "to"',
+    executionState.to,
+    resolvedAddress
+  );
+  if (result !== undefined) {
+    return result;
   }
 
-  if (!isEqual(future.data, executionState.data)) {
-    return fail(
-      future,
-      `Data has been changed from ${executionState.data ?? "undefined"} to ${
-        future.data ?? "undefined"
-      }`
-    );
+  result = reconcileValue(future, executionState, context);
+  if (result !== undefined) {
+    return result;
   }
 
-  const resolvedValue =
-    typeof future.value === "bigint"
-      ? future.value
-      : (resolveModuleParameter(future.value, context) as bigint);
-
-  if (!isEqual(resolvedValue, executionState.value)) {
-    return fail(
-      future,
-      `Value has been changed from ${executionState.value} to ${resolvedValue}`
-    );
+  result = reconcileFrom(future, executionState, context);
+  if (result !== undefined) {
+    return result;
   }
 
-  const resolvedFutureFromAddress = resolveFromAddress(future.from, context);
-  const executionStateFrom =
-    ExecutionStateResolver.resolveFromAddress(executionState);
-  if (
-    executionStateFrom !== undefined &&
-    !isEqual(resolvedFutureFromAddress, executionStateFrom)
-  ) {
-    return fail(
-      future,
-      `From account has been changed from ${addressToErrorString(
-        executionStateFrom
-      )} to ${addressToErrorString(resolvedFutureFromAddress)}`
-    );
+  result = reconcileData(future, executionState, context);
+  if (result !== undefined) {
+    return result;
   }
 
   return { success: true };

@@ -1,62 +1,133 @@
 import { assert } from "chai";
 
-import { isContractFuture } from "../../../src";
-import { ExecutionStateMap } from "../../../src/new-api/internal/execution/types";
+import {
+  Artifact,
+  ArtifactResolver,
+  BuildInfo,
+  DeploymentParameters,
+} from "../../../src";
+import { DeploymentLoader } from "../../../src/new-api/internal/deployment-loader/types";
+import { DeploymentState } from "../../../src/new-api/internal/new-execution/types/deployment-state";
+import { ExecutionState } from "../../../src/new-api/internal/new-execution/types/execution-state";
+import { JournalMessage } from "../../../src/new-api/internal/new-execution/types/messages";
+import { getDefaultSender } from "../../../src/new-api/internal/new-execution/utils/get-default-sender";
 import { Reconciler } from "../../../src/new-api/internal/reconciliation/reconciler";
-import {
-  ArtifactMap,
-  ReconciliationResult,
-} from "../../../src/new-api/internal/reconciliation/types";
-import { getFuturesFromModule } from "../../../src/new-api/internal/utils/get-futures-from-module";
-import {
-  IgnitionModule,
-  ModuleParameters,
-} from "../../../src/new-api/types/module";
+import { ReconciliationResult } from "../../../src/new-api/internal/reconciliation/types";
+import { IgnitionModule } from "../../../src/new-api/types/module";
 import { exampleAccounts } from "../helpers";
 
 export const oneAddress = "0x1111111111111111111111111111111111111111";
 export const twoAddress = "0x2222222222222222222222222222222222222222";
 
-export function reconcile(
+export const mockArtifact = {
+  contractName: "Contract1",
+  bytecode: "0x",
+  linkReferences: {},
+  abi: [],
+};
+
+class MockDeploymentLoader implements DeploymentLoader {
+  public async recordToJournal(_: JournalMessage): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  public async *readFromJournal(): AsyncGenerator<
+    JournalMessage,
+    any,
+    unknown
+  > {}
+
+  public async loadArtifact(_artifactFutureId: string): Promise<Artifact> {
+    return mockArtifact;
+  }
+
+  public async storeUserProvidedArtifact(
+    _futureId: string,
+    _artifact: Artifact
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  public storeNamedArtifact(
+    _futureId: string,
+    _contractName: string,
+    _artifact: Artifact
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  public storeBuildInfo(_buildInfo: BuildInfo): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  public recordDeployedAddress(
+    _futureId: string,
+    _contractAddress: string
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+}
+
+class MockArtifactResolver implements ArtifactResolver {
+  public async loadArtifact(_contractName: string): Promise<Artifact> {
+    return mockArtifact;
+  }
+
+  public async getBuildInfo(
+    _contractName: string
+  ): Promise<BuildInfo | undefined> {
+    throw new Error("Method not implemented.");
+  }
+}
+
+export class ArtifactMapResolver extends MockArtifactResolver {
+  constructor(
+    private readonly _artifactMap: { [artifactId: string]: Artifact } = {}
+  ) {
+    super();
+  }
+
+  public async loadArtifact(contractName: string): Promise<Artifact> {
+    return this._artifactMap[contractName];
+  }
+}
+
+export class ArtifactMapDeploymentLoader extends MockDeploymentLoader {
+  constructor(
+    private readonly _artifactMap: { [artifactId: string]: Artifact } = {}
+  ) {
+    super();
+  }
+
+  public async loadArtifact(contractName: string): Promise<Artifact> {
+    return this._artifactMap[contractName];
+  }
+}
+
+export function createDeploymentState(
+  ...exStates: ExecutionState[]
+): DeploymentState {
+  return {
+    chainId: 123,
+    executionStates: Object.fromEntries(exStates.map((s) => [s.id, s])),
+  };
+}
+
+export async function reconcile(
   ignitionModule: IgnitionModule,
-  executionStateMap: ExecutionStateMap,
-  moduleParameters: { [key: string]: ModuleParameters } = {},
-  moduleArtifactMap?: ArtifactMap,
-  storedArtifactMap?: ArtifactMap
-): ReconciliationResult {
-  // overwrite the id with the execution state map, makes writing tests
-  // less error prone
-  const updatedExecutionStateMap = Object.fromEntries(
-    Object.entries(executionStateMap).map(([key, exState]) => [
-      key,
-      { ...exState, id: key },
-    ])
-  );
-
-  const contracts =
-    getFuturesFromModule(ignitionModule).filter(isContractFuture);
-
-  moduleArtifactMap ??= Object.fromEntries(
-    contracts.map((contract) => [
-      contract.id,
-      {
-        contractName: contract.contractName,
-        abi: [],
-        bytecode: "0xaaaaaaaaaaa",
-        linkReferences: {},
-      },
-    ])
-  );
-
-  storedArtifactMap ??= moduleArtifactMap;
-
+  deploymentState: DeploymentState,
+  deploymentLoader: DeploymentLoader = new MockDeploymentLoader(),
+  artifactLoader: ArtifactResolver = new MockArtifactResolver(),
+  deploymentParameters: DeploymentParameters = {}
+): Promise<ReconciliationResult> {
   const reconiliationResult = Reconciler.reconcile(
     ignitionModule,
-    updatedExecutionStateMap,
-    moduleParameters,
+    deploymentState,
+    deploymentParameters,
     exampleAccounts,
-    moduleArtifactMap,
-    storedArtifactMap
+    deploymentLoader,
+    artifactLoader,
+    getDefaultSender(exampleAccounts)
   );
 
   return reconiliationResult;
@@ -85,14 +156,11 @@ export function assertNoWarningsOrErrors(
   );
 }
 
-export function assertSuccessReconciliation(
+export async function assertSuccessReconciliation(
   ignitionModule: IgnitionModule,
-  previousExecutionState: ExecutionStateMap
-): void {
-  const reconciliationResult = reconcile(
-    ignitionModule,
-    previousExecutionState
-  );
+  deploymentState: DeploymentState
+) {
+  const reconciliationResult = await reconcile(ignitionModule, deploymentState);
 
   assertNoWarningsOrErrors(reconciliationResult);
 }

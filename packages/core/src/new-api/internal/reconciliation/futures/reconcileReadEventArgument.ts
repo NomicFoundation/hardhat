@@ -1,46 +1,58 @@
 import { ReadEventArgumentFuture } from "../../../types/module";
-import { ReadEventArgumentExecutionState } from "../../execution/types";
-import { ExecutionStateResolver } from "../execution-state-resolver";
+import { resolveAddressForContractFuture } from "../../new-execution/future-processor/helpers/future-resolvers";
+import { ReadEventArgumentExecutionState } from "../../new-execution/types/execution-state";
+import { compare } from "../helpers/compare";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
-import { fail } from "../utils";
 
 export function reconcileReadEventArgument(
   future: ReadEventArgumentFuture,
   executionState: ReadEventArgumentExecutionState,
   context: ReconciliationContext
 ): ReconciliationFutureResult {
-  if (future.eventName !== executionState.eventName) {
-    return fail(
-      future,
-      `Event name has been changed from ${executionState.eventName} to ${future.eventName}`
-    );
+  const resolvedAddress = resolveAddressForContractFuture(
+    future.emitter,
+    context.deploymentState
+  );
+
+  let result = compare(
+    future,
+    "Emitter",
+    executionState.emitterAddress,
+    resolvedAddress,
+    ` (future ${future.emitter.id})`
+  );
+  if (result !== undefined) {
+    return result;
   }
 
-  if (future.argumentName !== executionState.argumentName) {
-    return fail(
-      future,
-      `Argument name has been changed from ${executionState.argumentName} to ${future.argumentName}`
-    );
+  result = compare(
+    future,
+    "Event name",
+    executionState.eventName,
+    future.eventName
+  );
+  if (result !== undefined) {
+    return result;
   }
 
-  if (future.eventIndex !== executionState.eventIndex) {
-    return fail(
-      future,
-      `Event index has been changed from ${executionState.eventIndex} to ${future.eventIndex}`
-    );
+  result = compare(
+    future,
+    "Event index",
+    executionState.eventIndex,
+    future.eventIndex
+  );
+  if (result !== undefined) {
+    return result;
   }
 
-  const resolvedEmitterAddress: string =
-    ExecutionStateResolver.resolveContractAddressToAddress(
-      future.emitter,
-      context
-    );
-
-  if (resolvedEmitterAddress !== executionState.emitterAddress) {
-    return fail(
-      future,
-      `Emitter has been changed from ${executionState.emitterAddress} to ${resolvedEmitterAddress}`
-    );
+  result = compare(
+    future,
+    "Argument name",
+    executionState.argumentName,
+    future.argumentName
+  );
+  if (result !== undefined) {
+    return result;
   }
 
   return { success: true };

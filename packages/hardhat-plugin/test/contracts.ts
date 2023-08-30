@@ -47,7 +47,10 @@ describe("contract deploys", () => {
 
     const usedAddress = await result.usesContract.contractAddress();
 
-    assert.equal(usedAddress, result.bar.address);
+    assert.equal(
+      usedAddress.toLowerCase(),
+      (await result.bar.getAddress()).toLowerCase()
+    );
   });
 
   it("should be able to deploy contracts without dependencies", async function () {
@@ -90,7 +93,7 @@ describe("contract deploys", () => {
     it("should be able to deploy a contract with an endowment", async function () {
       const moduleDefinition = buildModule("EndowmentModule", (m) => {
         const passingValue = m.contract("PassingValue", [], {
-          value: BigInt(this.hre.ethers.utils.parseEther("1").toString()),
+          value: BigInt(this.hre.ethers.parseEther("1").toString()),
         });
 
         return { passingValue };
@@ -101,25 +104,24 @@ describe("contract deploys", () => {
       assert.isDefined(result.passingValue);
 
       const actualInstanceBalance = await this.hre.ethers.provider.getBalance(
-        result.passingValue.address
+        await result.passingValue.getAddress()
       );
 
       assert.equal(
         actualInstanceBalance.toString(),
-        this.hre.ethers.utils.parseEther("1").toString()
+        this.hre.ethers.parseEther("1").toString()
       );
     });
 
-    // TODO: bring this back once parameters for value enabled
-    it.skip("should be able to deploy a contract with an endowment via a parameter", async function () {
+    it("should be able to deploy a contract with an endowment via a parameter", async function () {
       const submoduleDefinition = buildModule("submodule", (m) => {
         const endowment = m.getParameter(
           "endowment",
-          BigInt(this.hre.ethers.utils.parseEther("2").toString())
+          BigInt(this.hre.ethers.parseEther("2").toString())
         );
 
         const passingValue = m.contract("PassingValue", [], {
-          value: endowment as any,
+          value: endowment,
         });
 
         return { passingValue };
@@ -136,12 +138,12 @@ describe("contract deploys", () => {
       assert.isDefined(result.passingValue);
 
       const actualInstanceBalance = await this.hre.ethers.provider.getBalance(
-        result.passingValue.address
+        await result.passingValue.getAddress()
       );
 
       assert.equal(
         actualInstanceBalance.toString(),
-        this.hre.ethers.utils.parseEther("1").toString()
+        this.hre.ethers.parseEther("2").toString()
       );
     });
   });

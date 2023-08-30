@@ -1,6 +1,13 @@
-import { DeploymentParameters } from "../../types/deployer";
+import { IgnitionError } from "../../../errors";
+import { ArtifactResolver } from "../../types/artifact";
+import { DeploymentParameters } from "../../types/deploy";
 import { Future, IgnitionModule } from "../../types/module";
-import { ExecutionState, ExecutionStateMap } from "../execution/types";
+import { DeploymentLoader } from "../deployment-loader/types";
+import { DeploymentState } from "../new-execution/types/deployment-state";
+import {
+  ExecutionState,
+  ExecutionStatus,
+} from "../new-execution/types/execution-state";
 import { AdjacencyList } from "../utils/adjacency-list";
 import { AdjacencyListConverter } from "../utils/adjacency-list-converter";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
@@ -9,32 +16,32 @@ import { reconcileCurrentAndPreviousTypeMatch } from "./reconcile-current-and-pr
 import { reconcileDependencyRules } from "./reconcile-dependency-rules";
 import { reconcileFutureSpecificReconciliations } from "./reconcile-future-specific-reconciliations";
 import {
-  ArtifactMap,
   ReconciliationCheck,
   ReconciliationContext,
   ReconciliationFailure,
   ReconciliationFutureResult,
-  ReconciliationFutureResultFailure,
   ReconciliationResult,
 } from "./types";
 
 export class Reconciler {
-  public static reconcile(
+  public static async reconcile(
     module: IgnitionModule,
-    executionStateMap: ExecutionStateMap,
+    deploymentState: DeploymentState,
     deploymentParameters: DeploymentParameters,
     accounts: string[],
-    moduleArtifactMap: ArtifactMap,
-    storedArtifactMap: ArtifactMap
-  ): ReconciliationResult {
-    const reconciliationFailures = this._reconcileEachFutureInModule(
+    deploymentLoader: DeploymentLoader,
+    artifactResolver: ArtifactResolver,
+    defaultSender: string
+  ): Promise<ReconciliationResult> {
+    let reconciliationFailures = await this._reconcileEachFutureInModule(
       module,
       {
-        executionStateMap,
+        deploymentState,
         deploymentParameters,
         accounts,
-        moduleArtifactMap,
-        storedArtifactMap,
+        deploymentLoader,
+        artifactResolver,
+        defaultSender,
       },
       [
         reconcileCurrentAndPreviousTypeMatch,
@@ -43,47 +50,88 @@ export class Reconciler {
       ]
     );
 
+    if (reconciliationFailures.length === 0) {
+      reconciliationFailures = this._reconcileNoErroredFutures(deploymentState);
+    }
+
+    // TODO: Reconcile sender of incomplete futures.
+
     const missingExecutedFutures = this._missingPreviouslyExecutedFutures(
       module,
-      executionStateMap
+      deploymentState
     );
 
     return { reconciliationFailures, missingExecutedFutures };
   }
 
-  private static _reconcileEachFutureInModule(
+  private static async _reconcileEachFutureInModule(
     module: IgnitionModule,
     context: ReconciliationContext,
     checks: ReconciliationCheck[]
-  ): ReconciliationFailure[] {
+  ): Promise<ReconciliationFailure[]> {
     // TODO: swap this out for linearization of execution state
     // once execution is fleshed out.
     const futures = this._getFuturesInReverseTopoligicalOrder(module);
 
-    const failures = futures
-      .map<[Future, ExecutionState]>((f) => [
-        f,
-        context.executionStateMap[f.id],
-      ])
-      .filter(([, exState]) => exState !== undefined)
-      .map(([f, exState]) => this._check(f, exState, context, checks))
-      .filter((r): r is ReconciliationFutureResultFailure => !r.success)
-      .map((r) => r.failure);
+    const failures = [];
+
+    for (const future of futures) {
+      const exState = context.deploymentState.executionStates[future.id];
+      if (exState === undefined) {
+        continue;
+      }
+
+      const result = await this._check(future, exState, context, checks);
+      if (result.success) {
+        continue;
+      }
+
+      failures.push(result.failure);
+    }
 
     return failures;
   }
 
+  private static _reconcileNoErroredFutures(
+    deploymentState: DeploymentState
+  ): ReconciliationFailure[] {
+    const failuresOrTimeouts = Object.values(
+      deploymentState.executionStates
+    ).filter(
+      (exState) =>
+        exState.status === ExecutionStatus.FAILED ||
+        exState.status === ExecutionStatus.TIMEOUT
+    );
+
+    return failuresOrTimeouts.map((exState) => ({
+      futureId: exState.id,
+      failure: this._previousRunFailedMessageFor(exState),
+    }));
+  }
+
+  private static _previousRunFailedMessageFor(exState: ExecutionState): string {
+    if (exState.status === ExecutionStatus.FAILED) {
+      return `The previous run of the future ${exState.id} failed, and will need wiped before running again`;
+    }
+
+    if (exState.status === ExecutionStatus.TIMEOUT) {
+      return `The previous run of the future ${exState.id} timed out, and will need wiped before running again`;
+    }
+
+    throw new IgnitionError(`Unsupported execution status: ${exState.status}`);
+  }
+
   private static _missingPreviouslyExecutedFutures(
     module: IgnitionModule,
-    executionStateMap: ExecutionStateMap
+    deploymentState: DeploymentState
   ) {
     const moduleFutures = new Set(
       getFuturesFromModule(module).map((f) => f.id)
     );
 
-    const previouslyStarted = Object.values(executionStateMap).map(
-      (es) => es.id
-    );
+    const previouslyStarted = Object.values(
+      deploymentState.executionStates
+    ).map((es) => es.id);
 
     const missing = previouslyStarted.filter((sf) => !moduleFutures.has(sf));
 
@@ -106,14 +154,14 @@ export class Reconciler {
       .filter((x): x is Future => x !== undefined);
   }
 
-  private static _check(
+  private static async _check(
     future: Future,
     executionState: ExecutionState,
     context: ReconciliationContext,
     checks: ReconciliationCheck[]
-  ): ReconciliationFutureResult {
+  ): Promise<ReconciliationFutureResult> {
     for (const check of checks) {
-      const result = check(future, executionState, context);
+      const result = await check(future, executionState, context);
 
       if (result.success) {
         continue;

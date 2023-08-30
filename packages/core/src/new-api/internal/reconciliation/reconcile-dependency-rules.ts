@@ -1,11 +1,11 @@
 import difference from "lodash/difference";
 
 import { Future } from "../../types/module";
+import { DeploymentState } from "../new-execution/types/deployment-state";
 import {
   ExecutionState,
-  ExecutionStateMap,
   ExecutionStatus,
-} from "../execution/types";
+} from "../new-execution/types/execution-state";
 
 import { ReconciliationFutureResult } from "./types";
 import { fail } from "./utils";
@@ -13,7 +13,7 @@ import { fail } from "./utils";
 export function reconcileDependencyRules(
   future: Future,
   executionState: ExecutionState,
-  context: { executionStateMap: ExecutionStateMap }
+  context: { deploymentState: DeploymentState }
 ): ReconciliationFutureResult {
   const previousDeps: string[] = [...executionState.dependencies];
   const currentDeps: string[] = [...future.dependencies].map((f) => f.id);
@@ -21,7 +21,8 @@ export function reconcileDependencyRules(
   const additionalDeps = difference(currentDeps, previousDeps);
 
   for (const additionalDep of additionalDeps) {
-    const additionalExecutionState = context.executionStateMap[additionalDep];
+    const additionalExecutionState =
+      context.deploymentState.executionStates[additionalDep];
 
     if (additionalExecutionState === undefined) {
       return fail(

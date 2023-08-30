@@ -472,7 +472,7 @@ describe("static call", () => {
       it("should not validate a non-existant function", async () => {
         const fakeArtifact: Artifact = {
           abi: [],
-          contractName: "",
+          contractName: "Another",
           bytecode: "",
           linkReferences: {},
         };
@@ -490,7 +490,7 @@ describe("static call", () => {
 
         await assert.isRejected(
           validateNamedStaticCall(future as any, setupMockArtifactResolver()),
-          /Contract 'Another' doesn't have a function test/
+          /Function "test" not found in contract Another/
         );
       });
 
@@ -568,14 +568,14 @@ describe("static call", () => {
               type: "function",
             },
           ],
-          contractName: "",
+          contractName: "Another",
           bytecode: "",
           linkReferences: {},
         };
 
         const module = buildModule("Module1", (m) => {
           const another = m.contractFromArtifact("Another", fakeArtifact, []);
-          m.staticCall(another, "inc", [1, 2, 3]);
+          m.staticCall(another, "inc(bool,uint256)", [1, 2, 3]);
 
           return { another };
         });
@@ -586,7 +586,7 @@ describe("static call", () => {
 
         await assert.isRejected(
           validateNamedStaticCall(future as any, setupMockArtifactResolver()),
-          /Function inc in contract Another is overloaded, but no overload expects 3 arguments/
+          /Function inc\(bool,uint256\) in contract Another expects 2 arguments but 3 were given/
         );
       });
 

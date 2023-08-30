@@ -245,7 +245,7 @@ describe("Read event argument", () => {
 
         await assert.isRejected(
           validateReadEventArgument(future as any, setupMockArtifactResolver()),
-          /Contract 'Another' doesn't have an event test/
+          /Event "test" not found/
         );
       });
     });

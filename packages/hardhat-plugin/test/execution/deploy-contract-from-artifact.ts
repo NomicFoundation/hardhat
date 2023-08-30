@@ -2,10 +2,10 @@
 import { buildModule } from "@ignored/ignition-core";
 import { assert } from "chai";
 
-import {
-  TestChainHelper,
-  useEphemeralIgnitionProject,
-} from "../use-ignition-project";
+import { waitForPendingTxs } from "../helpers";
+import { useEphemeralIgnitionProject } from "../use-ignition-project";
+
+import { mineBlock } from "./helpers";
 
 /**
  * Deploy a contract from an artifact.
@@ -23,12 +23,12 @@ describe("execution - deploy contract from artifact", function () {
       return { foo };
     });
 
-    const result = await this.deploy(
-      moduleDefinition,
-      async (c: TestChainHelper) => {
-        await c.mineBlock(1);
-      }
-    );
+    const deployPromise = this.deploy(moduleDefinition);
+
+    await waitForPendingTxs(this.hre, 1, deployPromise);
+    await mineBlock(this.hre);
+
+    const result = await deployPromise;
 
     assert.equal(await result.foo.x(), Number(1));
   });

@@ -5,7 +5,7 @@ bn.config({ EXPONENTIAL_AT: 999999, DECIMAL_PLACES: 40 });
 
 // returns the sqrt price as a 64x96
 function encodePriceSqrt(reserve1, reserve0) {
-  return BigNumber.from(
+  return BigInt(
     new bn(reserve1.toString())
       .div(reserve0.toString())
       .sqrt()

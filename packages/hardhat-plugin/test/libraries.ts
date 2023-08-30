@@ -4,7 +4,6 @@ import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
-// TODO: fix libraries in execution
 describe("libraries", () => {
   useEphemeralIgnitionProject("minimal-new-api");
 
@@ -75,11 +74,10 @@ describe("libraries", () => {
 
     const libDeployResult = await this.deploy(libraryModuleDefinition);
 
-    const libAddress = libDeployResult.rubbishMath.address;
-    const libAbi = libDeployResult.rubbishMath.abi;
+    const libAddress = await libDeployResult.rubbishMath.getAddress();
 
     const moduleDefinition = buildModule("ConsumingLibModule", (m) => {
-      const rubbishMath = m.contractAt("RubbishMath", libAddress, libAbi);
+      const rubbishMath = m.contractAt("RubbishMath", libAddress);
 
       const dependsOnLib = m.contract("DependsOnLib", [], {
         libraries: {

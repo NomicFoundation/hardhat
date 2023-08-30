@@ -16,21 +16,21 @@ describe("execution - deploy contract at", function () {
   // TODO: rename back to minimal api once execution switched over
   useEphemeralIgnitionProject("minimal-new-api");
 
-  it("should deploy a contract that is callable", async function () {
+  it.skip("should deploy a contract that is callable", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {
       const foo = m.contract("Foo");
 
       return { foo };
     });
 
-    const result = await this.deploy(
+    const result = await this.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
         await c.mineBlock(1);
       }
     );
 
-    const fooAddress = result.foo.address;
+    const fooAddress = await result.foo.getAddress();
 
     assert.equal(fooAddress, "0x5FbDB2315678afecb367f032d93F642f64180aa3");
 
@@ -40,7 +40,7 @@ describe("execution - deploy contract at", function () {
       return { foo };
     });
 
-    const contractAtResult = await this.deploy(
+    const contractAtResult = await this.runControlledDeploy(
       contractAtModuleDefinition,
       async (c: TestChainHelper) => {
         await c.mineBlock(1);

@@ -3,7 +3,8 @@ import path from "path";
 
 import { Artifact, BuildInfo } from "../../types/artifact";
 import { FileJournal } from "../journal/file-journal";
-import { Journal, JournalableMessage } from "../journal/types";
+import { Journal } from "../journal/types";
+import { JournalMessage } from "../new-execution/types/messages";
 
 import { DeploymentLoader } from "./types";
 
@@ -44,14 +45,14 @@ export class FileDeploymentLoader implements DeploymentLoader {
     this._deploymentDirsEnsured = false;
   }
 
-  public async recordToJournal(message: JournalableMessage): Promise<void> {
+  public async recordToJournal(message: JournalMessage): Promise<void> {
     await this._initialize();
 
     // NOTE: the journal record is sync, even though this call is async
     this._journal.record(message);
   }
 
-  public readFromJournal(): AsyncGenerator<JournalableMessage, any, unknown> {
+  public readFromJournal(): AsyncGenerator<JournalMessage, any, unknown> {
     return this._journal.read();
   }
 

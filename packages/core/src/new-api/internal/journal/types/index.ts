@@ -1,5 +1,12 @@
-/* eslint-disable import/no-unused-modules */
-export * from "./future-level-journal-message";
-export * from "./journal";
-export * from "./run-level-journal-message";
-export * from "./transaction-level-journal-message";
+import { JournalMessage } from "../../new-execution/types/messages";
+
+/**
+ * Store a deployments execution state as a transaction log.
+ *
+ * @beta
+ */
+export interface Journal {
+  record(message: JournalMessage): void;
+
+  read(): AsyncGenerator<JournalMessage>;
+}

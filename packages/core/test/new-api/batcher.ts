@@ -3,24 +3,23 @@ import { assert } from "chai";
 
 import { buildModule } from "../../src/new-api/build-module";
 import { Batcher } from "../../src/new-api/internal/batcher";
+import { DeploymentState } from "../../src/new-api/internal/new-execution/types/deployment-state";
 import {
   DeploymentExecutionState,
-  ExecutionStateMap,
+  ExecutionSateType,
   ExecutionStatus,
-} from "../../src/new-api/internal/execution/types";
+} from "../../src/new-api/internal/new-execution/types/execution-state";
 import { FutureType, IgnitionModule } from "../../src/new-api/types/module";
-
-import { initOnchainState } from "./helpers";
 
 describe("batcher", () => {
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
+    type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
-    history: [],
-    onchain: initOnchainState,
+    networkInteractions: [],
     artifactFutureId: "./artifact.json",
     contractName: "Contract1",
     value: BigInt("0"),
@@ -160,11 +159,14 @@ describe("batcher", () => {
     assertBatching(
       {
         ignitionModule,
-        executionStates: {
-          "Module1:Contract2": {
-            ...exampleDeploymentState,
-            id: "Module1:Contract2",
-            status: ExecutionStatus.SUCCESS,
+        deploymentState: {
+          chainId: 123,
+          executionStates: {
+            "Module1:Contract2": {
+              ...exampleDeploymentState,
+              id: "Module1:Contract2",
+              status: ExecutionStatus.SUCCESS,
+            },
           },
         },
       },
@@ -176,16 +178,16 @@ describe("batcher", () => {
 function assertBatching(
   {
     ignitionModule,
-    executionStates = {},
+    deploymentState = { chainId: 123, executionStates: {} },
   }: {
     ignitionModule: IgnitionModule;
-    executionStates?: ExecutionStateMap;
+    deploymentState?: DeploymentState;
   },
   expectedBatches: string[][]
 ) {
   assert.isDefined(ignitionModule);
 
-  const actualBatches = Batcher.batch(ignitionModule, executionStates);
+  const actualBatches = Batcher.batch(ignitionModule, deploymentState);
 
   assert.deepStrictEqual(actualBatches, expectedBatches);
 }

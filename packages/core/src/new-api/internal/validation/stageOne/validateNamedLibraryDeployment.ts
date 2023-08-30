@@ -2,6 +2,7 @@ import { IgnitionValidationError } from "../../../../errors";
 import { isArtifactType } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { NamedLibraryDeploymentFuture } from "../../../types/module";
+import { validateLibraryNames } from "../../new-execution/libraries";
 
 export async function validateNamedLibraryDeployment(
   future: NamedLibraryDeploymentFuture<string>,
@@ -14,4 +15,6 @@ export async function validateNamedLibraryDeployment(
       `Artifact for contract '${future.contractName}' is invalid`
     );
   }
+
+  validateLibraryNames(artifact, Object.keys(future.libraries));
 }

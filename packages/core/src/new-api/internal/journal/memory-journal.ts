@@ -1,7 +1,7 @@
-import { Journal, JournalableMessage } from "./types";
-import { deserializeReplacer } from "./utils/deserialize-replacer";
+import { JournalMessage } from "../new-execution/types/messages";
+
+import { Journal } from "./types";
 import { logJournalableMessage } from "./utils/log";
-import { serializeReplacer } from "./utils/serialize-replacer";
 
 /**
  * An in-memory journal.
@@ -9,28 +9,23 @@ import { serializeReplacer } from "./utils/serialize-replacer";
  * @beta
  */
 export class MemoryJournal implements Journal {
-  private messages: string[] = [];
+  private messages: JournalMessage[] = [];
 
   constructor(private _verbose: boolean = false) {}
 
-  public record(message: JournalableMessage): void {
+  public record(message: JournalMessage): void {
     this._log(message);
 
-    this.messages.push(JSON.stringify(message, serializeReplacer.bind(this)));
+    this.messages.push(message);
   }
 
-  public async *read(): AsyncGenerator<JournalableMessage> {
-    for (const entry of this.messages) {
-      const message: JournalableMessage = JSON.parse(
-        entry,
-        deserializeReplacer.bind(this)
-      );
-
+  public async *read(): AsyncGenerator<JournalMessage> {
+    for (const message of this.messages) {
       yield message;
     }
   }
 
-  private _log(message: JournalableMessage): void {
+  private _log(message: JournalMessage): void {
     if (this._verbose) {
       return logJournalableMessage(message);
     }

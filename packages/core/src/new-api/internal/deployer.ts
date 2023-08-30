@@ -1,40 +1,40 @@
-import type { ContractFuture, IgnitionModule } from "../types/module";
+import type { IgnitionModule, IgnitionModuleResult } from "../types/module";
 
-import { IgnitionError } from "../../errors";
-import {
-  isArtifactContractAtFuture,
-  isArtifactContractDeploymentFuture,
-  isArtifactLibraryDeploymentFuture,
-  isContractFuture,
-  isNamedContractAtFuture,
-  isNamedContractDeploymentFuture,
-  isNamedLibraryDeploymentFuture,
-} from "../type-guards";
-import { Artifact, ArtifactResolver } from "../types/artifact";
+import { isContractFuture } from "../type-guards";
+import { ArtifactResolver } from "../types/artifact";
 import {
   DeployConfig,
   DeploymentParameters,
   DeploymentResult,
-} from "../types/deployer";
+  DeploymentResultType,
+  ExecutionErrorDeploymentResult,
+  ReconciliationErrorDeploymentResult,
+  SuccessfulDeploymentResult,
+} from "../types/deploy";
 
 import { Batcher } from "./batcher";
-import { defaultAutominedConfig, defaultConfig } from "./defaultConfig";
 import { DeploymentLoader } from "./deployment-loader/types";
-import { ExecutionEngine } from "./execution/execution-engine";
-import { executionStateReducer } from "./execution/execution-state-reducer";
-import { BasicExecutionStrategy } from "./execution/execution-strategy";
-import { TransactionLookupTimerImpl } from "./execution/transaction-lookup-timer";
+import { formatExecutionError } from "./formatters";
 import {
-  ChainDispatcher,
+  initializeDeploymentState,
+  loadDeploymentState,
+} from "./new-execution/deployment-state-helpers";
+import { ExecutionEngine } from "./new-execution/execution-engine";
+import { JsonRpcClient } from "./new-execution/jsonrpc-client";
+import { DeploymentState } from "./new-execution/types/deployment-state";
+import { ExecutionResultType } from "./new-execution/types/execution-result";
+import {
+  CallExecutionState,
   ContractAtExecutionState,
   DeploymentExecutionState,
-  ExecutionStateMap,
-  ExecutionStrategy,
-  TransactionLookupTimer,
-} from "./execution/types";
+  ExecutionSateType,
+  ExecutionState,
+  ExecutionStatus,
+  SendDataExecutionState,
+  StaticCallExecutionState,
+} from "./new-execution/types/execution-state";
+import { ExecutionStrategy } from "./new-execution/types/execution-strategy";
 import { Reconciler } from "./reconciliation/reconciler";
-import { ArtifactMap } from "./reconciliation/types";
-import { isContractExecutionStateArray } from "./type-guards";
 import { assertIgnitionInvariant } from "./utils/assertions";
 import { getFuturesFromModule } from "./utils/get-futures-from-module";
 import { validateStageTwo } from "./validation/validateStageTwo";
@@ -45,187 +45,268 @@ import { validateStageTwo } from "./validation/validateStageTwo";
  * @beta
  */
 export class Deployer {
-  private _config: DeployConfig;
-  private _executionEngine: ExecutionEngine;
-  private _strategy: ExecutionStrategy;
-  private _artifactResolver: ArtifactResolver;
-  private _deploymentLoader: DeploymentLoader;
-  private _chainDispatcher: ChainDispatcher;
-  private _transactionLookupTimer: TransactionLookupTimer;
-
-  constructor(options: {
-    config?: Partial<DeployConfig>;
-    artifactResolver: ArtifactResolver;
-    deploymentLoader: DeploymentLoader;
-    chainDispatcher: ChainDispatcher;
-    isAutominedNetwork?: boolean;
-  }) {
-    options.isAutominedNetwork ??= false;
-
-    this._config = {
-      ...(options.isAutominedNetwork ? defaultAutominedConfig : defaultConfig),
-      ...options.config,
-    };
-
+  constructor(
+    private readonly _config: DeployConfig,
+    private readonly _executionStrategy: ExecutionStrategy,
+    private readonly _jsonRpcClient: JsonRpcClient,
+    private readonly _artifactResolver: ArtifactResolver,
+    private readonly _deploymentLoader: DeploymentLoader
+  ) {
     assertIgnitionInvariant(
-      this._config.blockConfirmations >= 1,
-      `Configured value 'blockConfirmations' cannot be less than 1. Value given: '${this._config.blockConfirmations}'`
-    );
-
-    this._strategy = new BasicExecutionStrategy();
-    this._artifactResolver = options.artifactResolver;
-    this._deploymentLoader = options.deploymentLoader;
-
-    this._chainDispatcher = options.chainDispatcher;
-
-    this._executionEngine = new ExecutionEngine();
-    this._transactionLookupTimer = new TransactionLookupTimerImpl(
-      this._config.transactionTimeoutInterval
+      this._config.requiredConfirmations >= 1,
+      `Configured value 'requiredConfirmations' cannot be less than 1. Value given: '${this._config.requiredConfirmations}'`
     );
   }
 
-  public async deploy(
-    ignitionModule: IgnitionModule,
+  public async deploy<
+    ModuleIdT extends string,
+    ContractNameT extends string,
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+  >(
+    ignitionModule: IgnitionModule<
+      ModuleIdT,
+      ContractNameT,
+      IgnitionModuleResultsT
+    >,
     deploymentParameters: DeploymentParameters,
-    accounts: string[]
-  ): Promise<DeploymentResult> {
-    await validateStageTwo(
+    accounts: string[],
+    defaultSender: string
+  ): Promise<DeploymentResult<ContractNameT, IgnitionModuleResultsT>> {
+    const validationResult = await validateStageTwo(
       ignitionModule,
       this._artifactResolver,
       deploymentParameters,
       accounts
     );
 
-    const previousStateMap = await this._loadExecutionStateFrom(
-      this._deploymentLoader
-    );
+    if (validationResult !== null) {
+      return validationResult;
+    }
+
+    let deploymentState = await this._getOrInitializeDeploymentState();
 
     const contracts =
       getFuturesFromModule(ignitionModule).filter(isContractFuture);
+
     const contractStates = contracts
-      .map((contract) => previousStateMap[contract.id])
-      .filter((v) => v !== undefined);
+      .map((contract) => deploymentState?.executionStates[contract.id])
+      .filter((v): v is ExecutionState => v !== undefined);
 
     // realistically this should be impossible to fail.
     // just need it here for the type inference
     assertIgnitionInvariant(
-      isContractExecutionStateArray(contractStates),
+      contractStates.every(
+        (
+          exState
+        ): exState is DeploymentExecutionState | ContractAtExecutionState =>
+          exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
+          exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE
+      ),
       "Invalid state map"
     );
 
-    // since the reconciler is purely synchronous, we load all of the artifacts at once here.
-    // if reconciler was async, we could pass it the artifact loaders and load them JIT instead.
-    const moduleArtifactMap = await this._loadModuleArtifactMap(contracts);
-    const storedArtifactMap = await this._loadStoredArtifactMap(contractStates);
-
-    const reconciliationResult = Reconciler.reconcile(
+    const reconciliationResult = await Reconciler.reconcile(
       ignitionModule,
-      previousStateMap,
+      deploymentState,
       deploymentParameters,
       accounts,
-      moduleArtifactMap,
-      storedArtifactMap
+      this._deploymentLoader,
+      this._artifactResolver,
+      defaultSender
     );
 
     if (reconciliationResult.reconciliationFailures.length > 0) {
-      const failures = reconciliationResult.reconciliationFailures
-        .map((rf) => `  ${rf.futureId} - ${rf.failure}`)
-        .join("\n");
+      const errors: ReconciliationErrorDeploymentResult["errors"] = {};
 
-      throw new IgnitionError(`Reconciliation failed\n\n${failures}`);
+      for (const {
+        futureId,
+        failure,
+      } of reconciliationResult.reconciliationFailures) {
+        if (errors[futureId] === undefined) {
+          errors[futureId] = [];
+        }
+
+        errors[futureId].push(failure);
+      }
+
+      return {
+        type: DeploymentResultType.RECONCILIATION_ERROR,
+        errors,
+      };
     }
 
     if (reconciliationResult.missingExecutedFutures.length > 0) {
       // TODO: indicate to UI that warnings should be shown
     }
 
-    const batches = Batcher.batch(ignitionModule, previousStateMap);
+    const batches = Batcher.batch(ignitionModule, deploymentState);
 
-    return this._executionEngine.execute({
-      config: this._config,
-      block: { number: -1, hash: "-" },
-      strategy: this._strategy,
-      artifactResolver: this._artifactResolver,
+    const executionEngine = new ExecutionEngine(
+      this._deploymentLoader,
+      this._artifactResolver,
+      this._executionStrategy,
+      this._jsonRpcClient,
+      this._config.requiredConfirmations,
+      this._config.timeBeforeBumpingFees,
+      this._config.maxFeeBumps,
+      this._config.blockPollingInterval
+    );
+
+    deploymentState = await executionEngine.executeModule(
+      deploymentState,
+      ignitionModule,
       batches,
-      module: ignitionModule,
-      executionStateMap: previousStateMap,
       accounts,
       deploymentParameters,
-      deploymentLoader: this._deploymentLoader,
-      chainDispatcher: this._chainDispatcher,
-      transactionLookupTimer: this._transactionLookupTimer,
-    });
+      defaultSender
+    );
+
+    return this._getDeploymentResult(deploymentState, ignitionModule);
   }
 
-  private async _loadExecutionStateFrom(
-    deploymentLoader: DeploymentLoader
-  ): Promise<ExecutionStateMap> {
-    let state: ExecutionStateMap = {};
-
-    for await (const message of deploymentLoader.readFromJournal()) {
-      state = executionStateReducer(state, message);
+  private async _getDeploymentResult<
+    ModuleIdT extends string,
+    ContractNameT extends string,
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+  >(
+    deploymentState: DeploymentState,
+    module: IgnitionModule<ModuleIdT, ContractNameT, IgnitionModuleResultsT>
+  ): Promise<DeploymentResult<ContractNameT, IgnitionModuleResultsT>> {
+    if (!this._isSuccessful(deploymentState)) {
+      return this._getExecutionErrorResult(deploymentState);
     }
 
-    return state;
+    return {
+      type: DeploymentResultType.SUCCESSFUL_DEPLOYMENT,
+      contracts: Object.fromEntries(
+        Object.entries(module.results).map(([name, contractFuture]) => [
+          name,
+          {
+            id: contractFuture.id,
+            contractName: contractFuture.contractName,
+            address: getContractAddress(
+              deploymentState.executionStates[contractFuture.id]
+            ),
+          },
+        ])
+      ) as SuccessfulDeploymentResult<
+        ContractNameT,
+        IgnitionModuleResultsT
+      >["contracts"],
+    };
   }
 
-  private async _loadModuleArtifactMap(
-    contracts: Array<ContractFuture<string>>
-  ): Promise<ArtifactMap> {
-    const entries: Array<[string, Artifact]> = [];
+  private async _getOrInitializeDeploymentState(): Promise<DeploymentState> {
+    const chainId = await this._jsonRpcClient.getChainId();
+    const deploymentState = await loadDeploymentState(this._deploymentLoader);
 
-    for (const contract of contracts) {
-      if (
-        isNamedContractDeploymentFuture(contract) ||
-        isNamedContractAtFuture(contract) ||
-        isNamedLibraryDeploymentFuture(contract)
-      ) {
-        const artifact = await this._artifactResolver.loadArtifact(
-          contract.contractName
-        );
-
-        entries.push([contract.id, artifact]);
-
-        continue;
-      }
-
-      if (
-        isArtifactContractDeploymentFuture(contract) ||
-        isArtifactContractAtFuture(contract) ||
-        isArtifactLibraryDeploymentFuture(contract)
-      ) {
-        const artifact = contract.artifact;
-
-        entries.push([contract.id, artifact]);
-
-        continue;
-      }
-
-      this._assertNeverContract(contract);
+    if (deploymentState === undefined) {
+      return initializeDeploymentState(chainId, this._deploymentLoader);
     }
 
-    return Object.fromEntries(entries);
+    assertIgnitionInvariant(
+      deploymentState.chainId === chainId,
+      `Trying to continue deployment in a different chain. Previous chain id: ${deploymentState.chainId}. Current chain id: ${chainId}`
+    );
+
+    return deploymentState;
   }
 
-  private async _loadStoredArtifactMap(
-    contractStates: Array<DeploymentExecutionState | ContractAtExecutionState>
-  ): Promise<ArtifactMap> {
-    const entries: Array<[string, Artifact]> = [];
-
-    for (const contract of contractStates) {
-      const artifact = await this._deploymentLoader.loadArtifact(
-        contract.artifactFutureId
-      );
-
-      entries.push([contract.id, artifact]);
-    }
-
-    return Object.fromEntries(entries);
-  }
-
-  private _assertNeverContract(contract: never) {
-    throw new IgnitionError(
-      `Unexpected contract future type: ${JSON.stringify(contract)}`
+  private _isSuccessful(deploymentState: DeploymentState): boolean {
+    return Object.values(deploymentState.executionStates).every(
+      (ex) => ex.status === ExecutionStatus.SUCCESS
     );
   }
+
+  private _getExecutionErrorResult(
+    deploymentState: DeploymentState
+  ): ExecutionErrorDeploymentResult {
+    return {
+      type: DeploymentResultType.EXECUTION_ERROR,
+      started: Object.values(deploymentState.executionStates)
+        .filter((ex) => ex.status === ExecutionStatus.STARTED)
+        .map((ex) => ex.id),
+      successful: Object.values(deploymentState.executionStates)
+        .filter((ex) => ex.status === ExecutionStatus.SUCCESS)
+        .map((ex) => ex.id),
+      timedOut: Object.values(deploymentState.executionStates)
+        .filter(canTimeout)
+        .filter((ex) => ex.status === ExecutionStatus.TIMEOUT)
+        .map((ex) => ({
+          futureId: ex.id,
+          executionId: ex.networkInteractions.at(-1)!.id,
+        })),
+      failed: Object.values(deploymentState.executionStates)
+        .filter(canFail)
+        .filter((ex) => ex.status === ExecutionStatus.FAILED)
+        .map((ex) => {
+          assertIgnitionInvariant(
+            ex.result !== undefined &&
+              ex.result.type !== ExecutionResultType.SUCCESS,
+            `Execution state ${ex.id} is marked as failed but has no error result`
+          );
+
+          return {
+            futureId: ex.id,
+            executionId: ex.networkInteractions.at(-1)!.id,
+            error: formatExecutionError(ex.result),
+          };
+        }),
+    };
+  }
+}
+
+// TODO: Does this exist anywhere else? It's in fact just checking if it sends txs
+function canTimeout(
+  exState: ExecutionState
+): exState is
+  | DeploymentExecutionState
+  | CallExecutionState
+  | SendDataExecutionState {
+  return (
+    exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
+    exState.type === ExecutionSateType.CALL_EXECUTION_STATE ||
+    exState.type === ExecutionSateType.SEND_DATA_EXECUTION_STATE
+  );
+}
+
+// TODO: Does this exist anywhere else? It's in fact just checking if has network interactions
+function canFail(
+  exState: ExecutionState
+): exState is
+  | DeploymentExecutionState
+  | CallExecutionState
+  | SendDataExecutionState
+  | StaticCallExecutionState {
+  return (
+    exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
+    exState.type === ExecutionSateType.CALL_EXECUTION_STATE ||
+    exState.type === ExecutionSateType.SEND_DATA_EXECUTION_STATE ||
+    exState.type === ExecutionSateType.STATIC_CALL_EXECUTION_STATE
+  );
+}
+
+// TODO: Does this exist somewhere else?
+function getContractAddress(exState: ExecutionState): string {
+  assertIgnitionInvariant(
+    exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
+      exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
+    `Execution state ${exState.id} should be a deployment or contract at execution state`
+  );
+
+  assertIgnitionInvariant(
+    exState.status === ExecutionStatus.SUCCESS,
+    `Cannot get contract address from execution state ${exState.id} because it is not successful`
+  );
+
+  if (exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE) {
+    return exState.contractAddress;
+  }
+
+  assertIgnitionInvariant(
+    exState.result?.type === ExecutionResultType.SUCCESS,
+    `Cannot get contract address from execution state ${exState.id} because it is not successful`
+  );
+
+  return exState.result.address;
 }

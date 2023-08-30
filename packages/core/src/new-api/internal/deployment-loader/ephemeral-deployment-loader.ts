@@ -1,6 +1,7 @@
 import { Artifact, ArtifactResolver, BuildInfo } from "../../types/artifact";
 import { MemoryJournal } from "../journal/memory-journal";
-import { Journal, JournalableMessage } from "../journal/types";
+import { Journal } from "../journal/types";
+import { JournalMessage } from "../new-execution/types/messages";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
 import { DeploymentLoader } from "./types";
@@ -29,11 +30,11 @@ export class EphemeralDeploymentLoader implements DeploymentLoader {
     this._savedArtifacts = {};
   }
 
-  public async recordToJournal(message: JournalableMessage): Promise<void> {
+  public async recordToJournal(message: JournalMessage): Promise<void> {
     this._journal.record(message);
   }
 
-  public readFromJournal(): AsyncGenerator<JournalableMessage, any, unknown> {
+  public readFromJournal(): AsyncGenerator<JournalMessage, any, unknown> {
     return this._journal.read();
   }
 
