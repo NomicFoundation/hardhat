@@ -24,8 +24,8 @@ use tokio::sync::{OnceCell, RwLock};
 
 use crate::block::{is_safe_block_number, IsSafeBlockNumberArgs};
 use crate::remote::cacheable_method_invocation::{
-    CacheKeyForSymbolicBlockTag, CacheKeyForUncheckedBlockNumber, CacheableMethodInvocation,
-    ReadCacheKey, ResolvedSymbolicTag, WriteCacheKey,
+    try_read_cache_key, try_write_cache_key, CacheKeyForSymbolicBlockTag,
+    CacheKeyForUncheckedBlockNumber, ReadCacheKey, ResolvedSymbolicTag, WriteCacheKey,
 };
 use crate::remote::jsonrpc::Id;
 use crate::{log::FilterLog, receipt::BlockReceipt, serde::ZeroXPrefixedBytes};
@@ -274,44 +274,38 @@ impl RpcClient {
         }
     }
 
-    /// Return the largest known block number if it's considered safe for the given block, otherwise
-    /// fetch the latest block number.
-    async fn largest_known_or_latest_block_number(
-        &self,
-        safety_checker: &CacheKeyForUncheckedBlockNumber<'_>,
-        chain_id: &U256,
-    ) -> Result<U256, RpcClientError> {
-        let largest_known_block_number = { *self.largest_known_block_number.read().await };
-        if let Some(largest_known_block_number) = largest_known_block_number {
-            if is_safe_block_number(IsSafeBlockNumberArgs {
-                chain_id,
-                latest_block_number: &largest_known_block_number,
-                block_number: safety_checker.block_number,
-            }) {
-                return Ok(largest_known_block_number);
-            }
-        };
-        self.block_number().await
-    }
-
     async fn validate_block_number(
         &self,
         safety_checker: CacheKeyForUncheckedBlockNumber<'_>,
     ) -> Result<Option<String>, RpcClientError> {
         let chain_id = self.chain_id().await?;
 
-        let block_number = self
-            .largest_known_or_latest_block_number(&safety_checker, &chain_id)
-            .await?;
+        // Use the largest known block number for validation if the given block number is safe
+        // relative to it.
+        let largest_known_block_number = { *self.largest_known_block_number.read().await };
+        if let Some(largest_known_block_number) = largest_known_block_number {
+            let args = IsSafeBlockNumberArgs {
+                chain_id: &chain_id,
+                latest_block_number: &largest_known_block_number,
+                block_number: safety_checker.block_number,
+            };
+            if is_safe_block_number(args) {
+                return Ok(
+                    safety_checker.validate_block_number(&chain_id, &largest_known_block_number)
+                );
+            }
+        };
 
-        Ok(safety_checker.validate_block_number(&chain_id, &block_number))
+        // Otherwise fetch the latest block number and use that for validation.
+        let latest_block_number = self.block_number().await?;
+        Ok(safety_checker.validate_block_number(&chain_id, &latest_block_number))
     }
 
     async fn resolve_block_tag<T>(
         &self,
         block_tag_resolver: CacheKeyForSymbolicBlockTag,
-        result: &T,
-        resolve_block_number: impl Fn(&T) -> Option<U256>,
+        result: T,
+        resolve_block_number: impl Fn(T) -> Option<U256>,
     ) -> Result<Option<String>, RpcClientError> {
         if let Some(block_number) = resolve_block_number(result) {
             if let Some(resolved_cache_key) = block_tag_resolver.resolve_symbolic_tag(&block_number)
@@ -330,12 +324,10 @@ impl RpcClient {
     async fn resolve_write_key<T>(
         &self,
         method_invocation: &MethodInvocation,
-        result: &T,
-        resolve_block_number: impl Fn(&T) -> Option<U256>,
+        result: T,
+        resolve_block_number: impl Fn(T) -> Option<U256>,
     ) -> Result<Option<String>, RpcClientError> {
-        let write_cache_key = CacheableMethodInvocation::try_from(method_invocation)
-            .ok()
-            .and_then(|v| v.write_cache_key());
+        let write_cache_key = try_write_cache_key(method_invocation);
 
         if let Some(cache_key) = write_cache_key {
             match cache_key {
@@ -353,14 +345,14 @@ impl RpcClient {
         }
     }
 
-    async fn handle_response_to_cache<T: Serialize>(
+    async fn try_write_response_to_cache<T: Serialize>(
         &self,
         method_invocation: &MethodInvocation,
         result: &T,
-        resolve_block_number: &impl Fn(&&T) -> Option<U256>,
+        resolve_block_number: impl Fn(&T) -> Option<U256>,
     ) -> Result<(), RpcClientError> {
         if let Some(cache_key) = self
-            .resolve_write_key(method_invocation, &result, resolve_block_number)
+            .resolve_write_key(method_invocation, result, resolve_block_number)
             .await?
         {
             self.write_response_to_cache(&cache_key, result).await?;
@@ -442,28 +434,27 @@ impl RpcClient {
     async fn call_with_resolver<T: DeserializeOwned + Serialize>(
         &self,
         method_invocation: MethodInvocation,
-        resolve_block_number: impl Fn(&&T) -> Option<U256>,
+        resolve_block_number: impl Fn(&T) -> Option<U256>,
     ) -> Result<T, RpcClientError> {
-        let read_cache_key = CacheableMethodInvocation::try_from(&method_invocation)
-            .ok()
-            .and_then(|v| v.read_cache_key());
+        let read_cache_key = try_read_cache_key(&method_invocation);
 
         let request = self.serialize_request(&method_invocation)?;
 
-        let result =
-            if let Some(cached_response) = self.try_from_cache(read_cache_key.as_ref()).await? {
-                serde_json::from_value(cached_response).expect("cache item matches return type")
-            } else {
-                let result: T = self
-                    .send_request_body(&request)
-                    .await
-                    .and_then(|response| Self::extract_result(request, response))?;
+        let result = if let Some(cached_response) =
+            self.try_from_cache(read_cache_key.as_ref()).await?
+        {
+            serde_json::from_value(cached_response).expect("cache item matches return type")
+        } else {
+            let result: T = self
+                .send_request_body(&request)
+                .await
+                .and_then(|response| Self::extract_result(request, response))?;
 
-                self.handle_response_to_cache(&method_invocation, &result, &resolve_block_number)
-                    .await?;
+            self.try_write_response_to_cache(&method_invocation, &result, &resolve_block_number)
+                .await?;
 
-                result
-            };
+            result
+        };
         Ok(result)
     }
 
@@ -492,17 +483,13 @@ impl RpcClient {
     async fn batch_call_with_resolver(
         &self,
         method_invocations: &[MethodInvocation],
-        resolve_block_number: impl Fn(&&serde_json::Value) -> Option<U256>,
+        resolve_block_number: impl Fn(&serde_json::Value) -> Option<U256>,
     ) -> Result<VecDeque<serde_json::Value>, RpcClientError> {
         let ids = self.get_ids(method_invocations.len() as u64);
 
         let cache_keys = method_invocations
             .iter()
-            .map(|m| {
-                CacheableMethodInvocation::try_from(m)
-                    .ok()
-                    .and_then(|v| v.read_cache_key())
-            })
+            .map(try_read_cache_key)
             .collect::<Vec<_>>();
 
         let mut results: Vec<Option<serde_json::Value>> = stream::iter(&cache_keys)
@@ -550,7 +537,7 @@ impl RpcClient {
                         request: request_body.to_json_string(),
                     })?;
 
-            self.handle_response_to_cache(
+            self.try_write_response_to_cache(
                 &method_invocations[index],
                 &result,
                 &resolve_block_number,
@@ -712,7 +699,7 @@ impl RpcClient {
     ) -> Result<eth::Block<B256>, RpcClientError> {
         self.call_with_resolver(
             MethodInvocation::GetBlockByNumber(spec, false),
-            |block: &&eth::Block<B256>| block.number,
+            |block: &eth::Block<B256>| block.number,
         )
         .await
     }
@@ -724,7 +711,7 @@ impl RpcClient {
     ) -> Result<eth::Block<eth::Transaction>, RpcClientError> {
         self.call_with_resolver(
             MethodInvocation::GetBlockByNumber(spec, true),
-            |block: &&eth::Block<eth::Transaction>| block.number,
+            |block: &eth::Block<eth::Transaction>| block.number,
         )
         .await
     }
@@ -1428,7 +1415,7 @@ mod tests {
                 .await
                 .expect("should have from remote");
 
-            assert_eq!(block_from_remote, block_from_cache)
+            assert_eq!(block_from_remote, block_from_cache);
         }
 
         #[tokio::test]
