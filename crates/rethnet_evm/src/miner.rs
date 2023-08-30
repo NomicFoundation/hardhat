@@ -111,8 +111,6 @@ where
     while let Some(transaction) = pending_transactions.pop_front() {
         let mut tracer = TraceCollector::default();
 
-        let transaction_hash = *transaction.hash();
-
         match block_builder.add_transaction(blockchain, state, transaction, Some(&mut tracer)) {
             Err(BlockTransactionError::ExceedsBlockGasLimit) => continue,
             Err(e) => {
@@ -125,8 +123,6 @@ where
             Ok(result) => {
                 results.push(result);
                 traces.push(tracer.into_trace());
-
-                mem_pool.remove_transaction(&transaction_hash);
             }
         }
     }
