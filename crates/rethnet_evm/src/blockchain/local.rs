@@ -6,7 +6,7 @@ use std::{
 use rethnet_eth::{
     block::{Block, DetailedBlock, PartialHeader},
     trie::KECCAK_NULL_RLP,
-    Bytes, B256, B64, U256, U64,
+    Bytes, B256, B64, U256,
 };
 use revm::{db::BlockHashRef, primitives::SpecId};
 
@@ -96,7 +96,7 @@ impl LocalBlockchain {
                 nonce: if spec_id >= SpecId::MERGE {
                     B64::ZERO
                 } else {
-                    B64::from(U64::from(42))
+                    B64::from_limbs([66u64.to_be()])
                 },
                 base_fee: if spec_id >= SpecId::LONDON {
                     Some(base_fee.ok_or(CreationError::MissingBaseFee)?)

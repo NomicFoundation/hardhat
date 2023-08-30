@@ -11,10 +11,7 @@ use std::sync::OnceLock;
 
 use revm_primitives::{
     keccak256,
-    ruint::{
-        self,
-        aliases::{U160, U64},
-    },
+    ruint::{self, aliases::U160},
     SpecId,
 };
 use rlp::Decodable;
@@ -140,7 +137,10 @@ impl TryFrom<eth::Block<eth::Transaction>> for BlockAndCallers {
                 timestamp: value.timestamp,
                 extra_data: value.extra_data,
                 mix_hash: value.mix_hash,
-                nonce: B64::from_limbs([value.nonce.ok_or(BlockConversionError::MissingNonce)?]),
+                nonce: B64::from_limbs([value
+                    .nonce
+                    .ok_or(BlockConversionError::MissingNonce)?
+                    .to_be()]),
                 base_fee_per_gas: value.base_fee_per_gas,
                 withdrawals_root: value.withdrawals_root,
             },
@@ -333,7 +333,8 @@ impl rlp::Decodable for Header {
             timestamp: rlp.val_at(11)?,
             extra_data: rlp.val_at::<Vec<u8>>(12)?.into(),
             mix_hash: B256::from(rlp.val_at::<U256>(13)?.to_be_bytes()),
-            nonce: B64::from_le_bytes(rlp.val_at::<U64>(14)?.to_be_bytes::<8>()),
+            nonce: B64::try_from_le_slice(&rlp.val_at::<Vec<u8>>(14)?)
+                .ok_or(rlp::DecoderError::Custom("Invalid nonce byte length"))?,
             base_fee_per_gas: if let Ok(base_fee) = rlp.at(15) {
                 Some(<U256 as Decodable>::decode(&base_fee)?)
             } else {
@@ -541,6 +542,8 @@ pub struct BlockAndCallers {
 mod tests {
     use std::str::FromStr;
 
+    use revm_primitives::ruint::aliases::U64;
+
     use super::*;
 
     #[test]
@@ -560,7 +563,7 @@ mod tests {
             timestamp: U256::ZERO,
             extra_data: Bytes::default(),
             mix_hash: B256::default(),
-            nonce: B64::from(U64::from(99)),
+            nonce: B64::from_limbs([99u64.to_be()]),
             base_fee_per_gas: None,
             withdrawals_root: None,
         };

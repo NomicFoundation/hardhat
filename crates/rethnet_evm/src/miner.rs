@@ -2,7 +2,7 @@ use std::{collections::VecDeque, fmt::Debug, sync::Arc};
 
 use rethnet_eth::{
     block::{BlockOptions, DetailedBlock, Header},
-    Address, B256, B64, U256, U64,
+    Address, B256, B64, U256,
 };
 use revm::primitives::{CfgEnv, ExecutionResult, SpecId};
 
@@ -90,7 +90,7 @@ where
                 nonce: Some(if cfg.spec_id >= SpecId::MERGE {
                     B64::ZERO
                 } else {
-                    B64::from(U64::from(42))
+                    B64::from_limbs([66u64.to_be()])
                 }),
                 base_fee: if cfg.spec_id >= SpecId::LONDON {
                     Some(base_fee.unwrap_or_else(|| calculate_next_base_fee(&parent_block.header)))
