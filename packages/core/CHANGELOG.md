@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.3.0 - 2023-08-30
+
+### Added
+
+- Support eip-1559 style transactions ([#8](https://github.com/NomicFoundation/ignition/issues/8))
+- Automatic gas bumping of transactions ([#294](https://github.com/NomicFoundation/ignition/issues/294))
+- Improve validation based on artifacts ([#390](https://github.com/NomicFoundation/ignition/issues/390))
+
+### Changed
+
+- Switch peer dependency from ethers v5 to ethers v6 ([#338](https://github.com/NomicFoundation/ignition/issues/338))
+- Deprecate support for node 14, and add support for node 20 ([#370](https://github.com/NomicFoundation/ignition/issues/370))
+
 ## 0.2.0 - 2023-08-16
 
 ### Added

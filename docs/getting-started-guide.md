@@ -37,9 +37,6 @@ $ npx hardhat
   Quit
 ```
 
-> WARNING: currently Ignition only supports Ethers v5. You will need to downgrade
-> `@nomicfoundation/hardhat-toolbox` to version `2.0.2` to work with Ignition
-
 Add **Ignition** to your **Hardhat** project by installing the plugin:
 
 ```bash
@@ -72,7 +69,7 @@ const currentTimestampInSeconds = Math.round(new Date(2023, 0, 1) / 1000);
 const TEN_YEAR_IN_SECS = 10 * 365 * 24 * 60 * 60;
 const TEN_YEARS_IN_FUTURE = currentTimestampInSeconds + TEN_YEAR_IN_SECS;
 
-const ONE_GWEI = BigInt(hre.ethers.utils.parseUnits("1", "gwei"));
+const ONE_GWEI = BigInt(hre.ethers.parseUnits("1", "gwei"));
 
 module.exports = buildModule("LockModule", (m) => {
   const unlockTime = m.getParameter("unlockTime", TEN_YEARS_IN_FUTURE);
