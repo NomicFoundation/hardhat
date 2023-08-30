@@ -148,7 +148,6 @@ impl MemPool {
             sender: &AccountInfo,
         ) -> bool {
             U256::from(transaction.gas_limit()) <= *block_gas_limit
-                && transaction.nonce() >= sender.nonce
                 && transaction.upfront_cost() <= sender.balance
         }
 
@@ -156,13 +155,15 @@ impl MemPool {
             let (caller, transactions) = entry;
             let sender = state.basic(*caller)?.unwrap_or_default();
 
+            // Remove all finalized transactions
+            transactions.retain(|transaction| transaction.nonce() >= sender.nonce);
+
             if let Some((idx, _)) = transactions
                 .iter()
                 .enumerate()
                 .find(|(_, transaction)| !is_valid_tx(transaction, &self.block_gas_limit, &sender))
             {
-                // Question: Do we ever need to consider tx.nonce < sender.nonce, due to manual modifications?
-
+                // Move all consequent transactions to the future queue
                 let mut invalidated_transactions = transactions.split_off(idx);
 
                 self.future_transactions
@@ -224,7 +225,27 @@ impl MemPool {
 
             *old_transactions = transaction;
         } else {
+            let caller = *transaction.caller();
+            let mut next_pending_nonce = transaction.nonce() + 1;
+
             pending_transactions.push(transaction);
+
+            // Move as many future transactions as possible to the pending status
+            if let Some(future_transactions) = self.future_transactions.get_mut(&caller) {
+                while let Some((idx, _)) = future_transactions
+                    .iter()
+                    .enumerate()
+                    .find(|(_, transaction)| transaction.nonce() == next_pending_nonce)
+                {
+                    pending_transactions.push(future_transactions.remove(idx));
+
+                    next_pending_nonce += 1;
+                }
+
+                if future_transactions.is_empty() {
+                    self.future_transactions.remove(&caller);
+                }
+            }
         }
     }
 
