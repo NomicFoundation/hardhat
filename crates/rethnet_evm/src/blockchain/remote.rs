@@ -166,12 +166,55 @@ impl RemoteBlockchain {
         .collect();
 
         let block = DetailedBlock::new(block, transaction_callers, receipts);
-        let block = {
-            let mut remote_cache = RwLockUpgradableReadGuard::upgrade(cache);
-            // SAFETY: the block with this number didn't exist yet, so it must be unique
-            unsafe { remote_cache.insert_block_unchecked(block, total_difficulty) }.clone()
-        };
 
-        Ok(block)
+        let is_cacheable = tokio::task::block_in_place(|| {
+            self.runtime
+                .block_on(self.client.is_cacheable_block_number(&block.header.number))
+        })?;
+
+        if is_cacheable {
+            let block = {
+                let mut remote_cache = RwLockUpgradableReadGuard::upgrade(cache);
+                // SAFETY: the block with this number didn't exist yet, so it must be unique
+                unsafe { remote_cache.insert_block_unchecked(block, total_difficulty) }.clone()
+            };
+            Ok(block)
+        } else {
+            Ok(Arc::new(block))
+        }
+    }
+}
+
+#[cfg(all(test, feature = "test-remote"))]
+mod tests {
+    use std::sync::Arc;
+
+    use rethnet_eth::remote::RpcClient;
+    use rethnet_test_utils::env::get_alchemy_url;
+    use tokio::runtime::Builder;
+
+    use super::*;
+
+    #[test]
+    fn no_cache_for_unsafe_block_number() {
+        let runtime = Arc::new(
+            Builder::new_multi_thread()
+                .enable_io()
+                .enable_time()
+                .build()
+                .expect("failed to construct async runtime"),
+        );
+
+        let tempdir = tempfile::tempdir().expect("can create tempdir");
+
+        let rpc_client = RpcClient::new(&get_alchemy_url(), tempdir.path().to_path_buf());
+
+        // Latest block number is always unsafe to cache
+        let block_number = runtime.block_on(rpc_client.block_number()).unwrap();
+
+        let remote = RemoteBlockchain::new(rpc_client, runtime);
+
+        let _ = remote.block_by_number(&block_number).unwrap();
+        assert!(remote.cache.read().block_by_number(&block_number).is_none())
     }
 }

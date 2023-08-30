@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use rethnet_eth::block::LargestSafeBlockNumberArgs;
 use rethnet_eth::{
     block::{largest_possible_reorg, largest_safe_block_number, DetailedBlock},
     remote::{RpcClient, RpcClientError},
@@ -73,7 +74,10 @@ impl ForkedBlockchain {
         let network_id = network_id?;
         let latest_block_number = latest_block_number?;
 
-        let safe_block_number = largest_safe_block_number(&chain_id, &latest_block_number);
+        let safe_block_number = largest_safe_block_number(LargestSafeBlockNumberArgs {
+            chain_id: &chain_id,
+            latest_block_number: &latest_block_number,
+        });
 
         let fork_block_number = if let Some(fork_block_number) = fork_block_number {
             if fork_block_number > latest_block_number {

@@ -32,7 +32,10 @@ use self::difficulty::calculate_ethash_canonical_difficulty;
 pub use self::{
     detailed::DetailedBlock,
     options::BlockOptions,
-    reorg::{largest_possible_reorg, largest_safe_block_number},
+    reorg::{
+        is_safe_block_number, largest_possible_reorg, largest_safe_block_number,
+        IsSafeBlockNumberArgs, LargestSafeBlockNumberArgs,
+    },
 };
 
 /// Ethereum block
