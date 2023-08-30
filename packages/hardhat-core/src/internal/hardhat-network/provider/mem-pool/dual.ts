@@ -102,6 +102,7 @@ export class DualMemPool implements MemPoolAdapter {
     }
 
     if (differences.length !== 0) {
+      console.trace(`Different transactions: ${differences}`);
       throw new Error(`Different transactions: ${differences}`);
     }
 
@@ -140,6 +141,7 @@ export class DualMemPool implements MemPoolAdapter {
     }
 
     if (differences.length !== 0) {
+      console.trace(`Different transactions: ${differences}`);
       throw new Error(`Different transactions: ${differences}`);
     }
 
@@ -178,6 +180,7 @@ export class DualMemPool implements MemPoolAdapter {
     }
 
     if (differences.length !== 0) {
+      console.trace(`Different transactions: ${differences}`);
       throw new Error(`Different transactions: ${differences}`);
     }
 

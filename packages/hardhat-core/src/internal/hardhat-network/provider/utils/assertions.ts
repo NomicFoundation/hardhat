@@ -375,6 +375,7 @@ export function assertEqualRunBlockResults(
   }
 
   if (differences.length !== 0) {
+    console.trace(`Different RunBlockResults: ${differences}`);
     throw new Error(`Different RunBlockResults: ${differences}`);
   }
 }
@@ -721,6 +722,7 @@ export function assertEqualReceipts(
   }
 
   if (differences.length !== 0) {
+    console.trace(`Different receipts: ${differences}`);
     throw new Error(`Different receipts: ${differences}`);
   }
 }
