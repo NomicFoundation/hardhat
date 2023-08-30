@@ -28,6 +28,7 @@ secp256k1 = { version = "0.24.0", default-features = false, features = ["alloc",
 serde = { version = "1.0.147", default-features = false, features = ["derive"], optional = true }
 serde_json = { version = "1.0.89", optional = true }
 sha3 = { version = "0.10.8", default-features = false }
+tempfile = { version = "3.7.1", default-features = false }
 thiserror = { version = "1.0.37", default-features = false }
 tokio = { version = "1.21.2", default-features = false, features = ["fs", "sync"] }
 triehash = { version = "0.8.4", default-features = false }
@@ -38,7 +39,6 @@ mockito = { version = "1.0.2", default-features = false }
 paste = { version = "1.0.14", default-features = false }
 rethnet_test_utils = { version = "0.1.0-dev", path = "../rethnet_test_utils" }
 serial_test = "2.0.0"
-tempfile = { version = "3.7.1", default-features =  false }
 tokio = { version = "1.23.0", features = ["macros"] }
 walkdir = { version = "2.3.3", default-features =  false }
 
