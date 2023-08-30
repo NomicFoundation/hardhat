@@ -11,6 +11,7 @@ Let's write a very simple task that prints the list of available accounts, and e
 Copy this task definition and paste it into your hardhat config file:
 
 ```js
+const { task } = require("hardhat/config");
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   const accounts = await hre.ethers.getSigners();
 
