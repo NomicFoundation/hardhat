@@ -91,6 +91,7 @@ impl<'a> CacheableMethodInvocation<'a> {
         Some(ReadCacheKey(cache_key))
     }
 
+    #[allow(clippy::match_same_arms)]
     fn write_cache_key(self) -> Option<WriteCacheKey<'a>> {
         match Hasher::new().hash_method_invocation(&self) {
             Err(SymbolicBlogTagError) => WriteCacheKey::needs_block_number(self),
@@ -303,8 +304,9 @@ impl<'a> TryFrom<&'a BlockSpec> for CacheableBlockSpec<'a> {
             BlockSpec::Number(block_number) => Ok(CacheableBlockSpec::Number { block_number }),
             BlockSpec::Tag(tag) => match tag {
                 // Latest and pending can be never resolved to a safe block number.
-                BlockTag::Latest => Err(BlockSpecNotCacheableError(Some(value.clone()))),
-                BlockTag::Pending => Err(BlockSpecNotCacheableError(Some(value.clone()))),
+                BlockTag::Latest | BlockTag::Pending => {
+                    Err(BlockSpecNotCacheableError(Some(value.clone())))
+                }
                 // Earliest, safe and finalized are potentially resolvable to a safe block number.
                 BlockTag::Earliest => Ok(CacheableBlockSpec::Earliest),
                 BlockTag::Safe => Ok(CacheableBlockSpec::Safe),
@@ -392,9 +394,9 @@ impl<'a> WriteCacheKey<'a> {
                 }))
             }
             CacheableBlockSpec::Hash { .. } => Some(Self::finalize(hasher)),
-            CacheableBlockSpec::Earliest => None,
-            CacheableBlockSpec::Safe => None,
-            CacheableBlockSpec::Finalized => None,
+            CacheableBlockSpec::Earliest
+            | CacheableBlockSpec::Safe
+            | CacheableBlockSpec::Finalized => None,
         }
     }
 
@@ -588,9 +590,9 @@ impl Hasher {
                     None => Ok(this),
                 }
             }
-            CacheableBlockSpec::Earliest => Err(SymbolicBlogTagError),
-            CacheableBlockSpec::Safe => Err(SymbolicBlogTagError),
-            CacheableBlockSpec::Finalized => Err(SymbolicBlogTagError),
+            CacheableBlockSpec::Earliest
+            | CacheableBlockSpec::Safe
+            | CacheableBlockSpec::Finalized => Err(SymbolicBlogTagError),
         }
     }
 
@@ -612,6 +614,8 @@ impl Hasher {
         Ok(this)
     }
 
+    // Allow to keep same structure as other MethodInvocation and other methods.
+    #[allow(clippy::match_same_arms)]
     fn hash_method_invocation(
         self,
         method: &CacheableMethodInvocation<'_>,
@@ -741,7 +745,7 @@ mod test {
     fn test_hash_length() {
         let hash = Hasher::new().hash_u8(0).finalize();
         // 32 bytes as hex
-        assert_eq!(hash.len(), 2 * 32)
+        assert_eq!(hash.len(), 2 * 32);
     }
 
     #[test]
@@ -835,7 +839,7 @@ mod test {
             address: &address,
             position: &position,
             block_spec: CacheableBlockSpec::Hash {
-                block_hash: &Default::default(),
+                block_hash: &B256::default(),
                 require_canonical: None,
             },
         }
