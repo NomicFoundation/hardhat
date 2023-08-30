@@ -23,8 +23,8 @@ use sha3::{Digest, Sha3_256};
 use tokio::sync::{OnceCell, RwLock};
 
 use crate::remote::cacheable_method_invocation::{
-    CacheKeyForSymbolicBlockTag, CacheKeyForUncheckedBlockNumber, CacheableMethodInvocation,
-    ReadCacheKey, ResolvedSymbolicTag, WriteCacheKey,
+    try_read_cache_key, try_write_cache_key, CacheKeyForSymbolicBlockTag,
+    CacheKeyForUncheckedBlockNumber, ReadCacheKey, ResolvedSymbolicTag, WriteCacheKey,
 };
 use crate::remote::jsonrpc::Id;
 use crate::{log::FilterLog, receipt::BlockReceipt, serde::ZeroXPrefixedBytes};
@@ -321,9 +321,7 @@ impl RpcClient {
         result: T,
         resolve_block_number: impl Fn(T) -> Option<U256>,
     ) -> Result<Option<String>, RpcClientError> {
-        let write_cache_key = CacheableMethodInvocation::try_from(method_invocation)
-            .ok()
-            .and_then(|v| v.write_cache_key());
+        let write_cache_key = try_write_cache_key(method_invocation);
 
         if let Some(cache_key) = write_cache_key {
             match cache_key {
@@ -432,9 +430,7 @@ impl RpcClient {
         method_invocation: MethodInvocation,
         resolve_block_number: impl Fn(&T) -> Option<U256>,
     ) -> Result<T, RpcClientError> {
-        let read_cache_key = CacheableMethodInvocation::try_from(&method_invocation)
-            .ok()
-            .and_then(|v| v.read_cache_key());
+        let read_cache_key = try_read_cache_key(&method_invocation);
 
         let request = self.serialize_request(&method_invocation)?;
 
@@ -487,11 +483,7 @@ impl RpcClient {
 
         let cache_keys = method_invocations
             .iter()
-            .map(|m| {
-                CacheableMethodInvocation::try_from(m)
-                    .ok()
-                    .and_then(|v| v.read_cache_key())
-            })
+            .map(try_read_cache_key)
             .collect::<Vec<_>>();
 
         let mut results: Vec<Option<serde_json::Value>> = stream::iter(&cache_keys)
