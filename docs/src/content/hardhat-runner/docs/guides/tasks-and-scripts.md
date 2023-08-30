@@ -48,6 +48,7 @@ You can write scripts and run them with Hardhat. They can take advantage of the 
 Here's a script that does the same as our `accounts` task. Create an `accounts.js` file in the `scripts` directory with this content:
 
 ```js
+import { task  } from "hardhat/config";
 async function main() {
   const accounts = await ethers.getSigners();
 
