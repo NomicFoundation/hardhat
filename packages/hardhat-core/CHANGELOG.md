@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.17.3
+
+### Patch Changes
+
+- c03c710ad: Set the default evmVersion to paris for solc versions that are greater than or equal to 0.8.20.
+
 ## 2.17.2
 
 ### Patch Changes
