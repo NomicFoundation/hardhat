@@ -6,6 +6,7 @@
 mod detailed;
 mod difficulty;
 mod options;
+mod reorg;
 
 use std::sync::OnceLock;
 
@@ -25,7 +26,14 @@ use crate::{
 };
 
 use self::difficulty::calculate_ethash_canonical_difficulty;
-pub use self::{detailed::DetailedBlock, options::BlockOptions};
+pub use self::{
+    detailed::DetailedBlock,
+    options::BlockOptions,
+    reorg::{
+        is_safe_block_number, largest_possible_reorg, largest_safe_block_number,
+        IsSafeBlockNumberArgs, LargestSafeBlockNumberArgs,
+    },
+};
 
 /// Ethereum block
 #[derive(Clone, Debug, Eq)]

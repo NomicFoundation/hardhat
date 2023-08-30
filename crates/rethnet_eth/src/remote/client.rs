@@ -20,9 +20,13 @@ use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use sha3::digest::FixedOutput;
 use sha3::{Digest, Sha3_256};
-use tokio::sync::OnceCell;
+use tokio::sync::{OnceCell, RwLock};
 
-use crate::remote::cacheable_method_invocation::{CacheKey, CacheableMethodInvocation};
+use crate::block::{is_safe_block_number, IsSafeBlockNumberArgs};
+use crate::remote::cacheable_method_invocation::{
+    try_read_cache_key, try_write_cache_key, CacheKeyForSymbolicBlockTag,
+    CacheKeyForUncheckedBlockNumber, ReadCacheKey, ResolvedSymbolicTag, WriteCacheKey,
+};
 use crate::remote::jsonrpc::Id;
 use crate::{log::FilterLog, receipt::BlockReceipt, serde::ZeroXPrefixedBytes};
 
@@ -143,6 +147,7 @@ pub struct Request<MethodInvocation> {
 pub struct RpcClient {
     url: String,
     chain_id: OnceCell<U256>,
+    largest_known_block_number: RwLock<Option<U256>>,
     client: ClientWithMiddleware,
     next_id: AtomicU64,
     rpc_cache_dir: PathBuf,
@@ -187,7 +192,7 @@ impl RpcClient {
         hex::encode(hasher.finalize_fixed())
     }
 
-    async fn make_cache_path(&self, cache_key: &CacheKey) -> Result<PathBuf, RpcClientError> {
+    async fn make_cache_path(&self, cache_key: &str) -> Result<PathBuf, RpcClientError> {
         let chain_id = self.chain_id().await?;
 
         // TODO We should use a human readable name for the chain id
@@ -213,15 +218,15 @@ impl RpcClient {
 
     async fn read_response_from_cache(
         &self,
-        cache_key: &CacheKey,
+        cache_key: &ReadCacheKey,
     ) -> Result<Option<serde_json::Value>, RpcClientError> {
-        let path = self.make_cache_path(cache_key).await?;
+        let path = self.make_cache_path(cache_key.as_ref()).await?;
         match tokio::fs::read_to_string(path).await {
             Ok(contents) => match serde_json::from_str(&contents) {
                 Ok(value) => Ok(Some(value)),
                 Err(error) => {
                     log_cache_error(
-                        cache_key.clone(),
+                        cache_key.as_ref(),
                         "failed to deserialize item from RPC response cache",
                         error,
                     );
@@ -233,7 +238,7 @@ impl RpcClient {
                 match error.kind() {
                     io::ErrorKind::NotFound => (),
                     _ => log_cache_error(
-                        cache_key.clone(),
+                        cache_key.as_ref(),
                         "failed to read from RPC response cache",
                         error,
                     ),
@@ -243,13 +248,13 @@ impl RpcClient {
         }
     }
 
-    async fn remove_from_cache(&self, cache_key: &CacheKey) -> Result<(), RpcClientError> {
-        let path = self.make_cache_path(cache_key).await?;
+    async fn remove_from_cache(&self, cache_key: &ReadCacheKey) -> Result<(), RpcClientError> {
+        let path = self.make_cache_path(cache_key.as_ref()).await?;
         match tokio::fs::remove_file(path).await {
             Ok(_) => Ok(()),
             Err(error) => {
                 log_cache_error(
-                    cache_key.clone(),
+                    cache_key.as_ref(),
                     "failed to remove from RPC response cache",
                     error,
                 );
@@ -260,7 +265,7 @@ impl RpcClient {
 
     async fn try_from_cache(
         &self,
-        cache_key: Option<&CacheKey>,
+        cache_key: Option<&ReadCacheKey>,
     ) -> Result<Option<serde_json::Value>, RpcClientError> {
         if let Some(cache_key) = cache_key {
             self.read_response_from_cache(cache_key).await
@@ -269,9 +274,96 @@ impl RpcClient {
         }
     }
 
+    async fn validate_block_number(
+        &self,
+        safety_checker: CacheKeyForUncheckedBlockNumber<'_>,
+    ) -> Result<Option<String>, RpcClientError> {
+        let chain_id = self.chain_id().await?;
+
+        // Use the largest known block number for validation if the given block number is safe
+        // relative to it.
+        let largest_known_block_number = { *self.largest_known_block_number.read().await };
+        if let Some(largest_known_block_number) = largest_known_block_number {
+            let args = IsSafeBlockNumberArgs {
+                chain_id: &chain_id,
+                latest_block_number: &largest_known_block_number,
+                block_number: safety_checker.block_number,
+            };
+            if is_safe_block_number(args) {
+                return Ok(
+                    safety_checker.validate_block_number(&chain_id, &largest_known_block_number)
+                );
+            }
+        };
+
+        // Otherwise fetch the latest block number and use that for validation.
+        let latest_block_number = self.block_number().await?;
+        Ok(safety_checker.validate_block_number(&chain_id, &latest_block_number))
+    }
+
+    async fn resolve_block_tag<T>(
+        &self,
+        block_tag_resolver: CacheKeyForSymbolicBlockTag,
+        result: T,
+        resolve_block_number: impl Fn(T) -> Option<U256>,
+    ) -> Result<Option<String>, RpcClientError> {
+        if let Some(block_number) = resolve_block_number(result) {
+            if let Some(resolved_cache_key) = block_tag_resolver.resolve_symbolic_tag(&block_number)
+            {
+                return match resolved_cache_key {
+                    ResolvedSymbolicTag::NeedsSafetyCheck(safety_checker) => {
+                        self.validate_block_number(safety_checker).await
+                    }
+                    ResolvedSymbolicTag::Resolved(cache_key) => Ok(Some(cache_key)),
+                };
+            }
+        }
+        Ok(None)
+    }
+
+    async fn resolve_write_key<T>(
+        &self,
+        method_invocation: &MethodInvocation,
+        result: T,
+        resolve_block_number: impl Fn(T) -> Option<U256>,
+    ) -> Result<Option<String>, RpcClientError> {
+        let write_cache_key = try_write_cache_key(method_invocation);
+
+        if let Some(cache_key) = write_cache_key {
+            match cache_key {
+                WriteCacheKey::NeedsSafetyCheck(safety_checker) => {
+                    self.validate_block_number(safety_checker).await
+                }
+                WriteCacheKey::NeedsBlockNumber(block_tag_resolver) => {
+                    self.resolve_block_tag(block_tag_resolver, result, resolve_block_number)
+                        .await
+                }
+                WriteCacheKey::Resolved(cache_key) => Ok(Some(cache_key)),
+            }
+        } else {
+            Ok(None)
+        }
+    }
+
+    async fn try_write_response_to_cache<T: Serialize>(
+        &self,
+        method_invocation: &MethodInvocation,
+        result: &T,
+        resolve_block_number: impl Fn(&T) -> Option<U256>,
+    ) -> Result<(), RpcClientError> {
+        if let Some(cache_key) = self
+            .resolve_write_key(method_invocation, result, resolve_block_number)
+            .await?
+        {
+            self.write_response_to_cache(&cache_key, result).await?;
+        }
+
+        Ok(())
+    }
+
     async fn write_response_to_cache(
         &self,
-        cache_key: &CacheKey,
+        cache_key: &str,
         result: impl Serialize,
     ) -> Result<(), RpcClientError> {
         let cache_path = self.make_cache_path(cache_key).await?;
@@ -281,11 +373,7 @@ impl RpcClient {
         match tokio::fs::write(cache_path, contents).await {
             Ok(_) => (),
             Err(error) => {
-                log_cache_error(
-                    cache_key.clone(),
-                    "failed to write to RPC response cache",
-                    error,
-                );
+                log_cache_error(cache_key, "failed to write to RPC response cache", error);
             }
         }
         Ok(())
@@ -316,17 +404,17 @@ impl RpcClient {
 
     fn serialize_request(
         &self,
-        input: MethodInvocation,
+        input: &MethodInvocation,
     ) -> Result<SerializedRequest, RpcClientError> {
         let id = Id::Num(self.next_id.fetch_add(1, Ordering::Relaxed));
         Self::serialize_request_with_id(input, id)
     }
 
     fn serialize_request_with_id(
-        method: MethodInvocation,
+        method: &MethodInvocation,
         id: Id,
     ) -> Result<SerializedRequest, RpcClientError> {
-        let request = serde_json::to_value(&Request {
+        let request = serde_json::to_value(Request {
             version: jsonrpc::Version::V2_0,
             id,
             method,
@@ -340,13 +428,21 @@ impl RpcClient {
         &self,
         method_invocation: MethodInvocation,
     ) -> Result<T, RpcClientError> {
-        let cache_key = CacheableMethodInvocation::try_from(&method_invocation)
-            .ok()
-            .and_then(|v| v.cache_key());
+        self.call_with_resolver(method_invocation, |_| None).await
+    }
 
-        let request = self.serialize_request(method_invocation)?;
+    async fn call_with_resolver<T: DeserializeOwned + Serialize>(
+        &self,
+        method_invocation: MethodInvocation,
+        resolve_block_number: impl Fn(&T) -> Option<U256>,
+    ) -> Result<T, RpcClientError> {
+        let read_cache_key = try_read_cache_key(&method_invocation);
 
-        let result = if let Some(cached_response) = self.try_from_cache(cache_key.as_ref()).await? {
+        let request = self.serialize_request(&method_invocation)?;
+
+        let result = if let Some(cached_response) =
+            self.try_from_cache(read_cache_key.as_ref()).await?
+        {
             serde_json::from_value(cached_response).expect("cache item matches return type")
         } else {
             let result: T = self
@@ -354,9 +450,8 @@ impl RpcClient {
                 .await
                 .and_then(|response| Self::extract_result(request, response))?;
 
-            if let Some(cache_key) = cache_key {
-                self.write_response_to_cache(&cache_key, &result).await?;
-            }
+            self.try_write_response_to_cache(&method_invocation, &result, &resolve_block_number)
+                .await?;
 
             result
         };
@@ -369,7 +464,7 @@ impl RpcClient {
         &self,
         method_invocation: MethodInvocation,
     ) -> Result<T, RpcClientError> {
-        let request = self.serialize_request(method_invocation)?;
+        let request = self.serialize_request(&method_invocation)?;
 
         self.send_request_body(&request)
             .await
@@ -381,15 +476,20 @@ impl RpcClient {
         &self,
         method_invocations: &[MethodInvocation],
     ) -> Result<VecDeque<serde_json::Value>, RpcClientError> {
+        self.batch_call_with_resolver(method_invocations, |_| None)
+            .await
+    }
+
+    async fn batch_call_with_resolver(
+        &self,
+        method_invocations: &[MethodInvocation],
+        resolve_block_number: impl Fn(&serde_json::Value) -> Option<U256>,
+    ) -> Result<VecDeque<serde_json::Value>, RpcClientError> {
         let ids = self.get_ids(method_invocations.len() as u64);
 
         let cache_keys = method_invocations
             .iter()
-            .map(|m| {
-                CacheableMethodInvocation::try_from(m)
-                    .ok()
-                    .and_then(|v| v.cache_key())
-            })
+            .map(try_read_cache_key)
             .collect::<Vec<_>>();
 
         let mut results: Vec<Option<serde_json::Value>> = stream::iter(&cache_keys)
@@ -406,8 +506,7 @@ impl RpcClient {
             izip!(&ids, method_invocations, &results).enumerate()
         {
             if cache_response.is_none() {
-                let request =
-                    Self::serialize_request_with_id(method_invocation.clone(), id.clone())?;
+                let request = Self::serialize_request_with_id(method_invocation, id.clone())?;
                 requests.push(request);
                 id_to_index.insert(id, index);
             }
@@ -438,9 +537,12 @@ impl RpcClient {
                         request: request_body.to_json_string(),
                     })?;
 
-            if let Some(cache_key) = cache_keys[index].as_ref() {
-                self.write_response_to_cache(cache_key, &result).await?;
-            }
+            self.try_write_response_to_cache(
+                &method_invocations[index],
+                &result,
+                &resolve_block_number,
+            )
+            .await?;
 
             results[index] = Some(result);
         }
@@ -475,6 +577,7 @@ impl RpcClient {
         RpcClient {
             url: url.to_string(),
             chain_id: OnceCell::new(),
+            largest_known_block_number: RwLock::new(None),
             client,
             next_id: AtomicU64::new(0),
             rpc_cache_dir: cache_dir.join(RPC_CACHE_DIR),
@@ -483,7 +586,45 @@ impl RpcClient {
 
     /// Calls `eth_blockNumber` and returns the block number.
     pub async fn block_number(&self) -> Result<U256, RpcClientError> {
-        self.call(MethodInvocation::BlockNumber()).await
+        let block_number: U256 = self
+            .call_without_cache(MethodInvocation::BlockNumber())
+            .await?;
+        {
+            let mut write_guard = self.largest_known_block_number.write().await;
+            *write_guard = Some(block_number);
+        }
+        Ok(block_number)
+    }
+
+    /// Whether the block number should be cached based on its depth.
+    pub async fn is_cacheable_block_number(
+        &self,
+        block_number: &U256,
+    ) -> Result<bool, RpcClientError> {
+        let chain_id = self.chain_id().await?;
+
+        // See if the block number is safe to cache based on the largest known block number to
+        // avoid having to fetch the latest block number if it is.
+        let largest_known_block_number = { *self.largest_known_block_number.read().await };
+        if let Some(largest_known_block_number) = largest_known_block_number {
+            let is_safe = is_safe_block_number(IsSafeBlockNumberArgs {
+                chain_id: &chain_id,
+                latest_block_number: &largest_known_block_number,
+                block_number,
+            });
+            if is_safe {
+                return Ok(true);
+            }
+        }
+
+        // If it's not safe to cache based on the largest known block number, fetch the latest and
+        // check again.
+        let latest_block_number = self.block_number().await?;
+        Ok(is_safe_block_number(IsSafeBlockNumberArgs {
+            chain_id: &chain_id,
+            latest_block_number: &latest_block_number,
+            block_number,
+        }))
     }
 
     /// Calls `eth_chainId` and returns the chain ID.
@@ -556,8 +697,11 @@ impl RpcClient {
         &self,
         spec: BlockSpec,
     ) -> Result<eth::Block<B256>, RpcClientError> {
-        self.call(MethodInvocation::GetBlockByNumber(spec, false))
-            .await
+        self.call_with_resolver(
+            MethodInvocation::GetBlockByNumber(spec, false),
+            |block: &eth::Block<B256>| block.number,
+        )
+        .await
     }
 
     /// Calls `eth_getBlockByNumber` and returns the transaction's data.
@@ -565,8 +709,11 @@ impl RpcClient {
         &self,
         spec: BlockSpec,
     ) -> Result<eth::Block<eth::Transaction>, RpcClientError> {
-        self.call(MethodInvocation::GetBlockByNumber(spec, true))
-            .await
+        self.call_with_resolver(
+            MethodInvocation::GetBlockByNumber(spec, true),
+            |block: &eth::Block<eth::Transaction>| block.number,
+        )
+        .await
     }
 
     /// Calls `eth_getLogs`.
@@ -648,7 +795,7 @@ impl RpcClient {
 }
 
 /// Don't fail the request, just log an error if we fail to read/write from cache.
-fn log_cache_error(cache_key: CacheKey, message: &'static str, error: impl Into<CacheError>) {
+fn log_cache_error(cache_key: &str, message: &'static str, error: impl Into<CacheError>) {
     let cache_error = RpcClientError::CacheError {
         message: message.to_string(),
         cache_key: cache_key.to_string(),
@@ -922,6 +1069,24 @@ mod tests {
         }
 
         #[tokio::test]
+        async fn test_is_cacheable_block_number() {
+            let client = TestRpcClient::new(&get_alchemy_url());
+
+            let latest_block_number = client.block_number().await.unwrap();
+
+            // Latest block number is never cacheable
+            assert!(!client
+                .is_cacheable_block_number(&latest_block_number)
+                .await
+                .unwrap());
+
+            assert!(client
+                .is_cacheable_block_number(&U256::from(16220843))
+                .await
+                .unwrap());
+        }
+
+        #[tokio::test]
         async fn get_account_info_contract() {
             let alchemy_url = get_alchemy_url();
 
@@ -1136,6 +1301,22 @@ mod tests {
         }
 
         #[tokio::test]
+        async fn get_block_by_number_finalized_resolves() {
+            let alchemy_url = get_alchemy_url();
+            let client = TestRpcClient::new(&alchemy_url);
+
+            assert_eq!(client.files_in_cache().len(), 0);
+
+            client
+                .get_block_by_number(BlockSpec::finalized())
+                .await
+                .expect("should have succeeded");
+
+            // Finalized tag should be resolved and stored in cache.
+            assert_eq!(client.files_in_cache().len(), 1);
+        }
+
+        #[tokio::test]
         async fn get_block_by_number_some() {
             let alchemy_url = get_alchemy_url();
 
@@ -1169,18 +1350,30 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn get_block_by_number_with_transaction_data_some() {
+        async fn get_block_by_number_with_transaction_data_unsafe_no_cache() {
             let alchemy_url = get_alchemy_url();
+            let client = TestRpcClient::new(&alchemy_url);
 
-            let block_number = U256::from(16222385);
+            assert_eq!(client.files_in_cache().len(), 0);
 
-            let block = TestRpcClient::new(&alchemy_url)
+            let block_number = client.block_number().await.unwrap();
+
+            // Check that the block number call caches the largest known block number
+            {
+                assert!(client.largest_known_block_number.read().await.is_some());
+            }
+
+            assert_eq!(client.files_in_cache().len(), 0);
+
+            let block = client
                 .get_block_by_number(BlockSpec::Number(block_number))
                 .await
                 .expect("should have succeeded");
 
+            // Unsafe block number shouldn't be cached
+            assert_eq!(client.files_in_cache().len(), 0);
+
             assert_eq!(block.number, Some(block_number));
-            assert_eq!(block.transactions.len(), 102);
         }
 
         #[tokio::test]
@@ -1226,13 +1419,19 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn get_earliest_block_with_transaction_data() {
+        async fn get_earliest_block_with_transaction_data_resolves() {
             let alchemy_url = get_alchemy_url();
+            let client = TestRpcClient::new(&alchemy_url);
 
-            let _block = TestRpcClient::new(&alchemy_url)
+            assert_eq!(client.files_in_cache().len(), 0);
+
+            client
                 .get_block_by_number_with_transaction_data(BlockSpec::earliest())
                 .await
                 .expect("should have succeeded");
+
+            // Earliest tag should be resolved to block number and it should be cached.
+            assert_eq!(client.files_in_cache().len(), 1);
         }
 
         #[tokio::test]
@@ -1715,6 +1914,31 @@ mod tests {
             assert_eq!(alchemy_cached_files, infura_cached_files);
 
             let mut file = File::open(&infura_cached_files[0]).expect("failed to open file");
+            let cached_result: U256 = serde_json::from_reader(&mut file).expect("failed to parse");
+
+            assert_eq!(total_supply, cached_result);
+        }
+
+        #[tokio::test]
+        async fn stores_result_in_cache() {
+            let alchemy_url = get_alchemy_url();
+            let client = TestRpcClient::new(&alchemy_url);
+            let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
+                .expect("failed to parse address");
+
+            let total_supply = client
+                .get_storage_at(
+                    &dai_address,
+                    U256::from(1),
+                    Some(BlockSpec::Number(U256::from(16220843))),
+                )
+                .await
+                .expect("should have succeeded");
+
+            let cached_files = client.files_in_cache();
+            assert_eq!(cached_files.len(), 1);
+
+            let mut file = File::open(&cached_files[0]).expect("failed to open file");
             let cached_result: U256 = serde_json::from_reader(&mut file).expect("failed to parse");
 
             assert_eq!(total_supply, cached_result);
