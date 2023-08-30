@@ -6,7 +6,7 @@ use std::{
 use rethnet_eth::{
     block::{Block, DetailedBlock, PartialHeader},
     trie::KECCAK_NULL_RLP,
-    Bytes, B256, B64, U256, U64,
+    Bytes, B256, B64, U256,
 };
 use revm::{db::BlockHashRef, primitives::SpecId};
 
