@@ -56,7 +56,6 @@ describe("config", () => {
 
       await assert.isRejected(
         this.deploy(moduleDefinition, {
-          parameters: {},
           config: {
             requiredConfirmations: 0,
           },

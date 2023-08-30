@@ -126,7 +126,6 @@ async function runDeploy(
 
   try {
     const deployPromise = ignitionHelper.deploy(ignitionModule, {
-      parameters: {},
       config,
     });
 

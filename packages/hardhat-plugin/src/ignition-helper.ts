@@ -51,10 +51,10 @@ export class IgnitionHelper {
     >,
     {
       parameters = {},
-      config: perDeployConfig,
+      config: perDeployConfig = {},
     }: {
-      parameters: DeploymentParameters;
-      config: Partial<DeployConfig>;
+      parameters?: DeploymentParameters;
+      config?: Partial<DeployConfig>;
     } = {
       parameters: {},
       config: {},

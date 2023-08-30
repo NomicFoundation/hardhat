@@ -160,7 +160,6 @@ describe("calls", () => {
             depositValue: BigInt(this.hre.ethers.parseEther("1")),
           },
         },
-        config: {},
       });
 
       assert.isDefined(result.passingValue);

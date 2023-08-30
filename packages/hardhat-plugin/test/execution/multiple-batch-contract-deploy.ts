@@ -48,10 +48,7 @@ describe("execution - multiple batch contract deploy", function () {
       };
     });
 
-    const deployPromise = this.deploy(moduleDefinition, {
-      parameters: {},
-      config: {},
-    });
+    const deployPromise = this.deploy(moduleDefinition);
 
     await sleep(300);
     await this.hre.network.provider.send("evm_mine");
