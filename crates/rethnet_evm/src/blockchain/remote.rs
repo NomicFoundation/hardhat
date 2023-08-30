@@ -215,6 +215,6 @@ mod tests {
         let remote = RemoteBlockchain::new(rpc_client, runtime);
 
         let _ = remote.block_by_number(&block_number).unwrap();
-        assert!(remote.cache.read().block_by_number(&block_number).is_none())
+        assert!(remote.cache.read().block_by_number(&block_number).is_none());
     }
 }
