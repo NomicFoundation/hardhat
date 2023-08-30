@@ -82,6 +82,22 @@ impl SparseBlockchainStorage {
         self.transaction_hash_to_receipt.get(transaction_hash)
     }
 
+    /// Reverts to the block with the provided number, deleting all later blocks.
+    pub fn revert_to_block(&mut self, block_number: &U256) {
+        let removed_blocks = self
+            .number_to_block
+            .extract_if(|number, _| number > block_number);
+
+        for (_, block) in removed_blocks {
+            let block_hash = block.hash();
+
+            self.hash_to_block.remove(block_hash);
+            self.hash_to_total_difficulty.remove(block_hash);
+            self.transaction_hash_to_block.remove(block_hash);
+            self.transaction_hash_to_receipt.remove(block_hash);
+        }
+    }
+
     /// Retrieves the total difficulty of the block with the provided hash.
     pub fn total_difficulty_by_hash(&self, hash: &B256) -> Option<&U256> {
         self.hash_to_total_difficulty.get(hash)

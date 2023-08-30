@@ -278,6 +278,22 @@ impl Blockchain {
             )
     }
 
+    #[doc = "Reserves the provided number of blocks, starting from the next block number."]
+    #[napi]
+    pub async fn reserve_blocks(&self, additional: BigInt, interval: BigInt) -> napi::Result<()> {
+        let additional: u64 = BigInt::try_cast(additional)?;
+        let interval: U256 = BigInt::try_cast(interval)?;
+
+        let additional = usize::try_from(additional).map_err(|_error| {
+            napi::Error::new(Status::InvalidArg, "Additional storage exceeds capacity.")
+        })?;
+
+        self.write()
+            .await
+            .reserve_blocks(additional, interval)
+            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
+    }
+
     #[doc = "Reverts to the block with the provided number, deleting all later blocks."]
     #[napi]
     pub async fn revert_to_block(&self, block_number: BigInt) -> napi::Result<()> {
