@@ -29,3 +29,6 @@ pub const CACHE_DIR: &str = "./edr-cache";
 
 /// Maximum concurrent requests to a remote blockchain node to avoid getting rate limited.
 pub const MAX_CONCURRENT_REQUESTS: usize = 5;
+
+/// The default depth of blocks to consider safe from a reorg and thus cacheable.
+pub const DEFAULT_SAFE_BLOCK_DEPTH: u64 = 128;

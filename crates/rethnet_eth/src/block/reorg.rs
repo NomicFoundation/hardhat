@@ -15,12 +15,20 @@ pub fn largest_safe_block_number(chain_id: &U256, latest_block_number: &U256) ->
 pub fn largest_possible_reorg(chain_id: &U256) -> U256 {
     let chain_id: u64 = chain_id.try_into().expect("invalid chain id");
     let threshold: u64 = match chain_id {
+        // Ethereum mainnet, Rinkeby, Goerli and Kovan testnets
+        1 | 4 | 5 | 42 => 32,
         // Ropsten
         3 => 100,
         // xDai
         100 => 38,
         // One epoch on Ethereum mainnet
-        _ => 32,
+        _ => {
+            log::warn!(
+                "Unknown chain id {chain_id}, using default safe block depth of {}",
+                rethnet_defaults::DEFAULT_SAFE_BLOCK_DEPTH,
+            );
+            rethnet_defaults::DEFAULT_SAFE_BLOCK_DEPTH
+        }
     };
     U256::from(threshold)
 }
