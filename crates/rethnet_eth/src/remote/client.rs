@@ -1222,7 +1222,7 @@ mod tests {
                 .await
                 .expect("should have from remote");
 
-            assert_eq!(block_from_remote, block_from_cache)
+            assert_eq!(block_from_remote, block_from_cache);
         }
 
         #[tokio::test]

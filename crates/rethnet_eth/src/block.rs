@@ -15,7 +15,7 @@ use revm_primitives::{
         self,
         aliases::{U160, U64},
     },
-    SpecId,
+    SpecId, B160,
 };
 use rlp::Decodable;
 
@@ -513,20 +513,20 @@ impl Default for PartialHeader {
         const DEFAULT_GAS: u64 = 0xffffffffffffff;
 
         Self {
-            parent_hash: Default::default(),
-            beneficiary: Default::default(),
-            state_root: Default::default(),
+            parent_hash: B256::default(),
+            beneficiary: B160::default(),
+            state_root: B256::default(),
             receipts_root: KECCAK_NULL_RLP,
-            logs_bloom: Default::default(),
-            difficulty: Default::default(),
-            number: Default::default(),
+            logs_bloom: Bloom::default(),
+            difficulty: U256::default(),
+            number: U256::default(),
             gas_limit: U256::from(DEFAULT_GAS),
-            gas_used: Default::default(),
-            timestamp: Default::default(),
-            extra_data: Default::default(),
-            mix_hash: Default::default(),
-            nonce: Default::default(),
-            base_fee: Default::default(),
+            gas_used: U256::default(),
+            timestamp: U256::default(),
+            extra_data: Bytes::default(),
+            mix_hash: B256::default(),
+            nonce: B64::default(),
+            base_fee: Option::default(),
         }
     }
 }
