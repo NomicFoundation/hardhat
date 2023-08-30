@@ -11,6 +11,7 @@ auto_impl = { version = "1.0.1", default-features = false }
 cita_trie = { git = "https://github.com/Wodann/cita-trie", rev = "60efef5", version = "4.0.0", default-features = false }
 futures = { version = "0.3.28", features = ["alloc", "async-await", "executor", "std"] }
 hasher = { git = "https://github.com/Wodann/hasher", rev = "89d3fc9", version = "0.1.4", default-features = false, features = ["hash-keccak"] }
+indexmap = { version = "2.0.0", default-features = false, features = ["std"] }
 itertools = { version = "0.11.0", default-features = false, features = ["use_alloc", "use_std"] }
 log = { version = "0.4.17", default-features = false }
 once_cell = { version = "1.18.0", default-features = false, features = ["alloc", "race", "std"] }
