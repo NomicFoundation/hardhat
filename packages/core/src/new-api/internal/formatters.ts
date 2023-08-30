@@ -1,17 +1,17 @@
 import { SolidityParameterType } from "../types/module";
 
 import {
-  FailedEvmExecutionResult,
   EvmExecutionResultTypes,
   EvmTuple,
+  FailedEvmExecutionResult,
 } from "./new-execution/types/evm-execution";
 import {
-  SimulationErrorExecutionResult,
-  StrategySimulationErrorExecutionResult,
-  RevertedTransactionExecutionResult,
-  FailedStaticCallExecutionResult,
-  StrategyErrorExecutionResult,
   ExecutionResultType,
+  FailedStaticCallExecutionResult,
+  RevertedTransactionExecutionResult,
+  SimulationErrorExecutionResult,
+  StrategyErrorExecutionResult,
+  StrategySimulationErrorExecutionResult,
 } from "./new-execution/types/execution-result";
 import { convertEvmTupleToSolidityParam } from "./new-execution/utils/convert-evm-tuple-to-solidity-param";
 
@@ -97,6 +97,8 @@ export function formatCustomError(errorName: string, args: EvmTuple): string {
 
 /**
  * Formats a Solidity parameter into a human-readable string.
+ *
+ * @beta
  */
 export function formatSolidityParameter(param: SolidityParameterType): string {
   if (Array.isArray(param)) {
