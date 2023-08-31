@@ -1,5 +1,4 @@
 import { Box, Text } from "ink";
-import flattenDeep from "lodash.flattendeep";
 
 import { UiFuture, UiFutureStatusType, UiState } from "../../types";
 
@@ -7,7 +6,7 @@ import { AddressResults } from "./AddressResults";
 import { Divider } from "./Divider";
 
 export const FinalStatus = ({ state }: { state: UiState }) => {
-  const allFutures = flattenDeep(state.batches);
+  const allFutures = state.batches.flat();
 
   const successfulFutures = allFutures.filter(
     (f) => f.status.type === UiFutureStatusType.SUCCESS

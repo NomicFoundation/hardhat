@@ -50,7 +50,9 @@ export class VerboseEventHandler implements ExecutionEventListener {
   ): void {
     if (event.result.type === ExecutionEventResultType.SUCCESS) {
       console.log(
-        `Successfully completed the execution of deployment future ${event.futureId} with address ${event.result.result}`
+        `Successfully completed the execution of deployment future ${
+          event.futureId
+        } with address ${event.result.result ?? "undefined"}`
       );
     } else {
       console.log(
@@ -90,7 +92,9 @@ export class VerboseEventHandler implements ExecutionEventListener {
   ): void {
     if (event.result.type === ExecutionEventResultType.SUCCESS) {
       console.log(
-        `Successfully completed the execution of static call future ${event.futureId} with result ${event.result.result}`
+        `Successfully completed the execution of static call future ${
+          event.futureId
+        } with result ${event.result.result ?? "undefined"}`
       );
     } else {
       console.log(
@@ -110,7 +114,9 @@ export class VerboseEventHandler implements ExecutionEventListener {
   ): void {
     if (event.result.type === ExecutionEventResultType.SUCCESS) {
       console.log(
-        `Successfully completed the execution of send data future ${event.futureId} in tx ${event.result.result}`
+        `Successfully completed the execution of send data future ${
+          event.futureId
+        } in tx ${event.result.result ?? "undefined"}`
       );
     } else {
       console.log(
@@ -129,7 +135,9 @@ export class VerboseEventHandler implements ExecutionEventListener {
     event: ReadEventArgExecutionStateInitializeEvent
   ): void {
     console.log(
-      `Executed read event argument future ${event.futureId} with result ${event.result.result}`
+      `Executed read event argument future ${event.futureId} with result ${
+        event.result.result ?? "undefined"
+      }`
     );
   }
 

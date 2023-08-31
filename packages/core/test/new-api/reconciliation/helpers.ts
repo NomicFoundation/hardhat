@@ -67,7 +67,7 @@ class MockDeploymentLoader implements DeploymentLoader {
     throw new Error("Method not implemented.");
   }
 
-  public emitDeploymentBatchEvent(batches: string[][]): void {
+  public emitDeploymentBatchEvent(_batches: string[][]): void {
     throw new Error("Method not implemented.");
   }
 }
