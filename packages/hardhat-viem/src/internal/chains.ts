@@ -61,9 +61,9 @@ export async function getMode(
   }
 }
 
-const getChainId = memoize(async (provider: EthereumProvider) => {
-  return Number(await provider.send("eth_chainId"));
-});
+const getChainId = memoize(async (provider: EthereumProvider) =>
+  Number(await provider.send("eth_chainId"))
+);
 
 const isHardhatNetwork = memoize(async (provider: EthereumProvider) =>
   detectNetworkByMethodName(provider, NetworkMethod.HARDHAT_METADATA)
