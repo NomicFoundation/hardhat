@@ -58,6 +58,7 @@ export class UiEventHandler implements ExecutionEventListener {
 
   private _uiState: UiState = {
     chainId: null,
+    moduleName: null,
     batches: [],
   };
 
@@ -316,8 +317,13 @@ export class UiEventHandler implements ExecutionEventListener {
   ): void {}
 
   public [ExecutionEventType.DEPLOYMENT_START](
-    _event: DeploymentStartEvent
-  ): void {}
+    event: DeploymentStartEvent
+  ): void {
+    this.state = {
+      ...this.state,
+      moduleName: event.moduleName,
+    };
+  }
 
   public [ExecutionEventType.BEGIN_NEXT_BATCH](
     _event: BeginNextBatchEvent

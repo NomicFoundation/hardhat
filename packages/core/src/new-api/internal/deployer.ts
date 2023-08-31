@@ -70,7 +70,9 @@ export class Deployer {
       accounts
     );
 
-    let deploymentState = await this._getOrInitializeDeploymentState();
+    let deploymentState = await this._getOrInitializeDeploymentState(
+      ignitionModule.id
+    );
 
     const contracts =
       getFuturesFromModule(ignitionModule).filter(isContractFuture);
@@ -183,12 +185,14 @@ export class Deployer {
     };
   }
 
-  private async _getOrInitializeDeploymentState(): Promise<DeploymentState> {
+  private async _getOrInitializeDeploymentState(
+    moduleId: string
+  ): Promise<DeploymentState> {
     const chainId = await this._jsonRpcClient.getChainId();
     const deploymentState = await loadDeploymentState(this._deploymentLoader);
 
     if (deploymentState === undefined) {
-      this._emitDeploymentStartEvent();
+      this._emitDeploymentStartEvent(moduleId);
 
       return initializeDeploymentState(chainId, this._deploymentLoader);
     }
@@ -210,10 +214,11 @@ export class Deployer {
     }
   }
 
-  private _emitDeploymentStartEvent(): void {
+  private _emitDeploymentStartEvent(moduleId: string): void {
     if (this._executionEventListener !== undefined) {
       this._executionEventListener.DEPLOYMENT_START({
         type: ExecutionEventType.DEPLOYMENT_START,
+        moduleName: moduleId,
       });
     }
   }

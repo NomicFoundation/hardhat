@@ -121,6 +121,7 @@ export interface BatchInitializeEvent {
 
 export interface DeploymentStartEvent {
   type: ExecutionEventType.DEPLOYMENT_START;
+  moduleName: string;
 }
 
 export interface BeginNextBatchEvent {

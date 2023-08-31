@@ -14,22 +14,17 @@ export const FinalStatus = ({ state }: { state: UiState }) => {
   );
 
   if (successfulFutures.length === allFutures.length) {
-    // todo: moduleName, networkName
     return (
       <Box margin={0} flexDirection="column">
         <Divider />
 
         <Text>
           🚀 Deployment Complete for module{" "}
-          <Text italic={true}>{"moduleName"}</Text>
+          <Text italic={true}>{state.moduleName}</Text>
         </Text>
 
         <Divider />
-        <AddressResults
-          futures={successfulFutures}
-          chainId={state.chainId!}
-          networkName={"networkName"}
-        />
+        <AddressResults futures={successfulFutures} chainId={state.chainId!} />
         <Text> </Text>
       </Box>
     );

@@ -6,11 +6,9 @@ import { NetworkInfo } from "./NetworkInfo";
 
 export const AddressResults = ({
   futures,
-  networkName,
   chainId,
 }: {
   futures: UiFuture[];
-  networkName: string;
   chainId: number;
 }) => {
   const addressMap = resolveDeployAddresses(futures);
@@ -20,7 +18,7 @@ export const AddressResults = ({
       <Box flexDirection="row" marginBottom={1}>
         <Text>Deployed Addresses</Text>
         <Spacer />
-        <NetworkInfo networkInfo={{ chainId, networkName }} />
+        <NetworkInfo networkInfo={{ chainId }} />
       </Box>
 
       {...Object.entries(addressMap).map(([label, address]) => (

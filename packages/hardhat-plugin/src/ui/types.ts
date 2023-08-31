@@ -38,6 +38,7 @@ export type UiBatches = UiFuture[][];
 
 export interface UiState {
   chainId: number | null;
+  moduleName: string | null;
   batches: UiBatches;
 }
 
