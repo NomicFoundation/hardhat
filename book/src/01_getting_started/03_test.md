@@ -37,9 +37,35 @@ To switch modes, set the `HARDHAT_EXPERIMENTAL_VM_MODE` environment variable to 
 
 ```bash
 cd packages/hardhat-core &&
+yarn build &&
 HARDHAT_EXPERIMENTAL_VM_MODE=rethnet yarn test
 ```
 
 Similar to EDR, Hardhat can be configured to run remote tests. This can be accomplished by setting environment variables for the API URL (including token) of Alchemy or Infura, respectively: `ALCHEMY_URL` and `INFURA_URL`.
 
 Additionally, you can test Hardhat by using the EDR node as a provider directly. To enable the provider, set the `RETHNET_BINARY` environment variable to direct to the `rethnet` CLI binary.
+
+### Filtering Tests
+
+Specific tests can be executed by filtering with the `--grep` flag. E.g.:
+
+```bash
+yarn test --grep "Reads from disk if available, not making any request a request"
+```
+
+Will only run the test with this specific name.
+
+Hierarchies of tests can be filtered by separating the levels with spaces. 
+E.g. the test matching
+
+```
+Alchemy Forked provider
+  hardhat_impersonateAccount
+    hash collisions
+```
+
+Can be run by using the following command:
+
+```bash
+yarn test --grep "Alchemy Forked provider hardhat_impersonateAccount hash collisions"
+```
