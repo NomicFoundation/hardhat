@@ -2,8 +2,8 @@ import type {
   EthereumProvider,
   HardhatRuntimeEnvironment,
 } from "hardhat/types";
-import type { ContractConfig, PublicClient, WalletClient } from "./types";
 import type { Abi, Address, GetContractReturnType, Hex } from "viem";
+import type { ContractConfig, PublicClient, WalletClient } from "./types";
 
 import { getPublicClient, getWalletClients } from "./clients";
 import {
@@ -32,7 +32,7 @@ export async function deployContract(
   );
 }
 
-export async function innerDeployContract(
+async function innerDeployContract(
   publicClient: PublicClient,
   walletClient: WalletClient,
   contractAbi: Abi,
@@ -83,7 +83,7 @@ export async function getContractAt(
   );
 }
 
-export async function innerGetContractAt(
+async function innerGetContractAt(
   publicClient: PublicClient,
   walletClient: WalletClient,
   contractAbi: Abi,
@@ -100,10 +100,10 @@ export async function innerGetContractAt(
   return contract;
 }
 
-const getDefaultWalletClient = async (
+async function getDefaultWalletClient(
   provider: EthereumProvider,
   config: Partial<ContractConfig>
-): Promise<WalletClient> => {
+): Promise<WalletClient> {
   if (config.walletClient !== undefined) {
     return config.walletClient;
   }
@@ -114,4 +114,4 @@ const getDefaultWalletClient = async (
   }
 
   return defaultWalletClient;
-};
+}
