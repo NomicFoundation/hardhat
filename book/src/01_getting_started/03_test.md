@@ -47,13 +47,13 @@ Additionally, you can test Hardhat by using the EDR node as a provider directly.
 
 ### Filtering Tests
 
-Specific tests can be executed by filtering with the `--grep` flag. E.g.:
+Specific tests can be executed by filtering with the `--grep` or `-g` flag. E.g.:
 
 ```bash
-yarn test --grep "Reads from disk if available, not making any request a request"
+yarn test -g "Reads from disk if available, not making any request a request"
 ```
 
-Will only run the test with this specific name.
+will only run the test with this specific name.
 
 Hierarchies of tests can be filtered by separating the levels with spaces. 
 E.g. the test matching
@@ -64,8 +64,8 @@ Alchemy Forked provider
     hash collisions
 ```
 
-Can be run by using the following command:
+can be run by using the following command:
 
 ```bash
-yarn test --grep "Alchemy Forked provider hardhat_impersonateAccount hash collisions"
+yarn test -g "Alchemy Forked provider hardhat_impersonateAccount hash collisions"
 ```
