@@ -1,6 +1,6 @@
 import type { DeploymentParameters } from "@ignored/ignition-core";
 
-import { UiState } from "../types";
+import { UiState, UiStateDeploymentStatus } from "../types";
 
 import { StartingPanel } from "./StartingPanel";
 import { ExecutionPanel } from "./execution/ExecutionPanel";
@@ -12,7 +12,7 @@ export const IgnitionUi = ({
   state: UiState;
   deployParams?: DeploymentParameters;
 }) => {
-  if (state.batches.length === 0) {
+  if (state.status === UiStateDeploymentStatus.UNSTARTED) {
     return <StartingPanel />;
   }
 

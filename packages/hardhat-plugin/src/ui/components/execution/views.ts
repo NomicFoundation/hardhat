@@ -1,4 +1,4 @@
-import { UiFutureStatusType, UiState } from "../../types";
+import { UiState, UiStateDeploymentStatus } from "../../types";
 
 /**
  * Determine whether any on-chain executions happened in this
@@ -9,20 +9,8 @@ import { UiFutureStatusType, UiState } from "../../types";
  * @returns whether on-chain executions happened in this run
  */
 export function viewEverythingExecutedAlready(state: UiState): boolean {
-  let finished = true;
-
-  for (const batch of state.batches) {
-    for (const future of batch) {
-      if (future.status.type !== UiFutureStatusType.SUCCESS) {
-        finished = false;
-        break;
-      }
-    }
-
-    if (!finished) {
-      break;
-    }
-  }
-
-  return finished;
+  return (
+    state.status !== UiStateDeploymentStatus.UNSTARTED &&
+    state.batches.length === 0
+  );
 }

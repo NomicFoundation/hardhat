@@ -1,3 +1,6 @@
+import { DeploymentResult } from "./deploy";
+import { IgnitionModuleResult } from "./module";
+
 /**
  * Events emitted by the execution engine to allow tracking
  * progress of a deploy.
@@ -58,6 +61,17 @@ export enum ExecutionEventType {
   BATCH_INITIALIZE = "BATCH_INITIALIZE",
   DEPLOYMENT_START = "DEPLOYMENT_START",
   BEGIN_NEXT_BATCH = "BEGIN_NEXT_BATCH",
+  DEPLOYMENT_COMPLETE = "DEPLOYMENT_COMPLETE",
+}
+
+/**
+ * An event indicating that a deployment has started.
+ *
+ * @beta
+ */
+export interface DeploymentStartEvent {
+  type: ExecutionEventType.DEPLOYMENT_START;
+  moduleName: string;
 }
 
 /**
@@ -68,6 +82,36 @@ export enum ExecutionEventType {
 export interface RunStartEvent {
   type: ExecutionEventType.RUN_START;
   chainId: number;
+}
+
+/**
+ * An event indicating that batches have been generated for a deployment run.
+ *
+ * @beta
+ */
+export interface BatchInitializeEvent {
+  type: ExecutionEventType.BATCH_INITIALIZE;
+  batches: string[][];
+}
+
+/**
+ * An event indicating that the execution engine has moved onto
+ * the next batch.
+ *
+ * @beta
+ */
+export interface BeginNextBatchEvent {
+  type: ExecutionEventType.BEGIN_NEXT_BATCH;
+}
+
+/**
+ * An event indicating that a deployment has started.
+ *
+ * @beta
+ */
+export interface DeploymentCompleteEvent {
+  type: ExecutionEventType.DEPLOYMENT_COMPLETE;
+  result: DeploymentResult<string, IgnitionModuleResult<string>>;
 }
 
 /**
@@ -195,36 +239,6 @@ export interface ReadEventArgExecutionStateInitializeEvent {
 export interface WipeExecutionStateEvent {
   type: ExecutionEventType.WIPE_EXECUTION_STATE;
   futureId: string;
-}
-
-/**
- * An event indicating that batches have been generated for a deployment run.
- *
- * @beta
- */
-export interface BatchInitializeEvent {
-  type: ExecutionEventType.BATCH_INITIALIZE;
-  batches: string[][];
-}
-
-/**
- * An event indicating that a deployment has started.
- *
- * @beta
- */
-export interface DeploymentStartEvent {
-  type: ExecutionEventType.DEPLOYMENT_START;
-  moduleName: string;
-}
-
-/**
- * An event indicating that the execution engine has moved onto
- * the next batch.
- *
- * @beta
- */
-export interface BeginNextBatchEvent {
-  type: ExecutionEventType.BEGIN_NEXT_BATCH;
 }
 
 /**
@@ -392,6 +406,7 @@ export interface ExecutionEventTypeMap {
   [ExecutionEventType.BATCH_INITIALIZE]: BatchInitializeEvent;
   [ExecutionEventType.DEPLOYMENT_START]: DeploymentStartEvent;
   [ExecutionEventType.BEGIN_NEXT_BATCH]: BeginNextBatchEvent;
+  [ExecutionEventType.DEPLOYMENT_COMPLETE]: DeploymentCompleteEvent;
 }
 
 /**

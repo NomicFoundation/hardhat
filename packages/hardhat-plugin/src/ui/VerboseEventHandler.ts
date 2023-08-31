@@ -4,6 +4,7 @@ import {
   CallExecutionStateCompleteEvent,
   CallExecutionStateInitializeEvent,
   ContractAtExecutionStateInitializeEvent,
+  DeploymentCompleteEvent,
   DeploymentExecutionStateCompleteEvent,
   DeploymentExecutionStateInitializeEvent,
   DeploymentStartEvent,
@@ -226,5 +227,11 @@ export class VerboseEventHandler implements ExecutionEventListener {
     _event: BeginNextBatchEvent
   ): void {
     console.log(`Starting execution for next batch`);
+  }
+
+  public [ExecutionEventType.DEPLOYMENT_COMPLETE](
+    _event: DeploymentCompleteEvent
+  ): void {
+    console.log(`Deployment complete`);
   }
 }

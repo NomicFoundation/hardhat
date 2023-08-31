@@ -1,18 +1,21 @@
+import {
+  IgnitionModuleResult,
+  SuccessfulDeploymentResult,
+} from "@ignored/ignition-core";
 import { Box, Spacer, Text } from "ink";
-
-import { AddressMap, UiFuture, UiFutureStatusType } from "../../types";
 
 import { NetworkInfo } from "./NetworkInfo";
 
 export const AddressResults = ({
-  futures,
+  contracts,
   chainId,
 }: {
-  futures: UiFuture[];
+  contracts: SuccessfulDeploymentResult<
+    string,
+    IgnitionModuleResult<string>
+  >["contracts"];
   chainId: number;
 }) => {
-  const addressMap = resolveDeployAddresses(futures);
-
   return (
     <Box flexDirection="column">
       <Box flexDirection="row" marginBottom={1}>
@@ -21,26 +24,11 @@ export const AddressResults = ({
         <NetworkInfo networkInfo={{ chainId }} />
       </Box>
 
-      {...Object.entries(addressMap).map(([label, address]) => (
-        <Text>
-          {label} {`->`} {address}
+      {Object.values(contracts).map((contract) => (
+        <Text key={contract.id}>
+          {contract.id} {`->`} {contract.address}
         </Text>
       ))}
     </Box>
   );
 };
-
-function resolveDeployAddresses(futures: UiFuture[]): AddressMap {
-  const addressMap: AddressMap = {};
-
-  for (const future of futures) {
-    if (
-      future.status.type === UiFutureStatusType.SUCCESS &&
-      future.status.result !== undefined
-    ) {
-      addressMap[future.futureId] = future.status.result;
-    }
-  }
-
-  return addressMap;
-}

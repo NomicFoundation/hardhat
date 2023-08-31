@@ -171,7 +171,14 @@ export class Deployer {
       defaultSender
     );
 
-    return this._getDeploymentResult(deploymentState, ignitionModule);
+    const result = await this._getDeploymentResult(
+      deploymentState,
+      ignitionModule
+    );
+
+    this._emitDeploymentCompleteEvent(result);
+
+    return result;
   }
 
   private async _getDeploymentResult<
@@ -226,23 +233,41 @@ export class Deployer {
     return deploymentState;
   }
 
-  private _emitDeploymentBatchEvent(batches: string[][]): void {
-    if (this._executionEventListener !== undefined) {
-      this._executionEventListener.BATCH_INITIALIZE({
-        type: ExecutionEventType.BATCH_INITIALIZE,
-        batches,
-      });
+  private _emitDeploymentStartEvent(moduleId: string): void {
+    if (this._executionEventListener === undefined) {
+      return;
     }
+
+    this._executionEventListener.DEPLOYMENT_START({
+      type: ExecutionEventType.DEPLOYMENT_START,
+      moduleName: moduleId,
+    });
   }
 
-  private _emitDeploymentStartEvent(moduleId: string): void {
-    if (this._executionEventListener !== undefined) {
-      this._executionEventListener.DEPLOYMENT_START({
-        type: ExecutionEventType.DEPLOYMENT_START,
-        moduleName: moduleId,
-      });
+  private _emitDeploymentBatchEvent(batches: string[][]): void {
+    if (this._executionEventListener === undefined) {
+      return;
     }
+
+    this._executionEventListener.BATCH_INITIALIZE({
+      type: ExecutionEventType.BATCH_INITIALIZE,
+      batches,
+    });
   }
+
+  private _emitDeploymentCompleteEvent(
+    result: DeploymentResult<string, IgnitionModuleResult<string>>
+  ): void {
+    if (this._executionEventListener === undefined) {
+      return;
+    }
+
+    this._executionEventListener.DEPLOYMENT_COMPLETE({
+      type: ExecutionEventType.DEPLOYMENT_COMPLETE,
+      result,
+    });
+  }
+
   private _isSuccessful(deploymentState: DeploymentState): boolean {
     return Object.values(deploymentState.executionStates).every(
       (ex) => ex.status === ExecutionStatus.SUCCESS

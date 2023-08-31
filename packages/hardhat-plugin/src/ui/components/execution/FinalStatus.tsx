@@ -1,3 +1,8 @@
+import {
+  DeploymentResultType,
+  IgnitionModuleResult,
+  SuccessfulDeploymentResult,
+} from "@ignored/ignition-core";
 import { Box, Text } from "ink";
 
 import { UiFuture, UiFutureStatusType, UiState } from "../../types";
@@ -8,24 +13,13 @@ import { Divider } from "./Divider";
 export const FinalStatus = ({ state }: { state: UiState }) => {
   const allFutures = state.batches.flat();
 
-  const successfulFutures = allFutures.filter(
-    (f) => f.status.type === UiFutureStatusType.SUCCESS
-  );
-
-  if (successfulFutures.length === allFutures.length) {
+  if (state.result?.type === DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {
     return (
-      <Box margin={0} flexDirection="column">
-        <Divider />
-
-        <Text>
-          🚀 Deployment Complete for module{" "}
-          <Text italic={true}>{state.moduleName}</Text>
-        </Text>
-
-        <Divider />
-        <AddressResults futures={successfulFutures} chainId={state.chainId!} />
-        <Text> </Text>
-      </Box>
+      <SuccessfulResult
+        chainId={state.chainId!}
+        moduleName={state.moduleName!}
+        result={state.result}
+      />
     );
   }
 
@@ -62,7 +56,7 @@ export const FinalStatus = ({ state }: { state: UiState }) => {
     (f) => f.status.type === UiFutureStatusType.ERRORED
   );
 
-  if (erroredFutures.length > 0) {
+  if (state.result?.type === DeploymentResultType.EXECUTION_ERROR) {
     const errors = getErrors(erroredFutures);
 
     return (
@@ -109,3 +103,24 @@ function getErrors(futures: UiFuture[]) {
 
   return output;
 }
+
+const SuccessfulResult: React.FC<{
+  moduleName: string;
+  chainId: number;
+  result: SuccessfulDeploymentResult<string, IgnitionModuleResult<string>>;
+}> = ({ moduleName, chainId, result }) => {
+  return (
+    <Box margin={0} flexDirection="column">
+      <Divider />
+
+      <Text>
+        🚀 Deployment Complete for module{" "}
+        <Text italic={true}>{moduleName}</Text>
+      </Text>
+
+      <Divider />
+      <AddressResults chainId={chainId} contracts={result.contracts} />
+      <Text> </Text>
+    </Box>
+  );
+};

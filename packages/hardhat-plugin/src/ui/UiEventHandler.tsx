@@ -4,6 +4,7 @@ import {
   CallExecutionStateCompleteEvent,
   CallExecutionStateInitializeEvent,
   ContractAtExecutionStateInitializeEvent,
+  DeploymentCompleteEvent,
   DeploymentExecutionStateCompleteEvent,
   DeploymentExecutionStateInitializeEvent,
   DeploymentParameters,
@@ -39,6 +40,7 @@ import {
   UiFutureStatusType,
   UiFutureSuccess,
   UiState,
+  UiStateDeploymentStatus,
 } from "./types";
 
 interface RenderState {
@@ -57,9 +59,11 @@ export class UiEventHandler implements ExecutionEventListener {
   };
 
   private _uiState: UiState = {
+    status: UiStateDeploymentStatus.UNSTARTED,
     chainId: null,
     moduleName: null,
     batches: [],
+    result: null,
   };
 
   constructor(private _deploymentParams: DeploymentParameters = {}) {}
@@ -321,6 +325,7 @@ export class UiEventHandler implements ExecutionEventListener {
   ): void {
     this.state = {
       ...this.state,
+      status: UiStateDeploymentStatus.DEPLOYING,
       moduleName: event.moduleName,
     };
   }
@@ -328,6 +333,16 @@ export class UiEventHandler implements ExecutionEventListener {
   public [ExecutionEventType.BEGIN_NEXT_BATCH](
     _event: BeginNextBatchEvent
   ): void {}
+
+  public [ExecutionEventType.DEPLOYMENT_COMPLETE](
+    event: DeploymentCompleteEvent
+  ): void {
+    this.state = {
+      ...this.state,
+      status: UiStateDeploymentStatus.COMPLETE,
+      result: event.result,
+    };
+  }
 
   public unmountCli(): Promise<void> {
     if (

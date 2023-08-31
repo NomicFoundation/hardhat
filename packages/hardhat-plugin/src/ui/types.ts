@@ -1,8 +1,16 @@
+import { DeploymentResult, IgnitionModuleResult } from "@ignored/ignition-core";
+
 export enum UiFutureStatusType {
   UNSTARTED = "UNSTARTED",
   SUCCESS = "SUCCESS",
   PENDING = "PENDING",
   ERRORED = "ERRORED",
+}
+
+export enum UiStateDeploymentStatus {
+  UNSTARTED = "UNSTARTED",
+  DEPLOYING = "DEPLOYING",
+  COMPLETE = "COMPLETE",
 }
 
 export interface UiFutureUnstarted {
@@ -37,9 +45,11 @@ export interface UiFuture {
 export type UiBatches = UiFuture[][];
 
 export interface UiState {
+  status: UiStateDeploymentStatus;
   chainId: number | null;
   moduleName: string | null;
   batches: UiBatches;
+  result: DeploymentResult<string, IgnitionModuleResult<string>> | null;
 }
 
 export interface AddressMap {
