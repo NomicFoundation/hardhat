@@ -85,6 +85,8 @@ export class Deployer {
     );
 
     if (validationResult !== null) {
+      this._emitDeploymentCompleteEvent(validationResult);
+
       return validationResult;
     }
 
@@ -136,10 +138,14 @@ export class Deployer {
         errors[futureId].push(failure);
       }
 
-      return {
+      const reconciliationErrorResult: ReconciliationErrorDeploymentResult = {
         type: DeploymentResultType.RECONCILIATION_ERROR,
         errors,
       };
+
+      this._emitDeploymentCompleteEvent(reconciliationErrorResult);
+
+      return reconciliationErrorResult;
     }
 
     if (reconciliationResult.missingExecutedFutures.length > 0) {
