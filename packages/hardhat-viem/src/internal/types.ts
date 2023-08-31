@@ -18,3 +18,7 @@ export type TestClient = viemTypes.TestClient<
 export type TestClientMode = Parameters<
   typeof viemTypes.createTestClient
 >[0]["mode"];
+
+export interface ContractConfig {
+  walletClient: WalletClient;
+}

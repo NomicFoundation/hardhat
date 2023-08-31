@@ -99,6 +99,15 @@ describe("clients", () => {
         assert.equal(client.cacheTime, 0);
       });
     });
+
+    it("should return an empty array if there are no accounts owned by the user", async () => {
+      const provider: EthereumProvider = new EthereumMockedProvider();
+
+      const clients = await innerGetWalletClients(provider, chains.mainnet, []);
+
+      assert.isArray(clients);
+      assert.isEmpty(clients);
+    });
   });
 
   describe("innerGetTestClient", () => {
