@@ -3,10 +3,11 @@ import type {
   PublicClientConfig,
   WalletClientConfig,
   TestClientConfig,
-  GetContractReturnType,
 } from "viem";
 import type {
-  ContractConfig,
+  DeployContractConfig,
+  GetContractAtConfig,
+  GetContractReturnType,
   PublicClient,
   TestClient,
   WalletClient,
@@ -32,12 +33,12 @@ declare module "hardhat/types/runtime" {
       deployContract(
         contractName: string,
         constructorArgs?: any[],
-        config?: Partial<ContractConfig>
+        config?: DeployContractConfig
       ): Promise<GetContractReturnType>;
       getContractAt(
         contractName: string,
         address: Address,
-        config?: Partial<ContractConfig>
+        config?: GetContractAtConfig
       ): Promise<GetContractReturnType>;
     };
   }
