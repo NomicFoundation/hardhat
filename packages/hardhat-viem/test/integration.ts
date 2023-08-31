@@ -1,18 +1,28 @@
-import { assert } from "chai";
+import { assert, expect } from "chai";
 import { parseEther } from "viem";
 
+import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { useEnvironment } from "./helpers";
 
 describe("Integration tests", function () {
   useEnvironment("hardhat-project");
 
+  before(async function () {
+    await this.hre.run(TASK_COMPILE, { quiet: true });
+  });
+
   describe("Hardhat Runtime Environment extension", function () {
     it("should add the viem object and it's properties", function () {
-      assert.isDefined(this.hre.viem);
-      assert.isFunction(this.hre.viem.getPublicClient);
-      assert.isFunction(this.hre.viem.getWalletClients);
-      assert.isFunction(this.hre.viem.getWalletClient);
-      assert.isFunction(this.hre.viem.getTestClient);
+      expect(this.hre.viem)
+        .to.be.an("object")
+        .that.has.all.keys([
+          "getPublicClient",
+          "getWalletClients",
+          "getWalletClient",
+          "getTestClient",
+          "deployContract",
+          "getContractAt",
+        ]);
     });
   });
 
@@ -71,6 +81,16 @@ describe("Integration tests", function () {
       });
       const blockNumber = await publicClient.getBlockNumber();
       assert.equal(blockNumber, 1000001n);
+    });
+
+    describe("deployContract", function () {
+      it("should be able to deploy a contract without constructor args", async function () {
+        const contract = await this.hre.viem.deployContract("SimpleContract");
+
+        await contract.write.setData([50n]);
+        const data = await contract.read.getData();
+        assert.equal(data, 50n);
+      });
     });
   });
 });

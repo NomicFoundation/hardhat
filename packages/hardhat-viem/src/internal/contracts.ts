@@ -2,8 +2,15 @@ import type {
   EthereumProvider,
   HardhatRuntimeEnvironment,
 } from "hardhat/types";
-import type { Abi, Address, GetContractReturnType, Hex } from "viem";
-import type { ContractConfig, PublicClient, WalletClient } from "./types";
+import type { Abi, Address, Hex } from "viem";
+import type {
+  DeployContractConfig,
+  DeployContractParameters,
+  GetContractAtConfig,
+  GetContractReturnType,
+  PublicClient,
+  WalletClient,
+} from "./types";
 
 import { getPublicClient, getWalletClients } from "./clients";
 import {
@@ -15,11 +22,13 @@ export async function deployContract(
   hre: HardhatRuntimeEnvironment,
   contractName: string,
   constructorArgs: any[] = [],
-  config: Partial<ContractConfig> = {}
+  config: DeployContractConfig = {}
 ): Promise<GetContractReturnType> {
+  const { walletClient: configWalletClient, ...deployContractParameters } =
+    config;
   const [publicClient, walletClient, contractArtifact] = await Promise.all([
     getPublicClient(hre.network.provider),
-    getDefaultWalletClient(hre.network.provider, config),
+    configWalletClient ?? getDefaultWalletClient(hre.network.provider),
     hre.artifacts.readArtifact(contractName),
   ]);
 
@@ -28,7 +37,8 @@ export async function deployContract(
     walletClient,
     contractArtifact.abi,
     contractArtifact.bytecode as Hex,
-    constructorArgs
+    constructorArgs,
+    deployContractParameters
   );
 }
 
@@ -37,12 +47,14 @@ async function innerDeployContract(
   walletClient: WalletClient,
   contractAbi: Abi,
   contractBytecode: Hex,
-  constructorArgs: any[]
+  constructorArgs: any[],
+  deployContractParameters: DeployContractParameters = {}
 ): Promise<GetContractReturnType> {
   const deploymentTxHash = await walletClient.deployContract({
     abi: contractAbi,
     bytecode: contractBytecode,
     args: constructorArgs,
+    // ...deployContractParameters,
   });
 
   const { contractAddress } = await publicClient.waitForTransactionReceipt({
@@ -67,11 +79,11 @@ export async function getContractAt(
   hre: HardhatRuntimeEnvironment,
   contractName: string,
   address: Address,
-  config: Partial<ContractConfig> = {}
+  config: GetContractAtConfig = {}
 ): Promise<GetContractReturnType> {
   const [publicClient, walletClient, contractArtifact] = await Promise.all([
     getPublicClient(hre.network.provider),
-    getDefaultWalletClient(hre.network.provider, config),
+    config.walletClient ?? getDefaultWalletClient(hre.network.provider),
     hre.artifacts.readArtifact(contractName),
   ]);
 
@@ -101,12 +113,8 @@ async function innerGetContractAt(
 }
 
 async function getDefaultWalletClient(
-  provider: EthereumProvider,
-  config: Partial<ContractConfig>
+  provider: EthereumProvider
 ): Promise<WalletClient> {
-  if (config.walletClient !== undefined) {
-    return config.walletClient;
-  }
   const [defaultWalletClient] = await getWalletClients(provider);
 
   if (defaultWalletClient === undefined) {
