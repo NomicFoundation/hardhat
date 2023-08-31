@@ -142,7 +142,7 @@ impl Blockchain {
         })?;
         let cache_dir = cache_dir.map_or_else(|| rethnet_defaults::CACHE_DIR.into(), PathBuf::from);
 
-        let runtime = context.runtime().clone();
+        let runtime = context.runtime().handle().clone();
 
         let (deferred, promise) = env.create_deferred()?;
         context.runtime().spawn(async move {
@@ -169,7 +169,7 @@ impl Blockchain {
     pub async fn block_by_hash(&self, hash: Buffer) -> napi::Result<Option<Block>> {
         let hash = B256::from_slice(&hash);
 
-        self.read().await.block_by_hash(&hash).map_or_else(
+        self.read().await.block_by_hash(&hash).await.map_or_else(
             |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
             |block| Ok(block.map(Block::from)),
         )
@@ -180,10 +180,14 @@ impl Blockchain {
     pub async fn block_by_number(&self, number: BigInt) -> napi::Result<Option<Block>> {
         let number: U256 = BigInt::try_cast(number)?;
 
-        self.read().await.block_by_number(&number).map_or_else(
-            |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
-            |block| Ok(block.map(Block::from)),
-        )
+        self.read()
+            .await
+            .block_by_number(&number)
+            .await
+            .map_or_else(
+                |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+                |block| Ok(block.map(Block::from)),
+            )
     }
 
     #[doc = "Retrieves the block that contains a transaction with the provided hash, if it exists."]
@@ -197,6 +201,7 @@ impl Blockchain {
         self.read()
             .await
             .block_by_transaction_hash(&transaction_hash)
+            .await
             .map_or_else(
                 |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
                 |block| Ok(block.map(Block::from)),
@@ -212,13 +217,14 @@ impl Blockchain {
         self.read()
             .await
             .block_supports_spec(&number, spec_id)
+            .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
 
     #[doc = "Retrieves the instance's chain ID."]
     #[napi]
     pub async fn chain_id(&self) -> BigInt {
-        let chain_id = self.read().await.chain_id();
+        let chain_id = self.read().await.chain_id().await;
 
         BigInt {
             sign_bit: false,
@@ -244,7 +250,7 @@ impl Blockchain {
     #[doc = "Retrieves the last block in the blockchain."]
     #[napi]
     pub async fn last_block(&self) -> napi::Result<Block> {
-        self.read().await.last_block().map_or_else(
+        self.read().await.last_block().await.map_or_else(
             |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
             |block| Ok(Block::from(block)),
         )
@@ -253,7 +259,7 @@ impl Blockchain {
     #[doc = "Retrieves the number of the last block in the blockchain."]
     #[napi]
     pub async fn last_block_number(&self) -> BigInt {
-        let block_number = self.read().await.last_block_number();
+        let block_number = self.read().await.last_block_number().await;
 
         BigInt {
             sign_bit: false,
@@ -272,6 +278,7 @@ impl Blockchain {
         self.read()
             .await
             .receipt_by_transaction_hash(&transaction_hash)
+            .await
             .map_or_else(
                 |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
                 |receipt| Ok(receipt.map(Into::into)),
@@ -291,6 +298,7 @@ impl Blockchain {
         self.write()
             .await
             .reserve_blocks(additional, interval)
+            .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
 
@@ -302,6 +310,7 @@ impl Blockchain {
         self.write()
             .await
             .revert_to_block(&block_number)
+            .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
 
@@ -313,6 +322,7 @@ impl Blockchain {
         self.read()
             .await
             .total_difficulty_by_hash(&hash)
+            .await
             .map_or_else(
                 |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
                 |value| {

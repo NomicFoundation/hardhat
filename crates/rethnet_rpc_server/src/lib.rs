@@ -7,7 +7,6 @@ use axum::{
     http::StatusCode,
     Router,
 };
-use parking_lot::Mutex;
 use rethnet_eth::U64;
 use rethnet_eth::{
     remote::{
@@ -33,7 +32,7 @@ use rethnet_evm::{
 };
 use secp256k1::{Secp256k1, SecretKey};
 use sha3::{Digest, Keccak256};
-use tokio::sync::RwLock;
+use tokio::sync::{Mutex, RwLock};
 use tracing::{event, Level};
 
 mod hardhat_methods;
@@ -74,7 +73,7 @@ struct AppState {
     filters: RwLock<HashMap<U256, Filter>>,
     fork_block_number: Option<U256>,
     hardfork: SpecId,
-    hash_generator: Arc<Mutex<RandomHashGenerator>>,
+    prevrandao_generator: Arc<Mutex<RandomHashGenerator>>,
     impersonated_accounts: RwLock<HashSet<Address>>,
     last_filter_id: RwLock<U256>,
     local_accounts: HashMap<Address, SecretKey>,
@@ -151,7 +150,7 @@ async fn _block_number_from_hash<T>(
     block_hash: &B256,
     _require_canonical: bool,
 ) -> Result<U256, ResponseData<T>> {
-    match blockchain.block_by_hash(block_hash) {
+    match blockchain.block_by_hash(block_hash).await {
         Ok(Some(block)) => Ok(block.header.number),
         Ok(None) => Err(error_response_data(
             0,
@@ -174,9 +173,9 @@ async fn _block_number_from_block_spec<T>(
             BlockTag::Earliest => Ok(U256::ZERO),
             BlockTag::Safe | BlockTag::Finalized => {
                 confirm_post_merge_hardfork(blockchain).await?;
-                Ok(blockchain.last_block_number())
+                Ok(blockchain.last_block_number().await)
             }
-            BlockTag::Latest | BlockTag::Pending => Ok(blockchain.last_block_number()),
+            BlockTag::Latest | BlockTag::Pending => Ok(blockchain.last_block_number().await),
         },
         BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
             block_hash,
@@ -192,8 +191,8 @@ async fn _block_number_from_block_spec<T>(
 async fn confirm_post_merge_hardfork<T>(
     blockchain: &dyn SyncBlockchain<BlockchainError>,
 ) -> Result<(), ResponseData<T>> {
-    let last_block_number = blockchain.last_block_number();
-    let post_merge = blockchain.block_supports_spec(&last_block_number, SpecId::MERGE).map_err(|e| error_response_data(0, &format!("Failed to determine whether block {last_block_number} supports the merge hardfork: {e}")))?;
+    let last_block_number = blockchain.last_block_number().await;
+    let post_merge = blockchain.block_supports_spec(&last_block_number, SpecId::MERGE).await.map_err(|e| error_response_data(0, &format!("Failed to determine whether block {last_block_number} supports the merge hardfork: {e}")))?;
     if post_merge {
         Ok(())
     } else {
@@ -225,7 +224,7 @@ async fn set_block_context<T>(
         None => Ok(previous_state_root),
         resolvable_block_spec => {
             let blockchain = state.blockchain.read().await;
-            let latest_block_number = blockchain.last_block_number();
+            let latest_block_number = blockchain.last_block_number().await;
             state
                 .rethnet_state
                 .write()
@@ -239,7 +238,7 @@ async fn set_block_context<T>(
                             Eip1898BlockSpec::Hash {
                                 block_hash,
                                 require_canonical: _,
-                            } => match blockchain.block_by_hash(&block_hash) {
+                            } => match blockchain.block_by_hash(&block_hash).await {
                                 Err(e) => Err(error_response_data(0, &format!("failed to get block by hash {block_hash}: {e}"))),
                                 Ok(None) => Err(error_response_data(0, &format!("block hash {block_hash} does not refer to a known block"))),
                                 Ok(Some(block)) => Ok(block.header.number),
@@ -311,7 +310,7 @@ async fn handle_accounts(state: StateType) -> ResponseData<Vec<Address>> {
 async fn handle_block_number(state: StateType) -> ResponseData<U256> {
     event!(Level::INFO, "eth_blockNumber()");
     ResponseData::Success {
-        result: state.blockchain.read().await.last_block_number(),
+        result: state.blockchain.read().await.last_block_number().await,
     }
 }
 
@@ -363,7 +362,7 @@ async fn mine_block(state: &StateType, timestamp: Option<U256>) -> Result<MineBl
     let mut next_block_timestamp = state.next_block_timestamp.write().await;
 
     let (block_timestamp, new_offset, timestamp_needs_increase): (U256, Option<U256>, bool) = {
-        let latest_block = state.blockchain.read().await.last_block()?;
+        let latest_block = state.blockchain.read().await.last_block().await?;
         let (block_timestamp, new_offset) = {
             let current_timestamp =
                 U256::from(SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs());
@@ -413,8 +412,9 @@ async fn mine_block(state: &StateType, timestamp: Option<U256>) -> Result<MineBl
         state.coinbase,
         reward,
         base_fee,
-        Some(state.hash_generator.lock().next_value()),
-    );
+        Some(state.prevrandao_generator.lock().await.next_value()),
+    )
+    .await;
 
     if result.is_ok() {
         if let Some(new_offset) = new_offset {
@@ -455,7 +455,7 @@ async fn handle_evm_set_next_block_timestamp(
     timestamp: U256OrUsize,
 ) -> ResponseData<String> {
     event!(Level::INFO, "evm_setNextBlockTimestamp({timestamp:?})");
-    match state.blockchain.read().await.last_block() {
+    match state.blockchain.read().await.last_block().await {
         Ok(latest_block) => {
             match Into::<U256>::into(timestamp.clone()).checked_sub(latest_block.header.timestamp) {
                 Some(increment) => {
@@ -1197,7 +1197,9 @@ impl Server {
         let chain_id = config.chain_id;
         let hardfork = config.hardfork;
         let cache_dir = config.cache_dir;
-        let hash_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed("EDR")));
+        let prevrandao_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed(
+            "randomMixHashSeed",
+        )));
 
         let (rethnet_state, blockchain, fork_block_number): (
             RethnetStateType,
@@ -1213,7 +1215,7 @@ impl Server {
             );
 
             let blockchain = ForkedBlockchain::new(
-                Arc::clone(&runtime),
+                runtime.handle().clone(),
                 hardfork,
                 &config.json_rpc_url,
                 cache_dir.clone(),
@@ -1221,13 +1223,16 @@ impl Server {
             )
             .await?;
 
-            let fork_block_number = blockchain.last_block_number();
+            let fork_block_number = blockchain.last_block_number().await;
 
             let blockchain = Arc::new(RwLock::new(blockchain));
 
+            let state_root_generator = Arc::new(parking_lot::Mutex::new(
+                RandomHashGenerator::with_seed("seed"),
+            ));
             let rethnet_state = Arc::new(RwLock::new(ForkState::new(
                 Arc::clone(&runtime),
-                Arc::clone(&hash_generator),
+                Arc::clone(&state_root_generator),
                 &config.json_rpc_url,
                 cache_dir,
                 fork_block_number,
@@ -1280,7 +1285,7 @@ impl Server {
             filters: RwLock::new(HashMap::default()),
             fork_block_number,
             hardfork,
-            hash_generator,
+            prevrandao_generator,
             impersonated_accounts: RwLock::new(HashSet::new()),
             last_filter_id: RwLock::new(U256::ZERO),
             local_accounts,
