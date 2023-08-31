@@ -26,7 +26,10 @@ describe("calls", () => {
 
     const usedAddress = await result.usesContract.contractAddress();
 
-    assert.equal(usedAddress, result.bar.address);
+    assert.equal(
+      usedAddress.toLowerCase(),
+      (await result.bar.getAddress()).toLowerCase()
+    );
   });
 
   it("should be able to call contracts with array args", async function () {
@@ -112,7 +115,7 @@ describe("calls", () => {
         const passingValue = m.contract("PassingValue");
 
         m.call(passingValue, "deposit", [], {
-          value: BigInt(this.hre.ethers.utils.parseEther("1").toString()),
+          value: BigInt(this.hre.ethers.parseEther("1").toString()),
         });
 
         return { passingValue };
@@ -123,24 +126,23 @@ describe("calls", () => {
       assert.isDefined(result.passingValue);
 
       const actualInstanceBalance = await this.hre.ethers.provider.getBalance(
-        result.passingValue.address
+        await result.passingValue.getAddress()
       );
 
       assert.equal(
         actualInstanceBalance.toString(),
-        this.hre.ethers.utils.parseEther("1").toString()
+        this.hre.ethers.parseEther("1").toString()
       );
     });
 
     it("should be able to call a contract passing a value via a parameter", async function () {
       const submoduleDefinition = buildModule("Submodule", (m) => {
-        // const depositValue = m.getParameter("depositValue", 1000);
+        const depositValue = m.getParameter("depositValue", BigInt(1000));
 
         const passingValue = m.contract("PassingValue");
 
         m.call(passingValue, "deposit", [], {
-          // TODO: bring back passing this by parameter
-          value: BigInt(this.hre.ethers.utils.parseEther("1")),
+          value: depositValue,
         });
 
         return { passingValue };
@@ -153,23 +155,23 @@ describe("calls", () => {
       });
 
       const result = await this.deploy(moduleDefinition, {
-        Module: {
-          depositValue: BigInt(this.hre.ethers.utils.parseEther("1")),
+        parameters: {
+          Submodule: {
+            depositValue: BigInt(this.hre.ethers.parseEther("1")),
+          },
         },
       });
 
       assert.isDefined(result.passingValue);
 
       const actualInstanceBalance = await this.hre.ethers.provider.getBalance(
-        result.passingValue.address
+        await result.passingValue.getAddress()
       );
 
       assert.equal(
         actualInstanceBalance.toString(),
-        this.hre.ethers.utils.parseEther("1").toString()
+        this.hre.ethers.parseEther("1").toString()
       );
     });
   });
-
-  it("should note fail if call fails");
 });

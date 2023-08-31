@@ -6,12 +6,11 @@ import { assert } from "chai";
 import { KeyListOf } from "./type-helper";
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
-// eslint-disable-next-line no-only-tests/no-only-tests
-describe.only("config", () => {
+describe("config", () => {
   describe("loading", () => {
     useEphemeralIgnitionProject("with-config");
 
-    let loadedOptions: DeployConfig;
+    let loadedOptions: Partial<DeployConfig>;
 
     beforeEach(function () {
       loadedOptions = this.hre.config.ignition;
@@ -56,7 +55,11 @@ describe.only("config", () => {
       });
 
       await assert.isRejected(
-        this.deploy(moduleDefinition),
+        this.deploy(moduleDefinition, {
+          config: {
+            requiredConfirmations: 0,
+          },
+        }),
         `Configured value 'requiredConfirmations' cannot be less than 1. Value given: '0'`
       );
     });

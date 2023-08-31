@@ -26,14 +26,13 @@ describe("existing contract", () => {
 
     const firstResult = await this.deploy(firstModuleDefinition);
 
-    assert.isDefined(firstResult.bar.address);
-    assert.isDefined(firstResult.usesContract.address);
-    const barAddress: string = firstResult.bar.address;
-    const usesContractAddress: string = firstResult.usesContract.address;
+    const barAddress: string = await firstResult.bar.getAddress();
+    const usesContractAddress: string =
+      await firstResult.usesContract.getAddress();
 
     const secondModuleDefinition = buildModule("SecondModule", (m) => {
-      const bar = m.contractAt("Bar", barAddress, barArtifact);
-      const usesContract = m.contractAt(
+      const bar = m.contractAtFromArtifact("Bar", barAddress, barArtifact);
+      const usesContract = m.contractAtFromArtifact(
         "UsesContract",
         usesContractAddress,
         usesContractArtifact
@@ -51,6 +50,9 @@ describe("existing contract", () => {
 
     const usedAddress = await result.usesContract.contractAddress();
 
-    assert.equal(usedAddress, result.bar.address);
+    assert.equal(
+      usedAddress.toLowerCase(),
+      (await result.bar.getAddress()).toLowerCase()
+    );
   });
 });

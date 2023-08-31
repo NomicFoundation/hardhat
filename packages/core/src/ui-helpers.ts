@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unused-modules */
 export {
   StoredDeploymentDeserializer,
   StoredDeploymentSerializer,
@@ -6,3 +5,4 @@ export {
 export * from "./new-api/type-guards";
 export * from "./new-api/types/module";
 export * from "./new-api/types/serialized-deployment";
+export { formatSolidityParameter } from "./new-api/internal/formatters";

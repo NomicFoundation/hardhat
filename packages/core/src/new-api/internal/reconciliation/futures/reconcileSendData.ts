@@ -2,6 +2,7 @@ import { SendDataFuture } from "../../../types/module";
 import { resolveAddressLike } from "../../new-execution/future-processor/helpers/future-resolvers";
 import { SendDataExecutionState } from "../../new-execution/types/execution-state";
 import { compare } from "../helpers/compare";
+import { reconcileData } from "../helpers/reconcile-data";
 import { reconcileFrom } from "../helpers/reconcile-from";
 import { reconcileValue } from "../helpers/reconcile-value";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
@@ -37,7 +38,7 @@ export function reconcileSendData(
     return result;
   }
 
-  result = compare(future, "Data", executionState.data, future.data);
+  result = reconcileData(future, executionState, context);
   if (result !== undefined) {
     return result;
   }

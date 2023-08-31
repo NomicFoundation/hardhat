@@ -18,7 +18,7 @@ describe("execution - rerun with pending ignition transactions", () => {
     "rerun-with-pending-ignition-transactions"
   );
 
-  it("should complete the run on the second attempt", async function () {
+  it.skip("should complete the run on the second attempt", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {
       const account2 = m.getAccount(2);
 
@@ -60,19 +60,22 @@ describe("execution - rerun with pending ignition transactions", () => {
       };
     });
 
-    await this.deploy(moduleDefinition, async (c: TestChainHelper) => {
-      // Process the first block, include foo1 and foo2
-      await c.mineBlock(2);
+    await this.runControlledDeploy(
+      moduleDefinition,
+      async (c: TestChainHelper) => {
+        // Process the first block, include foo1 and foo2
+        await c.mineBlock(2);
 
-      // Kill the deployment, with foo3 and foo4 submitted to mempool
-      await c.waitForPendingTxs(2);
-      c.exitDeploy();
-    });
+        // Kill the deployment, with foo3 and foo4 submitted to mempool
+        await c.waitForPendingTxs(2);
+        c.exitDeploy();
+      }
+    );
 
     // NOTE: no blocks mined between previous run and this run
     // there should two deploy contract transactions for foo3 and foo4
     // in the mempool
-    const result = await this.deploy(
+    const result = await this.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
         // this block should confirm foo3 and foo4

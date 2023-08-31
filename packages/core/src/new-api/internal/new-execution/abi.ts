@@ -12,7 +12,7 @@ import {
   UnsupportedOperationError,
 } from "../../../errors";
 import { Artifact } from "../../types/artifact";
-import { SolidityParameterType } from "../../types/module";
+import { ArgumentType, SolidityParameterType } from "../../types/module";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
 import { linkLibraries } from "./libraries";
@@ -143,6 +143,71 @@ export function decodeArtifactFunctionCallResult(
 }
 
 /**
+ * Validate that the given args length matches the artifact's abi's args length.
+ *
+ * @param artifact - the artifact for the contract being validated
+ * @param contractName - the name of the contract for error messages
+ * @param args - the args to validate against
+ */
+export function validateContractConstructorArgsLength(
+  artifact: Artifact,
+  contractName: string,
+  args: ArgumentType[]
+): void {
+  const argsLength = args.length;
+
+  const { ethers } = require("ethers") as typeof import("ethers");
+  const iface = new ethers.Interface(artifact.abi);
+  const expectedArgsLength = iface.deploy.inputs.length;
+
+  if (argsLength !== expectedArgsLength) {
+    throw new IgnitionValidationError(
+      `The constructor of the contract '${contractName}' expects ${expectedArgsLength} arguments but ${argsLength} were given`
+    );
+  }
+}
+
+/**
+ * Validates that a function is valid for the given artifact. That means:
+ *  - It's a valid function name
+ *    - The function name exists in the artifact's ABI
+ *    - If the function is not overlaoded, its bare name is used.
+ *    - If the function is overloaded, the function name is includes the argument types
+ *      in parentheses.
+ * - The function has the correct number of arguments
+ *
+ * Optionally checks further static call constraints:
+ * - The function is has a pure or view state mutability
+ */
+export function validateArtifactFunction(
+  artifact: Artifact,
+  contractName: string,
+  functionName: string,
+  args: ArgumentType[],
+  isStaticCall: boolean
+) {
+  validateOverloadedName(artifact, functionName, false);
+
+  const { ethers } = require("ethers") as typeof import("ethers");
+  const iface = new ethers.Interface(artifact.abi);
+  const fragment = getFunctionFragment(iface, functionName);
+
+  // Check that the number of arguments is correct
+  if (fragment.inputs.length !== args.length) {
+    throw new IgnitionValidationError(
+      `Function ${functionName} in contract ${contractName} expects ${fragment.inputs.length} arguments but ${args.length} were given`
+    );
+  }
+
+  // Check that the function is pure or view, which is required for a static call
+  if (isStaticCall && !fragment.constant) {
+    throw new IgnitionValidationError(
+      `Function ${functionName} in contract ${contractName} is not 'pure' or 'view' and cannot be statically called`
+    );
+  }
+}
+
+/**
  * Validates that a function name is valid for the given artifact. That means:
  *  - It's a valid function name
  *  - The function name exists in the artifact's ABI
@@ -176,22 +241,22 @@ export function validateArtifactEventArgumentParams(
 
   const eventFragment = getEventFragment(iface, eventName);
 
-  if (typeof argument === "string") {
-    for (const input of eventFragment.inputs) {
-      if (input.name === argument) {
-        return;
-      }
+  const paramType = getEventArgumentParamType(
+    emitterArtifact.contractName,
+    eventName,
+    eventFragment,
+    argument
+  );
+
+  if (paramType.indexed === true) {
+    // We can't access the value of indexed arguments with dynamic size
+    // as their hash is stored in a topic, and its actual value isn't stored
+    // anywhere
+    if (hasDynamicSize(paramType)) {
+      throw new IgnitionValidationError(
+        `Indexed argument ${argument} of event ${eventName} of contract ${emitterArtifact.contractName} is not stored in the receipt, but its hash is, so you can't read it.`
+      );
     }
-
-    throw new IgnitionValidationError(
-      `Event ${eventName} of contract ${emitterArtifact.contractName} has no argument named ${argument}`
-    );
-  }
-
-  if (eventFragment.inputs.length <= argument) {
-    throw new IgnitionValidationError(
-      `Event ${eventName} of contract ${emitterArtifact.contractName} has only ${eventFragment.inputs.length} arguments, but argument ${argument} was requested`
-    );
   }
 }
 
@@ -227,7 +292,11 @@ export function getEventArgumentFromReceipt(
 
   const log = eventLogs[eventIndex];
 
-  const ethersResult = iface.decodeEventLog(eventFragment, log.data);
+  const ethersResult = iface.decodeEventLog(
+    eventFragment,
+    log.data,
+    log.topics
+  );
 
   const evmTuple = ethersResultIntoEvmTuple(ethersResult, eventFragment.inputs);
 
@@ -592,4 +661,50 @@ ${normalizedNameList}`
 ${normalizedNameList}`
     );
   }
+}
+
+/**
+ * Returns teh param type of an event argument, throwing a validation error if it's not found.
+ * @param eventFragment
+ * @param argument
+ */
+function getEventArgumentParamType(
+  contractName: string,
+  eventName: string,
+  eventFragment: EventFragment,
+  argument: string | number
+): ParamType {
+  if (typeof argument === "string") {
+    for (const input of eventFragment.inputs) {
+      if (input.name === argument) {
+        return input;
+      }
+    }
+
+    throw new IgnitionValidationError(
+      `Event ${eventName} of contract ${contractName} has no argument named ${argument}`
+    );
+  }
+
+  const paramType = eventFragment.inputs[argument];
+
+  if (paramType === undefined) {
+    throw new IgnitionValidationError(
+      `Event ${eventName} of contract ${contractName} has only ${eventFragment.inputs.length} arguments, but argument ${argument} was requested`
+    );
+  }
+
+  return paramType;
+}
+
+/**
+ * Returns true if the given param type has a dynamic size.
+ */
+function hasDynamicSize(paramType: ParamType): boolean {
+  return (
+    paramType.isArray() ||
+    paramType.isTuple() ||
+    paramType.type === "bytes" ||
+    paramType.type === "string"
+  );
 }

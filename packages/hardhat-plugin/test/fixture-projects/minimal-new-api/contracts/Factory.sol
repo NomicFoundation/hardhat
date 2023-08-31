@@ -24,4 +24,12 @@ contract FooFactory {
   function isDeployed() public pure returns (bool output) {
     return true;
   }
+
+  function getDeployed() public view returns (address output) {
+    return allDeployed[0];
+  }
+
+  function getDeployed(uint256 value) public view returns (address output) {
+    return allDeployed[value];
+  }
 }

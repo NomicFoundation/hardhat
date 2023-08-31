@@ -29,7 +29,7 @@ describe.skip("execution - deploy run times out", () => {
 
     // Deploying the module that uses accounts[2] throws with a warning
     await assert.isRejected(
-      this.deploy(moduleDefinition, async (c: TestChainHelper) => {
+      this.runControlledDeploy(moduleDefinition, async (c: TestChainHelper) => {
         // wait for the deploy transaction to hit the memory pool,
         // but then never mine the block that will complete it.
         await c.waitForPendingTxs(1);

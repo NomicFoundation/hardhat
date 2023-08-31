@@ -37,8 +37,10 @@ describe("module parameters", () => {
     });
 
     const result = await this.deploy(moduleDefinition, {
-      WithDefaultModule: {
-        MyNumber: 20,
+      parameters: {
+        WithDefaultModule: {
+          MyNumber: 20,
+        },
       },
     });
 
@@ -71,8 +73,10 @@ describe("module parameters", () => {
     });
 
     const result = await this.deploy(moduleDefinition, {
-      WithDefaultStringModule: {
-        MyString: "NotExample",
+      parameters: {
+        WithDefaultStringModule: {
+          MyString: "NotExample",
+        },
       },
     });
 
@@ -80,8 +84,7 @@ describe("module parameters", () => {
   });
 });
 
-// TODO: bring back with parameter validation
-describe.skip("validation", () => {
+describe("params validation", () => {
   useEphemeralIgnitionProject("minimal-new-api");
 
   it("should throw if no parameters object provided", async function () {
@@ -101,7 +104,7 @@ describe.skip("validation", () => {
 
     await assert.isRejected(
       deployPromise,
-      'No parameters object provided to deploy options, but module requires parameter "MyNumber"'
+      "Module parameter 'MyNumber' requires a value but was given none"
     );
   });
 
@@ -128,7 +131,7 @@ describe.skip("validation", () => {
 
     await assert.isRejected(
       deployPromise,
-      'No parameter provided for "MyNumber"'
+      "Module parameter 'MyNumber' requires a value but was given none"
     );
   });
 });

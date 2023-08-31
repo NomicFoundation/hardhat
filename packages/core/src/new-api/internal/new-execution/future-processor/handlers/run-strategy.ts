@@ -98,6 +98,7 @@ export async function runStrategy(
     if (confirmedTx.receipt.status === TransactionReceiptStatus.FAILURE) {
       const result: RevertedTransactionExecutionResult = {
         type: ExecutionResultType.REVERTED_TRANSACTION,
+        txHash: confirmedTx.hash,
       };
 
       return createExecutionStateCompleteMessageForExecutionsWithOnchainInteractions(

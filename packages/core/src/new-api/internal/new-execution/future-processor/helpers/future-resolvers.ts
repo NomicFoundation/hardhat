@@ -1,7 +1,7 @@
 import { isAddress } from "ethers";
 
 import { isModuleParameterRuntimeValue } from "../../../../type-guards";
-import { DeploymentParameters } from "../../../../types/deployer";
+import { DeploymentParameters } from "../../../../types/deploy";
 import {
   AccountRuntimeValue,
   AddressResolvableFuture,

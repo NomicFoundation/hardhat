@@ -90,7 +90,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
       {
         id: 1,
         type: NetworkInteractionType.ONCHAIN_INTERACTION,
-        to: undefined,
+        to: executionState.contractAddress,
         data: encodeArtifactFunctionCall(
           artifact,
           executionState.functionName,
@@ -128,7 +128,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
       {
         id: 1,
         type: NetworkInteractionType.ONCHAIN_INTERACTION,
-        to: undefined,
+        to: executionState.to,
         data: executionState.data,
         value: executionState.value,
       }

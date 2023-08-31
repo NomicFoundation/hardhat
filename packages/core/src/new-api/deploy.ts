@@ -17,9 +17,9 @@ import {
   DeployConfig,
   DeploymentParameters,
   DeploymentResult,
-} from "./types/deployer";
+} from "./types/deploy";
 import { ExecutionEventListener } from "./types/execution-events";
-import { IgnitionModule } from "./types/module";
+import { IgnitionModule, IgnitionModuleResult } from "./types/module";
 import { EIP1193Provider } from "./types/provider";
 
 /**
@@ -27,7 +27,11 @@ import { EIP1193Provider } from "./types/provider";
  *
  * @beta
  */
-export async function deploy({
+export async function deploy<
+  ModuleIdT extends string,
+  ContractNameT extends string,
+  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+>({
   config = {},
   artifactResolver,
   provider,
@@ -43,11 +47,15 @@ export async function deploy({
   provider: EIP1193Provider;
   executionEventListener?: ExecutionEventListener;
   deploymentDir?: string;
-  ignitionModule: IgnitionModule;
+  ignitionModule: IgnitionModule<
+    ModuleIdT,
+    ContractNameT,
+    IgnitionModuleResultsT
+  >;
   deploymentParameters: DeploymentParameters;
   accounts: string[];
   defaultSender?: string;
-}): Promise<DeploymentResult> {
+}): Promise<DeploymentResult<ContractNameT, IgnitionModuleResultsT>> {
   await validateStageOne(ignitionModule, artifactResolver);
 
   if (defaultSender !== undefined) {

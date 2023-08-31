@@ -2,17 +2,15 @@ const { expect } = require("chai");
 const ENSModule = require("../ignition/test-registrar");
 const namehash = require("eth-ens-namehash");
 const labelhash = (label) =>
-  hre.ethers.utils.keccak256(hre.ethers.utils.toUtf8Bytes(label));
+  hre.ethers.keccak256(hre.ethers.toUtf8Bytes(label));
 
-describe.skip("ENS", function () {
+describe("ENS", function () {
   it("should be able to create new subrecords", async function () {
     const [{ address: ACCOUNT_0 }, { address: ACCOUNT_1 }] =
       await hre.ethers.getSigners();
 
     // Arrange
-    const { ens, resolver } = await ignition.deploy(ENSModule, {
-      config: { requiredConfirmations: 1 },
-    });
+    const { ens, resolver } = await ignition.deploy(ENSModule);
 
     await ens.setSubnodeOwner(
       namehash.hash("test"),

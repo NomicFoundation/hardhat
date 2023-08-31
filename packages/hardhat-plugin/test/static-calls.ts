@@ -86,7 +86,7 @@ describe("static calls", () => {
 
       const createCall = m.call(fooFactory, "create", []);
 
-      const newAddress = m.staticCall(fooFactory, "allDeployed(uint256)", [0], {
+      const newAddress = m.staticCall(fooFactory, "getDeployed(uint256)", [0], {
         after: [createCall],
       });
 

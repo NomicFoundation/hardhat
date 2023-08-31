@@ -5,8 +5,7 @@ import path from "path";
 
 import { useEphemeralIgnitionProject } from "../use-ignition-project";
 
-// eslint-disable-next-line no-only-tests/no-only-tests
-describe.only("plan", () => {
+describe("plan", () => {
   // TODO: rename back to minimal api once execution switched over
   useEphemeralIgnitionProject("minimal-new-api");
 

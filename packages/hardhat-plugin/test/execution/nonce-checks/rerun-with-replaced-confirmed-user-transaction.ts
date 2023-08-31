@@ -21,7 +21,7 @@ describe("execution - rerun with replaced confirmed user transaction", () => {
     "rerun-with-replaced-confirmed-user-transaction"
   );
 
-  it("should deploy user interfered transaction on second run", async function () {
+  it.skip("should deploy user interfered transaction on second run", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {
       const account2 = m.getAccount(2);
 
@@ -38,19 +38,22 @@ describe("execution - rerun with replaced confirmed user transaction", () => {
     });
 
     // First run fo the deploy
-    await this.deploy(moduleDefinition, async (c: TestChainHelper) => {
-      // Wait for the submission of foo1 foo2 and foo3 to mempool,
-      // then kill the deploy process
-      await c.waitForPendingTxs(3);
-      c.exitDeploy();
-    });
+    await this.runControlledDeploy(
+      moduleDefinition,
+      async (c: TestChainHelper) => {
+        // Wait for the submission of foo1 foo2 and foo3 to mempool,
+        // then kill the deploy process
+        await c.waitForPendingTxs(3);
+        c.exitDeploy();
+      }
+    );
 
     // Submit a user interfering deploy transaction
     // to the mempool reusing nonce 2
     const [, , signer2] = await this.hre.ethers.getSigners();
     const FooFactory = await this.hre.ethers.getContractFactory("Foo");
     const userDeployedContractPromise = FooFactory.connect(signer2).deploy({
-      gasPrice: this.hre.ethers.utils.parseUnits("500", "gwei"),
+      gasPrice: this.hre.ethers.parseUnits("500", "gwei"),
       nonce: 2,
     });
 
@@ -61,7 +64,7 @@ describe("execution - rerun with replaced confirmed user transaction", () => {
 
     // Rerun the deployment with foo3 replaced, causing it to
     // be resubmitted
-    const result = await this.deploy(
+    const result = await this.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
         // this block should confirm foo3

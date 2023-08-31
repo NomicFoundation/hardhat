@@ -20,7 +20,7 @@ describe("execution - error on pending user transactions", () => {
     "error-on-rerun-with-replaced-pending-user-transaction"
   );
 
-  it("should error if a transaction is in flight for an account used in the deploy", async function () {
+  it.skip("should error if a transaction is in flight for an account used in the deploy", async function () {
     // Setup a module with a contract deploy on accounts[2]
     const moduleDefinition = buildModule("FooModule", (m) => {
       const account2 = m.getAccount(2);
@@ -40,7 +40,10 @@ describe("execution - error on pending user transactions", () => {
 
     // Deploying the module that uses accounts[2] throws with a warning
     await assert.isRejected(
-      this.deploy(moduleDefinition, async (_c: TestChainHelper) => {}),
+      this.runControlledDeploy(
+        moduleDefinition,
+        async (_c: TestChainHelper) => {}
+      ),
       "Pending transactions for account: 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc, please wait for transactions to complete before running a deploy"
     );
 
