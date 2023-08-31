@@ -6,6 +6,7 @@ pub mod storage;
 
 use std::{fmt::Debug, sync::Arc};
 
+use async_trait::async_trait;
 use rethnet_eth::{
     block::DetailedBlock, receipt::BlockReceipt, remote::RpcClientError, B256, U256,
 };
@@ -59,54 +60,73 @@ pub enum BlockchainError {
 }
 
 /// Trait for implementations of an Ethereum blockchain.
+#[async_trait]
 pub trait Blockchain {
     /// The blockchain's error type
     type Error;
 
     /// Retrieves the block with the provided hash, if it exists.
-    fn block_by_hash(&self, hash: &B256) -> Result<Option<Arc<DetailedBlock>>, Self::Error>;
+    async fn block_by_hash(&self, hash: &B256) -> Result<Option<Arc<DetailedBlock>>, Self::Error>;
 
     /// Retrieves the block with the provided number, if it exists.
-    fn block_by_number(&self, number: &U256) -> Result<Option<Arc<DetailedBlock>>, Self::Error>;
+    async fn block_by_number(
+        &self,
+        number: &U256,
+    ) -> Result<Option<Arc<DetailedBlock>>, Self::Error>;
 
     /// Retrieves the block that contains a transaction with the provided hash, if it exists.
-    fn block_by_transaction_hash(
+    async fn block_by_transaction_hash(
         &self,
         transaction_hash: &B256,
     ) -> Result<Option<Arc<DetailedBlock>>, Self::Error>;
 
     /// Whether the block corresponding to the provided number supports the specified specification.
-    fn block_supports_spec(&self, number: &U256, spec_id: SpecId) -> Result<bool, Self::Error>;
+    async fn block_supports_spec(
+        &self,
+        number: &U256,
+        spec_id: SpecId,
+    ) -> Result<bool, Self::Error>;
 
     /// Retrieves the instances chain ID.
-    fn chain_id(&self) -> U256;
+    async fn chain_id(&self) -> U256;
 
     /// Retrieves the last block in the blockchain.
-    fn last_block(&self) -> Result<Arc<DetailedBlock>, Self::Error>;
+    async fn last_block(&self) -> Result<Arc<DetailedBlock>, Self::Error>;
 
     /// Retrieves the last block number in the blockchain.
-    fn last_block_number(&self) -> U256;
+    async fn last_block_number(&self) -> U256;
 
     /// Retrieves the receipt of the transaction with the provided hash, if it exists.
-    fn receipt_by_transaction_hash(
+    async fn receipt_by_transaction_hash(
         &self,
         transaction_hash: &B256,
     ) -> Result<Option<Arc<BlockReceipt>>, Self::Error>;
 
     /// Retrieves the total difficulty at the block with the provided hash.
-    fn total_difficulty_by_hash(&self, hash: &B256) -> Result<Option<U256>, Self::Error>;
+    async fn total_difficulty_by_hash(&self, hash: &B256) -> Result<Option<U256>, Self::Error>;
 }
 
 /// Trait for implementations of a mutable Ethereum blockchain
+#[async_trait]
 pub trait BlockchainMut {
     /// The blockchain's error type
     type Error;
 
     /// Inserts the provided block into the blockchain, returning a reference to the inserted block.
-    fn insert_block(&mut self, block: DetailedBlock) -> Result<Arc<DetailedBlock>, Self::Error>;
+    async fn insert_block(
+        &mut self,
+        block: DetailedBlock,
+    ) -> Result<Arc<DetailedBlock>, Self::Error>;
+
+    /// Reserves the provided number of blocks, starting from the next block number.
+    async fn reserve_blocks(
+        &mut self,
+        additional: usize,
+        interval: U256,
+    ) -> Result<(), Self::Error>;
 
     /// Reverts to the block with the provided number, deleting all later blocks.
-    fn revert_to_block(&mut self, block_number: &U256) -> Result<(), Self::Error>;
+    async fn revert_to_block(&mut self, block_number: &U256) -> Result<(), Self::Error>;
 }
 
 /// Trait that meets all requirements for a synchronous blockchain.

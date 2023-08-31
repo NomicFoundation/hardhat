@@ -1,8 +1,10 @@
 use std::{
+    num::NonZeroUsize,
     sync::Arc,
     time::{SystemTime, UNIX_EPOCH},
 };
 
+use async_trait::async_trait;
 use rethnet_eth::{
     block::{Block, DetailedBlock, PartialHeader},
     trie::KECCAK_NULL_RLP,
@@ -13,7 +15,7 @@ use revm::{db::BlockHashRef, primitives::SpecId};
 use crate::state::StateDebug;
 
 use super::{
-    storage::ContiguousBlockchainStorage, validate_next_block, Blockchain, BlockchainError,
+    storage::ReservableSparseBlockchainStorage, validate_next_block, Blockchain, BlockchainError,
     BlockchainMut,
 };
 
@@ -43,7 +45,7 @@ pub enum InsertBlockError {
 /// A blockchain consisting of locally created blocks.
 #[derive(Debug)]
 pub struct LocalBlockchain {
-    storage: ContiguousBlockchainStorage,
+    storage: ReservableSparseBlockchainStorage,
     chain_id: U256,
     spec_id: SpecId,
 }
@@ -150,7 +152,8 @@ impl LocalBlockchain {
         genesis_block: DetailedBlock,
     ) -> Self {
         let total_difficulty = genesis_block.header.difficulty;
-        let storage = ContiguousBlockchainStorage::with_block(genesis_block, total_difficulty);
+        let storage =
+            ReservableSparseBlockchainStorage::with_block(genesis_block, total_difficulty);
 
         Self {
             storage,
@@ -160,80 +163,80 @@ impl LocalBlockchain {
     }
 }
 
+#[async_trait]
 impl Blockchain for LocalBlockchain {
     type Error = BlockchainError;
 
-    fn block_by_hash(&self, hash: &B256) -> Result<Option<Arc<DetailedBlock>>, Self::Error> {
-        Ok(self.storage.block_by_hash(hash).cloned())
+    async fn block_by_hash(&self, hash: &B256) -> Result<Option<Arc<DetailedBlock>>, Self::Error> {
+        Ok(self.storage.block_by_hash(hash))
     }
 
-    fn block_by_number(&self, number: &U256) -> Result<Option<Arc<DetailedBlock>>, Self::Error> {
-        let number =
-            usize::try_from(number).map_err(|_error| BlockchainError::BlockNumberTooLarge)?;
-
-        Ok(self.storage.blocks().get(number).cloned())
+    async fn block_by_number(
+        &self,
+        number: &U256,
+    ) -> Result<Option<Arc<DetailedBlock>>, Self::Error> {
+        Ok(self.storage.block_by_number(number))
     }
 
-    fn block_by_transaction_hash(
+    async fn block_by_transaction_hash(
         &self,
         transaction_hash: &B256,
     ) -> Result<Option<Arc<DetailedBlock>>, Self::Error> {
-        Ok(self
-            .storage
-            .block_by_transaction_hash(transaction_hash)
-            .cloned())
+        Ok(self.storage.block_by_transaction_hash(transaction_hash))
     }
 
-    fn block_supports_spec(&self, _number: &U256, spec_id: SpecId) -> Result<bool, Self::Error> {
+    async fn block_supports_spec(
+        &self,
+        _number: &U256,
+        spec_id: SpecId,
+    ) -> Result<bool, Self::Error> {
         Ok(spec_id <= self.spec_id)
     }
 
-    fn chain_id(&self) -> U256 {
+    async fn chain_id(&self) -> U256 {
         self.chain_id
     }
 
-    fn last_block(&self) -> Result<Arc<DetailedBlock>, Self::Error> {
+    async fn last_block(&self) -> Result<Arc<DetailedBlock>, Self::Error> {
         Ok(self
             .storage
-            .blocks()
-            .last()
-            .expect("A genesis block is always present")
-            .clone())
+            .block_by_number(self.storage.last_block_number())
+            .expect("Block must exist"))
     }
 
-    fn last_block_number(&self) -> U256 {
-        // The block number of the genesis block is 0, so subtract one
-        U256::from(self.storage.blocks().len() - 1)
+    async fn last_block_number(&self) -> U256 {
+        *self.storage.last_block_number()
     }
 
-    fn receipt_by_transaction_hash(
+    async fn receipt_by_transaction_hash(
         &self,
         transaction_hash: &B256,
     ) -> Result<Option<Arc<rethnet_eth::receipt::BlockReceipt>>, Self::Error> {
-        Ok(self
-            .storage
-            .receipt_by_transaction_hash(transaction_hash)
-            .cloned())
+        Ok(self.storage.receipt_by_transaction_hash(transaction_hash))
     }
 
-    fn total_difficulty_by_hash(&self, hash: &B256) -> Result<Option<U256>, Self::Error> {
-        Ok(self.storage.total_difficulty_by_hash(hash).cloned())
+    async fn total_difficulty_by_hash(&self, hash: &B256) -> Result<Option<U256>, Self::Error> {
+        Ok(self.storage.total_difficulty_by_hash(hash))
     }
 }
 
+#[async_trait]
 impl BlockchainMut for LocalBlockchain {
     type Error = BlockchainError;
 
-    fn insert_block(&mut self, block: DetailedBlock) -> Result<Arc<DetailedBlock>, Self::Error> {
-        let last_block = self.last_block()?;
+    async fn insert_block(
+        &mut self,
+        block: DetailedBlock,
+    ) -> Result<Arc<DetailedBlock>, Self::Error> {
+        let last_block = self.last_block().await?;
 
         validate_next_block(self.spec_id, &last_block, &block)?;
 
         let previous_total_difficulty = self
-            .storage
-            .total_difficulties()
-            .last()
-            .expect("Storage always contains at least one block");
+            .total_difficulty_by_hash(last_block.hash())
+            .await
+            .expect("No error can occur as it is stored locally")
+            .expect("Must exist as its block is stored");
 
         let total_difficulty = previous_total_difficulty + block.header.difficulty;
 
@@ -243,7 +246,36 @@ impl BlockchainMut for LocalBlockchain {
         Ok(block.clone())
     }
 
-    fn revert_to_block(&mut self, block_number: &U256) -> Result<(), Self::Error> {
+    async fn reserve_blocks(
+        &mut self,
+        additional: usize,
+        interval: U256,
+    ) -> Result<(), Self::Error> {
+        let additional = if let Some(additional) = NonZeroUsize::new(additional) {
+            additional
+        } else {
+            return Ok(()); // nothing to do
+        };
+
+        let last_block = self.last_block().await?;
+        let previous_total_difficulty = self
+            .total_difficulty_by_hash(last_block.hash())
+            .await?
+            .expect("Must exist as its block is stored");
+
+        self.storage.reserve_blocks(
+            additional,
+            interval,
+            last_block.header.base_fee_per_gas,
+            last_block.header.state_root,
+            previous_total_difficulty,
+            self.spec_id,
+        );
+
+        Ok(())
+    }
+
+    async fn revert_to_block(&mut self, block_number: &U256) -> Result<(), Self::Error> {
         if self.storage.revert_to_block(block_number) {
             Ok(())
         } else {
@@ -256,12 +288,8 @@ impl BlockHashRef for LocalBlockchain {
     type Error = BlockchainError;
 
     fn block_hash(&self, number: U256) -> Result<B256, Self::Error> {
-        let number =
-            usize::try_from(number).map_err(|_error| BlockchainError::BlockNumberTooLarge)?;
-
         self.storage
-            .blocks()
-            .get(number)
+            .block_by_number(&number)
             .map(|block| *block.hash())
             .ok_or(BlockchainError::UnknownBlockNumber)
     }

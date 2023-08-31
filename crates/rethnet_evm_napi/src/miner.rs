@@ -51,6 +51,7 @@ pub async fn mine_block(
         base_fee,
         prevrandao,
     )
+    .await
     .map_or_else(
         |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
         |result| Ok(MineBlockResult::from(result)),
