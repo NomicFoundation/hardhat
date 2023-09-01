@@ -1,11 +1,12 @@
 import {
   DeploymentResultType,
+  ExecutionErrorDeploymentResult,
   IgnitionModuleResult,
   ReconciliationErrorDeploymentResult,
   SuccessfulDeploymentResult,
   ValidationErrorDeploymentResult,
 } from "@ignored/ignition-core";
-import { Box, Text } from "ink";
+import { Box, Newline, Text } from "ink";
 
 import { UiState } from "../../types";
 
@@ -13,121 +14,51 @@ import { AddressResults } from "./AddressResults";
 import { Divider } from "./Divider";
 
 export const FinalStatus = ({ state }: { state: UiState }) => {
-  if (state.result?.type === DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {
-    return (
-      <SuccessfulResult
-        chainId={state.chainId!}
-        moduleName={state.moduleName!}
-        result={state.result}
-      />
-    );
+  if (state.result === null) {
+    return null;
   }
 
-  if (state.result?.type === DeploymentResultType.VALIDATION_ERROR) {
-    return (
-      <ValidationErrorResult
-        chainId={state.chainId!}
-        moduleName={state.moduleName!}
-        result={state.result}
-      />
-    );
+  switch (state.result.type) {
+    case DeploymentResultType.VALIDATION_ERROR: {
+      return (
+        <ErrorResult
+          chainId={state.chainId!}
+          moduleName={state.moduleName!}
+          message="Validation failed for module"
+          result={state.result}
+        />
+      );
+    }
+    case DeploymentResultType.RECONCILIATION_ERROR: {
+      return (
+        <ErrorResult
+          chainId={state.chainId!}
+          moduleName={state.moduleName!}
+          message="Reconciliation failed for module"
+          result={state.result}
+        />
+      );
+    }
+    case DeploymentResultType.EXECUTION_ERROR: {
+      return (
+        <ExecutionErrorResult
+          chainId={state.chainId!}
+          moduleName={state.moduleName!}
+          result={state.result}
+        />
+      );
+    }
+    case DeploymentResultType.SUCCESSFUL_DEPLOYMENT: {
+      return (
+        <SuccessfulResult
+          chainId={state.chainId!}
+          moduleName={state.moduleName!}
+          result={state.result}
+        />
+      );
+    }
   }
-
-  if (state.result?.type === DeploymentResultType.RECONCILIATION_ERROR) {
-    return (
-      <ReconciliationErrorResult
-        chainId={state.chainId!}
-        moduleName={state.moduleName!}
-        result={state.result}
-      />
-    );
-  }
-
-  if (state.result?.type === DeploymentResultType.EXECUTION_ERROR) {
-    // TODO: fill in execution errors
-    return <Text>Reconciliation error</Text>;
-  }
-
-  // const pendingFutures = allFutures.filter(
-  //   (f) => f.status.type === UiFutureStatusType.PENDING
-  // );
-
-  // if (pendingFutures.length > 0) {
-  //   return (
-  //     <Box flexDirection="column">
-  //       <Divider />
-
-  //       <Box>
-  //         <Text>
-  //           🟡 <Text italic={true}>{"moduleName"}</Text> deployment{" "}
-  //           <Text bold color="yellow">
-  //             on hold
-  //           </Text>
-  //         </Text>
-  //       </Box>
-
-  //       <Box flexDirection="column">
-  //         {pendingFutures.map((f) => (
-  //           <Box key={`hold-${f.futureId}`} flexDirection="column" margin={1}>
-  //             <Text bold={true}>{f.futureId}</Text>
-  //           </Box>
-  //         ))}
-  //       </Box>
-  //     </Box>
-  //   );
-  // }
-
-  // const erroredFutures = allFutures.filter(
-  //   (f) => f.status.type === UiFutureStatusType.ERRORED
-  // );
-
-  // if (state.result?.type === DeploymentResultType.EXECUTION_ERROR) {
-  //   const errors = getErrors(erroredFutures);
-
-  //   return (
-  //     <Box flexDirection="column">
-  //       <Divider />
-
-  //       <Box>
-  //         <Text>
-  //           ⛔ <Text italic={true}>{"moduleName"}</Text> deployment{" "}
-  //           <Text bold color="red">
-  //             failed
-  //           </Text>
-  //         </Text>
-  //       </Box>
-
-  //       <Box flexDirection="column">
-  //         {errors.map((e) => (
-  //           <Box key={`error-${e.futureId}`} flexDirection="column" margin={1}>
-  //             <Text bold={true} underline={true}>
-  //               {e.futureId}
-  //             </Text>
-  //             <Text>{e.message}</Text>
-  //           </Box>
-  //         ))}
-  //       </Box>
-  //     </Box>
-  //   );
-  // }
-
-  return null;
 };
-
-// function getErrors(futures: UiFuture[]) {
-//   const output = [];
-
-//   for (const future of futures) {
-//     if (future.status.type === UiFutureStatusType.ERRORED) {
-//       output.push({
-//         futureId: future.futureId,
-//         message: future.status.message,
-//       });
-//     }
-//   }
-
-//   return output;
-// }
 
 const SuccessfulResult: React.FC<{
   moduleName: string;
@@ -145,29 +76,40 @@ const SuccessfulResult: React.FC<{
 
       <Divider />
       <AddressResults chainId={chainId} contracts={result.contracts} />
-      <Text> </Text>
+      <Newline />
     </Box>
   );
 };
 
-const ValidationErrorResult: React.FC<{
+const ErrorResult: React.FC<{
   moduleName: string;
   chainId: number;
-  result: ValidationErrorDeploymentResult;
-}> = ({ moduleName, result }) => {
+  message: string;
+  result: ReconciliationErrorDeploymentResult | ValidationErrorDeploymentResult;
+}> = ({ moduleName, message, result }) => {
   return (
     <Box margin={0} flexDirection="column">
       <Divider />
 
       <Text>
-        ⛔ Validation failed for module <Text italic={true}>{moduleName}</Text>
+        ⛔ {message} <Text italic={true}>{moduleName}</Text>
       </Text>
 
       <Divider />
 
       <Box flexDirection="column" marginTop={1}>
-        {Object.entries(result.errors).map(([futureId, errors], i) => (
-          <ErrorBox key={`err-${i}`} futureId={futureId} errors={errors} />
+        {Object.entries(result.errors).map(([futureId, futureErrors]) => (
+          <Text key={futureId}>
+            {futureId} <Text color="red">errors:</Text>
+            <Newline />
+            {futureErrors.map((error, i) => (
+              <Text key={i}>
+                {" "}
+                - {error}
+                <Newline />
+              </Text>
+            ))}
+          </Text>
         ))}
       </Box>
 
@@ -176,43 +118,53 @@ const ValidationErrorResult: React.FC<{
   );
 };
 
-const ReconciliationErrorResult: React.FC<{
+const ExecutionErrorResult: React.FC<{
   moduleName: string;
   chainId: number;
-  result: ReconciliationErrorDeploymentResult;
+  result: ExecutionErrorDeploymentResult;
 }> = ({ moduleName, result }) => {
   return (
     <Box margin={0} flexDirection="column">
       <Divider />
 
       <Text>
-        ⛔ Reconciliation failed for module{" "}
-        <Text italic={true}>{moduleName}</Text>
+        ⛔ Execution failed for module <Text italic={true}>{moduleName}</Text>
       </Text>
 
       <Divider />
 
-      <Box flexDirection="column" marginTop={1}>
-        {Object.entries(result.errors).map(([futureId, errors], i) => (
-          <ErrorBox key={`err-${i}`} futureId={futureId} errors={errors} />
-        ))}
+      <Box flexDirection="column" margin={0}>
+        {result.timedOut.length > 0 && (
+          <Box flexDirection="column" margin={0} marginBottom={1}>
+            <Text color="yellow">
+              Timed Out:
+              <Newline />
+            </Text>
+            {result.timedOut.map(({ futureId, executionId }) => (
+              <Text key={futureId}>
+                - {futureId}/{executionId}
+              </Text>
+            ))}
+          </Box>
+        )}
+
+        {result.failed.length > 0 && (
+          <Box flexDirection="column" margin={0} marginBottom={1}>
+            <Text color="red">
+              Failed:
+              <Newline />
+            </Text>
+
+            {result.failed.map(({ futureId, executionId, error }) => (
+              <Text key={futureId}>
+                - {futureId}/{executionId}: {error}
+              </Text>
+            ))}
+          </Box>
+        )}
       </Box>
 
-      <Text> </Text>
+      <Newline />
     </Box>
-  );
-};
-
-export const ErrorBox: React.FC<{ futureId: string; errors: string[] }> = ({
-  futureId,
-  errors,
-}) => {
-  return (
-    <Text>
-      Future ID: {futureId} - <Text color="red">error:</Text>
-      {"\n"}
-      {"  - "}
-      {errors.join("\n  - ")}
-    </Text>
   );
 };

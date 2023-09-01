@@ -8,12 +8,15 @@ import {
   DeploymentExecutionStateCompleteEvent,
   DeploymentExecutionStateInitializeEvent,
   DeploymentParameters,
+  DeploymentResult,
+  DeploymentResultType,
   DeploymentStartEvent,
   ExecutionEventListener,
   ExecutionEventResult,
   ExecutionEventResultType,
   ExecutionEventType,
   IgnitionError,
+  IgnitionModuleResult,
   NetworkInteractionRequestEvent,
   OnchainInteractionBumpFeesEvent,
   OnchainInteractionDroppedEvent,
@@ -342,6 +345,7 @@ export class UiEventHandler implements ExecutionEventListener {
       ...this.state,
       status: UiStateDeploymentStatus.COMPLETE,
       result: event.result,
+      batches: this._applyResultToBatches(this.state.batches, event.result),
     };
   }
 
@@ -424,5 +428,63 @@ export class UiEventHandler implements ExecutionEventListener {
         };
       }
     }
+  }
+
+  private _applyResultToBatches(
+    batches: UiBatches,
+    result: DeploymentResult<string, IgnitionModuleResult<string>>
+  ): UiBatches {
+    const newBatches: UiBatches = [];
+
+    for (const oldBatch of batches) {
+      const newBatch = [];
+      for (const future of oldBatch) {
+        const updatedFuture = this._hasUpdatedResult(future.futureId, result);
+
+        newBatch.push(updatedFuture ?? future);
+      }
+
+      newBatches.push(newBatch);
+    }
+
+    return newBatches;
+  }
+
+  private _hasUpdatedResult(
+    futureId: string,
+    result: DeploymentResult<string, IgnitionModuleResult<string>>
+  ): UiFuture | null {
+    if (result.type !== DeploymentResultType.EXECUTION_ERROR) {
+      return null;
+    }
+
+    const failed = result.failed.find((f) => f.futureId === futureId);
+
+    if (failed !== undefined) {
+      const f: UiFuture = {
+        futureId,
+        status: {
+          type: UiFutureStatusType.ERRORED,
+          message: failed.error,
+        },
+      };
+
+      return f;
+    }
+
+    const timedout = result.timedOut.find((f) => f.futureId === futureId);
+
+    if (timedout !== undefined) {
+      const f: UiFuture = {
+        futureId,
+        status: {
+          type: UiFutureStatusType.PENDING,
+        },
+      };
+
+      return f;
+    }
+
+    return null;
   }
 }
