@@ -148,7 +148,7 @@ const ValidationErrorResult: React.FC<{
   moduleName: string;
   chainId: number;
   result: ValidationErrorDeploymentResult;
-}> = ({ moduleName }) => {
+}> = ({ moduleName, result }) => {
   return (
     <Box margin={0} flexDirection="column">
       <Divider />
@@ -159,9 +159,27 @@ const ValidationErrorResult: React.FC<{
 
       <Divider />
 
-      {/* TODO: fill in validation results */}
+      <Box flexDirection="column" marginTop={1}>
+        {Object.entries(result.errors).map(([futureId, errors], i) => (
+          <ErrorBox key={`err-${i}`} futureId={futureId} errors={errors} />
+        ))}
+      </Box>
 
       <Text> </Text>
     </Box>
+  );
+};
+
+export const ErrorBox: React.FC<{ futureId: string; errors: string[] }> = ({
+  futureId,
+  errors,
+}) => {
+  return (
+    <Text>
+      Future ID: {futureId} - <Text color="red">error:</Text>
+      {"\n"}
+      {"  - "}
+      {errors.join("\n  - ")}
+    </Text>
   );
 };

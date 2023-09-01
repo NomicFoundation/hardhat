@@ -18,7 +18,10 @@ import {
   DeploymentParameters,
   DeploymentResult,
 } from "./types/deploy";
-import { ExecutionEventListener } from "./types/execution-events";
+import {
+  ExecutionEventListener,
+  ExecutionEventType,
+} from "./types/execution-events";
 import { IgnitionModule, IgnitionModuleResult } from "./types/module";
 import { EIP1193Provider } from "./types/provider";
 
@@ -56,7 +59,21 @@ export async function deploy<
   accounts: string[];
   defaultSender?: string;
 }): Promise<DeploymentResult<ContractNameT, IgnitionModuleResultsT>> {
-  await validateStageOne(ignitionModule, artifactResolver);
+  const validationResult = await validateStageOne(
+    ignitionModule,
+    artifactResolver
+  );
+
+  if (validationResult !== null) {
+    if (executionEventListener !== undefined) {
+      executionEventListener.DEPLOYMENT_COMPLETE({
+        type: ExecutionEventType.DEPLOYMENT_COMPLETE,
+        result: validationResult,
+      });
+    }
+
+    return validationResult;
+  }
 
   if (defaultSender !== undefined) {
     if (!accounts.includes(defaultSender)) {
