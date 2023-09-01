@@ -10,11 +10,9 @@ import {
   bufferToHex,
   toBuffer,
   toRpcSig,
-  zeroAddress,
 } from "@nomicfoundation/ethereumjs-util";
 import * as t from "io-ts";
 import cloneDeep from "lodash/cloneDeep";
-
 import { BoundExperimentalHardhatNetworkMessageTraceHook } from "../../../../types";
 import { RpcAccessList } from "../../../core/jsonrpc/types/access-list";
 import {
@@ -69,7 +67,6 @@ import { MessageTrace } from "../../stack-traces/message-trace";
 import { LATEST_BLOCK } from "../filter";
 import { HardhatNode } from "../node";
 import {
-  CallParams,
   FilterParams,
   GatherTracesResult,
   MineBlockResult,
@@ -90,6 +87,7 @@ import { optional } from "../../../util/io-ts";
 import * as BigIntUtils from "../../../util/bigint";
 import { HardforkName } from "../../../util/hardforks";
 import { ModulesLogger } from "./logger";
+import { Base } from "./base";
 
 const EIP1559_MIN_HARDFORK = HardforkName.LONDON;
 const ACCESS_LIST_MIN_HARDFORK = HardforkName.BERLIN;
@@ -98,6 +96,8 @@ const EIP3860_MIN_HARDFORK = HardforkName.SHANGHAI;
 
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 export class EthModule {
+  private readonly _base: Base;
+
   constructor(
     private readonly _common: Common,
     private readonly _node: HardhatNode,
@@ -105,7 +105,9 @@ export class EthModule {
     private readonly _throwOnCallFailures: boolean,
     private readonly _logger: ModulesLogger,
     private readonly _experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = []
-  ) {}
+  ) {
+    this._base = new Base(this._node);
+  }
 
   public async processRequest(
     method: string,
@@ -354,9 +356,9 @@ export class EthModule {
   ): Promise<string> {
     this._validateTransactionAndCallRequest(rpcCall);
 
-    const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
+    const blockNumberOrPending = await this._base.resolveNewBlockTag(blockTag);
 
-    const callParams = await this._rpcCallRequestToNodeCallParams(rpcCall);
+    const callParams = await this._base.rpcCallRequestToNodeCallParams(rpcCall);
 
     const {
       result: returnData,
@@ -434,12 +436,14 @@ export class EthModule {
 
     // estimateGas behaves differently when there's no blockTag
     // it uses "pending" as default instead of "latest"
-    const blockNumberOrPending = await this._resolveNewBlockTag(
+    const blockNumberOrPending = await this._base.resolveNewBlockTag(
       blockTag,
       "pending"
     );
 
-    const callParams = await this._rpcCallRequestToNodeCallParams(callRequest);
+    const callParams = await this._base.rpcCallRequestToNodeCallParams(
+      callRequest
+    );
 
     const { estimation, error, trace, consoleLogMessages } =
       await this._node.estimateGas(callParams, blockNumberOrPending);
@@ -487,7 +491,7 @@ export class EthModule {
     address: Buffer,
     blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
-    const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
+    const blockNumberOrPending = await this._base.resolveNewBlockTag(blockTag);
 
     return numberToRpcQuantity(
       await this._node.getAccountBalance(
@@ -612,7 +616,7 @@ export class EthModule {
     address: Buffer,
     blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
-    const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
+    const blockNumberOrPending = await this._base.resolveNewBlockTag(blockTag);
 
     return bufferToRpcData(
       await this._node.getCode(new Address(address), blockNumberOrPending)
@@ -721,7 +725,7 @@ export class EthModule {
     slot: bigint,
     blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
-    const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
+    const blockNumberOrPending = await this._base.resolveNewBlockTag(blockTag);
 
     const data = await this._node.getStorageAt(
       new Address(address),
@@ -854,7 +858,7 @@ export class EthModule {
     address: Buffer,
     blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
-    const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
+    const blockNumberOrPending = await this._base.resolveNewBlockTag(blockTag);
 
     return numberToRpcQuantity(
       await this._node.getNextConfirmedNonce(
@@ -1240,7 +1244,9 @@ export class EthModule {
       );
     }
 
-    const resolvedNewestBlock = await this._resolveNewBlockTag(newestBlock);
+    const resolvedNewestBlock = await this._base.resolveNewBlockTag(
+      newestBlock
+    );
 
     const feeHistory = await this._node.getFeeHistory(
       blockCount,
@@ -1262,29 +1268,6 @@ export class EthModule {
   }
 
   // Utility methods
-
-  private async _rpcCallRequestToNodeCallParams(
-    rpcCall: RpcCallRequest
-  ): Promise<CallParams> {
-    return {
-      to: rpcCall.to,
-      from:
-        rpcCall.from !== undefined
-          ? rpcCall.from
-          : await this._getDefaultCallFrom(),
-      data: rpcCall.data !== undefined ? rpcCall.data : toBuffer([]),
-      gasLimit:
-        rpcCall.gas !== undefined ? rpcCall.gas : this._node.getBlockGasLimit(),
-      value: rpcCall.value !== undefined ? rpcCall.value : 0n,
-      accessList:
-        rpcCall.accessList !== undefined
-          ? this._rpcAccessListToNodeAccessList(rpcCall.accessList)
-          : undefined,
-      gasPrice: rpcCall.gasPrice,
-      maxFeePerGas: rpcCall.maxFeePerGas,
-      maxPriorityFeePerGas: rpcCall.maxPriorityFeePerGas,
-    };
-  }
 
   private async _rpcTransactionRequestToNodeTransactionParams(
     rpcTx: RpcTransactionRequest
@@ -1530,16 +1513,6 @@ export class EthModule {
     }
 
     return address;
-  }
-
-  private async _getDefaultCallFrom(): Promise<Buffer> {
-    const localAccounts = await this._node.getLocalAccountAddresses();
-
-    if (localAccounts.length === 0) {
-      return toBuffer(zeroAddress());
-    }
-
-    return toBuffer(localAccounts[0]);
   }
 
   private async _sendTransactionAndReturnHash(tx: TypedTransaction) {
