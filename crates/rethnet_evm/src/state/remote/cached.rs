@@ -48,17 +48,21 @@ impl State for CachedRemoteState {
         }
 
         if let Some(mut account_info) = self.remote.basic(address)? {
+            // Split code and store separately
+            // Always cache code regardless of the block number for two reasons:
+            // 1. It's an invariant of this trait getting an `AccountInfo` by calling `basic`,
+            // one can call `code_by_hash` with `AccountInfo.code_hash` and get the code.
+            // 2. Since the code is identified by its hash, it never goes stale.
+            if let Some(code) = account_info.code.take() {
+                let block_code = self
+                    .code_cache
+                    .entry(*self.remote.block_number())
+                    .or_default();
+
+                block_code.entry(account_info.code_hash).or_insert(code);
+            }
+
             if self.remote.is_cacheable()? {
-                // Split code and store separately
-                if let Some(code) = account_info.code.take() {
-                    let block_code = self
-                        .code_cache
-                        .entry(*self.remote.block_number())
-                        .or_default();
-
-                    block_code.entry(account_info.code_hash).or_insert(code);
-                }
-
                 block_accounts.insert(address, account_info.clone().into());
             }
             return Ok(Some(account_info));
@@ -153,7 +157,7 @@ mod tests {
         let remote = RemoteState::new(runtime, rpc_client, block_number);
         let mut cached = CachedRemoteState::new(remote);
 
-        cached.basic(dai_address).expect("should succeed").unwrap();
+        let account_info = cached.basic(dai_address).expect("should succeed").unwrap();
 
         cached
             .storage(dai_address, U256::from(0))
@@ -163,8 +167,8 @@ mod tests {
             assert!(entry.is_empty());
         }
 
-        for entry in cached.code_cache.values() {
-            assert!(entry.is_empty());
-        }
+        cached
+            .code_by_hash(account_info.code_hash)
+            .expect("should succeed");
     }
 }
