@@ -27,9 +27,11 @@ export const BatchExecution = ({ state }: { state: UiState }) => {
         )}
       </Box>
 
-      {state.batches.map((batch, i) => (
-        <Batch key={`batch-${i}`} batch={batch} index={i}></Batch>
-      ))}
+      {state.batches
+        .filter((batch, i) => isBatchDisplayable(batch, i))
+        .map((batch, i) => (
+          <Batch key={`batch-${i}`} batch={batch} index={i}></Batch>
+        ))}
     </>
   );
 };
@@ -138,4 +140,12 @@ function resolveFutureColors(future: UiFuture): {
         textColor: "white",
       };
   }
+}
+
+function isBatchDisplayable(batch: UiFuture[], index: number): boolean {
+  if (index === 0) {
+    return true;
+  }
+
+  return batch.some((v) => v.status.type !== UiFutureStatusType.UNSTARTED);
 }
