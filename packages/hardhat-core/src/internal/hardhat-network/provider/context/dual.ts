@@ -40,10 +40,7 @@ export class DualEthContext implements EthContextAdapter {
       const forkBlockNumber = (
         hardhat.vm() as EthereumJSAdapter
       ).getForkBlockNumber();
-      config.forkConfig.blockNumber = parseInt(
-        forkBlockNumber!.toString(10),
-        10
-      );
+      config.forkConfig.blockNumber = Number(forkBlockNumber!);
     }
 
     const rethnet = await RethnetEthContext.create(config);
