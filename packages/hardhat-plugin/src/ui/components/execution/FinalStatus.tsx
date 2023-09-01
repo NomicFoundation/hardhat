@@ -1,6 +1,7 @@
 import {
   DeploymentResultType,
   IgnitionModuleResult,
+  ReconciliationErrorDeploymentResult,
   SuccessfulDeploymentResult,
   ValidationErrorDeploymentResult,
 } from "@ignored/ignition-core";
@@ -33,8 +34,13 @@ export const FinalStatus = ({ state }: { state: UiState }) => {
   }
 
   if (state.result?.type === DeploymentResultType.RECONCILIATION_ERROR) {
-    // TODO: fill in reconciliation errors
-    return <Text>Reconciliation error</Text>;
+    return (
+      <ReconciliationErrorResult
+        chainId={state.chainId!}
+        moduleName={state.moduleName!}
+        result={state.result}
+      />
+    );
   }
 
   if (state.result?.type === DeploymentResultType.EXECUTION_ERROR) {
@@ -155,6 +161,33 @@ const ValidationErrorResult: React.FC<{
 
       <Text>
         ⛔ Validation failed for module <Text italic={true}>{moduleName}</Text>
+      </Text>
+
+      <Divider />
+
+      <Box flexDirection="column" marginTop={1}>
+        {Object.entries(result.errors).map(([futureId, errors], i) => (
+          <ErrorBox key={`err-${i}`} futureId={futureId} errors={errors} />
+        ))}
+      </Box>
+
+      <Text> </Text>
+    </Box>
+  );
+};
+
+const ReconciliationErrorResult: React.FC<{
+  moduleName: string;
+  chainId: number;
+  result: ReconciliationErrorDeploymentResult;
+}> = ({ moduleName, result }) => {
+  return (
+    <Box margin={0} flexDirection="column">
+      <Divider />
+
+      <Text>
+        ⛔ Reconciliation failed for module{" "}
+        <Text italic={true}>{moduleName}</Text>
       </Text>
 
       <Divider />
