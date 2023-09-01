@@ -2,6 +2,7 @@ import { Block } from "@nomicfoundation/ethereumjs-block";
 import { HardforkName } from "../../../util/hardforks";
 import { BlockchainAdapter } from "../blockchain";
 import {
+  assertEqualBlocks,
   assertEqualOptionalBlocks,
   assertEqualOptionalReceipts,
   rpcLogDifferences,
@@ -74,12 +75,12 @@ export class DualBlockchain implements BlockchainAdapter {
   }
 
   public async getLatestBlock(): Promise<Block> {
-    const [hardhatBlock, rethnetBlock] = await Promise.all([
-      this._hardhat.getLatestBlock(),
-      this._rethnet.getLatestBlock(),
-    ]);
+    const hardhatBlock = await this._hardhat.getLatestBlock();
+    const rethnetBlock = (await this._rethnet.getBlockByNumber(
+      hardhatBlock.header.number
+    ))!;
 
-    assertEqualOptionalBlocks(hardhatBlock, rethnetBlock);
+    assertEqualBlocks(hardhatBlock, rethnetBlock);
     return rethnetBlock;
   }
 
