@@ -1,24 +1,33 @@
 import { Box, Text } from "ink";
 import Spinner from "ink-spinner";
 
-import { UiFuture, UiFutureStatusType, UiState } from "../../types";
+import {
+  UiFuture,
+  UiFutureStatusType,
+  UiState,
+  UiStateDeploymentStatus,
+} from "../../types";
 
 import { Divider } from "./Divider";
 
 export const BatchExecution = ({ state }: { state: UiState }) => {
-  const batches = state.batches;
+  const isComplete = state.status === UiStateDeploymentStatus.COMPLETE;
 
   return (
     <>
       <Divider />
 
       <Box paddingBottom={1}>
-        <Text bold>
-          Executing <Spinner type="simpleDots" />
-        </Text>
+        {isComplete ? (
+          <Text bold>Execution complete</Text>
+        ) : (
+          <Text bold>
+            Executing <Spinner type="simpleDots" />
+          </Text>
+        )}
       </Box>
 
-      {batches.map((batch, i) => (
+      {state.batches.map((batch, i) => (
         <Batch key={`batch-${i}`} batch={batch} index={i}></Batch>
       ))}
     </>
