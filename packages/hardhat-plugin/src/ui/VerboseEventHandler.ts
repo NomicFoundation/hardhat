@@ -21,6 +21,7 @@ import {
   RunStartEvent,
   SendDataExecutionStateCompleteEvent,
   SendDataExecutionStateInitializeEvent,
+  SetModuleIdEvent,
   StaticCallCompleteEvent,
   StaticCallExecutionStateCompleteEvent,
   StaticCallExecutionStateInitializeEvent,
@@ -233,5 +234,9 @@ export class VerboseEventHandler implements ExecutionEventListener {
     _event: DeploymentCompleteEvent
   ): void {
     console.log(`Deployment complete`);
+  }
+
+  public [ExecutionEventType.SET_MODULE_ID](event: SetModuleIdEvent): void {
+    console.log(`Starting validation for module: ${event.moduleName}`);
   }
 }

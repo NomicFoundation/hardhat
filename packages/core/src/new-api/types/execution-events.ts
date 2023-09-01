@@ -30,7 +30,8 @@ export type ExecutionEvent =
   | OnchainInteractionTimeoutEvent
   | BatchInitializeEvent
   | DeploymentStartEvent
-  | BeginNextBatchEvent;
+  | BeginNextBatchEvent
+  | SetModuleIdEvent;
 
 /**
  * The types of diagnostic events emitted during a deploy.
@@ -62,6 +63,7 @@ export enum ExecutionEventType {
   DEPLOYMENT_START = "DEPLOYMENT_START",
   BEGIN_NEXT_BATCH = "BEGIN_NEXT_BATCH",
   DEPLOYMENT_COMPLETE = "DEPLOYMENT_COMPLETE",
+  SET_MODULE_ID = "SET_MODULE_ID",
 }
 
 /**
@@ -331,6 +333,16 @@ export interface OnchainInteractionTimeoutEvent {
 }
 
 /**
+ * An event indicating the current moduleId being validated.
+ *
+ * @beta
+ */
+export interface SetModuleIdEvent {
+  type: ExecutionEventType.SET_MODULE_ID;
+  moduleName: string;
+}
+
+/**
  * The types of network interactions that can be requested by a future.
  *
  * @beta
@@ -407,6 +419,7 @@ export interface ExecutionEventTypeMap {
   [ExecutionEventType.DEPLOYMENT_START]: DeploymentStartEvent;
   [ExecutionEventType.BEGIN_NEXT_BATCH]: BeginNextBatchEvent;
   [ExecutionEventType.DEPLOYMENT_COMPLETE]: DeploymentCompleteEvent;
+  [ExecutionEventType.SET_MODULE_ID]: SetModuleIdEvent;
 }
 
 /**

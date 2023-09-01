@@ -23,6 +23,7 @@ import {
   RunStartEvent,
   SendDataExecutionStateCompleteEvent,
   SendDataExecutionStateInitializeEvent,
+  SetModuleIdEvent,
   StaticCallCompleteEvent,
   StaticCallExecutionStateCompleteEvent,
   StaticCallExecutionStateInitializeEvent,
@@ -341,6 +342,13 @@ export class UiEventHandler implements ExecutionEventListener {
       ...this.state,
       status: UiStateDeploymentStatus.COMPLETE,
       result: event.result,
+    };
+  }
+
+  public [ExecutionEventType.SET_MODULE_ID](event: SetModuleIdEvent): void {
+    this.state = {
+      ...this.state,
+      moduleName: event.moduleName,
     };
   }
 

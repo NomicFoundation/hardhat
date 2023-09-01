@@ -59,6 +59,13 @@ export async function deploy<
   accounts: string[];
   defaultSender?: string;
 }): Promise<DeploymentResult<ContractNameT, IgnitionModuleResultsT>> {
+  if (executionEventListener !== undefined) {
+    executionEventListener.SET_MODULE_ID({
+      type: ExecutionEventType.SET_MODULE_ID,
+      moduleName: ignitionModule.id,
+    });
+  }
+
   const validationResult = await validateStageOne(
     ignitionModule,
     artifactResolver
