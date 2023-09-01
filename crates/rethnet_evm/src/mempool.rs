@@ -156,7 +156,15 @@ impl MemPool {
             let sender = state.basic(*caller)?.unwrap_or_default();
 
             // Remove all finalized transactions
-            transactions.retain(|transaction| transaction.nonce() >= sender.nonce);
+            transactions.retain(|transaction| {
+                let should_retain = transaction.nonce() >= sender.nonce;
+
+                if !should_retain {
+                    self.hash_to_transaction.remove(transaction.hash());
+                }
+
+                should_retain
+            });
 
             if let Some((idx, _)) = transactions
                 .iter()
