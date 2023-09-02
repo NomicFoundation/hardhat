@@ -482,15 +482,15 @@ impl PartialHeader {
             state_root: options.state_root.unwrap_or(KECCAK_NULL_RLP),
             receipts_root: options.receipts_root.unwrap_or(KECCAK_NULL_RLP),
             logs_bloom: options.logs_bloom.unwrap_or_default(),
-            difficulty: if spec_id < SpecId::MERGE {
-                if let Some(parent) = parent {
+            difficulty: options.difficulty.unwrap_or_else(|| {
+                if spec_id >= SpecId::MERGE {
+                    U256::ZERO
+                } else if let Some(parent) = parent {
                     calculate_ethash_canonical_difficulty(spec_id, parent, &number, &timestamp)
                 } else {
-                    U256::ZERO
+                    U256::from(1)
                 }
-            } else {
-                options.difficulty.unwrap_or_default()
-            },
+            }),
             number,
             gas_limit: options.gas_limit.unwrap_or(U256::from(1_000_000)),
             gas_used: U256::ZERO,
