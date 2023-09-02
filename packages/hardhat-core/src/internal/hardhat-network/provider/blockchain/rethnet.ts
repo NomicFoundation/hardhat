@@ -1,7 +1,7 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import { Blockchain, Block as EdrBlock } from "rethnet-evm";
-import { HardforkName } from "../../../util/hardforks";
+import { HardforkName, getHardforkName } from "../../../util/hardforks";
 import { BlockchainAdapter } from "../blockchain";
 import { RpcLogOutput, RpcReceiptOutput } from "../output";
 import {
@@ -128,7 +128,10 @@ export class RethnetBlockchain implements BlockchainAdapter {
       return undefined;
     }
 
-    return rethnetReceiptToEthereumJS(receipt);
+    return rethnetReceiptToEthereumJS(
+      receipt,
+      getHardforkName(this._common.hardfork())
+    );
   }
 
   public async getTotalDifficultyByHash(

@@ -34,7 +34,7 @@ import {
   Log,
 } from "rethnet-evm";
 import { fromBigIntLike, toHex } from "../../../util/bigint";
-import { HardforkName } from "../../../util/hardforks";
+import { HardforkName, hardforkGte } from "../../../util/hardforks";
 import {
   isCreateOutput,
   isHaltResult,
@@ -363,7 +363,8 @@ export function rethnetReceiptToEthereumJsTxReceipt(
 }
 
 export function rethnetReceiptToEthereumJS(
-  receipt: RethnetReceipt
+  receipt: RethnetReceipt,
+  hardfork: HardforkName
 ): RpcReceiptOutput {
   return {
     blockHash: bufferToHex(receipt.blockHash),
@@ -385,8 +386,16 @@ export function rethnetReceiptToEthereumJS(
     status: receipt.status !== null ? toHex(receipt.status) : undefined,
     root:
       receipt.stateRoot !== null ? bufferToHex(receipt.stateRoot) : undefined,
-    type: bigIntToHex(receipt.type),
-    effectiveGasPrice: bigIntToHex(receipt.effectiveGasPrice),
+    // Only shown if the local hardfork is at least Berlin, or if the remote is not a legacy one
+    type:
+      hardforkGte(hardfork, HardforkName.BERLIN) || receipt.type >= 1n
+        ? bigIntToHex(receipt.type)
+        : undefined,
+    // Only shown if the local hardfork is at least London, or if the remote is EIP-1559
+    effectiveGasPrice:
+      hardforkGte(hardfork, HardforkName.LONDON) || receipt.type >= 2n
+        ? bigIntToHex(receipt.effectiveGasPrice)
+        : undefined,
   };
 }
 
