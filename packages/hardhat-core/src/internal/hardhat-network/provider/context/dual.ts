@@ -47,7 +47,14 @@ export class DualEthContext implements EthContextAdapter {
 
     const vm = new DualModeAdapter(common, hardhat.vm(), rethnet.vm());
 
-    return new DualEthContext(hardhat, rethnet, vm);
+    const context = new DualEthContext(hardhat, rethnet, vm);
+
+    // Validate that the latest blocks are equal:
+    // 1) For forking, block numbers must be equal
+    // 2) For local, genesis blocks must be equal
+    const _blockNumber = await context.blockchain().getLatestBlock();
+
+    return context;
   }
 
   public blockchain(): BlockchainAdapter {
