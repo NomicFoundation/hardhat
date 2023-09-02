@@ -34,4 +34,9 @@ export class DualBlockMiner implements BlockMinerAdapter {
 
     return rethnetResult;
   }
+
+  public setPrevrandaoGeneratorNextValue(nextValue: Buffer): void {
+    this._ethereumJSMiner.setPrevrandaoGeneratorNextValue(nextValue);
+    this._rethnetMiner.setPrevrandaoGeneratorNextValue(nextValue);
+  }
 }

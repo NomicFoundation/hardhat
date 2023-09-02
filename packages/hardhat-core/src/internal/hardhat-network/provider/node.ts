@@ -896,7 +896,7 @@ export class HardhatNode extends EventEmitter {
       userProvidedNextBlockBaseFeePerGas:
         this.getUserProvidedNextBlockBaseFeePerGas(),
       coinbase: this.getCoinbaseAddress().toString(),
-      mixHashGenerator: this._mixHashGenerator.clone(),
+      nextPrevrandao: this._mixHashGenerator.seed(),
     };
 
     this._irregularStatesByBlockNumber = new Map(
@@ -954,7 +954,9 @@ export class HardhatNode extends EventEmitter {
 
     this._coinbase = snapshot.coinbase;
 
-    this._mixHashGenerator = snapshot.mixHashGenerator;
+    this._context
+      .blockMiner()
+      .setPrevrandaoGeneratorNextValue(snapshot.nextPrevrandao);
 
     // We delete this and the following snapshots, as they can only be used
     // once in Ganache

@@ -6,12 +6,13 @@ import { dateToTimestampSeconds } from "../../../util/date";
 import { hardforkGte, HardforkName } from "../../../util/hardforks";
 import { LocalNodeConfig } from "../node-types";
 import { getCurrentTimestamp } from "./getCurrentTimestamp";
+import { RandomBufferGenerator } from "./random";
 
 export function makeGenesisBlock(
   { initialDate, blockGasLimit: initialBlockGasLimit }: LocalNodeConfig,
   stateRoot: Buffer,
   hardfork: HardforkName,
-  initialMixHash: Buffer,
+  mixHashGenerator: RandomBufferGenerator,
   initialBaseFee?: bigint
 ): HeaderData {
   const initialBlockTimestamp =
@@ -31,7 +32,7 @@ export function makeGenesisBlock(
   };
 
   if (isPostMerge) {
-    header.mixHash = initialMixHash;
+    header.mixHash = mixHashGenerator.next();
   }
 
   if (initialBaseFee !== undefined) {

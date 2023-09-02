@@ -87,7 +87,7 @@ export class RethnetEthContext implements EthContextAdapter {
         config,
         await state.getStateRoot(),
         hardforkName,
-        prevRandaoGenerator.next(),
+        prevRandaoGenerator,
         genesisBlockBaseFeePerGas
       );
 

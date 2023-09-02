@@ -136,6 +136,9 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
       throw err;
     }
   }
+  public setPrevrandaoGeneratorNextValue(nextValue: Buffer): void {
+    this._prevRandaoGenerator.setNext(nextValue);
+  }
 
   private _isTxMinable(
     tx: TypedTransaction,

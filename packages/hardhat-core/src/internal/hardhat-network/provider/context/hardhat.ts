@@ -75,7 +75,7 @@ export class HardhatEthContext implements EthContextAdapter {
         config,
         await vm.getStateRoot(),
         hardfork,
-        prevRandaoGenerator.next(),
+        prevRandaoGenerator,
         genesisBlockBaseFeePerGas
       );
 

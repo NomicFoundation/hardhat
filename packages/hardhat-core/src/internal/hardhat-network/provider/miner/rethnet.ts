@@ -93,4 +93,8 @@ export class RethnetMiner implements BlockMinerAdapter {
       traces,
     };
   }
+
+  public setPrevrandaoGeneratorNextValue(nextValue: Buffer): void {
+    this._prevRandaoGenerator.setNext(nextValue);
+  }
 }
