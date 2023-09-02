@@ -50,9 +50,14 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
       headerData.mixHash = this._prevRandaoGenerator.next();
     }
 
-    headerData.baseFeePerGas =
-      baseFeePerGas ??
-      (await this._blockchain.getLatestBlock()).header.calcNextBaseFee();
+    let baseFee: bigint | undefined;
+    if (hardforkGte(this._hardfork, HardforkName.LONDON)) {
+      baseFee =
+        baseFeePerGas ??
+        (await this._blockchain.getLatestBlock()).header.calcNextBaseFee();
+
+      headerData.baseFeePerGas = baseFee;
+    }
 
     const blockBuilder = await this._vm.createBlockBuilder(this._common, {
       parentBlock,
@@ -66,7 +71,7 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
       const transactionQueue = new TransactionQueue(
         pendingTxs,
         this._mempoolOrder,
-        headerData.baseFeePerGas
+        baseFee
       );
 
       let tx = transactionQueue.getNextTransaction();
@@ -80,7 +85,7 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
         tx !== undefined
       ) {
         if (
-          !this._isTxMinable(tx, headerData.baseFeePerGas) ||
+          !this._isTxMinable(tx, baseFee) ||
           tx.gasLimit > blockGasLimit - (await blockBuilder.getGasUsed())
         ) {
           transactionQueue.removeLastSenderTransactions();
