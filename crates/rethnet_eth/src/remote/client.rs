@@ -577,7 +577,6 @@ impl RpcClient {
 
     /// Calls `eth_blockNumber` and returns the block number.
     pub async fn block_number(&self) -> Result<U256, RpcClientError> {
-        println!("block number {:?}", Instant::now());
         let block_number: U256 = self
             .call_without_cache(MethodInvocation::BlockNumber())
             .await?;
