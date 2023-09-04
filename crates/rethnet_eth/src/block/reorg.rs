@@ -1,4 +1,5 @@
 use crate::U256;
+use std::time::Duration;
 
 /// Test whether a block number is safe from a reorg for a specific chain based on the latest block
 /// number.
@@ -57,7 +58,7 @@ pub fn largest_possible_reorg(chain_id: &U256) -> U256 {
         1 | 4 | 5 | 42 => 32,
         // Ropsten
         3 => 100,
-        // xDai
+        // Gnosis/xDai
         100 => 38,
         _ => {
             log::warn!(
@@ -68,4 +69,24 @@ pub fn largest_possible_reorg(chain_id: &U256) -> U256 {
         }
     };
     U256::from(threshold)
+}
+
+/// The interval between blocks for a specific chain.
+pub fn block_time(chain_id: &U256) -> Duration {
+    let chain_id: u64 = chain_id.try_into().expect("invalid chain id");
+    match chain_id {
+        // Ethereum mainnet, Ropsten, Rinkeby, Goerli and Kovan testnets
+        // 32 blocks is one epoch on Ethereum mainnet
+        1 | 3 | 4 | 5 | 42 => Duration::from_secs(12),
+        // Gnosis/xDai
+        // https://gnosisscan.io/chart/blocktime
+        100 => Duration::from_secs(5),
+        _ => {
+            log::warn!(
+                "Unknown chain id {chain_id}, using default block time of {} seconds",
+                rethnet_defaults::DEFAULT_SAFE_BLOCK_TIME.as_secs(),
+            );
+            rethnet_defaults::DEFAULT_SAFE_BLOCK_TIME
+        }
+    }
 }
