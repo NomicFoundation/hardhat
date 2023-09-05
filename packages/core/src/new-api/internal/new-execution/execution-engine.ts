@@ -2,6 +2,10 @@ import { IgnitionError } from "../../../errors";
 import { ArtifactResolver } from "../../types/artifact";
 import { DeploymentParameters } from "../../types/deploy";
 import {
+  ExecutionEventListener,
+  ExecutionEventType,
+} from "../../types/execution-events";
+import {
   Future,
   IgnitionModule,
   IgnitionModuleResult,
@@ -33,6 +37,9 @@ export class ExecutionEngine {
     private readonly _artifactResolver: ArtifactResolver,
     private readonly _executionStrategy: ExecutionStrategy,
     private readonly _jsonRpcClient: JsonRpcClient,
+    private readonly _executionEventListener:
+      | ExecutionEventListener
+      | undefined,
     private readonly _requiredConfirmations: number,
     private readonly _millisecondBeforeBumpingFees: number,
     private readonly _maxFeeBumps: number,
@@ -87,6 +94,8 @@ export class ExecutionEngine {
     const futures = getFuturesFromModule(module);
 
     for (const batch of batches) {
+      this._emitBeginNextBatchEvent();
+
       // TODO: consider changing batcher to return futures rather than ids
       const executionBatch = batch.map((futureId) =>
         this._lookupFuture(futures, futureId)
@@ -255,5 +264,16 @@ export class ExecutionEngine {
     const sortedBatch = sortBy(batchWithNonces, ["from", "nonce", "future.id"]);
 
     return sortedBatch.map((f) => f.future);
+  }
+
+  /**
+   * Emits an execution event signaling that execution of the next batch has begun.
+   */
+  private _emitBeginNextBatchEvent(): void {
+    if (this._executionEventListener !== undefined) {
+      this._executionEventListener.BEGIN_NEXT_BATCH({
+        type: ExecutionEventType.BEGIN_NEXT_BATCH,
+      });
+    }
   }
 }

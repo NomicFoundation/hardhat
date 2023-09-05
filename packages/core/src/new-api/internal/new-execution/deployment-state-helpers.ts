@@ -18,6 +18,7 @@ export async function loadDeploymentState(
   deploymentLoader: DeploymentLoader
 ): Promise<DeploymentState | undefined> {
   let deploymentState: DeploymentState | undefined;
+
   for await (const message of deploymentLoader.readFromJournal()) {
     deploymentState = deploymentStateReducer(deploymentState, message);
   }

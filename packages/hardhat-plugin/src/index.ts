@@ -1,11 +1,7 @@
 import {
   deploy,
   DeploymentParameters,
-  DeploymentResult,
-  DeploymentResultType,
-  IgnitionModuleResult,
   plan,
-  SuccessfulDeploymentResult,
   wipe,
 } from "@ignored/ignition-core";
 import "@nomicfoundation/hardhat-ethers";
@@ -15,11 +11,12 @@ import { lazyObject } from "hardhat/plugins";
 import path from "path";
 import Prompt from "prompts";
 
-import { HardhatArtifactResolver } from "./hardhat-artifact-resolver.ts";
+import { HardhatArtifactResolver } from "./hardhat-artifact-resolver";
 import { IgnitionHelper } from "./ignition-helper";
 import { loadModule } from "./load-module";
 import { writePlan } from "./plan/write-plan";
-import { errorDeploymentResultToExceptionMessage } from "./utils/error-deployment-result-to-exception-message";
+import { UiEventHandler } from "./ui/UiEventHandler";
+import { VerboseEventHandler } from "./ui/VerboseEventHandler";
 import { open } from "./utils/open";
 
 import "./type-extensions";
@@ -65,19 +62,19 @@ task("deploy")
   )
   .addOptionalParam("id", "set the deployment id")
   .addFlag("force", "restart the deployment ignoring previous history")
-  .addFlag("logs", "output journal logs to the terminal")
+  .addFlag("useVerbose", "use verbose execution output instead of UI")
   .setAction(
     async (
       {
         moduleNameOrPath,
         parameters: parametersInput,
-        logs,
+        useVerbose,
         id: givenDeploymentId,
       }: {
         moduleNameOrPath: string;
         parameters?: string;
         force: boolean;
-        logs: boolean;
+        useVerbose: boolean;
         id: string;
       },
       hre
@@ -139,18 +136,20 @@ task("deploy")
 
       const artifactResolver = new HardhatArtifactResolver(hre);
 
-      const result = await deploy({
+      const executionEventListener = useVerbose
+        ? new VerboseEventHandler()
+        : new UiEventHandler(parameters);
+
+      await deploy({
         config: hre.config.ignition,
         provider: hre.network.provider,
+        executionEventListener,
         artifactResolver,
         deploymentDir,
         ignitionModule: userModule,
         deploymentParameters: parameters ?? {},
         accounts,
-        verbose: logs,
       });
-
-      displayDeploymentResult(result);
     }
   );
 
@@ -319,31 +318,5 @@ function resolveParametersString(paramString: string): DeploymentParameters {
   } catch {
     console.warn(`Could not parse JSON parameters`);
     process.exit(0);
-  }
-}
-
-function displayDeploymentResult(
-  result: DeploymentResult<string, IgnitionModuleResult<string>>
-): void {
-  switch (result.type) {
-    case DeploymentResultType.VALIDATION_ERROR:
-    case DeploymentResultType.RECONCILIATION_ERROR:
-    case DeploymentResultType.EXECUTION_ERROR:
-      return console.log(errorDeploymentResultToExceptionMessage(result));
-    case DeploymentResultType.SUCCESSFUL_DEPLOYMENT:
-      return _displaySuccessfulDeployment(result);
-  }
-}
-
-function _displaySuccessfulDeployment(
-  result: SuccessfulDeploymentResult<string, IgnitionModuleResult<string>>
-): void {
-  console.log("Deployment complete");
-  console.log("");
-
-  for (const [futureId, { contractName, address }] of Object.entries(
-    result.contracts
-  )) {
-    console.log(`${contractName} (${futureId}) - ${address}`);
   }
 }

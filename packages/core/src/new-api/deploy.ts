@@ -18,6 +18,10 @@ import {
   DeploymentParameters,
   DeploymentResult,
 } from "./types/deploy";
+import {
+  ExecutionEventListener,
+  ExecutionEventType,
+} from "./types/execution-events";
 import { IgnitionModule, IgnitionModuleResult } from "./types/module";
 import { EIP1193Provider } from "./types/provider";
 
@@ -34,16 +38,17 @@ export async function deploy<
   config = {},
   artifactResolver,
   provider,
+  executionEventListener,
   deploymentDir,
   ignitionModule,
   deploymentParameters,
   accounts,
-  verbose,
   defaultSender,
 }: {
   config?: Partial<DeployConfig>;
   artifactResolver: ArtifactResolver;
   provider: EIP1193Provider;
+  executionEventListener?: ExecutionEventListener;
   deploymentDir?: string;
   ignitionModule: IgnitionModule<
     ModuleIdT,
@@ -52,10 +57,30 @@ export async function deploy<
   >;
   deploymentParameters: DeploymentParameters;
   accounts: string[];
-  verbose: boolean;
   defaultSender?: string;
 }): Promise<DeploymentResult<ContractNameT, IgnitionModuleResultsT>> {
-  await validateStageOne(ignitionModule, artifactResolver);
+  if (executionEventListener !== undefined) {
+    executionEventListener.SET_MODULE_ID({
+      type: ExecutionEventType.SET_MODULE_ID,
+      moduleName: ignitionModule.id,
+    });
+  }
+
+  const validationResult = await validateStageOne(
+    ignitionModule,
+    artifactResolver
+  );
+
+  if (validationResult !== null) {
+    if (executionEventListener !== undefined) {
+      executionEventListener.DEPLOYMENT_COMPLETE({
+        type: ExecutionEventType.DEPLOYMENT_COMPLETE,
+        result: validationResult,
+      });
+    }
+
+    return validationResult;
+  }
 
   if (defaultSender !== undefined) {
     if (!accounts.includes(defaultSender)) {
@@ -69,8 +94,8 @@ export async function deploy<
 
   const deploymentLoader =
     deploymentDir === undefined
-      ? new EphemeralDeploymentLoader(artifactResolver, verbose)
-      : new FileDeploymentLoader(deploymentDir, verbose);
+      ? new EphemeralDeploymentLoader(artifactResolver, executionEventListener)
+      : new FileDeploymentLoader(deploymentDir, executionEventListener);
 
   const executionStrategy = new BasicExecutionStrategy((artifactId) =>
     deploymentLoader.loadArtifact(artifactId)
@@ -93,7 +118,8 @@ export async function deploy<
     executionStrategy,
     jsonRpcClient,
     artifactResolver,
-    deploymentLoader
+    deploymentLoader,
+    executionEventListener
   );
 
   return deployer.deploy(

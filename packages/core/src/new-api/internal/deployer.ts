@@ -11,6 +11,10 @@ import {
   ReconciliationErrorDeploymentResult,
   SuccessfulDeploymentResult,
 } from "../types/deploy";
+import {
+  ExecutionEventListener,
+  ExecutionEventType,
+} from "../types/execution-events";
 
 import { Batcher } from "./batcher";
 import { DeploymentLoader } from "./deployment-loader/types";
@@ -50,7 +54,8 @@ export class Deployer {
     private readonly _executionStrategy: ExecutionStrategy,
     private readonly _jsonRpcClient: JsonRpcClient,
     private readonly _artifactResolver: ArtifactResolver,
-    private readonly _deploymentLoader: DeploymentLoader
+    private readonly _deploymentLoader: DeploymentLoader,
+    private readonly _executionEventListener?: ExecutionEventListener
   ) {
     assertIgnitionInvariant(
       this._config.requiredConfirmations >= 1,
@@ -80,10 +85,14 @@ export class Deployer {
     );
 
     if (validationResult !== null) {
+      this._emitDeploymentCompleteEvent(validationResult);
+
       return validationResult;
     }
 
-    let deploymentState = await this._getOrInitializeDeploymentState();
+    let deploymentState = await this._getOrInitializeDeploymentState(
+      ignitionModule.id
+    );
 
     const contracts =
       getFuturesFromModule(ignitionModule).filter(isContractFuture);
@@ -129,10 +138,14 @@ export class Deployer {
         errors[futureId].push(failure);
       }
 
-      return {
+      const reconciliationErrorResult: ReconciliationErrorDeploymentResult = {
         type: DeploymentResultType.RECONCILIATION_ERROR,
         errors,
       };
+
+      this._emitDeploymentCompleteEvent(reconciliationErrorResult);
+
+      return reconciliationErrorResult;
     }
 
     if (reconciliationResult.missingExecutedFutures.length > 0) {
@@ -141,11 +154,14 @@ export class Deployer {
 
     const batches = Batcher.batch(ignitionModule, deploymentState);
 
+    this._emitDeploymentBatchEvent(batches);
+
     const executionEngine = new ExecutionEngine(
       this._deploymentLoader,
       this._artifactResolver,
       this._executionStrategy,
       this._jsonRpcClient,
+      this._executionEventListener,
       this._config.requiredConfirmations,
       this._config.timeBeforeBumpingFees,
       this._config.maxFeeBumps,
@@ -161,7 +177,14 @@ export class Deployer {
       defaultSender
     );
 
-    return this._getDeploymentResult(deploymentState, ignitionModule);
+    const result = await this._getDeploymentResult(
+      deploymentState,
+      ignitionModule
+    );
+
+    this._emitDeploymentCompleteEvent(result);
+
+    return result;
   }
 
   private async _getDeploymentResult<
@@ -196,11 +219,15 @@ export class Deployer {
     };
   }
 
-  private async _getOrInitializeDeploymentState(): Promise<DeploymentState> {
+  private async _getOrInitializeDeploymentState(
+    moduleId: string
+  ): Promise<DeploymentState> {
     const chainId = await this._jsonRpcClient.getChainId();
     const deploymentState = await loadDeploymentState(this._deploymentLoader);
 
     if (deploymentState === undefined) {
+      this._emitDeploymentStartEvent(moduleId);
+
       return initializeDeploymentState(chainId, this._deploymentLoader);
     }
 
@@ -210,6 +237,41 @@ export class Deployer {
     );
 
     return deploymentState;
+  }
+
+  private _emitDeploymentStartEvent(moduleId: string): void {
+    if (this._executionEventListener === undefined) {
+      return;
+    }
+
+    this._executionEventListener.DEPLOYMENT_START({
+      type: ExecutionEventType.DEPLOYMENT_START,
+      moduleName: moduleId,
+    });
+  }
+
+  private _emitDeploymentBatchEvent(batches: string[][]): void {
+    if (this._executionEventListener === undefined) {
+      return;
+    }
+
+    this._executionEventListener.BATCH_INITIALIZE({
+      type: ExecutionEventType.BATCH_INITIALIZE,
+      batches,
+    });
+  }
+
+  private _emitDeploymentCompleteEvent(
+    result: DeploymentResult<string, IgnitionModuleResult<string>>
+  ): void {
+    if (this._executionEventListener === undefined) {
+      return;
+    }
+
+    this._executionEventListener.DEPLOYMENT_COMPLETE({
+      type: ExecutionEventType.DEPLOYMENT_COMPLETE,
+      result,
+    });
   }
 
   private _isSuccessful(deploymentState: DeploymentState): boolean {

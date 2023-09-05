@@ -13,7 +13,7 @@ describe("DeploymentLoaderImpls", function () {
       const _implementation: ExactInterface<
         DeploymentLoader,
         FileDeploymentLoader
-      > = new FileDeploymentLoader("./example", true);
+      > = new FileDeploymentLoader("./example");
 
       assert.isDefined(_implementation);
     });
@@ -24,7 +24,7 @@ describe("DeploymentLoaderImpls", function () {
       const _implementation: ExactInterface<
         DeploymentLoader,
         EphemeralDeploymentLoader
-      > = new EphemeralDeploymentLoader(setupMockArtifactResolver(), true);
+      > = new EphemeralDeploymentLoader(setupMockArtifactResolver());
 
       assert.isDefined(_implementation);
     });

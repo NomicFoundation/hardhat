@@ -18,7 +18,7 @@ import {
 import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { HardhatArtifactResolver } from "./hardhat-artifact-resolver.ts";
+import { HardhatArtifactResolver } from "./hardhat-artifact-resolver";
 import { errorDeploymentResultToExceptionMessage } from "./utils/error-deployment-result-to-exception-message";
 
 export type DeployedContract<ContractNameT extends string> = {
@@ -84,7 +84,6 @@ export class IgnitionHelper {
       ignitionModule,
       deploymentParameters: parameters,
       accounts,
-      verbose: false,
     });
 
     if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {

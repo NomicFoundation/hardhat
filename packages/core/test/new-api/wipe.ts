@@ -56,8 +56,7 @@ describe("wipe", () => {
 
   it("should allow wiping of future", async () => {
     const deploymentLoader = new EphemeralDeploymentLoader(
-      mockArtifactResolver,
-      false
+      mockArtifactResolver
     );
 
     let deploymentState = await initializeDeploymentState(
@@ -82,8 +81,7 @@ describe("wipe", () => {
 
   it("should error if the deployment hasn't been initialized", async () => {
     const deploymentLoader = new EphemeralDeploymentLoader(
-      mockArtifactResolver,
-      false
+      mockArtifactResolver
     );
 
     const wiper = new Wiper(deploymentLoader);
@@ -95,8 +93,7 @@ describe("wipe", () => {
 
   it("should error if the future id doesn't exist", async () => {
     const deploymentLoader = new EphemeralDeploymentLoader(
-      mockArtifactResolver,
-      false
+      mockArtifactResolver
     );
 
     await initializeDeploymentState(123, deploymentLoader);
@@ -110,8 +107,7 @@ describe("wipe", () => {
 
   it("should error if other futures are depenent on the future being wiped", async () => {
     const deploymentLoader = new EphemeralDeploymentLoader(
-      mockArtifactResolver,
-      false
+      mockArtifactResolver
     );
 
     let deploymentState = await initializeDeploymentState(

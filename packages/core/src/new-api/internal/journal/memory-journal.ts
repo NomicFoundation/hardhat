@@ -1,7 +1,8 @@
+import { ExecutionEventListener } from "../../types/execution-events";
 import { JournalMessage } from "../new-execution/types/messages";
 
 import { Journal } from "./types";
-import { logJournalableMessage } from "./utils/log";
+import { emitExecutionEvent } from "./utils/emitExecutionEvent";
 
 /**
  * An in-memory journal.
@@ -11,7 +12,7 @@ import { logJournalableMessage } from "./utils/log";
 export class MemoryJournal implements Journal {
   private messages: JournalMessage[] = [];
 
-  constructor(private _verbose: boolean = false) {}
+  constructor(private _executionEventListener?: ExecutionEventListener) {}
 
   public record(message: JournalMessage): void {
     this._log(message);
@@ -26,8 +27,8 @@ export class MemoryJournal implements Journal {
   }
 
   private _log(message: JournalMessage): void {
-    if (this._verbose) {
-      return logJournalableMessage(message);
+    if (this._executionEventListener !== undefined) {
+      emitExecutionEvent(message, this._executionEventListener);
     }
   }
 }

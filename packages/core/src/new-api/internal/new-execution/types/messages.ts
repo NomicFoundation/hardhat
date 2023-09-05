@@ -39,6 +39,12 @@ export type JournalMessage =
   | OnchainInteractionReplacedByUserMessage
   | OnchainInteractionTimeoutMessage;
 
+/**
+ * NOTE:
+ *
+ * when adding/removing/changing any of these
+ * be sure to update UiEventType accordingly
+ */
 export enum JournalMessageType {
   RUN_START = "RUN_START",
   WIPE_EXECUTION_STATE = "WIPE_EXECUTION_STATE",
