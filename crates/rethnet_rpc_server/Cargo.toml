@@ -4,14 +4,20 @@ version = "0.1.0-dev"
 edition = "2021"
 
 [dependencies]
+async-rwlock = { version = "1.3.0", default-features = false }
+async-trait = { version = "0.1.73", default-features = false }
 axum = "0.6.18"
 hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
 hyper = { version = "0.14.27", default-features = false, features = ["server"] }
 parking_lot = { version = "0.12.1", default-features = false }
 reqwest = { version = "0.11", features = ["blocking", "json"] }
-rethnet_eth = { version = "0.1.0-dev", path = "../rethnet_eth", features = ["serde"] }
+rethnet_eth = { version = "0.1.0-dev", path = "../rethnet_eth", features = [
+    "serde",
+] }
 rethnet_evm = { version = "0.1.0-dev", path = "../rethnet_evm" }
-secp256k1 = { version = "0.24.0", default-features = false, features = ["alloc"] }
+secp256k1 = { version = "0.24.0", default-features = false, features = [
+    "alloc",
+] }
 serde = { version = "1.0.147", default-features = false, features = ["derive"] }
 serde_json = { version = "1.0.89" }
 sha3 = { version = "0.10.6", default-features = false }
@@ -22,9 +28,11 @@ tracing = { version = "0.1.37", default-features = false, features = ["std"] }
 [dev-dependencies]
 rethnet_test_utils = { version = "0.1.0-dev", path = "../rethnet_test_utils" }
 tempfile = "3.7.1"
-tracing-subscriber = { version = "0.3.17", default-features = false, features = ["fmt"] }
+tracing-subscriber = { version = "0.3.17", default-features = false, features = [
+    "fmt",
+] }
 
 [build-dependencies]
-cargo_toml = {version = "0.15.3", default-features = false }
+cargo_toml = { version = "0.15.3", default-features = false }
 serde = { version = "1.0.147", default-features = false, features = ["derive"] }
 toml = { version = "0.5.9", default-features = false }

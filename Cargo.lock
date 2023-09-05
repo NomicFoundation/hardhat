@@ -2649,6 +2649,8 @@ dependencies = [
 name = "rethnet_rpc_server"
 version = "0.1.0-dev"
 dependencies = [
+ "async-rwlock",
+ "async-trait",
  "axum",
  "cargo_toml",
  "hex",

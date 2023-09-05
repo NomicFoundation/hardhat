@@ -35,7 +35,9 @@ use sha3::{Digest, Keccak256};
 use tokio::sync::{Mutex, RwLock};
 use tracing::{event, Level};
 
+mod api;
 mod hardhat_methods;
+mod node;
 pub use hardhat_methods::{
     reset::{RpcForkConfig, RpcHardhatNetworkConfig},
     HardhatMethodInvocation,
