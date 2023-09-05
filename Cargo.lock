@@ -2600,7 +2600,6 @@ dependencies = [
  "async-rwlock",
  "async-trait",
  "auto_impl",
- "backtrace",
  "cita_trie",
  "criterion",
  "futures",
