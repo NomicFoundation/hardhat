@@ -2577,7 +2577,6 @@ dependencies = [
  "reqwest",
  "reqwest-middleware",
  "reqwest-retry",
- "rethnet_defaults",
  "rethnet_test_utils",
  "revm-primitives",
  "rlp",
