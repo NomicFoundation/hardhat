@@ -9,7 +9,7 @@ import {
 import {
   ContractAtExecutionState,
   DeploymentExecutionState,
-} from "../../new-execution/types/execution-state";
+} from "../../execution/types/execution-state";
 import {
   ReconciliationContext,
   ReconciliationFutureResultFailure,

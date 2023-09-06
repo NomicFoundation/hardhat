@@ -5,13 +5,13 @@ import {
   NamedContractDeploymentFuture,
   NamedStaticCallFuture,
 } from "../../../types/module";
-import { resolveArgs } from "../../new-execution/future-processor/helpers/future-resolvers";
+import { resolveArgs } from "../../execution/future-processor/helpers/future-resolvers";
 import {
   CallExecutionState,
   DeploymentExecutionState,
   ExecutionSateType,
   StaticCallExecutionState,
-} from "../../new-execution/types/execution-state";
+} from "../../execution/types/execution-state";
 import {
   ReconciliationContext,
   ReconciliationFutureResultFailure,

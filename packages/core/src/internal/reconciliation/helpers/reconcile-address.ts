@@ -2,8 +2,8 @@ import {
   ArtifactContractAtFuture,
   NamedContractAtFuture,
 } from "../../../types/module";
-import { resolveAddressLike } from "../../new-execution/future-processor/helpers/future-resolvers";
-import { ContractAtExecutionState } from "../../new-execution/types/execution-state";
+import { resolveAddressLike } from "../../execution/future-processor/helpers/future-resolvers";
+import { ContractAtExecutionState } from "../../execution/types/execution-state";
 import {
   ReconciliationContext,
   ReconciliationFutureResultFailure,

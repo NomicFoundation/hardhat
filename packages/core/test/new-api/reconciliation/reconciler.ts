@@ -6,8 +6,8 @@ import {
   DeploymentExecutionState,
   ExecutionSateType,
   ExecutionStatus,
-} from "../../../src/internal/new-execution/types/execution-state";
-import { getDefaultSender } from "../../../src/internal/new-execution/utils/get-default-sender";
+} from "../../../src/internal/execution/types/execution-state";
+import { getDefaultSender } from "../../../src/internal/execution/utils/get-default-sender";
 import { FutureType } from "../../../src/types/module";
 import { exampleAccounts } from "../helpers";
 

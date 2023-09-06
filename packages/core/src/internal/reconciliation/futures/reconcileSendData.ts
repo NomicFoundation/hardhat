@@ -1,6 +1,6 @@
 import { SendDataFuture } from "../../../types/module";
-import { resolveAddressLike } from "../../new-execution/future-processor/helpers/future-resolvers";
-import { SendDataExecutionState } from "../../new-execution/types/execution-state";
+import { resolveAddressLike } from "../../execution/future-processor/helpers/future-resolvers";
+import { SendDataExecutionState } from "../../execution/types/execution-state";
 import { compare } from "../helpers/compare";
 import { reconcileData } from "../helpers/reconcile-data";
 import { reconcileFrom } from "../helpers/reconcile-from";

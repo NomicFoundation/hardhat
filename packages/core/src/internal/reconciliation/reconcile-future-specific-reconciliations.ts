@@ -7,7 +7,7 @@ import {
   ReadEventArgumentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../new-execution/types/execution-state";
+} from "../execution/types/execution-state";
 
 import { reconcileArtifactContractAt } from "./futures/reconcileArtifactContractAt";
 import { reconcileArtifactContractDeployment } from "./futures/reconcileArtifactContractDeployment";

@@ -4,11 +4,11 @@ import { DeploymentLoader } from "./deployment-loader/types";
 import {
   applyNewMessage,
   loadDeploymentState,
-} from "./new-execution/deployment-state-helpers";
+} from "./execution/deployment-state-helpers";
 import {
   JournalMessageType,
   WipeExecutionStateMessage,
-} from "./new-execution/types/messages";
+} from "./execution/types/messages";
 
 export class Wiper {
   constructor(private _deploymentLoader: DeploymentLoader) {}

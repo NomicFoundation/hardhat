@@ -1,6 +1,6 @@
 import { ReadEventArgumentFuture } from "../../../types/module";
-import { resolveAddressForContractFuture } from "../../new-execution/future-processor/helpers/future-resolvers";
-import { ReadEventArgumentExecutionState } from "../../new-execution/types/execution-state";
+import { resolveAddressForContractFuture } from "../../execution/future-processor/helpers/future-resolvers";
+import { ReadEventArgumentExecutionState } from "../../execution/types/execution-state";
 import { compare } from "../helpers/compare";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 

@@ -1,5 +1,5 @@
 import { SendDataFuture } from "../../../types/module";
-import { SendDataExecutionState } from "../../new-execution/types/execution-state";
+import { SendDataExecutionState } from "../../execution/types/execution-state";
 import {
   ReconciliationContext,
   ReconciliationFutureResultFailure,

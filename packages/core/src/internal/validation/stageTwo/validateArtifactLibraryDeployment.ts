@@ -2,7 +2,7 @@ import { isAccountRuntimeValue } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deploy";
 import { ArtifactLibraryDeploymentFuture } from "../../../types/module";
-import { validateLibraryNames } from "../../new-execution/libraries";
+import { validateLibraryNames } from "../../execution/libraries";
 import { validateAccountRuntimeValue } from "../utils";
 
 export async function validateArtifactLibraryDeployment(

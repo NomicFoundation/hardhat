@@ -1,11 +1,11 @@
 import difference from "lodash/difference";
 
 import { Future } from "../../types/module";
-import { DeploymentState } from "../new-execution/types/deployment-state";
+import { DeploymentState } from "../execution/types/deployment-state";
 import {
   ExecutionState,
   ExecutionStatus,
-} from "../new-execution/types/execution-state";
+} from "../execution/types/execution-state";
 
 import { ReconciliationFutureResult } from "./types";
 import { fail } from "./utils";

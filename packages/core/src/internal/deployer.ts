@@ -18,15 +18,14 @@ import {
 
 import { Batcher } from "./batcher";
 import { DeploymentLoader } from "./deployment-loader/types";
-import { formatExecutionError } from "./formatters";
 import {
   initializeDeploymentState,
   loadDeploymentState,
-} from "./new-execution/deployment-state-helpers";
-import { ExecutionEngine } from "./new-execution/execution-engine";
-import { JsonRpcClient } from "./new-execution/jsonrpc-client";
-import { DeploymentState } from "./new-execution/types/deployment-state";
-import { ExecutionResultType } from "./new-execution/types/execution-result";
+} from "./execution/deployment-state-helpers";
+import { ExecutionEngine } from "./execution/execution-engine";
+import { JsonRpcClient } from "./execution/jsonrpc-client";
+import { DeploymentState } from "./execution/types/deployment-state";
+import { ExecutionResultType } from "./execution/types/execution-result";
 import {
   CallExecutionState,
   ContractAtExecutionState,
@@ -36,8 +35,9 @@ import {
   ExecutionStatus,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "./new-execution/types/execution-state";
-import { ExecutionStrategy } from "./new-execution/types/execution-strategy";
+} from "./execution/types/execution-state";
+import { ExecutionStrategy } from "./execution/types/execution-strategy";
+import { formatExecutionError } from "./formatters";
 import { Reconciler } from "./reconciliation/reconciler";
 import { assertIgnitionInvariant } from "./utils/assertions";
 import { getFuturesFromModule } from "./utils/get-futures-from-module";

@@ -3,9 +3,9 @@ import path from "path";
 
 import { Artifact, BuildInfo } from "../../types/artifact";
 import { ExecutionEventListener } from "../../types/execution-events";
+import { JournalMessage } from "../execution/types/messages";
 import { FileJournal } from "../journal/file-journal";
 import { Journal } from "../journal/types";
-import { JournalMessage } from "../new-execution/types/messages";
 
 import { DeploymentLoader } from "./types";
 

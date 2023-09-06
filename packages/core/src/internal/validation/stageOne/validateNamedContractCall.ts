@@ -5,7 +5,7 @@ import { NamedContractCallFuture } from "../../../types/module";
 import {
   validateArtifactFunction,
   validateArtifactFunctionName,
-} from "../../new-execution/abi";
+} from "../../execution/abi";
 
 export async function validateNamedContractCall(
   future: NamedContractCallFuture<string, string>,

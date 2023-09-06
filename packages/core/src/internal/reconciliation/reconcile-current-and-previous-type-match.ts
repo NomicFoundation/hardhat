@@ -1,5 +1,5 @@
 import { Future, FutureType } from "../../types/module";
-import { ExecutionState } from "../new-execution/types/execution-state";
+import { ExecutionState } from "../execution/types/execution-state";
 
 import { ReconciliationContext, ReconciliationFutureResult } from "./types";
 import { fail } from "./utils";

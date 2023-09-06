@@ -2,7 +2,7 @@ import { IgnitionValidationError } from "../../../errors";
 import { isArtifactType } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { ReadEventArgumentFuture } from "../../../types/module";
-import { validateArtifactEventArgumentParams } from "../../new-execution/abi";
+import { validateArtifactEventArgumentParams } from "../../execution/abi";
 
 export async function validateReadEventArgument(
   future: ReadEventArgumentFuture,

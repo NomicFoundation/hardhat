@@ -12,12 +12,12 @@ import {
   ExecutionResultType,
   SendDataExecutionResult,
   StaticCallExecutionResult,
-} from "../../new-execution/types/execution-result";
+} from "../../execution/types/execution-result";
 import {
   JournalMessage,
   JournalMessageType,
-} from "../../new-execution/types/messages";
-import { NetworkInteractionType } from "../../new-execution/types/network-interaction";
+} from "../../execution/types/messages";
+import { NetworkInteractionType } from "../../execution/types/network-interaction";
 
 import { failedEvmExecutionResultToErrorDescription } from "./failedEvmExecutionResultToErrorDescription";
 

@@ -2,11 +2,11 @@ import {
   NamedContractCallFuture,
   NamedStaticCallFuture,
 } from "../../../types/module";
-import { resolveAddressLike } from "../../new-execution/future-processor/helpers/future-resolvers";
+import { resolveAddressLike } from "../../execution/future-processor/helpers/future-resolvers";
 import {
   CallExecutionState,
   StaticCallExecutionState,
-} from "../../new-execution/types/execution-state";
+} from "../../execution/types/execution-state";
 import {
   ReconciliationContext,
   ReconciliationFutureResultFailure,

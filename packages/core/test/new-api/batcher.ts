@@ -3,12 +3,12 @@ import { assert } from "chai";
 
 import { buildModule } from "../../src/build-module";
 import { Batcher } from "../../src/internal/batcher";
-import { DeploymentState } from "../../src/internal/new-execution/types/deployment-state";
+import { DeploymentState } from "../../src/internal/execution/types/deployment-state";
 import {
   DeploymentExecutionState,
   ExecutionSateType,
   ExecutionStatus,
-} from "../../src/internal/new-execution/types/execution-state";
+} from "../../src/internal/execution/types/execution-state";
 import { FutureType, IgnitionModule } from "../../src/types/module";
 
 describe("batcher", () => {

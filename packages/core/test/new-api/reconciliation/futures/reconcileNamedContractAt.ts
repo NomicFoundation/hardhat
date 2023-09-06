@@ -2,14 +2,14 @@
 import { assert } from "chai";
 
 import { buildModule } from "../../../../src/build-module";
-import { ExecutionResultType } from "../../../../src/internal/new-execution/types/execution-result";
+import { ExecutionResultType } from "../../../../src/internal/execution/types/execution-result";
 import {
   ContractAtExecutionState,
   DeploymentExecutionState,
   ExecutionSateType,
   ExecutionStatus,
   StaticCallExecutionState,
-} from "../../../../src/internal/new-execution/types/execution-state";
+} from "../../../../src/internal/execution/types/execution-state";
 import { FutureType } from "../../../../src/types/module";
 import { exampleAccounts } from "../../helpers";
 import {

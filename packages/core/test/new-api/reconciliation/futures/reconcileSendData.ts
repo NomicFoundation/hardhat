@@ -6,7 +6,7 @@ import {
   ExecutionSateType,
   ExecutionStatus,
   SendDataExecutionState,
-} from "../../../../src/internal/new-execution/types/execution-state";
+} from "../../../../src/internal/execution/types/execution-state";
 import { FutureType } from "../../../../src/types/module";
 import { exampleAccounts } from "../../helpers";
 import {

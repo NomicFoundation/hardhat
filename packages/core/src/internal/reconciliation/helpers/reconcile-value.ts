@@ -4,12 +4,12 @@ import {
   NamedContractDeploymentFuture,
   SendDataFuture,
 } from "../../../types/module";
-import { resolveValue } from "../../new-execution/future-processor/helpers/future-resolvers";
+import { resolveValue } from "../../execution/future-processor/helpers/future-resolvers";
 import {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
-} from "../../new-execution/types/execution-state";
+} from "../../execution/types/execution-state";
 import {
   ReconciliationContext,
   ReconciliationFutureResultFailure,

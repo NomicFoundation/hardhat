@@ -3,7 +3,7 @@ import fs, { closeSync, constants, openSync, writeFileSync } from "fs";
 import { parse } from "ndjson";
 
 import { ExecutionEventListener } from "../../types/execution-events";
-import { JournalMessage } from "../new-execution/types/messages";
+import { JournalMessage } from "../execution/types/messages";
 
 import { Journal } from "./types";
 import { deserializeReplacer } from "./utils/deserialize-replacer";

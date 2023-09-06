@@ -1,7 +1,7 @@
 import { ArtifactResolver } from "../../../types/artifact";
 import { ArtifactContractDeploymentFuture } from "../../../types/module";
-import { validateContractConstructorArgsLength } from "../../new-execution/abi";
-import { validateLibraryNames } from "../../new-execution/libraries";
+import { validateContractConstructorArgsLength } from "../../execution/abi";
+import { validateLibraryNames } from "../../execution/libraries";
 
 export async function validateArtifactContractDeployment(
   future: ArtifactContractDeploymentFuture,

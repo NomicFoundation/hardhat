@@ -2,8 +2,8 @@ import { ArtifactResolver } from "../../types/artifact";
 import { DeploymentParameters } from "../../types/deploy";
 import { Future } from "../../types/module";
 import { DeploymentLoader } from "../deployment-loader/types";
-import { DeploymentState } from "../new-execution/types/deployment-state";
-import { ExecutionState } from "../new-execution/types/execution-state";
+import { DeploymentState } from "../execution/types/deployment-state";
+import { ExecutionState } from "../execution/types/execution-state";
 
 export interface ReconciliationFailure {
   futureId: string;

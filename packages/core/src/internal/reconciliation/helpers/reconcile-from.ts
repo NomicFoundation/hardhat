@@ -7,13 +7,13 @@ import {
   NamedStaticCallFuture,
   SendDataFuture,
 } from "../../../types/module";
-import { resolveFutureFrom } from "../../new-execution/future-processor/helpers/future-resolvers";
+import { resolveFutureFrom } from "../../execution/future-processor/helpers/future-resolvers";
 import {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../../new-execution/types/execution-state";
+} from "../../execution/types/execution-state";
 import {
   ReconciliationContext,
   ReconciliationFutureResultFailure,

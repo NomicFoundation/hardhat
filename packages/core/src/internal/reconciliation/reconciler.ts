@@ -3,11 +3,11 @@ import { ArtifactResolver } from "../../types/artifact";
 import { DeploymentParameters } from "../../types/deploy";
 import { Future, IgnitionModule } from "../../types/module";
 import { DeploymentLoader } from "../deployment-loader/types";
-import { DeploymentState } from "../new-execution/types/deployment-state";
+import { DeploymentState } from "../execution/types/deployment-state";
 import {
   ExecutionState,
   ExecutionStatus,
-} from "../new-execution/types/execution-state";
+} from "../execution/types/execution-state";
 import { AdjacencyList } from "../utils/adjacency-list";
 import { AdjacencyListConverter } from "../utils/adjacency-list-converter";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";

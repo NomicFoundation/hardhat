@@ -2,7 +2,7 @@ import { IgnitionValidationError } from "../../../errors";
 import { isArtifactType } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { NamedStaticCallFuture } from "../../../types/module";
-import { validateArtifactFunction } from "../../new-execution/abi";
+import { validateArtifactFunction } from "../../execution/abi";
 
 export async function validateNamedStaticCall(
   future: NamedStaticCallFuture<string, string>,

@@ -1,5 +1,5 @@
 import { ArtifactContractAtFuture } from "../../../types/module";
-import { ContractAtExecutionState } from "../../new-execution/types/execution-state";
+import { ContractAtExecutionState } from "../../execution/types/execution-state";
 import { reconcileAddress } from "../helpers/reconcile-address";
 import { reconcileArtifacts } from "../helpers/reconcile-artifacts";
 import { reconcileContractName } from "../helpers/reconcile-contract-name";

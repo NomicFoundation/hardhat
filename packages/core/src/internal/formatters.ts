@@ -4,7 +4,7 @@ import {
   EvmExecutionResultTypes,
   EvmTuple,
   FailedEvmExecutionResult,
-} from "./new-execution/types/evm-execution";
+} from "./execution/types/evm-execution";
 import {
   ExecutionResultType,
   FailedStaticCallExecutionResult,
@@ -12,8 +12,8 @@ import {
   SimulationErrorExecutionResult,
   StrategyErrorExecutionResult,
   StrategySimulationErrorExecutionResult,
-} from "./new-execution/types/execution-result";
-import { convertEvmTupleToSolidityParam } from "./new-execution/utils/convert-evm-tuple-to-solidity-param";
+} from "./execution/types/execution-result";
+import { convertEvmTupleToSolidityParam } from "./execution/utils/convert-evm-tuple-to-solidity-param";
 
 /**
  * Formats an execution error result into a human-readable string.

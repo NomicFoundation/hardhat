@@ -2,8 +2,8 @@ import { IgnitionValidationError } from "../../../errors";
 import { isArtifactType } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { NamedContractDeploymentFuture } from "../../../types/module";
-import { validateContractConstructorArgsLength } from "../../new-execution/abi";
-import { validateLibraryNames } from "../../new-execution/libraries";
+import { validateContractConstructorArgsLength } from "../../execution/abi";
+import { validateLibraryNames } from "../../execution/libraries";
 
 export async function validateNamedContractDeployment(
   future: NamedContractDeploymentFuture<string>,

@@ -1,8 +1,8 @@
 import { Artifact, ArtifactResolver, BuildInfo } from "../../types/artifact";
 import { ExecutionEventListener } from "../../types/execution-events";
+import { JournalMessage } from "../execution/types/messages";
 import { MemoryJournal } from "../journal/memory-journal";
 import { Journal } from "../journal/types";
-import { JournalMessage } from "../new-execution/types/messages";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
 import { DeploymentLoader } from "./types";

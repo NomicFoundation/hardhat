@@ -4,12 +4,12 @@ import { Artifact } from "../../../../src";
 import {
   encodeArtifactDeploymentData,
   encodeArtifactFunctionCall,
-} from "../../../../src/internal/new-execution/abi";
-import { EIP1193JsonRpcClient } from "../../../../src/internal/new-execution/jsonrpc-client";
+} from "../../../../src/internal/execution/abi";
+import { EIP1193JsonRpcClient } from "../../../../src/internal/execution/jsonrpc-client";
 import {
   NetworkFees,
   TransactionReceiptStatus,
-} from "../../../../src/internal/new-execution/types/jsonrpc";
+} from "../../../../src/internal/execution/types/jsonrpc";
 import { assertIgnitionInvariant } from "../../../../src/internal/utils/assertions";
 import { useHardhatProject } from "../../../helpers/hardhat-projects";
 

@@ -4,8 +4,8 @@ import {
   NamedContractDeploymentFuture,
   NamedLibraryDeploymentFuture,
 } from "../../../types/module";
-import { resolveLibraries } from "../../new-execution/future-processor/helpers/future-resolvers";
-import { DeploymentExecutionState } from "../../new-execution/types/execution-state";
+import { resolveLibraries } from "../../execution/future-processor/helpers/future-resolvers";
+import { DeploymentExecutionState } from "../../execution/types/execution-state";
 import {
   ReconciliationContext,
   ReconciliationFutureResultFailure,

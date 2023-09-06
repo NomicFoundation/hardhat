@@ -1,6 +1,35 @@
 import { assert } from "chai";
 
 import { DeploymentLoader } from "../../../../../src/internal/deployment-loader/types";
+import { buildInitializeMessageFor } from "../../../../../src/internal/execution/future-processor/helpers/build-initialize-message-for";
+import { deploymentStateReducer } from "../../../../../src/internal/execution/reducers/deployment-state-reducer";
+import { DeploymentState } from "../../../../../src/internal/execution/types/deployment-state";
+import { ExecutionResultType } from "../../../../../src/internal/execution/types/execution-result";
+import {
+  ContractAtExecutionState,
+  DeploymentExecutionState,
+  ExecutionSateType,
+  ReadEventArgumentExecutionState,
+  StaticCallExecutionState,
+} from "../../../../../src/internal/execution/types/execution-state";
+import {
+  Transaction,
+  TransactionReceiptStatus,
+} from "../../../../../src/internal/execution/types/jsonrpc";
+import {
+  CallExecutionStateInitializeMessage,
+  ContractAtExecutionStateInitializeMessage,
+  DeploymentExecutionStateInitializeMessage,
+  JournalMessageType,
+  ReadEventArgExecutionStateInitializeMessage,
+  SendDataExecutionStateInitializeMessage,
+  StaticCallExecutionStateInitializeMessage,
+} from "../../../../../src/internal/execution/types/messages";
+import {
+  NetworkInteractionType,
+  OnchainInteraction,
+} from "../../../../../src/internal/execution/types/network-interaction";
+import { getDefaultSender } from "../../../../../src/internal/execution/utils/get-default-sender";
 import { MemoryJournal } from "../../../../../src/internal/journal/memory-journal";
 import {
   AccountRuntimeValueImplementation,
@@ -16,35 +45,6 @@ import {
   ReadEventArgumentFutureImplementation,
   SendDataFutureImplementation,
 } from "../../../../../src/internal/module";
-import { buildInitializeMessageFor } from "../../../../../src/internal/new-execution/future-processor/helpers/build-initialize-message-for";
-import { deploymentStateReducer } from "../../../../../src/internal/new-execution/reducers/deployment-state-reducer";
-import { DeploymentState } from "../../../../../src/internal/new-execution/types/deployment-state";
-import { ExecutionResultType } from "../../../../../src/internal/new-execution/types/execution-result";
-import {
-  ContractAtExecutionState,
-  DeploymentExecutionState,
-  ExecutionSateType,
-  ReadEventArgumentExecutionState,
-  StaticCallExecutionState,
-} from "../../../../../src/internal/new-execution/types/execution-state";
-import {
-  Transaction,
-  TransactionReceiptStatus,
-} from "../../../../../src/internal/new-execution/types/jsonrpc";
-import {
-  CallExecutionStateInitializeMessage,
-  ContractAtExecutionStateInitializeMessage,
-  DeploymentExecutionStateInitializeMessage,
-  JournalMessageType,
-  ReadEventArgExecutionStateInitializeMessage,
-  SendDataExecutionStateInitializeMessage,
-  StaticCallExecutionStateInitializeMessage,
-} from "../../../../../src/internal/new-execution/types/messages";
-import {
-  NetworkInteractionType,
-  OnchainInteraction,
-} from "../../../../../src/internal/new-execution/types/network-interaction";
-import { getDefaultSender } from "../../../../../src/internal/new-execution/utils/get-default-sender";
 import {
   ArtifactContractAtFuture,
   ArtifactContractDeploymentFuture,

@@ -1,7 +1,7 @@
 import { Future, IgnitionModule } from "../types/module";
 
-import { DeploymentState } from "./new-execution/types/deployment-state";
-import { ExecutionStatus } from "./new-execution/types/execution-state";
+import { DeploymentState } from "./execution/types/deployment-state";
+import { ExecutionStatus } from "./execution/types/execution-state";
 import { AdjacencyList } from "./utils/adjacency-list";
 import { AdjacencyListConverter } from "./utils/adjacency-list-converter";
 import { getFuturesFromModule } from "./utils/get-futures-from-module";

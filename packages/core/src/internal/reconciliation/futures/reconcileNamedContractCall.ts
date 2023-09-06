@@ -1,5 +1,5 @@
 import { NamedContractCallFuture } from "../../../types/module";
-import { CallExecutionState } from "../../new-execution/types/execution-state";
+import { CallExecutionState } from "../../execution/types/execution-state";
 import { reconcileArguments } from "../helpers/reconcile-arguments";
 import { reconcileContract } from "../helpers/reconcile-contract";
 import { reconcileFrom } from "../helpers/reconcile-from";

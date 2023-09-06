@@ -1,5 +1,5 @@
 import { ExecutionEventListener } from "../../types/execution-events";
-import { JournalMessage } from "../new-execution/types/messages";
+import { JournalMessage } from "../execution/types/messages";
 
 import { Journal } from "./types";
 import { emitExecutionEvent } from "./utils/emitExecutionEvent";

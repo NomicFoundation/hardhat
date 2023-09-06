@@ -5,11 +5,11 @@ import { EphemeralDeploymentLoader } from "../../src/internal/deployment-loader/
 import {
   applyNewMessage,
   initializeDeploymentState,
-} from "../../src/internal/new-execution/deployment-state-helpers";
+} from "../../src/internal/execution/deployment-state-helpers";
 import {
   DeploymentExecutionStateInitializeMessage,
   JournalMessageType,
-} from "../../src/internal/new-execution/types/messages";
+} from "../../src/internal/execution/types/messages";
 import { Wiper } from "../../src/internal/wiper";
 import { FutureType } from "../../src/types/module";
 

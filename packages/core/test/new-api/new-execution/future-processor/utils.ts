@@ -1,22 +1,22 @@
-import { MemoryJournal } from "../../../../src/internal/journal/memory-journal";
-import { BasicExecutionStrategy } from "../../../../src/internal/new-execution/basic-execution-strategy";
-import { FutureProcessor } from "../../../../src/internal/new-execution/future-processor/future-processor";
+import { BasicExecutionStrategy } from "../../../../src/internal/execution/basic-execution-strategy";
+import { FutureProcessor } from "../../../../src/internal/execution/future-processor/future-processor";
 import {
   Block,
   CallParams,
   EstimateGasParams,
   JsonRpcClient,
   TransactionParams,
-} from "../../../../src/internal/new-execution/jsonrpc-client";
-import { NonceManager } from "../../../../src/internal/new-execution/nonce-management";
-import { TransactionTrackingTimer } from "../../../../src/internal/new-execution/transaction-tracking-timer";
+} from "../../../../src/internal/execution/jsonrpc-client";
+import { NonceManager } from "../../../../src/internal/execution/nonce-management";
+import { TransactionTrackingTimer } from "../../../../src/internal/execution/transaction-tracking-timer";
 import {
   NetworkFees,
   RawStaticCallResult,
   Transaction,
   TransactionReceipt,
-} from "../../../../src/internal/new-execution/types/jsonrpc";
-import { getDefaultSender } from "../../../../src/internal/new-execution/utils/get-default-sender";
+} from "../../../../src/internal/execution/types/jsonrpc";
+import { getDefaultSender } from "../../../../src/internal/execution/utils/get-default-sender";
+import { MemoryJournal } from "../../../../src/internal/journal/memory-journal";
 import { assertIgnitionInvariant } from "../../../../src/internal/utils/assertions";
 import {
   exampleAccounts,

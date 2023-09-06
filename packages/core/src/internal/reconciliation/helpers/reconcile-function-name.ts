@@ -5,7 +5,7 @@ import {
 import {
   CallExecutionState,
   StaticCallExecutionState,
-} from "../../new-execution/types/execution-state";
+} from "../../execution/types/execution-state";
 import {
   ReconciliationContext,
   ReconciliationFutureResultFailure,

@@ -1,5 +1,5 @@
 import { ArtifactContractDeploymentFuture } from "../../../types/module";
-import { DeploymentExecutionState } from "../../new-execution/types/execution-state";
+import { DeploymentExecutionState } from "../../execution/types/execution-state";
 import { reconcileArguments } from "../helpers/reconcile-arguments";
 import { reconcileArtifacts } from "../helpers/reconcile-artifacts";
 import { reconcileContractName } from "../helpers/reconcile-contract-name";

@@ -7,10 +7,10 @@ import {
   DeploymentParameters,
 } from "../../../src";
 import { DeploymentLoader } from "../../../src/internal/deployment-loader/types";
-import { DeploymentState } from "../../../src/internal/new-execution/types/deployment-state";
-import { ExecutionState } from "../../../src/internal/new-execution/types/execution-state";
-import { JournalMessage } from "../../../src/internal/new-execution/types/messages";
-import { getDefaultSender } from "../../../src/internal/new-execution/utils/get-default-sender";
+import { DeploymentState } from "../../../src/internal/execution/types/deployment-state";
+import { ExecutionState } from "../../../src/internal/execution/types/execution-state";
+import { JournalMessage } from "../../../src/internal/execution/types/messages";
+import { getDefaultSender } from "../../../src/internal/execution/utils/get-default-sender";
 import { Reconciler } from "../../../src/internal/reconciliation/reconciler";
 import { ReconciliationResult } from "../../../src/internal/reconciliation/types";
 import { IgnitionModule } from "../../../src/types/module";

@@ -1,16 +1,16 @@
 import { assert } from "chai";
 
-import { DeploymentState } from "../../../../src/internal/new-execution/types/deployment-state";
+import { DeploymentState } from "../../../../src/internal/execution/types/deployment-state";
 import {
   ContractAtExecutionState,
   ExecutionSateType,
   ExecutionStatus,
-} from "../../../../src/internal/new-execution/types/execution-state";
+} from "../../../../src/internal/execution/types/execution-state";
 import {
   ContractAtExecutionStateInitializeMessage,
   JournalMessageType,
-} from "../../../../src/internal/new-execution/types/messages";
-import { findExecutionStateById } from "../../../../src/internal/new-execution/views/find-execution-state-by-id";
+} from "../../../../src/internal/execution/types/messages";
+import { findExecutionStateById } from "../../../../src/internal/execution/views/find-execution-state-by-id";
 import { FutureType } from "../../../../src/types/module";
 
 import { applyMessages } from "./utils";

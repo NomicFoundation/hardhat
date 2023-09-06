@@ -1,23 +1,23 @@
 import { assert } from "chai";
 
-import { runStaticCall } from "../../../../../src/internal/new-execution/future-processor/helpers/network-interaction-execution";
+import { runStaticCall } from "../../../../../src/internal/execution/future-processor/helpers/network-interaction-execution";
 import {
   JsonRpcClient,
   CallParams,
   EstimateGasParams,
   TransactionParams,
   Block,
-} from "../../../../../src/internal/new-execution/jsonrpc-client";
+} from "../../../../../src/internal/execution/jsonrpc-client";
 import {
   NetworkFees,
   RawStaticCallResult,
   Transaction,
   TransactionReceipt,
-} from "../../../../../src/internal/new-execution/types/jsonrpc";
+} from "../../../../../src/internal/execution/types/jsonrpc";
 import {
   NetworkInteractionType,
   StaticCall,
-} from "../../../../../src/internal/new-execution/types/network-interaction";
+} from "../../../../../src/internal/execution/types/network-interaction";
 
 class StubJsonRpcClient implements JsonRpcClient {
   public async getChainId(): Promise<number> {
