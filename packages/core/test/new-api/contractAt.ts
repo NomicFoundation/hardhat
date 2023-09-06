@@ -2,9 +2,9 @@
 import { assert } from "chai";
 
 import { Artifact, FutureType } from "../../src";
-import { buildModule } from "../../src/new-api/build-module";
-import { ModuleParameterRuntimeValueImplementation } from "../../src/new-api/internal/module";
-import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
+import { buildModule } from "../../src/build-module";
+import { ModuleParameterRuntimeValueImplementation } from "../../src/internal/module";
+import { getFuturesFromModule } from "../../src/internal/utils/get-futures-from-module";
 
 import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
 
@@ -204,12 +204,12 @@ describe("contractAt", () => {
     });
 
     describe("stage one", () => {
-      let vm: typeof import("../../src/new-api/internal/validation/stageOne/validateNamedContractAt");
+      let vm: typeof import("../../src/internal/validation/stageOne/validateNamedContractAt");
       let validateNamedContractAt: typeof vm.validateNamedContractAt;
 
       before(async () => {
         vm = await import(
-          "../../src/new-api/internal/validation/stageOne/validateNamedContractAt"
+          "../../src/internal/validation/stageOne/validateNamedContractAt"
         );
 
         validateNamedContractAt = vm.validateNamedContractAt;
@@ -237,12 +237,12 @@ describe("contractAt", () => {
     });
 
     describe("stage two", () => {
-      let vm: typeof import("../../src/new-api/internal/validation/stageTwo/validateNamedContractAt");
+      let vm: typeof import("../../src/internal/validation/stageTwo/validateNamedContractAt");
       let validateNamedContractAt: typeof vm.validateNamedContractAt;
 
       before(async () => {
         vm = await import(
-          "../../src/new-api/internal/validation/stageTwo/validateNamedContractAt"
+          "../../src/internal/validation/stageTwo/validateNamedContractAt"
         );
 
         validateNamedContractAt = vm.validateNamedContractAt;

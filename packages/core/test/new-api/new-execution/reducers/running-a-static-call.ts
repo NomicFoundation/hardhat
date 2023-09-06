@@ -1,22 +1,22 @@
 import { assert } from "chai";
 
-import { DeploymentState } from "../../../../src/new-api/internal/new-execution/types/deployment-state";
-import { EvmExecutionResultTypes } from "../../../../src/new-api/internal/new-execution/types/evm-execution";
-import { ExecutionResultType } from "../../../../src/new-api/internal/new-execution/types/execution-result";
+import { DeploymentState } from "../../../../src/internal/new-execution/types/deployment-state";
+import { EvmExecutionResultTypes } from "../../../../src/internal/new-execution/types/evm-execution";
+import { ExecutionResultType } from "../../../../src/internal/new-execution/types/execution-result";
 import {
   ExecutionSateType,
   ExecutionStatus,
   StaticCallExecutionState,
-} from "../../../../src/new-api/internal/new-execution/types/execution-state";
+} from "../../../../src/internal/new-execution/types/execution-state";
 import {
   JournalMessageType,
   NetworkInteractionRequestMessage,
   StaticCallCompleteMessage,
   StaticCallExecutionStateCompleteMessage,
   StaticCallExecutionStateInitializeMessage,
-} from "../../../../src/new-api/internal/new-execution/types/messages";
-import { NetworkInteractionType } from "../../../../src/new-api/internal/new-execution/types/network-interaction";
-import { findExecutionStateById } from "../../../../src/new-api/internal/new-execution/views/find-execution-state-by-id";
+} from "../../../../src/internal/new-execution/types/messages";
+import { NetworkInteractionType } from "../../../../src/internal/new-execution/types/network-interaction";
+import { findExecutionStateById } from "../../../../src/internal/new-execution/views/find-execution-state-by-id";
 
 import { applyMessages } from "./utils";
 

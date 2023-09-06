@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
-import { DeploymentLoader } from "../../../../../src/new-api/internal/deployment-loader/types";
-import { MemoryJournal } from "../../../../../src/new-api/internal/journal/memory-journal";
+import { DeploymentLoader } from "../../../../../src/internal/deployment-loader/types";
+import { MemoryJournal } from "../../../../../src/internal/journal/memory-journal";
 import {
   AccountRuntimeValueImplementation,
   ArtifactContractAtFutureImplementation,
@@ -15,22 +15,22 @@ import {
   NamedStaticCallFutureImplementation,
   ReadEventArgumentFutureImplementation,
   SendDataFutureImplementation,
-} from "../../../../../src/new-api/internal/module";
-import { buildInitializeMessageFor } from "../../../../../src/new-api/internal/new-execution/future-processor/helpers/build-initialize-message-for";
-import { deploymentStateReducer } from "../../../../../src/new-api/internal/new-execution/reducers/deployment-state-reducer";
-import { DeploymentState } from "../../../../../src/new-api/internal/new-execution/types/deployment-state";
-import { ExecutionResultType } from "../../../../../src/new-api/internal/new-execution/types/execution-result";
+} from "../../../../../src/internal/module";
+import { buildInitializeMessageFor } from "../../../../../src/internal/new-execution/future-processor/helpers/build-initialize-message-for";
+import { deploymentStateReducer } from "../../../../../src/internal/new-execution/reducers/deployment-state-reducer";
+import { DeploymentState } from "../../../../../src/internal/new-execution/types/deployment-state";
+import { ExecutionResultType } from "../../../../../src/internal/new-execution/types/execution-result";
 import {
   ContractAtExecutionState,
   DeploymentExecutionState,
   ExecutionSateType,
   ReadEventArgumentExecutionState,
   StaticCallExecutionState,
-} from "../../../../../src/new-api/internal/new-execution/types/execution-state";
+} from "../../../../../src/internal/new-execution/types/execution-state";
 import {
   Transaction,
   TransactionReceiptStatus,
-} from "../../../../../src/new-api/internal/new-execution/types/jsonrpc";
+} from "../../../../../src/internal/new-execution/types/jsonrpc";
 import {
   CallExecutionStateInitializeMessage,
   ContractAtExecutionStateInitializeMessage,
@@ -39,12 +39,12 @@ import {
   ReadEventArgExecutionStateInitializeMessage,
   SendDataExecutionStateInitializeMessage,
   StaticCallExecutionStateInitializeMessage,
-} from "../../../../../src/new-api/internal/new-execution/types/messages";
+} from "../../../../../src/internal/new-execution/types/messages";
 import {
   NetworkInteractionType,
   OnchainInteraction,
-} from "../../../../../src/new-api/internal/new-execution/types/network-interaction";
-import { getDefaultSender } from "../../../../../src/new-api/internal/new-execution/utils/get-default-sender";
+} from "../../../../../src/internal/new-execution/types/network-interaction";
+import { getDefaultSender } from "../../../../../src/internal/new-execution/utils/get-default-sender";
 import {
   ArtifactContractAtFuture,
   ArtifactContractDeploymentFuture,
@@ -57,7 +57,7 @@ import {
   NamedStaticCallFuture,
   ReadEventArgumentFuture,
   SendDataFuture,
-} from "../../../../../src/new-api/types/module";
+} from "../../../../../src/types/module";
 import {
   exampleAccounts,
   fakeArtifact,

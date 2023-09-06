@@ -2,14 +2,14 @@
 import { assert } from "chai";
 
 import { Artifact } from "../../src";
-import { buildModule } from "../../src/new-api/build-module";
+import { buildModule } from "../../src/build-module";
 import {
   AccountRuntimeValueImplementation,
   ModuleParameterRuntimeValueImplementation,
   NamedContractCallFutureImplementation,
-} from "../../src/new-api/internal/module";
-import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
-import { FutureType } from "../../src/new-api/types/module";
+} from "../../src/internal/module";
+import { getFuturesFromModule } from "../../src/internal/utils/get-futures-from-module";
+import { FutureType } from "../../src/types/module";
 
 import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
 
@@ -467,12 +467,12 @@ describe("call", () => {
     });
 
     describe("stage one", () => {
-      let vm: typeof import("../../src/new-api/internal/validation/stageOne/validateNamedContractCall");
+      let vm: typeof import("../../src/internal/validation/stageOne/validateNamedContractCall");
       let validateNamedContractCall: typeof vm.validateNamedContractCall;
 
       before(async () => {
         vm = await import(
-          "../../src/new-api/internal/validation/stageOne/validateNamedContractCall"
+          "../../src/internal/validation/stageOne/validateNamedContractCall"
         );
 
         validateNamedContractCall = vm.validateNamedContractCall;
@@ -622,12 +622,12 @@ describe("call", () => {
     });
 
     describe("stage two", () => {
-      let vm: typeof import("../../src/new-api/internal/validation/stageTwo/validateNamedContractCall");
+      let vm: typeof import("../../src/internal/validation/stageTwo/validateNamedContractCall");
       let validateNamedContractCall: typeof vm.validateNamedContractCall;
 
       before(async () => {
         vm = await import(
-          "../../src/new-api/internal/validation/stageTwo/validateNamedContractCall"
+          "../../src/internal/validation/stageTwo/validateNamedContractCall"
         );
 
         validateNamedContractCall = vm.validateNamedContractCall;

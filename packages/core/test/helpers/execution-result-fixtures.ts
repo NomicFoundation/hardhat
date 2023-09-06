@@ -7,7 +7,7 @@
 // We use Hardhat artifacts here, that's why we import this type
 import { Artifact } from "hardhat/types";
 
-import { RawStaticCallResult } from "../../src/new-api/internal/new-execution/types/jsonrpc";
+import { RawStaticCallResult } from "../../src/internal/new-execution/types/jsonrpc";
 
 export const staticCallResultFixtures: {
   [contractName: string]: { [functionName: string]: RawStaticCallResult };

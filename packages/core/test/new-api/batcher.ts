@@ -1,15 +1,15 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { buildModule } from "../../src/new-api/build-module";
-import { Batcher } from "../../src/new-api/internal/batcher";
-import { DeploymentState } from "../../src/new-api/internal/new-execution/types/deployment-state";
+import { buildModule } from "../../src/build-module";
+import { Batcher } from "../../src/internal/batcher";
+import { DeploymentState } from "../../src/internal/new-execution/types/deployment-state";
 import {
   DeploymentExecutionState,
   ExecutionSateType,
   ExecutionStatus,
-} from "../../src/new-api/internal/new-execution/types/execution-state";
-import { FutureType, IgnitionModule } from "../../src/new-api/types/module";
+} from "../../src/internal/new-execution/types/execution-state";
+import { FutureType, IgnitionModule } from "../../src/types/module";
 
 describe("batcher", () => {
   const exampleDeploymentState: DeploymentExecutionState = {

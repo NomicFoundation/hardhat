@@ -2,14 +2,14 @@
 import { assert } from "chai";
 
 import { Artifact } from "../../src";
-import { buildModule } from "../../src/new-api/build-module";
+import { buildModule } from "../../src/build-module";
 import {
   AccountRuntimeValueImplementation,
   ModuleParameterRuntimeValueImplementation,
   NamedContractDeploymentFutureImplementation,
-} from "../../src/new-api/internal/module";
-import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
-import { FutureType } from "../../src/new-api/types/module";
+} from "../../src/internal/module";
+import { getFuturesFromModule } from "../../src/internal/utils/get-futures-from-module";
+import { FutureType } from "../../src/types/module";
 
 import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
 
@@ -452,12 +452,12 @@ describe("contract", () => {
     });
 
     describe("stage one", () => {
-      let vm: typeof import("../../src/new-api/internal/validation/stageOne/validateNamedContractDeployment");
+      let vm: typeof import("../../src/internal/validation/stageOne/validateNamedContractDeployment");
       let validateNamedContractDeployment: typeof vm.validateNamedContractDeployment;
 
       before(async () => {
         vm = await import(
-          "../../src/new-api/internal/validation/stageOne/validateNamedContractDeployment"
+          "../../src/internal/validation/stageOne/validateNamedContractDeployment"
         );
 
         validateNamedContractDeployment = vm.validateNamedContractDeployment;
@@ -510,12 +510,12 @@ describe("contract", () => {
     });
 
     describe("stage two", () => {
-      let vm: typeof import("../../src/new-api/internal/validation/stageTwo/validateNamedContractDeployment");
+      let vm: typeof import("../../src/internal/validation/stageTwo/validateNamedContractDeployment");
       let validateNamedContractDeployment: typeof vm.validateNamedContractDeployment;
 
       before(async () => {
         vm = await import(
-          "../../src/new-api/internal/validation/stageTwo/validateNamedContractDeployment"
+          "../../src/internal/validation/stageTwo/validateNamedContractDeployment"
         );
 
         validateNamedContractDeployment = vm.validateNamedContractDeployment;

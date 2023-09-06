@@ -1,16 +1,16 @@
 import { assert } from "chai";
 
 import { NamedContractDeploymentFuture } from "../../../../src";
-import { NamedContractDeploymentFutureImplementation } from "../../../../src/new-api/internal/module";
-import { TransactionParams } from "../../../../src/new-api/internal/new-execution/jsonrpc-client";
-import { deploymentStateReducer } from "../../../../src/new-api/internal/new-execution/reducers/deployment-state-reducer";
-import { ExecutionResultType } from "../../../../src/new-api/internal/new-execution/types/execution-result";
+import { NamedContractDeploymentFutureImplementation } from "../../../../src/internal/module";
+import { TransactionParams } from "../../../../src/internal/new-execution/jsonrpc-client";
+import { deploymentStateReducer } from "../../../../src/internal/new-execution/reducers/deployment-state-reducer";
+import { ExecutionResultType } from "../../../../src/internal/new-execution/types/execution-result";
 import {
   ExecutionSateType,
   ExecutionStatus,
-} from "../../../../src/new-api/internal/new-execution/types/execution-state";
-import { TransactionReceiptStatus } from "../../../../src/new-api/internal/new-execution/types/jsonrpc";
-import { assertIgnitionInvariant } from "../../../../src/new-api/internal/utils/assertions";
+} from "../../../../src/internal/new-execution/types/execution-state";
+import { TransactionReceiptStatus } from "../../../../src/internal/new-execution/types/jsonrpc";
+import { assertIgnitionInvariant } from "../../../../src/internal/utils/assertions";
 import { exampleAccounts } from "../../helpers";
 
 import { setupFutureProcessor } from "./utils";

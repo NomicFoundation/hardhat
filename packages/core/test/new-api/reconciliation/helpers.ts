@@ -6,14 +6,14 @@ import {
   BuildInfo,
   DeploymentParameters,
 } from "../../../src";
-import { DeploymentLoader } from "../../../src/new-api/internal/deployment-loader/types";
-import { DeploymentState } from "../../../src/new-api/internal/new-execution/types/deployment-state";
-import { ExecutionState } from "../../../src/new-api/internal/new-execution/types/execution-state";
-import { JournalMessage } from "../../../src/new-api/internal/new-execution/types/messages";
-import { getDefaultSender } from "../../../src/new-api/internal/new-execution/utils/get-default-sender";
-import { Reconciler } from "../../../src/new-api/internal/reconciliation/reconciler";
-import { ReconciliationResult } from "../../../src/new-api/internal/reconciliation/types";
-import { IgnitionModule } from "../../../src/new-api/types/module";
+import { DeploymentLoader } from "../../../src/internal/deployment-loader/types";
+import { DeploymentState } from "../../../src/internal/new-execution/types/deployment-state";
+import { ExecutionState } from "../../../src/internal/new-execution/types/execution-state";
+import { JournalMessage } from "../../../src/internal/new-execution/types/messages";
+import { getDefaultSender } from "../../../src/internal/new-execution/utils/get-default-sender";
+import { Reconciler } from "../../../src/internal/reconciliation/reconciler";
+import { ReconciliationResult } from "../../../src/internal/reconciliation/types";
+import { IgnitionModule } from "../../../src/types/module";
 import { exampleAccounts } from "../helpers";
 
 export const oneAddress = "0x1111111111111111111111111111111111111111";

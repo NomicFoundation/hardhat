@@ -1,8 +1,8 @@
 import { assert } from "chai";
 
 import { Artifact, ArtifactResolver } from "../../src";
-import { DeploymentLoader } from "../../src/new-api/internal/deployment-loader/types";
-import { Journal } from "../../src/new-api/internal/journal/types";
+import { DeploymentLoader } from "../../src/internal/deployment-loader/types";
+import { Journal } from "../../src/internal/journal/types";
 
 export const exampleAccounts: string[] = [
   "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",

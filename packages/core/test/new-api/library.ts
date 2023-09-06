@@ -1,13 +1,13 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { buildModule } from "../../src/new-api/build-module";
+import { buildModule } from "../../src/build-module";
 import {
   AccountRuntimeValueImplementation,
   NamedLibraryDeploymentFutureImplementation,
-} from "../../src/new-api/internal/module";
-import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
-import { FutureType } from "../../src/new-api/types/module";
+} from "../../src/internal/module";
+import { getFuturesFromModule } from "../../src/internal/utils/get-futures-from-module";
+import { FutureType } from "../../src/types/module";
 
 import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
 
@@ -233,12 +233,12 @@ describe("library", () => {
     });
 
     describe("stage one", () => {
-      let vm: typeof import("../../src/new-api/internal/validation/stageOne/validateNamedLibraryDeployment");
+      let vm: typeof import("../../src/internal/validation/stageOne/validateNamedLibraryDeployment");
       let validateNamedLibraryDeployment: typeof vm.validateNamedLibraryDeployment;
 
       before(async () => {
         vm = await import(
-          "../../src/new-api/internal/validation/stageOne/validateNamedLibraryDeployment"
+          "../../src/internal/validation/stageOne/validateNamedLibraryDeployment"
         );
 
         validateNamedLibraryDeployment = vm.validateNamedLibraryDeployment;
@@ -264,12 +264,12 @@ describe("library", () => {
     });
 
     describe("stage two", () => {
-      let vm: typeof import("../../src/new-api/internal/validation/stageTwo/validateNamedLibraryDeployment");
+      let vm: typeof import("../../src/internal/validation/stageTwo/validateNamedLibraryDeployment");
       let validateNamedLibraryDeployment: typeof vm.validateNamedLibraryDeployment;
 
       before(async () => {
         vm = await import(
-          "../../src/new-api/internal/validation/stageTwo/validateNamedLibraryDeployment"
+          "../../src/internal/validation/stageTwo/validateNamedLibraryDeployment"
         );
 
         validateNamedLibraryDeployment = vm.validateNamedLibraryDeployment;

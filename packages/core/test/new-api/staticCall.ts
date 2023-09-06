@@ -2,15 +2,15 @@
 import { assert } from "chai";
 
 import { Artifact } from "../../src";
-import { buildModule } from "../../src/new-api/build-module";
+import { buildModule } from "../../src/build-module";
 import {
   AccountRuntimeValueImplementation,
   ModuleParameterRuntimeValueImplementation,
   NamedContractCallFutureImplementation,
   NamedStaticCallFutureImplementation,
-} from "../../src/new-api/internal/module";
-import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
-import { FutureType } from "../../src/new-api/types/module";
+} from "../../src/internal/module";
+import { getFuturesFromModule } from "../../src/internal/utils/get-futures-from-module";
+import { FutureType } from "../../src/types/module";
 
 import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
 
@@ -437,12 +437,12 @@ describe("static call", () => {
     });
 
     describe("stage one", () => {
-      let vm: typeof import("../../src/new-api/internal/validation/stageOne/validateNamedStaticCall");
+      let vm: typeof import("../../src/internal/validation/stageOne/validateNamedStaticCall");
       let validateNamedStaticCall: typeof vm.validateNamedStaticCall;
 
       before(async () => {
         vm = await import(
-          "../../src/new-api/internal/validation/stageOne/validateNamedStaticCall"
+          "../../src/internal/validation/stageOne/validateNamedStaticCall"
         );
 
         validateNamedStaticCall = vm.validateNamedStaticCall;
@@ -631,12 +631,12 @@ describe("static call", () => {
     });
 
     describe("stage two", () => {
-      let vm: typeof import("../../src/new-api/internal/validation/stageTwo/validateNamedStaticCall");
+      let vm: typeof import("../../src/internal/validation/stageTwo/validateNamedStaticCall");
       let validateNamedStaticCall: typeof vm.validateNamedStaticCall;
 
       before(async () => {
         vm = await import(
-          "../../src/new-api/internal/validation/stageTwo/validateNamedStaticCall"
+          "../../src/internal/validation/stageTwo/validateNamedStaticCall"
         );
 
         validateNamedStaticCall = vm.validateNamedStaticCall;

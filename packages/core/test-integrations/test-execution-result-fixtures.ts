@@ -3,8 +3,8 @@ import { assert } from "chai";
 import {
   encodeArtifactDeploymentData,
   encodeArtifactFunctionCall,
-} from "../src/new-api/internal/new-execution/abi";
-import { EIP1193JsonRpcClient } from "../src/new-api/internal/new-execution/jsonrpc-client";
+} from "../src/internal/new-execution/abi";
+import { EIP1193JsonRpcClient } from "../src/internal/new-execution/jsonrpc-client";
 import {
   callEncodingFixtures,
   deploymentFixturesArtifacts,

@@ -6,8 +6,8 @@ import {
   AccountRuntimeValueImplementation,
   ModuleParameterRuntimeValueImplementation,
   NamedContractAtFutureImplementation,
-} from "../../../src/new-api/internal/module";
-import { replaceWithinArg } from "../../../src/new-api/internal/utils/replace-within-arg";
+} from "../../../src/internal/module";
+import { replaceWithinArg } from "../../../src/internal/utils/replace-within-arg";
 
 describe("Arg resolution", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";

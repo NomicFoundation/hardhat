@@ -5,7 +5,7 @@ import {
   IgnitionModule,
   RuntimeValue,
   RuntimeValueType,
-} from "../../../src/new-api/types/module";
+} from "../../../src/types/module";
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   k: infer I

@@ -1,8 +1,8 @@
 import { assert } from "chai";
 
-import { deploymentStateReducer } from "../../../../src/new-api/internal/new-execution/reducers/deployment-state-reducer";
-import { DeploymentState } from "../../../../src/new-api/internal/new-execution/types/deployment-state";
-import { JournalMessageType } from "../../../../src/new-api/internal/new-execution/types/messages";
+import { deploymentStateReducer } from "../../../../src/internal/new-execution/reducers/deployment-state-reducer";
+import { DeploymentState } from "../../../../src/internal/new-execution/types/deployment-state";
+import { JournalMessageType } from "../../../../src/internal/new-execution/types/messages";
 
 describe("DeploymentStateReducer", () => {
   let initialState: DeploymentState;

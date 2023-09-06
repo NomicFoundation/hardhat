@@ -1,9 +1,9 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { EphemeralDeploymentLoader } from "../../../src/new-api/internal/deployment-loader/ephemeral-deployment-loader";
-import { FileDeploymentLoader } from "../../../src/new-api/internal/deployment-loader/file-deployment-loader";
-import { DeploymentLoader } from "../../../src/new-api/internal/deployment-loader/types";
+import { EphemeralDeploymentLoader } from "../../../src/internal/deployment-loader/ephemeral-deployment-loader";
+import { FileDeploymentLoader } from "../../../src/internal/deployment-loader/file-deployment-loader";
+import { DeploymentLoader } from "../../../src/internal/deployment-loader/types";
 import { ExactInterface } from "../../helpers/exact-interface";
 import { setupMockArtifactResolver } from "../helpers";
 

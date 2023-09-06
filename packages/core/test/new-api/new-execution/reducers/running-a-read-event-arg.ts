@@ -1,16 +1,16 @@
 import { assert } from "chai";
 
-import { DeploymentState } from "../../../../src/new-api/internal/new-execution/types/deployment-state";
+import { DeploymentState } from "../../../../src/internal/new-execution/types/deployment-state";
 import {
   ExecutionSateType,
   ExecutionStatus,
   ReadEventArgumentExecutionState,
-} from "../../../../src/new-api/internal/new-execution/types/execution-state";
+} from "../../../../src/internal/new-execution/types/execution-state";
 import {
   JournalMessageType,
   ReadEventArgExecutionStateInitializeMessage,
-} from "../../../../src/new-api/internal/new-execution/types/messages";
-import { findExecutionStateById } from "../../../../src/new-api/internal/new-execution/views/find-execution-state-by-id";
+} from "../../../../src/internal/new-execution/types/messages";
+import { findExecutionStateById } from "../../../../src/internal/new-execution/views/find-execution-state-by-id";
 
 import { applyMessages } from "./utils";
 

@@ -1,8 +1,8 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { buildModule } from "../../src/new-api/build-module";
-import { AccountRuntimeValueImplementation } from "../../src/new-api/internal/module";
+import { buildModule } from "../../src/build-module";
+import { AccountRuntimeValueImplementation } from "../../src/internal/module";
 
 import { assertInstanceOf } from "./helpers";
 

@@ -2,8 +2,8 @@
 import { assert } from "chai";
 
 import { Artifact, DeploymentResultType } from "../../src";
-import { buildModule } from "../../src/new-api/build-module";
-import { validateStageTwo } from "../../src/new-api/internal/validation/validateStageTwo";
+import { buildModule } from "../../src/build-module";
+import { validateStageTwo } from "../../src/internal/validation/validateStageTwo";
 
 import { setupMockArtifactResolver } from "./helpers";
 

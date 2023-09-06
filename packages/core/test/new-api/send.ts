@@ -1,14 +1,14 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { buildModule } from "../../src/new-api/build-module";
+import { buildModule } from "../../src/build-module";
 import {
   AccountRuntimeValueImplementation,
   ModuleParameterRuntimeValueImplementation,
   SendDataFutureImplementation,
-} from "../../src/new-api/internal/module";
-import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
-import { FutureType } from "../../src/new-api/types/module";
+} from "../../src/internal/module";
+import { getFuturesFromModule } from "../../src/internal/utils/get-futures-from-module";
+import { FutureType } from "../../src/types/module";
 
 import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
 
@@ -314,12 +314,12 @@ describe("send", () => {
     });
 
     describe("stage two", () => {
-      let vm: typeof import("../../src/new-api/internal/validation/stageTwo/validateSendData");
+      let vm: typeof import("../../src/internal/validation/stageTwo/validateSendData");
       let validateSendData: typeof vm.validateSendData;
 
       before(async () => {
         vm = await import(
-          "../../src/new-api/internal/validation/stageTwo/validateSendData"
+          "../../src/internal/validation/stageTwo/validateSendData"
         );
 
         validateSendData = vm.validateSendData;

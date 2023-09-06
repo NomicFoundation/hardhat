@@ -2,13 +2,13 @@
 import { assert } from "chai";
 
 import { Artifact, FutureType } from "../../src";
-import { buildModule } from "../../src/new-api/build-module";
+import { buildModule } from "../../src/build-module";
 import {
   AccountRuntimeValueImplementation,
   ArtifactContractDeploymentFutureImplementation,
   ModuleParameterRuntimeValueImplementation,
-} from "../../src/new-api/internal/module";
-import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
+} from "../../src/internal/module";
+import { getFuturesFromModule } from "../../src/internal/utils/get-futures-from-module";
 
 import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
 
@@ -530,12 +530,12 @@ describe("contractFromArtifact", () => {
     });
 
     describe("stage one", () => {
-      let vm: typeof import("../../src/new-api/internal/validation/stageOne/validateArtifactContractDeployment");
+      let vm: typeof import("../../src/internal/validation/stageOne/validateArtifactContractDeployment");
       let validateArtifactContractDeployment: typeof vm.validateArtifactContractDeployment;
 
       before(async () => {
         vm = await import(
-          "../../src/new-api/internal/validation/stageOne/validateArtifactContractDeployment"
+          "../../src/internal/validation/stageOne/validateArtifactContractDeployment"
         );
 
         validateArtifactContractDeployment =
@@ -566,12 +566,12 @@ describe("contractFromArtifact", () => {
     });
 
     describe("stage two", () => {
-      let vm: typeof import("../../src/new-api/internal/validation/stageTwo/validateArtifactContractDeployment");
+      let vm: typeof import("../../src/internal/validation/stageTwo/validateArtifactContractDeployment");
       let validateArtifactContractDeployment: typeof vm.validateArtifactContractDeployment;
 
       before(async () => {
         vm = await import(
-          "../../src/new-api/internal/validation/stageTwo/validateArtifactContractDeployment"
+          "../../src/internal/validation/stageTwo/validateArtifactContractDeployment"
         );
 
         validateArtifactContractDeployment =

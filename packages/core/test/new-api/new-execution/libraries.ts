@@ -3,7 +3,7 @@ import { assert } from "chai";
 import {
   linkLibraries,
   validateLibraryNames,
-} from "../../../src/new-api/internal/new-execution/libraries";
+} from "../../../src/internal/new-execution/libraries";
 import { deploymentFixturesArtifacts } from "../../helpers/execution-result-fixtures";
 
 const mockAddress = "0x1122334455667788990011223344556677889900";

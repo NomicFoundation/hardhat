@@ -2,8 +2,8 @@
 import { assert } from "chai";
 
 import { Artifact, FutureType, ReadEventArgumentFuture } from "../../src";
-import { buildModule } from "../../src/new-api/build-module";
-import { getFuturesFromModule } from "../../src/new-api/internal/utils/get-futures-from-module";
+import { buildModule } from "../../src/build-module";
+import { getFuturesFromModule } from "../../src/internal/utils/get-futures-from-module";
 
 import { setupMockArtifactResolver } from "./helpers";
 
@@ -192,12 +192,12 @@ describe("Read event argument", () => {
 
   describe("validation", () => {
     describe("stage one", () => {
-      let vm: typeof import("../../src/new-api/internal/validation/stageOne/validateReadEventArgument");
+      let vm: typeof import("../../src/internal/validation/stageOne/validateReadEventArgument");
       let validateReadEventArgument: typeof vm.validateReadEventArgument;
 
       before(async () => {
         vm = await import(
-          "../../src/new-api/internal/validation/stageOne/validateReadEventArgument"
+          "../../src/internal/validation/stageOne/validateReadEventArgument"
         );
 
         validateReadEventArgument = vm.validateReadEventArgument;

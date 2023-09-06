@@ -2,23 +2,23 @@
 import { assert } from "chai";
 
 import { Artifact } from "../../src";
-import { buildModule } from "../../src/new-api/build-module";
+import { buildModule } from "../../src/build-module";
 import {
   ArtifactContractDeploymentFutureImplementation,
   ArtifactLibraryDeploymentFutureImplementation,
   NamedContractDeploymentFutureImplementation,
   NamedLibraryDeploymentFutureImplementation,
-} from "../../src/new-api/internal/module";
+} from "../../src/internal/module";
 import {
   StoredDeploymentDeserializer,
   StoredDeploymentSerializer,
-} from "../../src/new-api/stored-deployment-serializer";
+} from "../../src/stored-deployment-serializer";
 import {
   ContractFuture,
   IgnitionModule,
   IgnitionModuleResult,
-} from "../../src/new-api/types/module";
-import { StoredDeployment } from "../../src/new-api/types/serialized-deployment";
+} from "../../src/types/module";
+import { StoredDeployment } from "../../src/types/serialized-deployment";
 
 describe("stored deployment serializer", () => {
   const details = {

@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
-import { EvmTuple } from "../../../../src/new-api/internal/new-execution/types/evm-execution";
-import { convertEvmTupleToSolidityParam } from "../../../../src/new-api/internal/new-execution/utils/convert-evm-tuple-to-solidity-param";
+import { EvmTuple } from "../../../../src/internal/new-execution/types/evm-execution";
+import { convertEvmTupleToSolidityParam } from "../../../../src/internal/new-execution/utils/convert-evm-tuple-to-solidity-param";
 
 describe("converting evm tuples to solidity params", () => {
   it("should convert a tuple", () => {

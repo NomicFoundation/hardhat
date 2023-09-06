@@ -1,16 +1,16 @@
 import { assert } from "chai";
 
-import { buildModule } from "../../../../src/new-api/build-module";
-import { ExecutionResultType } from "../../../../src/new-api/internal/new-execution/types/execution-result";
+import { buildModule } from "../../../../src/build-module";
+import { ExecutionResultType } from "../../../../src/internal/new-execution/types/execution-result";
 import {
   ContractAtExecutionState,
   DeploymentExecutionState,
   ExecutionSateType,
   ExecutionStatus,
   StaticCallExecutionState,
-} from "../../../../src/new-api/internal/new-execution/types/execution-state";
-import { getDefaultSender } from "../../../../src/new-api/internal/new-execution/utils/get-default-sender";
-import { FutureType } from "../../../../src/new-api/types/module";
+} from "../../../../src/internal/new-execution/types/execution-state";
+import { getDefaultSender } from "../../../../src/internal/new-execution/utils/get-default-sender";
+import { FutureType } from "../../../../src/types/module";
 import { exampleAccounts } from "../../helpers";
 import {
   assertSuccessReconciliation,

@@ -1,13 +1,13 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { buildModule } from "../../../../src/new-api/build-module";
+import { buildModule } from "../../../../src/build-module";
 import {
   ExecutionSateType,
   ExecutionStatus,
   SendDataExecutionState,
-} from "../../../../src/new-api/internal/new-execution/types/execution-state";
-import { FutureType } from "../../../../src/new-api/types/module";
+} from "../../../../src/internal/new-execution/types/execution-state";
+import { FutureType } from "../../../../src/types/module";
 import { exampleAccounts } from "../../helpers";
 import {
   assertSuccessReconciliation,

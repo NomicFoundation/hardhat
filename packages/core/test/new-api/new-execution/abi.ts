@@ -9,9 +9,9 @@ import {
   encodeArtifactDeploymentData,
   encodeArtifactFunctionCall,
   validateArtifactFunctionName,
-} from "../../../src/new-api/internal/new-execution/abi";
-import { linkLibraries } from "../../../src/new-api/internal/new-execution/libraries";
-import { EvmExecutionResultTypes } from "../../../src/new-api/internal/new-execution/types/evm-execution";
+} from "../../../src/internal/new-execution/abi";
+import { linkLibraries } from "../../../src/internal/new-execution/libraries";
+import { EvmExecutionResultTypes } from "../../../src/internal/new-execution/types/evm-execution";
 import {
   callEncodingFixtures,
   deploymentFixturesArtifacts,

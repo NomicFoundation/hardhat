@@ -1,14 +1,14 @@
 import { assert } from "chai";
 
-import { DeploymentState } from "../../../../src/new-api/internal/new-execution/types/deployment-state";
-import { EvmExecutionResultTypes } from "../../../../src/new-api/internal/new-execution/types/evm-execution";
-import { ExecutionResultType } from "../../../../src/new-api/internal/new-execution/types/execution-result";
+import { DeploymentState } from "../../../../src/internal/new-execution/types/deployment-state";
+import { EvmExecutionResultTypes } from "../../../../src/internal/new-execution/types/evm-execution";
+import { ExecutionResultType } from "../../../../src/internal/new-execution/types/execution-result";
 import {
   DeploymentExecutionState,
   ExecutionSateType,
   ExecutionStatus,
-} from "../../../../src/new-api/internal/new-execution/types/execution-state";
-import { TransactionReceiptStatus } from "../../../../src/new-api/internal/new-execution/types/jsonrpc";
+} from "../../../../src/internal/new-execution/types/execution-state";
+import { TransactionReceiptStatus } from "../../../../src/internal/new-execution/types/jsonrpc";
 import {
   DeploymentExecutionStateCompleteMessage,
   DeploymentExecutionStateInitializeMessage,
@@ -16,13 +16,13 @@ import {
   NetworkInteractionRequestMessage,
   TransactionConfirmMessage,
   TransactionSendMessage,
-} from "../../../../src/new-api/internal/new-execution/types/messages";
-import { NetworkInteractionType } from "../../../../src/new-api/internal/new-execution/types/network-interaction";
-import { findOnchainInteractionBy } from "../../../../src/new-api/internal/new-execution/views/execution-state/find-onchain-interaction-by";
-import { findTransactionBy } from "../../../../src/new-api/internal/new-execution/views/execution-state/find-transaction-by";
-import { findExecutionStateById } from "../../../../src/new-api/internal/new-execution/views/find-execution-state-by-id";
-import { assertIgnitionInvariant } from "../../../../src/new-api/internal/utils/assertions";
-import { FutureType } from "../../../../src/new-api/types/module";
+} from "../../../../src/internal/new-execution/types/messages";
+import { NetworkInteractionType } from "../../../../src/internal/new-execution/types/network-interaction";
+import { findOnchainInteractionBy } from "../../../../src/internal/new-execution/views/execution-state/find-onchain-interaction-by";
+import { findTransactionBy } from "../../../../src/internal/new-execution/views/execution-state/find-transaction-by";
+import { findExecutionStateById } from "../../../../src/internal/new-execution/views/find-execution-state-by-id";
+import { assertIgnitionInvariant } from "../../../../src/internal/utils/assertions";
+import { FutureType } from "../../../../src/types/module";
 
 import { applyMessages } from "./utils";
 

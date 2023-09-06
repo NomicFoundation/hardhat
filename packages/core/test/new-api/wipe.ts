@@ -1,17 +1,17 @@
 import { assert } from "chai";
 
 import { ArtifactResolver } from "../../src";
-import { EphemeralDeploymentLoader } from "../../src/new-api/internal/deployment-loader/ephemeral-deployment-loader";
+import { EphemeralDeploymentLoader } from "../../src/internal/deployment-loader/ephemeral-deployment-loader";
 import {
   applyNewMessage,
   initializeDeploymentState,
-} from "../../src/new-api/internal/new-execution/deployment-state-helpers";
+} from "../../src/internal/new-execution/deployment-state-helpers";
 import {
   DeploymentExecutionStateInitializeMessage,
   JournalMessageType,
-} from "../../src/new-api/internal/new-execution/types/messages";
-import { Wiper } from "../../src/new-api/internal/wiper";
-import { FutureType } from "../../src/new-api/types/module";
+} from "../../src/internal/new-execution/types/messages";
+import { Wiper } from "../../src/internal/wiper";
+import { FutureType } from "../../src/types/module";
 
 describe("wipe", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
