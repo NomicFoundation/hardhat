@@ -46,7 +46,7 @@
     "@types/mermaid": "^9.1.0",
     "@types/mocha": "^9.0.0",
     "@types/ndjson": "2.0.1",
-    "@types/node": "^16.0.0",
+    "@types/node": "12.20.25",
     "@types/prompts": "^2.4.2",
     "@types/sinon": "^10.0.13",
     "@typescript-eslint/eslint-plugin": "4.31.2",
