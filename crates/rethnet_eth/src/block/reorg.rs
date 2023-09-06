@@ -32,7 +32,7 @@ impl<'a> From<&'a IsSafeBlockNumberArgs<'a>> for LargestSafeBlockNumberArgs<'a> 
 /// block number.
 pub fn largest_safe_block_number(args: LargestSafeBlockNumberArgs<'_>) -> U256 {
     args.latest_block_number
-        .saturating_sub(largest_possible_reorg(args.chain_id))
+        .saturating_sub(safe_block_depth(args.chain_id))
 }
 
 /// Arguments for the `largest_safe_block_number` function.
@@ -44,13 +44,11 @@ pub struct LargestSafeBlockNumberArgs<'a> {
     pub latest_block_number: &'a U256,
 }
 
-/// Retrieves the largest possible size of a reorg, i.e. ensures a "safe" block.
-///
-/// # Source
+/// The safe block depth for a specific chain.
 ///
 /// The custom numbers were taken from:
 /// <https://github.com/NomicFoundation/hardhat/blob/caa504fe0e53c183578f42d66f4740b8ec147051/packages/hardhat-core/src/internal/hardhat-network/provider/utils/reorgs-protection.ts>
-pub fn largest_possible_reorg(chain_id: &U256) -> U256 {
+pub fn safe_block_depth(chain_id: &U256) -> U256 {
     let chain_id: u64 = chain_id.try_into().expect("invalid chain id");
     let threshold: u64 = match chain_id {
         // Ethereum mainnet, Rinkeby, Goerli and Kovan testnets

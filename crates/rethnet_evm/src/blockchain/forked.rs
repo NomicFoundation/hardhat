@@ -4,7 +4,7 @@ use std::{num::NonZeroUsize, path::PathBuf};
 use async_trait::async_trait;
 use rethnet_eth::block::LargestSafeBlockNumberArgs;
 use rethnet_eth::{
-    block::{largest_possible_reorg, largest_safe_block_number, DetailedBlock},
+    block::{largest_safe_block_number, safe_block_depth, DetailedBlock},
     remote::{RpcClient, RpcClientError},
     spec::{chain_name, determine_hardfork},
     B256, U256,
@@ -47,7 +47,8 @@ pub enum CreationError {
 #[derive(Debug)]
 pub struct ForkedBlockchain {
     local_storage: ReservableSparseBlockchainStorage,
-    remote: RemoteBlockchain,
+    // We can force caching here because we only fork from a safe block number.
+    remote: RemoteBlockchain<true>,
     runtime: runtime::Handle,
     fork_block_number: U256,
     chain_id: U256,
@@ -91,7 +92,7 @@ impl ForkedBlockchain {
 
             if fork_block_number > safe_block_number {
                 let num_confirmations = latest_block_number - fork_block_number + U256::from(1);
-                let required_confirmations = largest_possible_reorg(&chain_id) + U256::from(1);
+                let required_confirmations = safe_block_depth(&chain_id) + U256::from(1);
                 let missing_confirmations = required_confirmations - num_confirmations;
 
                 log::warn!("You are forking from block {fork_block_number} which has less than {required_confirmations} confirmations, and will affect Hardhat Network's performance. Please use block number {safe_block_number} or wait for the block to get {missing_confirmations} more confirmations.");

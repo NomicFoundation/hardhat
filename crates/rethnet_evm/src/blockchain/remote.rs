@@ -12,12 +12,12 @@ use rethnet_eth::{
 use super::storage::SparseBlockchainStorage;
 
 #[derive(Debug)]
-pub struct RemoteBlockchain {
+pub struct RemoteBlockchain<const FORCE_CACHING: bool> {
     client: RpcClient,
     cache: RwLock<SparseBlockchainStorage>,
 }
 
-impl RemoteBlockchain {
+impl<const FORCE_CACHING: bool> RemoteBlockchain<FORCE_CACHING> {
     /// Constructs a new instance with the provided RPC client.
     pub fn new(client: RpcClient) -> Self {
         Self {
@@ -184,10 +184,11 @@ impl RemoteBlockchain {
 
         let block = DetailedBlock::new(block, transaction_callers, receipts);
 
-        let is_cacheable = self
-            .client
-            .is_cacheable_block_number(&block.header.number)
-            .await?;
+        let is_cacheable = FORCE_CACHING
+            || self
+                .client
+                .is_cacheable_block_number(&block.header.number)
+                .await?;
 
         if is_cacheable {
             let mut remote_cache = RwLockUpgradableReadGuard::upgrade(cache).await;
@@ -217,7 +218,7 @@ mod tests {
         // Latest block number is always unsafe to cache
         let block_number = rpc_client.block_number().await.unwrap();
 
-        let remote = RemoteBlockchain::new(rpc_client);
+        let remote = RemoteBlockchain::<false>::new(rpc_client);
 
         let _ = remote.block_by_number(&block_number).await.unwrap();
         assert!(remote

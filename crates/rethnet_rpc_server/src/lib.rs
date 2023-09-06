@@ -1,6 +1,6 @@
 use std::net::{SocketAddr, TcpListener};
 use std::sync::Arc;
-use std::time::{SystemTime, SystemTimeError, UNIX_EPOCH};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use axum::{
     extract::{Json, State},
@@ -27,15 +27,14 @@ use rethnet_evm::{
         LocalCreationError, SyncBlockchain,
     },
     state::{AccountModifierFn, ForkState, HybridState, StateError, SyncState},
-    AccountInfo, Bytecode, CfgEnv, HashMap, HashSet, MemPool, MineBlockError, MineBlockResult,
-    RandomHashGenerator, KECCAK_EMPTY,
+    AccountInfo, Bytecode, CfgEnv, HashMap, HashSet, MemPool, MineBlockResult, RandomHashGenerator,
+    KECCAK_EMPTY,
 };
 use secp256k1::{Secp256k1, SecretKey};
 use sha3::{Digest, Keccak256};
-use tokio::sync::{Mutex, RwLock};
+use tokio::sync::RwLock;
 use tracing::{event, Level};
 
-mod api;
 mod hardhat_methods;
 mod node;
 pub use hardhat_methods::{
@@ -47,6 +46,7 @@ mod config;
 pub use config::{AccountConfig, Config};
 
 mod filter;
+use crate::node::{Node, NodeError, NodeState};
 use filter::{new_filter_deadline, Filter};
 
 /// an RPC method with its parameters
@@ -60,43 +60,14 @@ pub enum MethodInvocation {
     Hardhat(HardhatMethodInvocation),
 }
 
-type RethnetStateType = Arc<RwLock<dyn SyncState<StateError>>>;
-type BlockchainType = Arc<RwLock<dyn SyncBlockchain<BlockchainError>>>;
-
 struct AppState {
-    allow_blocks_with_same_timestamp: bool,
-    allow_unlimited_contract_size: bool,
-    block_gas_limit: U256,
-    blockchain: BlockchainType,
-    block_time_offset_seconds: RwLock<U256>,
-    rethnet_state: RethnetStateType,
     chain_id: u64,
-    coinbase: Address,
     filters: RwLock<HashMap<U256, Filter>>,
-    fork_block_number: Option<U256>,
-    hardfork: SpecId,
-    prevrandao_generator: Arc<Mutex<RandomHashGenerator>>,
     impersonated_accounts: RwLock<HashSet<Address>>,
     last_filter_id: RwLock<U256>,
     local_accounts: HashMap<Address, SecretKey>,
-    mem_pool: Arc<RwLock<MemPool>>,
     network_id: u64,
-    next_block_timestamp: RwLock<Option<U256>>,
-}
-
-impl From<&AppState> for CfgEnv {
-    fn from(state: &AppState) -> Self {
-        let mut cfg = CfgEnv::default();
-        cfg.chain_id = U256::from(state.chain_id);
-        cfg.spec_id = state.hardfork;
-        cfg.limit_contract_code_size = if state.allow_unlimited_contract_size {
-            Some(usize::MAX)
-        } else {
-            None
-        };
-
-        cfg
-    }
+    node: Node,
 }
 
 type StateType = Arc<AppState>;
@@ -131,18 +102,10 @@ pub enum Error {
     InitialDateInFuture(SystemTime),
 
     #[error(transparent)]
-    SystemTime(#[from] SystemTimeError),
-
-    #[error(transparent)]
-    MineBlock(#[from] MineBlockError<BlockchainError, StateError>),
+    Node(#[from] NodeError),
 
     #[error(transparent)]
     Blockchain(#[from] BlockchainError),
-
-    #[error(
-        "The given timestamp {proposed} is lower than the previous block's timestamp {previous}"
-    )]
-    TimestampLowerThanPrevious { proposed: U256, previous: U256 },
 }
 
 /// `require_canonical`: whether the server should additionally raise a JSON-RPC error if the block
@@ -209,10 +172,10 @@ async fn confirm_post_merge_hardfork<T>(
 /// restore the context to that state root.
 #[allow(clippy::todo)]
 async fn set_block_context<T>(
-    state: &StateType,
+    node_state: &mut NodeState,
     block_spec: Option<BlockSpec>,
 ) -> Result<B256, ResponseData<T>> {
-    let previous_state_root = state.rethnet_state.read().await.state_root().map_err(|e| {
+    let previous_state_root = node_state.db.state_root().map_err(|e| {
         error_response_data(0, &format!("Failed to retrieve previous state root: {e}"))
     })?;
     match block_spec {
@@ -220,43 +183,46 @@ async fn set_block_context<T>(
             // do nothing
             Ok(previous_state_root)
         }
-        Some(BlockSpec::Tag(BlockTag::Latest)) if state.fork_block_number.is_none() => {
+        Some(BlockSpec::Tag(BlockTag::Latest)) if node_state.fork_block_number.is_none() => {
             Ok(previous_state_root)
         }
         None => Ok(previous_state_root),
         resolvable_block_spec => {
-            let blockchain = state.blockchain.read().await;
-            let latest_block_number = blockchain.last_block_number().await;
-            state
-                .rethnet_state
-                .write()
-                .await
+            let latest_block_number = node_state.blockchain.last_block_number().await;
+            let block_number = Some(match resolvable_block_spec.clone() {
+                Some(BlockSpec::Number(n)) => Ok(n),
+                Some(BlockSpec::Eip1898(s)) => match s {
+                    Eip1898BlockSpec::Number { block_number: n } => Ok(n),
+                    Eip1898BlockSpec::Hash {
+                        block_hash,
+                        require_canonical: _,
+                    } => match node_state.blockchain.block_by_hash(&block_hash).await {
+                        Err(e) => Err(error_response_data(
+                            0,
+                            &format!("failed to get block by hash {block_hash}: {e}"),
+                        )),
+                        Ok(None) => Err(error_response_data(
+                            0,
+                            &format!("block hash {block_hash} does not refer to a known block"),
+                        )),
+                        Ok(Some(block)) => Ok(block.header.number),
+                    },
+                },
+                Some(BlockSpec::Tag(tag)) => match tag {
+                    BlockTag::Earliest => Ok(U256::ZERO),
+                    BlockTag::Safe | BlockTag::Finalized => {
+                        confirm_post_merge_hardfork(&*node_state.blockchain).await?;
+                        Ok(latest_block_number)
+                    }
+                    BlockTag::Latest => Ok(latest_block_number),
+                    BlockTag::Pending => unreachable!(),
+                },
+                None => unreachable!(),
+            }?);
+            node_state.db
                 .set_block_context(
                     &KECCAK_EMPTY,
-                    Some(match resolvable_block_spec.clone() {
-                        Some(BlockSpec::Number(n)) => Ok(n),
-                        Some(BlockSpec::Eip1898(s)) => match s {
-                            Eip1898BlockSpec::Number { block_number: n } => Ok(n),
-                            Eip1898BlockSpec::Hash {
-                                block_hash,
-                                require_canonical: _,
-                            } => match blockchain.block_by_hash(&block_hash).await {
-                                Err(e) => Err(error_response_data(0, &format!("failed to get block by hash {block_hash}: {e}"))),
-                                Ok(None) => Err(error_response_data(0, &format!("block hash {block_hash} does not refer to a known block"))),
-                                Ok(Some(block)) => Ok(block.header.number),
-                            }
-                        },
-                        Some(BlockSpec::Tag(tag)) => match tag {
-                            BlockTag::Earliest => Ok(U256::ZERO),
-                            BlockTag::Safe | BlockTag::Finalized => {
-                                confirm_post_merge_hardfork(&*blockchain).await?;
-                                Ok(latest_block_number)
-                            }
-                            BlockTag::Latest => Ok(latest_block_number),
-                            BlockTag::Pending => unreachable!(),
-                        },
-                        None => unreachable!(),
-                    }?),
+                    block_number
                 )
                 .map_err(|e| {
                     error_response_data(
@@ -273,13 +239,11 @@ async fn set_block_context<T>(
 }
 
 async fn restore_block_context<T>(
-    state: &StateType,
+    node_state: &mut NodeState,
     state_root: B256,
 ) -> Result<(), ResponseData<T>> {
-    state
-        .rethnet_state
-        .write()
-        .await
+    node_state
+        .db
         .set_block_context(&state_root, None)
         .map_err(|e| {
             error_response_data(0, &format!("Failed to restore previous block context: {e}"))
@@ -287,10 +251,10 @@ async fn restore_block_context<T>(
 }
 
 async fn get_account_info<T>(
-    state: &StateType,
+    node_state: &NodeState,
     address: Address,
 ) -> Result<AccountInfo, ResponseData<T>> {
-    match state.rethnet_state.read().await.basic(address) {
+    match node_state.db.basic(address) {
         Ok(Some(account_info)) => Ok(account_info),
         Ok(None) => Ok(AccountInfo {
             balance: U256::ZERO,
@@ -309,10 +273,11 @@ async fn handle_accounts(state: StateType) -> ResponseData<Vec<Address>> {
     }
 }
 
-async fn handle_block_number(state: StateType) -> ResponseData<U256> {
+async fn handle_block_number(app_state: StateType) -> ResponseData<U256> {
     event!(Level::INFO, "eth_blockNumber()");
+    let node_state = app_state.node.lock_state().await;
     ResponseData::Success {
-        result: state.blockchain.read().await.last_block_number().await,
+        result: node_state.blockchain.last_block_number().await,
     }
 }
 
@@ -326,7 +291,7 @@ fn handle_chain_id(state: StateType) -> ResponseData<U64> {
 async fn handle_coinbase(state: StateType) -> ResponseData<Address> {
     event!(Level::INFO, "eth_coinbase()");
     ResponseData::Success {
-        result: state.coinbase,
+        result: state.node.lock_state().await.beneficiary,
     }
 }
 
@@ -336,10 +301,10 @@ async fn handle_evm_increase_time(
 ) -> ResponseData<String> {
     event!(Level::INFO, "evm_increaseTime({increment:?})");
     let increment: U256 = increment.into();
-    let mut offset = state.block_time_offset_seconds.write().await;
-    *offset += increment;
+    let mut node_state = state.node.lock_state().await;
+    node_state.block_time_offset_seconds += increment;
     ResponseData::Success {
-        result: offset.to_string(),
+        result: node_state.block_time_offset_seconds.to_string(),
     }
 }
 
@@ -359,88 +324,12 @@ fn log_interval_mined_block_number(
     // TODO
 }
 
-async fn mine_block(state: &StateType, timestamp: Option<U256>) -> Result<MineBlockResult, Error> {
-    let mut block_time_offset_seconds = state.block_time_offset_seconds.write().await;
-    let mut next_block_timestamp = state.next_block_timestamp.write().await;
-
-    let (block_timestamp, new_offset, timestamp_needs_increase): (U256, Option<U256>, bool) = {
-        let latest_block = state.blockchain.read().await.last_block().await?;
-        let (block_timestamp, new_offset) = {
-            let current_timestamp =
-                U256::from(SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs());
-            if let Some(timestamp) = timestamp {
-                timestamp.checked_sub(latest_block.header.timestamp).ok_or(
-                    Error::TimestampLowerThanPrevious {
-                        proposed: timestamp,
-                        previous: latest_block.header.timestamp,
-                    },
-                )?;
-                (timestamp, Some(timestamp - current_timestamp))
-            } else if let Some(next_block_timestamp) = *next_block_timestamp {
-                (
-                    next_block_timestamp,
-                    Some(next_block_timestamp - current_timestamp),
-                )
-            } else {
-                (current_timestamp + *block_time_offset_seconds, None)
-            }
-        };
-
-        let timestamp_needs_increase = block_timestamp == latest_block.header.timestamp
-            && !state.allow_blocks_with_same_timestamp;
-
-        let block_timestamp = if timestamp_needs_increase {
-            block_timestamp + U256::from(1)
-        } else {
-            block_timestamp
-        };
-
-        (block_timestamp, new_offset, timestamp_needs_increase)
-    };
-
-    let base_fee = None; // TODO: when we support hardhat_setNextBlockBaseFeePerGas, incorporate
-                         // the last-passed value here. (but don't .take() it yet, because we only
-                         // want to clear it if the block mining is successful.
-
-    let reward = U256::ZERO; // TODO: https://github.com/NomicFoundation/rethnet/issues/156
-
-    let result = rethnet_evm::mine_block(
-        &mut *state.blockchain.write().await,
-        &mut *state.rethnet_state.write().await,
-        &mut *state.mem_pool.write().await,
-        &CfgEnv::from(&**state),
-        block_timestamp,
-        state.block_gas_limit,
-        state.coinbase,
-        reward,
-        base_fee,
-        Some(state.prevrandao_generator.lock().await.next_value()),
-    )
-    .await;
-
-    if result.is_ok() {
-        if let Some(new_offset) = new_offset {
-            *block_time_offset_seconds = new_offset;
-        }
-
-        if timestamp_needs_increase {
-            *block_time_offset_seconds += U256::from(1);
-        }
-
-        next_block_timestamp.take();
-
-        // TODO: when we support hardhat_setNextBlockBaseFeePerGas, reset the user provided
-        // next block base fee per gas to `None`
-    }
-
-    result.map_err(Error::MineBlock)
-}
-
 async fn handle_evm_mine(state: StateType, timestamp: Option<U256OrUsize>) -> ResponseData<String> {
     event!(Level::INFO, "evm_mine({timestamp:?})");
     let timestamp: Option<U256> = timestamp.map(U256OrUsize::into);
 
-    match mine_block(&state, timestamp).await {
+    let mut node_state = state.node.lock_state().await;
+    match node_state.mine_block(timestamp).await {
         Ok(mine_block_result) => {
             log_block(&mine_block_result, false);
 
@@ -453,20 +342,20 @@ async fn handle_evm_mine(state: StateType, timestamp: Option<U256OrUsize>) -> Re
 }
 
 async fn handle_evm_set_next_block_timestamp(
-    state: StateType,
+    app_state: StateType,
     timestamp: U256OrUsize,
 ) -> ResponseData<String> {
     event!(Level::INFO, "evm_setNextBlockTimestamp({timestamp:?})");
-    match state.blockchain.read().await.last_block().await {
+    let mut node_state = app_state.node.lock_state().await;
+    match node_state.blockchain.last_block().await {
         Ok(latest_block) => {
             match Into::<U256>::into(timestamp.clone()).checked_sub(latest_block.header.timestamp) {
                 Some(increment) => {
-                    if increment == U256::ZERO && !state.allow_blocks_with_same_timestamp {
+                    if increment == U256::ZERO && !node_state.allow_blocks_with_same_timestamp {
                         error_response_data(0, &format!("Timestamp {timestamp:?} is equal to the previous block's timestamp. Enable the 'allowBlocksWithSameTimestamp' option to allow this"))
                     } else {
-                        let mut next_block_timestamp = state.next_block_timestamp.write().await;
                         let timestamp: U256 = timestamp.into();
-                        *next_block_timestamp = Some(timestamp);
+                        node_state.next_block_timestamp = Some(timestamp);
                         ResponseData::Success {
                             result: timestamp.to_string(),
                         }
@@ -486,54 +375,35 @@ async fn handle_evm_set_next_block_timestamp(
 }
 
 async fn handle_get_balance(
-    state: StateType,
+    app_state: StateType,
     address: Address,
     block: Option<BlockSpec>,
 ) -> ResponseData<U256> {
-    event!(Level::INFO, "eth_getBalance({address:?}, {block:?})");
-    match set_block_context(&state, block).await {
-        Ok(previous_state_root) => {
-            let account_info = get_account_info(&state, address).await;
-            match restore_block_context(&state, previous_state_root).await {
-                Ok(()) => match account_info {
-                    Ok(account_info) => ResponseData::Success {
-                        result: account_info.balance,
-                    },
-                    Err(e) => e,
-                },
-                Err(e) => e,
-            }
-        }
-        Err(e) => e,
+    match app_state.node.balance(address, block).await {
+        Ok(balance) => ResponseData::Success { result: balance },
+        // Internal server error
+        Err(e) => error_response_data(-32000, &e.to_string()),
     }
 }
 
 async fn handle_get_code(
-    state: StateType,
+    app_state: StateType,
     address: Address,
     block: Option<BlockSpec>,
 ) -> ResponseData<ZeroXPrefixedBytes> {
     event!(Level::INFO, "eth_getCode({address:?}, {block:?})");
-    match set_block_context(&state, block).await {
+    let mut node_state = app_state.node.lock_state().await;
+    match set_block_context(&mut node_state, block).await {
         Ok(previous_state_root) => {
-            let account_info = get_account_info(&state, address).await;
-            match restore_block_context(&state, previous_state_root).await {
+            let account_info = get_account_info(&node_state, address).await;
+            match restore_block_context(&mut node_state, previous_state_root).await {
                 Ok(()) => match account_info {
-                    Ok(account_info) => {
-                        match state
-                            .rethnet_state
-                            .read()
-                            .await
-                            .code_by_hash(account_info.code_hash)
-                        {
-                            Ok(code) => ResponseData::Success {
-                                result: ZeroXPrefixedBytes::from(code.bytecode),
-                            },
-                            Err(e) => {
-                                error_response_data(0, &format!("failed to retrieve code: {e}"))
-                            }
-                        }
-                    }
+                    Ok(account_info) => match node_state.db.code_by_hash(account_info.code_hash) {
+                        Ok(code) => ResponseData::Success {
+                            result: ZeroXPrefixedBytes::from(code.bytecode),
+                        },
+                        Err(e) => error_response_data(0, &format!("failed to retrieve code: {e}")),
+                    },
                     Err(e) => e,
                 },
                 Err(e) => e,
@@ -581,7 +451,7 @@ async fn handle_get_filter_logs(
 }
 
 async fn handle_get_storage_at(
-    state: StateType,
+    app_state: StateType,
     address: Address,
     position: U256,
     block: Option<BlockSpec>,
@@ -590,10 +460,11 @@ async fn handle_get_storage_at(
         Level::INFO,
         "eth_getStorageAt({address:?}, {position:?}, {block:?})"
     );
-    match set_block_context(&state, block).await {
+    let mut node_state = app_state.node.lock_state().await;
+    match set_block_context(&mut node_state, block).await {
         Ok(previous_state_root) => {
-            let value = state.rethnet_state.read().await.storage(address, position);
-            match restore_block_context(&state, previous_state_root).await {
+            let value = node_state.db.storage(address, position);
+            match restore_block_context(&mut node_state, previous_state_root).await {
                 Ok(()) => match value {
                     Ok(value) => ResponseData::Success { result: value },
                     Err(e) => {
@@ -608,7 +479,7 @@ async fn handle_get_storage_at(
 }
 
 async fn handle_get_transaction_count(
-    state: StateType,
+    app_state: StateType,
     address: Address,
     block: Option<BlockSpec>,
 ) -> ResponseData<U256> {
@@ -616,10 +487,11 @@ async fn handle_get_transaction_count(
         Level::INFO,
         "eth_getTransactionCount({address:?}, {block:?})"
     );
-    match set_block_context(&state, block).await {
+    let mut node_state = app_state.node.lock_state().await;
+    match set_block_context(&mut node_state, block).await {
         Ok(previous_state_root) => {
-            let account_info = get_account_info(&state, address).await;
-            match restore_block_context(&state, previous_state_root).await {
+            let account_info = get_account_info(&node_state, address).await;
+            match restore_block_context(&mut node_state, previous_state_root).await {
                 Ok(()) => match account_info {
                     Ok(account_info) => ResponseData::Success {
                         result: U256::from(account_info.nonce),
@@ -646,6 +518,8 @@ async fn handle_hardhat_mine(
 ) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_mine({count:?}, {interval:?})");
 
+    let mut node_state = state.node.lock_state().await;
+
     let mut mine_block_results: Vec<MineBlockResult> = Vec::new();
 
     let interval = interval.unwrap_or(U256::from(1));
@@ -663,24 +537,22 @@ async fn handle_hardhat_mine(
                     + interval,
             ),
         };
-        match mine_block(&state, timestamp).await {
+        match node_state.mine_block(timestamp).await {
             Ok(result) => mine_block_results.push(result),
             Err(e) => {
                 let generic_message = &format!("failed to mine the {i}th block in the interval");
-                match e {
-                    Error::TimestampLowerThanPrevious { proposed, previous } => {
-                        return error_response_data(
+                return match e {
+                    NodeError::TimestampLowerThanPrevious { proposed, previous } => {
+                        error_response_data(
                             0,
                             &format!(
                                 "{generic_message}: {}",
-                                Error::TimestampLowerThanPrevious { proposed, previous }
+                                NodeError::TimestampLowerThanPrevious { proposed, previous }
                             ),
-                        );
+                        )
                     }
-                    e => {
-                        return error_response_data(0, &format!("{generic_message}: {e}"));
-                    }
-                }
+                    e => error_response_data(0, &format!("{generic_message}: {e}")),
+                };
             }
         }
         i += U256::from(1);
@@ -693,7 +565,8 @@ async fn handle_hardhat_mine(
 
 async fn handle_interval_mine(state: StateType) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_intervalMine()");
-    match mine_block(&state, None).await {
+    let mut node_state = state.node.lock_state().await;
+    match node_state.mine_block(None).await {
         Ok(mine_block_result) => {
             if mine_block_result.block.transactions.is_empty() {
                 log_interval_mined_block_number(
@@ -742,13 +615,13 @@ async fn handle_new_pending_transaction_filter(state: StateType) -> ResponseData
 }
 
 async fn handle_set_balance(
-    state: StateType,
+    app_state: StateType,
     address: Address,
     balance: U256,
 ) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_setBalance({address:?}, {balance:?})");
-    let mut state = state.rethnet_state.write().await;
-    match state.modify_account(
+    let mut node_state = app_state.node.lock_state().await;
+    match node_state.db.modify_account(
         address,
         AccountModifierFn::new(Box::new(move |account_balance, _, _| {
             *account_balance = balance;
@@ -763,7 +636,7 @@ async fn handle_set_balance(
         },
     ) {
         Ok(()) => {
-            state.make_snapshot();
+            node_state.db.make_snapshot();
             ResponseData::Success { result: true }
         }
         Err(e) => ResponseData::new_error(0, &e.to_string(), None),
@@ -771,15 +644,15 @@ async fn handle_set_balance(
 }
 
 async fn handle_set_code(
-    state: StateType,
+    app_state: StateType,
     address: Address,
     code: ZeroXPrefixedBytes,
 ) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_setCode({address:?}, {code:?})");
+    let mut node_state = app_state.node.lock_state().await;
     let code_1 = code.clone();
     let code_2 = code.clone();
-    let mut state = state.rethnet_state.write().await;
-    match state.modify_account(
+    match node_state.db.modify_account(
         address,
         AccountModifierFn::new(Box::new(move |_, _, account_code| {
             *account_code = Some(Bytecode::new_raw(code_1.clone().into()));
@@ -794,19 +667,23 @@ async fn handle_set_code(
         },
     ) {
         Ok(()) => {
-            state.make_snapshot();
+            node_state.db.make_snapshot();
             ResponseData::Success { result: true }
         }
         Err(e) => ResponseData::new_error(0, &e.to_string(), None),
     }
 }
 
-async fn handle_set_nonce(state: StateType, address: Address, nonce: U256) -> ResponseData<bool> {
+async fn handle_set_nonce(
+    app_state: StateType,
+    address: Address,
+    nonce: U256,
+) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_setNonce({address:?}, {nonce:?})");
+    let mut node_state = app_state.node.lock_state().await;
     match TryInto::<u64>::try_into(nonce) {
         Ok(nonce) => {
-            let mut state = state.rethnet_state.write().await;
-            match state.modify_account(
+            match node_state.db.modify_account(
                 address,
                 AccountModifierFn::new(Box::new(move |_, account_nonce, _| *account_nonce = nonce)),
                 &|| {
@@ -819,7 +696,7 @@ async fn handle_set_nonce(state: StateType, address: Address, nonce: U256) -> Re
                 },
             ) {
                 Ok(()) => {
-                    state.make_snapshot();
+                    node_state.db.make_snapshot();
                     ResponseData::Success { result: true }
                 }
                 Err(error) => ResponseData::new_error(0, &error.to_string(), None),
@@ -830,7 +707,7 @@ async fn handle_set_nonce(state: StateType, address: Address, nonce: U256) -> Re
 }
 
 async fn handle_set_storage_at(
-    state: StateType,
+    app_state: StateType,
     address: Address,
     position: U256,
     value: U256,
@@ -839,10 +716,13 @@ async fn handle_set_storage_at(
         Level::INFO,
         "hardhat_setStorageAt({address:?}, {position:?}, {value:?})"
     );
-    let mut state = state.rethnet_state.write().await;
-    match state.set_account_storage_slot(address, position, value) {
+    let mut node_state = app_state.node.lock_state().await;
+    match node_state
+        .db
+        .set_account_storage_slot(address, position, value)
+    {
         Ok(()) => {
-            state.make_snapshot();
+            node_state.db.make_snapshot();
             ResponseData::Success { result: true }
         }
         Err(e) => ResponseData::new_error(0, &e.to_string(), None),
@@ -1199,14 +1079,12 @@ impl Server {
         let chain_id = config.chain_id;
         let hardfork = config.hardfork;
         let cache_dir = config.cache_dir;
-        let prevrandao_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed(
-            "randomMixHashSeed",
-        )));
+        let prevrandao_generator = RandomHashGenerator::with_seed("randomMixHashSeed");
 
-        let (rethnet_state, blockchain, fork_block_number): (
-            RethnetStateType,
-            BlockchainType,
-            Option<U256>,
+        let (db, blockchain, fork_block_number): (
+            Box<dyn SyncState<StateError>>,
+            Box<dyn SyncBlockchain<BlockchainError>>,
+            _,
         ) = if let Some(config) = config.rpc_hardhat_network_config.forking {
             let runtime = Arc::new(
                 tokio::runtime::Builder::new_multi_thread()
@@ -1227,25 +1105,23 @@ impl Server {
 
             let fork_block_number = blockchain.last_block_number().await;
 
-            let blockchain = Arc::new(RwLock::new(blockchain));
-
             let state_root_generator = Arc::new(parking_lot::Mutex::new(
                 RandomHashGenerator::with_seed("seed"),
             ));
-            let rethnet_state = Arc::new(RwLock::new(ForkState::new(
+            let db = ForkState::new(
                 Arc::clone(&runtime),
                 Arc::clone(&state_root_generator),
                 &config.json_rpc_url,
                 cache_dir,
                 fork_block_number,
                 genesis_accounts,
-            )));
+            );
 
-            (rethnet_state, blockchain, Some(fork_block_number))
+            (Box::new(db), Box::new(blockchain), Some(fork_block_number))
         } else {
-            let rethnet_state = HybridState::with_accounts(genesis_accounts);
-            let blockchain = Arc::new(RwLock::new(LocalBlockchain::new(
-                &rethnet_state,
+            let db = HybridState::with_accounts(genesis_accounts);
+            let blockchain = LocalBlockchain::new(
+                &db,
                 U256::from(chain_id),
                 hardfork,
                 config.gas,
@@ -1258,42 +1134,52 @@ impl Server {
                 }),
                 Some(RandomHashGenerator::with_seed("seed").next_value()),
                 config.initial_base_fee_per_gas,
-            )?));
-            let rethnet_state = Arc::new(RwLock::new(rethnet_state));
+            )?;
             let fork_block_number = None;
-            (rethnet_state, blockchain, fork_block_number)
+            (Box::new(db), Box::new(blockchain), fork_block_number)
+        };
+
+        let block_time_offset_seconds = if let Some(initial_date) = config.initial_date {
+            U256::from(
+                SystemTime::now()
+                    .duration_since(initial_date)
+                    .map_err(|_e| Error::InitialDateInFuture(initial_date))?
+                    .as_secs(),
+            )
+        } else {
+            U256::ZERO
+        };
+
+        let mut evm_config = CfgEnv::default();
+        evm_config.chain_id = U256::from(config.chain_id);
+        evm_config.spec_id = config.hardfork;
+        evm_config.limit_contract_code_size = if config.allow_unlimited_contract_size {
+            Some(usize::MAX)
+        } else {
+            None
+        };
+
+        let node_state = NodeState {
+            blockchain,
+            db,
+            mem_pool: MemPool::new(config.block_gas_limit),
+            evm_config,
+            beneficiary: config.coinbase,
+            prevrandao_generator,
+            block_time_offset_seconds,
+            next_block_timestamp: None,
+            allow_blocks_with_same_timestamp: config.allow_blocks_with_same_timestamp,
+            fork_block_number,
         };
 
         let app_state = Arc::new(AppState {
-            allow_blocks_with_same_timestamp: config.allow_blocks_with_same_timestamp,
-            allow_unlimited_contract_size: config.allow_unlimited_contract_size,
-            block_gas_limit: config.block_gas_limit,
-            blockchain,
-            block_time_offset_seconds: RwLock::new(
-                if let Some(initial_date) = config.initial_date {
-                    U256::from(
-                        SystemTime::now()
-                            .duration_since(initial_date)
-                            .map_err(|_e| Error::InitialDateInFuture(initial_date))?
-                            .as_secs(),
-                    )
-                } else {
-                    U256::ZERO
-                },
-            ),
-            rethnet_state,
             chain_id,
-            coinbase: config.coinbase,
             filters: RwLock::new(HashMap::default()),
-            fork_block_number,
-            hardfork,
-            prevrandao_generator,
             impersonated_accounts: RwLock::new(HashSet::new()),
             last_filter_id: RwLock::new(U256::ZERO),
             local_accounts,
-            mem_pool: Arc::new(RwLock::new(MemPool::new(config.block_gas_limit))),
             network_id: config.network_id,
-            next_block_timestamp: RwLock::default(),
+            node: Node::new(node_state),
         });
 
         Ok(Self {
