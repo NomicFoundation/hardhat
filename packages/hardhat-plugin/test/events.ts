@@ -5,7 +5,7 @@ import { assert } from "chai";
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
 describe("events", () => {
-  useEphemeralIgnitionProject("minimal-new-api");
+  useEphemeralIgnitionProject("minimal");
 
   it("should be able to use the output of a readEvent in a contract at", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {

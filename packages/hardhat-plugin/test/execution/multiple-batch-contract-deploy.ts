@@ -12,8 +12,7 @@ import { sleep } from "./helpers";
  * The intent here is to test batching.
  */
 describe("execution - multiple batch contract deploy", function () {
-  // TODO: rename back to minimal api once execution switched over
-  useEphemeralIgnitionProject("minimal-new-api");
+  useEphemeralIgnitionProject("minimal");
 
   it("should deploy over multiple batches", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {

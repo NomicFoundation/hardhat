@@ -16,7 +16,7 @@ import { mineBlock } from "../helpers";
  */
 describe("execution - error on pending user transactions", () => {
   useFileIgnitionProject(
-    "minimal-new-api",
+    "minimal",
     "error-on-rerun-with-replaced-pending-user-transaction"
   );
 

@@ -5,7 +5,7 @@ import { assert } from "chai";
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
 describe("existing contract", () => {
-  useEphemeralIgnitionProject("minimal-new-api");
+  useEphemeralIgnitionProject("minimal");
 
   it("should be able to use an existing contract", async function () {
     await this.hre.run("compile", { quiet: true });

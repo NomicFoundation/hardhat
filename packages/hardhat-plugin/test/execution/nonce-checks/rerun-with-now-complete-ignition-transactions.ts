@@ -15,7 +15,7 @@ import { mineBlock } from "../helpers";
  */
 describe("execution - rerun with now complete ignition transactions", () => {
   useFileIgnitionProject(
-    "minimal-new-api",
+    "minimal",
     "rerun-with-now-complete-ignition-transactions"
   );
 

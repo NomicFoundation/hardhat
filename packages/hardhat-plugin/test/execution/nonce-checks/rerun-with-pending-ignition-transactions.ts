@@ -13,10 +13,7 @@ import {
  * up where the first run left off and without any other user transactions.
  */
 describe("execution - rerun with pending ignition transactions", () => {
-  useFileIgnitionProject(
-    "minimal-new-api",
-    "rerun-with-pending-ignition-transactions"
-  );
+  useFileIgnitionProject("minimal", "rerun-with-pending-ignition-transactions");
 
   it.skip("should complete the run on the second attempt", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {

@@ -13,8 +13,7 @@ import { mineBlock } from "./helpers";
  * Deploy a single contract with non-problematic network
  */
 describe("execution - deploy contract", function () {
-  // TODO: rename back to minimal api once execution switched over
-  useEphemeralIgnitionProject("minimal-new-api");
+  useEphemeralIgnitionProject("minimal");
 
   it("should deploy a contract that is callable", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {

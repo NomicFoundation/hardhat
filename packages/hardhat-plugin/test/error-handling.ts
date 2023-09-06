@@ -5,7 +5,7 @@ import { assert } from "chai";
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
 describe("module error handling", () => {
-  useEphemeralIgnitionProject("minimal-new-api");
+  useEphemeralIgnitionProject("minimal");
 
   it("should error on passing async callback", async function () {
     assert.throws(

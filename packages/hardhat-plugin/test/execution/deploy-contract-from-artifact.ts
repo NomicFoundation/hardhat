@@ -11,8 +11,7 @@ import { mineBlock } from "./helpers";
  * Deploy a contract from an artifact.
  */
 describe("execution - deploy contract from artifact", function () {
-  // TODO: rename back to minimal api once execution switched over
-  useEphemeralIgnitionProject("minimal-new-api");
+  useEphemeralIgnitionProject("minimal");
 
   it("should deploy a contract that is callable", async function () {
     const fooArtifact = await this.hre.artifacts.readArtifact("Foo");

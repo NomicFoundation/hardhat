@@ -5,7 +5,7 @@ import { assert } from "chai";
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
 describe("contract deploys", () => {
-  useEphemeralIgnitionProject("minimal-new-api");
+  useEphemeralIgnitionProject("minimal");
 
   it("should be able to deploy a contract", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {

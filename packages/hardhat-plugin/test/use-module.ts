@@ -5,7 +5,7 @@ import { assert } from "chai";
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
 describe("useModule", function () {
-  useEphemeralIgnitionProject("minimal-new-api");
+  useEphemeralIgnitionProject("minimal");
 
   describe("returning futures from module usage", () => {
     it("using useModule", async function () {

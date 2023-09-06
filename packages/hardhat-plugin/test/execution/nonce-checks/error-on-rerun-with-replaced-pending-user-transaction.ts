@@ -15,7 +15,7 @@ import {
  */
 describe("execution - error on rerun with replaced pending user transaction", () => {
   useFileIgnitionProject(
-    "minimal-new-api",
+    "minimal",
     "error-on-rerun-with-replaced-pending-user-transaction"
   );
 

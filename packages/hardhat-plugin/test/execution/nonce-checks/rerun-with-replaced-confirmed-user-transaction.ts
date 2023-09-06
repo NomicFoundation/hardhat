@@ -17,7 +17,7 @@ import { mineBlock, sleep } from "../helpers";
  */
 describe("execution - rerun with replaced confirmed user transaction", () => {
   useFileIgnitionProject(
-    "minimal-new-api",
+    "minimal",
     "rerun-with-replaced-confirmed-user-transaction"
   );
 

@@ -5,7 +5,7 @@ import { assert } from "chai";
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
 describe("libraries", () => {
-  useEphemeralIgnitionProject("minimal-new-api");
+  useEphemeralIgnitionProject("minimal");
 
   it("should be able to deploy a contract that depends on a hardhat library", async function () {
     const moduleDefinition = buildModule("WithLibModule", (m) => {

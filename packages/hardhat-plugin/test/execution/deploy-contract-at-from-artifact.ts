@@ -14,8 +14,7 @@ import {
  * with a passed in artifact.
  */
 describe.skip("execution - deploy contractAt from artifact", function () {
-  // TODO: rename back to minimal api once execution switched over
-  useEphemeralIgnitionProject("minimal-new-api");
+  useEphemeralIgnitionProject("minimal");
 
   it("should deploy a contract that is callable", async function () {
     // Arrange

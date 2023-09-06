@@ -67,7 +67,7 @@ export function useFileIgnitionProject(
     const hre = require("hardhat");
 
     const deploymentDir = path.join(
-      path.resolve(__dirname, "./fixture-projects/minimal-new-api/"),
+      path.resolve(__dirname, "./fixture-projects/minimal/"),
       "deployments",
       deploymentId
     );

@@ -6,11 +6,10 @@ import path from "path";
 import { useEphemeralIgnitionProject } from "../use-ignition-project";
 
 describe("plan", () => {
-  // TODO: rename back to minimal api once execution switched over
-  useEphemeralIgnitionProject("minimal-new-api");
+  useEphemeralIgnitionProject("minimal");
 
   it("should create a plan", async function () {
-    const planPath = path.resolve("../minimal-new-api/cache/plan");
+    const planPath = path.resolve("../minimal/cache/plan");
     emptyDirSync(planPath);
 
     await this.hre.run("compile", { quiet: true });
