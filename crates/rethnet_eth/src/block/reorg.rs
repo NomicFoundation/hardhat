@@ -1,6 +1,12 @@
 use crate::U256;
 use std::time::Duration;
 
+/// The default depth of blocks to consider safe from a reorg and thus cacheable.
+const DEFAULT_SAFE_BLOCK_DEPTH: u64 = 128;
+
+/// The default delay between blocks. Should be the lowest possible to stay on the safe side.
+const DEFAULT_SAFE_BLOCK_TIME: Duration = Duration::from_secs(1);
+
 /// Test whether a block number is safe from a reorg for a specific chain based on the latest block
 /// number.
 pub fn is_safe_block_number(args: IsSafeBlockNumberArgs<'_>) -> bool {
@@ -63,9 +69,9 @@ pub fn largest_possible_reorg(chain_id: &U256) -> U256 {
         _ => {
             log::warn!(
                 "Unknown chain id {chain_id}, using default safe block depth of {}",
-                rethnet_defaults::DEFAULT_SAFE_BLOCK_DEPTH,
+                DEFAULT_SAFE_BLOCK_DEPTH,
             );
-            rethnet_defaults::DEFAULT_SAFE_BLOCK_DEPTH
+            DEFAULT_SAFE_BLOCK_DEPTH
         }
     };
     U256::from(threshold)
@@ -84,9 +90,9 @@ pub fn block_time(chain_id: &U256) -> Duration {
         _ => {
             log::warn!(
                 "Unknown chain id {chain_id}, using default block time of {} seconds",
-                rethnet_defaults::DEFAULT_SAFE_BLOCK_TIME.as_secs(),
+                DEFAULT_SAFE_BLOCK_TIME.as_secs(),
             );
-            rethnet_defaults::DEFAULT_SAFE_BLOCK_TIME
+            DEFAULT_SAFE_BLOCK_TIME
         }
     }
 }
