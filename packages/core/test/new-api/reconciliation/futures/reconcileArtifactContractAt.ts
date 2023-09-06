@@ -32,7 +32,7 @@ describe("Reconciliation - artifact contract at", () => {
     dependencies: new Set<string>(),
     contractName: "Contract1",
     contractAddress: exampleAddress,
-    artifactFutureId: "./artifact.json",
+    artifactId: "./artifact.json",
   };
 
   const exampleDeploymentState: DeploymentExecutionState = {
@@ -42,7 +42,7 @@ describe("Reconciliation - artifact contract at", () => {
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
-    artifactFutureId: "Example",
+    artifactId: "Example",
     contractName: "Contract1",
     value: BigInt("0"),
     constructorArgs: [],
@@ -59,7 +59,7 @@ describe("Reconciliation - artifact contract at", () => {
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     contractAddress: exampleAddress,
-    artifactFutureId: "./artifact.json",
+    artifactId: "./artifact.json",
     functionName: "function",
     args: [],
     from: getDefaultSender(exampleAccounts),
@@ -89,7 +89,7 @@ describe("Reconciliation - artifact contract at", () => {
       futureType: FutureType.ARTIFACT_CONTRACT_AT,
       status: ExecutionStatus.STARTED,
       contractAddress: exampleAddress,
-      artifactFutureId: "./artifact.json",
+      artifactId: "./artifact.json",
     });
 
     await assertSuccessReconciliation(moduleDefinition, deploymentState);
@@ -135,7 +135,7 @@ describe("Reconciliation - artifact contract at", () => {
         status: ExecutionStatus.STARTED,
         contractName: "Another",
         contractAddress: differentAddress,
-        artifactFutureId: "./artifact.json",
+        artifactId: "./artifact.json",
       }
     );
 
@@ -165,7 +165,7 @@ describe("Reconciliation - artifact contract at", () => {
         status: ExecutionStatus.STARTED,
         contractName: "ContractUnchanged",
         contractAddress: differentAddress,
-        artifactFutureId: "./artifact.json",
+        artifactId: "./artifact.json",
       })
     );
 

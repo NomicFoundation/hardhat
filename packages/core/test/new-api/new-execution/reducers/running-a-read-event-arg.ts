@@ -27,7 +27,7 @@ describe("DeploymentStateReducer", () => {
         futureId: "ReadEventArg1",
         strategy: "basic",
         dependencies: [],
-        artifactFutureId: "ReadEventArg1",
+        artifactId: "ReadEventArg1",
         eventName: "event1",
         argumentName: "arg1",
         txToReadFrom: "0x1234",
@@ -68,7 +68,7 @@ describe("DeploymentStateReducer", () => {
       });
 
       it("should record the details of the event being looked up", () => {
-        assert.equal(updatedReadEventExState.artifactFutureId, "ReadEventArg1");
+        assert.equal(updatedReadEventExState.artifactId, "ReadEventArg1");
         assert.equal(updatedReadEventExState.eventName, "event1");
         assert.equal(updatedReadEventExState.argumentName, "arg1");
         assert.equal(updatedReadEventExState.txToReadFrom, "0x1234");

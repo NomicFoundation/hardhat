@@ -65,8 +65,8 @@ export class EphemeralDeploymentLoader implements DeploymentLoader {
     this._savedArtifacts[futureId] = { _kind: "artifact", artifact };
   }
 
-  public async loadArtifact(artifactFutureId: string): Promise<Artifact> {
-    const futureId = artifactFutureId;
+  public async loadArtifact(artifactId: string): Promise<Artifact> {
+    const futureId = artifactId;
 
     const saved = this._savedArtifacts[futureId];
 

@@ -392,7 +392,7 @@ describe("buildInitializeMessageFor", () => {
           futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: ["MyModule:AnotherContract", "MyModule:SafeMath"],
-          artifactFutureId: "MyModule:ArtifactContract",
+          artifactId: "MyModule:ArtifactContract",
           constructorArgs: [
             1n,
             "b",
@@ -431,7 +431,7 @@ describe("buildInitializeMessageFor", () => {
           futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
           strategy: "basic",
           dependencies: ["MyModule:SafeMath"],
-          artifactFutureId: "MyModule:NamedLibrary",
+          artifactId: "MyModule:NamedLibrary",
           constructorArgs: [],
           contractName: "NamedLibrary",
           libraries: {
@@ -463,7 +463,7 @@ describe("buildInitializeMessageFor", () => {
           futureType: FutureType.ARTIFACT_LIBRARY_DEPLOYMENT,
           strategy: "basic",
           dependencies: ["MyModule:SafeMath"],
-          artifactFutureId: "MyModule:ArtifactLibrary",
+          artifactId: "MyModule:ArtifactLibrary",
           constructorArgs: [],
           contractName: "ArtifactLibrary",
           libraries: {
@@ -565,7 +565,7 @@ describe("buildInitializeMessageFor", () => {
           futureId: "MyModule:Call",
           strategy: "basic",
           dependencies: ["MyModule:AnotherContract", "MyModule:SafeMath"],
-          artifactFutureId: "MyModule:AnotherContract",
+          artifactId: "MyModule:AnotherContract",
           contractAddress: differentAddress,
           functionName: "test",
           args: [1n, "b", libraryAddress, { sub: "d" }],
@@ -598,7 +598,7 @@ describe("buildInitializeMessageFor", () => {
           futureId: "MyModule:StaticCall",
           strategy: "basic",
           dependencies: ["MyModule:AnotherContract", "MyModule:SafeMath"],
-          artifactFutureId: "MyModule:AnotherContract",
+          artifactId: "MyModule:AnotherContract",
           contractAddress: differentAddress,
           functionName: "staticTest",
           args: [1n, "b", libraryAddress, { sub: "d" }],
@@ -631,7 +631,7 @@ describe("buildInitializeMessageFor", () => {
           futureType: FutureType.NAMED_CONTRACT_AT,
           strategy: "basic",
           dependencies: [],
-          artifactFutureId: "MyModule:NamedContractAt",
+          artifactId: "MyModule:NamedContractAt",
           contractAddress: differentAddress,
           contractName: "NamedContractAt",
         });
@@ -658,7 +658,7 @@ describe("buildInitializeMessageFor", () => {
           futureType: FutureType.ARTIFACT_CONTRACT_AT,
           strategy: "basic",
           dependencies: [],
-          artifactFutureId: "MyModule:ArtifactContractAt",
+          artifactId: "MyModule:ArtifactContractAt",
           contractAddress: differentAddress,
           contractName: "ArtifactContractAt",
         });
@@ -696,7 +696,7 @@ describe("buildInitializeMessageFor", () => {
           futureType: FutureType.NAMED_CONTRACT_AT,
           strategy: "basic",
           dependencies: [],
-          artifactFutureId: "MyModule:NamedContractAt",
+          artifactId: "MyModule:NamedContractAt",
           contractAddress: differentAddress,
           contractName: "ArtifactContractAt",
         });
@@ -726,7 +726,7 @@ describe("buildInitializeMessageFor", () => {
           futureType: FutureType.NAMED_CONTRACT_AT,
           strategy: "basic",
           dependencies: [],
-          artifactFutureId: "MyModule:NamedContractAt",
+          artifactId: "MyModule:NamedContractAt",
           contractAddress: differentAddress,
           contractName: "NamedContractAt",
         });
@@ -772,7 +772,7 @@ describe("buildInitializeMessageFor", () => {
           futureType: FutureType.NAMED_CONTRACT_AT,
           strategy: "basic",
           dependencies: [],
-          artifactFutureId: "MyModule:SecondNamedContractAt",
+          artifactId: "MyModule:SecondNamedContractAt",
           contractAddress: differentAddress,
           contractName: "SecondNamedContractAt",
         });
@@ -817,7 +817,7 @@ describe("buildInitializeMessageFor", () => {
           futureType: FutureType.NAMED_CONTRACT_AT,
           strategy: "basic",
           dependencies: [],
-          artifactFutureId: "MyModule:NamedContractAt",
+          artifactId: "MyModule:NamedContractAt",
           contractName: "NamedContractAt",
           contractAddress: differentAddress,
         });
@@ -865,7 +865,7 @@ describe("buildInitializeMessageFor", () => {
           futureType: FutureType.NAMED_CONTRACT_AT,
           strategy: "basic",
           dependencies: [],
-          artifactFutureId: "MyModule:NamedContractAt",
+          artifactId: "MyModule:NamedContractAt",
           contractName: "NamedContractAt",
           contractAddress: differentAddress,
         });
@@ -894,7 +894,7 @@ describe("buildInitializeMessageFor", () => {
         futureId: "MyModule:ReadEventArg",
         strategy: "basic",
         dependencies: [],
-        artifactFutureId: "MyModule:AnotherContract",
+        artifactId: "MyModule:AnotherContract",
         eventName: "event1",
         argumentName: "arg1",
         txToReadFrom: "0x1234",

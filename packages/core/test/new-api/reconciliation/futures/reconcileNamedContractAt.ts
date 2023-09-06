@@ -31,7 +31,7 @@ describe("Reconciliation - named contract at", () => {
     dependencies: new Set<string>(),
     contractName: "Contract1",
     contractAddress: exampleAddress,
-    artifactFutureId: "./artifact.json",
+    artifactId: "./artifact.json",
   };
 
   const exampleDeploymentState: DeploymentExecutionState = {
@@ -42,7 +42,7 @@ describe("Reconciliation - named contract at", () => {
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     networkInteractions: [],
-    artifactFutureId: "./artifact.json",
+    artifactId: "./artifact.json",
     contractName: "Contract1",
     value: BigInt("0"),
     constructorArgs: [],
@@ -59,7 +59,7 @@ describe("Reconciliation - named contract at", () => {
     dependencies: new Set<string>(),
     networkInteractions: [],
     contractAddress: exampleAddress,
-    artifactFutureId: "./artifact.json",
+    artifactId: "./artifact.json",
     functionName: "function",
     args: [],
     from: exampleAccounts[0],

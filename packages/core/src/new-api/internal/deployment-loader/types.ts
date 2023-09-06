@@ -9,7 +9,7 @@ import { JournalMessage } from "../new-execution/types/messages";
 export interface DeploymentLoader {
   recordToJournal(message: JournalMessage): Promise<void>;
   readFromJournal(): AsyncGenerator<JournalMessage>;
-  loadArtifact(artifactFutureId: string): Promise<Artifact>;
+  loadArtifact(artifactId: string): Promise<Artifact>;
   storeUserProvidedArtifact(
     futureId: string,
     artifact: Artifact

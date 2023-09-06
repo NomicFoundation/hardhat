@@ -30,7 +30,7 @@ describe("DeploymentStateReducer", () => {
         futureType: FutureType.NAMED_CONTRACT_AT,
         strategy: "basic",
         dependencies: [],
-        artifactFutureId: "ContractAt1",
+        artifactId: "ContractAt1",
         contractName: "ContractAt1",
         contractAddress: exampleAddress,
       };
@@ -60,7 +60,7 @@ describe("DeploymentStateReducer", () => {
       });
 
       it("should populate the relevant contract fields", () => {
-        assert.equal(updatedContractAtExState.artifactFutureId, "ContractAt1");
+        assert.equal(updatedContractAtExState.artifactId, "ContractAt1");
         assert.equal(updatedContractAtExState.contractName, "ContractAt1");
         assert.equal(updatedContractAtExState.contractAddress, exampleAddress);
       });

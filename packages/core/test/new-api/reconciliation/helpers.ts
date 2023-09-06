@@ -37,7 +37,7 @@ class MockDeploymentLoader implements DeploymentLoader {
     unknown
   > {}
 
-  public async loadArtifact(_artifactFutureId: string): Promise<Artifact> {
+  public async loadArtifact(_artifactId: string): Promise<Artifact> {
     return mockArtifact;
   }
 

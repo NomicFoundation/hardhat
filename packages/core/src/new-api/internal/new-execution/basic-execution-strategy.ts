@@ -38,7 +38,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
   public async *executeDeployment(
     executionState: DeploymentExecutionState
   ): DeploymentStrategyGenerator {
-    const artifact = await this._loadArtifact(executionState.artifactFutureId);
+    const artifact = await this._loadArtifact(executionState.artifactId);
 
     const transactionOrResult = yield* executeOnchainInteractionRequest(
       executionState.id,
@@ -83,7 +83,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
   public async *executeCall(
     executionState: CallExecutionState
   ): CallStrategyGenerator {
-    const artifact = await this._loadArtifact(executionState.artifactFutureId);
+    const artifact = await this._loadArtifact(executionState.artifactId);
 
     const transactionOrResult = yield* executeOnchainInteractionRequest(
       executionState.id,
@@ -149,7 +149,7 @@ export class BasicExecutionStrategy implements ExecutionStrategy {
   public async *executeStaticCall(
     executionState: StaticCallExecutionState
   ): StaticCallStrategyGenerator {
-    const artifact = await this._loadArtifact(executionState.artifactFutureId);
+    const artifact = await this._loadArtifact(executionState.artifactId);
 
     const decodedResultOrError = yield* executeStaticCallRequest(
       {

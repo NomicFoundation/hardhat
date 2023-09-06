@@ -33,7 +33,7 @@ export async function reconcileArtifacts(
       : await context.artifactResolver.loadArtifact(future.contractName);
 
   const storedArtifact = await context.deploymentLoader.loadArtifact(
-    exState.artifactFutureId
+    exState.artifactId
   );
 
   const moduleArtifactBytecode = getBytecodeWithoutMetadata(

@@ -29,7 +29,7 @@ describe("Reconciliation", () => {
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     networkInteractions: [],
-    artifactFutureId: "Example",
+    artifactId: "Example",
     contractName: "Contract1",
     value: 0n,
     constructorArgs: [],
@@ -458,7 +458,7 @@ describe("Reconciliation", () => {
         createDeploymentState({
           ...exampleDeploymentState,
           id: "Module:Contract1",
-          artifactFutureId: "Module:Contract1",
+          artifactId: "Module:Contract1",
         }),
         new ArtifactMapDeploymentLoader(storedArtifactMap),
         new ArtifactMapResolver(moduleArtifactMap)
@@ -497,7 +497,7 @@ describe("Reconciliation", () => {
         createDeploymentState({
           ...exampleDeploymentState,
           id: "Module:Contract1",
-          artifactFutureId: "Module:Contract1",
+          artifactId: "Module:Contract1",
         }),
         new ArtifactMapDeploymentLoader(storedArtifactMap),
         new ArtifactMapResolver(moduleArtifactMap)
@@ -554,7 +554,7 @@ describe("Reconciliation", () => {
         createDeploymentState({
           ...exampleDeploymentState,
           id: "Module:Contract1",
-          artifactFutureId: "Module:Contract1",
+          artifactId: "Module:Contract1",
         }),
         new ArtifactMapDeploymentLoader(storedArtifactMap),
         new ArtifactMapResolver(moduleArtifactMap)

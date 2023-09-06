@@ -23,9 +23,7 @@ import { OnchainInteraction, StaticCall } from "./network-interaction";
 /**
  * A function that loads an artifact from the deployment's artifacts store.
  */
-export type LoadArtifactFunction = (
-  artifactFutureId: string
-) => Promise<Artifact>;
+export type LoadArtifactFunction = (artifactId: string) => Promise<Artifact>;
 
 /**
  * A request to perform an onchain interaction. This leads to the execution engine

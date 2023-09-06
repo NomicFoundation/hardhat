@@ -42,7 +42,7 @@ export async function buildInitializeMessageFor(
           strategy,
           {
             futureType: future.type,
-            artifactFutureId: future.id,
+            artifactId: future.id,
             contractName: future.contractName,
             constructorArgs: resolveArgs(
               future.constructorArgs,
@@ -66,7 +66,7 @@ export async function buildInitializeMessageFor(
           strategy,
           {
             futureType: future.type,
-            artifactFutureId: future.id,
+            artifactId: future.id,
             contractName: future.contractName,
             constructorArgs: [],
             libraries: resolveLibraries(future.libraries, deploymentState),
@@ -94,7 +94,7 @@ export async function buildInitializeMessageFor(
               future.contract,
               deploymentState
             ),
-            artifactFutureId: future.contract.id,
+            artifactId: future.contract.id,
             value: resolveValue(future.value, deploymentParameters),
             from: resolveFutureFrom(future.from, accounts, defaultSender),
           }
@@ -120,7 +120,7 @@ export async function buildInitializeMessageFor(
               future.contract,
               deploymentState
             ),
-            artifactFutureId: future.contract.id,
+            artifactId: future.contract.id,
             from: resolveFutureFrom(future.from, accounts, defaultSender),
           }
         );
@@ -142,7 +142,7 @@ export async function buildInitializeMessageFor(
               deploymentState,
               deploymentParameters
             ),
-            artifactFutureId: future.id,
+            artifactId: future.id,
           }
         );
 
@@ -166,7 +166,7 @@ export async function buildInitializeMessageFor(
           future,
           strategy,
           {
-            artifactFutureId: future.emitter.id,
+            artifactId: future.emitter.id,
             eventName: future.eventName,
             argumentName: future.argumentName,
             eventIndex: future.eventIndex,

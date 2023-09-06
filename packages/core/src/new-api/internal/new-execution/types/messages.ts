@@ -79,7 +79,7 @@ export interface DeploymentExecutionStateInitializeMessage {
   futureType: DeploymentExecutionStateFutureTypes;
   strategy: string;
   dependencies: string[];
-  artifactFutureId: string;
+  artifactId: string;
   contractName: string;
   constructorArgs: SolidityParameterType[];
   libraries: Record<string, string>;
@@ -98,7 +98,7 @@ export interface CallExecutionStateInitializeMessage {
   futureId: string;
   strategy: string;
   dependencies: string[];
-  artifactFutureId: string;
+  artifactId: string;
   contractAddress: string;
   functionName: string;
   args: SolidityParameterType[];
@@ -117,7 +117,7 @@ export interface StaticCallExecutionStateInitializeMessage {
   futureId: string;
   strategy: string;
   dependencies: string[];
-  artifactFutureId: string;
+  artifactId: string;
   contractAddress: string;
   functionName: string;
   args: SolidityParameterType[];
@@ -153,7 +153,7 @@ export interface ContractAtExecutionStateInitializeMessage {
   futureId: string;
   strategy: string;
   dependencies: string[];
-  artifactFutureId: string;
+  artifactId: string;
   contractName: string;
   contractAddress: string;
 }
@@ -163,7 +163,7 @@ export interface ReadEventArgExecutionStateInitializeMessage {
   futureId: string;
   strategy: string;
   dependencies: string[];
-  artifactFutureId: string;
+  artifactId: string;
   eventName: string;
   argumentName: string;
   txToReadFrom: string;

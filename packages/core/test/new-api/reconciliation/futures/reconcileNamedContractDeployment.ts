@@ -29,7 +29,7 @@ describe("Reconciliation - named contract", () => {
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
     networkInteractions: [],
-    artifactFutureId: "./artifact.json",
+    artifactId: "./artifact.json",
     contractName: "Contract1",
     value: BigInt("0"),
     constructorArgs: [],

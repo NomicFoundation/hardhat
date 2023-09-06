@@ -74,7 +74,7 @@ export interface DeploymentExecutionState
     ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
     DeploymentExecutionStateFutureTypes
   > {
-  artifactFutureId: string;
+  artifactId: string;
   contractName: string;
   constructorArgs: SolidityParameterType[];
   libraries: Record<string, string>;
@@ -92,7 +92,7 @@ export interface CallExecutionState
     ExecutionSateType.CALL_EXECUTION_STATE,
     FutureType.NAMED_CONTRACT_CALL
   > {
-  artifactFutureId: string;
+  artifactId: string;
   contractAddress: string;
   functionName: string;
   args: SolidityParameterType[];
@@ -113,7 +113,7 @@ export interface StaticCallExecutionState
     ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
     FutureType.NAMED_STATIC_CALL
   > {
-  artifactFutureId: string;
+  artifactId: string;
   contractAddress: string;
   functionName: string;
   args: SolidityParameterType[];
@@ -151,7 +151,7 @@ export interface ContractAtExecutionState
     ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
     FutureType.NAMED_CONTRACT_AT | FutureType.ARTIFACT_CONTRACT_AT
   > {
-  artifactFutureId: string;
+  artifactId: string;
   contractName: string;
   contractAddress: string;
 }
@@ -167,7 +167,7 @@ export interface ReadEventArgumentExecutionState
     ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE,
     FutureType.READ_EVENT_ARGUMENT
   > {
-  artifactFutureId: string;
+  artifactId: string;
   eventName: string;
   argumentName: string;
   txToReadFrom: string;

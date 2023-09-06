@@ -72,18 +72,18 @@ export function setupMockDeploymentLoader(
     recordDeployedAddress: async (futureId, contractAddress) => {
       storedDeployedAddresses[futureId] = contractAddress;
     },
-    storeUserProvidedArtifact: async (artifactFutureId, artifact) => {
-      storedArtifacts[artifactFutureId] = artifact;
+    storeUserProvidedArtifact: async (artifactId, artifact) => {
+      storedArtifacts[artifactId] = artifact;
     },
-    storeNamedArtifact: async (artifactFutureId, _contractName, artifact) => {
-      storedArtifacts[artifactFutureId] = artifact;
+    storeNamedArtifact: async (artifactId, _contractName, artifact) => {
+      storedArtifacts[artifactId] = artifact;
     },
     storeBuildInfo: async () => {},
-    loadArtifact: async (artifactFutureId: string) => {
-      const artifact = storedArtifacts[artifactFutureId];
+    loadArtifact: async (artifactId: string) => {
+      const artifact = storedArtifacts[artifactId];
 
       if (artifact === undefined) {
-        throw new Error(`Artifact not stored for ${artifactFutureId}`);
+        throw new Error(`Artifact not stored for ${artifactId}`);
       }
 
       return artifact;

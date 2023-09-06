@@ -42,7 +42,7 @@ describe("DeploymentStateReducer", () => {
         futureId: "Call1",
         strategy: "basic",
         dependencies: [],
-        artifactFutureId: "Contract1",
+        artifactId: "Contract1",
         contractAddress: exampleAddress,
         functionName: "configure",
         args: ["a", BigInt(2)],
