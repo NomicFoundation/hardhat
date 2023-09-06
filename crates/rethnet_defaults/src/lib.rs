@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 /// The default private keys from which the local accounts will be derived.
 pub const PRIVATE_KEYS: [&str; 20] = [
     // these were taken from the standard output of a run of `hardhat node`
@@ -32,3 +34,6 @@ pub const MAX_CONCURRENT_REQUESTS: usize = 5;
 
 /// The default depth of blocks to consider safe from a reorg and thus cacheable.
 pub const DEFAULT_SAFE_BLOCK_DEPTH: u64 = 128;
+
+/// The default delay between blocks. Should be the lowest possible to stay on the safe side.
+pub const DEFAULT_SAFE_BLOCK_TIME: Duration = Duration::from_secs(1);
