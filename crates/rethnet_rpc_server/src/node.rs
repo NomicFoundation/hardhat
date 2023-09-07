@@ -17,29 +17,29 @@ use tokio::sync::Mutex;
 use tracing::{event, Level};
 
 pub(super) struct Node {
-    state: Mutex<NodeState>,
+    data: Mutex<NodeData>,
 }
 
 impl Node {
-    pub fn new(state: NodeState) -> Self {
+    pub fn new(state: NodeData) -> Self {
         Self {
-            state: Mutex::new(state),
+            data: Mutex::new(state),
         }
     }
 
-    pub async fn lock_state(&self) -> tokio::sync::MutexGuard<'_, NodeState> {
-        self.state.lock().await
+    pub async fn lock_state(&self) -> tokio::sync::MutexGuard<'_, NodeData> {
+        self.data.lock().await
     }
 
     async fn execute_in_block_context<T>(
         &self,
         block_spec: Option<BlockSpec>,
-        function: impl FnOnce(&mut NodeState) -> T,
+        function: impl FnOnce(&mut NodeData) -> T,
     ) -> Result<T, NodeError> {
         let mut state = self.lock_state().await;
 
         // Save previous state root so that we can reset it later.
-        let previous_state_root = state.db.state_root()?;
+        let previous_state_root = state.state.state_root()?;
 
         let block = if let Some(block_spec) = block_spec {
             state.block_by_block_spec(&block_spec).await?
@@ -49,17 +49,16 @@ impl Node {
 
         // Set the requested block context unless
         state
-            .db
+            .state
             // Matches previous implementation in lib.rs. If the commented out line is used, the
             // `test_set_balance_success` integration test fails with unknown state root error.
             .set_block_context(&block.header.state_root, Some(block.header.number))?;
-        // .set_block_context(&KECCAK_EMPTY, Some(block.header.number))?;
 
         // Execute function in the requested block context.
         let result = function(&mut state);
 
         // Reset to previous state root.
-        state.db.set_block_context(&previous_state_root, None)?;
+        state.state.set_block_context(&previous_state_root, None)?;
 
         Ok(result)
     }
@@ -72,7 +71,7 @@ impl Node {
         event!(Level::INFO, "eth_getBalance({address:?}, {block_spec:?})");
         self.execute_in_block_context::<Result<U256, NodeError>>(block_spec, move |node| {
             Ok(node
-                .db
+                .state
                 .basic(address)?
                 .map_or(U256::ZERO, |account| account.balance))
         })
@@ -80,9 +79,9 @@ impl Node {
     }
 }
 
-pub(super) struct NodeState {
+pub(super) struct NodeData {
     pub blockchain: Box<dyn SyncBlockchain<BlockchainError>>,
-    pub db: Box<dyn SyncState<StateError>>,
+    pub state: Box<dyn SyncState<StateError>>,
     pub mem_pool: MemPool,
     pub evm_config: CfgEnv,
     pub beneficiary: Address,
@@ -93,7 +92,7 @@ pub(super) struct NodeState {
     pub fork_block_number: Option<U256>,
 }
 
-impl NodeState {
+impl NodeData {
     async fn block_by_block_spec(
         &mut self,
         block_spec: &BlockSpec,
@@ -194,7 +193,7 @@ impl NodeState {
         let block_gas_limit = *self.mem_pool.block_gas_limit();
         let result = mine_block(
             &mut *self.blockchain,
-            &mut *self.db,
+            &mut *self.state,
             &mut self.mem_pool,
             &self.evm_config,
             block_timestamp,

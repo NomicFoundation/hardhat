@@ -46,7 +46,7 @@ mod config;
 pub use config::{AccountConfig, Config};
 
 mod filter;
-use crate::node::{Node, NodeError, NodeState};
+use crate::node::{Node, NodeData, NodeError};
 use filter::{new_filter_deadline, Filter};
 
 /// an RPC method with its parameters
@@ -60,7 +60,7 @@ pub enum MethodInvocation {
     Hardhat(HardhatMethodInvocation),
 }
 
-struct AppState {
+struct AppData {
     chain_id: u64,
     filters: RwLock<HashMap<U256, Filter>>,
     impersonated_accounts: RwLock<HashSet<Address>>,
@@ -69,8 +69,6 @@ struct AppState {
     network_id: u64,
     node: Node,
 }
-
-type StateType = Arc<AppState>;
 
 fn error_response_data<T>(code: i16, msg: &str) -> ResponseData<T> {
     event!(Level::INFO, "{}", &msg);
@@ -172,10 +170,10 @@ async fn confirm_post_merge_hardfork<T>(
 /// restore the context to that state root.
 #[allow(clippy::todo)]
 async fn set_block_context<T>(
-    node_state: &mut NodeState,
+    node_state: &mut NodeData,
     block_spec: Option<BlockSpec>,
 ) -> Result<B256, ResponseData<T>> {
-    let previous_state_root = node_state.db.state_root().map_err(|e| {
+    let previous_state_root = node_state.state.state_root().map_err(|e| {
         error_response_data(0, &format!("Failed to retrieve previous state root: {e}"))
     })?;
     match block_spec {
@@ -219,7 +217,7 @@ async fn set_block_context<T>(
                 },
                 None => unreachable!(),
             }?);
-            node_state.db
+            node_state.state
                 .set_block_context(
                     &KECCAK_EMPTY,
                     block_number
@@ -239,11 +237,11 @@ async fn set_block_context<T>(
 }
 
 async fn restore_block_context<T>(
-    node_state: &mut NodeState,
+    node_state: &mut NodeData,
     state_root: B256,
 ) -> Result<(), ResponseData<T>> {
     node_state
-        .db
+        .state
         .set_block_context(&state_root, None)
         .map_err(|e| {
             error_response_data(0, &format!("Failed to restore previous block context: {e}"))
@@ -251,10 +249,10 @@ async fn restore_block_context<T>(
 }
 
 async fn get_account_info<T>(
-    node_state: &NodeState,
+    node_state: &NodeData,
     address: Address,
 ) -> Result<AccountInfo, ResponseData<T>> {
-    match node_state.db.basic(address) {
+    match node_state.state.basic(address) {
         Ok(Some(account_info)) => Ok(account_info),
         Ok(None) => Ok(AccountInfo {
             balance: U256::ZERO,
@@ -266,14 +264,14 @@ async fn get_account_info<T>(
     }
 }
 
-async fn handle_accounts(state: StateType) -> ResponseData<Vec<Address>> {
+async fn handle_accounts(state: Arc<AppData>) -> ResponseData<Vec<Address>> {
     event!(Level::INFO, "eth_accounts()");
     ResponseData::Success {
         result: state.local_accounts.keys().copied().collect(),
     }
 }
 
-async fn handle_block_number(app_state: StateType) -> ResponseData<U256> {
+async fn handle_block_number(app_state: Arc<AppData>) -> ResponseData<U256> {
     event!(Level::INFO, "eth_blockNumber()");
     let node_state = app_state.node.lock_state().await;
     ResponseData::Success {
@@ -281,14 +279,14 @@ async fn handle_block_number(app_state: StateType) -> ResponseData<U256> {
     }
 }
 
-fn handle_chain_id(state: StateType) -> ResponseData<U64> {
+fn handle_chain_id(state: Arc<AppData>) -> ResponseData<U64> {
     event!(Level::INFO, "eth_chainId()");
     ResponseData::Success {
         result: U64::from(state.chain_id),
     }
 }
 
-async fn handle_coinbase(state: StateType) -> ResponseData<Address> {
+async fn handle_coinbase(state: Arc<AppData>) -> ResponseData<Address> {
     event!(Level::INFO, "eth_coinbase()");
     ResponseData::Success {
         result: state.node.lock_state().await.beneficiary,
@@ -296,7 +294,7 @@ async fn handle_coinbase(state: StateType) -> ResponseData<Address> {
 }
 
 async fn handle_evm_increase_time(
-    state: StateType,
+    state: Arc<AppData>,
     increment: U256OrUsize,
 ) -> ResponseData<String> {
     event!(Level::INFO, "evm_increaseTime({increment:?})");
@@ -324,7 +322,10 @@ fn log_interval_mined_block_number(
     // TODO
 }
 
-async fn handle_evm_mine(state: StateType, timestamp: Option<U256OrUsize>) -> ResponseData<String> {
+async fn handle_evm_mine(
+    state: Arc<AppData>,
+    timestamp: Option<U256OrUsize>,
+) -> ResponseData<String> {
     event!(Level::INFO, "evm_mine({timestamp:?})");
     let timestamp: Option<U256> = timestamp.map(U256OrUsize::into);
 
@@ -342,7 +343,7 @@ async fn handle_evm_mine(state: StateType, timestamp: Option<U256OrUsize>) -> Re
 }
 
 async fn handle_evm_set_next_block_timestamp(
-    app_state: StateType,
+    app_state: Arc<AppData>,
     timestamp: U256OrUsize,
 ) -> ResponseData<String> {
     event!(Level::INFO, "evm_setNextBlockTimestamp({timestamp:?})");
@@ -375,7 +376,7 @@ async fn handle_evm_set_next_block_timestamp(
 }
 
 async fn handle_get_balance(
-    app_state: StateType,
+    app_state: Arc<AppData>,
     address: Address,
     block: Option<BlockSpec>,
 ) -> ResponseData<U256> {
@@ -387,7 +388,7 @@ async fn handle_get_balance(
 }
 
 async fn handle_get_code(
-    app_state: StateType,
+    app_state: Arc<AppData>,
     address: Address,
     block: Option<BlockSpec>,
 ) -> ResponseData<ZeroXPrefixedBytes> {
@@ -398,7 +399,8 @@ async fn handle_get_code(
             let account_info = get_account_info(&node_state, address).await;
             match restore_block_context(&mut node_state, previous_state_root).await {
                 Ok(()) => match account_info {
-                    Ok(account_info) => match node_state.db.code_by_hash(account_info.code_hash) {
+                    Ok(account_info) => match node_state.state.code_by_hash(account_info.code_hash)
+                    {
                         Ok(code) => ResponseData::Success {
                             result: ZeroXPrefixedBytes::from(code.bytecode),
                         },
@@ -414,7 +416,7 @@ async fn handle_get_code(
 }
 
 async fn handle_get_filter_changes(
-    state: StateType,
+    state: Arc<AppData>,
     filter_id: U256,
 ) -> ResponseData<Option<FilteredEvents>> {
     event!(Level::INFO, "eth_getFilterChanges({filter_id:?})");
@@ -429,7 +431,7 @@ async fn handle_get_filter_changes(
 }
 
 async fn handle_get_filter_logs(
-    state: StateType,
+    state: Arc<AppData>,
     filter_id: U256,
 ) -> ResponseData<Option<Vec<LogOutput>>> {
     event!(Level::INFO, "eth_getFilterLogs({filter_id:?})");
@@ -451,7 +453,7 @@ async fn handle_get_filter_logs(
 }
 
 async fn handle_get_storage_at(
-    app_state: StateType,
+    app_state: Arc<AppData>,
     address: Address,
     position: U256,
     block: Option<BlockSpec>,
@@ -463,7 +465,7 @@ async fn handle_get_storage_at(
     let mut node_state = app_state.node.lock_state().await;
     match set_block_context(&mut node_state, block).await {
         Ok(previous_state_root) => {
-            let value = node_state.db.storage(address, position);
+            let value = node_state.state.storage(address, position);
             match restore_block_context(&mut node_state, previous_state_root).await {
                 Ok(()) => match value {
                     Ok(value) => ResponseData::Success { result: value },
@@ -479,7 +481,7 @@ async fn handle_get_storage_at(
 }
 
 async fn handle_get_transaction_count(
-    app_state: StateType,
+    app_state: Arc<AppData>,
     address: Address,
     block: Option<BlockSpec>,
 ) -> ResponseData<U256> {
@@ -505,14 +507,14 @@ async fn handle_get_transaction_count(
     }
 }
 
-async fn handle_impersonate_account(state: StateType, address: Address) -> ResponseData<bool> {
+async fn handle_impersonate_account(state: Arc<AppData>, address: Address) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_impersonateAccount({address:?})");
     state.impersonated_accounts.write().await.insert(address);
     ResponseData::Success { result: true }
 }
 
 async fn handle_hardhat_mine(
-    state: StateType,
+    state: Arc<AppData>,
     count: Option<U256>,
     interval: Option<U256>,
 ) -> ResponseData<bool> {
@@ -563,7 +565,7 @@ async fn handle_hardhat_mine(
     ResponseData::Success { result: true }
 }
 
-async fn handle_interval_mine(state: StateType) -> ResponseData<bool> {
+async fn handle_interval_mine(state: Arc<AppData>) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_intervalMine()");
     let mut node_state = state.node.lock_state().await;
     match node_state.mine_block(None).await {
@@ -584,7 +586,7 @@ async fn handle_interval_mine(state: StateType) -> ResponseData<bool> {
     }
 }
 
-async fn get_next_filter_id(state: StateType) -> U256 {
+async fn get_next_filter_id(state: Arc<AppData>) -> U256 {
     let mut last_filter_id = state.last_filter_id.write().await;
     *last_filter_id = last_filter_id
         .checked_add(U256::from(1))
@@ -592,14 +594,14 @@ async fn get_next_filter_id(state: StateType) -> U256 {
     *last_filter_id
 }
 
-async fn handle_net_version(state: StateType) -> ResponseData<String> {
+async fn handle_net_version(state: Arc<AppData>) -> ResponseData<String> {
     event!(Level::INFO, "net_version()");
     ResponseData::Success {
         result: state.network_id.to_string(),
     }
 }
 
-async fn handle_new_pending_transaction_filter(state: StateType) -> ResponseData<U256> {
+async fn handle_new_pending_transaction_filter(state: Arc<AppData>) -> ResponseData<U256> {
     event!(Level::INFO, "eth_newPendingTransactionFilter()");
     let filter_id = get_next_filter_id(Arc::clone(&state)).await;
     state.filters.write().await.insert(
@@ -615,13 +617,13 @@ async fn handle_new_pending_transaction_filter(state: StateType) -> ResponseData
 }
 
 async fn handle_set_balance(
-    app_state: StateType,
+    app_state: Arc<AppData>,
     address: Address,
     balance: U256,
 ) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_setBalance({address:?}, {balance:?})");
     let mut node_state = app_state.node.lock_state().await;
-    match node_state.db.modify_account(
+    match node_state.state.modify_account(
         address,
         AccountModifierFn::new(Box::new(move |account_balance, _, _| {
             *account_balance = balance;
@@ -636,7 +638,7 @@ async fn handle_set_balance(
         },
     ) {
         Ok(()) => {
-            node_state.db.make_snapshot();
+            node_state.state.make_snapshot();
             ResponseData::Success { result: true }
         }
         Err(e) => ResponseData::new_error(0, &e.to_string(), None),
@@ -644,7 +646,7 @@ async fn handle_set_balance(
 }
 
 async fn handle_set_code(
-    app_state: StateType,
+    app_state: Arc<AppData>,
     address: Address,
     code: ZeroXPrefixedBytes,
 ) -> ResponseData<bool> {
@@ -652,7 +654,7 @@ async fn handle_set_code(
     let mut node_state = app_state.node.lock_state().await;
     let code_1 = code.clone();
     let code_2 = code.clone();
-    match node_state.db.modify_account(
+    match node_state.state.modify_account(
         address,
         AccountModifierFn::new(Box::new(move |_, _, account_code| {
             *account_code = Some(Bytecode::new_raw(code_1.clone().into()));
@@ -667,7 +669,7 @@ async fn handle_set_code(
         },
     ) {
         Ok(()) => {
-            node_state.db.make_snapshot();
+            node_state.state.make_snapshot();
             ResponseData::Success { result: true }
         }
         Err(e) => ResponseData::new_error(0, &e.to_string(), None),
@@ -675,7 +677,7 @@ async fn handle_set_code(
 }
 
 async fn handle_set_nonce(
-    app_state: StateType,
+    app_state: Arc<AppData>,
     address: Address,
     nonce: U256,
 ) -> ResponseData<bool> {
@@ -683,7 +685,7 @@ async fn handle_set_nonce(
     let mut node_state = app_state.node.lock_state().await;
     match TryInto::<u64>::try_into(nonce) {
         Ok(nonce) => {
-            match node_state.db.modify_account(
+            match node_state.state.modify_account(
                 address,
                 AccountModifierFn::new(Box::new(move |_, account_nonce, _| *account_nonce = nonce)),
                 &|| {
@@ -696,7 +698,7 @@ async fn handle_set_nonce(
                 },
             ) {
                 Ok(()) => {
-                    node_state.db.make_snapshot();
+                    node_state.state.make_snapshot();
                     ResponseData::Success { result: true }
                 }
                 Err(error) => ResponseData::new_error(0, &error.to_string(), None),
@@ -707,7 +709,7 @@ async fn handle_set_nonce(
 }
 
 async fn handle_set_storage_at(
-    app_state: StateType,
+    app_state: Arc<AppData>,
     address: Address,
     position: U256,
     value: U256,
@@ -718,11 +720,11 @@ async fn handle_set_storage_at(
     );
     let mut node_state = app_state.node.lock_state().await;
     match node_state
-        .db
+        .state
         .set_account_storage_slot(address, position, value)
     {
         Ok(()) => {
-            node_state.db.make_snapshot();
+            node_state.state.make_snapshot();
             ResponseData::Success { result: true }
         }
         Err(e) => ResponseData::new_error(0, &e.to_string(), None),
@@ -742,7 +744,7 @@ fn handle_net_peer_count() -> ResponseData<U64> {
 }
 
 fn handle_sign(
-    state: StateType,
+    state: Arc<AppData>,
     address: &Address,
     message: &ZeroXPrefixedBytes,
 ) -> ResponseData<Signature> {
@@ -756,7 +758,7 @@ fn handle_sign(
 }
 
 async fn handle_stop_impersonating_account(
-    state: StateType,
+    state: Arc<AppData>,
     address: Address,
 ) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_stopImpersonatingAccount({address:?})");
@@ -766,7 +768,7 @@ async fn handle_stop_impersonating_account(
 }
 
 async fn remove_filter<const IS_SUBSCRIPTION: bool>(
-    state: StateType,
+    state: Arc<AppData>,
     filter_id: U256,
 ) -> ResponseData<bool> {
     let mut filters = state.filters.write().await;
@@ -778,12 +780,12 @@ async fn remove_filter<const IS_SUBSCRIPTION: bool>(
     ResponseData::Success { result }
 }
 
-async fn handle_uninstall_filter(state: StateType, filter_id: U256) -> ResponseData<bool> {
+async fn handle_uninstall_filter(state: Arc<AppData>, filter_id: U256) -> ResponseData<bool> {
     event!(Level::INFO, "eth_uninstallFilter({filter_id:?})");
     remove_filter::<false>(state, filter_id).await
 }
 
-async fn handle_unsubscribe(state: StateType, filter_id: U256) -> ResponseData<bool> {
+async fn handle_unsubscribe(state: Arc<AppData>, filter_id: U256) -> ResponseData<bool> {
     event!(Level::INFO, "eth_unsubscribe({filter_id:?})");
     remove_filter::<true>(state, filter_id).await
 }
@@ -809,7 +811,7 @@ fn handle_web3_sha3(message: ZeroXPrefixedBytes) -> ResponseData<B256> {
 }
 
 async fn handle_request(
-    state: StateType,
+    state: Arc<AppData>,
     request: &RpcRequest<MethodInvocation>,
 ) -> Result<serde_json::Value, String> {
     fn response<T>(id: &jsonrpc::Id, data: ResponseData<T>) -> Result<serde_json::Value, String>
@@ -976,12 +978,12 @@ pub enum Request {
     Batch(Vec<RpcRequest<MethodInvocation>>),
 }
 
-async fn router(state: StateType) -> Router {
+async fn router(state: Arc<AppData>) -> Router {
     Router::new()
         .route(
             "/",
             axum::routing::post(
-                |State(state): State<StateType>, payload: Json<Request>| async move {
+                |State(state): State<Arc<AppData>>, payload: Json<Request>| async move {
                     let requests: Vec<RpcRequest<MethodInvocation>> = match payload {
                         Json(Request::Single(request)) => vec![request],
                         Json(Request::Batch(requests)) => requests,
@@ -1081,7 +1083,7 @@ impl Server {
         let cache_dir = config.cache_dir;
         let prevrandao_generator = RandomHashGenerator::with_seed("randomMixHashSeed");
 
-        let (db, blockchain, fork_block_number): (
+        let (state, blockchain, fork_block_number): (
             Box<dyn SyncState<StateError>>,
             Box<dyn SyncBlockchain<BlockchainError>>,
             _,
@@ -1108,7 +1110,7 @@ impl Server {
             let state_root_generator = Arc::new(parking_lot::Mutex::new(
                 RandomHashGenerator::with_seed("seed"),
             ));
-            let db = ForkState::new(
+            let state = ForkState::new(
                 Arc::clone(&runtime),
                 Arc::clone(&state_root_generator),
                 &config.json_rpc_url,
@@ -1117,11 +1119,15 @@ impl Server {
                 genesis_accounts,
             );
 
-            (Box::new(db), Box::new(blockchain), Some(fork_block_number))
+            (
+                Box::new(state),
+                Box::new(blockchain),
+                Some(fork_block_number),
+            )
         } else {
-            let db = HybridState::with_accounts(genesis_accounts);
+            let state = HybridState::with_accounts(genesis_accounts);
             let blockchain = LocalBlockchain::new(
-                &db,
+                &state,
                 U256::from(chain_id),
                 hardfork,
                 config.gas,
@@ -1136,7 +1142,7 @@ impl Server {
                 config.initial_base_fee_per_gas,
             )?;
             let fork_block_number = None;
-            (Box::new(db), Box::new(blockchain), fork_block_number)
+            (Box::new(state), Box::new(blockchain), fork_block_number)
         };
 
         let block_time_offset_seconds = if let Some(initial_date) = config.initial_date {
@@ -1159,9 +1165,9 @@ impl Server {
             None
         };
 
-        let node_state = NodeState {
+        let node_data = NodeData {
             blockchain,
-            db,
+            state,
             mem_pool: MemPool::new(config.block_gas_limit),
             evm_config,
             beneficiary: config.coinbase,
@@ -1172,14 +1178,14 @@ impl Server {
             fork_block_number,
         };
 
-        let app_state = Arc::new(AppState {
+        let app_state = Arc::new(AppData {
             chain_id,
             filters: RwLock::new(HashMap::default()),
             impersonated_accounts: RwLock::new(HashSet::new()),
             last_filter_id: RwLock::new(U256::ZERO),
             local_accounts,
             network_id: config.network_id,
-            node: Node::new(node_state),
+            node: Node::new(node_data),
         });
 
         Ok(Self {
