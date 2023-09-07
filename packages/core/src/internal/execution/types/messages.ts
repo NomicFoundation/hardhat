@@ -47,7 +47,7 @@ export type JournalMessage =
  */
 export enum JournalMessageType {
   RUN_START = "RUN_START",
-  WIPE_EXECUTION_STATE = "WIPE_EXECUTION_STATE",
+  WIPE_APPLY = "WIPE_APPLY",
   DEPLOYMENT_EXECUTION_STATE_INITIALIZE = "DEPLOYMENT_EXECUTION_STATE_INITIALIZE",
   DEPLOYMENT_EXECUTION_STATE_COMPLETE = "DEPLOYMENT_EXECUTION_STATE_COMPLETE",
   CALL_EXECUTION_STATE_INITIALIZE = "CALL_EXECUTION_STATE_INITIALIZE",
@@ -228,6 +228,6 @@ export interface OnchainInteractionTimeoutMessage {
 }
 
 export interface WipeExecutionStateMessage {
-  type: JournalMessageType.WIPE_EXECUTION_STATE;
+  type: JournalMessageType.WIPE_APPLY;
   futureId: string;
 }

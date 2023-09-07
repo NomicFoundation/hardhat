@@ -12,7 +12,7 @@ export function logJournalableMessage(message: JournalMessage): void {
       console.log(`Deployment started`);
       break;
 
-    case JournalMessageType.WIPE_EXECUTION_STATE: {
+    case JournalMessageType.WIPE_APPLY: {
       console.log(
         `Removing the execution of future ${message.futureId} from the journal`
       );

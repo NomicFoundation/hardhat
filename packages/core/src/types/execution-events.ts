@@ -9,7 +9,7 @@ import { IgnitionModuleResult } from "./module";
  */
 export type ExecutionEvent =
   | RunStartEvent
-  | WipeExecutionStateEvent
+  | WipeApplyEvent
   | DeploymentExecutionStateInitializeEvent
   | DeploymentExecutionStateCompleteEvent
   | CallExecutionStateInitializeEvent
@@ -40,7 +40,7 @@ export type ExecutionEvent =
  */
 export enum ExecutionEventType {
   RUN_START = "RUN_START",
-  WIPE_EXECUTION_STATE = "WIPE_EXECUTION_STATE",
+  WIPE_APPLY = "WIPE_APPLY",
   DEPLOYMENT_EXECUTION_STATE_INITIALIZE = "DEPLOYMENT_EXECUTION_STATE_INITIALIZE",
   DEPLOYMENT_EXECUTION_STATE_COMPLETE = "DEPLOYMENT_EXECUTION_STATE_COMPLETE",
   CALL_EXECUTION_STATE_INITIALIZE = "CALL_EXECUTION_STATE_INITIALIZE",
@@ -238,8 +238,8 @@ export interface ReadEventArgExecutionStateInitializeEvent {
  *
  * @beta
  */
-export interface WipeExecutionStateEvent {
-  type: ExecutionEventType.WIPE_EXECUTION_STATE;
+export interface WipeApplyEvent {
+  type: ExecutionEventType.WIPE_APPLY;
   futureId: string;
 }
 
@@ -396,7 +396,7 @@ export interface ExecutionEventError {
  */
 export interface ExecutionEventTypeMap {
   [ExecutionEventType.RUN_START]: RunStartEvent;
-  [ExecutionEventType.WIPE_EXECUTION_STATE]: WipeExecutionStateEvent;
+  [ExecutionEventType.WIPE_APPLY]: WipeApplyEvent;
   [ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE]: DeploymentExecutionStateInitializeEvent;
   [ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_COMPLETE]: DeploymentExecutionStateCompleteEvent;
   [ExecutionEventType.CALL_EXECUTION_STATE_INITIALIZE]: CallExecutionStateInitializeEvent;

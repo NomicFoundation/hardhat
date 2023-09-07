@@ -33,7 +33,7 @@ export function deploymentStateReducer(
     };
   }
 
-  if (action.type === JournalMessageType.WIPE_EXECUTION_STATE) {
+  if (action.type === JournalMessageType.WIPE_APPLY) {
     return wipeExecutionState(state, action);
   }
 

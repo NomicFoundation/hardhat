@@ -31,7 +31,7 @@ import {
   StaticCallExecutionStateInitializeEvent,
   TransactionConfirmEvent,
   TransactionSendEvent,
-  WipeExecutionStateEvent,
+  WipeApplyEvent,
 } from "@ignored/ignition-core";
 import { render } from "ink";
 
@@ -88,7 +88,7 @@ export class UiEventHandler implements ExecutionEventListener {
     };
   }
 
-  public wipeExecutionState(event: WipeExecutionStateEvent): void {
+  public wipeApply(event: WipeApplyEvent): void {
     const batches: UiBatches = [];
 
     for (const batch of this.state.batches) {

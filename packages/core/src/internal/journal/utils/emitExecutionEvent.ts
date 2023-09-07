@@ -33,9 +33,9 @@ export function emitExecutionEvent(
       });
       break;
     }
-    case JournalMessageType.WIPE_EXECUTION_STATE: {
-      executionEventListener.wipeExecutionState({
-        type: ExecutionEventType.WIPE_EXECUTION_STATE,
+    case JournalMessageType.WIPE_APPLY: {
+      executionEventListener.wipeApply({
+        type: ExecutionEventType.WIPE_APPLY,
         futureId: message.futureId,
       });
       break;

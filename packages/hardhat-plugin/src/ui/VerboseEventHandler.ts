@@ -26,7 +26,7 @@ import {
   StaticCallExecutionStateInitializeEvent,
   TransactionConfirmEvent,
   TransactionSendEvent,
-  WipeExecutionStateEvent,
+  WipeApplyEvent,
 } from "@ignored/ignition-core";
 
 export class VerboseEventHandler implements ExecutionEventListener {
@@ -34,7 +34,7 @@ export class VerboseEventHandler implements ExecutionEventListener {
     console.log(`Deployment started for chainId: ${event.chainId}`);
   }
 
-  public wipeExecutionState(event: WipeExecutionStateEvent): void {
+  public wipeApply(event: WipeApplyEvent): void {
     console.log(`Removing the execution of future ${event.futureId}`);
   }
 

@@ -43,7 +43,7 @@ export class Wiper {
     }
 
     const wipeMessage: WipeExecutionStateMessage = {
-      type: JournalMessageType.WIPE_EXECUTION_STATE,
+      type: JournalMessageType.WIPE_APPLY,
       futureId,
     };
 
