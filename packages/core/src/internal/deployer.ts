@@ -244,7 +244,7 @@ export class Deployer {
       return;
     }
 
-    this._executionEventListener.DEPLOYMENT_START({
+    this._executionEventListener.deploymentStart({
       type: ExecutionEventType.DEPLOYMENT_START,
       moduleName: moduleId,
     });
@@ -255,7 +255,7 @@ export class Deployer {
       return;
     }
 
-    this._executionEventListener.BATCH_INITIALIZE({
+    this._executionEventListener.batchInitialize({
       type: ExecutionEventType.BATCH_INITIALIZE,
       batches,
     });
@@ -268,7 +268,7 @@ export class Deployer {
       return;
     }
 
-    this._executionEventListener.DEPLOYMENT_COMPLETE({
+    this._executionEventListener.deploymentComplete({
       type: ExecutionEventType.DEPLOYMENT_COMPLETE,
       result,
     });

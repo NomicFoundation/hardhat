@@ -31,23 +31,21 @@ import {
 } from "@ignored/ignition-core";
 
 export class VerboseEventHandler implements ExecutionEventListener {
-  public [ExecutionEventType.RUN_START](event: RunStartEvent): void {
+  public runStart(event: RunStartEvent): void {
     console.log(`Deployment started for chainId: ${event.chainId}`);
   }
 
-  public [ExecutionEventType.WIPE_EXECUTION_STATE](
-    event: WipeExecutionStateEvent
-  ): void {
+  public wipeExecutionState(event: WipeExecutionStateEvent): void {
     console.log(`Removing the execution of future ${event.futureId}`);
   }
 
-  public [ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE](
+  public deploymentExecutionStateInitialize(
     event: DeploymentExecutionStateInitializeEvent
   ): void {
     console.log(`Starting to execute the deployment future ${event.futureId}`);
   }
 
-  public [ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_COMPLETE](
+  public deploymentExecutionStateComplete(
     event: DeploymentExecutionStateCompleteEvent
   ): void {
     if (event.result.type === ExecutionEventResultType.SUCCESS) {
@@ -63,13 +61,13 @@ export class VerboseEventHandler implements ExecutionEventListener {
     }
   }
 
-  public [ExecutionEventType.CALL_EXECUTION_STATE_INITIALIZE](
+  public callExecutionStateInitialize(
     event: CallExecutionStateInitializeEvent
   ): void {
     console.log(`Starting to execute the call future ${event.futureId}`);
   }
 
-  public [ExecutionEventType.CALL_EXECUTION_STATE_COMPLETE](
+  public callExecutionStateComplete(
     event: CallExecutionStateCompleteEvent
   ): void {
     if (event.result.type === ExecutionEventResultType.SUCCESS) {
@@ -83,13 +81,13 @@ export class VerboseEventHandler implements ExecutionEventListener {
     }
   }
 
-  public [ExecutionEventType.STATIC_CALL_EXECUTION_STATE_INITIALIZE](
+  public staticCallExecutionStateInitialize(
     event: StaticCallExecutionStateInitializeEvent
   ): void {
     console.log(`Starting to execute the static call future ${event.futureId}`);
   }
 
-  public [ExecutionEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE](
+  public staticCallExecutionStateComplete(
     event: StaticCallExecutionStateCompleteEvent
   ): void {
     if (event.result.type === ExecutionEventResultType.SUCCESS) {
@@ -105,13 +103,13 @@ export class VerboseEventHandler implements ExecutionEventListener {
     }
   }
 
-  public [ExecutionEventType.SEND_DATA_EXECUTION_STATE_INITIALIZE](
+  public sendDataExecutionStateInitialize(
     event: SendDataExecutionStateInitializeEvent
   ): void {
     console.log(`Started to execute the send data future ${event.futureId}`);
   }
 
-  public [ExecutionEventType.SEND_DATA_EXECUTION_STATE_COMPLETE](
+  public sendDataExecutionStateComplete(
     event: SendDataExecutionStateCompleteEvent
   ): void {
     if (event.result.type === ExecutionEventResultType.SUCCESS) {
@@ -127,13 +125,13 @@ export class VerboseEventHandler implements ExecutionEventListener {
     }
   }
 
-  public [ExecutionEventType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE](
+  public contractAtExecutionStateInitialize(
     event: ContractAtExecutionStateInitializeEvent
   ): void {
     console.log(`Executed contract at future ${event.futureId}`);
   }
 
-  public [ExecutionEventType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE](
+  public readEventArgumentExecutionStateInitialize(
     event: ReadEventArgExecutionStateInitializeEvent
   ): void {
     console.log(
@@ -143,7 +141,7 @@ export class VerboseEventHandler implements ExecutionEventListener {
     );
   }
 
-  public [ExecutionEventType.NETWORK_INTERACTION_REQUEST](
+  public networkInteractionRequest(
     event: NetworkInteractionRequestEvent
   ): void {
     if (
@@ -158,27 +156,21 @@ export class VerboseEventHandler implements ExecutionEventListener {
     }
   }
 
-  public [ExecutionEventType.TRANSACTION_SEND](
-    event: TransactionSendEvent
-  ): void {
+  public transactionSend(event: TransactionSendEvent): void {
     console.log(
       `Transaction ${event.hash} sent for onchain interaction of future ${event.futureId}`
     );
   }
 
-  public [ExecutionEventType.TRANSACTION_CONFIRM](
-    event: TransactionConfirmEvent
-  ): void {
+  public transactionConfirm(event: TransactionConfirmEvent): void {
     console.log(`Transaction ${event.hash} confirmed`);
   }
 
-  public [ExecutionEventType.STATIC_CALL_COMPLETE](
-    event: StaticCallCompleteEvent
-  ): void {
+  public staticCallComplete(event: StaticCallCompleteEvent): void {
     console.log(`Static call completed for future ${event.futureId}`);
   }
 
-  public [ExecutionEventType.ONCHAIN_INTERACTION_BUMP_FEES](
+  public onchainInteractionBumpFees(
     event: OnchainInteractionBumpFeesEvent
   ): void {
     console.log(
@@ -186,7 +178,7 @@ export class VerboseEventHandler implements ExecutionEventListener {
     );
   }
 
-  public [ExecutionEventType.ONCHAIN_INTERACTION_DROPPED](
+  public onchainInteractionDropped(
     event: OnchainInteractionDroppedEvent
   ): void {
     console.log(
@@ -194,7 +186,7 @@ export class VerboseEventHandler implements ExecutionEventListener {
     );
   }
 
-  public [ExecutionEventType.ONCHAIN_INTERACTION_REPLACED_BY_USER](
+  public onchainInteractionReplacedByUser(
     event: OnchainInteractionReplacedByUserEvent
   ): void {
     console.log(
@@ -202,7 +194,7 @@ export class VerboseEventHandler implements ExecutionEventListener {
     );
   }
 
-  public [ExecutionEventType.ONCHAIN_INTERACTION_TIMEOUT](
+  public onchainInteractionTimeout(
     event: OnchainInteractionTimeoutEvent
   ): void {
     console.log(
@@ -210,33 +202,25 @@ export class VerboseEventHandler implements ExecutionEventListener {
     );
   }
 
-  public [ExecutionEventType.BATCH_INITIALIZE](
-    event: BatchInitializeEvent
-  ): void {
+  public batchInitialize(event: BatchInitializeEvent): void {
     console.log(
       `Starting execution for batches: ${JSON.stringify(event.batches)}`
     );
   }
 
-  public [ExecutionEventType.DEPLOYMENT_START](
-    _event: DeploymentStartEvent
-  ): void {
+  public deploymentStart(_event: DeploymentStartEvent): void {
     console.log(`Starting execution for new deployment`);
   }
 
-  public [ExecutionEventType.BEGIN_NEXT_BATCH](
-    _event: BeginNextBatchEvent
-  ): void {
+  public beginNextBatch(_event: BeginNextBatchEvent): void {
     console.log(`Starting execution for next batch`);
   }
 
-  public [ExecutionEventType.DEPLOYMENT_COMPLETE](
-    _event: DeploymentCompleteEvent
-  ): void {
+  public deploymentComplete(_event: DeploymentCompleteEvent): void {
     console.log(`Deployment complete`);
   }
 
-  public [ExecutionEventType.SET_MODULE_ID](event: SetModuleIdEvent): void {
+  public setModuleId(event: SetModuleIdEvent): void {
     console.log(`Starting validation for module: ${event.moduleName}`);
   }
 }

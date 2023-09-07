@@ -14,7 +14,6 @@ import {
   ExecutionEventListener,
   ExecutionEventResult,
   ExecutionEventResultType,
-  ExecutionEventType,
   IgnitionError,
   IgnitionModuleResult,
   NetworkInteractionRequestEvent,
@@ -82,16 +81,14 @@ export class UiEventHandler implements ExecutionEventListener {
     this._renderToCli();
   }
 
-  public [ExecutionEventType.RUN_START](event: RunStartEvent): void {
+  public runStart(event: RunStartEvent): void {
     this.state = {
       ...this.state,
       chainId: event.chainId,
     };
   }
 
-  public [ExecutionEventType.WIPE_EXECUTION_STATE](
-    event: WipeExecutionStateEvent
-  ): void {
+  public wipeExecutionState(event: WipeExecutionStateEvent): void {
     const batches: UiBatches = [];
 
     for (const batch of this.state.batches) {
@@ -114,7 +111,7 @@ export class UiEventHandler implements ExecutionEventListener {
     };
   }
 
-  public [ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE](
+  public deploymentExecutionStateInitialize(
     event: DeploymentExecutionStateInitializeEvent
   ): void {
     const updatedFuture: UiFuture = {
@@ -130,7 +127,7 @@ export class UiEventHandler implements ExecutionEventListener {
     };
   }
 
-  public [ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_COMPLETE](
+  public deploymentExecutionStateComplete(
     event: DeploymentExecutionStateCompleteEvent
   ): void {
     const updatedFuture: UiFuture = {
@@ -144,7 +141,7 @@ export class UiEventHandler implements ExecutionEventListener {
     };
   }
 
-  public [ExecutionEventType.CALL_EXECUTION_STATE_INITIALIZE](
+  public callExecutionStateInitialize(
     event: CallExecutionStateInitializeEvent
   ): void {
     const updatedFuture: UiFuture = {
@@ -160,7 +157,7 @@ export class UiEventHandler implements ExecutionEventListener {
     };
   }
 
-  public [ExecutionEventType.CALL_EXECUTION_STATE_COMPLETE](
+  public callExecutionStateComplete(
     event: CallExecutionStateCompleteEvent
   ): void {
     const updatedFuture: UiFuture = {
@@ -174,7 +171,7 @@ export class UiEventHandler implements ExecutionEventListener {
     };
   }
 
-  public [ExecutionEventType.STATIC_CALL_EXECUTION_STATE_INITIALIZE](
+  public staticCallExecutionStateInitialize(
     event: StaticCallExecutionStateInitializeEvent
   ): void {
     const updatedFuture: UiFuture = {
@@ -190,7 +187,7 @@ export class UiEventHandler implements ExecutionEventListener {
     };
   }
 
-  public [ExecutionEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE](
+  public staticCallExecutionStateComplete(
     event: StaticCallExecutionStateCompleteEvent
   ): void {
     const updatedFuture: UiFuture = {
@@ -204,7 +201,7 @@ export class UiEventHandler implements ExecutionEventListener {
     };
   }
 
-  public [ExecutionEventType.SEND_DATA_EXECUTION_STATE_INITIALIZE](
+  public sendDataExecutionStateInitialize(
     event: SendDataExecutionStateInitializeEvent
   ): void {
     const updatedFuture: UiFuture = {
@@ -220,7 +217,7 @@ export class UiEventHandler implements ExecutionEventListener {
     };
   }
 
-  public [ExecutionEventType.SEND_DATA_EXECUTION_STATE_COMPLETE](
+  public sendDataExecutionStateComplete(
     event: SendDataExecutionStateCompleteEvent
   ): void {
     const updatedFuture: UiFuture = {
@@ -234,7 +231,7 @@ export class UiEventHandler implements ExecutionEventListener {
     };
   }
 
-  public [ExecutionEventType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE](
+  public contractAtExecutionStateInitialize(
     event: ContractAtExecutionStateInitializeEvent
   ): void {
     const updatedFuture: UiFuture = {
@@ -250,7 +247,7 @@ export class UiEventHandler implements ExecutionEventListener {
     };
   }
 
-  public [ExecutionEventType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE](
+  public readEventArgumentExecutionStateInitialize(
     event: ReadEventArgExecutionStateInitializeEvent
   ): void {
     const updatedFuture: UiFuture = {
@@ -266,9 +263,7 @@ export class UiEventHandler implements ExecutionEventListener {
     };
   }
 
-  public [ExecutionEventType.BATCH_INITIALIZE](
-    event: BatchInitializeEvent
-  ): void {
+  public batchInitialize(event: BatchInitializeEvent): void {
     const batches: UiBatches = [];
 
     for (const batch of event.batches) {
@@ -292,41 +287,33 @@ export class UiEventHandler implements ExecutionEventListener {
     };
   }
 
-  public [ExecutionEventType.NETWORK_INTERACTION_REQUEST](
+  public networkInteractionRequest(
     _event: NetworkInteractionRequestEvent
   ): void {}
 
-  public [ExecutionEventType.TRANSACTION_SEND](
-    _event: TransactionSendEvent
-  ): void {}
+  public transactionSend(_event: TransactionSendEvent): void {}
 
-  public [ExecutionEventType.TRANSACTION_CONFIRM](
-    _event: TransactionConfirmEvent
-  ): void {}
+  public transactionConfirm(_event: TransactionConfirmEvent): void {}
 
-  public [ExecutionEventType.STATIC_CALL_COMPLETE](
-    _event: StaticCallCompleteEvent
-  ): void {}
+  public staticCallComplete(_event: StaticCallCompleteEvent): void {}
 
-  public [ExecutionEventType.ONCHAIN_INTERACTION_BUMP_FEES](
+  public onchainInteractionBumpFees(
     _event: OnchainInteractionBumpFeesEvent
   ): void {}
 
-  public [ExecutionEventType.ONCHAIN_INTERACTION_DROPPED](
+  public onchainInteractionDropped(
     _event: OnchainInteractionDroppedEvent
   ): void {}
 
-  public [ExecutionEventType.ONCHAIN_INTERACTION_REPLACED_BY_USER](
+  public onchainInteractionReplacedByUser(
     _event: OnchainInteractionReplacedByUserEvent
   ): void {}
 
-  public [ExecutionEventType.ONCHAIN_INTERACTION_TIMEOUT](
+  public onchainInteractionTimeout(
     _event: OnchainInteractionTimeoutEvent
   ): void {}
 
-  public [ExecutionEventType.DEPLOYMENT_START](
-    event: DeploymentStartEvent
-  ): void {
+  public deploymentStart(event: DeploymentStartEvent): void {
     this.state = {
       ...this.state,
       status: UiStateDeploymentStatus.DEPLOYING,
@@ -334,13 +321,9 @@ export class UiEventHandler implements ExecutionEventListener {
     };
   }
 
-  public [ExecutionEventType.BEGIN_NEXT_BATCH](
-    _event: BeginNextBatchEvent
-  ): void {}
+  public beginNextBatch(_event: BeginNextBatchEvent): void {}
 
-  public [ExecutionEventType.DEPLOYMENT_COMPLETE](
-    event: DeploymentCompleteEvent
-  ): void {
+  public deploymentComplete(event: DeploymentCompleteEvent): void {
     this.state = {
       ...this.state,
       status: UiStateDeploymentStatus.COMPLETE,
@@ -349,7 +332,7 @@ export class UiEventHandler implements ExecutionEventListener {
     };
   }
 
-  public [ExecutionEventType.SET_MODULE_ID](event: SetModuleIdEvent): void {
+  public setModuleId(event: SetModuleIdEvent): void {
     this.state = {
       ...this.state,
       moduleName: event.moduleName,

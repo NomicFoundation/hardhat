@@ -422,13 +422,41 @@ export interface ExecutionEventTypeMap {
   [ExecutionEventType.SET_MODULE_ID]: SetModuleIdEvent;
 }
 
+export interface ExecutionEventTypeListenerNameMap {
+  [ExecutionEventType.RUN_START]: "runStart";
+  [ExecutionEventType.WIPE_EXECUTION_STATE]: "wipeExecutionState";
+  [ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE]: "deploymentExecutionStateInitialize";
+  [ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_COMPLETE]: "deploymentExecutionStateComplete";
+  [ExecutionEventType.CALL_EXECUTION_STATE_INITIALIZE]: "callExecutionStateInitialize";
+  [ExecutionEventType.CALL_EXECUTION_STATE_COMPLETE]: "callExecutionStateComplete";
+  [ExecutionEventType.STATIC_CALL_EXECUTION_STATE_INITIALIZE]: "staticCallExecutionStateInitialize";
+  [ExecutionEventType.STATIC_CALL_EXECUTION_STATE_COMPLETE]: "staticCallExecutionStateComplete";
+  [ExecutionEventType.SEND_DATA_EXECUTION_STATE_INITIALIZE]: "sendDataExecutionStateInitialize";
+  [ExecutionEventType.SEND_DATA_EXECUTION_STATE_COMPLETE]: "sendDataExecutionStateComplete";
+  [ExecutionEventType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE]: "contractAtExecutionStateInitialize";
+  [ExecutionEventType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE]: "readEventArgumentExecutionStateInitialize";
+  [ExecutionEventType.NETWORK_INTERACTION_REQUEST]: "networkInteractionRequest";
+  [ExecutionEventType.TRANSACTION_SEND]: "transactionSend";
+  [ExecutionEventType.TRANSACTION_CONFIRM]: "transactionConfirm";
+  [ExecutionEventType.STATIC_CALL_COMPLETE]: "staticCallComplete";
+  [ExecutionEventType.ONCHAIN_INTERACTION_BUMP_FEES]: "onchainInteractionBumpFees";
+  [ExecutionEventType.ONCHAIN_INTERACTION_DROPPED]: "onchainInteractionDropped";
+  [ExecutionEventType.ONCHAIN_INTERACTION_REPLACED_BY_USER]: "onchainInteractionReplacedByUser";
+  [ExecutionEventType.ONCHAIN_INTERACTION_TIMEOUT]: "onchainInteractionTimeout";
+  [ExecutionEventType.BATCH_INITIALIZE]: "batchInitialize";
+  [ExecutionEventType.DEPLOYMENT_START]: "deploymentStart";
+  [ExecutionEventType.BEGIN_NEXT_BATCH]: "beginNextBatch";
+  [ExecutionEventType.DEPLOYMENT_COMPLETE]: "deploymentComplete";
+  [ExecutionEventType.SET_MODULE_ID]: "setModuleId";
+}
+
 /**
  * A listener for execution events.
  *
  * @beta
  */
 export type ExecutionEventListener = {
-  [eventType in ExecutionEventType]: (
+  [eventType in ExecutionEventType as ExecutionEventTypeListenerNameMap[eventType]]: (
     event: ExecutionEventTypeMap[eventType]
   ) => void;
 };

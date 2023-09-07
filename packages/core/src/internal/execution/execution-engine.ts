@@ -271,7 +271,7 @@ export class ExecutionEngine {
    */
   private _emitBeginNextBatchEvent(): void {
     if (this._executionEventListener !== undefined) {
-      this._executionEventListener.BEGIN_NEXT_BATCH({
+      this._executionEventListener.beginNextBatch({
         type: ExecutionEventType.BEGIN_NEXT_BATCH,
       });
     }

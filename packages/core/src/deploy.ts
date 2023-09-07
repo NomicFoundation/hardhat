@@ -59,7 +59,7 @@ export async function deploy<
   defaultSender?: string;
 }): Promise<DeploymentResult<ContractNameT, IgnitionModuleResultsT>> {
   if (executionEventListener !== undefined) {
-    executionEventListener.SET_MODULE_ID({
+    executionEventListener.setModuleId({
       type: ExecutionEventType.SET_MODULE_ID,
       moduleName: ignitionModule.id,
     });
@@ -72,7 +72,7 @@ export async function deploy<
 
   if (validationResult !== null) {
     if (executionEventListener !== undefined) {
-      executionEventListener.DEPLOYMENT_COMPLETE({
+      executionEventListener.deploymentComplete({
         type: ExecutionEventType.DEPLOYMENT_COMPLETE,
         result: validationResult,
       });
