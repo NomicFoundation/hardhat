@@ -28,10 +28,6 @@ on:
       - "packages/hardhat-common/**"
   workflow_dispatch:
 
-env:
-  RUSTFLAGS: -Dwarnings
-  RUSTDOCFLAGS: "-D warnings"
-
 defaults:
   run:
     working-directory: packages/hardhat-core
@@ -44,6 +40,9 @@ jobs:
   check-rethnet:
     name: Check Rethnet
     runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: -Dwarnings
+      RUSTDOCFLAGS: "-D warnings"
     steps:
       - uses: actions/checkout@v3
 

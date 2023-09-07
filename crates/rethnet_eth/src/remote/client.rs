@@ -17,7 +17,7 @@ use revm_primitives::{AccountInfo, Address, Bytecode, B256, KECCAK_EMPTY, U256};
 
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
-use sha3::digest::FixedOutput;
+// use sha3::digest::FixedOutput;
 use sha3::{Digest, Sha3_256};
 use tokio::sync::{OnceCell, RwLock};
 
@@ -184,8 +184,9 @@ impl RpcClient {
     }
 
     fn hash_bytes(input: &[u8]) -> String {
-        let hasher = Sha3_256::new_with_prefix(input);
-        hex::encode(hasher.finalize_fixed())
+        let _hasher = Sha3_256::new_with_prefix(input);
+        // hex::encode(hasher.finalize_fixed())
+        todo!()
     }
 
     async fn make_cache_path(&self, cache_key: &str) -> Result<PathBuf, RpcClientError> {
