@@ -11,7 +11,6 @@ import {
   ExecutionEventListener,
   ExecutionEventNetworkInteractionType,
   ExecutionEventResultType,
-  ExecutionEventType,
   NetworkInteractionRequestEvent,
   OnchainInteractionBumpFeesEvent,
   OnchainInteractionDroppedEvent,
