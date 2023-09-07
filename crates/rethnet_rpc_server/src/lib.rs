@@ -170,10 +170,10 @@ async fn confirm_post_merge_hardfork<T>(
 /// restore the context to that state root.
 #[allow(clippy::todo)]
 async fn set_block_context<T>(
-    node_state: &mut NodeData,
+    node_data: &mut NodeData,
     block_spec: Option<BlockSpec>,
 ) -> Result<B256, ResponseData<T>> {
-    let previous_state_root = node_state.state.state_root().map_err(|e| {
+    let previous_state_root = node_data.state.state_root().map_err(|e| {
         error_response_data(0, &format!("Failed to retrieve previous state root: {e}"))
     })?;
     match block_spec {
@@ -181,12 +181,12 @@ async fn set_block_context<T>(
             // do nothing
             Ok(previous_state_root)
         }
-        Some(BlockSpec::Tag(BlockTag::Latest)) if node_state.fork_block_number.is_none() => {
+        Some(BlockSpec::Tag(BlockTag::Latest)) if node_data.fork_block_number.is_none() => {
             Ok(previous_state_root)
         }
         None => Ok(previous_state_root),
         resolvable_block_spec => {
-            let latest_block_number = node_state.blockchain.last_block_number().await;
+            let latest_block_number = node_data.blockchain.last_block_number().await;
             let block_number = Some(match resolvable_block_spec.clone() {
                 Some(BlockSpec::Number(n)) => Ok(n),
                 Some(BlockSpec::Eip1898(s)) => match s {
@@ -194,7 +194,7 @@ async fn set_block_context<T>(
                     Eip1898BlockSpec::Hash {
                         block_hash,
                         require_canonical: _,
-                    } => match node_state.blockchain.block_by_hash(&block_hash).await {
+                    } => match node_data.blockchain.block_by_hash(&block_hash).await {
                         Err(e) => Err(error_response_data(
                             0,
                             &format!("failed to get block by hash {block_hash}: {e}"),
@@ -209,7 +209,7 @@ async fn set_block_context<T>(
                 Some(BlockSpec::Tag(tag)) => match tag {
                     BlockTag::Earliest => Ok(U256::ZERO),
                     BlockTag::Safe | BlockTag::Finalized => {
-                        confirm_post_merge_hardfork(&*node_state.blockchain).await?;
+                        confirm_post_merge_hardfork(&*node_data.blockchain).await?;
                         Ok(latest_block_number)
                     }
                     BlockTag::Latest => Ok(latest_block_number),
@@ -217,7 +217,7 @@ async fn set_block_context<T>(
                 },
                 None => unreachable!(),
             }?);
-            node_state.state
+            node_data.state
                 .set_block_context(
                     &KECCAK_EMPTY,
                     block_number
@@ -237,10 +237,10 @@ async fn set_block_context<T>(
 }
 
 async fn restore_block_context<T>(
-    node_state: &mut NodeData,
+    node_data: &mut NodeData,
     state_root: B256,
 ) -> Result<(), ResponseData<T>> {
-    node_state
+    node_data
         .state
         .set_block_context(&state_root, None)
         .map_err(|e| {
@@ -249,10 +249,10 @@ async fn restore_block_context<T>(
 }
 
 async fn get_account_info<T>(
-    node_state: &NodeData,
+    node_data: &NodeData,
     address: Address,
 ) -> Result<AccountInfo, ResponseData<T>> {
-    match node_state.state.basic(address) {
+    match node_data.state.basic(address) {
         Ok(Some(account_info)) => Ok(account_info),
         Ok(None) => Ok(AccountInfo {
             balance: U256::ZERO,
@@ -271,11 +271,11 @@ async fn handle_accounts(state: Arc<AppData>) -> ResponseData<Vec<Address>> {
     }
 }
 
-async fn handle_block_number(app_state: Arc<AppData>) -> ResponseData<U256> {
+async fn handle_block_number(app_data: Arc<AppData>) -> ResponseData<U256> {
     event!(Level::INFO, "eth_blockNumber()");
-    let node_state = app_state.node.lock_state().await;
+    let node_data = app_data.node.lock_state().await;
     ResponseData::Success {
-        result: node_state.blockchain.last_block_number().await,
+        result: node_data.blockchain.last_block_number().await,
     }
 }
 
@@ -299,10 +299,10 @@ async fn handle_evm_increase_time(
 ) -> ResponseData<String> {
     event!(Level::INFO, "evm_increaseTime({increment:?})");
     let increment: U256 = increment.into();
-    let mut node_state = state.node.lock_state().await;
-    node_state.block_time_offset_seconds += increment;
+    let mut node_data = state.node.lock_state().await;
+    node_data.block_time_offset_seconds += increment;
     ResponseData::Success {
-        result: node_state.block_time_offset_seconds.to_string(),
+        result: node_data.block_time_offset_seconds.to_string(),
     }
 }
 
@@ -329,8 +329,8 @@ async fn handle_evm_mine(
     event!(Level::INFO, "evm_mine({timestamp:?})");
     let timestamp: Option<U256> = timestamp.map(U256OrUsize::into);
 
-    let mut node_state = state.node.lock_state().await;
-    match node_state.mine_block(timestamp).await {
+    let mut node_data = state.node.lock_state().await;
+    match node_data.mine_block(timestamp).await {
         Ok(mine_block_result) => {
             log_block(&mine_block_result, false);
 
@@ -343,20 +343,20 @@ async fn handle_evm_mine(
 }
 
 async fn handle_evm_set_next_block_timestamp(
-    app_state: Arc<AppData>,
+    app_data: Arc<AppData>,
     timestamp: U256OrUsize,
 ) -> ResponseData<String> {
     event!(Level::INFO, "evm_setNextBlockTimestamp({timestamp:?})");
-    let mut node_state = app_state.node.lock_state().await;
-    match node_state.blockchain.last_block().await {
+    let mut node_data = app_data.node.lock_state().await;
+    match node_data.blockchain.last_block().await {
         Ok(latest_block) => {
             match Into::<U256>::into(timestamp.clone()).checked_sub(latest_block.header.timestamp) {
                 Some(increment) => {
-                    if increment == U256::ZERO && !node_state.allow_blocks_with_same_timestamp {
+                    if increment == U256::ZERO && !node_data.allow_blocks_with_same_timestamp {
                         error_response_data(0, &format!("Timestamp {timestamp:?} is equal to the previous block's timestamp. Enable the 'allowBlocksWithSameTimestamp' option to allow this"))
                     } else {
                         let timestamp: U256 = timestamp.into();
-                        node_state.next_block_timestamp = Some(timestamp);
+                        node_data.next_block_timestamp = Some(timestamp);
                         ResponseData::Success {
                             result: timestamp.to_string(),
                         }
@@ -376,11 +376,11 @@ async fn handle_evm_set_next_block_timestamp(
 }
 
 async fn handle_get_balance(
-    app_state: Arc<AppData>,
+    app_data: Arc<AppData>,
     address: Address,
     block: Option<BlockSpec>,
 ) -> ResponseData<U256> {
-    match app_state.node.balance(address, block).await {
+    match app_data.node.balance(address, block).await {
         Ok(balance) => ResponseData::Success { result: balance },
         // Internal server error
         Err(e) => error_response_data(-32000, &e.to_string()),
@@ -388,24 +388,27 @@ async fn handle_get_balance(
 }
 
 async fn handle_get_code(
-    app_state: Arc<AppData>,
+    app_data: Arc<AppData>,
     address: Address,
     block: Option<BlockSpec>,
 ) -> ResponseData<ZeroXPrefixedBytes> {
     event!(Level::INFO, "eth_getCode({address:?}, {block:?})");
-    let mut node_state = app_state.node.lock_state().await;
-    match set_block_context(&mut node_state, block).await {
+    let mut node_data = app_data.node.lock_state().await;
+    match set_block_context(&mut node_data, block).await {
         Ok(previous_state_root) => {
-            let account_info = get_account_info(&node_state, address).await;
-            match restore_block_context(&mut node_state, previous_state_root).await {
+            let account_info = get_account_info(&node_data, address).await;
+            match restore_block_context(&mut node_data, previous_state_root).await {
                 Ok(()) => match account_info {
-                    Ok(account_info) => match node_state.state.code_by_hash(account_info.code_hash)
-                    {
-                        Ok(code) => ResponseData::Success {
-                            result: ZeroXPrefixedBytes::from(code.bytecode),
-                        },
-                        Err(e) => error_response_data(0, &format!("failed to retrieve code: {e}")),
-                    },
+                    Ok(account_info) => {
+                        match node_data.state.code_by_hash(account_info.code_hash) {
+                            Ok(code) => ResponseData::Success {
+                                result: ZeroXPrefixedBytes::from(code.bytecode),
+                            },
+                            Err(e) => {
+                                error_response_data(0, &format!("failed to retrieve code: {e}"))
+                            }
+                        }
+                    }
                     Err(e) => e,
                 },
                 Err(e) => e,
@@ -453,7 +456,7 @@ async fn handle_get_filter_logs(
 }
 
 async fn handle_get_storage_at(
-    app_state: Arc<AppData>,
+    app_data: Arc<AppData>,
     address: Address,
     position: U256,
     block: Option<BlockSpec>,
@@ -462,11 +465,11 @@ async fn handle_get_storage_at(
         Level::INFO,
         "eth_getStorageAt({address:?}, {position:?}, {block:?})"
     );
-    let mut node_state = app_state.node.lock_state().await;
-    match set_block_context(&mut node_state, block).await {
+    let mut node_data = app_data.node.lock_state().await;
+    match set_block_context(&mut node_data, block).await {
         Ok(previous_state_root) => {
-            let value = node_state.state.storage(address, position);
-            match restore_block_context(&mut node_state, previous_state_root).await {
+            let value = node_data.state.storage(address, position);
+            match restore_block_context(&mut node_data, previous_state_root).await {
                 Ok(()) => match value {
                     Ok(value) => ResponseData::Success { result: value },
                     Err(e) => {
@@ -481,7 +484,7 @@ async fn handle_get_storage_at(
 }
 
 async fn handle_get_transaction_count(
-    app_state: Arc<AppData>,
+    app_data: Arc<AppData>,
     address: Address,
     block: Option<BlockSpec>,
 ) -> ResponseData<U256> {
@@ -489,11 +492,11 @@ async fn handle_get_transaction_count(
         Level::INFO,
         "eth_getTransactionCount({address:?}, {block:?})"
     );
-    let mut node_state = app_state.node.lock_state().await;
-    match set_block_context(&mut node_state, block).await {
+    let mut node_data = app_data.node.lock_state().await;
+    match set_block_context(&mut node_data, block).await {
         Ok(previous_state_root) => {
-            let account_info = get_account_info(&node_state, address).await;
-            match restore_block_context(&mut node_state, previous_state_root).await {
+            let account_info = get_account_info(&node_data, address).await;
+            match restore_block_context(&mut node_data, previous_state_root).await {
                 Ok(()) => match account_info {
                     Ok(account_info) => ResponseData::Success {
                         result: U256::from(account_info.nonce),
@@ -520,7 +523,7 @@ async fn handle_hardhat_mine(
 ) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_mine({count:?}, {interval:?})");
 
-    let mut node_state = state.node.lock_state().await;
+    let mut node_data = state.node.lock_state().await;
 
     let mut mine_block_results: Vec<MineBlockResult> = Vec::new();
 
@@ -539,7 +542,7 @@ async fn handle_hardhat_mine(
                     + interval,
             ),
         };
-        match node_state.mine_block(timestamp).await {
+        match node_data.mine_block(timestamp).await {
             Ok(result) => mine_block_results.push(result),
             Err(e) => {
                 let generic_message = &format!("failed to mine the {i}th block in the interval");
@@ -567,8 +570,8 @@ async fn handle_hardhat_mine(
 
 async fn handle_interval_mine(state: Arc<AppData>) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_intervalMine()");
-    let mut node_state = state.node.lock_state().await;
-    match node_state.mine_block(None).await {
+    let mut node_data = state.node.lock_state().await;
+    match node_data.mine_block(None).await {
         Ok(mine_block_result) => {
             if mine_block_result.block.transactions.is_empty() {
                 log_interval_mined_block_number(
@@ -617,13 +620,13 @@ async fn handle_new_pending_transaction_filter(state: Arc<AppData>) -> ResponseD
 }
 
 async fn handle_set_balance(
-    app_state: Arc<AppData>,
+    app_data: Arc<AppData>,
     address: Address,
     balance: U256,
 ) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_setBalance({address:?}, {balance:?})");
-    let mut node_state = app_state.node.lock_state().await;
-    match node_state.state.modify_account(
+    let mut node_data = app_data.node.lock_state().await;
+    match node_data.state.modify_account(
         address,
         AccountModifierFn::new(Box::new(move |account_balance, _, _| {
             *account_balance = balance;
@@ -638,7 +641,7 @@ async fn handle_set_balance(
         },
     ) {
         Ok(()) => {
-            node_state.state.make_snapshot();
+            node_data.state.make_snapshot();
             ResponseData::Success { result: true }
         }
         Err(e) => ResponseData::new_error(0, &e.to_string(), None),
@@ -646,15 +649,15 @@ async fn handle_set_balance(
 }
 
 async fn handle_set_code(
-    app_state: Arc<AppData>,
+    app_data: Arc<AppData>,
     address: Address,
     code: ZeroXPrefixedBytes,
 ) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_setCode({address:?}, {code:?})");
-    let mut node_state = app_state.node.lock_state().await;
+    let mut node_data = app_data.node.lock_state().await;
     let code_1 = code.clone();
     let code_2 = code.clone();
-    match node_state.state.modify_account(
+    match node_data.state.modify_account(
         address,
         AccountModifierFn::new(Box::new(move |_, _, account_code| {
             *account_code = Some(Bytecode::new_raw(code_1.clone().into()));
@@ -669,7 +672,7 @@ async fn handle_set_code(
         },
     ) {
         Ok(()) => {
-            node_state.state.make_snapshot();
+            node_data.state.make_snapshot();
             ResponseData::Success { result: true }
         }
         Err(e) => ResponseData::new_error(0, &e.to_string(), None),
@@ -677,15 +680,15 @@ async fn handle_set_code(
 }
 
 async fn handle_set_nonce(
-    app_state: Arc<AppData>,
+    app_data: Arc<AppData>,
     address: Address,
     nonce: U256,
 ) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_setNonce({address:?}, {nonce:?})");
-    let mut node_state = app_state.node.lock_state().await;
+    let mut node_data = app_data.node.lock_state().await;
     match TryInto::<u64>::try_into(nonce) {
         Ok(nonce) => {
-            match node_state.state.modify_account(
+            match node_data.state.modify_account(
                 address,
                 AccountModifierFn::new(Box::new(move |_, account_nonce, _| *account_nonce = nonce)),
                 &|| {
@@ -698,7 +701,7 @@ async fn handle_set_nonce(
                 },
             ) {
                 Ok(()) => {
-                    node_state.state.make_snapshot();
+                    node_data.state.make_snapshot();
                     ResponseData::Success { result: true }
                 }
                 Err(error) => ResponseData::new_error(0, &error.to_string(), None),
@@ -709,7 +712,7 @@ async fn handle_set_nonce(
 }
 
 async fn handle_set_storage_at(
-    app_state: Arc<AppData>,
+    app_data: Arc<AppData>,
     address: Address,
     position: U256,
     value: U256,
@@ -718,13 +721,13 @@ async fn handle_set_storage_at(
         Level::INFO,
         "hardhat_setStorageAt({address:?}, {position:?}, {value:?})"
     );
-    let mut node_state = app_state.node.lock_state().await;
-    match node_state
+    let mut node_data = app_data.node.lock_state().await;
+    match node_data
         .state
         .set_account_storage_slot(address, position, value)
     {
         Ok(()) => {
-            node_state.state.make_snapshot();
+            node_data.state.make_snapshot();
             ResponseData::Success { result: true }
         }
         Err(e) => ResponseData::new_error(0, &e.to_string(), None),
@@ -1178,7 +1181,7 @@ impl Server {
             fork_block_number,
         };
 
-        let app_state = Arc::new(AppData {
+        let app_data = Arc::new(AppData {
             chain_id,
             filters: RwLock::new(HashMap::default()),
             impersonated_accounts: RwLock::new(HashSet::new()),
@@ -1191,7 +1194,7 @@ impl Server {
         Ok(Self {
             inner: axum::Server::from_tcp(listener)
                 .unwrap()
-                .serve(router(app_state).await.into_make_service()),
+                .serve(router(app_data).await.into_make_service()),
         })
     }
 
