@@ -3,8 +3,6 @@
 # Intended to be in sync with .github/workflows/hardhat-core-ci.yml's
 # test-rethnet-rs
 
-export RUSTFLAGS=-Dwarnings
-
 if [ -z "${ALCHEMY_URL}" ] || [ -z "${INFURA_URL}" ]; then
   echo WARNING: skipping remote tests because the ALCHEMY_URL and INFURA_URL environment variables are not defined. Local test results may differ from those in CI.
   ALL_FEATURES="--features tracing,bench-once,serde,std"
@@ -15,7 +13,8 @@ fi
 # Set -x  here to avoid printing secrets
 set -xe
 
-cargo check --workspace --all-targets --profile bench ${ALL_FEATURES}
+# Setting RUSTFLAGS env for clippy makes it not include custom rules
+RUSTFLAGS=-Dwarnings cargo check --workspace --all-targets --profile bench ${ALL_FEATURES}
 cargo clippy --all --all-targets ${ALL_FEATURES} -- -D warnings
 cargo fmt --all -- --check
 cargo test --doc --workspace ${ALL_FEATURES}
