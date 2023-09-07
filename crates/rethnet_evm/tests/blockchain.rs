@@ -26,10 +26,10 @@ async fn create_dummy_blockchains() -> Vec<Box<dyn SyncBlockchain<BlockchainErro
     const DEFAULT_GAS_LIMIT: u64 = 0xffffffffffffff;
     const DEFAULT_INITIAL_BASE_FEE: u64 = 1000000000;
 
-    let state = HybridState::default();
+    let mut state = HybridState::default();
 
     let local_blockchain = LocalBlockchain::new(
-        &state,
+        &mut state,
         U256::from(1),
         SpecId::LATEST,
         U256::from(DEFAULT_GAS_LIMIT),

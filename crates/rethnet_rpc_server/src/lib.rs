@@ -1125,9 +1125,9 @@ impl Server {
                 Some(fork_block_number),
             )
         } else {
-            let state = HybridState::with_accounts(genesis_accounts);
+            let mut state = HybridState::with_accounts(genesis_accounts);
             let blockchain = LocalBlockchain::new(
-                &state,
+                &mut state,
                 U256::from(chain_id),
                 hardfork,
                 config.gas,
