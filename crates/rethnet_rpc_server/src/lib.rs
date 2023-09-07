@@ -26,7 +26,7 @@ use rethnet_evm::{
         Blockchain, BlockchainError, ForkedBlockchain, ForkedCreationError, LocalBlockchain,
         LocalCreationError, SyncBlockchain,
     },
-    state::{AccountModifierFn, ForkState, HybridState, StateError, SyncState},
+    state::{AccountModifierFn, ForkState, HybridState, IrregularState, StateError, SyncState},
     AccountInfo, Bytecode, CfgEnv, HashMap, HashSet, MemPool, MineBlockResult, RandomHashGenerator,
     KECCAK_EMPTY,
 };
@@ -273,7 +273,7 @@ async fn handle_accounts(state: Arc<AppData>) -> ResponseData<Vec<Address>> {
 
 async fn handle_block_number(app_data: Arc<AppData>) -> ResponseData<U256> {
     event!(Level::INFO, "eth_blockNumber()");
-    let node_data = app_data.node.lock_state().await;
+    let node_data = app_data.node.lock_data().await;
     ResponseData::Success {
         result: node_data.blockchain.last_block_number().await,
     }
@@ -289,7 +289,7 @@ fn handle_chain_id(state: Arc<AppData>) -> ResponseData<U64> {
 async fn handle_coinbase(state: Arc<AppData>) -> ResponseData<Address> {
     event!(Level::INFO, "eth_coinbase()");
     ResponseData::Success {
-        result: state.node.lock_state().await.beneficiary,
+        result: state.node.lock_data().await.beneficiary,
     }
 }
 
@@ -299,7 +299,7 @@ async fn handle_evm_increase_time(
 ) -> ResponseData<String> {
     event!(Level::INFO, "evm_increaseTime({increment:?})");
     let increment: U256 = increment.into();
-    let mut node_data = state.node.lock_state().await;
+    let mut node_data = state.node.lock_data().await;
     node_data.block_time_offset_seconds += increment;
     ResponseData::Success {
         result: node_data.block_time_offset_seconds.to_string(),
@@ -329,7 +329,7 @@ async fn handle_evm_mine(
     event!(Level::INFO, "evm_mine({timestamp:?})");
     let timestamp: Option<U256> = timestamp.map(U256OrUsize::into);
 
-    let mut node_data = state.node.lock_state().await;
+    let mut node_data = state.node.lock_data().await;
     match node_data.mine_block(timestamp).await {
         Ok(mine_block_result) => {
             log_block(&mine_block_result, false);
@@ -347,7 +347,7 @@ async fn handle_evm_set_next_block_timestamp(
     timestamp: U256OrUsize,
 ) -> ResponseData<String> {
     event!(Level::INFO, "evm_setNextBlockTimestamp({timestamp:?})");
-    let mut node_data = app_data.node.lock_state().await;
+    let mut node_data = app_data.node.lock_data().await;
     match node_data.blockchain.last_block().await {
         Ok(latest_block) => {
             match Into::<U256>::into(timestamp.clone()).checked_sub(latest_block.header.timestamp) {
@@ -378,9 +378,10 @@ async fn handle_evm_set_next_block_timestamp(
 async fn handle_get_balance(
     app_data: Arc<AppData>,
     address: Address,
-    block: Option<BlockSpec>,
+    block_spec: Option<BlockSpec>,
 ) -> ResponseData<U256> {
-    match app_data.node.balance(address, block).await {
+    event!(Level::INFO, "eth_getBalance({address:?}, {block_spec:?})");
+    match app_data.node.balance(address, block_spec).await {
         Ok(balance) => ResponseData::Success { result: balance },
         // Internal server error
         Err(e) => error_response_data(-32000, &e.to_string()),
@@ -393,7 +394,7 @@ async fn handle_get_code(
     block: Option<BlockSpec>,
 ) -> ResponseData<ZeroXPrefixedBytes> {
     event!(Level::INFO, "eth_getCode({address:?}, {block:?})");
-    let mut node_data = app_data.node.lock_state().await;
+    let mut node_data = app_data.node.lock_data().await;
     match set_block_context(&mut node_data, block).await {
         Ok(previous_state_root) => {
             let account_info = get_account_info(&node_data, address).await;
@@ -465,7 +466,7 @@ async fn handle_get_storage_at(
         Level::INFO,
         "eth_getStorageAt({address:?}, {position:?}, {block:?})"
     );
-    let mut node_data = app_data.node.lock_state().await;
+    let mut node_data = app_data.node.lock_data().await;
     match set_block_context(&mut node_data, block).await {
         Ok(previous_state_root) => {
             let value = node_data.state.storage(address, position);
@@ -492,7 +493,7 @@ async fn handle_get_transaction_count(
         Level::INFO,
         "eth_getTransactionCount({address:?}, {block:?})"
     );
-    let mut node_data = app_data.node.lock_state().await;
+    let mut node_data = app_data.node.lock_data().await;
     match set_block_context(&mut node_data, block).await {
         Ok(previous_state_root) => {
             let account_info = get_account_info(&node_data, address).await;
@@ -523,7 +524,7 @@ async fn handle_hardhat_mine(
 ) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_mine({count:?}, {interval:?})");
 
-    let mut node_data = state.node.lock_state().await;
+    let mut node_data = state.node.lock_data().await;
 
     let mut mine_block_results: Vec<MineBlockResult> = Vec::new();
 
@@ -570,7 +571,7 @@ async fn handle_hardhat_mine(
 
 async fn handle_interval_mine(state: Arc<AppData>) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_intervalMine()");
-    let mut node_data = state.node.lock_state().await;
+    let mut node_data = state.node.lock_data().await;
     match node_data.mine_block(None).await {
         Ok(mine_block_result) => {
             if mine_block_result.block.transactions.is_empty() {
@@ -625,26 +626,10 @@ async fn handle_set_balance(
     balance: U256,
 ) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_setBalance({address:?}, {balance:?})");
-    let mut node_data = app_data.node.lock_state().await;
-    match node_data.state.modify_account(
-        address,
-        AccountModifierFn::new(Box::new(move |account_balance, _, _| {
-            *account_balance = balance;
-        })),
-        &|| {
-            Ok(AccountInfo {
-                balance,
-                nonce: 0,
-                code: None,
-                code_hash: KECCAK_EMPTY,
-            })
-        },
-    ) {
-        Ok(()) => {
-            node_data.state.make_snapshot();
-            ResponseData::Success { result: true }
-        }
-        Err(e) => ResponseData::new_error(0, &e.to_string(), None),
+    match app_data.node.set_balance(address, balance).await {
+        Ok(balance) => ResponseData::Success { result: balance },
+        // Internal server error
+        Err(e) => error_response_data(-32000, &e.to_string()),
     }
 }
 
@@ -654,7 +639,7 @@ async fn handle_set_code(
     code: ZeroXPrefixedBytes,
 ) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_setCode({address:?}, {code:?})");
-    let mut node_data = app_data.node.lock_state().await;
+    let mut node_data = app_data.node.lock_data().await;
     let code_1 = code.clone();
     let code_2 = code.clone();
     match node_data.state.modify_account(
@@ -685,7 +670,7 @@ async fn handle_set_nonce(
     nonce: U256,
 ) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_setNonce({address:?}, {nonce:?})");
-    let mut node_data = app_data.node.lock_state().await;
+    let mut node_data = app_data.node.lock_data().await;
     match TryInto::<u64>::try_into(nonce) {
         Ok(nonce) => {
             match node_data.state.modify_account(
@@ -721,7 +706,7 @@ async fn handle_set_storage_at(
         Level::INFO,
         "hardhat_setStorageAt({address:?}, {position:?}, {value:?})"
     );
-    let mut node_data = app_data.node.lock_state().await;
+    let mut node_data = app_data.node.lock_data().await;
     match node_data
         .state
         .set_account_storage_slot(address, position, value)
@@ -1171,6 +1156,7 @@ impl Server {
         let node_data = NodeData {
             blockchain,
             state,
+            irregular_state: IrregularState::default(),
             mem_pool: MemPool::new(config.block_gas_limit),
             evm_config,
             beneficiary: config.coinbase,

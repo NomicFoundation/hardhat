@@ -3,10 +3,12 @@ mod debug;
 mod fork;
 mod history;
 mod hybrid;
+mod irregular;
 mod layered;
 mod remote;
 mod trie;
 
+use dyn_clone::DynClone;
 use std::fmt::Debug;
 
 use rethnet_eth::{remote::RpcClientError, B256};
@@ -17,6 +19,7 @@ pub use self::{
     fork::ForkState,
     history::StateHistory,
     hybrid::HybridState,
+    irregular::IrregularState,
     layered::{LayeredState, RethnetLayer},
     remote::RemoteState,
 };
@@ -50,12 +53,22 @@ pub trait SyncState<E>:
     + StateDebug<Error = E>
     + StateHistory<Error = E>
     + Debug
+    + DynClone
     + Send
     + Sync
     + 'static
 where
     E: Debug + Send,
 {
+}
+
+impl<E> Clone for Box<dyn SyncState<E>>
+where
+    E: Debug + Send,
+{
+    fn clone(&self) -> Self {
+        dyn_clone::clone_box(&**self)
+    }
 }
 
 impl<S, E> SyncState<E> for S
@@ -65,6 +78,7 @@ where
         + StateDebug<Error = E>
         + StateHistory<Error = E>
         + Debug
+        + DynClone
         + Send
         + Sync
         + 'static,

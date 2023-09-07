@@ -11,6 +11,7 @@ async-rwlock = { version = "1.3.0", default-features = false }
 async-trait = { version = "0.1.73", default-features = false }
 auto_impl = { version = "1.0.1", default-features = false }
 cita_trie = { git = "https://github.com/Wodann/cita-trie", rev = "60efef5", version = "4.0.0", default-features = false }
+dyn-clone = { version = "1.0.13", default-features = false }
 futures = { version = "0.3.28", features = ["alloc", "async-await", "executor", "std"] }
 hasher = { git = "https://github.com/Wodann/hasher", rev = "89d3fc9", version = "0.1.4", default-features = false, features = ["hash-keccak"] }
 indexmap = { version = "2.0.0", default-features = false, features = ["std"] }
