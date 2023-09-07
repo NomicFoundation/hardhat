@@ -40,6 +40,7 @@ jobs:
   check-rethnet:
     name: Check Rethnet
     runs-on: ubuntu-latest
+    # Setting RUSTFLAGS env for clippy makes it not include custom rules
     env:
       RUSTFLAGS: -Dwarnings
       RUSTDOCFLAGS: "-D warnings"
