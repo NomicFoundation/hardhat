@@ -1,6 +1,6 @@
 use std::collections::{HashMap, VecDeque};
 use std::path::{Path, PathBuf};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use std::{
     io,
     sync::atomic::{AtomicU64, Ordering},
@@ -22,7 +22,7 @@ use sha3::digest::FixedOutput;
 use sha3::{Digest, Sha3_256};
 use tokio::sync::{OnceCell, RwLock};
 
-use crate::block::{is_safe_block_number, IsSafeBlockNumberArgs};
+use crate::block::{block_time, is_safe_block_number, IsSafeBlockNumberArgs};
 use crate::remote::cacheable_method_invocation::{
     try_read_cache_key, try_write_cache_key, CacheKeyForSymbolicBlockTag,
     CacheKeyForUncheckedBlockNumber, ReadCacheKey, ResolvedSymbolicTag, WriteCacheKey,
@@ -148,7 +148,7 @@ pub struct Request<MethodInvocation> {
 pub struct RpcClient {
     url: String,
     chain_id: OnceCell<U256>,
-    largest_known_block_number: RwLock<Option<U256>>,
+    cached_block_number: RwLock<Option<CachedBlockNumber>>,
     client: ClientWithMiddleware,
     next_id: AtomicU64,
     rpc_cache_dir: PathBuf,
@@ -275,30 +275,27 @@ impl RpcClient {
         }
     }
 
+    /// Caches a block number for the duration of the block time of the chain.
+    async fn cached_block_number(&self) -> Result<U256, RpcClientError> {
+        let cached_block_number = { self.cached_block_number.read().await.clone() };
+
+        if let Some(cached_block_number) = cached_block_number {
+            let delta = block_time(&self.chain_id().await?);
+            if cached_block_number.timestamp.elapsed() < delta {
+                return Ok(cached_block_number.block_number);
+            }
+        }
+
+        // Caches the block number as side effect.
+        self.block_number().await
+    }
+
     async fn validate_block_number(
         &self,
         safety_checker: CacheKeyForUncheckedBlockNumber<'_>,
     ) -> Result<Option<String>, RpcClientError> {
         let chain_id = self.chain_id().await?;
-
-        // Use the largest known block number for validation if the given block number is safe
-        // relative to it.
-        let largest_known_block_number = { *self.largest_known_block_number.read().await };
-        if let Some(largest_known_block_number) = largest_known_block_number {
-            let args = IsSafeBlockNumberArgs {
-                chain_id: &chain_id,
-                latest_block_number: &largest_known_block_number,
-                block_number: safety_checker.block_number,
-            };
-            if is_safe_block_number(args) {
-                return Ok(
-                    safety_checker.validate_block_number(&chain_id, &largest_known_block_number)
-                );
-            }
-        };
-
-        // Otherwise fetch the latest block number and use that for validation.
-        let latest_block_number = self.block_number().await?;
+        let latest_block_number = self.cached_block_number().await?;
         Ok(safety_checker.validate_block_number(&chain_id, &latest_block_number))
     }
 
@@ -613,7 +610,7 @@ impl RpcClient {
         RpcClient {
             url: url.to_string(),
             chain_id: OnceCell::new(),
-            largest_known_block_number: RwLock::new(None),
+            cached_block_number: RwLock::new(None),
             client,
             next_id: AtomicU64::new(0),
             rpc_cache_dir: cache_dir.join(RPC_CACHE_DIR),
@@ -626,8 +623,8 @@ impl RpcClient {
             .call_without_cache(MethodInvocation::BlockNumber())
             .await?;
         {
-            let mut write_guard = self.largest_known_block_number.write().await;
-            *write_guard = Some(block_number);
+            let mut write_guard = self.cached_block_number.write().await;
+            *write_guard = Some(CachedBlockNumber::new(block_number));
         }
         Ok(block_number)
     }
@@ -638,24 +635,8 @@ impl RpcClient {
         block_number: &U256,
     ) -> Result<bool, RpcClientError> {
         let chain_id = self.chain_id().await?;
+        let latest_block_number = self.cached_block_number().await?;
 
-        // See if the block number is safe to cache based on the largest known block number to
-        // avoid having to fetch the latest block number if it is.
-        let largest_known_block_number = { *self.largest_known_block_number.read().await };
-        if let Some(largest_known_block_number) = largest_known_block_number {
-            let is_safe = is_safe_block_number(IsSafeBlockNumberArgs {
-                chain_id: &chain_id,
-                latest_block_number: &largest_known_block_number,
-                block_number,
-            });
-            if is_safe {
-                return Ok(true);
-            }
-        }
-
-        // If it's not safe to cache based on the largest known block number, fetch the latest and
-        // check again.
-        let latest_block_number = self.block_number().await?;
         Ok(is_safe_block_number(IsSafeBlockNumberArgs {
             chain_id: &chain_id,
             latest_block_number: &latest_block_number,
@@ -827,6 +808,21 @@ impl RpcClient {
     /// Calls `net_version`.
     pub async fn network_id(&self) -> Result<U256, RpcClientError> {
         self.call(MethodInvocation::NetVersion()).await
+    }
+}
+
+#[derive(Debug, Clone)]
+struct CachedBlockNumber {
+    block_number: U256,
+    timestamp: Instant,
+}
+
+impl CachedBlockNumber {
+    fn new(block_number: U256) -> Self {
+        Self {
+            block_number,
+            timestamp: Instant::now(),
+        }
     }
 }
 
@@ -1111,6 +1107,10 @@ mod tests {
             let client = TestRpcClient::new(&get_alchemy_url());
 
             let latest_block_number = client.block_number().await.unwrap();
+
+            {
+                assert!(client.cached_block_number.read().await.is_some());
+            }
 
             // Latest block number is never cacheable
             assert!(!client
@@ -1398,7 +1398,7 @@ mod tests {
 
             // Check that the block number call caches the largest known block number
             {
-                assert!(client.largest_known_block_number.read().await.is_some());
+                assert!(client.cached_block_number.read().await.is_some());
             }
 
             assert_eq!(client.files_in_cache().len(), 0);

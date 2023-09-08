@@ -30,7 +30,7 @@ pub use self::{
     detailed::DetailedBlock,
     options::BlockOptions,
     reorg::{
-        is_safe_block_number, largest_possible_reorg, largest_safe_block_number,
+        block_time, is_safe_block_number, largest_possible_reorg, largest_safe_block_number,
         IsSafeBlockNumberArgs, LargestSafeBlockNumberArgs,
     },
 };

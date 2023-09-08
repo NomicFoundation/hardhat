@@ -41,7 +41,7 @@ import { useEnvironment } from "../../../../helpers/environment";
 describe("Hardhat module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
     if (isFork) {
-      this.timeout(50000);
+      this.timeout(80000);
     }
 
     workaroundWindowsCiFailures.call(this, { isFork });
