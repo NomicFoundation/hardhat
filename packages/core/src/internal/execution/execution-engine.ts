@@ -12,6 +12,8 @@ import {
 } from "../../types/module";
 import { DeploymentLoader } from "../deployment-loader/types";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
+import { getPendingNonceAndSender } from "../views/execution-state/get-pending-nonce-and-sender";
+import { hasExecutionFailed } from "../views/has-execution-failed";
 
 import { applyNewMessage } from "./deployment-state-helpers";
 import { FutureProcessor } from "./future-processor/future-processor";
@@ -24,8 +26,6 @@ import {
 import { TransactionTrackingTimer } from "./transaction-tracking-timer";
 import { DeploymentState } from "./types/deployment-state";
 import { ExecutionStrategy } from "./types/execution-strategy";
-import { getPendingNonceAndSender } from "./views/execution-state/get-pending-nonce-and-sender";
-import { hasExecutionFailed } from "./views/has-execution-failed";
 
 /**
  * This class is used to execute a module to completion, returning the new

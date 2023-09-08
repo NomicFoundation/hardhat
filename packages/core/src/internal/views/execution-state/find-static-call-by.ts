@@ -1,14 +1,14 @@
-import { assertIgnitionInvariant } from "../../../utils/assertions";
 import {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../../types/execution-state";
+} from "../../execution/types/execution-state";
 import {
   NetworkInteractionType,
   StaticCall,
-} from "../../types/network-interaction";
+} from "../../execution/types/network-interaction";
+import { assertIgnitionInvariant } from "../../utils/assertions";
 
 export function findStaticCallBy(
   executionState:

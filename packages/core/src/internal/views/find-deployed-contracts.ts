@@ -1,12 +1,12 @@
-import { assertIgnitionInvariant } from "../../utils/assertions";
-import { DeploymentState } from "../types/deployment-state";
-import { ExecutionResultType } from "../types/execution-result";
+import { DeploymentState } from "../execution/types/deployment-state";
+import { ExecutionResultType } from "../execution/types/execution-result";
 import {
   ContractAtExecutionState,
   DeploymentExecutionState,
   ExecutionSateType,
   ExecutionStatus,
-} from "../types/execution-state";
+} from "../execution/types/execution-state";
+import { assertIgnitionInvariant } from "../utils/assertions";
 
 interface DeployedContract {
   futureId: string;

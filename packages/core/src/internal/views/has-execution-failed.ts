@@ -1,6 +1,6 @@
-import { Future } from "../../../types/module";
-import { DeploymentState } from "../types/deployment-state";
-import { ExecutionStatus } from "../types/execution-state";
+import { Future } from "../../types/module";
+import { DeploymentState } from "../execution/types/deployment-state";
+import { ExecutionStatus } from "../execution/types/execution-state";
 
 /**
  * Returns true if the execution of the given future has failed.

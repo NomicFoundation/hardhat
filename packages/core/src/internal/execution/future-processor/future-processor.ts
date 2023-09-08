@@ -3,6 +3,7 @@ import { DeploymentParameters } from "../../../types/deploy";
 import { Future } from "../../../types/module";
 import { DeploymentLoader } from "../../deployment-loader/types";
 import { assertIgnitionInvariant } from "../../utils/assertions";
+import { isExecutionStateComplete } from "../../views/is-execution-state-complete";
 import { applyNewMessage } from "../deployment-state-helpers";
 import { JsonRpcClient } from "../jsonrpc-client";
 import { NonceManager } from "../nonce-management";
@@ -18,7 +19,6 @@ import {
 } from "../types/execution-state";
 import { ExecutionStrategy } from "../types/execution-strategy";
 import { JournalMessage, JournalMessageType } from "../types/messages";
-import { isExecutionStateComplete } from "../views/is-execution-state-complete";
 
 import { monitorOnchainInteraction } from "./handlers/monitor-onchain-interaction";
 import { queryStaticCall } from "./handlers/query-static-call";

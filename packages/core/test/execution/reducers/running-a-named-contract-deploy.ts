@@ -18,10 +18,10 @@ import {
   TransactionSendMessage,
 } from "../../../src/internal/execution/types/messages";
 import { NetworkInteractionType } from "../../../src/internal/execution/types/network-interaction";
-import { findOnchainInteractionBy } from "../../../src/internal/execution/views/execution-state/find-onchain-interaction-by";
-import { findTransactionBy } from "../../../src/internal/execution/views/execution-state/find-transaction-by";
-import { findExecutionStateById } from "../../../src/internal/execution/views/find-execution-state-by-id";
 import { assertIgnitionInvariant } from "../../../src/internal/utils/assertions";
+import { findOnchainInteractionBy } from "../../../src/internal/views/execution-state/find-onchain-interaction-by";
+import { findTransactionBy } from "../../../src/internal/views/execution-state/find-transaction-by";
+import { findExecutionStateById } from "../../../src/internal/views/find-execution-state-by-id";
 import { FutureType } from "../../../src/types/module";
 
 import { applyMessages } from "./utils";

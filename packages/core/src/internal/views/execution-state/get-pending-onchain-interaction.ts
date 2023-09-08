@@ -1,9 +1,12 @@
-import { assertIgnitionInvariant } from "../../../utils/assertions";
-import { ExecutionSateType, ExecutionState } from "../../types/execution-state";
+import {
+  ExecutionSateType,
+  ExecutionState,
+} from "../../execution/types/execution-state";
 import {
   NetworkInteractionType,
   OnchainInteraction,
-} from "../../types/network-interaction";
+} from "../../execution/types/network-interaction";
+import { assertIgnitionInvariant } from "../../utils/assertions";
 
 /**
  * Returns the last NetworkInteraction if there's one and it's an

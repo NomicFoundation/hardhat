@@ -1,4 +1,7 @@
-import { ExecutionSateType, ExecutionState } from "../../types/execution-state";
+import {
+  ExecutionSateType,
+  ExecutionState,
+} from "../../execution/types/execution-state";
 
 import { getPendingOnchainInteraction } from "./get-pending-onchain-interaction";
 

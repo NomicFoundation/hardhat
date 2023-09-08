@@ -16,7 +16,7 @@ import {
   StaticCallExecutionStateInitializeMessage,
 } from "../../../src/internal/execution/types/messages";
 import { NetworkInteractionType } from "../../../src/internal/execution/types/network-interaction";
-import { findExecutionStateById } from "../../../src/internal/execution/views/find-execution-state-by-id";
+import { findExecutionStateById } from "../../../src/internal/views/find-execution-state-by-id";
 
 import { applyMessages } from "./utils";
 

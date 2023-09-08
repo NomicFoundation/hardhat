@@ -1,4 +1,6 @@
 import { IgnitionError } from "../../errors";
+import { getPendingNonceAndSender } from "../views/execution-state/get-pending-nonce-and-sender";
+import { getPendingOnchainInteraction } from "../views/execution-state/get-pending-onchain-interaction";
 
 import { JsonRpcClient } from "./jsonrpc-client";
 import { DeploymentState } from "./types/deployment-state";
@@ -8,8 +10,6 @@ import {
   OnchainInteractionDroppedMessage,
   OnchainInteractionReplacedByUserMessage,
 } from "./types/messages";
-import { getPendingNonceAndSender } from "./views/execution-state/get-pending-nonce-and-sender";
-import { getPendingOnchainInteraction } from "./views/execution-state/get-pending-onchain-interaction";
 
 /**
  * This function is meant to be used to sync the local state's nonces

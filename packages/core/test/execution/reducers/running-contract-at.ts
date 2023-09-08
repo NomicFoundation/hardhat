@@ -10,7 +10,7 @@ import {
   ContractAtExecutionStateInitializeMessage,
   JournalMessageType,
 } from "../../../src/internal/execution/types/messages";
-import { findExecutionStateById } from "../../../src/internal/execution/views/find-execution-state-by-id";
+import { findExecutionStateById } from "../../../src/internal/views/find-execution-state-by-id";
 import { FutureType } from "../../../src/types/module";
 
 import { applyMessages } from "./utils";

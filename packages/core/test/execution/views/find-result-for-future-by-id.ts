@@ -2,7 +2,7 @@ import { assert } from "chai";
 
 import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result";
 import { ExecutionSateType } from "../../../src/internal/execution/types/execution-state";
-import { findResultForFutureById } from "../../../src/internal/execution/views/find-result-for-future-by-id";
+import { findResultForFutureById } from "../../../src/internal/views/find-result-for-future-by-id";
 
 describe("find result by future by", () => {
   const futureId = "MyFuture";

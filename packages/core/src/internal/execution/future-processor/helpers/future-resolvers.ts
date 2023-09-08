@@ -15,12 +15,12 @@ import { DeploymentLoader } from "../../../deployment-loader/types";
 import { assertIgnitionInvariant } from "../../../utils/assertions";
 import { replaceWithinArg } from "../../../utils/replace-within-arg";
 import { resolveModuleParameter } from "../../../utils/resolve-module-parameter";
+import { findAddressForContractFuture } from "../../../views/find-address-for-contract-future-by-id";
+import { findConfirmedTransactionByFutureId } from "../../../views/find-confirmed-transaction-by-future-id";
+import { findResultForFutureById } from "../../../views/find-result-for-future-by-id";
 import { getEventArgumentFromReceipt } from "../../abi";
 import { DeploymentState } from "../../types/deployment-state";
 import { convertEvmValueToSolidityParam } from "../../utils/convert-evm-tuple-to-solidity-param";
-import { findAddressForContractFuture } from "../../views/find-address-for-contract-future-by-id";
-import { findConfirmedTransactionByFutureId } from "../../views/find-confirmed-transaction-by-future-id";
-import { findResultForFutureById } from "../../views/find-result-for-future-by-id";
 
 /**
  * Resolve a futures value to a bigint.

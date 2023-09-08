@@ -10,7 +10,7 @@ import {
   JournalMessageType,
   ReadEventArgExecutionStateInitializeMessage,
 } from "../../../src/internal/execution/types/messages";
-import { findExecutionStateById } from "../../../src/internal/execution/views/find-execution-state-by-id";
+import { findExecutionStateById } from "../../../src/internal/views/find-execution-state-by-id";
 
 import { applyMessages } from "./utils";
 
