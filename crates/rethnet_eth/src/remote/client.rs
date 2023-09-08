@@ -14,6 +14,7 @@ use reqwest_retry::{
     policies::ExponentialBackoff, RetryTransientMiddleware, Retryable, RetryableStrategy,
 };
 use revm_primitives::{AccountInfo, Address, Bytecode, B256, KECCAK_EMPTY, U256};
+use tempfile::NamedTempFile;
 
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
@@ -111,6 +112,10 @@ pub enum RpcClientError {
         /// The underlying error
         error: CacheError,
     },
+
+    /// Failed to join a tokio task.
+    #[error(transparent)]
+    JoinError(#[from] tokio::task::JoinError),
 }
 
 /// Wrapper for IO and JSON errors specific to the cache.
@@ -359,16 +364,53 @@ impl RpcClient {
         cache_key: &str,
         result: impl Serialize,
     ) -> Result<(), RpcClientError> {
-        let cache_path = self.make_cache_path(cache_key).await?;
         let contents = serde_json::to_string(&result).expect(
             "result serializes successfully as it was just deserialized from a JSON string",
         );
-        match tokio::fs::write(cache_path, contents).await {
+
+        // 1. Write to a random temporary file first to avoid race conditions.
+        let tempfile = match tokio::task::spawn_blocking(NamedTempFile::new).await? {
+            Ok(tempfile) => tempfile,
+            Err(error) => {
+                log_cache_error(
+                    cache_key,
+                    "failed to create temporary file for RPC response cache",
+                    error,
+                );
+                return Ok(());
+            }
+        };
+        match tokio::fs::write(tempfile.path(), contents).await {
             Ok(_) => (),
             Err(error) => {
-                log_cache_error(cache_key, "failed to write to RPC response cache", error);
+                log_cache_error(
+                    cache_key,
+                    "failed to write to tempfile for RPC response cache",
+                    error,
+                );
+                return Ok(());
             }
         }
+
+        // 2. Then move the temporary file to the cache path.
+        // This is guaranteed to be atomic on Unix platforms.
+        // There is no such guarantee on Windows, as there is no OS support for atomic move before
+        // Windows 10, but Rust will drop support for earlier versions of Windows in the future:
+        // <https://github.com/rust-lang/compiler-team/issues/651>. Hopefully the standard
+        // library will adapt its `rename` implementation to use the new atomic move API in Windows
+        // 10. In any case, if a cache file is corrupted, we detect and remove it when reading it.
+        let cache_path = self.make_cache_path(cache_key).await?;
+        match tokio::fs::rename(tempfile.path(), cache_path).await {
+            Ok(_) => (),
+            Err(error) => {
+                log_cache_error(
+                    cache_key,
+                    "failed to rename temporary file for RPC response cache",
+                    error,
+                );
+            }
+        };
+
         Ok(())
     }
 
@@ -984,10 +1026,12 @@ mod tests {
 
     #[cfg(feature = "test-remote")]
     mod alchemy {
-        use rethnet_test_utils::env::{get_alchemy_url, get_infura_url};
+        use futures::future::join_all;
         use std::fs::File;
 
         use crate::Bytes;
+
+        use rethnet_test_utils::env::{get_alchemy_url, get_infura_url};
 
         use super::*;
 
@@ -1936,6 +1980,26 @@ mod tests {
             let cached_result: U256 = serde_json::from_reader(&mut file).expect("failed to parse");
 
             assert_eq!(total_supply, cached_result);
+        }
+
+        #[tokio::test]
+        async fn concurrent_writes_to_cache_smoke_test() {
+            let client = TestRpcClient::new(&get_alchemy_url());
+
+            let test_contents = "some random test data 42";
+            let cache_key = "cache-key";
+
+            assert_eq!(client.files_in_cache().len(), 0);
+
+            join_all((0..100).map(|_| client.write_response_to_cache(cache_key, test_contents)))
+                .await;
+
+            assert_eq!(client.files_in_cache().len(), 1);
+
+            let contents = tokio::fs::read_to_string(&client.files_in_cache()[0])
+                .await
+                .unwrap();
+            assert_eq!(contents, serde_json::to_string(test_contents).unwrap());
         }
     }
 }
