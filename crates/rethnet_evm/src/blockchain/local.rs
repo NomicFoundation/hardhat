@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use std::{
     num::NonZeroUsize,
     sync::Arc,
@@ -12,7 +13,7 @@ use rethnet_eth::{
 };
 use revm::{db::BlockHashRef, primitives::SpecId};
 
-use crate::state::StateDebug;
+use crate::state::SyncState;
 
 use super::{
     storage::ReservableSparseBlockchainStorage, validate_next_block, Blockchain, BlockchainError,
@@ -52,15 +53,18 @@ pub struct LocalBlockchain {
 
 impl LocalBlockchain {
     /// Constructs a new instance using the provided arguments to build a genesis block.
-    pub fn new<S: StateDebug>(
-        state: &S,
+    pub fn new<StateErrorT>(
+        state: &mut dyn SyncState<StateErrorT>,
         chain_id: U256,
         spec_id: SpecId,
         gas_limit: U256,
         timestamp: Option<U256>,
         prevrandao: Option<B256>,
         base_fee: Option<U256>,
-    ) -> Result<Self, CreationError<S::Error>> {
+    ) -> Result<Self, CreationError<StateErrorT>>
+    where
+        StateErrorT: Debug + Send,
+    {
         const EXTRA_DATA: &[u8] = b"124";
 
         let withdrawals = if spec_id >= SpecId::SHANGHAI {
@@ -68,6 +72,9 @@ impl LocalBlockchain {
         } else {
             None
         };
+
+        // Ensure initial checkpoint exists
+        state.checkpoint().map_err(CreationError::State)?;
 
         let genesis_block = Block::new(
             PartialHeader {
