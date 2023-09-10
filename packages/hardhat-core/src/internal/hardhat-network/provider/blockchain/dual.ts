@@ -191,6 +191,9 @@ export class DualBlockchain implements BlockchainAdapter {
       this._hardhat.reserveBlocks(count, interval),
       this._rethnet.reserveBlocks(count, interval),
     ]);
+
+    // Validate block number
+    await this.getLatestBlockNumber();
   }
 
   public async revertToBlock(blockNumber: bigint): Promise<void> {
@@ -198,5 +201,9 @@ export class DualBlockchain implements BlockchainAdapter {
       this._hardhat.revertToBlock(blockNumber),
       this._rethnet.revertToBlock(blockNumber),
     ]);
+
+    // Validate we deleted correctly
+    await this.getLatestBlock();
+    await this.getLatestBlockNumber();
   }
 }
