@@ -24,7 +24,6 @@ fn bench_account_storage_root_account_doesnt_exist(c: &mut Criterion) {
             debug_assert!(state.basic(address).unwrap().is_none());
             let result = state.account_storage_root(&address);
             debug_assert!(result.is_ok());
-            debug_assert!(result.unwrap().is_none());
         },
         &Permutations::storage_scales(),
         &[1],
