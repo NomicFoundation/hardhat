@@ -14,7 +14,7 @@ describe("State Manager", () => {
   const context = new RethnetContext();
 
   const stateManagers = [
-    { name: "default", getStateManager: () => new StateManager(context) },
+    { name: "default", getStateManager: async () => new StateManager(context) },
   ];
 
   const alchemyUrl = process.env.ALCHEMY_URL;
@@ -25,8 +25,13 @@ describe("State Manager", () => {
   } else {
     stateManagers.push({
       name: "fork",
-      getStateManager: () =>
-        StateManager.forkRemote(context, alchemyUrl, BigInt(16220843), []),
+      getStateManager: async () =>
+        await StateManager.forkRemote(
+          context,
+          alchemyUrl,
+          BigInt(16220843),
+          []
+        ),
     });
   }
 
@@ -34,8 +39,8 @@ describe("State Manager", () => {
     describe(`With the ${name} StateManager`, () => {
       let stateManager: StateManager;
 
-      beforeEach(function () {
-        stateManager = getStateManager();
+      beforeEach(async function () {
+        stateManager = await getStateManager();
       });
 
       // TODO: insertBlock, setAccountCode, setAccountStorageSlot

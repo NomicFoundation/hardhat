@@ -7,6 +7,7 @@ use axum::{
     http::StatusCode,
     Router,
 };
+use rethnet_eth::remote::RpcClientError;
 use rethnet_eth::U64;
 use rethnet_eth::{
     remote::{
@@ -92,6 +93,9 @@ pub enum Error {
 
     #[error(transparent)]
     ForkedBlockchainCreation(#[from] ForkedCreationError),
+
+    #[error("Failed to construct forked state")]
+    ForkedStateCreation(RpcClientError),
 
     #[error(transparent)]
     LocalBlockchainCreation(#[from] LocalCreationError<StateError>),
@@ -1099,13 +1103,15 @@ impl Server {
                 RandomHashGenerator::with_seed("seed"),
             ));
             let state = ForkState::new(
-                Arc::clone(&runtime),
+                runtime.handle().clone(),
                 Arc::clone(&state_root_generator),
                 &config.json_rpc_url,
                 cache_dir,
                 fork_block_number,
                 genesis_accounts,
-            );
+            )
+            .await
+            .map_err(Error::ForkedStateCreation)?;
 
             (
                 Box::new(state),
