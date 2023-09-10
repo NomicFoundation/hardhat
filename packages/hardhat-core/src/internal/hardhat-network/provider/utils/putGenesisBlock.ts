@@ -12,7 +12,7 @@ export function makeGenesisBlock(
   { initialDate, blockGasLimit: initialBlockGasLimit }: LocalNodeConfig,
   stateRoot: Buffer,
   hardfork: HardforkName,
-  mixHashGenerator: RandomBufferGenerator,
+  prevrandaoGenerator: RandomBufferGenerator,
   initialBaseFee?: bigint
 ): HeaderData {
   const initialBlockTimestamp =
@@ -32,7 +32,7 @@ export function makeGenesisBlock(
   };
 
   if (isPostMerge) {
-    header.mixHash = mixHashGenerator.next();
+    header.mixHash = prevrandaoGenerator.next();
   }
 
   if (initialBaseFee !== undefined) {

@@ -113,7 +113,6 @@ export class EthereumJSAdapter implements VMAdapter {
   constructor(
     private readonly _vm: VM,
     public readonly _stateManager: StateManagerWithAddresses,
-    private readonly _blockchain: HardhatBlockchainInterface,
     private readonly _common: Common,
     private readonly _configNetworkId: number,
     private readonly _configChainId: number,
@@ -200,7 +199,6 @@ export class EthereumJSAdapter implements VMAdapter {
     return new EthereumJSAdapter(
       vm,
       stateManager,
-      blockchain,
       common,
       config.networkId,
       config.chainId,
