@@ -48,6 +48,13 @@ export class HardhatEthContext implements EthContextAdapter {
     const { blockchain, blockTimeOffset, initialBaseFeePerGas, fork } =
       await _createBlockchain(config, common);
 
+    // Ensure that the VM and blockchain use the same fork block
+    if (isForkedNodeConfig(config)) {
+      config.forkConfig.blockNumber = Number(
+        await blockchain.getLatestBlockNumber()
+      );
+    }
+
     const vm = await EthereumJSAdapter.create(
       common,
       blockchain,
