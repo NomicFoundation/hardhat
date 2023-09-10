@@ -1,12 +1,10 @@
 mod cached;
 
-use std::sync::Arc;
-
 use revm::{
     db::StateRef,
     primitives::{AccountInfo, Bytecode},
 };
-use tokio::runtime::Runtime;
+use tokio::runtime;
 
 use rethnet_eth::{
     remote::{BlockSpec, RpcClient},
@@ -21,14 +19,14 @@ pub use cached::CachedRemoteState;
 #[derive(Debug)]
 pub struct RemoteState {
     client: RpcClient,
-    runtime: Arc<Runtime>,
+    runtime: runtime::Handle,
     block_number: U256,
 }
 
 impl RemoteState {
     /// Construct a new instance using an RPC client for a remote Ethereum node and a block number
     /// from which data will be pulled.
-    pub fn new(runtime: Arc<Runtime>, client: RpcClient, block_number: U256) -> Self {
+    pub fn new(runtime: runtime::Handle, client: RpcClient, block_number: U256) -> Self {
         Self {
             client,
             runtime,
@@ -95,20 +93,12 @@ impl StateRef for RemoteState {
 mod tests {
     use std::str::FromStr;
 
-    use tokio::runtime::Builder;
+    use tokio::runtime;
 
     use super::*;
 
-    #[test]
-    fn basic_success() {
-        let runtime = Arc::new(
-            Builder::new_multi_thread()
-                .enable_io()
-                .enable_time()
-                .build()
-                .expect("failed to construct async runtime"),
-        );
-
+    #[tokio::test(flavor = "multi_thread")]
+    async fn basic_success() {
         let tempdir = tempfile::tempdir().expect("can create tempdir");
 
         let alchemy_url = std::env::var_os("ALCHEMY_URL")
@@ -120,6 +110,8 @@ mod tests {
 
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");
+
+        let runtime = runtime::Handle::current();
 
         let account_info: AccountInfo = RemoteState::new(runtime, rpc_client, U256::from(16643427))
             .basic(dai_address)

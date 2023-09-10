@@ -107,7 +107,7 @@ impl Blockchain {
         })?;
         let cache_dir = cache_dir.map_or_else(|| rethnet_defaults::CACHE_DIR.into(), PathBuf::from);
 
-        let runtime = context.runtime().handle().clone();
+        let runtime = context.runtime().clone();
 
         let (deferred, promise) = env.create_deferred()?;
         context.runtime().spawn(async move {

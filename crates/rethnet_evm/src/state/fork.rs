@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use parking_lot::{Mutex, RwLock, RwLockUpgradableReadGuard};
 use rethnet_eth::{
-    remote::{BlockSpec, RpcClient},
+    remote::{BlockSpec, RpcClient, RpcClientError},
     trie::KECCAK_NULL_RLP,
     Address, B256, U256,
 };
@@ -12,7 +12,7 @@ use revm::{
     primitives::{Account, AccountInfo, Bytecode, HashMap, HashSet},
     DatabaseCommit,
 };
-use tokio::runtime::Runtime;
+use tokio::runtime;
 
 use crate::random::RandomHashGenerator;
 
@@ -40,27 +40,23 @@ pub struct ForkState {
 
 impl ForkState {
     /// Constructs a new instance.
-    pub fn new(
-        runtime: Arc<Runtime>,
+    pub async fn new(
+        runtime: runtime::Handle,
         hash_generator: Arc<Mutex<RandomHashGenerator>>,
         url: &str,
         cache_dir: PathBuf,
         fork_block_number: U256,
         mut accounts: HashMap<Address, AccountInfo>,
-    ) -> Self {
+    ) -> Result<Self, RpcClientError> {
         let rpc_client = RpcClient::new(url, cache_dir);
 
-        accounts.iter_mut().for_each(|(address, mut account_info)| {
-            let nonce = tokio::task::block_in_place(|| {
-                runtime.block_on(
-                    rpc_client
-                        .get_transaction_count(address, Some(BlockSpec::Number(fork_block_number))),
-                )
-            })
-            .expect("failed to retrieve remote account info for local account initialization");
+        for (address, account_info) in &mut accounts {
+            let nonce = rpc_client
+                .get_transaction_count(address, Some(BlockSpec::Number(fork_block_number)))
+                .await?;
 
             account_info.nonce = nonce.to();
-        });
+        }
 
         let remote_state = RemoteState::new(runtime, rpc_client, fork_block_number);
 
@@ -72,7 +68,7 @@ impl ForkState {
         let local_root = local_state.state_root().unwrap();
         state_root_to_state.insert(generated_state_root, local_root);
 
-        Self {
+        Ok(Self {
             local_state,
             remote_state: Arc::new(Mutex::new(CachedRemoteState::new(remote_state))),
             removed_storage_slots: HashSet::new(),
@@ -82,7 +78,7 @@ impl ForkState {
             initial_state_root: generated_state_root,
             hash_generator,
             removed_remote_accounts: HashSet::new(),
-        }
+        })
     }
 
     fn update_removed_storage_slots(&mut self) {
@@ -348,7 +344,6 @@ mod tests {
     use std::str::FromStr;
 
     use rethnet_test_utils::env::get_alchemy_url;
-    use tokio::runtime::Builder;
 
     use super::*;
 
@@ -361,18 +356,17 @@ mod tests {
     }
 
     impl TestForkState {
-        fn new() -> Self {
-            let runtime = Arc::new(
-                Builder::new_multi_thread()
-                    .enable_io()
-                    .enable_time()
-                    .build()
-                    .expect("failed to construct async runtime"),
-            );
-
+        /// Constructs a fork state for testing purposes.
+        ///
+        /// # Panics
+        ///
+        /// If the function is called without a tokio::Runtime existing.
+        async fn new() -> Self {
             let hash_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed")));
 
             let tempdir = tempfile::tempdir().expect("can create tempdir");
+
+            let runtime = runtime::Handle::current();
 
             let fork_state = ForkState::new(
                 runtime,
@@ -381,7 +375,10 @@ mod tests {
                 tempdir.path().to_path_buf(),
                 U256::from(FORK_BLOCK),
                 HashMap::default(),
-            );
+            )
+            .await
+            .expect("failed to construct ForkState");
+
             Self {
                 fork_state,
                 _tempdir: tempdir,
@@ -403,9 +400,9 @@ mod tests {
         }
     }
 
-    #[test]
-    fn basic_success() {
-        let fork_state = TestForkState::new();
+    #[tokio::test(flavor = "multi_thread")]
+    async fn basic_success() {
+        let fork_state = TestForkState::new().await;
 
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");
@@ -425,12 +422,12 @@ mod tests {
         );
     }
 
-    #[test]
-    fn set_block_context_with_zeroed_storage_slots() {
+    #[tokio::test(flavor = "multi_thread")]
+    async fn set_block_context_with_zeroed_storage_slots() {
         const STORAGE_SLOT_INDEX: u64 = 1;
         const DUMMY_STORAGE_VALUE: u64 = 1000;
 
-        let mut fork_state = TestForkState::new();
+        let mut fork_state = TestForkState::new().await;
 
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");
@@ -499,9 +496,9 @@ mod tests {
         assert_eq!(fork_storage_slot, dummy_storage_value);
     }
 
-    #[test]
-    fn remove_remote_account_success() {
-        let mut fork_state = TestForkState::new();
+    #[tokio::test(flavor = "multi_thread")]
+    async fn remove_remote_account_success() {
+        let mut fork_state = TestForkState::new().await;
 
         let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
             .expect("failed to parse address");

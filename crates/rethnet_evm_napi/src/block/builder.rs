@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use napi::{
     bindgen_prelude::{BigInt, Buffer, Env},
-    tokio::{runtime::Runtime, sync::RwLock},
+    tokio::{runtime, sync::RwLock},
     JsObject, Status,
 };
 use napi_derive::napi;
@@ -30,7 +30,7 @@ pub struct BlockBuilder {
     builder: Arc<RwLock<Option<rethnet_evm::BlockBuilder>>>,
     blockchain: Arc<RwLock<dyn SyncBlockchain<BlockchainError>>>,
     state: Arc<RwLock<dyn SyncState<StateError>>>,
-    runtime: Arc<Runtime>,
+    runtime: runtime::Handle,
 }
 
 #[napi]
