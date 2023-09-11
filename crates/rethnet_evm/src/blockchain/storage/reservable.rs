@@ -183,14 +183,14 @@ impl ReservableSparseBlockchainStorage {
                     reservations.push(Reservation {
                         last_number: block_number - U256::from(1),
                         ..reservation
-                    })
+                    });
                 }
 
                 if *block_number != reservation.last_number {
                     reservations.push(Reservation {
                         first_number: block_number + U256::from(1),
                         ..reservation
-                    })
+                    });
                 }
 
                 let reservations = RwLockWriteGuard::downgrade(reservations);

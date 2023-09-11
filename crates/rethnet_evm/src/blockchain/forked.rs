@@ -2,16 +2,14 @@ use std::sync::Arc;
 use std::{num::NonZeroUsize, path::PathBuf};
 
 use async_trait::async_trait;
+use rethnet_eth::block::LargestSafeBlockNumberArgs;
 use rethnet_eth::{
-    block::DetailedBlock,
+    block::{largest_safe_block_number, safe_block_depth, DetailedBlock},
     remote::{RpcClient, RpcClientError},
     spec::{chain_name, determine_hardfork},
     B256, U256,
 };
-use revm::{
-    db::BlockHashRef,
-    primitives::{HashMap, SpecId},
-};
+use revm::{db::BlockHashRef, primitives::SpecId};
 use tokio::runtime;
 
 use super::{
@@ -49,7 +47,8 @@ pub enum CreationError {
 #[derive(Debug)]
 pub struct ForkedBlockchain {
     local_storage: ReservableSparseBlockchainStorage,
-    remote: RemoteBlockchain,
+    // We can force caching here because we only fork from a safe block number.
+    remote: RemoteBlockchain<true>,
     runtime: runtime::Handle,
     fork_block_number: U256,
     chain_id: U256,
@@ -66,8 +65,6 @@ impl ForkedBlockchain {
         cache_dir: PathBuf,
         fork_block_number: Option<U256>,
     ) -> Result<Self, CreationError> {
-        const FALLBACK_MAX_REORG: u64 = 30;
-
         let rpc_client = RpcClient::new(remote_url, cache_dir);
 
         let (chain_id, network_id, latest_block_number) = tokio::join!(
@@ -80,10 +77,10 @@ impl ForkedBlockchain {
         let network_id = network_id?;
         let latest_block_number = latest_block_number?;
 
-        let max_reorg =
-            largest_possible_reorg(&chain_id).unwrap_or_else(|| U256::from(FALLBACK_MAX_REORG));
-
-        let safe_block_number = latest_block_number.saturating_sub(max_reorg);
+        let safe_block_number = largest_safe_block_number(LargestSafeBlockNumberArgs {
+            chain_id: &chain_id,
+            latest_block_number: &latest_block_number,
+        });
 
         let fork_block_number = if let Some(fork_block_number) = fork_block_number {
             if fork_block_number > latest_block_number {
@@ -95,7 +92,7 @@ impl ForkedBlockchain {
 
             if fork_block_number > safe_block_number {
                 let num_confirmations = latest_block_number - fork_block_number + U256::from(1);
-                let required_confirmations = max_reorg + U256::from(1);
+                let required_confirmations = safe_block_depth(&chain_id) + U256::from(1);
                 let missing_confirmations = required_confirmations - num_confirmations;
 
                 log::warn!("You are forking from block {fork_block_number} which has less than {required_confirmations} confirmations, and will affect Hardhat Network's performance. Please use block number {safe_block_number} or wait for the block to get {missing_confirmations} more confirmations.");
@@ -349,22 +346,4 @@ impl BlockchainMut for ForkedBlockchain {
             }
         }
     }
-}
-
-/// Retrieves the largest possible size of a reorg, i.e. ensures a "safe" block.
-///
-/// # Source
-///
-/// These numbers were taken from:
-/// <https://github.com/NomicFoundation/hardhat/blob/caa504fe0e53c183578f42d66f4740b8ec147051/packages/hardhat-core/src/internal/hardhat-network/provider/utils/reorgs-protection.ts>
-fn largest_possible_reorg(chain_id: &U256) -> Option<U256> {
-    let mut network_configs = HashMap::new();
-    network_configs.insert(U256::from(1), U256::from(5)); // mainnet
-    network_configs.insert(U256::from(3), U256::from(100)); // Ropsten
-    network_configs.insert(U256::from(4), U256::from(5)); // Rinkeby
-    network_configs.insert(U256::from(5), U256::from(5)); // Goerli
-    network_configs.insert(U256::from(42), U256::from(5)); // Kovan
-    network_configs.insert(U256::from(100), U256::from(38)); // xDai
-
-    network_configs.get(chain_id).cloned()
 }

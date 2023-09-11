@@ -360,7 +360,7 @@ mod tests {
         ///
         /// # Panics
         ///
-        /// If the function is called without a tokio::Runtime existing.
+        /// If the function is called without a `tokio::Runtime` existing.
         async fn new() -> Self {
             let hash_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed")));
 

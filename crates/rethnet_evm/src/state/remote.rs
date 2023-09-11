@@ -39,6 +39,14 @@ impl RemoteState {
         &self.block_number
     }
 
+    /// Whether the current state is cacheable based on the block number.
+    pub fn is_cacheable(&self) -> Result<bool, StateError> {
+        Ok(tokio::task::block_in_place(move || {
+            self.runtime
+                .block_on(self.client.is_cacheable_block_number(&self.block_number))
+        })?)
+    }
+
     /// Sets the block number used for calls to the remote Ethereum node.
     pub fn set_block_number(&mut self, block_number: &U256) {
         self.block_number = *block_number;

@@ -6,6 +6,7 @@
 mod detailed;
 mod difficulty;
 mod options;
+mod reorg;
 
 use std::sync::OnceLock;
 
@@ -25,7 +26,14 @@ use crate::{
 };
 
 use self::difficulty::calculate_ethash_canonical_difficulty;
-pub use self::{detailed::DetailedBlock, options::BlockOptions};
+pub use self::{
+    detailed::DetailedBlock,
+    options::BlockOptions,
+    reorg::{
+        block_time, is_safe_block_number, largest_safe_block_number, safe_block_depth,
+        IsSafeBlockNumberArgs, LargestSafeBlockNumberArgs,
+    },
+};
 
 /// Ethereum block
 #[derive(Clone, Debug, Eq)]
@@ -514,20 +522,20 @@ impl Default for PartialHeader {
         const DEFAULT_GAS: u64 = 0xffffffffffffff;
 
         Self {
-            parent_hash: Default::default(),
-            beneficiary: Default::default(),
-            state_root: Default::default(),
+            parent_hash: B256::default(),
+            beneficiary: Address::default(),
+            state_root: B256::default(),
             receipts_root: KECCAK_NULL_RLP,
-            logs_bloom: Default::default(),
-            difficulty: Default::default(),
-            number: Default::default(),
+            logs_bloom: Bloom::default(),
+            difficulty: U256::default(),
+            number: U256::default(),
             gas_limit: U256::from(DEFAULT_GAS),
-            gas_used: Default::default(),
-            timestamp: Default::default(),
-            extra_data: Default::default(),
-            mix_hash: Default::default(),
-            nonce: Default::default(),
-            base_fee: Default::default(),
+            gas_used: U256::default(),
+            timestamp: U256::default(),
+            extra_data: Bytes::default(),
+            mix_hash: B256::default(),
+            nonce: B64::default(),
+            base_fee: Option::default(),
         }
     }
 }

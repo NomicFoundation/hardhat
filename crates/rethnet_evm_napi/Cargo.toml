@@ -7,6 +7,7 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
+async-trait = { version = "0.1.73", default-features = false }
 crossbeam-channel = { version = "0.5.6", default-features = false }
 # when napi is pinned, be sure to pin napi-derive to the same version
 napi = { version = "2.12.4", default-features = false, features = ["async", "error_anyhow", "napi8", "serde-json"] }
