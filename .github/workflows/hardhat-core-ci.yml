@@ -201,7 +201,7 @@ jobs:
       - name: Install package
         run: yarn --frozen-lockfile
 
-      - name: Cache stack trace artifacts
+      - name: Cache EDR RPC cache
         uses: actions/cache@v2
         with:
           path: |
