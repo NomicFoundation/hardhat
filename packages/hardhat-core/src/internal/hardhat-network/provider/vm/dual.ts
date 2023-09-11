@@ -600,7 +600,14 @@ function assertEqualAccounts(
         "hex"
       )} !== ${rethnetAccount.storageRoot.toString("hex")}`
     );
-    throw new Error("Different storageRoot");
+    differences.push("storageRoot");
+  }
+
+  if (differences.length !== 0) {
+    console.trace(`Different accounts (${address.toString()}): ${differences}`);
+    throw new Error(
+      `Different accounts (${address.toString()}): ${differences}`
+    );
   }
 }
 
