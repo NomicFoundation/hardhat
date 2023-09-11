@@ -31,19 +31,14 @@ export function formatExecutionError(
       return `Simulating the transaction failed with error: ${formatFailedEvmExecutionResult(
         result.error
       )}`;
-
     case ExecutionResultType.STRATEGY_SIMULATION_ERROR:
       return `Simulating the transaction failed with error: ${result.error}`;
-
-    case ExecutionResultType.REVERTED_TRANSACTION: {
+    case ExecutionResultType.REVERTED_TRANSACTION:
       return `Transaction ${result.txHash} reverted`;
-    }
-
     case ExecutionResultType.STATIC_CALL_ERROR:
       return `Static call failed with error: ${formatFailedEvmExecutionResult(
         result.error
       )}`;
-
     case ExecutionResultType.STRATEGY_ERROR:
       return `Execution failed with error: ${result.error}`;
   }

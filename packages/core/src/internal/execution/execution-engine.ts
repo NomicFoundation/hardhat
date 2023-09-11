@@ -13,7 +13,7 @@ import {
 import { DeploymentLoader } from "../deployment-loader/types";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 import { getPendingNonceAndSender } from "../views/execution-state/get-pending-nonce-and-sender";
-import { hasExecutionFailed } from "../views/has-execution-failed";
+import { hasExecutionSucceeded } from "../views/has-execution-succeeded";
 import { isBatchFinished } from "../views/is-batch-finished";
 
 import { applyNewMessage } from "./deployment-state-helpers";
@@ -108,7 +108,9 @@ export class ExecutionEngine {
         deploymentState
       );
 
-      if (executionBatch.some((f) => hasExecutionFailed(f, deploymentState))) {
+      if (
+        !executionBatch.every((f) => hasExecutionSucceeded(f, deploymentState))
+      ) {
         return deploymentState;
       }
     }

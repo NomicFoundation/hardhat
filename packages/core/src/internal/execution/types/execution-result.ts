@@ -12,6 +12,7 @@ export enum ExecutionResultType {
   REVERTED_TRANSACTION = "REVERTED_TRANSACTION",
   STATIC_CALL_ERROR = "STATIC_CALL_ERROR",
   STRATEGY_ERROR = "STRATEGY_ERROR",
+  STRATEGY_HELD = "STRATEGY_HELD",
 }
 
 /**
@@ -60,6 +61,16 @@ export interface StrategyErrorExecutionResult {
 }
 
 /**
+ * The execution strategy returned a strategy-specific hold e.g.
+ * waiting for off-chain multi-sig confirmations.
+ */
+export interface StrategyHeldExecutionResult {
+  type: ExecutionResultType.STRATEGY_HELD;
+  heldId: number;
+  reason: string;
+}
+
+/**
  * A deployment was successfully executed.
  */
 export interface SuccessfulDeploymentExecutionResult {
@@ -77,7 +88,8 @@ export type DeploymentExecutionResult =
   | StrategySimulationErrorExecutionResult
   | RevertedTransactionExecutionResult
   | FailedStaticCallExecutionResult
-  | StrategyErrorExecutionResult;
+  | StrategyErrorExecutionResult
+  | StrategyHeldExecutionResult;
 
 /**
  * A call future was successfully executed.
@@ -95,7 +107,8 @@ export type CallExecutionResult =
   | StrategySimulationErrorExecutionResult
   | RevertedTransactionExecutionResult
   | FailedStaticCallExecutionResult
-  | StrategyErrorExecutionResult;
+  | StrategyErrorExecutionResult
+  | StrategyHeldExecutionResult;
 
 /**
  * A send data future was successfully executed.
@@ -113,7 +126,8 @@ export type SendDataExecutionResult =
   | StrategySimulationErrorExecutionResult
   | RevertedTransactionExecutionResult
   | FailedStaticCallExecutionResult
-  | StrategyErrorExecutionResult;
+  | StrategyErrorExecutionResult
+  | StrategyHeldExecutionResult;
 
 /**
  * A static call future was successfully executed.
@@ -129,4 +143,5 @@ export interface SuccessfulStaticCallExecutionResult {
 export type StaticCallExecutionResult =
   | SuccessfulStaticCallExecutionResult
   | FailedStaticCallExecutionResult
-  | StrategyErrorExecutionResult;
+  | StrategyErrorExecutionResult
+  | StrategyHeldExecutionResult;

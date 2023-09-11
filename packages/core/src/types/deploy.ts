@@ -114,16 +114,22 @@ export interface ExecutionErrorDeploymentResult {
   type: DeploymentResultType.EXECUTION_ERROR;
 
   /**
-   * A list of all the future that have started executed but have not
+   * A list of all the futures that have started executing but have not
    * finished, neither successfully nor unsuccessfully.
    */
   started: string[];
 
   /**
-   * A list of all the future that have timed out, including details of the
+   * A list of all the futures that have timed out, including details of the
    * network interaction that timed out.
    */
   timedOut: Array<{ futureId: string; networkInteractionId: number }>;
+
+  /**
+   * A list of all the futures that are being Held as determined by the execution
+   * strategy, i.e. an off-chain process is not yet complete.
+   */
+  held: Array<{ futureId: string; heldId: number; reason: string }>;
 
   /**
    * A list of all the future that have failed, including the details of

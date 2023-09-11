@@ -47,16 +47,24 @@ export class VerboseEventHandler implements ExecutionEventListener {
   public deploymentExecutionStateComplete(
     event: DeploymentExecutionStateCompleteEvent
   ): void {
-    if (event.result.type === ExecutionEventResultType.SUCCESS) {
-      console.log(
-        `Successfully completed the execution of deployment future ${
-          event.futureId
-        } with address ${event.result.result ?? "undefined"}`
-      );
-    } else {
-      console.log(
-        `Execution of future ${event.futureId} failed with reason: ${event.result.error}`
-      );
+    switch (event.result.type) {
+      case ExecutionEventResultType.SUCCESS: {
+        return console.log(
+          `Successfully completed the execution of deployment future ${
+            event.futureId
+          } with address ${event.result.result ?? "undefined"}`
+        );
+      }
+      case ExecutionEventResultType.ERROR: {
+        return console.log(
+          `Execution of future ${event.futureId} failed with reason: ${event.result.error}`
+        );
+      }
+      case ExecutionEventResultType.HELD: {
+        return console.log(
+          `Execution of future ${event.futureId}/${event.result.heldId} held with reason: ${event.result.reason}`
+        );
+      }
     }
   }
 
@@ -69,14 +77,22 @@ export class VerboseEventHandler implements ExecutionEventListener {
   public callExecutionStateComplete(
     event: CallExecutionStateCompleteEvent
   ): void {
-    if (event.result.type === ExecutionEventResultType.SUCCESS) {
-      console.log(
-        `Successfully completed the execution of call future ${event.futureId}`
-      );
-    } else {
-      console.log(
-        `Execution of future ${event.futureId} failed with reason: ${event.result.error}`
-      );
+    switch (event.result.type) {
+      case ExecutionEventResultType.SUCCESS: {
+        return console.log(
+          `Successfully completed the execution of call future ${event.futureId}`
+        );
+      }
+      case ExecutionEventResultType.ERROR: {
+        return console.log(
+          `Execution of call future ${event.futureId} failed with reason: ${event.result.error}`
+        );
+      }
+      case ExecutionEventResultType.HELD: {
+        return console.log(
+          `Execution of call future ${event.futureId}/${event.result.heldId} held with reason: ${event.result.reason}`
+        );
+      }
     }
   }
 
@@ -89,16 +105,24 @@ export class VerboseEventHandler implements ExecutionEventListener {
   public staticCallExecutionStateComplete(
     event: StaticCallExecutionStateCompleteEvent
   ): void {
-    if (event.result.type === ExecutionEventResultType.SUCCESS) {
-      console.log(
-        `Successfully completed the execution of static call future ${
-          event.futureId
-        } with result ${event.result.result ?? "undefined"}`
-      );
-    } else {
-      console.log(
-        `Execution of future ${event.futureId} failed with reason: ${event.result.error}`
-      );
+    switch (event.result.type) {
+      case ExecutionEventResultType.SUCCESS: {
+        return console.log(
+          `Successfully completed the execution of static call future ${
+            event.futureId
+          } with result ${event.result.result ?? "undefined"}`
+        );
+      }
+      case ExecutionEventResultType.ERROR: {
+        return console.log(
+          `Execution of static call future ${event.futureId} failed with reason: ${event.result.error}`
+        );
+      }
+      case ExecutionEventResultType.HELD: {
+        return console.log(
+          `Execution of static call future ${event.futureId}/${event.result.heldId} held with reason: ${event.result.reason}`
+        );
+      }
     }
   }
 
@@ -111,16 +135,24 @@ export class VerboseEventHandler implements ExecutionEventListener {
   public sendDataExecutionStateComplete(
     event: SendDataExecutionStateCompleteEvent
   ): void {
-    if (event.result.type === ExecutionEventResultType.SUCCESS) {
-      console.log(
-        `Successfully completed the execution of send data future ${
-          event.futureId
-        } in tx ${event.result.result ?? "undefined"}`
-      );
-    } else {
-      console.log(
-        `Execution of future ${event.futureId} failed with reason: ${event.result.error}`
-      );
+    switch (event.result.type) {
+      case ExecutionEventResultType.SUCCESS: {
+        return console.log(
+          `Successfully completed the execution of send data future ${
+            event.futureId
+          } in tx ${event.result.result ?? "undefined"}`
+        );
+      }
+      case ExecutionEventResultType.ERROR: {
+        return console.log(
+          `Execution of future ${event.futureId} failed with reason: ${event.result.error}`
+        );
+      }
+      case ExecutionEventResultType.HELD: {
+        return console.log(
+          `Execution of send future ${event.futureId}/${event.result.heldId} held with reason: ${event.result.reason}`
+        );
+      }
     }
   }
 

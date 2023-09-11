@@ -78,6 +78,9 @@ const StatusBadge = ({ future }: { future: UiFuture }) => {
     case UiFutureStatusType.ERRORED:
       badge = <Text>❌</Text>;
       break;
+    case UiFutureStatusType.HELD:
+      badge = <Text>🔶</Text>;
+      break;
   }
 
   return (
@@ -136,6 +139,12 @@ function resolveFutureColors(future: UiFuture): {
     case UiFutureStatusType.ERRORED:
       return {
         borderColor: "redBright",
+        borderStyle: "bold",
+        textColor: "white",
+      };
+    case UiFutureStatusType.HELD:
+      return {
+        borderColor: "yellow",
         borderStyle: "bold",
         textColor: "white",
       };

@@ -360,6 +360,7 @@ export enum ExecutionEventNetworkInteractionType {
 export enum ExecutionEventResultType {
   SUCCESS = "SUCCESS",
   ERROR = "ERROR",
+  HELD = "HELD",
 }
 
 /**
@@ -367,7 +368,10 @@ export enum ExecutionEventResultType {
  *
  * @beta
  */
-export type ExecutionEventResult = ExecutionEventSuccess | ExecutionEventError;
+export type ExecutionEventResult =
+  | ExecutionEventSuccess
+  | ExecutionEventError
+  | ExecutionEventHeld;
 
 /**
  * A successful result of a future's execution.
@@ -387,6 +391,17 @@ export interface ExecutionEventSuccess {
 export interface ExecutionEventError {
   type: ExecutionEventResultType.ERROR;
   error: string;
+}
+
+/**
+ * A hold result of a future's execution.
+ *
+ * @beta
+ */
+export interface ExecutionEventHeld {
+  type: ExecutionEventResultType.HELD;
+  heldId: number;
+  reason: string;
 }
 
 /**

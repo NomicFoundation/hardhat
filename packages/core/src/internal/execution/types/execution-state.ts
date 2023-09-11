@@ -26,6 +26,7 @@ export enum ExecutionStatus {
   STARTED = "STARATED",
   TIMEOUT = "TIMEOUT",
   SUCCESS = "SUCCESS",
+  HELD = "HELD",
   FAILED = "FAILED",
 }
 

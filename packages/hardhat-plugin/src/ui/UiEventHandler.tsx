@@ -40,6 +40,7 @@ import {
   UiBatches,
   UiFuture,
   UiFutureErrored,
+  UiFutureHeld,
   UiFutureStatusType,
   UiFutureSuccess,
   UiState,
@@ -396,7 +397,7 @@ export class UiEventHandler implements ExecutionEventListener {
 
   private _getFutureStatusFromEventResult(
     result: ExecutionEventResult
-  ): UiFutureSuccess | UiFutureErrored {
+  ): UiFutureSuccess | UiFutureErrored | UiFutureHeld {
     switch (result.type) {
       case ExecutionEventResultType.SUCCESS: {
         return {
@@ -408,6 +409,13 @@ export class UiEventHandler implements ExecutionEventListener {
         return {
           type: UiFutureStatusType.ERRORED,
           message: result.error,
+        };
+      }
+      case ExecutionEventResultType.HELD: {
+        return {
+          type: UiFutureStatusType.HELD,
+          heldId: result.heldId,
+          reason: result.reason,
         };
       }
     }

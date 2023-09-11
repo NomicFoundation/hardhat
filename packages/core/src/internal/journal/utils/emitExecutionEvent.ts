@@ -1,9 +1,9 @@
 import {
   ExecutionEventListener,
-  ExecutionEventType,
+  ExecutionEventNetworkInteractionType,
   ExecutionEventResult,
   ExecutionEventResultType,
-  ExecutionEventNetworkInteractionType,
+  ExecutionEventType,
 } from "../../../types/execution-events";
 import { SolidityParameterType } from "../../../types/module";
 import {
@@ -217,6 +217,13 @@ function convertExecutionResultToEventResult(
         error: "Transaction reverted",
       };
     }
+    case ExecutionResultType.STRATEGY_HELD: {
+      return {
+        type: ExecutionEventResultType.HELD,
+        heldId: result.heldId,
+        reason: result.reason,
+      };
+    }
   }
 }
 
@@ -239,6 +246,13 @@ function convertStaticCallResultToExecutionEventResult(
       return {
         type: ExecutionEventResultType.ERROR,
         error: result.error,
+      };
+    }
+    case ExecutionResultType.STRATEGY_HELD: {
+      return {
+        type: ExecutionEventResultType.HELD,
+        heldId: result.heldId,
+        reason: result.reason,
       };
     }
   }

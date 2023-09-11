@@ -5,6 +5,7 @@ export enum UiFutureStatusType {
   SUCCESS = "SUCCESS",
   PENDING = "PENDING",
   ERRORED = "ERRORED",
+  HELD = "HELD",
 }
 
 export enum UiStateDeploymentStatus {
@@ -31,11 +32,18 @@ export interface UiFutureErrored {
   message: string;
 }
 
+export interface UiFutureHeld {
+  type: UiFutureStatusType.HELD;
+  heldId: number;
+  reason: string;
+}
+
 export type UiFutureStatus =
   | UiFutureUnstarted
   | UiFutureSuccess
   | UiFuturePending
-  | UiFutureErrored;
+  | UiFutureErrored
+  | UiFutureHeld;
 
 export interface UiFuture {
   status: UiFutureStatus;

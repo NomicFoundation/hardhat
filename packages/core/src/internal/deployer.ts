@@ -291,6 +291,26 @@ export class Deployer {
       successful: Object.values(deploymentState.executionStates)
         .filter((ex) => ex.status === ExecutionStatus.SUCCESS)
         .map((ex) => ex.id),
+      held: Object.values(deploymentState.executionStates)
+        .filter(canFail)
+        .filter((ex) => ex.status === ExecutionStatus.HELD)
+        .map((ex) => {
+          assertIgnitionInvariant(
+            ex.result !== undefined,
+            `Execution state ${ex.id} is marked as held but has no result`
+          );
+
+          assertIgnitionInvariant(
+            ex.result.type === ExecutionResultType.STRATEGY_HELD,
+            `Execution state ${ex.id} is marked as held but has ${ex.result.type} instead of a held result`
+          );
+
+          return {
+            futureId: ex.id,
+            heldId: ex.result.heldId,
+            reason: ex.result.reason,
+          };
+        }),
       timedOut: Object.values(deploymentState.executionStates)
         .filter(canTimeout)
         .filter((ex) => ex.status === ExecutionStatus.TIMEOUT)
@@ -304,7 +324,8 @@ export class Deployer {
         .map((ex) => {
           assertIgnitionInvariant(
             ex.result !== undefined &&
-              ex.result.type !== ExecutionResultType.SUCCESS,
+              ex.result.type !== ExecutionResultType.SUCCESS &&
+              ex.result.type !== ExecutionResultType.STRATEGY_HELD,
             `Execution state ${ex.id} is marked as failed but has no error result`
           );
 

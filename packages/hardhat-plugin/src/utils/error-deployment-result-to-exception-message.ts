@@ -59,6 +59,7 @@ function _convertExecutionError(result: ExecutionErrorDeploymentResult) {
   const messageDetails = {
     timeouts: result.timedOut.length > 0,
     failures: result.failed.length > 0,
+    held: result.held.length > 0,
   };
 
   if (messageDetails.timeouts) {
@@ -79,6 +80,14 @@ function _convertExecutionError(result: ExecutionErrorDeploymentResult) {
     sections.push(`Failures:\n\n${errorList.join("\n")}`);
   }
 
+  if (messageDetails.held) {
+    const reasonList = result.held.map(
+      ({ futureId, heldId, reason }) => `  * ${futureId}/${heldId}: ${reason}`
+    );
+
+    sections.push(`Held:\n\n${reasonList.join("\n")}`);
+  }
+
   return `The deployment wasn't successful, there were ${_toText(
     messageDetails
   )}:
@@ -89,16 +98,26 @@ ${sections.join("\n\n")}`;
 function _toText({
   timeouts,
   failures,
+  held,
 }: {
   timeouts: boolean;
   failures: boolean;
+  held: boolean;
 }): string {
-  if (timeouts && failures) {
+  if (timeouts && failures && held) {
+    return "timeouts, failures and holds";
+  } else if (timeouts && failures) {
     return "timeouts and failures";
+  } else if (failures && held) {
+    return "failures and holds";
+  } else if (timeouts && held) {
+    return "timeouts and holds";
   } else if (timeouts) {
     return "timeouts";
   } else if (failures) {
     return "failures";
+  } else if (held) {
+    return "holds";
   }
 
   throw new HardhatPluginError(

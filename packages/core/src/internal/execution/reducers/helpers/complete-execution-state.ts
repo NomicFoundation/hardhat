@@ -72,5 +72,7 @@ function _mapResultTypeToStatus(
       return ExecutionStatus.FAILED;
     case ExecutionResultType.STRATEGY_ERROR:
       return ExecutionStatus.FAILED;
+    case ExecutionResultType.STRATEGY_HELD:
+      return ExecutionStatus.HELD;
   }
 }
