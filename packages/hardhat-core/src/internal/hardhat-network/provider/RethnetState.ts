@@ -44,7 +44,7 @@ export class RethnetStateManager {
     }
 
     return new RethnetStateManager(
-      StateManager.forkRemote(
+      await StateManager.forkRemote(
         context,
         forkConfig.jsonRpcUrl,
         blockNumber,

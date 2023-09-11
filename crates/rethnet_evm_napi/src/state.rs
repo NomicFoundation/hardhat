@@ -11,7 +11,7 @@ use std::{
 use napi::{
     bindgen_prelude::{BigInt, Buffer, ObjectFinalize},
     tokio::sync::RwLock,
-    Env, JsFunction, JsObject, JsString, NapiRaw, Status,
+    Env, JsFunction, JsObject, NapiRaw, Status,
 };
 use napi_derive::napi;
 use rethnet_eth::{signature::private_key_to_address, Address, Bytes, B256, U256};
@@ -94,7 +94,7 @@ impl StateManager {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    fn with_state<S>(env: &mut Env, context: &RethnetContext, state: S) -> napi::Result<Self>
+    fn with_state<S>(env: &mut Env, context: Arc<Context>, state: S) -> napi::Result<Self>
     where
         S: SyncState<StateError>,
     {
@@ -103,7 +103,7 @@ impl StateManager {
 
         Ok(Self {
             state: Arc::new(RwLock::new(state)),
-            context: (*context).clone(),
+            context,
         })
     }
 }
@@ -128,7 +128,7 @@ impl StateManager {
         let mut state = HybridState::with_accounts(accounts);
         state.checkpoint().unwrap();
 
-        Self::with_state(&mut env, context, state)
+        Self::with_state(&mut env, (*context).clone(), state)
     }
 
     /// Constructs a [`StateManager`] with the provided accounts present in the genesis state.
@@ -145,38 +145,49 @@ impl StateManager {
         let mut state = HybridState::with_accounts(accounts);
         state.checkpoint().unwrap();
 
-        Self::with_state(&mut env, context, state)
+        Self::with_state(&mut env, (*context).clone(), state)
     }
 
     /// Constructs a [`StateManager`] that uses the remote node and block number as the basis for
     /// its state.
-    #[napi(factory)]
+    #[napi]
+    #[napi(ts_return_type = "Promise<StateManager>")]
     pub fn fork_remote(
-        mut env: Env,
+        env: Env,
         context: &RethnetContext,
-        remote_node_url: JsString,
+        remote_node_url: String,
         fork_block_number: BigInt,
         accounts: Vec<GenesisAccount>,
         cache_dir: Option<String>,
-    ) -> napi::Result<Self> {
+    ) -> napi::Result<JsObject> {
         let fork_block_number: U256 = BigInt::try_cast(fork_block_number)?;
         let cache_dir: PathBuf = cache_dir
             .unwrap_or_else(|| rethnet_defaults::CACHE_DIR.into())
             .into();
 
         let accounts = genesis_accounts(accounts)?;
-        Self::with_state(
-            &mut env,
-            context,
-            ForkState::new(
+
+        let runtime = context.runtime();
+        let context = (*context).clone();
+
+        let (deferred, promise) = env.create_deferred()?;
+        runtime.spawn(async move {
+            let result = ForkState::new(
                 context.runtime().clone(),
                 context.state_root_generator.clone(),
-                remote_node_url.into_utf8()?.as_str()?,
+                &remote_node_url,
                 cache_dir,
                 fork_block_number,
                 accounts,
-            ),
-        )
+            )
+            .await
+            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()));
+
+            deferred
+                .resolve(|mut env| result.map(|state| Self::with_state(&mut env, context, state)));
+        });
+
+        Ok(promise)
     }
 
     /// Creates a state checkpoint that can be reverted to using [`revert`].

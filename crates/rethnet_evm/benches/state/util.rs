@@ -24,6 +24,8 @@ struct TestState<'t> {
 }
 
 pub struct RethnetStates {
+    #[cfg(all(test, feature = "test-remote"))]
+    _runtime: tokio::runtime::Runtime,
     layered: LayeredState<RethnetLayer>,
     layered_checkpoints: Vec<B256>,
     layered_snapshots: Vec<B256>,
@@ -43,22 +45,18 @@ pub struct RethnetStates {
 impl RethnetStates {
     pub fn new(#[cfg(all(test, feature = "test-remote"))] fork_block_number: U256) -> Self {
         let cache_dir = TempDir::new().expect("can create temp dir");
-        Self {
-            layered: LayeredState::<RethnetLayer>::default(),
-            layered_checkpoints: Vec::default(),
-            layered_snapshots: Vec::default(),
-            hybrid: HybridState::<RethnetLayer>::default(),
-            hybrid_checkpoints: Vec::default(),
-            hybrid_snapshots: Vec::default(),
-            #[cfg(all(test, feature = "test-remote"))]
-            fork: ForkState::new(
-                Arc::new(
-                    Builder::new_multi_thread()
-                        .enable_io()
-                        .enable_time()
-                        .build()
-                        .unwrap(),
-                ),
+
+        #[cfg(all(test, feature = "test-remote"))]
+        let runtime = Builder::new_multi_thread()
+            .enable_io()
+            .enable_time()
+            .build()
+            .unwrap();
+
+        #[cfg(all(test, feature = "test-remote"))]
+        let fork = runtime
+            .block_on(ForkState::new(
+                runtime.handle().clone(),
                 Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed"))),
                 &std::env::var_os("ALCHEMY_URL")
                     .expect("ALCHEMY_URL environment variable not defined")
@@ -67,7 +65,20 @@ impl RethnetStates {
                 cache_dir.path().to_path_buf(),
                 fork_block_number,
                 HashMap::default(),
-            ),
+            ))
+            .expect("Failed to construct ForkedState");
+
+        Self {
+            #[cfg(all(test, feature = "test-remote"))]
+            _runtime: runtime,
+            layered: LayeredState::<RethnetLayer>::default(),
+            layered_checkpoints: Vec::default(),
+            layered_snapshots: Vec::default(),
+            hybrid: HybridState::<RethnetLayer>::default(),
+            hybrid_checkpoints: Vec::default(),
+            hybrid_snapshots: Vec::default(),
+            #[cfg(all(test, feature = "test-remote"))]
+            fork,
             fork_checkpoints: Vec::default(),
             fork_snapshots: Vec::default(),
             _cache_dir: cache_dir,

@@ -126,24 +126,15 @@ impl State for CachedRemoteState {
 #[cfg(all(test, feature = "test-remote"))]
 mod tests {
     use std::str::FromStr;
-    use std::sync::Arc;
 
     use rethnet_eth::remote::RpcClient;
     use rethnet_test_utils::env::get_alchemy_url;
-    use tokio::runtime::Builder;
+    use tokio::runtime;
 
     use super::*;
 
-    #[test]
-    fn no_cache_for_unsafe_block_number() {
-        let runtime = Arc::new(
-            Builder::new_multi_thread()
-                .enable_io()
-                .enable_time()
-                .build()
-                .expect("failed to construct async runtime"),
-        );
-
+    #[tokio::test(flavor = "multi_thread")]
+    async fn no_cache_for_unsafe_block_number() {
         let tempdir = tempfile::tempdir().expect("can create tempdir");
 
         let rpc_client = RpcClient::new(&get_alchemy_url(), tempdir.path().to_path_buf());
@@ -152,7 +143,9 @@ mod tests {
             .expect("failed to parse address");
 
         // Latest block number is always unsafe
-        let block_number = runtime.block_on(rpc_client.block_number()).unwrap();
+        let block_number = rpc_client.block_number().await.unwrap();
+
+        let runtime = runtime::Handle::current();
 
         let remote = RemoteState::new(runtime, rpc_client, block_number);
         let mut cached = CachedRemoteState::new(remote);

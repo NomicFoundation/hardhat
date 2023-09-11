@@ -2,7 +2,7 @@ use std::{io, ops::Deref, sync::Arc};
 
 use napi::{
     bindgen_prelude::Buffer,
-    tokio::runtime::{Builder, Runtime},
+    tokio::runtime::{self, Builder, Runtime},
     Status,
 };
 use napi_derive::napi;
@@ -49,7 +49,7 @@ impl RethnetContext {
 
 #[derive(Debug)]
 pub struct Context {
-    runtime: Arc<Runtime>,
+    runtime: Runtime,
     pub state_root_generator: Arc<Mutex<RandomHashGenerator>>,
     #[cfg(feature = "tracing")]
     _tracing_write_guard: tracing_flame::FlushGuard<std::io::BufWriter<std::fs::File>>,
@@ -91,7 +91,7 @@ impl Context {
         let state_root_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed")));
 
         Ok(Self {
-            runtime: Arc::new(runtime),
+            runtime,
             state_root_generator,
             #[cfg(feature = "tracing")]
             _tracing_write_guard: guard,
@@ -99,7 +99,7 @@ impl Context {
     }
 
     /// Retrieves the context's runtime.
-    pub fn runtime(&self) -> &Arc<Runtime> {
-        &self.runtime
+    pub fn runtime(&self) -> &runtime::Handle {
+        self.runtime.handle()
     }
 }
