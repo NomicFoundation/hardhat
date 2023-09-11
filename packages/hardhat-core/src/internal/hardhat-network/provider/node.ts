@@ -174,6 +174,8 @@ export class HardhatNode extends EventEmitter {
         forkNetworkId
       );
 
+      config.forkConfig.blockNumber = Number(forkBlockNumber);
+
       blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common);
 
       initialBlockTimeOffset = BigInt(
