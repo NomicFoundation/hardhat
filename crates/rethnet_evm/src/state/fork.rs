@@ -4,6 +4,7 @@ use std::sync::Arc;
 use parking_lot::{Mutex, RwLock, RwLockUpgradableReadGuard};
 use rethnet_eth::{
     remote::{BlockSpec, RpcClient, RpcClientError},
+    trie::KECCAK_NULL_RLP,
     Address, B256, U256,
 };
 use revm::{
@@ -167,8 +168,9 @@ impl DatabaseCommit for ForkState {
 impl StateDebug for ForkState {
     type Error = StateError;
 
-    fn account_storage_root(&self, address: &Address) -> Result<Option<B256>, Self::Error> {
-        self.local_state.account_storage_root(address)
+    fn account_storage_root(&self, _address: &Address) -> Result<Option<B256>, Self::Error> {
+        // HACK: Hardhat ignores the storage root, so we set it to the default value
+        Ok(Some(KECCAK_NULL_RLP))
     }
 
     fn insert_account(
