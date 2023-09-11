@@ -1,5 +1,3 @@
-// TODO: how to disable error for entire file without eslint rule?
-/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import {
   bufferToHex,
@@ -20,8 +18,10 @@ import { RpcCallRequest } from "../../../core/jsonrpc/types/input/callRequest";
 import { CallParams } from "../node-types";
 import { RpcAccessList } from "../../../core/jsonrpc/types/access-list";
 
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
+
 export class Base {
-  constructor(private readonly _node: HardhatNode) {}
+  constructor(protected readonly _node: HardhatNode) {}
 
   public async resolveNewBlockTag(
     newBlockTag: OptionalRpcNewBlockTag,
@@ -108,7 +108,16 @@ export class Base {
     };
   }
 
-  private _checkPostMergeBlockTags(blockTag: "safe" | "finalized") {
+  protected _rpcAccessListToNodeAccessList(
+    rpcAccessList: RpcAccessList
+  ): Array<[Buffer, Buffer[]]> {
+    return rpcAccessList.map((tuple) => [
+      tuple.address,
+      tuple.storageKeys ?? [],
+    ]);
+  }
+
+  protected _checkPostMergeBlockTags(blockTag: "safe" | "finalized") {
     const isPostMerge = this._node.isPostMergeHardfork();
     const hardfork = this._node.hardfork;
 
@@ -119,7 +128,7 @@ export class Base {
     }
   }
 
-  private _newBlockTagToString(tag: RpcNewBlockTag): string {
+  protected _newBlockTagToString(tag: RpcNewBlockTag): string {
     if (typeof tag === "string") {
       return tag;
     }
@@ -143,14 +152,5 @@ export class Base {
     }
 
     return toBuffer(localAccounts[0]);
-  }
-
-  private _rpcAccessListToNodeAccessList(
-    rpcAccessList: RpcAccessList
-  ): Array<[Buffer, Buffer[]]> {
-    return rpcAccessList.map((tuple) => [
-      tuple.address,
-      tuple.storageKeys ?? [],
-    ]);
   }
 }
