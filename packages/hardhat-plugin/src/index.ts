@@ -62,19 +62,22 @@ task("deploy")
   )
   .addOptionalParam("id", "set the deployment id")
   .addFlag("force", "restart the deployment ignoring previous history")
-  .addFlag("useVerbose", "use verbose execution output instead of UI")
+  .addFlag(
+    "simpleTextUi",
+    "use a simple text based UI instead of the default UI"
+  )
   .setAction(
     async (
       {
         moduleNameOrPath,
         parameters: parametersInput,
-        useVerbose,
+        simpleTextUi,
         id: givenDeploymentId,
       }: {
         moduleNameOrPath: string;
         parameters?: string;
         force: boolean;
-        useVerbose: boolean;
+        simpleTextUi: boolean;
         id: string;
       },
       hre
@@ -136,7 +139,7 @@ task("deploy")
 
       const artifactResolver = new HardhatArtifactResolver(hre);
 
-      const executionEventListener = useVerbose
+      const executionEventListener = simpleTextUi
         ? new VerboseEventHandler()
         : new UiEventHandler(parameters);
 
