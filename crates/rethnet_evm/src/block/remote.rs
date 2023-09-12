@@ -10,7 +10,7 @@ use rethnet_eth::{
 
 use crate::{blockchain::BlockchainError, Block, SyncBlock};
 
-/// A remote block, which lazily loads additional information when requested.
+/// A remote block, without receipts.
 #[derive(Clone, Debug)]
 pub struct RemoteBlock {
     header: Header,
