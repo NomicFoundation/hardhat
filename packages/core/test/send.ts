@@ -210,8 +210,8 @@ describe("send", () => {
   describe("passing id", () => {
     it("should be able to call the same function twice by passing an id", () => {
       const moduleWithSameCallTwice = buildModule("Module1", (m) => {
-        m.send("test_send", "0xtest", 0n, "test", { id: "first" });
-        m.send("test_send", "0xtest", 0n, "test", { id: "second" });
+        m.send("first", "0xtest", 0n, "test");
+        m.send("second", "0xtest", 0n, "test");
 
         return {};
       });
@@ -247,8 +247,8 @@ describe("send", () => {
       assert.throws(
         () =>
           buildModule("Module1", (m) => {
-            m.send("test_send", "0xtest", 0n, "test", { id: "first" });
-            m.send("test_send", "0xtest", 0n, "test", { id: "first" });
+            m.send("first", "0xtest", 0n, "test");
+            m.send("first", "0xtest", 0n, "test");
             return {};
           }),
         /Duplicated id Module1:first found in module Module1/

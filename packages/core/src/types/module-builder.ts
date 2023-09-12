@@ -135,7 +135,6 @@ export interface ReadEventArgumentOptions {
  * @beta
  */
 export interface SendDataOptions {
-  id?: string;
   after?: Future[];
   from?: string | AccountRuntimeValue;
 }

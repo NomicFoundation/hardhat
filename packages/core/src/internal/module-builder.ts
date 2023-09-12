@@ -590,12 +590,11 @@ class IgnitionModuleBuilderImplementation<
     data?: string,
     options: SendDataOptions = {}
   ): SendDataFuture {
-    const futureId = `${this._module.id}:${options.id ?? id}`;
+    const futureId = `${this._module.id}:${id}`;
     const val = value ?? BigInt(0);
 
     /* validation start */
     this._assertValidId(id, this.send);
-    this._assertValidId(options.id, this.send);
     this._assertUniqueSendId(futureId);
     this._assertValidAddress(to, this.send);
     this._assertValidValue(val, this.send);
