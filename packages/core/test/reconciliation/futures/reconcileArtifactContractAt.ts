@@ -62,6 +62,7 @@ describe("Reconciliation - artifact contract at", () => {
     artifactId: "./artifact.json",
     functionName: "function",
     args: [],
+    nameOrIndex: 0,
     from: getDefaultSender(exampleAccounts),
     networkInteractions: [],
   };

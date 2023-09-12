@@ -51,6 +51,7 @@ describe("Reconciliation - named static call", () => {
     artifactId: "./artifact.json",
     functionName: "function",
     args: [],
+    nameOrIndex: 0,
     from: exampleAccounts[0],
   };
 
@@ -98,7 +99,7 @@ describe("Reconciliation - named static call", () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
-      m.staticCall(contract1, "function1", [], { id: "config" });
+      m.staticCall(contract1, "function1", [], 0, { id: "config" });
 
       return { contract1 };
     });
@@ -138,7 +139,7 @@ describe("Reconciliation - named static call", () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
-      m.staticCall(contract1, "functionChanged", [], { id: "config" });
+      m.staticCall(contract1, "functionChanged", [], 0, { id: "config" });
 
       return { contract1 };
     });
@@ -181,7 +182,7 @@ describe("Reconciliation - named static call", () => {
 
       const contract1 = m.contract("Contract1");
 
-      m.staticCall(contract1, "function1", [{ ticker }], {});
+      m.staticCall(contract1, "function1", [{ ticker }], 0, {});
 
       return { contract1 };
     });
@@ -222,7 +223,7 @@ describe("Reconciliation - named static call", () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
-      m.staticCall(contract1, "function1", [], {
+      m.staticCall(contract1, "function1", [], 0, {
         id: "config",
         from: twoAddress,
       });
@@ -266,10 +267,10 @@ describe("Reconciliation - named static call", () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
-      const resultArg1 = m.staticCall(contract1, "function1", ["first"], {
+      const resultArg1 = m.staticCall(contract1, "function1", ["first"], 0, {
         id: "first-call",
       });
-      const resultArg2 = m.staticCall(contract1, "function1", ["second"], {
+      const resultArg2 = m.staticCall(contract1, "function1", ["second"], 0, {
         id: "second-call",
         after: [resultArg1],
       });

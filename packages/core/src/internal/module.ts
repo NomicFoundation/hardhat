@@ -157,6 +157,7 @@ export class NamedStaticCallFutureImplementation<
     public readonly functionName: FunctionNameT,
     public readonly contract: ContractFuture<ContractNameT>,
     public readonly args: ArgumentType[],
+    public readonly nameOrIndex: string | number,
     public readonly from: string | AccountRuntimeValue | undefined
   ) {
     super(id, FutureType.NAMED_STATIC_CALL, module);

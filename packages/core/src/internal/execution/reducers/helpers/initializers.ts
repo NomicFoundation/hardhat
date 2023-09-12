@@ -54,6 +54,7 @@ export function initialiseStaticCallExecutionStateFrom(
     contractAddress: action.contractAddress,
     functionName: action.functionName,
     args: action.args,
+    nameOrIndex: action.nameOrIndex,
     from: action.from,
     networkInteractions: [],
   };

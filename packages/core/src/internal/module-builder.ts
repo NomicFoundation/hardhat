@@ -379,6 +379,7 @@ class IgnitionModuleBuilderImplementation<
     contractFuture: CallableContractFuture<ContractNameT>,
     functionName: FunctionNameT,
     args: ArgumentType[] = [],
+    nameOrIndex: string | number = 0,
     options: StaticCallOptions = {}
   ): NamedStaticCallFuture<ContractNameT, FunctionNameT> {
     const id = options.id ?? functionName;
@@ -388,6 +389,7 @@ class IgnitionModuleBuilderImplementation<
     this._assertUniqueStaticCallId(futureId);
     this._assertValidFrom(options.from, this.staticCall);
     this._assertValidCallableContract(contractFuture, this.staticCall);
+    this._assertValidNameOrIndex(nameOrIndex, this.staticCall);
     /* validation end */
 
     const future = new NamedStaticCallFutureImplementation(
@@ -396,6 +398,7 @@ class IgnitionModuleBuilderImplementation<
       functionName,
       contractFuture,
       args,
+      nameOrIndex,
       options.from
     );
 
@@ -527,6 +530,7 @@ class IgnitionModuleBuilderImplementation<
 
     /* validation start */
     this._assertUniqueReadEventArgumentId(futureId);
+    this._assertValidNameOrIndex(nameOrIndex, this.readEventArgument);
     /* validation end */
 
     const future = new ReadEventArgumentFutureImplementation(
@@ -775,6 +779,15 @@ class IgnitionModuleBuilderImplementation<
   ) {
     if (!isCallableContractFuture(contract)) {
       this._throwErrorWithStackTrace(`Invalid contract given`, func);
+    }
+  }
+
+  private _assertValidNameOrIndex(
+    nameOrIndex: string | number,
+    func: (...[]: any[]) => any
+  ) {
+    if (typeof nameOrIndex !== "string" && typeof nameOrIndex !== "number") {
+      this._throwErrorWithStackTrace(`Invalid nameOrIndex given`, func);
     }
   }
 

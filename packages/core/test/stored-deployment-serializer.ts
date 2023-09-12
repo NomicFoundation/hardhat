@@ -414,7 +414,7 @@ describe("stored deployment serializer", () => {
         const contract2 = m.contract("Contract2");
 
         m.staticCall(contract2, "lock", [contract1]);
-        m.staticCall(contract2, "unlock", [], { after: [contract1] });
+        m.staticCall(contract2, "unlock", [], 0, { after: [contract1] });
 
         return { contract1, contract2 };
       });

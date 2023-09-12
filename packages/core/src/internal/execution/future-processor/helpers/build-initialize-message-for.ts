@@ -115,6 +115,7 @@ export async function buildInitializeMessageFor(
               deploymentParameters,
               accounts
             ),
+            nameOrIndex: future.nameOrIndex,
             functionName: future.functionName,
             contractAddress: resolveAddressForContractFuture(
               future.contract,

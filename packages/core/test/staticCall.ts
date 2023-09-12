@@ -86,7 +86,7 @@ describe("static call", () => {
       const example = m.contract("Example");
       const another = m.contract("Another");
 
-      m.staticCall(example, "test", [], { after: [another] });
+      m.staticCall(example, "test", [], 0, { after: [another] });
 
       return { example, another };
     });
@@ -147,7 +147,7 @@ describe("static call", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
       const example = m.contract("Example");
 
-      m.staticCall(example, "test", [], { from: "0x2" });
+      m.staticCall(example, "test", [], 0, { from: "0x2" });
 
       return { example };
     });
@@ -169,7 +169,7 @@ describe("static call", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
       const example = m.contract("Example");
 
-      m.staticCall(example, "test", [], { from: m.getAccount(1) });
+      m.staticCall(example, "test", [], 0, { from: m.getAccount(1) });
 
       return { example };
     });
@@ -357,8 +357,8 @@ describe("static call", () => {
       const moduleWithSameCallTwice = buildModule("Module1", (m) => {
         const sameContract1 = m.contract("Example");
 
-        m.staticCall(sameContract1, "test", [], { id: "first" });
-        m.staticCall(sameContract1, "test", [], { id: "second" });
+        m.staticCall(sameContract1, "test", [], 0, { id: "first" });
+        m.staticCall(sameContract1, "test", [], 0, { id: "second" });
 
         return { sameContract1 };
       });
@@ -396,8 +396,8 @@ describe("static call", () => {
         () =>
           buildModule("Module1", (m) => {
             const sameContract1 = m.contract("SameContract");
-            m.staticCall(sameContract1, "test", [], { id: "first" });
-            m.staticCall(sameContract1, "test", [], { id: "first" });
+            m.staticCall(sameContract1, "test", [], 0, { id: "first" });
+            m.staticCall(sameContract1, "test", [], 0, { id: "first" });
             return { sameContract1 };
           }),
         /Duplicated id Module1:SameContract#first found in module Module1/
@@ -412,7 +412,7 @@ describe("static call", () => {
           () =>
             buildModule("Module1", (m) => {
               const another = m.contract("Another", []);
-              m.staticCall(another, "test", [], { from: 1 as any });
+              m.staticCall(another, "test", [], 0, { from: 1 as any });
 
               return { another };
             }),
@@ -835,7 +835,7 @@ describe("static call", () => {
         const module = buildModule("Module1", (m) => {
           const another = m.contractFromArtifact("Another", fakeArtifact, []);
           const account = m.getAccount(-1);
-          m.staticCall(another, "inc", [1], { from: account });
+          m.staticCall(another, "inc", [1], 0, { from: account });
 
           return { another };
         });
@@ -880,7 +880,7 @@ describe("static call", () => {
         const module = buildModule("Module1", (m) => {
           const another = m.contractFromArtifact("Another", fakeArtifact, []);
           const account = m.getAccount(1);
-          m.staticCall(another, "inc", [1], { from: account });
+          m.staticCall(another, "inc", [1], 0, { from: account });
 
           return { another };
         });

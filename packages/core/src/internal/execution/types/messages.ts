@@ -120,6 +120,7 @@ export interface StaticCallExecutionStateInitializeMessage {
   artifactId: string;
   contractAddress: string;
   functionName: string;
+  nameOrIndex: string | number;
   args: SolidityParameterType[];
   from: string;
 }

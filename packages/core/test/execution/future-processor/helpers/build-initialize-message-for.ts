@@ -187,6 +187,7 @@ describe("buildInitializeMessageFor", () => {
       "staticTest",
       anotherNamedContractDeployment,
       [BigInt(1), "b", safeMathLibraryDeployment, { sub: "d" }],
+      0,
       exampleAccounts[0]
     );
 
@@ -602,6 +603,7 @@ describe("buildInitializeMessageFor", () => {
           contractAddress: differentAddress,
           functionName: "staticTest",
           args: [1n, "b", libraryAddress, { sub: "d" }],
+          nameOrIndex: 0,
           from: exampleAccounts[0],
         });
       });

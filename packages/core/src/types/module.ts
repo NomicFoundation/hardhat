@@ -223,6 +223,7 @@ export interface NamedStaticCallFuture<
   dependencies: Set<Future>;
   contract: ContractFuture<ContractNameT>;
   functionName: FunctionNameT;
+  nameOrIndex: string | number;
   args: ArgumentType[];
   from: string | AccountRuntimeValue | undefined;
 }

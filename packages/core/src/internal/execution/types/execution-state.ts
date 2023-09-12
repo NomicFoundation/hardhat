@@ -118,6 +118,7 @@ export interface StaticCallExecutionState
   contractAddress: string;
   functionName: string;
   args: SolidityParameterType[];
+  nameOrIndex: string | number;
   from: string;
   networkInteractions: StaticCall[];
   result?: StaticCallExecutionResult;

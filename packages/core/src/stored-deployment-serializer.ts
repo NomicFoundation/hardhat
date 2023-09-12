@@ -239,6 +239,7 @@ export class StoredDeploymentSerializer {
             contract: this._convertFutureToFutureToken(future.contract),
             functionName: future.functionName,
             args: future.args.map((arg) => context.argReplacer(arg)),
+            nameOrIndex: future.nameOrIndex,
             from: isRuntimeValue(future.from)
               ? this._serializeAccountRuntimeValue(future.from)
               : future.from,
@@ -742,6 +743,7 @@ export class StoredDeploymentDeserializer {
           serializedFuture.args.map((arg) =>
             this._deserializeArgument(arg, futuresLookup)
           ),
+          serializedFuture.nameOrIndex,
           this._isSerializedAccountRuntimeValue(serializedFuture.from)
             ? this._deserializeAccountRuntimeValue(serializedFuture.from)
             : serializedFuture.from

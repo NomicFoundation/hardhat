@@ -15,7 +15,7 @@ describe("static calls", () => {
 
       const createCall = m.call(fooFactory, "create", []);
 
-      const newAddress = m.staticCall(fooFactory, "deployed", [], {
+      const newAddress = m.staticCall(fooFactory, "deployed", [], 0, {
         after: [createCall],
       });
 
@@ -40,7 +40,7 @@ describe("static calls", () => {
 
       const createCall = m.call(fooFactory, "create", []);
 
-      const newAddress = m.staticCall(fooFactory, "deployed", [], {
+      const newAddress = m.staticCall(fooFactory, "deployed", [], 0, {
         after: [createCall],
       });
 
@@ -63,7 +63,7 @@ describe("static calls", () => {
 
       const createCall = m.call(fooFactory, "create", []);
 
-      const newAddress = m.staticCall(fooFactory, "allDeployed", [0], {
+      const newAddress = m.staticCall(fooFactory, "allDeployed", [0], 0, {
         after: [createCall],
       });
 
@@ -86,9 +86,15 @@ describe("static calls", () => {
 
       const createCall = m.call(fooFactory, "create", []);
 
-      const newAddress = m.staticCall(fooFactory, "getDeployed(uint256)", [0], {
-        after: [createCall],
-      });
+      const newAddress = m.staticCall(
+        fooFactory,
+        "getDeployed(uint256)",
+        [0],
+        0,
+        {
+          after: [createCall],
+        }
+      );
 
       const foo = m.contractAt("Foo", newAddress);
 
@@ -109,7 +115,7 @@ describe("static calls", () => {
 
       const createCall = m.call(fooFactory, "create", []);
 
-      const nonAddress = m.staticCall(fooFactory, "nonAddressResult", [], {
+      const nonAddress = m.staticCall(fooFactory, "nonAddressResult", [], 0, {
         after: [createCall],
       });
 
@@ -134,7 +140,7 @@ describe("static calls", () => {
 
       const createCall = m.call(fooFactory, "create", []);
 
-      const nonAddress = m.staticCall(fooFactory, "nonAddressResult", [], {
+      const nonAddress = m.staticCall(fooFactory, "nonAddressResult", [], 0, {
         after: [createCall],
       });
 
