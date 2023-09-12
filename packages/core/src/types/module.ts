@@ -262,7 +262,10 @@ export interface ReadEventArgumentFuture {
   id: string;
   module: IgnitionModule;
   dependencies: Set<Future>;
-  futureToReadFrom: Future;
+  futureToReadFrom:
+    | NamedContractDeploymentFuture<string>
+    | ArtifactContractDeploymentFuture
+    | NamedContractCallFuture<string, string>;
   eventName: string;
   argumentName: string;
   emitter: ContractFuture<string>;

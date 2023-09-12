@@ -29,6 +29,7 @@ import {
   AccountRuntimeValue,
   AddressResolvableFuture,
   ArgumentType,
+  ArtifactContractDeploymentFuture,
   ContractFuture,
   Future,
   FutureType,
@@ -36,6 +37,8 @@ import {
   IgnitionModuleResult,
   ModuleParameterRuntimeValue,
   ModuleParameterType,
+  NamedContractCallFuture,
+  NamedContractDeploymentFuture,
   RuntimeValueType,
 } from "./types/module";
 import {
@@ -787,7 +790,10 @@ export class StoredDeploymentDeserializer {
           this._lookup(
             futuresLookup,
             serializedFuture.futureToReadFrom.futureId
-          ),
+          ) as
+            | NamedContractDeploymentFuture<string>
+            | ArtifactContractDeploymentFuture
+            | NamedContractCallFuture<string, string>,
           serializedFuture.eventName,
           serializedFuture.argumentName,
           this._lookup(
