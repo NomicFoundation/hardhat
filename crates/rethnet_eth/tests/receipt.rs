@@ -18,7 +18,7 @@ mod remote {
                     #[tokio::test]
                     #[serial]
                     async fn [<test_remote_block_receipt_root_ $name>]() {
-                        use rethnet_eth::{block::BlockAndCallers, remote::{RpcClient, BlockSpec}, trie::ordered_trie_root};
+                        use rethnet_eth::{remote::{RpcClient, BlockSpec}, trie::ordered_trie_root};
                         use rethnet_test_utils::env::get_alchemy_url;
                         use revm_primitives::U256;
 
@@ -42,11 +42,7 @@ mod remote {
                                 .map(|receipt| rlp::encode(&**receipt).freeze()),
                         );
 
-                        let BlockAndCallers { block, .. } = block
-                            .try_into()
-                            .expect("Conversion must succeed, as we're not retrieving a pending block");
-
-                        assert_eq!(block.header.receipts_root, receipts_root);
+                        assert_eq!(block.receipts_root, receipts_root);
                     }
                 }
             )+

@@ -113,12 +113,12 @@ pub enum Error {
 /// `require_canonical`: whether the server should additionally raise a JSON-RPC error if the block
 /// is not in the canonical chain
 async fn _block_number_from_hash<T>(
-    blockchain: &dyn SyncBlockchain<BlockchainError>,
+    blockchain: &dyn SyncBlockchain<BlockchainError, StateError>,
     block_hash: &B256,
     _require_canonical: bool,
 ) -> Result<U256, ResponseData<T>> {
     match blockchain.block_by_hash(block_hash).await {
-        Ok(Some(block)) => Ok(block.header.number),
+        Ok(Some(block)) => Ok(block.header().number),
         Ok(None) => Err(error_response_data(
             0,
             &format!("Hash {block_hash} does not refer to a known block"),
@@ -131,7 +131,7 @@ async fn _block_number_from_hash<T>(
 }
 
 async fn _block_number_from_block_spec<T>(
-    blockchain: &dyn SyncBlockchain<BlockchainError>,
+    blockchain: &dyn SyncBlockchain<BlockchainError, StateError>,
     block_spec: &BlockSpec,
 ) -> Result<U256, ResponseData<T>> {
     match block_spec {
@@ -156,7 +156,7 @@ async fn _block_number_from_block_spec<T>(
 }
 
 async fn confirm_post_merge_hardfork<T>(
-    blockchain: &dyn SyncBlockchain<BlockchainError>,
+    blockchain: &dyn SyncBlockchain<BlockchainError, StateError>,
 ) -> Result<(), ResponseData<T>> {
     let last_block_number = blockchain.last_block_number().await;
     let post_merge = blockchain.block_supports_spec(&last_block_number, SpecId::MERGE).await.map_err(|e| error_response_data(0, &format!("Failed to determine whether block {last_block_number} supports the merge hardfork: {e}")))?;
@@ -207,7 +207,7 @@ async fn set_block_context<T>(
                             0,
                             &format!("block hash {block_hash} does not refer to a known block"),
                         )),
-                        Ok(Some(block)) => Ok(block.header.number),
+                        Ok(Some(block)) => Ok(block.header().number),
                     },
                 },
                 Some(BlockSpec::Tag(tag)) => match tag {
@@ -310,11 +310,11 @@ async fn handle_evm_increase_time(
     }
 }
 
-fn log_block(_result: &MineBlockResult, _is_interval_mined: bool) {
+fn log_block(_result: &MineBlockResult<BlockchainError>, _is_interval_mined: bool) {
     // TODO
 }
 
-fn log_hardhat_mined_block(_result: &MineBlockResult) {
+fn log_hardhat_mined_block(_result: &MineBlockResult<BlockchainError>) {
     // TODO
 }
 
@@ -354,7 +354,8 @@ async fn handle_evm_set_next_block_timestamp(
     let mut node_data = app_data.node.lock_data().await;
     match node_data.blockchain.last_block().await {
         Ok(latest_block) => {
-            match Into::<U256>::into(timestamp.clone()).checked_sub(latest_block.header.timestamp) {
+            let latest_block_header = latest_block.header();
+            match Into::<U256>::into(timestamp.clone()).checked_sub(latest_block_header.timestamp) {
                 Some(increment) => {
                     if increment == U256::ZERO && !node_data.allow_blocks_with_same_timestamp {
                         error_response_data(0, &format!("Timestamp {timestamp:?} is equal to the previous block's timestamp. Enable the 'allowBlocksWithSameTimestamp' option to allow this"))
@@ -370,7 +371,7 @@ async fn handle_evm_set_next_block_timestamp(
                     -32000,
                     &format!(
                         "Timestamp {:?} is lower than the previous block's timestamp {}",
-                        timestamp, latest_block.header.timestamp
+                        timestamp, latest_block_header.timestamp
                     ),
                 ),
             }
@@ -530,23 +531,17 @@ async fn handle_hardhat_mine(
 
     let mut node_data = state.node.lock_data().await;
 
-    let mut mine_block_results: Vec<MineBlockResult> = Vec::new();
+    let mut mine_block_results: Vec<MineBlockResult<BlockchainError>> = Vec::new();
 
     let interval = interval.unwrap_or(U256::from(1));
     let count = count.unwrap_or(U256::from(1));
 
     let mut i = U256::from(1);
     while i <= count {
-        let timestamp = match mine_block_results.len() {
-            0 => None,
-            _ => Some(
-                mine_block_results[mine_block_results.len() - 1]
-                    .block
-                    .header
-                    .timestamp
-                    + interval,
-            ),
-        };
+        let timestamp = mine_block_results
+            .last()
+            .map(|result| result.block.header().timestamp + interval);
+
         match node_data.mine_block(timestamp).await {
             Ok(result) => mine_block_results.push(result),
             Err(e) => {
@@ -578,15 +573,16 @@ async fn handle_interval_mine(state: Arc<AppData>) -> ResponseData<bool> {
     let mut node_data = state.node.lock_data().await;
     match node_data.mine_block(None).await {
         Ok(mine_block_result) => {
-            if mine_block_result.block.transactions.is_empty() {
+            let block_header = mine_block_result.block.header();
+            if mine_block_result.block.transactions().is_empty() {
                 log_interval_mined_block_number(
-                    mine_block_result.block.header.number,
+                    block_header.number,
                     true,
-                    mine_block_result.block.header.base_fee_per_gas,
+                    block_header.base_fee_per_gas,
                 );
             } else {
                 log_block(&mine_block_result, true);
-                log_interval_mined_block_number(mine_block_result.block.header.number, false, None);
+                log_interval_mined_block_number(block_header.number, false, None);
             }
             ResponseData::Success { result: true }
         }
@@ -1075,9 +1071,10 @@ impl Server {
         let cache_dir = config.cache_dir;
         let prevrandao_generator = RandomHashGenerator::with_seed("randomMixHashSeed");
 
+        #[allow(clippy::type_complexity)]
         let (state, blockchain, fork_block_number): (
             Box<dyn SyncState<StateError>>,
-            Box<dyn SyncBlockchain<BlockchainError>>,
+            Box<dyn SyncBlockchain<BlockchainError, StateError>>,
             _,
         ) = if let Some(config) = config.rpc_hardhat_network_config.forking {
             let runtime = Arc::new(

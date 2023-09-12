@@ -11,7 +11,7 @@ use rethnet_evm::{
     blockchain::{BlockchainError, SyncBlockchain},
     state::{StateError, SyncState},
     trace::TraceCollector,
-    BlockTransactionError, CfgEnv, InvalidTransaction, SyncInspector,
+    BlockTransactionError, CfgEnv, InvalidTransaction, SyncBlock, SyncInspector,
 };
 
 use crate::{
@@ -28,7 +28,7 @@ use super::{Block, BlockHeader, BlockOptions};
 #[napi]
 pub struct BlockBuilder {
     builder: Arc<RwLock<Option<rethnet_evm::BlockBuilder>>>,
-    blockchain: Arc<RwLock<dyn SyncBlockchain<BlockchainError>>>,
+    blockchain: Arc<RwLock<dyn SyncBlockchain<BlockchainError, StateError>>>,
     state: Arc<RwLock<dyn SyncState<StateError>>>,
     runtime: runtime::Handle,
 }
@@ -182,7 +182,10 @@ impl BlockBuilder {
                 .finalize(&mut *self.state.write().await, rewards, timestamp)
                 .map_or_else(
                     |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
-                    |block| Ok(Block::from(Arc::new(block))),
+                    |block| {
+                        let block: Arc<dyn SyncBlock<Error = BlockchainError>> = Arc::new(block);
+                        Ok(Block::from(block))
+                    },
                 )
         } else {
             Err(napi::Error::new(

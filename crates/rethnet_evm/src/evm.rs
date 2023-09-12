@@ -27,7 +27,7 @@ where
 /// Creates an evm from the provided database, config, transaction, and block.
 #[cfg_attr(feature = "tracing", tracing::instrument)]
 pub fn build_evm<'b, 's, BlockchainErrorT, StateErrorT>(
-    blockchain: &'b dyn SyncBlockchain<BlockchainErrorT>,
+    blockchain: &'b dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
     state: &'s dyn SyncState<StateErrorT>,
     cfg: CfgEnv,
     transaction: TxEnv,

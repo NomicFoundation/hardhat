@@ -4,7 +4,7 @@ use std::{
 };
 
 use rethnet_eth::{
-    block::{Block, BlockOptions, DetailedBlock, Header, PartialHeader},
+    block::{BlockOptions, Header, PartialHeader},
     log::Log,
     receipt::{TransactionReceipt, TypedReceipt, TypedReceiptData},
     transaction::SignedTransaction,
@@ -25,6 +25,8 @@ use crate::{
     state::{AccountModifierFn, StateHistory, SyncState},
     PendingTransaction,
 };
+
+use super::local::LocalBlock;
 
 /// An error caused during construction of a block builder.
 #[derive(Debug, thiserror::Error)]
@@ -153,7 +155,7 @@ impl BlockBuilder {
     /// Adds a pending transaction to
     pub fn add_transaction<BlockchainErrorT, StateErrorT>(
         &mut self,
-        blockchain: &mut dyn SyncBlockchain<BlockchainErrorT>,
+        blockchain: &mut dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
         state: &mut dyn SyncState<StateErrorT>,
         transaction: PendingTransaction,
         inspector: Option<&mut dyn SyncInspector<BlockchainErrorT, StateErrorT>>,
@@ -271,7 +273,7 @@ impl BlockBuilder {
         state: &mut StateT,
         rewards: Vec<(Address, U256)>,
         timestamp: Option<U256>,
-    ) -> Result<DetailedBlock, StateErrorT>
+    ) -> Result<LocalBlock, StateErrorT>
     where
         StateT: SyncState<StateErrorT> + ?Sized,
         StateErrorT: Debug + Send,
@@ -337,12 +339,13 @@ impl BlockBuilder {
         };
 
         // TODO: handle ommers
-        let block = Block::new(self.header, self.transactions, Vec::new(), withdrawals);
-
-        Ok(DetailedBlock::with_partial_receipts(
-            block,
+        Ok(LocalBlock::new(
+            self.header,
+            self.transactions,
             self.callers,
             self.receipts,
+            Vec::new(),
+            withdrawals,
         ))
     }
 
