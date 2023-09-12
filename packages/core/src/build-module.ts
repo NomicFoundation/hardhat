@@ -25,6 +25,12 @@ export function buildModule<
     throw new IgnitionError(`\`moduleId\` must be a string`);
   }
 
+  if (!/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(moduleId)) {
+    throw new IgnitionError(
+      `The moduleId "${moduleId}" contains banned characters, ids can only contain alphanumerics, underscores or dashes`
+    );
+  }
+
   if (typeof moduleDefintionFunction !== "function") {
     throw new IgnitionError(`\`moduleDefintionFunction\` must be a function`);
   }

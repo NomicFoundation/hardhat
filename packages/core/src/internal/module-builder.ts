@@ -72,6 +72,17 @@ const STUB_MODULE_RESULTS = {
 };
 
 /**
+ * The regex that solidity uses to validate identifiers.
+ */
+const solidityIdentifierRegex = /^[a-zA-Z$_][a-zA-Z0-9$_]*$/;
+
+/**
+ * A regex capturing the solidity identifier rule but extended to support
+ * the `myfun(uint256,bool)` parameter syntax
+ */
+const functionNameRegex = /^[a-zA-Z$_][a-zA-Z0-9$_,()]*$/;
+
+/**
  * This class is in charge of turning `IgnitionModuleDefinition`s into
  * `IgnitionModule`s.
  *
@@ -179,6 +190,7 @@ class IgnitionModuleBuilderImplementation<
 
     /* validation start */
     this._assertValidId(options.id, this.contract);
+    this._assertValidContractName(contractName, this.contract);
     this._assertUniqueContractId(futureId);
     this._assertValidLibraries(options.libraries, this.contract);
     this._assertValidValue(options.value, this.contract);
@@ -225,6 +237,7 @@ class IgnitionModuleBuilderImplementation<
 
     /* validation start */
     this._assertValidId(options.id, this.contractFromArtifact);
+    this._assertValidContractName(contractName, this.contractFromArtifact);
     this._assertUniqueArtifactContractId(futureId);
     this._assertValidLibraries(options.libraries, this.contractFromArtifact);
     this._assertValidValue(options.value, this.contractFromArtifact);
@@ -272,6 +285,7 @@ class IgnitionModuleBuilderImplementation<
 
     /* validation start */
     this._assertValidId(options.id, this.library);
+    this._assertValidContractName(libraryName, this.library);
     this._assertUniqueLibraryId(futureId);
     this._assertValidLibraries(options.libraries, this.library);
     this._assertValidFrom(options.from, this.library);
@@ -309,6 +323,7 @@ class IgnitionModuleBuilderImplementation<
 
     /* validation start */
     this._assertValidId(options.id, this.libraryFromArtifact);
+    this._assertValidContractName(libraryName, this.libraryFromArtifact);
     this._assertUniqueArtifactLibraryId(futureId);
     this._assertValidLibraries(options.libraries, this.libraryFromArtifact);
     this._assertValidFrom(options.from, this.libraryFromArtifact);
@@ -349,6 +364,7 @@ class IgnitionModuleBuilderImplementation<
 
     /* validation start */
     this._assertValidId(options.id, this.call);
+    this._assertValidFunctionName(functionName, this.call);
     this._assertUniqueCallId(futureId);
     this._assertValidValue(options.value, this.call);
     this._assertValidFrom(options.from, this.call);
@@ -392,6 +408,7 @@ class IgnitionModuleBuilderImplementation<
 
     /* validation start */
     this._assertValidId(options.id, this.staticCall);
+    this._assertValidFunctionName(functionName, this.staticCall);
     this._assertUniqueStaticCallId(futureId);
     this._assertValidFrom(options.from, this.staticCall);
     this._assertValidCallableContract(contractFuture, this.staticCall);
@@ -436,6 +453,7 @@ class IgnitionModuleBuilderImplementation<
 
     /* validation start */
     this._assertValidId(options.id, this.contractAt);
+    this._assertValidContractName(contractName, this.contractAt);
     this._assertUniqueContractAtId(futureId);
     this._assertValidAddress(address, this.contractAt);
     /* validation end */
@@ -474,6 +492,7 @@ class IgnitionModuleBuilderImplementation<
 
     /* validation start */
     this._assertValidId(options.id, this.contractAtFromArtifact);
+    this._assertValidContractName(contractName, this.contractAt);
     this._assertUniqueContractAtFromArtifactId(futureId);
     this._assertValidAddress(address, this.contractAtFromArtifact);
     this._assertValidArtifact(artifact, this.contractAtFromArtifact);
@@ -538,6 +557,8 @@ class IgnitionModuleBuilderImplementation<
 
     /* validation start */
     this._assertValidId(options.id, this.readEventArgument);
+    this._assertValidEventName(eventName, this.readEventArgument);
+    this._assertValidArgumentName(argumentName, this.readEventArgument);
     this._assertUniqueReadEventArgumentId(futureId);
     this._assertValidNameOrIndex(nameOrIndex, this.readEventArgument);
     /* validation end */
@@ -573,6 +594,8 @@ class IgnitionModuleBuilderImplementation<
     const val = value ?? BigInt(0);
 
     /* validation start */
+    this._assertValidId(id, this.send);
+    this._assertValidId(options.id, this.send);
     this._assertUniqueSendId(futureId);
     this._assertValidAddress(to, this.send);
     this._assertValidValue(val, this.send);
@@ -650,6 +673,62 @@ class IgnitionModuleBuilderImplementation<
 
     this._throwErrorWithStackTrace(
       `The id "${id}" contains banned characters, ids can only contain alphanumerics, underscores or dashes`,
+      func
+    );
+  }
+
+  private _assertValidContractName(
+    contractName: string,
+    func: (...[]: any[]) => any
+  ) {
+    if (solidityIdentifierRegex.test(contractName)) {
+      return;
+    }
+
+    this._throwErrorWithStackTrace(
+      `The contract "${contractName}" contains banned characters, contract names can only contain alphanumerics, underscores or dollar signs`,
+      func
+    );
+  }
+
+  private _assertValidEventName(
+    eventName: string,
+    func: (...[]: any[]) => any
+  ) {
+    if (solidityIdentifierRegex.test(eventName)) {
+      return;
+    }
+
+    this._throwErrorWithStackTrace(
+      `The event "${eventName}" contains banned characters, event names can only contain alphanumerics, underscores or dollar signs`,
+      func
+    );
+  }
+
+  private _assertValidArgumentName(
+    argName: string,
+    func: (...[]: any[]) => any
+  ) {
+    if (solidityIdentifierRegex.test(argName)) {
+      return;
+    }
+
+    this._throwErrorWithStackTrace(
+      `The argument "${argName}" contains banned characters, argument names can only contain alphanumerics, underscores or dollar signs`,
+      func
+    );
+  }
+
+  private _assertValidFunctionName(
+    functionName: string,
+    func: (...[]: any[]) => any
+  ) {
+    if (functionNameRegex.test(functionName)) {
+      return;
+    }
+
+    this._throwErrorWithStackTrace(
+      `The function name "${functionName}" contains banned characters, contract names can only contain alphanumerics, underscores or dollar signs`,
       func
     );
   }

@@ -15,7 +15,7 @@ import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
 describe("send", () => {
   it("should be able to setup a send", () => {
     const moduleWithASingleContract = buildModule("Module1", (m) => {
-      m.send("test send", "0xtest", 0n, "test-data");
+      m.send("test_send", "0xtest", 0n, "test-data");
 
       return {};
     });
@@ -33,7 +33,7 @@ describe("send", () => {
     assert.equal(moduleWithASingleContract.submodules.size, 0);
 
     const sendFuture = [...moduleWithASingleContract.futures].find(
-      ({ id }) => id === "Module1:test send"
+      ({ id }) => id === "Module1:test_send"
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -46,7 +46,7 @@ describe("send", () => {
   it("should be able to pass one contract as the 'to' arg for a send", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
       const example = m.contract("Example");
-      m.send("test send", example, 0n, "");
+      m.send("test_send", example, 0n, "");
 
       return { example };
     });
@@ -58,7 +58,7 @@ describe("send", () => {
     );
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:test send"
+      ({ id }) => id === "Module1:test_send"
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -72,7 +72,7 @@ describe("send", () => {
   it("should be able to pass one contract as an after dependency of a send", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
       const example = m.contract("Example");
-      m.send("test send", "0xtest", 0n, "", { after: [example] });
+      m.send("test_send", "0xtest", 0n, "", { after: [example] });
 
       return { example };
     });
@@ -84,7 +84,7 @@ describe("send", () => {
     );
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:test send"
+      ({ id }) => id === "Module1:test_send"
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -97,7 +97,7 @@ describe("send", () => {
 
   it("should be able to pass a value", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
-      m.send("test send", "0xtest", 42n, "");
+      m.send("test_send", "0xtest", 42n, "");
 
       return {};
     });
@@ -105,7 +105,7 @@ describe("send", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:test send"
+      ({ id }) => id === "Module1:test_send"
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -117,7 +117,7 @@ describe("send", () => {
 
   it("Should be able to pass a ModuleParameterRuntimeValue as a value option", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
-      m.send("test send", "0xtest", m.getParameter("value"), "");
+      m.send("test_send", "0xtest", m.getParameter("value"), "");
 
       return {};
     });
@@ -125,7 +125,7 @@ describe("send", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:test send"
+      ({ id }) => id === "Module1:test_send"
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -140,7 +140,7 @@ describe("send", () => {
 
   it("should be able to pass a string as from option", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
-      m.send("test send", "0xtest", 0n, "", { from: "0x2" });
+      m.send("test_send", "0xtest", 0n, "", { from: "0x2" });
 
       return {};
     });
@@ -148,7 +148,7 @@ describe("send", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:test send"
+      ({ id }) => id === "Module1:test_send"
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -160,7 +160,7 @@ describe("send", () => {
 
   it("Should be able to pass an AccountRuntimeValue as from option", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
-      m.send("test send", "0xtest", 0n, "", { from: m.getAccount(1) });
+      m.send("test_send", "0xtest", 0n, "", { from: m.getAccount(1) });
 
       return {};
     });
@@ -168,7 +168,7 @@ describe("send", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:test send"
+      ({ id }) => id === "Module1:test_send"
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -210,8 +210,8 @@ describe("send", () => {
   describe("passing id", () => {
     it("should be able to call the same function twice by passing an id", () => {
       const moduleWithSameCallTwice = buildModule("Module1", (m) => {
-        m.send("test send", "0xtest", 0n, "test", { id: "first" });
-        m.send("test send", "0xtest", 0n, "test", { id: "second" });
+        m.send("test_send", "0xtest", 0n, "test", { id: "first" });
+        m.send("test_send", "0xtest", 0n, "test", { id: "second" });
 
         return {};
       });
@@ -234,12 +234,12 @@ describe("send", () => {
       assert.throws(
         () =>
           buildModule("Module1", (m) => {
-            m.send("test send", "0xtest", 0n, "test");
-            m.send("test send", "0xtest", 0n, "test");
+            m.send("test_send", "0xtest", 0n, "test");
+            m.send("test_send", "0xtest", 0n, "test");
 
             return {};
           }),
-        /Duplicated id Module1:test send found in module Module1/
+        /Duplicated id Module1:test_send found in module Module1/
       );
     });
 
@@ -247,8 +247,8 @@ describe("send", () => {
       assert.throws(
         () =>
           buildModule("Module1", (m) => {
-            m.send("test send", "0xtest", 0n, "test", { id: "first" });
-            m.send("test send", "0xtest", 0n, "test", { id: "first" });
+            m.send("test_send", "0xtest", 0n, "test", { id: "first" });
+            m.send("test_send", "0xtest", 0n, "test", { id: "first" });
             return {};
           }),
         /Duplicated id Module1:first found in module Module1/
