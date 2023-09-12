@@ -434,6 +434,20 @@ describe("static call", () => {
           /Invalid contract given/
         );
       });
+
+      it("should not validate a library", () => {
+        assert.throws(
+          () =>
+            buildModule("Module1", (m) => {
+              const another = m.library("Another");
+
+              m.staticCall(another as any, "test");
+
+              return { another };
+            }),
+          /Invalid contract given/
+        );
+      });
     });
 
     describe("stage one", () => {

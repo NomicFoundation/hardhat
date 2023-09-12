@@ -6,6 +6,7 @@ import {
   ArtifactContractAtFuture,
   ArtifactContractDeploymentFuture,
   ArtifactLibraryDeploymentFuture,
+  CallableContractFuture,
   ContractFuture,
   Future,
   IgnitionModule,
@@ -177,14 +178,14 @@ export interface IgnitionModuleBuilder {
   ): ArtifactLibraryDeploymentFuture;
 
   call<ContractNameT extends string, FunctionNameT extends string>(
-    contractFuture: ContractFuture<ContractNameT>,
+    contractFuture: CallableContractFuture<ContractNameT>,
     functionName: FunctionNameT,
     args?: ArgumentType[],
     options?: CallOptions
   ): NamedContractCallFuture<ContractNameT, FunctionNameT>;
 
   staticCall<ContractNameT extends string, FunctionNameT extends string>(
-    contractFuture: ContractFuture<ContractNameT>,
+    contractFuture: CallableContractFuture<ContractNameT>,
     functionName: FunctionNameT,
     args?: ArgumentType[],
     options?: StaticCallOptions
