@@ -2,6 +2,7 @@ use std::ops::Deref;
 
 use napi::{bindgen_prelude::Either3, Env};
 use napi_derive::napi;
+use rethnet_evm::blockchain::BlockchainError;
 
 use crate::{
     block::Block,
@@ -11,19 +12,19 @@ use crate::{
 
 #[napi]
 pub struct MineBlockResult {
-    inner: rethnet_evm::MineBlockResult,
+    inner: rethnet_evm::MineBlockResult<BlockchainError>,
 }
 
 impl Deref for MineBlockResult {
-    type Target = rethnet_evm::MineBlockResult;
+    type Target = rethnet_evm::MineBlockResult<BlockchainError>;
 
     fn deref(&self) -> &Self::Target {
         &self.inner
     }
 }
 
-impl From<rethnet_evm::MineBlockResult> for MineBlockResult {
-    fn from(value: rethnet_evm::MineBlockResult) -> Self {
+impl From<rethnet_evm::MineBlockResult<BlockchainError>> for MineBlockResult {
+    fn from(value: rethnet_evm::MineBlockResult<BlockchainError>) -> Self {
         Self { inner: value }
     }
 }
