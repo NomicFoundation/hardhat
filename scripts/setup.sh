@@ -6,9 +6,6 @@ rust_version=$(<rust-toolchain)
 # rustup
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain $rust_version
 
-# cargo hack CLI
-cargo install cargo-hack
-
 sudo apt update
 
 # TODO: nodejs, npm, yarn

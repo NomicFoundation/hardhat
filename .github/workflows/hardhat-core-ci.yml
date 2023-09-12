@@ -53,16 +53,19 @@ jobs:
           profile: minimal
           override: true
 
-      # Install pre-built binaries for cargo hack
-      - uses: taiki-e/install-action@cargo-hack
-
       - uses: Swatinem/rust-cache@v2
 
-      - name: Cargo hack
+      - name: Cargo check
         uses: actions-rs/cargo@v1
         with:
-          command: hack
-          args: check --feature-powerset --no-dev-deps
+          command: check
+          args: --workspace --all-features --all-targets --profile bench
+
+      - name: Cargo check without all features
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --workspace --all-targets --no-default-features --profile bench
 
   test-core:
     name: Test core (${{ matrix.os }}, Node ${{ matrix.node }}, ${{ matrix.vm }})

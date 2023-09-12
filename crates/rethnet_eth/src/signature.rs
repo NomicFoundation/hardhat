@@ -11,6 +11,7 @@ use secp256k1::{
     PublicKey, Secp256k1, SecretKey, SignOnly, ThirtyTwoByteHash,
 };
 use sha3::{Digest, Keccak256};
+use thiserror::Error;
 
 use crate::{utils::hash_message, Address, B256, U256};
 
@@ -51,30 +52,23 @@ fn private_to_public_key(
 }
 
 /// An error involving a signature.
-#[derive(Debug)]
-#[cfg_attr(feature = "std", derive(thiserror::Error))]
+#[derive(Debug, Error)]
 pub enum SignatureError {
     /// Invalid length, secp256k1 signatures are 65 bytes
-    #[cfg_attr(
-        feature = "std",
-        error("invalid signature length, got {0}, expected 65")
-    )]
+    #[error("invalid signature length, got {0}, expected 65")]
     InvalidLength(usize),
     /// When parsing a signature from string to hex
-    #[cfg_attr(feature = "std", error(transparent))]
-    DecodingError(#[cfg_attr(feature = "std", from)] hex::FromHexError),
+    #[error(transparent)]
+    DecodingError(#[from] hex::FromHexError),
     /// Thrown when signature verification failed (i.e. when the address that
     /// produced the signature did not match the expected address)
-    #[cfg_attr(
-        feature = "std",
-        error("Signature verification failed. Expected {0}, got {1}")
-    )]
+    #[error("Signature verification failed. Expected {0}, got {1}")]
     VerificationError(Address, Address),
     /// Internal error during signature recovery
-    #[cfg_attr(feature = "std", error(transparent))]
-    K256Error(#[cfg_attr(feature = "std", from)] secp256k1::Error),
+    #[error(transparent)]
+    K256Error(#[from] secp256k1::Error),
     /// Error in recovering public key from signature
-    #[cfg_attr(feature = "std", error("Public key recovery error"))]
+    #[error("Public key recovery error")]
     RecoveryError,
 }
 
@@ -192,9 +186,7 @@ impl Signature {
         let (recoverable_sig, _recovery_id) = self.as_signature()?;
 
         let context = Secp256k1::verification_only();
-        let public_key = context
-            .recover_ecdsa(&message_hash.into(), &recoverable_sig)
-            .map_err(SignatureError::K256Error)?;
+        let public_key = context.recover_ecdsa(&message_hash.into(), &recoverable_sig)?;
 
         Ok(public_key_to_address(public_key))
     }
@@ -210,8 +202,7 @@ impl Signature {
             bytes[..32].copy_from_slice(&r_bytes);
             bytes[32..64].copy_from_slice(&s_bytes);
 
-            RecoverableSignature::from_compact(&bytes, recovery_id)
-                .map_err(SignatureError::K256Error)?
+            RecoverableSignature::from_compact(&bytes, recovery_id)?
         };
 
         Ok((signature, recovery_id))
@@ -220,7 +211,7 @@ impl Signature {
     /// Retrieve the recovery ID.
     pub fn recovery_id(&self) -> Result<RecoveryId, SignatureError> {
         let standard_v = normalize_recovery_id(self.v);
-        RecoveryId::from_i32(standard_v).map_err(SignatureError::K256Error)
+        Ok(RecoveryId::from_i32(standard_v)?)
     }
 
     /// Copies and serializes `self` into a new `Vec` with the recovery id included
@@ -292,13 +283,12 @@ impl<'a> TryFrom<&'a [u8]> for Signature {
     }
 }
 
-#[cfg(feature = "std")]
 impl FromStr for Signature {
     type Err = SignatureError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let s = s.strip_prefix("0x").unwrap_or(s);
-        let bytes = hex::decode(s).map_err(SignatureError::DecodingError)?;
+        let bytes = hex::decode(s)?;
         Signature::try_from(&bytes[..])
     }
 }
