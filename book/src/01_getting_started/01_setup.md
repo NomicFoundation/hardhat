@@ -25,5 +25,6 @@ If you're using the [Homebrew](https://brew.sh/) package manager, run `brew bund
 If you would like to set up the environment manually, you will need to install the following dependencies:
 
 - Install Rust using [rustup](https://www.rust-lang.org/tools/install)
+- Install `cargo hack`: `cargo install cargo-hack`
 - [NodeJS 18](https://nodejs.org/en)
 - [Yarn](https://yarnpkg.com/getting-started/install)
