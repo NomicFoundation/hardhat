@@ -430,7 +430,7 @@ describe("stored deployment serializer", () => {
         const contract1 = m.contract("Contract1");
         const emitter = m.contract("Emitter");
 
-        m.readEventArgument(contract1, "EventName", "argumentName", {
+        m.readEventArgument(contract1, "EventName", "nameOrIndex", {
           id: "customId",
           emitter,
           eventIndex: 123,

@@ -280,7 +280,7 @@ export interface ReadEventArgumentFuture {
     | SendDataFuture
     | NamedContractCallFuture<string, string>;
   eventName: string;
-  argumentName: string;
+  nameOrIndex: string | number;
   emitter: ContractFuture<string>;
   eventIndex: number;
 }

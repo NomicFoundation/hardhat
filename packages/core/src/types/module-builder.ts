@@ -217,7 +217,7 @@ export interface IgnitionModuleBuilder {
       | SendDataFuture
       | NamedContractCallFuture<string, string>,
     eventName: string,
-    argumentName: string,
+    nameOrIndex: string | number,
     options?: ReadEventArgumentOptions
   ): ReadEventArgumentFuture;
 

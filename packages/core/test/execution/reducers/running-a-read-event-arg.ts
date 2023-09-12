@@ -29,7 +29,7 @@ describe("DeploymentStateReducer", () => {
         dependencies: [],
         artifactId: "ReadEventArg1",
         eventName: "event1",
-        argumentName: "arg1",
+        nameOrIndex: "arg1",
         txToReadFrom: "0x1234",
         emitterAddress: exampleAddress,
         eventIndex: 1,
@@ -70,7 +70,7 @@ describe("DeploymentStateReducer", () => {
       it("should record the details of the event being looked up", () => {
         assert.equal(updatedReadEventExState.artifactId, "ReadEventArg1");
         assert.equal(updatedReadEventExState.eventName, "event1");
-        assert.equal(updatedReadEventExState.argumentName, "arg1");
+        assert.equal(updatedReadEventExState.nameOrIndex, "arg1");
         assert.equal(updatedReadEventExState.txToReadFrom, "0x1234");
         assert.equal(updatedReadEventExState.emitterAddress, exampleAddress);
         assert.equal(updatedReadEventExState.eventIndex, 1);

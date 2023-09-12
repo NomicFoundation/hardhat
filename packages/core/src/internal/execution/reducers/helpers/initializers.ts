@@ -94,7 +94,7 @@ export function initialiseReadEventArgumentExecutionStateFrom(
       dependencies: new Set<string>(action.dependencies),
       artifactId: action.artifactId,
       eventName: action.eventName,
-      argumentName: action.argumentName,
+      nameOrIndex: action.nameOrIndex,
       txToReadFrom: action.txToReadFrom,
       emitterAddress: action.emitterAddress,
       eventIndex: action.eventIndex,

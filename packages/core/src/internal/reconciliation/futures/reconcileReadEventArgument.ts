@@ -48,8 +48,8 @@ export function reconcileReadEventArgument(
   result = compare(
     future,
     "Argument name",
-    executionState.argumentName,
-    future.argumentName
+    executionState.nameOrIndex,
+    future.nameOrIndex
   );
   if (result !== undefined) {
     return result;

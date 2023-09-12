@@ -211,7 +211,7 @@ export class ReadEventArgumentFutureImplementation
       | SendDataFuture
       | NamedContractCallFuture<string, string>,
     public readonly eventName: string,
-    public readonly argumentName: string,
+    public readonly nameOrIndex: string | number,
     public readonly emitter: ContractFuture<string>,
     public readonly eventIndex: number
   ) {

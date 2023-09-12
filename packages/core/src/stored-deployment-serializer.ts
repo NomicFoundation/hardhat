@@ -298,7 +298,7 @@ export class StoredDeploymentSerializer {
             ),
             emitter: this._convertFutureToFutureToken(future.emitter),
             eventName: future.eventName,
-            argumentName: future.argumentName,
+            nameOrIndex: future.nameOrIndex,
             eventIndex: future.eventIndex,
           };
         return serializedReadEventArgumentFuture;
@@ -795,7 +795,7 @@ export class StoredDeploymentDeserializer {
             | ArtifactContractDeploymentFuture
             | NamedContractCallFuture<string, string>,
           serializedFuture.eventName,
-          serializedFuture.argumentName,
+          serializedFuture.nameOrIndex,
           this._lookup(
             contractFuturesLookup,
             serializedFuture.emitter.futureId

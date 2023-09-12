@@ -496,7 +496,7 @@ class IgnitionModuleBuilderImplementation<
       | SendDataFuture
       | NamedContractCallFuture<string, string>,
     eventName: string,
-    argumentName: string,
+    nameOrIndex: string | number,
     options: ReadEventArgumentOptions = {}
   ): ReadEventArgumentFuture {
     const eventIndex = options.eventIndex ?? 0;
@@ -521,7 +521,7 @@ class IgnitionModuleBuilderImplementation<
 
     const id =
       options.id ??
-      `${emitter.contractName}#${eventName}#${argumentName}#${eventIndex}`;
+      `${emitter.contractName}#${eventName}#${nameOrIndex}#${eventIndex}`;
 
     const futureId = `${this._module.id}:${id}`;
 
@@ -534,7 +534,7 @@ class IgnitionModuleBuilderImplementation<
       this._module,
       futureToReadFrom,
       eventName,
-      argumentName,
+      nameOrIndex,
       emitter,
       eventIndex
     );

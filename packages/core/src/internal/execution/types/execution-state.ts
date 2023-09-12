@@ -170,7 +170,7 @@ export interface ReadEventArgumentExecutionState
   > {
   artifactId: string;
   eventName: string;
-  argumentName: string;
+  nameOrIndex: string | number;
   txToReadFrom: string;
   emitterAddress: string;
   eventIndex: number;

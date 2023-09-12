@@ -896,7 +896,7 @@ describe("buildInitializeMessageFor", () => {
         dependencies: [],
         artifactId: "MyModule:AnotherContract",
         eventName: "event1",
-        argumentName: "arg1",
+        nameOrIndex: "arg1",
         txToReadFrom: "0x1234",
         emitterAddress: differentAddress,
         eventIndex: 0,

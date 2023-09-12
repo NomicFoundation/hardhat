@@ -188,7 +188,7 @@ export interface SerializedReadEventArgumentFuture
   type: FutureType.READ_EVENT_ARGUMENT;
   futureToReadFrom: FutureToken;
   eventName: string;
-  argumentName: string;
+  nameOrIndex: string | number;
   emitter: FutureToken;
   eventIndex: number;
 }

@@ -185,7 +185,7 @@ export async function resolveReadEventArgumentResult(
   emitter: ContractFuture<string>,
   eventName: string,
   eventIndex: number,
-  argumentName: string,
+  nameOrIndex: string | number,
   deploymentState: DeploymentState,
   deploymentLoader: DeploymentLoader
 ): Promise<{
@@ -211,7 +211,7 @@ export async function resolveReadEventArgumentResult(
     emitterAddress,
     eventName,
     eventIndex,
-    argumentName
+    nameOrIndex
   );
 
   return {

@@ -31,7 +31,7 @@ describe("Reconciliation - read event argument", () => {
     dependencies: new Set<string>(),
     artifactId: "./artifact.json",
     eventName: "event1",
-    argumentName: "argument1",
+    nameOrIndex: "argument1",
     eventIndex: 0,
     emitterAddress: exampleAddress,
     txToReadFrom: txId,
@@ -88,7 +88,7 @@ describe("Reconciliation - read event argument", () => {
           id: "Submodule:Contract#EventName1#arg1#0",
           status: ExecutionStatus.STARTED,
           eventName: "EventName1",
-          argumentName: "arg1",
+          nameOrIndex: "arg1",
         }
       )
     );
@@ -166,7 +166,7 @@ describe("Reconciliation - read event argument", () => {
           ...exampleReadArgState,
           id: "Module:ReadEvent",
           status: ExecutionStatus.STARTED,
-          argumentName: "argUnchanged",
+          nameOrIndex: "argUnchanged",
         }
       )
     );
@@ -319,7 +319,7 @@ describe("Reconciliation - read event argument", () => {
           status: ExecutionStatus.SUCCESS,
           dependencies: new Set(["Module:Contract1"]),
           eventName: "event1",
-          argumentName: "argument1",
+          nameOrIndex: "argument1",
           emitterAddress: exampleAddress,
           result: "first",
         },
@@ -329,7 +329,7 @@ describe("Reconciliation - read event argument", () => {
           status: ExecutionStatus.SUCCESS,
           dependencies: new Set(["Module:Contract1"]),
           eventName: "event2",
-          argumentName: "argument2",
+          nameOrIndex: "argument2",
           emitterAddress: exampleAddress,
           result: "second",
         },
