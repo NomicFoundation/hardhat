@@ -2,7 +2,10 @@ import { IgnitionValidationError } from "../../../errors";
 import { isArtifactType } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { NamedStaticCallFuture } from "../../../types/module";
-import { validateArtifactFunction } from "../../execution/abi";
+import {
+  validateArtifactFunction,
+  validateFunctionArgumentParamType,
+} from "../../execution/abi";
 
 export async function validateNamedStaticCall(
   future: NamedStaticCallFuture<string, string>,
@@ -25,5 +28,12 @@ export async function validateNamedStaticCall(
     future.functionName,
     future.args,
     true
+  );
+
+  validateFunctionArgumentParamType(
+    future.contract.contractName,
+    future.functionName,
+    artifact,
+    future.nameOrIndex
   );
 }
