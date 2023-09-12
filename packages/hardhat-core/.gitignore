@@ -1,3 +1,6 @@
+# This test folder has to be commited
+!test/internal/hardhat-network/provider/modules/debug
+
 # node modules
 /node_modules
 

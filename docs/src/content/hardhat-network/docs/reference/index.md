@@ -255,9 +255,18 @@ To customise it, take a look at [the configuration section](/config/index.md#har
 
 #### `debug_traceCall`
 
-Get debug traces for the execution of an eth_call within the context of a specific block's execution. See the [Geth's documentation](https://geth.ethereum.org/docs/interacting-with-geth/rpc/ns-debug) for more info.
+Traces the execution of an `eth_call` within the context of a specific block's execution. See the [Geth's documentation](https://geth.ethereum.org/docs/interacting-with-geth/rpc/ns-debug#debugtracecall) for more info.
 
-Example:
+Arguments:
+
+- transaction object
+- blockTag: optional, default values is "latest"
+- traceConfig: optional object with the following properties:
+  - disableMemory: optional boolean, default value is false
+  - disableStack: optional boolean, default value is false
+  - disableStorage: optional boolean, default value is false
+
+Example without traceConfig:
 
 ```js
 const result = await network.provider.send("debug_traceCall", [
@@ -270,7 +279,7 @@ const result = await network.provider.send("debug_traceCall", [
 ]);
 ```
 
-You can also selectively disable some properties in the list of steps:
+Example with traceConfig:
 
 ```js
 const trace = await network.provider.send("debug_traceCall", [

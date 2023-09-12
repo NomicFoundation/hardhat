@@ -48,6 +48,9 @@ export class DebugModule extends Base {
   private _traceCallParams(
     params: any[]
   ): [RpcCallRequest, RpcNewBlockTag, RpcDebugTracingConfig] {
+    // Default value for the blockTag is "latest"
+    params[1] = params[1] !== undefined ? params[1] : "latest";
+
     const validatedParams = validateParams(
       params,
       rpcCallRequest,

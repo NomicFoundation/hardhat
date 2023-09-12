@@ -53,6 +53,20 @@ describe("Debug module", function () {
           assertEqualTraces(trace, contractAGetMessageTrace);
         });
 
+        it("should get the correct trace when calling a function from contract A and the blockTag is not defined (default value = latest)", async function () {
+          const trace = await this.provider.send("debug_traceCall", [
+            {
+              from: deployerAddress,
+              to: contractAAddress,
+              data: DEBUG_TRACE_CALL_CONTRACT_A.selectors.getMessage,
+              gas: BASE_GAS_QUANTITY,
+            },
+            // blockTag not defined, it should automatically default to "latest"
+          ]);
+
+          assertEqualTraces(trace, contractAGetMessageTrace);
+        });
+
         it("should get the correct trace when calling a function from contract A with  a specific rpcDebugTracingConfig", async function () {
           const trace = await this.provider.send("debug_traceCall", [
             {
