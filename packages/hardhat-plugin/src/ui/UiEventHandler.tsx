@@ -339,7 +339,7 @@ export class UiEventHandler implements ExecutionEventListener {
     };
   }
 
-  public unmountCli(): Promise<void> {
+  public unmountCli(): void {
     if (
       this._renderState.unmount === null ||
       this._renderState.waitUntilExit === null ||
@@ -350,8 +350,6 @@ export class UiEventHandler implements ExecutionEventListener {
 
     this._renderState.clear();
     this._renderState.unmount();
-
-    return this._renderState.waitUntilExit();
   }
 
   private _renderToCli(): void {

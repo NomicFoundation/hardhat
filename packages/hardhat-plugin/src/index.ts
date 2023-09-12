@@ -140,16 +140,23 @@ task("deploy")
         ? new VerboseEventHandler()
         : new UiEventHandler(parameters);
 
-      await deploy({
-        config: hre.config.ignition,
-        provider: hre.network.provider,
-        executionEventListener,
-        artifactResolver,
-        deploymentDir,
-        ignitionModule: userModule,
-        deploymentParameters: parameters ?? {},
-        accounts,
-      });
+      try {
+        await deploy({
+          config: hre.config.ignition,
+          provider: hre.network.provider,
+          executionEventListener,
+          artifactResolver,
+          deploymentDir,
+          ignitionModule: userModule,
+          deploymentParameters: parameters ?? {},
+          accounts,
+        });
+      } catch (e) {
+        if (executionEventListener instanceof UiEventHandler) {
+          executionEventListener.unmountCli();
+        }
+        throw e;
+      }
     }
   );
 
