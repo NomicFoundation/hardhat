@@ -3,7 +3,6 @@ import {
   CallExecutionResult,
   SendDataExecutionResult,
   StaticCallExecutionResult,
-  ExecutionResultType,
 } from "../../types/execution-result";
 import {
   DeploymentExecutionState,
@@ -47,19 +46,10 @@ export function createExecutionStateCompleteMessage(
   | SendDataExecutionStateCompleteMessage
   | StaticCallExecutionStateCompleteMessage {
   if (exState.type === ExecutionSateType.STATIC_CALL_EXECUTION_STATE) {
-    const newResult = result as StaticCallExecutionResult;
-    if (newResult.type === ExecutionResultType.SUCCESS) {
-      newResult.value = Array.isArray(newResult.value)
-        ? newResult.value[exState.nameOrIndex as number]
-        : typeof newResult.value === "object"
-        ? newResult.value[exState.nameOrIndex]
-        : newResult.value;
-    }
-
     return {
       type: JournalMessageType.STATIC_CALL_EXECUTION_STATE_COMPLETE,
       futureId: exState.id,
-      result: newResult,
+      result: result as StaticCallExecutionResult,
     };
   }
 

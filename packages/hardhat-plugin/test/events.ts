@@ -78,4 +78,29 @@ describe("events", () => {
 
     assert.equal(await result.sendEmitter.wasEmitted(), true);
   });
+
+  it("should be able to use the output of a readEvent with an indexed tuple result", async function () {
+    const moduleDefinition = buildModule("FooModule", (m) => {
+      const tupleContract = m.contract("TupleEmitter");
+
+      const tupleCall = m.call(tupleContract, "emitTuple");
+
+      const arg1 = m.readEventArgument(tupleCall, "TupleEvent", "arg1", {
+        id: "arg1",
+      });
+      const arg2 = m.readEventArgument(tupleCall, "TupleEvent", 1, {
+        id: "arg2",
+      });
+
+      m.call(tupleContract, "verifyArg1", [arg1], { id: "call1" });
+      m.call(tupleContract, "verifyArg2", [arg2], { id: "call2" });
+
+      return { tupleContract };
+    });
+
+    const result = await this.deploy(moduleDefinition);
+
+    assert.equal(await result.tupleContract.arg1Captured(), true);
+    assert.equal(await result.tupleContract.arg2Captured(), true);
+  });
 });

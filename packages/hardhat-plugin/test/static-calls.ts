@@ -107,6 +107,29 @@ describe("static calls", () => {
     assert.equal(await result.foo.x(), Number(1));
   });
 
+  it("should be able to use the output of a static call with an indexed tuple result", async function () {
+    const moduleDefinition = buildModule("FooModule", (m) => {
+      const tupleContract = m.contract("TupleReturn");
+
+      const arg1 = m.staticCall(tupleContract, "getTuple", [], "arg1", {
+        id: "arg1",
+      });
+      const arg2 = m.staticCall(tupleContract, "getTuple", [], "arg2", {
+        id: "arg2",
+      });
+
+      m.call(tupleContract, "verifyArg1", [arg1], { id: "call1" });
+      m.call(tupleContract, "verifyArg2", [arg2], { id: "call2" });
+
+      return { tupleContract };
+    });
+
+    const result = await this.deploy(moduleDefinition);
+
+    assert.equal(await result.tupleContract.arg1Captured(), true);
+    assert.equal(await result.tupleContract.arg2Captured(), true);
+  });
+
   it("should not be able to use the output of a non-address static call in a contract at", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {
       const account1 = m.getAccount(1);

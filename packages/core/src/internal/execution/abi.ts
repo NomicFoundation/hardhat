@@ -278,7 +278,7 @@ export function getEventArgumentFromReceipt(
   emitterAddress: string,
   eventName: string,
   eventIndex: number,
-  argument: string | number
+  nameOrIndex: string | number
 ): EvmValue {
   const emitterLogs = receipt.logs.filter((l) => l.address === emitterAddress);
 
@@ -300,11 +300,11 @@ export function getEventArgumentFromReceipt(
 
   const evmTuple = ethersResultIntoEvmTuple(ethersResult, eventFragment.inputs);
 
-  if (typeof argument === "string") {
-    return evmTuple.named[argument];
+  if (typeof nameOrIndex === "string") {
+    return evmTuple.named[nameOrIndex];
   }
 
-  return evmTuple.positional[argument];
+  return evmTuple.positional[nameOrIndex];
 }
 
 /**

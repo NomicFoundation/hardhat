@@ -31,7 +31,6 @@ import {
   StaticCallResponse,
   SuccessfulTransaction,
 } from "./types/execution-strategy";
-import { convertEvmTupleToSolidityParam } from "./utils/convert-evm-tuple-to-solidity-param";
 
 /**
  * Returns true if the given response is an onchain interaction response.
@@ -205,12 +204,16 @@ export async function* executeStaticCallRequest(
  * @returns The value that should be used as the result of the static call execution state.
  */
 export function getStaticCallExecutionStateResultValue(
-  _exState: StaticCallExecutionState,
+  exState: StaticCallExecutionState,
   lastStaticCallResult: SuccessfulEvmExecutionResult
 ): SolidityParameterType {
-  const values = convertEvmTupleToSolidityParam(lastStaticCallResult.values);
-  // TODO: We should have a way to handle other results.
-  return values[0];
+  return typeof exState.nameOrIndex === "string"
+    ? (lastStaticCallResult.values.named[
+        exState.nameOrIndex
+      ] as SolidityParameterType)
+    : (lastStaticCallResult.values.positional[
+        exState.nameOrIndex
+      ] as SolidityParameterType);
 }
 
 export * from "./abi";

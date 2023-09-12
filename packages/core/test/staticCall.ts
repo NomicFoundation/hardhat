@@ -143,6 +143,38 @@ describe("static call", () => {
     assert(callFuture.dependencies.has(staticCallFuture!));
   });
 
+  it("should be able to use a string or number to index its result", () => {
+    const moduleWithASingleContract = buildModule("Module1", (m) => {
+      const contract1 = m.contract("Contract1");
+
+      m.staticCall(contract1, "test", [], "testName");
+      m.staticCall(contract1, "test2", [], 2);
+
+      return { contract1 };
+    });
+
+    assert.isDefined(moduleWithASingleContract);
+
+    const staticCallFuture = [...moduleWithASingleContract.futures].find(
+      ({ id }) => id === "Module1:Contract1#test"
+    );
+
+    const staticCallFuture2 = [...moduleWithASingleContract.futures].find(
+      ({ id }) => id === "Module1:Contract1#test2"
+    );
+
+    if (!(staticCallFuture instanceof NamedStaticCallFutureImplementation)) {
+      assert.fail("Not a named static contract deployment");
+    }
+
+    if (!(staticCallFuture2 instanceof NamedStaticCallFutureImplementation)) {
+      assert.fail("Not a named static contract deployment");
+    }
+
+    assert.equal(staticCallFuture.nameOrIndex, "testName");
+    assert.equal(staticCallFuture2.nameOrIndex, 2);
+  });
+
   it("should be able to pass a string as from option", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
       const example = m.contract("Example");
@@ -417,6 +449,19 @@ describe("static call", () => {
               return { another };
             }),
           /Invalid type for given option "from": number/
+        );
+      });
+
+      it("should not validate a nameOrIndex that is not a number or string", () => {
+        assert.throws(
+          () =>
+            buildModule("Module1", (m) => {
+              const another = m.contract("Another", []);
+              m.staticCall(another, "test", [], {} as any);
+
+              return { another };
+            }),
+          /Invalid nameOrIndex given/
         );
       });
 

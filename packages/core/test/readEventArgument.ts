@@ -90,7 +90,7 @@ describe("Read event argument", () => {
         const call = m.call(contract, "fuc");
 
         m.readEventArgument(contract, "EventName1", "arg1");
-        m.readEventArgument(call, "EventName2", "arg2");
+        m.readEventArgument(call, "EventName2", 2);
 
         return { contract };
       });
@@ -103,7 +103,7 @@ describe("Read event argument", () => {
       assert.equal(read1.nameOrIndex, "arg1");
 
       assert.equal(read2.eventName, "EventName2");
-      assert.equal(read2.nameOrIndex, "arg2");
+      assert.equal(read2.nameOrIndex, 2);
     });
 
     it("should default the eventIndex to 0", () => {
@@ -203,6 +203,19 @@ describe("Read event argument", () => {
               return {};
             }),
           /`options.emitter` must be provided when reading an event from a SendDataFuture/
+        );
+      });
+
+      it("should not validate a nameOrIndex that is not a number or string", () => {
+        assert.throws(
+          () =>
+            buildModule("Module1", (m) => {
+              const another = m.contract("Another", []);
+              m.readEventArgument(another, "test", {} as any);
+
+              return { another };
+            }),
+          /Invalid nameOrIndex given/
         );
       });
     });
