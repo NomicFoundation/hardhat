@@ -42,16 +42,11 @@ describe("Reconciliation - artifact contract", () => {
       const supply = m.getParameter("supply", BigInt(1000));
       const safeMath = m.library("SafeMath");
 
-      const contract1 = m.contractFromArtifact(
-        "Contract1",
-        mockArtifact,
-        [{ supply }],
-        {
-          libraries: {
-            SafeMath: safeMath,
-          },
-        }
-      );
+      const contract1 = m.contract("Contract1", mockArtifact, [{ supply }], {
+        libraries: {
+          SafeMath: safeMath,
+        },
+      });
 
       return { contract1 };
     });
@@ -92,12 +87,9 @@ describe("Reconciliation - artifact contract", () => {
 
   it("should find changes to contract name unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
-      const contract1 = m.contractFromArtifact(
-        "ContractChanged",
-        mockArtifact,
-        [],
-        { id: "Example" }
-      );
+      const contract1 = m.contract("ContractChanged", mockArtifact, [], {
+        id: "Example",
+      });
 
       return { contract1 };
     });
@@ -128,7 +120,7 @@ describe("Reconciliation - artifact contract", () => {
       const supply = m.getParameter("supply", BigInt(500));
       const ticker = m.getParameter("ticker", "CodeCoin");
 
-      const contract1 = m.contractFromArtifact("Contract1", mockArtifact, [
+      const contract1 = m.contract("Contract1", mockArtifact, [
         owner,
         { nested: { supply } },
         [1, ticker, 3],
@@ -164,7 +156,7 @@ describe("Reconciliation - artifact contract", () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const safeMath = m.library("SafeMath");
 
-      const contract1 = m.contractFromArtifact("Contract1", mockArtifact, [], {
+      const contract1 = m.contract("Contract1", mockArtifact, [], {
         libraries: {
           SafeMath: safeMath,
         },
@@ -207,7 +199,7 @@ describe("Reconciliation - artifact contract", () => {
 
   it("should find changes to value unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
-      const contract1 = m.contractFromArtifact("Contract1", mockArtifact, [], {
+      const contract1 = m.contract("Contract1", mockArtifact, [], {
         id: "Example",
         value: BigInt(4),
       });
@@ -236,7 +228,7 @@ describe("Reconciliation - artifact contract", () => {
 
   it("should find changes to from unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
-      const contract1 = m.contractFromArtifact("Contract1", mockArtifact, [], {
+      const contract1 = m.contract("Contract1", mockArtifact, [], {
         id: "Example",
         from: twoAddress,
       });

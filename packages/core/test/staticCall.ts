@@ -537,7 +537,7 @@ describe("static call", () => {
         };
 
         const module = buildModule("Module1", (m) => {
-          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          const another = m.contract("Another", fakeArtifact, []);
           m.staticCall(another, "test");
 
           return { another };
@@ -576,7 +576,7 @@ describe("static call", () => {
         };
 
         const module = buildModule("Module1", (m) => {
-          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          const another = m.contract("Another", fakeArtifact, []);
           m.staticCall(another, "inc", [1, 2]);
 
           return { another };
@@ -633,7 +633,7 @@ describe("static call", () => {
         };
 
         const module = buildModule("Module1", (m) => {
-          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          const another = m.contract("Another", fakeArtifact, []);
           m.staticCall(another, "inc(bool,uint256)", [1, 2, 3]);
 
           return { another };
@@ -672,7 +672,7 @@ describe("static call", () => {
         };
 
         const module = buildModule("Module1", (m) => {
-          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          const another = m.contract("Another", fakeArtifact, []);
           m.staticCall(another, "inc", [1]);
 
           return { another };
@@ -956,7 +956,7 @@ describe("static call", () => {
         };
 
         const module = buildModule("Module1", (m) => {
-          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          const another = m.contract("Another", fakeArtifact, []);
           const account = m.getAccount(-1);
           m.staticCall(another, "inc", [1], 0, { from: account });
 
@@ -1001,7 +1001,7 @@ describe("static call", () => {
         };
 
         const module = buildModule("Module1", (m) => {
-          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          const another = m.contract("Another", fakeArtifact, []);
           const account = m.getAccount(1);
           m.staticCall(another, "inc", [1], 0, { from: account });
 

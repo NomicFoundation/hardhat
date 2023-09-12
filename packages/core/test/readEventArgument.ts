@@ -19,7 +19,7 @@ describe("Read event argument", () => {
 
       const mod = buildModule("Module1", (m) => {
         const contract = m.contract("Contract");
-        const contractFromArtifact = m.contractFromArtifact(
+        const contractFromArtifact = m.contract(
           "ContractFromArtifact",
           fakeArtifact
         );
@@ -41,7 +41,7 @@ describe("Read event argument", () => {
       ) as ReadEventArgumentFuture[];
 
       assert.equal(read1.futureToReadFrom, mod.results.contract);
-      assert.equal(read2.futureToReadFrom, mod.results.contractFromArtifact);
+      assert.equal(read2.futureToReadFrom, mod.results.contract);
       assert.equal(read3.futureToReadFrom, callFuture);
     });
 
@@ -263,7 +263,7 @@ describe("Read event argument", () => {
         };
 
         const module = buildModule("Module1", (m) => {
-          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          const another = m.contract("Another", fakeArtifact, []);
           m.readEventArgument(another, "test", "arg");
 
           return { another };

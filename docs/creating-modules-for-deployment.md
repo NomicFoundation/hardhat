@@ -92,13 +92,13 @@ const b = m.contract("B", [], {
 
 ### Deploying from an artifact
 
-To allow you to use your own mechanism for getting the contract artifact, `contractFromArtifact` supports passing an `Artifact` as the second parameter:
+To allow you to use your own mechanism for getting the contract artifact, `contract` supports passing an `Artifact` as the second parameter:
 
 ```javascript
 const artifact = hre.artifacts.readArtifactSync("Foo");
 
 const userModule = buildModule("MyModule", (m) => {
-  m.contractFromArtifact("Foo", artifact, [0]);
+  m.contract("Foo", artifact, [0]);
 });
 ```
 
@@ -107,7 +107,7 @@ const userModule = buildModule("MyModule", (m) => {
 A user might need to execute a method in a contract that wasn't deployed by Ignition. An existing contract can be leveraged by passing an address and artifact:
 
 ```tsx
-const uniswap = m.contractAtFromArtifact("UniswapRouter", "0x0...", artifact);
+const uniswap = m.contractAt("UniswapRouter", "0x0...", artifact);
 
 m.call(uniswap, "swap", [
   /*...*/

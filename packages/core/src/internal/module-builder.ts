@@ -867,7 +867,7 @@ class IgnitionModuleBuilderImplementation<
   private _assertUniqueArtifactContractId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.contractFromArtifact("MyContract", artifact, [], { id: "MyId"})\``,
+      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.contract("MyContract", artifact, [], { id: "MyId"})\``,
       this.contract
     );
   }
@@ -883,7 +883,7 @@ class IgnitionModuleBuilderImplementation<
   private _assertUniqueArtifactLibraryId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.libraryFromArtifact("MyLibrary", artifact, { id: "MyId"})\``,
+      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.library("MyLibrary", artifact, { id: "MyId"})\``,
       this.library
     );
   }
@@ -915,7 +915,7 @@ class IgnitionModuleBuilderImplementation<
   private _assertUniqueContractAtFromArtifactId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.contractAtFromArtifact("MyContract", "0x123...", { id: "MyId"})\``,
+      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.contractAt("MyContract", "0x123...", { id: "MyId"})\``,
       this.contractAt
     );
   }

@@ -41,7 +41,7 @@ describe("Reconciliation - artifact library", () => {
     const submoduleDefinition = buildModule("Submodule", (m) => {
       const safeMath = m.library("SafeMath");
 
-      const mainLib = m.libraryFromArtifact("MainLibrary", mockArtifact, {
+      const mainLib = m.library("MainLibrary", mockArtifact, {
         libraries: { SafeMath: safeMath },
       });
 
@@ -84,7 +84,7 @@ describe("Reconciliation - artifact library", () => {
 
   it("should find changes to contract name unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
-      const library1 = m.libraryFromArtifact("LibraryChanged", mockArtifact, {
+      const library1 = m.library("LibraryChanged", mockArtifact, {
         id: "Example",
       });
 
@@ -115,7 +115,7 @@ describe("Reconciliation - artifact library", () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const safeMath = m.library("SafeMath");
 
-      const mainLib = m.libraryFromArtifact("MainLibrary", mockArtifact, {
+      const mainLib = m.library("MainLibrary", mockArtifact, {
         libraries: { Changed: safeMath },
       });
 
@@ -159,7 +159,7 @@ describe("Reconciliation - artifact library", () => {
 
   it("should find changes to contract name unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
-      const library1 = m.libraryFromArtifact("Library1", mockArtifact, {
+      const library1 = m.library("Library1", mockArtifact, {
         id: "Example",
         from: twoAddress,
       });

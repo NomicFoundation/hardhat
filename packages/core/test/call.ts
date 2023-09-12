@@ -522,7 +522,7 @@ describe("call", () => {
         };
 
         const module = buildModule("Module1", (m) => {
-          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          const another = m.contract("Another", fakeArtifact, []);
           m.call(another, "test");
 
           return { another };
@@ -561,7 +561,7 @@ describe("call", () => {
         };
 
         const module = buildModule("Module1", (m) => {
-          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          const another = m.contract("Another", fakeArtifact, []);
           m.call(another, "inc", [1, 2]);
 
           return { another };
@@ -618,7 +618,7 @@ describe("call", () => {
         };
 
         const module = buildModule("Module1", (m) => {
-          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          const another = m.contract("Another", fakeArtifact, []);
           m.call(another, "inc(bool,uint256)", [1, 2, 3]);
 
           return { another };
@@ -658,7 +658,7 @@ describe("call", () => {
         const module = buildModule("Module1", (m) => {
           const p = m.getParameter("p");
 
-          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          const another = m.contract("Another", fakeArtifact, []);
           m.call(another, "test", [p]);
 
           return { another };
@@ -690,7 +690,7 @@ describe("call", () => {
         const module = buildModule("Module1", (m) => {
           const p = m.getParameter("p", false as unknown as bigint);
 
-          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          const another = m.contract("Another", fakeArtifact, []);
           m.call(another, "test", [], { value: p });
 
           return { another };
@@ -730,7 +730,7 @@ describe("call", () => {
         const module = buildModule("Module1", (m) => {
           const p = m.getParameter("p", 42n);
 
-          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          const another = m.contract("Another", fakeArtifact, []);
           m.call(another, "test", [], { value: p });
 
           return { another };
@@ -775,7 +775,7 @@ describe("call", () => {
         const module = buildModule("Module1", (m) => {
           const p = m.getParameter("p", true);
 
-          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          const another = m.contract("Another", fakeArtifact, []);
           m.call(another, "test", [p]);
 
           return { another };
@@ -806,7 +806,7 @@ describe("call", () => {
         const module = buildModule("Module1", (m) => {
           const p = m.getParameter("p");
 
-          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          const another = m.contract("Another", fakeArtifact, []);
           m.call(another, "test", [
             [123, { really: { deeply: { nested: [p] } } }],
           ]);
@@ -854,7 +854,7 @@ describe("call", () => {
         const module = buildModule("Module1", (m) => {
           const p = m.getParameter("p", true);
 
-          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          const another = m.contract("Another", fakeArtifact, []);
           m.call(another, "test", [
             [123, { really: { deeply: { nested: [p] } } }],
           ]);
@@ -899,7 +899,7 @@ describe("call", () => {
         };
 
         const module = buildModule("Module1", (m) => {
-          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          const another = m.contract("Another", fakeArtifact, []);
           const account = m.getAccount(-1);
           m.call(another, "inc", [1], { from: account });
 
@@ -944,7 +944,7 @@ describe("call", () => {
         };
 
         const module = buildModule("Module1", (m) => {
-          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          const another = m.contract("Another", fakeArtifact, []);
           const account = m.getAccount(1);
           m.call(another, "inc", [1], { from: account });
 

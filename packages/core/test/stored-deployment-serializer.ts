@@ -80,7 +80,7 @@ describe("stored deployment serializer", () => {
 
     it("should serialize a contractFromArtifact deployment", () => {
       const module = buildModule("Module1", (m) => {
-        const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, []);
+        const contract1 = m.contract("Contract1", fakeArtifact, []);
 
         return { contract1 };
       });
@@ -93,18 +93,13 @@ describe("stored deployment serializer", () => {
 
     it("should serialize a contractFromArtifact deployment with dependency", () => {
       const module = buildModule("Module1", (m) => {
-        const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, []);
+        const contract1 = m.contract("Contract1", fakeArtifact, []);
 
-        const contract2 = m.contractFromArtifact("Contract2", fakeArtifact, [
-          contract1,
-        ]);
+        const contract2 = m.contract("Contract2", fakeArtifact, [contract1]);
 
-        const contract3 = m.contractFromArtifact(
-          "Contract3",
-          fakeArtifact,
-          [],
-          { after: [contract2] }
-        );
+        const contract3 = m.contract("Contract3", fakeArtifact, [], {
+          after: [contract2],
+        });
 
         return { contract1, contract2, contract3 };
       });
@@ -172,11 +167,7 @@ describe("stored deployment serializer", () => {
 
     it("should serialize a contractAt", () => {
       const module = buildModule("Module1", (m) => {
-        const contract1 = m.contractAtFromArtifact(
-          "Contract1",
-          "0x0",
-          fakeArtifact
-        );
+        const contract1 = m.contractAt("Contract1", "0x0", fakeArtifact);
 
         return { contract1 };
       });
@@ -189,17 +180,9 @@ describe("stored deployment serializer", () => {
 
     it("should serialize a contractAt with a future address", () => {
       const module = buildModule("Module1", (m) => {
-        const contract1 = m.contractAtFromArtifact(
-          "Contract1",
-          "0x0",
-          fakeArtifact
-        );
+        const contract1 = m.contractAt("Contract1", "0x0", fakeArtifact);
         const call = m.staticCall(contract1, "getAddress");
-        const contract2 = m.contractAtFromArtifact(
-          "Contract2",
-          call,
-          fakeArtifact
-        );
+        const contract2 = m.contractAt("Contract2", call, fakeArtifact);
 
         return { contract1, contract2 };
       });
@@ -212,19 +195,10 @@ describe("stored deployment serializer", () => {
 
     it("should serialize a contractAt with dependency", () => {
       const module = buildModule("Module1", (m) => {
-        const contract1 = m.contractAtFromArtifact(
-          "Contract1",
-          "0x0",
-          fakeArtifact
-        );
-        const contract2 = m.contractAtFromArtifact(
-          "Contract2",
-          "0x0",
-          fakeArtifact,
-          {
-            after: [contract1],
-          }
-        );
+        const contract1 = m.contractAt("Contract1", "0x0", fakeArtifact);
+        const contract2 = m.contractAt("Contract2", "0x0", fakeArtifact, {
+          after: [contract1],
+        });
 
         return { contract1, contract2 };
       });
@@ -284,22 +258,17 @@ describe("stored deployment serializer", () => {
           },
         });
 
-        const contract3 = m.contractFromArtifact(
-          "Contract3",
-          fakeArtifact,
-          [],
-          {
-            libraries: {
-              Lib1: library1,
-            },
-          }
-        );
+        const contract3 = m.contract("Contract3", fakeArtifact, [], {
+          libraries: {
+            Lib1: library1,
+          },
+        });
 
         const library4 = m.library("Library4", {
           libraries: { Lib1: library1 },
         });
 
-        const library5 = m.libraryFromArtifact("Library5", fakeArtifact, {
+        const library5 = m.library("Library5", fakeArtifact, {
           libraries: { Lib1: library1 },
         });
 
@@ -329,7 +298,7 @@ describe("stored deployment serializer", () => {
 
     it("should serialize a libraryFromArtifact deployment", () => {
       const module = buildModule("Module1", (m) => {
-        const library1 = m.libraryFromArtifact("Contract1", fakeArtifact);
+        const library1 = m.library("Contract1", fakeArtifact);
 
         return { library1 };
       });
@@ -342,9 +311,9 @@ describe("stored deployment serializer", () => {
 
     it("should serialize a libraryFromArtifact deployment with dependency", () => {
       const module = buildModule("Module1", (m) => {
-        const library1 = m.libraryFromArtifact("Library1", fakeArtifact);
+        const library1 = m.library("Library1", fakeArtifact);
 
-        const library2 = m.libraryFromArtifact("Library2", fakeArtifact, {
+        const library2 = m.library("Library2", fakeArtifact, {
           after: [library1],
         });
 

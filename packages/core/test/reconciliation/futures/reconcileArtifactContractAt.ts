@@ -69,11 +69,7 @@ describe("Reconciliation - artifact contract at", () => {
 
   it("should reconcile when using an address string", async () => {
     const submoduleDefinition = buildModule("Submodule", (m) => {
-      const contract1 = m.contractAtFromArtifact(
-        "Contract1",
-        exampleAddress,
-        mockArtifact
-      );
+      const contract1 = m.contractAt("Contract1", exampleAddress, mockArtifact);
 
       return { contract1 };
     });
@@ -101,7 +97,7 @@ describe("Reconciliation - artifact contract at", () => {
       const example = m.contract("Example");
       const call = m.staticCall(example, "getAddress");
 
-      const another = m.contractAtFromArtifact("Another", call, mockArtifact);
+      const another = m.contractAt("Another", call, mockArtifact);
 
       return { another };
     });
@@ -145,7 +141,7 @@ describe("Reconciliation - artifact contract at", () => {
 
   it("should find changes to contract name unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
-      const contract1 = m.contractAtFromArtifact(
+      const contract1 = m.contractAt(
         "ContractChanged",
         exampleAddress,
         mockArtifact,
@@ -181,7 +177,7 @@ describe("Reconciliation - artifact contract at", () => {
 
   it("should find changes to contract address as a literal unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
-      const contract1 = m.contractAtFromArtifact(
+      const contract1 = m.contractAt(
         "Contract1",
         exampleAddress,
         mockArtifact,

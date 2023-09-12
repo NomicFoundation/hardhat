@@ -121,21 +121,12 @@ describe("to-mermaid", () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const basic = m.contract("BasicContract");
       const library = m.library("BasicLibrary");
-      const libFromArtifact = m.libraryFromArtifact(
-        "BasicLibrary",
-        libArtifact,
-        {
-          id: "BasicLibrary2",
-        }
-      );
-      const withLib = m.contractFromArtifact(
-        "ContractWithLibrary",
-        withLibArtifact,
-        [],
-        {
-          libraries: { BasicLibrary: library },
-        }
-      );
+      const libFromArtifact = m.library("BasicLibrary", libArtifact, {
+        id: "BasicLibrary2",
+      });
+      const withLib = m.contract("ContractWithLibrary", withLibArtifact, [], {
+        libraries: { BasicLibrary: library },
+      });
 
       const call = m.call(basic, "basicFunction", [40]);
       const eventArg = m.readEventArgument(call, "BasicEvent", "eventArg");
@@ -144,7 +135,7 @@ describe("to-mermaid", () => {
       const duplicate = m.contractAt("BasicContract", basic, {
         id: "BasicContract2",
       });
-      const duplicateWithLib = m.contractAtFromArtifact(
+      const duplicateWithLib = m.contractAt(
         "ContractWithLibrary",
         withLib,
         withLibArtifact,

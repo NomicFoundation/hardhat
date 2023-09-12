@@ -76,9 +76,7 @@ describe("contract deploys", () => {
     const artifact = await this.hre.artifacts.readArtifact("Greeter");
 
     const moduleDefinition = buildModule("ArtifactModule", (m) => {
-      const greeter = m.contractFromArtifact("Greeter", artifact, [
-        "Hello World",
-      ]);
+      const greeter = m.contract("Greeter", artifact, ["Hello World"]);
 
       return { greeter };
     });

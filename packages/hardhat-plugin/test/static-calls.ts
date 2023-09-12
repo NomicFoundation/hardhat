@@ -44,7 +44,7 @@ describe("static calls", () => {
         after: [createCall],
       });
 
-      const foo = m.contractAtFromArtifact("Foo", newAddress, artifact);
+      const foo = m.contractAt("Foo", newAddress, artifact);
 
       return { fooFactory, foo };
     });
@@ -167,7 +167,7 @@ describe("static calls", () => {
         after: [createCall],
       });
 
-      const foo = m.contractAtFromArtifact("Foo", nonAddress, artifact);
+      const foo = m.contractAt("Foo", nonAddress, artifact);
 
       return { fooFactory, foo };
     });
