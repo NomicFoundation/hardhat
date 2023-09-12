@@ -178,6 +178,7 @@ class IgnitionModuleBuilderImplementation<
     options.value ??= BigInt(0);
 
     /* validation start */
+    this._assertValidId(options.id, this.contract);
     this._assertUniqueContractId(futureId);
     this._assertValidLibraries(options.libraries, this.contract);
     this._assertValidValue(options.value, this.contract);
@@ -223,6 +224,7 @@ class IgnitionModuleBuilderImplementation<
     options.value ??= BigInt(0);
 
     /* validation start */
+    this._assertValidId(options.id, this.contractFromArtifact);
     this._assertUniqueArtifactContractId(futureId);
     this._assertValidLibraries(options.libraries, this.contractFromArtifact);
     this._assertValidValue(options.value, this.contractFromArtifact);
@@ -269,6 +271,7 @@ class IgnitionModuleBuilderImplementation<
     options.libraries ??= {};
 
     /* validation start */
+    this._assertValidId(options.id, this.library);
     this._assertUniqueLibraryId(futureId);
     this._assertValidLibraries(options.libraries, this.library);
     this._assertValidFrom(options.from, this.library);
@@ -305,6 +308,7 @@ class IgnitionModuleBuilderImplementation<
     options.libraries ??= {};
 
     /* validation start */
+    this._assertValidId(options.id, this.libraryFromArtifact);
     this._assertUniqueArtifactLibraryId(futureId);
     this._assertValidLibraries(options.libraries, this.libraryFromArtifact);
     this._assertValidFrom(options.from, this.libraryFromArtifact);
@@ -344,6 +348,7 @@ class IgnitionModuleBuilderImplementation<
     options.value ??= BigInt(0);
 
     /* validation start */
+    this._assertValidId(options.id, this.call);
     this._assertUniqueCallId(futureId);
     this._assertValidValue(options.value, this.call);
     this._assertValidFrom(options.from, this.call);
@@ -386,6 +391,7 @@ class IgnitionModuleBuilderImplementation<
     const futureId = `${this._module.id}:${contractFuture.contractName}#${id}`;
 
     /* validation start */
+    this._assertValidId(options.id, this.staticCall);
     this._assertUniqueStaticCallId(futureId);
     this._assertValidFrom(options.from, this.staticCall);
     this._assertValidCallableContract(contractFuture, this.staticCall);
@@ -429,6 +435,7 @@ class IgnitionModuleBuilderImplementation<
     const futureId = `${this._module.id}:${id}`;
 
     /* validation start */
+    this._assertValidId(options.id, this.contractAt);
     this._assertUniqueContractAtId(futureId);
     this._assertValidAddress(address, this.contractAt);
     /* validation end */
@@ -466,6 +473,7 @@ class IgnitionModuleBuilderImplementation<
     const futureId = `${this._module.id}:${id}`;
 
     /* validation start */
+    this._assertValidId(options.id, this.contractAtFromArtifact);
     this._assertUniqueContractAtFromArtifactId(futureId);
     this._assertValidAddress(address, this.contractAtFromArtifact);
     this._assertValidArtifact(artifact, this.contractAtFromArtifact);
@@ -529,6 +537,7 @@ class IgnitionModuleBuilderImplementation<
     const futureId = `${this._module.id}:${id}`;
 
     /* validation start */
+    this._assertValidId(options.id, this.readEventArgument);
     this._assertUniqueReadEventArgumentId(futureId);
     this._assertValidNameOrIndex(nameOrIndex, this.readEventArgument);
     /* validation end */
@@ -628,6 +637,21 @@ class IgnitionModuleBuilderImplementation<
     Error.captureStackTrace(validationError, func);
 
     throw validationError;
+  }
+
+  private _assertValidId(id: string | undefined, func: (...[]: any[]) => any) {
+    if (id === undefined) {
+      return;
+    }
+
+    if (/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(id)) {
+      return;
+    }
+
+    this._throwErrorWithStackTrace(
+      `The id "${id}" contains banned characters, ids can only contain alphanumerics, underscores or dashes`,
+      func
+    );
   }
 
   private _assertUniqueFutureId(
