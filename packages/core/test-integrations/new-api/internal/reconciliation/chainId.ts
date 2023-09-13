@@ -2,7 +2,7 @@ import { assert } from "chai";
 
 import { useHardhatProject } from "../../../helpers/hardhat-projects";
 
-describe.only("chainId reconciliation", () => {
+describe("chainId reconciliation", () => {
   useHardhatProject("default-with-new-chain-id");
 
   it("should halt when running a deployment on a different chain", async function () {
