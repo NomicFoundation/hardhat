@@ -211,6 +211,7 @@ describe("Read event argument", () => {
           () =>
             buildModule("Module1", (m) => {
               const another = m.contract("Another", []);
+
               m.readEventArgument(another, "test", {} as any);
 
               return { another };

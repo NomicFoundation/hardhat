@@ -64,6 +64,12 @@ import {
   SendDataFutureImplementation,
 } from "./module";
 import { resolveArgsToFutures } from "./utils";
+import {
+  toCallFutureId,
+  toDeploymentFutureId,
+  toReadEventArgumentFutureId,
+  toSendDataFutureId,
+} from "./utils/future-id-builders";
 
 const STUB_MODULE_RESULTS = {
   [inspect.custom](): string {
@@ -183,8 +189,12 @@ class IgnitionModuleBuilderImplementation<
     args: ArgumentType[] = [],
     options: ContractOptions = {}
   ): NamedContractDeploymentFuture<ContractNameT> {
-    const id = options.id ?? contractName;
-    const futureId = `${this._module.id}:${id}`;
+    const futureId = toDeploymentFutureId(
+      this._module.id,
+      options.id,
+      contractName
+    );
+
     options.libraries ??= {};
     options.value ??= BigInt(0);
 
@@ -230,8 +240,11 @@ class IgnitionModuleBuilderImplementation<
     args: ArgumentType[] = [],
     options: ContractFromArtifactOptions = {}
   ): ArtifactContractDeploymentFuture {
-    const id = options.id ?? contractName;
-    const futureId = `${this._module.id}:${id}`;
+    const futureId = toDeploymentFutureId(
+      this._module.id,
+      options.id,
+      contractName
+    );
     options.libraries ??= {};
     options.value ??= BigInt(0);
 
@@ -279,8 +292,12 @@ class IgnitionModuleBuilderImplementation<
     libraryName: LibraryNameT,
     options: LibraryOptions = {}
   ): NamedLibraryDeploymentFuture<LibraryNameT> {
-    const id = options.id ?? libraryName;
-    const futureId = `${this._module.id}:${id}`;
+    const futureId = toDeploymentFutureId(
+      this._module.id,
+      options.id,
+      libraryName
+    );
+
     options.libraries ??= {};
 
     /* validation start */
@@ -317,8 +334,11 @@ class IgnitionModuleBuilderImplementation<
     artifact: Artifact,
     options: LibraryFromArtifactOptions = {}
   ): ArtifactLibraryDeploymentFuture {
-    const id = options.id ?? libraryName;
-    const futureId = `${this._module.id}:${id}`;
+    const futureId = toDeploymentFutureId(
+      this._module.id,
+      options.id,
+      libraryName
+    );
     options.libraries ??= {};
 
     /* validation start */
@@ -358,8 +378,13 @@ class IgnitionModuleBuilderImplementation<
     args: ArgumentType[] = [],
     options: CallOptions = {}
   ): NamedContractCallFuture<ContractNameT, FunctionNameT> {
-    const id = options.id ?? functionName;
-    const futureId = `${this._module.id}:${contractFuture.contractName}#${id}`;
+    const futureId = toCallFutureId(
+      this._module.id,
+      options.id,
+      contractFuture.contractName,
+      functionName
+    );
+
     options.value ??= BigInt(0);
 
     /* validation start */
@@ -403,8 +428,12 @@ class IgnitionModuleBuilderImplementation<
     nameOrIndex: string | number = 0,
     options: StaticCallOptions = {}
   ): NamedStaticCallFuture<ContractNameT, FunctionNameT> {
-    const id = options.id ?? functionName;
-    const futureId = `${this._module.id}:${contractFuture.contractName}#${id}`;
+    const futureId = toCallFutureId(
+      this._module.id,
+      options.id,
+      contractFuture.contractName,
+      functionName
+    );
 
     /* validation start */
     this._assertValidId(options.id, this.staticCall);
@@ -448,8 +477,11 @@ class IgnitionModuleBuilderImplementation<
       | ModuleParameterRuntimeValue<string>,
     options: ContractAtOptions = {}
   ): NamedContractAtFuture<ContractNameT> {
-    const id = options.id ?? contractName;
-    const futureId = `${this._module.id}:${id}`;
+    const futureId = toDeploymentFutureId(
+      this._module.id,
+      options.id,
+      contractName
+    );
 
     /* validation start */
     this._assertValidId(options.id, this.contractAt);
@@ -487,8 +519,11 @@ class IgnitionModuleBuilderImplementation<
     artifact: Artifact,
     options: ContractAtOptions = {}
   ): ArtifactContractAtFuture {
-    const id = options.id ?? contractName;
-    const futureId = `${this._module.id}:${id}`;
+    const futureId = toDeploymentFutureId(
+      this._module.id,
+      options.id,
+      contractName
+    );
 
     /* validation start */
     this._assertValidId(options.id, this.contractAtFromArtifact);
@@ -549,18 +584,20 @@ class IgnitionModuleBuilderImplementation<
 
     const emitter = options.emitter ?? contractToReadFrom;
 
-    const id =
-      options.id ??
-      `${emitter.contractName}#${eventName}#${nameOrIndex}#${eventIndex}`;
-
-    const futureId = `${this._module.id}:${id}`;
+    const futureId = toReadEventArgumentFutureId(
+      this._module.id,
+      options.id,
+      emitter.contractName,
+      eventName,
+      nameOrIndex,
+      eventIndex
+    );
 
     /* validation start */
     this._assertValidId(options.id, this.readEventArgument);
     this._assertValidEventName(eventName, this.readEventArgument);
-    this._assertValidArgumentName(argumentName, this.readEventArgument);
-    this._assertUniqueReadEventArgumentId(futureId);
     this._assertValidNameOrIndex(nameOrIndex, this.readEventArgument);
+    this._assertUniqueReadEventArgumentId(futureId);
     /* validation end */
 
     const future = new ReadEventArgumentFutureImplementation(
@@ -590,7 +627,7 @@ class IgnitionModuleBuilderImplementation<
     data?: string,
     options: SendDataOptions = {}
   ): SendDataFuture {
-    const futureId = `${this._module.id}:${id}`;
+    const futureId = toSendDataFutureId(this._module.id, id);
     const val = value ?? BigInt(0);
 
     /* validation start */
@@ -700,20 +737,6 @@ class IgnitionModuleBuilderImplementation<
 
     this._throwErrorWithStackTrace(
       `The event "${eventName}" contains banned characters, event names can only contain alphanumerics, underscores or dollar signs`,
-      func
-    );
-  }
-
-  private _assertValidArgumentName(
-    argName: string,
-    func: (...[]: any[]) => any
-  ) {
-    if (solidityIdentifierRegex.test(argName)) {
-      return;
-    }
-
-    this._throwErrorWithStackTrace(
-      `The argument "${argName}" contains banned characters, argument names can only contain alphanumerics, underscores or dollar signs`,
       func
     );
   }
@@ -891,6 +914,19 @@ class IgnitionModuleBuilderImplementation<
     if (typeof nameOrIndex !== "string" && typeof nameOrIndex !== "number") {
       this._throwErrorWithStackTrace(`Invalid nameOrIndex given`, func);
     }
+
+    if (typeof nameOrIndex === "number") {
+      return;
+    }
+
+    if (solidityIdentifierRegex.test(nameOrIndex)) {
+      return;
+    }
+
+    this._throwErrorWithStackTrace(
+      `The argument "${nameOrIndex}" contains banned characters, argument names can only contain alphanumerics, underscores or dollar signs`,
+      func
+    );
   }
 
   private _assertValidAddress(

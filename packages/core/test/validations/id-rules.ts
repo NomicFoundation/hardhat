@@ -96,7 +96,7 @@ describe("id rules", () => {
         buildModule("MyModule", (m) => {
           const myContract = m.contract("MyContract");
 
-          m.staticCall(myContract, "config", [], {
+          m.staticCall(myContract, "config", [], 0, {
             id: "MyStaticCall:v2",
           });
 
