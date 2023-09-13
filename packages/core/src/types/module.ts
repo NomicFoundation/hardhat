@@ -76,6 +76,18 @@ export type ContractFuture<ContractNameT extends string> =
   | ArtifactContractAtFuture;
 
 /**
+ * A future representing only contracts that can be called off-chain (i.e. not libraries).
+ * Either an existing one or one that will be deployed.
+ *
+ * @beta
+ */
+export type CallableContractFuture<ContractNameT extends string> =
+  | NamedContractDeploymentFuture<ContractNameT>
+  | ArtifactContractDeploymentFuture
+  | NamedContractAtFuture<ContractNameT>
+  | ArtifactContractAtFuture;
+
+/**
  * A future representing a deployment.
  *
  * @beta

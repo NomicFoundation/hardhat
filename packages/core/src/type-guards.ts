@@ -5,6 +5,7 @@ import {
   ArtifactContractAtFuture,
   ArtifactContractDeploymentFuture,
   ArtifactLibraryDeploymentFuture,
+  CallableContractFuture,
   ContractFuture,
   DeploymentFuture,
   FunctionCallFuture,
@@ -93,6 +94,26 @@ export function isContractFuture(
     case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
     case FutureType.NAMED_LIBRARY_DEPLOYMENT:
     case FutureType.ARTIFACT_LIBRARY_DEPLOYMENT:
+    case FutureType.NAMED_CONTRACT_AT:
+    case FutureType.ARTIFACT_CONTRACT_AT:
+      return true;
+
+    default:
+      return false;
+  }
+}
+
+/**
+ * Returns true if future is of type CallableContractFuture<string>.
+ *
+ * @beta
+ */
+export function isCallableContractFuture(
+  future: Future
+): future is CallableContractFuture<string> {
+  switch (future.type) {
+    case FutureType.NAMED_CONTRACT_DEPLOYMENT:
+    case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
     case FutureType.NAMED_CONTRACT_AT:
     case FutureType.ARTIFACT_CONTRACT_AT:
       return true;

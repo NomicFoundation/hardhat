@@ -6,6 +6,7 @@ import {
   isAccountRuntimeValue,
   isAddressResolvableFuture,
   isArtifactType,
+  isCallableContractFuture,
   isContractFuture,
   isFuture,
   isModuleParameterRuntimeValue,
@@ -18,6 +19,7 @@ import {
   ArtifactContractAtFuture,
   ArtifactContractDeploymentFuture,
   ArtifactLibraryDeploymentFuture,
+  CallableContractFuture,
   ContractFuture,
   IgnitionModule,
   IgnitionModuleResult,
@@ -331,7 +333,7 @@ class IgnitionModuleBuilderImplementation<
   }
 
   public call<ContractNameT extends string, FunctionNameT extends string>(
-    contractFuture: ContractFuture<ContractNameT>,
+    contractFuture: CallableContractFuture<ContractNameT>,
     functionName: FunctionNameT,
     args: ArgumentType[] = [],
     options: CallOptions = {}
@@ -344,7 +346,7 @@ class IgnitionModuleBuilderImplementation<
     this._assertUniqueCallId(futureId);
     this._assertValidValue(options.value, this.call);
     this._assertValidFrom(options.from, this.call);
-    this._assertValidContract(contractFuture, this.call);
+    this._assertValidCallableContract(contractFuture, this.call);
     /* validation end */
 
     const future = new NamedContractCallFutureImplementation(
@@ -373,7 +375,7 @@ class IgnitionModuleBuilderImplementation<
   }
 
   public staticCall<ContractNameT extends string, FunctionNameT extends string>(
-    contractFuture: ContractFuture<ContractNameT>,
+    contractFuture: CallableContractFuture<ContractNameT>,
     functionName: FunctionNameT,
     args: ArgumentType[] = [],
     options: StaticCallOptions = {}
@@ -384,7 +386,7 @@ class IgnitionModuleBuilderImplementation<
     /* validation start */
     this._assertUniqueStaticCallId(futureId);
     this._assertValidFrom(options.from, this.staticCall);
-    this._assertValidContract(contractFuture, this.staticCall);
+    this._assertValidCallableContract(contractFuture, this.staticCall);
     /* validation end */
 
     const future = new NamedStaticCallFutureImplementation(
@@ -754,11 +756,11 @@ class IgnitionModuleBuilderImplementation<
     }
   }
 
-  private _assertValidContract(
-    contract: ContractFuture<string>,
+  private _assertValidCallableContract(
+    contract: CallableContractFuture<string>,
     func: (...[]: any[]) => any
   ) {
-    if (!isContractFuture(contract)) {
+    if (!isCallableContractFuture(contract)) {
       this._throwErrorWithStackTrace(`Invalid contract given`, func);
     }
   }
