@@ -117,7 +117,7 @@ describe("Reconciliation - named contract call", () => {
         },
         {
           ...exampleContractCallState,
-          id: "Module:Contract1#config",
+          id: "Module:config",
           futureType: FutureType.NAMED_CONTRACT_CALL,
           status: ExecutionStatus.STARTED,
           functionName: "function1",
@@ -128,7 +128,7 @@ describe("Reconciliation - named contract call", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Contract1#config",
+        futureId: "Module:config",
         failure:
           "Contract address has been changed from 0x1F98431c8aD98523631AE4a59f267346ea31F984 to 0xBA12222222228d8Ba445958a75a0704d566BF2C8 (future Module:Contract1)",
       },
@@ -158,7 +158,7 @@ describe("Reconciliation - named contract call", () => {
         },
         {
           ...exampleContractCallState,
-          id: "Module:Contract1#config",
+          id: "Module:config",
           futureType: FutureType.NAMED_CONTRACT_CALL,
           status: ExecutionStatus.STARTED,
           functionName: "functionUnchanged",
@@ -168,7 +168,7 @@ describe("Reconciliation - named contract call", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Contract1#config",
+        futureId: "Module:config",
         failure:
           "Function name has been changed from functionUnchanged to functionChanged",
       },
@@ -240,7 +240,7 @@ describe("Reconciliation - named contract call", () => {
         },
         {
           ...exampleContractCallState,
-          id: "Module:Contract1#config",
+          id: "Module:config",
           futureType: FutureType.NAMED_CONTRACT_CALL,
           status: ExecutionStatus.STARTED,
           functionName: "function1",
@@ -251,7 +251,7 @@ describe("Reconciliation - named contract call", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Contract1#config",
+        futureId: "Module:config",
         failure: "Value has been changed from 2 to 3",
       },
     ]);
@@ -280,7 +280,7 @@ describe("Reconciliation - named contract call", () => {
         },
         {
           ...exampleContractCallState,
-          id: "Module:Contract1#config",
+          id: "Module:config",
           futureType: FutureType.NAMED_CONTRACT_CALL,
           status: ExecutionStatus.STARTED,
           functionName: "function1",
@@ -291,7 +291,7 @@ describe("Reconciliation - named contract call", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Contract1#config",
+        futureId: "Module:config",
         failure: `From account has been changed from ${oneAddress} to ${twoAddress}`,
       },
     ]);

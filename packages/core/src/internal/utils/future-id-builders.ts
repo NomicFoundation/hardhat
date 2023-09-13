@@ -46,9 +46,10 @@ export function toCallFutureId(
   contractName: string,
   functionName: string
 ) {
-  return `${moduleId}${MODULE_SEPERATOR}${contractName}${SUBKEY_SEPERATOR}${
-    userProvidedId ?? functionName
-  }`;
+  const futureKey =
+    userProvidedId ?? `${contractName}${SUBKEY_SEPERATOR}${functionName}`;
+
+  return `${moduleId}${MODULE_SEPERATOR}${futureKey}`;
 }
 
 /**

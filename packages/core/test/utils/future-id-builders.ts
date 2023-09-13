@@ -32,10 +32,10 @@ describe("future id rules", () => {
       );
     });
 
-    it("namespaces the user provided id to the module and contract being called", () => {
+    it("namespaces the user provided id to the module", () => {
       assert.equal(
         toCallFutureId("MyModule", "MyId", "MyContract", "MyFunction"),
-        "MyModule:MyContract#MyId"
+        "MyModule:MyId"
       );
     });
   });

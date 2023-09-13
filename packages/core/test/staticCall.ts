@@ -398,11 +398,11 @@ describe("static call", () => {
       assert.equal(moduleWithSameCallTwice.id, "Module1");
 
       const callFuture = [...moduleWithSameCallTwice.futures].find(
-        ({ id }) => id === "Module1:Example#first"
+        ({ id }) => id === "Module1:first"
       );
 
       const callFuture2 = [...moduleWithSameCallTwice.futures].find(
-        ({ id }) => id === "Module1:Example#second"
+        ({ id }) => id === "Module1:second"
       );
 
       assert.isDefined(callFuture);
@@ -432,7 +432,7 @@ describe("static call", () => {
             m.staticCall(sameContract1, "test", [], 0, { id: "first" });
             return { sameContract1 };
           }),
-        /Duplicated id Module1:SameContract#first found in module Module1/
+        /Duplicated id Module1:first found in module Module1/
       );
     });
   });
