@@ -71,7 +71,7 @@ import {
   toSendDataFutureId,
 } from "./utils/future-id-builders";
 import {
-  isValidFunctionName,
+  isValidFunctionOrEventName,
   isValidIgnitionIdentifier,
   isValidSolidityIdentifier,
 } from "./utils/identifier-validators";
@@ -725,7 +725,7 @@ class IgnitionModuleBuilderImplementation<
     eventName: string,
     func: (...[]: any[]) => any
   ) {
-    if (isValidSolidityIdentifier(eventName)) {
+    if (isValidFunctionOrEventName(eventName)) {
       return;
     }
 
@@ -739,7 +739,7 @@ class IgnitionModuleBuilderImplementation<
     functionName: string,
     func: (...[]: any[]) => any
   ) {
-    if (isValidFunctionName(functionName)) {
+    if (isValidFunctionOrEventName(functionName)) {
       return;
     }
 

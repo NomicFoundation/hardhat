@@ -39,13 +39,13 @@ export function isValidSolidityIdentifier(identifier: string): boolean {
 }
 
 /**
- * Does the function name match Ignition's rules for function names. This is
+ * Does the function or event name match Ignition's rules. This is
  * looser than Solidity's rules, but allows Ethers style `myfun(uint256,bool)`
- * function specification.
+ * function/event specifications.
  *
  * @param functionName - the function name to test
  * @returns true if the function name is valid
  */
-export function isValidFunctionName(functionName: string): boolean {
+export function isValidFunctionOrEventName(functionName: string): boolean {
   return functionNameRegex.test(functionName);
 }

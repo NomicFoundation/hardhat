@@ -255,6 +255,18 @@ describe("id rules", () => {
         });
       }, /The function name "config:v2" contains banned characters, contract names can only contain alphanumerics, underscores or dollar signs/);
     });
+
+    it("should allow ethers style function specification", () => {
+      assert.doesNotThrow(() => {
+        buildModule("MyModule", (m) => {
+          const myContract = m.contract("MyContract");
+
+          m.staticCall(myContract, "config(uint256,bool)");
+
+          return { myContract };
+        });
+      });
+    });
   });
 
   describe("constrain event names", () => {
@@ -268,6 +280,18 @@ describe("id rules", () => {
           return { myContract };
         });
       }, /The event "MyEvent:v2" contains banned characters, event names can only contain alphanumerics, underscores or dollar signs/);
+    });
+
+    it("should allow ethers sytle event specification", () => {
+      assert.doesNotThrow(() => {
+        buildModule("MyModule", (m) => {
+          const myContract = m.contract("MyContract");
+
+          m.readEventArgument(myContract, "MyEvent(bool,bool)", "MyArg");
+
+          return { myContract };
+        });
+      });
     });
   });
 
