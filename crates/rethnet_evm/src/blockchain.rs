@@ -8,10 +8,14 @@ use std::{fmt::Debug, sync::Arc};
 
 use async_trait::async_trait;
 use rethnet_eth::{receipt::BlockReceipt, remote::RpcClientError, B256, U256};
-use revm::{db::BlockHashRef, primitives::SpecId};
+use revm::{db::BlockHashRef, primitives::SpecId, DatabaseCommit};
 
-use crate::{Block, LocalBlock, SyncBlock};
+use crate::{
+    state::{StateDiff, SyncState},
+    Block, LocalBlock, SyncBlock,
+};
 
+use self::storage::ReservableSparseBlockchainStorage;
 pub use self::{
     forked::{CreationError as ForkedCreationError, ForkedBlockchain},
     local::{CreationError as LocalCreationError, LocalBlockchain},
@@ -110,6 +114,12 @@ pub trait Blockchain {
         transaction_hash: &B256,
     ) -> Result<Option<Arc<BlockReceipt>>, Self::BlockchainError>;
 
+    /// Retrieves the state at a given block
+    async fn state_at_block(
+        &self,
+        block_number: &U256,
+    ) -> Result<Box<dyn SyncState<Self::StateError>>, Self::BlockchainError>;
+
     /// Retrieves the total difficulty at the block with the provided hash.
     async fn total_difficulty_by_hash(
         &self,
@@ -127,6 +137,7 @@ pub trait BlockchainMut {
     async fn insert_block(
         &mut self,
         block: LocalBlock,
+        state_diff: StateDiff,
     ) -> Result<Arc<dyn SyncBlock<Error = Self::Error>>, Self::Error>;
 
     /// Reserves the provided number of blocks, starting from the next block number.
@@ -166,6 +177,20 @@ where
         + 'static,
     BlockchainErrorT: Debug + Send,
 {
+}
+
+fn compute_state_at_block<BlockT: Block + Clone>(
+    state: &mut dyn DatabaseCommit,
+    local_storage: &ReservableSparseBlockchainStorage<BlockT>,
+    block_number: &U256,
+) {
+    let state_diffs = local_storage
+        .state_diffs_until_block(block_number)
+        .expect("The block is validated to exist");
+
+    for state_diff in state_diffs {
+        state.commit(state_diff.clone());
+    }
 }
 
 /// Validates whether a block is a valid next block.

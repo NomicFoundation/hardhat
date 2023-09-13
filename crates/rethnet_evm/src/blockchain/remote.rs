@@ -13,7 +13,7 @@ use super::storage::SparseBlockchainStorage;
 
 #[derive(Debug)]
 pub struct RemoteBlockchain<BlockT: Block + Clone, const FORCE_CACHING: bool> {
-    client: RpcClient,
+    client: Arc<RpcClient>,
     cache: RwLock<SparseBlockchainStorage<BlockT>>,
 }
 
@@ -21,7 +21,7 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
     RemoteBlockchain<BlockT, FORCE_CACHING>
 {
     /// Constructs a new instance with the provided RPC client.
-    pub fn new(client: RpcClient) -> Self {
+    pub fn new(client: Arc<RpcClient>) -> Self {
         Self {
             client,
             cache: RwLock::new(SparseBlockchainStorage::default()),
@@ -196,7 +196,7 @@ mod tests {
         // Latest block number is always unsafe to cache
         let block_number = rpc_client.block_number().await.unwrap();
 
-        let remote = RemoteBlockchain::<RemoteBlock, false>::new(rpc_client);
+        let remote = RemoteBlockchain::<RemoteBlock, false>::new(Arc::new(rpc_client));
 
         let _ = remote.block_by_number(&block_number).await.unwrap();
         assert!(remote

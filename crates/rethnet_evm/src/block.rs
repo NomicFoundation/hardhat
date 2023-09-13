@@ -8,7 +8,7 @@ use auto_impl::auto_impl;
 use rethnet_eth::{block, transaction::SignedTransaction, Address, B256};
 
 pub use self::{
-    builder::{BlockBuilder, BlockBuilderCreationError, BlockTransactionError},
+    builder::{BlockBuilder, BlockBuilderCreationError, BlockTransactionError, BuildBlockResult},
     local::LocalBlock,
     remote::RemoteBlock,
 };

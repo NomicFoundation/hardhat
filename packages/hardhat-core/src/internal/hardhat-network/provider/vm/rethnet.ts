@@ -46,6 +46,8 @@ export const globalRethnetContext = new RethnetContext();
 
 export class RethnetAdapter implements VMAdapter {
   private _vmTracer: VMTracer;
+  private _stateRootToState: Map<Buffer, RethnetStateManager> = new Map();
+  private _stateRootToSnapshot: Map<Buffer, RethnetStateManager> = new Map();
 
   constructor(
     private _blockchain: Blockchain,
@@ -63,7 +65,7 @@ export class RethnetAdapter implements VMAdapter {
     getBlockHash: (blockNumber: bigint) => Promise<Buffer>,
     common: Common
   ): Promise<RethnetAdapter> {
-    const blockchain = new Blockchain(getBlockHash);
+    const blockchain = new Blockchain(globalRethnetContext, getBlockHash);
 
     let state: RethnetStateManager;
     if (isForkedNodeConfig(config)) {
@@ -287,9 +289,21 @@ export class RethnetAdapter implements VMAdapter {
     block: Block,
     irregularStateOrUndefined: Buffer | undefined
   ): Promise<void> {
-    return this._state.setBlockContext(
-      irregularStateOrUndefined ?? block.header.stateRoot,
-      block.header.number
+    if (irregularStateOrUndefined !== undefined) {
+      const state = this._stateRootToSnapshot.get(irregularStateOrUndefined);
+      if (state === undefined) {
+        throw new Error("Unknown state root");
+      }
+      this._state = state;
+    }
+
+    this._stateRootToState.set(
+      block.header.stateRoot,
+      await this._state.deepClone()
+    );
+
+    this._state.setInner(
+      await this._blockchain.stateAtBlock(block.header.number)
     );
   }
 
@@ -299,7 +313,12 @@ export class RethnetAdapter implements VMAdapter {
    * Throw if it can't.
    */
   public async restoreContext(stateRoot: Buffer): Promise<void> {
-    return this._state.setBlockContext(stateRoot);
+    const state = this._stateRootToState.get(stateRoot);
+    if (state === undefined) {
+      throw new Error("Unknown state root");
+    }
+
+    this._state = state;
   }
 
   /**
@@ -378,11 +397,14 @@ export class RethnetAdapter implements VMAdapter {
   }
 
   public async makeSnapshot(): Promise<Buffer> {
-    return this._state.makeSnapshot();
+    const stateRoot = await this._state.getStateRoot();
+    this._stateRootToSnapshot.set(stateRoot, this._state);
+
+    return stateRoot;
   }
 
   public async removeSnapshot(stateRoot: Buffer): Promise<void> {
-    return this._state.removeSnapshot(stateRoot);
+    this._stateRootToSnapshot.delete(stateRoot);
   }
 
   public getLastTrace(): {
@@ -407,8 +429,6 @@ export class RethnetAdapter implements VMAdapter {
     common: Common,
     opts: BuildBlockOpts
   ): Promise<BlockBuilderAdapter> {
-    await this._state.checkpoint();
-
     return RethnetBlockBuilder.create(
       this._blockchain,
       this._state,

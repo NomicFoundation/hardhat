@@ -11,13 +11,15 @@ use crate::{
     blockchain::SyncBlockchain,
     state::SyncState,
     trace::{Trace, TraceCollector},
-    BlockBuilder, BlockTransactionError, MemPool, SyncBlock,
+    BlockBuilder, BlockTransactionError, BuildBlockResult, MemPool, SyncBlock,
 };
 
 /// The result of mining a block.
-pub struct MineBlockResult<BlockchainErrorT> {
+pub struct MineBlockResult<BlockchainErrorT, StateErrorT> {
     /// Mined block
     pub block: Arc<dyn SyncBlock<Error = BlockchainErrorT>>,
+    /// State after mining the block
+    pub state: Box<dyn SyncState<StateErrorT>>,
     /// Transaction results
     pub transaction_results: Vec<ExecutionResult>,
     /// Transaction traces
@@ -32,7 +34,7 @@ pub enum MineBlockError<BE, SE> {
     BlockAbort(SE),
     /// An error that occurred while constructing a block builder.
     #[error(transparent)]
-    BlockBuilderCreation(#[from] BlockBuilderCreationError<SE>),
+    BlockBuilderCreation(#[from] BlockBuilderCreationError),
     /// An error that occurred while executing a transaction.
     #[error(transparent)]
     BlockTransaction(#[from] BlockTransactionError<BE, SE>),
@@ -54,7 +56,7 @@ pub enum MineBlockError<BE, SE> {
 #[allow(clippy::too_many_arguments)]
 pub async fn mine_block<BlockchainErrorT, StateErrorT>(
     blockchain: &mut dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
-    state: &mut dyn SyncState<StateErrorT>,
+    mut state: Box<dyn SyncState<StateErrorT>>,
     mem_pool: &mut MemPool,
     cfg: &CfgEnv,
     timestamp: U256,
@@ -63,7 +65,10 @@ pub async fn mine_block<BlockchainErrorT, StateErrorT>(
     reward: U256,
     base_fee: Option<U256>,
     prevrandao: Option<B256>,
-) -> Result<MineBlockResult<BlockchainErrorT>, MineBlockError<BlockchainErrorT, StateErrorT>>
+) -> Result<
+    MineBlockResult<BlockchainErrorT, StateErrorT>,
+    MineBlockError<BlockchainErrorT, StateErrorT>,
+>
 where
     BlockchainErrorT: Debug + Send + 'static,
     StateErrorT: Debug + Send + 'static,
@@ -76,7 +81,6 @@ where
 
         let parent_header = parent_block.header();
         BlockBuilder::new(
-            state,
             cfg.clone(),
             parent_header,
             BlockOptions {
@@ -112,13 +116,10 @@ where
     while let Some(transaction) = pending_transactions.pop_front() {
         let mut tracer = TraceCollector::default();
 
-        match block_builder.add_transaction(blockchain, state, transaction, Some(&mut tracer)) {
+        match block_builder.add_transaction(blockchain, &mut state, transaction, Some(&mut tracer))
+        {
             Err(BlockTransactionError::ExceedsBlockGasLimit) => continue,
             Err(e) => {
-                block_builder
-                    .abort(state)
-                    .map_err(MineBlockError::BlockAbort)?;
-
                 return Err(MineBlockError::BlockTransaction(e));
             }
             Ok(result) => {
@@ -129,21 +130,22 @@ where
     }
 
     let rewards = vec![(beneficiary, reward)];
-    let block = block_builder
-        .finalize(state, rewards, None)
+    let BuildBlockResult { block, state_diff } = block_builder
+        .finalize(&mut state, rewards, None)
         .map_err(MineBlockError::BlockFinalize)?;
 
     let block = blockchain
-        .insert_block(block)
+        .insert_block(block, state_diff)
         .await
         .map_err(MineBlockError::Blockchain)?;
 
     mem_pool
-        .update(state)
+        .update(&state)
         .map_err(MineBlockError::MemPoolUpdate)?;
 
     Ok(MineBlockResult {
         block,
+        state,
         transaction_results: results,
         transaction_traces: traces,
     })

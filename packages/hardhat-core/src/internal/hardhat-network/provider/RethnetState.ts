@@ -64,6 +64,14 @@ export class RethnetStateManager {
     return this._state;
   }
 
+  public setInner(state: StateManager): void {
+    this._state = state;
+  }
+
+  public async deepClone(): Promise<RethnetStateManager> {
+    return new RethnetStateManager(await this._state.deepClone());
+  }
+
   public async accountExists(address: Address): Promise<boolean> {
     const account = await this._state.getAccountByAddress(address.buf);
     return account !== null;
@@ -89,14 +97,6 @@ export class RethnetStateManager {
 
   public async deleteAccount(address: Address): Promise<void> {
     await this._state.removeAccount(address.buf);
-  }
-
-  public async makeSnapshot(): Promise<Buffer> {
-    return this._state.makeSnapshot();
-  }
-
-  public async removeSnapshot(stateRoot: Buffer): Promise<void> {
-    return this._state.removeSnapshot(stateRoot);
   }
 
   public async modifyAccount(
@@ -144,26 +144,16 @@ export class RethnetStateManager {
     await this._state.setAccountStorageSlot(address.buf, index, number);
   }
 
-  public async checkpoint(): Promise<void> {
-    return this._state.checkpoint();
-  }
-
-  public async commit(): Promise<void> {}
-
-  public async revert(): Promise<void> {
-    return this._state.revert();
-  }
-
   public async getStateRoot(): Promise<Buffer> {
     return this._state.getStateRoot();
   }
 
-  public async setBlockContext(
-    stateRoot: Buffer,
-    blockNumber?: bigint
-  ): Promise<void> {
-    return this._state.setBlockContext(stateRoot, blockNumber);
-  }
+  // public async setBlockContext(
+  //   stateRoot: Buffer,
+  //   blockNumber?: bigint
+  // ): Promise<void> {
+  //   return this._state.setBlockContext(stateRoot, blockNumber);
+  // }
 
   public async serialize(): Promise<string> {
     return this._state.serialize();

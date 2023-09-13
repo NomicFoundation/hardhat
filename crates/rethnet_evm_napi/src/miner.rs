@@ -39,9 +39,11 @@ pub async fn mine_block(
         base_fee.map_or(Ok(None), |base_fee| BigInt::try_cast(base_fee).map(Some))?;
     let prevrandao: Option<B256> = prevrandao.map(|prevrandao| B256::from_slice(&prevrandao));
 
+    let state = state_manager.read().await.clone();
+
     rethnet_evm::mine_block(
         &mut *blockchain.write().await,
-        &mut *state_manager.write().await,
+        state,
         &mut *mem_pool.write().await,
         &cfg,
         timestamp,

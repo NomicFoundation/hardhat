@@ -10,7 +10,7 @@ use rethnet_eth::{
 };
 use rethnet_evm::{
     blockchain::{BlockchainError, LocalBlockchain, SyncBlockchain},
-    state::{HybridState, StateError},
+    state::{StateDiff, StateError, TrieState},
     LocalBlock, SpecId,
 };
 use tempfile::TempDir;
@@ -26,10 +26,10 @@ async fn create_dummy_blockchains() -> Vec<Box<dyn SyncBlockchain<BlockchainErro
     const DEFAULT_GAS_LIMIT: u64 = 0xffffffffffffff;
     const DEFAULT_INITIAL_BASE_FEE: u64 = 1000000000;
 
-    let mut state = HybridState::default();
+    let state = TrieState::default();
 
     let local_blockchain = LocalBlockchain::new(
-        &mut state,
+        state,
         U256::from(1),
         SpecId::LATEST,
         U256::from(DEFAULT_GAS_LIMIT),
@@ -41,7 +41,10 @@ async fn create_dummy_blockchains() -> Vec<Box<dyn SyncBlockchain<BlockchainErro
 
     #[cfg(feature = "test-remote")]
     let forked_blockchain = {
-        use rethnet_evm::blockchain::ForkedBlockchain;
+        use std::sync::Arc;
+
+        use parking_lot::Mutex;
+        use rethnet_evm::{blockchain::ForkedBlockchain, HashMap, RandomHashGenerator};
         use rethnet_test_utils::env::get_alchemy_url;
 
         let cache_dir = CACHE_DIR.path().into();
@@ -52,6 +55,8 @@ async fn create_dummy_blockchains() -> Vec<Box<dyn SyncBlockchain<BlockchainErro
             &get_alchemy_url(),
             cache_dir,
             None,
+            Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed"))),
+            HashMap::new(),
         )
         .await
         .expect("Failed to construct forked blockchain")
@@ -151,7 +156,7 @@ async fn test_get_last_block() {
     for mut blockchain in blockchains {
         let next_block = create_dummy_block(blockchain.as_ref()).await;
         let expected = blockchain
-            .insert_block(next_block)
+            .insert_block(next_block, StateDiff::default())
             .await
             .expect("Failed to insert block");
 
@@ -170,7 +175,7 @@ async fn test_get_block_by_hash_some() {
     for mut blockchain in blockchains {
         let next_block = create_dummy_block(blockchain.as_ref()).await;
         let expected = blockchain
-            .insert_block(next_block)
+            .insert_block(next_block, StateDiff::default())
             .await
             .expect("Failed to insert block");
 
@@ -208,7 +213,7 @@ async fn test_get_block_by_number_some() {
     for mut blockchain in blockchains {
         let next_block = create_dummy_block(blockchain.as_ref()).await;
         let expected = blockchain
-            .insert_block(next_block)
+            .insert_block(next_block, StateDiff::default())
             .await
             .expect("Failed to insert block");
 
@@ -246,10 +251,16 @@ async fn test_insert_block_multiple() {
 
     for mut blockchain in blockchains {
         let one = create_dummy_block(blockchain.as_ref()).await;
-        let one = blockchain.insert_block(one).await.unwrap();
+        let one = blockchain
+            .insert_block(one, StateDiff::default())
+            .await
+            .unwrap();
 
         let two = create_dummy_block(blockchain.as_ref()).await;
-        let two = blockchain.insert_block(two).await.unwrap();
+        let two = blockchain
+            .insert_block(two, StateDiff::default())
+            .await
+            .unwrap();
 
         assert_eq!(
             blockchain
@@ -284,7 +295,7 @@ async fn test_insert_block_invalid_block_number() {
         let invalid_block =
             create_dummy_block_with_number(blockchain.as_ref(), invalid_block_number).await;
         let error = blockchain
-            .insert_block(invalid_block)
+            .insert_block(invalid_block, StateDiff::default())
             .await
             .expect_err("Should fail to insert block");
 
@@ -308,7 +319,7 @@ async fn test_insert_block_invalid_parent_hash() {
 
         let one = create_dummy_block_with_hash(next_block_number, INVALID_BLOCK_HASH);
         let error = blockchain
-            .insert_block(one)
+            .insert_block(one, StateDiff::default())
             .await
             .expect_err("Should fail to insert block");
 
@@ -330,10 +341,16 @@ async fn test_revert_to_block() {
         let last_block = blockchain.last_block().await.unwrap();
 
         let one = create_dummy_block(blockchain.as_ref()).await;
-        let one = blockchain.insert_block(one).await.unwrap();
+        let one = blockchain
+            .insert_block(one, StateDiff::default())
+            .await
+            .unwrap();
 
         let two = create_dummy_block(blockchain.as_ref()).await;
-        let two = blockchain.insert_block(two).await.unwrap();
+        let two = blockchain
+            .insert_block(two, StateDiff::default())
+            .await
+            .unwrap();
 
         blockchain
             .revert_to_block(&last_block.header().number)
@@ -417,7 +434,10 @@ async fn test_block_total_difficulty_by_hash() {
             1000,
         )
         .await;
-        let one = blockchain.insert_block(one).await.unwrap();
+        let one = blockchain
+            .insert_block(one, StateDiff::default())
+            .await
+            .unwrap();
 
         let two = create_dummy_block_with_difficulty(
             blockchain.as_ref(),
@@ -425,7 +445,10 @@ async fn test_block_total_difficulty_by_hash() {
             2000,
         )
         .await;
-        let two = blockchain.insert_block(two).await.unwrap();
+        let two = blockchain
+            .insert_block(two, StateDiff::default())
+            .await
+            .unwrap();
 
         let last_block_difficulty = blockchain
             .total_difficulty_by_hash(last_block.hash())

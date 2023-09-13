@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 use std::sync::Arc;
 
 use parking_lot::{Mutex, RwLock, RwLockUpgradableReadGuard};
@@ -42,14 +41,11 @@ impl ForkState {
     /// Constructs a new instance.
     pub async fn new(
         runtime: runtime::Handle,
+        rpc_client: Arc<RpcClient>,
         hash_generator: Arc<Mutex<RandomHashGenerator>>,
-        url: &str,
-        cache_dir: PathBuf,
         fork_block_number: U256,
         mut accounts: HashMap<Address, AccountInfo>,
     ) -> Result<Self, RpcClientError> {
-        let rpc_client = RpcClient::new(url, cache_dir);
-
         for (address, account_info) in &mut accounts {
             let nonce = rpc_client
                 .get_transaction_count(address, Some(BlockSpec::Number(fork_block_number)))
@@ -79,6 +75,11 @@ impl ForkState {
             hash_generator,
             removed_remote_accounts: HashSet::new(),
         })
+    }
+
+    /// Sets the block number of the remote state.
+    pub fn set_fork_block_number(&mut self, block_number: &U256) {
+        self.remote_state.lock().set_block_number(block_number);
     }
 
     fn update_removed_storage_slots(&mut self) {
@@ -367,12 +368,12 @@ mod tests {
             let tempdir = tempfile::tempdir().expect("can create tempdir");
 
             let runtime = runtime::Handle::current();
+            let rpc_client = RpcClient::new(&get_alchemy_url(), tempdir.path().to_path_buf());
 
             let fork_state = ForkState::new(
                 runtime,
+                Arc::new(rpc_client),
                 hash_generator,
-                &get_alchemy_url(),
-                tempdir.path().to_path_buf(),
                 U256::from(FORK_BLOCK),
                 HashMap::default(),
             )

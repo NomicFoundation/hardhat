@@ -110,6 +110,14 @@ impl Blockchain for JsBlockchain {
         unimplemented!("Unsupported API")
     }
 
+    async fn state_at_block(
+        &self,
+        _block_number: &U256,
+    ) -> Result<Box<dyn rethnet_evm::state::SyncState<Self::StateError>>, Self::BlockchainError>
+    {
+        unimplemented!("Unsupported API")
+    }
+
     async fn total_difficulty_by_hash(
         &self,
         _hash: &B256,
@@ -126,6 +134,7 @@ impl BlockchainMut for JsBlockchain {
     async fn insert_block(
         &mut self,
         _block: rethnet_evm::LocalBlock,
+        _state_diff: rethnet_evm::state::StateDiff,
     ) -> Result<Arc<dyn SyncBlock<Error = Self::Error>>, Self::Error> {
         unimplemented!("Unsupported API")
     }

@@ -2,8 +2,9 @@ use std::{fmt::Debug, num::NonZeroUsize, sync::Arc};
 
 use parking_lot::{RwLock, RwLockUpgradableReadGuard, RwLockWriteGuard};
 use rethnet_eth::{block::PartialHeader, receipt::BlockReceipt, SpecId, B256, U256};
+use revm::primitives::HashMap;
 
-use crate::{Block, LocalBlock};
+use crate::{state::StateDiff, Block, LocalBlock};
 
 use super::SparseBlockchainStorage;
 
@@ -16,6 +17,7 @@ struct Reservation {
     previous_base_fee_per_gas: Option<U256>,
     previous_state_root: B256,
     previous_total_difficulty: U256,
+    previous_diff_index: usize,
     spec_id: SpecId,
 }
 
@@ -24,16 +26,23 @@ struct Reservation {
 pub struct ReservableSparseBlockchainStorage<BlockT: Block + Clone + ?Sized> {
     reservations: RwLock<Vec<Reservation>>,
     storage: RwLock<SparseBlockchainStorage<BlockT>>,
+    // We can store the state diffs contiguously, as reservations don't contain any diffs.
+    // Diffs are a mapping from one state to the next, so the genesis state does not have a
+    // corresponding diff.
+    state_diffs: Vec<StateDiff>,
+    number_to_diff_index: HashMap<U256, usize>,
     last_block_number: U256,
 }
 
 impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
-    /// Constructs a new instance with the provided block.
-    pub fn with_block(block: BlockT, total_difficulty: U256) -> Self {
+    /// Constructs a new instance with the provided block as genesis block.
+    pub fn with_genesis_block(block: BlockT, total_difficulty: U256) -> Self {
         Self {
             reservations: RwLock::new(Vec::new()),
-            last_block_number: block.header().number,
             storage: RwLock::new(SparseBlockchainStorage::with_block(block, total_difficulty)),
+            state_diffs: Vec::new(),
+            number_to_diff_index: HashMap::new(),
+            last_block_number: U256::ZERO,
         }
     }
 
@@ -42,6 +51,8 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
         Self {
             reservations: RwLock::new(Vec::new()),
             storage: RwLock::new(SparseBlockchainStorage::default()),
+            state_diffs: Vec::new(),
+            number_to_diff_index: HashMap::new(),
             last_block_number: latest_block_number,
         }
     }
@@ -73,9 +84,14 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
     pub unsafe fn insert_block_unchecked(
         &mut self,
         block: BlockT,
+        state_diff: StateDiff,
         total_difficulty: U256,
     ) -> &BlockT {
         self.last_block_number = block.header().number;
+        self.number_to_diff_index
+            .insert(self.last_block_number, self.state_diffs.len());
+
+        self.state_diffs.push(state_diff);
 
         self.storage
             .get_mut()
@@ -100,6 +116,23 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
     /// Retrieves the last block number.
     pub fn last_block_number(&self) -> &U256 {
         &self.last_block_number
+    }
+
+    /// Retrieves the sequence of diffs from the genesis state to the state of the block with
+    /// the provided number, if it exists.
+    pub fn state_diffs_until_block(&self, block_number: &U256) -> Option<&[StateDiff]> {
+        let diff_index = self
+            .number_to_diff_index
+            .get(block_number)
+            .copied()
+            .or_else(|| {
+                self.reservations
+                    .read()
+                    .last()
+                    .map(|reservation| reservation.previous_diff_index)
+            })?;
+
+        Some(&self.state_diffs[..=diff_index])
     }
 
     /// Retrieves the receipt of the transaction with the provided hash, if it exists.
@@ -130,6 +163,7 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
             previous_base_fee_per_gas: previous_base_fee,
             previous_state_root,
             previous_total_difficulty,
+            previous_diff_index: self.state_diffs.len(),
             spec_id,
         };
 
@@ -145,19 +179,40 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
 
         self.last_block_number = *block_number;
 
-        // Only retain reservations that are not fully reverted
-        self.reservations.get_mut().retain_mut(|reservation| {
-            if reservation.last_number <= *block_number {
-                true
-            } else if reservation.first_number <= *block_number {
-                reservation.last_number = *block_number;
-                true
-            } else {
-                false
-            }
-        });
-
         self.storage.get_mut().revert_to_block(block_number);
+
+        if *block_number == U256::ZERO {
+            // Reservations and state diffs can only occur after the genesis block,
+            // so we can clear them all
+            self.reservations.get_mut().clear();
+
+            self.state_diffs.clear();
+            self.number_to_diff_index.clear();
+        } else {
+            // Only retain reservations that are not fully reverted
+            self.reservations.get_mut().retain_mut(|reservation| {
+                if reservation.last_number <= *block_number {
+                    true
+                } else if reservation.first_number <= *block_number {
+                    reservation.last_number = *block_number;
+                    true
+                } else {
+                    false
+                }
+            });
+
+            // Remove all diffs that are newer than the reverted block
+            let diff_index = self
+                .number_to_diff_index
+                .get(block_number)
+                .copied()
+                .unwrap_or_else(|| self.reservations.get_mut().last().expect("There must either be a block or a reservation matching the block number").previous_diff_index);
+
+            self.state_diffs.truncate(diff_index + 1);
+
+            self.number_to_diff_index
+                .retain(|number, _| number <= block_number);
+        }
 
         true
     }
