@@ -60,7 +60,6 @@ describe("future processor", () => {
       );
 
       // Assert
-      assert.isTrue(result.futureCompleted);
       assert.equal(
         storedDeployedAddresses["MyModule:TestContract"],
         exampleAddress

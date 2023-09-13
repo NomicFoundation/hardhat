@@ -14,6 +14,7 @@ import { DeploymentLoader } from "../deployment-loader/types";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 import { getPendingNonceAndSender } from "../views/execution-state/get-pending-nonce-and-sender";
 import { hasExecutionFailed } from "../views/has-execution-failed";
+import { isBatchFinished } from "../views/is-batch-finished";
 
 import { applyNewMessage } from "./deployment-state-helpers";
 import { FutureProcessor } from "./future-processor/future-processor";
@@ -136,20 +137,22 @@ export class ExecutionEngine {
 
     let block = await this._jsonRpcClient.getLatestBlock();
 
-    let allCompleted = true;
     while (true) {
       for (const future of sortedFutures) {
-        const { futureCompleted, newState } =
-          await futureProcessor.processFuture(future, deploymentState);
+        const { newState } = await futureProcessor.processFuture(
+          future,
+          deploymentState
+        );
 
         deploymentState = newState;
-
-        if (!futureCompleted) {
-          allCompleted = false;
-        }
       }
 
-      if (allCompleted) {
+      if (
+        isBatchFinished(
+          deploymentState,
+          sortedFutures.map((f) => f.id)
+        )
+      ) {
         break;
       }
 

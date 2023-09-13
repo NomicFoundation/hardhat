@@ -64,7 +64,7 @@ export class FutureProcessor {
   public async processFuture(
     future: Future,
     deploymentState: DeploymentState
-  ): Promise<{ futureCompleted: boolean; newState: DeploymentState }> {
+  ): Promise<{ newState: DeploymentState }> {
     let exState = deploymentState.executionStates[future.id];
 
     if (exState === undefined) {
@@ -113,7 +113,7 @@ export class FutureProcessor {
 
       if (nextMessage === undefined) {
         // continue with the next future
-        return { futureCompleted: false, newState: deploymentState };
+        return { newState: deploymentState };
       }
 
       deploymentState = await applyNewMessage(
@@ -127,7 +127,7 @@ export class FutureProcessor {
       await this._recordDeployedAddressIfNeeded(nextMessage);
     }
 
-    return { futureCompleted: true, newState: deploymentState };
+    return { newState: deploymentState };
   }
 
   /**
