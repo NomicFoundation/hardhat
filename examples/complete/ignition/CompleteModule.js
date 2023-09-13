@@ -33,7 +33,7 @@ module.exports = buildModule("CompleteModule", (m) => {
     { id: "ContractWithLibrary2" }
   );
 
-  m.send("test-send", duplicate, 123n);
+  m.send("test_send", duplicate, 123n);
 
   return {
     basic,

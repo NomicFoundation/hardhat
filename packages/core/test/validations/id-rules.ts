@@ -14,7 +14,7 @@ describe("id rules", () => {
 
           return { myContract };
         });
-      }, /The moduleId "MyModule:v2" contains banned characters, ids can only contain alphanumerics, underscores or dashes/);
+      }, /The moduleId "MyModule:v2" contains banned characters, ids can only contain alphanumerics or underscores/);
     });
   });
 
@@ -29,7 +29,7 @@ describe("id rules", () => {
 
           return { myContract };
         });
-      }, /The id "MyContract:v2" contains banned characters, ids can only contain alphanumerics, underscores or dashes/);
+      }, /The id "MyContract:v2" contains banned characters, ids can only contain alphanumerics or underscores/);
     });
 
     it("should not allow non-alphanumerics in contractFromArtifact ids", () => {
@@ -46,7 +46,7 @@ describe("id rules", () => {
 
           return { myContract };
         });
-      }, /The id "MyContractFromArtifact:v2" contains banned characters, ids can only contain alphanumerics, underscores or dashes/);
+      }, /The id "MyContractFromArtifact:v2" contains banned characters, ids can only contain alphanumerics or underscores/);
     });
 
     it("should not allow non-alphanumerics in library ids", () => {
@@ -58,7 +58,7 @@ describe("id rules", () => {
 
           return { library };
         });
-      }, /The id "MyLibrary:v2" contains banned characters, ids can only contain alphanumerics, underscores or dashes/);
+      }, /The id "MyLibrary:v2" contains banned characters, ids can only contain alphanumerics or underscores/);
     });
 
     it("should not allow non-alphanumerics in libraryFromArtifact ids", () => {
@@ -74,7 +74,7 @@ describe("id rules", () => {
 
           return { myLibraryFromArtifact };
         });
-      }, /The id "MyLibraryFromArtifact:v2" contains banned characters, ids can only contain alphanumerics, underscores or dashes/);
+      }, /The id "MyLibraryFromArtifact:v2" contains banned characters, ids can only contain alphanumerics or underscores/);
     });
 
     it("should not allow non-alphanumerics in call ids", () => {
@@ -88,7 +88,7 @@ describe("id rules", () => {
 
           return { myContract };
         });
-      }, /The id "MyCall:v2" contains banned characters, ids can only contain alphanumerics, underscores or dashes/);
+      }, /The id "MyCall:v2" contains banned characters, ids can only contain alphanumerics or underscores/);
     });
 
     it("should not allow non-alphanumerics in static call ids", () => {
@@ -102,7 +102,7 @@ describe("id rules", () => {
 
           return { myContract };
         });
-      }, /The id "MyStaticCall:v2" contains banned characters, ids can only contain alphanumerics, underscores or dashes/);
+      }, /The id "MyStaticCall:v2" contains banned characters, ids can only contain alphanumerics or underscores/);
     });
 
     it("should not allow non-alphanumerics in contractAt ids", () => {
@@ -114,7 +114,7 @@ describe("id rules", () => {
 
           return { myContractAt };
         });
-      }, /The id "MyContractAt:v2" contains banned characters, ids can only contain alphanumerics, underscores or dashes/);
+      }, /The id "MyContractAt:v2" contains banned characters, ids can only contain alphanumerics or underscores/);
     });
 
     it("should not allow non-alphanumerics in contractAtFromArtifact ids", () => {
@@ -131,7 +131,7 @@ describe("id rules", () => {
 
           return { myContractAt };
         });
-      }, /The id "MyContractAt:v2" contains banned characters, ids can only contain alphanumerics, underscores or dashes/);
+      }, /The id "MyContractAt:v2" contains banned characters, ids can only contain alphanumerics or underscores/);
     });
 
     it("should not allow non-alphanumerics in readEventArgument ids", () => {
@@ -145,7 +145,7 @@ describe("id rules", () => {
 
           return { myContract };
         });
-      }, /The id "MyReadEventArgument:v2" contains banned characters, ids can only contain alphanumerics, underscores or dashes/);
+      }, /The id "MyReadEventArgument:v2" contains banned characters, ids can only contain alphanumerics or underscores/);
     });
 
     it("should not allow non-alphanumerics in send id", () => {
@@ -155,7 +155,7 @@ describe("id rules", () => {
 
           return {};
         });
-      }, /The id "MySend:v2" contains banned characters, ids can only contain alphanumerics, underscores or dashes/);
+      }, /The id "MySend:v2" contains banned characters, ids can only contain alphanumerics or underscores/);
     });
   });
 

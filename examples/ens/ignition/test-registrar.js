@@ -22,7 +22,7 @@ module.exports = buildModule("TEST_registrar", (m) => {
   const registrar = m.contract("FIFSRegistrar", [ens, tldHash]);
 
   m.call(ens, "setSubnodeOwner", [ZERO_HASH, tldLabel, ACCOUNT_0], {
-    id: "set-subnode-owner-for-registrar",
+    id: "set_subnode_owner_for_registrar",
   });
 
   return { ens, resolver, registrar, reverseRegistrar };

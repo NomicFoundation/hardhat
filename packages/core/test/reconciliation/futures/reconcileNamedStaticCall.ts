@@ -309,10 +309,10 @@ describe("Reconciliation - named static call", () => {
       const contract1 = m.contract("Contract1");
 
       const resultArg1 = m.staticCall(contract1, "function1", ["first"], 0, {
-        id: "first-call",
+        id: "first_call",
       });
       const resultArg2 = m.staticCall(contract1, "function1", ["second"], 0, {
-        id: "second-call",
+        id: "second_call",
         after: [resultArg1],
       });
 
@@ -340,7 +340,7 @@ describe("Reconciliation - named static call", () => {
         },
         {
           ...exampleStaticCallState,
-          id: "Module:first-call",
+          id: "Module:first_call",
           futureType: FutureType.NAMED_STATIC_CALL,
           status: ExecutionStatus.SUCCESS,
           dependencies: new Set(["Module:Contract1"]),
@@ -354,12 +354,12 @@ describe("Reconciliation - named static call", () => {
         },
         {
           ...exampleStaticCallState,
-          id: "Module:Contract1#second-call",
+          id: "Module:Contract1#second_call",
           futureType: FutureType.NAMED_STATIC_CALL,
           status: ExecutionStatus.SUCCESS,
           dependencies: new Set([
             "Module:Contract1",
-            "Module:Contract1#first-call",
+            "Module:Contract1#first_call",
           ]),
           contractAddress: exampleAddress,
           functionName: "function1",
@@ -374,8 +374,8 @@ describe("Reconciliation - named static call", () => {
           id: "Module:Contract2",
           status: ExecutionStatus.STARTED,
           dependencies: new Set([
-            "Module:Contract1#first-call",
-            "Module:Contract1#second-call",
+            "Module:Contract1#first_call",
+            "Module:Contract1#second_call",
           ]),
           contractName: "Contract2",
           constructorArgs: ["first"],

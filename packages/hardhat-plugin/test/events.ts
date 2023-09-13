@@ -63,7 +63,7 @@ describe("events", () => {
     const moduleDefinition = buildModule("FooModule", (m) => {
       const sendEmitter = m.contract("SendDataEmitter");
 
-      const send = m.send("send-data-event", sendEmitter);
+      const send = m.send("send_data_event", sendEmitter);
 
       const output = m.readEventArgument(send, "SendDataEvent", "arg", {
         emitter: sendEmitter,

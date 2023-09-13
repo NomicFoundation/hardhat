@@ -43,7 +43,7 @@ describe("useModule", function () {
           const secondCall = m.call(trace, "addEntry", ["second"]);
 
           m.call(trace, "addEntry", ["third"], {
-            id: "third-add-entry",
+            id: "third_add_entry",
             after: [secondCall],
           });
 

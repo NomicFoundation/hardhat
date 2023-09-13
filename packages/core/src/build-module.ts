@@ -1,5 +1,6 @@
 import { IgnitionError } from "./errors";
 import { ModuleConstructor } from "./internal/module-builder";
+import { isValidIgnitionIdentifier } from "./internal/utils/identifier-validators";
 import { IgnitionModule, IgnitionModuleResult } from "./types/module";
 import { IgnitionModuleBuilder } from "./types/module-builder";
 
@@ -25,9 +26,9 @@ export function buildModule<
     throw new IgnitionError(`\`moduleId\` must be a string`);
   }
 
-  if (!/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(moduleId)) {
+  if (!isValidIgnitionIdentifier(moduleId)) {
     throw new IgnitionError(
-      `The moduleId "${moduleId}" contains banned characters, ids can only contain alphanumerics, underscores or dashes`
+      `The moduleId "${moduleId}" contains banned characters, ids can only contain alphanumerics or underscores`
     );
   }
 

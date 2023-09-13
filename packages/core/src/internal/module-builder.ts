@@ -70,23 +70,17 @@ import {
   toReadEventArgumentFutureId,
   toSendDataFutureId,
 } from "./utils/future-id-builders";
+import {
+  isValidFunctionName,
+  isValidIgnitionIdentifier,
+  isValidSolidityIdentifier,
+} from "./utils/identifier-validators";
 
 const STUB_MODULE_RESULTS = {
   [inspect.custom](): string {
     return "<Module being constructed - No results available yet>";
   },
 };
-
-/**
- * The regex that solidity uses to validate identifiers.
- */
-const solidityIdentifierRegex = /^[a-zA-Z$_][a-zA-Z0-9$_]*$/;
-
-/**
- * A regex capturing the solidity identifier rule but extended to support
- * the `myfun(uint256,bool)` parameter syntax
- */
-const functionNameRegex = /^[a-zA-Z$_][a-zA-Z0-9$_,()]*$/;
 
 /**
  * This class is in charge of turning `IgnitionModuleDefinition`s into
@@ -703,12 +697,12 @@ class IgnitionModuleBuilderImplementation<
       return;
     }
 
-    if (/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(id)) {
+    if (isValidIgnitionIdentifier(id)) {
       return;
     }
 
     this._throwErrorWithStackTrace(
-      `The id "${id}" contains banned characters, ids can only contain alphanumerics, underscores or dashes`,
+      `The id "${id}" contains banned characters, ids can only contain alphanumerics or underscores`,
       func
     );
   }
@@ -717,7 +711,7 @@ class IgnitionModuleBuilderImplementation<
     contractName: string,
     func: (...[]: any[]) => any
   ) {
-    if (solidityIdentifierRegex.test(contractName)) {
+    if (isValidSolidityIdentifier(contractName)) {
       return;
     }
 
@@ -731,7 +725,7 @@ class IgnitionModuleBuilderImplementation<
     eventName: string,
     func: (...[]: any[]) => any
   ) {
-    if (solidityIdentifierRegex.test(eventName)) {
+    if (isValidSolidityIdentifier(eventName)) {
       return;
     }
 
@@ -745,7 +739,7 @@ class IgnitionModuleBuilderImplementation<
     functionName: string,
     func: (...[]: any[]) => any
   ) {
-    if (functionNameRegex.test(functionName)) {
+    if (isValidFunctionName(functionName)) {
       return;
     }
 
@@ -893,18 +887,22 @@ class IgnitionModuleBuilderImplementation<
     artifact: Artifact,
     func: (...[]: any[]) => any
   ) {
-    if (!isArtifactType(artifact)) {
-      this._throwErrorWithStackTrace(`Invalid artifact given`, func);
+    if (isArtifactType(artifact)) {
+      return;
     }
+
+    this._throwErrorWithStackTrace(`Invalid artifact given`, func);
   }
 
   private _assertValidCallableContract(
     contract: CallableContractFuture<string>,
     func: (...[]: any[]) => any
   ) {
-    if (!isCallableContractFuture(contract)) {
-      this._throwErrorWithStackTrace(`Invalid contract given`, func);
+    if (isCallableContractFuture(contract)) {
+      return;
     }
+
+    this._throwErrorWithStackTrace(`Invalid contract given`, func);
   }
 
   private _assertValidNameOrIndex(
@@ -919,7 +917,7 @@ class IgnitionModuleBuilderImplementation<
       return;
     }
 
-    if (solidityIdentifierRegex.test(nameOrIndex)) {
+    if (isValidSolidityIdentifier(nameOrIndex)) {
       return;
     }
 

@@ -151,7 +151,7 @@ describe("to-mermaid", () => {
         { id: "ContractWithLibrary2" }
       );
 
-      m.send("test-send", duplicate, 123n);
+      m.send("test_send", duplicate, 123n);
 
       return {
         basic,
@@ -180,7 +180,7 @@ describe("to-mermaid", () => {
           Module:ContractWithLibrary#readonlyFunction["Static call ContractWithLibrary/readonlyFunction"]
           Module:BasicContract2["Existing contract BasicContract (Module:BasicContract)"]
           Module:ContractWithLibrary2["Existing contract from artifact ContractWithLibrary (Module:ContractWithLibrary)"]
-          Module:test-send["Send data to Module:BasicContract2"]
+          Module:test_send["Send data to Module:BasicContract2"]
         end
 
       Module:ContractWithLibrary --> Module:BasicLibrary
@@ -190,7 +190,7 @@ describe("to-mermaid", () => {
       Module:ContractWithLibrary#readonlyFunction --> Module:BasicContract#BasicEvent#eventArg#0
       Module:BasicContract2 --> Module:BasicContract
       Module:ContractWithLibrary2 --> Module:ContractWithLibrary
-      Module:test-send --> Module:BasicContract2
+      Module:test_send --> Module:BasicContract2
 
       classDef startModule stroke-width:4px`;
 
