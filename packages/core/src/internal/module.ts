@@ -208,6 +208,7 @@ export class ReadEventArgumentFutureImplementation
     public readonly futureToReadFrom:
       | NamedContractDeploymentFuture<string>
       | ArtifactContractDeploymentFuture
+      | SendDataFuture
       | NamedContractCallFuture<string, string>,
     public readonly eventName: string,
     public readonly argumentName: string,

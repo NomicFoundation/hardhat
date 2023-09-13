@@ -19,6 +19,7 @@ import {
   ArtifactContractDeploymentFuture,
   ArtifactLibraryDeploymentFuture,
   ContractFuture,
+  FutureType,
   IgnitionModule,
   IgnitionModuleResult,
   ModuleParameterRuntimeValue,
@@ -490,6 +491,7 @@ class IgnitionModuleBuilderImplementation<
     futureToReadFrom:
       | NamedContractDeploymentFuture<string>
       | ArtifactContractDeploymentFuture
+      | SendDataFuture
       | NamedContractCallFuture<string, string>,
     eventName: string,
     argumentName: string,
@@ -497,10 +499,21 @@ class IgnitionModuleBuilderImplementation<
   ): ReadEventArgumentFuture {
     const eventIndex = options.eventIndex ?? 0;
 
+    if (
+      futureToReadFrom.type === FutureType.SEND_DATA &&
+      options.emitter === undefined
+    ) {
+      throw new IgnitionValidationError(
+        "`options.emitter` must be provided when reading an event from a SendDataFuture"
+      );
+    }
+
     const contractToReadFrom =
       "contract" in futureToReadFrom
         ? futureToReadFrom.contract
-        : futureToReadFrom;
+        : (futureToReadFrom as
+            | ArtifactContractDeploymentFuture
+            | NamedContractDeploymentFuture<string>);
 
     const emitter = options.emitter ?? contractToReadFrom;
 
