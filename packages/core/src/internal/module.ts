@@ -205,7 +205,10 @@ export class ReadEventArgumentFutureImplementation
   constructor(
     public readonly id: string,
     public readonly module: IgnitionModuleImplementation,
-    public readonly futureToReadFrom: Future,
+    public readonly futureToReadFrom:
+      | NamedContractDeploymentFuture<string>
+      | ArtifactContractDeploymentFuture
+      | NamedContractCallFuture<string, string>,
     public readonly eventName: string,
     public readonly argumentName: string,
     public readonly emitter: ContractFuture<string>,
