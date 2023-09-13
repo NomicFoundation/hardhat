@@ -2,6 +2,7 @@ import {
   DeploymentResultType,
   ExecutionErrorDeploymentResult,
   IgnitionModuleResult,
+  PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
   SuccessfulDeploymentResult,
   ValidationErrorDeploymentResult,
@@ -42,6 +43,15 @@ export const FinalStatus = ({ state }: { state: UiState }) => {
     case DeploymentResultType.EXECUTION_ERROR: {
       return (
         <ExecutionErrorResult
+          chainId={state.chainId!}
+          moduleName={state.moduleName!}
+          result={state.result}
+        />
+      );
+    }
+    case DeploymentResultType.PREVIOUS_RUN_ERROR: {
+      return (
+        <PreviousRunErrorResult
           chainId={state.chainId!}
           moduleName={state.moduleName!}
           result={state.result}
@@ -165,6 +175,47 @@ const ExecutionErrorResult: React.FC<{
       </Box>
 
       <Newline />
+    </Box>
+  );
+};
+
+const PreviousRunErrorResult: React.FC<{
+  moduleName: string;
+  chainId: number;
+  result: PreviousRunErrorDeploymentResult;
+}> = ({ moduleName, result }) => {
+  return (
+    <Box margin={0} flexDirection="column">
+      <Divider />
+
+      <Text>
+        ⛔ Deployment cancelled due to failed or timed out futures on a previous
+        run of module <Text italic={true}>{moduleName}.</Text>
+      </Text>
+
+      <Divider />
+
+      <Box flexDirection="column" marginTop={1}>
+        {Object.entries(result.errors).map(([futureId, futureErrors]) => (
+          <Text key={futureId}>
+            {futureId}{" "}
+            <Text color="red">
+              These futures will need to be rerun; use the `wipe` task to reset
+              them:
+            </Text>
+            <Newline />
+            {futureErrors.map((error, i) => (
+              <Text key={i}>
+                {" "}
+                - {error}
+                <Newline />
+              </Text>
+            ))}
+          </Text>
+        ))}
+      </Box>
+
+      <Text> </Text>
     </Box>
   );
 };

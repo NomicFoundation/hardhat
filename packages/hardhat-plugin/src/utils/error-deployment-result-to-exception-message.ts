@@ -1,6 +1,7 @@
 import {
   DeploymentResultType,
   ExecutionErrorDeploymentResult,
+  PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
   ValidationErrorDeploymentResult,
 } from "@ignored/ignition-core";
@@ -18,6 +19,7 @@ export function errorDeploymentResultToExceptionMessage(
     | ValidationErrorDeploymentResult
     | ReconciliationErrorDeploymentResult
     | ExecutionErrorDeploymentResult
+    | PreviousRunErrorDeploymentResult
 ): string {
   switch (result.type) {
     case DeploymentResultType.VALIDATION_ERROR:
@@ -26,6 +28,8 @@ export function errorDeploymentResultToExceptionMessage(
       return _convertReconciliationError(result);
     case DeploymentResultType.EXECUTION_ERROR:
       return _convertExecutionError(result);
+    case DeploymentResultType.PREVIOUS_RUN_ERROR:
+      return _convertPreviousRunError(result);
   }
 }
 
@@ -93,6 +97,16 @@ function _convertExecutionError(result: ExecutionErrorDeploymentResult) {
   )}:
 
 ${sections.join("\n\n")}`;
+}
+
+function _convertPreviousRunError(result: PreviousRunErrorDeploymentResult) {
+  const errorsList = Object.entries(result.errors).flatMap(
+    ([futureId, errors]) => errors.map((err) => `  * ${futureId}: ${err}`)
+  );
+
+  return `The deployment wasn't run because of the following errors in a previous run:
+
+${errorsList.join("\n")}`;
 }
 
 function _toText({
