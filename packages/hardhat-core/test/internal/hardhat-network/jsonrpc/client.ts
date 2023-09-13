@@ -346,10 +346,6 @@ describe("JsonRpcClient", () => {
           });
 
           it("returns null for non-existent block", async function () {
-            if (rpcProvider === "Alchemy") {
-              // skipped because of https://github.com/NomicFoundation/hardhat/issues/3712
-              this.skip();
-            }
             const block = await client.getBlockByNumber(
               forkNumber + 1000n,
               true

@@ -14,6 +14,7 @@ export const TASK_COMPILE_SOLIDITY_GET_SOURCE_NAMES =
 export const TASK_COMPILE_SOLIDITY_READ_FILE = "compile:solidity:read-file";
 export const TASK_COMPILE_TRANSFORM_IMPORT_NAME =
   "compile:solidity:transform-import-name";
+export const TASK_COMPILE_GET_REMAPPINGS = "compile:solidity:get-remappings";
 export const TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH =
   "compile:solidity:get-dependency-graph";
 export const TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS =
@@ -68,6 +69,8 @@ export const TASK_CONSOLE = "console";
 export const TASK_FLATTEN = "flatten";
 export const TASK_FLATTEN_GET_FLATTENED_SOURCE =
   "flatten:get-flattened-sources";
+export const TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA =
+  "flatten:get-flattened-sources-and-metadata";
 export const TASK_FLATTEN_GET_DEPENDENCY_GRAPH = "flatten:get-dependency-graph";
 
 export const TASK_HELP = "help";

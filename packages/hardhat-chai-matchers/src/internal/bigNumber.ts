@@ -8,29 +8,29 @@ import util from "util";
 
 export function supportBigNumber(
   Assertion: Chai.AssertionStatic,
-  utils: Chai.ChaiUtils
+  chaiUtils: Chai.ChaiUtils
 ) {
-  const equalsFunction = override("eq", "equal", "not equal", utils);
+  const equalsFunction = override("eq", "equal", "not equal", chaiUtils);
   Assertion.overwriteMethod("equals", equalsFunction);
   Assertion.overwriteMethod("equal", equalsFunction);
   Assertion.overwriteMethod("eq", equalsFunction);
 
-  const gtFunction = override("gt", "be above", "be at most", utils);
+  const gtFunction = override("gt", "be above", "be at most", chaiUtils);
   Assertion.overwriteMethod("above", gtFunction);
   Assertion.overwriteMethod("gt", gtFunction);
   Assertion.overwriteMethod("greaterThan", gtFunction);
 
-  const ltFunction = override("lt", "be below", "be at least", utils);
+  const ltFunction = override("lt", "be below", "be at least", chaiUtils);
   Assertion.overwriteMethod("below", ltFunction);
   Assertion.overwriteMethod("lt", ltFunction);
   Assertion.overwriteMethod("lessThan", ltFunction);
 
-  const gteFunction = override("gte", "be at least", "be below", utils);
+  const gteFunction = override("gte", "be at least", "be below", chaiUtils);
   Assertion.overwriteMethod("least", gteFunction);
   Assertion.overwriteMethod("gte", gteFunction);
   Assertion.overwriteMethod("greaterThanOrEqual", gteFunction);
 
-  const lteFunction = override("lte", "be at most", "be above", utils);
+  const lteFunction = override("lte", "be at most", "be above", chaiUtils);
   Assertion.overwriteMethod("most", lteFunction);
   Assertion.overwriteMethod("lte", lteFunction);
   Assertion.overwriteMethod("lessThanOrEqual", lteFunction);
@@ -38,10 +38,10 @@ export function supportBigNumber(
   Assertion.overwriteChainableMethod(...createLengthOverride("length"));
   Assertion.overwriteChainableMethod(...createLengthOverride("lengthOf"));
 
-  Assertion.overwriteMethod("within", overrideWithin(utils));
+  Assertion.overwriteMethod("within", overrideWithin(chaiUtils));
 
-  Assertion.overwriteMethod("closeTo", overrideCloseTo(utils));
-  Assertion.overwriteMethod("approximately", overrideCloseTo(utils));
+  Assertion.overwriteMethod("closeTo", overrideCloseTo(chaiUtils));
+  Assertion.overwriteMethod("approximately", overrideCloseTo(chaiUtils));
 }
 
 function createLengthOverride(
@@ -83,10 +83,10 @@ function override(
   method: Methods,
   name: string,
   negativeName: string,
-  utils: Chai.ChaiUtils
+  chaiUtils: Chai.ChaiUtils
 ) {
   return (_super: (...args: any[]) => any) =>
-    overwriteBigNumberFunction(method, name, negativeName, _super, utils);
+    overwriteBigNumberFunction(method, name, negativeName, _super, chaiUtils);
 }
 
 function overwriteBigNumberFunction(
@@ -195,9 +195,9 @@ function overwriteBigNumberFunction(
   };
 }
 
-function overrideWithin(utils: Chai.ChaiUtils) {
+function overrideWithin(chaiUtils: Chai.ChaiUtils) {
   return (_super: (...args: any[]) => any) =>
-    overwriteBigNumberWithin(_super, utils);
+    overwriteBigNumberWithin(_super, chaiUtils);
 }
 
 function overwriteBigNumberWithin(
@@ -228,9 +228,9 @@ function overwriteBigNumberWithin(
   };
 }
 
-function overrideCloseTo(utils: Chai.ChaiUtils) {
+function overrideCloseTo(chaiUtils: Chai.ChaiUtils) {
   return (_super: (...args: any[]) => any) =>
-    overwriteBigNumberCloseTo(_super, utils);
+    overwriteBigNumberCloseTo(_super, chaiUtils);
 }
 
 function overwriteBigNumberCloseTo(

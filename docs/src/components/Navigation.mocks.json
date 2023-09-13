@@ -162,8 +162,8 @@
         "href": "/plugins/nomiclabs-hardhat-waffle"
       },
       {
-        "label": "@nomiclabs/hardhat-etherscan",
-        "href": "/plugins/nomiclabs-hardhat-etherscan"
+        "label": "@nomicfoundation/hardhat-verify",
+        "href": "/plugins/nomicfoundation-hardhat-verify"
       },
       {
         "label": "@nomiclabs/hardhat-web3",

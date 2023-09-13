@@ -37,6 +37,8 @@ import {
   RpcOldBlockTag,
 } from "../../../core/jsonrpc/types/input/blockTag";
 import {
+  optionalStateOverrideSet,
+  OptionalStateOverrideSet,
   rpcCallRequest,
   RpcCallRequest,
 } from "../../../core/jsonrpc/types/input/callRequest";
@@ -94,7 +96,7 @@ const ACCESS_LIST_MIN_HARDFORK = HardforkName.BERLIN;
 const EIP155_MIN_HARDFORK = HardforkName.SPURIOUS_DRAGON;
 const EIP3860_MIN_HARDFORK = HardforkName.SHANGHAI;
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 export class EthModule {
   constructor(
     private readonly _common: Common,
@@ -334,13 +336,21 @@ export class EthModule {
 
   // eth_call
 
-  private _callParams(params: any[]): [RpcCallRequest, OptionalRpcNewBlockTag] {
-    return validateParams(params, rpcCallRequest, optionalRpcNewBlockTag);
+  private _callParams(
+    params: any[]
+  ): [RpcCallRequest, OptionalRpcNewBlockTag, OptionalStateOverrideSet] {
+    return validateParams(
+      params,
+      rpcCallRequest,
+      optionalRpcNewBlockTag,
+      optionalStateOverrideSet
+    );
   }
 
   private async _callAction(
     rpcCall: RpcCallRequest,
-    blockTag: OptionalRpcNewBlockTag
+    blockTag: OptionalRpcNewBlockTag,
+    stateOverrideSet: OptionalStateOverrideSet
   ): Promise<string> {
     this._validateTransactionAndCallRequest(rpcCall);
 
@@ -353,7 +363,11 @@ export class EthModule {
       trace,
       error,
       consoleLogMessages,
-    } = await this._node.runCall(callParams, blockNumberOrPending);
+    } = await this._node.runCall(
+      callParams,
+      blockNumberOrPending,
+      stateOverrideSet
+    );
 
     const code = await this._node.getCodeFromTrace(trace, blockNumberOrPending);
 

@@ -1,16 +1,17 @@
 import { AssertionError, expect } from "chai";
-import { BigNumber } from "ethers";
 import { ProviderError } from "hardhat/internal/core/providers/errors";
 import path from "path";
 import util from "util";
 
 import "../../src/internal/add-chai-matchers";
 import { PANIC_CODES } from "../../src/panic";
+import { MatchersContract } from "../contracts";
 import {
   runSuccessfulAsserts,
   runFailedAsserts,
   useEnvironment,
   useEnvironmentWithNode,
+  mineSuccessfulTransaction,
 } from "../helpers";
 
 describe("INTEGRATION: Reverted with panic", function () {
@@ -28,24 +29,14 @@ describe("INTEGRATION: Reverted with panic", function () {
 
   function runTests() {
     // deploy Matchers contract before each test
-    let matchers: any;
+    let matchers: MatchersContract;
     beforeEach("deploy matchers contract", async function () {
-      const Matchers = await this.hre.ethers.getContractFactory("Matchers");
+      const Matchers = await this.hre.ethers.getContractFactory<
+        [],
+        MatchersContract
+      >("Matchers");
       matchers = await Matchers.deploy();
     });
-
-    // helpers
-    const mineSuccessfulTransaction = async (hre: any) => {
-      await hre.network.provider.send("evm_setAutomine", [false]);
-
-      const [signer] = await hre.ethers.getSigners();
-      const tx = await signer.sendTransaction({ to: signer.address });
-
-      await hre.network.provider.send("hardhat_mine", []);
-      await hre.network.provider.send("evm_setAutomine", [true]);
-
-      return tx;
-    };
 
     describe("calling a method that succeeds", function () {
       it("successful asserts", async function () {
@@ -269,15 +260,6 @@ describe("INTEGRATION: Reverted with panic", function () {
           successfulAssert: (x) => expect(x).not.to.be.revertedWithPanic("1"),
         });
       });
-
-      it("ethers's BigNumber", async function () {
-        await runSuccessfulAsserts({
-          matchers,
-          method: "succeeds",
-          successfulAssert: (x) =>
-            expect(x).not.to.be.revertedWithPanic(BigNumber.from(1)),
-        });
-      });
     });
 
     describe("invalid values", function () {
@@ -296,6 +278,15 @@ describe("INTEGRATION: Reverted with panic", function () {
         );
       });
 
+      it("non-number as expectation, subject is a rejected promise", async function () {
+        const tx = matchers.revertsWithoutReason();
+
+        expect(() => expect(tx).to.be.revertedWithPanic("invalid")).to.throw(
+          TypeError,
+          "Expected the given panic code to be a number-like value, but got 'invalid'"
+        );
+      });
+
       it("errors that are not related to a reverted transaction", async function () {
         // use an address that almost surely doesn't have balance
         const randomPrivateKey =
@@ -304,12 +295,15 @@ describe("INTEGRATION: Reverted with panic", function () {
           randomPrivateKey,
           this.hre.ethers.provider
         );
+        const matchersFromSenderWithoutFunds = matchers.connect(
+          signer
+        ) as MatchersContract;
 
         // this transaction will fail because of lack of funds, not because of a
         // revert
         await expect(
           expect(
-            matchers.connect(signer).revertsWithoutReason({
+            matchersFromSenderWithoutFunds.revertsWithoutReason({
               gasLimit: 1_000_000,
             })
           ).to.not.be.revertedWithPanic()
@@ -326,7 +320,11 @@ describe("INTEGRATION: Reverted with panic", function () {
         try {
           await expect(matchers.panicAssert()).to.not.be.revertedWithPanic();
         } catch (e: any) {
-          expect(util.inspect(e)).to.include(
+          const errorString = util.inspect(e);
+          expect(errorString).to.include(
+            "Expected transaction NOT to be reverted with some panic code, but it reverted with panic code 0x01 (Assertion error)"
+          );
+          expect(errorString).to.include(
             path.join("test", "reverted", "revertedWithPanic.ts")
           );
 

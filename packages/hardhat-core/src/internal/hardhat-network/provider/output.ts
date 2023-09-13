@@ -156,7 +156,7 @@ export interface RpcWithdrawalItem {
   amount: string;
 }
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export function getRpcBlock(
   block: Block,

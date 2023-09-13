@@ -10,8 +10,11 @@ import { assert } from "chai";
 import { JsonRpcClient } from "../../../../../src/internal/hardhat-network/jsonrpc/client";
 import { ForkBlockchain } from "../../../../../src/internal/hardhat-network/provider/fork/ForkBlockchain";
 import { randomHashBuffer } from "../../../../../src/internal/hardhat-network/provider/utils/random";
-import { makeForkClient } from "../../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
-import { INFURA_URL } from "../../../../setup";
+import {
+  makeForkClient,
+  getLastSafeBlock,
+} from "../../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
+import { ALCHEMY_URL } from "../../../../setup";
 import {
   createTestLog,
   createTestReceipt,
@@ -45,14 +48,14 @@ describe("ForkBlockchain", () => {
   }
 
   before(async function () {
-    if (INFURA_URL === undefined) {
+    if (ALCHEMY_URL === undefined) {
       this.skip();
       return;
     }
   });
 
   beforeEach(async () => {
-    const clientResult = await makeForkClient({ jsonRpcUrl: INFURA_URL! });
+    const clientResult = await makeForkClient({ jsonRpcUrl: ALCHEMY_URL! });
     client = clientResult.forkClient;
     forkBlockNumber = clientResult.forkBlockNumber;
 
@@ -64,6 +67,17 @@ describe("ForkBlockchain", () => {
 
   it("can be constructed", () => {
     assert.instanceOf(fb, ForkBlockchain);
+  });
+
+  describe("getLastSafeBlock", () => {
+    it("should return a safe block that is the difference between the latestBlock and maxReorg", () => {
+      assert.strictEqual(getLastSafeBlock(100n, 50n), 50n);
+      assert.strictEqual(getLastSafeBlock(100n, 100n), 0n); // 0 is a valid fork block number
+    });
+
+    it("should return latestBlock as fork block because the difference between the latestBlock and maxReorg is < 0", () => {
+      assert.strictEqual(getLastSafeBlock(20n, 200n), 20n);
+    });
   });
 
   describe("getBlock", () => {

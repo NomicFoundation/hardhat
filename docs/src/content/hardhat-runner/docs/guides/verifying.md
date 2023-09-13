@@ -155,4 +155,4 @@ If you get an error saying that the address does not have bytecode, it probably 
 
 After the task is successfully executed, you'll see a link to the publicly verified code of your contract.
 
-To learn more about verifying, read the [hardhat-etherscan](/hardhat-runner/plugins/nomiclabs-hardhat-etherscan) documentation.
+To learn more about verifying, read the [hardhat-verify](/hardhat-runner/plugins/nomicfoundation-hardhat-verify) documentation.

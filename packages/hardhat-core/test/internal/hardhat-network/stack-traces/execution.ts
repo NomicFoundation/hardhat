@@ -1,3 +1,4 @@
+import { Common } from "@nomicfoundation/ethereumjs-common";
 import { Transaction, TxData } from "@nomicfoundation/ethereumjs-tx";
 import {
   Account,
@@ -21,7 +22,9 @@ const senderAddress = privateToAddress(senderPrivateKey);
 export async function instantiateVm(): Promise<VM> {
   const account = Account.fromAccountData({ balance: 1e15 });
 
-  const vm = await VM.create({ activatePrecompiles: true });
+  const common = new Common({ chain: "mainnet", hardfork: "shanghai" });
+
+  const vm = await VM.create({ activatePrecompiles: true, common });
 
   await vm.stateManager.putAccount(new Address(senderAddress), account);
 

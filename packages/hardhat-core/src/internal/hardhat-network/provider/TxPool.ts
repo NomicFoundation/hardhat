@@ -28,7 +28,7 @@ import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 import { reorganizeTransactionsLists } from "./utils/reorganizeTransactionsLists";
 import { FakeSenderEIP1559Transaction } from "./transactions/FakeSenderEIP1559Transaction";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export function serializeTransaction(
   tx: OrderedTransaction

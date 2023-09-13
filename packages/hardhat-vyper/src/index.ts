@@ -1,13 +1,13 @@
 import type { Artifacts as ArtifactsImpl } from "hardhat/internal/artifacts";
 import type { Artifacts } from "hardhat/types/artifacts";
+import type { VyperFilesCache as VyperFilesCacheT } from "./cache";
 import type { VyperOutput, VyperBuild } from "./types";
+import type { ResolvedFile } from "./resolver";
 
 import * as os from "os";
 import fsExtra from "fs-extra";
 import semver from "semver";
 
-import { getCompilersDir } from "hardhat/internal/util/global-dir";
-import { localPathToSourceName } from "hardhat/utils/source-names";
 import { getFullyQualifiedName } from "hardhat/utils/contract-names";
 import { TASK_COMPILE_GET_COMPILATION_TASKS } from "hardhat/builtin-tasks/task-names";
 import { extendConfig, subtask, types } from "hardhat/config";
@@ -24,11 +24,8 @@ import {
   TASK_COMPILE_VYPER_LOG_COMPILATION_RESULT,
 } from "./task-names";
 import { DEFAULT_VYPER_VERSION } from "./constants";
-import { VyperFilesCache, getVyperFilesCachePath } from "./cache";
 import { Compiler } from "./compiler";
 import { CompilerDownloader } from "./downloader";
-import { Parser } from "./parser";
-import { ResolvedFile, Resolver } from "./resolver";
 import {
   assertPluginInvariant,
   getArtifactFromVyperOutput,
@@ -72,6 +69,9 @@ subtask(TASK_COMPILE_VYPER_GET_SOURCE_NAMES)
       { sourcePaths }: { sourcePaths: string[] },
       { config }
     ): Promise<string[]> => {
+      const { localPathToSourceName } = await import(
+        "hardhat/utils/source-names"
+      );
       const sourceNames = await Promise.all(
         sourcePaths.map((p) => localPathToSourceName(config.paths.root, p))
       );
@@ -100,6 +100,9 @@ subtask(TASK_COMPILE_VYPER_GET_BUILD)
       { quiet, vyperVersion }: { quiet: boolean; vyperVersion: string },
       { run }
     ): Promise<VyperBuild> => {
+      const { getCompilersDir } = await import(
+        "hardhat/internal/util/global-dir"
+      );
       const compilersCache = await getCompilersDir();
       const downloader = new CompilerDownloader(compilersCache);
 
@@ -204,6 +207,12 @@ subtask(TASK_COMPILE_VYPER)
   .addParam("quiet", undefined, undefined, types.boolean)
   .setAction(
     async ({ quiet }: { quiet: boolean }, { artifacts, config, run }) => {
+      const { VyperFilesCache, getVyperFilesCachePath } = await import(
+        "./cache"
+      );
+      const { Parser } = await import("./parser");
+      const { Resolver } = await import("./resolver");
+
       const sourcePaths: string[] = await run(
         TASK_COMPILE_VYPER_GET_SOURCE_PATHS
       );
@@ -348,10 +357,10 @@ ${list}`
  * disk, we remove it from the cache to force it to be recompiled.
  */
 async function invalidateCacheMissingArtifacts(
-  vyperFilesCache: VyperFilesCache,
+  vyperFilesCache: VyperFilesCacheT,
   artifacts: Artifacts,
   resolvedFiles: ResolvedFile[]
-): Promise<VyperFilesCache> {
+): Promise<VyperFilesCacheT> {
   for (const file of resolvedFiles) {
     const cacheEntry = vyperFilesCache.getEntry(file.absolutePath);
 

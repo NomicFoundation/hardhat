@@ -1,15 +1,20 @@
+import type { TransactionResponse } from "ethers";
+import type { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import type { Token } from "../src/internal/changeTokenBalance";
+import type { MatchersContract } from "./contracts";
+
 import assert from "assert";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { AssertionError, expect } from "chai";
-import { BigNumber, Contract, providers } from "ethers";
 import path from "path";
 import util from "util";
 
 import "../src/internal/add-chai-matchers";
 import { clearTokenDescriptionsCache } from "../src/internal/changeTokenBalance";
+import {
+  CHANGE_TOKEN_BALANCE_MATCHER,
+  CHANGE_TOKEN_BALANCES_MATCHER,
+} from "../src/internal/constants";
 import { useEnvironment, useEnvironmentWithNode } from "./helpers";
-
-type TransactionResponse = providers.TransactionResponse;
 
 describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", function () {
   describe("with the in-process hardhat network", function () {
@@ -29,23 +34,35 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
   });
 
   function runTests() {
-    let sender: SignerWithAddress;
-    let receiver: SignerWithAddress;
-    let mockToken: Contract;
+    let sender: HardhatEthersSigner;
+    let receiver: HardhatEthersSigner;
+    let mockToken: Token;
+    let matchers: MatchersContract;
 
     beforeEach(async function () {
       const wallets = await this.hre.ethers.getSigners();
       sender = wallets[0];
       receiver = wallets[1];
 
-      const MockToken = await this.hre.ethers.getContractFactory("MockToken");
+      const MockToken = await this.hre.ethers.getContractFactory<[], Token>(
+        "MockToken"
+      );
       mockToken = await MockToken.deploy();
+
+      const Matchers = await this.hre.ethers.getContractFactory<
+        [],
+        MatchersContract
+      >("Matchers");
+      matchers = await Matchers.deploy();
     });
 
     describe("transaction that doesn't move tokens", () => {
       it("with a promise of a TxResponse", async function () {
+        const transactionResponse = sender.sendTransaction({
+          to: receiver.address,
+        });
         await runAllAsserts(
-          sender.sendTransaction({ to: receiver.address }),
+          transactionResponse,
           mockToken,
           [sender, receiver],
           [0, 0]
@@ -232,11 +249,10 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           mockToken.transfer(receiver.address, 50)
         ).to.changeTokenBalance(mockToken, receiver, 50);
 
-        const receiverBalanceChange = (
-          await mockToken.balanceOf(receiver.address)
-        ).sub(receiverBalanceBefore);
+        const receiverBalanceChange =
+          (await mockToken.balanceOf(receiver.address)) - receiverBalanceBefore;
 
-        expect(receiverBalanceChange.toNumber()).to.equal(50);
+        expect(receiverBalanceChange).to.equal(50n);
       });
 
       it("changeTokenBalances shouldn't run the transaction twice", async function () {
@@ -248,11 +264,10 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           mockToken.transfer(receiver.address, 50)
         ).to.changeTokenBalances(mockToken, [sender, receiver], [-50, 50]);
 
-        const receiverBalanceChange = (
-          await mockToken.balanceOf(receiver.address)
-        ).sub(receiverBalanceBefore);
+        const receiverBalanceChange =
+          (await mockToken.balanceOf(receiver.address)) - receiverBalanceBefore;
 
-        expect(receiverBalanceChange.toNumber()).to.equal(50);
+        expect(receiverBalanceChange).to.equal(50n);
       });
 
       it("negated", async function () {
@@ -334,9 +349,10 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         });
 
         it("uses the token name if the contract doesn't have a symbol", async function () {
-          const TokenWithOnlyName = await this.hre.ethers.getContractFactory(
-            "TokenWithOnlyName"
-          );
+          const TokenWithOnlyName = await this.hre.ethers.getContractFactory<
+            [],
+            Token
+          >("TokenWithOnlyName");
           const tokenWithOnlyName = await TokenWithOnlyName.deploy();
 
           await expect(
@@ -360,7 +376,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
 
         it("uses the contract address if the contract doesn't have name or symbol", async function () {
           const TokenWithoutNameNorSymbol =
-            await this.hre.ethers.getContractFactory(
+            await this.hre.ethers.getContractFactory<[], Token>(
               "TokenWithoutNameNorSymbol"
             );
           const tokenWithoutNameNorSymbol =
@@ -384,11 +400,35 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
             /Expected the balance of <token at 0x\w{40}> tokens for "0x\w{40}" NOT to change by 50, but it did/
           );
         });
+
+        it("changeTokenBalance: Should throw if chained to another non-chainable method", () => {
+          expect(() =>
+            expect(mockToken.transfer(receiver.address, 50))
+              .to.emit(mockToken, "SomeEvent")
+              .and.to.changeTokenBalance(mockToken, receiver, 50)
+          ).to.throw(
+            /The matcher 'changeTokenBalance' cannot be chained after 'emit'./
+          );
+        });
+
+        it("changeTokenBalances: should throw if chained to another non-chainable method", () => {
+          expect(() =>
+            expect(
+              mockToken.transfer(receiver.address, 50)
+            ).to.be.reverted.and.to.changeTokenBalances(
+              mockToken,
+              [sender, receiver],
+              [-50, 100]
+            )
+          ).to.throw(
+            /The matcher 'changeTokenBalances' cannot be chained after 'reverted'./
+          );
+        });
       });
     });
 
     describe("validation errors", function () {
-      describe("changeTokenBalance", function () {
+      describe(CHANGE_TOKEN_BALANCE_MATCHER, function () {
         it("token is not specified", async function () {
           expect(() =>
             expect(mockToken.transfer(receiver.address, 50))
@@ -429,13 +469,17 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         it("tx is not the only one in the block", async function () {
           await this.hre.network.provider.send("evm_setAutomine", [false]);
 
-          await sender.sendTransaction({ to: receiver.address });
+          // we set a gas limit to avoid using the whole block gas limit
+          await sender.sendTransaction({
+            to: receiver.address,
+            gasLimit: 30_000,
+          });
 
           await this.hre.network.provider.send("evm_setAutomine", [true]);
 
           await expect(
             expect(
-              mockToken.transfer(receiver.address, 50)
+              mockToken.transfer(receiver.address, 50, { gasLimit: 100_000 })
             ).to.changeTokenBalance(mockToken, sender, -50)
           ).to.be.rejectedWith(Error, "Multiple transactions found in block");
         });
@@ -453,7 +497,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         });
       });
 
-      describe("changeTokenBalances", function () {
+      describe(CHANGE_TOKEN_BALANCES_MATCHER, function () {
         it("token is not specified", async function () {
           expect(() =>
             expect(mockToken.transfer(receiver.address, 50))
@@ -501,16 +545,33 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           );
         });
 
+        it("arrays have different length, subject is a rejected promise", async function () {
+          expect(() =>
+            expect(matchers.revertsWithoutReason()).to.changeTokenBalances(
+              mockToken,
+              [sender],
+              [-50, 50]
+            )
+          ).to.throw(
+            Error,
+            "The number of accounts (1) is different than the number of expected balance changes (2)"
+          );
+        });
+
         it("tx is not the only one in the block", async function () {
           await this.hre.network.provider.send("evm_setAutomine", [false]);
 
-          await sender.sendTransaction({ to: receiver.address });
+          // we set a gas limit to avoid using the whole block gas limit
+          await sender.sendTransaction({
+            to: receiver.address,
+            gasLimit: 30_000,
+          });
 
           await this.hre.network.provider.send("evm_setAutomine", [true]);
 
           await expect(
             expect(
-              mockToken.transfer(receiver.address, 50)
+              mockToken.transfer(receiver.address, 50, { gasLimit: 100_000 })
             ).to.changeTokenBalances(mockToken, [sender, receiver], [-50, 50])
           ).to.be.rejectedWith(Error, "Multiple transactions found in block");
         });
@@ -543,43 +604,11 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
           [BigInt(-50), BigInt(50)]
         );
       });
-
-      it("ethers's bignumbers are accepted", async function () {
-        await expect(
-          mockToken.transfer(receiver.address, 50)
-        ).to.changeTokenBalance(mockToken, sender, BigNumber.from(-50));
-
-        await expect(
-          mockToken.transfer(receiver.address, 50)
-        ).to.changeTokenBalances(
-          mockToken,
-          [sender, receiver],
-          [BigNumber.from(-50), BigNumber.from(50)]
-        );
-      });
-
-      it("mixed types are accepted", async function () {
-        await expect(
-          mockToken.transfer(receiver.address, 50)
-        ).to.changeTokenBalances(
-          mockToken,
-          [sender, receiver],
-          [BigInt(-50), BigNumber.from(50)]
-        );
-
-        await expect(
-          mockToken.transfer(receiver.address, 50)
-        ).to.changeTokenBalances(
-          mockToken,
-          [sender, receiver],
-          [BigNumber.from(-50), BigInt(50)]
-        );
-      });
     });
 
     // smoke tests for stack traces
     describe("stack traces", function () {
-      describe("changeTokenBalance", function () {
+      describe(CHANGE_TOKEN_BALANCE_MATCHER, function () {
         it("includes test file", async function () {
           let hasProperStackTrace = false;
           try {
@@ -596,7 +625,7 @@ describe("INTEGRATION: changeTokenBalance and changeTokenBalances matchers", fun
         });
       });
 
-      describe("changeTokenBalances", function () {
+      describe(CHANGE_TOKEN_BALANCES_MATCHER, function () {
         it("includes test file", async function () {
           try {
             await expect(
@@ -638,9 +667,9 @@ async function runAllAsserts(
     | Promise<TransactionResponse>
     | (() => TransactionResponse)
     | (() => Promise<TransactionResponse>),
-  token: Contract,
-  accounts: Array<string | SignerWithAddress>,
-  balances: Array<number | bigint | BigNumber>
+  token: Token,
+  accounts: Array<string | HardhatEthersSigner>,
+  balances: Array<number | bigint>
 ) {
   // changeTokenBalances works for the given arrays
   await expect(expr).to.changeTokenBalances(token, accounts, balances);

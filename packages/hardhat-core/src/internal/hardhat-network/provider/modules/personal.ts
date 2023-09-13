@@ -5,7 +5,7 @@ import { validateParams } from "../../../core/jsonrpc/types/input/validation";
 import { MethodNotFoundError } from "../../../core/providers/errors";
 import { HardhatNode } from "../node";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export class PersonalModule {
   constructor(private readonly _node: HardhatNode) {}

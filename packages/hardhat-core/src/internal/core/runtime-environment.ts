@@ -10,6 +10,7 @@ import {
   HardhatUserConfig,
   Network,
   ParamDefinition,
+  ProviderExtender,
   RunSuperFunction,
   RunTaskFunction,
   SubtaskArguments,
@@ -20,13 +21,13 @@ import {
 } from "../../types";
 import { Artifacts } from "../artifacts";
 import { MessageTrace } from "../hardhat-network/stack-traces/message-trace";
-import { lazyObject } from "../util/lazy";
 
 import { getHardhatVersion } from "../util/packageInfo";
 import { analyzeModuleNotFoundError } from "./config/config-loading";
 import { HardhatError } from "./errors";
 import { ERRORS } from "./errors-list";
 import { createProvider } from "./providers/construction";
+import { LazyInitializationProviderAdapter } from "./providers/lazy-initialization";
 import { OverriddenTaskDefinition } from "./tasks/task-definitions";
 import {
   completeTaskProfile,
@@ -50,7 +51,7 @@ export class Environment implements HardhatRuntimeEnvironment {
 
   public artifacts: IArtifacts;
 
-  private readonly _extenders: EnvironmentExtender[];
+  private readonly _environmentExtenders: EnvironmentExtender[];
 
   public entryTaskProfile?: TaskProfile;
 
@@ -67,16 +68,18 @@ export class Environment implements HardhatRuntimeEnvironment {
    * @param hardhatArguments The parsed hardhat's arguments.
    * @param tasks A map of tasks.
    * @param scopes A map of scopes.
-   * @param extenders A list of extenders.
+   * @param environmentExtenders A list of environment extenders.
+   * @param providerExtenders A list of provider extenders.
    */
   constructor(
     public readonly config: HardhatConfig,
     public readonly hardhatArguments: HardhatArguments,
     public readonly tasks: TasksMap,
     public readonly scopes: ScopesMap,
-    extenders: EnvironmentExtender[] = [],
+    environmentExtenders: EnvironmentExtender[] = [],
     experimentalHardhatNetworkMessageTraceHooks: ExperimentalHardhatNetworkMessageTraceHook[] = [],
-    public readonly userConfig: HardhatUserConfig = {}
+    public readonly userConfig: HardhatUserConfig = {},
+    providerExtenders: ProviderExtender[] = []
   ) {
     log("Creating HardhatRuntimeEnvironment");
 
@@ -95,29 +98,29 @@ export class Environment implements HardhatRuntimeEnvironment {
 
     this.artifacts = new Artifacts(config.paths.artifacts);
 
-    const provider = lazyObject(() => {
+    const provider = new LazyInitializationProviderAdapter(async () => {
       log(`Creating provider for network ${networkName}`);
       return createProvider(
+        config,
         networkName,
-        networkConfig,
-        this.config.paths,
         this.artifacts,
         experimentalHardhatNetworkMessageTraceHooks.map(
           (hook) => (trace: MessageTrace, isCallMessageTrace: boolean) =>
             hook(this, trace, isCallMessageTrace)
-        )
+        ),
+        providerExtenders
       );
     });
 
     this.network = {
       name: networkName,
-      config: config.networks[networkName],
+      config: networkConfig,
       provider,
     };
 
-    this._extenders = extenders;
+    this._environmentExtenders = environmentExtenders;
 
-    extenders.forEach((extender) => extender(this));
+    environmentExtenders.forEach((extender) => extender(this));
   }
 
   /**
@@ -180,7 +183,7 @@ export class Environment implements HardhatRuntimeEnvironment {
     } catch (e) {
       analyzeModuleNotFoundError(e, this.config.paths.configFile);
 
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw e;
     } finally {
       if (taskProfile !== undefined) {

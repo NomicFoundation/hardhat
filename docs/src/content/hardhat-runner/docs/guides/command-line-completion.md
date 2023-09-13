@@ -48,3 +48,16 @@ This approach has the downside of there being no way to provide autocomplete sug
 First, make sure you installed the autocompletion script with `hardhat-completion install`, then either reload your shell or open a new terminal to try again.
 
 If you still have problems, make sure that your Hardhat config doesn't have any issues. You can do this by just running `hh`. If the command prints the help message, then your config is fine. If not, you'll see what the problem is.
+
+If you are using zsh, these are some other things you can try:
+
+- Run `declare -f _hh_completion`. If you don't get any output, then the completion script is not being loaded.
+- Check that your `.zshrc` has a line that loads a `__tabtab.zsh` file. This is the file that in turn should load the `hh` completion.
+- Check that this `__tabtab.zsh` exists, and that there is a `hh.zsh` file in that same directory.
+- Make sure that your `.zshrc` is autoloading `compinit`. This means that you should have something like `autoload -U compinit && compinit` before the `__tabtab.zsh` line.
+
+If you are using bash, try this:
+
+- Run `complete -p hh`. You should get `complete -o default -F _hh_completion hh` as the output.
+- Check that your `.bashrc` has a line that loads a `__tabtab.bash` file. This is the file that in turn should load the `hh` completion.
+- Check that this `__tabtab.bash` exists, and that there is a `hh.bash` file in that same directory.

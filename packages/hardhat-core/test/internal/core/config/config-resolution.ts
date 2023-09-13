@@ -24,6 +24,18 @@ import {
   HttpNetworkUserConfig,
 } from "../../../../src/types";
 import { HardforkName } from "../../../../src/internal/util/hardforks";
+import { useFixtureProject } from "../../../helpers/project";
+import {
+  getAllFilesMatchingSync,
+  getRealPathSync,
+} from "../../../../src/internal/util/fs-utils";
+import { useEnvironment } from "../../../helpers/environment";
+
+function getBuildInfos() {
+  return getAllFilesMatchingSync(getRealPathSync("artifacts/build-info"), (f) =>
+    f.endsWith(".json")
+  );
+}
 
 describe("Config resolution", () => {
   describe("Default config merging", () => {
@@ -854,6 +866,121 @@ describe("Config resolution", () => {
             ...defaultHdAccountsConfigParams,
           });
         });
+      });
+    });
+  });
+
+  describe("evmVersion default", function () {
+    it("Should default to paris if solc is gte 0.8.20", () => {
+      let config = resolveConfig(__filename, {
+        solidity: "0.8.20",
+      });
+      assert.equal(config.solidity.compilers[0]?.settings?.evmVersion, "paris");
+
+      config = resolveConfig(__filename, {
+        solidity: "0.8.21",
+      });
+      assert.equal(config.solidity.compilers[0]?.settings?.evmVersion, "paris");
+
+      config = resolveConfig(__filename, {
+        solidity: {
+          compilers: [{ version: "0.8.20" }],
+          overrides: {
+            "contracts/ERC20.sol": {
+              version: "0.8.21",
+            },
+          },
+        },
+      });
+      assert.equal(config.solidity.compilers[0]?.settings?.evmVersion, "paris");
+      assert.equal(
+        config.solidity.overrides["contracts/ERC20.sol"]?.settings?.evmVersion,
+        "paris"
+      );
+    });
+
+    it("Should use the solc default if solc is lt 0.8.20", () => {
+      let config = resolveConfig(__filename, {
+        solidity: "0.8.19",
+      });
+      assert.isUndefined(config.solidity.compilers[0]?.settings?.evmVersion);
+
+      config = resolveConfig(__filename, {
+        solidity: {
+          compilers: [{ version: "0.5.7" }],
+          overrides: {
+            "contracts/ERC20.sol": {
+              version: "0.7.6",
+            },
+          },
+        },
+      });
+      assert.isUndefined(config.solidity.compilers[0]?.settings?.evmVersion);
+      assert.isUndefined(
+        config.solidity.overrides["contracts/ERC20.sol"]?.settings?.evmVersion
+      );
+    });
+
+    it("Should let the user override the evmVersion", () => {
+      const config = resolveConfig(__filename, {
+        solidity: {
+          compilers: [
+            { version: "0.8.20", settings: { evmVersion: "istanbul" } },
+          ],
+          overrides: {
+            "contracts/ERC20.sol": {
+              version: "0.8.21",
+              settings: { evmVersion: "shanghai" },
+            },
+          },
+        },
+      });
+
+      assert.equal(
+        config.solidity.compilers[0]?.settings?.evmVersion,
+        "istanbul"
+      );
+      assert.equal(
+        config.solidity.overrides["contracts/ERC20.sol"]?.settings?.evmVersion,
+        "shanghai"
+      );
+    });
+
+    describe("With a solc 0.8.20 project and default config", () => {
+      useFixtureProject("project-0.8.20");
+      useEnvironment();
+
+      it("Should not emit PUSH0 opcodes when compiling a contract with solc gte 0.8.20 and default config", async function () {
+        await this.env.run("compile");
+        const source = "contracts/Lock.sol";
+        const contract = "Lock";
+
+        const [buildInfo] = getBuildInfos();
+        const { output } = require(buildInfo);
+
+        assert.notInclude(
+          output.contracts[source][contract].evm.bytecode.opcodes,
+          "PUSH0"
+        );
+      });
+    });
+
+    describe("With a solc 0.8.20 project and overriden config", () => {
+      useFixtureProject("project-0.8.20-override-evm-version");
+      useEnvironment();
+
+      it("Should emit PUSH0 opcodes when compiling a contract with solc gte 0.8.20 and overriden config", async function () {
+        await this.env.run("compile");
+        const source = "contracts/Lock.sol";
+        const contract = "Lock";
+
+        const [buildInfo] = getBuildInfos();
+        const { output } = require(buildInfo);
+
+        assert.include(
+          output.contracts[source][contract].evm.bytecode.opcodes,
+          "PUSH0"
+        );
       });
     });
   });

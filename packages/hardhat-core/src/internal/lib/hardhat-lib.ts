@@ -41,9 +41,10 @@ if (HardhatContext.isCreated()) {
     hardhatArguments,
     ctx.tasksDSL.getTaskDefinitions(),
     ctx.tasksDSL.getScopesDefinitions(),
-    ctx.extendersManager.getExtenders(),
+    ctx.environmentExtenders,
     ctx.experimentalHardhatNetworkMessageTraceHooks,
-    userConfig
+    userConfig,
+    ctx.providerExtenders
   );
 
   ctx.setHardhatRuntimeEnvironment(env);

@@ -1,12 +1,14 @@
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
+import type { MatchersContract } from "./contracts";
+
 import { AssertionError, expect } from "chai";
 import { fork } from "child_process";
 import getPort from "get-port";
 import { resetHardhatContext } from "hardhat/plugins-testing";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
 
 // we assume that all the fixture projects use the hardhat-ethers plugin
-import "@nomiclabs/hardhat-ethers/internal/type-extensions";
+import "@nomicfoundation/hardhat-ethers/internal/type-extensions";
 
 declare module "mocha" {
   interface Context {
@@ -118,8 +120,8 @@ export async function runSuccessfulAsserts({
 }) {
   await successfulAssert(matchers[method](...args));
   await successfulAssert(matchers[`${method}View`](...args));
-  await successfulAssert(matchers.estimateGas[method](...args));
-  await successfulAssert(matchers.callStatic[method](...args));
+  await successfulAssert(matchers[method].estimateGas(...args));
+  await successfulAssert(matchers[method].staticCall(...args));
 }
 
 /**
@@ -147,9 +149,63 @@ export async function runFailedAsserts({
     failedAssert(matchers[`${method}View`](...args))
   ).to.be.rejectedWith(AssertionError, failedAssertReason);
   await expect(
-    failedAssert(matchers.estimateGas[method](...args))
+    failedAssert(matchers[method].estimateGas(...args))
   ).to.be.rejectedWith(AssertionError, failedAssertReason);
   await expect(
-    failedAssert(matchers.callStatic[method](...args))
+    failedAssert(matchers[method].staticCall(...args))
   ).to.be.rejectedWith(AssertionError, failedAssertReason);
+}
+
+export async function mineSuccessfulTransaction(
+  hre: HardhatRuntimeEnvironment
+) {
+  await hre.network.provider.send("evm_setAutomine", [false]);
+
+  const [signer] = await hre.ethers.getSigners();
+  const tx = await signer.sendTransaction({ to: signer.address });
+
+  await mineBlocksUntilTxIsIncluded(hre, tx.hash);
+
+  await hre.network.provider.send("evm_setAutomine", [true]);
+
+  return tx;
+}
+
+export async function mineRevertedTransaction(
+  hre: HardhatRuntimeEnvironment,
+  matchers: MatchersContract
+) {
+  await hre.network.provider.send("evm_setAutomine", [false]);
+
+  const tx = await matchers.revertsWithoutReason({
+    gasLimit: 1_000_000,
+  });
+
+  await mineBlocksUntilTxIsIncluded(hre, tx.hash);
+
+  await hre.network.provider.send("evm_setAutomine", [true]);
+
+  return tx;
+}
+
+async function mineBlocksUntilTxIsIncluded(
+  hre: HardhatRuntimeEnvironment,
+  txHash: string
+) {
+  let i = 0;
+
+  while (true) {
+    const receipt = await hre.ethers.provider.getTransactionReceipt(txHash);
+
+    if (receipt !== null) {
+      return;
+    }
+
+    await hre.network.provider.send("hardhat_mine", []);
+
+    i++;
+    if (i > 100) {
+      throw new Error(`Transaction was not mined after mining ${i} blocks`);
+    }
+  }
 }

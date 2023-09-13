@@ -269,6 +269,25 @@ Rename the file to use the .cjs to fix this problem.`,
       description: `Your project is an ESM project (you have "type": "module" set in your package.json) and you are trying to initialize a TypeScript project. This is not supported yet.`,
       shouldBeReported: false,
     },
+    UNINITIALIZED_PROVIDER: {
+      number: 21,
+      message:
+        "You tried to access an uninitialized provider. To initialize the provider, make sure you first call `.init()` or any method that hits a node like request, send or sendAsync.",
+      title: "Uninitialized provider",
+      description: `You tried to access an uninitialized provider. This is most likely caused by using the internal wrapped provider directly before using it to send a request or initializing it.
+To initialize the provider, make sure you first call \`.init()\` or any method that hits a node like request, send or sendAsync.`,
+      shouldBeReported: true,
+    },
+    INVALID_READ_OF_DIRECTORY: {
+      number: 22,
+      message:
+        "Invalid file path %absolutePath%. Attempting to read a directory instead of a file.",
+      title: "Invalid read: a directory cannot be read",
+      description: `An attempt was made to read a file, but a path to a directory was provided.
+
+Please double check the file path.`,
+      shouldBeReported: false,
+    },
   },
   NETWORK: {
     CONFIG_NOT_FOUND: {
@@ -603,6 +622,14 @@ Please double check your task definitions.`,
 Please double check your task definitions. You can add a scope to your task.`,
       shouldBeReported: false,
     },
+    DEPRECATED_TRANSFORM_IMPORT_TASK: {
+      number: 216,
+      title: "Use of deprecated remapping task",
+      message:
+        "Task TASK_COMPILE_TRANSFORM_IMPORT_NAME is deprecated. Please update your @nomicfoundation/hardhat-foundry plugin version.",
+      description: `This task has been deprecated in favor of a new approach.`,
+      shouldBeReported: true,
+    },
   },
   ARGUMENTS: {
     INVALID_ENV_VAR_VALUE: {
@@ -891,6 +918,26 @@ Use a relative import instead of referencing the package's name.`,
 Please double check your imports and installed libraries.`,
       shouldBeReported: false,
     },
+    INVALID_IMPORT_OF_DIRECTORY: {
+      number: 414,
+      message:
+        "Invalid import %imported% from %from%. Attempting to import a directory. Directories cannot be imported.",
+      title: "Invalid import: a directory cannot be imported",
+      description: `A Solidity file is attempting to import a directory, which is not possible.
+
+Please double check your imports.`,
+      shouldBeReported: false,
+    },
+    AMBIGUOUS_SOURCE_NAMES: {
+      number: 415,
+      message:
+        "Two different source names (%sourcenames%) resolve to the same file (%file%).",
+      title: "Ambiguous source names",
+      description: `Two different source names map to the same file.
+
+This is probably caused by multiple remappings pointing to the same source file.`,
+      shouldBeReported: false,
+    },
   },
   SOLC: {
     INVALID_VERSION: {
@@ -1041,7 +1088,7 @@ if the URL of the JSON-RPC wasn't set.`,
 
 The first supported version is %firstSupportedVersion%`,
       title: "Unsupported solc version",
-      description: `This version of solidity is not supported by Hardhtat.
+      description: `This version of solidity is not supported by Hardhat.
 Please use a newer, supported version.`,
       shouldBeReported: true,
     },

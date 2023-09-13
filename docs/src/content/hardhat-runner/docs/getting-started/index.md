@@ -80,7 +80,7 @@ $ npx hardhat
 888    888 888  888 888    Y88b 888 888  888 888  888 Y88b.
 888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888
 
-👷 Welcome to Hardhat v2.9.9 👷‍
+👷 Welcome to Hardhat v{HARDHAT_VERSION} 👷‍
 
 ? What do you want to do? …
 ❯ Create a JavaScript project
@@ -150,7 +150,7 @@ If you created a TypeScript project, this task will also generate TypeScript bin
 
 ### Testing your contracts
 
-Your project comes with tests that use [Mocha](https://mochajs.org), [Chai](https://www.chaijs.com), and [Ethers.js](https://docs.ethers.io/v5).
+Your project comes with tests that use [Mocha](https://mochajs.org), [Chai](https://www.chaijs.com), and [Ethers.js](https://docs.ethers.org/v6/).
 
 If you take a look in the `test/` folder, you'll see a test file:
 
@@ -178,7 +178,7 @@ You can run your tests with `npx hardhat test`:
 
 ```
 $ npx hardhat test
-Generating typings for: 2 artifacts in dir: typechain-types for target: ethers-v5
+Generating typings for: 2 artifacts in dir: typechain-types for target: ethers-v6
 Successfully generated 6 typings!
 Compiled 2 Solidity files successfully
 

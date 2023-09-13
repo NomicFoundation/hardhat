@@ -1,9 +1,12 @@
-import { assert } from "chai";
+import { assert, expect } from "chai";
 import ci from "ci-info";
 import * as fsExtra from "fs-extra";
 import * as path from "path";
 
-import { TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS } from "../../src/builtin-tasks/task-names";
+import {
+  TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS,
+  TASK_COMPILE_SOLIDITY_READ_FILE,
+} from "../../src/builtin-tasks/task-names";
 import { SOLIDITY_FILES_CACHE_FILENAME } from "../../src/internal/constants";
 import { ERRORS } from "../../src/internal/core/errors-list";
 import { CompilationJobCreationErrorReason } from "../../src/types/builtin-tasks";
@@ -135,6 +138,46 @@ describe("compile task", function () {
       assert.lengthOf(buildInfos, 2);
       assertValidJson(buildInfos[0]);
       assertValidJson(buildInfos[1]);
+    });
+  });
+
+  describe("TASK_COMPILE_SOLIDITY_READ_FILE", function () {
+    describe("Import folder", () => {
+      const folderName = "compilation-single-file";
+      useFixtureProject(folderName);
+      useEnvironment();
+
+      it("should throw an error because a directory is trying to be imported", async function () {
+        const absolutePath = `${__dirname}/../fixture-projects/${folderName}/contracts/`;
+
+        await expectHardhatErrorAsync(
+          async () => {
+            await this.env.run(TASK_COMPILE_SOLIDITY_READ_FILE, {
+              absolutePath,
+            });
+          },
+          ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY,
+          `HH22: Invalid file path ${absolutePath}. Attempting to read a directory instead of a file.`
+        );
+      });
+    });
+
+    describe("A non specific Hardhat error is thrown (expected default error)", () => {
+      const folderName = "compilation-import-non-existing-file-from-path";
+      useFixtureProject(folderName);
+      useEnvironment();
+
+      it("should throw an error because the file does not exist", async function () {
+        const absolutePath = `${__dirname}/../fixture-projects/${folderName}/contracts/file.sol`;
+
+        await expect(
+          this.env.run(TASK_COMPILE_SOLIDITY_READ_FILE, { absolutePath })
+        )
+          .to.be.rejectedWith(
+            `ENOENT: no such file or directory, lstat '${absolutePath}'`
+          )
+          .and.eventually.have.property("name", "Error"); // Default js error
+      });
     });
   });
 
@@ -842,6 +885,117 @@ Read about compiler configuration at https://hardhat.org/config
 
         assert.equal(newBuildInfos[0], expectedBuildInfoName);
       }
+    });
+  });
+
+  describe("project with files importing dependencies", function () {
+    useFixtureProject("compilation-contract-with-deps");
+    useEnvironment();
+
+    it("should not remove the build-info if it is still referenced by an external library", async function () {
+      await this.env.run("compile");
+
+      const pathToContractA = path.join("contracts", "A.sol");
+      let contractA = fsExtra.readFileSync(pathToContractA, "utf-8");
+      contractA = contractA.replace("contract A", "contract B");
+      fsExtra.writeFileSync(pathToContractA, contractA, "utf-8");
+
+      /**
+       * The _validArtifacts variable is not cleared when running the compile
+       * task twice in the same process, leading to an invalid output. This
+       * issue is not encountered when running the task from the CLI as each
+       * command operates as a separate process. To resolve this, the private
+       * variable should be cleared after each run of the compile task.
+       */
+      // eslint-disable-next-line @typescript-eslint/dot-notation
+      (this.env.artifacts as any)["_validArtifacts"] = [];
+
+      await this.env.run("compile");
+
+      contractA = contractA.replace("contract B", "contract A");
+      fsExtra.writeFileSync(pathToContractA, contractA, "utf-8");
+
+      // asserts
+      const pathToBuildInfoB = path.join(
+        "artifacts",
+        "contracts",
+        "A.sol",
+        "B.dbg.json"
+      );
+      assertBuildInfoExists(pathToBuildInfoB);
+      const pathToBuildInfoConsole = path.join(
+        "artifacts",
+        "dependency",
+        "contracts",
+        "console.sol",
+        "console.dbg.json"
+      );
+      assertBuildInfoExists(pathToBuildInfoConsole);
+    });
+
+    it("should not remove the build-info if it is still referenced by another local contract", async function () {
+      await this.env.run("compile");
+
+      const pathToContractC = path.join("contracts", "C.sol");
+      let contractC = fsExtra.readFileSync(pathToContractC, "utf-8");
+      contractC = contractC.replace("contract C", "contract D");
+      fsExtra.writeFileSync(pathToContractC, contractC, "utf-8");
+
+      /**
+       * The _validArtifacts variable is not cleared when running the compile
+       * task twice in the same process, leading to an invalid output. This
+       * issue is not encountered when running the task from the CLI as each
+       * command operates as a separate process. To resolve this, the private
+       * variable should be cleared after each run of the compile task.
+       */
+      // eslint-disable-next-line @typescript-eslint/dot-notation
+      (this.env.artifacts as any)["_validArtifacts"] = [];
+
+      await this.env.run("compile");
+
+      contractC = contractC.replace("contract D", "contract C");
+      fsExtra.writeFileSync(pathToContractC, contractC, "utf-8");
+
+      // asserts
+      const pathToBuildInfoC = path.join(
+        "artifacts",
+        "contracts",
+        "C.sol",
+        "D.dbg.json"
+      );
+      assertBuildInfoExists(pathToBuildInfoC);
+      const pathToBuildInfoE = path.join(
+        "artifacts",
+        "contracts",
+        "E.sol",
+        "E.dbg.json"
+      );
+      assertBuildInfoExists(pathToBuildInfoE);
+    });
+  });
+
+  describe("project with remappings", function () {
+    useFixtureProject("compilation-remappings");
+    useEnvironment();
+
+    it("should compile fine", async function () {
+      await this.env.run("compile");
+
+      assertFileExists(path.join("artifacts", "contracts", "A.sol", "A.json"));
+      assertFileExists(path.join("artifacts", "foo", "Foo.sol", "Foo.json"));
+    });
+  });
+
+  describe("project with ambiguous remappings", function () {
+    useFixtureProject("compilation-ambiguous-remappings");
+    useEnvironment();
+
+    it("should throw an error", async function () {
+      await expectHardhatErrorAsync(
+        () => this.env.run("compile"),
+        ERRORS.RESOLVER.AMBIGUOUS_SOURCE_NAMES,
+        "Two different source names ('foo/Foo.sol' and 'bar/Foo.sol') resolve to the same file"
+      );
     });
   });
 });

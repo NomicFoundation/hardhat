@@ -41,24 +41,22 @@ type SampleProjectTypeCreationAction =
 const HARDHAT_PACKAGE_NAME = "hardhat";
 
 const PROJECT_DEPENDENCIES: Dependencies = {
-  "@nomicfoundation/hardhat-toolbox": "^2.0.0",
+  "@nomicfoundation/hardhat-toolbox": "^3.0.0",
 };
 
 const PEER_DEPENDENCIES: Dependencies = {
-  hardhat: "^2.11.1",
+  hardhat: "^2.14.0",
   "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
-  "@nomicfoundation/hardhat-chai-matchers": "^1.0.0",
-  "@nomiclabs/hardhat-ethers": "^2.0.0",
-  "@nomiclabs/hardhat-etherscan": "^3.0.0",
+  "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
+  "@nomicfoundation/hardhat-ethers": "^3.0.0",
+  "@nomicfoundation/hardhat-verify": "^1.0.0",
   chai: "^4.2.0",
-  ethers: "^5.4.7",
+  ethers: "^6.4.0",
   "hardhat-gas-reporter": "^1.0.8",
   "solidity-coverage": "^0.8.0",
-  "@typechain/hardhat": "^6.1.2",
+  "@typechain/hardhat": "^8.0.0",
   typechain: "^8.1.0",
-  "@typechain/ethers-v5": "^10.1.0",
-  "@ethersproject/abi": "^5.4.7",
-  "@ethersproject/providers": "^5.4.7",
+  "@typechain/ethers-v6": "^0.4.0",
 };
 
 const TYPESCRIPT_DEPENDENCIES: Dependencies = {};
@@ -66,7 +64,7 @@ const TYPESCRIPT_DEPENDENCIES: Dependencies = {};
 const TYPESCRIPT_PEER_DEPENDENCIES: Dependencies = {
   "@types/chai": "^4.2.0",
   "@types/mocha": ">=9.1.0",
-  "@types/node": ">=12.0.0",
+  "@types/node": ">=16.0.0",
   "ts-node": ">=8.0.0",
   typescript: ">=4.5.0",
 };
@@ -229,7 +227,7 @@ async function printRecommendedDepsInstallationInstructions(
 // exported so we can test that it uses the latest supported version of solidity
 export const EMPTY_HARDHAT_CONFIG = `/** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "0.8.18",
+  solidity: "0.8.19",
 };
 `;
 
@@ -299,7 +297,7 @@ async function getAction(isEsm: boolean): Promise<Action> {
       return Action.QUIT_ACTION;
     }
 
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
     throw e;
   }
 }
@@ -317,7 +315,7 @@ async function createPackageJson() {
 function showStarOnGitHubMessage() {
   console.log(
     chalk.cyan("Give Hardhat a star on Github if you're enjoying it!") +
-      emoji(" 💞✨")
+      emoji(" ⭐️✨")
   );
   console.log();
   console.log(chalk.cyan("     https://github.com/NomicFoundation/hardhat"));
@@ -394,7 +392,7 @@ export async function createProject() {
         return;
       }
 
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw e;
     }
   }
@@ -405,7 +403,10 @@ export async function createProject() {
     await addGitIgnore(projectRoot);
   }
 
-  if (hasConsentedTelemetry() === undefined) {
+  if (
+    process.env.HARDHAT_DISABLE_TELEMETRY_PROMPT !== "true" &&
+    hasConsentedTelemetry() === undefined
+  ) {
     const telemetryConsent = await confirmTelemetryConsent();
 
     if (telemetryConsent !== undefined) {
