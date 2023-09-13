@@ -14,7 +14,7 @@ fi
 set -xe
 
 # Setting RUSTFLAGS env for clippy makes it not include custom rules
-RUSTFLAGS=-Dwarnings cargo hack check --feature-powerset --no-dev-deps
+RUSTFLAGS=-Dwarnings cargo check --workspace --all-targets --profile bench ${ALL_FEATURES}
 cargo clippy --all --all-targets ${ALL_FEATURES} -- -D warnings
 cargo fmt --all -- --check
 cargo test --doc --workspace ${ALL_FEATURES}
