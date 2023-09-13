@@ -63,8 +63,8 @@ describe("display error deployment result", () => {
         type: DeploymentResultType.EXECUTION_ERROR,
         started: [],
         timedOut: [
-          { futureId: "MyModule:MyContract", executionId: 1 },
-          { futureId: "MyModule:AnotherContract", executionId: 3 },
+          { futureId: "MyModule:MyContract", networkInteractionId: 1 },
+          { futureId: "MyModule:AnotherContract", networkInteractionId: 3 },
         ],
         failed: [],
         successful: [],
@@ -89,12 +89,12 @@ Timed out:
         failed: [
           {
             futureId: "MyModule:MyContract",
-            executionId: 1,
+            networkInteractionId: 1,
             error: "Reverted with reason x",
           },
           {
             futureId: "MyModule:AnotherContract",
-            executionId: 3,
+            networkInteractionId: 3,
             error: "Reverted with reason y",
           },
         ],
@@ -117,18 +117,18 @@ Failures:
         type: DeploymentResultType.EXECUTION_ERROR,
         started: [],
         timedOut: [
-          { futureId: "MyModule:FirstContract", executionId: 1 },
-          { futureId: "MyModule:SecondContract", executionId: 3 },
+          { futureId: "MyModule:FirstContract", networkInteractionId: 1 },
+          { futureId: "MyModule:SecondContract", networkInteractionId: 3 },
         ],
         failed: [
           {
             futureId: "MyModule:ThirdContract",
-            executionId: 1,
+            networkInteractionId: 1,
             error: "Reverted with reason x",
           },
           {
             futureId: "MyModule:FourthContract",
-            executionId: 3,
+            networkInteractionId: 3,
             error: "Reverted with reason y",
           },
         ],

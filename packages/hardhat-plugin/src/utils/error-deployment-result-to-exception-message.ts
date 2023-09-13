@@ -63,7 +63,8 @@ function _convertExecutionError(result: ExecutionErrorDeploymentResult) {
 
   if (messageDetails.timeouts) {
     const timeoutList = result.timedOut.map(
-      ({ futureId, executionId }) => `  * ${futureId}/${executionId}`
+      ({ futureId, networkInteractionId }) =>
+        `  * ${futureId}/${networkInteractionId}`
     );
 
     sections.push(`Timed out:\n\n${timeoutList.join("\n")}`);
@@ -71,8 +72,8 @@ function _convertExecutionError(result: ExecutionErrorDeploymentResult) {
 
   if (messageDetails.failures) {
     const errorList = result.failed.map(
-      ({ futureId, executionId, error }) =>
-        `  * ${futureId}/${executionId}: ${error}`
+      ({ futureId, networkInteractionId, error }) =>
+        `  * ${futureId}/${networkInteractionId}: ${error}`
     );
 
     sections.push(`Failures:\n\n${errorList.join("\n")}`);

@@ -120,16 +120,20 @@ export interface ExecutionErrorDeploymentResult {
   started: string[];
 
   /**
-   * A list of all the future that have timed out and the id of the execution
-   * that timed out.
+   * A list of all the future that have timed out, including details of the
+   * network interaction that timed out.
    */
-  timedOut: Array<{ futureId: string; executionId: number }>;
+  timedOut: Array<{ futureId: string; networkInteractionId: number }>;
 
   /**
-   * A list of all the future that have failed and the id of the execution
-   * that failed, and a string explaining the failure.
+   * A list of all the future that have failed, including the details of
+   * the network interaction that errored.
    */
-  failed: Array<{ futureId: string; executionId: number; error: string }>;
+  failed: Array<{
+    futureId: string;
+    networkInteractionId: number;
+    error: string;
+  }>;
 
   /**
    * A list with the id of all the future that have successfully executed.

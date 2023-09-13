@@ -140,9 +140,9 @@ const ExecutionErrorResult: React.FC<{
               Timed Out:
               <Newline />
             </Text>
-            {result.timedOut.map(({ futureId, executionId }) => (
+            {result.timedOut.map(({ futureId, networkInteractionId }) => (
               <Text key={futureId}>
-                - {futureId}/{executionId}
+                - {futureId}/{networkInteractionId}
               </Text>
             ))}
           </Box>
@@ -155,9 +155,9 @@ const ExecutionErrorResult: React.FC<{
               <Newline />
             </Text>
 
-            {result.failed.map(({ futureId, executionId, error }) => (
+            {result.failed.map(({ futureId, networkInteractionId, error }) => (
               <Text key={futureId}>
-                - {futureId}/{executionId}: {error}
+                - {futureId}/{networkInteractionId}: {error}
               </Text>
             ))}
           </Box>

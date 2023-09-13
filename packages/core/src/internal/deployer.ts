@@ -296,7 +296,7 @@ export class Deployer {
         .filter((ex) => ex.status === ExecutionStatus.TIMEOUT)
         .map((ex) => ({
           futureId: ex.id,
-          executionId: ex.networkInteractions.at(-1)!.id,
+          networkInteractionId: ex.networkInteractions.at(-1)!.id,
         })),
       failed: Object.values(deploymentState.executionStates)
         .filter(canFail)
@@ -310,7 +310,7 @@ export class Deployer {
 
           return {
             futureId: ex.id,
-            executionId: ex.networkInteractions.at(-1)!.id,
+            networkInteractionId: ex.networkInteractions.at(-1)!.id,
             error: formatExecutionError(ex.result),
           };
         }),
