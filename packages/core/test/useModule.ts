@@ -211,7 +211,7 @@ describe("useModule", () => {
       assert.deepStrictEqual(result, {
         type: DeploymentResultType.VALIDATION_ERROR,
         errors: {
-          "Submodule1:Contract1": [
+          "Submodule1#Contract1": [
             "Module parameter 'param1' requires a value but was given none",
           ],
         },

@@ -59,7 +59,7 @@ describe("Reconciliation - named library", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Submodule:SafeMath",
+          id: "Submodule#SafeMath",
           futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           contractName: "SafeMath",
@@ -70,7 +70,7 @@ describe("Reconciliation - named library", () => {
         },
         {
           ...exampleDeploymentState,
-          id: "Submodule:MainLibrary",
+          id: "Submodule#MainLibrary",
           futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
           status: ExecutionStatus.STARTED,
           contractName: "MainLibrary",
@@ -93,7 +93,7 @@ describe("Reconciliation - named library", () => {
       moduleDefinition,
       createDeploymentState({
         ...exampleDeploymentState,
-        id: "Module:Library",
+        id: "Module#Library",
         futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         contractName: "LibraryUnchanged",
@@ -102,7 +102,7 @@ describe("Reconciliation - named library", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Library",
+        futureId: "Module#Library",
         failure:
           "Contract name has been changed from LibraryUnchanged to LibraryChanged",
       },
@@ -125,7 +125,7 @@ describe("Reconciliation - named library", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Module:SafeMath",
+          id: "Module#SafeMath",
           futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           contractName: "SafeMath",
@@ -136,7 +136,7 @@ describe("Reconciliation - named library", () => {
         },
         {
           ...exampleDeploymentState,
-          id: "Module:MainLibrary",
+          id: "Module#MainLibrary",
           futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
           status: ExecutionStatus.STARTED,
           contractName: "MainLibrary",
@@ -149,7 +149,7 @@ describe("Reconciliation - named library", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:MainLibrary",
+        futureId: "Module#MainLibrary",
         failure: "Library Unchanged has been removed",
       },
     ]);
@@ -166,7 +166,7 @@ describe("Reconciliation - named library", () => {
       moduleDefinition,
       createDeploymentState({
         ...exampleDeploymentState,
-        id: "Module:Library",
+        id: "Module#Library",
         futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         contractName: "Library",
@@ -176,7 +176,7 @@ describe("Reconciliation - named library", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Library",
+        futureId: "Module#Library",
         failure: `From account has been changed from ${oneAddress} to ${twoAddress}`,
       },
     ]);

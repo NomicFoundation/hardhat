@@ -16,7 +16,7 @@ export const Action: React.FC<{
   const displayText = toDisplayText(future);
 
   const navigateToFuture = useCallback(() => {
-    return navigate(`/future/${future.id}`);
+    return navigate(`/future/${encodeURIComponent(future.id)}`);
   }, [future.id, navigate]);
 
   return (

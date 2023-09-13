@@ -67,7 +67,7 @@ describe("Reconciliation - artifact contract", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Submodule:SafeMath",
+          id: "Submodule#SafeMath",
           futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           contractName: "SafeMath",
@@ -78,7 +78,7 @@ describe("Reconciliation - artifact contract", () => {
         },
         {
           ...exampleDeploymentState,
-          id: "Submodule:Contract1",
+          id: "Submodule#Contract1",
           futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.STARTED,
           constructorArgs: [{ supply: BigInt(1000) }],
@@ -106,7 +106,7 @@ describe("Reconciliation - artifact contract", () => {
       moduleDefinition,
       createDeploymentState({
         ...exampleDeploymentState,
-        id: "Module:Example",
+        id: "Module#Example",
         futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         contractName: "ContractUnchanged",
@@ -115,7 +115,7 @@ describe("Reconciliation - artifact contract", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Example",
+        futureId: "Module#Example",
         failure:
           "Contract name has been changed from ContractUnchanged to ContractChanged",
       },
@@ -141,7 +141,7 @@ describe("Reconciliation - artifact contract", () => {
       moduleDefinition,
       createDeploymentState({
         ...exampleDeploymentState,
-        id: "Module:Contract1",
+        id: "Module#Contract1",
         futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         constructorArgs: [
@@ -154,7 +154,7 @@ describe("Reconciliation - artifact contract", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Contract1",
+        futureId: "Module#Contract1",
         failure: "Argument at index 2 has been changed",
       },
     ]);
@@ -178,7 +178,7 @@ describe("Reconciliation - artifact contract", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Module:SafeMath",
+          id: "Module#SafeMath",
           futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           contractName: "SafeMath",
@@ -189,7 +189,7 @@ describe("Reconciliation - artifact contract", () => {
         },
         {
           ...exampleDeploymentState,
-          id: "Module:Contract1",
+          id: "Module#Contract1",
           futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.STARTED,
           libraries: {},
@@ -199,7 +199,7 @@ describe("Reconciliation - artifact contract", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Contract1",
+        futureId: "Module#Contract1",
         failure: "Library SafeMath has been added",
       },
     ]);
@@ -219,7 +219,7 @@ describe("Reconciliation - artifact contract", () => {
       moduleDefinition,
       createDeploymentState({
         ...exampleDeploymentState,
-        id: "Module:Example",
+        id: "Module#Example",
         futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         value: BigInt(3),
@@ -228,7 +228,7 @@ describe("Reconciliation - artifact contract", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Example",
+        futureId: "Module#Example",
         failure: "Value has been changed from 3 to 4",
       },
     ]);
@@ -248,7 +248,7 @@ describe("Reconciliation - artifact contract", () => {
       moduleDefinition,
       createDeploymentState({
         ...exampleDeploymentState,
-        id: "Module:Example",
+        id: "Module#Example",
         futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         from: oneAddress,
@@ -257,7 +257,7 @@ describe("Reconciliation - artifact contract", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Example",
+        futureId: "Module#Example",
         failure: `From account has been changed from ${oneAddress} to ${twoAddress}`,
       },
     ]);

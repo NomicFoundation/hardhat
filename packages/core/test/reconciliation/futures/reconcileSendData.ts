@@ -50,7 +50,7 @@ describe("Reconciliation - send data", () => {
       moduleDefinition,
       createDeploymentState({
         ...exampleSendState,
-        id: "Submodule:test_send",
+        id: "Submodule#test_send",
         status: ExecutionStatus.STARTED,
       })
     );
@@ -67,7 +67,7 @@ describe("Reconciliation - send data", () => {
       moduleDefinition,
       createDeploymentState({
         ...exampleSendState,
-        id: "Module:test_send",
+        id: "Module#test_send",
         status: ExecutionStatus.STARTED,
         data: "0x",
       })
@@ -85,7 +85,7 @@ describe("Reconciliation - send data", () => {
       moduleDefinition,
       createDeploymentState({
         ...exampleSendState,
-        id: "Module:test_send",
+        id: "Module#test_send",
         status: ExecutionStatus.STARTED,
         to: exampleAddress,
       })
@@ -93,7 +93,7 @@ describe("Reconciliation - send data", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:test_send",
+        futureId: "Module#test_send",
         failure:
           'Address "to" has been changed from 0x1F98431c8aD98523631AE4a59f267346ea31F984 to 0xBA12222222228d8Ba445958a75a0704d566BF2C8',
       },
@@ -111,7 +111,7 @@ describe("Reconciliation - send data", () => {
       moduleDefinition,
       createDeploymentState({
         ...exampleSendState,
-        id: "Module:test_send",
+        id: "Module#test_send",
         status: ExecutionStatus.STARTED,
         data: "unchanged_data",
       })
@@ -119,7 +119,7 @@ describe("Reconciliation - send data", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:test_send",
+        futureId: "Module#test_send",
         failure: "Data has been changed from unchanged_data to changed_data",
       },
     ]);
@@ -136,7 +136,7 @@ describe("Reconciliation - send data", () => {
       moduleDefinition,
       createDeploymentState({
         ...exampleSendState,
-        id: "Module:test_send",
+        id: "Module#test_send",
         status: ExecutionStatus.STARTED,
         value: 2n,
       })
@@ -144,7 +144,7 @@ describe("Reconciliation - send data", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:test_send",
+        futureId: "Module#test_send",
         failure: "Value has been changed from 2 to 3",
       },
     ]);
@@ -163,7 +163,7 @@ describe("Reconciliation - send data", () => {
       moduleDefinition,
       createDeploymentState({
         ...exampleSendState,
-        id: "Module:test_send",
+        id: "Module#test_send",
         status: ExecutionStatus.STARTED,
         from: exampleAddress,
       })
@@ -171,7 +171,7 @@ describe("Reconciliation - send data", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:test_send",
+        futureId: "Module#test_send",
         failure: `From account has been changed from ${exampleAddress} to ${differentAddress}`,
       },
     ]);

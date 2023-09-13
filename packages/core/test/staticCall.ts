@@ -30,7 +30,7 @@ describe("static call", () => {
     assert.equal(moduleWithASingleContract.id, "Module1");
     assert.equal(
       moduleWithASingleContract.results.contract1.id,
-      "Module1:Contract1"
+      "Module1#Contract1"
     );
 
     // 1 contract future & 1 call future
@@ -61,15 +61,15 @@ describe("static call", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Example"
+      ({ id }) => id === "Module1#Example"
     );
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Example"
+      ({ id }) => id === "Module1#Example"
     );
 
     const callFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Example#test"
+      ({ id }) => id === "Module1#Example.test"
     );
 
     if (!(callFuture instanceof NamedStaticCallFutureImplementation)) {
@@ -94,15 +94,15 @@ describe("static call", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Example"
+      ({ id }) => id === "Module1#Example"
     );
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Another"
+      ({ id }) => id === "Module1#Another"
     );
 
     const callFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Example#test"
+      ({ id }) => id === "Module1#Example.test"
     );
 
     if (!(callFuture instanceof NamedStaticCallFutureImplementation)) {
@@ -128,11 +128,11 @@ describe("static call", () => {
     assert.isDefined(moduleWithASingleContract);
 
     const staticCallFuture = [...moduleWithASingleContract.futures].find(
-      ({ id }) => id === "Module1:Contract1#test"
+      ({ id }) => id === "Module1#Contract1.test"
     );
 
     const callFuture = [...moduleWithASingleContract.futures].find(
-      ({ id }) => id === "Module1:Contract1#test2"
+      ({ id }) => id === "Module1#Contract1.test2"
     );
 
     if (!(callFuture instanceof NamedContractCallFutureImplementation)) {
@@ -156,11 +156,11 @@ describe("static call", () => {
     assert.isDefined(moduleWithASingleContract);
 
     const staticCallFuture = [...moduleWithASingleContract.futures].find(
-      ({ id }) => id === "Module1:Contract1#test"
+      ({ id }) => id === "Module1#Contract1.test"
     );
 
     const staticCallFuture2 = [...moduleWithASingleContract.futures].find(
-      ({ id }) => id === "Module1:Contract1#test2"
+      ({ id }) => id === "Module1#Contract1.test2"
     );
 
     if (!(staticCallFuture instanceof NamedStaticCallFutureImplementation)) {
@@ -187,7 +187,7 @@ describe("static call", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const callFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Example#test"
+      ({ id }) => id === "Module1#Example.test"
     );
 
     if (!(callFuture instanceof NamedStaticCallFutureImplementation)) {
@@ -209,7 +209,7 @@ describe("static call", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const callFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Example#test"
+      ({ id }) => id === "Module1#Example.test"
     );
 
     if (!(callFuture instanceof NamedStaticCallFutureImplementation)) {
@@ -398,11 +398,11 @@ describe("static call", () => {
       assert.equal(moduleWithSameCallTwice.id, "Module1");
 
       const callFuture = [...moduleWithSameCallTwice.futures].find(
-        ({ id }) => id === "Module1:first"
+        ({ id }) => id === "Module1#first"
       );
 
       const callFuture2 = [...moduleWithSameCallTwice.futures].find(
-        ({ id }) => id === "Module1:second"
+        ({ id }) => id === "Module1#second"
       );
 
       assert.isDefined(callFuture);
@@ -419,7 +419,7 @@ describe("static call", () => {
 
             return { sameContract1 };
           }),
-        /Duplicated id Module1:SameContract#test found in module Module1/
+        /Duplicated id Module1#SameContract.test found in module Module1/
       );
     });
 
@@ -432,7 +432,7 @@ describe("static call", () => {
             m.staticCall(sameContract1, "test", [], 0, { id: "first" });
             return { sameContract1 };
           }),
-        /Duplicated id Module1:first found in module Module1/
+        /Duplicated id Module1#first found in module Module1/
       );
     });
   });

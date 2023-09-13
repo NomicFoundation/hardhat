@@ -59,7 +59,7 @@ describe("Reconciliation - artifact library", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Submodule:SafeMath",
+          id: "Submodule#SafeMath",
           futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           contractName: "SafeMath",
@@ -70,7 +70,7 @@ describe("Reconciliation - artifact library", () => {
         },
         {
           ...exampleDeploymentState,
-          id: "Submodule:MainLibrary",
+          id: "Submodule#MainLibrary",
           futureType: FutureType.ARTIFACT_LIBRARY_DEPLOYMENT,
           status: ExecutionStatus.STARTED,
           contractName: "MainLibrary",
@@ -95,7 +95,7 @@ describe("Reconciliation - artifact library", () => {
       moduleDefinition,
       createDeploymentState({
         ...exampleDeploymentState,
-        id: "Module:Example",
+        id: "Module#Example",
         futureType: FutureType.ARTIFACT_LIBRARY_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         contractName: "LibraryUnchanged",
@@ -104,7 +104,7 @@ describe("Reconciliation - artifact library", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Example",
+        futureId: "Module#Example",
         failure:
           "Contract name has been changed from LibraryUnchanged to LibraryChanged",
       },
@@ -127,7 +127,7 @@ describe("Reconciliation - artifact library", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Module:SafeMath",
+          id: "Module#SafeMath",
           futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           contractName: "SafeMath",
@@ -138,7 +138,7 @@ describe("Reconciliation - artifact library", () => {
         },
         {
           ...exampleDeploymentState,
-          id: "Module:MainLibrary",
+          id: "Module#MainLibrary",
           futureType: FutureType.ARTIFACT_LIBRARY_DEPLOYMENT,
           status: ExecutionStatus.STARTED,
           contractName: "MainLibrary",
@@ -151,7 +151,7 @@ describe("Reconciliation - artifact library", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:MainLibrary",
+        futureId: "Module#MainLibrary",
         failure: "Library Unchanged has been removed",
       },
     ]);
@@ -171,7 +171,7 @@ describe("Reconciliation - artifact library", () => {
       moduleDefinition,
       createDeploymentState({
         ...exampleDeploymentState,
-        id: "Module:Example",
+        id: "Module#Example",
         futureType: FutureType.ARTIFACT_LIBRARY_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         contractName: "Library1",
@@ -181,7 +181,7 @@ describe("Reconciliation - artifact library", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Example",
+        futureId: "Module#Example",
         failure: `From account has been changed from ${oneAddress} to ${twoAddress}`,
       },
     ]);

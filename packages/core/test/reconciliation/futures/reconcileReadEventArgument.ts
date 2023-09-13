@@ -74,7 +74,7 @@ describe("Reconciliation - read event argument", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Submodule:Contract",
+          id: "Submodule#Contract",
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           contractName: "Contract",
@@ -85,7 +85,7 @@ describe("Reconciliation - read event argument", () => {
         },
         {
           ...exampleReadArgState,
-          id: "Submodule:Contract#EventName1#arg1#0",
+          id: "Submodule#Contract.EventName1.arg1.0",
           status: ExecutionStatus.STARTED,
           eventName: "EventName1",
           nameOrIndex: "arg1",
@@ -110,7 +110,7 @@ describe("Reconciliation - read event argument", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Module:Contract",
+          id: "Module#Contract",
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           contractName: "Contract",
@@ -121,7 +121,7 @@ describe("Reconciliation - read event argument", () => {
         },
         {
           ...exampleReadArgState,
-          id: "Module:ReadEvent",
+          id: "Module#ReadEvent",
           status: ExecutionStatus.STARTED,
           eventName: "eventUnchanged",
         }
@@ -130,7 +130,7 @@ describe("Reconciliation - read event argument", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:ReadEvent",
+        futureId: "Module#ReadEvent",
         failure:
           "Event name has been changed from eventUnchanged to EventChanged",
       },
@@ -153,7 +153,7 @@ describe("Reconciliation - read event argument", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Module:Contract",
+          id: "Module#Contract",
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           result: {
@@ -164,7 +164,7 @@ describe("Reconciliation - read event argument", () => {
         },
         {
           ...exampleReadArgState,
-          id: "Module:ReadEvent",
+          id: "Module#ReadEvent",
           status: ExecutionStatus.STARTED,
           nameOrIndex: "argUnchanged",
         }
@@ -173,7 +173,7 @@ describe("Reconciliation - read event argument", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:ReadEvent",
+        futureId: "Module#ReadEvent",
         failure:
           "Argument name or index has been changed from argUnchanged to argChanged",
       },
@@ -197,7 +197,7 @@ describe("Reconciliation - read event argument", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Module:Contract",
+          id: "Module#Contract",
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           result: {
@@ -208,7 +208,7 @@ describe("Reconciliation - read event argument", () => {
         },
         {
           ...exampleReadArgState,
-          id: "Module:ReadEvent",
+          id: "Module#ReadEvent",
           status: ExecutionStatus.STARTED,
           eventIndex: 1,
         }
@@ -217,7 +217,7 @@ describe("Reconciliation - read event argument", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:ReadEvent",
+        futureId: "Module#ReadEvent",
         failure: "Event index has been changed from 1 to 3",
       },
     ]);
@@ -241,7 +241,7 @@ describe("Reconciliation - read event argument", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Module:Contract1",
+          id: "Module#Contract1",
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           contractName: "Contract1",
@@ -252,7 +252,7 @@ describe("Reconciliation - read event argument", () => {
         },
         {
           ...exampleDeploymentState,
-          id: "Module:Contract2",
+          id: "Module#Contract2",
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           contractName: "Contract2",
@@ -263,7 +263,7 @@ describe("Reconciliation - read event argument", () => {
         },
         {
           ...exampleReadArgState,
-          id: "Module:ReadEvent",
+          id: "Module#ReadEvent",
           status: ExecutionStatus.STARTED,
           emitterAddress: exampleAddress,
         }
@@ -272,9 +272,9 @@ describe("Reconciliation - read event argument", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:ReadEvent",
+        futureId: "Module#ReadEvent",
         failure:
-          "Emitter has been changed from 0x1F98431c8aD98523631AE4a59f267346ea31F984 to 0xBA12222222228d8Ba445958a75a0704d566BF2C8 (future Module:Contract2)",
+          "Emitter has been changed from 0x1F98431c8aD98523631AE4a59f267346ea31F984 to 0xBA12222222228d8Ba445958a75a0704d566BF2C8 (future Module#Contract2)",
       },
     ]);
   });
@@ -306,7 +306,7 @@ describe("Reconciliation - read event argument", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Module:Contract1",
+          id: "Module#Contract1",
           status: ExecutionStatus.SUCCESS,
           result: {
             type: ExecutionResultType.SUCCESS,
@@ -315,9 +315,9 @@ describe("Reconciliation - read event argument", () => {
         },
         {
           ...exampleReadArgState,
-          id: "Module:ReadEvent1",
+          id: "Module#ReadEvent1",
           status: ExecutionStatus.SUCCESS,
-          dependencies: new Set(["Module:Contract1"]),
+          dependencies: new Set(["Module#Contract1"]),
           eventName: "event1",
           nameOrIndex: "argument1",
           emitterAddress: exampleAddress,
@@ -325,9 +325,9 @@ describe("Reconciliation - read event argument", () => {
         },
         {
           ...exampleReadArgState,
-          id: "Module:ReadEvent2",
+          id: "Module#ReadEvent2",
           status: ExecutionStatus.SUCCESS,
-          dependencies: new Set(["Module:Contract1"]),
+          dependencies: new Set(["Module#Contract1"]),
           eventName: "event2",
           nameOrIndex: "argument2",
           emitterAddress: exampleAddress,
@@ -335,9 +335,9 @@ describe("Reconciliation - read event argument", () => {
         },
         {
           ...exampleDeploymentState,
-          id: "Module:Contract2",
+          id: "Module#Contract2",
           status: ExecutionStatus.STARTED,
-          dependencies: new Set(["Module:ReadEvent1", "Module:ReadEvent2"]),
+          dependencies: new Set(["Module#ReadEvent1", "Module#ReadEvent2"]),
           contractName: "Contract2",
           result: {
             type: ExecutionResultType.SUCCESS,
@@ -350,7 +350,7 @@ describe("Reconciliation - read event argument", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Contract2",
+        futureId: "Module#Contract2",
         failure: "Argument at index 0 has been changed",
       },
     ]);

@@ -33,7 +33,7 @@ describe("send", () => {
     assert.equal(moduleWithASingleContract.submodules.size, 0);
 
     const sendFuture = [...moduleWithASingleContract.futures].find(
-      ({ id }) => id === "Module1:test_send"
+      ({ id }) => id === "Module1#test_send"
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -54,11 +54,11 @@ describe("send", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Example"
+      ({ id }) => id === "Module1#Example"
     );
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:test_send"
+      ({ id }) => id === "Module1#test_send"
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -80,11 +80,11 @@ describe("send", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Example"
+      ({ id }) => id === "Module1#Example"
     );
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:test_send"
+      ({ id }) => id === "Module1#test_send"
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -105,7 +105,7 @@ describe("send", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:test_send"
+      ({ id }) => id === "Module1#test_send"
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -125,7 +125,7 @@ describe("send", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:test_send"
+      ({ id }) => id === "Module1#test_send"
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -148,7 +148,7 @@ describe("send", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:test_send"
+      ({ id }) => id === "Module1#test_send"
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -168,7 +168,7 @@ describe("send", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:test_send"
+      ({ id }) => id === "Module1#test_send"
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -190,11 +190,11 @@ describe("send", () => {
       return {};
     });
 
-    const futureC = Array.from(module.futures).find((f) => f.id === "Module:C");
+    const futureC = Array.from(module.futures).find((f) => f.id === "Module#C");
     assertInstanceOf(futureC, SendDataFutureImplementation);
 
     const futureC2 = Array.from(module.futures).find(
-      (f) => f.id === "Module:C2"
+      (f) => f.id === "Module#C2"
     );
     assertInstanceOf(futureC2, SendDataFutureImplementation);
 
@@ -219,11 +219,11 @@ describe("send", () => {
       assert.equal(moduleWithSameCallTwice.id, "Module1");
 
       const sendFuture = [...moduleWithSameCallTwice.futures].find(
-        ({ id }) => id === "Module1:first"
+        ({ id }) => id === "Module1#first"
       );
 
       const sendFuture2 = [...moduleWithSameCallTwice.futures].find(
-        ({ id }) => id === "Module1:second"
+        ({ id }) => id === "Module1#second"
       );
 
       assert.isDefined(sendFuture);
@@ -239,7 +239,7 @@ describe("send", () => {
 
             return {};
           }),
-        /Duplicated id Module1:test_send found in module Module1/
+        /Duplicated id Module1#test_send found in module Module1/
       );
     });
 
@@ -251,7 +251,7 @@ describe("send", () => {
             m.send("first", "0xtest", 0n, "test");
             return {};
           }),
-        /Duplicated id Module1:first found in module Module1/
+        /Duplicated id Module1#first found in module Module1/
       );
     });
   });

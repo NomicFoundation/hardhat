@@ -2,12 +2,12 @@
  * The seperator in ids that indicated before as the module id and after
  * as the parts making up the particular future.
  */
-const MODULE_SEPERATOR = ":";
+const MODULE_SEPERATOR = "#";
 
 /**
  * The seperator in ids that indicated different subparts of the future key.
  */
-const SUBKEY_SEPERATOR = "#";
+const SUBKEY_SEPERATOR = ".";
 
 /**
  * Construct the future id for a contract or library deployment, namespaced by the
@@ -77,7 +77,7 @@ export function toReadEventArgumentFutureId(
 ) {
   const futureKey =
     userProvidedId ??
-    `${contractName}#${eventName}${SUBKEY_SEPERATOR}${nameOrIndex}${SUBKEY_SEPERATOR}${eventIndex}`;
+    `${contractName}${SUBKEY_SEPERATOR}${eventName}${SUBKEY_SEPERATOR}${nameOrIndex}${SUBKEY_SEPERATOR}${eventIndex}`;
 
   return `${moduleId}${MODULE_SEPERATOR}${futureKey}`;
 }

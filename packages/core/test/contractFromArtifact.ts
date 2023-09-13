@@ -37,7 +37,7 @@ describe("contractFromArtifact", () => {
     assert.equal(moduleWithContractFromArtifact.id, "Module1");
     assert.equal(
       moduleWithContractFromArtifact.results.contract1.id,
-      "Module1:Contract1"
+      "Module1#Contract1"
     );
 
     // Stores the arguments
@@ -104,11 +104,11 @@ describe("contractFromArtifact", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Example"
+      ({ id }) => id === "Module1#Example"
     );
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Another"
+      ({ id }) => id === "Module1#Another"
     );
 
     if (
@@ -134,7 +134,7 @@ describe("contractFromArtifact", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Another"
+      ({ id }) => id === "Module1#Another"
     );
 
     if (
@@ -158,7 +158,7 @@ describe("contractFromArtifact", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Another"
+      ({ id }) => id === "Module1#Another"
     );
 
     if (
@@ -185,7 +185,7 @@ describe("contractFromArtifact", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Another"
+      ({ id }) => id === "Module1#Another"
     );
 
     if (
@@ -209,7 +209,7 @@ describe("contractFromArtifact", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Another"
+      ({ id }) => id === "Module1#Another"
     );
 
     if (
@@ -400,11 +400,11 @@ describe("contractFromArtifact", () => {
       assert.equal(moduleWithSameContractTwice.id, "Module1");
       assert.equal(
         moduleWithSameContractTwice.results.sameContract1.id,
-        "Module1:first"
+        "Module1#first"
       );
       assert.equal(
         moduleWithSameContractTwice.results.sameContract2.id,
-        "Module1:second"
+        "Module1#second"
       );
     });
 
@@ -423,7 +423,7 @@ describe("contractFromArtifact", () => {
 
             return { sameContract1, sameContract2 };
           }),
-        /Duplicated id Module1:SameContract found in module Module1/
+        /Duplicated id Module1#SameContract found in module Module1/
       );
     });
 
@@ -450,7 +450,7 @@ describe("contractFromArtifact", () => {
 
             return { sameContract1, sameContract2 };
           }),
-        /Duplicated id Module1:same found in module Module1/
+        /Duplicated id Module1#same found in module Module1/
       );
     });
   });

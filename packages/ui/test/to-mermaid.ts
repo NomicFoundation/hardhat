@@ -19,7 +19,7 @@ describe("to-mermaid", () => {
         subgraph Module
           direction BT
 
-          Module:Contract1["Deploy Contract1"]
+          Module#Contract1["Deploy Contract1"]
         end
 
       classDef startModule stroke-width:4px`;
@@ -43,7 +43,7 @@ describe("to-mermaid", () => {
         subgraph Test_registrar
           direction BT
 
-          Test_registrar:Contract1["Deploy Contract1"]
+          Test_registrar#Contract1["Deploy Contract1"]
         end
 
       classDef startModule stroke-width:4px`;
@@ -83,21 +83,21 @@ describe("to-mermaid", () => {
         subgraph Module
           direction BT
 
-          Module:Contract3["Deploy Contract3"]
+          Module#Contract3["Deploy Contract3"]
         end
         subgraph Submodule1
           direction BT
 
-          Submodule1:Contract1["Deploy Contract1"]
+          Submodule1#Contract1["Deploy Contract1"]
         end
         subgraph Submodule2
           direction BT
 
-          Submodule2:Contract2["Deploy Contract2"]
+          Submodule2#Contract2["Deploy Contract2"]
         end
 
-      Module:Contract3 --> Submodule1:Contract1
-      Module:Contract3 --> Submodule2:Contract2
+      Module#Contract3 --> Submodule1#Contract1
+      Module#Contract3 --> Submodule2#Contract2
 
       Module -.-> Submodule1
       Module -.-> Submodule2
@@ -171,26 +171,26 @@ describe("to-mermaid", () => {
         subgraph Module
           direction BT
 
-          Module:BasicContract["Deploy BasicContract"]
-          Module:BasicLibrary["Deploy library BasicLibrary"]
-          Module:BasicLibrary2["Deploy library from artifact BasicLibrary"]
-          Module:ContractWithLibrary["Deploy from artifact ContractWithLibrary"]
-          Module:BasicContract#basicFunction["Call BasicContract/basicFunction"]
-          Module:BasicContract#BasicEvent#eventArg#0["Read event from future Module:BasicContract#basicFunction (event BasicEvent argument eventArg)"]
-          Module:ContractWithLibrary#readonlyFunction["Static call ContractWithLibrary/readonlyFunction"]
-          Module:BasicContract2["Existing contract BasicContract (Module:BasicContract)"]
-          Module:ContractWithLibrary2["Existing contract from artifact ContractWithLibrary (Module:ContractWithLibrary)"]
-          Module:test_send["Send data to Module:BasicContract2"]
+          Module#BasicContract["Deploy BasicContract"]
+          Module#BasicLibrary["Deploy library BasicLibrary"]
+          Module#BasicLibrary2["Deploy library from artifact BasicLibrary"]
+          Module#ContractWithLibrary["Deploy from artifact ContractWithLibrary"]
+          Module#BasicContract.basicFunction["Call BasicContract/basicFunction"]
+          Module#BasicContract.BasicEvent.eventArg.0["Read event from future Module#BasicContract.basicFunction (event BasicEvent argument eventArg)"]
+          Module#ContractWithLibrary.readonlyFunction["Static call ContractWithLibrary/readonlyFunction"]
+          Module#BasicContract2["Existing contract BasicContract (Module#BasicContract)"]
+          Module#ContractWithLibrary2["Existing contract from artifact ContractWithLibrary (Module#ContractWithLibrary)"]
+          Module#test_send["Send data to Module#BasicContract2"]
         end
 
-      Module:ContractWithLibrary --> Module:BasicLibrary
-      Module:BasicContract#basicFunction --> Module:BasicContract
-      Module:BasicContract#BasicEvent#eventArg#0 --> Module:BasicContract#basicFunction
-      Module:ContractWithLibrary#readonlyFunction --> Module:ContractWithLibrary
-      Module:ContractWithLibrary#readonlyFunction --> Module:BasicContract#BasicEvent#eventArg#0
-      Module:BasicContract2 --> Module:BasicContract
-      Module:ContractWithLibrary2 --> Module:ContractWithLibrary
-      Module:test_send --> Module:BasicContract2
+      Module#ContractWithLibrary --> Module#BasicLibrary
+      Module#BasicContract.basicFunction --> Module#BasicContract
+      Module#BasicContract.BasicEvent.eventArg.0 --> Module#BasicContract.basicFunction
+      Module#ContractWithLibrary.readonlyFunction --> Module#ContractWithLibrary
+      Module#ContractWithLibrary.readonlyFunction --> Module#BasicContract.BasicEvent.eventArg.0
+      Module#BasicContract2 --> Module#BasicContract
+      Module#ContractWithLibrary2 --> Module#ContractWithLibrary
+      Module#test_send --> Module#BasicContract2
 
       classDef startModule stroke-width:4px`;
 
@@ -215,13 +215,13 @@ describe("to-mermaid", () => {
         subgraph Module
           direction BT
 
-          Module:ens["Deploy ens"]
-          Module:ens#setAddr_bytes32_address_["Call ens/setAddr(bytes32,address)"]
-          Module:ens#getAddr_bytes32_address_["Static call ens/getAddr(bytes32,address)"]
+          Module#ens["Deploy ens"]
+          Module#ens.setAddr_bytes32_address_["Call ens/setAddr(bytes32,address)"]
+          Module#ens.getAddr_bytes32_address_["Static call ens/getAddr(bytes32,address)"]
         end
 
-      Module:ens#setAddr_bytes32_address_ --> Module:ens
-      Module:ens#getAddr_bytes32_address_ --> Module:ens
+      Module#ens.setAddr_bytes32_address_ --> Module#ens
+      Module#ens.getAddr_bytes32_address_ --> Module#ens
 
       classDef startModule stroke-width:4px`;
 

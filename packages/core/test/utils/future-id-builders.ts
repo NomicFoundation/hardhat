@@ -12,14 +12,14 @@ describe("future id rules", () => {
     it("the fallback id should be built based on the contract or library name", () => {
       assert.equal(
         toDeploymentFutureId("MyModule", undefined, "MyContract"),
-        "MyModule:MyContract"
+        "MyModule#MyContract"
       );
     });
 
     it("namespaces to the module a user provided id", () => {
       assert.equal(
         toDeploymentFutureId("MyModule", "MyId", "MyContract"),
-        "MyModule:MyId"
+        "MyModule#MyId"
       );
     });
   });
@@ -28,14 +28,14 @@ describe("future id rules", () => {
     it("the fallback id should be built based on the contractName and function name", () => {
       assert.equal(
         toCallFutureId("MyModule", undefined, "MyContract", "MyFunction"),
-        "MyModule:MyContract#MyFunction"
+        "MyModule#MyContract.MyFunction"
       );
     });
 
     it("namespaces the user provided id to the module", () => {
       assert.equal(
         toCallFutureId("MyModule", "MyId", "MyContract", "MyFunction"),
-        "MyModule:MyId"
+        "MyModule#MyId"
       );
     });
   });
@@ -51,7 +51,7 @@ describe("future id rules", () => {
           "MyArg",
           2
         ),
-        "MyModule:MyContract#MyFunction#MyArg#2"
+        "MyModule#MyContract.MyFunction.MyArg.2"
       );
     });
 
@@ -65,14 +65,14 @@ describe("future id rules", () => {
           "MyArg",
           2
         ),
-        "MyModule:MyId"
+        "MyModule#MyId"
       );
     });
   });
 
   describe("send data ids", () => {
     it("namespaces the user provided id to the module", () => {
-      assert.equal(toSendDataFutureId("MyModule", "MyId"), "MyModule:MyId");
+      assert.equal(toSendDataFutureId("MyModule", "MyId"), "MyModule#MyId");
     });
   });
 });

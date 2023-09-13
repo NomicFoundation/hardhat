@@ -75,7 +75,7 @@ describe("Reconciliation - named static call", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Submodule:Contract1",
+          id: "Submodule#Contract1",
           status: ExecutionStatus.SUCCESS,
           result: {
             type: ExecutionResultType.SUCCESS,
@@ -84,7 +84,7 @@ describe("Reconciliation - named static call", () => {
         },
         {
           ...exampleStaticCallState,
-          id: "Submodule:Contract1#function1",
+          id: "Submodule#Contract1.function1",
           futureType: FutureType.NAMED_STATIC_CALL,
           status: ExecutionStatus.SUCCESS,
           contractAddress: exampleAddress,
@@ -109,7 +109,7 @@ describe("Reconciliation - named static call", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Module:Contract1",
+          id: "Module#Contract1",
           status: ExecutionStatus.SUCCESS,
           result: {
             type: ExecutionResultType.SUCCESS,
@@ -118,7 +118,7 @@ describe("Reconciliation - named static call", () => {
         },
         {
           ...exampleStaticCallState,
-          id: "Module:config",
+          id: "Module#config",
           status: ExecutionStatus.STARTED,
           functionName: "function1",
           contractAddress: exampleAddress,
@@ -128,9 +128,9 @@ describe("Reconciliation - named static call", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:config",
+        futureId: "Module#config",
         failure:
-          "Contract address has been changed from 0x1F98431c8aD98523631AE4a59f267346ea31F984 to 0xBA12222222228d8Ba445958a75a0704d566BF2C8 (future Module:Contract1)",
+          "Contract address has been changed from 0x1F98431c8aD98523631AE4a59f267346ea31F984 to 0xBA12222222228d8Ba445958a75a0704d566BF2C8 (future Module#Contract1)",
       },
     ]);
   });
@@ -149,7 +149,7 @@ describe("Reconciliation - named static call", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Module:Contract1",
+          id: "Module#Contract1",
           status: ExecutionStatus.SUCCESS,
           result: {
             type: ExecutionResultType.SUCCESS,
@@ -158,7 +158,7 @@ describe("Reconciliation - named static call", () => {
         },
         {
           ...exampleStaticCallState,
-          id: "Module:config",
+          id: "Module#config",
           futureType: FutureType.NAMED_STATIC_CALL,
           status: ExecutionStatus.STARTED,
           contractAddress: exampleAddress,
@@ -169,7 +169,7 @@ describe("Reconciliation - named static call", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:config",
+        futureId: "Module#config",
         failure:
           "Function name has been changed from functionUnchanged to functionChanged",
       },
@@ -192,7 +192,7 @@ describe("Reconciliation - named static call", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Module:Contract1",
+          id: "Module#Contract1",
           status: ExecutionStatus.SUCCESS,
           result: {
             type: ExecutionResultType.SUCCESS,
@@ -201,7 +201,7 @@ describe("Reconciliation - named static call", () => {
         },
         {
           ...exampleStaticCallState,
-          id: "Module:Contract1#function1",
+          id: "Module#Contract1.function1",
           futureType: FutureType.NAMED_STATIC_CALL,
           status: ExecutionStatus.STARTED,
           contractAddress: exampleAddress,
@@ -213,7 +213,7 @@ describe("Reconciliation - named static call", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Contract1#function1",
+        futureId: "Module#Contract1.function1",
         failure: "Argument at index 0 has been changed",
       },
     ]);
@@ -236,7 +236,7 @@ describe("Reconciliation - named static call", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Module:Contract1",
+          id: "Module#Contract1",
           status: ExecutionStatus.SUCCESS,
           result: {
             type: ExecutionResultType.SUCCESS,
@@ -245,7 +245,7 @@ describe("Reconciliation - named static call", () => {
         },
         {
           ...exampleStaticCallState,
-          id: "Module:config",
+          id: "Module#config",
           futureType: FutureType.NAMED_STATIC_CALL,
           status: ExecutionStatus.STARTED,
           contractAddress: exampleAddress,
@@ -257,7 +257,7 @@ describe("Reconciliation - named static call", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:config",
+        futureId: "Module#config",
         failure: `From account has been changed from ${oneAddress} to ${twoAddress}`,
       },
     ]);
@@ -277,7 +277,7 @@ describe("Reconciliation - named static call", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Module:Contract",
+          id: "Module#Contract",
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           result: {
@@ -288,7 +288,7 @@ describe("Reconciliation - named static call", () => {
         },
         {
           ...exampleStaticCallState,
-          id: "Module:Contract#function",
+          id: "Module#Contract.function",
           status: ExecutionStatus.STARTED,
           nameOrIndex: "argUnchanged",
         }
@@ -297,7 +297,7 @@ describe("Reconciliation - named static call", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Contract#function",
+        futureId: "Module#Contract.function",
         failure:
           "Argument name or index has been changed from argUnchanged to argChanged",
       },
@@ -331,7 +331,7 @@ describe("Reconciliation - named static call", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Module:Contract1",
+          id: "Module#Contract1",
           status: ExecutionStatus.SUCCESS,
           result: {
             type: ExecutionResultType.SUCCESS,
@@ -340,10 +340,10 @@ describe("Reconciliation - named static call", () => {
         },
         {
           ...exampleStaticCallState,
-          id: "Module:first_call",
+          id: "Module#first_call",
           futureType: FutureType.NAMED_STATIC_CALL,
           status: ExecutionStatus.SUCCESS,
-          dependencies: new Set(["Module:Contract1"]),
+          dependencies: new Set(["Module#Contract1"]),
           contractAddress: exampleAddress,
           functionName: "function1",
           args: ["first"],
@@ -354,10 +354,10 @@ describe("Reconciliation - named static call", () => {
         },
         {
           ...exampleStaticCallState,
-          id: "Module:second_call",
+          id: "Module#second_call",
           futureType: FutureType.NAMED_STATIC_CALL,
           status: ExecutionStatus.SUCCESS,
-          dependencies: new Set(["Module:Contract1", "Module:first_call"]),
+          dependencies: new Set(["Module#Contract1", "Module#first_call"]),
           contractAddress: exampleAddress,
           functionName: "function1",
           args: ["second"],
@@ -368,9 +368,9 @@ describe("Reconciliation - named static call", () => {
         },
         {
           ...exampleDeploymentState,
-          id: "Module:Contract2",
+          id: "Module#Contract2",
           status: ExecutionStatus.STARTED,
-          dependencies: new Set(["Module:first_call", "Module:second_call"]),
+          dependencies: new Set(["Module#first_call", "Module#second_call"]),
           contractName: "Contract2",
           constructorArgs: ["first"],
           result: {
@@ -383,7 +383,7 @@ describe("Reconciliation - named static call", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Contract2",
+        futureId: "Module#Contract2",
         failure: "Argument at index 0 has been changed",
       },
     ]);

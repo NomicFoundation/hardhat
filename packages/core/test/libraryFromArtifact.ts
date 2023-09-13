@@ -32,7 +32,7 @@ describe("libraryFromArtifact", () => {
     assert.equal(moduleWithContractFromArtifact.id, "Module1");
     assert.equal(
       moduleWithContractFromArtifact.results.library1.id,
-      "Module1:Library1"
+      "Module1#Library1"
     );
 
     // 1 contract future
@@ -74,11 +74,11 @@ describe("libraryFromArtifact", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Example"
+      ({ id }) => id === "Module1#Example"
     );
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Another"
+      ({ id }) => id === "Module1#Another"
     );
 
     if (
@@ -104,7 +104,7 @@ describe("libraryFromArtifact", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Another"
+      ({ id }) => id === "Module1#Another"
     );
 
     if (
@@ -128,7 +128,7 @@ describe("libraryFromArtifact", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Another"
+      ({ id }) => id === "Module1#Another"
     );
 
     if (
@@ -164,11 +164,11 @@ describe("libraryFromArtifact", () => {
       assert.equal(moduleWithSameContractTwice.id, "Module1");
       assert.equal(
         moduleWithSameContractTwice.results.sameContract1.id,
-        "Module1:first"
+        "Module1#first"
       );
       assert.equal(
         moduleWithSameContractTwice.results.sameContract2.id,
-        "Module1:second"
+        "Module1#second"
       );
     });
 
@@ -187,7 +187,7 @@ describe("libraryFromArtifact", () => {
 
             return { sameContract1, sameContract2 };
           }),
-        /Duplicated id Module1:SameContract found in module Module1/
+        /Duplicated id Module1#SameContract found in module Module1/
       );
     });
 
@@ -212,7 +212,7 @@ describe("libraryFromArtifact", () => {
 
             return { sameContract1, sameContract2 };
           }),
-        /Duplicated id Module1:same found in module Module1/
+        /Duplicated id Module1#same found in module Module1/
       );
     });
   });

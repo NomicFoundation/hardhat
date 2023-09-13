@@ -25,7 +25,7 @@ describe("library", () => {
     assert.equal(moduleWithASingleContract.id, "Module1");
     assert.equal(
       moduleWithASingleContract.results.library1.id,
-      "Module1:Library1"
+      "Module1#Library1"
     );
 
     // 1 contract future
@@ -50,11 +50,11 @@ describe("library", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Example"
+      ({ id }) => id === "Module1#Example"
     );
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Another"
+      ({ id }) => id === "Module1#Another"
     );
 
     if (
@@ -80,11 +80,11 @@ describe("library", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Example"
+      ({ id }) => id === "Module1#Example"
     );
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Another"
+      ({ id }) => id === "Module1#Another"
     );
 
     if (
@@ -110,7 +110,7 @@ describe("library", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Another"
+      ({ id }) => id === "Module1#Another"
     );
 
     if (
@@ -134,7 +134,7 @@ describe("library", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1:Another"
+      ({ id }) => id === "Module1#Another"
     );
 
     if (
@@ -161,11 +161,11 @@ describe("library", () => {
       assert.equal(moduleWithSameContractTwice.id, "Module1");
       assert.equal(
         moduleWithSameContractTwice.results.sameContract1.id,
-        "Module1:first"
+        "Module1#first"
       );
       assert.equal(
         moduleWithSameContractTwice.results.sameContract2.id,
-        "Module1:second"
+        "Module1#second"
       );
     });
 
@@ -178,7 +178,7 @@ describe("library", () => {
 
             return { sameContract1, sameContract2 };
           }),
-        /Duplicated id Module1:SameContract found in module Module1/
+        /Duplicated id Module1#SameContract found in module Module1/
       );
     });
 
@@ -195,7 +195,7 @@ describe("library", () => {
 
             return { sameContract1, sameContract2 };
           }),
-        /Duplicated id Module1:same found in module Module1/
+        /Duplicated id Module1#same found in module Module1/
       );
     });
   });

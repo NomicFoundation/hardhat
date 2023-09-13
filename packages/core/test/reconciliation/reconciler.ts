@@ -22,7 +22,7 @@ import {
 
 describe("Reconciliation", () => {
   const exampleDeploymentState: DeploymentExecutionState = {
-    id: "Module1:Contract1",
+    id: "Module1#Contract1",
     type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
     strategy: "basic",
@@ -90,14 +90,14 @@ describe("Reconciliation", () => {
       moduleDefinition,
       createDeploymentState({
         ...exampleDeploymentState,
-        id: "Module1:ContractMissed", // This future is not in the module
+        id: "Module1#ContractMissed", // This future is not in the module
         status: ExecutionStatus.STARTED,
       })
     );
 
     assert.deepStrictEqual(
       reconiliationResult.missingExecutedFutures,
-      ["Module1:ContractMissed"],
+      ["Module1#ContractMissed"],
       "Expected one missing previous executed future"
     );
   });
@@ -112,7 +112,7 @@ describe("Reconciliation", () => {
     const reconiliationResult = await reconcile(moduleDefinition, {
       chainId: 123,
       executionStates: {
-        "Module1:Example": {
+        "Module1#Example": {
           ...exampleDeploymentState,
           futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.STARTED,
@@ -122,9 +122,9 @@ describe("Reconciliation", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module1:Example",
+        futureId: "Module1#Example",
         failure:
-          "Future with id Module1:Example has changed from NAMED_CONTRACT_DEPLOYMENT to NAMED_LIBRARY_DEPLOYMENT",
+          "Future with id Module1#Example has changed from NAMED_CONTRACT_DEPLOYMENT to NAMED_LIBRARY_DEPLOYMENT",
       },
     ]);
   });
@@ -139,7 +139,7 @@ describe("Reconciliation", () => {
     const reconiliationResult = await reconcile(moduleDefinition, {
       chainId: 123,
       executionStates: {
-        "Module1:Example": {
+        "Module1#Example": {
           ...exampleDeploymentState,
           status: ExecutionStatus.TIMEOUT,
         },
@@ -148,9 +148,9 @@ describe("Reconciliation", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module1:Contract1",
+        futureId: "Module1#Contract1",
         failure:
-          "The previous run of the future Module1:Contract1 timed out, and will need wiped before running again",
+          "The previous run of the future Module1#Contract1 timed out, and will need wiped before running again",
       },
     ]);
   });
@@ -165,7 +165,7 @@ describe("Reconciliation", () => {
     const reconiliationResult = await reconcile(moduleDefinition, {
       chainId: 123,
       executionStates: {
-        "Module1:Example": {
+        "Module1#Example": {
           ...exampleDeploymentState,
           status: ExecutionStatus.FAILED,
         },
@@ -174,9 +174,9 @@ describe("Reconciliation", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module1:Contract1",
+        futureId: "Module1#Contract1",
         failure:
-          "The previous run of the future Module1:Contract1 failed, and will need wiped before running again",
+          "The previous run of the future Module1#Contract1 failed, and will need wiped before running again",
       },
     ]);
   });
@@ -192,7 +192,7 @@ describe("Reconciliation", () => {
       const reconiliationResult = await reconcile(moduleDefinition, {
         chainId: 123,
         executionStates: {
-          "Module1:Contract1": {
+          "Module1#Contract1": {
             ...exampleDeploymentState,
             futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.STARTED,
@@ -225,7 +225,7 @@ describe("Reconciliation", () => {
 
       assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
         {
-          futureId: "Module1:Contract1",
+          futureId: "Module1#Contract1",
           failure: `From account has been changed from ${exampleAccounts[3]} to ${exampleAccounts[2]}`,
         },
       ]);
@@ -251,24 +251,24 @@ describe("Reconciliation", () => {
         createDeploymentState(
           {
             ...exampleDeploymentState,
-            id: "Module:Contract1",
+            id: "Module#Contract1",
             futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.SUCCESS,
             contractName: "Contract1",
           },
           {
             ...exampleDeploymentState,
-            id: "Module:Contract2",
+            id: "Module#Contract2",
             futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.SUCCESS,
             contractName: "Contract2",
           },
           {
             ...exampleDeploymentState,
-            id: "Module:Contract3",
+            id: "Module#Contract3",
             futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.STARTED,
-            dependencies: new Set(["Module:Contract2", "Module:Contract2"]),
+            dependencies: new Set(["Module#Contract2", "Module#Contract2"]),
             contractName: "Contract3",
           }
         )
@@ -291,24 +291,24 @@ describe("Reconciliation", () => {
         createDeploymentState(
           {
             ...exampleDeploymentState,
-            id: "Module:Contract1",
+            id: "Module#Contract1",
             futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.SUCCESS,
             contractName: "Contract1",
           },
           {
             ...exampleDeploymentState,
-            id: "Module:Contract2",
+            id: "Module#Contract2",
             futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.SUCCESS,
             contractName: "Contract2",
           },
           {
             ...exampleDeploymentState,
-            id: "Module:Contract3",
+            id: "Module#Contract3",
             futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.SUCCESS,
-            dependencies: new Set(["Module:Contract1", "Module:Contract2"]),
+            dependencies: new Set(["Module#Contract1", "Module#Contract2"]),
             contractName: "Contract3",
           }
         )
@@ -330,14 +330,14 @@ describe("Reconciliation", () => {
         createDeploymentState(
           {
             ...exampleDeploymentState,
-            id: "Module:Contract1",
+            id: "Module#Contract1",
             futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.SUCCESS,
             contractName: "Contract1",
           },
           {
             ...exampleDeploymentState,
-            id: "Module:Contract2",
+            id: "Module#Contract2",
             futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.STARTED,
             contractName: "Contract2",
@@ -362,14 +362,14 @@ describe("Reconciliation", () => {
         createDeploymentState(
           {
             ...exampleDeploymentState,
-            id: "Module:Contract1",
+            id: "Module#Contract1",
             futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.STARTED, // Could still be in flight
             contractName: "Contract1",
           },
           {
             ...exampleDeploymentState,
-            id: "Module:Contract2",
+            id: "Module#Contract2",
             futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.SUCCESS,
             dependencies: new Set<string>(), // no deps on last run
@@ -380,9 +380,9 @@ describe("Reconciliation", () => {
 
       assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
         {
-          futureId: "Module:Contract2",
+          futureId: "Module#Contract2",
           failure:
-            "A dependency from Module:Contract2 to Module:Contract1 has been added, and both futures had already started executing, so this change is incompatible",
+            "A dependency from Module#Contract2 to Module#Contract1 has been added, and both futures had already started executing, so this change is incompatible",
         },
       ]);
     });
@@ -404,7 +404,7 @@ describe("Reconciliation", () => {
         createDeploymentState(
           {
             ...exampleDeploymentState,
-            id: "Module:ContractOriginal",
+            id: "Module#ContractOriginal",
             futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.SUCCESS,
             dependencies: new Set<string>(), // no deps on last run
@@ -412,10 +412,10 @@ describe("Reconciliation", () => {
           },
           {
             ...exampleDeploymentState,
-            id: "Module:Contract2",
+            id: "Module#Contract2",
             futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.STARTED,
-            dependencies: new Set<string>("Module:ContractOriginal"), // no deps on last run
+            dependencies: new Set<string>("Module#ContractOriginal"), // no deps on last run
             contractName: "Contract2",
             constructorArgs: [exampleAddress],
           }
@@ -424,9 +424,9 @@ describe("Reconciliation", () => {
 
       assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
         {
-          futureId: "Module:Contract2",
+          futureId: "Module#Contract2",
           failure:
-            "A dependency from Module:Contract2 to Module:ContractNew has been added. The former has started executing before the latter started executing, so this change is incompatible.",
+            "A dependency from Module#Contract2 to Module#ContractNew has been added. The former has started executing before the latter started executing, so this change is incompatible.",
         },
       ]);
     });
@@ -450,15 +450,15 @@ describe("Reconciliation", () => {
       };
 
       const storedArtifactMap = {
-        "Module:Contract1": moduleArtifactMap.Contract1,
+        "Module#Contract1": moduleArtifactMap.Contract1,
       };
 
       const reconciliationResult = await reconcile(
         moduleDefinition,
         createDeploymentState({
           ...exampleDeploymentState,
-          id: "Module:Contract1",
-          artifactId: "Module:Contract1",
+          id: "Module#Contract1",
+          artifactId: "Module#Contract1",
         }),
         new ArtifactMapDeploymentLoader(storedArtifactMap),
         new ArtifactMapResolver(moduleArtifactMap)
@@ -484,7 +484,7 @@ describe("Reconciliation", () => {
       };
 
       const storedArtifactMap = {
-        "Module:Contract1": {
+        "Module#Contract1": {
           abi: [],
           bytecode: "0xbbbbbb",
           contractName: "Contract1",
@@ -496,8 +496,8 @@ describe("Reconciliation", () => {
         moduleDefinition,
         createDeploymentState({
           ...exampleDeploymentState,
-          id: "Module:Contract1",
-          artifactId: "Module:Contract1",
+          id: "Module#Contract1",
+          artifactId: "Module#Contract1",
         }),
         new ArtifactMapDeploymentLoader(storedArtifactMap),
         new ArtifactMapResolver(moduleArtifactMap)
@@ -505,7 +505,7 @@ describe("Reconciliation", () => {
 
       assert.deepStrictEqual(reconciliationResult.reconciliationFailures, [
         {
-          futureId: "Module:Contract1",
+          futureId: "Module#Contract1",
           failure: "Artifact bytecodes have been changed",
         },
       ]);
@@ -532,7 +532,7 @@ describe("Reconciliation", () => {
       });
 
       const storedArtifactMap = {
-        "Module:Contract1": {
+        "Module#Contract1": {
           abi: [],
           bytecode: mainnetWethBytecode,
           contractName: "Contract1",
@@ -553,8 +553,8 @@ describe("Reconciliation", () => {
         moduleDefinition,
         createDeploymentState({
           ...exampleDeploymentState,
-          id: "Module:Contract1",
-          artifactId: "Module:Contract1",
+          id: "Module#Contract1",
+          artifactId: "Module#Contract1",
         }),
         new ArtifactMapDeploymentLoader(storedArtifactMap),
         new ArtifactMapResolver(moduleArtifactMap)

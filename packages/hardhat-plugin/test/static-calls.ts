@@ -149,7 +149,7 @@ describe("static calls", () => {
 
     await assert.isRejected(
       this.deploy(moduleDefinition),
-      /Future 'FooModule:FooFactory#nonAddressResult' must be a valid address/
+      /Future 'FooModule#FooFactory.nonAddressResult' must be a valid address/
     );
   });
 
@@ -174,7 +174,7 @@ describe("static calls", () => {
 
     await assert.isRejected(
       this.deploy(moduleDefinition),
-      /Future 'FooModule:FooFactory#nonAddressResult' must be a valid address/
+      /Future 'FooModule#FooFactory.nonAddressResult' must be a valid address/
     );
   });
 });

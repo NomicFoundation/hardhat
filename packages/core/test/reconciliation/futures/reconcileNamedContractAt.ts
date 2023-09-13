@@ -81,7 +81,7 @@ describe("Reconciliation - named contract at", () => {
 
     const deploymentState = createDeploymentState({
       ...exampleContractAtState,
-      id: `Submodule:Contract1`,
+      id: `Submodule#Contract1`,
       futureType: FutureType.NAMED_CONTRACT_AT,
       status: ExecutionStatus.STARTED,
       contractAddress: exampleAddress,
@@ -103,7 +103,7 @@ describe("Reconciliation - named contract at", () => {
     const previousExecutionState = createDeploymentState(
       {
         ...exampleDeploymentState,
-        id: "Module:Example",
+        id: "Module#Example",
         futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
         status: ExecutionStatus.SUCCESS,
         contractName: "Example",
@@ -114,7 +114,7 @@ describe("Reconciliation - named contract at", () => {
       },
       {
         ...exampleStaticCallState,
-        id: "Module:Example#getAddress",
+        id: "Module#Example.getAddress",
         futureType: FutureType.NAMED_STATIC_CALL,
         status: ExecutionStatus.SUCCESS,
         functionName: "getAddress",
@@ -125,7 +125,7 @@ describe("Reconciliation - named contract at", () => {
       },
       {
         ...exampleContractAtState,
-        id: "Module:Another",
+        id: "Module#Another",
         futureType: FutureType.NAMED_CONTRACT_AT,
         status: ExecutionStatus.STARTED,
         contractAddress: differentAddress,
@@ -149,7 +149,7 @@ describe("Reconciliation - named contract at", () => {
       moduleDefinition,
       createDeploymentState({
         ...exampleContractAtState,
-        id: "Module:Factory",
+        id: "Module#Factory",
         futureType: FutureType.NAMED_CONTRACT_AT,
         status: ExecutionStatus.STARTED,
         contractName: "ContractUnchanged",
@@ -159,7 +159,7 @@ describe("Reconciliation - named contract at", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Factory",
+        futureId: "Module#Factory",
         failure:
           "Contract name has been changed from ContractUnchanged to ContractChanged",
       },
@@ -179,7 +179,7 @@ describe("Reconciliation - named contract at", () => {
       moduleDefinition,
       createDeploymentState({
         ...exampleContractAtState,
-        id: "Module:Factory",
+        id: "Module#Factory",
         futureType: FutureType.NAMED_CONTRACT_AT,
         status: ExecutionStatus.STARTED,
         contractAddress: differentAddress,
@@ -188,7 +188,7 @@ describe("Reconciliation - named contract at", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Factory",
+        futureId: "Module#Factory",
         failure:
           "Address has been changed from 0xBA12222222228d8Ba445958a75a0704d566BF2C8 to 0x1F98431c8aD98523631AE4a59f267346ea31F984",
       },

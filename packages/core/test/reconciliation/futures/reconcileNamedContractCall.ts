@@ -75,7 +75,7 @@ describe("Reconciliation - named contract call", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Submodule:Contract1",
+          id: "Submodule#Contract1",
           status: ExecutionStatus.SUCCESS,
           result: {
             type: ExecutionResultType.SUCCESS,
@@ -84,7 +84,7 @@ describe("Reconciliation - named contract call", () => {
         },
         {
           ...exampleContractCallState,
-          id: "Submodule:Contract1#function1",
+          id: "Submodule#Contract1.function1",
           futureType: FutureType.NAMED_CONTRACT_CALL,
           status: ExecutionStatus.SUCCESS,
           functionName: "function1",
@@ -108,7 +108,7 @@ describe("Reconciliation - named contract call", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Module:Contract1",
+          id: "Module#Contract1",
           status: ExecutionStatus.SUCCESS,
           result: {
             type: ExecutionResultType.SUCCESS,
@@ -117,7 +117,7 @@ describe("Reconciliation - named contract call", () => {
         },
         {
           ...exampleContractCallState,
-          id: "Module:config",
+          id: "Module#config",
           futureType: FutureType.NAMED_CONTRACT_CALL,
           status: ExecutionStatus.STARTED,
           functionName: "function1",
@@ -128,9 +128,9 @@ describe("Reconciliation - named contract call", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:config",
+        futureId: "Module#config",
         failure:
-          "Contract address has been changed from 0x1F98431c8aD98523631AE4a59f267346ea31F984 to 0xBA12222222228d8Ba445958a75a0704d566BF2C8 (future Module:Contract1)",
+          "Contract address has been changed from 0x1F98431c8aD98523631AE4a59f267346ea31F984 to 0xBA12222222228d8Ba445958a75a0704d566BF2C8 (future Module#Contract1)",
       },
     ]);
   });
@@ -149,7 +149,7 @@ describe("Reconciliation - named contract call", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Module:Contract1",
+          id: "Module#Contract1",
           status: ExecutionStatus.SUCCESS,
           result: {
             type: ExecutionResultType.SUCCESS,
@@ -158,7 +158,7 @@ describe("Reconciliation - named contract call", () => {
         },
         {
           ...exampleContractCallState,
-          id: "Module:config",
+          id: "Module#config",
           futureType: FutureType.NAMED_CONTRACT_CALL,
           status: ExecutionStatus.STARTED,
           functionName: "functionUnchanged",
@@ -168,7 +168,7 @@ describe("Reconciliation - named contract call", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:config",
+        futureId: "Module#config",
         failure:
           "Function name has been changed from functionUnchanged to functionChanged",
       },
@@ -191,7 +191,7 @@ describe("Reconciliation - named contract call", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Module:Contract1",
+          id: "Module#Contract1",
           status: ExecutionStatus.SUCCESS,
           result: {
             type: ExecutionResultType.SUCCESS,
@@ -200,7 +200,7 @@ describe("Reconciliation - named contract call", () => {
         },
         {
           ...exampleContractCallState,
-          id: "Module:Contract1#function1",
+          id: "Module#Contract1.function1",
           futureType: FutureType.NAMED_CONTRACT_CALL,
           status: ExecutionStatus.STARTED,
           functionName: "function1",
@@ -211,7 +211,7 @@ describe("Reconciliation - named contract call", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Contract1#function1",
+        futureId: "Module#Contract1.function1",
         failure: "Argument at index 0 has been changed",
       },
     ]);
@@ -231,7 +231,7 @@ describe("Reconciliation - named contract call", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Module:Contract1",
+          id: "Module#Contract1",
           status: ExecutionStatus.SUCCESS,
           result: {
             type: ExecutionResultType.SUCCESS,
@@ -240,7 +240,7 @@ describe("Reconciliation - named contract call", () => {
         },
         {
           ...exampleContractCallState,
-          id: "Module:config",
+          id: "Module#config",
           futureType: FutureType.NAMED_CONTRACT_CALL,
           status: ExecutionStatus.STARTED,
           functionName: "function1",
@@ -251,7 +251,7 @@ describe("Reconciliation - named contract call", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:config",
+        futureId: "Module#config",
         failure: "Value has been changed from 2 to 3",
       },
     ]);
@@ -271,7 +271,7 @@ describe("Reconciliation - named contract call", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Module:Contract1",
+          id: "Module#Contract1",
           status: ExecutionStatus.SUCCESS,
           result: {
             type: ExecutionResultType.SUCCESS,
@@ -280,7 +280,7 @@ describe("Reconciliation - named contract call", () => {
         },
         {
           ...exampleContractCallState,
-          id: "Module:config",
+          id: "Module#config",
           futureType: FutureType.NAMED_CONTRACT_CALL,
           status: ExecutionStatus.STARTED,
           functionName: "function1",
@@ -291,7 +291,7 @@ describe("Reconciliation - named contract call", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:config",
+        futureId: "Module#config",
         failure: `From account has been changed from ${oneAddress} to ${twoAddress}`,
       },
     ]);

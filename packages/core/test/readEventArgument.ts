@@ -161,8 +161,8 @@ describe("Read event argument", () => {
       assert.equal(mod.id, "Module1");
       const futuresIds = Array.from(mod.futures).map((f) => f.id);
 
-      assert.include(futuresIds, "Module1:Main#EventName#arg1#0");
-      assert.include(futuresIds, "Module1:Emitter#EventName2#arg2#1");
+      assert.include(futuresIds, "Module1#Main.EventName.arg1.0");
+      assert.include(futuresIds, "Module1#Emitter.EventName2.arg2.1");
     });
 
     it("should be able to read the same argument twice by passing a explicit id", () => {
@@ -185,8 +185,8 @@ describe("Read event argument", () => {
         moduleWithSameReadEventArgumentTwice.futures
       ).map((f) => f.id);
 
-      assert.include(futuresIds, "Module1:Example#EventName#arg1#0");
-      assert.include(futuresIds, "Module1:second");
+      assert.include(futuresIds, "Module1#Example.EventName.arg1.0");
+      assert.include(futuresIds, "Module1#second");
     });
   });
 

@@ -69,7 +69,7 @@ describe("Reconciliation - named contract", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Submodule:SafeMath",
+          id: "Submodule#SafeMath",
           futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           contractName: "SafeMath",
@@ -80,7 +80,7 @@ describe("Reconciliation - named contract", () => {
         },
         {
           ...exampleDeploymentState,
-          id: "Submodule:Contract1",
+          id: "Submodule#Contract1",
           status: ExecutionStatus.STARTED,
           constructorArgs: [
             "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
@@ -109,7 +109,7 @@ describe("Reconciliation - named contract", () => {
       moduleDefinition,
       createDeploymentState({
         ...exampleDeploymentState,
-        id: "Module:Example",
+        id: "Module#Example",
         status: ExecutionStatus.STARTED,
         contractName: "ContractUnchanged",
       })
@@ -117,7 +117,7 @@ describe("Reconciliation - named contract", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Example",
+        futureId: "Module#Example",
         failure:
           "Contract name has been changed from ContractUnchanged to ContractChanged",
       },
@@ -145,7 +145,7 @@ describe("Reconciliation - named contract", () => {
       moduleDefinition,
       createDeploymentState({
         ...exampleDeploymentState,
-        id: "Module:Example",
+        id: "Module#Example",
         status: ExecutionStatus.STARTED,
         contractName: "ContractUnchanged",
         constructorArgs: [1, 2, 3],
@@ -154,7 +154,7 @@ describe("Reconciliation - named contract", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Example",
+        futureId: "Module#Example",
         failure:
           "Contract name has been changed from ContractUnchanged to ContractChanged",
       },
@@ -179,7 +179,7 @@ describe("Reconciliation - named contract", () => {
       createDeploymentState(
         {
           ...exampleDeploymentState,
-          id: "Module:SafeMath",
+          id: "Module#SafeMath",
           futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           contractName: "SafeMath",
@@ -190,7 +190,7 @@ describe("Reconciliation - named contract", () => {
         },
         {
           ...exampleDeploymentState,
-          id: "Module:Contract1",
+          id: "Module#Contract1",
           status: ExecutionStatus.STARTED,
           libraries: {},
         }
@@ -199,7 +199,7 @@ describe("Reconciliation - named contract", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Contract1",
+        futureId: "Module#Contract1",
         failure: "Library SafeMath has been added",
       },
     ]);
@@ -219,7 +219,7 @@ describe("Reconciliation - named contract", () => {
       moduleDefinition,
       createDeploymentState({
         ...exampleDeploymentState,
-        id: "Module:Example",
+        id: "Module#Example",
         status: ExecutionStatus.STARTED,
         contractName: "Contract",
         value: BigInt(2),
@@ -228,7 +228,7 @@ describe("Reconciliation - named contract", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Example",
+        futureId: "Module#Example",
         failure: "Value has been changed from 2 to 3",
       },
     ]);
@@ -248,7 +248,7 @@ describe("Reconciliation - named contract", () => {
       moduleDefinition,
       createDeploymentState({
         ...exampleDeploymentState,
-        id: "Module:Example",
+        id: "Module#Example",
         status: ExecutionStatus.STARTED,
         contractName: "Contract",
         from: oneAddress,
@@ -257,7 +257,7 @@ describe("Reconciliation - named contract", () => {
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
       {
-        futureId: "Module:Example",
+        futureId: "Module#Example",
         failure: `From account has been changed from ${oneAddress} to ${twoAddress}`,
       },
     ]);

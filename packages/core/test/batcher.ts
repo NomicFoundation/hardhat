@@ -35,7 +35,7 @@ describe("batcher", () => {
       return { contract1 };
     });
 
-    assertBatching({ ignitionModule }, [["Module1:Contract1"]]);
+    assertBatching({ ignitionModule }, [["Module1#Contract1"]]);
   });
 
   it("should batch through dependencies", () => {
@@ -57,9 +57,9 @@ describe("batcher", () => {
     });
 
     assertBatching({ ignitionModule }, [
-      ["Module1:Contract1", "Module1:Contract2"],
-      ["Module1:Contract3"],
-      ["Module1:Contract4", "Module1:Contract5"],
+      ["Module1#Contract1", "Module1#Contract2"],
+      ["Module1#Contract3"],
+      ["Module1#Contract4", "Module1#Contract5"],
     ]);
   });
 
@@ -98,15 +98,15 @@ describe("batcher", () => {
     });
 
     assertBatching({ ignitionModule }, [
-      ["SubmoduleLeft:Contract1", "SubmoduleRight:Contract2"],
+      ["SubmoduleLeft#Contract1", "SubmoduleRight#Contract2"],
       [
-        "SubmoduleLeft:Contract1#configure",
-        "SubmoduleRight:Contract2#configure",
+        "SubmoduleLeft#Contract1.configure",
+        "SubmoduleRight#Contract2.configure",
       ],
-      ["SubmoduleMiddle:Contract3"],
-      ["SubmoduleMiddle:Contract3#configure"],
-      ["Module:Contract4"],
-      ["Module:Contract4#configure"],
+      ["SubmoduleMiddle#Contract3"],
+      ["SubmoduleMiddle#Contract3.configure"],
+      ["Module#Contract4"],
+      ["Module#Contract4.configure"],
     ]);
   });
 
@@ -141,8 +141,8 @@ describe("batcher", () => {
     });
 
     assertBatching({ ignitionModule }, [
-      ["Left:Contract1", "Middle:Contract3", "Right:Contract2"],
-      ["Module:Contract4"],
+      ["Left#Contract1", "Middle#Contract3", "Right#Contract2"],
+      ["Module#Contract4"],
     ]);
   });
 
@@ -162,15 +162,15 @@ describe("batcher", () => {
         deploymentState: {
           chainId: 123,
           executionStates: {
-            "Module1:Contract2": {
+            "Module1#Contract2": {
               ...exampleDeploymentState,
-              id: "Module1:Contract2",
+              id: "Module1#Contract2",
               status: ExecutionStatus.SUCCESS,
             },
           },
         },
       },
-      [["Module1:Contract1"], ["Module1:Contract3"]]
+      [["Module1#Contract1"], ["Module1#Contract3"]]
     );
   });
 });
