@@ -42,6 +42,7 @@ export type DeploymentResult<
   | ValidationErrorDeploymentResult
   | ReconciliationErrorDeploymentResult
   | ExecutionErrorDeploymentResult
+  | PreviousRunErrorDeploymentResult
   | SuccessfulDeploymentResult<ContractNameT, IgnitionModuleResultsT>;
 
 /**
@@ -65,6 +66,11 @@ export enum DeploymentResultType {
    * One or more future's execution failed or timed out.
    */
   EXECUTION_ERROR = "EXECUTION_ERROR",
+
+  /**
+   * One or more futures from a previous run failed or timed out.
+   */
+  PREVIOUS_RUN_ERROR = "PREVIOUS_RUN_ERROR",
 
   /**
    * The entire deployment was successful.
@@ -145,6 +151,23 @@ export interface ExecutionErrorDeploymentResult {
    * A list with the id of all the future that have successfully executed.
    */
   successful: string[];
+}
+
+/**
+ * A deployment result where one or more futures from a previous run failed or timed out
+ * and need their state wiped.
+ *
+ * @beta
+ */
+export interface PreviousRunErrorDeploymentResult {
+  type: DeploymentResultType.PREVIOUS_RUN_ERROR;
+
+  /**
+   * A map from future id to a list of all of its previous run errors.
+   */
+  errors: {
+    [futureId: string]: string[];
+  };
 }
 
 /**

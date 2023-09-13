@@ -1,5 +1,6 @@
 import type { IgnitionModule, IgnitionModuleResult } from "../types/module";
 
+import { IgnitionError } from "../errors";
 import { isContractFuture } from "../type-guards";
 import { ArtifactResolver } from "../types/artifact";
 import {
@@ -8,6 +9,7 @@ import {
   DeploymentResult,
   DeploymentResultType,
   ExecutionErrorDeploymentResult,
+  PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
   SuccessfulDeploymentResult,
 } from "../types/deploy";
@@ -39,6 +41,7 @@ import {
 import { ExecutionStrategy } from "./execution/types/execution-strategy";
 import { formatExecutionError } from "./formatters";
 import { Reconciler } from "./reconciliation/reconciler";
+import { ReconciliationFailure } from "./reconciliation/types";
 import { assertIgnitionInvariant } from "./utils/assertions";
 import { getFuturesFromModule } from "./utils/get-futures-from-module";
 import { validateStageTwo } from "./validation/validateStageTwo";
@@ -146,6 +149,30 @@ export class Deployer {
       this._emitDeploymentCompleteEvent(reconciliationErrorResult);
 
       return reconciliationErrorResult;
+    }
+
+    const previousRunErrors = this._checkForPreviousRunErrors(deploymentState);
+
+    if (previousRunErrors.length > 0) {
+      // todo: can this be more DRY?
+      const errors: PreviousRunErrorDeploymentResult["errors"] = {};
+
+      for (const { futureId, failure } of previousRunErrors) {
+        if (errors[futureId] === undefined) {
+          errors[futureId] = [];
+        }
+
+        errors[futureId].push(failure);
+      }
+
+      const previousRunErrorResult: PreviousRunErrorDeploymentResult = {
+        type: DeploymentResultType.PREVIOUS_RUN_ERROR,
+        errors,
+      };
+
+      // this._emitDeploymentCompleteEvent(reconciliationErrorResult);
+
+      return previousRunErrorResult;
     }
 
     if (reconciliationResult.missingExecutedFutures.length > 0) {
@@ -336,6 +363,35 @@ export class Deployer {
           };
         }),
     };
+  }
+
+  private _checkForPreviousRunErrors(
+    deploymentState: DeploymentState
+  ): ReconciliationFailure[] {
+    const failuresOrTimeouts = Object.values(
+      deploymentState.executionStates
+    ).filter(
+      (exState) =>
+        exState.status === ExecutionStatus.FAILED ||
+        exState.status === ExecutionStatus.TIMEOUT
+    );
+
+    return failuresOrTimeouts.map((exState) => ({
+      futureId: exState.id,
+      failure: this._previousRunFailedMessageFor(exState),
+    }));
+  }
+
+  private _previousRunFailedMessageFor(exState: ExecutionState): string {
+    if (exState.status === ExecutionStatus.FAILED) {
+      return `The previous run of the future ${exState.id} failed, and will need wiped before running again`;
+    }
+
+    if (exState.status === ExecutionStatus.TIMEOUT) {
+      return `The previous run of the future ${exState.id} timed out, and will need wiped before running again`;
+    }
+
+    throw new IgnitionError(`Unsupported execution status: ${exState.status}`);
   }
 }
 
