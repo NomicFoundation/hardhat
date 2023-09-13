@@ -28,7 +28,7 @@ describe("to-mermaid", () => {
   });
 
   it("should render a module with a space in the name", () => {
-    const moduleDefinition = buildModule("Test registrar", (m) => {
+    const moduleDefinition = buildModule("Test_registrar", (m) => {
       const p = m.getParameter("p", 123);
       const contract1 = m.contract("Contract1", [{ arr: [p] }]);
 
@@ -40,7 +40,7 @@ describe("to-mermaid", () => {
 
       Test_registrar:::startModule
 
-        subgraph Test registrar
+        subgraph Test_registrar
           direction BT
 
           Test_registrar:Contract1["Deploy Contract1"]
