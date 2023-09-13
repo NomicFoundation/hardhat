@@ -8,6 +8,7 @@ import {
   ExecutionStatus,
 } from "../../src/internal/execution/types/execution-state";
 import { getDefaultSender } from "../../src/internal/execution/utils/get-default-sender";
+import { Reconciler } from "../../src/internal/reconciliation/reconciler";
 import { FutureType } from "../../src/types/module";
 import { exampleAccounts } from "../helpers";
 
@@ -129,14 +130,8 @@ describe("Reconciliation", () => {
     ]);
   });
 
-  it("should flag as unreconsiliable a future that timed out on the previous run", async () => {
-    const moduleDefinition = buildModule("Module1", (m) => {
-      const contract1 = m.contract("Contract1");
-
-      return { contract1 };
-    });
-
-    const reconiliationResult = await reconcile(moduleDefinition, {
+  it("should flag as PreviousRunError a future that timed out on the previous run", async () => {
+    const reconiliationResult = Reconciler.checkForPreviousRunErrors({
       chainId: 123,
       executionStates: {
         "Module1#Example": {
@@ -146,7 +141,7 @@ describe("Reconciliation", () => {
       },
     });
 
-    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+    assert.deepStrictEqual(reconiliationResult, [
       {
         futureId: "Module1#Contract1",
         failure:
@@ -155,14 +150,8 @@ describe("Reconciliation", () => {
     ]);
   });
 
-  it("should flag as unreconsiliable a future that failed on the previous run", async () => {
-    const moduleDefinition = buildModule("Module1", (m) => {
-      const contract1 = m.contract("Contract1");
-
-      return { contract1 };
-    });
-
-    const reconiliationResult = await reconcile(moduleDefinition, {
+  it("should flag as PreviousRunError a future that failed on the previous run", async () => {
+    const reconiliationResult = Reconciler.checkForPreviousRunErrors({
       chainId: 123,
       executionStates: {
         "Module1#Example": {
@@ -172,7 +161,7 @@ describe("Reconciliation", () => {
       },
     });
 
-    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+    assert.deepStrictEqual(reconiliationResult, [
       {
         futureId: "Module1#Contract1",
         failure:

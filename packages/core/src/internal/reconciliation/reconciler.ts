@@ -1,9 +1,13 @@
+import { IgnitionError } from "../../errors";
 import { ArtifactResolver } from "../../types/artifact";
 import { DeploymentParameters } from "../../types/deploy";
 import { Future, IgnitionModule } from "../../types/module";
 import { DeploymentLoader } from "../deployment-loader/types";
 import { DeploymentState } from "../execution/types/deployment-state";
-import { ExecutionState } from "../execution/types/execution-state";
+import {
+  ExecutionState,
+  ExecutionStatus,
+} from "../execution/types/execution-state";
 import { AdjacencyList } from "../utils/adjacency-list";
 import { AdjacencyListConverter } from "../utils/adjacency-list-converter";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
@@ -54,6 +58,35 @@ export class Reconciler {
     );
 
     return { reconciliationFailures, missingExecutedFutures };
+  }
+
+  public static checkForPreviousRunErrors(
+    deploymentState: DeploymentState
+  ): ReconciliationFailure[] {
+    const failuresOrTimeouts = Object.values(
+      deploymentState.executionStates
+    ).filter(
+      (exState) =>
+        exState.status === ExecutionStatus.FAILED ||
+        exState.status === ExecutionStatus.TIMEOUT
+    );
+
+    return failuresOrTimeouts.map((exState) => ({
+      futureId: exState.id,
+      failure: this._previousRunFailedMessageFor(exState),
+    }));
+  }
+
+  private static _previousRunFailedMessageFor(exState: ExecutionState): string {
+    if (exState.status === ExecutionStatus.FAILED) {
+      return `The previous run of the future ${exState.id} failed, and will need wiped before running again`;
+    }
+
+    if (exState.status === ExecutionStatus.TIMEOUT) {
+      return `The previous run of the future ${exState.id} timed out, and will need wiped before running again`;
+    }
+
+    throw new IgnitionError(`Unsupported execution status: ${exState.status}`);
   }
 
   private static async _reconcileEachFutureInModule(
