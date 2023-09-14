@@ -8,11 +8,10 @@ use napi::{
 };
 use napi_derive::napi;
 use rethnet_eth::{Address, Bloom, Bytes, B256, B64};
-use rethnet_evm::BlockEnv;
+use rethnet_evm::{blockchain::BlockchainError, BlockEnv, SyncBlock};
 
 use crate::{
     cast::TryCast,
-    receipt::Receipt,
     transaction::signed::{
         EIP1559SignedTransaction, EIP2930SignedTransaction, LegacySignedTransaction,
     },
@@ -269,17 +268,17 @@ impl TryFrom<BlockHeader> for rethnet_eth::block::Header {
 
 #[napi]
 pub struct Block {
-    inner: Arc<rethnet_eth::block::DetailedBlock>,
+    inner: Arc<dyn SyncBlock<Error = BlockchainError>>,
 }
 
-impl From<Arc<rethnet_eth::block::DetailedBlock>> for Block {
-    fn from(value: Arc<rethnet_eth::block::DetailedBlock>) -> Self {
+impl From<Arc<dyn SyncBlock<Error = BlockchainError>>> for Block {
+    fn from(value: Arc<dyn SyncBlock<Error = BlockchainError>>) -> Self {
         Self { inner: value }
     }
 }
 
 impl Deref for Block {
-    type Target = rethnet_eth::block::DetailedBlock;
+    type Target = dyn SyncBlock<Error = BlockchainError>;
 
     fn deref(&self) -> &Self::Target {
         &self.inner
@@ -291,7 +290,7 @@ impl Block {
     #[doc = "Retrieves the block's header."]
     #[napi(getter)]
     pub fn header(&self, env: Env) -> napi::Result<BlockHeader> {
-        BlockHeader::new(&env, &self.header)
+        BlockHeader::new(&env, self.inner.header())
     }
 
     #[doc = "Retrieves the block's transactions."]
@@ -304,7 +303,8 @@ impl Block {
         // so manually do that here
         Vec<Either3<LegacySignedTransaction, EIP2930SignedTransaction, EIP1559SignedTransaction>>,
     > {
-        self.transactions
+        self.inner
+            .transactions()
             .iter()
             .map(|transaction| match transaction {
                 rethnet_eth::transaction::SignedTransaction::PreEip155Legacy(transaction) => {
@@ -327,17 +327,9 @@ impl Block {
     #[napi(getter)]
     pub fn callers(&self) -> Vec<Buffer> {
         self.inner
-            .transactions()
-            .map(|transaction| Buffer::from(transaction.caller.as_bytes()))
-            .collect()
-    }
-
-    #[doc = "Retrieves the transactions' receipts."]
-    #[napi(getter)]
-    pub fn receipts(&self) -> Vec<Receipt> {
-        self.inner
-            .transactions()
-            .map(|transaction| transaction.receipt.clone().into())
+            .transaction_callers()
+            .iter()
+            .map(|caller| Buffer::from(caller.as_bytes()))
             .collect()
     }
 }

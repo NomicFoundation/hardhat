@@ -1,34 +1,29 @@
 use std::sync::Arc;
 
-use rethnet_eth::{block::DetailedBlock, receipt::BlockReceipt, B256, U256};
+use rethnet_eth::{receipt::BlockReceipt, B256, U256};
 use revm::primitives::HashMap;
+
+use crate::Block;
 
 use super::InsertError;
 
 /// A storage solution for storing a subset of a Blockchain's blocks in-memory.
-#[derive(Default, Debug)]
-pub struct SparseBlockchainStorage {
-    hash_to_block: HashMap<B256, Arc<DetailedBlock>>,
+#[derive(Debug)]
+pub struct SparseBlockchainStorage<BlockT: Block + Clone + ?Sized> {
+    hash_to_block: HashMap<B256, BlockT>,
     hash_to_total_difficulty: HashMap<B256, U256>,
-    number_to_block: HashMap<U256, Arc<DetailedBlock>>,
-    transaction_hash_to_block: HashMap<B256, Arc<DetailedBlock>>,
+    number_to_block: HashMap<U256, BlockT>,
+    transaction_hash_to_block: HashMap<B256, BlockT>,
     transaction_hash_to_receipt: HashMap<B256, Arc<BlockReceipt>>,
 }
 
-impl SparseBlockchainStorage {
+impl<BlockT: Block + Clone + ?Sized> SparseBlockchainStorage<BlockT> {
     /// Constructs a new instance with the provided block.
-    pub fn with_block(block: DetailedBlock, total_difficulty: U256) -> Self {
-        let block = Arc::new(block);
+    pub fn with_block(block: BlockT, total_difficulty: U256) -> Self {
         let block_hash = block.hash();
 
-        let transaction_hash_to_receipt = block
-            .transaction_receipts()
-            .iter()
-            .map(|receipt| (receipt.transaction_hash, receipt.clone()))
-            .collect();
-
         let transaction_hash_to_block = block
-            .transactions
+            .transactions()
             .iter()
             .map(|transaction| (transaction.hash(), block.clone()))
             .collect();
@@ -40,32 +35,29 @@ impl SparseBlockchainStorage {
         hash_to_total_difficulty.insert(*block_hash, total_difficulty);
 
         let mut number_to_block = HashMap::new();
-        number_to_block.insert(block.header.number, block);
+        number_to_block.insert(block.header().number, block);
 
         Self {
             hash_to_block,
             hash_to_total_difficulty,
             number_to_block,
             transaction_hash_to_block,
-            transaction_hash_to_receipt,
+            transaction_hash_to_receipt: HashMap::new(),
         }
     }
 
     /// Retrieves the block by hash, if it exists.
-    pub fn block_by_hash(&self, hash: &B256) -> Option<&Arc<DetailedBlock>> {
+    pub fn block_by_hash(&self, hash: &B256) -> Option<&BlockT> {
         self.hash_to_block.get(hash)
     }
 
     /// Retrieves the block by number, if it exists.
-    pub fn block_by_number(&self, number: &U256) -> Option<&Arc<DetailedBlock>> {
+    pub fn block_by_number(&self, number: &U256) -> Option<&BlockT> {
         self.number_to_block.get(number)
     }
 
     /// Retrieves the block that contains the transaction with the provided hash, if it exists.
-    pub fn block_by_transaction_hash(
-        &self,
-        transaction_hash: &B256,
-    ) -> Option<&Arc<DetailedBlock>> {
+    pub fn block_by_transaction_hash(&self, transaction_hash: &B256) -> Option<&BlockT> {
         self.transaction_hash_to_block.get(transaction_hash)
     }
 
@@ -106,20 +98,22 @@ impl SparseBlockchainStorage {
     /// Inserts a block, failing if a block with the same hash or number already exists.
     pub fn insert_block(
         &mut self,
-        block: DetailedBlock,
+        block: BlockT,
         total_difficulty: U256,
-    ) -> Result<&Arc<DetailedBlock>, InsertError> {
+    ) -> Result<&BlockT, InsertError> {
         let block_hash = block.hash();
+        let block_header = block.header();
+
         if self.hash_to_block.contains_key(block_hash)
-            || self.number_to_block.contains_key(&block.header.number)
+            || self.number_to_block.contains_key(&block_header.number)
         {
             return Err(InsertError::DuplicateBlock {
                 block_hash: *block_hash,
-                block_number: block.header.number,
+                block_number: block_header.number,
             });
         }
 
-        if let Some(transaction) = block.transactions.iter().find(|transaction| {
+        if let Some(transaction) = block.transactions().iter().find(|transaction| {
             self.transaction_hash_to_block
                 .contains_key(&transaction.hash())
         }) {
@@ -140,22 +134,14 @@ impl SparseBlockchainStorage {
     /// nor any transactions with the same hash.
     pub unsafe fn insert_block_unchecked(
         &mut self,
-        block: DetailedBlock,
+        block: BlockT,
         total_difficulty: U256,
-    ) -> &Arc<DetailedBlock> {
-        let block = Arc::new(block);
+    ) -> &BlockT {
         let block_hash = block.hash();
-
-        self.transaction_hash_to_receipt.extend(
-            block
-                .transaction_receipts()
-                .iter()
-                .map(|receipt| (receipt.transaction_hash, receipt.clone())),
-        );
 
         self.transaction_hash_to_block.extend(
             block
-                .transactions
+                .transactions()
                 .iter()
                 .map(|transaction| (transaction.hash(), block.clone())),
         );
@@ -167,7 +153,7 @@ impl SparseBlockchainStorage {
             .insert_unique_unchecked(*block_hash, total_difficulty);
 
         self.number_to_block
-            .insert_unique_unchecked(block.header.number, block)
+            .insert_unique_unchecked(block.header().number, block)
             .1
     }
 
@@ -182,5 +168,32 @@ impl SparseBlockchainStorage {
         self.transaction_hash_to_receipt
             .insert_unique_unchecked(receipt.transaction_hash, receipt)
             .1
+    }
+
+    /// Inserts receipts, without checking whether they already exist.
+    ///
+    /// # Safety
+    ///
+    /// Ensure that the instance does not contain a receipt with the same transaction hash
+    /// as any of the inputs.
+    pub unsafe fn insert_receipts_unchecked(
+        &mut self,
+        receipts: impl Iterator<Item = Arc<BlockReceipt>>,
+        block: BlockT,
+    ) {
+        self.transaction_hash_to_block
+            .extend(receipts.map(|receipt| (receipt.transaction_hash, block.clone())));
+    }
+}
+
+impl<BlockT: Block + Clone> Default for SparseBlockchainStorage<BlockT> {
+    fn default() -> Self {
+        Self {
+            hash_to_block: HashMap::default(),
+            hash_to_total_difficulty: HashMap::default(),
+            number_to_block: HashMap::default(),
+            transaction_hash_to_block: HashMap::default(),
+            transaction_hash_to_receipt: HashMap::default(),
+        }
     }
 }

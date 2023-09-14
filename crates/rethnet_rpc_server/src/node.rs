@@ -3,7 +3,6 @@ use std::sync::Arc;
 use std::time::{SystemTime, SystemTimeError, UNIX_EPOCH};
 
 use rethnet_eth::{
-    block::DetailedBlock,
     remote::{BlockSpec, BlockTag, Eip1898BlockSpec},
     Address, SpecId, B256, U256,
 };
@@ -14,6 +13,7 @@ use rethnet_evm::{
     AccountInfo, CfgEnv, MemPool, MineBlockError, MineBlockResult, RandomHashGenerator,
     KECCAK_EMPTY,
 };
+use rethnet_evm::{Block, SyncBlock};
 
 use tokio::sync::Mutex;
 
@@ -50,10 +50,12 @@ impl Node {
             data.blockchain.last_block().await?
         };
 
+        let block_header = block.header();
+
         // Save previous state and set desired state based on the block specification.
         let previous_state = if let Some(irregular_state) = data
             .irregular_state
-            .state_by_block_number(&block.header.number)
+            .state_by_block_number(&block_header.number)
             .cloned()
         {
             PreviousState::State(mem::replace(&mut data.state, irregular_state))
@@ -61,7 +63,7 @@ impl Node {
             let previous_state_root = data.state.state_root()?;
 
             data.state
-                .set_block_context(&block.header.state_root, Some(block.header.number))?;
+                .set_block_context(&block_header.state_root, Some(block_header.number))?;
 
             PreviousState::StateRoot(previous_state_root)
         };
@@ -124,7 +126,7 @@ impl Node {
 }
 
 pub(super) struct NodeData {
-    pub blockchain: Box<dyn SyncBlockchain<BlockchainError>>,
+    pub blockchain: Box<dyn SyncBlockchain<BlockchainError, StateError>>,
     pub state: Box<dyn SyncState<StateError>>,
     pub irregular_state: IrregularState<StateError, Box<dyn SyncState<StateError>>>,
     pub mem_pool: MemPool,
@@ -141,7 +143,7 @@ impl NodeData {
     async fn block_by_block_spec(
         &mut self,
         block_spec: &BlockSpec,
-    ) -> Result<Arc<DetailedBlock>, NodeError> {
+    ) -> Result<Arc<dyn SyncBlock<Error = BlockchainError>>, NodeError> {
         match block_spec {
             BlockSpec::Number(block_number) => {
                 self.blockchain.block_by_number(block_number).await?.ok_or(
@@ -186,13 +188,14 @@ impl NodeData {
         timestamp: Option<U256>,
     ) -> Result<(U256, Option<U256>), NodeError> {
         let latest_block = self.blockchain.last_block().await?;
+        let latest_block_header = latest_block.header();
 
         let current_timestamp = U256::from(SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs());
         let (mut block_timestamp, new_offset) = if let Some(timestamp) = timestamp {
-            timestamp.checked_sub(latest_block.header.timestamp).ok_or(
+            timestamp.checked_sub(latest_block_header.timestamp).ok_or(
                 NodeError::TimestampLowerThanPrevious {
                     proposed: timestamp,
-                    previous: latest_block.header.timestamp,
+                    previous: latest_block_header.timestamp,
                 },
             )?;
             (timestamp, Some(timestamp - current_timestamp))
@@ -205,7 +208,7 @@ impl NodeData {
             (current_timestamp + self.block_time_offset_seconds, None)
         };
 
-        let timestamp_needs_increase = block_timestamp == latest_block.header.timestamp
+        let timestamp_needs_increase = block_timestamp == latest_block_header.timestamp
             && !self.allow_blocks_with_same_timestamp;
         if timestamp_needs_increase {
             block_timestamp += U256::from(1u64);
@@ -218,7 +221,7 @@ impl NodeData {
     pub async fn mine_block(
         &mut self,
         timestamp: Option<U256>,
-    ) -> Result<MineBlockResult, NodeError> {
+    ) -> Result<MineBlockResult<BlockchainError>, NodeError> {
         let (block_timestamp, new_offset) = self.next_block_timestamp(timestamp).await?;
 
         // TODO: when we support hardhat_setNextBlockBaseFeePerGas, incorporate

@@ -6,14 +6,11 @@ use std::{
 };
 
 use async_trait::async_trait;
-use rethnet_eth::{
-    block::{Block, DetailedBlock, PartialHeader},
-    trie::KECCAK_NULL_RLP,
-    Bytes, B256, B64, U256,
-};
+use rethnet_eth::{block::PartialHeader, trie::KECCAK_NULL_RLP, Bytes, B256, B64, U256};
 use revm::{db::BlockHashRef, primitives::SpecId};
 
-use crate::state::SyncState;
+use crate::state::{StateError, SyncState};
+use crate::{Block, LocalBlock, SyncBlock};
 
 use super::{
     storage::ReservableSparseBlockchainStorage, validate_next_block, Blockchain, BlockchainError,
@@ -46,7 +43,7 @@ pub enum InsertBlockError {
 /// A blockchain consisting of locally created blocks.
 #[derive(Debug)]
 pub struct LocalBlockchain {
-    storage: ReservableSparseBlockchainStorage,
+    storage: ReservableSparseBlockchainStorage<Arc<dyn SyncBlock<Error = BlockchainError>>>,
     chain_id: U256,
     spec_id: SpecId,
 }
@@ -67,63 +64,52 @@ impl LocalBlockchain {
     {
         const EXTRA_DATA: &[u8] = b"124";
 
-        let withdrawals = if spec_id >= SpecId::SHANGHAI {
-            Some(Vec::new())
-        } else {
-            None
-        };
-
         // Ensure initial checkpoint exists
         state.checkpoint().map_err(CreationError::State)?;
 
-        let genesis_block = Block::new(
-            PartialHeader {
-                state_root: state.state_root().map_err(CreationError::State)?,
-                receipts_root: KECCAK_NULL_RLP,
-                difficulty: if spec_id >= SpecId::MERGE {
-                    U256::ZERO
-                } else {
-                    U256::from(1)
-                },
-                number: U256::ZERO,
-                gas_limit,
-                gas_used: U256::ZERO,
-                timestamp: timestamp.unwrap_or_else(|| {
-                    U256::from(
-                        SystemTime::now()
-                            .duration_since(UNIX_EPOCH)
-                            .expect("Current time must be after unix epoch")
-                            .as_secs(),
-                    )
-                }),
-                extra_data: Bytes::from(EXTRA_DATA),
-                mix_hash: if spec_id >= SpecId::MERGE {
-                    prevrandao.ok_or(CreationError::MissingPrevrandao)?
-                } else {
-                    B256::zero()
-                },
-                nonce: if spec_id >= SpecId::MERGE {
-                    B64::ZERO
-                } else {
-                    B64::from_limbs([66u64.to_be()])
-                },
-                base_fee: if spec_id >= SpecId::LONDON {
-                    Some(base_fee.ok_or(CreationError::MissingBaseFee)?)
-                } else {
-                    None
-                },
-                ..PartialHeader::default()
+        let partial_header = PartialHeader {
+            state_root: state.state_root().map_err(CreationError::State)?,
+            receipts_root: KECCAK_NULL_RLP,
+            difficulty: if spec_id >= SpecId::MERGE {
+                U256::ZERO
+            } else {
+                U256::from(1)
             },
-            Vec::new(),
-            Vec::new(),
-            withdrawals,
-        );
+            number: U256::ZERO,
+            gas_limit,
+            gas_used: U256::ZERO,
+            timestamp: timestamp.unwrap_or_else(|| {
+                U256::from(
+                    SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .expect("Current time must be after unix epoch")
+                        .as_secs(),
+                )
+            }),
+            extra_data: Bytes::from(EXTRA_DATA),
+            mix_hash: if spec_id >= SpecId::MERGE {
+                prevrandao.ok_or(CreationError::MissingPrevrandao)?
+            } else {
+                B256::zero()
+            },
+            nonce: if spec_id >= SpecId::MERGE {
+                B64::ZERO
+            } else {
+                B64::from_limbs([66u64.to_be()])
+            },
+            base_fee: if spec_id >= SpecId::LONDON {
+                Some(base_fee.ok_or(CreationError::MissingBaseFee)?)
+            } else {
+                None
+            },
+            ..PartialHeader::default()
+        };
 
         Ok(unsafe {
             Self::with_genesis_block_unchecked(
                 chain_id,
                 spec_id,
-                DetailedBlock::new(genesis_block, Vec::new(), Vec::new()),
+                LocalBlock::empty(partial_header, spec_id),
             )
         })
     }
@@ -132,16 +118,18 @@ impl LocalBlockchain {
     pub fn with_genesis_block(
         chain_id: U256,
         spec_id: SpecId,
-        genesis_block: DetailedBlock,
+        genesis_block: LocalBlock,
     ) -> Result<Self, InsertBlockError> {
-        if genesis_block.header.number != U256::ZERO {
+        let genesis_header = genesis_block.header();
+
+        if genesis_header.number != U256::ZERO {
             return Err(InsertBlockError::InvalidBlockNumber {
-                actual: genesis_block.header.number,
+                actual: genesis_header.number,
                 expected: U256::ZERO,
             });
         }
 
-        if spec_id >= SpecId::SHANGHAI && genesis_block.header.withdrawals_root.is_none() {
+        if spec_id >= SpecId::SHANGHAI && genesis_header.withdrawals_root.is_none() {
             return Err(InsertBlockError::MissingWithdrawals);
         }
 
@@ -156,9 +144,11 @@ impl LocalBlockchain {
     pub unsafe fn with_genesis_block_unchecked(
         chain_id: U256,
         spec_id: SpecId,
-        genesis_block: DetailedBlock,
+        genesis_block: LocalBlock,
     ) -> Self {
-        let total_difficulty = genesis_block.header.difficulty;
+        let genesis_block: Arc<dyn SyncBlock<Error = BlockchainError>> = Arc::new(genesis_block);
+
+        let total_difficulty = genesis_block.header().difficulty;
         let storage =
             ReservableSparseBlockchainStorage::with_block(genesis_block, total_difficulty);
 
@@ -172,23 +162,31 @@ impl LocalBlockchain {
 
 #[async_trait]
 impl Blockchain for LocalBlockchain {
-    type Error = BlockchainError;
+    type BlockchainError = BlockchainError;
 
-    async fn block_by_hash(&self, hash: &B256) -> Result<Option<Arc<DetailedBlock>>, Self::Error> {
+    type StateError = StateError;
+
+    async fn block_by_hash(
+        &self,
+        hash: &B256,
+    ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>
+    {
         Ok(self.storage.block_by_hash(hash))
     }
 
     async fn block_by_number(
         &self,
         number: &U256,
-    ) -> Result<Option<Arc<DetailedBlock>>, Self::Error> {
+    ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>
+    {
         Ok(self.storage.block_by_number(number))
     }
 
     async fn block_by_transaction_hash(
         &self,
         transaction_hash: &B256,
-    ) -> Result<Option<Arc<DetailedBlock>>, Self::Error> {
+    ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>
+    {
         Ok(self.storage.block_by_transaction_hash(transaction_hash))
     }
 
@@ -196,7 +194,7 @@ impl Blockchain for LocalBlockchain {
         &self,
         _number: &U256,
         spec_id: SpecId,
-    ) -> Result<bool, Self::Error> {
+    ) -> Result<bool, Self::BlockchainError> {
         Ok(spec_id <= self.spec_id)
     }
 
@@ -204,7 +202,9 @@ impl Blockchain for LocalBlockchain {
         self.chain_id
     }
 
-    async fn last_block(&self) -> Result<Arc<DetailedBlock>, Self::Error> {
+    async fn last_block(
+        &self,
+    ) -> Result<Arc<dyn SyncBlock<Error = Self::BlockchainError>>, Self::BlockchainError> {
         Ok(self
             .storage
             .block_by_number(self.storage.last_block_number())
@@ -218,11 +218,14 @@ impl Blockchain for LocalBlockchain {
     async fn receipt_by_transaction_hash(
         &self,
         transaction_hash: &B256,
-    ) -> Result<Option<Arc<rethnet_eth::receipt::BlockReceipt>>, Self::Error> {
+    ) -> Result<Option<Arc<rethnet_eth::receipt::BlockReceipt>>, Self::BlockchainError> {
         Ok(self.storage.receipt_by_transaction_hash(transaction_hash))
     }
 
-    async fn total_difficulty_by_hash(&self, hash: &B256) -> Result<Option<U256>, Self::Error> {
+    async fn total_difficulty_by_hash(
+        &self,
+        hash: &B256,
+    ) -> Result<Option<U256>, Self::BlockchainError> {
         Ok(self.storage.total_difficulty_by_hash(hash))
     }
 }
@@ -233,8 +236,8 @@ impl BlockchainMut for LocalBlockchain {
 
     async fn insert_block(
         &mut self,
-        block: DetailedBlock,
-    ) -> Result<Arc<DetailedBlock>, Self::Error> {
+        block: LocalBlock,
+    ) -> Result<Arc<dyn SyncBlock<Error = Self::Error>>, Self::Error> {
         let last_block = self.last_block().await?;
 
         validate_next_block(self.spec_id, &last_block, &block)?;
@@ -245,12 +248,24 @@ impl BlockchainMut for LocalBlockchain {
             .expect("No error can occur as it is stored locally")
             .expect("Must exist as its block is stored");
 
-        let total_difficulty = previous_total_difficulty + block.header.difficulty;
+        let total_difficulty = previous_total_difficulty + block.header().difficulty;
+
+        let receipts: Vec<_> = block.transaction_receipts().to_vec();
 
         // SAFETY: The block number is guaranteed to be unique, so the block hash must be too.
-        let block = unsafe { self.storage.insert_block_unchecked(block, total_difficulty) };
+        let block = unsafe {
+            self.storage
+                .insert_block_unchecked(Arc::new(block), total_difficulty)
+        }
+        .clone();
 
-        Ok(block.clone())
+        // SAFETY: The block number is guaranteed to be unique, so the receipts must be too.
+        unsafe {
+            self.storage
+                .insert_receipts_unchecked(receipts.into_iter(), block.clone());
+        }
+
+        Ok(block)
     }
 
     async fn reserve_blocks(
@@ -270,11 +285,13 @@ impl BlockchainMut for LocalBlockchain {
             .await?
             .expect("Must exist as its block is stored");
 
+        let last_header = last_block.header();
+
         self.storage.reserve_blocks(
             additional,
             interval,
-            last_block.header.base_fee_per_gas,
-            last_block.header.state_root,
+            last_header.base_fee_per_gas,
+            last_header.state_root,
             previous_total_difficulty,
             self.spec_id,
         );

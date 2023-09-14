@@ -1,6 +1,9 @@
 use std::{
     fmt::Debug,
-    sync::mpsc::{channel, Sender},
+    sync::{
+        mpsc::{channel, Sender},
+        Arc,
+    },
 };
 
 use async_trait::async_trait;
@@ -9,6 +12,8 @@ use rethnet_eth::{B256, U256};
 use rethnet_evm::{
     blockchain::{Blockchain, BlockchainError, BlockchainMut},
     db::BlockHashRef,
+    state::StateError,
+    SyncBlock,
 };
 
 use crate::threadsafe_function::{ThreadsafeFunction, ThreadsafeFunctionCallMode};
@@ -48,26 +53,31 @@ impl BlockHashRef for JsBlockchain {
 #[allow(clippy::unimplemented)]
 #[async_trait]
 impl Blockchain for JsBlockchain {
-    type Error = BlockchainError;
+    type BlockchainError = BlockchainError;
+
+    type StateError = StateError;
 
     async fn block_by_hash(
         &self,
         _hash: &B256,
-    ) -> Result<Option<std::sync::Arc<rethnet_eth::block::DetailedBlock>>, Self::Error> {
+    ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>
+    {
         unimplemented!("Unsupported API")
     }
 
     async fn block_by_number(
         &self,
         _number: &U256,
-    ) -> Result<Option<std::sync::Arc<rethnet_eth::block::DetailedBlock>>, Self::Error> {
+    ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>
+    {
         unimplemented!("Unsupported API")
     }
 
     async fn block_by_transaction_hash(
         &self,
         _transaction_hash: &B256,
-    ) -> Result<Option<std::sync::Arc<rethnet_eth::block::DetailedBlock>>, Self::Error> {
+    ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>
+    {
         unimplemented!("Unsupported API")
     }
 
@@ -75,7 +85,7 @@ impl Blockchain for JsBlockchain {
         &self,
         _number: &U256,
         _spec_id: rethnet_evm::SpecId,
-    ) -> Result<bool, Self::Error> {
+    ) -> Result<bool, Self::BlockchainError> {
         unimplemented!("Unsupported API")
     }
 
@@ -85,7 +95,7 @@ impl Blockchain for JsBlockchain {
 
     async fn last_block(
         &self,
-    ) -> Result<std::sync::Arc<rethnet_eth::block::DetailedBlock>, Self::Error> {
+    ) -> Result<Arc<dyn SyncBlock<Error = Self::BlockchainError>>, Self::BlockchainError> {
         unimplemented!("Unsupported API")
     }
 
@@ -96,11 +106,14 @@ impl Blockchain for JsBlockchain {
     async fn receipt_by_transaction_hash(
         &self,
         _transaction_hash: &B256,
-    ) -> Result<Option<std::sync::Arc<rethnet_eth::receipt::BlockReceipt>>, Self::Error> {
+    ) -> Result<Option<Arc<rethnet_eth::receipt::BlockReceipt>>, Self::BlockchainError> {
         unimplemented!("Unsupported API")
     }
 
-    async fn total_difficulty_by_hash(&self, _hash: &B256) -> Result<Option<U256>, Self::Error> {
+    async fn total_difficulty_by_hash(
+        &self,
+        _hash: &B256,
+    ) -> Result<Option<U256>, Self::BlockchainError> {
         unimplemented!("Unsupported API")
     }
 }
@@ -112,8 +125,8 @@ impl BlockchainMut for JsBlockchain {
 
     async fn insert_block(
         &mut self,
-        _block: rethnet_eth::block::DetailedBlock,
-    ) -> Result<std::sync::Arc<rethnet_eth::block::DetailedBlock>, Self::Error> {
+        _block: rethnet_evm::LocalBlock,
+    ) -> Result<Arc<dyn SyncBlock<Error = Self::Error>>, Self::Error> {
         unimplemented!("Unsupported API")
     }
 

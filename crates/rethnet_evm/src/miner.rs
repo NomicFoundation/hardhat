@@ -1,7 +1,7 @@
 use std::{collections::VecDeque, fmt::Debug, sync::Arc};
 
 use rethnet_eth::{
-    block::{BlockOptions, DetailedBlock, Header},
+    block::{BlockOptions, Header},
     Address, B256, B64, U256,
 };
 use revm::primitives::{CfgEnv, ExecutionResult, SpecId};
@@ -11,13 +11,13 @@ use crate::{
     blockchain::SyncBlockchain,
     state::SyncState,
     trace::{Trace, TraceCollector},
-    BlockBuilder, BlockTransactionError, MemPool,
+    BlockBuilder, BlockTransactionError, MemPool, SyncBlock,
 };
 
 /// The result of mining a block.
-pub struct MineBlockResult {
+pub struct MineBlockResult<BlockchainErrorT> {
     /// Mined block
-    pub block: Arc<DetailedBlock>,
+    pub block: Arc<dyn SyncBlock<Error = BlockchainErrorT>>,
     /// Transaction results
     pub transaction_results: Vec<ExecutionResult>,
     /// Transaction traces
@@ -53,7 +53,7 @@ pub enum MineBlockError<BE, SE> {
 /// Mines a block using as many transactions as can fit in it.
 #[allow(clippy::too_many_arguments)]
 pub async fn mine_block<BlockchainErrorT, StateErrorT>(
-    blockchain: &mut dyn SyncBlockchain<BlockchainErrorT>,
+    blockchain: &mut dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
     state: &mut dyn SyncState<StateErrorT>,
     mem_pool: &mut MemPool,
     cfg: &CfgEnv,
@@ -63,7 +63,7 @@ pub async fn mine_block<BlockchainErrorT, StateErrorT>(
     reward: U256,
     base_fee: Option<U256>,
     prevrandao: Option<B256>,
-) -> Result<MineBlockResult, MineBlockError<BlockchainErrorT, StateErrorT>>
+) -> Result<MineBlockResult<BlockchainErrorT>, MineBlockError<BlockchainErrorT, StateErrorT>>
 where
     BlockchainErrorT: Debug + Send + 'static,
     StateErrorT: Debug + Send + 'static,
@@ -74,13 +74,14 @@ where
             .await
             .map_err(MineBlockError::Blockchain)?;
 
+        let parent_header = parent_block.header();
         BlockBuilder::new(
             state,
             cfg.clone(),
-            &parent_block.header,
+            parent_header,
             BlockOptions {
                 beneficiary: Some(beneficiary),
-                number: Some(parent_block.header.number + U256::from(1)),
+                number: Some(parent_header.number + U256::from(1)),
                 gas_limit: Some(block_gas_limit),
                 timestamp: Some(timestamp),
                 mix_hash: if cfg.spec_id >= SpecId::MERGE {
@@ -94,7 +95,7 @@ where
                     B64::from_limbs([66u64.to_be()])
                 }),
                 base_fee: if cfg.spec_id >= SpecId::LONDON {
-                    Some(base_fee.unwrap_or_else(|| calculate_next_base_fee(&parent_block.header)))
+                    Some(base_fee.unwrap_or_else(|| calculate_next_base_fee(parent_header)))
                 } else {
                     None
                 },

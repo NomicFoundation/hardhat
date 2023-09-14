@@ -8,7 +8,11 @@ mod alchemy {
                 paste::item! {
                     #[tokio::test]
                     async fn [<test_transaction_remote_ $name _hash>]() {
-                        use rethnet_eth::{block::BlockAndCallers, remote::{RpcClient, BlockSpec}};
+                        use rethnet_eth::{
+                            remote::{RpcClient, BlockSpec},
+                            transaction::SignedTransaction,
+                            Address
+                        };
                         use rethnet_test_utils::env::get_alchemy_url;
                         use revm_primitives::{B256, U256};
                         use tempfile::TempDir;
@@ -29,11 +33,15 @@ mod alchemy {
                             .map(|transaction| transaction.hash)
                             .collect();
 
-                        let BlockAndCallers { block, .. } = block
-                            .try_into()
+                        let (transactions, _callers): (Vec<SignedTransaction>, Vec<Address>) =
+                            itertools::process_results(
+                                block.transactions.into_iter().map(TryInto::try_into),
+                                #[allow(clippy::redundant_closure_for_method_calls)]
+                                |iter| iter.unzip(),
+                            )
                             .expect("Conversion must succeed, as we're not retrieving a pending block");
 
-                        for (index, transaction) in block.transactions.iter().enumerate() {
+                        for (index, transaction) in transactions.iter().enumerate() {
                             assert_eq!(transaction_hashes[index], transaction.hash());
                         }
                     }

@@ -10,7 +10,10 @@ use napi::{
 use napi_derive::napi;
 
 use rethnet_eth::{B256, U256};
-use rethnet_evm::blockchain::{BlockchainError, SyncBlockchain};
+use rethnet_evm::{
+    blockchain::{BlockchainError, SyncBlockchain},
+    state::StateError,
+};
 
 use crate::{
     block::{Block, BlockOptions},
@@ -20,7 +23,6 @@ use crate::{
     receipt::Receipt,
     sync::{await_promise, handle_error},
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction},
-    withdrawal::Withdrawal,
 };
 
 use self::js_blockchain::{GetBlockHashCall, JsBlockchain};
@@ -33,13 +35,13 @@ const BLOCKCHAIN_MEMORY_SIZE: i64 = 10_000;
 #[napi(custom_finalize)]
 #[derive(Debug)]
 pub struct Blockchain {
-    inner: Arc<RwLock<dyn SyncBlockchain<BlockchainError>>>,
+    inner: Arc<RwLock<dyn SyncBlockchain<BlockchainError, StateError>>>,
 }
 
 impl Blockchain {
     fn with_blockchain<B>(env: &mut Env, blockchain: B) -> napi::Result<Self>
     where
-        B: SyncBlockchain<BlockchainError>,
+        B: SyncBlockchain<BlockchainError, StateError>,
     {
         // Signal that memory was externally allocated
         env.adjust_external_memory(BLOCKCHAIN_MEMORY_SIZE)?;
@@ -51,7 +53,7 @@ impl Blockchain {
 }
 
 impl Deref for Blockchain {
-    type Target = Arc<RwLock<dyn SyncBlockchain<BlockchainError>>>;
+    type Target = Arc<RwLock<dyn SyncBlockchain<BlockchainError, StateError>>>;
 
     fn deref(&self) -> &Self::Target {
         &self.inner
@@ -97,24 +99,13 @@ impl Blockchain {
         chain_id: BigInt,
         spec_id: SpecId,
         genesis_block: BlockOptions,
-        withdrawals: Option<Vec<Withdrawal>>,
     ) -> napi::Result<Self> {
         let chain_id: U256 = chain_id.try_cast()?;
         let spec_id = rethnet_evm::SpecId::from(spec_id);
         let options = rethnet_eth::block::BlockOptions::try_from(genesis_block)?;
-        let withdrawals = withdrawals.map_or(Ok(None), |withdrawals| {
-            withdrawals
-                .into_iter()
-                .map(rethnet_eth::withdrawal::Withdrawal::try_from)
-                .collect::<napi::Result<Vec<_>>>()
-                .map(Some)
-        })?;
 
         let header = rethnet_eth::block::PartialHeader::new(spec_id, options, None);
-        let genesis_block =
-            rethnet_eth::block::Block::new(header, Vec::new(), Vec::new(), withdrawals);
-        let genesis_block =
-            rethnet_eth::block::DetailedBlock::new(genesis_block, Vec::new(), Vec::new());
+        let genesis_block = rethnet_evm::LocalBlock::empty(header, spec_id);
 
         let blockchain = rethnet_evm::blockchain::LocalBlockchain::with_genesis_block(
             chain_id,

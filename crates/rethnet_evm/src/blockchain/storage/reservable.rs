@@ -1,11 +1,9 @@
-use std::{num::NonZeroUsize, sync::Arc};
+use std::{fmt::Debug, num::NonZeroUsize, sync::Arc};
 
 use parking_lot::{RwLock, RwLockUpgradableReadGuard, RwLockWriteGuard};
-use rethnet_eth::{
-    block::{Block, DetailedBlock, PartialHeader},
-    receipt::BlockReceipt,
-    SpecId, B256, U256,
-};
+use rethnet_eth::{block::PartialHeader, receipt::BlockReceipt, SpecId, B256, U256};
+
+use crate::{Block, LocalBlock};
 
 use super::SparseBlockchainStorage;
 
@@ -23,18 +21,18 @@ struct Reservation {
 
 /// A storage solution for storing a subset of a Blockchain's blocks in-memory, while lazily loading blocks that have been reserved.
 #[derive(Debug)]
-pub struct ReservableSparseBlockchainStorage {
+pub struct ReservableSparseBlockchainStorage<BlockT: Block + Clone + ?Sized> {
     reservations: RwLock<Vec<Reservation>>,
-    storage: RwLock<SparseBlockchainStorage>,
+    storage: RwLock<SparseBlockchainStorage<BlockT>>,
     last_block_number: U256,
 }
 
-impl ReservableSparseBlockchainStorage {
+impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
     /// Constructs a new instance with the provided block.
-    pub fn with_block(block: DetailedBlock, total_difficulty: U256) -> Self {
+    pub fn with_block(block: BlockT, total_difficulty: U256) -> Self {
         Self {
             reservations: RwLock::new(Vec::new()),
-            last_block_number: block.header.number,
+            last_block_number: block.header().number,
             storage: RwLock::new(SparseBlockchainStorage::with_block(block, total_difficulty)),
         }
     }
@@ -49,18 +47,12 @@ impl ReservableSparseBlockchainStorage {
     }
 
     /// Retrieves the block by hash, if it exists.
-    pub fn block_by_hash(&self, hash: &B256) -> Option<Arc<DetailedBlock>> {
+    pub fn block_by_hash(&self, hash: &B256) -> Option<BlockT> {
         self.storage.read().block_by_hash(hash).cloned()
     }
 
-    /// Retrieves the block by number, if it exists.
-    pub fn block_by_number(&self, number: &U256) -> Option<Arc<DetailedBlock>> {
-        self.try_fulfilling_reservation(number)
-            .or_else(|| self.storage.read().block_by_number(number).cloned())
-    }
-
     /// Retrieves the block that contains the transaction with the provided hash, if it exists.
-    pub fn block_by_transaction_hash(&self, transaction_hash: &B256) -> Option<Arc<DetailedBlock>> {
+    pub fn block_by_transaction_hash(&self, transaction_hash: &B256) -> Option<BlockT> {
         self.storage
             .read()
             .block_by_transaction_hash(transaction_hash)
@@ -80,14 +72,29 @@ impl ReservableSparseBlockchainStorage {
     /// nor any transactions with the same hash.
     pub unsafe fn insert_block_unchecked(
         &mut self,
-        block: DetailedBlock,
+        block: BlockT,
         total_difficulty: U256,
-    ) -> &Arc<DetailedBlock> {
-        self.last_block_number = block.header.number;
+    ) -> &BlockT {
+        self.last_block_number = block.header().number;
 
         self.storage
             .get_mut()
             .insert_block_unchecked(block, total_difficulty)
+    }
+
+    /// Inserts receipts, without checking whether they already exist.
+    ///
+    /// # Safety
+    ///
+    /// Ensure that the instance does not contain a receipt with the same transaction hash
+    /// as any of the inputs.
+    pub unsafe fn insert_receipts_unchecked(
+        &mut self,
+        receipts: impl Iterator<Item = Arc<BlockReceipt>>,
+        block: BlockT,
+    ) {
+        let storage = self.storage.get_mut();
+        storage.insert_receipts_unchecked(receipts, block);
     }
 
     /// Retrieves the last block number.
@@ -104,6 +111,30 @@ impl ReservableSparseBlockchainStorage {
             .read()
             .receipt_by_transaction_hash(transaction_hash)
             .cloned()
+    }
+
+    /// Reserves the provided number of blocks, starting from the next block number.
+    pub fn reserve_blocks(
+        &mut self,
+        additional: NonZeroUsize,
+        interval: U256,
+        previous_base_fee: Option<U256>,
+        previous_state_root: B256,
+        previous_total_difficulty: U256,
+        spec_id: SpecId,
+    ) {
+        let reservation = Reservation {
+            first_number: self.last_block_number + U256::from(1),
+            last_number: self.last_block_number + U256::from(additional.get()),
+            interval,
+            previous_base_fee_per_gas: previous_base_fee,
+            previous_state_root,
+            previous_total_difficulty,
+            spec_id,
+        };
+
+        self.reservations.get_mut().push(reservation);
+        self.last_block_number += U256::from(additional.get());
     }
 
     /// Reverts to the block with the provided number, deleting all later blocks.
@@ -131,36 +162,20 @@ impl ReservableSparseBlockchainStorage {
         true
     }
 
-    /// Reserves the provided number of blocks, starting from the next block number.
-    pub fn reserve_blocks(
-        &mut self,
-        additional: NonZeroUsize,
-        interval: U256,
-        previous_base_fee: Option<U256>,
-        previous_state_root: B256,
-        previous_total_difficulty: U256,
-        spec_id: SpecId,
-    ) {
-        let reservation = Reservation {
-            first_number: self.last_block_number + U256::from(1),
-            last_number: self.last_block_number + U256::from(additional.get()),
-            interval,
-            previous_base_fee_per_gas: previous_base_fee,
-            previous_state_root,
-            previous_total_difficulty,
-            spec_id,
-        };
-
-        self.reservations.get_mut().push(reservation);
-        self.last_block_number += U256::from(additional.get());
-    }
-
     /// Retrieves the total difficulty of the block with the provided hash.
     pub fn total_difficulty_by_hash(&self, hash: &B256) -> Option<U256> {
         self.storage.read().total_difficulty_by_hash(hash).cloned()
     }
+}
 
-    fn try_fulfilling_reservation(&self, block_number: &U256) -> Option<Arc<DetailedBlock>> {
+impl<BlockT: Block + Clone + From<LocalBlock>> ReservableSparseBlockchainStorage<BlockT> {
+    /// Retrieves the block by number, if it exists.
+    pub fn block_by_number(&self, number: &U256) -> Option<BlockT> {
+        self.try_fulfilling_reservation(number)
+            .or_else(|| self.storage.read().block_by_number(number).cloned())
+    }
+
+    fn try_fulfilling_reservation(&self, block_number: &U256) -> Option<BlockT> {
         let reservations = self.reservations.upgradable_read();
 
         reservations
@@ -203,13 +218,7 @@ impl ReservableSparseBlockchainStorage {
                     block_number,
                 );
 
-                let withdrawals = if reservation.spec_id >= SpecId::SHANGHAI {
-                    Some(Vec::new())
-                } else {
-                    None
-                };
-
-                let block = Block::new(
+                let block = LocalBlock::empty(
                     PartialHeader {
                         number: *block_number,
                         state_root: reservation.previous_state_root,
@@ -217,27 +226,24 @@ impl ReservableSparseBlockchainStorage {
                         timestamp,
                         ..PartialHeader::default()
                     },
-                    Vec::new(),
-                    Vec::new(),
-                    withdrawals,
+                    reservation.spec_id,
                 );
-
-                let block = DetailedBlock::new(block, Vec::new(), Vec::new());
 
                 let mut storage = RwLockUpgradableReadGuard::upgrade(storage);
 
                 // SAFETY: Reservations are guaranteed to not overlap with other reservations or blocks, so the
                 // generated block must have a unique block number and thus hash.
                 unsafe {
-                    storage.insert_block_unchecked(block, reservation.previous_total_difficulty)
+                    storage
+                        .insert_block_unchecked(block.into(), reservation.previous_total_difficulty)
                 }
                 .clone()
             })
     }
 }
 
-fn calculate_timestamp_for_reserved_block(
-    storage: &SparseBlockchainStorage,
+fn calculate_timestamp_for_reserved_block<BlockT: Block + Clone>(
+    storage: &SparseBlockchainStorage<BlockT>,
     reservations: &Vec<Reservation>,
     reservation: &Reservation,
     block_number: &U256,
@@ -266,7 +272,7 @@ fn calculate_timestamp_for_reserved_block(
             .block_by_number(&previous_block_number)
             .expect("Block must exist");
 
-        previous_block.header.timestamp
+        previous_block.header().timestamp
     };
 
     previous_timestamp
