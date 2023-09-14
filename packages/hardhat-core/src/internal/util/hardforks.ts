@@ -80,7 +80,7 @@ export function selectHardfork(
   hardforkActivations: HardforkHistoryConfig | undefined,
   blockNumber: bigint
 ): string {
-  if (forkBlockNumber === undefined || blockNumber >= forkBlockNumber) {
+  if (forkBlockNumber === undefined || blockNumber > forkBlockNumber) {
     return currentHardfork;
   }
 
