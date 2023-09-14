@@ -9,7 +9,6 @@ import {
 
 export const VisualizationSummary: React.FC<{ deployment: StoredDeployment }> =
   ({ deployment }) => {
-    const { details } = deployment;
     const deployFutures = useMemo(
       () => getAllDeployFuturesFor(deployment),
       [deployment]
@@ -21,10 +20,7 @@ export const VisualizationSummary: React.FC<{ deployment: StoredDeployment }> =
 
     return (
       <div>
-        <SummaryHeader
-          networkName={details.networkName}
-          chainId={details.chainId}
-        />
+        <SummaryHeader />
 
         <p>
           The successful completion of the deployment will send{" "}

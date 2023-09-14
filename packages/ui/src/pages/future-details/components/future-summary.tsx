@@ -11,7 +11,7 @@ import { argumentTypeToString } from "../../../utils/argumentTypeToString";
 export const FutureSummary: React.FC<{
   deployment: StoredDeployment;
   future: Future;
-}> = ({ deployment, future }) => {
+}> = ({ future }) => {
   const title = resolveTitleFor(future);
 
   return (
@@ -21,10 +21,7 @@ export const FutureSummary: React.FC<{
       </header>
 
       <Panel>
-        <SummaryHeader
-          networkName={deployment.details.networkName}
-          chainId={deployment.details.chainId}
-        />
+        <SummaryHeader />
 
         <div>
           <FutureDetailsSection future={future} />

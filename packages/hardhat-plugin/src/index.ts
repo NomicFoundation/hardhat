@@ -186,21 +186,11 @@ task("visualize")
         process.exit(0);
       }
 
-      const chainId = Number(
-        await hre.network.provider.request({
-          method: "eth_chainId",
-        })
-      );
-
       const artifactResolver = new HardhatArtifactResolver(hre);
 
       const serializedModule = await visualize({
         artifactResolver,
         storedDeployment: {
-          details: {
-            networkName: hre.network.name,
-            chainId,
-          },
           module: userModule,
         },
       });

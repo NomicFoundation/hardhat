@@ -244,10 +244,6 @@ export interface SerializedModuleParameterRuntimeValue {
  * @beta
  */
 export interface StoredDeployment {
-  details: {
-    networkName: string;
-    chainId: number;
-  };
   module: IgnitionModule<string, string, IgnitionModuleResult<string>>;
 }
 
@@ -260,10 +256,6 @@ export interface StoredDeployment {
  * @beta
  */
 export interface SerializedStoredDeployment {
-  details: {
-    networkName: string;
-    chainId: number;
-  };
   startModule: string;
   modules: {
     [key: string]: SerializedStoredModule;

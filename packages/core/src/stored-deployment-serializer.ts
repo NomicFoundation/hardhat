@@ -90,9 +90,6 @@ export class StoredDeploymentSerializer {
     const allModules = this._getModulesAndSubmoduleFor(deployment.module);
 
     return {
-      details: {
-        ...deployment.details,
-      },
       startModule: deployment.module.id,
       modules: Object.fromEntries(
         allModules.map((m) => [m.id, this._serializeModule(m, { argReplacer })])
@@ -478,9 +475,6 @@ export class StoredDeploymentDeserializer {
     }
 
     return {
-      details: {
-        ...serializedDeployment.details,
-      },
       module: this._lookup(modulesLookup, serializedDeployment.startModule),
     };
   }

@@ -21,11 +21,6 @@ import {
 import { StoredDeployment } from "../src/types/serialized-deployment";
 
 describe("stored deployment serializer", () => {
-  const details = {
-    networkName: "hardhat",
-    chainId: 31117,
-  };
-
   describe("contract", () => {
     it("should serialize a contract deployment", () => {
       const module = buildModule("Module1", (m) => {
@@ -35,7 +30,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -50,7 +44,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -64,7 +57,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -86,7 +78,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -105,7 +96,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -120,7 +110,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -135,7 +124,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -151,7 +139,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -173,7 +160,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -188,7 +174,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -204,7 +189,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -226,7 +210,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -243,7 +226,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -282,7 +264,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -304,7 +285,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -321,7 +301,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -338,7 +317,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -355,7 +333,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -372,7 +349,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -389,7 +365,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -409,7 +384,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -430,7 +404,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -452,7 +425,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -484,7 +456,6 @@ describe("stored deployment serializer", () => {
       });
 
       const deployment = {
-        details,
         module,
       };
 
@@ -515,7 +486,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -528,7 +498,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -541,7 +510,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -555,7 +523,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -583,7 +550,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -597,7 +563,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -611,7 +576,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -625,7 +589,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
@@ -639,7 +602,6 @@ describe("stored deployment serializer", () => {
       });
 
       assertSerializableModuleIn({
-        details,
         module,
       });
     });
