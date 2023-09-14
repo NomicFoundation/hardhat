@@ -5,20 +5,20 @@ import path from "path";
 
 import { useEphemeralIgnitionProject } from "../use-ignition-project";
 
-describe("plan", () => {
+describe("visualize", () => {
   useEphemeralIgnitionProject("minimal");
 
-  it("should create a plan", async function () {
-    const planPath = path.resolve("../minimal/cache/plan");
-    emptyDirSync(planPath);
+  it("should create a visualization", async function () {
+    const visualizationPath = path.resolve("../minimal/cache/visualization");
+    emptyDirSync(visualizationPath);
 
     await this.hre.run("compile", { quiet: true });
-    await this.hre.run("plan", {
+    await this.hre.run("visualize", {
       quiet: true,
       moduleNameOrPath: "MyModule.js",
     });
 
-    const files = await readdir(planPath);
+    const files = await readdir(visualizationPath);
 
     assert(files.includes("index.html"));
   });

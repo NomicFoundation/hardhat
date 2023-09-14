@@ -44,7 +44,7 @@ See our [Getting started guide](./docs/getting-started-guide.md) for a worked ex
   - [Switching based on the _Network Chain ID_](./docs/creating-modules-for-deployment.md#switching-based-on-the-network-chain-id)
 - [Using Ignition in _Hardhat_ tests](./docs/using-ignition-in-hardhat-tests.md)
 - [Running a deployment](./docs/running-a-deployment.md)
-  - [Visualizing your deployment with the `plan` task](./docs/running-a-deployment.md#visualizing-your-deployment-with-the-plan-task)
+  - [Visualizing your deployment with the `visualize` task](./docs/running-a-deployment.md#visualizing-your-deployment-with-the-visualize-task)
   - [Executing the deployment](./docs/running-a-deployment.md#executing-the-deployment)
 
 ### Examples

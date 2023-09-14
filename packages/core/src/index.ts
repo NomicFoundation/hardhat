@@ -1,8 +1,7 @@
-export * from "./errors";
 export { buildModule } from "./build-module";
 export { deploy } from "./deploy";
+export * from "./errors";
 export { formatSolidityParameter } from "./internal/formatters";
-export { plan } from "./plan";
 export { StoredDeploymentSerializer } from "./stored-deployment-serializer";
 export * from "./type-guards";
 export * from "./types/artifact";
@@ -12,4 +11,5 @@ export * from "./types/module";
 export * from "./types/module-builder";
 export * from "./types/provider";
 export * from "./types/serialized-deployment";
+export { visualize } from "./visualize";
 export { wipe } from "./wipe";

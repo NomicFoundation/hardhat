@@ -1,3 +1,4 @@
+export { formatSolidityParameter } from "./internal/formatters";
 export {
   StoredDeploymentDeserializer,
   StoredDeploymentSerializer,
@@ -5,4 +6,3 @@ export {
 export * from "./type-guards";
 export * from "./types/module";
 export * from "./types/serialized-deployment";
-export { formatSolidityParameter } from "./internal/formatters";

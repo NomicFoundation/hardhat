@@ -5,7 +5,7 @@ import { StoredDeploymentDeserializer } from "@ignored/ignition-core/ui-helpers"
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createHashRouter } from "react-router-dom";
 import { FutureDetails } from "./pages/future-details/future-details";
-import { PlanOverview } from "./pages/plan-overview/plan-overview";
+import { VisualizationOverview } from "./pages/visualization-overview/visualization-overview";
 
 const loadDeploymentFromEmbeddedDiv = (): StoredDeployment | null => {
   const scriptTag = document.getElementById("deployment");
@@ -40,7 +40,7 @@ const main = async () => {
     const router = createHashRouter([
       {
         path: "/",
-        element: <PlanOverview deployment={deployment} />,
+        element: <VisualizationOverview deployment={deployment} />,
       },
       {
         path: "/future/:futureId",

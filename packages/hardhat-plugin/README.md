@@ -28,7 +28,7 @@ import "@ignored/hardhat-ignition";
 
 ## Tasks
 
-This plugin provides the `deploy` and `plan` tasks.
+This plugin provides the `deploy` and `visualize` tasks.
 
 ## Usage
 

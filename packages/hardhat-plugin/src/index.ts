@@ -1,7 +1,7 @@
 import {
   deploy,
   DeploymentParameters,
-  plan,
+  visualize,
   wipe,
 } from "@ignored/ignition-core";
 import "@nomicfoundation/hardhat-ethers";
@@ -14,10 +14,10 @@ import Prompt from "prompts";
 import { HardhatArtifactResolver } from "./hardhat-artifact-resolver";
 import { IgnitionHelper } from "./ignition-helper";
 import { loadModule } from "./load-module";
-import { writePlan } from "./plan/write-plan";
 import { UiEventHandler } from "./ui/UiEventHandler";
 import { VerboseEventHandler } from "./ui/VerboseEventHandler";
 import { open } from "./utils/open";
+import { writeVisualization } from "./visualization/write-visualization";
 
 import "./type-extensions";
 
@@ -163,7 +163,7 @@ task("deploy")
     }
   );
 
-task("plan")
+task("visualize")
   .addFlag("quiet", "Disables logging output path to terminal")
   .addPositionalParam("moduleNameOrPath")
   .setAction(
@@ -194,7 +194,7 @@ task("plan")
 
       const artifactResolver = new HardhatArtifactResolver(hre);
 
-      const serializedModule = await plan({
+      const serializedModule = await visualize({
         artifactResolver,
         storedDeployment: {
           details: {
@@ -205,16 +205,18 @@ task("plan")
         },
       });
 
-      await writePlan(serializedModule, { cacheDir: hre.config.paths.cache });
+      await writeVisualization(serializedModule, {
+        cacheDir: hre.config.paths.cache,
+      });
 
       if (!quiet) {
         const indexFile = path.join(
           hre.config.paths.cache,
-          "plan",
+          "visualization",
           "index.html"
         );
 
-        console.log(`Plan written to ${indexFile}`);
+        console.log(`Deployment visualization written to ${indexFile}`);
 
         open(indexFile);
       }

@@ -4,34 +4,34 @@
 
 ### Table of Contents
 
-- [Visualizing your deployment with the `plan` task](./running-a-deployment.md#visualizing-your-deployment-with-the-plan-task)
+- [Visualizing your deployment with the `visualize` task](./running-a-deployment.md#visualizing-your-deployment-with-the-visualize-task)
 - [Executing the deployment](./running-a-deployment.md#executing-the-deployment)
   - [Configuration options](./running-a-deployment.md#configuration-options)
-  <!-- - [Resuming a failed or onhold deployment](./running-a-deployment.md#visualizing-your-deployment-with-the-plan-task) -->
+  <!-- - [Resuming a failed or onhold deployment](./running-a-deployment.md#visualizing-your-deployment-with-the-visualize-task) -->
 
 ---
 
 Once you have built and tested your deployment module, it is time to deploy it! Start by making sure you understand exactly what will be executed on chain.
 
-## Visualizing your deployment with the `plan` task
+## Visualizing your deployment with the `visualize` task
 
-**Ignition** adds a `plan` task to the cli, that will generate a HTML report showing a _dry run_ of the deployment - the contract deploys and contract calls.
+**Ignition** adds a `visualize` task to the cli, that will generate a HTML report showing a _dry run_ of the deployment - the contract deploys and contract calls.
 
-The `plan` task takes one argument, the module to visualize. For example, using the `ENS.js` module from our [ENS example project](../examples/ens/README.md):
+The `visualize` task takes one argument, the module to visualize. For example, using the `ENS.js` module from our [ENS example project](../examples/ens/README.md):
 
 ```bash
-npx hardhat plan ENS
+npx hardhat visualize ENS
 ```
 
-Running `plan` will generate the report based on the given module (in this case `ENS.js`), it will then open the report in your system's default browser:
+Running `visualize` will generate the report based on the given module (in this case `ENS.js`), it will then open the report in your system's default browser:
 
-![Main plan output](images/plan-1.png)
+![Main visualize output](images/visualize-1.png)
 
 The report summarises the contract that will be deployed and the contract calls that will be made.
 
 It shows the dependency graph as it will be executed by Ignition (where a dependency will not be run until all its dependents have successfully completed).
 
-If something in your deployment isn't behaving the way you expected, the `plan` task can be an extremely helpful tool for debugging and verifying that your and **Ignition**'s understanding of the deployment are the same.
+If something in your deployment isn't behaving the way you expected, the `visualize` task can be an extremely helpful tool for debugging and verifying that your and **Ignition**'s understanding of the deployment are the same.
 
 ## Executing the deployment
 

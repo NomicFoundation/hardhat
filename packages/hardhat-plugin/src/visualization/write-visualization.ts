@@ -2,7 +2,7 @@ import { SerializedStoredDeployment } from "@ignored/ignition-core";
 import { ensureDir, pathExists, readFile, writeFile } from "fs-extra";
 import path from "path";
 
-export async function writePlan(
+export async function writeVisualization(
   serializedStoredDeployment: SerializedStoredDeployment,
   { cacheDir }: { cacheDir: string }
 ) {
@@ -18,14 +18,14 @@ export async function writePlan(
     process.exit(1);
   }
 
-  const planDir = path.join(cacheDir, "plan");
+  const visualizationDir = path.join(cacheDir, "visualization");
 
-  await ensureDir(planDir);
+  await ensureDir(visualizationDir);
 
   const indexHtml = await readFile(path.join(templateDir, "index.html"));
   const updatedHtml = indexHtml
     .toString()
     .replace('{"unloaded":true}', JSON.stringify(serializedStoredDeployment));
 
-  await writeFile(path.join(planDir, "index.html"), updatedHtml);
+  await writeFile(path.join(visualizationDir, "index.html"), updatedHtml);
 }

@@ -11,7 +11,7 @@ import {
  *
  * @beta
  */
-export async function plan({
+export async function visualize({
   artifactResolver,
   storedDeployment,
 }: {
