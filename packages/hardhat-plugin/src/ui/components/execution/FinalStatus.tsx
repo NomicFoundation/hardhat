@@ -196,14 +196,14 @@ const PreviousRunErrorResult: React.FC<{
       <Divider />
 
       <Box flexDirection="column" marginTop={1}>
+        <Text color="red">
+          These futures will need to be rerun; use the `wipe` task to reset
+          them:
+        </Text>
+        <Newline />
         {Object.entries(result.errors).map(([futureId, futureErrors]) => (
           <Text key={futureId}>
-            {futureId}{" "}
-            <Text color="red">
-              These futures will need to be rerun; use the `wipe` task to reset
-              them:
-            </Text>
-            <Newline />
+            {futureId} <Newline />
             {futureErrors.map((error, i) => (
               <Text key={i}>
                 {" "}
