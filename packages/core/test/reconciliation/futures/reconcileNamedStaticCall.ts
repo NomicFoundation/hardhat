@@ -263,6 +263,47 @@ describe("Reconciliation - named static call", () => {
     ]);
   });
 
+  it("should find changes to the argument unreconciliable", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const contract = m.contract("Contract");
+
+      m.staticCall(contract, "function", [], "argChanged");
+
+      return { contract };
+    });
+
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Module:Contract",
+          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          status: ExecutionStatus.SUCCESS,
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: exampleAddress,
+          },
+          contractName: "Contract",
+        },
+        {
+          ...exampleStaticCallState,
+          id: "Module:Contract#function",
+          status: ExecutionStatus.STARTED,
+          nameOrIndex: "argUnchanged",
+        }
+      )
+    );
+
+    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+      {
+        futureId: "Module:Contract#function",
+        failure:
+          "Argument name or index has been changed from argUnchanged to argChanged",
+      },
+    ]);
+  });
+
   it("should not reconcile the use of the result of a static call that has changed", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");

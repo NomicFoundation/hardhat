@@ -175,7 +175,7 @@ describe("Reconciliation - read event argument", () => {
       {
         futureId: "Module:ReadEvent",
         failure:
-          "Argument name has been changed from argUnchanged to argChanged",
+          "Argument name or index has been changed from argUnchanged to argChanged",
       },
     ]);
   });

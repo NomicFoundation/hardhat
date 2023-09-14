@@ -47,7 +47,7 @@ export function reconcileReadEventArgument(
 
   result = compare(
     future,
-    "Argument name",
+    "Argument name or index",
     executionState.nameOrIndex,
     future.nameOrIndex
   );
