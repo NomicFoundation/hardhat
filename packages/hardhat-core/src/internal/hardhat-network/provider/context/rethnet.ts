@@ -55,7 +55,14 @@ export class RethnetEthContext implements EthContextAdapter {
           config.forkConfig.jsonRpcUrl,
           config.forkConfig.blockNumber !== undefined
             ? BigInt(config.forkConfig.blockNumber)
-            : undefined
+            : undefined,
+          config.forkCachePath,
+          config.genesisAccounts.map((account) => {
+            return {
+              privateKey: account.privateKey,
+              balance: BigInt(account.balance),
+            };
+          })
         ),
         common
       );

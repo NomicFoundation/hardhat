@@ -11,7 +11,7 @@ use rethnet_eth::{B256, U256};
 use rethnet_evm::{
     blockchain::{BlockchainError, SyncBlockchain},
     state::{AccountTrie, StateError, TrieState},
-    HashMap, RandomHashGenerator,
+    RandomHashGenerator,
 };
 
 use crate::{
@@ -106,12 +106,14 @@ impl Blockchain {
         remote_url: String,
         fork_block_number: Option<BigInt>,
         cache_dir: Option<String>,
+        accounts: Vec<GenesisAccount>,
     ) -> napi::Result<JsObject> {
         let spec_id = rethnet_evm::SpecId::from(spec_id);
         let fork_block_number: Option<U256> = fork_block_number.map_or(Ok(None), |number| {
             BigInt::try_cast(number).map(Option::Some)
         })?;
         let cache_dir = cache_dir.map_or_else(|| rethnet_defaults::CACHE_DIR.into(), PathBuf::from);
+        let accounts = genesis_accounts(accounts)?;
 
         let runtime = context.runtime().clone();
 
@@ -127,7 +129,7 @@ impl Blockchain {
                 Arc::new(parking_lot::Mutex::new(RandomHashGenerator::with_seed(
                     "seed",
                 ))),
-                HashMap::new(),
+                accounts,
             )
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()));
