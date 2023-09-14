@@ -290,8 +290,8 @@ class IgnitionModuleBuilderImplementation<
     options.value ??= BigInt(0);
 
     /* validation start */
-    this._assertValidId(options.id, this.contractFromArtifact);
-    this._assertValidContractName(contractName, this.contractFromArtifact);
+    this._assertValidId(options.id, this.contract);
+    this._assertValidContractName(contractName, this.contract);
     this._assertUniqueArtifactContractId(futureId);
     this._assertValidLibraries(options.libraries, this.contract);
     this._assertValidValue(options.value, this.contract);
@@ -404,8 +404,8 @@ class IgnitionModuleBuilderImplementation<
     options.libraries ??= {};
 
     /* validation start */
-    this._assertValidId(options.id, this.libraryFromArtifact);
-    this._assertValidContractName(libraryName, this.libraryFromArtifact);
+    this._assertValidId(options.id, this.library);
+    this._assertValidContractName(libraryName, this.library);
     this._assertUniqueArtifactLibraryId(futureId);
     this._assertValidLibraries(options.libraries, this.library);
     this._assertValidFrom(options.from, this.library);
@@ -630,7 +630,7 @@ class IgnitionModuleBuilderImplementation<
     );
 
     /* validation start */
-    this._assertValidId(options.id, this.contractAtFromArtifact);
+    this._assertValidId(options.id, this.contractAt);
     this._assertValidContractName(contractName, this.contractAt);
     this._assertUniqueContractAtFromArtifactId(futureId);
     this._assertValidAddress(address, this.contractAt);

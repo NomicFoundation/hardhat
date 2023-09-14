@@ -35,7 +35,7 @@ describe("id rules", () => {
     it("should not allow non-alphanumerics in contractFromArtifact ids", () => {
       assert.throws(() => {
         buildModule("MyModule", (m) => {
-          const myContract = m.contractFromArtifact(
+          const myContract = m.contract(
             "MyContractFromArtifact",
             fakeArtifact,
             [],
@@ -64,7 +64,7 @@ describe("id rules", () => {
     it("should not allow non-alphanumerics in libraryFromArtifact ids", () => {
       assert.throws(() => {
         buildModule("MyModule", (m) => {
-          const myLibraryFromArtifact = m.libraryFromArtifact(
+          const myLibraryFromArtifact = m.library(
             "MyLibraryFromArtifact",
             fakeArtifact,
             {
@@ -120,7 +120,7 @@ describe("id rules", () => {
     it("should not allow non-alphanumerics in contractAtFromArtifact ids", () => {
       assert.throws(() => {
         buildModule("MyModule", (m) => {
-          const myContractAt = m.contractAtFromArtifact(
+          const myContractAt = m.contractAt(
             "MyContract",
             exampleAddress,
             fakeArtifact,
@@ -173,10 +173,7 @@ describe("id rules", () => {
     it("should not allow non-alphanumerics in contractFromArtifact contract name", () => {
       assert.throws(() => {
         buildModule("MyModule", (m) => {
-          const myContract = m.contractFromArtifact(
-            "MyContract:v2",
-            fakeArtifact
-          );
+          const myContract = m.contract("MyContract:v2", fakeArtifact);
 
           return { myContract };
         });
@@ -196,7 +193,7 @@ describe("id rules", () => {
     it("should not allow non-alphanumerics in libraryFromArtifact contract names", () => {
       assert.throws(() => {
         buildModule("MyModule", (m) => {
-          const myLibraryFromArtifact = m.libraryFromArtifact(
+          const myLibraryFromArtifact = m.library(
             "MyLibraryFromArtifact:v2",
             fakeArtifact
           );
@@ -219,7 +216,7 @@ describe("id rules", () => {
     it("should not allow non-alphanumerics in contractAtFromArtifact contract names", () => {
       assert.throws(() => {
         buildModule("MyModule", (m) => {
-          const myContractAt = m.contractAtFromArtifact(
+          const myContractAt = m.contractAt(
             "MyContractAt:v2",
             exampleAddress,
             fakeArtifact

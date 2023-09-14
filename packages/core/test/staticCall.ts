@@ -711,7 +711,7 @@ describe("static call", () => {
         };
 
         const module = buildModule("Module1", (m) => {
-          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          const another = m.contract("Another", fakeArtifact, []);
           m.staticCall(another, "inc", [], "a");
 
           return { another };
@@ -750,7 +750,7 @@ describe("static call", () => {
         };
 
         const module = buildModule("Module1", (m) => {
-          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          const another = m.contract("Another", fakeArtifact, []);
           m.staticCall(another, "inc", [], 2);
 
           return { another };
