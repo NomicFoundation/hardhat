@@ -22,9 +22,6 @@ use crate::{
     Address, Bloom, Bytes, B256, B64, U256,
 };
 
-#[cfg(feature = "serde")]
-use crate::remote::eth::{self, TransactionConversionError};
-
 use self::difficulty::calculate_ethash_canonical_difficulty;
 pub use self::{
     options::BlockOptions,
