@@ -195,19 +195,34 @@ class IgnitionModuleBuilderImplementation<
   ):
     | NamedContractDeploymentFuture<ContractNameT>
     | ArtifactContractDeploymentFuture {
-    if (isArtifactType(artifactOrArgs)) {
-      return this._contractFromArtifact(
+    if (artifactOrArgs === undefined || Array.isArray(artifactOrArgs)) {
+      if (Array.isArray(argsorOptions)) {
+        this._throwErrorWithStackTrace(
+          `Invalid parameter "options" provided to contract "${contractName}" in module "${this._module.id}"`,
+          this.contract
+        );
+      }
+
+      return this._namedArtifactContract(
         contractName,
         artifactOrArgs,
-        argsorOptions as ArgumentType[], // TODO: Validate instead of cast
-        maybeOptions
+        argsorOptions
       );
     }
 
-    const args = artifactOrArgs;
-    const options = argsorOptions as ContractOptions; // TODO: Validate instead of cast
+    if (argsorOptions !== undefined && !Array.isArray(argsorOptions)) {
+      this._throwErrorWithStackTrace(
+        `Invalid parameter "args" provided to contract "${contractName}" in module "${this._module.id}"`,
+        this.contract
+      );
+    }
 
-    return this._namedArtifactContract(contractName, args, options);
+    return this._contractFromArtifact(
+      contractName,
+      artifactOrArgs,
+      argsorOptions,
+      maybeOptions
+    );
   }
 
   private _namedArtifactContract<ContractNameT extends string>(
