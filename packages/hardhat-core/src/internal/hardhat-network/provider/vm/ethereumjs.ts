@@ -238,7 +238,8 @@ export class EthereumJSAdapter implements VMAdapter {
       // we remove them and the withdrawal root from the block
       if (
         !this._isEip4895Active(blockContext.header.number) &&
-        blockContext.withdrawals !== undefined
+        (blockContext.withdrawals !== undefined ||
+          blockContext.header.withdrawalsRoot !== undefined)
       ) {
         blockContext = Block.fromBlockData(
           {
@@ -277,7 +278,7 @@ export class EthereumJSAdapter implements VMAdapter {
       ) {
         blockContext = Block.fromBlockData(blockContext, {
           freeze: false,
-          common: this._common,
+          common: this._vm._common,
 
           skipConsensusFormatValidation: true,
         });
