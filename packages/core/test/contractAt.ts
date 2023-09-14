@@ -257,7 +257,7 @@ describe("contractAt", () => {
         });
 
         const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.NAMED_CONTRACT_AT
+          (v) => v.type === FutureType.NAMED_ARTIFACT_CONTRACT_AT
         );
 
         await assert.isRejected(
@@ -282,7 +282,7 @@ describe("contractAt", () => {
         });
 
         const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.NAMED_CONTRACT_AT
+          (v) => v.type === FutureType.NAMED_ARTIFACT_CONTRACT_AT
         );
 
         await assert.isFulfilled(
@@ -306,7 +306,7 @@ describe("contractAt", () => {
         });
 
         const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.NAMED_CONTRACT_AT
+          (v) => v.type === FutureType.NAMED_ARTIFACT_CONTRACT_AT
         );
 
         await assert.isRejected(

@@ -41,7 +41,7 @@ describe("Reconciliation - read event argument", () => {
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
     type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
-    futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+    futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
@@ -75,7 +75,7 @@ describe("Reconciliation - read event argument", () => {
         {
           ...exampleDeploymentState,
           id: "Submodule#Contract",
-          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           contractName: "Contract",
           result: {
@@ -111,7 +111,7 @@ describe("Reconciliation - read event argument", () => {
         {
           ...exampleDeploymentState,
           id: "Module#Contract",
-          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           contractName: "Contract",
           result: {
@@ -154,7 +154,7 @@ describe("Reconciliation - read event argument", () => {
         {
           ...exampleDeploymentState,
           id: "Module#Contract",
-          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           result: {
             type: ExecutionResultType.SUCCESS,
@@ -198,7 +198,7 @@ describe("Reconciliation - read event argument", () => {
         {
           ...exampleDeploymentState,
           id: "Module#Contract",
-          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           result: {
             type: ExecutionResultType.SUCCESS,
@@ -242,7 +242,7 @@ describe("Reconciliation - read event argument", () => {
         {
           ...exampleDeploymentState,
           id: "Module#Contract1",
-          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           contractName: "Contract1",
           result: {
@@ -253,7 +253,7 @@ describe("Reconciliation - read event argument", () => {
         {
           ...exampleDeploymentState,
           id: "Module#Contract2",
-          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           contractName: "Contract2",
           result: {

@@ -26,7 +26,7 @@ describe("Reconciliation - artifact contract at", () => {
   const exampleContractAtState: ContractAtExecutionState = {
     id: "Example",
     type: ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
-    futureType: FutureType.ARTIFACT_CONTRACT_AT,
+    futureType: FutureType.CONTRACT_AT,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
@@ -38,7 +38,7 @@ describe("Reconciliation - artifact contract at", () => {
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
     type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
-    futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+    futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
@@ -54,7 +54,7 @@ describe("Reconciliation - artifact contract at", () => {
   const exampleStaticCallState: StaticCallExecutionState = {
     id: "Example",
     type: ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
-    futureType: FutureType.NAMED_STATIC_CALL,
+    futureType: FutureType.STATIC_CALL,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
@@ -83,7 +83,7 @@ describe("Reconciliation - artifact contract at", () => {
     const deploymentState = createDeploymentState({
       ...exampleContractAtState,
       id: `Submodule#Contract1`,
-      futureType: FutureType.ARTIFACT_CONTRACT_AT,
+      futureType: FutureType.CONTRACT_AT,
       status: ExecutionStatus.STARTED,
       contractAddress: exampleAddress,
       artifactId: "./artifact.json",
@@ -106,7 +106,7 @@ describe("Reconciliation - artifact contract at", () => {
       {
         ...exampleDeploymentState,
         id: "Module#Example",
-        futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+        futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
         status: ExecutionStatus.SUCCESS,
         contractName: "Example",
         result: {
@@ -117,7 +117,7 @@ describe("Reconciliation - artifact contract at", () => {
       {
         ...exampleStaticCallState,
         id: "Module#Example.getAddress",
-        futureType: FutureType.NAMED_STATIC_CALL,
+        futureType: FutureType.STATIC_CALL,
         status: ExecutionStatus.SUCCESS,
         functionName: "getAddress",
         result: {
@@ -128,7 +128,7 @@ describe("Reconciliation - artifact contract at", () => {
       {
         ...exampleContractAtState,
         id: "Module#Another",
-        futureType: FutureType.ARTIFACT_CONTRACT_AT,
+        futureType: FutureType.CONTRACT_AT,
         status: ExecutionStatus.STARTED,
         contractName: "Another",
         contractAddress: differentAddress,
@@ -158,7 +158,7 @@ describe("Reconciliation - artifact contract at", () => {
       createDeploymentState({
         ...exampleContractAtState,
         id: "Module#Factory",
-        futureType: FutureType.ARTIFACT_CONTRACT_AT,
+        futureType: FutureType.CONTRACT_AT,
         status: ExecutionStatus.STARTED,
         contractName: "ContractUnchanged",
         contractAddress: differentAddress,
@@ -194,7 +194,7 @@ describe("Reconciliation - artifact contract at", () => {
       createDeploymentState({
         ...exampleContractAtState,
         id: "Module#Factory",
-        futureType: FutureType.ARTIFACT_CONTRACT_AT,
+        futureType: FutureType.CONTRACT_AT,
         status: ExecutionStatus.STARTED,
         contractAddress: differentAddress,
       })

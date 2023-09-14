@@ -34,7 +34,7 @@ describe("DeploymentStateReducer", () => {
       {
         type: JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE,
         futureId: "future1",
-        futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
+        futureType: FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT,
         strategy: "basic",
         dependencies: [],
         artifactId: "future1",

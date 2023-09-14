@@ -1,7 +1,4 @@
-import {
-  NamedContractCallFuture,
-  NamedStaticCallFuture,
-} from "../../../types/module";
+import { ContractCallFuture, StaticCallFuture } from "../../../types/module";
 import {
   CallExecutionState,
   StaticCallExecutionState,
@@ -14,9 +11,7 @@ import {
 import { compare } from "./compare";
 
 export function reconcileFunctionName(
-  future:
-    | NamedContractCallFuture<string, string>
-    | NamedStaticCallFuture<string, string>,
+  future: ContractCallFuture<string, string> | StaticCallFuture<string, string>,
   exState: CallExecutionState | StaticCallExecutionState,
   _context: ReconciliationContext
 ): ReconciliationFutureResultFailure | undefined {

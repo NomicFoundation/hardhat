@@ -1,10 +1,10 @@
 import {
-  ArtifactContractDeploymentFuture,
-  ArtifactLibraryDeploymentFuture,
-  NamedContractCallFuture,
-  NamedContractDeploymentFuture,
-  NamedLibraryDeploymentFuture,
-  NamedStaticCallFuture,
+  ContractDeploymentFuture,
+  LibraryDeploymentFuture,
+  ContractCallFuture,
+  NamedArtifactContractDeploymentFuture,
+  NamedArtifactLibraryDeploymentFuture,
+  StaticCallFuture,
   SendDataFuture,
 } from "../../../types/module";
 import { resolveFutureFrom } from "../../execution/future-processor/helpers/future-resolvers";
@@ -23,12 +23,12 @@ import { compare } from "./compare";
 
 export function reconcileFrom(
   future:
-    | NamedContractDeploymentFuture<string>
-    | ArtifactContractDeploymentFuture
-    | NamedLibraryDeploymentFuture<string>
-    | ArtifactLibraryDeploymentFuture
-    | NamedContractCallFuture<string, string>
-    | NamedStaticCallFuture<string, string>
+    | NamedArtifactContractDeploymentFuture<string>
+    | ContractDeploymentFuture
+    | NamedArtifactLibraryDeploymentFuture<string>
+    | LibraryDeploymentFuture
+    | ContractCallFuture<string, string>
+    | StaticCallFuture<string, string>
     | SendDataFuture,
   exState:
     | DeploymentExecutionState

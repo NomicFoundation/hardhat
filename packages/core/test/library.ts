@@ -32,7 +32,7 @@ describe("library", () => {
     assert.equal(moduleWithASingleContract.futures.size, 1);
     assert.equal(
       [...moduleWithASingleContract.futures][0].type,
-      FutureType.NAMED_LIBRARY_DEPLOYMENT
+      FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT
     );
 
     // No submodules

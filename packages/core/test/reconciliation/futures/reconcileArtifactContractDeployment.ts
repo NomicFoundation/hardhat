@@ -23,7 +23,7 @@ describe("Reconciliation - artifact contract", () => {
 
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
-    futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+    futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
@@ -63,7 +63,7 @@ describe("Reconciliation - artifact contract", () => {
         {
           ...exampleDeploymentState,
           id: "Submodule#SafeMath",
-          futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
+          futureType: FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           contractName: "SafeMath",
           result: {
@@ -74,7 +74,7 @@ describe("Reconciliation - artifact contract", () => {
         {
           ...exampleDeploymentState,
           id: "Submodule#Contract1",
-          futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
+          futureType: FutureType.CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.STARTED,
           constructorArgs: [{ supply: BigInt(1000) }],
           libraries: {
@@ -99,7 +99,7 @@ describe("Reconciliation - artifact contract", () => {
       createDeploymentState({
         ...exampleDeploymentState,
         id: "Module#Example",
-        futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
+        futureType: FutureType.CONTRACT_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         contractName: "ContractUnchanged",
       })
@@ -134,7 +134,7 @@ describe("Reconciliation - artifact contract", () => {
       createDeploymentState({
         ...exampleDeploymentState,
         id: "Module#Contract1",
-        futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
+        futureType: FutureType.CONTRACT_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         constructorArgs: [
           "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
@@ -171,7 +171,7 @@ describe("Reconciliation - artifact contract", () => {
         {
           ...exampleDeploymentState,
           id: "Module#SafeMath",
-          futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
+          futureType: FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           contractName: "SafeMath",
           result: {
@@ -182,7 +182,7 @@ describe("Reconciliation - artifact contract", () => {
         {
           ...exampleDeploymentState,
           id: "Module#Contract1",
-          futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
+          futureType: FutureType.CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.STARTED,
           libraries: {},
         }
@@ -212,7 +212,7 @@ describe("Reconciliation - artifact contract", () => {
       createDeploymentState({
         ...exampleDeploymentState,
         id: "Module#Example",
-        futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
+        futureType: FutureType.CONTRACT_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         value: BigInt(3),
       })
@@ -241,7 +241,7 @@ describe("Reconciliation - artifact contract", () => {
       createDeploymentState({
         ...exampleDeploymentState,
         id: "Module#Example",
-        futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
+        futureType: FutureType.CONTRACT_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         from: oneAddress,
       })

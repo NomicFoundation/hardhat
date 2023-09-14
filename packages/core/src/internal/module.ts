@@ -3,9 +3,9 @@ import {
   AccountRuntimeValue,
   AddressResolvableFuture,
   ArgumentType,
-  ArtifactContractAtFuture,
-  ArtifactContractDeploymentFuture,
-  ArtifactLibraryDeploymentFuture,
+  ContractAtFuture,
+  ContractDeploymentFuture,
+  LibraryDeploymentFuture,
   ContractFuture,
   Future,
   FutureType,
@@ -13,11 +13,11 @@ import {
   IgnitionModuleResult,
   ModuleParameterRuntimeValue,
   ModuleParameterType,
-  NamedContractAtFuture,
-  NamedContractCallFuture,
-  NamedContractDeploymentFuture,
-  NamedLibraryDeploymentFuture,
-  NamedStaticCallFuture,
+  NamedArtifactContractAtFuture,
+  ContractCallFuture,
+  NamedArtifactContractDeploymentFuture,
+  NamedArtifactLibraryDeploymentFuture,
+  StaticCallFuture,
   ReadEventArgumentFuture,
   RuntimeValueType,
   SendDataFuture,
@@ -53,8 +53,8 @@ abstract class BaseFutureImplementation<FutureTypeT extends FutureType> {
 export class NamedContractDeploymentFutureImplementation<
     ContractNameT extends string
   >
-  extends BaseFutureImplementation<FutureType.NAMED_CONTRACT_DEPLOYMENT>
-  implements NamedContractDeploymentFuture<ContractNameT>
+  extends BaseFutureImplementation<FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT>
+  implements NamedArtifactContractDeploymentFuture<ContractNameT>
 {
   constructor(
     public readonly id: string,
@@ -65,15 +65,15 @@ export class NamedContractDeploymentFutureImplementation<
     public readonly value: bigint | ModuleParameterRuntimeValue<bigint>,
     public readonly from: string | AccountRuntimeValue | undefined
   ) {
-    super(id, FutureType.NAMED_CONTRACT_DEPLOYMENT, module);
+    super(id, FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT, module);
   }
 }
 
 export class ArtifactContractDeploymentFutureImplementation<
     ContractNameT extends string
   >
-  extends BaseFutureImplementation<FutureType.ARTIFACT_CONTRACT_DEPLOYMENT>
-  implements ArtifactContractDeploymentFuture
+  extends BaseFutureImplementation<FutureType.CONTRACT_DEPLOYMENT>
+  implements ContractDeploymentFuture
 {
   constructor(
     public readonly id: string,
@@ -85,15 +85,15 @@ export class ArtifactContractDeploymentFutureImplementation<
     public readonly value: bigint | ModuleParameterRuntimeValue<bigint>,
     public readonly from: string | AccountRuntimeValue | undefined
   ) {
-    super(id, FutureType.ARTIFACT_CONTRACT_DEPLOYMENT, module);
+    super(id, FutureType.CONTRACT_DEPLOYMENT, module);
   }
 }
 
 export class NamedLibraryDeploymentFutureImplementation<
     LibraryNameT extends string
   >
-  extends BaseFutureImplementation<FutureType.NAMED_LIBRARY_DEPLOYMENT>
-  implements NamedLibraryDeploymentFuture<LibraryNameT>
+  extends BaseFutureImplementation<FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT>
+  implements NamedArtifactLibraryDeploymentFuture<LibraryNameT>
 {
   constructor(
     public readonly id: string,
@@ -102,15 +102,15 @@ export class NamedLibraryDeploymentFutureImplementation<
     public readonly libraries: Record<string, ContractFuture<string>>,
     public readonly from: string | AccountRuntimeValue | undefined
   ) {
-    super(id, FutureType.NAMED_LIBRARY_DEPLOYMENT, module);
+    super(id, FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT, module);
   }
 }
 
 export class ArtifactLibraryDeploymentFutureImplementation<
     LibraryNameT extends string
   >
-  extends BaseFutureImplementation<FutureType.ARTIFACT_LIBRARY_DEPLOYMENT>
-  implements ArtifactLibraryDeploymentFuture
+  extends BaseFutureImplementation<FutureType.LIBRARY_DEPLOYMENT>
+  implements LibraryDeploymentFuture
 {
   constructor(
     public readonly id: string,
@@ -120,7 +120,7 @@ export class ArtifactLibraryDeploymentFutureImplementation<
     public readonly libraries: Record<string, ContractFuture<string>>,
     public readonly from: string | AccountRuntimeValue | undefined
   ) {
-    super(id, FutureType.ARTIFACT_LIBRARY_DEPLOYMENT, module);
+    super(id, FutureType.LIBRARY_DEPLOYMENT, module);
   }
 }
 
@@ -128,8 +128,8 @@ export class NamedContractCallFutureImplementation<
     ContractNameT extends string,
     FunctionNameT extends string
   >
-  extends BaseFutureImplementation<FutureType.NAMED_CONTRACT_CALL>
-  implements NamedContractCallFuture<ContractNameT, FunctionNameT>
+  extends BaseFutureImplementation<FutureType.CONTRACT_CALL>
+  implements ContractCallFuture<ContractNameT, FunctionNameT>
 {
   constructor(
     public readonly id: string,
@@ -140,7 +140,7 @@ export class NamedContractCallFutureImplementation<
     public readonly value: bigint | ModuleParameterRuntimeValue<bigint>,
     public readonly from: string | AccountRuntimeValue | undefined
   ) {
-    super(id, FutureType.NAMED_CONTRACT_CALL, module);
+    super(id, FutureType.CONTRACT_CALL, module);
   }
 }
 
@@ -148,8 +148,8 @@ export class NamedStaticCallFutureImplementation<
     ContractNameT extends string,
     FunctionNameT extends string
   >
-  extends BaseFutureImplementation<FutureType.NAMED_STATIC_CALL>
-  implements NamedStaticCallFuture<ContractNameT, FunctionNameT>
+  extends BaseFutureImplementation<FutureType.STATIC_CALL>
+  implements StaticCallFuture<ContractNameT, FunctionNameT>
 {
   constructor(
     public readonly id: string,
@@ -160,13 +160,13 @@ export class NamedStaticCallFutureImplementation<
     public readonly nameOrIndex: string | number,
     public readonly from: string | AccountRuntimeValue | undefined
   ) {
-    super(id, FutureType.NAMED_STATIC_CALL, module);
+    super(id, FutureType.STATIC_CALL, module);
   }
 }
 
 export class NamedContractAtFutureImplementation<ContractNameT extends string>
-  extends BaseFutureImplementation<FutureType.NAMED_CONTRACT_AT>
-  implements NamedContractAtFuture<ContractNameT>
+  extends BaseFutureImplementation<FutureType.NAMED_ARTIFACT_CONTRACT_AT>
+  implements NamedArtifactContractAtFuture<ContractNameT>
 {
   constructor(
     public readonly id: string,
@@ -177,13 +177,13 @@ export class NamedContractAtFutureImplementation<ContractNameT extends string>
       | AddressResolvableFuture
       | ModuleParameterRuntimeValue<string>
   ) {
-    super(id, FutureType.NAMED_CONTRACT_AT, module);
+    super(id, FutureType.NAMED_ARTIFACT_CONTRACT_AT, module);
   }
 }
 
 export class ArtifactContractAtFutureImplementation
-  extends BaseFutureImplementation<FutureType.ARTIFACT_CONTRACT_AT>
-  implements ArtifactContractAtFuture
+  extends BaseFutureImplementation<FutureType.CONTRACT_AT>
+  implements ContractAtFuture
 {
   constructor(
     public readonly id: string,
@@ -195,7 +195,7 @@ export class ArtifactContractAtFutureImplementation
       | ModuleParameterRuntimeValue<string>,
     public readonly artifact: Artifact
   ) {
-    super(id, FutureType.ARTIFACT_CONTRACT_AT, module);
+    super(id, FutureType.CONTRACT_AT, module);
   }
 }
 
@@ -207,10 +207,10 @@ export class ReadEventArgumentFutureImplementation
     public readonly id: string,
     public readonly module: IgnitionModuleImplementation,
     public readonly futureToReadFrom:
-      | NamedContractDeploymentFuture<string>
-      | ArtifactContractDeploymentFuture
+      | NamedArtifactContractDeploymentFuture<string>
+      | ContractDeploymentFuture
       | SendDataFuture
-      | NamedContractCallFuture<string, string>,
+      | ContractCallFuture<string, string>,
     public readonly eventName: string,
     public readonly nameOrIndex: string | number,
     public readonly emitter: ContractFuture<string>,

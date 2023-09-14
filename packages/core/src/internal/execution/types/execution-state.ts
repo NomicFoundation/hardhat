@@ -61,10 +61,10 @@ interface BaseExecutionState<
 
 /** The future types that can be used with a DeploymentExecutionState */
 export type DeploymentExecutionStateFutureTypes =
-  | FutureType.NAMED_CONTRACT_DEPLOYMENT
-  | FutureType.ARTIFACT_CONTRACT_DEPLOYMENT
-  | FutureType.NAMED_LIBRARY_DEPLOYMENT
-  | FutureType.ARTIFACT_LIBRARY_DEPLOYMENT;
+  | FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT
+  | FutureType.CONTRACT_DEPLOYMENT
+  | FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT
+  | FutureType.LIBRARY_DEPLOYMENT;
 
 /**
  * The execution state used for the different kinds of futures
@@ -91,7 +91,7 @@ export interface DeploymentExecutionState
 export interface CallExecutionState
   extends BaseExecutionState<
     ExecutionSateType.CALL_EXECUTION_STATE,
-    FutureType.NAMED_CONTRACT_CALL
+    FutureType.CONTRACT_CALL
   > {
   artifactId: string;
   contractAddress: string;
@@ -112,7 +112,7 @@ export interface CallExecutionState
 export interface StaticCallExecutionState
   extends BaseExecutionState<
     ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
-    FutureType.NAMED_STATIC_CALL
+    FutureType.STATIC_CALL
   > {
   artifactId: string;
   contractAddress: string;
@@ -151,7 +151,7 @@ export interface SendDataExecutionState
 export interface ContractAtExecutionState
   extends BaseExecutionState<
     ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
-    FutureType.NAMED_CONTRACT_AT | FutureType.ARTIFACT_CONTRACT_AT
+    FutureType.NAMED_ARTIFACT_CONTRACT_AT | FutureType.CONTRACT_AT
   > {
   artifactId: string;
   contractName: string;

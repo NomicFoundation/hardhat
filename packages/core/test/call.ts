@@ -36,11 +36,11 @@ describe("call", () => {
     assert.equal(moduleWithASingleContract.futures.size, 2);
     assert.equal(
       [...moduleWithASingleContract.futures][0].type,
-      FutureType.NAMED_CONTRACT_DEPLOYMENT
+      FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT
     );
     assert.equal(
       [...moduleWithASingleContract.futures][1].type,
-      FutureType.NAMED_CONTRACT_CALL
+      FutureType.CONTRACT_CALL
     );
 
     // No submodules
@@ -215,7 +215,7 @@ describe("call", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.NAMED_CONTRACT_CALL
+        ({ type }) => type === FutureType.CONTRACT_CALL
       );
 
       assertInstanceOf(future, NamedContractCallFutureImplementation);
@@ -231,7 +231,7 @@ describe("call", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.NAMED_CONTRACT_CALL
+        ({ type }) => type === FutureType.CONTRACT_CALL
       );
 
       assertInstanceOf(future, NamedContractCallFutureImplementation);
@@ -247,7 +247,7 @@ describe("call", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.NAMED_CONTRACT_CALL
+        ({ type }) => type === FutureType.CONTRACT_CALL
       );
 
       assertInstanceOf(future, NamedContractCallFutureImplementation);
@@ -263,7 +263,7 @@ describe("call", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.NAMED_CONTRACT_CALL
+        ({ type }) => type === FutureType.CONTRACT_CALL
       );
 
       assertInstanceOf(future, NamedContractCallFutureImplementation);
@@ -279,7 +279,7 @@ describe("call", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.NAMED_CONTRACT_CALL
+        ({ type }) => type === FutureType.CONTRACT_CALL
       );
 
       assertInstanceOf(future, NamedContractCallFutureImplementation);
@@ -296,7 +296,7 @@ describe("call", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.NAMED_CONTRACT_CALL
+        ({ type }) => type === FutureType.CONTRACT_CALL
       );
 
       assertInstanceOf(future, NamedContractCallFutureImplementation);
@@ -314,7 +314,7 @@ describe("call", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.NAMED_CONTRACT_CALL
+        ({ type }) => type === FutureType.CONTRACT_CALL
       );
 
       assertInstanceOf(future, NamedContractCallFutureImplementation);
@@ -335,7 +335,7 @@ describe("call", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.NAMED_CONTRACT_CALL
+        ({ type }) => type === FutureType.CONTRACT_CALL
       );
 
       assertInstanceOf(future, NamedContractCallFutureImplementation);
@@ -357,7 +357,7 @@ describe("call", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.NAMED_CONTRACT_CALL
+        ({ type }) => type === FutureType.CONTRACT_CALL
       );
 
       assertInstanceOf(future, NamedContractCallFutureImplementation);
@@ -501,7 +501,7 @@ describe("call", () => {
         });
 
         const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.NAMED_CONTRACT_CALL
+          (v) => v.type === FutureType.CONTRACT_CALL
         );
 
         await assert.isRejected(
@@ -529,7 +529,7 @@ describe("call", () => {
         });
 
         const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.NAMED_CONTRACT_CALL
+          (v) => v.type === FutureType.CONTRACT_CALL
         );
 
         await assert.isRejected(
@@ -568,7 +568,7 @@ describe("call", () => {
         });
 
         const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.NAMED_CONTRACT_CALL
+          (v) => v.type === FutureType.CONTRACT_CALL
         );
 
         await assert.isRejected(
@@ -625,7 +625,7 @@ describe("call", () => {
         });
 
         const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.NAMED_CONTRACT_CALL
+          (v) => v.type === FutureType.CONTRACT_CALL
         );
 
         await assert.isRejected(
@@ -665,7 +665,7 @@ describe("call", () => {
         });
 
         const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.NAMED_CONTRACT_CALL
+          (v) => v.type === FutureType.CONTRACT_CALL
         );
 
         await assert.isRejected(
@@ -697,7 +697,7 @@ describe("call", () => {
         });
 
         const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.NAMED_CONTRACT_CALL
+          (v) => v.type === FutureType.CONTRACT_CALL
         );
 
         await assert.isRejected(
@@ -737,7 +737,7 @@ describe("call", () => {
         });
 
         const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.NAMED_CONTRACT_CALL
+          (v) => v.type === FutureType.CONTRACT_CALL
         );
 
         await assert.isFulfilled(
@@ -782,7 +782,7 @@ describe("call", () => {
         });
 
         const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.NAMED_CONTRACT_CALL
+          (v) => v.type === FutureType.CONTRACT_CALL
         );
 
         await assert.isFulfilled(
@@ -815,7 +815,7 @@ describe("call", () => {
         });
 
         const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.NAMED_CONTRACT_CALL
+          (v) => v.type === FutureType.CONTRACT_CALL
         );
 
         await assert.isRejected(
@@ -863,7 +863,7 @@ describe("call", () => {
         });
 
         const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.NAMED_CONTRACT_CALL
+          (v) => v.type === FutureType.CONTRACT_CALL
         );
 
         await assert.isFulfilled(
@@ -907,7 +907,7 @@ describe("call", () => {
         });
 
         const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.NAMED_CONTRACT_CALL
+          (v) => v.type === FutureType.CONTRACT_CALL
         );
 
         await assert.isRejected(
@@ -952,7 +952,7 @@ describe("call", () => {
         });
 
         const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.NAMED_CONTRACT_CALL
+          (v) => v.type === FutureType.CONTRACT_CALL
         );
 
         await assert.isRejected(

@@ -1,9 +1,9 @@
 import { isDeploymentFuture } from "../../../type-guards";
 import {
-  ArtifactContractDeploymentFuture,
-  NamedContractCallFuture,
-  NamedContractDeploymentFuture,
-  NamedStaticCallFuture,
+  ContractDeploymentFuture,
+  ContractCallFuture,
+  NamedArtifactContractDeploymentFuture,
+  StaticCallFuture,
 } from "../../../types/module";
 import { resolveArgs } from "../../execution/future-processor/helpers/future-resolvers";
 import {
@@ -20,10 +20,10 @@ import { fail } from "../utils";
 
 export function reconcileArguments(
   future:
-    | NamedContractDeploymentFuture<string>
-    | ArtifactContractDeploymentFuture
-    | NamedStaticCallFuture<string, string>
-    | NamedContractCallFuture<string, string>,
+    | NamedArtifactContractDeploymentFuture<string>
+    | ContractDeploymentFuture
+    | StaticCallFuture<string, string>
+    | ContractCallFuture<string, string>,
   exState:
     | DeploymentExecutionState
     | CallExecutionState

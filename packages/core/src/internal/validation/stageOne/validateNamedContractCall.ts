@@ -1,14 +1,14 @@
 import { IgnitionValidationError } from "../../../errors";
 import { isArtifactType } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
-import { NamedContractCallFuture } from "../../../types/module";
+import { ContractCallFuture } from "../../../types/module";
 import {
   validateArtifactFunction,
   validateArtifactFunctionName,
 } from "../../execution/abi";
 
 export async function validateNamedContractCall(
-  future: NamedContractCallFuture<string, string>,
+  future: ContractCallFuture<string, string>,
   artifactLoader: ArtifactResolver
 ) {
   const artifact =

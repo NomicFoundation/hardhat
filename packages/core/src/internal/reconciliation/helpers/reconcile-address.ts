@@ -1,6 +1,6 @@
 import {
-  ArtifactContractAtFuture,
-  NamedContractAtFuture,
+  ContractAtFuture,
+  NamedArtifactContractAtFuture,
 } from "../../../types/module";
 import { resolveAddressLike } from "../../execution/future-processor/helpers/future-resolvers";
 import { ContractAtExecutionState } from "../../execution/types/execution-state";
@@ -12,7 +12,7 @@ import {
 import { compare } from "./compare";
 
 export function reconcileAddress(
-  future: NamedContractAtFuture<string> | ArtifactContractAtFuture,
+  future: NamedArtifactContractAtFuture<string> | ContractAtFuture,
   exState: ContractAtExecutionState,
   context: ReconciliationContext
 ): ReconciliationFutureResultFailure | undefined {

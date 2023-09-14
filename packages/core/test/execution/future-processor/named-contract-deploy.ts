@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { NamedContractDeploymentFuture } from "../../../src";
+import { NamedArtifactContractDeploymentFuture } from "../../../src";
 import { TransactionParams } from "../../../src/internal/execution/jsonrpc-client";
 import { deploymentStateReducer } from "../../../src/internal/execution/reducers/deployment-state-reducer";
 import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result";
@@ -27,7 +27,7 @@ describe("future processor", () => {
       // Arrange
       const fakeModule = {} as any;
 
-      const deploymentFuture: NamedContractDeploymentFuture<string> =
+      const deploymentFuture: NamedArtifactContractDeploymentFuture<string> =
         new NamedContractDeploymentFutureImplementation(
           "MyModule:TestContract",
           fakeModule,

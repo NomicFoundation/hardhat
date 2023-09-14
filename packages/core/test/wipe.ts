@@ -28,7 +28,7 @@ describe("wipe", () => {
   const contract1InitMessage: DeploymentExecutionStateInitializeMessage = {
     type: JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE,
     futureId: contract1Id,
-    futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
+    futureType: FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT,
     artifactId: contract1Id,
     constructorArgs: [],
     contractName: "Contract1",
@@ -43,7 +43,7 @@ describe("wipe", () => {
   const contract2InitMessage: DeploymentExecutionStateInitializeMessage = {
     type: JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE,
     futureId: contract1Id,
-    futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
+    futureType: FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT,
     artifactId: contract2Id,
     constructorArgs: [],
     contractName: "Contract1",

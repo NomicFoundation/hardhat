@@ -74,19 +74,19 @@ function prettyPrintModule(
 
 function toLabel(f: Future): string {
   switch (f.type) {
-    case FutureType.NAMED_CONTRACT_DEPLOYMENT:
+    case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
       return `Deploy ${f.contractName}`;
-    case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
+    case FutureType.CONTRACT_DEPLOYMENT:
       return `Deploy from artifact ${f.contractName}`;
-    case FutureType.NAMED_LIBRARY_DEPLOYMENT:
+    case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
       return `Deploy library ${f.contractName}`;
-    case FutureType.ARTIFACT_LIBRARY_DEPLOYMENT:
+    case FutureType.LIBRARY_DEPLOYMENT:
       return `Deploy library from artifact ${f.contractName}`;
-    case FutureType.NAMED_CONTRACT_CALL:
+    case FutureType.CONTRACT_CALL:
       return `Call ${f.contract.contractName}/${f.functionName}`;
-    case FutureType.NAMED_STATIC_CALL:
+    case FutureType.STATIC_CALL:
       return `Static call ${f.contract.contractName}/${f.functionName}`;
-    case FutureType.NAMED_CONTRACT_AT:
+    case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
       return `Existing contract ${f.contractName} (${
         typeof f.address === "string"
           ? f.address
@@ -94,7 +94,7 @@ function toLabel(f: Future): string {
           ? f.address.id
           : argumentTypeToString(f.address)
       })`;
-    case FutureType.ARTIFACT_CONTRACT_AT:
+    case FutureType.CONTRACT_AT:
       return `Existing contract from artifact ${f.contractName} (${
         typeof f.address === "string"
           ? f.address

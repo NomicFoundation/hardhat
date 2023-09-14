@@ -28,19 +28,19 @@ export const Action: React.FC<{
 
 function toDisplayText(future: Future): string {
   switch (future.type) {
-    case FutureType.NAMED_CONTRACT_DEPLOYMENT:
+    case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
       return `Contract deploy ${future.contractName}`;
-    case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
+    case FutureType.CONTRACT_DEPLOYMENT:
       return `Deploy contract ${future.contractName} from artifact`;
-    case FutureType.NAMED_LIBRARY_DEPLOYMENT:
+    case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
       return `Library deploy ${future.contractName}`;
-    case FutureType.ARTIFACT_LIBRARY_DEPLOYMENT:
+    case FutureType.LIBRARY_DEPLOYMENT:
       return `Library deploy ${future.contractName} from artifact`;
-    case FutureType.NAMED_CONTRACT_CALL:
+    case FutureType.CONTRACT_CALL:
       return `Call ${future.contract.contractName}/${future.functionName}`;
-    case FutureType.NAMED_STATIC_CALL:
+    case FutureType.STATIC_CALL:
       return `Static call ${future.contract.contractName}/${future.functionName}`;
-    case FutureType.NAMED_CONTRACT_AT:
+    case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
       return `Existing contract ${future.contractName} (${
         typeof future.address === "string"
           ? future.address
@@ -48,7 +48,7 @@ function toDisplayText(future: Future): string {
           ? future.address.id
           : argumentTypeToString(future.address)
       })`;
-    case FutureType.ARTIFACT_CONTRACT_AT:
+    case FutureType.CONTRACT_AT:
       return `Existing contract ${future.contractName} from artifact (${
         typeof future.address === "string"
           ? future.address
@@ -85,10 +85,10 @@ const ActionBtn = styled.div<{ futureType: FutureType }>`
 
   ${(props) =>
     [
-      FutureType.NAMED_CONTRACT_DEPLOYMENT,
-      FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
-      FutureType.NAMED_LIBRARY_DEPLOYMENT,
-      FutureType.ARTIFACT_LIBRARY_DEPLOYMENT,
+      FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
+      FutureType.CONTRACT_DEPLOYMENT,
+      FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT,
+      FutureType.LIBRARY_DEPLOYMENT,
     ].includes(props.futureType) &&
     css`
       background: green;
@@ -96,7 +96,7 @@ const ActionBtn = styled.div<{ futureType: FutureType }>`
     `}
 
   ${(props) =>
-    [FutureType.NAMED_CONTRACT_CALL, FutureType.NAMED_STATIC_CALL].includes(
+    [FutureType.CONTRACT_CALL, FutureType.STATIC_CALL].includes(
       props.futureType
     ) &&
     css`

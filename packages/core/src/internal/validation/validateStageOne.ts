@@ -52,28 +52,28 @@ async function _validateFuture(
   artifactLoader: ArtifactResolver
 ): Promise<void> {
   switch (future.type) {
-    case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
+    case FutureType.CONTRACT_DEPLOYMENT:
       await validateArtifactContractDeployment(future, artifactLoader);
       break;
-    case FutureType.ARTIFACT_LIBRARY_DEPLOYMENT:
+    case FutureType.LIBRARY_DEPLOYMENT:
       await validateArtifactLibraryDeployment(future, artifactLoader);
       break;
-    case FutureType.ARTIFACT_CONTRACT_AT:
+    case FutureType.CONTRACT_AT:
       await validateArtifactContractAt(future, artifactLoader);
       break;
-    case FutureType.NAMED_CONTRACT_DEPLOYMENT:
+    case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
       await validateNamedContractDeployment(future, artifactLoader);
       break;
-    case FutureType.NAMED_LIBRARY_DEPLOYMENT:
+    case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
       await validateNamedLibraryDeployment(future, artifactLoader);
       break;
-    case FutureType.NAMED_CONTRACT_AT:
+    case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
       await validateNamedContractAt(future, artifactLoader);
       break;
-    case FutureType.NAMED_CONTRACT_CALL:
+    case FutureType.CONTRACT_CALL:
       await validateNamedContractCall(future, artifactLoader);
       break;
-    case FutureType.NAMED_STATIC_CALL:
+    case FutureType.STATIC_CALL:
       await validateNamedStaticCall(future, artifactLoader);
       break;
     case FutureType.READ_EVENT_ARGUMENT:

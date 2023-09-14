@@ -1,10 +1,10 @@
 import {
-  ArtifactContractAtFuture,
-  ArtifactContractDeploymentFuture,
-  ArtifactLibraryDeploymentFuture,
-  NamedContractAtFuture,
-  NamedContractDeploymentFuture,
-  NamedLibraryDeploymentFuture,
+  ContractAtFuture,
+  ContractDeploymentFuture,
+  LibraryDeploymentFuture,
+  NamedArtifactContractAtFuture,
+  NamedArtifactContractDeploymentFuture,
+  NamedArtifactLibraryDeploymentFuture,
 } from "../../../types/module";
 import {
   ContractAtExecutionState,
@@ -19,12 +19,12 @@ import { compare } from "./compare";
 
 export function reconcileContractName(
   future:
-    | NamedContractDeploymentFuture<string>
-    | ArtifactContractDeploymentFuture
-    | NamedLibraryDeploymentFuture<string>
-    | ArtifactLibraryDeploymentFuture
-    | NamedContractAtFuture<string>
-    | ArtifactContractAtFuture,
+    | NamedArtifactContractDeploymentFuture<string>
+    | ContractDeploymentFuture
+    | NamedArtifactLibraryDeploymentFuture<string>
+    | LibraryDeploymentFuture
+    | NamedArtifactContractAtFuture<string>
+    | ContractAtFuture,
   exState: DeploymentExecutionState | ContractAtExecutionState,
   _context: ReconciliationContext
 ): ReconciliationFutureResultFailure | undefined {

@@ -1,8 +1,8 @@
 import { ArtifactResolver } from "../../../types/artifact";
-import { ArtifactLibraryDeploymentFuture } from "../../../types/module";
+import { LibraryDeploymentFuture } from "../../../types/module";
 
 export async function validateArtifactLibraryDeployment(
-  _future: ArtifactLibraryDeploymentFuture,
+  _future: LibraryDeploymentFuture,
   _artifactLoader: ArtifactResolver
 ) {
   return; // no-op

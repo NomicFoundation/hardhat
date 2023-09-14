@@ -46,7 +46,7 @@ export function initialiseStaticCallExecutionStateFrom(
   const callExecutionInitialState: StaticCallExecutionState = {
     id: action.futureId,
     type: ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
-    futureType: FutureType.NAMED_STATIC_CALL,
+    futureType: FutureType.STATIC_CALL,
     strategy: action.strategy,
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(action.dependencies),
@@ -129,7 +129,7 @@ export function initialiseCallExecutionStateFrom(
   const callExecutionInitialState: CallExecutionState = {
     id: action.futureId,
     type: ExecutionSateType.CALL_EXECUTION_STATE,
-    futureType: FutureType.NAMED_CONTRACT_CALL,
+    futureType: FutureType.CONTRACT_CALL,
     strategy: action.strategy,
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(action.dependencies),

@@ -5,14 +5,14 @@ import {
 } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deploy";
-import { NamedStaticCallFuture } from "../../../types/module";
+import { StaticCallFuture } from "../../../types/module";
 import {
   retrieveNestedRuntimeValues,
   validateAccountRuntimeValue,
 } from "../utils";
 
 export async function validateNamedStaticCall(
-  future: NamedStaticCallFuture<string, string>,
+  future: StaticCallFuture<string, string>,
   _artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
   accounts: string[]

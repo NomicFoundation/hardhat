@@ -1,4 +1,4 @@
-import { NamedLibraryDeploymentFuture } from "../../../types/module";
+import { NamedArtifactLibraryDeploymentFuture } from "../../../types/module";
 import { DeploymentExecutionState } from "../../execution/types/execution-state";
 import { reconcileArtifacts } from "../helpers/reconcile-artifacts";
 import { reconcileContractName } from "../helpers/reconcile-contract-name";
@@ -7,7 +7,7 @@ import { reconcileLibraries } from "../helpers/reconcile-libraries";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 
 export async function reconcileNamedLibraryDeployment(
-  future: NamedLibraryDeploymentFuture<string>,
+  future: NamedArtifactLibraryDeploymentFuture<string>,
   executionState: DeploymentExecutionState,
   context: ReconciliationContext
 ): Promise<ReconciliationFutureResult> {

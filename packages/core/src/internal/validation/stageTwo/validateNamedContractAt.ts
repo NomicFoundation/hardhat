@@ -2,10 +2,10 @@ import { IgnitionValidationError } from "../../../errors";
 import { isModuleParameterRuntimeValue } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deploy";
-import { NamedContractAtFuture } from "../../../types/module";
+import { NamedArtifactContractAtFuture } from "../../../types/module";
 
 export async function validateNamedContractAt(
-  future: NamedContractAtFuture<string>,
+  future: NamedArtifactContractAtFuture<string>,
   _artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
   _accounts: string[]

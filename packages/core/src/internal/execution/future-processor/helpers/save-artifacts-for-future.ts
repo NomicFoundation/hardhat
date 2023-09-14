@@ -2,9 +2,9 @@ import { ArtifactResolver } from "../../../../types/artifact";
 import {
   Future,
   FutureType,
-  NamedContractAtFuture,
-  NamedContractDeploymentFuture,
-  NamedLibraryDeploymentFuture,
+  NamedArtifactContractAtFuture,
+  NamedArtifactContractDeploymentFuture,
+  NamedArtifactLibraryDeploymentFuture,
 } from "../../../../types/module";
 import { DeploymentLoader } from "../../../deployment-loader/types";
 
@@ -14,22 +14,22 @@ export async function saveArtifactsForFuture(
   deploymentLoader: DeploymentLoader
 ): Promise<void> {
   switch (future.type) {
-    case FutureType.NAMED_CONTRACT_DEPLOYMENT:
-    case FutureType.NAMED_LIBRARY_DEPLOYMENT:
-    case FutureType.NAMED_CONTRACT_AT:
+    case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
+    case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
+    case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
       return _storeArtifactAndBuildInfoAgainstDeployment(future, {
         artifactResolver,
         deploymentLoader,
       });
-    case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
-    case FutureType.ARTIFACT_LIBRARY_DEPLOYMENT:
-    case FutureType.ARTIFACT_CONTRACT_AT:
+    case FutureType.CONTRACT_DEPLOYMENT:
+    case FutureType.LIBRARY_DEPLOYMENT:
+    case FutureType.CONTRACT_AT:
       return deploymentLoader.storeUserProvidedArtifact(
         future.id,
         future.artifact
       );
-    case FutureType.NAMED_CONTRACT_CALL:
-    case FutureType.NAMED_STATIC_CALL:
+    case FutureType.CONTRACT_CALL:
+    case FutureType.STATIC_CALL:
     case FutureType.READ_EVENT_ARGUMENT:
     case FutureType.SEND_DATA:
       return;
@@ -38,9 +38,9 @@ export async function saveArtifactsForFuture(
 
 async function _storeArtifactAndBuildInfoAgainstDeployment(
   future:
-    | NamedLibraryDeploymentFuture<string>
-    | NamedContractDeploymentFuture<string>
-    | NamedContractAtFuture<string>,
+    | NamedArtifactLibraryDeploymentFuture<string>
+    | NamedArtifactContractDeploymentFuture<string>
+    | NamedArtifactContractAtFuture<string>,
   {
     deploymentLoader,
     artifactResolver,
