@@ -81,7 +81,10 @@ export class FileDeploymentLoader implements DeploymentLoader {
     await writeFile(artifactFilePath, JSON.stringify(artifact, undefined, 2));
   }
 
-  public async storeBuildInfo(buildInfo: BuildInfo): Promise<void> {
+  public async storeBuildInfo(
+    futureId: string,
+    buildInfo: BuildInfo
+  ): Promise<void> {
     await this._initialize();
 
     const buildInfoFilePath = path.join(
@@ -90,6 +93,28 @@ export class FileDeploymentLoader implements DeploymentLoader {
     );
 
     await writeFile(buildInfoFilePath, JSON.stringify(buildInfo, undefined, 2));
+
+    const debugInfoFilePath = path.join(
+      this._paths.artifactsDir,
+      `${futureId}.dbg.json`
+    );
+
+    const relativeBuildInfoPath = path.relative(
+      this._paths.artifactsDir,
+      buildInfoFilePath
+    );
+
+    await writeFile(
+      debugInfoFilePath,
+      JSON.stringify(
+        {
+          _format: "hh-sol-dbg-1",
+          buildInfo: relativeBuildInfoPath,
+        },
+        undefined,
+        2
+      )
+    );
   }
 
   public async loadArtifact(futureId: string): Promise<Artifact> {

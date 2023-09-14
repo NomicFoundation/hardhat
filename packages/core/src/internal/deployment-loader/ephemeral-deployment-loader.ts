@@ -46,7 +46,10 @@ export class EphemeralDeploymentLoader implements DeploymentLoader {
     this._deployedAddresses[futureId] = contractAddress;
   }
 
-  public async storeBuildInfo(_buildInfo: BuildInfo): Promise<void> {
+  public async storeBuildInfo(
+    _futureId: string,
+    _buildInfo: BuildInfo
+  ): Promise<void> {
     // For ephemeral we are ignoring build info
   }
 

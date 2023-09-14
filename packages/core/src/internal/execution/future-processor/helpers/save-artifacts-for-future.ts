@@ -58,6 +58,6 @@ async function _storeArtifactAndBuildInfoAgainstDeployment(
   const buildInfo = await artifactResolver.getBuildInfo(future.contractName);
 
   if (buildInfo !== undefined) {
-    await deploymentLoader.storeBuildInfo(buildInfo);
+    await deploymentLoader.storeBuildInfo(future.id, buildInfo);
   }
 }

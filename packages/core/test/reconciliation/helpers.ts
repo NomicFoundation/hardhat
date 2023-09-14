@@ -56,7 +56,10 @@ class MockDeploymentLoader implements DeploymentLoader {
     throw new Error("Method not implemented.");
   }
 
-  public storeBuildInfo(_buildInfo: BuildInfo): Promise<void> {
+  public storeBuildInfo(
+    _futureId: string,
+    _buildInfo: BuildInfo
+  ): Promise<void> {
     throw new Error("Method not implemented.");
   }
 

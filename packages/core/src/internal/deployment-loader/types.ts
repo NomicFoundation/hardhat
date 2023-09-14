@@ -19,7 +19,7 @@ export interface DeploymentLoader {
     contractName: string,
     artifact: Artifact
   ): Promise<void>;
-  storeBuildInfo(buildInfo: BuildInfo): Promise<void>;
+  storeBuildInfo(futureId: string, buildInfo: BuildInfo): Promise<void>;
   recordDeployedAddress(
     futureId: string,
     contractAddress: string
