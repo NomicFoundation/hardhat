@@ -239,6 +239,7 @@ export class StoredDeploymentSerializer {
             contract: this._convertFutureToFutureToken(future.contract),
             functionName: future.functionName,
             args: future.args.map((arg) => context.argReplacer(arg)),
+            nameOrIndex: future.nameOrIndex,
             from: isRuntimeValue(future.from)
               ? this._serializeAccountRuntimeValue(future.from)
               : future.from,
@@ -298,7 +299,7 @@ export class StoredDeploymentSerializer {
             ),
             emitter: this._convertFutureToFutureToken(future.emitter),
             eventName: future.eventName,
-            argumentName: future.argumentName,
+            nameOrIndex: future.nameOrIndex,
             eventIndex: future.eventIndex,
           };
         return serializedReadEventArgumentFuture;
@@ -742,6 +743,7 @@ export class StoredDeploymentDeserializer {
           serializedFuture.args.map((arg) =>
             this._deserializeArgument(arg, futuresLookup)
           ),
+          serializedFuture.nameOrIndex,
           this._isSerializedAccountRuntimeValue(serializedFuture.from)
             ? this._deserializeAccountRuntimeValue(serializedFuture.from)
             : serializedFuture.from
@@ -795,7 +797,7 @@ export class StoredDeploymentDeserializer {
             | ArtifactContractDeploymentFuture
             | NamedContractCallFuture<string, string>,
           serializedFuture.eventName,
-          serializedFuture.argumentName,
+          serializedFuture.nameOrIndex,
           this._lookup(
             contractFuturesLookup,
             serializedFuture.emitter.futureId

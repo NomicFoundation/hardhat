@@ -57,7 +57,7 @@ function toDisplayText(future: Future): string {
           : argumentTypeToString(future.address)
       })`;
     case FutureType.READ_EVENT_ARGUMENT:
-      return `Read event from future ${future.futureToReadFrom.id} (event ${future.eventName} argument ${future.argumentName})`;
+      return `Read event from future ${future.futureToReadFrom.id} (event ${future.eventName} argument ${future.nameOrIndex})`;
     case FutureType.SEND_DATA:
       return `Send data to ${
         typeof future.to === "string"

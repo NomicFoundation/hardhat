@@ -84,13 +84,13 @@ describe("Read event argument", () => {
       assert.equal(read2.emitter, mod.results.emitter);
     });
 
-    it("should set the right eventName and argumentName", () => {
+    it("should set the right eventName and nameOrIndex", () => {
       const mod = buildModule("Module1", (m) => {
         const contract = m.contract("Contract");
         const call = m.call(contract, "fuc");
 
         m.readEventArgument(contract, "EventName1", "arg1");
-        m.readEventArgument(call, "EventName2", "arg2");
+        m.readEventArgument(call, "EventName2", 2);
 
         return { contract };
       });
@@ -100,10 +100,10 @@ describe("Read event argument", () => {
       ) as ReadEventArgumentFuture[];
 
       assert.equal(read1.eventName, "EventName1");
-      assert.equal(read1.argumentName, "arg1");
+      assert.equal(read1.nameOrIndex, "arg1");
 
       assert.equal(read2.eventName, "EventName2");
-      assert.equal(read2.argumentName, "arg2");
+      assert.equal(read2.nameOrIndex, 2);
     });
 
     it("should default the eventIndex to 0", () => {
@@ -203,6 +203,19 @@ describe("Read event argument", () => {
               return {};
             }),
           /`options.emitter` must be provided when reading an event from a SendDataFuture/
+        );
+      });
+
+      it("should not validate a nameOrIndex that is not a number or string", () => {
+        assert.throws(
+          () =>
+            buildModule("Module1", (m) => {
+              const another = m.contract("Another", []);
+              m.readEventArgument(another, "test", {} as any);
+
+              return { another };
+            }),
+          /Invalid nameOrIndex given/
         );
       });
     });

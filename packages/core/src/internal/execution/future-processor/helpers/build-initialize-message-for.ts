@@ -115,6 +115,7 @@ export async function buildInitializeMessageFor(
               deploymentParameters,
               accounts
             ),
+            nameOrIndex: future.nameOrIndex,
             functionName: future.functionName,
             contractAddress: resolveAddressForContractFuture(
               future.contract,
@@ -155,7 +156,7 @@ export async function buildInitializeMessageFor(
           future.emitter,
           future.eventName,
           future.eventIndex,
-          future.argumentName,
+          future.nameOrIndex,
           deploymentState,
           deploymentLoader
         );
@@ -168,7 +169,7 @@ export async function buildInitializeMessageFor(
           {
             artifactId: future.emitter.id,
             eventName: future.eventName,
-            argumentName: future.argumentName,
+            nameOrIndex: future.nameOrIndex,
             eventIndex: future.eventIndex,
             txToReadFrom,
             emitterAddress,

@@ -22,6 +22,6 @@ export async function validateReadEventArgument(
   validateArtifactEventArgumentParams(
     artifact,
     future.eventName,
-    future.argumentName
+    future.nameOrIndex
   );
 }

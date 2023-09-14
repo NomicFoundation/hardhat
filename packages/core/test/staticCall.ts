@@ -86,7 +86,7 @@ describe("static call", () => {
       const example = m.contract("Example");
       const another = m.contract("Another");
 
-      m.staticCall(example, "test", [], { after: [another] });
+      m.staticCall(example, "test", [], 0, { after: [another] });
 
       return { example, another };
     });
@@ -143,11 +143,43 @@ describe("static call", () => {
     assert(callFuture.dependencies.has(staticCallFuture!));
   });
 
+  it("should be able to use a string or number to index its result", () => {
+    const moduleWithASingleContract = buildModule("Module1", (m) => {
+      const contract1 = m.contract("Contract1");
+
+      m.staticCall(contract1, "test", [], "testName");
+      m.staticCall(contract1, "test2", [], 2);
+
+      return { contract1 };
+    });
+
+    assert.isDefined(moduleWithASingleContract);
+
+    const staticCallFuture = [...moduleWithASingleContract.futures].find(
+      ({ id }) => id === "Module1:Contract1#test"
+    );
+
+    const staticCallFuture2 = [...moduleWithASingleContract.futures].find(
+      ({ id }) => id === "Module1:Contract1#test2"
+    );
+
+    if (!(staticCallFuture instanceof NamedStaticCallFutureImplementation)) {
+      assert.fail("Not a named static contract deployment");
+    }
+
+    if (!(staticCallFuture2 instanceof NamedStaticCallFutureImplementation)) {
+      assert.fail("Not a named static contract deployment");
+    }
+
+    assert.equal(staticCallFuture.nameOrIndex, "testName");
+    assert.equal(staticCallFuture2.nameOrIndex, 2);
+  });
+
   it("should be able to pass a string as from option", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
       const example = m.contract("Example");
 
-      m.staticCall(example, "test", [], { from: "0x2" });
+      m.staticCall(example, "test", [], 0, { from: "0x2" });
 
       return { example };
     });
@@ -169,7 +201,7 @@ describe("static call", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
       const example = m.contract("Example");
 
-      m.staticCall(example, "test", [], { from: m.getAccount(1) });
+      m.staticCall(example, "test", [], 0, { from: m.getAccount(1) });
 
       return { example };
     });
@@ -357,8 +389,8 @@ describe("static call", () => {
       const moduleWithSameCallTwice = buildModule("Module1", (m) => {
         const sameContract1 = m.contract("Example");
 
-        m.staticCall(sameContract1, "test", [], { id: "first" });
-        m.staticCall(sameContract1, "test", [], { id: "second" });
+        m.staticCall(sameContract1, "test", [], 0, { id: "first" });
+        m.staticCall(sameContract1, "test", [], 0, { id: "second" });
 
         return { sameContract1 };
       });
@@ -396,8 +428,8 @@ describe("static call", () => {
         () =>
           buildModule("Module1", (m) => {
             const sameContract1 = m.contract("SameContract");
-            m.staticCall(sameContract1, "test", [], { id: "first" });
-            m.staticCall(sameContract1, "test", [], { id: "first" });
+            m.staticCall(sameContract1, "test", [], 0, { id: "first" });
+            m.staticCall(sameContract1, "test", [], 0, { id: "first" });
             return { sameContract1 };
           }),
         /Duplicated id Module1:SameContract#first found in module Module1/
@@ -412,11 +444,24 @@ describe("static call", () => {
           () =>
             buildModule("Module1", (m) => {
               const another = m.contract("Another", []);
-              m.staticCall(another, "test", [], { from: 1 as any });
+              m.staticCall(another, "test", [], 0, { from: 1 as any });
 
               return { another };
             }),
           /Invalid type for given option "from": number/
+        );
+      });
+
+      it("should not validate a nameOrIndex that is not a number or string", () => {
+        assert.throws(
+          () =>
+            buildModule("Module1", (m) => {
+              const another = m.contract("Another", []);
+              m.staticCall(another, "test", [], {} as any);
+
+              return { another };
+            }),
+          /Invalid nameOrIndex given/
         );
       });
 
@@ -642,6 +687,84 @@ describe("static call", () => {
           /Function inc in contract Another is not 'pure' or 'view' and cannot be statically called/
         );
       });
+
+      it("should not validate a nameOrIndex that is invalid (nonexistent name)", async () => {
+        const fakeArtifact: Artifact = {
+          abi: [
+            {
+              inputs: [],
+              name: "inc",
+              outputs: [
+                {
+                  internalType: "bool",
+                  name: "b",
+                  type: "bool",
+                },
+              ],
+              stateMutability: "pure",
+              type: "function",
+            },
+          ],
+          contractName: "",
+          bytecode: "",
+          linkReferences: {},
+        };
+
+        const module = buildModule("Module1", (m) => {
+          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          m.staticCall(another, "inc", [], "a");
+
+          return { another };
+        });
+
+        const future = getFuturesFromModule(module).find(
+          (v) => v.type === FutureType.NAMED_STATIC_CALL
+        );
+
+        await assert.isRejected(
+          validateNamedStaticCall(future as any, setupMockArtifactResolver()),
+          /Function inc of contract Another has no return value named a/
+        );
+      });
+
+      it("should not validate a nameOrIndex that is invalid (out of range)", async () => {
+        const fakeArtifact: Artifact = {
+          abi: [
+            {
+              inputs: [],
+              name: "inc",
+              outputs: [
+                {
+                  internalType: "bool",
+                  name: "b",
+                  type: "bool",
+                },
+              ],
+              stateMutability: "pure",
+              type: "function",
+            },
+          ],
+          contractName: "",
+          bytecode: "",
+          linkReferences: {},
+        };
+
+        const module = buildModule("Module1", (m) => {
+          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          m.staticCall(another, "inc", [], 2);
+
+          return { another };
+        });
+
+        const future = getFuturesFromModule(module).find(
+          (v) => v.type === FutureType.NAMED_STATIC_CALL
+        );
+
+        await assert.isRejected(
+          validateNamedStaticCall(future as any, setupMockArtifactResolver()),
+          /Function inc of contract Another has only 1 return values, but value 2 was requested/
+        );
+      });
     });
 
     describe("stage two", () => {
@@ -835,7 +958,7 @@ describe("static call", () => {
         const module = buildModule("Module1", (m) => {
           const another = m.contractFromArtifact("Another", fakeArtifact, []);
           const account = m.getAccount(-1);
-          m.staticCall(another, "inc", [1], { from: account });
+          m.staticCall(another, "inc", [1], 0, { from: account });
 
           return { another };
         });
@@ -880,7 +1003,7 @@ describe("static call", () => {
         const module = buildModule("Module1", (m) => {
           const another = m.contractFromArtifact("Another", fakeArtifact, []);
           const account = m.getAccount(1);
-          m.staticCall(another, "inc", [1], { from: account });
+          m.staticCall(another, "inc", [1], 0, { from: account });
 
           return { another };
         });

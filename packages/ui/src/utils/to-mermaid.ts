@@ -103,7 +103,7 @@ function toLabel(f: Future): string {
           : argumentTypeToString(f.address)
       })`;
     case FutureType.READ_EVENT_ARGUMENT:
-      return `Read event from future ${f.futureToReadFrom.id} (event ${f.eventName} argument ${f.argumentName})`;
+      return `Read event from future ${f.futureToReadFrom.id} (event ${f.eventName} argument ${f.nameOrIndex})`;
     case FutureType.SEND_DATA:
       return `Send data to ${
         typeof f.to === "string"

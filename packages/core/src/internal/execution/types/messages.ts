@@ -120,6 +120,7 @@ export interface StaticCallExecutionStateInitializeMessage {
   artifactId: string;
   contractAddress: string;
   functionName: string;
+  nameOrIndex: string | number;
   args: SolidityParameterType[];
   from: string;
 }
@@ -165,7 +166,7 @@ export interface ReadEventArgExecutionStateInitializeMessage {
   dependencies: string[];
   artifactId: string;
   eventName: string;
-  argumentName: string;
+  nameOrIndex: string | number;
   txToReadFrom: string;
   emitterAddress: string;
   eventIndex: number;

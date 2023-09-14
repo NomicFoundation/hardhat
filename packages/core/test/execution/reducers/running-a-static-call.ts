@@ -39,6 +39,7 @@ describe("DeploymentStateReducer", () => {
         contractAddress: exampleAddress,
         functionName: "configure",
         args: ["a", BigInt(2)],
+        nameOrIndex: 0,
         from: senderAddress,
       };
 

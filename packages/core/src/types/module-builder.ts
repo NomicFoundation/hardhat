@@ -188,6 +188,7 @@ export interface IgnitionModuleBuilder {
     contractFuture: CallableContractFuture<ContractNameT>,
     functionName: FunctionNameT,
     args?: ArgumentType[],
+    nameOrIndex?: string | number,
     options?: StaticCallOptions
   ): NamedStaticCallFuture<ContractNameT, FunctionNameT>;
 
@@ -217,7 +218,7 @@ export interface IgnitionModuleBuilder {
       | SendDataFuture
       | NamedContractCallFuture<string, string>,
     eventName: string,
-    argumentName: string,
+    nameOrIndex: string | number,
     options?: ReadEventArgumentOptions
   ): ReadEventArgumentFuture;
 

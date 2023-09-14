@@ -278,7 +278,7 @@ export function getEventArgumentFromReceipt(
   emitterAddress: string,
   eventName: string,
   eventIndex: number,
-  argument: string | number
+  nameOrIndex: string | number
 ): EvmValue {
   const emitterLogs = receipt.logs.filter((l) => l.address === emitterAddress);
 
@@ -300,11 +300,11 @@ export function getEventArgumentFromReceipt(
 
   const evmTuple = ethersResultIntoEvmTuple(ethersResult, eventFragment.inputs);
 
-  if (typeof argument === "string") {
-    return evmTuple.named[argument];
+  if (typeof nameOrIndex === "string") {
+    return evmTuple.named[nameOrIndex];
   }
 
-  return evmTuple.positional[argument];
+  return evmTuple.positional[nameOrIndex];
 }
 
 /**
@@ -695,6 +695,43 @@ function getEventArgumentParamType(
   }
 
   return paramType;
+}
+
+/**
+ * Validates the param type of a static call return value, throwing a validation error if it's not found.
+ */
+export function validateFunctionArgumentParamType(
+  contractName: string,
+  functionName: string,
+  artifact: Artifact,
+  argument: string | number
+): void {
+  const { ethers } = require("ethers") as typeof import("ethers");
+  const iface = new ethers.Interface(artifact.abi);
+  const functionFragment = getFunctionFragment(iface, functionName);
+
+  if (typeof argument === "string") {
+    let hasArg = false;
+    for (const output of functionFragment.outputs) {
+      if (output.name === argument) {
+        hasArg = true;
+      }
+    }
+
+    if (!hasArg) {
+      throw new IgnitionValidationError(
+        `Function ${functionName} of contract ${contractName} has no return value named ${argument}`
+      );
+    }
+  } else {
+    const paramType = functionFragment.outputs[argument];
+
+    if (paramType === undefined) {
+      throw new IgnitionValidationError(
+        `Function ${functionName} of contract ${contractName} has only ${functionFragment.outputs.length} return values, but value ${argument} was requested`
+      );
+    }
+  }
 }
 
 /**

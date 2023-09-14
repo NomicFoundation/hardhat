@@ -157,6 +157,7 @@ export class NamedStaticCallFutureImplementation<
     public readonly functionName: FunctionNameT,
     public readonly contract: ContractFuture<ContractNameT>,
     public readonly args: ArgumentType[],
+    public readonly nameOrIndex: string | number,
     public readonly from: string | AccountRuntimeValue | undefined
   ) {
     super(id, FutureType.NAMED_STATIC_CALL, module);
@@ -211,7 +212,7 @@ export class ReadEventArgumentFutureImplementation
       | SendDataFuture
       | NamedContractCallFuture<string, string>,
     public readonly eventName: string,
-    public readonly argumentName: string,
+    public readonly nameOrIndex: string | number,
     public readonly emitter: ContractFuture<string>,
     public readonly eventIndex: number
   ) {

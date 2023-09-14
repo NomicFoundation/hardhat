@@ -414,7 +414,7 @@ describe("stored deployment serializer", () => {
         const contract2 = m.contract("Contract2");
 
         m.staticCall(contract2, "lock", [contract1]);
-        m.staticCall(contract2, "unlock", [], { after: [contract1] });
+        m.staticCall(contract2, "unlock", [], 0, { after: [contract1] });
 
         return { contract1, contract2 };
       });
@@ -430,7 +430,7 @@ describe("stored deployment serializer", () => {
         const contract1 = m.contract("Contract1");
         const emitter = m.contract("Emitter");
 
-        m.readEventArgument(contract1, "EventName", "argumentName", {
+        m.readEventArgument(contract1, "EventName", "nameOrIndex", {
           id: "customId",
           emitter,
           eventIndex: 123,

@@ -151,6 +151,7 @@ export interface SerializedNamedStaticCallFuture extends BaseSerializedFuture {
   functionName: string;
   contract: FutureToken;
   args: SerializedArgumentType[];
+  nameOrIndex: string | number;
   from: string | SerializedAccountRuntimeValue | undefined;
 }
 
@@ -188,7 +189,7 @@ export interface SerializedReadEventArgumentFuture
   type: FutureType.READ_EVENT_ARGUMENT;
   futureToReadFrom: FutureToken;
   eventName: string;
-  argumentName: string;
+  nameOrIndex: string | number;
   emitter: FutureToken;
   eventIndex: number;
 }

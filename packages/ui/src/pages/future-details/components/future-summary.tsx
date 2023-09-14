@@ -177,7 +177,7 @@ const FutureDetailsSection: React.FC<{ future: Future }> = ({ future }) => {
           ) : null}
           <p>Event - {future.eventName}</p>
           <p>Event index - {future.eventIndex}</p>
-          <p>Argument - {future.argumentName}</p>
+          <p>Argument - {future.nameOrIndex}</p>
         </div>
       );
     case FutureType.SEND_DATA:

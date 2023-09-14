@@ -51,6 +51,7 @@ describe("Reconciliation - named static call", () => {
     artifactId: "./artifact.json",
     functionName: "function",
     args: [],
+    nameOrIndex: 0,
     from: exampleAccounts[0],
   };
 
@@ -98,7 +99,7 @@ describe("Reconciliation - named static call", () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
-      m.staticCall(contract1, "function1", [], { id: "config" });
+      m.staticCall(contract1, "function1", [], 0, { id: "config" });
 
       return { contract1 };
     });
@@ -138,7 +139,7 @@ describe("Reconciliation - named static call", () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
-      m.staticCall(contract1, "functionChanged", [], { id: "config" });
+      m.staticCall(contract1, "functionChanged", [], 0, { id: "config" });
 
       return { contract1 };
     });
@@ -181,7 +182,7 @@ describe("Reconciliation - named static call", () => {
 
       const contract1 = m.contract("Contract1");
 
-      m.staticCall(contract1, "function1", [{ ticker }], {});
+      m.staticCall(contract1, "function1", [{ ticker }], 0, {});
 
       return { contract1 };
     });
@@ -222,7 +223,7 @@ describe("Reconciliation - named static call", () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
-      m.staticCall(contract1, "function1", [], {
+      m.staticCall(contract1, "function1", [], 0, {
         id: "config",
         from: twoAddress,
       });
@@ -262,14 +263,55 @@ describe("Reconciliation - named static call", () => {
     ]);
   });
 
+  it("should find changes to the argument unreconciliable", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const contract = m.contract("Contract");
+
+      m.staticCall(contract, "function", [], "argChanged");
+
+      return { contract };
+    });
+
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Module:Contract",
+          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          status: ExecutionStatus.SUCCESS,
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: exampleAddress,
+          },
+          contractName: "Contract",
+        },
+        {
+          ...exampleStaticCallState,
+          id: "Module:Contract#function",
+          status: ExecutionStatus.STARTED,
+          nameOrIndex: "argUnchanged",
+        }
+      )
+    );
+
+    assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
+      {
+        futureId: "Module:Contract#function",
+        failure:
+          "Argument name or index has been changed from argUnchanged to argChanged",
+      },
+    ]);
+  });
+
   it("should not reconcile the use of the result of a static call that has changed", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");
 
-      const resultArg1 = m.staticCall(contract1, "function1", ["first"], {
+      const resultArg1 = m.staticCall(contract1, "function1", ["first"], 0, {
         id: "first-call",
       });
-      const resultArg2 = m.staticCall(contract1, "function1", ["second"], {
+      const resultArg2 = m.staticCall(contract1, "function1", ["second"], 0, {
         id: "second-call",
         after: [resultArg1],
       });
