@@ -80,9 +80,6 @@ export class DualBlockchain implements BlockchainAdapter {
       await this._rethnet.getLatestBlock(),
     ]);
 
-    console.log("hardhatBlock", hardhatBlock._common.hardfork());
-    console.log("rethnetBlock", rethnetBlock._common.hardfork());
-
     assertEqualBlocks(hardhatBlock, rethnetBlock);
     return rethnetBlock;
   }
