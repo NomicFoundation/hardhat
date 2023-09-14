@@ -58,4 +58,24 @@ describe("events", () => {
     assert.equal(await result.fooFactory.isDeployed(), true);
     assert.equal(await result.foo.x(), Number(1));
   });
+
+  it("should be able to read an event from a SendDataFuture", async function () {
+    const moduleDefinition = buildModule("FooModule", (m) => {
+      const sendEmitter = m.contract("SendDataEmitter");
+
+      const send = m.send("send-data-event", sendEmitter);
+
+      const output = m.readEventArgument(send, "SendDataEvent", "arg", {
+        emitter: sendEmitter,
+      });
+
+      m.call(sendEmitter, "validateEmitted", [output]);
+
+      return { sendEmitter };
+    });
+
+    const result = await this.deploy(moduleDefinition);
+
+    assert.equal(await result.sendEmitter.wasEmitted(), true);
+  });
 });

@@ -214,6 +214,7 @@ export interface IgnitionModuleBuilder {
     futureToReadFrom:
       | NamedContractDeploymentFuture<string>
       | ArtifactContractDeploymentFuture
+      | SendDataFuture
       | NamedContractCallFuture<string, string>,
     eventName: string,
     argumentName: string,

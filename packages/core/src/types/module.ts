@@ -277,6 +277,7 @@ export interface ReadEventArgumentFuture {
   futureToReadFrom:
     | NamedContractDeploymentFuture<string>
     | ArtifactContractDeploymentFuture
+    | SendDataFuture
     | NamedContractCallFuture<string, string>;
   eventName: string;
   argumentName: string;

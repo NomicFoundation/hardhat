@@ -191,6 +191,22 @@ describe("Read event argument", () => {
   });
 
   describe("validation", () => {
+    describe("module stage", () => {
+      it("should not validate a SendDataFuture if no emitter is provided", () => {
+        assert.throws(
+          () =>
+            buildModule("Module1", (m) => {
+              const send = m.send("id", "test", 42n);
+
+              m.readEventArgument(send, "SomeEvent", "someArg");
+
+              return {};
+            }),
+          /`options.emitter` must be provided when reading an event from a SendDataFuture/
+        );
+      });
+    });
+
     describe("stage one", () => {
       let vm: typeof import("../src/internal/validation/stageOne/validateReadEventArgument");
       let validateReadEventArgument: typeof vm.validateReadEventArgument;
