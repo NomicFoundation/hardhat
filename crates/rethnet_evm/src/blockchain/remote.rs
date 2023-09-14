@@ -96,6 +96,11 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
         }
     }
 
+    /// Retrieves the instance's RPC client.
+    pub fn client(&self) -> &Arc<RpcClient> {
+        &self.client
+    }
+
     /// Retrieves the receipt of the transaction with the provided hash, if it exists.
     pub async fn receipt_by_transaction_hash(
         &self,

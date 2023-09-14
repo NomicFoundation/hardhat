@@ -82,6 +82,11 @@ impl ForkState {
         self.remote_state.lock().set_block_number(block_number);
     }
 
+    /// Retrieves the state root generator
+    pub fn state_root_generator(&self) -> &Arc<Mutex<RandomHashGenerator>> {
+        &self.hash_generator
+    }
+
     fn update_removed_storage_slots(&mut self) {
         self.removed_storage_slots.clear();
 

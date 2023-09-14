@@ -296,12 +296,25 @@ impl Blockchain for ForkedBlockchain {
             return Err(BlockchainError::UnknownBlockNumber);
         }
 
-        let mut state = self.fork_state.clone();
-        if *block_number <= self.fork_block_number {
-            state.set_fork_block_number(block_number);
-        } else {
-            compute_state_at_block(&mut state, &self.local_storage, block_number);
-        }
+        let state = match block_number.cmp(&self.fork_block_number) {
+            std::cmp::Ordering::Less => {
+                // We don't apply account overrides to pre-fork states
+                ForkState::new(
+                    self.runtime.clone(),
+                    self.remote.client().clone(),
+                    self.fork_state.state_root_generator().clone(),
+                    *block_number,
+                    HashMap::new(),
+                )
+                .await?
+            }
+            std::cmp::Ordering::Equal => self.fork_state.clone(),
+            std::cmp::Ordering::Greater => {
+                let mut state = self.fork_state.clone();
+                compute_state_at_block(&mut state, &self.local_storage, block_number);
+                state
+            }
+        };
 
         Ok(Box::new(state))
     }
