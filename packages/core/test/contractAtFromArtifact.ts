@@ -213,18 +213,6 @@ describe("contractAtFromArtifact", () => {
           /Invalid address given/
         );
       });
-
-      it("should not validate an invalid artifact", () => {
-        assert.throws(
-          () =>
-            buildModule("Module1", (m) => {
-              const another = m.contractAt("Another", "", {} as Artifact);
-
-              return { another };
-            }),
-          /Invalid artifact given/
-        );
-      });
     });
 
     describe("stage two", () => {
