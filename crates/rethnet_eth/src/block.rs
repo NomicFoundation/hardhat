@@ -9,12 +9,11 @@ mod reorg;
 
 use std::sync::OnceLock;
 
-use revm_primitives::{
-    keccak256,
-    ruint::{self, aliases::U160},
-    SpecId, B160,
-};
+use revm_primitives::{keccak256, ruint::aliases::U160, SpecId, B160};
 use rlp::Decodable;
+
+#[cfg(feature = "serde")]
+use revm_primitives::ruint;
 
 use crate::{
     transaction::SignedTransaction,
@@ -140,9 +139,9 @@ pub struct Header {
     pub withdrawals_root: Option<B256>,
 }
 
-#[cfg(feature = "serde")]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(remote = "B64")]
+#[cfg(feature = "serde")]
 struct B64Def(#[serde(getter = "B64::as_uint")] ruint::aliases::U64);
 
 #[cfg(feature = "serde")]
