@@ -4,21 +4,20 @@ import { assert } from "chai";
 import { Artifact } from "../src";
 import { buildModule } from "../src/build-module";
 import {
+  IgnitionModuleDeserializer,
+  IgnitionModuleSerializer,
+} from "../src/ignition-module-serializer";
+import {
   ArtifactContractDeploymentFutureImplementation,
   ArtifactLibraryDeploymentFutureImplementation,
   NamedContractDeploymentFutureImplementation,
   NamedLibraryDeploymentFutureImplementation,
 } from "../src/internal/module";
 import {
-  StoredDeploymentDeserializer,
-  StoredDeploymentSerializer,
-} from "../src/stored-deployment-serializer";
-import {
   ContractFuture,
   IgnitionModule,
   IgnitionModuleResult,
 } from "../src/types/module";
-import { StoredDeployment } from "../src/types/serialized-deployment";
 
 describe("stored deployment serializer", () => {
   describe("contract", () => {
@@ -29,9 +28,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
 
     it("should serialize a contract deployments with dependency", () => {
@@ -43,9 +40,7 @@ describe("stored deployment serializer", () => {
         return { contract1, contract2, contract3 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
 
     it("should serialize a contract deployment with module parameter value", () => {
@@ -56,9 +51,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
   });
 
@@ -77,9 +70,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
 
     it("should serialize a contractFromArtifact deployment with dependency", () => {
@@ -95,9 +86,7 @@ describe("stored deployment serializer", () => {
         return { contract1, contract2, contract3 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
   });
 
@@ -109,9 +98,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
 
     it("should serialize a contractAt with a future address", () => {
@@ -123,9 +110,7 @@ describe("stored deployment serializer", () => {
         return { contract1, contract2 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
 
     it("should serialize a contractAt with dependency", () => {
@@ -138,9 +123,7 @@ describe("stored deployment serializer", () => {
         return { contract1, contract2 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
   });
 
@@ -159,9 +142,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
 
     it("should serialize a contractAt with a future address", () => {
@@ -173,9 +154,7 @@ describe("stored deployment serializer", () => {
         return { contract1, contract2 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
 
     it("should serialize a contractAt with dependency", () => {
@@ -188,9 +167,7 @@ describe("stored deployment serializer", () => {
         return { contract1, contract2 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
   });
 
@@ -209,9 +186,7 @@ describe("stored deployment serializer", () => {
         return { library1 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
 
     it("should serialize a library deployment with dependency", () => {
@@ -225,9 +200,7 @@ describe("stored deployment serializer", () => {
         };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
 
     it("should serialize a libraries passed in as libraries", () => {
@@ -263,9 +236,7 @@ describe("stored deployment serializer", () => {
         };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
   });
 
@@ -284,9 +255,7 @@ describe("stored deployment serializer", () => {
         return { library1 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
 
     it("should serialize a libraryFromArtifact deployment with dependency", () => {
@@ -300,9 +269,7 @@ describe("stored deployment serializer", () => {
         return { library1, library2 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
   });
 
@@ -316,9 +283,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
 
     it("should serialize a call with dependencies", () => {
@@ -332,9 +297,7 @@ describe("stored deployment serializer", () => {
         return { contract1, contract2 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
   });
 
@@ -348,9 +311,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
 
     it("should serialize a static call with dependencies", () => {
@@ -364,9 +325,7 @@ describe("stored deployment serializer", () => {
         return { contract1, contract2 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
 
     it("Should serialize readEventArgument", () => {
@@ -383,9 +342,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
   });
 
@@ -403,9 +360,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
 
     it("should serialize contract dependencies over the useModule barrier", () => {
@@ -424,9 +379,7 @@ describe("stored deployment serializer", () => {
         return { contract1, contract2, contract3 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
 
     it("should serialize a diamond useModule", () => {
@@ -455,23 +408,19 @@ describe("stored deployment serializer", () => {
         return { leftContract, rightContract };
       });
 
-      const deployment = {
-        module,
-      };
+      assertSerializableModuleIn(module);
 
-      assertSerializableModuleIn(deployment);
-
-      const reserialized = StoredDeploymentDeserializer.deserialize(
+      const reserialized = IgnitionModuleDeserializer.deserialize(
         JSON.parse(
           JSON.stringify(
-            StoredDeploymentSerializer.serialize(deployment),
+            IgnitionModuleSerializer.serialize(module),
             sortedKeysJsonStringifyReplacer
           )
         )
       );
 
-      const lc = reserialized.module.results.leftContract;
-      const rc = reserialized.module.results.rightContract;
+      const lc = reserialized.results.leftContract;
+      const rc = reserialized.results.rightContract;
 
       assert.equal(lc, rc);
     });
@@ -485,9 +434,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
 
     it("Should support arrays as arguments", () => {
@@ -497,9 +444,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
 
     it("Should support objects as arguments", () => {
@@ -509,9 +454,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
 
     it("Should support futures as arguments", () => {
@@ -522,9 +465,7 @@ describe("stored deployment serializer", () => {
         return { contract1, contract2 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
 
     it("should support nested futures as arguments", () => {
@@ -549,9 +490,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
 
     it("should support AccountRuntimeValues as from", () => {
@@ -562,9 +501,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
 
     it("should support nested AccountRuntimeValues as arguments", () => {
@@ -575,9 +512,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
 
     it("should support ModuleParameterRuntimeValue as arguments", () => {
@@ -588,9 +523,7 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
 
     it("should support nested ModuleParameterRuntimeValue as arguments", () => {
@@ -601,28 +534,28 @@ describe("stored deployment serializer", () => {
         return { contract1 };
       });
 
-      assertSerializableModuleIn({
-        module,
-      });
+      assertSerializableModuleIn(module);
     });
   });
 });
 
-function assertSerializableModuleIn(deployment: StoredDeployment) {
+function assertSerializableModuleIn(
+  module: IgnitionModule<string, string, IgnitionModuleResult<string>>
+) {
   const serialized = JSON.stringify(
-    StoredDeploymentSerializer.serialize(deployment),
+    IgnitionModuleSerializer.serialize(module),
     // This is not actually needed, but we use it to be able to compare the
     // serialized string, which can be easier to debug.
     sortedKeysJsonStringifyReplacer,
     2
   );
 
-  const deserialized = StoredDeploymentDeserializer.deserialize(
+  const deserialized = IgnitionModuleDeserializer.deserialize(
     JSON.parse(serialized)
   );
 
   const reserialized = JSON.stringify(
-    StoredDeploymentSerializer.serialize(deserialized),
+    IgnitionModuleSerializer.serialize(deserialized),
     sortedKeysJsonStringifyReplacer,
     2
   );
@@ -634,16 +567,16 @@ function assertSerializableModuleIn(deployment: StoredDeployment) {
   );
 
   assert.deepEqual(
-    deployment,
+    module,
     deserialized,
     "Module not the same across serialization/deserialization"
   );
 
   // Invariants
 
-  const ignitionModule = StoredDeploymentDeserializer.deserialize(
+  const ignitionModule = IgnitionModuleDeserializer.deserialize(
     JSON.parse(reserialized)
-  ).module;
+  );
 
   assert(
     Object.values(ignitionModule.results).every((result) =>

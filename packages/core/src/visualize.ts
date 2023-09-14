@@ -1,10 +1,8 @@
+import { IgnitionModuleSerializer } from "./ignition-module-serializer";
 import { validateStageOne } from "./internal/validation/validateStageOne";
 import { ArtifactResolver } from "./types/artifact";
-import {
-  SerializedStoredDeployment,
-  StoredDeployment,
-  StoredDeploymentSerializer,
-} from "./ui-helpers";
+import { IgnitionModule, IgnitionModuleResult } from "./types/module";
+import { SerializedIgnitionModule } from "./types/serialization";
 
 /**
  * Serialize an IgnitionModule for displaying to the user
@@ -12,13 +10,13 @@ import {
  * @beta
  */
 export async function visualize({
+  ignitionModule,
   artifactResolver,
-  storedDeployment,
 }: {
+  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>;
   artifactResolver: ArtifactResolver;
-  storedDeployment: StoredDeployment;
-}): Promise<SerializedStoredDeployment> {
-  await validateStageOne(storedDeployment.module, artifactResolver);
+}): Promise<SerializedIgnitionModule> {
+  await validateStageOne(ignitionModule, artifactResolver);
 
-  return StoredDeploymentSerializer.serialize(storedDeployment);
+  return IgnitionModuleSerializer.serialize(ignitionModule);
 }

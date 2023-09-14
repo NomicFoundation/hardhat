@@ -1,7 +1,7 @@
 import {
   deploy,
   DeploymentParameters,
-  visualize,
+  IgnitionModuleSerializer,
   wipe,
 } from "@ignored/ignition-core";
 import "@nomicfoundation/hardhat-ethers";
@@ -186,18 +186,22 @@ task("visualize")
         process.exit(0);
       }
 
-      const artifactResolver = new HardhatArtifactResolver(hre);
+      // const artifactResolver = new HardhatArtifactResolver(hre);
 
-      const serializedModule = await visualize({
-        artifactResolver,
-        storedDeployment: {
-          module: userModule,
-        },
-      });
+      // const result = await visualize({
+      //   ignitionModule: userModule,
+      //   artifactResolver,
+      // });
 
-      await writeVisualization(serializedModule, {
-        cacheDir: hre.config.paths.cache,
-      });
+      const serializedIgnitionModule =
+        IgnitionModuleSerializer.serialize(userModule);
+
+      await writeVisualization(
+        { module: serializedIgnitionModule },
+        {
+          cacheDir: hre.config.paths.cache,
+        }
+      );
 
       if (!quiet) {
         const indexFile = path.join(

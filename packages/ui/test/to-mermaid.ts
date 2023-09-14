@@ -221,15 +221,7 @@ describe("to-mermaid", () => {
 });
 
 function assertDiagram(ignitionModule: IgnitionModule, expectedResult: string) {
-  const details = {
-    networkName: "hardhat",
-    chainId: 31117,
-  };
-
-  const result = toMermaid({
-    details,
-    module: ignitionModule,
-  });
+  const result = toMermaid(ignitionModule);
 
   assert.equal(result, expectedResult);
 }

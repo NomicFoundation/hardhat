@@ -1,34 +1,38 @@
-import { StoredDeployment } from "@ignored/ignition-core/ui-helpers";
+import {
+  IgnitionModule,
+  IgnitionModuleResult,
+} from "@ignored/ignition-core/ui-helpers";
 import { useMemo } from "react";
 import styled from "styled-components";
 import { Mermaid } from "../../../components/mermaid";
 import { getAllFuturesForModule } from "../../../queries/futures";
 import { Action } from "./action";
 
-export const VisualizationDetails: React.FC<{ deployment: StoredDeployment }> =
-  ({ deployment }) => {
-    const futures = useMemo(
-      () => getAllFuturesForModule(deployment.module),
-      [deployment]
-    );
+export const VisualizationDetails: React.FC<{
+  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>;
+}> = ({ ignitionModule }) => {
+  const futures = useMemo(
+    () => getAllFuturesForModule(ignitionModule),
+    [ignitionModule]
+  );
 
-    return (
+  return (
+    <div>
+      <h2>Visualization</h2>
+
       <div>
-        <h2>Visualization</h2>
-
-        <div>
-          <Mermaid deployment={deployment} />
-        </div>
-
-        <h3>Actions</h3>
-        <Actions>
-          {futures.map((future) => (
-            <Action key={future.id} future={future} />
-          ))}
-        </Actions>
+        <Mermaid ignitionModule={ignitionModule} />
       </div>
-    );
-  };
+
+      <h3>Actions</h3>
+      <Actions>
+        {futures.map((future) => (
+          <Action key={future.id} future={future} />
+        ))}
+      </Actions>
+    </div>
+  );
+};
 
 const Actions = styled.div`
   display: grid;

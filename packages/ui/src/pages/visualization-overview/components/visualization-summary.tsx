@@ -1,4 +1,7 @@
-import { StoredDeployment } from "@ignored/ignition-core/ui-helpers";
+import {
+  IgnitionModule,
+  IgnitionModuleResult,
+} from "@ignored/ignition-core/ui-helpers";
 import React, { useMemo } from "react";
 import styled from "styled-components";
 import { SummaryHeader } from "../../../components/summary-header";
@@ -7,55 +10,56 @@ import {
   getAllDeployFuturesFor,
 } from "../../../queries/futures";
 
-export const VisualizationSummary: React.FC<{ deployment: StoredDeployment }> =
-  ({ deployment }) => {
-    const deployFutures = useMemo(
-      () => getAllDeployFuturesFor(deployment),
-      [deployment]
-    );
-    const callFutures = useMemo(
-      () => getAllCallFuturesFor(deployment),
-      [deployment]
-    );
+export const VisualizationSummary: React.FC<{
+  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>;
+}> = ({ ignitionModule }) => {
+  const deployFutures = useMemo(
+    () => getAllDeployFuturesFor(ignitionModule),
+    [ignitionModule]
+  );
+  const callFutures = useMemo(
+    () => getAllCallFuturesFor(ignitionModule),
+    [ignitionModule]
+  );
 
-    return (
-      <div>
-        <SummaryHeader />
+  return (
+    <div>
+      <SummaryHeader />
 
-        <p>
-          The successful completion of the deployment will send{" "}
-          {deployFutures.length + callFutures.length}
-          transactions:
-        </p>
+      <p>
+        The successful completion of the deployment will send{" "}
+        {deployFutures.length + callFutures.length}
+        transactions:
+      </p>
 
-        <SummaryColumns>
-          {deployFutures.length === 0 ? null : (
-            <SummaryColumn>
-              <h4>{deployFutures.length} deploys</h4>
-              <ul>
-                {deployFutures.map((deploy) => (
-                  <li key={deploy.id}>
-                    {deploy.contractName} ({deploy.module.id})
-                  </li>
-                ))}
-              </ul>
-            </SummaryColumn>
-          )}
+      <SummaryColumns>
+        {deployFutures.length === 0 ? null : (
+          <SummaryColumn>
+            <h4>{deployFutures.length} deploys</h4>
+            <ul>
+              {deployFutures.map((deploy) => (
+                <li key={deploy.id}>
+                  {deploy.contractName} ({deploy.module.id})
+                </li>
+              ))}
+            </ul>
+          </SummaryColumn>
+        )}
 
-          {callFutures.length === 0 ? null : (
-            <SummaryColumn>
-              <h4>{callFutures.length} calls</h4>
-              <ul>
-                {callFutures.map((call) => (
-                  <li key={call.id}>{call.id}</li>
-                ))}
-              </ul>
-            </SummaryColumn>
-          )}
-        </SummaryColumns>
-      </div>
-    );
-  };
+        {callFutures.length === 0 ? null : (
+          <SummaryColumn>
+            <h4>{callFutures.length} calls</h4>
+            <ul>
+              {callFutures.map((call) => (
+                <li key={call.id}>{call.id}</li>
+              ))}
+            </ul>
+          </SummaryColumn>
+        )}
+      </SummaryColumns>
+    </div>
+  );
+};
 
 const SummaryColumns = styled.div`
   display: grid;

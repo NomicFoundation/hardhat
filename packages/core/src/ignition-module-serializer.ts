@@ -51,7 +51,9 @@ import {
   SerializedArtifactLibraryDeploymentFuture,
   SerializedBigInt,
   SerializedFuture,
+  SerializedIgnitionModule,
   SerializedLibraries,
+  SerializedModuleDescription,
   SerializedModuleParameterRuntimeValue,
   SerializedNamedContractAtFuture,
   SerializedNamedContractCallFuture,
@@ -60,24 +62,21 @@ import {
   SerializedNamedStaticCallFuture,
   SerializedReadEventArgumentFuture,
   SerializedSendDataFuture,
-  SerializedStoredDeployment,
-  SerializedStoredModule,
-  StoredDeployment,
-} from "./types/serialized-deployment";
+} from "./types/serialization";
 
 interface SerializeContext {
   argReplacer: (arg: ArgumentType) => SerializedArgumentType;
 }
 
 /**
- * Serialize a deployment.
+ * Serialize an Ignition module.
  *
  * @beta
  */
-export class StoredDeploymentSerializer {
+export class IgnitionModuleSerializer {
   public static serialize(
-    deployment: StoredDeployment
-  ): SerializedStoredDeployment {
+    ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>
+  ): SerializedIgnitionModule {
     const argReplacer = (arg: ArgumentType) =>
       replaceWithinArg<SerializedArgumentType>(arg, {
         accountRuntimeValue: this._serializeAccountRuntimeValue,
@@ -87,10 +86,10 @@ export class StoredDeploymentSerializer {
         future: this._convertFutureToFutureToken,
       });
 
-    const allModules = this._getModulesAndSubmoduleFor(deployment.module);
+    const allModules = this._getModulesAndSubmoduleFor(ignitionModule);
 
     return {
-      startModule: deployment.module.id,
+      startModule: ignitionModule.id,
       modules: Object.fromEntries(
         allModules.map((m) => [m.id, this._serializeModule(m, { argReplacer })])
       ),
@@ -100,7 +99,7 @@ export class StoredDeploymentSerializer {
   private static _serializeModule(
     userModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
     context: SerializeContext
-  ): SerializedStoredModule {
+  ): SerializedModuleDescription {
     return {
       id: userModule.id,
       futures: Array.from(userModule.futures).map((future) =>
@@ -396,16 +395,18 @@ export class StoredDeploymentSerializer {
 }
 
 /**
- * Deserialize a deployment that was previously serialized using StoredDeploymentSerialized.
+ * Deserialize an `IgnitionModule` that was previously serialized using
+ * IgnitionModuleSerializer.
  *
  * @beta
  */
-export class StoredDeploymentDeserializer {
+export class IgnitionModuleDeserializer {
   public static deserialize(
-    serializedDeployment: SerializedStoredDeployment
-  ): StoredDeployment {
-    const sortedModules =
-      this._getSerializedModulesInReverseTopologicalOrder(serializedDeployment);
+    serializedIgnitionModule: SerializedIgnitionModule
+  ): IgnitionModule<string, string, IgnitionModuleResult<string>> {
+    const sortedModules = this._getSerializedModulesInReverseTopologicalOrder(
+      serializedIgnitionModule
+    );
 
     const modulesLookup: Map<string, IgnitionModuleImplementation> = new Map();
     for (const serializedModule of sortedModules) {
@@ -418,8 +419,9 @@ export class StoredDeploymentDeserializer {
       }
     }
 
-    const sortedFutures =
-      this._getSerializedFuturesInReverseTopologicalOrder(serializedDeployment);
+    const sortedFutures = this._getSerializedFuturesInReverseTopologicalOrder(
+      serializedIgnitionModule
+    );
 
     const futuresLookup: Map<string, Future> = new Map();
     const contractFuturesLookup: Map<
@@ -455,7 +457,7 @@ export class StoredDeploymentDeserializer {
     }
 
     for (const serializedModule of Object.values(
-      serializedDeployment.modules
+      serializedIgnitionModule.modules
     )) {
       const mod = this._lookup(modulesLookup, serializedModule.id);
 
@@ -474,23 +476,21 @@ export class StoredDeploymentDeserializer {
       }
     }
 
-    return {
-      module: this._lookup(modulesLookup, serializedDeployment.startModule),
-    };
+    return this._lookup(modulesLookup, serializedIgnitionModule.startModule);
   }
 
   private static _getSerializedModulesInReverseTopologicalOrder(
-    serializedDeployment: SerializedStoredDeployment
-  ): SerializedStoredModule[] {
-    const graph: Graph<SerializedStoredModule> = new Map();
+    serializedIgnitionModule: SerializedIgnitionModule
+  ): SerializedModuleDescription[] {
+    const graph: Graph<SerializedModuleDescription> = new Map();
 
-    for (const mod of Object.values(serializedDeployment.modules)) {
+    for (const mod of Object.values(serializedIgnitionModule.modules)) {
       graph.set(mod, new Set());
     }
 
-    for (const mod of Object.values(serializedDeployment.modules)) {
+    for (const mod of Object.values(serializedIgnitionModule.modules)) {
       for (const submodToken of mod.submodules) {
-        const submod = serializedDeployment.modules[submodToken.moduleId];
+        const submod = serializedIgnitionModule.modules[submodToken.moduleId];
         graph.get(submod)!.add(mod);
       }
     }
@@ -499,9 +499,9 @@ export class StoredDeploymentDeserializer {
   }
 
   private static _getSerializedFuturesInReverseTopologicalOrder(
-    serializedDeployment: SerializedStoredDeployment
+    serializedIgnitionModule: SerializedIgnitionModule
   ): SerializedFuture[] {
-    const serializedFutures = this._getAllFuturesFor(serializedDeployment);
+    const serializedFutures = this._getAllFuturesFor(serializedIgnitionModule);
     const serializedFuturesMap = Object.fromEntries(
       serializedFutures.map((f) => [f.id, f])
     );
@@ -606,7 +606,7 @@ export class StoredDeploymentDeserializer {
   }
 
   private static _getAllFuturesFor(
-    deployment: SerializedStoredDeployment
+    deployment: SerializedIgnitionModule
   ): SerializedFuture[] {
     return Object.values(deployment.modules).flatMap((m) =>
       Object.values(m.futures)

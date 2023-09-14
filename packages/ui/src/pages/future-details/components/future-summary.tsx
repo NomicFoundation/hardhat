@@ -1,7 +1,6 @@
 import {
   Future,
   FutureType,
-  StoredDeployment,
   isFuture,
 } from "@ignored/ignition-core/ui-helpers";
 import { PageTitle, Panel } from "../../../components/shared";
@@ -9,7 +8,6 @@ import { SummaryHeader } from "../../../components/summary-header";
 import { argumentTypeToString } from "../../../utils/argumentTypeToString";
 
 export const FutureSummary: React.FC<{
-  deployment: StoredDeployment;
   future: Future;
 }> = ({ future }) => {
   const title = resolveTitleFor(future);

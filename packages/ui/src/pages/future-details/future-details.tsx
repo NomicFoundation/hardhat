@@ -1,18 +1,21 @@
-import { StoredDeployment } from "@ignored/ignition-core";
+import {
+  IgnitionModule,
+  IgnitionModuleResult,
+} from "@ignored/ignition-core/ui-helpers";
 import React, { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { Page } from "../../components/shared";
 import { getFutureById } from "../../queries/futures";
 import { FutureSummary } from "./components/future-summary";
 
-export const FutureDetails: React.FC<{ deployment: StoredDeployment }> = ({
-  deployment,
-}) => {
+export const FutureDetails: React.FC<{
+  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>;
+}> = ({ ignitionModule }) => {
   const { futureId } = useParams();
 
   const future = useMemo(
-    () => getFutureById(deployment, futureId),
-    [deployment, futureId]
+    () => getFutureById(ignitionModule, futureId),
+    [ignitionModule, futureId]
   );
 
   if (future === undefined) {
@@ -25,7 +28,7 @@ export const FutureDetails: React.FC<{ deployment: StoredDeployment }> = ({
 
   return (
     <Page>
-      <FutureSummary deployment={deployment} future={future} />
+      <FutureSummary future={future} />
     </Page>
   );
 };

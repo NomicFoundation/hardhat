@@ -3,14 +3,15 @@ import {
   FutureType,
   IgnitionModule,
   IgnitionModuleResult,
-  StoredDeployment,
   isFuture,
 } from "@ignored/ignition-core/ui-helpers";
 import { getAllFuturesForModule } from "../queries/futures.js";
 import { argumentTypeToString } from "./argumentTypeToString.js";
 
-export function toMermaid(deployment: StoredDeployment) {
-  const modules = recursivelyListModulesAndSubmodulesFor(deployment.module);
+export function toMermaid(
+  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>
+) {
+  const modules = recursivelyListModulesAndSubmodulesFor(ignitionModule);
 
   const subgraphSections = modules
     .map((m) => prettyPrintModule(m, "  "))
@@ -18,7 +19,7 @@ export function toMermaid(deployment: StoredDeployment) {
 
   const futureDependencies = [
     ...new Set(
-      getAllFuturesForModule(deployment.module)
+      getAllFuturesForModule(ignitionModule)
         .flatMap((f) =>
           Array.from(f.dependencies).map((d) => [
             toEscapedId(f.id),
@@ -43,7 +44,7 @@ export function toMermaid(deployment: StoredDeployment) {
   ].join("\n");
 
   return `flowchart BT\n\n${toEscapedId(
-    deployment.module.id
+    ignitionModule.id
   )}:::startModule\n\n${subgraphSections}${
     futureDependencies === "" ? "" : "\n\n" + futureDependencies
   }${

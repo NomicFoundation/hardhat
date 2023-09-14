@@ -1,5 +1,5 @@
 import { Artifact } from "./artifact";
-import { FutureType, IgnitionModule, IgnitionModuleResult } from "./module";
+import { FutureType } from "./module";
 
 /**
  * A serialized bigint.
@@ -238,62 +238,32 @@ export interface SerializedModuleParameterRuntimeValue {
   defaultValue: string | undefined;
 }
 
-/**
- * The details of a deployment that will be used in the UI.
- *
- * @beta
- */
-export interface StoredDeployment {
-  module: IgnitionModule<string, string, IgnitionModuleResult<string>>;
-}
-
 // Serialized Deployments
 
 /**
- * The serialized version of a complete deployment, combining the
- * chain details with the module to be deployed.
+ * The serialized version of an Ignition module and its submodules.
  *
  * @beta
  */
-export interface SerializedStoredDeployment {
+export interface SerializedIgnitionModule {
   startModule: string;
   modules: {
-    [key: string]: SerializedStoredModule;
+    [key: string]: SerializedModuleDescription;
   };
 }
 
 /**
- * The serialized version of an Ignition module.
+ * A subpart of the `SerializedIgnitionModule` that describes one
+ * module/submodule and its relations to futures and other submodule.
  *
  * @beta
  */
-export interface SerializedStoredModule {
+export interface SerializedModuleDescription {
   id: string;
   submodules: ModuleToken[];
-  futures: SerializedStoredFutures;
-  results: SerializedStoredResults;
+  futures: SerializedFuture[];
+  results: Array<[name: string, token: FutureToken]>;
 }
-
-/**
- * Serialized versions of a modules used submodules.
- *
- * @beta
- */
-export type SerializedStoredSubmodules = SerializedStoredModule[];
-
-/**
- * The serialized futures that are executed in deploying a module.
- *
- * @beta
- */
-export type SerializedStoredFutures = SerializedFuture[];
-
-/**
- * The serialized results of a module.
- *
- * @beta
- */
-export type SerializedStoredResults = Array<[name: string, token: FutureToken]>;
 
 /**
  * The serialized libraries, where each library

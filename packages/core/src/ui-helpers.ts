@@ -1,8 +1,8 @@
-export { formatSolidityParameter } from "./internal/formatters";
 export {
-  StoredDeploymentDeserializer,
-  StoredDeploymentSerializer,
-} from "./stored-deployment-serializer";
+  IgnitionModuleDeserializer,
+  IgnitionModuleSerializer,
+} from "./ignition-module-serializer";
+export { formatSolidityParameter } from "./internal/formatters";
 export * from "./type-guards";
 export * from "./types/module";
-export * from "./types/serialized-deployment";
+export * from "./types/serialization";

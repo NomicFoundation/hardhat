@@ -2,20 +2,21 @@ import {
   DeploymentFuture,
   FunctionCallFuture,
   Future,
-  StoredDeployment,
+  IgnitionModule,
+  IgnitionModuleResult,
   isDeploymentFuture,
   isFunctionCallFuture,
 } from "@ignored/ignition-core/ui-helpers";
 
 export function getFutureById(
-  deployment: StoredDeployment,
+  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
   futureId: string | undefined
 ): Future | undefined {
   if (futureId === undefined) {
     return undefined;
   }
 
-  const f = getAllFuturesForModule(deployment.module).find(
+  const f = getAllFuturesForModule(ignitionModule).find(
     (f) => f.id === futureId
   );
 
@@ -30,7 +31,7 @@ export function getFutureById(
 export function getAllFuturesForModule({
   futures,
   submodules,
-}: StoredDeployment["module"]): Future[] {
+}: IgnitionModule<string, string, IgnitionModuleResult<string>>): Future[] {
   return Array.from(futures).concat(
     Array.from(submodules.values()).flatMap((submodule) =>
       getAllFuturesForModule(submodule)
@@ -46,16 +47,16 @@ export function getAllFuturesForModule({
  * - artifact library deploys
  */
 export function getAllDeployFuturesFor(
-  deployment: StoredDeployment
+  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>
 ): DeploymentFuture<string>[] {
-  return getAllFuturesForModule(deployment.module).filter(isDeploymentFuture);
+  return getAllFuturesForModule(ignitionModule).filter(isDeploymentFuture);
 }
 
 /**
  * Get all calls in a module and its submodules
  */
 export function getAllCallFuturesFor(
-  deployment: StoredDeployment
+  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>
 ): FunctionCallFuture<string, string>[] {
-  return getAllFuturesForModule(deployment.module).filter(isFunctionCallFuture);
+  return getAllFuturesForModule(ignitionModule).filter(isFunctionCallFuture);
 }

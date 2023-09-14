@@ -1,9 +1,9 @@
-import { SerializedStoredDeployment } from "@ignored/ignition-core";
+import { SerializedIgnitionModule } from "@ignored/ignition-core";
 import { ensureDir, pathExists, readFile, writeFile } from "fs-extra";
 import path from "path";
 
 export async function writeVisualization(
-  serializedStoredDeployment: SerializedStoredDeployment,
+  visualizationPayload: { module: SerializedIgnitionModule },
   { cacheDir }: { cacheDir: string }
 ) {
   const templateDir = path.join(
@@ -25,7 +25,7 @@ export async function writeVisualization(
   const indexHtml = await readFile(path.join(templateDir, "index.html"));
   const updatedHtml = indexHtml
     .toString()
-    .replace('{"unloaded":true}', JSON.stringify(serializedStoredDeployment));
+    .replace('{"unloaded":true}', JSON.stringify(visualizationPayload));
 
   await writeFile(path.join(visualizationDir, "index.html"), updatedHtml);
 }
