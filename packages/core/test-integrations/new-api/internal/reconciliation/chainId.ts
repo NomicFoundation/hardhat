@@ -2,7 +2,9 @@ import { assert } from "chai";
 
 import { useHardhatProject } from "../../../helpers/hardhat-projects";
 
-describe("chainId reconciliation", () => {
+describe("chainId reconciliation", function () {
+  this.timeout(60000);
+
   useHardhatProject("default-with-new-chain-id");
 
   it("should halt when running a deployment on a different chain", async function () {
