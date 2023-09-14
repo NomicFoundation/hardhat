@@ -11,5 +11,4 @@ export * from "./types/module";
 export * from "./types/module-builder";
 export * from "./types/provider";
 export * from "./types/serialization";
-export { visualize } from "./visualize";
 export { wipe } from "./wipe";

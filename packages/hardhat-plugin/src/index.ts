@@ -186,13 +186,6 @@ task("visualize")
         process.exit(0);
       }
 
-      // const artifactResolver = new HardhatArtifactResolver(hre);
-
-      // const result = await visualize({
-      //   ignitionModule: userModule,
-      //   artifactResolver,
-      // });
-
       const serializedIgnitionModule =
         IgnitionModuleSerializer.serialize(userModule);
 
