@@ -38,7 +38,7 @@ describe.skip("execution - deploy contractAt from artifact", function () {
     const fooArtifact = await this.hre.artifacts.readArtifact("Foo");
 
     const contractAtModuleDefinition = buildModule("FooModule", (m) => {
-      const atFoo = m.contractAtFromArtifact("AtFoo", fooAddress, fooArtifact);
+      const atFoo = m.contractAt("AtFoo", fooAddress, fooArtifact);
 
       return { atFoo };
     });

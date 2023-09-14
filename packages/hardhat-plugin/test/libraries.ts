@@ -41,7 +41,7 @@ describe("libraries", () => {
     );
 
     const moduleDefinition = buildModule("ArtifactLibraryModule", (m) => {
-      const rubbishMath = m.libraryFromArtifact("RubbishMath", libraryArtifact);
+      const rubbishMath = m.library("RubbishMath", libraryArtifact);
       const dependsOnLib = m.contract("DependsOnLib", [], {
         libraries: {
           RubbishMath: rubbishMath,

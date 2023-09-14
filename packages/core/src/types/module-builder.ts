@@ -23,24 +23,11 @@ import {
 } from "./module";
 
 /**
- * The options for a `ContractOptions` call.
+ * The options for a `contract` call.
  *
  * @beta
  */
 export interface ContractOptions {
-  id?: string;
-  after?: Future[];
-  libraries?: Record<string, ContractFuture<string>>;
-  value?: bigint | ModuleParameterRuntimeValue<bigint>;
-  from?: string | AccountRuntimeValue;
-}
-
-/**
- * The options for a `contractFromArtifact` call.
- *
- * @beta
- */
-export interface ContractFromArtifactOptions {
   id?: string;
   after?: Future[];
   libraries?: Record<string, ContractFuture<string>>;
@@ -54,18 +41,6 @@ export interface ContractFromArtifactOptions {
  * @beta
  */
 export interface LibraryOptions {
-  id?: string;
-  after?: Future[];
-  libraries?: Record<string, ContractFuture<string>>;
-  from?: string | AccountRuntimeValue;
-}
-
-/**
- * The options for a `libraryFromArtifact` call.
- *
- * @beta
- */
-export interface LibraryFromArtifactOptions {
   id?: string;
   after?: Future[];
   libraries?: Record<string, ContractFuture<string>>;
@@ -158,11 +133,11 @@ export interface IgnitionModuleBuilder {
     options?: ContractOptions
   ): NamedContractDeploymentFuture<ContractNameT>;
 
-  contractFromArtifact(
+  contract(
     contractName: string,
     artifact: Artifact,
     args?: ArgumentType[],
-    options?: ContractFromArtifactOptions
+    options?: ContractOptions
   ): ArtifactContractDeploymentFuture;
 
   library<LibraryNameT extends string>(
@@ -170,10 +145,10 @@ export interface IgnitionModuleBuilder {
     options?: LibraryOptions
   ): NamedLibraryDeploymentFuture<LibraryNameT>;
 
-  libraryFromArtifact(
+  library(
     libraryName: string,
     artifact: Artifact,
-    options?: LibraryFromArtifactOptions
+    options?: LibraryOptions
   ): ArtifactLibraryDeploymentFuture;
 
   call<ContractNameT extends string, FunctionNameT extends string>(
@@ -200,7 +175,7 @@ export interface IgnitionModuleBuilder {
     options?: ContractAtOptions
   ): NamedContractAtFuture<ContractNameT>;
 
-  contractAtFromArtifact(
+  contractAt(
     contractName: string,
     address:
       | string

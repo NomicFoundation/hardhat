@@ -38,10 +38,8 @@ import {
 import {
   CallOptions,
   ContractAtOptions,
-  ContractFromArtifactOptions,
   ContractOptions,
   IgnitionModuleBuilder,
-  LibraryFromArtifactOptions,
   LibraryOptions,
   ReadEventArgumentOptions,
   SendDataOptions,
@@ -180,6 +178,55 @@ class IgnitionModuleBuilderImplementation<
 
   public contract<ContractNameT extends string>(
     contractName: ContractNameT,
+    args?: ArgumentType[],
+    options?: ContractOptions
+  ): NamedContractDeploymentFuture<ContractNameT>;
+  public contract(
+    contractName: string,
+    artifact: Artifact,
+    args?: ArgumentType[],
+    options?: ContractOptions
+  ): ArtifactContractDeploymentFuture;
+  public contract<ContractNameT extends string>(
+    contractName: ContractNameT,
+    artifactOrArgs?: Artifact | ArgumentType[],
+    argsorOptions?: ArgumentType[] | ContractAtOptions,
+    maybeOptions?: ContractOptions
+  ):
+    | NamedContractDeploymentFuture<ContractNameT>
+    | ArtifactContractDeploymentFuture {
+    if (artifactOrArgs === undefined || Array.isArray(artifactOrArgs)) {
+      if (Array.isArray(argsorOptions)) {
+        this._throwErrorWithStackTrace(
+          `Invalid parameter "options" provided to contract "${contractName}" in module "${this._module.id}"`,
+          this.contract
+        );
+      }
+
+      return this._namedArtifactContract(
+        contractName,
+        artifactOrArgs,
+        argsorOptions
+      );
+    }
+
+    if (argsorOptions !== undefined && !Array.isArray(argsorOptions)) {
+      this._throwErrorWithStackTrace(
+        `Invalid parameter "args" provided to contract "${contractName}" in module "${this._module.id}"`,
+        this.contract
+      );
+    }
+
+    return this._contractFromArtifact(
+      contractName,
+      artifactOrArgs,
+      argsorOptions,
+      maybeOptions
+    );
+  }
+
+  private _namedArtifactContract<ContractNameT extends string>(
+    contractName: ContractNameT,
     args: ArgumentType[] = [],
     options: ContractOptions = {}
   ): NamedContractDeploymentFuture<ContractNameT> {
@@ -228,11 +275,11 @@ class IgnitionModuleBuilderImplementation<
     return future;
   }
 
-  public contractFromArtifact(
+  private _contractFromArtifact(
     contractName: string,
     artifact: Artifact,
     args: ArgumentType[] = [],
-    options: ContractFromArtifactOptions = {}
+    options: ContractOptions = {}
   ): ArtifactContractDeploymentFuture {
     const futureId = toDeploymentFutureId(
       this._module.id,
@@ -243,13 +290,13 @@ class IgnitionModuleBuilderImplementation<
     options.value ??= BigInt(0);
 
     /* validation start */
-    this._assertValidId(options.id, this.contractFromArtifact);
-    this._assertValidContractName(contractName, this.contractFromArtifact);
+    this._assertValidId(options.id, this.contract);
+    this._assertValidContractName(contractName, this.contract);
     this._assertUniqueArtifactContractId(futureId);
-    this._assertValidLibraries(options.libraries, this.contractFromArtifact);
-    this._assertValidValue(options.value, this.contractFromArtifact);
-    this._assertValidFrom(options.from, this.contractFromArtifact);
-    this._assertValidArtifact(artifact, this.contractFromArtifact);
+    this._assertValidLibraries(options.libraries, this.contract);
+    this._assertValidValue(options.value, this.contract);
+    this._assertValidFrom(options.from, this.contract);
+    this._assertValidArtifact(artifact, this.contract);
     /* validation end */
 
     const future = new ArtifactContractDeploymentFutureImplementation(
@@ -283,6 +330,27 @@ class IgnitionModuleBuilderImplementation<
   }
 
   public library<LibraryNameT extends string>(
+    libraryName: LibraryNameT,
+    options?: LibraryOptions
+  ): NamedLibraryDeploymentFuture<LibraryNameT>;
+  public library(
+    libraryName: string,
+    artifact: Artifact,
+    options?: LibraryOptions
+  ): ArtifactLibraryDeploymentFuture;
+  public library<LibraryNameT extends string>(
+    libraryName: LibraryNameT,
+    artifactOrOptions?: Artifact | LibraryOptions,
+    options?: LibraryOptions
+  ) {
+    if (isArtifactType(artifactOrOptions)) {
+      return this._libraryFromArtifact(libraryName, artifactOrOptions, options);
+    }
+
+    return this._namedArtifactLibrary(libraryName, artifactOrOptions);
+  }
+
+  private _namedArtifactLibrary<LibraryNameT extends string>(
     libraryName: LibraryNameT,
     options: LibraryOptions = {}
   ): NamedLibraryDeploymentFuture<LibraryNameT> {
@@ -323,10 +391,10 @@ class IgnitionModuleBuilderImplementation<
     return future;
   }
 
-  public libraryFromArtifact(
+  private _libraryFromArtifact(
     libraryName: string,
     artifact: Artifact,
-    options: LibraryFromArtifactOptions = {}
+    options: LibraryOptions = {}
   ): ArtifactLibraryDeploymentFuture {
     const futureId = toDeploymentFutureId(
       this._module.id,
@@ -336,12 +404,12 @@ class IgnitionModuleBuilderImplementation<
     options.libraries ??= {};
 
     /* validation start */
-    this._assertValidId(options.id, this.libraryFromArtifact);
-    this._assertValidContractName(libraryName, this.libraryFromArtifact);
+    this._assertValidId(options.id, this.library);
+    this._assertValidContractName(libraryName, this.library);
     this._assertUniqueArtifactLibraryId(futureId);
-    this._assertValidLibraries(options.libraries, this.libraryFromArtifact);
-    this._assertValidFrom(options.from, this.libraryFromArtifact);
-    this._assertValidArtifact(artifact, this.libraryFromArtifact);
+    this._assertValidLibraries(options.libraries, this.library);
+    this._assertValidFrom(options.from, this.library);
+    this._assertValidArtifact(artifact, this.library);
     /* validation end */
 
     const future = new ArtifactLibraryDeploymentFutureImplementation(
@@ -469,6 +537,48 @@ class IgnitionModuleBuilderImplementation<
       | string
       | AddressResolvableFuture
       | ModuleParameterRuntimeValue<string>,
+    options?: ContractAtOptions
+  ): NamedContractAtFuture<ContractNameT>;
+  public contractAt(
+    contractName: string,
+    address:
+      | string
+      | AddressResolvableFuture
+      | ModuleParameterRuntimeValue<string>,
+    artifact: Artifact,
+    options?: ContractAtOptions
+  ): ArtifactContractAtFuture;
+  public contractAt<ContractNameT extends string>(
+    contractName: ContractNameT,
+    address:
+      | string
+      | AddressResolvableFuture
+      | ModuleParameterRuntimeValue<string>,
+    artifactOrOptions?: Artifact | ContractAtOptions,
+    options?: ContractAtOptions
+  ) {
+    if (isArtifactType(artifactOrOptions)) {
+      return this._contractAtFromArtifact(
+        contractName,
+        address,
+        artifactOrOptions,
+        options
+      );
+    }
+
+    return this._namedArtifactContractAt(
+      contractName,
+      address,
+      artifactOrOptions
+    );
+  }
+
+  private _namedArtifactContractAt<ContractNameT extends string>(
+    contractName: ContractNameT,
+    address:
+      | string
+      | AddressResolvableFuture
+      | ModuleParameterRuntimeValue<string>,
     options: ContractAtOptions = {}
   ): NamedContractAtFuture<ContractNameT> {
     const futureId = toDeploymentFutureId(
@@ -504,7 +614,7 @@ class IgnitionModuleBuilderImplementation<
     return future;
   }
 
-  public contractAtFromArtifact(
+  private _contractAtFromArtifact(
     contractName: string,
     address:
       | string
@@ -520,11 +630,11 @@ class IgnitionModuleBuilderImplementation<
     );
 
     /* validation start */
-    this._assertValidId(options.id, this.contractAtFromArtifact);
+    this._assertValidId(options.id, this.contractAt);
     this._assertValidContractName(contractName, this.contractAt);
     this._assertUniqueContractAtFromArtifactId(futureId);
-    this._assertValidAddress(address, this.contractAtFromArtifact);
-    this._assertValidArtifact(artifact, this.contractAtFromArtifact);
+    this._assertValidAddress(address, this.contractAt);
+    this._assertValidArtifact(artifact, this.contractAt);
     /* validation end */
 
     const future = new ArtifactContractAtFutureImplementation(
@@ -772,8 +882,8 @@ class IgnitionModuleBuilderImplementation<
   private _assertUniqueArtifactContractId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.contractFromArtifact("MyContract", artifact, [], { id: "MyId"})\``,
-      this.contractFromArtifact
+      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.contract("MyContract", artifact, [], { id: "MyId"})\``,
+      this.contract
     );
   }
 
@@ -788,8 +898,8 @@ class IgnitionModuleBuilderImplementation<
   private _assertUniqueArtifactLibraryId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.libraryFromArtifact("MyLibrary", artifact, { id: "MyId"})\``,
-      this.libraryFromArtifact
+      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.library("MyLibrary", artifact, { id: "MyId"})\``,
+      this.library
     );
   }
 
@@ -820,8 +930,8 @@ class IgnitionModuleBuilderImplementation<
   private _assertUniqueContractAtFromArtifactId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.contractAtFromArtifact("MyContract", "0x123...", { id: "MyId"})\``,
-      this.contractAtFromArtifact
+      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.contractAt("MyContract", "0x123...", { id: "MyId"})\``,
+      this.contractAt
     );
   }
 

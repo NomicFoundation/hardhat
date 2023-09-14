@@ -19,7 +19,7 @@ describe("Read event argument", () => {
 
       const mod = buildModule("Module1", (m) => {
         const contract = m.contract("Contract");
-        const contractFromArtifact = m.contractFromArtifact(
+        const contractFromArtifact = m.contract(
           "ContractFromArtifact",
           fakeArtifact
         );
@@ -263,7 +263,7 @@ describe("Read event argument", () => {
         };
 
         const module = buildModule("Module1", (m) => {
-          const another = m.contractFromArtifact("Another", fakeArtifact, []);
+          const another = m.contract("Another", fakeArtifact, []);
           m.readEventArgument(another, "test", "arg");
 
           return { another };

@@ -49,10 +49,7 @@ module.exports = buildModule("Uniswap", (m) => {
   const weth9 = m.contract("WETH9");
 
   // DEPLOY_V3_CORE_FACTORY
-  const uniswapV3Factory = m.contractFromArtifact(
-    "UniswapV3Factory",
-    UniswapV3Factory
-  );
+  const uniswapV3Factory = m.contract("UniswapV3Factory", UniswapV3Factory);
 
   // 1 - add-1bp-fee-tier
   m.call(uniswapV3Factory, "enableFeeAmount", [
@@ -61,22 +58,19 @@ module.exports = buildModule("Uniswap", (m) => {
   ]);
 
   // 2 - deploy-multicall2
-  const multicall2Address = m.contractFromArtifact(
-    "Multicall2",
-    UniswapInterfaceMulticall
-  );
+  const multicall2Address = m.contract("Multicall2", UniswapInterfaceMulticall);
 
   // DEPLOY_PROXY_ADMIN
-  const proxyAdmin = m.contractFromArtifact("ProxyAdmin", ProxyAdmin);
+  const proxyAdmin = m.contract("ProxyAdmin", ProxyAdmin);
 
   // DEPLOY_TICK_LENS
-  const tickLens = m.contractFromArtifact("TickLens", TickLens);
+  const tickLens = m.contract("TickLens", TickLens);
 
   // DEPLOY_NFT_DESCRIPTOR_LIBRARY_V1_3_0
-  const nftDescriptor = m.contractFromArtifact("NFTDescriptor", NFTDescriptor);
+  const nftDescriptor = m.contract("NFTDescriptor", NFTDescriptor);
 
   // DEPLOY_NFT_POSITION_DESCRIPTOR_V1_3_0
-  const nonfungibleTokenPositionDescriptor = m.contractFromArtifact(
+  const nonfungibleTokenPositionDescriptor = m.contract(
     "nonfungibleTokenPositionDescriptorAddressV1_3_0",
     NonfungibleTokenPositionDescriptor,
     [weth9, asciiStringToBytes32(NATIVE_CURRENCY_LABEL)],
@@ -88,21 +82,21 @@ module.exports = buildModule("Uniswap", (m) => {
   );
 
   // DEPLOY_TRANSPARENT_PROXY_DESCRIPTOR
-  const descriptorProxy = m.contractFromArtifact(
+  const descriptorProxy = m.contract(
     "TransparentUpgradeableProxy",
     TransparentUpgradeableProxy,
     [nonfungibleTokenPositionDescriptor, proxyAdmin, "0x"]
   );
 
   // DEPLOY_NONFUNGIBLE_POSITION_MANAGER
-  const nonfungibleTokenPositionManager = m.contractFromArtifact(
+  const nonfungibleTokenPositionManager = m.contract(
     "NonfungibleTokenPositionManager",
     NonfungiblePositionManager,
     [uniswapV3Factory, weth9, descriptorProxy]
   );
 
   // DEPLOY_V3_MIGRATOR
-  const v3Migrator = m.contractFromArtifact("V3Migrator", V3Migrator, [
+  const v3Migrator = m.contract("V3Migrator", V3Migrator, [
     uniswapV3Factory,
     weth9,
     nonfungibleTokenPositionManager,
@@ -114,7 +108,7 @@ module.exports = buildModule("Uniswap", (m) => {
   });
 
   // DEPLOY_V3_STAKER
-  const v3Staker = m.contractFromArtifact("UniswapV3Staker", UniswapV3Staker, [
+  const v3Staker = m.contract("UniswapV3Staker", UniswapV3Staker, [
     uniswapV3Factory,
     nonfungibleTokenPositionManager,
     MAX_INCENTIVE_START_LEAD_TIME,
@@ -122,13 +116,10 @@ module.exports = buildModule("Uniswap", (m) => {
   ]);
 
   // DEPLOY_QUOTER_V2
-  const quoterV2 = m.contractFromArtifact("QuoterV2", QuoterV2, [
-    uniswapV3Factory,
-    weth9,
-  ]);
+  const quoterV2 = m.contract("QuoterV2", QuoterV2, [uniswapV3Factory, weth9]);
 
   // DEPLOY_V3_SWAP_ROUTER_02
-  const swapRouter02 = m.contractFromArtifact("SwapRouter02", SwapRouter02, [
+  const swapRouter02 = m.contract("SwapRouter02", SwapRouter02, [
     v2CoreFactoryAddress,
     uniswapV3Factory,
     nonfungibleTokenPositionManager,

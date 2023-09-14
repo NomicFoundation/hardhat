@@ -21,7 +21,7 @@ describe("libraryFromArtifact", () => {
 
   it("should be able to deploy with a library based on an artifact", () => {
     const moduleWithContractFromArtifact = buildModule("Module1", (m) => {
-      const library1 = m.libraryFromArtifact("Library1", fakeArtifact);
+      const library1 = m.library("Library1", fakeArtifact);
 
       return { library1 };
     });
@@ -45,7 +45,7 @@ describe("libraryFromArtifact", () => {
   it("should be able to pass an after dependency", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
       const example = m.library("Example");
-      const another = m.libraryFromArtifact("Another", fakeArtifact, {
+      const another = m.library("Another", fakeArtifact, {
         after: [example],
       });
 
@@ -64,7 +64,7 @@ describe("libraryFromArtifact", () => {
   it("should be able to pass a library as a dependency of a library", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
       const example = m.library("Example");
-      const another = m.libraryFromArtifact("Another", fakeArtifact, {
+      const another = m.library("Another", fakeArtifact, {
         libraries: { Example: example },
       });
 
@@ -94,7 +94,7 @@ describe("libraryFromArtifact", () => {
 
   it("should be able to pass a string as from option", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
-      const another = m.libraryFromArtifact("Another", fakeArtifact, {
+      const another = m.library("Another", fakeArtifact, {
         from: "0x2",
       });
 
@@ -118,7 +118,7 @@ describe("libraryFromArtifact", () => {
 
   it("Should be able to pass an AccountRuntimeValue as from option", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
-      const another = m.libraryFromArtifact("Another", fakeArtifact, {
+      const another = m.library("Another", fakeArtifact, {
         from: m.getAccount(1),
       });
 
@@ -144,18 +144,12 @@ describe("libraryFromArtifact", () => {
   describe("passing id", () => {
     it("should use library from artifact twice by passing an id", () => {
       const moduleWithSameContractTwice = buildModule("Module1", (m) => {
-        const sameContract1 = m.libraryFromArtifact(
-          "SameContract",
-          fakeArtifact,
-          { id: "first" }
-        );
-        const sameContract2 = m.libraryFromArtifact(
-          "SameContract",
-          fakeArtifact,
-          {
-            id: "second",
-          }
-        );
+        const sameContract1 = m.library("SameContract", fakeArtifact, {
+          id: "first",
+        });
+        const sameContract2 = m.library("SameContract", fakeArtifact, {
+          id: "second",
+        });
 
         return { sameContract1, sameContract2 };
       });
@@ -176,14 +170,8 @@ describe("libraryFromArtifact", () => {
       assert.throws(
         () =>
           buildModule("Module1", (m) => {
-            const sameContract1 = m.libraryFromArtifact(
-              "SameContract",
-              fakeArtifact
-            );
-            const sameContract2 = m.libraryFromArtifact(
-              "SameContract",
-              fakeArtifact
-            );
+            const sameContract1 = m.library("SameContract", fakeArtifact);
+            const sameContract2 = m.library("SameContract", fakeArtifact);
 
             return { sameContract1, sameContract2 };
           }),
@@ -195,20 +183,12 @@ describe("libraryFromArtifact", () => {
       assert.throws(
         () =>
           buildModule("Module1", (m) => {
-            const sameContract1 = m.libraryFromArtifact(
-              "SameContract",
-              fakeArtifact,
-              {
-                id: "same",
-              }
-            );
-            const sameContract2 = m.libraryFromArtifact(
-              "SameContract",
-              fakeArtifact,
-              {
-                id: "same",
-              }
-            );
+            const sameContract1 = m.library("SameContract", fakeArtifact, {
+              id: "same",
+            });
+            const sameContract2 = m.library("SameContract", fakeArtifact, {
+              id: "same",
+            });
 
             return { sameContract1, sameContract2 };
           }),
@@ -223,7 +203,7 @@ describe("libraryFromArtifact", () => {
         assert.throws(
           () =>
             buildModule("Module1", (m) => {
-              const another = m.libraryFromArtifact("Another", fakeArtifact, {
+              const another = m.library("Another", fakeArtifact, {
                 from: 1 as any,
               });
 
@@ -240,25 +220,13 @@ describe("libraryFromArtifact", () => {
               const another = m.contract("Another", []);
               const call = m.call(another, "test");
 
-              const test = m.libraryFromArtifact("Test", fakeArtifact, {
+              const test = m.library("Test", fakeArtifact, {
                 libraries: { Call: call as any },
               });
 
               return { another, test };
             }),
           /Given library 'Call' is not a valid Future/
-        );
-      });
-
-      it("should not validate an invalid artifact", () => {
-        assert.throws(
-          () =>
-            buildModule("Module1", (m) => {
-              const another = m.libraryFromArtifact("Another", {} as Artifact);
-
-              return { another };
-            }),
-          /Invalid artifact given/
         );
       });
     });
@@ -279,7 +247,7 @@ describe("libraryFromArtifact", () => {
       it("should not validate a negative account index", async () => {
         const module = buildModule("Module1", (m) => {
           const account = m.getAccount(-1);
-          const test = m.libraryFromArtifact("Test", fakeArtifact, {
+          const test = m.library("Test", fakeArtifact, {
             from: account,
           });
 
@@ -302,7 +270,7 @@ describe("libraryFromArtifact", () => {
       it("should not validate an account index greater than the number of available accounts", async () => {
         const module = buildModule("Module1", (m) => {
           const account = m.getAccount(1);
-          const test = m.libraryFromArtifact("Test", fakeArtifact, {
+          const test = m.library("Test", fakeArtifact, {
             from: account,
           });
 

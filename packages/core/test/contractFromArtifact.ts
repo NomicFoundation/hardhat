@@ -22,7 +22,7 @@ describe("contractFromArtifact", () => {
 
   it("should be able to deploy with a contract based on an artifact", () => {
     const moduleWithContractFromArtifact = buildModule("Module1", (m) => {
-      const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
+      const contract1 = m.contract("Contract1", fakeArtifact, [
         1,
         "a",
         BigInt("9007199254740991"),
@@ -56,9 +56,7 @@ describe("contractFromArtifact", () => {
   it("should be able to pass an arg dependency", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
       const example = m.contract("Example");
-      const another = m.contractFromArtifact("Another", fakeArtifact, [
-        example,
-      ]);
+      const another = m.contract("Another", fakeArtifact, [example]);
 
       return { example, another };
     });
@@ -75,7 +73,7 @@ describe("contractFromArtifact", () => {
   it("should be able to pass an after dependency", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
       const example = m.contract("Example");
-      const another = m.contractFromArtifact("Another", fakeArtifact, [], {
+      const another = m.contract("Another", fakeArtifact, [], {
         after: [example],
       });
 
@@ -94,7 +92,7 @@ describe("contractFromArtifact", () => {
   it("should be able to pass a library as a dependency of a contract", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
       const example = m.library("Example");
-      const another = m.contractFromArtifact("Another", fakeArtifact, [], {
+      const another = m.contract("Another", fakeArtifact, [], {
         libraries: { Example: example },
       });
 
@@ -124,7 +122,7 @@ describe("contractFromArtifact", () => {
 
   it("should be able to pass value as an option", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
-      const another = m.contractFromArtifact("Another", fakeArtifact, [], {
+      const another = m.contract("Another", fakeArtifact, [], {
         value: BigInt(42),
       });
 
@@ -148,7 +146,7 @@ describe("contractFromArtifact", () => {
 
   it("Should be able to pass a ModuleParameterRuntimeValue as a value option", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
-      const another = m.contractFromArtifact("Another", fakeArtifact, [], {
+      const another = m.contract("Another", fakeArtifact, [], {
         value: m.getParameter("value"),
       });
 
@@ -175,7 +173,7 @@ describe("contractFromArtifact", () => {
 
   it("should be able to pass a string as from option", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
-      const another = m.contractFromArtifact("Another", fakeArtifact, [], {
+      const another = m.contract("Another", fakeArtifact, [], {
         from: "0x2",
       });
 
@@ -199,7 +197,7 @@ describe("contractFromArtifact", () => {
 
   it("Should be able to pass an AccountRuntimeValue as from option", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
-      const another = m.contractFromArtifact("Another", fakeArtifact, [], {
+      const another = m.contract("Another", fakeArtifact, [], {
         from: m.getAccount(1),
       });
 
@@ -225,7 +223,7 @@ describe("contractFromArtifact", () => {
   describe("Arguments", () => {
     it("Should support base values as arguments", () => {
       const module = buildModule("Module", (m) => {
-        const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
+        const contract1 = m.contract("Contract1", fakeArtifact, [
           1,
           true,
           "string",
@@ -245,9 +243,7 @@ describe("contractFromArtifact", () => {
 
     it("Should support arrays as arguments", () => {
       const module = buildModule("Module", (m) => {
-        const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
-          [1, 2, 3n],
-        ]);
+        const contract1 = m.contract("Contract1", fakeArtifact, [[1, 2, 3n]]);
 
         return { contract1 };
       });
@@ -257,7 +253,7 @@ describe("contractFromArtifact", () => {
 
     it("Should support objects as arguments", () => {
       const module = buildModule("Module", (m) => {
-        const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
+        const contract1 = m.contract("Contract1", fakeArtifact, [
           { a: 1, b: [1, 2] },
         ]);
 
@@ -273,9 +269,7 @@ describe("contractFromArtifact", () => {
     it("Should support futures as arguments", () => {
       const module = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract1");
-        const contract2 = m.contractFromArtifact("Contract2", fakeArtifact, [
-          contract1,
-        ]);
+        const contract2 = m.contract("Contract2", fakeArtifact, [contract1]);
 
         return { contract1, contract2 };
       });
@@ -289,7 +283,7 @@ describe("contractFromArtifact", () => {
     it("should support nested futures as arguments", () => {
       const module = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract1");
-        const contract2 = m.contractFromArtifact("Contract2", fakeArtifact, [
+        const contract2 = m.contract("Contract2", fakeArtifact, [
           { arr: [contract1] },
         ]);
 
@@ -305,9 +299,7 @@ describe("contractFromArtifact", () => {
     it("should support AccountRuntimeValues as arguments", () => {
       const module = buildModule("Module", (m) => {
         const account1 = m.getAccount(1);
-        const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
-          account1,
-        ]);
+        const contract1 = m.contract("Contract1", fakeArtifact, [account1]);
 
         return { contract1 };
       });
@@ -322,7 +314,7 @@ describe("contractFromArtifact", () => {
     it("should support nested AccountRuntimeValues as arguments", () => {
       const module = buildModule("Module", (m) => {
         const account1 = m.getAccount(1);
-        const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
+        const contract1 = m.contract("Contract1", fakeArtifact, [
           { arr: [account1] },
         ]);
 
@@ -340,9 +332,7 @@ describe("contractFromArtifact", () => {
     it("should support ModuleParameterRuntimeValue as arguments", () => {
       const module = buildModule("Module", (m) => {
         const p = m.getParameter("p", 123);
-        const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
-          p,
-        ]);
+        const contract1 = m.contract("Contract1", fakeArtifact, [p]);
 
         return { contract1 };
       });
@@ -361,9 +351,7 @@ describe("contractFromArtifact", () => {
     it("should support nested ModuleParameterRuntimeValue as arguments", () => {
       const module = buildModule("Module", (m) => {
         const p = m.getParameter("p", 123);
-        const contract1 = m.contractFromArtifact("Contract1", fakeArtifact, [
-          { arr: [p] },
-        ]);
+        const contract1 = m.contract("Contract1", fakeArtifact, [{ arr: [p] }]);
 
         return { contract1 };
       });
@@ -378,20 +366,12 @@ describe("contractFromArtifact", () => {
   describe("passing id", () => {
     it("should use contract from artifact twice by passing an id", () => {
       const moduleWithSameContractTwice = buildModule("Module1", (m) => {
-        const sameContract1 = m.contractFromArtifact(
-          "SameContract",
-          fakeArtifact,
-          [],
-          { id: "first" }
-        );
-        const sameContract2 = m.contractFromArtifact(
-          "SameContract",
-          fakeArtifact,
-          [],
-          {
-            id: "second",
-          }
-        );
+        const sameContract1 = m.contract("SameContract", fakeArtifact, [], {
+          id: "first",
+        });
+        const sameContract2 = m.contract("SameContract", fakeArtifact, [], {
+          id: "second",
+        });
 
         return { sameContract1, sameContract2 };
       });
@@ -412,14 +392,8 @@ describe("contractFromArtifact", () => {
       assert.throws(
         () =>
           buildModule("Module1", (m) => {
-            const sameContract1 = m.contractFromArtifact(
-              "SameContract",
-              fakeArtifact
-            );
-            const sameContract2 = m.contractFromArtifact(
-              "SameContract",
-              fakeArtifact
-            );
+            const sameContract1 = m.contract("SameContract", fakeArtifact);
+            const sameContract2 = m.contract("SameContract", fakeArtifact);
 
             return { sameContract1, sameContract2 };
           }),
@@ -431,22 +405,12 @@ describe("contractFromArtifact", () => {
       assert.throws(
         () =>
           buildModule("Module1", (m) => {
-            const sameContract1 = m.contractFromArtifact(
-              "SameContract",
-              fakeArtifact,
-              [],
-              {
-                id: "same",
-              }
-            );
-            const sameContract2 = m.contractFromArtifact(
-              "SameContract",
-              fakeArtifact,
-              [],
-              {
-                id: "same",
-              }
-            );
+            const sameContract1 = m.contract("SameContract", fakeArtifact, [], {
+              id: "same",
+            });
+            const sameContract2 = m.contract("SameContract", fakeArtifact, [], {
+              id: "same",
+            });
 
             return { sameContract1, sameContract2 };
           }),
@@ -461,14 +425,9 @@ describe("contractFromArtifact", () => {
         assert.throws(
           () =>
             buildModule("Module1", (m) => {
-              const another = m.contractFromArtifact(
-                "Another",
-                fakeArtifact,
-                [],
-                {
-                  value: 42 as any,
-                }
-              );
+              const another = m.contract("Another", fakeArtifact, [], {
+                value: 42 as any,
+              });
 
               return { another };
             }),
@@ -480,14 +439,9 @@ describe("contractFromArtifact", () => {
         assert.throws(
           () =>
             buildModule("Module1", (m) => {
-              const another = m.contractFromArtifact(
-                "Another",
-                fakeArtifact,
-                [],
-                {
-                  from: 1 as any,
-                }
-              );
+              const another = m.contract("Another", fakeArtifact, [], {
+                from: 1 as any,
+              });
 
               return { another };
             }),
@@ -502,7 +456,7 @@ describe("contractFromArtifact", () => {
               const another = m.contract("Another", []);
               const call = m.call(another, "test");
 
-              const test = m.contractFromArtifact("Test", fakeArtifact, [], {
+              const test = m.contract("Test", fakeArtifact, [], {
                 libraries: { Call: call as any },
               });
 
@@ -516,11 +470,7 @@ describe("contractFromArtifact", () => {
         assert.throws(
           () =>
             buildModule("Module1", (m) => {
-              const another = m.contractFromArtifact(
-                "Another",
-                {} as Artifact,
-                []
-              );
+              const another = m.contract("Another", {} as Artifact, []);
 
               return { another };
             }),
@@ -544,11 +494,7 @@ describe("contractFromArtifact", () => {
 
       it("should not validate an incorrect number of constructor args", async () => {
         const module = buildModule("Module1", (m) => {
-          const contract1 = m.contractFromArtifact(
-            "Test",
-            fakeArtifact,
-            [1, 2, 3]
-          );
+          const contract1 = m.contract("Test", fakeArtifact, [1, 2, 3]);
 
           return { contract1 };
         });
@@ -581,7 +527,7 @@ describe("contractFromArtifact", () => {
       it("should not validate a missing module parameter", async () => {
         const module = buildModule("Module1", (m) => {
           const p = m.getParameter("p");
-          const contract1 = m.contractFromArtifact("Test", fakeArtifact, [p]);
+          const contract1 = m.contract("Test", fakeArtifact, [p]);
 
           return { contract1 };
         });
@@ -623,7 +569,7 @@ describe("contractFromArtifact", () => {
 
         const module = buildModule("Module1", (m) => {
           const p = m.getParameter("p", 123);
-          const contract1 = m.contractFromArtifact("Test", fakerArtifact, [p]);
+          const contract1 = m.contract("Test", fakerArtifact, [p]);
 
           return { contract1 };
         });
@@ -658,7 +604,7 @@ describe("contractFromArtifact", () => {
 
         const module = buildModule("Module1", (m) => {
           const p = m.getParameter("p", false as unknown as bigint);
-          const contract1 = m.contractFromArtifact("Test", fakerArtifact, [], {
+          const contract1 = m.contract("Test", fakerArtifact, [], {
             value: p,
           });
 
@@ -696,7 +642,7 @@ describe("contractFromArtifact", () => {
 
         const module = buildModule("Module1", (m) => {
           const p = m.getParameter("p", 42n);
-          const contract1 = m.contractFromArtifact("Test", fakerArtifact, [], {
+          const contract1 = m.contract("Test", fakerArtifact, [], {
             value: p,
           });
 
@@ -720,7 +666,7 @@ describe("contractFromArtifact", () => {
       it("should not validate a missing module parameter (deeply nested)", async () => {
         const module = buildModule("Module1", (m) => {
           const p = m.getParameter("p");
-          const contract1 = m.contractFromArtifact("Test", fakeArtifact, [
+          const contract1 = m.contract("Test", fakeArtifact, [
             [123, { really: { deeply: { nested: [p] } } }],
           ]);
 
@@ -764,7 +710,7 @@ describe("contractFromArtifact", () => {
 
         const module = buildModule("Module1", (m) => {
           const p = m.getParameter("p", 123);
-          const contract1 = m.contractFromArtifact("Test", fakerArtifact, [
+          const contract1 = m.contract("Test", fakerArtifact, [
             [123, { really: { deeply: { nested: [p] } } }],
           ]);
 
@@ -788,7 +734,7 @@ describe("contractFromArtifact", () => {
       it("should not validate a negative account index", async () => {
         const module = buildModule("Module1", (m) => {
           const account = m.getAccount(-1);
-          const contract1 = m.contractFromArtifact("Test", fakeArtifact, [], {
+          const contract1 = m.contract("Test", fakeArtifact, [], {
             from: account,
           });
 
@@ -811,7 +757,7 @@ describe("contractFromArtifact", () => {
       it("should not validate an account index greater than the number of available accounts", async () => {
         const module = buildModule("Module1", (m) => {
           const account = m.getAccount(1);
-          const contract1 = m.contractFromArtifact("Test", fakeArtifact, [], {
+          const contract1 = m.contract("Test", fakeArtifact, [], {
             from: account,
           });
 

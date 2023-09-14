@@ -31,8 +31,8 @@ describe("existing contract", () => {
       await firstResult.usesContract.getAddress();
 
     const secondModuleDefinition = buildModule("SecondModule", (m) => {
-      const bar = m.contractAtFromArtifact("Bar", barAddress, barArtifact);
-      const usesContract = m.contractAtFromArtifact(
+      const bar = m.contractAt("Bar", barAddress, barArtifact);
+      const usesContract = m.contractAt(
         "UsesContract",
         usesContractAddress,
         usesContractArtifact

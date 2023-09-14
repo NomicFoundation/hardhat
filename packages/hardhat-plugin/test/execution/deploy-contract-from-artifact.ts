@@ -17,7 +17,7 @@ describe("execution - deploy contract from artifact", function () {
     const fooArtifact = await this.hre.artifacts.readArtifact("Foo");
 
     const moduleDefinition = buildModule("FooModule", (m) => {
-      const foo = m.contractFromArtifact("Foo", fooArtifact);
+      const foo = m.contract("Foo", fooArtifact);
 
       return { foo };
     });

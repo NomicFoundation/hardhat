@@ -18,11 +18,7 @@ describe("contractAtFromArtifact", () => {
 
   it("should be able to setup a contract at a given address", () => {
     const moduleWithContractFromArtifact = buildModule("Module1", (m) => {
-      const contract1 = m.contractAtFromArtifact(
-        "Contract1",
-        "0xtest",
-        fakeArtifact
-      );
+      const contract1 = m.contractAt("Contract1", "0xtest", fakeArtifact);
 
       return { contract1 };
     });
@@ -52,14 +48,9 @@ describe("contractAtFromArtifact", () => {
   it("should be able to pass an after dependency", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
       const example = m.contract("Example");
-      const another = m.contractAtFromArtifact(
-        "Another",
-        "0xtest",
-        fakeArtifact,
-        {
-          after: [example],
-        }
-      );
+      const another = m.contractAt("Another", "0xtest", fakeArtifact, {
+        after: [example],
+      });
 
       return { example, another };
     });
@@ -78,7 +69,7 @@ describe("contractAtFromArtifact", () => {
       const example = m.contract("Example");
       const call = m.staticCall(example, "getAddress");
 
-      const another = m.contractAtFromArtifact("Another", call, fakeArtifact);
+      const another = m.contractAt("Another", call, fakeArtifact);
 
       return { example, another };
     });
@@ -100,12 +91,8 @@ describe("contractAtFromArtifact", () => {
       const paramWithDefault = m.getParameter("addressWithDefault", "0x000000");
       const paramWithoutDefault = m.getParameter("addressWithoutDefault");
 
-      const withDefault = m.contractAtFromArtifact(
-        "C",
-        paramWithDefault,
-        fakeArtifact
-      );
-      const withoutDefault = m.contractAtFromArtifact(
+      const withDefault = m.contractAt("C", paramWithDefault, fakeArtifact);
+      const withoutDefault = m.contractAt(
         "C2",
         paramWithoutDefault,
         fakeArtifact
@@ -135,13 +122,13 @@ describe("contractAtFromArtifact", () => {
   describe("passing id", () => {
     it("should be able to deploy the same contract twice by passing an id", () => {
       const moduleWithSameContractTwice = buildModule("Module1", (m) => {
-        const sameContract1 = m.contractAtFromArtifact(
+        const sameContract1 = m.contractAt(
           "SameContract",
           "0x123",
           fakeArtifact,
           { id: "first" }
         );
-        const sameContract2 = m.contractAtFromArtifact(
+        const sameContract2 = m.contractAt(
           "SameContract",
           "0x123",
           fakeArtifact,
@@ -168,12 +155,12 @@ describe("contractAtFromArtifact", () => {
       assert.throws(
         () =>
           buildModule("Module1", (m) => {
-            const sameContract1 = m.contractAtFromArtifact(
+            const sameContract1 = m.contractAt(
               "SameContract",
               "0x123",
               fakeArtifact
             );
-            const sameContract2 = m.contractAtFromArtifact(
+            const sameContract2 = m.contractAt(
               "SameContract",
               "0x123",
               fakeArtifact
@@ -189,7 +176,7 @@ describe("contractAtFromArtifact", () => {
       assert.throws(
         () =>
           buildModule("Module1", (m) => {
-            const sameContract1 = m.contractAtFromArtifact(
+            const sameContract1 = m.contractAt(
               "SameContract",
               "0x123",
               fakeArtifact,
@@ -197,7 +184,7 @@ describe("contractAtFromArtifact", () => {
                 id: "same",
               }
             );
-            const sameContract2 = m.contractAtFromArtifact(
+            const sameContract2 = m.contractAt(
               "SameContract",
               "0x123",
               fakeArtifact,
@@ -219,31 +206,11 @@ describe("contractAtFromArtifact", () => {
         assert.throws(
           () =>
             buildModule("Module1", (m) => {
-              const another = m.contractAtFromArtifact(
-                "Another",
-                42 as any,
-                fakeArtifact
-              );
+              const another = m.contractAt("Another", 42 as any, fakeArtifact);
 
               return { another };
             }),
           /Invalid address given/
-        );
-      });
-
-      it("should not validate an invalid artifact", () => {
-        assert.throws(
-          () =>
-            buildModule("Module1", (m) => {
-              const another = m.contractAtFromArtifact(
-                "Another",
-                "",
-                {} as Artifact
-              );
-
-              return { another };
-            }),
-          /Invalid artifact given/
         );
       });
     });
@@ -263,7 +230,7 @@ describe("contractAtFromArtifact", () => {
       it("should not validate a missing module parameter", async () => {
         const module = buildModule("Module1", (m) => {
           const p = m.getParameter("p");
-          const another = m.contractAtFromArtifact("Another", p, fakeArtifact);
+          const another = m.contractAt("Another", p, fakeArtifact);
 
           return { another };
         });
@@ -288,7 +255,7 @@ describe("contractAtFromArtifact", () => {
       it("should validate a missing module parameter if a default parameter is present", async () => {
         const module = buildModule("Module1", (m) => {
           const p = m.getParameter("p", "0x1234");
-          const another = m.contractAtFromArtifact("Another", p, fakeArtifact);
+          const another = m.contractAt("Another", p, fakeArtifact);
 
           return { another };
         });
@@ -312,7 +279,7 @@ describe("contractAtFromArtifact", () => {
       it("should not validate a module parameter of the wrong type", async () => {
         const module = buildModule("Module1", (m) => {
           const p = m.getParameter("p", 123 as unknown as string);
-          const another = m.contractAtFromArtifact("Another", p, fakeArtifact);
+          const another = m.contractAt("Another", p, fakeArtifact);
 
           return { another };
         });
