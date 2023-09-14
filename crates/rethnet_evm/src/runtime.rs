@@ -37,9 +37,7 @@ where
     }
 
     if transaction.gas_priority_fee.is_some()
-        && !blockchain
-            .block_supports_spec(&block.number, SpecId::LONDON)
-            .await?
+        && blockchain.spec_at_block_number(&block.number).await? < SpecId::LONDON
     {
         return Err(TransactionError::Eip1559Unsupported);
     }
@@ -93,9 +91,7 @@ where
     }
 
     if transaction.gas_priority_fee.is_some()
-        && !blockchain
-            .block_supports_spec(&block.number, SpecId::LONDON)
-            .await?
+        && blockchain.spec_at_block_number(&block.number).await? < SpecId::LONDON
     {
         return Err(TransactionError::Eip1559Unsupported);
     }

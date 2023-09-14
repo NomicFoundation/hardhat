@@ -90,13 +90,6 @@ pub trait Blockchain {
         transaction_hash: &B256,
     ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>;
 
-    /// Whether the block corresponding to the provided number supports the specified specification.
-    async fn block_supports_spec(
-        &self,
-        number: &U256,
-        spec_id: SpecId,
-    ) -> Result<bool, Self::BlockchainError>;
-
     /// Retrieves the instances chain ID.
     async fn chain_id(&self) -> U256;
 
@@ -113,6 +106,9 @@ pub trait Blockchain {
         &self,
         transaction_hash: &B256,
     ) -> Result<Option<Arc<BlockReceipt>>, Self::BlockchainError>;
+
+    /// Retrieves the hardfork specficiation of the block at the provided number.
+    async fn spec_at_block_number(&self, number: &U256) -> Result<SpecId, Self::BlockchainError>;
 
     /// Retrieves the state at a given block
     async fn state_at_block(

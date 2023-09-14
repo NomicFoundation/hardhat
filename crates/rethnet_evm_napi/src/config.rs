@@ -78,6 +78,32 @@ impl From<SpecId> for rethnet_evm::SpecId {
     }
 }
 
+impl From<rethnet_evm::SpecId> for SpecId {
+    fn from(value: rethnet_evm::SpecId) -> Self {
+        match value {
+            rethnet_evm::SpecId::FRONTIER => SpecId::Frontier,
+            rethnet_evm::SpecId::FRONTIER_THAWING => SpecId::FrontierThawing,
+            rethnet_evm::SpecId::HOMESTEAD => SpecId::Homestead,
+            rethnet_evm::SpecId::DAO_FORK => SpecId::DaoFork,
+            rethnet_evm::SpecId::TANGERINE => SpecId::Tangerine,
+            rethnet_evm::SpecId::SPURIOUS_DRAGON => SpecId::SpuriousDragon,
+            rethnet_evm::SpecId::BYZANTIUM => SpecId::Byzantium,
+            rethnet_evm::SpecId::CONSTANTINOPLE => SpecId::Constantinople,
+            rethnet_evm::SpecId::PETERSBURG => SpecId::Petersburg,
+            rethnet_evm::SpecId::ISTANBUL => SpecId::Istanbul,
+            rethnet_evm::SpecId::MUIR_GLACIER => SpecId::MuirGlacier,
+            rethnet_evm::SpecId::BERLIN => SpecId::Berlin,
+            rethnet_evm::SpecId::LONDON => SpecId::London,
+            rethnet_evm::SpecId::ARROW_GLACIER => SpecId::ArrowGlacier,
+            rethnet_evm::SpecId::GRAY_GLACIER => SpecId::GrayGlacier,
+            rethnet_evm::SpecId::MERGE => SpecId::Merge,
+            rethnet_evm::SpecId::SHANGHAI => SpecId::Shanghai,
+            rethnet_evm::SpecId::CANCUN => SpecId::Cancun,
+            rethnet_evm::SpecId::LATEST => SpecId::Latest,
+        }
+    }
+}
+
 /// A wrapper type around Rethnet's EVM config type.
 #[napi]
 pub struct Config {

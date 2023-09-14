@@ -9,7 +9,11 @@ import { RpcTransactionReceipt } from "../../../core/jsonrpc/types/output/receip
 import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
 import { InternalError } from "../../../core/providers/errors";
 import { HardforkHistoryConfig } from "../../../../types/config";
-import { HardforkName, selectHardfork } from "../../../util/hardforks";
+import {
+  HardforkName,
+  getHardforkName,
+  selectHardfork,
+} from "../../../util/hardforks";
 import { JsonRpcClient } from "../../jsonrpc/client";
 import { BlockchainBase } from "../BlockchainBase";
 import { FilterParams } from "../node-types";
@@ -226,25 +230,23 @@ export class ForkBlockchain
     return this._data.getLogs(filterParams);
   }
 
-  public async blockSupportsHardfork(
-    hardfork: HardforkName,
+  public async getHardforkAtBlockNumber(
     blockNumberOrPending?: bigint | "pending"
-  ): Promise<boolean> {
+  ): Promise<HardforkName> {
     if (
       blockNumberOrPending !== undefined &&
       blockNumberOrPending !== "pending"
     ) {
-      return this._common.hardforkGteHardfork(
+      return getHardforkName(
         selectHardfork(
           this._forkBlockNumber,
           this._common.hardfork(),
           this._hardforkActivations,
           blockNumberOrPending
-        ),
-        hardfork.toString()
+        )
       );
     }
-    return this._common.gteHardfork(hardfork.toString());
+    return getHardforkName(this._common.hardfork());
   }
 
   public async revertToBlock(blockNumber: bigint): Promise<void> {

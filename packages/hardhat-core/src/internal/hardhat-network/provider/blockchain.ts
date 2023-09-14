@@ -4,11 +4,6 @@ import { RpcLogOutput, RpcReceiptOutput } from "./output";
 import { FilterParams } from "./node-types";
 
 export interface BlockchainAdapter {
-  blockSupportsHardfork(
-    hardfork: HardforkName,
-    blockNumberOrPending?: bigint | "pending"
-  ): Promise<boolean>;
-
   getBlockByHash(hash: Buffer): Promise<Block | undefined>;
 
   getBlockByNumber(number: bigint): Promise<Block | undefined>;
@@ -16,6 +11,10 @@ export interface BlockchainAdapter {
   getBlockByTransactionHash(
     transactionHash: Buffer
   ): Promise<Block | undefined>;
+
+  getHardforkAtBlockNumber(
+    blockNumberOrPending?: bigint | "pending"
+  ): Promise<HardforkName>;
 
   getLatestBlock(): Promise<Block>;
 

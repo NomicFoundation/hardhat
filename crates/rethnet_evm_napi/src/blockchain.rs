@@ -184,19 +184,6 @@ impl Blockchain {
             )
     }
 
-    #[doc = "Whether the block corresponding to the provided number supports the specified specification."]
-    #[napi]
-    pub async fn block_supports_spec(&self, number: BigInt, spec_id: SpecId) -> napi::Result<bool> {
-        let number: U256 = BigInt::try_cast(number)?;
-        let spec_id = rethnet_evm::SpecId::from(spec_id);
-
-        self.read()
-            .await
-            .block_supports_spec(&number, spec_id)
-            .await
-            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
-    }
-
     #[doc = "Retrieves the instance's chain ID."]
     #[napi]
     pub async fn chain_id(&self) -> BigInt {
@@ -288,6 +275,21 @@ impl Blockchain {
             .revert_to_block(&block_number)
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
+    }
+
+    #[doc = "Retrieves the hardfork specficiation of the block at the provided number."]
+    #[napi]
+    pub async fn spec_at_block_number(&self, number: BigInt) -> napi::Result<SpecId> {
+        let number: U256 = BigInt::try_cast(number)?;
+
+        self.read()
+            .await
+            .spec_at_block_number(&number)
+            .await
+            .map_or_else(
+                |error| Err(napi::Error::new(Status::GenericFailure, error.to_string())),
+                |spec_id| Ok(SpecId::from(spec_id)),
+            )
     }
 
     #[napi]

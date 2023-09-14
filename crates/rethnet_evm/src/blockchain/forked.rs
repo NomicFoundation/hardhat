@@ -225,30 +225,6 @@ impl Blockchain for ForkedBlockchain {
         }
     }
 
-    async fn block_supports_spec(
-        &self,
-        number: &U256,
-        spec_id: SpecId,
-    ) -> Result<bool, Self::BlockchainError> {
-        if *number <= self.fork_block_number {
-            self.remote.block_by_number(number).await.map_or_else(
-                |e| Err(BlockchainError::JsonRpcError(e)),
-                |block| {
-                    determine_hardfork(&self.chain_id, &block.header().number).map_or_else(
-                        || {
-                            Err(BlockchainError::UnsupportedChain {
-                                chain_id: self.chain_id,
-                            })
-                        },
-                        |block_spec_id| Ok(spec_id <= block_spec_id),
-                    )
-                },
-            )
-        } else {
-            Ok(spec_id <= self.spec_id)
-        }
-    }
-
     async fn chain_id(&self) -> U256 {
         self.chain_id
     }
@@ -288,6 +264,27 @@ impl Blockchain for ForkedBlockchain {
                 .receipt_by_transaction_hash(transaction_hash)
                 .await
                 .map_err(BlockchainError::JsonRpcError)
+        }
+    }
+
+    async fn spec_at_block_number(&self, number: &U256) -> Result<SpecId, Self::BlockchainError> {
+        if *number > self.last_block_number().await {
+            return Err(BlockchainError::UnknownBlockNumber);
+        }
+
+        if *number <= self.fork_block_number {
+            self.remote.block_by_number(number).await.map_or_else(
+                |e| Err(BlockchainError::JsonRpcError(e)),
+                |block| {
+                    determine_hardfork(&self.chain_id, &block.header().number).ok_or(
+                        BlockchainError::UnsupportedChain {
+                            chain_id: self.chain_id,
+                        },
+                    )
+                },
+            )
+        } else {
+            Ok(self.spec_id)
         }
     }
 

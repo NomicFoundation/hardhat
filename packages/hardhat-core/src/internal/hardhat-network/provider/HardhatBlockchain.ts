@@ -3,7 +3,7 @@ import { Common } from "@nomicfoundation/ethereumjs-common";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import { zeros } from "@nomicfoundation/ethereumjs-util";
 
-import { HardforkName } from "../../util/hardforks";
+import { HardforkName, getHardforkName } from "../../util/hardforks";
 import { BlockchainBase } from "./BlockchainBase";
 import { FilterParams } from "./node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "./output";
@@ -66,6 +66,12 @@ export class HardhatBlockchain
     return this._data.getBlockByTransactionHash(transactionHash);
   }
 
+  public async getHardforkAtBlockNumber(
+    _blockNumberOrPending?: bigint | "pending"
+  ): Promise<HardforkName> {
+    return getHardforkName(this._common.hardfork());
+  }
+
   public async getReceiptByTransactionHash(
     transactionHash: Buffer
   ): Promise<RpcReceiptOutput | undefined> {
@@ -74,13 +80,6 @@ export class HardhatBlockchain
 
   public async getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]> {
     return this._data.getLogs(filterParams);
-  }
-
-  public async blockSupportsHardfork(
-    hardfork: HardforkName,
-    _blockNumberOrPending?: bigint | "pending"
-  ): Promise<boolean> {
-    return this._common.gteHardfork(hardfork.toString());
   }
 
   public async revertToBlock(blockNumber: bigint): Promise<void> {

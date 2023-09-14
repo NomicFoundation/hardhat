@@ -415,10 +415,8 @@ export class RethnetAdapter implements VMAdapter {
     blockNumber: bigint,
     mixHash: Buffer | undefined
   ): Promise<Buffer | undefined> {
-    const isPostMergeHardfork = await this._blockchain.blockSupportsSpec(
-      blockNumber,
-      SpecId.Merge
-    );
+    const isPostMergeHardfork =
+      (await this._blockchain.specAtBlockNumber(blockNumber)) >= SpecId.Merge;
 
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (isPostMergeHardfork) {

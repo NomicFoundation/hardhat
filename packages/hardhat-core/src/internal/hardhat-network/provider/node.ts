@@ -2189,17 +2189,23 @@ export class HardhatNode extends EventEmitter {
   public async isEip1559Active(
     blockNumberOrPending?: bigint | "pending"
   ): Promise<boolean> {
-    return this._context
-      .blockchain()
-      .blockSupportsHardfork(HardforkName.LONDON, blockNumberOrPending);
+    return hardforkGte(
+      await this._context
+        .blockchain()
+        .getHardforkAtBlockNumber(blockNumberOrPending),
+      HardforkName.LONDON
+    );
   }
 
   public async isEip4895Active(
     blockNumberOrPending?: bigint | "pending"
   ): Promise<boolean> {
-    return this._context
-      .blockchain()
-      .blockSupportsHardfork(HardforkName.SHANGHAI, blockNumberOrPending);
+    return hardforkGte(
+      await this._context
+        .blockchain()
+        .getHardforkAtBlockNumber(blockNumberOrPending),
+      HardforkName.SHANGHAI
+    );
   }
 
   public isPostMergeHardfork(): boolean {

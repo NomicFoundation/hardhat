@@ -5,10 +5,10 @@ import { HardforkName, getHardforkName } from "../../../util/hardforks";
 import { BlockchainAdapter } from "../blockchain";
 import { RpcLogOutput, RpcReceiptOutput } from "../output";
 import {
-  ethereumsjsHardforkToRethnetSpecId,
   rethnetBlockToEthereumJS,
   rethnetLogToEthereumJS,
   rethnetReceiptToEthereumJS,
+  rethnetSpecIdToEthereumHardfork,
 } from "../utils/convertToRethnet";
 import { FilterParams } from "../node-types";
 import { bloomFilter, filterLogs } from "../filter";
@@ -22,21 +22,6 @@ export class RethnetBlockchain implements BlockchainAdapter {
 
   public asInner(): Blockchain {
     return this._blockchain;
-  }
-
-  public async blockSupportsHardfork(
-    hardfork: HardforkName,
-    blockNumberOrPending?: bigint | "pending"
-  ): Promise<boolean> {
-    const blockNumber =
-      blockNumberOrPending === undefined || blockNumberOrPending === "pending"
-        ? await this._blockchain.lastBlockNumber()
-        : blockNumberOrPending;
-
-    return this._blockchain.blockSupportsSpec(
-      blockNumber,
-      ethereumsjsHardforkToRethnetSpecId(hardfork)
-    );
   }
 
   public async getBlockByHash(hash: Buffer): Promise<Block | undefined> {
@@ -70,6 +55,18 @@ export class RethnetBlockchain implements BlockchainAdapter {
     return rethnetBlockToEthereumJS(block, this._createCommonForBlock(block));
   }
 
+  public async getHardforkAtBlockNumber(
+    blockNumberOrPending?: bigint | "pending"
+  ): Promise<HardforkName> {
+    const blockNumber =
+      blockNumberOrPending === undefined || blockNumberOrPending === "pending"
+        ? await this._blockchain.lastBlockNumber()
+        : blockNumberOrPending;
+
+    const specId = await this._blockchain.specAtBlockNumber(blockNumber);
+    return rethnetSpecIdToEthereumHardfork(specId);
+  }
+
   public async getLatestBlock(): Promise<Block> {
     const block = await this._blockchain.lastBlock();
     return rethnetBlockToEthereumJS(block, this._createCommonForBlock(block));
@@ -99,7 +96,6 @@ export class RethnetBlockchain implements BlockchainAdapter {
         continue;
       }
       const receipts = await block.receipts();
-      console.log("receipts:", receipts);
       for (const receipt of receipts) {
         logs.push(
           ...filterLogs(

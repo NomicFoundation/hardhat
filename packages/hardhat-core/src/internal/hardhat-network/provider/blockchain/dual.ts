@@ -19,24 +19,21 @@ export class DualBlockchain implements BlockchainAdapter {
     private readonly _rethnet: BlockchainAdapter
   ) {}
 
-  public async blockSupportsHardfork(
-    hardfork: HardforkName,
+  public async getHardforkAtBlockNumber(
     blockNumberOrPending?: bigint | "pending" | undefined
-  ): Promise<boolean> {
-    const hardhat = await this._hardhat.blockSupportsHardfork(
-      hardfork,
+  ): Promise<HardforkName> {
+    const hardhat = await this._hardhat.getHardforkAtBlockNumber(
       blockNumberOrPending
     );
-    const rethnet = await this._rethnet.blockSupportsHardfork(
-      hardfork,
+    const rethnet = await this._rethnet.getHardforkAtBlockNumber(
       blockNumberOrPending
     );
 
     if (hardhat !== rethnet) {
       console.trace(
-        `Different support: ${hardhat} (hardhat) !== ${rethnet} (rethnet)`
+        `Different hardfork: ${hardhat} (hardhat) !== ${rethnet} (rethnet)`
       );
-      throw new Error("Different support");
+      throw new Error("Different hardfork");
     }
 
     return rethnet;

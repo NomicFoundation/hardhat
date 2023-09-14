@@ -161,8 +161,10 @@ async fn confirm_post_merge_hardfork<T>(
     blockchain: &dyn SyncBlockchain<BlockchainError, StateError>,
 ) -> Result<(), ResponseData<T>> {
     let last_block_number = blockchain.last_block_number().await;
-    let post_merge = blockchain.block_supports_spec(&last_block_number, SpecId::MERGE).await.map_err(|e| error_response_data(0, &format!("Failed to determine whether block {last_block_number} supports the merge hardfork: {e}")))?;
-    if post_merge {
+
+    let spec_id = blockchain.spec_at_block_number(&last_block_number).await.map_err(|e| error_response_data(0, &format!("Failed to determine whether block {last_block_number} supports the merge hardfork: {e}")))?;
+
+    if spec_id >= SpecId::MERGE {
         Ok(())
     } else {
         Err(error_response_data(

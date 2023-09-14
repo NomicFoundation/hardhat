@@ -191,14 +191,6 @@ impl Blockchain for LocalBlockchain {
         Ok(self.storage.block_by_transaction_hash(transaction_hash))
     }
 
-    async fn block_supports_spec(
-        &self,
-        _number: &U256,
-        spec_id: SpecId,
-    ) -> Result<bool, Self::BlockchainError> {
-        Ok(spec_id <= self.spec_id)
-    }
-
     async fn chain_id(&self) -> U256 {
         self.chain_id
     }
@@ -221,6 +213,14 @@ impl Blockchain for LocalBlockchain {
         transaction_hash: &B256,
     ) -> Result<Option<Arc<rethnet_eth::receipt::BlockReceipt>>, Self::BlockchainError> {
         Ok(self.storage.receipt_by_transaction_hash(transaction_hash))
+    }
+
+    async fn spec_at_block_number(&self, number: &U256) -> Result<SpecId, Self::BlockchainError> {
+        if *number > self.last_block_number().await {
+            return Err(BlockchainError::UnknownBlockNumber);
+        }
+
+        Ok(self.spec_id)
     }
 
     async fn state_at_block(

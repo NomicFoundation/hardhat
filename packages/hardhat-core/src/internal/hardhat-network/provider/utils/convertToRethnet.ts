@@ -143,6 +143,45 @@ export function ethereumsjsHardforkToRethnetSpecId(
   }
 }
 
+export function rethnetSpecIdToEthereumHardfork(specId: SpecId): HardforkName {
+  switch (specId) {
+    case SpecId.Frontier:
+      return HardforkName.FRONTIER;
+    case SpecId.Homestead:
+      return HardforkName.HOMESTEAD;
+    case SpecId.DaoFork:
+      return HardforkName.DAO;
+    case SpecId.Tangerine:
+      return HardforkName.TANGERINE_WHISTLE;
+    case SpecId.SpuriousDragon:
+      return HardforkName.SPURIOUS_DRAGON;
+    case SpecId.Byzantium:
+      return HardforkName.BYZANTIUM;
+    case SpecId.Constantinople:
+      return HardforkName.CONSTANTINOPLE;
+    case SpecId.Petersburg:
+      return HardforkName.PETERSBURG;
+    case SpecId.Istanbul:
+      return HardforkName.ISTANBUL;
+    case SpecId.MuirGlacier:
+      return HardforkName.MUIR_GLACIER;
+    case SpecId.Berlin:
+      return HardforkName.BERLIN;
+    case SpecId.London:
+      return HardforkName.LONDON;
+    case SpecId.ArrowGlacier:
+      return HardforkName.ARROW_GLACIER;
+    case SpecId.GrayGlacier:
+      return HardforkName.GRAY_GLACIER;
+    case SpecId.Merge:
+      return HardforkName.MERGE;
+    case SpecId.Shanghai:
+      return HardforkName.SHANGHAI;
+    default:
+      throw new Error(`Unknown spec id '${specId}', this shouldn't happen`);
+  }
+}
+
 export function ethereumjsHeaderDataToRethnetBlockConfig(
   headerData?: EthereumJSHeaderData,
   difficulty?: bigint,
