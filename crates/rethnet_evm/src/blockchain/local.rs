@@ -223,6 +223,10 @@ impl Blockchain for LocalBlockchain {
         Ok(self.spec_id)
     }
 
+    fn spec_id(&self) -> SpecId {
+        self.spec_id
+    }
+
     async fn state_at_block(
         &self,
         block_number: &U256,

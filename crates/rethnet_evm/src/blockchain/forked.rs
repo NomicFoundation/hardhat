@@ -288,6 +288,10 @@ impl Blockchain for ForkedBlockchain {
         }
     }
 
+    fn spec_id(&self) -> SpecId {
+        self.spec_id
+    }
+
     async fn state_at_block(
         &self,
         block_number: &U256,

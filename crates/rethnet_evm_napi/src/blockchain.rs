@@ -294,6 +294,13 @@ impl Blockchain {
             )
     }
 
+    #[doc = "Retrieves the hardfork specification used for new blocks."]
+    #[napi]
+    pub async fn spec_id(&self) -> SpecId {
+        SpecId::from(self.read().await.spec_id())
+    }
+
+    #[doc = "Retrieves the state at the block with the provided number."]
     #[napi]
     pub async fn state_at_block(&self, block_number: BigInt) -> napi::Result<StateManager> {
         let block_number: U256 = BigInt::try_cast(block_number)?;

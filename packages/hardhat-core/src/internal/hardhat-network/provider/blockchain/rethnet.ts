@@ -58,12 +58,16 @@ export class RethnetBlockchain implements BlockchainAdapter {
   public async getHardforkAtBlockNumber(
     blockNumberOrPending?: bigint | "pending"
   ): Promise<HardforkName> {
-    const blockNumber =
-      blockNumberOrPending === undefined || blockNumberOrPending === "pending"
-        ? await this._blockchain.lastBlockNumber()
-        : blockNumberOrPending;
+    if (
+      blockNumberOrPending === undefined ||
+      blockNumberOrPending === "pending"
+    ) {
+      return rethnetSpecIdToEthereumHardfork(await this._blockchain.specId());
+    }
 
-    const specId = await this._blockchain.specAtBlockNumber(blockNumber);
+    const specId = await this._blockchain.specAtBlockNumber(
+      blockNumberOrPending
+    );
     return rethnetSpecIdToEthereumHardfork(specId);
   }
 

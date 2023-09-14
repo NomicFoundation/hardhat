@@ -107,8 +107,11 @@ pub trait Blockchain {
         transaction_hash: &B256,
     ) -> Result<Option<Arc<BlockReceipt>>, Self::BlockchainError>;
 
-    /// Retrieves the hardfork specficiation of the block at the provided number.
+    /// Retrieves the hardfork specification of the block at the provided number.
     async fn spec_at_block_number(&self, number: &U256) -> Result<SpecId, Self::BlockchainError>;
+
+    /// Retrieves the hardfork specification used for new blocks.
+    fn spec_id(&self) -> SpecId;
 
     /// Retrieves the state at a given block
     async fn state_at_block(
