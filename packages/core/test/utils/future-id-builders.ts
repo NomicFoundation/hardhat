@@ -55,6 +55,20 @@ describe("future id rules", () => {
       );
     });
 
+    it("the fallback id should be built even when the arg is an index", () => {
+      assert.equal(
+        toReadEventArgumentFutureId(
+          "MyModule",
+          undefined,
+          "MyContract",
+          "MyFunction",
+          3,
+          2
+        ),
+        "MyModule#MyContract.MyFunction.3.2"
+      );
+    });
+
     it("namespaces the user provided id to the module", () => {
       assert.equal(
         toReadEventArgumentFutureId(
