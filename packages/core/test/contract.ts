@@ -34,7 +34,7 @@ describe("contract", () => {
     assert.equal(moduleWithASingleContract.futures.size, 1);
     assert.equal(
       [...moduleWithASingleContract.futures][0].type,
-      FutureType.NAMED_CONTRACT_DEPLOYMENT
+      FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT
     );
 
     // No submodules

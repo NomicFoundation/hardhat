@@ -26,7 +26,7 @@ describe("Reconciliation - named contract call", () => {
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
     type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
-    futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+    futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
@@ -42,7 +42,7 @@ describe("Reconciliation - named contract call", () => {
   const exampleContractCallState: CallExecutionState = {
     id: "Example",
     type: ExecutionSateType.CALL_EXECUTION_STATE,
-    futureType: FutureType.NAMED_CONTRACT_CALL,
+    futureType: FutureType.CONTRACT_CALL,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
@@ -85,7 +85,7 @@ describe("Reconciliation - named contract call", () => {
         {
           ...exampleContractCallState,
           id: "Submodule#Contract1.function1",
-          futureType: FutureType.NAMED_CONTRACT_CALL,
+          futureType: FutureType.CONTRACT_CALL,
           status: ExecutionStatus.SUCCESS,
           functionName: "function1",
           args: [1, "a", differentAddress],
@@ -118,7 +118,7 @@ describe("Reconciliation - named contract call", () => {
         {
           ...exampleContractCallState,
           id: "Module#config",
-          futureType: FutureType.NAMED_CONTRACT_CALL,
+          futureType: FutureType.CONTRACT_CALL,
           status: ExecutionStatus.STARTED,
           functionName: "function1",
           contractAddress: exampleAddress,
@@ -159,7 +159,7 @@ describe("Reconciliation - named contract call", () => {
         {
           ...exampleContractCallState,
           id: "Module#config",
-          futureType: FutureType.NAMED_CONTRACT_CALL,
+          futureType: FutureType.CONTRACT_CALL,
           status: ExecutionStatus.STARTED,
           functionName: "functionUnchanged",
         }
@@ -201,7 +201,7 @@ describe("Reconciliation - named contract call", () => {
         {
           ...exampleContractCallState,
           id: "Module#Contract1.function1",
-          futureType: FutureType.NAMED_CONTRACT_CALL,
+          futureType: FutureType.CONTRACT_CALL,
           status: ExecutionStatus.STARTED,
           functionName: "function1",
           args: [["UNCHANGED"]],
@@ -241,7 +241,7 @@ describe("Reconciliation - named contract call", () => {
         {
           ...exampleContractCallState,
           id: "Module#config",
-          futureType: FutureType.NAMED_CONTRACT_CALL,
+          futureType: FutureType.CONTRACT_CALL,
           status: ExecutionStatus.STARTED,
           functionName: "function1",
           value: BigInt(2),
@@ -281,7 +281,7 @@ describe("Reconciliation - named contract call", () => {
         {
           ...exampleContractCallState,
           id: "Module#config",
-          futureType: FutureType.NAMED_CONTRACT_CALL,
+          futureType: FutureType.CONTRACT_CALL,
           status: ExecutionStatus.STARTED,
           functionName: "function1",
           from: oneAddress,

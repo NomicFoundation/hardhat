@@ -124,7 +124,7 @@ export class StoredDeploymentSerializer {
     context: SerializeContext
   ): SerializedFuture {
     switch (future.type) {
-      case FutureType.NAMED_CONTRACT_DEPLOYMENT:
+      case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
         const serializedNamedContractDeploymentFuture: SerializedNamedContractDeploymentFuture =
           {
             id: future.id,
@@ -147,7 +147,7 @@ export class StoredDeploymentSerializer {
           };
         return serializedNamedContractDeploymentFuture;
 
-      case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
+      case FutureType.CONTRACT_DEPLOYMENT:
         const serializedArtifactContractDeploymentFuture: SerializedArtifactContractDeploymentFuture =
           {
             id: future.id,
@@ -171,7 +171,7 @@ export class StoredDeploymentSerializer {
           };
         return serializedArtifactContractDeploymentFuture;
 
-      case FutureType.NAMED_LIBRARY_DEPLOYMENT:
+      case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
         const serializedNamedLibraryDeploymentFuture: SerializedNamedLibraryDeploymentFuture =
           {
             id: future.id,
@@ -188,7 +188,7 @@ export class StoredDeploymentSerializer {
           };
         return serializedNamedLibraryDeploymentFuture;
 
-      case FutureType.ARTIFACT_LIBRARY_DEPLOYMENT:
+      case FutureType.LIBRARY_DEPLOYMENT:
         const serializedArtifactLibraryDeploymentFuture: SerializedArtifactLibraryDeploymentFuture =
           {
             id: future.id,
@@ -206,7 +206,7 @@ export class StoredDeploymentSerializer {
           };
         return serializedArtifactLibraryDeploymentFuture;
 
-      case FutureType.NAMED_CONTRACT_CALL:
+      case FutureType.CONTRACT_CALL:
         const serializedNamedContractCallFuture: SerializedNamedContractCallFuture =
           {
             id: future.id,
@@ -227,7 +227,7 @@ export class StoredDeploymentSerializer {
           };
         return serializedNamedContractCallFuture;
 
-      case FutureType.NAMED_STATIC_CALL:
+      case FutureType.STATIC_CALL:
         const serializedNamedStaticCallFuture: SerializedNamedStaticCallFuture =
           {
             id: future.id,
@@ -246,7 +246,7 @@ export class StoredDeploymentSerializer {
           };
         return serializedNamedStaticCallFuture;
 
-      case FutureType.NAMED_CONTRACT_AT:
+      case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
         const serializedNamedContractAtFuture: SerializedNamedContractAtFuture =
           {
             id: future.id,
@@ -265,7 +265,7 @@ export class StoredDeploymentSerializer {
           };
         return serializedNamedContractAtFuture;
 
-      case FutureType.ARTIFACT_CONTRACT_AT:
+      case FutureType.CONTRACT_AT:
         const serializedArtifactContractAtFuture: SerializedArtifactContractAtFuture =
           {
             id: future.id,
@@ -542,7 +542,7 @@ export class StoredDeploymentDeserializer {
       }
 
       if (
-        swappedFuture.type === FutureType.NAMED_CONTRACT_CALL ||
+        swappedFuture.type === FutureType.CONTRACT_CALL ||
         swappedFuture.type === FutureType.SEND_DATA
       ) {
         throw new IgnitionError(
@@ -632,7 +632,7 @@ export class StoredDeploymentDeserializer {
     const mod = this._lookup(modulesLookup, serializedFuture.moduleId);
 
     switch (serializedFuture.type) {
-      case FutureType.NAMED_CONTRACT_DEPLOYMENT:
+      case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
         return new NamedContractDeploymentFutureImplementation(
           serializedFuture.id,
           mod,
@@ -655,7 +655,7 @@ export class StoredDeploymentDeserializer {
             ? this._deserializeAccountRuntimeValue(serializedFuture.from)
             : serializedFuture.from
         );
-      case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
+      case FutureType.CONTRACT_DEPLOYMENT:
         return new ArtifactContractDeploymentFutureImplementation(
           serializedFuture.id,
           mod,
@@ -679,7 +679,7 @@ export class StoredDeploymentDeserializer {
             ? this._deserializeAccountRuntimeValue(serializedFuture.from)
             : serializedFuture.from
         );
-      case FutureType.NAMED_LIBRARY_DEPLOYMENT:
+      case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
         return new NamedLibraryDeploymentFutureImplementation(
           serializedFuture.id,
           mod,
@@ -694,7 +694,7 @@ export class StoredDeploymentDeserializer {
             ? this._deserializeAccountRuntimeValue(serializedFuture.from)
             : serializedFuture.from
         );
-      case FutureType.ARTIFACT_LIBRARY_DEPLOYMENT:
+      case FutureType.LIBRARY_DEPLOYMENT:
         return new ArtifactLibraryDeploymentFutureImplementation(
           serializedFuture.id,
           mod,
@@ -710,7 +710,7 @@ export class StoredDeploymentDeserializer {
             ? this._deserializeAccountRuntimeValue(serializedFuture.from)
             : serializedFuture.from
         );
-      case FutureType.NAMED_CONTRACT_CALL:
+      case FutureType.CONTRACT_CALL:
         return new NamedContractCallFutureImplementation(
           serializedFuture.id,
           mod,
@@ -731,7 +731,7 @@ export class StoredDeploymentDeserializer {
             ? this._deserializeAccountRuntimeValue(serializedFuture.from)
             : serializedFuture.from
         );
-      case FutureType.NAMED_STATIC_CALL:
+      case FutureType.STATIC_CALL:
         return new NamedStaticCallFutureImplementation(
           serializedFuture.id,
           mod,
@@ -748,7 +748,7 @@ export class StoredDeploymentDeserializer {
             ? this._deserializeAccountRuntimeValue(serializedFuture.from)
             : serializedFuture.from
         );
-      case FutureType.NAMED_CONTRACT_AT:
+      case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
         return new NamedContractAtFutureImplementation(
           serializedFuture.id,
           mod,
@@ -766,7 +766,7 @@ export class StoredDeploymentDeserializer {
               ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid values
             : serializedFuture.address
         );
-      case FutureType.ARTIFACT_CONTRACT_AT:
+      case FutureType.CONTRACT_AT:
         return new ArtifactContractAtFutureImplementation(
           serializedFuture.id,
           mod,

@@ -32,14 +32,14 @@ export type ArgumentType =
  * @beta
  */
 export enum FutureType {
-  NAMED_CONTRACT_DEPLOYMENT = "NAMED_CONTRACT_DEPLOYMENT",
-  ARTIFACT_CONTRACT_DEPLOYMENT = "ARTIFACT_CONTRACT_DEPLOYMENT",
-  NAMED_LIBRARY_DEPLOYMENT = "NAMED_LIBRARY_DEPLOYMENT",
-  ARTIFACT_LIBRARY_DEPLOYMENT = "ARTIFACT_LIBRARY_DEPLOYMENT",
-  NAMED_CONTRACT_CALL = "NAMED_CONTRACT_CALL",
-  NAMED_STATIC_CALL = "NAMED_STATIC_CALL",
-  NAMED_CONTRACT_AT = "NAMED_CONTRACT_AT",
-  ARTIFACT_CONTRACT_AT = "ARTIFACT_CONTRACT_AT",
+  NAMED_ARTIFACT_CONTRACT_DEPLOYMENT = "NAMED_ARTIFACT_CONTRACT_DEPLOYMENT",
+  CONTRACT_DEPLOYMENT = "CONTRACT_DEPLOYMENT",
+  NAMED_ARTIFACT_LIBRARY_DEPLOYMENT = "NAMED_ARTIFACT_LIBRARY_DEPLOYMENT",
+  LIBRARY_DEPLOYMENT = "LIBRARY_DEPLOYMENT",
+  CONTRACT_CALL = "CONTRACT_CALL",
+  STATIC_CALL = "STATIC_CALL",
+  NAMED_ARTIFACT_CONTRACT_AT = "NAMED_ARTIFACT_CONTRACT_AT",
+  CONTRACT_AT = "CONTRACT_AT",
   READ_EVENT_ARGUMENT = "READ_EVENT_ARGUMENT",
   SEND_DATA = "SEND_DATA",
 }
@@ -126,7 +126,7 @@ export type AddressResolvableFuture =
  * @beta
  */
 export interface NamedContractDeploymentFuture<ContractNameT extends string> {
-  type: FutureType.NAMED_CONTRACT_DEPLOYMENT;
+  type: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT;
   id: string;
   module: IgnitionModule;
   dependencies: Set<Future>;
@@ -144,7 +144,7 @@ export interface NamedContractDeploymentFuture<ContractNameT extends string> {
  * @beta
  */
 export interface ArtifactContractDeploymentFuture {
-  type: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT;
+  type: FutureType.CONTRACT_DEPLOYMENT;
   id: string;
   module: IgnitionModule;
   dependencies: Set<Future>;
@@ -162,7 +162,7 @@ export interface ArtifactContractDeploymentFuture {
  * @beta
  */
 export interface NamedLibraryDeploymentFuture<LibraryNameT extends string> {
-  type: FutureType.NAMED_LIBRARY_DEPLOYMENT;
+  type: FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT;
   id: string;
   module: IgnitionModule;
   dependencies: Set<Future>;
@@ -178,7 +178,7 @@ export interface NamedLibraryDeploymentFuture<LibraryNameT extends string> {
  * @beta
  */
 export interface ArtifactLibraryDeploymentFuture {
-  type: FutureType.ARTIFACT_LIBRARY_DEPLOYMENT;
+  type: FutureType.LIBRARY_DEPLOYMENT;
   id: string;
   module: IgnitionModule;
   dependencies: Set<Future>;
@@ -197,7 +197,7 @@ export interface NamedContractCallFuture<
   ContractNameT extends string,
   FunctionNameT extends string
 > {
-  type: FutureType.NAMED_CONTRACT_CALL;
+  type: FutureType.CONTRACT_CALL;
   id: string;
   module: IgnitionModule;
   dependencies: Set<Future>;
@@ -217,7 +217,7 @@ export interface NamedStaticCallFuture<
   ContractNameT extends string,
   FunctionNameT extends string
 > {
-  type: FutureType.NAMED_STATIC_CALL;
+  type: FutureType.STATIC_CALL;
   id: string;
   module: IgnitionModule;
   dependencies: Set<Future>;
@@ -234,7 +234,7 @@ export interface NamedStaticCallFuture<
  * @beta
  */
 export interface NamedContractAtFuture<ContractNameT extends string> {
-  type: FutureType.NAMED_CONTRACT_AT;
+  type: FutureType.NAMED_ARTIFACT_CONTRACT_AT;
   id: string;
   module: IgnitionModule;
   dependencies: Set<Future>;
@@ -252,7 +252,7 @@ export interface NamedContractAtFuture<ContractNameT extends string> {
  * @beta
  */
 export interface ArtifactContractAtFuture {
-  type: FutureType.ARTIFACT_CONTRACT_AT;
+  type: FutureType.CONTRACT_AT;
   id: string;
   module: IgnitionModule;
   dependencies: Set<Future>;

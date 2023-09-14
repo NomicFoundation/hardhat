@@ -25,7 +25,7 @@ describe("Reconciliation - named contract at", () => {
   const exampleContractAtState: ContractAtExecutionState = {
     id: "Example",
     type: ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
-    futureType: FutureType.NAMED_CONTRACT_AT,
+    futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
@@ -37,7 +37,7 @@ describe("Reconciliation - named contract at", () => {
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
     type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
-    futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+    futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
@@ -53,7 +53,7 @@ describe("Reconciliation - named contract at", () => {
   const exampleStaticCallState: StaticCallExecutionState = {
     id: "Example",
     type: ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
-    futureType: FutureType.NAMED_STATIC_CALL,
+    futureType: FutureType.STATIC_CALL,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
@@ -82,7 +82,7 @@ describe("Reconciliation - named contract at", () => {
     const deploymentState = createDeploymentState({
       ...exampleContractAtState,
       id: `Submodule#Contract1`,
-      futureType: FutureType.NAMED_CONTRACT_AT,
+      futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
       status: ExecutionStatus.STARTED,
       contractAddress: exampleAddress,
     });
@@ -104,7 +104,7 @@ describe("Reconciliation - named contract at", () => {
       {
         ...exampleDeploymentState,
         id: "Module#Example",
-        futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+        futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
         status: ExecutionStatus.SUCCESS,
         contractName: "Example",
         result: {
@@ -115,7 +115,7 @@ describe("Reconciliation - named contract at", () => {
       {
         ...exampleStaticCallState,
         id: "Module#Example.getAddress",
-        futureType: FutureType.NAMED_STATIC_CALL,
+        futureType: FutureType.STATIC_CALL,
         status: ExecutionStatus.SUCCESS,
         functionName: "getAddress",
         result: {
@@ -126,7 +126,7 @@ describe("Reconciliation - named contract at", () => {
       {
         ...exampleContractAtState,
         id: "Module#Another",
-        futureType: FutureType.NAMED_CONTRACT_AT,
+        futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
         status: ExecutionStatus.STARTED,
         contractAddress: differentAddress,
         contractName: "Another",
@@ -150,7 +150,7 @@ describe("Reconciliation - named contract at", () => {
       createDeploymentState({
         ...exampleContractAtState,
         id: "Module#Factory",
-        futureType: FutureType.NAMED_CONTRACT_AT,
+        futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
         status: ExecutionStatus.STARTED,
         contractName: "ContractUnchanged",
         contractAddress: exampleAddress,
@@ -180,7 +180,7 @@ describe("Reconciliation - named contract at", () => {
       createDeploymentState({
         ...exampleContractAtState,
         id: "Module#Factory",
-        futureType: FutureType.NAMED_CONTRACT_AT,
+        futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
         status: ExecutionStatus.STARTED,
         contractAddress: differentAddress,
       })

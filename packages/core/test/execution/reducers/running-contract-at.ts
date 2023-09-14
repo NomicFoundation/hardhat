@@ -27,7 +27,7 @@ describe("DeploymentStateReducer", () => {
       {
         type: JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE,
         futureId: "ContractAt1",
-        futureType: FutureType.NAMED_CONTRACT_AT,
+        futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
         strategy: "basic",
         dependencies: [],
         artifactId: "ContractAt1",

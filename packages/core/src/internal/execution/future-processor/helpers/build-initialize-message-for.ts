@@ -33,8 +33,8 @@ export async function buildInitializeMessageFor(
   defaultSender: string
 ): Promise<JournalMessage> {
   switch (future.type) {
-    case FutureType.NAMED_CONTRACT_DEPLOYMENT:
-    case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
+    case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
+    case FutureType.CONTRACT_DEPLOYMENT:
       const deploymentExecStateInit: DeploymentExecutionStateInitializeMessage =
         _extendBaseInitWith(
           JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE,
@@ -57,8 +57,8 @@ export async function buildInitializeMessageFor(
         );
 
       return deploymentExecStateInit;
-    case FutureType.NAMED_LIBRARY_DEPLOYMENT:
-    case FutureType.ARTIFACT_LIBRARY_DEPLOYMENT:
+    case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
+    case FutureType.LIBRARY_DEPLOYMENT:
       const libraryDeploymentInit: DeploymentExecutionStateInitializeMessage =
         _extendBaseInitWith(
           JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE,
@@ -76,7 +76,7 @@ export async function buildInitializeMessageFor(
         );
 
       return libraryDeploymentInit;
-    case FutureType.NAMED_CONTRACT_CALL: {
+    case FutureType.CONTRACT_CALL: {
       const namedContractCallInit: CallExecutionStateInitializeMessage =
         _extendBaseInitWith(
           JournalMessageType.CALL_EXECUTION_STATE_INITIALIZE,
@@ -102,7 +102,7 @@ export async function buildInitializeMessageFor(
 
       return namedContractCallInit;
     }
-    case FutureType.NAMED_STATIC_CALL: {
+    case FutureType.STATIC_CALL: {
       const namedStaticCallInit: StaticCallExecutionStateInitializeMessage =
         _extendBaseInitWith(
           JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE,
@@ -128,8 +128,8 @@ export async function buildInitializeMessageFor(
 
       return namedStaticCallInit;
     }
-    case FutureType.NAMED_CONTRACT_AT:
-    case FutureType.ARTIFACT_CONTRACT_AT: {
+    case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
+    case FutureType.CONTRACT_AT: {
       const contractAtInit: ContractAtExecutionStateInitializeMessage =
         _extendBaseInitWith(
           JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE,

@@ -33,7 +33,7 @@ describe("Read event argument", () => {
       });
 
       const callFuture = Array.from(mod.futures).find(
-        (f) => f.type === FutureType.NAMED_CONTRACT_CALL
+        (f) => f.type === FutureType.CONTRACT_CALL
       );
 
       const [read1, read2, read3] = Array.from(mod.futures).filter(

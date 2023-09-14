@@ -90,12 +90,12 @@ export function isContractFuture(
   future: Future
 ): future is ContractFuture<string> {
   switch (future.type) {
-    case FutureType.NAMED_CONTRACT_DEPLOYMENT:
-    case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
-    case FutureType.NAMED_LIBRARY_DEPLOYMENT:
-    case FutureType.ARTIFACT_LIBRARY_DEPLOYMENT:
-    case FutureType.NAMED_CONTRACT_AT:
-    case FutureType.ARTIFACT_CONTRACT_AT:
+    case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
+    case FutureType.CONTRACT_DEPLOYMENT:
+    case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
+    case FutureType.LIBRARY_DEPLOYMENT:
+    case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
+    case FutureType.CONTRACT_AT:
       return true;
 
     default:
@@ -112,10 +112,10 @@ export function isCallableContractFuture(
   future: Future
 ): future is CallableContractFuture<string> {
   switch (future.type) {
-    case FutureType.NAMED_CONTRACT_DEPLOYMENT:
-    case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
-    case FutureType.NAMED_CONTRACT_AT:
-    case FutureType.ARTIFACT_CONTRACT_AT:
+    case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
+    case FutureType.CONTRACT_DEPLOYMENT:
+    case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
+    case FutureType.CONTRACT_AT:
       return true;
 
     default:
@@ -133,7 +133,7 @@ export function isAddressResolvableFuture(
 ): future is AddressResolvableFuture {
   return (
     isContractFuture(future) ||
-    future.type === FutureType.NAMED_STATIC_CALL ||
+    future.type === FutureType.STATIC_CALL ||
     future.type === FutureType.READ_EVENT_ARGUMENT
   );
 }
@@ -147,8 +147,8 @@ export function isFunctionCallFuture(
   future: Future
 ): future is FunctionCallFuture<string, string> {
   return (
-    future.type === FutureType.NAMED_CONTRACT_CALL ||
-    future.type === FutureType.NAMED_STATIC_CALL
+    future.type === FutureType.CONTRACT_CALL ||
+    future.type === FutureType.STATIC_CALL
   );
 }
 
@@ -160,7 +160,7 @@ export function isFunctionCallFuture(
 export function isNamedStaticCallFuture(
   future: Future
 ): future is NamedStaticCallFuture<string, string> {
-  return future.type === FutureType.NAMED_STATIC_CALL;
+  return future.type === FutureType.STATIC_CALL;
 }
 
 /**
@@ -182,7 +182,7 @@ export function isReadEventArgumentFuture(
 export function isNamedContractDeploymentFuture(
   future: Future
 ): future is NamedContractDeploymentFuture<string> {
-  return future.type === FutureType.NAMED_CONTRACT_DEPLOYMENT;
+  return future.type === FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT;
 }
 
 /**
@@ -193,7 +193,7 @@ export function isNamedContractDeploymentFuture(
 export function isArtifactContractDeploymentFuture(
   future: Future
 ): future is ArtifactContractDeploymentFuture {
-  return future.type === FutureType.ARTIFACT_CONTRACT_DEPLOYMENT;
+  return future.type === FutureType.CONTRACT_DEPLOYMENT;
 }
 
 /**
@@ -204,7 +204,7 @@ export function isArtifactContractDeploymentFuture(
 export function isNamedLibraryDeploymentFuture(
   future: Future
 ): future is NamedLibraryDeploymentFuture<string> {
-  return future.type === FutureType.NAMED_LIBRARY_DEPLOYMENT;
+  return future.type === FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT;
 }
 
 /**
@@ -215,7 +215,7 @@ export function isNamedLibraryDeploymentFuture(
 export function isArtifactLibraryDeploymentFuture(
   future: Future
 ): future is ArtifactLibraryDeploymentFuture {
-  return future.type === FutureType.ARTIFACT_LIBRARY_DEPLOYMENT;
+  return future.type === FutureType.LIBRARY_DEPLOYMENT;
 }
 
 /**
@@ -226,7 +226,7 @@ export function isArtifactLibraryDeploymentFuture(
 export function isNamedContractAtFuture(
   future: Future
 ): future is NamedContractAtFuture<string> {
-  return future.type === FutureType.NAMED_CONTRACT_AT;
+  return future.type === FutureType.NAMED_ARTIFACT_CONTRACT_AT;
 }
 
 /**
@@ -237,7 +237,7 @@ export function isNamedContractAtFuture(
 export function isArtifactContractAtFuture(
   future: Future
 ): future is ArtifactContractAtFuture {
-  return future.type === FutureType.ARTIFACT_CONTRACT_AT;
+  return future.type === FutureType.CONTRACT_AT;
 }
 
 /**
@@ -249,10 +249,10 @@ export function isDeploymentType(
   potential: unknown
 ): potential is DeploymentFuture<string>["type"] {
   const deploymentTypes = [
-    FutureType.NAMED_CONTRACT_DEPLOYMENT,
-    FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
-    FutureType.NAMED_LIBRARY_DEPLOYMENT,
-    FutureType.ARTIFACT_LIBRARY_DEPLOYMENT,
+    FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
+    FutureType.CONTRACT_DEPLOYMENT,
+    FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT,
+    FutureType.LIBRARY_DEPLOYMENT,
   ];
 
   return (

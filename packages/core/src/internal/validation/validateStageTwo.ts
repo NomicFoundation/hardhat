@@ -62,7 +62,7 @@ async function _validateFuture(
   accounts: string[]
 ) {
   switch (future.type) {
-    case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
+    case FutureType.CONTRACT_DEPLOYMENT:
       await validateArtifactContractDeployment(
         future,
         artifactLoader,
@@ -70,7 +70,7 @@ async function _validateFuture(
         accounts
       );
       break;
-    case FutureType.ARTIFACT_LIBRARY_DEPLOYMENT:
+    case FutureType.LIBRARY_DEPLOYMENT:
       await validateArtifactLibraryDeployment(
         future,
         artifactLoader,
@@ -78,7 +78,7 @@ async function _validateFuture(
         accounts
       );
       break;
-    case FutureType.ARTIFACT_CONTRACT_AT:
+    case FutureType.CONTRACT_AT:
       await validateArtifactContractAt(
         future,
         artifactLoader,
@@ -86,7 +86,7 @@ async function _validateFuture(
         accounts
       );
       break;
-    case FutureType.NAMED_CONTRACT_DEPLOYMENT:
+    case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
       await validateNamedContractDeployment(
         future,
         artifactLoader,
@@ -94,7 +94,7 @@ async function _validateFuture(
         accounts
       );
       break;
-    case FutureType.NAMED_LIBRARY_DEPLOYMENT:
+    case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
       await validateNamedLibraryDeployment(
         future,
         artifactLoader,
@@ -102,7 +102,7 @@ async function _validateFuture(
         accounts
       );
       break;
-    case FutureType.NAMED_CONTRACT_AT:
+    case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
       await validateNamedContractAt(
         future,
         artifactLoader,
@@ -110,7 +110,7 @@ async function _validateFuture(
         accounts
       );
       break;
-    case FutureType.NAMED_CONTRACT_CALL:
+    case FutureType.CONTRACT_CALL:
       await validateNamedContractCall(
         future,
         artifactLoader,
@@ -118,7 +118,7 @@ async function _validateFuture(
         accounts
       );
       break;
-    case FutureType.NAMED_STATIC_CALL:
+    case FutureType.STATIC_CALL:
       await validateNamedStaticCall(
         future,
         artifactLoader,

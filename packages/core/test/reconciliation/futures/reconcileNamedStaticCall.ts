@@ -26,7 +26,7 @@ describe("Reconciliation - named static call", () => {
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
     type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
-    futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+    futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
@@ -42,7 +42,7 @@ describe("Reconciliation - named static call", () => {
   const exampleStaticCallState: StaticCallExecutionState = {
     id: "Example",
     type: ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
-    futureType: FutureType.NAMED_STATIC_CALL,
+    futureType: FutureType.STATIC_CALL,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
@@ -85,7 +85,7 @@ describe("Reconciliation - named static call", () => {
         {
           ...exampleStaticCallState,
           id: "Submodule#Contract1.function1",
-          futureType: FutureType.NAMED_STATIC_CALL,
+          futureType: FutureType.STATIC_CALL,
           status: ExecutionStatus.SUCCESS,
           contractAddress: exampleAddress,
           functionName: "function1",
@@ -159,7 +159,7 @@ describe("Reconciliation - named static call", () => {
         {
           ...exampleStaticCallState,
           id: "Module#config",
-          futureType: FutureType.NAMED_STATIC_CALL,
+          futureType: FutureType.STATIC_CALL,
           status: ExecutionStatus.STARTED,
           contractAddress: exampleAddress,
           functionName: "functionUnchanged",
@@ -202,7 +202,7 @@ describe("Reconciliation - named static call", () => {
         {
           ...exampleStaticCallState,
           id: "Module#Contract1.function1",
-          futureType: FutureType.NAMED_STATIC_CALL,
+          futureType: FutureType.STATIC_CALL,
           status: ExecutionStatus.STARTED,
           contractAddress: exampleAddress,
           functionName: "function1",
@@ -246,7 +246,7 @@ describe("Reconciliation - named static call", () => {
         {
           ...exampleStaticCallState,
           id: "Module#config",
-          futureType: FutureType.NAMED_STATIC_CALL,
+          futureType: FutureType.STATIC_CALL,
           status: ExecutionStatus.STARTED,
           contractAddress: exampleAddress,
           functionName: "function1",
@@ -278,7 +278,7 @@ describe("Reconciliation - named static call", () => {
         {
           ...exampleDeploymentState,
           id: "Module#Contract",
-          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           result: {
             type: ExecutionResultType.SUCCESS,
@@ -341,7 +341,7 @@ describe("Reconciliation - named static call", () => {
         {
           ...exampleStaticCallState,
           id: "Module#first_call",
-          futureType: FutureType.NAMED_STATIC_CALL,
+          futureType: FutureType.STATIC_CALL,
           status: ExecutionStatus.SUCCESS,
           dependencies: new Set(["Module#Contract1"]),
           contractAddress: exampleAddress,
@@ -355,7 +355,7 @@ describe("Reconciliation - named static call", () => {
         {
           ...exampleStaticCallState,
           id: "Module#second_call",
-          futureType: FutureType.NAMED_STATIC_CALL,
+          futureType: FutureType.STATIC_CALL,
           status: ExecutionStatus.SUCCESS,
           dependencies: new Set(["Module#Contract1", "Module#first_call"]),
           contractAddress: exampleAddress,

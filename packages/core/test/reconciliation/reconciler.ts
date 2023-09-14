@@ -25,7 +25,7 @@ describe("Reconciliation", () => {
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Module1#Contract1",
     type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
-    futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+    futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
@@ -115,7 +115,7 @@ describe("Reconciliation", () => {
       executionStates: {
         "Module1#Example": {
           ...exampleDeploymentState,
-          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.STARTED,
         },
       },
@@ -183,7 +183,7 @@ describe("Reconciliation", () => {
         executionStates: {
           "Module1#Contract1": {
             ...exampleDeploymentState,
-            futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+            futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.STARTED,
             from: getDefaultSender(exampleAccounts),
           },
@@ -206,7 +206,7 @@ describe("Reconciliation", () => {
         moduleDefinition,
         createDeploymentState({
           ...exampleDeploymentState,
-          futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+          futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.STARTED,
           from: exampleAccounts[3],
         })
@@ -241,21 +241,21 @@ describe("Reconciliation", () => {
           {
             ...exampleDeploymentState,
             id: "Module#Contract1",
-            futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+            futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.SUCCESS,
             contractName: "Contract1",
           },
           {
             ...exampleDeploymentState,
             id: "Module#Contract2",
-            futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+            futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.SUCCESS,
             contractName: "Contract2",
           },
           {
             ...exampleDeploymentState,
             id: "Module#Contract3",
-            futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+            futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.STARTED,
             dependencies: new Set(["Module#Contract2", "Module#Contract2"]),
             contractName: "Contract3",
@@ -281,21 +281,21 @@ describe("Reconciliation", () => {
           {
             ...exampleDeploymentState,
             id: "Module#Contract1",
-            futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+            futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.SUCCESS,
             contractName: "Contract1",
           },
           {
             ...exampleDeploymentState,
             id: "Module#Contract2",
-            futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+            futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.SUCCESS,
             contractName: "Contract2",
           },
           {
             ...exampleDeploymentState,
             id: "Module#Contract3",
-            futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+            futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.SUCCESS,
             dependencies: new Set(["Module#Contract1", "Module#Contract2"]),
             contractName: "Contract3",
@@ -320,14 +320,14 @@ describe("Reconciliation", () => {
           {
             ...exampleDeploymentState,
             id: "Module#Contract1",
-            futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+            futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.SUCCESS,
             contractName: "Contract1",
           },
           {
             ...exampleDeploymentState,
             id: "Module#Contract2",
-            futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+            futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.STARTED,
             contractName: "Contract2",
             dependencies: new Set<string>(), // no deps on last run
@@ -352,14 +352,14 @@ describe("Reconciliation", () => {
           {
             ...exampleDeploymentState,
             id: "Module#Contract1",
-            futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+            futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.STARTED, // Could still be in flight
             contractName: "Contract1",
           },
           {
             ...exampleDeploymentState,
             id: "Module#Contract2",
-            futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+            futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.SUCCESS,
             dependencies: new Set<string>(), // no deps on last run
             contractName: "Contract2",
@@ -394,7 +394,7 @@ describe("Reconciliation", () => {
           {
             ...exampleDeploymentState,
             id: "Module#ContractOriginal",
-            futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+            futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.SUCCESS,
             dependencies: new Set<string>(), // no deps on last run
             contractName: "ContractOriginal",
@@ -402,7 +402,7 @@ describe("Reconciliation", () => {
           {
             ...exampleDeploymentState,
             id: "Module#Contract2",
-            futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+            futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
             status: ExecutionStatus.STARTED,
             dependencies: new Set<string>("Module#ContractOriginal"), // no deps on last run
             contractName: "Contract2",

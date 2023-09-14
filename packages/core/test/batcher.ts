@@ -15,7 +15,7 @@ describe("batcher", () => {
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
     type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
-    futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+    futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),

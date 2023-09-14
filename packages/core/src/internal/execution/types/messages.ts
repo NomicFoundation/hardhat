@@ -150,7 +150,7 @@ export interface SendDataExecutionStateCompleteMessage {
 
 export interface ContractAtExecutionStateInitializeMessage {
   type: JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE;
-  futureType: FutureType.NAMED_CONTRACT_AT | FutureType.ARTIFACT_CONTRACT_AT;
+  futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT | FutureType.CONTRACT_AT;
   futureId: string;
   strategy: string;
   dependencies: string[];

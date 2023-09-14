@@ -24,7 +24,7 @@ describe("Reconciliation - named library", () => {
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
     type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
-    futureType: FutureType.NAMED_CONTRACT_DEPLOYMENT,
+    futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     strategy: "basic",
     status: ExecutionStatus.STARTED,
     dependencies: new Set<string>(),
@@ -60,7 +60,7 @@ describe("Reconciliation - named library", () => {
         {
           ...exampleDeploymentState,
           id: "Submodule#SafeMath",
-          futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
+          futureType: FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           contractName: "SafeMath",
           result: {
@@ -71,7 +71,7 @@ describe("Reconciliation - named library", () => {
         {
           ...exampleDeploymentState,
           id: "Submodule#MainLibrary",
-          futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
+          futureType: FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT,
           status: ExecutionStatus.STARTED,
           contractName: "MainLibrary",
           libraries: {
@@ -94,7 +94,7 @@ describe("Reconciliation - named library", () => {
       createDeploymentState({
         ...exampleDeploymentState,
         id: "Module#Library",
-        futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
+        futureType: FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         contractName: "LibraryUnchanged",
       })
@@ -126,7 +126,7 @@ describe("Reconciliation - named library", () => {
         {
           ...exampleDeploymentState,
           id: "Module#SafeMath",
-          futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
+          futureType: FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT,
           status: ExecutionStatus.SUCCESS,
           contractName: "SafeMath",
           result: {
@@ -137,7 +137,7 @@ describe("Reconciliation - named library", () => {
         {
           ...exampleDeploymentState,
           id: "Module#MainLibrary",
-          futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
+          futureType: FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT,
           status: ExecutionStatus.STARTED,
           contractName: "MainLibrary",
           libraries: {
@@ -167,7 +167,7 @@ describe("Reconciliation - named library", () => {
       createDeploymentState({
         ...exampleDeploymentState,
         id: "Module#Library",
-        futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
+        futureType: FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         contractName: "Library",
         from: oneAddress,

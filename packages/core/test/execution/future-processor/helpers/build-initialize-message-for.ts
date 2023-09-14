@@ -292,7 +292,7 @@ describe("buildInitializeMessageFor", () => {
 
     const safeMathExState: Partial<DeploymentExecutionState> = {
       type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
-      futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
+      futureType: FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT,
       result: {
         type: ExecutionResultType.SUCCESS,
         address: libraryAddress,
@@ -390,7 +390,7 @@ describe("buildInitializeMessageFor", () => {
         assert.deepStrictEqual(message, {
           type: JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE,
           futureId: "MyModule:ArtifactContract",
-          futureType: FutureType.ARTIFACT_CONTRACT_DEPLOYMENT,
+          futureType: FutureType.CONTRACT_DEPLOYMENT,
           strategy: "basic",
           dependencies: ["MyModule:AnotherContract", "MyModule:SafeMath"],
           artifactId: "MyModule:ArtifactContract",
@@ -429,7 +429,7 @@ describe("buildInitializeMessageFor", () => {
         assert.deepStrictEqual(message, {
           type: JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE,
           futureId: "MyModule:NamedLibrary",
-          futureType: FutureType.NAMED_LIBRARY_DEPLOYMENT,
+          futureType: FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT,
           strategy: "basic",
           dependencies: ["MyModule:SafeMath"],
           artifactId: "MyModule:NamedLibrary",
@@ -461,7 +461,7 @@ describe("buildInitializeMessageFor", () => {
         assert.deepStrictEqual(message, {
           type: JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE,
           futureId: "MyModule:ArtifactLibrary",
-          futureType: FutureType.ARTIFACT_LIBRARY_DEPLOYMENT,
+          futureType: FutureType.LIBRARY_DEPLOYMENT,
           strategy: "basic",
           dependencies: ["MyModule:SafeMath"],
           artifactId: "MyModule:ArtifactLibrary",
@@ -630,7 +630,7 @@ describe("buildInitializeMessageFor", () => {
         assert.deepStrictEqual(message, {
           type: JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE,
           futureId: "MyModule:NamedContractAt",
-          futureType: FutureType.NAMED_CONTRACT_AT,
+          futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
           strategy: "basic",
           dependencies: [],
           artifactId: "MyModule:NamedContractAt",
@@ -657,7 +657,7 @@ describe("buildInitializeMessageFor", () => {
         assert.deepStrictEqual(message, {
           type: JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE,
           futureId: "MyModule:ArtifactContractAt",
-          futureType: FutureType.ARTIFACT_CONTRACT_AT,
+          futureType: FutureType.CONTRACT_AT,
           strategy: "basic",
           dependencies: [],
           artifactId: "MyModule:ArtifactContractAt",
@@ -695,7 +695,7 @@ describe("buildInitializeMessageFor", () => {
         assert.deepStrictEqual(m, {
           type: JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE,
           futureId: "MyModule:NamedContractAt",
-          futureType: FutureType.NAMED_CONTRACT_AT,
+          futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
           strategy: "basic",
           dependencies: [],
           artifactId: "MyModule:NamedContractAt",
@@ -725,7 +725,7 @@ describe("buildInitializeMessageFor", () => {
         assert.deepStrictEqual(m, {
           type: JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE,
           futureId: "MyModule:NamedContractAt",
-          futureType: FutureType.NAMED_CONTRACT_AT,
+          futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
           strategy: "basic",
           dependencies: [],
           artifactId: "MyModule:NamedContractAt",
@@ -739,7 +739,7 @@ describe("buildInitializeMessageFor", () => {
       beforeEach(() => {
         const namedContractAtExState: Partial<ContractAtExecutionState> = {
           type: ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
-          futureType: FutureType.NAMED_CONTRACT_AT,
+          futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
           contractAddress: differentAddress,
         };
 
@@ -771,7 +771,7 @@ describe("buildInitializeMessageFor", () => {
         assert.deepStrictEqual(m, {
           type: JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE,
           futureId: "MyModule:SecondNamedContractAt",
-          futureType: FutureType.NAMED_CONTRACT_AT,
+          futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
           strategy: "basic",
           dependencies: [],
           artifactId: "MyModule:SecondNamedContractAt",
@@ -816,7 +816,7 @@ describe("buildInitializeMessageFor", () => {
         assert.deepStrictEqual(m, {
           type: JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE,
           futureId: "MyModule:NamedContractAt",
-          futureType: FutureType.NAMED_CONTRACT_AT,
+          futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
           strategy: "basic",
           dependencies: [],
           artifactId: "MyModule:NamedContractAt",
@@ -864,7 +864,7 @@ describe("buildInitializeMessageFor", () => {
         assert.deepStrictEqual(m, {
           type: JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE,
           futureId: "MyModule:NamedContractAt",
-          futureType: FutureType.NAMED_CONTRACT_AT,
+          futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
           strategy: "basic",
           dependencies: [],
           artifactId: "MyModule:NamedContractAt",
