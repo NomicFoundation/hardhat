@@ -125,7 +125,7 @@ describe("Reconciliation", () => {
       {
         futureId: "Module1#Example",
         failure:
-          "Future with id Module1#Example has changed from NAMED_CONTRACT_DEPLOYMENT to NAMED_LIBRARY_DEPLOYMENT",
+          "Future with id Module1#Example has changed from NAMED_ARTIFACT_CONTRACT_DEPLOYMENT to NAMED_ARTIFACT_LIBRARY_DEPLOYMENT",
       },
     ]);
   });
