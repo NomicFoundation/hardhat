@@ -41,7 +41,7 @@ describe("Read event argument", () => {
       ) as ReadEventArgumentFuture[];
 
       assert.equal(read1.futureToReadFrom, mod.results.contract);
-      assert.equal(read2.futureToReadFrom, mod.results.contract);
+      assert.equal(read2.futureToReadFrom, mod.results.contractFromArtifact);
       assert.equal(read3.futureToReadFrom, callFuture);
     });
 
