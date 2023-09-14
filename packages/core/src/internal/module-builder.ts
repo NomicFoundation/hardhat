@@ -432,10 +432,10 @@ class IgnitionModuleBuilderImplementation<
     /* validation start */
     this._assertValidId(options.id, this.staticCall);
     this._assertValidFunctionName(functionName, this.staticCall);
+    this._assertValidNameOrIndex(nameOrIndex, this.staticCall);
     this._assertUniqueStaticCallId(futureId);
     this._assertValidFrom(options.from, this.staticCall);
     this._assertValidCallableContract(contractFuture, this.staticCall);
-    this._assertValidNameOrIndex(nameOrIndex, this.staticCall);
     /* validation end */
 
     const future = new NamedStaticCallFutureImplementation(
