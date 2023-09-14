@@ -119,7 +119,7 @@ jobs:
         run: yarn test:except-provider
 
   test-provider:
-    name: Test provider (${{ matrix.os }}, Node ${{ matrix.node }}, ${{ matrix.vm }})
+    name: Test provider (${{ matrix.os }}, Node ${{ matrix.node }}, ${{ matrix.vm }}, Retain RPC cache ${{ matrix.retain-rpc-cache }})
     runs-on: ${{ matrix.os }}
     needs: check-rethnet
     strategy:
@@ -129,6 +129,7 @@ jobs:
         # disable until actions/virtual-environments#4896 is fixed
         # os: ["macos-latest", "ubuntu-latest", "windows-latest"]
         os: ["ubuntu-latest", "windows-latest"]
+        retain-rpc-cache: [true, false]
         vm: ["dual", "rethnet"]
     steps:
       - uses: actions/checkout@v3
@@ -156,6 +157,14 @@ jobs:
           path: |
             packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/artifacts
           key: hardhat-network-stack-traces-tests-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/*.sol') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/test.json') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/**/*.ts') }}
+
+      - name: Cache EDR RPC cache
+        uses: actions/cache@v2
+        if: matrix.retain-rpc-cache == true
+        with:
+          path: |
+            packages/hardhat-core/test/internal/hardhat-network/edr-cache
+          key: hardhat-network-edr-cache
 
       - name: Build
         run: yarn build

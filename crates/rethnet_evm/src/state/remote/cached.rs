@@ -125,7 +125,7 @@ impl State for CachedRemoteState {
 
 #[cfg(all(test, feature = "test-remote"))]
 mod tests {
-    use std::str::FromStr;
+    use std::{str::FromStr, sync::Arc};
 
     use rethnet_eth::remote::RpcClient;
     use rethnet_test_utils::env::get_alchemy_url;
@@ -147,7 +147,7 @@ mod tests {
 
         let runtime = runtime::Handle::current();
 
-        let remote = RemoteState::new(runtime, rpc_client, block_number);
+        let remote = RemoteState::new(runtime, Arc::new(rpc_client), block_number);
         let mut cached = CachedRemoteState::new(remote);
 
         let account_info = cached.basic(dai_address).expect("should succeed").unwrap();

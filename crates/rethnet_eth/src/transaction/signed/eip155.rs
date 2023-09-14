@@ -1,3 +1,5 @@
+use std::sync::OnceLock;
+
 use bytes::Bytes;
 use revm_primitives::{keccak256, Address, B256, U256};
 
@@ -6,7 +8,7 @@ use crate::{
     transaction::{kind::TransactionKind, request::EIP155TransactionRequest},
 };
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, Eq)]
 #[cfg_attr(
     feature = "fastrlp",
     derive(open_fastrlp::RlpEncodable, open_fastrlp::RlpDecodable)
@@ -23,11 +25,14 @@ pub struct EIP155SignedTransaction {
     #[cfg_attr(feature = "serde", serde(with = "crate::serde::bytes"))]
     pub input: Bytes,
     pub signature: Signature,
+    /// Cached transaction hash
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub hash: OnceLock<B256>,
 }
 
 impl EIP155SignedTransaction {
-    pub fn hash(&self) -> B256 {
-        keccak256(&rlp::encode(self))
+    pub fn hash(&self) -> &B256 {
+        self.hash.get_or_init(|| keccak256(&rlp::encode(self)))
     }
 
     /// Recovers the Ethereum address which was used to sign the transaction.
@@ -38,6 +43,18 @@ impl EIP155SignedTransaction {
 
     pub fn chain_id(&self) -> u64 {
         (self.signature.v - 35) / 2
+    }
+}
+
+impl PartialEq for EIP155SignedTransaction {
+    fn eq(&self, other: &Self) -> bool {
+        self.nonce == other.nonce
+            && self.gas_price == other.gas_price
+            && self.gas_limit == other.gas_limit
+            && self.kind == other.kind
+            && self.value == other.value
+            && self.input == other.input
+            && self.signature == other.signature
     }
 }
 
@@ -74,6 +91,7 @@ impl rlp::Decodable for EIP155SignedTransaction {
             value: rlp.val_at(4)?,
             input: rlp.val_at::<Vec<u8>>(5)?.into(),
             signature: Signature { r, s, v },
+            hash: OnceLock::new(),
         })
     }
 }
@@ -131,7 +149,7 @@ mod tests {
         let request = dummy_request();
         let signed = request.sign(&dummy_private_key());
 
-        assert_eq!(expected, signed.hash());
+        assert_eq!(expected, *signed.hash());
     }
 
     #[test]

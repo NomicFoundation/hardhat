@@ -1,11 +1,10 @@
-use std::{num::NonZeroUsize, sync::Arc};
+use std::{fmt::Debug, num::NonZeroUsize, sync::Arc};
 
 use parking_lot::{RwLock, RwLockUpgradableReadGuard, RwLockWriteGuard};
-use rethnet_eth::{
-    block::{Block, DetailedBlock, PartialHeader},
-    receipt::BlockReceipt,
-    SpecId, B256, U256,
-};
+use rethnet_eth::{block::PartialHeader, receipt::BlockReceipt, SpecId, B256, U256};
+use revm::primitives::HashMap;
+
+use crate::{state::StateDiff, Block, LocalBlock};
 
 use super::SparseBlockchainStorage;
 
@@ -18,24 +17,32 @@ struct Reservation {
     previous_base_fee_per_gas: Option<U256>,
     previous_state_root: B256,
     previous_total_difficulty: U256,
+    previous_diff_index: usize,
     spec_id: SpecId,
 }
 
 /// A storage solution for storing a subset of a Blockchain's blocks in-memory, while lazily loading blocks that have been reserved.
 #[derive(Debug)]
-pub struct ReservableSparseBlockchainStorage {
+pub struct ReservableSparseBlockchainStorage<BlockT: Block + Clone + ?Sized> {
     reservations: RwLock<Vec<Reservation>>,
-    storage: RwLock<SparseBlockchainStorage>,
+    storage: RwLock<SparseBlockchainStorage<BlockT>>,
+    // We can store the state diffs contiguously, as reservations don't contain any diffs.
+    // Diffs are a mapping from one state to the next, so the genesis state does not have a
+    // corresponding diff.
+    state_diffs: Vec<StateDiff>,
+    number_to_diff_index: HashMap<U256, usize>,
     last_block_number: U256,
 }
 
-impl ReservableSparseBlockchainStorage {
-    /// Constructs a new instance with the provided block.
-    pub fn with_block(block: DetailedBlock, total_difficulty: U256) -> Self {
+impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
+    /// Constructs a new instance with the provided block as genesis block.
+    pub fn with_genesis_block(block: BlockT, total_difficulty: U256) -> Self {
         Self {
             reservations: RwLock::new(Vec::new()),
-            last_block_number: block.header.number,
             storage: RwLock::new(SparseBlockchainStorage::with_block(block, total_difficulty)),
+            state_diffs: Vec::new(),
+            number_to_diff_index: HashMap::new(),
+            last_block_number: U256::ZERO,
         }
     }
 
@@ -44,23 +51,19 @@ impl ReservableSparseBlockchainStorage {
         Self {
             reservations: RwLock::new(Vec::new()),
             storage: RwLock::new(SparseBlockchainStorage::default()),
+            state_diffs: Vec::new(),
+            number_to_diff_index: HashMap::new(),
             last_block_number: latest_block_number,
         }
     }
 
     /// Retrieves the block by hash, if it exists.
-    pub fn block_by_hash(&self, hash: &B256) -> Option<Arc<DetailedBlock>> {
+    pub fn block_by_hash(&self, hash: &B256) -> Option<BlockT> {
         self.storage.read().block_by_hash(hash).cloned()
     }
 
-    /// Retrieves the block by number, if it exists.
-    pub fn block_by_number(&self, number: &U256) -> Option<Arc<DetailedBlock>> {
-        self.try_fulfilling_reservation(number)
-            .or_else(|| self.storage.read().block_by_number(number).cloned())
-    }
-
     /// Retrieves the block that contains the transaction with the provided hash, if it exists.
-    pub fn block_by_transaction_hash(&self, transaction_hash: &B256) -> Option<Arc<DetailedBlock>> {
+    pub fn block_by_transaction_hash(&self, transaction_hash: &B256) -> Option<BlockT> {
         self.storage
             .read()
             .block_by_transaction_hash(transaction_hash)
@@ -72,27 +75,26 @@ impl ReservableSparseBlockchainStorage {
         self.storage.read().contains_block_number(number)
     }
 
-    /// Inserts a block without checking its validity.
-    ///
-    /// # Safety
-    ///
-    /// Ensure that the instance does not contain a block with the same hash or number,
-    /// nor any transactions with the same hash.
-    pub unsafe fn insert_block_unchecked(
-        &mut self,
-        block: DetailedBlock,
-        total_difficulty: U256,
-    ) -> &Arc<DetailedBlock> {
-        self.last_block_number = block.header.number;
-
-        self.storage
-            .get_mut()
-            .insert_block_unchecked(block, total_difficulty)
-    }
-
     /// Retrieves the last block number.
     pub fn last_block_number(&self) -> &U256 {
         &self.last_block_number
+    }
+
+    /// Retrieves the sequence of diffs from the genesis state to the state of the block with
+    /// the provided number, if it exists.
+    pub fn state_diffs_until_block(&self, block_number: &U256) -> Option<&[StateDiff]> {
+        let diff_index = self
+            .number_to_diff_index
+            .get(block_number)
+            .copied()
+            .or_else(|| {
+                self.reservations
+                    .read()
+                    .last()
+                    .map(|reservation| reservation.previous_diff_index)
+            })?;
+
+        Some(&self.state_diffs[..=diff_index])
     }
 
     /// Retrieves the receipt of the transaction with the provided hash, if it exists.
@@ -104,31 +106,6 @@ impl ReservableSparseBlockchainStorage {
             .read()
             .receipt_by_transaction_hash(transaction_hash)
             .cloned()
-    }
-
-    /// Reverts to the block with the provided number, deleting all later blocks.
-    pub fn revert_to_block(&mut self, block_number: &U256) -> bool {
-        if *block_number > self.last_block_number {
-            return false;
-        }
-
-        self.last_block_number = *block_number;
-
-        // Only retain reservations that are not fully reverted
-        self.reservations.get_mut().retain_mut(|reservation| {
-            if reservation.last_number <= *block_number {
-                true
-            } else if reservation.first_number <= *block_number {
-                reservation.last_number = *block_number;
-                true
-            } else {
-                false
-            }
-        });
-
-        self.storage.get_mut().revert_to_block(block_number);
-
-        true
     }
 
     /// Reserves the provided number of blocks, starting from the next block number.
@@ -148,6 +125,7 @@ impl ReservableSparseBlockchainStorage {
             previous_base_fee_per_gas: previous_base_fee,
             previous_state_root,
             previous_total_difficulty,
+            previous_diff_index: self.state_diffs.len(),
             spec_id,
         };
 
@@ -155,12 +133,96 @@ impl ReservableSparseBlockchainStorage {
         self.last_block_number += U256::from(additional.get());
     }
 
+    /// Reverts to the block with the provided number, deleting all later blocks.
+    pub fn revert_to_block(&mut self, block_number: &U256) -> bool {
+        if *block_number > self.last_block_number {
+            return false;
+        }
+
+        self.last_block_number = *block_number;
+
+        self.storage.get_mut().revert_to_block(block_number);
+
+        if *block_number == U256::ZERO {
+            // Reservations and state diffs can only occur after the genesis block,
+            // so we can clear them all
+            self.reservations.get_mut().clear();
+
+            self.state_diffs.clear();
+            self.number_to_diff_index.clear();
+        } else {
+            // Only retain reservations that are not fully reverted
+            self.reservations.get_mut().retain_mut(|reservation| {
+                if reservation.last_number <= *block_number {
+                    true
+                } else if reservation.first_number <= *block_number {
+                    reservation.last_number = *block_number;
+                    true
+                } else {
+                    false
+                }
+            });
+
+            // Remove all diffs that are newer than the reverted block
+            let diff_index = self
+                .number_to_diff_index
+                .get(block_number)
+                .copied()
+                .unwrap_or_else(|| self.reservations.get_mut().last().expect("There must either be a block or a reservation matching the block number").previous_diff_index);
+
+            self.state_diffs.truncate(diff_index + 1);
+
+            self.number_to_diff_index
+                .retain(|number, _| number <= block_number);
+        }
+
+        true
+    }
+
     /// Retrieves the total difficulty of the block with the provided hash.
     pub fn total_difficulty_by_hash(&self, hash: &B256) -> Option<U256> {
         self.storage.read().total_difficulty_by_hash(hash).cloned()
     }
+}
 
-    fn try_fulfilling_reservation(&self, block_number: &U256) -> Option<Arc<DetailedBlock>> {
+impl<BlockT: Block + Clone + From<LocalBlock>> ReservableSparseBlockchainStorage<BlockT> {
+    /// Retrieves the block by number, if it exists.
+    pub fn block_by_number(&self, number: &U256) -> Option<BlockT> {
+        self.try_fulfilling_reservation(number)
+            .or_else(|| self.storage.read().block_by_number(number).cloned())
+    }
+
+    /// Inserts a block without checking its validity.
+    ///
+    /// # Safety
+    ///
+    /// Ensure that the instance does not contain a block with the same hash or number,
+    /// nor any transactions with the same hash.
+    pub unsafe fn insert_block_unchecked(
+        &mut self,
+        block: LocalBlock,
+        state_diff: StateDiff,
+        total_difficulty: U256,
+    ) -> &BlockT {
+        self.last_block_number = block.header().number;
+        self.number_to_diff_index
+            .insert(self.last_block_number, self.state_diffs.len());
+
+        self.state_diffs.push(state_diff);
+
+        let receipts: Vec<_> = block.transaction_receipts().to_vec();
+        let block = BlockT::from(block);
+
+        self.storage
+            .get_mut()
+            .insert_receipts_unchecked(receipts, block.clone());
+
+        self.storage
+            .get_mut()
+            .insert_block_unchecked(block, total_difficulty)
+    }
+
+    fn try_fulfilling_reservation(&self, block_number: &U256) -> Option<BlockT> {
         let reservations = self.reservations.upgradable_read();
 
         reservations
@@ -203,13 +265,7 @@ impl ReservableSparseBlockchainStorage {
                     block_number,
                 );
 
-                let withdrawals = if reservation.spec_id >= SpecId::SHANGHAI {
-                    Some(Vec::new())
-                } else {
-                    None
-                };
-
-                let block = Block::new(
+                let block = LocalBlock::empty(
                     PartialHeader {
                         number: *block_number,
                         state_root: reservation.previous_state_root,
@@ -217,27 +273,24 @@ impl ReservableSparseBlockchainStorage {
                         timestamp,
                         ..PartialHeader::default()
                     },
-                    Vec::new(),
-                    Vec::new(),
-                    withdrawals,
+                    reservation.spec_id,
                 );
-
-                let block = DetailedBlock::new(block, Vec::new(), Vec::new());
 
                 let mut storage = RwLockUpgradableReadGuard::upgrade(storage);
 
                 // SAFETY: Reservations are guaranteed to not overlap with other reservations or blocks, so the
                 // generated block must have a unique block number and thus hash.
                 unsafe {
-                    storage.insert_block_unchecked(block, reservation.previous_total_difficulty)
+                    storage
+                        .insert_block_unchecked(block.into(), reservation.previous_total_difficulty)
                 }
                 .clone()
             })
     }
 }
 
-fn calculate_timestamp_for_reserved_block(
-    storage: &SparseBlockchainStorage,
+fn calculate_timestamp_for_reserved_block<BlockT: Block + Clone>(
+    storage: &SparseBlockchainStorage<BlockT>,
     reservations: &Vec<Reservation>,
     reservation: &Reservation,
     block_number: &U256,
@@ -266,7 +319,7 @@ fn calculate_timestamp_for_reserved_block(
             .block_by_number(&previous_block_number)
             .expect("Block must exist");
 
-        previous_block.header.timestamp
+        previous_block.header().timestamp
     };
 
     previous_timestamp

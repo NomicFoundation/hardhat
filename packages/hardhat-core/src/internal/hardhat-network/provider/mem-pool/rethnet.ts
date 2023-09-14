@@ -1,6 +1,6 @@
 import { Address } from "@nomicfoundation/ethereumjs-util";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
-import { MemPool, PendingTransaction, StateManager } from "rethnet-evm";
+import { MemPool, PendingTransaction } from "rethnet-evm";
 import { MemPoolAdapter } from "../mem-pool";
 import {
   ethereumjsTransactionToRethnetSignedTransaction,
@@ -8,6 +8,7 @@ import {
   rethnetSignedTransactionToEthereumJSTypedTransaction,
 } from "../utils/convertToRethnet";
 import { HardforkName } from "../../../util/hardforks";
+import { RethnetStateManager } from "../RethnetState";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
@@ -18,7 +19,7 @@ export class RethnetMemPool implements MemPoolAdapter {
 
   constructor(
     blockGasLimit: bigint,
-    private readonly _stateManager: StateManager,
+    private readonly _stateManager: RethnetStateManager,
     private readonly _hardfork: HardforkName
   ) {
     this._memPool = new MemPool(blockGasLimit);
@@ -42,8 +43,7 @@ export class RethnetMemPool implements MemPoolAdapter {
     );
     return lastPendingNonce !== null
       ? lastPendingNonce + 1n
-      : (await this._stateManager.getAccountByAddress(accountAddress.buf))
-          ?.nonce ?? 0n;
+      : (await this._stateManager.getAccount(accountAddress))?.nonce ?? 0n;
   }
 
   public async addTransaction(transaction: TypedTransaction): Promise<void> {
@@ -54,13 +54,16 @@ export class RethnetMemPool implements MemPoolAdapter {
     const specId = ethereumsjsHardforkToRethnetSpecId(this._hardfork);
 
     const pendingTransaction = await PendingTransaction.create(
-      this._stateManager,
+      this._stateManager.asInner(),
       specId,
       rethnetTx,
       caller
     );
 
-    return this._memPool.addTransaction(this._stateManager, pendingTransaction);
+    return this._memPool.addTransaction(
+      this._stateManager.asInner(),
+      pendingTransaction
+    );
   }
 
   public async removeTransaction(hash: Buffer): Promise<boolean> {
@@ -68,7 +71,7 @@ export class RethnetMemPool implements MemPoolAdapter {
   }
 
   public async update(): Promise<void> {
-    return this._memPool.update(this._stateManager);
+    return this._memPool.update(this._stateManager.asInner());
   }
 
   public async getTransactions(): Promise<TypedTransaction[]> {

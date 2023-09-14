@@ -98,7 +98,9 @@ export class RethnetBlockchain implements BlockchainAdapter {
       ) {
         continue;
       }
-      for (const receipt of block.receipts) {
+      const receipts = await block.receipts();
+      console.log("receipts:", receipts);
+      for (const receipt of receipts) {
         logs.push(
           ...filterLogs(
             receipt.logs.map((log) => {

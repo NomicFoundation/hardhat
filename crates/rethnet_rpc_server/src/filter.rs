@@ -8,7 +8,10 @@ use rethnet_eth::{
     },
     Address, B256, U256,
 };
-use rethnet_evm::blockchain::{BlockchainError, SyncBlockchain};
+use rethnet_evm::{
+    blockchain::{BlockchainError, SyncBlockchain},
+    state::StateError,
+};
 
 use super::{_block_number_from_block_spec, _block_number_from_hash};
 
@@ -22,7 +25,7 @@ pub struct _FilterCriteria {
 impl _FilterCriteria {
     async fn _from_request_and_state<T>(
         request_options: FilterOptions,
-        blockchain: &dyn SyncBlockchain<BlockchainError>,
+        blockchain: &dyn SyncBlockchain<BlockchainError, StateError>,
     ) -> Result<Self, ResponseData<T>> {
         let (_from_block, _to_block) = match request_options.block_target {
             Some(FilterBlockTarget::Hash(hash)) => {

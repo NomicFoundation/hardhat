@@ -2,21 +2,26 @@ use std::{fmt::Debug, ops::Deref, path::PathBuf, sync::Arc};
 
 use napi::{
     bindgen_prelude::{BigInt, Buffer, ObjectFinalize},
-    tokio::sync::RwLock,
+    tokio::{runtime, sync::RwLock},
     Env, JsObject, Status,
 };
 use napi_derive::napi;
 
 use rethnet_eth::{B256, U256};
-use rethnet_evm::blockchain::{BlockchainError, SyncBlockchain};
+use rethnet_evm::{
+    blockchain::{BlockchainError, SyncBlockchain},
+    state::{AccountTrie, StateError, TrieState},
+    HashMap, RandomHashGenerator,
+};
 
 use crate::{
+    account::{genesis_accounts, GenesisAccount},
     block::{Block, BlockOptions},
     cast::TryCast,
     config::SpecId,
     context::RethnetContext,
     receipt::Receipt,
-    withdrawal::Withdrawal,
+    state::StateManager,
 };
 
 // An arbitrarily large amount of memory to signal to the javascript garbage collector that it needs to
@@ -27,25 +32,31 @@ const BLOCKCHAIN_MEMORY_SIZE: i64 = 10_000;
 #[napi(custom_finalize)]
 #[derive(Debug)]
 pub struct Blockchain {
-    inner: Arc<RwLock<dyn SyncBlockchain<BlockchainError>>>,
+    inner: Arc<RwLock<dyn SyncBlockchain<BlockchainError, StateError>>>,
+    runtime: runtime::Handle,
 }
 
 impl Blockchain {
-    fn with_blockchain<B>(env: &mut Env, blockchain: B) -> napi::Result<Self>
+    fn with_blockchain<BlockchainT>(
+        env: &mut Env,
+        blockchain: BlockchainT,
+        runtime: runtime::Handle,
+    ) -> napi::Result<Self>
     where
-        B: SyncBlockchain<BlockchainError>,
+        BlockchainT: SyncBlockchain<BlockchainError, StateError>,
     {
         // Signal that memory was externally allocated
         env.adjust_external_memory(BLOCKCHAIN_MEMORY_SIZE)?;
 
         Ok(Self {
             inner: Arc::new(RwLock::new(blockchain)),
+            runtime,
         })
     }
 }
 
 impl Deref for Blockchain {
-    type Target = Arc<RwLock<dyn SyncBlockchain<BlockchainError>>>;
+    type Target = Arc<RwLock<dyn SyncBlockchain<BlockchainError, StateError>>>;
 
     fn deref(&self) -> &Self::Target {
         &self.inner
@@ -59,36 +70,31 @@ impl Blockchain {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn with_genesis_block(
         mut env: Env,
+        context: &RethnetContext,
         chain_id: BigInt,
         spec_id: SpecId,
         genesis_block: BlockOptions,
-        withdrawals: Option<Vec<Withdrawal>>,
+        accounts: Vec<GenesisAccount>,
     ) -> napi::Result<Self> {
         let chain_id: U256 = chain_id.try_cast()?;
         let spec_id = rethnet_evm::SpecId::from(spec_id);
         let options = rethnet_eth::block::BlockOptions::try_from(genesis_block)?;
-        let withdrawals = withdrawals.map_or(Ok(None), |withdrawals| {
-            withdrawals
-                .into_iter()
-                .map(rethnet_eth::withdrawal::Withdrawal::try_from)
-                .collect::<napi::Result<Vec<_>>>()
-                .map(Some)
-        })?;
 
         let header = rethnet_eth::block::PartialHeader::new(spec_id, options, None);
-        let genesis_block =
-            rethnet_eth::block::Block::new(header, Vec::new(), Vec::new(), withdrawals);
-        let genesis_block =
-            rethnet_eth::block::DetailedBlock::new(genesis_block, Vec::new(), Vec::new());
+        let genesis_block = rethnet_evm::LocalBlock::empty(header, spec_id);
+
+        let accounts = genesis_accounts(accounts)?;
+        let genesis_state = TrieState::with_accounts(AccountTrie::with_accounts(&accounts));
 
         let blockchain = rethnet_evm::blockchain::LocalBlockchain::with_genesis_block(
+            genesis_block,
+            genesis_state,
             chain_id,
             spec_id,
-            genesis_block,
         )
         .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
 
-        Self::with_blockchain(&mut env, blockchain)
+        Self::with_blockchain(&mut env, blockchain, context.runtime().clone())
     }
 
     #[napi(ts_return_type = "Promise<Blockchain>")]
@@ -112,17 +118,22 @@ impl Blockchain {
         let (deferred, promise) = env.create_deferred()?;
         context.runtime().spawn(async move {
             let result = rethnet_evm::blockchain::ForkedBlockchain::new(
-                runtime,
+                runtime.clone(),
                 spec_id,
                 &remote_url,
                 cache_dir,
                 fork_block_number,
+                // TODO: Make this configurable
+                Arc::new(parking_lot::Mutex::new(RandomHashGenerator::with_seed(
+                    "seed",
+                ))),
+                HashMap::new(),
             )
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()));
 
             deferred.resolve(|mut env| {
-                result.map(|blockchain| Self::with_blockchain(&mut env, blockchain))
+                result.map(|blockchain| Self::with_blockchain(&mut env, blockchain, runtime))
             });
         });
 
@@ -277,6 +288,20 @@ impl Blockchain {
             .revert_to_block(&block_number)
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
+    }
+
+    #[napi]
+    pub async fn state_at_block(&self, block_number: BigInt) -> napi::Result<StateManager> {
+        let block_number: U256 = BigInt::try_cast(block_number)?;
+
+        self.read()
+            .await
+            .state_at_block(&block_number)
+            .await
+            .map_or_else(
+                |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+                |state| Ok(StateManager::from((state, self.runtime.clone()))),
+            )
     }
 
     #[doc = "Retrieves the total difficulty at the block with the provided hash."]

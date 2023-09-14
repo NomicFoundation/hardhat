@@ -14,6 +14,7 @@ import {
   guaranteedDryRun,
   run,
   ConfigOptions,
+  StateManager,
 } from "rethnet-evm";
 
 import { isForkedNodeConfig, NodeConfig } from "../node-types";
@@ -40,6 +41,7 @@ import { RethnetBlockBuilder } from "./block-builder/rethnet";
 
 export class RethnetAdapter implements VMAdapter {
   private _vmTracer: VMTracer;
+  private _stateRootToSnapshot: Map<Buffer, StateManager> = new Map();
 
   constructor(
     private _blockchain: Blockchain,
@@ -261,9 +263,16 @@ export class RethnetAdapter implements VMAdapter {
     block: Block,
     irregularStateOrUndefined: Buffer | undefined
   ): Promise<void> {
-    return this._state.setBlockContext(
-      irregularStateOrUndefined ?? block.header.stateRoot,
-      block.header.number
+    if (irregularStateOrUndefined !== undefined) {
+      const state = this._stateRootToSnapshot.get(irregularStateOrUndefined);
+      if (state === undefined) {
+        throw new Error("Unknown state root");
+      }
+      this._state.setInner(state);
+    }
+
+    this._state.setInner(
+      await this._blockchain.stateAtBlock(block.header.number)
     );
   }
 
@@ -273,7 +282,12 @@ export class RethnetAdapter implements VMAdapter {
    * Throw if it can't.
    */
   public async restoreContext(stateRoot: Buffer): Promise<void> {
-    return this._state.setBlockContext(stateRoot);
+    const state = this._stateRootToSnapshot.get(stateRoot);
+    if (state === undefined) {
+      throw new Error("Unknown state root");
+    }
+
+    this._state.setInner(state);
   }
 
   /**
@@ -342,11 +356,14 @@ export class RethnetAdapter implements VMAdapter {
   }
 
   public async makeSnapshot(): Promise<Buffer> {
-    return this._state.makeSnapshot();
+    const stateRoot = await this._state.getStateRoot();
+    this._stateRootToSnapshot.set(stateRoot, this._state.asInner());
+
+    return stateRoot;
   }
 
   public async removeSnapshot(stateRoot: Buffer): Promise<void> {
-    return this._state.removeSnapshot(stateRoot);
+    this._stateRootToSnapshot.delete(stateRoot);
   }
 
   public getLastTraceAndClear(): {
@@ -369,8 +386,6 @@ export class RethnetAdapter implements VMAdapter {
     common: Common,
     opts: BuildBlockOpts
   ): Promise<BlockBuilderAdapter> {
-    await this._state.checkpoint();
-
     return RethnetBlockBuilder.create(
       this._blockchain,
       this._state,

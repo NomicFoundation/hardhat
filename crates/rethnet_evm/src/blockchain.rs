@@ -7,11 +7,15 @@ pub mod storage;
 use std::{fmt::Debug, sync::Arc};
 
 use async_trait::async_trait;
-use rethnet_eth::{
-    block::DetailedBlock, receipt::BlockReceipt, remote::RpcClientError, B256, U256,
-};
-use revm::{db::BlockHashRef, primitives::SpecId};
+use rethnet_eth::{receipt::BlockReceipt, remote::RpcClientError, B256, U256};
+use revm::{db::BlockHashRef, primitives::SpecId, DatabaseCommit};
 
+use crate::{
+    state::{StateDiff, SyncState},
+    Block, LocalBlock, SyncBlock,
+};
+
+use self::storage::ReservableSparseBlockchainStorage;
 pub use self::{
     forked::{CreationError as ForkedCreationError, ForkedBlockchain},
     local::{CreationError as LocalCreationError, LocalBlockchain},
@@ -63,35 +67,43 @@ pub enum BlockchainError {
 #[async_trait]
 pub trait Blockchain {
     /// The blockchain's error type
-    type Error;
+    type BlockchainError;
+
+    /// The state's error type
+    type StateError;
 
     /// Retrieves the block with the provided hash, if it exists.
-    async fn block_by_hash(&self, hash: &B256) -> Result<Option<Arc<DetailedBlock>>, Self::Error>;
+    async fn block_by_hash(
+        &self,
+        hash: &B256,
+    ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>;
 
     /// Retrieves the block with the provided number, if it exists.
     async fn block_by_number(
         &self,
         number: &U256,
-    ) -> Result<Option<Arc<DetailedBlock>>, Self::Error>;
+    ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>;
 
     /// Retrieves the block that contains a transaction with the provided hash, if it exists.
     async fn block_by_transaction_hash(
         &self,
         transaction_hash: &B256,
-    ) -> Result<Option<Arc<DetailedBlock>>, Self::Error>;
+    ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>;
 
     /// Whether the block corresponding to the provided number supports the specified specification.
     async fn block_supports_spec(
         &self,
         number: &U256,
         spec_id: SpecId,
-    ) -> Result<bool, Self::Error>;
+    ) -> Result<bool, Self::BlockchainError>;
 
     /// Retrieves the instances chain ID.
     async fn chain_id(&self) -> U256;
 
     /// Retrieves the last block in the blockchain.
-    async fn last_block(&self) -> Result<Arc<DetailedBlock>, Self::Error>;
+    async fn last_block(
+        &self,
+    ) -> Result<Arc<dyn SyncBlock<Error = Self::BlockchainError>>, Self::BlockchainError>;
 
     /// Retrieves the last block number in the blockchain.
     async fn last_block_number(&self) -> U256;
@@ -100,10 +112,19 @@ pub trait Blockchain {
     async fn receipt_by_transaction_hash(
         &self,
         transaction_hash: &B256,
-    ) -> Result<Option<Arc<BlockReceipt>>, Self::Error>;
+    ) -> Result<Option<Arc<BlockReceipt>>, Self::BlockchainError>;
+
+    /// Retrieves the state at a given block
+    async fn state_at_block(
+        &self,
+        block_number: &U256,
+    ) -> Result<Box<dyn SyncState<Self::StateError>>, Self::BlockchainError>;
 
     /// Retrieves the total difficulty at the block with the provided hash.
-    async fn total_difficulty_by_hash(&self, hash: &B256) -> Result<Option<U256>, Self::Error>;
+    async fn total_difficulty_by_hash(
+        &self,
+        hash: &B256,
+    ) -> Result<Option<U256>, Self::BlockchainError>;
 }
 
 /// Trait for implementations of a mutable Ethereum blockchain
@@ -115,8 +136,9 @@ pub trait BlockchainMut {
     /// Inserts the provided block into the blockchain, returning a reference to the inserted block.
     async fn insert_block(
         &mut self,
-        block: DetailedBlock,
-    ) -> Result<Arc<DetailedBlock>, Self::Error>;
+        block: LocalBlock,
+        state_diff: StateDiff,
+    ) -> Result<Arc<dyn SyncBlock<Error = Self::Error>>, Self::Error>;
 
     /// Reserves the provided number of blocks, starting from the next block number.
     async fn reserve_blocks(
@@ -130,54 +152,72 @@ pub trait BlockchainMut {
 }
 
 /// Trait that meets all requirements for a synchronous blockchain.
-pub trait SyncBlockchain<E>:
-    Blockchain<Error = E>
-    + BlockchainMut<Error = E>
-    + BlockHashRef<Error = E>
+pub trait SyncBlockchain<BlockchainErrorT, StateErrorT>:
+    Blockchain<BlockchainError = BlockchainErrorT, StateError = StateErrorT>
+    + BlockchainMut<Error = BlockchainErrorT>
+    + BlockHashRef<Error = BlockchainErrorT>
     + Send
     + Sync
     + Debug
     + 'static
 where
-    E: Debug + Send,
+    BlockchainErrorT: Debug + Send,
 {
 }
 
-impl<B, E> SyncBlockchain<E> for B
+impl<BlockchainT, BlockchainErrorT, StateErrorT> SyncBlockchain<BlockchainErrorT, StateErrorT>
+    for BlockchainT
 where
-    B: Blockchain<Error = E>
-        + BlockchainMut<Error = E>
-        + BlockHashRef<Error = E>
+    BlockchainT: Blockchain<BlockchainError = BlockchainErrorT, StateError = StateErrorT>
+        + BlockchainMut<Error = BlockchainErrorT>
+        + BlockHashRef<Error = BlockchainErrorT>
         + Send
         + Sync
         + Debug
         + 'static,
-    E: Debug + Send,
+    BlockchainErrorT: Debug + Send,
 {
+}
+
+fn compute_state_at_block<BlockT: Block + Clone>(
+    state: &mut dyn DatabaseCommit,
+    local_storage: &ReservableSparseBlockchainStorage<BlockT>,
+    block_number: &U256,
+) {
+    let state_diffs = local_storage
+        .state_diffs_until_block(block_number)
+        .expect("The block is validated to exist");
+
+    for state_diff in state_diffs {
+        state.commit(state_diff.clone());
+    }
 }
 
 /// Validates whether a block is a valid next block.
 fn validate_next_block(
     spec_id: SpecId,
-    last_block: &DetailedBlock,
-    next_block: &DetailedBlock,
+    last_block: &dyn Block<Error = BlockchainError>,
+    next_block: &dyn Block<Error = BlockchainError>,
 ) -> Result<(), BlockchainError> {
-    let next_block_number = last_block.header.number + U256::from(1);
-    if next_block.header.number != next_block_number {
+    let last_header = last_block.header();
+    let next_header = next_block.header();
+
+    let next_block_number = last_header.number + U256::from(1);
+    if next_header.number != next_block_number {
         return Err(BlockchainError::InvalidBlockNumber {
-            actual: next_block.header.number,
+            actual: next_header.number,
             expected: next_block_number,
         });
     }
 
-    if next_block.header.parent_hash != *last_block.hash() {
+    if next_header.parent_hash != *last_block.hash() {
         return Err(BlockchainError::InvalidParentHash {
-            actual: next_block.header.parent_hash,
+            actual: next_header.parent_hash,
             expected: *last_block.hash(),
         });
     }
 
-    if spec_id >= SpecId::SHANGHAI && next_block.header.withdrawals_root.is_none() {
+    if spec_id >= SpecId::SHANGHAI && next_header.withdrawals_root.is_none() {
         return Err(BlockchainError::MissingWithdrawals);
     }
 

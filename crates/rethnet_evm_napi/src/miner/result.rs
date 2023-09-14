@@ -1,30 +1,39 @@
 use std::ops::Deref;
 
-use napi::{bindgen_prelude::Either3, Env};
+use napi::{bindgen_prelude::Either3, tokio::runtime, Env};
 use napi_derive::napi;
+use rethnet_evm::{blockchain::BlockchainError, state::StateError};
 
 use crate::{
     block::Block,
+    state::StateManager,
     trace::{TracingMessage, TracingMessageResult, TracingStep},
     transaction::result::ExecutionResult,
 };
 
 #[napi]
 pub struct MineBlockResult {
-    inner: rethnet_evm::MineBlockResult,
+    inner: rethnet_evm::MineBlockResult<BlockchainError, StateError>,
+    runtime: runtime::Handle,
 }
 
 impl Deref for MineBlockResult {
-    type Target = rethnet_evm::MineBlockResult;
+    type Target = rethnet_evm::MineBlockResult<BlockchainError, StateError>;
 
     fn deref(&self) -> &Self::Target {
         &self.inner
     }
 }
 
-impl From<rethnet_evm::MineBlockResult> for MineBlockResult {
-    fn from(value: rethnet_evm::MineBlockResult) -> Self {
-        Self { inner: value }
+impl MineBlockResult {
+    pub fn new(
+        result: rethnet_evm::MineBlockResult<BlockchainError, StateError>,
+        runtime: runtime::Handle,
+    ) -> Self {
+        Self {
+            inner: result,
+            runtime,
+        }
     }
 }
 
@@ -34,6 +43,12 @@ impl MineBlockResult {
     #[napi(getter)]
     pub fn block(&self) -> Block {
         Block::from(self.block.clone())
+    }
+
+    #[doc = ""]
+    #[napi(getter)]
+    pub fn state(&self) -> StateManager {
+        StateManager::from((self.state.clone(), self.runtime.clone()))
     }
 
     #[doc = "Retrieves the transactions' results."]

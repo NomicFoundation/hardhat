@@ -12,33 +12,67 @@ async-trait = { version = "0.1.73", default-features = false }
 auto_impl = { version = "1.0.1", default-features = false }
 cita_trie = { git = "https://github.com/Wodann/cita-trie", rev = "60efef5", version = "4.0.0", default-features = false }
 dyn-clone = { version = "1.0.13", default-features = false }
-futures = { version = "0.3.28", features = ["alloc", "async-await", "executor", "std"] }
-hasher = { git = "https://github.com/Wodann/hasher", rev = "89d3fc9", version = "0.1.4", default-features = false, features = ["hash-keccak"] }
+futures = { version = "0.3.28", features = [
+    "alloc",
+    "async-await",
+    "executor",
+    "std",
+] }
+hasher = { git = "https://github.com/Wodann/hasher", rev = "89d3fc9", version = "0.1.4", default-features = false, features = [
+    "hash-keccak",
+] }
 indexmap = { version = "2.0.0", default-features = false, features = ["std"] }
-itertools = { version = "0.11.0", default-features = false, features = ["use_alloc", "use_std"] }
+itertools = { version = "0.11.0", default-features = false, features = [
+    "use_alloc",
+    "use_std",
+] }
 log = { version = "0.4.17", default-features = false }
-once_cell = { version = "1.18.0", default-features = false, features = ["alloc", "race", "std"] }
+once_cell = { version = "1.18.0", default-features = false, features = [
+    "alloc",
+    "race",
+    "std",
+] }
 parking_lot = { version = "0.12.1", default-features = false }
 rethnet_defaults = { version = "0.1.0-dev", path = "../rethnet_defaults" }
-rethnet_eth = { version = "0.1.0-dev", path = "../rethnet_eth", features = ["serde"] }
-revm = { git = "https://github.com/Wodann/revm", rev = "19df2ba", version = "3.3", default-features = false, features = ["dev", "secp256k1", "serde", "std"] }
+rethnet_eth = { version = "0.1.0-dev", path = "../rethnet_eth", features = [
+    "serde",
+] }
+revm = { git = "https://github.com/Wodann/revm", rev = "19df2ba", version = "3.3", default-features = false, features = [
+    "dev",
+    "secp256k1",
+    "serde",
+    "std",
+] }
 # revm = { path = "../../../revm/crates/revm", version = "3.0", default-features = false, features = ["dev", "serde", "std"] }
 rlp = { version = "0.5.2", default-features = false }
 serde = { version = "1.0.158", default-features = false, features = ["std"] }
-serde_json = { version = "1.0.94", default-features = false, features = ["std"] }
+serde_json = { version = "1.0.94", default-features = false, features = [
+    "std",
+] }
 thiserror = { version = "1.0.38", default-features = false }
-tokio = { version = "1.21.2", default-features = false, features = ["macros", "rt-multi-thread", "sync"] }
-tracing = { version = "0.1.37", features = ["attributes", "std"], optional = true }
+tokio = { version = "1.21.2", default-features = false, features = [
+    "macros",
+    "rt-multi-thread",
+    "sync",
+] }
+tracing = { version = "0.1.37", features = [
+    "attributes",
+    "std",
+], optional = true }
 
 [dev-dependencies]
-criterion = { version = "0.4.0", default-features = false, features = ["cargo_bench_support", "html_reports", "plotters"] }
+criterion = { version = "0.4.0", default-features = false, features = [
+    "cargo_bench_support",
+    "html_reports",
+    "plotters",
+] }
 lazy_static = "1.4.0"
 rethnet_test_utils = { version = "0.1.0-dev", path = "../rethnet_test_utils" }
 serial_test = "2.0.0"
 tempfile = "3.7.1"
 
 [features]
-bench-once = [] # limits the benchmark variants to one
+bench-once = []           # limits the benchmark variants to one
 test-remote = []
 tracing = ["dep:tracing"]
 
@@ -48,18 +82,13 @@ path = "benches/state/database_commit.rs"
 harness = false
 
 [[bench]]
+name = "state_clone"
+path = "benches/state/state_clone.rs"
+harness = false
+
+[[bench]]
 name = "state_debug"
 path = "benches/state/state_debug.rs"
-harness = false
-
-[[bench]]
-name = "state_history"
-path = "benches/state/state_history.rs"
-harness = false
-
-[[bench]]
-name = "state_history_block_context"
-path = "benches/state/state_history_block_context.rs"
 harness = false
 
 [[bench]]

@@ -1,5 +1,7 @@
 mod cached;
 
+use std::sync::Arc;
+
 use revm::{
     db::StateRef,
     primitives::{AccountInfo, Bytecode},
@@ -18,7 +20,7 @@ pub use cached::CachedRemoteState;
 /// A state backed by a remote Ethereum node
 #[derive(Debug)]
 pub struct RemoteState {
-    client: RpcClient,
+    client: Arc<RpcClient>,
     runtime: runtime::Handle,
     block_number: U256,
 }
@@ -26,7 +28,7 @@ pub struct RemoteState {
 impl RemoteState {
     /// Construct a new instance using an RPC client for a remote Ethereum node and a block number
     /// from which data will be pulled.
-    pub fn new(runtime: runtime::Handle, client: RpcClient, block_number: U256) -> Self {
+    pub fn new(runtime: runtime::Handle, client: Arc<RpcClient>, block_number: U256) -> Self {
         Self {
             client,
             runtime,
@@ -121,10 +123,11 @@ mod tests {
 
         let runtime = runtime::Handle::current();
 
-        let account_info: AccountInfo = RemoteState::new(runtime, rpc_client, U256::from(16643427))
-            .basic(dai_address)
-            .expect("should succeed")
-            .unwrap();
+        let account_info: AccountInfo =
+            RemoteState::new(runtime, Arc::new(rpc_client), U256::from(16643427))
+                .basic(dai_address)
+                .expect("should succeed")
+                .unwrap();
 
         assert_eq!(account_info.balance, U256::from(0));
         assert_eq!(account_info.nonce, 1);

@@ -3,7 +3,6 @@
 // - https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/LICENSE-MIT
 // For the original context see: https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/anvil/core/src/eth/block.rs
 
-mod detailed;
 mod difficulty;
 mod options;
 mod reorg;
@@ -18,7 +17,6 @@ use revm_primitives::{
 use rlp::Decodable;
 
 use crate::{
-    remote::eth::{self, TransactionConversionError},
     transaction::SignedTransaction,
     trie::{self, KECCAK_NULL_RLP},
     withdrawal::Withdrawal,
@@ -27,7 +25,6 @@ use crate::{
 
 use self::difficulty::calculate_ethash_canonical_difficulty;
 pub use self::{
-    detailed::DetailedBlock,
     options::BlockOptions,
     reorg::{
         block_time, is_safe_block_number, largest_safe_block_number, safe_block_depth,
@@ -98,71 +95,6 @@ impl PartialEq for Block {
             && self.transactions == other.transactions
             && self.ommers == other.ommers
             && self.withdrawals == other.withdrawals
-    }
-}
-
-/// Error that occurs when trying to convert the JSON-RPC `Block` type.
-#[derive(Debug, thiserror::Error)]
-pub enum BlockConversionError {
-    /// Missing miner
-    #[error("Missing miner")]
-    MissingMiner,
-    /// Missing nonce
-    #[error("Missing nonce")]
-    MissingNonce,
-    /// Missing number
-    #[error("Missing numbeer")]
-    MissingNumber,
-    /// Transaction conversion error
-    #[error(transparent)]
-    TransactionConversionError(#[from] TransactionConversionError),
-}
-
-impl TryFrom<eth::Block<eth::Transaction>> for BlockAndCallers {
-    type Error = BlockConversionError;
-
-    fn try_from(value: eth::Block<eth::Transaction>) -> Result<Self, Self::Error> {
-        let (transactions, transaction_callers): (Vec<SignedTransaction>, Vec<Address>) =
-            itertools::process_results(
-                value.transactions.into_iter().map(TryInto::try_into),
-                #[allow(clippy::redundant_closure_for_method_calls)]
-                |iter| iter.unzip(),
-            )?;
-
-        let block = Block {
-            header: Header {
-                parent_hash: value.parent_hash,
-                ommers_hash: value.sha3_uncles,
-                beneficiary: value.miner.ok_or(BlockConversionError::MissingMiner)?,
-                state_root: value.state_root,
-                transactions_root: value.transactions_root,
-                receipts_root: value.receipts_root,
-                logs_bloom: value.logs_bloom,
-                difficulty: value.difficulty,
-                number: value.number.ok_or(BlockConversionError::MissingNumber)?,
-                gas_limit: value.gas_limit,
-                gas_used: value.gas_used,
-                timestamp: value.timestamp,
-                extra_data: value.extra_data,
-                mix_hash: value.mix_hash,
-                nonce: B64::from_limbs([value
-                    .nonce
-                    .ok_or(BlockConversionError::MissingNonce)?
-                    .to_be()]),
-                base_fee_per_gas: value.base_fee_per_gas,
-                withdrawals_root: value.withdrawals_root,
-            },
-            transactions,
-            // TODO: Include headers
-            ommers: Vec::new(),
-            withdrawals: value.withdrawals,
-            hash: OnceLock::new(),
-        };
-
-        Ok(Self {
-            block,
-            transaction_callers,
-        })
     }
 }
 
@@ -490,15 +422,15 @@ impl PartialHeader {
             state_root: options.state_root.unwrap_or(KECCAK_NULL_RLP),
             receipts_root: options.receipts_root.unwrap_or(KECCAK_NULL_RLP),
             logs_bloom: options.logs_bloom.unwrap_or_default(),
-            difficulty: options.difficulty.unwrap_or_else(|| {
-                if spec_id >= SpecId::MERGE {
-                    U256::ZERO
-                } else if let Some(parent) = parent {
+            difficulty: if spec_id < SpecId::MERGE {
+                if let Some(parent) = parent {
                     calculate_ethash_canonical_difficulty(spec_id, parent, &number, &timestamp)
                 } else {
-                    U256::from(1)
+                    U256::ZERO
                 }
-            }),
+            } else {
+                options.difficulty.unwrap_or_default()
+            },
             number,
             gas_limit: options.gas_limit.unwrap_or(U256::from(1_000_000)),
             gas_used: U256::ZERO,
@@ -559,14 +491,6 @@ impl From<Header> for PartialHeader {
             base_fee: header.base_fee_per_gas,
         }
     }
-}
-
-/// Type that combines a block and the addresses of its transactions' callers
-pub struct BlockAndCallers {
-    /// Ethereum block
-    pub block: Block,
-    /// Block transactions' callers
-    pub transaction_callers: Vec<Address>,
 }
 
 #[cfg(test)]

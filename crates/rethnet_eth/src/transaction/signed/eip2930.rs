@@ -1,3 +1,5 @@
+use std::sync::OnceLock;
+
 use bytes::Bytes;
 use revm_primitives::{keccak256, ruint::aliases::U64, Address, B256, U256};
 
@@ -8,7 +10,7 @@ use crate::{
     utils::envelop_bytes,
 };
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, Eq)]
 #[cfg_attr(
     feature = "fastrlp",
     derive(open_fastrlp::RlpEncodable, open_fastrlp::RlpDecodable)
@@ -30,6 +32,9 @@ pub struct EIP2930SignedTransaction {
     pub odd_y_parity: bool,
     pub r: U256,
     pub s: U256,
+    /// Cached transaction hash
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub hash: OnceLock<B256>,
 }
 
 impl EIP2930SignedTransaction {
@@ -37,11 +42,13 @@ impl EIP2930SignedTransaction {
         &self.nonce
     }
 
-    pub fn hash(&self) -> B256 {
-        let encoded = rlp::encode(self);
-        let enveloped = envelop_bytes(1, &encoded);
+    pub fn hash(&self) -> &B256 {
+        self.hash.get_or_init(|| {
+            let encoded = rlp::encode(self);
+            let enveloped = envelop_bytes(1, &encoded);
 
-        keccak256(&enveloped)
+            keccak256(&enveloped)
+        })
     }
 
     /// Recovers the Ethereum address which was used to sign the transaction.
@@ -53,6 +60,22 @@ impl EIP2930SignedTransaction {
         };
 
         signature.recover(EIP2930TransactionRequest::from(self).hash())
+    }
+}
+
+impl PartialEq for EIP2930SignedTransaction {
+    fn eq(&self, other: &Self) -> bool {
+        self.chain_id == other.chain_id
+            && self.nonce == other.nonce
+            && self.gas_price == other.gas_price
+            && self.gas_limit == other.gas_limit
+            && self.kind == other.kind
+            && self.value == other.value
+            && self.input == other.input
+            && self.access_list == other.access_list
+            && self.odd_y_parity == other.odd_y_parity
+            && self.r == other.r
+            && self.s == other.s
     }
 }
 
@@ -91,6 +114,7 @@ impl rlp::Decodable for EIP2930SignedTransaction {
             odd_y_parity: rlp.val_at(8)?,
             r: rlp.val_at(9)?,
             s: rlp.val_at(10)?,
+            hash: OnceLock::new(),
         })
     }
 }
@@ -154,7 +178,7 @@ mod tests {
         let request = dummy_request();
         let signed = request.sign(&dummy_private_key());
 
-        assert_eq!(expected, signed.hash());
+        assert_eq!(expected, *signed.hash());
     }
 
     #[test]

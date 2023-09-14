@@ -1922,6 +1922,7 @@ export class HardhatNode extends EventEmitter {
       return await action();
     } finally {
       await this._context.vm().restoreContext(snapshot);
+      await this._context.vm().removeSnapshot(snapshot);
     }
   }
 

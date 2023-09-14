@@ -45,7 +45,7 @@ impl PendingTransaction {
         let state = (*state_manager).clone();
 
         let (deferred, promise) = env.create_deferred()?;
-        state_manager.context().runtime().spawn(async move {
+        state_manager.runtime().spawn(async move {
             let state = state.read().await;
 
             let result = if let Some(caller) = caller {

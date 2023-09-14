@@ -6,15 +6,13 @@ use std::{
 };
 
 use async_trait::async_trait;
-use rethnet_eth::{
-    block::{Block, DetailedBlock, PartialHeader},
-    trie::KECCAK_NULL_RLP,
-    Bytes, B256, B64, U256,
-};
+use rethnet_eth::{block::PartialHeader, trie::KECCAK_NULL_RLP, Bytes, B256, B64, U256};
 use revm::{db::BlockHashRef, primitives::SpecId};
 
-use crate::state::SyncState;
+use crate::state::{StateDebug, StateDiff, StateError, SyncState, TrieState};
+use crate::{Block, LocalBlock, SyncBlock};
 
+use super::compute_state_at_block;
 use super::{
     storage::ReservableSparseBlockchainStorage, validate_next_block, Blockchain, BlockchainError,
     BlockchainMut,
@@ -22,16 +20,13 @@ use super::{
 
 /// An error that occurs upon creation of a [`LocalBlockchain`].
 #[derive(Debug, thiserror::Error)]
-pub enum CreationError<SE> {
+pub enum CreationError {
     /// Missing base fee per gas for post-London blockchain
     #[error("Missing base fee per gas for post-London blockchain")]
     MissingBaseFee,
     /// Missing prevrandao for post-merge blockchain
     #[error("Missing prevrandao for post-merge blockchain")]
     MissingPrevrandao,
-    /// State error
-    #[error(transparent)]
-    State(SE),
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -46,106 +41,98 @@ pub enum InsertBlockError {
 /// A blockchain consisting of locally created blocks.
 #[derive(Debug)]
 pub struct LocalBlockchain {
-    storage: ReservableSparseBlockchainStorage,
+    storage: ReservableSparseBlockchainStorage<Arc<dyn SyncBlock<Error = BlockchainError>>>,
+    genesis_state: TrieState,
     chain_id: U256,
     spec_id: SpecId,
 }
 
 impl LocalBlockchain {
     /// Constructs a new instance using the provided arguments to build a genesis block.
-    pub fn new<StateErrorT>(
-        state: &mut dyn SyncState<StateErrorT>,
+    pub fn new(
+        genesis_state: TrieState,
         chain_id: U256,
         spec_id: SpecId,
         gas_limit: U256,
         timestamp: Option<U256>,
         prevrandao: Option<B256>,
         base_fee: Option<U256>,
-    ) -> Result<Self, CreationError<StateErrorT>>
-    where
-        StateErrorT: Debug + Send,
-    {
+    ) -> Result<Self, CreationError> {
         const EXTRA_DATA: &[u8] = b"124";
 
-        let withdrawals = if spec_id >= SpecId::SHANGHAI {
-            Some(Vec::new())
-        } else {
-            None
-        };
-
-        // Ensure initial checkpoint exists
-        state.checkpoint().map_err(CreationError::State)?;
-
-        let genesis_block = Block::new(
-            PartialHeader {
-                state_root: state.state_root().map_err(CreationError::State)?,
-                receipts_root: KECCAK_NULL_RLP,
-                difficulty: if spec_id >= SpecId::MERGE {
-                    U256::ZERO
-                } else {
-                    U256::from(1)
-                },
-                number: U256::ZERO,
-                gas_limit,
-                gas_used: U256::ZERO,
-                timestamp: timestamp.unwrap_or_else(|| {
-                    U256::from(
-                        SystemTime::now()
-                            .duration_since(UNIX_EPOCH)
-                            .expect("Current time must be after unix epoch")
-                            .as_secs(),
-                    )
-                }),
-                extra_data: Bytes::from(EXTRA_DATA),
-                mix_hash: if spec_id >= SpecId::MERGE {
-                    prevrandao.ok_or(CreationError::MissingPrevrandao)?
-                } else {
-                    B256::zero()
-                },
-                nonce: if spec_id >= SpecId::MERGE {
-                    B64::ZERO
-                } else {
-                    B64::from_limbs([66u64.to_be()])
-                },
-                base_fee: if spec_id >= SpecId::LONDON {
-                    Some(base_fee.ok_or(CreationError::MissingBaseFee)?)
-                } else {
-                    None
-                },
-                ..PartialHeader::default()
+        let partial_header = PartialHeader {
+            state_root: genesis_state
+                .state_root()
+                .expect("TrieState is guaranteed to successfully compute the state root"),
+            receipts_root: KECCAK_NULL_RLP,
+            difficulty: if spec_id >= SpecId::MERGE {
+                U256::ZERO
+            } else {
+                U256::from(1)
             },
-            Vec::new(),
-            Vec::new(),
-            withdrawals,
-        );
+            number: U256::ZERO,
+            gas_limit,
+            gas_used: U256::ZERO,
+            timestamp: timestamp.unwrap_or_else(|| {
+                U256::from(
+                    SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .expect("Current time must be after unix epoch")
+                        .as_secs(),
+                )
+            }),
+            extra_data: Bytes::from(EXTRA_DATA),
+            mix_hash: if spec_id >= SpecId::MERGE {
+                prevrandao.ok_or(CreationError::MissingPrevrandao)?
+            } else {
+                B256::zero()
+            },
+            nonce: if spec_id >= SpecId::MERGE {
+                B64::ZERO
+            } else {
+                B64::from_limbs([66u64.to_be()])
+            },
+            base_fee: if spec_id >= SpecId::LONDON {
+                Some(base_fee.ok_or(CreationError::MissingBaseFee)?)
+            } else {
+                None
+            },
+            ..PartialHeader::default()
+        };
 
         Ok(unsafe {
             Self::with_genesis_block_unchecked(
+                LocalBlock::empty(partial_header, spec_id),
+                genesis_state,
                 chain_id,
                 spec_id,
-                DetailedBlock::new(genesis_block, Vec::new(), Vec::new()),
             )
         })
     }
 
     /// Constructs a new instance with the provided genesis block, validating a zero block number.
     pub fn with_genesis_block(
+        genesis_block: LocalBlock,
+        genesis_state: TrieState,
         chain_id: U256,
         spec_id: SpecId,
-        genesis_block: DetailedBlock,
     ) -> Result<Self, InsertBlockError> {
-        if genesis_block.header.number != U256::ZERO {
+        let genesis_header = genesis_block.header();
+
+        if genesis_header.number != U256::ZERO {
             return Err(InsertBlockError::InvalidBlockNumber {
-                actual: genesis_block.header.number,
+                actual: genesis_header.number,
                 expected: U256::ZERO,
             });
         }
 
-        if spec_id >= SpecId::SHANGHAI && genesis_block.header.withdrawals_root.is_none() {
+        if spec_id >= SpecId::SHANGHAI && genesis_header.withdrawals_root.is_none() {
             return Err(InsertBlockError::MissingWithdrawals);
         }
 
-        Ok(unsafe { Self::with_genesis_block_unchecked(chain_id, spec_id, genesis_block) })
+        Ok(unsafe {
+            Self::with_genesis_block_unchecked(genesis_block, genesis_state, chain_id, spec_id)
+        })
     }
 
     /// Constructs a new instance with the provided genesis block, without validating the provided block's number.
@@ -154,16 +141,20 @@ impl LocalBlockchain {
     ///
     /// Ensure that the genesis block's number is zero.
     pub unsafe fn with_genesis_block_unchecked(
+        genesis_block: LocalBlock,
+        genesis_state: TrieState,
         chain_id: U256,
         spec_id: SpecId,
-        genesis_block: DetailedBlock,
     ) -> Self {
-        let total_difficulty = genesis_block.header.difficulty;
+        let genesis_block: Arc<dyn SyncBlock<Error = BlockchainError>> = Arc::new(genesis_block);
+
+        let total_difficulty = genesis_block.header().difficulty;
         let storage =
-            ReservableSparseBlockchainStorage::with_block(genesis_block, total_difficulty);
+            ReservableSparseBlockchainStorage::with_genesis_block(genesis_block, total_difficulty);
 
         Self {
             storage,
+            genesis_state,
             chain_id,
             spec_id,
         }
@@ -172,23 +163,31 @@ impl LocalBlockchain {
 
 #[async_trait]
 impl Blockchain for LocalBlockchain {
-    type Error = BlockchainError;
+    type BlockchainError = BlockchainError;
 
-    async fn block_by_hash(&self, hash: &B256) -> Result<Option<Arc<DetailedBlock>>, Self::Error> {
+    type StateError = StateError;
+
+    async fn block_by_hash(
+        &self,
+        hash: &B256,
+    ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>
+    {
         Ok(self.storage.block_by_hash(hash))
     }
 
     async fn block_by_number(
         &self,
         number: &U256,
-    ) -> Result<Option<Arc<DetailedBlock>>, Self::Error> {
+    ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>
+    {
         Ok(self.storage.block_by_number(number))
     }
 
     async fn block_by_transaction_hash(
         &self,
         transaction_hash: &B256,
-    ) -> Result<Option<Arc<DetailedBlock>>, Self::Error> {
+    ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>
+    {
         Ok(self.storage.block_by_transaction_hash(transaction_hash))
     }
 
@@ -196,7 +195,7 @@ impl Blockchain for LocalBlockchain {
         &self,
         _number: &U256,
         spec_id: SpecId,
-    ) -> Result<bool, Self::Error> {
+    ) -> Result<bool, Self::BlockchainError> {
         Ok(spec_id <= self.spec_id)
     }
 
@@ -204,7 +203,9 @@ impl Blockchain for LocalBlockchain {
         self.chain_id
     }
 
-    async fn last_block(&self) -> Result<Arc<DetailedBlock>, Self::Error> {
+    async fn last_block(
+        &self,
+    ) -> Result<Arc<dyn SyncBlock<Error = Self::BlockchainError>>, Self::BlockchainError> {
         Ok(self
             .storage
             .block_by_number(self.storage.last_block_number())
@@ -218,11 +219,30 @@ impl Blockchain for LocalBlockchain {
     async fn receipt_by_transaction_hash(
         &self,
         transaction_hash: &B256,
-    ) -> Result<Option<Arc<rethnet_eth::receipt::BlockReceipt>>, Self::Error> {
+    ) -> Result<Option<Arc<rethnet_eth::receipt::BlockReceipt>>, Self::BlockchainError> {
         Ok(self.storage.receipt_by_transaction_hash(transaction_hash))
     }
 
-    async fn total_difficulty_by_hash(&self, hash: &B256) -> Result<Option<U256>, Self::Error> {
+    async fn state_at_block(
+        &self,
+        block_number: &U256,
+    ) -> Result<Box<dyn SyncState<Self::StateError>>, Self::BlockchainError> {
+        if *block_number > self.last_block_number().await {
+            return Err(BlockchainError::UnknownBlockNumber);
+        }
+
+        let mut state = self.genesis_state.clone();
+        if *block_number > U256::ZERO {
+            compute_state_at_block(&mut state, &self.storage, block_number);
+        }
+
+        Ok(Box::new(state))
+    }
+
+    async fn total_difficulty_by_hash(
+        &self,
+        hash: &B256,
+    ) -> Result<Option<U256>, Self::BlockchainError> {
         Ok(self.storage.total_difficulty_by_hash(hash))
     }
 }
@@ -233,8 +253,9 @@ impl BlockchainMut for LocalBlockchain {
 
     async fn insert_block(
         &mut self,
-        block: DetailedBlock,
-    ) -> Result<Arc<DetailedBlock>, Self::Error> {
+        block: LocalBlock,
+        state_diff: StateDiff,
+    ) -> Result<Arc<dyn SyncBlock<Error = Self::Error>>, Self::Error> {
         let last_block = self.last_block().await?;
 
         validate_next_block(self.spec_id, &last_block, &block)?;
@@ -245,10 +266,13 @@ impl BlockchainMut for LocalBlockchain {
             .expect("No error can occur as it is stored locally")
             .expect("Must exist as its block is stored");
 
-        let total_difficulty = previous_total_difficulty + block.header.difficulty;
+        let total_difficulty = previous_total_difficulty + block.header().difficulty;
 
         // SAFETY: The block number is guaranteed to be unique, so the block hash must be too.
-        let block = unsafe { self.storage.insert_block_unchecked(block, total_difficulty) };
+        let block = unsafe {
+            self.storage
+                .insert_block_unchecked(block, state_diff, total_difficulty)
+        };
 
         Ok(block.clone())
     }
@@ -270,11 +294,13 @@ impl BlockchainMut for LocalBlockchain {
             .await?
             .expect("Must exist as its block is stored");
 
+        let last_header = last_block.header();
+
         self.storage.reserve_blocks(
             additional,
             interval,
-            last_block.header.base_fee_per_gas,
-            last_block.header.state_root,
+            last_header.base_fee_per_gas,
+            last_header.state_root,
             previous_total_difficulty,
             self.spec_id,
         );

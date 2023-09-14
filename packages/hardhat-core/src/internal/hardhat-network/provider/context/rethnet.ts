@@ -91,16 +91,18 @@ export class RethnetEthContext implements EthContextAdapter {
         genesisBlockBaseFeePerGas
       );
 
-      const withdrawals = common.gteHardfork(HardforkName.SHANGHAI)
-        ? []
-        : undefined;
-
       blockchain = new RethnetBlockchain(
         Blockchain.withGenesisBlock(
+          globalRethnetContext,
           common.chainId(),
           ethereumsjsHardforkToRethnetSpecId(hardforkName),
           ethereumjsHeaderDataToRethnetBlockOptions(genesisBlockHeader),
-          withdrawals
+          config.genesisAccounts.map((account) => {
+            return {
+              privateKey: account.privateKey,
+              balance: BigInt(account.balance),
+            };
+          })
         ),
         common
       );
@@ -118,7 +120,7 @@ export class RethnetEthContext implements EthContextAdapter {
 
     const memPool = new RethnetMemPool(
       BigInt(config.blockGasLimit),
-      state.asInner(),
+      state,
       hardforkName
     );
 

@@ -1,4 +1,4 @@
-use std::mem;
+use std::{mem, sync::OnceLock};
 
 use napi::{
     bindgen_prelude::{BigInt, Buffer},
@@ -117,6 +117,7 @@ impl TryFrom<LegacySignedTransaction> for rethnet_eth::transaction::EIP155Signed
             value: value.value.try_cast()?,
             input: Bytes::copy_from_slice(value.input.into_value()?.as_ref()),
             signature: value.signature.try_into()?,
+            hash: OnceLock::new(),
         })
     }
 }
@@ -138,6 +139,7 @@ impl TryFrom<LegacySignedTransaction> for rethnet_eth::transaction::LegacySigned
             value: value.value.try_cast()?,
             input: Bytes::copy_from_slice(value.input.into_value()?.as_ref()),
             signature: value.signature.try_into()?,
+            hash: OnceLock::new(),
         })
     }
 }

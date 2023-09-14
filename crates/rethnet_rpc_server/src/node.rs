@@ -2,8 +2,8 @@ use std::mem;
 use std::sync::Arc;
 use std::time::{SystemTime, SystemTimeError, UNIX_EPOCH};
 
+use rethnet_eth::Bytes;
 use rethnet_eth::{
-    block::DetailedBlock,
     remote::{BlockSpec, BlockTag, Eip1898BlockSpec},
     Address, SpecId, B256, U256,
 };
@@ -14,6 +14,7 @@ use rethnet_evm::{
     AccountInfo, CfgEnv, MemPool, MineBlockError, MineBlockResult, RandomHashGenerator,
     KECCAK_EMPTY,
 };
+use rethnet_evm::{Block, Bytecode, SyncBlock};
 
 use tokio::sync::Mutex;
 
@@ -37,11 +38,6 @@ impl Node {
         block_spec: Option<BlockSpec>,
         function: impl FnOnce(&mut NodeData) -> T,
     ) -> Result<T, NodeError> {
-        enum PreviousState {
-            State(Box<dyn SyncState<StateError>>),
-            StateRoot(B256),
-        }
-
         let mut data = self.lock_data().await;
 
         let block = if let Some(block_spec) = block_spec {
@@ -50,34 +46,25 @@ impl Node {
             data.blockchain.last_block().await?
         };
 
-        // Save previous state and set desired state based on the block specification.
-        let previous_state = if let Some(irregular_state) = data
+        let block_header = block.header();
+
+        let mut contextual_state = if let Some(irregular_state) = data
             .irregular_state
-            .state_by_block_number(&block.header.number)
+            .state_by_block_number(&block_header.number)
             .cloned()
         {
-            PreviousState::State(mem::replace(&mut data.state, irregular_state))
+            irregular_state
         } else {
-            let previous_state_root = data.state.state_root()?;
-
-            data.state
-                .set_block_context(&block.header.state_root, Some(block.header.number))?;
-
-            PreviousState::StateRoot(previous_state_root)
+            data.blockchain.state_at_block(&block_header.number).await?
         };
+
+        mem::swap(&mut data.state, &mut contextual_state);
 
         // Execute function in the requested block context.
         let result = function(&mut data);
 
         // Reset previous state.
-        match previous_state {
-            PreviousState::State(state) => {
-                data.state = state;
-            }
-            PreviousState::StateRoot(state_root) => {
-                data.state.set_block_context(&state_root, None)?;
-            }
-        }
+        mem::swap(&mut data.state, &mut contextual_state);
 
         Ok(result)
     }
@@ -96,7 +83,7 @@ impl Node {
         .await?
     }
 
-    pub async fn set_balance(&self, address: Address, balance: U256) -> Result<bool, NodeError> {
+    pub async fn set_balance(&self, address: Address, balance: U256) -> Result<(), NodeError> {
         let mut node_data = self.lock_data().await;
 
         node_data.state.modify_account(
@@ -118,13 +105,80 @@ impl Node {
         let state = node_data.state.clone();
         node_data.irregular_state.insert_state(block_number, state);
 
-        // Hardhat always returns true if there is no error.
-        Ok(true)
+        Ok(())
+    }
+
+    pub async fn set_code(&self, address: Address, code: Bytes) -> Result<(), NodeError> {
+        let mut node_data = self.lock_data().await;
+
+        let default_code = code.clone();
+        node_data.state.modify_account(
+            address,
+            AccountModifierFn::new(Box::new(move |_, _, account_code| {
+                *account_code = Some(Bytecode::new_raw(code.clone()));
+            })),
+            &|| {
+                Ok(AccountInfo {
+                    balance: U256::ZERO,
+                    nonce: 0,
+                    code: Some(Bytecode::new_raw(default_code.clone())),
+                    code_hash: KECCAK_EMPTY,
+                })
+            },
+        )?;
+
+        let block_number = node_data.blockchain.last_block_number().await;
+        let state = node_data.state.clone();
+        node_data.irregular_state.insert_state(block_number, state);
+
+        Ok(())
+    }
+
+    pub async fn set_nonce(&self, address: Address, nonce: u64) -> Result<(), NodeError> {
+        let mut node_data = self.lock_data().await;
+
+        node_data.state.modify_account(
+            address,
+            AccountModifierFn::new(Box::new(move |_, account_nonce, _| *account_nonce = nonce)),
+            &|| {
+                Ok(AccountInfo {
+                    balance: U256::ZERO,
+                    nonce,
+                    code: None,
+                    code_hash: KECCAK_EMPTY,
+                })
+            },
+        )?;
+
+        let block_number = node_data.blockchain.last_block_number().await;
+        let state = node_data.state.clone();
+        node_data.irregular_state.insert_state(block_number, state);
+
+        Ok(())
+    }
+
+    pub async fn set_account_storage_slot(
+        &self,
+        address: Address,
+        index: U256,
+        value: U256,
+    ) -> Result<(), NodeError> {
+        let mut node_data = self.lock_data().await;
+
+        node_data
+            .state
+            .set_account_storage_slot(address, index, value)?;
+
+        let block_number = node_data.blockchain.last_block_number().await;
+        let state = node_data.state.clone();
+        node_data.irregular_state.insert_state(block_number, state);
+
+        Ok(())
     }
 }
 
 pub(super) struct NodeData {
-    pub blockchain: Box<dyn SyncBlockchain<BlockchainError>>,
+    pub blockchain: Box<dyn SyncBlockchain<BlockchainError, StateError>>,
     pub state: Box<dyn SyncState<StateError>>,
     pub irregular_state: IrregularState<StateError, Box<dyn SyncState<StateError>>>,
     pub mem_pool: MemPool,
@@ -141,7 +195,7 @@ impl NodeData {
     async fn block_by_block_spec(
         &mut self,
         block_spec: &BlockSpec,
-    ) -> Result<Arc<DetailedBlock>, NodeError> {
+    ) -> Result<Arc<dyn SyncBlock<Error = BlockchainError>>, NodeError> {
         match block_spec {
             BlockSpec::Number(block_number) => {
                 self.blockchain.block_by_number(block_number).await?.ok_or(
@@ -186,13 +240,14 @@ impl NodeData {
         timestamp: Option<U256>,
     ) -> Result<(U256, Option<U256>), NodeError> {
         let latest_block = self.blockchain.last_block().await?;
+        let latest_block_header = latest_block.header();
 
         let current_timestamp = U256::from(SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs());
         let (mut block_timestamp, new_offset) = if let Some(timestamp) = timestamp {
-            timestamp.checked_sub(latest_block.header.timestamp).ok_or(
+            timestamp.checked_sub(latest_block_header.timestamp).ok_or(
                 NodeError::TimestampLowerThanPrevious {
                     proposed: timestamp,
-                    previous: latest_block.header.timestamp,
+                    previous: latest_block_header.timestamp,
                 },
             )?;
             (timestamp, Some(timestamp - current_timestamp))
@@ -205,7 +260,7 @@ impl NodeData {
             (current_timestamp + self.block_time_offset_seconds, None)
         };
 
-        let timestamp_needs_increase = block_timestamp == latest_block.header.timestamp
+        let timestamp_needs_increase = block_timestamp == latest_block_header.timestamp
             && !self.allow_blocks_with_same_timestamp;
         if timestamp_needs_increase {
             block_timestamp += U256::from(1u64);
@@ -218,7 +273,7 @@ impl NodeData {
     pub async fn mine_block(
         &mut self,
         timestamp: Option<U256>,
-    ) -> Result<MineBlockResult, NodeError> {
+    ) -> Result<MineBlockResult<BlockchainError, StateError>, NodeError> {
         let (block_timestamp, new_offset) = self.next_block_timestamp(timestamp).await?;
 
         // TODO: when we support hardhat_setNextBlockBaseFeePerGas, incorporate
@@ -238,7 +293,7 @@ impl NodeData {
         let block_gas_limit = *self.mem_pool.block_gas_limit();
         let result = mine_block(
             &mut *self.blockchain,
-            &mut *self.state,
+            self.state.clone(),
             &mut self.mem_pool,
             &self.evm_config,
             block_timestamp,

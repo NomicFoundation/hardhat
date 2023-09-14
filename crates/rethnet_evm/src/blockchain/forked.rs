@@ -2,16 +2,24 @@ use std::sync::Arc;
 use std::{num::NonZeroUsize, path::PathBuf};
 
 use async_trait::async_trait;
+use parking_lot::Mutex;
 use rethnet_eth::block::LargestSafeBlockNumberArgs;
+use rethnet_eth::receipt::BlockReceipt;
+use rethnet_eth::Address;
 use rethnet_eth::{
-    block::{largest_safe_block_number, safe_block_depth, DetailedBlock},
+    block::{largest_safe_block_number, safe_block_depth},
     remote::{RpcClient, RpcClientError},
     spec::{chain_name, determine_hardfork},
     B256, U256,
 };
+use revm::primitives::{AccountInfo, HashMap};
 use revm::{db::BlockHashRef, primitives::SpecId};
 use tokio::runtime;
 
+use crate::state::{ForkState, StateDiff, StateError, SyncState};
+use crate::{Block, LocalBlock, RandomHashGenerator, SyncBlock};
+
+use super::compute_state_at_block;
 use super::{
     remote::RemoteBlockchain, storage::ReservableSparseBlockchainStorage, validate_next_block,
     Blockchain, BlockchainError, BlockchainMut,
@@ -46,9 +54,11 @@ pub enum CreationError {
 /// A blockchain that forked from a remote blockchain.
 #[derive(Debug)]
 pub struct ForkedBlockchain {
-    local_storage: ReservableSparseBlockchainStorage,
+    local_storage: ReservableSparseBlockchainStorage<Arc<dyn SyncBlock<Error = BlockchainError>>>,
     // We can force caching here because we only fork from a safe block number.
-    remote: RemoteBlockchain<true>,
+    remote: RemoteBlockchain<Arc<dyn SyncBlock<Error = BlockchainError>>, true>,
+    // The state at the time of forking
+    fork_state: ForkState,
     runtime: runtime::Handle,
     fork_block_number: U256,
     chain_id: U256,
@@ -64,6 +74,8 @@ impl ForkedBlockchain {
         remote_url: &str,
         cache_dir: PathBuf,
         fork_block_number: Option<U256>,
+        state_root_generator: Arc<Mutex<RandomHashGenerator>>,
+        accounts: HashMap<Address, AccountInfo>,
     ) -> Result<Self, CreationError> {
         let rpc_client = RpcClient::new(remote_url, cache_dir);
 
@@ -115,9 +127,20 @@ impl ForkedBlockchain {
             }
         }
 
+        let rpc_client = Arc::new(rpc_client);
+        let fork_state = ForkState::new(
+            runtime.clone(),
+            rpc_client.clone(),
+            state_root_generator,
+            fork_block_number,
+            accounts,
+        )
+        .await?;
+
         Ok(Self {
             local_storage: ReservableSparseBlockchainStorage::empty(fork_block_number),
             remote: RemoteBlockchain::new(rpc_client),
+            fork_state,
             runtime,
             fork_block_number,
             chain_id,
@@ -137,12 +160,12 @@ impl BlockHashRef for ForkedBlockchain {
             })
             .map_or_else(
                 |e| Err(BlockchainError::JsonRpcError(e)),
-                |block| Ok(block.header.hash()),
+                |block| Ok(*block.hash()),
             )
         } else {
             self.local_storage
                 .block_by_number(&number)
-                .map(|block| block.header.hash())
+                .map(|block| *block.hash())
                 .ok_or(BlockchainError::UnknownBlockNumber)
         }
     }
@@ -150,9 +173,15 @@ impl BlockHashRef for ForkedBlockchain {
 
 #[async_trait]
 impl Blockchain for ForkedBlockchain {
-    type Error = BlockchainError;
+    type BlockchainError = BlockchainError;
 
-    async fn block_by_hash(&self, hash: &B256) -> Result<Option<Arc<DetailedBlock>>, Self::Error> {
+    type StateError = StateError;
+
+    async fn block_by_hash(
+        &self,
+        hash: &B256,
+    ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>
+    {
         if let Some(block) = self.local_storage.block_by_hash(hash) {
             Ok(Some(block))
         } else {
@@ -166,7 +195,8 @@ impl Blockchain for ForkedBlockchain {
     async fn block_by_number(
         &self,
         number: &U256,
-    ) -> Result<Option<Arc<DetailedBlock>>, Self::Error> {
+    ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>
+    {
         if *number <= self.fork_block_number {
             self.remote.block_by_number(number).await.map_or_else(
                 |e| Err(BlockchainError::JsonRpcError(e)),
@@ -180,7 +210,8 @@ impl Blockchain for ForkedBlockchain {
     async fn block_by_transaction_hash(
         &self,
         transaction_hash: &B256,
-    ) -> Result<Option<Arc<DetailedBlock>>, Self::Error> {
+    ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>
+    {
         if let Some(block) = self
             .local_storage
             .block_by_transaction_hash(transaction_hash)
@@ -198,12 +229,12 @@ impl Blockchain for ForkedBlockchain {
         &self,
         number: &U256,
         spec_id: SpecId,
-    ) -> Result<bool, Self::Error> {
+    ) -> Result<bool, Self::BlockchainError> {
         if *number <= self.fork_block_number {
             self.remote.block_by_number(number).await.map_or_else(
                 |e| Err(BlockchainError::JsonRpcError(e)),
                 |block| {
-                    determine_hardfork(&self.chain_id, &block.header.number).map_or_else(
+                    determine_hardfork(&self.chain_id, &block.header().number).map_or_else(
                         || {
                             Err(BlockchainError::UnsupportedChain {
                                 chain_id: self.chain_id,
@@ -222,7 +253,9 @@ impl Blockchain for ForkedBlockchain {
         self.chain_id
     }
 
-    async fn last_block(&self) -> Result<Arc<DetailedBlock>, Self::Error> {
+    async fn last_block(
+        &self,
+    ) -> Result<Arc<dyn SyncBlock<Error = Self::BlockchainError>>, Self::BlockchainError> {
         let last_block_number = self.last_block_number().await;
         if self.fork_block_number < last_block_number {
             Ok(self
@@ -244,7 +277,7 @@ impl Blockchain for ForkedBlockchain {
     async fn receipt_by_transaction_hash(
         &self,
         transaction_hash: &B256,
-    ) -> Result<Option<Arc<rethnet_eth::receipt::BlockReceipt>>, Self::Error> {
+    ) -> Result<Option<Arc<BlockReceipt>>, Self::BlockchainError> {
         if let Some(receipt) = self
             .local_storage
             .receipt_by_transaction_hash(transaction_hash)
@@ -258,7 +291,28 @@ impl Blockchain for ForkedBlockchain {
         }
     }
 
-    async fn total_difficulty_by_hash(&self, hash: &B256) -> Result<Option<U256>, Self::Error> {
+    async fn state_at_block(
+        &self,
+        block_number: &U256,
+    ) -> Result<Box<dyn SyncState<Self::StateError>>, Self::BlockchainError> {
+        if *block_number > self.last_block_number().await {
+            return Err(BlockchainError::UnknownBlockNumber);
+        }
+
+        let mut state = self.fork_state.clone();
+        if *block_number <= self.fork_block_number {
+            state.set_fork_block_number(block_number);
+        } else {
+            compute_state_at_block(&mut state, &self.local_storage, block_number);
+        }
+
+        Ok(Box::new(state))
+    }
+
+    async fn total_difficulty_by_hash(
+        &self,
+        hash: &B256,
+    ) -> Result<Option<U256>, Self::BlockchainError> {
         if let Some(difficulty) = self.local_storage.total_difficulty_by_hash(hash) {
             Ok(Some(difficulty))
         } else {
@@ -276,8 +330,9 @@ impl BlockchainMut for ForkedBlockchain {
 
     async fn insert_block(
         &mut self,
-        block: DetailedBlock,
-    ) -> Result<Arc<DetailedBlock>, Self::Error> {
+        block: LocalBlock,
+        state_diff: StateDiff,
+    ) -> Result<Arc<dyn SyncBlock<Error = Self::Error>>, Self::Error> {
         let last_block = self.last_block().await?;
 
         validate_next_block(self.spec_id, &last_block, &block)?;
@@ -288,12 +343,12 @@ impl BlockchainMut for ForkedBlockchain {
             .expect("No error can occur as it is stored locally")
             .expect("Must exist as its block is stored");
 
-        let total_difficulty = previous_total_difficulty + block.header.difficulty;
+        let total_difficulty = previous_total_difficulty + block.header().difficulty;
 
         // SAFETY: The block number is guaranteed to be unique, so the block hash must be too.
         let block = unsafe {
             self.local_storage
-                .insert_block_unchecked(block, total_difficulty)
+                .insert_block_unchecked(block, state_diff, total_difficulty)
         };
 
         Ok(block.clone())
@@ -316,11 +371,12 @@ impl BlockchainMut for ForkedBlockchain {
             .await?
             .expect("Must exist as its block is stored");
 
+        let last_header = last_block.header();
         self.local_storage.reserve_blocks(
             additional,
             interval,
-            last_block.header.base_fee_per_gas,
-            last_block.header.state_root,
+            last_header.base_fee_per_gas,
+            last_header.state_root,
             previous_total_difficulty,
             self.spec_id,
         );

@@ -2,24 +2,26 @@ use std::sync::Arc;
 
 use async_rwlock::{RwLock, RwLockUpgradableReadGuard};
 use rethnet_eth::{
-    block::{BlockAndCallers, DetailedBlock},
     receipt::BlockReceipt,
     remote::{self, BlockSpec, RpcClient, RpcClientError},
-    transaction::SignedTransaction,
     B256, U256,
 };
+
+use crate::{Block, RemoteBlock};
 
 use super::storage::SparseBlockchainStorage;
 
 #[derive(Debug)]
-pub struct RemoteBlockchain<const FORCE_CACHING: bool> {
-    client: RpcClient,
-    cache: RwLock<SparseBlockchainStorage>,
+pub struct RemoteBlockchain<BlockT: Block + Clone, const FORCE_CACHING: bool> {
+    client: Arc<RpcClient>,
+    cache: RwLock<SparseBlockchainStorage<BlockT>>,
 }
 
-impl<const FORCE_CACHING: bool> RemoteBlockchain<FORCE_CACHING> {
+impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
+    RemoteBlockchain<BlockT, FORCE_CACHING>
+{
     /// Constructs a new instance with the provided RPC client.
-    pub fn new(client: RpcClient) -> Self {
+    pub fn new(client: Arc<RpcClient>) -> Self {
         Self {
             client,
             cache: RwLock::new(SparseBlockchainStorage::default()),
@@ -27,10 +29,7 @@ impl<const FORCE_CACHING: bool> RemoteBlockchain<FORCE_CACHING> {
     }
 
     /// Retrieves the block with the provided hash, if it exists.
-    pub async fn block_by_hash(
-        &self,
-        hash: &B256,
-    ) -> Result<Option<Arc<DetailedBlock>>, RpcClientError> {
+    pub async fn block_by_hash(&self, hash: &B256) -> Result<Option<BlockT>, RpcClientError> {
         let cache = self.cache.upgradable_read().await;
 
         if let Some(block) = cache.block_by_hash(hash).cloned() {
@@ -51,10 +50,7 @@ impl<const FORCE_CACHING: bool> RemoteBlockchain<FORCE_CACHING> {
     }
 
     /// Retrieves the block with the provided number, if it exists.
-    pub async fn block_by_number(
-        &self,
-        number: &U256,
-    ) -> Result<Arc<DetailedBlock>, RpcClientError> {
+    pub async fn block_by_number(&self, number: &U256) -> Result<BlockT, RpcClientError> {
         let cache = self.cache.upgradable_read().await;
 
         if let Some(block) = cache.block_by_number(number).cloned() {
@@ -73,7 +69,7 @@ impl<const FORCE_CACHING: bool> RemoteBlockchain<FORCE_CACHING> {
     pub async fn block_by_transaction_hash(
         &self,
         transaction_hash: &B256,
-    ) -> Result<Option<Arc<DetailedBlock>>, RpcClientError> {
+    ) -> Result<Option<BlockT>, RpcClientError> {
         // This block ensure that the read lock is dropped
         {
             if let Some(block) = self
@@ -153,42 +149,23 @@ impl<const FORCE_CACHING: bool> RemoteBlockchain<FORCE_CACHING> {
     /// Fetches detailed block information and caches the block.
     async fn fetch_and_cache_block(
         &self,
-        cache: RwLockUpgradableReadGuard<'_, SparseBlockchainStorage>,
+        cache: RwLockUpgradableReadGuard<'_, SparseBlockchainStorage<BlockT>>,
         block: remote::eth::Block<remote::eth::Transaction>,
-    ) -> Result<Arc<DetailedBlock>, RpcClientError> {
+    ) -> Result<BlockT, RpcClientError> {
         let total_difficulty = block
             .total_difficulty
             .expect("Must be present as this is not a pending block");
 
-        let BlockAndCallers {
-            block,
-            transaction_callers,
-        } = block
-            .try_into()
+        let block = RemoteBlock::new(block, self.client.clone())
             .expect("Conversion must succeed, as we're not retrieving a pending block");
-
-        let transaction_hashes: Vec<B256> = block
-            .transactions
-            .iter()
-            .map(SignedTransaction::hash)
-            .collect();
-
-        let receipts = self
-            .client
-            .get_transaction_receipts(&transaction_hashes)
-            .await?
-            .expect("All receipts of a block should exist")
-            .into_iter()
-            .map(Arc::new)
-            .collect();
-
-        let block = DetailedBlock::new(block, transaction_callers, receipts);
 
         let is_cacheable = FORCE_CACHING
             || self
                 .client
-                .is_cacheable_block_number(&block.header.number)
+                .is_cacheable_block_number(&block.header().number)
                 .await?;
+
+        let block = BlockT::from(block);
 
         if is_cacheable {
             let mut remote_cache = RwLockUpgradableReadGuard::upgrade(cache).await;
@@ -196,7 +173,7 @@ impl<const FORCE_CACHING: bool> RemoteBlockchain<FORCE_CACHING> {
             // SAFETY: the block with this number didn't exist yet, so it must be unique
             Ok(unsafe { remote_cache.insert_block_unchecked(block, total_difficulty) }.clone())
         } else {
-            Ok(Arc::new(block))
+            Ok(block)
         }
     }
 }
@@ -218,7 +195,7 @@ mod tests {
         // Latest block number is always unsafe to cache
         let block_number = rpc_client.block_number().await.unwrap();
 
-        let remote = RemoteBlockchain::<false>::new(rpc_client);
+        let remote = RemoteBlockchain::<RemoteBlock, false>::new(Arc::new(rpc_client));
 
         let _ = remote.block_by_number(&block_number).await.unwrap();
         assert!(remote

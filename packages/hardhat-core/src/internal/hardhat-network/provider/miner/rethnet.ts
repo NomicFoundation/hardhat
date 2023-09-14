@@ -50,6 +50,8 @@ export class RethnetMiner implements BlockMinerAdapter {
       prevRandao
     );
 
+    this._stateManager.setInner(mineResult.state);
+
     const traces: PartialTrace[] = [];
 
     const vmTracer = new VMTracer(this._common, false);
@@ -73,16 +75,18 @@ export class RethnetMiner implements BlockMinerAdapter {
       traces.push({ trace, error });
     }
 
+    const receipts = await mineResult.block.receipts();
+
     return {
       block: rethnetBlockToEthereumJS(mineResult.block, this._common),
       blockResult: {
         results: mineResult.results.map((result, index, _array) => {
           return rethnetResultToRunTxResult(
             result,
-            mineResult.block.receipts[index].cumulativeGasUsed
+            receipts[index].cumulativeGasUsed
           );
         }),
-        receipts: mineResult.block.receipts.map((receipt, _index, _array) => {
+        receipts: receipts.map((receipt, _index, _array) => {
           return rethnetReceiptToEthereumJsTxReceipt(receipt);
         }),
         stateRoot: mineResult.block.header.stateRoot,

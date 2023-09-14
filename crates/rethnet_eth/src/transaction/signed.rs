@@ -3,11 +3,14 @@ mod eip1559;
 mod eip2930;
 mod legacy;
 
+use std::sync::OnceLock;
+
 use bytes::Bytes;
 use revm_primitives::{Address, B256, U256};
 
 use crate::{
     access_list::AccessList,
+    remote,
     signature::{Signature, SignatureError},
     utils::enveloped,
 };
@@ -130,7 +133,7 @@ impl SignedTransaction {
     }
 
     /// Computes the hash of the transaction.
-    pub fn hash(&self) -> B256 {
+    pub fn hash(&self) -> &B256 {
         match self {
             SignedTransaction::PreEip155Legacy(t) => t.hash(),
             SignedTransaction::PostEip155Legacy(t) => t.hash(),
@@ -183,6 +186,122 @@ impl SignedTransaction {
     }
 }
 
+/// Error that occurs when trying to convert the JSON-RPC `Transaction` type.
+#[derive(Debug, thiserror::Error)]
+pub enum TransactionConversionError {
+    /// Missing access list
+    #[error("Missing access list")]
+    MissingAccessList,
+    /// Missing chain ID
+    #[error("Missing chain ID")]
+    MissingChainId,
+    /// Missing max fee per gas
+    #[error("Missing max fee per gas")]
+    MissingMaxFeePerGas,
+    /// Missing max priority fee per gas
+    #[error("Missing max priority fee per gas")]
+    MissingMaxPriorityFeePerGas,
+    /// The transaction type is not supported.
+    #[error("Unsupported type {0}")]
+    UnsupportedType(u64),
+}
+
+impl TryFrom<remote::eth::Transaction> for (SignedTransaction, Address) {
+    type Error = TransactionConversionError;
+
+    fn try_from(value: remote::eth::Transaction) -> Result<Self, Self::Error> {
+        let kind = if let Some(to) = &value.to {
+            TransactionKind::Call(*to)
+        } else {
+            TransactionKind::Create
+        };
+
+        let transaction = match value.transaction_type {
+            0 => {
+                if value.is_legacy() {
+                    SignedTransaction::PreEip155Legacy(LegacySignedTransaction {
+                        nonce: value.nonce,
+                        gas_price: value.gas_price,
+                        gas_limit: value.gas.to(),
+                        kind,
+                        value: value.value,
+                        input: value.input,
+                        signature: Signature {
+                            r: value.r,
+                            s: value.s,
+                            v: value.v,
+                        },
+                        hash: OnceLock::from(value.hash),
+                    })
+                } else {
+                    SignedTransaction::PostEip155Legacy(EIP155SignedTransaction {
+                        nonce: value.nonce,
+                        gas_price: value.gas_price,
+                        gas_limit: value.gas.to(),
+                        kind,
+                        value: value.value,
+                        input: value.input,
+                        signature: Signature {
+                            r: value.r,
+                            s: value.s,
+                            v: value.v,
+                        },
+                        hash: OnceLock::from(value.hash),
+                    })
+                }
+            }
+            1 => SignedTransaction::Eip2930(EIP2930SignedTransaction {
+                odd_y_parity: value.odd_y_parity(),
+                chain_id: value
+                    .chain_id
+                    .ok_or(TransactionConversionError::MissingChainId)?,
+                nonce: value.nonce,
+                gas_price: value.gas_price,
+                gas_limit: value.gas.to(),
+                kind,
+                value: value.value,
+                input: value.input,
+                access_list: value
+                    .access_list
+                    .ok_or(TransactionConversionError::MissingAccessList)?
+                    .into(),
+                r: value.r,
+                s: value.s,
+                hash: OnceLock::from(value.hash),
+            }),
+            2 => SignedTransaction::Eip1559(EIP1559SignedTransaction {
+                odd_y_parity: value.odd_y_parity(),
+                chain_id: value
+                    .chain_id
+                    .ok_or(TransactionConversionError::MissingChainId)?,
+                nonce: value.nonce,
+                max_priority_fee_per_gas: value
+                    .max_priority_fee_per_gas
+                    .ok_or(TransactionConversionError::MissingMaxPriorityFeePerGas)?,
+                max_fee_per_gas: value
+                    .max_fee_per_gas
+                    .ok_or(TransactionConversionError::MissingMaxFeePerGas)?,
+                gas_limit: value.gas.to(),
+                kind,
+                value: value.value,
+                input: value.input,
+                access_list: value
+                    .access_list
+                    .ok_or(TransactionConversionError::MissingAccessList)?
+                    .into(),
+                r: value.r,
+                s: value.s,
+                hash: OnceLock::from(value.hash),
+            }),
+            r#type => {
+                return Err(TransactionConversionError::UnsupportedType(r#type));
+            }
+        };
+
+        Ok((transaction, value.from))
+    }
+}
+
 impl rlp::Encodable for SignedTransaction {
     fn rlp_append(&self, s: &mut rlp::RlpStream) {
         match self {
@@ -227,6 +346,8 @@ impl rlp::Decodable for SignedTransaction {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::OnceLock;
+
     use bytes::Bytes;
 
     use super::*;
@@ -278,6 +399,7 @@ mod tests {
                     s: U256::default(),
                     v: 1,
                 },
+                hash: OnceLock::new(),
             }),
             SignedTransaction::PostEip155Legacy(EIP155SignedTransaction {
                 nonce: 0,
@@ -291,6 +413,7 @@ mod tests {
                     s: U256::default(),
                     v: 37,
                 },
+                hash: OnceLock::new(),
             }),
             SignedTransaction::Eip2930(EIP2930SignedTransaction {
                 chain_id: 1,
@@ -304,6 +427,7 @@ mod tests {
                 r: U256::default(),
                 s: U256::default(),
                 access_list: vec![].into(),
+                hash: OnceLock::new(),
             }),
             SignedTransaction::Eip1559(EIP1559SignedTransaction {
                 chain_id: 1u64,
@@ -318,6 +442,7 @@ mod tests {
                 odd_y_parity: true,
                 r: U256::default(),
                 s: U256::default(),
+                hash: OnceLock::new(),
             }),
         ];
 
@@ -354,6 +479,7 @@ mod tests {
                 )
                 .unwrap(),
             },
+            hash: OnceLock::new(),
         });
         assert_eq!(expected, rlp::decode(&bytes_first).unwrap());
 
@@ -378,6 +504,7 @@ mod tests {
                 )
                 .unwrap(),
             },
+            hash: OnceLock::new(),
         });
         assert_eq!(expected, rlp::decode(&bytes_second).unwrap());
 
@@ -402,6 +529,7 @@ mod tests {
                 )
                 .unwrap(),
             },
+            hash: OnceLock::new(),
         });
         assert_eq!(expected, rlp::decode(&bytes_third).unwrap());
 
@@ -423,6 +551,7 @@ mod tests {
                 .unwrap(),
             s: U256::from_str("0x016b83f4f980694ed2eee4d10667242b1f40dc406901b34125b008d334d47469")
                 .unwrap(),
+            hash: OnceLock::new(),
         });
         assert_eq!(expected, rlp::decode(&bytes_fourth).unwrap());
 
@@ -447,6 +576,7 @@ mod tests {
                 )
                 .unwrap(),
             },
+            hash: OnceLock::new(),
         });
         assert_eq!(expected, rlp::decode(&bytes_fifth).unwrap());
     }

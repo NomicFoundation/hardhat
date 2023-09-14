@@ -185,6 +185,16 @@ export function assertEqualBlocks(ethereumJSBlock: Block, rethnetBlock: Block) {
   }
 
   if (
+    !areOptionalBuffersEqual(
+      ethereumJSHeader.withdrawalsRoot,
+      rethnetHeader.withdrawalsRoot,
+      "withdrawalsRoot"
+    )
+  ) {
+    differences.push("withdrawalsRoot");
+  }
+
+  if (
     ethereumJSBlock.transactions.length !== rethnetBlock.transactions.length
   ) {
     console.log(
@@ -572,6 +582,49 @@ function txReceiptDifferences(
   }
 
   return differences;
+}
+
+function areOptionalBuffersEqual(
+  hardhat: Buffer | undefined,
+  rethnet: Buffer | undefined,
+  description: string
+): boolean {
+  if (hardhat === undefined) {
+    if (rethnet !== undefined) {
+      console.log(
+        `${description} (hardhat) is undefined but ${description} (rethnet) is defined`
+      );
+      return false;
+    }
+
+    return true;
+  } else {
+    if (rethnet === undefined) {
+      console.log(
+        `${description} (hardhat) is defined but ${description} (rethnet) is undefined`
+      );
+      return false;
+    }
+
+    return areBuffersEqual(hardhat, rethnet, description);
+  }
+}
+
+function areBuffersEqual(
+  hardhat: Buffer,
+  rethnet: Buffer,
+  description: string
+): boolean {
+  const areEqual = hardhat.equals(rethnet);
+  if (!areEqual) {
+    console.log(
+      `Different ${description}: ${bufferToHex(
+        hardhat
+      )} (hardhat) !== ${bufferToHex(rethnet)} (rethnet)`
+    );
+  }
+
+  return areEqual;
 }
 
 export function assertEqualOptionalReceipts(

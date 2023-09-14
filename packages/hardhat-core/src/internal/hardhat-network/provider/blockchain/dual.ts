@@ -75,10 +75,13 @@ export class DualBlockchain implements BlockchainAdapter {
   }
 
   public async getLatestBlock(): Promise<Block> {
-    const hardhatBlock = await this._hardhat.getLatestBlock();
-    const rethnetBlock = (await this._rethnet.getBlockByNumber(
-      hardhatBlock.header.number
-    ))!;
+    const [hardhatBlock, rethnetBlock] = await Promise.all([
+      await this._hardhat.getLatestBlock(),
+      await this._rethnet.getLatestBlock(),
+    ]);
+
+    console.log("hardhatBlock", hardhatBlock._common.hardfork());
+    console.log("rethnetBlock", rethnetBlock._common.hardfork());
 
     assertEqualBlocks(hardhatBlock, rethnetBlock);
     return rethnetBlock;

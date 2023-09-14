@@ -11,8 +11,12 @@ mod trie;
 use dyn_clone::DynClone;
 use std::fmt::Debug;
 
-use rethnet_eth::{remote::RpcClientError, B256};
-use revm::{db::StateRef, DatabaseCommit};
+use rethnet_eth::{remote::RpcClientError, Address, B256};
+use revm::{
+    db::StateRef,
+    primitives::{Account, HashMap},
+    DatabaseCommit,
+};
 
 pub use self::{
     debug::{AccountModifierFn, StateDebug},
@@ -22,7 +26,12 @@ pub use self::{
     irregular::IrregularState,
     layered::{LayeredState, RethnetLayer},
     remote::RemoteState,
+    trie::{AccountTrie, TrieState},
 };
+
+/// The difference between two states, which can be applied to a state to get the new state
+/// using [`revm::db::DatabaseCommit::commit`].
+pub type StateDiff = HashMap<Address, Account>;
 
 /// Combinatorial error for the state API
 #[derive(Debug, thiserror::Error)]
@@ -51,7 +60,6 @@ pub trait SyncState<E>:
     StateRef<Error = E>
     + DatabaseCommit
     + StateDebug<Error = E>
-    + StateHistory<Error = E>
     + Debug
     + DynClone
     + Send
@@ -76,7 +84,6 @@ where
     S: StateRef<Error = E>
         + DatabaseCommit
         + StateDebug<Error = E>
-        + StateHistory<Error = E>
         + Debug
         + DynClone
         + Send

@@ -11,7 +11,7 @@ use rethnet_evm::{
     blockchain::{BlockchainError, SyncBlockchain},
     state::{StateError, SyncState},
     trace::TraceCollector,
-    BlockTransactionError, CfgEnv, InvalidTransaction, SyncInspector,
+    BlockTransactionError, CfgEnv, InvalidTransaction, SyncBlock, SyncInspector,
 };
 
 use crate::{
@@ -28,8 +28,8 @@ use super::{Block, BlockHeader, BlockOptions};
 #[napi]
 pub struct BlockBuilder {
     builder: Arc<RwLock<Option<rethnet_evm::BlockBuilder>>>,
-    blockchain: Arc<RwLock<dyn SyncBlockchain<BlockchainError>>>,
-    state: Arc<RwLock<dyn SyncState<StateError>>>,
+    blockchain: Arc<RwLock<dyn SyncBlockchain<BlockchainError, StateError>>>,
+    state: Arc<RwLock<Box<dyn SyncState<StateError>>>>,
     runtime: runtime::Handle,
 }
 
@@ -59,13 +59,7 @@ impl BlockBuilder {
 
         let (deferred, promise) = env.create_deferred()?;
         context.runtime().spawn(async move {
-            let result = rethnet_evm::BlockBuilder::new(
-                &mut *state.clone().write().await,
-                config,
-                &parent,
-                block,
-            )
-            .map_or_else(
+            let result = rethnet_evm::BlockBuilder::new(config, &parent, block).map_or_else(
                 |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
                 |builder| {
                     Ok(Self {
@@ -182,26 +176,12 @@ impl BlockBuilder {
                 .finalize(&mut *self.state.write().await, rewards, timestamp)
                 .map_or_else(
                     |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
-                    |block| Ok(Block::from(Arc::new(block))),
+                    |result| {
+                        let block: Arc<dyn SyncBlock<Error = BlockchainError>> =
+                            Arc::new(result.block);
+                        Ok(Block::from(block))
+                    },
                 )
-        } else {
-            Err(napi::Error::new(
-                Status::InvalidArg,
-                "The BlockBuilder object has been moved in Rust".to_owned(),
-            ))
-        }
-    }
-
-    /// This call consumes the [`BlockBuilder`] object in Rust. Afterwards, you can no longer call
-    /// methods on the JS object.
-    #[napi]
-    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub async fn abort(&self) -> napi::Result<()> {
-        let mut builder = self.builder.write().await;
-        if let Some(builder) = builder.take() {
-            builder
-                .abort(&mut *self.state.write().await)
-                .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
         } else {
             Err(napi::Error::new(
                 Status::InvalidArg,

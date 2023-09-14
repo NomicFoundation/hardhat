@@ -4,7 +4,7 @@ use std::{
 };
 
 use rethnet_eth::{
-    block::{Block, BlockOptions, DetailedBlock, Header, PartialHeader},
+    block::{BlockOptions, Header, PartialHeader},
     log::Log,
     receipt::{TransactionReceipt, TypedReceipt, TypedReceiptData},
     transaction::SignedTransaction,
@@ -14,27 +14,26 @@ use rethnet_eth::{
 use revm::{
     db::DatabaseComponentError,
     primitives::{
-        AccountInfo, BlockEnv, CfgEnv, EVMError, ExecutionResult, InvalidTransaction, Output,
-        ResultAndState, SpecId,
+        Account, AccountInfo, AccountStatus, BlockEnv, CfgEnv, EVMError, ExecutionResult, HashMap,
+        InvalidTransaction, Output, ResultAndState, SpecId,
     },
 };
 
 use crate::{
     blockchain::SyncBlockchain,
     evm::{build_evm, run_transaction, SyncInspector},
-    state::{AccountModifierFn, StateHistory, SyncState},
+    state::{AccountModifierFn, StateDiff, SyncState},
     PendingTransaction,
 };
 
+use super::local::LocalBlock;
+
 /// An error caused during construction of a block builder.
 #[derive(Debug, thiserror::Error)]
-pub enum BlockBuilderCreationError<SE> {
+pub enum BlockBuilderCreationError {
     /// Unsupported hardfork. Hardforks older than Byzantium are not supported
     #[error("Unsupported hardfork: {0:?}. Hardforks older than Byzantium are not supported.")]
     UnsupportedHardfork(SpecId),
-    /// State error
-    #[error(transparent)]
-    State(#[from] SE),
 }
 
 /// An error caused during execution of a transaction while building a block.
@@ -69,29 +68,35 @@ where
     }
 }
 
+/// The result of building a block, using the [`BlockBuilder`].
+pub struct BuildBlockResult {
+    /// Built block
+    pub block: LocalBlock,
+    /// State diff
+    pub state_diff: StateDiff,
+}
+
 /// A builder for constructing Ethereum blocks.
 pub struct BlockBuilder {
     cfg: CfgEnv,
     header: PartialHeader,
     callers: Vec<Address>,
     transactions: Vec<SignedTransaction>,
+    state_diff: StateDiff,
     receipts: Vec<TransactionReceipt<Log>>,
     parent_gas_limit: Option<U256>,
 }
 
 impl BlockBuilder {
-    /// Creates an intance of [`BlockBuilder`], creating a checkpoint in the process.
-    pub fn new<StateT: StateHistory + ?Sized>(
-        state: &mut StateT,
+    /// Creates an intance of [`BlockBuilder`].
+    pub fn new(
         cfg: CfgEnv,
         parent: &Header,
         options: BlockOptions,
-    ) -> Result<Self, BlockBuilderCreationError<StateT::Error>> {
+    ) -> Result<Self, BlockBuilderCreationError> {
         if cfg.spec_id < SpecId::BYZANTIUM {
             return Err(BlockBuilderCreationError::UnsupportedHardfork(cfg.spec_id));
         }
-
-        state.checkpoint()?;
 
         let parent_gas_limit = if options.gas_limit.is_none() {
             Some(parent.gas_limit)
@@ -122,6 +127,7 @@ impl BlockBuilder {
             header,
             callers: Vec::new(),
             transactions: Vec::new(),
+            state_diff: StateDiff::new(),
             receipts: Vec::new(),
             parent_gas_limit,
         })
@@ -153,7 +159,7 @@ impl BlockBuilder {
     /// Adds a pending transaction to
     pub fn add_transaction<BlockchainErrorT, StateErrorT>(
         &mut self,
-        blockchain: &mut dyn SyncBlockchain<BlockchainErrorT>,
+        blockchain: &mut dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
         state: &mut dyn SyncState<StateErrorT>,
         transaction: PendingTransaction,
         inspector: Option<&mut dyn SyncInspector<BlockchainErrorT, StateErrorT>>,
@@ -191,10 +197,11 @@ impl BlockBuilder {
 
         let ResultAndState {
             result,
-            state: changes,
+            state: state_diff,
         } = run_transaction(evm, inspector)?;
 
-        state.commit(changes);
+        self.state_diff.extend(state_diff.clone());
+        state.commit(state_diff);
 
         self.header.gas_used += U256::from(result.gas_used());
 
@@ -271,30 +278,37 @@ impl BlockBuilder {
         state: &mut StateT,
         rewards: Vec<(Address, U256)>,
         timestamp: Option<U256>,
-    ) -> Result<DetailedBlock, StateErrorT>
+    ) -> Result<BuildBlockResult, StateErrorT>
     where
         StateT: SyncState<StateErrorT> + ?Sized,
         StateErrorT: Debug + Send,
     {
         for (address, reward) in rewards {
-            state
-                .modify_account(
-                    address,
-                    AccountModifierFn::new(Box::new(move |balance, _nonce, _code| {
-                        *balance += reward;
-                    })),
-                    &|| {
-                        Ok(AccountInfo {
-                            code: None,
-                            ..AccountInfo::default()
-                        })
-                    },
-                )
-                .or_else(|error| {
-                    state.revert()?;
+            state.modify_account(
+                address,
+                AccountModifierFn::new(Box::new(move |balance, _nonce, _code| {
+                    *balance += reward;
+                })),
+                &|| {
+                    Ok(AccountInfo {
+                        code: None,
+                        ..AccountInfo::default()
+                    })
+                },
+            )?;
 
-                    Err(error)
-                })?;
+            let account_info = state
+                .basic(address)?
+                .expect("Account must exist after modification");
+
+            self.state_diff.insert(
+                address,
+                Account {
+                    info: account_info,
+                    storage: HashMap::new(),
+                    status: AccountStatus::Touched,
+                },
+            );
         }
 
         if let Some(gas_limit) = self.parent_gas_limit {
@@ -337,20 +351,18 @@ impl BlockBuilder {
         };
 
         // TODO: handle ommers
-        let block = Block::new(self.header, self.transactions, Vec::new(), withdrawals);
-
-        Ok(DetailedBlock::with_partial_receipts(
-            block,
+        let block = LocalBlock::new(
+            self.header,
+            self.transactions,
             self.callers,
             self.receipts,
-        ))
-    }
+            Vec::new(),
+            withdrawals,
+        );
 
-    /// Aborts building of the block, reverting all transactions in the process.
-    pub fn abort<StateT>(self, state: &mut StateT) -> Result<(), StateT::Error>
-    where
-        StateT: StateHistory + ?Sized,
-    {
-        state.revert()
+        Ok(BuildBlockResult {
+            block,
+            state_diff: self.state_diff,
+        })
     }
 }
