@@ -16,9 +16,9 @@ import {
   AccountRuntimeValue,
   AddressResolvableFuture,
   ArgumentType,
-  ArtifactContractAtFuture,
-  ArtifactContractDeploymentFuture,
-  ArtifactLibraryDeploymentFuture,
+  ContractAtFuture,
+  ContractDeploymentFuture,
+  LibraryDeploymentFuture,
   CallableContractFuture,
   ContractFuture,
   FutureType,
@@ -27,11 +27,11 @@ import {
   ModuleParameterRuntimeValue,
   ModuleParameterType,
   ModuleParameters,
-  NamedContractAtFuture,
-  NamedContractCallFuture,
-  NamedContractDeploymentFuture,
-  NamedLibraryDeploymentFuture,
-  NamedStaticCallFuture,
+  NamedArtifactContractAtFuture,
+  ContractCallFuture,
+  NamedArtifactContractDeploymentFuture,
+  NamedArtifactLibraryDeploymentFuture,
+  StaticCallFuture,
   ReadEventArgumentFuture,
   SendDataFuture,
 } from "../types/module";
@@ -180,21 +180,21 @@ class IgnitionModuleBuilderImplementation<
     contractName: ContractNameT,
     args?: ArgumentType[],
     options?: ContractOptions
-  ): NamedContractDeploymentFuture<ContractNameT>;
+  ): NamedArtifactContractDeploymentFuture<ContractNameT>;
   public contract(
     contractName: string,
     artifact: Artifact,
     args?: ArgumentType[],
     options?: ContractOptions
-  ): ArtifactContractDeploymentFuture;
+  ): ContractDeploymentFuture;
   public contract<ContractNameT extends string>(
     contractName: ContractNameT,
     artifactOrArgs?: Artifact | ArgumentType[],
     argsorOptions?: ArgumentType[] | ContractAtOptions,
     maybeOptions?: ContractOptions
   ):
-    | NamedContractDeploymentFuture<ContractNameT>
-    | ArtifactContractDeploymentFuture {
+    | NamedArtifactContractDeploymentFuture<ContractNameT>
+    | ContractDeploymentFuture {
     if (artifactOrArgs === undefined || Array.isArray(artifactOrArgs)) {
       if (Array.isArray(argsorOptions)) {
         this._throwErrorWithStackTrace(
@@ -229,7 +229,7 @@ class IgnitionModuleBuilderImplementation<
     contractName: ContractNameT,
     args: ArgumentType[] = [],
     options: ContractOptions = {}
-  ): NamedContractDeploymentFuture<ContractNameT> {
+  ): NamedArtifactContractDeploymentFuture<ContractNameT> {
     const futureId = toDeploymentFutureId(
       this._module.id,
       options.id,
@@ -280,7 +280,7 @@ class IgnitionModuleBuilderImplementation<
     artifact: Artifact,
     args: ArgumentType[] = [],
     options: ContractOptions = {}
-  ): ArtifactContractDeploymentFuture {
+  ): ContractDeploymentFuture {
     const futureId = toDeploymentFutureId(
       this._module.id,
       options.id,
@@ -332,12 +332,12 @@ class IgnitionModuleBuilderImplementation<
   public library<LibraryNameT extends string>(
     libraryName: LibraryNameT,
     options?: LibraryOptions
-  ): NamedLibraryDeploymentFuture<LibraryNameT>;
+  ): NamedArtifactLibraryDeploymentFuture<LibraryNameT>;
   public library(
     libraryName: string,
     artifact: Artifact,
     options?: LibraryOptions
-  ): ArtifactLibraryDeploymentFuture;
+  ): LibraryDeploymentFuture;
   public library<LibraryNameT extends string>(
     libraryName: LibraryNameT,
     artifactOrOptions?: Artifact | LibraryOptions,
@@ -353,7 +353,7 @@ class IgnitionModuleBuilderImplementation<
   private _namedArtifactLibrary<LibraryNameT extends string>(
     libraryName: LibraryNameT,
     options: LibraryOptions = {}
-  ): NamedLibraryDeploymentFuture<LibraryNameT> {
+  ): NamedArtifactLibraryDeploymentFuture<LibraryNameT> {
     const futureId = toDeploymentFutureId(
       this._module.id,
       options.id,
@@ -395,7 +395,7 @@ class IgnitionModuleBuilderImplementation<
     libraryName: string,
     artifact: Artifact,
     options: LibraryOptions = {}
-  ): ArtifactLibraryDeploymentFuture {
+  ): LibraryDeploymentFuture {
     const futureId = toDeploymentFutureId(
       this._module.id,
       options.id,
@@ -439,7 +439,7 @@ class IgnitionModuleBuilderImplementation<
     functionName: FunctionNameT,
     args: ArgumentType[] = [],
     options: CallOptions = {}
-  ): NamedContractCallFuture<ContractNameT, FunctionNameT> {
+  ): ContractCallFuture<ContractNameT, FunctionNameT> {
     const futureId = toCallFutureId(
       this._module.id,
       options.id,
@@ -489,7 +489,7 @@ class IgnitionModuleBuilderImplementation<
     args: ArgumentType[] = [],
     nameOrIndex: string | number = 0,
     options: StaticCallOptions = {}
-  ): NamedStaticCallFuture<ContractNameT, FunctionNameT> {
+  ): StaticCallFuture<ContractNameT, FunctionNameT> {
     const futureId = toCallFutureId(
       this._module.id,
       options.id,
@@ -538,7 +538,7 @@ class IgnitionModuleBuilderImplementation<
       | AddressResolvableFuture
       | ModuleParameterRuntimeValue<string>,
     options?: ContractAtOptions
-  ): NamedContractAtFuture<ContractNameT>;
+  ): NamedArtifactContractAtFuture<ContractNameT>;
   public contractAt(
     contractName: string,
     address:
@@ -547,7 +547,7 @@ class IgnitionModuleBuilderImplementation<
       | ModuleParameterRuntimeValue<string>,
     artifact: Artifact,
     options?: ContractAtOptions
-  ): ArtifactContractAtFuture;
+  ): ContractAtFuture;
   public contractAt<ContractNameT extends string>(
     contractName: ContractNameT,
     address:
@@ -580,7 +580,7 @@ class IgnitionModuleBuilderImplementation<
       | AddressResolvableFuture
       | ModuleParameterRuntimeValue<string>,
     options: ContractAtOptions = {}
-  ): NamedContractAtFuture<ContractNameT> {
+  ): NamedArtifactContractAtFuture<ContractNameT> {
     const futureId = toDeploymentFutureId(
       this._module.id,
       options.id,
@@ -622,7 +622,7 @@ class IgnitionModuleBuilderImplementation<
       | ModuleParameterRuntimeValue<string>,
     artifact: Artifact,
     options: ContractAtOptions = {}
-  ): ArtifactContractAtFuture {
+  ): ContractAtFuture {
     const futureId = toDeploymentFutureId(
       this._module.id,
       options.id,
@@ -660,10 +660,10 @@ class IgnitionModuleBuilderImplementation<
 
   public readEventArgument(
     futureToReadFrom:
-      | NamedContractDeploymentFuture<string>
-      | ArtifactContractDeploymentFuture
+      | NamedArtifactContractDeploymentFuture<string>
+      | ContractDeploymentFuture
       | SendDataFuture
-      | NamedContractCallFuture<string, string>,
+      | ContractCallFuture<string, string>,
     eventName: string,
     nameOrIndex: string | number,
     options: ReadEventArgumentOptions = {}
@@ -683,8 +683,8 @@ class IgnitionModuleBuilderImplementation<
       "contract" in futureToReadFrom
         ? futureToReadFrom.contract
         : (futureToReadFrom as
-            | ArtifactContractDeploymentFuture
-            | NamedContractDeploymentFuture<string>);
+            | ContractDeploymentFuture
+            | NamedArtifactContractDeploymentFuture<string>);
 
     const emitter = options.emitter ?? contractToReadFrom;
 

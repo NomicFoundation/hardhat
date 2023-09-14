@@ -1,11 +1,11 @@
 import { IgnitionValidationError } from "../../../errors";
 import { isArtifactType } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
-import { NamedLibraryDeploymentFuture } from "../../../types/module";
+import { NamedArtifactLibraryDeploymentFuture } from "../../../types/module";
 import { validateLibraryNames } from "../../execution/libraries";
 
 export async function validateNamedLibraryDeployment(
-  future: NamedLibraryDeploymentFuture<string>,
+  future: NamedArtifactLibraryDeploymentFuture<string>,
   artifactLoader: ArtifactResolver
 ) {
   const artifact = await artifactLoader.loadArtifact(future.contractName);

@@ -1,4 +1,4 @@
-import { ArtifactContractAtFuture } from "../../../types/module";
+import { ContractAtFuture } from "../../../types/module";
 import { ContractAtExecutionState } from "../../execution/types/execution-state";
 import { reconcileAddress } from "../helpers/reconcile-address";
 import { reconcileArtifacts } from "../helpers/reconcile-artifacts";
@@ -6,7 +6,7 @@ import { reconcileContractName } from "../helpers/reconcile-contract-name";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 
 export async function reconcileArtifactContractAt(
-  future: ArtifactContractAtFuture,
+  future: ContractAtFuture,
   executionState: ContractAtExecutionState,
   context: ReconciliationContext
 ): Promise<ReconciliationFutureResult> {

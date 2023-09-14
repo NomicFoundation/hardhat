@@ -1,8 +1,8 @@
 import {
-  ArtifactContractDeploymentFuture,
-  ArtifactLibraryDeploymentFuture,
-  NamedContractDeploymentFuture,
-  NamedLibraryDeploymentFuture,
+  ContractDeploymentFuture,
+  LibraryDeploymentFuture,
+  NamedArtifactContractDeploymentFuture,
+  NamedArtifactLibraryDeploymentFuture,
 } from "../../../types/module";
 import { resolveLibraries } from "../../execution/future-processor/helpers/future-resolvers";
 import { DeploymentExecutionState } from "../../execution/types/execution-state";
@@ -14,10 +14,10 @@ import { fail } from "../utils";
 
 export function reconcileLibraries(
   future:
-    | NamedContractDeploymentFuture<string>
-    | ArtifactContractDeploymentFuture
-    | NamedLibraryDeploymentFuture<string>
-    | ArtifactLibraryDeploymentFuture,
+    | NamedArtifactContractDeploymentFuture<string>
+    | ContractDeploymentFuture
+    | NamedArtifactLibraryDeploymentFuture<string>
+    | LibraryDeploymentFuture,
   exState: DeploymentExecutionState,
   context: ReconciliationContext
 ): ReconciliationFutureResultFailure | undefined {

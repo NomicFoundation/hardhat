@@ -1,8 +1,8 @@
 import { ArtifactResolver } from "../../../types/artifact";
-import { ArtifactContractAtFuture } from "../../../types/module";
+import { ContractAtFuture } from "../../../types/module";
 
 export async function validateArtifactContractAt(
-  _future: ArtifactContractAtFuture,
+  _future: ContractAtFuture,
   _artifactLoader: ArtifactResolver
 ) {
   return; // no-op

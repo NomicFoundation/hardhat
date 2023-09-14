@@ -3,9 +3,9 @@ import {
   AccountRuntimeValue,
   AddressResolvableFuture,
   ArgumentType,
-  ArtifactContractAtFuture,
-  ArtifactContractDeploymentFuture,
-  ArtifactLibraryDeploymentFuture,
+  ContractAtFuture,
+  ContractDeploymentFuture,
+  LibraryDeploymentFuture,
   CallableContractFuture,
   ContractFuture,
   Future,
@@ -13,11 +13,11 @@ import {
   IgnitionModuleResult,
   ModuleParameterRuntimeValue,
   ModuleParameterType,
-  NamedContractAtFuture,
-  NamedContractCallFuture,
-  NamedContractDeploymentFuture,
-  NamedLibraryDeploymentFuture,
-  NamedStaticCallFuture,
+  NamedArtifactContractAtFuture,
+  ContractCallFuture,
+  NamedArtifactContractDeploymentFuture,
+  NamedArtifactLibraryDeploymentFuture,
+  StaticCallFuture,
   ReadEventArgumentFuture,
   SendDataFuture,
 } from "./module";
@@ -131,32 +131,32 @@ export interface IgnitionModuleBuilder {
     contractName: ContractNameT,
     args?: ArgumentType[],
     options?: ContractOptions
-  ): NamedContractDeploymentFuture<ContractNameT>;
+  ): NamedArtifactContractDeploymentFuture<ContractNameT>;
 
   contract(
     contractName: string,
     artifact: Artifact,
     args?: ArgumentType[],
     options?: ContractOptions
-  ): ArtifactContractDeploymentFuture;
+  ): ContractDeploymentFuture;
 
   library<LibraryNameT extends string>(
     libraryName: LibraryNameT,
     options?: LibraryOptions
-  ): NamedLibraryDeploymentFuture<LibraryNameT>;
+  ): NamedArtifactLibraryDeploymentFuture<LibraryNameT>;
 
   library(
     libraryName: string,
     artifact: Artifact,
     options?: LibraryOptions
-  ): ArtifactLibraryDeploymentFuture;
+  ): LibraryDeploymentFuture;
 
   call<ContractNameT extends string, FunctionNameT extends string>(
     contractFuture: CallableContractFuture<ContractNameT>,
     functionName: FunctionNameT,
     args?: ArgumentType[],
     options?: CallOptions
-  ): NamedContractCallFuture<ContractNameT, FunctionNameT>;
+  ): ContractCallFuture<ContractNameT, FunctionNameT>;
 
   staticCall<ContractNameT extends string, FunctionNameT extends string>(
     contractFuture: CallableContractFuture<ContractNameT>,
@@ -164,7 +164,7 @@ export interface IgnitionModuleBuilder {
     args?: ArgumentType[],
     nameOrIndex?: string | number,
     options?: StaticCallOptions
-  ): NamedStaticCallFuture<ContractNameT, FunctionNameT>;
+  ): StaticCallFuture<ContractNameT, FunctionNameT>;
 
   contractAt<ContractNameT extends string>(
     contractName: ContractNameT,
@@ -173,7 +173,7 @@ export interface IgnitionModuleBuilder {
       | AddressResolvableFuture
       | ModuleParameterRuntimeValue<string>,
     options?: ContractAtOptions
-  ): NamedContractAtFuture<ContractNameT>;
+  ): NamedArtifactContractAtFuture<ContractNameT>;
 
   contractAt(
     contractName: string,
@@ -183,14 +183,14 @@ export interface IgnitionModuleBuilder {
       | ModuleParameterRuntimeValue<string>,
     artifact: Artifact,
     options?: ContractAtOptions
-  ): ArtifactContractAtFuture;
+  ): ContractAtFuture;
 
   readEventArgument(
     futureToReadFrom:
-      | NamedContractDeploymentFuture<string>
-      | ArtifactContractDeploymentFuture
+      | NamedArtifactContractDeploymentFuture<string>
+      | ContractDeploymentFuture
       | SendDataFuture
-      | NamedContractCallFuture<string, string>,
+      | ContractCallFuture<string, string>,
     eventName: string,
     nameOrIndex: string | number,
     options?: ReadEventArgumentOptions

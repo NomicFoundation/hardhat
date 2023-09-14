@@ -1,4 +1,4 @@
-import { NamedContractDeploymentFuture } from "../../../types/module";
+import { NamedArtifactContractDeploymentFuture } from "../../../types/module";
 import { DeploymentExecutionState } from "../../execution/types/execution-state";
 import { reconcileArguments } from "../helpers/reconcile-arguments";
 import { reconcileArtifacts } from "../helpers/reconcile-artifacts";
@@ -9,7 +9,7 @@ import { reconcileValue } from "../helpers/reconcile-value";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 
 export async function reconcileNamedContractDeployment(
-  future: NamedContractDeploymentFuture<string>,
+  future: NamedArtifactContractDeploymentFuture<string>,
   executionState: DeploymentExecutionState,
   context: ReconciliationContext
 ): Promise<ReconciliationFutureResult> {

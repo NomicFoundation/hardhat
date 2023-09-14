@@ -12,7 +12,7 @@ export type BaseArgumentType =
   | string
   | boolean
   | ContractFuture<string>
-  | NamedStaticCallFuture<string, string>
+  | StaticCallFuture<string, string>
   | ReadEventArgumentFuture
   | RuntimeValue;
 
@@ -50,14 +50,14 @@ export enum FutureType {
  * @beta
  */
 export type Future =
-  | NamedContractDeploymentFuture<string>
-  | ArtifactContractDeploymentFuture
-  | NamedLibraryDeploymentFuture<string>
-  | ArtifactLibraryDeploymentFuture
-  | NamedContractCallFuture<string, string>
-  | NamedStaticCallFuture<string, string>
-  | NamedContractAtFuture<string>
-  | ArtifactContractAtFuture
+  | NamedArtifactContractDeploymentFuture<string>
+  | ContractDeploymentFuture
+  | NamedArtifactLibraryDeploymentFuture<string>
+  | LibraryDeploymentFuture
+  | ContractCallFuture<string, string>
+  | StaticCallFuture<string, string>
+  | NamedArtifactContractAtFuture<string>
+  | ContractAtFuture
   | ReadEventArgumentFuture
   | SendDataFuture;
 
@@ -68,12 +68,12 @@ export type Future =
  * @beta
  */
 export type ContractFuture<ContractNameT extends string> =
-  | NamedContractDeploymentFuture<ContractNameT>
-  | ArtifactContractDeploymentFuture
-  | NamedLibraryDeploymentFuture<ContractNameT>
-  | ArtifactLibraryDeploymentFuture
-  | NamedContractAtFuture<ContractNameT>
-  | ArtifactContractAtFuture;
+  | NamedArtifactContractDeploymentFuture<ContractNameT>
+  | ContractDeploymentFuture
+  | NamedArtifactLibraryDeploymentFuture<ContractNameT>
+  | LibraryDeploymentFuture
+  | NamedArtifactContractAtFuture<ContractNameT>
+  | ContractAtFuture;
 
 /**
  * A future representing only contracts that can be called off-chain (i.e. not libraries).
@@ -82,10 +82,10 @@ export type ContractFuture<ContractNameT extends string> =
  * @beta
  */
 export type CallableContractFuture<ContractNameT extends string> =
-  | NamedContractDeploymentFuture<ContractNameT>
-  | ArtifactContractDeploymentFuture
-  | NamedContractAtFuture<ContractNameT>
-  | ArtifactContractAtFuture;
+  | NamedArtifactContractDeploymentFuture<ContractNameT>
+  | ContractDeploymentFuture
+  | NamedArtifactContractAtFuture<ContractNameT>
+  | ContractAtFuture;
 
 /**
  * A future representing a deployment.
@@ -93,10 +93,10 @@ export type CallableContractFuture<ContractNameT extends string> =
  * @beta
  */
 export type DeploymentFuture<ContractNameT extends string> =
-  | NamedContractDeploymentFuture<ContractNameT>
-  | ArtifactContractDeploymentFuture
-  | NamedLibraryDeploymentFuture<ContractNameT>
-  | ArtifactLibraryDeploymentFuture;
+  | NamedArtifactContractDeploymentFuture<ContractNameT>
+  | ContractDeploymentFuture
+  | NamedArtifactLibraryDeploymentFuture<ContractNameT>
+  | LibraryDeploymentFuture;
 
 /**
  * A future representing a call. Either a static one or one that modifies contract state
@@ -107,8 +107,8 @@ export type FunctionCallFuture<
   ContractNameT extends string,
   FunctionNameT extends string
 > =
-  | NamedContractCallFuture<ContractNameT, FunctionNameT>
-  | NamedStaticCallFuture<ContractNameT, FunctionNameT>;
+  | ContractCallFuture<ContractNameT, FunctionNameT>
+  | StaticCallFuture<ContractNameT, FunctionNameT>;
 
 /**
  * A future that can be resolved to a standard Ethereum address.
@@ -117,7 +117,7 @@ export type FunctionCallFuture<
  */
 export type AddressResolvableFuture =
   | ContractFuture<string>
-  | NamedStaticCallFuture<string, string>
+  | StaticCallFuture<string, string>
   | ReadEventArgumentFuture;
 
 /**
@@ -125,7 +125,9 @@ export type AddressResolvableFuture =
  *
  * @beta
  */
-export interface NamedContractDeploymentFuture<ContractNameT extends string> {
+export interface NamedArtifactContractDeploymentFuture<
+  ContractNameT extends string
+> {
   type: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT;
   id: string;
   module: IgnitionModule;
@@ -143,7 +145,7 @@ export interface NamedContractDeploymentFuture<ContractNameT extends string> {
  *
  * @beta
  */
-export interface ArtifactContractDeploymentFuture {
+export interface ContractDeploymentFuture {
   type: FutureType.CONTRACT_DEPLOYMENT;
   id: string;
   module: IgnitionModule;
@@ -161,7 +163,9 @@ export interface ArtifactContractDeploymentFuture {
  *
  * @beta
  */
-export interface NamedLibraryDeploymentFuture<LibraryNameT extends string> {
+export interface NamedArtifactLibraryDeploymentFuture<
+  LibraryNameT extends string
+> {
   type: FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT;
   id: string;
   module: IgnitionModule;
@@ -177,7 +181,7 @@ export interface NamedLibraryDeploymentFuture<LibraryNameT extends string> {
  *
  * @beta
  */
-export interface ArtifactLibraryDeploymentFuture {
+export interface LibraryDeploymentFuture {
   type: FutureType.LIBRARY_DEPLOYMENT;
   id: string;
   module: IgnitionModule;
@@ -193,7 +197,7 @@ export interface ArtifactLibraryDeploymentFuture {
  *
  * @beta
  */
-export interface NamedContractCallFuture<
+export interface ContractCallFuture<
   ContractNameT extends string,
   FunctionNameT extends string
 > {
@@ -213,7 +217,7 @@ export interface NamedContractCallFuture<
  *
  * @beta
  */
-export interface NamedStaticCallFuture<
+export interface StaticCallFuture<
   ContractNameT extends string,
   FunctionNameT extends string
 > {
@@ -233,7 +237,7 @@ export interface NamedStaticCallFuture<
  *
  * @beta
  */
-export interface NamedContractAtFuture<ContractNameT extends string> {
+export interface NamedArtifactContractAtFuture<ContractNameT extends string> {
   type: FutureType.NAMED_ARTIFACT_CONTRACT_AT;
   id: string;
   module: IgnitionModule;
@@ -251,7 +255,7 @@ export interface NamedContractAtFuture<ContractNameT extends string> {
  *
  * @beta
  */
-export interface ArtifactContractAtFuture {
+export interface ContractAtFuture {
   type: FutureType.CONTRACT_AT;
   id: string;
   module: IgnitionModule;
@@ -276,10 +280,10 @@ export interface ReadEventArgumentFuture {
   module: IgnitionModule;
   dependencies: Set<Future>;
   futureToReadFrom:
-    | NamedContractDeploymentFuture<string>
-    | ArtifactContractDeploymentFuture
+    | NamedArtifactContractDeploymentFuture<string>
+    | ContractDeploymentFuture
     | SendDataFuture
-    | NamedContractCallFuture<string, string>;
+    | ContractCallFuture<string, string>;
   eventName: string;
   nameOrIndex: string | number;
   emitter: ContractFuture<string>;

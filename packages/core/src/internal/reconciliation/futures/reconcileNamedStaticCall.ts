@@ -1,4 +1,4 @@
-import { NamedStaticCallFuture } from "../../../types/module";
+import { StaticCallFuture } from "../../../types/module";
 import { StaticCallExecutionState } from "../../execution/types/execution-state";
 import { compare } from "../helpers/compare";
 import { reconcileArguments } from "../helpers/reconcile-arguments";
@@ -8,7 +8,7 @@ import { reconcileFunctionName } from "../helpers/reconcile-function-name";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 
 export function reconcileNamedStaticCall(
-  future: NamedStaticCallFuture<string, string>,
+  future: StaticCallFuture<string, string>,
   executionState: StaticCallExecutionState,
   context: ReconciliationContext
 ): ReconciliationFutureResult {

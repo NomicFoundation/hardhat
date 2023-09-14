@@ -5,14 +5,14 @@ import {
 } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deploy";
-import { NamedContractCallFuture } from "../../../types/module";
+import { ContractCallFuture } from "../../../types/module";
 import {
   retrieveNestedRuntimeValues,
   validateAccountRuntimeValue,
 } from "../utils";
 
 export async function validateNamedContractCall(
-  future: NamedContractCallFuture<string, string>,
+  future: ContractCallFuture<string, string>,
   _artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
   accounts: string[]

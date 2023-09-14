@@ -3,9 +3,9 @@ import {
   AccountRuntimeValue,
   AddressResolvableFuture,
   ArgumentType,
-  ArtifactContractAtFuture,
-  ArtifactContractDeploymentFuture,
-  ArtifactLibraryDeploymentFuture,
+  ContractAtFuture,
+  ContractDeploymentFuture,
+  LibraryDeploymentFuture,
   ContractFuture,
   Future,
   FutureType,
@@ -13,11 +13,11 @@ import {
   IgnitionModuleResult,
   ModuleParameterRuntimeValue,
   ModuleParameterType,
-  NamedContractAtFuture,
-  NamedContractCallFuture,
-  NamedContractDeploymentFuture,
-  NamedLibraryDeploymentFuture,
-  NamedStaticCallFuture,
+  NamedArtifactContractAtFuture,
+  ContractCallFuture,
+  NamedArtifactContractDeploymentFuture,
+  NamedArtifactLibraryDeploymentFuture,
+  StaticCallFuture,
   ReadEventArgumentFuture,
   RuntimeValueType,
   SendDataFuture,
@@ -54,7 +54,7 @@ export class NamedContractDeploymentFutureImplementation<
     ContractNameT extends string
   >
   extends BaseFutureImplementation<FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT>
-  implements NamedContractDeploymentFuture<ContractNameT>
+  implements NamedArtifactContractDeploymentFuture<ContractNameT>
 {
   constructor(
     public readonly id: string,
@@ -73,7 +73,7 @@ export class ArtifactContractDeploymentFutureImplementation<
     ContractNameT extends string
   >
   extends BaseFutureImplementation<FutureType.CONTRACT_DEPLOYMENT>
-  implements ArtifactContractDeploymentFuture
+  implements ContractDeploymentFuture
 {
   constructor(
     public readonly id: string,
@@ -93,7 +93,7 @@ export class NamedLibraryDeploymentFutureImplementation<
     LibraryNameT extends string
   >
   extends BaseFutureImplementation<FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT>
-  implements NamedLibraryDeploymentFuture<LibraryNameT>
+  implements NamedArtifactLibraryDeploymentFuture<LibraryNameT>
 {
   constructor(
     public readonly id: string,
@@ -110,7 +110,7 @@ export class ArtifactLibraryDeploymentFutureImplementation<
     LibraryNameT extends string
   >
   extends BaseFutureImplementation<FutureType.LIBRARY_DEPLOYMENT>
-  implements ArtifactLibraryDeploymentFuture
+  implements LibraryDeploymentFuture
 {
   constructor(
     public readonly id: string,
@@ -129,7 +129,7 @@ export class NamedContractCallFutureImplementation<
     FunctionNameT extends string
   >
   extends BaseFutureImplementation<FutureType.CONTRACT_CALL>
-  implements NamedContractCallFuture<ContractNameT, FunctionNameT>
+  implements ContractCallFuture<ContractNameT, FunctionNameT>
 {
   constructor(
     public readonly id: string,
@@ -149,7 +149,7 @@ export class NamedStaticCallFutureImplementation<
     FunctionNameT extends string
   >
   extends BaseFutureImplementation<FutureType.STATIC_CALL>
-  implements NamedStaticCallFuture<ContractNameT, FunctionNameT>
+  implements StaticCallFuture<ContractNameT, FunctionNameT>
 {
   constructor(
     public readonly id: string,
@@ -166,7 +166,7 @@ export class NamedStaticCallFutureImplementation<
 
 export class NamedContractAtFutureImplementation<ContractNameT extends string>
   extends BaseFutureImplementation<FutureType.NAMED_ARTIFACT_CONTRACT_AT>
-  implements NamedContractAtFuture<ContractNameT>
+  implements NamedArtifactContractAtFuture<ContractNameT>
 {
   constructor(
     public readonly id: string,
@@ -183,7 +183,7 @@ export class NamedContractAtFutureImplementation<ContractNameT extends string>
 
 export class ArtifactContractAtFutureImplementation
   extends BaseFutureImplementation<FutureType.CONTRACT_AT>
-  implements ArtifactContractAtFuture
+  implements ContractAtFuture
 {
   constructor(
     public readonly id: string,
@@ -207,10 +207,10 @@ export class ReadEventArgumentFutureImplementation
     public readonly id: string,
     public readonly module: IgnitionModuleImplementation,
     public readonly futureToReadFrom:
-      | NamedContractDeploymentFuture<string>
-      | ArtifactContractDeploymentFuture
+      | NamedArtifactContractDeploymentFuture<string>
+      | ContractDeploymentFuture
       | SendDataFuture
-      | NamedContractCallFuture<string, string>,
+      | ContractCallFuture<string, string>,
     public readonly eventName: string,
     public readonly nameOrIndex: string | number,
     public readonly emitter: ContractFuture<string>,

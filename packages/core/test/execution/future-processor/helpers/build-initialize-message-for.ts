@@ -46,15 +46,15 @@ import {
   SendDataFutureImplementation,
 } from "../../../../src/internal/module";
 import {
-  ArtifactContractAtFuture,
-  ArtifactContractDeploymentFuture,
-  ArtifactLibraryDeploymentFuture,
+  ContractAtFuture,
+  ContractDeploymentFuture,
+  LibraryDeploymentFuture,
   FutureType,
-  NamedContractAtFuture,
-  NamedContractCallFuture,
-  NamedContractDeploymentFuture,
-  NamedLibraryDeploymentFuture,
-  NamedStaticCallFuture,
+  NamedArtifactContractAtFuture,
+  ContractCallFuture,
+  NamedArtifactContractDeploymentFuture,
+  NamedArtifactLibraryDeploymentFuture,
+  StaticCallFuture,
   ReadEventArgumentFuture,
   SendDataFuture,
 } from "../../../../src/types/module";
@@ -69,16 +69,16 @@ describe("buildInitializeMessageFor", () => {
   const libraryAddress = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
   const basicStrategy = { name: "basic" } as any;
 
-  let namedContractDeployment: NamedContractDeploymentFuture<string>;
-  let anotherNamedContractDeployment: NamedContractDeploymentFuture<string>;
-  let safeMathLibraryDeployment: NamedLibraryDeploymentFuture<string>;
-  let artifactContractDeployment: ArtifactContractDeploymentFuture;
-  let namedLibraryDeployment: NamedLibraryDeploymentFuture<string>;
-  let artifactLibraryDeployment: ArtifactLibraryDeploymentFuture;
-  let namedContractCall: NamedContractCallFuture<string, string>;
-  let staticCall: NamedStaticCallFuture<string, string>;
-  let namedContractAt: NamedContractAtFuture<string>;
-  let artifactContractAt: ArtifactContractAtFuture;
+  let namedContractDeployment: NamedArtifactContractDeploymentFuture<string>;
+  let anotherNamedContractDeployment: NamedArtifactContractDeploymentFuture<string>;
+  let safeMathLibraryDeployment: NamedArtifactLibraryDeploymentFuture<string>;
+  let artifactContractDeployment: ContractDeploymentFuture;
+  let namedLibraryDeployment: NamedArtifactLibraryDeploymentFuture<string>;
+  let artifactLibraryDeployment: LibraryDeploymentFuture;
+  let namedContractCall: ContractCallFuture<string, string>;
+  let staticCall: StaticCallFuture<string, string>;
+  let namedContractAt: NamedArtifactContractAtFuture<string>;
+  let artifactContractAt: ContractAtFuture;
   let readEventArgument: ReadEventArgumentFuture;
   let sendData: SendDataFuture;
 

@@ -1,7 +1,4 @@
-import {
-  NamedContractCallFuture,
-  NamedStaticCallFuture,
-} from "../../../types/module";
+import { ContractCallFuture, StaticCallFuture } from "../../../types/module";
 import { resolveAddressLike } from "../../execution/future-processor/helpers/future-resolvers";
 import {
   CallExecutionState,
@@ -15,9 +12,7 @@ import {
 import { compare } from "./compare";
 
 export function reconcileContract(
-  future:
-    | NamedContractCallFuture<string, string>
-    | NamedStaticCallFuture<string, string>,
+  future: ContractCallFuture<string, string> | StaticCallFuture<string, string>,
   exState: CallExecutionState | StaticCallExecutionState,
   context: ReconciliationContext
 ): ReconciliationFutureResultFailure | undefined {

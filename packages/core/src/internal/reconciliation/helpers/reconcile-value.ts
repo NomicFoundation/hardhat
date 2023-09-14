@@ -1,7 +1,7 @@
 import {
-  ArtifactContractDeploymentFuture,
-  NamedContractCallFuture,
-  NamedContractDeploymentFuture,
+  ContractDeploymentFuture,
+  ContractCallFuture,
+  NamedArtifactContractDeploymentFuture,
   SendDataFuture,
 } from "../../../types/module";
 import { resolveValue } from "../../execution/future-processor/helpers/future-resolvers";
@@ -19,9 +19,9 @@ import { compare } from "./compare";
 
 export function reconcileValue(
   future:
-    | NamedContractDeploymentFuture<string>
-    | ArtifactContractDeploymentFuture
-    | NamedContractCallFuture<string, string>
+    | NamedArtifactContractDeploymentFuture<string>
+    | ContractDeploymentFuture
+    | ContractCallFuture<string, string>
     | SendDataFuture,
   exState:
     | DeploymentExecutionState

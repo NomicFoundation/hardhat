@@ -2,9 +2,9 @@ import { ArtifactResolver } from "../../../../types/artifact";
 import {
   Future,
   FutureType,
-  NamedContractAtFuture,
-  NamedContractDeploymentFuture,
-  NamedLibraryDeploymentFuture,
+  NamedArtifactContractAtFuture,
+  NamedArtifactContractDeploymentFuture,
+  NamedArtifactLibraryDeploymentFuture,
 } from "../../../../types/module";
 import { DeploymentLoader } from "../../../deployment-loader/types";
 
@@ -38,9 +38,9 @@ export async function saveArtifactsForFuture(
 
 async function _storeArtifactAndBuildInfoAgainstDeployment(
   future:
-    | NamedLibraryDeploymentFuture<string>
-    | NamedContractDeploymentFuture<string>
-    | NamedContractAtFuture<string>,
+    | NamedArtifactLibraryDeploymentFuture<string>
+    | NamedArtifactContractDeploymentFuture<string>
+    | NamedArtifactContractAtFuture<string>,
   {
     deploymentLoader,
     artifactResolver,

@@ -1,4 +1,4 @@
-import { NamedContractCallFuture } from "../../../types/module";
+import { ContractCallFuture } from "../../../types/module";
 import { CallExecutionState } from "../../execution/types/execution-state";
 import { reconcileArguments } from "../helpers/reconcile-arguments";
 import { reconcileContract } from "../helpers/reconcile-contract";
@@ -8,7 +8,7 @@ import { reconcileValue } from "../helpers/reconcile-value";
 import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 
 export function reconcileNamedContractCall(
-  future: NamedContractCallFuture<string, string>,
+  future: ContractCallFuture<string, string>,
   executionState: CallExecutionState,
   context: ReconciliationContext
 ): ReconciliationFutureResult {

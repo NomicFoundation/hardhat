@@ -11,8 +11,8 @@ import {
   IgnitionModule,
   IgnitionModuleResult,
   isContractFuture,
-  NamedContractAtFuture,
-  NamedContractDeploymentFuture,
+  NamedArtifactContractAtFuture,
+  NamedArtifactContractDeploymentFuture,
   SuccessfulDeploymentResult,
 } from "@ignored/ignition-core";
 import { HardhatPluginError } from "hardhat/plugins";
@@ -157,8 +157,8 @@ export type IgnitionModuleResultsTToEthersContracts<
   IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
 > = {
   [contract in keyof IgnitionModuleResultsT]: IgnitionModuleResultsT[contract] extends
-    | NamedContractDeploymentFuture<ContractNameT>
-    | NamedContractAtFuture<ContractNameT>
+    | NamedArtifactContractDeploymentFuture<ContractNameT>
+    | NamedArtifactContractAtFuture<ContractNameT>
     ? TypeChainEthersContractByName<ContractNameT>
     : Contract;
 };

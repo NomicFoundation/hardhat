@@ -2,9 +2,9 @@ import { Artifact } from "./types/artifact";
 import {
   AccountRuntimeValue,
   AddressResolvableFuture,
-  ArtifactContractAtFuture,
-  ArtifactContractDeploymentFuture,
-  ArtifactLibraryDeploymentFuture,
+  ContractAtFuture,
+  ContractDeploymentFuture,
+  LibraryDeploymentFuture,
   CallableContractFuture,
   ContractFuture,
   DeploymentFuture,
@@ -12,10 +12,10 @@ import {
   Future,
   FutureType,
   ModuleParameterRuntimeValue,
-  NamedContractAtFuture,
-  NamedContractDeploymentFuture,
-  NamedLibraryDeploymentFuture,
-  NamedStaticCallFuture,
+  NamedArtifactContractAtFuture,
+  NamedArtifactContractDeploymentFuture,
+  NamedArtifactLibraryDeploymentFuture,
+  StaticCallFuture,
   ReadEventArgumentFuture,
   RuntimeValue,
   RuntimeValueType,
@@ -159,7 +159,7 @@ export function isFunctionCallFuture(
  */
 export function isNamedStaticCallFuture(
   future: Future
-): future is NamedStaticCallFuture<string, string> {
+): future is StaticCallFuture<string, string> {
   return future.type === FutureType.STATIC_CALL;
 }
 
@@ -170,7 +170,7 @@ export function isNamedStaticCallFuture(
  */
 export function isReadEventArgumentFuture(
   future: Future
-): future is NamedStaticCallFuture<string, string> {
+): future is StaticCallFuture<string, string> {
   return future.type === FutureType.READ_EVENT_ARGUMENT;
 }
 
@@ -181,7 +181,7 @@ export function isReadEventArgumentFuture(
  */
 export function isNamedContractDeploymentFuture(
   future: Future
-): future is NamedContractDeploymentFuture<string> {
+): future is NamedArtifactContractDeploymentFuture<string> {
   return future.type === FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT;
 }
 
@@ -192,7 +192,7 @@ export function isNamedContractDeploymentFuture(
  */
 export function isArtifactContractDeploymentFuture(
   future: Future
-): future is ArtifactContractDeploymentFuture {
+): future is ContractDeploymentFuture {
   return future.type === FutureType.CONTRACT_DEPLOYMENT;
 }
 
@@ -203,7 +203,7 @@ export function isArtifactContractDeploymentFuture(
  */
 export function isNamedLibraryDeploymentFuture(
   future: Future
-): future is NamedLibraryDeploymentFuture<string> {
+): future is NamedArtifactLibraryDeploymentFuture<string> {
   return future.type === FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT;
 }
 
@@ -214,7 +214,7 @@ export function isNamedLibraryDeploymentFuture(
  */
 export function isArtifactLibraryDeploymentFuture(
   future: Future
-): future is ArtifactLibraryDeploymentFuture {
+): future is LibraryDeploymentFuture {
   return future.type === FutureType.LIBRARY_DEPLOYMENT;
 }
 
@@ -225,7 +225,7 @@ export function isArtifactLibraryDeploymentFuture(
  */
 export function isNamedContractAtFuture(
   future: Future
-): future is NamedContractAtFuture<string> {
+): future is NamedArtifactContractAtFuture<string> {
   return future.type === FutureType.NAMED_ARTIFACT_CONTRACT_AT;
 }
 
@@ -236,7 +236,7 @@ export function isNamedContractAtFuture(
  */
 export function isArtifactContractAtFuture(
   future: Future
-): future is ArtifactContractAtFuture {
+): future is ContractAtFuture {
   return future.type === FutureType.CONTRACT_AT;
 }
 
@@ -282,12 +282,12 @@ export function isFutureThatSubmitsOnchainTransaction(
 ): f is Exclude<
   Exclude<
     Exclude<
-      Exclude<Future, NamedStaticCallFuture<string, string>>,
+      Exclude<Future, StaticCallFuture<string, string>>,
       ReadEventArgumentFuture
     >,
-    NamedContractAtFuture<string>
+    NamedArtifactContractAtFuture<string>
   >,
-  ArtifactContractAtFuture
+  ContractAtFuture
 > {
   return (
     !isNamedStaticCallFuture(f) &&
