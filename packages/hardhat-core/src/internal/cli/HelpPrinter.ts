@@ -80,8 +80,11 @@ export class HelpPrinter {
       positionalParamDefinitions
     );
 
+    const scope =
+      taskDefinition.scope !== undefined ? `${taskDefinition.scope} ` : "";
+
     console.log(
-      `Usage: ${this._executableName} [GLOBAL OPTIONS] ${name}${paramsList}${positionalParamsList}\n`
+      `Usage: ${this._executableName} [GLOBAL OPTIONS] ${scope}${name}${paramsList}${positionalParamsList}\n`
     );
 
     if (Object.keys(paramDefinitions).length > 0) {
