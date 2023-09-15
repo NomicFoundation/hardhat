@@ -29,7 +29,7 @@ An **Ignition** deployment is composed of modules. A module is a special javascr
 For example, this is a minimal module `MyModule` that deploys an instance of a `Token` contract and exposes it to any consumer of `MyModule`:
 
 ```javascript
-const { buildModule } = require("@ignored/hardhat-ignition");
+const { buildModule } = require("@nomicfoundation/hardhat-ignition");
 
 module.exports = buildModule("MyModule", (m) => {
   const token = m.contract("Token");

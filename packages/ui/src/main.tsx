@@ -4,7 +4,7 @@ import {
   IgnitionModule,
   IgnitionModuleDeserializer,
   IgnitionModuleResult,
-} from "@ignored/ignition-core/ui-helpers";
+} from "@nomicfoundation/ignition-core/ui-helpers";
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createHashRouter } from "react-router-dom";
 import { FutureDetails } from "./pages/future-details/future-details";

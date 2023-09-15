@@ -1,4 +1,4 @@
-const { buildModule } = require("@ignored/hardhat-ignition");
+const { buildModule } = require("@nomicfoundation/hardhat-ignition");
 
 const namehash = require("eth-ens-namehash");
 const ethers = hre.ethers;

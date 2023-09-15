@@ -1,7 +1,7 @@
 import {
   IgnitionModule,
   IgnitionModuleResult,
-} from "@ignored/ignition-core/ui-helpers";
+} from "@nomicfoundation/ignition-core/ui-helpers";
 import React, { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { Page } from "../../components/shared";

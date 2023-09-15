@@ -1,4 +1,4 @@
-import { DeployConfig, IgnitionModule } from "@ignored/ignition-core";
+import { DeployConfig, IgnitionModule } from "@nomicfoundation/ignition-core";
 import { Contract } from "ethers";
 import { ensureDirSync, removeSync } from "fs-extra";
 import { resetHardhatContext } from "hardhat/plugins-testing";

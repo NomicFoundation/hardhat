@@ -1,6 +1,6 @@
 /* eslint-disable import/no-unused-modules */
 
-import { DeployConfig, buildModule } from "@ignored/ignition-core";
+import { DeployConfig, buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { KeyListOf } from "./type-helper";

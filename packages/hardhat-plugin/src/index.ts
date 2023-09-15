@@ -1,10 +1,10 @@
+import "@nomicfoundation/hardhat-ethers";
 import {
   deploy,
   DeploymentParameters,
   IgnitionModuleSerializer,
   wipe,
-} from "@ignored/ignition-core";
-import "@nomicfoundation/hardhat-ethers";
+} from "@nomicfoundation/ignition-core";
 import { existsSync, readdirSync, readJSONSync } from "fs-extra";
 import { extendConfig, extendEnvironment, task } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
@@ -22,7 +22,7 @@ import { writeVisualization } from "./visualization/write-visualization";
 import "./type-extensions";
 
 // eslint-disable-next-line import/no-unused-modules
-export { buildModule } from "@ignored/ignition-core";
+export { buildModule } from "@nomicfoundation/ignition-core";
 
 /* ignition config defaults */
 const IGNITION_DIR = "ignition";

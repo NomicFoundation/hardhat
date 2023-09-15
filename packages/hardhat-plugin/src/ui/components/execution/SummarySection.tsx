@@ -1,5 +1,5 @@
-import { DeploymentParameters } from "@ignored/ignition-core";
-import { Box, Text, Spacer } from "ink";
+import { DeploymentParameters } from "@nomicfoundation/ignition-core";
+import { Box, Spacer, Text } from "ink";
 
 import { UiState } from "../../types";
 

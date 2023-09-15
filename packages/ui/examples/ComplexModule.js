@@ -1,4 +1,4 @@
-import { buildModule } from "@ignored/ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 
 const fakeArtifact = ["fake artifact"];
 

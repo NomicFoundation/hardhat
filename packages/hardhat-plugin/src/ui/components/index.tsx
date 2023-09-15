@@ -1,4 +1,4 @@
-import type { DeploymentParameters } from "@ignored/ignition-core";
+import type { DeploymentParameters } from "@nomicfoundation/ignition-core";
 
 import { UiState, UiStateDeploymentStatus } from "../types";
 

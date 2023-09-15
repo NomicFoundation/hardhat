@@ -4,7 +4,7 @@ import {
   PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
   ValidationErrorDeploymentResult,
-} from "@ignored/ignition-core";
+} from "@nomicfoundation/ignition-core";
 import { HardhatPluginError } from "hardhat/plugins";
 
 /**
@@ -135,7 +135,7 @@ function _toText({
   }
 
   throw new HardhatPluginError(
-    "@ignored/hardhat-ignition",
+    "@nomicfoundation/hardhat-ignition",
     "Invariant violated: neither timeouts or failures"
   );
 }

@@ -32,7 +32,7 @@ import {
   TransactionConfirmEvent,
   TransactionSendEvent,
   WipeApplyEvent,
-} from "@ignored/ignition-core";
+} from "@nomicfoundation/ignition-core";
 import { render } from "ink";
 
 import { IgnitionUi } from "./components";

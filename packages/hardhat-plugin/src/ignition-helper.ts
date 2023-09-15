@@ -14,7 +14,7 @@ import {
   NamedArtifactContractAtFuture,
   NamedArtifactContractDeploymentFuture,
   SuccessfulDeploymentResult,
-} from "@ignored/ignition-core";
+} from "@nomicfoundation/ignition-core";
 import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -133,7 +133,7 @@ export class IgnitionHelper {
   ): Promise<Contract> {
     if (!isContractFuture(future)) {
       throw new HardhatPluginError(
-        "@ignored/hardhat-ignition",
+        "@nomicfoundation/hardhat-ignition",
         `Expected contract future but got ${future.id} with type ${future.type} instead`
       );
     }

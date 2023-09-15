@@ -40,7 +40,7 @@ $ npx hardhat
 Add **Ignition** to your **Hardhat** project by installing the plugin:
 
 ```bash
-npm install --save-dev @ignored/hardhat-ignition
+npm install --save-dev @nomicfoundation/hardhat-ignition
 ```
 
 Modify your `hardhat.config.js` file, to include **Ignition**:
@@ -48,7 +48,7 @@ Modify your `hardhat.config.js` file, to include **Ignition**:
 ```javascript
 require("@nomicfoundation/hardhat-toolbox");
 // ...
-require("@ignored/hardhat-ignition");
+require("@nomicfoundation/hardhat-ignition");
 ```
 
 Create an `./ignition` folder in your project root to contain your deployment modules.
@@ -63,7 +63,7 @@ Add a deployment module under the `./ignition` folder for the example `Lock.sol`
 
 ```js
 // ./ignition/LockModule.js
-const { buildModule } = require("@ignored/hardhat-ignition");
+const { buildModule } = require("@nomicfoundation/hardhat-ignition");
 
 const currentTimestampInSeconds = Math.round(new Date(2023, 0, 1) / 1000);
 const TEN_YEAR_IN_SECS = 10 * 365 * 24 * 60 * 60;

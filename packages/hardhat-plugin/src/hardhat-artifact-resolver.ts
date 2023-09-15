@@ -1,4 +1,8 @@
-import { Artifact, ArtifactResolver, BuildInfo } from "@ignored/ignition-core";
+import {
+  Artifact,
+  ArtifactResolver,
+  BuildInfo,
+} from "@nomicfoundation/ignition-core";
 import fs from "fs";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";

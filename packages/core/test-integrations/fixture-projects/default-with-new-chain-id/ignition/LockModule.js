@@ -1,4 +1,4 @@
-const { buildModule } = require("@ignored/hardhat-ignition");
+const { buildModule } = require("@nomicfoundation/hardhat-ignition");
 
 const currentTimestampInSeconds = Math.round(new Date(2023, 0, 1) / 1000);
 const TEN_YEAR_IN_SECS = 10 * 365 * 24 * 60 * 60;

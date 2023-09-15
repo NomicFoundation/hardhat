@@ -1,7 +1,7 @@
 import {
   IgnitionModule,
   IgnitionModuleResult,
-} from "@ignored/ignition-core/ui-helpers";
+} from "@nomicfoundation/ignition-core/ui-helpers";
 import React from "react";
 import { Page, PageTitle, Panel } from "../../components/shared";
 import { VisualizationDetails } from "./components/visualization-details";

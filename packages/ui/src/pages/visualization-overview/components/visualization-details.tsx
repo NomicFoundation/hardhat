@@ -1,7 +1,7 @@
 import {
   IgnitionModule,
   IgnitionModuleResult,
-} from "@ignored/ignition-core/ui-helpers";
+} from "@nomicfoundation/ignition-core/ui-helpers";
 import { useMemo } from "react";
 import styled from "styled-components";
 import { Mermaid } from "../../../components/mermaid";

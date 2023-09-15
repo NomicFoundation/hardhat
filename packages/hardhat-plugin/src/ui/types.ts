@@ -1,4 +1,7 @@
-import { DeploymentResult, IgnitionModuleResult } from "@ignored/ignition-core";
+import {
+  DeploymentResult,
+  IgnitionModuleResult,
+} from "@nomicfoundation/ignition-core";
 
 export enum UiFutureStatusType {
   UNSTARTED = "UNSTARTED",

@@ -1,9 +1,9 @@
 import type {
   DeploymentParameters,
   ModuleParameters,
-} from "@ignored/ignition-core";
+} from "@nomicfoundation/ignition-core";
 
-import { Text, Newline } from "ink";
+import { Newline, Text } from "ink";
 
 export const DeployParameters = ({
   deployParams,

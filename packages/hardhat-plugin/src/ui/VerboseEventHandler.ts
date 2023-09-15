@@ -27,7 +27,7 @@ import {
   TransactionConfirmEvent,
   TransactionSendEvent,
   WipeApplyEvent,
-} from "@ignored/ignition-core";
+} from "@nomicfoundation/ignition-core";
 
 export class VerboseEventHandler implements ExecutionEventListener {
   public runStart(event: RunStartEvent): void {

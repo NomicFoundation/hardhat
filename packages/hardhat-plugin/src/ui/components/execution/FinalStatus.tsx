@@ -6,7 +6,7 @@ import {
   ReconciliationErrorDeploymentResult,
   SuccessfulDeploymentResult,
   ValidationErrorDeploymentResult,
-} from "@ignored/ignition-core";
+} from "@nomicfoundation/ignition-core";
 import { Box, Newline, Text } from "ink";
 
 import { UiState } from "../../types";

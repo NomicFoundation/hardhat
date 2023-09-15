@@ -1,4 +1,4 @@
-import { IgnitionModuleSerializer } from "@ignored/ignition-core";
+import { IgnitionModuleSerializer } from "@nomicfoundation/ignition-core";
 import { writeFile } from "node:fs/promises";
 
 import complexModule from "../examples/ComplexModule.js";

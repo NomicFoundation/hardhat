@@ -1,7 +1,7 @@
 import {
   IgnitionModuleResult,
   SuccessfulDeploymentResult,
-} from "@ignored/ignition-core";
+} from "@nomicfoundation/ignition-core";
 import { Box, Spacer, Text } from "ink";
 
 import { NetworkInfo } from "./NetworkInfo";

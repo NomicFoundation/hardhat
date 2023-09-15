@@ -4,7 +4,7 @@ import {
   IgnitionModule,
   IgnitionModuleResult,
   isFuture,
-} from "@ignored/ignition-core/ui-helpers";
+} from "@nomicfoundation/ignition-core/ui-helpers";
 import { getAllFuturesForModule } from "../queries/futures.js";
 import { argumentTypeToString } from "./argumentTypeToString.js";
 

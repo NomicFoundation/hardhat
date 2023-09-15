@@ -1,4 +1,4 @@
-import { SerializedIgnitionModule } from "@ignored/ignition-core";
+import { SerializedIgnitionModule } from "@nomicfoundation/ignition-core";
 import { ensureDir, pathExists, readFile, writeFile } from "fs-extra";
 import path from "path";
 
@@ -7,7 +7,7 @@ export async function writeVisualization(
   { cacheDir }: { cacheDir: string }
 ) {
   const templateDir = path.join(
-    require.resolve("@ignored/ignition-ui/package.json"),
+    require.resolve("@nomicfoundation/ignition-ui/package.json"),
     "../dist"
   );
 

@@ -1,4 +1,8 @@
-import { Artifact, IgnitionModule, buildModule } from "@ignored/ignition-core";
+import {
+  Artifact,
+  IgnitionModule,
+  buildModule,
+} from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 import { toMermaid } from "../src/utils/to-mermaid.js";
 

@@ -2,7 +2,7 @@ import {
   Future,
   FutureType,
   isFuture,
-} from "@ignored/ignition-core/ui-helpers";
+} from "@nomicfoundation/ignition-core/ui-helpers";
 import { PageTitle, Panel } from "../../../components/shared";
 import { SummaryHeader } from "../../../components/summary-header";
 import { argumentTypeToString } from "../../../utils/argumentTypeToString";

@@ -4,7 +4,7 @@ import styled from "styled-components";
 import {
   IgnitionModule,
   IgnitionModuleResult,
-} from "@ignored/ignition-core/ui-helpers";
+} from "@nomicfoundation/ignition-core/ui-helpers";
 import mermaid from "mermaid";
 import { toMermaid } from "../utils/to-mermaid";
 
