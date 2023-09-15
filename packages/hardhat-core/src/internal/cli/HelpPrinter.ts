@@ -25,7 +25,7 @@ export class HelpPrinter {
     console.log(`${this._programName} version ${this._version}\n`);
 
     console.log(
-      `Usage: ${this._executableName} [GLOBAL OPTIONS] <TASK> [TASK OPTIONS]\n`
+      `Usage: ${this._executableName} [GLOBAL OPTIONS] [SCOPE] <TASK> [TASK OPTIONS]\n`
     );
 
     console.log("GLOBAL OPTIONS:\n");
@@ -45,7 +45,7 @@ export class HelpPrinter {
     console.log("");
 
     console.log(
-      `To get help for a specific task run: npx ${this._executableName} help [scope/task] [task]\n`
+      `To get help for a specific task run: npx ${this._executableName} help [scope] <task>\n`
     );
   }
 
