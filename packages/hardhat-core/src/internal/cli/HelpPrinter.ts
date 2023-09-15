@@ -36,9 +36,11 @@ export class HelpPrinter {
 
     length = this._printTasks(this._tasks, includeSubtasks, length);
 
-    console.log("\n\nAVAILABLE SCOPES:\n");
+    if (Object.keys(this._scopes).length > 0) {
+      console.log("\n\nAVAILABLE SCOPES:\n");
 
-    this._printScopes(this._scopes, length);
+      this._printScopes(this._scopes, length);
+    }
 
     console.log("");
 
