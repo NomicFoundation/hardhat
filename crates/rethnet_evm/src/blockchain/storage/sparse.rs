@@ -85,8 +85,13 @@ impl<BlockT: Block + Clone + ?Sized> SparseBlockchainStorage<BlockT> {
 
             self.hash_to_block.remove(block_hash);
             self.hash_to_total_difficulty.remove(block_hash);
-            self.transaction_hash_to_block.remove(block_hash);
-            self.transaction_hash_to_receipt.remove(block_hash);
+
+            for transaction in block.transactions() {
+                let transaction_hash = transaction.hash();
+
+                self.transaction_hash_to_block.remove(transaction_hash);
+                self.transaction_hash_to_receipt.remove(transaction_hash);
+            }
         }
     }
 
