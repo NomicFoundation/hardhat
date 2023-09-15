@@ -17,6 +17,7 @@ import {
   OnchainInteractionReplacedByUserEvent,
   OnchainInteractionTimeoutEvent,
   ReadEventArgExecutionStateInitializeEvent,
+  ReconciliationWarningsEvent,
   RunStartEvent,
   SendDataExecutionStateCompleteEvent,
   SendDataExecutionStateInitializeEvent,
@@ -249,6 +250,14 @@ export class VerboseEventHandler implements ExecutionEventListener {
 
   public deploymentComplete(_event: DeploymentCompleteEvent): void {
     console.log(`Deployment complete`);
+  }
+
+  public reconciliationWarnings(event: ReconciliationWarningsEvent): void {
+    console.log(
+      `Deployment produced reconciliation warnings:\n${event.warnings.join(
+        "  -"
+      )}`
+    );
   }
 
   public setModuleId(event: SetModuleIdEvent): void {

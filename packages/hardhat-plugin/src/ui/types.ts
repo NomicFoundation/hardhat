@@ -61,6 +61,7 @@ export interface UiState {
   moduleName: string | null;
   batches: UiBatches;
   result: DeploymentResult<string, IgnitionModuleResult<string>> | null;
+  warnings: string[];
 }
 
 export interface AddressMap {

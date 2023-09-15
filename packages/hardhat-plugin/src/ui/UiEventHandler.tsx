@@ -22,6 +22,7 @@ import {
   OnchainInteractionReplacedByUserEvent,
   OnchainInteractionTimeoutEvent,
   ReadEventArgExecutionStateInitializeEvent,
+  ReconciliationWarningsEvent,
   RunStartEvent,
   SendDataExecutionStateCompleteEvent,
   SendDataExecutionStateInitializeEvent,
@@ -68,6 +69,7 @@ export class UiEventHandler implements ExecutionEventListener {
     moduleName: null,
     batches: [],
     result: null,
+    warnings: [],
   };
 
   constructor(private _deploymentParams: DeploymentParameters = {}) {}
@@ -330,6 +332,13 @@ export class UiEventHandler implements ExecutionEventListener {
       status: UiStateDeploymentStatus.COMPLETE,
       result: event.result,
       batches: this._applyResultToBatches(this.state.batches, event.result),
+    };
+  }
+
+  public reconciliationWarnings(event: ReconciliationWarningsEvent): void {
+    this.state = {
+      ...this.state,
+      warnings: [...this.state.warnings, ...event.warnings],
     };
   }
 

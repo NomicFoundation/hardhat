@@ -30,6 +30,7 @@ export type ExecutionEvent =
   | OnchainInteractionTimeoutEvent
   | BatchInitializeEvent
   | DeploymentStartEvent
+  | ReconciliationWarningsEvent
   | BeginNextBatchEvent
   | SetModuleIdEvent;
 
@@ -61,6 +62,7 @@ export enum ExecutionEventType {
   ONCHAIN_INTERACTION_TIMEOUT = "ONCHAIN_INTERACTION_TIMEOUT",
   BATCH_INITIALIZE = "BATCH_INITIALIZE",
   DEPLOYMENT_START = "DEPLOYMENT_START",
+  RECONCILIATION_WARNINGS = "RECONCILIATION_WARNINGS",
   BEGIN_NEXT_BATCH = "BEGIN_NEXT_BATCH",
   DEPLOYMENT_COMPLETE = "DEPLOYMENT_COMPLETE",
   SET_MODULE_ID = "SET_MODULE_ID",
@@ -114,6 +116,16 @@ export interface BeginNextBatchEvent {
 export interface DeploymentCompleteEvent {
   type: ExecutionEventType.DEPLOYMENT_COMPLETE;
   result: DeploymentResult<string, IgnitionModuleResult<string>>;
+}
+
+/**
+ * An event indicating that a deployment has reconciliation warnings.
+ *
+ * @beta
+ */
+export interface ReconciliationWarningsEvent {
+  type: ExecutionEventType.RECONCILIATION_WARNINGS;
+  warnings: string[];
 }
 
 /**
@@ -434,6 +446,7 @@ export interface ExecutionEventTypeMap {
   [ExecutionEventType.DEPLOYMENT_START]: DeploymentStartEvent;
   [ExecutionEventType.BEGIN_NEXT_BATCH]: BeginNextBatchEvent;
   [ExecutionEventType.DEPLOYMENT_COMPLETE]: DeploymentCompleteEvent;
+  [ExecutionEventType.RECONCILIATION_WARNINGS]: ReconciliationWarningsEvent;
   [ExecutionEventType.SET_MODULE_ID]: SetModuleIdEvent;
 }
 
