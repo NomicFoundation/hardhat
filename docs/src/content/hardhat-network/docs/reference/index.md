@@ -260,7 +260,7 @@ Traces the execution of an `eth_call` within the context of a specific block's e
 Arguments:
 
 - transaction object
-- blockTag: optional, default values is "latest"
+- blockTag: optional, default value is "latest"
 - traceConfig: optional object with the following properties:
   - disableMemory: optional boolean, default value is false
   - disableStack: optional boolean, default value is false
