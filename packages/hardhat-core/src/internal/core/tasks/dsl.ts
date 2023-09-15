@@ -196,6 +196,8 @@ export class TasksDSL {
     newScope: string,
     newScopeDescription: string | undefined
   ): void {
+    this._checkClash(taskName, newScope);
+
     let definition;
     if (oldScope === undefined) {
       definition = this._tasks[taskName];
