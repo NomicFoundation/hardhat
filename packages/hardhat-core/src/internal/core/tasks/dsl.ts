@@ -221,8 +221,8 @@ export class TasksDSL {
         taskName,
       });
     }
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-    if (scopeName !== undefined && this._tasks[scopeName]) {
+
+    if (scopeName !== undefined && this._tasks[scopeName] !== undefined) {
       throw new HardhatError(ERRORS.TASK_DEFINITIONS.TASK_SCOPE_CLASH, {
         taskName,
         scopeName,
