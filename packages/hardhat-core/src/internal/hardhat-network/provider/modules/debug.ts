@@ -1,7 +1,7 @@
 import { rpcHash } from "../../../core/jsonrpc/types/base-types";
 import {
-  RpcNewBlockTag,
-  rpcNewBlockTag,
+  OptionalRpcNewBlockTag,
+  optionalRpcNewBlockTag,
 } from "../../../core/jsonrpc/types/input/blockTag";
 import {
   RpcCallRequest,
@@ -47,14 +47,11 @@ export class DebugModule extends Base {
 
   private _traceCallParams(
     params: any[]
-  ): [RpcCallRequest, RpcNewBlockTag, RpcDebugTracingConfig] {
-    // Default value for the blockTag is "latest"
-    params[1] = params[1] !== undefined ? params[1] : "latest";
-
+  ): [RpcCallRequest, OptionalRpcNewBlockTag, RpcDebugTracingConfig] {
     const validatedParams = validateParams(
       params,
       rpcCallRequest,
-      rpcNewBlockTag,
+      optionalRpcNewBlockTag,
       rpcDebugTracingConfig
     );
 
@@ -89,7 +86,7 @@ export class DebugModule extends Base {
 
   private async _traceCallAction(
     callConfig: RpcCallRequest,
-    block: RpcNewBlockTag,
+    block: OptionalRpcNewBlockTag,
     traceConfig: RpcDebugTracingConfig
   ): Promise<RpcDebugTraceOutput> {
     const callParams = await this.rpcCallRequestToNodeCallParams(callConfig);
