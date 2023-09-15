@@ -240,8 +240,11 @@ async function main() {
 
     // --help is a also special case
     if (hardhatArguments.help && taskName !== TASK_HELP) {
-      taskArguments = { task: taskName };
+      // we "move" the task and scope names to the task arguments,
+      // and run the help task
+      taskArguments = { scopeOrTask: scopeName, task: taskName };
       taskName = TASK_HELP;
+      scopeName = undefined;
     } else {
       const taskDefinition = ctx.tasksDSL.getTaskDefinition(
         scopeName,
