@@ -140,10 +140,10 @@ export class TasksDSL {
     action?: ActionType<TaskArgumentsT>,
     isSubtask?: boolean
   ) {
-    const { name, scope } = parseTaskIdentifier(taskIdentifier);
-    const parentTaskDefinition = this.getTaskDefinition(scope, name);
+    const { scope, task } = parseTaskIdentifier(taskIdentifier);
+    const parentTaskDefinition = this.getTaskDefinition(scope, task);
 
-    this._checkClash(name, scope);
+    this._checkClash(scope, task);
 
     let taskDefinition: TaskDefinition;
 
@@ -158,7 +158,7 @@ export class TasksDSL {
         isSubtask,
         (oldScope, newScope, newScopeDescription) => {
           this._moveTaskToNewScope(
-            name,
+            task,
             oldScope,
             newScope,
             newScopeDescription
@@ -181,10 +181,10 @@ export class TasksDSL {
     }
 
     if (scope === undefined) {
-      this._tasks[name] = taskDefinition;
+      this._tasks[task] = taskDefinition;
     } else {
       this._scopes[scope] = this._scopes[scope] ?? { tasks: {} };
-      this._scopes[scope].tasks[name] = taskDefinition;
+      this._scopes[scope].tasks[task] = taskDefinition;
     }
 
     return taskDefinition;
@@ -196,7 +196,7 @@ export class TasksDSL {
     newScope: string,
     newScopeDescription: string | undefined
   ): void {
-    this._checkClash(taskName, newScope);
+    this._checkClash(newScope, taskName);
 
     let definition;
     if (oldScope === undefined) {
@@ -215,7 +215,7 @@ export class TasksDSL {
     }
   }
 
-  private _checkClash(taskName: string, scopeName: string | undefined): void {
+  private _checkClash(scopeName: string | undefined, taskName: string): void {
     if (this._scopes[taskName] !== undefined) {
       throw new HardhatError(ERRORS.TASK_DEFINITIONS.SCOPE_TASK_CLASH, {
         taskName,

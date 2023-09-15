@@ -139,20 +139,20 @@ export class Environment implements HardhatRuntimeEnvironment {
     subtaskArguments = {},
     callerTaskProfile?: TaskProfile
   ) => {
-    const { name, scope } = parseTaskIdentifier(taskIdentifier);
+    const { scope, task } = parseTaskIdentifier(taskIdentifier);
 
     let taskDefinition;
     if (scope === undefined) {
-      taskDefinition = this.tasks[name];
-      log("Running task %s", name);
+      taskDefinition = this.tasks[task];
+      log("Running task %s", task);
     } else {
-      taskDefinition = this.scopes[scope]?.tasks?.[name];
-      log("Running task %s:%s", scope, name);
+      taskDefinition = this.scopes[scope]?.tasks?.[task];
+      log("Running task %s:%s", scope, task);
     }
 
     if (taskDefinition === undefined) {
       throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
-        task: name,
+        task,
       });
     }
 
@@ -164,7 +164,7 @@ export class Environment implements HardhatRuntimeEnvironment {
 
     let taskProfile: TaskProfile | undefined;
     if (this.hardhatArguments.flamegraph === true) {
-      taskProfile = createTaskProfile(name);
+      taskProfile = createTaskProfile(task);
 
       if (callerTaskProfile !== undefined) {
         callerTaskProfile.children.push(taskProfile);

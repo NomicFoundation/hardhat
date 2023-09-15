@@ -81,7 +81,7 @@ describe("SimpleTaskDefinition", () => {
 
     before("init taskDefinition", () => {
       taskDefinition = new SimpleTaskDefinition(
-        { name: "name", scope: "scope" },
+        { scope: "scope", task: "name" },
         true
       );
     });

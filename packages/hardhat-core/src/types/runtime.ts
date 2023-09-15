@@ -133,7 +133,7 @@ export interface TaskDefinition extends ConfigurableTaskDefinition {
   readonly positionalParamDefinitions: Array<ParamDefinition<any>>;
 }
 
-export type TaskIdentifier = string | { scope?: string; name: string };
+export type TaskIdentifier = string | { scope?: string; task: string };
 
 /**
  * @type TaskArguments {object-like} - the input arguments for a task.

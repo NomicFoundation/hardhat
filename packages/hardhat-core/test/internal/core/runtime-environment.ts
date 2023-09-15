@@ -92,7 +92,7 @@ describe("Environment", () => {
       return 27;
     });
 
-    dsl.task({ scope: "scoped", name: "task" }, async () => {
+    dsl.task({ scope: "scoped", task: "task" }, async () => {
       return 28;
     });
 
@@ -162,12 +162,12 @@ describe("Environment", () => {
     });
 
     it("should run a scoped task correctly", async () => {
-      const ret = await env.run({ scope: "scoped", name: "task" });
+      const ret = await env.run({ scope: "scoped", task: "task" });
       assert.equal(ret, 28);
     });
 
     it("should not run a scoped task with just task name", async () => {
-      await env.run({ name: "task" }).catch((err) => {
+      await env.run({ task: "task" }).catch((err) => {
         assert.equal(err.number, ERRORS.ARGUMENTS.UNRECOGNIZED_TASK.number);
       });
     });

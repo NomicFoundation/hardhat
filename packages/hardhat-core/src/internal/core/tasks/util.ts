@@ -2,16 +2,15 @@ import { TaskIdentifier } from "../../../types";
 
 export function parseTaskIdentifier(taskIdentifier: TaskIdentifier): {
   scope: string | undefined;
-  name: string;
+  task: string;
 } {
   let scope: string | undefined;
-  let name: string;
+  let task: string;
   if (typeof taskIdentifier === "string") {
-    name = taskIdentifier;
-    scope = undefined;
+    task = taskIdentifier;
   } else {
-    name = taskIdentifier.name;
     scope = taskIdentifier.scope;
+    task = taskIdentifier.task;
   }
-  return { scope, name };
+  return { scope, task };
 }

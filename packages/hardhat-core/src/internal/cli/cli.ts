@@ -285,7 +285,7 @@ async function main() {
     try {
       const timestampBeforeRun = new Date().getTime();
 
-      await env.run({ name: taskName, scope: scopeName }, taskArguments);
+      await env.run({ scope: scopeName, task: taskName }, taskArguments);
 
       const timestampAfterRun = new Date().getTime();
 

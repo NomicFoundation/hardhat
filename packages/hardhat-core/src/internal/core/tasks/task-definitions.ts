@@ -29,7 +29,7 @@ function isCLIArgumentType(
  */
 export class SimpleTaskDefinition implements TaskDefinition {
   public get name() {
-    return this._name;
+    return this._task;
   }
   public get scope() {
     return this._scope;
@@ -44,8 +44,8 @@ export class SimpleTaskDefinition implements TaskDefinition {
   private _positionalParamNames: Set<string>;
   private _hasVariadicParam: boolean;
   private _hasOptionalPositionalParam: boolean;
-  private _name: string;
   private _scope?: string;
+  private _task: string;
   private _description?: string;
 
   /**
@@ -69,12 +69,12 @@ export class SimpleTaskDefinition implements TaskDefinition {
     this._positionalParamNames = new Set();
     this._hasVariadicParam = false;
     this._hasOptionalPositionalParam = false;
-    const { scope, name } = parseTaskIdentifier(taskIdentifier);
-    this._name = name;
+    const { scope, task } = parseTaskIdentifier(taskIdentifier);
     this._scope = scope;
+    this._task = task;
     this.action = () => {
       throw new HardhatError(ERRORS.TASK_DEFINITIONS.ACTION_NOT_SET, {
-        taskName: this._name,
+        taskName: this._task,
       });
     };
   }

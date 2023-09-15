@@ -64,7 +64,7 @@ describe("TasksDSL", () => {
   });
 
   it("should add a task with scope", () => {
-    const task = dsl.task({ name: "compile", scope: "solidity" });
+    const task = dsl.task({ scope: "solidity", task: "compile" });
     assert.equal(task.scope, "solidity");
     assert.equal(task.name, "compile");
 
@@ -76,7 +76,7 @@ describe("TasksDSL", () => {
   });
 
   it("should add a task with scope and change scope", () => {
-    const task = dsl.task({ name: "compile", scope: "solidity" });
+    const task = dsl.task({ scope: "solidity", task: "compile" });
     assert.equal(task.scope, "solidity");
     assert.equal(task.name, "compile");
 
@@ -93,9 +93,9 @@ describe("TasksDSL", () => {
   });
 
   it("should add a task with scope when a task with same name and no scope exists", () => {
-    dsl.task({ name: "compile" }); // no scope
+    dsl.task({ task: "compile" }); // no scope
 
-    const task = dsl.task({ name: "compile", scope: "solidity" });
+    const task = dsl.task({ scope: "solidity", task: "compile" });
     assert.equal(task.scope, "solidity");
     assert.equal(task.name, "compile");
 
@@ -135,19 +135,19 @@ describe("TasksDSL", () => {
     dsl.task("compile"); // no scope
 
     expectHardhatError(
-      () => dsl.task({ scope: "compile", name: "temp" }),
+      () => dsl.task({ scope: "compile", task: "temp" }),
       ERRORS.TASK_DEFINITIONS.TASK_SCOPE_CLASH,
-      "HH214: A clash was found while creating task temp with scope compile since a task with temp exists already."
+      "A clash was found while creating task 'temp' with scope 'compile' since a task named 'compile' already exists."
     );
   });
 
   it("should not create task with no scope if task clash with existing scope", () => {
-    dsl.task({ scope: "compile", name: "temp" });
+    dsl.task({ scope: "compile", task: "temp" });
 
     expectHardhatError(
       () => dsl.task("compile"),
       ERRORS.TASK_DEFINITIONS.SCOPE_TASK_CLASH,
-      "HH215: A clash was found while creating task compile with no scope, since a scope with same name exists already."
+      "A clash was found while creating task 'compile', since a scope with that name already exists."
     );
   });
 
