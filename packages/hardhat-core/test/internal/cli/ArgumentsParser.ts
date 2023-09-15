@@ -302,7 +302,7 @@ describe("ArgumentsParser", () => {
   });
 
   describe("scope and task names", () => {
-    it("should parse scope and task names 1", () => {
+    it("should parse a non-scoped task even if there is a scoped task with the same name", () => {
       const dummy = {} as TaskDefinition;
 
       const { scopeName, taskName, unparsedCLAs } =
@@ -317,7 +317,7 @@ describe("ArgumentsParser", () => {
       assert.equal(unparsedCLAs.length, 0);
     });
 
-    it("should parse scope and task names 2", () => {
+    it("should parse a non-scoped task and its parameters", () => {
       const dummy = {} as TaskDefinition;
 
       const { scopeName, taskName, unparsedCLAs } =
@@ -330,9 +330,10 @@ describe("ArgumentsParser", () => {
       assert.isUndefined(scopeName);
       assert.equal(taskName, "compile");
       assert.equal(unparsedCLAs.length, 1);
+      assert.equal(unparsedCLAs[0], "hello");
     });
 
-    it("should parse scope and task names 3", () => {
+    it("should parse a scoped task and its parameters", () => {
       const dummy = {} as TaskDefinition;
 
       const { scopeName, taskName, unparsedCLAs } =
@@ -345,21 +346,37 @@ describe("ArgumentsParser", () => {
       assert.equal(scopeName, "scope");
       assert.equal(taskName, "compile");
       assert.equal(unparsedCLAs.length, 2);
+      assert.equal(unparsedCLAs[0], "hello");
+      assert.equal(unparsedCLAs[1], "wagmi");
     });
 
-    it("should parse scope and task names 3", () => {
+    it("should throw an error if an unknown non-scoped task is used", () => {
       const dummy = {} as TaskDefinition;
 
-      const { scopeName, taskName, unparsedCLAs } =
-        argumentsParser.parseScopeAndTaskNames(
-          ["wen", "moon"],
-          { compile: dummy },
-          { scope: { tasks: { compile: dummy } } }
-        );
+      expectHardhatError(
+        () =>
+          argumentsParser.parseScopeAndTaskNames(
+            ["wen", "moon"],
+            { compile: dummy },
+            { scope: { tasks: { compile: dummy } } }
+          ),
+        ERRORS.ARGUMENTS.UNRECOGNIZED_TASK
+      );
+    });
 
-      assert.isUndefined(scopeName);
-      assert.equal(taskName, "help");
-      assert.equal(unparsedCLAs.length, 2);
+    it("should throw an error if an unknown scoped task is used", () => {
+      const dummy = {} as TaskDefinition;
+
+      expectHardhatError(
+        () =>
+          argumentsParser.parseScopeAndTaskNames(
+            ["scope", "moon"],
+            { compile: dummy },
+            { scope: { tasks: { compile: dummy } } }
+          ),
+        ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPED_TASK,
+        "Unrecognized task moon under scope scope"
+      );
     });
   });
 

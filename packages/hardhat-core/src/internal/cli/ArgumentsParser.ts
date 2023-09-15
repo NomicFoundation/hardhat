@@ -124,30 +124,49 @@ export class ArgumentsParser {
     let taskName: string | undefined;
     let unparsedCLAs: string[];
 
-    if (
-      allUnparsedCLAs.length > 1 &&
-      scopeDefinitions[allUnparsedCLAs[0]]?.tasks?.[allUnparsedCLAs[1]] !==
-        undefined
-    ) {
-      scopeName = allUnparsedCLAs[0];
-      taskName = allUnparsedCLAs[1];
-      unparsedCLAs = allUnparsedCLAs.slice(2);
-    } else if (
-      allUnparsedCLAs.length > 0 &&
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-      taskDefinitions[allUnparsedCLAs[0]]
-    ) {
-      scopeName = undefined;
-      taskName = allUnparsedCLAs[0];
-      unparsedCLAs = allUnparsedCLAs.slice(1);
-    } else {
-      scopeName = undefined;
-      taskName = undefined;
-      unparsedCLAs = allUnparsedCLAs.slice(); // shallow copy
-    }
-
-    if (taskName === undefined) {
+    if (allUnparsedCLAs.length === 0) {
       taskName = TASK_HELP;
+      unparsedCLAs = [];
+    } else if (allUnparsedCLAs.length === 1) {
+      const [firstCLA] = allUnparsedCLAs;
+
+      if (scopeDefinitions[firstCLA] !== undefined) {
+        // this is a bit of a hack, but it's the easiest way to print
+        // the help of a scope when no task is specified
+        taskName = TASK_HELP;
+        unparsedCLAs = [firstCLA];
+      } else if (taskDefinitions[firstCLA] !== undefined) {
+        taskName = firstCLA;
+        unparsedCLAs = allUnparsedCLAs.slice(1);
+      } else {
+        throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
+          task: firstCLA,
+        });
+      }
+    } else {
+      const [firstCLA, secondCLA] = allUnparsedCLAs;
+
+      const scopeDefinition = scopeDefinitions[firstCLA];
+      if (scopeDefinition !== undefined) {
+        if (scopeDefinition.tasks[secondCLA] !== undefined) {
+          scopeName = firstCLA;
+          taskName = secondCLA;
+
+          unparsedCLAs = allUnparsedCLAs.slice(2);
+        } else {
+          throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPED_TASK, {
+            scope: firstCLA,
+            task: secondCLA,
+          });
+        }
+      } else if (taskDefinitions[firstCLA] !== undefined) {
+        taskName = firstCLA;
+        unparsedCLAs = allUnparsedCLAs.slice(1);
+      } else {
+        throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
+          task: firstCLA,
+        });
+      }
     }
 
     return {
