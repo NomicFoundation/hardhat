@@ -598,28 +598,28 @@ What makes these types special is that they can be represented as strings, so yo
     OVERRIDE_TASK_SCOPE: {
       number: 213,
       message:
-        "Reassigning task %taskName% scope failed. Unsupported operation setting scope in an overridden task.",
-      title: "Attempted to add mandatory params to an overridden task",
-      description: `You can't set scope in an overridden task.
+        "Reassigning the scope of task '%taskName%' failed. You cannot set a scope when overriding a task.",
+      title: "Attempted to add a scope to an overridden task",
+      description: `You can't set a scope for an overridden task.
 Please double check your task definitions.`,
       shouldBeReported: false,
     },
     TASK_SCOPE_CLASH: {
       number: 214,
       message:
-        "A clash was found while creating task %taskName% with scope %scopeName% since a task with %taskName% exists already.",
-      title: "Attempted to create a new scope with name already used by a task",
-      description: `You can't create a scope if a task with the name already exists.
+        "A clash was found while creating task '%taskName%' with scope '%scopeName%' since a task named '%scopeName%' already exists.",
+      title: "Attempted to create a scope with a name already used by a task",
+      description: `You can't create a scope if a task with that name already exists.
 Please double check your task definitions.`,
       shouldBeReported: false,
     },
     SCOPE_TASK_CLASH: {
       number: 215,
       message:
-        "A clash was found while creating task %taskName% with no scope, since a scope with same name exists already.",
-      title: "Attempted to create a new task with name already used by a scope",
-      description: `You can't create a task with no scope, if a scope with the name already exists.
-Please double check your task definitions. You can add a scope to your task.`,
+        "A clash was found while creating task '%taskName%', since a scope with that name already exists.",
+      title: "Attempted to create a task with a name already used by a scope",
+      description: `You can't create a task if a scope with that name already exists.
+Please double check your task definitions.`,
       shouldBeReported: false,
     },
     DEPRECATED_TRANSFORM_IMPORT_TASK: {
