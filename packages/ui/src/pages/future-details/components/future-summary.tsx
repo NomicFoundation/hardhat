@@ -1,17 +1,15 @@
 import {
   Future,
   FutureType,
-  StoredDeployment,
   isFuture,
-} from "@ignored/ignition-core/ui-helpers";
+} from "@nomicfoundation/ignition-core/ui-helpers";
 import { PageTitle, Panel } from "../../../components/shared";
 import { SummaryHeader } from "../../../components/summary-header";
 import { argumentTypeToString } from "../../../utils/argumentTypeToString";
 
 export const FutureSummary: React.FC<{
-  deployment: StoredDeployment;
   future: Future;
-}> = ({ deployment, future }) => {
+}> = ({ future }) => {
   const title = resolveTitleFor(future);
 
   return (
@@ -21,10 +19,7 @@ export const FutureSummary: React.FC<{
       </header>
 
       <Panel>
-        <SummaryHeader
-          networkName={deployment.details.networkName}
-          chainId={deployment.details.chainId}
-        />
+        <SummaryHeader />
 
         <div>
           <FutureDetailsSection future={future} />
@@ -36,19 +31,19 @@ export const FutureSummary: React.FC<{
 
 function resolveTitleFor(future: Future): string {
   switch (future.type) {
-    case FutureType.NAMED_CONTRACT_DEPLOYMENT:
+    case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
       return `Contract deploy - ${future.contractName}`;
-    case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
+    case FutureType.CONTRACT_DEPLOYMENT:
       return `Contract deploy from Artifact - ${future.contractName}`;
-    case FutureType.NAMED_LIBRARY_DEPLOYMENT:
+    case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
       return `Library deploy - ${future.contractName}`;
-    case FutureType.ARTIFACT_LIBRARY_DEPLOYMENT:
+    case FutureType.LIBRARY_DEPLOYMENT:
       return `Library deploy from Artifact - ${future.contractName}`;
-    case FutureType.NAMED_CONTRACT_CALL:
+    case FutureType.CONTRACT_CALL:
       return `Call - ${future.contract.contractName}/${future.functionName}`;
-    case FutureType.NAMED_STATIC_CALL:
+    case FutureType.STATIC_CALL:
       return `Static call - ${future.contract.contractName}/${future.functionName}`;
-    case FutureType.NAMED_CONTRACT_AT:
+    case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
       return `Existing contract - ${future.contractName} (${
         typeof future.address === "string"
           ? future.address
@@ -56,7 +51,7 @@ function resolveTitleFor(future: Future): string {
           ? future.address.id
           : argumentTypeToString(future.address)
       })`;
-    case FutureType.ARTIFACT_CONTRACT_AT:
+    case FutureType.CONTRACT_AT:
       return `Existing contract from Artifact - ${future.contractName} (${
         typeof future.address === "string"
           ? future.address
@@ -73,7 +68,7 @@ function resolveTitleFor(future: Future): string {
 
 const FutureDetailsSection: React.FC<{ future: Future }> = ({ future }) => {
   switch (future.type) {
-    case FutureType.NAMED_CONTRACT_DEPLOYMENT:
+    case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
       return (
         <div>
           <p>Contract - {future.contractName}</p>
@@ -87,7 +82,7 @@ const FutureDetailsSection: React.FC<{ future: Future }> = ({ future }) => {
           </ul>
         </div>
       );
-    case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
+    case FutureType.CONTRACT_DEPLOYMENT:
       return (
         <div>
           <p>Contract - {future.contractName}</p>
@@ -101,19 +96,19 @@ const FutureDetailsSection: React.FC<{ future: Future }> = ({ future }) => {
           </ul>
         </div>
       );
-    case FutureType.NAMED_LIBRARY_DEPLOYMENT:
+    case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
       return (
         <div>
           <p>Library - {future.contractName}</p>
         </div>
       );
-    case FutureType.ARTIFACT_LIBRARY_DEPLOYMENT:
+    case FutureType.LIBRARY_DEPLOYMENT:
       return (
         <div>
           <p>Library - {future.contractName}</p>
         </div>
       );
-    case FutureType.NAMED_CONTRACT_CALL:
+    case FutureType.CONTRACT_CALL:
       return (
         <div>
           <p>Contract - {future.contract.contractName}</p>
@@ -126,7 +121,7 @@ const FutureDetailsSection: React.FC<{ future: Future }> = ({ future }) => {
           </ul>
         </div>
       );
-    case FutureType.NAMED_STATIC_CALL:
+    case FutureType.STATIC_CALL:
       return (
         <div>
           <p>Contract - {future.contract.contractName}</p>
@@ -139,7 +134,7 @@ const FutureDetailsSection: React.FC<{ future: Future }> = ({ future }) => {
           </ul>
         </div>
       );
-    case FutureType.NAMED_CONTRACT_AT:
+    case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
       return (
         <div>
           <p>Contract - {future.contractName}</p>
@@ -154,7 +149,7 @@ const FutureDetailsSection: React.FC<{ future: Future }> = ({ future }) => {
         </div>
       );
 
-    case FutureType.ARTIFACT_CONTRACT_AT:
+    case FutureType.CONTRACT_AT:
       return (
         <div>
           <p>Contract - {future.contractName}</p>
@@ -177,7 +172,7 @@ const FutureDetailsSection: React.FC<{ future: Future }> = ({ future }) => {
           ) : null}
           <p>Event - {future.eventName}</p>
           <p>Event index - {future.eventIndex}</p>
-          <p>Argument - {future.argumentName}</p>
+          <p>Argument - {future.nameOrIndex}</p>
         </div>
       );
     case FutureType.SEND_DATA:

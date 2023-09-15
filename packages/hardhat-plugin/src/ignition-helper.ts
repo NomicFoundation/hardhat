@@ -11,14 +11,14 @@ import {
   IgnitionModule,
   IgnitionModuleResult,
   isContractFuture,
-  NamedContractAtFuture,
-  NamedContractDeploymentFuture,
+  NamedArtifactContractAtFuture,
+  NamedArtifactContractDeploymentFuture,
   SuccessfulDeploymentResult,
-} from "@ignored/ignition-core";
+} from "@nomicfoundation/ignition-core";
 import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { HardhatArtifactResolver } from "./hardhat-artifact-resolver.ts";
+import { HardhatArtifactResolver } from "./hardhat-artifact-resolver";
 import { errorDeploymentResultToExceptionMessage } from "./utils/error-deployment-result-to-exception-message";
 
 export type DeployedContract<ContractNameT extends string> = {
@@ -84,7 +84,6 @@ export class IgnitionHelper {
       ignitionModule,
       deploymentParameters: parameters,
       accounts,
-      verbose: false,
     });
 
     if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {
@@ -134,7 +133,7 @@ export class IgnitionHelper {
   ): Promise<Contract> {
     if (!isContractFuture(future)) {
       throw new HardhatPluginError(
-        "@ignored/hardhat-ignition",
+        "@nomicfoundation/hardhat-ignition",
         `Expected contract future but got ${future.id} with type ${future.type} instead`
       );
     }
@@ -158,8 +157,8 @@ export type IgnitionModuleResultsTToEthersContracts<
   IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
 > = {
   [contract in keyof IgnitionModuleResultsT]: IgnitionModuleResultsT[contract] extends
-    | NamedContractDeploymentFuture<ContractNameT>
-    | NamedContractAtFuture<ContractNameT>
+    | NamedArtifactContractDeploymentFuture<ContractNameT>
+    | NamedArtifactContractAtFuture<ContractNameT>
     ? TypeChainEthersContractByName<ContractNameT>
     : Contract;
 };

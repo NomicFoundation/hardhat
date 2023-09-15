@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { buildModule } from "@ignored/ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { waitForPendingTxs } from "../helpers";
@@ -11,14 +11,13 @@ import { mineBlock } from "./helpers";
  * Deploy a contract from an artifact.
  */
 describe("execution - deploy contract from artifact", function () {
-  // TODO: rename back to minimal api once execution switched over
-  useEphemeralIgnitionProject("minimal-new-api");
+  useEphemeralIgnitionProject("minimal");
 
   it("should deploy a contract that is callable", async function () {
     const fooArtifact = await this.hre.artifacts.readArtifact("Foo");
 
     const moduleDefinition = buildModule("FooModule", (m) => {
-      const foo = m.contractFromArtifact("Foo", fooArtifact);
+      const foo = m.contract("Foo", fooArtifact);
 
       return { foo };
     });

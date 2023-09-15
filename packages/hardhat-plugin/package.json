@@ -1,6 +1,6 @@
 {
-  "name": "@ignored/hardhat-ignition",
-  "version": "0.3.0",
+  "name": "@nomicfoundation/hardhat-ignition",
+  "version": "0.4.0",
   "license": "MIT",
   "author": "Nomic Foundation",
   "homepage": "https://hardhat.org",
@@ -31,8 +31,8 @@
     "prepack": "npm run build"
   },
   "devDependencies": {
-    "@ignored/ignition-core": "^0.3.0",
-    "@ignored/ignition-ui": "^0.3.0",
+    "@nomicfoundation/ignition-core": "^0.4.0",
+    "@nomicfoundation/ignition-ui": "^0.4.0",
     "@istanbuljs/nyc-config-typescript": "1.0.2",
     "@nomicfoundation/hardhat-ethers": "^3.0.4",
     "@types/chai": "^4.2.22",
@@ -42,6 +42,7 @@
     "@types/dompurify": "2.4.0",
     "@types/fs-extra": "^9.0.13",
     "@types/lodash": "4.14.189",
+    "@types/lodash.flattendeep": "^4.4.7",
     "@types/mermaid": "^9.1.0",
     "@types/mocha": "^9.0.0",
     "@types/ndjson": "2.0.1",
@@ -71,8 +72,8 @@
     "typescript": "^4.7.4"
   },
   "peerDependencies": {
-    "@ignored/ignition-core": "^0.3.0",
-    "@ignored/ignition-ui": "^0.3.0",
+    "@nomicfoundation/ignition-core": "^0.4.0",
+    "@nomicfoundation/ignition-ui": "^0.4.0",
     "@nomicfoundation/hardhat-ethers": "^3.0.4",
     "hardhat": "^2.14.0"
   },
@@ -82,6 +83,7 @@
     "fs-extra": "^10.0.0",
     "ink": "3.2.0",
     "ink-spinner": "4.0.3",
+    "lodash.flattendeep": "^4.4.0",
     "ndjson": "2.0.0",
     "prompts": "^2.4.2",
     "react": "18.2.0",

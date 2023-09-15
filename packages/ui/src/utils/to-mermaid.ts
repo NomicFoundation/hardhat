@@ -3,14 +3,15 @@ import {
   FutureType,
   IgnitionModule,
   IgnitionModuleResult,
-  StoredDeployment,
   isFuture,
-} from "@ignored/ignition-core/ui-helpers";
+} from "@nomicfoundation/ignition-core/ui-helpers";
 import { getAllFuturesForModule } from "../queries/futures.js";
 import { argumentTypeToString } from "./argumentTypeToString.js";
 
-export function toMermaid(deployment: StoredDeployment) {
-  const modules = recursivelyListModulesAndSubmodulesFor(deployment.module);
+export function toMermaid(
+  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>
+) {
+  const modules = recursivelyListModulesAndSubmodulesFor(ignitionModule);
 
   const subgraphSections = modules
     .map((m) => prettyPrintModule(m, "  "))
@@ -18,7 +19,7 @@ export function toMermaid(deployment: StoredDeployment) {
 
   const futureDependencies = [
     ...new Set(
-      getAllFuturesForModule(deployment.module)
+      getAllFuturesForModule(ignitionModule)
         .flatMap((f) =>
           Array.from(f.dependencies).map((d) => [
             toEscapedId(f.id),
@@ -43,7 +44,7 @@ export function toMermaid(deployment: StoredDeployment) {
   ].join("\n");
 
   return `flowchart BT\n\n${toEscapedId(
-    deployment.module.id
+    ignitionModule.id
   )}:::startModule\n\n${subgraphSections}${
     futureDependencies === "" ? "" : "\n\n" + futureDependencies
   }${
@@ -74,19 +75,19 @@ function prettyPrintModule(
 
 function toLabel(f: Future): string {
   switch (f.type) {
-    case FutureType.NAMED_CONTRACT_DEPLOYMENT:
+    case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
       return `Deploy ${f.contractName}`;
-    case FutureType.ARTIFACT_CONTRACT_DEPLOYMENT:
+    case FutureType.CONTRACT_DEPLOYMENT:
       return `Deploy from artifact ${f.contractName}`;
-    case FutureType.NAMED_LIBRARY_DEPLOYMENT:
+    case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
       return `Deploy library ${f.contractName}`;
-    case FutureType.ARTIFACT_LIBRARY_DEPLOYMENT:
+    case FutureType.LIBRARY_DEPLOYMENT:
       return `Deploy library from artifact ${f.contractName}`;
-    case FutureType.NAMED_CONTRACT_CALL:
+    case FutureType.CONTRACT_CALL:
       return `Call ${f.contract.contractName}/${f.functionName}`;
-    case FutureType.NAMED_STATIC_CALL:
+    case FutureType.STATIC_CALL:
       return `Static call ${f.contract.contractName}/${f.functionName}`;
-    case FutureType.NAMED_CONTRACT_AT:
+    case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
       return `Existing contract ${f.contractName} (${
         typeof f.address === "string"
           ? f.address
@@ -94,7 +95,7 @@ function toLabel(f: Future): string {
           ? f.address.id
           : argumentTypeToString(f.address)
       })`;
-    case FutureType.ARTIFACT_CONTRACT_AT:
+    case FutureType.CONTRACT_AT:
       return `Existing contract from artifact ${f.contractName} (${
         typeof f.address === "string"
           ? f.address
@@ -103,7 +104,7 @@ function toLabel(f: Future): string {
           : argumentTypeToString(f.address)
       })`;
     case FutureType.READ_EVENT_ARGUMENT:
-      return `Read event from future ${f.futureToReadFrom.id} (event ${f.eventName} argument ${f.argumentName})`;
+      return `Read event from future ${f.futureToReadFrom.id} (event ${f.eventName} argument ${f.nameOrIndex})`;
     case FutureType.SEND_DATA:
       return `Send data to ${
         typeof f.to === "string"

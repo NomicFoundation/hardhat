@@ -6,7 +6,7 @@ import { viteSingleFile } from "vite-plugin-singlefile";
 export default defineConfig({
   plugins: [react(), viteSingleFile()],
   optimizeDeps: {
-    include: ["@ignored/ignition-core/ui-helpers"],
+    include: ["@nomicfoundation/ignition-core/ui-helpers"],
   },
   build: {
     commonjsOptions: {

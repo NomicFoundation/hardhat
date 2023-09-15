@@ -1,11 +1,11 @@
 /* eslint-disable import/no-unused-modules */
-import { buildModule } from "@ignored/ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
 describe("contract deploys", () => {
-  useEphemeralIgnitionProject("minimal-new-api");
+  useEphemeralIgnitionProject("minimal");
 
   it("should be able to deploy a contract", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {
@@ -76,9 +76,7 @@ describe("contract deploys", () => {
     const artifact = await this.hre.artifacts.readArtifact("Greeter");
 
     const moduleDefinition = buildModule("ArtifactModule", (m) => {
-      const greeter = m.contractFromArtifact("Greeter", artifact, [
-        "Hello World",
-      ]);
+      const greeter = m.contract("Greeter", artifact, ["Hello World"]);
 
       return { greeter };
     });

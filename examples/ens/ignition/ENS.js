@@ -1,4 +1,4 @@
-const { buildModule } = require("@ignored/hardhat-ignition");
+const { buildModule } = require("@nomicfoundation/hardhat-ignition");
 
 const namehash = require("eth-ens-namehash");
 const ethers = hre.ethers;
@@ -30,7 +30,7 @@ const resolverModule = buildModule("RESOLVER", (m) => {
   const resolver = m.contract("PublicResolver", [ens, ZERO_ADDRESS]);
 
   m.call(ens, "setSubnodeOwner", [ZERO_HASH, resolverLabel, account], {
-    id: "set-subnode-owner-for-resolver",
+    id: "set_subnode_owner_for_resolver",
   });
 
   m.call(ens, "setResolver", [resolverNode, resolver]);
@@ -50,7 +50,7 @@ const reverseRegistrarModule = buildModule("REVERSEREGISTRAR", (m) => {
   const reverseRegistrar = m.contract("ReverseRegistrar", [ens, resolver]);
 
   m.call(ens, "setSubnodeOwner", [ZERO_HASH, reverseLabel, account], {
-    id: "set-subnode-owner-reverse",
+    id: "set_subnode_owner_reverse",
   });
 
   m.call(
@@ -58,7 +58,7 @@ const reverseRegistrarModule = buildModule("REVERSEREGISTRAR", (m) => {
     "setSubnodeOwner",
     [reverseTldHash, addrLabel, reverseRegistrar],
     {
-      id: "set-subnode-addr-label",
+      id: "set_subnode_addr_label",
     }
   );
 

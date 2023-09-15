@@ -1,4 +1,4 @@
-import { buildModule } from "@ignored/hardhat-ignition";
+import { buildModule } from "@nomicfoundation/hardhat-ignition";
 import hre from "hardhat";
 
 const currentTimestampInSeconds = Math.round(

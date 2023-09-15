@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { buildModule } from "@ignored/ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { waitForPendingTxs } from "../../helpers";
@@ -16,7 +16,7 @@ import { mineBlock } from "../helpers";
  */
 describe("execution - error on pending user transactions", () => {
   useFileIgnitionProject(
-    "minimal-new-api",
+    "minimal",
     "error-on-rerun-with-replaced-pending-user-transaction"
   );
 

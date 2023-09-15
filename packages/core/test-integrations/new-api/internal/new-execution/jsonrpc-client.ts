@@ -4,13 +4,13 @@ import { Artifact } from "../../../../src";
 import {
   encodeArtifactDeploymentData,
   encodeArtifactFunctionCall,
-} from "../../../../src/new-api/internal/new-execution/abi";
-import { EIP1193JsonRpcClient } from "../../../../src/new-api/internal/new-execution/jsonrpc-client";
+} from "../../../../src/internal/execution/abi";
+import { EIP1193JsonRpcClient } from "../../../../src/internal/execution/jsonrpc-client";
 import {
   NetworkFees,
   TransactionReceiptStatus,
-} from "../../../../src/new-api/internal/new-execution/types/jsonrpc";
-import { assertIgnitionInvariant } from "../../../../src/new-api/internal/utils/assertions";
+} from "../../../../src/internal/execution/types/jsonrpc";
+import { assertIgnitionInvariant } from "../../../../src/internal/utils/assertions";
 import { useHardhatProject } from "../../../helpers/hardhat-projects";
 
 describe("JSON-RPC client", function () {

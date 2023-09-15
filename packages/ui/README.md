@@ -1,6 +1,6 @@
-# Ignition Plan UI
+# Ignition Visualize UI
 
-The website used in Ignitions plan task for visualising a deployment.
+The website used in Ignitions `visualize` task for visualising a deployment.
 
 ## Development
 

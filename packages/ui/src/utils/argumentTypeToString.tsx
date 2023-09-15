@@ -3,7 +3,7 @@ import {
   RuntimeValueType,
   isFuture,
   isRuntimeValue,
-} from "@ignored/ignition-core/ui-helpers";
+} from "@nomicfoundation/ignition-core/ui-helpers";
 
 export function argumentTypeToString(argument: ArgumentType): string {
   return JSON.stringify(

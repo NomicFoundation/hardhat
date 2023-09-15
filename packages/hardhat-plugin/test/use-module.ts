@@ -1,11 +1,11 @@
 /* eslint-disable import/no-unused-modules */
-import { buildModule } from "@ignored/ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
 describe("useModule", function () {
-  useEphemeralIgnitionProject("minimal-new-api");
+  useEphemeralIgnitionProject("minimal");
 
   describe("returning futures from module usage", () => {
     it("using useModule", async function () {
@@ -43,7 +43,7 @@ describe("useModule", function () {
           const secondCall = m.call(trace, "addEntry", ["second"]);
 
           m.call(trace, "addEntry", ["third"], {
-            id: "third-add-entry",
+            id: "third_add_entry",
             after: [secondCall],
           });
 

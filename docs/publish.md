@@ -30,5 +30,5 @@ yyyy-mm-dd` release.
 13. On a successful check, `rebase merge` the release branch into `main`
 14. Switch to main branch and pull the latest changes
 15. Git tag the version, `g tag -a v0.x.x -m "v0.x.x"` and push the tag `git push --follow-tags`
-16. Publish `@ignored/ignition-core`, `@ignored/ignition-ui` and `@ignored/hardhat-ignition` : `npm publish -w @ignored/ignition-core -w @ignored/ignition-ui -w @ignored/hardhat-ignition`
+16. Publish `@nomicfoundation/ignition-core`, `@nomicfoundation/ignition-ui` and `@nomicfoundation/hardhat-ignition` : `npm publish -w @nomicfoundation/ignition-core -w @nomicfoundation/ignition-ui -w @nomicfoundation/hardhat-ignition`
 17. Create a release on github off of the pushed tag

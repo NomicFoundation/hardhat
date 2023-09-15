@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { buildModule } from "@ignored/ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import {
@@ -15,7 +15,7 @@ import { mineBlock } from "../helpers";
  */
 describe("execution - rerun with now complete ignition transactions", () => {
   useFileIgnitionProject(
-    "minimal-new-api",
+    "minimal",
     "rerun-with-now-complete-ignition-transactions"
   );
 

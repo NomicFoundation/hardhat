@@ -1,4 +1,4 @@
-import { IgnitionError, IgnitionModule } from "@ignored/ignition-core";
+import { IgnitionError, IgnitionModule } from "@nomicfoundation/ignition-core";
 import setupDebug from "debug";
 import { existsSync, pathExistsSync } from "fs-extra";
 import path from "path";

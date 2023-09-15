@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { buildModule } from "@ignored/ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import {
@@ -13,8 +13,7 @@ import {
  * First deploy a working contract, then reuse it from a subsequent module.
  */
 describe("execution - deploy contract at", function () {
-  // TODO: rename back to minimal api once execution switched over
-  useEphemeralIgnitionProject("minimal-new-api");
+  useEphemeralIgnitionProject("minimal");
 
   it.skip("should deploy a contract that is callable", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {

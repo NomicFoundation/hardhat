@@ -1,11 +1,11 @@
 /* eslint-disable import/no-unused-modules */
-import { buildModule } from "@ignored/ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
 describe("libraries", () => {
-  useEphemeralIgnitionProject("minimal-new-api");
+  useEphemeralIgnitionProject("minimal");
 
   it("should be able to deploy a contract that depends on a hardhat library", async function () {
     const moduleDefinition = buildModule("WithLibModule", (m) => {
@@ -41,7 +41,7 @@ describe("libraries", () => {
     );
 
     const moduleDefinition = buildModule("ArtifactLibraryModule", (m) => {
-      const rubbishMath = m.libraryFromArtifact("RubbishMath", libraryArtifact);
+      const rubbishMath = m.library("RubbishMath", libraryArtifact);
       const dependsOnLib = m.contract("DependsOnLib", [], {
         libraries: {
           RubbishMath: rubbishMath,

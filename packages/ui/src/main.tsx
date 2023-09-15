@@ -1,13 +1,20 @@
 import React from "react";
 
-import type { StoredDeployment } from "@ignored/ignition-core/ui-helpers";
-import { StoredDeploymentDeserializer } from "@ignored/ignition-core/ui-helpers";
+import {
+  IgnitionModule,
+  IgnitionModuleDeserializer,
+  IgnitionModuleResult,
+} from "@nomicfoundation/ignition-core/ui-helpers";
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createHashRouter } from "react-router-dom";
 import { FutureDetails } from "./pages/future-details/future-details";
-import { PlanOverview } from "./pages/plan-overview/plan-overview";
+import { VisualizationOverview } from "./pages/visualization-overview/visualization-overview";
 
-const loadDeploymentFromEmbeddedDiv = (): StoredDeployment | null => {
+const loadDeploymentFromEmbeddedDiv = (): IgnitionModule<
+  string,
+  string,
+  IgnitionModuleResult<string>
+> | null => {
   const scriptTag = document.getElementById("deployment");
 
   if (scriptTag === null || scriptTag.textContent === null) {
@@ -20,13 +27,13 @@ const loadDeploymentFromEmbeddedDiv = (): StoredDeployment | null => {
     return null;
   }
 
-  return StoredDeploymentDeserializer.deserialize(data);
+  return IgnitionModuleDeserializer.deserialize(data.module);
 };
 
 const loadDeploymentFromDevFile = async () => {
   const response = await fetch("./deployment.json");
   const data = await response.json();
-  return StoredDeploymentDeserializer.deserialize(data);
+  return IgnitionModuleDeserializer.deserialize(data.module);
 };
 
 const loadDeploymentData = () => {
@@ -35,16 +42,16 @@ const loadDeploymentData = () => {
 
 const main = async () => {
   try {
-    const deployment = await loadDeploymentData();
+    const ignitionModule = await loadDeploymentData();
 
     const router = createHashRouter([
       {
         path: "/",
-        element: <PlanOverview deployment={deployment} />,
+        element: <VisualizationOverview ignitionModule={ignitionModule} />,
       },
       {
         path: "/future/:futureId",
-        element: <FutureDetails deployment={deployment} />,
+        element: <FutureDetails ignitionModule={ignitionModule} />,
       },
     ]);
 

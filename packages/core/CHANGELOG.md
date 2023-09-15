@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.4.0 - 2023-09-15
+
+### Added
+
+- Store artifact debug files as part of deployment directory ([#473](https://github.com/NomicFoundation/ignition/pull/473))
+
+### Changed
+
+- Changed npm package name to `@nomicfoundation/ignition-core`
+- Constrain module ids and action ids to better support storing deployments on windows ([#466](https://github.com/NomicFoundation/ignition/pull/466))
+
+### Fixed
+
+- Fix batch completion on non-automining chains ([#467](https://github.com/NomicFoundation/ignition/pull/467))
+
 ## 0.3.0 - 2023-08-30
 
 ### Added

@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { buildModule } from "@ignored/ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import {
@@ -13,7 +13,7 @@ import {
  * we should error and halt immediately
  */
 describe("execution - error on user transaction sent", () => {
-  useFileIgnitionProject("minimal-new-api", "error-on-user-transaction-sent");
+  useFileIgnitionProject("minimal", "error-on-user-transaction-sent");
 
   it.skip("should error on the drop being detected", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {

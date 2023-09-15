@@ -2,7 +2,7 @@
 import "hardhat/types/config";
 import "hardhat/types/runtime";
 
-import { DeployConfig } from "@ignored/ignition-core";
+import { DeployConfig } from "@nomicfoundation/ignition-core";
 
 import { IgnitionHelper } from "./ignition-helper";
 

@@ -1,4 +1,4 @@
-[![npm](https://img.shields.io/npm/v/@ignored/hardhat-ignition.svg)](https://www.npmjs.com/package/@ignored/hardhat-ignition) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
+[![npm](https://img.shields.io/npm/v/@nomicfoundation/hardhat-ignition.svg)](https://www.npmjs.com/package/@nomicfoundation/hardhat-ignition) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 # Ignition
 
@@ -13,19 +13,19 @@ Join our [Hardhat Support Discord server](https://hardhat.org/discord) to stay u
 ## Installation
 
 ```bash
-npm install --save-dev @ignored/hardhat-ignition
+npm install --save-dev @nomicfoundation/hardhat-ignition
 ```
 
 And add the following statement to your `hardhat.config.js`:
 
 ```js
-require("@ignored/hardhat-ignition");
+require("@nomicfoundation/hardhat-ignition");
 ```
 
 Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
 
 ```js
-import "@ignored/hardhat-ignition";
+import "@nomicfoundation/hardhat-ignition";
 ```
 
 ## Getting Started
@@ -44,7 +44,7 @@ See our [Getting started guide](./docs/getting-started-guide.md) for a worked ex
   - [Switching based on the _Network Chain ID_](./docs/creating-modules-for-deployment.md#switching-based-on-the-network-chain-id)
 - [Using Ignition in _Hardhat_ tests](./docs/using-ignition-in-hardhat-tests.md)
 - [Running a deployment](./docs/running-a-deployment.md)
-  - [Visualizing your deployment with the `plan` task](./docs/running-a-deployment.md#visualizing-your-deployment-with-the-plan-task)
+  - [Visualizing your deployment with the `visualize` task](./docs/running-a-deployment.md#visualizing-your-deployment-with-the-visualize-task)
   - [Executing the deployment](./docs/running-a-deployment.md#executing-the-deployment)
 
 ### Examples

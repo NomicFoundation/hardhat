@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { buildModule } from "@ignored/ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../use-ignition-project";
@@ -12,8 +12,7 @@ import { sleep } from "./helpers";
  * The intent here is to test batching.
  */
 describe("execution - multiple batch contract deploy", function () {
-  // TODO: rename back to minimal api once execution switched over
-  useEphemeralIgnitionProject("minimal-new-api");
+  useEphemeralIgnitionProject("minimal");
 
   it("should deploy over multiple batches", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {

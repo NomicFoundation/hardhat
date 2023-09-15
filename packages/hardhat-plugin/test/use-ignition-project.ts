@@ -1,4 +1,4 @@
-import { DeployConfig, IgnitionModule } from "@ignored/ignition-core";
+import { DeployConfig, IgnitionModule } from "@nomicfoundation/ignition-core";
 import { Contract } from "ethers";
 import { ensureDirSync, removeSync } from "fs-extra";
 import { resetHardhatContext } from "hardhat/plugins-testing";
@@ -67,7 +67,7 @@ export function useFileIgnitionProject(
     const hre = require("hardhat");
 
     const deploymentDir = path.join(
-      path.resolve(__dirname, "./fixture-projects/minimal-new-api/"),
+      path.resolve(__dirname, "./fixture-projects/minimal/"),
       "deployments",
       deploymentId
     );

@@ -1,4 +1,4 @@
-const { buildModule } = require("@ignored/hardhat-ignition");
+const { buildModule } = require("@nomicfoundation/hardhat-ignition");
 const namehash = require("eth-ens-namehash");
 
 const setupENSRegistry = require("./ENS");
@@ -11,7 +11,7 @@ const ZERO_HASH =
 
 const ACCOUNT_0 = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 
-module.exports = buildModule("TEST registrar", (m) => {
+module.exports = buildModule("TEST_registrar", (m) => {
   const tld = "test";
   const tldHash = namehash.hash(tld);
   const tldLabel = labelhash(tld);
@@ -22,7 +22,7 @@ module.exports = buildModule("TEST registrar", (m) => {
   const registrar = m.contract("FIFSRegistrar", [ens, tldHash]);
 
   m.call(ens, "setSubnodeOwner", [ZERO_HASH, tldLabel, ACCOUNT_0], {
-    id: "set-subnode-owner-for-registrar",
+    id: "set_subnode_owner_for_registrar",
   });
 
   return { ens, resolver, registrar, reverseRegistrar };

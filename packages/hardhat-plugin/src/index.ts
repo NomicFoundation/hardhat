@@ -1,31 +1,28 @@
+import "@nomicfoundation/hardhat-ethers";
 import {
   deploy,
   DeploymentParameters,
-  DeploymentResult,
-  DeploymentResultType,
-  IgnitionModuleResult,
-  plan,
-  SuccessfulDeploymentResult,
+  IgnitionModuleSerializer,
   wipe,
-} from "@ignored/ignition-core";
-import "@nomicfoundation/hardhat-ethers";
+} from "@nomicfoundation/ignition-core";
 import { existsSync, readdirSync, readJSONSync } from "fs-extra";
 import { extendConfig, extendEnvironment, task } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
 import path from "path";
 import Prompt from "prompts";
 
-import { HardhatArtifactResolver } from "./hardhat-artifact-resolver.ts";
+import { HardhatArtifactResolver } from "./hardhat-artifact-resolver";
 import { IgnitionHelper } from "./ignition-helper";
 import { loadModule } from "./load-module";
-import { writePlan } from "./plan/write-plan";
-import { errorDeploymentResultToExceptionMessage } from "./utils/error-deployment-result-to-exception-message";
+import { UiEventHandler } from "./ui/UiEventHandler";
+import { VerboseEventHandler } from "./ui/VerboseEventHandler";
 import { open } from "./utils/open";
+import { writeVisualization } from "./visualization/write-visualization";
 
 import "./type-extensions";
 
 // eslint-disable-next-line import/no-unused-modules
-export { buildModule } from "@ignored/ignition-core";
+export { buildModule } from "@nomicfoundation/ignition-core";
 
 /* ignition config defaults */
 const IGNITION_DIR = "ignition";
@@ -65,19 +62,22 @@ task("deploy")
   )
   .addOptionalParam("id", "set the deployment id")
   .addFlag("force", "restart the deployment ignoring previous history")
-  .addFlag("logs", "output journal logs to the terminal")
+  .addFlag(
+    "simpleTextUi",
+    "use a simple text based UI instead of the default UI"
+  )
   .setAction(
     async (
       {
         moduleNameOrPath,
         parameters: parametersInput,
-        logs,
+        simpleTextUi,
         id: givenDeploymentId,
       }: {
         moduleNameOrPath: string;
         parameters?: string;
         force: boolean;
-        logs: boolean;
+        simpleTextUi: boolean;
         id: string;
       },
       hre
@@ -139,22 +139,31 @@ task("deploy")
 
       const artifactResolver = new HardhatArtifactResolver(hre);
 
-      const result = await deploy({
-        config: hre.config.ignition,
-        provider: hre.network.provider,
-        artifactResolver,
-        deploymentDir,
-        ignitionModule: userModule,
-        deploymentParameters: parameters ?? {},
-        accounts,
-        verbose: logs,
-      });
+      const executionEventListener = simpleTextUi
+        ? new VerboseEventHandler()
+        : new UiEventHandler(parameters);
 
-      displayDeploymentResult(result);
+      try {
+        await deploy({
+          config: hre.config.ignition,
+          provider: hre.network.provider,
+          executionEventListener,
+          artifactResolver,
+          deploymentDir,
+          ignitionModule: userModule,
+          deploymentParameters: parameters ?? {},
+          accounts,
+        });
+      } catch (e) {
+        if (executionEventListener instanceof UiEventHandler) {
+          executionEventListener.unmountCli();
+        }
+        throw e;
+      }
     }
   );
 
-task("plan")
+task("visualize")
   .addFlag("quiet", "Disables logging output path to terminal")
   .addPositionalParam("moduleNameOrPath")
   .setAction(
@@ -177,35 +186,24 @@ task("plan")
         process.exit(0);
       }
 
-      const chainId = Number(
-        await hre.network.provider.request({
-          method: "eth_chainId",
-        })
+      const serializedIgnitionModule =
+        IgnitionModuleSerializer.serialize(userModule);
+
+      await writeVisualization(
+        { module: serializedIgnitionModule },
+        {
+          cacheDir: hre.config.paths.cache,
+        }
       );
-
-      const artifactResolver = new HardhatArtifactResolver(hre);
-
-      const serializedModule = await plan({
-        artifactResolver,
-        storedDeployment: {
-          details: {
-            networkName: hre.network.name,
-            chainId,
-          },
-          module: userModule,
-        },
-      });
-
-      await writePlan(serializedModule, { cacheDir: hre.config.paths.cache });
 
       if (!quiet) {
         const indexFile = path.join(
           hre.config.paths.cache,
-          "plan",
+          "visualization",
           "index.html"
         );
 
-        console.log(`Plan written to ${indexFile}`);
+        console.log(`Deployment visualization written to ${indexFile}`);
 
         open(indexFile);
       }
@@ -319,31 +317,5 @@ function resolveParametersString(paramString: string): DeploymentParameters {
   } catch {
     console.warn(`Could not parse JSON parameters`);
     process.exit(0);
-  }
-}
-
-function displayDeploymentResult(
-  result: DeploymentResult<string, IgnitionModuleResult<string>>
-): void {
-  switch (result.type) {
-    case DeploymentResultType.VALIDATION_ERROR:
-    case DeploymentResultType.RECONCILIATION_ERROR:
-    case DeploymentResultType.EXECUTION_ERROR:
-      return console.log(errorDeploymentResultToExceptionMessage(result));
-    case DeploymentResultType.SUCCESSFUL_DEPLOYMENT:
-      return _displaySuccessfulDeployment(result);
-  }
-}
-
-function _displaySuccessfulDeployment(
-  result: SuccessfulDeploymentResult<string, IgnitionModuleResult<string>>
-): void {
-  console.log("Deployment complete");
-  console.log("");
-
-  for (const [futureId, { contractName, address }] of Object.entries(
-    result.contracts
-  )) {
-    console.log(`${contractName} (${futureId}) - ${address}`);
   }
 }

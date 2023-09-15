@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { buildModule } from "@ignored/ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import {
@@ -15,7 +15,7 @@ import {
  */
 describe("execution - error on rerun with replaced pending user transaction", () => {
   useFileIgnitionProject(
-    "minimal-new-api",
+    "minimal",
     "error-on-rerun-with-replaced-pending-user-transaction"
   );
 

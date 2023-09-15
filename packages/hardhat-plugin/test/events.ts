@@ -1,11 +1,11 @@
 /* eslint-disable import/no-unused-modules */
-import { buildModule } from "@ignored/ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
 describe("events", () => {
-  useEphemeralIgnitionProject("minimal-new-api");
+  useEphemeralIgnitionProject("minimal");
 
   it("should be able to use the output of a readEvent in a contract at", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {
@@ -48,7 +48,7 @@ describe("events", () => {
         "fooAddress"
       );
 
-      const foo = m.contractAtFromArtifact("Foo", newAddress, artifact);
+      const foo = m.contractAt("Foo", newAddress, artifact);
 
       return { fooFactory, foo };
     });
@@ -57,5 +57,50 @@ describe("events", () => {
 
     assert.equal(await result.fooFactory.isDeployed(), true);
     assert.equal(await result.foo.x(), Number(1));
+  });
+
+  it("should be able to read an event from a SendDataFuture", async function () {
+    const moduleDefinition = buildModule("FooModule", (m) => {
+      const sendEmitter = m.contract("SendDataEmitter");
+
+      const send = m.send("send_data_event", sendEmitter);
+
+      const output = m.readEventArgument(send, "SendDataEvent", "arg", {
+        emitter: sendEmitter,
+      });
+
+      m.call(sendEmitter, "validateEmitted", [output]);
+
+      return { sendEmitter };
+    });
+
+    const result = await this.deploy(moduleDefinition);
+
+    assert.equal(await result.sendEmitter.wasEmitted(), true);
+  });
+
+  it("should be able to use the output of a readEvent with an indexed tuple result", async function () {
+    const moduleDefinition = buildModule("FooModule", (m) => {
+      const tupleContract = m.contract("TupleEmitter");
+
+      const tupleCall = m.call(tupleContract, "emitTuple");
+
+      const arg1 = m.readEventArgument(tupleCall, "TupleEvent", "arg1", {
+        id: "arg1",
+      });
+      const arg2 = m.readEventArgument(tupleCall, "TupleEvent", 1, {
+        id: "arg2",
+      });
+
+      m.call(tupleContract, "verifyArg1", [arg1], { id: "call1" });
+      m.call(tupleContract, "verifyArg2", [arg2], { id: "call2" });
+
+      return { tupleContract };
+    });
+
+    const result = await this.deploy(moduleDefinition);
+
+    assert.equal(await result.tupleContract.arg1Captured(), true);
+    assert.equal(await result.tupleContract.arg2Captured(), true);
   });
 });

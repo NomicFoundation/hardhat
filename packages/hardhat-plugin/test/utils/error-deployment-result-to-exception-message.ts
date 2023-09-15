@@ -3,7 +3,7 @@ import {
   ExecutionErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
   ValidationErrorDeploymentResult,
-} from "@ignored/ignition-core";
+} from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { errorDeploymentResultToExceptionMessage } from "../../src/utils/error-deployment-result-to-exception-message";
@@ -63,9 +63,10 @@ describe("display error deployment result", () => {
         type: DeploymentResultType.EXECUTION_ERROR,
         started: [],
         timedOut: [
-          { futureId: "MyModule:MyContract", executionId: 1 },
-          { futureId: "MyModule:AnotherContract", executionId: 3 },
+          { futureId: "MyModule:MyContract", networkInteractionId: 1 },
+          { futureId: "MyModule:AnotherContract", networkInteractionId: 3 },
         ],
+        held: [],
         failed: [],
         successful: [],
       };
@@ -81,20 +82,53 @@ Timed out:
       );
     });
 
+    it("should display an execution error with holds", () => {
+      const result: ExecutionErrorDeploymentResult = {
+        type: DeploymentResultType.EXECUTION_ERROR,
+        started: [],
+        timedOut: [],
+        held: [
+          {
+            futureId: "MyModule:MyContract",
+            heldId: 1,
+            reason: "Vote is not complete",
+          },
+          {
+            futureId: "MyModule:AnotherContract",
+            heldId: 3,
+            reason: "Server timed out",
+          },
+        ],
+        failed: [],
+        successful: [],
+      };
+
+      assert.equal(
+        errorDeploymentResultToExceptionMessage(result),
+        `The deployment wasn't successful, there were holds:
+
+Held:
+
+  * MyModule:MyContract/1: Vote is not complete
+  * MyModule:AnotherContract/3: Server timed out`
+      );
+    });
+
     it("should display an execution error with execution failures", () => {
       const result: ExecutionErrorDeploymentResult = {
         type: DeploymentResultType.EXECUTION_ERROR,
         started: [],
         timedOut: [],
+        held: [],
         failed: [
           {
             futureId: "MyModule:MyContract",
-            executionId: 1,
+            networkInteractionId: 1,
             error: "Reverted with reason x",
           },
           {
             futureId: "MyModule:AnotherContract",
-            executionId: 3,
+            networkInteractionId: 3,
             error: "Reverted with reason y",
           },
         ],
@@ -117,18 +151,19 @@ Failures:
         type: DeploymentResultType.EXECUTION_ERROR,
         started: [],
         timedOut: [
-          { futureId: "MyModule:FirstContract", executionId: 1 },
-          { futureId: "MyModule:SecondContract", executionId: 3 },
+          { futureId: "MyModule:FirstContract", networkInteractionId: 1 },
+          { futureId: "MyModule:SecondContract", networkInteractionId: 3 },
         ],
+        held: [],
         failed: [
           {
             futureId: "MyModule:ThirdContract",
-            executionId: 1,
+            networkInteractionId: 1,
             error: "Reverted with reason x",
           },
           {
             futureId: "MyModule:FourthContract",
-            executionId: 3,
+            networkInteractionId: 3,
             error: "Reverted with reason y",
           },
         ],

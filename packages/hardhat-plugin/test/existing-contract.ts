@@ -1,11 +1,11 @@
 /* eslint-disable import/no-unused-modules */
-import { buildModule } from "@ignored/ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
 describe("existing contract", () => {
-  useEphemeralIgnitionProject("minimal-new-api");
+  useEphemeralIgnitionProject("minimal");
 
   it("should be able to use an existing contract", async function () {
     await this.hre.run("compile", { quiet: true });
@@ -31,8 +31,8 @@ describe("existing contract", () => {
       await firstResult.usesContract.getAddress();
 
     const secondModuleDefinition = buildModule("SecondModule", (m) => {
-      const bar = m.contractAtFromArtifact("Bar", barAddress, barArtifact);
-      const usesContract = m.contractAtFromArtifact(
+      const bar = m.contractAt("Bar", barAddress, barArtifact);
+      const usesContract = m.contractAt(
         "UsesContract",
         usesContractAddress,
         usesContractArtifact

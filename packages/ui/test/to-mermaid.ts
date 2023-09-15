@@ -1,4 +1,8 @@
-import { Artifact, IgnitionModule, buildModule } from "@ignored/ignition-core";
+import {
+  Artifact,
+  IgnitionModule,
+  buildModule,
+} from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 import { toMermaid } from "../src/utils/to-mermaid.js";
 
@@ -19,7 +23,7 @@ describe("to-mermaid", () => {
         subgraph Module
           direction BT
 
-          Module:Contract1["Deploy Contract1"]
+          Module#Contract1["Deploy Contract1"]
         end
 
       classDef startModule stroke-width:4px`;
@@ -28,7 +32,7 @@ describe("to-mermaid", () => {
   });
 
   it("should render a module with a space in the name", () => {
-    const moduleDefinition = buildModule("Test registrar", (m) => {
+    const moduleDefinition = buildModule("Test_registrar", (m) => {
       const p = m.getParameter("p", 123);
       const contract1 = m.contract("Contract1", [{ arr: [p] }]);
 
@@ -40,10 +44,10 @@ describe("to-mermaid", () => {
 
       Test_registrar:::startModule
 
-        subgraph Test registrar
+        subgraph Test_registrar
           direction BT
 
-          Test_registrar:Contract1["Deploy Contract1"]
+          Test_registrar#Contract1["Deploy Contract1"]
         end
 
       classDef startModule stroke-width:4px`;
@@ -83,21 +87,21 @@ describe("to-mermaid", () => {
         subgraph Module
           direction BT
 
-          Module:Contract3["Deploy Contract3"]
+          Module#Contract3["Deploy Contract3"]
         end
         subgraph Submodule1
           direction BT
 
-          Submodule1:Contract1["Deploy Contract1"]
+          Submodule1#Contract1["Deploy Contract1"]
         end
         subgraph Submodule2
           direction BT
 
-          Submodule2:Contract2["Deploy Contract2"]
+          Submodule2#Contract2["Deploy Contract2"]
         end
 
-      Module:Contract3 --> Submodule1:Contract1
-      Module:Contract3 --> Submodule2:Contract2
+      Module#Contract3 --> Submodule1#Contract1
+      Module#Contract3 --> Submodule2#Contract2
 
       Module -.-> Submodule1
       Module -.-> Submodule2
@@ -121,21 +125,12 @@ describe("to-mermaid", () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const basic = m.contract("BasicContract");
       const library = m.library("BasicLibrary");
-      const libFromArtifact = m.libraryFromArtifact(
-        "BasicLibrary",
-        libArtifact,
-        {
-          id: "BasicLibrary2",
-        }
-      );
-      const withLib = m.contractFromArtifact(
-        "ContractWithLibrary",
-        withLibArtifact,
-        [],
-        {
-          libraries: { BasicLibrary: library },
-        }
-      );
+      const libFromArtifact = m.library("BasicLibrary", libArtifact, {
+        id: "BasicLibrary2",
+      });
+      const withLib = m.contract("ContractWithLibrary", withLibArtifact, [], {
+        libraries: { BasicLibrary: library },
+      });
 
       const call = m.call(basic, "basicFunction", [40]);
       const eventArg = m.readEventArgument(call, "BasicEvent", "eventArg");
@@ -144,14 +139,14 @@ describe("to-mermaid", () => {
       const duplicate = m.contractAt("BasicContract", basic, {
         id: "BasicContract2",
       });
-      const duplicateWithLib = m.contractAtFromArtifact(
+      const duplicateWithLib = m.contractAt(
         "ContractWithLibrary",
         withLib,
         withLibArtifact,
         { id: "ContractWithLibrary2" }
       );
 
-      m.send("test-send", duplicate, 123n);
+      m.send("test_send", duplicate, 123n);
 
       return {
         basic,
@@ -171,26 +166,26 @@ describe("to-mermaid", () => {
         subgraph Module
           direction BT
 
-          Module:BasicContract["Deploy BasicContract"]
-          Module:BasicLibrary["Deploy library BasicLibrary"]
-          Module:BasicLibrary2["Deploy library from artifact BasicLibrary"]
-          Module:ContractWithLibrary["Deploy from artifact ContractWithLibrary"]
-          Module:BasicContract#basicFunction["Call BasicContract/basicFunction"]
-          Module:BasicContract#BasicEvent#eventArg#0["Read event from future Module:BasicContract#basicFunction (event BasicEvent argument eventArg)"]
-          Module:ContractWithLibrary#readonlyFunction["Static call ContractWithLibrary/readonlyFunction"]
-          Module:BasicContract2["Existing contract BasicContract (Module:BasicContract)"]
-          Module:ContractWithLibrary2["Existing contract from artifact ContractWithLibrary (Module:ContractWithLibrary)"]
-          Module:test-send["Send data to Module:BasicContract2"]
+          Module#BasicContract["Deploy BasicContract"]
+          Module#BasicLibrary["Deploy library BasicLibrary"]
+          Module#BasicLibrary2["Deploy library from artifact BasicLibrary"]
+          Module#ContractWithLibrary["Deploy from artifact ContractWithLibrary"]
+          Module#BasicContract.basicFunction["Call BasicContract/basicFunction"]
+          Module#BasicContract.BasicEvent.eventArg.0["Read event from future Module#BasicContract.basicFunction (event BasicEvent argument eventArg)"]
+          Module#ContractWithLibrary.readonlyFunction["Static call ContractWithLibrary/readonlyFunction"]
+          Module#BasicContract2["Existing contract BasicContract (Module#BasicContract)"]
+          Module#ContractWithLibrary2["Existing contract from artifact ContractWithLibrary (Module#ContractWithLibrary)"]
+          Module#test_send["Send data to Module#BasicContract2"]
         end
 
-      Module:ContractWithLibrary --> Module:BasicLibrary
-      Module:BasicContract#basicFunction --> Module:BasicContract
-      Module:BasicContract#BasicEvent#eventArg#0 --> Module:BasicContract#basicFunction
-      Module:ContractWithLibrary#readonlyFunction --> Module:ContractWithLibrary
-      Module:ContractWithLibrary#readonlyFunction --> Module:BasicContract#BasicEvent#eventArg#0
-      Module:BasicContract2 --> Module:BasicContract
-      Module:ContractWithLibrary2 --> Module:ContractWithLibrary
-      Module:test-send --> Module:BasicContract2
+      Module#ContractWithLibrary --> Module#BasicLibrary
+      Module#BasicContract.basicFunction --> Module#BasicContract
+      Module#BasicContract.BasicEvent.eventArg.0 --> Module#BasicContract.basicFunction
+      Module#ContractWithLibrary.readonlyFunction --> Module#ContractWithLibrary
+      Module#ContractWithLibrary.readonlyFunction --> Module#BasicContract.BasicEvent.eventArg.0
+      Module#BasicContract2 --> Module#BasicContract
+      Module#ContractWithLibrary2 --> Module#ContractWithLibrary
+      Module#test_send --> Module#BasicContract2
 
       classDef startModule stroke-width:4px`;
 
@@ -215,13 +210,13 @@ describe("to-mermaid", () => {
         subgraph Module
           direction BT
 
-          Module:ens["Deploy ens"]
-          Module:ens#setAddr_bytes32_address_["Call ens/setAddr(bytes32,address)"]
-          Module:ens#getAddr_bytes32_address_["Static call ens/getAddr(bytes32,address)"]
+          Module#ens["Deploy ens"]
+          Module#ens.setAddr_bytes32_address_["Call ens/setAddr(bytes32,address)"]
+          Module#ens.getAddr_bytes32_address_["Static call ens/getAddr(bytes32,address)"]
         end
 
-      Module:ens#setAddr_bytes32_address_ --> Module:ens
-      Module:ens#getAddr_bytes32_address_ --> Module:ens
+      Module#ens.setAddr_bytes32_address_ --> Module#ens
+      Module#ens.getAddr_bytes32_address_ --> Module#ens
 
       classDef startModule stroke-width:4px`;
 
@@ -230,15 +225,7 @@ describe("to-mermaid", () => {
 });
 
 function assertDiagram(ignitionModule: IgnitionModule, expectedResult: string) {
-  const details = {
-    networkName: "hardhat",
-    chainId: 31117,
-  };
-
-  const result = toMermaid({
-    details,
-    module: ignitionModule,
-  });
+  const result = toMermaid(ignitionModule);
 
   assert.equal(result, expectedResult);
 }

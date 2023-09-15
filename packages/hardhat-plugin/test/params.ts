@@ -1,11 +1,11 @@
 /* eslint-disable import/no-unused-modules */
-import { buildModule } from "@ignored/ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "./use-ignition-project";
 
 describe("module parameters", () => {
-  useEphemeralIgnitionProject("minimal-new-api");
+  useEphemeralIgnitionProject("minimal");
 
   it("should be able to retrieve a default number", async function () {
     const moduleDefinition = buildModule("WithDefaultModule", (m) => {
@@ -85,7 +85,7 @@ describe("module parameters", () => {
 });
 
 describe("params validation", () => {
-  useEphemeralIgnitionProject("minimal-new-api");
+  useEphemeralIgnitionProject("minimal");
 
   it("should throw if no parameters object provided", async function () {
     await this.hre.run("compile", { quiet: true });

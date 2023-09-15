@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { buildModule } from "@ignored/ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import {
@@ -13,7 +13,7 @@ import {
  * TODO: Needs to be updated to deal with fee bumps
  */
 describe.skip("execution - deploy run times out", () => {
-  useFileIgnitionProject("minimal-new-api", "deploy-run-times-out", {});
+  useFileIgnitionProject("minimal", "deploy-run-times-out", {});
 
   it("should error naming timed out transactions", async function () {
     // Setup a module with a contract deploy on accounts[2]

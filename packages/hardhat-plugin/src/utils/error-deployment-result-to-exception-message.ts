@@ -1,9 +1,10 @@
 import {
   DeploymentResultType,
   ExecutionErrorDeploymentResult,
+  PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
   ValidationErrorDeploymentResult,
-} from "@ignored/ignition-core";
+} from "@nomicfoundation/ignition-core";
 import { HardhatPluginError } from "hardhat/plugins";
 
 /**
@@ -18,6 +19,7 @@ export function errorDeploymentResultToExceptionMessage(
     | ValidationErrorDeploymentResult
     | ReconciliationErrorDeploymentResult
     | ExecutionErrorDeploymentResult
+    | PreviousRunErrorDeploymentResult
 ): string {
   switch (result.type) {
     case DeploymentResultType.VALIDATION_ERROR:
@@ -26,6 +28,8 @@ export function errorDeploymentResultToExceptionMessage(
       return _convertReconciliationError(result);
     case DeploymentResultType.EXECUTION_ERROR:
       return _convertExecutionError(result);
+    case DeploymentResultType.PREVIOUS_RUN_ERROR:
+      return _convertPreviousRunError(result);
   }
 }
 
@@ -59,11 +63,13 @@ function _convertExecutionError(result: ExecutionErrorDeploymentResult) {
   const messageDetails = {
     timeouts: result.timedOut.length > 0,
     failures: result.failed.length > 0,
+    held: result.held.length > 0,
   };
 
   if (messageDetails.timeouts) {
     const timeoutList = result.timedOut.map(
-      ({ futureId, executionId }) => `  * ${futureId}/${executionId}`
+      ({ futureId, networkInteractionId }) =>
+        `  * ${futureId}/${networkInteractionId}`
     );
 
     sections.push(`Timed out:\n\n${timeoutList.join("\n")}`);
@@ -71,11 +77,19 @@ function _convertExecutionError(result: ExecutionErrorDeploymentResult) {
 
   if (messageDetails.failures) {
     const errorList = result.failed.map(
-      ({ futureId, executionId, error }) =>
-        `  * ${futureId}/${executionId}: ${error}`
+      ({ futureId, networkInteractionId, error }) =>
+        `  * ${futureId}/${networkInteractionId}: ${error}`
     );
 
     sections.push(`Failures:\n\n${errorList.join("\n")}`);
+  }
+
+  if (messageDetails.held) {
+    const reasonList = result.held.map(
+      ({ futureId, heldId, reason }) => `  * ${futureId}/${heldId}: ${reason}`
+    );
+
+    sections.push(`Held:\n\n${reasonList.join("\n")}`);
   }
 
   return `The deployment wasn't successful, there were ${_toText(
@@ -85,23 +99,43 @@ function _convertExecutionError(result: ExecutionErrorDeploymentResult) {
 ${sections.join("\n\n")}`;
 }
 
+function _convertPreviousRunError(result: PreviousRunErrorDeploymentResult) {
+  const errorsList = Object.entries(result.errors).flatMap(
+    ([futureId, errors]) => errors.map((err) => `  * ${futureId}: ${err}`)
+  );
+
+  return `The deployment wasn't run because of the following errors in a previous run:
+
+${errorsList.join("\n")}`;
+}
+
 function _toText({
   timeouts,
   failures,
+  held,
 }: {
   timeouts: boolean;
   failures: boolean;
+  held: boolean;
 }): string {
-  if (timeouts && failures) {
+  if (timeouts && failures && held) {
+    return "timeouts, failures and holds";
+  } else if (timeouts && failures) {
     return "timeouts and failures";
+  } else if (failures && held) {
+    return "failures and holds";
+  } else if (timeouts && held) {
+    return "timeouts and holds";
   } else if (timeouts) {
     return "timeouts";
   } else if (failures) {
     return "failures";
+  } else if (held) {
+    return "holds";
   }
 
   throw new HardhatPluginError(
-    "@ignored/hardhat-ignition",
+    "@nomicfoundation/hardhat-ignition",
     "Invariant violated: neither timeouts or failures"
   );
 }

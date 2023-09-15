@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { buildModule } from "@ignored/ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import {
@@ -14,10 +14,7 @@ import { clearPendingTransactionsFromMemoryPool, mineBlock } from "../helpers";
  * the transaction should be resubmitted.
  */
 describe("execution - rerun with dropped ignition transactions", () => {
-  useFileIgnitionProject(
-    "minimal-new-api",
-    "rerun-with-dropped-ignition-transactions"
-  );
+  useFileIgnitionProject("minimal", "rerun-with-dropped-ignition-transactions");
 
   it.skip("should deploy successfully on second run", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {

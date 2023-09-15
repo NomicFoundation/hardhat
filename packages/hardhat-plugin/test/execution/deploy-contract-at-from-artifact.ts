@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { buildModule } from "@ignored/ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import {
@@ -14,8 +14,7 @@ import {
  * with a passed in artifact.
  */
 describe.skip("execution - deploy contractAt from artifact", function () {
-  // TODO: rename back to minimal api once execution switched over
-  useEphemeralIgnitionProject("minimal-new-api");
+  useEphemeralIgnitionProject("minimal");
 
   it("should deploy a contract that is callable", async function () {
     // Arrange
@@ -39,7 +38,7 @@ describe.skip("execution - deploy contractAt from artifact", function () {
     const fooArtifact = await this.hre.artifacts.readArtifact("Foo");
 
     const contractAtModuleDefinition = buildModule("FooModule", (m) => {
-      const atFoo = m.contractAtFromArtifact("AtFoo", fooAddress, fooArtifact);
+      const atFoo = m.contractAt("AtFoo", fooAddress, fooArtifact);
 
       return { atFoo };
     });
