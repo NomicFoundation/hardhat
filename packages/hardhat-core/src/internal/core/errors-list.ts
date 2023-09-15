@@ -288,6 +288,26 @@ To initialize the provider, make sure you first call \`.init()\` or any method t
 Please double check the file path.`,
       shouldBeReported: false,
     },
+    HARDHAT_PROJECT_ALREADY_CREATED: {
+      number: 23,
+      message:
+        "Cannot create a new Hardhat project, the current folder is already associated with a project. The path to configuration file of the Hardhat project is: %hardhatProjectRoothPath%.",
+      title: "Hardhat project already created",
+      description: `Cannot create a new Hardhat project, the current folder is already associated with a project.
+
+Please double check the project path.`,
+      shouldBeReported: false,
+    },
+    NOT_IN_INTERACTIVE_SHELL: {
+      number: 24,
+      message:
+        "You are trying to initialize a project but you are not in an interactive shell.",
+      title: "Not inside an interactive shell",
+      description: `You are trying to initialize a project but you are not in an interactive shell.
+
+Please re-run the command inside an interactive shell.`,
+      shouldBeReported: false,
+    },
   },
   NETWORK: {
     CONFIG_NOT_FOUND: {
