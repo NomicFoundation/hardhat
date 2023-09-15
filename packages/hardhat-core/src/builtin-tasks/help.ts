@@ -33,40 +33,43 @@ task(TASK_HELP, "Prints this message")
         scopes
       );
 
-      if (first !== undefined && first !== TASK_HELP) {
-        if (scopes[first] !== undefined) {
-          // first is a valid scope
-          if (second !== undefined && second !== TASK_HELP) {
-            if (scopes[first].tasks[second] !== undefined) {
-              // second is a valid task under the scope
-              helpPrinter.printTaskHelp(scopes[first].tasks[second]);
-              return;
-            } else {
-              // task second is not present under this scope
-              throw new HardhatError(
-                ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPED_TASK,
-                { scope: first, task: second }
-              );
-            }
-          } else {
-            // print scope help
-            helpPrinter.printScopeHelp(first);
-            return;
-          }
-        } else if (tasks[first] !== undefined) {
-          // first is a valid task
-          helpPrinter.printTaskHelp(tasks[first]);
-          return;
-        } else {
-          // first is not a valid scope or task
-          throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
-            task: first,
-          });
-        }
-      } else {
+      if (first === undefined) {
         // print global help
         helpPrinter.printGlobalHelp();
         return;
       }
+
+      if (tasks[first] !== undefined) {
+        // first is a valid task
+        helpPrinter.printTaskHelp(tasks[first]);
+        return;
+      }
+
+      const scopeDefinition = scopes[first];
+
+      if (scopeDefinition === undefined) {
+        // first is not a task nor a scope
+        throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
+          task: first,
+        });
+      }
+
+      if (second === undefined) {
+        // print scope help
+        helpPrinter.printScopeHelp(first);
+        return;
+      }
+
+      const taskDefinition = scopeDefinition.tasks[second];
+
+      if (taskDefinition === undefined) {
+        throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPED_TASK, {
+          scope: first,
+          task: second,
+        });
+      }
+
+      // print task help
+      helpPrinter.printTaskHelp(taskDefinition);
     }
   );
