@@ -50,7 +50,11 @@ export class HelpPrinter {
   }
 
   public printScopeHelp(scopeName: string, includeSubtasks = false) {
-    console.log(`\n\nAVAILABLE TASKS UNDER SCOPE ${scopeName}:\n`);
+    console.log(`${this._programName} version ${this._version}`);
+
+    console.log(`\nUsage: hardhat [GLOBAL OPTIONS] ${scopeName} <task>`);
+
+    console.log(`\nAVAILABLE TASKS:\n`);
 
     if (this._scopes[scopeName] === undefined) {
       throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPE, {
