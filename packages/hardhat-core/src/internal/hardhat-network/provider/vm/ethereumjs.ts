@@ -317,7 +317,10 @@ export class EthereumJSAdapter implements VMAdapter {
         gasUsed: ethereumJSResult.totalGasSpent,
         receipt: ethereumJSResult.receipt,
         returnValue: ethereumJSResult.execResult.returnValue,
-        createdAddress: ethereumJSResult.createdAddress,
+        createdAddress:
+          ethereumJSError === undefined
+            ? ethereumJSResult.createdAddress
+            : undefined,
         exit: Exit.fromEthereumJSEvmError(ethereumJSError),
       };
 
@@ -500,7 +503,10 @@ export class EthereumJSAdapter implements VMAdapter {
       gasUsed: ethereumJSResult.totalGasSpent,
       receipt: ethereumJSResult.receipt,
       returnValue: ethereumJSResult.execResult.returnValue,
-      createdAddress: ethereumJSResult.createdAddress,
+      createdAddress:
+        ethereumJSError === undefined
+          ? ethereumJSResult.createdAddress
+          : undefined,
       exit: Exit.fromEthereumJSEvmError(ethereumJSError),
     };
 
