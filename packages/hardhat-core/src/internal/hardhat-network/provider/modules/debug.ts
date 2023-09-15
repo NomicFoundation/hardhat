@@ -60,6 +60,17 @@ export class DebugModule extends Base {
     return validatedParams;
   }
 
+  private async _traceCallAction(
+    callConfig: RpcCallRequest,
+    block: OptionalRpcNewBlockTag,
+    traceConfig: RpcDebugTracingConfig
+  ): Promise<RpcDebugTraceOutput> {
+    const callParams = await this.rpcCallRequestToNodeCallParams(callConfig);
+    const blockNumber = await this.resolveNewBlockTag(block);
+
+    return this._node.traceCall(callParams, blockNumber, traceConfig);
+  }
+
   // debug_traceTransaction
 
   private _traceTransactionParams(
@@ -76,29 +87,18 @@ export class DebugModule extends Base {
     return validatedParams;
   }
 
+  private async _traceTransactionAction(
+    hash: Buffer,
+    config: RpcDebugTracingConfig
+  ): Promise<RpcDebugTraceOutput> {
+    return this._node.traceTransaction(hash, config);
+  }
+
   private _validateTracerParam(config: RpcDebugTracingConfig) {
     if (config?.tracer !== undefined) {
       throw new InvalidArgumentsError(
         "Hardhat currently only supports the default tracer, so no tracer parameter should be passed."
       );
     }
-  }
-
-  private async _traceCallAction(
-    callConfig: RpcCallRequest,
-    block: OptionalRpcNewBlockTag,
-    traceConfig: RpcDebugTracingConfig
-  ): Promise<RpcDebugTraceOutput> {
-    const callParams = await this.rpcCallRequestToNodeCallParams(callConfig);
-    const blockNumber = await this.resolveNewBlockTag(block);
-
-    return this._node.traceCall(callParams, blockNumber, traceConfig);
-  }
-
-  private async _traceTransactionAction(
-    hash: Buffer,
-    config: RpcDebugTracingConfig
-  ): Promise<RpcDebugTraceOutput> {
-    return this._node.traceTransaction(hash, config);
   }
 }
