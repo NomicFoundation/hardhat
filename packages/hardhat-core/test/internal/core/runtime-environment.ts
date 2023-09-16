@@ -167,9 +167,15 @@ describe("Environment", () => {
     });
 
     it("should not run a scoped task with just task name", async () => {
-      await env.run({ task: "task" }).catch((err) => {
-        assert.equal(err.number, ERRORS.ARGUMENTS.UNRECOGNIZED_TASK.number);
-      });
+      await expectHardhatErrorAsync(
+        () => env.run("task"),
+        ERRORS.ARGUMENTS.UNRECOGNIZED_TASK
+      );
+
+      await expectHardhatErrorAsync(
+        () => env.run({ task: "task" }),
+        ERRORS.ARGUMENTS.UNRECOGNIZED_TASK
+      );
     });
 
     describe("run task arguments validation", () => {
@@ -306,9 +312,10 @@ describe("Environment", () => {
     });
 
     it("should fail trying to run a non existent task", async () => {
-      await env.run("invalid").catch((err) => {
-        assert.equal(err.number, ERRORS.ARGUMENTS.UNRECOGNIZED_TASK.number);
-      });
+      await expectHardhatErrorAsync(
+        () => env.run("invalid"),
+        ERRORS.ARGUMENTS.UNRECOGNIZED_TASK
+      );
     });
 
     it("should clean global state after task execution", async () => {
