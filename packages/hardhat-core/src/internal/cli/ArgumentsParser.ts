@@ -111,23 +111,23 @@ export class ArgumentsParser {
     taskDefinition: TaskDefinition,
     rawCLAs: string[]
   ): TaskArguments {
-    const { paramArguments, rawPositionalArguments } =
+    const { paramArguments, rawPositionalArguments, passthroughArguments } =
       this._parseTaskParamArguments(taskDefinition, rawCLAs);
 
     const positionalArguments = this._parsePositionalParamArgs(
       rawPositionalArguments,
       taskDefinition.positionalParamDefinitions
     );
-
-    return { ...paramArguments, ...positionalArguments };
+    return { taskArguments: { ...paramArguments, ...positionalArguments }, passthroughArguments: passthroughArguments };
   }
 
   private _parseTaskParamArguments(
     taskDefinition: TaskDefinition,
     rawCLAs: string[]
   ) {
-    const paramArguments = {};
+    const paramArguments: { scriptArgs?: string[] } = {}; // Allow for CLI arguments to be passed through to RUN task
     const rawPositionalArguments: string[] = [];
+    let passthroughArguments: string[] = [];
 
     for (let i = 0; i < rawCLAs.length; i++) {
       const arg = rawCLAs[i];
@@ -135,6 +135,11 @@ export class ArgumentsParser {
       if (!this._hasCLAParamNameFormat(arg)) {
         rawPositionalArguments.push(arg);
         continue;
+      }
+
+      if(arg === '--') {
+        paramArguments.scriptArgs = rawCLAs.slice(i + 1);
+        break;
       }
 
       if (!this._isCLAParamName(arg, taskDefinition.paramDefinitions)) {
@@ -154,7 +159,7 @@ export class ArgumentsParser {
 
     this._addTaskDefaultArguments(taskDefinition, paramArguments);
 
-    return { paramArguments, rawPositionalArguments };
+    return { paramArguments, rawPositionalArguments, passthroughArguments };
   }
 
   private _addHardhatDefaultArguments(

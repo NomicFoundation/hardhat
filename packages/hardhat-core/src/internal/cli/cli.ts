@@ -7,7 +7,7 @@ import {
   TASK_HELP,
   TASK_TEST,
 } from "../../builtin-tasks/task-names";
-import { HardhatConfig, TaskArguments } from "../../types";
+import { HardhatConfig, TaskArguments, ScriptArgs } from "../../types";
 import { HARDHAT_NAME } from "../constants";
 import { HardhatContext } from "../context";
 import {
@@ -236,6 +236,7 @@ async function main() {
     const [abortAnalytics, hitPromise] = await analytics.sendTaskHit();
 
     let taskArguments: TaskArguments;
+    let scriptArgs: ScriptArgs;
 
     // --help is a also special case
     if (hardhatArguments.help && taskName !== TASK_HELP) {
@@ -277,7 +278,7 @@ async function main() {
     try {
       const timestampBeforeRun = new Date().getTime();
 
-      await env.run(taskName, taskArguments);
+      await env.run(taskName, taskArguments, scriptArgs);
 
       const timestampAfterRun = new Date().getTime();
 

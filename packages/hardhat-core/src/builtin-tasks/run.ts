@@ -18,7 +18,7 @@ task(TASK_RUN, "Runs a user-defined script after compiling the project")
   .addFlag("noCompile", "Don't compile before running this task")
   .setAction(
     async (
-      { script, noCompile }: { script: string; noCompile: boolean },
+      { script, noCompile, scriptArgs }: { script: string; noCompile: boolean; scriptArgs: string[] },
       { run, hardhatArguments }
     ) => {
       if (!(await fsExtra.pathExists(script))) {
@@ -36,7 +36,7 @@ task(TASK_RUN, "Runs a user-defined script after compiling the project")
       );
 
       try {
-        process.exitCode = await runScriptWithHardhat(hardhatArguments, script);
+        process.exitCode = await runScriptWithHardhat(hardhatArguments, script, scriptArgs);
       } catch (error) {
         if (error instanceof Error) {
           throw new HardhatError(

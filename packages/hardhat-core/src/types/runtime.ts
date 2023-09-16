@@ -145,6 +145,7 @@ export interface TaskDefinition extends ConfigurableTaskDefinition {
  * thus we have no other option than forcing it to be just 'any'.
  */
 export type TaskArguments = any;
+export type ScriptArgs = any;
 
 export interface SubtaskArguments {
   [subtaskName: string]: TaskArguments;
