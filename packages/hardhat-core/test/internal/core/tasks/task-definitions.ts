@@ -160,6 +160,10 @@ describe("SimpleTaskDefinition", () => {
       taskDefinition.setScope("B");
       assert.equal(taskDefinition.scope, "B");
       assert.deepEqual(calledArgs, ["A", "B", undefined]);
+
+      taskDefinition.setScope("C", "C description");
+      assert.equal(taskDefinition.scope, "C");
+      assert.deepEqual(calledArgs, ["B", "C", "C description"]);
     });
   });
 
