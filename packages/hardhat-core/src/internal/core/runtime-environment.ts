@@ -147,7 +147,7 @@ export class Environment implements HardhatRuntimeEnvironment {
       log("Running task %s", task);
     } else {
       taskDefinition = this.scopes[scope]?.tasks?.[task];
-      log("Running task %s:%s", scope, task);
+      log("Running scoped task %s %s", scope, task);
     }
 
     if (taskDefinition === undefined) {
