@@ -59,12 +59,12 @@ export class SimpleTaskDefinition implements TaskDefinition {
    */
   constructor(
     taskIdentifier: TaskIdentifier,
-    public readonly isSubtask: boolean = false,
-    private readonly _setScopeCallback?: (
+    private readonly _setScopeCallback: (
       oldScopeName: string | undefined,
       newScopeName: string,
       newScopeDescription?: string
-    ) => void
+    ) => void,
+    public readonly isSubtask: boolean = false
   ) {
     this._positionalParamNames = new Set();
     this._hasVariadicParam = false;
@@ -85,10 +85,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
    * @param newDescription The new scope description.
    */
   public setScope(newScopeName: string, newScopeDescription?: string) {
-    if (this._setScopeCallback !== undefined) {
-      // test if this works
-      this._setScopeCallback(this.scope, newScopeName, newScopeDescription);
-    }
+    this._setScopeCallback(this.scope, newScopeName, newScopeDescription);
     this._scope = newScopeName;
     return this;
   }

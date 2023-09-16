@@ -44,7 +44,7 @@ describe("SimpleTaskDefinition", () => {
     let taskDefinition: SimpleTaskDefinition;
 
     before("init taskDefinition", () => {
-      taskDefinition = new SimpleTaskDefinition("name", true);
+      taskDefinition = new SimpleTaskDefinition("name", () => {}, true);
     });
 
     it("gets the right name", () => {
@@ -82,6 +82,7 @@ describe("SimpleTaskDefinition", () => {
     before("init taskDefinition", () => {
       taskDefinition = new SimpleTaskDefinition(
         { scope: "scope", task: "name" },
+        () => {},
         true
       );
     });
@@ -117,7 +118,7 @@ describe("SimpleTaskDefinition", () => {
 
   describe("setDescription", () => {
     it("Should change the description", () => {
-      const taskDefinition = new SimpleTaskDefinition("name");
+      const taskDefinition = new SimpleTaskDefinition("name", () => {});
       assert.isUndefined(taskDefinition.description);
 
       taskDefinition.setDescription("A");
@@ -130,7 +131,7 @@ describe("SimpleTaskDefinition", () => {
 
   describe("setScope", () => {
     it("Should change the scope", () => {
-      const taskDefinition = new SimpleTaskDefinition("name");
+      const taskDefinition = new SimpleTaskDefinition("name", () => {});
       assert.isUndefined(taskDefinition.description);
 
       taskDefinition.setScope("A");
@@ -144,10 +145,10 @@ describe("SimpleTaskDefinition", () => {
       let calledArgs: any;
       const taskDefinition = new SimpleTaskDefinition(
         "name",
-        true,
         (...args) => {
           calledArgs = args;
-        }
+        },
+        true
       );
       assert.isUndefined(taskDefinition.description);
       assert.isUndefined(calledArgs);
@@ -164,7 +165,7 @@ describe("SimpleTaskDefinition", () => {
 
   describe("setAction", () => {
     it("Should change the action", async () => {
-      const taskDefinition = new SimpleTaskDefinition("name");
+      const taskDefinition = new SimpleTaskDefinition("name", () => {});
 
       taskDefinition.setAction(async () => 1);
       let result = await taskDefinition.action({}, {} as any, runSuperNop);
@@ -181,7 +182,7 @@ describe("SimpleTaskDefinition", () => {
     let taskDefinition: SimpleTaskDefinition;
 
     beforeEach("init taskDefinition", () => {
-      taskDefinition = new SimpleTaskDefinition("name", true);
+      taskDefinition = new SimpleTaskDefinition("name", () => {}, true);
     });
 
     describe("param name repetitions", () => {
@@ -399,7 +400,7 @@ describe("SimpleTaskDefinition", () => {
     let taskDefinition: SimpleTaskDefinition;
 
     beforeEach("init taskDefinition", () => {
-      taskDefinition = new SimpleTaskDefinition("name", true);
+      taskDefinition = new SimpleTaskDefinition("name", () => {}, true);
     });
 
     describe("addParam", () => {
@@ -856,7 +857,7 @@ describe("SimpleTaskDefinition", () => {
       describe("tasks", () => {
         let task: SimpleTaskDefinition;
         beforeEach(() => {
-          task = new SimpleTaskDefinition("t", false);
+          task = new SimpleTaskDefinition("t", () => {}, false);
         });
 
         describe("When using non-cli argument types", () => {
@@ -915,7 +916,7 @@ describe("SimpleTaskDefinition", () => {
         describe("When using non-cli argument types", () => {
           let task: SimpleTaskDefinition;
           beforeEach(() => {
-            task = new SimpleTaskDefinition("t", true);
+            task = new SimpleTaskDefinition("t", () => {}, true);
           });
 
           it("Should not throw on addParam", () => {
@@ -958,7 +959,7 @@ describe("OverriddenTaskDefinition", () => {
   let overriddenTask: OverriddenTaskDefinition;
 
   beforeEach("init tasks", () => {
-    parentTask = new SimpleTaskDefinition("t")
+    parentTask = new SimpleTaskDefinition("t", () => {})
       .addParam("p", "desc")
       .addFlag("f")
       .addPositionalParam("pp", "positional param");

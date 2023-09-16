@@ -36,11 +36,14 @@ describe("ArgumentsParser", () => {
       emoji: false,
       verbose: false,
     };
-    taskDefinition = new SimpleTaskDefinition("compile", true)
+    taskDefinition = new SimpleTaskDefinition("compile", () => {}, true)
       .addParam("param", "just a param", "a default value", string)
       .addParam("bleep", "useless param", 1602, int, true);
 
-    const baseTaskDefinition = new SimpleTaskDefinition("overriddenTask")
+    const baseTaskDefinition = new SimpleTaskDefinition(
+      "overriddenTask",
+      () => {}
+    )
       .addParam("strParam", "a str param", "defaultValue", string)
       .addFlag("aFlag", "a flag param");
 
@@ -467,7 +470,7 @@ describe("ArgumentsParser", () => {
 
     it("should fail to parse task without non optional argument", () => {
       const rawCLAs: string[] = [];
-      const definition = new SimpleTaskDefinition("compile", true);
+      const definition = new SimpleTaskDefinition("compile", () => {}, true);
       definition.addParam("param", "just a param");
       definition.addParam("bleep", "useless param", 1602, int, true);
       expectHardhatError(
@@ -481,7 +484,7 @@ describe("ArgumentsParser", () => {
 
     it("should fail trying to parse unrecognized positional argument", () => {
       const rawCLAs: string[] = [];
-      const definition = new SimpleTaskDefinition("compile", true);
+      const definition = new SimpleTaskDefinition("compile", () => {}, true);
       definition.addParam("param", "just a param");
       definition.addParam("bleep", "useless param", 1602, int, true);
       expectHardhatError(
@@ -521,7 +524,7 @@ describe("ArgumentsParser", () => {
     it("Should throw the right error if the last CLA is a non-flag --param", () => {
       const rawCLAs: string[] = ["--b"];
 
-      taskDefinition = new SimpleTaskDefinition("t", false)
+      taskDefinition = new SimpleTaskDefinition("t", () => {}, false)
         .addOptionalParam("b", "A boolean", true, boolean)
         .setAction(async () => {});
 

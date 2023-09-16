@@ -155,7 +155,6 @@ export class TasksDSL {
     } else {
       taskDefinition = new SimpleTaskDefinition(
         taskIdentifier,
-        isSubtask,
         (oldScope, newScope, newScopeDescription) => {
           this._moveTaskToNewScope(
             task,
@@ -163,7 +162,8 @@ export class TasksDSL {
             newScope,
             newScopeDescription
           );
-        }
+        },
+        isSubtask
       );
     }
 
