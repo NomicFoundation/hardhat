@@ -4,8 +4,11 @@ use async_trait::async_trait;
 use rethnet_eth::{
     block::Header,
     receipt::BlockReceipt,
-    remote::{eth, RpcClient},
-    transaction::{SignedTransaction, TransactionConversionError},
+    remote::{
+        eth::{self, TransactionConversionError},
+        RpcClient,
+    },
+    transaction::SignedTransaction,
     withdrawal::Withdrawal,
     Address, B256, B64,
 };
