@@ -20,7 +20,6 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
   constructor(
     private _blockchain: HardhatBlockchainInterface,
     private _common: Common,
-    private _coinbase: Address,
     private _hardfork: HardforkName,
     private _mempoolOrder: MempoolOrder,
     private _prevRandaoGenerator: RandomBufferGenerator,
@@ -30,6 +29,7 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
 
   public async mineBlock(
     blockTimestamp: bigint,
+    coinbase: Address,
     minGasPrice: bigint,
     minerReward: bigint,
     baseFeePerGas?: bigint
@@ -40,7 +40,7 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
 
     const headerData: HeaderData = {
       gasLimit: await this._memPool.getBlockGasLimit(),
-      coinbase: this._coinbase,
+      coinbase,
       nonce: isPostMerge ? "0x0000000000000000" : "0x0000000000000042",
       timestamp: blockTimestamp,
       number: (await this._blockchain.getLatestBlockNumber()) + 1n,
@@ -100,9 +100,7 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
         tx = transactionQueue.getNextTransaction();
       }
 
-      const block = await blockBuilder.finalize([
-        [this._coinbase, minerReward],
-      ]);
+      const block = await blockBuilder.finalize([[coinbase, minerReward]]);
 
       const receiptOutput = getRpcReceiptOutputsFromLocalBlockExecution(
         block,

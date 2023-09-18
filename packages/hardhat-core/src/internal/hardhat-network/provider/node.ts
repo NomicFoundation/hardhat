@@ -178,7 +178,7 @@ export class HardhatNode extends EventEmitter {
       automine,
       minGasPrice,
       initialBlockTimeOffset,
-      config.coinbase,
+      Address.fromString(config.coinbase),
       genesisAccounts,
       chainId,
       hardfork,
@@ -219,7 +219,7 @@ export class HardhatNode extends EventEmitter {
     private _automine: boolean,
     private _minGasPrice: bigint,
     private _blockTimeOffsetSeconds: bigint = 0n,
-    private _coinbase: string,
+    private _coinbase: Address,
     genesisAccounts: GenesisAccount[],
     private readonly _configChainId: number,
     public readonly hardfork: HardforkName,
@@ -349,6 +349,7 @@ export class HardhatNode extends EventEmitter {
         .blockMiner()
         .mineBlock(
           blockTimestamp,
+          this._coinbase,
           this._minGasPrice,
           this._common.param("pow", "minerReward"),
           this.getUserProvidedNextBlockBaseFeePerGas()
@@ -707,7 +708,7 @@ export class HardhatNode extends EventEmitter {
   }
 
   public getCoinbaseAddress(): Address {
-    return Address.fromString(this._coinbase);
+    return this._coinbase;
   }
 
   public async getStorageAt(
@@ -896,7 +897,7 @@ export class HardhatNode extends EventEmitter {
       irregularStatesByBlockNumber: this._irregularStatesByBlockNumber,
       userProvidedNextBlockBaseFeePerGas:
         this.getUserProvidedNextBlockBaseFeePerGas(),
-      coinbase: this.getCoinbaseAddress().toString(),
+      coinbase: this.getCoinbaseAddress(),
       nextPrevrandao: this._mixHashGenerator.seed(),
     };
 
@@ -1354,8 +1355,8 @@ export class HardhatNode extends EventEmitter {
     };
   }
 
-  public async setCoinbase(coinbase: Address) {
-    this._coinbase = coinbase.toString();
+  public setCoinbase(coinbase: Address) {
+    this._coinbase = coinbase;
   }
 
   private _getGasUsedRatio(block: Block): number {

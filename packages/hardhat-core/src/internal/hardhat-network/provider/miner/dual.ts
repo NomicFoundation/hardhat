@@ -1,3 +1,4 @@
+import { Address } from "@nomicfoundation/ethereumjs-util";
 import { keccak256 } from "../../../util/keccak";
 import { globalRethnetContext } from "../context/rethnet";
 import { randomHashSeed } from "../fork/ForkStateManager";
@@ -9,20 +10,22 @@ import {
 
 export class DualBlockMiner implements BlockMinerAdapter {
   constructor(
-    private _ethereumJSMiner: BlockMinerAdapter,
+    private _hardhatMiner: BlockMinerAdapter,
     private _rethnetMiner: BlockMinerAdapter
   ) {}
 
   public async mineBlock(
     blockTimestamp: bigint,
+    coinbase: Address,
     minGasPrice: bigint,
     minerReward: bigint,
     baseFeePerGas?: bigint
   ): Promise<PartialMineBlockResult> {
     const previousStateRootSeed = randomHashSeed();
 
-    const ethereumJSResult = await this._ethereumJSMiner.mineBlock(
+    const hardhatResult = await this._hardhatMiner.mineBlock(
       blockTimestamp,
+      coinbase,
       minGasPrice,
       minerReward,
       baseFeePerGas
@@ -43,14 +46,15 @@ export class DualBlockMiner implements BlockMinerAdapter {
 
     const rethnetResult = await this._rethnetMiner.mineBlock(
       blockTimestamp,
+      coinbase,
       minGasPrice,
       minerReward,
       baseFeePerGas
     );
 
-    assertEqualBlocks(ethereumJSResult.block, rethnetResult.block);
+    assertEqualBlocks(hardhatResult.block, rethnetResult.block);
     assertEqualRunBlockResults(
-      ethereumJSResult.blockResult,
+      hardhatResult.blockResult,
       rethnetResult.blockResult
     );
 

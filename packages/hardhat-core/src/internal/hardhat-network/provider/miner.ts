@@ -1,4 +1,5 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
+import { Address } from "@nomicfoundation/ethereumjs-util";
 import { PartialTrace, RunBlockResult } from "./vm/vm-adapter";
 
 export interface PartialMineBlockResult {
@@ -16,6 +17,7 @@ export interface BlockMinerAdapter {
    */
   mineBlock(
     blockTimestamp: bigint,
+    coinbase: Address,
     minGasPrice: bigint,
     minerReward: bigint,
     baseFeePerGas?: bigint

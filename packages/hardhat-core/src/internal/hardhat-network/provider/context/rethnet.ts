@@ -1,4 +1,3 @@
-import { Address } from "@nomicfoundation/ethereumjs-util";
 import { Blockchain, RethnetContext } from "rethnet-evm";
 import { BlockchainAdapter } from "../blockchain";
 import { RethnetBlockchain } from "../blockchain/rethnet";
@@ -137,7 +136,6 @@ export class RethnetEthContext implements EthContextAdapter {
       memPool,
       common,
       limitContractCodeSize,
-      Address.fromString(config.coinbase),
       ethereumjsMempoolOrderToRethnetMineOrdering(config.mempoolOrder),
       prevRandaoGenerator
     );

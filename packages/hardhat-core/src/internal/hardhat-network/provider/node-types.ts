@@ -2,6 +2,7 @@ import type { ReturnData } from "./return-data";
 import type { RunBlockResult } from "./vm/vm-adapter";
 
 import { Block } from "@nomicfoundation/ethereumjs-block";
+import { Address } from "@nomicfoundation/ethereumjs-util";
 
 import { HARDHAT_MEMPOOL_SUPPORTED_ORDERS } from "../../constants";
 import { BuildInfo, HardhatNetworkChainsConfig } from "../../../types";
@@ -128,7 +129,7 @@ export interface Snapshot {
   nextBlockTimestamp: bigint;
   irregularStatesByBlockNumber: Map<bigint, Buffer>;
   userProvidedNextBlockBaseFeePerGas: bigint | undefined;
-  coinbase: string;
+  coinbase: Address;
   nextPrevrandao: Buffer;
 }
 

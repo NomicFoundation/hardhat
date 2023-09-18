@@ -1,6 +1,5 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import { Address } from "@nomicfoundation/ethereumjs-util";
 import { EthContextAdapter } from "../context";
 import { MemPoolAdapter } from "../mem-pool";
 import { BlockMinerAdapter } from "../miner";
@@ -108,7 +107,6 @@ export class HardhatEthContext implements EthContextAdapter {
     const miner = new HardhatBlockMiner(
       blockchain,
       common,
-      Address.fromString(config.coinbase),
       hardfork,
       config.mempoolOrder,
       prevRandaoGenerator,

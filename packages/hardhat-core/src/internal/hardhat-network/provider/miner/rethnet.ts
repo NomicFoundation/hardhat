@@ -23,13 +23,13 @@ export class RethnetMiner implements BlockMinerAdapter {
     private readonly _memPool: RethnetMemPool,
     private readonly _common: Common,
     private readonly _limitContractCodeSize: bigint | null,
-    private _coinbase: Address,
     private _mineOrdering: MineOrdering,
     private _prevRandaoGenerator: RandomBufferGenerator
   ) {}
 
   public async mineBlock(
     blockTimestamp: bigint,
+    coinbase: Address,
     minGasPrice: bigint,
     minerReward: bigint,
     baseFeePerGas?: bigint
@@ -45,7 +45,7 @@ export class RethnetMiner implements BlockMinerAdapter {
       this._memPool.asInner(),
       makeConfigOptions(this._common, false, true, this._limitContractCodeSize),
       blockTimestamp,
-      this._coinbase.buf,
+      coinbase.buf,
       minGasPrice,
       this._mineOrdering,
       minerReward,
