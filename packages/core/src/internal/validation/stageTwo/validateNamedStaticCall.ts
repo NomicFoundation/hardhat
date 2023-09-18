@@ -1,4 +1,3 @@
-import { IgnitionValidationError } from "../../../errors";
 import {
   isAccountRuntimeValue,
   isModuleParameterRuntimeValue,
@@ -16,7 +15,9 @@ export async function validateNamedStaticCall(
   _artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
   accounts: string[]
-) {
+): Promise<string[]> {
+  const errors: string[] = [];
+
   const runtimeValues = retrieveNestedRuntimeValues(future.args);
   const moduleParams = runtimeValues.filter(isModuleParameterRuntimeValue);
   const accountParams = [
@@ -24,7 +25,11 @@ export async function validateNamedStaticCall(
     ...(isAccountRuntimeValue(future.from) ? [future.from] : []),
   ];
 
-  accountParams.forEach((arv) => validateAccountRuntimeValue(arv, accounts));
+  errors.push(
+    ...accountParams.flatMap((arv) =>
+      validateAccountRuntimeValue(arv, accounts)
+    )
+  );
 
   const missingParams = moduleParams.filter(
     (param) =>
@@ -33,8 +38,10 @@ export async function validateNamedStaticCall(
   );
 
   if (missingParams.length > 0) {
-    throw new IgnitionValidationError(
+    errors.push(
       `Module parameter '${missingParams[0].name}' requires a value but was given none`
     );
   }
+
+  return errors;
 }

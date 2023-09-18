@@ -1,4 +1,3 @@
-import { IgnitionValidationError } from "../../../errors";
 import {
   isAccountRuntimeValue,
   isModuleParameterRuntimeValue,
@@ -13,24 +12,30 @@ export async function validateSendData(
   _artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
   accounts: string[]
-) {
+): Promise<string[]> {
+  const errors: string[] = [];
+
   const accountParams = [
     ...(isAccountRuntimeValue(future.from) ? [future.from] : []),
     ...(isAccountRuntimeValue(future.to) ? [future.to] : []),
   ];
 
-  accountParams.forEach((arv) => validateAccountRuntimeValue(arv, accounts));
+  errors.push(
+    ...accountParams.flatMap((arv) =>
+      validateAccountRuntimeValue(arv, accounts)
+    )
+  );
 
   if (isModuleParameterRuntimeValue(future.to)) {
     const param =
       deploymentParameters[future.to.moduleId]?.[future.to.name] ??
       future.to.defaultValue;
     if (param === undefined) {
-      throw new IgnitionValidationError(
+      errors.push(
         `Module parameter '${future.to.name}' requires a value but was given none`
       );
     } else if (typeof param !== "string") {
-      throw new IgnitionValidationError(
+      errors.push(
         `Module parameter '${
           future.to.name
         }' must be of type 'string' but is '${typeof param}'`
@@ -43,11 +48,11 @@ export async function validateSendData(
       deploymentParameters[future.value.moduleId]?.[future.value.name] ??
       future.value.defaultValue;
     if (param === undefined) {
-      throw new IgnitionValidationError(
+      errors.push(
         `Module parameter '${future.value.name}' requires a value but was given none`
       );
     } else if (typeof param !== "bigint") {
-      throw new IgnitionValidationError(
+      errors.push(
         `Module parameter '${
           future.value.name
         }' must be of type 'bigint' but is '${typeof param}'`
@@ -55,5 +60,5 @@ export async function validateSendData(
     }
   }
 
-  return;
+  return errors;
 }

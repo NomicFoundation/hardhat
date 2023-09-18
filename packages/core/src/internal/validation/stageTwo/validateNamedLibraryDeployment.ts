@@ -9,8 +9,12 @@ export async function validateNamedLibraryDeployment(
   _artifactLoader: ArtifactResolver,
   _deploymentParameters: DeploymentParameters,
   accounts: string[]
-) {
+): Promise<string[]> {
+  const errors: string[] = [];
+
   if (isAccountRuntimeValue(future.from)) {
-    validateAccountRuntimeValue(future.from, accounts);
+    errors.push(...validateAccountRuntimeValue(future.from, accounts));
   }
+
+  return errors;
 }

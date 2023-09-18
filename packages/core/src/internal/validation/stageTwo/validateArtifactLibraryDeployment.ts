@@ -10,10 +10,16 @@ export async function validateArtifactLibraryDeployment(
   _artifactLoader: ArtifactResolver,
   _deploymentParameters: DeploymentParameters,
   accounts: string[]
-) {
+): Promise<string[]> {
+  const errors: string[] = [];
+
   if (isAccountRuntimeValue(future.from)) {
-    validateAccountRuntimeValue(future.from, accounts);
+    errors.push(...validateAccountRuntimeValue(future.from, accounts));
   }
 
-  validateLibraryNames(future.artifact, Object.keys(future.libraries));
+  errors.push(
+    ...validateLibraryNames(future.artifact, Object.keys(future.libraries))
+  );
+
+  return errors;
 }

@@ -7,6 +7,6 @@ export async function validateReadEventArgument(
   _artifactLoader: ArtifactResolver,
   _deploymentParameters: DeploymentParameters,
   _accounts: string[]
-) {
-  return; // no-op
+): Promise<string[]> {
+  return []; // no-op
 }

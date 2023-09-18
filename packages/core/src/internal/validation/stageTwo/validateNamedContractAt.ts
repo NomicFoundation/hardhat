@@ -1,4 +1,3 @@
-import { IgnitionValidationError } from "../../../errors";
 import { isModuleParameterRuntimeValue } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deploy";
@@ -9,21 +8,25 @@ export async function validateNamedContractAt(
   _artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
   _accounts: string[]
-) {
+): Promise<string[]> {
+  const errors: string[] = [];
+
   if (isModuleParameterRuntimeValue(future.address)) {
     const param =
       deploymentParameters[future.address.moduleId]?.[future.address.name] ??
       future.address.defaultValue;
     if (param === undefined) {
-      throw new IgnitionValidationError(
+      errors.push(
         `Module parameter '${future.address.name}' requires a value but was given none`
       );
     } else if (typeof param !== "string") {
-      throw new IgnitionValidationError(
+      errors.push(
         `Module parameter '${
           future.address.name
         }' must be of type 'string' but is '${typeof param}'`
       );
     }
   }
+
+  return errors;
 }

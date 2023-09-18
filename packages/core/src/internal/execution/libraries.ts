@@ -15,6 +15,7 @@
 
 import { IgnitionValidationError } from "../../errors";
 import { Artifact } from "../../types/artifact";
+import { assertIgnitionInvariant } from "../utils/assertions";
 
 /**
  * This function validates that the libraries object ensures that libraries:
@@ -26,8 +27,10 @@ import { Artifact } from "../../types/artifact";
 export function validateLibraryNames(
   artifact: Artifact,
   libraryNames: string[]
-) {
-  validateNotRepeatedLibraries(artifact, libraryNames);
+): string[] {
+  const errors: string[] = [];
+
+  errors.push(...validateNotRepeatedLibraries(artifact, libraryNames));
 
   const requiredLibraries = new Set<string>();
   for (const sourceName of Object.keys(artifact.linkReferences)) {
@@ -36,27 +39,38 @@ export function validateLibraryNames(
     }
   }
 
-  const libraryNameToParsedName = libraryNames.map((libraryName) =>
-    getActualNameForArtifactLibrary(artifact, libraryName)
-  );
-
-  for (const parsedName of Object.values(libraryNameToParsedName)) {
-    requiredLibraries.delete(
-      getFullyQualifiedName(parsedName.sourceName, parsedName.libName)
+  try {
+    const libraryNameToParsedName = libraryNames.map((libraryName) =>
+      getActualNameForArtifactLibrary(artifact, libraryName)
     );
-  }
 
-  if (requiredLibraries.size !== 0) {
-    const fullyQualifiedNames = Array.from(requiredLibraries)
-      .map((name) => `* ${name}`)
-      .join("\n");
+    for (const parsedName of Object.values(libraryNameToParsedName)) {
+      requiredLibraries.delete(
+        getFullyQualifiedName(parsedName.sourceName, parsedName.libName)
+      );
+    }
 
-    throw new IgnitionValidationError(
-      `Invalid libraries for contract ${artifact.contractName}: The following libraries are missing:
+    if (requiredLibraries.size !== 0) {
+      const fullyQualifiedNames = Array.from(requiredLibraries)
+        .map((name) => `* ${name}`)
+        .join("\n");
+
+      errors.push(
+        `Invalid libraries for contract ${artifact.contractName}: The following libraries are missing:
   
   ${fullyQualifiedNames}`
+      );
+    }
+  } catch (e) {
+    assertIgnitionInvariant(
+      e instanceof IgnitionValidationError,
+      "Error must be of type IgnitionValidationError"
     );
+
+    errors.push(e.message);
   }
+
+  return errors;
 }
 
 /**
@@ -101,19 +115,32 @@ function linkReference(
 function validateNotRepeatedLibraries(
   artifact: Artifact,
   libraryNames: string[]
-) {
-  for (const inputName of libraryNames) {
-    const { sourceName, libName } = parseLibraryName(
-      artifact.contractName,
-      inputName
-    );
+): string[] {
+  const errors: string[] = [];
 
-    if (sourceName !== undefined && libraryNames.includes(libName)) {
-      throw new IgnitionValidationError(
-        `Invalid libraries for contract ${artifact.contractName}: The names "${inputName}" and "${libName}" clash with each other, please use qualified names for both.`
+  for (const inputName of libraryNames) {
+    try {
+      const { sourceName, libName } = parseLibraryName(
+        artifact.contractName,
+        inputName
       );
+
+      if (sourceName !== undefined && libraryNames.includes(libName)) {
+        errors.push(
+          `Invalid libraries for contract ${artifact.contractName}: The names "${inputName}" and "${libName}" clash with each other, please use qualified names for both.`
+        );
+      }
+    } catch (e) {
+      assertIgnitionInvariant(
+        e instanceof IgnitionValidationError,
+        `Error must be of type IgnitionValidationError`
+      );
+
+      errors.push(e.message);
     }
   }
+
+  return errors;
 }
 
 /**

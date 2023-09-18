@@ -1,4 +1,3 @@
-import { IgnitionValidationError } from "../../../errors";
 import {
   isAccountRuntimeValue,
   isModuleParameterRuntimeValue,
@@ -13,10 +12,12 @@ import {
 
 export async function validateNamedContractDeployment(
   future: NamedArtifactContractDeploymentFuture<string>,
-  artifactLoader: ArtifactResolver,
+  _artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
   accounts: string[]
-) {
+): Promise<string[]> {
+  const errors: string[] = [];
+
   const runtimeValues = retrieveNestedRuntimeValues(future.constructorArgs);
   const moduleParams = runtimeValues.filter(isModuleParameterRuntimeValue);
   const accountParams = [
@@ -24,7 +25,11 @@ export async function validateNamedContractDeployment(
     ...(isAccountRuntimeValue(future.from) ? [future.from] : []),
   ];
 
-  accountParams.forEach((arv) => validateAccountRuntimeValue(arv, accounts));
+  errors.push(
+    ...accountParams.flatMap((arv) =>
+      validateAccountRuntimeValue(arv, accounts)
+    )
+  );
 
   const missingParams = moduleParams.filter(
     (param) =>
@@ -33,7 +38,7 @@ export async function validateNamedContractDeployment(
   );
 
   if (missingParams.length > 0) {
-    throw new IgnitionValidationError(
+    errors.push(
       `Module parameter '${missingParams[0].name}' requires a value but was given none`
     );
   }
@@ -43,15 +48,17 @@ export async function validateNamedContractDeployment(
       deploymentParameters[future.value.moduleId]?.[future.value.name] ??
       future.value.defaultValue;
     if (param === undefined) {
-      throw new IgnitionValidationError(
+      errors.push(
         `Module parameter '${future.value.name}' requires a value but was given none`
       );
     } else if (typeof param !== "bigint") {
-      throw new IgnitionValidationError(
+      errors.push(
         `Module parameter '${
           future.value.name
         }' must be of type 'bigint' but is '${typeof param}'`
       );
     }
   }
+
+  return errors;
 }
