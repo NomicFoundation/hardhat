@@ -1,3 +1,4 @@
+import { timestampSecondsToDate } from "../../../util/date";
 import { DualBlockMiner } from "../miner/dual";
 import { DualMemPool } from "../mem-pool/dual";
 import { makeCommon } from "../utils/makeCommon";
@@ -41,6 +42,11 @@ export class DualEthContext implements EthContextAdapter {
         hardhat.vm() as EthereumJSAdapter
       ).getForkBlockNumber();
       config.forkConfig.blockNumber = Number(forkBlockNumber!);
+    } else {
+      const latestBlock = await hardhat.blockchain().getLatestBlock();
+      config.initialDate = timestampSecondsToDate(
+        Number(latestBlock.header.timestamp)
+      );
     }
 
     const rethnet = await RethnetEthContext.create(config);
@@ -49,11 +55,11 @@ export class DualEthContext implements EthContextAdapter {
 
     const context = new DualEthContext(hardhat, rethnet, vm);
 
-    // Validate that the latest blocks are equal
-    await context.blockchain().getLatestBlock();
-
     // Validate that the latest block numbers are equal
     await context.blockchain().getLatestBlockNumber();
+
+    // Validate that the latest blocks are equal
+    await context.blockchain().getLatestBlock();
 
     return context;
   }

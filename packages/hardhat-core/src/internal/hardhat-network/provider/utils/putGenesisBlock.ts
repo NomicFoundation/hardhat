@@ -1,5 +1,4 @@
-import { Block, HeaderData } from "@nomicfoundation/ethereumjs-block";
-import { Common } from "@nomicfoundation/ethereumjs-common";
+import { HeaderData } from "@nomicfoundation/ethereumjs-block";
 import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
 
 import { dateToTimestampSeconds } from "../../../util/date";
