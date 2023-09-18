@@ -87,7 +87,7 @@ export class HardhatMemPool implements MemPoolAdapter {
 
     if (tx === undefined) {
       // transaction doesn't exist in the mempool
-      return true;
+      return false;
     }
 
     this._deleteTransactionByHash(hash);
