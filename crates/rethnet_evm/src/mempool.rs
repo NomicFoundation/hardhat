@@ -324,7 +324,14 @@ impl MemPool {
             let sender = state.basic(*caller)?.unwrap_or_default();
 
             transactions.retain(|transaction| {
-                is_valid_tx(&transaction.transaction, &self.block_gas_limit, &sender)
+                let should_retain =
+                    is_valid_tx(&transaction.transaction, &self.block_gas_limit, &sender);
+
+                if !should_retain {
+                    self.hash_to_transaction.remove(transaction.hash());
+                }
+
+                should_retain
             });
         }
 
