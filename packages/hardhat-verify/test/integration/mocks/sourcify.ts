@@ -35,7 +35,10 @@ export const interceptSourcifyIsVerified = (response: any) =>
     })
     .reply(200, response);
 
-export const interceptSourcifyVerify = (response: any, statusCode: number = 200) =>
+export const interceptSourcifyVerify = (
+  response: any,
+  statusCode: number = 200
+) =>
   client
     .intercept({
       path: "/server",

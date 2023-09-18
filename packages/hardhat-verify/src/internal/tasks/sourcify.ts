@@ -1,7 +1,9 @@
 import chalk from "chalk";
 import { subtask, types } from "hardhat/config";
+import { isFullyQualifiedName } from "hardhat/utils/contract-names";
+import { Artifact } from "hardhat/types";
+import { ChainConfig } from "../../types";
 import { Sourcify } from "../sourcify";
-import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 
 import {
   BuildInfoNotFoundError,
@@ -9,7 +11,6 @@ import {
   ContractVerificationFailedError,
   InvalidContractNameError,
   NonUniqueContractNameError,
-  VerificationAPIUnexpectedMessageError,
 } from "../errors";
 
 import {
@@ -17,8 +18,6 @@ import {
   TASK_VERIFY_SOURCIFY_ATTEMPT_VERIFICATION,
   TASK_VERIFY_SOURCIFY_DISABLED_WARNING,
 } from "../task-names";
-import { isFullyQualifiedName } from "hardhat/src/utils/contract-names";
-import { Artifact } from "hardhat/src/types";
 
 interface VerificationResponse {
   success: boolean;
@@ -51,26 +50,34 @@ subtask(TASK_VERIFY_SOURCIFY)
       { address, contract }: VerificationArgs,
       { config, network, run, artifacts }
     ) => {
-      if (!contract) {
+      if (contract === undefined) {
         console.log(
           "In order to verify on Sourcify you must provide a contract fully qualified name"
         );
         return;
       }
 
+      let customChains: ChainConfig[] = [];
+      if (
+        config.sourcify.customChains !== undefined &&
+        config.sourcify.customChains.length > 0
+      ) {
+        customChains = config.sourcify.customChains;
+      }
+
       const chainConfig = await Sourcify.getCurrentChainConfig(
         network.name,
         network.provider,
-        config.sourcify.customChains || []
+        customChains
       );
 
-      if (!chainConfig.chainId) {
+      if (chainConfig.chainId === undefined) {
         console.log("Missing chainId");
         return;
       }
 
       if (contract !== undefined && !isFullyQualifiedName(contract)) {
-        throw new InvalidContractNameError(contract || "");
+        throw new InvalidContractNameError(contract);
       }
 
       const artifactExists = await artifacts.artifactExists(contract);

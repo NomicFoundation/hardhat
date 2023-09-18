@@ -1,4 +1,7 @@
 import type { Dispatcher } from "undici";
+import { EthereumProvider } from "hardhat/types";
+import { HARDHAT_NETWORK_NAME } from "hardhat/plugins";
+import { ChainConfig } from "../types";
 import {
   ContractVerificationRequestError,
   ContractVerificationInvalidStatusCodeError,
@@ -8,10 +11,7 @@ import {
   ChainConfigNotFoundError,
 } from "./errors";
 import { sendGetRequest, sendPostRequest } from "./undici";
-import { EthereumProvider } from "hardhat/src/types";
-import { ChainConfig } from "../types";
 import { builtinChains } from "./chain-config";
-import { HARDHAT_NETWORK_NAME } from "hardhat/src/plugins";
 
 export class Sourcify {
   public _apiUrl: string;
@@ -101,11 +101,11 @@ export class Sourcify {
     }
 
     if (!(response.statusCode >= 200 && response.statusCode <= 299)) {
-      const responseJson = await response.body.json();
+      const responseErrorJson = await response.body.json();
       throw new ContractVerificationInvalidStatusCodeError(
         this._apiUrl,
         response.statusCode,
-        JSON.stringify(responseJson)
+        JSON.stringify(responseErrorJson)
       );
     }
 
@@ -113,7 +113,7 @@ export class Sourcify {
     const sourcifyResponse = new SourcifyResponse(responseJson);
 
     if (!sourcifyResponse.isOk()) {
-      throw new HardhatSourcifyError(sourcifyResponse.error || "");
+      throw new HardhatSourcifyError(sourcifyResponse.error);
     }
 
     return sourcifyResponse;
