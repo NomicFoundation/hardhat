@@ -154,20 +154,22 @@ async function main() {
       return;
     }
 
-    let taskName = parsedTaskName ?? TASK_HELP;
-
     // ATTENTION! DEPRECATED CODE!
     // The command `npx hardhat`, when used to create a new Hardhat project, will be removed with Hardhat V3.
     // It will become `npx hardhat init`.
     // The code marked with the tag #INIT-DEP can be deleted after HarhatV3 is out.
 
     // Create a new Hardhat project
-    if (taskName === "init") {
+    if (parsedTaskName === "init") {
       return await createNewProject();
     }
     // #INIT-DEP - START OF DEPRECATED CODE
     else {
-      if (hardhatArguments.config === undefined && !isCwdInsideProject()) {
+      if (
+        parsedTaskName === undefined &&
+        hardhatArguments.config === undefined &&
+        !isCwdInsideProject()
+      ) {
         // Warning for Hardhat V3 deprecation
         console.warn(
           chalk.yellow.bold("\n\nDEPRECATION WARNING\n\n"),
@@ -210,6 +212,8 @@ async function main() {
         );
       }
     }
+
+    let taskName = parsedTaskName ?? TASK_HELP;
 
     const showEmptyConfigWarning = true;
     const showSolidityConfigWarnings = taskName === TASK_COMPILE;
