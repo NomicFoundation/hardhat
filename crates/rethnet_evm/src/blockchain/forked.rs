@@ -75,7 +75,7 @@ impl ForkedBlockchain {
         cache_dir: PathBuf,
         fork_block_number: Option<U256>,
         state_root_generator: Arc<Mutex<RandomHashGenerator>>,
-        accounts: HashMap<Address, AccountInfo>,
+        account_overrides: HashMap<Address, AccountInfo>,
     ) -> Result<Self, CreationError> {
         let rpc_client = RpcClient::new(remote_url, cache_dir);
 
@@ -133,7 +133,7 @@ impl ForkedBlockchain {
             rpc_client.clone(),
             state_root_generator,
             fork_block_number,
-            accounts,
+            account_overrides,
         )
         .await?;
 
