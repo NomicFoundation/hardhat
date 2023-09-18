@@ -89,11 +89,14 @@ impl MemPool {
             |nonce| Ok(nonce + 1),
         )?;
 
-        if transaction.nonce() == next_nonce {
-            self.insert_pending_transaction(transaction);
+        if transaction.nonce() <= next_nonce {
+            self.insert_pending_transaction(transaction.clone());
         } else {
-            self.insert_queued_transaction(transaction);
+            self.insert_queued_transaction(transaction.clone());
         }
+
+        self.hash_to_transaction
+            .insert(*transaction.hash(), transaction);
 
         Ok(())
     }
@@ -216,22 +219,19 @@ impl MemPool {
     }
 
     fn insert_pending_transaction(&mut self, transaction: PendingTransaction) {
-        let removed = self
-            .hash_to_transaction
-            .insert(*transaction.hash(), transaction.clone());
-
         let pending_transactions = self
             .pending_transactions
             .entry(*transaction.caller())
             .or_default();
 
-        if removed.is_some() {
-            let old_transactions = pending_transactions
-                .iter_mut()
-                .find(|pending_transaction| transaction.nonce() == pending_transaction.nonce())
-                .expect("An old transaction with the same nonce should exist");
+        let replaced_transaction = pending_transactions
+            .iter_mut()
+            .find(|pending_transaction| transaction.nonce() == pending_transaction.nonce());
 
-            *old_transactions = transaction;
+        if let Some(replaced_transaction) = replaced_transaction {
+            self.hash_to_transaction.remove(replaced_transaction.hash());
+
+            *replaced_transaction = transaction.clone();
         } else {
             let caller = *transaction.caller();
             let mut next_pending_nonce = transaction.nonce() + 1;
