@@ -258,22 +258,19 @@ impl MemPool {
     }
 
     fn insert_queued_transaction(&mut self, transaction: PendingTransaction) {
-        let removed = self
-            .hash_to_transaction
-            .insert(*transaction.hash(), transaction.clone());
-
         let future_transactions = self
             .future_transactions
             .entry(*transaction.caller())
             .or_default();
 
-        if removed.is_some() {
-            let old_transactions = future_transactions
-                .iter_mut()
-                .find(|pending_transaction| transaction.nonce() == pending_transaction.nonce())
-                .expect("An old transaction with the same nonce should exist");
+        let replaced_transaction = future_transactions
+            .iter_mut()
+            .find(|pending_transaction| transaction.nonce() == pending_transaction.nonce());
 
-            *old_transactions = transaction;
+        if let Some(replaced_transaction) = replaced_transaction {
+            self.hash_to_transaction.remove(replaced_transaction.hash());
+
+            *replaced_transaction = transaction.clone();
         } else {
             future_transactions.push(transaction);
         }
