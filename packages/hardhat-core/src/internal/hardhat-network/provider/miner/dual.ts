@@ -1,3 +1,6 @@
+import { keccak256 } from "../../../util/keccak";
+import { globalRethnetContext } from "../context/rethnet";
+import { randomHashSeed } from "../fork/ForkStateManager";
 import { BlockMinerAdapter, PartialMineBlockResult } from "../miner";
 import {
   assertEqualBlocks,
@@ -16,20 +19,34 @@ export class DualBlockMiner implements BlockMinerAdapter {
     minerReward: bigint,
     baseFeePerGas?: bigint
   ): Promise<PartialMineBlockResult> {
-    const [ethereumJSResult, rethnetResult] = await Promise.all([
-      this._ethereumJSMiner.mineBlock(
-        blockTimestamp,
-        minGasPrice,
-        minerReward,
-        baseFeePerGas
-      ),
-      this._rethnetMiner.mineBlock(
-        blockTimestamp,
-        minGasPrice,
-        minerReward,
-        baseFeePerGas
-      ),
-    ]);
+    const previousStateRootSeed = randomHashSeed();
+
+    const ethereumJSResult = await this._ethereumJSMiner.mineBlock(
+      blockTimestamp,
+      minGasPrice,
+      minerReward,
+      baseFeePerGas
+    );
+
+    const currentStateRootSeed = randomHashSeed();
+
+    // When mining a block, EthereumJS' runCall calls checkpoint multiple times
+    // For EDR, we need to skip all of those calls
+    let stateRootSeed = previousStateRootSeed;
+    let nextStateRootSeed = stateRootSeed;
+    while (!nextStateRootSeed.equals(currentStateRootSeed)) {
+      stateRootSeed = nextStateRootSeed;
+      nextStateRootSeed = keccak256(stateRootSeed);
+    }
+
+    globalRethnetContext.setStateRootGeneratorSeed(stateRootSeed);
+
+    const rethnetResult = await this._rethnetMiner.mineBlock(
+      blockTimestamp,
+      minGasPrice,
+      minerReward,
+      baseFeePerGas
+    );
 
     assertEqualBlocks(ethereumJSResult.block, rethnetResult.block);
     assertEqualRunBlockResults(
