@@ -11,7 +11,6 @@ use rethnet_eth::{B256, U256};
 use rethnet_evm::{
     blockchain::{BlockchainError, SyncBlockchain},
     state::{AccountTrie, StateError, TrieState},
-    RandomHashGenerator,
 };
 
 use crate::{
@@ -116,6 +115,7 @@ impl Blockchain {
         let accounts = genesis_accounts(accounts)?;
 
         let runtime = context.runtime().clone();
+        let state_root_generator = context.state_root_generator.clone();
 
         let (deferred, promise) = env.create_deferred()?;
         context.runtime().spawn(async move {
@@ -125,10 +125,7 @@ impl Blockchain {
                 &remote_url,
                 cache_dir,
                 fork_block_number,
-                // TODO: Make this configurable
-                Arc::new(parking_lot::Mutex::new(RandomHashGenerator::with_seed(
-                    "seed",
-                ))),
+                state_root_generator,
                 accounts,
             )
             .await
