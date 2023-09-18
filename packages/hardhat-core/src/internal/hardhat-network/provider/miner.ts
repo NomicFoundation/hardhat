@@ -23,5 +23,7 @@ export interface BlockMinerAdapter {
     baseFeePerGas?: bigint
   ): Promise<PartialMineBlockResult>;
 
+  prevrandaoGeneratorSeed(): Buffer;
+
   setPrevrandaoGeneratorNextValue(nextValue: Buffer): void;
 }

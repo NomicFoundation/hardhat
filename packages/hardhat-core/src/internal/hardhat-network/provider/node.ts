@@ -97,7 +97,6 @@ import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
 import { Bloom } from "./utils/bloom";
 import { getCurrentTimestamp } from "./utils/getCurrentTimestamp";
 import { makeCommon } from "./utils/makeCommon";
-import { RandomBufferGenerator } from "./utils/random";
 import { PartialTrace, RunTxResult } from "./vm/vm-adapter";
 import { ExitCode, Exit } from "./vm/exit";
 import { createContext } from "./vm/creation";
@@ -113,9 +112,7 @@ export class HardhatNode extends EventEmitter {
   public static async create(
     config: NodeConfig
   ): Promise<[Common, HardhatNode]> {
-    const prevRandaoGenerator =
-      RandomBufferGenerator.create("randomMixHashSeed");
-    const context = await createContext(config, prevRandaoGenerator);
+    const context = await createContext(config);
 
     const initialBlockTimeOffset = isForkedNodeConfig(config)
       ? BigInt(
@@ -182,7 +179,6 @@ export class HardhatNode extends EventEmitter {
       genesisAccounts,
       chainId,
       hardfork,
-      prevRandaoGenerator,
       allowUnlimitedContractSize,
       allowBlocksWithSameTimestamp,
       tracingConfig,
@@ -223,7 +219,6 @@ export class HardhatNode extends EventEmitter {
     genesisAccounts: GenesisAccount[],
     private readonly _configChainId: number,
     public readonly hardfork: HardforkName,
-    private _mixHashGenerator: RandomBufferGenerator,
     public readonly allowUnlimitedContractSize: boolean,
     private _allowBlocksWithSameTimestamp: boolean,
     tracingConfig?: TracingConfig,
@@ -898,7 +893,7 @@ export class HardhatNode extends EventEmitter {
       userProvidedNextBlockBaseFeePerGas:
         this.getUserProvidedNextBlockBaseFeePerGas(),
       coinbase: this.getCoinbaseAddress(),
-      nextPrevrandao: this._mixHashGenerator.seed(),
+      nextPrevrandao: this._context.blockMiner().prevrandaoGeneratorSeed(),
     };
 
     this._irregularStatesByBlockNumber = new Map(
@@ -2199,7 +2194,7 @@ export class HardhatNode extends EventEmitter {
   }
 
   public setPrevRandao(prevRandao: Buffer): void {
-    this._mixHashGenerator.setNext(prevRandao);
+    this._context.blockMiner().setPrevrandaoGeneratorNextValue(prevRandao);
   }
 
   public async getClientVersion(): Promise<string> {

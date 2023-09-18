@@ -63,8 +63,26 @@ export class DualBlockMiner implements BlockMinerAdapter {
     return rethnetResult;
   }
 
+  public prevrandaoGeneratorSeed(): Buffer {
+    const hardhatSeed = this._hardhatMiner.prevrandaoGeneratorSeed();
+    const rethnetSeed = this._rethnetMiner.prevrandaoGeneratorSeed();
+
+    if (!hardhatSeed.equals(rethnetSeed)) {
+      console.trace(
+        `Different prevrandaoGeneratorSeed: ${hardhatSeed.toString(
+          "hex"
+        )} (ethereumjs) !== ${rethnetSeed.toString("hex")} (rethnet)`
+      );
+
+      /* eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+      throw new Error("Different prevrandaoGeneratorSeed");
+    }
+
+    return rethnetSeed;
+  }
+
   public setPrevrandaoGeneratorNextValue(nextValue: Buffer): void {
-    this._ethereumJSMiner.setPrevrandaoGeneratorNextValue(nextValue);
+    this._hardhatMiner.setPrevrandaoGeneratorNextValue(nextValue);
     this._rethnetMiner.setPrevrandaoGeneratorNextValue(nextValue);
   }
 }

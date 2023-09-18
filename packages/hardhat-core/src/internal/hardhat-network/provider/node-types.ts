@@ -7,7 +7,6 @@ import { Address } from "@nomicfoundation/ethereumjs-util";
 import { HARDHAT_MEMPOOL_SUPPORTED_ORDERS } from "../../constants";
 import { BuildInfo, HardhatNetworkChainsConfig } from "../../../types";
 import { MessageTrace } from "../stack-traces/message-trace";
-import { RandomBufferGenerator } from "./utils/random";
 
 export type NodeConfig = LocalNodeConfig | ForkedNodeConfig;
 

@@ -126,14 +126,17 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
         traces,
       };
     } catch (err) {
-      console.trace("Failed to mine block due to:", err);
-
       await blockBuilder.revert();
 
       // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
       throw err;
     }
   }
+
+  public prevrandaoGeneratorSeed(): Buffer {
+    return this._prevRandaoGenerator.seed();
+  }
+
   public setPrevrandaoGeneratorNextValue(nextValue: Buffer): void {
     this._prevRandaoGenerator.setNext(nextValue);
   }

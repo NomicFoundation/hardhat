@@ -10,10 +10,11 @@ import { RandomBufferGenerator } from "../utils/random";
  * the value of the HARDHAT_EXPERIMENTAL_VM_MODE environment variable.
  */
 export async function createContext(
-  config: NodeConfig,
-  prevRandaoGenerator: RandomBufferGenerator
+  config: NodeConfig
 ): Promise<EthContextAdapter> {
   const vmModeEnvVar = process.env.HARDHAT_EXPERIMENTAL_VM_MODE;
+
+  const prevRandaoGenerator = RandomBufferGenerator.create("randomMixHashSeed");
 
   if (vmModeEnvVar === "ethereumjs") {
     return HardhatEthContext.create(config, prevRandaoGenerator);
