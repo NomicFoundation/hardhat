@@ -111,7 +111,6 @@ export class HardhatEthContext implements EthContextAdapter {
       Address.fromString(config.coinbase),
       hardfork,
       config.mempoolOrder,
-      config.minGasPrice,
       prevRandaoGenerator,
       memPool,
       vm

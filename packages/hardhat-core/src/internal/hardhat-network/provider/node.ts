@@ -349,6 +349,7 @@ export class HardhatNode extends EventEmitter {
         .blockMiner()
         .mineBlock(
           blockTimestamp,
+          this._minGasPrice,
           this._common.param("pow", "minerReward"),
           this.getUserProvidedNextBlockBaseFeePerGas()
         );
@@ -2161,22 +2162,6 @@ export class HardhatNode extends EventEmitter {
   private async _isTransactionMined(hash: Buffer): Promise<boolean> {
     const txReceipt = await this.getTransactionReceipt(hash);
     return txReceipt !== undefined;
-  }
-
-  private _isTxMinable(
-    tx: TypedTransaction,
-    nextBlockBaseFeePerGas?: bigint
-  ): boolean {
-    const txMaxFee = "gasPrice" in tx ? tx.gasPrice : tx.maxFeePerGas;
-
-    const canPayBaseFee =
-      nextBlockBaseFeePerGas !== undefined
-        ? txMaxFee >= nextBlockBaseFeePerGas
-        : true;
-
-    const atLeastMinGasPrice = txMaxFee >= this._minGasPrice;
-
-    return canPayBaseFee && atLeastMinGasPrice;
   }
 
   private async _persistIrregularWorldState(): Promise<void> {

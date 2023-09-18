@@ -184,6 +184,7 @@ pub(super) struct NodeData {
     pub mem_pool: MemPool,
     pub evm_config: CfgEnv,
     pub beneficiary: Address,
+    pub min_gas_price: U256,
     pub prevrandao_generator: RandomHashGenerator,
     pub block_time_offset_seconds: U256,
     pub next_block_timestamp: Option<U256>,
@@ -290,15 +291,14 @@ impl NodeData {
             None
         };
 
-        let block_gas_limit = *self.mem_pool.block_gas_limit();
         let result = mine_block(
             &mut *self.blockchain,
             self.state.clone(),
             &mut self.mem_pool,
             &self.evm_config,
             block_timestamp,
-            block_gas_limit,
             self.beneficiary,
+            self.min_gas_price,
             reward,
             base_fee,
             prevrandao,

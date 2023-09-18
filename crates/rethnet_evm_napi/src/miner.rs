@@ -26,15 +26,15 @@ pub async fn mine_block(
     mem_pool: &MemPool,
     config: ConfigOptions,
     timestamp: BigInt,
-    block_gas_limit: BigInt,
     beneficiary: Buffer,
+    min_gas_price: BigInt,
     reward: BigInt,
     base_fee: Option<BigInt>,
     prevrandao: Option<Buffer>,
 ) -> napi::Result<MineBlockResult> {
     let config = CfgEnv::try_from(config)?;
-    let block_gas_limit: U256 = BigInt::try_cast(block_gas_limit)?;
     let beneficiary = Address::from_slice(&beneficiary);
+    let min_gas_price: U256 = BigInt::try_cast(min_gas_price)?;
     let timestamp: U256 = BigInt::try_cast(timestamp)?;
     let reward: U256 = BigInt::try_cast(reward)?;
     let base_fee: Option<U256> =
@@ -49,8 +49,8 @@ pub async fn mine_block(
         &mut *mem_pool.write().await,
         &config,
         timestamp,
-        block_gas_limit,
         beneficiary,
+        min_gas_price,
         reward,
         base_fee,
         prevrandao,

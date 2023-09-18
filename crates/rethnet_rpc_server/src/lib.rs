@@ -1120,6 +1120,8 @@ impl Server {
             mem_pool: MemPool::new(config.block_gas_limit),
             evm_config,
             beneficiary: config.coinbase,
+            // TODO: Add config option
+            min_gas_price: U256::MAX,
             prevrandao_generator,
             block_time_offset_seconds,
             next_block_timestamp: None,

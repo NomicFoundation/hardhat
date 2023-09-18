@@ -12,16 +12,23 @@ export class DualBlockMiner implements BlockMinerAdapter {
 
   public async mineBlock(
     blockTimestamp: bigint,
+    minGasPrice: bigint,
     minerReward: bigint,
     baseFeePerGas?: bigint
   ): Promise<PartialMineBlockResult> {
     const [ethereumJSResult, rethnetResult] = await Promise.all([
       this._ethereumJSMiner.mineBlock(
         blockTimestamp,
+        minGasPrice,
         minerReward,
         baseFeePerGas
       ),
-      this._rethnetMiner.mineBlock(blockTimestamp, minerReward, baseFeePerGas),
+      this._rethnetMiner.mineBlock(
+        blockTimestamp,
+        minGasPrice,
+        minerReward,
+        baseFeePerGas
+      ),
     ]);
 
     assertEqualBlocks(ethereumJSResult.block, rethnetResult.block);

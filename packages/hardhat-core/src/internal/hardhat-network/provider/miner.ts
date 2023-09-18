@@ -16,6 +16,7 @@ export interface BlockMinerAdapter {
    */
   mineBlock(
     blockTimestamp: bigint,
+    minGasPrice: bigint,
     minerReward: bigint,
     baseFeePerGas?: bigint
   ): Promise<PartialMineBlockResult>;

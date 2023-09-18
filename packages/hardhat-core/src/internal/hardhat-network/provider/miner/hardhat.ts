@@ -23,7 +23,6 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
     private _coinbase: Address,
     private _hardfork: HardforkName,
     private _mempoolOrder: MempoolOrder,
-    private _minGasPrice: bigint,
     private _prevRandaoGenerator: RandomBufferGenerator,
     private _memPool: HardhatMemPool,
     private _vm: VMAdapter
@@ -31,6 +30,7 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
 
   public async mineBlock(
     blockTimestamp: bigint,
+    minGasPrice: bigint,
     minerReward: bigint,
     baseFeePerGas?: bigint
   ): Promise<PartialMineBlockResult> {
@@ -85,7 +85,7 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
         tx !== undefined
       ) {
         if (
-          !this._isTxMinable(tx, baseFee) ||
+          !this._isTxMinable(tx, minGasPrice, baseFee) ||
           tx.gasLimit > blockGasLimit - (await blockBuilder.getGasUsed())
         ) {
           transactionQueue.removeLastSenderTransactions();
@@ -142,6 +142,7 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
 
   private _isTxMinable(
     tx: TypedTransaction,
+    minGasPrice: bigint,
     nextBlockBaseFeePerGas?: bigint
   ): boolean {
     const txMaxFee = "gasPrice" in tx ? tx.gasPrice : tx.maxFeePerGas;
@@ -151,7 +152,7 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
         ? txMaxFee >= nextBlockBaseFeePerGas
         : true;
 
-    const atLeastMinGasPrice = txMaxFee >= this._minGasPrice;
+    const atLeastMinGasPrice = txMaxFee >= minGasPrice;
 
     return canPayBaseFee && atLeastMinGasPrice;
   }

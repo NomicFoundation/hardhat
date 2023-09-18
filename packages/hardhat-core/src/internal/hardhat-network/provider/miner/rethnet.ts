@@ -29,6 +29,7 @@ export class RethnetMiner implements BlockMinerAdapter {
 
   public async mineBlock(
     blockTimestamp: bigint,
+    minGasPrice: bigint,
     minerReward: bigint,
     baseFeePerGas?: bigint
   ): Promise<PartialMineBlockResult> {
@@ -43,8 +44,8 @@ export class RethnetMiner implements BlockMinerAdapter {
       this._memPool.asInner(),
       makeConfigOptions(this._common, false, true, this._limitContractCodeSize),
       blockTimestamp,
-      await this._memPool.getBlockGasLimit(),
       this._coinbase.buf,
+      minGasPrice,
       minerReward,
       baseFeePerGas,
       prevRandao

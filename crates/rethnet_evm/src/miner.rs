@@ -60,8 +60,8 @@ pub async fn mine_block<BlockchainErrorT, StateErrorT>(
     mem_pool: &mut MemPool,
     cfg: &CfgEnv,
     timestamp: U256,
-    block_gas_limit: U256,
     beneficiary: Address,
+    min_gas_price: U256,
     reward: U256,
     base_fee: Option<U256>,
     prevrandao: Option<B256>,
@@ -86,7 +86,7 @@ where
             BlockOptions {
                 beneficiary: Some(beneficiary),
                 number: Some(parent_header.number + U256::from(1)),
-                gas_limit: Some(block_gas_limit),
+                gas_limit: Some(*mem_pool.block_gas_limit()),
                 timestamp: Some(timestamp),
                 mix_hash: if cfg.spec_id >= SpecId::MERGE {
                     Some(prevrandao.ok_or(MineBlockError::MissingPrevrandao)?)
@@ -115,6 +115,10 @@ where
 
     while let Some(transaction) = pending_transactions.pop_front() {
         let mut tracer = TraceCollector::default();
+
+        if transaction.gas_price() < min_gas_price {
+            continue;
+        }
 
         match block_builder.add_transaction(blockchain, &mut state, transaction, Some(&mut tracer))
         {
