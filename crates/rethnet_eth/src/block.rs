@@ -9,11 +9,7 @@ mod reorg;
 
 use std::sync::OnceLock;
 
-use revm_primitives::{
-    keccak256,
-    ruint::{self, aliases::U160},
-    SpecId,
-};
+use revm_primitives::{keccak256, ruint::aliases::U160, SpecId};
 use rlp::Decodable;
 
 use crate::{
@@ -143,7 +139,7 @@ pub struct Header {
 #[cfg(feature = "serde")]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(remote = "B64")]
-struct B64Def(#[serde(getter = "B64::as_uint")] ruint::aliases::U64);
+struct B64Def(#[serde(getter = "B64::as_uint")] revm_primitives::ruint::aliases::U64);
 
 #[cfg(feature = "serde")]
 impl From<B64Def> for B64 {
