@@ -4,7 +4,7 @@ use rethnet_eth::{
     block::{BlockOptions, Header},
     Address, B256, B64, U256,
 };
-use revm::primitives::{CfgEnv, ExecutionResult, SpecId};
+use revm::primitives::{CfgEnv, ExecutionResult, InvalidTransaction, SpecId};
 
 use crate::{
     block::BlockBuilderCreationError,
@@ -118,7 +118,12 @@ where
 
         match block_builder.add_transaction(blockchain, &mut state, transaction, Some(&mut tracer))
         {
-            Err(BlockTransactionError::ExceedsBlockGasLimit) => continue,
+            Err(
+                BlockTransactionError::ExceedsBlockGasLimit
+                | BlockTransactionError::InvalidTransaction(
+                    InvalidTransaction::GasPriceLessThanBasefee,
+                ),
+            ) => continue,
             Err(e) => {
                 return Err(MineBlockError::BlockTransaction(e));
             }
