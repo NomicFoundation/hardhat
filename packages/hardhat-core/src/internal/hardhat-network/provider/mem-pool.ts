@@ -27,10 +27,6 @@ export interface MemPoolAdapter {
 
   getTransactions(): Promise<TypedTransaction[]>;
 
-  getFutureTransactions(): Promise<TypedTransaction[]>;
-
-  getPendingTransactions(): Promise<TypedTransaction[]>;
-
   getTransactionByHash(hash: Buffer): Promise<TypedTransaction | undefined>;
 
   hasFutureTransactions(): Promise<boolean>;

@@ -66,12 +66,12 @@ impl PendingTransaction {
         Ok(promise)
     }
 
-    #[napi]
+    #[napi(getter)]
     pub fn caller(&self) -> Buffer {
         Buffer::from(self.inner.caller().as_bytes())
     }
 
-    #[napi]
+    #[napi(getter)]
     pub fn transaction(
         &self,
         env: Env,

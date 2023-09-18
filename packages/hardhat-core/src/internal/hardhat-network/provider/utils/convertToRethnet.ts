@@ -32,6 +32,7 @@ import {
   Receipt as RethnetReceipt,
   ExecutionLog,
   Log,
+  MineOrdering,
 } from "rethnet-evm";
 import { fromBigIntLike, toHex } from "../../../util/bigint";
 import { HardforkName, hardforkGte } from "../../../util/hardforks";
@@ -41,6 +42,7 @@ import {
   isRevertResult,
   isSuccessResult,
 } from "../../stack-traces/message-trace";
+import { MempoolOrder } from "../node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "../output";
 import { FakeSenderEIP1559Transaction } from "../transactions/FakeSenderEIP1559Transaction";
 import { FakeSenderAccessListEIP2930Transaction } from "../transactions/FakeSenderAccessListEIP2930Transaction";
@@ -235,6 +237,17 @@ export function ethereumjsHeaderDataToRethnetBlockOptions(
     nonce: fromBufferLike(headerData.nonce),
     baseFee: fromBigIntLike(headerData.baseFeePerGas),
   };
+}
+
+export function ethereumjsMempoolOrderToRethnetMineOrdering(
+  mempoolOrder: MempoolOrder
+): MineOrdering {
+  switch (mempoolOrder) {
+    case "fifo":
+      return MineOrdering.Fifo;
+    case "priority":
+      return MineOrdering.Priority;
+  }
 }
 
 export function ethereumjsTransactionToRethnetSignedTransaction(

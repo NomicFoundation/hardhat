@@ -17,8 +17,8 @@ pub use revm::{
 pub use crate::{
     block::*,
     evm::SyncInspector,
-    mempool::MemPool,
-    miner::{mine_block, MineBlockError, MineBlockResult},
+    mempool::{MemPool, OrderedTransaction},
+    miner::*,
     random::RandomHashGenerator,
     runtime::{dry_run, guaranteed_dry_run, run, SyncDatabase},
     transaction::*,

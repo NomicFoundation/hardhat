@@ -1,5 +1,6 @@
 //! Functionality for mining blocks.
 
+mod ordering;
 mod result;
 
 use napi::{
@@ -12,7 +13,7 @@ use rethnet_evm::CfgEnv;
 
 use crate::{
     blockchain::Blockchain, cast::TryCast, config::ConfigOptions, mempool::MemPool,
-    state::StateManager,
+    miner::ordering::MineOrdering, state::StateManager,
 };
 
 use self::result::MineBlockResult;
@@ -28,6 +29,7 @@ pub async fn mine_block(
     timestamp: BigInt,
     beneficiary: Buffer,
     min_gas_price: BigInt,
+    mine_ordering: MineOrdering,
     reward: BigInt,
     base_fee: Option<BigInt>,
     prevrandao: Option<Buffer>,
@@ -35,6 +37,7 @@ pub async fn mine_block(
     let config = CfgEnv::try_from(config)?;
     let beneficiary = Address::from_slice(&beneficiary);
     let min_gas_price: U256 = BigInt::try_cast(min_gas_price)?;
+    let mine_ordering = mine_ordering.into();
     let timestamp: U256 = BigInt::try_cast(timestamp)?;
     let reward: U256 = BigInt::try_cast(reward)?;
     let base_fee: Option<U256> =
@@ -51,6 +54,7 @@ pub async fn mine_block(
         timestamp,
         beneficiary,
         min_gas_price,
+        mine_ordering,
         reward,
         base_fee,
         prevrandao,

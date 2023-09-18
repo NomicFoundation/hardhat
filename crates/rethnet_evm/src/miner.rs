@@ -1,4 +1,4 @@
-use std::{collections::VecDeque, fmt::Debug, sync::Arc};
+use std::{cmp::Ordering, fmt::Debug, sync::Arc};
 
 use rethnet_eth::{
     block::{BlockOptions, Header},
@@ -9,9 +9,10 @@ use revm::primitives::{CfgEnv, ExecutionResult, InvalidTransaction, SpecId};
 use crate::{
     block::BlockBuilderCreationError,
     blockchain::SyncBlockchain,
+    mempool::OrderedTransaction,
     state::SyncState,
     trace::{Trace, TraceCollector},
-    BlockBuilder, BlockTransactionError, BuildBlockResult, MemPool, SyncBlock,
+    BlockBuilder, BlockTransactionError, BuildBlockResult, MemPool, PendingTransaction, SyncBlock,
 };
 
 /// The result of mining a block.
@@ -24,6 +25,15 @@ pub struct MineBlockResult<BlockchainErrorT, StateErrorT> {
     pub transaction_results: Vec<ExecutionResult>,
     /// Transaction traces
     pub transaction_traces: Vec<Trace>,
+}
+
+/// The type of ordering to use when selecting blocks to mine.
+#[derive(Debug)]
+pub enum MineOrdering {
+    /// Insertion order
+    Fifo,
+    /// Effective miner fee
+    Priority,
 }
 
 /// An error that occurred while mining a block.
@@ -62,6 +72,7 @@ pub async fn mine_block<BlockchainErrorT, StateErrorT>(
     timestamp: U256,
     beneficiary: Address,
     min_gas_price: U256,
+    mine_ordering: MineOrdering,
     reward: U256,
     base_fee: Option<U256>,
     prevrandao: Option<B256>,
@@ -73,53 +84,88 @@ where
     BlockchainErrorT: Debug + Send + 'static,
     StateErrorT: Debug + Send + 'static,
 {
-    let mut block_builder = {
-        let parent_block = blockchain
-            .last_block()
-            .await
-            .map_err(MineBlockError::Blockchain)?;
+    let parent_block = blockchain
+        .last_block()
+        .await
+        .map_err(MineBlockError::Blockchain)?;
 
-        let parent_header = parent_block.header();
-        BlockBuilder::new(
-            cfg.clone(),
-            parent_header,
-            BlockOptions {
-                beneficiary: Some(beneficiary),
-                number: Some(parent_header.number + U256::from(1)),
-                gas_limit: Some(*mem_pool.block_gas_limit()),
-                timestamp: Some(timestamp),
-                mix_hash: if cfg.spec_id >= SpecId::MERGE {
-                    Some(prevrandao.ok_or(MineBlockError::MissingPrevrandao)?)
-                } else {
-                    None
-                },
-                nonce: Some(if cfg.spec_id >= SpecId::MERGE {
-                    B64::ZERO
-                } else {
-                    B64::from_limbs([66u64.to_be()])
-                }),
-                base_fee: if cfg.spec_id >= SpecId::LONDON {
-                    Some(base_fee.unwrap_or_else(|| calculate_next_base_fee(parent_header)))
-                } else {
-                    None
-                },
-                ..Default::default()
-            },
-        )?
+    let parent_header = parent_block.header();
+    let base_fee = if cfg.spec_id >= SpecId::LONDON {
+        Some(base_fee.unwrap_or_else(|| calculate_next_base_fee(parent_header)))
+    } else {
+        None
     };
 
-    let mut pending_transactions: VecDeque<_> = mem_pool.pending_transactions().cloned().collect();
+    let mut block_builder = BlockBuilder::new(
+        cfg.clone(),
+        parent_header,
+        BlockOptions {
+            beneficiary: Some(beneficiary),
+            number: Some(parent_header.number + U256::from(1)),
+            gas_limit: Some(*mem_pool.block_gas_limit()),
+            timestamp: Some(timestamp),
+            mix_hash: if cfg.spec_id >= SpecId::MERGE {
+                Some(prevrandao.ok_or(MineBlockError::MissingPrevrandao)?)
+            } else {
+                None
+            },
+            nonce: Some(if cfg.spec_id >= SpecId::MERGE {
+                B64::ZERO
+            } else {
+                B64::from_limbs([66u64.to_be()])
+            }),
+            base_fee,
+            ..Default::default()
+        },
+    )?;
+
+    let mut pending_transactions = {
+        type MineOrderComparator =
+            dyn Fn(&OrderedTransaction, &OrderedTransaction) -> Ordering + Send;
+
+        let comparator: Box<MineOrderComparator> = match mine_ordering {
+            MineOrdering::Fifo => Box::new(|lhs, rhs| lhs.order_id().cmp(&rhs.order_id())),
+            MineOrdering::Priority => Box::new(move |lhs, rhs| {
+                let effective_miner_fee = |transaction: &PendingTransaction| {
+                    let max_fee_per_gas = transaction.gas_price();
+                    let max_priority_fee_per_gas = transaction
+                        .max_priority_fee_per_gas()
+                        .unwrap_or(max_fee_per_gas);
+
+                    base_fee.map_or(max_fee_per_gas, |base_fee| {
+                        max_priority_fee_per_gas.min(max_fee_per_gas - base_fee)
+                    })
+                };
+
+                // Invert lhs and rhs to get decreasing order by effective miner fee
+                let ordering = effective_miner_fee(rhs.transaction())
+                    .cmp(&effective_miner_fee(lhs.transaction()));
+
+                // If two txs have the same effective miner fee we want to sort them
+                // in increasing order by orderId
+                if ordering == Ordering::Equal {
+                    lhs.order_id().cmp(&rhs.order_id())
+                } else {
+                    ordering
+                }
+            }),
+        };
+
+        mem_pool.iter(comparator)
+    };
 
     let mut results = Vec::new();
     let mut traces = Vec::new();
 
-    while let Some(transaction) = pending_transactions.pop_front() {
+    while let Some(transaction) = pending_transactions.next() {
         let mut tracer = TraceCollector::default();
 
         if transaction.gas_price() < min_gas_price {
+            pending_transactions.remove_caller(transaction.caller());
             continue;
         }
 
+        let caller = *transaction.caller();
         match block_builder.add_transaction(blockchain, &mut state, transaction, Some(&mut tracer))
         {
             Err(
@@ -127,7 +173,10 @@ where
                 | BlockTransactionError::InvalidTransaction(
                     InvalidTransaction::GasPriceLessThanBasefee,
                 ),
-            ) => continue,
+            ) => {
+                pending_transactions.remove_caller(&caller);
+                continue;
+            }
             Err(e) => {
                 return Err(MineBlockError::BlockTransaction(e));
             }

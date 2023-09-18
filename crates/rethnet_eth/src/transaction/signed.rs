@@ -90,6 +90,16 @@ impl SignedTransaction {
         U256::from(self.gas_limit()).saturating_mul(self.gas_price())
     }
 
+    /// Retrieves the max fee per gas of the transaction, if any.
+    pub fn max_priority_fee_per_gas(&self) -> Option<U256> {
+        match self {
+            SignedTransaction::PreEip155Legacy(_)
+            | SignedTransaction::PostEip155Legacy(_)
+            | SignedTransaction::Eip2930(_) => None,
+            SignedTransaction::Eip1559(tx) => Some(tx.max_priority_fee_per_gas),
+        }
+    }
+
     /// Upfront cost of the transaction
     pub fn upfront_cost(&self) -> U256 {
         self.max_cost().saturating_add(self.value())

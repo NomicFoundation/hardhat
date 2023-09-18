@@ -1,6 +1,6 @@
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import { Address } from "@nomicfoundation/ethereumjs-util";
-import { mineBlock } from "rethnet-evm";
+import { MineOrdering, mineBlock } from "rethnet-evm";
 import { BlockMinerAdapter, PartialMineBlockResult } from "../miner";
 import {
   rethnetBlockToEthereumJS,
@@ -24,6 +24,7 @@ export class RethnetMiner implements BlockMinerAdapter {
     private readonly _common: Common,
     private readonly _limitContractCodeSize: bigint | null,
     private _coinbase: Address,
+    private _mineOrdering: MineOrdering,
     private _prevRandaoGenerator: RandomBufferGenerator
   ) {}
 
@@ -46,6 +47,7 @@ export class RethnetMiner implements BlockMinerAdapter {
       blockTimestamp,
       this._coinbase.buf,
       minGasPrice,
+      this._mineOrdering,
       minerReward,
       baseFeePerGas,
       prevRandao

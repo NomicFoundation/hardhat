@@ -210,14 +210,6 @@ export class HardhatMemPool implements MemPoolAdapter {
     return txPoolPending.concat(txPoolQueued);
   }
 
-  public async getFutureTransactions(): Promise<TypedTransaction[]> {
-    return txMapToArray(this.getOrderedQueuedTransactions());
-  }
-
-  public async getPendingTransactions(): Promise<TypedTransaction[]> {
-    return txMapToArray(this.getOrderedPendingTransactions());
-  }
-
   public async hasFutureTransactions(): Promise<boolean> {
     const queuedMap = this._getQueued();
     return queuedMap.some((senderQueuedTxs) => !senderQueuedTxs.isEmpty());

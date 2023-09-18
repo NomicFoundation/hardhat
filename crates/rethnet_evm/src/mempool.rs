@@ -1,6 +1,6 @@
-use std::fmt::Debug;
+use std::{cmp::Ordering, fmt::Debug};
 
-use indexmap::IndexMap;
+use itertools::Itertools;
 use rethnet_eth::{Address, B256, U256};
 use revm::{
     db::StateRef,
@@ -8,6 +8,70 @@ use revm::{
 };
 
 use crate::PendingTransaction;
+
+pub struct PendingTransactions<ComparatorT>
+where
+    ComparatorT: Fn(&OrderedTransaction, &OrderedTransaction) -> Ordering,
+{
+    transactions: HashMap<Address, Vec<OrderedTransaction>>,
+    comparator: ComparatorT,
+}
+
+impl<ComparatorT> PendingTransactions<ComparatorT>
+where
+    ComparatorT: Fn(&OrderedTransaction, &OrderedTransaction) -> Ordering,
+{
+    pub fn remove_caller(&mut self, caller: &Address) -> Option<Vec<OrderedTransaction>> {
+        self.transactions.remove(caller)
+    }
+}
+
+impl<ComparatorT> Debug for PendingTransactions<ComparatorT>
+where
+    ComparatorT: Fn(&OrderedTransaction, &OrderedTransaction) -> Ordering,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("PendingTransactions")
+            .field("transactions", &self.transactions)
+            .finish()
+    }
+}
+
+impl<ComparatorT> Iterator for PendingTransactions<ComparatorT>
+where
+    ComparatorT: Fn(&OrderedTransaction, &OrderedTransaction) -> Ordering,
+{
+    type Item = PendingTransaction;
+
+    fn next(&mut self) -> Option<PendingTransaction> {
+        let (to_be_removed, next) = self
+            .transactions
+            .iter_mut()
+            .min_by(|lhs, rhs| {
+                (self.comparator)(
+                    lhs.1.first().expect("Empty queues should be removed"),
+                    rhs.1.first().expect("Empty queues should be removed"),
+                )
+            })
+            .map_or((None, None), |(caller, transactions)| {
+                let transaction = transactions.remove(0).transaction;
+
+                let to_be_removed = if transactions.is_empty() {
+                    Some(*caller)
+                } else {
+                    None
+                };
+
+                (to_be_removed, Some(transaction))
+            });
+
+        if let Some(caller) = &to_be_removed {
+            self.transactions.remove(caller);
+        }
+
+        next
+    }
+}
 
 #[derive(Debug, thiserror::Error)]
 pub enum MinerTransactionError<SE> {
@@ -22,17 +86,49 @@ pub enum MinerTransactionError<SE> {
     State(#[from] SE),
 }
 
+/// A pending transaction with an order ID.
+#[derive(Clone, Debug)]
+pub struct OrderedTransaction {
+    order_id: usize,
+    transaction: PendingTransaction,
+}
+
+impl OrderedTransaction {
+    /// Retrieves the order ID of the pending transaction.
+    pub fn order_id(&self) -> usize {
+        self.order_id
+    }
+
+    /// Retrieves the pending transaction.
+    pub fn transaction(&self) -> &PendingTransaction {
+        &self.transaction
+    }
+
+    fn caller(&self) -> &Address {
+        self.transaction.caller()
+    }
+
+    fn hash(&self) -> &B256 {
+        self.transaction.hash()
+    }
+
+    fn nonce(&self) -> u64 {
+        self.transaction.nonce()
+    }
+}
+
 /// The mempool contains transactions pending inclusion in the blockchain.
 #[derive(Clone, Debug)]
 pub struct MemPool {
     /// The block's gas limit
     block_gas_limit: U256,
     /// Transactions that can be executed now
-    pending_transactions: IndexMap<Address, Vec<PendingTransaction>>,
+    pending_transactions: HashMap<Address, Vec<OrderedTransaction>>,
     /// Mapping of transaction hashes to transaction
-    hash_to_transaction: HashMap<B256, PendingTransaction>,
+    hash_to_transaction: HashMap<B256, OrderedTransaction>,
     /// Transactions that can be executed in the future, once the nonce is high enough
-    future_transactions: IndexMap<Address, Vec<PendingTransaction>>,
+    future_transactions: HashMap<Address, Vec<OrderedTransaction>>,
+    next_order_id: usize,
 }
 
 impl MemPool {
@@ -40,9 +136,10 @@ impl MemPool {
     pub fn new(block_gas_limit: U256) -> Self {
         Self {
             block_gas_limit,
-            pending_transactions: IndexMap::new(),
+            pending_transactions: HashMap::new(),
             hash_to_transaction: HashMap::new(),
-            future_transactions: IndexMap::new(),
+            future_transactions: HashMap::new(),
+            next_order_id: 0,
         }
     }
 
@@ -56,6 +153,17 @@ impl MemPool {
         self.block_gas_limit = limit;
     }
 
+    /// Creates an iterator for all pending transactions; i.e. for which the nonces are guaranteed to be high enough.
+    pub fn iter<ComparatorT>(&self, comparator: ComparatorT) -> PendingTransactions<ComparatorT>
+    where
+        ComparatorT: Fn(&OrderedTransaction, &OrderedTransaction) -> Ordering,
+    {
+        PendingTransactions {
+            transactions: self.pending_transactions.clone(),
+            comparator,
+        }
+    }
+
     /// Retrieves the nonce of the last pending transaction of the account corresponding to the specified address, if it exists.
     pub fn last_pending_nonce(&self, address: &Address) -> Option<u64> {
         self.pending_transactions.get(address).map(|transactions| {
@@ -64,6 +172,24 @@ impl MemPool {
                 .expect("Empty maps should be deleted")
                 .nonce()
         })
+    }
+
+    /// Retrieves an iterator for all transactions in the instance, ordering them by insertion order.
+    pub fn transactions(&self) -> impl Iterator<Item = &PendingTransaction> {
+        self.hash_to_transaction
+            .values()
+            .sorted_by(|lhs, rhs| lhs.order_id.cmp(&rhs.order_id))
+            .map(OrderedTransaction::transaction)
+    }
+
+    /// Whether the instance has any future transactions; i.e. for which the nonces are not high enough.
+    pub fn has_future_transactions(&self) -> bool {
+        !self.future_transactions.is_empty()
+    }
+
+    /// Whether the instance has any pending transactions; i.e. for which the nonces are guaranteed to be high enough.
+    pub fn has_pending_transactions(&self) -> bool {
+        !self.pending_transactions.is_empty()
     }
 
     /// Tries to add the provided transaction to the [`MemPool`].
@@ -89,10 +215,17 @@ impl MemPool {
             |nonce| Ok(nonce + 1),
         )?;
 
-        if transaction.nonce() <= next_nonce {
-            self.insert_pending_transaction(transaction.clone());
-        } else {
+        let transaction = OrderedTransaction {
+            order_id: self.next_order_id,
+            transaction,
+        };
+
+        self.next_order_id += 1;
+
+        if transaction.nonce() > next_nonce {
             self.insert_queued_transaction(transaction.clone());
+        } else {
+            self.insert_pending_transaction(transaction.clone());
         }
 
         self.hash_to_transaction
@@ -102,7 +235,7 @@ impl MemPool {
     }
 
     /// Removes the transaction corresponding to the provided transaction hash, if it exists.
-    pub fn remove_transaction(&mut self, hash: &B256) -> Option<PendingTransaction> {
+    pub fn remove_transaction(&mut self, hash: &B256) -> Option<OrderedTransaction> {
         if let Some(old_transaction) = self.hash_to_transaction.remove(hash) {
             let caller = old_transaction.caller();
             if let Some(pending_transactions) = self.pending_transactions.get_mut(caller) {
@@ -169,11 +302,9 @@ impl MemPool {
                 should_retain
             });
 
-            if let Some((idx, _)) = transactions
-                .iter()
-                .enumerate()
-                .find(|(_, transaction)| !is_valid_tx(transaction, &self.block_gas_limit, &sender))
-            {
+            if let Some((idx, _)) = transactions.iter().enumerate().find(|(_, transaction)| {
+                !is_valid_tx(&transaction.transaction, &self.block_gas_limit, &sender)
+            }) {
                 // Move all consequent transactions to the future queue
                 let mut invalidated_transactions = transactions.split_off(idx);
 
@@ -192,8 +323,9 @@ impl MemPool {
             let (caller, transactions) = entry;
             let sender = state.basic(*caller)?.unwrap_or_default();
 
-            transactions
-                .retain(|transaction| is_valid_tx(transaction, &self.block_gas_limit, &sender));
+            transactions.retain(|transaction| {
+                is_valid_tx(&transaction.transaction, &self.block_gas_limit, &sender)
+            });
         }
 
         // Remove empty future entries
@@ -203,22 +335,12 @@ impl MemPool {
         Ok(())
     }
 
-    /// Returns all pending transactions, for which the nonces are too high.
-    pub fn future_transactions(&self) -> impl Iterator<Item = &PendingTransaction> {
-        self.future_transactions.values().flatten()
-    }
-
-    /// Returns all pending transactions, for which the nonces are guaranteed to be high enough.
-    pub fn pending_transactions(&self) -> impl Iterator<Item = &PendingTransaction> {
-        self.pending_transactions.values().flatten()
-    }
-
     /// Returns the transaction corresponding to the provided hash, if it exists.
-    pub fn transaction_by_hash(&self, hash: &B256) -> Option<&PendingTransaction> {
+    pub fn transaction_by_hash(&self, hash: &B256) -> Option<&OrderedTransaction> {
         self.hash_to_transaction.get(hash)
     }
 
-    fn insert_pending_transaction(&mut self, transaction: PendingTransaction) {
+    fn insert_pending_transaction(&mut self, transaction: OrderedTransaction) {
         let pending_transactions = self
             .pending_transactions
             .entry(*transaction.caller())
@@ -257,7 +379,7 @@ impl MemPool {
         }
     }
 
-    fn insert_queued_transaction(&mut self, transaction: PendingTransaction) {
+    fn insert_queued_transaction(&mut self, transaction: OrderedTransaction) {
         let future_transactions = self
             .future_transactions
             .entry(*transaction.caller())

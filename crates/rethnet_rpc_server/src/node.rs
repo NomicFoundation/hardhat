@@ -14,7 +14,7 @@ use rethnet_evm::{
     AccountInfo, CfgEnv, MemPool, MineBlockError, MineBlockResult, RandomHashGenerator,
     KECCAK_EMPTY,
 };
-use rethnet_evm::{Block, Bytecode, SyncBlock};
+use rethnet_evm::{Block, Bytecode, MineOrdering, SyncBlock};
 
 use tokio::sync::Mutex;
 
@@ -299,6 +299,8 @@ impl NodeData {
             block_timestamp,
             self.beneficiary,
             self.min_gas_price,
+            // TODO: make this configurable
+            MineOrdering::Fifo,
             reward,
             base_fee,
             prevrandao,

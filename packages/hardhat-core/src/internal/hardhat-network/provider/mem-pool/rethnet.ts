@@ -80,34 +80,8 @@ export class RethnetMemPool implements MemPoolAdapter {
     return Array.from(
       transactions.map((tx) =>
         rethnetSignedTransactionToEthereumJSTypedTransaction(
-          tx.transaction(),
-          new Address(tx.caller())
-        )
-      )
-    );
-  }
-
-  public async getFutureTransactions(): Promise<TypedTransaction[]> {
-    const transactions = await this._memPool.futureTransactions();
-
-    return Array.from(
-      transactions.map((tx) =>
-        rethnetSignedTransactionToEthereumJSTypedTransaction(
-          tx.transaction(),
-          new Address(tx.caller())
-        )
-      )
-    );
-  }
-
-  public async getPendingTransactions(): Promise<TypedTransaction[]> {
-    const transactions = await this._memPool.pendingTransactions();
-
-    return Array.from(
-      transactions.map((tx) =>
-        rethnetSignedTransactionToEthereumJSTypedTransaction(
-          tx.transaction(),
-          new Address(tx.caller())
+          tx.transaction,
+          new Address(tx.caller)
         )
       )
     );
@@ -119,8 +93,8 @@ export class RethnetMemPool implements MemPoolAdapter {
     const transaction = await this._memPool.transactionByHash(hash);
     if (transaction !== null) {
       return rethnetSignedTransactionToEthereumJSTypedTransaction(
-        transaction.transaction(),
-        new Address(transaction.caller())
+        transaction.transaction.transaction,
+        new Address(transaction.transaction.caller)
       );
     }
 

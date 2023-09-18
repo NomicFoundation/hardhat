@@ -11,6 +11,7 @@ import { RethnetAdapter } from "../vm/rethnet";
 import { NodeConfig, isForkedNodeConfig } from "../node-types";
 import {
   ethereumjsHeaderDataToRethnetBlockOptions,
+  ethereumjsMempoolOrderToRethnetMineOrdering,
   ethereumsjsHardforkToRethnetSpecId,
 } from "../utils/convertToRethnet";
 import {
@@ -137,6 +138,7 @@ export class RethnetEthContext implements EthContextAdapter {
       common,
       limitContractCodeSize,
       Address.fromString(config.coinbase),
+      ethereumjsMempoolOrderToRethnetMineOrdering(config.mempoolOrder),
       prevRandaoGenerator
     );
 

@@ -8,7 +8,11 @@ use napi::{
 use napi_derive::napi;
 use rethnet_eth::{Address, B256, U256};
 
-use crate::{cast::TryCast, state::StateManager, transaction::PendingTransaction};
+use crate::{
+    cast::TryCast,
+    state::StateManager,
+    transaction::{OrderedTransaction, PendingTransaction},
+};
 
 /// The mempool contains transactions pending inclusion in the blockchain.
 #[napi]
@@ -118,30 +122,7 @@ impl MemPool {
         let mempool = self.read().await;
 
         mempool
-            .pending_transactions()
-            .chain(mempool.future_transactions())
-            .cloned()
-            .map(PendingTransaction::from)
-            .collect()
-    }
-
-    #[doc = "Returns all future transactions, for which the nonces are too high."]
-    #[napi]
-    pub async fn future_transactions(&self) -> Vec<PendingTransaction> {
-        self.read()
-            .await
-            .future_transactions()
-            .cloned()
-            .map(PendingTransaction::from)
-            .collect()
-    }
-
-    #[doc = "Returns all pending transactions, for which the nonces are guaranteed to be high enough."]
-    #[napi]
-    pub async fn pending_transactions(&self) -> Vec<PendingTransaction> {
-        self.read()
-            .await
-            .pending_transactions()
+            .transactions()
             .cloned()
             .map(PendingTransaction::from)
             .collect()
@@ -150,24 +131,24 @@ impl MemPool {
     #[doc = "Returns whether the [`MemPool`] contains any future transactions."]
     #[napi]
     pub async fn has_future_transactions(&self) -> bool {
-        self.read().await.future_transactions().next().is_some()
+        self.read().await.has_future_transactions()
     }
 
     #[doc = "Returns whether the [`MemPool`] contains any pending transactions."]
     #[napi]
     pub async fn has_pending_transactions(&self) -> bool {
-        self.read().await.pending_transactions().next().is_some()
+        self.read().await.has_pending_transactions()
     }
 
     #[doc = "Returns the transaction corresponding to the provided hash, if it exists."]
     #[napi]
-    pub async fn transaction_by_hash(&self, hash: Buffer) -> Option<PendingTransaction> {
+    pub async fn transaction_by_hash(&self, hash: Buffer) -> Option<OrderedTransaction> {
         let hash = B256::from_slice(&hash);
 
         self.read()
             .await
             .transaction_by_hash(&hash)
             .cloned()
-            .map(PendingTransaction::from)
+            .map(OrderedTransaction::from)
     }
 }
