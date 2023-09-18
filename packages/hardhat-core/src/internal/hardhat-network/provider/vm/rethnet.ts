@@ -41,7 +41,7 @@ import { RethnetBlockBuilder } from "./block-builder/rethnet";
 
 export class RethnetAdapter implements VMAdapter {
   private _vmTracer: VMTracer;
-  private _stateRootToSnapshot: Map<Buffer, StateManager> = new Map();
+  private _stateRootToState: Map<Buffer, StateManager> = new Map();
 
   constructor(
     private _blockchain: Blockchain,
@@ -180,7 +180,7 @@ export class RethnetAdapter implements VMAdapter {
         ? undefined
         : await this._state.getContractCode(address);
 
-    return this._state.modifyAccount(
+    await this._state.modifyAccount(
       address,
       async function (
         balance: bigint,
@@ -204,6 +204,11 @@ export class RethnetAdapter implements VMAdapter {
         };
       }
     );
+
+    this._stateRootToState.set(
+      await this.getStateRoot(),
+      await this._state.asInner().deepClone()
+    );
   }
 
   /**
@@ -211,7 +216,7 @@ export class RethnetAdapter implements VMAdapter {
    */
   public async putContractCode(address: Address, value: Buffer): Promise<void> {
     const codeHash = keccak256(value);
-    return this._state.modifyAccount(
+    await this._state.modifyAccount(
       address,
       async function (
         balance: bigint,
@@ -235,6 +240,11 @@ export class RethnetAdapter implements VMAdapter {
         };
       }
     );
+
+    this._stateRootToState.set(
+      await this.getStateRoot(),
+      await this._state.asInner().deepClone()
+    );
   }
 
   /**
@@ -246,6 +256,11 @@ export class RethnetAdapter implements VMAdapter {
     value: Buffer
   ): Promise<void> {
     await this._state.putContractStorage(address, key, value);
+
+    this._stateRootToState.set(
+      await this.getStateRoot(),
+      await this._state.asInner().deepClone()
+    );
   }
 
   /**
@@ -264,16 +279,16 @@ export class RethnetAdapter implements VMAdapter {
     irregularStateOrUndefined: Buffer | undefined
   ): Promise<void> {
     if (irregularStateOrUndefined !== undefined) {
-      const state = this._stateRootToSnapshot.get(irregularStateOrUndefined);
+      const state = this._stateRootToState.get(irregularStateOrUndefined);
       if (state === undefined) {
         throw new Error("Unknown state root");
       }
-      this._state.setInner(state);
+      this._state.setInner(await state.deepClone());
+    } else {
+      this._state.setInner(
+        await this._blockchain.stateAtBlock(block.header.number)
+      );
     }
-
-    this._state.setInner(
-      await this._blockchain.stateAtBlock(block.header.number)
-    );
   }
 
   /**
@@ -282,7 +297,7 @@ export class RethnetAdapter implements VMAdapter {
    * Throw if it can't.
    */
   public async restoreContext(stateRoot: Buffer): Promise<void> {
-    const state = this._stateRootToSnapshot.get(stateRoot);
+    const state = this._stateRootToState.get(stateRoot);
     if (state === undefined) {
       throw new Error("Unknown state root");
     }
@@ -356,14 +371,17 @@ export class RethnetAdapter implements VMAdapter {
   }
 
   public async makeSnapshot(): Promise<Buffer> {
-    const stateRoot = await this._state.getStateRoot();
-    this._stateRootToSnapshot.set(stateRoot, this._state.asInner());
+    const stateRoot = await this.getStateRoot();
+    this._stateRootToState.set(
+      stateRoot,
+      await this._state.asInner().deepClone()
+    );
 
     return stateRoot;
   }
 
   public async removeSnapshot(stateRoot: Buffer): Promise<void> {
-    this._stateRootToSnapshot.delete(stateRoot);
+    this._stateRootToState.delete(stateRoot);
   }
 
   public getLastTraceAndClear(): {
