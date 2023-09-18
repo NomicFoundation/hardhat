@@ -19,18 +19,11 @@ export type TestClientMode = Parameters<
   typeof viemTypes.createTestClient
 >[0]["mode"];
 
-export type DeployContractParameters = Omit<
-  viemTypes.DeployContractParameters<
-    viemTypes.Abi,
-    viemTypes.Chain,
-    viemTypes.Account
-  >,
-  "abi" | "bytecode" | "args"
->;
-
-export type DeployContractConfig = DeployContractParameters & {
+export interface DeployContractConfig {
   walletClient?: WalletClient;
-};
+  gas?: bigint | undefined;
+  value?: bigint | undefined;
+}
 
 export interface GetContractAtConfig {
   walletClient?: WalletClient;
