@@ -2,15 +2,15 @@ import type {
   EthereumProvider,
   HardhatRuntimeEnvironment,
 } from "hardhat/types";
-import type { Abi, Address, Hex } from "viem";
 import type {
   DeployContractConfig,
-  DeployContractParameters,
   GetContractAtConfig,
   GetContractReturnType,
   PublicClient,
   WalletClient,
 } from "./types";
+
+import { Abi, Address, Hex } from "viem";
 
 import { getPublicClient, getWalletClients } from "./clients";
 import {
@@ -48,13 +48,13 @@ async function innerDeployContract(
   contractAbi: Abi,
   contractBytecode: Hex,
   constructorArgs: any[],
-  deployContractParameters: DeployContractParameters = {}
+  deployContractParameters: DeployContractConfig = {}
 ): Promise<GetContractReturnType> {
   const deploymentTxHash = await walletClient.deployContract({
     abi: contractAbi,
     bytecode: contractBytecode,
     args: constructorArgs,
-    // ...deployContractParameters,
+    ...deployContractParameters,
   });
 
   const { contractAddress } = await publicClient.waitForTransactionReceipt({
