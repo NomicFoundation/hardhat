@@ -799,14 +799,14 @@ describe("static call", () => {
           (v) => v.type === FutureType.STATIC_CALL
         );
 
-        await assert.isRejected(
-          validateNamedStaticCall(
+        assert.includeMembers(
+          await validateNamedStaticCall(
             future as any,
             setupMockArtifactResolver({ Another: fakeArtifact }),
             {},
             []
           ),
-          /Module parameter 'p' requires a value but was given none/
+          ["Module parameter 'p' requires a value but was given none"]
         );
       });
 
@@ -876,14 +876,14 @@ describe("static call", () => {
           (v) => v.type === FutureType.STATIC_CALL
         );
 
-        await assert.isRejected(
-          validateNamedStaticCall(
+        assert.includeMembers(
+          await validateNamedStaticCall(
             future as any,
             setupMockArtifactResolver({ Another: fakeArtifact }),
             {},
             []
           ),
-          /Module parameter 'p' requires a value but was given none/
+          ["Module parameter 'p' requires a value but was given none"]
         );
       });
 
@@ -967,14 +967,14 @@ describe("static call", () => {
           (v) => v.type === FutureType.STATIC_CALL
         );
 
-        await assert.isRejected(
-          validateNamedStaticCall(
+        assert.includeMembers(
+          await validateNamedStaticCall(
             future as any,
             setupMockArtifactResolver(),
             {},
             []
           ),
-          /Account index cannot be a negative number/
+          ["Account index cannot be a negative number"]
         );
       });
 
@@ -1012,14 +1012,16 @@ describe("static call", () => {
           (v) => v.type === FutureType.STATIC_CALL
         );
 
-        await assert.isRejected(
-          validateNamedStaticCall(
+        assert.includeMembers(
+          await validateNamedStaticCall(
             future as any,
             setupMockArtifactResolver(),
             {},
             []
           ),
-          /Requested account index \'1\' is greater than the total number of available accounts \'0\'/
+          [
+            "Requested account index '1' is greater than the total number of available accounts '0'",
+          ]
         );
       });
     });

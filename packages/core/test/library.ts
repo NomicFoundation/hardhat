@@ -285,14 +285,14 @@ describe("library", () => {
 
         const [future] = getFuturesFromModule(module);
 
-        await assert.isRejected(
-          validateNamedLibraryDeployment(
+        assert.includeMembers(
+          await validateNamedLibraryDeployment(
             future as any,
             setupMockArtifactResolver({ Another: {} as any }),
             {},
             []
           ),
-          /Account index cannot be a negative number/
+          ["Account index cannot be a negative number"]
         );
       });
 
@@ -306,14 +306,16 @@ describe("library", () => {
 
         const [future] = getFuturesFromModule(module);
 
-        await assert.isRejected(
-          validateNamedLibraryDeployment(
+        assert.includeMembers(
+          await validateNamedLibraryDeployment(
             future as any,
             setupMockArtifactResolver({ Another: {} as any }),
             {},
             []
           ),
-          /Requested account index \'1\' is greater than the total number of available accounts \'0\'/
+          [
+            "Requested account index '1' is greater than the total number of available accounts '0'",
+          ]
         );
       });
     });

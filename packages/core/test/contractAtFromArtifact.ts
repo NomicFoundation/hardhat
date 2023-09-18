@@ -239,8 +239,8 @@ describe("contractAtFromArtifact", () => {
           (v) => v.type === FutureType.CONTRACT_AT
         );
 
-        await assert.isRejected(
-          validateArtifactContractAt(
+        assert.includeMembers(
+          await validateArtifactContractAt(
             future as any,
             setupMockArtifactResolver({
               Another: fakeArtifact,
@@ -248,7 +248,7 @@ describe("contractAtFromArtifact", () => {
             {},
             []
           ),
-          /Module parameter 'p' requires a value but was given none/
+          ["Module parameter 'p' requires a value but was given none"]
         );
       });
 
@@ -288,8 +288,8 @@ describe("contractAtFromArtifact", () => {
           (v) => v.type === FutureType.CONTRACT_AT
         );
 
-        await assert.isRejected(
-          validateArtifactContractAt(
+        assert.includeMembers(
+          await validateArtifactContractAt(
             future as any,
             setupMockArtifactResolver({
               Another: fakeArtifact,
@@ -297,7 +297,7 @@ describe("contractAtFromArtifact", () => {
             {},
             []
           ),
-          /Module parameter 'p' must be of type 'string' but is 'number'/
+          ["Module parameter 'p' must be of type 'string' but is 'number'"]
         );
       });
     });

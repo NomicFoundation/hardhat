@@ -668,14 +668,14 @@ describe("call", () => {
           (v) => v.type === FutureType.CONTRACT_CALL
         );
 
-        await assert.isRejected(
-          validateNamedContractCall(
+        assert.includeMembers(
+          await validateNamedContractCall(
             future as any,
             setupMockArtifactResolver({ Another: fakeArtifact }),
             {},
             []
           ),
-          /Module parameter 'p' requires a value but was given none/
+          ["Module parameter 'p' requires a value but was given none"]
         );
       });
 
@@ -700,14 +700,14 @@ describe("call", () => {
           (v) => v.type === FutureType.CONTRACT_CALL
         );
 
-        await assert.isRejected(
-          validateNamedContractCall(
+        assert.includeMembers(
+          await validateNamedContractCall(
             future as any,
             setupMockArtifactResolver({ Another: fakeArtifact }),
             {},
             []
           ),
-          /Module parameter 'p' must be of type 'bigint' but is 'boolean'/
+          ["Module parameter 'p' must be of type 'bigint' but is 'boolean'"]
         );
       });
 
@@ -818,14 +818,14 @@ describe("call", () => {
           (v) => v.type === FutureType.CONTRACT_CALL
         );
 
-        await assert.isRejected(
-          validateNamedContractCall(
+        assert.includeMembers(
+          await validateNamedContractCall(
             future as any,
             setupMockArtifactResolver({ Another: fakeArtifact }),
             {},
             []
           ),
-          /Module parameter 'p' requires a value but was given none/
+          ["Module parameter 'p' requires a value but was given none"]
         );
       });
 
@@ -910,14 +910,14 @@ describe("call", () => {
           (v) => v.type === FutureType.CONTRACT_CALL
         );
 
-        await assert.isRejected(
-          validateNamedContractCall(
+        assert.includeMembers(
+          await validateNamedContractCall(
             future as any,
             setupMockArtifactResolver(),
             {},
             []
           ),
-          /Account index cannot be a negative number/
+          ["Account index cannot be a negative number"]
         );
       });
 
@@ -955,14 +955,16 @@ describe("call", () => {
           (v) => v.type === FutureType.CONTRACT_CALL
         );
 
-        await assert.isRejected(
-          validateNamedContractCall(
+        assert.includeMembers(
+          await validateNamedContractCall(
             future as any,
             setupMockArtifactResolver(),
             {},
             []
           ),
-          /Requested account index \'1\' is greater than the total number of available accounts \'0\'/
+          [
+            "Requested account index '1' is greater than the total number of available accounts '0'",
+          ]
         );
       });
     });

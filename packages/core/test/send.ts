@@ -337,9 +337,14 @@ describe("send", () => {
           (v) => v.type === FutureType.SEND_DATA
         );
 
-        await assert.isRejected(
-          validateSendData(future as any, setupMockArtifactResolver(), {}, []),
-          /Module parameter 'p' requires a value but was given none/
+        assert.includeMembers(
+          await validateSendData(
+            future as any,
+            setupMockArtifactResolver(),
+            {},
+            []
+          ),
+          ["Module parameter 'p' requires a value but was given none"]
         );
       });
 
@@ -372,9 +377,14 @@ describe("send", () => {
           (v) => v.type === FutureType.SEND_DATA
         );
 
-        await assert.isRejected(
-          validateSendData(future as any, setupMockArtifactResolver(), {}, []),
-          /Module parameter 'p' must be of type 'bigint' but is 'boolean'/
+        assert.includeMembers(
+          await validateSendData(
+            future as any,
+            setupMockArtifactResolver(),
+            {},
+            []
+          ),
+          ["Module parameter 'p' must be of type 'bigint' but is 'boolean'"]
         );
       });
 
@@ -407,9 +417,14 @@ describe("send", () => {
           (v) => v.type === FutureType.SEND_DATA
         );
 
-        await assert.isRejected(
-          validateSendData(future as any, setupMockArtifactResolver(), {}, []),
-          /Account index cannot be a negative number/
+        assert.includeMembers(
+          await validateSendData(
+            future as any,
+            setupMockArtifactResolver(),
+            {},
+            []
+          ),
+          ["Account index cannot be a negative number"]
         );
       });
 
@@ -425,9 +440,16 @@ describe("send", () => {
           (v) => v.type === FutureType.SEND_DATA
         );
 
-        await assert.isRejected(
-          validateSendData(future as any, setupMockArtifactResolver(), {}, []),
-          /Requested account index \'1\' is greater than the total number of available accounts \'0\'/
+        assert.includeMembers(
+          await validateSendData(
+            future as any,
+            setupMockArtifactResolver(),
+            {},
+            []
+          ),
+          [
+            "Requested account index '1' is greater than the total number of available accounts '0'",
+          ]
         );
       });
     });
