@@ -26,14 +26,14 @@ export class HardhatBlockchain
   }
 
   public async addBlock(block: Block): Promise<Block> {
-    this._validateBlock(block);
+    await this._validateBlock(block);
     const totalDifficulty = await this._computeTotalDifficulty(block);
     this._data.addBlock(block, totalDifficulty);
     this._length += 1n;
     return block;
   }
 
-  public async reserveBlocks(count: bigint, interval: bigint) {
+  public async reserveBlocks(count: bigint, interval: bigint): Promise<void> {
     await super.reserveBlocks(count, interval);
     this._length += count;
   }
@@ -57,7 +57,7 @@ export class HardhatBlockchain
   }
 
   public async getBlockByNumber(number: bigint): Promise<Block | undefined> {
-    return this._data.getBlockByNumber(number);
+    return this.getBlock(number);
   }
 
   public async getBlockByTransactionHash(
@@ -83,15 +83,14 @@ export class HardhatBlockchain
   }
 
   public async revertToBlock(blockNumber: bigint): Promise<void> {
-    const block = this._data.getBlockByNumber(blockNumber);
-    if (block === undefined) {
+    if (blockNumber >= BigInt(this._length)) {
       throw new Error("Invalid block");
     }
 
     await this._delBlock(blockNumber + 1n);
   }
 
-  private _validateBlock(block: Block) {
+  private async _validateBlock(block: Block): Promise<void> {
     const blockNumber = block.header.number;
     const parentHash = block.header.parentHash;
     const parent = this._data.getBlockByNumber(BigInt(blockNumber - 1n));
