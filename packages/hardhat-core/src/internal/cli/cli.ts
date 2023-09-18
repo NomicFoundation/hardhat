@@ -170,6 +170,8 @@ async function main() {
         hardhatArguments.config === undefined &&
         !isCwdInsideProject()
       ) {
+        await createNewProject();
+
         // Warning for Hardhat V3 deprecation
         console.warn(
           chalk.yellow.bold("\n\nDEPRECATION WARNING\n\n"),
@@ -185,7 +187,7 @@ async function main() {
           )
         );
 
-        return await createNewProject();
+        return;
       }
     }
     // #INIT-DEP - END OF DEPRECATED CODE
