@@ -9,6 +9,7 @@ import {
 } from "../utils/convertToRethnet";
 import { HardforkName } from "../../../util/hardforks";
 import { RethnetStateManager } from "../RethnetState";
+import { InvalidInputError } from "../../../core/providers/errors";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
@@ -53,17 +54,21 @@ export class RethnetMemPool implements MemPoolAdapter {
 
     const specId = ethereumsjsHardforkToRethnetSpecId(this._hardfork);
 
-    const pendingTransaction = await PendingTransaction.create(
-      this._stateManager.asInner(),
-      specId,
-      rethnetTx,
-      caller
-    );
+    try {
+      const pendingTransaction = await PendingTransaction.create(
+        this._stateManager.asInner(),
+        specId,
+        rethnetTx,
+        caller
+      );
 
-    return this._memPool.addTransaction(
-      this._stateManager.asInner(),
-      pendingTransaction
-    );
+      await this._memPool.addTransaction(
+        this._stateManager.asInner(),
+        pendingTransaction
+      );
+    } catch (e: any) {
+      throw new InvalidInputError(e.toString());
+    }
   }
 
   public async removeTransaction(hash: Buffer): Promise<boolean> {
