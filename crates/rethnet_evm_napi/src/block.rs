@@ -46,9 +46,7 @@ impl TryFrom<BlockConfig> for BlockEnv {
         let difficulty = value
             .difficulty
             .map_or_else(|| Ok(default.difficulty), TryCast::try_cast)?;
-        let prevrandao = value
-            .mix_hash
-            .map(|prevrandao| B256::from_slice(&prevrandao));
+        let prevrandao = value.mix_hash.map(TryCast::<B256>::try_cast).transpose()?;
         let timestamp = value
             .timestamp
             .map_or(Ok(default.timestamp), BigInt::try_cast)?;
@@ -109,16 +107,19 @@ impl TryFrom<BlockOptions> for rethnet_eth::block::BlockOptions {
         Ok(Self {
             parent_hash: value
                 .parent_hash
-                .map(|parent_hash| B256::from_slice(&parent_hash)),
+                .map(TryCast::<B256>::try_cast)
+                .transpose()?,
             beneficiary: value
                 .beneficiary
                 .map(|coinbase| Address::from_slice(&coinbase)),
             state_root: value
                 .state_root
-                .map(|state_root| B256::from_slice(&state_root)),
+                .map(TryCast::<B256>::try_cast)
+                .transpose()?,
             receipts_root: value
                 .receipts_root
-                .map(|receipts_root| B256::from_slice(&receipts_root)),
+                .map(TryCast::<B256>::try_cast)
+                .transpose()?,
             logs_bloom: value
                 .logs_bloom
                 .map(|logs_bloom| Bloom::from_slice(&logs_bloom)),
@@ -137,7 +138,7 @@ impl TryFrom<BlockOptions> for rethnet_eth::block::BlockOptions {
             extra_data: value
                 .extra_data
                 .map(|extra_data| Bytes::copy_from_slice(&extra_data)),
-            mix_hash: value.mix_hash.map(|mix_hash| B256::from_slice(&mix_hash)),
+            mix_hash: value.mix_hash.map(TryCast::<B256>::try_cast).transpose()?,
             nonce: value.nonce.map_or(Ok(None), |nonce| {
                 B64::try_from_le_slice(&nonce)
                     .ok_or_else(|| {
@@ -239,12 +240,12 @@ impl TryFrom<BlockHeader> for rethnet_eth::block::Header {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn try_from(value: BlockHeader) -> Result<Self, Self::Error> {
         Ok(Self {
-            parent_hash: B256::from_slice(&value.parent_hash),
-            ommers_hash: B256::from_slice(&value.ommers_hash),
+            parent_hash: TryCast::<B256>::try_cast(value.parent_hash)?,
+            ommers_hash: TryCast::<B256>::try_cast(value.ommers_hash)?,
             beneficiary: Address::from_slice(&value.beneficiary),
-            state_root: B256::from_slice(&value.state_root),
-            transactions_root: B256::from_slice(&value.transactions_root),
-            receipts_root: B256::from_slice(&value.receipts_root),
+            state_root: TryCast::<B256>::try_cast(value.state_root)?,
+            transactions_root: TryCast::<B256>::try_cast(value.transactions_root)?,
+            receipts_root: TryCast::<B256>::try_cast(value.receipts_root)?,
             logs_bloom: Bloom::from_slice(&value.logs_bloom),
             difficulty: value.difficulty.try_cast()?,
             number: value.number.try_cast()?,
@@ -252,7 +253,7 @@ impl TryFrom<BlockHeader> for rethnet_eth::block::Header {
             gas_used: value.gas_used.try_cast()?,
             timestamp: value.timestamp.try_cast()?,
             extra_data: Bytes::copy_from_slice(value.extra_data.into_value()?.as_ref()),
-            mix_hash: B256::from_slice(&value.mix_hash),
+            mix_hash: TryCast::<B256>::try_cast(value.mix_hash)?,
             nonce: B64::try_from_le_slice(&value.nonce).ok_or_else(|| {
                 napi::Error::new(
                     Status::InvalidArg,
@@ -262,7 +263,10 @@ impl TryFrom<BlockHeader> for rethnet_eth::block::Header {
             base_fee_per_gas: value
                 .base_fee_per_gas
                 .map_or(Ok(None), |fee| fee.try_cast().map(Some))?,
-            withdrawals_root: value.withdrawals_root.map(|root| B256::from_slice(&root)),
+            withdrawals_root: value
+                .withdrawals_root
+                .map(TryCast::<B256>::try_cast)
+                .transpose()?,
         })
     }
 }

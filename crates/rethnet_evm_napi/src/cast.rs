@@ -19,6 +19,12 @@ impl TryCast<B256> for Buffer {
     type Error = napi::Error;
 
     fn try_cast(self) -> std::result::Result<B256, Self::Error> {
+        if self.len() != 32 {
+            return Err(napi::Error::new(
+                Status::InvalidArg,
+                "Buffer was expected to be 32 bytes.".to_string(),
+            ));
+        }
         Ok(B256::from_slice(&self))
     }
 }
