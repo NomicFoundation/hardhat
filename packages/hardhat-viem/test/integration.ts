@@ -1,5 +1,5 @@
 import { assert, expect } from "chai";
-import { parseEther } from "viem";
+import { getAddress, parseEther } from "viem";
 
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { useEnvironment } from "./helpers";
@@ -85,11 +85,76 @@ describe("Integration tests", function () {
 
     describe("deployContract", function () {
       it("should be able to deploy a contract without constructor args", async function () {
-        const contract = await this.hre.viem.deployContract("SimpleContract");
+        const contract = await this.hre.viem.deployContract(
+          "WithoutConstructorArgs"
+        );
 
-        await contract.write.setData([50n]);
+        await contract.write.setData([50]);
         const data = await contract.read.getData();
-        assert.equal(data, 50n);
+        assert.equal(data, 50);
+      });
+
+      it("should be able to deploy a contract with constructor args", async function () {
+        const [defaultWalletClient] = await this.hre.viem.getWalletClients();
+        const contract = await this.hre.viem.deployContract(
+          "WithConstructorArgs",
+          [50]
+        );
+
+        let data = await contract.read.getData();
+        assert.equal(data, 50);
+
+        const owner = await contract.read.getOwner();
+        assert.equal(owner, getAddress(defaultWalletClient.account.address));
+
+        await contract.write.setData([100]);
+        data = await contract.read.getData();
+        assert.equal(data, 100);
+      });
+
+      it("should be able to deploy a contract with a different wallet client", async function () {
+        const [_, secondWalletClient] = await this.hre.viem.getWalletClients();
+        const contract = await this.hre.viem.deployContract(
+          "WithoutConstructorArgs",
+          [],
+          { walletClient: secondWalletClient }
+        );
+
+        const owner = await contract.read.getOwner();
+        assert.equal(owner, getAddress(secondWalletClient.account.address));
+      });
+
+      it("should be able to deploy a contract with initial ETH", async function () {
+        const publicClient = await this.hre.viem.getPublicClient();
+        const [defaultWalletClient] = await this.hre.viem.getWalletClients();
+        const ownerBalanceBefore = await publicClient.getBalance({
+          address: defaultWalletClient.account.address,
+        });
+        const etherAmount = parseEther("0.0001");
+        const contract = await this.hre.viem.deployContract(
+          "WithoutConstructorArgs",
+          [],
+          { value: etherAmount }
+        );
+        const ownerBalanceAfter = await publicClient.getBalance({
+          address: defaultWalletClient.account.address,
+        });
+        const contractBalance = await publicClient.getBalance({
+          address: contract.address,
+        });
+        const block = await publicClient.getBlock({
+          includeTransactions: true,
+        });
+        const receipt = await publicClient.getTransactionReceipt({
+          hash: block.transactions[0].hash,
+        });
+        const transactionFee = receipt.gasUsed * receipt.effectiveGasPrice;
+
+        assert.equal(contractBalance, etherAmount);
+        assert.equal(
+          ownerBalanceAfter,
+          ownerBalanceBefore - etherAmount - transactionFee
+        );
       });
     });
   });
