@@ -215,8 +215,11 @@ impl Blockchain for LocalBlockchain {
         Ok(self.storage.receipt_by_transaction_hash(transaction_hash))
     }
 
-    async fn spec_at_block_number(&self, number: &U256) -> Result<SpecId, Self::BlockchainError> {
-        if *number > self.last_block_number().await {
+    async fn spec_at_block_number(
+        &self,
+        block_number: &U256,
+    ) -> Result<SpecId, Self::BlockchainError> {
+        if *block_number > self.last_block_number().await {
             return Err(BlockchainError::UnknownBlockNumber);
         }
 
@@ -227,7 +230,7 @@ impl Blockchain for LocalBlockchain {
         self.spec_id
     }
 
-    async fn state_at_block(
+    async fn state_at_block_number(
         &self,
         block_number: &U256,
     ) -> Result<Box<dyn SyncState<Self::StateError>>, Self::BlockchainError> {

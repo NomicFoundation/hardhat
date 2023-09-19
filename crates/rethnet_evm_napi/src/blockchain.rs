@@ -299,12 +299,12 @@ impl Blockchain {
 
     #[doc = "Retrieves the hardfork specficiation of the block at the provided number."]
     #[napi]
-    pub async fn spec_at_block_number(&self, number: BigInt) -> napi::Result<SpecId> {
-        let number: U256 = BigInt::try_cast(number)?;
+    pub async fn spec_at_block_number(&self, block_number: BigInt) -> napi::Result<SpecId> {
+        let block_number: U256 = BigInt::try_cast(block_number)?;
 
         self.read()
             .await
-            .spec_at_block_number(&number)
+            .spec_at_block_number(&block_number)
             .await
             .map_or_else(
                 |error| Err(napi::Error::new(Status::GenericFailure, error.to_string())),
@@ -320,12 +320,12 @@ impl Blockchain {
 
     #[doc = "Retrieves the state at the block with the provided number."]
     #[napi]
-    pub async fn state_at_block(&self, block_number: BigInt) -> napi::Result<StateManager> {
+    pub async fn state_at_block_number(&self, block_number: BigInt) -> napi::Result<StateManager> {
         let block_number: U256 = BigInt::try_cast(block_number)?;
 
         self.read()
             .await
-            .state_at_block(&block_number)
+            .state_at_block_number(&block_number)
             .await
             .map_or_else(
                 |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),

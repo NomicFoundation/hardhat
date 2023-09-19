@@ -274,13 +274,16 @@ impl Blockchain for ForkedBlockchain {
         }
     }
 
-    async fn spec_at_block_number(&self, number: &U256) -> Result<SpecId, Self::BlockchainError> {
-        if *number > self.last_block_number().await {
+    async fn spec_at_block_number(
+        &self,
+        block_number: &U256,
+    ) -> Result<SpecId, Self::BlockchainError> {
+        if *block_number > self.last_block_number().await {
             return Err(BlockchainError::UnknownBlockNumber);
         }
 
-        if *number <= self.fork_block_number {
-            self.remote.block_by_number(number).await.map_or_else(
+        if *block_number <= self.fork_block_number {
+            self.remote.block_by_number(block_number).await.map_or_else(
                 |e| Err(BlockchainError::JsonRpcError(e)),
                 |block| {
                     if let Some(hardfork_activations) = self.hardfork_activations.as_ref() {
@@ -301,7 +304,7 @@ impl Blockchain for ForkedBlockchain {
         self.spec_id
     }
 
-    async fn state_at_block(
+    async fn state_at_block_number(
         &self,
         block_number: &U256,
     ) -> Result<Box<dyn SyncState<Self::StateError>>, Self::BlockchainError> {

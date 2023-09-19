@@ -136,8 +136,10 @@ export class RethnetBlockchain implements BlockchainAdapter {
     );
   }
 
-  public async getStateAtBlock(blockNumber: bigint): Promise<StateManager> {
-    return this._blockchain.stateAtBlock(blockNumber);
+  public async getStateAtBlockNumber(
+    blockNumber: bigint
+  ): Promise<StateManager> {
+    return this._blockchain.stateAtBlockNumber(blockNumber);
   }
 
   public async getTotalDifficultyByHash(

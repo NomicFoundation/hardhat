@@ -84,7 +84,7 @@ export class RethnetEthContext implements EthContextAdapter {
 
       const latestBlockNumber = await blockchain.getLatestBlockNumber();
       state = new RethnetStateManager(
-        await blockchain.getStateAtBlock(latestBlockNumber)
+        await blockchain.getStateAtBlockNumber(latestBlockNumber)
       );
     } else {
       state = RethnetStateManager.withGenesisAccounts(

@@ -286,7 +286,7 @@ export class RethnetAdapter implements VMAdapter {
       this._state.setInner(await state.deepClone());
     } else {
       this._state.setInner(
-        await this._blockchain.stateAtBlock(block.header.number)
+        await this._blockchain.stateAtBlockNumber(block.header.number)
       );
     }
   }

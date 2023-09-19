@@ -55,7 +55,9 @@ impl Node {
         {
             irregular_state
         } else {
-            data.blockchain.state_at_block(&block_header.number).await?
+            data.blockchain
+                .state_at_block_number(&block_header.number)
+                .await?
         };
 
         mem::swap(&mut data.state, &mut contextual_state);

@@ -223,7 +223,7 @@ async fn set_block_context<T>(
                 None => unreachable!(),
             }?;
 
-            let mut contextual_state = node_data.blockchain.state_at_block(&block_number).await
+            let mut contextual_state = node_data.blockchain.state_at_block_number(&block_number).await
             .map_err(|e| {
                 error_response_data(
                     -32000,
@@ -1059,7 +1059,7 @@ impl Server {
             let fork_block_number = blockchain.last_block_number().await;
 
             let state = blockchain
-                .state_at_block(&fork_block_number)
+                .state_at_block_number(&fork_block_number)
                 .await
                 .expect("Fork state must exist");
 
@@ -1088,7 +1088,7 @@ impl Server {
             )?;
 
             let state = blockchain
-                .state_at_block(&U256::ZERO)
+                .state_at_block_number(&U256::ZERO)
                 .await
                 .expect("Genesis state must exist");
 
