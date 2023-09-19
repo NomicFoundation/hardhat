@@ -134,15 +134,13 @@ export class HardhatEthContext implements EthContextAdapter {
   }
 }
 
-class ForkData {
-  constructor(
-    public readonly client: JsonRpcClient,
-    public readonly blockNumber: bigint,
-    public readonly blockTimestamp: number,
-    public readonly blockHash: string,
-    public readonly hardforkActivations: HardforkHistoryConfig,
-    public readonly nextBlockBaseFeePerGas?: bigint
-  ) {}
+interface ForkData {
+  client: JsonRpcClient;
+  blockNumber: bigint;
+  blockTimestamp: number;
+  blockHash: string;
+  hardforkActivations: HardforkHistoryConfig;
+  nextBlockBaseFeePerGas?: bigint;
 }
 
 async function _createBlockchain(
@@ -214,14 +212,14 @@ async function _createBlockchain(
       blockchain,
       blockTimeOffset: initialBlockTimeOffset,
       initialBaseFeePerGas,
-      fork: new ForkData(
-        forkClient,
-        forkBlockNumber,
-        forkBlockTimestamp,
-        forkBlockHash,
+      fork: {
+        client: forkClient,
+        blockNumber: forkBlockNumber,
+        blockTimestamp: forkBlockTimestamp,
+        blockHash: forkBlockHash,
         hardforkActivations,
-        nextBlockBaseFeePerGas
-      ),
+        nextBlockBaseFeePerGas,
+      },
     };
   } else {
     const blockTimeOffset =
