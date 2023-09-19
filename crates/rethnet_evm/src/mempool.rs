@@ -87,6 +87,18 @@ pub enum MinerTransactionError<SE> {
     /// State error
     #[error(transparent)]
     State(#[from] SE),
+    /// Replacement transaction has underpriced max fee per gas.
+    #[error("Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least 0x{min_new_max_fee_per_gas:x} is necessary to replace the existing transaction with nonce {transaction_nonce}.")]
+    ReplacementMaxFeePerGasTooLow {
+        min_new_max_fee_per_gas: U256,
+        transaction_nonce: u64,
+    },
+    /// Replacement transaction has underpriced max priority fee per gas.
+    #[error("Replacement transaction underpriced. A gasPrice/maxPriorityFeePerGas of at least 0x{min_new_max_priority_fee_per_gas} is necessary to replace the existing transaction with nonce {transaction_nonce}.")]
+    ReplacementMaxPriorityFeePerGasTooLow {
+        min_new_max_priority_fee_per_gas: U256,
+        transaction_nonce: u64,
+    },
 }
 
 /// A pending transaction with an order ID.
@@ -234,9 +246,9 @@ impl MemPool {
         self.next_order_id += 1;
 
         if transaction.nonce() > next_nonce {
-            self.insert_queued_transaction(transaction.clone());
+            self.insert_queued_transaction(transaction.clone())?;
         } else {
-            self.insert_pending_transaction(transaction.clone());
+            self.insert_pending_transaction(transaction.clone())?;
         }
 
         self.hash_to_transaction
@@ -358,7 +370,10 @@ impl MemPool {
         self.hash_to_transaction.get(hash)
     }
 
-    fn insert_pending_transaction(&mut self, transaction: OrderedTransaction) {
+    fn insert_pending_transaction<StateError>(
+        &mut self,
+        transaction: OrderedTransaction,
+    ) -> Result<(), MinerTransactionError<StateError>> {
         let pending_transactions = self
             .pending_transactions
             .entry(*transaction.caller())
@@ -369,6 +384,11 @@ impl MemPool {
             .find(|pending_transaction| transaction.nonce() == pending_transaction.nonce());
 
         if let Some(replaced_transaction) = replaced_transaction {
+            validate_replacement_transaction(
+                &replaced_transaction.transaction,
+                &transaction.transaction,
+            )?;
+
             self.hash_to_transaction.remove(replaced_transaction.hash());
 
             *replaced_transaction = transaction.clone();
@@ -395,9 +415,14 @@ impl MemPool {
                 }
             }
         }
+
+        Ok(())
     }
 
-    fn insert_queued_transaction(&mut self, transaction: OrderedTransaction) {
+    fn insert_queued_transaction<StateError>(
+        &mut self,
+        transaction: OrderedTransaction,
+    ) -> Result<(), MinerTransactionError<StateError>> {
         let future_transactions = self
             .future_transactions
             .entry(*transaction.caller())
@@ -408,11 +433,63 @@ impl MemPool {
             .find(|pending_transaction| transaction.nonce() == pending_transaction.nonce());
 
         if let Some(replaced_transaction) = replaced_transaction {
+            validate_replacement_transaction(
+                &replaced_transaction.transaction,
+                &transaction.transaction,
+            )?;
+
             self.hash_to_transaction.remove(replaced_transaction.hash());
 
             *replaced_transaction = transaction.clone();
         } else {
             future_transactions.push(transaction);
         }
+
+        Ok(())
+    }
+}
+
+fn validate_replacement_transaction<StateError>(
+    old_transaction: &PendingTransaction,
+    new_transaction: &PendingTransaction,
+) -> Result<(), MinerTransactionError<StateError>> {
+    let min_new_max_fee_per_gas = min_new_fee(old_transaction.gas_price());
+    if new_transaction.gas_price() < min_new_max_fee_per_gas {
+        return Err(MinerTransactionError::ReplacementMaxFeePerGasTooLow {
+            min_new_max_fee_per_gas,
+            transaction_nonce: old_transaction.nonce(),
+        });
+    }
+
+    let min_new_max_priority_fee_per_gas = min_new_fee(
+        old_transaction
+            .max_priority_fee_per_gas()
+            .unwrap_or_else(|| old_transaction.gas_price()),
+    );
+
+    if new_transaction
+        .max_priority_fee_per_gas()
+        .unwrap_or_else(|| new_transaction.gas_price())
+        < min_new_max_priority_fee_per_gas
+    {
+        return Err(
+            MinerTransactionError::ReplacementMaxPriorityFeePerGasTooLow {
+                min_new_max_priority_fee_per_gas,
+                transaction_nonce: old_transaction.nonce(),
+            },
+        );
+    }
+
+    Ok(())
+}
+
+fn min_new_fee(fee: U256) -> U256 {
+    let min_new_priority_fee = fee * U256::from(110);
+
+    let one_hundred = U256::from(100);
+    if min_new_priority_fee % one_hundred == U256::ZERO {
+        min_new_priority_fee / one_hundred
+    } else {
+        min_new_priority_fee / one_hundred + U256::from(1)
     }
 }
