@@ -1,4 +1,5 @@
 import { IgnitionError } from "../../errors";
+import { ERRORS } from "../../errors-list";
 import { ArtifactResolver } from "../../types/artifact";
 import { DeploymentParameters } from "../../types/deploy";
 import { Future, IgnitionModule } from "../../types/module";
@@ -86,7 +87,9 @@ export class Reconciler {
       return `The previous run of the future ${exState.id} timed out, and will need wiped before running again`;
     }
 
-    throw new IgnitionError(`Unsupported execution status: ${exState.status}`);
+    throw new IgnitionError(ERRORS.RECONCILIATION.INVALID_EXECUTION_STATUS, {
+      status: exState.status,
+    });
   }
 
   private static async _reconcileEachFutureInModule(

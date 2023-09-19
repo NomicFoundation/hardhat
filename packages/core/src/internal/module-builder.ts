@@ -2,6 +2,7 @@ import assert from "assert";
 import { inspect } from "util";
 
 import { IgnitionError, IgnitionValidationError } from "../errors";
+import { ERRORS } from "../errors-list";
 import {
   isAccountRuntimeValue,
   isAddressResolvableFuture,
@@ -132,9 +133,9 @@ export class ModuleConstructor {
     );
 
     if ((mod as any).results instanceof Promise) {
-      throw new IgnitionError(
-        `The callback passed to 'buildModule' for ${moduleDefintion.id} returns a Promise; async callbacks are not allowed in 'buildModule'.`
-      );
+      throw new IgnitionError(ERRORS.MODULE.ASYNC_MODULE_DEFINITION_FUNCTION, {
+        moduleDefinitionId: moduleDefintion.id,
+      });
     }
 
     this._modules.set(moduleDefintion.id, mod);

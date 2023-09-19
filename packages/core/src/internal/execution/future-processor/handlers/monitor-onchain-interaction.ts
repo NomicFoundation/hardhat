@@ -1,4 +1,5 @@
 import { IgnitionError } from "../../../../errors";
+import { ERRORS } from "../../../../errors-list";
 import { assertIgnitionInvariant } from "../../../utils/assertions";
 import { JsonRpcClient } from "../../jsonrpc-client";
 import { TransactionTrackingTimer } from "../../transaction-tracking-timer";
@@ -84,11 +85,10 @@ export async function monitorOnchainInteraction(
 
   // We do not try to recover from dopped transactions mid-execution
   if (transaction === undefined) {
-    throw new IgnitionError(
-      `Error while executing ${exState.id}: all the transactions of its network interaction ${lastNetworkInteraction.id} were dropped.
-
-Please try rerunning Ignition.`
-    );
+    throw new IgnitionError(ERRORS.EXECUTION.DROPPED_TRANSACTION, {
+      futureId: exState.id,
+      networkInteractionId: lastNetworkInteraction.id,
+    });
   }
 
   const [block, receipt] = await Promise.all([

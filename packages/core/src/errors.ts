@@ -1,7 +1,7 @@
 import { ERRORS, ErrorDescriptor, getErrorCode } from "./errors-list";
 
 /**
- * All exceptions intenionally thrown with Ignition-core
+ * All exceptions intentionally thrown with Ignition-core
  * extend this class.
  *
  * @alpha

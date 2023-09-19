@@ -1,4 +1,5 @@
 import { IgnitionError } from "../../errors";
+import { ERRORS } from "../../errors-list";
 import { getPendingNonceAndSender } from "../views/execution-state/get-pending-nonce-and-sender";
 import { getPendingOnchainInteraction } from "../views/execution-state/get-pending-onchain-interaction";
 
@@ -79,9 +80,10 @@ export async function getNonceSyncMessages(
     // Case 0: We don't have any pending transactions
     if (pendingTransactions.length === 0) {
       if (safeConfirmationsCount !== pendingCount) {
-        throw new IgnitionError(
-          `You have sent transactions from ${sender}. Please wait until they get ${requiredConfirmations} confirmations before running Ignition again.`
-        );
+        throw new IgnitionError(ERRORS.EXECUTION.WAITING_FOR_CONFIRMATIONS, {
+          sender,
+          requiredConfirmations,
+        });
       }
     }
 
@@ -103,9 +105,11 @@ export async function getNonceSyncMessages(
       if (latestCount > nonce) {
         // We don't continue until the user's transactions have enough confirmations
         if (safeConfirmationsCount <= nonce) {
-          throw new IgnitionError(
-            `You have sent a transaction from ${sender} with nonce ${nonce}. Please wait until it gets ${requiredConfirmations} confirmations before running Ignition again.`
-          );
+          throw new IgnitionError(ERRORS.EXECUTION.WAITING_FOR_NONCE, {
+            sender,
+            nonce,
+            requiredConfirmations,
+          });
         }
 
         messages.push({
@@ -121,9 +125,11 @@ export async function getNonceSyncMessages(
 
       // We first handle confirmed transactions, that'w why this check is safe here
       if (pendingCount > nonce) {
-        throw new IgnitionError(
-          `You have sent a transaction from ${sender} with nonce ${nonce}. Please wait until it gets ${requiredConfirmations} confirmations before running Ignition again.`
-        );
+        throw new IgnitionError(ERRORS.EXECUTION.WAITING_FOR_NONCE, {
+          sender,
+          nonce,
+          requiredConfirmations,
+        });
       }
 
       // Case 3: There's no transaction sent by the user with this nonce, but ours were still dropped
@@ -176,11 +182,11 @@ export class JsonRpcNonceManager implements NonceManager {
         : pendingCount;
 
     if (expectedNonce !== pendingCount) {
-      throw new IgnitionError(
-        `The next nonce for ${sender} should be ${expectedNonce}, but is ${pendingCount}.
-          
-Please make sure not to send transactions from ${sender} while running this deployment and try again.`
-      );
+      throw new IgnitionError(ERRORS.EXECUTION.INVALID_NONCE, {
+        sender,
+        expectedNonce,
+        pendingCount,
+      });
     }
 
     // The nonce hasn't been used yet, but we update as it will be immediately used.

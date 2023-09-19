@@ -1,4 +1,5 @@
 import { IgnitionError } from "../../errors";
+import { ERRORS } from "../../errors-list";
 import { ArtifactResolver } from "../../types/artifact";
 import { DeploymentParameters } from "../../types/deploy";
 import {
@@ -223,7 +224,7 @@ export class ExecutionEngine {
     const future = futures.find((f) => f.id === futureId);
 
     if (future === undefined) {
-      throw new IgnitionError("Could not locate future id from batching");
+      throw new IgnitionError(ERRORS.EXECUTION.FUTURE_NOT_FOUND);
     }
 
     return future;

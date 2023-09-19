@@ -1,4 +1,5 @@
 import { IgnitionError } from "./errors";
+import { ERRORS } from "./errors-list";
 import {
   AccountRuntimeValueImplementation,
   ArtifactContractAtFutureImplementation,
@@ -538,20 +539,18 @@ export class IgnitionModuleDeserializer {
       const swappedFuture = this._lookup(futureLookup, arg.futureId);
 
       if (swappedFuture === undefined) {
-        throw new IgnitionError(
-          `Unable to lookup future during deserialization: ${arg.futureId}`
-        );
+        throw new IgnitionError(ERRORS.SERIALIZATION.INVALID_FUTURE_ID, {
+          futureId: arg.futureId,
+        });
       }
 
       if (
         swappedFuture.type === FutureType.CONTRACT_CALL ||
         swappedFuture.type === FutureType.SEND_DATA
       ) {
-        throw new IgnitionError(
-          `Invalid FutureType ${
-            FutureType[swappedFuture.type]
-          } as serialized argument`
-        );
+        throw new IgnitionError(ERRORS.SERIALIZATION.INVALID_FUTURE_TYPE, {
+          type: FutureType[swappedFuture.type],
+        });
       }
 
       return swappedFuture;
@@ -855,7 +854,9 @@ export class IgnitionModuleDeserializer {
     const value = lookupTable.get(key);
 
     if (value === undefined) {
-      throw new IgnitionError(`Lookahead value ${key} missing`);
+      throw new IgnitionError(ERRORS.SERIALIZATION.LOOKAHEAD_NOT_FOUND, {
+        key,
+      });
     }
 
     return value;
