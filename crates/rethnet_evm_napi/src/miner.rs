@@ -9,7 +9,7 @@ use napi::{
 };
 use napi_derive::napi;
 use rethnet_eth::{Address, B256, U256};
-use rethnet_evm::CfgEnv;
+use rethnet_evm::{BlockTransactionError, CfgEnv, InvalidTransaction, MineBlockError};
 
 use crate::{
     blockchain::Blockchain, cast::TryCast, config::ConfigOptions, mempool::MemPool,
@@ -61,7 +61,14 @@ pub async fn mine_block(
     )
     .await
     .map_or_else(
-        |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+        |e| Err(napi::Error::new(Status::GenericFailure,
+            match e {
+                MineBlockError::BlockTransaction(
+                BlockTransactionError::InvalidTransaction(
+                    InvalidTransaction::LackOfFundForMaxFee { fee, balance }
+                )) => format!("sender doesn't have enough funds to send tx. The max upfront cost is: {fee} and the sender's account only has: {balance}"),
+                e => e.to_string(),
+            })),
         |result| {
             Ok(MineBlockResult::new(
                 result,
