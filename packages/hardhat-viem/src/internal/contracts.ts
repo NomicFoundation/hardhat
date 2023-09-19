@@ -2,6 +2,7 @@ import type {
   EthereumProvider,
   HardhatRuntimeEnvironment,
 } from "hardhat/types";
+import type { Abi, Address, Hex } from "viem";
 import type {
   DeployContractConfig,
   GetContractAtConfig,
@@ -9,8 +10,6 @@ import type {
   PublicClient,
   WalletClient,
 } from "./types";
-
-import { Abi, Address, Hex } from "viem";
 
 import { getPublicClient, getWalletClients } from "./clients";
 import {
