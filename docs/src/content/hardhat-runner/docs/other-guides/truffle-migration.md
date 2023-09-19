@@ -53,7 +53,7 @@ module.exports = {
   },
   networks: {
     // ...
-  }
+  },
 };
 ```
 
@@ -71,11 +71,11 @@ module.exports = {
       settings: {
         optimizer: {
           enabled: true,
-          runs: 200
-        }
-      }
-    }
-  }
+          runs: 200,
+        },
+      },
+    },
+  },
 };
 ```
 
@@ -88,10 +88,10 @@ module.exports = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 200
-      }
-    }
-  }
+        runs: 200,
+      },
+    },
+  },
 };
 ```
 
@@ -109,7 +109,7 @@ module.exports = {
       port: 8545,
       network_id: 11155111,
     },
-  }
+  },
 };
 ```
 
@@ -122,7 +122,7 @@ module.exports = {
       url: "http://sepolia.example.com:8545",
       chainId: 11155111,
     },
-  }
+  },
 };
 ```
 
