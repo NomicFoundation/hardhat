@@ -7,14 +7,12 @@ import {
   privateToAddress,
   bigIntToBuffer,
 } from "@nomicfoundation/ethereumjs-util";
-import { HardhatBlockchain } from "../../../../src/internal/hardhat-network/provider/HardhatBlockchain";
 
 import { VMAdapter } from "../../../../src/internal/hardhat-network/provider/vm/vm-adapter";
 import { MessageTrace } from "../../../../src/internal/hardhat-network/stack-traces/message-trace";
 import { defaultHardhatNetworkParams } from "../../../../src/internal/core/config/default-config";
 import { createContext } from "../../../../src/internal/hardhat-network/provider/vm/creation";
 import { NodeConfig } from "../../../../src/internal/hardhat-network/provider/node-types";
-import { RandomBufferGenerator } from "../../../../src/internal/hardhat-network/provider/utils/random";
 import { EthContextAdapter } from "../../../../src/internal/hardhat-network/provider/context";
 
 const abi = require("ethereumjs-abi");

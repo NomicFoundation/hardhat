@@ -376,7 +376,7 @@ export class HardhatModule {
   }
 
   private async _setCoinbaseAction(address: Buffer) {
-    await this._node.setCoinbase(new Address(address));
+    this._node.setCoinbase(new Address(address));
     return true;
   }
 
