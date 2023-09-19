@@ -3,13 +3,14 @@ use napi::Status;
 use napi_derive::napi;
 use rethnet_eth::B256;
 use rethnet_evm::{BlockEnv, CfgEnv};
+use std::collections::HashMap;
 
-use crate::transaction::TransactionRequest;
+use crate::transaction::signed::SignedTransaction;
 use crate::{
-    block::BlockConfig, blockchain::Blockchain, config::ConfigOptions, state::StateManager,
+    block::BlockConfig, blockchain::Blockchain, cast::TryCast, config::ConfigOptions,
+    state::StateManager,
 };
 
-// TODO handle the `RpcDebugTracingConfig` argument from `VmAdapter`
 /// Get trace output for `debug_traceTransaction`
 #[napi]
 #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
@@ -18,20 +19,22 @@ pub async fn debug_trace_transaction(
     state_manager: &StateManager,
     cfg: ConfigOptions,
     block_config: BlockConfig,
-    transactions: Vec<TransactionRequest>,
+    transactions: Vec<SignedTransaction>,
     transaction_hash: Buffer,
 ) -> napi::Result<DebugTraceResult> {
     let cfg = CfgEnv::try_from(cfg)?;
     let block_env = BlockEnv::try_from(block_config)?;
-    // TODO this panics if the buffer is not 32 bytes
-    let transaction_hash = B256::from_slice(&transaction_hash);
+    let transaction_hash = TryCast::<B256>::try_cast(transaction_hash)?;
 
     let transactions = transactions
         .into_iter()
-        .map(rethnet_eth::transaction::TransactionRequest::try_from)
+        .map(TryCast::<rethnet_eth::transaction::SignedTransaction>::try_cast)
         .collect::<Result<Vec<_>, _>>()?;
 
-    rethnet_evm::debug_trace_transaction(
+    // TODO depends on https://github.com/NomicFoundation/hardhat/pull/4254
+    // let state = { state_manager.read().await.clone() };
+
+    let result = rethnet_evm::debug_trace_transaction(
         &*blockchain.read().await,
         &mut *state_manager.write().await,
         cfg,
@@ -40,7 +43,8 @@ pub async fn debug_trace_transaction(
         transaction_hash,
     )
     .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?
-    .try_into()
+    .try_into()?;
+    Ok(result)
 }
 
 #[napi(object)]
@@ -65,7 +69,7 @@ impl TryFrom<rethnet_evm::DebugTraceResult> for DebugTraceResult {
             None
         };
         Ok(Self {
-            failed: value.failed,
+            failed: value.pass,
             gas_used: value.gas_used.try_into()?,
             output: output,
             struct_logs: value
@@ -97,18 +101,21 @@ pub struct DebugTraceLogItem {
     /// Depth of the call stack
     #[napi(readonly)]
     pub depth: BigInt,
-    /// Data returned by function call as hex string.
-    #[napi(readonly)]
-    pub return_data: String,
-    /// Amount of global gas refunded as hex number.
-    #[napi(readonly)]
-    pub refund: String,
     /// Size of memory array
     #[napi(readonly)]
     pub mem_size: BigInt,
     /// Name of the operation
     #[napi(readonly)]
     pub op_name: Option<String>,
+    /// Description of an error as a hex string.
+    #[napi(readonly)]
+    pub error: Option<String>,
+    /// Array of all allocated values as hex strings.
+    #[napi(readonly)]
+    pub memory: Vec<String>,
+    /// Map of all stored values with keys and values encoded as hex strings.
+    #[napi(readonly)]
+    pub storage: HashMap<String, String>,
 }
 
 impl TryFrom<rethnet_evm::DebugTraceLogItem> for DebugTraceLogItem {
@@ -122,10 +129,11 @@ impl TryFrom<rethnet_evm::DebugTraceLogItem> for DebugTraceLogItem {
             gas_cost: value.gas_cost,
             stack: value.stack,
             depth: value.depth.try_into()?,
-            return_data: value.return_data,
-            refund: value.refund,
             mem_size: value.mem_size.try_into()?,
-            op_name: None,
+            op_name: value.op_name,
+            error: value.error,
+            memory: value.memory,
+            storage: value.storage,
         })
     }
 }

@@ -1,9 +1,4 @@
-use std::mem;
-
-use napi::{
-    bindgen_prelude::{BigInt, Buffer},
-    Env, JsBuffer, JsBufferValue,
-};
+use napi::bindgen_prelude::{BigInt, Buffer};
 use napi_derive::napi;
 use rethnet_eth::{transaction::TransactionKind, Address, Bytes};
 
@@ -19,7 +14,7 @@ pub struct EIP2930SignedTransaction {
     /// Creates a contract if no address is provided.
     pub to: Option<Buffer>,
     pub value: BigInt,
-    pub input: JsBuffer,
+    pub input: Buffer,
     pub access_list: Vec<AccessListItem>,
     pub odd_y_parity: bool,
     pub r: BigInt,
@@ -29,21 +24,9 @@ pub struct EIP2930SignedTransaction {
 impl EIP2930SignedTransaction {
     /// Constructs a [`EIP2930SignedTransaction`] instance.
     pub fn new(
-        env: &Env,
         transaction: &rethnet_eth::transaction::EIP2930SignedTransaction,
     ) -> napi::Result<Self> {
-        let input = transaction.input.clone();
-        let input = unsafe {
-            env.create_buffer_with_borrowed_data(
-                input.as_ptr(),
-                input.len(),
-                input,
-                |input: Bytes, _env| {
-                    mem::drop(input);
-                },
-            )
-        }
-        .map(JsBufferValue::into_raw)?;
+        let input = Buffer::from(transaction.input.as_ref());
 
         Ok(Self {
             chain_id: BigInt::from(transaction.chain_id),
@@ -98,7 +81,7 @@ impl TryFrom<EIP2930SignedTransaction> for rethnet_eth::transaction::EIP2930Sign
                 TransactionKind::Create
             },
             value: value.value.try_cast()?,
-            input: Bytes::copy_from_slice(value.input.into_value()?.as_ref()),
+            input: Bytes::copy_from_slice(value.input.as_ref()),
             access_list: value
                 .access_list
                 .into_iter()
