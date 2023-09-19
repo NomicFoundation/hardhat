@@ -28,6 +28,11 @@ export interface BlockchainAdapter {
 
   getTotalDifficultyByHash(hash: Buffer): Promise<bigint | undefined>;
 
+  /**
+   * Reserves the specified number of blocks, using the latest block as the blueprint for the new blocks' headers.
+   * @param count Number of blocks to reserve
+   * @param interval Amount of time between blocks, in seconds. Used for the block's timestamp.
+   */
   reserveBlocks(count: bigint, interval: bigint): Promise<void>;
 
   revertToBlock(blockNumber: bigint): Promise<void>;

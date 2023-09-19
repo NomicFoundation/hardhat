@@ -127,8 +127,8 @@ export abstract class BlockchainBase {
       latestBlock.header.number + 1n,
       count,
       interval,
-      // Question: Is this valid? Does this account for the irregular state?
       latestBlock.header.stateRoot,
+      // We fetched the latest block internally, so we know that its total difficulty exists.
       this._data.getTotalDifficulty(latestBlock.hash())!,
       latestBlock.header.baseFeePerGas
     );
