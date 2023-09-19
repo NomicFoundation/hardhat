@@ -82,12 +82,15 @@ export class Sourcify {
     },
     chosenContract?: number
   ): Promise<SourcifyResponse> {
-    const parameters = {
+    const parameters: any = {
       address,
       files,
-      chosenContract: `${chosenContract}`,
       chain: `${this._chainId}`,
     };
+
+    if (chosenContract !== undefined) {
+      parameters.chosenContract = `${chosenContract}`;
+    }
 
     let response: Dispatcher.ResponseData;
     try {
