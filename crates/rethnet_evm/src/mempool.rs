@@ -81,6 +81,9 @@ pub enum MinerTransactionError<SE> {
         block_gas_limit: U256,
         transaction_gas_limit: U256,
     },
+    /// Transaction already exists in the mempool.
+    #[error("Known transaction: 0x{transaction_hash:x}")]
+    TransactionAlreadyExists { transaction_hash: B256 },
     /// State error
     #[error(transparent)]
     State(#[from] SE),
@@ -205,6 +208,12 @@ impl MemPool {
             return Err(MinerTransactionError::ExceedsBlockGasLimit {
                 block_gas_limit: self.block_gas_limit,
                 transaction_gas_limit,
+            });
+        }
+
+        if self.hash_to_transaction.contains_key(transaction.hash()) {
+            return Err(MinerTransactionError::TransactionAlreadyExists {
+                transaction_hash: *transaction.hash(),
             });
         }
 
