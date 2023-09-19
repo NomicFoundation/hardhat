@@ -136,9 +136,9 @@ pub struct Header {
     pub withdrawals_root: Option<B256>,
 }
 
-#[cfg(feature = "serde")]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(remote = "B64")]
+#[cfg(feature = "serde")]
 struct B64Def(#[serde(getter = "B64::as_uint")] revm_primitives::ruint::aliases::U64);
 
 #[cfg(feature = "serde")]
