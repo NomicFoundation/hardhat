@@ -85,7 +85,7 @@ export class Sourcify {
     const parameters = {
       address,
       files,
-      chosenContract,
+      chosenContract: `${chosenContract}`,
       chain: `${this._chainId}`,
     };
 
