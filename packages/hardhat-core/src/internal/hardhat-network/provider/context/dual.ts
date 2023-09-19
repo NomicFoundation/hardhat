@@ -34,14 +34,13 @@ export class DualEthContext implements EthContextAdapter {
     // ethereumjs adapter will fetch and use the latest block number. We re-use
     // that value here; otherwise, rethnet would also fetch it and we could have
     // a race condition if the latest block changed in the meantime.
-    if (
-      isForkedNodeConfig(config) &&
-      config.forkConfig.blockNumber === undefined
-    ) {
-      const forkBlockNumber = (
-        hardhat.vm() as EthereumJSAdapter
-      ).getForkBlockNumber();
-      config.forkConfig.blockNumber = Number(forkBlockNumber!);
+    if (isForkedNodeConfig(config)) {
+      if (config.forkConfig.blockNumber === undefined) {
+        const forkBlockNumber = (
+          hardhat.vm() as EthereumJSAdapter
+        ).getForkBlockNumber();
+        config.forkConfig.blockNumber = Number(forkBlockNumber!);
+      }
     } else {
       const latestBlock = await hardhat.blockchain().getLatestBlock();
       config.initialDate = timestampSecondsToDate(
