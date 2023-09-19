@@ -176,14 +176,12 @@ async function main() {
         console.warn(
           chalk.yellow.bold("\n\nDEPRECATION WARNING\n\n"),
           chalk.yellow(
-            `The command ${chalk.white.italic(
+            `Initializing a project with ${chalk.white.italic(
               "npx hardhat"
-            )}, when used to create a new Hardhat project, will be REMOVED starting from Hardhat V3!\n`
+            )} is deprecated and will be removed in the future.\n`
           ),
           chalk.yellow(
-            `The new command to create a new project will be ${chalk.white.italic(
-              "npx hardhat init"
-            )}.\n\n`
+            `Please use ${chalk.white.italic("npx hardhat init")} instead.\n\n`
           )
         );
 

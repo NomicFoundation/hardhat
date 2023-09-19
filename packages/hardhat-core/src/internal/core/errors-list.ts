@@ -293,9 +293,7 @@ Please double check the file path.`,
       message:
         "You are trying to initialize a project inside an existing Hardhat project. The path to the project's configuration file is:  %hardhatProjectRootPath%.",
       title: "Hardhat project already created",
-      description: `Cannot create a new Hardhat project, the current folder is already associated with a project.
-
-Please double check the project path.`,
+      description: `Cannot create a new Hardhat project, the current folder is already associated with a project.`,
       shouldBeReported: false,
     },
     NOT_IN_INTERACTIVE_SHELL: {
