@@ -291,7 +291,7 @@ Please double check the file path.`,
     HARDHAT_PROJECT_ALREADY_CREATED: {
       number: 23,
       message:
-        "Cannot create a new Hardhat project, the current folder is already associated with a project. The path to configuration file of the Hardhat project is: %hardhatProjectRoothPath%.",
+        "You are trying to initialize a project inside an existing Hardhat project. The path to the project's configuration file is:  %hardhatProjectRootPath%.",
       title: "Hardhat project already created",
       description: `Cannot create a new Hardhat project, the current folder is already associated with a project.
 

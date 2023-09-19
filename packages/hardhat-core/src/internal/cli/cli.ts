@@ -405,7 +405,7 @@ async function main() {
 async function createNewProject() {
   if (isCwdInsideProject()) {
     throw new HardhatError(ERRORS.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED, {
-      hardhatProjectRoothPath: getUserConfigPath(),
+      hardhatProjectRootPath: getUserConfigPath(),
     });
   }
 
