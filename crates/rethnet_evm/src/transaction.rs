@@ -68,7 +68,7 @@ pub enum TransactionCreationError<SE> {
         gas_limit: U256,
     },
     /// Transaction nonce is too low.
-    #[error("Transaction nonce is too low. Expected nonce to be at least: {sender_nonce}, but received {transaction_nonce}.")]
+    #[error("Transaction nonce too low. Expected nonce to be at least {sender_nonce} but got {transaction_nonce}.")]
     NonceTooLow {
         /// Transaction's nonce.
         transaction_nonce: u64,
