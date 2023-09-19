@@ -66,8 +66,13 @@ export class RethnetMemPool implements MemPoolAdapter {
         this._stateManager.asInner(),
         pendingTransaction
       );
-    } catch (e: any) {
-      throw new InvalidInputError(e.toString());
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new InvalidInputError(error.message);
+      }
+
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      throw error;
     }
   }
 
