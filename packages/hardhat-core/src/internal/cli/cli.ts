@@ -191,7 +191,7 @@ async function main() {
     // #INIT-DEP - END OF DEPRECATED CODE
 
     // Tasks are only allowed inside a Hardhat project (except the init task)
-    if (!isCwdInsideProject()) {
+    if (hardhatArguments.config === undefined && !isCwdInsideProject()) {
       throw new HardhatError(ERRORS.GENERAL.NOT_INSIDE_PROJECT);
     }
 
