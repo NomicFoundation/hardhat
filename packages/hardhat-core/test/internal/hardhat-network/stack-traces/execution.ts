@@ -46,19 +46,7 @@ export async function instantiateContext(): Promise<
 
   const common = new Common({ chain: "mainnet", hardfork: "shanghai" });
 
-  const context = await createContext(
-    config,
-    RandomBufferGenerator.create("randomMixHashSeed")
-  );
-  // TODO: add a block to the blockchain
-  // await context.blockchain().addBlock(
-  //   Block.fromBlockData({
-  //     header: {
-  //       number: 0n,
-  //     },
-  //   })
-  // );
-
+  const context = await createContext(config);
   await context.vm().putAccount(new Address(senderAddress), account);
 
   return [context, common];
