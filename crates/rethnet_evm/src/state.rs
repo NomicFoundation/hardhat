@@ -1,10 +1,7 @@
 mod account;
 mod debug;
 mod fork;
-mod history;
-mod hybrid;
 mod irregular;
-mod layered;
 mod remote;
 mod trie;
 
@@ -21,10 +18,7 @@ use revm::{
 pub use self::{
     debug::{AccountModifierFn, StateDebug},
     fork::ForkState,
-    history::StateHistory,
-    hybrid::HybridState,
     irregular::IrregularState,
-    layered::{LayeredState, RethnetLayer},
     remote::RemoteState,
     trie::{AccountTrie, TrieState},
 };

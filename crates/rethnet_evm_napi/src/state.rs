@@ -16,7 +16,7 @@ use napi::{
 use napi_derive::napi;
 use rethnet_eth::{remote::RpcClient, Address, Bytes, U256};
 use rethnet_evm::{
-    state::{AccountModifierFn, ForkState, HybridState, StateError, StateHistory, SyncState},
+    state::{AccountModifierFn, AccountTrie, ForkState, StateError, SyncState, TrieState},
     AccountInfo, Bytecode, HashMap, KECCAK_EMPTY,
 };
 
@@ -103,9 +103,7 @@ impl StateManager {
         let mut accounts = HashMap::new();
         add_precompiles(&mut accounts);
 
-        let mut state = HybridState::with_accounts(accounts);
-        state.checkpoint().unwrap();
-
+        let state = TrieState::with_accounts(AccountTrie::with_accounts(&accounts));
         Self::with_state(&mut env, context.runtime().clone(), state)
     }
 
@@ -120,9 +118,7 @@ impl StateManager {
         let mut accounts = genesis_accounts(accounts)?;
         add_precompiles(&mut accounts);
 
-        let mut state = HybridState::with_accounts(accounts);
-        state.checkpoint().unwrap();
-
+        let state = TrieState::with_accounts(AccountTrie::with_accounts(&accounts));
         Self::with_state(&mut env, context.runtime().clone(), state)
     }
 
