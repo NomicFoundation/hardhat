@@ -49,7 +49,7 @@ where
 #[derive(Debug, thiserror::Error)]
 pub enum TransactionCreationError<SE> {
     /// Creating contract without any data.
-    #[error("contract creation without any data provided")]
+    #[error("Contract creation without any data provided")]
     ContractMissingData,
     /// Sender does not have enough funds to send transaction.
     #[error("Sender doesn't have enough funds to send tx. The max upfront cost is: {max_upfront_cost} and the sender's balance is: {sender_balance}.")]

@@ -190,8 +190,8 @@ export async function assertTransactionFailure(
 
     if (message !== undefined) {
       assert.include(
-        error.message,
-        message,
+        error.message.toLowerCase(),
+        message.toLowerCase(),
         `"${message}" not found in "${error.message}"`
       );
     }
