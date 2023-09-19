@@ -103,6 +103,7 @@ import { createContext } from "./vm/creation";
 import { PartialMineBlockResult } from "./miner";
 import { EthContextAdapter } from "./context";
 import { hasTransactions } from "./mem-pool";
+import { makeForkClient } from "./utils/makeForkClient";
 
 const log = debug("hardhat:core:hardhat-network:node");
 
@@ -131,6 +132,11 @@ export class HardhatNode extends EventEmitter {
       : 0n;
 
     let nextBlockBaseFeePerGas: bigint | undefined;
+    let forkClient: JsonRpcClient | undefined;
+    let forkBlockNumber: bigint | undefined;
+    let forkBlockHash: string | undefined;
+    let forkNetworkId: number | undefined;
+
     if (isForkedNodeConfig(config)) {
       // If the hardfork is London or later we need a base fee per gas for the
       // first local block. If initialBaseFeePerGas config was provided we use
@@ -149,6 +155,15 @@ export class HardhatNode extends EventEmitter {
           }
         }
       }
+
+      const forkData = await makeForkClient(
+        config.forkConfig,
+        config.forkCachePath
+      );
+      forkClient = forkData.forkClient;
+      forkBlockNumber = forkData.forkBlockNumber;
+      forkBlockHash = forkData.forkBlockHash;
+      forkNetworkId = forkClient.getNetworkId();
     }
 
     const {
@@ -182,7 +197,11 @@ export class HardhatNode extends EventEmitter {
       allowUnlimitedContractSize,
       allowBlocksWithSameTimestamp,
       tracingConfig,
-      nextBlockBaseFeePerGas
+      nextBlockBaseFeePerGas,
+      forkNetworkId,
+      forkBlockNumber,
+      forkBlockHash,
+      forkClient
     );
 
     return [common, node];
@@ -221,12 +240,12 @@ export class HardhatNode extends EventEmitter {
     public readonly hardfork: HardforkName,
     public readonly allowUnlimitedContractSize: boolean,
     private _allowBlocksWithSameTimestamp: boolean,
-    tracingConfig?: TracingConfig,
-    nextBlockBaseFee?: bigint,
-    private _forkNetworkId?: number,
-    private _forkBlockNumber?: bigint,
-    private _forkBlockHash?: string,
-    private _forkClient?: JsonRpcClient
+    tracingConfig: TracingConfig | undefined,
+    nextBlockBaseFee: bigint | undefined,
+    private _forkNetworkId: number | undefined,
+    private _forkBlockNumber: bigint | undefined,
+    private _forkBlockHash: string | undefined,
+    private _forkClient: JsonRpcClient | undefined
   ) {
     super();
 

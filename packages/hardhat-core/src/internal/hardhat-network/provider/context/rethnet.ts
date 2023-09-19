@@ -33,7 +33,6 @@ export class RethnetEthContext implements EthContextAdapter {
     private readonly _blockchain: RethnetBlockchain,
     private readonly _memPool: RethnetMemPool,
     private readonly _miner: RethnetMiner,
-    private readonly _state: RethnetStateManager,
     private readonly _vm: RethnetAdapter
   ) {}
 
@@ -140,7 +139,7 @@ export class RethnetEthContext implements EthContextAdapter {
       prevRandaoGenerator
     );
 
-    return new RethnetEthContext(blockchain, memPool, miner, state, vm);
+    return new RethnetEthContext(blockchain, memPool, miner, vm);
   }
 
   public blockchain(): BlockchainAdapter {

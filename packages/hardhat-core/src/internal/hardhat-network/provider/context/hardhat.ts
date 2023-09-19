@@ -33,9 +33,7 @@ export class HardhatEthContext implements EthContextAdapter {
     private readonly _blockchain: HardhatBlockchainInterface,
     private readonly _mempool: HardhatMemPool,
     private readonly _miner: HardhatBlockMiner,
-    private readonly _vm: EthereumJSAdapter,
-    private _blockTimeOffsetSeconds: bigint,
-    private readonly _fork?: ForkData
+    private readonly _vm: EthereumJSAdapter
   ) {}
 
   public static async create(
@@ -44,8 +42,10 @@ export class HardhatEthContext implements EthContextAdapter {
   ): Promise<HardhatEthContext> {
     const common = makeCommon(config);
 
-    const { blockchain, blockTimeOffset, initialBaseFeePerGas, fork } =
-      await _createBlockchain(config, common);
+    const { blockchain, initialBaseFeePerGas, fork } = await _createBlockchain(
+      config,
+      common
+    );
 
     // Ensure that the VM and blockchain use the same fork block
     if (isForkedNodeConfig(config)) {
@@ -114,14 +114,7 @@ export class HardhatEthContext implements EthContextAdapter {
       vm
     );
 
-    return new HardhatEthContext(
-      blockchain,
-      memPool,
-      miner,
-      vm,
-      blockTimeOffset,
-      fork
-    );
+    return new HardhatEthContext(blockchain, memPool, miner, vm);
   }
 
   public blockchain(): BlockchainAdapter {
