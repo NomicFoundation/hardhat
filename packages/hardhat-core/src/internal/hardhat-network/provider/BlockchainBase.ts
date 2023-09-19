@@ -147,25 +147,19 @@ export abstract class BlockchainBase {
 
   protected async _delBlock(blockNumber: bigint): Promise<void> {
     let i = blockNumber;
-    let shouldStop = false;
 
-    while (!shouldStop) {
-      await this.getLatestBlockNumber().then((latestBlockNumber) => {
-        if (i <= latestBlockNumber) {
-          if (this._data.isReservedBlock(i)) {
-            const reservation = this._data.cancelReservationWithBlock(i);
-            i = reservation.last + 1n;
-          } else {
-            const current = this._data.getBlockByNumber(i);
-            if (current !== undefined) {
-              this._data.removeBlock(current);
-            }
-            i++;
-          }
-        } else {
-          shouldStop = true;
+    const latestBlockNumber = await this.getLatestBlockNumber();
+    while (i <= latestBlockNumber) {
+      if (this._data.isReservedBlock(i)) {
+        const reservation = this._data.cancelReservationWithBlock(i);
+        i = reservation.last + 1n;
+      } else {
+        const current = this._data.getBlockByNumber(i);
+        if (current !== undefined) {
+          this._data.removeBlock(current);
         }
-      });
+        i++;
+      }
     }
   }
 
