@@ -60,7 +60,7 @@ pub enum TransactionCreationError<SE> {
         sender_balance: U256,
     },
     /// Transaction gas limit is insufficient to afford initial gas cost.
-    #[error("Transaction gas limit is insufficient to afford initial gas cost. The initial gas cost is: {initial_gas_cost} and the transaction's gas limit is: {gas_limit}.")]
+    #[error("Transaction requires at least {initial_gas_cost} gas but got {gas_limit}")]
     InsufficientGas {
         /// The initial gas cost of a transaction
         initial_gas_cost: U256,
