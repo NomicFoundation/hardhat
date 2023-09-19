@@ -176,14 +176,12 @@ async function main() {
         console.warn(
           chalk.yellow.bold("\n\nDEPRECATION WARNING\n\n"),
           chalk.yellow(
-            `The command ${chalk.white.italic(
+            `Initializing a project with ${chalk.white.italic(
               "npx hardhat"
-            )}, when used to create a new Hardhat project, will be REMOVED starting from Hardhat V3!\n`
+            )} is deprecated and will be removed in the future.\n`
           ),
           chalk.yellow(
-            `The new command to create a new project will be ${chalk.white.italic(
-              "npx hardhat init"
-            )}.\n\n`
+            `Please use ${chalk.white.italic("npx hardhat init")} instead.\n\n`
           )
         );
 
@@ -192,7 +190,7 @@ async function main() {
     }
     // #INIT-DEP - END OF DEPRECATED CODE
 
-    // Tasks are only allowed inside an Hardhat project (except the init task)
+    // Tasks are only allowed inside a Hardhat project (except the init task)
     if (!isCwdInsideProject()) {
       throw new HardhatError(ERRORS.GENERAL.NOT_INSIDE_PROJECT);
     }
@@ -405,7 +403,7 @@ async function main() {
 async function createNewProject() {
   if (isCwdInsideProject()) {
     throw new HardhatError(ERRORS.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED, {
-      hardhatProjectRoothPath: getUserConfigPath(),
+      hardhatProjectRootPath: getUserConfigPath(),
     });
   }
 
