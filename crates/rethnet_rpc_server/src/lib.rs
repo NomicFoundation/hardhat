@@ -1051,7 +1051,7 @@ impl Server {
                 config.block_number.map(U256::from),
                 state_root_generator,
                 genesis_accounts,
-                // TODO: make hardfork activations configurable
+                // TODO: make hardfork activations configurable (https://github.com/NomicFoundation/rethnet/issues/111)
                 HashMap::new(),
             )
             .await?;
@@ -1123,7 +1123,7 @@ impl Server {
             mem_pool: MemPool::new(config.block_gas_limit),
             evm_config,
             beneficiary: config.coinbase,
-            // TODO: Add config option
+            // TODO: Add config option (https://github.com/NomicFoundation/rethnet/issues/111)
             min_gas_price: U256::MAX,
             prevrandao_generator,
             block_time_offset_seconds,

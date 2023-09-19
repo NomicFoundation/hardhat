@@ -301,7 +301,7 @@ impl NodeData {
             block_timestamp,
             self.beneficiary,
             self.min_gas_price,
-            // TODO: make this configurable
+            // TODO: make this configurable (https://github.com/NomicFoundation/rethnet/issues/111)
             MineOrdering::Fifo,
             reward,
             base_fee,
