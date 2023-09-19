@@ -158,7 +158,7 @@ impl Blockchain {
     #[doc = "Retrieves the block with the provided hash, if it exists."]
     #[napi]
     pub async fn block_by_hash(&self, hash: Buffer) -> napi::Result<Option<Block>> {
-        let hash = B256::from_slice(&hash);
+        let hash = TryCast::<B256>::try_cast(hash)?;
 
         self.read().await.block_by_hash(&hash).await.map_or_else(
             |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
@@ -187,7 +187,7 @@ impl Blockchain {
         &self,
         transaction_hash: Buffer,
     ) -> napi::Result<Option<Block>> {
-        let transaction_hash = B256::from_slice(&transaction_hash);
+        let transaction_hash = TryCast::<B256>::try_cast(transaction_hash)?;
 
         self.read()
             .await
@@ -230,7 +230,7 @@ impl Blockchain {
     //     block_hash: Buffer,
     // ) -> napi::Result<()> {
     //     let block_number = BigInt::try_cast(block_number)?;
-    //     let block_hash = B256::from_slice(&block_hash);
+    //     let block_hash = TryCast::<B256>::try_cast(block_hash);
 
     //     self.db
     //         .insert_block(block_number, block_hash)
@@ -264,7 +264,7 @@ impl Blockchain {
         &self,
         transaction_hash: Buffer,
     ) -> napi::Result<Option<Receipt>> {
-        let transaction_hash = B256::from_slice(&transaction_hash);
+        let transaction_hash = TryCast::<B256>::try_cast(transaction_hash)?;
 
         self.read()
             .await
@@ -308,7 +308,7 @@ impl Blockchain {
     #[doc = "Retrieves the total difficulty at the block with the provided hash."]
     #[napi]
     pub async fn total_difficulty_by_hash(&self, hash: Buffer) -> napi::Result<Option<BigInt>> {
-        let hash = B256::from_slice(&hash);
+        let hash = TryCast::<B256>::try_cast(hash)?;
 
         self.read()
             .await

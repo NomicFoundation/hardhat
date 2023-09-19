@@ -37,7 +37,7 @@ pub async fn mine_block(
     let reward: U256 = BigInt::try_cast(reward)?;
     let base_fee: Option<U256> =
         base_fee.map_or(Ok(None), |base_fee| BigInt::try_cast(base_fee).map(Some))?;
-    let prevrandao: Option<B256> = prevrandao.map(|prevrandao| B256::from_slice(&prevrandao));
+    let prevrandao: Option<B256> = prevrandao.map(TryCast::<B256>::try_cast).transpose()?;
 
     rethnet_evm::mine_block(
         &mut *blockchain.write().await,

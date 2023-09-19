@@ -72,13 +72,13 @@ impl TryCast<AccountInfo> for Account {
     type Error = napi::Error;
 
     fn try_cast(self) -> std::result::Result<AccountInfo, Self::Error> {
-        let (code_hash, code) = self.code.map_or((KECCAK_EMPTY, None), |code| {
-            let code_hash = rethnet_eth::B256::from_slice(&code.hash);
+        let (code_hash, code) = self.code.map_or((Ok(KECCAK_EMPTY), None), |code| {
+            let code_hash = TryCast::<rethnet_eth::B256>::try_cast(code.hash.clone());
 
             let code = Bytes::copy_from_slice(&code.code);
             let code = rethnet_evm::Bytecode::new_raw(code);
 
-            debug_assert_eq!(code_hash, code.hash_slow());
+            debug_assert_eq!(code_hash.clone().unwrap(), code.hash_slow());
 
             (code_hash, Some(code))
         });
@@ -86,7 +86,7 @@ impl TryCast<AccountInfo> for Account {
         Ok(AccountInfo {
             balance: self.balance.try_cast()?,
             nonce: self.nonce.get_u64().1,
-            code_hash,
+            code_hash: code_hash?,
             code,
         })
     }

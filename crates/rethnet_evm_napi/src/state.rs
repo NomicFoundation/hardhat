@@ -512,8 +512,8 @@ impl StateManager {
     /// Removes the snapshot corresponding to the specified state root, if it exists. Returns whether a snapshot was removed.
     #[napi]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub async fn remove_snapshot(&self, state_root: Buffer) {
-        let state_root = B256::from_slice(&state_root);
+    pub async fn remove_snapshot(&self, state_root: Buffer) -> napi::Result<()> {
+        let state_root = TryCast::<B256>::try_cast(state_root)?;
 
         let state = self.state.clone();
         self.context
@@ -524,6 +524,8 @@ impl StateManager {
             })
             .await
             .unwrap();
+
+        Ok(())
     }
 
     /// Serializes the state using ordering of addresses and storage indices.
@@ -574,7 +576,7 @@ impl StateManager {
         state_root: Buffer,
         block_number: Option<BigInt>,
     ) -> napi::Result<()> {
-        let state_root = B256::from_slice(&state_root);
+        let state_root = TryCast::<B256>::try_cast(state_root)?;
         let block_number: Option<U256> = block_number.map_or(Ok(None), |number| {
             BigInt::try_cast(number).map(Option::Some)
         })?;

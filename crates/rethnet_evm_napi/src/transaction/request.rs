@@ -54,15 +54,14 @@ impl TryFrom<TransactionRequest> for rethnet_evm::TxEnv {
             .input
             .map_or(Bytes::default(), |input| Bytes::copy_from_slice(&input));
 
-        let access_list = value.access_list.map_or(Vec::new(), |access_list| {
+        let access_list = value.access_list.map_or(Ok(Vec::new()), |access_list| {
             access_list
                 .into_iter()
                 .map(|item| {
-                    let item = rethnet_eth::access_list::AccessListItem::from(item);
-                    item.into()
+                    rethnet_eth::access_list::AccessListItem::try_from(item).map(Into::into)
                 })
-                .collect::<Vec<_>>()
-        });
+                .collect::<Result<Vec<_>, _>>()
+        })?;
 
         Ok(Self {
             caller,
