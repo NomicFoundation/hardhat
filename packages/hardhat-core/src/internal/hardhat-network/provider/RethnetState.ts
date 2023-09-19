@@ -148,13 +148,6 @@ export class RethnetStateManager {
     return this._state.getStateRoot();
   }
 
-  // public async setBlockContext(
-  //   stateRoot: Buffer,
-  //   blockNumber?: bigint
-  // ): Promise<void> {
-  //   return this._state.setBlockContext(stateRoot, blockNumber);
-  // }
-
   public async serialize(): Promise<string> {
     return this._state.serialize();
   }
