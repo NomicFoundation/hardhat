@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, fmt::Debug};
 
-use itertools::Itertools;
+use indexmap::IndexMap;
 use rethnet_eth::{Address, B256, U256};
 use revm::{
     db::StateRef,
@@ -13,7 +13,7 @@ pub struct PendingTransactions<ComparatorT>
 where
     ComparatorT: Fn(&OrderedTransaction, &OrderedTransaction) -> Ordering,
 {
-    transactions: HashMap<Address, Vec<OrderedTransaction>>,
+    transactions: IndexMap<Address, Vec<OrderedTransaction>>,
     comparator: ComparatorT,
 }
 
@@ -123,11 +123,11 @@ pub struct MemPool {
     /// The block's gas limit
     block_gas_limit: U256,
     /// Transactions that can be executed now
-    pending_transactions: HashMap<Address, Vec<OrderedTransaction>>,
+    pending_transactions: IndexMap<Address, Vec<OrderedTransaction>>,
     /// Mapping of transaction hashes to transaction
     hash_to_transaction: HashMap<B256, OrderedTransaction>,
     /// Transactions that can be executed in the future, once the nonce is high enough
-    future_transactions: HashMap<Address, Vec<OrderedTransaction>>,
+    future_transactions: IndexMap<Address, Vec<OrderedTransaction>>,
     next_order_id: usize,
 }
 
@@ -136,9 +136,9 @@ impl MemPool {
     pub fn new(block_gas_limit: U256) -> Self {
         Self {
             block_gas_limit,
-            pending_transactions: HashMap::new(),
+            pending_transactions: IndexMap::new(),
             hash_to_transaction: HashMap::new(),
-            future_transactions: HashMap::new(),
+            future_transactions: IndexMap::new(),
             next_order_id: 0,
         }
     }
@@ -174,11 +174,13 @@ impl MemPool {
         })
     }
 
-    /// Retrieves an iterator for all transactions in the instance, ordering them by insertion order.
+    /// Retrieves an iterator for all transactions in the instance. Pending transactions are followed by future transactions,
+    /// grouped by sender in order of insertion.
     pub fn transactions(&self) -> impl Iterator<Item = &PendingTransaction> {
-        self.hash_to_transaction
+        self.pending_transactions
             .values()
-            .sorted_by(|lhs, rhs| lhs.order_id.cmp(&rhs.order_id))
+            .chain(self.future_transactions.values())
+            .flatten()
             .map(OrderedTransaction::transaction)
     }
 
