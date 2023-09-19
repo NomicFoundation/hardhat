@@ -49,7 +49,7 @@ export class HardhatMemPool implements MemPoolAdapter {
     this._state = makePoolState({
       blockGasLimit: BigIntUtils.toHex(blockGasLimit),
     });
-    this._deserializeTransaction = (tx) => _deserializeTransaction(tx, common);
+    this._deserializeTransaction = (tx) => deserializeTransaction(tx, common);
   }
 
   public async getBlockGasLimit(): Promise<bigint> {
@@ -92,7 +92,7 @@ export class HardhatMemPool implements MemPoolAdapter {
 
     this._deleteTransactionByHash(hash);
 
-    const serializedTx = _serializeTransaction(tx);
+    const serializedTx = serializeTransaction(tx);
     const senderAddress = _getSenderAddress(tx.data).toString();
 
     const pendingForAddress =
@@ -312,7 +312,7 @@ export class HardhatMemPool implements MemPoolAdapter {
 
     this._deleteTransactionByHash(deserializedTX.data.hash());
 
-    const indexOfTx = accountTxs.indexOf(_serializeTransaction(deserializedTX));
+    const indexOfTx = accountTxs.indexOf(serializeTransaction(deserializedTX));
     return map.set(address, accountTxs.remove(indexOfTx));
   }
 
@@ -321,7 +321,7 @@ export class HardhatMemPool implements MemPoolAdapter {
       orderId: this._nextOrderId++,
       data: tx,
     };
-    const serializedTx = _serializeTransaction(orderedTx);
+    const serializedTx = serializeTransaction(orderedTx);
 
     const hexSenderAddress = tx.getSenderAddress().toString();
     const accountTransactions: SenderTransactions =
@@ -347,7 +347,7 @@ export class HardhatMemPool implements MemPoolAdapter {
       orderId: this._nextOrderId++,
       data: tx,
     };
-    const serializedTx = _serializeTransaction(orderedTx);
+    const serializedTx = serializeTransaction(orderedTx);
 
     const hexSenderAddress = tx.getSenderAddress().toString();
     const accountTransactions: SenderTransactions =
@@ -600,7 +600,7 @@ export class HardhatMemPool implements MemPoolAdapter {
       );
     }
 
-    const newTxs = txs.set(existingTxIndex, _serializeTransaction(newTx));
+    const newTxs = txs.set(existingTxIndex, serializeTransaction(newTx));
 
     this._deleteTransactionByHash(deserializedExistingTx.data.hash());
 
@@ -620,7 +620,7 @@ function _getSenderAddress(tx: TypedTransaction): Address {
   }
 }
 
-export function _serializeTransaction(
+export function serializeTransaction(
   tx: OrderedTransaction
 ): SerializedTransaction {
   const rlpSerialization = bufferToHex(tx.data.serialize());
@@ -637,7 +637,7 @@ export function _serializeTransaction(
   });
 }
 
-function _deserializeTransaction(
+export function deserializeTransaction(
   tx: SerializedTransaction,
   common: Common
 ): OrderedTransaction {

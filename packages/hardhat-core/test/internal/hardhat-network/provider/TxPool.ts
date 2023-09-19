@@ -12,8 +12,8 @@ import {
 import { assert } from "chai";
 
 import { InvalidInputError } from "../../../../src/internal/core/providers/errors";
+import { HardhatMemPool } from "../../../../src/internal/hardhat-network/provider/mem-pool/hardhat";
 import { randomAddress } from "../../../../src/internal/hardhat-network/provider/utils/random";
-import { TxPool } from "../../../../src/internal/hardhat-network/provider/TxPool";
 import { txMapToArray } from "../../../../src/internal/hardhat-network/provider/utils/txMapToArray";
 import { assertEqualTransactionMaps } from "../helpers/assertEqualTransactionMaps";
 import {
@@ -31,12 +31,12 @@ import {
 describe("Tx Pool", () => {
   const blockGasLimit = 10_000_000n;
   let stateManager: StateManager;
-  let txPool: TxPool;
+  let txPool: HardhatMemPool;
 
   beforeEach(() => {
     stateManager = new DefaultStateManager();
     const common = new Common({ chain: "mainnet" });
-    txPool = new TxPool(blockGasLimit, common);
+    txPool = new HardhatMemPool(blockGasLimit, common, stateManager);
   });
 
   describe("addTransaction", () => {
@@ -54,12 +54,9 @@ describe("Tx Pool", () => {
               from: address,
               nonce: 0,
             });
-            await txPool.addTransaction(
-              stateManager.getAccount.bind(stateManager),
-              tx
-            );
+            await txPool.addTransaction(tx);
 
-            const pendingTxs = txPool.getPendingTransactions();
+            const pendingTxs = txPool.getOrderedPendingTransactions();
             assert.lengthOf(txMapToArray(pendingTxs), 1);
             assert.deepEqual(txMapToArray(pendingTxs)[0].raw, tx.raw);
           });
@@ -75,12 +72,9 @@ describe("Tx Pool", () => {
               from: address,
               nonce: 3,
             });
-            await txPool.addTransaction(
-              stateManager.getAccount.bind(stateManager),
-              tx
-            );
+            await txPool.addTransaction(tx);
 
-            const pendingTxs = txPool.getPendingTransactions();
+            const pendingTxs = txPool.getOrderedPendingTransactions();
             assert.equal(pendingTxs.size, 0);
           });
         });
@@ -97,10 +91,7 @@ describe("Tx Pool", () => {
             });
 
             await assert.isRejected(
-              txPool.addTransaction(
-                stateManager.getAccount.bind(stateManager),
-                tx
-              ),
+              txPool.addTransaction(tx),
               Error,
               "Nonce too low"
             );
@@ -126,16 +117,10 @@ describe("Tx Pool", () => {
               from: address,
               nonce: 1,
             });
-            await txPool.addTransaction(
-              stateManager.getAccount.bind(stateManager),
-              tx1
-            );
-            await txPool.addTransaction(
-              stateManager.getAccount.bind(stateManager),
-              tx2
-            );
+            await txPool.addTransaction(tx1);
+            await txPool.addTransaction(tx2);
 
-            const pendingTxs = txPool.getPendingTransactions();
+            const pendingTxs = txPool.getOrderedPendingTransactions();
             assert.sameDeepMembers(
               txMapToArray(pendingTxs).map((tx) => tx.raw),
               [tx1, tx2].map((tx) => tx.raw)
@@ -156,20 +141,11 @@ describe("Tx Pool", () => {
               nonce: 1,
             });
 
-            await txPool.addTransaction(
-              stateManager.getAccount.bind(stateManager),
-              tx1
-            );
-            await txPool.addTransaction(
-              stateManager.getAccount.bind(stateManager),
-              tx2
-            );
-            await txPool.addTransaction(
-              stateManager.getAccount.bind(stateManager),
-              tx3
-            );
+            await txPool.addTransaction(tx1);
+            await txPool.addTransaction(tx2);
+            await txPool.addTransaction(tx3);
 
-            const pendingTxs = txPool.getPendingTransactions();
+            const pendingTxs = txPool.getOrderedPendingTransactions();
             assert.sameDeepMembers(
               txMapToArray(pendingTxs).map((tx) => tx.raw),
               [tx1, tx2, tx3].map((tx) => tx.raw)
@@ -194,24 +170,12 @@ describe("Tx Pool", () => {
               nonce: 1,
             });
 
-            await txPool.addTransaction(
-              stateManager.getAccount.bind(stateManager),
-              tx1
-            );
-            await txPool.addTransaction(
-              stateManager.getAccount.bind(stateManager),
-              tx2
-            );
-            await txPool.addTransaction(
-              stateManager.getAccount.bind(stateManager),
-              tx3
-            );
-            await txPool.addTransaction(
-              stateManager.getAccount.bind(stateManager),
-              tx4
-            );
+            await txPool.addTransaction(tx1);
+            await txPool.addTransaction(tx2);
+            await txPool.addTransaction(tx3);
+            await txPool.addTransaction(tx4);
 
-            const pendingTxs = txPool.getPendingTransactions();
+            const pendingTxs = txPool.getOrderedPendingTransactions();
             assert.sameDeepMembers(
               txMapToArray(pendingTxs).map((tx) => tx.raw),
               [tx1, tx2, tx4].map((tx) => tx.raw)
@@ -229,16 +193,10 @@ describe("Tx Pool", () => {
               from: address,
               nonce: 2,
             });
-            await txPool.addTransaction(
-              stateManager.getAccount.bind(stateManager),
-              tx1
-            );
-            await txPool.addTransaction(
-              stateManager.getAccount.bind(stateManager),
-              tx2
-            );
+            await txPool.addTransaction(tx1);
+            await txPool.addTransaction(tx2);
 
-            const pendingTxs = txPool.getPendingTransactions();
+            const pendingTxs = txPool.getOrderedPendingTransactions();
             assert.sameDeepMembers(
               txMapToArray(pendingTxs).map((tx) => tx.raw),
               [tx1].map((tx) => tx.raw)
@@ -257,10 +215,7 @@ describe("Tx Pool", () => {
               nonce: 0,
             });
             await assert.isRejected(
-              txPool.addTransaction(
-                stateManager.getAccount.bind(stateManager),
-                tx
-              ),
+              txPool.addTransaction(tx),
               Error,
               "Nonce too low"
             );
@@ -283,16 +238,10 @@ describe("Tx Pool", () => {
               nonce: 0,
               gasPrice: 10,
             });
-            await txPool.addTransaction(
-              stateManager.getAccount.bind(stateManager),
-              tx1a
-            );
-            await txPool.addTransaction(
-              stateManager.getAccount.bind(stateManager),
-              tx1b
-            );
+            await txPool.addTransaction(tx1a);
+            await txPool.addTransaction(tx1b);
 
-            const pendingTxs = txPool.getPendingTransactions();
+            const pendingTxs = txPool.getOrderedPendingTransactions();
             assert.sameDeepMembers(
               txMapToArray(pendingTxs).map((tx) => tx.raw),
               [tx1b].map((tx) => tx.raw)
@@ -314,16 +263,10 @@ describe("Tx Pool", () => {
               nonce: 1,
               gasPrice: 10,
             });
-            await txPool.addTransaction(
-              stateManager.getAccount.bind(stateManager),
-              tx2a
-            );
-            await txPool.addTransaction(
-              stateManager.getAccount.bind(stateManager),
-              tx2b
-            );
+            await txPool.addTransaction(tx2a);
+            await txPool.addTransaction(tx2b);
 
-            const queuedTxs = txPool.getQueuedTransactions();
+            const queuedTxs = txPool.getOrderedQueuedTransactions();
 
             assert.sameDeepMembers(
               txMapToArray(queuedTxs).map((tx) => tx.raw),
@@ -343,10 +286,7 @@ describe("Tx Pool", () => {
               gasPrice: 20,
             });
 
-            await txPool.addTransaction(
-              stateManager.getAccount.bind(stateManager),
-              tx1a
-            );
+            await txPool.addTransaction(tx1a);
 
             const tx1b = createTestFakeTransaction({
               from: address,
@@ -355,10 +295,7 @@ describe("Tx Pool", () => {
             });
 
             await assert.isRejected(
-              txPool.addTransaction(
-                stateManager.getAccount.bind(stateManager),
-                tx1b
-              ),
+              txPool.addTransaction(tx1b),
               InvalidInputError,
               `Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least 22 is necessary to replace the existing transaction with nonce 0.`
             );
@@ -371,10 +308,7 @@ describe("Tx Pool", () => {
             });
 
             await assert.isRejected(
-              txPool.addTransaction(
-                stateManager.getAccount.bind(stateManager),
-                tx1c
-              ),
+              txPool.addTransaction(tx1c),
               InvalidInputError,
               `Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least 22 is necessary to replace the existing transaction with nonce 0.`
             );
@@ -387,15 +321,12 @@ describe("Tx Pool", () => {
             });
 
             await assert.isRejected(
-              txPool.addTransaction(
-                stateManager.getAccount.bind(stateManager),
-                tx1d
-              ),
+              txPool.addTransaction(tx1d),
               InvalidInputError,
               `Replacement transaction underpriced. A gasPrice/maxPriorityFeePerGas of at least 22 is necessary to replace the existing transaction with nonce 0.`
             );
 
-            const pendingTxs = txPool.getPendingTransactions();
+            const pendingTxs = txPool.getOrderedPendingTransactions();
             assert.sameDeepMembers(
               txMapToArray(pendingTxs).map((tx) => tx.raw),
               [tx1a].map((tx) => tx.raw)
@@ -417,20 +348,14 @@ describe("Tx Pool", () => {
               nonce: 1,
               gasPrice: 21,
             });
-            await txPool.addTransaction(
-              stateManager.getAccount.bind(stateManager),
-              tx2a
-            );
+            await txPool.addTransaction(tx2a);
             await assert.isRejected(
-              txPool.addTransaction(
-                stateManager.getAccount.bind(stateManager),
-                tx2b
-              ),
+              txPool.addTransaction(tx2b),
               InvalidInputError,
               `Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least 22 is necessary to replace the existing transaction with nonce 1`
             );
 
-            const queuedTxs = txPool.getQueuedTransactions();
+            const queuedTxs = txPool.getOrderedQueuedTransactions();
 
             assert.sameDeepMembers(
               txMapToArray(queuedTxs).map((tx) => tx.raw),
@@ -466,16 +391,10 @@ describe("Tx Pool", () => {
           nonce: 0,
         });
 
-        await txPool.addTransaction(
-          stateManager.getAccount.bind(stateManager),
-          tx1
-        );
-        await txPool.addTransaction(
-          stateManager.getAccount.bind(stateManager),
-          tx2
-        );
+        await txPool.addTransaction(tx1);
+        await txPool.addTransaction(tx2);
 
-        const pendingTxs = txPool.getPendingTransactions();
+        const pendingTxs = txPool.getOrderedPendingTransactions();
 
         assert.sameDeepMembers(
           txMapToArray(pendingTxs).map((tx) => tx.raw),
@@ -502,24 +421,12 @@ describe("Tx Pool", () => {
             nonce: 1,
           });
 
-          await txPool.addTransaction(
-            stateManager.getAccount.bind(stateManager),
-            tx1
-          );
-          await txPool.addTransaction(
-            stateManager.getAccount.bind(stateManager),
-            tx2
-          );
-          await txPool.addTransaction(
-            stateManager.getAccount.bind(stateManager),
-            tx3
-          );
-          await txPool.addTransaction(
-            stateManager.getAccount.bind(stateManager),
-            tx4
-          );
+          await txPool.addTransaction(tx1);
+          await txPool.addTransaction(tx2);
+          await txPool.addTransaction(tx3);
+          await txPool.addTransaction(tx4);
 
-          const pendingTxs = txPool.getPendingTransactions();
+          const pendingTxs = txPool.getOrderedPendingTransactions();
 
           assert.sameDeepMembers(
             txMapToArray(pendingTxs).map((tx) => tx.raw),
@@ -549,28 +456,13 @@ describe("Tx Pool", () => {
             nonce: 1,
           });
 
-          await txPool.addTransaction(
-            stateManager.getAccount.bind(stateManager),
-            tx1
-          );
-          await txPool.addTransaction(
-            stateManager.getAccount.bind(stateManager),
-            tx2
-          );
-          await txPool.addTransaction(
-            stateManager.getAccount.bind(stateManager),
-            tx3
-          );
-          await txPool.addTransaction(
-            stateManager.getAccount.bind(stateManager),
-            tx4
-          );
-          await txPool.addTransaction(
-            stateManager.getAccount.bind(stateManager),
-            tx5
-          );
+          await txPool.addTransaction(tx1);
+          await txPool.addTransaction(tx2);
+          await txPool.addTransaction(tx3);
+          await txPool.addTransaction(tx4);
+          await txPool.addTransaction(tx5);
 
-          const pendingTxs = txPool.getPendingTransactions();
+          const pendingTxs = txPool.getOrderedPendingTransactions();
 
           assert.sameDeepMembers(
             txMapToArray(pendingTxs).map((tx) => tx.raw),
@@ -608,36 +500,15 @@ describe("Tx Pool", () => {
             nonce: 1,
           });
 
-          await txPool.addTransaction(
-            stateManager.getAccount.bind(stateManager),
-            tx1
-          );
-          await txPool.addTransaction(
-            stateManager.getAccount.bind(stateManager),
-            tx2
-          );
-          await txPool.addTransaction(
-            stateManager.getAccount.bind(stateManager),
-            tx3
-          );
-          await txPool.addTransaction(
-            stateManager.getAccount.bind(stateManager),
-            tx4
-          );
-          await txPool.addTransaction(
-            stateManager.getAccount.bind(stateManager),
-            tx5
-          );
-          await txPool.addTransaction(
-            stateManager.getAccount.bind(stateManager),
-            tx6
-          );
-          await txPool.addTransaction(
-            stateManager.getAccount.bind(stateManager),
-            tx7
-          );
+          await txPool.addTransaction(tx1);
+          await txPool.addTransaction(tx2);
+          await txPool.addTransaction(tx3);
+          await txPool.addTransaction(tx4);
+          await txPool.addTransaction(tx5);
+          await txPool.addTransaction(tx6);
+          await txPool.addTransaction(tx7);
 
-          const pendingTxs = txPool.getPendingTransactions();
+          const pendingTxs = txPool.getOrderedPendingTransactions();
 
           assert.sameDeepMembers(
             txMapToArray(pendingTxs).map((tx) => tx.raw),
@@ -656,16 +527,10 @@ describe("Tx Pool", () => {
         const signedTx1 = tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
         const signedTx2 = tx2.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 
-        await txPool.addTransaction(
-          stateManager.getAccount.bind(stateManager),
-          signedTx1
-        );
+        await txPool.addTransaction(signedTx1);
 
         await assert.isRejected(
-          txPool.addTransaction(
-            stateManager.getAccount.bind(stateManager),
-            signedTx2
-          ),
+          txPool.addTransaction(signedTx2),
           InvalidInputError,
           `Known transaction: ${bufferToHex(signedTx1.hash())}`
         );
@@ -675,7 +540,7 @@ describe("Tx Pool", () => {
         const gasLimit = 15_000_000;
         const tx = createTestFakeTransaction({ gasLimit });
         await assert.isRejected(
-          txPool.addTransaction(stateManager.getAccount.bind(stateManager), tx),
+          txPool.addTransaction(tx),
           InvalidInputError,
           `Transaction gas limit is ${gasLimit} and exceeds block gas limit of ${blockGasLimit}`
         );
@@ -684,7 +549,7 @@ describe("Tx Pool", () => {
       it("rejects if transaction is not signed", async () => {
         const tx = createUnsignedTestTransaction();
         await assert.isRejected(
-          txPool.addTransaction(stateManager.getAccount.bind(stateManager), tx),
+          txPool.addTransaction(tx),
           InvalidInputError,
           "Invalid Signature"
         );
@@ -703,7 +568,7 @@ describe("Tx Pool", () => {
         });
 
         await assert.isRejected(
-          txPool.addTransaction(stateManager.getAccount.bind(stateManager), tx),
+          txPool.addTransaction(tx),
           InvalidInputError,
           "Nonce too low"
         );
@@ -713,7 +578,7 @@ describe("Tx Pool", () => {
         const gasLimit = 100;
         const tx = createTestFakeTransaction({ gasLimit });
         await assert.isRejected(
-          txPool.addTransaction(stateManager.getAccount.bind(stateManager), tx),
+          txPool.addTransaction(tx),
           InvalidInputError,
           `Transaction requires at least 21000 gas but got ${gasLimit}`
         );
@@ -724,7 +589,7 @@ describe("Tx Pool", () => {
           to: undefined,
         });
         await assert.isRejected(
-          txPool.addTransaction(stateManager.getAccount.bind(stateManager), tx),
+          txPool.addTransaction(tx),
           InvalidInputError,
           "contract creation without any data provided"
         );
@@ -747,7 +612,7 @@ describe("Tx Pool", () => {
           value: 5,
         });
         await assert.isRejected(
-          txPool.addTransaction(stateManager.getAccount.bind(stateManager), tx),
+          txPool.addTransaction(tx),
           InvalidInputError,
           "sender doesn't have enough funds to send tx"
         );
@@ -759,10 +624,7 @@ describe("Tx Pool", () => {
           value: 5,
         });
         await assert.isRejected(
-          txPool.addTransaction(
-            stateManager.getAccount.bind(stateManager),
-            tx2
-          ),
+          txPool.addTransaction(tx2),
           InvalidInputError,
           "sender doesn't have enough funds to send tx"
         );
@@ -801,24 +663,12 @@ describe("Tx Pool", () => {
           nonce: 0,
         });
 
-        await txPool.addTransaction(
-          stateManager.getAccount.bind(stateManager),
-          txA.data
-        );
-        await txPool.addTransaction(
-          stateManager.getAccount.bind(stateManager),
-          txB.data
-        );
-        await txPool.addTransaction(
-          stateManager.getAccount.bind(stateManager),
-          txC.data
-        );
-        await txPool.addTransaction(
-          stateManager.getAccount.bind(stateManager),
-          txD.data
-        );
+        await txPool.addTransaction(txA.data);
+        await txPool.addTransaction(txB.data);
+        await txPool.addTransaction(txC.data);
+        await txPool.addTransaction(txD.data);
 
-        const pendingTxs = txPool.getPendingTransactions();
+        const pendingTxs = txPool.getOrderedPendingTransactions();
         assertEqualTransactionMaps(
           pendingTxs,
           makeOrderedTxMap([txD, txA, txC])
@@ -836,14 +686,11 @@ describe("Tx Pool", () => {
         gasLimit: 21_000,
       });
 
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx
-      );
+      await txPool.addTransaction(tx);
 
-      const txFromTxPool = txPool.getTransactionByHash(tx.hash());
+      const txFromTxPool = await txPool.getTransactionByHash(tx.hash());
 
-      assert.deepEqual(txFromTxPool?.data.raw, tx.raw);
+      assert.deepEqual(txFromTxPool?.raw(), tx.raw());
     });
 
     it("returns a transaction from queued based on hash", async () => {
@@ -854,14 +701,11 @@ describe("Tx Pool", () => {
         gasLimit: 21_000,
       });
 
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx
-      );
+      await txPool.addTransaction(tx);
 
-      const txFromTxPool = txPool.getTransactionByHash(tx.hash());
+      const txFromTxPool = await txPool.getTransactionByHash(tx.hash());
 
-      assert.deepEqual(txFromTxPool?.data.raw, tx.raw);
+      assert.deepEqual(txFromTxPool?.raw(), tx.raw());
     });
 
     it("returns undefined if transaction is not in pending anymore", async () => {
@@ -873,14 +717,13 @@ describe("Tx Pool", () => {
 
       const signedTx = tx.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        signedTx
+      await txPool.addTransaction(signedTx);
+
+      const oldTxFromTxPool = await txPool.getTransactionByHash(
+        signedTx.hash()
       );
 
-      const oldTxFromTxPool = txPool.getTransactionByHash(signedTx.hash());
-
-      assert.deepEqual(oldTxFromTxPool!.data.raw(), signedTx.raw());
+      assert.deepEqual(oldTxFromTxPool!.raw(), signedTx.raw());
 
       await stateManager.putAccount(
         signedTx.getSenderAddress(),
@@ -890,11 +733,11 @@ describe("Tx Pool", () => {
         })
       );
 
-      await txPool.updatePendingAndQueued(
-        stateManager.getAccount.bind(stateManager)
-      );
+      await txPool.update();
 
-      const actualTxFromTxPool = txPool.getTransactionByHash(signedTx.hash());
+      const actualTxFromTxPool = await txPool.getTransactionByHash(
+        signedTx.hash()
+      );
 
       assert.isUndefined(actualTxFromTxPool);
     });
@@ -908,14 +751,13 @@ describe("Tx Pool", () => {
 
       const signedTx = tx.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        signedTx
+      await txPool.addTransaction(signedTx);
+
+      const oldTxFromTxPool = await txPool.getTransactionByHash(
+        signedTx.hash()
       );
 
-      const oldTxFromTxPool = txPool.getTransactionByHash(signedTx.hash());
-
-      assert.deepEqual(oldTxFromTxPool!.data.raw(), signedTx.raw());
+      assert.deepEqual(oldTxFromTxPool!.raw(), signedTx.raw());
 
       await stateManager.putAccount(
         signedTx.getSenderAddress(),
@@ -925,11 +767,11 @@ describe("Tx Pool", () => {
         })
       );
 
-      await txPool.updatePendingAndQueued(
-        stateManager.getAccount.bind(stateManager)
-      );
+      await txPool.update();
 
-      const actualTxFromTxPool = txPool.getTransactionByHash(signedTx.hash());
+      const actualTxFromTxPool = await txPool.getTransactionByHash(
+        signedTx.hash()
+      );
 
       assert.isUndefined(actualTxFromTxPool);
     });
@@ -951,17 +793,9 @@ describe("Tx Pool", () => {
         nonce: 0,
       });
 
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx1
-      );
+      await txPool.addTransaction(tx1);
 
-      assert.isTrue(
-        (await txPool.getNextPendingNonce(
-          stateManager.getAccount.bind(stateManager),
-          address
-        )) === 1n
-      );
+      assert.isTrue((await txPool.getNextPendingNonce(address)) === 1n);
     });
 
     it("is not affected by queued transactions", async () => {
@@ -974,21 +808,10 @@ describe("Tx Pool", () => {
         nonce: 2,
       });
 
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx1
-      );
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx2
-      );
+      await txPool.addTransaction(tx1);
+      await txPool.addTransaction(tx2);
 
-      assert.isTrue(
-        (await txPool.getNextPendingNonce(
-          stateManager.getAccount.bind(stateManager),
-          address
-        )) === 1n
-      );
+      assert.isTrue((await txPool.getNextPendingNonce(address)) === 1n);
     });
 
     it("returns correct nonce after all queued transactions are moved to pending", async () => {
@@ -1005,25 +828,11 @@ describe("Tx Pool", () => {
         nonce: 1,
       });
 
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx1
-      );
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx2
-      );
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx3
-      );
+      await txPool.addTransaction(tx1);
+      await txPool.addTransaction(tx2);
+      await txPool.addTransaction(tx3);
 
-      assert.isTrue(
-        (await txPool.getNextPendingNonce(
-          stateManager.getAccount.bind(stateManager),
-          address
-        )) === 3n
-      );
+      assert.isTrue((await txPool.getNextPendingNonce(address)) === 3n);
     });
 
     it("returns correct nonce after some queued transactions are moved to pending", async () => {
@@ -1032,33 +841,16 @@ describe("Tx Pool", () => {
       const tx3 = createTestFakeTransaction({ from: address, nonce: 5 });
       const tx4 = createTestFakeTransaction({ from: address, nonce: 1 });
 
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx1
-      );
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx2
-      );
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx3
-      );
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx4
-      );
+      await txPool.addTransaction(tx1);
+      await txPool.addTransaction(tx2);
+      await txPool.addTransaction(tx3);
+      await txPool.addTransaction(tx4);
 
-      assert.isTrue(
-        (await txPool.getNextPendingNonce(
-          stateManager.getAccount.bind(stateManager),
-          address
-        )) === 3n
-      );
+      assert.isTrue((await txPool.getNextPendingNonce(address)) === 3n);
     });
   });
 
-  describe("updatePendingAndQueued", () => {
+  describe("update", () => {
     const address1 = Address.fromString(DEFAULT_ACCOUNTS_ADDRESSES[0]);
     const address2 = Address.fromString(DEFAULT_ACCOUNTS_ADDRESSES[1]);
     beforeEach(async () => {
@@ -1082,17 +874,12 @@ describe("Tx Pool", () => {
       const tx1 = createTestTransaction({ nonce: 0, gasLimit: 9_500_000 });
       const signedTx1 = tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        signedTx1
-      );
+      await txPool.addTransaction(signedTx1);
 
-      txPool.setBlockGasLimit(5_000_000);
+      await txPool.setBlockGasLimit(5_000_000n);
 
-      await txPool.updatePendingAndQueued(
-        stateManager.getAccount.bind(stateManager)
-      );
-      const pendingTransactions = txPool.getPendingTransactions();
+      await txPool.update();
+      const pendingTransactions = txPool.getOrderedPendingTransactions();
 
       assertEqualTransactionMaps(pendingTransactions, makeOrderedTxMap([]));
     });
@@ -1101,17 +888,12 @@ describe("Tx Pool", () => {
       const tx1 = createTestTransaction({ nonce: 1, gasLimit: 9_500_000 });
       const signedTx1 = tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        signedTx1
-      );
+      await txPool.addTransaction(signedTx1);
 
-      txPool.setBlockGasLimit(5_000_000);
+      await txPool.setBlockGasLimit(5_000_000n);
 
-      await txPool.updatePendingAndQueued(
-        stateManager.getAccount.bind(stateManager)
-      );
-      const queuedTransactions = txPool.getQueuedTransactions();
+      await txPool.update();
+      const queuedTransactions = txPool.getOrderedQueuedTransactions();
 
       assertEqualTransactionMaps(queuedTransactions, makeOrderedTxMap([]));
     });
@@ -1142,22 +924,10 @@ describe("Tx Pool", () => {
         from: address2,
       });
 
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx1.data
-      );
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx2.data
-      );
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx3.data
-      );
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx4.data
-      );
+      await txPool.addTransaction(tx1.data);
+      await txPool.addTransaction(tx2.data);
+      await txPool.addTransaction(tx3.data);
+      await txPool.addTransaction(tx4.data);
 
       await stateManager.putAccount(
         address1,
@@ -1174,10 +944,8 @@ describe("Tx Pool", () => {
         })
       );
 
-      await txPool.updatePendingAndQueued(
-        stateManager.getAccount.bind(stateManager)
-      );
-      const pendingTransactions = txPool.getPendingTransactions();
+      await txPool.update();
+      const pendingTransactions = txPool.getOrderedPendingTransactions();
 
       assertEqualTransactionMaps(
         pendingTransactions,
@@ -1193,20 +961,15 @@ describe("Tx Pool", () => {
       });
       const signedTx1 = tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        signedTx1
-      );
+      await txPool.addTransaction(signedTx1);
 
       await stateManager.putAccount(
         address1,
         Account.fromAccountData({ nonce: 0n, balance: 0n })
       );
 
-      await txPool.updatePendingAndQueued(
-        stateManager.getAccount.bind(stateManager)
-      );
-      const pendingTransactions = txPool.getPendingTransactions();
+      await txPool.update();
+      const pendingTransactions = txPool.getOrderedPendingTransactions();
 
       assertEqualTransactionMaps(pendingTransactions, makeOrderedTxMap([]));
     });
@@ -1219,20 +982,15 @@ describe("Tx Pool", () => {
       });
       const signedTx1 = tx1.sign(toBuffer(DEFAULT_ACCOUNTS[0].privateKey));
 
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        signedTx1
-      );
+      await txPool.addTransaction(signedTx1);
 
       await stateManager.putAccount(
         address1,
         Account.fromAccountData({ nonce: 0n, balance: 0n })
       );
 
-      await txPool.updatePendingAndQueued(
-        stateManager.getAccount.bind(stateManager)
-      );
-      const queuedTransactions = txPool.getQueuedTransactions();
+      await txPool.update();
+      const queuedTransactions = txPool.getOrderedQueuedTransactions();
 
       assertEqualTransactionMaps(queuedTransactions, makeOrderedTxMap([]));
     });
@@ -1273,53 +1031,36 @@ describe("Tx Pool", () => {
         from: sender,
       });
 
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx0
-      );
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx1
-      );
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx2
-      );
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx4
-      );
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx5
-      );
+      await txPool.addTransaction(tx0);
+      await txPool.addTransaction(tx1);
+      await txPool.addTransaction(tx2);
+      await txPool.addTransaction(tx4);
+      await txPool.addTransaction(tx5);
 
       // pending: [0, 1, 2]
       // queued: [4, 5]
-      let pendingTxs = txPool.getPendingTransactions();
+      let pendingTxs = txPool.getOrderedPendingTransactions();
       assert.lengthOf(txMapToArray(pendingTxs), 3);
       assert.deepEqual(txMapToArray(pendingTxs)[0].raw, tx0.raw);
       assert.deepEqual(txMapToArray(pendingTxs)[1].raw, tx1.raw);
       assert.deepEqual(txMapToArray(pendingTxs)[2].raw, tx2.raw);
 
-      let queuedTxs = txPool.getQueuedTransactions();
+      let queuedTxs = txPool.getOrderedQueuedTransactions();
       assert.lengthOf(txMapToArray(queuedTxs), 2);
       assert.deepEqual(txMapToArray(queuedTxs)[0].raw, tx4.raw);
       assert.deepEqual(txMapToArray(queuedTxs)[1].raw, tx5.raw);
 
       // this should drop tx1
-      txPool.setBlockGasLimit(150_000);
-      await txPool.updatePendingAndQueued(
-        stateManager.getAccount.bind(stateManager)
-      );
+      await txPool.setBlockGasLimit(150_000n);
+      await txPool.update();
 
       // pending: [0]
       // queued: [2, 4, 5]
-      pendingTxs = txPool.getPendingTransactions();
+      pendingTxs = txPool.getOrderedPendingTransactions();
       assert.lengthOf(txMapToArray(pendingTxs), 1);
       assert.deepEqual(txMapToArray(pendingTxs)[0].raw, tx0.raw);
 
-      queuedTxs = txPool.getQueuedTransactions();
+      queuedTxs = txPool.getOrderedQueuedTransactions();
       assert.lengthOf(txMapToArray(queuedTxs), 3);
       assert.deepEqual(txMapToArray(queuedTxs)[0].raw, tx4.raw);
       assert.deepEqual(txMapToArray(queuedTxs)[1].raw, tx5.raw);
@@ -1334,38 +1075,30 @@ describe("Tx Pool", () => {
         gasLimit: 100_000,
         from: sender,
       });
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx1
-      );
+      await txPool.addTransaction(tx1);
 
-      let pendingTxs = txPool.getPendingTransactions();
+      let pendingTxs = txPool.getOrderedPendingTransactions();
       assert.lengthOf(txMapToArray(pendingTxs), 1);
       assert.deepEqual(txMapToArray(pendingTxs)[0].raw, tx1.raw);
 
-      let queuedTxs = txPool.getQueuedTransactions();
+      let queuedTxs = txPool.getOrderedQueuedTransactions();
       assert.lengthOf(txMapToArray(queuedTxs), 0);
 
-      txPool.setBlockGasLimit(90_000);
-      await txPool.updatePendingAndQueued(
-        stateManager.getAccount.bind(stateManager)
-      );
+      await txPool.setBlockGasLimit(90_000n);
+      await txPool.update();
 
       const tx2 = createTestFakeTransaction({
         gasLimit: 80_000,
         from: sender,
         nonce: 0,
       });
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx2
-      );
+      await txPool.addTransaction(tx2);
 
-      pendingTxs = txPool.getPendingTransactions();
+      pendingTxs = txPool.getOrderedPendingTransactions();
       assert.lengthOf(txMapToArray(pendingTxs), 1);
       assert.deepEqual(txMapToArray(pendingTxs)[0].raw, tx2.raw);
 
-      queuedTxs = txPool.getQueuedTransactions();
+      queuedTxs = txPool.getOrderedQueuedTransactions();
       assert.lengthOf(txMapToArray(queuedTxs), 0);
     });
 
@@ -1392,77 +1125,63 @@ describe("Tx Pool", () => {
         from: sender,
       });
 
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx0
-      );
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx1
-      );
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx2
-      );
+      await txPool.addTransaction(tx0);
+      await txPool.addTransaction(tx1);
+      await txPool.addTransaction(tx2);
 
       // pending: [0, 1, 2]
       // queued: [0]
-      let pendingTxs = txPool.getPendingTransactions();
+      let pendingTxs = txPool.getOrderedPendingTransactions();
       assert.lengthOf(txMapToArray(pendingTxs), 3);
       assert.deepEqual(txMapToArray(pendingTxs)[0].raw, tx0.raw);
       assert.deepEqual(txMapToArray(pendingTxs)[1].raw, tx1.raw);
       assert.deepEqual(txMapToArray(pendingTxs)[2].raw, tx2.raw);
 
-      let queuedTxs = txPool.getQueuedTransactions();
+      let queuedTxs = txPool.getOrderedQueuedTransactions();
       assert.lengthOf(txMapToArray(queuedTxs), 0);
 
       // this should drop tx1
-      txPool.setBlockGasLimit(100_000);
-      await txPool.updatePendingAndQueued(
-        stateManager.getAccount.bind(stateManager)
-      );
+      await txPool.setBlockGasLimit(100_000n);
+      await txPool.update();
 
       const tx3 = createTestFakeTransaction({
         nonce: 3,
         from: sender,
       });
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx3
-      );
+      await txPool.addTransaction(tx3);
 
       // pending: [0, 1, 2, 3]
       // queued: []
-      pendingTxs = txPool.getPendingTransactions();
+      pendingTxs = txPool.getOrderedPendingTransactions();
       assert.lengthOf(txMapToArray(pendingTxs), 4);
       assert.deepEqual(txMapToArray(pendingTxs)[0].raw, tx0.raw);
       assert.deepEqual(txMapToArray(pendingTxs)[1].raw, tx1.raw);
       assert.deepEqual(txMapToArray(pendingTxs)[2].raw, tx2.raw);
       assert.deepEqual(txMapToArray(pendingTxs)[3].raw, tx3.raw);
 
-      queuedTxs = txPool.getQueuedTransactions();
+      queuedTxs = txPool.getOrderedQueuedTransactions();
       assert.lengthOf(txMapToArray(queuedTxs), 0);
     });
   });
 
   describe("setBlockGasLimit", () => {
-    it("sets a new block gas limit when new limit is a number", () => {
-      assert.equal(txPool.getBlockGasLimit(), 10_000_000n);
-      txPool.setBlockGasLimit(15_000_000);
-      assert.equal(txPool.getBlockGasLimit(), 15_000_000n);
+    it("sets a new block gas limit when new limit is a number", async () => {
+      assert.equal(await txPool.getBlockGasLimit(), 10_000_000n);
+      await txPool.setBlockGasLimit(15_000_000n);
+      assert.equal(await txPool.getBlockGasLimit(), 15_000_000n);
     });
 
-    it("sets a new block gas limit when new limit is a bigint", () => {
-      assert.equal(txPool.getBlockGasLimit(), 10_000_000n);
-      txPool.setBlockGasLimit(15_000_000n);
-      assert.equal(txPool.getBlockGasLimit(), 15_000_000n);
+    it("sets a new block gas limit when new limit is a bigint", async () => {
+      assert.equal(await txPool.getBlockGasLimit(), 10_000_000n);
+      await txPool.setBlockGasLimit(15_000_000n);
+      assert.equal(await txPool.getBlockGasLimit(), 15_000_000n);
     });
 
     it("makes the new block gas limit actually used for validating added transactions", async () => {
-      txPool.setBlockGasLimit(21_000);
+      await txPool.setBlockGasLimit(21_000n);
       const tx = createTestFakeTransaction({ gasLimit: 50_000 });
       await assert.isRejected(
-        txPool.addTransaction(stateManager.getAccount.bind(stateManager), tx),
+        txPool.addTransaction(tx),
         InvalidInputError,
         "Transaction gas limit is 50000 and exceeds block gas limit of 21000"
       );
@@ -1470,27 +1189,24 @@ describe("Tx Pool", () => {
   });
 
   describe("snapshot", () => {
-    it("returns a snapshot id", () => {
-      const id = txPool.snapshot();
+    it("returns a snapshot id", async () => {
+      const id = await txPool.makeSnapshot();
       assert.isNumber(id);
     });
 
     it("returns a bigger snapshot id if the state changed", async () => {
-      const id1 = txPool.snapshot();
+      const id1 = await txPool.makeSnapshot();
       const tx = createTestFakeTransaction();
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx
-      );
-      const id2 = txPool.snapshot();
+      await txPool.addTransaction(tx);
+      const id2 = await txPool.makeSnapshot();
       assert.isAbove(id2, id1);
     });
   });
 
   describe("revert", () => {
     it("throws if snapshot with given ID doesn't exist", async () => {
-      assert.throws(
-        () => txPool.revert(5),
+      await assert.isRejected(
+        txPool.revertToSnapshot(5),
         Error,
         "There's no snapshot with such ID"
       );
@@ -1507,33 +1223,27 @@ describe("Tx Pool", () => {
         orderId: 0,
         nonce: 0,
       });
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx1.data
-      );
+      await txPool.addTransaction(tx1.data);
 
-      const id = txPool.snapshot();
+      const id = await txPool.makeSnapshot();
 
       const tx2 = createTestOrderedTransaction({
         from: address,
         orderId: 1,
         nonce: 1,
       });
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx2.data
-      );
+      await txPool.addTransaction(tx2.data);
 
-      txPool.revert(id);
-      const pendingTransactions = txPool.getPendingTransactions();
+      await txPool.revertToSnapshot(id);
+      const pendingTransactions = txPool.getOrderedPendingTransactions();
       assertEqualTransactionMaps(pendingTransactions, makeOrderedTxMap([tx1]));
     });
 
-    it("reverts to the previous state of block gas limit", () => {
-      const id = txPool.snapshot();
-      txPool.setBlockGasLimit(5_000_000n);
-      txPool.revert(id);
-      assert.equal(txPool.getBlockGasLimit(), blockGasLimit);
+    it("reverts to the previous state of block gas limit", async () => {
+      const id = await txPool.makeSnapshot();
+      await txPool.setBlockGasLimit(5_000_000n);
+      await txPool.revertToSnapshot(id);
+      assert.equal(await txPool.getBlockGasLimit(), blockGasLimit);
     });
   });
 
@@ -1546,30 +1256,18 @@ describe("Tx Pool", () => {
       const tx1 = createTestFakeTransaction({ nonce: 0 });
       const tx2 = createTestFakeTransaction({ nonce: 0 });
 
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx1
-      );
+      await txPool.addTransaction(tx1);
       assert.isTrue(await txPool.hasPendingTransactions());
 
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx2
-      );
+      await txPool.addTransaction(tx2);
       assert.isTrue(await txPool.hasPendingTransactions());
     });
 
     it("returns false when there are only queued transactions", async () => {
       const tx1 = createTestFakeTransaction({ nonce: 1 });
       const tx2 = createTestFakeTransaction({ nonce: 1 });
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx1
-      );
-      await txPool.addTransaction(
-        stateManager.getAccount.bind(stateManager),
-        tx2
-      );
+      await txPool.addTransaction(tx1);
+      await txPool.addTransaction(tx2);
 
       assert.isFalse(await txPool.hasPendingTransactions());
     });
