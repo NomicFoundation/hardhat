@@ -2,6 +2,8 @@ use napi::bindgen_prelude::Buffer;
 use napi_derive::napi;
 use rethnet_eth::{Address, B256};
 
+use crate::cast::TryCast;
+
 #[napi(object)]
 pub struct AccessListItem {
     /// 20-byte address buffer
@@ -22,19 +24,21 @@ impl From<&rethnet_eth::access_list::AccessListItem> for AccessListItem {
     }
 }
 
-impl From<AccessListItem> for rethnet_eth::access_list::AccessListItem {
-    fn from(value: AccessListItem) -> Self {
+impl TryFrom<AccessListItem> for rethnet_eth::access_list::AccessListItem {
+    type Error = napi::Error;
+
+    fn try_from(value: AccessListItem) -> napi::Result<Self> {
         let address = Address::from_slice(&value.address);
 
         let storage_keys = value
             .storage_keys
             .into_iter()
-            .map(|key| B256::from_slice(&key))
-            .collect::<Vec<_>>();
+            .map(TryCast::<B256>::try_cast)
+            .collect::<Result<Vec<_>, _>>()?;
 
-        rethnet_eth::access_list::AccessListItem {
+        Ok(rethnet_eth::access_list::AccessListItem {
             address,
             storage_keys,
-        }
+        })
     }
 }

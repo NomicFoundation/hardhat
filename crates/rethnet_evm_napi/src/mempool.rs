@@ -95,10 +95,10 @@ impl MemPool {
 
     #[doc = "Removes the transaction corresponding to the provided hash, if it exists."]
     #[napi]
-    pub async fn remove_transaction(&self, hash: Buffer) -> bool {
-        let hash = B256::from_slice(&hash);
+    pub async fn remove_transaction(&self, hash: Buffer) -> napi::Result<bool> {
+        let hash = TryCast::<B256>::try_cast(hash)?;
 
-        self.write().await.remove_transaction(&hash).is_some()
+        Ok(self.write().await.remove_transaction(&hash).is_some())
     }
 
     #[doc = "Updates the instance, moving any future transactions to the pending status, if their nonces are high enough."]
@@ -161,13 +161,17 @@ impl MemPool {
 
     #[doc = "Returns the transaction corresponding to the provided hash, if it exists."]
     #[napi]
-    pub async fn transaction_by_hash(&self, hash: Buffer) -> Option<PendingTransaction> {
-        let hash = B256::from_slice(&hash);
+    pub async fn transaction_by_hash(
+        &self,
+        hash: Buffer,
+    ) -> napi::Result<Option<PendingTransaction>> {
+        let hash = TryCast::<B256>::try_cast(hash)?;
 
-        self.read()
+        Ok(self
+            .read()
             .await
             .transaction_by_hash(&hash)
             .cloned()
-            .map(PendingTransaction::from)
+            .map(PendingTransaction::from))
     }
 }
