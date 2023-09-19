@@ -7,10 +7,11 @@ use napi::{
 };
 use napi_derive::napi;
 
-use rethnet_eth::{B256, U256};
+use rethnet_eth::{remote::RpcClient, spec::HardforkActivations, B256, U256};
 use rethnet_evm::{
     blockchain::{BlockchainError, SyncBlockchain},
     state::{AccountTrie, StateError, TrieState},
+    HashMap,
 };
 
 use crate::{
@@ -98,6 +99,7 @@ impl Blockchain {
 
     #[napi(ts_return_type = "Promise<Blockchain>")]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+    #[allow(clippy::too_many_arguments)]
     pub fn fork(
         env: Env,
         context: &RethnetContext,
@@ -106,6 +108,7 @@ impl Blockchain {
         fork_block_number: Option<BigInt>,
         cache_dir: Option<String>,
         accounts: Vec<GenesisAccount>,
+        hardfork_activation_overrides: Vec<(BigInt, Vec<(BigInt, SpecId)>)>,
     ) -> napi::Result<JsObject> {
         let spec_id = rethnet_evm::SpecId::from(spec_id);
         let fork_block_number: Option<U256> = fork_block_number.map_or(Ok(None), |number| {
@@ -116,17 +119,35 @@ impl Blockchain {
 
         let runtime = context.runtime().clone();
         let state_root_generator = context.state_root_generator.clone();
+        let hardfork_activation_overrides = hardfork_activation_overrides
+            .into_iter()
+            .map(|(chain_id, hardfork_activations)| {
+                let chain_id: U256 = BigInt::try_cast(chain_id)?;
+
+                hardfork_activations
+                    .into_iter()
+                    .map(|(block_number, spec_id)| {
+                        let block_number: U256 = BigInt::try_cast(block_number)?;
+                        let spec_id = rethnet_evm::SpecId::from(spec_id);
+
+                        Ok((block_number, spec_id))
+                    })
+                    .collect::<napi::Result<Vec<_>>>()
+                    .map(|activations| (chain_id, HardforkActivations::from(activations)))
+            })
+            .collect::<napi::Result<HashMap<U256, HardforkActivations>>>()?;
 
         let (deferred, promise) = env.create_deferred()?;
         context.runtime().spawn(async move {
+            let rpc_client = RpcClient::new(&remote_url, cache_dir);
             let result = rethnet_evm::blockchain::ForkedBlockchain::new(
                 runtime.clone(),
                 spec_id,
-                &remote_url,
-                cache_dir,
+                rpc_client,
                 fork_block_number,
                 state_root_generator,
                 accounts,
+                hardfork_activation_overrides,
             )
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()));

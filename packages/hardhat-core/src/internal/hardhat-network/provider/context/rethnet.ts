@@ -1,4 +1,4 @@
-import { Blockchain, RethnetContext } from "rethnet-evm";
+import { Blockchain, RethnetContext, SpecId } from "rethnet-evm";
 import { BlockchainAdapter } from "../blockchain";
 import { RethnetBlockchain } from "../blockchain/rethnet";
 import { EthContextAdapter } from "../context";
@@ -47,6 +47,21 @@ export class RethnetEthContext implements EthContextAdapter {
     let state: RethnetStateManager;
 
     if (isForkedNodeConfig(config)) {
+      const chainIdToHardforkActivations: Array<
+        [bigint, Array<[bigint, SpecId]>]
+      > = Array.from(config.chains).map(([chainId, chainConfig]) => {
+        const hardforkActivations: Array<[bigint, SpecId]> = Array.from(
+          chainConfig.hardforkHistory
+        ).map(([hardfork, blockNumber]) => {
+          const specId = ethereumsjsHardforkToRethnetSpecId(
+            getHardforkName(hardfork)
+          );
+          return [BigInt(blockNumber), specId];
+        });
+
+        return [BigInt(chainId), hardforkActivations];
+      });
+
       blockchain = new RethnetBlockchain(
         await Blockchain.fork(
           globalRethnetContext,
@@ -61,7 +76,8 @@ export class RethnetEthContext implements EthContextAdapter {
               privateKey: account.privateKey,
               balance: BigInt(account.balance),
             };
-          })
+          }),
+          chainIdToHardforkActivations
         ),
         common
       );

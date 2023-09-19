@@ -5,6 +5,7 @@ use serial_test::serial;
 use lazy_static::lazy_static;
 use rethnet_eth::{
     block::PartialHeader,
+    remote::RpcClient,
     transaction::{EIP155TransactionRequest, SignedTransaction, TransactionKind},
     Address, Bytes, B256, U256,
 };
@@ -48,14 +49,15 @@ async fn create_dummy_blockchains() -> Vec<Box<dyn SyncBlockchain<BlockchainErro
         use rethnet_test_utils::env::get_alchemy_url;
 
         let cache_dir = CACHE_DIR.path().into();
+        let rpc_client = RpcClient::new(&get_alchemy_url(), cache_dir);
 
         ForkedBlockchain::new(
             tokio::runtime::Handle::current().clone(),
             SpecId::LATEST,
-            &get_alchemy_url(),
-            cache_dir,
+            rpc_client,
             None,
             Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed"))),
+            HashMap::new(),
             HashMap::new(),
         )
         .await

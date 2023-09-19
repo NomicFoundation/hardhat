@@ -1,15 +1,16 @@
+use std::num::NonZeroUsize;
 use std::sync::Arc;
-use std::{num::NonZeroUsize, path::PathBuf};
 
 use async_trait::async_trait;
 use parking_lot::Mutex;
 use rethnet_eth::block::LargestSafeBlockNumberArgs;
 use rethnet_eth::receipt::BlockReceipt;
+use rethnet_eth::spec::chain_hardfork_activations;
 use rethnet_eth::Address;
 use rethnet_eth::{
     block::{largest_safe_block_number, safe_block_depth},
     remote::{RpcClient, RpcClientError},
-    spec::{chain_name, determine_hardfork},
+    spec::{chain_name, HardforkActivations},
     B256, U256,
 };
 use revm::primitives::{AccountInfo, HashMap};
@@ -64,6 +65,7 @@ pub struct ForkedBlockchain {
     chain_id: U256,
     _network_id: U256,
     spec_id: SpecId,
+    hardfork_activations: Option<HardforkActivations>,
 }
 
 impl ForkedBlockchain {
@@ -71,14 +73,12 @@ impl ForkedBlockchain {
     pub async fn new(
         runtime: runtime::Handle,
         spec_id: SpecId,
-        remote_url: &str,
-        cache_dir: PathBuf,
+        rpc_client: RpcClient,
         fork_block_number: Option<U256>,
         state_root_generator: Arc<Mutex<RandomHashGenerator>>,
         account_overrides: HashMap<Address, AccountInfo>,
+        hardfork_activation_overrides: HashMap<U256, HardforkActivations>,
     ) -> Result<Self, CreationError> {
-        let rpc_client = RpcClient::new(remote_url, cache_dir);
-
         let (chain_id, network_id, latest_block_number) = tokio::join!(
             rpc_client.chain_id(),
             rpc_client.network_id(),
@@ -115,12 +115,18 @@ impl ForkedBlockchain {
             safe_block_number
         };
 
-        if let Some(hardfork) = determine_hardfork(&chain_id, &fork_block_number) {
+        let hardfork_activations = hardfork_activation_overrides
+            .get(&chain_id)
+            .or_else(|| chain_hardfork_activations(&chain_id))
+            .cloned();
+
+        if let Some(hardfork) = hardfork_activations.as_ref().map(|hardfork_activations| {
+            hardfork_activations.hardfork_at_block_number(&fork_block_number)
+        }) {
             if hardfork < SpecId::SPURIOUS_DRAGON {
                 return Err(CreationError::InvalidHardfork {
                     chain_name: chain_name(&chain_id)
-                        .expect("Must succeed since we found its hardfork")
-                        .to_string(),
+                        .map_or_else(|| "unknown".to_string(), ToString::to_string),
                     fork_block_number,
                     hardfork,
                 });
@@ -146,6 +152,7 @@ impl ForkedBlockchain {
             chain_id,
             _network_id: network_id,
             spec_id,
+            hardfork_activations,
         })
     }
 }
@@ -276,11 +283,13 @@ impl Blockchain for ForkedBlockchain {
             self.remote.block_by_number(number).await.map_or_else(
                 |e| Err(BlockchainError::JsonRpcError(e)),
                 |block| {
-                    determine_hardfork(&self.chain_id, &block.header().number).ok_or(
-                        BlockchainError::UnsupportedChain {
+                    if let Some(hardfork_activations) = self.hardfork_activations.as_ref() {
+                        Ok(hardfork_activations.hardfork_at_block_number(&block.header().number))
+                    } else {
+                        Err(BlockchainError::UnsupportedChain {
                             chain_id: self.chain_id,
-                        },
-                    )
+                        })
+                    }
                 },
             )
         } else {

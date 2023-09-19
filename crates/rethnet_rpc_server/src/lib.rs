@@ -8,7 +8,7 @@ use axum::{
     http::StatusCode,
     Router,
 };
-use rethnet_eth::remote::RpcClientError;
+use rethnet_eth::remote::{RpcClient, RpcClientError};
 use rethnet_eth::U64;
 use rethnet_eth::{
     remote::{
@@ -1042,14 +1042,17 @@ impl Server {
                 RandomHashGenerator::with_seed("seed"),
             ));
 
+            let rpc_client = RpcClient::new(&config.json_rpc_url, cache_dir);
+
             let blockchain = ForkedBlockchain::new(
                 runtime.handle().clone(),
                 spec_id,
-                &config.json_rpc_url,
-                cache_dir,
+                rpc_client,
                 config.block_number.map(U256::from),
                 state_root_generator,
                 genesis_accounts,
+                // TODO: make hardfork activations configurable
+                HashMap::new(),
             )
             .await?;
 
