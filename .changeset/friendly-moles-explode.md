@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Added new CLI command `init`. Purpose: initialize a new Hardhat project. Usage: `npx hardhat init`.
+Added an explicit command `hardhat init` to initialize projects, and deprecated project initialization with just `hardhat`.
