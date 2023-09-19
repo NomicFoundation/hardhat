@@ -114,6 +114,70 @@ For a complete list of options, see:
 - [Wallet client parameters](https://viem.sh/docs/clients/wallet.html#parameters)
 - [Test client parameters](https://viem.sh/docs/clients/test.html#parameters)
 
+### Contracts
+
+The `viem` object provides convenient methods for deploying and interacting with smart contracts on the blockchain.
+
+#### Deploying a Contract
+
+To deploy a contract to the blockchain, use the `deployContract` method:
+
+```typescript
+const contract = await this.hre.viem.deployContract("contractName", [
+  "arg1",
+  50,
+  "arg3",
+]);
+```
+
+By default, the first wallet client retrieve by `hre.viem.getWalletClients()` is used to deploy the contract. You can also specify a different wallet client by passing a third parameter, along with other properties such as `gas`, and `value`:
+
+```typescript
+const [_, secondWalletClient] = await this.hre.viem.getWalletClients();
+
+const contractA = await this.hre.viem.deployContract(
+  "contractName",
+  ["arg1", 50, "arg3"],
+  {
+    walletClient: secondWalletClient,
+    gas: 1000000,
+    value: parseEther("0.0001"),
+  }
+);
+```
+
+#### Retrieving an Existing Contract
+
+If the contract is already deployed, you can retrieve an instance of it using the `getContractAt` method:
+
+```typescript
+const contract = await this.hre.viem.getContractAt(
+  "contractName",
+  "0x1234567890123456789012345678901234567890"
+);
+```
+
+By default, the first wallet client retrieved by `hre.viem.getWalletClients()` is used for contract interaction. If you want to specify a different wallet client, you can do so by passing it as a third parameter, just like when deploying a contract.
+
+```typescript
+const [_, secondWalletClient] = await this.hre.viem.getWalletClients();
+
+const contract = await this.hre.viem.getContractAt(
+  "contractName",
+  "0x1234567890123456789012345678901234567890",
+  { walletClient: secondWalletClient }
+);
+```
+
+#### Interacting with Contracts
+
+Once you have an instance of a contract, you can interact with it by calling its methods:
+
+```typescript
+let response = await contract.read.method1();
+await contract.write.method2([10, "arg2"]);
+```
+
 ## Usage
 
 There are no additional steps you need to take for this plugin to work.
