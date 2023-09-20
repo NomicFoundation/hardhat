@@ -104,7 +104,7 @@ export function selectHardfork(
   );
   if (hardfork === undefined || blockNumber < activationBlock) {
     throw new InternalError(
-      `Could not find a hardfork to run for block ${blockNumber.toString()}, after having looked for one in the HardhatNode's hardfork activation history, which was: ${JSON.stringify(
+      `Could not find a hardfork to run for block ${blockNumber.toString()}, after having looked for one in the hardfork activation history, which was: ${JSON.stringify(
         hardforkHistory
       )}. For more information, see https://hardhat.org/hardhat-network/reference/#config`
     );

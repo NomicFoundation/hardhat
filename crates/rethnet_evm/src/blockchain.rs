@@ -7,7 +7,9 @@ pub mod storage;
 use std::{fmt::Debug, sync::Arc};
 
 use async_trait::async_trait;
-use rethnet_eth::{receipt::BlockReceipt, remote::RpcClientError, B256, U256};
+use rethnet_eth::{
+    receipt::BlockReceipt, remote::RpcClientError, spec::HardforkActivations, B256, U256,
+};
 use revm::{db::BlockHashRef, primitives::SpecId, DatabaseCommit};
 
 use crate::{
@@ -63,11 +65,13 @@ pub enum BlockchainError {
     /// Block number does not exist in blockchain
     #[error("Unknown block number")]
     UnknownBlockNumber,
-    /// The specified chain is not supported
-    #[error("Chain with ID {chain_id} not supported")]
-    UnsupportedChain {
-        /// Requested chain id
-        chain_id: U256,
+    /// No hardfork found for block
+    #[error("Could not find a hardfork to run for block {block_number}, after having looked for one in the hardfork activation history, which was: {hardfork_activations:?}.")]
+    UnknownBlockSpec {
+        /// Block number
+        block_number: U256,
+        /// Hardfork activation history
+        hardfork_activations: HardforkActivations,
     },
 }
 

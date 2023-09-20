@@ -118,7 +118,15 @@ impl ForkedBlockchain {
         let hardfork_activations = hardfork_activation_overrides
             .get(&chain_id)
             .or_else(|| chain_hardfork_activations(&chain_id))
-            .cloned();
+            .cloned()
+            .and_then(|hardfork_activations| {
+                // Ignore empty hardfork activations
+                if hardfork_activations.is_empty() {
+                    None
+                } else {
+                    Some(hardfork_activations)
+                }
+            });
 
         if let Some(hardfork) = hardfork_activations
             .as_ref()
@@ -289,16 +297,17 @@ impl Blockchain for ForkedBlockchain {
             self.remote.block_by_number(block_number).await.map_or_else(
                 |e| Err(BlockchainError::JsonRpcError(e)),
                 |block| {
-                    if let Some(hardfork_activations) = self.hardfork_activations.as_ref() {
+                    if let Some(hardfork_activations) = &self.hardfork_activations {
                         hardfork_activations
                             .hardfork_at_block_number(&block.header().number)
-                            .ok_or(BlockchainError::MissingHardforkActivations {
+                            .ok_or(BlockchainError::UnknownBlockSpec {
                                 block_number: *block_number,
-                                fork_block_number: self.fork_block_number,
+                                hardfork_activations: hardfork_activations.clone(),
                             })
                     } else {
-                        Err(BlockchainError::UnsupportedChain {
-                            chain_id: self.chain_id,
+                        Err(BlockchainError::MissingHardforkActivations {
+                            block_number: *block_number,
+                            fork_block_number: self.fork_block_number,
                         })
                     }
                 },

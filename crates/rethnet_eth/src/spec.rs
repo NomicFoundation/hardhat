@@ -17,6 +17,11 @@ impl HardforkActivations {
         }
     }
 
+    /// Whether no hardforks activations are present.
+    pub fn is_empty(&self) -> bool {
+        self.hardforks.is_empty()
+    }
+
     /// Returns the hardfork's `SpecId` corresponding to the provided block number.
     pub fn hardfork_at_block_number(&self, block_number: &U256) -> Option<SpecId> {
         self.hardforks

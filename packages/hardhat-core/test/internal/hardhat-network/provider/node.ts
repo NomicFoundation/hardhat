@@ -1026,7 +1026,7 @@ describe("HardhatNode", () => {
       it("should throw when making a call with a block below the only hardfork activation", async function () {
         await expectErrorAsync(async () => {
           await runCall(pre1559GasOpts, 99n, hardhatNode);
-        }, /Could not find a hardfork to run for block 99, after having looked for one in the HardhatNode's hardfork activation history/);
+        }, /Could not find a hardfork to run for block 99, after having looked for one in the hardfork activation history/);
       });
     });
 
