@@ -252,7 +252,7 @@ describe("abi", () => {
       const artifact = callEncodingFixtures.WithComplexArguments;
       assert.throws(() => {
         decodeArtifactFunctionCallResult(artifact, "nonExistent", "0x");
-      }, 'Function "nonExistent" not found in contract WithComplexArguments');
+      }, "Function 'nonExistent' not found in contract WithComplexArguments");
     });
 
     it("Should be able to decode a single successful result", () => {
@@ -373,7 +373,7 @@ describe("abi", () => {
       const artifact = callEncodingFixtures.WithComplexArguments;
       assert.throws(() => {
         encodeArtifactFunctionCall(artifact, "nonExistent", []);
-      }, 'Function "nonExistent" not found in contract WithComplexArguments');
+      }, "Function 'nonExistent' not found in contract WithComplexArguments");
     });
 
     it("Should encode the arguments and return them", () => {
@@ -651,7 +651,7 @@ describe("abi", () => {
               callEncodingFixtures.FunctionNameValidation,
               "12"
             ),
-          `Invalid function name "12"`
+          `Invalid function name '12'`
         );
 
         assert.throws(
@@ -660,7 +660,7 @@ describe("abi", () => {
               callEncodingFixtures.FunctionNameValidation,
               "asd(123, asd"
             ),
-          `Invalid function name "asd(123, asd"`
+          `Invalid function name 'asd(123, asd'`
         );
       });
 
@@ -671,7 +671,7 @@ describe("abi", () => {
               callEncodingFixtures.FunctionNameValidation,
               "nonExistentFunction"
             ),
-          `Function "nonExistentFunction" not found in contract FunctionNameValidation`
+          `Function 'nonExistentFunction' not found in contract FunctionNameValidation`
         );
 
         assert.throws(
@@ -680,7 +680,7 @@ describe("abi", () => {
               callEncodingFixtures.FunctionNameValidation,
               "nonExistentFunction2(uint,bytes32)"
             ),
-          `Function "nonExistentFunction2(uint,bytes32)" not found in contract FunctionNameValidation`
+          `Function 'nonExistentFunction2(uint,bytes32)' not found in contract FunctionNameValidation`
         );
       });
 
@@ -708,7 +708,7 @@ describe("abi", () => {
               callEncodingFixtures.FunctionNameValidation,
               "noOverloads()"
             );
-          }, `Function name "noOverloads()" used for contract FunctionNameValidation, but it's not overloaded. Use "noOverloads" instead`);
+          }, `Function name 'noOverloads()' used for contract FunctionNameValidation, but it's not overloaded. Use 'noOverloads' instead`);
         });
       });
 
@@ -721,7 +721,7 @@ describe("abi", () => {
                 "withTypeBasedOverloads"
               );
             },
-            `Function "withTypeBasedOverloads" is overloaded in contract FunctionNameValidation. Please use one of these names instead:
+            `Function 'withTypeBasedOverloads' is overloaded in contract FunctionNameValidation. Please use one of these names instead:
 
 * withTypeBasedOverloads(uint256)
 * withTypeBasedOverloads(int256)`
@@ -734,7 +734,7 @@ describe("abi", () => {
                 "withParamCountOverloads"
               );
             },
-            `Function "withParamCountOverloads" is overloaded in contract FunctionNameValidation. Please use one of these names instead:
+            `Function 'withParamCountOverloads' is overloaded in contract FunctionNameValidation. Please use one of these names instead:
 
 * withParamCountOverloads()
 * withParamCountOverloads(int256)`
@@ -749,7 +749,7 @@ describe("abi", () => {
                 "withTypeBasedOverloads(bool)"
               );
             },
-            `Function "withTypeBasedOverloads(bool)" is not a valid overload of "withTypeBasedOverloads" in contract FunctionNameValidation. Please use one of these names instead:
+            `Function 'withTypeBasedOverloads(bool)' is not a valid overload of 'withTypeBasedOverloads' in contract FunctionNameValidation. Please use one of these names instead:
 
 * withTypeBasedOverloads(uint256)
 * withTypeBasedOverloads(int256)`
@@ -762,7 +762,7 @@ describe("abi", () => {
                 "withParamCountOverloads(bool)"
               );
             },
-            `Function "withParamCountOverloads(bool)" is not a valid overload of "withParamCountOverloads" in contract FunctionNameValidation. Please use one of these names instead:
+            `Function 'withParamCountOverloads(bool)' is not a valid overload of 'withParamCountOverloads' in contract FunctionNameValidation. Please use one of these names instead:
 
 * withParamCountOverloads()
 * withParamCountOverloads(int256)`

@@ -222,13 +222,15 @@ export const ERRORS = {
     },
     OVERLOAD_NAME_REQUIRED: {
       number: 710,
-      message:
-        "%eventOrFunction% '%name%' is overloaded in contract %contractName%. Please use one of these names instead: %normalizedNameList%",
+      message: `%eventOrFunction% '%name%' is overloaded in contract %contractName%. Please use one of these names instead:
+
+%normalizedNameList%`,
     },
     INVALID_OVERLOAD_GIVEN: {
       number: 711,
-      message:
-        "%eventOrFunction% '%name%' is not a valid overload of '%bareName%' in contract %contractName%. Please use one of these names instead: %normalizedNameList%",
+      message: `%eventOrFunction% '%name%' is not a valid overload of '%bareName%' in contract %contractName%. Please use one of these names instead:
+
+%normalizedNameList%`,
     },
     EVENT_ARG_NOT_FOUND: {
       number: 712,
