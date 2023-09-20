@@ -23,7 +23,10 @@ import { ERRORS, getErrorCode } from "../core/errors-list";
 import { isHardhatInstalledLocallyOrLinked } from "../core/execution-mode";
 import { getEnvHardhatArguments } from "../core/params/env-variables";
 import { HARDHAT_PARAM_DEFINITIONS } from "../core/params/hardhat-params";
-import { isCwdInsideProject } from "../core/project-structure";
+import {
+  getUserConfigPath,
+  isCwdInsideProject,
+} from "../core/project-structure";
 import { Environment } from "../core/runtime-environment";
 import { loadTsNode, willRunWithTypescript } from "../core/typescript-support";
 import { Reporter } from "../sentry/reporter";
@@ -151,25 +154,45 @@ async function main() {
       return;
     }
 
-    if (hardhatArguments.config === undefined && !isCwdInsideProject()) {
+    // ATTENTION! DEPRECATED CODE!
+    // The command `npx hardhat`, when used to create a new Hardhat project, will be removed with Hardhat V3.
+    // It will become `npx hardhat init`.
+    // The code marked with the tag #INIT-DEP can be deleted after HarhatV3 is out.
+
+    // Create a new Hardhat project
+    if (parsedTaskName === "init") {
+      return await createNewProject();
+    }
+    // #INIT-DEP - START OF DEPRECATED CODE
+    else {
       if (
-        process.stdout.isTTY === true ||
-        process.env.HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS !==
-          undefined ||
-        process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !==
-          undefined
+        parsedTaskName === undefined &&
+        hardhatArguments.config === undefined &&
+        !isCwdInsideProject()
       ) {
-        await createProject();
+        await createNewProject();
+
+        // Warning for Hardhat V3 deprecation
+        console.warn(
+          chalk.yellow.bold("\n\nDEPRECATION WARNING\n\n"),
+          chalk.yellow(
+            `Initializing a project with ${chalk.white.italic(
+              "npx hardhat"
+            )} is deprecated and will be removed in the future.\n`
+          ),
+          chalk.yellow(
+            `Please use ${chalk.white.italic("npx hardhat init")} instead.\n\n`
+          )
+        );
+
         return;
       }
+    }
+    // #INIT-DEP - END OF DEPRECATED CODE
 
-      // Many terminal emulators in windows fail to run the createProject()
-      // workflow, and don't present themselves as TTYs. If we are in this
-      // situation we throw a special error instructing the user to use WSL or
-      // powershell to initialize the project.
-      if (process.platform === "win32") {
-        throw new HardhatError(ERRORS.GENERAL.NOT_INSIDE_PROJECT_ON_WINDOWS);
-      }
+    // Tasks are only allowed inside a Hardhat project (except the init task)
+    if (hardhatArguments.config === undefined && !isCwdInsideProject()) {
+      throw new HardhatError(ERRORS.GENERAL.NOT_INSIDE_PROJECT);
     }
 
     if (
@@ -375,6 +398,33 @@ async function main() {
     await Reporter.close(1000);
     process.exit(1);
   }
+}
+
+async function createNewProject() {
+  if (isCwdInsideProject()) {
+    throw new HardhatError(ERRORS.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED, {
+      hardhatProjectRootPath: getUserConfigPath(),
+    });
+  }
+
+  if (
+    process.stdout.isTTY === true ||
+    process.env.HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS !== undefined ||
+    process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !== undefined
+  ) {
+    await createProject();
+    return;
+  }
+
+  // Many terminal emulators in windows fail to run the createProject()
+  // workflow, and don't present themselves as TTYs. If we are in this
+  // situation we throw a special error instructing the user to use WSL or
+  // powershell to initialize the project.
+  if (process.platform === "win32") {
+    throw new HardhatError(ERRORS.GENERAL.NOT_INSIDE_PROJECT_ON_WINDOWS);
+  }
+
+  throw new HardhatError(ERRORS.GENERAL.NOT_IN_INTERACTIVE_SHELL);
 }
 
 main()
