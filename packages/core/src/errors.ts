@@ -35,8 +35,10 @@ export class IgnitionError extends Error {
  *  - If a variable is not present in the template, but present in the values
  *    object, an error is thrown.
  *
- * @param template The template string.
- * @param values A map of variable names to their values.
+ * @param template - The template string.
+ * @param values - A map of variable names to their values.
+ *
+ * @beta
  */
 export function applyErrorMessageTemplate(
   template: string,
