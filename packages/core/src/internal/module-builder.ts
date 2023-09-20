@@ -10,6 +10,8 @@ import {
   isContractFuture,
   isFuture,
   isModuleParameterRuntimeValue,
+  isNamedStaticCallFuture,
+  isReadEventArgumentFuture,
 } from "../type-guards";
 import { Artifact } from "../types/artifact";
 import {
@@ -258,6 +260,10 @@ class IgnitionModuleBuilderImplementation<
       options.from
     );
 
+    if (isFuture(options.value)) {
+      future.dependencies.add(options.value);
+    }
+
     for (const arg of resolveArgsToFutures(args)) {
       future.dependencies.add(arg);
     }
@@ -310,7 +316,9 @@ class IgnitionModuleBuilderImplementation<
       options.from
     );
 
-    this._module.futures.add(future);
+    if (isFuture(options.value)) {
+      future.dependencies.add(options.value);
+    }
 
     for (const arg of resolveArgsToFutures(args)) {
       future.dependencies.add(arg);
@@ -469,6 +477,10 @@ class IgnitionModuleBuilderImplementation<
     );
 
     future.dependencies.add(contractFuture);
+
+    if (isFuture(options.value)) {
+      future.dependencies.add(options.value);
+    }
 
     for (const arg of resolveArgsToFutures(args)) {
       future.dependencies.add(arg);
@@ -966,10 +978,20 @@ class IgnitionModuleBuilderImplementation<
   }
 
   private _assertValidValue(
-    value: bigint | ModuleParameterRuntimeValue<bigint> | any,
+    value:
+      | bigint
+      | ModuleParameterRuntimeValue<bigint>
+      | StaticCallFuture<string, string>
+      | ReadEventArgumentFuture
+      | any,
     func: (...[]: any[]) => any
   ) {
-    if (!isModuleParameterRuntimeValue(value) && typeof value !== "bigint") {
+    if (
+      !isReadEventArgumentFuture(value) &&
+      !isNamedStaticCallFuture(value) &&
+      !isModuleParameterRuntimeValue(value) &&
+      typeof value !== "bigint"
+    ) {
       this._throwErrorWithStackTrace(
         `Given value option '${value}' is not a \`bigint\``,
         func
