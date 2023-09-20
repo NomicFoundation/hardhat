@@ -1,3 +1,4 @@
+import cloneDeep from "lodash/cloneDeep";
 import { timestampSecondsToDate } from "../../../util/date";
 import { DualBlockMiner } from "../miner/dual";
 import { DualMemPool } from "../mem-pool/dual";
@@ -26,29 +27,38 @@ export class DualEthContext implements EthContextAdapter {
     config: NodeConfig,
     prevRandaoGenerator: RandomBufferGenerator
   ): Promise<DualEthContext> {
-    const common = makeCommon(config);
+    // To synchronise config options between the two adapters, we make local modifications.
+    // To avoid this from affecting the original config object, we clone it first.
+    const tempConfig = cloneDeep(config);
 
-    const hardhat = await HardhatEthContext.create(config, prevRandaoGenerator);
+    const common = makeCommon(tempConfig);
 
-    // If the fork node config doesn't specify a block number, then the
-    // ethereumjs adapter will fetch and use the latest block number. We re-use
-    // that value here; otherwise, rethnet would also fetch it and we could have
-    // a race condition if the latest block changed in the meantime.
-    if (isForkedNodeConfig(config)) {
-      if (config.forkConfig.blockNumber === undefined) {
+    const hardhat = await HardhatEthContext.create(
+      tempConfig,
+      prevRandaoGenerator
+    );
+
+    if (isForkedNodeConfig(tempConfig)) {
+      // If the fork node config doesn't specify a block number, then the
+      // ethereumjs adapter will fetch and use the latest block number. We re-use
+      // that value here; otherwise, EDR would also fetch it and we could have
+      // a race condition if the latest block changed in the meantime.
+      if (tempConfig.forkConfig.blockNumber === undefined) {
         const forkBlockNumber = (
           hardhat.vm() as EthereumJSAdapter
         ).getForkBlockNumber();
-        config.forkConfig.blockNumber = Number(forkBlockNumber!);
+        tempConfig.forkConfig.blockNumber = Number(forkBlockNumber!);
       }
     } else {
+      // For local genesis blocks, we need to ensure that the timestamp between the two
+      // adapters is in sync, so we extract it from the latest block.
       const latestBlock = await hardhat.blockchain().getLatestBlock();
-      config.initialDate = timestampSecondsToDate(
+      tempConfig.initialDate = timestampSecondsToDate(
         Number(latestBlock.header.timestamp)
       );
     }
 
-    const rethnet = await RethnetEthContext.create(config);
+    const rethnet = await RethnetEthContext.create(tempConfig);
 
     const vm = new DualModeAdapter(common, hardhat.vm(), rethnet.vm());
 
