@@ -63,29 +63,25 @@ export class DualModeAdapter implements VMAdapter {
     blockContext: Block,
     forceBaseFeeZero?: boolean
   ): Promise<[RunTxResult, Trace]> {
-    const [
-      [ethereumJSResult, _ethereumJSTrace],
-      [rethnetResult, rethnetTrace],
-    ] = await Promise.all([
-      this._ethereumJSAdapter.dryRun(tx, blockContext, forceBaseFeeZero),
-      this._rethnetAdapter.dryRun(tx, blockContext, forceBaseFeeZero),
-    ]);
-
-    // Matches EthereumJS' runCall checkpoint call
-    globalRethnetContext.setStateRootGeneratorSeed(randomHashSeed());
-
     try {
+      const [
+        [ethereumJSResult, _ethereumJSTrace],
+        [rethnetResult, rethnetTrace],
+      ] = await Promise.all([
+        this._ethereumJSAdapter.dryRun(tx, blockContext, forceBaseFeeZero),
+        this._rethnetAdapter.dryRun(tx, blockContext, forceBaseFeeZero),
+      ]);
+
+      // Matches EthereumJS' runCall checkpoint call
+      globalRethnetContext.setStateRootGeneratorSeed(randomHashSeed());
+
       assertEqualRunTxResults(ethereumJSResult, rethnetResult);
       return [rethnetResult, rethnetTrace];
-    } catch (e) {
-      // if the results didn't match, print the traces
-      // console.log("EthereumJS trace");
-      // printEthereumJSTrace(ethereumJSTrace);
-      // console.log();
-      // console.log("Rethnet trace");
-      // printRethnetTrace(rethnetTrace);
+    } catch (error) {
+      // Ensure that the state root generator seed is re-aligned upon an error
+      globalRethnetContext.setStateRootGeneratorSeed(randomHashSeed());
 
-      throw e;
+      throw error;
     }
   }
 
@@ -216,33 +212,29 @@ export class DualModeAdapter implements VMAdapter {
     tx: TypedTransaction,
     block: Block
   ): Promise<[RunTxResult, Trace]> {
-    const [
-      [ethereumJSResult, ethereumJSDebugTrace],
-      [rethnetResult, _rethnetDebugTrace],
-    ] = await Promise.all([
-      this._ethereumJSAdapter.runTxInBlock(tx, block),
-      this._rethnetAdapter.runTxInBlock(tx, block),
-    ]);
-
-    // Matches EthereumJS' runCall checkpoint call
-    globalRethnetContext.setStateRootGeneratorSeed(randomHashSeed());
-
     try {
+      const [
+        [ethereumJSResult, ethereumJSDebugTrace],
+        [rethnetResult, _rethnetDebugTrace],
+      ] = await Promise.all([
+        this._ethereumJSAdapter.runTxInBlock(tx, block),
+        this._rethnetAdapter.runTxInBlock(tx, block),
+      ]);
+
+      // Matches EthereumJS' runCall checkpoint call
+      globalRethnetContext.setStateRootGeneratorSeed(randomHashSeed());
+
       assertEqualRunTxResults(ethereumJSResult, rethnetResult);
 
       // Validate trace
       const _trace = this.getLastTraceAndClear();
 
       return [rethnetResult, ethereumJSDebugTrace];
-    } catch (e) {
-      // if the results didn't match, print the traces
-      // console.log("EthereumJS trace");
-      // printEthereumJSTrace(ethereumJSTrace);
-      // console.log();
-      // console.log("Rethnet trace");
-      // printRethnetTrace(rethnetTrace);
+    } catch (error) {
+      // Ensure that the state root generator seed is re-aligned upon an error
+      globalRethnetContext.setStateRootGeneratorSeed(randomHashSeed());
 
-      throw e;
+      throw error;
     }
   }
 
