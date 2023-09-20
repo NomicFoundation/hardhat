@@ -95,6 +95,43 @@ describe("Reconciliation - named static call", () => {
     );
   });
 
+  it("should reconcile when the from is undefined but the exState's from is in the accounts list", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const contract1 = m.contract("Contract1");
+
+      m.staticCall(contract1, "function1", [1, "a"], 0, {
+        from: undefined,
+      });
+
+      return { contract1 };
+    });
+
+    await assertSuccessReconciliation(
+      moduleDefinition,
+      createDeploymentState(
+        {
+          ...exampleDeploymentState,
+          id: "Module#Contract1",
+          status: ExecutionStatus.SUCCESS,
+          result: {
+            type: ExecutionResultType.SUCCESS,
+            address: exampleAddress,
+          },
+        },
+        {
+          ...exampleStaticCallState,
+          id: "Module#Contract1.function1",
+          futureType: FutureType.STATIC_CALL,
+          status: ExecutionStatus.SUCCESS,
+          contractAddress: exampleAddress,
+          functionName: "function1",
+          args: [1, "a"],
+          from: exampleAccounts[4],
+        }
+      )
+    );
+  });
+
   it("should find changes to contract unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("Contract1");

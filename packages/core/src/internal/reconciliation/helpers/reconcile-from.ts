@@ -1,11 +1,11 @@
 import {
+  ContractCallFuture,
   ContractDeploymentFuture,
   LibraryDeploymentFuture,
-  ContractCallFuture,
   NamedArtifactContractDeploymentFuture,
   NamedArtifactLibraryDeploymentFuture,
-  StaticCallFuture,
   SendDataFuture,
+  StaticCallFuture,
 } from "../../../types/module";
 import { resolveFutureFrom } from "../../execution/future-processor/helpers/future-resolvers";
 import {
@@ -37,6 +37,10 @@ export function reconcileFrom(
     | StaticCallExecutionState,
   context: ReconciliationContext
 ): ReconciliationFutureResultFailure | undefined {
+  if (future.from === undefined && context.accounts.includes(exState.from)) {
+    return undefined;
+  }
+
   const resolvedFrom = resolveFutureFrom(
     future.from,
     context.accounts,
