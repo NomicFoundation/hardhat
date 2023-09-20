@@ -1,4 +1,4 @@
-import { IgnitionError, IgnitionModule } from "@nomicfoundation/ignition-core";
+import { IgnitionModule } from "@nomicfoundation/ignition-core";
 import setupDebug from "debug";
 import { existsSync, pathExistsSync } from "fs-extra";
 import path from "path";
@@ -12,7 +12,7 @@ export function loadModule(
   debug(`Loading user modules from '${modulesDirectory}'`);
 
   if (!existsSync(modulesDirectory)) {
-    throw new IgnitionError(`Directory ${modulesDirectory} not found.`);
+    throw new Error(`Directory ${modulesDirectory} not found.`);
   }
 
   const fullpathToModule = resolveFullPathToModule(
@@ -21,11 +21,11 @@ export function loadModule(
   );
 
   if (fullpathToModule === undefined) {
-    throw new IgnitionError(`Could not find module ${moduleNameOrPath}`);
+    throw new Error(`Could not find module ${moduleNameOrPath}`);
   }
 
   if (!isInModuleDirectory(modulesDirectory, fullpathToModule)) {
-    throw new IgnitionError(
+    throw new Error(
       `The referenced module ${moduleNameOrPath} is outside the module directory ${modulesDirectory}`
     );
   }

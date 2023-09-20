@@ -7,10 +7,8 @@ import type {
   Result,
 } from "ethers";
 
-import {
-  IgnitionValidationError,
-  UnsupportedOperationError,
-} from "../../errors";
+import { IgnitionError } from "../../errors";
+import { ERRORS } from "../../errors-list";
 import { Artifact } from "../../types/artifact";
 import { ArgumentType, SolidityParameterType } from "../../types/module";
 import { assertIgnitionInvariant } from "../utils/assertions";
@@ -161,9 +159,11 @@ export function validateContractConstructorArgsLength(
   const expectedArgsLength = iface.deploy.inputs.length;
 
   if (argsLength !== expectedArgsLength) {
-    throw new IgnitionValidationError(
-      `The constructor of the contract '${contractName}' expects ${expectedArgsLength} arguments but ${argsLength} were given`
-    );
+    throw new IgnitionError(ERRORS.VALIDATION.INVALID_CONSTRUCTOR_ARGS_LENGTH, {
+      contractName,
+      argsLength,
+      expectedArgsLength,
+    });
   }
 }
 
@@ -194,16 +194,20 @@ export function validateArtifactFunction(
 
   // Check that the number of arguments is correct
   if (fragment.inputs.length !== args.length) {
-    throw new IgnitionValidationError(
-      `Function ${functionName} in contract ${contractName} expects ${fragment.inputs.length} arguments but ${args.length} were given`
-    );
+    throw new IgnitionError(ERRORS.VALIDATION.INVALID_FUNCTION_ARGS_LENGTH, {
+      functionName,
+      contractName,
+      argsLength: args.length,
+      expectedLength: fragment.inputs.length,
+    });
   }
 
   // Check that the function is pure or view, which is required for a static call
   if (isStaticCall && !fragment.constant) {
-    throw new IgnitionValidationError(
-      `Function ${functionName} in contract ${contractName} is not 'pure' or 'view' and cannot be statically called`
-    );
+    throw new IgnitionError(ERRORS.VALIDATION.INVALID_STATIC_CALL, {
+      functionName,
+      contractName,
+    });
   }
 }
 
@@ -253,9 +257,11 @@ export function validateArtifactEventArgumentParams(
     // as their hash is stored in a topic, and its actual value isn't stored
     // anywhere
     if (hasDynamicSize(paramType)) {
-      throw new IgnitionValidationError(
-        `Indexed argument ${argument} of event ${eventName} of contract ${emitterArtifact.contractName} is not stored in the receipt, but its hash is, so you can't read it.`
-      );
+      throw new IgnitionError(ERRORS.VALIDATION.INDEXED_EVENT_ARG, {
+        eventName,
+        argument,
+        contractName: emitterArtifact.contractName,
+      });
     }
   }
 }
@@ -473,11 +479,10 @@ function ethersValueIntoEvmValue(
     return ethersResultIntoEvmTuple(ethersValue, paramType.components);
   }
 
-  throw new UnsupportedOperationError(
-    `Ignition can't decode ethers.js value of type ${
-      paramType.type
-    }: ${JSON.stringify(ethersValue, undefined, 2)}`
-  );
+  throw new IgnitionError(ERRORS.GENERAL.UNSUPPORTED_DECODE, {
+    type: paramType.type,
+    value: JSON.stringify(ethersValue, undefined, 2),
+  });
 }
 
 function ethersResultIntoEvmValueArray(
@@ -599,9 +604,10 @@ function validateOverloadedName(
   const bareName = getBareName(name);
 
   if (bareName === undefined) {
-    throw new IgnitionValidationError(
-      `Invalid ${eventOrFunction} name "${name}"`
-    );
+    throw new IgnitionError(ERRORS.VALIDATION.INVALID_OVERLOAD_NAME, {
+      eventOrFunction,
+      name,
+    });
   }
 
   const { ethers } = require("ethers") as typeof import("ethers");
@@ -618,9 +624,11 @@ function validateOverloadedName(
     .filter((fragment) => fragment.name === bareName);
 
   if (fragments.length === 0) {
-    throw new IgnitionValidationError(
-      `${eventOrFunctionCapitalized} "${name}" not found in contract ${artifact.contractName}`
-    );
+    throw new IgnitionError(ERRORS.VALIDATION.OVERLOAD_NOT_FOUND, {
+      name,
+      eventOrFunction: eventOrFunctionCapitalized,
+      contractName: artifact.contractName,
+    });
   }
 
   // If it is not overloaded we force the user to use the bare name
@@ -628,9 +636,12 @@ function validateOverloadedName(
   // process.
   if (fragments.length === 1) {
     if (bareName !== name) {
-      throw new IgnitionValidationError(
-        `${eventOrFunctionCapitalized} name "${name}" used for contract ${artifact.contractName}, but it's not overloaded. Use "${bareName}" instead.`
-      );
+      throw new IgnitionError(ERRORS.VALIDATION.REQUIRE_BARE_NAME, {
+        name,
+        bareName,
+        eventOrFunction: eventOrFunctionCapitalized,
+        contractName: artifact.contractName,
+      });
     }
 
     return;
@@ -647,19 +658,22 @@ function validateOverloadedName(
   const normalizedNameList = normalizedNames.map((nn) => `* ${nn}`).join("\n");
 
   if (bareName === name) {
-    throw new IgnitionValidationError(
-      `${eventOrFunctionCapitalized} "${name}" is overloaded in contract ${artifact.contractName}. Please use one of these names instead:
-
-${normalizedNameList}`
-    );
+    throw new IgnitionError(ERRORS.VALIDATION.OVERLOAD_NAME_REQUIRED, {
+      name,
+      normalizedNameList,
+      eventOrFunction: eventOrFunctionCapitalized,
+      contractName: artifact.contractName,
+    });
   }
 
   if (!normalizedNames.includes(name)) {
-    throw new IgnitionValidationError(
-      `${eventOrFunctionCapitalized} "${name}" is not a valid overload of "${bareName}" in contract ${artifact.contractName}. Please use one of these names instead:
-
-${normalizedNameList}`
-    );
+    throw new IgnitionError(ERRORS.VALIDATION.INVALID_OVERLOAD_GIVEN, {
+      name,
+      bareName,
+      normalizedNameList,
+      eventOrFunction: eventOrFunctionCapitalized,
+      contractName: artifact.contractName,
+    });
   }
 }
 
@@ -681,17 +695,22 @@ function getEventArgumentParamType(
       }
     }
 
-    throw new IgnitionValidationError(
-      `Event ${eventName} of contract ${contractName} has no argument named ${argument}`
-    );
+    throw new IgnitionError(ERRORS.VALIDATION.EVENT_ARG_NOT_FOUND, {
+      eventName,
+      argument,
+      contractName,
+    });
   }
 
   const paramType = eventFragment.inputs[argument];
 
   if (paramType === undefined) {
-    throw new IgnitionValidationError(
-      `Event ${eventName} of contract ${contractName} has only ${eventFragment.inputs.length} arguments, but argument ${argument} was requested`
-    );
+    throw new IgnitionError(ERRORS.VALIDATION.INVALID_EVENT_ARG_INDEX, {
+      eventName,
+      argument,
+      contractName,
+      expectedLength: eventFragment.inputs.length,
+    });
   }
 
   return paramType;
@@ -719,17 +738,22 @@ export function validateFunctionArgumentParamType(
     }
 
     if (!hasArg) {
-      throw new IgnitionValidationError(
-        `Function ${functionName} of contract ${contractName} has no return value named ${argument}`
-      );
+      throw new IgnitionError(ERRORS.VALIDATION.FUNCTION_ARG_NOT_FOUND, {
+        functionName,
+        argument,
+        contractName,
+      });
     }
   } else {
     const paramType = functionFragment.outputs[argument];
 
     if (paramType === undefined) {
-      throw new IgnitionValidationError(
-        `Function ${functionName} of contract ${contractName} has only ${functionFragment.outputs.length} return values, but value ${argument} was requested`
-      );
+      throw new IgnitionError(ERRORS.VALIDATION.INVALID_FUNCTION_ARG_INDEX, {
+        functionName,
+        argument,
+        contractName,
+        expectedLength: functionFragment.outputs.length,
+      });
     }
   }
 }

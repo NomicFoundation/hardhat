@@ -52,6 +52,11 @@ export const ERROR_RANGES: {
     max: 699,
     title: "Wipe errors",
   },
+  VALIDATION: {
+    min: 700,
+    max: 799,
+    title: "Validation errors",
+  },
 };
 
 export const ERRORS = {
@@ -59,6 +64,10 @@ export const ERRORS = {
     ASSERTION_ERROR: {
       number: 1,
       message: "Internal Ignition invariant was violated: %description%",
+    },
+    UNSUPPORTED_DECODE: {
+      number: 2,
+      message: "Ignition can't decode ethers.js value of type %type%: %value%",
     },
   },
   INTERNAL: {
@@ -160,6 +169,134 @@ export const ERRORS = {
     DEPENDENT_FUTURES: {
       number: 602,
       message: `Cannot wipe %futureId% as there are dependent futures that have already started: %dependents%`,
+    },
+  },
+  VALIDATION: {
+    INVALID_DEFAULT_SENDER: {
+      number: 700,
+      message:
+        "Default sender %defaultSender% is not part of the provided accounts",
+    },
+    MISSING_EMITTER: {
+      number: 701,
+      message:
+        "`options.emitter` must be provided when reading an event from a SendDataFuture",
+    },
+    INVALID_MODULE: {
+      number: 702,
+      message: "Module validation failed with reason: %message%",
+    },
+    INVALID_CONSTRUCTOR_ARGS_LENGTH: {
+      number: 703,
+      message:
+        "The constructor of the contract '%contractName%' expects %expectedArgsLength% arguments but %argsLength% were given",
+    },
+    INVALID_FUNCTION_ARGS_LENGTH: {
+      number: 704,
+      message:
+        "Function %functionName% in contract %contractName% expects %expectedLength% arguments but %argsLength% were given",
+    },
+    INVALID_STATIC_CALL: {
+      number: 705,
+      message:
+        "Function %functionName% in contract %contractName% is not 'pure' or 'view' and cannot be statically called",
+    },
+    INDEXED_EVENT_ARG: {
+      number: 706,
+      message:
+        "Indexed argument %argument% of event %eventName% of contract %contractName% is not stored in the receipt, but its hash is, so you can't read it.",
+    },
+    INVALID_OVERLOAD_NAME: {
+      number: 707,
+      message: "Invalid %eventOrFunction% name '%name%'",
+    },
+    OVERLOAD_NOT_FOUND: {
+      number: 708,
+      message:
+        "%eventOrFunction% '%name%' not found in contract %contractName%",
+    },
+    REQUIRE_BARE_NAME: {
+      number: 709,
+      message:
+        "%eventOrFunction% name '%name%' used for contract %contractName%, but it's not overloaded. Use '%bareName%' instead.",
+    },
+    OVERLOAD_NAME_REQUIRED: {
+      number: 710,
+      message:
+        "%eventOrFunction% '%name%' is overloaded in contract %contractName%. Please use one of these names instead: %normalizedNameList%",
+    },
+    INVALID_OVERLOAD_GIVEN: {
+      number: 711,
+      message:
+        "%eventOrFunction% '%name%' is not a valid overload of '%bareName%' in contract %contractName%. Please use one of these names instead: %normalizedNameList%",
+    },
+    EVENT_ARG_NOT_FOUND: {
+      number: 712,
+      message:
+        "Event %eventName% of contract %contractName% has no argument named %argument%",
+    },
+    INVALID_EVENT_ARG_INDEX: {
+      number: 713,
+      message:
+        "Event %eventName% of contract %contractName% has only %expectedLength% arguments, but argument %argument% was requested",
+    },
+    FUNCTION_ARG_NOT_FOUND: {
+      number: 714,
+      message:
+        "Function %functionName% of contract %contractName% has no return value named %argument%",
+    },
+    INVALID_FUNCTION_ARG_INDEX: {
+      number: 715,
+      message:
+        "Function %functionName% of contract %contractName% has only %expectedLength% return values, but value %argument% was requested",
+    },
+    MISSING_LIBRARIES: {
+      number: 716,
+      message:
+        "Invalid libraries for contract %contractName%: The following libraries are missing: %fullyQualifiedNames%",
+    },
+    CONFLICTING_LIBRARY_NAMES: {
+      number: 717,
+      message:
+        "Invalid libraries for contract %contractName%: The names '%inputName%' and '%libName%' clash with each other, please use qualified names for both.",
+    },
+    INVALID_LIBRARY_NAME: {
+      number: 718,
+      message: "Invalid library name %libraryName% for contract %contractName%",
+    },
+    LIBRARY_NOT_NEEDED: {
+      number: 719,
+      message:
+        "Invalid library %libraryName% for contract %contractName%: this library is not needed by this contract.",
+    },
+    AMBIGUOUS_LIBRARY_NAME: {
+      number: 720,
+      message: `Invalid libraries for contract %contractName%: The name "%libraryName%" is ambiguous, please use one of the following fully qualified names: %fullyQualifiedNames%`,
+    },
+    INVALID_LIBRARY_ADDRESS: {
+      number: 721,
+      message: `Invalid address %address% for library %libraryName% of contract %contractName%`,
+    },
+    NEGATIVE_ACCOUNT_INDEX: {
+      number: 722,
+      message: "Account index cannot be a negative number",
+    },
+    ACCOUNT_INDEX_TOO_HIGH: {
+      number: 723,
+      message:
+        "Requested account index '%accountIndex%' is greater than the total number of available accounts '%accountsLength%'",
+    },
+    INVALID_ARTIFACT: {
+      number: 724,
+      message: "Artifact for contract '%contractName%' is invalid",
+    },
+    MISSING_MODULE_PARAMETER: {
+      number: 725,
+      message: "Module parameter '%name%' requires a value but was given none",
+    },
+    INVALID_MODULE_PARAMETER_TYPE: {
+      number: 726,
+      message: `Module parameter '%name%' must be of type '%expectedType%' but is '%actualType%'`,
     },
   },
 };

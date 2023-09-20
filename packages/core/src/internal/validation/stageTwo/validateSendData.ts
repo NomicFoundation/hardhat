@@ -1,4 +1,5 @@
-import { IgnitionValidationError } from "../../../errors";
+import { IgnitionError } from "../../../errors";
+import { ERRORS } from "../../../errors-list";
 import {
   isAccountRuntimeValue,
   isModuleParameterRuntimeValue,
@@ -26,15 +27,15 @@ export async function validateSendData(
       deploymentParameters[future.to.moduleId]?.[future.to.name] ??
       future.to.defaultValue;
     if (param === undefined) {
-      throw new IgnitionValidationError(
-        `Module parameter '${future.to.name}' requires a value but was given none`
-      );
+      throw new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
+        name: future.to.name,
+      });
     } else if (typeof param !== "string") {
-      throw new IgnitionValidationError(
-        `Module parameter '${
-          future.to.name
-        }' must be of type 'string' but is '${typeof param}'`
-      );
+      throw new IgnitionError(ERRORS.VALIDATION.INVALID_MODULE_PARAMETER_TYPE, {
+        name: future.to.name,
+        expectedType: "string",
+        actualType: typeof param,
+      });
     }
   }
 
@@ -43,15 +44,15 @@ export async function validateSendData(
       deploymentParameters[future.value.moduleId]?.[future.value.name] ??
       future.value.defaultValue;
     if (param === undefined) {
-      throw new IgnitionValidationError(
-        `Module parameter '${future.value.name}' requires a value but was given none`
-      );
+      throw new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
+        name: future.value.name,
+      });
     } else if (typeof param !== "bigint") {
-      throw new IgnitionValidationError(
-        `Module parameter '${
-          future.value.name
-        }' must be of type 'bigint' but is '${typeof param}'`
-      );
+      throw new IgnitionError(ERRORS.VALIDATION.INVALID_MODULE_PARAMETER_TYPE, {
+        name: future.value.name,
+        expectedType: "bigint",
+        actualType: typeof param,
+      });
     }
   }
 

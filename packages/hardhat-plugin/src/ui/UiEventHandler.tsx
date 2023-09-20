@@ -14,7 +14,6 @@ import {
   ExecutionEventListener,
   ExecutionEventResult,
   ExecutionEventResultType,
-  IgnitionError,
   IgnitionModuleResult,
   NetworkInteractionRequestEvent,
   OnchainInteractionBumpFeesEvent,
@@ -355,7 +354,7 @@ export class UiEventHandler implements ExecutionEventListener {
       this._renderState.waitUntilExit === null ||
       this._renderState.clear === null
     ) {
-      throw new IgnitionError("Cannot unmount with no unmount function");
+      throw new Error("Cannot unmount with no unmount function");
     }
 
     this._renderState.clear();

@@ -1,4 +1,5 @@
-import { IgnitionValidationError } from "../../../errors";
+import { IgnitionError } from "../../../errors";
+import { ERRORS } from "../../../errors-list";
 import {
   isAccountRuntimeValue,
   isModuleParameterRuntimeValue,
@@ -33,8 +34,8 @@ export async function validateNamedStaticCall(
   );
 
   if (missingParams.length > 0) {
-    throw new IgnitionValidationError(
-      `Module parameter '${missingParams[0].name}' requires a value but was given none`
-    );
+    throw new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
+      name: missingParams[0].name,
+    });
   }
 }
