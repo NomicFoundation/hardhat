@@ -81,6 +81,7 @@ pub async fn guaranteed_dry_run(
         block,
         inspector,
     )
+    .await
     .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
 
     let trace = if with_trace {

@@ -49,7 +49,7 @@ where
 
 /// Runs a transaction without committing the state, while disabling balance checks and creating accounts for new addresses.
 #[cfg_attr(feature = "tracing", tracing::instrument)]
-pub fn guaranteed_dry_run<BlockchainErrorT, StateErrorT>(
+pub async fn guaranteed_dry_run<BlockchainErrorT, StateErrorT>(
     blockchain: &dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
     state: &dyn SyncState<StateErrorT>,
     mut cfg: CfgEnv,
@@ -61,15 +61,8 @@ where
     BlockchainErrorT: Debug + Send + 'static,
     StateErrorT: Debug + Send + 'static,
 {
-    if cfg.spec_id > SpecId::MERGE && block.prevrandao.is_none() {
-        return Err(TransactionError::MissingPrevrandao);
-    }
-
     cfg.disable_balance_check = true;
-
-    let evm = build_evm(blockchain, state, cfg, transaction, block);
-
-    run_transaction(evm, inspector).map_err(TransactionError::from)
+    dry_run(blockchain, state, cfg, transaction, block, inspector).await
 }
 
 /// Runs a transaction, committing the state in the process.
@@ -86,22 +79,10 @@ where
     BlockchainErrorT: Debug + Send + 'static,
     StateErrorT: Debug + Send + 'static,
 {
-    if cfg.spec_id > SpecId::MERGE && block.prevrandao.is_none() {
-        return Err(TransactionError::MissingPrevrandao);
-    }
-
-    if transaction.gas_priority_fee.is_some()
-        && blockchain.spec_at_block_number(&block.number).await? < SpecId::LONDON
-    {
-        return Err(TransactionError::Eip1559Unsupported);
-    }
-
-    let evm = build_evm(blockchain, state, cfg, transaction, block);
-
     let ResultAndState {
         result,
         state: changes,
-    } = run_transaction(evm, inspector).map_err(TransactionError::from)?;
+    } = dry_run(blockchain, state, cfg, transaction, block, inspector).await?;
 
     state.commit(changes);
 
