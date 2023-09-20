@@ -120,9 +120,12 @@ impl ForkedBlockchain {
             .or_else(|| chain_hardfork_activations(&chain_id))
             .cloned();
 
-        if let Some(hardfork) = hardfork_activations.as_ref().map(|hardfork_activations| {
-            hardfork_activations.hardfork_at_block_number(&fork_block_number)
-        }) {
+        if let Some(hardfork) = hardfork_activations
+            .as_ref()
+            .and_then(|hardfork_activations| {
+                hardfork_activations.hardfork_at_block_number(&fork_block_number)
+            })
+        {
             if hardfork < SpecId::SPURIOUS_DRAGON {
                 return Err(CreationError::InvalidHardfork {
                     chain_name: chain_name(&chain_id)
@@ -287,7 +290,12 @@ impl Blockchain for ForkedBlockchain {
                 |e| Err(BlockchainError::JsonRpcError(e)),
                 |block| {
                     if let Some(hardfork_activations) = self.hardfork_activations.as_ref() {
-                        Ok(hardfork_activations.hardfork_at_block_number(&block.header().number))
+                        hardfork_activations
+                            .hardfork_at_block_number(&block.header().number)
+                            .ok_or(BlockchainError::MissingHardforkActivations {
+                                block_number: *block_number,
+                                fork_block_number: self.fork_block_number,
+                            })
                     } else {
                         Err(BlockchainError::UnsupportedChain {
                             chain_id: self.chain_id,

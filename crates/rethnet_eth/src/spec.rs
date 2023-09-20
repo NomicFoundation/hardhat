@@ -18,13 +18,12 @@ impl HardforkActivations {
     }
 
     /// Returns the hardfork's `SpecId` corresponding to the provided block number.
-    pub fn hardfork_at_block_number(&self, block_number: &U256) -> SpecId {
+    pub fn hardfork_at_block_number(&self, block_number: &U256) -> Option<SpecId> {
         self.hardforks
             .iter()
             .rev()
             .find(|(hardfork_number, _)| *block_number >= *hardfork_number)
             .map(|entry| entry.1)
-            .expect("At least one entry must've been found")
     }
 }
 

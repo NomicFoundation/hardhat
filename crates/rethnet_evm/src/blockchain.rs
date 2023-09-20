@@ -49,6 +49,14 @@ pub enum BlockchainError {
     /// JSON-RPC error
     #[error(transparent)]
     JsonRpcError(#[from] RpcClientError),
+    /// Missing hardfork activation history
+    #[error("No known hardfork for execution on historical block {block_number} (relative to fork block number {fork_block_number}). The node was not configured with a hardfork activation history.")]
+    MissingHardforkActivations {
+        /// Block number
+        block_number: U256,
+        /// Fork block number
+        fork_block_number: U256,
+    },
     /// Missing withdrawals for post-Shanghai blockchain
     #[error("Missing withdrawals for post-Shanghai blockchain")]
     MissingWithdrawals,
