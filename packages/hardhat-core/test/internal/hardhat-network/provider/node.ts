@@ -483,14 +483,14 @@ describe("HardhatNode", () => {
 
       const assertIncreaseTime = async (expectedTime: bigint) => {
         const block = await node.getLatestBlock();
-        const blockTimestamp = block.header.timestamp;
+        const blockTimestamp = Number(block.header.timestamp);
 
         // We check that the time increased at least what we had expected
         // but allow a little bit of POSITIVE difference(i.e. that the
         // actual timestamp is a little bit bigger) because time may have ellapsed
         // We assume that the test CAN NOT have taken more than a second
-        assert.isTrue(blockTimestamp >= expectedTime);
-        assert.isTrue(blockTimestamp <= expectedTime + 1n);
+        assert.isAtLeast(blockTimestamp, Number(expectedTime));
+        assert.isAtMost(blockTimestamp, Number(expectedTime) + 1);
       };
 
       beforeEach(() => {
