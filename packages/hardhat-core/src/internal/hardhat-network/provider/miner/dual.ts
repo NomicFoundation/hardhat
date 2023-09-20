@@ -23,44 +23,52 @@ export class DualBlockMiner implements BlockMinerAdapter {
   ): Promise<PartialMineBlockResult> {
     const previousStateRootSeed = randomHashSeed();
 
-    const hardhatResult = await this._hardhatMiner.mineBlock(
-      blockTimestamp,
-      coinbase,
-      minGasPrice,
-      minerReward,
-      baseFeePerGas
-    );
+    try {
+      const hardhatResult = await this._hardhatMiner.mineBlock(
+        blockTimestamp,
+        coinbase,
+        minGasPrice,
+        minerReward,
+        baseFeePerGas
+      );
 
-    const currentStateRootSeed = randomHashSeed();
+      const currentStateRootSeed = randomHashSeed();
 
-    // When mining a block, EthereumJS' runCall calls checkpoint multiple times
-    // For EDR, we need to skip all of those calls
-    let stateRootSeed = previousStateRootSeed;
-    let nextStateRootSeed = stateRootSeed;
-    while (!nextStateRootSeed.equals(currentStateRootSeed)) {
-      stateRootSeed = nextStateRootSeed;
-      nextStateRootSeed = keccak256(stateRootSeed);
+      // When mining a block, EthereumJS' runCall calls checkpoint multiple times
+      // For EDR, we need to skip all of those calls
+      let stateRootSeed = previousStateRootSeed;
+      let nextStateRootSeed = stateRootSeed;
+      while (!nextStateRootSeed.equals(currentStateRootSeed)) {
+        stateRootSeed = nextStateRootSeed;
+        nextStateRootSeed = keccak256(stateRootSeed);
+      }
+
+      globalRethnetContext.setStateRootGeneratorSeed(stateRootSeed);
+
+      const rethnetResult = await this._rethnetMiner.mineBlock(
+        blockTimestamp,
+        coinbase,
+        minGasPrice,
+        minerReward,
+        baseFeePerGas
+      );
+
+      assertEqualBlocks(hardhatResult.block, rethnetResult.block);
+      assertEqualRunBlockResults(
+        hardhatResult.blockResult,
+        rethnetResult.blockResult
+      );
+
+      // TODO: assert traces
+
+      return rethnetResult;
+    } catch (error) {
+      // Ensure that the state root generator seed is re-aligned upon an error
+      globalRethnetContext.setStateRootGeneratorSeed(randomHashSeed());
+
+      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      throw error;
     }
-
-    globalRethnetContext.setStateRootGeneratorSeed(stateRootSeed);
-
-    const rethnetResult = await this._rethnetMiner.mineBlock(
-      blockTimestamp,
-      coinbase,
-      minGasPrice,
-      minerReward,
-      baseFeePerGas
-    );
-
-    assertEqualBlocks(hardhatResult.block, rethnetResult.block);
-    assertEqualRunBlockResults(
-      hardhatResult.blockResult,
-      rethnetResult.blockResult
-    );
-
-    // TODO: assert traces
-
-    return rethnetResult;
   }
 
   public prevrandaoGeneratorSeed(): Buffer {
