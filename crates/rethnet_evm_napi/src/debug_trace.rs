@@ -49,13 +49,9 @@ pub async fn debug_trace_transaction(
 
 #[napi(object)]
 pub struct DebugTraceResult {
-    #[napi(readonly)]
-    pub failed: bool,
-    #[napi(readonly)]
+    pub pass: bool,
     pub gas_used: BigInt,
-    #[napi(readonly)]
     pub output: Option<Buffer>,
-    #[napi(readonly)]
     pub struct_logs: Vec<DebugTraceLogItem>,
 }
 
@@ -69,9 +65,9 @@ impl TryFrom<rethnet_evm::DebugTraceResult> for DebugTraceResult {
             None
         };
         Ok(Self {
-            failed: value.pass,
+            pass: value.pass,
             gas_used: value.gas_used.try_into()?,
-            output: output,
+            output,
             struct_logs: value
                 .logs
                 .into_iter()
@@ -84,37 +80,26 @@ impl TryFrom<rethnet_evm::DebugTraceResult> for DebugTraceResult {
 #[napi(object)]
 pub struct DebugTraceLogItem {
     /// Program Counter
-    #[napi(readonly)]
     pub pc: BigInt,
     // Op code
-    #[napi(readonly)]
     pub op: u8,
     /// Gas left before executing this operation as hex number.
-    #[napi(readonly)]
     pub gas: String,
     /// Gas cost of this operation as hex number.
-    #[napi(readonly)]
     pub gas_cost: String,
     /// Array of all values (hex numbers) on the stack
-    #[napi(readonly)]
     pub stack: Vec<String>,
     /// Depth of the call stack
-    #[napi(readonly)]
     pub depth: BigInt,
     /// Size of memory array
-    #[napi(readonly)]
     pub mem_size: BigInt,
     /// Name of the operation
-    #[napi(readonly)]
-    pub op_name: Option<String>,
+    pub op_name: String,
     /// Description of an error as a hex string.
-    #[napi(readonly)]
     pub error: Option<String>,
     /// Array of all allocated values as hex strings.
-    #[napi(readonly)]
     pub memory: Vec<String>,
     /// Map of all stored values with keys and values encoded as hex strings.
-    #[napi(readonly)]
     pub storage: HashMap<String, String>,
 }
 
