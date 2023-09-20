@@ -1,23 +1,10 @@
+import type { DeploymentParameters } from "@nomicfoundation/ignition-core";
+
 import "@nomicfoundation/hardhat-ethers";
-import {
-  deploy,
-  DeploymentParameters,
-  IgnitionModuleSerializer,
-  wipe,
-} from "@nomicfoundation/ignition-core";
 import { existsSync, readdirSync, readJSONSync } from "fs-extra";
 import { extendConfig, extendEnvironment, task } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
 import path from "path";
-import Prompt from "prompts";
-
-import { HardhatArtifactResolver } from "./hardhat-artifact-resolver";
-import { IgnitionHelper } from "./ignition-helper";
-import { loadModule } from "./load-module";
-import { UiEventHandler } from "./ui/UiEventHandler";
-import { VerboseEventHandler } from "./ui/VerboseEventHandler";
-import { open } from "./utils/open";
-import { writeVisualization } from "./visualization/write-visualization";
 
 import "./type-extensions";
 
@@ -50,6 +37,8 @@ extendConfig((config, userConfig) => {
  */
 extendEnvironment((hre) => {
   hre.ignition = lazyObject(() => {
+    const { IgnitionHelper } = require("./ignition-helper");
+
     return new IgnitionHelper(hre);
   });
 });
@@ -82,6 +71,16 @@ task("deploy")
       },
       hre
     ) => {
+      const { default: Prompt } = await import("prompts");
+      const { deploy } = await import("@nomicfoundation/ignition-core");
+
+      const { HardhatArtifactResolver } = await import(
+        "./hardhat-artifact-resolver"
+      );
+      const { loadModule } = await import("./load-module");
+      const { UiEventHandler } = await import("./ui/UiEventHandler");
+      const { VerboseEventHandler } = await import("./ui/VerboseEventHandler");
+
       const chainId = Number(
         await hre.network.provider.request({
           method: "eth_chainId",
@@ -174,6 +173,16 @@ task("visualize")
       }: { quiet: boolean; moduleNameOrPath: string },
       hre
     ) => {
+      const { IgnitionModuleSerializer } = await import(
+        "@nomicfoundation/ignition-core"
+      );
+
+      const { loadModule } = await import("./load-module");
+      const { open } = await import("./utils/open");
+      const { writeVisualization } = await import(
+        "./visualization/write-visualization"
+      );
+
       await hre.run("compile", { quiet: true });
 
       const userModule = loadModule(
@@ -272,6 +281,12 @@ task("wipe")
       }: { deployment: string; future: string },
       hre
     ) => {
+      const { wipe } = await import("@nomicfoundation/ignition-core");
+
+      const { HardhatArtifactResolver } = await import(
+        "./hardhat-artifact-resolver"
+      );
+
       const deploymentDir = path.join(
         hre.config.paths.ignition,
         "deployments",
