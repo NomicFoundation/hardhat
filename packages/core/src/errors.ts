@@ -1,12 +1,25 @@
 import { ERRORS, ErrorDescriptor, getErrorCode } from "./errors-list";
 
 /**
+ * Base error class extended by all custom errors.
+ * Placeholder to allow us to customize error output formatting in the future.
+ *
+ * @alpha
+ */
+export class CustomError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = this.constructor.name;
+  }
+}
+
+/**
  * All exceptions intentionally thrown with Ignition-core
  * extend this class.
  *
  * @alpha
  */
-export class IgnitionError extends Error {
+export class IgnitionError extends CustomError {
   constructor(
     errorDescriptor: ErrorDescriptor,
     messageArguments: Record<string, string | number> = {}
@@ -20,6 +33,58 @@ export class IgnitionError extends Error {
     super(prefix + formattedMessage);
 
     this.name = this.constructor.name;
+  }
+}
+
+/**
+ * This class is used to throw errors from Ignition plugins made by third parties.
+ *
+ * @alpha
+ */
+export class IgnitionPluginError extends CustomError {
+  public static isIgnitionPluginError(
+    error: any
+  ): error is IgnitionPluginError {
+    return (
+      typeof error === "object" &&
+      error !== null &&
+      (error as IgnitionPluginError)._isIgnitionPluginError === true
+    );
+  }
+
+  private readonly _isIgnitionPluginError = true;
+
+  public readonly pluginName: string;
+
+  constructor(pluginName: string, message: string) {
+    super(message);
+    this.pluginName = pluginName;
+    Object.setPrototypeOf(this, IgnitionPluginError.prototype);
+  }
+}
+
+/**
+ * This class is used to throw errors from *core* Ignition plugins.
+ * If you are developing a third-party plugin, use IgnitionPluginError instead.
+ *
+ * @alpha
+ */
+export class NomicIgnitionPluginError extends IgnitionPluginError {
+  public static isNomicIgnitionPluginError(
+    error: any
+  ): error is NomicIgnitionPluginError {
+    return (
+      typeof error === "object" &&
+      error !== null &&
+      (error as NomicIgnitionPluginError)._isNomicIgnitionPluginError === true
+    );
+  }
+
+  private readonly _isNomicIgnitionPluginError = true;
+
+  constructor(pluginName: string, message: string) {
+    super(pluginName, message);
+    Object.setPrototypeOf(this, NomicIgnitionPluginError.prototype);
   }
 }
 
@@ -38,7 +103,7 @@ export class IgnitionError extends Error {
  * @param template - The template string.
  * @param values - A map of variable names to their values.
  *
- * @beta
+ * @alpha
  */
 export function applyErrorMessageTemplate(
   template: string,
