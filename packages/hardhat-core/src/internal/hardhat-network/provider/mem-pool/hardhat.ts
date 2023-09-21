@@ -31,6 +31,68 @@ import { txMapToArray } from "../utils/txMapToArray";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 
+export function serializeTransaction(
+  tx: OrderedTransaction
+): SerializedTransaction {
+  const rlpSerialization = bufferToHex(tx.data.serialize());
+  const isFake =
+    tx.data instanceof FakeSenderTransaction ||
+    tx.data instanceof FakeSenderAccessListEIP2930Transaction ||
+    tx.data instanceof FakeSenderEIP1559Transaction;
+
+  return makeSerializedTransaction({
+    orderId: tx.orderId,
+    fakeFrom: isFake ? tx.data.getSenderAddress().toString() : undefined,
+    data: rlpSerialization,
+    txType: tx.data.type,
+  });
+}
+
+export function deserializeTransaction(
+  tx: SerializedTransaction,
+  common: Common
+): OrderedTransaction {
+  const rlpSerialization = tx.get("data");
+  const fakeFrom = tx.get("fakeFrom");
+
+  let data;
+  if (fakeFrom !== undefined) {
+    const sender = Address.fromString(fakeFrom);
+    const serialization = toBuffer(rlpSerialization);
+
+    if (tx.get("txType") === 1) {
+      data =
+        FakeSenderAccessListEIP2930Transaction.fromSenderAndRlpSerializedTx(
+          sender,
+          serialization,
+          { common }
+        );
+    } else if (tx.get("txType") === 2) {
+      data = FakeSenderEIP1559Transaction.fromSenderAndRlpSerializedTx(
+        sender,
+        serialization,
+        { common }
+      );
+    } else {
+      data = FakeSenderTransaction.fromSenderAndRlpSerializedTx(
+        sender,
+        serialization,
+        { common }
+      );
+    }
+  } else {
+    data = TransactionFactory.fromSerializedData(toBuffer(rlpSerialization), {
+      common,
+      disableMaxInitCodeSizeCheck: true,
+    });
+  }
+
+  return {
+    orderId: tx.get("orderId"),
+    data,
+  };
+}
+
 export class HardhatMemPool implements MemPoolAdapter {
   private _state: ImmutableRecord<PoolState>;
   private _snapshotIdToState = new Map<number, ImmutableRecord<PoolState>>();
@@ -50,17 +112,6 @@ export class HardhatMemPool implements MemPoolAdapter {
       blockGasLimit: BigIntUtils.toHex(blockGasLimit),
     });
     this._deserializeTransaction = (tx) => deserializeTransaction(tx, common);
-  }
-
-  public async getBlockGasLimit(): Promise<bigint> {
-    return BigInt(this._state.get("blockGasLimit"));
-  }
-
-  public async setBlockGasLimit(blockGasLimit: bigint): Promise<void> {
-    this._state = this._state.set(
-      "blockGasLimit",
-      BigIntUtils.toHex(blockGasLimit)
-    );
   }
 
   public async addTransaction(tx: TypedTransaction): Promise<void> {
@@ -129,6 +180,105 @@ export class HardhatMemPool implements MemPoolAdapter {
     }
 
     throw new Error("Tx should have existed in the pending or queued lists");
+  }
+
+  public async makeSnapshot(): Promise<number> {
+    const id = this._nextSnapshotId++;
+    this._snapshotIdToState.set(id, this._state);
+    return id;
+  }
+
+  public async revertToSnapshot(snapshotId: number): Promise<void> {
+    const state = this._snapshotIdToState.get(snapshotId);
+    if (state === undefined) {
+      throw new Error("There's no snapshot with such ID");
+    }
+    this._state = state;
+
+    this._removeSnapshotsAfter(snapshotId);
+  }
+
+  public async getTransactionByHash(
+    hash: Buffer
+  ): Promise<TypedTransaction | undefined> {
+    return this.getOrderedTransactionByHash(hash)?.data;
+  }
+
+  public getOrderedTransactionByHash(
+    hash: Buffer
+  ): OrderedTransaction | undefined {
+    const tx = this._getTransactionsByHash().get(bufferToHex(hash));
+    if (tx !== undefined) {
+      return this._deserializeTransaction(tx);
+    }
+
+    return undefined;
+  }
+
+  public async hasPendingTransactions(): Promise<boolean> {
+    const pendingMap = this._getPending();
+    return pendingMap.some((senderPendingTxs) => !senderPendingTxs.isEmpty());
+  }
+
+  public async hasFutureTransactions(): Promise<boolean> {
+    const queuedMap = this._getQueued();
+    return queuedMap.some((senderQueuedTxs) => !senderQueuedTxs.isEmpty());
+  }
+
+  public getOrderedPendingTransactions(): Map<string, OrderedTransaction[]> {
+    const deserializedImmutableMap = this._getPending()
+      .filter((txs) => txs.size > 0)
+      .map(
+        (txs) =>
+          txs.map(this._deserializeTransaction).toJS() as OrderedTransaction[]
+      );
+
+    return new Map(deserializedImmutableMap.entries());
+  }
+
+  public getOrderedQueuedTransactions(): Map<string, OrderedTransaction[]> {
+    const deserializedImmutableMap = this._getQueued()
+      .filter((txs) => txs.size > 0)
+      .map(
+        (txs) =>
+          txs.map(this._deserializeTransaction).toJS() as OrderedTransaction[]
+      );
+
+    return new Map(deserializedImmutableMap.entries());
+  }
+
+  public async getNextPendingNonce(accountAddress: Address): Promise<bigint> {
+    const pendingTxs = this._getPending().get(accountAddress.toString());
+    const lastPendingTx = pendingTxs?.last(undefined);
+
+    if (lastPendingTx === undefined) {
+      return (await this._stateManager.getAccount(accountAddress)).nonce;
+    }
+
+    const lastPendingTxNonce =
+      this._deserializeTransaction(lastPendingTx).data.nonce;
+    return lastPendingTxNonce + 1n;
+  }
+
+  private _removeSnapshotsAfter(snapshotId: number): void {
+    const snapshotIds = [...this._snapshotIdToState.keys()].filter(
+      (x) => x >= snapshotId
+    );
+
+    for (const id of snapshotIds) {
+      this._snapshotIdToState.delete(id);
+    }
+  }
+
+  public async getBlockGasLimit(): Promise<bigint> {
+    return BigInt(this._state.get("blockGasLimit"));
+  }
+
+  public async setBlockGasLimit(blockGasLimit: bigint): Promise<void> {
+    this._state = this._state.set(
+      "blockGasLimit",
+      BigIntUtils.toHex(blockGasLimit)
+    );
   }
 
   public async update(): Promise<void> {
@@ -208,94 +358,6 @@ export class HardhatMemPool implements MemPoolAdapter {
     const txPoolPending = txMapToArray(this.getOrderedPendingTransactions());
     const txPoolQueued = txMapToArray(this.getOrderedQueuedTransactions());
     return txPoolPending.concat(txPoolQueued);
-  }
-
-  public async hasFutureTransactions(): Promise<boolean> {
-    const queuedMap = this._getQueued();
-    return queuedMap.some((senderQueuedTxs) => !senderQueuedTxs.isEmpty());
-  }
-
-  public async hasPendingTransactions(): Promise<boolean> {
-    const pendingMap = this._getPending();
-    return pendingMap.some((senderPendingTxs) => !senderPendingTxs.isEmpty());
-  }
-
-  public async makeSnapshot(): Promise<number> {
-    const id = this._nextSnapshotId++;
-    this._snapshotIdToState.set(id, this._state);
-    return id;
-  }
-
-  public async revertToSnapshot(snapshotId: number): Promise<void> {
-    const state = this._snapshotIdToState.get(snapshotId);
-    if (state === undefined) {
-      throw new Error("There's no snapshot with such ID");
-    }
-    this._state = state;
-
-    this._removeSnapshotsAfter(snapshotId);
-  }
-
-  public getOrderedPendingTransactions(): Map<string, OrderedTransaction[]> {
-    const deserializedImmutableMap = this._getPending()
-      .filter((txs) => txs.size > 0)
-      .map(
-        (txs) =>
-          txs.map(this._deserializeTransaction).toJS() as OrderedTransaction[]
-      );
-
-    return new Map(deserializedImmutableMap.entries());
-  }
-
-  public getOrderedQueuedTransactions(): Map<string, OrderedTransaction[]> {
-    const deserializedImmutableMap = this._getQueued()
-      .filter((txs) => txs.size > 0)
-      .map(
-        (txs) =>
-          txs.map(this._deserializeTransaction).toJS() as OrderedTransaction[]
-      );
-
-    return new Map(deserializedImmutableMap.entries());
-  }
-
-  public async getTransactionByHash(
-    hash: Buffer
-  ): Promise<TypedTransaction | undefined> {
-    return this.getOrderedTransactionByHash(hash)?.data;
-  }
-
-  public getOrderedTransactionByHash(
-    hash: Buffer
-  ): OrderedTransaction | undefined {
-    const tx = this._getTransactionsByHash().get(bufferToHex(hash));
-    if (tx !== undefined) {
-      return this._deserializeTransaction(tx);
-    }
-
-    return undefined;
-  }
-
-  public async getNextPendingNonce(accountAddress: Address): Promise<bigint> {
-    const pendingTxs = this._getPending().get(accountAddress.toString());
-    const lastPendingTx = pendingTxs?.last(undefined);
-
-    if (lastPendingTx === undefined) {
-      return (await this._stateManager.getAccount(accountAddress)).nonce;
-    }
-
-    const lastPendingTxNonce =
-      this._deserializeTransaction(lastPendingTx).data.nonce;
-    return lastPendingTxNonce + 1n;
-  }
-
-  private _removeSnapshotsAfter(snapshotId: number): void {
-    const snapshotIds = [...this._snapshotIdToState.keys()].filter(
-      (x) => x >= snapshotId
-    );
-
-    for (const id of snapshotIds) {
-      this._snapshotIdToState.delete(id);
-    }
   }
 
   private _removeTx(
@@ -618,68 +680,6 @@ function _getSenderAddress(tx: TypedTransaction): Address {
 
     throw new InvalidInputError(e.message);
   }
-}
-
-export function serializeTransaction(
-  tx: OrderedTransaction
-): SerializedTransaction {
-  const rlpSerialization = bufferToHex(tx.data.serialize());
-  const isFake =
-    tx.data instanceof FakeSenderTransaction ||
-    tx.data instanceof FakeSenderAccessListEIP2930Transaction ||
-    tx.data instanceof FakeSenderEIP1559Transaction;
-
-  return makeSerializedTransaction({
-    orderId: tx.orderId,
-    fakeFrom: isFake ? tx.data.getSenderAddress().toString() : undefined,
-    data: rlpSerialization,
-    txType: tx.data.type,
-  });
-}
-
-export function deserializeTransaction(
-  tx: SerializedTransaction,
-  common: Common
-): OrderedTransaction {
-  const rlpSerialization = tx.get("data");
-  const fakeFrom = tx.get("fakeFrom");
-
-  let data;
-  if (fakeFrom !== undefined) {
-    const sender = Address.fromString(fakeFrom);
-    const serialization = toBuffer(rlpSerialization);
-
-    if (tx.get("txType") === 1) {
-      data =
-        FakeSenderAccessListEIP2930Transaction.fromSenderAndRlpSerializedTx(
-          sender,
-          serialization,
-          { common }
-        );
-    } else if (tx.get("txType") === 2) {
-      data = FakeSenderEIP1559Transaction.fromSenderAndRlpSerializedTx(
-        sender,
-        serialization,
-        { common }
-      );
-    } else {
-      data = FakeSenderTransaction.fromSenderAndRlpSerializedTx(
-        sender,
-        serialization,
-        { common }
-      );
-    }
-  } else {
-    data = TransactionFactory.fromSerializedData(toBuffer(rlpSerialization), {
-      common,
-      disableMaxInitCodeSizeCheck: true,
-    });
-  }
-
-  return {
-    orderId: tx.get("orderId"),
-    data,
-  };
 }
 
 function _getMinNewFeePrice(feePrice: bigint): bigint {
