@@ -40,4 +40,4 @@ pub trait Block: Debug {
 /// Trait that meets all requirements for a synchronous block.
 pub trait SyncBlock: Block + Send + Sync + 'static {}
 
-impl<BlockchainT> SyncBlock for BlockchainT where BlockchainT: Block + Send + Sync + 'static {}
+impl<BlockT> SyncBlock for BlockT where BlockT: Block + Send + Sync + 'static {}
