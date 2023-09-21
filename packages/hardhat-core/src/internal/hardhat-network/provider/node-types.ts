@@ -129,7 +129,7 @@ export interface Snapshot {
   irregularStatesByBlockNumber: Map<bigint, Buffer>;
   userProvidedNextBlockBaseFeePerGas: bigint | undefined;
   coinbase: Address;
-  nextPrevrandao: Buffer;
+  nextPrevRandao: Buffer;
 }
 
 export type SendTransactionResult =
