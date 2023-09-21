@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { Address, KECCAK256_NULL } from "@nomicfoundation/ethereumjs-util";
 
-import { Account, Bytecode, RethnetContext, StateManager } from "../..";
+import { Account, Bytecode, RethnetContext, State } from "../..";
 
 describe("State Manager", () => {
   const caller = Address.fromString(
@@ -14,7 +14,7 @@ describe("State Manager", () => {
   const context = new RethnetContext();
 
   const stateManagers = [
-    { name: "default", getStateManager: async () => new StateManager(context) },
+    { name: "default", getStateManager: async () => new State() },
   ];
 
   const alchemyUrl = process.env.ALCHEMY_URL;
@@ -26,18 +26,13 @@ describe("State Manager", () => {
     stateManagers.push({
       name: "fork",
       getStateManager: async () =>
-        await StateManager.forkRemote(
-          context,
-          alchemyUrl,
-          BigInt(16220843),
-          []
-        ),
+        await State.forkRemote(context, alchemyUrl, BigInt(16220843), []),
     });
   }
 
   for (const { name, getStateManager } of stateManagers) {
     describe(`With the ${name} StateManager`, () => {
-      let stateManager: StateManager;
+      let stateManager: State;
 
       beforeEach(async function () {
         stateManager = await getStateManager();
