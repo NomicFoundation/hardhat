@@ -20,7 +20,6 @@ import {
 } from "../../utils/convertToRethnet";
 import { VMTracer } from "../../../stack-traces/vm-tracer";
 import { getHardforkName } from "../../../../util/hardforks";
-import { globalRethnetContext } from "../../context/rethnet";
 import { makeConfigOptions } from "../rethnet";
 
 export class RethnetBlockBuilder implements BlockBuilderAdapter {
@@ -43,7 +42,6 @@ export class RethnetBlockBuilder implements BlockBuilderAdapter {
     const clonedState = await state.asInner().deepClone();
 
     const blockBuilder = await BlockBuilder.create(
-      globalRethnetContext,
       blockchain,
       clonedState,
       makeConfigOptions(common, false, true, limitContractCodeSize),

@@ -18,7 +18,6 @@ use crate::{
     blockchain::Blockchain,
     cast::TryCast,
     config::ConfigOptions,
-    context::RethnetContext,
     state::StateManager,
     transaction::{result::TransactionResult, PendingTransaction},
 };
@@ -30,7 +29,6 @@ pub struct BlockBuilder {
     builder: Arc<RwLock<Option<rethnet_evm::BlockBuilder>>>,
     blockchain: Arc<RwLock<dyn SyncBlockchain<BlockchainError, StateError>>>,
     state: Arc<RwLock<Box<dyn SyncState<StateError>>>>,
-    runtime: runtime::Handle,
 }
 
 #[napi]
@@ -41,7 +39,6 @@ impl BlockBuilder {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn create(
         env: Env,
-        context: &RethnetContext,
         blockchain: &Blockchain,
         state_manager: &StateManager,
         config: ConfigOptions,
@@ -55,10 +52,8 @@ impl BlockBuilder {
         let blockchain = (*blockchain).clone();
         let state = (*state_manager).clone();
 
-        let runtime = context.runtime().clone();
-
         let (deferred, promise) = env.create_deferred()?;
-        context.runtime().spawn(async move {
+        runtime::Handle::current().spawn(async move {
             let result = rethnet_evm::BlockBuilder::new(config, &parent, block).map_or_else(
                 |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
                 |builder| {
@@ -66,7 +61,6 @@ impl BlockBuilder {
                         builder: Arc::new(RwLock::new(Some(builder))),
                         blockchain,
                         state,
-                        runtime,
                     })
                 },
             );
@@ -110,7 +104,7 @@ impl BlockBuilder {
         let state = self.state.clone();
 
         let (deferred, promise) = env.create_deferred()?;
-        self.runtime.spawn(async move {
+        runtime::Handle::current().spawn(async move {
             let mut builder = builder.write().await;
             let result = if let Some(builder) = builder.as_mut() {
                 let mut tracer = TraceCollector::default();

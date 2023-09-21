@@ -70,9 +70,8 @@ pub async fn mine_block(
                 e => e.to_string(),
             })),
         |result| {
-            Ok(MineBlockResult::new(
-                result,
-                state_manager.runtime().clone(),
+            Ok(MineBlockResult::from(
+                result
             ))
         },
     )

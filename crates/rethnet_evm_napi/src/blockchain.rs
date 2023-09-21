@@ -33,15 +33,10 @@ const BLOCKCHAIN_MEMORY_SIZE: i64 = 10_000;
 #[derive(Debug)]
 pub struct Blockchain {
     inner: Arc<RwLock<dyn SyncBlockchain<BlockchainError, StateError>>>,
-    runtime: runtime::Handle,
 }
 
 impl Blockchain {
-    fn with_blockchain<BlockchainT>(
-        env: &mut Env,
-        blockchain: BlockchainT,
-        runtime: runtime::Handle,
-    ) -> napi::Result<Self>
+    fn with_blockchain<BlockchainT>(env: &mut Env, blockchain: BlockchainT) -> napi::Result<Self>
     where
         BlockchainT: SyncBlockchain<BlockchainError, StateError>,
     {
@@ -50,7 +45,6 @@ impl Blockchain {
 
         Ok(Self {
             inner: Arc::new(RwLock::new(blockchain)),
-            runtime,
         })
     }
 }
@@ -70,7 +64,6 @@ impl Blockchain {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn with_genesis_block(
         mut env: Env,
-        context: &RethnetContext,
         chain_id: BigInt,
         spec_id: SpecId,
         genesis_block: BlockOptions,
@@ -94,7 +87,7 @@ impl Blockchain {
         )
         .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
 
-        Self::with_blockchain(&mut env, blockchain, context.runtime().clone())
+        Self::with_blockchain(&mut env, blockchain)
     }
 
     #[napi(ts_return_type = "Promise<Blockchain>")]
@@ -117,7 +110,6 @@ impl Blockchain {
         let cache_dir = cache_dir.map_or_else(|| rethnet_defaults::CACHE_DIR.into(), PathBuf::from);
         let accounts = genesis_accounts(accounts)?;
 
-        let runtime = context.runtime().clone();
         let state_root_generator = context.state_root_generator.clone();
         let hardfork_activation_overrides = hardfork_activation_overrides
             .into_iter()
@@ -137,11 +129,13 @@ impl Blockchain {
             })
             .collect::<napi::Result<HashMap<U256, HardforkActivations>>>()?;
 
+        let runtime = runtime::Handle::current();
+
         let (deferred, promise) = env.create_deferred()?;
-        context.runtime().spawn(async move {
+        runtime.clone().spawn(async move {
             let rpc_client = RpcClient::new(&remote_url, cache_dir);
             let result = rethnet_evm::blockchain::ForkedBlockchain::new(
-                runtime.clone(),
+                runtime,
                 spec_id,
                 rpc_client,
                 fork_block_number,
@@ -153,7 +147,7 @@ impl Blockchain {
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()));
 
             deferred.resolve(|mut env| {
-                result.map(|blockchain| Self::with_blockchain(&mut env, blockchain, runtime))
+                result.map(|blockchain| Self::with_blockchain(&mut env, blockchain))
             });
         });
 
@@ -329,7 +323,7 @@ impl Blockchain {
             .await
             .map_or_else(
                 |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
-                |state| Ok(StateManager::from((state, self.runtime.clone()))),
+                |state| Ok(StateManager::from(state)),
             )
     }
 

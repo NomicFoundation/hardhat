@@ -19,7 +19,6 @@ export class RethnetStateManager {
   ): RethnetStateManager {
     return new RethnetStateManager(
       StateManager.withGenesisAccounts(
-        context,
         genesisAccounts.map((account) => {
           return {
             privateKey: account.privateKey,

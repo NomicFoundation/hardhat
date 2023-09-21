@@ -2,6 +2,7 @@ use std::ops::Deref;
 
 use napi::{
     bindgen_prelude::{Buffer, Either3},
+    tokio::runtime,
     Env, JsObject,
 };
 use napi_derive::napi;
@@ -45,7 +46,7 @@ impl PendingTransaction {
         let state = (*state_manager).clone();
 
         let (deferred, promise) = env.create_deferred()?;
-        state_manager.runtime().spawn(async move {
+        runtime::Handle::current().spawn(async move {
             let state = state.read().await;
 
             let result = if let Some(caller) = caller {

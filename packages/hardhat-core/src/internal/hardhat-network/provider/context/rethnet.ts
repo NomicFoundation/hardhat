@@ -116,7 +116,6 @@ export class RethnetEthContext implements EthContextAdapter {
 
       blockchain = new RethnetBlockchain(
         Blockchain.withGenesisBlock(
-          globalRethnetContext,
           common.chainId(),
           ethereumsjsHardforkToRethnetSpecId(hardforkName),
           ethereumjsHeaderDataToRethnetBlockOptions(genesisBlockHeader),

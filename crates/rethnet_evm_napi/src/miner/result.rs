@@ -1,6 +1,6 @@
 use std::ops::Deref;
 
-use napi::{bindgen_prelude::Either3, tokio::runtime, Env};
+use napi::{bindgen_prelude::Either3, Env};
 use napi_derive::napi;
 use rethnet_evm::{blockchain::BlockchainError, state::StateError};
 
@@ -14,7 +14,6 @@ use crate::{
 #[napi]
 pub struct MineBlockResult {
     inner: rethnet_evm::MineBlockResult<BlockchainError, StateError>,
-    runtime: runtime::Handle,
 }
 
 impl Deref for MineBlockResult {
@@ -25,15 +24,9 @@ impl Deref for MineBlockResult {
     }
 }
 
-impl MineBlockResult {
-    pub fn new(
-        result: rethnet_evm::MineBlockResult<BlockchainError, StateError>,
-        runtime: runtime::Handle,
-    ) -> Self {
-        Self {
-            inner: result,
-            runtime,
-        }
+impl From<rethnet_evm::MineBlockResult<BlockchainError, StateError>> for MineBlockResult {
+    fn from(value: rethnet_evm::MineBlockResult<BlockchainError, StateError>) -> Self {
+        Self { inner: value }
     }
 }
 
@@ -48,7 +41,7 @@ impl MineBlockResult {
     #[doc = ""]
     #[napi(getter)]
     pub fn state(&self) -> StateManager {
-        StateManager::from((self.state.clone(), self.runtime.clone()))
+        StateManager::from(self.state.clone())
     }
 
     #[doc = "Retrieves the transactions' results."]

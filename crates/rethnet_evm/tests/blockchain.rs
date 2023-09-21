@@ -5,7 +5,6 @@ use serial_test::serial;
 use lazy_static::lazy_static;
 use rethnet_eth::{
     block::PartialHeader,
-    remote::RpcClient,
     transaction::{EIP155TransactionRequest, SignedTransaction, TransactionKind},
     Address, Bytes, B256, U256,
 };
@@ -45,6 +44,7 @@ async fn create_dummy_blockchains() -> Vec<Box<dyn SyncBlockchain<BlockchainErro
         use std::sync::Arc;
 
         use parking_lot::Mutex;
+        use rethnet_eth::remote::RpcClient;
         use rethnet_evm::{blockchain::ForkedBlockchain, HashMap, RandomHashGenerator};
         use rethnet_test_utils::env::get_alchemy_url;
 
