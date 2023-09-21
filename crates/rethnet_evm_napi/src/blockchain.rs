@@ -156,6 +156,7 @@ impl Blockchain {
 
     #[doc = "Retrieves the block with the provided hash, if it exists."]
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn block_by_hash(&self, hash: Buffer) -> napi::Result<Option<Block>> {
         let hash = TryCast::<B256>::try_cast(hash)?;
 
@@ -167,6 +168,7 @@ impl Blockchain {
 
     #[doc = "Retrieves the block with the provided number, if it exists."]
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn block_by_number(&self, number: BigInt) -> napi::Result<Option<Block>> {
         let number: U256 = BigInt::try_cast(number)?;
 
@@ -182,6 +184,7 @@ impl Blockchain {
 
     #[doc = "Retrieves the block that contains a transaction with the provided hash, if it exists."]
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn block_by_transaction_hash(
         &self,
         transaction_hash: Buffer,
@@ -200,6 +203,7 @@ impl Blockchain {
 
     #[doc = "Retrieves the instance's chain ID."]
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn chain_id(&self) -> BigInt {
         let chain_id = self.read().await.chain_id().await;
 
@@ -226,6 +230,7 @@ impl Blockchain {
 
     #[doc = "Retrieves the last block in the blockchain."]
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn last_block(&self) -> napi::Result<Block> {
         self.read().await.last_block().await.map_or_else(
             |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
@@ -235,6 +240,7 @@ impl Blockchain {
 
     #[doc = "Retrieves the number of the last block in the blockchain."]
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn last_block_number(&self) -> BigInt {
         let block_number = self.read().await.last_block_number().await;
 
@@ -246,6 +252,7 @@ impl Blockchain {
 
     #[doc = "Retrieves the receipt of the transaction with the provided hash, if it exists."]
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn receipt_by_transaction_hash(
         &self,
         transaction_hash: Buffer,
@@ -264,6 +271,7 @@ impl Blockchain {
 
     #[doc = "Reserves the provided number of blocks, starting from the next block number."]
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn reserve_blocks(&self, additional: BigInt, interval: BigInt) -> napi::Result<()> {
         let additional: u64 = BigInt::try_cast(additional)?;
         let interval: U256 = BigInt::try_cast(interval)?;
@@ -281,6 +289,7 @@ impl Blockchain {
 
     #[doc = "Reverts to the block with the provided number, deleting all later blocks."]
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn revert_to_block(&self, block_number: BigInt) -> napi::Result<()> {
         let block_number: U256 = BigInt::try_cast(block_number)?;
 
@@ -293,6 +302,7 @@ impl Blockchain {
 
     #[doc = "Retrieves the hardfork specficiation of the block at the provided number."]
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn spec_at_block_number(&self, block_number: BigInt) -> napi::Result<SpecId> {
         let block_number: U256 = BigInt::try_cast(block_number)?;
 
@@ -308,12 +318,14 @@ impl Blockchain {
 
     #[doc = "Retrieves the hardfork specification used for new blocks."]
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn spec_id(&self) -> SpecId {
         SpecId::from(self.read().await.spec_id())
     }
 
     #[doc = "Retrieves the state at the block with the provided number."]
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn state_at_block_number(&self, block_number: BigInt) -> napi::Result<State> {
         let block_number: U256 = BigInt::try_cast(block_number)?;
 
@@ -329,6 +341,7 @@ impl Blockchain {
 
     #[doc = "Retrieves the total difficulty at the block with the provided hash."]
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn total_difficulty_by_hash(&self, hash: Buffer) -> napi::Result<Option<BigInt>> {
         let hash = TryCast::<B256>::try_cast(hash)?;
 

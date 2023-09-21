@@ -117,6 +117,7 @@ impl State {
     /// its state.
     #[napi]
     #[napi(ts_return_type = "Promise<State>")]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn fork_remote(
         env: Env,
         context: &RethnetContext,
@@ -157,6 +158,7 @@ impl State {
 
     #[doc = "Clones the state"]
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn deep_clone(&self) -> Self {
         let state = self.state.read().await.clone();
 

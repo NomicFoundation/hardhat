@@ -49,6 +49,7 @@ pub struct LocalBlockchain {
 
 impl LocalBlockchain {
     /// Constructs a new instance using the provided arguments to build a genesis block.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn new(
         genesis_state: TrieState,
         chain_id: U256,
@@ -111,6 +112,7 @@ impl LocalBlockchain {
     }
 
     /// Constructs a new instance with the provided genesis block, validating a zero block number.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn with_genesis_block(
         genesis_block: LocalBlock,
         genesis_state: TrieState,
@@ -140,6 +142,7 @@ impl LocalBlockchain {
     /// # Safety
     ///
     /// Ensure that the genesis block's number is zero.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub unsafe fn with_genesis_block_unchecked(
         genesis_block: LocalBlock,
         genesis_state: TrieState,
@@ -167,6 +170,7 @@ impl Blockchain for LocalBlockchain {
 
     type StateError = StateError;
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn block_by_hash(
         &self,
         hash: &B256,
@@ -175,6 +179,7 @@ impl Blockchain for LocalBlockchain {
         Ok(self.storage.block_by_hash(hash))
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn block_by_number(
         &self,
         number: &U256,
@@ -183,6 +188,7 @@ impl Blockchain for LocalBlockchain {
         Ok(self.storage.block_by_number(number))
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn block_by_transaction_hash(
         &self,
         transaction_hash: &B256,
@@ -195,6 +201,7 @@ impl Blockchain for LocalBlockchain {
         self.chain_id
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn last_block(
         &self,
     ) -> Result<Arc<dyn SyncBlock<Error = Self::BlockchainError>>, Self::BlockchainError> {
@@ -208,6 +215,7 @@ impl Blockchain for LocalBlockchain {
         *self.storage.last_block_number()
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn receipt_by_transaction_hash(
         &self,
         transaction_hash: &B256,
@@ -215,6 +223,7 @@ impl Blockchain for LocalBlockchain {
         Ok(self.storage.receipt_by_transaction_hash(transaction_hash))
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn spec_at_block_number(
         &self,
         block_number: &U256,
@@ -230,6 +239,7 @@ impl Blockchain for LocalBlockchain {
         self.spec_id
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn state_at_block_number(
         &self,
         block_number: &U256,
@@ -246,6 +256,7 @@ impl Blockchain for LocalBlockchain {
         Ok(Box::new(state))
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn total_difficulty_by_hash(
         &self,
         hash: &B256,
@@ -258,6 +269,7 @@ impl Blockchain for LocalBlockchain {
 impl BlockchainMut for LocalBlockchain {
     type Error = BlockchainError;
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn insert_block(
         &mut self,
         block: LocalBlock,
@@ -284,6 +296,7 @@ impl BlockchainMut for LocalBlockchain {
         Ok(block.clone())
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn reserve_blocks(
         &mut self,
         additional: usize,
@@ -315,6 +328,7 @@ impl BlockchainMut for LocalBlockchain {
         Ok(())
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn revert_to_block(&mut self, block_number: &U256) -> Result<(), Self::Error> {
         if self.storage.revert_to_block(block_number) {
             Ok(())
@@ -327,6 +341,7 @@ impl BlockchainMut for LocalBlockchain {
 impl BlockHashRef for LocalBlockchain {
     type Error = BlockchainError;
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn block_hash(&self, number: U256) -> Result<B256, Self::Error> {
         self.storage
             .block_by_number(&number)

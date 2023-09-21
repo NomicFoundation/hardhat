@@ -36,6 +36,7 @@ pub struct ReservableSparseBlockchainStorage<BlockT: Block + Clone + ?Sized> {
 
 impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
     /// Constructs a new instance with the provided block as genesis block.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn with_genesis_block(block: BlockT, total_difficulty: U256) -> Self {
         Self {
             reservations: RwLock::new(Vec::new()),
@@ -47,6 +48,7 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
     }
 
     /// Constructs a new instance with no blocks.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn empty(latest_block_number: U256) -> Self {
         Self {
             reservations: RwLock::new(Vec::new()),
@@ -58,11 +60,13 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
     }
 
     /// Retrieves the block by hash, if it exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn block_by_hash(&self, hash: &B256) -> Option<BlockT> {
         self.storage.read().block_by_hash(hash).cloned()
     }
 
     /// Retrieves the block that contains the transaction with the provided hash, if it exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn block_by_transaction_hash(&self, transaction_hash: &B256) -> Option<BlockT> {
         self.storage
             .read()
@@ -71,6 +75,7 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
     }
 
     /// Retrieves whether a block with the provided number exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn contains_block_number(&self, number: &U256) -> bool {
         self.storage.read().contains_block_number(number)
     }
@@ -82,6 +87,7 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
 
     /// Retrieves the sequence of diffs from the genesis state to the state of the block with
     /// the provided number, if it exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn state_diffs_until_block(&self, block_number: &U256) -> Option<&[StateDiff]> {
         let diff_index = self
             .number_to_diff_index
@@ -98,6 +104,7 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
     }
 
     /// Retrieves the receipt of the transaction with the provided hash, if it exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn receipt_by_transaction_hash(
         &self,
         transaction_hash: &B256,
@@ -109,6 +116,7 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
     }
 
     /// Reserves the provided number of blocks, starting from the next block number.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn reserve_blocks(
         &mut self,
         additional: NonZeroUsize,
@@ -134,6 +142,7 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
     }
 
     /// Reverts to the block with the provided number, deleting all later blocks.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn revert_to_block(&mut self, block_number: &U256) -> bool {
         if *block_number > self.last_block_number {
             return false;
@@ -180,6 +189,7 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
     }
 
     /// Retrieves the total difficulty of the block with the provided hash.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn total_difficulty_by_hash(&self, hash: &B256) -> Option<U256> {
         self.storage.read().total_difficulty_by_hash(hash).cloned()
     }
@@ -187,6 +197,7 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
 
 impl<BlockT: Block + Clone + From<LocalBlock>> ReservableSparseBlockchainStorage<BlockT> {
     /// Retrieves the block by number, if it exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn block_by_number(&self, number: &U256) -> Option<BlockT> {
         self.try_fulfilling_reservation(number)
             .or_else(|| self.storage.read().block_by_number(number).cloned())
@@ -198,6 +209,7 @@ impl<BlockT: Block + Clone + From<LocalBlock>> ReservableSparseBlockchainStorage
     ///
     /// Ensure that the instance does not contain a block with the same hash or number,
     /// nor any transactions with the same hash.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub unsafe fn insert_block_unchecked(
         &mut self,
         block: LocalBlock,
@@ -222,6 +234,7 @@ impl<BlockT: Block + Clone + From<LocalBlock>> ReservableSparseBlockchainStorage
             .insert_block_unchecked(block, total_difficulty)
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn try_fulfilling_reservation(&self, block_number: &U256) -> Option<BlockT> {
         let reservations = self.reservations.upgradable_read();
 
@@ -289,6 +302,7 @@ impl<BlockT: Block + Clone + From<LocalBlock>> ReservableSparseBlockchainStorage
     }
 }
 
+#[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
 fn calculate_timestamp_for_reserved_block<BlockT: Block + Clone>(
     storage: &SparseBlockchainStorage<BlockT>,
     reservations: &Vec<Reservation>,

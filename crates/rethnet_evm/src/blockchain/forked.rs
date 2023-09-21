@@ -70,6 +70,7 @@ pub struct ForkedBlockchain {
 
 impl ForkedBlockchain {
     /// Constructs a new instance.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn new(
         runtime: runtime::Handle,
         spec_id: SpecId,
@@ -171,6 +172,7 @@ impl ForkedBlockchain {
 impl BlockHashRef for ForkedBlockchain {
     type Error = BlockchainError;
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn block_hash(&self, number: U256) -> Result<B256, Self::Error> {
         if number <= self.fork_block_number {
             tokio::task::block_in_place(move || {
@@ -195,6 +197,7 @@ impl Blockchain for ForkedBlockchain {
 
     type StateError = StateError;
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn block_by_hash(
         &self,
         hash: &B256,
@@ -210,6 +213,7 @@ impl Blockchain for ForkedBlockchain {
         }
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn block_by_number(
         &self,
         number: &U256,
@@ -225,6 +229,7 @@ impl Blockchain for ForkedBlockchain {
         }
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn block_by_transaction_hash(
         &self,
         transaction_hash: &B256,
@@ -247,6 +252,7 @@ impl Blockchain for ForkedBlockchain {
         self.chain_id
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn last_block(
         &self,
     ) -> Result<Arc<dyn SyncBlock<Error = Self::BlockchainError>>, Self::BlockchainError> {
@@ -268,6 +274,7 @@ impl Blockchain for ForkedBlockchain {
         *self.local_storage.last_block_number()
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn receipt_by_transaction_hash(
         &self,
         transaction_hash: &B256,
@@ -285,6 +292,7 @@ impl Blockchain for ForkedBlockchain {
         }
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn spec_at_block_number(
         &self,
         block_number: &U256,
@@ -321,6 +329,7 @@ impl Blockchain for ForkedBlockchain {
         self.spec_id
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn state_at_block_number(
         &self,
         block_number: &U256,
@@ -352,6 +361,7 @@ impl Blockchain for ForkedBlockchain {
         Ok(Box::new(state))
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn total_difficulty_by_hash(
         &self,
         hash: &B256,
@@ -371,6 +381,7 @@ impl Blockchain for ForkedBlockchain {
 impl BlockchainMut for ForkedBlockchain {
     type Error = BlockchainError;
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn insert_block(
         &mut self,
         block: LocalBlock,
@@ -397,6 +408,7 @@ impl BlockchainMut for ForkedBlockchain {
         Ok(block.clone())
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn reserve_blocks(
         &mut self,
         additional: usize,
@@ -427,6 +439,7 @@ impl BlockchainMut for ForkedBlockchain {
         Ok(())
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn revert_to_block(&mut self, block_number: &U256) -> Result<(), Self::Error> {
         match block_number.cmp(&self.fork_block_number) {
             std::cmp::Ordering::Less => Err(BlockchainError::CannotDeleteRemote),
