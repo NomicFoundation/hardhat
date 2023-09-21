@@ -16,7 +16,7 @@ pub use revm::{
 
 pub use crate::{
     block::*,
-    debug_trace::{debug_trace_transaction, DebugTraceLogItem, DebugTraceResult},
+    debug_trace::{debug_trace_transaction, DebugTraceConfig, DebugTraceLogItem, DebugTraceResult},
     evm::SyncInspector,
     mempool::MemPool,
     miner::{mine_block, MineBlockError, MineBlockResult},

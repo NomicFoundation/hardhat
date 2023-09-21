@@ -23,7 +23,8 @@ pub fn debug_trace_transaction<BlockchainErrorT, StateErrorT>(
     // TODO depends on https://github.com/NomicFoundation/hardhat/pull/4254
     // mut state: Box<dyn SyncState<StateErrorT>>,
     state: &mut dyn SyncState<StateErrorT>,
-    cfg: CfgEnv,
+    evm_config: CfgEnv,
+    trace_config: DebugTraceConfig,
     block_env: BlockEnv,
     transactions: Vec<SignedTransaction>,
     transaction_hash: B256,
@@ -32,14 +33,14 @@ where
     BlockchainErrorT: Debug + Send + 'static,
     StateErrorT: Debug + Send + 'static,
 {
-    if cfg.spec_id < SpecId::SPURIOUS_DRAGON {
+    if evm_config.spec_id < SpecId::SPURIOUS_DRAGON {
         // Matching Hardhat Network behaviour: https://github.com/NomicFoundation/hardhat/blob/af7e4ce6a18601ec9cd6d4aa335fa7e24450e638/packages/hardhat-core/src/internal/hardhat-network/provider/vm/ethereumjs.ts#L427
         return Err(DebugTraceError::InvalidSpecId {
-            spec_id: cfg.spec_id,
+            spec_id: evm_config.spec_id,
         });
     }
 
-    if cfg.spec_id > SpecId::MERGE && block_env.prevrandao.is_none() {
+    if evm_config.spec_id > SpecId::MERGE && block_env.prevrandao.is_none() {
         return Err(TransactionError::MissingPrevrandao.into());
     }
 
@@ -49,13 +50,13 @@ where
         let evm = build_evm(
             blockchain,
             state,
-            cfg.clone(),
+            evm_config.clone(),
             tx.try_into()?,
             block_env.clone(),
         );
 
         if tx_hash == transaction_hash {
-            let mut tracer = TracerEip3155::new();
+            let mut tracer = TracerEip3155::new(trace_config);
             let ResultAndState {
                 result: execution_result,
                 ..
@@ -97,6 +98,17 @@ where
         tx_hash: transaction_hash,
         block_number: block_env.number,
     })
+}
+
+/// Config options for `debug_trace_transaction`
+#[derive(Debug, Default, Clone)]
+pub struct DebugTraceConfig {
+    /// Disable storage trace.
+    pub disable_storage: bool,
+    /// Disable memory trace.
+    pub disable_memory: bool,
+    /// Disable stack trace.
+    pub disable_stack: bool,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -141,7 +153,7 @@ pub struct DebugTraceLogItem {
     /// Gas cost of this operation as hex number.
     pub gas_cost: String,
     /// Array of all values (hex numbers) on the stack
-    pub stack: Vec<String>,
+    pub stack: Option<Vec<String>>,
     /// Depth of the call stack
     pub depth: u64,
     /// Size of memory array.
@@ -151,18 +163,21 @@ pub struct DebugTraceLogItem {
     /// Description of an error.
     pub error: Option<String>,
     /// Array of all allocated values as hex strings.
-    pub memory: Vec<String>,
+    pub memory: Option<Vec<String>>,
     /// Map of all stored values with keys and values encoded as hex strings.
-    pub storage: HashMap<String, String>,
+    pub storage: Option<HashMap<String, String>>,
 }
 
 // Based on https://github.com/bluealloy/revm/blob/70cf969a25a45e3bb4e503926297d61a90c7eec5/crates/revm/src/inspector/tracer_eip3155.rs
 // Original licensed under the MIT license.
 struct TracerEip3155 {
+    config: DebugTraceConfig,
+
     logs: Vec<DebugTraceLogItem>,
 
     gas_inspector: GasInspector,
 
+    contract: B160,
     gas_remaining: u64,
     memory: Vec<u8>,
     mem_size: usize,
@@ -170,14 +185,17 @@ struct TracerEip3155 {
     pc: usize,
     skip: bool,
     stack: Stack,
-    storage: HashMap<String, String>,
+    // Contract-specific storage
+    storage: HashMap<B160, HashMap<String, String>>,
 }
 
 impl TracerEip3155 {
-    fn new() -> Self {
+    fn new(config: DebugTraceConfig) -> Self {
         Self {
+            config,
             logs: Vec::default(),
             gas_inspector: GasInspector::default(),
+            contract: B160::default(),
             stack: Stack::new(),
             pc: 0,
             opcode: 0,
@@ -192,18 +210,43 @@ impl TracerEip3155 {
     fn record_log<DatabaseErrorT>(&mut self, data: &mut dyn EVMData<DatabaseErrorT>) {
         let depth = data.journaled_state().depth();
 
-        let stack: Vec<String> = self.stack.data().iter().map(to_hex_word).collect();
+        let stack = if self.config.disable_stack {
+            None
+        } else {
+            Some(
+                self.stack
+                    .data()
+                    .iter()
+                    .map(to_hex_word)
+                    .collect::<Vec<String>>(),
+            )
+        };
 
-        let memory = self.memory.chunks(32).map(hex::encode).collect();
+        let memory = if self.config.disable_memory {
+            None
+        } else {
+            Some(self.memory.chunks(32).map(hex::encode).collect())
+        };
 
-        if matches!(self.opcode, opcode::SLOAD | opcode::SSTORE) {
-            let journaled_state = data.journaled_state();
-            let last_entry = journaled_state.journal.last().and_then(|v| v.last());
-            if let Some(JournalEntry::StorageChange { address, key, .. }) = last_entry {
-                let value = journaled_state.state[address].storage[key].present_value();
-                self.storage.insert(to_hex_word(key), to_hex_word(&value));
+        let storage = if self.config.disable_storage {
+            None
+        } else {
+            if matches!(self.opcode, opcode::SLOAD | opcode::SSTORE) {
+                let journaled_state = data.journaled_state();
+                let last_entry = journaled_state.journal.last().and_then(|v| v.last());
+                if let Some(JournalEntry::StorageChange { address, key, .. }) = last_entry {
+                    let value = journaled_state.state[address].storage[key].present_value();
+                    let contract_storage = self.storage.entry(self.contract).or_default();
+                    contract_storage.insert(to_hex_word(key), to_hex_word(&value));
+                }
             }
-        }
+            Some(
+                self.storage
+                    .get(&self.contract)
+                    .cloned()
+                    .unwrap_or_default(),
+            )
+        };
 
         let mut error = None;
         let op_name = opcode::OPCODE_JUMPMAP[self.opcode as usize].map_or_else(
@@ -217,18 +260,26 @@ impl TracerEip3155 {
             String::from,
         );
 
+        // TODO gas inspector is not updated for STATICCALL for some reason, so instead of returning
+        // the gas cost of the previous op which could be confusing we return 0.
+        let gas_cost = if self.opcode == opcode::STATICCALL {
+            0
+        } else {
+            self.gas_inspector.last_gas_cost()
+        };
+
         let log_item = DebugTraceLogItem {
             pc: self.pc as u64,
             op: self.opcode,
             gas: format!("0x{:x}", self.gas_remaining),
-            gas_cost: format!("0x{:x}", self.gas_inspector.last_gas_cost()),
+            gas_cost: format!("0x{gas_cost:x}"),
             stack,
             depth,
             mem_size: self.mem_size as u64,
             op_name,
             error,
             memory,
-            storage: self.storage.clone(),
+            storage,
         };
         self.logs.push(log_item);
     }
@@ -249,13 +300,24 @@ impl<DatabaseErrorT> Inspector<DatabaseErrorT> for TracerEip3155 {
         interp: &mut Interpreter,
         data: &mut dyn EVMData<DatabaseErrorT>,
     ) -> InstructionResult {
+        self.contract = interp.contract.address;
+
         self.gas_inspector.step(interp, data);
-        self.stack = interp.stack.clone();
-        self.pc = interp.program_counter();
-        self.opcode = interp.current_opcode();
-        self.memory = interp.memory.data().clone();
-        self.mem_size = interp.memory.len();
         self.gas_remaining = self.gas_inspector.gas_remaining();
+
+        if !self.config.disable_stack {
+            self.stack = interp.stack.clone();
+        }
+
+        if !self.config.disable_memory {
+            self.memory = interp.memory.data().clone();
+        }
+
+        self.mem_size = interp.memory.len();
+
+        self.opcode = interp.current_opcode();
+
+        self.pc = interp.program_counter();
 
         InstructionResult::Continue
     }
@@ -267,6 +329,8 @@ impl<DatabaseErrorT> Inspector<DatabaseErrorT> for TracerEip3155 {
         eval: InstructionResult,
     ) -> InstructionResult {
         self.gas_inspector.step_end(interp, data, eval);
+
+        // Omit extra return https://github.com/bluealloy/revm/pull/563
         if self.skip {
             self.skip = false;
             return InstructionResult::Continue;

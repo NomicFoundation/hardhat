@@ -17,12 +17,13 @@ use crate::{
 pub async fn debug_trace_transaction(
     blockchain: &Blockchain,
     state_manager: &StateManager,
-    cfg: ConfigOptions,
+    evm_config: ConfigOptions,
+    trace_config: DebugTraceConfig,
     block_config: BlockConfig,
     transactions: Vec<SignedTransaction>,
     transaction_hash: Buffer,
 ) -> napi::Result<DebugTraceResult> {
-    let cfg = CfgEnv::try_from(cfg)?;
+    let evm_config = CfgEnv::try_from(evm_config)?;
     let block_env = BlockEnv::try_from(block_config)?;
     let transaction_hash = TryCast::<B256>::try_cast(transaction_hash)?;
 
@@ -37,7 +38,8 @@ pub async fn debug_trace_transaction(
     let result = rethnet_evm::debug_trace_transaction(
         &*blockchain.read().await,
         &mut *state_manager.write().await,
-        cfg,
+        evm_config,
+        trace_config.into(),
         block_env,
         transactions,
         transaction_hash,
@@ -45,6 +47,23 @@ pub async fn debug_trace_transaction(
     .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?
     .try_into()?;
     Ok(result)
+}
+
+#[napi(object)]
+pub struct DebugTraceConfig {
+    pub disable_storage: Option<bool>,
+    pub disable_memory: Option<bool>,
+    pub disable_stack: Option<bool>,
+}
+
+impl From<DebugTraceConfig> for rethnet_evm::DebugTraceConfig {
+    fn from(value: DebugTraceConfig) -> Self {
+        Self {
+            disable_storage: value.disable_storage.unwrap_or_default(),
+            disable_memory: value.disable_memory.unwrap_or_default(),
+            disable_stack: value.disable_stack.unwrap_or_default(),
+        }
+    }
 }
 
 #[napi(object)]
@@ -59,11 +78,7 @@ impl TryFrom<rethnet_evm::DebugTraceResult> for DebugTraceResult {
     type Error = napi::Error;
 
     fn try_from(value: rethnet_evm::DebugTraceResult) -> Result<Self, Self::Error> {
-        let output = if let Some(output) = value.output {
-            Some(Buffer::from(output.as_ref()))
-        } else {
-            None
-        };
+        let output = value.output.map(|o| Buffer::from(o.as_ref()));
         Ok(Self {
             pass: value.pass,
             gas_used: value.gas_used.try_into()?,
@@ -88,7 +103,7 @@ pub struct DebugTraceLogItem {
     /// Gas cost of this operation as hex number.
     pub gas_cost: String,
     /// Array of all values (hex numbers) on the stack
-    pub stack: Vec<String>,
+    pub stack: Option<Vec<String>>,
     /// Depth of the call stack
     pub depth: BigInt,
     /// Size of memory array
@@ -98,9 +113,9 @@ pub struct DebugTraceLogItem {
     /// Description of an error as a hex string.
     pub error: Option<String>,
     /// Array of all allocated values as hex strings.
-    pub memory: Vec<String>,
+    pub memory: Option<Vec<String>>,
     /// Map of all stored values with keys and values encoded as hex strings.
-    pub storage: HashMap<String, String>,
+    pub storage: Option<HashMap<String, String>>,
 }
 
 impl TryFrom<rethnet_evm::DebugTraceLogItem> for DebugTraceLogItem {
