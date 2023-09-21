@@ -1846,6 +1846,12 @@ export class HardhatNode extends EventEmitter {
     );
 
     const td = await this.getBlockTotalDifficulty(block);
+
+    assertHardhatInvariant(
+      td !== undefined,
+      "_saveBlockAsSuccessfullyRun should only be called after having inserted the block"
+    );
+
     const rpcLogs: RpcLogOutput[] = [];
     for (const receipt of receipts) {
       rpcLogs.push(...receipt.logs);
@@ -1864,7 +1870,7 @@ export class HardhatNode extends EventEmitter {
               filter.id,
               getRpcBlock(
                 block,
-                td!,
+                td,
                 shouldShowTransactionTypeForHardfork(this._common),
                 false
               )
