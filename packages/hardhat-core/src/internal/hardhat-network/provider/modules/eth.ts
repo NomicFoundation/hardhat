@@ -88,6 +88,7 @@ import { optional } from "../../../util/io-ts";
 import * as BigIntUtils from "../../../util/bigint";
 import { HardforkName } from "../../../util/hardforks";
 import { ModulesLogger } from "./logger";
+import { assertHardhatInvariant } from "../../../core/errors";
 
 const EIP1559_MIN_HARDFORK = HardforkName.LONDON;
 const ACCESS_LIST_MIN_HARDFORK = HardforkName.BERLIN;
@@ -537,9 +538,14 @@ export class EthModule {
       totalDifficulty = await this._node.getBlockTotalDifficulty(block);
     }
 
+    assertHardhatInvariant(
+      totalDifficulty !== undefined,
+      "Total difficulty should be defined"
+    );
+
     return getRpcBlock(
       block,
-      totalDifficulty!,
+      totalDifficulty,
       shouldShowTransactionTypeForHardfork(this._common),
       includeTransactions,
       numberOrPending === "pending"
