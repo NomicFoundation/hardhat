@@ -14,7 +14,7 @@ import {
   guaranteedDryRun,
   run,
   ConfigOptions,
-  StateManager,
+  State,
 } from "rethnet-evm";
 
 import { isForkedNodeConfig, NodeConfig } from "../node-types";
@@ -41,7 +41,7 @@ import { RethnetBlockBuilder } from "./block-builder/rethnet";
 
 export class RethnetAdapter implements VMAdapter {
   private _vmTracer: VMTracer;
-  private _stateRootToState: Map<Buffer, StateManager> = new Map();
+  private _stateRootToState: Map<Buffer, State> = new Map();
 
   constructor(
     private _blockchain: Blockchain,

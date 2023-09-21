@@ -3,7 +3,7 @@ import {
   bufferToBigInt,
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
-import { StateManager, Account, Bytecode, RethnetContext } from "rethnet-evm";
+import { State, Account, Bytecode, RethnetContext } from "rethnet-evm";
 import { ForkConfig, GenesisAccount } from "./node-types";
 import { makeForkProvider } from "./utils/makeForkClient";
 
@@ -11,14 +11,14 @@ import { makeForkProvider } from "./utils/makeForkClient";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 export class RethnetStateManager {
-  constructor(private _state: StateManager) {}
+  constructor(private _state: State) {}
 
   public static withGenesisAccounts(
     context: RethnetContext,
     genesisAccounts: GenesisAccount[]
   ): RethnetStateManager {
     return new RethnetStateManager(
-      StateManager.withGenesisAccounts(
+      State.withGenesisAccounts(
         genesisAccounts.map((account) => {
           return {
             privateKey: account.privateKey,
@@ -43,7 +43,7 @@ export class RethnetStateManager {
     }
 
     return new RethnetStateManager(
-      await StateManager.forkRemote(
+      await State.forkRemote(
         context,
         forkConfig.jsonRpcUrl,
         blockNumber,
@@ -54,16 +54,16 @@ export class RethnetStateManager {
           };
         })
       )
-      // TODO: consider changing StateManager.withFork() to also support
+      // TODO: consider changing State.withFork() to also support
       // passing in (and of course using) forkConfig.httpHeaders.
     );
   }
 
-  public asInner(): StateManager {
+  public asInner(): State {
     return this._state;
   }
 
-  public setInner(state: StateManager): void {
+  public setInner(state: State): void {
     this._state = state;
   }
 

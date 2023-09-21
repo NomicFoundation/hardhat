@@ -51,11 +51,11 @@ fn add_precompiles(accounts: &mut HashMap<Address, AccountInfo>) {
 /// The Rethnet state
 #[napi(custom_finalize)]
 #[derive(Debug)]
-pub struct StateManager {
+pub struct State {
     state: Arc<RwLock<Box<dyn SyncState<StateError>>>>,
 }
 
-impl From<Box<dyn SyncState<StateError>>> for StateManager {
+impl From<Box<dyn SyncState<StateError>>> for State {
     fn from(state: Box<dyn SyncState<StateError>>) -> Self {
         Self {
             state: Arc::new(RwLock::new(state)),
@@ -63,7 +63,7 @@ impl From<Box<dyn SyncState<StateError>>> for StateManager {
     }
 }
 
-impl StateManager {
+impl State {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn with_state<S>(env: &mut Env, state: S) -> napi::Result<Self>
     where
@@ -78,7 +78,7 @@ impl StateManager {
     }
 }
 
-impl Deref for StateManager {
+impl Deref for State {
     type Target = Arc<RwLock<Box<dyn SyncState<StateError>>>>;
 
     fn deref(&self) -> &Self::Target {
@@ -87,8 +87,8 @@ impl Deref for StateManager {
 }
 
 #[napi]
-impl StateManager {
-    /// Constructs a [`StateManager`] with an empty state.
+impl State {
+    /// Constructs a [`State`] with an empty state.
     #[napi(constructor)]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn new(mut env: Env) -> napi::Result<Self> {
@@ -99,7 +99,7 @@ impl StateManager {
         Self::with_state(&mut env, state)
     }
 
-    /// Constructs a [`StateManager`] with the provided accounts present in the genesis state.
+    /// Constructs a [`State`] with the provided accounts present in the genesis state.
     #[napi(factory)]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn with_genesis_accounts(
@@ -113,16 +113,16 @@ impl StateManager {
         Self::with_state(&mut env, state)
     }
 
-    /// Constructs a [`StateManager`] that uses the remote node and block number as the basis for
+    /// Constructs a [`State`] that uses the remote node and block number as the basis for
     /// its state.
     #[napi]
-    #[napi(ts_return_type = "Promise<StateManager>")]
+    #[napi(ts_return_type = "Promise<State>")]
     pub fn fork_remote(
         env: Env,
         context: &RethnetContext,
         remote_node_url: String,
         fork_block_number: BigInt,
-        accounts: Vec<GenesisAccount>,
+        account_overrides: Vec<GenesisAccount>,
         cache_dir: Option<String>,
     ) -> napi::Result<JsObject> {
         let fork_block_number: U256 = BigInt::try_cast(fork_block_number)?;
@@ -130,7 +130,7 @@ impl StateManager {
             .unwrap_or_else(|| rethnet_defaults::CACHE_DIR.into())
             .into();
 
-        let accounts = genesis_accounts(accounts)?;
+        let account_overrides = genesis_accounts(account_overrides)?;
 
         let runtime = runtime::Handle::current();
         let state_root_generator = context.state_root_generator.clone();
@@ -144,7 +144,7 @@ impl StateManager {
                 Arc::new(rpc_client),
                 state_root_generator,
                 fork_block_number,
-                accounts,
+                account_overrides,
             )
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()));
@@ -155,6 +155,7 @@ impl StateManager {
         Ok(promise)
     }
 
+    #[doc = "Clones the state"]
     #[napi]
     pub async fn deep_clone(&self) -> Self {
         let state = self.state.read().await.clone();
@@ -466,7 +467,7 @@ impl StateManager {
     }
 }
 
-impl ObjectFinalize for StateManager {
+impl ObjectFinalize for State {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn finalize(self, mut env: Env) -> napi::Result<()> {
         // Signal that the externally allocated memory has been freed

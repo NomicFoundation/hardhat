@@ -11,7 +11,7 @@ use crate::{
     block::BlockConfig,
     blockchain::Blockchain,
     config::ConfigOptions,
-    state::StateManager,
+    state::State,
     transaction::{result::TransactionResult, TransactionRequest},
 };
 
@@ -20,7 +20,7 @@ use crate::{
 #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
 pub async fn dry_run(
     blockchain: &Blockchain,
-    state_manager: &StateManager,
+    state_manager: &State,
     cfg: ConfigOptions,
     transaction: TransactionRequest,
     block: BlockConfig,
@@ -59,7 +59,7 @@ pub async fn dry_run(
 #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
 pub async fn guaranteed_dry_run(
     blockchain: &Blockchain,
-    state_manager: &StateManager,
+    state_manager: &State,
     cfg: ConfigOptions,
     transaction: TransactionRequest,
     block: BlockConfig,
@@ -98,7 +98,7 @@ pub async fn guaranteed_dry_run(
 #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
 pub async fn run(
     blockchain: &Blockchain,
-    state_manager: &StateManager,
+    state_manager: &State,
     cfg: ConfigOptions,
     transaction: TransactionRequest,
     block: BlockConfig,

@@ -8,7 +8,7 @@ use napi::{
 use napi_derive::napi;
 use rethnet_eth::Address;
 
-use crate::{cast::TryCast, config::SpecId, state::StateManager};
+use crate::{cast::TryCast, config::SpecId, state::State};
 
 use super::signed::{EIP1559SignedTransaction, EIP2930SignedTransaction, LegacySignedTransaction};
 
@@ -31,7 +31,7 @@ impl PendingTransaction {
     #[napi(ts_return_type = "Promise<PendingTransaction>")]
     pub fn create(
         env: Env,
-        state_manager: &StateManager,
+        state_manager: &State,
         spec_id: SpecId,
         transaction: Either3<
             LegacySignedTransaction,

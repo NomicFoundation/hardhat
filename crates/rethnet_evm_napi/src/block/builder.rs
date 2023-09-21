@@ -18,7 +18,7 @@ use crate::{
     blockchain::Blockchain,
     cast::TryCast,
     config::ConfigOptions,
-    state::StateManager,
+    state::State,
     transaction::{result::TransactionResult, PendingTransaction},
 };
 
@@ -40,7 +40,7 @@ impl BlockBuilder {
     pub fn create(
         env: Env,
         blockchain: &Blockchain,
-        state_manager: &StateManager,
+        state_manager: &State,
         config: ConfigOptions,
         parent: BlockHeader,
         block: BlockOptions,

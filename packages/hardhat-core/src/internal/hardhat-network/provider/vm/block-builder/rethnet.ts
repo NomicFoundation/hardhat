@@ -5,7 +5,7 @@ import {
   BlockBuilder,
   Blockchain,
   PendingTransaction,
-  StateManager,
+  State,
 } from "rethnet-evm";
 import { BlockBuilderAdapter, BuildBlockOpts, Reward } from "../block-builder";
 import { RunTxResult } from "../vm-adapter";
@@ -25,7 +25,7 @@ import { makeConfigOptions } from "../rethnet";
 export class RethnetBlockBuilder implements BlockBuilderAdapter {
   constructor(
     private readonly _blockBuilder: BlockBuilder,
-    private readonly _blockState: StateManager,
+    private readonly _blockState: State,
     private _originalStateManager: RethnetStateManager,
     private readonly _vmTracer: VMTracer,
     private _common: Common

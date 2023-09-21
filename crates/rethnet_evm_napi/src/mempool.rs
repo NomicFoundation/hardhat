@@ -10,7 +10,7 @@ use rethnet_eth::{Address, B256, U256};
 
 use crate::{
     cast::TryCast,
-    state::StateManager,
+    state::State,
     transaction::{OrderedTransaction, PendingTransaction},
 };
 
@@ -86,7 +86,7 @@ impl MemPool {
     #[napi]
     pub async fn add_transaction(
         &self,
-        state_manager: &StateManager,
+        state_manager: &State,
         transaction: &PendingTransaction,
     ) -> napi::Result<()> {
         let state = state_manager.read().await;
@@ -107,7 +107,7 @@ impl MemPool {
 
     #[doc = "Updates the instance, moving any future transactions to the pending status, if their nonces are high enough."]
     #[napi]
-    pub async fn update(&self, state_manager: &StateManager) -> napi::Result<()> {
+    pub async fn update(&self, state_manager: &State) -> napi::Result<()> {
         let state = state_manager.read().await;
 
         self.write()

@@ -6,7 +6,7 @@ use rethnet_evm::{blockchain::BlockchainError, state::StateError};
 
 use crate::{
     block::Block,
-    state::StateManager,
+    state::State,
     trace::{TracingMessage, TracingMessageResult, TracingStep},
     transaction::result::ExecutionResult,
 };
@@ -40,8 +40,8 @@ impl MineBlockResult {
 
     #[doc = ""]
     #[napi(getter)]
-    pub fn state(&self) -> StateManager {
-        StateManager::from(self.state.clone())
+    pub fn state(&self) -> State {
+        State::from(self.state.clone())
     }
 
     #[doc = "Retrieves the transactions' results."]

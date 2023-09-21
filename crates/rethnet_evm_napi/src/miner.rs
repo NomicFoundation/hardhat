@@ -13,7 +13,7 @@ use rethnet_evm::{BlockTransactionError, CfgEnv, InvalidTransaction, MineBlockEr
 
 use crate::{
     blockchain::Blockchain, cast::TryCast, config::ConfigOptions, mempool::MemPool,
-    miner::ordering::MineOrdering, state::StateManager,
+    miner::ordering::MineOrdering, state::State,
 };
 
 use self::result::MineBlockResult;
@@ -23,7 +23,7 @@ use self::result::MineBlockResult;
 #[napi]
 pub async fn mine_block(
     blockchain: &Blockchain,
-    state_manager: &StateManager,
+    state_manager: &State,
     mem_pool: &MemPool,
     config: ConfigOptions,
     timestamp: BigInt,

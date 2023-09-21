@@ -21,7 +21,7 @@ use crate::{
     config::SpecId,
     context::RethnetContext,
     receipt::Receipt,
-    state::StateManager,
+    state::State,
 };
 
 // An arbitrarily large amount of memory to signal to the javascript garbage collector that it needs to
@@ -314,7 +314,7 @@ impl Blockchain {
 
     #[doc = "Retrieves the state at the block with the provided number."]
     #[napi]
-    pub async fn state_at_block_number(&self, block_number: BigInt) -> napi::Result<StateManager> {
+    pub async fn state_at_block_number(&self, block_number: BigInt) -> napi::Result<State> {
         let block_number: U256 = BigInt::try_cast(block_number)?;
 
         self.read()
@@ -323,7 +323,7 @@ impl Blockchain {
             .await
             .map_or_else(
                 |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
-                |state| Ok(StateManager::from(state)),
+                |state| Ok(State::from(state)),
             )
     }
 
