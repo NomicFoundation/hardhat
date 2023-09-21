@@ -429,14 +429,12 @@ export class HardhatNode extends EventEmitter {
     if (count === 0n) {
       // nothing to do
       return [];
-    } else if (count === 1n) {
-      return [await this.mineBlock()];
     }
 
-    const partialMineBlockResults: MineBlockResult[] = [];
+    const mineBlockResults: MineBlockResult[] = [];
 
     // we always mine the first block, and we don't apply the interval for it
-    partialMineBlockResults.push(await this.mineBlock());
+    mineBlockResults.push(await this.mineBlock());
 
     // helper function to mine a block with a timstamp that respects the
     // interval
@@ -444,12 +442,12 @@ export class HardhatNode extends EventEmitter {
       const nextTimestamp =
         (await this.getLatestBlock()).header.timestamp + interval;
       const block = await this.mineBlock(nextTimestamp);
-      partialMineBlockResults.push(block);
+      mineBlockResults.push(block);
     };
 
     // then we mine any pending transactions
     while (
-      count > partialMineBlockResults.length &&
+      count > mineBlockResults.length &&
       (await this._context.memPool().hasPendingTransactions())
     ) {
       await mineBlock();
@@ -458,22 +456,22 @@ export class HardhatNode extends EventEmitter {
     // If there is at least one remaining block, we mine one. This way, we
     // guarantee that there's an empty block immediately before and after the
     // reservation. This makes the logging easier to get right.
-    if (count > partialMineBlockResults.length) {
+    if (count > mineBlockResults.length) {
       await mineBlock();
     }
 
-    const remainingBlockCount = count - BigInt(partialMineBlockResults.length);
+    const remainingBlockCount = count - BigInt(mineBlockResults.length);
 
     // There should be at least 2 blocks left for the reservation to work,
     // because we always mine a block after it. But here we use a bigger
     // number to err on the safer side.
     if (remainingBlockCount <= 5) {
       // if there are few blocks left to mine, we just mine them
-      while (count > partialMineBlockResults.length) {
+      while (count > mineBlockResults.length) {
         await mineBlock();
       }
 
-      return partialMineBlockResults;
+      return mineBlockResults;
     }
 
     // otherwise, we reserve a range and mine the last one
@@ -482,11 +480,6 @@ export class HardhatNode extends EventEmitter {
       .reserveBlocks(remainingBlockCount - 1n, interval);
 
     await mineBlock();
-
-    const mineBlockResults: MineBlockResult[] = [];
-    for (const result of partialMineBlockResults) {
-      mineBlockResults.push(await this._finalizeBlockResult(result));
-    }
 
     return mineBlockResults;
   }
