@@ -9,7 +9,7 @@ import type {
   GetContractReturnType,
   PublicClient,
   WalletClient,
-} from "./types";
+} from "../types";
 
 import { getPublicClient, getWalletClients } from "./clients";
 import {

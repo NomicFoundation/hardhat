@@ -1,6 +1,6 @@
 import type { EthereumProvider } from "hardhat/types";
 import type { Chain } from "viem";
-import type { TestClientMode } from "./types";
+import type { TestClientMode } from "../types";
 
 import memoize from "lodash.memoize";
 

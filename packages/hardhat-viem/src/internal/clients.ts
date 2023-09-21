@@ -11,7 +11,7 @@ import type {
   TestClient,
   TestClientMode,
   WalletClient,
-} from "./types";
+} from "../types";
 
 import { getChain, getMode, isDevelopmentNetwork } from "./chains";
 import { getAccounts } from "./accounts";

@@ -11,7 +11,7 @@ import type {
   PublicClient,
   TestClient,
   WalletClient,
-} from "./types";
+} from "../types";
 import "hardhat/types/runtime";
 
 declare module "hardhat/types/runtime" {

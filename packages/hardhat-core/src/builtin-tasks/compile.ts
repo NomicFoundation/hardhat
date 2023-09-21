@@ -81,14 +81,9 @@ import {
   SolidityFilesCache,
 } from "./utils/solidity-files-cache";
 
-type ArtifactsEmittedPerFile = Array<{
-  file: taskTypes.ResolvedFile;
-  artifactsEmitted: string[];
-}>;
-
 type ArtifactsEmittedPerJob = Array<{
   compilationJob: CompilationJob;
-  artifactsEmittedPerFile: ArtifactsEmittedPerFile;
+  artifactsEmittedPerFile: taskTypes.ArtifactsEmittedPerFile;
 }>;
 
 function isConsoleLogError(error: any): boolean {
@@ -853,7 +848,7 @@ subtask(TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS)
       },
       { artifacts, run }
     ): Promise<{
-      artifactsEmittedPerFile: ArtifactsEmittedPerFile;
+      artifactsEmittedPerFile: taskTypes.ArtifactsEmittedPerFile;
     }> => {
       const pathToBuildInfo = await artifacts.saveBuildInfo(
         compilationJob.getSolcConfig().version,
@@ -862,7 +857,7 @@ subtask(TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS)
         output
       );
 
-      const artifactsEmittedPerFile: ArtifactsEmittedPerFile =
+      const artifactsEmittedPerFile: taskTypes.ArtifactsEmittedPerFile =
         await Promise.all(
           compilationJob
             .getResolvedFiles()
@@ -990,7 +985,7 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOB)
       },
       { run }
     ): Promise<{
-      artifactsEmittedPerFile: ArtifactsEmittedPerFile;
+      artifactsEmittedPerFile: taskTypes.ArtifactsEmittedPerFile;
       compilationJob: taskTypes.CompilationJob;
       input: CompilerInput;
       output: CompilerOutput;

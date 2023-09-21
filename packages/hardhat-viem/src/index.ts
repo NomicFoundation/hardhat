@@ -8,6 +8,7 @@ import {
 } from "./internal/clients";
 import { deployContract, getContractAt } from "./internal/contracts";
 import "./internal/type-extensions";
+import "./internal/tasks";
 
 extendEnvironment((hre) => {
   const { provider } = hre.network;
