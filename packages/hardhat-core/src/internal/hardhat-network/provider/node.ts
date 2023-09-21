@@ -912,7 +912,7 @@ export class HardhatNode extends EventEmitter {
       userProvidedNextBlockBaseFeePerGas:
         this.getUserProvidedNextBlockBaseFeePerGas(),
       coinbase: this.getCoinbaseAddress(),
-      nextPrevrandao: this._context.blockMiner().prevrandaoGeneratorSeed(),
+      nextPrevrandao: this._context.blockMiner().prevRandaoGeneratorSeed(),
     };
 
     this._irregularStatesByBlockNumber = new Map(
@@ -972,7 +972,7 @@ export class HardhatNode extends EventEmitter {
 
     this._context
       .blockMiner()
-      .setPrevrandaoGeneratorNextValue(snapshot.nextPrevrandao);
+      .setPrevRandaoGeneratorNextValue(snapshot.nextPrevrandao);
 
     // We delete this and the following snapshots, as they can only be used
     // once in Ganache
@@ -2213,7 +2213,7 @@ export class HardhatNode extends EventEmitter {
   }
 
   public setPrevRandao(prevRandao: Buffer): void {
-    this._context.blockMiner().setPrevrandaoGeneratorNextValue(prevRandao);
+    this._context.blockMiner().setPrevRandaoGeneratorNextValue(prevRandao);
   }
 
   public async getClientVersion(): Promise<string> {

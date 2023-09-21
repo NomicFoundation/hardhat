@@ -71,26 +71,26 @@ export class DualBlockMiner implements BlockMinerAdapter {
     }
   }
 
-  public prevrandaoGeneratorSeed(): Buffer {
-    const hardhatSeed = this._hardhatMiner.prevrandaoGeneratorSeed();
-    const rethnetSeed = this._rethnetMiner.prevrandaoGeneratorSeed();
+  public prevRandaoGeneratorSeed(): Buffer {
+    const hardhatSeed = this._hardhatMiner.prevRandaoGeneratorSeed();
+    const rethnetSeed = this._rethnetMiner.prevRandaoGeneratorSeed();
 
     if (!hardhatSeed.equals(rethnetSeed)) {
       console.trace(
-        `Different prevrandaoGeneratorSeed: ${hardhatSeed.toString(
+        `Different prevRandaoGeneratorSeed: ${hardhatSeed.toString(
           "hex"
         )} (ethereumjs) !== ${rethnetSeed.toString("hex")} (rethnet)`
       );
 
       /* eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error */
-      throw new Error("Different prevrandaoGeneratorSeed");
+      throw new Error("Different prevRandaoGeneratorSeed");
     }
 
     return rethnetSeed;
   }
 
-  public setPrevrandaoGeneratorNextValue(nextValue: Buffer): void {
-    this._hardhatMiner.setPrevrandaoGeneratorNextValue(nextValue);
-    this._rethnetMiner.setPrevrandaoGeneratorNextValue(nextValue);
+  public setPrevRandaoGeneratorNextValue(nextValue: Buffer): void {
+    this._hardhatMiner.setPrevRandaoGeneratorNextValue(nextValue);
+    this._rethnetMiner.setPrevRandaoGeneratorNextValue(nextValue);
   }
 }
