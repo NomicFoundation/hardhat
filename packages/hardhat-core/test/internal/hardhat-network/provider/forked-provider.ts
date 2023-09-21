@@ -45,7 +45,7 @@ describe("Forked provider", function () {
       setCWD();
       useProvider();
 
-      const getForkBlockNumber = async () =>
+      const getLatestBlockNumber = async () =>
         retrieveLatestBlockNumber(this.ctx.hardhatNetworkProvider);
 
       let gasPrice: string;
@@ -75,7 +75,7 @@ describe("Forked provider", function () {
         describe("when used in the context of a past block", () => {
           describe("when the block number is greater than the fork block number", () => {
             it("does not affect previously added data", async function () {
-              const forkBlockNumber = await getForkBlockNumber();
+              const forkBlockNumber = await getLatestBlockNumber();
 
               const contractAddress = await deployContract(
                 this.provider,
@@ -118,7 +118,7 @@ describe("Forked provider", function () {
 
           describe("when the block number is less or equal to the fork block number", () => {
             it("does not affect previously added storage data", async function () {
-              const forkBlockNumber = await getForkBlockNumber();
+              const forkBlockNumber = await getLatestBlockNumber();
               await this.provider.send("hardhat_impersonateAccount", [
                 BITFINEX_WALLET_ADDRESS.toString(),
               ]);
@@ -160,7 +160,7 @@ describe("Forked provider", function () {
             });
 
             it("does not affect previously added balance data", async function () {
-              const forkBlockNumber = await getForkBlockNumber();
+              const forkBlockNumber = await getLatestBlockNumber();
               await this.provider.send("hardhat_impersonateAccount", [
                 BITFINEX_WALLET_ADDRESS.toString(),
               ]);
