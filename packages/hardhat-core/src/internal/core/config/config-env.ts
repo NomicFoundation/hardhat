@@ -8,6 +8,7 @@ import {
   TaskArguments,
 } from "../../../types";
 import { HardhatContext } from "../../context";
+import { readSecrets } from "../../util/global-dir";
 import * as argumentTypes from "../params/argumentTypes";
 
 /**
@@ -161,4 +162,34 @@ export function experimentalAddHardhatNetworkMessageTraceHook(
 ) {
   const ctx = HardhatContext.getHardhatContext();
   ctx.experimentalHardhatNetworkMessageTraceHooks.push(hook);
+}
+
+/**
+ * Secrets manager functions
+ */
+export function getSecretString(key: string): string {
+  const secretsObj = readSecrets();
+
+  if (secretsObj[key] === undefined) {
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+    throw new Error(`There is no secret associated to the key ${key}`);
+  }
+
+  return secretsObj[key];
+}
+
+export function getSecretNumber(key: string): number {
+  const secretsObj = readSecrets();
+
+  if (secretsObj[key] === undefined) {
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+    throw new Error(`There is no secret associated to the key ${key}`);
+  }
+
+  if (isNaN(Number(secretsObj[key]))) {
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+    throw new Error(`The secret associated to the key ${key} is not a number`);
+  }
+
+  return parseFloat(secretsObj[key]);
 }
