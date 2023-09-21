@@ -116,16 +116,11 @@ export class HardhatMemPool implements MemPoolAdapter {
 
   public async addTransaction(tx: TypedTransaction): Promise<void> {
     const senderAddress = _getSenderAddress(tx);
-    const sender = await this._stateManager.getAccount(senderAddress);
 
-    const nextConfirmedNonce = sender.nonce;
-    const nextPendingNonce =
-      (await this.getNextPendingNonce(senderAddress)) ?? nextConfirmedNonce;
-
-    await this._validateTransaction(tx, sender);
+    await this._validateTransaction(tx, senderAddress);
 
     const txNonce = tx.nonce;
-
+    const nextPendingNonce = await this.getNextPendingNonce(senderAddress);
     if (txNonce > nextPendingNonce) {
       this._addQueuedTransaction(tx);
     } else {
@@ -426,13 +421,17 @@ export class HardhatMemPool implements MemPoolAdapter {
     this._setTransactionByHash(bufferToHex(tx.hash()), serializedTx);
   }
 
-  private async _validateTransaction(tx: TypedTransaction, sender: Account) {
+  private async _validateTransaction(
+    tx: TypedTransaction,
+    senderAddress: Address
+  ) {
     if (this._knownTransaction(tx)) {
       throw new InvalidInputError(
         `Known transaction: ${bufferToHex(tx.hash())}`
       );
     }
 
+    const sender = await this._stateManager.getAccount(senderAddress);
     const txNonce = tx.nonce;
 
     // Geth returns this error if trying to create a contract and no data is provided
