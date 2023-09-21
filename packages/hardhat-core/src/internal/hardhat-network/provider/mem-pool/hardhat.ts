@@ -5,7 +5,6 @@ import {
   TypedTransaction,
 } from "@nomicfoundation/ethereumjs-tx";
 import {
-  Account,
   Address,
   bufferToHex,
   toBuffer,
