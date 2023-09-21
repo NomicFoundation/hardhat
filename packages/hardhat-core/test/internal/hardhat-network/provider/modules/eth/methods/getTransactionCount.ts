@@ -13,7 +13,7 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   PROVIDERS,
 } from "../../../../helpers/providers";
-import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
+import { retrieveLatestBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -28,7 +28,7 @@ describe("Eth module", function () {
       useProvider();
 
       const getFirstBlock = async () =>
-        isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
+        retrieveLatestBlockNumber(this.ctx.hardhatNetworkProvider);
 
       describe("eth_getTransactionCount", async function () {
         it("Should return 0 for random accounts", async function () {

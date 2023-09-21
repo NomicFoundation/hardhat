@@ -7,11 +7,17 @@ pub mod storage;
 use std::{fmt::Debug, sync::Arc};
 
 use async_trait::async_trait;
-use rethnet_eth::{receipt::BlockReceipt, remote::RpcClientError, B256, U256};
-use revm::{db::BlockHashRef, primitives::SpecId};
+use rethnet_eth::{
+    receipt::BlockReceipt, remote::RpcClientError, spec::HardforkActivations, B256, U256,
+};
+use revm::{db::BlockHashRef, primitives::SpecId, DatabaseCommit};
 
-use crate::{Block, LocalBlock, SyncBlock};
+use crate::{
+    state::{StateDiff, SyncState},
+    Block, LocalBlock, SyncBlock,
+};
 
+use self::storage::ReservableSparseBlockchainStorage;
 pub use self::{
     forked::{CreationError as ForkedCreationError, ForkedBlockchain},
     local::{CreationError as LocalCreationError, LocalBlockchain},
@@ -45,17 +51,27 @@ pub enum BlockchainError {
     /// JSON-RPC error
     #[error(transparent)]
     JsonRpcError(#[from] RpcClientError),
+    /// Missing hardfork activation history
+    #[error("No known hardfork for execution on historical block {block_number} (relative to fork block number {fork_block_number}). The node was not configured with a hardfork activation history.")]
+    MissingHardforkActivations {
+        /// Block number
+        block_number: U256,
+        /// Fork block number
+        fork_block_number: U256,
+    },
     /// Missing withdrawals for post-Shanghai blockchain
     #[error("Missing withdrawals for post-Shanghai blockchain")]
     MissingWithdrawals,
     /// Block number does not exist in blockchain
     #[error("Unknown block number")]
     UnknownBlockNumber,
-    /// The specified chain is not supported
-    #[error("Chain with ID {chain_id} not supported")]
-    UnsupportedChain {
-        /// Requested chain id
-        chain_id: U256,
+    /// No hardfork found for block
+    #[error("Could not find a hardfork to run for block {block_number}, after having looked for one in the hardfork activation history, which was: {hardfork_activations:?}.")]
+    UnknownBlockSpec {
+        /// Block number
+        block_number: U256,
+        /// Hardfork activation history
+        hardfork_activations: HardforkActivations,
     },
 }
 
@@ -86,13 +102,6 @@ pub trait Blockchain {
         transaction_hash: &B256,
     ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>;
 
-    /// Whether the block corresponding to the provided number supports the specified specification.
-    async fn block_supports_spec(
-        &self,
-        number: &U256,
-        spec_id: SpecId,
-    ) -> Result<bool, Self::BlockchainError>;
-
     /// Retrieves the instances chain ID.
     async fn chain_id(&self) -> U256;
 
@@ -109,6 +118,21 @@ pub trait Blockchain {
         &self,
         transaction_hash: &B256,
     ) -> Result<Option<Arc<BlockReceipt>>, Self::BlockchainError>;
+
+    /// Retrieves the hardfork specification of the block at the provided number.
+    async fn spec_at_block_number(
+        &self,
+        block_number: &U256,
+    ) -> Result<SpecId, Self::BlockchainError>;
+
+    /// Retrieves the hardfork specification used for new blocks.
+    fn spec_id(&self) -> SpecId;
+
+    /// Retrieves the state at a given block
+    async fn state_at_block_number(
+        &self,
+        block_number: &U256,
+    ) -> Result<Box<dyn SyncState<Self::StateError>>, Self::BlockchainError>;
 
     /// Retrieves the total difficulty at the block with the provided hash.
     async fn total_difficulty_by_hash(
@@ -127,6 +151,7 @@ pub trait BlockchainMut {
     async fn insert_block(
         &mut self,
         block: LocalBlock,
+        state_diff: StateDiff,
     ) -> Result<Arc<dyn SyncBlock<Error = Self::Error>>, Self::Error>;
 
     /// Reserves the provided number of blocks, starting from the next block number.
@@ -166,6 +191,20 @@ where
         + 'static,
     BlockchainErrorT: Debug + Send,
 {
+}
+
+fn compute_state_at_block<BlockT: Block + Clone>(
+    state: &mut dyn DatabaseCommit,
+    local_storage: &ReservableSparseBlockchainStorage<BlockT>,
+    block_number: &U256,
+) {
+    let state_diffs = local_storage
+        .state_diffs_until_block(block_number)
+        .expect("The block is validated to exist");
+
+    for state_diff in state_diffs {
+        state.commit(state_diff.clone());
+    }
 }
 
 /// Validates whether a block is a valid next block.

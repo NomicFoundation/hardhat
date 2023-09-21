@@ -18,8 +18,7 @@ use crate::{
     blockchain::Blockchain,
     cast::TryCast,
     config::ConfigOptions,
-    context::RethnetContext,
-    state::StateManager,
+    state::State,
     transaction::{result::TransactionResult, PendingTransaction},
 };
 
@@ -29,8 +28,7 @@ use super::{Block, BlockHeader, BlockOptions};
 pub struct BlockBuilder {
     builder: Arc<RwLock<Option<rethnet_evm::BlockBuilder>>>,
     blockchain: Arc<RwLock<dyn SyncBlockchain<BlockchainError, StateError>>>,
-    state: Arc<RwLock<dyn SyncState<StateError>>>,
-    runtime: runtime::Handle,
+    state: Arc<RwLock<Box<dyn SyncState<StateError>>>>,
 }
 
 #[napi]
@@ -41,9 +39,8 @@ impl BlockBuilder {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn create(
         env: Env,
-        context: &RethnetContext,
         blockchain: &Blockchain,
-        state_manager: &StateManager,
+        state_manager: &State,
         config: ConfigOptions,
         parent: BlockHeader,
         block: BlockOptions,
@@ -55,24 +52,15 @@ impl BlockBuilder {
         let blockchain = (*blockchain).clone();
         let state = (*state_manager).clone();
 
-        let runtime = context.runtime().clone();
-
         let (deferred, promise) = env.create_deferred()?;
-        context.runtime().spawn(async move {
-            let result = rethnet_evm::BlockBuilder::new(
-                &mut *state.clone().write().await,
-                config,
-                &parent,
-                block,
-            )
-            .map_or_else(
+        runtime::Handle::current().spawn(async move {
+            let result = rethnet_evm::BlockBuilder::new(config, &parent, block).map_or_else(
                 |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
                 |builder| {
                     Ok(Self {
                         builder: Arc::new(RwLock::new(Some(builder))),
                         blockchain,
                         state,
-                        runtime,
                     })
                 },
             );
@@ -116,7 +104,7 @@ impl BlockBuilder {
         let state = self.state.clone();
 
         let (deferred, promise) = env.create_deferred()?;
-        self.runtime.spawn(async move {
+        runtime::Handle::current().spawn(async move {
             let mut builder = builder.write().await;
             let result = if let Some(builder) = builder.as_mut() {
                 let mut tracer = TraceCollector::default();
@@ -182,29 +170,12 @@ impl BlockBuilder {
                 .finalize(&mut *self.state.write().await, rewards, timestamp)
                 .map_or_else(
                     |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
-                    |block| {
-                        let block: Arc<dyn SyncBlock<Error = BlockchainError>> = Arc::new(block);
+                    |result| {
+                        let block: Arc<dyn SyncBlock<Error = BlockchainError>> =
+                            Arc::new(result.block);
                         Ok(Block::from(block))
                     },
                 )
-        } else {
-            Err(napi::Error::new(
-                Status::InvalidArg,
-                "The BlockBuilder object has been moved in Rust".to_owned(),
-            ))
-        }
-    }
-
-    /// This call consumes the [`BlockBuilder`] object in Rust. Afterwards, you can no longer call
-    /// methods on the JS object.
-    #[napi]
-    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub async fn abort(&self) -> napi::Result<()> {
-        let mut builder = self.builder.write().await;
-        if let Some(builder) = builder.take() {
-            builder
-                .abort(&mut *self.state.write().await)
-                .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
         } else {
             Err(napi::Error::new(
                 Status::InvalidArg,

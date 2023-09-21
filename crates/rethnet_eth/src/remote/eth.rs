@@ -9,7 +9,7 @@
 /// input types for EIP-712 message signing
 pub mod eip712;
 
-use std::fmt::Debug;
+use std::{fmt::Debug, sync::OnceLock};
 
 use crate::{
     access_list::AccessListItem,
@@ -96,6 +96,122 @@ impl Transaction {
     }
 }
 
+/// Error that occurs when trying to convert the JSON-RPC `Transaction` type.
+#[derive(Debug, thiserror::Error)]
+pub enum TransactionConversionError {
+    /// Missing access list
+    #[error("Missing access list")]
+    MissingAccessList,
+    /// Missing chain ID
+    #[error("Missing chain ID")]
+    MissingChainId,
+    /// Missing max fee per gas
+    #[error("Missing max fee per gas")]
+    MissingMaxFeePerGas,
+    /// Missing max priority fee per gas
+    #[error("Missing max priority fee per gas")]
+    MissingMaxPriorityFeePerGas,
+    /// The transaction type is not supported.
+    #[error("Unsupported type {0}")]
+    UnsupportedType(u64),
+}
+
+impl TryFrom<Transaction> for (SignedTransaction, Address) {
+    type Error = TransactionConversionError;
+
+    fn try_from(value: Transaction) -> Result<Self, Self::Error> {
+        let kind = if let Some(to) = &value.to {
+            TransactionKind::Call(*to)
+        } else {
+            TransactionKind::Create
+        };
+
+        let transaction = match value.transaction_type {
+            0 => {
+                if value.is_legacy() {
+                    SignedTransaction::PreEip155Legacy(LegacySignedTransaction {
+                        nonce: value.nonce,
+                        gas_price: value.gas_price,
+                        gas_limit: value.gas.to(),
+                        kind,
+                        value: value.value,
+                        input: value.input,
+                        signature: Signature {
+                            r: value.r,
+                            s: value.s,
+                            v: value.v,
+                        },
+                        hash: OnceLock::from(value.hash),
+                    })
+                } else {
+                    SignedTransaction::PostEip155Legacy(EIP155SignedTransaction {
+                        nonce: value.nonce,
+                        gas_price: value.gas_price,
+                        gas_limit: value.gas.to(),
+                        kind,
+                        value: value.value,
+                        input: value.input,
+                        signature: Signature {
+                            r: value.r,
+                            s: value.s,
+                            v: value.v,
+                        },
+                        hash: OnceLock::from(value.hash),
+                    })
+                }
+            }
+            1 => SignedTransaction::Eip2930(EIP2930SignedTransaction {
+                odd_y_parity: value.odd_y_parity(),
+                chain_id: value
+                    .chain_id
+                    .ok_or(TransactionConversionError::MissingChainId)?,
+                nonce: value.nonce,
+                gas_price: value.gas_price,
+                gas_limit: value.gas.to(),
+                kind,
+                value: value.value,
+                input: value.input,
+                access_list: value
+                    .access_list
+                    .ok_or(TransactionConversionError::MissingAccessList)?
+                    .into(),
+                r: value.r,
+                s: value.s,
+                hash: OnceLock::from(value.hash),
+            }),
+            2 => SignedTransaction::Eip1559(EIP1559SignedTransaction {
+                odd_y_parity: value.odd_y_parity(),
+                chain_id: value
+                    .chain_id
+                    .ok_or(TransactionConversionError::MissingChainId)?,
+                nonce: value.nonce,
+                max_priority_fee_per_gas: value
+                    .max_priority_fee_per_gas
+                    .ok_or(TransactionConversionError::MissingMaxPriorityFeePerGas)?,
+                max_fee_per_gas: value
+                    .max_fee_per_gas
+                    .ok_or(TransactionConversionError::MissingMaxFeePerGas)?,
+                gas_limit: value.gas.to(),
+                kind,
+                value: value.value,
+                input: value.input,
+                access_list: value
+                    .access_list
+                    .ok_or(TransactionConversionError::MissingAccessList)?
+                    .into(),
+                r: value.r,
+                s: value.s,
+                hash: OnceLock::from(value.hash),
+            }),
+            r#type => {
+                return Err(TransactionConversionError::UnsupportedType(r#type));
+            }
+        };
+
+        Ok((transaction, value.from))
+    }
+}
+
 /// Error that occurs when trying to convert the JSON-RPC `TransactionReceipt` type.
 #[derive(Debug, thiserror::Error)]
 pub enum ReceiptConversionError {
@@ -159,116 +275,4 @@ pub struct Block<TX> {
     pub withdrawals: Option<Vec<Withdrawal>>,
     /// withdrawals root
     pub withdrawals_root: Option<B256>,
-}
-
-/// Error that occurs when trying to convert the JSON-RPC `Transaction` type.
-#[derive(Debug, thiserror::Error)]
-pub enum TransactionConversionError {
-    /// Missing access list
-    #[error("Missing access list")]
-    MissingAccessList,
-    /// Missing chain ID
-    #[error("Missing chain ID")]
-    MissingChainId,
-    /// Missing max fee per gas
-    #[error("Missing max fee per gas")]
-    MissingMaxFeePerGas,
-    /// Missing max priority fee per gas
-    #[error("Missing max priority fee per gas")]
-    MissingMaxPriorityFeePerGas,
-    /// The transaction type is not supported.
-    #[error("Unsupported type {0}")]
-    UnsupportedType(u64),
-}
-
-impl TryFrom<Transaction> for (SignedTransaction, Address) {
-    type Error = TransactionConversionError;
-
-    fn try_from(value: Transaction) -> Result<Self, Self::Error> {
-        let kind = if let Some(to) = &value.to {
-            TransactionKind::Call(*to)
-        } else {
-            TransactionKind::Create
-        };
-
-        let transaction = match value.transaction_type {
-            0 => {
-                if value.is_legacy() {
-                    SignedTransaction::PreEip155Legacy(LegacySignedTransaction {
-                        nonce: value.nonce,
-                        gas_price: value.gas_price,
-                        gas_limit: value.gas.to(),
-                        kind,
-                        value: value.value,
-                        input: value.input,
-                        signature: Signature {
-                            r: value.r,
-                            s: value.s,
-                            v: value.v,
-                        },
-                    })
-                } else {
-                    SignedTransaction::PostEip155Legacy(EIP155SignedTransaction {
-                        nonce: value.nonce,
-                        gas_price: value.gas_price,
-                        gas_limit: value.gas.to(),
-                        kind,
-                        value: value.value,
-                        input: value.input,
-                        signature: Signature {
-                            r: value.r,
-                            s: value.s,
-                            v: value.v,
-                        },
-                    })
-                }
-            }
-            1 => SignedTransaction::Eip2930(EIP2930SignedTransaction {
-                odd_y_parity: value.odd_y_parity(),
-                chain_id: value
-                    .chain_id
-                    .ok_or(TransactionConversionError::MissingChainId)?,
-                nonce: value.nonce,
-                gas_price: value.gas_price,
-                gas_limit: value.gas.to(),
-                kind,
-                value: value.value,
-                input: value.input,
-                access_list: value
-                    .access_list
-                    .ok_or(TransactionConversionError::MissingAccessList)?
-                    .into(),
-                r: value.r,
-                s: value.s,
-            }),
-            2 => SignedTransaction::Eip1559(EIP1559SignedTransaction {
-                odd_y_parity: value.odd_y_parity(),
-                chain_id: value
-                    .chain_id
-                    .ok_or(TransactionConversionError::MissingChainId)?,
-                nonce: value.nonce,
-                max_priority_fee_per_gas: value
-                    .max_priority_fee_per_gas
-                    .ok_or(TransactionConversionError::MissingMaxPriorityFeePerGas)?,
-                max_fee_per_gas: value
-                    .max_fee_per_gas
-                    .ok_or(TransactionConversionError::MissingMaxFeePerGas)?,
-                gas_limit: value.gas.to(),
-                kind,
-                value: value.value,
-                input: value.input,
-                access_list: value
-                    .access_list
-                    .ok_or(TransactionConversionError::MissingAccessList)?
-                    .into(),
-                r: value.r,
-                s: value.s,
-            }),
-            r#type => {
-                return Err(TransactionConversionError::UnsupportedType(r#type));
-            }
-        };
-
-        Ok((transaction, value.from))
-    }
 }

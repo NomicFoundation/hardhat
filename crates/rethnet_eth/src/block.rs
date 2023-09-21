@@ -9,11 +9,8 @@ mod reorg;
 
 use std::sync::OnceLock;
 
-use revm_primitives::{keccak256, ruint::aliases::U160, SpecId, B160};
+use revm_primitives::{keccak256, ruint::aliases::U160, SpecId};
 use rlp::Decodable;
-
-#[cfg(feature = "serde")]
-use revm_primitives::ruint;
 
 use crate::{
     transaction::SignedTransaction,
@@ -142,7 +139,7 @@ pub struct Header {
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(remote = "B64")]
 #[cfg(feature = "serde")]
-struct B64Def(#[serde(getter = "B64::as_uint")] ruint::aliases::U64);
+struct B64Def(#[serde(getter = "B64::as_uint")] revm_primitives::ruint::aliases::U64);
 
 #[cfg(feature = "serde")]
 impl From<B64Def> for B64 {
@@ -421,15 +418,15 @@ impl PartialHeader {
             state_root: options.state_root.unwrap_or(KECCAK_NULL_RLP),
             receipts_root: options.receipts_root.unwrap_or(KECCAK_NULL_RLP),
             logs_bloom: options.logs_bloom.unwrap_or_default(),
-            difficulty: if spec_id < SpecId::MERGE {
-                if let Some(parent) = parent {
+            difficulty: options.difficulty.unwrap_or_else(|| {
+                if spec_id >= SpecId::MERGE {
+                    U256::ZERO
+                } else if let Some(parent) = parent {
                     calculate_ethash_canonical_difficulty(spec_id, parent, &number, &timestamp)
                 } else {
-                    U256::ZERO
+                    U256::from(1)
                 }
-            } else {
-                options.difficulty.unwrap_or_default()
-            },
+            }),
             number,
             gas_limit: options.gas_limit.unwrap_or(U256::from(1_000_000)),
             gas_used: U256::ZERO,
@@ -454,7 +451,7 @@ impl Default for PartialHeader {
 
         Self {
             parent_hash: B256::default(),
-            beneficiary: B160::default(),
+            beneficiary: Address::default(),
             state_root: B256::default(),
             receipts_root: KECCAK_NULL_RLP,
             logs_bloom: Bloom::default(),

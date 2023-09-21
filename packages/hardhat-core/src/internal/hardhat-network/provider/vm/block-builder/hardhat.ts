@@ -13,6 +13,7 @@ import {
   encodeReceipt,
 } from "../block-builder";
 import { RunTxResult, VMAdapter } from "../vm-adapter";
+import { getCurrentTimestamp } from "../../utils/getCurrentTimestamp";
 
 // started: can add txs or rewards
 // sealed: can't do anything
@@ -103,8 +104,7 @@ export class HardhatBlockBuilder implements BlockBuilderAdapter {
     const receiptTrie = await this._getReceiptsTrie();
     const logsBloom = this._getLogsBloom();
     const gasUsed = this._gasUsed;
-    const timestamp =
-      this._opts.headerData?.timestamp ?? Math.round(Date.now() / 1000);
+    const timestamp = this._opts.headerData?.timestamp ?? getCurrentTimestamp();
 
     const headerData = {
       ...this._opts.headerData,

@@ -1,4 +1,4 @@
-import type { RunBlockResult } from "./vm/vm-adapter";
+import type { RunTxResult } from "./vm/vm-adapter";
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
@@ -306,17 +306,16 @@ function getEffectiveGasPrice(tx: TypedTransaction, baseFeePerGas: bigint) {
 
 export function getRpcReceiptOutputsFromLocalBlockExecution(
   block: Block,
-  runBlockResult: RunBlockResult,
+  results: RunTxResult[],
   showTransactionType: boolean
 ): RpcReceiptOutput[] {
   const receipts: RpcReceiptOutput[] = [];
 
   let blockLogIndex = 0;
 
-  for (let i = 0; i < runBlockResult.results.length; i += 1) {
+  for (let i = 0; i < results.length; i += 1) {
     const tx = block.transactions[i];
-    const { createdAddress, gasUsed } = runBlockResult.results[i];
-    const receipt = runBlockResult.receipts[i];
+    const { createdAddress, gasUsed, receipt } = results[i];
 
     const logs = receipt.logs.map((log) => {
       const result = getRpcLogOutput(log, tx, block, i, blockLogIndex);

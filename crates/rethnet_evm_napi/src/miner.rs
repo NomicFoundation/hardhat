@@ -1,5 +1,6 @@
 //! Functionality for mining blocks.
 
+mod ordering;
 mod result;
 
 use napi::{
@@ -8,9 +9,11 @@ use napi::{
 };
 use napi_derive::napi;
 use rethnet_eth::{Address, B256, U256};
+use rethnet_evm::{BlockTransactionError, CfgEnv, InvalidTransaction, MineBlockError};
 
 use crate::{
-    blockchain::Blockchain, cast::TryCast, config::Config, mempool::MemPool, state::StateManager,
+    blockchain::Blockchain, cast::TryCast, config::ConfigOptions, mempool::MemPool,
+    miner::ordering::MineOrdering, state::State,
 };
 
 use self::result::MineBlockResult;
@@ -20,40 +23,56 @@ use self::result::MineBlockResult;
 #[napi]
 pub async fn mine_block(
     blockchain: &Blockchain,
-    state_manager: &StateManager,
+    state_manager: &State,
     mem_pool: &MemPool,
-    cfg: &Config,
+    config: ConfigOptions,
     timestamp: BigInt,
-    block_gas_limit: BigInt,
     beneficiary: Buffer,
+    min_gas_price: BigInt,
+    mine_ordering: MineOrdering,
     reward: BigInt,
     base_fee: Option<BigInt>,
     prevrandao: Option<Buffer>,
 ) -> napi::Result<MineBlockResult> {
-    let cfg = (*cfg).clone();
-    let block_gas_limit: U256 = BigInt::try_cast(block_gas_limit)?;
+    let config = CfgEnv::try_from(config)?;
     let beneficiary = Address::from_slice(&beneficiary);
+    let min_gas_price: U256 = BigInt::try_cast(min_gas_price)?;
+    let mine_ordering = mine_ordering.into();
     let timestamp: U256 = BigInt::try_cast(timestamp)?;
     let reward: U256 = BigInt::try_cast(reward)?;
     let base_fee: Option<U256> =
         base_fee.map_or(Ok(None), |base_fee| BigInt::try_cast(base_fee).map(Some))?;
     let prevrandao: Option<B256> = prevrandao.map(TryCast::<B256>::try_cast).transpose()?;
 
+    let state = state_manager.read().await.clone();
+
     rethnet_evm::mine_block(
         &mut *blockchain.write().await,
-        &mut *state_manager.write().await,
+        state,
         &mut *mem_pool.write().await,
-        &cfg,
+        &config,
         timestamp,
-        block_gas_limit,
         beneficiary,
+        min_gas_price,
+        mine_ordering,
         reward,
         base_fee,
         prevrandao,
     )
     .await
     .map_or_else(
-        |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
-        |result| Ok(MineBlockResult::from(result)),
+        |e| Err(napi::Error::new(Status::GenericFailure,
+            match e {
+                MineBlockError::BlockTransaction(
+                BlockTransactionError::InvalidTransaction(
+                    InvalidTransaction::LackOfFundForMaxFee { fee, balance }
+                )) => format!("sender doesn't have enough funds to send tx. The max upfront cost is: {fee} and the sender's account only has: {balance}"),
+                e => e.to_string(),
+            })),
+        |result| {
+            Ok(MineBlockResult::from(
+                result
+            ))
+        },
     )
 }

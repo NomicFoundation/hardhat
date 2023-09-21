@@ -42,7 +42,7 @@ mod alchemy {
                             .expect("Conversion must succeed, as we're not retrieving a pending block");
 
                         for (index, transaction) in transactions.iter().enumerate() {
-                            assert_eq!(transaction_hashes[index], transaction.hash());
+                            assert_eq!(transaction_hashes[index], *transaction.hash());
                         }
                     }
                 }

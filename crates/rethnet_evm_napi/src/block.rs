@@ -12,6 +12,7 @@ use rethnet_evm::{blockchain::BlockchainError, BlockEnv, SyncBlock};
 
 use crate::{
     cast::TryCast,
+    receipt::Receipt,
     transaction::signed::{
         EIP1559SignedTransaction, EIP2930SignedTransaction, LegacySignedTransaction,
     },
@@ -335,5 +336,16 @@ impl Block {
             .iter()
             .map(|caller| Buffer::from(caller.as_bytes()))
             .collect()
+    }
+
+    #[doc = "Retrieves the transactions' receipts."]
+    #[napi]
+    pub async fn receipts(&self) -> napi::Result<Vec<Receipt>> {
+        self.inner.transaction_receipts().await.map_or_else(
+            |error| Err(napi::Error::new(Status::InvalidArg, error.to_string())),
+            |receipts: Vec<Arc<rethnet_eth::receipt::BlockReceipt>>| {
+                Ok(receipts.into_iter().map(Receipt::from).collect())
+            },
+        )
     }
 }

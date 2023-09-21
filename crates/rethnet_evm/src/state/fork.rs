@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 use std::sync::Arc;
 
 use parking_lot::{Mutex, RwLock, RwLockUpgradableReadGuard};
@@ -17,15 +16,14 @@ use tokio::runtime;
 use crate::random::RandomHashGenerator;
 
 use super::{
-    remote::CachedRemoteState, HybridState, RemoteState, RethnetLayer, StateDebug, StateError,
-    StateHistory,
+    remote::CachedRemoteState, AccountTrie, RemoteState, StateDebug, StateError, TrieState,
 };
 
 /// A database integrating the state from a remote node and the state from a local layered
 /// database.
 #[derive(Debug)]
 pub struct ForkState {
-    local_state: HybridState<RethnetLayer>,
+    local_state: TrieState,
     remote_state: Arc<Mutex<CachedRemoteState>>,
     removed_storage_slots: HashSet<(Address, U256)>,
     fork_block_number: U256,
@@ -42,14 +40,11 @@ impl ForkState {
     /// Constructs a new instance.
     pub async fn new(
         runtime: runtime::Handle,
+        rpc_client: Arc<RpcClient>,
         hash_generator: Arc<Mutex<RandomHashGenerator>>,
-        url: &str,
-        cache_dir: PathBuf,
         fork_block_number: U256,
         mut accounts: HashMap<Address, AccountInfo>,
     ) -> Result<Self, RpcClientError> {
-        let rpc_client = RpcClient::new(url, cache_dir);
-
         for (address, account_info) in &mut accounts {
             let nonce = rpc_client
                 .get_transaction_count(address, Some(BlockSpec::Number(fork_block_number)))
@@ -59,9 +54,7 @@ impl ForkState {
         }
 
         let remote_state = RemoteState::new(runtime, rpc_client, fork_block_number);
-
-        let mut local_state = HybridState::with_accounts(accounts);
-        local_state.checkpoint().unwrap();
+        let local_state = TrieState::with_accounts(AccountTrie::with_accounts(&accounts));
 
         let generated_state_root = hash_generator.lock().next_value();
         let mut state_root_to_state = HashMap::new();
@@ -81,24 +74,14 @@ impl ForkState {
         })
     }
 
-    fn update_removed_storage_slots(&mut self) {
-        self.removed_storage_slots.clear();
+    /// Sets the block number of the remote state.
+    pub fn set_fork_block_number(&mut self, block_number: &U256) {
+        self.remote_state.lock().set_block_number(block_number);
+    }
 
-        self.local_state
-            .changes()
-            .rev()
-            .flat_map(RethnetLayer::accounts)
-            .for_each(|(address, account)| {
-                // We never need to remove zero entries as a "removed" entry means that the lookup for
-                // a value in the hybrid state succeeded.
-                if let Some(account) = account {
-                    account.storage.iter().for_each(|(index, value)| {
-                        if *value == U256::ZERO {
-                            self.removed_storage_slots.insert((*address, *index));
-                        }
-                    });
-                }
-            });
+    /// Retrieves the state root generator
+    pub fn state_root_generator(&self) -> &Arc<Mutex<RandomHashGenerator>> {
+        &self.hash_generator
     }
 }
 
@@ -251,93 +234,6 @@ impl StateDebug for ForkState {
     }
 }
 
-impl StateHistory for ForkState {
-    type Error = StateError;
-
-    fn set_block_context(
-        &mut self,
-        state_root: &B256,
-        block_number: Option<U256>,
-    ) -> Result<(), Self::Error> {
-        if let Some(block_number) = block_number {
-            if block_number < self.fork_block_number {
-                self.remote_state.lock().set_block_number(&block_number);
-
-                let local_root = self
-                    .state_root_to_state
-                    .get_mut()
-                    .get(&self.initial_state_root)
-                    .unwrap();
-
-                self.local_state.set_block_context(local_root, None)?;
-
-                *self.current_state.get_mut() = (self.initial_state_root, *local_root);
-            } else {
-                let state_root_to_state = self.state_root_to_state.get_mut();
-                let local_root = state_root_to_state.get(state_root).or_else(|| {
-                    if block_number == self.fork_block_number {
-                        state_root_to_state.get(&self.initial_state_root)
-                    } else {
-                        None
-                    }
-                });
-
-                if let Some(local_root) = local_root {
-                    self.local_state
-                        .set_block_context(local_root, Some(block_number))?;
-
-                    let block_number = block_number.min(self.fork_block_number);
-                    self.remote_state.lock().set_block_number(&block_number);
-
-                    *self.current_state.get_mut() = (*state_root, *local_root);
-                } else {
-                    return Err(Self::Error::InvalidStateRoot {
-                        state_root: *state_root,
-                        is_fork: true,
-                    });
-                }
-            }
-        } else if let Some(local_root) = self.state_root_to_state.get_mut().get(state_root) {
-            self.local_state.set_block_context(local_root, None)?;
-            self.remote_state
-                .lock()
-                .set_block_number(&self.fork_block_number);
-
-            *self.current_state.get_mut() = (*state_root, *local_root);
-        } else {
-            return Err(Self::Error::InvalidStateRoot {
-                state_root: *state_root,
-                is_fork: true,
-            });
-        }
-
-        self.update_removed_storage_slots();
-
-        Ok(())
-    }
-
-    fn checkpoint(&mut self) -> Result<(), Self::Error> {
-        // Ensure a potential state root is generated
-        self.state_root()?;
-
-        self.local_state.checkpoint()
-    }
-
-    fn revert(&mut self) -> Result<(), Self::Error> {
-        self.local_state.revert()
-    }
-
-    fn make_snapshot(&mut self) -> B256 {
-        self.local_state.make_snapshot();
-
-        self.state_root().expect("should have been able to generate a new state root after triggering a snapshot in the underlying state")
-    }
-
-    fn remove_snapshot(&mut self, state_root: &B256) {
-        self.local_state.remove_snapshot(state_root);
-    }
-}
-
 #[cfg(all(test, feature = "test-remote"))]
 mod tests {
     use std::ops::{Deref, DerefMut};
@@ -367,12 +263,12 @@ mod tests {
             let tempdir = tempfile::tempdir().expect("can create tempdir");
 
             let runtime = runtime::Handle::current();
+            let rpc_client = RpcClient::new(&get_alchemy_url(), tempdir.path().to_path_buf());
 
             let fork_state = ForkState::new(
                 runtime,
+                Arc::new(rpc_client),
                 hash_generator,
-                &get_alchemy_url(),
-                tempdir.path().to_path_buf(),
                 U256::from(FORK_BLOCK),
                 HashMap::default(),
             )
@@ -420,80 +316,6 @@ mod tests {
             B256::from_str("0x4e36f96ee1667a663dfaac57c4d185a0e369a3a217e0079d49620f34f85d1ac7")
                 .expect("failed to parse")
         );
-    }
-
-    #[tokio::test(flavor = "multi_thread")]
-    async fn set_block_context_with_zeroed_storage_slots() {
-        const STORAGE_SLOT_INDEX: u64 = 1;
-        const DUMMY_STORAGE_VALUE: u64 = 1000;
-
-        let mut fork_state = TestForkState::new().await;
-
-        let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
-            .expect("failed to parse address");
-
-        let storage_slot_index = U256::from(STORAGE_SLOT_INDEX);
-        let dummy_storage_value = U256::from(DUMMY_STORAGE_VALUE);
-        let initial_state_root = fork_state.initial_state_root;
-
-        let remote_value =
-            U256::from_str("0x000000000000000000000000000000000000000010a596ae049e066d4991945c")
-                .unwrap();
-
-        // Validate remote storage slot value
-        assert_eq!(
-            fork_state.storage(dai_address, storage_slot_index).unwrap(),
-            remote_value
-        );
-
-        // Set storage slot to zero
-        fork_state
-            .set_account_storage_slot(dai_address, storage_slot_index, U256::ZERO)
-            .unwrap();
-
-        // Validate storage slot equals zero
-        let fork_storage_slot = fork_state.storage(dai_address, storage_slot_index).unwrap();
-        assert_eq!(fork_storage_slot, U256::ZERO);
-
-        // Retrieve the state root that we want to revert to later on
-        let zeroed_state_root = fork_state.state_root().unwrap();
-
-        // Create layers with modified storage slot values that will be reverted
-        fork_state.checkpoint().unwrap();
-
-        fork_state
-            .set_account_storage_slot(dai_address, storage_slot_index, dummy_storage_value)
-            .unwrap();
-
-        fork_state.checkpoint().unwrap();
-
-        let dummy_storage_state_root = fork_state.make_snapshot();
-
-        // Validate storage slot equals zero after reverting to zeroed storage slot state
-        fork_state
-            .set_block_context(&zeroed_state_root, None)
-            .unwrap();
-
-        let fork_storage_slot = fork_state.storage(dai_address, storage_slot_index).unwrap();
-        assert_eq!(fork_storage_slot, U256::ZERO);
-
-        // Validate remote storage slot value after reverting to initial state
-        fork_state
-            .set_block_context(&initial_state_root, None)
-            .unwrap();
-
-        assert_eq!(
-            fork_state.storage(dai_address, storage_slot_index).unwrap(),
-            remote_value
-        );
-
-        // Validate that the dummy value is returned after fast-forward to that state
-        fork_state
-            .set_block_context(&dummy_storage_state_root, None)
-            .unwrap();
-
-        let fork_storage_slot = fork_state.storage(dai_address, storage_slot_index).unwrap();
-        assert_eq!(fork_storage_slot, dummy_storage_value);
     }
 
     #[tokio::test(flavor = "multi_thread")]

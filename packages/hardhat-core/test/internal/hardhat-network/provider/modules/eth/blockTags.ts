@@ -13,7 +13,7 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   PROVIDERS,
 } from "../../../helpers/providers";
-import { retrieveForkBlockNumber } from "../../../helpers/retrieveForkBlockNumber";
+import { retrieveLatestBlockNumber } from "../../../helpers/retrieveForkBlockNumber";
 import { deployContract } from "../../../helpers/transactions";
 
 describe("Eth module", function () {
@@ -29,7 +29,7 @@ describe("Eth module", function () {
       useProvider();
 
       const getFirstBlock = async () =>
-        isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
+        retrieveLatestBlockNumber(this.ctx.hardhatNetworkProvider);
 
       describe("block tags", function () {
         it("should allow EIP-1898 block tags", async function () {

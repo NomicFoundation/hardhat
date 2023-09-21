@@ -1,12 +1,11 @@
 use std::ops::Deref;
 
-use once_cell::sync::OnceCell;
 use rethnet_eth::{
     transaction::{
         EIP1559SignedTransaction, EIP155SignedTransaction, EIP2930SignedTransaction,
         LegacySignedTransaction, SignedTransaction, TransactionKind,
     },
-    Address, B256, U256,
+    Address, U256,
 };
 use revm::{
     db::StateRef,
@@ -25,8 +24,6 @@ use super::TransactionCreationError;
 pub struct PendingTransaction {
     transaction: SignedTransaction,
     caller: Address,
-    // Cached hash of instance
-    hash: OnceCell<B256>,
 }
 
 impl PendingTransaction {
@@ -84,18 +81,12 @@ impl PendingTransaction {
         Ok(Self {
             transaction,
             caller,
-            hash: OnceCell::new(),
         })
     }
 
     /// Returns the [`PendingTransaction`]'s caller.
     pub fn caller(&self) -> &Address {
         &self.caller
-    }
-
-    /// Returns the instance's hash.
-    pub fn hash(&self) -> &B256 {
-        self.hash.get_or_init(|| self.transaction.hash())
     }
 
     /// Returns the inner transaction and caller

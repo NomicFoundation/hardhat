@@ -1,9 +1,13 @@
 use std::fmt::Debug;
 
-use napi::bindgen_prelude::{BigInt, Buffer};
+use napi::{
+    bindgen_prelude::{BigInt, Buffer},
+    Status,
+};
 use napi_derive::napi;
-use rethnet_eth::Bytes;
-use rethnet_evm::{AccountInfo, KECCAK_EMPTY};
+use rethnet_eth::{signature::private_key_to_address, Address, Bytes, U256};
+use rethnet_evm::{AccountInfo, HashMap, KECCAK_EMPTY};
+use secp256k1::Secp256k1;
 
 use crate::cast::TryCast;
 
@@ -90,4 +94,36 @@ impl TryCast<AccountInfo> for Account {
             code,
         })
     }
+}
+
+/// An account that needs to be created during the genesis block.
+#[napi(object)]
+pub struct GenesisAccount {
+    /// Account private key
+    pub private_key: String,
+    /// Account balance
+    pub balance: BigInt,
+}
+
+#[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+pub fn genesis_accounts(
+    accounts: Vec<GenesisAccount>,
+) -> napi::Result<HashMap<Address, AccountInfo>> {
+    let signer = Secp256k1::signing_only();
+
+    accounts
+        .into_iter()
+        .map(|account| {
+            let address = private_key_to_address(&signer, &account.private_key)
+                .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
+            TryCast::<U256>::try_cast(account.balance).map(|balance| {
+                let account_info = AccountInfo {
+                    balance,
+                    ..Default::default()
+                };
+
+                (address, account_info)
+            })
+        })
+        .collect::<napi::Result<HashMap<Address, AccountInfo>>>()
 }

@@ -1,4 +1,4 @@
-use std::mem;
+use std::{mem, sync::OnceLock};
 
 use napi::{
     bindgen_prelude::{BigInt, Buffer},
@@ -114,6 +114,7 @@ impl TryFrom<EIP1559SignedTransaction> for rethnet_eth::transaction::EIP1559Sign
             odd_y_parity: value.odd_y_parity,
             r: value.r.try_cast()?,
             s: value.s.try_cast()?,
+            hash: OnceLock::new(),
         })
     }
 }

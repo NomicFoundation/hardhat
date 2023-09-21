@@ -76,7 +76,7 @@ fn bench_database_commit(c: &mut Criterion) {
         c,
         "DatabaseCommit:commit",
         state_prep_no_op,
-        |state, _number_of_accounts, _, _| {
+        |state, _number_of_accounts| {
             state.commit(accounts_to_commit.clone());
 
             #[cfg(debug_assertions)]
@@ -97,7 +97,6 @@ fn bench_database_commit(c: &mut Criterion) {
             });
         },
         &[0],
-        &[1],
     );
 }
 

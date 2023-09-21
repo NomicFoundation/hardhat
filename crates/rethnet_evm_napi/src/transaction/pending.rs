@@ -2,12 +2,13 @@ use std::ops::Deref;
 
 use napi::{
     bindgen_prelude::{Buffer, Either3},
+    tokio::runtime,
     Env, JsObject,
 };
 use napi_derive::napi;
 use rethnet_eth::Address;
 
-use crate::{cast::TryCast, config::SpecId, state::StateManager};
+use crate::{cast::TryCast, config::SpecId, state::State};
 
 use super::signed::{EIP1559SignedTransaction, EIP2930SignedTransaction, LegacySignedTransaction};
 
@@ -30,7 +31,7 @@ impl PendingTransaction {
     #[napi(ts_return_type = "Promise<PendingTransaction>")]
     pub fn create(
         env: Env,
-        state_manager: &StateManager,
+        state_manager: &State,
         spec_id: SpecId,
         transaction: Either3<
             LegacySignedTransaction,
@@ -45,7 +46,7 @@ impl PendingTransaction {
         let state = (*state_manager).clone();
 
         let (deferred, promise) = env.create_deferred()?;
-        state_manager.context().runtime().spawn(async move {
+        runtime::Handle::current().spawn(async move {
             let state = state.read().await;
 
             let result = if let Some(caller) = caller {
@@ -66,12 +67,12 @@ impl PendingTransaction {
         Ok(promise)
     }
 
-    #[napi]
+    #[napi(getter)]
     pub fn caller(&self) -> Buffer {
         Buffer::from(self.inner.caller().as_bytes())
     }
 
-    #[napi]
+    #[napi(getter)]
     pub fn transaction(
         &self,
         env: Env,

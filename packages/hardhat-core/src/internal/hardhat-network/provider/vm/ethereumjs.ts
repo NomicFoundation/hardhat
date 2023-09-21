@@ -113,7 +113,6 @@ export class EthereumJSAdapter implements VMAdapter {
   constructor(
     private readonly _vm: VM,
     public readonly _stateManager: StateManagerWithAddresses,
-    private readonly _blockchain: HardhatBlockchainInterface,
     private readonly _common: Common,
     private readonly _configNetworkId: number,
     private readonly _configChainId: number,
@@ -200,7 +199,6 @@ export class EthereumJSAdapter implements VMAdapter {
     return new EthereumJSAdapter(
       vm,
       stateManager,
-      blockchain,
       common,
       config.networkId,
       config.chainId,
@@ -240,7 +238,8 @@ export class EthereumJSAdapter implements VMAdapter {
       // we remove them and the withdrawal root from the block
       if (
         !this._isEip4895Active(blockContext.header.number) &&
-        blockContext.withdrawals !== undefined
+        (blockContext.withdrawals !== undefined ||
+          blockContext.header.withdrawalsRoot !== undefined)
       ) {
         blockContext = Block.fromBlockData(
           {
@@ -279,7 +278,7 @@ export class EthereumJSAdapter implements VMAdapter {
       ) {
         blockContext = Block.fromBlockData(blockContext, {
           freeze: false,
-          common: this._common,
+          common: this._vm._common,
 
           skipConsensusFormatValidation: true,
         });
@@ -318,7 +317,10 @@ export class EthereumJSAdapter implements VMAdapter {
         gasUsed: ethereumJSResult.totalGasSpent,
         receipt: ethereumJSResult.receipt,
         returnValue: ethereumJSResult.execResult.returnValue,
-        createdAddress: ethereumJSResult.createdAddress,
+        createdAddress:
+          ethereumJSError === undefined
+            ? ethereumJSResult.createdAddress
+            : undefined,
         exit: Exit.fromEthereumJSEvmError(ethereumJSError),
       };
 
@@ -501,7 +503,10 @@ export class EthereumJSAdapter implements VMAdapter {
       gasUsed: ethereumJSResult.totalGasSpent,
       receipt: ethereumJSResult.receipt,
       returnValue: ethereumJSResult.execResult.returnValue,
-      createdAddress: ethereumJSResult.createdAddress,
+      createdAddress:
+        ethereumJSError === undefined
+          ? ethereumJSResult.createdAddress
+          : undefined,
       exit: Exit.fromEthereumJSEvmError(ethereumJSError),
     };
 
@@ -516,18 +521,16 @@ export class EthereumJSAdapter implements VMAdapter {
     // No way of deleting snapshot
   }
 
-  public getLastTrace(): {
+  public getLastTraceAndClear(): {
     trace: MessageTrace | undefined;
     error: Error | undefined;
   } {
     const trace = this._vmTracer.getLastTopLevelMessageTrace();
     const error = this._vmTracer.getLastError();
 
-    return { trace, error };
-  }
-
-  public clearLastError() {
     this._vmTracer.clearLastError();
+
+    return { trace, error };
   }
 
   public async printState() {

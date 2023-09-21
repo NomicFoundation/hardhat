@@ -5,36 +5,33 @@ import {
   Address,
   KECCAK256_NULL,
 } from "@nomicfoundation/ethereumjs-util";
-import { Capability, TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
+import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import {
   Account as RethnetAccount,
   Blockchain,
   Bytecode,
-  RethnetContext,
+  SpecId,
   guaranteedDryRun,
   run,
   ConfigOptions,
+  State,
 } from "rethnet-evm";
 
 import { isForkedNodeConfig, NodeConfig } from "../node-types";
 import {
   ethereumjsHeaderDataToRethnetBlockConfig,
   ethereumjsTransactionToRethnetTransactionRequest,
-  ethereumsjsHardforkToRethnet,
+  ethereumsjsHardforkToRethnetSpecId,
   rethnetResultToRunTxResult,
 } from "../utils/convertToRethnet";
-import {
-  getHardforkName,
-  hardforkGte,
-  HardforkName,
-} from "../../../util/hardforks";
+import { getHardforkName } from "../../../util/hardforks";
 import { keccak256 } from "../../../util/keccak";
 import { RpcDebugTraceOutput } from "../output";
 import { RethnetStateManager } from "../RethnetState";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import { MessageTrace } from "../../stack-traces/message-trace";
 import { VMTracer } from "../../stack-traces/vm-tracer";
-
+import { globalRethnetContext } from "../context/rethnet";
 import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
 import { RethnetBlockBuilder } from "./block-builder/rethnet";
@@ -42,15 +39,13 @@ import { RethnetBlockBuilder } from "./block-builder/rethnet";
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-export const globalRethnetContext = new RethnetContext();
-
 export class RethnetAdapter implements VMAdapter {
   private _vmTracer: VMTracer;
+  private _stateRootToState: Map<Buffer, State> = new Map();
 
   constructor(
     private _blockchain: Blockchain,
     private _state: RethnetStateManager,
-    private readonly _selectHardfork: (blockNumber: bigint) => string,
     private readonly _common: Common,
     private readonly _limitContractCodeSize: bigint | null
   ) {
@@ -59,12 +54,9 @@ export class RethnetAdapter implements VMAdapter {
 
   public static async create(
     config: NodeConfig,
-    selectHardfork: (blockNumber: bigint) => string,
-    getBlockHash: (blockNumber: bigint) => Promise<Buffer>,
+    blockchain: Blockchain,
     common: Common
   ): Promise<RethnetAdapter> {
-    const blockchain = new Blockchain(getBlockHash);
-
     let state: RethnetStateManager;
     if (isForkedNodeConfig(config)) {
       state = await RethnetStateManager.forkRemote(
@@ -82,13 +74,7 @@ export class RethnetAdapter implements VMAdapter {
     const limitContractCodeSize =
       config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : null;
 
-    return new RethnetAdapter(
-      blockchain,
-      state,
-      selectHardfork,
-      common,
-      limitContractCodeSize
-    );
+    return new RethnetAdapter(blockchain, state, common, limitContractCodeSize);
   }
 
   /**
@@ -99,23 +85,13 @@ export class RethnetAdapter implements VMAdapter {
     blockContext: Block,
     forceBaseFeeZero?: boolean
   ): Promise<[RunTxResult, Trace]> {
-    if (
-      tx.supports(Capability.EIP1559FeeMarket) &&
-      !blockContext._common.hardforkGteHardfork(
-        this._selectHardfork(blockContext.header.number),
-        "london"
-      )
-    ) {
-      throw new Error("Cannot run transaction: EIP 1559 is not activated.");
-    }
-
     const rethnetTx = ethereumjsTransactionToRethnetTransactionRequest(tx);
 
     const difficulty = this._getBlockEnvDifficulty(
       blockContext.header.difficulty
     );
 
-    const prevRandao = this._getBlockPrevRandao(
+    const prevRandao = await this._getBlockPrevRandao(
       blockContext.header.number,
       blockContext.header.mixHash
     );
@@ -152,7 +128,7 @@ export class RethnetAdapter implements VMAdapter {
     try {
       const result = rethnetResultToRunTxResult(
         rethnetResult.result,
-        blockContext.header.gasUsed
+        blockContext.header.gasUsed + rethnetResult.result.result.gasUsed
       );
       return [result, trace];
     } catch (e) {
@@ -204,7 +180,7 @@ export class RethnetAdapter implements VMAdapter {
         ? undefined
         : await this._state.getContractCode(address);
 
-    return this._state.modifyAccount(
+    await this._state.modifyAccount(
       address,
       async function (
         balance: bigint,
@@ -228,6 +204,11 @@ export class RethnetAdapter implements VMAdapter {
         };
       }
     );
+
+    this._stateRootToState.set(
+      await this.getStateRoot(),
+      await this._state.asInner().deepClone()
+    );
   }
 
   /**
@@ -235,7 +216,7 @@ export class RethnetAdapter implements VMAdapter {
    */
   public async putContractCode(address: Address, value: Buffer): Promise<void> {
     const codeHash = keccak256(value);
-    return this._state.modifyAccount(
+    await this._state.modifyAccount(
       address,
       async function (
         balance: bigint,
@@ -259,6 +240,11 @@ export class RethnetAdapter implements VMAdapter {
         };
       }
     );
+
+    this._stateRootToState.set(
+      await this.getStateRoot(),
+      await this._state.asInner().deepClone()
+    );
   }
 
   /**
@@ -270,6 +256,11 @@ export class RethnetAdapter implements VMAdapter {
     value: Buffer
   ): Promise<void> {
     await this._state.putContractStorage(address, key, value);
+
+    this._stateRootToState.set(
+      await this.getStateRoot(),
+      await this._state.asInner().deepClone()
+    );
   }
 
   /**
@@ -287,10 +278,17 @@ export class RethnetAdapter implements VMAdapter {
     block: Block,
     irregularStateOrUndefined: Buffer | undefined
   ): Promise<void> {
-    return this._state.setBlockContext(
-      irregularStateOrUndefined ?? block.header.stateRoot,
-      block.header.number
-    );
+    if (irregularStateOrUndefined !== undefined) {
+      const state = this._stateRootToState.get(irregularStateOrUndefined);
+      if (state === undefined) {
+        throw new Error("Unknown state root");
+      }
+      this._state.setInner(await state.deepClone());
+    } else {
+      this._state.setInner(
+        await this._blockchain.stateAtBlockNumber(block.header.number)
+      );
+    }
   }
 
   /**
@@ -299,7 +297,12 @@ export class RethnetAdapter implements VMAdapter {
    * Throw if it can't.
    */
   public async restoreContext(stateRoot: Buffer): Promise<void> {
-    return this._state.setBlockContext(stateRoot);
+    const state = this._stateRootToState.get(stateRoot);
+    if (state === undefined) {
+      throw new Error("Unknown state root");
+    }
+
+    this._state.setInner(state);
   }
 
   /**
@@ -309,21 +312,11 @@ export class RethnetAdapter implements VMAdapter {
     tx: TypedTransaction,
     block: Block
   ): Promise<[RunTxResult, Trace]> {
-    if (
-      tx.supports(Capability.EIP1559FeeMarket) &&
-      !block._common.hardforkGteHardfork(
-        this._selectHardfork(block.header.number),
-        "london"
-      )
-    ) {
-      throw new Error("Cannot run transaction: EIP 1559 is not activated.");
-    }
-
     const rethnetTx = ethereumjsTransactionToRethnetTransactionRequest(tx);
 
     const difficulty = this._getBlockEnvDifficulty(block.header.difficulty);
 
-    const prevRandao = this._getBlockPrevRandao(
+    const prevRandao = await this._getBlockPrevRandao(
       block.header.number,
       block.header.mixHash
     );
@@ -355,7 +348,7 @@ export class RethnetAdapter implements VMAdapter {
     try {
       const result = rethnetResultToRunTxResult(
         rethnetResult.result,
-        block.header.gasUsed
+        rethnetResult.result.result.gasUsed
       );
       return [result, this._vmTracer.getLastTopLevelMessageTrace()];
     } catch (e) {
@@ -378,25 +371,29 @@ export class RethnetAdapter implements VMAdapter {
   }
 
   public async makeSnapshot(): Promise<Buffer> {
-    return this._state.makeSnapshot();
+    const stateRoot = await this.getStateRoot();
+    this._stateRootToState.set(
+      stateRoot,
+      await this._state.asInner().deepClone()
+    );
+
+    return stateRoot;
   }
 
   public async removeSnapshot(stateRoot: Buffer): Promise<void> {
-    return this._state.removeSnapshot(stateRoot);
+    this._stateRootToState.delete(stateRoot);
   }
 
-  public getLastTrace(): {
+  public getLastTraceAndClear(): {
     trace: MessageTrace | undefined;
     error: Error | undefined;
   } {
     const trace = this._vmTracer.getLastTopLevelMessageTrace();
     const error = this._vmTracer.getLastError();
 
-    return { trace, error };
-  }
-
-  public clearLastError() {
     this._vmTracer.clearLastError();
+
+    return { trace, error };
   }
 
   public async printState() {
@@ -407,8 +404,6 @@ export class RethnetAdapter implements VMAdapter {
     common: Common,
     opts: BuildBlockOpts
   ): Promise<BlockBuilderAdapter> {
-    await this._state.checkpoint();
-
     return RethnetBlockBuilder.create(
       this._blockchain,
       this._state,
@@ -434,16 +429,14 @@ export class RethnetAdapter implements VMAdapter {
     return difficulty;
   }
 
-  private _getBlockPrevRandao(
+  private async _getBlockPrevRandao(
     blockNumber: bigint,
     mixHash: Buffer | undefined
-  ): Buffer | undefined {
-    const hardfork = this._selectHardfork(blockNumber);
-    const isPostMergeHardfork = hardforkGte(
-      hardfork as HardforkName,
-      HardforkName.MERGE
-    );
+  ): Promise<Buffer | undefined> {
+    const isPostMergeHardfork =
+      (await this._blockchain.specAtBlockNumber(blockNumber)) >= SpecId.Merge;
 
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (isPostMergeHardfork) {
       if (mixHash === undefined) {
         throw new Error("mixHash must be set for post-merge hardfork");
@@ -464,7 +457,9 @@ export function makeConfigOptions(
 ): ConfigOptions {
   return {
     chainId: common.chainId(),
-    specId: ethereumsjsHardforkToRethnet(getHardforkName(common.hardfork())),
+    specId: ethereumsjsHardforkToRethnetSpecId(
+      getHardforkName(common.hardfork())
+    ),
     limitContractCodeSize: limitContractCodeSize ?? undefined,
     disableBlockGasLimit,
     disableEip3607,
