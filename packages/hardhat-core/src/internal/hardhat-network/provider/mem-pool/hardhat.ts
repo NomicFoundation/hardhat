@@ -255,16 +255,6 @@ export class HardhatMemPool implements MemPoolAdapter {
     return lastPendingTxNonce + 1n;
   }
 
-  private _removeSnapshotsAfter(snapshotId: number): void {
-    const snapshotIds = [...this._snapshotIdToState.keys()].filter(
-      (x) => x >= snapshotId
-    );
-
-    for (const id of snapshotIds) {
-      this._snapshotIdToState.delete(id);
-    }
-  }
-
   public async getBlockGasLimit(): Promise<bigint> {
     return BigInt(this._state.get("blockGasLimit"));
   }
@@ -347,6 +337,16 @@ export class HardhatMemPool implements MemPoolAdapter {
       }
     }
     this._setQueued(newQueued);
+  }
+
+  private _removeSnapshotsAfter(snapshotId: number): void {
+    const snapshotIds = [...this._snapshotIdToState.keys()].filter(
+      (x) => x >= snapshotId
+    );
+
+    for (const id of snapshotIds) {
+      this._snapshotIdToState.delete(id);
+    }
   }
 
   public async getTransactions(): Promise<TypedTransaction[]> {
