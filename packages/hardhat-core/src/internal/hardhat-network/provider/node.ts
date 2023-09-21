@@ -157,7 +157,12 @@ export class HardhatNode extends EventEmitter {
       }
 
       const forkData = await makeForkClient(
-        config.forkConfig,
+        {
+          ...config.forkConfig,
+          blockNumber: Number(
+            await context.blockchain().getLatestBlockNumber()
+          ),
+        },
         config.forkCachePath
       );
       forkClient = forkData.forkClient;
