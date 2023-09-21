@@ -63,6 +63,10 @@ const coreTasks = [
     name: "run",
   },
   {
+    description: "List all the available secret manager operations",
+    name: "secrets",
+  },
+  {
     description: "Runs mocha tests",
     name: "test",
   },

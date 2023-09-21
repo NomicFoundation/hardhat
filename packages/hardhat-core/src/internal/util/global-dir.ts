@@ -23,6 +23,10 @@ function getConfigDirSync(): string {
   return config;
 }
 
+function getSecretsPath(): string {
+  return path.join(getConfigDirSync(), "secrets.json");
+}
+
 async function getDataDir(packageName?: string): Promise<string> {
   const { data } = await generatePaths(packageName);
   await fs.ensureDir(data);
@@ -139,4 +143,23 @@ export function writePromptedForHHVSCode() {
   const extensionPromptedPath = path.join(configDir, "extension-prompt.json");
 
   fs.writeFileSync(extensionPromptedPath, "{}");
+}
+
+/**
+ * Secrets manager
+ */
+export function writeSecrets(secretsObj: any) {
+  const secretsPath = getSecretsPath();
+  fs.writeJSONSync(secretsPath, secretsObj, { spaces: 2 });
+}
+
+// TODO: define type for secretsObj
+export function readSecrets(): Record<string, string> {
+  const secretsPath = getSecretsPath();
+  return fs.pathExistsSync(secretsPath) ? fs.readJSONSync(secretsPath) : {};
+}
+
+export function clearSecrets() {
+  const secretsPath = getSecretsPath();
+  fs.writeJSONSync(secretsPath, {});
 }

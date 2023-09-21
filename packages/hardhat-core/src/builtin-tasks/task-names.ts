@@ -90,3 +90,11 @@ export const TASK_TEST_RUN_SHOW_FORK_RECOMMENDATIONS =
 export const TASK_TEST_RUN_MOCHA_TESTS = "test:run-mocha-tests";
 export const TASK_TEST_GET_TEST_FILES = "test:get-test-files";
 export const TASK_TEST_SETUP_TEST_ENVIRONMENT = "test:setup-test-environment";
+
+// Task secrets
+export const TASK_SECRETS = "secrets"; // Show info about the available secret manager operations and list all the secrets names
+export const TASK_SECRETS_ADD = "secrets:add"; // Add a new secret
+export const TASK_SECRETS_SHOW = "secrets:show"; // Show a secret
+export const TASK_SECRETS_LIST = "secrets:list"; // List all the secrets
+export const TASK_SECRETS_DELETE = "secrets:delete"; // Delete a secret
+export const TASK_SECRETS_CLEAR = "secrets:clear"; // Delete all secrets
