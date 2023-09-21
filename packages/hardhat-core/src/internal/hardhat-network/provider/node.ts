@@ -1336,8 +1336,23 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       );
     }
 
+    const transactions = await Promise.all(
+      block.transactions.map(async (tx) => {
+        const from = tx.getSenderAddress();
+        if (this._impersonatedAccounts.has(from.toString())) {
+          // @ts-ignore
+          return this._getFakeTransaction({
+            ...tx.toJSON(),
+            from: from.toBuffer(),
+          });
+        } else {
+          return tx;
+        }
+      })
+    );
+
     return this._runInBlockContext(block.header.number - 1n, async () => {
-      return this._vm.traceTransaction(hash, block, config);
+      return this._vm.traceTransaction(hash, block, config, transactions);
     });
   }
 

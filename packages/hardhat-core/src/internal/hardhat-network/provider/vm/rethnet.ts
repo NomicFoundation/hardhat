@@ -12,6 +12,7 @@ import {
   Bytecode,
   RethnetContext,
   guaranteedDryRun,
+  debugTraceTransaction,
   run,
   ConfigOptions,
 } from "rethnet-evm";
@@ -20,8 +21,11 @@ import { isForkedNodeConfig, NodeConfig } from "../node-types";
 import {
   ethereumjsHeaderDataToRethnetBlockConfig,
   ethereumjsTransactionToRethnetTransactionRequest,
+  ethereumjsTransactionToRethnetSignedTransaction,
   ethereumsjsHardforkToRethnet,
   rethnetResultToRunTxResult,
+  rethnetRpcDebugTraceToHardhat,
+  hardhatDebugTraceConfigToRethnet,
 } from "../utils/convertToRethnet";
 import {
   getHardforkName,
@@ -35,6 +39,9 @@ import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTr
 import { MessageTrace } from "../../stack-traces/message-trace";
 import { VMTracer } from "../../stack-traces/vm-tracer";
 
+import { FakeSenderTransaction } from "../transactions/FakeSenderTransaction";
+import { FakeSenderAccessListEIP2930Transaction } from "../transactions/FakeSenderAccessListEIP2930Transaction";
+import { FakeSenderEIP1559Transaction } from "../transactions/FakeSenderEIP1559Transaction";
 import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
 import { RethnetBlockBuilder } from "./block-builder/rethnet";
@@ -372,9 +379,46 @@ export class RethnetAdapter implements VMAdapter {
   public async traceTransaction(
     hash: Buffer,
     block: Block,
-    config: RpcDebugTracingConfig
+    config: RpcDebugTracingConfig,
+    transactionsWithFakeSender?: Array<
+      | TypedTransaction
+      | FakeSenderTransaction
+      | FakeSenderAccessListEIP2930Transaction
+      | FakeSenderEIP1559Transaction
+    >
   ): Promise<RpcDebugTraceOutput> {
-    throw new Error("traceTransaction not implemented for Rethnet");
+    const difficulty = this._getBlockEnvDifficulty(block.header.difficulty);
+
+    const prevRandao = this._getBlockPrevRandao(
+      block.header.number,
+      block.header.mixHash
+    );
+
+    const transactions = transactionsWithFakeSender!.map(
+      ethereumjsTransactionToRethnetSignedTransaction
+    );
+
+    const evmConfig = makeConfigOptions(
+      this._common,
+      false,
+      true,
+      this._limitContractCodeSize
+    );
+    const result = await debugTraceTransaction(
+      this._blockchain,
+      this._state.asInner(),
+      evmConfig,
+      hardhatDebugTraceConfigToRethnet(config),
+      ethereumjsHeaderDataToRethnetBlockConfig(
+        block.header,
+        difficulty,
+        prevRandao
+      ),
+      transactions,
+      hash
+    );
+
+    return rethnetRpcDebugTraceToHardhat(result);
   }
 
   public async makeSnapshot(): Promise<Buffer> {

@@ -11,6 +11,9 @@ import { Bloom } from "../utils/bloom";
 
 import { Exit } from "./exit";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
+import { FakeSenderTransaction } from "../transactions/FakeSenderTransaction";
+import { FakeSenderAccessListEIP2930Transaction } from "../transactions/FakeSenderAccessListEIP2930Transaction";
+import { FakeSenderEIP1559Transaction } from "../transactions/FakeSenderEIP1559Transaction";
 
 export type Trace = any;
 
@@ -76,7 +79,13 @@ export interface VMAdapter {
   traceTransaction(
     hash: Buffer,
     block: Block,
-    config: RpcDebugTracingConfig
+    config: RpcDebugTracingConfig,
+    transactionsWithFakeSender?: Array<
+      | TypedTransaction
+      | FakeSenderTransaction
+      | FakeSenderAccessListEIP2930Transaction
+      | FakeSenderEIP1559Transaction
+    >
   ): Promise<RpcDebugTraceOutput>;
 
   // methods for snapshotting
