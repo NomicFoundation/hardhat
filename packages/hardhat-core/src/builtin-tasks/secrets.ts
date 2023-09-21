@@ -30,7 +30,7 @@ function doesSecretExist(secretsObj: any, key: string) {
 task(TASK_SECRETS_ADD)
   .addPositionalParam(
     "key",
-    "The key associated to the secret",
+    "The key associated to the secret to add",
     undefined,
     types.string
   )
@@ -54,7 +54,7 @@ task(TASK_SECRETS_ADD)
 task(TASK_SECRETS_SHOW)
   .addPositionalParam(
     "key",
-    "The key for the secret to show",
+    "The key associated to the secret to show",
     undefined,
     types.string
   )
@@ -63,7 +63,7 @@ task(TASK_SECRETS_SHOW)
     if (!areSecretsStored(secretsObj)) return;
     if (!doesSecretExist(secretsObj, key)) return;
 
-    console.log(`KEY: SECRET\n${key}: ${secretsObj[key]}`);
+    console.log(`Key: Secret\n${key}: ${secretsObj[key]}`);
   });
 
 task(TASK_SECRETS_LIST).setAction(async () => {
@@ -79,7 +79,7 @@ task(TASK_SECRETS_LIST).setAction(async () => {
 task(TASK_SECRETS_DELETE)
   .addPositionalParam(
     "key",
-    "The key of the secret to delete",
+    "The key associated to the secret to delete",
     undefined,
     types.string
   )
