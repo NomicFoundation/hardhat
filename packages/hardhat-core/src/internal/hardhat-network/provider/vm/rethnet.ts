@@ -388,6 +388,7 @@ export class RethnetAdapter implements VMAdapter {
     );
 
     // TODO This deadlocks if more than 3 are executed in parallel
+    // https://github.com/NomicFoundation/edr/issues/189
     const transactions = [];
     for (const tx of block.transactions) {
       const caller = tx.getSenderAddress().toBuffer();
