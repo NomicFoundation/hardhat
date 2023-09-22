@@ -225,7 +225,7 @@ describe("Block's baseFeePerGas", function () {
             });
           });
         } else {
-          describe("When not forking", function () {
+          describe("When forking", function () {
             useProvider({
               blockGasLimit: 21000n * 4n,
               initialBaseFeePerGas: 1_000_000_000n,

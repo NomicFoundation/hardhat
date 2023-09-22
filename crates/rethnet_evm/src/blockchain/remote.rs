@@ -13,7 +13,7 @@ use super::storage::SparseBlockchainStorage;
 
 #[derive(Debug)]
 pub struct RemoteBlockchain<BlockT: Block + Clone, const FORCE_CACHING: bool> {
-    client: RpcClient,
+    client: Arc<RpcClient>,
     cache: RwLock<SparseBlockchainStorage<BlockT>>,
 }
 
@@ -21,7 +21,7 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
     RemoteBlockchain<BlockT, FORCE_CACHING>
 {
     /// Constructs a new instance with the provided RPC client.
-    pub fn new(client: RpcClient) -> Self {
+    pub fn new(client: Arc<RpcClient>) -> Self {
         Self {
             client,
             cache: RwLock::new(SparseBlockchainStorage::default()),
@@ -29,6 +29,7 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
     }
 
     /// Retrieves the block with the provided hash, if it exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn block_by_hash(&self, hash: &B256) -> Result<Option<BlockT>, RpcClientError> {
         let cache = self.cache.upgradable_read().await;
 
@@ -50,6 +51,7 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
     }
 
     /// Retrieves the block with the provided number, if it exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn block_by_number(&self, number: &U256) -> Result<BlockT, RpcClientError> {
         let cache = self.cache.upgradable_read().await;
 
@@ -66,6 +68,7 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
     }
 
     /// Retrieves the block that contains a transaction with the provided hash, if it exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn block_by_transaction_hash(
         &self,
         transaction_hash: &B256,
@@ -88,7 +91,6 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
             .get_transaction_by_hash(transaction_hash)
             .await?
         {
-            // TODO: is this true?
             self.block_by_hash(&transaction.block_hash.expect("Not a pending transaction"))
                 .await
         } else {
@@ -96,7 +98,13 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
         }
     }
 
+    /// Retrieves the instance's RPC client.
+    pub fn client(&self) -> &Arc<RpcClient> {
+        &self.client
+    }
+
     /// Retrieves the receipt of the transaction with the provided hash, if it exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn receipt_by_transaction_hash(
         &self,
         transaction_hash: &B256,
@@ -121,6 +129,7 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
     }
 
     /// Retrieves the total difficulty at the block with the provided hash.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn total_difficulty_by_hash(
         &self,
         hash: &B256,
@@ -147,6 +156,7 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
     }
 
     /// Fetches detailed block information and caches the block.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn fetch_and_cache_block(
         &self,
         cache: RwLockUpgradableReadGuard<'_, SparseBlockchainStorage<BlockT>>,
@@ -156,8 +166,7 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
             .total_difficulty
             .expect("Must be present as this is not a pending block");
 
-        let block: RemoteBlock = block
-            .try_into()
+        let block = RemoteBlock::new(block, self.client.clone())
             .expect("Conversion must succeed, as we're not retrieving a pending block");
 
         let is_cacheable = FORCE_CACHING
@@ -196,7 +205,7 @@ mod tests {
         // Latest block number is always unsafe to cache
         let block_number = rpc_client.block_number().await.unwrap();
 
-        let remote = RemoteBlockchain::<RemoteBlock, false>::new(rpc_client);
+        let remote = RemoteBlockchain::<RemoteBlock, false>::new(Arc::new(rpc_client));
 
         let _ = remote.block_by_number(&block_number).await.unwrap();
         assert!(remote

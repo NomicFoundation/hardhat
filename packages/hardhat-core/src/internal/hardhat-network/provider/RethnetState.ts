@@ -3,7 +3,7 @@ import {
   bufferToBigInt,
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
-import { StateManager, Account, Bytecode, RethnetContext } from "rethnet-evm";
+import { State, Account, Bytecode, RethnetContext } from "rethnet-evm";
 import { ForkConfig, GenesisAccount } from "./node-types";
 import { makeForkProvider } from "./utils/makeForkClient";
 
@@ -11,15 +11,14 @@ import { makeForkProvider } from "./utils/makeForkClient";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 export class RethnetStateManager {
-  constructor(private _state: StateManager) {}
+  constructor(private _state: State) {}
 
   public static withGenesisAccounts(
     context: RethnetContext,
     genesisAccounts: GenesisAccount[]
   ): RethnetStateManager {
     return new RethnetStateManager(
-      StateManager.withGenesisAccounts(
-        context,
+      State.withGenesisAccounts(
         genesisAccounts.map((account) => {
           return {
             privateKey: account.privateKey,
@@ -44,7 +43,7 @@ export class RethnetStateManager {
     }
 
     return new RethnetStateManager(
-      await StateManager.forkRemote(
+      await State.forkRemote(
         context,
         forkConfig.jsonRpcUrl,
         blockNumber,
@@ -55,13 +54,21 @@ export class RethnetStateManager {
           };
         })
       )
-      // TODO: consider changing StateManager.withFork() to also support
+      // TODO: consider changing State.withFork() to also support
       // passing in (and of course using) forkConfig.httpHeaders.
     );
   }
 
-  public asInner(): StateManager {
+  public asInner(): State {
     return this._state;
+  }
+
+  public setInner(state: State): void {
+    this._state = state;
+  }
+
+  public async deepClone(): Promise<RethnetStateManager> {
+    return new RethnetStateManager(await this._state.deepClone());
   }
 
   public async accountExists(address: Address): Promise<boolean> {
@@ -89,14 +96,6 @@ export class RethnetStateManager {
 
   public async deleteAccount(address: Address): Promise<void> {
     await this._state.removeAccount(address.buf);
-  }
-
-  public async makeSnapshot(): Promise<Buffer> {
-    return this._state.makeSnapshot();
-  }
-
-  public async removeSnapshot(stateRoot: Buffer): Promise<void> {
-    return this._state.removeSnapshot(stateRoot);
   }
 
   public async modifyAccount(
@@ -144,25 +143,8 @@ export class RethnetStateManager {
     await this._state.setAccountStorageSlot(address.buf, index, number);
   }
 
-  public async checkpoint(): Promise<void> {
-    return this._state.checkpoint();
-  }
-
-  public async commit(): Promise<void> {}
-
-  public async revert(): Promise<void> {
-    return this._state.revert();
-  }
-
   public async getStateRoot(): Promise<Buffer> {
     return this._state.getStateRoot();
-  }
-
-  public async setBlockContext(
-    stateRoot: Buffer,
-    blockNumber?: bigint
-  ): Promise<void> {
-    return this._state.setBlockContext(stateRoot, blockNumber);
   }
 
   public async serialize(): Promise<string> {

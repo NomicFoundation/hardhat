@@ -1,3 +1,5 @@
+use std::sync::OnceLock;
+
 use napi::bindgen_prelude::{BigInt, Buffer};
 use napi_derive::napi;
 use rethnet_eth::{transaction::TransactionKind, Address, Bytes};
@@ -91,6 +93,7 @@ impl TryFrom<EIP2930SignedTransaction> for rethnet_eth::transaction::EIP2930Sign
             odd_y_parity: value.odd_y_parity,
             r: value.r.try_cast()?,
             s: value.s.try_cast()?,
+            hash: OnceLock::new(),
         })
     }
 }

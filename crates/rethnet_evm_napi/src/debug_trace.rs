@@ -7,8 +7,7 @@ use std::collections::HashMap;
 
 use crate::transaction::signed::SignedTransaction;
 use crate::{
-    block::BlockConfig, blockchain::Blockchain, cast::TryCast, config::ConfigOptions,
-    state::StateManager,
+    block::BlockConfig, blockchain::Blockchain, cast::TryCast, config::ConfigOptions, state::State,
 };
 
 /// Get trace output for `debug_traceTransaction`
@@ -16,7 +15,7 @@ use crate::{
 #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
 pub async fn debug_trace_transaction(
     blockchain: &Blockchain,
-    state_manager: &StateManager,
+    state_manager: &State,
     evm_config: ConfigOptions,
     trace_config: DebugTraceConfig,
     block_config: BlockConfig,

@@ -8,12 +8,16 @@ import type { RpcDebugTraceOutput } from "../output";
 
 import { MessageTrace } from "../../stack-traces/message-trace";
 import { Bloom } from "../utils/bloom";
-
 import { Exit } from "./exit";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
 import { FakeSenderTransaction } from "../transactions/FakeSenderTransaction";
 import { FakeSenderAccessListEIP2930Transaction } from "../transactions/FakeSenderAccessListEIP2930Transaction";
 import { FakeSenderEIP1559Transaction } from "../transactions/FakeSenderEIP1559Transaction";
+
+export interface PartialTrace {
+  trace?: MessageTrace;
+  error?: Error;
+}
 
 export type Trace = any;
 
@@ -71,11 +75,7 @@ export interface VMAdapter {
   ): Promise<[RunTxResult, Trace]>;
 
   // methods for tracing
-  getLastTrace(): {
-    trace: MessageTrace | undefined;
-    error: Error | undefined;
-  };
-  clearLastError(): void;
+  getLastTraceAndClear(): PartialTrace;
   traceTransaction(
     hash: Buffer,
     block: Block,

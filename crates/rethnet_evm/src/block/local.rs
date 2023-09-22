@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use itertools::izip;
 use rethnet_eth::{
     block::{self, Header, PartialHeader},
@@ -102,6 +103,7 @@ impl LocalBlock {
     }
 }
 
+#[async_trait]
 impl Block for LocalBlock {
     type Error = BlockchainError;
 
@@ -119,6 +121,10 @@ impl Block for LocalBlock {
 
     fn transaction_callers(&self) -> &[Address] {
         &self.transaction_callers
+    }
+
+    async fn transaction_receipts(&self) -> Result<Vec<Arc<BlockReceipt>>, Self::Error> {
+        Ok(self.transaction_receipts.clone())
     }
 }
 

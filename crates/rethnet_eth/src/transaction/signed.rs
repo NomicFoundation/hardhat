@@ -87,6 +87,16 @@ impl SignedTransaction {
         U256::from(self.gas_limit()).saturating_mul(self.gas_price())
     }
 
+    /// Retrieves the max fee per gas of the transaction, if any.
+    pub fn max_priority_fee_per_gas(&self) -> Option<U256> {
+        match self {
+            SignedTransaction::PreEip155Legacy(_)
+            | SignedTransaction::PostEip155Legacy(_)
+            | SignedTransaction::Eip2930(_) => None,
+            SignedTransaction::Eip1559(tx) => Some(tx.max_priority_fee_per_gas),
+        }
+    }
+
     /// Upfront cost of the transaction
     pub fn upfront_cost(&self) -> U256 {
         self.max_cost().saturating_add(self.value())
@@ -130,7 +140,7 @@ impl SignedTransaction {
     }
 
     /// Computes the hash of the transaction.
-    pub fn hash(&self) -> B256 {
+    pub fn hash(&self) -> &B256 {
         match self {
             SignedTransaction::PreEip155Legacy(t) => t.hash(),
             SignedTransaction::PostEip155Legacy(t) => t.hash(),
@@ -319,6 +329,8 @@ impl TryFrom<SignedTransaction> for TxEnv {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::OnceLock;
+
     use bytes::Bytes;
 
     use super::*;
@@ -370,6 +382,7 @@ mod tests {
                     s: U256::default(),
                     v: 1,
                 },
+                hash: OnceLock::new(),
             }),
             SignedTransaction::PostEip155Legacy(EIP155SignedTransaction {
                 nonce: 0,
@@ -383,6 +396,7 @@ mod tests {
                     s: U256::default(),
                     v: 37,
                 },
+                hash: OnceLock::new(),
             }),
             SignedTransaction::Eip2930(EIP2930SignedTransaction {
                 chain_id: 1,
@@ -396,6 +410,7 @@ mod tests {
                 r: U256::default(),
                 s: U256::default(),
                 access_list: vec![].into(),
+                hash: OnceLock::new(),
             }),
             SignedTransaction::Eip1559(EIP1559SignedTransaction {
                 chain_id: 1u64,
@@ -410,6 +425,7 @@ mod tests {
                 odd_y_parity: true,
                 r: U256::default(),
                 s: U256::default(),
+                hash: OnceLock::new(),
             }),
         ];
 
@@ -446,6 +462,7 @@ mod tests {
                 )
                 .unwrap(),
             },
+            hash: OnceLock::new(),
         });
         assert_eq!(expected, rlp::decode(&bytes_first).unwrap());
 
@@ -470,6 +487,7 @@ mod tests {
                 )
                 .unwrap(),
             },
+            hash: OnceLock::new(),
         });
         assert_eq!(expected, rlp::decode(&bytes_second).unwrap());
 
@@ -494,6 +512,7 @@ mod tests {
                 )
                 .unwrap(),
             },
+            hash: OnceLock::new(),
         });
         assert_eq!(expected, rlp::decode(&bytes_third).unwrap());
 
@@ -515,6 +534,7 @@ mod tests {
                 .unwrap(),
             s: U256::from_str("0x016b83f4f980694ed2eee4d10667242b1f40dc406901b34125b008d334d47469")
                 .unwrap(),
+            hash: OnceLock::new(),
         });
         assert_eq!(expected, rlp::decode(&bytes_fourth).unwrap());
 
@@ -539,6 +559,7 @@ mod tests {
                 )
                 .unwrap(),
             },
+            hash: OnceLock::new(),
         });
         assert_eq!(expected, rlp::decode(&bytes_fifth).unwrap());
     }

@@ -49,7 +49,7 @@ where
 #[derive(Debug, thiserror::Error)]
 pub enum TransactionCreationError<SE> {
     /// Creating contract without any data.
-    #[error("Creating contract without any data")]
+    #[error("Contract creation without any data provided")]
     ContractMissingData,
     /// Sender does not have enough funds to send transaction.
     #[error("Sender doesn't have enough funds to send tx. The max upfront cost is: {max_upfront_cost} and the sender's balance is: {sender_balance}.")]
@@ -60,7 +60,7 @@ pub enum TransactionCreationError<SE> {
         sender_balance: U256,
     },
     /// Transaction gas limit is insufficient to afford initial gas cost.
-    #[error("Transaction gas limit is insufficient to afford initial gas cost. The initial gas cost is: {initial_gas_cost} and the transaction's gas limit is: {gas_limit}.")]
+    #[error("Transaction requires at least {initial_gas_cost} gas but got {gas_limit}")]
     InsufficientGas {
         /// The initial gas cost of a transaction
         initial_gas_cost: U256,
@@ -68,7 +68,7 @@ pub enum TransactionCreationError<SE> {
         gas_limit: U256,
     },
     /// Transaction nonce is too low.
-    #[error("Transaction nonce is too low. Expected nonce to be at least: {sender_nonce}, but received {transaction_nonce}.")]
+    #[error("Transaction nonce too low. Expected nonce to be at least {sender_nonce} but got {transaction_nonce}.")]
     NonceTooLow {
         /// Transaction's nonce.
         transaction_nonce: u64,

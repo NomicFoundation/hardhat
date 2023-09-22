@@ -13,8 +13,11 @@ import {
 import {
   Address,
   BufferLike,
+  bigIntToHex,
+  bufferToHex,
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
+import { PostByzantiumTxReceipt } from "@nomicfoundation/ethereumjs-vm";
 import {
   Block as RethnetBlock,
   BlockConfig,
@@ -26,23 +29,28 @@ import {
   LegacySignedTransaction,
   Eip1559SignedTransaction,
   Eip2930SignedTransaction,
+  Receipt as RethnetReceipt,
   ExecutionLog,
   DebugTraceResult,
   DebugTraceConfig,
+  Log,
+  MineOrdering,
 } from "rethnet-evm";
-import { fromBigIntLike } from "../../../util/bigint";
-import { HardforkName } from "../../../util/hardforks";
+import { fromBigIntLike, toHex } from "../../../util/bigint";
+import { HardforkName, hardforkGte } from "../../../util/hardforks";
 import {
   isCreateOutput,
   isHaltResult,
   isRevertResult,
   isSuccessResult,
 } from "../../stack-traces/message-trace";
-import { Exit, ExitCode } from "../vm/exit";
-import { RunTxResult } from "../vm/vm-adapter";
+import { MempoolOrder } from "../node-types";
+import { RpcLogOutput, RpcReceiptOutput } from "../output";
 import { FakeSenderEIP1559Transaction } from "../transactions/FakeSenderEIP1559Transaction";
 import { FakeSenderAccessListEIP2930Transaction } from "../transactions/FakeSenderAccessListEIP2930Transaction";
 import { FakeSenderTransaction } from "../transactions/FakeSenderTransaction";
+import { Exit, ExitCode } from "../vm/exit";
+import { RunTxResult } from "../vm/vm-adapter";
 import { RpcDebugTraceOutput, RpcStructLog } from "../output";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import { Bloom } from "./bloom";
@@ -97,7 +105,9 @@ export function rethnetBlockHeaderToEthereumJSBlockData(
   };
 }
 
-export function ethereumsjsHardforkToRethnet(hardfork: HardforkName): SpecId {
+export function ethereumsjsHardforkToRethnetSpecId(
+  hardfork: HardforkName
+): SpecId {
   switch (hardfork) {
     case HardforkName.FRONTIER:
       return SpecId.Frontier;
@@ -136,6 +146,45 @@ export function ethereumsjsHardforkToRethnet(hardfork: HardforkName): SpecId {
       throw new Error(
         `Unknown hardfork name '${hardfork as string}', this shouldn't happen`
       );
+  }
+}
+
+export function rethnetSpecIdToEthereumHardfork(specId: SpecId): HardforkName {
+  switch (specId) {
+    case SpecId.Frontier:
+      return HardforkName.FRONTIER;
+    case SpecId.Homestead:
+      return HardforkName.HOMESTEAD;
+    case SpecId.DaoFork:
+      return HardforkName.DAO;
+    case SpecId.Tangerine:
+      return HardforkName.TANGERINE_WHISTLE;
+    case SpecId.SpuriousDragon:
+      return HardforkName.SPURIOUS_DRAGON;
+    case SpecId.Byzantium:
+      return HardforkName.BYZANTIUM;
+    case SpecId.Constantinople:
+      return HardforkName.CONSTANTINOPLE;
+    case SpecId.Petersburg:
+      return HardforkName.PETERSBURG;
+    case SpecId.Istanbul:
+      return HardforkName.ISTANBUL;
+    case SpecId.MuirGlacier:
+      return HardforkName.MUIR_GLACIER;
+    case SpecId.Berlin:
+      return HardforkName.BERLIN;
+    case SpecId.London:
+      return HardforkName.LONDON;
+    case SpecId.ArrowGlacier:
+      return HardforkName.ARROW_GLACIER;
+    case SpecId.GrayGlacier:
+      return HardforkName.GRAY_GLACIER;
+    case SpecId.Merge:
+      return HardforkName.MERGE;
+    case SpecId.Shanghai:
+      return HardforkName.SHANGHAI;
+    default:
+      throw new Error(`Unknown spec id '${specId}', this shouldn't happen`);
   }
 }
 
@@ -192,6 +241,17 @@ export function ethereumjsHeaderDataToRethnetBlockOptions(
     nonce: fromBufferLike(headerData.nonce),
     baseFee: fromBigIntLike(headerData.baseFeePerGas),
   };
+}
+
+export function ethereumjsMempoolOrderToRethnetMineOrdering(
+  mempoolOrder: MempoolOrder
+): MineOrdering {
+  switch (mempoolOrder) {
+    case "fifo":
+      return MineOrdering.Fifo;
+    case "priority":
+      return MineOrdering.Priority;
+  }
 }
 
 export function ethereumjsTransactionToRethnetSignedTransaction(
@@ -345,6 +405,74 @@ function rethnetLogsToBloom(logs: ExecutionLog[]): Bloom {
   return bloom;
 }
 
+export function rethnetReceiptToEthereumJsTxReceipt(
+  receipt: RethnetReceipt
+): PostByzantiumTxReceipt {
+  return {
+    status: receipt.status! > 0 ? 1 : 0,
+    cumulativeBlockGasUsed: receipt.cumulativeGasUsed,
+    bitvector: receipt.logsBloom,
+    logs: receipt.logs.map((log) => {
+      return [log.address, log.topics, log.data];
+    }),
+  };
+}
+
+export function rethnetReceiptToEthereumJS(
+  receipt: RethnetReceipt,
+  hardfork: HardforkName
+): RpcReceiptOutput {
+  return {
+    blockHash: bufferToHex(receipt.blockHash),
+    blockNumber: bigIntToHex(receipt.blockNumber),
+    contractAddress:
+      receipt.contractAddress !== null
+        ? bufferToHex(receipt.contractAddress)
+        : null,
+    cumulativeGasUsed: bigIntToHex(receipt.cumulativeGasUsed),
+    from: bufferToHex(receipt.caller),
+    gasUsed: bigIntToHex(receipt.gasUsed),
+    logs: receipt.logs.map((log) => {
+      return rethnetLogToEthereumJS(log);
+    }),
+    logsBloom: bufferToHex(receipt.logsBloom),
+    to: receipt.callee !== null ? bufferToHex(receipt.callee) : null,
+    transactionHash: bufferToHex(receipt.transactionHash),
+    transactionIndex: bigIntToHex(receipt.transactionIndex),
+    status: receipt.status !== null ? toHex(receipt.status) : undefined,
+    root:
+      receipt.stateRoot !== null ? bufferToHex(receipt.stateRoot) : undefined,
+    // Only shown if the local hardfork is at least Berlin, or if the remote is not a legacy one
+    type:
+      hardforkGte(hardfork, HardforkName.BERLIN) || receipt.type >= 1n
+        ? bigIntToHex(receipt.type)
+        : undefined,
+    // Only shown if the local hardfork is at least London, or if the remote is EIP-1559
+    effectiveGasPrice:
+      hardforkGte(hardfork, HardforkName.LONDON) || receipt.type >= 2n
+        ? bigIntToHex(receipt.effectiveGasPrice)
+        : undefined,
+  };
+}
+
+export function rethnetLogToEthereumJS(log: Log): RpcLogOutput {
+  return {
+    address: bufferToHex(log.address),
+    blockHash: log.blockHash !== null ? bufferToHex(log.blockHash) : null,
+    blockNumber: log.blockNumber !== null ? bigIntToHex(log.blockNumber) : null,
+    data: bufferToHex(log.data),
+    logIndex: log.logIndex !== null ? bigIntToHex(log.logIndex) : null,
+    removed: log.removed,
+    topics: log.topics.map((topic) => {
+      return bufferToHex(topic);
+    }),
+    transactionHash:
+      log.transactionHash !== null ? bufferToHex(log.transactionHash) : null,
+    transactionIndex:
+      log.transactionIndex !== null ? bigIntToHex(log.transactionIndex) : null,
+  };
+}
+
 export function rethnetResultToRunTxResult(
   rethnetResult: ExecutionResult,
   blockGasUsed: bigint
@@ -381,7 +509,7 @@ export function rethnetResultToRunTxResult(
     receipt: {
       // Receipts have a 0 as status on error
       status: exit.isError() ? 0 : 1,
-      cumulativeBlockGasUsed: blockGasUsed + rethnetResult.result.gasUsed,
+      cumulativeBlockGasUsed: blockGasUsed,
       bitvector: bloom.bitvector,
       logs: isSuccessResult(rethnetResult.result)
         ? rethnetResult.result.logs.map((log) => {
@@ -392,7 +520,7 @@ export function rethnetResultToRunTxResult(
   };
 }
 
-function rethnetSignedTransactionToEthereumJSTypedTransaction(
+export function rethnetSignedTransactionToEthereumJSTypedTransaction(
   transaction:
     | LegacySignedTransaction
     | Eip2930SignedTransaction

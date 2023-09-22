@@ -1,3 +1,5 @@
+use std::sync::OnceLock;
+
 use bytes::Bytes;
 use revm_primitives::{keccak256, B256, U256};
 use secp256k1::SecretKey;
@@ -52,6 +54,7 @@ impl EIP1559TransactionRequest {
             odd_y_parity: signature.odd_y_parity(),
             r: signature.r,
             s: signature.s,
+            hash: OnceLock::new(),
         }
     }
 }

@@ -1,3 +1,5 @@
+use std::sync::OnceLock;
+
 use napi::bindgen_prelude::{BigInt, Buffer};
 use napi_derive::napi;
 use rethnet_eth::{transaction::TransactionKind, Address, Bytes};
@@ -88,6 +90,7 @@ impl TryFrom<LegacySignedTransaction> for rethnet_eth::transaction::EIP155Signed
             value: value.value.try_cast()?,
             input: Bytes::copy_from_slice(value.input.as_ref()),
             signature: value.signature.try_into()?,
+            hash: OnceLock::new(),
         })
     }
 }
@@ -109,6 +112,7 @@ impl TryFrom<LegacySignedTransaction> for rethnet_eth::transaction::LegacySigned
             value: value.value.try_cast()?,
             input: Bytes::copy_from_slice(value.input.as_ref()),
             signature: value.signature.try_into()?,
+            hash: OnceLock::new(),
         })
     }
 }

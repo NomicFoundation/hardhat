@@ -19,13 +19,14 @@ pub struct SparseBlockchainStorage<BlockT: Block + Clone + ?Sized> {
 
 impl<BlockT: Block + Clone + ?Sized> SparseBlockchainStorage<BlockT> {
     /// Constructs a new instance with the provided block.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn with_block(block: BlockT, total_difficulty: U256) -> Self {
         let block_hash = block.hash();
 
         let transaction_hash_to_block = block
             .transactions()
             .iter()
-            .map(|transaction| (transaction.hash(), block.clone()))
+            .map(|transaction| (*transaction.hash(), block.clone()))
             .collect();
 
         let mut hash_to_block = HashMap::new();
@@ -47,26 +48,31 @@ impl<BlockT: Block + Clone + ?Sized> SparseBlockchainStorage<BlockT> {
     }
 
     /// Retrieves the block by hash, if it exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn block_by_hash(&self, hash: &B256) -> Option<&BlockT> {
         self.hash_to_block.get(hash)
     }
 
     /// Retrieves the block by number, if it exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn block_by_number(&self, number: &U256) -> Option<&BlockT> {
         self.number_to_block.get(number)
     }
 
     /// Retrieves the block that contains the transaction with the provided hash, if it exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn block_by_transaction_hash(&self, transaction_hash: &B256) -> Option<&BlockT> {
         self.transaction_hash_to_block.get(transaction_hash)
     }
 
     /// Retrieves whether a block with the provided number exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn contains_block_number(&self, number: &U256) -> bool {
         self.number_to_block.contains_key(number)
     }
 
     /// Retrieves the receipt of the transaction with the provided hash, if it exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn receipt_by_transaction_hash(
         &self,
         transaction_hash: &B256,
@@ -75,6 +81,7 @@ impl<BlockT: Block + Clone + ?Sized> SparseBlockchainStorage<BlockT> {
     }
 
     /// Reverts to the block with the provided number, deleting all later blocks.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn revert_to_block(&mut self, block_number: &U256) {
         let removed_blocks = self
             .number_to_block
@@ -85,17 +92,24 @@ impl<BlockT: Block + Clone + ?Sized> SparseBlockchainStorage<BlockT> {
 
             self.hash_to_block.remove(block_hash);
             self.hash_to_total_difficulty.remove(block_hash);
-            self.transaction_hash_to_block.remove(block_hash);
-            self.transaction_hash_to_receipt.remove(block_hash);
+
+            for transaction in block.transactions() {
+                let transaction_hash = transaction.hash();
+
+                self.transaction_hash_to_block.remove(transaction_hash);
+                self.transaction_hash_to_receipt.remove(transaction_hash);
+            }
         }
     }
 
     /// Retrieves the total difficulty of the block with the provided hash.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn total_difficulty_by_hash(&self, hash: &B256) -> Option<&U256> {
         self.hash_to_total_difficulty.get(hash)
     }
 
     /// Inserts a block, failing if a block with the same hash or number already exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn insert_block(
         &mut self,
         block: BlockT,
@@ -115,10 +129,10 @@ impl<BlockT: Block + Clone + ?Sized> SparseBlockchainStorage<BlockT> {
 
         if let Some(transaction) = block.transactions().iter().find(|transaction| {
             self.transaction_hash_to_block
-                .contains_key(&transaction.hash())
+                .contains_key(transaction.hash())
         }) {
             return Err(InsertError::DuplicateTransaction {
-                hash: transaction.hash(),
+                hash: *transaction.hash(),
             });
         }
 
@@ -132,6 +146,7 @@ impl<BlockT: Block + Clone + ?Sized> SparseBlockchainStorage<BlockT> {
     ///
     /// Ensure that the instance does not contain a block with the same hash or number,
     /// nor any transactions with the same hash.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub unsafe fn insert_block_unchecked(
         &mut self,
         block: BlockT,
@@ -143,7 +158,7 @@ impl<BlockT: Block + Clone + ?Sized> SparseBlockchainStorage<BlockT> {
             block
                 .transactions()
                 .iter()
-                .map(|transaction| (transaction.hash(), block.clone())),
+                .map(|transaction| (*transaction.hash(), block.clone())),
         );
 
         self.hash_to_block
@@ -162,6 +177,7 @@ impl<BlockT: Block + Clone + ?Sized> SparseBlockchainStorage<BlockT> {
     /// # Safety
     ///
     /// Ensure that the instance does not contain a receipt with the same transaction hash.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub unsafe fn insert_receipt_unchecked(&mut self, receipt: BlockReceipt) -> &Arc<BlockReceipt> {
         let receipt = Arc::new(receipt);
 
@@ -176,13 +192,23 @@ impl<BlockT: Block + Clone + ?Sized> SparseBlockchainStorage<BlockT> {
     ///
     /// Ensure that the instance does not contain a receipt with the same transaction hash
     /// as any of the inputs.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub unsafe fn insert_receipts_unchecked(
         &mut self,
-        receipts: impl Iterator<Item = Arc<BlockReceipt>>,
+        receipts: Vec<Arc<BlockReceipt>>,
         block: BlockT,
     ) {
-        self.transaction_hash_to_block
-            .extend(receipts.map(|receipt| (receipt.transaction_hash, block.clone())));
+        self.transaction_hash_to_receipt.extend(
+            receipts
+                .iter()
+                .map(|receipt| (receipt.transaction_hash, receipt.clone())),
+        );
+
+        self.transaction_hash_to_block.extend(
+            receipts
+                .into_iter()
+                .map(|receipt| (receipt.transaction_hash, block.clone())),
+        );
     }
 }
 

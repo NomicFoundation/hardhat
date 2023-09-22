@@ -8,6 +8,7 @@ import {
 import {
   Compiler,
   CompilerDownloader,
+  CompilerPlatform,
 } from "../../../../src/internal/solidity/compiler/downloader";
 import { getCompilersDir } from "../../../../src/internal/util/global-dir";
 
@@ -163,9 +164,8 @@ async function getCompilerForVersion(
   solidityVersion: string
 ): Promise<Compiler> {
   const compilersCache = await getCompilersDir();
-  const compilerPlatform = CompilerDownloader.getCompilerPlatform();
   const downloader = CompilerDownloader.getConcurrencySafeDownloader(
-    compilerPlatform,
+    CompilerPlatform.WASM,
     compilersCache
   );
   const compiler = await downloader.getCompiler(solidityVersion);
@@ -178,9 +178,8 @@ async function getCompilerForVersion(
 
 export async function downloadCompiler(solidityVersion: string) {
   const compilersCache = await getCompilersDir();
-  const compilerPlatform = CompilerDownloader.getCompilerPlatform();
   const downloader = CompilerDownloader.getConcurrencySafeDownloader(
-    compilerPlatform,
+    CompilerPlatform.WASM,
     compilersCache
   );
 

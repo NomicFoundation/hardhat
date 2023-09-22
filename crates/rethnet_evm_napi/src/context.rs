@@ -1,10 +1,6 @@
 use std::{io, ops::Deref, sync::Arc};
 
-use napi::{
-    bindgen_prelude::Buffer,
-    tokio::runtime::{self, Builder, Runtime},
-    Status,
-};
+use napi::{bindgen_prelude::Buffer, Status};
 use napi_derive::napi;
 use parking_lot::Mutex;
 use rethnet_eth::B256;
@@ -53,7 +49,6 @@ impl RethnetContext {
 
 #[derive(Debug)]
 pub struct Context {
-    runtime: Runtime,
     pub state_root_generator: Arc<Mutex<RandomHashGenerator>>,
     #[cfg(feature = "tracing")]
     _tracing_write_guard: tracing_flame::FlushGuard<std::io::BufWriter<std::fs::File>>,
@@ -87,23 +82,12 @@ impl Context {
         tracing::subscriber::set_global_default(subscriber)
             .expect("Could not set global default tracing subscriber");
 
-        let runtime = Builder::new_multi_thread()
-            .enable_io()
-            .enable_time()
-            .build()?;
-
         let state_root_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed")));
 
         Ok(Self {
-            runtime,
             state_root_generator,
             #[cfg(feature = "tracing")]
             _tracing_write_guard: guard,
         })
-    }
-
-    /// Retrieves the context's runtime.
-    pub fn runtime(&self) -> &runtime::Handle {
-        self.runtime.handle()
     }
 }

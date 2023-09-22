@@ -155,6 +155,30 @@ pub struct RpcClient {
 }
 
 impl RpcClient {
+    /// Create a new instance, given a remote node URL.
+    /// The cache directory is the global EDR cache directory configured by the user.
+    pub fn new(url: &str, cache_dir: PathBuf) -> Self {
+        let retry_policy = ExponentialBackoff::builder()
+            .retry_bounds(MIN_RETRY_INTERVAL, MAX_RETRY_INTERVAL)
+            .backoff_exponent(BACKOFF_EXPONENT)
+            .build_with_total_retry_duration(TOTAL_RETRY_DURATION);
+        let client = HttpClientBuilder::new(HttpClient::new())
+            .with(RetryTransientMiddleware::new_with_policy_and_strategy(
+                retry_policy,
+                RetryStrategy,
+            ))
+            .build();
+
+        RpcClient {
+            url: url.to_string(),
+            chain_id: OnceCell::new(),
+            cached_block_number: RwLock::new(None),
+            client,
+            next_id: AtomicU64::new(0),
+            rpc_cache_dir: cache_dir.join(RPC_CACHE_DIR),
+        }
+    }
+
     fn parse_response_str<T: DeserializeOwned>(response: &str) -> Result<T, RpcClientError> {
         serde_json::from_str(response).map_err(|error| RpcClientError::InvalidResponse {
             response: response.to_string(),
@@ -591,30 +615,6 @@ impl RpcClient {
                 })
             })
             .collect()
-    }
-
-    /// Create a new instance, given a remote node URL.
-    /// The cache directory is the global EDR cache directory configured by the user.
-    pub fn new(url: &str, cache_dir: PathBuf) -> Self {
-        let retry_policy = ExponentialBackoff::builder()
-            .retry_bounds(MIN_RETRY_INTERVAL, MAX_RETRY_INTERVAL)
-            .backoff_exponent(BACKOFF_EXPONENT)
-            .build_with_total_retry_duration(TOTAL_RETRY_DURATION);
-        let client = HttpClientBuilder::new(HttpClient::new())
-            .with(RetryTransientMiddleware::new_with_policy_and_strategy(
-                retry_policy,
-                RetryStrategy,
-            ))
-            .build();
-
-        RpcClient {
-            url: url.to_string(),
-            chain_id: OnceCell::new(),
-            cached_block_number: RwLock::new(None),
-            client,
-            next_id: AtomicU64::new(0),
-            rpc_cache_dir: cache_dir.join(RPC_CACHE_DIR),
-        }
     }
 
     /// Calls `eth_blockNumber` and returns the block number.

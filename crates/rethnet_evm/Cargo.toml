@@ -38,7 +38,7 @@ serial_test = "2.0.0"
 tempfile = "3.7.1"
 
 [features]
-bench-once = [] # limits the benchmark variants to one
+bench-once = []           # limits the benchmark variants to one
 test-remote = []
 tracing = ["dep:tracing"]
 
@@ -48,18 +48,13 @@ path = "benches/state/database_commit.rs"
 harness = false
 
 [[bench]]
+name = "state_clone"
+path = "benches/state/state_clone.rs"
+harness = false
+
+[[bench]]
 name = "state_debug"
 path = "benches/state/state_debug.rs"
-harness = false
-
-[[bench]]
-name = "state_history"
-path = "benches/state/state_history.rs"
-harness = false
-
-[[bench]]
-name = "state_history_block_context"
-path = "benches/state/state_history_block_context.rs"
 harness = false
 
 [[bench]]

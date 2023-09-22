@@ -45,17 +45,8 @@ where
     }
 
     for tx in transactions {
-        let tx_hash = tx.hash();
-
-        let evm = build_evm(
-            blockchain,
-            state,
-            evm_config.clone(),
-            tx.try_into()?,
-            block_env.clone(),
-        );
-
-        if tx_hash == transaction_hash {
+        if tx.hash() == &transaction_hash {
+            let evm = build_evm(blockchain, state, evm_config, tx.try_into()?, block_env);
             let mut tracer = TracerEip3155::new(trace_config);
             let ResultAndState {
                 result: execution_result,
@@ -88,6 +79,13 @@ where
 
             return Ok(debug_result);
         } else {
+            let evm = build_evm(
+                blockchain,
+                state,
+                evm_config.clone(),
+                tx.try_into()?,
+                block_env.clone(),
+            );
             let ResultAndState { state: changes, .. } =
                 evm.transact_ref().map_err(TransactionError::from)?;
             state.commit(changes);

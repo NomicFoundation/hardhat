@@ -2,8 +2,9 @@ use std::{fmt::Debug, num::NonZeroUsize, sync::Arc};
 
 use parking_lot::{RwLock, RwLockUpgradableReadGuard, RwLockWriteGuard};
 use rethnet_eth::{block::PartialHeader, receipt::BlockReceipt, SpecId, B256, U256};
+use revm::primitives::HashMap;
 
-use crate::{Block, LocalBlock};
+use crate::{state::StateDiff, Block, LocalBlock};
 
 use super::SparseBlockchainStorage;
 
@@ -16,6 +17,7 @@ struct Reservation {
     previous_base_fee_per_gas: Option<U256>,
     previous_state_root: B256,
     previous_total_difficulty: U256,
+    previous_diff_index: usize,
     spec_id: SpecId,
 }
 
@@ -24,34 +26,47 @@ struct Reservation {
 pub struct ReservableSparseBlockchainStorage<BlockT: Block + Clone + ?Sized> {
     reservations: RwLock<Vec<Reservation>>,
     storage: RwLock<SparseBlockchainStorage<BlockT>>,
+    // We can store the state diffs contiguously, as reservations don't contain any diffs.
+    // Diffs are a mapping from one state to the next, so the genesis state does not have a
+    // corresponding diff.
+    state_diffs: Vec<StateDiff>,
+    number_to_diff_index: HashMap<U256, usize>,
     last_block_number: U256,
 }
 
 impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
-    /// Constructs a new instance with the provided block.
-    pub fn with_block(block: BlockT, total_difficulty: U256) -> Self {
+    /// Constructs a new instance with the provided block as genesis block.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+    pub fn with_genesis_block(block: BlockT, total_difficulty: U256) -> Self {
         Self {
             reservations: RwLock::new(Vec::new()),
-            last_block_number: block.header().number,
             storage: RwLock::new(SparseBlockchainStorage::with_block(block, total_difficulty)),
+            state_diffs: Vec::new(),
+            number_to_diff_index: HashMap::new(),
+            last_block_number: U256::ZERO,
         }
     }
 
     /// Constructs a new instance with no blocks.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn empty(latest_block_number: U256) -> Self {
         Self {
             reservations: RwLock::new(Vec::new()),
             storage: RwLock::new(SparseBlockchainStorage::default()),
+            state_diffs: Vec::new(),
+            number_to_diff_index: HashMap::new(),
             last_block_number: latest_block_number,
         }
     }
 
     /// Retrieves the block by hash, if it exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn block_by_hash(&self, hash: &B256) -> Option<BlockT> {
         self.storage.read().block_by_hash(hash).cloned()
     }
 
     /// Retrieves the block that contains the transaction with the provided hash, if it exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn block_by_transaction_hash(&self, transaction_hash: &B256) -> Option<BlockT> {
         self.storage
             .read()
@@ -60,41 +75,9 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
     }
 
     /// Retrieves whether a block with the provided number exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn contains_block_number(&self, number: &U256) -> bool {
         self.storage.read().contains_block_number(number)
-    }
-
-    /// Inserts a block without checking its validity.
-    ///
-    /// # Safety
-    ///
-    /// Ensure that the instance does not contain a block with the same hash or number,
-    /// nor any transactions with the same hash.
-    pub unsafe fn insert_block_unchecked(
-        &mut self,
-        block: BlockT,
-        total_difficulty: U256,
-    ) -> &BlockT {
-        self.last_block_number = block.header().number;
-
-        self.storage
-            .get_mut()
-            .insert_block_unchecked(block, total_difficulty)
-    }
-
-    /// Inserts receipts, without checking whether they already exist.
-    ///
-    /// # Safety
-    ///
-    /// Ensure that the instance does not contain a receipt with the same transaction hash
-    /// as any of the inputs.
-    pub unsafe fn insert_receipts_unchecked(
-        &mut self,
-        receipts: impl Iterator<Item = Arc<BlockReceipt>>,
-        block: BlockT,
-    ) {
-        let storage = self.storage.get_mut();
-        storage.insert_receipts_unchecked(receipts, block);
     }
 
     /// Retrieves the last block number.
@@ -102,7 +85,26 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
         &self.last_block_number
     }
 
+    /// Retrieves the sequence of diffs from the genesis state to the state of the block with
+    /// the provided number, if it exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+    pub fn state_diffs_until_block(&self, block_number: &U256) -> Option<&[StateDiff]> {
+        let diff_index = self
+            .number_to_diff_index
+            .get(block_number)
+            .copied()
+            .or_else(|| {
+                self.reservations
+                    .read()
+                    .last()
+                    .map(|reservation| reservation.previous_diff_index)
+            })?;
+
+        Some(&self.state_diffs[..=diff_index])
+    }
+
     /// Retrieves the receipt of the transaction with the provided hash, if it exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn receipt_by_transaction_hash(
         &self,
         transaction_hash: &B256,
@@ -114,6 +116,7 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
     }
 
     /// Reserves the provided number of blocks, starting from the next block number.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn reserve_blocks(
         &mut self,
         additional: NonZeroUsize,
@@ -130,6 +133,7 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
             previous_base_fee_per_gas: previous_base_fee,
             previous_state_root,
             previous_total_difficulty,
+            previous_diff_index: self.state_diffs.len(),
             spec_id,
         };
 
@@ -138,6 +142,7 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
     }
 
     /// Reverts to the block with the provided number, deleting all later blocks.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn revert_to_block(&mut self, block_number: &U256) -> bool {
         if *block_number > self.last_block_number {
             return false;
@@ -145,24 +150,46 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
 
         self.last_block_number = *block_number;
 
-        // Only retain reservations that are not fully reverted
-        self.reservations.get_mut().retain_mut(|reservation| {
-            if reservation.last_number <= *block_number {
-                true
-            } else if reservation.first_number <= *block_number {
-                reservation.last_number = *block_number;
-                true
-            } else {
-                false
-            }
-        });
-
         self.storage.get_mut().revert_to_block(block_number);
+
+        if *block_number == U256::ZERO {
+            // Reservations and state diffs can only occur after the genesis block,
+            // so we can clear them all
+            self.reservations.get_mut().clear();
+
+            self.state_diffs.clear();
+            self.number_to_diff_index.clear();
+        } else {
+            // Only retain reservations that are not fully reverted
+            self.reservations.get_mut().retain_mut(|reservation| {
+                if reservation.last_number <= *block_number {
+                    true
+                } else if reservation.first_number <= *block_number {
+                    reservation.last_number = *block_number;
+                    true
+                } else {
+                    false
+                }
+            });
+
+            // Remove all diffs that are newer than the reverted block
+            let diff_index = self
+                .number_to_diff_index
+                .get(block_number)
+                .copied()
+                .unwrap_or_else(|| self.reservations.get_mut().last().expect("There must either be a block or a reservation matching the block number").previous_diff_index);
+
+            self.state_diffs.truncate(diff_index + 1);
+
+            self.number_to_diff_index
+                .retain(|number, _| number <= block_number);
+        }
 
         true
     }
 
     /// Retrieves the total difficulty of the block with the provided hash.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn total_difficulty_by_hash(&self, hash: &B256) -> Option<U256> {
         self.storage.read().total_difficulty_by_hash(hash).cloned()
     }
@@ -170,11 +197,44 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
 
 impl<BlockT: Block + Clone + From<LocalBlock>> ReservableSparseBlockchainStorage<BlockT> {
     /// Retrieves the block by number, if it exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn block_by_number(&self, number: &U256) -> Option<BlockT> {
         self.try_fulfilling_reservation(number)
             .or_else(|| self.storage.read().block_by_number(number).cloned())
     }
 
+    /// Inserts a block without checking its validity.
+    ///
+    /// # Safety
+    ///
+    /// Ensure that the instance does not contain a block with the same hash or number,
+    /// nor any transactions with the same hash.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+    pub unsafe fn insert_block_unchecked(
+        &mut self,
+        block: LocalBlock,
+        state_diff: StateDiff,
+        total_difficulty: U256,
+    ) -> &BlockT {
+        self.last_block_number = block.header().number;
+        self.number_to_diff_index
+            .insert(self.last_block_number, self.state_diffs.len());
+
+        self.state_diffs.push(state_diff);
+
+        let receipts: Vec<_> = block.transaction_receipts().to_vec();
+        let block = BlockT::from(block);
+
+        self.storage
+            .get_mut()
+            .insert_receipts_unchecked(receipts, block.clone());
+
+        self.storage
+            .get_mut()
+            .insert_block_unchecked(block, total_difficulty)
+    }
+
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn try_fulfilling_reservation(&self, block_number: &U256) -> Option<BlockT> {
         let reservations = self.reservations.upgradable_read();
 
@@ -242,6 +302,7 @@ impl<BlockT: Block + Clone + From<LocalBlock>> ReservableSparseBlockchainStorage
     }
 }
 
+#[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
 fn calculate_timestamp_for_reserved_block<BlockT: Block + Clone>(
     storage: &SparseBlockchainStorage<BlockT>,
     reservations: &Vec<Reservation>,

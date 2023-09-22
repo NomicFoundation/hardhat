@@ -4,24 +4,20 @@ use crate::collections::SharedMap;
 
 pub use self::account::AccountTrie;
 
-use rethnet_eth::{
-    account::{BasicAccount, KECCAK_EMPTY},
-    trie::KECCAK_NULL_RLP,
-    Address, B160, B256, U256,
-};
+use rethnet_eth::{account::KECCAK_EMPTY, Address, B160, B256, U256};
 use revm::{
     db::StateRef,
     primitives::{Account, AccountInfo, Bytecode, HashMap},
     DatabaseCommit,
 };
 
-use super::{layered::LayeredChanges, RethnetLayer, StateDebug, StateError};
+use super::{StateDebug, StateError};
 
 /// An implementation of revm's state that uses a trie.
 #[derive(Clone, Debug)]
 pub struct TrieState {
     accounts: AccountTrie,
-    contracts: SharedMap<B256, Bytecode, true>,
+    contracts: SharedMap<B256, Bytecode>,
 }
 
 impl TrieState {
@@ -214,30 +210,5 @@ impl StateDebug for TrieState {
 
     fn state_root(&self) -> Result<B256, Self::Error> {
         Ok(self.accounts.state_root())
-    }
-}
-
-impl From<&LayeredChanges<RethnetLayer>> for TrieState {
-    fn from(changes: &LayeredChanges<RethnetLayer>) -> Self {
-        let accounts = AccountTrie::from_changes(changes.rev().map(|layer| {
-            layer.accounts().map(|(address, account)| {
-                (
-                    address,
-                    account.as_ref().map(|account| {
-                        (
-                            BasicAccount::from((&account.info, KECCAK_NULL_RLP)),
-                            &account.storage,
-                        )
-                    }),
-                )
-            })
-        }));
-
-        let contracts = SharedMap::from(changes);
-
-        Self {
-            accounts,
-            contracts,
-        }
     }
 }

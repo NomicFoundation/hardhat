@@ -4,7 +4,7 @@ import { assert } from "chai";
 import { List } from "immutable";
 
 import { SerializedTransaction } from "../../../../../src/internal/hardhat-network/provider/PoolState";
-import { deserializeTransaction } from "../../../../../src/internal/hardhat-network/provider/TxPool";
+import { deserializeTransaction } from "../../../../../src/internal/hardhat-network/provider/mem-pool/hardhat";
 import { reorganizeTransactionsLists } from "../../../../../src/internal/hardhat-network/provider/utils/reorganizeTransactionsLists";
 import {
   createTestOrderedTransaction,

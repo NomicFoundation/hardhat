@@ -24,7 +24,7 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   PROVIDERS,
 } from "../../../../helpers/providers";
-import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
+import { retrieveLatestBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 import { deployContract } from "../../../../helpers/transactions";
 import { HardhatNode } from "../../../../../../../src/internal/hardhat-network/provider/node";
 import { RpcBlockOutput } from "../../../../../../../src/internal/hardhat-network/provider/output";
@@ -43,7 +43,7 @@ describe("Eth module", function () {
       useProvider();
 
       const getFirstBlock = async () =>
-        isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
+        retrieveLatestBlockNumber(this.ctx.hardhatNetworkProvider);
 
       describe("eth_estimateGas", async function () {
         it("should estimate the gas for a transfer", async function () {

@@ -1,3 +1,5 @@
+use std::sync::OnceLock;
+
 use bytes::Bytes;
 use revm_primitives::{keccak256, ruint::aliases::U64, B256, U256};
 use secp256k1::SecretKey;
@@ -39,6 +41,7 @@ impl EIP155TransactionRequest {
             value: self.value,
             input: self.input,
             signature,
+            hash: OnceLock::new(),
         }
     }
 }

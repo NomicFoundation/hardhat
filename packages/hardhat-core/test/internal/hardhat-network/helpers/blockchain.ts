@@ -21,8 +21,8 @@ import {
   OrderedTransaction,
   SerializedTransaction,
 } from "../../../../src/internal/hardhat-network/provider/PoolState";
+import { serializeTransaction } from "../../../../src/internal/hardhat-network/provider/mem-pool/hardhat";
 import { FakeSenderTransaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderTransaction";
-import { serializeTransaction } from "../../../../src/internal/hardhat-network/provider/TxPool";
 import { FakeSenderAccessListEIP2930Transaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderAccessListEIP2930Transaction";
 import { FakeSenderEIP1559Transaction } from "../../../../src/internal/hardhat-network/provider/transactions/FakeSenderEIP1559Transaction";
 import { DEFAULT_ACCOUNTS } from "./providers";

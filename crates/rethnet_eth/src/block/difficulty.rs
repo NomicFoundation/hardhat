@@ -12,11 +12,10 @@ fn bomb_delay(spec_id: SpecId) -> U256 {
         | SpecId::SPURIOUS_DRAGON => 0,
         SpecId::BYZANTIUM => 3000000,
         SpecId::CONSTANTINOPLE | SpecId::PETERSBURG | SpecId::ISTANBUL => 5000000,
-        SpecId::MUIR_GLACIER
-        | SpecId::BERLIN
-        | SpecId::LONDON
-        | SpecId::ARROW_GLACIER
-        | SpecId::GRAY_GLACIER => 9000000,
+        SpecId::MUIR_GLACIER | SpecId::BERLIN | SpecId::LONDON => 9000000,
+        // SpecId::LONDON => 9500000, // EIP-3554
+        SpecId::ARROW_GLACIER => 10700000,
+        SpecId::GRAY_GLACIER => 11400000,
         SpecId::MERGE | SpecId::SHANGHAI | SpecId::CANCUN | SpecId::LATEST => {
             unreachable!("Post-merge hardforks don't have a bomb delay")
         }

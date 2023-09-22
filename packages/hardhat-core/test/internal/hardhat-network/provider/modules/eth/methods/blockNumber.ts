@@ -9,7 +9,7 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   PROVIDERS,
 } from "../../../../helpers/providers";
-import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
+import { retrieveLatestBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 import { sendTxToZeroAddress } from "../../../../helpers/transactions";
 
 describe("Eth module", function () {
@@ -25,7 +25,7 @@ describe("Eth module", function () {
       useProvider();
 
       const getFirstBlock = async () =>
-        isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
+        retrieveLatestBlockNumber(this.ctx.hardhatNetworkProvider);
 
       describe("eth_blockNumber", async function () {
         let firstBlock: number;
