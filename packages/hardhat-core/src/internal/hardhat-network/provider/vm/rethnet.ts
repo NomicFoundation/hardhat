@@ -390,17 +390,18 @@ export class RethnetAdapter implements VMAdapter {
       this._limitContractCodeSize
     );
 
-    const transactions = await Promise.all(
-      block.transactions.map(async (transaction) => {
-        const caller = transaction.getSenderAddress().toBuffer();
-        return PendingTransaction.create(
-          this._state.asInner(),
-          evmConfig.specId!,
-          ethereumjsTransactionToRethnetSignedTransaction(transaction),
-          caller
-        );
-      })
-    );
+    // TODO This deadlocks if more than 3 are executed in parallel
+    const transactions = [];
+    for (let tx of block.transactions) {
+      const caller = tx.getSenderAddress().toBuffer();
+      let pendingTx = await PendingTransaction.create(
+        this._state.asInner(),
+        evmConfig.specId!,
+        ethereumjsTransactionToRethnetSignedTransaction(tx),
+        caller
+      );
+      transactions.push(pendingTx);
+    }
 
     const result = await debugTraceTransaction(
       this._blockchain,
