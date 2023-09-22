@@ -24,7 +24,7 @@ pub fn debug_trace_transaction<BlockchainErrorT, StateErrorT>(
     trace_config: DebugTraceConfig,
     block_env: BlockEnv,
     transactions: Vec<PendingTransaction>,
-    transaction_hash: B256,
+    transaction_hash: &B256,
 ) -> Result<DebugTraceResult, DebugTraceError<BlockchainErrorT, StateErrorT>>
 where
     BlockchainErrorT: Debug + Send + 'static,
@@ -42,7 +42,7 @@ where
     }
 
     for transaction in transactions {
-        if transaction.hash() == &transaction_hash {
+        if transaction.hash() == transaction_hash {
             let evm = build_evm(
                 blockchain,
                 &state,
@@ -96,7 +96,7 @@ where
     }
 
     Err(DebugTraceError::InvalidTransactionHash {
-        tx_hash: transaction_hash,
+        tx_hash: *transaction_hash,
         block_number: block_env.number,
     })
 }

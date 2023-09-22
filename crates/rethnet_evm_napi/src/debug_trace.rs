@@ -39,7 +39,7 @@ pub async fn debug_trace_transaction(
         trace_config.into(),
         block_env,
         transactions,
-        transaction_hash,
+        &transaction_hash,
     )
     .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?
     .try_into()?;
