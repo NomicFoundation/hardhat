@@ -2,18 +2,30 @@ name: hardhat-core CI
 
 on:
   push:
-    branches: [$default-branch]
+    branches:
+      - $default-branch
+      - "rethnet/main"
     paths:
+      - ".github/workflows/hardhat-core-ci.yml"
+      - "rust-toolchain"
+      - "Cargo.lock"
+      - "Cargo.toml"
+      - "config/**"
+      - "crates/**"
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"
-      - "config/**"
   pull_request:
     branches:
       - "**"
     paths:
+      - ".github/workflows/hardhat-core-ci.yml"
+      - "rust-toolchain"
+      - "Cargo.lock"
+      - "Cargo.toml"
+      - "config/**"
+      - "crates/**"
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"
-      - "config/**"
   workflow_dispatch:
 
 defaults:
@@ -25,74 +37,301 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test_on_windows:
-    name: Test hardhat-core on Windows with Node 16
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: 16
-          cache: yarn
-      - name: Install
-        run: yarn --frozen-lockfile
-      - name: Build
-        run: yarn build
-      - name: Run tests
-        env:
-          DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
-          FORCE_COLOR: 3
-        run: yarn test:except-tracing
-
-  test_on_macos:
-    name: Test hardhat-core on MacOS with Node 16
-    runs-on: macos-latest
-    # disable until actions/virtual-environments#4896 is fixed
-    if: ${{ false }}
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: 16
-          cache: yarn
-      - name: Install
-        run: yarn --frozen-lockfile
-      - name: Build
-        run: yarn build
-      - name: Run tests
-        env:
-          DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
-          FORCE_COLOR: 3
-        run: yarn test:except-tracing
-
-  test_on_linux:
-    name: Test hardhat-core on Ubuntu with Node ${{ matrix.node }}
+  check-rethnet:
+    name: Check Rethnet
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node: [16, 18, 20]
+    # Setting RUSTFLAGS env for clippy makes it not include custom rules
+    env:
+      RUSTFLAGS: -Dwarnings
+      RUSTDOCFLAGS: "-D warnings"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+
+      - name: Install Rust (stable)
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+
+      # Install pre-built binaries for cargo hack
+      - uses: taiki-e/install-action@cargo-hack
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Cargo hack
+        uses: actions-rs/cargo@v1
+        with:
+          command: hack
+          args: check --feature-powerset --no-dev-deps
+
+  test-core:
+    name: Test core (${{ matrix.os }}, Node ${{ matrix.node }}, ${{ matrix.vm }})
+    runs-on: ${{ matrix.os }}
+    needs: check-rethnet
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [18.15]
+        # disable until actions/virtual-environments#4896 is fixed
+        # os: ["macos-latest", "ubuntu-latest", "windows-latest"]
+        os: ["ubuntu-latest", "windows-latest"]
+        vm: ["dual", "rethnet"]
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+          cache: yarn
+
+      - name: Install Rust (stable)
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install package
+        run: yarn --frozen-lockfile
+
+      - name: Cache network requests
+        uses: actions/cache@v2
+        with:
+          path: |
+            packages/hardhat-core/test/internal/hardhat-network/provider/.hardhat_node_test_cache
+          key: hardhat-network-forking-tests-${{ hashFiles('yarn.lock') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/provider/node.ts') }}
+
+      - name: Build
+        run: yarn build
+
+      - name: Run tests
+        env:
+          INFURA_URL: ${{ secrets.INFURA_URL }}
+          ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
+          HARDHAT_EXPERIMENTAL_VM_MODE: ${{ matrix.vm }}
+          DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
+          FORCE_COLOR: 3
+        run: yarn test:except-provider
+
+  test-provider:
+    name: Test provider (${{ matrix.os }}, Node ${{ matrix.node }}, ${{ matrix.vm }}, Retain RPC cache ${{ matrix.retain-rpc-cache }})
+    runs-on: ${{ matrix.os }}
+    needs: check-rethnet
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [18.15]
+        # disable until actions/virtual-environments#4896 is fixed
+        # os: ["macos-latest", "ubuntu-latest", "windows-latest"]
+        os: ["ubuntu-latest", "windows-latest"]
+        retain-rpc-cache: [true, false]
+        vm: ["dual", "rethnet"]
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+          cache: yarn
+
+      - name: Install Rust (stable)
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install package
+        run: yarn --frozen-lockfile
+
+      - name: Cache stack trace artifacts
+        uses: actions/cache@v2
+        with:
+          path: |
+            packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/artifacts
+          key: hardhat-network-stack-traces-tests-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/*.sol') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/test-files/**/test.json') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/stack-traces/**/*.ts') }}
+
+      - name: Cache EDR RPC cache
+        uses: actions/cache@v2
+        if: matrix.retain-rpc-cache == true
+        with:
+          path: |
+            packages/hardhat-core/test/internal/hardhat-network/edr-cache
+          key: hardhat-network-edr-cache
+
+      - name: Build
+        run: yarn build
+
+      - name: Run tests
+        env:
+          INFURA_URL: ${{ secrets.INFURA_URL }}
+          ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
+          HARDHAT_EXPERIMENTAL_VM_MODE: ${{ matrix.vm }}
+          DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
+          FORCE_COLOR: 3
+        run: yarn test:provider
+
+  test-rethnet-js:
+    name: Test Rethnet bindings (${{ matrix.os }}, Node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    needs: check-rethnet
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [18.15]
+        os: ["macos-latest", "ubuntu-latest", "windows-latest"]
+        include:
+          - RUSTFLAGS: "-Dwarnings"
+          - os: "windows-latest"
+            RUSTFLAGS: "-Dwarnings -Ctarget-feature=+crt-static"
+    defaults:
+      run:
+        working-directory: crates/rethnet_evm_napi
+    steps:
+      - uses: actions/checkout@v3
+
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
           cache: yarn
-      - name: Install
+
+      - name: Install node dependencies
         run: yarn --frozen-lockfile
+
+      - name: Install Rust (stable)
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+          components: rustfmt
+
+      - uses: Swatinem/rust-cache@v2
+
       - name: Build
         run: yarn build
-      - name: Run tests
+
+      - name: Test
+        run: yarn test
+
+  test-rethnet-rs:
+    name: Test Rethnet (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    needs: check-rethnet
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-latest", "macos-latest"]
+        include:
+          - RUSTFLAGS: "-Dwarnings"
+          - os: "windows-latest"
+            RUSTFLAGS: "-Dwarnings -Ctarget-feature=+crt-static"
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Rust (stable)
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Run cargo test
+        uses: actions-rs/cargo@v1
         env:
-          DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
-          FORCE_COLOR: 3
-        run: yarn test:except-tracing
+          RUSTFLAGS: ${{ matrix.RUSTFLAGS }}
+          ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
+          INFURA_URL: ${{ secrets.INFURA_URL }}
+        with:
+          command: test
+          args: --workspace --all-targets --all-features
+
+      - name: Doctests
+        uses: actions-rs/cargo@v1
+        env:
+          RUSTFLAGS: ${{ matrix.RUSTFLAGS }}
+        with:
+          command: test
+          args: --doc --workspace --features tracing
+
+      # disable until:
+      # 1) https://github.com/napi-rs/napi-rs/issues/1405 is resolved (Windows-only)
+      # 2) https://github.com/nextest-rs/nextest/issues/871 (all platforms)
+      # when re-enabled, remove "Run cargo test"
+
+      # Nextest
+      # - name: Install latest nextest release
+      #   uses: taiki-e/install-action@nextest
+
+      # - name: Test with latest nextest release
+      #   uses: actions-rs/cargo@v1
+      #   env:
+      #     RUSTFLAGS: ${{ matrix.RUSTFLAGS }}
+      #     CARGO_INCREMENTAL: ${{ matrix.CARGO_INCREMENTAL }}
+      #     ALCHEMY_URL: ${{ secrets.ALCHEMY_URL }}
+      #   with:
+      #     command: nextest
+      #     args: run --workspace --all-features --all-targets
+
+  rethnet-style:
+    name: Check Rethnet Style
+    runs-on: ubuntu-latest
+    needs: check-rethnet
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+          components: clippy, rustfmt
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Run cargo fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all --check
+
+      - name: Run cargo clippy
+        uses: auguwu/clippy-action@1.1.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --workspace --all-targets --all-features -- -Dwarnings
+
+  rethnet-docs:
+    name: Build Rethnet Docs
+    runs-on: ubuntu-latest
+    needs: check-rethnet
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Cargo doc
+        uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: --workspace --no-deps --all-features
 
   test_types_node:
     name: Test different versions of @types/node
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [16, 18, 20]
+        node: [18, 20]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2

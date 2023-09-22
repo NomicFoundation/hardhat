@@ -1,0 +1,214 @@
+use std::sync::OnceLock;
+
+use revm_primitives::{HashMap, SpecId, U256};
+
+/// A struct that stores the hardforks for a chain.
+#[derive(Clone, Debug)]
+pub struct HardforkActivations {
+    /// (Start block number -> SpecId) mapping
+    hardforks: Vec<(U256, SpecId)>,
+}
+
+impl HardforkActivations {
+    /// Creates a new instance for a new chain with the provided [`SpecId`].
+    pub fn with_spec_id(spec_id: SpecId) -> Self {
+        Self {
+            hardforks: vec![(U256::ZERO, spec_id)],
+        }
+    }
+
+    /// Whether no hardforks activations are present.
+    pub fn is_empty(&self) -> bool {
+        self.hardforks.is_empty()
+    }
+
+    /// Returns the hardfork's `SpecId` corresponding to the provided block number.
+    pub fn hardfork_at_block_number(&self, block_number: &U256) -> Option<SpecId> {
+        self.hardforks
+            .iter()
+            .rev()
+            .find(|(hardfork_number, _)| *block_number >= *hardfork_number)
+            .map(|entry| entry.1)
+    }
+}
+
+impl From<Vec<(U256, SpecId)>> for HardforkActivations {
+    fn from(hardforks: Vec<(U256, SpecId)>) -> Self {
+        Self { hardforks }
+    }
+}
+
+struct ChainConfig {
+    /// Chain name
+    pub name: String,
+    /// Hardfork activations for the chain
+    pub hardfork_activations: HardforkActivations,
+}
+
+const MAINNET_HARDFORKS: &[(u64, SpecId)] = &[
+    (0, SpecId::FRONTIER),
+    (200_000, SpecId::FRONTIER_THAWING),
+    (1_150_000, SpecId::HOMESTEAD),
+    (1_920_000, SpecId::DAO_FORK),
+    (2_463_000, SpecId::TANGERINE),
+    (2_675_000, SpecId::SPURIOUS_DRAGON),
+    (4_370_000, SpecId::BYZANTIUM),
+    (7_280_000, SpecId::CONSTANTINOPLE),
+    (7_280_000, SpecId::PETERSBURG),
+    (9_069_000, SpecId::ISTANBUL),
+    (9_200_000, SpecId::MUIR_GLACIER),
+    (12_244_000, SpecId::BERLIN),
+    (12_965_000, SpecId::LONDON),
+    (13_773_000, SpecId::ARROW_GLACIER),
+    (15_050_000, SpecId::GRAY_GLACIER),
+    (15_537_394, SpecId::MERGE),
+    (17_034_870, SpecId::SHANGHAI),
+];
+
+fn mainnet_config() -> &'static ChainConfig {
+    static CONFIG: OnceLock<ChainConfig> = OnceLock::new();
+
+    CONFIG.get_or_init(|| {
+        let hardfork_activations = MAINNET_HARDFORKS
+            .iter()
+            .map(|(block_number, spec_id)| (U256::from(*block_number), *spec_id))
+            .collect::<Vec<_>>()
+            .into();
+
+        ChainConfig {
+            name: "mainnet".to_string(),
+            hardfork_activations,
+        }
+    })
+}
+
+const ROPSTEN_HARDFORKS: &[(u64, SpecId)] = &[
+    (1_700_000, SpecId::BYZANTIUM),
+    (4_230_000, SpecId::CONSTANTINOPLE),
+    (4_939_394, SpecId::PETERSBURG),
+    (6_485_846, SpecId::ISTANBUL),
+    (7_117_117, SpecId::MUIR_GLACIER),
+    (9_812_189, SpecId::BERLIN),
+    (10_499_401, SpecId::LONDON),
+];
+
+fn ropsten_config() -> &'static ChainConfig {
+    static CONFIG: OnceLock<ChainConfig> = OnceLock::new();
+
+    CONFIG.get_or_init(|| {
+        let hardfork_activations = ROPSTEN_HARDFORKS
+            .iter()
+            .map(|(block_number, spec_id)| (U256::from(*block_number), *spec_id))
+            .collect::<Vec<_>>()
+            .into();
+
+        ChainConfig {
+            name: "ropsten".to_string(),
+            hardfork_activations,
+        }
+    })
+}
+
+const RINKEBY_HARDFORKS: &[(u64, SpecId)] = &[
+    (1_035_301, SpecId::BYZANTIUM),
+    (3_660_663, SpecId::CONSTANTINOPLE),
+    (4_321_234, SpecId::PETERSBURG),
+    (5_435_345, SpecId::ISTANBUL),
+    (8_290_928, SpecId::BERLIN),
+    (8_897_988, SpecId::LONDON),
+];
+
+fn rinkeby_config() -> &'static ChainConfig {
+    static CONFIG: OnceLock<ChainConfig> = OnceLock::new();
+
+    CONFIG.get_or_init(|| {
+        let hardfork_activations = RINKEBY_HARDFORKS
+            .iter()
+            .map(|(block_number, spec_id)| (U256::from(*block_number), *spec_id))
+            .collect::<Vec<_>>()
+            .into();
+
+        ChainConfig {
+            name: "rinkeby".to_string(),
+            hardfork_activations,
+        }
+    })
+}
+
+const GOERLI_HARDFORKS: &[(u64, SpecId)] = &[
+    (1_561_651, SpecId::ISTANBUL),
+    (4_460_644, SpecId::BERLIN),
+    (5_062_605, SpecId::LONDON),
+];
+
+fn goerli_config() -> &'static ChainConfig {
+    static CONFIG: OnceLock<ChainConfig> = OnceLock::new();
+
+    CONFIG.get_or_init(|| {
+        let hardfork_activations = GOERLI_HARDFORKS
+            .iter()
+            .map(|(block_number, spec_id)| (U256::from(*block_number), *spec_id))
+            .collect::<Vec<_>>()
+            .into();
+
+        ChainConfig {
+            name: "goerli".to_string(),
+            hardfork_activations,
+        }
+    })
+}
+
+const KOVAN_HARDFORKS: &[(u64, SpecId)] = &[
+    (5_067_000, SpecId::BYZANTIUM),
+    (9_200_000, SpecId::CONSTANTINOPLE),
+    (10_255_201, SpecId::PETERSBURG),
+    (14_111_141, SpecId::ISTANBUL),
+    (24_770_900, SpecId::BERLIN),
+    (26_741_100, SpecId::LONDON),
+];
+
+fn kovan_config() -> &'static ChainConfig {
+    static CONFIG: OnceLock<ChainConfig> = OnceLock::new();
+
+    CONFIG.get_or_init(|| {
+        let hardfork_activations = KOVAN_HARDFORKS
+            .iter()
+            .map(|(block_number, spec_id)| (U256::from(*block_number), *spec_id))
+            .collect::<Vec<_>>()
+            .into();
+
+        ChainConfig {
+            name: "kovan".to_string(),
+            hardfork_activations,
+        }
+    })
+}
+
+fn chain_configs() -> &'static HashMap<U256, &'static ChainConfig> {
+    static CONFIGS: OnceLock<HashMap<U256, &'static ChainConfig>> = OnceLock::new();
+
+    CONFIGS.get_or_init(|| {
+        let mut hardforks = HashMap::new();
+        hardforks.insert(U256::from(1), mainnet_config());
+        hardforks.insert(U256::from(3), ropsten_config());
+        hardforks.insert(U256::from(4), rinkeby_config());
+        hardforks.insert(U256::from(5), goerli_config());
+        hardforks.insert(U256::from(42), kovan_config());
+
+        hardforks
+    })
+}
+
+/// Returns the name corresponding to the provided chain ID, if it is supported.
+pub fn chain_name(chain_id: &U256) -> Option<&'static str> {
+    chain_configs()
+        .get(chain_id)
+        .map(|config| config.name.as_str())
+}
+
+/// Returns the hardfork activations corresponding to the provided chain ID, if it is supported.
+pub fn chain_hardfork_activations(chain_id: &U256) -> Option<&'static HardforkActivations> {
+    chain_configs()
+        .get(chain_id)
+        .map(|config| &config.hardfork_activations)
+}

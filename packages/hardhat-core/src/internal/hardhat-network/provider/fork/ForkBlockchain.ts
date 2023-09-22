@@ -8,6 +8,12 @@ import { RpcBlockWithTransactions } from "../../../core/jsonrpc/types/output/blo
 import { RpcTransactionReceipt } from "../../../core/jsonrpc/types/output/receipt";
 import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
 import { InternalError } from "../../../core/providers/errors";
+import { HardforkHistoryConfig } from "../../../../types/config";
+import {
+  HardforkName,
+  getHardforkName,
+  selectHardfork,
+} from "../../../util/hardforks";
 import { JsonRpcClient } from "../../jsonrpc/client";
 import { BlockchainBase } from "../BlockchainBase";
 import { FilterParams } from "../node-types";
@@ -39,12 +45,13 @@ export class ForkBlockchain
   constructor(
     private _jsonRpcClient: JsonRpcClient,
     private _forkBlockNumber: bigint,
+    private _hardforkActivations: HardforkHistoryConfig,
     common: Common
   ) {
     super(common);
   }
 
-  public getLatestBlockNumber(): bigint {
+  public async getLatestBlockNumber(): Promise<bigint> {
     return this._latestBlockNumber;
   }
 
@@ -58,18 +65,46 @@ export class ForkBlockchain
 
     let block: Block | undefined | null;
     if (Buffer.isBuffer(blockHashOrNumber)) {
-      block = await this._getBlockByHash(blockHashOrNumber);
+      block = await this.getBlockByHash(blockHashOrNumber);
       if (block === undefined) {
         throw new Error("Block not found");
       }
       return block;
     }
 
-    block = await this._getBlockByNumber(BigInt(blockHashOrNumber));
+    block = await this.getBlockByNumber(BigInt(blockHashOrNumber));
     if (block === undefined) {
       throw new Error("Block not found");
     }
     return block;
+  }
+
+  public async getBlockByHash(hash: Buffer): Promise<Block | undefined> {
+    const block = this._data.getBlockByHash(hash);
+    if (block !== undefined) {
+      return block;
+    }
+    const rpcBlock = await this._jsonRpcClient.getBlockByHash(hash, true);
+    return this._processRemoteBlock(rpcBlock);
+  }
+
+  public async getBlockByNumber(
+    blockNumber: bigint
+  ): Promise<Block | undefined> {
+    if (blockNumber > this._latestBlockNumber) {
+      return undefined;
+    }
+
+    try {
+      const block = await super.getBlock(blockNumber);
+      return block;
+    } catch {}
+
+    const rpcBlock = await this._jsonRpcClient.getBlockByNumber(
+      blockNumber,
+      true
+    );
+    return this._processRemoteBlock(rpcBlock);
   }
 
   public async addBlock(block: Block): Promise<Block> {
@@ -98,39 +133,12 @@ export class ForkBlockchain
     return block;
   }
 
-  public reserveBlocks(
-    count: bigint,
-    interval: bigint,
-    previousBlockStateRoot: Buffer,
-    previousBlockTotalDifficulty: bigint,
-    previousBlockBaseFeePerGas: bigint | undefined
-  ) {
-    super.reserveBlocks(
-      count,
-      interval,
-      previousBlockStateRoot,
-      previousBlockTotalDifficulty,
-      previousBlockBaseFeePerGas
-    );
+  public async reserveBlocks(count: bigint, interval: bigint): Promise<void> {
+    await super.reserveBlocks(count, interval);
     this._latestBlockNumber += count;
   }
 
-  public deleteLaterBlocks(block: Block): void {
-    const blockNumber = block.header.number;
-    const savedBlock = this._data.getBlockByNumber(blockNumber);
-    if (savedBlock === undefined || !savedBlock.hash().equals(block.hash())) {
-      throw new Error("Invalid block");
-    }
-
-    const nextBlockNumber = blockNumber + 1n;
-    if (this._forkBlockNumber >= nextBlockNumber) {
-      throw new Error("Cannot delete remote block");
-    }
-
-    this._delBlock(nextBlockNumber);
-  }
-
-  public async getTotalDifficulty(blockHash: Buffer): Promise<bigint> {
+  public async getTotalDifficultyByHash(blockHash: Buffer): Promise<bigint> {
     let td = this._data.getTotalDifficulty(blockHash);
     if (td !== undefined) {
       return td;
@@ -161,7 +169,7 @@ export class ForkBlockchain
 
   public async getBlockByTransactionHash(
     transactionHash: Buffer
-  ): Promise<Block | null> {
+  ): Promise<Block | undefined> {
     let block = this._data.getBlockByTransactionHash(transactionHash);
     if (block === undefined) {
       const remote = await this._jsonRpcClient.getTransactionByHash(
@@ -173,12 +181,12 @@ export class ForkBlockchain
         block = this._data.getBlockByTransactionHash(transactionHash);
       }
     }
-    return block ?? null;
+    return block;
   }
 
-  public async getTransactionReceipt(
+  public async getReceiptByTransactionHash(
     transactionHash: Buffer
-  ): Promise<RpcReceiptOutput | null> {
+  ): Promise<RpcReceiptOutput | undefined> {
     const local = this._data.getTransactionReceipt(transactionHash);
     if (local !== undefined) {
       return local;
@@ -187,11 +195,10 @@ export class ForkBlockchain
       transactionHash
     );
     if (remote !== null) {
-      const receipt = await this._processRemoteReceipt(remote);
-      return receipt ?? null;
+      return this._processRemoteReceipt(remote);
     }
 
-    return null;
+    return undefined;
   }
 
   public getForkBlockNumber() {
@@ -223,30 +230,37 @@ export class ForkBlockchain
     return this._data.getLogs(filterParams);
   }
 
-  private async _getBlockByHash(blockHash: Buffer) {
-    const block = this._data.getBlockByHash(blockHash);
-    if (block !== undefined) {
-      return block;
+  public async getHardforkAtBlockNumber(
+    blockNumberOrPending?: bigint | "pending"
+  ): Promise<HardforkName> {
+    if (
+      blockNumberOrPending !== undefined &&
+      blockNumberOrPending !== "pending"
+    ) {
+      return getHardforkName(
+        selectHardfork(
+          this._forkBlockNumber,
+          this._common.hardfork(),
+          this._hardforkActivations,
+          blockNumberOrPending
+        )
+      );
     }
-    const rpcBlock = await this._jsonRpcClient.getBlockByHash(blockHash, true);
-    return this._processRemoteBlock(rpcBlock);
+    return getHardforkName(this._common.hardfork());
   }
 
-  private async _getBlockByNumber(blockNumber: bigint) {
-    if (blockNumber > this._latestBlockNumber) {
-      return undefined;
+  public async revertToBlock(blockNumber: bigint): Promise<void> {
+    const savedBlock = this._data.getBlockByNumber(blockNumber);
+    if (savedBlock === undefined) {
+      throw new Error("Invalid block");
     }
 
-    try {
-      const block = await super.getBlock(blockNumber);
-      return block;
-    } catch {}
+    const nextBlockNumber = blockNumber + 1n;
+    if (this._forkBlockNumber >= nextBlockNumber) {
+      throw new Error("Cannot delete remote block");
+    }
 
-    const rpcBlock = await this._jsonRpcClient.getBlockByNumber(
-      blockNumber,
-      true
-    );
-    return this._processRemoteBlock(rpcBlock);
+    await this._delBlock(nextBlockNumber);
   }
 
   private async _processRemoteBlock(rpcBlock: RpcBlockWithTransactions | null) {
@@ -331,11 +345,11 @@ export class ForkBlockchain
     return block;
   }
 
-  protected _delBlock(blockNumber: bigint): void {
+  protected async _delBlock(blockNumber: bigint): Promise<void> {
     if (blockNumber <= this._forkBlockNumber) {
       throw new Error("Cannot delete remote block");
     }
-    super._delBlock(blockNumber);
+    await super._delBlock(blockNumber);
     this._latestBlockNumber = blockNumber - 1n;
   }
 

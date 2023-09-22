@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [16, 18, 20]
+        node: [18, 20]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2

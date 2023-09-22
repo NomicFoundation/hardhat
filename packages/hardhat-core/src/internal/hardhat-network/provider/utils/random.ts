@@ -22,6 +22,10 @@ export class RandomBufferGenerator {
     return valueToReturn;
   }
 
+  public seed(): Buffer {
+    return this._nextValue;
+  }
+
   public setNext(nextValue: Buffer) {
     this._nextValue = Buffer.from(nextValue);
   }
@@ -54,4 +58,7 @@ export const randomAddressString = () => {
   return bufferToHex(randomAddressBuffer());
 };
 
-export const randomAddressBuffer = () => randomHashBuffer().slice(0, 20);
+const addressGenerator = RandomBufferGenerator.create("seed");
+export const randomAddressBuffer = (): Buffer => {
+  return addressGenerator.next().slice(0, 20);
+};

@@ -109,7 +109,7 @@ export class ModulesLogger {
         for (let i = 0; i < block.transactions.length; i++) {
           const tx = block.transactions[i];
 
-          const txGasUsed = results[i].totalGasSpent;
+          const txGasUsed = results[i].gasUsed;
           const txTrace = traces[i];
           const code = codes[i];
 
@@ -156,7 +156,7 @@ export class ModulesLogger {
 
           for (let i = 0; i < block.transactions.length; i++) {
             const tx = block.transactions[i];
-            const txGasUsed = results[i].totalGasSpent;
+            const txGasUsed = results[i].gasUsed;
             const txTrace = traces[i];
             const code = codes[i];
 
@@ -188,7 +188,7 @@ export class ModulesLogger {
 
         for (let i = 0; i < block.transactions.length; i++) {
           const tx = block.transactions[i];
-          const txGasUsed = results[i].totalGasSpent;
+          const txGasUsed = results[i].gasUsed;
           const txTrace = traces[i];
           const code = codes[i];
 
@@ -661,7 +661,7 @@ export class ModulesLogger {
         this._logWithTitle("Contract deployment", trace.bytecode.contract.name);
       }
 
-      if (trace.deployedContract !== undefined && trace.error === undefined) {
+      if (trace.deployedContract !== undefined && !trace.exit.isError()) {
         this._logWithTitle(
           "Contract address",
           bufferToHex(trace.deployedContract)

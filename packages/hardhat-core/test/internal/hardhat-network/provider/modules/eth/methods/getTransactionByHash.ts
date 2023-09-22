@@ -35,7 +35,7 @@ import {
   DEFAULT_NETWORK_ID,
   PROVIDERS,
 } from "../../../../helpers/providers";
-import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
+import { retrieveLatestBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 import {
   getSignedTxHash,
   sendTransactionFromTxParams,
@@ -54,7 +54,7 @@ describe("Eth module", function () {
       useProvider();
 
       const getFirstBlock = async () =>
-        isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
+        retrieveLatestBlockNumber(this.ctx.hardhatNetworkProvider);
 
       describe("eth_getTransactionByHash", async function () {
         it("should return null for unknown txs", async function () {

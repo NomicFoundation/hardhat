@@ -1,0 +1,49 @@
+[package]
+name = "rethnet_eth"
+version = "0.1.0-dev"
+edition = "2021"
+
+[dependencies]
+bytes = { version = "1.2.1", default-features = false }
+ethbloom = { version = "0.13.0", default-features = false, features = ["rlp"] }
+futures = {version = "0.3.28", default-features = false}
+hash-db = { version = "0.15.2", default-features = false }
+hash256-std-hasher = { version = "0.15.2", default-features = false }
+hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
+hyper = {version = "0.14.27", default-features = false}
+itertools = { version = "0.10.5", default-features = false, features = ["use_alloc"] }
+log = { version = "0.4.17", default-features = false }
+open-fastrlp = { version = "0.1.2", default-features = false, features = ["derive"], optional = true }
+primitive-types = { version = "0.11.1", default-features = false, features = ["rlp"] }
+reqwest = { version = "0.11", features = ["blocking", "json"] }
+# We need the git versions pending the release of `RetryableStrategy`
+# https://github.com/TrueLayer/reqwest-middleware/blob/main/reqwest-retry/CHANGELOG.md#unreleased
+reqwest-middleware = { git = "https://github.com/TrueLayer/reqwest-middleware", rev = "a54319a", default-features = false }
+reqwest-retry = { git = "https://github.com/TrueLayer/reqwest-middleware", rev = "a54319a", default-features = false }
+revm-primitives = { git = "https://github.com/Wodann/revm", rev = "19df2ba", version = "1.1", default-features = false }
+# revm-primitives = { path = "../../../revm/crates/primitives", version = "1.0", default-features = false }
+rlp = { version = "0.5.2", default-features = false, features = ["derive"] }
+secp256k1 = { version = "0.24.0", default-features = false, features = ["alloc", "recovery"] }
+serde = { version = "1.0.147", default-features = false, features = ["derive"], optional = true }
+serde_json = { version = "1.0.89", optional = true }
+sha3 = { version = "0.10.8", default-features = false }
+tempfile = { version = "3.7.1", default-features = false }
+thiserror = { version = "1.0.37", default-features = false }
+tokio = { version = "1.21.2", default-features = false, features = ["fs", "sync"] }
+triehash = { version = "0.8.4", default-features = false }
+
+[dev-dependencies]
+lazy_static = "1.4.0"
+mockito = { version = "1.0.2", default-features = false }
+paste = { version = "1.0.14", default-features = false }
+rethnet_test_utils = { version = "0.1.0-dev", path = "../rethnet_test_utils" }
+serial_test = "2.0.0"
+tokio = { version = "1.23.0", features = ["macros"] }
+walkdir = { version = "2.3.3", default-features =  false }
+
+[features]
+default = ["std"]
+# fastrlp = ["dep:open-fastrlp", "ruint/fastrlp"] Broken due to lack of support for fastrlp in primitive-types
+serde = ["dep:serde", "bytes/serde", "ethbloom/serialize", "primitive-types/serde", "revm-primitives/serde", "serde_json"]
+std = ["bytes/std", "ethbloom/std", "futures/std", "hash256-std-hasher/std", "hash-db/std", "hex/std", "itertools/use_std", "open-fastrlp?/std", "primitive-types/std", "revm-primitives/std", "rlp/std", "secp256k1/std", "serde?/std", "sha3/std", "triehash/std"]
+test-remote = ["serde"]

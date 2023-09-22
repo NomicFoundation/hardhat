@@ -308,6 +308,49 @@ export class Instruction {
     public readonly pushData?: Buffer,
     public readonly location?: SourceLocation
   ) {}
+
+  /**
+   * Checks equality with another Instruction.
+   */
+  public equals(other: Instruction): boolean {
+    if (this.pc !== other.pc) {
+      return false;
+    }
+
+    if (this.opcode !== other.opcode) {
+      return false;
+    }
+
+    if (this.jumpType !== other.jumpType) {
+      return false;
+    }
+
+    if (this.pushData !== undefined) {
+      if (other.pushData === undefined) {
+        return false;
+      }
+
+      if (!this.pushData.equals(other.pushData)) {
+        return false;
+      }
+    } else if (other.pushData !== undefined) {
+      return false;
+    }
+
+    if (this.location !== undefined) {
+      if (other.location === undefined) {
+        return false;
+      }
+
+      if (!this.location.equals(other.location)) {
+        return false;
+      }
+    } else if (other.location !== undefined) {
+      return false;
+    }
+
+    return true;
+  }
 }
 
 interface ImmutableReference {
@@ -344,5 +387,23 @@ export class Bytecode {
 
   public hasInstruction(pc: number): boolean {
     return this._pcToInstruction.has(pc);
+  }
+
+  /**
+   * Checks equality with another Bytecode.
+   */
+  public equals(other: Bytecode): boolean {
+    if (this._pcToInstruction.size !== other._pcToInstruction.size) {
+      return false;
+    }
+
+    for (const [key, val] of this._pcToInstruction) {
+      const otherVal = other._pcToInstruction.get(key);
+      if (otherVal === undefined || !val.equals(otherVal)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }

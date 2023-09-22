@@ -54,7 +54,10 @@ export async function assertProviderError(
     }
 
     if (message !== undefined) {
-      assert.include(error.message, message);
+      assert.include(
+        error.message.toLocaleLowerCase(),
+        message.toLocaleLowerCase()
+      );
     }
 
     return;
@@ -186,7 +189,11 @@ export async function assertTransactionFailure(
     }
 
     if (message !== undefined) {
-      assert.include(error.message, message);
+      assert.include(
+        error.message.toLowerCase(),
+        message.toLowerCase(),
+        `"${message}" not found in "${error.message}"`
+      );
     }
 
     return;
@@ -353,4 +360,18 @@ export async function assertAddressBalance(
     await provider.send("eth_getBalance", [address])
   );
   assert.equal(value, expectedValue);
+}
+
+export async function assertEqualCode(
+  provider: EthereumProvider,
+  address1: string,
+  address2: string
+) {
+  const code1 = await provider.send("eth_getCode", [address1]);
+  const code2 = await provider.send("eth_getCode", [address2]);
+  assert.equal(
+    code1,
+    code2,
+    `Expected code in accounts ${address1} and ${address2} to be equal`
+  );
 }

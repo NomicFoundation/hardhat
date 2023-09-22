@@ -36,9 +36,10 @@ export function rpcToTxData(
     chainId: rpcTransaction.chainId ?? undefined,
     maxFeePerGas: rpcTransaction.maxFeePerGas,
     maxPriorityFeePerGas: rpcTransaction.maxPriorityFeePerGas,
-    accessList: rpcTransaction.accessList?.map((item) => [
-      item.address,
-      item.storageKeys ?? [],
-    ]),
+    accessList:
+      rpcTransaction.accessList?.map((item) => [
+        item.address,
+        item.storageKeys ?? [],
+      ]) ?? undefined,
   };
 }

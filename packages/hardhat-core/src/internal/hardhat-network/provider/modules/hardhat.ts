@@ -40,9 +40,6 @@ export class HardhatModule {
   constructor(
     private readonly _node: HardhatNode,
     private readonly _resetCallback: (forkConfig?: ForkConfig) => Promise<void>,
-    private readonly _setLoggingEnabledCallback: (
-      loggingEnabled: boolean
-    ) => void,
     private readonly _logger: ModulesLogger,
     private readonly _experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = []
   ) {}
@@ -241,7 +238,7 @@ export class HardhatModule {
   private async _setLoggingEnabledAction(
     loggingEnabled: boolean
   ): Promise<true> {
-    this._setLoggingEnabledCallback(loggingEnabled);
+    this._logger.setEnabled(loggingEnabled);
     return true;
   }
 
@@ -256,7 +253,7 @@ export class HardhatModule {
       throw new InvalidInputError("Minimum gas price cannot be negative");
     }
 
-    if (this._node.isEip1559Active()) {
+    if (await this._node.isEip1559Active()) {
       throw new InvalidInputError(
         "hardhat_setMinGasPrice is not supported when EIP-1559 is active"
       );
@@ -361,8 +358,8 @@ export class HardhatModule {
     return validateParams(params, rpcQuantity);
   }
 
-  private _setNextBlockBaseFeePerGasAction(baseFeePerGas: bigint) {
-    if (!this._node.isEip1559Active()) {
+  private async _setNextBlockBaseFeePerGasAction(baseFeePerGas: bigint) {
+    if (!(await this._node.isEip1559Active())) {
       throw new InvalidInputError(
         "hardhat_setNextBlockBaseFeePerGas is disabled because EIP-1559 is not active"
       );
@@ -379,7 +376,7 @@ export class HardhatModule {
   }
 
   private async _setCoinbaseAction(address: Buffer) {
-    await this._node.setCoinbase(new Address(address));
+    this._node.setCoinbase(new Address(address));
     return true;
   }
 

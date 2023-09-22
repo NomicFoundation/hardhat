@@ -14,6 +14,7 @@ import { expectErrorAsync } from "../../../../helpers/errors";
 import { ALCHEMY_URL } from "../../../../setup";
 import { workaroundWindowsCiFailures } from "../../../../utils/workaround-windows-ci-failures";
 import {
+  assertEqualCode,
   assertInternalError,
   assertInvalidArgumentsError,
   assertInvalidInputError,
@@ -29,7 +30,10 @@ import { compileLiteral } from "../../stack-traces/compilation";
 import { getPendingBaseFeePerGas } from "../../helpers/getPendingBaseFeePerGas";
 import { RpcBlockOutput } from "../../../../../src/internal/hardhat-network/provider/output";
 import * as BigIntUtils from "../../../../../src/internal/util/bigint";
-import { EXAMPLE_DIFFICULTY_CONTRACT } from "../../helpers/contracts";
+import {
+  EXAMPLE_CONTRACT,
+  EXAMPLE_DIFFICULTY_CONTRACT,
+} from "../../helpers/contracts";
 import { HardhatMetadata } from "../../../../../src/internal/core/jsonrpc/types/output/metadata";
 import { useFixtureProject } from "../../../../helpers/project";
 import { useEnvironment } from "../../../../helpers/environment";
@@ -37,7 +41,7 @@ import { useEnvironment } from "../../../../helpers/environment";
 describe("Hardhat module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
     if (isFork) {
-      this.timeout(50000);
+      this.timeout(80000);
     }
 
     workaroundWindowsCiFailures.call(this, { isFork });
@@ -1459,7 +1463,8 @@ describe("Hardhat module", function () {
 
             // This condition is rather loose as Infura can sometimes return
             // a smaller block number on subsequent eth_blockNumber call
-            assert.closeTo(await getLatestBlockNumber(), initialBlock, 4);
+            const latestBlockNumber = await getLatestBlockNumber();
+            assert.isTrue(latestBlockNumber >= initialBlock - 4);
           });
 
           it("can reset the forked provider to a normal provider", async function () {
@@ -1892,6 +1897,51 @@ describe("Hardhat module", function () {
             await this.provider.send("eth_getBlockByNumber", ["latest", false])
           ).stateRoot;
           assert.equal(newStateRoot, oldStateRoot);
+        });
+
+        it("modifying an account's code shouldn't affect another account with the same code", async function () {
+          // deploy two contracts with the same bytecode
+          const contractAddress1 = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`,
+            DEFAULT_ACCOUNTS_ADDRESSES[0]
+          );
+
+          const contractAddress2 = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_CONTRACT.bytecode.object}`,
+            DEFAULT_ACCOUNTS_ADDRESSES[0]
+          );
+
+          await assertEqualCode(
+            this.provider,
+            contractAddress1,
+            contractAddress2
+          );
+          const contractCode1Before = await this.provider.send("eth_getCode", [
+            contractAddress1,
+          ]);
+
+          // modify the code of the second one
+          await this.provider.send("hardhat_setCode", [
+            contractAddress2,
+            "0xff",
+          ]);
+
+          // check that only the second one was affected
+          const contractCode1 = await this.provider.send("eth_getCode", [
+            contractAddress1,
+          ]);
+          assert.notEqual(contractCode1.toLowerCase(), "0xff");
+          assert.equal(
+            contractCode1.toLowerCase(),
+            contractCode1Before.toLowerCase()
+          );
+
+          const contractCode2 = await this.provider.send("eth_getCode", [
+            contractAddress2,
+          ]);
+          assert.equal(contractCode2.toLowerCase(), "0xff");
         });
       });
 

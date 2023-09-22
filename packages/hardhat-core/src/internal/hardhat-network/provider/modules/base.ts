@@ -96,7 +96,9 @@ export class Base {
           : await this._getDefaultCallFrom(),
       data: rpcCall.data !== undefined ? rpcCall.data : toBuffer([]),
       gasLimit:
-        rpcCall.gas !== undefined ? rpcCall.gas : this._node.getBlockGasLimit(),
+        rpcCall.gas !== undefined
+          ? rpcCall.gas
+          : await this._node.getBlockGasLimit(),
       value: rpcCall.value !== undefined ? rpcCall.value : 0n,
       accessList:
         rpcCall.accessList !== undefined

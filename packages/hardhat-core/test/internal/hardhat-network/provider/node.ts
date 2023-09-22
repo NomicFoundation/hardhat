@@ -150,9 +150,9 @@ describe("HardhatNode", () => {
 
     describe("basic tests", () => {
       it("can mine an empty block", async () => {
-        const beforeBlock = node.getLatestBlockNumber();
+        const beforeBlock = await node.getLatestBlockNumber();
         await node.mineBlock();
-        const currentBlock = node.getLatestBlockNumber();
+        const currentBlock = await node.getLatestBlockNumber();
         assert.equal(currentBlock.toString(), (beforeBlock + 1n).toString());
       });
 
@@ -485,14 +485,14 @@ describe("HardhatNode", () => {
 
       const assertIncreaseTime = async (expectedTime: bigint) => {
         const block = await node.getLatestBlock();
-        const blockTimestamp = block.header.timestamp;
+        const blockTimestamp = Number(block.header.timestamp);
 
         // We check that the time increased at least what we had expected
         // but allow a little bit of POSITIVE difference(i.e. that the
         // actual timestamp is a little bit bigger) because time may have ellapsed
         // We assume that the test CAN NOT have taken more than a second
-        assert.isTrue(blockTimestamp >= expectedTime);
-        assert.isTrue(blockTimestamp <= expectedTime + 1n);
+        assert.isAtLeast(blockTimestamp, Number(expectedTime));
+        assert.isAtMost(blockTimestamp, Number(expectedTime) + 1);
       };
 
       beforeEach(() => {
@@ -748,29 +748,37 @@ describe("HardhatNode", () => {
       },
     ];
 
-    for (const { url, blockToRun, networkName, chainId } of forkedBlocks) {
-      const remoteCommon = new Common({ chain: chainId });
+    const isDualMode: boolean =
+      process.env.HARDHAT_EXPERIMENTAL_VM_MODE === undefined ||
+      process.env.HARDHAT_EXPERIMENTAL_VM_MODE === "dual";
 
-      it(`should run ${networkName} block ${blockToRun} and produce the same results`, async function () {
-        this.timeout(240000);
+    // Disabled as the dual mode adapter crashes with an out of memory exception when using ethereumjs.
+    // Since we're comparing against an actual block, there is no actual benefit to running this in dual-mode.
+    if (!isDualMode) {
+      for (const { url, blockToRun, networkName, chainId } of forkedBlocks) {
+        const remoteCommon = new Common({ chain: chainId });
 
-        await runFullBlock(url, blockToRun, chainId, remoteCommon);
-      });
+        it(`should run ${networkName} block ${blockToRun} and produce the same results`, async function () {
+          this.timeout(240000);
+
+          await runFullBlock(url, blockToRun, chainId, remoteCommon);
+        });
+      }
     }
   });
 
   describe("mineBlocks", function () {
     it("shouldn't break getLatestBlock()", async function () {
-      const previousLatestBlockNumber = node.getLatestBlockNumber();
+      const previousLatestBlockNumber = await node.getLatestBlockNumber();
       await node.mineBlocks(10n);
       const latestBlock = await node.getLatestBlock();
       assert.equal(latestBlock.header.number, previousLatestBlockNumber + 10n);
     });
 
     it("shouldn't break getLatestBlockNumber()", async function () {
-      const previousLatestBlockNumber = node.getLatestBlockNumber();
+      const previousLatestBlockNumber = await node.getLatestBlockNumber();
       await node.mineBlocks(10n);
-      const latestBlockNumber = node.getLatestBlockNumber();
+      const latestBlockNumber = await node.getLatestBlockNumber();
       assert.equal(latestBlockNumber, previousLatestBlockNumber + 10n);
     });
 
@@ -778,7 +786,8 @@ describe("HardhatNode", () => {
       it("when doing mineBlocks() before a snapshot", async function () {
         await node.mineBlocks(10n);
 
-        const latestBlockNumberBeforeSnapshot = node.getLatestBlockNumber();
+        const latestBlockNumberBeforeSnapshot =
+          await node.getLatestBlockNumber();
 
         const snapshotId = await node.takeSnapshot();
         await node.sendTransaction(
@@ -795,13 +804,13 @@ describe("HardhatNode", () => {
         await node.revertToSnapshot(snapshotId);
 
         assert.equal(
-          node.getLatestBlockNumber().toString(),
+          (await node.getLatestBlockNumber()).toString(),
           latestBlockNumberBeforeSnapshot.toString()
         );
       });
 
       it("when doing mineBlocks() after a snapshot", async function () {
-        const originalLatestBlockNumber = node.getLatestBlockNumber();
+        const originalLatestBlockNumber = await node.getLatestBlockNumber();
         await node.sendTransaction(
           createTestTransaction({
             from: DEFAULT_ACCOUNTS_ADDRESSES[1],
@@ -812,7 +821,8 @@ describe("HardhatNode", () => {
           })
         );
 
-        const latestBlockNumberBeforeSnapshot = node.getLatestBlockNumber();
+        const latestBlockNumberBeforeSnapshot =
+          await node.getLatestBlockNumber();
         assert.equal(
           latestBlockNumberBeforeSnapshot.toString(),
           originalLatestBlockNumber.toString()
@@ -820,20 +830,20 @@ describe("HardhatNode", () => {
 
         const snapshotId = await node.takeSnapshot();
         assert.equal(
-          node.getLatestBlockNumber().toString(),
+          (await node.getLatestBlockNumber()).toString(),
           originalLatestBlockNumber.toString()
         );
 
         await node.mineBlocks(10n);
         assert.equal(
-          node.getLatestBlockNumber(),
+          await node.getLatestBlockNumber(),
           latestBlockNumberBeforeSnapshot + 10n
         );
 
         await node.revertToSnapshot(snapshotId);
 
         assert.equal(
-          node.getLatestBlockNumber().toString(),
+          (await node.getLatestBlockNumber()).toString(),
           latestBlockNumberBeforeSnapshot.toString()
         );
       });
@@ -1019,7 +1029,7 @@ describe("HardhatNode", () => {
       it("should throw when making a call with a block below the only hardfork activation", async function () {
         await expectErrorAsync(async () => {
           await runCall(pre1559GasOpts, 99n, hardhatNode);
-        }, /Could not find a hardfork to run for block 99, after having looked for one in the HardhatNode's hardfork activation history/);
+        }, /Could not find a hardfork to run for block 99, after having looked for one in the hardfork activation history/);
       });
     });
 
@@ -1075,7 +1085,7 @@ describe("HardhatNode", () => {
     };
     const [, hardhatNode] = await HardhatNode.create(nodeConfig);
 
-    const oldLatestBlockNumber = hardhatNode.getLatestBlockNumber();
+    const oldLatestBlockNumber = await hardhatNode.getLatestBlockNumber();
 
     await hardhatNode.mineBlocks(100n);
 

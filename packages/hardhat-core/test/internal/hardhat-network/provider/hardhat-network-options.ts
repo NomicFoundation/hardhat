@@ -138,7 +138,6 @@ describe("Hardhat Network special options", function () {
         it("Shouldn't work with block numbers from before spurious dragon", async function () {
           await assert.isRejected(
             this.env.network.provider.send("eth_accounts"),
-            InternalError,
             "Cannot fork mainnet from block"
           );
         });

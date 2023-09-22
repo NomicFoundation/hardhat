@@ -2,12 +2,12 @@ import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
-import { Bloom } from "@nomicfoundation/ethereumjs-vm";
 
 import { assertHardhatInvariant } from "../../core/errors";
 import { bloomFilter, filterLogs } from "./filter";
 import { FilterParams } from "./node-types";
 import { RpcLogOutput, RpcReceiptOutput } from "./output";
+import { Bloom } from "./utils/bloom";
 
 interface Reservation {
   first: bigint;

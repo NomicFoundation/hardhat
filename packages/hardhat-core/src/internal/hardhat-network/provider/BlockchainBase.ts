@@ -50,15 +50,15 @@ export abstract class BlockchainBase {
   }
 
   public async delBlock(blockHash: Buffer) {
-    this.deleteBlock(blockHash);
+    await this.deleteBlock(blockHash);
   }
 
-  public deleteBlock(blockHash: Buffer) {
+  public async deleteBlock(blockHash: Buffer) {
     const block = this._data.getBlockByHash(blockHash);
     if (block === undefined) {
       throw new Error("Block not found");
     }
-    this._delBlock(block.header.number);
+    await this._delBlock(block.header.number);
   }
 
   public async getBlock(
@@ -95,10 +95,12 @@ export abstract class BlockchainBase {
     return blockByHash;
   }
 
-  public abstract getLatestBlockNumber(): bigint;
+  public abstract getLatestBlockNumber(): Promise<bigint>;
 
   public async getLatestBlock(): Promise<Block> {
-    return this.getBlock(this.getLatestBlockNumber());
+    return this.getLatestBlockNumber().then((blockNumber) => {
+      return this.getBlock(blockNumber);
+    });
   }
 
   public getLocalTransaction(
@@ -118,20 +120,17 @@ export abstract class BlockchainBase {
     await this.addBlock(block);
   }
 
-  public reserveBlocks(
-    count: bigint,
-    interval: bigint,
-    previousBlockStateRoot: Buffer,
-    previousBlockTotalDifficulty: bigint,
-    previousBlockBaseFeePerGas: bigint | undefined
-  ) {
+  public async reserveBlocks(count: bigint, interval: bigint): Promise<void> {
+    const latestBlock = await this.getLatestBlock();
+
     this._data.reserveBlocks(
-      this.getLatestBlockNumber() + 1n,
+      latestBlock.header.number + 1n,
       count,
       interval,
-      previousBlockStateRoot,
-      previousBlockTotalDifficulty,
-      previousBlockBaseFeePerGas
+      latestBlock.header.stateRoot,
+      // We fetched the latest block internally, so we know that its total difficulty exists.
+      this._data.getTotalDifficulty(latestBlock.hash())!,
+      latestBlock.header.baseFeePerGas
     );
   }
 
@@ -146,10 +145,11 @@ export abstract class BlockchainBase {
     throw new Error("Method not implemented.");
   }
 
-  protected _delBlock(blockNumber: bigint): void {
+  protected async _delBlock(blockNumber: bigint): Promise<void> {
     let i = blockNumber;
 
-    while (i <= this.getLatestBlockNumber()) {
+    const latestBlockNumber = await this.getLatestBlockNumber();
+    while (i <= latestBlockNumber) {
       if (this._data.isReservedBlock(i)) {
         const reservation = this._data.cancelReservationWithBlock(i);
         i = reservation.last + 1n;

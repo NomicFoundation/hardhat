@@ -1,8 +1,8 @@
+import type { RunTxResult } from "./vm/vm-adapter";
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
-import { RunBlockResult } from "@nomicfoundation/ethereumjs-vm";
 
 import * as BigIntUtils from "../../util/bigint";
 import { assertHardhatInvariant } from "../../core/errors";
@@ -306,17 +306,16 @@ function getEffectiveGasPrice(tx: TypedTransaction, baseFeePerGas: bigint) {
 
 export function getRpcReceiptOutputsFromLocalBlockExecution(
   block: Block,
-  runBlockResult: RunBlockResult,
+  results: RunTxResult[],
   showTransactionType: boolean
 ): RpcReceiptOutput[] {
   const receipts: RpcReceiptOutput[] = [];
 
   let blockLogIndex = 0;
 
-  for (let i = 0; i < runBlockResult.results.length; i += 1) {
+  for (let i = 0; i < results.length; i += 1) {
     const tx = block.transactions[i];
-    const { createdAddress, totalGasSpent } = runBlockResult.results[i];
-    const receipt = runBlockResult.receipts[i];
+    const { createdAddress, gasUsed, receipt } = results[i];
 
     const logs = receipt.logs.map((log) => {
       const result = getRpcLogOutput(log, tx, block, i, blockLogIndex);
@@ -332,7 +331,7 @@ export function getRpcReceiptOutputsFromLocalBlockExecution(
       from: bufferToRpcData(tx.getSenderAddress().toBuffer()),
       to: tx.to === undefined ? null : bufferToRpcData(tx.to.toBuffer()),
       cumulativeGasUsed: numberToRpcQuantity(receipt.cumulativeBlockGasUsed),
-      gasUsed: numberToRpcQuantity(totalGasSpent),
+      gasUsed: numberToRpcQuantity(gasUsed),
       contractAddress:
         createdAddress !== undefined
           ? bufferToRpcData(createdAddress.toBuffer())

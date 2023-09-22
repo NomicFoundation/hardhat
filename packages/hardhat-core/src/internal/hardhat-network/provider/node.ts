@@ -1,5 +1,5 @@
-import { Block, HeaderData } from "@nomicfoundation/ethereumjs-block";
-import { Common, CustomCommonOpts } from "@nomicfoundation/ethereumjs-common";
+import { Block } from "@nomicfoundation/ethereumjs-block";
+import { Common } from "@nomicfoundation/ethereumjs-common";
 import {
   AccessListEIP2930Transaction,
   FeeMarketEIP1559Transaction,
@@ -18,19 +18,6 @@ import {
   toBuffer,
   bufferToBigInt,
 } from "@nomicfoundation/ethereumjs-util";
-import {
-  Bloom,
-  EEI,
-  RunBlockResult,
-  RunTxResult,
-  VM,
-} from "@nomicfoundation/ethereumjs-vm";
-import { EVM, EVMResult } from "@nomicfoundation/ethereumjs-evm";
-import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
-import {
-  DefaultStateManager,
-  StateManager,
-} from "@nomicfoundation/ethereumjs-statemanager";
 import { SignTypedDataVersion, signTypedData } from "@metamask/eth-sig-util";
 import chalk from "chalk";
 import { randomBytes } from "crypto";
@@ -39,8 +26,6 @@ import EventEmitter from "events";
 
 import * as BigIntUtils from "../../util/bigint";
 import { CompilerInput, CompilerOutput } from "../../../types";
-import { HardforkHistoryConfig } from "../../../types/config";
-import { HARDHAT_NETWORK_SUPPORTED_HARDFORKS } from "../../constants";
 import {
   HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS,
   HARDHAT_NETWORK_DEFAULT_MAX_PRIORITY_FEE_PER_GAS,
@@ -76,21 +61,13 @@ import {
 } from "../stack-traces/solidity-errors";
 import { SolidityStackTrace } from "../stack-traces/solidity-stack-trace";
 import { SolidityTracer } from "../stack-traces/solidityTracer";
-import { VMDebugTracer } from "../stack-traces/vm-debug-tracer";
 import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
-import { VMTracer } from "../stack-traces/vm-tracer";
 
 import "./ethereumjs-workarounds";
 import { rpcQuantityToBigInt } from "../../core/jsonrpc/types/base-types";
 import { JsonRpcClient } from "../jsonrpc/client";
-import {
-  StateOverrideSet,
-  StateProperties,
-} from "../../core/jsonrpc/types/input/callRequest";
+import { StateOverrideSet } from "../../core/jsonrpc/types/input/callRequest";
 import { bloomFilter, Filter, filterLogs, LATEST_BLOCK, Type } from "./filter";
-import { ForkBlockchain } from "./fork/ForkBlockchain";
-import { ForkStateManager } from "./fork/ForkStateManager";
-import { HardhatBlockchain } from "./HardhatBlockchain";
 import {
   CallParams,
   EstimateGasResult,
@@ -99,7 +76,6 @@ import {
   GatherTracesResult,
   GenesisAccount,
   isForkedNodeConfig,
-  MempoolOrder,
   MineBlockResult,
   NodeConfig,
   RunCallResult,
@@ -119,18 +95,16 @@ import { ReturnData } from "./return-data";
 import { FakeSenderAccessListEIP2930Transaction } from "./transactions/FakeSenderAccessListEIP2930Transaction";
 import { FakeSenderEIP1559Transaction } from "./transactions/FakeSenderEIP1559Transaction";
 import { FakeSenderTransaction } from "./transactions/FakeSenderTransaction";
-import { TxPool } from "./TxPool";
-import { TransactionQueue } from "./TransactionQueue";
-import { HardhatBlockchainInterface } from "./types/HardhatBlockchainInterface";
+import { Bloom } from "./utils/bloom";
 import { getCurrentTimestamp } from "./utils/getCurrentTimestamp";
 import { makeCommon } from "./utils/makeCommon";
+import { PartialTrace, RunTxResult } from "./vm/vm-adapter";
+import { ExitCode, Exit } from "./vm/exit";
+import { createContext } from "./vm/creation";
+import { PartialMineBlockResult } from "./miner";
+import { EthContextAdapter } from "./context";
+import { hasTransactions } from "./mem-pool";
 import { makeForkClient } from "./utils/makeForkClient";
-import { makeStateTrie } from "./utils/makeStateTrie";
-import { putGenesisBlock } from "./utils/putGenesisBlock";
-import { txMapToArray } from "./utils/txMapToArray";
-import { RandomBufferGenerator } from "./utils/random";
-
-type ExecResult = EVMResult["execResult"];
 
 const log = debug("hardhat:core:hardhat-network:node");
 
@@ -140,84 +114,41 @@ export class HardhatNode extends EventEmitter {
   public static async create(
     config: NodeConfig
   ): Promise<[Common, HardhatNode]> {
-    const {
-      automine,
-      genesisAccounts,
-      blockGasLimit,
-      tracingConfig,
-      minGasPrice,
-      mempoolOrder,
-      networkId,
-      chainId,
-      allowBlocksWithSameTimestamp,
-      enableTransientStorage,
-    } = config;
+    const context = await createContext(config);
 
-    const allowUnlimitedContractSize =
-      config.allowUnlimitedContractSize ?? false;
+    const initialBlockTimeOffset = isForkedNodeConfig(config)
+      ? BigInt(
+          getDifferenceInSeconds(
+            new Date(
+              Number(
+                (await context.blockchain().getLatestBlock()).header.timestamp *
+                  1000n
+              )
+            ),
+            new Date()
+          )
+        )
+      : config.initialDate !== undefined
+      ? BigInt(getDifferenceInSeconds(config.initialDate, new Date()))
+      : 0n;
 
-    let stateManager: StateManager;
-    let blockchain: HardhatBlockchainInterface;
-    let initialBlockTimeOffset: bigint | undefined;
     let nextBlockBaseFeePerGas: bigint | undefined;
-    let forkNetworkId: number | undefined;
-    let forkBlockNum: bigint | undefined;
-    let forkBlockHash: string | undefined;
-    let hardforkActivations: HardforkHistoryConfig = new Map();
-
-    const initialBaseFeePerGasConfig =
-      config.initialBaseFeePerGas !== undefined
-        ? BigInt(config.initialBaseFeePerGas)
-        : undefined;
-
-    const hardfork = getHardforkName(config.hardfork);
-    const mixHashGenerator = RandomBufferGenerator.create("randomMixHashSeed");
     let forkClient: JsonRpcClient | undefined;
-
-    const common = makeCommon(config);
+    let forkBlockNumber: bigint | undefined;
+    let forkBlockHash: string | undefined;
+    let forkNetworkId: number | undefined;
 
     if (isForkedNodeConfig(config)) {
-      const {
-        forkClient: _forkClient,
-        forkBlockNumber,
-        forkBlockTimestamp,
-        forkBlockHash: _forkBlockHash,
-      } = await makeForkClient(config.forkConfig, config.forkCachePath);
-      forkClient = _forkClient;
-
-      forkNetworkId = forkClient.getNetworkId();
-      forkBlockNum = forkBlockNumber;
-      forkBlockHash = _forkBlockHash;
-
-      this._validateHardforks(
-        config.forkConfig.blockNumber,
-        common,
-        forkNetworkId
-      );
-
-      const forkStateManager = new ForkStateManager(
-        forkClient,
-        forkBlockNumber
-      );
-      await forkStateManager.initializeGenesisAccounts(genesisAccounts);
-      stateManager = forkStateManager;
-
-      blockchain = new ForkBlockchain(forkClient, forkBlockNumber, common);
-
-      initialBlockTimeOffset = BigInt(
-        getDifferenceInSeconds(new Date(forkBlockTimestamp), new Date())
-      );
-
       // If the hardfork is London or later we need a base fee per gas for the
       // first local block. If initialBaseFeePerGas config was provided we use
       // that. Otherwise, what we do depends on the block we forked from. If
       // it's an EIP-1559 block we don't need to do anything here, as we'll
       // end up automatically computing the next base fee per gas based on it.
-      if (hardforkGte(hardfork, HardforkName.LONDON)) {
-        if (initialBaseFeePerGasConfig !== undefined) {
-          nextBlockBaseFeePerGas = initialBaseFeePerGasConfig;
+      if (hardforkGte(getHardforkName(config.hardfork), HardforkName.LONDON)) {
+        if (config.initialBaseFeePerGas !== undefined) {
+          nextBlockBaseFeePerGas = BigInt(config.initialBaseFeePerGas);
         } else {
-          const latestBlock = await blockchain.getLatestBlock();
+          const latestBlock = await context.blockchain().getLatestBlock();
           if (latestBlock.header.baseFeePerGas === undefined) {
             nextBlockBaseFeePerGas = BigInt(
               HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS
@@ -226,129 +157,60 @@ export class HardhatNode extends EventEmitter {
         }
       }
 
-      if (config.chains.has(forkNetworkId)) {
-        hardforkActivations = config.chains.get(forkNetworkId)!.hardforkHistory;
-      }
-    } else {
-      const stateTrie = await makeStateTrie(genesisAccounts);
-
-      stateManager = new DefaultStateManager({
-        trie: stateTrie,
-      });
-
-      const hardhatBlockchain = new HardhatBlockchain(common);
-
-      const genesisBlockBaseFeePerGas = hardforkGte(
-        hardfork,
-        HardforkName.LONDON
-      )
-        ? initialBaseFeePerGasConfig ??
-          BigInt(HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS)
-        : undefined;
-
-      await putGenesisBlock(
-        hardhatBlockchain,
-        common,
-        config,
-        stateTrie,
-        hardfork,
-        mixHashGenerator.next(),
-        genesisBlockBaseFeePerGas
+      const forkData = await makeForkClient(
+        {
+          ...config.forkConfig,
+          blockNumber: Number(
+            await context.blockchain().getLatestBlockNumber()
+          ),
+        },
+        config.forkCachePath
       );
-
-      if (config.initialDate !== undefined) {
-        initialBlockTimeOffset = BigInt(
-          getDifferenceInSeconds(config.initialDate, new Date())
-        );
-      }
-
-      blockchain = hardhatBlockchain;
+      forkClient = forkData.forkClient;
+      forkBlockNumber = forkData.forkBlockNumber;
+      forkBlockHash = forkData.forkBlockHash;
+      forkNetworkId = forkClient.getNetworkId();
     }
 
-    const txPool = new TxPool(stateManager, BigInt(blockGasLimit), common);
+    const {
+      automine,
+      genesisAccounts,
+      tracingConfig,
+      minGasPrice,
+      chainId,
+      allowBlocksWithSameTimestamp,
+    } = config;
 
-    const eei = new EEI(stateManager, common, blockchain);
-    const evm = await EVM.create({
-      eei,
-      allowUnlimitedContractSize,
-      common,
-    });
+    const allowUnlimitedContractSize =
+      config.allowUnlimitedContractSize ?? false;
 
-    const vm = await VM.create({
-      evm,
-      activatePrecompiles: true,
-      common,
-      stateManager,
-      blockchain,
-    });
+    const hardfork = getHardforkName(config.hardfork);
 
+    const common = makeCommon(config);
     const instanceId = bufferToBigInt(randomBytes(32));
 
     const node = new HardhatNode(
-      vm,
+      context,
       instanceId,
-      stateManager,
-      blockchain,
-      txPool,
+      common,
       automine,
       minGasPrice,
       initialBlockTimeOffset,
-      mempoolOrder,
-      config.coinbase,
+      Address.fromString(config.coinbase),
       genesisAccounts,
-      networkId,
       chainId,
       hardfork,
-      hardforkActivations,
-      mixHashGenerator,
       allowUnlimitedContractSize,
       allowBlocksWithSameTimestamp,
       tracingConfig,
-      forkNetworkId,
-      forkBlockNum,
-      forkBlockHash,
       nextBlockBaseFeePerGas,
-      forkClient,
-      enableTransientStorage
+      forkNetworkId,
+      forkBlockNumber,
+      forkBlockHash,
+      forkClient
     );
 
     return [common, node];
-  }
-
-  private static _validateHardforks(
-    forkBlockNumber: number | undefined,
-    common: Common,
-    remoteChainId: number
-  ): void {
-    if (!common.gteHardfork("spuriousDragon")) {
-      throw new InternalError(
-        `Invalid hardfork selected in Hardhat Network's config.
-
-The hardfork must be at least spuriousDragon, but ${common.hardfork()} was given.`
-      );
-    }
-
-    if (forkBlockNumber !== undefined) {
-      let upstreamCommon: Common;
-      try {
-        upstreamCommon = new Common({ chain: remoteChainId });
-      } catch {
-        // If ethereumjs doesn't have a common it will throw and we won't have
-        // info about the activation block of each hardfork, so we don't run
-        // this validation.
-        return;
-      }
-
-      upstreamCommon.setHardforkByBlockNumber(forkBlockNumber);
-
-      if (!upstreamCommon.gteHardfork("spuriousDragon")) {
-        throw new InternalError(
-          `Cannot fork ${upstreamCommon.chainName()} from block ${forkBlockNumber}.
-
-Hardhat Network's forking functionality only works with blocks from at least spuriousDragon.`
-        );
-      }
-    }
   }
 
   private readonly _localAccounts: Map<string, Buffer> = new Map(); // address => private key
@@ -363,7 +225,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   private _nextSnapshotId = 1; // We start in 1 to mimic Ganache
   private readonly _snapshots: Snapshot[] = [];
 
-  private readonly _vmTracer: VMTracer;
   private readonly _vmTraceDecoder: VmTraceDecoder;
   private readonly _solidityTracer: SolidityTracer;
   private readonly _consoleLogger: ConsoleLogger = new ConsoleLogger();
@@ -373,31 +234,24 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   private _irregularStatesByBlockNumber: Map<bigint, Buffer> = new Map();
 
   private constructor(
-    private readonly _vm: VM,
+    private readonly _context: EthContextAdapter,
     private readonly _instanceId: bigint,
-    private readonly _stateManager: StateManager,
-    private readonly _blockchain: HardhatBlockchainInterface,
-    private readonly _txPool: TxPool,
+    private readonly _common: Common,
     private _automine: boolean,
     private _minGasPrice: bigint,
     private _blockTimeOffsetSeconds: bigint = 0n,
-    private _mempoolOrder: MempoolOrder,
-    private _coinbase: string,
+    private _coinbase: Address,
     genesisAccounts: GenesisAccount[],
-    private readonly _configNetworkId: number,
     private readonly _configChainId: number,
     public readonly hardfork: HardforkName,
-    private readonly _hardforkActivations: HardforkHistoryConfig,
-    private _mixHashGenerator: RandomBufferGenerator,
     public readonly allowUnlimitedContractSize: boolean,
     private _allowBlocksWithSameTimestamp: boolean,
-    tracingConfig?: TracingConfig,
-    private _forkNetworkId?: number,
-    private _forkBlockNumber?: bigint,
-    private _forkBlockHash?: string,
-    nextBlockBaseFee?: bigint,
-    private _forkClient?: JsonRpcClient,
-    private readonly _enableTransientStorage: boolean = false
+    tracingConfig: TracingConfig | undefined,
+    nextBlockBaseFee: bigint | undefined,
+    private _forkNetworkId: number | undefined,
+    private _forkBlockNumber: bigint | undefined,
+    private _forkBlockHash: string | undefined,
+    private _forkClient: JsonRpcClient | undefined
   ) {
     super();
 
@@ -406,13 +260,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     if (nextBlockBaseFee !== undefined) {
       this.setUserProvidedNextBlockBaseFeePerGas(nextBlockBaseFee);
     }
-
-    this._vmTracer = new VMTracer(
-      this._vm,
-      this._stateManager.getContractCode.bind(this._stateManager),
-      false
-    );
-    this._vmTracer.enableTracing();
 
     const contractsIdentifier = new ContractsIdentifier();
     this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
@@ -463,17 +310,17 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
       if ("maxFeePerGas" in txParams) {
         tx = FeeMarketEIP1559Transaction.fromTxData(txParams, {
-          common: this._vm._common,
+          common: this._common,
           disableMaxInitCodeSizeCheck: true,
         });
       } else if ("accessList" in txParams) {
         tx = AccessListEIP2930Transaction.fromTxData(txParams, {
-          common: this._vm._common,
+          common: this._common,
           disableMaxInitCodeSizeCheck: true,
         });
       } else {
         tx = Transaction.fromTxData(txParams, {
-          common: this._vm._common,
+          common: this._common,
           disableMaxInitCodeSizeCheck: true,
         });
       }
@@ -497,10 +344,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
     await this._validateAutominedTx(tx);
 
-    if (
-      this._txPool.hasPendingTransactions() ||
-      this._txPool.hasQueuedTransactions()
-    ) {
+    if (await hasTransactions(this._context.memPool())) {
       return this._mineTransactionAndPending(tx);
     }
 
@@ -519,12 +363,24 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       blockTimestamp += 1n;
     }
 
-    let result: MineBlockResult;
+    let partialResult: PartialMineBlockResult;
     try {
-      result = await this._mineBlockWithPendingTxs(blockTimestamp);
+      partialResult = await this._context
+        .blockMiner()
+        .mineBlock(
+          blockTimestamp,
+          this._coinbase,
+          this._minGasPrice,
+          this._common.param("pow", "minerReward"),
+          this.getUserProvidedNextBlockBaseFeePerGas()
+        );
     } catch (err) {
       if (err instanceof Error) {
-        if (err?.message.includes("sender doesn't have enough funds")) {
+        if (
+          err?.message
+            .toLocaleLowerCase()
+            .includes("sender doesn't have enough funds")
+        ) {
           throw new InvalidInputError(err.message, err);
         }
 
@@ -540,7 +396,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       throw err;
     }
 
-    await this._saveBlockAsSuccessfullyRun(result.block, result.blockResult);
+    const result = await this._finalizeBlockResult(partialResult);
+    await this._saveBlockAsSuccessfullyRun(
+      result.block,
+      result.blockResult.results
+    );
 
     if (needsTimestampIncrease) {
       this.increaseTime(1n);
@@ -582,13 +442,14 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     const mineBlock = async () => {
       const nextTimestamp =
         (await this.getLatestBlock()).header.timestamp + interval;
-      mineBlockResults.push(await this.mineBlock(nextTimestamp));
+      const block = await this.mineBlock(nextTimestamp);
+      mineBlockResults.push(block);
     };
 
     // then we mine any pending transactions
     while (
       count > mineBlockResults.length &&
-      this._txPool.hasPendingTransactions()
+      (await this._context.memPool().hasPendingTransactions())
     ) {
       await mineBlock();
     }
@@ -615,14 +476,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     }
 
     // otherwise, we reserve a range and mine the last one
-    const latestBlock = await this.getLatestBlock();
-    this._blockchain.reserveBlocks(
-      remainingBlockCount - 1n,
-      interval,
-      await this._stateManager.getStateRoot(),
-      await this.getBlockTotalDifficulty(latestBlock),
-      (await this.getLatestBlock()).header.baseFeePerGas
-    );
+    await this._context
+      .blockchain()
+      .reserveBlocks(remainingBlockCount - 1n, interval);
 
     await mineBlock();
 
@@ -643,7 +499,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
     if (
       call.gasPrice !== undefined ||
-      !this.isEip1559Active(blockNumberOrPending)
+      !(await this.isEip1559Active(blockNumberOrPending))
     ) {
       txParams = {
         gasPrice: 0n,
@@ -676,11 +532,14 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         )
     );
 
-    const traces = await this._gatherTraces(result.execResult);
+    const trace = await this._finalizeTrace(
+      result,
+      this._context.vm().getLastTraceAndClear()
+    );
 
     return {
-      ...traces,
-      result: new ReturnData(result.execResult.returnValue),
+      ...trace,
+      result: new ReturnData(result.returnValue),
     };
   }
 
@@ -689,11 +548,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     blockNumberOrPending?: bigint | "pending"
   ): Promise<bigint> {
     if (blockNumberOrPending === undefined) {
-      blockNumberOrPending = this.getLatestBlockNumber();
+      blockNumberOrPending = await this.getLatestBlockNumber();
     }
 
     const account = await this._runInBlockContext(blockNumberOrPending, () =>
-      this._stateManager.getAccount(address)
+      this._context.vm().getAccount(address)
     );
 
     return account.balance;
@@ -704,14 +563,14 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     blockNumberOrPending: bigint | "pending"
   ): Promise<bigint> {
     const account = await this._runInBlockContext(blockNumberOrPending, () =>
-      this._stateManager.getAccount(address)
+      this._context.vm().getAccount(address)
     );
 
     return account.nonce;
   }
 
   public async getAccountNextPendingNonce(address: Address): Promise<bigint> {
-    return this._txPool.getNextPendingNonce(address);
+    return this._context.memPool().getNextPendingNonce(address);
   }
 
   public async getCodeFromTrace(
@@ -730,21 +589,21 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public async getLatestBlock(): Promise<Block> {
-    return this._blockchain.getLatestBlock();
+    return this._context.blockchain().getLatestBlock();
   }
 
-  public getLatestBlockNumber(): bigint {
-    return this._blockchain.getLatestBlockNumber();
+  public async getLatestBlockNumber(): Promise<bigint> {
+    return this._context.blockchain().getLatestBlockNumber();
   }
 
   public async getPendingBlockAndTotalDifficulty(): Promise<[Block, bigint]> {
     return this._runInPendingBlockContext(async () => {
-      const block = await this._blockchain.getLatestBlock();
-      const totalDifficulty = await this._blockchain.getTotalDifficulty(
-        block.hash()
-      );
+      const block = await this._context.blockchain().getLatestBlock();
+      const totalDifficulty = await this._context
+        .blockchain()
+        .getTotalDifficultyByHash(block.hash());
 
-      return [block, totalDifficulty];
+      return [block, totalDifficulty!];
     });
   }
 
@@ -752,8 +611,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return [...this._localAccounts.keys()];
   }
 
-  public getBlockGasLimit(): bigint {
-    return this._txPool.getBlockGasLimit();
+  public async getBlockGasLimit(): Promise<bigint> {
+    return this._context.memPool().getBlockGasLimit();
   }
 
   public async estimateGas(
@@ -815,9 +674,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       this._runTxAndRevertMutations(tx, blockNumberOrPending)
     );
 
-    let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
-    const vmTracerError = this._vmTracer.getLastError();
-    this._vmTracer.clearLastError();
+    const traceResult = this._context.vm().getLastTraceAndClear();
+    let vmTrace = traceResult.trace;
+    const vmTracerError = traceResult.error;
 
     if (vmTrace !== undefined) {
       vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
@@ -830,20 +689,16 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
     // This is only considered if the call to _runTxAndRevertMutations doesn't
     // manage errors
-    if (result.execResult.exceptionError !== undefined) {
+    if (result.exit.isError()) {
       return {
-        estimation: this.getBlockGasLimit(),
+        estimation: await this.getBlockGasLimit(),
         trace: vmTrace,
-        error: await this._manageErrors(
-          result.execResult,
-          vmTrace,
-          vmTracerError
-        ),
+        error: await this._manageErrors(result, vmTrace, vmTracerError),
         consoleLogMessages,
       };
     }
 
-    const initialEstimation = result.totalGasSpent;
+    const initialEstimation = result.gasUsed;
 
     return {
       estimation: await this._correctInitialEstimation(
@@ -873,7 +728,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public getCoinbaseAddress(): Address {
-    return Address.fromString(this._coinbase);
+    return this._coinbase;
   }
 
   public async getStorageAt(
@@ -884,7 +739,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     const key = setLengthLeft(bigIntToBuffer(positionIndex), 32);
 
     const data = await this._runInBlockContext(blockNumberOrPending, () =>
-      this._stateManager.getContractStorage(address, key)
+      this._context.vm().getContractStorage(address, key)
     );
 
     const EXPECTED_DATA_SIZE = 32;
@@ -908,12 +763,14 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   ): Promise<Block | undefined> {
     if (blockNumberOrPending === "pending") {
       return this._runInPendingBlockContext(() =>
-        this._blockchain.getLatestBlock()
+        this._context.blockchain().getLatestBlock()
       );
     }
 
     try {
-      const block = await this._blockchain.getBlock(blockNumberOrPending);
+      const block = await this._context
+        .blockchain()
+        .getBlockByNumber(blockNumberOrPending);
       return block;
     } catch {
       return undefined;
@@ -922,7 +779,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   public async getBlockByHash(blockHash: Buffer): Promise<Block | undefined> {
     try {
-      const block = await this._blockchain.getBlock(blockHash);
+      const block = await this._context.blockchain().getBlockByHash(blockHash);
       return block;
     } catch {
       return undefined;
@@ -932,12 +789,16 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   public async getBlockByTransactionHash(
     hash: Buffer
   ): Promise<Block | undefined> {
-    const block = await this._blockchain.getBlockByTransactionHash(hash);
+    const block = await this._context
+      .blockchain()
+      .getBlockByTransactionHash(hash);
     return block ?? undefined;
   }
 
-  public async getBlockTotalDifficulty(block: Block): Promise<bigint> {
-    return this._blockchain.getTotalDifficulty(block.hash());
+  public async getBlockTotalDifficulty(
+    block: Block
+  ): Promise<bigint | undefined> {
+    return this._context.blockchain().getTotalDifficultyByHash(block.hash());
   }
 
   public async getCode(
@@ -945,7 +806,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     blockNumberOrPending: bigint | "pending"
   ): Promise<Buffer> {
     return this._runInBlockContext(blockNumberOrPending, () =>
-      this._stateManager.getContractCode(address)
+      this._context.vm().getContractCode(address)
     );
   }
 
@@ -982,7 +843,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public async getNextBlockBaseFeePerGas(): Promise<bigint | undefined> {
-    if (!this.isEip1559Active()) {
+    if (!(await this.isEip1559Active())) {
       return undefined;
     }
 
@@ -998,21 +859,21 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   public async getPendingTransaction(
     hash: Buffer
   ): Promise<TypedTransaction | undefined> {
-    return this._txPool.getTransactionByHash(hash)?.data;
+    return this._context.memPool().getTransactionByHash(hash);
   }
 
   public async getTransactionReceipt(
     hash: Buffer | string
   ): Promise<RpcReceiptOutput | undefined> {
     const hashBuffer = hash instanceof Buffer ? hash : toBuffer(hash);
-    const receipt = await this._blockchain.getTransactionReceipt(hashBuffer);
+    const receipt = await this._context
+      .blockchain()
+      .getReceiptByTransactionHash(hashBuffer);
     return receipt ?? undefined;
   }
 
   public async getPendingTransactions(): Promise<TypedTransaction[]> {
-    const txPoolPending = txMapToArray(this._txPool.getPendingTransactions());
-    const txPoolQueued = txMapToArray(this._txPool.getQueuedTransactions());
-    return txPoolPending.concat(txPoolQueued);
+    return this._context.memPool().getTransactions();
   }
 
   public async signPersonalMessage(
@@ -1049,15 +910,15 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       id,
       date: new Date(),
       latestBlock: await this.getLatestBlock(),
-      stateRoot: await this._stateManager.getStateRoot(),
-      txPoolSnapshotId: this._txPool.snapshot(),
+      stateRoot: await this._context.vm().makeSnapshot(),
+      txPoolSnapshotId: await this._context.memPool().makeSnapshot(),
       blockTimeOffsetSeconds: this.getTimeIncrement(),
       nextBlockTimestamp: this.getNextBlockTimestamp(),
       irregularStatesByBlockNumber: this._irregularStatesByBlockNumber,
       userProvidedNextBlockBaseFeePerGas:
         this.getUserProvidedNextBlockBaseFeePerGas(),
-      coinbase: this.getCoinbaseAddress().toString(),
-      mixHashGenerator: this._mixHashGenerator.clone(),
+      coinbase: this.getCoinbaseAddress(),
+      nextPrevRandao: this._context.blockMiner().prevRandaoGeneratorSeed(),
     };
 
     this._irregularStatesByBlockNumber = new Map(
@@ -1091,17 +952,19 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     //
     // Note: There's no need to copy the maps here, as snapshots can only be
     // used once
-    this._blockchain.deleteLaterBlocks(snapshot.latestBlock);
+    await this._context
+      .blockchain()
+      .revertToBlock(snapshot.latestBlock.header.number);
     this._irregularStatesByBlockNumber = snapshot.irregularStatesByBlockNumber;
     const irregularStateOrUndefined = this._irregularStatesByBlockNumber.get(
       (await this.getLatestBlock()).header.number
     );
-    await this._stateManager.setStateRoot(
-      irregularStateOrUndefined ?? snapshot.stateRoot
-    );
+    await this._context
+      .vm()
+      .restoreContext(irregularStateOrUndefined ?? snapshot.stateRoot);
     this.setTimeIncrement(newOffset);
     this.setNextBlockTimestamp(snapshot.nextBlockTimestamp);
-    this._txPool.revert(snapshot.txPoolSnapshotId);
+    await this._context.memPool().revertToSnapshot(snapshot.txPoolSnapshotId);
 
     if (snapshot.userProvidedNextBlockBaseFeePerGas !== undefined) {
       this.setUserProvidedNextBlockBaseFeePerGas(
@@ -1113,11 +976,13 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
     this._coinbase = snapshot.coinbase;
 
-    this._mixHashGenerator = snapshot.mixHashGenerator;
+    this._context
+      .blockMiner()
+      .setPrevRandaoGeneratorNextValue(snapshot.nextPrevRandao);
 
     // We delete this and the following snapshots, as they can only be used
     // once in Ganache
-    this._snapshots.splice(snapshotIndex);
+    await this._removeSnapshot(snapshotIndex);
 
     return true;
   }
@@ -1244,7 +1109,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
   public async getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]> {
     filterParams = await this._computeFilterParams(filterParams, false);
-    return this._blockchain.getLogs(filterParams);
+    return this._context.blockchain().getLogs(filterParams);
   }
 
   public async addCompilationResult(
@@ -1299,8 +1164,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public async setBlockGasLimit(gasLimit: bigint | number) {
-    this._txPool.setBlockGasLimit(gasLimit);
-    await this._txPool.updatePendingAndQueued();
+    if (typeof gasLimit === "number") {
+      gasLimit = BigInt(gasLimit);
+    }
+
+    await this._context.memPool().setBlockGasLimit(gasLimit);
+    await this._context.memPool().update();
   }
 
   public async setMinGasPrice(minGasPrice: bigint) {
@@ -1308,7 +1177,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public async dropTransaction(hash: Buffer): Promise<boolean> {
-    const removed = this._txPool.removeTransaction(hash);
+    const removed = await this._context.memPool().removeTransaction(hash);
 
     if (removed) {
       return true;
@@ -1330,9 +1199,9 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     address: Address,
     newBalance: bigint
   ): Promise<void> {
-    const account = await this._stateManager.getAccount(address);
+    const account = await this._context.vm().getAccount(address);
     account.balance = newBalance;
-    await this._stateManager.putAccount(address, account);
+    await this._context.vm().putAccount(address, account);
     await this._persistIrregularWorldState();
   }
 
@@ -1340,7 +1209,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     address: Address,
     newCode: Buffer
   ): Promise<void> {
-    await this._stateManager.putContractCode(address, newCode);
+    await this._context.vm().putContractCode(address, newCode);
     await this._persistIrregularWorldState();
   }
 
@@ -1348,19 +1217,19 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     address: Address,
     newNonce: bigint
   ): Promise<void> {
-    if (!this._txPool.isEmpty()) {
+    if (await hasTransactions(this._context.memPool())) {
       throw new InternalError(
         "Cannot set account nonce when the transaction pool is not empty"
       );
     }
-    const account = await this._stateManager.getAccount(address);
+    const account = await this._context.vm().getAccount(address);
     if (newNonce < account.nonce) {
       throw new InvalidInputError(
         `New nonce (${newNonce.toString()}) must not be smaller than the existing nonce (${account.nonce.toString()})`
       );
     }
     account.nonce = newNonce;
-    await this._stateManager.putAccount(address, account);
+    await this._context.vm().putAccount(address, account);
     await this._persistIrregularWorldState();
   }
 
@@ -1369,24 +1238,14 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     positionIndex: bigint,
     value: Buffer
   ) {
-    await this._stateManager.putContractStorage(
-      address,
-      setLengthLeft(bigIntToBuffer(positionIndex), 32),
-      value
-    );
+    await this._context
+      .vm()
+      .putContractStorage(
+        address,
+        setLengthLeft(bigIntToBuffer(positionIndex), 32),
+        value
+      );
     await this._persistIrregularWorldState();
-  }
-
-  public async traceCall(
-    callParams: CallParams,
-    block: bigint | "pending",
-    traceConfig: RpcDebugTracingConfig
-  ) {
-    const vmDebugTracer = new VMDebugTracer(this._vm);
-
-    return vmDebugTracer.trace(async () => {
-      await this.runCall(callParams, block);
-    }, traceConfig);
   }
 
   public async traceTransaction(hash: Buffer, config: RpcDebugTracingConfig) {
@@ -1398,88 +1257,67 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     }
 
     return this._runInBlockContext(block.header.number - 1n, async () => {
-      const blockNumber = block.header.number;
-      const blockchain = this._blockchain;
-      let vm = this._vm;
-      if (
-        blockchain instanceof ForkBlockchain &&
-        blockNumber <= blockchain.getForkBlockNumber()
-      ) {
-        assertHardhatInvariant(
-          this._forkNetworkId !== undefined,
-          "this._forkNetworkId should exist if the blockchain is an instance of ForkBlockchain"
-        );
-
-        const common = this._getCommonForTracing(
-          this._forkNetworkId,
-          blockNumber
-        );
-
-        vm = await VM.create({
-          common,
-          activatePrecompiles: true,
-          stateManager: this._vm.stateManager,
-          blockchain: this._vm.blockchain,
-        });
-      }
-
-      // We don't support tracing transactions before the spuriousDragon fork
-      // to avoid having to distinguish between empty and non-existing accounts.
-      // We *could* do it during the non-forked mode, but for simplicity we just
-      // don't support it at all.
-      const isPreSpuriousDragon = !vm._common.gteHardfork("spuriousDragon");
-      if (isPreSpuriousDragon) {
-        throw new InvalidInputError(
-          "Tracing is not supported for transactions using hardforks older than Spurious Dragon. "
-        );
-      }
-
-      for (const tx of block.transactions) {
-        let txWithCommon: TypedTransaction;
-        const sender = tx.getSenderAddress();
-        if (tx.type === 0) {
-          txWithCommon = new FakeSenderTransaction(sender, tx, {
-            common: vm._common,
-          });
-        } else if (tx.type === 1) {
-          txWithCommon = new FakeSenderAccessListEIP2930Transaction(
-            sender,
-            tx,
-            { common: vm._common }
-          );
-        } else if (tx.type === 2) {
-          txWithCommon = new FakeSenderEIP1559Transaction(
-            sender,
-            { ...tx, gasPrice: undefined },
-            { common: vm._common }
-          );
-        } else {
-          throw new InternalError(
-            "Only legacy, EIP2930, and EIP1559 txs are supported"
-          );
-        }
-
-        const txHash = txWithCommon.hash();
-        if (txHash.equals(hash)) {
-          const vmDebugTracer = new VMDebugTracer(vm);
-          return vmDebugTracer.trace(async () => {
-            await vm.runTx({
-              tx: txWithCommon,
-              block,
-              skipHardForkValidation: true,
-            });
-          }, config);
-        }
-        await vm.runTx({
-          tx: txWithCommon,
-          block,
-          skipHardForkValidation: true,
-        });
-      }
-      throw new TransactionExecutionError(
-        `Unable to find a transaction in a block that contains that transaction, this should never happen`
-      );
+      return this._context.vm().traceTransaction(hash, block, config);
     });
+  }
+
+  public async traceCall(
+    call: CallParams,
+    blockNumberOrPending: bigint | "pending",
+    traceConfig: RpcDebugTracingConfig
+  ) {
+    let txParams: TransactionParams;
+
+    const nonce = await this._getNonce(
+      new Address(call.from),
+      blockNumberOrPending
+    );
+
+    if (
+      call.gasPrice !== undefined ||
+      !(await this.isEip1559Active(blockNumberOrPending))
+    ) {
+      txParams = {
+        gasPrice: 0n,
+        nonce,
+        ...call,
+      };
+    } else {
+      const maxFeePerGas = call.maxFeePerGas ?? call.maxPriorityFeePerGas ?? 0n;
+      const maxPriorityFeePerGas = call.maxPriorityFeePerGas ?? 0n;
+
+      txParams = {
+        ...call,
+        nonce,
+        maxFeePerGas,
+        maxPriorityFeePerGas,
+        accessList: call.accessList ?? [],
+      };
+    }
+
+    const tx = await this._getFakeTransaction(txParams);
+
+    let blockContext: Block | undefined;
+
+    if (blockNumberOrPending === "pending") {
+      // the new block has already been mined by _runInBlockContext hence we take latest here
+      blockContext = await this.getLatestBlock();
+    } else {
+      // We know that this block number exists, because otherwise
+      // there would be an error in the RPC layer.
+      const block = await this.getBlockByNumber(blockNumberOrPending);
+      assertHardhatInvariant(
+        block !== undefined,
+        "Tried to run a tx in the context of a non-existent block"
+      );
+
+      blockContext = block;
+
+      // we don't need to add the tx to the block because runTx doesn't
+      // know anything about the txs in the current block
+    }
+
+    return this._context.vm().traceCall(tx, blockContext, traceConfig);
   }
 
   public async getFeeHistory(
@@ -1487,7 +1325,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     newestBlock: bigint | "pending",
     rewardPercentiles: number[]
   ): Promise<FeeHistory> {
-    const latestBlock = this.getLatestBlockNumber();
+    const latestBlock = await this.getLatestBlockNumber();
     const pendingBlockNumber = latestBlock + 1n;
 
     const resolvedNewestBlock =
@@ -1596,8 +1434,8 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     };
   }
 
-  public async setCoinbase(coinbase: Address) {
-    this._coinbase = coinbase.toString();
+  public setCoinbase(coinbase: Address) {
+    this._coinbase = coinbase;
   }
 
   private _getGasUsedRatio(block: Block): number {
@@ -1672,7 +1510,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   private async _addPendingTransaction(tx: TypedTransaction): Promise<string> {
-    await this._txPool.addTransaction(tx);
+    await this._context.memPool().addTransaction(tx);
     await this._notifyPendingTransaction(tx);
     return bufferToHex(tx.hash());
   }
@@ -1687,18 +1525,22 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   private async _mineTransactionAndPending(
     tx: TypedTransaction
   ): Promise<MineBlockResult[]> {
-    const snapshotId = await this.takeSnapshot();
+    const id = await this.takeSnapshot();
 
     let result;
     try {
       const txHash = await this._addPendingTransaction(tx);
       result = await this._mineBlocksUntilTransactionIsIncluded(txHash);
     } catch (err) {
-      await this.revertToSnapshot(snapshotId);
+      await this.revertToSnapshot(id);
       throw err;
     }
 
-    this._removeSnapshot(snapshotId);
+    const snapshotIndex = this._getSnapshotIndex(id);
+    if (snapshotIndex !== undefined) {
+      await this._removeSnapshot(id);
+    }
+
     return result;
   }
 
@@ -1708,7 +1550,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     const results = [];
     let txReceipt;
     do {
-      if (!this._txPool.hasPendingTransactions()) {
+      if (!(await this._context.memPool().hasPendingTransactions())) {
         throw new TransactionExecutionError(
           "Failed to mine transaction for unknown reason, this should never happen"
         );
@@ -1717,17 +1559,46 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       txReceipt = await this.getTransactionReceipt(txHash);
     } while (txReceipt === undefined);
 
-    while (this._txPool.hasPendingTransactions()) {
+    while (await this._context.memPool().hasPendingTransactions()) {
       results.push(await this.mineBlock());
     }
 
     return results;
   }
 
-  private async _gatherTraces(result: ExecResult): Promise<GatherTracesResult> {
-    let vmTrace = this._vmTracer.getLastTopLevelMessageTrace();
-    const vmTracerError = this._vmTracer.getLastError();
-    this._vmTracer.clearLastError();
+  private async _finalizeBlockResult(
+    result: PartialMineBlockResult
+  ): Promise<MineBlockResult> {
+    const numberOfResults = result.blockResult.results.length;
+    const numberOfTraces = result.traces.length;
+    if (numberOfResults !== numberOfTraces) {
+      throw new Error(
+        `The number of transaction results '${numberOfResults} should equal the number of traces '${numberOfTraces}'`
+      );
+    }
+
+    const traces: GatherTracesResult[] = [];
+
+    for (let idx = 0; idx < numberOfResults; ++idx) {
+      const txResult = result.blockResult.results[idx];
+      const trace = result.traces[idx];
+
+      traces.push(await this._finalizeTrace(txResult, trace));
+    }
+
+    return {
+      block: result.block,
+      blockResult: result.blockResult,
+      traces,
+    };
+  }
+
+  private async _finalizeTrace(
+    txResult: RunTxResult,
+    traceResult: PartialTrace
+  ): Promise<GatherTracesResult> {
+    let vmTrace = traceResult.trace;
+    const vmTracerError = traceResult.error;
 
     if (vmTrace !== undefined) {
       vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
@@ -1738,7 +1609,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       vmTracerError
     );
 
-    const error = await this._manageErrors(result, vmTrace, vmTracerError);
+    const error = await this._manageErrors(txResult, vmTrace, vmTracerError);
 
     return {
       trace: vmTrace,
@@ -1761,7 +1632,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     }
 
     // validate nonce
-    const nextPendingNonce = await this._txPool.getNextPendingNonce(sender);
+    const nextPendingNonce = await this.getAccountNextPendingNonce(sender);
     const txNonce = tx.nonce;
 
     const expectedNonceMsg = `Expected nonce to be ${nextPendingNonce.toString()} but got ${txNonce.toString()}.`;
@@ -1802,102 +1673,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     }
   }
 
-  /**
-   * Mines a new block with as many pending txs as possible, adding it to
-   * the VM's blockchain.
-   *
-   * This method reverts any modification to the state manager if it throws.
-   */
-  private async _mineBlockWithPendingTxs(
-    blockTimestamp: bigint
-  ): Promise<MineBlockResult> {
-    const parentBlock = await this.getLatestBlock();
-
-    const headerData: HeaderData = {
-      gasLimit: this.getBlockGasLimit(),
-      coinbase: this.getCoinbaseAddress(),
-      nonce: this.isPostMergeHardfork()
-        ? "0x0000000000000000"
-        : "0x0000000000000042",
-      timestamp: blockTimestamp,
-    };
-
-    if (this.isPostMergeHardfork()) {
-      headerData.mixHash = this._getNextMixHash();
-    }
-
-    headerData.baseFeePerGas = await this.getNextBlockBaseFeePerGas();
-
-    const blockBuilder = await this._vm.buildBlock({
-      parentBlock,
-      headerData,
-      blockOpts: { calcDifficultyFromHeader: parentBlock.header },
-    });
-
-    try {
-      const traces: GatherTracesResult[] = [];
-
-      const blockGasLimit = this.getBlockGasLimit();
-      const minTxFee = this._getMinimalTransactionFee();
-      const pendingTxs = this._txPool.getPendingTransactions();
-      const transactionQueue = new TransactionQueue(
-        pendingTxs,
-        this._mempoolOrder,
-        headerData.baseFeePerGas
-      );
-
-      let tx = transactionQueue.getNextTransaction();
-
-      const results = [];
-      const receipts = [];
-
-      while (
-        blockGasLimit - blockBuilder.gasUsed >= minTxFee &&
-        tx !== undefined
-      ) {
-        if (
-          !this._isTxMinable(tx, headerData.baseFeePerGas) ||
-          tx.gasLimit > blockGasLimit - blockBuilder.gasUsed
-        ) {
-          transactionQueue.removeLastSenderTransactions();
-        } else {
-          const txResult = await blockBuilder.addTransaction(tx);
-
-          traces.push(await this._gatherTraces(txResult.execResult));
-          results.push(txResult);
-          receipts.push(txResult.receipt);
-        }
-
-        tx = transactionQueue.getNextTransaction();
-      }
-
-      const block = await blockBuilder.build();
-
-      await this._txPool.updatePendingAndQueued();
-
-      return {
-        block,
-        blockResult: {
-          results,
-          receipts,
-          stateRoot: block.header.stateRoot,
-          logsBloom: block.header.logsBloom,
-          receiptsRoot: block.header.receiptTrie,
-          gasUsed: block.header.gasUsed,
-        },
-        traces,
-      };
-    } catch (err) {
-      await blockBuilder.revert();
-      throw err;
-    }
-  }
-
-  private _getMinimalTransactionFee(): bigint {
-    // Typically 21_000 gas
-    return this._vm._common.param("gasPrices", "tx");
-  }
-
   private async _getFakeTransaction(
     txParams: TransactionParams
   ): Promise<
@@ -1909,18 +1684,18 @@ Hardhat Network's forking functionality only works with blocks from at least spu
 
     if ("maxFeePerGas" in txParams && txParams.maxFeePerGas !== undefined) {
       return new FakeSenderEIP1559Transaction(sender, txParams, {
-        common: this._vm._common,
+        common: this._common,
       });
     }
 
     if ("accessList" in txParams && txParams.accessList !== undefined) {
       return new FakeSenderAccessListEIP2930Transaction(sender, txParams, {
-        common: this._vm._common,
+        common: this._common,
       });
     }
 
     return new FakeSenderTransaction(sender, txParams, {
-      common: this._vm._common,
+      common: this._common,
     });
   }
 
@@ -1939,12 +1714,12 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return undefined;
   }
 
-  private _removeSnapshot(id: number) {
-    const snapshotIndex = this._getSnapshotIndex(id);
-    if (snapshotIndex === undefined) {
-      return;
+  private async _removeSnapshot(snapshotIndex: number) {
+    const deletedSnapshots = this._snapshots.splice(snapshotIndex);
+
+    for (const deletedSnapshot of deletedSnapshots) {
+      await this._context.vm().removeSnapshot(deletedSnapshot.stateRoot);
     }
-    this._snapshots.splice(snapshotIndex);
   }
 
   private _initLocalAccounts(genesisAccounts: GenesisAccount[]) {
@@ -1971,11 +1746,11 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   private async _manageErrors(
-    vmResult: ExecResult,
+    vmResult: RunTxResult,
     vmTrace: MessageTrace | undefined,
     vmTracerError: Error | undefined
   ): Promise<SolidityError | TransactionExecutionError | undefined> {
-    if (vmResult.exceptionError === undefined) {
+    if (!vmResult.exit.isError()) {
       return undefined;
     }
 
@@ -1995,20 +1770,24 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       );
     }
 
-    const error = vmResult.exceptionError;
+    const exitCode = vmResult.exit;
 
-    // we don't use `instanceof` in case someone uses a different VM dependency
-    // see https://github.com/nomiclabs/hardhat/issues/1317
-    const isVmError = "error" in error && typeof error.error === "string";
+    const isExitCode = exitCode instanceof Exit;
 
     // If this is not a VM error, or if it's an internal VM error, we just
     // rethrow. An example of a non-VmError being thrown here is an HTTP error
     // coming from the ForkedStateManager.
-    if (!isVmError || error.error === ERROR.INTERNAL_ERROR) {
-      throw error;
+    if (!isExitCode || exitCode.kind === ExitCode.INTERNAL_ERROR) {
+      throw exitCode;
     }
 
-    if (error.error === ERROR.CODESIZE_EXCEEDS_MAXIMUM) {
+    if (exitCode.kind !== vmTrace?.exit.kind) {
+      console.trace("execution:", exitCode);
+      console.log("trace:", vmTrace?.exit);
+      throw Error("Execution error does not match trace error");
+    }
+
+    if (exitCode.kind === ExitCode.CODESIZE_EXCEEDS_MAXIMUM) {
       if (stackTrace !== undefined) {
         return encodeSolidityStackTrace(
           "Transaction ran out of gas",
@@ -2019,7 +1798,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       return new TransactionExecutionError("Transaction ran out of gas");
     }
 
-    if (error.error === ERROR.OUT_OF_GAS) {
+    if (exitCode.kind === ExitCode.OUT_OF_GAS) {
       // if the error is an out of gas, we ignore the inferred error in the
       // trace
       return new TransactionExecutionError("Transaction ran out of gas");
@@ -2039,7 +1818,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       returnDataExplanation = "with unrecognized return data or custom error";
     }
 
-    if (error.error === ERROR.REVERT) {
+    if (exitCode.kind === ExitCode.REVERT) {
       const fallbackMessage = `VM Exception while processing transaction: revert ${returnDataExplanation}`;
 
       if (stackTrace !== undefined) {
@@ -2125,17 +1904,21 @@ Hardhat Network's forking functionality only works with blocks from at least spu
    */
   private async _saveBlockAsSuccessfullyRun(
     block: Block,
-    runBlockResult: RunBlockResult
+    transactionResults: RunTxResult[]
   ) {
     const receipts = getRpcReceiptOutputsFromLocalBlockExecution(
       block,
-      runBlockResult,
-      shouldShowTransactionTypeForHardfork(this._vm._common)
+      transactionResults,
+      shouldShowTransactionTypeForHardfork(this._common)
     );
 
-    this._blockchain.addTransactionReceipts(receipts);
-
     const td = await this.getBlockTotalDifficulty(block);
+
+    assertHardhatInvariant(
+      td !== undefined,
+      "_saveBlockAsSuccessfullyRun should only be called after having inserted the block"
+    );
+
     const rpcLogs: RpcLogOutput[] = [];
     for (const receipt of receipts) {
       rpcLogs.push(...receipt.logs);
@@ -2155,7 +1938,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
               getRpcBlock(
                 block,
                 td,
-                shouldShowTransactionTypeForHardfork(this._vm._common),
+                shouldShowTransactionTypeForHardfork(this._common),
                 false
               )
             );
@@ -2208,7 +1991,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       return this._runInPendingBlockContext(action);
     }
 
-    if (blockNumberOrPending === this.getLatestBlockNumber()) {
+    if (blockNumberOrPending === (await this.getLatestBlockNumber())) {
       return action();
     }
 
@@ -2220,12 +2003,13 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       );
     }
 
-    const currentStateRoot = await this._stateManager.getStateRoot();
+    const snapshot = await this._context.vm().makeSnapshot();
     await this._setBlockContext(block);
     try {
       return await action();
     } finally {
-      await this._restoreBlockContext(currentStateRoot);
+      await this._context.vm().restoreContext(snapshot);
+      await this._context.vm().removeSnapshot(snapshot);
     }
   }
 
@@ -2244,24 +2028,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       block.header.number
     );
 
-    if (this._stateManager instanceof ForkStateManager) {
-      return this._stateManager.setBlockContext(
-        block.header.stateRoot,
-        block.header.number,
-        irregularStateOrUndefined
-      );
-    }
-
-    return this._stateManager.setStateRoot(
-      irregularStateOrUndefined ?? block.header.stateRoot
-    );
-  }
-
-  private async _restoreBlockContext(stateRoot: Buffer) {
-    if (this._stateManager instanceof ForkStateManager) {
-      return this._stateManager.restoreForkBlockContext(stateRoot);
-    }
-    return this._stateManager.setStateRoot(stateRoot);
+    await this._context.vm().setBlockContext(block, irregularStateOrUndefined);
   }
 
   private async _correctInitialEstimation(
@@ -2287,7 +2054,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       this._runTxAndRevertMutations(tx, blockNumberOrPending)
     );
 
-    if (result.execResult.exceptionError === undefined) {
+    if (!result.exit.isError()) {
       return initialEstimation;
     }
 
@@ -2295,7 +2062,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       blockNumberOrPending,
       txParams,
       initialEstimation,
-      this.getBlockGasLimit()
+      await this.getBlockGasLimit()
     );
   }
 
@@ -2361,7 +2128,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
       this._runTxAndRevertMutations(tx, blockNumberOrPending)
     );
 
-    if (result.execResult.exceptionError === undefined) {
+    if (!result.exit.isError()) {
       return this._binarySearchEstimation(
         blockNumberOrPending,
         txParams,
@@ -2380,83 +2147,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     );
   }
 
-  private async _applyStateOverrideSet(stateOverrideSet: StateOverrideSet) {
-    // Multiple state override set can be configured for different addresses, hence the loop
-    for (const [addrToOverride, stateOverrideOptions] of Object.entries(
-      stateOverrideSet
-    )) {
-      const address = new Address(toBuffer(addrToOverride));
-
-      const { balance, nonce, code, state, stateDiff } = stateOverrideOptions;
-
-      await this._overrideBalanceAndNonce(address, balance, nonce);
-      await this._overrideCode(address, code);
-      await this._overrideStateAndStateDiff(address, state, stateDiff);
-    }
-  }
-
-  private async _overrideBalanceAndNonce(
-    address: Address,
-    balance: bigint | undefined,
-    nonce: bigint | undefined
-  ) {
-    const MAX_NONCE = 2n ** 64n - 1n;
-    const MAX_BALANCE = 2n ** 256n - 1n;
-
-    if (nonce !== undefined && nonce > MAX_NONCE) {
-      throw new InvalidInputError(
-        `The 'nonce' property should occupy a maximum of 8 bytes (nonce=${nonce}).`
-      );
-    }
-
-    if (balance !== undefined && balance > MAX_BALANCE) {
-      throw new InvalidInputError(
-        `The 'balance' property should occupy a maximum of 32 bytes (balance=${balance}).`
-      );
-    }
-
-    await this._stateManager.modifyAccountFields(address, {
-      balance,
-      nonce,
-    });
-  }
-
-  private async _overrideCode(address: Address, code: Buffer | undefined) {
-    if (code === undefined) return;
-
-    await this._stateManager.putContractCode(address, code);
-  }
-
-  private async _overrideStateAndStateDiff(
-    address: Address,
-    state: StateProperties | undefined,
-    stateDiff: StateProperties | undefined
-  ) {
-    let newState;
-
-    if (state !== undefined && stateDiff === undefined) {
-      await this._stateManager.clearContractStorage(address);
-      newState = state;
-    } else if (state === undefined && stateDiff !== undefined) {
-      newState = stateDiff;
-    } else if (state === undefined && stateDiff === undefined) {
-      // nothing to do
-      return;
-    } else {
-      throw new InvalidInputError(
-        "The properties 'state' and 'stateDiff' cannot be used simultaneously when configuring the state override set passed to the eth_call method."
-      );
-    }
-
-    for (const [storageKey, value] of Object.entries(newState)) {
-      await this._stateManager.putContractStorage(
-        address,
-        toBuffer(storageKey),
-        setLengthLeft(bigIntToBuffer(value), 32)
-      );
-    }
-  }
-
   /**
    * This function runs a transaction and reverts all the modifications that it
    * makes.
@@ -2467,121 +2157,37 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     forceBaseFeeZero = false,
     stateOverrideSet: StateOverrideSet = {}
   ): Promise<RunTxResult> {
-    const initialStateRoot = await this._stateManager.getStateRoot();
-
-    await this._applyStateOverrideSet(stateOverrideSet);
-
     let blockContext: Block | undefined;
-    let originalCommon: Common | undefined;
 
-    try {
-      if (blockNumberOrPending === "pending") {
-        // the new block has already been mined by _runInBlockContext hence we take latest here
-        blockContext = await this.getLatestBlock();
-      } else {
-        // We know that this block number exists, because otherwise
-        // there would be an error in the RPC layer.
-        const block = await this.getBlockByNumber(blockNumberOrPending);
-        assertHardhatInvariant(
-          block !== undefined,
-          "Tried to run a tx in the context of a non-existent block"
-        );
-
-        blockContext = block;
-
-        // we don't need to add the tx to the block because runTx doesn't
-        // know anything about the txs in the current block
-      }
-
-      originalCommon = (this._vm as any)._common;
-
-      (this._vm as any)._common = Common.custom(
-        {
-          chainId:
-            this._forkBlockNumber === undefined ||
-            blockContext.header.number >= this._forkBlockNumber
-              ? this._configChainId
-              : this._forkNetworkId,
-          networkId: this._forkNetworkId ?? this._configNetworkId,
-        },
-        {
-          hardfork: this._selectHardfork(blockContext.header.number),
-          ...this._getTransientStorageSettings(),
-        }
+    if (blockNumberOrPending === "pending") {
+      // the new block has already been mined by _runInBlockContext hence we take latest here
+      blockContext = await this.getLatestBlock();
+    } else {
+      // We know that this block number exists, because otherwise
+      // there would be an error in the RPC layer.
+      const block = await this.getBlockByNumber(blockNumberOrPending);
+      assertHardhatInvariant(
+        block !== undefined,
+        "Tried to run a tx in the context of a non-existent block"
       );
 
-      // If this VM is running without EIP4895, but the block has withdrawals,
-      // we remove them and the withdrawal root from the block
-      if (
-        !this.isEip4895Active(blockNumberOrPending) &&
-        blockContext.withdrawals !== undefined
-      ) {
-        blockContext = Block.fromBlockData(
-          {
-            ...blockContext,
-            withdrawals: undefined,
-            header: {
-              ...blockContext.header,
-              withdrawalsRoot: undefined,
-            },
-          },
-          {
-            freeze: false,
-            common: this._vm._common,
+      blockContext = block;
 
-            skipConsensusFormatValidation: true,
-          }
-        );
-      }
-
-      // NOTE: This is a workaround of both an @nomicfoundation/ethereumjs-vm limitation, and
-      //   a bug in Hardhat Network.
-      //
-      // See: https://github.com/nomiclabs/hardhat/issues/1666
-      //
-      // If this VM is running with EIP1559 activated, and the block is not
-      // an EIP1559 one, this will crash, so we create a new one that has
-      // baseFeePerGas = 0.
-      //
-      // We also have an option to force the base fee to be zero,
-      // we don't want to debit any balance nor fail any tx when running an
-      // eth_call. This will make the BASEFEE option also return 0, which
-      // shouldn't. See: https://github.com/nomiclabs/hardhat/issues/1688
-      if (
-        this.isEip1559Active(blockNumberOrPending) &&
-        (blockContext.header.baseFeePerGas === undefined || forceBaseFeeZero)
-      ) {
-        blockContext = Block.fromBlockData(blockContext, {
-          freeze: false,
-          common: this._vm._common,
-
-          skipConsensusFormatValidation: true,
-        });
-
-        (blockContext.header as any).baseFeePerGas = 0n;
-      }
-
-      return await this._vm.runTx({
-        block: blockContext,
-        tx,
-        skipNonce: true,
-        skipBalance: true,
-        skipBlockGasLimitValidation: true,
-        skipHardForkValidation: true,
-      });
-    } finally {
-      if (originalCommon !== undefined) {
-        (this._vm as any)._common = originalCommon;
-      }
-      await this._stateManager.setStateRoot(initialStateRoot);
+      // we don't need to add the tx to the block because runTx doesn't
+      // know anything about the txs in the current block
     }
+
+    const [result] = await this._context
+      .vm()
+      .dryRun(tx, blockContext, forceBaseFeeZero, stateOverrideSet);
+    return result;
   }
 
   private async _computeFilterParams(
     filterParams: FilterParams,
     isFilter: boolean
   ): Promise<FilterParams> {
-    const latestBlockNumber = this.getLatestBlockNumber();
+    const latestBlockNumber = await this.getLatestBlockNumber();
     const newFilterParams = { ...filterParams };
 
     if (newFilterParams.fromBlock === LATEST_BLOCK) {
@@ -2634,7 +2240,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     }
 
     return this._runInBlockContext(blockNumberOrPending, async () => {
-      const account = await this._stateManager.getAccount(address);
+      const account = await this._context.vm().getAccount(address);
 
       return account.nonce;
     });
@@ -2645,53 +2251,33 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return txReceipt !== undefined;
   }
 
-  private _isTxMinable(
-    tx: TypedTransaction,
-    nextBlockBaseFeePerGas?: bigint
-  ): boolean {
-    const txMaxFee = "gasPrice" in tx ? tx.gasPrice : tx.maxFeePerGas;
-
-    const canPayBaseFee =
-      nextBlockBaseFeePerGas !== undefined
-        ? txMaxFee >= nextBlockBaseFeePerGas
-        : true;
-
-    const atLeastMinGasPrice = txMaxFee >= this._minGasPrice;
-
-    return canPayBaseFee && atLeastMinGasPrice;
-  }
-
   private async _persistIrregularWorldState(): Promise<void> {
     this._irregularStatesByBlockNumber.set(
-      this.getLatestBlockNumber(),
-      await this._stateManager.getStateRoot()
+      await this.getLatestBlockNumber(),
+      await this._context.vm().makeSnapshot()
     );
   }
 
-  public isEip1559Active(blockNumberOrPending?: bigint | "pending"): boolean {
-    if (
-      blockNumberOrPending !== undefined &&
-      blockNumberOrPending !== "pending"
-    ) {
-      return this._vm._common.hardforkGteHardfork(
-        this._selectHardfork(blockNumberOrPending),
-        "london"
-      );
-    }
-    return this._vm._common.gteHardfork("london");
+  public async isEip1559Active(
+    blockNumberOrPending?: bigint | "pending"
+  ): Promise<boolean> {
+    return hardforkGte(
+      await this._context
+        .blockchain()
+        .getHardforkAtBlockNumber(blockNumberOrPending),
+      HardforkName.LONDON
+    );
   }
 
-  public isEip4895Active(blockNumberOrPending?: bigint | "pending"): boolean {
-    if (
-      blockNumberOrPending !== undefined &&
-      blockNumberOrPending !== "pending"
-    ) {
-      return this._vm._common.hardforkGteHardfork(
-        this._selectHardfork(blockNumberOrPending),
-        "shanghai"
-      );
-    }
-    return this._vm._common.gteHardfork("shanghai");
+  public async isEip4895Active(
+    blockNumberOrPending?: bigint | "pending"
+  ): Promise<boolean> {
+    return hardforkGte(
+      await this._context
+        .blockchain()
+        .getHardforkAtBlockNumber(blockNumberOrPending),
+      HardforkName.SHANGHAI
+    );
   }
 
   public isPostMergeHardfork(): boolean {
@@ -2699,7 +2285,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   public setPrevRandao(prevRandao: Buffer): void {
-    this._mixHashGenerator.setNext(prevRandao);
+    this._context.blockMiner().setPrevRandaoGeneratorNextValue(prevRandao);
   }
 
   public async getClientVersion(): Promise<string> {
@@ -2747,10 +2333,6 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     return metadata;
   }
 
-  private _getNextMixHash(): Buffer {
-    return this._mixHashGenerator.next();
-  }
-
   private async _getEstimateGasFeePriceFields(
     callParams: CallParams,
     blockNumberOrPending: bigint | "pending"
@@ -2759,7 +2341,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     | { maxFeePerGas: bigint; maxPriorityFeePerGas: bigint }
   > {
     if (
-      !this.isEip1559Active(blockNumberOrPending) ||
+      !(await this.isEip1559Active(blockNumberOrPending)) ||
       callParams.gasPrice !== undefined
     ) {
       return { gasPrice: callParams.gasPrice ?? (await this.getGasPrice()) };
@@ -2789,81 +2371,5 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     }
 
     return { maxFeePerGas, maxPriorityFeePerGas };
-  }
-
-  private _selectHardfork(blockNumber: bigint): string {
-    if (
-      this._forkBlockNumber === undefined ||
-      blockNumber >= this._forkBlockNumber
-    ) {
-      return this._vm._common.hardfork() as HardforkName;
-    }
-
-    if (this._hardforkActivations.size === 0) {
-      throw new InternalError(
-        `No known hardfork for execution on historical block ${blockNumber.toString()} (relative to fork block number ${
-          this._forkBlockNumber
-        }). The node was not configured with a hardfork activation history.  See http://hardhat.org/custom-hardfork-history`
-      );
-    }
-
-    /** search this._hardforkActivations for the highest block number that
-     * isn't higher than blockNumber, and then return that found block number's
-     * associated hardfork name. */
-    const hardforkHistory: Array<[name: string, block: number]> = Array.from(
-      this._hardforkActivations.entries()
-    );
-    const [hardfork, activationBlock] = hardforkHistory.reduce(
-      ([highestHardfork, highestBlock], [thisHardfork, thisBlock]) =>
-        thisBlock > highestBlock && thisBlock <= blockNumber
-          ? [thisHardfork, thisBlock]
-          : [highestHardfork, highestBlock]
-    );
-    if (hardfork === undefined || blockNumber < activationBlock) {
-      throw new InternalError(
-        `Could not find a hardfork to run for block ${blockNumber.toString()}, after having looked for one in the HardhatNode's hardfork activation history, which was: ${JSON.stringify(
-          hardforkHistory
-        )}. For more information, see https://hardhat.org/hardhat-network/reference/#config`
-      );
-    }
-
-    if (!HARDHAT_NETWORK_SUPPORTED_HARDFORKS.includes(hardfork)) {
-      throw new InternalError(
-        `Tried to run a call or transaction in the context of a block whose hardfork is "${hardfork}", but Hardhat Network only supports the following hardforks: ${HARDHAT_NETWORK_SUPPORTED_HARDFORKS.join(
-          ", "
-        )}`
-      );
-    }
-
-    return hardfork;
-  }
-
-  private _getCommonForTracing(networkId: number, blockNumber: bigint): Common {
-    try {
-      const common = Common.custom(
-        {
-          chainId: networkId,
-          networkId,
-        },
-        {
-          hardfork: this._selectHardfork(BigInt(blockNumber)),
-          ...this._getTransientStorageSettings(),
-        }
-      );
-
-      return common;
-    } catch {
-      throw new InternalError(
-        `Network id ${networkId} does not correspond to a network that Hardhat can trace`
-      );
-    }
-  }
-
-  private _getTransientStorageSettings(): Partial<CustomCommonOpts> {
-    if (this._enableTransientStorage) {
-      return { eips: [1153] };
-    }
-
-    return {};
   }
 }

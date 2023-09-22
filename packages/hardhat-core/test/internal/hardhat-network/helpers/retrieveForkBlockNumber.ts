@@ -1,17 +1,18 @@
-import { ForkBlockchain } from "../../../../src/internal/hardhat-network/provider/fork/ForkBlockchain";
 import { HardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
 
 /* eslint-disable @typescript-eslint/dot-notation */
 
-export async function retrieveForkBlockNumber(
+export async function retrieveLatestBlockNumber(
   provider: HardhatNetworkProvider
 ): Promise<number> {
   if (provider["_node"] === undefined) {
     await provider["_init"]();
   }
-  const forkBlockchain = provider["_node"]?.["_blockchain"];
-  if (!(forkBlockchain instanceof ForkBlockchain)) {
-    throw new Error("Provider has not been initialised with forkConfig");
+
+  const context = provider["_node"]?.["_context"];
+  if (context === undefined) {
+    throw new Error("Provider has not been initialised");
   }
-  return Number(forkBlockchain["_forkBlockNumber"]);
+
+  return Number(await context.blockchain().getLatestBlockNumber());
 }

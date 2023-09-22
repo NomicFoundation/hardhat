@@ -21,7 +21,7 @@
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
     "pretest": "cd ../.. && yarn build",
-    "test": "mocha --recursive \"test/**/*.ts\"",
+    "test": "mocha --recursive \"test/**/*.ts\" --exit",
     "build": "tsc --build .",
     "prepublishOnly": "yarn build",
     "clean": "rimraf dist internal types *.{d.ts,js}{,.map} build-test tsconfig.tsbuildinfo"

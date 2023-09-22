@@ -35,7 +35,7 @@ import {
   DEFAULT_BLOCK_GAS_LIMIT,
   PROVIDERS,
 } from "../../helpers/providers";
-import { retrieveForkBlockNumber } from "../../helpers/retrieveForkBlockNumber";
+import { retrieveLatestBlockNumber } from "../../helpers/retrieveForkBlockNumber";
 import { sleep } from "../../helpers/sleep";
 import { deployContract } from "../../helpers/transactions";
 
@@ -52,7 +52,7 @@ describe("Evm module", function () {
       useProvider();
 
       const getFirstBlock = async () =>
-        isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
+        retrieveLatestBlockNumber(this.ctx.hardhatNetworkProvider);
 
       const getBlockNumber = async () => {
         return rpcQuantityToNumber(

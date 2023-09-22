@@ -1,0 +1,13 @@
+[package]
+name = "tools"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = { version = "1.0.63" }
+cfg-if = "1.0.0"
+clap = { version = "3.2.20", features = ["derive"] }
+difference = { version = "2.0.0", default-features = false }
+reqwest = { version = "0.11.12", features = ["blocking"] }
+tempfile = "3.7.1"
+toml = { version = "0.5.9", default-features = false }

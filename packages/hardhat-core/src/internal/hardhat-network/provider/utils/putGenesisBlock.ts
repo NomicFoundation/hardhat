@@ -1,23 +1,19 @@
-import { Block, HeaderData } from "@nomicfoundation/ethereumjs-block";
-import { Common } from "@nomicfoundation/ethereumjs-common";
-import { Trie } from "@nomicfoundation/ethereumjs-trie";
+import { HeaderData } from "@nomicfoundation/ethereumjs-block";
 import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
 
 import { dateToTimestampSeconds } from "../../../util/date";
 import { hardforkGte, HardforkName } from "../../../util/hardforks";
-import { HardhatBlockchain } from "../HardhatBlockchain";
 import { LocalNodeConfig } from "../node-types";
 import { getCurrentTimestamp } from "./getCurrentTimestamp";
+import { RandomBufferGenerator } from "./random";
 
-export async function putGenesisBlock(
-  blockchain: HardhatBlockchain,
-  common: Common,
+export function makeGenesisBlock(
   { initialDate, blockGasLimit: initialBlockGasLimit }: LocalNodeConfig,
-  stateTrie: Trie,
+  stateRoot: Buffer,
   hardfork: HardforkName,
-  initialMixHash: Buffer,
+  prevRandaoGenerator: RandomBufferGenerator,
   initialBaseFee?: bigint
-) {
+): HeaderData {
   const initialBlockTimestamp =
     initialDate !== undefined
       ? dateToTimestampSeconds(initialDate)
@@ -31,26 +27,16 @@ export async function putGenesisBlock(
     difficulty: isPostMerge ? 0 : 1,
     nonce: isPostMerge ? "0x0000000000000000" : "0x0000000000000042",
     extraData: "0x1234",
-    stateRoot: bufferToHex(stateTrie.root()),
+    stateRoot: bufferToHex(stateRoot),
   };
 
   if (isPostMerge) {
-    header.mixHash = initialMixHash;
+    header.mixHash = prevRandaoGenerator.next();
   }
 
   if (initialBaseFee !== undefined) {
     header.baseFeePerGas = initialBaseFee;
   }
 
-  const genesisBlock = Block.fromBlockData(
-    {
-      header,
-    },
-    {
-      common,
-      skipConsensusFormatValidation: true,
-    }
-  );
-
-  await blockchain.putBlock(genesisBlock);
+  return header;
 }

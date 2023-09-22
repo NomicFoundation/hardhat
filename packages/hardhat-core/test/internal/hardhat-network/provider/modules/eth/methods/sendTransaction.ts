@@ -6,6 +6,7 @@ import {
   numberToRpcQuantity,
   rpcQuantityToNumber,
   rpcQuantityToBigInt,
+  rpcDataToNumber,
 } from "../../../../../../../src/internal/core/jsonrpc/types/base-types";
 import { InvalidInputError } from "../../../../../../../src/internal/core/providers/errors";
 import { workaroundWindowsCiFailures } from "../../../../../../utils/workaround-windows-ci-failures";
@@ -14,7 +15,10 @@ import {
   assertReceiptMatchesGethOne,
   assertTransactionFailure,
 } from "../../../../helpers/assertions";
-import { EXAMPLE_REVERT_CONTRACT } from "../../../../helpers/contracts";
+import {
+  EXAMPLE_BLOCK_NUMBER_CONTRACT,
+  EXAMPLE_REVERT_CONTRACT,
+} from "../../../../helpers/contracts";
 import { setCWD } from "../../../../helpers/cwd";
 import { getPendingBaseFeePerGas } from "../../../../helpers/getPendingBaseFeePerGas";
 import {
@@ -23,7 +27,7 @@ import {
   DEFAULT_BLOCK_GAS_LIMIT,
   PROVIDERS,
 } from "../../../../helpers/providers";
-import { retrieveForkBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
+import { retrieveLatestBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 import { sendDummyTransaction } from "../../../../helpers/sendDummyTransaction";
 import {
   deployContract,
@@ -53,7 +57,9 @@ describe("Eth module", function () {
         useHelpers();
 
         const getFirstBlock = async () =>
-          isFork ? retrieveForkBlockNumber(this.ctx.hardhatNetworkProvider) : 0;
+          isFork
+            ? retrieveLatestBlockNumber(this.ctx.hardhatNetworkProvider)
+            : 0;
 
         // Because of the way we are testing this (i.e. integration testing) it's almost impossible to
         // fully test this method in a reasonable amount of time. This is because it executes the core
@@ -1102,6 +1108,36 @@ describe("Eth module", function () {
 
           // assert:
           assert.equal(await getChainIdFromContract(this.provider), chainId);
+        });
+
+        it("Should use the correct value of block.number", async function () {
+          const contractAddress = await deployContract(
+            this.provider,
+            `0x${EXAMPLE_BLOCK_NUMBER_CONTRACT.bytecode.object}`
+          );
+
+          const blockNumberBeforeTx = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
+
+          await this.provider.send("eth_sendTransaction", [
+            {
+              to: contractAddress,
+              from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+              data: `${EXAMPLE_BLOCK_NUMBER_CONTRACT.selectors.setBlockNumber}`,
+            },
+          ]);
+
+          const contractBlockNumber = rpcDataToNumber(
+            await this.provider.send("eth_call", [
+              {
+                to: contractAddress,
+                data: `${EXAMPLE_BLOCK_NUMBER_CONTRACT.selectors.blockNumber}`,
+              },
+            ])
+          );
+
+          assert.equal(contractBlockNumber, blockNumberBeforeTx + 1);
         });
       });
 

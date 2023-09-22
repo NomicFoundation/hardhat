@@ -9,6 +9,7 @@ import { Address, toBuffer, toRpcSig } from "@nomicfoundation/ethereumjs-util";
 import * as t from "io-ts";
 import cloneDeep from "lodash/cloneDeep";
 import { BoundExperimentalHardhatNetworkMessageTraceHook } from "../../../../types";
+import { assertHardhatInvariant } from "../../../core/errors";
 import {
   bufferToRpcData,
   numberToRpcQuantity,
@@ -324,7 +325,7 @@ export class EthModule extends Base {
   }
 
   private async _blockNumberAction(): Promise<string> {
-    const blockNumber = this._node.getLatestBlockNumber();
+    const blockNumber = await this._node.getLatestBlockNumber();
     return numberToRpcQuantity(blockNumber);
   }
 
@@ -508,6 +509,11 @@ export class EthModule extends Base {
 
     const totalDifficulty = await this._node.getBlockTotalDifficulty(block);
 
+    assertHardhatInvariant(
+      totalDifficulty !== undefined,
+      "Total difficulty should be defined"
+    );
+
     return getRpcBlock(
       block,
       totalDifficulty,
@@ -545,6 +551,11 @@ export class EthModule extends Base {
 
       totalDifficulty = await this._node.getBlockTotalDifficulty(block);
     }
+
+    assertHardhatInvariant(
+      totalDifficulty !== undefined,
+      "Total difficulty should be defined"
+    );
 
     return getRpcBlock(
       block,
@@ -1228,7 +1239,7 @@ export class EthModule extends Base {
     newestBlock: RpcNewBlockTag,
     rewardPercentiles?: number[]
   ) {
-    if (!this._node.isEip1559Active()) {
+    if (!(await this._node.isEip1559Active())) {
       throw new InvalidInputError(
         `eth_feeHistory is disabled. It only works with the London hardfork or a later one.`
       );
@@ -1264,7 +1275,9 @@ export class EthModule extends Base {
       to: rpcTx.to,
       from: rpcTx.from,
       gasLimit:
-        rpcTx.gas !== undefined ? rpcTx.gas : this._node.getBlockGasLimit(),
+        rpcTx.gas !== undefined
+          ? rpcTx.gas
+          : await this._node.getBlockGasLimit(),
       value: rpcTx.value !== undefined ? rpcTx.value : 0n,
       data: rpcTx.data !== undefined ? rpcTx.data : toBuffer([]),
       nonce:
@@ -1276,7 +1289,7 @@ export class EthModule extends Base {
     };
 
     if (
-      this._node.isEip1559Active() &&
+      (await this._node.isEip1559Active()) &&
       (rpcTx.maxFeePerGas !== undefined ||
         rpcTx.maxPriorityFeePerGas !== undefined ||
         rpcTx.gasPrice === undefined)
@@ -1526,7 +1539,7 @@ export class EthModule extends Base {
     if (singleTransactionMined) {
       const block = results[0].block;
       const tx = block.transactions[0];
-      const txGasUsed = results[0].blockResult.results[0].totalGasSpent;
+      const txGasUsed = results[0].blockResult.results[0].gasUsed;
       const trace = results[0].traces[0];
       await this._logSingleTransaction(tx, block, txGasUsed, trace);
 
@@ -1552,7 +1565,7 @@ export class EthModule extends Base {
         );
 
         const { block, blockResult } = sentTxResult;
-        const gasUsed = blockResult.results[sentTxIndex].totalGasSpent;
+        const gasUsed = blockResult.results[sentTxIndex].gasUsed;
         this._logger.logCurrentlySentTransaction(
           sentTx,
           gasUsed,

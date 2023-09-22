@@ -1,17 +1,17 @@
+import { writeFileSync } from "node:fs";
+
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import {
-  AfterBlockEvent,
-  RunBlockOpts,
-  VM,
-} from "@nomicfoundation/ethereumjs-vm";
 import { assert } from "chai";
 
 import { defaultHardhatNetworkParams } from "../../../../../src/internal/core/config/default-config";
+import { ForkStateManager } from "../../../../../src/internal/hardhat-network/provider/fork/ForkStateManager";
 import { rpcToBlockData } from "../../../../../src/internal/hardhat-network/provider/fork/rpcToBlockData";
 import { makeForkClient } from "../../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
+import { RunTxResult } from "../../../../../src/internal/hardhat-network/provider/vm/vm-adapter";
 import { HardhatNode } from "../../../../../src/internal/hardhat-network/provider/node";
 import { ForkedNodeConfig } from "../../../../../src/internal/hardhat-network/provider/node-types";
+import { EthereumJSAdapter } from "../../../../../src/internal/hardhat-network/provider/vm/ethereumjs";
 import { FORK_TESTS_CACHE_PATH } from "../../helpers/constants";
 
 import { assertEqualBlocks } from "./assertEqualBlocks";
@@ -40,7 +40,7 @@ export async function runFullBlock(
   );
 
   if (rpcBlock === null) {
-    assert.fail();
+    assert.fail(`Block ${blockToRun} doesn't exist`);
   }
 
   const forkedNodeConfig: ForkedNodeConfig = {
@@ -62,6 +62,8 @@ export async function runFullBlock(
 
   const [common, forkedNode] = await HardhatNode.create(forkedNodeConfig);
 
+  const parentBlock = await forkedNode.getLatestBlock();
+
   const block = Block.fromBlockData(
     rpcToBlockData({
       ...rpcBlock,
@@ -77,53 +79,33 @@ export async function runFullBlock(
     }
   );
 
-  forkedNode["_vmTracer"].disableTracing();
+  const vm = forkedNode["_context"].vm();
 
-  const afterBlockEvent = await runBlockAndGetAfterBlockEvent(
-    forkedNode["_vm"],
-    {
-      block,
-      generate: true,
-      skipBlockValidation: true,
-    }
-  );
+  const blockBuilder = await vm.createBlockBuilder(common, {
+    parentBlock,
+    headerData: block.header,
+  });
 
-  const modifiedBlock = afterBlockEvent.block;
-
-  await forkedNode["_vm"].blockchain.putBlock(modifiedBlock);
-  await forkedNode["_saveBlockAsSuccessfullyRun"](
-    modifiedBlock,
-    afterBlockEvent
-  );
-
-  const newBlock = await forkedNode.getBlockByNumber(blockToRun);
-
-  if (newBlock === undefined) {
-    assert.fail();
+  const transactionResults: RunTxResult[] = [];
+  for (const tx of block.transactions.values()) {
+    transactionResults.push(await blockBuilder.addTransaction(tx));
   }
 
-  await assertEqualBlocks(newBlock, afterBlockEvent, rpcBlock, forkClient);
-}
+  const newBlock = await blockBuilder.finalize([]);
 
-async function runBlockAndGetAfterBlockEvent(
-  vm: VM,
-  runBlockOpts: RunBlockOpts
-): Promise<AfterBlockEvent> {
-  let results: AfterBlockEvent;
-
-  function handler(event: AfterBlockEvent) {
-    results = event;
+  await assertEqualBlocks(newBlock, transactionResults, rpcBlock, forkClient);
+  const dumpFileTarget = process.env.HARDHAT_RUN_FULL_BLOCK_DUMP_STATE_TO_FILE;
+  // for example: `HARDHAT_EXPERIMENTAL_VM_MODE=ethereumjs HARDHAT_RUN_FULL_BLOCK_DUMP_STATE_TO_FILE=./17295357.json yarn ts-node scripts/test-run-forked-block.ts $ALCHEMY_URL 17295357`
+  if (dumpFileTarget !== undefined && dumpFileTarget !== "") {
+    writeFileSync(
+      dumpFileTarget,
+      JSON.stringify(
+        (
+          (forkedNode["_context"].vm() as EthereumJSAdapter)[
+            "_stateManager"
+          ] as ForkStateManager
+        )["_state"]
+      )
+    );
   }
-
-  try {
-    vm.events.once("afterBlock", handler);
-    await vm.runBlock(runBlockOpts);
-  } finally {
-    // We need this in case `runBlock` throws before emitting the event.
-    // Otherwise we'd be leaking the listener until the next call to runBlock.
-
-    vm.events.removeListener("afterBlock", handler);
-  }
-
-  return results!;
 }

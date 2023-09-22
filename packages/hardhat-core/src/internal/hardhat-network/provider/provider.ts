@@ -282,12 +282,12 @@ export class HardhatNetworkProvider
       this._config.allowBlocksWithSameTimestamp,
       this._config.experimentalHardhatNetworkMessageTraceHooks
     );
+
+    const provider = new WeakRef(this);
     this._hardhatModule = new HardhatModule(
       node,
-      (forkConfig?: ForkConfig) => this._reset(miningTimer, forkConfig),
-      (loggingEnabled: boolean) => {
-        this._logger.setEnabled(loggingEnabled);
-      },
+      (forkConfig?: ForkConfig) =>
+        provider.deref()!._reset(miningTimer, forkConfig),
       this._logger,
       this._config.experimentalHardhatNetworkMessageTraceHooks
     );
@@ -330,11 +330,12 @@ export class HardhatNetworkProvider
   }
 
   private _makeMiningTimer(): MiningTimer {
+    const provider = new WeakRef(this);
     const miningTimer = new MiningTimer(
       this._config.intervalMining,
       async () => {
         try {
-          await this.request({ method: "hardhat_intervalMine" });
+          await provider.deref()!.request({ method: "hardhat_intervalMine" });
         } catch (e) {
           console.error("Unexpected error calling hardhat_intervalMine:", e);
         }
@@ -359,19 +360,19 @@ export class HardhatNetworkProvider
   }
 
   private _forwardNodeEvents(node: HardhatNode) {
-    node.addListener("ethEvent", this._ethEventListener);
+    node.addListener("ethEvent", this._ethEventListener.bind(this));
   }
 
   private _stopForwardingNodeEvents(node: HardhatNode) {
-    node.removeListener("ethEvent", this._ethEventListener);
+    node.removeListener("ethEvent", this._ethEventListener.bind(this));
   }
 
-  private _ethEventListener = (payload: { filterId: bigint; result: any }) => {
+  private _ethEventListener(payload: { filterId: bigint; result: any }) {
     const subscription = `0x${payload.filterId.toString(16)}`;
     const result = payload.result;
     this._emitLegacySubscriptionEvent(subscription, result);
     this._emitEip1193SubscriptionEvent(subscription, result);
-  };
+  }
 
   private _emitLegacySubscriptionEvent(subscription: string, result: any) {
     this.emit("notification", {
