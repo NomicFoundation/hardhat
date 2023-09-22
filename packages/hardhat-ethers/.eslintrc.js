@@ -8,7 +8,6 @@ module.exports = {
     project: `${__dirname}/src/tsconfig.json`,
     sourceType: "module",
   },
-<<<<<<< HEAD
   rules: {
     "@typescript-eslint/no-non-null-assertion": "error",
   },
@@ -25,10 +24,4 @@ module.exports = {
       },
     },
   ],
-||||||| 410686211
-=======
-  rules: {
-    "@typescript-eslint/no-non-null-assertion": "error"
-  }
->>>>>>> rethnet/main
 };
