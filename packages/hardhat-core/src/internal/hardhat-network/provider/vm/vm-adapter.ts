@@ -79,13 +79,7 @@ export interface VMAdapter {
   traceTransaction(
     hash: Buffer,
     block: Block,
-    config: RpcDebugTracingConfig,
-    transactionsWithFakeSender?: Array<
-      | TypedTransaction
-      | FakeSenderTransaction
-      | FakeSenderAccessListEIP2930Transaction
-      | FakeSenderEIP1559Transaction
-    >
+    config: RpcDebugTracingConfig
   ): Promise<RpcDebugTraceOutput>;
 
   // methods for snapshotting
