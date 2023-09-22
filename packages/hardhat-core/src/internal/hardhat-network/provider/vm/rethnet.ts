@@ -87,8 +87,10 @@ export class RethnetAdapter implements VMAdapter {
     forceBaseFeeZero?: boolean,
     stateOverrideSet: StateOverrideSet = {}
   ): Promise<[RunTxResult, Trace]> {
-    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
-    throw new Error("state override not implemented for EDR");
+    if (Object.keys(stateOverrideSet).length > 0) {
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      throw new Error("state override not implemented for EDR");
+    }
 
     const rethnetTx = ethereumjsTransactionToRethnetTransactionRequest(tx);
 
