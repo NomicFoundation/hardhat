@@ -27,6 +27,7 @@
     "README.md"
   ],
   "scripts": {
+    "prebuild": "cd ../../crates/rethnet_evm_napi && yarn build",
     "build": "tsc --build .",
     "clean": "rimraf dist internal *.{d.ts,js}{,.map} build-test tsconfig.tsbuildinfo",
     "coverage": "nyc yarn test -- --reporter min",
