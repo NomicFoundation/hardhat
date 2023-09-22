@@ -19,9 +19,7 @@ use std::fmt::Debug;
 pub fn debug_trace_transaction<BlockchainErrorT, StateErrorT>(
     blockchain: &dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
     // Take ownership of the state so that we can apply throw-away modifications on it
-    // TODO depends on https://github.com/NomicFoundation/hardhat/pull/4254
-    // mut state: Box<dyn SyncState<StateErrorT>>,
-    state: &mut dyn SyncState<StateErrorT>,
+    mut state: Box<dyn SyncState<StateErrorT>>,
     evm_config: CfgEnv,
     trace_config: DebugTraceConfig,
     block_env: BlockEnv,
@@ -45,7 +43,7 @@ where
 
     for tx in transactions {
         if tx.hash() == &transaction_hash {
-            let evm = build_evm(blockchain, state, evm_config, tx.into(), block_env);
+            let evm = build_evm(blockchain, &state, evm_config, tx.into(), block_env);
             let mut tracer = TracerEip3155::new(trace_config);
             let ResultAndState {
                 result: execution_result,
@@ -80,7 +78,7 @@ where
         } else {
             let evm = build_evm(
                 blockchain,
-                state,
+                &state,
                 evm_config.clone(),
                 tx.into(),
                 block_env.clone(),

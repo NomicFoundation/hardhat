@@ -30,12 +30,11 @@ pub async fn debug_trace_transaction(
     let transactions: Vec<rethnet_evm::PendingTransaction> =
         transactions.into_iter().map(|tx| (*tx).clone()).collect();
 
-    // TODO depends on https://github.com/NomicFoundation/hardhat/pull/4254
-    // let state = { state_manager.read().await.clone() };
+    let state = { state_manager.read().await.clone() };
 
     let result = rethnet_evm::debug_trace_transaction(
         &*blockchain.read().await,
-        &mut *state_manager.write().await,
+        state,
         evm_config,
         trace_config.into(),
         block_env,
