@@ -1,3 +1,17 @@
+name: Hardhat Network Tracing Capabilities, scheduled runs for all solc versions
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # every day at midnight
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: packages/hardhat-core
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
 
 jobs:
   test_tracing:

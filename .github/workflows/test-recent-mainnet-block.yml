@@ -1,3 +1,14 @@
+name: Run a recent full block in the Hardhat Network
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: packages/hardhat-core
+
 jobs:
   test-recent-mainnet-block:
     name: Test recent mainnet block
