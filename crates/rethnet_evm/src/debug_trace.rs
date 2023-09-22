@@ -41,9 +41,15 @@ where
         return Err(TransactionError::MissingPrevrandao.into());
     }
 
-    for tx in transactions {
-        if tx.hash() == &transaction_hash {
-            let evm = build_evm(blockchain, &state, evm_config, tx.into(), block_env);
+    for transaction in transactions {
+        if transaction.hash() == &transaction_hash {
+            let evm = build_evm(
+                blockchain,
+                &state,
+                evm_config,
+                transaction.into(),
+                block_env,
+            );
             let mut tracer = TracerEip3155::new(trace_config);
             let ResultAndState {
                 result: execution_result,
@@ -80,7 +86,7 @@ where
                 blockchain,
                 &state,
                 evm_config.clone(),
-                tx.into(),
+                transaction.into(),
                 block_env.clone(),
             );
             let ResultAndState { state: changes, .. } =
