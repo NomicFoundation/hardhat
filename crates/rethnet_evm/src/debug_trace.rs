@@ -1,9 +1,8 @@
 use crate::blockchain::SyncBlockchain;
 use crate::evm::build_evm;
 use crate::state::SyncState;
-use crate::TransactionError;
+use crate::{PendingTransaction, TransactionError};
 use rethnet_eth::signature::SignatureError;
-use rethnet_eth::transaction::SignedTransaction;
 use rethnet_eth::B256;
 use revm::inspectors::GasInspector;
 use revm::interpreter::{
@@ -26,7 +25,7 @@ pub fn debug_trace_transaction<BlockchainErrorT, StateErrorT>(
     evm_config: CfgEnv,
     trace_config: DebugTraceConfig,
     block_env: BlockEnv,
-    transactions: Vec<SignedTransaction>,
+    transactions: Vec<PendingTransaction>,
     transaction_hash: B256,
 ) -> Result<DebugTraceResult, DebugTraceError<BlockchainErrorT, StateErrorT>>
 where
@@ -46,7 +45,7 @@ where
 
     for tx in transactions {
         if tx.hash() == &transaction_hash {
-            let evm = build_evm(blockchain, state, evm_config, tx.try_into()?, block_env);
+            let evm = build_evm(blockchain, state, evm_config, tx.into(), block_env);
             let mut tracer = TracerEip3155::new(trace_config);
             let ResultAndState {
                 result: execution_result,
@@ -83,7 +82,7 @@ where
                 blockchain,
                 state,
                 evm_config.clone(),
-                tx.try_into()?,
+                tx.into(),
                 block_env.clone(),
             );
             let ResultAndState { state: changes, .. } =

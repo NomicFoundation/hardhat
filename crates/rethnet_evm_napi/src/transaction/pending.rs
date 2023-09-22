@@ -75,7 +75,7 @@ impl PendingTransaction {
     #[napi(getter)]
     pub fn transaction(
         &self,
-        _env: Env,
+        env: Env,
     ) -> napi::Result<
         // HACK: napi does not convert Rust type aliases to its underlaying types when generating bindings
         // so manually do that here
@@ -83,16 +83,16 @@ impl PendingTransaction {
     > {
         match &*self.inner {
             rethnet_eth::transaction::SignedTransaction::PreEip155Legacy(transaction) => {
-                LegacySignedTransaction::from_legacy(transaction).map(Either3::A)
+                LegacySignedTransaction::from_legacy(&env, transaction).map(Either3::A)
             }
             rethnet_eth::transaction::SignedTransaction::PostEip155Legacy(transaction) => {
-                LegacySignedTransaction::from_eip155(transaction).map(Either3::A)
+                LegacySignedTransaction::from_eip155(&env, transaction).map(Either3::A)
             }
             rethnet_eth::transaction::SignedTransaction::Eip2930(transaction) => {
-                EIP2930SignedTransaction::new(transaction).map(Either3::B)
+                EIP2930SignedTransaction::new(&env, transaction).map(Either3::B)
             }
             rethnet_eth::transaction::SignedTransaction::Eip1559(transaction) => {
-                EIP1559SignedTransaction::new(transaction).map(Either3::C)
+                EIP1559SignedTransaction::new(&env, transaction).map(Either3::C)
             }
         }
     }

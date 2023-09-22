@@ -4,7 +4,7 @@ mod eip2930;
 mod legacy;
 
 use bytes::Bytes;
-use revm_primitives::{Address, CreateScheme, TransactTo, TxEnv, B256, U256};
+use revm_primitives::{Address, B256, U256};
 
 use crate::{
     access_list::AccessList,
@@ -232,98 +232,6 @@ impl rlp::Decodable for SignedTransaction {
             return rlp::decode(s).map(SignedTransaction::Eip1559);
         }
         Err(rlp::DecoderError::Custom("invalid tx type"))
-    }
-}
-
-impl TryFrom<SignedTransaction> for TxEnv {
-    type Error = SignatureError;
-
-    fn try_from(transaction: SignedTransaction) -> Result<Self, Self::Error> {
-        fn transact_to(kind: TransactionKind) -> TransactTo {
-            match kind {
-                TransactionKind::Call(address) => TransactTo::Call(address),
-                TransactionKind::Create => TransactTo::Create(CreateScheme::Create),
-            }
-        }
-
-        let caller = transaction.recover()?;
-        let chain_id = transaction.chain_id();
-
-        let result = match transaction {
-            SignedTransaction::PreEip155Legacy(LegacySignedTransaction {
-                nonce,
-                gas_price,
-                gas_limit,
-                kind,
-                value,
-                input,
-                ..
-            })
-            | SignedTransaction::PostEip155Legacy(EIP155SignedTransaction {
-                nonce,
-                gas_price,
-                gas_limit,
-                kind,
-                value,
-                input,
-                ..
-            }) => Self {
-                caller,
-                gas_limit,
-                gas_price,
-                gas_priority_fee: None,
-                transact_to: transact_to(kind),
-                value,
-                data: input,
-                chain_id,
-                nonce: Some(nonce),
-                access_list: Vec::new(),
-            },
-            SignedTransaction::Eip2930(EIP2930SignedTransaction {
-                nonce,
-                gas_price,
-                gas_limit,
-                kind,
-                value,
-                input,
-                access_list,
-                ..
-            }) => Self {
-                caller,
-                gas_limit,
-                gas_price,
-                gas_priority_fee: None,
-                transact_to: transact_to(kind),
-                value,
-                data: input,
-                chain_id,
-                nonce: Some(nonce),
-                access_list: access_list.into(),
-            },
-            SignedTransaction::Eip1559(EIP1559SignedTransaction {
-                nonce,
-                max_priority_fee_per_gas,
-                max_fee_per_gas,
-                gas_limit,
-                kind,
-                value,
-                input,
-                access_list,
-                ..
-            }) => Self {
-                caller,
-                gas_limit,
-                gas_price: max_fee_per_gas,
-                gas_priority_fee: Some(max_priority_fee_per_gas),
-                transact_to: transact_to(kind),
-                value,
-                data: input,
-                chain_id,
-                nonce: Some(nonce),
-                access_list: access_list.into(),
-            },
-        };
-        Ok(result)
     }
 }
 

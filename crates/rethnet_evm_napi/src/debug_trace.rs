@@ -5,7 +5,7 @@ use rethnet_eth::B256;
 use rethnet_evm::{BlockEnv, CfgEnv};
 use std::collections::HashMap;
 
-use crate::transaction::signed::SignedTransaction;
+use crate::transaction::PendingTransaction;
 use crate::{
     block::BlockConfig, blockchain::Blockchain, cast::TryCast, config::ConfigOptions, state::State,
 };
@@ -19,17 +19,16 @@ pub async fn debug_trace_transaction(
     evm_config: ConfigOptions,
     trace_config: DebugTraceConfig,
     block_config: BlockConfig,
-    transactions: Vec<SignedTransaction>,
+    // Need to take reference as `FromNapiValue` is not implemented for `PendingTransaction`
+    transactions: Vec<&PendingTransaction>,
     transaction_hash: Buffer,
 ) -> napi::Result<DebugTraceResult> {
     let evm_config = CfgEnv::try_from(evm_config)?;
     let block_env = BlockEnv::try_from(block_config)?;
     let transaction_hash = TryCast::<B256>::try_cast(transaction_hash)?;
 
-    let transactions = transactions
-        .into_iter()
-        .map(TryCast::<rethnet_eth::transaction::SignedTransaction>::try_cast)
-        .collect::<Result<Vec<_>, _>>()?;
+    let transactions: Vec<rethnet_evm::PendingTransaction> =
+        transactions.into_iter().map(|tx| (*tx).clone()).collect();
 
     // TODO depends on https://github.com/NomicFoundation/hardhat/pull/4254
     // let state = { state_manager.read().await.clone() };

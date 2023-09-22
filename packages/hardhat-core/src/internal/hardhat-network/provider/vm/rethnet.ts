@@ -16,6 +16,7 @@ import {
   run,
   ConfigOptions,
   State,
+  PendingTransaction,
 } from "rethnet-evm";
 
 import { isForkedNodeConfig, NodeConfig } from "../node-types";
@@ -373,13 +374,7 @@ export class RethnetAdapter implements VMAdapter {
   public async traceTransaction(
     hash: Buffer,
     block: Block,
-    config: RpcDebugTracingConfig,
-    transactionsWithFakeSender?: Array<
-      | TypedTransaction
-      | FakeSenderTransaction
-      | FakeSenderAccessListEIP2930Transaction
-      | FakeSenderEIP1559Transaction
-    >
+    config: RpcDebugTracingConfig
   ): Promise<RpcDebugTraceOutput> {
     const difficulty = this._getBlockEnvDifficulty(block.header.difficulty);
 
@@ -388,16 +383,25 @@ export class RethnetAdapter implements VMAdapter {
       block.header.mixHash
     );
 
-    const transactions = transactionsWithFakeSender!.map(
-      ethereumjsTransactionToRethnetSignedTransaction
-    );
-
     const evmConfig = makeConfigOptions(
       this._common,
       false,
       true,
       this._limitContractCodeSize
     );
+
+    const transactions = await Promise.all(
+      block.transactions.map(async (transaction) => {
+        const caller = transaction.getSenderAddress().toBuffer();
+        return PendingTransaction.create(
+          this._state.asInner(),
+          evmConfig.specId!,
+          ethereumjsTransactionToRethnetSignedTransaction(transaction),
+          caller
+        );
+      })
+    );
+
     const result = await debugTraceTransaction(
       this._blockchain,
       this._state.asInner(),
