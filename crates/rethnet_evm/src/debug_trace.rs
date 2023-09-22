@@ -264,9 +264,16 @@ impl TracerEip3155 {
             String::from,
         );
 
-        // TODO gas inspector is not updated for STATICCALL for some reason, so instead of returning
-        // the gas cost of the previous op which could be confusing we return 0.
-        let gas_cost = if self.opcode == opcode::STATICCALL {
+        // We don't support gas computation for these opcodes yet
+        let gas_cost = if matches!(
+            self.opcode,
+            opcode::CREATE
+                | opcode::CREATE2
+                | opcode::CALL
+                | opcode::CALLCODE
+                | opcode::DELEGATECALL
+                | opcode::STATICCALL
+        ) {
             0
         } else {
             self.gas_inspector.last_gas_cost()

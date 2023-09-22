@@ -28,8 +28,15 @@ export function assertEqualTraces(
       expectedLog.gasCost = 0;
     }
 
-    if (expectedLog.op === "STATICCALL") {
-      // We don't support STATICCALL gas calculation in EDR currently, just return 0.
+    // We don't support gas computation for these opcodes yet in EDR and always return 0.
+    if (
+      expectedLog.op === "CREATE" ||
+      expectedLog.op === "CREATE2" ||
+      expectedLog.op === "CALL" ||
+      expectedLog.op === "CALLCODE" ||
+      expectedLog.op === "DELEGATECALL" ||
+      expectedLog.op === "STATICCALL"
+    ) {
       expectedLog.gasCost = 0;
     }
 
