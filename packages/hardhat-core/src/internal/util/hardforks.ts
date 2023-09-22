@@ -1,4 +1,4 @@
-import type { Common } from "@nomicfoundation/ethereumjs-common";
+import type { Common as CommonT } from "@nomicfoundation/ethereumjs-common";
 
 import { HardforkHistoryConfig } from "../../types/config";
 import { HARDHAT_NETWORK_SUPPORTED_HARDFORKS } from "../constants";
@@ -124,7 +124,7 @@ export function selectHardfork(
 
 export function validateHardforks(
   forkBlockNumber: number | undefined,
-  common: Common,
+  common: CommonT,
   remoteChainId: number
 ): void {
   if (!common.gteHardfork("spuriousDragon")) {
@@ -136,8 +136,10 @@ The hardfork must be at least spuriousDragon, but ${common.hardfork()} was given
   }
 
   if (forkBlockNumber !== undefined) {
-    let upstreamCommon: Common;
+    let upstreamCommon: CommonT;
     try {
+      const { Common } =
+        require("@nomicfoundation/ethereumjs-common") as typeof import("@nomicfoundation/ethereumjs-common");
       upstreamCommon = new Common({ chain: remoteChainId });
     } catch {
       // If ethereumjs doesn't have a common it will throw and we won't have
