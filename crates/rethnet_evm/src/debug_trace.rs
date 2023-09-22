@@ -96,7 +96,7 @@ where
     }
 
     Err(DebugTraceError::InvalidTransactionHash {
-        tx_hash: *transaction_hash,
+        transaction_hash: *transaction_hash,
         block_number: block_env.number,
     })
 }
@@ -118,8 +118,11 @@ pub enum DebugTraceError<BlockchainErrorT, StateErrorT> {
     #[error("Invalid spec id: {spec_id:?}. `debug_traceTransaction` is not supported prior to Spurious Dragon")]
     InvalidSpecId { spec_id: SpecId },
     /// Invalid transaction hash argument.
-    #[error("Transaction hash {tx_hash} not found in block {block_number}")]
-    InvalidTransactionHash { tx_hash: B256, block_number: U256 },
+    #[error("Transaction hash {transaction_hash} not found in block {block_number}")]
+    InvalidTransactionHash {
+        transaction_hash: B256,
+        block_number: U256,
+    },
     #[error(transparent)]
     SignatureError(#[from] SignatureError),
     #[error(transparent)]
