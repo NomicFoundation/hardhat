@@ -14,6 +14,8 @@ export function assertEqualTraces(
 
   assert.equal(actual.structLogs.length, expected.structLogs.length);
 
+  // Eslint complains about not modifying `i`, but we need to modify `expectedLog`.
+  // eslint-disable-next-line prefer-const
   for (let [i, expectedLog] of expected.structLogs.entries()) {
     // Deep copy because we modify the logs
     expectedLog = JSON.parse(JSON.stringify(expectedLog));
@@ -44,9 +46,13 @@ export function assertEqualTraces(
         expectedLog.op === "CALLDATACOPY" ||
         expectedLog.op === "CODECOPY" ||
         expectedLog.op === "REVERT") &&
-      expectedLog.memory &&
-      actualLog.memory &&
-      expected.structLogs[i - 1].memory
+      // Only way to make eslint happy by strict checking for both null and undefined
+      expectedLog.memory !== null &&
+      expectedLog.memory !== undefined &&
+      actualLog.memory !== null &&
+      actualLog.memory !== undefined &&
+      expected.structLogs[i - 1].memory !== null &&
+      expected.structLogs[i - 1].memory !== undefined
     ) {
       // Check for memory expansion
       if (

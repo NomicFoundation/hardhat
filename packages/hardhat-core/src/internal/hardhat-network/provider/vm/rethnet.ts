@@ -37,9 +37,6 @@ import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTr
 import { MessageTrace } from "../../stack-traces/message-trace";
 import { VMTracer } from "../../stack-traces/vm-tracer";
 
-import { FakeSenderTransaction } from "../transactions/FakeSenderTransaction";
-import { FakeSenderAccessListEIP2930Transaction } from "../transactions/FakeSenderAccessListEIP2930Transaction";
-import { FakeSenderEIP1559Transaction } from "../transactions/FakeSenderEIP1559Transaction";
 import { globalRethnetContext } from "../context/rethnet";
 import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
@@ -392,9 +389,9 @@ export class RethnetAdapter implements VMAdapter {
 
     // TODO This deadlocks if more than 3 are executed in parallel
     const transactions = [];
-    for (let tx of block.transactions) {
+    for (const tx of block.transactions) {
       const caller = tx.getSenderAddress().toBuffer();
-      let pendingTx = await PendingTransaction.create(
+      const pendingTx = await PendingTransaction.create(
         this._state.asInner(),
         evmConfig.specId!,
         ethereumjsTransactionToRethnetSignedTransaction(tx),

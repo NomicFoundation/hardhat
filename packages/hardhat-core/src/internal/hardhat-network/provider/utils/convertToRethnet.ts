@@ -45,13 +45,17 @@ import {
   isSuccessResult,
 } from "../../stack-traces/message-trace";
 import { MempoolOrder } from "../node-types";
-import { RpcLogOutput, RpcReceiptOutput } from "../output";
+import {
+  RpcLogOutput,
+  RpcReceiptOutput,
+  RpcDebugTraceOutput,
+  RpcStructLog,
+} from "../output";
 import { FakeSenderEIP1559Transaction } from "../transactions/FakeSenderEIP1559Transaction";
 import { FakeSenderAccessListEIP2930Transaction } from "../transactions/FakeSenderAccessListEIP2930Transaction";
 import { FakeSenderTransaction } from "../transactions/FakeSenderTransaction";
 import { Exit, ExitCode } from "../vm/exit";
 import { RunTxResult } from "../vm/vm-adapter";
-import { RpcDebugTraceOutput, RpcStructLog } from "../output";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import { Bloom } from "./bloom";
 

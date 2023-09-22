@@ -8,11 +8,8 @@ import type { RpcDebugTraceOutput } from "../output";
 
 import { MessageTrace } from "../../stack-traces/message-trace";
 import { Bloom } from "../utils/bloom";
-import { Exit } from "./exit";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
-import { FakeSenderTransaction } from "../transactions/FakeSenderTransaction";
-import { FakeSenderAccessListEIP2930Transaction } from "../transactions/FakeSenderAccessListEIP2930Transaction";
-import { FakeSenderEIP1559Transaction } from "../transactions/FakeSenderEIP1559Transaction";
+import { Exit } from "./exit";
 
 export interface PartialTrace {
   trace?: MessageTrace;
