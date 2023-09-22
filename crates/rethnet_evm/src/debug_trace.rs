@@ -181,7 +181,7 @@ struct TracerEip3155 {
 
     gas_inspector: GasInspector,
 
-    contract: B160,
+    contract_address: B160,
     gas_remaining: u64,
     memory: Vec<u8>,
     mem_size: usize,
@@ -199,7 +199,7 @@ impl TracerEip3155 {
             config,
             logs: Vec::default(),
             gas_inspector: GasInspector::default(),
-            contract: B160::default(),
+            contract_address: B160::default(),
             stack: Stack::new(),
             pc: 0,
             opcode: 0,
@@ -240,13 +240,13 @@ impl TracerEip3155 {
                 let last_entry = journaled_state.journal.last().and_then(|v| v.last());
                 if let Some(JournalEntry::StorageChange { address, key, .. }) = last_entry {
                     let value = journaled_state.state[address].storage[key].present_value();
-                    let contract_storage = self.storage.entry(self.contract).or_default();
+                    let contract_storage = self.storage.entry(self.contract_address).or_default();
                     contract_storage.insert(to_hex_word(key), to_hex_word(&value));
                 }
             }
             Some(
                 self.storage
-                    .get(&self.contract)
+                    .get(&self.contract_address)
                     .cloned()
                     .unwrap_or_default(),
             )
@@ -304,7 +304,7 @@ impl<DatabaseErrorT> Inspector<DatabaseErrorT> for TracerEip3155 {
         interp: &mut Interpreter,
         data: &mut dyn EVMData<DatabaseErrorT>,
     ) -> InstructionResult {
-        self.contract = interp.contract.address;
+        self.contract_address = interp.contract.address;
 
         self.gas_inspector.step(interp, data);
         self.gas_remaining = self.gas_inspector.gas_remaining();
