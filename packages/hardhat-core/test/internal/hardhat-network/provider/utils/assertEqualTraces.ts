@@ -14,8 +14,11 @@ export function assertEqualTraces(
 
   assert.equal(actual.structLogs.length, expected.structLogs.length);
 
-  for (const [i, expectedLog] of expected.structLogs.entries()) {
-    const actualLog = actual.structLogs[i];
+  for (let [i, expectedLog] of expected.structLogs.entries()) {
+    // Deep copy because we modify the logs
+    expectedLog = JSON.parse(JSON.stringify(expectedLog));
+    const actualLog = JSON.parse(JSON.stringify(actual.structLogs[i]));
+
     // we ignore the gasCost of the last step because
     // we don't guarantee that it's correct
     if (i === expected.structLogs.length - 1) {
