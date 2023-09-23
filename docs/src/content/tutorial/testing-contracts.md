@@ -14,6 +14,7 @@ Let's start with the code below. We'll explain it next, but for now paste this i
 
 ```js
 const { expect } = require("chai");
+const { ethers } = require("hardhat");
 
 describe("Token contract", function () {
   it("Deployment should assign the total supply of tokens to the owner", async function () {
