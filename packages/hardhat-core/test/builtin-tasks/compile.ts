@@ -141,7 +141,7 @@ describe("compile task", function () {
     });
   });
 
-  describe.only("project with multiple different evm versions", function () {
+  describe("project with multiple different evm versions", function () {
     useFixtureProject("compilation-multiple-files-different-evm-versions");
     useEnvironment();
 
