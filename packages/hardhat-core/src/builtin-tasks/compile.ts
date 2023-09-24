@@ -434,17 +434,29 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
         concurrency: number;
       },
       { run }
-    ): Promise<{ artifactsEmittedPerJob: ArtifactsEmittedPerJob }> => {
+    ): Promise<{
+      artifactsEmittedPerJob: ArtifactsEmittedPerJob;
+      evmVersions: string[];
+    }> => {
       if (compilationJobs.length === 0) {
         log(`No compilation jobs to compile`);
         await run(TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE, { quiet });
-        return { artifactsEmittedPerJob: [] };
+        return { artifactsEmittedPerJob: [], evmVersions: [] };
       }
 
       log(`Compiling ${compilationJobs.length} jobs`);
 
+      const evmVersionsSet = new Set<string>();
+      const defaultEvmVersionsSet = new Set<string>();
       for (const job of compilationJobs) {
+        const evmTarget = job.getSolcConfig().settings?.evmVersion;
         const solcVersion = job.getSolcConfig().version;
+
+        if (evmTarget !== undefined) {
+          evmVersionsSet.add(evmTarget);
+        } else {
+          defaultEvmVersionsSet.add(`default for ${solcVersion}`);
+        }
 
         // versions older than 0.4.11 don't work with hardhat
         // see issue https://github.com/nomiclabs/hardhat/issues/2004
@@ -458,6 +470,11 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
           );
         }
       }
+
+      // Alphabetically sort evm versions. The default ones are added at the end
+      const evmVersions = Array.from(evmVersionsSet)
+        .sort()
+        .concat(Array.from(defaultEvmVersionsSet).sort());
 
       const { default: pMap } = await import("p-map");
       const pMapOptions = { concurrency, stopOnError: false };
@@ -480,7 +497,10 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
           pMapOptions
         );
 
-        return { artifactsEmittedPerJob };
+        return {
+          artifactsEmittedPerJob,
+          evmVersions,
+        };
       } catch (e) {
         if (!(e instanceof AggregateError)) {
           // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
@@ -1288,8 +1308,15 @@ Read about compiler configuration at https://hardhat.org/config
 subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT)
   .addParam("compilationJobs", undefined, undefined, types.any)
   .addParam("quiet", undefined, undefined, types.boolean)
+  .addOptionalParam("evmVersions", undefined, undefined, types.any)
   .setAction(
-    async ({ compilationJobs }: { compilationJobs: CompilationJob[] }) => {
+    async ({
+      compilationJobs,
+      evmVersions,
+    }: {
+      compilationJobs: CompilationJob[];
+      evmVersions: string[];
+    }) => {
       let count = 0;
       for (const job of compilationJobs) {
         count += job
@@ -1299,7 +1326,10 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT)
 
       if (count > 0) {
         console.log(
-          `Compiled ${count} Solidity ${pluralize(count, "file")} successfully`
+          `Compiled ${count} Solidity ${pluralize(
+            count,
+            "file"
+          )} successfully with evmVersions: ${evmVersions.join(", ")}.`
         );
       }
     }
@@ -1378,14 +1408,15 @@ subtask(TASK_COMPILE_SOLIDITY)
 
       const {
         artifactsEmittedPerJob,
-      }: { artifactsEmittedPerJob: ArtifactsEmittedPerJob } = await run(
-        TASK_COMPILE_SOLIDITY_COMPILE_JOBS,
-        {
-          compilationJobs: mergedCompilationJobs,
-          quiet,
-          concurrency,
-        }
-      );
+        evmVersions,
+      }: {
+        artifactsEmittedPerJob: ArtifactsEmittedPerJob;
+        evmVersions: string[];
+      } = await run(TASK_COMPILE_SOLIDITY_COMPILE_JOBS, {
+        compilationJobs: mergedCompilationJobs,
+        quiet,
+        concurrency,
+      });
 
       // update cache using the information about the emitted artifacts
       for (const {
@@ -1417,6 +1448,7 @@ subtask(TASK_COMPILE_SOLIDITY)
       await run(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT, {
         compilationJobs: mergedCompilationJobs,
         quiet,
+        evmVersions,
       });
     }
   );
