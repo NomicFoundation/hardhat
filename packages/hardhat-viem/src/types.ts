@@ -1,22 +1,19 @@
-import type * as viemTypes from "viem";
+import type * as viemT from "viem";
 
-export type PublicClient = viemTypes.PublicClient<
-  viemTypes.Transport,
-  viemTypes.Chain
+export type PublicClient = viemT.PublicClient<viemT.Transport, viemT.Chain>;
+export type WalletClient = viemT.WalletClient<
+  viemT.Transport,
+  viemT.Chain,
+  viemT.Account
 >;
-export type WalletClient = viemTypes.WalletClient<
-  viemTypes.Transport,
-  viemTypes.Chain,
-  viemTypes.Account
->;
-export type TestClient = viemTypes.TestClient<
+export type TestClient = viemT.TestClient<
   TestClientMode,
-  viemTypes.Transport,
-  viemTypes.Chain
+  viemT.Transport,
+  viemT.Chain
 >;
 
 export type TestClientMode = Parameters<
-  typeof viemTypes.createTestClient
+  typeof viemT.createTestClient
 >[0]["mode"];
 
 export interface DeployContractConfig {
@@ -29,9 +26,23 @@ export interface GetContractAtConfig {
   walletClient?: WalletClient;
 }
 
-export type GetContractReturnType = viemTypes.GetContractReturnType<
-  viemTypes.Abi,
+export type GetContractReturnType<
+  TAbi extends viemT.Abi | readonly unknown[] = viemT.Abi
+> = viemT.GetContractReturnType<
+  TAbi,
   PublicClient,
   WalletClient,
-  viemTypes.Address
+  viemT.Address
 >;
+
+export declare function deployContract(
+  contractName: string,
+  constructorArgs?: any[],
+  config?: DeployContractConfig
+): Promise<GetContractReturnType>;
+
+export declare function getContractAt(
+  contractName: string,
+  address: viemT.Address,
+  config?: GetContractAtConfig
+): Promise<GetContractReturnType>;
