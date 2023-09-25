@@ -490,36 +490,7 @@ export class HardhatNode extends EventEmitter {
     blockNumberOrPending: bigint | "pending",
     stateOverrideSet: StateOverrideSet = {}
   ): Promise<RunCallResult> {
-    let txParams: TransactionParams;
-
-    const nonce = await this._getNonce(
-      new Address(call.from),
-      blockNumberOrPending
-    );
-
-    if (
-      call.gasPrice !== undefined ||
-      !(await this.isEip1559Active(blockNumberOrPending))
-    ) {
-      txParams = {
-        gasPrice: 0n,
-        nonce,
-        ...call,
-      };
-    } else {
-      const maxFeePerGas = call.maxFeePerGas ?? call.maxPriorityFeePerGas ?? 0n;
-      const maxPriorityFeePerGas = call.maxPriorityFeePerGas ?? 0n;
-
-      txParams = {
-        ...call,
-        nonce,
-        maxFeePerGas,
-        maxPriorityFeePerGas,
-        accessList: call.accessList ?? [],
-      };
-    }
-
-    const tx = await this._getFakeTransaction(txParams);
+    const tx = await this._getTransactionForCall(call, blockNumberOrPending);
 
     const result = await this._runInBlockContext(
       blockNumberOrPending,
@@ -1266,56 +1237,11 @@ export class HardhatNode extends EventEmitter {
     blockNumberOrPending: bigint | "pending",
     traceConfig: RpcDebugTracingConfig
   ) {
-    let txParams: TransactionParams;
+    const tx = await this._getTransactionForCall(call, blockNumberOrPending);
 
-    const nonce = await this._getNonce(
-      new Address(call.from),
+    const blockContext = await this._getBlockContextForCall(
       blockNumberOrPending
     );
-
-    if (
-      call.gasPrice !== undefined ||
-      !(await this.isEip1559Active(blockNumberOrPending))
-    ) {
-      txParams = {
-        gasPrice: 0n,
-        nonce,
-        ...call,
-      };
-    } else {
-      const maxFeePerGas = call.maxFeePerGas ?? call.maxPriorityFeePerGas ?? 0n;
-      const maxPriorityFeePerGas = call.maxPriorityFeePerGas ?? 0n;
-
-      txParams = {
-        ...call,
-        nonce,
-        maxFeePerGas,
-        maxPriorityFeePerGas,
-        accessList: call.accessList ?? [],
-      };
-    }
-
-    const tx = await this._getFakeTransaction(txParams);
-
-    let blockContext: Block | undefined;
-
-    if (blockNumberOrPending === "pending") {
-      // the new block has already been mined by _runInBlockContext hence we take latest here
-      blockContext = await this.getLatestBlock();
-    } else {
-      // We know that this block number exists, because otherwise
-      // there would be an error in the RPC layer.
-      const block = await this.getBlockByNumber(blockNumberOrPending);
-      assertHardhatInvariant(
-        block !== undefined,
-        "Tried to run a tx in the context of a non-existent block"
-      );
-
-      blockContext = block;
-
-      // we don't need to add the tx to the block because runTx doesn't
-      // know anything about the txs in the current block
-    }
 
     return this._context.vm().traceCall(tx, blockContext, traceConfig);
   }
@@ -2157,25 +2083,9 @@ export class HardhatNode extends EventEmitter {
     forceBaseFeeZero = false,
     stateOverrideSet: StateOverrideSet = {}
   ): Promise<RunTxResult> {
-    let blockContext: Block | undefined;
-
-    if (blockNumberOrPending === "pending") {
-      // the new block has already been mined by _runInBlockContext hence we take latest here
-      blockContext = await this.getLatestBlock();
-    } else {
-      // We know that this block number exists, because otherwise
-      // there would be an error in the RPC layer.
-      const block = await this.getBlockByNumber(blockNumberOrPending);
-      assertHardhatInvariant(
-        block !== undefined,
-        "Tried to run a tx in the context of a non-existent block"
-      );
-
-      blockContext = block;
-
-      // we don't need to add the tx to the block because runTx doesn't
-      // know anything about the txs in the current block
-    }
+    const blockContext = await this._getBlockContextForCall(
+      blockNumberOrPending
+    );
 
     const [result] = await this._context
       .vm()
@@ -2371,5 +2281,71 @@ export class HardhatNode extends EventEmitter {
     }
 
     return { maxFeePerGas, maxPriorityFeePerGas };
+  }
+
+  private async _getTransactionForCall(
+    call: CallParams,
+    blockNumberOrPending: bigint | "pending"
+  ): Promise<
+    | FakeSenderTransaction
+    | FakeSenderAccessListEIP2930Transaction
+    | FakeSenderEIP1559Transaction
+  > {
+    let txParams: TransactionParams;
+
+    const nonce = await this._getNonce(
+      new Address(call.from),
+      blockNumberOrPending
+    );
+
+    if (
+      call.gasPrice !== undefined ||
+      !(await this.isEip1559Active(blockNumberOrPending))
+    ) {
+      txParams = {
+        gasPrice: 0n,
+        nonce,
+        ...call,
+      };
+    } else {
+      const maxFeePerGas = call.maxFeePerGas ?? call.maxPriorityFeePerGas ?? 0n;
+      const maxPriorityFeePerGas = call.maxPriorityFeePerGas ?? 0n;
+
+      txParams = {
+        ...call,
+        nonce,
+        maxFeePerGas,
+        maxPriorityFeePerGas,
+        accessList: call.accessList ?? [],
+      };
+    }
+
+    return this._getFakeTransaction(txParams);
+  }
+
+  private async _getBlockContextForCall(
+    blockNumberOrPending: bigint | "pending"
+  ): Promise<Block> {
+    let blockContext: Block | undefined;
+
+    if (blockNumberOrPending === "pending") {
+      // the new block has already been mined by _runInBlockContext hence we take latest here
+      blockContext = await this.getLatestBlock();
+    } else {
+      // We know that this block number exists, because otherwise
+      // there would be an error in the RPC layer.
+      const block = await this.getBlockByNumber(blockNumberOrPending);
+      assertHardhatInvariant(
+        block !== undefined,
+        "Tried to run a tx in the context of a non-existent block"
+      );
+
+      blockContext = block;
+
+      // we don't need to add the tx to the block because runTx doesn't
+      // know anything about the txs in the current block
+    }
+
+    return blockContext;
   }
 }

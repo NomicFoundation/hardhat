@@ -1374,68 +1374,6 @@ export class EthModule extends Base {
     return block?.header.number;
   }
 
-  private async _resolveNewBlockTag(
-    newBlockTag: OptionalRpcNewBlockTag,
-    defaultValue: RpcNewBlockTag = "latest"
-  ): Promise<bigint | "pending"> {
-    if (newBlockTag === undefined) {
-      newBlockTag = defaultValue;
-    }
-
-    if (newBlockTag === "pending") {
-      return "pending";
-    }
-
-    if (newBlockTag === "latest") {
-      return this._node.getLatestBlockNumber();
-    }
-
-    if (newBlockTag === "earliest") {
-      return 0n;
-    }
-
-    if (newBlockTag === "safe" || newBlockTag === "finalized") {
-      this._checkPostMergeBlockTags(newBlockTag);
-
-      return this._node.getLatestBlockNumber();
-    }
-
-    if (!BigIntUtils.isBigInt(newBlockTag)) {
-      if ("blockNumber" in newBlockTag && "blockHash" in newBlockTag) {
-        throw new InvalidArgumentsError(
-          "Invalid block tag received. Only one of hash or block number can be used."
-        );
-      }
-
-      if ("blockNumber" in newBlockTag && "requireCanonical" in newBlockTag) {
-        throw new InvalidArgumentsError(
-          "Invalid block tag received. requireCanonical only works with hashes."
-        );
-      }
-    }
-
-    let block: Block | undefined;
-    if (BigIntUtils.isBigInt(newBlockTag)) {
-      block = await this._node.getBlockByNumber(newBlockTag);
-    } else if ("blockNumber" in newBlockTag) {
-      block = await this._node.getBlockByNumber(newBlockTag.blockNumber);
-    } else {
-      block = await this._node.getBlockByHash(newBlockTag.blockHash);
-    }
-
-    if (block === undefined) {
-      const latestBlock = this._node.getLatestBlockNumber();
-
-      throw new InvalidInputError(
-        `Received invalid block tag ${this._newBlockTagToString(
-          newBlockTag
-        )}. Latest block number is ${latestBlock.toString()}`
-      );
-    }
-
-    return block.header.number;
-  }
-
   private async _normalizeOldBlockTagForFilterRequest(
     blockTag: OptionalRpcOldBlockTag
   ): Promise<bigint> {

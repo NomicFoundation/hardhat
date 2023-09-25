@@ -499,7 +499,8 @@ export class EthereumJSAdapter implements VMAdapter {
     const vmDebugTracer = new VMDebugTracer(this._vm);
 
     return vmDebugTracer.trace(async () => {
-      await this.dryRun(tx, block);
+      const forceBaseFeeZero = true;
+      await this.dryRun(tx, block, forceBaseFeeZero);
     }, traceConfig);
   }
 
