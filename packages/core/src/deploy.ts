@@ -10,7 +10,7 @@ import { BasicExecutionStrategy } from "./internal/execution/basic-execution-str
 import { EIP1193JsonRpcClient } from "./internal/execution/jsonrpc-client";
 import { getDefaultSender } from "./internal/execution/utils/get-default-sender";
 import { checkAutominedNetwork } from "./internal/utils/check-automined-network";
-import { validateStageOne } from "./internal/validation/validateStageOne";
+import { validate } from "./internal/validation/validate";
 import { ArtifactResolver } from "./types/artifact";
 import {
   DeployConfig,
@@ -65,9 +65,11 @@ export async function deploy<
     });
   }
 
-  const validationResult = await validateStageOne(
+  const validationResult = await validate(
     ignitionModule,
-    artifactResolver
+    artifactResolver,
+    deploymentParameters,
+    accounts
   );
 
   if (validationResult !== null) {

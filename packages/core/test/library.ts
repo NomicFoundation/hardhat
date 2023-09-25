@@ -7,6 +7,7 @@ import {
   NamedLibraryDeploymentFutureImplementation,
 } from "../src/internal/module";
 import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module";
+import { validateNamedLibraryDeployment } from "../src/internal/validation/futures/validateNamedLibraryDeployment";
 import { FutureType } from "../src/types/module";
 
 import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
@@ -232,92 +233,68 @@ describe("library", () => {
       });
     });
 
-    describe("stage one", () => {
-      let vm: typeof import("../src/internal/validation/stageOne/validateNamedLibraryDeployment");
-      let validateNamedLibraryDeployment: typeof vm.validateNamedLibraryDeployment;
+    it("should not validate an invalid artifact", async () => {
+      const module = buildModule("Module1", (m) => {
+        const another = m.library("Another");
 
-      before(async () => {
-        vm = await import(
-          "../src/internal/validation/stageOne/validateNamedLibraryDeployment"
-        );
-
-        validateNamedLibraryDeployment = vm.validateNamedLibraryDeployment;
+        return { another };
       });
 
-      it("should not validate an invalid artifact", async () => {
-        const module = buildModule("Module1", (m) => {
-          const another = m.library("Another");
+      const [future] = getFuturesFromModule(module);
 
-          return { another };
-        });
-
-        const [future] = getFuturesFromModule(module);
-
-        await assert.isRejected(
-          validateNamedLibraryDeployment(
-            future as any,
-            setupMockArtifactResolver({ Another: {} as any })
-          ),
-          /Artifact for contract 'Another' is invalid/
-        );
-      });
+      assert.includeMembers(
+        await validateNamedLibraryDeployment(
+          future as any,
+          setupMockArtifactResolver({ Another: {} as any }),
+          {},
+          []
+        ),
+        ["Artifact for contract 'Another' is invalid"]
+      );
     });
 
-    describe("stage two", () => {
-      let vm: typeof import("../src/internal/validation/futures/validateNamedLibraryDeployment");
-      let validateNamedLibraryDeployment: typeof vm.validateNamedLibraryDeployment;
+    it("should not validate a negative account index", async () => {
+      const module = buildModule("Module1", (m) => {
+        const account = m.getAccount(-1);
+        const test = m.library("Test", { from: account });
 
-      before(async () => {
-        vm = await import(
-          "../src/internal/validation/futures/validateNamedLibraryDeployment"
-        );
-
-        validateNamedLibraryDeployment = vm.validateNamedLibraryDeployment;
+        return { test };
       });
 
-      it("should not validate a negative account index", async () => {
-        const module = buildModule("Module1", (m) => {
-          const account = m.getAccount(-1);
-          const test = m.library("Test", { from: account });
+      const [future] = getFuturesFromModule(module);
 
-          return { test };
-        });
+      assert.includeMembers(
+        await validateNamedLibraryDeployment(
+          future as any,
+          setupMockArtifactResolver({ Another: {} as any }),
+          {},
+          []
+        ),
+        ["Account index cannot be a negative number"]
+      );
+    });
 
-        const [future] = getFuturesFromModule(module);
+    it("should not validate an account index greater than the number of available accounts", async () => {
+      const module = buildModule("Module1", (m) => {
+        const account = m.getAccount(1);
+        const test = m.library("Test", { from: account });
 
-        assert.includeMembers(
-          await validateNamedLibraryDeployment(
-            future as any,
-            setupMockArtifactResolver({ Another: {} as any }),
-            {},
-            []
-          ),
-          ["Account index cannot be a negative number"]
-        );
+        return { test };
       });
 
-      it("should not validate an account index greater than the number of available accounts", async () => {
-        const module = buildModule("Module1", (m) => {
-          const account = m.getAccount(1);
-          const test = m.library("Test", { from: account });
+      const [future] = getFuturesFromModule(module);
 
-          return { test };
-        });
-
-        const [future] = getFuturesFromModule(module);
-
-        assert.includeMembers(
-          await validateNamedLibraryDeployment(
-            future as any,
-            setupMockArtifactResolver({ Another: {} as any }),
-            {},
-            []
-          ),
-          [
-            "Requested account index '1' is greater than the total number of available accounts '0'",
-          ]
-        );
-      });
+      assert.includeMembers(
+        await validateNamedLibraryDeployment(
+          future as any,
+          setupMockArtifactResolver({ Another: {} as any }),
+          {},
+          []
+        ),
+        [
+          "Requested account index '1' is greater than the total number of available accounts '0'",
+        ]
+      );
     });
   });
 });

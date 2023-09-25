@@ -8,6 +8,7 @@ import type {
 } from "ethers";
 
 import {
+  IgnitionError,
   IgnitionValidationError,
   UnsupportedOperationError,
 } from "../../errors";
@@ -72,7 +73,11 @@ export function encodeArtifactFunctionCall(
   functionName: string,
   args: SolidityParameterType[]
 ): string {
-  validateArtifactFunctionName(artifact, functionName);
+  const validationErrors = validateArtifactFunctionName(artifact, functionName);
+
+  if (validationErrors.length > 0) {
+    throw new IgnitionValidationError(validationErrors[0]);
+  }
 
   const { ethers } = require("ethers") as typeof import("ethers");
   const iface = new ethers.Interface(artifact.abi);
@@ -123,7 +128,11 @@ export function decodeArtifactFunctionCallResult(
   functionName: string,
   returnData: string
 ): InvalidResultError | SuccessfulEvmExecutionResult {
-  validateArtifactFunctionName(artifact, functionName);
+  const validationErrors = validateArtifactFunctionName(artifact, functionName);
+
+  if (validationErrors.length > 0) {
+    throw new IgnitionValidationError(validationErrors[0]);
+  }
 
   const { ethers } = require("ethers") as typeof import("ethers");
   const iface = ethers.Interface.from(artifact.abi);
@@ -164,7 +173,7 @@ export function validateContractConstructorArgsLength(
 
   if (argsLength !== expectedArgsLength) {
     errors.push(
-      `Contract ${contractName} expects ${expectedArgsLength} constructor arguments but ${argsLength} were given`
+      `The constructor of the contract '${contractName}' expects ${expectedArgsLength} arguments but ${argsLength} were given`
     );
   }
 
@@ -264,7 +273,7 @@ export function validateArtifactEventArgumentParams(
   argument: string | number
 ): string[] {
   try {
-    validateOverloadedName(emitterArtifact, eventName, false);
+    validateOverloadedName(emitterArtifact, eventName, true);
   } catch (e) {
     assertIgnitionInvariant(
       e instanceof IgnitionValidationError,
@@ -681,43 +690,44 @@ function validateOverloadedName(
     throw new IgnitionValidationError(
       `${eventOrFunctionCapitalized} "${name}" not found in contract ${artifact.contractName}`
     );
-  }
-
-  // If it is not overloaded we force the user to use the bare name
-  // because having a single representation is more friendly with our reconciliation
-  // process.
-  if (fragments.length === 1) {
+  } else if (fragments.length === 1) {
+    // If it is not overloaded we force the user to use the bare name
+    // because having a single representation is more friendly with our reconciliation
+    // process.
     if (bareName !== name) {
       throw new IgnitionValidationError(
         `${eventOrFunctionCapitalized} name "${name}" used for contract ${artifact.contractName}, but it's not overloaded. Use "${bareName}" instead.`
       );
     }
-  }
+  } else {
+    // If it's overloaded, we force the user to use the full name
+    const normalizedNames = fragments.map((f) => {
+      if (ethers.Fragment.isEvent(f)) {
+        return getEventNameWithParams(f);
+      }
 
-  const normalizedNames = fragments.map((f) => {
-    if (ethers.Fragment.isEvent(f)) {
-      return getEventNameWithParams(f);
+      return getFunctionNameWithParams(f);
+    });
+
+    const normalizedNameList = normalizedNames
+      .map((nn) => `* ${nn}`)
+      .join("\n");
+
+    if (bareName === name) {
+      throw new IgnitionValidationError(
+        `${eventOrFunctionCapitalized} "${name}" is overloaded in contract ${artifact.contractName}. Please use one of these names instead:
+
+${normalizedNameList}`
+      );
     }
 
-    return getFunctionNameWithParams(f);
-  });
-
-  const normalizedNameList = normalizedNames.map((nn) => `* ${nn}`).join("\n");
-
-  if (bareName === name) {
-    throw new IgnitionValidationError(
-      `${eventOrFunctionCapitalized} "${name}" is overloaded in contract ${artifact.contractName}. Please use one of these names instead:
+    if (!normalizedNames.includes(name)) {
+      throw new IgnitionValidationError(
+        `${eventOrFunctionCapitalized} "${name}" is not a valid overload of "${bareName}" in contract ${artifact.contractName}. Please use one of these names instead:
 
 ${normalizedNameList}`
-    );
-  }
-
-  if (!normalizedNames.includes(name)) {
-    throw new IgnitionValidationError(
-      `${eventOrFunctionCapitalized} "${name}" is not a valid overload of "${bareName}" in contract ${artifact.contractName}. Please use one of these names instead:
-
-${normalizedNameList}`
-    );
+      );
+    }
   }
 }
 
@@ -771,7 +781,7 @@ export function validateFunctionArgumentParamType(
     functionFragment = getFunctionFragment(iface, functionName);
   } catch (e) {
     assertIgnitionInvariant(
-      e instanceof IgnitionValidationError,
+      e instanceof IgnitionValidationError || e instanceof IgnitionError,
       "getFunctionFragment should only throw IgnitionValidationErrors"
     );
     return [e.message];
