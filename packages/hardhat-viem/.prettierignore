@@ -7,5 +7,6 @@
 /build-test
 /test/fixture-projects/**/artifacts
 /test/fixture-projects/**/cache
+/test/fixture-projects/**/snapshots
 CHANGELOG.md
 .nyc_output

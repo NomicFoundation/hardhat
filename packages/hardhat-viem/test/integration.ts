@@ -5,23 +5,19 @@ import { assert, expect } from "chai";
 import sinon from "sinon";
 import { getAddress, parseEther } from "viem";
 
-import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
+import { TASK_CLEAN, TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { deployContract, innerDeployContract } from "../src/internal/contracts";
 import { useEnvironment } from "./helpers";
 import { EthereumMockedProvider } from "./mocks/provider";
 
 describe("Integration tests", function () {
-  useEnvironment("hardhat-project");
-
-  before(async function () {
-    await this.hre.run(TASK_COMPILE, { quiet: true });
-  });
-
   afterEach(function () {
     sinon.restore();
   });
 
   describe("Hardhat Runtime Environment extension", function () {
+    useEnvironment("hardhat-project");
+
     it("should add the viem object and it's properties", function () {
       expect(this.hre.viem)
         .to.be.an("object")
@@ -37,60 +33,72 @@ describe("Integration tests", function () {
   });
 
   describe("Viem plugin", function () {
-    it("should be able to query the blockchain using the public client", async function () {
-      const client = await this.hre.viem.getPublicClient();
-      const blockNumber = await client.getBlockNumber();
+    useEnvironment("hardhat-project");
 
-      assert.equal(blockNumber, 0n);
+    before(async function () {
+      await this.hre.run(TASK_COMPILE, { quiet: true });
     });
 
-    it("should be able to query the blockchain using the wallet client", async function () {
-      const publicClient = await this.hre.viem.getPublicClient();
-      const [fromWalletClient, toWalletClient] =
-        await this.hre.viem.getWalletClients();
-      const fromAddress = fromWalletClient.account.address;
-      const toAddress = toWalletClient.account.address;
-
-      const fromBalanceBefore: bigint = await publicClient.getBalance({
-        address: fromAddress,
-      });
-      const toBalanceBefore: bigint = await publicClient.getBalance({
-        address: toAddress,
-      });
-
-      const etherAmount = parseEther("0.0001");
-      const hash = await fromWalletClient.sendTransaction({
-        to: toAddress,
-        value: etherAmount,
-      });
-      const receipt = await publicClient.waitForTransactionReceipt({ hash });
-      const transactionFee = receipt.gasUsed * receipt.effectiveGasPrice;
-
-      const fromBalanceAfter: bigint = await publicClient.getBalance({
-        address: fromAddress,
-      });
-      const toBalanceAfter: bigint = await publicClient.getBalance({
-        address: toAddress,
-      });
-
-      assert.isDefined(receipt);
-      assert.equal(receipt.status, "success");
-      assert.equal(
-        fromBalanceAfter,
-        fromBalanceBefore - etherAmount - transactionFee
-      );
-      assert.equal(toBalanceAfter, toBalanceBefore + etherAmount);
+    after(async function () {
+      await this.hre.run(TASK_CLEAN);
     });
 
-    it("should be able to query the blockchain using the test client", async function () {
-      const publicClient = await this.hre.viem.getPublicClient();
-      const testClient = await this.hre.viem.getTestClient();
+    describe("Clients", function () {
+      it("should be able to query the blockchain using the public client", async function () {
+        const client = await this.hre.viem.getPublicClient();
+        const blockNumber = await client.getBlockNumber();
 
-      await testClient.mine({
-        blocks: 1000000,
+        assert.equal(blockNumber, 0n);
       });
-      const blockNumber = await publicClient.getBlockNumber();
-      assert.equal(blockNumber, 1000001n);
+
+      it("should be able to query the blockchain using the wallet client", async function () {
+        const publicClient = await this.hre.viem.getPublicClient();
+        const [fromWalletClient, toWalletClient] =
+          await this.hre.viem.getWalletClients();
+        const fromAddress = fromWalletClient.account.address;
+        const toAddress = toWalletClient.account.address;
+
+        const fromBalanceBefore: bigint = await publicClient.getBalance({
+          address: fromAddress,
+        });
+        const toBalanceBefore: bigint = await publicClient.getBalance({
+          address: toAddress,
+        });
+
+        const etherAmount = parseEther("0.0001");
+        const hash = await fromWalletClient.sendTransaction({
+          to: toAddress,
+          value: etherAmount,
+        });
+        const receipt = await publicClient.waitForTransactionReceipt({ hash });
+        const transactionFee = receipt.gasUsed * receipt.effectiveGasPrice;
+
+        const fromBalanceAfter: bigint = await publicClient.getBalance({
+          address: fromAddress,
+        });
+        const toBalanceAfter: bigint = await publicClient.getBalance({
+          address: toAddress,
+        });
+
+        assert.isDefined(receipt);
+        assert.equal(receipt.status, "success");
+        assert.equal(
+          fromBalanceAfter,
+          fromBalanceBefore - etherAmount - transactionFee
+        );
+        assert.equal(toBalanceAfter, toBalanceBefore + etherAmount);
+      });
+
+      it("should be able to query the blockchain using the test client", async function () {
+        const publicClient = await this.hre.viem.getPublicClient();
+        const testClient = await this.hre.viem.getTestClient();
+
+        await testClient.mine({
+          blocks: 1000000,
+        });
+        const blockNumber = await publicClient.getBlockNumber();
+        assert.equal(blockNumber, 1000001n);
+      });
     });
 
     describe("deployContract", function () {
@@ -99,9 +107,9 @@ describe("Integration tests", function () {
           "WithoutConstructorArgs"
         );
 
-        await contract.write.setData([50]);
+        await contract.write.setData([50n]);
         const data = await contract.read.getData();
-        assert.equal(data, 50);
+        assert.equal(data, 50n);
       });
 
       it("should be able to deploy a contract with constructor args", async function () {
@@ -211,5 +219,19 @@ describe("Integration tests", function () {
         );
       });
     });
+  });
+
+  describe("Contract type generation", function () {
+    useEnvironment("type-generation");
+
+    before(async function () {
+      await this.hre.run(TASK_COMPILE, { quiet: true });
+    });
+
+    after(async function () {
+      await this.hre.run(TASK_CLEAN);
+    });
+
+    it("should generate a .d.ts file per contract", async function () {});
   });
 });
