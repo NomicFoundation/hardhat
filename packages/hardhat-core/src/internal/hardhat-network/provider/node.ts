@@ -2087,7 +2087,7 @@ export class HardhatNode extends EventEmitter {
       blockNumberOrPending
     );
 
-    const [result] = await this._context
+    const result = await this._context
       .vm()
       .dryRun(tx, blockContext, forceBaseFeeZero, stateOverrideSet);
     return result;

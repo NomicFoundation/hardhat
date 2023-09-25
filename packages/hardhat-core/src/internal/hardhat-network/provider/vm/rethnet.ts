@@ -33,7 +33,7 @@ import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTr
 import { MessageTrace } from "../../stack-traces/message-trace";
 import { VMTracer } from "../../stack-traces/vm-tracer";
 import { globalRethnetContext } from "../context/rethnet";
-import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
+import { RunTxResult, VMAdapter } from "./vm-adapter";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
 import { RethnetBlockBuilder } from "./block-builder/rethnet";
 
@@ -86,7 +86,7 @@ export class RethnetAdapter implements VMAdapter {
     blockContext: Block,
     forceBaseFeeZero?: boolean,
     stateOverrideSet: StateOverrideSet = {}
-  ): Promise<[RunTxResult, Trace]> {
+  ): Promise<RunTxResult> {
     if (Object.keys(stateOverrideSet).length > 0) {
       // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw new Error("state override not implemented for EDR");
@@ -139,7 +139,7 @@ export class RethnetAdapter implements VMAdapter {
         rethnetResult.result,
         blockContext.header.gasUsed + rethnetResult.result.result.gasUsed
       );
-      return [result, trace];
+      return result;
     } catch (e) {
       // console.log("Rethnet trace");
       // console.log(rethnetResult.execResult.trace);
@@ -320,7 +320,7 @@ export class RethnetAdapter implements VMAdapter {
   public async runTxInBlock(
     tx: TypedTransaction,
     block: Block
-  ): Promise<[RunTxResult, Trace]> {
+  ): Promise<RunTxResult> {
     const rethnetTx = ethereumjsTransactionToRethnetTransactionRequest(tx);
 
     const difficulty = this._getBlockEnvDifficulty(block.header.difficulty);
@@ -359,7 +359,7 @@ export class RethnetAdapter implements VMAdapter {
         rethnetResult.result,
         rethnetResult.result.result.gasUsed
       );
-      return [result, this._vmTracer.getLastTopLevelMessageTrace()];
+      return result;
     } catch (e) {
       // console.log("Rethnet trace");
       // console.log(rethnetResult.trace);

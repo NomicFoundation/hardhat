@@ -19,11 +19,7 @@ import {
   setLengthLeft,
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
-import {
-  EEI,
-  RunTxResult as EthereumJSRunTxResult,
-  VM,
-} from "@nomicfoundation/ethereumjs-vm";
+import { EEI, VM } from "@nomicfoundation/ethereumjs-vm";
 import { SuccessReason } from "rethnet-evm";
 import { assertHardhatInvariant } from "../../../core/errors";
 import {
@@ -51,7 +47,7 @@ import { makeForkClient } from "../utils/makeForkClient";
 import { makeAccount } from "../utils/makeAccount";
 import { makeStateTrie } from "../utils/makeStateTrie";
 import { Exit } from "./exit";
-import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
+import { RunTxResult, VMAdapter } from "./vm-adapter";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
 import { HardhatBlockBuilder } from "./block-builder/hardhat";
 
@@ -225,7 +221,7 @@ export class EthereumJSAdapter implements VMAdapter {
     blockContext: Block,
     forceBaseFeeZero = false,
     stateOverrideSet: StateOverrideSet = {}
-  ): Promise<[RunTxResult, Trace]> {
+  ): Promise<RunTxResult> {
     const initialStateRoot = await this.getStateRoot();
 
     await this._applyStateOverrideSet(stateOverrideSet);
@@ -302,26 +298,14 @@ export class EthereumJSAdapter implements VMAdapter {
         (blockContext.header as any).baseFeePerGas = 0n;
       }
 
-      const vmDebugTracer = new VMDebugTracer(this._vm);
-      let ethereumJSResult: EthereumJSRunTxResult | undefined;
-      const trace = await vmDebugTracer.trace(
-        async () => {
-          ethereumJSResult = await this._vm.runTx({
-            block: blockContext,
-            tx,
-            skipNonce: true,
-            skipBalance: true,
-            skipBlockGasLimitValidation: true,
-            skipHardForkValidation: true,
-          });
-        },
-        {
-          tracer: undefined,
-          disableStorage: true,
-          disableMemory: true,
-          disableStack: true,
-        }
-      );
+      const ethereumJSResult = await this._vm.runTx({
+        block: blockContext,
+        tx,
+        skipNonce: true,
+        skipBalance: true,
+        skipBlockGasLimitValidation: true,
+        skipHardForkValidation: true,
+      });
 
       assertHardhatInvariant(
         ethereumJSResult !== undefined,
@@ -341,7 +325,7 @@ export class EthereumJSAdapter implements VMAdapter {
         exit: Exit.fromEthereumJSEvmError(ethereumJSError),
       };
 
-      return [result, trace];
+      return result;
     } finally {
       if (originalCommon !== undefined) {
         (this._vm as any)._common = originalCommon;
@@ -507,20 +491,8 @@ export class EthereumJSAdapter implements VMAdapter {
   public async runTxInBlock(
     tx: TypedTransaction,
     block: Block
-  ): Promise<[RunTxResult, Trace]> {
-    const vmTracer = new VMDebugTracer(this._vm);
-    let ethereumJSResult: EthereumJSRunTxResult | undefined;
-    const trace = await vmTracer.trace(
-      async () => {
-        ethereumJSResult = await this._vm.runTx({ tx, block });
-      },
-      {
-        tracer: undefined,
-        disableStorage: true,
-        disableMemory: true,
-        disableStack: true,
-      }
-    );
+  ): Promise<RunTxResult> {
+    const ethereumJSResult = await this._vm.runTx({ tx, block });
 
     assertHardhatInvariant(
       ethereumJSResult !== undefined,
@@ -540,7 +512,7 @@ export class EthereumJSAdapter implements VMAdapter {
       exit: Exit.fromEthereumJSEvmError(ethereumJSError),
     };
 
-    return [result, trace];
+    return result;
   }
 
   public async makeSnapshot(): Promise<Buffer> {

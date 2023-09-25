@@ -43,7 +43,7 @@ export interface VMAdapter {
     blockContext: Block,
     forceBaseFeeZero?: boolean,
     stateOverrideSet?: StateOverrideSet
-  ): Promise<[RunTxResult, Trace]>;
+  ): Promise<RunTxResult>;
 
   // getters
   getAccount(address: Address): Promise<Account>;
@@ -68,10 +68,7 @@ export interface VMAdapter {
   restoreContext(stateRoot: Buffer): Promise<void>;
 
   // methods for block-building
-  runTxInBlock(
-    tx: TypedTransaction,
-    block: Block
-  ): Promise<[RunTxResult, Trace]>;
+  runTxInBlock(tx: TypedTransaction, block: Block): Promise<RunTxResult>;
 
   // methods for tracing
   getLastTraceAndClear(): PartialTrace;
