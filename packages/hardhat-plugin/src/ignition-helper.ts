@@ -88,8 +88,7 @@ export class IgnitionHelper {
     if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {
       const message = errorDeploymentResultToExceptionMessage(result);
 
-      // todo: should we implement an IgnitionPluginError to throw here instead?
-      throw new Error(message);
+      throw new HardhatPluginError("hardhat-ignition", message);
     }
 
     return this._toEthersContracts(ignitionModule, result);
@@ -133,7 +132,7 @@ export class IgnitionHelper {
   ): Promise<Contract> {
     if (!isContractFuture(future)) {
       throw new HardhatPluginError(
-        "@nomicfoundation/hardhat-ignition",
+        "hardhat-ignition",
         `Expected contract future but got ${future.id} with type ${future.type} instead`
       );
     }

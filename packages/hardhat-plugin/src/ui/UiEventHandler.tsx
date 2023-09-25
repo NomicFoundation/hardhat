@@ -33,6 +33,7 @@ import {
   TransactionSendEvent,
   WipeApplyEvent,
 } from "@nomicfoundation/ignition-core";
+import { HardhatPluginError } from "hardhat/plugins";
 import { render } from "ink";
 
 import { IgnitionUi } from "./components";
@@ -354,7 +355,10 @@ export class UiEventHandler implements ExecutionEventListener {
       this._renderState.waitUntilExit === null ||
       this._renderState.clear === null
     ) {
-      throw new Error("Cannot unmount with no unmount function");
+      throw new HardhatPluginError(
+        "hardhat-ignition",
+        "Cannot unmount with no unmount function"
+      );
     }
 
     this._renderState.clear();

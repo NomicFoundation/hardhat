@@ -1,6 +1,7 @@
 import { IgnitionModule } from "@nomicfoundation/ignition-core";
 import setupDebug from "debug";
 import { existsSync, pathExistsSync } from "fs-extra";
+import { HardhatPluginError } from "hardhat/plugins";
 import path from "path";
 
 const debug = setupDebug("hardhat-ignition:modules");
@@ -12,7 +13,10 @@ export function loadModule(
   debug(`Loading user modules from '${modulesDirectory}'`);
 
   if (!existsSync(modulesDirectory)) {
-    throw new Error(`Directory ${modulesDirectory} not found.`);
+    throw new HardhatPluginError(
+      "hardhat-ignition",
+      `Directory ${modulesDirectory} not found.`
+    );
   }
 
   const fullpathToModule = resolveFullPathToModule(
@@ -21,11 +25,15 @@ export function loadModule(
   );
 
   if (fullpathToModule === undefined) {
-    throw new Error(`Could not find module ${moduleNameOrPath}`);
+    throw new HardhatPluginError(
+      "hardhat-ignition",
+      `Could not find module ${moduleNameOrPath}`
+    );
   }
 
   if (!isInModuleDirectory(modulesDirectory, fullpathToModule)) {
-    throw new Error(
+    throw new HardhatPluginError(
+      "hardhat-ignition",
       `The referenced module ${moduleNameOrPath} is outside the module directory ${modulesDirectory}`
     );
   }
