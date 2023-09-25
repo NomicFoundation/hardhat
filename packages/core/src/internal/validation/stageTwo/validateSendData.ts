@@ -15,6 +15,8 @@ export async function validateSendData(
 ): Promise<string[]> {
   const errors: string[] = [];
 
+  /* stage two */
+
   const accountParams = [
     ...(isAccountRuntimeValue(future.from) ? [future.from] : []),
     ...(isAccountRuntimeValue(future.to) ? [future.to] : []),

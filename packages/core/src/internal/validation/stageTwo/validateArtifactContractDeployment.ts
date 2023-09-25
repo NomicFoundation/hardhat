@@ -5,6 +5,8 @@ import {
 import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deploy";
 import { ContractDeploymentFuture } from "../../../types/module";
+import { validateContractConstructorArgsLength } from "../../execution/abi";
+import { validateLibraryNames } from "../../execution/libraries";
 import {
   retrieveNestedRuntimeValues,
   validateAccountRuntimeValue,
@@ -17,6 +19,22 @@ export async function validateArtifactContractDeployment(
   accounts: string[]
 ): Promise<string[]> {
   const errors: string[] = [];
+
+  /* stage one */
+
+  const artifact = future.artifact;
+
+  errors.push(...validateLibraryNames(artifact, Object.keys(future.libraries)));
+
+  errors.push(
+    ...validateContractConstructorArgsLength(
+      artifact,
+      future.contractName,
+      future.constructorArgs
+    )
+  );
+
+  /* stage two */
 
   const runtimeValues = retrieveNestedRuntimeValues(future.constructorArgs);
   const moduleParams = runtimeValues.filter(isModuleParameterRuntimeValue);

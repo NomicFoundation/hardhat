@@ -18,7 +18,7 @@ import { validateNamedStaticCall } from "./stageTwo/validateNamedStaticCall";
 import { validateReadEventArgument } from "./stageTwo/validateReadEventArgument";
 import { validateSendData } from "./stageTwo/validateSendData";
 
-export async function validateStageTwo(
+export async function validate(
   module: IgnitionModule,
   artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,

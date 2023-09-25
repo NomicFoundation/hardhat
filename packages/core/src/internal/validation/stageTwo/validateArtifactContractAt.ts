@@ -11,6 +11,8 @@ export async function validateArtifactContractAt(
 ): Promise<string[]> {
   const errors: string[] = [];
 
+  /* stage two */
+
   if (isModuleParameterRuntimeValue(future.address)) {
     const param =
       deploymentParameters[future.address.moduleId]?.[future.address.name] ??

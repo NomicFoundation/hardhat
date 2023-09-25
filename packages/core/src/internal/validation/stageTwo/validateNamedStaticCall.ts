@@ -1,10 +1,15 @@
 import {
   isAccountRuntimeValue,
+  isArtifactType,
   isModuleParameterRuntimeValue,
 } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deploy";
 import { StaticCallFuture } from "../../../types/module";
+import {
+  validateArtifactFunction,
+  validateFunctionArgumentParamType,
+} from "../../execution/abi";
 import {
   retrieveNestedRuntimeValues,
   validateAccountRuntimeValue,
@@ -12,11 +17,45 @@ import {
 
 export async function validateNamedStaticCall(
   future: StaticCallFuture<string, string>,
-  _artifactLoader: ArtifactResolver,
+  artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
   accounts: string[]
 ): Promise<string[]> {
   const errors: string[] = [];
+
+  /* stage one */
+
+  const artifact =
+    "artifact" in future.contract
+      ? future.contract.artifact
+      : await artifactLoader.loadArtifact(future.contract.contractName);
+
+  if (!isArtifactType(artifact)) {
+    errors.push(
+      `Artifact for contract '${future.contract.contractName}' is invalid`
+    );
+  } else {
+    errors.push(
+      ...validateArtifactFunction(
+        artifact,
+        future.contract.contractName,
+        future.functionName,
+        future.args,
+        true
+      )
+    );
+
+    errors.push(
+      ...validateFunctionArgumentParamType(
+        future.contract.contractName,
+        future.functionName,
+        artifact,
+        future.nameOrIndex
+      )
+    );
+  }
+
+  /* stage two */
 
   const runtimeValues = retrieveNestedRuntimeValues(future.args);
   const moduleParams = runtimeValues.filter(isModuleParameterRuntimeValue);

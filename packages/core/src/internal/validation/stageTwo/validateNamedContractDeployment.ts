@@ -1,10 +1,13 @@
 import {
   isAccountRuntimeValue,
+  isArtifactType,
   isModuleParameterRuntimeValue,
 } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deploy";
 import { NamedArtifactContractDeploymentFuture } from "../../../types/module";
+import { validateContractConstructorArgsLength } from "../../execution/abi";
+import { validateLibraryNames } from "../../execution/libraries";
 import {
   retrieveNestedRuntimeValues,
   validateAccountRuntimeValue,
@@ -12,11 +15,33 @@ import {
 
 export async function validateNamedContractDeployment(
   future: NamedArtifactContractDeploymentFuture<string>,
-  _artifactLoader: ArtifactResolver,
+  artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
   accounts: string[]
 ): Promise<string[]> {
   const errors: string[] = [];
+
+  /* stage one */
+
+  const artifact = await artifactLoader.loadArtifact(future.contractName);
+
+  if (!isArtifactType(artifact)) {
+    errors.push(`Artifact for contract '${future.contractName}' is invalid`);
+  } else {
+    errors.push(
+      ...validateLibraryNames(artifact, Object.keys(future.libraries))
+    );
+
+    errors.push(
+      ...validateContractConstructorArgsLength(
+        artifact,
+        future.contractName,
+        future.constructorArgs
+      )
+    );
+  }
+
+  /* stage two */
 
   const runtimeValues = retrieveNestedRuntimeValues(future.constructorArgs);
   const moduleParams = runtimeValues.filter(isModuleParameterRuntimeValue);

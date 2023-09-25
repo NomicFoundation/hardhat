@@ -1,15 +1,28 @@
-import { isModuleParameterRuntimeValue } from "../../../type-guards";
+import {
+  isArtifactType,
+  isModuleParameterRuntimeValue,
+} from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deploy";
 import { NamedArtifactContractAtFuture } from "../../../types/module";
 
 export async function validateNamedContractAt(
   future: NamedArtifactContractAtFuture<string>,
-  _artifactLoader: ArtifactResolver,
+  artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
   _accounts: string[]
 ): Promise<string[]> {
   const errors: string[] = [];
+
+  /* stage one */
+
+  const artifact = await artifactLoader.loadArtifact(future.contractName);
+
+  if (!isArtifactType(artifact)) {
+    errors.push(`Artifact for contract '${future.contractName}' is invalid`);
+  }
+
+  /* stage two */
 
   if (isModuleParameterRuntimeValue(future.address)) {
     const param =
