@@ -510,12 +510,12 @@ describe("contract", () => {
     });
 
     describe("stage two", () => {
-      let vm: typeof import("../src/internal/validation/stageTwo/validateNamedContractDeployment");
+      let vm: typeof import("../src/internal/validation/futures/validateNamedContractDeployment");
       let validateNamedContractDeployment: typeof vm.validateNamedContractDeployment;
 
       before(async () => {
         vm = await import(
-          "../src/internal/validation/stageTwo/validateNamedContractDeployment"
+          "../src/internal/validation/futures/validateNamedContractDeployment"
         );
 
         validateNamedContractDeployment = vm.validateNamedContractDeployment;

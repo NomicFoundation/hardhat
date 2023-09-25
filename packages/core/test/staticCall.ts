@@ -768,12 +768,12 @@ describe("static call", () => {
     });
 
     describe("stage two", () => {
-      let vm: typeof import("../src/internal/validation/stageTwo/validateNamedStaticCall");
+      let vm: typeof import("../src/internal/validation/futures/validateNamedStaticCall");
       let validateNamedStaticCall: typeof vm.validateNamedStaticCall;
 
       before(async () => {
         vm = await import(
-          "../src/internal/validation/stageTwo/validateNamedStaticCall"
+          "../src/internal/validation/futures/validateNamedStaticCall"
         );
 
         validateNamedStaticCall = vm.validateNamedStaticCall;

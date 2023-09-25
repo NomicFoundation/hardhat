@@ -636,12 +636,12 @@ describe("call", () => {
     });
 
     describe("stage two", () => {
-      let vm: typeof import("../src/internal/validation/stageTwo/validateNamedContractCall");
+      let vm: typeof import("../src/internal/validation/futures/validateNamedContractCall");
       let validateNamedContractCall: typeof vm.validateNamedContractCall;
 
       before(async () => {
         vm = await import(
-          "../src/internal/validation/stageTwo/validateNamedContractCall"
+          "../src/internal/validation/futures/validateNamedContractCall"
         );
 
         validateNamedContractCall = vm.validateNamedContractCall;

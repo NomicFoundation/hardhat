@@ -264,12 +264,12 @@ describe("library", () => {
     });
 
     describe("stage two", () => {
-      let vm: typeof import("../src/internal/validation/stageTwo/validateNamedLibraryDeployment");
+      let vm: typeof import("../src/internal/validation/futures/validateNamedLibraryDeployment");
       let validateNamedLibraryDeployment: typeof vm.validateNamedLibraryDeployment;
 
       before(async () => {
         vm = await import(
-          "../src/internal/validation/stageTwo/validateNamedLibraryDeployment"
+          "../src/internal/validation/futures/validateNamedLibraryDeployment"
         );
 
         validateNamedLibraryDeployment = vm.validateNamedLibraryDeployment;

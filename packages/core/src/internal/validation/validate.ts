@@ -7,16 +7,16 @@ import {
 import { Future, FutureType, IgnitionModule } from "../../types/module";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 
-import { validateArtifactContractAt } from "./stageTwo/validateArtifactContractAt";
-import { validateArtifactContractDeployment } from "./stageTwo/validateArtifactContractDeployment";
-import { validateArtifactLibraryDeployment } from "./stageTwo/validateArtifactLibraryDeployment";
-import { validateNamedContractAt } from "./stageTwo/validateNamedContractAt";
-import { validateNamedContractCall } from "./stageTwo/validateNamedContractCall";
-import { validateNamedContractDeployment } from "./stageTwo/validateNamedContractDeployment";
-import { validateNamedLibraryDeployment } from "./stageTwo/validateNamedLibraryDeployment";
-import { validateNamedStaticCall } from "./stageTwo/validateNamedStaticCall";
-import { validateReadEventArgument } from "./stageTwo/validateReadEventArgument";
-import { validateSendData } from "./stageTwo/validateSendData";
+import { validateArtifactContractAt } from "./futures/validateArtifactContractAt";
+import { validateArtifactContractDeployment } from "./futures/validateArtifactContractDeployment";
+import { validateArtifactLibraryDeployment } from "./futures/validateArtifactLibraryDeployment";
+import { validateNamedContractAt } from "./futures/validateNamedContractAt";
+import { validateNamedContractCall } from "./futures/validateNamedContractCall";
+import { validateNamedContractDeployment } from "./futures/validateNamedContractDeployment";
+import { validateNamedLibraryDeployment } from "./futures/validateNamedLibraryDeployment";
+import { validateNamedStaticCall } from "./futures/validateNamedStaticCall";
+import { validateReadEventArgument } from "./futures/validateReadEventArgument";
+import { validateSendData } from "./futures/validateSendData";
 
 export async function validate(
   module: IgnitionModule,

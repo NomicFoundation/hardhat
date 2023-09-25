@@ -216,12 +216,12 @@ describe("contractAtFromArtifact", () => {
     });
 
     describe("stage two", () => {
-      let vm: typeof import("../src/internal/validation/stageTwo/validateArtifactContractAt");
+      let vm: typeof import("../src/internal/validation/futures/validateArtifactContractAt");
       let validateArtifactContractAt: typeof vm.validateArtifactContractAt;
 
       before(async () => {
         vm = await import(
-          "../src/internal/validation/stageTwo/validateArtifactContractAt"
+          "../src/internal/validation/futures/validateArtifactContractAt"
         );
 
         validateArtifactContractAt = vm.validateArtifactContractAt;

@@ -232,12 +232,12 @@ describe("libraryFromArtifact", () => {
     });
 
     describe("stage two", () => {
-      let vm: typeof import("../src/internal/validation/stageTwo/validateArtifactLibraryDeployment");
+      let vm: typeof import("../src/internal/validation/futures/validateArtifactLibraryDeployment");
       let validateArtifactLibraryDeployment: typeof vm.validateArtifactLibraryDeployment;
 
       before(async () => {
         vm = await import(
-          "../src/internal/validation/stageTwo/validateArtifactLibraryDeployment"
+          "../src/internal/validation/futures/validateArtifactLibraryDeployment"
         );
 
         validateArtifactLibraryDeployment =

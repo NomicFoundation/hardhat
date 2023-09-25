@@ -314,12 +314,12 @@ describe("send", () => {
     });
 
     describe("stage two", () => {
-      let vm: typeof import("../src/internal/validation/stageTwo/validateSendData");
+      let vm: typeof import("../src/internal/validation/futures/validateSendData");
       let validateSendData: typeof vm.validateSendData;
 
       before(async () => {
         vm = await import(
-          "../src/internal/validation/stageTwo/validateSendData"
+          "../src/internal/validation/futures/validateSendData"
         );
 
         validateSendData = vm.validateSendData;
