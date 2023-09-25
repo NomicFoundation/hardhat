@@ -8,8 +8,15 @@ import path from "path";
 
 import "./type-extensions";
 
-// eslint-disable-next-line import/no-unused-modules
-export { buildModule } from "@nomicfoundation/ignition-core";
+// this is ugly, but it's fast :)
+// discussion: https://github.com/NomicFoundation/hardhat-ignition/pull/483
+export const buildModule: typeof import("@nomicfoundation/ignition-core").buildModule =
+  (...args) => {
+    const { buildModule: coreBuildModule } =
+      require("@nomicfoundation/ignition-core") as typeof import("@nomicfoundation/ignition-core");
+
+    return coreBuildModule(...args);
+  };
 
 /* ignition config defaults */
 const IGNITION_DIR = "ignition";
