@@ -79,7 +79,6 @@ import {
 
 import { assertHardhatNetworkInvariant } from "../utils/assertions";
 import { optional } from "../../../util/io-ts";
-import * as BigIntUtils from "../../../util/bigint";
 import { HardforkName } from "../../../util/hardforks";
 import { ModulesLogger } from "./logger";
 import { Base } from "./base";
