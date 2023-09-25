@@ -4,6 +4,7 @@ import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import {
   BlockBuilder,
   Blockchain,
+  ConfigOptions,
   PendingTransaction,
   State,
 } from "rethnet-evm";
@@ -20,7 +21,6 @@ import {
 } from "../../utils/convertToRethnet";
 import { VMTracer } from "../../../stack-traces/vm-tracer";
 import { getHardforkName } from "../../../../util/hardforks";
-import { makeConfigOptions } from "../rethnet";
 
 export class RethnetBlockBuilder implements BlockBuilderAdapter {
   constructor(
@@ -37,14 +37,23 @@ export class RethnetBlockBuilder implements BlockBuilderAdapter {
     vmTracer: VMTracer,
     common: Common,
     opts: BuildBlockOpts,
-    limitContractCodeSize: bigint | null
+    limitContractCodeSize: bigint | undefined
   ): Promise<RethnetBlockBuilder> {
     const clonedState = await state.asInner().deepClone();
+
+    const specId = await blockchain.specId();
+    const config: ConfigOptions = {
+      chainId: common.chainId(),
+      specId,
+      limitContractCodeSize,
+      disableBlockGasLimit: false,
+      disableEip3607: true,
+    };
 
     const blockBuilder = await BlockBuilder.create(
       blockchain,
       clonedState,
-      makeConfigOptions(common, false, true, limitContractCodeSize),
+      config,
       ethereumjsBlockHeaderToRethnet(opts.parentBlock.header),
       ethereumjsHeaderDataToRethnetBlockOptions(opts.headerData)
     );

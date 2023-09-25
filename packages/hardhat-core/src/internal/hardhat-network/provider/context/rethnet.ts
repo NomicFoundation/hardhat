@@ -131,7 +131,7 @@ export class RethnetEthContext implements EthContextAdapter {
     }
 
     const limitContractCodeSize =
-      config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : null;
+      config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : undefined;
 
     const vm = new RethnetAdapter(
       blockchain.asInner(),

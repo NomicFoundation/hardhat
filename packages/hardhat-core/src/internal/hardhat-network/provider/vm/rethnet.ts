@@ -24,12 +24,10 @@ import {
   ethereumjsHeaderDataToRethnetBlockConfig,
   ethereumjsTransactionToRethnetTransactionRequest,
   ethereumjsTransactionToRethnetSignedTransaction,
-  ethereumsjsHardforkToRethnetSpecId,
+  hardhatDebugTraceConfigToRethnet,
   rethnetResultToRunTxResult,
   rethnetRpcDebugTraceToHardhat,
-  hardhatDebugTraceConfigToRethnet,
 } from "../utils/convertToRethnet";
-import { getHardforkName } from "../../../util/hardforks";
 import { keccak256 } from "../../../util/keccak";
 import { RpcDebugTraceOutput } from "../output";
 import { RethnetStateManager } from "../RethnetState";
@@ -53,7 +51,7 @@ export class RethnetAdapter implements VMAdapter {
     private _blockchain: Blockchain,
     private _state: RethnetStateManager,
     private readonly _common: Common,
-    private readonly _limitContractCodeSize: bigint | null
+    private readonly _limitContractCodeSize: bigint | undefined
   ) {
     this._vmTracer = new VMTracer(_common, false);
   }
@@ -78,7 +76,7 @@ export class RethnetAdapter implements VMAdapter {
     }
 
     const limitContractCodeSize =
-      config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : null;
+      config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : undefined;
 
     return new RethnetAdapter(blockchain, state, common, limitContractCodeSize);
   }
@@ -102,10 +100,21 @@ export class RethnetAdapter implements VMAdapter {
       blockContext.header.mixHash
     );
 
+    const specId = await this._blockchain.specAtBlockNumber(
+      blockContext.header.number
+    );
+    const config: ConfigOptions = {
+      chainId: this._common.chainId(),
+      specId,
+      limitContractCodeSize: this._limitContractCodeSize,
+      disableBlockGasLimit: true,
+      disableEip3607: true,
+    };
+
     const rethnetResult = await guaranteedDryRun(
       this._blockchain,
       this._state.asInner(),
-      makeConfigOptions(this._common, true, true, this._limitContractCodeSize),
+      config,
       rethnetTx,
       {
         number: blockContext.header.number,
@@ -327,10 +336,21 @@ export class RethnetAdapter implements VMAdapter {
       block.header.mixHash
     );
 
+    const specId = await this._blockchain.specAtBlockNumber(
+      block.header.number
+    );
+    const config: ConfigOptions = {
+      chainId: this._common.chainId(),
+      specId,
+      limitContractCodeSize: this._limitContractCodeSize,
+      disableBlockGasLimit: false,
+      disableEip3607: true,
+    };
+
     const rethnetResult = await run(
       this._blockchain,
       this._state.asInner(),
-      makeConfigOptions(this._common, false, true, this._limitContractCodeSize),
+      config,
       rethnetTx,
       ethereumjsHeaderDataToRethnetBlockConfig(
         block.header,
@@ -380,12 +400,16 @@ export class RethnetAdapter implements VMAdapter {
       block.header.mixHash
     );
 
-    const evmConfig = makeConfigOptions(
-      this._common,
-      false,
-      true,
-      this._limitContractCodeSize
+    const specId = await this._blockchain.specAtBlockNumber(
+      block.header.number
     );
+    const evmConfig: ConfigOptions = {
+      chainId: this._common.chainId(),
+      specId,
+      limitContractCodeSize: this._limitContractCodeSize,
+      disableBlockGasLimit: false,
+      disableEip3607: true,
+    };
 
     // TODO This deadlocks if more than 3 are executed in parallel
     // https://github.com/NomicFoundation/edr/issues/189
@@ -495,21 +519,4 @@ export class RethnetAdapter implements VMAdapter {
 
     return undefined;
   }
-}
-
-export function makeConfigOptions(
-  common: Common,
-  disableBlockGasLimit: boolean,
-  disableEip3607: boolean,
-  limitContractCodeSize: bigint | null
-): ConfigOptions {
-  return {
-    chainId: common.chainId(),
-    specId: ethereumsjsHardforkToRethnetSpecId(
-      getHardforkName(common.hardfork())
-    ),
-    limitContractCodeSize: limitContractCodeSize ?? undefined,
-    disableBlockGasLimit,
-    disableEip3607,
-  };
 }
