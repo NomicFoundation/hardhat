@@ -9,16 +9,4 @@ declare module "hardhat/types/artifacts" {
   interface ArtifactsMap {
     B: never;
   }
-
-  interface Artifacts {
-    readArtifact<ArgT extends keyof ArtifactsMap>(
-      contractNameOrFullyQualifiedName: ArgT
-    ): ArtifactsMap[ArgT];
-    readArtifact(contractNameOrFullyQualifiedName: string): Artifact;
-
-    readArtifactSync<ArgT extends keyof ArtifactsMap>(
-      contractNameOrFullyQualifiedName: ArgT
-    ): ArtifactsMap[ArgT];
-    readArtifactSync(contractNameOrFullyQualifiedName: string): Artifact;
-  }
 }

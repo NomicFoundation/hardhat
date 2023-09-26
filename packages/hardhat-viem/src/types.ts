@@ -1,4 +1,5 @@
 import type * as viemT from "viem";
+import type { ArtifactsMap } from "hardhat/types/artifacts";
 
 export type PublicClient = viemT.PublicClient<viemT.Transport, viemT.Chain>;
 export type WalletClient = viemT.WalletClient<
@@ -35,14 +36,17 @@ export type GetContractReturnType<
   viemT.Address
 >;
 
-export declare function deployContract(
-  contractName: string,
+export type ContractName<StringT extends string> =
+  StringT extends keyof ArtifactsMap ? never : StringT;
+
+export declare function deployContract<CN extends string>(
+  contractName: ContractName<CN>,
   constructorArgs?: any[],
   config?: DeployContractConfig
 ): Promise<GetContractReturnType>;
 
-export declare function getContractAt(
-  contractName: string,
+export declare function getContractAt<CN extends string>(
+  contractName: ContractName<CN>,
   address: viemT.Address,
   config?: GetContractAtConfig
 ): Promise<GetContractReturnType>;

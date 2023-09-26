@@ -158,18 +158,6 @@ declare module "hardhat/types/artifacts" {
       .map((name) => `${name}: never;`)
       .join("\n    ")}
   }
-
-  interface Artifacts {
-    readArtifact<ArgT extends keyof ArtifactsMap>(
-      contractNameOrFullyQualifiedName: ArgT
-    ): ArtifactsMap[ArgT];
-    readArtifact(contractNameOrFullyQualifiedName: string): Artifact;
-
-    readArtifactSync<ArgT extends keyof ArtifactsMap>(
-      contractNameOrFullyQualifiedName: ArgT
-    ): ArtifactsMap[ArgT];
-    readArtifactSync(contractNameOrFullyQualifiedName: string): Artifact;
-  }
 }
 `;
 }
@@ -209,8 +197,6 @@ import type { GetContractReturnType } from "@nomicfoundation/hardhat-viem/types"
 import "@nomicfoundation/hardhat-viem/types";
 
 export interface ${contractTypeName} ${json}
-
-export const ${contractName}: ${contractTypeName} = ${json};
 
 declare module "@nomicfoundation/hardhat-viem/types" {
   ${validNames
