@@ -78,7 +78,10 @@ impl ForkState {
 
     /// Sets the current state root, preventing it from being regenerated.
     pub fn set_state_root(&mut self, state_root: &B256) {
-        let local_state_root = self.local_state.state_root().unwrap();
+        let local_state_root = self
+            .local_state
+            .state_root()
+            .expect("The trie is guaranteed to have a state root");
 
         let current_state = self.current_state.get_mut();
         *current_state = (*state_root, local_state_root);
