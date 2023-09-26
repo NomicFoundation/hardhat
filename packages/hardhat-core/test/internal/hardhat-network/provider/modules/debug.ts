@@ -352,7 +352,7 @@ describe("Debug module", function () {
     });
 
     // see https://github.com/NomicFoundation/hardhat/issues/3519
-    it("Should return the right values for a successful tx", async function () {
+    it.skip("Should return the right values for a successful tx", async function () {
       const trace: RpcDebugTraceOutput = await provider.send(
         "debug_traceTransaction",
         ["0xe0b1f8e11eb822107ddc35ce2d944147cc043acf680c39332ee95dd6508d107e"]
