@@ -5,7 +5,7 @@ use std::fmt::Debug;
 use rethnet_eth::{signature::SignatureError, U256};
 use revm::{
     db::DatabaseComponentError,
-    primitives::{EVMError, InvalidTransaction},
+    primitives::{EVMError, InvalidHeader, InvalidTransaction},
 };
 
 pub use self::pending::PendingTransaction;
@@ -38,7 +38,9 @@ where
     fn from(error: EVMError<DatabaseComponentError<SE, BE>>) -> Self {
         match error {
             EVMError::Transaction(e) => Self::InvalidTransaction(e),
-            EVMError::PrevrandaoNotSet => unreachable!(),
+            EVMError::Header(
+                InvalidHeader::ExcessBlobGasNotSet | InvalidHeader::PrevrandaoNotSet,
+            ) => unreachable!(),
             EVMError::Database(DatabaseComponentError::State(e)) => Self::State(e),
             EVMError::Database(DatabaseComponentError::BlockHash(e)) => Self::Blockchain(e),
         }

@@ -65,6 +65,9 @@ impl TryFrom<BlockConfig> for BlockEnv {
             prevrandao,
             basefee,
             gas_limit,
+            // TODO: Add support for EIP-4844
+            // https://github.com/NomicFoundation/edr/issues/191
+            blob_excess_gas_and_price: None,
         })
     }
 }

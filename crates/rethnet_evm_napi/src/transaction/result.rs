@@ -117,7 +117,7 @@ impl From<rethnet_evm::Halt> for ExceptionalHalt {
             | rethnet_evm::Halt::CallNotAllowedInsideStatic
             | rethnet_evm::Halt::OutOfFund
             | rethnet_evm::Halt::CallTooDeep => {
-                unreachable!("Internal halts that can be only found inside Inspector")
+                unreachable!("Internal halts that can be only found inside Inspector: {halt:?}")
             }
         }
     }

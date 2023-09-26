@@ -1108,7 +1108,7 @@ impl Server {
         };
 
         let mut evm_config = CfgEnv::default();
-        evm_config.chain_id = U256::from(config.chain_id);
+        evm_config.chain_id = config.chain_id;
         evm_config.spec_id = config.hardfork;
         evm_config.limit_contract_code_size = if config.allow_unlimited_contract_size {
             Some(usize::MAX)
