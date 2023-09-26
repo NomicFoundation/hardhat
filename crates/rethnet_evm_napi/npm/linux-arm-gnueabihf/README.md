@@ -1,3 +1,3 @@
-# `@ignored/edr-evm-linux-arm-gnueabihf`
+# `@ignored/edr-linux-arm-gnueabihf`
 
-This is the **armv7-unknown-linux-gnueabihf** binary for `@ignored/edr-evm`
+This is the **armv7-unknown-linux-gnueabihf** binary for `@ignored/edr`

@@ -1,12 +1,12 @@
 {
-  "name": "@ignored/edr-evm-darwin-universal",
+  "name": "@ignored/edr-darwin-universal",
   "version": "0.1.0-dev",
   "os": [
     "darwin"
   ],
-  "main": "edr-evm.darwin-universal.node",
+  "main": "edr.darwin-universal.node",
   "files": [
-    "edr-evm.darwin-universal.node"
+    "edr.darwin-universal.node"
   ],
   "license": "MIT",
   "engines": {

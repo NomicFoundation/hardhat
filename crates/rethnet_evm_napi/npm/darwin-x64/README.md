@@ -1,3 +1,3 @@
-# `@ignored/edr-evm-darwin-x64`
+# `@ignored/edr-darwin-x64`
 
-This is the **x86_64-apple-darwin** binary for `@ignored/edr-evm`
+This is the **x86_64-apple-darwin** binary for `@ignored/edr`

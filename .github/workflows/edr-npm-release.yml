@@ -1,7 +1,7 @@
-name: EDR EVM NPM release
+name: EDR NPM release
 env:
   DEBUG: napi:*
-  APP_NAME: edr-evm
+  APP_NAME: edr
   MACOSX_DEPLOYMENT_TARGET: '10.13'
 permissions:
   contents: write

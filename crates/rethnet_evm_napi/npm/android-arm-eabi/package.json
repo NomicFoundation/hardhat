@@ -1,5 +1,5 @@
 {
-  "name": "@ignored/edr-evm-android-arm-eabi",
+  "name": "@ignored/edr-android-arm-eabi",
   "version": "0.1.0-dev",
   "os": [
     "android"
@@ -7,9 +7,9 @@
   "cpu": [
     "arm"
   ],
-  "main": "edr-evm.android-arm-eabi.node",
+  "main": "edr.android-arm-eabi.node",
   "files": [
-    "edr-evm.android-arm-eabi.node"
+    "edr.android-arm-eabi.node"
   ],
   "license": "MIT",
   "engines": {

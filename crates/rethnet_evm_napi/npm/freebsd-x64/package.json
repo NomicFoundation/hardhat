@@ -1,5 +1,5 @@
 {
-  "name": "@ignored/edr-evm-freebsd-x64",
+  "name": "@ignored/edr-freebsd-x64",
   "version": "0.1.0-dev",
   "os": [
     "freebsd"
@@ -7,9 +7,9 @@
   "cpu": [
     "x64"
   ],
-  "main": "edr-evm.freebsd-x64.node",
+  "main": "edr.freebsd-x64.node",
   "files": [
-    "edr-evm.freebsd-x64.node"
+    "edr.freebsd-x64.node"
   ],
   "license": "MIT",
   "engines": {

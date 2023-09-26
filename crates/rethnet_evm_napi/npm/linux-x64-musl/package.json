@@ -1,5 +1,5 @@
 {
-  "name": "@ignored/edr-evm-linux-x64-musl",
+  "name": "@ignored/edr-linux-x64-musl",
   "version": "0.1.0-dev",
   "os": [
     "linux"
@@ -7,9 +7,9 @@
   "cpu": [
     "x64"
   ],
-  "main": "edr-evm.linux-x64-musl.node",
+  "main": "edr.linux-x64-musl.node",
   "files": [
-    "edr-evm.linux-x64-musl.node"
+    "edr.linux-x64-musl.node"
   ],
   "license": "MIT",
   "engines": {

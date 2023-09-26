@@ -1,5 +1,5 @@
 {
-  "name": "@ignored/edr-evm-linux-arm-gnueabihf",
+  "name": "@ignored/edr-linux-arm-gnueabihf",
   "version": "0.1.0-dev",
   "os": [
     "linux"
@@ -7,9 +7,9 @@
   "cpu": [
     "arm"
   ],
-  "main": "edr-evm.linux-arm-gnueabihf.node",
+  "main": "edr.linux-arm-gnueabihf.node",
   "files": [
-    "edr-evm.linux-arm-gnueabihf.node"
+    "edr.linux-arm-gnueabihf.node"
   ],
   "license": "MIT",
   "engines": {

@@ -1,10 +1,10 @@
 {
-    "name": "@ignored/edr-evm",
+    "name": "@ignored/edr",
     "version": "0.1.0-dev",
     "main": "index.js",
     "types": "index.d.ts",
     "napi": {
-        "name": "edr-evm",
+        "name": "edr",
         "triples": {
             "additional": [
                 "aarch64-apple-darwin",

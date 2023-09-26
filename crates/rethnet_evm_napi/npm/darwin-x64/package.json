@@ -1,5 +1,5 @@
 {
-  "name": "@ignored/edr-evm-darwin-x64",
+  "name": "@ignored/edr-darwin-x64",
   "version": "0.1.0-dev",
   "os": [
     "darwin"
@@ -7,9 +7,9 @@
   "cpu": [
     "x64"
   ],
-  "main": "edr-evm.darwin-x64.node",
+  "main": "edr.darwin-x64.node",
   "files": [
-    "edr-evm.darwin-x64.node"
+    "edr.darwin-x64.node"
   ],
   "license": "MIT",
   "engines": {

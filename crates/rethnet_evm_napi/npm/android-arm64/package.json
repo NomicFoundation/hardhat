@@ -1,5 +1,5 @@
 {
-  "name": "@ignored/edr-evm-android-arm64",
+  "name": "@ignored/edr-android-arm64",
   "version": "0.1.0-dev",
   "os": [
     "android"
@@ -7,9 +7,9 @@
   "cpu": [
     "arm64"
   ],
-  "main": "edr-evm.android-arm64.node",
+  "main": "edr.android-arm64.node",
   "files": [
-    "edr-evm.android-arm64.node"
+    "edr.android-arm64.node"
   ],
   "license": "MIT",
   "engines": {
