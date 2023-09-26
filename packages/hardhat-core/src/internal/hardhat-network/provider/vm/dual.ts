@@ -190,8 +190,21 @@ export class DualModeAdapter implements VMAdapter {
     block: Block,
     config: RpcDebugTracingConfig
   ): Promise<RpcDebugTraceOutput> {
-    // TODO add rethnet adapter
-    return this._ethereumJSAdapter.traceTransaction(hash, block, config);
+    const ethereumJsResult = await this._ethereumJSAdapter.traceTransaction(
+      hash,
+      block,
+      config
+    );
+
+    const _rethnetResult = await this._rethnetAdapter.traceTransaction(
+      hash,
+      block,
+      config
+    );
+
+    globalRethnetContext.setStateRootGeneratorSeed(randomHashSeed());
+
+    return ethereumJsResult;
   }
 
   public async setBlockContext(
