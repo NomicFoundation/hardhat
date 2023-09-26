@@ -190,13 +190,14 @@ export class DualModeAdapter implements VMAdapter {
     block: Block,
     config: RpcDebugTracingConfig
   ): Promise<RpcDebugTraceOutput> {
-    const ethereumJsResult = await this._ethereumJSAdapter.traceTransaction(
-      hash,
-      block,
-      config
-    );
+    // When this is enabled, tests fail with diff state root error
+    // const _ethereumJsResult = await this._ethereumJSAdapter.traceTransaction(
+    //   hash,
+    //   block,
+    //   config
+    // );
 
-    const _rethnetResult = await this._rethnetAdapter.traceTransaction(
+    const rethnetResult = await this._rethnetAdapter.traceTransaction(
       hash,
       block,
       config
@@ -204,7 +205,7 @@ export class DualModeAdapter implements VMAdapter {
 
     globalRethnetContext.setStateRootGeneratorSeed(randomHashSeed());
 
-    return ethereumJsResult;
+    return rethnetResult;
   }
 
   public async setBlockContext(
