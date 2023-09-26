@@ -1913,18 +1913,12 @@ export class HardhatNode extends EventEmitter {
       return action();
     }
 
-    // const currentStateRoot = await this._context.vm().getStateRoot();
-    // const snapshotId = await this._context.vm().makeSnapshot();
     await this._context.vm().setBlockContext(blockNumberOrPending);
 
     try {
       return await action();
     } finally {
       await this._context.vm().restoreBlockContext(latestBlockNumber);
-      // await this._context.vm().restoreSnapshot(snapshotId);
-
-      // Validate
-      await this._context.vm().getStateRoot();
     }
   }
 
