@@ -89,6 +89,7 @@ pub struct BlockBuilder {
 
 impl BlockBuilder {
     /// Creates an intance of [`BlockBuilder`].
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn new(
         cfg: CfgEnv,
         parent: &Header,
@@ -157,6 +158,7 @@ impl BlockBuilder {
     // }
 
     /// Adds a pending transaction to
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn add_transaction<BlockchainErrorT, StateErrorT>(
         &mut self,
         blockchain: &mut dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
@@ -273,6 +275,7 @@ impl BlockBuilder {
     }
 
     /// Finalizes the block, returning the block and the callers of the transactions.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn finalize<StateT, StateErrorT>(
         mut self,
         state: &mut StateT,
