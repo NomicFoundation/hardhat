@@ -19,8 +19,9 @@ export type TestClientMode = Parameters<
 
 export interface DeployContractConfig {
   walletClient?: WalletClient;
-  gas?: bigint | undefined;
-  value?: bigint | undefined;
+  gas?: bigint;
+  value?: bigint;
+  confirmations?: number;
 }
 
 export interface GetContractAtConfig {

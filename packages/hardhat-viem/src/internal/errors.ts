@@ -59,6 +59,16 @@ const contractB = await hre.viem.getContractAt("B", address, { walletClient });`
   }
 }
 
+export class InvalidConfirmationsError extends HardhatViemError {
+  constructor(confirmations: number) {
+    super(
+      confirmations < 0
+        ? "Confirmations must be greater than 0."
+        : "deployContract does not support 0 confirmations. Use sendDeploymentTransaction if you want to handle the deployment transaction yourself."
+    );
+  }
+}
+
 export class DeployContractError extends HardhatViemError {
   constructor(txHash: string, blockNumber: bigint) {
     super(
