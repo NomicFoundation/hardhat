@@ -19,6 +19,9 @@ permissions:
       - .editorconfig
       - docs/**
   pull_request: null
+defaults:
+  run:
+    working-directory: ./crates/rethnet_evm_napi
 jobs:
   build:
     strategy:
