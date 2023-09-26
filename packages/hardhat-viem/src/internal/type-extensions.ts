@@ -12,6 +12,7 @@ import type {
   getContractAt,
 } from "../types";
 import "hardhat/types/runtime";
+import "hardhat/types/artifacts";
 
 declare module "hardhat/types/runtime" {
   interface HardhatRuntimeEnvironment {
@@ -32,5 +33,20 @@ declare module "hardhat/types/runtime" {
       deployContract: typeof deployContract;
       getContractAt: typeof getContractAt;
     };
+  }
+}
+
+declare module "hardhat/types/artifacts" {
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface
+  interface ArtifactsMap {}
+
+  interface Artifacts {
+    readArtifact<ArgT extends keyof ArtifactsMap>(
+      contractNameOrFullyQualifiedName: ArgT
+    ): ArtifactsMap[ArgT];
+
+    readArtifactSync<ArgT extends keyof ArtifactsMap>(
+      contractNameOrFullyQualifiedName: ArgT
+    ): ArtifactsMap[ArgT];
   }
 }

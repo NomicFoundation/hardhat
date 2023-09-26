@@ -52,6 +52,7 @@ ${diffLinesUnified(
   {
     contextLines: 3,
     expand: false,
+    includeChangeCounts: true,
   }
 )}`);
   }
