@@ -32,11 +32,13 @@ export function getAllFuturesForModule({
   futures,
   submodules,
 }: IgnitionModule<string, string, IgnitionModuleResult<string>>): Future[] {
-  return Array.from(futures).concat(
-    Array.from(submodules.values()).flatMap((submodule) =>
-      getAllFuturesForModule(submodule)
+  return Array.from(futures)
+    .concat(
+      Array.from(submodules.values()).flatMap((submodule) =>
+        getAllFuturesForModule(submodule)
+      )
     )
-  );
+    .filter((v, i, a) => a.indexOf(v) === i); // remove duplicates
 }
 
 /**
