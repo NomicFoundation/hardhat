@@ -15,6 +15,7 @@ import { getPublicClient, getWalletClients } from "./clients";
 import {
   DefaultWalletClientNotFoundError,
   DeployContractError,
+  InvalidConfirmationsError,
 } from "./errors";
 
 export async function deployContract(
@@ -23,8 +24,11 @@ export async function deployContract(
   constructorArgs: any[] = [],
   config: DeployContractConfig = {}
 ): Promise<GetContractReturnType> {
-  const { walletClient: configWalletClient, ...deployContractParameters } =
-    config;
+  const {
+    walletClient: configWalletClient,
+    confirmations,
+    ...deployContractParameters
+  } = config;
   const [publicClient, walletClient, contractArtifact] = await Promise.all([
     getPublicClient(network.provider),
     configWalletClient ??
@@ -38,7 +42,8 @@ export async function deployContract(
     contractArtifact.abi,
     contractArtifact.bytecode as Hex,
     constructorArgs,
-    deployContractParameters
+    deployContractParameters,
+    confirmations
   );
 }
 
@@ -48,7 +53,8 @@ export async function innerDeployContract(
   contractAbi: Abi,
   contractBytecode: Hex,
   constructorArgs: any[],
-  deployContractParameters: DeployContractConfig = {}
+  deployContractParameters: DeployContractConfig = {},
+  confirmations: number = 1
 ): Promise<GetContractReturnType> {
   const deploymentTxHash = await walletClient.deployContract({
     abi: contractAbi,
@@ -57,8 +63,13 @@ export async function innerDeployContract(
     ...deployContractParameters,
   });
 
+  if (confirmations <= 0) {
+    throw new InvalidConfirmationsError(confirmations);
+  }
+
   const { contractAddress } = await publicClient.waitForTransactionReceipt({
     hash: deploymentTxHash,
+    confirmations,
   });
 
   if (contractAddress === null) {

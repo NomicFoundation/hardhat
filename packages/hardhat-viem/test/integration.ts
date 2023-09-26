@@ -44,6 +44,10 @@ describe("Integration tests", function () {
       await this.hre.run(TASK_CLEAN);
     });
 
+    beforeEach(async function () {
+      await this.hre.network.provider.send("hardhat_reset");
+    });
+
     describe("Clients", function () {
       it("should be able to query the blockchain using the public client", async function () {
         const client = await this.hre.viem.getPublicClient();
@@ -98,7 +102,7 @@ describe("Integration tests", function () {
           blocks: 1000000,
         });
         const blockNumber = await publicClient.getBlockNumber();
-        assert.equal(blockNumber, 1000001n);
+        assert.equal(blockNumber, 1000000n);
       });
     });
 
@@ -117,18 +121,18 @@ describe("Integration tests", function () {
         const [defaultWalletClient] = await this.hre.viem.getWalletClients();
         const contract = await this.hre.viem.deployContract(
           "WithConstructorArgs",
-          [50]
+          [50n]
         );
 
         let data = await contract.read.getData();
-        assert.equal(data, 50);
+        assert.equal(data, 50n);
 
         const owner = await contract.read.getOwner();
         assert.equal(owner, getAddress(defaultWalletClient.account.address));
 
-        await contract.write.setData([100]);
+        await contract.write.setData([100n]);
         data = await contract.read.getData();
-        assert.equal(data, 100);
+        assert.equal(data, 100n);
       });
 
       it("should be able to deploy a contract with a different wallet client", async function () {
@@ -217,6 +221,39 @@ describe("Integration tests", function () {
           deployContract(hre, "WithoutConstructorArgs")
         ).to.be.rejectedWith(
           /Default wallet client not found. This can happen if no accounts were configured for this network/
+        );
+      });
+
+      it("should wait for confirmations", async function () {
+        const publicClient = await this.hre.viem.getPublicClient();
+        const testClient = await this.hre.viem.getTestClient();
+        await testClient.setIntervalMining({
+          interval: 60,
+        });
+
+        await this.hre.viem.deployContract("WithoutConstructorArgs", [], {
+          confirmations: 5,
+        });
+
+        const blockNumber = await publicClient.getBlockNumber();
+        assert.equal(blockNumber, 5n);
+      });
+
+      it("should throw if the confirmations parameter is less than 0", async function () {
+        await expect(
+          this.hre.viem.deployContract("WithoutConstructorArgs", [], {
+            confirmations: -1,
+          })
+        ).to.be.rejectedWith("Confirmations must be greater than 0.");
+      });
+
+      it("should throw if the confirmations parameter is 0", async function () {
+        await expect(
+          this.hre.viem.deployContract("WithoutConstructorArgs", [], {
+            confirmations: 0,
+          })
+        ).to.be.rejectedWith(
+          "deployContract does not support 0 confirmations. Use sendDeploymentTransaction if you want to handle the deployment transaction yourself."
         );
       });
     });
