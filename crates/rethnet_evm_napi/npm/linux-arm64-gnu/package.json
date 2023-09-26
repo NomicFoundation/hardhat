@@ -1,0 +1,21 @@
+{
+  "name": "@ignored/edr-evm-linux-arm64-gnu",
+  "version": "0.1.0-dev",
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "main": "edr-evm.linux-arm64-gnu.node",
+  "files": [
+    "edr-evm.linux-arm64-gnu.node"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 12"
+  },
+  "libc": [
+    "glibc"
+  ]
+}

@@ -1,25 +1,47 @@
 {
-    "package": "rethnet-evm",
-    "name": "rethnet-evm",
+    "name": "@ignored/edr-evm",
     "version": "0.1.0-dev",
-    "main": "rethnet-evm.node",
+    "main": "index.js",
     "types": "index.d.ts",
-    "license": "MIT",
     "napi": {
-        "name": "rethnet-evm"
+        "name": "edr-evm",
+        "triples": {
+            "additional": [
+                "aarch64-apple-darwin",
+                "aarch64-linux-android",
+                "aarch64-unknown-linux-gnu",
+                "aarch64-unknown-linux-musl",
+                "aarch64-pc-windows-msvc",
+                "armv7-unknown-linux-gnueabihf",
+                "x86_64-unknown-linux-musl",
+                "x86_64-unknown-freebsd",
+                "i686-pc-windows-msvc",
+                "armv7-linux-androideabi",
+                "universal-apple-darwin"
+            ]
+        }
     },
-    "scripts": {
-        "build": "napi build --release",
-        "build:debug": "napi build",
-        "build:tracing": "napi build --release --features tracing",
-        "test": "yarn tsc && mocha --recursive \"test/**/*.ts\" --exit",
-        "clean": "rm -rf rethnet-evm.node"
-    },
+    "license": "MIT",
     "devDependencies": {
-        "@napi-rs/cli": "^2.11.4",
+        "@napi-rs/cli": "^2.16.3",
         "chai": "^4.3.6",
         "@nomicfoundation/ethereumjs-util": "^8.0.0",
         "mocha": "^10.0.0",
         "typescript": "~4.5.2"
-    }
+    },
+    "engines": {
+        "node": ">= 12"
+    },
+    "scripts": {
+        "artifacts": "napi artifacts",
+        "build": "napi build --platform --release",
+        "build:debug": "napi build --platform",
+        "build:tracing": "napi build --release --features tracing",
+        "prepublishOnly": "napi prepublish -t npm",
+        "universal": "napi universal",
+        "version": "napi version",
+        "test": "yarn tsc && mocha --recursive \"test/**/*.ts\" --exit",
+        "clean": "rm -rf rethnet-evm.node"
+    },
+    "packageManager": "yarn@3.6.3"
 }

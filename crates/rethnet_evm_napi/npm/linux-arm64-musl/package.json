@@ -1,0 +1,21 @@
+{
+  "name": "@ignored/edr-evm-linux-arm64-musl",
+  "version": "0.1.0-dev",
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "main": "edr-evm.linux-arm64-musl.node",
+  "files": [
+    "edr-evm.linux-arm64-musl.node"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 12"
+  },
+  "libc": [
+    "musl"
+  ]
+}

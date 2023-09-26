@@ -29,3 +29,6 @@ napi-build = "2.0.1"
 
 [features]
 tracing = ["rethnet_evm/tracing"]
+
+[profile.release]
+lto = true
