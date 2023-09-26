@@ -67,10 +67,6 @@ export class RethnetStateManager {
     this._state = state;
   }
 
-  public async deepClone(): Promise<RethnetStateManager> {
-    return new RethnetStateManager(await this._state.deepClone());
-  }
-
   public async accountExists(address: Address): Promise<boolean> {
     const account = await this._state.getAccountByAddress(address.buf);
     return account !== null;

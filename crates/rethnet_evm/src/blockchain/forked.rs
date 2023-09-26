@@ -354,6 +354,16 @@ impl Blockchain for ForkedBlockchain {
             std::cmp::Ordering::Greater => {
                 let mut state = self.fork_state.clone();
                 compute_state_at_block(&mut state, &self.local_storage, block_number);
+
+                let state_root = self
+                    .local_storage
+                    .block_by_number(block_number)
+                    .expect("The block is validated to exist")
+                    .header()
+                    .state_root;
+
+                state.set_state_root(&state_root);
+
                 state
             }
         };

@@ -1,3 +1,5 @@
+mod irregular;
+
 use std::{
     mem,
     ops::Deref,

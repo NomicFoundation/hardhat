@@ -48,22 +48,52 @@ export interface VMAdapter {
   getContractStorage(address: Address, key: Buffer): Promise<Buffer>;
   getContractCode(address: Address): Promise<Buffer>;
 
-  // setters
-  putAccount(address: Address, account: Account): Promise<void>;
-  putContractCode(address: Address, value: Buffer): Promise<void>;
+  /**
+   * Update the account info for the given address.
+   */
+  putAccount(
+    address: Address,
+    account: Account,
+    isIrregularChange?: boolean
+  ): Promise<void>;
+
+  /**
+   * Update the contract code for the given address.
+   */
+  putContractCode(
+    address: Address,
+    value: Buffer,
+    isIrregularChange?: boolean
+  ): Promise<void>;
+
+  /**
+   * Update the value of the given storage slot.
+   */
   putContractStorage(
     address: Address,
     key: Buffer,
-    value: Buffer
+    value: Buffer,
+    isIrregularChange?: boolean
   ): Promise<void>;
 
-  // getters/setters for the whole state
+  /**
+   * Get the root of the current state trie.
+   */
   getStateRoot(): Promise<Buffer>;
-  setBlockContext(
-    block: Block,
-    irregularStateOrUndefined: Buffer | undefined
-  ): Promise<void>;
-  restoreContext(stateRoot: Buffer): Promise<void>;
+
+  /**
+   * Set the state to the point after the block corresponding to the provided
+   * block number was mined. If irregular state exists, use it as the state.
+   */
+  setBlockContext(blockNumber: bigint): Promise<void>;
+
+  /**
+   * Restore the state to the point after the block corresponding to the
+   * provided block number was mined. If irregular state exists, use it as the
+   * state.
+   * @param blockNumber the number of the block to restore the state to
+   */
+  restoreBlockContext(blockNumber: bigint): Promise<void>;
 
   // methods for block-building
   runTxInBlock(
@@ -79,9 +109,17 @@ export interface VMAdapter {
     config: RpcDebugTracingConfig
   ): Promise<RpcDebugTraceOutput>;
 
+  revert(): Promise<void>;
+
   // methods for snapshotting
-  makeSnapshot(): Promise<Buffer>;
-  removeSnapshot(stateRoot: Buffer): Promise<void>;
+  makeSnapshot(): Promise<number>;
+
+  /**
+   * Restores the state to the given snapshot, deleting the potential snapshot in the process.
+   * @param snapshotId the snapshot to restore
+   */
+  restoreSnapshot(snapshotId: number): Promise<void>;
+  removeSnapshot(snapshotId: number): Promise<void>;
 
   // for debugging purposes
   printState(): Promise<void>;

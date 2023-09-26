@@ -229,9 +229,6 @@ export class HardhatNode extends EventEmitter {
   private readonly _consoleLogger: ConsoleLogger = new ConsoleLogger();
   private _failedStackTraces = 0;
 
-  // blockNumber => state root
-  private _irregularStatesByBlockNumber: Map<bigint, Buffer> = new Map();
-
   private constructor(
     private readonly _context: EthContextAdapter,
     private readonly _instanceId: bigint,
@@ -902,20 +899,15 @@ export class HardhatNode extends EventEmitter {
       id,
       date: new Date(),
       latestBlock: await this.getLatestBlock(),
-      stateRoot: await this._context.vm().makeSnapshot(),
+      stateSnapshotId: await this._context.vm().makeSnapshot(),
       txPoolSnapshotId: await this._context.memPool().makeSnapshot(),
       blockTimeOffsetSeconds: this.getTimeIncrement(),
       nextBlockTimestamp: this.getNextBlockTimestamp(),
-      irregularStatesByBlockNumber: this._irregularStatesByBlockNumber,
       userProvidedNextBlockBaseFeePerGas:
         this.getUserProvidedNextBlockBaseFeePerGas(),
       coinbase: this.getCoinbaseAddress(),
       nextPrevRandao: this._context.blockMiner().prevRandaoGeneratorSeed(),
     };
-
-    this._irregularStatesByBlockNumber = new Map(
-      this._irregularStatesByBlockNumber
-    );
 
     this._snapshots.push(snapshot);
     this._nextSnapshotId += 1;
@@ -947,13 +939,8 @@ export class HardhatNode extends EventEmitter {
     await this._context
       .blockchain()
       .revertToBlock(snapshot.latestBlock.header.number);
-    this._irregularStatesByBlockNumber = snapshot.irregularStatesByBlockNumber;
-    const irregularStateOrUndefined = this._irregularStatesByBlockNumber.get(
-      (await this.getLatestBlock()).header.number
-    );
-    await this._context
-      .vm()
-      .restoreContext(irregularStateOrUndefined ?? snapshot.stateRoot);
+
+    await this._context.vm().restoreSnapshot(snapshot.stateSnapshotId);
     this.setTimeIncrement(newOffset);
     this.setNextBlockTimestamp(snapshot.nextBlockTimestamp);
     await this._context.memPool().revertToSnapshot(snapshot.txPoolSnapshotId);
@@ -1193,16 +1180,14 @@ export class HardhatNode extends EventEmitter {
   ): Promise<void> {
     const account = await this._context.vm().getAccount(address);
     account.balance = newBalance;
-    await this._context.vm().putAccount(address, account);
-    await this._persistIrregularWorldState();
+    await this._context.vm().putAccount(address, account, true);
   }
 
   public async setAccountCode(
     address: Address,
     newCode: Buffer
   ): Promise<void> {
-    await this._context.vm().putContractCode(address, newCode);
-    await this._persistIrregularWorldState();
+    await this._context.vm().putContractCode(address, newCode, true);
   }
 
   public async setNextConfirmedNonce(
@@ -1221,8 +1206,7 @@ export class HardhatNode extends EventEmitter {
       );
     }
     account.nonce = newNonce;
-    await this._context.vm().putAccount(address, account);
-    await this._persistIrregularWorldState();
+    await this._context.vm().putAccount(address, account, true);
   }
 
   public async setStorageAt(
@@ -1235,9 +1219,9 @@ export class HardhatNode extends EventEmitter {
       .putContractStorage(
         address,
         setLengthLeft(bigIntToBuffer(positionIndex), 32),
-        value
+        value,
+        true
       );
-    await this._persistIrregularWorldState();
   }
 
   public async traceTransaction(hash: Buffer, config: RpcDebugTracingConfig) {
@@ -1651,7 +1635,7 @@ export class HardhatNode extends EventEmitter {
     const deletedSnapshots = this._snapshots.splice(snapshotIndex);
 
     for (const deletedSnapshot of deletedSnapshots) {
-      await this._context.vm().removeSnapshot(deletedSnapshot.stateRoot);
+      await this._context.vm().removeSnapshot(deletedSnapshot.stateSnapshotId);
     }
   }
 
@@ -1924,25 +1908,23 @@ export class HardhatNode extends EventEmitter {
       return this._runInPendingBlockContext(action);
     }
 
-    if (blockNumberOrPending === (await this.getLatestBlockNumber())) {
+    const latestBlockNumber = await this.getLatestBlockNumber();
+    if (blockNumberOrPending === latestBlockNumber) {
       return action();
     }
 
-    const block = await this.getBlockByNumber(blockNumberOrPending);
-    if (block === undefined) {
-      // TODO handle this better
-      throw new Error(
-        `Block with number ${blockNumberOrPending.toString()} doesn't exist. This should never happen.`
-      );
-    }
+    // const currentStateRoot = await this._context.vm().getStateRoot();
+    // const snapshotId = await this._context.vm().makeSnapshot();
+    await this._context.vm().setBlockContext(blockNumberOrPending);
 
-    const snapshot = await this._context.vm().makeSnapshot();
-    await this._setBlockContext(block);
     try {
       return await action();
     } finally {
-      await this._context.vm().restoreContext(snapshot);
-      await this._context.vm().removeSnapshot(snapshot);
+      await this._context.vm().restoreBlockContext(latestBlockNumber);
+      // await this._context.vm().restoreSnapshot(snapshotId);
+
+      // Validate
+      await this._context.vm().getStateRoot();
     }
   }
 
@@ -1954,14 +1936,6 @@ export class HardhatNode extends EventEmitter {
     } finally {
       await this.revertToSnapshot(snapshotId);
     }
-  }
-
-  private async _setBlockContext(block: Block): Promise<void> {
-    const irregularStateOrUndefined = this._irregularStatesByBlockNumber.get(
-      block.header.number
-    );
-
-    await this._context.vm().setBlockContext(block, irregularStateOrUndefined);
   }
 
   private async _correctInitialEstimation(
@@ -2181,13 +2155,6 @@ export class HardhatNode extends EventEmitter {
   private async _isTransactionMined(hash: Buffer): Promise<boolean> {
     const txReceipt = await this.getTransactionReceipt(hash);
     return txReceipt !== undefined;
-  }
-
-  private async _persistIrregularWorldState(): Promise<void> {
-    this._irregularStatesByBlockNumber.set(
-      await this.getLatestBlockNumber(),
-      await this._context.vm().makeSnapshot()
-    );
   }
 
   public async isEip1559Active(

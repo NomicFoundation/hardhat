@@ -40,6 +40,7 @@ import { Bloom } from "../utils/bloom";
 import { makeForkClient } from "../utils/makeForkClient";
 import { makeAccount } from "../utils/makeAccount";
 import { makeStateTrie } from "../utils/makeStateTrie";
+import { BlockchainAdapter } from "../blockchain";
 import { Exit } from "./exit";
 import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
@@ -107,11 +108,23 @@ type StateManagerWithAddresses = StateManager & {
   addresses: Set<string>;
 };
 
+interface Snapshot {
+  irregularStatesByBlockNumber: Map<bigint, Buffer>;
+  stateRoot: Buffer;
+}
+
 export class EthereumJSAdapter implements VMAdapter {
+  // blockNumber => state root
+  private _irregularStatesByBlockNumber: Map<bigint, Buffer> = new Map();
+
+  private _idToSnapshot: Map<number, Snapshot> = new Map();
+  private _nextSnapshotId = 0;
+
   private _vmTracer: VMTracer;
 
   constructor(
     private readonly _vm: VM,
+    private readonly _blockchain: BlockchainAdapter,
     public readonly _stateManager: StateManagerWithAddresses,
     private readonly _common: Common,
     private readonly _configNetworkId: number,
@@ -198,6 +211,7 @@ export class EthereumJSAdapter implements VMAdapter {
 
     return new EthereumJSAdapter(
       vm,
+      blockchain,
       stateManager,
       common,
       config.networkId,
@@ -352,33 +366,77 @@ export class EthereumJSAdapter implements VMAdapter {
     return this._stateManager.getContractCode(address);
   }
 
-  public async putAccount(address: Address, account: Account): Promise<void> {
-    return this._stateManager.putAccount(address, account);
+  public async putAccount(
+    address: Address,
+    account: Account,
+    isIrregularChange?: boolean
+  ): Promise<void> {
+    await this._stateManager.putAccount(address, account);
+
+    if (isIrregularChange === true) {
+      await this._persistIrregularWorldState();
+    }
   }
 
-  public async putContractCode(address: Address, value: Buffer): Promise<void> {
-    return this._stateManager.putContractCode(address, value);
+  public async putContractCode(
+    address: Address,
+    value: Buffer,
+    isIrregularChange?: boolean
+  ): Promise<void> {
+    await this._stateManager.putContractCode(address, value);
+
+    if (isIrregularChange === true) {
+      await this._persistIrregularWorldState();
+    }
   }
 
   public async putContractStorage(
     address: Address,
     key: Buffer,
-    value: Buffer
+    value: Buffer,
+    isIrregularChange?: boolean
   ): Promise<void> {
-    return this._stateManager.putContractStorage(address, key, value);
+    await this._stateManager.putContractStorage(address, key, value);
+
+    if (isIrregularChange === true) {
+      await this._persistIrregularWorldState();
+    }
   }
 
-  public async restoreContext(stateRoot: Buffer): Promise<void> {
+  public async restoreBlockContext(blockNumber: bigint): Promise<void> {
+    let stateRoot = this._irregularStatesByBlockNumber.get(blockNumber);
+
+    if (stateRoot === undefined) {
+      const block = await this._blockchain.getBlockByNumber(blockNumber);
+
+      if (block === undefined) {
+        throw new Error(
+          `Could not find block with number ${blockNumber} to restore its state`
+        );
+      }
+
+      stateRoot = block.header.stateRoot;
+    }
+
     if (this._stateManager instanceof ForkStateManager) {
       return this._stateManager.restoreForkBlockContext(stateRoot);
     }
     return this._stateManager.setStateRoot(stateRoot);
   }
 
-  public async setBlockContext(
-    block: Block,
-    irregularStateOrUndefined: Buffer | undefined
-  ): Promise<void> {
+  public async setBlockContext(blockNumber: bigint): Promise<void> {
+    const block = await this._blockchain.getBlockByNumber(blockNumber);
+    if (block === undefined) {
+      // TODO handle this better
+      throw new Error(
+        `Block with number ${blockNumber.toString()} doesn't exist. This should never happen.`
+      );
+    }
+
+    const irregularStateOrUndefined = this._irregularStatesByBlockNumber.get(
+      block.header.number
+    );
+
     if (this._stateManager instanceof ForkStateManager) {
       return this._stateManager.setBlockContext(
         block.header.stateRoot,
@@ -513,12 +571,33 @@ export class EthereumJSAdapter implements VMAdapter {
     return [result, trace];
   }
 
-  public async makeSnapshot(): Promise<Buffer> {
-    return this.getStateRoot();
+  public async revert(): Promise<void> {
+    await this._stateManager.revert();
   }
 
-  public async removeSnapshot(_stateRoot: Buffer): Promise<void> {
-    // No way of deleting snapshot
+  public async makeSnapshot(): Promise<number> {
+    const id = this._nextSnapshotId++;
+    this._idToSnapshot.set(id, {
+      irregularStatesByBlockNumber: new Map(this._irregularStatesByBlockNumber),
+      stateRoot: await this.getStateRoot(),
+    });
+    return id;
+  }
+
+  public async restoreSnapshot(snapshotId: number): Promise<void> {
+    const snapshot = this._idToSnapshot.get(snapshotId);
+    if (snapshot === undefined) {
+      throw new Error(`No snapshot with id ${snapshotId}`);
+    }
+
+    this._irregularStatesByBlockNumber = snapshot.irregularStatesByBlockNumber;
+    await this._stateManager.setStateRoot(snapshot.stateRoot);
+
+    this._idToSnapshot.delete(snapshotId);
+  }
+
+  public async removeSnapshot(snapshotId: number): Promise<void> {
+    this._idToSnapshot.delete(snapshotId);
   }
 
   public getLastTraceAndClear(): {
@@ -683,6 +762,15 @@ export class EthereumJSAdapter implements VMAdapter {
     } catch (e) {
       return next(e);
     }
+  }
+
+  private async _persistIrregularWorldState(): Promise<void> {
+    const [blockNumber, stateRoot] = await Promise.all([
+      this._blockchain.getLatestBlockNumber(),
+      this.getStateRoot(),
+    ]);
+
+    this._irregularStatesByBlockNumber.set(blockNumber, stateRoot);
   }
 
   private async _stepHandler(step: InterpreterStep, next: any): Promise<void> {

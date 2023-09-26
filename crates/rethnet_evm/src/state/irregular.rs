@@ -17,6 +17,19 @@ where
     inner: HashMap<U256, StateT>,
 }
 
+impl<ErrorT, StateT> Clone for IrregularState<ErrorT, StateT>
+where
+    ErrorT: Debug + Send,
+    StateT: SyncState<ErrorT> + Clone,
+{
+    fn clone(&self) -> Self {
+        Self {
+            phantom: PhantomData::default(),
+            inner: self.inner.clone(),
+        }
+    }
+}
+
 impl<ErrorT, StateT> Default for IrregularState<ErrorT, StateT>
 where
     ErrorT: Debug + Send,

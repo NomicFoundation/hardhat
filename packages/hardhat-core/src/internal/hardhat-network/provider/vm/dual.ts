@@ -161,28 +161,71 @@ export class DualModeAdapter implements VMAdapter {
     return rethnetCode;
   }
 
-  public async putAccount(address: Address, account: Account): Promise<void> {
-    await this._ethereumJSAdapter.putAccount(address, account);
-    await this._rethnetAdapter.putAccount(address, account);
+  public async putAccount(
+    address: Address,
+    account: Account,
+    isIrregularChange?: boolean
+  ): Promise<void> {
+    await this._ethereumJSAdapter.putAccount(
+      address,
+      account,
+      isIrregularChange
+    );
+    await this._rethnetAdapter.putAccount(address, account, isIrregularChange);
+
+    // Validate state roots
+    await this.getStateRoot();
   }
 
-  public async putContractCode(address: Address, value: Buffer): Promise<void> {
-    await this._ethereumJSAdapter.putContractCode(address, value);
-    await this._rethnetAdapter.putContractCode(address, value);
+  public async putContractCode(
+    address: Address,
+    value: Buffer,
+    isIrregularChange?: boolean
+  ): Promise<void> {
+    await this._ethereumJSAdapter.putContractCode(
+      address,
+      value,
+      isIrregularChange
+    );
+    await this._rethnetAdapter.putContractCode(
+      address,
+      value,
+      isIrregularChange
+    );
+
+    // Validate state roots
+    await this.getStateRoot();
   }
 
   public async putContractStorage(
     address: Address,
     key: Buffer,
-    value: Buffer
+    value: Buffer,
+    isIrregularChange?: boolean
   ): Promise<void> {
-    await this._ethereumJSAdapter.putContractStorage(address, key, value);
-    await this._rethnetAdapter.putContractStorage(address, key, value);
+    await this._ethereumJSAdapter.putContractStorage(
+      address,
+      key,
+      value,
+      isIrregularChange
+    );
+    await this._rethnetAdapter.putContractStorage(
+      address,
+      key,
+      value,
+      isIrregularChange
+    );
+
+    // Validate state roots
+    await this.getStateRoot();
   }
 
-  public async restoreContext(stateRoot: Buffer): Promise<void> {
-    await this._ethereumJSAdapter.restoreContext(stateRoot);
-    await this._rethnetAdapter.restoreContext(stateRoot);
+  public async restoreBlockContext(blockNumber: bigint): Promise<void> {
+    await this._ethereumJSAdapter.restoreBlockContext(blockNumber);
+    await this._rethnetAdapter.restoreBlockContext(blockNumber);
+
+    // Validate state roots
+    await this.getStateRoot();
   }
 
   public async traceTransaction(
@@ -193,19 +236,12 @@ export class DualModeAdapter implements VMAdapter {
     return this._ethereumJSAdapter.traceTransaction(hash, block, config);
   }
 
-  public async setBlockContext(
-    block: Block,
-    irregularStateOrUndefined: Buffer | undefined
-  ): Promise<void> {
-    await this._ethereumJSAdapter.setBlockContext(
-      block,
-      irregularStateOrUndefined
-    );
+  public async setBlockContext(blockNumber: bigint): Promise<void> {
+    await this._ethereumJSAdapter.setBlockContext(blockNumber);
+    await this._rethnetAdapter.setBlockContext(blockNumber);
 
-    await this._rethnetAdapter.setBlockContext(
-      block,
-      irregularStateOrUndefined
-    );
+    // Validate state roots
+    await this.getStateRoot();
   }
 
   public async runTxInBlock(
@@ -238,26 +274,40 @@ export class DualModeAdapter implements VMAdapter {
     }
   }
 
-  public async makeSnapshot(): Promise<Buffer> {
-    const ethereumJSRoot = await this._ethereumJSAdapter.makeSnapshot();
-    const rethnetRoot = await this._rethnetAdapter.makeSnapshot();
+  public async revert(): Promise<void> {
+    await this._ethereumJSAdapter.revert();
+    await this._rethnetAdapter.revert();
 
-    if (!ethereumJSRoot.equals(rethnetRoot)) {
-      console.trace(
-        `Different snapshot state root: ${ethereumJSRoot.toString(
-          "hex"
-        )} (ethereumjs) !== ${rethnetRoot.toString("hex")} (rethnet)`
-      );
-      await this.printState();
-      throw new Error("Different snapshot state root");
-    }
-
-    return rethnetRoot;
+    // Validate state roots
+    await this.getStateRoot();
   }
 
-  public async removeSnapshot(stateRoot: Buffer): Promise<void> {
-    await this._ethereumJSAdapter.removeSnapshot(stateRoot);
-    await this._rethnetAdapter.removeSnapshot(stateRoot);
+  public async makeSnapshot(): Promise<number> {
+    const ethereumJSSnapshotId = await this._ethereumJSAdapter.makeSnapshot();
+    const rethnetSnapshotId = await this._rethnetAdapter.makeSnapshot();
+
+    if (ethereumJSSnapshotId !== rethnetSnapshotId) {
+      console.trace(
+        `Different snapshot id: ${ethereumJSSnapshotId} (ethereumjs) !== ${rethnetSnapshotId} (rethnet)`
+      );
+      await this.printState();
+      throw new Error("Different snapshot id");
+    }
+
+    return rethnetSnapshotId;
+  }
+
+  public async restoreSnapshot(snapshotId: number): Promise<void> {
+    await this._ethereumJSAdapter.restoreSnapshot(snapshotId);
+    await this._rethnetAdapter.restoreSnapshot(snapshotId);
+
+    // Validate state roots
+    await this.getStateRoot();
+  }
+
+  public async removeSnapshot(snapshotId: number): Promise<void> {
+    await this._ethereumJSAdapter.removeSnapshot(snapshotId);
+    await this._rethnetAdapter.removeSnapshot(snapshotId);
   }
 
   public getLastTraceAndClear(): {

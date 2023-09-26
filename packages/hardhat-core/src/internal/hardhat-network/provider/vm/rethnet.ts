@@ -15,6 +15,7 @@ import {
   run,
   ConfigOptions,
   State,
+  IrregularState,
 } from "rethnet-evm";
 
 import { isForkedNodeConfig, NodeConfig } from "../node-types";
@@ -39,9 +40,17 @@ import { RethnetBlockBuilder } from "./block-builder/rethnet";
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
+interface Snapshot {
+  irregularState: IrregularState;
+  state: State;
+}
+
 export class RethnetAdapter implements VMAdapter {
   private _vmTracer: VMTracer;
-  private _stateRootToState: Map<Buffer, State> = new Map();
+
+  private _irregularState = new IrregularState();
+  private _idToSnapshot: Map<number, Snapshot> = new Map();
+  private _nextSnapshotId = 0;
 
   constructor(
     private _blockchain: Blockchain,
@@ -171,10 +180,11 @@ export class RethnetAdapter implements VMAdapter {
     return this._state.getContractCode(address);
   }
 
-  /**
-   * Update the account info for the given address.
-   */
-  public async putAccount(address: Address, account: Account): Promise<void> {
+  public async putAccount(
+    address: Address,
+    account: Account,
+    isIrregularChange?: boolean
+  ): Promise<void> {
     const contractCode =
       account.codeHash === KECCAK256_NULL
         ? undefined
@@ -205,16 +215,16 @@ export class RethnetAdapter implements VMAdapter {
       }
     );
 
-    this._stateRootToState.set(
-      await this.getStateRoot(),
-      await this._state.asInner().deepClone()
-    );
+    if (isIrregularChange === true) {
+      await this._persistIrregularState();
+    }
   }
 
-  /**
-   * Update the contract code for the given address.
-   */
-  public async putContractCode(address: Address, value: Buffer): Promise<void> {
+  public async putContractCode(
+    address: Address,
+    value: Buffer,
+    isIrregularChange?: boolean
+  ): Promise<void> {
     const codeHash = keccak256(value);
     await this._state.modifyAccount(
       address,
@@ -241,68 +251,44 @@ export class RethnetAdapter implements VMAdapter {
       }
     );
 
-    this._stateRootToState.set(
-      await this.getStateRoot(),
-      await this._state.asInner().deepClone()
-    );
+    if (isIrregularChange === true) {
+      await this._persistIrregularState();
+    }
   }
 
-  /**
-   * Update the value of the given storage slot.
-   */
   public async putContractStorage(
     address: Address,
     key: Buffer,
-    value: Buffer
+    value: Buffer,
+    isIrregularChange?: boolean
   ): Promise<void> {
     await this._state.putContractStorage(address, key, value);
 
-    this._stateRootToState.set(
-      await this.getStateRoot(),
-      await this._state.asInner().deepClone()
-    );
+    if (isIrregularChange === true) {
+      await this._persistIrregularState();
+    }
   }
 
-  /**
-   * Get the root of the current state trie.
-   */
   public async getStateRoot(): Promise<Buffer> {
     return this._state.getStateRoot();
   }
 
-  /**
-   * Reset the state trie to the point after `block` was mined. If
-   * `irregularStateOrUndefined` is passed, use it as the state root.
-   */
-  public async setBlockContext(
-    block: Block,
-    irregularStateOrUndefined: Buffer | undefined
-  ): Promise<void> {
-    if (irregularStateOrUndefined !== undefined) {
-      const state = this._stateRootToState.get(irregularStateOrUndefined);
-      if (state === undefined) {
-        throw new Error("Unknown state root");
-      }
-      this._state.setInner(await state.deepClone());
-    } else {
-      this._state.setInner(
-        await this._blockchain.stateAtBlockNumber(block.header.number)
-      );
+  public async setBlockContext(blockNumber: bigint): Promise<void> {
+    const irregularState = await this._irregularState.stateByBlockNumber(
+      blockNumber
+    );
+
+    if (irregularState !== null) {
+      this._state.setInner(irregularState);
+      return;
     }
+
+    const state = await this._blockchain.stateAtBlockNumber(blockNumber);
+    this._state.setInner(state);
   }
 
-  /**
-   * Reset the state trie to the point where it had the given state root.
-   *
-   * Throw if it can't.
-   */
-  public async restoreContext(stateRoot: Buffer): Promise<void> {
-    const state = this._stateRootToState.get(stateRoot);
-    if (state === undefined) {
-      throw new Error("Unknown state root");
-    }
-
-    this._state.setInner(state);
+  public async restoreBlockContext(blockNumber: bigint): Promise<void> {
+    await this.setBlockContext(blockNumber);
   }
 
   /**
@@ -370,18 +356,33 @@ export class RethnetAdapter implements VMAdapter {
     throw new Error("traceTransaction not implemented for Rethnet");
   }
 
-  public async makeSnapshot(): Promise<Buffer> {
-    const stateRoot = await this.getStateRoot();
-    this._stateRootToState.set(
-      stateRoot,
-      await this._state.asInner().deepClone()
-    );
-
-    return stateRoot;
+  public async revert(): Promise<void> {
+    // EDR is stateless, so we don't need to revert anything
   }
 
-  public async removeSnapshot(stateRoot: Buffer): Promise<void> {
-    this._stateRootToState.delete(stateRoot);
+  public async makeSnapshot(): Promise<number> {
+    const id = this._nextSnapshotId++;
+    this._idToSnapshot.set(id, {
+      irregularState: await this._irregularState.deepClone(),
+      state: await this._state.asInner().deepClone(),
+    });
+    return id;
+  }
+
+  public async restoreSnapshot(snapshotId: number): Promise<void> {
+    const snapshot = this._idToSnapshot.get(snapshotId);
+    if (snapshot === undefined) {
+      throw new Error(`No snapshot with id ${snapshotId}`);
+    }
+
+    this._irregularState = snapshot.irregularState;
+    this._state.setInner(snapshot.state);
+
+    this._idToSnapshot.delete(snapshotId);
+  }
+
+  public async removeSnapshot(snapshotId: number): Promise<void> {
+    this._idToSnapshot.delete(snapshotId);
   }
 
   public getLastTraceAndClear(): {
@@ -446,6 +447,17 @@ export class RethnetAdapter implements VMAdapter {
     }
 
     return undefined;
+  }
+
+  private async _persistIrregularState(): Promise<void> {
+    const [blockNumber, _stateRoot] = await Promise.all([
+      this._blockchain.lastBlockNumber(),
+      // Get the state root to ensure that pseudorandom stateroots are generated
+      // for forked blockchains
+      this.getStateRoot(),
+    ]);
+
+    await this._irregularState.insertState(blockNumber, this._state.asInner());
   }
 }
 

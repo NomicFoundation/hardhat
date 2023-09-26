@@ -31,8 +31,7 @@ export class HardhatBlockBuilder implements BlockBuilderAdapter {
   constructor(
     private _vm: VMAdapter,
     private _common: Common,
-    private _opts: BuildBlockOpts,
-    private _blockStartStateRoot: Buffer
+    private _opts: BuildBlockOpts
   ) {}
 
   public static async create(
@@ -40,9 +39,7 @@ export class HardhatBlockBuilder implements BlockBuilderAdapter {
     common: Common,
     opts: BuildBlockOpts
   ): Promise<HardhatBlockBuilder> {
-    const blockStartStateRoot = await vm.getStateRoot();
-
-    return new HardhatBlockBuilder(vm, common, opts, blockStartStateRoot);
+    return new HardhatBlockBuilder(vm, common, opts);
   }
 
   public async addTransaction(tx: TypedTransaction): Promise<RunTxResult> {
@@ -149,7 +146,7 @@ export class HardhatBlockBuilder implements BlockBuilderAdapter {
       );
     }
 
-    await this._vm.restoreContext(this._blockStartStateRoot!);
+    await this._vm.revert();
 
     this._state = "reverted";
   }

@@ -27,8 +27,6 @@ pub struct ForkState {
     remote_state: Arc<Mutex<CachedRemoteState>>,
     removed_storage_slots: HashSet<(Address, U256)>,
     fork_block_number: U256,
-    /// client-facing state root (pseudorandomly generated) mapped to internal (layered_state) state root
-    state_root_to_state: RwLock<HashMap<B256, B256>>,
     /// A pair of the generated state root and local state root
     current_state: RwLock<(B256, B256)>,
     initial_state_root: B256,
@@ -66,7 +64,6 @@ impl ForkState {
             remote_state: Arc::new(Mutex::new(CachedRemoteState::new(remote_state))),
             removed_storage_slots: HashSet::new(),
             fork_block_number,
-            state_root_to_state: RwLock::new(state_root_to_state),
             current_state: RwLock::new((generated_state_root, local_root)),
             initial_state_root: generated_state_root,
             hash_generator,
@@ -77,6 +74,14 @@ impl ForkState {
     /// Sets the block number of the remote state.
     pub fn set_fork_block_number(&mut self, block_number: &U256) {
         self.remote_state.lock().set_block_number(block_number);
+    }
+
+    /// Sets the current state root, preventing it from being regenerated.
+    pub fn set_state_root(&mut self, state_root: &B256) {
+        let local_state_root = self.local_state.state_root().unwrap();
+
+        let current_state = self.current_state.get_mut();
+        *current_state = (*state_root, local_state_root);
     }
 
     /// Retrieves the state root generator
@@ -217,15 +222,11 @@ impl StateDebug for ForkState {
         let local_root = self.local_state.state_root().unwrap();
 
         let current_state = self.current_state.upgradable_read();
-        let state_root_to_state = self.state_root_to_state.upgradable_read();
 
         Ok(if local_root == current_state.1 {
             current_state.0
         } else {
             let next_state_root = self.hash_generator.lock().next_value();
-
-            let mut state_root_to_state = RwLockUpgradableReadGuard::upgrade(state_root_to_state);
-            state_root_to_state.insert(next_state_root, local_root);
 
             *RwLockUpgradableReadGuard::upgrade(current_state) = (next_state_root, local_root);
 

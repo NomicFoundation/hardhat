@@ -122,11 +122,10 @@ export interface Snapshot {
   id: number;
   date: Date;
   latestBlock: Block;
-  stateRoot: Buffer;
+  stateSnapshotId: number;
   txPoolSnapshotId: number;
   blockTimeOffsetSeconds: bigint;
   nextBlockTimestamp: bigint;
-  irregularStatesByBlockNumber: Map<bigint, Buffer>;
   userProvidedNextBlockBaseFeePerGas: bigint | undefined;
   coinbase: Address;
   nextPrevRandao: Buffer;
