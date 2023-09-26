@@ -1,14 +1,15 @@
 import type { Hex, TransactionReceipt } from "viem";
 import type { EthereumProvider } from "hardhat/types";
 
+import path from "path";
 import { assert, expect } from "chai";
 import sinon from "sinon";
 import { getAddress, parseEther } from "viem";
 
 import { TASK_CLEAN, TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { deployContract, innerDeployContract } from "../src/internal/contracts";
-import { useEnvironment } from "./helpers";
 import { EthereumMockedProvider } from "./mocks/provider";
+import { assertSnapshotMatch, useEnvironment } from "./helpers";
 
 describe("Integration tests", function () {
   afterEach(function () {
@@ -232,6 +233,127 @@ describe("Integration tests", function () {
       await this.hre.run(TASK_CLEAN);
     });
 
-    it("should generate a .d.ts file per contract", async function () {});
+    it("should generate artifacts.d.ts", async function () {
+      const snapshotPath = path.join("snapshots", "artifacts.d.ts");
+      const generatedFilePath = path.join("artifacts", "artifacts.d.ts");
+
+      await assertSnapshotMatch(snapshotPath, generatedFilePath);
+    });
+
+    it("should generate contracts/A.sol/A.ts", async function () {
+      const snapshotPath = path.join("snapshots", "contracts", "A.sol", "A.ts");
+      const generatedFilePath = path.join(
+        "artifacts",
+        "contracts",
+        "A.sol",
+        "A.ts"
+      );
+
+      await assertSnapshotMatch(snapshotPath, generatedFilePath);
+    });
+
+    it("should generate contracts/A.sol/B.ts", async function () {
+      const snapshotPath = path.join("snapshots", "contracts", "A.sol", "B.ts");
+      const generatedFilePath = path.join(
+        "artifacts",
+        "contracts",
+        "A.sol",
+        "B.ts"
+      );
+
+      await assertSnapshotMatch(snapshotPath, generatedFilePath);
+    });
+
+    it("should generate contracts/A.sol/file.d.ts", async function () {
+      const snapshotPath = path.join(
+        "snapshots",
+        "contracts",
+        "A.sol",
+        "file.d.ts"
+      );
+      const generatedFilePath = path.join(
+        "artifacts",
+        "contracts",
+        "A.sol",
+        "file.d.ts"
+      );
+
+      await assertSnapshotMatch(snapshotPath, generatedFilePath);
+    });
+
+    it("should generate contracts/A.sol/index.ts", async function () {
+      const snapshotPath = path.join(
+        "snapshots",
+        "contracts",
+        "A.sol",
+        "index.ts"
+      );
+      const generatedFilePath = path.join(
+        "artifacts",
+        "contracts",
+        "A.sol",
+        "index.ts"
+      );
+
+      await assertSnapshotMatch(snapshotPath, generatedFilePath);
+    });
+
+    it("should generate contracts/C.sol/B.ts", async function () {
+      const snapshotPath = path.join("snapshots", "contracts", "C.sol", "B.ts");
+      const generatedFilePath = path.join(
+        "artifacts",
+        "contracts",
+        "C.sol",
+        "B.ts"
+      );
+
+      await assertSnapshotMatch(snapshotPath, generatedFilePath);
+    });
+
+    it("should generate contracts/C.sol/C.ts", async function () {
+      const snapshotPath = path.join("snapshots", "contracts", "C.sol", "C.ts");
+      const generatedFilePath = path.join(
+        "artifacts",
+        "contracts",
+        "C.sol",
+        "C.ts"
+      );
+
+      await assertSnapshotMatch(snapshotPath, generatedFilePath);
+    });
+
+    it("should generate contracts/C.sol/file.d.ts", async function () {
+      const snapshotPath = path.join(
+        "snapshots",
+        "contracts",
+        "C.sol",
+        "file.d.ts"
+      );
+      const generatedFilePath = path.join(
+        "artifacts",
+        "contracts",
+        "C.sol",
+        "file.d.ts"
+      );
+
+      await assertSnapshotMatch(snapshotPath, generatedFilePath);
+    });
+
+    it("should generate contracts/C.sol/index.ts", async function () {
+      const snapshotPath = path.join(
+        "snapshots",
+        "contracts",
+        "C.sol",
+        "index.ts"
+      );
+      const generatedFilePath = path.join(
+        "artifacts",
+        "contracts",
+        "C.sol",
+        "index.ts"
+      );
+
+      await assertSnapshotMatch(snapshotPath, generatedFilePath);
+    });
   });
 });
