@@ -621,7 +621,7 @@ export function rethnetRpcDebugTraceToHardhat(
       depth: Number(log.depth),
       gas: Number(log.gas),
       gasCost: Number(log.gasCost),
-      op: log.opName!,
+      op: log.opName,
       pc: Number(log.pc),
     };
 
