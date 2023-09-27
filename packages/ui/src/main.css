@@ -1,0 +1,13 @@
+body {
+  font-family: "Inter Variable", sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+}
+
+.deploy-background {
+  background: #dedae9;
+}
+
+.call-background {
+  background: #eedfda;
+}

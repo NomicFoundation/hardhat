@@ -1,3 +1,5 @@
+// Supports weights 100-900
+import "@fontsource-variable/inter";
 import React from "react";
 
 import {
@@ -8,6 +10,8 @@ import {
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createHashRouter } from "react-router-dom";
 import { VisualizationOverview } from "./pages/visualization-overview/visualization-overview";
+
+import "./main.css";
 
 const loadDeploymentFromEmbeddedDiv = (): IgnitionModule<
   string,

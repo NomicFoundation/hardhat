@@ -3,9 +3,10 @@ import {
   Future,
   FutureType,
   isFuture,
+  isDeploymentType,
 } from "@nomicfoundation/ignition-core/ui-helpers";
 import React from "react";
-import styled, { css } from "styled-components";
+import styled from "styled-components";
 import { argumentTypeToString } from "../../../utils/argumentTypeToString";
 
 export const FutureBlock: React.FC<{
@@ -18,19 +19,21 @@ export const FutureBlock: React.FC<{
 
   const displayText = toDisplayText(future);
 
-  const fontWeight = toggled ? "normal" : "bold";
-
   const isLibrary =
     future.type === FutureType.LIBRARY_DEPLOYMENT ||
     future.type === FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT;
 
   return (
-    <FutureBtn futureType={future.type}>
+    <FutureBtn
+      className={
+        isDeploymentType(future.type) ? "deploy-background" : "call-background"
+      }
+    >
       {!isLibrary && (
         <ToggleBtn setToggled={() => setToggled(futureId)} toggled={toggled} />
       )}
       <Text>{displayText}</Text>
-      <Text style={{ float: "right", fontWeight }}>[{future.module.id}]</Text>
+      <Text style={{ float: "right" }}>[{future.module.id}]</Text>
       {toggled && (
         <FutureDetailsSection future={future} setToggled={setToggled} />
       )}
@@ -41,15 +44,14 @@ export const FutureBlock: React.FC<{
 function toDisplayText(future: Future): string {
   switch (future.type) {
     case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
-      return `Contract deploy ${future.id}`;
     case FutureType.CONTRACT_DEPLOYMENT:
-      return `Deploy contract ${future.id} from artifact`;
+      return `Deploy ${future.contractName}`;
     case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
       return `Library deploy ${future.id}`;
     case FutureType.LIBRARY_DEPLOYMENT:
       return `Library deploy ${future.id} from artifact`;
     case FutureType.CONTRACT_CALL:
-      return `Call ${future.id}`;
+      return `Call ${future.contract.contractName}/${future.functionName}`;
     case FutureType.STATIC_CALL:
       return `Static call ${future.id}`;
     case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
@@ -86,31 +88,8 @@ const Text = styled.div`
   display: inline;
 `;
 
-const FutureBtn = styled.div<{ futureType: FutureType }>`
-  border: 1px solid black;
-  padding: 1rem;
-  font-weight: normal;
-
-  ${(props) =>
-    [
-      FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
-      FutureType.CONTRACT_DEPLOYMENT,
-      FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT,
-      FutureType.LIBRARY_DEPLOYMENT,
-    ].includes(props.futureType) &&
-    css`
-      background: green;
-      color: white;
-    `}
-
-  ${(props) =>
-    [FutureType.CONTRACT_CALL, FutureType.STATIC_CALL].includes(
-      props.futureType
-    ) &&
-    css`
-      background: yellow;
-      color: black;
-    `}
+const FutureBtn = styled.div`
+  padding: 0.5rem;
 `;
 
 const ToggleBtn: React.FC<{

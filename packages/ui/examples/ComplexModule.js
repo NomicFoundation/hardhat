@@ -41,11 +41,12 @@ const moduleDefinition = buildModule("MyModule", (m) => {
   const { balancer } = m.useModule(balancerDefinition);
 
   const testHelper = m.contract("TestHelper");
+  const alsoTestHelper = m.contract("TestHelper", [], { id: "alsoTestHelper" });
   const myDefi = m.contract("MyDefi", [], { after: [synthetix, balancer] });
 
   const { router } = m.useModule(uniswap);
 
-  return { myDefi, router, synthetix, balancer, testHelper };
+  return { myDefi, router, synthetix, balancer, testHelper, alsoTestHelper };
 });
 
 export default moduleDefinition;

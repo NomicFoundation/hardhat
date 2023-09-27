@@ -14,6 +14,7 @@
     "prepack": "npm run build"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "^5.0.8",
     "@nomicfoundation/ignition-core": "^0.4.0",
     "mermaid": "10.1.0",
     "react": "^18.2.0",

@@ -5,11 +5,11 @@ import {
 } from "@nomicfoundation/ignition-core/ui-helpers";
 import { useMemo, useState } from "react";
 import styled from "styled-components";
-import { Mermaid } from "../../../components/mermaid";
+
 import { getAllFuturesForModule } from "../../../queries/futures";
 import { FutureBlock } from "./future-block";
 
-export const VisualizationDetails: React.FC<{
+export const ExecutionBatches: React.FC<{
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>;
 }> = ({ ignitionModule }) => {
   const futures = useMemo(
@@ -36,13 +36,14 @@ export const VisualizationDetails: React.FC<{
 
   return (
     <div>
-      <h2>Visualization</h2>
+      <SectionHeader>Execution batches *tooltip*</SectionHeader>
 
-      <div>
-        <Mermaid ignitionModule={ignitionModule} />
-      </div>
+      {/* todo: integrate for placeholder below after batching work */}
+      <SectionSubHeader>
+        <strong>8 futures</strong> will be executed across 3{" "}
+        <strong>batches</strong>
+      </SectionSubHeader>
 
-      <h3>Futures</h3>
       <Actions>
         {futures.map((future) => (
           <FutureBlock
@@ -56,6 +57,17 @@ export const VisualizationDetails: React.FC<{
     </div>
   );
 };
+
+const SectionHeader = styled.div`
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+`;
+
+const SectionSubHeader = styled.div`
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+`;
 
 const Actions = styled.div`
   display: grid;
