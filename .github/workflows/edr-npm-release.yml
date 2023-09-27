@@ -23,6 +23,64 @@ defaults:
   run:
     working-directory: ./crates/rethnet_evm_napi
 jobs:
+  assert_ignored_org_npm_token:
+    environment: edr-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for Secret availability
+        id: secret-check
+        # perform secret check & put boolean result as an output
+        shell: bash
+        run: |
+          if [ "${{ secrets.IGNORED_ORG_NPM_TOKEN }}" != '' ]; then
+            echo "available=true" >> $GITHUB_OUTPUT;
+          else
+            echo "available=false" >> $GITHUB_OUTPUT;
+          fi
+
+      - name: Check Inadequate Permissions
+        if: ${{ steps.secret-check.outputs.available != 'true' }}
+        # provide feedback for likely problem, note dependabot cannot access
+        # secrets by default. Secondly, this step forces job failure due to
+        # missing secret via `exit 1`
+        shell: bash
+        run: |
+          if [ "${{ github.actor }}" == "dependabot[bot]" ]; then
+            echo >&2 "Unable to access secrets as unprivileged dependabot.";
+          else
+            echo >&2 "Inadequate Permissions or missing secret value";
+          fi
+          exit 1
+          
+  assert_nomicfoundation_org_npm_token:
+    environment: edr-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for Secret availability
+        id: secret-check
+        # perform secret check & put boolean result as an output
+        shell: bash
+        run: |
+          if [ "${{ secrets.NOMICFOUNDATION_ORG_NPM_TOKEN }}" != '' ]; then
+            echo "available=true" >> $GITHUB_OUTPUT;
+          else
+            echo "available=false" >> $GITHUB_OUTPUT;
+          fi
+
+      - name: Check Inadequate Permissions
+        if: ${{ steps.secret-check.outputs.available != 'true' }}
+        # provide feedback for likely problem, note dependabot cannot access
+        # secrets by default. Secondly, this step forces job failure due to
+        # missing secret via `exit 1`
+        shell: bash
+        run: |
+          if [ "${{ github.actor }}" == "dependabot[bot]" ]; then
+            echo >&2 "Unable to access secrets as unprivileged dependabot.";
+          else
+            echo >&2 "Inadequate Permissions or missing secret value";
+          fi
+          exit 1
+
   build:
     strategy:
       fail-fast: false
