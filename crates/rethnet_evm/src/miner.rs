@@ -64,6 +64,7 @@ pub enum MineBlockError<BE, SE> {
 
 /// Mines a block using as many transactions as can fit in it.
 #[allow(clippy::too_many_arguments)]
+#[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
 pub async fn mine_block<BlockchainErrorT, StateErrorT>(
     blockchain: &mut dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
     mut state: Box<dyn SyncState<StateErrorT>>,

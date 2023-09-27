@@ -43,6 +43,7 @@ where
 {
     type Item = PendingTransaction;
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn next(&mut self) -> Option<PendingTransaction> {
         let (to_be_removed, next) = self
             .transactions
@@ -180,6 +181,7 @@ impl MemPool {
     }
 
     /// Retrieves the nonce of the last pending transaction of the account corresponding to the specified address, if it exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn last_pending_nonce(&self, address: &Address) -> Option<u64> {
         self.pending_transactions.get(address).map(|transactions| {
             transactions
@@ -210,6 +212,7 @@ impl MemPool {
     }
 
     /// Tries to add the provided transaction to the [`MemPool`].
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn add_transaction<S: StateRef + ?Sized>(
         &mut self,
         state: &S,
@@ -258,6 +261,7 @@ impl MemPool {
     }
 
     /// Removes the transaction corresponding to the provided transaction hash, if it exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn remove_transaction(&mut self, hash: &B256) -> Option<OrderedTransaction> {
         if let Some(old_transaction) = self.hash_to_transaction.remove(hash) {
             let caller = old_transaction.caller();
@@ -296,6 +300,7 @@ impl MemPool {
     }
 
     /// Updates the [`MemPool`], moving any future transactions to the pending status, if their nonces are high enough.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn update<S>(&mut self, state: &S) -> Result<(), S::Error>
     where
         S: StateRef + ?Sized,
@@ -366,10 +371,12 @@ impl MemPool {
     }
 
     /// Returns the transaction corresponding to the provided hash, if it exists.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn transaction_by_hash(&self, hash: &B256) -> Option<&OrderedTransaction> {
         self.hash_to_transaction.get(hash)
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn insert_pending_transaction<StateError>(
         &mut self,
         transaction: OrderedTransaction,
@@ -419,6 +426,7 @@ impl MemPool {
         Ok(())
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn insert_queued_transaction<StateError>(
         &mut self,
         transaction: OrderedTransaction,
