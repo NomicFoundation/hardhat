@@ -27,6 +27,7 @@ jobs:
     environment: edr-release
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Check for Secret availability
         id: secret-check
         # perform secret check & put boolean result as an output
@@ -56,6 +57,7 @@ jobs:
     environment: edr-release
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Check for Secret availability
         id: secret-check
         # perform secret check & put boolean result as an output
