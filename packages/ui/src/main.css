@@ -11,3 +11,20 @@ body {
 .call-background {
   background: #eedfda;
 }
+
+.styled-tooltip {
+  background-color: #f0f0ec !important;
+  color: #595959 !important;
+  font-size: 12px !important;
+  padding: 16px !important;
+  box-shadow: 0px 2px 7px 0px #0000001f;
+  opacity: 1 !important;
+}
+
+.batches-tooltip {
+  max-width: 231px !important;
+}
+
+.flow-tooltip {
+  max-width: 391px !important;
+}

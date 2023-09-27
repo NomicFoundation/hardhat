@@ -20,6 +20,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "6.11.0",
+    "react-tooltip": "^5.21.4",
     "styled-components": "5.3.10"
   },
   "devDependencies": {
