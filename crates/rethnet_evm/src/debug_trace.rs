@@ -8,7 +8,7 @@ use revm::inspectors::GasInspector;
 use revm::interpreter::{
     opcode, CallInputs, CreateInputs, Gas, InstructionResult, Interpreter, Stack,
 };
-use revm::primitives::{hex, B160, U256};
+use revm::primitives::{hex, Address, B160, U256};
 use revm::primitives::{BlockEnv, Bytes, CfgEnv, ExecutionResult, ResultAndState, SpecId};
 use revm::{EVMData, Inspector, JournalEntry};
 use std::collections::HashMap;
@@ -181,7 +181,7 @@ struct TracerEip3155 {
 
     gas_inspector: GasInspector,
 
-    contract_address: B160,
+    contract_address: Address,
     gas_remaining: u64,
     memory: Vec<u8>,
     mem_size: usize,
@@ -190,7 +190,7 @@ struct TracerEip3155 {
     skip: bool,
     stack: Stack,
     // Contract-specific storage
-    storage: HashMap<B160, HashMap<String, String>>,
+    storage: HashMap<Address, HashMap<String, String>>,
 }
 
 impl TracerEip3155 {
