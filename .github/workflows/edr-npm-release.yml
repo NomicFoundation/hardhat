@@ -139,7 +139,9 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: bindings-${{ matrix.settings.target }}
-          path: ${{ env.APP_NAME }}.*.node
+          # The upload artifact action doesn't respect the working directory setting. Unclear if this is a bug or not
+          # https://github.com/actions/upload-artifact/issues/294
+          path: ./crates/rethnet_evm_napi/${{ env.APP_NAME }}.*.node
           if-no-files-found: error
   test-macOS-windows-binding:
     name: Test bindings on ${{ matrix.settings.target }} - node@${{ matrix.node }}
