@@ -15,7 +15,7 @@ use revm::{
     db::DatabaseComponentError,
     primitives::{
         Account, AccountInfo, AccountStatus, BlockEnv, CfgEnv, EVMError, ExecutionResult, HashMap,
-        InvalidTransaction, Output, ResultAndState, SpecId,
+        InvalidHeader, InvalidTransaction, Output, ResultAndState, SpecId,
     },
 };
 
@@ -61,7 +61,9 @@ where
     fn from(error: EVMError<DatabaseComponentError<SE, BE>>) -> Self {
         match error {
             EVMError::Transaction(e) => Self::InvalidTransaction(e),
-            EVMError::PrevrandaoNotSet => unreachable!(),
+            EVMError::Header(
+                InvalidHeader::ExcessBlobGasNotSet | InvalidHeader::PrevrandaoNotSet,
+            ) => unreachable!(),
             EVMError::Database(DatabaseComponentError::State(e)) => Self::State(e),
             EVMError::Database(DatabaseComponentError::BlockHash(e)) => Self::BlockHash(e),
         }
@@ -185,6 +187,9 @@ impl BlockBuilder {
             } else {
                 None
             },
+            // TODO: Add support for EIP-4844
+            // https://github.com/NomicFoundation/edr/issues/191
+            blob_excess_gas_and_price: None,
         };
 
         let evm = build_evm(
