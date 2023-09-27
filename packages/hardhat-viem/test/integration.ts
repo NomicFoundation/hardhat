@@ -9,7 +9,7 @@ import { getAddress, parseEther } from "viem";
 import { TASK_CLEAN, TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { deployContract, innerDeployContract } from "../src/internal/contracts";
 import { EthereumMockedProvider } from "./mocks/provider";
-import { assertSnapshotMatch, useEnvironment } from "./helpers";
+import { assertSnapshotMatch, sleep, useEnvironment } from "./helpers";
 
 describe("Integration tests", function () {
   afterEach(function () {
@@ -228,16 +228,37 @@ describe("Integration tests", function () {
       it("should wait for confirmations", async function () {
         const publicClient = await this.hre.viem.getPublicClient();
         const testClient = await this.hre.viem.getTestClient();
-        await testClient.setIntervalMining({
-          interval: 60,
-        });
+        const sleepingTime = 2 * publicClient.pollingInterval;
+        await testClient.setAutomine(false);
 
-        await this.hre.viem.deployContract("WithoutConstructorArgs", [], {
-          confirmations: 5,
-        });
+        let contractPromiseResolved = false;
+        const contractPromise = this.hre.viem
+          .deployContract("WithoutConstructorArgs", [], {
+            confirmations: 5,
+          })
+          .then(() => {
+            contractPromiseResolved = true;
+          });
+        await sleep(sleepingTime);
+        assert.isFalse(contractPromiseResolved);
 
-        const blockNumber = await publicClient.getBlockNumber();
-        assert.equal(blockNumber, 5n);
+        await testClient.mine({
+          blocks: 3,
+        });
+        await sleep(sleepingTime);
+        assert.isFalse(contractPromiseResolved);
+
+        await testClient.mine({
+          blocks: 1,
+        });
+        await sleep(sleepingTime);
+        assert.isFalse(contractPromiseResolved);
+
+        await testClient.mine({
+          blocks: 1,
+        });
+        await contractPromise;
+        assert.isTrue(contractPromiseResolved);
       });
 
       it("should throw if the confirmations parameter is less than 0", async function () {
