@@ -28,6 +28,7 @@ describe("Integration tests", function () {
           "getWalletClient",
           "getTestClient",
           "deployContract",
+          "sendDeploymentTransaction",
           "getContractAt",
         ]);
     });
@@ -255,6 +256,28 @@ describe("Integration tests", function () {
         ).to.be.rejectedWith(
           "deployContract does not support 0 confirmations. Use sendDeploymentTransaction if you want to handle the deployment transaction yourself."
         );
+      });
+    });
+
+    describe("sendDeploymentTransaction", function () {
+      it("should return the contract and the deployment transaction", async function () {
+        const publicClient = await this.hre.viem.getPublicClient();
+        const { contract, deploymentTransaction } =
+          await this.hre.viem.sendDeploymentTransaction(
+            "WithoutConstructorArgs"
+          );
+        assert.exists(contract);
+        assert.exists(deploymentTransaction);
+
+        const { contractAddress } =
+          await publicClient.waitForTransactionReceipt({
+            hash: deploymentTransaction.hash,
+          });
+        assert.equal(contract.address, getAddress(contractAddress!));
+
+        await contract.write.setData([50n]);
+        const data = await contract.read.getData();
+        assert.equal(data, 50n);
       });
     });
   });

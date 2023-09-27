@@ -24,6 +24,12 @@ export interface DeployContractConfig {
   confirmations?: number;
 }
 
+export interface SendDeploymentTransactionConfig {
+  walletClient?: WalletClient;
+  gas?: bigint;
+  value?: bigint;
+}
+
 export interface GetContractAtConfig {
   walletClient?: WalletClient;
 }
@@ -37,6 +43,11 @@ export type GetContractReturnType<
   viemT.Address
 >;
 
+export type GetTransactionReturnType = viemT.GetTransactionReturnType<
+  viemT.Chain,
+  "latest"
+>;
+
 export type ContractName<StringT extends string> =
   StringT extends keyof ArtifactsMap ? never : StringT;
 
@@ -45,6 +56,15 @@ export declare function deployContract<CN extends string>(
   constructorArgs?: any[],
   config?: DeployContractConfig
 ): Promise<GetContractReturnType>;
+
+export declare function sendDeploymentTransaction<CN extends string>(
+  contractName: ContractName<CN>,
+  constructorArgs?: any[],
+  config?: SendDeploymentTransactionConfig
+): Promise<{
+  contract: GetContractReturnType;
+  deploymentTransaction: GetTransactionReturnType;
+}>;
 
 export declare function getContractAt<CN extends string>(
   contractName: ContractName<CN>,

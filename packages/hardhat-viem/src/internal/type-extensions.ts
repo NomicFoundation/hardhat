@@ -9,6 +9,7 @@ import type {
   TestClient,
   WalletClient,
   deployContract,
+  sendDeploymentTransaction,
   getContractAt,
 } from "../types";
 import "hardhat/types/runtime";
@@ -31,6 +32,7 @@ declare module "hardhat/types/runtime" {
         testClientConfig?: Partial<TestClientConfig>
       ): Promise<TestClient>;
       deployContract: typeof deployContract;
+      sendDeploymentTransaction: typeof sendDeploymentTransaction;
       getContractAt: typeof getContractAt;
     };
   }
