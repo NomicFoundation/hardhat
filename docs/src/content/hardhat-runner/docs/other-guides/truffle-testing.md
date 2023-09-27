@@ -21,7 +21,7 @@ npm init --yes
 npm install --save-dev hardhat
 ```
 
-Now run `npx hardhat` inside your project folder and select `Create an empty hardhat.config.js`.
+Now run `npx hardhat init` inside your project folder and select `Create an empty hardhat.config.js`.
 
 Let's now install the `Truffle` and `Web3.js` plugins, as well as `web3.js` itself.
 
