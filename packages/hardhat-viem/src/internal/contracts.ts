@@ -7,10 +7,13 @@ import type {
   DeployContractConfig,
   GetContractAtConfig,
   GetContractReturnType,
+  GetTransactionReturnType,
   PublicClient,
+  SendDeploymentTransactionConfig,
   WalletClient,
 } from "../types";
 
+import { getContractAddress } from "viem";
 import { getPublicClient, getWalletClients } from "./clients";
 import {
   DefaultWalletClientNotFoundError,
@@ -87,6 +90,70 @@ export async function innerDeployContract(
   );
 
   return contract;
+}
+
+export async function sendDeploymentTransaction(
+  hre: HardhatRuntimeEnvironment,
+  contractName: string,
+  constructorArgs: any[] = [],
+  config: SendDeploymentTransactionConfig = {}
+): Promise<{
+  contract: GetContractReturnType;
+  deploymentTransaction: GetTransactionReturnType;
+}> {
+  const { walletClient: configWalletClient, ...deployContractParameters } =
+    config;
+  const [publicClient, walletClient, contractArtifact] = await Promise.all([
+    getPublicClient(hre.network.provider),
+    configWalletClient ?? getDefaultWalletClient(hre.network.provider),
+    hre.artifacts.readArtifact(contractName),
+  ]);
+
+  return innerSendDeploymentTransaction(
+    publicClient,
+    walletClient,
+    contractArtifact.abi,
+    contractArtifact.bytecode as Hex,
+    constructorArgs,
+    deployContractParameters
+  );
+}
+
+async function innerSendDeploymentTransaction(
+  publicClient: PublicClient,
+  walletClient: WalletClient,
+  contractAbi: Abi,
+  contractBytecode: Hex,
+  constructorArgs: any[],
+  deployContractParameters: SendDeploymentTransactionConfig = {}
+): Promise<{
+  contract: GetContractReturnType;
+  deploymentTransaction: GetTransactionReturnType;
+}> {
+  const deploymentTxHash = await walletClient.deployContract({
+    abi: contractAbi,
+    bytecode: contractBytecode,
+    args: constructorArgs,
+    ...deployContractParameters,
+  });
+
+  const deploymentTx = await publicClient.getTransaction({
+    hash: deploymentTxHash,
+  });
+
+  const contractAddress = getContractAddress({
+    from: walletClient.account.address,
+    nonce: BigInt(deploymentTx.nonce),
+  });
+
+  const contract = await innerGetContractAt(
+    publicClient,
+    walletClient,
+    contractAbi,
+    contractAddress
+  );
+
+  return { contract, deploymentTransaction: deploymentTx };
 }
 
 export async function getContractAt(

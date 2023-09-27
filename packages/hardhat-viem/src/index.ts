@@ -6,7 +6,11 @@ import {
   getWalletClient,
   getTestClient,
 } from "./internal/clients";
-import { deployContract, getContractAt } from "./internal/contracts";
+import {
+  deployContract,
+  sendDeploymentTransaction,
+  getContractAt,
+} from "./internal/contracts";
 import "./internal/type-extensions";
 import "./internal/tasks";
 
@@ -28,6 +32,9 @@ extendEnvironment((hre) => {
 
     deployContract: (contractName, constructorArgs, config) =>
       deployContract(hre, contractName, constructorArgs, config),
+
+    sendDeploymentTransaction: (contractName, constructorArgs, config) =>
+      sendDeploymentTransaction(hre, contractName, constructorArgs, config),
 
     getContractAt: (contractName, address, config) =>
       getContractAt(hre, contractName, address, config),
