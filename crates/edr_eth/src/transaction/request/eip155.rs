@@ -1,12 +1,10 @@
 use std::sync::OnceLock;
 
-use bytes::Bytes;
 use k256::SecretKey;
-use revm_primitives::{keccak256, ruint::aliases::U64, B256, U256};
+use revm_primitives::{keccak256, ruint::aliases::U64, Bytes, B256, U256};
 
-use crate::signature::SignatureError;
 use crate::{
-    signature::Signature,
+    signature::{Signature, SignatureError},
     transaction::{kind::TransactionKind, signed::EIP155SignedTransaction},
 };
 

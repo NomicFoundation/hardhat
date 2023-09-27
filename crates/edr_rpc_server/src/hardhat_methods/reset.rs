@@ -9,6 +9,6 @@ pub struct RpcHardhatNetworkConfig {
 #[serde(rename_all = "camelCase")]
 pub struct RpcForkConfig {
     pub json_rpc_url: String,
-    pub block_number: Option<usize>,
+    pub block_number: Option<u64>,
     pub http_headers: Option<HashMap<String, String>>,
 }

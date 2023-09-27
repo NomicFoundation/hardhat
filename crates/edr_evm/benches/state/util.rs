@@ -32,7 +32,7 @@ pub struct EdrStates {
 }
 
 impl EdrStates {
-    pub fn new(#[cfg(all(test, feature = "test-remote"))] fork_block_number: U256) -> Self {
+    pub fn new(#[cfg(all(test, feature = "test-remote"))] fork_block_number: u64) -> Self {
         let cache_dir = TempDir::new().expect("can create temp dir");
 
         #[cfg(all(test, feature = "test-remote"))]
@@ -163,7 +163,7 @@ pub fn bench_sync_state_method<O, R, StatePrep>(
         for storage_slots_per_account in storage_scales.iter() {
             let mut edr_states = EdrStates::new(
                 #[cfg(all(test, feature = "test-remote"))]
-                U256::from(17274563),
+                17274563,
             );
             edr_states.fill(number_of_accounts, *storage_slots_per_account);
 

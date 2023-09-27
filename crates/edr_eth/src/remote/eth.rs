@@ -285,19 +285,23 @@ pub struct Block<TX> {
     /// the root of the receipts trie of the block
     pub receipts_root: B256,
     /// the block number. None when its pending block.
-    pub number: Option<U256>,
+    #[serde(with = "crate::serde::optional_u64")]
+    pub number: Option<u64>,
     /// the total used gas by all transactions in this block
-    pub gas_used: U256,
+    #[serde(with = "crate::serde::u64")]
+    pub gas_used: u64,
     /// the maximum gas allowed in this block
-    pub gas_limit: U256,
+    #[serde(with = "crate::serde::u64")]
+    pub gas_limit: u64,
     /// the "extra data" field of this block
     #[serde(with = "crate::serde::bytes")]
     pub extra_data: Bytes,
     /// the bloom filter for the logs of the block. None when its pending block.
     pub logs_bloom: Bloom,
     /// the unix timestamp for when the block was collated
-    pub timestamp: U256,
-    /// integer of the difficulty for this block
+    #[serde(with = "crate::serde::u64")]
+    pub timestamp: u64,
+    /// integer of the difficulty for this blocket
     pub difficulty: U256,
     /// integer of the total difficulty of the chain until this block
     pub total_difficulty: Option<U256>,

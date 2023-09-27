@@ -1,8 +1,7 @@
 use std::sync::OnceLock;
 
-use bytes::Bytes;
 use k256::SecretKey;
-use revm_primitives::{keccak256, Address, B256, U256};
+use revm_primitives::{keccak256, Address, Bytes, B256, U256};
 
 use crate::signature::SignatureError;
 use crate::{

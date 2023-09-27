@@ -1,6 +1,6 @@
 use std::{ops::Deref, sync::Arc};
 
-use edr_eth::{Address, B256, U256};
+use edr_eth::{Address, B256};
 use napi::{
     bindgen_prelude::{BigInt, Buffer},
     tokio::sync::RwLock,
@@ -33,7 +33,7 @@ impl MemPool {
     #[doc = "Constructs a new [`MemPool`]."]
     #[napi(constructor)]
     pub fn new(block_gas_limit: BigInt) -> napi::Result<Self> {
-        let block_gas_limit: U256 = block_gas_limit.try_cast()?;
+        let block_gas_limit: u64 = block_gas_limit.try_cast()?;
 
         Ok(Self {
             inner: Arc::new(RwLock::new(edr_evm::MemPool::new(block_gas_limit))),
@@ -56,10 +56,7 @@ impl MemPool {
     pub async fn block_gas_limit(&self) -> BigInt {
         let mem_pool = self.read().await;
 
-        BigInt {
-            sign_bit: false,
-            words: mem_pool.block_gas_limit().as_limbs().to_vec(),
-        }
+        BigInt::from(mem_pool.block_gas_limit())
     }
 
     #[doc = "Sets the instance's block gas limit."]
@@ -69,7 +66,7 @@ impl MemPool {
         state: &State,
         block_gas_limit: BigInt,
     ) -> napi::Result<()> {
-        let block_gas_limit: U256 = block_gas_limit.try_cast()?;
+        let block_gas_limit: u64 = block_gas_limit.try_cast()?;
 
         let state = state.read().await;
         self.write()

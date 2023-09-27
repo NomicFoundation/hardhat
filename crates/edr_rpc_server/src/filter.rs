@@ -6,7 +6,7 @@ use edr_eth::{
         jsonrpc::ResponseData,
         BlockSpec,
     },
-    Address, B256, U256,
+    Address, B256,
 };
 use edr_evm::{
     blockchain::{BlockchainError, SyncBlockchain},
@@ -16,8 +16,8 @@ use edr_evm::{
 use super::{_block_number_from_block_spec, _block_number_from_hash};
 
 pub struct _FilterCriteria {
-    pub _from_block: U256,
-    pub _to_block: U256,
+    pub _from_block: u64,
+    pub _to_block: u64,
     pub _addresses: Vec<Address>,
     pub _topics: Vec<B256>,
 }

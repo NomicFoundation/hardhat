@@ -34,8 +34,7 @@ impl rlp::Encodable for ReceiptLog {
 mod tests {
     use std::str::FromStr;
 
-    use bytes::Bytes;
-    use revm_primitives::Address;
+    use revm_primitives::{Address, Bytes};
 
     use crate::log::Log;
 

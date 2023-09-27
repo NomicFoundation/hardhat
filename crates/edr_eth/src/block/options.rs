@@ -16,11 +16,11 @@ pub struct BlockOptions {
     /// The block's difficulty
     pub difficulty: Option<U256>,
     /// The block's number
-    pub number: Option<U256>,
+    pub number: Option<u64>,
     /// The block's gas limit
-    pub gas_limit: Option<U256>,
+    pub gas_limit: Option<u64>,
     /// The block's timestamp
-    pub timestamp: Option<U256>,
+    pub timestamp: Option<u64>,
     /// The block's extra data
     pub extra_data: Option<Bytes>,
     /// The block's mix hash

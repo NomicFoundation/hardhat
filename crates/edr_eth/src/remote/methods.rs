@@ -1,3 +1,5 @@
+use revm_primitives::ruint::aliases::U64;
+
 use crate::{
     remote::{
         eth::eip712,
@@ -291,14 +293,14 @@ pub enum MethodInvocation {
         serialize_with = "single_to_sequence",
         deserialize_with = "sequence_to_single"
     )]
-    EvmIncreaseTime(U256OrUsize),
+    EvmIncreaseTime(U64OrUsize),
     /// evm_mine
     #[serde(
         rename = "evm_mine",
         serialize_with = "optional_single_to_sequence",
         deserialize_with = "sequence_to_optional_single"
     )]
-    EvmMine(Option<U256OrUsize>),
+    EvmMine(Option<U64OrUsize>),
     /// evm_setAutomine
     #[serde(
         rename = "evm_setAutomine",
@@ -319,7 +321,7 @@ pub enum MethodInvocation {
         serialize_with = "single_to_sequence",
         deserialize_with = "sequence_to_single"
     )]
-    EvmSetNextBlockTimestamp(U256OrUsize),
+    EvmSetNextBlockTimestamp(U64OrUsize),
     /// evm_snapshot
     #[serde(rename = "evm_snapshot")]
     EvmSnapshot(),
@@ -338,18 +340,18 @@ pub enum OneUsizeOrTwo {
 /// an input that can be either a U256 or a usize
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
-pub enum U256OrUsize {
+pub enum U64OrUsize {
     /// usize
     Usize(usize),
     /// U256
-    U256(U256),
+    U64(U64),
 }
 
-impl From<U256OrUsize> for U256 {
-    fn from(either: U256OrUsize) -> Self {
+impl From<U64OrUsize> for u64 {
+    fn from(either: U64OrUsize) -> Self {
         match either {
-            U256OrUsize::U256(u) => u,
-            U256OrUsize::Usize(u) => Self::from(u),
+            U64OrUsize::U64(u) => u.as_limbs()[0],
+            U64OrUsize::Usize(u) => u as u64,
         }
     }
 }

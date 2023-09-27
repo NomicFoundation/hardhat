@@ -2,8 +2,8 @@ use revm_primitives::SpecId;
 
 use crate::{block::Header, trie::KECCAK_RLP_EMPTY_ARRAY, U256};
 
-fn bomb_delay(spec_id: SpecId) -> U256 {
-    U256::from(match spec_id {
+fn bomb_delay(spec_id: SpecId) -> u64 {
+    match spec_id {
         SpecId::FRONTIER
         | SpecId::FRONTIER_THAWING
         | SpecId::HOMESTEAD
@@ -19,15 +19,15 @@ fn bomb_delay(spec_id: SpecId) -> U256 {
         SpecId::MERGE | SpecId::SHANGHAI | SpecId::CANCUN | SpecId::LATEST => {
             unreachable!("Post-merge hardforks don't have a bomb delay")
         }
-    })
+    }
 }
 
 /// Calculates the mining difficulty of a block.
 pub fn calculate_ethash_canonical_difficulty(
     spec_id: SpecId,
     parent: &Header,
-    block_number: &U256,
-    block_timestamp: &U256,
+    block_number: u64,
+    block_timestamp: u64,
 ) -> U256 {
     // TODO: Create a custom config that prevents usage of older hardforks
     assert!(
@@ -39,28 +39,29 @@ pub fn calculate_ethash_canonical_difficulty(
     let offset = parent.difficulty / bound_divisor;
 
     let mut diff = {
-        let uncle_addend = U256::from(if parent.ommers_hash == KECCAK_RLP_EMPTY_ARRAY {
+        let uncle_addend = if parent.ommers_hash == KECCAK_RLP_EMPTY_ARRAY {
             1
         } else {
             2
-        });
-        let a = (block_timestamp - parent.timestamp) / U256::from(9);
+        };
+        let a = (block_timestamp - parent.timestamp) / 9;
 
         if let Some(a) = a.checked_sub(uncle_addend) {
-            let a = a.min(U256::from(99));
+            let a = U256::from(a.min(99));
 
             parent.difficulty - a * offset
         } else {
-            let a = uncle_addend - a;
+            let a = U256::from(uncle_addend - a);
             parent.difficulty + a * offset
         }
     };
 
     if let Some(exp) = block_number
         .checked_sub(bomb_delay(spec_id))
-        .and_then(|num| (num / U256::from(100000)).checked_sub(U256::from(2)))
+        .and_then(|num| (num / 100000).checked_sub(2))
     {
-        diff += U256::from(2).pow(exp);
+        let exp = u32::try_from(exp).expect("The exponent must fit into a u32");
+        diff += U256::from(2u64.pow(exp));
     }
 
     let min_difficulty = U256::from(131072);

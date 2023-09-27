@@ -1,6 +1,6 @@
 use std::mem::take;
 
-use bytes::Bytes;
+use revm_primitives::Bytes;
 
 use crate::{remote::BlockSpec, Address, B256, U256};
 

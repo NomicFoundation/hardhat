@@ -1,6 +1,6 @@
 use std::ops::Deref;
 
-use revm_primitives::{B256, U256};
+use revm_primitives::B256;
 
 use crate::log::FullBlockLog;
 
@@ -16,7 +16,8 @@ pub struct BlockReceipt {
     /// Hash of the block that this is part of
     pub block_hash: B256,
     /// Number of the block that this is part of
-    pub block_number: U256,
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
+    pub block_number: u64,
 }
 
 impl Deref for BlockReceipt {
@@ -37,7 +38,7 @@ impl rlp::Encodable for BlockReceipt {
 mod test {
 
     use ethbloom::Bloom;
-    use revm_primitives::Address;
+    use revm_primitives::{Address, U256};
 
     use crate::receipt::{TypedReceipt, TypedReceiptData};
 
@@ -48,7 +49,7 @@ mod test {
         let receipt = BlockReceipt {
             inner: TransactionReceipt {
                 inner: TypedReceipt {
-                    cumulative_gas_used: U256::from(1),
+                    cumulative_gas_used: 1,
                     logs_bloom: Bloom::default(),
                     logs: vec![],
                     data: TypedReceiptData::Eip1559 { status: 1 },
@@ -62,7 +63,7 @@ mod test {
                 effective_gas_price: U256::from(1),
             },
             block_hash: B256::default(),
-            block_number: U256::from(1),
+            block_number: 1,
         };
 
         let serialized = serde_json::to_string(&receipt).unwrap();

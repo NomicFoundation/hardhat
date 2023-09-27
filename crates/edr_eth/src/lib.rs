@@ -33,11 +33,10 @@ pub mod trie;
 pub mod utils;
 pub mod withdrawal;
 
-pub use bytes::Bytes;
 pub use ethbloom::Bloom;
 pub use revm_primitives::{
     ruint::aliases::{B512, B64, U64},
-    Address, SpecId, B160, B256, U256,
+    Address, Bytes, SpecId, B160, B256, U256,
 };
 
 /// A secret key

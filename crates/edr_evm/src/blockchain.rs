@@ -36,9 +36,9 @@ pub enum BlockchainError {
     #[error("Invalid block number: {actual}. Expected: {expected}.")]
     InvalidBlockNumber {
         /// Provided block number
-        actual: U256,
+        actual: u64,
         /// Expected block number
-        expected: U256,
+        expected: u64,
     },
     /// Invalid parent hash
     #[error("Invalid parent hash: {actual}. Expected: {expected}.")]
@@ -55,9 +55,9 @@ pub enum BlockchainError {
     #[error("No known hardfork for execution on historical block {block_number} (relative to fork block number {fork_block_number}). The node was not configured with a hardfork activation history.")]
     MissingHardforkActivations {
         /// Block number
-        block_number: U256,
+        block_number: u64,
         /// Fork block number
-        fork_block_number: U256,
+        fork_block_number: u64,
     },
     /// Missing withdrawals for post-Shanghai blockchain
     #[error("Missing withdrawals for post-Shanghai blockchain")]
@@ -69,7 +69,7 @@ pub enum BlockchainError {
     #[error("Could not find a hardfork to run for block {block_number}, after having looked for one in the hardfork activation history, which was: {hardfork_activations:?}.")]
     UnknownBlockSpec {
         /// Block number
-        block_number: U256,
+        block_number: u64,
         /// Hardfork activation history
         hardfork_activations: HardforkActivations,
     },
@@ -93,7 +93,7 @@ pub trait Blockchain {
     /// Retrieves the block with the provided number, if it exists.
     async fn block_by_number(
         &self,
-        number: &U256,
+        number: u64,
     ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>;
 
     /// Retrieves the block that contains a transaction with the provided hash, if it exists.
@@ -103,7 +103,7 @@ pub trait Blockchain {
     ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>;
 
     /// Retrieves the instances chain ID.
-    async fn chain_id(&self) -> U256;
+    async fn chain_id(&self) -> u64;
 
     /// Retrieves the last block in the blockchain.
     async fn last_block(
@@ -111,7 +111,7 @@ pub trait Blockchain {
     ) -> Result<Arc<dyn SyncBlock<Error = Self::BlockchainError>>, Self::BlockchainError>;
 
     /// Retrieves the last block number in the blockchain.
-    async fn last_block_number(&self) -> U256;
+    async fn last_block_number(&self) -> u64;
 
     /// Retrieves the receipt of the transaction with the provided hash, if it exists.
     async fn receipt_by_transaction_hash(
@@ -122,7 +122,7 @@ pub trait Blockchain {
     /// Retrieves the hardfork specification of the block at the provided number.
     async fn spec_at_block_number(
         &self,
-        block_number: &U256,
+        block_number: u64,
     ) -> Result<SpecId, Self::BlockchainError>;
 
     /// Retrieves the hardfork specification used for new blocks.
@@ -131,7 +131,7 @@ pub trait Blockchain {
     /// Retrieves the state at a given block
     async fn state_at_block_number(
         &self,
-        block_number: &U256,
+        block_number: u64,
     ) -> Result<Box<dyn SyncState<Self::StateError>>, Self::BlockchainError>;
 
     /// Retrieves the total difficulty at the block with the provided hash.
@@ -155,14 +155,10 @@ pub trait BlockchainMut {
     ) -> Result<Arc<dyn SyncBlock<Error = Self::Error>>, Self::Error>;
 
     /// Reserves the provided number of blocks, starting from the next block number.
-    async fn reserve_blocks(
-        &mut self,
-        additional: usize,
-        interval: U256,
-    ) -> Result<(), Self::Error>;
+    async fn reserve_blocks(&mut self, additional: u64, interval: u64) -> Result<(), Self::Error>;
 
     /// Reverts to the block with the provided number, deleting all later blocks.
-    async fn revert_to_block(&mut self, block_number: &U256) -> Result<(), Self::Error>;
+    async fn revert_to_block(&mut self, block_number: u64) -> Result<(), Self::Error>;
 }
 
 /// Trait that meets all requirements for a synchronous blockchain.
@@ -196,7 +192,7 @@ where
 fn compute_state_at_block<BlockT: Block + Clone>(
     state: &mut dyn DatabaseCommit,
     local_storage: &ReservableSparseBlockchainStorage<BlockT>,
-    block_number: &U256,
+    block_number: u64,
 ) {
     let state_diffs = local_storage
         .state_diffs_until_block(block_number)
@@ -216,7 +212,7 @@ fn validate_next_block(
     let last_header = last_block.header();
     let next_header = next_block.header();
 
-    let next_block_number = last_header.number + U256::from(1);
+    let next_block_number = last_header.number + 1;
     if next_header.number != next_block_number {
         return Err(BlockchainError::InvalidBlockNumber {
             actual: next_header.number,

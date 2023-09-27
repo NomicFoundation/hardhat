@@ -1,19 +1,19 @@
 use std::sync::OnceLock;
 
-use revm_primitives::{HashMap, SpecId, U256};
+use revm_primitives::{HashMap, SpecId};
 
 /// A struct that stores the hardforks for a chain.
 #[derive(Clone, Debug)]
 pub struct HardforkActivations {
     /// (Start block number -> SpecId) mapping
-    hardforks: Vec<(U256, SpecId)>,
+    hardforks: Vec<(u64, SpecId)>,
 }
 
 impl HardforkActivations {
     /// Creates a new instance for a new chain with the provided [`SpecId`].
     pub fn with_spec_id(spec_id: SpecId) -> Self {
         Self {
-            hardforks: vec![(U256::ZERO, spec_id)],
+            hardforks: vec![(0, spec_id)],
         }
     }
 
@@ -23,18 +23,20 @@ impl HardforkActivations {
     }
 
     /// Returns the hardfork's `SpecId` corresponding to the provided block number.
-    pub fn hardfork_at_block_number(&self, block_number: &U256) -> Option<SpecId> {
+    pub fn hardfork_at_block_number(&self, block_number: u64) -> Option<SpecId> {
         self.hardforks
             .iter()
             .rev()
-            .find(|(hardfork_number, _)| *block_number >= *hardfork_number)
+            .find(|(hardfork_number, _)| block_number >= *hardfork_number)
             .map(|entry| entry.1)
     }
 }
 
-impl From<Vec<(U256, SpecId)>> for HardforkActivations {
-    fn from(hardforks: Vec<(U256, SpecId)>) -> Self {
-        Self { hardforks }
+impl From<&[(u64, SpecId)]> for HardforkActivations {
+    fn from(hardforks: &[(u64, SpecId)]) -> Self {
+        Self {
+            hardforks: hardforks.to_vec(),
+        }
     }
 }
 
@@ -69,11 +71,7 @@ fn mainnet_config() -> &'static ChainConfig {
     static CONFIG: OnceLock<ChainConfig> = OnceLock::new();
 
     CONFIG.get_or_init(|| {
-        let hardfork_activations = MAINNET_HARDFORKS
-            .iter()
-            .map(|(block_number, spec_id)| (U256::from(*block_number), *spec_id))
-            .collect::<Vec<_>>()
-            .into();
+        let hardfork_activations = MAINNET_HARDFORKS.into();
 
         ChainConfig {
             name: "mainnet".to_string(),
@@ -96,11 +94,7 @@ fn ropsten_config() -> &'static ChainConfig {
     static CONFIG: OnceLock<ChainConfig> = OnceLock::new();
 
     CONFIG.get_or_init(|| {
-        let hardfork_activations = ROPSTEN_HARDFORKS
-            .iter()
-            .map(|(block_number, spec_id)| (U256::from(*block_number), *spec_id))
-            .collect::<Vec<_>>()
-            .into();
+        let hardfork_activations = ROPSTEN_HARDFORKS.into();
 
         ChainConfig {
             name: "ropsten".to_string(),
@@ -122,11 +116,7 @@ fn rinkeby_config() -> &'static ChainConfig {
     static CONFIG: OnceLock<ChainConfig> = OnceLock::new();
 
     CONFIG.get_or_init(|| {
-        let hardfork_activations = RINKEBY_HARDFORKS
-            .iter()
-            .map(|(block_number, spec_id)| (U256::from(*block_number), *spec_id))
-            .collect::<Vec<_>>()
-            .into();
+        let hardfork_activations = RINKEBY_HARDFORKS.into();
 
         ChainConfig {
             name: "rinkeby".to_string(),
@@ -145,11 +135,7 @@ fn goerli_config() -> &'static ChainConfig {
     static CONFIG: OnceLock<ChainConfig> = OnceLock::new();
 
     CONFIG.get_or_init(|| {
-        let hardfork_activations = GOERLI_HARDFORKS
-            .iter()
-            .map(|(block_number, spec_id)| (U256::from(*block_number), *spec_id))
-            .collect::<Vec<_>>()
-            .into();
+        let hardfork_activations = GOERLI_HARDFORKS.into();
 
         ChainConfig {
             name: "goerli".to_string(),
@@ -171,11 +157,7 @@ fn kovan_config() -> &'static ChainConfig {
     static CONFIG: OnceLock<ChainConfig> = OnceLock::new();
 
     CONFIG.get_or_init(|| {
-        let hardfork_activations = KOVAN_HARDFORKS
-            .iter()
-            .map(|(block_number, spec_id)| (U256::from(*block_number), *spec_id))
-            .collect::<Vec<_>>()
-            .into();
+        let hardfork_activations = KOVAN_HARDFORKS.into();
 
         ChainConfig {
             name: "kovan".to_string(),
@@ -184,31 +166,31 @@ fn kovan_config() -> &'static ChainConfig {
     })
 }
 
-fn chain_configs() -> &'static HashMap<U256, &'static ChainConfig> {
-    static CONFIGS: OnceLock<HashMap<U256, &'static ChainConfig>> = OnceLock::new();
+fn chain_configs() -> &'static HashMap<u64, &'static ChainConfig> {
+    static CONFIGS: OnceLock<HashMap<u64, &'static ChainConfig>> = OnceLock::new();
 
     CONFIGS.get_or_init(|| {
         let mut hardforks = HashMap::new();
-        hardforks.insert(U256::from(1), mainnet_config());
-        hardforks.insert(U256::from(3), ropsten_config());
-        hardforks.insert(U256::from(4), rinkeby_config());
-        hardforks.insert(U256::from(5), goerli_config());
-        hardforks.insert(U256::from(42), kovan_config());
+        hardforks.insert(1, mainnet_config());
+        hardforks.insert(3, ropsten_config());
+        hardforks.insert(4, rinkeby_config());
+        hardforks.insert(5, goerli_config());
+        hardforks.insert(42, kovan_config());
 
         hardforks
     })
 }
 
 /// Returns the name corresponding to the provided chain ID, if it is supported.
-pub fn chain_name(chain_id: &U256) -> Option<&'static str> {
+pub fn chain_name(chain_id: u64) -> Option<&'static str> {
     chain_configs()
-        .get(chain_id)
+        .get(&chain_id)
         .map(|config| config.name.as_str())
 }
 
 /// Returns the hardfork activations corresponding to the provided chain ID, if it is supported.
-pub fn chain_hardfork_activations(chain_id: &U256) -> Option<&'static HardforkActivations> {
+pub fn chain_hardfork_activations(chain_id: u64) -> Option<&'static HardforkActivations> {
     chain_configs()
-        .get(chain_id)
+        .get(&chain_id)
         .map(|config| &config.hardfork_activations)
 }

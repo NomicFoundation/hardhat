@@ -24,7 +24,7 @@ use edr_eth::{
         filter::{FilteredEvents, LogOutput},
         jsonrpc,
         jsonrpc::{Response, ResponseData},
-        methods::{MethodInvocation as EthMethodInvocation, U256OrUsize},
+        methods::{MethodInvocation as EthMethodInvocation, U64OrUsize},
         BlockSpec, BlockTag, Eip1898BlockSpec,
     },
     serde::ZeroXPrefixedBytes,
@@ -124,7 +124,7 @@ async fn _block_number_from_hash<T>(
     blockchain: &dyn SyncBlockchain<BlockchainError, StateError>,
     block_hash: &B256,
     _require_canonical: bool,
-) -> Result<U256, ResponseData<T>> {
+) -> Result<u64, ResponseData<T>> {
     match blockchain.block_by_hash(block_hash).await {
         Ok(Some(block)) => Ok(block.header().number),
         Ok(None) => Err(error_response_data(
@@ -141,11 +141,11 @@ async fn _block_number_from_hash<T>(
 async fn _block_number_from_block_spec<T>(
     blockchain: &dyn SyncBlockchain<BlockchainError, StateError>,
     block_spec: &BlockSpec,
-) -> Result<U256, ResponseData<T>> {
+) -> Result<u64, ResponseData<T>> {
     match block_spec {
         BlockSpec::Number(number) => Ok(*number),
         BlockSpec::Tag(tag) => match tag {
-            BlockTag::Earliest => Ok(U256::ZERO),
+            BlockTag::Earliest => Ok(0),
             BlockTag::Safe | BlockTag::Finalized => {
                 confirm_post_merge_hardfork(blockchain).await?;
                 Ok(blockchain.last_block_number().await)
@@ -168,7 +168,7 @@ async fn confirm_post_merge_hardfork<T>(
 ) -> Result<(), ResponseData<T>> {
     let last_block_number = blockchain.last_block_number().await;
 
-    let spec_id = blockchain.spec_at_block_number(&last_block_number).await.map_err(|e| error_response_data(0, &format!("Failed to determine whether block {last_block_number} supports the merge hardfork: {e}")))?;
+    let spec_id = blockchain.spec_at_block_number(last_block_number).await.map_err(|e| error_response_data(0, &format!("Failed to determine whether block {last_block_number} supports the merge hardfork: {e}")))?;
 
     if spec_id >= SpecId::MERGE {
         Ok(())
@@ -218,7 +218,7 @@ async fn set_block_context<T>(
                     },
                 },
                 Some(BlockSpec::Tag(tag)) => match tag {
-                    BlockTag::Earliest => Ok(U256::ZERO),
+                    BlockTag::Earliest => Ok(0),
                     BlockTag::Safe | BlockTag::Finalized => {
                         confirm_post_merge_hardfork(&*node_data.blockchain).await?;
                         Ok(latest_block_number)
@@ -229,7 +229,7 @@ async fn set_block_context<T>(
                 None => unreachable!(),
             }?;
 
-            let mut contextual_state = node_data.blockchain.state_at_block_number(&block_number).await
+            let mut contextual_state = node_data.blockchain.state_at_block_number(block_number).await
             .map_err(|e| {
                 error_response_data(
                     -32000,
@@ -271,11 +271,11 @@ async fn handle_accounts(state: Arc<AppData>) -> ResponseData<Vec<Address>> {
     }
 }
 
-async fn handle_block_number(app_data: Arc<AppData>) -> ResponseData<U256> {
+async fn handle_block_number(app_data: Arc<AppData>) -> ResponseData<U64> {
     event!(Level::INFO, "eth_blockNumber()");
     let node_data = app_data.node.lock_data().await;
     ResponseData::Success {
-        result: node_data.blockchain.last_block_number().await,
+        result: U64::from(node_data.blockchain.last_block_number().await),
     }
 }
 
@@ -297,10 +297,10 @@ async fn handle_coinbase(state: Arc<AppData>) -> ResponseData<Address> {
 
 async fn handle_evm_increase_time(
     state: Arc<AppData>,
-    increment: U256OrUsize,
+    increment: U64OrUsize,
 ) -> ResponseData<String> {
     event!(Level::INFO, "evm_increaseTime({increment:?})");
-    let increment: U256 = increment.into();
+    let increment: u64 = increment.into();
     let mut node_data = state.node.lock_data().await;
     node_data.block_time_offset_seconds += increment;
     ResponseData::Success {
@@ -317,7 +317,7 @@ fn log_hardhat_mined_block(_result: &MineBlockResult<BlockchainError, StateError
 }
 
 fn log_interval_mined_block_number(
-    _block_number: U256,
+    _block_number: u64,
     _is_empty: bool,
     _base_fee_per_gas: Option<U256>,
 ) {
@@ -326,10 +326,10 @@ fn log_interval_mined_block_number(
 
 async fn handle_evm_mine(
     state: Arc<AppData>,
-    timestamp: Option<U256OrUsize>,
+    timestamp: Option<U64OrUsize>,
 ) -> ResponseData<String> {
     event!(Level::INFO, "evm_mine({timestamp:?})");
-    let timestamp: Option<U256> = timestamp.map(U256OrUsize::into);
+    let timestamp: Option<u64> = timestamp.map(U64OrUsize::into);
 
     let mut node_data = state.node.lock_data().await;
     match node_data.mine_block(timestamp).await {
@@ -346,19 +346,19 @@ async fn handle_evm_mine(
 
 async fn handle_evm_set_next_block_timestamp(
     app_data: Arc<AppData>,
-    timestamp: U256OrUsize,
+    timestamp: U64OrUsize,
 ) -> ResponseData<String> {
     event!(Level::INFO, "evm_setNextBlockTimestamp({timestamp:?})");
     let mut node_data = app_data.node.lock_data().await;
     match node_data.blockchain.last_block().await {
         Ok(latest_block) => {
             let latest_block_header = latest_block.header();
-            match Into::<U256>::into(timestamp.clone()).checked_sub(latest_block_header.timestamp) {
+            match Into::<u64>::into(timestamp.clone()).checked_sub(latest_block_header.timestamp) {
                 Some(increment) => {
-                    if increment == U256::ZERO && !node_data.allow_blocks_with_same_timestamp {
+                    if increment == 0 && !node_data.allow_blocks_with_same_timestamp {
                         error_response_data(0, &format!("Timestamp {timestamp:?} is equal to the previous block's timestamp. Enable the 'allowBlocksWithSameTimestamp' option to allow this"))
                     } else {
-                        let timestamp: U256 = timestamp.into();
+                        let timestamp = timestamp.into();
                         node_data.next_block_timestamp = Some(timestamp);
                         ResponseData::Success {
                             result: timestamp.to_string(),
@@ -502,8 +502,8 @@ async fn handle_impersonate_account(state: Arc<AppData>, address: Address) -> Re
 
 async fn handle_hardhat_mine(
     state: Arc<AppData>,
-    count: Option<U256>,
-    interval: Option<U256>,
+    count: Option<u64>,
+    interval: Option<u64>,
 ) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_mine({count:?}, {interval:?})");
 
@@ -511,10 +511,10 @@ async fn handle_hardhat_mine(
 
     let mut mine_block_results: Vec<MineBlockResult<BlockchainError, StateError>> = Vec::new();
 
-    let interval = interval.unwrap_or(U256::from(1));
-    let count = count.unwrap_or(U256::from(1));
+    let interval = interval.unwrap_or(1);
+    let count = count.unwrap_or(1);
 
-    let mut i = U256::from(1);
+    let mut i = 1;
     while i <= count {
         let timestamp = mine_block_results
             .last()
@@ -542,7 +542,7 @@ async fn handle_hardhat_mine(
                 };
             }
         }
-        i += U256::from(1);
+        i += 1;
     }
 
     mine_block_results.iter().for_each(log_hardhat_mined_block);
@@ -1019,7 +1019,7 @@ pub(crate) fn create_accounts(config: &Config) -> InitialAccounts {
 pub(crate) struct BlockchainAndState {
     pub(crate) blockchain: Box<dyn SyncBlockchain<BlockchainError, StateError>>,
     pub(crate) state: Box<dyn SyncState<StateError>>,
-    pub(crate) fork_block_number: Option<U256>,
+    pub(crate) fork_block_number: Option<u64>,
 }
 
 pub(crate) async fn create_blockchain_and_state(
@@ -1045,7 +1045,7 @@ pub(crate) async fn create_blockchain_and_state(
             runtime.handle().clone(),
             config.hardfork,
             rpc_client,
-            fork_config.block_number.map(U256::from),
+            fork_config.block_number,
             state_root_generator,
             genesis_accounts,
             // TODO: make hardfork activations configurable (https://github.com/NomicFoundation/edr/issues/111)
@@ -1056,7 +1056,7 @@ pub(crate) async fn create_blockchain_and_state(
         let fork_block_number = blockchain.last_block_number().await;
 
         let state = blockchain
-            .state_at_block_number(&fork_block_number)
+            .state_at_block_number(fork_block_number)
             .await
             .expect("Fork state must exist");
 
@@ -1070,22 +1070,20 @@ pub(crate) async fn create_blockchain_and_state(
 
         let blockchain = LocalBlockchain::new(
             state,
-            U256::from(config.chain_id),
+            config.chain_id,
             config.hardfork,
             config.gas,
             config.initial_date.map(|d| {
-                U256::from(
-                    d.duration_since(UNIX_EPOCH)
-                        .expect("initial date must be after UNIX epoch")
-                        .as_secs(),
-                )
+                d.duration_since(UNIX_EPOCH)
+                    .expect("initial date must be after UNIX epoch")
+                    .as_secs()
             }),
             Some(RandomHashGenerator::with_seed("seed").next_value()),
             config.initial_base_fee_per_gas,
         )?;
 
         let state = blockchain
-            .state_at_block_number(&U256::ZERO)
+            .state_at_block_number(0)
             .await
             .expect("Genesis state must exist");
 
@@ -1097,18 +1095,13 @@ pub(crate) async fn create_blockchain_and_state(
     }
 }
 
-pub(crate) fn block_time_offset_seconds(config: &Config) -> Result<U256, ServerError> {
-    let block_time_offset_seconds = if let Some(initial_date) = config.initial_date {
-        U256::from(
-            SystemTime::now()
-                .duration_since(initial_date)
-                .map_err(|_e| ServerError::InitialDateInFuture(initial_date))?
-                .as_secs(),
-        )
-    } else {
-        U256::ZERO
-    };
-    Ok(block_time_offset_seconds)
+pub(crate) fn block_time_offset_seconds(config: &Config) -> Result<u64, ServerError> {
+    config.initial_date.map_or(Ok(0), |initial_date| {
+        Ok(SystemTime::now()
+            .duration_since(initial_date)
+            .map_err(|_e| ServerError::InitialDateInFuture(initial_date))?
+            .as_secs())
+    })
 }
 
 pub(crate) fn create_evm_config(config: &Config) -> CfgEnv {
