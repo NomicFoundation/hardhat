@@ -118,7 +118,6 @@ export class ArgumentsParser {
       rawPositionalArguments,
       taskDefinition.positionalParamDefinitions
     );
-
     return { ...paramArguments, ...positionalArguments };
   }
 
@@ -126,7 +125,7 @@ export class ArgumentsParser {
     taskDefinition: TaskDefinition,
     rawCLAs: string[]
   ) {
-    const paramArguments = {};
+    const paramArguments: { scriptArgs?: string[] } = {}; // Allow for CLI arguments to be passed through to RUN task
     const rawPositionalArguments: string[] = [];
 
     for (let i = 0; i < rawCLAs.length; i++) {
@@ -135,6 +134,11 @@ export class ArgumentsParser {
       if (!this._hasCLAParamNameFormat(arg)) {
         rawPositionalArguments.push(arg);
         continue;
+      }
+
+      if(arg === '--') {
+        paramArguments.scriptArgs = rawCLAs.slice(i + 1);
+        break;
       }
 
       if (!this._isCLAParamName(arg, taskDefinition.paramDefinitions)) {
