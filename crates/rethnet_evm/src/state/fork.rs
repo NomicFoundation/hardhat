@@ -86,6 +86,7 @@ impl ForkState {
 }
 
 impl Clone for ForkState {
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn clone(&self) -> Self {
         Self {
             local_state: self.local_state.clone(),

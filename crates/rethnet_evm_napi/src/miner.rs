@@ -21,6 +21,7 @@ use self::result::MineBlockResult;
 /// Mines a block using as many transactions as can fit in it.
 #[allow(clippy::too_many_arguments)]
 #[napi]
+#[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
 pub async fn mine_block(
     blockchain: &Blockchain,
     state_manager: &State,

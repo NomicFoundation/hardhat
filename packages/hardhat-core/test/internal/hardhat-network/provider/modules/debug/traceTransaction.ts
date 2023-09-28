@@ -26,7 +26,6 @@ import {
   DEFAULT_ACCOUNTS,
   DEFAULT_ACCOUNTS_ADDRESSES,
   DEFAULT_ALLOW_UNLIMITED_CONTRACT_SIZE,
-  DEFAULT_CHAIN_ID,
   DEFAULT_HARDFORK,
   DEFAULT_NETWORK_ID,
   PROVIDERS,
@@ -244,8 +243,8 @@ describe("Debug module", function () {
 
       const hardhatNetworkProvider = new HardhatNetworkProvider(
         {
-          hardfork: DEFAULT_HARDFORK,
-          chainId: DEFAULT_CHAIN_ID,
+          hardfork: "muirGlacier",
+          chainId: 1,
           networkId: DEFAULT_NETWORK_ID,
           blockGasLimit: 13000000,
           minGasPrice: 0n,
@@ -370,7 +369,7 @@ describe("Debug module", function () {
       const hardhatNetworkProvider = new HardhatNetworkProvider(
         {
           hardfork: DEFAULT_HARDFORK,
-          chainId: DEFAULT_CHAIN_ID,
+          chainId: 1,
           networkId: DEFAULT_NETWORK_ID,
           blockGasLimit: 13000000,
           minGasPrice: 0n,
@@ -401,8 +400,6 @@ describe("Debug module", function () {
         "debug_traceTransaction",
         ["0xe0b1f8e11eb822107ddc35ce2d944147cc043acf680c39332ee95dd6508d107e"]
       );
-
-      console.log(trace.structLogs.length);
 
       assertEqualTraces(trace, mainnetPostLondonTxTrace);
     });

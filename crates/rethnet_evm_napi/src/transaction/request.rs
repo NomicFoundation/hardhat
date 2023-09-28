@@ -80,6 +80,10 @@ impl TryFrom<TransactionRequest> for rethnet_evm::TxEnv {
             chain_id: value.chain_id.map(|chain_id| chain_id.get_u64().1),
             nonce: value.nonce.map(|nonce| nonce.get_u64().1),
             access_list,
+            // TODO: Add support for EIP-4844
+            // https://github.com/NomicFoundation/edr/issues/191
+            blob_hashes: Vec::new(),
+            max_fee_per_blob_gas: None,
         })
     }
 }

@@ -35,7 +35,7 @@ impl<T> SharedMapEntry<T> {
     }
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Debug, Default)]
 pub struct SharedMap<K, V> {
     entries: HashMap<K, SharedMapEntry<V>>,
 }
@@ -74,5 +74,18 @@ where
     /// Retrieves the entry corresponding to the provided key.
     pub fn get(&self, key: &K) -> Option<&V> {
         self.entries.get(key).map(|entry| &entry.value)
+    }
+}
+
+impl<K, V> Clone for SharedMap<K, V>
+where
+    K: Clone,
+    V: Clone,
+{
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+    fn clone(&self) -> Self {
+        Self {
+            entries: self.entries.clone(),
+        }
     }
 }

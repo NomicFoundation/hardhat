@@ -9,6 +9,7 @@ mod blockchain;
 mod cast;
 mod config;
 mod context;
+mod debug_trace;
 mod log;
 mod mempool;
 pub mod miner;

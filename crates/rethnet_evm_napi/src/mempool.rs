@@ -42,6 +42,7 @@ impl MemPool {
 
     #[doc = "Creates a deep clone of the [`MemPool`]."]
     #[napi]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn deep_clone(&self) -> Self {
         let mem_pool = self.read().await;
 
