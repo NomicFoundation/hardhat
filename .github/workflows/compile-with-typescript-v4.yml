@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: 16
+          node-version: 18
       - name: Install typescript v4 in all packages
         run: |
           sed -i 's/"typescript": "~5.0.0"/"typescript": "^4.0.0"/' package.json packages/*/package.json && yarn
