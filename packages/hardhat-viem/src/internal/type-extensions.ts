@@ -45,7 +45,7 @@ declare module "hardhat/types/artifacts" {
   interface Artifacts {
     readArtifact<ArgT extends keyof ArtifactsMap>(
       contractNameOrFullyQualifiedName: ArgT
-    ): ArtifactsMap[ArgT];
+    ): Promise<ArtifactsMap[ArgT]>;
 
     readArtifactSync<ArgT extends keyof ArtifactsMap>(
       contractNameOrFullyQualifiedName: ArgT

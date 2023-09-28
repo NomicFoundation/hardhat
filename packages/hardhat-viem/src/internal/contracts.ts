@@ -13,7 +13,6 @@ import type {
   WalletClient,
 } from "../types";
 
-import { getContractAddress } from "viem";
 import { getPublicClient, getWalletClients } from "./clients";
 import {
   DefaultWalletClientNotFoundError,
@@ -93,7 +92,7 @@ export async function innerDeployContract(
 }
 
 export async function sendDeploymentTransaction(
-  hre: HardhatRuntimeEnvironment,
+  { artifacts, network }: HardhatRuntimeEnvironment,
   contractName: string,
   constructorArgs: any[] = [],
   config: SendDeploymentTransactionConfig = {}
@@ -104,9 +103,10 @@ export async function sendDeploymentTransaction(
   const { walletClient: configWalletClient, ...deployContractParameters } =
     config;
   const [publicClient, walletClient, contractArtifact] = await Promise.all([
-    getPublicClient(hre.network.provider),
-    configWalletClient ?? getDefaultWalletClient(hre.network.provider),
-    hre.artifacts.readArtifact(contractName),
+    getPublicClient(network.provider),
+    configWalletClient ??
+      getDefaultWalletClient(network.provider, network.name),
+    artifacts.readArtifact(contractName),
   ]);
 
   return innerSendDeploymentTransaction(
@@ -141,6 +141,7 @@ async function innerSendDeploymentTransaction(
     hash: deploymentTxHash,
   });
 
+  const { getContractAddress } = await import("viem");
   const contractAddress = getContractAddress({
     from: walletClient.account.address,
     nonce: BigInt(deploymentTx.nonce),
