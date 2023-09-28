@@ -213,7 +213,7 @@ export class EthereumJSAdapter implements VMAdapter {
       blockchain,
     });
 
-    return new EthereumJSAdapter(
+    const adapter = new EthereumJSAdapter(
       vm,
       blockchain,
       stateManager,
@@ -224,6 +224,13 @@ export class EthereumJSAdapter implements VMAdapter {
       forkNetworkId,
       forkBlockNum
     );
+
+    // If we're forking and using genesis account, add it as an irregular state
+    if (isForkedNodeConfig(config) && config.genesisAccounts.length > 0) {
+      await adapter._persistIrregularWorldState();
+    }
+
+    return adapter;
   }
 
   public async dryRun(

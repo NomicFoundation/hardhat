@@ -83,7 +83,19 @@ export class RethnetAdapter implements VMAdapter {
     const limitContractCodeSize =
       config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : null;
 
-    return new RethnetAdapter(blockchain, state, common, limitContractCodeSize);
+    const adapter = new RethnetAdapter(
+      blockchain,
+      state,
+      common,
+      limitContractCodeSize
+    );
+
+    // If we're forking and using genesis account, add it as an irregular state
+    if (isForkedNodeConfig(config) && config.genesisAccounts.length > 0) {
+      await adapter._persistIrregularState();
+    }
+
+    return adapter;
   }
 
   /**
@@ -452,7 +464,7 @@ export class RethnetAdapter implements VMAdapter {
   private async _persistIrregularState(): Promise<void> {
     const [blockNumber, _stateRoot] = await Promise.all([
       this._blockchain.lastBlockNumber(),
-      // Get the state root to ensure that pseudorandom stateroots are generated
+      // Get the state root to ensure that pseudorandom state roots are generated
       // for forked blockchains
       this.getStateRoot(),
     ]);

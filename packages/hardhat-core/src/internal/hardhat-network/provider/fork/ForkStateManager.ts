@@ -58,7 +58,6 @@ export class ForkStateManager implements StateManager {
   // should be removed
   public addresses: Set<string> = new Set();
   private _state: State = ImmutableMap<string, ImmutableRecord<AccountState>>();
-  private _initialStateRoot: string;
   private _stateRoot: string;
   private _stateRootToState: Map<string, State> = new Map();
   private _originalStorageCache: Map<string, Buffer> = new Map();
@@ -75,10 +74,9 @@ export class ForkStateManager implements StateManager {
       stateRoot = randomHash();
     }
 
-    this._initialStateRoot = stateRoot;
     this._stateRoot = stateRoot;
 
-    this._stateRootToState.set(this._initialStateRoot, this._state);
+    this._stateRootToState.set(this._stateRoot, this._state);
   }
 
   public static async withGenesisAccounts(
@@ -117,7 +115,7 @@ export class ForkStateManager implements StateManager {
 
     // Overwrite the original state
     stateManager._stateRootToState.set(
-      stateManager._initialStateRoot,
+      stateManager._stateRoot,
       stateManager._state
     );
 
@@ -363,11 +361,7 @@ export class ForkStateManager implements StateManager {
       return;
     }
 
-    if (blockNumber === this._forkBlockNumber) {
-      this._setStateRoot(toBuffer(this._initialStateRoot));
-      return;
-    }
-    if (blockNumber > this._forkBlockNumber) {
+    if (blockNumber >= this._forkBlockNumber) {
       this._setStateRoot(stateRoot);
       return;
     }
