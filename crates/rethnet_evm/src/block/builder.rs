@@ -200,7 +200,17 @@ impl BlockBuilder {
             state: state_diff,
         } = run_transaction(evm, inspector)?;
 
-        self.state_diff.extend(state_diff.clone());
+        for (address, account_diff) in &state_diff {
+            self.state_diff
+                .entry(*address)
+                .and_modify(|account| {
+                    account.info = account_diff.info.clone();
+                    account.status.insert(account_diff.status);
+                    account.storage.extend(account_diff.storage.clone());
+                })
+                .or_insert(account_diff.clone());
+        }
+
         state.commit(state_diff);
 
         self.header.gas_used += U256::from(result.gas_used());
@@ -301,14 +311,16 @@ impl BlockBuilder {
                 .basic(address)?
                 .expect("Account must exist after modification");
 
-            self.state_diff.insert(
-                address,
-                Account {
+            self.state_diff
+                .entry(address)
+                .and_modify(|account| {
+                    account.info.balance = account_info.balance;
+                })
+                .or_insert(Account {
                     info: account_info,
                     storage: HashMap::new(),
                     status: AccountStatus::Touched,
-                },
-            );
+                });
         }
 
         if let Some(gas_limit) = self.parent_gas_limit {

@@ -23,7 +23,7 @@ use rethnet_evm::{
 };
 
 use crate::{
-    account::{genesis_accounts, Account, GenesisAccount},
+    account::{add_precompiles, genesis_accounts, Account, GenesisAccount},
     cast::TryCast,
     context::RethnetContext,
     sync::{await_promise, handle_error},
@@ -39,15 +39,6 @@ struct ModifyAccountCall {
     pub nonce: u64,
     pub code: Option<Bytecode>,
     pub sender: Sender<napi::Result<AccountInfo>>,
-}
-
-// Mimic precompiles activation
-fn add_precompiles(accounts: &mut HashMap<Address, AccountInfo>) {
-    for idx in 1..=8 {
-        let mut address = Address::zero();
-        address.0[19] = idx;
-        accounts.insert(address, AccountInfo::default());
-    }
 }
 
 /// The Rethnet state

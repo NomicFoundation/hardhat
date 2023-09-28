@@ -15,8 +15,8 @@ use rethnet_evm::{
 };
 
 use crate::{
-    account::{genesis_accounts, GenesisAccount},
-    block::{Block, BlockOptions},
+    account::{add_precompiles, genesis_accounts, GenesisAccount},
+    block::Block,
     cast::TryCast,
     config::SpecId,
     context::RethnetContext,
@@ -60,30 +60,38 @@ impl Deref for Blockchain {
 #[napi]
 impl Blockchain {
     /// Constructs a new blockchain from a genesis block.
-    #[napi(factory)]
+    #[napi(constructor)]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn with_genesis_block(
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
         mut env: Env,
         chain_id: BigInt,
         spec_id: SpecId,
-        genesis_block: BlockOptions,
+        gas_limit: BigInt,
         accounts: Vec<GenesisAccount>,
+        timestamp: Option<BigInt>,
+        prev_randao: Option<Buffer>,
+        base_fee: Option<BigInt>,
     ) -> napi::Result<Self> {
         let chain_id: U256 = chain_id.try_cast()?;
         let spec_id = rethnet_evm::SpecId::from(spec_id);
-        let options = rethnet_eth::block::BlockOptions::try_from(genesis_block)?;
+        let gas_limit: U256 = BigInt::try_cast(gas_limit)?;
+        let timestamp: Option<U256> = timestamp.map(TryCast::<U256>::try_cast).transpose()?;
+        let prev_randao: Option<B256> = prev_randao.map(TryCast::<B256>::try_cast).transpose()?;
+        let base_fee: Option<U256> = base_fee.map(TryCast::<U256>::try_cast).transpose()?;
 
-        let header = rethnet_eth::block::PartialHeader::new(spec_id, options, None);
-        let genesis_block = rethnet_evm::LocalBlock::empty(header, spec_id);
+        let mut accounts = genesis_accounts(accounts)?;
+        add_precompiles(&mut accounts);
 
-        let accounts = genesis_accounts(accounts)?;
         let genesis_state = TrieState::with_accounts(AccountTrie::with_accounts(&accounts));
-
-        let blockchain = rethnet_evm::blockchain::LocalBlockchain::with_genesis_block(
-            genesis_block,
+        let blockchain = rethnet_evm::blockchain::LocalBlockchain::new(
             genesis_state,
             chain_id,
             spec_id,
+            gas_limit,
+            timestamp,
+            prev_randao,
+            base_fee,
         )
         .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
 

@@ -94,9 +94,8 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
             .get(block_number)
             .copied()
             .or_else(|| {
-                self.reservations
-                    .read()
-                    .last()
+                let reservations = self.reservations.read();
+                find_reservation(&reservations, block_number)
                     .map(|reservation| reservation.previous_diff_index)
             })?;
 
@@ -177,7 +176,12 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
                 .number_to_diff_index
                 .get(block_number)
                 .copied()
-                .unwrap_or_else(|| self.reservations.get_mut().last().expect("There must either be a block or a reservation matching the block number").previous_diff_index);
+                .unwrap_or_else(|| {
+                    let reservations = self.reservations.get_mut();
+
+                    find_reservation(reservations, block_number)
+                    .expect("There must either be a block or a reservation matching the block number").previous_diff_index
+                });
 
             self.state_diffs.truncate(diff_index + 1);
 
@@ -309,15 +313,6 @@ fn calculate_timestamp_for_reserved_block<BlockT: Block + Clone>(
     reservation: &Reservation,
     block_number: &U256,
 ) -> U256 {
-    fn find_reservation<'r>(
-        reservations: &'r [Reservation],
-        number: &U256,
-    ) -> Option<&'r Reservation> {
-        reservations.iter().find(|reservation| {
-            reservation.first_number <= *number && *number <= reservation.last_number
-        })
-    }
-
     let previous_block_number = reservation.first_number - U256::from(1);
     let previous_timestamp = if let Some(previous_reservation) =
         find_reservation(reservations, &previous_block_number)
@@ -338,4 +333,10 @@ fn calculate_timestamp_for_reserved_block<BlockT: Block + Clone>(
 
     previous_timestamp
         + reservation.interval * (block_number - reservation.first_number + U256::from(1))
+}
+
+fn find_reservation<'r>(reservations: &'r [Reservation], number: &U256) -> Option<&'r Reservation> {
+    reservations.iter().find(|reservation| {
+        reservation.first_number <= *number && *number <= reservation.last_number
+    })
 }

@@ -59,7 +59,7 @@ impl LocalBlockchain {
         prevrandao: Option<B256>,
         base_fee: Option<U256>,
     ) -> Result<Self, CreationError> {
-        const EXTRA_DATA: &[u8] = b"124";
+        const EXTRA_DATA: &[u8] = b"\x12\x34";
 
         let partial_header = PartialHeader {
             state_root: genesis_state

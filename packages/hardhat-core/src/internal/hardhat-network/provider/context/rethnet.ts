@@ -9,7 +9,6 @@ import { RethnetMiner } from "../miner/rethnet";
 import { RethnetAdapter } from "../vm/rethnet";
 import { NodeConfig, isForkedNodeConfig } from "../node-types";
 import {
-  ethereumjsHeaderDataToRethnetBlockOptions,
   ethereumjsMempoolOrderToRethnetMineOrdering,
   ethereumsjsHardforkToRethnetSpecId,
 } from "../utils/convertToRethnet";
@@ -22,8 +21,8 @@ import { RethnetStateManager } from "../RethnetState";
 import { RethnetMemPool } from "../mem-pool/rethnet";
 import { makeCommon } from "../utils/makeCommon";
 import { HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS } from "../../../core/config/default-config";
-import { makeGenesisBlock } from "../utils/putGenesisBlock";
 import { RandomBufferGenerator } from "../utils/random";
+import { dateToTimestampSeconds } from "../../../util/date";
 
 // Only one is allowed to exist
 export const globalRethnetContext = new RethnetContext();
@@ -94,39 +93,44 @@ export class RethnetEthContext implements EthContextAdapter {
         config.genesisAccounts
       );
 
-      const initialBaseFeePerGas =
-        config.initialBaseFeePerGas !== undefined
-          ? BigInt(config.initialBaseFeePerGas)
-          : BigInt(HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS);
+      const isPostLondon = hardforkGte(hardforkName, HardforkName.LONDON);
 
-      const genesisBlockBaseFeePerGas = hardforkGte(
-        hardforkName,
-        HardforkName.LONDON
-      )
-        ? initialBaseFeePerGas
+      const initialBaseFeePerGas = isPostLondon
+        ? config.initialBaseFeePerGas !== undefined
+          ? BigInt(config.initialBaseFeePerGas)
+          : BigInt(HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS)
         : undefined;
 
-      const genesisBlockHeader = makeGenesisBlock(
-        config,
-        await state.getStateRoot(),
-        hardforkName,
-        prevRandaoGenerator,
-        genesisBlockBaseFeePerGas
-      );
+      const initialBlockTimestamp =
+        config.initialDate !== undefined
+          ? BigInt(dateToTimestampSeconds(config.initialDate))
+          : undefined;
+
+      const isPostMerge = hardforkGte(hardforkName, HardforkName.MERGE);
+      const initialMixHash = isPostMerge
+        ? prevRandaoGenerator.next()
+        : undefined;
 
       blockchain = new RethnetBlockchain(
-        Blockchain.withGenesisBlock(
+        new Blockchain(
           common.chainId(),
           ethereumsjsHardforkToRethnetSpecId(hardforkName),
-          ethereumjsHeaderDataToRethnetBlockOptions(genesisBlockHeader),
+          BigInt(config.blockGasLimit),
           config.genesisAccounts.map((account) => {
             return {
               privateKey: account.privateKey,
               balance: BigInt(account.balance),
             };
-          })
+          }),
+          initialBlockTimestamp,
+          initialMixHash,
+          initialBaseFeePerGas
         ),
         common
+      );
+
+      state = new RethnetStateManager(
+        await blockchain.getStateAtBlockNumber(0n)
       );
     }
 
