@@ -838,6 +838,15 @@ const communityPlugins: IPlugin[] = [
     description: "Hardhat plugin to deeply compare smart contracts",
     tags: ["Storage Layout", "Bytecode", "Diff", "Compare"],
   },
+  {
+    name: "hardhat-logger",
+    author: "kruglay",
+    npmPackage: "hardhat-logger",
+    authorUrl: "https://github.com/kruglay/hardhat-logger",
+    description:
+      "Show transaction params before hardhat send transaction to network",
+    tags: ["log", "logger", "transaction"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
