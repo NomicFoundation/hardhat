@@ -46,9 +46,11 @@ You can find a list of supported networks here: https://viem.sh/docs/clients/cha
 }
 
 export class DefaultWalletClientNotFoundError extends HardhatViemError {
-  constructor() {
+  constructor(networkName: string) {
     super(
-      `Default wallet client not found. You can set the wallet client by passing it as a parameter in the deployContract function:
+      `Default wallet client not found. This can happen if no accounts were configured for this network (network: '${networkName}').
+
+Alternatively, you can set a custom wallet client by passing it as a parameter in the deployContract function:
 
 const walletClient = await hre.viem.getWalletClient(address);
 const contractA = await hre.viem.deployContract("A", [], { walletClient });
@@ -58,7 +60,9 @@ const contractB = await hre.viem.getContractAt("B", address, { walletClient });`
 }
 
 export class DeployContractError extends HardhatViemError {
-  constructor() {
-    super(`Contract deployment failed.`);
+  constructor(txHash: string, blockNumber: bigint) {
+    super(
+      `The deployment transaction '${txHash}' was mined in block '${blockNumber}' but its receipt doesn't contain a contract address`
+    );
   }
 }

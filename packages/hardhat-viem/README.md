@@ -130,7 +130,7 @@ const contract = await this.hre.viem.deployContract("contractName", [
 ]);
 ```
 
-By default, the first wallet client retrieve by `hre.viem.getWalletClients()` is used to deploy the contract. You can also specify a different wallet client by passing a third parameter, along with other properties such as `gas`, and `value`:
+By default, the first wallet client retrieved by `hre.viem.getWalletClients()` is used to deploy the contract. You can also specify a different wallet client by passing a third parameter, along with other properties, such as `gas` and `value`:
 
 ```typescript
 const [_, secondWalletClient] = await this.hre.viem.getWalletClients();
