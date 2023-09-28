@@ -4,6 +4,7 @@ import {
   BuildInfo,
 } from "@nomicfoundation/ignition-core";
 import fs from "fs";
+import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
 
@@ -16,7 +17,10 @@ export class HardhatArtifactResolver implements ArtifactResolver {
     const artifactPath = await this._resolvePath(contractName);
 
     if (artifactPath === undefined) {
-      throw new Error(`Artifact path not found for ${contractName}`);
+      throw new HardhatPluginError(
+        "hardhat-ignition",
+        `Artifact path not found for ${contractName}`
+      );
     }
 
     const debugPath = artifactPath.replace(".json", ".dbg.json");

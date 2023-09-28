@@ -1,4 +1,5 @@
-import { IgnitionValidationError } from "../../../errors";
+import { IgnitionError } from "../../../errors";
+import { ERRORS } from "../../../errors-list";
 import { isArtifactType } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { ReadEventArgumentFuture } from "../../../types/module";
@@ -14,9 +15,9 @@ export async function validateReadEventArgument(
       : await artifactLoader.loadArtifact(future.emitter.contractName);
 
   if (!isArtifactType(artifact)) {
-    throw new IgnitionValidationError(
-      `Artifact for contract '${future.emitter.contractName}' is invalid`
-    );
+    throw new IgnitionError(ERRORS.VALIDATION.INVALID_ARTIFACT, {
+      contractName: future.emitter.contractName,
+    });
   }
 
   validateArtifactEventArgumentParams(

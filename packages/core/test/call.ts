@@ -534,7 +534,7 @@ describe("call", () => {
 
         await assert.isRejected(
           validateNamedContractCall(future as any, setupMockArtifactResolver()),
-          /Function "test" not found in contract Another/
+          /Function 'test' not found in contract Another/
         );
       });
 

@@ -1,4 +1,5 @@
-import { IgnitionValidationError } from "../../../errors";
+import { IgnitionError } from "../../../errors";
+import { ERRORS } from "../../../errors-list";
 import {
   isAccountRuntimeValue,
   isModuleParameterRuntimeValue,
@@ -33,9 +34,9 @@ export async function validateNamedContractDeployment(
   );
 
   if (missingParams.length > 0) {
-    throw new IgnitionValidationError(
-      `Module parameter '${missingParams[0].name}' requires a value but was given none`
-    );
+    throw new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
+      name: missingParams[0].name,
+    });
   }
 
   if (isModuleParameterRuntimeValue(future.value)) {
@@ -43,15 +44,15 @@ export async function validateNamedContractDeployment(
       deploymentParameters[future.value.moduleId]?.[future.value.name] ??
       future.value.defaultValue;
     if (param === undefined) {
-      throw new IgnitionValidationError(
-        `Module parameter '${future.value.name}' requires a value but was given none`
-      );
+      throw new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
+        name: future.value.name,
+      });
     } else if (typeof param !== "bigint") {
-      throw new IgnitionValidationError(
-        `Module parameter '${
-          future.value.name
-        }' must be of type 'bigint' but is '${typeof param}'`
-      );
+      throw new IgnitionError(ERRORS.VALIDATION.INVALID_MODULE_PARAMETER_TYPE, {
+        name: future.value.name,
+        expectedType: "bigint",
+        actualType: typeof param,
+      });
     }
   }
 }

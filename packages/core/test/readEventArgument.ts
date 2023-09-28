@@ -275,7 +275,7 @@ describe("Read event argument", () => {
 
         await assert.isRejected(
           validateReadEventArgument(future as any, setupMockArtifactResolver()),
-          /Event "test" not found/
+          /Event 'test' not found/
         );
       });
     });

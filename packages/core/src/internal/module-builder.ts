@@ -1,7 +1,7 @@
-import assert from "assert";
 import { inspect } from "util";
 
-import { IgnitionError, IgnitionValidationError } from "../errors";
+import { IgnitionError } from "../errors";
+import { ERRORS } from "../errors-list";
 import {
   isAccountRuntimeValue,
   isAddressResolvableFuture,
@@ -64,6 +64,7 @@ import {
   SendDataFutureImplementation,
 } from "./module";
 import { resolveArgsToFutures } from "./utils";
+import { assertIgnitionInvariant } from "./utils/assertions";
 import {
   toCallFutureId,
   toDeploymentFutureId,
@@ -132,9 +133,9 @@ export class ModuleConstructor {
     );
 
     if ((mod as any).results instanceof Promise) {
-      throw new IgnitionError(
-        `The callback passed to 'buildModule' for ${moduleDefintion.id} returns a Promise; async callbacks are not allowed in 'buildModule'.`
-      );
+      throw new IgnitionError(ERRORS.MODULE.ASYNC_MODULE_DEFINITION_FUNCTION, {
+        moduleDefinitionId: moduleDefintion.id,
+      });
     }
 
     this._modules.set(moduleDefintion.id, mod);
@@ -686,9 +687,7 @@ class IgnitionModuleBuilderImplementation<
       futureToReadFrom.type === FutureType.SEND_DATA &&
       options.emitter === undefined
     ) {
-      throw new IgnitionValidationError(
-        "`options.emitter` must be provided when reading an event from a SendDataFuture"
-      );
+      throw new IgnitionError(ERRORS.VALIDATION.MISSING_EMITTER);
     }
 
     const contractToReadFrom =
@@ -788,7 +787,7 @@ class IgnitionModuleBuilderImplementation<
       SubmoduleIgnitionModuleResultsT
     >
   ): SubmoduleIgnitionModuleResultsT {
-    assert(
+    assertIgnitionInvariant(
       ignitionSubmodule !== undefined,
       "Trying to use `undefined` as submodule. Make sure you don't have a circular dependency of modules."
     );
@@ -806,7 +805,10 @@ class IgnitionModuleBuilderImplementation<
     message: string,
     func: (...[]: any[]) => any
   ): never {
-    const validationError = new IgnitionValidationError(message);
+    const validationError = new IgnitionError(
+      ERRORS.VALIDATION.INVALID_MODULE,
+      { message }
+    );
 
     // Improve the stack trace to stop on module api level
     Error.captureStackTrace(validationError, func);

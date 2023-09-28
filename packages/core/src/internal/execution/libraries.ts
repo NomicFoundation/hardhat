@@ -13,7 +13,8 @@
  * @file
  */
 
-import { IgnitionValidationError } from "../../errors";
+import { IgnitionError } from "../../errors";
+import { ERRORS } from "../../errors-list";
 import { Artifact } from "../../types/artifact";
 
 /**
@@ -51,11 +52,10 @@ export function validateLibraryNames(
       .map((name) => `* ${name}`)
       .join("\n");
 
-    throw new IgnitionValidationError(
-      `Invalid libraries for contract ${artifact.contractName}: The following libraries are missing:
-  
-  ${fullyQualifiedNames}`
-    );
+    throw new IgnitionError(ERRORS.VALIDATION.MISSING_LIBRARIES, {
+      fullyQualifiedNames,
+      contractName: artifact.contractName,
+    });
   }
 }
 
@@ -109,9 +109,11 @@ function validateNotRepeatedLibraries(
     );
 
     if (sourceName !== undefined && libraryNames.includes(libName)) {
-      throw new IgnitionValidationError(
-        `Invalid libraries for contract ${artifact.contractName}: The names "${inputName}" and "${libName}" clash with each other, please use qualified names for both.`
-      );
+      throw new IgnitionError(ERRORS.VALIDATION.CONFLICTING_LIBRARY_NAMES, {
+        inputName,
+        libName,
+        contractName: artifact.contractName,
+      });
     }
   }
 }
@@ -129,9 +131,10 @@ function parseLibraryName(
   const parts = libraryName.split(":");
 
   if (parts.length > 2) {
-    throw new IgnitionValidationError(
-      `Invalid library name ${libraryName} for contract ${contractName}`
-    );
+    throw new IgnitionError(ERRORS.VALIDATION.INVALID_LIBRARY_NAME, {
+      libraryName,
+      contractName,
+    });
   }
 
   if (parts.length === 1) {
@@ -163,9 +166,10 @@ function getActualNameForArtifactLibrary(
       artifact.linkReferences[sourceName] === undefined ||
       artifact.linkReferences[sourceName][libName] === undefined
     ) {
-      throw new IgnitionValidationError(
-        `Invalid library ${libraryName} for contract ${artifact.contractName}: this library is not needed by this contract.`
-      );
+      throw new IgnitionError(ERRORS.VALIDATION.LIBRARY_NOT_NEEDED, {
+        libraryName,
+        contractName: artifact.contractName,
+      });
     }
 
     return { sourceName, libName };
@@ -190,9 +194,10 @@ function getActualNameForArtifactLibrary(
     bareNameToParsedNames[libName] === undefined ||
     bareNameToParsedNames[libName].length === 0
   ) {
-    throw new IgnitionValidationError(
-      `Invalid library ${libraryName} for contract ${artifact.contractName}: this library is not needed by this contract.`
-    );
+    throw new IgnitionError(ERRORS.VALIDATION.LIBRARY_NOT_NEEDED, {
+      libraryName,
+      contractName: artifact.contractName,
+    });
   }
 
   if (bareNameToParsedNames[libName].length > 1) {
@@ -203,11 +208,11 @@ function getActualNameForArtifactLibrary(
       )
       .join("\n");
 
-    throw new IgnitionValidationError(
-      `Invalid libraries for contract ${artifact.contractName}: The name "${libraryName}" is ambiguous, please use one of the following fully qualified names:
-
-${fullyQualifiedNames}`
-    );
+    throw new IgnitionError(ERRORS.VALIDATION.AMBIGUOUS_LIBRARY_NAME, {
+      fullyQualifiedNames,
+      libraryName,
+      contractName: artifact.contractName,
+    });
   }
 
   return bareNameToParsedNames[libName][0];
@@ -222,9 +227,11 @@ function validateAddresses(
 ) {
   for (const [libraryName, address] of Object.entries(libraries)) {
     if (address.match(/^0x[0-9a-fA-F]{40}$/) === null) {
-      throw new IgnitionValidationError(
-        `Invalid address ${address} for library ${libraryName} of contract ${artifact.contractName}`
-      );
+      throw new IgnitionError(ERRORS.VALIDATION.INVALID_LIBRARY_ADDRESS, {
+        address,
+        libraryName,
+        contractName: artifact.contractName,
+      });
     }
   }
 }

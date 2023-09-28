@@ -59,7 +59,7 @@ describe("Libraries handling", () => {
           "Lib",
           "contracts/C.sol:Lib",
         ]);
-      }, `The names "contracts/C.sol:Lib" and "Lib" clash with each other`);
+      }, `The names 'contracts/C.sol:Lib' and 'Lib' clash with each other`);
     });
 
     it("Should accept bare names if non-ambiguous", () => {

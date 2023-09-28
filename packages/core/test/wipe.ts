@@ -134,7 +134,7 @@ describe("wipe", () => {
 
     await assert.isRejected(
       wiper.wipe(contract1Id),
-      `Cannot wipe ${contract1Id} as there are dependent futures that have already started:\n  ${contract2Id}`
+      `Cannot wipe ${contract1Id} as there are dependent futures that have already started: ${contract2Id}`
     );
   });
 });

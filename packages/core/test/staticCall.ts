@@ -549,7 +549,7 @@ describe("static call", () => {
 
         await assert.isRejected(
           validateNamedStaticCall(future as any, setupMockArtifactResolver()),
-          /Function "test" not found in contract Another/
+          /Function 'test' not found in contract Another/
         );
       });
 

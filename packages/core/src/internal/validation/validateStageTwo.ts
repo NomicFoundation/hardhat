@@ -1,4 +1,4 @@
-import { IgnitionValidationError } from "../../errors";
+import { IgnitionError } from "../../errors";
 import { ArtifactResolver } from "../../types/artifact";
 import {
   DeploymentParameters,
@@ -38,8 +38,8 @@ export async function validateStageTwo(
       );
     } catch (err) {
       assertIgnitionInvariant(
-        err instanceof IgnitionValidationError,
-        `Expected an IgnitionValidationError when validating the future ${future.id}`
+        err instanceof IgnitionError,
+        `Expected an IgnitionError when validating the future ${future.id}`
       );
 
       return {
