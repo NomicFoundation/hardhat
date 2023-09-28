@@ -18,7 +18,7 @@ import {
 } from "./errors";
 
 export async function deployContract(
-  hre: HardhatRuntimeEnvironment,
+  { artifacts, network }: HardhatRuntimeEnvironment,
   contractName: string,
   constructorArgs: any[] = [],
   config: DeployContractConfig = {}
@@ -26,9 +26,10 @@ export async function deployContract(
   const { walletClient: configWalletClient, ...deployContractParameters } =
     config;
   const [publicClient, walletClient, contractArtifact] = await Promise.all([
-    getPublicClient(hre.network.provider),
-    configWalletClient ?? getDefaultWalletClient(hre.network.provider),
-    hre.artifacts.readArtifact(contractName),
+    getPublicClient(network.provider),
+    configWalletClient ??
+      getDefaultWalletClient(network.provider, network.name),
+    artifacts.readArtifact(contractName),
   ]);
 
   return innerDeployContract(
@@ -41,7 +42,7 @@ export async function deployContract(
   );
 }
 
-async function innerDeployContract(
+export async function innerDeployContract(
   publicClient: PublicClient,
   walletClient: WalletClient,
   contractAbi: Abi,
@@ -61,7 +62,10 @@ async function innerDeployContract(
   });
 
   if (contractAddress === null) {
-    throw new DeployContractError();
+    const transaction = await publicClient.getTransaction({
+      hash: deploymentTxHash,
+    });
+    throw new DeployContractError(deploymentTxHash, transaction.blockNumber);
   }
 
   const contract = await innerGetContractAt(
@@ -75,15 +79,16 @@ async function innerDeployContract(
 }
 
 export async function getContractAt(
-  hre: HardhatRuntimeEnvironment,
+  { artifacts, network }: HardhatRuntimeEnvironment,
   contractName: string,
   address: Address,
   config: GetContractAtConfig = {}
 ): Promise<GetContractReturnType> {
   const [publicClient, walletClient, contractArtifact] = await Promise.all([
-    getPublicClient(hre.network.provider),
-    config.walletClient ?? getDefaultWalletClient(hre.network.provider),
-    hre.artifacts.readArtifact(contractName),
+    getPublicClient(network.provider),
+    config.walletClient ??
+      getDefaultWalletClient(network.provider, network.name),
+    artifacts.readArtifact(contractName),
   ]);
 
   return innerGetContractAt(
@@ -112,12 +117,13 @@ async function innerGetContractAt(
 }
 
 async function getDefaultWalletClient(
-  provider: EthereumProvider
+  provider: EthereumProvider,
+  networkName: string
 ): Promise<WalletClient> {
   const [defaultWalletClient] = await getWalletClients(provider);
 
   if (defaultWalletClient === undefined) {
-    throw new DefaultWalletClientNotFoundError();
+    throw new DefaultWalletClientNotFoundError(networkName);
   }
 
   return defaultWalletClient;

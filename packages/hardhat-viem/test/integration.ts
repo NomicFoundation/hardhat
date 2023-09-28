@@ -1,14 +1,24 @@
+import type { Hex, TransactionReceipt } from "viem";
+import type { EthereumProvider } from "hardhat/types";
+
 import { assert, expect } from "chai";
+import sinon from "sinon";
 import { getAddress, parseEther } from "viem";
 
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
+import { deployContract, innerDeployContract } from "../src/internal/contracts";
 import { useEnvironment } from "./helpers";
+import { EthereumMockedProvider } from "./mocks/provider";
 
 describe("Integration tests", function () {
   useEnvironment("hardhat-project");
 
   before(async function () {
     await this.hre.run(TASK_COMPILE, { quiet: true });
+  });
+
+  afterEach(function () {
+    sinon.restore();
   });
 
   describe("Hardhat Runtime Environment extension", function () {
@@ -154,6 +164,50 @@ describe("Integration tests", function () {
         assert.equal(
           ownerBalanceAfter,
           ownerBalanceBefore - etherAmount - transactionFee
+        );
+      });
+
+      it("should throw an error if the contract address can't be retrieved", async function () {
+        const publicClient = await this.hre.viem.getPublicClient();
+        sinon.stub(publicClient, "waitForTransactionReceipt").returns(
+          Promise.resolve({
+            contractAddress: null,
+          }) as unknown as Promise<TransactionReceipt>
+        );
+        const [walletClient] = await this.hre.viem.getWalletClients();
+        const contractArtifact = await this.hre.artifacts.readArtifact(
+          "WithoutConstructorArgs"
+        );
+
+        await expect(
+          innerDeployContract(
+            publicClient,
+            walletClient,
+            contractArtifact.abi,
+            contractArtifact.bytecode as Hex,
+            []
+          )
+        ).to.be.rejectedWith(
+          /The deployment transaction '0x[a-fA-F0-9]{64}' was mined in block '\d+' but its receipt doesn't contain a contract address/
+        );
+      });
+
+      it("should throw an error if no accounts are configured for the network", async function () {
+        const provider: EthereumProvider = new EthereumMockedProvider();
+        const sendStub = sinon.stub(provider, "send");
+        sendStub.withArgs("eth_accounts").returns(Promise.resolve([]));
+        const hre = {
+          ...this.hre,
+          network: {
+            ...this.hre.network,
+            provider,
+          },
+        };
+
+        await expect(
+          deployContract(hre, "WithoutConstructorArgs")
+        ).to.be.rejectedWith(
+          /Default wallet client not found. This can happen if no accounts were configured for this network/
         );
       });
     });
