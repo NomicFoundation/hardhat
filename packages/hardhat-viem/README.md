@@ -142,8 +142,35 @@ const contractA = await this.hre.viem.deployContract(
     walletClient: secondWalletClient,
     gas: 1000000,
     value: parseEther("0.0001"),
+    confirmations: 5, // 1 by default
   }
 );
+```
+
+##### Send deployment transaction
+
+By default, the `deployContract` method sends a deployment transaction to the blockchain and waits for the transaction to be mined. If you want to send the transaction without waiting for it to be mined, you can do so by using `sendDeploymentTransaction`:
+
+```typescript
+const { contract: contractName, deploymentTransaction } =
+  await this.hre.viem.sendDeploymentTransaction(
+    "contractName",
+    ["arg1", 50, "arg3"],
+    {
+      walletClient: secondWalletClient,
+      gas: 1000000,
+      value: parseEther("0.0001"),
+    }
+  );
+```
+
+Then, if you want to wait for the transaction to be mined, you can do:
+
+```typescript
+const publicClient = await this.hre.viem.getPublicClient();
+const { contractAddress } = await publicClient.waitForTransactionReceipt({
+  hash: deploymentTransaction.hash,
+});
 ```
 
 #### Retrieving an Existing Contract
