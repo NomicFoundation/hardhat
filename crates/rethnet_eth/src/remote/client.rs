@@ -393,7 +393,8 @@ impl RpcClient {
         );
 
         // 1. Write to a random temporary file first to avoid race conditions.
-        let tempfile = match tokio::task::spawn_blocking(NamedTempFile::new).await? {
+        let cache_dir = self.rpc_cache_dir.clone();
+        let tempfile = match tokio::task::spawn_blocking(|| NamedTempFile::new_in(cache_dir)).await? {
             Ok(tempfile) => tempfile,
             Err(error) => {
                 log_cache_error(
