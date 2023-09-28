@@ -26,24 +26,47 @@ pub struct ForkState {
     local_state: TrieState,
     remote_state: Arc<Mutex<CachedRemoteState>>,
     removed_storage_slots: HashSet<(Address, U256)>,
-    fork_block_number: U256,
     /// A pair of the generated state root and local state root
     current_state: RwLock<(B256, B256)>,
-    initial_state_root: B256,
     hash_generator: Arc<Mutex<RandomHashGenerator>>,
     removed_remote_accounts: HashSet<Address>,
 }
 
 impl ForkState {
-    /// Constructs a new instance.
-    pub async fn new(
+    /// Constructs a new instance
+    pub fn new(
         runtime: runtime::Handle,
         rpc_client: Arc<RpcClient>,
         hash_generator: Arc<Mutex<RandomHashGenerator>>,
         fork_block_number: U256,
-        mut accounts: HashMap<Address, AccountInfo>,
+        state_root: B256,
+    ) -> Self {
+        let remote_state = RemoteState::new(runtime, rpc_client, fork_block_number);
+        let local_state = TrieState::default();
+
+        let mut state_root_to_state = HashMap::new();
+        let local_root = local_state.state_root().unwrap();
+        state_root_to_state.insert(state_root, local_root);
+
+        Self {
+            local_state,
+            remote_state: Arc::new(Mutex::new(CachedRemoteState::new(remote_state))),
+            removed_storage_slots: HashSet::new(),
+            current_state: RwLock::new((state_root, local_root)),
+            hash_generator,
+            removed_remote_accounts: HashSet::new(),
+        }
+    }
+
+    /// Constructs a new instance with account overrides.
+    pub async fn with_overrides(
+        runtime: runtime::Handle,
+        rpc_client: Arc<RpcClient>,
+        hash_generator: Arc<Mutex<RandomHashGenerator>>,
+        fork_block_number: U256,
+        mut account_overrides: HashMap<Address, AccountInfo>,
     ) -> Result<Self, RpcClientError> {
-        for (address, account_info) in &mut accounts {
+        for (address, account_info) in &mut account_overrides {
             let nonce = rpc_client
                 .get_transaction_count(address, Some(BlockSpec::Number(fork_block_number)))
                 .await?;
@@ -52,7 +75,7 @@ impl ForkState {
         }
 
         let remote_state = RemoteState::new(runtime, rpc_client, fork_block_number);
-        let local_state = TrieState::with_accounts(AccountTrie::with_accounts(&accounts));
+        let local_state = TrieState::with_accounts(AccountTrie::with_accounts(&account_overrides));
 
         let generated_state_root = hash_generator.lock().next_value();
         let mut state_root_to_state = HashMap::new();
@@ -63,9 +86,7 @@ impl ForkState {
             local_state,
             remote_state: Arc::new(Mutex::new(CachedRemoteState::new(remote_state))),
             removed_storage_slots: HashSet::new(),
-            fork_block_number,
             current_state: RwLock::new((generated_state_root, local_root)),
-            initial_state_root: generated_state_root,
             hash_generator,
             removed_remote_accounts: HashSet::new(),
         })
@@ -77,14 +98,14 @@ impl ForkState {
     }
 
     /// Sets the current state root, preventing it from being regenerated.
-    pub fn set_state_root(&mut self, state_root: &B256) {
+    pub fn set_state_root(&mut self, state_root: B256) {
         let local_state_root = self
             .local_state
             .state_root()
             .expect("The trie is guaranteed to have a state root");
 
         let current_state = self.current_state.get_mut();
-        *current_state = (*state_root, local_state_root);
+        *current_state = (state_root, local_state_root);
     }
 
     /// Retrieves the state root generator
@@ -99,9 +120,7 @@ impl Clone for ForkState {
             local_state: self.local_state.clone(),
             remote_state: self.remote_state.clone(),
             removed_storage_slots: self.removed_storage_slots.clone(),
-            fork_block_number: self.fork_block_number,
             current_state: RwLock::new(*self.current_state.read()),
-            initial_state_root: self.initial_state_root,
             hash_generator: self.hash_generator.clone(),
             removed_remote_accounts: self.removed_remote_accounts.clone(),
         }
@@ -268,15 +287,18 @@ mod tests {
             let runtime = runtime::Handle::current();
             let rpc_client = RpcClient::new(&get_alchemy_url(), tempdir.path().to_path_buf());
 
+            let block = rpc_client
+                .get_block_by_number(BlockSpec::Number(U256::from(FORK_BLOCK)))
+                .await
+                .expect("failed to retrieve block by number");
+
             let fork_state = ForkState::new(
                 runtime,
                 Arc::new(rpc_client),
                 hash_generator,
                 U256::from(FORK_BLOCK),
-                HashMap::default(),
-            )
-            .await
-            .expect("failed to construct ForkState");
+                block.state_root,
+            );
 
             Self {
                 fork_state,

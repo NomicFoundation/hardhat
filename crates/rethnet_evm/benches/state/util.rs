@@ -12,7 +12,7 @@ use tokio::runtime::Builder;
 use rethnet_eth::{Address, Bytes, U256};
 use rethnet_evm::state::{StateError, SyncState, TrieState};
 #[cfg(all(test, feature = "test-remote"))]
-use rethnet_evm::{state::ForkState, HashMap, RandomHashGenerator};
+use rethnet_evm::{state::ForkState, RandomHashGenerator};
 use revm::primitives::{AccountInfo, Bytecode, KECCAK_EMPTY};
 
 #[allow(dead_code)]
@@ -44,7 +44,7 @@ impl RethnetStates {
 
         #[cfg(all(test, feature = "test-remote"))]
         let fork = {
-            use rethnet_eth::remote::RpcClient;
+            use rethnet_eth::remote::{BlockSpec, RpcClient};
 
             let rpc_client = Arc::new(RpcClient::new(
                 &std::env::var_os("ALCHEMY_URL")
@@ -54,15 +54,17 @@ impl RethnetStates {
                 cache_dir.path().to_path_buf(),
             ));
 
-            runtime
-                .block_on(ForkState::new(
-                    runtime.handle().clone(),
-                    rpc_client,
-                    Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed"))),
-                    fork_block_number,
-                    HashMap::default(),
-                ))
-                .expect("Failed to construct ForkedState")
+            let block = runtime
+                .block_on(rpc_client.get_block_by_number(BlockSpec::Number(fork_block_number)))
+                .expect("failed to retrieve block by number");
+
+            ForkState::new(
+                runtime.handle().clone(),
+                rpc_client,
+                Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed"))),
+                fork_block_number,
+                block.state_root,
+            )
         };
 
         Self {

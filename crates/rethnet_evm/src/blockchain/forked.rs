@@ -146,18 +146,33 @@ impl ForkedBlockchain {
         }
 
         let rpc_client = Arc::new(rpc_client);
-        let fork_state = ForkState::new(
-            runtime.clone(),
-            rpc_client.clone(),
-            state_root_generator,
-            fork_block_number,
-            account_overrides,
-        )
-        .await?;
+        let remote = RemoteBlockchain::new(rpc_client.clone());
+
+        let fork_state = if account_overrides.is_empty() {
+            let block: Arc<dyn SyncBlock<Error = BlockchainError>> =
+                remote.block_by_number(&fork_block_number).await?;
+
+            ForkState::new(
+                runtime.clone(),
+                rpc_client,
+                state_root_generator,
+                fork_block_number,
+                block.header().state_root,
+            )
+        } else {
+            ForkState::with_overrides(
+                runtime.clone(),
+                rpc_client,
+                state_root_generator,
+                fork_block_number,
+                account_overrides,
+            )
+            .await?
+        };
 
         Ok(Self {
             local_storage: ReservableSparseBlockchainStorage::empty(fork_block_number),
-            remote: RemoteBlockchain::new(rpc_client),
+            remote,
             fork_state,
             runtime,
             fork_block_number,
@@ -341,14 +356,15 @@ impl Blockchain for ForkedBlockchain {
         let state = match block_number.cmp(&self.fork_block_number) {
             std::cmp::Ordering::Less => {
                 // We don't apply account overrides to pre-fork states
+                let block = self.remote.block_by_number(block_number).await?;
+
                 ForkState::new(
                     self.runtime.clone(),
                     self.remote.client().clone(),
                     self.fork_state.state_root_generator().clone(),
                     *block_number,
-                    HashMap::new(),
+                    block.header().state_root,
                 )
-                .await?
             }
             std::cmp::Ordering::Equal => self.fork_state.clone(),
             std::cmp::Ordering::Greater => {
@@ -362,7 +378,7 @@ impl Blockchain for ForkedBlockchain {
                     .header()
                     .state_root;
 
-                state.set_state_root(&state_root);
+                state.set_state_root(state_root);
 
                 state
             }

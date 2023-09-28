@@ -166,21 +166,25 @@ export class EthereumJSAdapter implements VMAdapter {
     let forkNetworkId: number | undefined;
 
     if (isForkedNodeConfig(config)) {
-      const { forkClient, forkBlockNumber } = await makeForkClient(
-        config.forkConfig,
-        config.forkCachePath
-      );
+      const { forkClient, forkBlockNumber, forkBlockStateRoot } =
+        await makeForkClient(config.forkConfig, config.forkCachePath);
 
       forkNetworkId = forkClient.getNetworkId();
       forkBlockNum = forkBlockNumber;
 
-      const forkStateManager = new ForkStateManager(
-        forkClient,
-        forkBlockNumber
-      );
-      await forkStateManager.initializeGenesisAccounts(config.genesisAccounts);
-
-      stateManager = forkStateManager;
+      if (config.genesisAccounts.length === 0) {
+        stateManager = new ForkStateManager(
+          forkClient,
+          forkBlockNumber,
+          forkBlockStateRoot
+        );
+      } else {
+        stateManager = await ForkStateManager.withGenesisAccounts(
+          forkClient,
+          forkBlockNumber,
+          config.genesisAccounts
+        );
+      }
     } else {
       const stateTrie = await makeStateTrie(config.genesisAccounts);
 

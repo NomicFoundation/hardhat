@@ -142,7 +142,7 @@ impl State {
         runtime.clone().spawn(async move {
             let rpc_client = RpcClient::new(&remote_node_url, cache_dir);
 
-            let result = ForkState::new(
+            let result = ForkState::with_overrides(
                 runtime.clone(),
                 Arc::new(rpc_client),
                 state_root_generator,

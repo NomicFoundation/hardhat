@@ -58,8 +58,8 @@ export class ForkStateManager implements StateManager {
   // should be removed
   public addresses: Set<string> = new Set();
   private _state: State = ImmutableMap<string, ImmutableRecord<AccountState>>();
-  private _initialStateRoot: string = randomHash();
-  private _stateRoot: string = this._initialStateRoot;
+  private _initialStateRoot: string;
+  private _stateRoot: string;
   private _stateRootToState: Map<string, State> = new Map();
   private _originalStorageCache: Map<string, Buffer> = new Map();
   private _stateCheckpoints: string[] = [];
@@ -68,14 +68,24 @@ export class ForkStateManager implements StateManager {
 
   constructor(
     private readonly _jsonRpcClient: JsonRpcClient,
-    private readonly _forkBlockNumber: bigint
+    private readonly _forkBlockNumber: bigint,
+    stateRoot?: string
   ) {
-    this._state = ImmutableMap<string, ImmutableRecord<AccountState>>();
+    if (stateRoot === undefined) {
+      stateRoot = randomHash();
+    }
+
+    this._initialStateRoot = stateRoot;
+    this._stateRoot = stateRoot;
 
     this._stateRootToState.set(this._initialStateRoot, this._state);
   }
 
-  public async initializeGenesisAccounts(genesisAccounts: GenesisAccount[]) {
+  public static async withGenesisAccounts(
+    jsonRpcClient: JsonRpcClient,
+    forkBlockNumber: bigint,
+    genesisAccounts: GenesisAccount[]
+  ) {
     const accounts: Array<{ address: Address; account: Account }> = [];
     const noncesPromises: Array<Promise<bigint>> = [];
 
@@ -83,9 +93,9 @@ export class ForkStateManager implements StateManager {
       const account = makeAccount(ga);
       accounts.push(account);
 
-      const noncePromise = this._jsonRpcClient.getTransactionCount(
+      const noncePromise = jsonRpcClient.getTransactionCount(
         account.address.toBuffer(),
-        this._forkBlockNumber
+        forkBlockNumber
       );
       noncesPromises.push(noncePromise);
     }
@@ -97,22 +107,30 @@ export class ForkStateManager implements StateManager {
       "Nonces and accounts should have the same length"
     );
 
+    const stateManager = new ForkStateManager(jsonRpcClient, forkBlockNumber);
+
     for (const [index, { address, account }] of accounts.entries()) {
       const nonce = nonces[index];
       account.nonce = nonce;
-      this._putAccount(address, account);
+      stateManager._putAccount(address, account);
     }
 
-    this._stateRootToState.set(this._initialStateRoot, this._state);
+    // Overwrite the original state
+    stateManager._stateRootToState.set(
+      stateManager._initialStateRoot,
+      stateManager._state
+    );
+
+    return stateManager;
   }
 
   public copy(): ForkStateManager {
     const fsm = new ForkStateManager(
       this._jsonRpcClient,
-      this._forkBlockNumber
+      this._forkBlockNumber,
+      this._stateRoot
     );
     fsm._state = this._state;
-    fsm._stateRoot = this._stateRoot;
 
     // because this map is append-only we don't need to copy it
     fsm._stateRootToState = this._stateRootToState;
@@ -430,7 +448,7 @@ export class ForkStateManager implements StateManager {
     const newRoot = bufferToHex(stateRoot);
     const state = this._stateRootToState.get(newRoot);
     if (state === undefined) {
-      throw new Error("Unknown state root");
+      throw new Error(`Unknown state root: ${stateRoot.toString("hex")}`);
     }
     this._stateRoot = newRoot;
     this._state = state;
