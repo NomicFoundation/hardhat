@@ -31,8 +31,6 @@ export class IgnitionError extends CustomError {
     );
 
     super(prefix + formattedMessage);
-
-    this.name = this.constructor.name;
   }
 }
 
@@ -59,11 +57,6 @@ export class IgnitionPluginError extends CustomError {
   constructor(pluginName: string, message: string) {
     super(message);
     this.pluginName = pluginName;
-
-    // This is required to allow calls to `resetStackFrom`,
-    // otherwise the function is not available on the
-    // error instance
-    Object.setPrototypeOf(this, new.target.prototype);
   }
 }
 
@@ -85,11 +78,6 @@ export class NomicIgnitionPluginError extends IgnitionPluginError {
   }
 
   private readonly _isNomicIgnitionPluginError = true;
-
-  constructor(pluginName: string, message: string) {
-    super(pluginName, message);
-    Object.setPrototypeOf(this, NomicIgnitionPluginError.prototype);
-  }
 }
 
 /**
