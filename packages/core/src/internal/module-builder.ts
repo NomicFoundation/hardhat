@@ -165,6 +165,13 @@ class IgnitionModuleBuilderImplementation<
   }
 
   public getAccount(accountIndex: number): AccountRuntimeValue {
+    if (typeof accountIndex !== "number") {
+      this._throwErrorWithStackTrace(
+        `Account index must be a number, received ${typeof accountIndex}`,
+        this.getAccount
+      );
+    }
+
     return new AccountRuntimeValueImplementation(accountIndex);
   }
 
@@ -172,6 +179,13 @@ class IgnitionModuleBuilderImplementation<
     parameterName: string,
     defaultValue?: ParamTypeT
   ): ModuleParameterRuntimeValue<ParamTypeT> {
+    if (typeof parameterName !== "string") {
+      this._throwErrorWithStackTrace(
+        `Parameter name must be a string, received ${typeof parameterName}`,
+        this.getParameter
+      );
+    }
+
     return new ModuleParameterRuntimeValueImplementation(
       this._module.id,
       parameterName,
@@ -198,6 +212,13 @@ class IgnitionModuleBuilderImplementation<
   ):
     | NamedArtifactContractDeploymentFuture<ContractNameT>
     | ContractDeploymentFuture {
+    if (typeof contractName !== "string") {
+      this._throwErrorWithStackTrace(
+        `Contract name must be a string, received ${typeof contractName}`,
+        this.contract
+      );
+    }
+
     if (artifactOrArgs === undefined || Array.isArray(artifactOrArgs)) {
       if (Array.isArray(argsorOptions)) {
         this._throwErrorWithStackTrace(
@@ -352,6 +373,13 @@ class IgnitionModuleBuilderImplementation<
     artifactOrOptions?: Artifact | LibraryOptions,
     options?: LibraryOptions
   ) {
+    if (typeof libraryName !== "string") {
+      this._throwErrorWithStackTrace(
+        `Library name must be a string, received ${typeof libraryName}`,
+        this.library
+      );
+    }
+
     if (isArtifactType(artifactOrOptions)) {
       return this._libraryFromArtifact(libraryName, artifactOrOptions, options);
     }
@@ -449,6 +477,20 @@ class IgnitionModuleBuilderImplementation<
     args: ArgumentType[] = [],
     options: CallOptions = {}
   ): ContractCallFuture<ContractNameT, FunctionNameT> {
+    if (!Array.isArray(args)) {
+      this._throwErrorWithStackTrace(
+        `Invalid parameter "args" provided to call "${functionName}" in module "${this._module.id}"`,
+        this.call
+      );
+    }
+
+    if (typeof options !== "object") {
+      this._throwErrorWithStackTrace(
+        `Invalid parameter "options" provided to call "${functionName}" in module "${this._module.id}"`,
+        this.call
+      );
+    }
+
     const futureId = toCallFutureId(
       this._module.id,
       options.id,
@@ -503,6 +545,20 @@ class IgnitionModuleBuilderImplementation<
     nameOrIndex: string | number = 0,
     options: StaticCallOptions = {}
   ): StaticCallFuture<ContractNameT, FunctionNameT> {
+    if (!Array.isArray(args)) {
+      this._throwErrorWithStackTrace(
+        `Invalid parameter "args" provided to staticCall "${functionName}" in module "${this._module.id}"`,
+        this.staticCall
+      );
+    }
+
+    if (typeof options !== "object") {
+      this._throwErrorWithStackTrace(
+        `Invalid parameter "options" provided to staticCall "${functionName}" in module "${this._module.id}"`,
+        this.staticCall
+      );
+    }
+
     const futureId = toCallFutureId(
       this._module.id,
       options.id,
@@ -570,6 +626,13 @@ class IgnitionModuleBuilderImplementation<
     artifactOrOptions?: Artifact | ContractAtOptions,
     options?: ContractAtOptions
   ) {
+    if (typeof contractName !== "string") {
+      this._throwErrorWithStackTrace(
+        `Contract name must be a string, received ${typeof contractName}`,
+        this.contractAt
+      );
+    }
+
     if (isArtifactType(artifactOrOptions)) {
       return this._contractAtFromArtifact(
         contractName,
@@ -681,6 +744,13 @@ class IgnitionModuleBuilderImplementation<
     nameOrIndex: string | number,
     options: ReadEventArgumentOptions = {}
   ): ReadEventArgumentFuture {
+    if (typeof options !== "object") {
+      this._throwErrorWithStackTrace(
+        `Invalid parameter "options" provided to readEventArgument "${eventName}" in module "${this._module.id}"`,
+        this.readEventArgument
+      );
+    }
+
     const eventIndex = options.eventIndex ?? 0;
 
     if (
@@ -742,6 +812,13 @@ class IgnitionModuleBuilderImplementation<
     data?: string,
     options: SendDataOptions = {}
   ): SendDataFuture {
+    if (typeof options !== "object") {
+      this._throwErrorWithStackTrace(
+        `Invalid parameter "options" provided to send "${id}" in module "${this._module.id}"`,
+        this.send
+      );
+    }
+
     const futureId = toSendDataFutureId(this._module.id, id);
     const val = value ?? BigInt(0);
 
