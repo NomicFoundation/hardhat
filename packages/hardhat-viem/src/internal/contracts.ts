@@ -17,6 +17,7 @@ import { getPublicClient, getWalletClients } from "./clients";
 import {
   DefaultWalletClientNotFoundError,
   DeployContractError,
+  HardhatViemError,
   InvalidConfirmationsError,
 } from "./errors";
 
@@ -65,8 +66,11 @@ export async function innerDeployContract(
     ...deployContractParameters,
   });
 
-  if (confirmations <= 0) {
-    throw new InvalidConfirmationsError(confirmations);
+  if (confirmations < 0) {
+    throw new HardhatViemError("Confirmations must be greater than 0.");
+  }
+  if (confirmations === 0) {
+    throw new InvalidConfirmationsError();
   }
 
   const { contractAddress } = await publicClient.waitForTransactionReceipt({

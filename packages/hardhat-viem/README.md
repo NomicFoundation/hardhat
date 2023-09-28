@@ -51,7 +51,9 @@ Viem supports three types of clients:
 A Public Client is an interface to "public" JSON-RPC API methods such as retrieving block numbers, transactions, reading from smart contracts, etc through [Public Actions](https://viem.sh/docs/actions/public/introduction.html).
 
 ```typescript
-const publicClient = await this.hre.viem.getPublicClient();
+import hre from "hardhat";
+
+const publicClient = await hre.viem.getPublicClient();
 
 const blockNumber = await publicClient.getBlockNumber();
 
@@ -65,8 +67,9 @@ const balance = await publicClient.getBalance({
 A Wallet Client is an interface to interact with Ethereum Account(s) and provides the ability to retrieve accounts, execute transactions, sign messages, etc through [Wallet Actions](https://viem.sh/docs/actions/wallet/introduction.html).
 
 ```typescript
-const [fromWalletClient, toWalletClient] =
-  await this.hre.viem.getWalletClients();
+import hre from "hardhat";
+
+const [fromWalletClient, toWalletClient] = await hre.viem.getWalletClients();
 
 const hash = await fromWalletClient.sendTransaction({
   to: toWalletClient.account.address,
@@ -75,7 +78,9 @@ const hash = await fromWalletClient.sendTransaction({
 ```
 
 ```typescript
-const walletClient = await this.hre.viem.getWalletClient(
+import hre from "hardhat";
+
+const walletClient = await hre.viem.getWalletClient(
   "0xA0Cf798816D4b9b9866b5330EEa46a18382f251e"
 );
 
@@ -90,7 +95,9 @@ const signature = await walletClient.signMessage({
 A Test Client is an interface to "test" JSON-RPC API methods accessible through a local Ethereum test node such as Anvil or Hardhat such as mining blocks, impersonating accounts, setting fees, etc through [Test Actions](https://viem.sh/docs/actions/test/introduction.html).
 
 ```typescript
-const testClient = await this.hre.viem.getTestClient();
+import hre from "hardhat";
+
+const testClient = await hre.viem.getTestClient();
 
 await testClient.mine({
   blocks: 1000000,
@@ -102,7 +109,9 @@ await testClient.mine({
 You can pass options to the `getPublicClient`, `getWalletClient`, and `getTestClient` methods to customize the client's behavior.
 
 ```typescript
-const publicClient = await this.hre.viem.getPublicClient({
+import hre from "hardhat";
+
+const publicClient = await hre.viem.getPublicClient({
   pollingInterval: 1000,
   cacheTime: 2000,
 });
@@ -123,7 +132,9 @@ The `viem` object provides convenient methods for deploying and interacting with
 To deploy a contract to the blockchain, use the `deployContract` method:
 
 ```typescript
-const contract = await this.hre.viem.deployContract("contractName", [
+import hre from "hardhat";
+
+const contract = await hre.viem.deployContract("contractName", [
   "arg1",
   50,
   "arg3",
@@ -133,9 +144,11 @@ const contract = await this.hre.viem.deployContract("contractName", [
 By default, the first wallet client retrieved by `hre.viem.getWalletClients()` is used to deploy the contract. You can also specify a different wallet client by passing a third parameter, along with other properties, such as `gas` and `value`:
 
 ```typescript
-const [_, secondWalletClient] = await this.hre.viem.getWalletClients();
+import hre from "hardhat";
 
-const contractA = await this.hre.viem.deployContract(
+const [_, secondWalletClient] = await hre.viem.getWalletClients();
+
+const contractA = await hre.viem.deployContract(
   "contractName",
   ["arg1", 50, "arg3"],
   {
@@ -152,8 +165,10 @@ const contractA = await this.hre.viem.deployContract(
 By default, the `deployContract` method sends a deployment transaction to the blockchain and waits for the transaction to be mined. If you want to send the transaction without waiting for it to be mined, you can do so by using `sendDeploymentTransaction`:
 
 ```typescript
+import hre from "hardhat";
+
 const { contract: contractName, deploymentTransaction } =
-  await this.hre.viem.sendDeploymentTransaction(
+  await hre.viem.sendDeploymentTransaction(
     "contractName",
     ["arg1", 50, "arg3"],
     {
@@ -167,7 +182,9 @@ const { contract: contractName, deploymentTransaction } =
 Then, if you want to wait for the transaction to be mined, you can do:
 
 ```typescript
-const publicClient = await this.hre.viem.getPublicClient();
+import hre from "hardhat";
+
+const publicClient = await hre.viem.getPublicClient();
 const { contractAddress } = await publicClient.waitForTransactionReceipt({
   hash: deploymentTransaction.hash,
 });
@@ -178,7 +195,9 @@ const { contractAddress } = await publicClient.waitForTransactionReceipt({
 If the contract is already deployed, you can retrieve an instance of it using the `getContractAt` method:
 
 ```typescript
-const contract = await this.hre.viem.getContractAt(
+import hre from "hardhat";
+
+const contract = await hre.viem.getContractAt(
   "contractName",
   "0x1234567890123456789012345678901234567890"
 );
@@ -187,9 +206,11 @@ const contract = await this.hre.viem.getContractAt(
 By default, the first wallet client retrieved by `hre.viem.getWalletClients()` is used for contract interaction. If you want to specify a different wallet client, you can do so by passing it as a third parameter, just like when deploying a contract.
 
 ```typescript
-const [_, secondWalletClient] = await this.hre.viem.getWalletClients();
+import hre from "hardhat";
 
-const contract = await this.hre.viem.getContractAt(
+const [_, secondWalletClient] = await hre.viem.getWalletClients();
+
+const contract = await hre.viem.getContractAt(
   "contractName",
   "0x1234567890123456789012345678901234567890",
   { walletClient: secondWalletClient }
