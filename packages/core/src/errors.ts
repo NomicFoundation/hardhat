@@ -7,8 +7,8 @@ import { ERRORS, ErrorDescriptor, getErrorCode } from "./errors-list";
  * @alpha
  */
 export class CustomError extends Error {
-  constructor(message: string) {
-    super(message);
+  constructor(message: string, cause?: Error) {
+    super(message, { cause });
     this.name = this.constructor.name;
   }
 }
@@ -22,7 +22,8 @@ export class CustomError extends Error {
 export class IgnitionError extends CustomError {
   constructor(
     errorDescriptor: ErrorDescriptor,
-    messageArguments: Record<string, string | number> = {}
+    messageArguments: Record<string, string | number> = {},
+    cause?: Error
   ) {
     const prefix = `${getErrorCode(errorDescriptor)}: `;
     const formattedMessage = applyErrorMessageTemplate(
@@ -30,7 +31,7 @@ export class IgnitionError extends CustomError {
       messageArguments
     );
 
-    super(prefix + formattedMessage);
+    super(prefix + formattedMessage, cause);
   }
 }
 
@@ -54,8 +55,8 @@ export class IgnitionPluginError extends CustomError {
 
   public readonly pluginName: string;
 
-  constructor(pluginName: string, message: string) {
-    super(message);
+  constructor(pluginName: string, message: string, cause?: Error) {
+    super(message, cause);
     this.pluginName = pluginName;
   }
 }
