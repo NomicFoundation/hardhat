@@ -863,6 +863,13 @@ const officialPlugins: IPlugin[] = [
     tags: ["Ethers.js", "Testing", "Tasks", "Scripts"],
   },
   {
+    name: "@nomicfoundation/hardhat-viem",
+    author: "Nomic Foundation",
+    authorUrl: "https://twitter.com/NomicFoundation",
+    description: "Makes it easier to use viem in a Hardhat project",
+    tags: ["viem", "Testing", "Tasks", "Scripts"],
+  },
+  {
     name: "@nomicfoundation/hardhat-verify",
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",
