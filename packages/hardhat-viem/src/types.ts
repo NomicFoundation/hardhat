@@ -71,3 +71,5 @@ export declare function getContractAt<CN extends string>(
   address: viemT.Address,
   config?: GetContractAtConfig
 ): Promise<GetContractReturnType>;
+
+export type { AbiParameterToPrimitiveType } from "abitype";
