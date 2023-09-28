@@ -8,8 +8,8 @@ import type { RpcDebugTraceOutput } from "../output";
 
 import { MessageTrace } from "../../stack-traces/message-trace";
 import { Bloom } from "../utils/bloom";
-import { Exit } from "./exit";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
+import { Exit } from "./exit";
 
 export interface PartialTrace {
   trace?: MessageTrace;
