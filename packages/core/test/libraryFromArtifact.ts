@@ -10,7 +10,11 @@ import {
 import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module";
 import { validateArtifactLibraryDeployment } from "../src/internal/validation/futures/validateArtifactLibraryDeployment";
 
-import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
+import {
+  assertInstanceOf,
+  assertValidationError,
+  setupMockArtifactResolver,
+} from "./helpers";
 
 describe("libraryFromArtifact", () => {
   const fakeArtifact: Artifact = {
@@ -244,14 +248,14 @@ describe("libraryFromArtifact", () => {
 
       const [future] = getFuturesFromModule(module);
 
-      assert.includeMembers(
+      assertValidationError(
         await validateArtifactLibraryDeployment(
           future as any,
           setupMockArtifactResolver({ Another: {} as any }),
           {},
           []
         ),
-        ["Account index cannot be a negative number"]
+        "Account index cannot be a negative number"
       );
     });
 
@@ -267,16 +271,14 @@ describe("libraryFromArtifact", () => {
 
       const [future] = getFuturesFromModule(module);
 
-      assert.includeMembers(
+      assertValidationError(
         await validateArtifactLibraryDeployment(
           future as any,
           setupMockArtifactResolver({ Another: {} as any }),
           {},
           []
         ),
-        [
-          "Requested account index '1' is greater than the total number of available accounts '0'",
-        ]
+        "Requested account index '1' is greater than the total number of available accounts '0'"
       );
     });
   });

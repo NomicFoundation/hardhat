@@ -1,3 +1,5 @@
+import { IgnitionError } from "../../../errors";
+import { ERRORS } from "../../../errors-list";
 import { isArtifactType } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deploy";
@@ -10,7 +12,7 @@ export async function validateReadEventArgument(
   _deploymentParameters: DeploymentParameters,
   _accounts: string[]
 ): Promise<string[]> {
-  const errors: string[] = [];
+  const errors: IgnitionError[] = [];
 
   /* stage one */
 
@@ -21,7 +23,9 @@ export async function validateReadEventArgument(
 
   if (!isArtifactType(artifact)) {
     errors.push(
-      `Artifact for contract '${future.emitter.contractName}' is invalid`
+      new IgnitionError(ERRORS.VALIDATION.INVALID_ARTIFACT, {
+        contractName: future.emitter.contractName,
+      })
     );
   } else {
     errors.push(
@@ -33,5 +37,5 @@ export async function validateReadEventArgument(
     );
   }
 
-  return errors;
+  return errors.map((e) => e.message);
 }

@@ -3,27 +3,27 @@ import {
   AccountRuntimeValue,
   AddressResolvableFuture,
   ArgumentType,
-  ContractAtFuture,
-  ContractDeploymentFuture,
-  LibraryDeploymentFuture,
   CallableContractFuture,
+  ContractAtFuture,
+  ContractCallFuture,
+  ContractDeploymentFuture,
   ContractFuture,
   Future,
   IgnitionModule,
   IgnitionModuleResult,
+  LibraryDeploymentFuture,
   ModuleParameterRuntimeValue,
   ModuleParameterType,
   NamedArtifactContractAtFuture,
-  ContractCallFuture,
   NamedArtifactContractDeploymentFuture,
   NamedArtifactLibraryDeploymentFuture,
-  StaticCallFuture,
   ReadEventArgumentFuture,
   SendDataFuture,
+  StaticCallFuture,
 } from "./module";
 
 /**
- * The options for a `contract` call.
+ * The options for a `contract` deployment.
  *
  * @beta
  */
@@ -31,7 +31,11 @@ export interface ContractOptions {
   id?: string;
   after?: Future[];
   libraries?: Record<string, ContractFuture<string>>;
-  value?: bigint | ModuleParameterRuntimeValue<bigint>;
+  value?:
+    | bigint
+    | ModuleParameterRuntimeValue<bigint>
+    | StaticCallFuture<string, string>
+    | ReadEventArgumentFuture;
   from?: string | AccountRuntimeValue;
 }
 
@@ -55,7 +59,11 @@ export interface LibraryOptions {
 export interface CallOptions {
   id?: string;
   after?: Future[];
-  value?: bigint | ModuleParameterRuntimeValue<bigint>;
+  value?:
+    | bigint
+    | ModuleParameterRuntimeValue<bigint>
+    | StaticCallFuture<string, string>
+    | ReadEventArgumentFuture;
   from?: string | AccountRuntimeValue;
 }
 

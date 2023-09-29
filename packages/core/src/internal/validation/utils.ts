@@ -1,3 +1,5 @@
+import { IgnitionError } from "../../errors";
+import { ERRORS } from "../../errors-list";
 import { isFuture, isRuntimeValue } from "../../type-guards";
 import {
   AccountRuntimeValue,
@@ -8,16 +10,19 @@ import {
 export function validateAccountRuntimeValue(
   arv: AccountRuntimeValue,
   accounts: string[]
-): string[] {
-  const errors: string[] = [];
+): IgnitionError[] {
+  const errors: IgnitionError[] = [];
 
   if (arv.accountIndex < 0) {
-    errors.push(`Account index cannot be a negative number`);
+    errors.push(new IgnitionError(ERRORS.VALIDATION.NEGATIVE_ACCOUNT_INDEX));
   }
 
   if (arv.accountIndex >= accounts.length) {
     errors.push(
-      `Requested account index '${arv.accountIndex}' is greater than the total number of available accounts '${accounts.length}'`
+      new IgnitionError(ERRORS.VALIDATION.ACCOUNT_INDEX_TOO_HIGH, {
+        accountIndex: arv.accountIndex,
+        accountsLength: accounts.length,
+      })
     );
   }
 

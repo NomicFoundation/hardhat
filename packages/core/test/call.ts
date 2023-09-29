@@ -12,7 +12,11 @@ import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-mod
 import { validateNamedContractCall } from "../src/internal/validation/futures/validateNamedContractCall";
 import { FutureType } from "../src/types/module";
 
-import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
+import {
+  assertInstanceOf,
+  setupMockArtifactResolver,
+  assertValidationError,
+} from "./helpers";
 
 describe("call", () => {
   it("should be able to setup a contract call", () => {
@@ -493,14 +497,14 @@ describe("call", () => {
         (v) => v.type === FutureType.CONTRACT_CALL
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedContractCall(
           future as any,
           setupMockArtifactResolver({ Another: {} as any }),
           {},
           []
         ),
-        ["Artifact for contract 'Another' is invalid"]
+        "Artifact for contract 'Another' is invalid"
       );
     });
 
@@ -523,14 +527,14 @@ describe("call", () => {
         (v) => v.type === FutureType.CONTRACT_CALL
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedContractCall(
           future as any,
           setupMockArtifactResolver(),
           {},
           []
         ),
-        ['Function "test" not found in contract Another']
+        "Function 'test' not found in contract Another"
       );
     });
 
@@ -567,16 +571,14 @@ describe("call", () => {
         (v) => v.type === FutureType.CONTRACT_CALL
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedContractCall(
           future as any,
           setupMockArtifactResolver(),
           {},
           []
         ),
-        [
-          "Function inc in contract Another expects 1 arguments but 2 were given",
-        ]
+        "Function inc in contract Another expects 1 arguments but 2 were given"
       );
     });
 
@@ -631,16 +633,14 @@ describe("call", () => {
         (v) => v.type === FutureType.CONTRACT_CALL
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedContractCall(
           future as any,
           setupMockArtifactResolver(),
           {},
           []
         ),
-        [
-          "Function inc(bool,uint256) in contract Another expects 2 arguments but 3 were given",
-        ]
+        "Function inc(bool,uint256) in contract Another expects 2 arguments but 3 were given"
       );
     });
 
@@ -665,14 +665,14 @@ describe("call", () => {
         (v) => v.type === FutureType.CONTRACT_CALL
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedContractCall(
           future as any,
           setupMockArtifactResolver({ Another: fakeArtifact }),
           {},
           []
         ),
-        ["Module parameter 'p' requires a value but was given none"]
+        "Module parameter 'p' requires a value but was given none"
       );
     });
 
@@ -697,14 +697,14 @@ describe("call", () => {
         (v) => v.type === FutureType.CONTRACT_CALL
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedContractCall(
           future as any,
           setupMockArtifactResolver({ Another: fakeArtifact }),
           {},
           []
         ),
-        ["Module parameter 'p' must be of type 'bigint' but is 'boolean'"]
+        "Module parameter 'p' must be of type 'bigint' but is 'boolean'"
       );
     });
 
@@ -815,14 +815,14 @@ describe("call", () => {
         (v) => v.type === FutureType.CONTRACT_CALL
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedContractCall(
           future as any,
           setupMockArtifactResolver({ Another: fakeArtifact }),
           {},
           []
         ),
-        ["Module parameter 'p' requires a value but was given none"]
+        "Module parameter 'p' requires a value but was given none"
       );
     });
 
@@ -907,14 +907,14 @@ describe("call", () => {
         (v) => v.type === FutureType.CONTRACT_CALL
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedContractCall(
           future as any,
           setupMockArtifactResolver(),
           {},
           []
         ),
-        ["Account index cannot be a negative number"]
+        "Account index cannot be a negative number"
       );
     });
 
@@ -952,16 +952,14 @@ describe("call", () => {
         (v) => v.type === FutureType.CONTRACT_CALL
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedContractCall(
           future as any,
           setupMockArtifactResolver(),
           {},
           []
         ),
-        [
-          "Requested account index '1' is greater than the total number of available accounts '0'",
-        ]
+        "Requested account index '1' is greater than the total number of available accounts '0'"
       );
     });
   });

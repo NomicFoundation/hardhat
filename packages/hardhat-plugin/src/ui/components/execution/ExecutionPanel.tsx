@@ -7,6 +7,7 @@ import { UiState } from "../../types";
 import { BatchExecution } from "./BatchExecution";
 import { FinalStatus } from "./FinalStatus";
 import { SummarySection } from "./SummarySection";
+import { Warnings } from "./Warnings";
 import { viewEverythingExecutedAlready } from "./views";
 
 export const ExecutionPanel = ({
@@ -19,6 +20,7 @@ export const ExecutionPanel = ({
   if (viewEverythingExecutedAlready(state)) {
     return (
       <Box flexDirection="column">
+        {state.warnings.length > 0 && <Warnings state={state} />}
         <FinalStatus state={state} />
       </Box>
     );
@@ -27,6 +29,7 @@ export const ExecutionPanel = ({
   return (
     <Box flexDirection="column">
       <SummarySection state={state} deployParams={deployParams} />
+      {state.warnings.length > 0 && <Warnings state={state} />}
       <BatchExecution state={state} />
       <FinalStatus state={state} />
     </Box>

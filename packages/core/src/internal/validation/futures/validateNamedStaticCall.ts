@@ -1,3 +1,5 @@
+import { IgnitionError } from "../../../errors";
+import { ERRORS } from "../../../errors-list";
 import {
   isAccountRuntimeValue,
   isArtifactType,
@@ -21,7 +23,7 @@ export async function validateNamedStaticCall(
   deploymentParameters: DeploymentParameters,
   accounts: string[]
 ): Promise<string[]> {
-  const errors: string[] = [];
+  const errors: IgnitionError[] = [];
 
   /* stage one */
 
@@ -32,7 +34,9 @@ export async function validateNamedStaticCall(
 
   if (!isArtifactType(artifact)) {
     errors.push(
-      `Artifact for contract '${future.contract.contractName}' is invalid`
+      new IgnitionError(ERRORS.VALIDATION.INVALID_ARTIFACT, {
+        contractName: future.contract.contractName,
+      })
     );
   } else {
     errors.push(
@@ -78,9 +82,11 @@ export async function validateNamedStaticCall(
 
   if (missingParams.length > 0) {
     errors.push(
-      `Module parameter '${missingParams[0].name}' requires a value but was given none`
+      new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
+        name: missingParams[0].name,
+      })
     );
   }
 
-  return errors;
+  return errors.map((e) => e.message);
 }

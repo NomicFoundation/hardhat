@@ -212,7 +212,7 @@ describe("useModule", () => {
         type: DeploymentResultType.VALIDATION_ERROR,
         errors: {
           "Submodule1#Contract1": [
-            "Module parameter 'param1' requires a value but was given none",
+            "IGN725: Module parameter 'param1' requires a value but was given none",
           ],
         },
       });

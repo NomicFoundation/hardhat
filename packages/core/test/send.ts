@@ -11,7 +11,11 @@ import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-mod
 import { validateSendData } from "../src/internal/validation/futures/validateSendData";
 import { FutureType } from "../src/types/module";
 
-import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
+import {
+  assertInstanceOf,
+  assertValidationError,
+  setupMockArtifactResolver,
+} from "./helpers";
 
 describe("send", () => {
   it("should be able to setup a send", () => {
@@ -326,14 +330,14 @@ describe("send", () => {
         (v) => v.type === FutureType.SEND_DATA
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateSendData(
           future as any,
           setupMockArtifactResolver(),
           {},
           []
         ),
-        ["Module parameter 'p' requires a value but was given none"]
+        "Module parameter 'p' requires a value but was given none"
       );
     });
 
@@ -366,14 +370,14 @@ describe("send", () => {
         (v) => v.type === FutureType.SEND_DATA
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateSendData(
           future as any,
           setupMockArtifactResolver(),
           {},
           []
         ),
-        ["Module parameter 'p' must be of type 'bigint' but is 'boolean'"]
+        "Module parameter 'p' must be of type 'bigint' but is 'boolean'"
       );
     });
 
@@ -406,14 +410,14 @@ describe("send", () => {
         (v) => v.type === FutureType.SEND_DATA
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateSendData(
           future as any,
           setupMockArtifactResolver(),
           {},
           []
         ),
-        ["Account index cannot be a negative number"]
+        "Account index cannot be a negative number"
       );
     });
 
@@ -429,16 +433,14 @@ describe("send", () => {
         (v) => v.type === FutureType.SEND_DATA
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateSendData(
           future as any,
           setupMockArtifactResolver(),
           {},
           []
         ),
-        [
-          "Requested account index '1' is greater than the total number of available accounts '0'",
-        ]
+        "Requested account index '1' is greater than the total number of available accounts '0'"
       );
     });
   });

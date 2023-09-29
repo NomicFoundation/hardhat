@@ -1,4 +1,5 @@
-import { IgnitionValidationError } from "./errors";
+import { IgnitionError } from "./errors";
+import { ERRORS } from "./errors-list";
 import {
   DEFAULT_AUTOMINE_REQUIRED_CONFIRMATIONS,
   defaultConfig,
@@ -85,9 +86,9 @@ export async function deploy<
 
   if (defaultSender !== undefined) {
     if (!accounts.includes(defaultSender)) {
-      throw new IgnitionValidationError(
-        `Default sender ${defaultSender} is not part of the provided accounts`
-      );
+      throw new IgnitionError(ERRORS.VALIDATION.INVALID_DEFAULT_SENDER, {
+        defaultSender,
+      });
     }
   } else {
     defaultSender = getDefaultSender(accounts);

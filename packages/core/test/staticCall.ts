@@ -13,7 +13,11 @@ import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-mod
 import { validateNamedStaticCall } from "../src/internal/validation/futures/validateNamedStaticCall";
 import { FutureType } from "../src/types/module";
 
-import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
+import {
+  assertInstanceOf,
+  assertValidationError,
+  setupMockArtifactResolver,
+} from "./helpers";
 
 describe("static call", () => {
   it("should be able to setup a static call", () => {
@@ -508,14 +512,14 @@ describe("static call", () => {
         (v) => v.type === FutureType.STATIC_CALL
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedStaticCall(
           future as any,
           setupMockArtifactResolver({ Another: {} as any }),
           {},
           []
         ),
-        ["Artifact for contract 'Another' is invalid"]
+        "Artifact for contract 'Another' is invalid"
       );
     });
 
@@ -538,14 +542,14 @@ describe("static call", () => {
         (v) => v.type === FutureType.STATIC_CALL
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedStaticCall(
           future as any,
           setupMockArtifactResolver(),
           {},
           []
         ),
-        ['Function "test" not found in contract Another']
+        "Function 'test' not found in contract Another"
       );
     });
 
@@ -582,16 +586,14 @@ describe("static call", () => {
         (v) => v.type === FutureType.STATIC_CALL
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedStaticCall(
           future as any,
           setupMockArtifactResolver(),
           {},
           []
         ),
-        [
-          "Function inc in contract Another expects 1 arguments but 2 were given",
-        ]
+        "Function inc in contract Another expects 1 arguments but 2 were given"
       );
     });
 
@@ -646,16 +648,14 @@ describe("static call", () => {
         (v) => v.type === FutureType.STATIC_CALL
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedStaticCall(
           future as any,
           setupMockArtifactResolver(),
           {},
           []
         ),
-        [
-          "Function inc(bool,uint256) in contract Another expects 2 arguments but 3 were given",
-        ]
+        "Function inc(bool,uint256) in contract Another expects 2 arguments but 3 were given"
       );
     });
 
@@ -692,16 +692,14 @@ describe("static call", () => {
         (v) => v.type === FutureType.STATIC_CALL
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedStaticCall(
           future as any,
           setupMockArtifactResolver(),
           {},
           []
         ),
-        [
-          "Function inc in contract Another is not 'pure' or 'view' and cannot be statically called",
-        ]
+        "Function inc in contract Another is not 'pure' or 'view' and cannot be statically called"
       );
     });
 
@@ -738,14 +736,14 @@ describe("static call", () => {
         (v) => v.type === FutureType.STATIC_CALL
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedStaticCall(
           future as any,
           setupMockArtifactResolver(),
           {},
           []
         ),
-        ["Function inc of contract Another has no return value named a"]
+        "Function inc of contract Another has no return value named a"
       );
     });
 
@@ -782,16 +780,14 @@ describe("static call", () => {
         (v) => v.type === FutureType.STATIC_CALL
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedStaticCall(
           future as any,
           setupMockArtifactResolver(),
           {},
           []
         ),
-        [
-          "Function inc of contract Another has only 1 return values, but value 2 was requested",
-        ]
+        "Function inc of contract Another has only 1 return values, but value 2 was requested"
       );
     });
 
@@ -815,14 +811,14 @@ describe("static call", () => {
         (v) => v.type === FutureType.STATIC_CALL
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedStaticCall(
           future as any,
           setupMockArtifactResolver({ Another: fakeArtifact }),
           {},
           []
         ),
-        ["Module parameter 'p' requires a value but was given none"]
+        "Module parameter 'p' requires a value but was given none"
       );
     });
 
@@ -892,14 +888,14 @@ describe("static call", () => {
         (v) => v.type === FutureType.STATIC_CALL
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedStaticCall(
           future as any,
           setupMockArtifactResolver({ Another: fakeArtifact }),
           {},
           []
         ),
-        ["Module parameter 'p' requires a value but was given none"]
+        "Module parameter 'p' requires a value but was given none"
       );
     });
 
@@ -983,14 +979,14 @@ describe("static call", () => {
         (v) => v.type === FutureType.STATIC_CALL
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedStaticCall(
           future as any,
           setupMockArtifactResolver(),
           {},
           []
         ),
-        ["Account index cannot be a negative number"]
+        "Account index cannot be a negative number"
       );
     });
 
@@ -1028,16 +1024,14 @@ describe("static call", () => {
         (v) => v.type === FutureType.STATIC_CALL
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedStaticCall(
           future as any,
           setupMockArtifactResolver(),
           {},
           []
         ),
-        [
-          "Requested account index '1' is greater than the total number of available accounts '0'",
-        ]
+        "Requested account index '1' is greater than the total number of available accounts '0'"
       );
     });
   });

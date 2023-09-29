@@ -1,3 +1,5 @@
+import { IgnitionError } from "../../../errors";
+import { ERRORS } from "../../../errors-list";
 import {
   isArtifactType,
   isModuleParameterRuntimeValue,
@@ -12,14 +14,18 @@ export async function validateNamedContractAt(
   deploymentParameters: DeploymentParameters,
   _accounts: string[]
 ): Promise<string[]> {
-  const errors: string[] = [];
+  const errors: IgnitionError[] = [];
 
   /* stage one */
 
   const artifact = await artifactLoader.loadArtifact(future.contractName);
 
   if (!isArtifactType(artifact)) {
-    errors.push(`Artifact for contract '${future.contractName}' is invalid`);
+    errors.push(
+      new IgnitionError(ERRORS.VALIDATION.INVALID_ARTIFACT, {
+        contractName: future.contractName,
+      })
+    );
   }
 
   /* stage two */
@@ -30,16 +36,20 @@ export async function validateNamedContractAt(
       future.address.defaultValue;
     if (param === undefined) {
       errors.push(
-        `Module parameter '${future.address.name}' requires a value but was given none`
+        new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
+          name: future.address.name,
+        })
       );
     } else if (typeof param !== "string") {
       errors.push(
-        `Module parameter '${
-          future.address.name
-        }' must be of type 'string' but is '${typeof param}'`
+        new IgnitionError(ERRORS.VALIDATION.INVALID_MODULE_PARAMETER_TYPE, {
+          name: future.address.name,
+          expectedType: "string",
+          actualType: typeof param,
+        })
       );
     }
   }
 
-  return errors;
+  return errors.map((e) => e.message);
 }

@@ -7,11 +7,8 @@ import type {
   Result,
 } from "ethers";
 
-import {
-  IgnitionError,
-  IgnitionValidationError,
-  UnsupportedOperationError,
-} from "../../errors";
+import { IgnitionError } from "../../errors";
+import { ERRORS } from "../../errors-list";
 import { Artifact } from "../../types/artifact";
 import { ArgumentType, SolidityParameterType } from "../../types/module";
 import { assertIgnitionInvariant } from "../utils/assertions";
@@ -76,7 +73,7 @@ export function encodeArtifactFunctionCall(
   const validationErrors = validateArtifactFunctionName(artifact, functionName);
 
   if (validationErrors.length > 0) {
-    throw new IgnitionValidationError(validationErrors[0]);
+    throw validationErrors[0];
   }
 
   const { ethers } = require("ethers") as typeof import("ethers");
@@ -131,7 +128,7 @@ export function decodeArtifactFunctionCallResult(
   const validationErrors = validateArtifactFunctionName(artifact, functionName);
 
   if (validationErrors.length > 0) {
-    throw new IgnitionValidationError(validationErrors[0]);
+    throw validationErrors[0];
   }
 
   const { ethers } = require("ethers") as typeof import("ethers");
@@ -162,8 +159,8 @@ export function validateContractConstructorArgsLength(
   artifact: Artifact,
   contractName: string,
   args: ArgumentType[]
-): string[] {
-  const errors: string[] = [];
+): IgnitionError[] {
+  const errors: IgnitionError[] = [];
 
   const argsLength = args.length;
 
@@ -173,7 +170,11 @@ export function validateContractConstructorArgsLength(
 
   if (argsLength !== expectedArgsLength) {
     errors.push(
-      `The constructor of the contract '${contractName}' expects ${expectedArgsLength} arguments but ${argsLength} were given`
+      new IgnitionError(ERRORS.VALIDATION.INVALID_CONSTRUCTOR_ARGS_LENGTH, {
+        contractName,
+        argsLength,
+        expectedArgsLength,
+      })
     );
   }
 
@@ -198,19 +199,19 @@ export function validateArtifactFunction(
   functionName: string,
   args: ArgumentType[],
   isStaticCall: boolean
-): string[] {
+): IgnitionError[] {
   try {
     validateOverloadedName(artifact, functionName, false);
   } catch (e) {
     assertIgnitionInvariant(
-      e instanceof IgnitionValidationError,
-      "validateOverloadedName should only throw IgnitionValidationErrors"
+      e instanceof IgnitionError,
+      "validateOverloadedName should only throw IgnitionErrors"
     );
 
-    return [e.message];
+    return [e];
   }
 
-  const errors: string[] = [];
+  const errors: IgnitionError[] = [];
 
   const { ethers } = require("ethers") as typeof import("ethers");
   const iface = new ethers.Interface(artifact.abi);
@@ -219,14 +220,22 @@ export function validateArtifactFunction(
   // Check that the number of arguments is correct
   if (fragment.inputs.length !== args.length) {
     errors.push(
-      `Function ${functionName} in contract ${contractName} expects ${fragment.inputs.length} arguments but ${args.length} were given`
+      new IgnitionError(ERRORS.VALIDATION.INVALID_FUNCTION_ARGS_LENGTH, {
+        functionName,
+        contractName,
+        argsLength: args.length,
+        expectedLength: fragment.inputs.length,
+      })
     );
   }
 
   // Check that the function is pure or view, which is required for a static call
   if (isStaticCall && !fragment.constant) {
     errors.push(
-      `Function ${functionName} in contract ${contractName} is not 'pure' or 'view' and cannot be statically called`
+      new IgnitionError(ERRORS.VALIDATION.INVALID_STATIC_CALL, {
+        functionName,
+        contractName,
+      })
     );
   }
 
@@ -244,16 +253,16 @@ export function validateArtifactFunction(
 export function validateArtifactFunctionName(
   artifact: Artifact,
   functionName: string
-): string[] {
+): IgnitionError[] {
   try {
     validateOverloadedName(artifact, functionName, false);
   } catch (e) {
     assertIgnitionInvariant(
-      e instanceof IgnitionValidationError,
-      "validateOverloadedName should only throw IgnitionValidationErrors"
+      e instanceof IgnitionError,
+      "validateOverloadedName should only throw IgnitionError"
     );
 
-    return [e.message];
+    return [e];
   }
 
   return [];
@@ -271,16 +280,16 @@ export function validateArtifactEventArgumentParams(
   emitterArtifact: Artifact,
   eventName: string,
   argument: string | number
-): string[] {
+): IgnitionError[] {
   try {
     validateOverloadedName(emitterArtifact, eventName, true);
   } catch (e) {
     assertIgnitionInvariant(
-      e instanceof IgnitionValidationError,
-      "validateOverloadedName should only throw IgnitionValidationErrors"
+      e instanceof IgnitionError,
+      "validateOverloadedName should only throw IgnitionError"
     );
 
-    return [e.message];
+    return [e];
   }
 
   const { ethers } = require("ethers") as typeof import("ethers");
@@ -291,11 +300,11 @@ export function validateArtifactEventArgumentParams(
     eventFragment = getEventFragment(iface, eventName);
   } catch (e) {
     assertIgnitionInvariant(
-      e instanceof IgnitionValidationError,
-      "getEventFragment should only throw IgnitionValidationErrors"
+      e instanceof IgnitionError,
+      "getEventFragment should only throw IgnitionError"
     );
 
-    return [e.message];
+    return [e];
   }
 
   let paramType: ParamType;
@@ -308,11 +317,11 @@ export function validateArtifactEventArgumentParams(
     );
   } catch (e) {
     assertIgnitionInvariant(
-      e instanceof IgnitionValidationError,
-      "getEventArgumentParamType should only throw IgnitionValidationErrors"
+      e instanceof IgnitionError,
+      "getEventArgumentParamType should only throw IgnitionError"
     );
 
-    return [e.message];
+    return [e];
   }
 
   if (paramType.indexed === true) {
@@ -321,7 +330,11 @@ export function validateArtifactEventArgumentParams(
     // anywhere
     if (hasDynamicSize(paramType)) {
       return [
-        `Indexed argument ${argument} of event ${eventName} of contract ${emitterArtifact.contractName} is not stored in the receipt, but its hash is, so you can't read it.`,
+        new IgnitionError(ERRORS.VALIDATION.INDEXED_EVENT_ARG, {
+          eventName,
+          argument,
+          contractName: emitterArtifact.contractName,
+        }),
       ];
     }
   }
@@ -542,11 +555,10 @@ function ethersValueIntoEvmValue(
     return ethersResultIntoEvmTuple(ethersValue, paramType.components);
   }
 
-  throw new UnsupportedOperationError(
-    `Ignition can't decode ethers.js value of type ${
-      paramType.type
-    }: ${JSON.stringify(ethersValue, undefined, 2)}`
-  );
+  throw new IgnitionError(ERRORS.GENERAL.UNSUPPORTED_DECODE, {
+    type: paramType.type,
+    value: JSON.stringify(ethersValue, undefined, 2),
+  });
 }
 
 function ethersResultIntoEvmValueArray(
@@ -668,9 +680,10 @@ function validateOverloadedName(
   const bareName = getBareName(name);
 
   if (bareName === undefined) {
-    throw new IgnitionValidationError(
-      `Invalid ${eventOrFunction} name "${name}"`
-    );
+    throw new IgnitionError(ERRORS.VALIDATION.INVALID_OVERLOAD_NAME, {
+      eventOrFunction,
+      name,
+    });
   }
 
   const { ethers } = require("ethers") as typeof import("ethers");
@@ -687,17 +700,22 @@ function validateOverloadedName(
     .filter((fragment) => fragment.name === bareName);
 
   if (fragments.length === 0) {
-    throw new IgnitionValidationError(
-      `${eventOrFunctionCapitalized} "${name}" not found in contract ${artifact.contractName}`
-    );
+    throw new IgnitionError(ERRORS.VALIDATION.OVERLOAD_NOT_FOUND, {
+      name,
+      eventOrFunction: eventOrFunctionCapitalized,
+      contractName: artifact.contractName,
+    });
   } else if (fragments.length === 1) {
     // If it is not overloaded we force the user to use the bare name
     // because having a single representation is more friendly with our reconciliation
     // process.
     if (bareName !== name) {
-      throw new IgnitionValidationError(
-        `${eventOrFunctionCapitalized} name "${name}" used for contract ${artifact.contractName}, but it's not overloaded. Use "${bareName}" instead.`
-      );
+      throw new IgnitionError(ERRORS.VALIDATION.REQUIRE_BARE_NAME, {
+        name,
+        bareName,
+        eventOrFunction: eventOrFunctionCapitalized,
+        contractName: artifact.contractName,
+      });
     }
   } else {
     // If it's overloaded, we force the user to use the full name
@@ -714,19 +732,22 @@ function validateOverloadedName(
       .join("\n");
 
     if (bareName === name) {
-      throw new IgnitionValidationError(
-        `${eventOrFunctionCapitalized} "${name}" is overloaded in contract ${artifact.contractName}. Please use one of these names instead:
-
-${normalizedNameList}`
-      );
+      throw new IgnitionError(ERRORS.VALIDATION.OVERLOAD_NAME_REQUIRED, {
+        name,
+        normalizedNameList,
+        eventOrFunction: eventOrFunctionCapitalized,
+        contractName: artifact.contractName,
+      });
     }
 
     if (!normalizedNames.includes(name)) {
-      throw new IgnitionValidationError(
-        `${eventOrFunctionCapitalized} "${name}" is not a valid overload of "${bareName}" in contract ${artifact.contractName}. Please use one of these names instead:
-
-${normalizedNameList}`
-      );
+      throw new IgnitionError(ERRORS.VALIDATION.INVALID_OVERLOAD_GIVEN, {
+        name,
+        bareName,
+        normalizedNameList,
+        eventOrFunction: eventOrFunctionCapitalized,
+        contractName: artifact.contractName,
+      });
     }
   }
 }
@@ -749,17 +770,22 @@ function getEventArgumentParamType(
       }
     }
 
-    throw new IgnitionValidationError(
-      `Event ${eventName} of contract ${contractName} has no argument named ${argument}`
-    );
+    throw new IgnitionError(ERRORS.VALIDATION.EVENT_ARG_NOT_FOUND, {
+      eventName,
+      argument,
+      contractName,
+    });
   }
 
   const paramType = eventFragment.inputs[argument];
 
   if (paramType === undefined) {
-    throw new IgnitionValidationError(
-      `Event ${eventName} of contract ${contractName} has only ${eventFragment.inputs.length} arguments, but argument ${argument} was requested`
-    );
+    throw new IgnitionError(ERRORS.VALIDATION.INVALID_EVENT_ARG_INDEX, {
+      eventName,
+      argument,
+      contractName,
+      expectedLength: eventFragment.inputs.length,
+    });
   }
 
   return paramType;
@@ -773,7 +799,7 @@ export function validateFunctionArgumentParamType(
   functionName: string,
   artifact: Artifact,
   argument: string | number
-): string[] {
+): IgnitionError[] {
   const { ethers } = require("ethers") as typeof import("ethers");
   const iface = new ethers.Interface(artifact.abi);
   let functionFragment: FunctionFragment;
@@ -781,10 +807,10 @@ export function validateFunctionArgumentParamType(
     functionFragment = getFunctionFragment(iface, functionName);
   } catch (e) {
     assertIgnitionInvariant(
-      e instanceof IgnitionValidationError || e instanceof IgnitionError,
-      "getFunctionFragment should only throw IgnitionValidationErrors"
+      e instanceof IgnitionError,
+      "getFunctionFragment should only throw IgnitionError"
     );
-    return [e.message];
+    return [e];
   }
 
   if (typeof argument === "string") {
@@ -797,7 +823,11 @@ export function validateFunctionArgumentParamType(
 
     if (!hasArg) {
       return [
-        `Function ${functionName} of contract ${contractName} has no return value named ${argument}`,
+        new IgnitionError(ERRORS.VALIDATION.FUNCTION_ARG_NOT_FOUND, {
+          functionName,
+          argument,
+          contractName,
+        }),
       ];
     }
   } else {
@@ -805,7 +835,12 @@ export function validateFunctionArgumentParamType(
 
     if (paramType === undefined) {
       return [
-        `Function ${functionName} of contract ${contractName} has only ${functionFragment.outputs.length} return values, but value ${argument} was requested`,
+        new IgnitionError(ERRORS.VALIDATION.INVALID_FUNCTION_ARG_INDEX, {
+          functionName,
+          argument,
+          contractName,
+          expectedLength: functionFragment.outputs.length,
+        }),
       ];
     }
   }

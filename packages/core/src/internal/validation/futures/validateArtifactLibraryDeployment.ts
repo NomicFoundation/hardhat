@@ -1,3 +1,4 @@
+import { IgnitionError } from "../../../errors";
 import { isAccountRuntimeValue } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deploy";
@@ -11,7 +12,7 @@ export async function validateArtifactLibraryDeployment(
   _deploymentParameters: DeploymentParameters,
   accounts: string[]
 ): Promise<string[]> {
-  const errors: string[] = [];
+  const errors: IgnitionError[] = [];
 
   /* stage two */
 
@@ -23,5 +24,5 @@ export async function validateArtifactLibraryDeployment(
     ...validateLibraryNames(future.artifact, Object.keys(future.libraries))
   );
 
-  return errors;
+  return errors.map((e) => e.message);
 }

@@ -31,7 +31,8 @@ export function reconcileValue(
 ): ReconciliationFutureResultFailure | undefined {
   const resolvedValue = resolveValue(
     future.value,
-    context.deploymentParameters
+    context.deploymentParameters,
+    context.deploymentState
   );
 
   return compare(future, "Value", exState.value, resolvedValue);

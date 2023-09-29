@@ -1,3 +1,5 @@
+import { IgnitionError } from "../../../errors";
+import { ERRORS } from "../../../errors-list";
 import {
   isAccountRuntimeValue,
   isModuleParameterRuntimeValue,
@@ -18,7 +20,7 @@ export async function validateArtifactContractDeployment(
   deploymentParameters: DeploymentParameters,
   accounts: string[]
 ): Promise<string[]> {
-  const errors: string[] = [];
+  const errors: IgnitionError[] = [];
 
   /* stage one */
 
@@ -57,7 +59,9 @@ export async function validateArtifactContractDeployment(
 
   if (missingParams.length > 0) {
     errors.push(
-      `Module parameter '${missingParams[0].name}' requires a value but was given none`
+      new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
+        name: missingParams[0].name,
+      })
     );
   }
 
@@ -67,16 +71,20 @@ export async function validateArtifactContractDeployment(
       future.value.defaultValue;
     if (param === undefined) {
       errors.push(
-        `Module parameter '${future.value.name}' requires a value but was given none`
+        new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
+          name: future.value.name,
+        })
       );
     } else if (typeof param !== "bigint") {
       errors.push(
-        `Module parameter '${
-          future.value.name
-        }' must be of type 'bigint' but is '${typeof param}'`
+        new IgnitionError(ERRORS.VALIDATION.INVALID_MODULE_PARAMETER_TYPE, {
+          name: future.value.name,
+          expectedType: "bigint",
+          actualType: typeof param,
+        })
       );
     }
   }
 
-  return errors;
+  return errors.map((e) => e.message);
 }

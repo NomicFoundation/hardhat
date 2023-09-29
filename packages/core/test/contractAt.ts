@@ -7,7 +7,11 @@ import { ModuleParameterRuntimeValueImplementation } from "../src/internal/modul
 import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module";
 import { validateNamedContractAt } from "../src/internal/validation/futures/validateNamedContractAt";
 
-import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
+import {
+  assertInstanceOf,
+  assertValidationError,
+  setupMockArtifactResolver,
+} from "./helpers";
 
 describe("contractAt", () => {
   const fakeArtifact: Artifact = {
@@ -213,7 +217,7 @@ describe("contractAt", () => {
 
       const [future] = getFuturesFromModule(module);
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedContractAt(
           future as any,
           setupMockArtifactResolver({
@@ -222,7 +226,7 @@ describe("contractAt", () => {
           {},
           []
         ),
-        ["Artifact for contract 'Another' is invalid"]
+        "Artifact for contract 'Another' is invalid"
       );
     });
 
@@ -238,7 +242,7 @@ describe("contractAt", () => {
         (v) => v.type === FutureType.NAMED_ARTIFACT_CONTRACT_AT
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedContractAt(
           future as any,
           setupMockArtifactResolver({
@@ -247,7 +251,7 @@ describe("contractAt", () => {
           {},
           []
         ),
-        ["Module parameter 'p' requires a value but was given none"]
+        "Module parameter 'p' requires a value but was given none"
       );
     });
 
@@ -287,7 +291,7 @@ describe("contractAt", () => {
         (v) => v.type === FutureType.NAMED_ARTIFACT_CONTRACT_AT
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedContractAt(
           future as any,
           setupMockArtifactResolver({
@@ -296,7 +300,7 @@ describe("contractAt", () => {
           {},
           []
         ),
-        ["Module parameter 'p' must be of type 'string' but is 'number'"]
+        "Module parameter 'p' must be of type 'string' but is 'number'"
       );
     });
   });

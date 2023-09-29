@@ -10,7 +10,11 @@ import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-mod
 import { validateNamedLibraryDeployment } from "../src/internal/validation/futures/validateNamedLibraryDeployment";
 import { FutureType } from "../src/types/module";
 
-import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
+import {
+  assertInstanceOf,
+  assertValidationError,
+  setupMockArtifactResolver,
+} from "./helpers";
 
 describe("library", () => {
   it("should be able to setup a deploy library call", () => {
@@ -242,14 +246,14 @@ describe("library", () => {
 
       const [future] = getFuturesFromModule(module);
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedLibraryDeployment(
           future as any,
           setupMockArtifactResolver({ Another: {} as any }),
           {},
           []
         ),
-        ["Artifact for contract 'Another' is invalid"]
+        "Artifact for contract 'Another' is invalid"
       );
     });
 
@@ -263,14 +267,14 @@ describe("library", () => {
 
       const [future] = getFuturesFromModule(module);
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedLibraryDeployment(
           future as any,
           setupMockArtifactResolver({ Another: {} as any }),
           {},
           []
         ),
-        ["Account index cannot be a negative number"]
+        "Account index cannot be a negative number"
       );
     });
 
@@ -284,16 +288,14 @@ describe("library", () => {
 
       const [future] = getFuturesFromModule(module);
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedLibraryDeployment(
           future as any,
           setupMockArtifactResolver({ Another: {} as any }),
           {},
           []
         ),
-        [
-          "Requested account index '1' is greater than the total number of available accounts '0'",
-        ]
+        "Requested account index '1' is greater than the total number of available accounts '0'"
       );
     });
   });

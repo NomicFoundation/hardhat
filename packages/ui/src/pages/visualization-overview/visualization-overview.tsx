@@ -13,7 +13,7 @@ export const VisualizationOverview: React.FC<{
   return (
     <Page>
       <header>
-        <PageTitle>Ignition - {ignitionModule.id}</PageTitle>
+        <PageTitle>Hardhat Ignition - {ignitionModule.id}</PageTitle>
       </header>
 
       <Panel>

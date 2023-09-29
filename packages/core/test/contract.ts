@@ -7,12 +7,18 @@ import {
   AccountRuntimeValueImplementation,
   ModuleParameterRuntimeValueImplementation,
   NamedContractDeploymentFutureImplementation,
+  NamedStaticCallFutureImplementation,
+  ReadEventArgumentFutureImplementation,
 } from "../src/internal/module";
 import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module";
 import { validateNamedContractDeployment } from "../src/internal/validation/futures/validateNamedContractDeployment";
 import { FutureType } from "../src/types/module";
 
-import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
+import {
+  assertInstanceOf,
+  assertValidationError,
+  setupMockArtifactResolver,
+} from "./helpers";
 
 describe("contract", () => {
   it("should be able to setup a deploy contract call", () => {
@@ -175,6 +181,63 @@ describe("contract", () => {
     assertInstanceOf(
       anotherFuture.value,
       ModuleParameterRuntimeValueImplementation
+    );
+  });
+
+  it("Should be able to pass a StaticCallFuture as a value option", () => {
+    const moduleWithDependentContracts = buildModule("Module1", (m) => {
+      const contract = m.contract("Contract");
+      const staticCall = m.staticCall(contract, "test");
+
+      const another = m.contract("Another", [], {
+        value: staticCall,
+      });
+
+      return { another };
+    });
+
+    assert.isDefined(moduleWithDependentContracts);
+
+    const anotherFuture = [...moduleWithDependentContracts.futures].find(
+      ({ id }) => id === "Module1#Another"
+    );
+
+    if (
+      !(anotherFuture instanceof NamedContractDeploymentFutureImplementation)
+    ) {
+      assert.fail("Not a named contract deployment");
+    }
+
+    assertInstanceOf(anotherFuture.value, NamedStaticCallFutureImplementation);
+  });
+
+  it("Should be able to pass a ReadEventArgumentFuture as a value option", () => {
+    const moduleWithDependentContracts = buildModule("Module1", (m) => {
+      const contract = m.contract("Contract");
+      const eventArg = m.readEventArgument(contract, "TestEvent", "eventArg");
+
+      const another = m.contract("Another", [], {
+        value: eventArg,
+      });
+
+      return { another };
+    });
+
+    assert.isDefined(moduleWithDependentContracts);
+
+    const anotherFuture = [...moduleWithDependentContracts.futures].find(
+      ({ id }) => id === "Module1#Another"
+    );
+
+    if (
+      !(anotherFuture instanceof NamedContractDeploymentFutureImplementation)
+    ) {
+      assert.fail("Not a named contract deployment");
+    }
+
+    assertInstanceOf(
+      anotherFuture.value,
+      ReadEventArgumentFutureImplementation
     );
   });
 
@@ -461,7 +524,7 @@ describe("contract", () => {
 
       const [future] = getFuturesFromModule(module);
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedContractDeployment(
           future as any,
           setupMockArtifactResolver({
@@ -470,7 +533,7 @@ describe("contract", () => {
           {},
           []
         ),
-        ["Artifact for contract 'Another' is invalid"]
+        "Artifact for contract 'Another' is invalid"
       );
     });
 
@@ -490,16 +553,14 @@ describe("contract", () => {
 
       const [future] = getFuturesFromModule(module);
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedContractDeployment(
           future as any,
           setupMockArtifactResolver({ Test: fakeArtifact }),
           {},
           []
         ),
-        [
-          "The constructor of the contract 'Test' expects 0 arguments but 3 were given",
-        ]
+        "The constructor of the contract 'Test' expects 0 arguments but 3 were given"
       );
     });
 
@@ -532,14 +593,14 @@ describe("contract", () => {
 
       const [future] = getFuturesFromModule(module);
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedContractDeployment(
           future as any,
           setupMockArtifactResolver({ Test: fakeArtifact }),
           {},
           []
         ),
-        ["Module parameter 'p' requires a value but was given none"]
+        "Module parameter 'p' requires a value but was given none"
       );
     });
 
@@ -566,14 +627,14 @@ describe("contract", () => {
 
       const [future] = getFuturesFromModule(module);
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedContractDeployment(
           future as any,
           setupMockArtifactResolver({ Test: fakeArtifact }),
           {},
           []
         ),
-        ["Module parameter 'p' must be of type 'bigint' but is 'boolean'"]
+        "Module parameter 'p' must be of type 'bigint' but is 'boolean'"
       );
     });
 
@@ -680,14 +741,14 @@ describe("contract", () => {
 
       const [future] = getFuturesFromModule(module);
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedContractDeployment(
           future as any,
           setupMockArtifactResolver({ Test: fakeArtifact }),
           {},
           []
         ),
-        ["Module parameter 'p' requires a value but was given none"]
+        "Module parameter 'p' requires a value but was given none"
       );
     });
 
@@ -749,14 +810,14 @@ describe("contract", () => {
 
       const [future] = getFuturesFromModule(module);
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedContractDeployment(
           future as any,
           setupMockArtifactResolver({ Test: fakeArtifact }),
           {},
           []
         ),
-        ["Account index cannot be a negative number"]
+        "Account index cannot be a negative number"
       );
     });
 
@@ -777,16 +838,14 @@ describe("contract", () => {
 
       const [future] = getFuturesFromModule(module);
 
-      assert.includeMembers(
+      assertValidationError(
         await validateNamedContractDeployment(
           future as any,
           setupMockArtifactResolver({ Test: fakeArtifact }),
           {},
           []
         ),
-        [
-          "Requested account index '1' is greater than the total number of available accounts '0'",
-        ]
+        "Requested account index '1' is greater than the total number of available accounts '0'"
       );
     });
   });

@@ -144,5 +144,69 @@ describe("contract deploys", () => {
         this.hre.ethers.parseEther("2").toString()
       );
     });
+
+    it("should be able to deploy a contract with an endowment via a static call", async function () {
+      const submoduleDefinition = buildModule("submodule", (m) => {
+        const valueContract = m.contract("StaticCallValue");
+
+        const valueResult = m.staticCall(valueContract, "getValue");
+
+        const passingValue = m.contract("PassingValue", [], {
+          value: valueResult,
+        });
+
+        return { passingValue };
+      });
+
+      const moduleDefinition = buildModule("Module", (m) => {
+        const { passingValue } = m.useModule(submoduleDefinition);
+
+        return { passingValue };
+      });
+
+      const result = await this.deploy(moduleDefinition);
+
+      assert.isDefined(result.passingValue);
+
+      const actualInstanceBalance = await this.hre.ethers.provider.getBalance(
+        await result.passingValue.getAddress()
+      );
+
+      assert.equal(actualInstanceBalance.toString(), "42");
+    });
+
+    it("should be able to deploy a contract with an endowment via an event argument", async function () {
+      const submoduleDefinition = buildModule("submodule", (m) => {
+        const valueContract = m.contract("EventArgValue");
+
+        const valueResult = m.readEventArgument(
+          valueContract,
+          "EventValue",
+          "value"
+        );
+
+        const passingValue = m.contract("PassingValue", [], {
+          value: valueResult,
+        });
+
+        return { passingValue };
+      });
+
+      const moduleDefinition = buildModule("Module", (m) => {
+        const { passingValue } = m.useModule(submoduleDefinition);
+
+        return { passingValue };
+      });
+
+      const result = await this.deploy(moduleDefinition);
+
+      assert.isDefined(result.passingValue);
+
+      const actualInstanceBalance = await this.hre.ethers.provider.getBalance(
+        await result.passingValue.getAddress()
+      );
+
+      assert.equal(actualInstanceBalance.toString(), "42");
+    });
   });
 });

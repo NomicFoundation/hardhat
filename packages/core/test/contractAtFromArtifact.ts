@@ -7,7 +7,11 @@ import { ModuleParameterRuntimeValueImplementation } from "../src/internal/modul
 import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module";
 import { validateArtifactContractAt } from "../src/internal/validation/futures/validateArtifactContractAt";
 
-import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
+import {
+  assertInstanceOf,
+  assertValidationError,
+  setupMockArtifactResolver,
+} from "./helpers";
 
 describe("contractAtFromArtifact", () => {
   const fakeArtifact: Artifact = {
@@ -228,7 +232,7 @@ describe("contractAtFromArtifact", () => {
         (v) => v.type === FutureType.CONTRACT_AT
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateArtifactContractAt(
           future as any,
           setupMockArtifactResolver({
@@ -237,7 +241,7 @@ describe("contractAtFromArtifact", () => {
           {},
           []
         ),
-        ["Module parameter 'p' requires a value but was given none"]
+        "Module parameter 'p' requires a value but was given none"
       );
     });
 
@@ -277,7 +281,7 @@ describe("contractAtFromArtifact", () => {
         (v) => v.type === FutureType.CONTRACT_AT
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateArtifactContractAt(
           future as any,
           setupMockArtifactResolver({
@@ -286,7 +290,7 @@ describe("contractAtFromArtifact", () => {
           {},
           []
         ),
-        ["Module parameter 'p' must be of type 'string' but is 'number'"]
+        "Module parameter 'p' must be of type 'string' but is 'number'"
       );
     });
   });

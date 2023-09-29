@@ -11,7 +11,11 @@ import {
 import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module";
 import { validateArtifactContractDeployment } from "../src/internal/validation/futures/validateArtifactContractDeployment";
 
-import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
+import {
+  assertInstanceOf,
+  assertValidationError,
+  setupMockArtifactResolver,
+} from "./helpers";
 
 describe("contractFromArtifact", () => {
   const fakeArtifact: Artifact = {
@@ -489,16 +493,14 @@ describe("contractFromArtifact", () => {
 
       const [future] = getFuturesFromModule(module);
 
-      assert.includeMembers(
+      assertValidationError(
         await validateArtifactContractDeployment(
           future as any,
           setupMockArtifactResolver(),
           {},
           []
         ),
-        [
-          "The constructor of the contract 'Test' expects 0 arguments but 3 were given",
-        ]
+        "The constructor of the contract 'Test' expects 0 arguments but 3 were given"
       );
     });
 
@@ -514,14 +516,14 @@ describe("contractFromArtifact", () => {
         (v) => v.type === FutureType.CONTRACT_DEPLOYMENT
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateArtifactContractDeployment(
           future as any,
           setupMockArtifactResolver({ Test: fakeArtifact }),
           {},
           []
         ),
-        ["Module parameter 'p' requires a value but was given none"]
+        "Module parameter 'p' requires a value but was given none"
       );
     });
 
@@ -593,14 +595,14 @@ describe("contractFromArtifact", () => {
         (v) => v.type === FutureType.CONTRACT_DEPLOYMENT
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateArtifactContractDeployment(
           future as any,
           setupMockArtifactResolver({ Test: fakerArtifact }),
           {},
           []
         ),
-        ["Module parameter 'p' must be of type 'bigint' but is 'boolean'"]
+        "Module parameter 'p' must be of type 'bigint' but is 'boolean'"
       );
     });
 
@@ -655,14 +657,14 @@ describe("contractFromArtifact", () => {
         (v) => v.type === FutureType.CONTRACT_DEPLOYMENT
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateArtifactContractDeployment(
           future as any,
           setupMockArtifactResolver({ Test: fakeArtifact }),
           {},
           []
         ),
-        ["Module parameter 'p' requires a value but was given none"]
+        "Module parameter 'p' requires a value but was given none"
       );
     });
 
@@ -721,14 +723,14 @@ describe("contractFromArtifact", () => {
 
       const [future] = getFuturesFromModule(module);
 
-      assert.includeMembers(
+      assertValidationError(
         await validateArtifactContractDeployment(
           future as any,
           setupMockArtifactResolver(),
           {},
           []
         ),
-        ["Account index cannot be a negative number"]
+        "Account index cannot be a negative number"
       );
     });
 
@@ -744,16 +746,14 @@ describe("contractFromArtifact", () => {
 
       const [future] = getFuturesFromModule(module);
 
-      assert.includeMembers(
+      assertValidationError(
         await validateArtifactContractDeployment(
           future as any,
           setupMockArtifactResolver(),
           {},
           []
         ),
-        [
-          "Requested account index '1' is greater than the total number of available accounts '0'",
-        ]
+        "Requested account index '1' is greater than the total number of available accounts '0'"
       );
     });
   });

@@ -1,4 +1,5 @@
 import { IgnitionError } from "../errors";
+import { ERRORS } from "../errors-list";
 
 import { DeploymentLoader } from "./deployment-loader/types";
 import {
@@ -17,17 +18,15 @@ export class Wiper {
     const deploymentState = await loadDeploymentState(this._deploymentLoader);
 
     if (deploymentState === undefined) {
-      throw new IgnitionError(
-        `Cannot wipe ${futureId} as the deployment hasn't been intialialized yet`
-      );
+      throw new IgnitionError(ERRORS.WIPE.UNINITIALIZED_DEPLOYMENT, {
+        futureId,
+      });
     }
 
     const executionState = deploymentState.executionStates[futureId];
 
     if (executionState === undefined) {
-      throw new IgnitionError(
-        `Cannot wipe ${futureId} as no state recorded against it`
-      );
+      throw new IgnitionError(ERRORS.WIPE.NO_STATE_FOR_FUTURE, { futureId });
     }
 
     const dependents = Object.values(deploymentState.executionStates).filter(
@@ -35,11 +34,10 @@ export class Wiper {
     );
 
     if (dependents.length > 0) {
-      throw new IgnitionError(
-        `Cannot wipe ${futureId} as there are dependent futures that have already started:\n${dependents
-          .map((state) => `  ${state.id}\n`)
-          .join()}`
-      );
+      throw new IgnitionError(ERRORS.WIPE.DEPENDENT_FUTURES, {
+        futureId,
+        dependents: dependents.map((d) => d.id).join(", "),
+      });
     }
 
     const wipeMessage: WipeExecutionStateMessage = {

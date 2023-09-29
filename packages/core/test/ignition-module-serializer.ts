@@ -53,6 +53,34 @@ describe("stored deployment serializer", () => {
 
       assertSerializableModuleIn(module);
     });
+
+    it("should serialize a contract deployment with a call future as value", () => {
+      const module = buildModule("Module1", (m) => {
+        const contract1 = m.contract("Contract1", []);
+
+        const call1 = m.staticCall(contract1, "getValue");
+
+        const contract2 = m.contract("Contract2", [], { value: call1 });
+
+        return { contract1, contract2 };
+      });
+
+      assertSerializableModuleIn(module);
+    });
+
+    it("should serialize a contract deployment with a read event argument as value", () => {
+      const module = buildModule("Module1", (m) => {
+        const contract1 = m.contract("Contract1", []);
+
+        const event1 = m.readEventArgument(contract1, "Event1", "Value1");
+
+        const contract2 = m.contract("Contract2", [], { value: event1 });
+
+        return { contract1, contract2 };
+      });
+
+      assertSerializableModuleIn(module);
+    });
   });
 
   describe("contractFromArtifact", () => {
@@ -295,6 +323,34 @@ describe("stored deployment serializer", () => {
         m.call(contract2, "unlock", [], { after: [contract1] });
 
         return { contract1, contract2 };
+      });
+
+      assertSerializableModuleIn(module);
+    });
+
+    it("should serialize a call with a call future as value", () => {
+      const module = buildModule("Module1", (m) => {
+        const contract1 = m.contract("Contract1", []);
+
+        const staticCall1 = m.staticCall(contract1, "getValue");
+
+        m.call(contract1, "lock", [], { value: staticCall1 });
+
+        return { contract1 };
+      });
+
+      assertSerializableModuleIn(module);
+    });
+
+    it("should serialize a call with a read event argument as value", () => {
+      const module = buildModule("Module1", (m) => {
+        const contract1 = m.contract("Contract1", []);
+
+        const event1 = m.readEventArgument(contract1, "Event1", "Value1");
+
+        m.call(contract1, "lock", [], { value: event1 });
+
+        return { contract1 };
       });
 
       assertSerializableModuleIn(module);

@@ -49,6 +49,20 @@ contract Greeter {
   }
 }
 
+contract StaticCallValue {
+  function getValue() public pure returns (uint256) {
+    return 42;
+  }
+}
+
+contract EventArgValue {
+  event EventValue(uint256 value);
+
+  constructor() {
+    emit EventValue(42);
+  }
+}
+
 contract PassingValue {
   constructor() payable {}
 

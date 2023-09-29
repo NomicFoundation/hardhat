@@ -6,7 +6,7 @@ import { buildModule } from "../src/build-module";
 import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module";
 import { validateReadEventArgument } from "../src/internal/validation/futures/validateReadEventArgument";
 
-import { setupMockArtifactResolver } from "./helpers";
+import { assertValidationError, setupMockArtifactResolver } from "./helpers";
 
 describe("Read event argument", () => {
   describe("creating modules with it", () => {
@@ -234,14 +234,14 @@ describe("Read event argument", () => {
         (v) => v.type === FutureType.READ_EVENT_ARGUMENT
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateReadEventArgument(
           future as any,
           setupMockArtifactResolver({ Another: {} as any }),
           {},
           []
         ),
-        ["Artifact for contract 'Another' is invalid"]
+        "Artifact for contract 'Another' is invalid"
       );
     });
 
@@ -264,14 +264,14 @@ describe("Read event argument", () => {
         (v) => v.type === FutureType.READ_EVENT_ARGUMENT
       );
 
-      assert.includeMembers(
+      assertValidationError(
         await validateReadEventArgument(
           future as any,
           setupMockArtifactResolver(),
           {},
           []
         ),
-        ['Event "test" not found in contract Another']
+        "Event 'test' not found in contract Another"
       );
     });
   });

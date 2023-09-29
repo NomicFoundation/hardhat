@@ -43,7 +43,7 @@ export function toMermaid(
     ),
   ].join("\n");
 
-  return `flowchart BT\n\n${toEscapedId(
+  return `flowchart TB\n\n${toEscapedId(
     ignitionModule.id
   )}:::startModule\n\n${subgraphSections}${
     futureDependencies === "" ? "" : "\n\n" + futureDependencies
@@ -70,7 +70,7 @@ function prettyPrintModule(
     .map((f) => `${lineIndent}${toEscapedId(f.id)}["${toLabel(f)}"]`)
     .join(`\n${lineIndent}`);
 
-  return `${lineIndent}subgraph ${module.id}\n${lineIndent}  direction BT\n\n${lineIndent}${futureList}\n${lineIndent}end`;
+  return `${lineIndent}subgraph ${module.id}\n${lineIndent}  direction TB\n\n${lineIndent}${futureList}\n${lineIndent}end`;
 }
 
 function toLabel(f: Future): string {
@@ -84,9 +84,9 @@ function toLabel(f: Future): string {
     case FutureType.LIBRARY_DEPLOYMENT:
       return `Deploy library from artifact ${f.contractName}`;
     case FutureType.CONTRACT_CALL:
-      return `Call ${f.contract.contractName}/${f.functionName}`;
+      return `Call ${f.contract.contractName}.${f.functionName}`;
     case FutureType.STATIC_CALL:
-      return `Static call ${f.contract.contractName}/${f.functionName}`;
+      return `Static call ${f.contract.contractName}.${f.functionName}`;
     case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
       return `Existing contract ${f.contractName} (${
         typeof f.address === "string"

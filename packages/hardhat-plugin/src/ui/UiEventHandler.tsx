@@ -14,7 +14,6 @@ import {
   ExecutionEventListener,
   ExecutionEventResult,
   ExecutionEventResultType,
-  IgnitionError,
   IgnitionModuleResult,
   NetworkInteractionRequestEvent,
   OnchainInteractionBumpFeesEvent,
@@ -22,6 +21,7 @@ import {
   OnchainInteractionReplacedByUserEvent,
   OnchainInteractionTimeoutEvent,
   ReadEventArgExecutionStateInitializeEvent,
+  ReconciliationWarningsEvent,
   RunStartEvent,
   SendDataExecutionStateCompleteEvent,
   SendDataExecutionStateInitializeEvent,
@@ -33,6 +33,7 @@ import {
   TransactionSendEvent,
   WipeApplyEvent,
 } from "@nomicfoundation/ignition-core";
+import { HardhatPluginError } from "hardhat/plugins";
 import { render } from "ink";
 
 import { IgnitionUi } from "./components";
@@ -68,6 +69,7 @@ export class UiEventHandler implements ExecutionEventListener {
     moduleName: null,
     batches: [],
     result: null,
+    warnings: [],
   };
 
   constructor(private _deploymentParams: DeploymentParameters = {}) {}
@@ -333,6 +335,13 @@ export class UiEventHandler implements ExecutionEventListener {
     };
   }
 
+  public reconciliationWarnings(event: ReconciliationWarningsEvent): void {
+    this.state = {
+      ...this.state,
+      warnings: [...this.state.warnings, ...event.warnings],
+    };
+  }
+
   public setModuleId(event: SetModuleIdEvent): void {
     this.state = {
       ...this.state,
@@ -346,7 +355,10 @@ export class UiEventHandler implements ExecutionEventListener {
       this._renderState.waitUntilExit === null ||
       this._renderState.clear === null
     ) {
-      throw new IgnitionError("Cannot unmount with no unmount function");
+      throw new HardhatPluginError(
+        "hardhat-ignition",
+        "Cannot unmount with no unmount function"
+      );
     }
 
     this._renderState.clear();

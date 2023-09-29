@@ -1,3 +1,5 @@
+import { IgnitionError } from "../../../errors";
+import { ERRORS } from "../../../errors-list";
 import { isAccountRuntimeValue, isArtifactType } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deploy";
@@ -11,14 +13,18 @@ export async function validateNamedLibraryDeployment(
   _deploymentParameters: DeploymentParameters,
   accounts: string[]
 ): Promise<string[]> {
-  const errors: string[] = [];
+  const errors: IgnitionError[] = [];
 
   /* stage one */
 
   const artifact = await artifactLoader.loadArtifact(future.contractName);
 
   if (!isArtifactType(artifact)) {
-    errors.push(`Artifact for contract '${future.contractName}' is invalid`);
+    errors.push(
+      new IgnitionError(ERRORS.VALIDATION.INVALID_ARTIFACT, {
+        contractName: future.contractName,
+      })
+    );
   } else {
     errors.push(
       ...validateLibraryNames(artifact, Object.keys(future.libraries))
@@ -31,5 +37,5 @@ export async function validateNamedLibraryDeployment(
     errors.push(...validateAccountRuntimeValue(future.from, accounts));
   }
 
-  return errors;
+  return errors.map((e) => e.message);
 }
