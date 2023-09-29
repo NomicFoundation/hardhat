@@ -434,29 +434,17 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
         concurrency: number;
       },
       { run }
-    ): Promise<{
-      artifactsEmittedPerJob: ArtifactsEmittedPerJob;
-      evmVersions: string[];
-    }> => {
+    ): Promise<{ artifactsEmittedPerJob: ArtifactsEmittedPerJob }> => {
       if (compilationJobs.length === 0) {
         log(`No compilation jobs to compile`);
         await run(TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE, { quiet });
-        return { artifactsEmittedPerJob: [], evmVersions: [] };
+        return { artifactsEmittedPerJob: [] };
       }
 
       log(`Compiling ${compilationJobs.length} jobs`);
 
-      const evmVersionsSet = new Set<string>();
-      const defaultEvmVersionsSet = new Set<string>();
       for (const job of compilationJobs) {
-        const evmTarget = job.getSolcConfig().settings?.evmVersion;
         const solcVersion = job.getSolcConfig().version;
-
-        if (evmTarget !== undefined) {
-          evmVersionsSet.add(evmTarget);
-        } else {
-          defaultEvmVersionsSet.add(`default for ${solcVersion}`);
-        }
 
         // versions older than 0.4.11 don't work with hardhat
         // see issue https://github.com/nomiclabs/hardhat/issues/2004
@@ -470,11 +458,6 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
           );
         }
       }
-
-      // Alphabetically sort evm versions. The default ones are added at the end
-      const evmVersions = Array.from(evmVersionsSet)
-        .sort()
-        .concat(Array.from(defaultEvmVersionsSet).sort());
 
       const { default: pMap } = await import("p-map");
       const pMapOptions = { concurrency, stopOnError: false };
@@ -497,10 +480,7 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
           pMapOptions
         );
 
-        return {
-          artifactsEmittedPerJob,
-          evmVersions,
-        };
+        return { artifactsEmittedPerJob };
       } catch (e) {
         if (!(e instanceof AggregateError)) {
           // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
@@ -1308,23 +1288,33 @@ Read about compiler configuration at https://hardhat.org/config
 subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT)
   .addParam("compilationJobs", undefined, undefined, types.any)
   .addParam("quiet", undefined, undefined, types.boolean)
-  .addOptionalParam("evmVersions", undefined, undefined, types.any)
   .setAction(
-    async ({
-      compilationJobs,
-      evmVersions,
-    }: {
-      compilationJobs: CompilationJob[];
-      evmVersions: string[];
-    }) => {
+    async ({ compilationJobs }: { compilationJobs: CompilationJob[] }) => {
       let count = 0;
+      const evmVersionsSet = new Set<string>();
+      const defaultEvmVersionsSet = new Set<string>();
+
       for (const job of compilationJobs) {
         count += job
           .getResolvedFiles()
           .filter((file) => job.emitsArtifacts(file)).length;
+
+        const evmTarget = job.getSolcConfig().settings?.evmVersion;
+        const solcVersion = job.getSolcConfig().version;
+
+        if (evmTarget !== undefined) {
+          evmVersionsSet.add(evmTarget);
+        } else {
+          defaultEvmVersionsSet.add(`default for ${solcVersion}`);
+        }
       }
 
       if (count > 0) {
+        // Alphabetically sort evm versions. The default ones are added at the end
+        const evmVersions = Array.from(evmVersionsSet)
+          .sort()
+          .concat(Array.from(defaultEvmVersionsSet).sort());
+
         console.log(
           `Compiled ${count} Solidity ${pluralize(
             count,
@@ -1408,15 +1398,14 @@ subtask(TASK_COMPILE_SOLIDITY)
 
       const {
         artifactsEmittedPerJob,
-        evmVersions,
-      }: {
-        artifactsEmittedPerJob: ArtifactsEmittedPerJob;
-        evmVersions: string[];
-      } = await run(TASK_COMPILE_SOLIDITY_COMPILE_JOBS, {
-        compilationJobs: mergedCompilationJobs,
-        quiet,
-        concurrency,
-      });
+      }: { artifactsEmittedPerJob: ArtifactsEmittedPerJob } = await run(
+        TASK_COMPILE_SOLIDITY_COMPILE_JOBS,
+        {
+          compilationJobs: mergedCompilationJobs,
+          quiet,
+          concurrency,
+        }
+      );
 
       // update cache using the information about the emitted artifacts
       for (const {
@@ -1448,7 +1437,6 @@ subtask(TASK_COMPILE_SOLIDITY)
       await run(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT, {
         compilationJobs: mergedCompilationJobs,
         quiet,
-        evmVersions,
       });
     }
   );

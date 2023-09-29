@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Added logic to print the evm version(s) used when compiling.
+Updated the compilation logs to include the targeted EVM versions.
