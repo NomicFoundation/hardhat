@@ -7,8 +7,8 @@ import { ERRORS, ErrorDescriptor, getErrorCode } from "./errors-list";
  * @alpha
  */
 export class CustomError extends Error {
-  constructor(message: string) {
-    super(message);
+  constructor(message: string, cause?: Error) {
+    super(message, { cause });
     this.name = this.constructor.name;
   }
 }
@@ -22,7 +22,8 @@ export class CustomError extends Error {
 export class IgnitionError extends CustomError {
   constructor(
     errorDescriptor: ErrorDescriptor,
-    messageArguments: Record<string, string | number> = {}
+    messageArguments: Record<string, string | number> = {},
+    cause?: Error
   ) {
     const prefix = `${getErrorCode(errorDescriptor)}: `;
     const formattedMessage = applyErrorMessageTemplate(
@@ -30,9 +31,7 @@ export class IgnitionError extends CustomError {
       messageArguments
     );
 
-    super(prefix + formattedMessage);
-
-    this.name = this.constructor.name;
+    super(prefix + formattedMessage, cause);
   }
 }
 
@@ -56,14 +55,9 @@ export class IgnitionPluginError extends CustomError {
 
   public readonly pluginName: string;
 
-  constructor(pluginName: string, message: string) {
-    super(message);
+  constructor(pluginName: string, message: string, cause?: Error) {
+    super(message, cause);
     this.pluginName = pluginName;
-
-    // This is required to allow calls to `resetStackFrom`,
-    // otherwise the function is not available on the
-    // error instance
-    Object.setPrototypeOf(this, new.target.prototype);
   }
 }
 
@@ -85,11 +79,6 @@ export class NomicIgnitionPluginError extends IgnitionPluginError {
   }
 
   private readonly _isNomicIgnitionPluginError = true;
-
-  constructor(pluginName: string, message: string) {
-    super(pluginName, message);
-    Object.setPrototypeOf(this, NomicIgnitionPluginError.prototype);
-  }
 }
 
 /**
