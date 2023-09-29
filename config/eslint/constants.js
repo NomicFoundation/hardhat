@@ -18,4 +18,5 @@ module.exports.slowImportsCommonIgnoredModules = [
   "hardhat/internal/core/providers/util",
   "hardhat/internal/util/fs-utils",
   "hardhat/utils/contract-names",
+  "hardhat/utils/source-names",
 ];
