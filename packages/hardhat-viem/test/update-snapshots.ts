@@ -6,14 +6,12 @@ import { resetHardhatContext } from "hardhat/plugins-testing";
 
 const snapshotPartialPaths = [
   "artifacts.d.ts",
-  path.join("contracts", "A.sol", "A.ts"),
-  path.join("contracts", "A.sol", "B.ts"),
-  path.join("contracts", "A.sol", "file.d.ts"),
-  path.join("contracts", "A.sol", "index.ts"),
-  path.join("contracts", "C.sol", "B.ts"),
-  path.join("contracts", "C.sol", "C.ts"),
-  path.join("contracts", "C.sol", "file.d.ts"),
-  path.join("contracts", "C.sol", "index.ts"),
+  path.join("contracts", "A.sol", "A.d.ts"),
+  path.join("contracts", "A.sol", "B.d.ts"),
+  path.join("contracts", "A.sol", "artifacts.d.ts"),
+  path.join("contracts", "C.sol", "B.d.ts"),
+  path.join("contracts", "C.sol", "C.d.ts"),
+  path.join("contracts", "C.sol", "artifacts.d.ts"),
 ];
 
 const originalCwd = process.cwd();
