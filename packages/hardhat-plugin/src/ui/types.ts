@@ -57,6 +57,7 @@ export interface UiState {
   chainId: number | null;
   moduleName: string | null;
   batches: UiBatches;
+  currentBatch: number;
   result: DeploymentResult | null;
   warnings: string[];
 }

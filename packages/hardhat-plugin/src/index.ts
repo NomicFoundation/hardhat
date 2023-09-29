@@ -8,6 +8,9 @@ import path from "path";
 
 import "./type-extensions";
 
+/* ignition config defaults */
+const IGNITION_DIR = "ignition";
+
 // this is ugly, but it's fast :)
 // discussion: https://github.com/NomicFoundation/hardhat-ignition/pull/483
 export const buildModule: typeof import("@nomicfoundation/ignition-core").buildModule =
@@ -17,9 +20,6 @@ export const buildModule: typeof import("@nomicfoundation/ignition-core").buildM
 
     return coreBuildModule(...args);
   };
-
-/* ignition config defaults */
-const IGNITION_DIR = "ignition";
 
 extendConfig((config, userConfig) => {
   /* setup path configs */
@@ -85,8 +85,11 @@ task("deploy")
         "./hardhat-artifact-resolver"
       );
       const { loadModule } = await import("./load-module");
-      const { UiEventHandler } = await import("./ui/UiEventHandler");
-      const { VerboseEventHandler } = await import("./ui/VerboseEventHandler");
+
+      const { PrettyEventHandler } = await import("./ui/pretty-event-handler");
+      const { VerboseEventHandler } = await import(
+        "./ui/verbose-event-handler"
+      );
 
       const chainId = Number(
         await hre.network.provider.request({
@@ -147,7 +150,7 @@ task("deploy")
 
       const executionEventListener = simpleTextUi
         ? new VerboseEventHandler()
-        : new UiEventHandler(parameters);
+        : new PrettyEventHandler();
 
       try {
         await deploy({
@@ -161,9 +164,6 @@ task("deploy")
           accounts,
         });
       } catch (e) {
-        if (executionEventListener instanceof UiEventHandler) {
-          executionEventListener.unmountCli();
-        }
         throw e;
       }
     }
