@@ -314,9 +314,12 @@ describe("Integration tests", function () {
       await this.hre.run(TASK_CLEAN);
     });
 
-    it("should generate artifacts.d.ts", async function () {
-      const snapshotPath = path.join("snapshots", "artifacts.d.ts");
-      const generatedFilePath = path.join("artifacts", "artifacts.d.ts");
+    it("should generate duplicate-artifacts.d.ts", async function () {
+      const snapshotPath = path.join("snapshots", "duplicate-artifacts.d.ts");
+      const generatedFilePath = path.join(
+        "artifacts",
+        "duplicate-artifacts.d.ts"
+      );
 
       await assertSnapshotMatch(snapshotPath, generatedFilePath);
     });

@@ -1,4 +1,4 @@
-import type { Artifact } from "hardhat/types";
+import type { Artifact, Artifacts } from "hardhat/types";
 import type { ArtifactsEmittedPerFile } from "hardhat/types/builtin-tasks";
 
 import { join, dirname, relative } from "path";
@@ -15,34 +15,32 @@ import {
   parseFullyQualifiedName,
 } from "hardhat/utils/contract-names";
 import { getAllFilesMatching } from "hardhat/internal/util/fs-utils";
+import { replaceBackslashes } from "hardhat/utils/source-names";
 
 interface EmittedArtifacts {
   artifactsEmittedPerFile: ArtifactsEmittedPerFile;
 }
 
 /**
- * This override generates an artifacts.d.ts file that's used
- * to type hre.artifacts.
- *
- * TODO: Can we avoid regenerating this every time? The reason we override
- * this task is that deleting a `.sol` file doesn't emit any artifact, yet
- * we may need to regenerate this file.
+ * Override task that generates an `duplicate-artifacts.d.ts` file with `never`
+ * types for duplicate contract names. This file is used in conjunction with
+ * the `artifacts.d.ts` file inside each contract directory to type
+ * `hre.artifacts`.
  */
 subtask(TASK_COMPILE_SOLIDITY).setAction(
   async (_, { config, artifacts }, runSuper) => {
     const superRes = await runSuper();
 
-    const fqns = await artifacts.getAllFullyQualifiedNames();
-    const contractNames = fqns.map(
-      (fqn) => parseFullyQualifiedName(fqn).contractName
-    );
+    const duplicateContractNames = await findDuplicateContractNames(artifacts);
 
-    const artifactsDTs = generateArtifactsDefinition(contractNames);
+    const duplicateArtifactsDTs = generateDuplicateArtifactsDefinition(
+      duplicateContractNames
+    );
 
     try {
       await writeFile(
-        join(config.paths.artifacts, "artifacts.d.ts"),
-        artifactsDTs
+        join(config.paths.artifacts, "duplicate-artifacts.d.ts"),
+        duplicateArtifactsDTs
       );
     } catch (error) {
       console.error("Error writing artifacts definition:", error);
@@ -53,21 +51,15 @@ subtask(TASK_COMPILE_SOLIDITY).setAction(
 );
 
 /**
- * This override generates a .ts file per contract, and a file.d.ts
- * per solidity file, which is used in conjunction to artifacts.d.ts
- * to type hre.artifacts.
+ * Override task to emit TypeScript and definition files for each contract.
+ * Generates a `.d.ts` file per contract, and a `artifacts.d.ts` per solidity
+ * file, which is used in conjunction to the root `duplicate-artifacts.d.ts`
+ * to type `hre.artifacts`.
  */
 subtask(TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS).setAction(
   async (_, { artifacts, config }, runSuper): Promise<EmittedArtifacts> => {
     const { artifactsEmittedPerFile }: EmittedArtifacts = await runSuper();
-
-    const fqns = await artifacts.getAllFullyQualifiedNames();
-    const contractNames = fqns.map(
-      (fqn) => parseFullyQualifiedName(fqn).contractName
-    );
-    const dupContractNames = contractNames.filter(
-      (name, i) => contractNames.indexOf(name) !== i
-    );
+    const duplicateContractNames = await findDuplicateContractNames(artifacts);
 
     await Promise.all(
       artifactsEmittedPerFile.map(async ({ file, artifactsEmitted }) => {
@@ -80,8 +72,11 @@ subtask(TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS).setAction(
           artifactsEmitted.map(async (contractName) => {
             const fqn = getFullyQualifiedName(file.sourceName, contractName);
             const artifact = await artifacts.readArtifact(fqn);
-            const isDup = dupContractNames.includes(contractName);
-            const declaration = generateContractDeclaration(artifact, isDup);
+            const isDuplicate = duplicateContractNames.has(contractName);
+            const declaration = generateContractDeclaration(
+              artifact,
+              isDuplicate
+            );
 
             const typeName = `${contractName}$Type`;
 
@@ -94,7 +89,7 @@ subtask(TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS).setAction(
           fp.push(writeFile(join(srcDir, `${contractName}.d.ts`), declaration));
         }
 
-        const dTs = generateDTsFile(contractTypeData);
+        const dTs = generateArtifactsDefinition(contractTypeData);
         fp.push(writeFile(join(srcDir, "artifacts.d.ts"), dTs));
 
         try {
@@ -110,26 +105,31 @@ subtask(TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS).setAction(
 );
 
 /**
- * This override deletes the obsolete dir files that were kept just because
- * of the files that we generated.
+ * Override task for cleaning up outdated artifacts.
+ * Deletes directories with stale `artifacts.d.ts` files that no longer have
+ * a matching `.sol` file.
  */
 subtask(TASK_COMPILE_REMOVE_OBSOLETE_ARTIFACTS).setAction(
   async (_, { config, artifacts }, runSuper) => {
     const superRes = await runSuper();
 
     const fqns = await artifacts.getAllFullyQualifiedNames();
-    const existingSourceFiles = new Set(
+    const existingSourceNames = new Set(
       fqns.map((fqn) => parseFullyQualifiedName(fqn).sourceName)
     );
-    const allFilesDTs = await getAllFilesMatching(config.paths.artifacts, (f) =>
-      f.endsWith("file.d.ts")
+    const allArtifactsDTs = await getAllFilesMatching(
+      config.paths.artifacts,
+      (f) =>
+        f.endsWith("artifacts.d.ts") && !f.endsWith("duplicate-artifacts.d.ts")
     );
 
-    for (const fileDTs of allFilesDTs) {
-      const dir = dirname(fileDTs);
-      const sourceName = relative(config.paths.artifacts, dir);
+    for (const artifactDTs of allArtifactsDTs) {
+      const dir = dirname(artifactDTs);
+      const sourceName = replaceBackslashes(
+        relative(config.paths.artifacts, dir)
+      );
 
-      if (!existingSourceFiles.has(sourceName)) {
+      if (!existingSourceNames.has(sourceName)) {
         await rm(dir, { force: true, recursive: true });
       }
     }
@@ -143,15 +143,20 @@ const AUTOGENERATED_FILE_PREFACE = `// This file was autogenerated by hardhat-vi
 // tslint:disable
 // eslint-disable`;
 
-function generateArtifactsDefinition(contractNames: string[]) {
+/**
+ * Generates TypeScript code that extends the `ArtifactsMap` with `never` types
+ * for duplicate contract names.
+ */
+function generateDuplicateArtifactsDefinition(
+  duplicateContractNames: Set<string>
+) {
   return `${AUTOGENERATED_FILE_PREFACE}
 
 import "hardhat/types/artifacts";
 
 declare module "hardhat/types/artifacts" {
   interface ArtifactsMap {
-    ${contractNames
-      .filter((name, i) => contractNames.indexOf(name) !== i)
+    ${Array.from(duplicateContractNames)
       .map((name) => `${name}: never;`)
       .join("\n    ")}
   }
@@ -159,10 +164,14 @@ declare module "hardhat/types/artifacts" {
 `;
 }
 
-function generateContractDeclaration(artifact: Artifact, isDup: boolean) {
+/**
+ * Generates TypeScript code to declare a contract and its associated
+ * TypeScript types.
+ */
+function generateContractDeclaration(artifact: Artifact, isDuplicate: boolean) {
   const { contractName, sourceName } = artifact;
   const fqn = getFullyQualifiedName(sourceName, contractName);
-  const validNames = isDup ? [fqn] : [contractName, fqn];
+  const validNames = isDuplicate ? [fqn] : [contractName, fqn];
   const json = JSON.stringify(artifact, undefined, 2);
   const contractTypeName = `${contractName}$Type`;
 
@@ -179,10 +188,7 @@ function generateContractDeclaration(artifact: Artifact, isDup: boolean) {
   const constructorArgs =
     inputs.length > 0
       ? `constructorArgs: [${inputs
-          .map(
-            ({ name, type }) =>
-              `AbiParameterToPrimitiveType<${JSON.stringify({ name, type })}>`
-          )
+          .map(({ name, type }) => getArgType(name, type))
           .join(", ")}]`
       : `constructorArgs?: []`;
 
@@ -222,7 +228,11 @@ declare module "@nomicfoundation/hardhat-viem/types" {
 `;
 }
 
-function generateDTsFile(
+/**
+ * Generates TypeScript code to extend the `ArtifactsMap` interface with
+ * contract types.
+ */
+function generateArtifactsDefinition(
   contractTypeData: Array<{
     contractName: string;
     fqn: string;
@@ -249,4 +259,44 @@ declare module "hardhat/types/artifacts" {
   }
 }
 `;
+}
+
+/**
+ * Returns the type of a function argument in one of the following formats:
+ * - If the 'name' is provided:
+ *   "name: AbiParameterToPrimitiveType<{ name: string; type: string; }>"
+ *
+ * - If the 'name' is empty:
+ *   "AbiParameterToPrimitiveType<{ name: string; type: string; }>"
+ */
+function getArgType(name: string, type: string) {
+  const argType = `AbiParameterToPrimitiveType<${JSON.stringify({
+    name,
+    type,
+  })}>`;
+
+  return name !== "" ? `${name}: ${argType}` : argType;
+}
+
+/**
+ * Returns a set of duplicate contract names.
+ */
+async function findDuplicateContractNames(artifacts: Artifacts) {
+  const fqns = await artifacts.getAllFullyQualifiedNames();
+  const contractNames = fqns.map(
+    (fqn) => parseFullyQualifiedName(fqn).contractName
+  );
+
+  const duplicates = new Set<string>();
+  const existing = new Set<string>();
+
+  for (const name of contractNames) {
+    if (existing.has(name)) {
+      duplicates.add(name);
+    }
+
+    existing.add(name);
+  }
+
+  return duplicates;
 }

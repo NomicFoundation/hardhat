@@ -59,12 +59,12 @@ export interface A$Type {
 declare module "@nomicfoundation/hardhat-viem/types" {
   export function deployContract(
     contractName: "A",
-    constructorArgs: [AbiParameterToPrimitiveType<{"name":"_owner","type":"address"}>],
+    constructorArgs: [_owner: AbiParameterToPrimitiveType<{"name":"_owner","type":"address"}>],
     config?: DeployContractConfig
   ): Promise<GetContractReturnType<A$Type["abi"]>>;
   export function deployContract(
     contractName: "contracts/A.sol:A",
-    constructorArgs: [AbiParameterToPrimitiveType<{"name":"_owner","type":"address"}>],
+    constructorArgs: [_owner: AbiParameterToPrimitiveType<{"name":"_owner","type":"address"}>],
     config?: DeployContractConfig
   ): Promise<GetContractReturnType<A$Type["abi"]>>;
 
