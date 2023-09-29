@@ -157,13 +157,13 @@ async function main() {
     // The code marked with the tag #INIT-DEP can be deleted after HarhatV3 is out.
 
     // Create a new Hardhat project
-    if (parsedTaskName === "init") {
+    if (allUnparsedCLAs[0].toLowerCase() === "init") {
       return await createNewProject();
     }
     // #INIT-DEP - START OF DEPRECATED CODE
     else {
       if (
-        parsedTaskName === undefined &&
+        allUnparsedCLAs[0].toLowerCase() === undefined &&
         hardhatArguments.config === undefined &&
         !isCwdInsideProject()
       ) {
