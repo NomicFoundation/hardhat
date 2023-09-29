@@ -3,9 +3,8 @@
 // tslint:disable
 // eslint-disable
 
-import type { AbiParameterToPrimitiveType } from "abitype";
 import type { Address } from "viem";
-import type { GetContractReturnType } from "@nomicfoundation/hardhat-viem/types";
+import type { AbiParameterToPrimitiveType, GetContractReturnType } from "@nomicfoundation/hardhat-viem/types";
 import "@nomicfoundation/hardhat-viem/types";
 
 export interface A$Type {
@@ -60,12 +59,12 @@ export interface A$Type {
 declare module "@nomicfoundation/hardhat-viem/types" {
   export function deployContract(
     contractName: "A",
-    constructorArgs: [AbiParameterToPrimitiveType<{"internalType":"address","name":"_owner","type":"address"}>],
+    constructorArgs: [AbiParameterToPrimitiveType<{"name":"_owner","type":"address"}>],
     config?: DeployContractConfig
   ): Promise<GetContractReturnType<A$Type["abi"]>>;
   export function deployContract(
     contractName: "contracts/A.sol:A",
-    constructorArgs: [AbiParameterToPrimitiveType<{"internalType":"address","name":"_owner","type":"address"}>],
+    constructorArgs: [AbiParameterToPrimitiveType<{"name":"_owner","type":"address"}>],
     config?: DeployContractConfig
   ): Promise<GetContractReturnType<A$Type["abi"]>>;
 
