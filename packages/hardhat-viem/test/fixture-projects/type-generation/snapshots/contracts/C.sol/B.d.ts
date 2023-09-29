@@ -51,7 +51,7 @@ export interface B$Type {
 declare module "@nomicfoundation/hardhat-viem/types" {
   export function deployContract(
     contractName: "contracts/C.sol:B",
-    constructorArgs: [AbiParameterToPrimitiveType<{"name":"_b","type":"uint256"}>, AbiParameterToPrimitiveType<{"name":"_s","type":"string"}>],
+    constructorArgs: [_b: AbiParameterToPrimitiveType<{"name":"_b","type":"uint256"}>, _s: AbiParameterToPrimitiveType<{"name":"_s","type":"string"}>],
     config?: DeployContractConfig
   ): Promise<GetContractReturnType<B$Type["abi"]>>;
 
