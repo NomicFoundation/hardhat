@@ -1,3 +1,4 @@
+export { batches } from "./batches";
 export { buildModule } from "./build-module";
 export { deploy } from "./deploy";
 export * from "./errors";

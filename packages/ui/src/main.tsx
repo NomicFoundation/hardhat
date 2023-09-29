@@ -13,11 +13,10 @@ import { VisualizationOverview } from "./pages/visualization-overview/visualizat
 
 import "./main.css";
 
-const loadDeploymentFromEmbeddedDiv = (): IgnitionModule<
-  string,
-  string,
-  IgnitionModuleResult<string>
-> | null => {
+const loadDeploymentFromEmbeddedDiv = (): {
+  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>;
+  batches: string[][];
+} | null => {
   const scriptTag = document.getElementById("deployment");
 
   if (scriptTag === null || scriptTag.textContent === null) {
@@ -30,13 +29,23 @@ const loadDeploymentFromEmbeddedDiv = (): IgnitionModule<
     return null;
   }
 
-  return IgnitionModuleDeserializer.deserialize(data.module);
+  return {
+    ignitionModule: IgnitionModuleDeserializer.deserialize(data.module),
+    batches: data.batches,
+  };
 };
 
-const loadDeploymentFromDevFile = async () => {
+const loadDeploymentFromDevFile = async (): Promise<{
+  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>;
+  batches: string[][];
+}> => {
   const response = await fetch("./deployment.json");
   const data = await response.json();
-  return IgnitionModuleDeserializer.deserialize(data.module);
+
+  return {
+    ignitionModule: IgnitionModuleDeserializer.deserialize(data.module),
+    batches: data.batches,
+  };
 };
 
 const loadDeploymentData = () => {
@@ -45,12 +54,17 @@ const loadDeploymentData = () => {
 
 const main = async () => {
   try {
-    const ignitionModule = await loadDeploymentData();
+    const { ignitionModule, batches } = await loadDeploymentData();
 
     const router = createHashRouter([
       {
         path: "/",
-        element: <VisualizationOverview ignitionModule={ignitionModule} />,
+        element: (
+          <VisualizationOverview
+            ignitionModule={ignitionModule}
+            batches={batches}
+          />
+        ),
       },
     ]);
 

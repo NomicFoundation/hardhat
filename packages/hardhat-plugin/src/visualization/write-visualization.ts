@@ -3,7 +3,10 @@ import { ensureDir, pathExists, readFile, writeFile } from "fs-extra";
 import path from "path";
 
 export async function writeVisualization(
-  visualizationPayload: { module: SerializedIgnitionModule },
+  visualizationPayload: {
+    module: SerializedIgnitionModule;
+    batches: string[][];
+  },
   { cacheDir }: { cacheDir: string }
 ) {
   const templateDir = path.join(

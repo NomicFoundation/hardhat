@@ -7,6 +7,7 @@ import {
 } from "@nomicfoundation/ignition-core/ui-helpers";
 import { getAllFuturesForModule } from "../queries/futures.js";
 import { argumentTypeToString } from "./argumentTypeToString.js";
+import { toEscapedId } from "./to-escaped-id.js";
 
 export function toMermaid(
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>
@@ -114,12 +115,4 @@ function toLabel(f: Future): string {
           : argumentTypeToString(f.to)
       }`;
   }
-}
-
-function toEscapedId(id: string): string {
-  return id
-    .replace("(", "_")
-    .replace(")", "_")
-    .replace(",", "_")
-    .replace(" ", "_");
 }

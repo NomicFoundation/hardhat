@@ -1,4 +1,5 @@
 import {
+  Future,
   FutureType,
   IgnitionModule,
   IgnitionModuleResult,
@@ -8,11 +9,12 @@ import { Tooltip } from "react-tooltip";
 import styled from "styled-components";
 
 import { getAllFuturesForModule } from "../../../queries/futures";
-import { FutureBlock } from "./future-block";
+import { FutureBatch } from "./future-batch";
 
 export const ExecutionBatches: React.FC<{
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>;
-}> = ({ ignitionModule }) => {
+  batches: string[][];
+}> = ({ ignitionModule, batches }) => {
   const futures = useMemo(
     () => getAllFuturesForModule(ignitionModule),
     [ignitionModule]
@@ -35,28 +37,40 @@ export const ExecutionBatches: React.FC<{
     setToggledInternal(newState);
   };
 
+  const [currentlyHovered, setCurrentlyHovered] = useState("");
+
+  const futureBatches = batches.reduce((acc, batch) => {
+    const fullBatch = batch.map((id) => futures.find((f) => f.id === id));
+
+    return [...acc, fullBatch as Future[]];
+  }, [] as Future[][]);
+
   return (
     <div>
       <SectionHeader>
         Execution batches <BatchesTooltip />
       </SectionHeader>
 
-      {/* todo: integrate for placeholder below after batching work */}
       <SectionSubHeader>
-        <strong>8 futures</strong> will be executed across 3{" "}
-        <strong>batches</strong>
+        <strong>{futures.length} futures</strong> will be executed across{" "}
+        {batches.length} <strong>batches</strong>
       </SectionSubHeader>
 
-      <Actions>
-        {futures.map((future) => (
-          <FutureBlock
-            key={future.id}
-            future={future}
-            toggleState={toggleState}
-            setToggled={setToggled}
-          />
-        ))}
-      </Actions>
+      <RootModuleBackground>
+        <RootModuleName>[{ignitionModule.id}]</RootModuleName>
+        <Actions currentlyHovered={currentlyHovered}>
+          {futureBatches.map((batch, i) => (
+            <FutureBatch
+              key={`batch-${i}`}
+              batch={batch}
+              index={i + 1}
+              toggleState={toggleState}
+              setToggled={setToggled}
+              setCurrentlyHovered={setCurrentlyHovered}
+            />
+          ))}
+        </Actions>
+      </RootModuleBackground>
     </div>
   );
 };
@@ -80,6 +94,17 @@ const BatchesTooltip: React.FC = () => (
   </span>
 );
 
+const RootModuleName = styled.div`
+  font-weight: 700;
+  padding-bottom: 1.5rem;
+`;
+
+const RootModuleBackground = styled.div`
+  background: #f6f6f6;
+  border: 1px solid #bebebe;
+  padding: 1.5rem;
+`;
+
 const SectionHeader = styled.div`
   font-size: 1.5rem;
   margin-bottom: 1rem;
@@ -91,7 +116,15 @@ const SectionSubHeader = styled.div`
   margin-top: 1rem;
 `;
 
-const Actions = styled.div`
+const Actions = styled.div<{ currentlyHovered: string }>`
   display: grid;
   row-gap: 0.5rem;
+
+  ${({ currentlyHovered }) =>
+    currentlyHovered &&
+    `
+    .${currentlyHovered} {
+      font-weight: 700;
+    }
+  `}
 `;

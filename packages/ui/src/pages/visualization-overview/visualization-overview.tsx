@@ -10,7 +10,8 @@ import { ExecutionBatches } from "./components/execution-batches";
 
 export const VisualizationOverview: React.FC<{
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>;
-}> = ({ ignitionModule }) => {
+  batches: string[][];
+}> = ({ ignitionModule, batches }) => {
   return (
     <Page>
       <header>
@@ -23,11 +24,11 @@ export const VisualizationOverview: React.FC<{
       </Panel>
 
       <Panel>
-        <DeploymentFlow ignitionModule={ignitionModule} />
+        <DeploymentFlow ignitionModule={ignitionModule} batches={batches} />
       </Panel>
 
       <Panel>
-        <ExecutionBatches ignitionModule={ignitionModule} />
+        <ExecutionBatches ignitionModule={ignitionModule} batches={batches} />
       </Panel>
     </Page>
   );

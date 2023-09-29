@@ -9,11 +9,56 @@ import React from "react";
 import styled from "styled-components";
 import { argumentTypeToString } from "../../../utils/argumentTypeToString";
 
-export const FutureBlock: React.FC<{
+export const FutureBatch: React.FC<{
+  batch: Future[];
+  index: number;
+  toggleState: Record<string, boolean>;
+  setToggled: (id: string) => void;
+  setCurrentlyHovered: (id: string) => void;
+}> = ({ batch, index, toggleState, setToggled, setCurrentlyHovered }) => {
+  return (
+    <Batch>
+      <BatchHeader>
+        Batch <strong>#{index}</strong>
+      </BatchHeader>
+      {batch.map((future, i) => (
+        <FutureBlock
+          key={`batch-${index}-future-${i}`}
+          future={future}
+          toggleState={toggleState}
+          setToggled={setToggled}
+          setCurrentlyHovered={setCurrentlyHovered}
+        />
+      ))}
+    </Batch>
+  );
+};
+
+const Batch = styled.div`
+  background: #f2efef;
+  padding: 0.5rem;
+`;
+
+const BatchHeader = styled.div`
+  margin: 0.5rem;
+`;
+
+const FutureBtn = styled.div`
+  padding: 0.5rem;
+  margin: 0.5rem;
+`;
+
+const Text = styled.div`
+  margin: 0;
+  display: inline;
+`;
+
+const FutureBlock: React.FC<{
   future: Future;
   toggleState: Record<string, boolean>;
   setToggled: (id: string) => void;
-}> = ({ future, toggleState, setToggled }) => {
+  setCurrentlyHovered: (id: string) => void;
+}> = ({ future, toggleState, setToggled, setCurrentlyHovered }) => {
   const futureId = future.id;
   const toggled = toggleState[futureId];
 
@@ -33,7 +78,14 @@ export const FutureBlock: React.FC<{
         <ToggleBtn setToggled={() => setToggled(futureId)} toggled={toggled} />
       )}
       <Text>{displayText}</Text>
-      <Text style={{ float: "right" }}>[{future.module.id}]</Text>
+      <Text
+        className={future.module.id}
+        style={{ float: "right" }}
+        onMouseEnter={() => setCurrentlyHovered(future.module.id)}
+        onMouseLeave={() => setCurrentlyHovered("")}
+      >
+        [{future.module.id}]
+      </Text>
       {toggled && (
         <FutureDetailsSection future={future} setToggled={setToggled} />
       )}
@@ -82,15 +134,6 @@ function toDisplayText(future: Future): string {
       }`;
   }
 }
-
-const Text = styled.div`
-  margin: 0;
-  display: inline;
-`;
-
-const FutureBtn = styled.div`
-  padding: 0.5rem;
-`;
 
 const ToggleBtn: React.FC<{
   toggled: boolean;
