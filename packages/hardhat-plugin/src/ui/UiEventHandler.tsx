@@ -14,7 +14,6 @@ import {
   ExecutionEventListener,
   ExecutionEventResult,
   ExecutionEventResultType,
-  IgnitionModuleResult,
   NetworkInteractionRequestEvent,
   OnchainInteractionBumpFeesEvent,
   OnchainInteractionDroppedEvent,
@@ -433,7 +432,7 @@ export class UiEventHandler implements ExecutionEventListener {
 
   private _applyResultToBatches(
     batches: UiBatches,
-    result: DeploymentResult<string, IgnitionModuleResult<string>>
+    result: DeploymentResult
   ): UiBatches {
     const newBatches: UiBatches = [];
 
@@ -453,7 +452,7 @@ export class UiEventHandler implements ExecutionEventListener {
 
   private _hasUpdatedResult(
     futureId: string,
-    result: DeploymentResult<string, IgnitionModuleResult<string>>
+    result: DeploymentResult
   ): UiFuture | null {
     if (result.type !== DeploymentResultType.EXECUTION_ERROR) {
       return null;

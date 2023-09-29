@@ -1,7 +1,4 @@
-import {
-  IgnitionModuleResult,
-  SuccessfulDeploymentResult,
-} from "@nomicfoundation/ignition-core";
+import { SuccessfulDeploymentResult } from "@nomicfoundation/ignition-core";
 import { Box, Spacer, Text } from "ink";
 
 import { NetworkInfo } from "./NetworkInfo";
@@ -10,10 +7,7 @@ export const AddressResults = ({
   contracts,
   chainId,
 }: {
-  contracts: SuccessfulDeploymentResult<
-    string,
-    IgnitionModuleResult<string>
-  >["contracts"];
+  contracts: SuccessfulDeploymentResult["contracts"];
   chainId: number;
 }) => {
   return (

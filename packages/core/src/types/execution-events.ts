@@ -1,5 +1,4 @@
 import { DeploymentResult } from "./deploy";
-import { IgnitionModuleResult } from "./module";
 
 /**
  * Events emitted by the execution engine to allow tracking
@@ -115,7 +114,7 @@ export interface BeginNextBatchEvent {
  */
 export interface DeploymentCompleteEvent {
   type: ExecutionEventType.DEPLOYMENT_COMPLETE;
-  result: DeploymentResult<string, IgnitionModuleResult<string>>;
+  result: DeploymentResult;
 }
 
 /**

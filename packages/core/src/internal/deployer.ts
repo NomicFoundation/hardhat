@@ -10,7 +10,6 @@ import {
   ExecutionErrorDeploymentResult,
   PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
-  SuccessfulDeploymentResult,
 } from "../types/deploy";
 import {
   ExecutionEventListener,
@@ -77,7 +76,7 @@ export class Deployer {
     deploymentParameters: DeploymentParameters,
     accounts: string[],
     defaultSender: string
-  ): Promise<DeploymentResult<ContractNameT, IgnitionModuleResultsT>> {
+  ): Promise<DeploymentResult> {
     let deploymentState = await this._getOrInitializeDeploymentState(
       ignitionModule.id
     );
@@ -208,7 +207,7 @@ export class Deployer {
   >(
     deploymentState: DeploymentState,
     _module: IgnitionModule<ModuleIdT, ContractNameT, IgnitionModuleResultsT>
-  ): Promise<DeploymentResult<ContractNameT, IgnitionModuleResultsT>> {
+  ): Promise<DeploymentResult> {
     if (!this._isSuccessful(deploymentState)) {
       return this._getExecutionErrorResult(deploymentState);
     }
@@ -217,10 +216,7 @@ export class Deployer {
 
     return {
       type: DeploymentResultType.SUCCESSFUL_DEPLOYMENT,
-      contracts: deployedContracts as SuccessfulDeploymentResult<
-        ContractNameT,
-        IgnitionModuleResultsT
-      >["contracts"],
+      contracts: deployedContracts,
     };
   }
 
@@ -277,9 +273,7 @@ export class Deployer {
     });
   }
 
-  private _emitDeploymentCompleteEvent(
-    result: DeploymentResult<string, IgnitionModuleResult<string>>
-  ): void {
+  private _emitDeploymentCompleteEvent(result: DeploymentResult): void {
     if (this._executionEventListener === undefined) {
       return;
     }

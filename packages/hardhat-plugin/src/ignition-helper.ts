@@ -104,7 +104,7 @@ export class IgnitionHelper {
       ContractNameT,
       IgnitionModuleResultsT
     >,
-    result: SuccessfulDeploymentResult<ContractNameT, IgnitionModuleResultsT>
+    result: SuccessfulDeploymentResult
   ): Promise<
     IgnitionModuleResultsTToEthersContracts<
       ContractNameT,
