@@ -1377,6 +1377,18 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     await this._persistIrregularWorldState();
   }
 
+  public async traceCall(
+    callParams: CallParams,
+    block: bigint | "pending",
+    traceConfig: RpcDebugTracingConfig
+  ) {
+    const vmDebugTracer = new VMDebugTracer(this._vm);
+
+    return vmDebugTracer.trace(async () => {
+      await this.runCall(callParams, block);
+    }, traceConfig);
+  }
+
   public async traceTransaction(hash: Buffer, config: RpcDebugTracingConfig) {
     const block = await this.getBlockByTransactionHash(hash);
     if (block === undefined) {

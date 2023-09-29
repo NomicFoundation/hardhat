@@ -80,13 +80,13 @@ yarn add --dev hardhat
 In the same directory where you installed Hardhat run:
 
 ```
-npx hardhat
+npx hardhat init
 ```
 
 Select `Create an empty hardhat.config.js` with your keyboard and hit enter.
 
 ```markup{16}
-$ npx hardhat
+$ npx hardhat init
 888    888                      888 888               888
 888    888                      888 888               888
 888    888                      888 888               888

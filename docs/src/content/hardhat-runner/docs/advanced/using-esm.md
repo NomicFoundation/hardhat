@@ -80,7 +80,7 @@ yarn add --dev hardhat
 
 ::::
 
-and run `npx hardhat` to create a Hardhat project:
+and run `npx hardhat init` to create a Hardhat project:
 
 ```
 888    888                      888 888               888
