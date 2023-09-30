@@ -1,3 +1,4 @@
+import { DeployedContract } from "../../types/deploy";
 import { DeploymentState } from "../execution/types/deployment-state";
 import { ExecutionResultType } from "../execution/types/execution-result";
 import {
@@ -7,12 +8,6 @@ import {
   ExecutionStatus,
 } from "../execution/types/execution-state";
 import { assertIgnitionInvariant } from "../utils/assertions";
-
-interface DeployedContract {
-  id: string;
-  contractName: string;
-  address: string;
-}
 
 export function findDeployedContracts(deploymentState: DeploymentState): {
   [futureId: string]: DeployedContract;

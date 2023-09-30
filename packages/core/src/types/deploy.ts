@@ -168,6 +168,17 @@ export interface PreviousRunErrorDeploymentResult {
 }
 
 /**
+ * The details of a deployed contract.
+ *
+ * @beta
+ */
+export interface DeployedContract {
+  id: string;
+  contractName: string;
+  address: string;
+}
+
+/**
  * A deployment result where all of the futures of the module have completed
  * successfully.
  *
@@ -185,11 +196,7 @@ export interface SuccessfulDeploymentResult {
    * in the current run and the previous runs
    */
   contracts: {
-    [key: string]: {
-      id: string;
-      contractName: string;
-      address: string;
-    };
+    [key: string]: DeployedContract;
   };
 }
 

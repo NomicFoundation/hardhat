@@ -1,6 +1,11 @@
+import type {
+  DeploymentParameters,
+  StatusResult,
+} from "@nomicfoundation/ignition-core";
+
 import "@nomicfoundation/hardhat-ethers";
-import { batches, DeploymentParameters } from "@nomicfoundation/ignition-core";
-import { existsSync, readdirSync, readJSONSync } from "fs-extra";
+import chalk from "chalk";
+import { readdirSync } from "fs-extra";
 import { extendConfig, extendEnvironment, task } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
 import path from "path";
@@ -179,7 +184,7 @@ task("visualize")
       }: { quiet: boolean; moduleNameOrPath: string },
       hre
     ) => {
-      const { IgnitionModuleSerializer } = await import(
+      const { IgnitionModuleSerializer, batches } = await import(
         "@nomicfoundation/ignition-core"
       );
 
@@ -227,55 +232,101 @@ task("visualize")
     }
   );
 
-task("ignition-info")
-  .addParam("deploymentId")
-  .addFlag("json", "format as json")
+task("status")
+  .addParam("id")
   .setDescription("Lists the deployed contract addresses of a deployment")
-  .setAction(
-    async (
-      {
-        deploymentId,
-        json: formatAsJson,
-      }: { deploymentId: string; json: boolean },
-      hre
-    ) => {
-      const deploymentDir = path.join(
-        hre.config.paths.ignition,
-        "deployments",
-        deploymentId
-      );
-      const deployedAddressesPath = path.join(
-        deploymentDir,
-        "deployed_addresses.json"
-      );
+  .setAction(async ({ id }: { id: string }, hre) => {
+    const { status } = await import("@nomicfoundation/ignition-core");
 
-      if (!existsSync(deploymentDir)) {
-        console.error(`No deployment found with id ${deploymentDir}`);
-        process.exit(1);
+    const deploymentDir = path.join(
+      hre.config.paths.ignition,
+      "deployments",
+      id
+    );
+
+    const statusResult = await status(deploymentDir);
+
+    if (statusResult.started.length > 0) {
+      console.log("");
+      console.log(
+        chalk.bold(
+          `⛔ Deployment ${id} has not fully completed, there are futures have started but not finished`
+        )
+      );
+      console.log("");
+
+      for (const futureId of Object.values(statusResult.started)) {
+        console.log(` - ${futureId}`);
       }
 
-      if (!existsSync(deployedAddressesPath)) {
-        console.log(`No contracts deployed`);
-        process.exit(0);
-      }
+      console.log("");
+      return;
+    }
 
-      const deployedAddresses = readJSONSync(deployedAddressesPath);
+    if (
+      statusResult.timedOut.length > 0 ||
+      statusResult.failed.length > 0 ||
+      statusResult.held.length > 0
+    ) {
+      console.log("");
+      console.log(chalk.bold(toErrorResultHeading(id, statusResult)));
+      console.log("");
 
-      if (formatAsJson) {
-        console.log(JSON.stringify(deployedAddresses, undefined, 2));
-      } else {
-        console.log("Deployed Addresses");
-        console.log("==================");
+      if (statusResult.timedOut.length > 0) {
+        console.log(chalk.yellow("There are timed-out futures:"));
         console.log("");
 
-        for (const [futureId, address] of Object.entries(deployedAddresses)) {
-          console.log(`${futureId}\t${address as string}`);
+        for (const { futureId } of Object.values(statusResult.timedOut)) {
+          console.log(` - ${futureId}`);
         }
 
         console.log("");
       }
+
+      if (statusResult.failed.length > 0) {
+        console.log(chalk.red("There are failed futures"));
+        console.log("");
+
+        for (const { futureId, networkInteractionId, error } of Object.values(
+          statusResult.failed
+        )) {
+          console.log(` - ${futureId}/${networkInteractionId}: ${error}`);
+        }
+
+        console.log("");
+      }
+
+      if (statusResult.held.length > 0) {
+        console.log(chalk.yellow("There are futures that the strategy held:"));
+        console.log("");
+
+        for (const { futureId, heldId, reason } of Object.values(
+          statusResult.held
+        )) {
+          console.log(` - ${futureId}/${heldId}: ${reason}`);
+        }
+
+        console.log("");
+      }
+
+      return;
     }
-  );
+
+    console.log("");
+    console.log(chalk.bold(`🚀 Deployment ${id} Complete `));
+    console.log("");
+
+    if (Object.values(statusResult.contracts).length === 0) {
+      console.log(chalk.italic("No contracts were deployed"));
+    } else {
+      console.log("Deployed Addresses");
+      console.log("");
+
+      for (const contract of Object.values(statusResult.contracts)) {
+        console.log(`${contract.id} - ${contract.address}`);
+      }
+    }
+  });
 
 task("wipe")
   .addParam("deployment")
@@ -341,4 +392,36 @@ function resolveParametersString(paramString: string): DeploymentParameters {
     console.warn(`Could not parse JSON parameters`);
     process.exit(0);
   }
+}
+
+function toErrorResultHeading(
+  deploymentId: string,
+  statusResult: StatusResult
+): string {
+  const didTimeout = statusResult.timedOut.length > 0;
+  const didFailed = statusResult.failed.length > 0;
+  const didHeld = statusResult.held.length > 0;
+
+  let reasons = "";
+  if (didTimeout && didFailed && didHeld) {
+    reasons = "timeouts, failures and holds";
+  } else if (didTimeout && didFailed) {
+    reasons = "timeouts and failures";
+  } else if (didFailed && didHeld) {
+    reasons = "failures and holds";
+  } else if (didTimeout && didHeld) {
+    reasons = "timeouts and holds";
+  } else if (didTimeout) {
+    reasons = "timeouts";
+  } else if (didFailed) {
+    reasons = "failures";
+  } else if (didHeld) {
+    reasons = "holds";
+  }
+
+  return chalk.bold(
+    `⛔ Deployment ${deploymentId} did ${chalk.bold(
+      "not"
+    )} complete as there were ${reasons}`
+  );
 }

@@ -63,6 +63,11 @@ export const ERROR_RANGES: {
     max: 799,
     title: "Validation errors",
   },
+  STATUS: {
+    min: 800,
+    max: 899,
+    title: "Status errors",
+  },
 };
 
 export const ERRORS = {
@@ -305,6 +310,13 @@ export const ERRORS = {
     INVALID_MODULE_PARAMETER_TYPE: {
       number: 726,
       message: `Module parameter '%name%' must be of type '%expectedType%' but is '%actualType%'`,
+    },
+  },
+  STATUS: {
+    UNINITIALIZED_DEPLOYMENT: {
+      number: 800,
+      message:
+        "Cannot get status for nonexistant deployment at %deploymentDir%",
     },
   },
 };
