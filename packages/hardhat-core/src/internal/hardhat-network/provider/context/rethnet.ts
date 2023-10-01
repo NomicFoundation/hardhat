@@ -1,4 +1,4 @@
-import { Blockchain, RethnetContext, SpecId } from "rethnet-evm";
+import { Blockchain, RethnetContext, SpecId } from "@ignored/edr";
 import { BlockchainAdapter } from "../blockchain";
 import { RethnetBlockchain } from "../blockchain/rethnet";
 import { EthContextAdapter } from "../context";

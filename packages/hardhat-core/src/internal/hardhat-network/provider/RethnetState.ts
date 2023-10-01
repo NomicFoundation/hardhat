@@ -3,7 +3,7 @@ import {
   bufferToBigInt,
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
-import { State, Account, Bytecode, RethnetContext } from "rethnet-evm";
+import { State, Account, Bytecode, RethnetContext } from "@ignored/edr";
 import { ForkConfig, GenesisAccount } from "./node-types";
 import { makeForkProvider } from "./utils/makeForkClient";
 

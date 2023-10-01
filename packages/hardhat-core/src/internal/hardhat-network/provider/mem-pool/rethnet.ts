@@ -1,6 +1,6 @@
 import { Address } from "@nomicfoundation/ethereumjs-util";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
-import { MemPool, PendingTransaction } from "rethnet-evm";
+import { MemPool, PendingTransaction } from "@ignored/edr";
 import { MemPoolAdapter } from "../mem-pool";
 import {
   ethereumjsTransactionToRethnetSignedTransaction,

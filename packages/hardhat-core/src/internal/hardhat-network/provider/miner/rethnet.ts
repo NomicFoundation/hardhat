@@ -1,6 +1,6 @@
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import { Address } from "@nomicfoundation/ethereumjs-util";
-import { MineOrdering, mineBlock } from "rethnet-evm";
+import { MineOrdering, mineBlock } from "@ignored/edr";
 import { BlockMinerAdapter, PartialMineBlockResult } from "../miner";
 import {
   rethnetBlockToEthereumJS,

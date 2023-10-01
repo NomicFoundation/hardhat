@@ -1,6 +1,6 @@
 import { EvmError } from "@nomicfoundation/ethereumjs-evm";
 import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
-import { ExceptionalHalt, SuccessReason } from "rethnet-evm";
+import { ExceptionalHalt, SuccessReason } from "@ignored/edr";
 
 export enum ExitCode {
   SUCCESS,

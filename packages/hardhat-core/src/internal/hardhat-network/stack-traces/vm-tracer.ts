@@ -4,7 +4,7 @@ import {
   TracingMessage,
   TracingMessageResult,
   TracingStep,
-} from "rethnet-evm";
+} from "@ignored/edr";
 
 import { getActivePrecompiles } from "@nomicfoundation/ethereumjs-evm";
 import { bufferToBigInt } from "@nomicfoundation/ethereumjs-util";
