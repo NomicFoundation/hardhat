@@ -41,7 +41,6 @@
         "universal": "napi universal",
         "version": "napi version",
         "test": "yarn tsc && mocha --recursive \"test/**/*.ts\" --exit",
-        "clean": "rm -rf rethnet-evm.node"
-    },
-    "packageManager": "yarn@3.6.3"
+        "clean": "rm -rf @ignored/edr.node"
+    }
 }
