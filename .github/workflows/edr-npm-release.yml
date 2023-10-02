@@ -135,10 +135,6 @@ jobs:
           image: ${{ matrix.settings.docker }}
           options: '--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build/crates/rethnet_evm_napi'
           run: ${{ matrix.settings.build }}
-      - name: Debug add target
-        run: rustup target add aarch64-apple-darwin
-        if: ${{ !matrix.settings.docker }}
-        shell: bash
       - name: Debug print toolchain
         run: rustup target list --toolchain stable --installed
         if: ${{ !matrix.settings.docker }}
