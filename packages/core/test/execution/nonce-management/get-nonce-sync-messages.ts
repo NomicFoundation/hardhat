@@ -20,7 +20,10 @@ import {
   OnchainInteractionDroppedMessage,
   OnchainInteractionReplacedByUserMessage,
 } from "../../../src/internal/execution/types/messages";
-import { NetworkInteractionType } from "../../../src/internal/execution/types/network-interaction";
+import {
+  NetworkInteractionType,
+  OnchainInteraction,
+} from "../../../src/internal/execution/types/network-interaction";
 import { exampleAccounts } from "../../helpers";
 
 const requiredConfirmations = 5;
@@ -122,7 +125,103 @@ describe("execution - getNonceSyncMessages", () => {
   });
 
   describe("second deployment run", () => {
-    it("should indicate the user replaced the transaction if the transaction's nonce is less than the latest", async () => {
+    it("should succeed with an in-flight transaction that has been mined between runs", async () => {
+      // Assuming a fresh chain, and a deployment that was halted on the first
+      // future and its deploy transaction is included in a block before the
+      // next run
+
+      // The in-flight transaction has been included in a block, so latest includes it
+      const latestCount = 1;
+      // Safest is x blocks in the past so is zero
+      const safestCount = 0;
+      // There are no pending
+      const pendingCount = latestCount;
+      // The nonce of the now complete transaction is 0
+      const nonce = 0;
+
+      const deploymentState =
+        setupDeploymentStateBasedOnExampleModuleWithOneTranWith(nonce);
+
+      const inflightTxHash = (
+        (
+          deploymentState.executionStates[
+            "Example#MyContract"
+          ] as DeploymentExecutionState
+        ).networkInteractions[0] as OnchainInteraction
+      ).transactions[0].hash;
+
+      await assertSuccessOnGetNonceSyncResult({
+        ignitionModule: exampleModule,
+        deploymentState,
+        transactionCountEntries: {
+          [exampleAccounts[1]]: {
+            pending: pendingCount,
+            latest: latestCount,
+            number: () => safestCount,
+          },
+        },
+        // We are saying that the inflight transaction is now included in a block
+        getTransaction: (txHash: string) => {
+          if (txHash !== inflightTxHash) {
+            throw new Error(
+              `Mock getTransaction was not expecting the getTransaction request for: ${txHash}`
+            );
+          }
+
+          return { _kind: "FAKE_TRANSACTION" };
+        },
+      });
+    });
+
+    it("should succeed with an in-flight transaction that has not been mined between runs but is in the mempool", async () => {
+      // Assuming a fresh chain, and a deployment that was halted on the first
+      // future and its deploy transaction is in the mempool but not mined
+      // at the start of the second run
+
+      // The in-flight transaction has been included in a block, so latest includes it
+      const latestCount = 0;
+      // Safest is x blocks in the past so is zero
+      const safestCount = 0;
+      // There are no pending
+      const pendingCount = latestCount + 1;
+      // The nonce of the now complete transaction is 0
+      const nonce = 0;
+
+      const deploymentState =
+        setupDeploymentStateBasedOnExampleModuleWithOneTranWith(nonce);
+
+      const inflightTxHash = (
+        (
+          deploymentState.executionStates[
+            "Example#MyContract"
+          ] as DeploymentExecutionState
+        ).networkInteractions[0] as OnchainInteraction
+      ).transactions[0].hash;
+
+      await assertSuccessOnGetNonceSyncResult({
+        ignitionModule: exampleModule,
+        deploymentState,
+        transactionCountEntries: {
+          [exampleAccounts[1]]: {
+            pending: pendingCount,
+            latest: latestCount,
+            number: () => safestCount,
+          },
+        },
+        // We are saying that the inflight transaction is still in the mempool
+        getTransaction: (txHash: string) => {
+          if (txHash !== inflightTxHash) {
+            throw new Error(
+              `Mock getTransaction was not expecting the getTransaction request for: ${txHash}`
+            );
+          }
+
+          return { _kind: "FAKE_TRANSACTION" };
+        },
+      });
+    });
+
+    it("should indicate the user replaced the transaction and the user transaction is safely confirmed", async () => {
       // Set latest to be an arbitrary nonce
       const latestCount = 30;
       // Set safest to be the same as latest, it is not relevant
@@ -130,7 +229,7 @@ describe("execution - getNonceSyncMessages", () => {
       // There are no pending transactions
       const pendingCount = latestCount;
       // Set the nonce to be less than latest, indicating it was replaced
-      const nonce = latestCount - 2;
+      const nonce = latestCount - 1;
 
       await assertGetNonceSyncResult(
         {
@@ -155,13 +254,40 @@ describe("execution - getNonceSyncMessages", () => {
       );
     });
 
-    it("should error if the user has sent a non-ignition pending transaction that has not confirmed on the account", async () => {
+    it("should throw if the user replaced the transaction and the user transaction is mined but has not yet fully confirmed", async () => {
+      // set an arbitrary nonce
+      const nonce = 16;
+      // put the latest as bigger than the nonce being checked
+      const latest = nonce + 1;
+      // there are no pending
+      const pending = latest;
+      // the safest is behind the nonce
+      const safest = nonce - 1;
+
+      await assertGetNonceSyncThrows(
+        {
+          ignitionModule: exampleModule,
+          deploymentState:
+            setupDeploymentStateBasedOnExampleModuleWithOneTranWith(nonce),
+          transactionCountEntries: {
+            [exampleAccounts[1]]: {
+              pending,
+              latest,
+              number: () => safest,
+            },
+          },
+        },
+        `IGN404: You have sent transactions from 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC with nonce 16. Please wait until they get 5 confirmations before running Ignition again.`
+      );
+    });
+
+    it("should error if the user replace the transaction and the user transaction is in the mempool but not mined (pending)", async () => {
       // Set latest to an arbitary nonce
       const latestCount = 30;
       // Safe is the same as latest
       const safestCount = latestCount;
-      // Set the nonce to be larger than latest
-      const nonce = latestCount + 1;
+      // Set the nonce to be the latest (nonce's are ids not cardinalities)
+      const nonce = latestCount;
       // Set pending larger than the nonce
       const pendingCount = nonce + 1;
 
@@ -178,19 +304,21 @@ describe("execution - getNonceSyncMessages", () => {
             },
           },
         },
-        `IGN404: You have sent transactions from ${exampleAccounts[1]} with nonce 31. Please wait until they get 5 confirmations before running Ignition again.`
+        `IGN404: You have sent transactions from ${exampleAccounts[1]} with nonce 30. Please wait until they get 5 confirmations before running Ignition again.`
       );
     });
 
-    it("should indicate the transaction was dropped if the nonce is higher than the latest", async () => {
+    it("should indicate if the ignition transaction was dropped from mempool (no user interference)", async () => {
       // Set an arbitary latest
       const latestCount = 30;
       // The safest is exactly the same as latest
       const safestCount = 40;
       // Pending isn't relevant so is set to latest
       const pendingCount = latestCount;
-      // Set the nonce higher than latest, indicating it was dropped
-      const nonce = latestCount + 1;
+      // Set the nonce to latest (note nonce is not a cardinality),
+      // indicating it was dropped as latest/pending should be larger
+      // than the nonce
+      const nonce = latestCount;
 
       await assertGetNonceSyncResult(
         {
@@ -262,6 +390,7 @@ async function assertGetNonceSyncThrows(
         number: (num: number) => number;
       };
     };
+    getTransaction?: (txHash: string) => any;
   },
   errorMessage: string
 ) {
@@ -278,6 +407,7 @@ async function assertSuccessOnGetNonceSyncResult(ctx: {
       number: (num: number) => number;
     };
   };
+  getTransaction?: (txHash: string) => any;
 }) {
   return assertGetNonceSyncResult(ctx, []);
 }
@@ -287,6 +417,7 @@ async function assertGetNonceSyncResult(
     ignitionModule,
     deploymentState = deploymentStateReducer(),
     transactionCountEntries = {},
+    getTransaction,
   }: {
     ignitionModule: IgnitionModule<
       string,
@@ -301,6 +432,7 @@ async function assertGetNonceSyncResult(
         number: (num: number) => number;
       };
     };
+    getTransaction?: (txHash: string) => any;
   },
   expectedResult: Array<
     OnchainInteractionReplacedByUserMessage | OnchainInteractionDroppedMessage
@@ -308,7 +440,8 @@ async function assertGetNonceSyncResult(
 ) {
   const mockJsonRpcClient = setupJsonRpcClient(
     latestBlock,
-    transactionCountEntries
+    transactionCountEntries,
+    getTransaction
   );
 
   const result = await getNonceSyncMessages(
@@ -331,11 +464,19 @@ function setupJsonRpcClient(
       latest: number;
       number: (num: number) => number;
     };
-  }
+  },
+  getTransaction?: (txHash: string) => any
 ): JsonRpcClient {
   const mockJsonRpcClient = {
     getLatestBlock: () => {
       return { number: latestBlockNum };
+    },
+    getTransaction: (txHash: string) => {
+      if (getTransaction !== undefined) {
+        return getTransaction(txHash);
+      }
+
+      return undefined; // Inflight transactions are never found by default
     },
     getTransactionCount: (
       address: string,
@@ -396,7 +537,14 @@ function setupDeploymentStateBasedOnExampleModuleWithOneTranWith(
             to: undefined,
             data: "0x",
             value: BigInt(0),
-            transactions: [],
+            transactions: [
+              {
+                hash: "0x123",
+                fees: {
+                  gasPrice: BigInt(10000),
+                },
+              },
+            ],
             shouldBeResent: false,
             nonce,
           },

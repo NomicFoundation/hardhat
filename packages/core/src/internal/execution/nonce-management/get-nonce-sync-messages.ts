@@ -117,12 +117,29 @@ export async function getNonceSyncMessages(
         transactions.map((tx) => jsonRpcClient.getTransaction(tx))
       );
 
-      if (fetchedTransactions.some((tx) => tx === undefined)) {
+      // If at least one transaction for the future is still in the mempool,
+      // we do nothing
+      if (fetchedTransactions.some((tx) => tx !== undefined)) {
         continue;
       }
 
+      // If we are here, all the previously pending transactions for this
+      // future were dropped or replaced.
+
       // Case 1: Confirmed transaction with this nonce
+      // There are more transactions up to the latest block than our nonce,
+      // that means that one transaction with our nonce was sent and confirmed
+      //
+      // Example:
+      //
+      // Ignition sends transaction with nonce 5
+      // It is replaced by the user, with user transaction nonce 5
+      // The user transaction confirms
+      // That means there is a block that includes it
+      // If we look at the latest transaction count, it will be at least 6
       if (latestCount > nonce) {
+        // We know the ignition transaction was replaced, and the replacement
+        // transaction has at least one confirmation.
         // We don't continue until the user's transactions have enough confirmations
         if (safeConfirmationsCount <= nonce) {
           throw new IgnitionError(ERRORS.EXECUTION.WAITING_FOR_NONCE, {
@@ -144,6 +161,14 @@ export async function getNonceSyncMessages(
       // Case 2: There's a pending transaction with this nonce sent by the user
 
       // We first handle confirmed transactions, that'w why this check is safe here
+      //
+      // Example:
+      //
+      // Ignition has sent a transaction with nonce 5
+      // It is replaced by the user, with user transaction nonce 5
+      // The user transaction is still in the mempool
+      // The pending count will show as larger than the nonce, and we know
+      // from the test above that it has not been confirmed
       if (pendingCount > nonce) {
         throw new IgnitionError(ERRORS.EXECUTION.WAITING_FOR_NONCE, {
           sender,
@@ -153,13 +178,18 @@ export async function getNonceSyncMessages(
       }
 
       // Case 3: There's no transaction sent by the user with this nonce, but ours were still dropped
-
       messages.push({
         type: JournalMessageType.ONCHAIN_INTERACTION_DROPPED,
         futureId: executionStateId,
         networkInteractionId,
       });
     }
+
+    // Case 4: the user sent a set of transactions with nonces higher than
+    // our highest pending nonce.
+
+    // TODO if they have enough confirmation we continue, otherwise we throw
+    // and wait for further confirmations
   }
 
   return messages;
