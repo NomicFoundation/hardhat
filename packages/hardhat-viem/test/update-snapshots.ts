@@ -5,7 +5,7 @@ import { TASK_COMPILE, TASK_CLEAN } from "hardhat/builtin-tasks/task-names";
 import { resetHardhatContext } from "hardhat/plugins-testing";
 
 const snapshotPartialPaths = [
-  "duplicate-artifacts.d.ts",
+  "artifacts.d.ts",
   path.join("contracts", "A.sol", "A.d.ts"),
   path.join("contracts", "A.sol", "B.d.ts"),
   path.join("contracts", "A.sol", "artifacts.d.ts"),

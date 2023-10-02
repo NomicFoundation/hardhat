@@ -3,9 +3,11 @@ pragma solidity 0.8.19;
 
 contract A {
   address owner;
+  string name;
 
-  constructor(address _owner) {
+  constructor(address _owner, uint256, string memory _name) {
     owner = _owner;
+    name = _name;
   }
 
   function getA() public pure returns (uint256) {
