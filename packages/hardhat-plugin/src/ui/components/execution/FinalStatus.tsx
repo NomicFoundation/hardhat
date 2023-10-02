@@ -1,7 +1,6 @@
 import {
   DeploymentResultType,
   ExecutionErrorDeploymentResult,
-  IgnitionModuleResult,
   PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
   SuccessfulDeploymentResult,
@@ -73,7 +72,7 @@ export const FinalStatus = ({ state }: { state: UiState }) => {
 const SuccessfulResult: React.FC<{
   moduleName: string;
   chainId: number;
-  result: SuccessfulDeploymentResult<string, IgnitionModuleResult<string>>;
+  result: SuccessfulDeploymentResult;
 }> = ({ moduleName, chainId, result }) => {
   return (
     <Box margin={0} flexDirection="column">

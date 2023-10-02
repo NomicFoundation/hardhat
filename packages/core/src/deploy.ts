@@ -58,7 +58,7 @@ export async function deploy<
   deploymentParameters: DeploymentParameters;
   accounts: string[];
   defaultSender?: string;
-}): Promise<DeploymentResult<ContractNameT, IgnitionModuleResultsT>> {
+}): Promise<DeploymentResult> {
   if (executionEventListener !== undefined) {
     executionEventListener.setModuleId({
       type: ExecutionEventType.SET_MODULE_ID,

@@ -10,7 +10,6 @@ import {
   ExecutionErrorDeploymentResult,
   PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
-  SuccessfulDeploymentResult,
 } from "../types/deploy";
 import {
   ExecutionEventListener,
@@ -42,6 +41,7 @@ import { formatExecutionError } from "./formatters";
 import { Reconciler } from "./reconciliation/reconciler";
 import { assertIgnitionInvariant } from "./utils/assertions";
 import { getFuturesFromModule } from "./utils/get-futures-from-module";
+import { findDeployedContracts } from "./views/find-deployed-contracts";
 
 /**
  * Run an Igntition deployment.
@@ -76,7 +76,7 @@ export class Deployer {
     deploymentParameters: DeploymentParameters,
     accounts: string[],
     defaultSender: string
-  ): Promise<DeploymentResult<ContractNameT, IgnitionModuleResultsT>> {
+  ): Promise<DeploymentResult> {
     let deploymentState = await this._getOrInitializeDeploymentState(
       ignitionModule.id
     );
@@ -206,29 +206,17 @@ export class Deployer {
     IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
   >(
     deploymentState: DeploymentState,
-    module: IgnitionModule<ModuleIdT, ContractNameT, IgnitionModuleResultsT>
-  ): Promise<DeploymentResult<ContractNameT, IgnitionModuleResultsT>> {
+    _module: IgnitionModule<ModuleIdT, ContractNameT, IgnitionModuleResultsT>
+  ): Promise<DeploymentResult> {
     if (!this._isSuccessful(deploymentState)) {
       return this._getExecutionErrorResult(deploymentState);
     }
 
+    const deployedContracts = findDeployedContracts(deploymentState);
+
     return {
       type: DeploymentResultType.SUCCESSFUL_DEPLOYMENT,
-      contracts: Object.fromEntries(
-        Object.entries(module.results).map(([name, contractFuture]) => [
-          name,
-          {
-            id: contractFuture.id,
-            contractName: contractFuture.contractName,
-            address: getContractAddress(
-              deploymentState.executionStates[contractFuture.id]
-            ),
-          },
-        ])
-      ) as SuccessfulDeploymentResult<
-        ContractNameT,
-        IgnitionModuleResultsT
-      >["contracts"],
+      contracts: deployedContracts,
     };
   }
 
@@ -285,9 +273,7 @@ export class Deployer {
     });
   }
 
-  private _emitDeploymentCompleteEvent(
-    result: DeploymentResult<string, IgnitionModuleResult<string>>
-  ): void {
+  private _emitDeploymentCompleteEvent(result: DeploymentResult): void {
     if (this._executionEventListener === undefined) {
       return;
     }
@@ -391,29 +377,4 @@ function canFail(
     exState.type === ExecutionSateType.SEND_DATA_EXECUTION_STATE ||
     exState.type === ExecutionSateType.STATIC_CALL_EXECUTION_STATE
   );
-}
-
-// TODO: Does this exist somewhere else?
-function getContractAddress(exState: ExecutionState): string {
-  assertIgnitionInvariant(
-    exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
-      exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
-    `Execution state ${exState.id} should be a deployment or contract at execution state`
-  );
-
-  assertIgnitionInvariant(
-    exState.status === ExecutionStatus.SUCCESS,
-    `Cannot get contract address from execution state ${exState.id} because it is not successful`
-  );
-
-  if (exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE) {
-    return exState.contractAddress;
-  }
-
-  assertIgnitionInvariant(
-    exState.result?.type === ExecutionResultType.SUCCESS,
-    `Cannot get contract address from execution state ${exState.id} because it is not successful`
-  );
-
-  return exState.result.address;
 }

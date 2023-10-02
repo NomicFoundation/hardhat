@@ -1,7 +1,4 @@
-import {
-  DeploymentResult,
-  IgnitionModuleResult,
-} from "@nomicfoundation/ignition-core";
+import { DeploymentResult } from "@nomicfoundation/ignition-core";
 
 export enum UiFutureStatusType {
   UNSTARTED = "UNSTARTED",
@@ -60,7 +57,7 @@ export interface UiState {
   chainId: number | null;
   moduleName: string | null;
   batches: UiBatches;
-  result: DeploymentResult<string, IgnitionModuleResult<string>> | null;
+  result: DeploymentResult | null;
   warnings: string[];
 }
 
