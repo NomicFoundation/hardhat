@@ -174,7 +174,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: bindings-${{ matrix.settings.target }}
-          path: .
+          path: ./crates/rethnet_evm_napi/
       - name: List packages
         run: ls -R .
         shell: bash
@@ -206,7 +206,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: bindings-x86_64-unknown-linux-gnu
-          path: .
+          path: ./crates/rethnet_evm_napi/
       - name: List packages
         run: ls -R .
         shell: bash
@@ -240,7 +240,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: bindings-x86_64-unknown-linux-musl
-          path: .
+          path: ./crates/rethnet_evm_napi/
       - name: List packages
         run: ls -R .
         shell: bash
@@ -257,7 +257,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: bindings-aarch64-unknown-linux-musl
-          path: .
+          path: ./crates/rethnet_evm_napi/
       - name: List packages
         run: ls -R .
         shell: bash
@@ -287,6 +287,9 @@ jobs:
       - test-linux-x64-gnu-binding
       - test-linux-x64-musl-binding
       - test-linux-aarch64-musl-binding
+    defaults:
+      run:
+        working-directory: ./crates/rethnet_evm_napi
     steps:
       - uses: actions/checkout@v3
       - name: Setup node
@@ -300,7 +303,7 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v3
         with:
-          path: artifacts
+          path: ./crates/rethnet_evm_napi/artifacts
       - name: Move artifacts
         run: yarn artifacts
       - name: List packages
