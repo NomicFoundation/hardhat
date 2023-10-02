@@ -32,10 +32,12 @@ import {
   TransactionSendEvent,
   WipeApplyEvent,
 } from "@nomicfoundation/ignition-core";
-import { HardhatPluginError } from "hardhat/plugins";
-import { render } from "ink";
 
-import { IgnitionUi } from "./components";
+import { displayBatch, redisplayBatch } from "./helpers/display-batch";
+import { displayDeployingModulePanel } from "./helpers/display-deploying-module-panel";
+import { displayDeploymentComplete } from "./helpers/display-deployment-complete";
+import { displaySeparator } from "./helpers/display-separator";
+import { displayStartingMessage } from "./helpers/display-starting-message";
 import {
   UiBatches,
   UiFuture,
@@ -47,26 +49,13 @@ import {
   UiStateDeploymentStatus,
 } from "./types";
 
-interface RenderState {
-  rerender: null | ((node: React.ReactNode) => void);
-  unmount: null | (() => void);
-  waitUntilExit: null | (() => Promise<void>);
-  clear: null | (() => void);
-}
-
-export class UiEventHandler implements ExecutionEventListener {
-  private _renderState: RenderState = {
-    rerender: null,
-    unmount: null,
-    waitUntilExit: null,
-    clear: null,
-  };
-
+export class PrettyEventHandler implements ExecutionEventListener {
   private _uiState: UiState = {
     status: UiStateDeploymentStatus.UNSTARTED,
     chainId: null,
     moduleName: null,
     batches: [],
+    currentBatch: 0,
     result: null,
     warnings: [],
   };
@@ -79,8 +68,16 @@ export class UiEventHandler implements ExecutionEventListener {
 
   public set state(uiState: UiState) {
     this._uiState = uiState;
+  }
 
-    this._renderToCli();
+  public deploymentStart(event: DeploymentStartEvent): void {
+    this.state = {
+      ...this.state,
+      status: UiStateDeploymentStatus.DEPLOYING,
+      moduleName: event.moduleName,
+    };
+
+    displayStartingMessage(this.state);
   }
 
   public runStart(event: RunStartEvent): void {
@@ -88,6 +85,20 @@ export class UiEventHandler implements ExecutionEventListener {
       ...this.state,
       chainId: event.chainId,
     };
+
+    displayDeployingModulePanel(this.state);
+  }
+
+  public beginNextBatch(_event: BeginNextBatchEvent): void {
+    // rerender the previous batch
+    redisplayBatch(this.state);
+
+    this.state = {
+      ...this.state,
+      currentBatch: this.state.currentBatch + 1,
+    };
+
+    displayBatch(this.state);
   }
 
   public wipeApply(event: WipeApplyEvent): void {
@@ -141,6 +152,8 @@ export class UiEventHandler implements ExecutionEventListener {
       ...this.state,
       batches: this._applyUpdateToBatchFuture(updatedFuture),
     };
+
+    redisplayBatch(this.state);
   }
 
   public callExecutionStateInitialize(
@@ -315,23 +328,23 @@ export class UiEventHandler implements ExecutionEventListener {
     _event: OnchainInteractionTimeoutEvent
   ): void {}
 
-  public deploymentStart(event: DeploymentStartEvent): void {
-    this.state = {
-      ...this.state,
-      status: UiStateDeploymentStatus.DEPLOYING,
-      moduleName: event.moduleName,
-    };
-  }
-
-  public beginNextBatch(_event: BeginNextBatchEvent): void {}
-
   public deploymentComplete(event: DeploymentCompleteEvent): void {
+    const originalStatus = this.state.status;
+
     this.state = {
       ...this.state,
       status: UiStateDeploymentStatus.COMPLETE,
       result: event.result,
       batches: this._applyResultToBatches(this.state.batches, event.result),
     };
+
+    if (originalStatus !== UiStateDeploymentStatus.UNSTARTED) {
+      redisplayBatch(this.state);
+
+      displaySeparator();
+    }
+
+    displayDeploymentComplete(this.state, event);
   }
 
   public reconciliationWarnings(event: ReconciliationWarningsEvent): void {
@@ -346,42 +359,6 @@ export class UiEventHandler implements ExecutionEventListener {
       ...this.state,
       moduleName: event.moduleName,
     };
-  }
-
-  public unmountCli(): void {
-    if (
-      this._renderState.unmount === null ||
-      this._renderState.waitUntilExit === null ||
-      this._renderState.clear === null
-    ) {
-      throw new HardhatPluginError(
-        "hardhat-ignition",
-        "Cannot unmount with no unmount function"
-      );
-    }
-
-    this._renderState.clear();
-    this._renderState.unmount();
-  }
-
-  private _renderToCli(): void {
-    if (this._renderState.rerender === null) {
-      const { rerender, unmount, waitUntilExit, clear } = render(
-        <IgnitionUi state={this.state} deployParams={this._deploymentParams} />,
-        { patchConsole: false }
-      );
-
-      this._renderState.rerender = rerender;
-      this._renderState.unmount = unmount;
-      this._renderState.waitUntilExit = waitUntilExit;
-      this._renderState.clear = clear;
-
-      return;
-    }
-
-    this._renderState.rerender(
-      <IgnitionUi state={this.state} deployParams={this._deploymentParams} />
-    );
   }
 
   private _applyUpdateToBatchFuture(updatedFuture: UiFuture): UiBatches {
