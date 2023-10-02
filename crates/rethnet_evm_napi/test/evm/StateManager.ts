@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { Address, KECCAK256_NULL } from "@nomicfoundation/ethereumjs-util";
 
-import { Account, Bytecode, RethnetContext, State } from "../..";
+import { Account, Bytecode, RethnetContext, State } from "../../index.js";
 
 describe("State Manager", () => {
   const caller = Address.fromString(
