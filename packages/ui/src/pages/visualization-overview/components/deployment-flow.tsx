@@ -74,7 +74,7 @@ const HighlightedFutures = styled.div<{ futures: string[] }>`
     futures.map(
       (id) =>
         css`
-          g[id^="flowchart-${id}"] rect {
+          g[id^="flowchart-${id}-"] rect {
             fill: lightgreen !important;
           }
         `
