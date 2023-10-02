@@ -43,10 +43,15 @@ const BatchHeader = styled.div`
   margin: 0.5rem;
 `;
 
-const FutureBtn = styled.div`
+const FutureBtn = styled.div<{ isLibrary: boolean }>`
   padding: 0.5rem;
   margin: 0.5rem;
-  cursor: pointer;
+
+  ${(props) =>
+    !props.isLibrary &&
+    `
+    cursor: pointer;
+  `}
 `;
 
 const Text = styled.div`
@@ -75,6 +80,7 @@ const FutureBlock: React.FC<{
         isDeploymentType(future.type) ? "deploy-background" : "call-background"
       }
       onClick={() => setToggled(futureId)}
+      isLibrary={isLibrary}
     >
       {!isLibrary && <ToggleBtn toggled={toggled} />}
       <Text>{displayText}</Text>
