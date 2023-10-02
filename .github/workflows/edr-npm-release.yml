@@ -95,7 +95,13 @@ jobs:
         if: ${{ !matrix.settings.docker }}
         with:
           toolchain: stable
-          targets: ${{ matrix.settings.target }}
+      # The `--target` flag for `rustup toolchain install` is not working properly which is 
+      # why we need this extra step in addition to the `dtolnay/rust-toolchain` action.
+      # https://github.com/rust-lang/rustup/issues/3255
+      - name: Add Rust cross-compilation target
+        run: rustup target add ${{ matrix.settings.target }}
+        if: ${{ !matrix.settings.docker }}
+        shell: bash
       - name: Cache cargo
         uses: actions/cache@v3
         with:
