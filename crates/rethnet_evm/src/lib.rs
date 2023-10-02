@@ -16,6 +16,7 @@ pub use revm::{
 
 pub use crate::{
     block::*,
+    debug_trace::{debug_trace_transaction, DebugTraceConfig, DebugTraceLogItem, DebugTraceResult},
     evm::SyncInspector,
     mempool::{MemPool, OrderedTransaction},
     miner::*,
@@ -35,6 +36,7 @@ pub mod trace;
 
 mod block;
 pub(crate) mod collections;
+mod debug_trace;
 pub(crate) mod evm;
 mod mempool;
 mod miner;

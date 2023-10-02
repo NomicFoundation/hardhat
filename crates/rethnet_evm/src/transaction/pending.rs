@@ -217,6 +217,8 @@ impl From<PendingTransaction> for TxEnv {
                 chain_id,
                 nonce: Some(nonce),
                 access_list: Vec::new(),
+                blob_hashes: Vec::new(),
+                max_fee_per_blob_gas: None,
             },
             SignedTransaction::Eip2930(EIP2930SignedTransaction {
                 nonce,
@@ -238,6 +240,8 @@ impl From<PendingTransaction> for TxEnv {
                 chain_id,
                 nonce: Some(nonce),
                 access_list: access_list.into(),
+                blob_hashes: Vec::new(),
+                max_fee_per_blob_gas: None,
             },
             SignedTransaction::Eip1559(EIP1559SignedTransaction {
                 nonce,
@@ -260,6 +264,8 @@ impl From<PendingTransaction> for TxEnv {
                 chain_id,
                 nonce: Some(nonce),
                 access_list: access_list.into(),
+                blob_hashes: Vec::new(),
+                max_fee_per_blob_gas: None,
             },
         }
     }

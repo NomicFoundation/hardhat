@@ -31,6 +31,8 @@ import {
   Eip2930SignedTransaction,
   Receipt as RethnetReceipt,
   ExecutionLog,
+  DebugTraceResult,
+  DebugTraceConfig,
   Log,
   MineOrdering,
 } from "@ignored/edr";
@@ -43,12 +45,18 @@ import {
   isSuccessResult,
 } from "../../stack-traces/message-trace";
 import { MempoolOrder } from "../node-types";
-import { RpcLogOutput, RpcReceiptOutput } from "../output";
+import {
+  RpcLogOutput,
+  RpcReceiptOutput,
+  RpcDebugTraceOutput,
+  RpcStructLog,
+} from "../output";
 import { FakeSenderEIP1559Transaction } from "../transactions/FakeSenderEIP1559Transaction";
 import { FakeSenderAccessListEIP2930Transaction } from "../transactions/FakeSenderAccessListEIP2930Transaction";
 import { FakeSenderTransaction } from "../transactions/FakeSenderTransaction";
 import { Exit, ExitCode } from "../vm/exit";
 import { RunTxResult } from "../vm/vm-adapter";
+import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import { Bloom } from "./bloom";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
@@ -603,4 +611,65 @@ function isEip2930SignedTransaction(
   return (
     !isEip1559SignedTransaction(transaction) && "oddYParity" in transaction
   );
+}
+
+export function rethnetRpcDebugTraceToHardhat(
+  rpcDebugTrace: DebugTraceResult
+): RpcDebugTraceOutput {
+  const structLogs = rpcDebugTrace.structLogs.map((log) => {
+    const result: RpcStructLog = {
+      depth: Number(log.depth),
+      gas: Number(log.gas),
+      gasCost: Number(log.gasCost),
+      op: log.opName,
+      pc: Number(log.pc),
+    };
+
+    if (log.memory !== undefined) {
+      result.memory = log.memory;
+    }
+
+    if (log.stack !== undefined) {
+      // Remove 0x prefix which is required by EIP-3155, but not expected by Hardhat.
+      result.stack = log.stack?.map((item) => item.slice(2));
+    }
+
+    if (log.storage !== undefined) {
+      result.storage = Object.fromEntries(
+        Object.entries(log.storage).map(([key, value]) => {
+          return [key.slice(2), value.slice(2)];
+        })
+      );
+    }
+
+    if (log.error !== undefined) {
+      result.error = {
+        message: log.error,
+      };
+    }
+
+    return result;
+  });
+
+  // REVM trace adds initial STOP that Hardhat doesn't expect
+  if (structLogs.length > 0 && structLogs[0].op === "STOP") {
+    structLogs.shift();
+  }
+
+  return {
+    failed: !rpcDebugTrace.pass,
+    gas: Number(rpcDebugTrace.gasUsed),
+    returnValue: rpcDebugTrace.output?.toString("hex") ?? "",
+    structLogs,
+  };
+}
+
+export function hardhatDebugTraceConfigToRethnet(
+  config: RpcDebugTracingConfig
+): DebugTraceConfig {
+  return {
+    disableMemory: config?.disableMemory,
+    disableStack: config?.disableStack,
+    disableStorage: config?.disableStorage,
+  };
 }

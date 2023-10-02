@@ -83,12 +83,12 @@ import {
   shouldShowTransactionTypeForHardfork,
 } from "../output";
 
-import { assertHardhatNetworkInvariant } from "../utils/assertions";
+import { assertHardhatInvariant } from "../../../core/errors";
 import { optional } from "../../../util/io-ts";
 import * as BigIntUtils from "../../../util/bigint";
 import { HardforkName } from "../../../util/hardforks";
+import { assertHardhatNetworkInvariant } from "../utils/assertions";
 import { ModulesLogger } from "./logger";
-import { assertHardhatInvariant } from "../../../core/errors";
 
 const EIP1559_MIN_HARDFORK = HardforkName.LONDON;
 const ACCESS_LIST_MIN_HARDFORK = HardforkName.BERLIN;
