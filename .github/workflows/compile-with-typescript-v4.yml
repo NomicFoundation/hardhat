@@ -20,5 +20,8 @@ jobs:
       - name: Install typescript v4 in all packages
         run: |
           sed -i 's/"typescript": "~5.0.0"/"typescript": "^4.0.0"/' package.json packages/*/package.json && yarn
+      # hardhat-viem is the only package that requires TypeScript v5
+      - name: Remove hardhat-viem
+        run: rm -fr packages/hardhat-viem
       - name: Build
         run: yarn build
