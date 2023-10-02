@@ -19,9 +19,6 @@ permissions:
       - .editorconfig
       - docs/**
   pull_request: null
-defaults:
-  run:
-    working-directory: ./crates/rethnet_evm_napi
 jobs:
   build:
     strategy:
@@ -72,6 +69,9 @@ jobs:
               /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
     name: stable - ${{ matrix.settings.target }} - node@18
     runs-on: ${{ matrix.settings.host }}
+    defaults:
+      run:
+        working-directory: ./crates/rethnet_evm_napi
     steps:
       - uses: actions/checkout@v3
       - name: Setup node
@@ -157,6 +157,9 @@ jobs:
           - "16"
           - "18"
     runs-on: ${{ matrix.settings.host }}
+    defaults:
+      run:
+        working-directory: ./crates/rethnet_evm_napi
     steps:
       - uses: actions/checkout@v3
       - name: Setup node
@@ -208,7 +211,7 @@ jobs:
         run: ls -R .
         shell: bash
       - name: Test bindings
-        run: docker run --rm -v $(pwd):/build -w /build node:${{ matrix.node }}-slim yarn test
+        run: docker run --rm -v $(pwd):/build -w /build/crates/rethnet_evm_napi node:${{ matrix.node }}-slim yarn test
   test-linux-x64-musl-binding:
     name: Test bindings on x86_64-unknown-linux-musl - node@${{ matrix.node }}
     needs:
@@ -242,7 +245,7 @@ jobs:
         run: ls -R .
         shell: bash
       - name: Test bindings
-        run: docker run --rm -v $(pwd):/build -w /build node:${{ matrix.node }}-alpine yarn test
+        run: docker run --rm -v $(pwd):/build -w /build/crates/rethnet_evm_napi node:${{ matrix.node }}-alpine yarn test
   test-linux-aarch64-musl-binding:
     name: Test bindings on aarch64-unknown-linux-musl - node@lts
     needs:
@@ -272,7 +275,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: node:lts-alpine
-          options: "--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build"
+          options: "--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build/crates/rethnet_evm_napi"
           run: |
             set -e
             yarn test
