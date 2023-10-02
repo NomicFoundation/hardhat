@@ -46,6 +46,7 @@ const BatchHeader = styled.div`
 const FutureBtn = styled.div`
   padding: 0.5rem;
   margin: 0.5rem;
+  cursor: pointer;
 `;
 
 const Text = styled.div`
@@ -73,10 +74,9 @@ const FutureBlock: React.FC<{
       className={
         isDeploymentType(future.type) ? "deploy-background" : "call-background"
       }
+      onClick={() => setToggled(futureId)}
     >
-      {!isLibrary && (
-        <ToggleBtn setToggled={() => setToggled(futureId)} toggled={toggled} />
-      )}
+      {!isLibrary && <ToggleBtn toggled={toggled} />}
       <Text>{displayText}</Text>
       <Text
         className={future.module.id}
@@ -137,16 +137,8 @@ function toDisplayText(future: Future): string {
 
 const ToggleBtn: React.FC<{
   toggled: boolean;
-  setToggled: () => void;
-}> = ({ toggled, setToggled }) => {
-  return (
-    <Text
-      onClick={setToggled}
-      style={{ fontSize: "1.5rem", cursor: "pointer" }}
-    >
-      {toggled ? "- " : "+ "}
-    </Text>
-  );
+}> = ({ toggled }) => {
+  return <Text style={{ fontSize: "1.5rem" }}>{toggled ? "- " : "+ "}</Text>;
 };
 
 const FutureDetailsSection: React.FC<{
