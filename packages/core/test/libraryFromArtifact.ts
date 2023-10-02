@@ -8,8 +8,13 @@ import {
   ArtifactLibraryDeploymentFutureImplementation,
 } from "../src/internal/module";
 import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module";
+import { validateArtifactLibraryDeployment } from "../src/internal/validation/futures/validateArtifactLibraryDeployment";
 
-import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
+import {
+  assertInstanceOf,
+  assertValidationError,
+  setupMockArtifactResolver,
+} from "./helpers";
 
 describe("libraryFromArtifact", () => {
   const fakeArtifact: Artifact = {
@@ -231,64 +236,50 @@ describe("libraryFromArtifact", () => {
       });
     });
 
-    describe("stage two", () => {
-      let vm: typeof import("../src/internal/validation/stageTwo/validateArtifactLibraryDeployment");
-      let validateArtifactLibraryDeployment: typeof vm.validateArtifactLibraryDeployment;
-
-      before(async () => {
-        vm = await import(
-          "../src/internal/validation/stageTwo/validateArtifactLibraryDeployment"
-        );
-
-        validateArtifactLibraryDeployment =
-          vm.validateArtifactLibraryDeployment;
-      });
-
-      it("should not validate a negative account index", async () => {
-        const module = buildModule("Module1", (m) => {
-          const account = m.getAccount(-1);
-          const test = m.library("Test", fakeArtifact, {
-            from: account,
-          });
-
-          return { test };
+    it("should not validate a negative account index", async () => {
+      const module = buildModule("Module1", (m) => {
+        const account = m.getAccount(-1);
+        const test = m.library("Test", fakeArtifact, {
+          from: account,
         });
 
-        const [future] = getFuturesFromModule(module);
-
-        await assert.isRejected(
-          validateArtifactLibraryDeployment(
-            future as any,
-            setupMockArtifactResolver({ Another: {} as any }),
-            {},
-            []
-          ),
-          /Account index cannot be a negative number/
-        );
+        return { test };
       });
 
-      it("should not validate an account index greater than the number of available accounts", async () => {
-        const module = buildModule("Module1", (m) => {
-          const account = m.getAccount(1);
-          const test = m.library("Test", fakeArtifact, {
-            from: account,
-          });
+      const [future] = getFuturesFromModule(module);
 
-          return { test };
+      assertValidationError(
+        await validateArtifactLibraryDeployment(
+          future as any,
+          setupMockArtifactResolver({ Another: {} as any }),
+          {},
+          []
+        ),
+        "Account index cannot be a negative number"
+      );
+    });
+
+    it("should not validate an account index greater than the number of available accounts", async () => {
+      const module = buildModule("Module1", (m) => {
+        const account = m.getAccount(1);
+        const test = m.library("Test", fakeArtifact, {
+          from: account,
         });
 
-        const [future] = getFuturesFromModule(module);
-
-        await assert.isRejected(
-          validateArtifactLibraryDeployment(
-            future as any,
-            setupMockArtifactResolver({ Another: {} as any }),
-            {},
-            []
-          ),
-          /Requested account index \'1\' is greater than the total number of available accounts \'0\'/
-        );
+        return { test };
       });
+
+      const [future] = getFuturesFromModule(module);
+
+      assertValidationError(
+        await validateArtifactLibraryDeployment(
+          future as any,
+          setupMockArtifactResolver({ Another: {} as any }),
+          {},
+          []
+        ),
+        "Requested account index '1' is greater than the total number of available accounts '0'"
+      );
     });
   });
 });

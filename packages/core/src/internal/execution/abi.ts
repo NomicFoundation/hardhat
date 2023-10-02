@@ -70,7 +70,11 @@ export function encodeArtifactFunctionCall(
   functionName: string,
   args: SolidityParameterType[]
 ): string {
-  validateArtifactFunctionName(artifact, functionName);
+  const validationErrors = validateArtifactFunctionName(artifact, functionName);
+
+  if (validationErrors.length > 0) {
+    throw validationErrors[0];
+  }
 
   const { ethers } = require("ethers") as typeof import("ethers");
   const iface = new ethers.Interface(artifact.abi);
@@ -121,7 +125,11 @@ export function decodeArtifactFunctionCallResult(
   functionName: string,
   returnData: string
 ): InvalidResultError | SuccessfulEvmExecutionResult {
-  validateArtifactFunctionName(artifact, functionName);
+  const validationErrors = validateArtifactFunctionName(artifact, functionName);
+
+  if (validationErrors.length > 0) {
+    throw validationErrors[0];
+  }
 
   const { ethers } = require("ethers") as typeof import("ethers");
   const iface = ethers.Interface.from(artifact.abi);
@@ -151,7 +159,9 @@ export function validateContractConstructorArgsLength(
   artifact: Artifact,
   contractName: string,
   args: ArgumentType[]
-): void {
+): IgnitionError[] {
+  const errors: IgnitionError[] = [];
+
   const argsLength = args.length;
 
   const { ethers } = require("ethers") as typeof import("ethers");
@@ -159,12 +169,16 @@ export function validateContractConstructorArgsLength(
   const expectedArgsLength = iface.deploy.inputs.length;
 
   if (argsLength !== expectedArgsLength) {
-    throw new IgnitionError(ERRORS.VALIDATION.INVALID_CONSTRUCTOR_ARGS_LENGTH, {
-      contractName,
-      argsLength,
-      expectedArgsLength,
-    });
+    errors.push(
+      new IgnitionError(ERRORS.VALIDATION.INVALID_CONSTRUCTOR_ARGS_LENGTH, {
+        contractName,
+        argsLength,
+        expectedArgsLength,
+      })
+    );
   }
+
+  return errors;
 }
 
 /**
@@ -185,8 +199,19 @@ export function validateArtifactFunction(
   functionName: string,
   args: ArgumentType[],
   isStaticCall: boolean
-) {
-  validateOverloadedName(artifact, functionName, false);
+): IgnitionError[] {
+  try {
+    validateOverloadedName(artifact, functionName, false);
+  } catch (e) {
+    assertIgnitionInvariant(
+      e instanceof IgnitionError,
+      "validateOverloadedName should only throw IgnitionErrors"
+    );
+
+    return [e];
+  }
+
+  const errors: IgnitionError[] = [];
 
   const { ethers } = require("ethers") as typeof import("ethers");
   const iface = new ethers.Interface(artifact.abi);
@@ -194,21 +219,27 @@ export function validateArtifactFunction(
 
   // Check that the number of arguments is correct
   if (fragment.inputs.length !== args.length) {
-    throw new IgnitionError(ERRORS.VALIDATION.INVALID_FUNCTION_ARGS_LENGTH, {
-      functionName,
-      contractName,
-      argsLength: args.length,
-      expectedLength: fragment.inputs.length,
-    });
+    errors.push(
+      new IgnitionError(ERRORS.VALIDATION.INVALID_FUNCTION_ARGS_LENGTH, {
+        functionName,
+        contractName,
+        argsLength: args.length,
+        expectedLength: fragment.inputs.length,
+      })
+    );
   }
 
   // Check that the function is pure or view, which is required for a static call
   if (isStaticCall && !fragment.constant) {
-    throw new IgnitionError(ERRORS.VALIDATION.INVALID_STATIC_CALL, {
-      functionName,
-      contractName,
-    });
+    errors.push(
+      new IgnitionError(ERRORS.VALIDATION.INVALID_STATIC_CALL, {
+        functionName,
+        contractName,
+      })
+    );
   }
+
+  return errors;
 }
 
 /**
@@ -222,8 +253,19 @@ export function validateArtifactFunction(
 export function validateArtifactFunctionName(
   artifact: Artifact,
   functionName: string
-) {
-  validateOverloadedName(artifact, functionName, false);
+): IgnitionError[] {
+  try {
+    validateOverloadedName(artifact, functionName, false);
+  } catch (e) {
+    assertIgnitionInvariant(
+      e instanceof IgnitionError,
+      "validateOverloadedName should only throw IgnitionError"
+    );
+
+    return [e];
+  }
+
+  return [];
 }
 
 /**
@@ -238,32 +280,66 @@ export function validateArtifactEventArgumentParams(
   emitterArtifact: Artifact,
   eventName: string,
   argument: string | number
-) {
-  validateOverloadedName(emitterArtifact, eventName, true);
+): IgnitionError[] {
+  try {
+    validateOverloadedName(emitterArtifact, eventName, true);
+  } catch (e) {
+    assertIgnitionInvariant(
+      e instanceof IgnitionError,
+      "validateOverloadedName should only throw IgnitionError"
+    );
+
+    return [e];
+  }
+
   const { ethers } = require("ethers") as typeof import("ethers");
   const iface = new ethers.Interface(emitterArtifact.abi);
 
-  const eventFragment = getEventFragment(iface, eventName);
+  let eventFragment: EventFragment;
+  try {
+    eventFragment = getEventFragment(iface, eventName);
+  } catch (e) {
+    assertIgnitionInvariant(
+      e instanceof IgnitionError,
+      "getEventFragment should only throw IgnitionError"
+    );
 
-  const paramType = getEventArgumentParamType(
-    emitterArtifact.contractName,
-    eventName,
-    eventFragment,
-    argument
-  );
+    return [e];
+  }
+
+  let paramType: ParamType;
+  try {
+    paramType = getEventArgumentParamType(
+      emitterArtifact.contractName,
+      eventName,
+      eventFragment,
+      argument
+    );
+  } catch (e) {
+    assertIgnitionInvariant(
+      e instanceof IgnitionError,
+      "getEventArgumentParamType should only throw IgnitionError"
+    );
+
+    return [e];
+  }
 
   if (paramType.indexed === true) {
     // We can't access the value of indexed arguments with dynamic size
     // as their hash is stored in a topic, and its actual value isn't stored
     // anywhere
     if (hasDynamicSize(paramType)) {
-      throw new IgnitionError(ERRORS.VALIDATION.INDEXED_EVENT_ARG, {
-        eventName,
-        argument,
-        contractName: emitterArtifact.contractName,
-      });
+      return [
+        new IgnitionError(ERRORS.VALIDATION.INDEXED_EVENT_ARG, {
+          eventName,
+          argument,
+          contractName: emitterArtifact.contractName,
+        }),
+      ];
     }
   }
+
+  return [];
 }
 
 /**
@@ -597,7 +673,7 @@ function validateOverloadedName(
   artifact: Artifact,
   name: string,
   isEvent: boolean
-) {
+): void {
   const eventOrFunction = isEvent ? "event" : "function";
   const eventOrFunctionCapitalized = isEvent ? "Event" : "Function";
 
@@ -629,12 +705,10 @@ function validateOverloadedName(
       eventOrFunction: eventOrFunctionCapitalized,
       contractName: artifact.contractName,
     });
-  }
-
-  // If it is not overloaded we force the user to use the bare name
-  // because having a single representation is more friendly with our reconciliation
-  // process.
-  if (fragments.length === 1) {
+  } else if (fragments.length === 1) {
+    // If it is not overloaded we force the user to use the bare name
+    // because having a single representation is more friendly with our reconciliation
+    // process.
     if (bareName !== name) {
       throw new IgnitionError(ERRORS.VALIDATION.REQUIRE_BARE_NAME, {
         name,
@@ -643,37 +717,38 @@ function validateOverloadedName(
         contractName: artifact.contractName,
       });
     }
+  } else {
+    // If it's overloaded, we force the user to use the full name
+    const normalizedNames = fragments.map((f) => {
+      if (ethers.Fragment.isEvent(f)) {
+        return getEventNameWithParams(f);
+      }
 
-    return;
-  }
+      return getFunctionNameWithParams(f);
+    });
 
-  const normalizedNames = fragments.map((f) => {
-    if (ethers.Fragment.isEvent(f)) {
-      return getEventNameWithParams(f);
+    const normalizedNameList = normalizedNames
+      .map((nn) => `* ${nn}`)
+      .join("\n");
+
+    if (bareName === name) {
+      throw new IgnitionError(ERRORS.VALIDATION.OVERLOAD_NAME_REQUIRED, {
+        name,
+        normalizedNameList,
+        eventOrFunction: eventOrFunctionCapitalized,
+        contractName: artifact.contractName,
+      });
     }
 
-    return getFunctionNameWithParams(f);
-  });
-
-  const normalizedNameList = normalizedNames.map((nn) => `* ${nn}`).join("\n");
-
-  if (bareName === name) {
-    throw new IgnitionError(ERRORS.VALIDATION.OVERLOAD_NAME_REQUIRED, {
-      name,
-      normalizedNameList,
-      eventOrFunction: eventOrFunctionCapitalized,
-      contractName: artifact.contractName,
-    });
-  }
-
-  if (!normalizedNames.includes(name)) {
-    throw new IgnitionError(ERRORS.VALIDATION.INVALID_OVERLOAD_GIVEN, {
-      name,
-      bareName,
-      normalizedNameList,
-      eventOrFunction: eventOrFunctionCapitalized,
-      contractName: artifact.contractName,
-    });
+    if (!normalizedNames.includes(name)) {
+      throw new IgnitionError(ERRORS.VALIDATION.INVALID_OVERLOAD_GIVEN, {
+        name,
+        bareName,
+        normalizedNameList,
+        eventOrFunction: eventOrFunctionCapitalized,
+        contractName: artifact.contractName,
+      });
+    }
   }
 }
 
@@ -724,10 +799,19 @@ export function validateFunctionArgumentParamType(
   functionName: string,
   artifact: Artifact,
   argument: string | number
-): void {
+): IgnitionError[] {
   const { ethers } = require("ethers") as typeof import("ethers");
   const iface = new ethers.Interface(artifact.abi);
-  const functionFragment = getFunctionFragment(iface, functionName);
+  let functionFragment: FunctionFragment;
+  try {
+    functionFragment = getFunctionFragment(iface, functionName);
+  } catch (e) {
+    assertIgnitionInvariant(
+      e instanceof IgnitionError,
+      "getFunctionFragment should only throw IgnitionError"
+    );
+    return [e];
+  }
 
   if (typeof argument === "string") {
     let hasArg = false;
@@ -738,24 +822,30 @@ export function validateFunctionArgumentParamType(
     }
 
     if (!hasArg) {
-      throw new IgnitionError(ERRORS.VALIDATION.FUNCTION_ARG_NOT_FOUND, {
-        functionName,
-        argument,
-        contractName,
-      });
+      return [
+        new IgnitionError(ERRORS.VALIDATION.FUNCTION_ARG_NOT_FOUND, {
+          functionName,
+          argument,
+          contractName,
+        }),
+      ];
     }
   } else {
     const paramType = functionFragment.outputs[argument];
 
     if (paramType === undefined) {
-      throw new IgnitionError(ERRORS.VALIDATION.INVALID_FUNCTION_ARG_INDEX, {
-        functionName,
-        argument,
-        contractName,
-        expectedLength: functionFragment.outputs.length,
-      });
+      return [
+        new IgnitionError(ERRORS.VALIDATION.INVALID_FUNCTION_ARG_INDEX, {
+          functionName,
+          argument,
+          contractName,
+          expectedLength: functionFragment.outputs.length,
+        }),
+      ];
     }
   }
+
+  return [];
 }
 
 /**

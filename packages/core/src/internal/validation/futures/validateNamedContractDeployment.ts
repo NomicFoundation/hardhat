@@ -2,11 +2,14 @@ import { IgnitionError } from "../../../errors";
 import { ERRORS } from "../../../errors-list";
 import {
   isAccountRuntimeValue,
+  isArtifactType,
   isModuleParameterRuntimeValue,
 } from "../../../type-guards";
 import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deploy";
 import { NamedArtifactContractDeploymentFuture } from "../../../types/module";
+import { validateContractConstructorArgsLength } from "../../execution/abi";
+import { validateLibraryNames } from "../../execution/libraries";
 import {
   retrieveNestedRuntimeValues,
   validateAccountRuntimeValue,
@@ -17,7 +20,35 @@ export async function validateNamedContractDeployment(
   artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
   accounts: string[]
-) {
+): Promise<string[]> {
+  const errors: IgnitionError[] = [];
+
+  /* stage one */
+
+  const artifact = await artifactLoader.loadArtifact(future.contractName);
+
+  if (!isArtifactType(artifact)) {
+    errors.push(
+      new IgnitionError(ERRORS.VALIDATION.INVALID_ARTIFACT, {
+        contractName: future.contractName,
+      })
+    );
+  } else {
+    errors.push(
+      ...validateLibraryNames(artifact, Object.keys(future.libraries))
+    );
+
+    errors.push(
+      ...validateContractConstructorArgsLength(
+        artifact,
+        future.contractName,
+        future.constructorArgs
+      )
+    );
+  }
+
+  /* stage two */
+
   const runtimeValues = retrieveNestedRuntimeValues(future.constructorArgs);
   const moduleParams = runtimeValues.filter(isModuleParameterRuntimeValue);
   const accountParams = [
@@ -25,7 +56,11 @@ export async function validateNamedContractDeployment(
     ...(isAccountRuntimeValue(future.from) ? [future.from] : []),
   ];
 
-  accountParams.forEach((arv) => validateAccountRuntimeValue(arv, accounts));
+  errors.push(
+    ...accountParams.flatMap((arv) =>
+      validateAccountRuntimeValue(arv, accounts)
+    )
+  );
 
   const missingParams = moduleParams.filter(
     (param) =>
@@ -34,9 +69,11 @@ export async function validateNamedContractDeployment(
   );
 
   if (missingParams.length > 0) {
-    throw new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
-      name: missingParams[0].name,
-    });
+    errors.push(
+      new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
+        name: missingParams[0].name,
+      })
+    );
   }
 
   if (isModuleParameterRuntimeValue(future.value)) {
@@ -44,15 +81,21 @@ export async function validateNamedContractDeployment(
       deploymentParameters[future.value.moduleId]?.[future.value.name] ??
       future.value.defaultValue;
     if (param === undefined) {
-      throw new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
-        name: future.value.name,
-      });
+      errors.push(
+        new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
+          name: future.value.name,
+        })
+      );
     } else if (typeof param !== "bigint") {
-      throw new IgnitionError(ERRORS.VALIDATION.INVALID_MODULE_PARAMETER_TYPE, {
-        name: future.value.name,
-        expectedType: "bigint",
-        actualType: typeof param,
-      });
+      errors.push(
+        new IgnitionError(ERRORS.VALIDATION.INVALID_MODULE_PARAMETER_TYPE, {
+          name: future.value.name,
+          expectedType: "bigint",
+          actualType: typeof param,
+        })
+      );
     }
   }
+
+  return errors.map((e) => e.message);
 }

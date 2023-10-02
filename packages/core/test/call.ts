@@ -9,9 +9,14 @@ import {
   NamedContractCallFutureImplementation,
 } from "../src/internal/module";
 import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module";
+import { validateNamedContractCall } from "../src/internal/validation/futures/validateNamedContractCall";
 import { FutureType } from "../src/types/module";
 
-import { assertInstanceOf, setupMockArtifactResolver } from "./helpers";
+import {
+  assertInstanceOf,
+  setupMockArtifactResolver,
+  assertValidationError,
+} from "./helpers";
 
 describe("call", () => {
   it("should be able to setup a contract call", () => {
@@ -480,491 +485,482 @@ describe("call", () => {
       });
     });
 
-    describe("stage one", () => {
-      let vm: typeof import("../src/internal/validation/stageOne/validateNamedContractCall");
-      let validateNamedContractCall: typeof vm.validateNamedContractCall;
+    it("should not validate a non-existant hardhat contract", async () => {
+      const module = buildModule("Module1", (m) => {
+        const another = m.contract("Another", []);
+        m.call(another, "test");
 
-      before(async () => {
-        vm = await import(
-          "../src/internal/validation/stageOne/validateNamedContractCall"
-        );
-
-        validateNamedContractCall = vm.validateNamedContractCall;
+        return { another };
       });
 
-      it("should not validate a non-existant hardhat contract", async () => {
-        const module = buildModule("Module1", (m) => {
-          const another = m.contract("Another", []);
-          m.call(another, "test");
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.CONTRACT_CALL
+      );
 
-          return { another };
-        });
-
-        const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.CONTRACT_CALL
-        );
-
-        await assert.isRejected(
-          validateNamedContractCall(
-            future as any,
-            setupMockArtifactResolver({ Another: {} as any })
-          ),
-          /Artifact for contract 'Another' is invalid/
-        );
-      });
-
-      it("should not validate a non-existant function", async () => {
-        const fakeArtifact: Artifact = {
-          abi: [],
-          contractName: "Another",
-          bytecode: "",
-          linkReferences: {},
-        };
-
-        const module = buildModule("Module1", (m) => {
-          const another = m.contract("Another", fakeArtifact, []);
-          m.call(another, "test");
-
-          return { another };
-        });
-
-        const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.CONTRACT_CALL
-        );
-
-        await assert.isRejected(
-          validateNamedContractCall(future as any, setupMockArtifactResolver()),
-          /Function 'test' not found in contract Another/
-        );
-      });
-
-      it("should not validate a call with wrong number of arguments", async () => {
-        const fakeArtifact: Artifact = {
-          abi: [
-            {
-              inputs: [
-                {
-                  internalType: "bool",
-                  name: "b",
-                  type: "bool",
-                },
-              ],
-              name: "inc",
-              outputs: [],
-              stateMutability: "nonpayable",
-              type: "function",
-            },
-          ],
-          contractName: "",
-          bytecode: "",
-          linkReferences: {},
-        };
-
-        const module = buildModule("Module1", (m) => {
-          const another = m.contract("Another", fakeArtifact, []);
-          m.call(another, "inc", [1, 2]);
-
-          return { another };
-        });
-
-        const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.CONTRACT_CALL
-        );
-
-        await assert.isRejected(
-          validateNamedContractCall(future as any, setupMockArtifactResolver()),
-          /Function inc in contract Another expects 1 arguments but 2 were given/
-        );
-      });
-
-      it("should not validate an overloaded call with wrong number of arguments", async () => {
-        const fakeArtifact: Artifact = {
-          abi: [
-            {
-              inputs: [
-                {
-                  internalType: "bool",
-                  name: "b",
-                  type: "bool",
-                },
-              ],
-              name: "inc",
-              outputs: [],
-              stateMutability: "nonpayable",
-              type: "function",
-            },
-            {
-              inputs: [
-                {
-                  internalType: "bool",
-                  name: "b",
-                  type: "bool",
-                },
-                {
-                  internalType: "uint256",
-                  name: "n",
-                  type: "uint256",
-                },
-              ],
-              name: "inc",
-              outputs: [],
-              stateMutability: "nonpayable",
-              type: "function",
-            },
-          ],
-          contractName: "Another",
-          bytecode: "",
-          linkReferences: {},
-        };
-
-        const module = buildModule("Module1", (m) => {
-          const another = m.contract("Another", fakeArtifact, []);
-          m.call(another, "inc(bool,uint256)", [1, 2, 3]);
-
-          return { another };
-        });
-
-        const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.CONTRACT_CALL
-        );
-
-        await assert.isRejected(
-          validateNamedContractCall(future as any, setupMockArtifactResolver()),
-          /Function inc\(bool,uint256\) in contract Another expects 2 arguments but 3 were given/
-        );
-      });
+      assertValidationError(
+        await validateNamedContractCall(
+          future as any,
+          setupMockArtifactResolver({ Another: {} as any }),
+          {},
+          []
+        ),
+        "Artifact for contract 'Another' is invalid"
+      );
     });
 
-    describe("stage two", () => {
-      let vm: typeof import("../src/internal/validation/stageTwo/validateNamedContractCall");
-      let validateNamedContractCall: typeof vm.validateNamedContractCall;
+    it("should not validate a non-existant function", async () => {
+      const fakeArtifact: Artifact = {
+        abi: [],
+        contractName: "Another",
+        bytecode: "",
+        linkReferences: {},
+      };
 
-      before(async () => {
-        vm = await import(
-          "../src/internal/validation/stageTwo/validateNamedContractCall"
-        );
+      const module = buildModule("Module1", (m) => {
+        const another = m.contract("Another", fakeArtifact, []);
+        m.call(another, "test");
 
-        validateNamedContractCall = vm.validateNamedContractCall;
+        return { another };
       });
 
-      it("should not validate a missing module parameter", async () => {
-        const fakeArtifact: Artifact = {
-          abi: [],
-          contractName: "",
-          bytecode: "",
-          linkReferences: {},
-        };
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.CONTRACT_CALL
+      );
 
-        const module = buildModule("Module1", (m) => {
-          const p = m.getParameter("p");
+      assertValidationError(
+        await validateNamedContractCall(
+          future as any,
+          setupMockArtifactResolver(),
+          {},
+          []
+        ),
+        "Function 'test' not found in contract Another"
+      );
+    });
 
-          const another = m.contract("Another", fakeArtifact, []);
-          m.call(another, "test", [p]);
+    it("should not validate a call with wrong number of arguments", async () => {
+      const fakeArtifact: Artifact = {
+        abi: [
+          {
+            inputs: [
+              {
+                internalType: "bool",
+                name: "b",
+                type: "bool",
+              },
+            ],
+            name: "inc",
+            outputs: [],
+            stateMutability: "nonpayable",
+            type: "function",
+          },
+        ],
+        contractName: "",
+        bytecode: "",
+        linkReferences: {},
+      };
 
-          return { another };
-        });
+      const module = buildModule("Module1", (m) => {
+        const another = m.contract("Another", fakeArtifact, []);
+        m.call(another, "inc", [1, 2]);
 
-        const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.CONTRACT_CALL
-        );
-
-        await assert.isRejected(
-          validateNamedContractCall(
-            future as any,
-            setupMockArtifactResolver({ Another: fakeArtifact }),
-            {},
-            []
-          ),
-          /Module parameter 'p' requires a value but was given none/
-        );
+        return { another };
       });
 
-      it("should not validate a module parameter of the wrong type for value", async () => {
-        const fakeArtifact: Artifact = {
-          abi: [],
-          contractName: "",
-          bytecode: "",
-          linkReferences: {},
-        };
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.CONTRACT_CALL
+      );
 
-        const module = buildModule("Module1", (m) => {
-          const p = m.getParameter("p", false as unknown as bigint);
+      assertValidationError(
+        await validateNamedContractCall(
+          future as any,
+          setupMockArtifactResolver(),
+          {},
+          []
+        ),
+        "Function inc in contract Another expects 1 arguments but 2 were given"
+      );
+    });
 
-          const another = m.contract("Another", fakeArtifact, []);
-          m.call(another, "test", [], { value: p });
+    it("should not validate an overloaded call with wrong number of arguments", async () => {
+      const fakeArtifact: Artifact = {
+        abi: [
+          {
+            inputs: [
+              {
+                internalType: "bool",
+                name: "b",
+                type: "bool",
+              },
+            ],
+            name: "inc",
+            outputs: [],
+            stateMutability: "nonpayable",
+            type: "function",
+          },
+          {
+            inputs: [
+              {
+                internalType: "bool",
+                name: "b",
+                type: "bool",
+              },
+              {
+                internalType: "uint256",
+                name: "n",
+                type: "uint256",
+              },
+            ],
+            name: "inc",
+            outputs: [],
+            stateMutability: "nonpayable",
+            type: "function",
+          },
+        ],
+        contractName: "Another",
+        bytecode: "",
+        linkReferences: {},
+      };
 
-          return { another };
-        });
+      const module = buildModule("Module1", (m) => {
+        const another = m.contract("Another", fakeArtifact, []);
+        m.call(another, "inc(bool,uint256)", [1, 2, 3]);
 
-        const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.CONTRACT_CALL
-        );
-
-        await assert.isRejected(
-          validateNamedContractCall(
-            future as any,
-            setupMockArtifactResolver({ Another: fakeArtifact }),
-            {},
-            []
-          ),
-          /Module parameter 'p' must be of type 'bigint' but is 'boolean'/
-        );
+        return { another };
       });
 
-      it("should validate a module parameter of the correct type for value", async () => {
-        const fakeArtifact: Artifact = {
-          abi: [
-            {
-              inputs: [],
-              name: "test",
-              outputs: [],
-              stateMutability: "payable",
-              type: "function",
-            },
-          ],
-          contractName: "",
-          bytecode: "",
-          linkReferences: {},
-        };
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.CONTRACT_CALL
+      );
 
-        const module = buildModule("Module1", (m) => {
-          const p = m.getParameter("p", 42n);
+      assertValidationError(
+        await validateNamedContractCall(
+          future as any,
+          setupMockArtifactResolver(),
+          {},
+          []
+        ),
+        "Function inc(bool,uint256) in contract Another expects 2 arguments but 3 were given"
+      );
+    });
 
-          const another = m.contract("Another", fakeArtifact, []);
-          m.call(another, "test", [], { value: p });
+    it("should not validate a missing module parameter", async () => {
+      const fakeArtifact: Artifact = {
+        abi: [],
+        contractName: "",
+        bytecode: "",
+        linkReferences: {},
+      };
 
-          return { another };
-        });
+      const module = buildModule("Module1", (m) => {
+        const p = m.getParameter("p");
 
-        const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.CONTRACT_CALL
-        );
+        const another = m.contract("Another", fakeArtifact, []);
+        m.call(another, "test", [p]);
 
-        await assert.isFulfilled(
-          validateNamedContractCall(
-            future as any,
-            setupMockArtifactResolver({ Another: fakeArtifact }),
-            {},
-            []
-          )
-        );
+        return { another };
       });
 
-      it("should validate a missing module parameter if a default parameter is present", async () => {
-        const fakeArtifact: Artifact = {
-          abi: [
-            {
-              inputs: [
-                {
-                  internalType: "bool",
-                  name: "b",
-                  type: "bool",
-                },
-              ],
-              name: "test",
-              outputs: [],
-              stateMutability: "nonpayable",
-              type: "function",
-            },
-          ],
-          contractName: "",
-          bytecode: "",
-          linkReferences: {},
-        };
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.CONTRACT_CALL
+      );
 
-        const module = buildModule("Module1", (m) => {
-          const p = m.getParameter("p", true);
+      assertValidationError(
+        await validateNamedContractCall(
+          future as any,
+          setupMockArtifactResolver({ Another: fakeArtifact }),
+          {},
+          []
+        ),
+        "Module parameter 'p' requires a value but was given none"
+      );
+    });
 
-          const another = m.contract("Another", fakeArtifact, []);
-          m.call(another, "test", [p]);
+    it("should not validate a module parameter of the wrong type for value", async () => {
+      const fakeArtifact: Artifact = {
+        abi: [],
+        contractName: "",
+        bytecode: "",
+        linkReferences: {},
+      };
 
-          return { another };
-        });
+      const module = buildModule("Module1", (m) => {
+        const p = m.getParameter("p", false as unknown as bigint);
 
-        const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.CONTRACT_CALL
-        );
+        const another = m.contract("Another", fakeArtifact, []);
+        m.call(another, "test", [], { value: p });
 
-        await assert.isFulfilled(
-          validateNamedContractCall(
-            future as any,
-            setupMockArtifactResolver({ Another: fakeArtifact }),
-            {},
-            []
-          )
-        );
+        return { another };
       });
 
-      it("should not validate a missing module parameter (deeply nested)", async () => {
-        const fakeArtifact: Artifact = {
-          abi: [],
-          contractName: "",
-          bytecode: "",
-          linkReferences: {},
-        };
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.CONTRACT_CALL
+      );
 
-        const module = buildModule("Module1", (m) => {
-          const p = m.getParameter("p");
+      assertValidationError(
+        await validateNamedContractCall(
+          future as any,
+          setupMockArtifactResolver({ Another: fakeArtifact }),
+          {},
+          []
+        ),
+        "Module parameter 'p' must be of type 'bigint' but is 'boolean'"
+      );
+    });
 
-          const another = m.contract("Another", fakeArtifact, []);
-          m.call(another, "test", [
-            [123, { really: { deeply: { nested: [p] } } }],
-          ]);
+    it("should validate a module parameter of the correct type for value", async () => {
+      const fakeArtifact: Artifact = {
+        abi: [
+          {
+            inputs: [],
+            name: "test",
+            outputs: [],
+            stateMutability: "payable",
+            type: "function",
+          },
+        ],
+        contractName: "",
+        bytecode: "",
+        linkReferences: {},
+      };
 
-          return { another };
-        });
+      const module = buildModule("Module1", (m) => {
+        const p = m.getParameter("p", 42n);
 
-        const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.CONTRACT_CALL
-        );
+        const another = m.contract("Another", fakeArtifact, []);
+        m.call(another, "test", [], { value: p });
 
-        await assert.isRejected(
-          validateNamedContractCall(
-            future as any,
-            setupMockArtifactResolver({ Another: fakeArtifact }),
-            {},
-            []
-          ),
-          /Module parameter 'p' requires a value but was given none/
-        );
+        return { another };
       });
 
-      it("should validate a missing module parameter if a default parameter is present (deeply nested)", async () => {
-        const fakeArtifact: Artifact = {
-          abi: [
-            {
-              inputs: [
-                {
-                  internalType: "bool",
-                  name: "b",
-                  type: "bool",
-                },
-              ],
-              name: "test",
-              outputs: [],
-              stateMutability: "nonpayable",
-              type: "function",
-            },
-          ],
-          contractName: "",
-          bytecode: "",
-          linkReferences: {},
-        };
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.CONTRACT_CALL
+      );
 
-        const module = buildModule("Module1", (m) => {
-          const p = m.getParameter("p", true);
+      await assert.isFulfilled(
+        validateNamedContractCall(
+          future as any,
+          setupMockArtifactResolver({ Another: fakeArtifact }),
+          {},
+          []
+        )
+      );
+    });
 
-          const another = m.contract("Another", fakeArtifact, []);
-          m.call(another, "test", [
-            [123, { really: { deeply: { nested: [p] } } }],
-          ]);
+    it("should validate a missing module parameter if a default parameter is present", async () => {
+      const fakeArtifact: Artifact = {
+        abi: [
+          {
+            inputs: [
+              {
+                internalType: "bool",
+                name: "b",
+                type: "bool",
+              },
+            ],
+            name: "test",
+            outputs: [],
+            stateMutability: "nonpayable",
+            type: "function",
+          },
+        ],
+        contractName: "",
+        bytecode: "",
+        linkReferences: {},
+      };
 
-          return { another };
-        });
+      const module = buildModule("Module1", (m) => {
+        const p = m.getParameter("p", true);
 
-        const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.CONTRACT_CALL
-        );
+        const another = m.contract("Another", fakeArtifact, []);
+        m.call(another, "test", [p]);
 
-        await assert.isFulfilled(
-          validateNamedContractCall(
-            future as any,
-            setupMockArtifactResolver({ Another: fakeArtifact }),
-            {},
-            []
-          )
-        );
+        return { another };
       });
 
-      it("should not validate a negative account index", async () => {
-        const fakeArtifact: Artifact = {
-          abi: [
-            {
-              inputs: [
-                {
-                  internalType: "bool",
-                  name: "b",
-                  type: "bool",
-                },
-              ],
-              name: "inc",
-              outputs: [],
-              stateMutability: "public",
-              type: "function",
-            },
-          ],
-          contractName: "",
-          bytecode: "",
-          linkReferences: {},
-        };
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.CONTRACT_CALL
+      );
 
-        const module = buildModule("Module1", (m) => {
-          const another = m.contract("Another", fakeArtifact, []);
-          const account = m.getAccount(-1);
-          m.call(another, "inc", [1], { from: account });
+      await assert.isFulfilled(
+        validateNamedContractCall(
+          future as any,
+          setupMockArtifactResolver({ Another: fakeArtifact }),
+          {},
+          []
+        )
+      );
+    });
 
-          return { another };
-        });
+    it("should not validate a missing module parameter (deeply nested)", async () => {
+      const fakeArtifact: Artifact = {
+        abi: [],
+        contractName: "",
+        bytecode: "",
+        linkReferences: {},
+      };
 
-        const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.CONTRACT_CALL
-        );
+      const module = buildModule("Module1", (m) => {
+        const p = m.getParameter("p");
 
-        await assert.isRejected(
-          validateNamedContractCall(
-            future as any,
-            setupMockArtifactResolver(),
-            {},
-            []
-          ),
-          /Account index cannot be a negative number/
-        );
+        const another = m.contract("Another", fakeArtifact, []);
+        m.call(another, "test", [
+          [123, { really: { deeply: { nested: [p] } } }],
+        ]);
+
+        return { another };
       });
 
-      it("should not validate an account index greater than the number of available accounts", async () => {
-        const fakeArtifact: Artifact = {
-          abi: [
-            {
-              inputs: [
-                {
-                  internalType: "bool",
-                  name: "b",
-                  type: "bool",
-                },
-              ],
-              name: "inc",
-              outputs: [],
-              stateMutability: "public",
-              type: "function",
-            },
-          ],
-          contractName: "",
-          bytecode: "",
-          linkReferences: {},
-        };
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.CONTRACT_CALL
+      );
 
-        const module = buildModule("Module1", (m) => {
-          const another = m.contract("Another", fakeArtifact, []);
-          const account = m.getAccount(1);
-          m.call(another, "inc", [1], { from: account });
+      assertValidationError(
+        await validateNamedContractCall(
+          future as any,
+          setupMockArtifactResolver({ Another: fakeArtifact }),
+          {},
+          []
+        ),
+        "Module parameter 'p' requires a value but was given none"
+      );
+    });
 
-          return { another };
-        });
+    it("should validate a missing module parameter if a default parameter is present (deeply nested)", async () => {
+      const fakeArtifact: Artifact = {
+        abi: [
+          {
+            inputs: [
+              {
+                internalType: "bool",
+                name: "b",
+                type: "bool",
+              },
+            ],
+            name: "test",
+            outputs: [],
+            stateMutability: "nonpayable",
+            type: "function",
+          },
+        ],
+        contractName: "",
+        bytecode: "",
+        linkReferences: {},
+      };
 
-        const future = getFuturesFromModule(module).find(
-          (v) => v.type === FutureType.CONTRACT_CALL
-        );
+      const module = buildModule("Module1", (m) => {
+        const p = m.getParameter("p", true);
 
-        await assert.isRejected(
-          validateNamedContractCall(
-            future as any,
-            setupMockArtifactResolver(),
-            {},
-            []
-          ),
-          /Requested account index \'1\' is greater than the total number of available accounts \'0\'/
-        );
+        const another = m.contract("Another", fakeArtifact, []);
+        m.call(another, "test", [
+          [123, { really: { deeply: { nested: [p] } } }],
+        ]);
+
+        return { another };
       });
+
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.CONTRACT_CALL
+      );
+
+      await assert.isFulfilled(
+        validateNamedContractCall(
+          future as any,
+          setupMockArtifactResolver({ Another: fakeArtifact }),
+          {},
+          []
+        )
+      );
+    });
+
+    it("should not validate a negative account index", async () => {
+      const fakeArtifact: Artifact = {
+        abi: [
+          {
+            inputs: [
+              {
+                internalType: "bool",
+                name: "b",
+                type: "bool",
+              },
+            ],
+            name: "inc",
+            outputs: [],
+            stateMutability: "public",
+            type: "function",
+          },
+        ],
+        contractName: "",
+        bytecode: "",
+        linkReferences: {},
+      };
+
+      const module = buildModule("Module1", (m) => {
+        const another = m.contract("Another", fakeArtifact, []);
+        const account = m.getAccount(-1);
+        m.call(another, "inc", [1], { from: account });
+
+        return { another };
+      });
+
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.CONTRACT_CALL
+      );
+
+      assertValidationError(
+        await validateNamedContractCall(
+          future as any,
+          setupMockArtifactResolver(),
+          {},
+          []
+        ),
+        "Account index cannot be a negative number"
+      );
+    });
+
+    it("should not validate an account index greater than the number of available accounts", async () => {
+      const fakeArtifact: Artifact = {
+        abi: [
+          {
+            inputs: [
+              {
+                internalType: "bool",
+                name: "b",
+                type: "bool",
+              },
+            ],
+            name: "inc",
+            outputs: [],
+            stateMutability: "public",
+            type: "function",
+          },
+        ],
+        contractName: "",
+        bytecode: "",
+        linkReferences: {},
+      };
+
+      const module = buildModule("Module1", (m) => {
+        const another = m.contract("Another", fakeArtifact, []);
+        const account = m.getAccount(1);
+        m.call(another, "inc", [1], { from: account });
+
+        return { another };
+      });
+
+      const future = getFuturesFromModule(module).find(
+        (v) => v.type === FutureType.CONTRACT_CALL
+      );
+
+      assertValidationError(
+        await validateNamedContractCall(
+          future as any,
+          setupMockArtifactResolver(),
+          {},
+          []
+        ),
+        "Requested account index '1' is greater than the total number of available accounts '0'"
+      );
     });
   });
 });

@@ -14,28 +14,40 @@ export async function validateSendData(
   _artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
   accounts: string[]
-) {
+): Promise<string[]> {
+  const errors: IgnitionError[] = [];
+
+  /* stage two */
+
   const accountParams = [
     ...(isAccountRuntimeValue(future.from) ? [future.from] : []),
     ...(isAccountRuntimeValue(future.to) ? [future.to] : []),
   ];
 
-  accountParams.forEach((arv) => validateAccountRuntimeValue(arv, accounts));
+  errors.push(
+    ...accountParams.flatMap((arv) =>
+      validateAccountRuntimeValue(arv, accounts)
+    )
+  );
 
   if (isModuleParameterRuntimeValue(future.to)) {
     const param =
       deploymentParameters[future.to.moduleId]?.[future.to.name] ??
       future.to.defaultValue;
     if (param === undefined) {
-      throw new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
-        name: future.to.name,
-      });
+      errors.push(
+        new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
+          name: future.to.name,
+        })
+      );
     } else if (typeof param !== "string") {
-      throw new IgnitionError(ERRORS.VALIDATION.INVALID_MODULE_PARAMETER_TYPE, {
-        name: future.to.name,
-        expectedType: "string",
-        actualType: typeof param,
-      });
+      errors.push(
+        new IgnitionError(ERRORS.VALIDATION.INVALID_MODULE_PARAMETER_TYPE, {
+          name: future.to.name,
+          expectedType: "string",
+          actualType: typeof param,
+        })
+      );
     }
   }
 
@@ -44,17 +56,21 @@ export async function validateSendData(
       deploymentParameters[future.value.moduleId]?.[future.value.name] ??
       future.value.defaultValue;
     if (param === undefined) {
-      throw new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
-        name: future.value.name,
-      });
+      errors.push(
+        new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
+          name: future.value.name,
+        })
+      );
     } else if (typeof param !== "bigint") {
-      throw new IgnitionError(ERRORS.VALIDATION.INVALID_MODULE_PARAMETER_TYPE, {
-        name: future.value.name,
-        expectedType: "bigint",
-        actualType: typeof param,
-      });
+      errors.push(
+        new IgnitionError(ERRORS.VALIDATION.INVALID_MODULE_PARAMETER_TYPE, {
+          name: future.value.name,
+          expectedType: "bigint",
+          actualType: typeof param,
+        })
+      );
     }
   }
 
-  return;
+  return errors.map((e) => e.message);
 }

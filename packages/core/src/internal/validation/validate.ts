@@ -1,4 +1,3 @@
-import { IgnitionError } from "../../errors";
 import { ArtifactResolver } from "../../types/artifact";
 import {
   DeploymentParameters,
@@ -6,21 +5,20 @@ import {
   ValidationErrorDeploymentResult,
 } from "../../types/deploy";
 import { Future, FutureType, IgnitionModule } from "../../types/module";
-import { assertIgnitionInvariant } from "../utils/assertions";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 
-import { validateArtifactContractAt } from "./stageTwo/validateArtifactContractAt";
-import { validateArtifactContractDeployment } from "./stageTwo/validateArtifactContractDeployment";
-import { validateArtifactLibraryDeployment } from "./stageTwo/validateArtifactLibraryDeployment";
-import { validateNamedContractAt } from "./stageTwo/validateNamedContractAt";
-import { validateNamedContractCall } from "./stageTwo/validateNamedContractCall";
-import { validateNamedContractDeployment } from "./stageTwo/validateNamedContractDeployment";
-import { validateNamedLibraryDeployment } from "./stageTwo/validateNamedLibraryDeployment";
-import { validateNamedStaticCall } from "./stageTwo/validateNamedStaticCall";
-import { validateReadEventArgument } from "./stageTwo/validateReadEventArgument";
-import { validateSendData } from "./stageTwo/validateSendData";
+import { validateArtifactContractAt } from "./futures/validateArtifactContractAt";
+import { validateArtifactContractDeployment } from "./futures/validateArtifactContractDeployment";
+import { validateArtifactLibraryDeployment } from "./futures/validateArtifactLibraryDeployment";
+import { validateNamedContractAt } from "./futures/validateNamedContractAt";
+import { validateNamedContractCall } from "./futures/validateNamedContractCall";
+import { validateNamedContractDeployment } from "./futures/validateNamedContractDeployment";
+import { validateNamedLibraryDeployment } from "./futures/validateNamedLibraryDeployment";
+import { validateNamedStaticCall } from "./futures/validateNamedStaticCall";
+import { validateReadEventArgument } from "./futures/validateReadEventArgument";
+import { validateSendData } from "./futures/validateSendData";
 
-export async function validateStageTwo(
+export async function validate(
   module: IgnitionModule,
   artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
@@ -28,31 +26,30 @@ export async function validateStageTwo(
 ): Promise<ValidationErrorDeploymentResult | null> {
   const futures = getFuturesFromModule(module);
 
-  for (const future of futures) {
-    try {
-      await _validateFuture(
-        future,
-        artifactLoader,
-        deploymentParameters,
-        accounts
-      );
-    } catch (err) {
-      assertIgnitionInvariant(
-        err instanceof IgnitionError,
-        `Expected an IgnitionError when validating the future ${future.id}`
-      );
+  const errors: ValidationErrorDeploymentResult["errors"] = {};
 
-      return {
-        type: DeploymentResultType.VALIDATION_ERROR,
-        errors: {
-          [future.id]: [err.message],
-        },
-      };
+  for (const future of futures) {
+    const validationErrors = await _validateFuture(
+      future,
+      artifactLoader,
+      deploymentParameters,
+      accounts
+    );
+
+    if (validationErrors.length > 0) {
+      errors[future.id] = validationErrors;
     }
   }
 
-  // No validation errors
-  return null;
+  if (Object.keys(errors).length === 0) {
+    // No validation errors
+    return null;
+  }
+
+  return {
+    type: DeploymentResultType.VALIDATION_ERROR,
+    errors,
+  };
 }
 
 async function _validateFuture(
@@ -60,87 +57,77 @@ async function _validateFuture(
   artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
   accounts: string[]
-) {
+): Promise<string[]> {
   switch (future.type) {
     case FutureType.CONTRACT_DEPLOYMENT:
-      await validateArtifactContractDeployment(
+      return validateArtifactContractDeployment(
         future,
         artifactLoader,
         deploymentParameters,
         accounts
       );
-      break;
     case FutureType.LIBRARY_DEPLOYMENT:
-      await validateArtifactLibraryDeployment(
+      return validateArtifactLibraryDeployment(
         future,
         artifactLoader,
         deploymentParameters,
         accounts
       );
-      break;
     case FutureType.CONTRACT_AT:
-      await validateArtifactContractAt(
+      return validateArtifactContractAt(
         future,
         artifactLoader,
         deploymentParameters,
         accounts
       );
-      break;
     case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
-      await validateNamedContractDeployment(
+      return validateNamedContractDeployment(
         future,
         artifactLoader,
         deploymentParameters,
         accounts
       );
-      break;
     case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
-      await validateNamedLibraryDeployment(
+      return validateNamedLibraryDeployment(
         future,
         artifactLoader,
         deploymentParameters,
         accounts
       );
-      break;
     case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
-      await validateNamedContractAt(
+      return validateNamedContractAt(
         future,
         artifactLoader,
         deploymentParameters,
         accounts
       );
-      break;
     case FutureType.CONTRACT_CALL:
-      await validateNamedContractCall(
+      return validateNamedContractCall(
         future,
         artifactLoader,
         deploymentParameters,
         accounts
       );
-      break;
     case FutureType.STATIC_CALL:
-      await validateNamedStaticCall(
+      return validateNamedStaticCall(
         future,
         artifactLoader,
         deploymentParameters,
         accounts
       );
-      break;
     case FutureType.READ_EVENT_ARGUMENT:
-      await validateReadEventArgument(
+      return validateReadEventArgument(
         future,
         artifactLoader,
         deploymentParameters,
         accounts
       );
-      break;
     case FutureType.SEND_DATA:
-      await validateSendData(
+      return validateSendData(
         future,
         artifactLoader,
         deploymentParameters,
         accounts
       );
-      break;
   }
 }

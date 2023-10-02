@@ -16,6 +16,7 @@
 import { IgnitionError } from "../../errors";
 import { ERRORS } from "../../errors-list";
 import { Artifact } from "../../types/artifact";
+import { assertIgnitionInvariant } from "../utils/assertions";
 
 /**
  * This function validates that the libraries object ensures that libraries:
@@ -27,8 +28,10 @@ import { Artifact } from "../../types/artifact";
 export function validateLibraryNames(
   artifact: Artifact,
   libraryNames: string[]
-) {
-  validateNotRepeatedLibraries(artifact, libraryNames);
+): IgnitionError[] {
+  const errors: IgnitionError[] = [];
+
+  errors.push(...validateNotRepeatedLibraries(artifact, libraryNames));
 
   const requiredLibraries = new Set<string>();
   for (const sourceName of Object.keys(artifact.linkReferences)) {
@@ -37,26 +40,39 @@ export function validateLibraryNames(
     }
   }
 
-  const libraryNameToParsedName = libraryNames.map((libraryName) =>
-    getActualNameForArtifactLibrary(artifact, libraryName)
-  );
-
-  for (const parsedName of Object.values(libraryNameToParsedName)) {
-    requiredLibraries.delete(
-      getFullyQualifiedName(parsedName.sourceName, parsedName.libName)
+  try {
+    const libraryNameToParsedName = libraryNames.map((libraryName) =>
+      getActualNameForArtifactLibrary(artifact, libraryName)
     );
+
+    for (const parsedName of Object.values(libraryNameToParsedName)) {
+      requiredLibraries.delete(
+        getFullyQualifiedName(parsedName.sourceName, parsedName.libName)
+      );
+    }
+
+    if (requiredLibraries.size !== 0) {
+      const fullyQualifiedNames = Array.from(requiredLibraries)
+        .map((name) => `* ${name}`)
+        .join("\n");
+
+      errors.push(
+        new IgnitionError(ERRORS.VALIDATION.MISSING_LIBRARIES, {
+          fullyQualifiedNames,
+          contractName: artifact.contractName,
+        })
+      );
+    }
+  } catch (e) {
+    assertIgnitionInvariant(
+      e instanceof IgnitionError,
+      "Error must be of type IgnitionError"
+    );
+
+    errors.push(e);
   }
 
-  if (requiredLibraries.size !== 0) {
-    const fullyQualifiedNames = Array.from(requiredLibraries)
-      .map((name) => `* ${name}`)
-      .join("\n");
-
-    throw new IgnitionError(ERRORS.VALIDATION.MISSING_LIBRARIES, {
-      fullyQualifiedNames,
-      contractName: artifact.contractName,
-    });
-  }
+  return errors;
 }
 
 /**
@@ -101,21 +117,36 @@ function linkReference(
 function validateNotRepeatedLibraries(
   artifact: Artifact,
   libraryNames: string[]
-) {
-  for (const inputName of libraryNames) {
-    const { sourceName, libName } = parseLibraryName(
-      artifact.contractName,
-      inputName
-    );
+): IgnitionError[] {
+  const errors: IgnitionError[] = [];
 
-    if (sourceName !== undefined && libraryNames.includes(libName)) {
-      throw new IgnitionError(ERRORS.VALIDATION.CONFLICTING_LIBRARY_NAMES, {
-        inputName,
-        libName,
-        contractName: artifact.contractName,
-      });
+  for (const inputName of libraryNames) {
+    try {
+      const { sourceName, libName } = parseLibraryName(
+        artifact.contractName,
+        inputName
+      );
+
+      if (sourceName !== undefined && libraryNames.includes(libName)) {
+        errors.push(
+          new IgnitionError(ERRORS.VALIDATION.CONFLICTING_LIBRARY_NAMES, {
+            inputName,
+            libName,
+            contractName: artifact.contractName,
+          })
+        );
+      }
+    } catch (e) {
+      assertIgnitionInvariant(
+        e instanceof IgnitionError,
+        `Error must be of type IgnitionError`
+      );
+
+      errors.push(e);
     }
   }
+
+  return errors;
 }
 
 /**

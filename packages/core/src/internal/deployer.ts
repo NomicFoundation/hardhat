@@ -42,7 +42,6 @@ import { formatExecutionError } from "./formatters";
 import { Reconciler } from "./reconciliation/reconciler";
 import { assertIgnitionInvariant } from "./utils/assertions";
 import { getFuturesFromModule } from "./utils/get-futures-from-module";
-import { validateStageTwo } from "./validation/validateStageTwo";
 
 /**
  * Run an Igntition deployment.
@@ -78,19 +77,6 @@ export class Deployer {
     accounts: string[],
     defaultSender: string
   ): Promise<DeploymentResult<ContractNameT, IgnitionModuleResultsT>> {
-    const validationResult = await validateStageTwo(
-      ignitionModule,
-      this._artifactResolver,
-      deploymentParameters,
-      accounts
-    );
-
-    if (validationResult !== null) {
-      this._emitDeploymentCompleteEvent(validationResult);
-
-      return validationResult;
-    }
-
     let deploymentState = await this._getOrInitializeDeploymentState(
       ignitionModule.id
     );
