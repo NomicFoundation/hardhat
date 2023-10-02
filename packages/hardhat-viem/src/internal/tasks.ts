@@ -22,7 +22,7 @@ interface EmittedArtifacts {
 }
 
 /**
- * Override task that generates an `duplicate-artifacts.d.ts` file with `never`
+ * Override task that generates an `artifacts.d.ts` file with `never`
  * types for duplicate contract names. This file is used in conjunction with
  * the `artifacts.d.ts` file inside each contract directory to type
  * `hre.artifacts`.
@@ -39,7 +39,7 @@ subtask(TASK_COMPILE_SOLIDITY).setAction(
 
     try {
       await writeFile(
-        join(config.paths.artifacts, "duplicate-artifacts.d.ts"),
+        join(config.paths.artifacts, "artifacts.d.ts"),
         duplicateArtifactsDTs
       );
     } catch (error) {
@@ -53,7 +53,7 @@ subtask(TASK_COMPILE_SOLIDITY).setAction(
 /**
  * Override task to emit TypeScript and definition files for each contract.
  * Generates a `.d.ts` file per contract, and a `artifacts.d.ts` per solidity
- * file, which is used in conjunction to the root `duplicate-artifacts.d.ts`
+ * file, which is used in conjunction to the root `artifacts.d.ts`
  * to type `hre.artifacts`.
  */
 subtask(TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS).setAction(
@@ -119,8 +119,7 @@ subtask(TASK_COMPILE_REMOVE_OBSOLETE_ARTIFACTS).setAction(
     );
     const allArtifactsDTs = await getAllFilesMatching(
       config.paths.artifacts,
-      (f) =>
-        f.endsWith("artifacts.d.ts") && !f.endsWith("duplicate-artifacts.d.ts")
+      (f) => f.endsWith("artifacts.d.ts")
     );
 
     for (const artifactDTs of allArtifactsDTs) {
@@ -128,6 +127,11 @@ subtask(TASK_COMPILE_REMOVE_OBSOLETE_ARTIFACTS).setAction(
       const sourceName = replaceBackslashes(
         relative(config.paths.artifacts, dir)
       );
+      // If sourceName is empty, it means that the artifacts.d.ts file is in the
+      // root of the artifacts directory, and we shouldn't delete it.
+      if (sourceName === "") {
+        continue;
+      }
 
       if (!existingSourceNames.has(sourceName)) {
         await rm(dir, { force: true, recursive: true });
@@ -269,13 +273,13 @@ declare module "hardhat/types/artifacts" {
  * - If the 'name' is empty:
  *   "AbiParameterToPrimitiveType<{ name: string; type: string; }>"
  */
-function getArgType(name: string, type: string) {
+function getArgType(name: string | undefined, type: string) {
   const argType = `AbiParameterToPrimitiveType<${JSON.stringify({
     name,
     type,
   })}>`;
 
-  return name !== "" ? `${name}: ${argType}` : argType;
+  return name !== "" && name !== undefined ? `${name}: ${argType}` : argType;
 }
 
 /**
