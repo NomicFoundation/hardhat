@@ -1,11 +1,7 @@
 use std::sync::Arc;
 
 use parking_lot::{Mutex, RwLock, RwLockUpgradableReadGuard};
-use rethnet_eth::{
-    remote::{BlockSpec, RpcClient, RpcClientError},
-    trie::KECCAK_NULL_RLP,
-    Address, B256, U256,
-};
+use rethnet_eth::{remote::RpcClient, trie::KECCAK_NULL_RLP, Address, B256, U256};
 use revm::{
     db::components::{State, StateRef},
     primitives::{Account, AccountInfo, Bytecode, HashMap, HashSet},
@@ -15,9 +11,7 @@ use tokio::runtime;
 
 use crate::random::RandomHashGenerator;
 
-use super::{
-    remote::CachedRemoteState, AccountTrie, RemoteState, StateDebug, StateError, TrieState,
-};
+use super::{remote::CachedRemoteState, RemoteState, StateDebug, StateError, TrieState};
 
 /// A database integrating the state from a remote node and the state from a local layered
 /// database.
@@ -56,61 +50,6 @@ impl ForkState {
             hash_generator,
             removed_remote_accounts: HashSet::new(),
         }
-    }
-
-    /// Constructs a new instance with account overrides.
-    pub async fn with_overrides(
-        runtime: runtime::Handle,
-        rpc_client: Arc<RpcClient>,
-        hash_generator: Arc<Mutex<RandomHashGenerator>>,
-        fork_block_number: U256,
-        mut account_overrides: HashMap<Address, AccountInfo>,
-    ) -> Result<Self, RpcClientError> {
-        for (address, account_info) in &mut account_overrides {
-            let nonce = rpc_client
-                .get_transaction_count(address, Some(BlockSpec::Number(fork_block_number)))
-                .await?;
-
-            account_info.nonce = nonce.to();
-        }
-
-        let remote_state = RemoteState::new(runtime, rpc_client, fork_block_number);
-        let local_state = TrieState::with_accounts(AccountTrie::with_accounts(&account_overrides));
-
-        let generated_state_root = hash_generator.lock().next_value();
-        let mut state_root_to_state = HashMap::new();
-        let local_root = local_state.state_root().unwrap();
-        state_root_to_state.insert(generated_state_root, local_root);
-
-        Ok(Self {
-            local_state,
-            remote_state: Arc::new(Mutex::new(CachedRemoteState::new(remote_state))),
-            removed_storage_slots: HashSet::new(),
-            current_state: RwLock::new((generated_state_root, local_root)),
-            hash_generator,
-            removed_remote_accounts: HashSet::new(),
-        })
-    }
-
-    /// Sets the block number of the remote state.
-    pub fn set_fork_block_number(&mut self, block_number: &U256) {
-        self.remote_state.lock().set_block_number(block_number);
-    }
-
-    /// Sets the current state root, preventing it from being regenerated.
-    pub fn set_state_root(&mut self, state_root: B256) {
-        let local_state_root = self
-            .local_state
-            .state_root()
-            .expect("The trie is guaranteed to have a state root");
-
-        let current_state = self.current_state.get_mut();
-        *current_state = (state_root, local_state_root);
-    }
-
-    /// Retrieves the state root generator
-    pub fn state_root_generator(&self) -> &Arc<Mutex<RandomHashGenerator>> {
-        &self.hash_generator
     }
 }
 
@@ -195,7 +134,7 @@ impl StateDebug for ForkState {
         address: Address,
         modifier: crate::state::AccountModifierFn,
         default_account_fn: &dyn Fn() -> Result<AccountInfo, Self::Error>,
-    ) -> Result<(), Self::Error> {
+    ) -> Result<AccountInfo, Self::Error> {
         #[allow(clippy::redundant_closure)]
         self.local_state.modify_account(address, modifier, &|| {
             self.remote_state
@@ -219,7 +158,6 @@ impl StateDebug for ForkState {
     }
 
     fn serialize(&self) -> String {
-        // TODO: Do we want to print history?
         self.local_state.serialize()
     }
 
@@ -228,9 +166,7 @@ impl StateDebug for ForkState {
         address: Address,
         index: U256,
         value: U256,
-    ) -> Result<(), Self::Error> {
-        // We never need to remove zero entries as a "removed" entry means that the lookup for
-        // a value in the hybrid state succeeded.
+    ) -> Result<U256, Self::Error> {
         if value == U256::ZERO {
             self.removed_storage_slots.insert((address, index));
         }

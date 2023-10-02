@@ -4,6 +4,7 @@ import {
   Account,
   Address,
   KECCAK256_NULL,
+  bufferToBigInt,
 } from "@nomicfoundation/ethereumjs-util";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import {
@@ -18,7 +19,6 @@ import {
   IrregularState,
 } from "rethnet-evm";
 
-import { isForkedNodeConfig, NodeConfig } from "../node-types";
 import {
   ethereumjsHeaderDataToRethnetBlockConfig,
   ethereumjsTransactionToRethnetTransactionRequest,
@@ -28,11 +28,11 @@ import {
 import { getHardforkName } from "../../../util/hardforks";
 import { keccak256 } from "../../../util/keccak";
 import { RpcDebugTraceOutput } from "../output";
+import { EdrIrregularState } from "../EdrIrregularState";
 import { RethnetStateManager } from "../RethnetState";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import { MessageTrace } from "../../stack-traces/message-trace";
 import { VMTracer } from "../../stack-traces/vm-tracer";
-import { globalRethnetContext } from "../context/rethnet";
 import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
 import { RethnetBlockBuilder } from "./block-builder/rethnet";
@@ -48,54 +48,17 @@ interface Snapshot {
 export class RethnetAdapter implements VMAdapter {
   private _vmTracer: VMTracer;
 
-  private _irregularState = new IrregularState();
   private _idToSnapshot: Map<number, Snapshot> = new Map();
   private _nextSnapshotId = 0;
 
   constructor(
     private _blockchain: Blockchain,
-    private _state: RethnetStateManager,
+    private readonly _irregularState: EdrIrregularState,
+    private readonly _state: RethnetStateManager,
     private readonly _common: Common,
     private readonly _limitContractCodeSize: bigint | null
   ) {
     this._vmTracer = new VMTracer(_common, false);
-  }
-
-  public static async create(
-    config: NodeConfig,
-    blockchain: Blockchain,
-    common: Common
-  ): Promise<RethnetAdapter> {
-    let state: RethnetStateManager;
-    if (isForkedNodeConfig(config)) {
-      state = await RethnetStateManager.forkRemote(
-        globalRethnetContext,
-        config.forkConfig,
-        config.genesisAccounts
-      );
-    } else {
-      state = RethnetStateManager.withGenesisAccounts(
-        globalRethnetContext,
-        config.genesisAccounts
-      );
-    }
-
-    const limitContractCodeSize =
-      config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : null;
-
-    const adapter = new RethnetAdapter(
-      blockchain,
-      state,
-      common,
-      limitContractCodeSize
-    );
-
-    // If we're forking and using genesis account, add it as an irregular state
-    if (isForkedNodeConfig(config) && config.genesisAccounts.length > 0) {
-      await adapter._persistIrregularState();
-    }
-
-    return adapter;
   }
 
   /**
@@ -195,14 +158,14 @@ export class RethnetAdapter implements VMAdapter {
   public async putAccount(
     address: Address,
     account: Account,
-    isIrregularChange?: boolean
+    isIrregularChange: boolean = false
   ): Promise<void> {
     const contractCode =
       account.codeHash === KECCAK256_NULL
         ? undefined
         : await this._state.getContractCode(address);
 
-    await this._state.modifyAccount(
+    const modifiedAccount = await this._state.modifyAccount(
       address,
       async function (
         balance: bigint,
@@ -228,17 +191,17 @@ export class RethnetAdapter implements VMAdapter {
     );
 
     if (isIrregularChange === true) {
-      await this._persistIrregularState();
+      await this._persistIrregularAccount(address, modifiedAccount);
     }
   }
 
   public async putContractCode(
     address: Address,
     value: Buffer,
-    isIrregularChange?: boolean
+    isIrregularChange: boolean = false
   ): Promise<void> {
     const codeHash = keccak256(value);
-    await this._state.modifyAccount(
+    const modifiedAccount = await this._state.modifyAccount(
       address,
       async function (
         balance: bigint,
@@ -264,7 +227,7 @@ export class RethnetAdapter implements VMAdapter {
     );
 
     if (isIrregularChange === true) {
-      await this._persistIrregularState();
+      await this._persistIrregularAccount(address, modifiedAccount);
     }
   }
 
@@ -272,12 +235,26 @@ export class RethnetAdapter implements VMAdapter {
     address: Address,
     key: Buffer,
     value: Buffer,
-    isIrregularChange?: boolean
+    isIrregularChange: boolean = false
   ): Promise<void> {
-    await this._state.putContractStorage(address, key, value);
+    const index = bufferToBigInt(key);
+    const newValue = bufferToBigInt(value);
+
+    const oldValue = await this._state.putContractStorage(
+      address,
+      index,
+      newValue
+    );
 
     if (isIrregularChange === true) {
-      await this._persistIrregularState();
+      const account = await this._state.getAccount(address);
+      await this._persistIrregularStorageSlot(
+        address,
+        index,
+        oldValue,
+        newValue,
+        account
+      );
     }
   }
 
@@ -286,16 +263,10 @@ export class RethnetAdapter implements VMAdapter {
   }
 
   public async setBlockContext(blockNumber: bigint): Promise<void> {
-    const irregularState = await this._irregularState.stateByBlockNumber(
-      blockNumber
+    const state = await this._blockchain.stateAtBlockNumber(
+      blockNumber,
+      this._irregularState.asInner()
     );
-
-    if (irregularState !== null) {
-      this._state.setInner(irregularState);
-      return;
-    }
-
-    const state = await this._blockchain.stateAtBlockNumber(blockNumber);
     this._state.setInner(state);
   }
 
@@ -375,7 +346,7 @@ export class RethnetAdapter implements VMAdapter {
   public async makeSnapshot(): Promise<number> {
     const id = this._nextSnapshotId++;
     this._idToSnapshot.set(id, {
-      irregularState: await this._irregularState.deepClone(),
+      irregularState: await this._irregularState.asInner().deepClone(),
       state: await this._state.asInner().deepClone(),
     });
     return id;
@@ -387,7 +358,7 @@ export class RethnetAdapter implements VMAdapter {
       throw new Error(`No snapshot with id ${snapshotId}`);
     }
 
-    this._irregularState = snapshot.irregularState;
+    this._irregularState.setInner(snapshot.irregularState);
     this._state.setInner(snapshot.state);
 
     this._idToSnapshot.delete(snapshotId);
@@ -461,15 +432,42 @@ export class RethnetAdapter implements VMAdapter {
     return undefined;
   }
 
-  private async _persistIrregularState(): Promise<void> {
-    const [blockNumber, _stateRoot] = await Promise.all([
+  private async _persistIrregularAccount(
+    address: Address,
+    account: RethnetAccount
+  ): Promise<void> {
+    const [blockNumber, stateRoot] = await this._persistIrregularState();
+    this._irregularState
+      .asInner()
+      .applyAccountChanges(blockNumber, stateRoot, [[address.buf, account]]);
+  }
+
+  private async _persistIrregularStorageSlot(
+    address: Address,
+    index: bigint,
+    oldValue: bigint,
+    newValue: bigint,
+    account: RethnetAccount | null
+  ) {
+    const [blockNumber, stateRoot] = await this._persistIrregularState();
+    this._irregularState
+      .asInner()
+      .applyAccountStorageChange(
+        blockNumber,
+        stateRoot,
+        address.buf,
+        index,
+        oldValue,
+        newValue,
+        account
+      );
+  }
+
+  private async _persistIrregularState(): Promise<[bigint, Buffer]> {
+    return Promise.all([
       this._blockchain.lastBlockNumber(),
-      // Get the state root to ensure that pseudorandom state roots are generated
-      // for forked blockchains
       this.getStateRoot(),
     ]);
-
-    await this._irregularState.insertState(blockNumber, this._state.asInner());
   }
 }
 

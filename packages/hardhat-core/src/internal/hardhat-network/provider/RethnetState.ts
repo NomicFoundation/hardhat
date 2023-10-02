@@ -3,9 +3,10 @@ import {
   bufferToBigInt,
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
-import { State, Account, Bytecode, RethnetContext } from "rethnet-evm";
+import { State, Account, Bytecode, Block } from "rethnet-evm";
 import { ForkConfig, GenesisAccount } from "./node-types";
-import { makeForkProvider } from "./utils/makeForkClient";
+import { globalRethnetContext } from "./context/rethnet";
+import { EdrIrregularState } from "./EdrIrregularState";
 
 /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -14,7 +15,6 @@ export class RethnetStateManager {
   constructor(private _state: State) {}
 
   public static withGenesisAccounts(
-    context: RethnetContext,
     genesisAccounts: GenesisAccount[]
   ): RethnetStateManager {
     return new RethnetStateManager(
@@ -30,29 +30,23 @@ export class RethnetStateManager {
   }
 
   public static async forkRemote(
-    context: RethnetContext,
     forkConfig: ForkConfig,
-    genesisAccounts: GenesisAccount[]
+    forkBlock: Block,
+    irregularState: EdrIrregularState
   ): Promise<RethnetStateManager> {
-    let blockNumber: bigint;
-    if (forkConfig.blockNumber !== undefined) {
-      blockNumber = BigInt(forkConfig.blockNumber);
-    } else {
-      const { forkBlockNumber } = await makeForkProvider(forkConfig);
-      blockNumber = forkBlockNumber;
-    }
+    // let blockNumber: bigint;
+    // if (forkConfig.blockNumber !== undefined) {
+    //   blockNumber = BigInt(forkConfig.blockNumber);
+    // } else {
+    //   const { forkBlockNumber } = await makeForkProvider(forkConfig);
+    //   blockNumber = forkBlockNumber;
+    // }
 
     return new RethnetStateManager(
       await State.forkRemote(
-        context,
+        globalRethnetContext,
         forkConfig.jsonRpcUrl,
-        blockNumber,
-        genesisAccounts.map((account) => {
-          return {
-            privateKey: account.privateKey,
-            balance: BigInt(account.balance),
-          };
-        })
+        forkBlock
       )
       // TODO: consider changing State.withFork() to also support
       // passing in (and of course using) forkConfig.httpHeaders.
@@ -101,8 +95,8 @@ export class RethnetStateManager {
       nonce: bigint,
       code: Bytecode | undefined
     ) => Promise<Account>
-  ): Promise<void> {
-    await this._state.modifyAccount(address.buf, modifyAccountFn);
+  ): Promise<Account> {
+    return this._state.modifyAccount(address.buf, modifyAccountFn);
   }
 
   public async getContractCode(address: Address): Promise<Buffer> {
@@ -130,13 +124,10 @@ export class RethnetStateManager {
 
   public async putContractStorage(
     address: Address,
-    key: Buffer,
-    value: Buffer
-  ): Promise<void> {
-    const index = bufferToBigInt(key);
-    const number = bufferToBigInt(value);
-
-    await this._state.setAccountStorageSlot(address.buf, index, number);
+    index: bigint,
+    value: bigint
+  ): Promise<bigint> {
+    return this._state.setAccountStorageSlot(address.buf, index, value);
   }
 
   public async getStateRoot(): Promise<Buffer> {

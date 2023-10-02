@@ -14,8 +14,8 @@ use rethnet_eth::{
 use revm::{
     db::DatabaseComponentError,
     primitives::{
-        Account, AccountInfo, AccountStatus, BlockEnv, CfgEnv, EVMError, ExecutionResult, HashMap,
-        InvalidTransaction, Output, ResultAndState, SpecId,
+        AccountInfo, BlockEnv, CfgEnv, EVMError, ExecutionResult, InvalidTransaction, Output,
+        ResultAndState, SpecId,
     },
 };
 
@@ -127,7 +127,7 @@ impl BlockBuilder {
             header,
             callers: Vec::new(),
             transactions: Vec::new(),
-            state_diff: StateDiff::new(),
+            state_diff: StateDiff::default(),
             receipts: Vec::new(),
             parent_gas_limit,
         })
@@ -200,16 +200,7 @@ impl BlockBuilder {
             state: state_diff,
         } = run_transaction(evm, inspector)?;
 
-        for (address, account_diff) in &state_diff {
-            self.state_diff
-                .entry(*address)
-                .and_modify(|account| {
-                    account.info = account_diff.info.clone();
-                    account.status.insert(account_diff.status);
-                    account.storage.extend(account_diff.storage.clone());
-                })
-                .or_insert(account_diff.clone());
-        }
+        self.state_diff.apply_diff(state_diff.clone());
 
         state.commit(state_diff);
 
@@ -311,16 +302,7 @@ impl BlockBuilder {
                 .basic(address)?
                 .expect("Account must exist after modification");
 
-            self.state_diff
-                .entry(address)
-                .and_modify(|account| {
-                    account.info.balance = account_info.balance;
-                })
-                .or_insert(Account {
-                    info: account_info,
-                    storage: HashMap::new(),
-                    status: AccountStatus::Touched,
-                });
+            self.state_diff.apply_account_change(address, account_info);
         }
 
         if let Some(gas_limit) = self.parent_gas_limit {

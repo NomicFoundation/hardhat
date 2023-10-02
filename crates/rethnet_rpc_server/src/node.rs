@@ -7,6 +7,8 @@ use rethnet_eth::{
     remote::{BlockSpec, BlockTag, Eip1898BlockSpec},
     Address, SpecId, B256, U256,
 };
+
+use rethnet_evm::state::StateOverride;
 use rethnet_evm::{
     blockchain::{BlockchainError, SyncBlockchain},
     mine_block,
@@ -14,7 +16,7 @@ use rethnet_evm::{
     AccountInfo, CfgEnv, MemPool, MineBlockError, MineBlockResult, RandomHashGenerator,
     KECCAK_EMPTY,
 };
-use rethnet_evm::{Block, Bytecode, MineOrdering, SyncBlock};
+use rethnet_evm::{Block, Bytecode, MineOrdering, StorageSlot, SyncBlock};
 
 use tokio::sync::Mutex;
 
@@ -48,17 +50,10 @@ impl Node {
 
         let block_header = block.header();
 
-        let mut contextual_state = if let Some(irregular_state) = data
-            .irregular_state
-            .state_by_block_number(&block_header.number)
-            .cloned()
-        {
-            irregular_state
-        } else {
-            data.blockchain
-                .state_at_block_number(&block_header.number)
-                .await?
-        };
+        let mut contextual_state = data
+            .blockchain
+            .state_at_block_number(&block_header.number, data.irregular_state.state_overrides())
+            .await?;
 
         mem::swap(&mut data.state, &mut contextual_state);
 
@@ -88,7 +83,7 @@ impl Node {
     pub async fn set_balance(&self, address: Address, balance: U256) -> Result<(), NodeError> {
         let mut node_data = self.lock_data().await;
 
-        node_data.state.modify_account(
+        let account_info = node_data.state.modify_account(
             address,
             AccountModifierFn::new(Box::new(move |account_balance, _, _| {
                 *account_balance = balance;
@@ -104,8 +99,14 @@ impl Node {
         )?;
 
         let block_number = node_data.blockchain.last_block_number().await;
-        let state = node_data.state.clone();
-        node_data.irregular_state.insert_state(block_number, state);
+        let state_root = node_data.state.state_root()?;
+
+        node_data
+            .irregular_state
+            .state_override_at_block_number(block_number)
+            .or_insert_with(|| StateOverride::with_state_root(state_root))
+            .diff
+            .apply_account_change(address, account_info.clone());
 
         Ok(())
     }
@@ -114,7 +115,7 @@ impl Node {
         let mut node_data = self.lock_data().await;
 
         let default_code = code.clone();
-        node_data.state.modify_account(
+        let account_info = node_data.state.modify_account(
             address,
             AccountModifierFn::new(Box::new(move |_, _, account_code| {
                 *account_code = Some(Bytecode::new_raw(code.clone()));
@@ -130,8 +131,14 @@ impl Node {
         )?;
 
         let block_number = node_data.blockchain.last_block_number().await;
-        let state = node_data.state.clone();
-        node_data.irregular_state.insert_state(block_number, state);
+        let state_root = node_data.state.state_root()?;
+
+        node_data
+            .irregular_state
+            .state_override_at_block_number(block_number)
+            .or_insert_with(|| StateOverride::with_state_root(state_root))
+            .diff
+            .apply_account_change(address, account_info.clone());
 
         Ok(())
     }
@@ -139,7 +146,7 @@ impl Node {
     pub async fn set_nonce(&self, address: Address, nonce: u64) -> Result<(), NodeError> {
         let mut node_data = self.lock_data().await;
 
-        node_data.state.modify_account(
+        let account_info = node_data.state.modify_account(
             address,
             AccountModifierFn::new(Box::new(move |_, account_nonce, _| *account_nonce = nonce)),
             &|| {
@@ -153,8 +160,14 @@ impl Node {
         )?;
 
         let block_number = node_data.blockchain.last_block_number().await;
-        let state = node_data.state.clone();
-        node_data.irregular_state.insert_state(block_number, state);
+        let state_root = node_data.state.state_root()?;
+
+        node_data
+            .irregular_state
+            .state_override_at_block_number(block_number)
+            .or_insert_with(|| StateOverride::with_state_root(state_root))
+            .diff
+            .apply_account_change(address, account_info.clone());
 
         Ok(())
     }
@@ -167,13 +180,22 @@ impl Node {
     ) -> Result<(), NodeError> {
         let mut node_data = self.lock_data().await;
 
-        node_data
+        let old_value = node_data
             .state
             .set_account_storage_slot(address, index, value)?;
 
+        let slot = StorageSlot::new_changed(old_value, value);
+        let account_info = node_data.state.basic(address)?;
+
         let block_number = node_data.blockchain.last_block_number().await;
-        let state = node_data.state.clone();
-        node_data.irregular_state.insert_state(block_number, state);
+        let state_root = node_data.state.state_root()?;
+
+        node_data
+            .irregular_state
+            .state_override_at_block_number(block_number)
+            .or_insert_with(|| StateOverride::with_state_root(state_root))
+            .diff
+            .apply_storage_change(address, index, slot, account_info);
 
         Ok(())
     }
@@ -182,7 +204,7 @@ impl Node {
 pub(super) struct NodeData {
     pub blockchain: Box<dyn SyncBlockchain<BlockchainError, StateError>>,
     pub state: Box<dyn SyncState<StateError>>,
-    pub irregular_state: IrregularState<StateError, Box<dyn SyncState<StateError>>>,
+    pub irregular_state: IrregularState,
     pub mem_pool: MemPool,
     pub evm_config: CfgEnv,
     pub beneficiary: Address,

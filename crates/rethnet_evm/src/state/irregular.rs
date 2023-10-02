@@ -1,60 +1,30 @@
-use std::marker::PhantomData;
-use std::{collections::HashMap, fmt::Debug};
+use std::fmt::Debug;
 
 use rethnet_eth::U256;
+use revm::primitives::{
+    hash_map::{self, DefaultHashBuilder},
+    HashMap,
+};
 
-use crate::state::SyncState;
+use super::StateOverride;
 
 /// Container for state that was modified outside of mining a block.
-#[derive(Debug)]
-pub struct IrregularState<ErrorT, StateT>
-where
-    ErrorT: Debug + Send,
-    StateT: SyncState<ErrorT>,
-{
-    // Muse use `ErrorT`
-    phantom: PhantomData<ErrorT>,
-    inner: HashMap<U256, StateT>,
+#[derive(Clone, Debug, Default)]
+pub struct IrregularState {
+    block_number_to_override: HashMap<U256, StateOverride>,
 }
 
-impl<ErrorT, StateT> Clone for IrregularState<ErrorT, StateT>
-where
-    ErrorT: Debug + Send,
-    StateT: SyncState<ErrorT> + Clone,
-{
-    fn clone(&self) -> Self {
-        Self {
-            phantom: PhantomData::default(),
-            inner: self.inner.clone(),
-        }
-    }
-}
-
-impl<ErrorT, StateT> Default for IrregularState<ErrorT, StateT>
-where
-    ErrorT: Debug + Send,
-    StateT: SyncState<ErrorT>,
-{
-    fn default() -> Self {
-        Self {
-            phantom: PhantomData::default(),
-            inner: HashMap::default(),
-        }
-    }
-}
-
-impl<ErrorT, StateT> IrregularState<ErrorT, StateT>
-where
-    ErrorT: Debug + Send,
-    StateT: SyncState<ErrorT>,
-{
-    /// Gets an irregular state by block number.
-    pub fn state_by_block_number(&self, block_number: &U256) -> Option<&StateT> {
-        self.inner.get(block_number)
+impl IrregularState {
+    /// Retrieves the state override at the specified block number.
+    pub fn state_override_at_block_number(
+        &mut self,
+        block_number: U256,
+    ) -> hash_map::Entry<'_, U256, StateOverride, DefaultHashBuilder> {
+        self.block_number_to_override.entry(block_number)
     }
 
-    /// Inserts the state for a block number and returns the previous state if it exists.
-    pub fn insert_state(&mut self, block_number: U256, state: StateT) -> Option<StateT> {
-        self.inner.insert(block_number, state)
+    /// Retrieves the irregular state overrides.
+    pub fn state_overrides(&self) -> &HashMap<U256, StateOverride> {
+        &self.block_number_to_override
     }
 }

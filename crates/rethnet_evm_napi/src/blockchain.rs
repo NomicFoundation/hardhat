@@ -10,8 +10,8 @@ use napi_derive::napi;
 use rethnet_eth::{remote::RpcClient, spec::HardforkActivations, B256, U256};
 use rethnet_evm::{
     blockchain::{BlockchainError, SyncBlockchain},
-    state::{AccountTrie, StateError, TrieState},
-    HashMap,
+    state::StateError,
+    AccountStatus, HashMap,
 };
 
 use crate::{
@@ -21,7 +21,7 @@ use crate::{
     config::SpecId,
     context::RethnetContext,
     receipt::Receipt,
-    state::State,
+    state::{IrregularState, State},
 };
 
 // An arbitrarily large amount of memory to signal to the javascript garbage collector that it needs to
@@ -83,9 +83,23 @@ impl Blockchain {
         let mut accounts = genesis_accounts(accounts)?;
         add_precompiles(&mut accounts);
 
-        let genesis_state = TrieState::with_accounts(AccountTrie::with_accounts(&accounts));
+        let genesis_diff = accounts
+            .into_iter()
+            .map(|(address, info)| {
+                (
+                    address,
+                    rethnet_evm::Account {
+                        info,
+                        storage: HashMap::new(),
+                        status: AccountStatus::Created | AccountStatus::Touched,
+                    },
+                )
+            })
+            .collect::<HashMap<_, _>>()
+            .into();
+
         let blockchain = rethnet_evm::blockchain::LocalBlockchain::new(
-            genesis_state,
+            genesis_diff,
             chain_id,
             spec_id,
             gas_limit,
@@ -108,7 +122,6 @@ impl Blockchain {
         remote_url: String,
         fork_block_number: Option<BigInt>,
         cache_dir: Option<String>,
-        accounts: Vec<GenesisAccount>,
         hardfork_activation_overrides: Vec<(BigInt, Vec<(BigInt, SpecId)>)>,
     ) -> napi::Result<JsObject> {
         let spec_id = rethnet_evm::SpecId::from(spec_id);
@@ -116,7 +129,6 @@ impl Blockchain {
             BigInt::try_cast(number).map(Option::Some)
         })?;
         let cache_dir = cache_dir.map_or_else(|| rethnet_defaults::CACHE_DIR.into(), PathBuf::from);
-        let accounts = genesis_accounts(accounts)?;
 
         let state_root_generator = context.state_root_generator.clone();
         let hardfork_activation_overrides = hardfork_activation_overrides
@@ -148,7 +160,6 @@ impl Blockchain {
                 rpc_client,
                 fork_block_number,
                 state_root_generator,
-                accounts,
                 hardfork_activation_overrides,
             )
             .await
@@ -334,12 +345,17 @@ impl Blockchain {
     #[doc = "Retrieves the state at the block with the provided number."]
     #[napi]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub async fn state_at_block_number(&self, block_number: BigInt) -> napi::Result<State> {
+    pub async fn state_at_block_number(
+        &self,
+        block_number: BigInt,
+        irregular_state: &IrregularState,
+    ) -> napi::Result<State> {
         let block_number: U256 = BigInt::try_cast(block_number)?;
+        let irregular_state = irregular_state.as_inner().read().await;
 
         self.read()
             .await
-            .state_at_block_number(&block_number)
+            .state_at_block_number(&block_number, irregular_state.state_overrides())
             .await
             .map_or_else(
                 |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),

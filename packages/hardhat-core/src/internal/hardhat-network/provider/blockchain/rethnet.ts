@@ -13,10 +13,12 @@ import {
 import { FilterParams } from "../node-types";
 import { bloomFilter, filterLogs } from "../filter";
 import { Bloom } from "../utils/bloom";
+import { EdrIrregularState } from "../EdrIrregularState";
 
 export class RethnetBlockchain implements BlockchainAdapter {
   constructor(
     private readonly _blockchain: Blockchain,
+    private readonly _irregularState: EdrIrregularState,
     private readonly _common: Common
   ) {}
 
@@ -137,7 +139,10 @@ export class RethnetBlockchain implements BlockchainAdapter {
   }
 
   public async getStateAtBlockNumber(blockNumber: bigint): Promise<State> {
-    return this._blockchain.stateAtBlockNumber(blockNumber);
+    return this._blockchain.stateAtBlockNumber(
+      blockNumber,
+      this._irregularState.asInner()
+    );
   }
 
   public async getTotalDifficultyByHash(

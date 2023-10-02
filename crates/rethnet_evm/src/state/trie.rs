@@ -84,7 +84,7 @@ impl DatabaseCommit for TrieState {
         changes.iter_mut().for_each(|(address, account)| {
             if account.is_selfdestructed() {
                 self.remove_code(&account.info.code_hash);
-            } else if account.is_empty() {
+            } else if account.is_empty() && !account.is_created() {
                 // Don't do anything. Account was merely touched
             } else {
                 let old_code_hash = self
@@ -133,7 +133,7 @@ impl StateDebug for TrieState {
         address: Address,
         modifier: super::AccountModifierFn,
         default_account_fn: &dyn Fn() -> Result<AccountInfo, Self::Error>,
-    ) -> Result<(), Self::Error> {
+    ) -> Result<AccountInfo, Self::Error> {
         let mut account_info = match self.accounts.account(&address) {
             Some(account) => {
                 let mut account_info = AccountInfo::from(account);
@@ -176,7 +176,7 @@ impl StateDebug for TrieState {
 
         self.accounts.set_account(&address, &account_info);
 
-        Ok(())
+        Ok(account_info)
     }
 
     fn remove_account(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
@@ -201,11 +201,12 @@ impl StateDebug for TrieState {
         address: Address,
         index: U256,
         value: U256,
-    ) -> Result<(), Self::Error> {
-        self.accounts
-            .set_account_storage_slot(&address, &index, &value);
-
-        Ok(())
+    ) -> Result<U256, Self::Error> {
+        // If there is no old value, return zero to signal that the slot was empty
+        Ok(self
+            .accounts
+            .set_account_storage_slot(&address, &index, &value)
+            .unwrap_or(U256::ZERO))
     }
 
     fn state_root(&self) -> Result<B256, Self::Error> {

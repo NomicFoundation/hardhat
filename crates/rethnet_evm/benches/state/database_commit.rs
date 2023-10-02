@@ -59,7 +59,7 @@ fn bench_database_commit(c: &mut Criterion) {
                 code_hash: code.map_or(KECCAK_EMPTY, |code| code.hash_slow()),
             },
             storage,
-            status: AccountStatus::default(),
+            status: AccountStatus::Touched,
         };
 
         account.mark_touch();

@@ -27,11 +27,6 @@ impl CachedRemoteState {
             code_cache: HashMap::new(),
         }
     }
-
-    /// Sets the block number used for calls to the remote Ethereum node.
-    pub fn set_block_number(&mut self, block_number: &U256) {
-        self.remote.set_block_number(block_number);
-    }
 }
 
 impl State for CachedRemoteState {

@@ -7,9 +7,11 @@ use std::{
 
 use async_trait::async_trait;
 use rethnet_eth::{block::PartialHeader, trie::KECCAK_NULL_RLP, Bytes, B256, B64, U256};
+use revm::primitives::HashMap;
+use revm::DatabaseCommit;
 use revm::{db::BlockHashRef, primitives::SpecId};
 
-use crate::state::{StateDebug, StateDiff, StateError, SyncState, TrieState};
+use crate::state::{StateDebug, StateDiff, StateError, StateOverride, SyncState, TrieState};
 use crate::{Block, LocalBlock, SyncBlock};
 
 use super::compute_state_at_block;
@@ -42,7 +44,6 @@ pub enum InsertBlockError {
 #[derive(Debug)]
 pub struct LocalBlockchain {
     storage: ReservableSparseBlockchainStorage<Arc<dyn SyncBlock<Error = BlockchainError>>>,
-    genesis_state: TrieState,
     chain_id: U256,
     spec_id: SpecId,
 }
@@ -51,7 +52,7 @@ impl LocalBlockchain {
     /// Constructs a new instance using the provided arguments to build a genesis block.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn new(
-        genesis_state: TrieState,
+        genesis_diff: StateDiff,
         chain_id: U256,
         spec_id: SpecId,
         gas_limit: U256,
@@ -60,6 +61,9 @@ impl LocalBlockchain {
         base_fee: Option<U256>,
     ) -> Result<Self, CreationError> {
         const EXTRA_DATA: &[u8] = b"\x12\x34";
+
+        let mut genesis_state = TrieState::default();
+        genesis_state.commit(genesis_diff.clone().into());
 
         let partial_header = PartialHeader {
             state_root: genesis_state
@@ -104,7 +108,7 @@ impl LocalBlockchain {
         Ok(unsafe {
             Self::with_genesis_block_unchecked(
                 LocalBlock::empty(partial_header, spec_id),
-                genesis_state,
+                genesis_diff,
                 chain_id,
                 spec_id,
             )
@@ -115,7 +119,7 @@ impl LocalBlockchain {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn with_genesis_block(
         genesis_block: LocalBlock,
-        genesis_state: TrieState,
+        genesis_diff: StateDiff,
         chain_id: U256,
         spec_id: SpecId,
     ) -> Result<Self, InsertBlockError> {
@@ -133,7 +137,7 @@ impl LocalBlockchain {
         }
 
         Ok(unsafe {
-            Self::with_genesis_block_unchecked(genesis_block, genesis_state, chain_id, spec_id)
+            Self::with_genesis_block_unchecked(genesis_block, genesis_diff, chain_id, spec_id)
         })
     }
 
@@ -145,19 +149,21 @@ impl LocalBlockchain {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub unsafe fn with_genesis_block_unchecked(
         genesis_block: LocalBlock,
-        genesis_state: TrieState,
+        genesis_diff: StateDiff,
         chain_id: U256,
         spec_id: SpecId,
     ) -> Self {
         let genesis_block: Arc<dyn SyncBlock<Error = BlockchainError>> = Arc::new(genesis_block);
 
         let total_difficulty = genesis_block.header().difficulty;
-        let storage =
-            ReservableSparseBlockchainStorage::with_genesis_block(genesis_block, total_difficulty);
+        let storage = ReservableSparseBlockchainStorage::with_genesis_block(
+            genesis_block,
+            genesis_diff,
+            total_difficulty,
+        );
 
         Self {
             storage,
-            genesis_state,
             chain_id,
             spec_id,
         }
@@ -243,15 +249,14 @@ impl Blockchain for LocalBlockchain {
     async fn state_at_block_number(
         &self,
         block_number: &U256,
+        state_overrides: &HashMap<U256, StateOverride>,
     ) -> Result<Box<dyn SyncState<Self::StateError>>, Self::BlockchainError> {
         if *block_number > self.last_block_number().await {
             return Err(BlockchainError::UnknownBlockNumber);
         }
 
-        let mut state = self.genesis_state.clone();
-        if *block_number > U256::ZERO {
-            compute_state_at_block(&mut state, &self.storage, block_number);
-        }
+        let mut state = TrieState::default();
+        compute_state_at_block(&mut state, &self.storage, block_number, state_overrides);
 
         Ok(Box::new(state))
     }

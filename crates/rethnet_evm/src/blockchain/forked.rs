@@ -6,18 +6,18 @@ use parking_lot::Mutex;
 use rethnet_eth::block::LargestSafeBlockNumberArgs;
 use rethnet_eth::receipt::BlockReceipt;
 use rethnet_eth::spec::chain_hardfork_activations;
-use rethnet_eth::Address;
+
 use rethnet_eth::{
     block::{largest_safe_block_number, safe_block_depth},
     remote::{RpcClient, RpcClientError},
     spec::{chain_name, HardforkActivations},
     B256, U256,
 };
-use revm::primitives::{AccountInfo, HashMap};
+use revm::primitives::HashMap;
 use revm::{db::BlockHashRef, primitives::SpecId};
 use tokio::runtime;
 
-use crate::state::{ForkState, StateDiff, StateError, SyncState};
+use crate::state::{ForkState, StateDiff, StateError, StateOverride, SyncState};
 use crate::{Block, LocalBlock, RandomHashGenerator, SyncBlock};
 
 use super::compute_state_at_block;
@@ -58,9 +58,8 @@ pub struct ForkedBlockchain {
     local_storage: ReservableSparseBlockchainStorage<Arc<dyn SyncBlock<Error = BlockchainError>>>,
     // We can force caching here because we only fork from a safe block number.
     remote: RemoteBlockchain<Arc<dyn SyncBlock<Error = BlockchainError>>, true>,
-    // The state at the time of forking
-    fork_state: ForkState,
     runtime: runtime::Handle,
+    state_root_generator: Arc<Mutex<RandomHashGenerator>>,
     fork_block_number: U256,
     chain_id: U256,
     _network_id: U256,
@@ -77,7 +76,6 @@ impl ForkedBlockchain {
         rpc_client: RpcClient,
         fork_block_number: Option<U256>,
         state_root_generator: Arc<Mutex<RandomHashGenerator>>,
-        account_overrides: HashMap<Address, AccountInfo>,
         hardfork_activation_overrides: HashMap<U256, HardforkActivations>,
     ) -> Result<Self, CreationError> {
         let (chain_id, network_id, latest_block_number) = tokio::join!(
@@ -148,33 +146,11 @@ impl ForkedBlockchain {
         let rpc_client = Arc::new(rpc_client);
         let remote = RemoteBlockchain::new(rpc_client.clone());
 
-        let fork_state = if account_overrides.is_empty() {
-            let block: Arc<dyn SyncBlock<Error = BlockchainError>> =
-                remote.block_by_number(&fork_block_number).await?;
-
-            ForkState::new(
-                runtime.clone(),
-                rpc_client,
-                state_root_generator,
-                fork_block_number,
-                block.header().state_root,
-            )
-        } else {
-            ForkState::with_overrides(
-                runtime.clone(),
-                rpc_client,
-                state_root_generator,
-                fork_block_number,
-                account_overrides,
-            )
-            .await?
-        };
-
         Ok(Self {
             local_storage: ReservableSparseBlockchainStorage::empty(fork_block_number),
             remote,
-            fork_state,
             runtime,
+            state_root_generator,
             fork_block_number,
             chain_id,
             _network_id: network_id,
@@ -348,41 +324,36 @@ impl Blockchain for ForkedBlockchain {
     async fn state_at_block_number(
         &self,
         block_number: &U256,
+        state_overrides: &HashMap<U256, StateOverride>,
     ) -> Result<Box<dyn SyncState<Self::StateError>>, Self::BlockchainError> {
         if *block_number > self.last_block_number().await {
             return Err(BlockchainError::UnknownBlockNumber);
         }
 
-        let state = match block_number.cmp(&self.fork_block_number) {
-            std::cmp::Ordering::Less => {
-                // We don't apply account overrides to pre-fork states
-                let block = self.remote.block_by_number(block_number).await?;
-
-                ForkState::new(
-                    self.runtime.clone(),
-                    self.remote.client().clone(),
-                    self.fork_state.state_root_generator().clone(),
-                    *block_number,
-                    block.header().state_root,
-                )
-            }
-            std::cmp::Ordering::Equal => self.fork_state.clone(),
-            std::cmp::Ordering::Greater => {
-                let mut state = self.fork_state.clone();
-                compute_state_at_block(&mut state, &self.local_storage, block_number);
-
-                let state_root = self
-                    .local_storage
-                    .block_by_number(block_number)
-                    .expect("The block is validated to exist")
-                    .header()
-                    .state_root;
-
-                state.set_state_root(state_root);
-
-                state
-            }
+        let state_root = if let Some(state_override) = state_overrides.get(block_number) {
+            state_override.state_root
+        } else {
+            self.block_by_number(block_number)
+                .await?
+                .expect("The block is validated to exist")
+                .header()
+                .state_root
         };
+
+        let mut state = ForkState::new(
+            self.runtime.clone(),
+            self.remote.client().clone(),
+            self.state_root_generator.clone(),
+            *block_number,
+            state_root,
+        );
+
+        compute_state_at_block(
+            &mut state,
+            &self.local_storage,
+            block_number,
+            state_overrides,
+        );
 
         Ok(Box::new(state))
     }

@@ -64,6 +64,9 @@ export class DualEthContext implements EthContextAdapter {
 
     const context = new DualEthContext(hardhat, rethnet, vm);
 
+    // Validate the state root
+    await context.vm().getStateRoot();
+
     // Validate that the latest block numbers are equal
     await context.blockchain().getLatestBlockNumber();
 

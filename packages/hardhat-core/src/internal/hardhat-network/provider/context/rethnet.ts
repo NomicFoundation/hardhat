@@ -1,4 +1,5 @@
-import { Blockchain, RethnetContext, SpecId } from "rethnet-evm";
+import { privateToAddress, toBuffer } from "@nomicfoundation/ethereumjs-util";
+import { Account, Blockchain, RethnetContext, SpecId } from "rethnet-evm";
 import { BlockchainAdapter } from "../blockchain";
 import { RethnetBlockchain } from "../blockchain/rethnet";
 import { EthContextAdapter } from "../context";
@@ -23,6 +24,7 @@ import { makeCommon } from "../utils/makeCommon";
 import { HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS } from "../../../core/config/default-config";
 import { RandomBufferGenerator } from "../utils/random";
 import { dateToTimestampSeconds } from "../../../util/date";
+import { EdrIrregularState } from "../EdrIrregularState";
 
 // Only one is allowed to exist
 export const globalRethnetContext = new RethnetContext();
@@ -44,6 +46,8 @@ export class RethnetEthContext implements EthContextAdapter {
 
     let blockchain: RethnetBlockchain;
     let state: RethnetStateManager;
+
+    const irregularState = new EdrIrregularState();
 
     if (isForkedNodeConfig(config)) {
       const chainIdToHardforkActivations: Array<
@@ -70,29 +74,51 @@ export class RethnetEthContext implements EthContextAdapter {
             ? BigInt(config.forkConfig.blockNumber)
             : undefined,
           config.forkCachePath,
-          config.genesisAccounts.map((account) => {
-            return {
-              privateKey: account.privateKey,
-              balance: BigInt(account.balance),
-            };
-          }),
           chainIdToHardforkActivations
         ),
+        irregularState,
         common
       );
 
       const latestBlockNumber = await blockchain.getLatestBlockNumber();
+      const forkState = await blockchain.getStateAtBlockNumber(
+        latestBlockNumber
+      );
+      const genesisAccounts: Array<[Buffer, Account]> = await Promise.all(
+        config.genesisAccounts.map(async (genesisAccount) => {
+          const privateKey = toBuffer(genesisAccount.privateKey);
+          const address = privateToAddress(privateKey);
+
+          const originalAccount = await forkState.getAccountByAddress(address);
+          const modifiedAccount =
+            originalAccount !== null
+              ? {
+                  ...originalAccount,
+                  balance: BigInt(genesisAccount.balance),
+                }
+              : {
+                  balance: BigInt(genesisAccount.balance),
+                  nonce: 0n,
+                };
+
+          return [address, modifiedAccount];
+        })
+      );
+
+      const stateRoot = await forkState.getStateRoot();
+
+      // Store the overrides in the irregular state
+      irregularState
+        .asInner()
+        .applyAccountChanges(latestBlockNumber, stateRoot, genesisAccounts);
+
+      // Get the state including state overrides
       state = new RethnetStateManager(
         await blockchain.getStateAtBlockNumber(latestBlockNumber)
       );
 
       config.forkConfig.blockNumber = Number(latestBlockNumber);
     } else {
-      state = RethnetStateManager.withGenesisAccounts(
-        globalRethnetContext,
-        config.genesisAccounts
-      );
-
       const isPostLondon = hardforkGte(hardforkName, HardforkName.LONDON);
 
       const initialBaseFeePerGas = isPostLondon
@@ -126,6 +152,7 @@ export class RethnetEthContext implements EthContextAdapter {
           initialMixHash,
           initialBaseFeePerGas
         ),
+        irregularState,
         common
       );
 
@@ -139,6 +166,7 @@ export class RethnetEthContext implements EthContextAdapter {
 
     const vm = new RethnetAdapter(
       blockchain.asInner(),
+      irregularState,
       state,
       common,
       limitContractCodeSize

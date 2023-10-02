@@ -24,11 +24,14 @@ use rethnet_evm::{
 
 use crate::{
     account::{add_precompiles, genesis_accounts, Account, GenesisAccount},
+    block::Block,
     cast::TryCast,
     context::RethnetContext,
     sync::{await_promise, handle_error},
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
 };
+
+pub use self::irregular::IrregularState;
 
 // An arbitrarily large amount of memory to signal to the javascript garbage collector that it needs to
 // attempt to free the state object's memory.
@@ -109,44 +112,35 @@ impl State {
     /// Constructs a [`State`] that uses the remote node and block number as the basis for
     /// its state.
     #[napi]
-    #[napi(ts_return_type = "Promise<State>")]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn fork_remote(
-        env: Env,
+        mut env: Env,
         context: &RethnetContext,
         remote_node_url: String,
-        fork_block_number: BigInt,
-        account_overrides: Vec<GenesisAccount>,
+        fork_block: &Block,
         cache_dir: Option<String>,
-    ) -> napi::Result<JsObject> {
-        let fork_block_number: U256 = BigInt::try_cast(fork_block_number)?;
+    ) -> napi::Result<Self> {
+        let fork_block = fork_block.as_inner().clone();
         let cache_dir: PathBuf = cache_dir
             .unwrap_or_else(|| rethnet_defaults::CACHE_DIR.into())
             .into();
 
-        let account_overrides = genesis_accounts(account_overrides)?;
-
         let runtime = runtime::Handle::current();
         let state_root_generator = context.state_root_generator.clone();
 
-        let (deferred, promise) = env.create_deferred()?;
-        runtime.clone().spawn(async move {
-            let rpc_client = RpcClient::new(&remote_node_url, cache_dir);
+        let rpc_client = RpcClient::new(&remote_node_url, cache_dir);
 
-            let result = ForkState::with_overrides(
+        let header = fork_block.header();
+        Self::with_state(
+            &mut env,
+            ForkState::new(
                 runtime.clone(),
                 Arc::new(rpc_client),
                 state_root_generator,
-                fork_block_number,
-                account_overrides,
-            )
-            .await
-            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()));
-
-            deferred.resolve(|mut env| result.map(|state| Self::with_state(&mut env, state)));
-        });
-
-        Ok(promise)
+                header.number,
+                header.state_root,
+            ),
+        )
     }
 
     #[doc = "Clones the state"]
@@ -278,7 +272,7 @@ impl State {
     /// Modifies the account with the provided address using the specified modifier function.
     /// The modifier function receives the current values as individual parameters and will update the account's values
     /// to the returned `Account` values.
-    #[napi(ts_return_type = "Promise<void>")]
+    #[napi(ts_return_type = "Promise<Account>")]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn modify_account(
         &self,
@@ -395,7 +389,10 @@ impl State {
                         })
                     },
                 )
-                .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()));
+                .map_or_else(
+                    |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+                    |account_info| Ok(Account::from(account_info)),
+                );
 
             deferred.resolve(|_| result);
         });
@@ -445,7 +442,7 @@ impl State {
         address: Buffer,
         index: BigInt,
         value: BigInt,
-    ) -> napi::Result<()> {
+    ) -> napi::Result<BigInt> {
         let address = Address::from_slice(&address);
         let index: U256 = BigInt::try_cast(index)?;
         let value: U256 = BigInt::try_cast(value)?;
@@ -458,7 +455,15 @@ impl State {
             })
             .await
             .unwrap()
-            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
+            .map_or_else(
+                |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+                |value| {
+                    Ok(BigInt {
+                        sign_bit: false,
+                        words: value.into_limbs().to_vec(),
+                    })
+                },
+            )
     }
 }
 

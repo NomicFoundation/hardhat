@@ -23,7 +23,8 @@ use rethnet_eth::{
     signature::{public_key_to_address, Signature},
     Address, Bytes, SpecId, B256, U256,
 };
-use rethnet_evm::state::{AccountTrie, TrieState};
+
+use rethnet_evm::state::{StateDiff, StateOverride};
 use rethnet_evm::{
     blockchain::{
         Blockchain, BlockchainError, ForkedBlockchain, ForkedCreationError, LocalBlockchain,
@@ -33,6 +34,7 @@ use rethnet_evm::{
     AccountInfo, CfgEnv, HashMap, HashSet, MemPool, MineBlockResult, RandomHashGenerator,
     KECCAK_EMPTY,
 };
+use rethnet_evm::{Account, AccountStatus};
 use secp256k1::{Secp256k1, SecretKey};
 use sha3::{Digest, Keccak256};
 use tokio::sync::RwLock;
@@ -223,7 +225,8 @@ async fn set_block_context<T>(
                 None => unreachable!(),
             }?;
 
-            let mut contextual_state = node_data.blockchain.state_at_block_number(&block_number).await
+            let state_overrides = node_data.irregular_state.state_overrides();
+            let mut contextual_state = node_data.blockchain.state_at_block_number(&block_number, state_overrides).await
             .map_err(|e| {
                 error_response_data(
                     -32000,
@@ -981,7 +984,7 @@ impl Server {
 
         let (local_accounts, genesis_accounts): (
             HashMap<Address, SecretKey>,
-            HashMap<Address, AccountInfo>,
+            HashMap<Address, Account>,
         ) = {
             let secp256k1 = Secp256k1::signing_only();
             config
@@ -1006,11 +1009,15 @@ impl Server {
                         let local_account = (address, *private_key);
                         let genesis_account = (
                             address,
-                            AccountInfo {
-                                balance: *balance,
-                                nonce: 0,
-                                code: None,
-                                code_hash: KECCAK_EMPTY,
+                            Account {
+                                info: AccountInfo {
+                                    balance: *balance,
+                                    nonce: 0,
+                                    code: None,
+                                    code_hash: KECCAK_EMPTY,
+                                },
+                                storage: HashMap::new(),
+                                status: AccountStatus::Created | AccountStatus::Touched,
                             },
                         );
                         (local_account, genesis_account)
@@ -1018,6 +1025,9 @@ impl Server {
                 )
                 .unzip()
         };
+
+        let initial_diff = StateDiff::from(genesis_accounts);
+        let mut irregular_state = IrregularState::default();
 
         let chain_id = config.chain_id;
         let spec_id = config.hardfork;
@@ -1038,9 +1048,9 @@ impl Server {
                     .expect("failed to construct async runtime"),
             );
 
-            let state_root_generator = Arc::new(parking_lot::Mutex::new(
-                RandomHashGenerator::with_seed("seed"),
-            ));
+            let mut state_root_generator = RandomHashGenerator::with_seed("seed");
+            let state_root = state_root_generator.next_value();
+            let state_root_generator = Arc::new(parking_lot::Mutex::new(state_root_generator));
 
             let rpc_client = RpcClient::new(&config.json_rpc_url, cache_dir);
 
@@ -1050,16 +1060,21 @@ impl Server {
                 rpc_client,
                 config.block_number.map(U256::from),
                 state_root_generator,
-                genesis_accounts,
                 // TODO: make hardfork activations configurable (https://github.com/NomicFoundation/rethnet/issues/111)
                 HashMap::new(),
             )
             .await?;
 
             let fork_block_number = blockchain.last_block_number().await;
+            irregular_state
+                .state_override_at_block_number(fork_block_number)
+                .or_insert(StateOverride {
+                    diff: initial_diff,
+                    state_root,
+                });
 
             let state = blockchain
-                .state_at_block_number(&fork_block_number)
+                .state_at_block_number(&fork_block_number, irregular_state.state_overrides())
                 .await
                 .expect("Fork state must exist");
 
@@ -1069,10 +1084,8 @@ impl Server {
                 Some(fork_block_number),
             )
         } else {
-            let state = TrieState::with_accounts(AccountTrie::with_accounts(&genesis_accounts));
-
             let blockchain = LocalBlockchain::new(
-                state,
+                initial_diff,
                 U256::from(chain_id),
                 spec_id,
                 config.gas,
@@ -1088,7 +1101,7 @@ impl Server {
             )?;
 
             let state = blockchain
-                .state_at_block_number(&U256::ZERO)
+                .state_at_block_number(&U256::ZERO, irregular_state.state_overrides())
                 .await
                 .expect("Genesis state must exist");
 
@@ -1119,7 +1132,7 @@ impl Server {
         let node_data = NodeData {
             blockchain,
             state,
-            irregular_state: IrregularState::default(),
+            irregular_state,
             mem_pool: MemPool::new(config.block_gas_limit),
             evm_config,
             beneficiary: config.coinbase,

@@ -27,9 +27,8 @@ pub struct ReservableSparseBlockchainStorage<BlockT: Block + Clone + ?Sized> {
     reservations: RwLock<Vec<Reservation>>,
     storage: RwLock<SparseBlockchainStorage<BlockT>>,
     // We can store the state diffs contiguously, as reservations don't contain any diffs.
-    // Diffs are a mapping from one state to the next, so the genesis state does not have a
-    // corresponding diff.
-    state_diffs: Vec<StateDiff>,
+    // Diffs are a mapping from one state to the next, so the genesis block contains the initial state.
+    state_diffs: Vec<(U256, StateDiff)>,
     number_to_diff_index: HashMap<U256, usize>,
     last_block_number: U256,
 }
@@ -37,25 +36,25 @@ pub struct ReservableSparseBlockchainStorage<BlockT: Block + Clone + ?Sized> {
 impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
     /// Constructs a new instance with the provided block as genesis block.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn with_genesis_block(block: BlockT, total_difficulty: U256) -> Self {
+    pub fn with_genesis_block(block: BlockT, diff: StateDiff, total_difficulty: U256) -> Self {
         Self {
             reservations: RwLock::new(Vec::new()),
             storage: RwLock::new(SparseBlockchainStorage::with_block(block, total_difficulty)),
-            state_diffs: Vec::new(),
-            number_to_diff_index: HashMap::new(),
+            state_diffs: vec![(U256::ZERO, diff)],
+            number_to_diff_index: std::iter::once((U256::ZERO, 0)).collect(),
             last_block_number: U256::ZERO,
         }
     }
 
     /// Constructs a new instance with no blocks.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn empty(latest_block_number: U256) -> Self {
+    pub fn empty(last_block_number: U256) -> Self {
         Self {
             reservations: RwLock::new(Vec::new()),
             storage: RwLock::new(SparseBlockchainStorage::default()),
             state_diffs: Vec::new(),
             number_to_diff_index: HashMap::new(),
-            last_block_number: latest_block_number,
+            last_block_number,
         }
     }
 
@@ -88,7 +87,7 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
     /// Retrieves the sequence of diffs from the genesis state to the state of the block with
     /// the provided number, if it exists.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn state_diffs_until_block(&self, block_number: &U256) -> Option<&[StateDiff]> {
+    pub fn state_diffs_until_block(&self, block_number: &U256) -> Option<&[(U256, StateDiff)]> {
         let diff_index = self
             .number_to_diff_index
             .get(block_number)
@@ -224,7 +223,7 @@ impl<BlockT: Block + Clone + From<LocalBlock>> ReservableSparseBlockchainStorage
         self.number_to_diff_index
             .insert(self.last_block_number, self.state_diffs.len());
 
-        self.state_diffs.push(state_diff);
+        self.state_diffs.push((self.last_block_number, state_diff));
 
         let receipts: Vec<_> = block.transaction_receipts().to_vec();
         let block = BlockT::from(block);

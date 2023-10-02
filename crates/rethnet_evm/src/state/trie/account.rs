@@ -175,11 +175,17 @@ impl AccountTrie {
 
         changes.iter().for_each(|(address, account)| {
             if account.is_touched() {
-                if account.is_selfdestructed() | account.is_empty() {
+                if account.is_empty() && !account.is_created() {
+                    println!("deleted empty account[{address:x}]: {account:?}");
+                    // Removes account only if it exists, so safe to use for empty, touched accounts
+                    Self::remove_account_in(address, &mut state_trie, &mut self.storage_trie_dbs);
+                } else if account.is_selfdestructed() {
                     // Removes account only if it exists, so safe to use for empty, touched accounts
                     Self::remove_account_in(address, &mut state_trie, &mut self.storage_trie_dbs);
                 } else {
                     if account.is_created() {
+                        println!("useless empty account[{address:x}]: {account:?}");
+
                         // We can simply remove the storage trie db, as it will get reinitialized in the next operation
                         self.storage_trie_dbs.remove(address);
                     }
@@ -376,8 +382,15 @@ impl AccountTrie {
     }
 
     /// Sets the storage slot at the specified address and index to the provided value.
+    ///
+    /// Returns the old storage slot value.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
-    pub fn set_account_storage_slot(&mut self, address: &Address, index: &U256, value: &U256) {
+    pub fn set_account_storage_slot(
+        &mut self,
+        address: &Address,
+        index: &U256,
+        value: &U256,
+    ) -> Option<U256> {
         let (storage_trie_db, storage_root) =
             self.storage_trie_dbs.entry(*address).or_insert_with(|| {
                 let storage_trie_db = Arc::new(MemoryDB::new(true));
@@ -390,7 +403,7 @@ impl AccountTrie {
                 (storage_trie_db, storage_root)
             });
 
-        {
+        let old_value = {
             let mut storage_trie = Trie::from(
                 storage_trie_db.clone(),
                 Arc::new(HasherKeccak::new()),
@@ -398,9 +411,11 @@ impl AccountTrie {
             )
             .expect("Invalid storage root");
 
-            Self::set_account_storage_slot_in(index, value, &mut storage_trie);
+            let old_value = Self::set_account_storage_slot_in(index, value, &mut storage_trie);
 
             *storage_root = B256::from_slice(&storage_trie.root().unwrap());
+
+            old_value
         };
 
         let mut state_trie = Trie::from(
@@ -428,14 +443,26 @@ impl AccountTrie {
             .unwrap();
 
         self.state_root = B256::from_slice(&state_trie.root().unwrap());
+
+        old_value
     }
 
     /// Helper function for setting the storage slot at the specified address and index to the provided value.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
-    fn set_account_storage_slot_in(index: &U256, value: &U256, storage_trie: &mut Trie) {
+    fn set_account_storage_slot_in(
+        index: &U256,
+        value: &U256,
+        storage_trie: &mut Trie,
+    ) -> Option<U256> {
         let hashed_index = HasherKeccak::new().digest(&index.to_be_bytes::<32>());
+
+        let old_value = storage_trie
+            .get(&hashed_index)
+            .unwrap()
+            .map(|decode_value| rlp::decode::<U256>(&decode_value).unwrap());
+
         if *value == U256::ZERO {
-            if storage_trie.contains(&hashed_index).unwrap() {
+            if old_value.is_some() {
                 storage_trie.remove(&hashed_index).unwrap();
             }
         } else {
@@ -443,6 +470,8 @@ impl AccountTrie {
                 .insert(hashed_index, rlp::encode(value).to_vec())
                 .unwrap();
         }
+
+        old_value
     }
 
     /// Retrieves the trie's state root.
