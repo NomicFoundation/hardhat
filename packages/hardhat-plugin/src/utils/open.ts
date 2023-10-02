@@ -14,5 +14,11 @@ export function open(filePath: string): void {
       command = "xdg-open";
   }
 
-  execSync(`${command} ${filePath}`);
+  try {
+    execSync(`${command} ${filePath}`, { stdio: "ignore" });
+  } catch {
+    console.log(
+      "No program found to open the file. Please open the file manually in your browser."
+    );
+  }
 }
