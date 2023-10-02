@@ -2,20 +2,20 @@ name: EDR NPM release
 env:
   DEBUG: napi:*
   APP_NAME: edr
-  MACOSX_DEPLOYMENT_TARGET: '10.13'
+  MACOSX_DEPLOYMENT_TARGET: "10.13"
 permissions:
   contents: write
   id-token: write
-'on':
+"on":
   push:
     branches:
       - main
     tags-ignore:
-      - '**'
+      - "**"
     paths-ignore:
-      - '**/*.md'
+      - "**/*.md"
       - LICENSE
-      - '**/*.gitignore'
+      - "**/*.gitignore"
       - .editorconfig
       - docs/**
   pull_request: null
@@ -95,7 +95,7 @@ jobs:
         if: ${{ !matrix.settings.docker }}
         with:
           toolchain: stable
-      # The `--target` flag for `rustup toolchain install` is not working properly which is 
+      # The `--target` flag for `rustup toolchain install` is not working properly which is
       # why we need this extra step in addition to the `dtolnay/rust-toolchain` action.
       # https://github.com/rust-lang/rustup/issues/3255
       - name: Add Rust cross-compilation target
@@ -139,7 +139,7 @@ jobs:
         if: ${{ matrix.settings.docker }}
         with:
           image: ${{ matrix.settings.docker }}
-          options: '--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build/crates/rethnet_evm_napi'
+          options: "--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build/crates/rethnet_evm_napi"
           run: ${{ matrix.settings.build }}
       - name: Build
         run: ${{ matrix.settings.build }}
@@ -166,9 +166,9 @@ jobs:
           - host: windows-latest
             target: x86_64-pc-windows-msvc
         node:
-          - '14'
-          - '16'
-          - '18'
+          - "14"
+          - "16"
+          - "18"
     runs-on: ${{ matrix.settings.host }}
     steps:
       - uses: actions/checkout@v3
@@ -198,9 +198,9 @@ jobs:
       fail-fast: false
       matrix:
         node:
-          - '14'
-          - '16'
-          - '18'
+          - "14"
+          - "16"
+          - "18"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -230,9 +230,9 @@ jobs:
       fail-fast: false
       matrix:
         node:
-          - '14'
-          - '16'
-          - '18'
+          - "14"
+          - "16"
+          - "18"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -264,9 +264,9 @@ jobs:
       fail-fast: false
       matrix:
         node:
-          - '14'
-          - '16'
-          - '18'
+          - "14"
+          - "16"
+          - "18"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -292,7 +292,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: node:${{ matrix.node }}-slim
-          options: '--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build'
+          options: "--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build"
           run: |
             set -e
             yarn test
@@ -326,7 +326,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: node:lts-alpine
-          options: '--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build'
+          options: "--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build"
           run: |
             set -e
             yarn test
