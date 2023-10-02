@@ -19,6 +19,7 @@ import {
   TaskDefinition,
 } from "../../../src/types";
 import { expectHardhatError } from "../../helpers/errors";
+import { TASK_COMPILE } from "../../../src/builtin-tasks/task-names";
 
 describe("ArgumentsParser", () => {
   let argumentsParser: ArgumentsParser;
@@ -116,13 +117,13 @@ describe("ArgumentsParser", () => {
         "--task-param",
       ];
 
-      const { hardhatArguments, isCompileTask, allUnparsedCLAs } =
+      const { hardhatArguments, scopeOrTaskName, allUnparsedCLAs } =
         argumentsParser.parseHardhatArguments(
           HARDHAT_PARAM_DEFINITIONS,
           envArgs,
           rawCLAs
         );
-      assert.isTrue(isCompileTask);
+      assert.isTrue(scopeOrTaskName === TASK_COMPILE);
       assert.equal(hardhatArguments.showStackTraces, true);
       assert.equal(hardhatArguments.network, "local");
       assert.equal(hardhatArguments.emoji, false);
@@ -140,13 +141,13 @@ describe("ArgumentsParser", () => {
         "local",
       ];
 
-      const { hardhatArguments, isCompileTask, allUnparsedCLAs } =
+      const { hardhatArguments, scopeOrTaskName, allUnparsedCLAs } =
         argumentsParser.parseHardhatArguments(
           HARDHAT_PARAM_DEFINITIONS,
           envArgs,
           rawCLAs
         );
-      assert.isTrue(isCompileTask);
+      assert.isTrue(scopeOrTaskName === TASK_COMPILE);
       assert.equal(hardhatArguments.showStackTraces, true);
       assert.equal(hardhatArguments.network, "local");
       assert.equal(hardhatArguments.emoji, false);
@@ -163,13 +164,13 @@ describe("ArgumentsParser", () => {
         "--task-param",
       ];
 
-      const { hardhatArguments, isCompileTask, allUnparsedCLAs } =
+      const { hardhatArguments, scopeOrTaskName, allUnparsedCLAs } =
         argumentsParser.parseHardhatArguments(
           HARDHAT_PARAM_DEFINITIONS,
           envArgs,
           rawCLAs
         );
-      assert.isFalse(isCompileTask);
+      assert.isFalse(scopeOrTaskName === TASK_COMPILE);
       assert.equal(hardhatArguments.showStackTraces, true);
       assert.equal(hardhatArguments.network, "local");
       assert.equal(hardhatArguments.emoji, false);
@@ -187,13 +188,13 @@ describe("ArgumentsParser", () => {
         "local",
       ];
 
-      const { hardhatArguments, isCompileTask, allUnparsedCLAs } =
+      const { hardhatArguments, scopeOrTaskName, allUnparsedCLAs } =
         argumentsParser.parseHardhatArguments(
           HARDHAT_PARAM_DEFINITIONS,
           envArgs,
           rawCLAs
         );
-      assert.isFalse(isCompileTask);
+      assert.isFalse(scopeOrTaskName === TASK_COMPILE);
       assert.equal(hardhatArguments.showStackTraces, true);
       assert.equal(hardhatArguments.network, "local");
       assert.equal(hardhatArguments.emoji, false);

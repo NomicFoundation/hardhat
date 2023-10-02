@@ -127,7 +127,7 @@ async function main() {
 
     const argumentsParser = new ArgumentsParser();
 
-    const { hardhatArguments, isCompileTask, allUnparsedCLAs } =
+    const { hardhatArguments, scopeOrTaskName, allUnparsedCLAs } =
       argumentsParser.parseHardhatArguments(
         HARDHAT_PARAM_DEFINITIONS,
         envVariableArguments,
@@ -157,13 +157,13 @@ async function main() {
     // The code marked with the tag #INIT-DEP can be deleted after HarhatV3 is out.
 
     // Create a new Hardhat project
-    if (allUnparsedCLAs[0]?.toLowerCase() === "init") {
+    if (scopeOrTaskName === "init") {
       return await createNewProject();
     }
     // #INIT-DEP - START OF DEPRECATED CODE
     else {
       if (
-        allUnparsedCLAs.length === 0 &&
+        scopeOrTaskName === undefined &&
         hardhatArguments.config === undefined &&
         !isCwdInsideProject()
       ) {
@@ -216,7 +216,7 @@ async function main() {
       hardhatArguments,
       {
         showEmptyConfigWarning: true,
-        showSolidityConfigWarnings: isCompileTask,
+        showSolidityConfigWarnings: scopeOrTaskName === TASK_COMPILE,
       }
     );
 

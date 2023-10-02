@@ -1,4 +1,4 @@
-import { TASK_COMPILE, TASK_HELP } from "../../builtin-tasks/task-names";
+import { TASK_HELP } from "../../builtin-tasks/task-names";
 import {
   CLIArgumentType,
   HardhatArguments,
@@ -53,7 +53,7 @@ export class ArgumentsParser {
     rawCLAs: string[]
   ): {
     hardhatArguments: HardhatArguments;
-    isCompileTask: boolean;
+    scopeOrTaskName: string | undefined;
     allUnparsedCLAs: string[];
   } {
     const hardhatArguments: Partial<HardhatArguments> = {};
@@ -106,7 +106,7 @@ export class ArgumentsParser {
         envVariableArguments,
         hardhatArguments
       ),
-      isCompileTask: taskName === TASK_COMPILE,
+      scopeOrTaskName: taskName,
       allUnparsedCLAs,
     };
   }
