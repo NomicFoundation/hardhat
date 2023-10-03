@@ -2,4 +2,4 @@
 "hardhat": minor
 ---
 
-Add scoped tasks
+Added support for scoped tasks
