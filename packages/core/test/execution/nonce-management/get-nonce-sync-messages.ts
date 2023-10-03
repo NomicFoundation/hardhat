@@ -100,7 +100,7 @@ describe("execution - getNonceSyncMessages", () => {
       });
     });
 
-    it("should throw if there are pending transactions for a future's sender", async () => {
+    it("should throw if there is a pending transaction for a future's sender", async () => {
       // Set the latest block to be an arbitrary nonce
       const latestCount = 30;
       // Safest is the same as latest as it is not relevant in this test
@@ -306,6 +306,105 @@ describe("execution - getNonceSyncMessages", () => {
         },
         `IGN404: You have sent transactions from ${exampleAccounts[1]} with nonce 30. Please wait until they get 5 confirmations before running Ignition again.`
       );
+    });
+
+    it("should throw if the user sent transactions with higher nonces than ignition's highest pending nonce, that have not all confirmed", async () => {
+      // The ignition transaction is in the mempool but unmined
+      // Further user transactions have followed from the user, they have not
+      // mined either yet - by definition.
+
+      // set an arbitrary nonce
+      const nonce = 10;
+      // Set the latest to be equivalent to the everything before the
+      // Ignition transaction waiting in the mempool
+      const latest = nonce;
+      // there are further user provided transactions pending
+      const pending = latest + 1 /* ignition sent */ + 1; /* user sent */
+      // the safest has only caught up with latest
+      const safest = latest;
+
+      const deploymentState =
+        setupDeploymentStateBasedOnExampleModuleWithOneTranWith(nonce);
+
+      const inflightTxHash = (
+        (
+          deploymentState.executionStates[
+            "Example#MyContract"
+          ] as DeploymentExecutionState
+        ).networkInteractions[0] as OnchainInteraction
+      ).transactions[0].hash;
+
+      await assertGetNonceSyncThrows(
+        {
+          ignitionModule: exampleModule,
+          deploymentState,
+          transactionCountEntries: {
+            [exampleAccounts[1]]: {
+              pending,
+              latest,
+              number: () => safest,
+            },
+          },
+          getTransaction: (txHash: string) => {
+            if (txHash !== inflightTxHash) {
+              throw new Error(
+                `Mock getTransaction was not expecting the getTransaction request for: ${txHash}`
+              );
+            }
+
+            return { _kind: "FAKE_TRANSACTION" };
+          },
+        },
+        `IGN404: You have sent transactions from 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC with nonce 11. Please wait until they get 5 confirmations before running Ignition again.`
+      );
+    });
+
+    it("should pass if the user sent transactions with higher nonces than ignition's highest pending nonce but they have confirmed", async () => {
+      // The ignition transaction was sent, the process killed, but is now mined.
+      // Further user transactions have followed from the user, they have been mined
+      // and are now confirmed.
+
+      // set an arbitrary nonce
+      const nonce = 10;
+      // Set the latest to be equivalent of the Ignition nonce mined
+      // plus an additional user transaction also mined
+      const latest = nonce + 1 /* ignition sent */ + 1; /* user sent */
+      // there are thus none pending
+      const pending = latest;
+      // the safest caught up with latest
+      const safest = latest;
+
+      const deploymentState =
+        setupDeploymentStateBasedOnExampleModuleWithOneTranWith(nonce);
+
+      const inflightTxHash = (
+        (
+          deploymentState.executionStates[
+            "Example#MyContract"
+          ] as DeploymentExecutionState
+        ).networkInteractions[0] as OnchainInteraction
+      ).transactions[0].hash;
+
+      await assertSuccessOnGetNonceSyncResult({
+        ignitionModule: exampleModule,
+        deploymentState,
+        transactionCountEntries: {
+          [exampleAccounts[1]]: {
+            pending,
+            latest,
+            number: () => safest,
+          },
+        },
+        getTransaction: (txHash: string) => {
+          if (txHash !== inflightTxHash) {
+            throw new Error(
+              `Mock getTransaction was not expecting the getTransaction request for: ${txHash}`
+            );
+          }
+
+          return { _kind: "FAKE_TRANSACTION" };
+        },
+      });
     });
 
     it("should indicate if the ignition transaction was dropped from mempool (no user interference)", async () => {

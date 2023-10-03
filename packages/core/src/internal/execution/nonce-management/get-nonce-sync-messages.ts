@@ -185,11 +185,23 @@ export async function getNonceSyncMessages(
       });
     }
 
-    // Case 4: the user sent a set of transactions with nonces higher than
+    // Case 4: the user sent additional transactions with nonces higher than
     // our highest pending nonce.
+    const highestPendingNonce = Math.max(
+      ...pendingTransactions.map((t) => t.nonce)
+    );
 
-    // TODO if they have enough confirmation we continue, otherwise we throw
-    // and wait for further confirmations
+    if (highestPendingNonce + 1 < pendingCount) {
+      // If they have enough confirmation we continue, otherwise we throw
+      // and wait for further confirmations
+      if (safeConfirmationsCount !== pendingCount) {
+        throw new IgnitionError(ERRORS.EXECUTION.WAITING_FOR_NONCE, {
+          sender,
+          nonce: pendingCount - 1,
+          requiredConfirmations,
+        });
+      }
+    }
   }
 
   return messages;
