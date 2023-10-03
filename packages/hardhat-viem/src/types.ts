@@ -17,18 +17,20 @@ export type TestClientMode = Parameters<
   typeof viemT.createTestClient
 >[0]["mode"];
 
-export interface DeployContractConfig {
+export interface SendTransactionConfig {
   walletClient?: WalletClient;
   gas?: bigint;
+  gasPrice?: bigint;
+  maxFeePerGas?: bigint;
+  maxPriorityFeePerGas?: bigint;
   value?: bigint;
+}
+
+export interface DeployContractConfig extends SendTransactionConfig {
   confirmations?: number;
 }
 
-export interface SendDeploymentTransactionConfig {
-  walletClient?: WalletClient;
-  gas?: bigint;
-  value?: bigint;
-}
+export type SendDeploymentTransactionConfig = SendTransactionConfig;
 
 export interface GetContractAtConfig {
   walletClient?: WalletClient;
