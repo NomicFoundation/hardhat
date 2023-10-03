@@ -43,8 +43,6 @@ export interface CLIArgumentType<T> extends ArgumentType<T> {
 export interface ConfigurableTaskDefinition {
   setDescription(description: string): this;
 
-  setScope(newScope: string, scopeDescription?: string): this;
-
   setAction(action: ActionType<TaskArguments>): this;
 
   addParam<T>(
@@ -95,6 +93,27 @@ export interface ConfigurableTaskDefinition {
   addFlag(name: string, description?: string): this;
 }
 
+declare function addTask<TaskArgumentsT extends TaskArguments>(
+  name: string,
+  description?: string,
+  action?: ActionType<TaskArgumentsT>
+): ConfigurableTaskDefinition;
+declare function addTask<TaskArgumentsT extends TaskArguments>(
+  name: string,
+  action: ActionType<TaskArgumentsT>
+): ConfigurableTaskDefinition;
+
+// type alias to get the overloaded function type
+// for 'task` and 'subtask'
+type AddConfigurableTaskFunction = typeof addTask;
+
+export interface ConfigurableScopeDefinition {
+  setDescription(description: string): this;
+
+  task: AddConfigurableTaskFunction;
+  subtask: AddConfigurableTaskFunction;
+}
+
 export interface ParamDefinition<T> {
   name: string;
   defaultValue?: T;
@@ -131,6 +150,12 @@ export interface TaskDefinition extends ConfigurableTaskDefinition {
   readonly paramDefinitions: ParamDefinitionsMap;
 
   readonly positionalParamDefinitions: Array<ParamDefinition<any>>;
+}
+
+export interface ScopeDefinition extends ConfigurableScopeDefinition {
+  readonly name: string;
+  readonly description?: string;
+  readonly tasks: TasksMap;
 }
 
 export type TaskIdentifier = string | { scope?: string; task: string };
@@ -194,10 +219,7 @@ export interface TasksMap {
 }
 
 export interface ScopesMap {
-  [scopeName: string]: {
-    description?: string;
-    tasks: TasksMap;
-  };
+  [scopeName: string]: ScopeDefinition;
 }
 
 export type RunTaskFunction = (

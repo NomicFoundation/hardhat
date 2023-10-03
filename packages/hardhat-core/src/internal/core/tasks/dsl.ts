@@ -1,16 +1,18 @@
 import {
   ActionType,
+  ScopeDefinition,
   ScopesMap,
   TaskArguments,
   TaskDefinition,
   TaskIdentifier,
   TasksMap,
 } from "../../../types";
-import { HardhatError } from "../errors";
+import { HardhatError, assertHardhatInvariant } from "../errors";
 import { ERRORS } from "../errors-list";
 
 import {
   OverriddenTaskDefinition,
+  SimpleScopeDefinition,
   SimpleTaskDefinition,
 } from "./task-definitions";
 import { parseTaskIdentifier } from "./util";
@@ -30,13 +32,13 @@ export class TasksDSL {
    *
    * @remarks The action must await every async call made within it.
    *
-   * @param taskIdentifier The task's identifier.
+   * @param name The task's name.
    * @param description The task's description.
    * @param action The task's action.
    * @returns A task definition.
    */
   public task<TaskArgumentsT extends TaskArguments>(
-    taskIdentifier: TaskIdentifier,
+    name: string,
     description?: string,
     action?: ActionType<TaskArgumentsT>
   ): TaskDefinition;
@@ -47,22 +49,24 @@ export class TasksDSL {
    *
    * @remarks The action must await every async call made within it.
    *
-   * @param taskIdentifier The task's identifier.
+   * @param name The task's name.
    * @param action The task's action.
    *
    * @returns A task definition.
    */
   public task<TaskArgumentsT extends TaskArguments>(
-    taskIdentifier: TaskIdentifier,
+    name: string,
     action: ActionType<TaskArgumentsT>
   ): TaskDefinition;
 
   public task<TaskArgumentsT extends TaskArguments>(
-    taskIdentifier: TaskIdentifier,
+    name: string,
     descriptionOrAction?: string | ActionType<TaskArgumentsT>,
     action?: ActionType<TaskArgumentsT>
   ): TaskDefinition {
-    return this._addTask(taskIdentifier, descriptionOrAction, action, false);
+    // if this function is updated, update the corresponding callback
+    // passed to `new SimpleScopeDefinition`
+    return this._addTask(name, descriptionOrAction, action, false);
   }
 
   /**
@@ -71,13 +75,13 @@ export class TasksDSL {
    * @remarks The subtasks won't be displayed in the CLI help messages.
    * @remarks The action must await every async call made within it.
    *
-   * @param taskIdentifier The task's identifier.
+   * @param name The task's name.
    * @param description The task's description.
    * @param action The task's action.
    * @returns A task definition.
    */
   public subtask<TaskArgumentsT extends TaskArguments>(
-    taskIdentifier: TaskIdentifier,
+    name: string,
     description?: string,
     action?: ActionType<TaskArgumentsT>
   ): TaskDefinition;
@@ -89,20 +93,65 @@ export class TasksDSL {
    * @remarks The subtasks won't be displayed in the CLI help messages.
    * @remarks The action must await every async call made within it.
    *
-   * @param taskIdentifier The task's identifier.
+   * @param name The task's name.
    * @param action The task's action.
    * @returns A task definition.
    */
   public subtask<TaskArgumentsT extends TaskArguments>(
-    taskIdentifier: TaskIdentifier,
+    name: string,
     action: ActionType<TaskArgumentsT>
   ): TaskDefinition;
   public subtask<TaskArgumentsT extends TaskArguments>(
-    taskIdentifier: TaskIdentifier,
+    name: string,
     descriptionOrAction?: string | ActionType<TaskArgumentsT>,
     action?: ActionType<TaskArgumentsT>
   ): TaskDefinition {
-    return this._addTask(taskIdentifier, descriptionOrAction, action, true);
+    // if this function is updated, update the corresponding callback
+    // passed to `new SimpleScopeDefinition`
+    return this._addTask(name, descriptionOrAction, action, true);
+  }
+
+  public scope(name: string, description?: string): ScopeDefinition {
+    if (this._tasks[name] !== undefined) {
+      throw new HardhatError(ERRORS.TASK_DEFINITIONS.TASK_SCOPE_CLASH, {
+        scopeName: name,
+      });
+    }
+
+    const scopeDefinition = this._scopes[name];
+
+    if (scopeDefinition !== undefined) {
+      if (description !== undefined) {
+        scopeDefinition.setDescription(description);
+      }
+
+      return scopeDefinition;
+    }
+
+    const scope = new SimpleScopeDefinition(
+      name,
+      description,
+      (taskName, descriptionOrAction, action) =>
+        // if this function is updated, update the dsl.task function too
+        this._addTask(
+          { scope: name, task: taskName },
+          descriptionOrAction,
+          action,
+          false
+        ),
+      (subtaskName, descriptionOrAction, action) =>
+        // if this function is updated, update the dsl.subtask function too
+        this._addTask(
+          { scope: name, task: subtaskName },
+          descriptionOrAction,
+          action,
+          true
+        )
+    );
+
+    this._scopes[name] = scope;
+
+    return scope;
   }
 
   /**
@@ -141,9 +190,14 @@ export class TasksDSL {
     isSubtask?: boolean
   ) {
     const { scope, task } = parseTaskIdentifier(taskIdentifier);
-    const parentTaskDefinition = this.getTaskDefinition(scope, task);
 
-    this._checkClash(scope, task);
+    if (scope === undefined && this._scopes[task] !== undefined) {
+      throw new HardhatError(ERRORS.TASK_DEFINITIONS.SCOPE_TASK_CLASH, {
+        taskName: task,
+      });
+    }
+
+    const parentTaskDefinition = this.getTaskDefinition(scope, task);
 
     let taskDefinition: TaskDefinition;
 
@@ -153,18 +207,7 @@ export class TasksDSL {
         isSubtask
       );
     } else {
-      taskDefinition = new SimpleTaskDefinition(
-        taskIdentifier,
-        (oldScope, newScope, newScopeDescription) => {
-          this._moveTaskToNewScope(
-            task,
-            oldScope,
-            newScope,
-            newScopeDescription
-          );
-        },
-        isSubtask
-      );
+      taskDefinition = new SimpleTaskDefinition(taskIdentifier, isSubtask);
     }
 
     if (descriptionOrAction instanceof Function) {
@@ -183,50 +226,14 @@ export class TasksDSL {
     if (scope === undefined) {
       this._tasks[task] = taskDefinition;
     } else {
-      this._scopes[scope] = this._scopes[scope] ?? { tasks: {} };
-      this._scopes[scope].tasks[task] = taskDefinition;
+      const scopeDefinition = this._scopes[scope];
+      assertHardhatInvariant(
+        scopeDefinition !== undefined,
+        "It shouldn't be possible to create a task in a scope that doesn't exist"
+      );
+      scopeDefinition.tasks[task] = taskDefinition;
     }
 
     return taskDefinition;
-  }
-
-  private _moveTaskToNewScope(
-    taskName: string,
-    oldScope: string | undefined,
-    newScope: string,
-    newScopeDescription: string | undefined
-  ): void {
-    this._checkClash(newScope, taskName);
-
-    let definition;
-    if (oldScope === undefined) {
-      definition = this._tasks[taskName];
-      delete this._tasks[taskName];
-    } else {
-      definition = this._scopes[oldScope].tasks[taskName];
-      delete this._scopes[oldScope].tasks[taskName];
-    }
-
-    this._scopes[newScope] = this._scopes[newScope] ?? { tasks: {} };
-    this._scopes[newScope].tasks[taskName] = definition;
-
-    if (newScopeDescription !== undefined) {
-      this._scopes[newScope].description = newScopeDescription;
-    }
-  }
-
-  private _checkClash(scopeName: string | undefined, taskName: string): void {
-    if (this._scopes[taskName] !== undefined) {
-      throw new HardhatError(ERRORS.TASK_DEFINITIONS.SCOPE_TASK_CLASH, {
-        taskName,
-      });
-    }
-
-    if (scopeName !== undefined && this._tasks[scopeName] !== undefined) {
-      throw new HardhatError(ERRORS.TASK_DEFINITIONS.TASK_SCOPE_CLASH, {
-        taskName,
-        scopeName,
-      });
-    }
   }
 }

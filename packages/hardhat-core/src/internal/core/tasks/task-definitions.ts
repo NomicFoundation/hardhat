@@ -4,9 +4,11 @@ import {
   CLIArgumentType,
   ParamDefinition,
   ParamDefinitionsMap,
+  ScopeDefinition,
   TaskArguments,
   TaskDefinition,
   TaskIdentifier,
+  TasksMap,
 } from "../../../types";
 import { HardhatError } from "../errors";
 import { ErrorDescriptor, ERRORS } from "../errors-list";
@@ -55,15 +57,9 @@ export class SimpleTaskDefinition implements TaskDefinition {
    *
    * @param taskIdentifier The task's identifier.
    * @param isSubtask `true` if the task is a subtask, `false` otherwise.
-   * @param _setScopeCallback fn to call while setting the scope.
    */
   constructor(
     taskIdentifier: TaskIdentifier,
-    private readonly _setScopeCallback: (
-      oldScopeName: string | undefined,
-      newScopeName: string,
-      newScopeDescription?: string
-    ) => void,
     public readonly isSubtask: boolean = false
   ) {
     this._positionalParamNames = new Set();
@@ -77,17 +73,6 @@ export class SimpleTaskDefinition implements TaskDefinition {
         taskName: this._task,
       });
     };
-  }
-
-  /**
-   * Sets the task's scope.
-   * @param newScope The new scope name.
-   * @param newDescription The new scope description.
-   */
-  public setScope(newScopeName: string, newScopeDescription?: string) {
-    this._setScopeCallback(this.scope, newScopeName, newScopeDescription);
-    this._scope = newScopeName;
-    return this;
   }
 
   /**
@@ -593,16 +578,6 @@ export class OverriddenTaskDefinition implements TaskDefinition {
   }
 
   /**
-   * Sets the task's scope.
-   * @param scope The scope.
-   */
-  public setScope(_scope: string, _scopeDescription?: string): this {
-    throw new HardhatError(ERRORS.TASK_DEFINITIONS.OVERRIDE_TASK_SCOPE, {
-      taskName: this.name,
-    });
-  }
-
-  /**
    * Sets the task's description.
    * @param description The description.
    */
@@ -783,5 +758,73 @@ export class OverriddenTaskDefinition implements TaskDefinition {
     throw new HardhatError(errorDescriptor, {
       taskName: this.name,
     });
+  }
+}
+
+type AddTaskFunction = <TaskArgumentsT extends TaskArguments>(
+  name: string,
+  descriptionOrAction?: string | ActionType<TaskArgumentsT>,
+  action?: ActionType<TaskArgumentsT>
+) => TaskDefinition;
+
+export class SimpleScopeDefinition implements ScopeDefinition {
+  public tasks: TasksMap = {};
+
+  constructor(
+    public readonly name: string,
+    private _description: string | undefined,
+    private _addTask: AddTaskFunction,
+    private _addSubtask: AddTaskFunction
+  ) {}
+
+  public get description() {
+    return this._description;
+  }
+
+  public setDescription(description: string): this {
+    this._description = description;
+    return this;
+  }
+
+  public task<TaskArgumentsT extends TaskArguments>(
+    name: string,
+    description?: string,
+    action?: ActionType<TaskArgumentsT>
+  ): TaskDefinition;
+  public task<TaskArgumentsT extends TaskArguments>(
+    name: string,
+    action: ActionType<TaskArgumentsT>
+  ): TaskDefinition;
+  public task<TaskArgumentsT extends TaskArguments>(
+    name: string,
+    descriptionOrAction?: string | ActionType<TaskArgumentsT>,
+    action?: ActionType<TaskArgumentsT>
+  ) {
+    const task = this._addTask(name, descriptionOrAction, action);
+
+    this.tasks[name] = task;
+
+    return task;
+  }
+
+  public subtask<TaskArgumentsT extends TaskArguments>(
+    name: string,
+    description?: string,
+    action?: ActionType<TaskArgumentsT>
+  ): TaskDefinition;
+  public subtask<TaskArgumentsT extends TaskArguments>(
+    name: string,
+    action: ActionType<TaskArgumentsT>
+  ): TaskDefinition;
+  public subtask<TaskArgumentsT extends TaskArguments>(
+    name: string,
+    descriptionOrAction?: string | ActionType<TaskArgumentsT>,
+    action?: ActionType<TaskArgumentsT>
+  ) {
+    const subtask = this._addSubtask(name, descriptionOrAction, action);
+
+    this.tasks[name] = subtask;
+
+    return subtask;
   }
 }

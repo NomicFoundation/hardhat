@@ -1,9 +1,11 @@
 import { assert } from "chai";
+import sinon from "sinon";
 
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import * as types from "../../../../src/internal/core/params/argumentTypes";
 import {
   OverriddenTaskDefinition,
+  SimpleScopeDefinition,
   SimpleTaskDefinition,
 } from "../../../../src/internal/core/tasks/task-definitions";
 import { unsafeObjectKeys } from "../../../../src/internal/util/unsafe";
@@ -44,7 +46,7 @@ describe("SimpleTaskDefinition", () => {
     let taskDefinition: SimpleTaskDefinition;
 
     before("init taskDefinition", () => {
-      taskDefinition = new SimpleTaskDefinition("name", () => {}, true);
+      taskDefinition = new SimpleTaskDefinition("name", true);
     });
 
     it("gets the right name", () => {
@@ -82,7 +84,6 @@ describe("SimpleTaskDefinition", () => {
     before("init taskDefinition", () => {
       taskDefinition = new SimpleTaskDefinition(
         { scope: "scope", task: "name" },
-        () => {},
         true
       );
     });
@@ -118,7 +119,7 @@ describe("SimpleTaskDefinition", () => {
 
   describe("setDescription", () => {
     it("Should change the description", () => {
-      const taskDefinition = new SimpleTaskDefinition("name", () => {});
+      const taskDefinition = new SimpleTaskDefinition("name");
       assert.isUndefined(taskDefinition.description);
 
       taskDefinition.setDescription("A");
@@ -129,47 +130,9 @@ describe("SimpleTaskDefinition", () => {
     });
   });
 
-  describe("setScope", () => {
-    it("Should change the scope", () => {
-      const taskDefinition = new SimpleTaskDefinition("name", () => {});
-      assert.isUndefined(taskDefinition.description);
-
-      taskDefinition.setScope("A");
-      assert.equal(taskDefinition.scope, "A");
-
-      taskDefinition.setScope("B");
-      assert.equal(taskDefinition.scope, "B");
-    });
-
-    it("Should change the scope and call callback", () => {
-      let calledArgs: any;
-      const taskDefinition = new SimpleTaskDefinition(
-        "name",
-        (...args) => {
-          calledArgs = args;
-        },
-        true
-      );
-      assert.isUndefined(taskDefinition.description);
-      assert.isUndefined(calledArgs);
-
-      taskDefinition.setScope("A");
-      assert.equal(taskDefinition.scope, "A");
-      assert.deepEqual(calledArgs, [undefined, "A", undefined]);
-
-      taskDefinition.setScope("B");
-      assert.equal(taskDefinition.scope, "B");
-      assert.deepEqual(calledArgs, ["A", "B", undefined]);
-
-      taskDefinition.setScope("C", "C description");
-      assert.equal(taskDefinition.scope, "C");
-      assert.deepEqual(calledArgs, ["B", "C", "C description"]);
-    });
-  });
-
   describe("setAction", () => {
     it("Should change the action", async () => {
-      const taskDefinition = new SimpleTaskDefinition("name", () => {});
+      const taskDefinition = new SimpleTaskDefinition("name");
 
       taskDefinition.setAction(async () => 1);
       let result = await taskDefinition.action({}, {} as any, runSuperNop);
@@ -186,7 +149,7 @@ describe("SimpleTaskDefinition", () => {
     let taskDefinition: SimpleTaskDefinition;
 
     beforeEach("init taskDefinition", () => {
-      taskDefinition = new SimpleTaskDefinition("name", () => {}, true);
+      taskDefinition = new SimpleTaskDefinition("name", true);
     });
 
     describe("param name repetitions", () => {
@@ -404,7 +367,7 @@ describe("SimpleTaskDefinition", () => {
     let taskDefinition: SimpleTaskDefinition;
 
     beforeEach("init taskDefinition", () => {
-      taskDefinition = new SimpleTaskDefinition("name", () => {}, true);
+      taskDefinition = new SimpleTaskDefinition("name", true);
     });
 
     describe("addParam", () => {
@@ -861,7 +824,7 @@ describe("SimpleTaskDefinition", () => {
       describe("tasks", () => {
         let task: SimpleTaskDefinition;
         beforeEach(() => {
-          task = new SimpleTaskDefinition("t", () => {}, false);
+          task = new SimpleTaskDefinition("t", false);
         });
 
         describe("When using non-cli argument types", () => {
@@ -920,7 +883,7 @@ describe("SimpleTaskDefinition", () => {
         describe("When using non-cli argument types", () => {
           let task: SimpleTaskDefinition;
           beforeEach(() => {
-            task = new SimpleTaskDefinition("t", () => {}, true);
+            task = new SimpleTaskDefinition("t", true);
           });
 
           it("Should not throw on addParam", () => {
@@ -963,7 +926,7 @@ describe("OverriddenTaskDefinition", () => {
   let overriddenTask: OverriddenTaskDefinition;
 
   beforeEach("init tasks", () => {
-    parentTask = new SimpleTaskDefinition("t", () => {})
+    parentTask = new SimpleTaskDefinition("t")
       .addParam("p", "desc")
       .addFlag("f")
       .addPositionalParam("pp", "positional param");
@@ -1180,5 +1143,74 @@ describe("OverriddenTaskDefinition", () => {
         ERRORS.TASK_DEFINITIONS.OVERRIDE_NO_VARIADIC_PARAMS
       );
     });
+  });
+});
+
+describe("SimpleScopeDefinition", () => {
+  it("should create a scope definition without a description", async function () {
+    const scopeDefinition = new SimpleScopeDefinition(
+      "scope",
+      undefined,
+      (() => {}) as any,
+      (() => {}) as any
+    );
+
+    assert.equal(scopeDefinition.name, "scope");
+    assert.isUndefined(scopeDefinition.description);
+  });
+
+  it("should create a scope definition with a description", async function () {
+    const scopeDefinition = new SimpleScopeDefinition(
+      "scope",
+      "a description",
+      (() => {}) as any,
+      (() => {}) as any
+    );
+
+    assert.equal(scopeDefinition.name, "scope");
+    assert.equal(scopeDefinition.description, "a description");
+  });
+
+  it("should change the description with setDescription", async function () {
+    const scopeDefinition = new SimpleScopeDefinition(
+      "scope",
+      "a description",
+      (() => {}) as any,
+      (() => {}) as any
+    );
+
+    assert.equal(scopeDefinition.name, "scope");
+    assert.equal(scopeDefinition.description, "a description");
+
+    scopeDefinition.setDescription("another description");
+
+    assert.equal(scopeDefinition.description, "another description");
+  });
+
+  it("should call the right callbacks", async function () {
+    const addTask = sinon.spy();
+    const addSubtask = sinon.spy();
+
+    const scopeDefinition = new SimpleScopeDefinition(
+      "scope",
+      "a description",
+      addTask,
+      addSubtask
+    );
+
+    assert.isFalse(addTask.called);
+    assert.isFalse(addSubtask.called);
+
+    const taskAction: any = () => {};
+    scopeDefinition.task("task", taskAction);
+
+    assert.isTrue(addTask.calledOnce);
+    assert.isFalse(addSubtask.called);
+
+    const subtaskAction: any = () => {};
+    scopeDefinition.subtask("subtask", subtaskAction);
+
+    assert.isTrue(addTask.calledOnce);
+    assert.isTrue(addSubtask.calledOnce);
   });
 });

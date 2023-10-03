@@ -92,7 +92,7 @@ describe("Environment", () => {
       return 27;
     });
 
-    dsl.task({ scope: "scoped", task: "task" }, async () => {
+    dsl.scope("scoped").task("task", async () => {
       return 28;
     });
 

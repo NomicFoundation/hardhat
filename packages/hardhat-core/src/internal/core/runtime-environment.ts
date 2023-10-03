@@ -146,7 +146,14 @@ export class Environment implements HardhatRuntimeEnvironment {
       taskDefinition = this.tasks[task];
       log("Running task %s", task);
     } else {
-      taskDefinition = this.scopes[scope]?.tasks?.[task];
+      const scopeDefinition = this.scopes[scope];
+      if (scopeDefinition === undefined) {
+        throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPE, {
+          scope,
+        });
+      }
+
+      taskDefinition = scopeDefinition.tasks?.[task];
       log("Running scoped task %s %s", scope, task);
     }
 

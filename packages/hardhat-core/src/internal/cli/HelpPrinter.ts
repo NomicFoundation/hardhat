@@ -2,6 +2,7 @@ import {
   HardhatParamDefinitions,
   ParamDefinition,
   ParamDefinitionsMap,
+  ScopeDefinition,
   ScopesMap,
   TaskDefinition,
   TasksMap,
@@ -37,7 +38,7 @@ export class HelpPrinter {
     length = this._printTasks(this._tasks, includeSubtasks, length);
 
     if (Object.keys(this._scopes).length > 0) {
-      console.log("\n\nAVAILABLE SCOPES:\n");
+      console.log("\n\nAVAILABLE TASK SCOPES:\n");
 
       this._printScopes(this._scopes, length);
     }
@@ -45,24 +46,34 @@ export class HelpPrinter {
     console.log("");
 
     console.log(
-      `To get help for a specific task run: npx ${this._executableName} help [scope] <task>\n`
+      `To get help for a specific task run: npx ${this._executableName} help [SCOPE] <TASK>\n`
     );
   }
 
-  public printScopeHelp(scopeName: string, includeSubtasks = false) {
+  public printScopeHelp(
+    scopeDefinition: ScopeDefinition,
+    includeSubtasks = false
+  ) {
+    const name = scopeDefinition.name;
+    const description = scopeDefinition.description ?? "";
+
     console.log(`${this._programName} version ${this._version}`);
 
-    console.log(`\nUsage: hardhat [GLOBAL OPTIONS] ${scopeName} <task>`);
+    console.log(
+      `\nUsage: hardhat [GLOBAL OPTIONS] ${name} <TASK> [TASK OPTIONS]`
+    );
 
     console.log(`\nAVAILABLE TASKS:\n`);
 
-    if (this._scopes[scopeName] === undefined) {
+    if (this._scopes[name] === undefined) {
       throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPE, {
-        scope: scopeName,
+        scope: name,
       });
     }
 
-    this._printTasks(this._scopes[scopeName].tasks, includeSubtasks);
+    this._printTasks(this._scopes[name].tasks, includeSubtasks);
+
+    console.log(`\n${name}: ${description}`);
 
     console.log(
       `\nFor global options help run: ${this._executableName} help\n`

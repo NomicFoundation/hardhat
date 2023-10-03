@@ -613,26 +613,17 @@ Please double check your task definitions.`,
 What makes these types special is that they can be represented as strings, so you can write them down in the terminal.`,
       shouldBeReported: false,
     },
-    OVERRIDE_TASK_SCOPE: {
+    TASK_SCOPE_CLASH: {
       number: 213,
       message:
-        "Reassigning the scope of task '%taskName%' failed. You cannot set a scope when overriding a task.",
-      title: "Attempted to add a scope to an overridden task",
-      description: `You can't set a scope for an overridden task.
-Please double check your task definitions.`,
-      shouldBeReported: false,
-    },
-    TASK_SCOPE_CLASH: {
-      number: 214,
-      message:
-        "A clash was found while creating task '%taskName%' with scope '%scopeName%' since a task named '%scopeName%' already exists.",
+        "A clash was found while creating scope '%scopeName%', since a task with that name already exists.",
       title: "Attempted to create a scope with a name already used by a task",
       description: `You can't create a scope if a task with that name already exists.
 Please double check your task definitions.`,
       shouldBeReported: false,
     },
     SCOPE_TASK_CLASH: {
-      number: 215,
+      number: 214,
       message:
         "A clash was found while creating task '%taskName%', since a scope with that name already exists.",
       title: "Attempted to create a task with a name already used by a scope",
@@ -641,7 +632,7 @@ Please double check your task definitions.`,
       shouldBeReported: false,
     },
     DEPRECATED_TRANSFORM_IMPORT_TASK: {
-      number: 216,
+      number: 215,
       title: "Use of deprecated remapping task",
       message:
         "Task TASK_COMPILE_TRANSFORM_IMPORT_NAME is deprecated. Please update your @nomicfoundation/hardhat-foundry plugin version.",
@@ -681,7 +672,7 @@ Please double check your arguments.`,
     },
     UNRECOGNIZED_TASK: {
       number: 303,
-      message: "Unrecognized task %task%",
+      message: "Unrecognized task '%task%'",
       title: "Unrecognized task",
       description: `Tried to run a nonexistent task.
 
@@ -785,16 +776,16 @@ This flag can only be used in typescript projects.`,
     },
     UNRECOGNIZED_SCOPE: {
       number: 314,
-      message: "Unrecognized scope %scope%",
+      message: "Unrecognized scope '%scope%'",
       title: "Unrecognized scope",
-      description: `Tried to use a nonexistent scope.
+      description: `Tried to run a task from a nonexistent scope.
 
-Please double check the name of the scope you are trying to use.`,
+Please double check the scope of the task you are trying to run.`,
       shouldBeReported: false,
     },
     UNRECOGNIZED_SCOPED_TASK: {
       number: 315,
-      message: "Unrecognized task %task% under scope %scope%",
+      message: "Unrecognized task '%task%' under scope '%scope%'",
       title: "Unrecognized scoped task",
       description: `Tried to run a nonexistent scoped task.
 

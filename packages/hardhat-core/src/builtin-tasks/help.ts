@@ -56,7 +56,7 @@ task(TASK_HELP, "Prints this message")
 
       if (second === undefined) {
         // print scope help
-        helpPrinter.printScopeHelp(first);
+        helpPrinter.printScopeHelp(scopeDefinition);
         return;
       }
 
