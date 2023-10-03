@@ -78,6 +78,23 @@ declare module "@nomicfoundation/hardhat-viem/types" {
     config?: DeployContractConfig
   ): Promise<GetContractReturnType<A$Type["abi"]>>;
 
+  export function sendDeploymentTransaction(
+    contractName: "A",
+    constructorArgs: [_owner: AbiParameterToPrimitiveType<{"name":"_owner","type":"address"}>, AbiParameterToPrimitiveType<{"name":"","type":"uint256"}>, _name: AbiParameterToPrimitiveType<{"name":"_name","type":"string"}>],
+    config?: SendDeploymentTransactionConfig
+  ): Promise<{
+    contract: GetContractReturnType<A$Type["abi"]>;
+    deploymentTransaction: GetTransactionReturnType;
+  }>;
+  export function sendDeploymentTransaction(
+    contractName: "contracts/A.sol:A",
+    constructorArgs: [_owner: AbiParameterToPrimitiveType<{"name":"_owner","type":"address"}>, AbiParameterToPrimitiveType<{"name":"","type":"uint256"}>, _name: AbiParameterToPrimitiveType<{"name":"_name","type":"string"}>],
+    config?: SendDeploymentTransactionConfig
+  ): Promise<{
+    contract: GetContractReturnType<A$Type["abi"]>;
+    deploymentTransaction: GetTransactionReturnType;
+  }>;
+
   export function getContractAt(
     contractName: "A",
     address: Address,

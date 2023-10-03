@@ -39,6 +39,15 @@ declare module "@nomicfoundation/hardhat-viem/types" {
     config?: DeployContractConfig
   ): Promise<GetContractReturnType<B$Type["abi"]>>;
 
+  export function sendDeploymentTransaction(
+    contractName: "contracts/A.sol:B",
+    constructorArgs?: [],
+    config?: SendDeploymentTransactionConfig
+  ): Promise<{
+    contract: GetContractReturnType<B$Type["abi"]>;
+    deploymentTransaction: GetTransactionReturnType;
+  }>;
+
   export function getContractAt(
     contractName: "contracts/A.sol:B",
     address: Address,

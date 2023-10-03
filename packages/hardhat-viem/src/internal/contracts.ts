@@ -59,12 +59,27 @@ export async function innerDeployContract(
   deployContractParameters: DeployContractConfig = {},
   confirmations: number = 1
 ): Promise<GetContractReturnType> {
-  const deploymentTxHash = await walletClient.deployContract({
-    abi: contractAbi,
-    bytecode: contractBytecode,
-    args: constructorArgs,
-    ...deployContractParameters,
-  });
+  let deploymentTxHash: Hex;
+  // If gasPrice is defined, then maxFeePerGas and maxPriorityFeePerGas
+  // must be undefined because it's a legaxy tx.
+  if (deployContractParameters.gasPrice !== undefined) {
+    deploymentTxHash = await walletClient.deployContract({
+      abi: contractAbi,
+      bytecode: contractBytecode,
+      args: constructorArgs,
+      ...deployContractParameters,
+      maxFeePerGas: undefined,
+      maxPriorityFeePerGas: undefined,
+    });
+  } else {
+    deploymentTxHash = await walletClient.deployContract({
+      abi: contractAbi,
+      bytecode: contractBytecode,
+      args: constructorArgs,
+      ...deployContractParameters,
+      gasPrice: undefined,
+    });
+  }
 
   if (confirmations < 0) {
     throw new HardhatViemError("Confirmations must be greater than 0.");
@@ -134,12 +149,27 @@ async function innerSendDeploymentTransaction(
   contract: GetContractReturnType;
   deploymentTransaction: GetTransactionReturnType;
 }> {
-  const deploymentTxHash = await walletClient.deployContract({
-    abi: contractAbi,
-    bytecode: contractBytecode,
-    args: constructorArgs,
-    ...deployContractParameters,
-  });
+  let deploymentTxHash: Hex;
+  // If gasPrice is defined, then maxFeePerGas and maxPriorityFeePerGas
+  // must be undefined because it's a legaxy tx.
+  if (deployContractParameters.gasPrice !== undefined) {
+    deploymentTxHash = await walletClient.deployContract({
+      abi: contractAbi,
+      bytecode: contractBytecode,
+      args: constructorArgs,
+      ...deployContractParameters,
+      maxFeePerGas: undefined,
+      maxPriorityFeePerGas: undefined,
+    });
+  } else {
+    deploymentTxHash = await walletClient.deployContract({
+      abi: contractAbi,
+      bytecode: contractBytecode,
+      args: constructorArgs,
+      ...deployContractParameters,
+      gasPrice: undefined,
+    });
+  }
 
   const deploymentTx = await publicClient.getTransaction({
     hash: deploymentTxHash,

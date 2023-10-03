@@ -221,6 +221,19 @@ declare module "@nomicfoundation/hardhat-viem/types" {
 
   ${validNames
     .map(
+      (name) => `export function sendDeploymentTransaction(
+    contractName: "${name}",
+    ${constructorArgs},
+    config?: SendDeploymentTransactionConfig
+  ): Promise<{
+    contract: GetContractReturnType<${contractTypeName}["abi"]>;
+    deploymentTransaction: GetTransactionReturnType;
+  }>;`
+    )
+    .join("\n  ")}
+
+  ${validNames
+    .map(
       (name) => `export function getContractAt(
     contractName: "${name}",
     address: Address,
