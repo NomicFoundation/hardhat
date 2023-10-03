@@ -1,8 +1,6 @@
 import chalk from "chalk";
 import debug from "debug";
 import "source-map-support/register";
-
-import * as readline from "readline";
 import {
   TASK_COMPILE,
   TASK_HELP,
@@ -60,10 +58,6 @@ const ANALYTICS_SLOW_TASK_THRESHOLD = 300;
 const SHOULD_SHOW_STACK_TRACES_BY_DEFAULT = isRunningOnCiServer();
 
 const secretsManager = new SecretsManager(getSecretsFilePath());
-const rlInterface = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
 
 async function printVersionMessage() {
   const packageJson = await getPackageJson();
@@ -463,7 +457,7 @@ async function handleSecrets(args: string[]) {
   // args: [ "secrets", "<action>", "<secretName>" ]
   switch (args[1]) {
     case "set":
-      return secretsManager.set(args[2], await readSecret());
+      return secretsManager.set(args[2], await getSecretValue());
     case "get":
       return secretsManager.get(args[2]);
     case "list":
@@ -475,13 +469,16 @@ async function handleSecrets(args: string[]) {
   }
 }
 
-async function readSecret(): Promise<string> {
-  return new Promise((resolve) => {
-    rlInterface.question("Enter secret: ", (password) => {
-      resolve(password);
-      rlInterface.close();
-    });
+async function getSecretValue(): Promise<string> {
+  const { default: enquirer } = await import("enquirer");
+
+  const response: { secretValue: string } = await enquirer.prompt({
+    type: "password",
+    name: "secretValue",
+    message: "Enter secret:",
   });
+
+  return response.secretValue;
 }
 
 main()
