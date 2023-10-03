@@ -454,18 +454,23 @@ async function createNewProject() {
 }
 
 async function handleSecrets(args: string[]) {
-  // args: [ "secrets", "<action>", "<secretName>" ]
-  switch (args[1]) {
+  const [, action, secretName] = args;
+
+  switch (action) {
     case "set":
-      return secretsManager.set(args[2], await getSecretValue());
+      return secretsManager.set(secretName, await getSecretValue());
     case "get":
-      return secretsManager.get(args[2]);
+      return secretsManager.get(secretName);
     case "list":
       return secretsManager.list();
     case "delete":
-      return secretsManager.delete(args[2]);
+      return secretsManager.delete(secretName);
     default:
-      console.error(chalk.red(`Unknown command '${args[1]}'`));
+      console.error(
+        chalk.red(
+          `Secrets, unknown action '${action}'. Available actions are: set, get, list and delete`
+        )
+      );
   }
 }
 
