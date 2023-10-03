@@ -639,6 +639,13 @@ Please double check your task definitions.`,
       description: `This task has been deprecated in favor of a new approach.`,
       shouldBeReported: true,
     },
+    SECRETS_ONLY_MANAGED_IN_CLI: {
+      number: 216,
+      title: "Secrets can only be managed from the CLI",
+      message: "Secrets can only be managed from the CLI.",
+      description: `Secrets can only be managed from the CLI.`,
+      shouldBeReported: false,
+    },
   },
   ARGUMENTS: {
     INVALID_ENV_VAR_VALUE: {

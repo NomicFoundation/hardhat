@@ -196,8 +196,7 @@ async function main() {
     }
 
     if (scopeOrTaskName === "secrets") {
-      await handleSecrets(allUnparsedCLAs);
-      return;
+      return await handleSecrets(allUnparsedCLAs);
     }
 
     if (
