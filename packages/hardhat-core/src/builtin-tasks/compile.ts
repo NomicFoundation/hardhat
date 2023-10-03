@@ -1292,8 +1292,8 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT)
   .setAction(
     async ({ compilationJobs }: { compilationJobs: CompilationJob[] }) => {
       let count = 0;
-      const evmVersionsSet = new Set<string>();
-      const unknownEvmVersionsSet = new Set<string>();
+      const evmVersions = new Set<string>();
+      const unknownEvmVersions = new Set<string>();
 
       for (const job of compilationJobs) {
         count += job
@@ -1306,25 +1306,26 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT)
           getEvmVersionFromSolcVersion(solcVersion);
 
         if (evmTarget !== undefined) {
-          evmVersionsSet.add(evmTarget);
+          evmVersions.add(evmTarget);
         } else {
-          unknownEvmVersionsSet.add(
+          unknownEvmVersions.add(
             `unknown evm version for solc version ${solcVersion}`
           );
         }
       }
 
       if (count > 0) {
-        // Alphabetically sort evm versions. The default ones are added at the end
-        const evmVersions = Array.from(evmVersionsSet)
-          .sort()
-          .concat(Array.from(unknownEvmVersionsSet).sort());
-
         console.log(
           `Compiled ${count} Solidity ${pluralize(
             count,
             "file"
-          )} successfully with evmVersions: ${evmVersions.join(", ")}.`
+          )} successfully with evmVersions: ${
+            // Alphabetically sort evm versions. The unknown ones are added at the end
+            Array.from(evmVersions)
+              .sort()
+              .concat(Array.from(unknownEvmVersions).sort())
+              .join(", ")
+          }.`
         );
       }
     }
