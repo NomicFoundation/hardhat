@@ -152,7 +152,7 @@ describe("compile task", function () {
 
       assert(
         spyFunctionConsoleLog.calledWith(
-          "Compiled 4 Solidity files successfully with evmVersions: paris, shanghai, default for 0.5.5, default for 0.8.3."
+          "Compiled 4 Solidity files successfully with evmVersions: paris, petersburg, shanghai, unknown evm version for solc version 0.4.11."
         )
       );
 

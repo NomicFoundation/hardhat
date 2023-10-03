@@ -40,6 +40,7 @@ import { getFullyQualifiedName } from "../utils/contract-names";
 import { localPathToSourceName } from "../utils/source-names";
 
 import { getAllFilesMatching } from "../internal/util/fs-utils";
+import { getEvmVersionFromSolcVersion } from "../internal/solidity/compiler/solc-info";
 import {
   TASK_COMPILE,
   TASK_COMPILE_GET_COMPILATION_TASKS,
@@ -1292,20 +1293,24 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT)
     async ({ compilationJobs }: { compilationJobs: CompilationJob[] }) => {
       let count = 0;
       const evmVersionsSet = new Set<string>();
-      const defaultEvmVersionsSet = new Set<string>();
+      const unknownEvmVersionsSet = new Set<string>();
 
       for (const job of compilationJobs) {
         count += job
           .getResolvedFiles()
           .filter((file) => job.emitsArtifacts(file)).length;
 
-        const evmTarget = job.getSolcConfig().settings?.evmVersion;
         const solcVersion = job.getSolcConfig().version;
+        const evmTarget =
+          job.getSolcConfig().settings?.evmVersion ??
+          getEvmVersionFromSolcVersion(solcVersion);
 
         if (evmTarget !== undefined) {
           evmVersionsSet.add(evmTarget);
         } else {
-          defaultEvmVersionsSet.add(`default for ${solcVersion}`);
+          unknownEvmVersionsSet.add(
+            `unknown evm version for solc version ${solcVersion}`
+          );
         }
       }
 
@@ -1313,7 +1318,7 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT)
         // Alphabetically sort evm versions. The default ones are added at the end
         const evmVersions = Array.from(evmVersionsSet)
           .sort()
-          .concat(Array.from(defaultEvmVersionsSet).sort());
+          .concat(Array.from(unknownEvmVersionsSet).sort());
 
         console.log(
           `Compiled ${count} Solidity ${pluralize(
