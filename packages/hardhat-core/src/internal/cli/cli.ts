@@ -2,6 +2,7 @@ import chalk from "chalk";
 import debug from "debug";
 import "source-map-support/register";
 
+import * as readline from "readline";
 import {
   TASK_COMPILE,
   TASK_HELP,
@@ -32,6 +33,7 @@ import { loadTsNode, willRunWithTypescript } from "../core/typescript-support";
 import { Reporter } from "../sentry/reporter";
 import { isRunningOnCiServer } from "../util/ci-detection";
 import {
+  getSecretsFilePath,
   hasConsentedTelemetry,
   hasPromptedForHHVSCode,
   writePromptedForHHVSCode,
@@ -40,6 +42,7 @@ import {
 import { getPackageJson } from "../util/packageInfo";
 
 import { saveFlamegraph } from "../core/flamegraph";
+import { SecretsManager } from "../core/secrets/screts-manager";
 import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
@@ -55,6 +58,12 @@ const log = debug("hardhat:core:cli");
 
 const ANALYTICS_SLOW_TASK_THRESHOLD = 300;
 const SHOULD_SHOW_STACK_TRACES_BY_DEFAULT = isRunningOnCiServer();
+
+const secretsManager = new SecretsManager(getSecretsFilePath());
+const rlInterface = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
 
 async function printVersionMessage() {
   const packageJson = await getPackageJson();
@@ -190,6 +199,11 @@ async function main() {
     // Tasks are only allowed inside a Hardhat project (except the init task)
     if (hardhatArguments.config === undefined && !isCwdInsideProject()) {
       throw new HardhatError(ERRORS.GENERAL.NOT_INSIDE_PROJECT);
+    }
+
+    if (scopeOrTaskName === "secrets") {
+      await handleSecrets(allUnparsedCLAs);
+      return;
     }
 
     if (
@@ -443,6 +457,31 @@ async function createNewProject() {
   }
 
   throw new HardhatError(ERRORS.GENERAL.NOT_IN_INTERACTIVE_SHELL);
+}
+
+async function handleSecrets(args: string[]) {
+  // args: [ "secrets", "<action>", "<secretName>" ]
+  switch (args[1]) {
+    case "set":
+      return secretsManager.set(args[2], await readSecret());
+    case "get":
+      return secretsManager.get(args[2]);
+    case "list":
+      return secretsManager.list();
+    case "delete":
+      return secretsManager.delete(args[2]);
+    default:
+      console.error(chalk.red(`Unknown command '${args[1]}'`));
+  }
+}
+
+async function readSecret(): Promise<string> {
+  return new Promise((resolve) => {
+    rlInterface.question("Enter secret: ", (password) => {
+      resolve(password);
+      rlInterface.close();
+    });
+  });
 }
 
 main()
