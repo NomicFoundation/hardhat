@@ -13,6 +13,7 @@ import {
   SpecId,
   guaranteedDryRun,
   debugTraceTransaction,
+  debugTraceCall,
   run,
   ConfigOptions,
   State,
@@ -453,10 +454,49 @@ export class RethnetAdapter implements VMAdapter {
 
   public async traceCall(
     tx: TypedTransaction,
-    block: Block,
-    config: RpcDebugTracingConfig
+    blockContext: Block,
+    traceConfig: RpcDebugTracingConfig
   ): Promise<RpcDebugTraceOutput> {
-    throw new Error("traceCall not implemented for Rethnet");
+    const rethnetTx = ethereumjsTransactionToRethnetTransactionRequest(tx);
+
+    const difficulty = this._getBlockEnvDifficulty(
+      blockContext.header.difficulty
+    );
+
+    const prevRandao = await this._getBlockPrevRandao(
+      blockContext.header.number,
+      blockContext.header.mixHash
+    );
+
+    const specId = await this._blockchain.specAtBlockNumber(
+      blockContext.header.number
+    );
+    const evmConfig: ConfigOptions = {
+      chainId: this._common.chainId(),
+      specId,
+      limitContractCodeSize: this._limitContractCodeSize,
+      disableBlockGasLimit: true,
+      disableEip3607: true,
+    };
+
+    const result = await debugTraceCall(
+      this._blockchain,
+      this._state.asInner(),
+      evmConfig,
+      hardhatDebugTraceConfigToRethnet(traceConfig),
+      {
+        number: blockContext.header.number,
+        beneficiary: blockContext.header.coinbase.buf,
+        timestamp: blockContext.header.timestamp,
+        baseFee: 0n,
+        gasLimit: blockContext.header.gasLimit,
+        difficulty,
+        mixHash: prevRandao,
+      },
+      rethnetTx
+    );
+
+    return rethnetRpcDebugTraceToHardhat(result);
   }
 
   public async makeSnapshot(): Promise<Buffer> {

@@ -1,11 +1,14 @@
 use napi::bindgen_prelude::{BigInt, Buffer};
 use napi::Status;
 use napi_derive::napi;
-use rethnet_eth::B256;
-use rethnet_evm::{BlockEnv, CfgEnv};
 use std::collections::HashMap;
 
-use crate::transaction::PendingTransaction;
+use rethnet_eth::B256;
+use rethnet_evm::{
+    execution_result_to_debug_result, BlockEnv, CfgEnv, ResultAndState, TracerEip3155, TxEnv,
+};
+
+use crate::transaction::{PendingTransaction, TransactionRequest};
 use crate::{
     block::BlockConfig, blockchain::Blockchain, cast::TryCast, config::ConfigOptions, state::State,
 };
@@ -44,6 +47,40 @@ pub async fn debug_trace_transaction(
     .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?
     .try_into()?;
     Ok(result)
+}
+
+/// Get trace output for `debug_traceTransaction`
+#[napi]
+#[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+pub async fn debug_trace_call(
+    blockchain: &Blockchain,
+    state_manager: &State,
+    evm_config: ConfigOptions,
+    trace_config: DebugTraceConfig,
+    block_config: BlockConfig,
+    transaction: TransactionRequest,
+) -> napi::Result<DebugTraceResult> {
+    let evm_config = CfgEnv::try_from(evm_config)?;
+    let block = BlockEnv::try_from(block_config)?;
+    let transaction = TxEnv::try_from(transaction)?;
+
+    let mut tracer = TracerEip3155::new(trace_config.into());
+
+    let ResultAndState {
+        result: execution_result,
+        ..
+    } = rethnet_evm::guaranteed_dry_run(
+        &*blockchain.read().await,
+        &*state_manager.read().await,
+        evm_config,
+        transaction,
+        block,
+        Some(&mut tracer),
+    )
+    .await
+    .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
+
+    execution_result_to_debug_result(execution_result, tracer).try_into()
 }
 
 #[napi(object)]
