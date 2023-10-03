@@ -3,6 +3,7 @@ import {
   IgnitionModuleResult,
 } from "@nomicfoundation/ignition-core/ui-helpers";
 import React, { useMemo } from "react";
+import styled from "styled-components";
 import { getAllDeployFuturesFor } from "../../../queries/futures";
 
 export const Summary: React.FC<{
@@ -20,17 +21,17 @@ export const Summary: React.FC<{
 
   return (
     <div>
-      <p>Contracts to be deployed</p>
+      <Title>Contracts to be deployed</Title>
 
       <div>
         {deployFutures.length === 0 ? null : (
           <ul>
             {Object.entries(deployCountPerContract).map(
               ([contractName, count]) => (
-                <li key={contractName}>
+                <ListItem key={contractName}>
                   {contractName}
                   {count > 1 ? ` x${count}` : null}
-                </li>
+                </ListItem>
               )
             )}
           </ul>
@@ -39,3 +40,20 @@ export const Summary: React.FC<{
     </div>
   );
 };
+
+const Title = styled.div`
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 30px;
+  letter-spacing: 0em;
+
+  color: #16181d;
+`;
+
+const ListItem = styled.li`
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 25px;
+  letter-spacing: 0em;
+  text-align: left;
+`;

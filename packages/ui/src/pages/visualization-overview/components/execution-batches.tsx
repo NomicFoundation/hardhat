@@ -106,7 +106,11 @@ const RootModuleBackground = styled.div`
 `;
 
 const SectionHeader = styled.div`
-  font-size: 1.5rem;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 30px;
+  letter-spacing: 0em;
+
   margin-bottom: 1rem;
   margin-top: 1rem;
 `;

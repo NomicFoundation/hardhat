@@ -37,7 +37,8 @@ export const VisualizationOverview: React.FC<{
 
       <Contents>
         <header>
-          <PageTitle>Hardhat Ignition 🚀</PageTitle>
+          <PageTitle>HARDHAT IGNITION 🚀</PageTitle>
+          <br />
           <SubTitle>{ignitionModule.id} deployment visualization</SubTitle>
         </header>
 
@@ -108,14 +109,21 @@ const Contents = styled.div`
   row-gap: 1rem;
 `;
 
-const Panel = styled.div``;
+const Panel = styled.div`
+  border-bottom: 1px solid #b0b2b5;
+`;
 
 const PageTitle = styled.div`
-  font-size: 2.5rem;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 12px;
+  letter-spacing: 0.2em;
+  color: #040405;
 `;
 
 const SubTitle = styled.div`
-  font-size: 1.5rem;
-  color: #5c5c5c;
-  font-style: italic;
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 45px;
+  letter-spacing: 0.5px;
 `;
