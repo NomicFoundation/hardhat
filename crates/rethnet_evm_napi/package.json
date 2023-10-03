@@ -23,7 +23,7 @@
         "typescript": "~4.5.2"
     },
     "engines": {
-        "node": ">= 12"
+        "node": ">= 18"
     },
     "scripts": {
         "artifacts": "napi artifacts",
