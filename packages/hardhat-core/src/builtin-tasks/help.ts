@@ -31,42 +31,42 @@ task(TASK_HELP, "Prints this message")
       );
 
       if (scopeOrTask === undefined) {
-        // print global help
+        // no params, print global help
         helpPrinter.printGlobalHelp();
         return;
       }
 
-      if (tasks[scopeOrTask] !== undefined) {
-        // first is a valid task
+      const taskDefinition = tasks[scopeOrTask];
+      if (taskDefinition !== undefined) {
+        // the first param is a valid task
         helpPrinter.printTaskHelp(tasks[scopeOrTask]);
         return;
       }
 
       const scopeDefinition = scopes[scopeOrTask];
-
       if (scopeDefinition === undefined) {
-        // first is not a task nor a scope
+        // if the first parameter is neither a task nor a scope,
+        // we don't know what the user was trying to print,
+        // so we assume that it's an unrecognized task
         throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
           task: scopeOrTask,
         });
       }
 
       if (taskName === undefined) {
-        // print scope help
+        // if the second parameter is not present, print scope help
         helpPrinter.printScopeHelp(scopeDefinition);
         return;
       }
 
-      const taskDefinition = scopeDefinition.tasks[taskName];
-
-      if (taskDefinition === undefined) {
+      const scopedTaskDefinition = scopeDefinition.tasks[taskName];
+      if (scopedTaskDefinition === undefined) {
         throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPED_TASK, {
           scope: scopeOrTask,
           task: taskName,
         });
       }
 
-      // print task help
-      helpPrinter.printTaskHelp(taskDefinition);
+      helpPrinter.printTaskHelp(scopedTaskDefinition);
     }
   );
