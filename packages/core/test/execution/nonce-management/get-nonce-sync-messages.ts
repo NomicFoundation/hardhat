@@ -83,7 +83,7 @@ describe("execution - getNonceSyncMessages", () => {
         return {};
       });
 
-      await assertSuccessOnGetNonceSyncResult({
+      await assertNoSyncMessageNeeded({
         ignitionModule,
         transactionCountEntries: {
           [exampleAccounts[1]]: {
@@ -150,7 +150,7 @@ describe("execution - getNonceSyncMessages", () => {
         ).networkInteractions[0] as OnchainInteraction
       ).transactions[0].hash;
 
-      await assertSuccessOnGetNonceSyncResult({
+      await assertNoSyncMessageNeeded({
         ignitionModule: exampleModule,
         deploymentState,
         transactionCountEntries: {
@@ -198,7 +198,7 @@ describe("execution - getNonceSyncMessages", () => {
         ).networkInteractions[0] as OnchainInteraction
       ).transactions[0].hash;
 
-      await assertSuccessOnGetNonceSyncResult({
+      await assertNoSyncMessageNeeded({
         ignitionModule: exampleModule,
         deploymentState,
         transactionCountEntries: {
@@ -385,7 +385,7 @@ describe("execution - getNonceSyncMessages", () => {
         ).networkInteractions[0] as OnchainInteraction
       ).transactions[0].hash;
 
-      await assertSuccessOnGetNonceSyncResult({
+      await assertNoSyncMessageNeeded({
         ignitionModule: exampleModule,
         deploymentState,
         transactionCountEntries: {
@@ -450,7 +450,7 @@ describe("execution - getNonceSyncMessages", () => {
       // There are multiple pending transactions on top of latest
       const pendingCount = latestCount + 99;
 
-      await assertSuccessOnGetNonceSyncResult({
+      await assertNoSyncMessageNeeded({
         ignitionModule: exampleModule,
         deploymentState: {
           ...deploymentStateReducer(),
@@ -496,7 +496,7 @@ async function assertGetNonceSyncThrows(
   await assert.isRejected(assertGetNonceSyncResult(ctx, []), errorMessage);
 }
 
-async function assertSuccessOnGetNonceSyncResult(ctx: {
+async function assertNoSyncMessageNeeded(ctx: {
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>;
   deploymentState?: DeploymentState;
   transactionCountEntries?: {
