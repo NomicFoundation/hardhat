@@ -473,7 +473,7 @@ describe("execution - getNonceSyncMessages", () => {
       // Set an arbitary latest
       const latestCount = 30;
       // The safest is exactly the same as latest
-      const safestCount = 40;
+      const safestCount = latestCount;
       // Pending isn't relevant so is set to latest
       const pendingCount = latestCount;
       // Set the nonce to latest (note nonce is not a cardinality),
