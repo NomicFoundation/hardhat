@@ -339,11 +339,11 @@ describe("execution - getNonceSyncMessages", () => {
             },
           },
         },
-        `IGN404: You have sent transactions from 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC with nonce 16. Please wait until they get 5 confirmations before running Ignition again.`
+        `IGN404: You have sent transactions from ${exampleAccounts[1]} with nonce 16. Please wait until they get 5 confirmations before running Ignition again.`
       );
     });
 
-    it("should error if the user replace the transaction and the user transaction is in the mempool but not mined (pending)", async () => {
+    it("should error if the user replaced the transaction and the user transaction is in the mempool but not mined (pending)", async () => {
       // Set latest to an arbitary nonce
       const latestCount = 30;
       // Safe is the same as latest
@@ -417,7 +417,7 @@ describe("execution - getNonceSyncMessages", () => {
             return { _kind: "FAKE_TRANSACTION" };
           },
         },
-        `IGN404: You have sent transactions from 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC with nonce 11. Please wait until they get 5 confirmations before running Ignition again.`
+        `IGN404: You have sent transactions from ${exampleAccounts[1]} with nonce 11. Please wait until they get 5 confirmations before running Ignition again.`
       );
     });
 
