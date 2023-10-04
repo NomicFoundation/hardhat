@@ -9,7 +9,9 @@ import {
   TaskArguments,
 } from "../../../types";
 import { HardhatContext } from "../../context";
+import { getSecretsFilePath } from "../../util/global-dir";
 import * as argumentTypes from "../params/argumentTypes";
+import { SecretsManager } from "../secrets/screts-manager";
 
 /**
  * Creates a task, overriding any previous task with the same name.
@@ -172,4 +174,13 @@ export function experimentalAddHardhatNetworkMessageTraceHook(
 ) {
   const ctx = HardhatContext.getHardhatContext();
   ctx.experimentalHardhatNetworkMessageTraceHooks.push(hook);
+}
+
+/**
+ * Secrets manager functions
+ */
+const secretsManager = new SecretsManager(getSecretsFilePath());
+
+export function getSecretString(key: string): string | undefined {
+  return secretsManager.get(key);
 }

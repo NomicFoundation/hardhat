@@ -195,7 +195,7 @@ async function main() {
       throw new HardhatError(ERRORS.GENERAL.NOT_INSIDE_PROJECT);
     }
 
-    if (scopeOrTaskName === "secrets") {
+    if (scopeOrTaskName === "secrets" && allUnparsedCLAs.length > 1) {
       return await handleSecrets(allUnparsedCLAs);
     }
 
@@ -453,36 +453,82 @@ async function createNewProject() {
 }
 
 async function handleSecrets(args: string[]) {
-  const [, action, secretName] = args;
+  const [, action, key] = args;
+
+  if (key === undefined && ["set", "get", "delete"].includes(action)) {
+    throw new HardhatError(ERRORS.ARGUMENTS.INVALID_ARGUMENT_VALUE, {
+      value: key,
+      argument: "key",
+      reason: `The key should not be undefined`,
+    });
+  }
 
   switch (action) {
-    case "set":
-      return secretsManager.set(secretName, await getSecretValue());
-    case "get":
-      return secretsManager.get(secretName);
-    case "list":
-      return secretsManager.list();
-    case "delete":
-      return secretsManager.delete(secretName);
+    case "set": {
+      return secretsManager.set(key, await getSecretValue());
+    }
+    case "get": {
+      const secret = secretsManager.get(key);
+
+      if (secret !== undefined) {
+        console.log(secret);
+      } else {
+        console.log(
+          chalk.yellow(`There is no secret associated to the key ${key}`)
+        );
+      }
+
+      return;
+    }
+    case "list": {
+      const keys = secretsManager.list();
+
+      if (keys.length > 0) {
+        keys.forEach((k) => console.log(k));
+      } else {
+        console.log(chalk.yellow(`There are no secrets in the secret manager`));
+      }
+
+      return;
+    }
+    case "delete": {
+      const deleted = secretsManager.delete(key);
+
+      if (!deleted) {
+        console.log(
+          chalk.yellow(`There is no secret associated to the key ${key}`)
+        );
+      }
+
+      return;
+    }
     default:
-      console.error(
-        chalk.red(
-          `Secrets, unknown action '${action}'. Available actions are: set, get, list and delete`
-        )
-      );
+      throw new HardhatError(ERRORS.ARGUMENTS.INVALID_ARGUMENT_VALUE, {
+        value: action,
+        argument: "action",
+        reason: `The action should be one of the following: set, get, list or delete`,
+      });
   }
 }
 
 async function getSecretValue(): Promise<string> {
   const { default: enquirer } = await import("enquirer");
 
-  const response: { secretValue: string } = await enquirer.prompt({
+  const response: { secret: string } = await enquirer.prompt({
     type: "password",
-    name: "secretValue",
+    name: "secret",
     message: "Enter secret:",
   });
 
-  return response.secretValue;
+  if (response.secret.length === 0) {
+    throw new HardhatError(ERRORS.ARGUMENTS.INVALID_ARGUMENT_VALUE, {
+      value: "",
+      argument: "secret",
+      reason: `The secret should be a valid string`,
+    });
+  }
+
+  return response.secret;
 }
 
 main()

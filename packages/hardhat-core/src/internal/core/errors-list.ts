@@ -799,6 +799,15 @@ Please double check the scope of the task you are trying to run.`,
 Please double check the name of the task you are trying to run.`,
       shouldBeReported: false,
     },
+    INVALID_ARGUMENT_VALUE: {
+      number: 316,
+      message: "Invalid value '%value%' for argument %argument%. %reason%",
+      title: "Invalid value for argument",
+      description: `One of your arguments has an invalid value.
+
+Please double check the value of your argument and try to run again.`,
+      shouldBeReported: false,
+    },
   },
   RESOLVER: {
     FILE_NOT_FOUND: {

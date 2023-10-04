@@ -1,93 +1,69 @@
 import chalk from "chalk";
 import fs from "fs-extra";
+import { HardhatError } from "../errors";
+import { ERRORS } from "../errors-list";
 
 export class SecretsManager {
+  private _cache: Record<string, string> | undefined = undefined;
+
   constructor(private readonly _secretsFilePath: string) {}
 
-  public set(secretName: string, secretValue: string) {
-    if (secretName === undefined || secretValue === undefined) {
-      console.log(chalk.yellow("You must provide a key and a secret"));
-      return;
+  public set(key: string, value: string) {
+    const KEY_REGEX = /^[a-zA-Z_]+[a-zA-Z0-9_]*$/;
+
+    if (!KEY_REGEX.test(key)) {
+      throw new HardhatError(ERRORS.ARGUMENTS.INVALID_ARGUMENT_VALUE, {
+        value: key,
+        argument: "key",
+        reason: `The argument should match the following regex expression: ${KEY_REGEX.toString()}`,
+      });
     }
 
     const secrets = this._readSecrets();
 
-    secrets[secretName] = secretValue;
+    secrets[key] = value;
     this._writeSecrets(secrets);
-
-    console.log(`The secret has been stored with the key ${secretName}`);
   }
 
-  public get(secretName: string): string | undefined {
-    if (secretName === undefined) {
+  public get(key: string): string | undefined {
+    if (key === undefined) {
       console.log(chalk.yellow("You must provide the secret key"));
       return;
     }
 
     const secrets = this._readSecrets();
-
-    if (!this._areSecretsStored(secrets)) return;
-    if (!this._doesSecretExist(secrets, secretName)) return;
-
-    // TODO: remove this console.log
-    console.log(`${secretName}: ${secrets[secretName]}`);
-
-    return secrets[secretName];
+    return secrets[key];
   }
 
-  public list() {
+  public list(): string[] {
     const secrets = this._readSecrets();
-    if (!this._areSecretsStored(secrets)) return;
-
-    Object.keys(secrets).forEach((key) => {
-      console.log(key);
-    });
+    return Object.keys(secrets);
   }
 
-  public delete(secretName: string) {
-    if (secretName === undefined) {
-      console.log(chalk.yellow("You must provide the secret key"));
-      return;
-    }
-
+  public delete(key: string): boolean {
     const secrets = this._readSecrets();
-    if (!this._areSecretsStored(secrets)) return;
-    if (!this._doesSecretExist(secrets, secretName)) return;
 
-    delete secrets[secretName];
+    if (secrets[key] === undefined) return false;
+
+    delete secrets[key];
     this._writeSecrets(secrets);
 
-    console.log(
-      `The secret associated to the key ${secretName} has been deleted`
-    );
+    return true;
   }
 
   private _writeSecrets(secrets: any) {
     const secretsPath = this._secretsFilePath;
     fs.writeJSONSync(secretsPath, secrets, { spaces: 2 });
+    this._cache = secrets;
   }
 
   private _readSecrets(): Record<string, string> {
-    return fs.pathExistsSync(this._secretsFilePath)
+    if (this._cache !== undefined) return this._cache;
+
+    this._cache = fs.pathExistsSync(this._secretsFilePath)
       ? fs.readJSONSync(this._secretsFilePath)
       : {};
-  }
 
-  private _areSecretsStored(secretsObj: Record<string, string>): boolean {
-    if (Object.keys(secretsObj).length > 0) return true;
-
-    console.log(
-      chalk.red("There are no secrets stored in the secret manager.")
-    );
-
-    return false;
-  }
-
-  private _doesSecretExist(secretsObj: any, key: string) {
-    if (secretsObj[key] !== undefined) return true;
-
-    console.log(chalk.red(`There is no secret associated to the key ${key}`));
-
-    return false;
+    return this._cache!;
   }
 }
