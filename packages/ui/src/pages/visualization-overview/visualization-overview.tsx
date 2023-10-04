@@ -10,7 +10,7 @@ import { Summary } from "./components/summary";
 import { ExecutionBatches } from "./components/execution-batches";
 
 import { socialsItems } from "../../components/socials";
-import hardhatLogo from "../../../public/hardhat-logo.svg";
+import hardhatLogo from "../../assets/hardhat-logo.svg";
 
 export const VisualizationOverview: React.FC<{
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>;
@@ -104,13 +104,16 @@ const NavBar = styled.div`
 `;
 
 const Contents = styled.div`
-  padding: 1rem;
+  padding: 5rem 240px;
   display: grid;
   row-gap: 1rem;
 `;
 
 const Panel = styled.div`
-  border-bottom: 1px solid #b0b2b5;
+  padding: 20px 0 40px 0;
+  :not(:last-child) {
+    border-bottom: 1px solid #b0b2b5;
+  }
 `;
 
 const PageTitle = styled.div`

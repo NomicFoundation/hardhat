@@ -6,20 +6,25 @@ body {
 }
 
 .deploy-background {
-  background: #dedae9;
+  background: #fbf8d8;
 }
 
 .call-background {
-  background: #eedfda;
+  background: #f8f2ff;
 }
 
 .styled-tooltip {
-  background-color: #f0f0ec !important;
-  color: #595959 !important;
-  font-size: 12px !important;
+  background-color: #ffffff !important;
+  color: #9b9fa8 !important;
   padding: 16px !important;
-  box-shadow: 0px 2px 7px 0px #0000001f;
   opacity: 1 !important;
+  -webkit-box-shadow: 0px 6px 50px 0px rgba(10, 10, 10, 0.4) !important;
+  -moz-box-shadow: 0px 6px 50px 0px rgba(10, 10, 10, 0.4) !important;
+  box-shadow: 0px 6px 50px 0px rgba(10, 10, 10, 0.4) !important;
+}
+
+.styled-tooltip span {
+  font-weight: 400 !important;
 }
 
 .batches-tooltip {

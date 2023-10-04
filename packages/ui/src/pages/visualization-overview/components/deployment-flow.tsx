@@ -57,9 +57,9 @@ const FlowTooltip: React.FC = () => (
   <span style={{ fontSize: "1.25rem" }}>
     <a data-tooltip-id="flow-tooltip">ℹ️</a>
     <Tooltip className="styled-tooltip flow-tooltip" id="flow-tooltip">
-      <div style={{ fontWeight: 700 }}>Diagram reference</div>
+      <div>Diagram reference</div>
       <br />
-      <span>Future to future dependency</span>
+      <span style={{ fontWeight: 400 }}>Future to future dependency</span>
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
       <span>---&gt;</span>
       <br />
@@ -93,7 +93,7 @@ const SectionHeader = styled.div`
 `;
 
 const BatchBtnSection = styled.div`
-  margin-bottom: 1rem;
+  margin-bottom: 40px;
 `;
 
 const BatchBtn = styled.span`

@@ -35,17 +35,19 @@ export const FutureBatch: React.FC<{
 };
 
 const Batch = styled.div`
-  background: #f2efef;
-  padding: 0.5rem;
+  padding: 1rem;
+  border: 2px solid #edcf00;
+  border-radius: 7px;
 `;
 
 const BatchHeader = styled.div`
-  margin: 0.5rem;
+  padding: 1rem;
 `;
 
 const FutureBtn = styled.div<{ isLibrary: boolean }>`
-  padding: 0.5rem;
-  margin: 0.5rem;
+  padding: 1rem;
+  margin: 1rem;
+  border-radius: 5px;
 
   ${(props) =>
     !props.isLibrary &&
@@ -57,6 +59,16 @@ const FutureBtn = styled.div<{ isLibrary: boolean }>`
 const Text = styled.div`
   margin: 0;
   display: inline;
+`;
+
+const ModuleName = styled.div`
+  margin: 0;
+  display: inline;
+
+  font-weight: 700;
+  float: right;
+  padding: 0.5rem;
+  margin-top: -0.5rem;
 `;
 
 const FutureBlock: React.FC<{
@@ -83,15 +95,16 @@ const FutureBlock: React.FC<{
       isLibrary={isLibrary}
     >
       {!isLibrary && <ToggleBtn toggled={toggled} />}
-      <Text>{displayText}</Text>
-      <Text
+      <Text style={{ paddingLeft: isLibrary ? "1rem" : "0.3rem" }}>
+        {displayText}
+      </Text>
+      <ModuleName
         className={future.module.id}
-        style={{ float: "right" }}
         onMouseEnter={() => setCurrentlyHovered(future.module.id)}
         onMouseLeave={() => setCurrentlyHovered("")}
       >
-        [{future.module.id}]
-      </Text>
+        [ {future.module.id} ]
+      </ModuleName>
       {toggled && (
         <FutureDetailsSection future={future} setToggled={setToggled} />
       )}
@@ -144,7 +157,7 @@ function toDisplayText(future: Future): string {
 const ToggleBtn: React.FC<{
   toggled: boolean;
 }> = ({ toggled }) => {
-  return <Text style={{ fontSize: "1.5rem" }}>{toggled ? "- " : "+ "}</Text>;
+  return <Text>{toggled ? "- " : "+ "}</Text>;
 };
 
 const FutureDetailsSection: React.FC<{

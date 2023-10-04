@@ -20,12 +20,12 @@ export const Summary: React.FC<{
   }, {} as Record<string, number>);
 
   return (
-    <div>
+    <SummaryStyle>
       <Title>Contracts to be deployed</Title>
 
       <div>
         {deployFutures.length === 0 ? null : (
-          <ul>
+          <StyledList>
             {Object.entries(deployCountPerContract).map(
               ([contractName, count]) => (
                 <ListItem key={contractName}>
@@ -34,12 +34,14 @@ export const Summary: React.FC<{
                 </ListItem>
               )
             )}
-          </ul>
+          </StyledList>
         )}
       </div>
-    </div>
+    </SummaryStyle>
   );
 };
+
+const SummaryStyle = styled.div``;
 
 const Title = styled.div`
   font-size: 24px;
@@ -50,10 +52,14 @@ const Title = styled.div`
   color: #16181d;
 `;
 
+const StyledList = styled.ul`
+  padding-inline-start: 1rem;
+`;
+
 const ListItem = styled.li`
   font-size: 17px;
   font-weight: 700;
-  line-height: 25px;
-  letter-spacing: 0em;
+  line-height: 1.6rem;
   text-align: left;
+  color: #b29c00;
 `;

@@ -1,5 +1,6 @@
-// Supports weights 100-900
 import "@fontsource/roboto";
+import "@fontsource/roboto/400.css";
+import "@fontsource/roboto/700.css";
 import React from "react";
 
 import {

@@ -97,11 +97,12 @@ const BatchesTooltip: React.FC = () => (
 const RootModuleName = styled.div`
   font-weight: 700;
   padding-bottom: 1.5rem;
+  padding-left: 1.5rem;
 `;
 
 const RootModuleBackground = styled.div`
-  background: #f6f6f6;
-  border: 1px solid #bebebe;
+  border: 1px solid #e5e6e7;
+  border-radius: 10px;
   padding: 1.5rem;
 `;
 
@@ -116,19 +117,19 @@ const SectionHeader = styled.div`
 `;
 
 const SectionSubHeader = styled.div`
-  margin-bottom: 1rem;
-  margin-top: 1rem;
+  margin-bottom: 2rem;
+  margin-top: 2rem;
 `;
 
 const Actions = styled.div<{ currentlyHovered: string }>`
   display: grid;
-  row-gap: 0.5rem;
+  row-gap: 1.5rem;
 
   ${({ currentlyHovered }) =>
     currentlyHovered &&
     `
     .${currentlyHovered} {
-      font-weight: 700;
+      background: #FFF100;
     }
   `}
 `;
