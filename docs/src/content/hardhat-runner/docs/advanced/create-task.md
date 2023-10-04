@@ -331,12 +331,12 @@ subtask("print", "Prints a message")
 You can group tasks under a _scope_. This is useful when you have several tasks that are related to each other in some way.
 
 ```js
-task("my-task", "Do something")
-  .setScope("my-scope")
+const myScope = scope("my-scope", "Scope description");
+
+myScope.task("my-task", "Do something")
   .setAction(async () => { ... });
 
-task("my-other-task", "Do something else")
-  .setScope("my-scope")
+myScope.task("my-other-task", "Do something else")
   .setAction(async () => { ... });
 ```
 
