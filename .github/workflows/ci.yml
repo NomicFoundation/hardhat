@@ -23,6 +23,9 @@ jobs:
         run: npm run build
       - name: Run tests
         run: npm run test
+      - name: Run integration tests
+        working-directory: packages/core
+        run: npm run test:integrations
       - name: Run tests in examples
         run: npm run test:examples
 
@@ -41,6 +44,9 @@ jobs:
         run: npm run build
       - name: Run tests
         run: npm run test
+      - name: Run integration tests
+        working-directory: packages/core
+        run: npm run test:integrations
       - name: Run tests in examples
         run: npm run test:examples
 
@@ -62,6 +68,9 @@ jobs:
         run: npm run build
       - name: Run tests
         run: npm run test
+      - name: Run integration tests
+        working-directory: packages/core
+        run: npm run test:integrations
       - name: Run tests in examples
         run: npm run test:examples
 
