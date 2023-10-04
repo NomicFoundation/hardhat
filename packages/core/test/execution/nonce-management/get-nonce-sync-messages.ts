@@ -122,6 +122,29 @@ describe("execution - getNonceSyncMessages", () => {
         `IGN403: You have sent transactions from ${exampleAccounts[1]}. Please wait until they get 5 confirmations before running Ignition again.`
       );
     });
+
+    it("should throw if there is a confirmed transaction for a future's sender that doesn't have enough confirmations yet", async () => {
+      // Set the latest block to be an arbitrary nonce
+      const latestCount = 30;
+      // Safest is the same as latest as it is not relevant in this test
+      const safestCount = 29;
+      // There are pending transactions
+      const pendingCount = latestCount;
+
+      await assertGetNonceSyncThrows(
+        {
+          ignitionModule: exampleModule,
+          transactionCountEntries: {
+            [exampleAccounts[1]]: {
+              pending: pendingCount,
+              latest: latestCount,
+              number: () => safestCount,
+            },
+          },
+        },
+        `IGN403: You have sent transactions from ${exampleAccounts[1]}. Please wait until they get 5 confirmations before running Ignition again.`
+      );
+    });
   });
 
   describe("second deployment run", () => {
