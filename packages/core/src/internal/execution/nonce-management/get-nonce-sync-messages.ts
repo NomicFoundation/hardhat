@@ -77,6 +77,7 @@ export async function getNonceSyncMessages(
     );
 
   const block = await jsonRpcClient.getLatestBlock();
+  // TODO: What happens if this is < 0?
   const confirmedBlockNumber = block.number - requiredConfirmations + 1;
 
   for (const [sender, pendingTransactions] of Object.entries(
