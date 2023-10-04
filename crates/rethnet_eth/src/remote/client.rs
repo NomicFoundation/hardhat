@@ -14,13 +14,12 @@ use reqwest_retry::{
     policies::ExponentialBackoff, RetryTransientMiddleware, Retryable, RetryableStrategy,
 };
 use revm_primitives::{AccountInfo, Address, Bytecode, B256, KECCAK_EMPTY, U256};
-use tempfile::NamedTempFile;
-
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use sha3::digest::FixedOutput;
 use sha3::{Digest, Sha3_256};
 use tokio::sync::{OnceCell, RwLock};
+use uuid::Uuid;
 
 use crate::block::{block_time, is_safe_block_number, IsSafeBlockNumberArgs};
 use crate::remote::cacheable_method_invocation::{
@@ -37,6 +36,7 @@ use super::{
 };
 
 const RPC_CACHE_DIR: &str = "rpc_cache";
+const TMP_DIR: &str = "tmp";
 // Retry parameters for rate limited requests.
 const BACKOFF_EXPONENT: u32 = 2;
 const MIN_RETRY_INTERVAL: Duration = Duration::from_secs(1);
@@ -152,6 +152,7 @@ pub struct RpcClient {
     client: ClientWithMiddleware,
     next_id: AtomicU64,
     rpc_cache_dir: PathBuf,
+    tmp_dir: PathBuf,
 }
 
 impl RpcClient {
@@ -169,6 +170,11 @@ impl RpcClient {
             ))
             .build();
 
+        let rpc_cache_dir = cache_dir.join(RPC_CACHE_DIR);
+        // We aren't using the system temporary directories as they may be on a different a file
+        // system which would cause the rename call later to fail.
+        let tmp_dir = rpc_cache_dir.join(TMP_DIR);
+
         RpcClient {
             url: url.to_string(),
             chain_id: OnceCell::new(),
@@ -176,6 +182,7 @@ impl RpcClient {
             client,
             next_id: AtomicU64::new(0),
             rpc_cache_dir: cache_dir.join(RPC_CACHE_DIR),
+            tmp_dir,
         }
     }
 
@@ -226,16 +233,7 @@ impl RpcClient {
             .rpc_cache_dir
             .join(Self::hash_bytes(chain_id.as_le_bytes().as_ref()));
 
-        // ensure directory exists
-        tokio::fs::DirBuilder::new()
-            .recursive(true)
-            .create(directory.clone())
-            .await
-            .map_err(|error| RpcClientError::CacheError {
-                message: "failed to create RPC response cache".to_string(),
-                cache_key: cache_key.to_string(),
-                error: error.into(),
-            })?;
+        ensure_cache_directory(&directory, cache_key).await?;
 
         let path = Path::new(&directory).join(format!("{cache_key}.json"));
         Ok(path)
@@ -392,19 +390,11 @@ impl RpcClient {
             "result serializes successfully as it was just deserialized from a JSON string",
         );
 
+        ensure_cache_directory(&self.tmp_dir, cache_key).await?;
+
         // 1. Write to a random temporary file first to avoid race conditions.
-        let tempfile = match tokio::task::spawn_blocking(NamedTempFile::new).await? {
-            Ok(tempfile) => tempfile,
-            Err(error) => {
-                log_cache_error(
-                    cache_key,
-                    "failed to create temporary file for RPC response cache",
-                    error,
-                );
-                return Ok(());
-            }
-        };
-        match tokio::fs::write(tempfile.path(), contents).await {
+        let tmp_path = self.tmp_dir.join(Uuid::new_v4().to_string());
+        match tokio::fs::write(&tmp_path, contents).await {
             Ok(_) => (),
             Err(error) => {
                 log_cache_error(
@@ -424,7 +414,7 @@ impl RpcClient {
         // library will adapt its `rename` implementation to use the new atomic move API in Windows
         // 10. In any case, if a cache file is corrupted, we detect and remove it when reading it.
         let cache_path = self.make_cache_path(cache_key).await?;
-        match tokio::fs::rename(tempfile.path(), cache_path).await {
+        match tokio::fs::rename(&tmp_path, cache_path).await {
             Ok(_) => (),
             Err(error) => {
                 log_cache_error(
@@ -834,6 +824,22 @@ fn log_cache_error(cache_key: &str, message: &'static str, error: impl Into<Cach
         error: error.into(),
     };
     log::error!("{cache_error}");
+}
+
+/// Ensure that the directory exists.
+async fn ensure_cache_directory(
+    directory: impl AsRef<Path>,
+    cache_key: impl std::fmt::Display,
+) -> Result<(), RpcClientError> {
+    tokio::fs::DirBuilder::new()
+        .recursive(true)
+        .create(directory)
+        .await
+        .map_err(|error| RpcClientError::CacheError {
+            message: "failed to create RPC response cache directory".to_string(),
+            cache_key: cache_key.to_string(),
+            error: error.into(),
+        })
 }
 
 struct RetryStrategy;
