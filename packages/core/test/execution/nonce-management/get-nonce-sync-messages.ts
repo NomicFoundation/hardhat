@@ -244,13 +244,9 @@ describe("execution - getNonceSyncMessages", () => {
       // future and its deploy transaction is in the mempool but not mined
       // at the start of the second run
 
-      // The in-flight transaction has been included in a block, so latest includes it
       const latestCount = 0;
-      // Safest is x blocks in the past so is zero
       const safestCount = 0;
-      // There are no pending
       const pendingCount = latestCount + 1;
-      // The nonce of the now complete transaction is 0
       const nonce = 0;
 
       const deploymentState =
