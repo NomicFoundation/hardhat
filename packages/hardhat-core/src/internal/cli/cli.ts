@@ -265,7 +265,11 @@ async function main() {
     if (hardhatArguments.help && taskName !== TASK_HELP) {
       // we "move" the task and scope names to the task arguments,
       // and run the help task
-      taskArguments = { scopeOrTask: scopeName, task: taskName };
+      if (scopeName !== undefined) {
+        taskArguments = { scopeOrTask: scopeName, task: taskName };
+      } else {
+        taskArguments = { scopeOrTask: taskName };
+      }
       taskName = TASK_HELP;
       scopeName = undefined;
     } else {
