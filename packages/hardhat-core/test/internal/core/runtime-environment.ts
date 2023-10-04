@@ -166,6 +166,20 @@ describe("Environment", () => {
       assert.equal(ret, 28);
     });
 
+    it("should throw if the scope doesn't exist", async () => {
+      await expectHardhatErrorAsync(
+        () => env.run({ scope: "scopd", task: "task" }),
+        ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPE
+      );
+    });
+
+    it("should throw if a scoped task doesn't exist", async () => {
+      await expectHardhatErrorAsync(
+        () => env.run({ scope: "scoped", task: "tsk" }),
+        ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPED_TASK
+      );
+    });
+
     it("should not run a scoped task with just task name", async () => {
       await expectHardhatErrorAsync(
         () => env.run("task"),

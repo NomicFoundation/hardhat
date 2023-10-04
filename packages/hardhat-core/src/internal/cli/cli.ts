@@ -275,6 +275,12 @@ async function main() {
       );
 
       if (taskDefinition === undefined) {
+        if (scopeName !== undefined) {
+          throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPED_TASK, {
+            scope: scopeName,
+            task: taskName,
+          });
+        }
         throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
           task: taskName,
         });

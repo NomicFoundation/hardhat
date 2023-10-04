@@ -158,6 +158,13 @@ export class Environment implements HardhatRuntimeEnvironment {
     }
 
     if (taskDefinition === undefined) {
+      if (scope !== undefined) {
+        throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPED_TASK, {
+          scope,
+          task,
+        });
+      }
+
       throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
         task,
       });
