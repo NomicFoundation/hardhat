@@ -93,6 +93,8 @@ export interface ConfigurableTaskDefinition {
   addFlag(name: string, description?: string): this;
 }
 
+// type alias to get the overloaded function type
+// for 'task` and 'subtask'
 declare function addTask<TaskArgumentsT extends TaskArguments>(
   name: string,
   description?: string,
@@ -102,9 +104,6 @@ declare function addTask<TaskArgumentsT extends TaskArguments>(
   name: string,
   action: ActionType<TaskArgumentsT>
 ): ConfigurableTaskDefinition;
-
-// type alias to get the overloaded function type
-// for 'task` and 'subtask'
 type AddConfigurableTaskFunction = typeof addTask;
 
 export interface ConfigurableScopeDefinition {
