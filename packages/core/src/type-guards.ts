@@ -2,23 +2,23 @@ import { Artifact } from "./types/artifact";
 import {
   AccountRuntimeValue,
   AddressResolvableFuture,
+  CallableContractFuture,
   ContractAtFuture,
   ContractDeploymentFuture,
-  LibraryDeploymentFuture,
-  CallableContractFuture,
   ContractFuture,
   DeploymentFuture,
   FunctionCallFuture,
   Future,
   FutureType,
+  LibraryDeploymentFuture,
   ModuleParameterRuntimeValue,
   NamedArtifactContractAtFuture,
   NamedArtifactContractDeploymentFuture,
   NamedArtifactLibraryDeploymentFuture,
-  StaticCallFuture,
   ReadEventArgumentFuture,
   RuntimeValue,
   RuntimeValueType,
+  StaticCallFuture,
 } from "./types/module";
 
 function isValidEnumValue(
@@ -170,7 +170,7 @@ export function isNamedStaticCallFuture(
  */
 export function isReadEventArgumentFuture(
   future: Future
-): future is StaticCallFuture<string, string> {
+): future is ReadEventArgumentFuture {
   return future.type === FutureType.READ_EVENT_ARGUMENT;
 }
 

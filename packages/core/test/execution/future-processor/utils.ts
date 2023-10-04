@@ -7,7 +7,7 @@ import {
   JsonRpcClient,
   TransactionParams,
 } from "../../../src/internal/execution/jsonrpc-client";
-import { NonceManager } from "../../../src/internal/execution/nonce-management";
+import { NonceManager } from "../../../src/internal/execution/nonce-management/json-rpc-nonce-manager";
 import { TransactionTrackingTimer } from "../../../src/internal/execution/transaction-tracking-timer";
 import {
   NetworkFees,

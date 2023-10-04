@@ -1,16 +1,28 @@
-import { IgnitionError } from "../../errors";
-import { ERRORS } from "../../errors-list";
-import { getPendingNonceAndSender } from "../views/execution-state/get-pending-nonce-and-sender";
-import { getPendingOnchainInteraction } from "../views/execution-state/get-pending-onchain-interaction";
+import uniq from "lodash/uniq";
 
-import { JsonRpcClient } from "./jsonrpc-client";
-import { DeploymentState } from "./types/deployment-state";
-import { ExecutionSateType } from "./types/execution-state";
+import { IgnitionError } from "../../../errors";
+import { ERRORS } from "../../../errors-list";
+import {
+  isArtifactContractAtFuture,
+  isNamedContractAtFuture,
+  isReadEventArgumentFuture,
+} from "../../../type-guards";
+import {
+  Future,
+  IgnitionModule,
+  IgnitionModuleResult,
+} from "../../../types/module";
+import { getFuturesFromModule } from "../../utils/get-futures-from-module";
+import { getPendingOnchainInteraction } from "../../views/execution-state/get-pending-onchain-interaction";
+import { resolveFutureFrom } from "../future-processor/helpers/future-resolvers";
+import { JsonRpcClient } from "../jsonrpc-client";
+import { DeploymentState } from "../types/deployment-state";
+import { ExecutionSateType, ExecutionStatus } from "../types/execution-state";
 import {
   JournalMessageType,
   OnchainInteractionDroppedMessage,
   OnchainInteractionReplacedByUserMessage,
-} from "./types/messages";
+} from "../types/messages";
 
 /**
  * This function is meant to be used to sync the local state's nonces
@@ -43,6 +55,9 @@ import {
 export async function getNonceSyncMessages(
   jsonRpcClient: JsonRpcClient,
   deploymentState: DeploymentState,
+  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
+  accounts: string[],
+  defaultSender: string,
   requiredConfirmations: number
 ): Promise<
   Array<
@@ -54,7 +69,12 @@ export async function getNonceSyncMessages(
   > = [];
 
   const pendingTransactionsPerSender =
-    createMapFromSenderToNonceAndTransactions(deploymentState);
+    createMapFromSenderToNonceAndTransactions(
+      deploymentState,
+      ignitionModule,
+      accounts,
+      defaultSender
+    );
 
   const block = await jsonRpcClient.getLatestBlock();
   const confirmedBlockNumber = block.number - requiredConfirmations + 1;
@@ -145,84 +165,11 @@ export async function getNonceSyncMessages(
   return messages;
 }
 
-/**
- * This interface is meant to be used to fetch new nonces for transactions.
- */
-export interface NonceManager {
-  /**
-   * Returns the next nonce for a given sender, throwing if its not the one
-   * expected by the network.
-   *
-   * If a nonce is returned by this method it must be immediately used to
-   * send a transaction. If it can't be used, Ignition's execution must be
-   * interrupted.
-   */
-  getNextNonce(sender: string): Promise<number>;
-}
-
-/**
- * An implementation of NonceManager that validates the nonces using
- * the _maxUsedNonce params and a JsonRpcClient.
- */
-export class JsonRpcNonceManager implements NonceManager {
-  constructor(
-    private readonly _jsonRpcClient: JsonRpcClient,
-    private readonly _maxUsedNonce: { [sender: string]: number }
-  ) {}
-
-  public async getNextNonce(sender: string): Promise<number> {
-    const pendingCount = await this._jsonRpcClient.getTransactionCount(
-      sender,
-      "pending"
-    );
-
-    const expectedNonce =
-      this._maxUsedNonce[sender] !== undefined
-        ? this._maxUsedNonce[sender] + 1
-        : pendingCount;
-
-    if (expectedNonce !== pendingCount) {
-      throw new IgnitionError(ERRORS.EXECUTION.INVALID_NONCE, {
-        sender,
-        expectedNonce,
-        pendingCount,
-      });
-    }
-
-    // The nonce hasn't been used yet, but we update as it will be immediately used.
-    this._maxUsedNonce[expectedNonce] = expectedNonce;
-
-    return expectedNonce;
-  }
-}
-
-export function getMaxNonceUsedBySender(deploymentState: DeploymentState): {
-  [sender: string]: number;
-} {
-  const nonces: {
-    [sender: string]: number;
-  } = {};
-  for (const executionState of Object.values(deploymentState.executionStates)) {
-    const pendingNonceAndSender = getPendingNonceAndSender(executionState);
-
-    if (pendingNonceAndSender === undefined) {
-      continue;
-    }
-
-    const { sender, nonce } = pendingNonceAndSender;
-
-    if (nonces[sender] === undefined) {
-      nonces[sender] = nonce;
-    } else {
-      nonces[sender] = Math.max(nonces[sender], nonce);
-    }
-  }
-
-  return nonces;
-}
-
 function createMapFromSenderToNonceAndTransactions(
-  deploymentState: DeploymentState
+  deploymentState: DeploymentState,
+  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
+  accounts: string[],
+  defaultSender: string
 ): {
   [sender: string]: Array<{
     nonce: number;
@@ -249,6 +196,10 @@ function createMapFromSenderToNonceAndTransactions(
       continue;
     }
 
+    if (executionState.status === ExecutionStatus.SUCCESS) {
+      continue;
+    }
+
     const onchainInteraction = getPendingOnchainInteraction(executionState);
 
     if (onchainInteraction === undefined) {
@@ -271,6 +222,18 @@ function createMapFromSenderToNonceAndTransactions(
     });
   }
 
+  const exStateIds = Object.keys(deploymentState.executionStates);
+  const futureSenders = _resolveFutureSenders(
+    ignitionModule,
+    accounts,
+    defaultSender,
+    exStateIds
+  );
+
+  for (const futureSender of futureSenders) {
+    pendingTransactionsPerAccount[futureSender] = [];
+  }
+
   for (const pendingTransactions of Object.values(
     pendingTransactionsPerAccount
   )) {
@@ -278,4 +241,44 @@ function createMapFromSenderToNonceAndTransactions(
   }
 
   return pendingTransactionsPerAccount;
+}
+
+/**
+ * Scan the futures for upcoming account usage, add them to the list,
+ * including the default sender if there are any undefined froms
+ */
+function _resolveFutureSenders(
+  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
+  accounts: string[],
+  defaultSender: string,
+  exStateIds: string[]
+): string[] {
+  const futures = getFuturesFromModule(ignitionModule);
+
+  const senders: string[] = futures
+    .filter((f) => !exStateIds.includes(f.id))
+    .map((f) => _pickFrom(f, accounts, defaultSender))
+    .filter((x): x is string => x !== null);
+
+  return uniq(senders);
+}
+
+function _pickFrom(
+  future: Future,
+  accounts: string[],
+  defaultSender: string
+): string | null {
+  if (isNamedContractAtFuture(future)) {
+    return null;
+  }
+
+  if (isArtifactContractAtFuture(future)) {
+    return null;
+  }
+
+  if (isReadEventArgumentFuture(future)) {
+    return null;
+  }
+
+  return resolveFutureFrom(future.from, accounts, defaultSender);
 }
