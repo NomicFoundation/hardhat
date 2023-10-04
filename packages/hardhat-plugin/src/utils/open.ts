@@ -14,5 +14,9 @@ export function open(filePath: string): void {
       command = "xdg-open";
   }
 
-  execSync(`${command} ${filePath}`);
+  try {
+    execSync(`${command} ${filePath}`, { stdio: "ignore" });
+  } catch {
+    // do nothing
+  }
 }
