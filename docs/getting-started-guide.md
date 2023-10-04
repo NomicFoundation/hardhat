@@ -51,18 +51,19 @@ require("@nomicfoundation/hardhat-toolbox");
 require("@nomicfoundation/hardhat-ignition");
 ```
 
-Create an `./ignition` folder in your project root to contain your deployment modules.
+Create an `./ignition` folder in your project root, with a `modules` subfolder to contain your deployment modules.
 
 ```bash
 mkdir ./ignition
+mkdir ./ignition/modules
 ```
 
 ## Writing Your First Deployment Module
 
-Add a deployment module under the `./ignition` folder for the example `Lock.sol` contract:
+Add a deployment module under the `./ignition/modules` folder for the example `Lock.sol` contract:
 
 ```js
-// ./ignition/LockModule.js
+// ./ignition/modules/LockModule.js
 const { buildModule } = require("@nomicfoundation/hardhat-ignition");
 
 const currentTimestampInSeconds = Math.round(new Date(2023, 0, 1) / 1000);
@@ -95,7 +96,7 @@ A file containing module parameters, indexed by the `ModuleId` used in `buildMod
 the command line:
 
 ```json
-// ignition/LockModule.config.json
+// ignition/modules/LockModule.config.json
 {
   "LockModule": {
     "unlockTime": 4102491600
@@ -104,7 +105,7 @@ the command line:
 ```
 
 ```bash
-npx hardhat deploy --parameters ignition/LockModule.config.json LockModule
+npx hardhat deploy --parameters ignition/modules/LockModule.config.json LockModule
 ```
 
 To deploy against a specific network pass it on the command line, for instance to deploy against
@@ -117,21 +118,21 @@ npx hardhat deploy LockModule --network localhost
 ```
 
 Running against a non-ephemeral network will generate a `deployment` stored under `./ignition/deployments`. The
-deployment identified by a `deploymentId` that can be passed at the command line:
+deployment identified by an `id` that can be passed at the command line:
 
 ```bash
 npx hardhat deploy LockModule --network localhost --id dev-deploy
 ```
 
-If no `deploymentId` is provided a default is generated based on the `chainId` e.g. _network-31337_ for the localhost
+If no `id` is provided a default is generated based on the `chainId` e.g. _network-31337_ for the localhost
 network.
 
 ### Getting Info About Previous Deployments
 
-Run the `ignition-info` task to display info about your successfully deployed contracts within a deployment:
+Run the `status` task to display info about your successfully deployed contracts within a deployment:
 
 ```bash
-npx hardhat ignition-info --deployment-id dev-deploy
+npx hardhat status --id dev-deploy
 # Deployed Addresses
 # ==================
 
@@ -146,7 +147,7 @@ the `./test/Lock.js` test file can be leverage **Ignition** by updating the `dep
 ```js
 ...
 const { expect } = require("chai");
-const LockModule = require("../ignition/LockModule");
+const LockModule = require("../ignition/modules/LockModule");
 
 ...
 

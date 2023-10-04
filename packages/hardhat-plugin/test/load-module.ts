@@ -41,16 +41,23 @@ describe("loadModule", function () {
   });
 
   it("should throw if the full path to the module is outside the module directory", () => {
+    const unixErrorMessage = `The referenced module ./hardhat.config.js is outside the module directory ignition/modules`;
+
+    const expectedErrorMessage =
+      process.platform === "win32"
+        ? unixErrorMessage.replace("ignition/modules", "ignition\\modules")
+        : unixErrorMessage;
+
     assert.throws(
-      () => loadModule("contracts", "./ignition/TestModule.js"),
-      `The referenced module ./ignition/TestModule.js is outside the module directory contracts`
+      () => loadModule("ignition", "./hardhat.config.js"),
+      expectedErrorMessage
     );
   });
 
   it("should throw if given a user module directory that does not exist", async () => {
     assert.throws(
       () => loadModule("/fake", "AFile.js"),
-      `Directory /fake not found.`
+      `Ignition directory /fake not found.`
     );
   });
 });

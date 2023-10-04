@@ -11,7 +11,9 @@ describe("chainId reconciliation", function () {
     this.hre.network.name = "something-else";
 
     await assert.isRejected(
-      this.hre.run("deploy", { moduleNameOrPath: "./ignition/LockModule.js" }),
+      this.hre.run("deploy", {
+        moduleNameOrPath: "./ignition/modules/LockModule.js",
+      }),
       /Previous chain id: 123\. Current chain id: 31337/
     );
   });

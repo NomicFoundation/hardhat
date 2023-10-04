@@ -7,7 +7,7 @@
     "lint": "npm run prettier -- --check && npm run eslint",
     "lint:fix": "npm run prettier -- --write && npm run eslint -- --fix",
     "eslint": "eslint \"ignition/**/*.{js,jsx}\" \"test/**/*.{js,jsx}\"",
-    "prettier": "prettier \"*.{js,md,json}\" \"ignition/*.{js,md,json}\" \"test/*.{js,md,json}\" \"contracts/**/*.sol\""
+    "prettier": "prettier \"*.{js,md,json}\" \"ignition/modules/*.{js,md,json}\" \"test/*.{js,md,json}\" \"contracts/**/*.sol\""
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ignition": "^0.4.0",

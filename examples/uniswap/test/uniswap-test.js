@@ -2,7 +2,7 @@ const { assert } = require("chai");
 const { Token } = require("@uniswap/sdk-core");
 const { Pool, Position, nearestUsableTick } = require("@uniswap/v3-sdk");
 const UniswapV3Pool = require("@uniswap/v3-core/artifacts/contracts/UniswapV3Pool.sol/UniswapV3Pool.json");
-const UniswapModule = require("../ignition/Uniswap");
+const UniswapModule = require("../ignition/modules/Uniswap");
 const {
   encodePriceSqrt,
   getPoolImmutables,

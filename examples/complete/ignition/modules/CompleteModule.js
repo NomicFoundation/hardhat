@@ -1,8 +1,8 @@
 // ./ignition/CompleteModule.js
 const { buildModule } = require("@nomicfoundation/hardhat-ignition");
 
-const withLibArtifact = require("../libArtifacts/ContractWithLibrary.json");
-const libArtifact = require("../libArtifacts/BasicLibrary.json");
+const withLibArtifact = require("../../libArtifacts/ContractWithLibrary.json");
+const libArtifact = require("../../libArtifacts/BasicLibrary.json");
 
 module.exports = buildModule("CompleteModule", (m) => {
   const basic = m.contract("BasicContract");

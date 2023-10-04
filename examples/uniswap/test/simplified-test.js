@@ -1,5 +1,5 @@
 const { assert } = require("chai");
-const UniswapModule = require("../ignition/Uniswap");
+const UniswapModule = require("../ignition/modules/Uniswap");
 
 describe("uniswap deploy", () => {
   let nonfungibleTokenPositionManager, uniswapV3Factory, swapRouter02;

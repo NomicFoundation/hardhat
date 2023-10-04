@@ -6,21 +6,40 @@ import path from "path";
 
 const debug = setupDebug("hardhat-ignition:modules");
 
+const MODULES_FOLDER = "modules";
+
 export function loadModule(
-  modulesDirectory: string,
+  ignitionDirectory: string,
   moduleNameOrPath: string
 ): IgnitionModule | undefined {
-  debug(`Loading user modules from '${modulesDirectory}'`);
+  const fullModulesDirectoryName = path.resolve(
+    ignitionDirectory,
+    MODULES_FOLDER
+  );
 
-  if (!existsSync(modulesDirectory)) {
+  const shortModulesDirectoryName = path.join(
+    ignitionDirectory,
+    MODULES_FOLDER
+  );
+
+  if (!existsSync(ignitionDirectory)) {
     throw new HardhatPluginError(
       "hardhat-ignition",
-      `Directory ${modulesDirectory} not found.`
+      `Ignition directory ${ignitionDirectory} not found.`
     );
   }
 
+  if (!existsSync(fullModulesDirectoryName)) {
+    throw new HardhatPluginError(
+      "hardhat-ignition",
+      `Ignition modules directory ${shortModulesDirectoryName} not found.`
+    );
+  }
+
+  debug(`Loading user modules from '${fullModulesDirectoryName}'`);
+
   const fullpathToModule = resolveFullPathToModule(
-    modulesDirectory,
+    fullModulesDirectoryName,
     moduleNameOrPath
   );
 
@@ -31,10 +50,10 @@ export function loadModule(
     );
   }
 
-  if (!isInModuleDirectory(modulesDirectory, fullpathToModule)) {
+  if (!isInModuleDirectory(fullModulesDirectoryName, fullpathToModule)) {
     throw new HardhatPluginError(
       "hardhat-ignition",
-      `The referenced module ${moduleNameOrPath} is outside the module directory ${modulesDirectory}`
+      `The referenced module ${moduleNameOrPath} is outside the module directory ${shortModulesDirectoryName}`
     );
   }
 
@@ -71,6 +90,7 @@ function resolveFullPathToModule(
     modulesDirectory,
     `${moduleNameOrPath}.ts`
   );
+
   if (pathExistsSync(relativeToModulesWithTsExtension)) {
     return relativeToModulesWithTsExtension;
   }
