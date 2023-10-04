@@ -808,6 +808,15 @@ Please double check the name of the task you are trying to run.`,
 Please double check the value of your argument and try to run again.`,
       shouldBeReported: false,
     },
+    VALUE_NOT_FOUND_FOR_ARGUMENT: {
+      number: 317,
+      message: "Cannot find a value associated to the %argument% '%value%'",
+      title: "Cannot find value",
+      description: `Cannot find a value.
+
+Please double check your argument and try to run again.`,
+      shouldBeReported: false,
+    },
   },
   RESOLVER: {
     FILE_NOT_FOUND: {

@@ -10,6 +10,8 @@ import {
 } from "../../../types";
 import { HardhatContext } from "../../context";
 import { getSecretsFilePath } from "../../util/global-dir";
+import { HardhatError } from "../errors";
+import { ERRORS } from "../errors-list";
 import * as argumentTypes from "../params/argumentTypes";
 import { SecretsManager } from "../secrets/screts-manager";
 
@@ -181,6 +183,18 @@ export function experimentalAddHardhatNetworkMessageTraceHook(
  */
 const secretsManager = new SecretsManager(getSecretsFilePath());
 
-export function getSecretString(key: string): string | undefined {
-  return secretsManager.get(key);
+export function getSecret(
+  key: string,
+  defaultValue?: string
+): string | undefined {
+  const value = secretsManager.get(key);
+
+  if (value !== undefined) return value;
+
+  if (defaultValue !== undefined) return defaultValue;
+
+  throw new HardhatError(ERRORS.ARGUMENTS.VALUE_NOT_FOUND_FOR_ARGUMENT, {
+    argument: "key",
+    value: key,
+  });
 }
