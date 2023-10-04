@@ -121,6 +121,8 @@ export class TasksDSL {
     const scopeDefinition = this._scopes[name];
 
     if (scopeDefinition !== undefined) {
+      // if the scope already exists, the only thing we might
+      // do is to update its description
       if (description !== undefined) {
         scopeDefinition.setDescription(description);
       }

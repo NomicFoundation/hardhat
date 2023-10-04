@@ -126,7 +126,7 @@ export class Environment implements HardhatRuntimeEnvironment {
   /**
    * Executes the task with the given name.
    *
-   * @param name The task's name.
+   * @param taskIdentifier The task or scoped task to be executed.
    * @param taskArguments A map of task's arguments.
    * @param subtaskArguments A map of subtasks to their arguments.
    *
