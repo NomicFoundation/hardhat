@@ -10,7 +10,7 @@ import { TASK_HELP } from "./task-names";
 task(TASK_HELP, "Prints this message")
   .addOptionalPositionalParam(
     "scopeOrTask",
-    "An optional task to print more info about"
+    "An optional scope or task to print more info about"
   )
   .addOptionalPositionalParam(
     "task",
