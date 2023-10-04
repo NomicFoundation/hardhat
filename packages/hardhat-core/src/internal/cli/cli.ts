@@ -40,7 +40,7 @@ import {
 import { getPackageJson } from "../util/packageInfo";
 
 import { saveFlamegraph } from "../core/flamegraph";
-import { SecretsManager } from "../core/secrets/screts-manager";
+import { SecretsManager } from "../core/secrets/secrets-manager";
 import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
@@ -454,6 +454,12 @@ async function createNewProject() {
 
 async function handleSecrets(args: string[]) {
   const [, action, key] = args;
+
+  if (args.length > 3) {
+    throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_POSITIONAL_ARG, {
+      argument: args[3],
+    });
+  }
 
   if (key === undefined && ["set", "get", "delete"].includes(action)) {
     throw new HardhatError(ERRORS.ARGUMENTS.INVALID_ARGUMENT_VALUE, {

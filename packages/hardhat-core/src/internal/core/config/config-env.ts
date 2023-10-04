@@ -13,7 +13,7 @@ import { getSecretsFilePath } from "../../util/global-dir";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 import * as argumentTypes from "../params/argumentTypes";
-import { SecretsManager } from "../secrets/screts-manager";
+import { SecretsManager } from "../secrets/secrets-manager";
 
 /**
  * Creates a task, overriding any previous task with the same name.
@@ -181,10 +181,7 @@ export function experimentalAddHardhatNetworkMessageTraceHook(
 /**
  * Secrets manager functions
  */
-export function getSecret(
-  key: string,
-  defaultValue?: string
-): string | undefined {
+export function getSecret(key: string, defaultValue?: string): string {
   const secretsManager = new SecretsManager(getSecretsFilePath());
 
   const value = secretsManager.get(key);

@@ -7,27 +7,16 @@ interface Secret {
 }
 
 interface SecretsFile {
-  _format: string;
+  _format: string; // Version of the json secrets file
   secrets: Record<string, Secret>;
 }
 
 export class SecretsManager {
-  private _cache: SecretsFile;
-  private _version = "hh-secrets-1";
+  private readonly _cache: SecretsFile;
+  private readonly _version = "hh-secrets-1";
 
   constructor(private readonly _secretsFilePath: string) {
-    if (!fs.pathExistsSync(this._secretsFilePath)) {
-      // Initialize the secrets file if it does not exist
-      fs.writeJSONSync(
-        this._secretsFilePath,
-        {
-          _format: this._version,
-          secrets: {},
-        },
-        { spaces: 2 }
-      );
-    }
-
+    this._initializeSecretsFile();
     this._cache = fs.readJSONSync(this._secretsFilePath);
   }
 
@@ -71,6 +60,20 @@ export class SecretsManager {
     this._writeSecrets(secrets);
 
     return true;
+  }
+
+  private _initializeSecretsFile() {
+    if (!fs.pathExistsSync(this._secretsFilePath)) {
+      // Initialize the secrets file if it does not exist
+      fs.writeJSONSync(
+        this._secretsFilePath,
+        {
+          _format: this._version,
+          secrets: {},
+        },
+        { spaces: 2 }
+      );
+    }
   }
 
   private _writeSecrets(secrets: Record<string, Secret>) {
