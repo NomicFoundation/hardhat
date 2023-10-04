@@ -288,6 +288,34 @@ describe("ArgumentsParser", () => {
       );
     });
 
+    it("should fail to parse a hardhat argument without a value when a task is not specified", () => {
+      const rawCLAs: string[] = ["--network"];
+      expectHardhatError(
+        () =>
+          argumentsParser.parseHardhatArguments(
+            HARDHAT_PARAM_DEFINITIONS,
+            envArgs,
+            rawCLAs
+          ),
+        ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT,
+        "The '--network' parameter of task 'help' expects a value, but none was passed."
+      );
+    });
+
+    it("should fail to parse a hardhat argument without a value when a task is specified", () => {
+      const rawCLAs: string[] = ["compile", "--network"];
+      expectHardhatError(
+        () =>
+          argumentsParser.parseHardhatArguments(
+            HARDHAT_PARAM_DEFINITIONS,
+            envArgs,
+            rawCLAs
+          ),
+        ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT,
+        "The '--network' parameter of task 'compile' expects a value, but none was passed."
+      );
+    });
+
     it("should only add non-present arguments", () => {
       const hardhatArguments = argumentsParser["_addHardhatDefaultArguments"](
         HARDHAT_PARAM_DEFINITIONS,
