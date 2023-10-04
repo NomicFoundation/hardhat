@@ -57,15 +57,15 @@ export class ArgumentsParser {
     allUnparsedCLAs: string[];
   } {
     const hardhatArguments: Partial<HardhatArguments> = {};
-    let taskName: string | undefined;
+    let scopeOrTaskName: string | undefined;
     const allUnparsedCLAs: string[] = [];
 
     for (let i = 0; i < rawCLAs.length; i++) {
       const arg = rawCLAs[i];
 
-      if (taskName === undefined) {
+      if (scopeOrTaskName === undefined) {
         if (!this._hasCLAParamNameFormat(arg)) {
-          taskName = arg;
+          scopeOrTaskName = arg;
           allUnparsedCLAs.push(arg);
           continue;
         }
@@ -82,7 +82,7 @@ export class ArgumentsParser {
           i,
           hardhatParamDefinitions,
           hardhatArguments,
-          taskName
+          scopeOrTaskName
         );
       } else {
         if (!this._isCLAParamName(arg, hardhatParamDefinitions)) {
@@ -95,7 +95,7 @@ export class ArgumentsParser {
           i,
           hardhatParamDefinitions,
           hardhatArguments,
-          taskName
+          scopeOrTaskName
         );
       }
     }
@@ -106,7 +106,7 @@ export class ArgumentsParser {
         envVariableArguments,
         hardhatArguments
       ),
-      scopeOrTaskName: taskName,
+      scopeOrTaskName,
       allUnparsedCLAs,
     };
   }
@@ -276,7 +276,7 @@ export class ArgumentsParser {
     index: number,
     paramDefinitions: ParamDefinitionsMap,
     parsedArguments: TaskArguments,
-    taskName?: string
+    scopeOrTaskName?: string
   ) {
     const claArg = rawCLAs[index];
     const paramName = ArgumentsParser.cLAToParamName(claArg);
@@ -297,7 +297,7 @@ export class ArgumentsParser {
       if (value === undefined) {
         throw new HardhatError(ERRORS.ARGUMENTS.MISSING_TASK_ARGUMENT, {
           param: ArgumentsParser.paramNameToCLA(paramName),
-          task: taskName ?? "help",
+          task: scopeOrTaskName ?? "help",
         });
       }
 
