@@ -18,10 +18,7 @@ task(TASK_HELP, "Prints this message")
   )
   .setAction(
     async (
-      {
-        scopeOrTask: first,
-        task: second,
-      }: { scopeOrTask?: string; task?: string },
+      { scopeOrTask, task: taskName }: { scopeOrTask?: string; task?: string },
       { tasks, scopes, version }
     ) => {
       const helpPrinter = new HelpPrinter(
@@ -33,39 +30,39 @@ task(TASK_HELP, "Prints this message")
         scopes
       );
 
-      if (first === undefined) {
+      if (scopeOrTask === undefined) {
         // print global help
         helpPrinter.printGlobalHelp();
         return;
       }
 
-      if (tasks[first] !== undefined) {
+      if (tasks[scopeOrTask] !== undefined) {
         // first is a valid task
-        helpPrinter.printTaskHelp(tasks[first]);
+        helpPrinter.printTaskHelp(tasks[scopeOrTask]);
         return;
       }
 
-      const scopeDefinition = scopes[first];
+      const scopeDefinition = scopes[scopeOrTask];
 
       if (scopeDefinition === undefined) {
         // first is not a task nor a scope
         throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
-          task: first,
+          task: scopeOrTask,
         });
       }
 
-      if (second === undefined) {
+      if (taskName === undefined) {
         // print scope help
         helpPrinter.printScopeHelp(scopeDefinition);
         return;
       }
 
-      const taskDefinition = scopeDefinition.tasks[second];
+      const taskDefinition = scopeDefinition.tasks[taskName];
 
       if (taskDefinition === undefined) {
         throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPED_TASK, {
-          scope: first,
-          task: second,
+          scope: scopeOrTask,
+          task: taskName,
         });
       }
 
