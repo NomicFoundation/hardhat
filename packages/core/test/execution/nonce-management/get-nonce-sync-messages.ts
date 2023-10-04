@@ -196,6 +196,49 @@ describe("execution - getNonceSyncMessages", () => {
       });
     });
 
+    it("should succeed with an in-flight transaction that has been completely confirmed between runs", async () => {
+      // Assuming a fresh chain, and a deployment that was halted on the first
+      // future and its deploy transaction is completly confirmed now
+
+      const latestCount = 1;
+      const safestCount = 1;
+      const pendingCount = latestCount;
+      const nonce = 0;
+
+      const deploymentState =
+        setupDeploymentStateBasedOnExampleModuleWithOneTranWith(nonce);
+
+      const inflightTxHash = (
+        (
+          deploymentState.executionStates[
+            "Example#MyContract"
+          ] as DeploymentExecutionState
+        ).networkInteractions[0] as OnchainInteraction
+      ).transactions[0].hash;
+
+      await assertNoSyncMessageNeeded({
+        ignitionModule: exampleModule,
+        deploymentState,
+        transactionCountEntries: {
+          [exampleAccounts[1]]: {
+            pending: pendingCount,
+            latest: latestCount,
+            number: () => safestCount,
+          },
+        },
+        // We are saying that the inflight transaction is now completely
+        getTransaction: (txHash: string) => {
+          if (txHash !== inflightTxHash) {
+            throw new Error(
+              `Mock getTransaction was not expecting the getTransaction request for: ${txHash}`
+            );
+          }
+
+          return { _kind: "FAKE_TRANSACTION" };
+        },
+      });
+    });
+
     it("should succeed with an in-flight transaction that has not been mined between runs but is in the mempool", async () => {
       // Assuming a fresh chain, and a deployment that was halted on the first
       // future and its deploy transaction is in the mempool but not mined
