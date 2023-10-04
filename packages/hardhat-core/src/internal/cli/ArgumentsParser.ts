@@ -120,39 +120,40 @@ export class ArgumentsParser {
     taskName: string;
     unparsedCLAs: string[];
   } {
-    let scopeName: string | undefined;
-    let taskName: string | undefined;
-    let unparsedCLAs: string[];
+    const [firstCLA, secondCLA] = allUnparsedCLAs;
 
     if (allUnparsedCLAs.length === 0) {
-      taskName = TASK_HELP;
-      unparsedCLAs = [];
+      return {
+        taskName: TASK_HELP,
+        unparsedCLAs: [],
+      };
     } else if (allUnparsedCLAs.length === 1) {
-      const [firstCLA] = allUnparsedCLAs;
-
       if (scopeDefinitions[firstCLA] !== undefined) {
         // this is a bit of a hack, but it's the easiest way to print
         // the help of a scope when no task is specified
-        taskName = TASK_HELP;
-        unparsedCLAs = [firstCLA];
+        return {
+          taskName: TASK_HELP,
+          unparsedCLAs: [firstCLA],
+        };
       } else if (taskDefinitions[firstCLA] !== undefined) {
-        taskName = firstCLA;
-        unparsedCLAs = allUnparsedCLAs.slice(1);
+        return {
+          taskName: firstCLA,
+          unparsedCLAs: allUnparsedCLAs.slice(1),
+        };
       } else {
         throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
           task: firstCLA,
         });
       }
     } else {
-      const [firstCLA, secondCLA] = allUnparsedCLAs;
-
       const scopeDefinition = scopeDefinitions[firstCLA];
       if (scopeDefinition !== undefined) {
         if (scopeDefinition.tasks[secondCLA] !== undefined) {
-          scopeName = firstCLA;
-          taskName = secondCLA;
-
-          unparsedCLAs = allUnparsedCLAs.slice(2);
+          return {
+            scopeName: firstCLA,
+            taskName: secondCLA,
+            unparsedCLAs: allUnparsedCLAs.slice(2),
+          };
         } else {
           throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPED_TASK, {
             scope: firstCLA,
@@ -160,20 +161,16 @@ export class ArgumentsParser {
           });
         }
       } else if (taskDefinitions[firstCLA] !== undefined) {
-        taskName = firstCLA;
-        unparsedCLAs = allUnparsedCLAs.slice(1);
+        return {
+          taskName: firstCLA,
+          unparsedCLAs: allUnparsedCLAs.slice(1),
+        };
       } else {
         throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
           task: firstCLA,
         });
       }
     }
-
-    return {
-      scopeName,
-      taskName,
-      unparsedCLAs,
-    };
   }
 
   public parseTaskArguments(
