@@ -1,12 +1,35 @@
-import chalk from "chalk";
 import fs from "fs-extra";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 
-export class SecretsManager {
-  private _cache: Record<string, string> | undefined = undefined;
+interface Secret {
+  value: string;
+}
 
-  constructor(private readonly _secretsFilePath: string) {}
+interface SecretsFile {
+  _format: string;
+  secrets: Record<string, Secret>;
+}
+
+export class SecretsManager {
+  private _cache: SecretsFile;
+  private _version = "hh-secrets-1";
+
+  constructor(private readonly _secretsFilePath: string) {
+    if (!fs.pathExistsSync(this._secretsFilePath)) {
+      // Initialize the secrets file if it does not exist
+      fs.writeJSONSync(
+        this._secretsFilePath,
+        {
+          _format: this._version,
+          secrets: {},
+        },
+        { spaces: 2 }
+      );
+    }
+
+    this._cache = fs.readJSONSync(this._secretsFilePath);
+  }
 
   public set(key: string, value: string) {
     const KEY_REGEX = /^[a-zA-Z_]+[a-zA-Z0-9_]*$/;
@@ -21,18 +44,17 @@ export class SecretsManager {
 
     const secrets = this._readSecrets();
 
-    secrets[key] = value;
+    secrets[key] = { value };
     this._writeSecrets(secrets);
   }
 
   public get(key: string): string | undefined {
     if (key === undefined) {
-      console.log(chalk.yellow("You must provide the secret key"));
       return;
     }
 
     const secrets = this._readSecrets();
-    return secrets[key];
+    return secrets[key]?.value ?? undefined;
   }
 
   public list(): string[] {
@@ -51,19 +73,12 @@ export class SecretsManager {
     return true;
   }
 
-  private _writeSecrets(secrets: any) {
-    const secretsPath = this._secretsFilePath;
-    fs.writeJSONSync(secretsPath, secrets, { spaces: 2 });
-    this._cache = secrets;
+  private _writeSecrets(secrets: Record<string, Secret>) {
+    this._cache.secrets = secrets;
+    fs.writeJSONSync(this._secretsFilePath, this._cache, { spaces: 2 });
   }
 
-  private _readSecrets(): Record<string, string> {
-    if (this._cache !== undefined) return this._cache;
-
-    this._cache = fs.pathExistsSync(this._secretsFilePath)
-      ? fs.readJSONSync(this._secretsFilePath)
-      : {};
-
-    return this._cache!;
+  private _readSecrets(): Record<string, Secret> {
+    return this._cache.secrets;
   }
 }
