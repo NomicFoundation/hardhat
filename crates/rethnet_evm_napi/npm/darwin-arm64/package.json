@@ -1,6 +1,10 @@
 {
   "name": "@ignored/edr-darwin-arm64",
-  "version": "0.1.0-dev",
+  "repository": {
+    "url": "https://github.com/NomicFoundation/hardhat.git",
+    "type": "git"
+  },
+  "version": "0.1.0-alpha.0",
   "os": [
     "darwin"
   ],

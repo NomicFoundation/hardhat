@@ -10,6 +10,7 @@ permissions:
   push:
     branches:
       - main
+      - rethnet/napi-release
     tags-ignore:
       - "**"
     paths-ignore:
@@ -332,6 +333,7 @@ jobs:
             yarn test
   publish:
     name: Publish
+    environment: edr-release
     runs-on: ubuntu-latest
     needs:
       - test-macOS-windows-binding
