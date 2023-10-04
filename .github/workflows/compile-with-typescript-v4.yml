@@ -21,7 +21,9 @@ jobs:
         run: |
           sed -i 's/"typescript": "~5.0.0"/"typescript": "^4.0.0"/' package.json packages/*/package.json && yarn
       # hardhat-viem is the only package that requires TypeScript v5
-      - name: Remove hardhat-viem
+      - name: Remove hardhat-viem directory
         run: rm -fr packages/hardhat-viem
+      - name: Remove hardhat-viem from the build script
+        run: sed -i 's/packages\/hardhat-viem//' package.json
       - name: Build
         run: yarn build
