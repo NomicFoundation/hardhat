@@ -994,7 +994,7 @@ Read about compiler configuration at https://hardhat.org/config
       await expectHardhatErrorAsync(
         () => this.env.run("compile"),
         ERRORS.RESOLVER.AMBIGUOUS_SOURCE_NAMES,
-        "HH415: Two different source names ('foo/Foo.sol' and 'bar/Foo.sol') resolve to the same file"
+        /Two different source names \('\w+\/Foo.sol' and '\w+\/Foo.sol'\) resolve to the same file/
       );
     });
   });

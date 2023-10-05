@@ -325,3 +325,28 @@ subtask("print", "Prints a message")
     console.log(taskArgs.message);
   });
 ```
+
+### Scoped tasks
+
+You can group tasks under a _scope_. This is useful when you have several tasks that are related to each other in some way.
+
+```js
+const myScope = scope("my-scope", "Scope description");
+
+myScope.task("my-task", "Do something")
+  .setAction(async () => { ... });
+
+myScope.task("my-other-task", "Do something else")
+  .setAction(async () => { ... });
+```
+
+In this case, you can run these tasks with `npx hardhat my-scope my-task` and `npx hardhat my-scope my-other-task`.
+
+Scoped tasks can also be run programmatically:
+
+```js
+await hre.run({
+  scope: "my-scope",
+  task: "my-task",
+});
+```

@@ -127,15 +127,12 @@ async function main() {
 
     const argumentsParser = new ArgumentsParser();
 
-    const {
-      hardhatArguments,
-      taskName: parsedTaskName,
-      unparsedCLAs,
-    } = argumentsParser.parseHardhatArguments(
-      HARDHAT_PARAM_DEFINITIONS,
-      envVariableArguments,
-      process.argv.slice(2)
-    );
+    const { hardhatArguments, scopeOrTaskName, allUnparsedCLAs } =
+      argumentsParser.parseHardhatArguments(
+        HARDHAT_PARAM_DEFINITIONS,
+        envVariableArguments,
+        process.argv.slice(2)
+      );
 
     if (hardhatArguments.verbose) {
       Reporter.setVerbose(true);
@@ -160,13 +157,13 @@ async function main() {
     // The code marked with the tag #INIT-DEP can be deleted after HarhatV3 is out.
 
     // Create a new Hardhat project
-    if (parsedTaskName === "init") {
+    if (scopeOrTaskName === "init") {
       return await createNewProject();
     }
     // #INIT-DEP - START OF DEPRECATED CODE
     else {
       if (
-        parsedTaskName === undefined &&
+        scopeOrTaskName === undefined &&
         hardhatArguments.config === undefined &&
         !isCwdInsideProject()
       ) {
@@ -213,20 +210,28 @@ async function main() {
       }
     }
 
-    let taskName = parsedTaskName ?? TASK_HELP;
-
-    const showEmptyConfigWarning = true;
-    const showSolidityConfigWarnings = taskName === TASK_COMPILE;
-
     const ctx = HardhatContext.createHardhatContext();
 
     const { resolvedConfig, userConfig } = loadConfigAndTasks(
       hardhatArguments,
       {
-        showEmptyConfigWarning,
-        showSolidityConfigWarnings,
+        showEmptyConfigWarning: true,
+        showSolidityConfigWarnings: scopeOrTaskName === TASK_COMPILE,
       }
     );
+
+    const envExtenders = ctx.environmentExtenders;
+    const providerExtenders = ctx.providerExtenders;
+    const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
+    const scopesDefinitions = ctx.tasksDSL.getScopesDefinitions();
+
+    // eslint-disable-next-line prefer-const
+    let { scopeName, taskName, unparsedCLAs } =
+      argumentsParser.parseScopeAndTaskNames(
+        allUnparsedCLAs,
+        taskDefinitions,
+        scopesDefinitions
+      );
 
     let telemetryConsent: boolean | undefined = hasConsentedTelemetry();
 
@@ -252,22 +257,34 @@ async function main() {
       Reporter.setEnabled(true);
     }
 
-    const envExtenders = ctx.environmentExtenders;
-    const providerExtenders = ctx.providerExtenders;
-    const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
-
     const [abortAnalytics, hitPromise] = await analytics.sendTaskHit();
 
     let taskArguments: TaskArguments;
 
     // --help is a also special case
     if (hardhatArguments.help && taskName !== TASK_HELP) {
-      taskArguments = { task: taskName };
+      // we "move" the task and scope names to the task arguments,
+      // and run the help task
+      if (scopeName !== undefined) {
+        taskArguments = { scopeOrTask: scopeName, task: taskName };
+      } else {
+        taskArguments = { scopeOrTask: taskName };
+      }
       taskName = TASK_HELP;
+      scopeName = undefined;
     } else {
-      const taskDefinition = taskDefinitions[taskName];
+      const taskDefinition = ctx.tasksDSL.getTaskDefinition(
+        scopeName,
+        taskName
+      );
 
       if (taskDefinition === undefined) {
+        if (scopeName !== undefined) {
+          throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPED_TASK, {
+            scope: scopeName,
+            task: taskName,
+          });
+        }
         throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
           task: taskName,
         });
@@ -289,6 +306,7 @@ async function main() {
       resolvedConfig,
       hardhatArguments,
       taskDefinitions,
+      scopesDefinitions,
       envExtenders,
       ctx.experimentalHardhatNetworkMessageTraceHooks,
       userConfig,
@@ -300,7 +318,7 @@ async function main() {
     try {
       const timestampBeforeRun = new Date().getTime();
 
-      await env.run(taskName, taskArguments);
+      await env.run({ scope: scopeName, task: taskName }, taskArguments);
 
       const timestampAfterRun = new Date().getTime();
 
