@@ -28,7 +28,7 @@ export async function writeVisualization(
   const indexHtml = await readFile(path.join(templateDir, "index.html"));
   const updatedHtml = indexHtml
     .toString()
-    .replace('{"unloaded":true}', JSON.stringify(visualizationPayload));
+    .replace('{ "unloaded": true }', JSON.stringify(visualizationPayload));
 
   await writeFile(path.join(visualizationDir, "index.html"), updatedHtml);
 }

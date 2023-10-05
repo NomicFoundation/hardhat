@@ -65,17 +65,26 @@ function prettyPrintModule(
   module: IgnitionModule<string, string, IgnitionModuleResult<string>>,
   lineIndent = ""
 ): string {
-  const futureList = Array.from(module.futures)
-    .map((f) => `${lineIndent}${toEscapedId(f.id)}["${toLabel(f)}"]`)
+  const futures = Array.from(module.futures);
+  const futureList = futures
+    .map(
+      (f) => `${lineIndent}${toEscapedId(f.id)}["${toLabel(f)}"]:::futureNode`
+    )
     .join(`\n${lineIndent}`);
 
-  const inner = `${lineIndent}subgraph ${module.id}Inner[ ]\n${lineIndent}  direction TB\n\n${lineIndent}${futureList}\n${lineIndent}end\n\nstyle ${module.id}Inner fill:none,stroke:none`;
+  if (futures.length > 0) {
+    const inner = `${lineIndent}subgraph ${module.id}Inner[ ]\n${lineIndent}  direction TB\n\n${lineIndent}${futureList}\n${lineIndent}end\n\nstyle ${module.id}Inner fill:none,stroke:none`;
 
-  const title = `${lineIndent}subgraph ${module.id}Padding["[ ${module.id} ]"]\n${lineIndent}  direction TB\n\n${lineIndent}${inner}\n${lineIndent}end\n\nstyle ${module.id}Padding fill:none,stroke:none`;
+    const title = `${lineIndent}subgraph ${module.id}Padding["[ ${module.id} ]"]\n${lineIndent}  direction TB\n\n${lineIndent}${inner}\n${lineIndent}end\n\nstyle ${module.id}Padding fill:none,stroke:none`;
 
-  const outer = `${lineIndent}subgraph ${module.id}[ ]\n${lineIndent} direction TB\n\n${lineIndent}${title}\n${lineIndent}end\n\nstyle ${module.id} fill:#fbfbfb,stroke:#e5e6e7`;
+    const outer = `${lineIndent}subgraph ${module.id}[ ]\n${lineIndent} direction TB\n\n${lineIndent}${title}\n${lineIndent}end\n\nstyle ${module.id} fill:#fbfbfb,stroke:#e5e6e7`;
 
-  return outer;
+    return outer;
+  }
+
+  const title = `${lineIndent}subgraph ${module.id}Padding["<strong>[ ${module.id} ]</strong>"]\n${lineIndent}  direction TB\n\n${lineIndent}end\n\nstyle ${module.id}Padding fill:none,stroke:none`;
+
+  return `${lineIndent}subgraph ${module.id}[ ]\n${lineIndent} direction TB\n\n${lineIndent}${title}\n${lineIndent}end\n\nstyle ${module.id} fill:#fbfbfb,stroke:#e5e6e7`;
 }
 
 function toLabel(f: Future): string {

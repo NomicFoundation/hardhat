@@ -46,7 +46,7 @@ export const FutureBatch: React.FC<{
 
 const Batch = styled.div`
   padding: 1rem;
-  border: 2px solid #edcf00;
+  border: 1px solid #edcf00;
   border-radius: 7px;
 `;
 
@@ -350,6 +350,7 @@ const Argument: React.FC<{
           color: "#16181D",
           cursor: "pointer",
         }}
+        className="future-argument"
         onClick={() => setToggled(arg.id)}
         onMouseEnter={() => setHoveredFuture(arg.id)}
         onMouseLeave={() => setHoveredFuture("")}

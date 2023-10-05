@@ -10,6 +10,7 @@ import styled from "styled-components";
 
 import { getAllFuturesForModule } from "../../../queries/futures";
 import { FutureBatch } from "./future-batch";
+import { TooltipIcon } from "../../../assets/TooltipIcon";
 
 export const ExecutionBatches: React.FC<{
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>;
@@ -95,10 +96,10 @@ export const ExecutionBatches: React.FC<{
 };
 
 const BatchesTooltip: React.FC = () => (
-  <span
-    style={{ fontSize: "0.8rem", paddingLeft: "0.5rem", cursor: "pointer" }}
-  >
-    <a data-tooltip-id="batches-tooltip">ⓘ</a>
+  <span style={{ paddingLeft: "0.5rem", cursor: "pointer" }}>
+    <a data-tooltip-id="batches-tooltip">
+      <TooltipIcon />
+    </a>
     <Tooltip className="styled-tooltip batches-tooltip" id="batches-tooltip">
       <div>
         Futures that can be parallelized are executed at the same time in

@@ -6,7 +6,7 @@ body {
 }
 
 .deploy-background {
-  background: #fbf8d8;
+  background: #fffde7;
 }
 
 .call-background {
@@ -26,6 +26,9 @@ body {
 .styled-tooltip span {
   font-weight: 400 !important;
 }
+.styled-tooltip * {
+  font-size: 0.8rem !important;
+}
 
 .batches-tooltip {
   max-width: 231px !important;
@@ -33,6 +36,10 @@ body {
 
 .flow-tooltip {
   max-width: 391px !important;
+}
+
+.future-argument:hover {
+  font-weight: 700;
 }
 
 /* mermaid styles */
@@ -53,6 +60,6 @@ body {
   font-size: 16px;
 }
 
-.nodes rect {
+.futureNode rect {
   stroke: none !important;
 }

@@ -9,6 +9,7 @@ import styled, { css } from "styled-components";
 import { Mermaid } from "../../../components/mermaid";
 import { getAllFuturesForModule } from "../../../queries/futures";
 import { toEscapedId } from "../../../utils/to-escaped-id";
+import { TooltipIcon } from "../../../assets/TooltipIcon";
 
 export const DeploymentFlow: React.FC<{
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>;
@@ -80,10 +81,10 @@ const VisualizeDiv = styled.div`
 `;
 
 const FlowTooltip: React.FC = () => (
-  <span
-    style={{ fontSize: "0.8rem", paddingLeft: "0.5rem", cursor: "pointer" }}
-  >
-    <a data-tooltip-id="flow-tooltip">ⓘ</a>
+  <span style={{ paddingLeft: "0.5rem", cursor: "pointer" }}>
+    <a data-tooltip-id="flow-tooltip">
+      <TooltipIcon />
+    </a>
     <Tooltip className="styled-tooltip flow-tooltip" id="flow-tooltip">
       <div>Diagram reference</div>
       <br />
@@ -163,7 +164,7 @@ const BatchBtn = styled.span<{ isCurrentlyHovered: boolean }>`
   margin: auto 0.5rem;
   border-radius: 10px;
   background: #ffffff;
-  border: 2px solid #edcf00;
+  border: 1px solid #edcf00;
   cursor: pointer;
 
   ${(props) =>
@@ -171,6 +172,6 @@ const BatchBtn = styled.span<{ isCurrentlyHovered: boolean }>`
     `
     background: #16181D;
     color: #FBF8D8;
-    border: 2px solid #16181D;
+    border: 1px solid #16181D;
   `}
 `;
