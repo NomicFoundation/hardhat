@@ -44,10 +44,26 @@ const BatchHeader = styled.div`
   padding: 1rem;
 `;
 
-const FutureBtn = styled.div<{ isLibrary: boolean }>`
+const FutureBtn = styled.div<{ isLibrary: boolean; toggled: boolean }>`
   padding: 1rem;
   margin: 1rem;
-  border-radius: 5px;
+
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+
+  ${(props) =>
+    props.toggled &&
+    `
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    `}
+
+  ${(props) =>
+    !props.toggled &&
+    `
+      border-bottom-left-radius: 5px;
+      border-bottom-right-radius: 5px;
+    `}
 
   ${(props) =>
     !props.isLibrary &&
@@ -86,29 +102,38 @@ const FutureBlock: React.FC<{
     future.type === FutureType.LIBRARY_DEPLOYMENT ||
     future.type === FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT;
 
+  const className = isDeploymentType(future.type)
+    ? "deploy-background"
+    : "call-background";
+
   return (
-    <FutureBtn
-      className={
-        isDeploymentType(future.type) ? "deploy-background" : "call-background"
-      }
-      onClick={() => setToggled(futureId)}
-      isLibrary={isLibrary}
-    >
-      {!isLibrary && <ToggleBtn toggled={toggled} />}
-      <Text style={{ paddingLeft: isLibrary ? "1rem" : "0.3rem" }}>
-        {displayText}
-      </Text>
-      <ModuleName
-        className={future.module.id}
-        onMouseEnter={() => setCurrentlyHovered(future.module.id)}
-        onMouseLeave={() => setCurrentlyHovered("")}
+    <div>
+      <FutureBtn
+        className={className}
+        isLibrary={isLibrary}
+        toggled={toggled}
+        onClick={() => setToggled(futureId)}
       >
-        [ {future.module.id} ]
-      </ModuleName>
+        {!isLibrary && <ToggleBtn toggled={toggled} />}
+        <Text style={{ paddingLeft: isLibrary ? "1rem" : "0.3rem" }}>
+          {displayText}
+        </Text>
+        <ModuleName
+          className={future.module.id}
+          onMouseEnter={() => setCurrentlyHovered(future.module.id)}
+          onMouseLeave={() => setCurrentlyHovered("")}
+        >
+          [ {future.module.id} ]
+        </ModuleName>
+      </FutureBtn>
       {toggled && (
-        <FutureDetailsSection future={future} setToggled={setToggled} />
+        <FutureDetailsSection
+          className={className}
+          future={future}
+          setToggled={setToggled}
+        />
       )}
-    </FutureBtn>
+    </div>
   );
 };
 
@@ -160,52 +185,74 @@ const ToggleBtn: React.FC<{
   return <Text>{toggled ? "- " : "+ "}</Text>;
 };
 
+const FutureDetailsStyle = styled.div`
+  cursor: auto;
+  padding: 1rem 2rem;
+  margin: -1rem 1rem 1rem 1rem;
+
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 5px;
+
+  -webkit-box-shadow: inset 0px 6px 8px -8px rgba(0, 0, 0, 0.3);
+  -moz-box-shadow: inset 0px 6px 8px -8px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0px 6px 8px -8px rgba(0, 0, 0, 0.3);
+`;
+
 const FutureDetailsSection: React.FC<{
+  className: string;
   future: Future;
   setToggled: (id: string) => void;
-}> = ({ future, setToggled }) => {
+}> = ({ className, future, setToggled }) => {
   switch (future.type) {
     case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
-    case FutureType.CONTRACT_DEPLOYMENT:
+    case FutureType.CONTRACT_DEPLOYMENT: {
+      const args = Object.entries(future.constructorArgs);
       return (
-        <div>
-          <p>Constructor Arguments</p>
+        <FutureDetailsStyle className={className}>
+          <p>{args.length === 0 ? "No " : null}Constructor Arguments</p>
           <ul>
-            {Object.entries(future.constructorArgs).map(([, arg]) => (
-              <Argument setToggled={setToggled} arg={arg} />
+            {args.map(([, arg], i) => (
+              <Argument key={`arg-${i}`} setToggled={setToggled} arg={arg} />
             ))}
           </ul>
-        </div>
+        </FutureDetailsStyle>
       );
+    }
     case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
     case FutureType.LIBRARY_DEPLOYMENT:
       return null;
-    case FutureType.CONTRACT_CALL:
+    case FutureType.CONTRACT_CALL: {
+      const args = Object.entries(future.args);
       return (
-        <div>
-          <p>Arguments</p>
+        <FutureDetailsStyle className={className}>
+          <p>{args.length === 0 ? "No " : null}Arguments</p>
           <ul>
-            {Object.entries(future.args).map(([, arg]) => (
-              <Argument setToggled={setToggled} arg={arg} />
+            {args.map(([, arg], i) => (
+              <Argument key={`arg-${i}`} setToggled={setToggled} arg={arg} />
             ))}
           </ul>
-        </div>
+        </FutureDetailsStyle>
       );
-    case FutureType.STATIC_CALL:
+    }
+    case FutureType.STATIC_CALL: {
+      const args = Object.entries(future.args);
       return (
-        <div>
-          <p>Arguments</p>
+        <FutureDetailsStyle className={className}>
+          <p>{args.length === 0 ? "No " : null}Arguments</p>
           <ul>
-            {Object.entries(future.args).map(([, arg]) => (
-              <Argument setToggled={setToggled} arg={arg} />
+            {args.map(([, arg], i) => (
+              <Argument key={`arg-${i}`} setToggled={setToggled} arg={arg} />
             ))}
           </ul>
-        </div>
+        </FutureDetailsStyle>
       );
+    }
     case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
-    case FutureType.CONTRACT_AT:
+    case FutureType.CONTRACT_AT: {
       return (
-        <div>
+        <FutureDetailsStyle className={className}>
           <p>Contract - {future.contractName}</p>
           <p>
             Address -{" "}
@@ -215,20 +262,22 @@ const FutureDetailsSection: React.FC<{
               <Argument setToggled={setToggled} arg={future.address} />
             )}
           </p>
-        </div>
+        </FutureDetailsStyle>
       );
-    case FutureType.READ_EVENT_ARGUMENT:
+    }
+    case FutureType.READ_EVENT_ARGUMENT: {
       return (
-        <div>
+        <FutureDetailsStyle className={className}>
           <p>Emitter - {future.emitter.id}</p>
           <p>Event - {future.eventName}</p>
           <p>Event index - {future.eventIndex}</p>
           <p>Argument - {future.nameOrIndex}</p>
-        </div>
+        </FutureDetailsStyle>
       );
-    case FutureType.SEND_DATA:
+    }
+    case FutureType.SEND_DATA: {
       return (
-        <div>
+        <FutureDetailsStyle className={className}>
           <p>
             To -{" "}
             {typeof future.to === "string" ? (
@@ -238,8 +287,9 @@ const FutureDetailsSection: React.FC<{
             )}
           </p>
           <p>Data - {future.data}</p>
-        </div>
+        </FutureDetailsStyle>
       );
+    }
   }
 };
 
