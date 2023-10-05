@@ -10,7 +10,6 @@ permissions:
   push:
     branches:
       - main
-      - rethnet/napi-release
     tags-ignore:
       - "**"
     paths-ignore:
