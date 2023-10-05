@@ -21,7 +21,7 @@ Once you have built and tested your deployment module, it is time to deploy it! 
 The `visualize` task takes one argument, the module to visualize. For example, using the `ENS.js` module from our [ENS example project](../examples/ens/README.md):
 
 ```bash
-npx hardhat visualize ENS
+npx hardhat ignition visualize ENS
 ```
 
 Running `visualize` will generate the report based on the given module (in this case `ENS.js`), it will then open the report in your system's default browser:
@@ -39,19 +39,19 @@ If something in your deployment isn't behaving the way you expected, the `visual
 Deploying a module is done using the **Ignition** deploy task:
 
 ```sh
-npx hardhat deploy LockModule
+npx hardhat ignition deploy LockModule
 ```
 
 Module parameters, indexed by `ModuleId`, can be passed as a `json` string to the `parameters` flag:
 
 ```sh
-npx hardhat deploy --parameters "{\"LockModule\": {\"unlockTime\":4102491600,\"lockedAmount\":2000000000}}" LockModule.js
+npx hardhat ignition deploy --parameters "{\"LockModule\": {\"unlockTime\":4102491600,\"lockedAmount\":2000000000}}" LockModule.js
 ```
 
 By default the deploy task will deploy to an ephemeral Hardhat network. To target a network from your Hardhat config, you can pass its name to the network flag:
 
 ```sh
-npx hardhat deploy LockModule.js --network mainnet
+npx hardhat ignition deploy LockModule.js --network mainnet
 ```
 
 ### Configuration options
@@ -122,7 +122,7 @@ Future versions of Ignition will make the `deployments` file system structure li
 
 A run of a deployment can succeed, fail or be on hold. A failed deployment or one that is on hold, assuming it was run against a non-ephemeral network, can be rerun using the deploy command:
 
-`npx hardhat deploy MyModule.js --network localhost`
+`npx hardhat ignition deploy MyModule.js --network localhost`
 
 Each run logs its events to a journal file (recorded in a sibling file to the module under `MyModule.journal.ndjson`). The journal file is used to reconstruct the state of the deployment during previous runs. Runs are scoped to the `chainId` of the network, so that runs against different networks do not interact. Any failed contract deploys or contract calls will be retried, the deployment picking up from where the last fail occurred. Any `event` invocations that had not returned and hence were on `Hold` on the last run, will be retried as well.
 
@@ -131,7 +131,7 @@ Each run logs its events to a journal file (recorded in a sibling file to the mo
 To start a deployment again, ignoring the state from previous runs and rerunning the entirety of the module, the force flag can be used:
 
 ```
-npx hardhat deploy MyModule.js --network localhost --force
+npx hardhat ignition deploy MyModule.js --network localhost --force
 ```
 
 For non-development network deployments, this means some form of deployment freezing will be recommended that records relevant information such as contract abi, deployed address and network. These files will be recommended to be committed into project repositories as well. -->

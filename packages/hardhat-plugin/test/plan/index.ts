@@ -13,10 +13,16 @@ describe("visualize", () => {
     emptyDirSync(visualizationPath);
 
     await this.hre.run("compile", { quiet: true });
-    await this.hre.run("visualize", {
-      quiet: true,
-      moduleNameOrPath: "MyModule.js",
-    });
+    await this.hre.run(
+      {
+        scope: "ignition",
+        task: "visualize",
+      },
+      {
+        quiet: true,
+        moduleNameOrPath: "MyModule.js",
+      }
+    );
 
     const files = await readdir(visualizationPath);
 

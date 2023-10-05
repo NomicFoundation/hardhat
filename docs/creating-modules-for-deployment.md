@@ -38,7 +38,7 @@ module.exports = buildModule("MyModule", (m) => {
 });
 ```
 
-Modules can be deployed directly at the cli (with `npx hardhat deploy MyModule.js`), within Hardhat mocha tests (see [Ignition in Tests](./using-ignition-in-hardhat-tests.md)) or consumed by other Modules to allow for complex deployments.
+Modules can be deployed directly at the cli (with `npx hardhat ignition deploy MyModule.js`), within Hardhat mocha tests (see [Ignition in Tests](./using-ignition-in-hardhat-tests.md)) or consumed by other Modules to allow for complex deployments.
 
 During a deployment, **Ignition** uses the module to generate an execution plan of the transactions to run and the order in which to run them based on their dependencies. A module uses the injected `DeploymentBuilder` to specify the on-chain transactions that will _eventually_ be run, and how they interdepend on each other.
 

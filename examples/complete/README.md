@@ -7,7 +7,7 @@ This is a bit of a contrived example project, intended mostly to ensure working 
 To run the ignition deploy against the ephemeral hardhat network:
 
 ```shell
-npx hardhat deploy CompleteModule.js
+npx hardhat ignition deploy CompleteModule.js
 ```
 
 ## Test

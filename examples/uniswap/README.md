@@ -7,7 +7,7 @@ This hardhat project is an example of using ignition to deploy the Uniswap syste
 To run the ignition deploy against the ephemeral hardhat network:
 
 ```shell
-npx hardhat deploy Uniswap.js
+npx hardhat ignition deploy Uniswap.js
 ```
 
 ## Test

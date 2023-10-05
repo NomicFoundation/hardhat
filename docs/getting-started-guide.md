@@ -89,7 +89,7 @@ module.exports = buildModule("LockModule", (m) => {
 Run the `deploy` task to test the module against an ephemeral **Hardhat** node (using the default `unlockTime`):
 
 ```bash
-npx hardhat deploy LockModule
+npx hardhat ignition deploy LockModule
 ```
 
 A file containing module parameters, indexed by the `ModuleId` used in `buildModule`, can be passed as a flag at
@@ -105,7 +105,7 @@ the command line:
 ```
 
 ```bash
-npx hardhat deploy --parameters ignition/modules/LockModule.config.json LockModule
+npx hardhat ignition deploy --parameters ignition/modules/LockModule.config.json LockModule
 ```
 
 To deploy against a specific network pass it on the command line, for instance to deploy against
@@ -114,14 +114,14 @@ a local **Hardhat** node:
 ```bash
 npx hardhat node
 # in another terminal
-npx hardhat deploy LockModule --network localhost
+npx hardhat ignition deploy LockModule --network localhost
 ```
 
 Running against a non-ephemeral network will generate a `deployment` stored under `./ignition/deployments`. The
 deployment identified by an `id` that can be passed at the command line:
 
 ```bash
-npx hardhat deploy LockModule --network localhost --id dev-deploy
+npx hardhat ignition deploy LockModule --network localhost --id dev-deploy
 ```
 
 If no `id` is provided a default is generated based on the `chainId` e.g. _network-31337_ for the localhost
@@ -132,7 +132,7 @@ network.
 Run the `status` task to display info about your successfully deployed contracts within a deployment:
 
 ```bash
-npx hardhat status --id dev-deploy
+npx hardhat ignition status --id dev-deploy
 # Deployed Addresses
 # ==================
 

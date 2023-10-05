@@ -7,7 +7,7 @@ This hardhat project is a variant of Hardhat's typescript sample project.
 To run the ignition deploy against the ephemeral hardhat network:
 
 ```shell
-npx hardhat deploy LockModule
+npx hardhat ignition deploy LockModule
 ```
 
 ## Test
