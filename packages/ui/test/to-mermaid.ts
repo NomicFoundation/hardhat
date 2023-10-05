@@ -18,15 +18,27 @@ describe("to-mermaid", () => {
     const expectedResult = testFormat`
       flowchart TB
 
-      Module:::startModule
+      Module
 
-        subgraph Module
+        subgraph Module[ ]
+         direction TB
+
+          subgraph ModulePadding["[ Module ]"]
+          direction TB
+
+          subgraph ModuleInner[ ]
           direction TB
 
           Module#Contract1["Deploy Contract1"]
         end
 
-      classDef startModule stroke-width:4px`;
+      style ModuleInner fill:none,stroke:none
+        end
+
+      style ModulePadding fill:none,stroke:none
+        end
+
+      style Module fill:#fbfbfb,stroke:#e5e6e7`;
 
     assertDiagram(moduleDefinition, expectedResult);
   });
@@ -42,15 +54,27 @@ describe("to-mermaid", () => {
     const expectedResult = testFormat`
       flowchart TB
 
-      Test_registrar:::startModule
+      Test_registrar
 
-        subgraph Test_registrar
+        subgraph Test_registrar[ ]
+         direction TB
+
+          subgraph Test_registrarPadding["[ Test_registrar ]"]
+          direction TB
+
+          subgraph Test_registrarInner[ ]
           direction TB
 
           Test_registrar#Contract1["Deploy Contract1"]
         end
 
-      classDef startModule stroke-width:4px`;
+      style Test_registrarInner fill:none,stroke:none
+        end
+
+      style Test_registrarPadding fill:none,stroke:none
+        end
+
+      style Test_registrar fill:#fbfbfb,stroke:#e5e6e7`;
 
     assertDiagram(moduleDefinition, expectedResult);
   });
@@ -82,31 +106,71 @@ describe("to-mermaid", () => {
     const expectedResult = testFormat`
       flowchart TB
 
-      Module:::startModule
+      Module
 
-        subgraph Module
+        subgraph Module[ ]
+         direction TB
+
+          subgraph ModulePadding["[ Module ]"]
+          direction TB
+
+          subgraph ModuleInner[ ]
           direction TB
 
           Module#Contract3["Deploy Contract3"]
         end
-        subgraph Submodule1
+
+      style ModuleInner fill:none,stroke:none
+        end
+
+      style ModulePadding fill:none,stroke:none
+        end
+
+      style Module fill:#fbfbfb,stroke:#e5e6e7
+        subgraph Submodule1[ ]
+         direction TB
+
+          subgraph Submodule1Padding["[ Submodule1 ]"]
+          direction TB
+
+          subgraph Submodule1Inner[ ]
           direction TB
 
           Submodule1#Contract1["Deploy Contract1"]
         end
-        subgraph Submodule2
+
+      style Submodule1Inner fill:none,stroke:none
+        end
+
+      style Submodule1Padding fill:none,stroke:none
+        end
+
+      style Submodule1 fill:#fbfbfb,stroke:#e5e6e7
+        subgraph Submodule2[ ]
+         direction TB
+
+          subgraph Submodule2Padding["[ Submodule2 ]"]
+          direction TB
+
+          subgraph Submodule2Inner[ ]
           direction TB
 
           Submodule2#Contract2["Deploy Contract2"]
         end
 
+      style Submodule2Inner fill:none,stroke:none
+        end
+
+      style Submodule2Padding fill:none,stroke:none
+        end
+
+      style Submodule2 fill:#fbfbfb,stroke:#e5e6e7
+
       Module#Contract3 --> Submodule1#Contract1
       Module#Contract3 --> Submodule2#Contract2
 
       Module -.-> Submodule1
-      Module -.-> Submodule2
-
-      classDef startModule stroke-width:4px`;
+      Module -.-> Submodule2`;
 
     assertDiagram(moduleDefinition, expectedResult);
   });
@@ -161,9 +225,15 @@ describe("to-mermaid", () => {
     const expectedResult = testFormat`
       flowchart TB
 
-      Module:::startModule
+      Module
 
-        subgraph Module
+        subgraph Module[ ]
+         direction TB
+
+          subgraph ModulePadding["[ Module ]"]
+          direction TB
+
+          subgraph ModuleInner[ ]
           direction TB
 
           Module#BasicContract["Deploy BasicContract"]
@@ -178,6 +248,14 @@ describe("to-mermaid", () => {
           Module#test_send["Send data to Module#BasicContract2"]
         end
 
+      style ModuleInner fill:none,stroke:none
+        end
+
+      style ModulePadding fill:none,stroke:none
+        end
+
+      style Module fill:#fbfbfb,stroke:#e5e6e7
+
       Module#ContractWithLibrary --> Module#BasicLibrary
       Module#BasicContract.basicFunction --> Module#BasicContract
       Module#BasicContract.BasicEvent.eventArg.0 --> Module#BasicContract.basicFunction
@@ -185,9 +263,7 @@ describe("to-mermaid", () => {
       Module#ContractWithLibrary.readonlyFunction --> Module#BasicContract.BasicEvent.eventArg.0
       Module#BasicContract2 --> Module#BasicContract
       Module#ContractWithLibrary2 --> Module#ContractWithLibrary
-      Module#test_send --> Module#BasicContract2
-
-      classDef startModule stroke-width:4px`;
+      Module#test_send --> Module#BasicContract2`;
 
     assertDiagram(moduleDefinition, expectedResult);
   });
@@ -205,9 +281,15 @@ describe("to-mermaid", () => {
     const expectedResult = testFormat`
       flowchart TB
 
-      Module:::startModule
+      Module
 
-        subgraph Module
+        subgraph Module[ ]
+         direction TB
+
+          subgraph ModulePadding["[ Module ]"]
+          direction TB
+
+          subgraph ModuleInner[ ]
           direction TB
 
           Module#ens["Deploy ens"]
@@ -215,10 +297,16 @@ describe("to-mermaid", () => {
           Module#ens.getAddr_bytes32_address_["Static call ens.getAddr(bytes32,address)"]
         end
 
-      Module#ens.setAddr_bytes32_address_ --> Module#ens
-      Module#ens.getAddr_bytes32_address_ --> Module#ens
+      style ModuleInner fill:none,stroke:none
+        end
 
-      classDef startModule stroke-width:4px`;
+      style ModulePadding fill:none,stroke:none
+        end
+
+      style Module fill:#fbfbfb,stroke:#e5e6e7
+
+      Module#ens.setAddr_bytes32_address_ --> Module#ens
+      Module#ens.getAddr_bytes32_address_ --> Module#ens`;
 
     assertDiagram(moduleDefinition, expectedResult);
   });
