@@ -7,7 +7,7 @@ import {
   ConfigOptions,
   PendingTransaction,
   State,
-} from "rethnet-evm";
+} from "@ignored/edr";
 import { BlockBuilderAdapter, BuildBlockOpts, Reward } from "../block-builder";
 import { RunTxResult } from "../vm-adapter";
 import { RethnetStateManager } from "../../RethnetState";

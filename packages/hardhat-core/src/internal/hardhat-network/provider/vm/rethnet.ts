@@ -17,7 +17,7 @@ import {
   ConfigOptions,
   State,
   PendingTransaction,
-} from "rethnet-evm";
+} from "@ignored/edr";
 
 import { isForkedNodeConfig, NodeConfig } from "../node-types";
 import {

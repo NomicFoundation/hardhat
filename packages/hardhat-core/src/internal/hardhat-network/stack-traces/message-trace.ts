@@ -6,7 +6,7 @@ import {
   HaltResult,
   RevertResult,
   SuccessResult,
-} from "rethnet-evm";
+} from "@ignored/edr";
 
 export type MessageTrace =
   | CreateMessageTrace
