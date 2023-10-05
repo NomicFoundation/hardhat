@@ -257,7 +257,10 @@ async function main() {
       Reporter.setEnabled(true);
     }
 
-    const [abortAnalytics, hitPromise] = await analytics.sendTaskHit();
+    const [abortAnalytics, hitPromise] = await analytics.sendTaskHit(
+      scopeName,
+      taskName
+    );
 
     let taskArguments: TaskArguments;
 
