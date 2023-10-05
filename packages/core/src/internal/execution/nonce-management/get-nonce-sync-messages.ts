@@ -77,16 +77,19 @@ export async function getNonceSyncMessages(
     );
 
   const block = await jsonRpcClient.getLatestBlock();
-  // TODO: What happens if this is < 0?
-  const confirmedBlockNumber = block.number - requiredConfirmations + 1;
+  const confirmedBlockNumber: number | undefined =
+    block.number - requiredConfirmations + 1 >= 0
+      ? block.number - requiredConfirmations + 1
+      : undefined;
 
   for (const [sender, pendingTransactions] of Object.entries(
     pendingTransactionsPerSender
   )) {
-    const safeConfirmationsCount = await jsonRpcClient.getTransactionCount(
-      sender,
-      confirmedBlockNumber
-    );
+    // If this is undefined, it means that no transaction has fully confirmed.
+    const safeConfirmationsCount =
+      confirmedBlockNumber !== undefined
+        ? await jsonRpcClient.getTransactionCount(sender, confirmedBlockNumber)
+        : undefined;
 
     const pendingCount = await jsonRpcClient.getTransactionCount(
       sender,
@@ -98,9 +101,14 @@ export async function getNonceSyncMessages(
       "latest"
     );
 
+    const hasPendingTransactions =
+      safeConfirmationsCount === undefined
+        ? pendingCount > 0
+        : safeConfirmationsCount !== pendingCount;
+
     // Case 0: We don't have any pending transactions
     if (pendingTransactions.length === 0) {
-      if (safeConfirmationsCount !== pendingCount) {
+      if (hasPendingTransactions) {
         throw new IgnitionError(ERRORS.EXECUTION.WAITING_FOR_CONFIRMATIONS, {
           sender,
           requiredConfirmations,
@@ -139,10 +147,14 @@ export async function getNonceSyncMessages(
       // That means there is a block that includes it
       // If we look at the latest transaction count, it will be at least 6
       if (latestCount > nonce) {
+        const hasEnoughConfirmations =
+          safeConfirmationsCount !== undefined &&
+          safeConfirmationsCount >= nonce;
+
         // We know the ignition transaction was replaced, and the replacement
         // transaction has at least one confirmation.
         // We don't continue until the user's transactions have enough confirmations
-        if (safeConfirmationsCount <= nonce) {
+        if (!hasEnoughConfirmations) {
           throw new IgnitionError(ERRORS.EXECUTION.WAITING_FOR_NONCE, {
             sender,
             nonce,
@@ -195,7 +207,7 @@ export async function getNonceSyncMessages(
     if (highestPendingNonce + 1 < pendingCount) {
       // If they have enough confirmation we continue, otherwise we throw
       // and wait for further confirmations
-      if (safeConfirmationsCount !== pendingCount) {
+      if (hasPendingTransactions) {
         throw new IgnitionError(ERRORS.EXECUTION.WAITING_FOR_NONCE, {
           sender,
           nonce: pendingCount - 1,
