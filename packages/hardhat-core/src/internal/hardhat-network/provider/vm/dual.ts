@@ -222,7 +222,9 @@ export class DualModeAdapter implements VMAdapter {
     block: Block,
     config: RpcDebugTracingConfig
   ): Promise<RpcDebugTraceOutput> {
-    return this._ethereumJSAdapter.traceCall(tx, block, config);
+    // We aren't comparing the result as the output is expected to differ.
+    const _ = await this._ethereumJSAdapter.traceCall(tx, block, config);
+    return this._rethnetAdapter.traceCall(tx, block, config);
   }
 
   public async setBlockContext(

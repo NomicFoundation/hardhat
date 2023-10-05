@@ -57,30 +57,8 @@ where
             } = evm
                 .inspect_ref(&mut tracer)
                 .map_err(TransactionError::from)?;
-            let debug_result = match execution_result {
-                ExecutionResult::Success {
-                    gas_used, output, ..
-                } => DebugTraceResult {
-                    pass: true,
-                    gas_used,
-                    output: Some(output.into_data()),
-                    logs: tracer.logs,
-                },
-                ExecutionResult::Revert { gas_used, output } => DebugTraceResult {
-                    pass: false,
-                    gas_used,
-                    output: Some(output),
-                    logs: tracer.logs,
-                },
-                ExecutionResult::Halt { gas_used, .. } => DebugTraceResult {
-                    pass: false,
-                    gas_used,
-                    output: None,
-                    logs: tracer.logs,
-                },
-            };
 
-            return Ok(debug_result);
+            return Ok(execution_result_to_debug_result(execution_result, tracer));
         } else {
             let evm = build_evm(
                 blockchain,
@@ -99,6 +77,35 @@ where
         transaction_hash: *transaction_hash,
         block_number: block_env.number,
     })
+}
+
+/// Convert an `ExecutionResult` to a `DebugTraceResult`.
+pub fn execution_result_to_debug_result(
+    execution_result: ExecutionResult,
+    tracer: TracerEip3155,
+) -> DebugTraceResult {
+    match execution_result {
+        ExecutionResult::Success {
+            gas_used, output, ..
+        } => DebugTraceResult {
+            pass: true,
+            gas_used,
+            output: Some(output.into_data()),
+            logs: tracer.logs,
+        },
+        ExecutionResult::Revert { gas_used, output } => DebugTraceResult {
+            pass: false,
+            gas_used,
+            output: Some(output),
+            logs: tracer.logs,
+        },
+        ExecutionResult::Halt { gas_used, .. } => DebugTraceResult {
+            pass: false,
+            gas_used,
+            output: None,
+            logs: tracer.logs,
+        },
+    }
 }
 
 /// Config options for `debug_trace_transaction`
@@ -172,9 +179,11 @@ pub struct DebugTraceLogItem {
     pub storage: Option<HashMap<String, String>>,
 }
 
-// Based on https://github.com/bluealloy/revm/blob/70cf969a25a45e3bb4e503926297d61a90c7eec5/crates/revm/src/inspector/tracer_eip3155.rs
-// Original licensed under the MIT license.
-struct TracerEip3155 {
+/// An EIP-3155 compatible EVM tracer.
+/// Based on [REVM TracerEip3155](https://github.com/bluealloy/revm/blob/70cf969a25a45e3bb4e503926297d61a90c7eec5/crates/revm/src/inspector/tracer_eip3155.rs).
+/// Original licensed under the MIT license.
+#[derive(Debug)]
+pub struct TracerEip3155 {
     config: DebugTraceConfig,
 
     logs: Vec<DebugTraceLogItem>,
@@ -194,7 +203,8 @@ struct TracerEip3155 {
 }
 
 impl TracerEip3155 {
-    fn new(config: DebugTraceConfig) -> Self {
+    /// Create a new tracer.
+    pub fn new(config: DebugTraceConfig) -> Self {
         Self {
             config,
             logs: Vec::default(),
