@@ -104,7 +104,7 @@ const NavBar = styled.div`
 `;
 
 const Contents = styled.div`
-  padding: 5rem 240px;
+  padding: 5rem 180px;
   display: grid;
   row-gap: 1rem;
 `;

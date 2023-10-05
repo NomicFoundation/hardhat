@@ -46,11 +46,9 @@ export function toMermaid(
 
   return `flowchart TB\n\n${toEscapedId(
     ignitionModule.id
-  )}:::startModule\n\n${subgraphSections}${
+  )}\n\n${subgraphSections}${
     futureDependencies === "" ? "" : "\n\n" + futureDependencies
-  }${
-    moduleDependencies === "" ? "" : "\n\n" + moduleDependencies
-  }\n\nclassDef startModule stroke-width:4px`;
+  }${moduleDependencies === "" ? "" : "\n\n" + moduleDependencies}`;
 }
 
 function recursivelyListModulesAndSubmodulesFor(
@@ -75,7 +73,7 @@ function prettyPrintModule(
 
   const title = `${lineIndent}subgraph ${module.id}Padding["[ ${module.id} ]"]\n${lineIndent}  direction TB\n\n${lineIndent}${inner}\n${lineIndent}end\n\nstyle ${module.id}Padding fill:none,stroke:none`;
 
-  const outer = `${lineIndent}subgraph ${module.id}[ ]\n${lineIndent} direction TB\n\n${lineIndent}${title}\n${lineIndent}end`;
+  const outer = `${lineIndent}subgraph ${module.id}[ ]\n${lineIndent} direction TB\n\n${lineIndent}${title}\n${lineIndent}end\n\nstyle ${module.id} fill:#fbfbfb,stroke:#e5e6e7`;
 
   return outer;
 }
