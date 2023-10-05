@@ -1,4 +1,5 @@
 import "@nomicfoundation/hardhat-verify";
+import "@nomicfoundation/hardhat-viem";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
