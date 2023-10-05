@@ -71,7 +71,13 @@ function prettyPrintModule(
     .map((f) => `${lineIndent}${toEscapedId(f.id)}["${toLabel(f)}"]`)
     .join(`\n${lineIndent}`);
 
-  return `${lineIndent}subgraph ${module.id}\n${lineIndent}  direction TB\n\n${lineIndent}${futureList}\n${lineIndent}end`;
+  const inner = `${lineIndent}subgraph ${module.id}Inner[ ]\n${lineIndent}  direction TB\n\n${lineIndent}${futureList}\n${lineIndent}end\n\nstyle ${module.id}Inner fill:none,stroke:none`;
+
+  const title = `${lineIndent}subgraph ${module.id}Padding["[ ${module.id} ]"]\n${lineIndent}  direction TB\n\n${lineIndent}${inner}\n${lineIndent}end\n\nstyle ${module.id}Padding fill:none,stroke:none`;
+
+  const outer = `${lineIndent}subgraph ${module.id}[ ]\n${lineIndent} direction TB\n\n${lineIndent}${title}\n${lineIndent}end`;
+
+  return outer;
 }
 
 function toLabel(f: Future): string {
