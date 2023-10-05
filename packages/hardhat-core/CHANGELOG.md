@@ -1,5 +1,15 @@
 # hardhat
 
+## 2.18.0
+
+### Minor Changes
+
+- 9412419b8: Added support for scoped tasks
+
+### Patch Changes
+
+- e95e954b4: Report issues from `@nomicfoundation` npm scope
+
 ## 2.17.4
 
 ### Patch Changes
