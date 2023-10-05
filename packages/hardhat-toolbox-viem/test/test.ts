@@ -2,7 +2,7 @@ import { assert } from "chai";
 
 import { useEnvironment } from "./helpers";
 
-describe("hardhat-toolbox", function () {
+describe("hardhat-toolbox-viem", function () {
   describe("only-toolbox", function () {
     useEnvironment("only-toolbox");
 

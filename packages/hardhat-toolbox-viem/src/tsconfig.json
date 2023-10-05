@@ -12,13 +12,7 @@
       "path": "../../hardhat-core/src"
     },
     {
-      "path": "../../hardhat-chai-matchers"
-    },
-    {
       "path": "../../hardhat-network-helpers"
-    },
-    {
-      "path": "../../hardhat-ethers/src"
     },
     {
       "path": "../../hardhat-verify"
