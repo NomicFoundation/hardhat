@@ -43,7 +43,6 @@
     "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
     "@nomicfoundation/hardhat-verify": "^1.0.0",
     "@nomicfoundation/hardhat-viem": "^1.0.0",
-    "@typechain/hardhat": "^8.0.0",
     "@types/chai": "^4.2.0",
     "@types/mocha": ">=9.1.0",
     "@types/node": "^16.0.0",
@@ -62,15 +61,13 @@
     "rimraf": "^3.0.2",
     "solidity-coverage": "^0.8.1",
     "ts-node": "^10.8.0",
-    "typechain": "^8.2.0",
-    "typescript": "~5.0.0",
+    "typescript": "~5.0.4",
     "viem": "^1.15.1"
   },
   "peerDependencies": {
     "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
     "@nomicfoundation/hardhat-verify": "^1.0.0",
     "@nomicfoundation/hardhat-viem": "^1.0.0",
-    "@typechain/hardhat": "^8.0.0",
     "@types/chai": "^4.2.0",
     "@types/mocha": ">=9.1.0",
     "@types/node": ">=16.0.0",
@@ -79,8 +76,7 @@
     "hardhat-gas-reporter": "^1.0.8",
     "solidity-coverage": "^0.8.1",
     "ts-node": ">=8.0.0",
-    "typechain": "^8.2.0",
-    "typescript": ">=4.5.0",
+    "typescript": "~5.0.4",
     "viem": "^1.15.1"
   },
   "bugs": {

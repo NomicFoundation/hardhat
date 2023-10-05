@@ -8,7 +8,6 @@ async function main() {
   const taskNames = Object.keys(tasks);
   assert(taskNames.includes("verify"));
   assert(taskNames.includes("coverage"));
-  assert(taskNames.includes("typechain"));
 }
 
 main()

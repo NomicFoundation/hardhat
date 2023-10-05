@@ -1,6 +1,5 @@
 import "@nomicfoundation/hardhat-verify";
 import "@nomicfoundation/hardhat-viem";
-import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
 /**
@@ -33,12 +32,5 @@ extendConfig((config, userConfig) => {
 
   if (gasReporterConfig?.currency === undefined) {
     configAsAny.gasReporter.currency = "USD";
-  }
-
-  // We don't generate types for js projects
-  if (userConfig?.typechain?.dontOverrideCompile === undefined) {
-    config.typechain.dontOverrideCompile =
-      config.paths.configFile.endsWith(".js") ||
-      config.paths.configFile.endsWith(".cjs");
   }
 });

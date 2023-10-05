@@ -23,12 +23,4 @@ describe("hardhat-toolbox-viem", function () {
       assert.isDefined(this.env);
     });
   });
-
-  describe("typechain config", function () {
-    useEnvironment("typechain-config");
-
-    it("should disable typechain overrides for js projects", async function () {
-      assert.isTrue(this.env.config.typechain.dontOverrideCompile);
-    });
-  });
 });
