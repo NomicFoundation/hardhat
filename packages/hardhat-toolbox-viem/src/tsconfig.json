@@ -16,6 +16,9 @@
     },
     {
       "path": "../../hardhat-verify"
+    },
+    {
+      "path": "../../hardhat-viem/src"
     }
   ]
 }
