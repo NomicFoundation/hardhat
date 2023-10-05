@@ -58,8 +58,7 @@ const StyledList = styled.ul`
 
 const ListItem = styled.li`
   font-size: 17px;
-  font-weight: 700;
   line-height: 1.6rem;
   text-align: left;
-  color: #b29c00;
+  color: #040405;
 `;

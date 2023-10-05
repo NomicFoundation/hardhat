@@ -50,12 +50,13 @@ export const DeploymentFlow: React.FC<{
       </SectionHeader>
 
       <BatchBtnSection>
-        Visualize batches:{" "}
+        <VisualizeDiv>Visualize batches</VisualizeDiv>
         {batches.map((_, i) => (
           <BatchBtn
             key={`batch-btn-${i}`}
             onMouseEnter={() => setCurrentlyHovered(`batch-${i}`)}
             onMouseLeave={() => setCurrentlyHovered("")}
+            isCurrentlyHovered={currentlyHovered === `batch-${i}`}
           >
             Batch <strong>#{i + 1}</strong>
           </BatchBtn>
@@ -73,9 +74,16 @@ export const DeploymentFlow: React.FC<{
   );
 };
 
+const VisualizeDiv = styled.div`
+  font-weight: 700;
+  padding: 1.5rem;
+`;
+
 const FlowTooltip: React.FC = () => (
-  <span style={{ fontSize: "1.25rem" }}>
-    <a data-tooltip-id="flow-tooltip">ℹ️</a>
+  <span
+    style={{ fontSize: "0.8rem", paddingLeft: "0.5rem", cursor: "pointer" }}
+  >
+    <a data-tooltip-id="flow-tooltip">ⓘ</a>
     <Tooltip className="styled-tooltip flow-tooltip" id="flow-tooltip">
       <div>Diagram reference</div>
       <br />
@@ -119,7 +127,11 @@ const HighlightedFutures = styled.div<{
       (id) =>
         css`
           g[id^="flowchart-${id}-"] rect {
-            fill: #fff100 !important;
+            fill: #16181d !important;
+          }
+
+          g[id^="flowchart-${id}-"] span {
+            color: #fbf8d8 !important;
           }
         `
     )}
@@ -131,6 +143,8 @@ const SectionHeader = styled.div`
   line-height: 30px;
   letter-spacing: 0em;
   text-align: left;
+  display: inline-flex;
+  align-items: center;
 
   margin-bottom: 1rem;
   margin-top: 1rem;
@@ -138,13 +152,25 @@ const SectionHeader = styled.div`
 
 const BatchBtnSection = styled.div`
   margin-bottom: 40px;
+  text-align: center;
 `;
 
-const BatchBtn = styled.span`
+const BatchBtn = styled.span<{ isCurrentlyHovered: boolean }>`
   font-size: 0.8rem;
-  background: #f2efef;
   width: 86px;
   text-align: center;
-  padding: 0.3rem 1rem;
+  padding: 0.5rem 1rem;
   margin: auto 0.5rem;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 2px solid #edcf00;
+  cursor: pointer;
+
+  ${(props) =>
+    props.isCurrentlyHovered &&
+    `
+    background: #16181D;
+    color: #FBF8D8;
+    border: 2px solid #16181D;
+  `}
 `;

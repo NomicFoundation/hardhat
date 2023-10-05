@@ -45,6 +45,21 @@ export const ExecutionBatches: React.FC<{
     return [...acc, fullBatch as Future[]];
   }, [] as Future[][]);
 
+  /* logic for highlighting a future based on future details hover */
+  const futureHoverMap = Object.fromEntries(
+    batches.flatMap((batch, i) => {
+      const batchId = `batch-${i + 1}`;
+
+      return batch.map((id, j) => [id, `${batchId}-future-${j}`]);
+    })
+  );
+  const [hoveredFuture, setHoveredFutureInternal] = useState("");
+
+  const setHoveredFuture = (id: string) => {
+    const futureId = futureHoverMap[id];
+    setHoveredFutureInternal(futureId);
+  };
+
   return (
     <div>
       <SectionHeader>
@@ -58,7 +73,10 @@ export const ExecutionBatches: React.FC<{
 
       <RootModuleBackground>
         <RootModuleName>[{ignitionModule.id}]</RootModuleName>
-        <Actions currentlyHovered={currentlyHovered}>
+        <Actions
+          currentlyHovered={currentlyHovered}
+          hoveredFuture={hoveredFuture}
+        >
           {futureBatches.map((batch, i) => (
             <FutureBatch
               key={`batch-${i}`}
@@ -67,6 +85,7 @@ export const ExecutionBatches: React.FC<{
               toggleState={toggleState}
               setToggled={setToggled}
               setCurrentlyHovered={setCurrentlyHovered}
+              setHoveredFuture={setHoveredFuture}
             />
           ))}
         </Actions>
@@ -76,8 +95,10 @@ export const ExecutionBatches: React.FC<{
 };
 
 const BatchesTooltip: React.FC = () => (
-  <span style={{ fontSize: "1.25rem" }}>
-    <a data-tooltip-id="batches-tooltip">ℹ️</a>
+  <span
+    style={{ fontSize: "0.8rem", paddingLeft: "0.5rem", cursor: "pointer" }}
+  >
+    <a data-tooltip-id="batches-tooltip">ⓘ</a>
     <Tooltip className="styled-tooltip batches-tooltip" id="batches-tooltip">
       <div>
         Futures that can be parallelized are executed at the same time in
@@ -111,6 +132,8 @@ const SectionHeader = styled.div`
   font-weight: 700;
   line-height: 30px;
   letter-spacing: 0em;
+  display: inline-flex;
+  align-items: center;
 
   margin-bottom: 1rem;
   margin-top: 1rem;
@@ -121,7 +144,7 @@ const SectionSubHeader = styled.div`
   margin-top: 2rem;
 `;
 
-const Actions = styled.div<{ currentlyHovered: string }>`
+const Actions = styled.div<{ currentlyHovered: string; hoveredFuture: string }>`
   display: grid;
   row-gap: 1.5rem;
 
@@ -129,7 +152,18 @@ const Actions = styled.div<{ currentlyHovered: string }>`
     currentlyHovered &&
     `
     .${currentlyHovered} {
-      background: #FFF100;
+      background: #16181D;
+      color: #FBF8D8;
+    }
+  `}
+
+  ${({ hoveredFuture }) =>
+    hoveredFuture &&
+    `
+    .${hoveredFuture} {
+      background: #16181D;
+      color: #FBF8D8;
+      box-shadow: -2px 2px 4px 0px #6C6F7433;
     }
   `}
 `;

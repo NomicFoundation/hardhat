@@ -15,7 +15,15 @@ export const FutureBatch: React.FC<{
   toggleState: Record<string, boolean>;
   setToggled: (id: string) => void;
   setCurrentlyHovered: (id: string) => void;
-}> = ({ batch, index, toggleState, setToggled, setCurrentlyHovered }) => {
+  setHoveredFuture: (id: string) => void;
+}> = ({
+  batch,
+  index,
+  toggleState,
+  setToggled,
+  setCurrentlyHovered,
+  setHoveredFuture,
+}) => {
   return (
     <Batch>
       <BatchHeader>
@@ -24,10 +32,12 @@ export const FutureBatch: React.FC<{
       {batch.map((future, i) => (
         <FutureBlock
           key={`batch-${index}-future-${i}`}
+          classKey={`batch-${index}-future-${i}`}
           future={future}
           toggleState={toggleState}
           setToggled={setToggled}
           setCurrentlyHovered={setCurrentlyHovered}
+          setHoveredFuture={setHoveredFuture}
         />
       ))}
     </Batch>
@@ -92,7 +102,16 @@ const FutureBlock: React.FC<{
   toggleState: Record<string, boolean>;
   setToggled: (id: string) => void;
   setCurrentlyHovered: (id: string) => void;
-}> = ({ future, toggleState, setToggled, setCurrentlyHovered }) => {
+  setHoveredFuture: (id: string) => void;
+  classKey: string;
+}> = ({
+  future,
+  toggleState,
+  setToggled,
+  setCurrentlyHovered,
+  setHoveredFuture,
+  classKey,
+}) => {
   const futureId = future.id;
   const toggled = toggleState[futureId];
 
@@ -109,7 +128,7 @@ const FutureBlock: React.FC<{
   return (
     <div>
       <FutureBtn
-        className={className}
+        className={`${className} ${classKey}`}
         isLibrary={isLibrary}
         toggled={toggled}
         onClick={() => setToggled(futureId)}
@@ -131,6 +150,7 @@ const FutureBlock: React.FC<{
           className={className}
           future={future}
           setToggled={setToggled}
+          setHoveredFuture={setHoveredFuture}
         />
       )}
     </div>
@@ -204,7 +224,8 @@ const FutureDetailsSection: React.FC<{
   className: string;
   future: Future;
   setToggled: (id: string) => void;
-}> = ({ className, future, setToggled }) => {
+  setHoveredFuture: (id: string) => void;
+}> = ({ className, future, setToggled, setHoveredFuture }) => {
   switch (future.type) {
     case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
     case FutureType.CONTRACT_DEPLOYMENT: {
@@ -214,7 +235,12 @@ const FutureDetailsSection: React.FC<{
           <p>{args.length === 0 ? "No " : null}Constructor Arguments</p>
           <ul>
             {args.map(([, arg], i) => (
-              <Argument key={`arg-${i}`} setToggled={setToggled} arg={arg} />
+              <Argument
+                key={`arg-${i}`}
+                setToggled={setToggled}
+                arg={arg}
+                setHoveredFuture={setHoveredFuture}
+              />
             ))}
           </ul>
         </FutureDetailsStyle>
@@ -230,7 +256,12 @@ const FutureDetailsSection: React.FC<{
           <p>{args.length === 0 ? "No " : null}Arguments</p>
           <ul>
             {args.map(([, arg], i) => (
-              <Argument key={`arg-${i}`} setToggled={setToggled} arg={arg} />
+              <Argument
+                key={`arg-${i}`}
+                setToggled={setToggled}
+                arg={arg}
+                setHoveredFuture={setHoveredFuture}
+              />
             ))}
           </ul>
         </FutureDetailsStyle>
@@ -243,7 +274,12 @@ const FutureDetailsSection: React.FC<{
           <p>{args.length === 0 ? "No " : null}Arguments</p>
           <ul>
             {args.map(([, arg], i) => (
-              <Argument key={`arg-${i}`} setToggled={setToggled} arg={arg} />
+              <Argument
+                key={`arg-${i}`}
+                setToggled={setToggled}
+                arg={arg}
+                setHoveredFuture={setHoveredFuture}
+              />
             ))}
           </ul>
         </FutureDetailsStyle>
@@ -259,7 +295,11 @@ const FutureDetailsSection: React.FC<{
             {typeof future.address === "string" ? (
               future.address
             ) : (
-              <Argument setToggled={setToggled} arg={future.address} />
+              <Argument
+                setToggled={setToggled}
+                arg={future.address}
+                setHoveredFuture={setHoveredFuture}
+              />
             )}
           </p>
         </FutureDetailsStyle>
@@ -283,7 +323,11 @@ const FutureDetailsSection: React.FC<{
             {typeof future.to === "string" ? (
               future.to
             ) : (
-              <Argument setToggled={setToggled} arg={future.to} />
+              <Argument
+                setToggled={setToggled}
+                arg={future.to}
+                setHoveredFuture={setHoveredFuture}
+              />
             )}
           </p>
           <p>Data - {future.data}</p>
@@ -295,17 +339,20 @@ const FutureDetailsSection: React.FC<{
 
 const Argument: React.FC<{
   setToggled: (id: string) => void;
+  setHoveredFuture: (id: string) => void;
   arg: ArgumentType;
-}> = ({ setToggled, arg }) => {
+}> = ({ setToggled, arg, setHoveredFuture }) => {
   if (isFuture(arg)) {
     return (
       <li
         style={{
           textDecoration: "underline",
-          color: "blue",
+          color: "#16181D",
           cursor: "pointer",
         }}
         onClick={() => setToggled(arg.id)}
+        onMouseEnter={() => setHoveredFuture(arg.id)}
+        onMouseLeave={() => setHoveredFuture("")}
       >
         {argumentTypeToString(arg)}
       </li>
