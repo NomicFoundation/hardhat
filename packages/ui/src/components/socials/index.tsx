@@ -11,7 +11,7 @@ export enum SocialsEnum {
 const SOCIALS_LINKS = {
   [SocialsEnum.GITHUB]: "https://github.com/NomicFoundation/hardhat-ignition",
   [SocialsEnum.TWITTER]: "https://twitter.com/HardhatHQ",
-  [SocialsEnum.DISCORD]: "https://discord.gg/zJx3ZpkVpq",
+  [SocialsEnum.DISCORD]: "https://hardhat.org/ignition-discord",
 };
 
 export const socialsItems = [

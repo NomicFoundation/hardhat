@@ -87,7 +87,6 @@ const FlowTooltip: React.FC = () => (
     </a>
     <Tooltip className="styled-tooltip flow-tooltip" id="flow-tooltip">
       <div>Diagram reference</div>
-      <br />
       <span style={{ fontWeight: 400 }}>Future to future dependency</span>
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
       <span>---&gt;</span>

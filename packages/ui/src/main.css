@@ -26,6 +26,7 @@ body {
 .styled-tooltip span {
   font-weight: 400 !important;
 }
+
 .styled-tooltip * {
   font-size: 0.8rem !important;
 }
@@ -46,6 +47,7 @@ body {
 
 .mermaid * {
   font-family: "Roboto", sans-serif;
+  font-size: 30px;
 }
 
 .mermaid rect {

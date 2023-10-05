@@ -44,7 +44,7 @@ export function toMermaid(
     ),
   ].join("\n");
 
-  return `%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '30px' }}}%%\n\nflowchart TB\n\n${toEscapedId(
+  return `flowchart TB\n\n${toEscapedId(
     ignitionModule.id
   )}\n\n${subgraphSections}${
     futureDependencies === "" ? "" : "\n\n" + futureDependencies
