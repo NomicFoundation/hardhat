@@ -46,7 +46,6 @@ body {
 
 .mermaid * {
   font-family: "Roboto", sans-serif;
-  font-size: 15px;
 }
 
 .mermaid rect {
@@ -57,7 +56,6 @@ body {
 /* selects moduleIds only */
 .clusters .nodeLabel {
   font-weight: 700;
-  font-size: 16px;
 }
 
 .futureNode rect {
