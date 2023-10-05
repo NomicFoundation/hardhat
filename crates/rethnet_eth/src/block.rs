@@ -9,7 +9,11 @@ mod reorg;
 
 use std::sync::OnceLock;
 
-use revm_primitives::{keccak256, ruint::aliases::U160, SpecId};
+use revm_primitives::{
+    calc_excess_blob_gas, keccak256,
+    ruint::aliases::{U160, U64},
+    SpecId,
+};
 use rlp::Decodable;
 
 use crate::{
@@ -134,6 +138,9 @@ pub struct Header {
     pub base_fee_per_gas: Option<U256>,
     /// WithdrawalsHash was added by EIP-4895 and is ignored in legacy headers.
     pub withdrawals_root: Option<B256>,
+    /// Blob gas was added by EIP-4844 and is ignored in older headers.
+    #[cfg_attr(feature = "serde", serde(flatten))]
+    pub blob_gas: Option<BlobGas>,
 }
 
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -148,8 +155,21 @@ impl From<B64Def> for B64 {
     }
 }
 
+/// Information about the blob gas used in a block.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+pub struct BlobGas {
+    /// The total amount of blob gas consumed by the transactions within the block.
+    pub gas_used: u64,
+    /// The running total of blob gas consumed in excess of the target, prior to
+    /// the block. Blocks with above-target blob gas consumption increase this value,
+    /// blocks with below-target blob gas consumption decrease it (bounded at 0).
+    pub excess_gas: u64,
+}
+
 impl Header {
-    /// Constructs a [`Header`] from the provided [`PartialHeader`], ommers' root hash, transactions' root hash, and withdrawals' root hash.
+    /// Constructs a header from the provided [`PartialHeader`], ommers' root hash, transactions' root hash, and withdrawals' root hash.
     pub fn new(
         partial_header: PartialHeader,
         ommers_hash: B256,
@@ -174,6 +194,7 @@ impl Header {
             nonce: partial_header.nonce,
             base_fee_per_gas: partial_header.base_fee,
             withdrawals_root,
+            blob_gas: partial_header.blob_gas,
         }
     }
 
@@ -181,40 +202,6 @@ impl Header {
     pub fn hash(&self) -> B256 {
         let encoded = rlp::encode(self);
         keccak256(&encoded)
-    }
-
-    /// Returns the rlp length of the Header body, _not including_ trailing EIP155 fields or the
-    /// rlp list header
-    /// To get the length including the rlp list header, refer to the Encodable implementation.
-    #[cfg(feature = "fastrlp")]
-    pub(crate) fn header_payload_length(&self) -> usize {
-        use open_fastrlp::Encodable;
-
-        let mut length = 0;
-        length += self.parent_hash.length();
-        length += self.ommers_hash.length();
-        length += self.beneficiary.length();
-        length += self.state_root.length();
-        length += self.transactions_root.length();
-        length += self.receipts_root.length();
-        length += self.logs_bloom.length();
-        length += self.difficulty.length();
-        length += self.number.length();
-        length += self.gas_limit.length();
-        length += self.gas_used.length();
-        length += self.timestamp.length();
-        length += self.extra_data.length();
-        length += self.mix_hash.length();
-        length += self.nonce.length();
-        length += self
-            .base_fee_per_gas
-            .map(|fee| fee.length())
-            .unwrap_or_default();
-        length += self
-            .withdrawals_root
-            .map(|root| root.length())
-            .unwrap_or_default();
-        length
     }
 }
 
@@ -224,8 +211,10 @@ impl rlp::Encodable for Header {
             15
         } else if self.withdrawals_root.is_none() {
             16
-        } else {
+        } else if self.blob_gas.is_none() {
             17
+        } else {
+            19
         });
 
         s.append(&self.parent_hash.as_bytes());
@@ -248,6 +237,14 @@ impl rlp::Encodable for Header {
         }
         if let Some(ref root) = self.withdrawals_root {
             s.append(&root.as_bytes());
+        }
+        if let Some(BlobGas {
+            ref gas_used,
+            ref excess_gas,
+        }) = self.blob_gas
+        {
+            s.append(&U64::from_limbs([*gas_used]));
+            s.append(&U64::from_limbs([*excess_gas]));
         }
     }
 }
@@ -280,6 +277,18 @@ impl rlp::Decodable for Header {
                 Some(B256::from(
                     <U256 as Decodable>::decode(&root)?.to_be_bytes(),
                 ))
+            } else {
+                None
+            },
+
+            blob_gas: if let Ok((gas_used, excess_gas)) = rlp
+                .at(17)
+                .and_then(|gas_used| rlp.at(18).map(|excess_gas| (gas_used, excess_gas)))
+            {
+                Some(BlobGas {
+                    gas_used: <U64 as Decodable>::decode(&gas_used)?.as_limbs()[0],
+                    excess_gas: <U64 as Decodable>::decode(&excess_gas)?.as_limbs()[0],
+                })
             } else {
                 None
             },
@@ -390,6 +399,8 @@ pub struct PartialHeader {
     pub nonce: B64,
     /// BaseFee was added by EIP-1559 and is ignored in legacy headers.
     pub base_fee: Option<U256>,
+    /// Blob gas was added by EIP-4844 and is ignored in older headers.
+    pub blob_gas: Option<BlobGas>,
 }
 
 impl PartialHeader {
@@ -441,6 +452,23 @@ impl PartialHeader {
                     None
                 }
             }),
+            blob_gas: if spec_id >= SpecId::CANCUN {
+                let excess_gas = parent.and_then(|parent| parent.blob_gas.as_ref()).map_or(
+                    // For the first (post-fork) block, both parent.blob_gas_used and parent.excess_blob_gas are evaluated as 0.
+                    0,
+                    |BlobGas {
+                         gas_used,
+                         excess_gas,
+                     }| calc_excess_blob_gas(*excess_gas, *gas_used),
+                );
+
+                Some(BlobGas {
+                    gas_used: 0,
+                    excess_gas,
+                })
+            } else {
+                None
+            },
         }
     }
 }
@@ -463,7 +491,8 @@ impl Default for PartialHeader {
             extra_data: Bytes::default(),
             mix_hash: B256::default(),
             nonce: B64::default(),
-            base_fee: Option::default(),
+            base_fee: None,
+            blob_gas: None,
         }
     }
 }
@@ -485,6 +514,7 @@ impl From<Header> for PartialHeader {
             mix_hash: header.mix_hash,
             nonce: header.nonce,
             base_fee: header.base_fee_per_gas,
+            blob_gas: header.blob_gas,
         }
     }
 }
@@ -517,6 +547,7 @@ mod tests {
             nonce: B64::from_limbs([99u64.to_be()]),
             base_fee_per_gas: None,
             withdrawals_root: None,
+            blob_gas: None,
         };
 
         let encoded = rlp::encode(&header);
@@ -531,71 +562,32 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "fastrlp")]
-    fn header_fastrlp_roundtrip() {
-        let mut header = Header {
-            parent_hash: Default::default(),
-            ommers_hash: Default::default(),
-            beneficiary: Default::default(),
-            state_root: Default::default(),
-            transactions_root: Default::default(),
-            receipts_root: Default::default(),
-            logs_bloom: Default::default(),
-            difficulty: Default::default(),
-            number: 124u64.into(),
-            gas_limit: Default::default(),
-            gas_used: 1337u64.into(),
-            timestamp: 0,
-            extra_data: Default::default(),
-            mix_hash: Default::default(),
-            nonce: H64::from_low_u64_be(99u64),
-            base_fee_per_gas: None,
-        };
-
-        let mut encoded = vec![];
-        <Header as open_fastrlp::Encodable>::encode(&header, &mut encoded);
-        let decoded: Header =
-            <Header as open_fastrlp::Decodable>::decode(&mut encoded.as_slice()).unwrap();
-        assert_eq!(header, decoded);
-
-        header.base_fee_per_gas = Some(12345u64.into());
-
-        encoded.clear();
-        <Header as open_fastrlp::Encodable>::encode(&header, &mut encoded);
-        let decoded: Header =
-            <Header as open_fastrlp::Decodable>::decode(&mut encoded.as_slice()).unwrap();
-        assert_eq!(header, decoded);
-    }
-
-    #[test]
-    #[cfg(feature = "fastrlp")]
     // Test vector from: https://eips.ethereum.org/EIPS/eip-2481
     fn test_encode_block_header() {
-        use open_fastrlp::Encodable;
-
         let expected = hex::decode("f901f9a00000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000940000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000b90100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008208ae820d0582115c8215b3821a0a827788a00000000000000000000000000000000000000000000000000000000000000000880000000000000000").unwrap();
-        let mut data = vec![];
+
         let header = Header {
-            parent_hash: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
-            ommers_hash: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
-            beneficiary: H160::from_str("0000000000000000000000000000000000000000").unwrap(),
-            state_root: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
-            transactions_root: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
-            receipts_root: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
-            logs_bloom: <[u8; 256]>::from_hex("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap().into(),
-            difficulty: 0x8aeu64.into(),
-            number: 0xd05u64.into(),
-            gas_limit: 0x115cu64.into(),
-            gas_used: 0x15b3u64.into(),
-            timestamp: 0x1a0au64,
+            parent_hash: B256::zero(),
+            ommers_hash: B256::zero(),
+            beneficiary: Address::zero(),
+            state_root: B256::zero(),
+            transactions_root: B256::zero(),
+            receipts_root: B256::zero(),
+            logs_bloom: Bloom::zero(),
+            difficulty: U256::from(0x8aeu64),
+            number: U256::from(0xd05u64),
+            gas_limit: U256::from(0x115cu64),
+            gas_used: U256::from(0x15b3u64),
+            timestamp: U256::from(0x1a0au64),
             extra_data: hex::decode("7788").unwrap().into(),
-            mix_hash: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
-            nonce: U64::from(0x0),
+            mix_hash: B256::zero(),
+            nonce: B64::ZERO,
             base_fee_per_gas: None,
+            withdrawals_root: None,
+            blob_gas: None,
         };
-        header.encode(&mut data);
-        assert_eq!(hex::encode(&data), hex::encode(expected));
-        assert_eq!(header.length(), data.len());
+        let encoded = rlp::encode(&header);
+        assert_eq!(encoded, &expected);
     }
 
     #[test]
@@ -642,53 +634,37 @@ mod tests {
             nonce: B64::from(U64::ZERO),
             base_fee_per_gas: Some(U256::from(0x036bu64)),
             withdrawals_root: None,
+            blob_gas: None,
         };
         assert_eq!(header.hash(), expected_hash);
     }
 
     #[test]
-    #[cfg(feature = "fastrlp")]
     // Test vector from: https://eips.ethereum.org/EIPS/eip-2481
     fn test_decode_block_header() {
         let data = hex::decode("f901f9a00000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000940000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000b90100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008208ae820d0582115c8215b3821a0a827788a00000000000000000000000000000000000000000000000000000000000000000880000000000000000").unwrap();
+
         let expected = Header {
-            parent_hash: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
-            ommers_hash: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
-            beneficiary: H160::from_str("0000000000000000000000000000000000000000").unwrap(),
-            state_root: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
-            transactions_root: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
-            receipts_root: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
-            logs_bloom: <[u8; 256]>::from_hex("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap().into(),
-            difficulty: 0x8aeu64.into(),
-            number: 0xd05u64.into(),
-            gas_limit: 0x115cu64.into(),
-            gas_used: 0x15b3u64.into(),
-            timestamp: 0x1a0au64,
+            parent_hash: B256::zero(),
+            ommers_hash: B256::zero(),
+            beneficiary: Address::zero(),
+            state_root: B256::zero(),
+            transactions_root: B256::zero(),
+            receipts_root: B256::zero(),
+            logs_bloom: Bloom::zero(),
+            difficulty: U256::from(0x8aeu64),
+            number: U256::from(0xd05u64),
+            gas_limit: U256::from(0x115cu64),
+            gas_used: U256::from(0x15b3u64),
+            timestamp: U256::from(0x1a0au64),
             extra_data: hex::decode("7788").unwrap().into(),
-            mix_hash: B256::from_str("0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
-            nonce: U64::from(0x0),
+            mix_hash: B256::zero(),
+            nonce: B64::ZERO,
             base_fee_per_gas: None,
+            withdrawals_root: None,
+            blob_gas: None,
         };
-        let header = <Header as open_fastrlp::Decodable>::decode(&mut data.as_slice()).unwrap();
-        assert_eq!(header, expected);
-    }
-
-    #[test]
-    #[cfg(feature = "fastrlp")]
-    // Test vector from network
-    fn block_network_fastrlp_roundtrip() {
-        use open_fastrlp::Encodable;
-
-        let data = hex::decode("f9034df90348a0fbdbd8d2d0ac5f14bd5fa90e547fe6f1d15019c724f8e7b60972d381cd5d9cf8a01dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d4934794c9577e7945db22e38fc060909f2278c7746b0f9ba05017cfa3b0247e35197215ae8d610265ffebc8edca8ea66d6567eb0adecda867a056e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421a056e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421b9010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000018355bb7b871fffffffffffff808462bd0e1ab9014bf90148a00000000000000000000000000000000000000000000000000000000000000000f85494319fa8f1bc4e53410e92d10d918659b16540e60a945a573efb304d04c1224cd012313e827eca5dce5d94a9c831c5a268031176ebf5f3de5051e8cba0dbfe94c9577e7945db22e38fc060909f2278c7746b0f9b808400000000f8c9b841a6946f2d16f68338cbcbd8b117374ab421128ce422467088456bceba9d70c34106128e6d4564659cf6776c08a4186063c0a05f7cffd695c10cf26a6f301b67f800b8412b782100c18c35102dc0a37ece1a152544f04ad7dc1868d18a9570f744ace60870f822f53d35e89a2ea9709ccbf1f4a25ee5003944faa845d02dde0a41d5704601b841d53caebd6c8a82456e85c2806a9e08381f959a31fb94a77e58f00e38ad97b2e0355b8519ab2122662cbe022f2a4ef7ff16adc0b2d5dcd123181ec79705116db300a063746963616c2062797a616e74696e65206661756c7420746f6c6572616e6365880000000000000000c0c0").unwrap();
-
-        let block = <Block as open_fastrlp::Decodable>::decode(&mut data.as_slice()).unwrap();
-
-        // encode and check that it matches the original data
-        let mut encoded = Vec::new();
-        block.encode(&mut encoded);
-        assert_eq!(data, encoded);
-
-        // check that length of encoding is the same as the output of `length`
-        assert_eq!(block.length(), encoded.len());
+        let decoded: Header = rlp::decode(&data).unwrap();
+        assert_eq!(decoded, expected);
     }
 }

@@ -40,13 +40,16 @@ export class RethnetEthContext implements EthContextAdapter {
 
   public static async create(config: NodeConfig): Promise<RethnetEthContext> {
     const common = makeCommon(config);
-    const hardforkName = getHardforkName(config.hardfork);
 
     const prevRandaoGenerator =
       RandomBufferGenerator.create("randomMixHashSeed");
 
     let blockchain: RethnetBlockchain;
     let state: RethnetStateManager;
+
+    const specId = config.enableTransientStorage
+      ? SpecId.Cancun
+      : ethereumsjsHardforkToRethnetSpecId(getHardforkName(config.hardfork));
 
     if (isForkedNodeConfig(config)) {
       const chainIdToHardforkActivations: Array<
@@ -67,7 +70,7 @@ export class RethnetEthContext implements EthContextAdapter {
       blockchain = new RethnetBlockchain(
         await Blockchain.fork(
           globalRethnetContext,
-          ethereumsjsHardforkToRethnetSpecId(hardforkName),
+          specId,
           config.forkConfig.jsonRpcUrl,
           config.forkConfig.blockNumber !== undefined
             ? BigInt(config.forkConfig.blockNumber)
@@ -101,17 +104,16 @@ export class RethnetEthContext implements EthContextAdapter {
           ? BigInt(config.initialBaseFeePerGas)
           : BigInt(HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS);
 
-      const genesisBlockBaseFeePerGas = hardforkGte(
-        hardforkName,
-        HardforkName.LONDON
-      )
-        ? initialBaseFeePerGas
-        : undefined;
+      const genesisBlockBaseFeePerGas =
+        specId >= SpecId.London ? initialBaseFeePerGas : undefined;
 
       const genesisBlockHeader = makeGenesisBlock(
         config,
         await state.getStateRoot(),
-        hardforkName,
+        // HardforkName.CANCUN is not supported yet, so use SHANGHAI instead
+        config.enableTransientStorage
+          ? HardforkName.SHANGHAI
+          : getHardforkName(config.hardfork),
         prevRandaoGenerator,
         genesisBlockBaseFeePerGas
       );
@@ -119,7 +121,7 @@ export class RethnetEthContext implements EthContextAdapter {
       blockchain = new RethnetBlockchain(
         Blockchain.withGenesisBlock(
           common.chainId(),
-          ethereumsjsHardforkToRethnetSpecId(hardforkName),
+          specId,
           ethereumjsHeaderDataToRethnetBlockOptions(genesisBlockHeader),
           config.genesisAccounts.map((account) => {
             return {
@@ -146,13 +148,14 @@ export class RethnetEthContext implements EthContextAdapter {
       state,
       common,
       limitContractCodeSize,
-      limitInitcodeSize
+      limitInitcodeSize,
+      config.enableTransientStorage
     );
 
     const memPool = new RethnetMemPool(
       BigInt(config.blockGasLimit),
       state,
-      hardforkName
+      specId
     );
 
     const miner = new RethnetMiner(

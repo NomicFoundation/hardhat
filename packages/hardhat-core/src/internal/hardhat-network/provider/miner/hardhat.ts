@@ -3,6 +3,7 @@ import { Common } from "@nomicfoundation/ethereumjs-common";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import { Address } from "@nomicfoundation/ethereumjs-util";
 import { TxReceipt } from "@nomicfoundation/ethereumjs-vm";
+import { assertHardhatInvariant } from "../../../core/errors";
 import { HardforkName, hardforkGte } from "../../../util/hardforks";
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
 import { RandomBufferGenerator } from "../utils/random";
@@ -113,6 +114,14 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
 
       await this._memPool.update();
 
+      const totalDifficultyAfterBlock =
+        await this._blockchain.getTotalDifficultyByHash(block.hash());
+
+      assertHardhatInvariant(
+        totalDifficultyAfterBlock !== undefined,
+        "the total difficulty of the mined block should be defined"
+      );
+
       return {
         block,
         blockResult: {
@@ -123,6 +132,7 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
           receiptsRoot: block.header.receiptTrie,
           gasUsed: block.header.gasUsed,
         },
+        totalDifficultyAfterBlock,
         traces,
       };
     } catch (err) {

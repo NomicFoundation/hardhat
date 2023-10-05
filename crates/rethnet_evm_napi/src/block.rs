@@ -3,18 +3,19 @@ mod builder;
 use std::{mem, ops::Deref, sync::Arc};
 
 use napi::{
-    bindgen_prelude::{BigInt, Buffer, Either3},
+    bindgen_prelude::{BigInt, Buffer, Either4},
     Env, JsBuffer, JsBufferValue, Status,
 };
 use napi_derive::napi;
 use rethnet_eth::{Address, Bloom, Bytes, B256, B64};
-use rethnet_evm::{blockchain::BlockchainError, BlockEnv, SyncBlock};
+use rethnet_evm::{blockchain::BlockchainError, BlobExcessGasAndPrice, BlockEnv, SyncBlock};
 
 use crate::{
     cast::TryCast,
     receipt::Receipt,
     transaction::signed::{
-        EIP1559SignedTransaction, EIP2930SignedTransaction, LegacySignedTransaction,
+        EIP1559SignedTransaction, EIP2930SignedTransaction, Eip4844SignedTransaction,
+        LegacySignedTransaction,
     },
 };
 
@@ -30,6 +31,7 @@ pub struct BlockConfig {
     pub base_fee: Option<BigInt>,
     pub gas_limit: Option<BigInt>,
     pub parent_hash: Option<Buffer>,
+    pub blob_excess_gas: Option<BigInt>,
 }
 
 impl TryFrom<BlockConfig> for BlockEnv {
@@ -56,6 +58,8 @@ impl TryFrom<BlockConfig> for BlockEnv {
         let gas_limit = value
             .gas_limit
             .map_or(Ok(default.gas_limit), TryCast::try_cast)?;
+        let blob_excess_gas: Option<u64> =
+            value.blob_excess_gas.map(TryCast::try_cast).transpose()?;
 
         Ok(Self {
             number,
@@ -65,9 +69,7 @@ impl TryFrom<BlockConfig> for BlockEnv {
             prevrandao,
             basefee,
             gas_limit,
-            // TODO: Add support for EIP-4844
-            // https://github.com/NomicFoundation/edr/issues/191
-            blob_excess_gas_and_price: None,
+            blob_excess_gas_and_price: blob_excess_gas.map(BlobExcessGasAndPrice::new),
         })
     }
 }
@@ -159,6 +161,17 @@ impl TryFrom<BlockOptions> for rethnet_eth::block::BlockOptions {
     }
 }
 
+/// Information about the blob gas used in a block.
+#[napi(object)]
+pub struct BlobGas {
+    /// The total amount of blob gas consumed by the transactions within the block.
+    pub gas_used: BigInt,
+    /// The running total of blob gas consumed in excess of the target, prior to
+    /// the block. Blocks with above-target blob gas consumption increase this value,
+    /// blocks with below-target blob gas consumption decrease it (bounded at 0).
+    pub excess_gas: BigInt,
+}
+
 #[napi(object)]
 pub struct BlockHeader {
     pub parent_hash: Buffer,
@@ -178,6 +191,7 @@ pub struct BlockHeader {
     pub nonce: Buffer,
     pub base_fee_per_gas: Option<BigInt>,
     pub withdrawals_root: Option<Buffer>,
+    pub blob_gas: Option<BlobGas>,
 }
 
 impl BlockHeader {
@@ -233,6 +247,10 @@ impl BlockHeader {
             withdrawals_root: header
                 .withdrawals_root
                 .map(|root| Buffer::from(root.as_bytes())),
+            blob_gas: header.blob_gas.as_ref().map(|blob_gas| BlobGas {
+                gas_used: BigInt::from(blob_gas.gas_used),
+                excess_gas: BigInt::from(blob_gas.excess_gas),
+            }),
         })
     }
 }
@@ -270,6 +288,7 @@ impl TryFrom<BlockHeader> for rethnet_eth::block::Header {
                 .withdrawals_root
                 .map(TryCast::<B256>::try_cast)
                 .transpose()?,
+            blob_gas: None,
         })
     }
 }
@@ -295,6 +314,12 @@ impl Deref for Block {
 
 #[napi]
 impl Block {
+    #[doc = "Retrieves the block's hash, potentially calculating it in the process."]
+    #[napi]
+    pub fn hash(&self) -> Buffer {
+        Buffer::from(self.inner.hash().as_bytes())
+    }
+
     #[doc = "Retrieves the block's header."]
     #[napi(getter)]
     pub fn header(&self, env: Env) -> napi::Result<BlockHeader> {
@@ -309,23 +334,33 @@ impl Block {
     ) -> napi::Result<
         // HACK: napi does not convert Rust type aliases to its underlaying types when generating bindings
         // so manually do that here
-        Vec<Either3<LegacySignedTransaction, EIP2930SignedTransaction, EIP1559SignedTransaction>>,
+        Vec<
+            Either4<
+                LegacySignedTransaction,
+                EIP2930SignedTransaction,
+                EIP1559SignedTransaction,
+                Eip4844SignedTransaction,
+            >,
+        >,
     > {
         self.inner
             .transactions()
             .iter()
             .map(|transaction| match transaction {
                 rethnet_eth::transaction::SignedTransaction::PreEip155Legacy(transaction) => {
-                    LegacySignedTransaction::from_legacy(&env, transaction).map(Either3::A)
+                    LegacySignedTransaction::from_legacy(&env, transaction).map(Either4::A)
                 }
                 rethnet_eth::transaction::SignedTransaction::PostEip155Legacy(transaction) => {
-                    LegacySignedTransaction::from_eip155(&env, transaction).map(Either3::A)
+                    LegacySignedTransaction::from_eip155(&env, transaction).map(Either4::A)
                 }
                 rethnet_eth::transaction::SignedTransaction::Eip2930(transaction) => {
-                    EIP2930SignedTransaction::new(&env, transaction).map(Either3::B)
+                    EIP2930SignedTransaction::new(&env, transaction).map(Either4::B)
                 }
                 rethnet_eth::transaction::SignedTransaction::Eip1559(transaction) => {
-                    EIP1559SignedTransaction::new(&env, transaction).map(Either3::C)
+                    EIP1559SignedTransaction::new(&env, transaction).map(Either4::C)
+                }
+                rethnet_eth::transaction::SignedTransaction::Eip4844(transaction) => {
+                    Eip4844SignedTransaction::new(&env, transaction).map(Either4::D)
                 }
             })
             .collect()

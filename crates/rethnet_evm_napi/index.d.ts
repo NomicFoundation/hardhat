@@ -38,6 +38,7 @@ export interface BlockConfig {
   baseFee?: bigint
   gasLimit?: bigint
   parentHash?: Buffer
+  blobExcessGas?: bigint
 }
 export interface BlockOptions {
   /** The parent block's hash */
@@ -67,6 +68,17 @@ export interface BlockOptions {
   /** The block's base gas fee */
   baseFee?: bigint
 }
+/** Information about the blob gas used in a block. */
+export interface BlobGas {
+  /** The total amount of blob gas consumed by the transactions within the block. */
+  gasUsed: bigint
+  /**
+   * The running total of blob gas consumed in excess of the target, prior to
+   * the block. Blocks with above-target blob gas consumption increase this value,
+   * blocks with below-target blob gas consumption decrease it (bounded at 0).
+   */
+  excessGas: bigint
+}
 export interface BlockHeader {
   parentHash: Buffer
   ommersHash: Buffer
@@ -85,6 +97,7 @@ export interface BlockHeader {
   nonce: Buffer
   baseFeePerGas?: bigint
   withdrawalsRoot?: Buffer
+  blobGas?: BlobGas
 }
 /** Identifier for the Ethereum spec. */
 export const enum SpecId {
@@ -379,6 +392,23 @@ export interface Eip2930SignedTransaction {
   r: bigint
   s: bigint
 }
+export interface Eip4844SignedTransaction {
+  chainId: bigint
+  nonce: bigint
+  maxPriorityFeePerGas: bigint
+  maxFeePerGas: bigint
+  maxFeePerBlobGas: bigint
+  gasLimit: bigint
+  /** 160-bit address for receiver */
+  to: Buffer
+  value: bigint
+  input: Buffer
+  accessList: Array<AccessListItem>
+  blobHashes: Array<Buffer>
+  oddYParity: boolean
+  r: bigint
+  s: bigint
+}
 export interface LegacySignedTransaction {
   nonce: bigint
   gasPrice: bigint
@@ -417,10 +447,12 @@ export class BlockBuilder {
   finalize(rewards: Array<[Buffer, bigint]>, timestamp?: bigint | undefined | null): Promise<Block>
 }
 export class Block {
+  /**Retrieves the block's hash, potentially calculating it in the process. */
+  hash(): Buffer
   /**Retrieves the block's header. */
   get header(): BlockHeader
   /**Retrieves the block's transactions. */
-  get transactions(): Array<LegacySignedTransaction | EIP2930SignedTransaction | EIP1559SignedTransaction>
+  get transactions(): Array<LegacySignedTransaction | EIP2930SignedTransaction | EIP1559SignedTransaction | Eip4844SignedTransaction>
   /**Retrieves the callers of the block's transactions */
   get callers(): Array<Buffer>
   /**Retrieves the transactions' receipts. */
@@ -610,9 +642,9 @@ export class OrderedTransaction {
 }
 export class PendingTransaction {
   /** Tries to construct a new [`PendingTransaction`]. */
-  static create(stateManager: State, specId: SpecId, transaction: LegacySignedTransaction | EIP2930SignedTransaction | EIP1559SignedTransaction, caller?: Buffer | undefined | null): Promise<PendingTransaction>
+  static create(stateManager: State, specId: SpecId, transaction: LegacySignedTransaction | EIP2930SignedTransaction | EIP1559SignedTransaction | Eip4844SignedTransaction, caller?: Buffer | undefined | null): Promise<PendingTransaction>
   get caller(): Buffer
-  get transaction(): LegacySignedTransaction | EIP2930SignedTransaction | EIP1559SignedTransaction
+  get transaction(): LegacySignedTransaction | EIP2930SignedTransaction | EIP1559SignedTransaction | Eip4844SignedTransaction
 }
 export class TransactionResult {
   get result(): ExecutionResult

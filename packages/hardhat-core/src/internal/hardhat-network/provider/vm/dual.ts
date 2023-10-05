@@ -61,7 +61,7 @@ export class DualModeAdapter implements VMAdapter {
 
   public async dryRun(
     tx: TypedTransaction,
-    blockContext: Block,
+    blockNumber: bigint,
     forceBaseFeeZero?: boolean,
     stateOverrideSet: StateOverrideSet = {}
   ): Promise<RunTxResult> {
@@ -69,13 +69,13 @@ export class DualModeAdapter implements VMAdapter {
       const [ethereumJSResult, rethnetResult] = await Promise.all([
         this._ethereumJSAdapter.dryRun(
           tx,
-          blockContext,
+          blockNumber,
           forceBaseFeeZero,
           stateOverrideSet
         ),
         this._rethnetAdapter.dryRun(
           tx,
-          blockContext,
+          blockNumber,
           forceBaseFeeZero,
           stateOverrideSet
         ),
@@ -219,12 +219,12 @@ export class DualModeAdapter implements VMAdapter {
 
   public async traceCall(
     tx: TypedTransaction,
-    block: Block,
+    blockNumber: bigint,
     config: RpcDebugTracingConfig
   ): Promise<RpcDebugTraceOutput> {
     // We aren't comparing the result as the output is expected to differ.
-    const _ = await this._ethereumJSAdapter.traceCall(tx, block, config);
-    return this._rethnetAdapter.traceCall(tx, block, config);
+    const _ = await this._ethereumJSAdapter.traceCall(tx, blockNumber, config);
+    return this._rethnetAdapter.traceCall(tx, blockNumber, config);
   }
 
   public async setBlockContext(

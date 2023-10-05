@@ -16,14 +16,6 @@ export async function createContext(
 
   const prevRandaoGenerator = RandomBufferGenerator.create("randomMixHashSeed");
 
-  // throw if transient storage is enabled and the mode is not ethereumjs
-  if (config.enableTransientStorage && vmModeEnvVar !== "ethereumjs") {
-    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
-    throw new Error(
-      "Transient storage is only supported in ethereumjs mode. Please set HARDHAT_EXPERIMENTAL_VM_MODE=ethereumjs"
-    );
-  }
-
   if (vmModeEnvVar === "ethereumjs") {
     return HardhatEthContext.create(config, prevRandaoGenerator);
   } else if (vmModeEnvVar === "rethnet") {

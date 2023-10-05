@@ -1237,6 +1237,14 @@ describe("HardhatNode", () => {
     });
 
     describe("When enabled", function () {
+      if (
+        process.env.HARDHAT_EXPERIMENTAL_VM_MODE === undefined ||
+        process.env.HARDHAT_EXPERIMENTAL_VM_MODE === "dual"
+      ) {
+        // disabled as Cancun is not supported in dual mode
+        return;
+      }
+
       it("Should not revert if trying to run TLOAD in a tx", async function () {
         const [, hardhatNode] = await HardhatNode.create({
           ...nodeConfig,

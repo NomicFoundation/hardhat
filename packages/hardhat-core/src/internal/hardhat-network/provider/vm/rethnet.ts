@@ -32,6 +32,7 @@ import {
 import { keccak256 } from "../../../util/keccak";
 import { RpcDebugTraceOutput } from "../output";
 import { RethnetStateManager } from "../RethnetState";
+import { assertHardhatInvariant } from "../../../core/errors";
 import { StateOverrideSet } from "../../../core/jsonrpc/types/input/callRequest";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import { MessageTrace } from "../../stack-traces/message-trace";
@@ -57,7 +58,8 @@ export class RethnetAdapter implements VMAdapter {
     private _state: RethnetStateManager,
     private readonly _common: Common,
     private readonly _limitContractCodeSize: bigint | undefined,
-    private readonly _limitInitcodeSize: bigint | undefined
+    private readonly _limitInitcodeSize: bigint | undefined,
+    private readonly _enableTransientStorage: boolean
   ) {
     this._vmTracer = new VMTracer(_common, false);
   }
@@ -96,7 +98,8 @@ export class RethnetAdapter implements VMAdapter {
       state,
       common,
       limitContractCodeSize,
-      limitInitcodeSize
+      limitInitcodeSize,
+      config.enableTransientStorage
     );
   }
 
@@ -105,7 +108,7 @@ export class RethnetAdapter implements VMAdapter {
    */
   public async dryRun(
     tx: TypedTransaction,
-    blockContext: Block,
+    blockNumber: bigint,
     forceBaseFeeZero?: boolean,
     stateOverrideSet: StateOverrideSet = {}
   ): Promise<RunTxResult> {
@@ -113,6 +116,17 @@ export class RethnetAdapter implements VMAdapter {
       // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw new Error("state override not implemented for EDR");
     }
+
+    // We know that this block number exists, because otherwise
+    // there would be an error in the RPC layer.
+    const blockContext = await this._blockchain.blockByNumber(blockNumber);
+    assertHardhatInvariant(
+      blockContext !== null,
+      "Tried to run a tx in the context of a non-existent block"
+    );
+
+    // we don't need to add the tx to the block because runTx doesn't
+    // know anything about the txs in the current block
 
     const rethnetTx = ethereumjsTransactionToRethnetTransactionRequest(tx);
 
@@ -130,7 +144,8 @@ export class RethnetAdapter implements VMAdapter {
     );
     const config: ConfigOptions = {
       chainId: this._common.chainId(),
-      specId,
+      // Enable Cancun if transient storage is enabled
+      specId: this._enableTransientStorage ? SpecId.Cancun : specId,
       limitContractCodeSize: this._limitContractCodeSize,
       limitInitcodeSize: this._limitInitcodeSize,
       disableBlockGasLimit: true,
@@ -144,13 +159,14 @@ export class RethnetAdapter implements VMAdapter {
       rethnetTx,
       {
         number: blockContext.header.number,
-        beneficiary: blockContext.header.coinbase.buf,
+        beneficiary: blockContext.header.beneficiary,
         timestamp: blockContext.header.timestamp,
         baseFee:
           forceBaseFeeZero === true ? 0n : blockContext.header.baseFeePerGas,
         gasLimit: blockContext.header.gasLimit,
         difficulty,
         mixHash: prevRandao,
+        blobExcessGas: blockContext.header.blobGas?.excessGas,
       },
       true
     );
@@ -433,7 +449,8 @@ export class RethnetAdapter implements VMAdapter {
     );
     const evmConfig: ConfigOptions = {
       chainId: this._common.chainId(),
-      specId,
+      // Enable Cancun if transient storage is enabled
+      specId: this._enableTransientStorage ? SpecId.Cancun : specId,
       limitContractCodeSize: this._limitContractCodeSize,
       disableBlockGasLimit: false,
       disableEip3607: true,
@@ -472,9 +489,20 @@ export class RethnetAdapter implements VMAdapter {
 
   public async traceCall(
     tx: TypedTransaction,
-    blockContext: Block,
+    blockNumber: bigint,
     traceConfig: RpcDebugTracingConfig
   ): Promise<RpcDebugTraceOutput> {
+    // We know that this block number exists, because otherwise
+    // there would be an error in the RPC layer.
+    const blockContext = await this._blockchain.blockByNumber(blockNumber);
+    assertHardhatInvariant(
+      blockContext !== null,
+      "Tried to run a tx in the context of a non-existent block"
+    );
+
+    // we don't need to add the tx to the block because runTx doesn't
+    // know anything about the txs in the current block
+
     const rethnetTx = ethereumjsTransactionToRethnetTransactionRequest(tx);
 
     const difficulty = this._getBlockEnvDifficulty(
@@ -504,7 +532,7 @@ export class RethnetAdapter implements VMAdapter {
       hardhatDebugTraceConfigToRethnet(traceConfig),
       {
         number: blockContext.header.number,
-        beneficiary: blockContext.header.coinbase.buf,
+        beneficiary: blockContext.header.beneficiary,
         timestamp: blockContext.header.timestamp,
         baseFee: 0n,
         gasLimit: blockContext.header.gasLimit,

@@ -1,5 +1,6 @@
 import cloneDeep from "lodash/cloneDeep";
 import { timestampSecondsToDate } from "../../../util/date";
+import { HardforkName } from "../../../util/hardforks";
 import { DualBlockMiner } from "../miner/dual";
 import { DualMemPool } from "../mem-pool/dual";
 import { makeCommon } from "../utils/makeCommon";
@@ -30,6 +31,12 @@ export class DualEthContext implements EthContextAdapter {
     // To synchronise config options between the two adapters, we make local modifications.
     // To avoid this from affecting the original config object, we clone it first.
     const tempConfig = cloneDeep(config);
+
+    // When transient storage is enabled, we want to use Cancun. However, as Shanghai is
+    // the latest supported hardfork by ethereumJS, we designate that.
+    if (tempConfig.enableTransientStorage) {
+      tempConfig.hardfork = HardforkName.SHANGHAI;
+    }
 
     const common = makeCommon(tempConfig);
 

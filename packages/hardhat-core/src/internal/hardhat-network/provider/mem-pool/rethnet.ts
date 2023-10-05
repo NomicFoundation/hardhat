@@ -1,6 +1,6 @@
 import { Address } from "@nomicfoundation/ethereumjs-util";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
-import { MemPool, PendingTransaction } from "@ignored/edr";
+import { MemPool, PendingTransaction, SpecId } from "@ignored/edr";
 import { MemPoolAdapter } from "../mem-pool";
 import {
   ethereumjsTransactionToRethnetSignedTransaction,
@@ -21,7 +21,7 @@ export class RethnetMemPool implements MemPoolAdapter {
   constructor(
     blockGasLimit: bigint,
     private readonly _stateManager: RethnetStateManager,
-    private readonly _hardfork: HardforkName
+    private readonly _specId: SpecId
   ) {
     this._memPool = new MemPool(blockGasLimit);
   }
@@ -52,12 +52,10 @@ export class RethnetMemPool implements MemPoolAdapter {
     const rethnetTx =
       ethereumjsTransactionToRethnetSignedTransaction(transaction);
 
-    const specId = ethereumsjsHardforkToRethnetSpecId(this._hardfork);
-
     try {
       const pendingTransaction = await PendingTransaction.create(
         this._stateManager.asInner(),
-        specId,
+        this._specId,
         rethnetTx,
         caller
       );

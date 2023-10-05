@@ -399,7 +399,8 @@ export class HardhatNode extends EventEmitter {
     const result = await this._finalizeBlockResult(partialResult);
     await this._saveBlockAsSuccessfullyRun(
       result.block,
-      result.blockResult.results
+      result.blockResult.results,
+      partialResult.totalDifficultyAfterBlock
     );
 
     if (needsTimestampIncrease) {
@@ -1239,11 +1240,9 @@ export class HardhatNode extends EventEmitter {
   ) {
     const tx = await this._getTransactionForCall(call, blockNumberOrPending);
 
-    const blockContext = await this._getBlockContextForCall(
-      blockNumberOrPending
-    );
+    const blockNumber = await this._getBlockNumberForCall(blockNumberOrPending);
 
-    return this._context.vm().traceCall(tx, blockContext, traceConfig);
+    return this._context.vm().traceCall(tx, blockNumber, traceConfig);
   }
 
   public async getFeeHistory(
@@ -1830,19 +1829,13 @@ export class HardhatNode extends EventEmitter {
    */
   private async _saveBlockAsSuccessfullyRun(
     block: Block,
-    transactionResults: RunTxResult[]
+    transactionResults: RunTxResult[],
+    totalDifficulty: bigint
   ) {
     const receipts = getRpcReceiptOutputsFromLocalBlockExecution(
       block,
       transactionResults,
       shouldShowTransactionTypeForHardfork(this._common)
-    );
-
-    const td = await this.getBlockTotalDifficulty(block);
-
-    assertHardhatInvariant(
-      td !== undefined,
-      "_saveBlockAsSuccessfullyRun should only be called after having inserted the block"
     );
 
     const rpcLogs: RpcLogOutput[] = [];
@@ -1863,7 +1856,7 @@ export class HardhatNode extends EventEmitter {
               filter.id,
               getRpcBlock(
                 block,
-                td,
+                totalDifficulty,
                 shouldShowTransactionTypeForHardfork(this._common),
                 false
               )
@@ -2083,13 +2076,11 @@ export class HardhatNode extends EventEmitter {
     forceBaseFeeZero = false,
     stateOverrideSet: StateOverrideSet = {}
   ): Promise<RunTxResult> {
-    const blockContext = await this._getBlockContextForCall(
-      blockNumberOrPending
-    );
+    const blockNumber = await this._getBlockNumberForCall(blockNumberOrPending);
 
     const result = await this._context
       .vm()
-      .dryRun(tx, blockContext, forceBaseFeeZero, stateOverrideSet);
+      .dryRun(tx, blockNumber, forceBaseFeeZero, stateOverrideSet);
     return result;
   }
 
@@ -2323,29 +2314,14 @@ export class HardhatNode extends EventEmitter {
     return this._getFakeTransaction(txParams);
   }
 
-  private async _getBlockContextForCall(
+  private async _getBlockNumberForCall(
     blockNumberOrPending: bigint | "pending"
-  ): Promise<Block> {
-    let blockContext: Block | undefined;
-
+  ): Promise<bigint> {
     if (blockNumberOrPending === "pending") {
       // the new block has already been mined by _runInBlockContext hence we take latest here
-      blockContext = await this.getLatestBlock();
+      return this.getLatestBlockNumber();
     } else {
-      // We know that this block number exists, because otherwise
-      // there would be an error in the RPC layer.
-      const block = await this.getBlockByNumber(blockNumberOrPending);
-      assertHardhatInvariant(
-        block !== undefined,
-        "Tried to run a tx in the context of a non-existent block"
-      );
-
-      blockContext = block;
-
-      // we don't need to add the tx to the block because runTx doesn't
-      // know anything about the txs in the current block
+      return blockNumberOrPending;
     }
-
-    return blockContext;
   }
 }

@@ -54,6 +54,11 @@ pub enum TypedReceiptData {
         #[cfg_attr(feature = "serde", serde(with = "crate::serde::u8"))]
         status: u8,
     },
+    #[cfg_attr(feature = "serde", serde(rename = "0x3"))]
+    Eip4844 {
+        #[cfg_attr(feature = "serde", serde(with = "crate::serde::u8"))]
+        status: u8,
+    },
 }
 
 impl<LogT> TypedReceipt<LogT> {
@@ -63,7 +68,8 @@ impl<LogT> TypedReceipt<LogT> {
             TypedReceiptData::PreEip658Legacy { .. } => None,
             TypedReceiptData::PostEip658Legacy { status }
             | TypedReceiptData::Eip2930 { status }
-            | TypedReceiptData::Eip1559 { status } => Some(*status),
+            | TypedReceiptData::Eip1559 { status }
+            | TypedReceiptData::Eip4844 { status } => Some(*status),
         }
     }
 
@@ -82,6 +88,7 @@ impl<LogT> TypedReceipt<LogT> {
             | TypedReceiptData::PostEip658Legacy { .. } => 0u64,
             TypedReceiptData::Eip2930 { .. } => 1u64,
             TypedReceiptData::Eip1559 { .. } => 2u64,
+            TypedReceiptData::Eip4844 { .. } => 3u64,
         }
     }
 }
@@ -306,6 +313,7 @@ where
             | TypedReceiptData::PostEip658Legacy { .. } => None,
             TypedReceiptData::Eip2930 { .. } => Some(1),
             TypedReceiptData::Eip1559 { .. } => Some(2),
+            TypedReceiptData::Eip4844 { .. } => Some(3),
         };
 
         if let Some(id) = id {
@@ -320,7 +328,8 @@ where
             }
             TypedReceiptData::PostEip658Legacy { status }
             | TypedReceiptData::Eip2930 { status }
-            | TypedReceiptData::Eip1559 { status } => {
+            | TypedReceiptData::Eip1559 { status }
+            | TypedReceiptData::Eip4844 { status } => {
                 if *status == 0 {
                     s.append_empty_data();
                 } else {
