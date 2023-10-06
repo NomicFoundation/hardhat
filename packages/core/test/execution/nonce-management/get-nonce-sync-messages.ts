@@ -229,7 +229,7 @@ describe("execution - getNonceSyncMessages", () => {
     const latestBlockNumbers = [0, 3, 10];
 
     for (const latestBlockNumber of latestBlockNumbers) {
-      describe(`With latest block ${latestBlockNumber}`, () => {
+      describe(`With latest block #${latestBlockNumber} and ${requiredConfirmations} required confirmations`, () => {
         it("should succeed with an in-flight transaction that has been mined between runs", async () => {
           // Assuming a fresh chain, and a deployment that was halted on the first
           // future and its deploy transaction is included in a block before the
