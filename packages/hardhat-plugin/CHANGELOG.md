@@ -4,6 +4,38 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.11.0 - 2023-10-23
+
+First public launch 🚀
+
+### Added
+
+- Display batching information in the visualize report ([#494](https://github.com/NomicFoundation/hardhat-ignition/issues/494))
+- Update styling of visualize report ([#493](https://github.com/NomicFoundation/hardhat-ignition/issues/493))
+- Expand Module API so value and from support staticCall/readEventArg as values ([#455](https://github.com/NomicFoundation/hardhat-ignition/issues/455))
+- Support fully qualified contract names ([#563](https://github.com/NomicFoundation/hardhat-ignition/pull/563))
+
+### Changed
+
+- More compact command-line UI ([#495](https://github.com/NomicFoundation/hardhat-ignition/issues/495))
+- Ignition tasks are now scoped e.g. `npx hardhat ignition deploy` ([#442](https://github.com/NomicFoundation/hardhat-ignition/issues/442))
+- The `ignition-info` task has been renamed to `status`, and now shows the status of the current deployment not just the successes ([#496](https://github.com/NomicFoundation/hardhat-ignition/issues/496))
+- Modules now have to be inside a `modules` subfolder within the `./ignition` folder ([#511](https://github.com/NomicFoundation/hardhat-ignition/issues/511))
+- Import of `buildModule` now from `@nomicfoundation/hardhat-ignition/modules` ([#540](https://github.com/NomicFoundation/hardhat-ignition/issues/540))
+- A warning is displayed if you are running against an in-process hardhat network ([#553](https://github.com/NomicFoundation/hardhat-ignition/issues/553))
+- The default deployment id is now `chain-<CHAINID>` ([#551](https://github.com/NomicFoundation/hardhat-ignition/issues/551))
+- The `contractAt` signature overload for artifact has been changed to match other artifact overload signatures ([#557](https://github.com/NomicFoundation/hardhat-ignition/issues/557))
+
+### Fixed
+
+- Improve loading times for other non-ignition hh tasks, when Ignition is included ([#13](https://github.com/NomicFoundation/hardhat-ignition/issues/13))
+- Only open visualization report if supported ([#504](https://github.com/NomicFoundation/hardhat-ignition/issues/504))
+- Fixed nonce check failure on rerun ([#506](https://github.com/NomicFoundation/hardhat-ignition/issues/506))
+- Ensure future's senders meet nonce sync checks ([#411](https://github.com/NomicFoundation/hardhat-ignition/issues/411))
+- Show all deployed contracts at the end of a deployment ([#480](https://github.com/NomicFoundation/hardhat-ignition/issues/480))
+- Rerun blocked by sent transactions message IGN403 ([#574](https://github.com/NomicFoundation/hardhat-ignition/issues/574))
+- Rerun over multiple batches trigger error IGN405 ([#576](https://github.com/NomicFoundation/hardhat-ignition/issues/576))
+
 ## 0.4.0 - 2023-09-15
 
 ### Added
