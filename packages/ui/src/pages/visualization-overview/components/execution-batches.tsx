@@ -4,7 +4,7 @@ import {
   IgnitionModule,
   IgnitionModuleResult,
 } from "@nomicfoundation/ignition-core/ui-helpers";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState, createRef } from "react";
 import { Tooltip } from "react-tooltip";
 import styled from "styled-components";
 
@@ -21,20 +21,37 @@ export const ExecutionBatches: React.FC<{
     [ignitionModule]
   );
 
+  const nonLibraryFutureIds = futures
+    .filter(
+      ({ type }) =>
+        type !== FutureType.LIBRARY_DEPLOYMENT &&
+        type !== FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT
+    )
+    .map(({ id }) => id);
+
+  const scrollRefMap = useRef(
+    nonLibraryFutureIds.reduce((acc, id) => {
+      return { ...acc, [id]: createRef<HTMLDivElement>() };
+    }, {} as Record<string, React.RefObject<HTMLDivElement>>)
+  );
+
   const toggleMap = Object.fromEntries(
-    futures
-      .filter(
-        ({ type }) =>
-          type !== FutureType.LIBRARY_DEPLOYMENT &&
-          type !== FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT
-      )
-      .map(({ id }) => [id, false])
+    nonLibraryFutureIds.map((id) => [id, false])
   );
 
   const [toggleState, setToggledInternal] = useState(toggleMap);
 
   const setToggled = (id: string) => {
-    const newState = { ...toggleState, [id]: !toggleState[id] };
+    const newToggleStatus = !toggleState[id];
+
+    if (newToggleStatus) {
+      scrollRefMap.current[id].current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+
+    const newState = { ...toggleState, [id]: newToggleStatus };
     setToggledInternal(newState);
   };
 
@@ -87,6 +104,7 @@ export const ExecutionBatches: React.FC<{
               setToggled={setToggled}
               setCurrentlyHovered={setCurrentlyHovered}
               setHoveredFuture={setHoveredFuture}
+              scrollRefMap={scrollRefMap.current}
             />
           ))}
         </Actions>

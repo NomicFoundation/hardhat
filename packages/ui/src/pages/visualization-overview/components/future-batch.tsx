@@ -17,6 +17,7 @@ export const FutureBatch: React.FC<{
   setToggled: (id: string) => void;
   setCurrentlyHovered: (id: string) => void;
   setHoveredFuture: (id: string) => void;
+  scrollRefMap: Record<string, React.RefObject<HTMLDivElement>>;
 }> = ({
   batch,
   index,
@@ -24,6 +25,7 @@ export const FutureBatch: React.FC<{
   setToggled,
   setCurrentlyHovered,
   setHoveredFuture,
+  scrollRefMap,
 }) => {
   return (
     <Batch>
@@ -39,6 +41,7 @@ export const FutureBatch: React.FC<{
           setToggled={setToggled}
           setCurrentlyHovered={setCurrentlyHovered}
           setHoveredFuture={setHoveredFuture}
+          scrollRef={scrollRefMap[future.id]}
         />
       ))}
     </Batch>
@@ -92,6 +95,7 @@ const FutureBlock: React.FC<{
   setCurrentlyHovered: (id: string) => void;
   setHoveredFuture: (id: string) => void;
   classKey: string;
+  scrollRef: React.RefObject<HTMLDivElement>;
 }> = ({
   future,
   toggleState,
@@ -99,6 +103,7 @@ const FutureBlock: React.FC<{
   setCurrentlyHovered,
   setHoveredFuture,
   classKey,
+  scrollRef,
 }) => {
   const futureId = future.id;
   const toggled = toggleState[futureId];
@@ -114,7 +119,7 @@ const FutureBlock: React.FC<{
     : "call-background";
 
   return (
-    <div>
+    <div ref={scrollRef}>
       <FutureBtn
         className={`${className} ${classKey}`}
         isLibrary={isLibrary}
