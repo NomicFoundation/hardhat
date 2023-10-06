@@ -40,6 +40,7 @@ import { getFullyQualifiedName } from "../utils/contract-names";
 import { localPathToSourceName } from "../utils/source-names";
 
 import { getAllFilesMatching } from "../internal/util/fs-utils";
+import { getEvmVersionFromSolcVersion } from "../internal/solidity/compiler/solc-info";
 import {
   TASK_COMPILE,
   TASK_COMPILE_GET_COMPILATION_TASKS,
@@ -1291,15 +1292,43 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT)
   .setAction(
     async ({ compilationJobs }: { compilationJobs: CompilationJob[] }) => {
       let count = 0;
+      const evmVersions = new Set<string>();
+      const unknownEvmVersions = new Set<string>();
+
       for (const job of compilationJobs) {
         count += job
           .getResolvedFiles()
           .filter((file) => job.emitsArtifacts(file)).length;
+
+        const solcVersion = job.getSolcConfig().version;
+        const evmTarget =
+          job.getSolcConfig().settings?.evmVersion ??
+          getEvmVersionFromSolcVersion(solcVersion);
+
+        if (evmTarget !== undefined) {
+          evmVersions.add(evmTarget);
+        } else {
+          unknownEvmVersions.add(
+            `unknown evm version for solc version ${solcVersion}`
+          );
+        }
       }
+
+      const targetVersionsList = Array.from(evmVersions)
+        // Alphabetically sort evm versions. The unknown ones are added at the end
+        .sort()
+        .concat(Array.from(unknownEvmVersions).sort());
 
       if (count > 0) {
         console.log(
-          `Compiled ${count} Solidity ${pluralize(count, "file")} successfully`
+          `Compiled ${count} Solidity ${pluralize(
+            count,
+            "file"
+          )} successfully (evm ${pluralize(
+            targetVersionsList.length,
+            "target",
+            "targets"
+          )}: ${targetVersionsList.join(", ")}).`
         );
       }
     }
