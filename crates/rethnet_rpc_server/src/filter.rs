@@ -54,7 +54,7 @@ impl _FilterCriteria {
             None => Vec::new(),
         };
 
-        let _topics = request_options.topics.unwrap_or(Vec::new());
+        let _topics = request_options.topics.unwrap_or_default();
 
         Ok(Self {
             _from_block,
