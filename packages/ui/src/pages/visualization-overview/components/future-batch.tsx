@@ -2,12 +2,13 @@ import {
   ArgumentType,
   Future,
   FutureType,
-  isFuture,
   isDeploymentType,
+  isFuture,
 } from "@nomicfoundation/ignition-core/ui-helpers";
 import React from "react";
 import styled from "styled-components";
 import { argumentTypeToString } from "../../../utils/argumentTypeToString";
+import { FutureHeader } from "./future-header";
 
 export const FutureBatch: React.FC<{
   batch: Future[];
@@ -56,6 +57,8 @@ const BatchHeader = styled.div`
 
 const FutureBtn = styled.div<{ isLibrary: boolean; toggled: boolean }>`
   padding: 1rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
   margin: 1rem;
 
   border-top-left-radius: 5px;
@@ -80,21 +83,6 @@ const FutureBtn = styled.div<{ isLibrary: boolean; toggled: boolean }>`
     `
     cursor: pointer;
   `}
-`;
-
-const Text = styled.div`
-  margin: 0;
-  display: inline;
-`;
-
-const ModuleName = styled.div`
-  margin: 0;
-  display: inline;
-
-  font-weight: 700;
-  float: right;
-  padding: 0.5rem;
-  margin-top: -0.5rem;
 `;
 
 const FutureBlock: React.FC<{
@@ -133,17 +121,13 @@ const FutureBlock: React.FC<{
         toggled={toggled}
         onClick={() => setToggled(futureId)}
       >
-        {!isLibrary && <ToggleBtn toggled={toggled} />}
-        <Text style={{ paddingLeft: isLibrary ? "1rem" : "0.3rem" }}>
-          {displayText}
-        </Text>
-        <ModuleName
-          className={future.module.id}
-          onMouseEnter={() => setCurrentlyHovered(future.module.id)}
-          onMouseLeave={() => setCurrentlyHovered("")}
-        >
-          [ {future.module.id} ]
-        </ModuleName>
+        <FutureHeader
+          isLibrary={isLibrary}
+          toggled={toggled}
+          displayText={displayText}
+          future={future}
+          setCurrentlyHovered={setCurrentlyHovered}
+        ></FutureHeader>
       </FutureBtn>
       {toggled && (
         <FutureDetailsSection
@@ -198,12 +182,6 @@ function toDisplayText(future: Future): string {
       }`;
   }
 }
-
-const ToggleBtn: React.FC<{
-  toggled: boolean;
-}> = ({ toggled }) => {
-  return <Text>{toggled ? "- " : "+ "}</Text>;
-};
 
 const FutureDetailsStyle = styled.div`
   cursor: auto;
@@ -359,5 +337,6 @@ const Argument: React.FC<{
       </li>
     );
   }
+
   return <li>{argumentTypeToString(arg)}</li>;
 };
