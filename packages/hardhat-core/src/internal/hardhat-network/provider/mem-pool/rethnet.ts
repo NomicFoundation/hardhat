@@ -4,10 +4,8 @@ import { MemPool, PendingTransaction, SpecId } from "@ignored/edr";
 import { MemPoolAdapter } from "../mem-pool";
 import {
   ethereumjsTransactionToRethnetSignedTransaction,
-  ethereumsjsHardforkToRethnetSpecId,
   rethnetSignedTransactionToEthereumJSTypedTransaction,
 } from "../utils/convertToRethnet";
-import { HardforkName } from "../../../util/hardforks";
 import { RethnetStateManager } from "../RethnetState";
 import { InvalidInputError } from "../../../core/providers/errors";
 

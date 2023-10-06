@@ -13,11 +13,7 @@ import {
   ethereumjsMempoolOrderToRethnetMineOrdering,
   ethereumsjsHardforkToRethnetSpecId,
 } from "../utils/convertToRethnet";
-import {
-  HardforkName,
-  getHardforkName,
-  hardforkGte,
-} from "../../../util/hardforks";
+import { HardforkName, getHardforkName } from "../../../util/hardforks";
 import { RethnetStateManager } from "../RethnetState";
 import { RethnetMemPool } from "../mem-pool/rethnet";
 import { makeCommon } from "../utils/makeCommon";
@@ -58,10 +54,10 @@ export class RethnetEthContext implements EthContextAdapter {
         const hardforkActivations: Array<[bigint, SpecId]> = Array.from(
           chainConfig.hardforkHistory
         ).map(([hardfork, blockNumber]) => {
-          const specId = ethereumsjsHardforkToRethnetSpecId(
-            getHardforkName(hardfork)
-          );
-          return [BigInt(blockNumber), specId];
+          return [
+            BigInt(blockNumber),
+            ethereumsjsHardforkToRethnetSpecId(getHardforkName(hardfork)),
+          ];
         });
 
         return [BigInt(chainId), hardforkActivations];
