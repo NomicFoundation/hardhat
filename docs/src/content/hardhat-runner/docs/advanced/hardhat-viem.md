@@ -46,7 +46,7 @@ import "@nomicfoundation/hardhat-toolbox-viem";
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: "0.8.19",
+    version: "{RECOMMENDED_SOLC_VERSION}",
   },
 };
 
@@ -137,7 +137,7 @@ To access contract methods, import the Hardhat Runtime Environment and use the `
 
 ```solidity
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.18;
+pragma solidity {RECOMMENDED_SOLC_VERSION};
 
 contract MyToken {
   uint256 public totalSupply;
