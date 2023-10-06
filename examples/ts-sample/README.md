@@ -1,10 +1,11 @@
-# Hardhat Sample for Ignition
+# Hardhat Typescript Sample for Hardhat Ignition
 
-This hardhat project is a variant of Hardhat's typescript sample project.
+This project is Hardhat's typescript sample project enhanced with Hardhat
+Ignition.
 
 ## Deploying
 
-To run the ignition deploy against the ephemeral hardhat network:
+To run the Ignition deploy against the ephemeral Hardhat network:
 
 ```shell
 npx hardhat ignition deploy LockModule
@@ -12,7 +13,7 @@ npx hardhat ignition deploy LockModule
 
 ## Test
 
-To run the hardhat tests using ignition:
+To run the hardhat tests using Ignition:
 
 ```shell
 npm run test

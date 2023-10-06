@@ -1,10 +1,10 @@
-# ENS Example for Ignition
+# ENS Example for Hardhat Ignition
 
-This hardhat project is an example of using ignition to deploy the ENS system of contracts, based on the [Deploying ens on a private chain](https://docs.ens.domains/deploying-ens-on-a-private-chain#migration-file-example) from the ens docs.
+This Hardhat project is an example of using ignition to deploy the ENS system of contracts, based on the [Deploying ens on a private chain](https://docs.ens.domains/deploying-ens-on-a-private-chain#migration-file-example) from the ens docs.
 
 ## Deploying
 
-To run the ignition deploy against the ephemeral hardhat network:
+To run the Ignition deploy against the ephemeral Hardhat network:
 
 ```shell
 npx hardhat ignition deploy ENS.js
@@ -20,7 +20,7 @@ npx hardhat ignition deploy test-registrar.js --network localhost
 
 ## Test
 
-To run the hardhat tests using ignition:
+To run the hardhat tests using Ignition:
 
 ```shell
 npm run test
