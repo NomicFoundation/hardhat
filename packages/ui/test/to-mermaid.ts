@@ -29,7 +29,7 @@ describe("to-mermaid", () => {
           subgraph ModuleInner[ ]
           direction TB
 
-          Module#Contract1["Deploy Contract1"]
+          Module#Contract1["Deploy Contract1"]:::futureNode
         end
 
       style ModuleInner fill:none,stroke:none
@@ -65,7 +65,7 @@ describe("to-mermaid", () => {
           subgraph Test_registrarInner[ ]
           direction TB
 
-          Test_registrar#Contract1["Deploy Contract1"]
+          Test_registrar#Contract1["Deploy Contract1"]:::futureNode
         end
 
       style Test_registrarInner fill:none,stroke:none
@@ -117,7 +117,7 @@ describe("to-mermaid", () => {
           subgraph ModuleInner[ ]
           direction TB
 
-          Module#Contract3["Deploy Contract3"]
+          Module#Contract3["Deploy Contract3"]:::futureNode
         end
 
       style ModuleInner fill:none,stroke:none
@@ -136,7 +136,7 @@ describe("to-mermaid", () => {
           subgraph Submodule1Inner[ ]
           direction TB
 
-          Submodule1#Contract1["Deploy Contract1"]
+          Submodule1#Contract1["Deploy Contract1"]:::futureNode
         end
 
       style Submodule1Inner fill:none,stroke:none
@@ -155,7 +155,7 @@ describe("to-mermaid", () => {
           subgraph Submodule2Inner[ ]
           direction TB
 
-          Submodule2#Contract2["Deploy Contract2"]
+          Submodule2#Contract2["Deploy Contract2"]:::futureNode
         end
 
       style Submodule2Inner fill:none,stroke:none
@@ -236,16 +236,16 @@ describe("to-mermaid", () => {
           subgraph ModuleInner[ ]
           direction TB
 
-          Module#BasicContract["Deploy BasicContract"]
-          Module#BasicLibrary["Deploy library BasicLibrary"]
-          Module#BasicLibrary2["Deploy library from artifact BasicLibrary"]
-          Module#ContractWithLibrary["Deploy from artifact ContractWithLibrary"]
-          Module#BasicContract.basicFunction["Call BasicContract.basicFunction"]
-          Module#BasicContract.BasicEvent.eventArg.0["Read event from future Module#BasicContract.basicFunction (event BasicEvent argument eventArg)"]
-          Module#ContractWithLibrary.readonlyFunction["Static call ContractWithLibrary.readonlyFunction"]
-          Module#BasicContract2["Existing contract BasicContract (Module#BasicContract)"]
-          Module#ContractWithLibrary2["Existing contract from artifact ContractWithLibrary (Module#ContractWithLibrary)"]
-          Module#test_send["Send data to Module#BasicContract2"]
+          Module#BasicContract["Deploy BasicContract"]:::futureNode
+          Module#BasicLibrary["Deploy library BasicLibrary"]:::futureNode
+          Module#BasicLibrary2["Deploy library from artifact BasicLibrary"]:::futureNode
+          Module#ContractWithLibrary["Deploy from artifact ContractWithLibrary"]:::futureNode
+          Module#BasicContract.basicFunction["Call BasicContract.basicFunction"]:::futureNode
+          Module#BasicContract.BasicEvent.eventArg.0["Read event from future Module#BasicContract.basicFunction (event BasicEvent argument eventArg)"]:::futureNode
+          Module#ContractWithLibrary.readonlyFunction["Static call ContractWithLibrary.readonlyFunction"]:::futureNode
+          Module#BasicContract2["Existing contract BasicContract (Module#BasicContract)"]:::futureNode
+          Module#ContractWithLibrary2["Existing contract from artifact ContractWithLibrary (Module#ContractWithLibrary)"]:::futureNode
+          Module#test_send["Send data to Module#BasicContract2"]:::futureNode
         end
 
       style ModuleInner fill:none,stroke:none
@@ -292,9 +292,9 @@ describe("to-mermaid", () => {
           subgraph ModuleInner[ ]
           direction TB
 
-          Module#ens["Deploy ens"]
-          Module#ens.setAddr_bytes32_address_["Call ens.setAddr(bytes32,address)"]
-          Module#ens.getAddr_bytes32_address_["Static call ens.getAddr(bytes32,address)"]
+          Module#ens["Deploy ens"]:::futureNode
+          Module#ens.setAddr_bytes32_address_["Call ens.setAddr(bytes32,address)"]:::futureNode
+          Module#ens.getAddr_bytes32_address_["Static call ens.getAddr(bytes32,address)"]:::futureNode
         end
 
       style ModuleInner fill:none,stroke:none
