@@ -1314,18 +1314,21 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT)
         }
       }
 
+      const targetVersionsList = Array.from(evmVersions)
+        // Alphabetically sort evm versions. The unknown ones are added at the end
+        .sort()
+        .concat(Array.from(unknownEvmVersions).sort());
+
       if (count > 0) {
         console.log(
           `Compiled ${count} Solidity ${pluralize(
             count,
             "file"
-          )} successfully with evmVersions: ${
-            // Alphabetically sort evm versions. The unknown ones are added at the end
-            Array.from(evmVersions)
-              .sort()
-              .concat(Array.from(unknownEvmVersions).sort())
-              .join(", ")
-          }.`
+          )} successfully (evm ${pluralize(
+            targetVersionsList.length,
+            "target",
+            "targets"
+          )}: ${targetVersionsList.join(", ")}).`
         );
       }
     }
