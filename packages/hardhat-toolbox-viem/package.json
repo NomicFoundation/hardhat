@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-toolbox-viem",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Nomic Foundation's recommended bundle of Hardhat plugins (viem based)",
   "repository": "github:nomicfoundation/hardhat",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-toolbox-viem",
@@ -38,7 +38,10 @@
     "LICENSE",
     "README.md"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "@types/chai-as-promised": "^7.1.6",
+    "chai-as-promised": "^7.1.1"
+  },
   "devDependencies": {
     "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
     "@nomicfoundation/hardhat-verify": "^1.0.0",
@@ -69,9 +72,11 @@
     "@nomicfoundation/hardhat-verify": "^1.0.0",
     "@nomicfoundation/hardhat-viem": "^1.0.0",
     "@types/chai": "^4.2.0",
+    "@types/chai-as-promised": "^7.1.6",
     "@types/mocha": ">=9.1.0",
     "@types/node": ">=16.0.0",
     "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
     "hardhat": "^2.11.0",
     "hardhat-gas-reporter": "^1.0.8",
     "solidity-coverage": "^0.8.1",
