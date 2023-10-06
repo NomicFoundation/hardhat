@@ -169,11 +169,7 @@ describe(".to.emit (contract events)", () => {
               .withArgs(otherAddress)
           ).to.be.eventually.rejectedWith(
             AssertionError,
-            `expected '${ethers
-              .getAddress(address)
-              .slice(0, 37)}…' to equal '${ethers
-              .getAddress(otherAddress)
-              .slice(0, 37)}…'`
+            `expected '${address}' to equal '${otherAddress}'`
           );
         });
 
