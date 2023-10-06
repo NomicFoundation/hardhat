@@ -15,7 +15,7 @@
       "path": "../../hardhat-network-helpers"
     },
     {
-      "path": "../../hardhat-verify"
+      "path": "../../hardhat-verify/src"
     },
     {
       "path": "../../hardhat-viem/src"
