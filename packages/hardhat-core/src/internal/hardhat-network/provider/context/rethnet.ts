@@ -25,6 +25,8 @@ import { HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS } from "../../../core/
 import { makeGenesisBlock } from "../utils/putGenesisBlock";
 import { RandomBufferGenerator } from "../utils/random";
 
+export const UNLIMITED_CONTRACT_SIZE_VALUE = 2n ** 64n - 1n;
+
 // Only one is allowed to exist
 export const globalRethnetContext = new RethnetContext();
 
@@ -131,13 +133,20 @@ export class RethnetEthContext implements EthContextAdapter {
     }
 
     const limitContractCodeSize =
-      config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : undefined;
+      config.allowUnlimitedContractSize === true
+        ? UNLIMITED_CONTRACT_SIZE_VALUE
+        : undefined;
+    const limitInitcodeSize =
+      config.allowUnlimitedContractSize === true
+        ? UNLIMITED_CONTRACT_SIZE_VALUE
+        : undefined;
 
     const vm = new RethnetAdapter(
       blockchain.asInner(),
       state,
       common,
-      limitContractCodeSize
+      limitContractCodeSize,
+      limitInitcodeSize
     );
 
     const memPool = new RethnetMemPool(
