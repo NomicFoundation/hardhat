@@ -54,7 +54,6 @@ This repo contains example projects that show **Hardhat Ignition** features in c
 - [Sample](./examples/sample) - the **Hardhat** starter project enhanced with Hardhat Ignition
 - [Typescript Sample](./examples/ts-sample) - the **Hardhat** typescript starter project enhanced with Hardhat Ignition
 - [ENS](./examples/ens) - deploy ENS and its registry for local testing
-- [Uniswap](./examples/uniswap) - deploy Uniswap and test swaps
 
 ## Contributing
 
