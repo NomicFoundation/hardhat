@@ -1,3 +1,4 @@
+import { isAddressable } from "ethers";
 import { AssertionError } from "chai";
 
 import { isBigNumber, normalizeToBigInt } from "hardhat/common";
@@ -47,6 +48,12 @@ export function anyUint(i: any): boolean {
   );
 }
 
+// Resolve arguments to their canonical form:
+// - Addressable → address
+function resolveArgument(arg: any): Promise<any> {
+  return isAddressable(arg) ? arg.getAddress() : arg;
+}
+
 export function supportWithArgs(
   Assertion: Chai.AssertionStatic,
   chaiUtils: Chai.ChaiUtils
@@ -54,15 +61,13 @@ export function supportWithArgs(
   Assertion.addMethod("withArgs", function (this: any, ...expectedArgs: any[]) {
     const { emitCalled } = validateInput.call(this, chaiUtils);
 
-    const promise = this.then === undefined ? Promise.resolve() : this;
-
-    const onSuccess = () => {
+    const onSuccess = (resolvedExpectedArgs: any[]) => {
       if (emitCalled) {
         return emitWithArgs(
           this,
           Assertion,
           chaiUtils,
-          expectedArgs,
+          resolvedExpectedArgs,
           onSuccess
         );
       } else {
@@ -70,16 +75,18 @@ export function supportWithArgs(
           this,
           Assertion,
           chaiUtils,
-          expectedArgs,
+          resolvedExpectedArgs,
           onSuccess
         );
       }
     };
 
-    const derivedPromise = promise.then(onSuccess);
+    const promise = (this.then === undefined ? Promise.resolve() : this)
+      .then(() => Promise.all(expectedArgs.map(resolveArgument)))
+      .then(onSuccess);
 
-    this.then = derivedPromise.then.bind(derivedPromise);
-    this.catch = derivedPromise.catch.bind(derivedPromise);
+    this.then = promise.then.bind(promise);
+    this.catch = promise.catch.bind(promise);
     return this;
   });
 }
