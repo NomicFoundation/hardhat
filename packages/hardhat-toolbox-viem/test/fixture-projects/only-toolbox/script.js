@@ -1,4 +1,5 @@
 const assert = require("assert");
+const chai = require("chai");
 
 async function main() {
   // check that viem exists
@@ -8,6 +9,9 @@ async function main() {
   const taskNames = Object.keys(tasks);
   assert(taskNames.includes("verify"));
   assert(taskNames.includes("coverage"));
+
+  // assert that chai-as-promised is loaded
+  assert(chai.assert.eventually);
 }
 
 main()
