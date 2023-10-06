@@ -102,6 +102,8 @@ pub struct BlockOptions {
     pub nonce: Option<Buffer>,
     /// The block's base gas fee
     pub base_fee: Option<BigInt>,
+    /// The hash tree root of the parent beacon block for the given execution block (EIP-4788).
+    pub parent_beacon_block_root: Option<Buffer>,
 }
 
 impl TryFrom<BlockOptions> for rethnet_eth::block::BlockOptions {
@@ -157,6 +159,10 @@ impl TryFrom<BlockOptions> for rethnet_eth::block::BlockOptions {
             base_fee: value
                 .base_fee
                 .map_or(Ok(None), |basefee| basefee.try_cast().map(Some))?,
+            parent_beacon_block_root: value
+                .parent_beacon_block_root
+                .map(TryCast::<B256>::try_cast)
+                .transpose()?,
         })
     }
 }
@@ -170,6 +176,17 @@ pub struct BlobGas {
     /// the block. Blocks with above-target blob gas consumption increase this value,
     /// blocks with below-target blob gas consumption decrease it (bounded at 0).
     pub excess_gas: BigInt,
+}
+
+impl TryCast<rethnet_eth::block::BlobGas> for BlobGas {
+    type Error = napi::Error;
+
+    fn try_cast(self) -> Result<rethnet_eth::block::BlobGas, Self::Error> {
+        Ok(rethnet_eth::block::BlobGas {
+            gas_used: BigInt::try_cast(self.gas_used)?,
+            excess_gas: BigInt::try_cast(self.excess_gas)?,
+        })
+    }
 }
 
 #[napi(object)]
@@ -192,6 +209,7 @@ pub struct BlockHeader {
     pub base_fee_per_gas: Option<BigInt>,
     pub withdrawals_root: Option<Buffer>,
     pub blob_gas: Option<BlobGas>,
+    pub parent_beacon_block_root: Option<Buffer>,
 }
 
 impl BlockHeader {
@@ -251,6 +269,10 @@ impl BlockHeader {
                 gas_used: BigInt::from(blob_gas.gas_used),
                 excess_gas: BigInt::from(blob_gas.excess_gas),
             }),
+            parent_beacon_block_root: header
+                .parent_beacon_block_root
+                .as_ref()
+                .map(|root| Buffer::from(root.as_bytes())),
         })
     }
 }
@@ -288,7 +310,11 @@ impl TryFrom<BlockHeader> for rethnet_eth::block::Header {
                 .withdrawals_root
                 .map(TryCast::<B256>::try_cast)
                 .transpose()?,
-            blob_gas: None,
+            blob_gas: value.blob_gas.map(BlobGas::try_cast).transpose()?,
+            parent_beacon_block_root: value
+                .parent_beacon_block_root
+                .map(TryCast::<B256>::try_cast)
+                .transpose()?,
         })
     }
 }

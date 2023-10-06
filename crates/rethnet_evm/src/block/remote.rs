@@ -83,6 +83,7 @@ impl RemoteBlock {
                     excess_gas,
                 })
             }),
+            parent_beacon_block_root: block.parent_beacon_block_root,
         };
 
         let (transactions, callers): (Vec<SignedTransaction>, Vec<Address>) =

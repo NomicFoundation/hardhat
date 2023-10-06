@@ -67,6 +67,8 @@ export interface BlockOptions {
   nonce?: Buffer
   /** The block's base gas fee */
   baseFee?: bigint
+  /** The hash tree root of the parent beacon block for the given execution block (EIP-4788). */
+  parentBeaconBlockRoot?: Buffer
 }
 /** Information about the blob gas used in a block. */
 export interface BlobGas {
@@ -98,6 +100,7 @@ export interface BlockHeader {
   baseFeePerGas?: bigint
   withdrawalsRoot?: Buffer
   blobGas?: BlobGas
+  parentBeaconBlockRoot?: Buffer
 }
 /** Identifier for the Ethereum spec. */
 export const enum SpecId {

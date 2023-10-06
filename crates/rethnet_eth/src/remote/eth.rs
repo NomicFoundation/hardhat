@@ -328,4 +328,6 @@ pub struct Block<TX> {
     /// A running total of blob gas consumed in excess of the target, prior to the block.
     #[serde(default, with = "crate::serde::optional_u64")]
     pub excess_blob_gas: Option<u64>,
+    /// Root of the parent beacon block
+    pub parent_beacon_block_root: Option<B256>,
 }

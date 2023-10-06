@@ -141,6 +141,8 @@ pub struct Header {
     /// Blob gas was added by EIP-4844 and is ignored in older headers.
     #[cfg_attr(feature = "serde", serde(flatten))]
     pub blob_gas: Option<BlobGas>,
+    /// The hash tree root of the parent beacon block for the given execution block (EIP-4788).
+    pub parent_beacon_block_root: Option<B256>,
 }
 
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -195,6 +197,7 @@ impl Header {
             base_fee_per_gas: partial_header.base_fee,
             withdrawals_root,
             blob_gas: partial_header.blob_gas,
+            parent_beacon_block_root: partial_header.parent_beacon_block_root,
         }
     }
 
@@ -207,16 +210,21 @@ impl Header {
 
 impl rlp::Encodable for Header {
     fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        s.begin_list(if self.base_fee_per_gas.is_none() {
-            15
-        } else if self.withdrawals_root.is_none() {
-            16
-        } else if self.blob_gas.is_none() {
-            17
-        } else {
-            19
-        });
+        let mut num_fields = 15;
+        if self.base_fee_per_gas.is_some() {
+            num_fields += 1;
+        }
+        if self.withdrawals_root.is_some() {
+            num_fields += 1;
+        }
+        if self.blob_gas.is_some() {
+            num_fields += 2;
+        }
+        if self.parent_beacon_block_root.is_some() {
+            num_fields += 1;
+        }
 
+        s.begin_list(num_fields);
         s.append(&self.parent_hash.as_bytes());
         s.append(&self.ommers_hash.as_bytes());
         s.append(&self.beneficiary.as_bytes());
@@ -245,6 +253,9 @@ impl rlp::Encodable for Header {
         {
             s.append(&U64::from_limbs([*gas_used]));
             s.append(&U64::from_limbs([*excess_gas]));
+        }
+        if let Some(ref root) = self.parent_beacon_block_root {
+            s.append(&root.as_bytes());
         }
     }
 }
@@ -280,7 +291,6 @@ impl rlp::Decodable for Header {
             } else {
                 None
             },
-
             blob_gas: if let Ok((gas_used, excess_gas)) = rlp
                 .at(17)
                 .and_then(|gas_used| rlp.at(18).map(|excess_gas| (gas_used, excess_gas)))
@@ -292,79 +302,15 @@ impl rlp::Decodable for Header {
             } else {
                 None
             },
-        };
-        Ok(result)
-    }
-}
-
-#[cfg(feature = "fastrlp")]
-impl open_fastrlp::Encodable for Header {
-    fn length(&self) -> usize {
-        // add each of the fields' rlp encoded lengths
-        let mut length = 0;
-        length += self.header_payload_length();
-        length += open_fastrlp::length_of_length(length);
-
-        length
-    }
-
-    fn encode(&self, out: &mut dyn open_fastrlp::BufMut) {
-        let list_header = open_fastrlp::Header {
-            list: true,
-            payload_length: self.header_payload_length(),
-        };
-        list_header.encode(out);
-        self.parent_hash.encode(out);
-        self.ommers_hash.encode(out);
-        self.beneficiary.encode(out);
-        self.state_root.encode(out);
-        self.transactions_root.encode(out);
-        self.receipts_root.encode(out);
-        self.logs_bloom.encode(out);
-        self.difficulty.encode(out);
-        self.number.encode(out);
-        self.gas_limit.encode(out);
-        self.gas_used.encode(out);
-        self.timestamp.encode(out);
-        self.extra_data.encode(out);
-        self.mix_hash.encode(out);
-        self.nonce.encode(out);
-        if let Some(base_fee_per_gas) = self.base_fee_per_gas {
-            base_fee_per_gas.encode(out);
-        }
-    }
-}
-
-#[cfg(feature = "fastrlp")]
-impl open_fastrlp::Decodable for Header {
-    fn decode(buf: &mut &[u8]) -> Result<Self, open_fastrlp::DecodeError> {
-        // slice out the rlp list header
-        let header = open_fastrlp::Header::decode(buf)?;
-        let start_len = buf.len();
-
-        Ok(Header {
-            parent_hash: <B256 as open_fastrlp::Decodable>::decode(buf)?,
-            ommers_hash: <B256 as open_fastrlp::Decodable>::decode(buf)?,
-            beneficiary: <Address as open_fastrlp::Decodable>::decode(buf)?,
-            state_root: <B256 as open_fastrlp::Decodable>::decode(buf)?,
-            transactions_root: <B256 as open_fastrlp::Decodable>::decode(buf)?,
-            receipts_root: <B256 as open_fastrlp::Decodable>::decode(buf)?,
-            logs_bloom: <Bloom as open_fastrlp::Decodable>::decode(buf)?,
-            difficulty: <U256 as open_fastrlp::Decodable>::decode(buf)?,
-            number: <U256 as open_fastrlp::Decodable>::decode(buf)?,
-            gas_limit: <U256 as open_fastrlp::Decodable>::decode(buf)?,
-            gas_used: <U256 as open_fastrlp::Decodable>::decode(buf)?,
-            timestamp: <u64 as open_fastrlp::Decodable>::decode(buf)?,
-            extra_data: <Bytes as open_fastrlp::Decodable>::decode(buf)?,
-            mix_hash: <B256 as open_fastrlp::Decodable>::decode(buf)?,
-            nonce: <H64 as open_fastrlp::Decodable>::decode(buf)?,
-            base_fee_per_gas: if start_len - header.payload_length < buf.len() {
-                // if there is leftover data in the payload, decode the base fee
-                Some(<U256 as open_fastrlp::Decodable>::decode(buf)?)
+            parent_beacon_block_root: if let Ok(root) = rlp.at(19) {
+                Some(B256::from(
+                    <U256 as Decodable>::decode(&root)?.to_be_bytes(),
+                ))
             } else {
                 None
             },
-        })
+        };
+        Ok(result)
     }
 }
 
@@ -401,6 +347,8 @@ pub struct PartialHeader {
     pub base_fee: Option<U256>,
     /// Blob gas was added by EIP-4844 and is ignored in older headers.
     pub blob_gas: Option<BlobGas>,
+    /// The hash tree root of the parent beacon block for the given execution block (EIP-4788).
+    pub parent_beacon_block_root: Option<B256>,
 }
 
 impl PartialHeader {
@@ -469,6 +417,11 @@ impl PartialHeader {
             } else {
                 None
             },
+            parent_beacon_block_root: if spec_id >= SpecId::CANCUN {
+                Some(options.parent_beacon_block_root.unwrap_or_else(B256::zero))
+            } else {
+                None
+            },
         }
     }
 }
@@ -493,6 +446,7 @@ impl Default for PartialHeader {
             nonce: B64::default(),
             base_fee: None,
             blob_gas: None,
+            parent_beacon_block_root: None,
         }
     }
 }
@@ -515,6 +469,7 @@ impl From<Header> for PartialHeader {
             nonce: header.nonce,
             base_fee: header.base_fee_per_gas,
             blob_gas: header.blob_gas,
+            parent_beacon_block_root: header.parent_beacon_block_root,
         }
     }
 }
@@ -524,6 +479,8 @@ mod tests {
     use std::str::FromStr;
 
     use revm_primitives::ruint::aliases::U64;
+
+    use crate::trie::KECCAK_RLP_EMPTY_ARRAY;
 
     use super::*;
 
@@ -548,6 +505,7 @@ mod tests {
             base_fee_per_gas: None,
             withdrawals_root: None,
             blob_gas: None,
+            parent_beacon_block_root: None,
         };
 
         let encoded = rlp::encode(&header);
@@ -585,6 +543,7 @@ mod tests {
             base_fee_per_gas: None,
             withdrawals_root: None,
             blob_gas: None,
+            parent_beacon_block_root: None,
         };
         let encoded = rlp::encode(&header);
         assert_eq!(encoded, &expected);
@@ -635,6 +594,7 @@ mod tests {
             base_fee_per_gas: Some(U256::from(0x036bu64)),
             withdrawals_root: None,
             blob_gas: None,
+            parent_beacon_block_root: None,
         };
         assert_eq!(header.hash(), expected_hash);
     }
@@ -663,8 +623,59 @@ mod tests {
             base_fee_per_gas: None,
             withdrawals_root: None,
             blob_gas: None,
+            parent_beacon_block_root: None,
         };
         let decoded: Header = rlp::decode(&data).unwrap();
         assert_eq!(decoded, expected);
+    }
+
+    // Test vector from https://github.com/ethereum/tests/blob/a33949df17a1c382ffee5666e66d26bde7a089f9/EIPTests/Pyspecs/cancun/eip4844_blobs/correct_increasing_blob_gas_costs.json#L16
+    #[test]
+    fn block_header_rlp_encoding_cancun() {
+        let expected_encoding = hex::decode("f90242a0258811d02512e87e09253a948330eff05da06b7656143a211fa3687901217f57a01dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347942adc25665018aa1fe0e6bc666dac8fc2697ff9baa06a086c92bb1d4ee6dc4ca73e66529037591bd4d6590350f6c904bc78dc21b75ca0dc387fc6ef9e3eb53baa85df89a1f9b91a4a9ab472ee7e928b4b7fdc06dfa5d1a0eaa8c40899a61ae59615cf9985f5e2194f8fd2b57d273be63bde6733e89b12abb9010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800188016345785d8a00008252080c80a0000000000000000000000000000000000000000000000000000000000000000088000000000000000007a056e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b4218308000083220000a00000000000000000000000000000000000000000000000000000000000000000").unwrap();
+        let expected_hash =
+            B256::from_str("0xd2caf87ef0ecbbf1d8721e4f63d56b3a5b4bf8b5faa0409aa6b99a729affe346")
+                .unwrap();
+
+        let header = Header {
+            base_fee_per_gas: Some(U256::from(0x07u64)),
+            blob_gas: Some(BlobGas {
+                gas_used: 0x080000u64,
+                excess_gas: 0x220000u64,
+            }),
+            logs_bloom: Bloom::zero(),
+            beneficiary: Address::from_str("0x2adc25665018aa1fe0e6bc666dac8fc2697ff9ba").unwrap(),
+            difficulty: U256::ZERO,
+            extra_data: Bytes::default(),
+            gas_limit: U256::from(0x016345785d8a0000u64),
+            gas_used: U256::from(0x5208u64),
+            mix_hash: B256::zero(),
+            nonce: B64::ZERO,
+            number: U256::from(0x01u64),
+            parent_beacon_block_root: Some(B256::zero()),
+            parent_hash: B256::from_str(
+                "0x258811d02512e87e09253a948330eff05da06b7656143a211fa3687901217f57",
+            )
+            .unwrap(),
+            receipts_root: B256::from_str(
+                "0xeaa8c40899a61ae59615cf9985f5e2194f8fd2b57d273be63bde6733e89b12ab",
+            )
+            .unwrap(),
+            state_root: B256::from_str(
+                "0x6a086c92bb1d4ee6dc4ca73e66529037591bd4d6590350f6c904bc78dc21b75c",
+            )
+            .unwrap(),
+            timestamp: U256::from(0x0cu64),
+            transactions_root: B256::from_str(
+                "0xdc387fc6ef9e3eb53baa85df89a1f9b91a4a9ab472ee7e928b4b7fdc06dfa5d1",
+            )
+            .unwrap(),
+            ommers_hash: KECCAK_RLP_EMPTY_ARRAY,
+            withdrawals_root: Some(KECCAK_NULL_RLP),
+        };
+
+        let encoded = rlp::encode(&header);
+        assert_eq!(encoded, expected_encoding);
+        assert_eq!(header.hash(), expected_hash);
     }
 }

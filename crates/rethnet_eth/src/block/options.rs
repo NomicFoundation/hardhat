@@ -29,4 +29,6 @@ pub struct BlockOptions {
     pub nonce: Option<B64>,
     /// The block's base gas fee
     pub base_fee: Option<U256>,
+    /// The hash tree root of the parent beacon block for the given execution block (EIP-4788).
+    pub parent_beacon_block_root: Option<B256>,
 }
