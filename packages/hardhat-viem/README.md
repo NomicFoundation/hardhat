@@ -30,6 +30,8 @@ Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
 import "@nomicfoundation/hardhat-viem";
 ```
 
+**Note:** viem does not follow semantic versioning strictly for type changes. You can read more [here](https://hardhat.org/hardhat-runner/docs/advanced/hardhat-viem#managing-types-and-version-stability).
+
 ## Required plugins
 
 No plugins dependencies.
