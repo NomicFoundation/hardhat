@@ -6,8 +6,8 @@ import React from "react";
 import styled from "styled-components";
 
 import { DeploymentFlow } from "./components/deployment-flow";
-import { Summary } from "./components/summary";
 import { ExecutionBatches } from "./components/execution-batches";
+import { Summary } from "./components/summary";
 
 import { socialsItems } from "../../components/socials";
 
@@ -112,6 +112,7 @@ const Contents = styled.div`
   padding: 5rem 180px;
   display: grid;
   row-gap: 1rem;
+  min-width: 920px;
 `;
 
 const Panel = styled.div`
@@ -179,10 +180,10 @@ const HardhatLogo: React.FC = () => (
         y2="3.59"
         gradientUnits="userSpaceOnUse"
       >
-        <stop stop-color="#EDCF00" />
-        <stop offset=".33" stop-color="#F0D500" />
-        <stop offset=".77" stop-color="#F9E500" />
-        <stop offset="1" stop-color="#FFF100" />
+        <stop stopColor="#EDCF00" />
+        <stop offset=".33" stopColor="#F0D500" />
+        <stop offset=".77" stopColor="#F9E500" />
+        <stop offset="1" stopColor="#FFF100" />
       </linearGradient>
       <linearGradient
         id="b"
@@ -192,9 +193,9 @@ const HardhatLogo: React.FC = () => (
         y2="10.496"
         gradientUnits="userSpaceOnUse"
       >
-        <stop stop-color="#EDCF00" />
-        <stop offset=".59" stop-color="#F7E100" />
-        <stop offset="1" stop-color="#FFF100" />
+        <stop stopColor="#EDCF00" />
+        <stop offset=".59" stopColor="#F7E100" />
+        <stop offset="1" stopColor="#FFF100" />
       </linearGradient>
       <radialGradient
         id="c"
@@ -204,10 +205,10 @@ const HardhatLogo: React.FC = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="matrix(18.5398 0 0 18.4136 3.701 44.539)"
       >
-        <stop stop-color="#FFF100" />
-        <stop offset=".23" stop-color="#F9E500" />
-        <stop offset=".67" stop-color="#F0D500" />
-        <stop offset="1" stop-color="#EDCF00" />
+        <stop stopColor="#FFF100" />
+        <stop offset=".23" stopColor="#F9E500" />
+        <stop offset=".67" stopColor="#F0D500" />
+        <stop offset="1" stopColor="#EDCF00" />
       </radialGradient>
     </defs>
   </svg>
