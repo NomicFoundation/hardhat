@@ -10,6 +10,8 @@ import { ExecutionBatches } from "./components/execution-batches";
 import { Summary } from "./components/summary";
 
 import { socialsItems } from "../../components/socials";
+import rocketPNG from "../../assets/purple-rocket.png";
+import { ExternalLinkIcon } from "../../assets/ExternalLinkIcon";
 
 export const VisualizationOverview: React.FC<{
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>;
@@ -20,18 +22,33 @@ export const VisualizationOverview: React.FC<{
       <NavBar>
         <HardhatLogo />
 
-        <SocialsList>
-          {socialsItems.map((social) => {
-            const { Icon } = social;
-            return (
-              <SocialListItem key={social.name}>
-                <SocialLink href={social.href} target="_blank" rel="noreferrer">
-                  <Icon />
-                </SocialLink>
-              </SocialListItem>
-            );
-          })}
-        </SocialsList>
+        <span style={{ display: "flex", alignItems: "center" }}>
+          <DocLink>
+            <a
+              href="https://github.com/NomicFoundation/hardhat-ignition"
+              target="_blank"
+            >
+              DOCUMENTATION <ExternalLinkIcon />
+            </a>
+          </DocLink>
+
+          <SocialsList>
+            {socialsItems.map((social) => {
+              const { Icon } = social;
+              return (
+                <SocialListItem key={social.name}>
+                  <SocialLink
+                    href={social.href}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <Icon />
+                  </SocialLink>
+                </SocialListItem>
+              );
+            })}
+          </SocialsList>
+        </span>
       </NavBar>
 
       <Contents>
@@ -60,8 +77,28 @@ export const VisualizationOverview: React.FC<{
 };
 
 const RocketIcon: React.FC = () => (
-  <span style={{ fontSize: "45px", paddingRight: "0.5rem" }}>🚀</span>
+  <img
+    src={rocketPNG}
+    alt="rocket"
+    style={{ width: "45px", height: "45px", paddingRight: "1rem" }}
+  />
 );
+
+const DocLink = styled.span`
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 14px;
+  letter-spacing: 0.07em;
+  text-align: left;
+  margin-top: -5px;
+
+  padding-right: 2rem;
+
+  & a {
+    text-decoration: none;
+    color: #040405;
+  }
+`;
 
 const SocialsList = styled.ul`
   min-width: 80px;

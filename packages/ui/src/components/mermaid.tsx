@@ -24,7 +24,7 @@ export const Mermaid: React.FC<{
   useEffect(() => {
     mermaid.initialize({
       flowchart: {
-        padding: 30,
+        padding: 50,
       },
     });
 

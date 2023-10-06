@@ -73,7 +73,7 @@ export const ExecutionBatches: React.FC<{
       </SectionSubHeader>
 
       <RootModuleBackground>
-        <RootModuleName>[{ignitionModule.id}]</RootModuleName>
+        <RootModuleName>[ {ignitionModule.id} ]</RootModuleName>
         <Actions
           currentlyHovered={currentlyHovered}
           hoveredFuture={hoveredFuture}
