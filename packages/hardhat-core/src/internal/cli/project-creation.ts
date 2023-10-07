@@ -30,33 +30,50 @@ import { Dependencies, PackageManager } from "./types";
 enum Action {
   CREATE_JAVASCRIPT_PROJECT_ACTION = "Create a JavaScript project",
   CREATE_TYPESCRIPT_PROJECT_ACTION = "Create a TypeScript project",
+  CREATE_TYPESCRIPT_VIEM_PROJECT_ACTION = "Create a TypeScript project (with viem)",
   CREATE_EMPTY_HARDHAT_CONFIG_ACTION = "Create an empty hardhat.config.js",
   QUIT_ACTION = "Quit",
 }
 
 type SampleProjectTypeCreationAction =
   | Action.CREATE_JAVASCRIPT_PROJECT_ACTION
-  | Action.CREATE_TYPESCRIPT_PROJECT_ACTION;
+  | Action.CREATE_TYPESCRIPT_PROJECT_ACTION
+  | Action.CREATE_TYPESCRIPT_VIEM_PROJECT_ACTION;
 
 const HARDHAT_PACKAGE_NAME = "hardhat";
 
-const PROJECT_DEPENDENCIES: Dependencies = {
+const PROJECT_DEPENDENCIES: Dependencies = {};
+
+const ETHERS_PROJECT_DEPENDENCIES: Dependencies = {
   "@nomicfoundation/hardhat-toolbox": "^3.0.0",
+};
+
+const VIEM_PROJECT_DEPENDENCIES: Dependencies = {
+  "@nomicfoundation/hardhat-toolbox-viem": "^1.0.0",
 };
 
 const PEER_DEPENDENCIES: Dependencies = {
   hardhat: "^2.14.0",
   "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
-  "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
-  "@nomicfoundation/hardhat-ethers": "^3.0.0",
   "@nomicfoundation/hardhat-verify": "^1.0.0",
   chai: "^4.2.0",
-  ethers: "^6.4.0",
   "hardhat-gas-reporter": "^1.0.8",
   "solidity-coverage": "^0.8.0",
+};
+
+const ETHERS_PEER_DEPENDENCIES: Dependencies = {
+  "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
+  "@nomicfoundation/hardhat-ethers": "^3.0.0",
+  ethers: "^6.4.0",
   "@typechain/hardhat": "^8.0.0",
   typechain: "^8.1.0",
   "@typechain/ethers-v6": "^0.4.0",
+};
+
+const VIEM_PEER_DEPENDENCIES: Dependencies = {
+  "@nomicfoundation/hardhat-viem": "^1.0.0",
+  "chai-as-promised": "^7.1.1",
+  viem: "^1.15.1",
 };
 
 const TYPESCRIPT_DEPENDENCIES: Dependencies = {};
@@ -67,6 +84,15 @@ const TYPESCRIPT_PEER_DEPENDENCIES: Dependencies = {
   "@types/node": ">=16.0.0",
   "ts-node": ">=8.0.0",
   typescript: ">=4.5.0",
+};
+
+const TYPESCRIPT_ETHERS_PEER_DEPENDENCIES: Dependencies = {
+  typescript: ">=4.5.0",
+};
+
+const TYPESCRIPT_VIEM_PEER_DEPENDENCIES: Dependencies = {
+  typescript: "~5.0.4",
+  "@types/chai-as-promised": "^7.1.6",
 };
 
 // generated with the "colossal" font
@@ -130,6 +156,8 @@ async function copySampleProject(
         false,
         "Shouldn't try to create a TypeScript project in an ESM based project"
       );
+    } else if (projectType === Action.CREATE_TYPESCRIPT_VIEM_PROJECT_ACTION) {
+      sampleProjectName = "typescript-viem";
     } else {
       sampleProjectName = "typescript";
     }
@@ -588,12 +616,13 @@ async function getDependencies(
     !(await doesNpmAutoInstallPeerDependencies());
 
   const shouldInstallTypescriptDependencies =
-    projectType === Action.CREATE_TYPESCRIPT_PROJECT_ACTION;
+    projectType === Action.CREATE_TYPESCRIPT_PROJECT_ACTION ||
+    projectType === Action.CREATE_TYPESCRIPT_VIEM_PROJECT_ACTION;
 
   const shouldInstallTypescriptPeerDependencies =
     shouldInstallTypescriptDependencies && shouldInstallPeerDependencies;
 
-  return {
+  const commonDependencies: Dependencies = {
     [HARDHAT_PACKAGE_NAME]: `^${(await getPackageJson()).version}`,
     ...PROJECT_DEPENDENCIES,
     ...(shouldInstallPeerDependencies ? PEER_DEPENDENCIES : {}),
@@ -601,5 +630,34 @@ async function getDependencies(
     ...(shouldInstallTypescriptPeerDependencies
       ? TYPESCRIPT_PEER_DEPENDENCIES
       : {}),
+  };
+
+  // At the moment, the default toolbox is the ethers based toolbox
+  const shouldInstallDefaultToolbox =
+    projectType !== Action.CREATE_TYPESCRIPT_VIEM_PROJECT_ACTION;
+
+  const ethersToolboxDependencies: Dependencies = {
+    ...ETHERS_PROJECT_DEPENDENCIES,
+    ...(shouldInstallPeerDependencies ? ETHERS_PEER_DEPENDENCIES : {}),
+    ...(shouldInstallTypescriptPeerDependencies
+      ? TYPESCRIPT_ETHERS_PEER_DEPENDENCIES
+      : {}),
+  };
+
+  const viemToolboxDependencies: Dependencies = {
+    ...VIEM_PROJECT_DEPENDENCIES,
+    ...(shouldInstallPeerDependencies ? VIEM_PEER_DEPENDENCIES : {}),
+    ...(shouldInstallTypescriptPeerDependencies
+      ? TYPESCRIPT_VIEM_PEER_DEPENDENCIES
+      : {}),
+  };
+
+  const toolboxDependencies: Dependencies = shouldInstallDefaultToolbox
+    ? ethersToolboxDependencies
+    : viemToolboxDependencies;
+
+  return {
+    ...commonDependencies,
+    ...toolboxDependencies,
   };
 }
