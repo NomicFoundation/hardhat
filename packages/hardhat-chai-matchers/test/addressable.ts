@@ -3,7 +3,7 @@ import { AssertionError, expect } from "chai";
 
 import "../src/internal/add-chai-matchers";
 
-describe("Contract & Signer matcher", () => {
+describe("Addressable matcher", () => {
   const signer = ethers.Wallet.createRandom();
   const address = signer.address;
   const contract = new ethers.Contract(address, []);
@@ -45,7 +45,7 @@ describe("Contract & Signer matcher", () => {
           it("should revert", () => {
             expect(() => expect(el1.object).to.not.equal(el2.object)).to.throw(
               AssertionError,
-              `expected '${el1.class}' to equal '${el2.class}'.`
+              `expected '${el1.class}' to not equal '${el2.class}'.`
             );
           });
         } else {
