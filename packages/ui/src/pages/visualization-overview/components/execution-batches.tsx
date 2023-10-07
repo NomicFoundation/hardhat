@@ -120,15 +120,15 @@ const BatchesTooltip: React.FC = () => (
     </a>
     <Tooltip className="styled-tooltip batches-tooltip" id="batches-tooltip">
       <div>
-        Futures that can be parallelized are executed at the same time in
+        Futures that can be run simultaneously are executed at the same time in
         batches.
       </div>
       <br />
       <div>
-        The order of the futures represented here is not representative of the
-        final order when the deployment is executed, which can only be known
-        once they confirm. The specific order, though, is not relevant for the
-        deployment, which is why they can be parallelized.
+        The sequence shown here doesn&apos;t reflect the final execution order.
+        The exact order is determined once they&apos;re run. However, this
+        specific order isn&apos;t relevant to the process, allowing for
+        simultaneous execution.
       </div>
     </Tooltip>
   </span>
