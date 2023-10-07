@@ -9,7 +9,7 @@ describe("Contract & Signer matcher", () => {
   const contract = new ethers.Contract(address, []);
 
   const otherSigner = ethers.Wallet.createRandom();
-  const { address: otherAddress } = otherSigner;
+  const otherAddress = otherSigner.address;
   const otherContract = new ethers.Contract(otherAddress, []);
 
   const elements = [
