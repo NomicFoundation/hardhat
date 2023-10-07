@@ -25,29 +25,33 @@ describe("Contract & Signer matcher", () => {
     for (const el2 of elements) {
       const expectEqual = el1.class === el2.class;
 
-      it(`expect "${el1.name}" to equal "${el1.name}": should ${
-        expectEqual ? "not " : ""
-      }revert`, () => {
+      describe(`expect "${el1.name}" to equal "${el1.name}"`, () => {
         if (expectEqual) {
-          expect(el1.object).to.equal(el2.object);
+          it("should not revert", () => {
+            expect(el1.object).to.equal(el2.object);
+          });
         } else {
-          expect(() => expect(el1.object).to.equal(el2.object)).to.throw(
-            AssertionError,
-            `expected '${el1.class}' to equal '${el2.class}'.`
-          );
+          it("should revert", () => {
+            expect(() => expect(el1.object).to.equal(el2.object)).to.throw(
+              AssertionError,
+              `expected '${el1.class}' to equal '${el2.class}'.`
+            );
+          });
         }
       });
 
-      it(`expect "${el1.name}" to not equal "${el1.name}": should ${
-        expectEqual ? "" : "not "
-      }revert`, () => {
+      describe(`expect "${el1.name}" to not equal "${el1.name}"`, () => {
         if (expectEqual) {
-          expect(() => expect(el1.object).to.not.equal(el2.object)).to.throw(
-            AssertionError,
-            `expected '${el1.class}' to not equal '${el2.class}'.`
-          );
+          it("should revert", () => {
+            expect(() => expect(el1.object).to.not.equal(el2.object)).to.throw(
+              AssertionError,
+              `expected '${el1.class}' to equal '${el2.class}'.`
+            );
+          });
         } else {
-          expect(el1.object).to.not.equal(el2.object);
+          it("should not revert", () => {
+            expect(el1.object).to.not.equal(el2.object);
+          });
         }
       });
     }
