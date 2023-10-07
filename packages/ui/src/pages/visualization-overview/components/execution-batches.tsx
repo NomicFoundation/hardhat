@@ -125,7 +125,7 @@ const BatchesTooltip: React.FC = () => (
       </div>
       <br />
       <div>
-        The sequence shown here doesn&apos;t reflect the final execution order.
+        The sequence order shown for each batch doesn&apos;t reflect the final execution order.
         The exact order is determined once they&apos;re run. However, this
         specific order isn&apos;t relevant to the process, allowing for
         simultaneous execution.
