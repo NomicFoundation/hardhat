@@ -40,7 +40,6 @@
     "README.md"
   ],
   "dependencies": {
-    "@types/chai-as-promised": "^7.1.6",
     "chai-as-promised": "^7.1.1"
   },
   "devDependencies": {
@@ -48,6 +47,7 @@
     "@nomicfoundation/hardhat-verify": "^1.0.0",
     "@nomicfoundation/hardhat-viem": "^1.0.0",
     "@types/chai": "^4.2.0",
+    "@types/chai-as-promised": "^7.1.6",
     "@types/mocha": ">=9.1.0",
     "@types/node": "^16.0.0",
     "@typescript-eslint/eslint-plugin": "5.61.0",
@@ -73,6 +73,7 @@
     "@nomicfoundation/hardhat-verify": "^1.0.0",
     "@nomicfoundation/hardhat-viem": "^1.0.0",
     "@types/chai": "^4.2.0",
+    "@types/chai-as-promised": "^7.1.6",
     "@types/mocha": ">=9.1.0",
     "@types/node": ">=16.0.0",
     "chai": "^4.2.0",
