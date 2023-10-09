@@ -54,8 +54,8 @@ export const menuItemsList: MenuItemType[] = [
     href: NavigationPagesPaths.HOME,
   },
   {
-    label: "Tools",
-    href: "/#tools",
+    label: "Documentation",
+    href: "/docs",
     subItems: [
       {
         prefix: "Hardhat",
@@ -90,10 +90,6 @@ export const menuItemsList: MenuItemType[] = [
   {
     label: "Plugins",
     href: "/hardhat-runner/plugins",
-  },
-  {
-    label: "Documentation",
-    href: "/docs",
   },
   {
     label: "Tutorial",
