@@ -8,23 +8,23 @@ secretsScope
   .task("set", "Set a secret")
   .addPositionalParam("key", "The key of the secret")
   .setAction(async () => {
-    throw new HardhatError(ERRORS.TASK_DEFINITIONS.SECRETS_ONLY_MANAGED_IN_CLI);
+    throw new HardhatError(ERRORS.SECRETS.SECRETS_ONLY_MANAGED_IN_CLI);
   });
 
 secretsScope
   .task("get ", "Get a secret")
   .addPositionalParam("key", "The key of the secret")
   .setAction(async () => {
-    throw new HardhatError(ERRORS.TASK_DEFINITIONS.SECRETS_ONLY_MANAGED_IN_CLI);
+    throw new HardhatError(ERRORS.SECRETS.SECRETS_ONLY_MANAGED_IN_CLI);
   });
 
 secretsScope.task("list", "List all the secrets' keys").setAction(async () => {
-  throw new HardhatError(ERRORS.TASK_DEFINITIONS.SECRETS_ONLY_MANAGED_IN_CLI);
+  throw new HardhatError(ERRORS.SECRETS.SECRETS_ONLY_MANAGED_IN_CLI);
 });
 
 secretsScope
   .task("delete", "Delete a secret")
   .addPositionalParam("key", "The key of the secret")
   .setAction(async () => {
-    throw new HardhatError(ERRORS.TASK_DEFINITIONS.SECRETS_ONLY_MANAGED_IN_CLI);
+    throw new HardhatError(ERRORS.SECRETS.SECRETS_ONLY_MANAGED_IN_CLI);
   });

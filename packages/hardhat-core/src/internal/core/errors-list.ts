@@ -41,6 +41,7 @@ export const ERROR_RANGES: {
   INTERNAL: { min: 900, max: 999, title: "Internal Hardhat errors" },
   SOURCE_NAMES: { min: 1000, max: 1099, title: "Source name errors" },
   CONTRACT_NAMES: { min: 1100, max: 1199, title: "Contract name errors" },
+  SECRETS: { min: 1200, max: 1299, title: "Secrets errors" },
 };
 
 export const ERRORS = {
@@ -639,13 +640,6 @@ Please double check your task definitions.`,
       description: `This task has been deprecated in favor of a new approach.`,
       shouldBeReported: true,
     },
-    SECRETS_ONLY_MANAGED_IN_CLI: {
-      number: 216,
-      title: "Secrets can only be managed from the CLI",
-      message: "Secrets can only be managed from the CLI.",
-      description: `Secrets can only be managed from the CLI.`,
-      shouldBeReported: false,
-    },
   },
   ARGUMENTS: {
     INVALID_ENV_VAR_VALUE: {
@@ -806,15 +800,6 @@ Please double check the name of the task you are trying to run.`,
       description: `One of your arguments has an invalid value.
 
 Please double check the value of your argument and try to run again.`,
-      shouldBeReported: false,
-    },
-    VALUE_NOT_FOUND_FOR_ARGUMENT: {
-      number: 317,
-      message: "Cannot find a value associated to the %argument% '%value%'",
-      title: "Cannot find value",
-      description: `Cannot find a value.
-
-Please double check your argument and try to run again.`,
       shouldBeReported: false,
     },
   },
@@ -1320,6 +1305,43 @@ If you aren't overriding compilation-related tasks, please report this as a bug.
       description: `A contract name was expected to be in fully qualified form, but it's not.
 
 A fully qualified name should look like file.sol:Contract`,
+      shouldBeReported: false,
+    },
+  },
+  SECRETS: {
+    SECRETS_ONLY_MANAGED_IN_CLI: {
+      number: 1200,
+      title: "Secrets can only be managed from the CLI",
+      message: "Secrets can only be managed from the CLI.",
+      description: `Secrets can only be managed from the CLI.`,
+      shouldBeReported: false,
+    },
+    SECRET_NOT_FOUND_FOR_KEY: {
+      number: 1201,
+      message: "Cannot find a secret value associated to the key '%value%'",
+      title: "Cannot find secret value",
+      description: `Cannot find secret value.
+
+Please double check your key and try to run again.`,
+      shouldBeReported: false,
+    },
+    SECRET_KEY_UNDEFINED: {
+      number: 1202,
+      message: "The key associated to a secret cannot be undefined",
+      title: "Secret's key cannot be undefined",
+      description: `Secret's key cannot be undefined.
+
+Please double check your key and try to run again.`,
+      shouldBeReported: false,
+    },
+    INVALID_ACTION: {
+      number: 1203,
+      message:
+        "Invalid action '%value%' performed on secrets. The action should be one of the following: set, get, list or delete",
+      title: "Invalid action performed on secrets",
+      description: `Invalid action performed on secrets.
+
+Please double check your action and try to run again. Allowed actions are: set, get, list or delete.`,
       shouldBeReported: false,
     },
   },

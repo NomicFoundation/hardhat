@@ -31,7 +31,6 @@ import { loadTsNode, willRunWithTypescript } from "../core/typescript-support";
 import { Reporter } from "../sentry/reporter";
 import { isRunningOnCiServer } from "../util/ci-detection";
 import {
-  getSecretsFilePath,
   hasConsentedTelemetry,
   hasPromptedForHHVSCode,
   writePromptedForHHVSCode,
@@ -40,7 +39,6 @@ import {
 import { getPackageJson } from "../util/packageInfo";
 
 import { saveFlamegraph } from "../core/flamegraph";
-import { SecretsManager } from "../core/secrets/secrets-manager";
 import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
@@ -51,13 +49,12 @@ import {
   installHardhatVSCode,
   isHardhatVSCodeInstalled,
 } from "./hardhat-vscode-installation";
+import { handleSecrets } from "./secrets";
 
 const log = debug("hardhat:core:cli");
 
 const ANALYTICS_SLOW_TASK_THRESHOLD = 300;
 const SHOULD_SHOW_STACK_TRACES_BY_DEFAULT = isRunningOnCiServer();
-
-const secretsManager = new SecretsManager(getSecretsFilePath());
 
 async function printVersionMessage() {
   const packageJson = await getPackageJson();
@@ -450,91 +447,6 @@ async function createNewProject() {
   }
 
   throw new HardhatError(ERRORS.GENERAL.NOT_IN_INTERACTIVE_SHELL);
-}
-
-async function handleSecrets(args: string[]) {
-  const [, action, key] = args;
-
-  if (args.length > 3) {
-    throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_POSITIONAL_ARG, {
-      argument: args[3],
-    });
-  }
-
-  if (key === undefined && ["set", "get", "delete"].includes(action)) {
-    throw new HardhatError(ERRORS.ARGUMENTS.INVALID_ARGUMENT_VALUE, {
-      value: key,
-      argument: "key",
-      reason: `The key should not be undefined`,
-    });
-  }
-
-  switch (action) {
-    case "set": {
-      return secretsManager.set(key, await getSecretValue());
-    }
-    case "get": {
-      const secret = secretsManager.get(key);
-
-      if (secret !== undefined) {
-        console.log(secret);
-      } else {
-        console.log(
-          chalk.yellow(`There is no secret associated to the key ${key}`)
-        );
-      }
-
-      return;
-    }
-    case "list": {
-      const keys = secretsManager.list();
-
-      if (keys.length > 0) {
-        keys.forEach((k) => console.log(k));
-      } else {
-        console.log(chalk.yellow(`There are no secrets in the secret manager`));
-      }
-
-      return;
-    }
-    case "delete": {
-      const deleted = secretsManager.delete(key);
-
-      if (!deleted) {
-        console.log(
-          chalk.yellow(`There is no secret associated to the key ${key}`)
-        );
-      }
-
-      return;
-    }
-    default:
-      throw new HardhatError(ERRORS.ARGUMENTS.INVALID_ARGUMENT_VALUE, {
-        value: action,
-        argument: "action",
-        reason: `The action should be one of the following: set, get, list or delete`,
-      });
-  }
-}
-
-async function getSecretValue(): Promise<string> {
-  const { default: enquirer } = await import("enquirer");
-
-  const response: { secret: string } = await enquirer.prompt({
-    type: "password",
-    name: "secret",
-    message: "Enter secret:",
-  });
-
-  if (response.secret.length === 0) {
-    throw new HardhatError(ERRORS.ARGUMENTS.INVALID_ARGUMENT_VALUE, {
-      value: "",
-      argument: "secret",
-      reason: `The secret should be a valid string`,
-    });
-  }
-
-  return response.secret;
 }
 
 main()

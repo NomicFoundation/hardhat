@@ -194,8 +194,7 @@ function getSecret(key: string, defaultValue?: string): string {
 
   if (defaultValue !== undefined) return defaultValue;
 
-  throw new HardhatError(ERRORS.ARGUMENTS.VALUE_NOT_FOUND_FOR_ARGUMENT, {
-    argument: "key",
+  throw new HardhatError(ERRORS.SECRETS.SECRET_NOT_FOUND_FOR_KEY, {
     value: key,
   });
 }
