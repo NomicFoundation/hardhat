@@ -12,7 +12,7 @@ export const FutureHeader: React.FC<{
     return (
       <ToggleNameWrap>
         <div />
-        <ToggleNameText>{displayText}</ToggleNameText>
+        <Text>{displayText}</Text>
       </ToggleNameWrap>
     );
   }
@@ -20,7 +20,7 @@ export const FutureHeader: React.FC<{
   return (
     <ToggleNameWrap>
       {isLibrary ? <div /> : <ToggleBtn toggled={toggled} />}
-      <ToggleNameText>{displayText}</ToggleNameText>
+      <Text>{displayText}</Text>
       <div />
       <ModuleName
         className={future.module.id}
@@ -41,7 +41,7 @@ const ToggleNameWrap = styled.div`
 const ToggleBtn: React.FC<{
   toggled: boolean;
 }> = ({ toggled }) => {
-  return <ToggleNameText>{toggled ? "- " : "+ "}</ToggleNameText>;
+  return <ToggleBtnText>{toggled ? "- " : "+ "}</ToggleBtnText>;
 };
 
 const ModuleName = styled.div`
@@ -49,10 +49,14 @@ const ModuleName = styled.div`
   padding: 0.5rem;
 `;
 
-const ToggleNameText = styled.p`
+const Text = styled.p`
   margin: 0;
   display: inline;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
+  text-align: left;
+`;
+
+const ToggleBtnText = styled(Text)`
   text-align: center;
 `;
