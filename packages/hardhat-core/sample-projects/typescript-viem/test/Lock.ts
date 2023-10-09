@@ -4,7 +4,7 @@ import {
 } from "@nomicfoundation/hardhat-toolbox-viem/network-helpers";
 import { expect } from "chai";
 import hre from "hardhat";
-import { parseGwei } from "viem";
+import { getAddress, parseGwei } from "viem";
 
 describe("Lock", function () {
   // We define a fixture to reuse the same setup in every test.
@@ -45,7 +45,7 @@ describe("Lock", function () {
     it("Should set the right owner", async function () {
       const { lock, owner } = await loadFixture(deployOneYearLockFixture);
 
-      expect(await lock.read.owner()).to.equal(owner.account.address);
+      expect(await lock.read.owner()).to.equal(getAddress(owner.account.address));
     });
 
     it("Should receive and store the funds to lock", async function () {
