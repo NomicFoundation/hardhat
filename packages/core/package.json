@@ -81,7 +81,6 @@
     "fs-extra": "^10.0.0",
     "immer": "10.0.2",
     "lodash": "4.17.21",
-    "ndjson": "2.0.0",
-    "serialize-error": "8.1.0"
+    "ndjson": "2.0.0"
   }
 }

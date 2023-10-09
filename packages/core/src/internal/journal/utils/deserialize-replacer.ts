@@ -1,5 +1,3 @@
-import { deserializeError } from "serialize-error";
-
 /**
  * When JSON.parsing journal messages deserialize, this defines the replacer.
  */
@@ -10,10 +8,6 @@ export function deserializeReplacer(_key: string, value: unknown) {
 
   if (_isSerializedBigInt(value)) {
     return BigInt(value.value);
-  }
-
-  if (typeof value === "object" && value !== null && "message" in value) {
-    return deserializeError(value);
   }
 
   return value;

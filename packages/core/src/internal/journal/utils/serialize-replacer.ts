@@ -1,5 +1,3 @@
-import { serializeError } from "serialize-error";
-
 /**
  * When stringifying messages to the journal, this defines the replacer.
  */
@@ -14,10 +12,6 @@ export function serializeReplacer(_key: string, value: unknown) {
 
   if (typeof value === "bigint") {
     return { _kind: "bigint", value: value.toString(10) };
-  }
-
-  if (value instanceof Error) {
-    return serializeError(new Error(value.message));
   }
 
   if (value instanceof Object && !(value instanceof Array)) {
