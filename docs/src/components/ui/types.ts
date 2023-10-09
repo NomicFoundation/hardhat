@@ -2,8 +2,9 @@ import React from "react";
 
 export enum NavigationPagesPaths {
   HOME = "/",
-  TOOLS = "/#tools",
+  TOOLS = "/tools",
   PLUGINS = "/plugins",
+  DOCUMENTATION = "/docs",
   TUTORIAL = "/tutorial",
 }
 export interface MenuItemType {
