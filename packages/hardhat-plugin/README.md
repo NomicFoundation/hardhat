@@ -32,4 +32,4 @@ This plugin provides the `deploy` and `visualize` tasks.
 
 ## Usage
 
-Please see the [getting started guide](../../docs/getting-started-guide.md)
+Please see the [getting started guide](https://hardhat.org/hardhat-ignition)
