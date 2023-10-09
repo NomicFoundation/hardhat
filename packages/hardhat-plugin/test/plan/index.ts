@@ -19,7 +19,7 @@ describe("visualize", () => {
         task: "visualize",
       },
       {
-        quiet: true,
+        noOpen: true,
         moduleNameOrPath: "MyModule.js",
       }
     );

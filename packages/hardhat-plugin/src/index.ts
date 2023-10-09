@@ -172,7 +172,7 @@ ignitionScope
 
 ignitionScope
   .task("visualize")
-  .addFlag("quiet", "Disables logging output path to terminal")
+  .addFlag("noOpen", "Disables opening report in browser")
   .addPositionalParam(
     "moduleNameOrPath",
     "The name of the module file within the Ignition modules directory, or a path to the module file"
@@ -181,9 +181,9 @@ ignitionScope
   .setAction(
     async (
       {
-        quiet = false,
+        noOpen = false,
         moduleNameOrPath,
-      }: { quiet: boolean; moduleNameOrPath: string },
+      }: { noOpen: boolean; moduleNameOrPath: string },
       hre
     ) => {
       const { IgnitionModuleSerializer, batches } = await import(
@@ -220,7 +220,7 @@ ignitionScope
         }
       );
 
-      if (!quiet) {
+      if (!noOpen) {
         const indexFile = path.join(
           hre.config.paths.cache,
           "visualization",
