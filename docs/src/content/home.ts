@@ -218,7 +218,7 @@ const toolsBlockContent = {
       value: Tools.IGNITION,
       mottos: ["deploy"],
       description:
-        "Deployment system for structuring, automating and distributing smart contract deployment setups.",
+        "Declarative deployment system that enables you to deploy your smart contracts without navigating the mechanics of the deployment process.",
       link: "/hardhat-ignition",
     },
     {
