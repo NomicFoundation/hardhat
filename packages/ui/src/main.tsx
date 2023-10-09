@@ -59,11 +59,6 @@ const main = async () => {
 
     document.title = `${ignitionModule.id} Deployment Visualization - Hardhat Ignition`;
 
-    // const link = document.createElement("link");
-    // link.rel = "shortcut icon";
-    // link.href = faviconBase64;
-    // document.head.appendChild(link);
-
     const router = createHashRouter([
       {
         path: "/",
