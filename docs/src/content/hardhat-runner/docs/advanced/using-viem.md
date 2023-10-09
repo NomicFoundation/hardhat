@@ -10,48 +10,68 @@ To kickstart a Hardhat project with Typescript and `viem`, you can follow these 
 
 1. Initialize a new npm project in an empty directory:
 
-   ```bash
+   ::::tabsgroup{options="npm 7+,npm 6,yarn"}
+
+   :::tab{value="npm 7+"}
+
+   ```
    npm init -y
    ```
 
-2. Install `hardhat` and the `hardhat-toolbox-viem` plugin:
+   :::
 
-   ```bash
-   npm i hardhat @nomicfoundation/hardhat-toolbox-viem
+   :::tab{value="npm 6"}
+
    ```
+   npm init -y
+   ```
+
+   :::
+
+   :::tab{value="yarn"}
+
+   ```
+   yarn init -y
+   ```
+
+   :::
+
+   ::::
+
+2. Install `hardhat`:
+
+   ::::tabsgroup{options="npm 7+,npm 6,yarn"}
+
+   :::tab{value="npm 7+"}
+
+   ```
+   npm i hardhat
+   ```
+
+   :::
+
+   :::tab{value="npm 6"}
+
+   ```
+   npm i hardhat
+   ```
+
+   :::
+
+   :::tab{value="yarn"}
+
+   ```
+   yarn add hardhat
+   ```
+
+   :::
+
+   ::::
+
+
+3. Run `npx hardhat init` and select the *Create a TypeScript project (with viem)* option.
 
    **Note:** you might want to pin viem-related dependencies because viem does not strictly follow semantic versioning for type changes. You can read more [here](#managing-types-and-version-stability).
-
-3. Create a `tsconfig.json` file with the following content:
-
-   ```json
-   {
-     "compilerOptions": {
-       "target": "es2020",
-       "module": "commonjs",
-       "esModuleInterop": true,
-       "forceConsistentCasingInFileNames": true,
-       "strict": true,
-       "skipLibCheck": true,
-       "resolveJsonModule": true
-     }
-   }
-   ```
-
-4. Create a `hardhat.config.ts` file with the following content:
-
-   ```tsx
-   import { HardhatUserConfig } from "hardhat/config";
-   import "@nomicfoundation/hardhat-toolbox-viem";
-
-   const config: HardhatUserConfig = {
-     solidity: {
-       version: "{RECOMMENDED_SOLC_VERSION}",
-     },
-   };
-
-   export default config;
-   ```
 
 ## Quick Start
 
