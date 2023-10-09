@@ -4,6 +4,7 @@
 # Compilation output
 /build-test/
 /dist
+/internal
 /*.js
 /*.js.map
 /*.d.ts
