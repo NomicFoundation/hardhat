@@ -34,7 +34,6 @@
     "@istanbuljs/nyc-config-typescript": "1.0.2",
     "@nomicfoundation/hardhat-ethers": "^3.0.4",
     "@nomicfoundation/ignition-core": "^0.4.0",
-    "@nomicfoundation/ignition-ui": "^0.4.0",
     "@types/chai": "^4.2.22",
     "@types/chai-as-promised": "^7.1.4",
     "@types/d3": "7.4.0",
@@ -73,10 +72,10 @@
   "peerDependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.4",
     "@nomicfoundation/ignition-core": "^0.4.0",
-    "@nomicfoundation/ignition-ui": "^0.4.0",
     "hardhat": "^2.18.0"
   },
   "dependencies": {
+    "@nomicfoundation/ignition-ui": "^0.4.0",
     "chalk": "^4.0.0",
     "debug": "^4.3.2",
     "ethers": "^6.7.0",
