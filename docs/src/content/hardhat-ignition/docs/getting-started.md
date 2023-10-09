@@ -15,7 +15,7 @@ $ npx hardhat
 888    888 888  888 888    Y88b 888 888  888 888  888 Y88b.
 888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888
 
-👷 Welcome to Hardhat v2.17.0 👷‍
+👷 Welcome to Hardhat v2.18.0 👷‍
 
 ? What do you want to do? …
 ❯ Create a JavaScript project
@@ -24,13 +24,13 @@ $ npx hardhat
   Quit
 ```
 
-Add **Ignition** to your **Hardhat** project by installing the plugin:
+Add **Hardhat Ignition** to your **Hardhat** project by installing the plugin:
 
 ```bash
 npm install --save-dev @nomicfoundation/hardhat-ignition
 ```
 
-Modify your `hardhat.config.js` file, to include **Ignition**:
+Modify your `hardhat.config.js` file to include **Hardhat Ignition**:
 
 ```javascript
 require("@nomicfoundation/hardhat-toolbox");
@@ -47,20 +47,18 @@ mkdir ./ignition/modules
 
 ## Writing Your First Deployment Module
 
-Add a deployment module under the `./ignition/modules` folder for the example `Lock.sol` contract:
+Add a deployment module for the example `Lock.sol` contract, under the `./ignition/modules` folder:
 
 ```js
 // ./ignition/modules/LockModule.js
+
 const { buildModule } = require("@nomicfoundation/hardhat-ignition");
 
-const currentTimestampInSeconds = Math.round(new Date(2023, 0, 1) / 1000);
-const TEN_YEAR_IN_SECS = 10 * 365 * 24 * 60 * 60;
-const TEN_YEARS_IN_FUTURE = currentTimestampInSeconds + TEN_YEAR_IN_SECS;
-
-const ONE_GWEI = BigInt(hre.ethers.parseUnits("1", "gwei"));
+const ONE_GWEI = BigInt(1_000_000_000);
+const JAN_1ST_2030 = Math.round(new Date(2030, 0, 1) / 1000);
 
 module.exports = buildModule("LockModule", (m) => {
-  const unlockTime = m.getParameter("unlockTime", TEN_YEARS_IN_FUTURE);
+  const unlockTime = m.getParameter("unlockTime", JAN_1ST_2030);
   const lockedAmount = m.getParameter("lockedAmount", ONE_GWEI);
 
   const lock = m.contract("Lock", [unlockTime], {
@@ -73,16 +71,17 @@ module.exports = buildModule("LockModule", (m) => {
 
 ### Deploying the Module
 
-Run the `deploy` task to test the module against an ephemeral **Hardhat** node (using the default `unlockTime`):
+Run the `deploy` task to test the module against an ephemeral **Hardhat** node (this will use the module's default parameter values for `unlockTime` and `lockedAmout`):
 
 ```bash
 npx hardhat ignition deploy LockModule
 ```
 
-A file containing module parameters, indexed by the `ModuleId` used in `buildModule`, can be passed as a flag at the command line:
+Module parameters can be passed as a json file. Within the json file parameter values are indexed first by the `ModuleId`, then by the parameter name:
 
 ```json
 // ignition/modules/LockModule.config.json
+
 {
   "LockModule": {
     "unlockTime": 4102491600
@@ -90,11 +89,13 @@ A file containing module parameters, indexed by the `ModuleId` used in `buildMod
 }
 ```
 
+The deploy task accepts the path to the module parameters file via the `parameters` option:
+
 ```bash
 npx hardhat ignition deploy --parameters ignition/modules/LockModule.config.json LockModule
 ```
 
-To deploy against a specific network pass it on the command line, for instance to deploy against a local **Hardhat** node:
+To deploy against a specific network pass it via the `network` option, for instance to deploy against a local **Hardhat** node:
 
 ```bash
 npx hardhat node
@@ -102,29 +103,31 @@ npx hardhat node
 npx hardhat ignition deploy LockModule --network localhost
 ```
 
-Running against a non-ephemeral network will generate a `deployment` stored under `./ignition/deployments`. The deployment identified by an `id` that can be passed at the command line:
+Running against a non-ephemeral network will generate a _deployment_ stored under `./ignition/deployments`. By default an identifier is generated based on the `chainId` of the network, following the pattern `network-<CHAINID>` e.g. _network-31337_ for the localhost network.
+
+An explicit `id` for the deployment can be given as an option to deploy:
 
 ```bash
 npx hardhat ignition deploy LockModule --network localhost --id dev-deploy
 ```
 
-If no `id` is provided a default is generated based on the `chainId` e.g. _network-31337_ for the localhost network.
-
 ### Getting Info About Previous Deployments
 
-Run the `status` task to display info about your successfully deployed contracts within a deployment:
+Run the `status` task to display information about your deployment. For successfully completed deployments this will show the deployed contracts:
 
 ```bash
-npx hardhat ignition status --id dev-deploy
-# Deployed Addresses
-# ==================
+npx hardhat ignition status --id network-31337
 
-# LockModule:Lock 0x5FbDB2315678afecb367f032d93F642f64180aa3
+# 🚀 Deployment network-31337 Complete
+#
+# Deployed Addresses
+#
+# LockModule#Lock - 0x5fbdb2315678afecb367f032d93f642f64180aa3
 ```
 
 ### Using the Module Within Hardhat Tests
 
-Ignition modules can be used in **Hardhat** tests to simplify test setup. In the Hardhat quick start guide the `./test/Lock.js` test file can be leverage **Ignition** by updating the `deployOneYearLockFixture` fixture:
+**Hardhat Ignition** modules can be used in **Hardhat** tests to simplify test setup. In the **Hardhat** quick start guide the `./test/Lock.js` test file can leverage **Hardhat Ignition** by updating the `deployOneYearLockFixture` fixture:
 
 ```js
 ...
@@ -156,7 +159,7 @@ const LockModule = require("../ignition/modules/LockModule");
   }
 ```
 
-The **Hardhat** test command will automatically include the `ignition` object within the scope of test files when running tests:
+The **Hardhat** test command will automatically include the `ignition` object within test files when running tests:
 
 ```sh
 npx hardhat test
@@ -164,4 +167,4 @@ npx hardhat test
 
 ---
 
-Next, get a better understanding of the motivations of **Ignition** and how it sets out to achieve them: [Explanation](./explanation.md)
+Next, get a better understanding of the goals of **Hardhat Ignition** and how it sets out to achieve them: [Explanation](./explanation.md)
