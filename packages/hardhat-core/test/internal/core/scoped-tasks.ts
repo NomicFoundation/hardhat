@@ -10,7 +10,8 @@ describe("scoped tasks", () => {
   it("should include scopes in the hre", async function () {
     const scopes = Object.keys(this.env.scopes);
 
-    assert.sameMembers(scopes, ["my-scope", "another-scope"]);
+    // "secrets" is a built-in scope
+    assert.sameMembers(scopes, ["secrets", "my-scope", "another-scope"]);
 
     assert.equal(this.env.scopes["my-scope"].name, "my-scope");
     assert.equal(
