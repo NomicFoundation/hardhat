@@ -38,10 +38,6 @@ export class SecretsManager {
   }
 
   public get(key: string): string | undefined {
-    if (key === undefined) {
-      return;
-    }
-
     const secrets = this._readSecrets();
     return secrets[key]?.value ?? undefined;
   }
