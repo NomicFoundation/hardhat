@@ -82,7 +82,7 @@ export async function getNonceSyncMessages(
       ? block.number - requiredConfirmations + 1
       : undefined;
 
-  for (const [sender, pendingTransactions] of Object.entries(
+  for (const [sender, pendingIgnitionTransactions] of Object.entries(
     pendingTransactionsPerSender
   )) {
     // If this is undefined, it means that no transaction has fully confirmed.
@@ -101,14 +101,19 @@ export async function getNonceSyncMessages(
       "latest"
     );
 
-    const hasPendingTransactions =
+    // Is the pending count the same as the safe count (x confirmation blocks
+    // in the past), then all pending transactions have been safely confirmed.
+    // There is one other case, where the current block is so low, we
+    // can't have enough confirmations (i.e. block 2 when confirmations required
+    // is 5). In that case all pending onchain transactions are unconfirmed.
+    const hasOnchainUnconfirmedPendingTransactions =
       safeConfirmationsCount === undefined
         ? pendingCount > 0
         : safeConfirmationsCount !== pendingCount;
 
-    // Case 0: We don't have any pending transactions
-    if (pendingTransactions.length === 0) {
-      if (hasPendingTransactions) {
+    // Case 0: We don't have any pending Ignition transactions
+    if (pendingIgnitionTransactions.length === 0) {
+      if (hasOnchainUnconfirmedPendingTransactions) {
         throw new IgnitionError(ERRORS.EXECUTION.WAITING_FOR_CONFIRMATIONS, {
           sender,
           requiredConfirmations,
@@ -121,7 +126,7 @@ export async function getNonceSyncMessages(
       transactions,
       executionStateId,
       networkInteractionId,
-    } of pendingTransactions) {
+    } of pendingIgnitionTransactions) {
       const fetchedTransactions = await Promise.all(
         transactions.map((tx) => jsonRpcClient.getTransaction(tx))
       );
@@ -201,13 +206,13 @@ export async function getNonceSyncMessages(
     // Case 4: the user sent additional transactions with nonces higher than
     // our highest pending nonce.
     const highestPendingNonce = Math.max(
-      ...pendingTransactions.map((t) => t.nonce)
+      ...pendingIgnitionTransactions.map((t) => t.nonce)
     );
 
     if (highestPendingNonce + 1 < pendingCount) {
       // If they have enough confirmation we continue, otherwise we throw
       // and wait for further confirmations
-      if (hasPendingTransactions) {
+      if (hasOnchainUnconfirmedPendingTransactions) {
         throw new IgnitionError(ERRORS.EXECUTION.WAITING_FOR_NONCE, {
           sender,
           nonce: pendingCount - 1,
