@@ -52,6 +52,11 @@ const customRedirects = [
     permanent: false,
   },
   {
+    source: "/ignition-discord",
+    destination: "https://discord.gg/7jBkZQXB25",
+    permanent: false,
+  },
+  {
     source: "/hre",
     destination: "/advanced/hardhat-runtime-environment",
     permanent: false,
