@@ -1,9 +1,6 @@
 use std::ops::Deref;
 
-use napi::{
-    bindgen_prelude::{BigInt, FromNapiValue, ToNapiValue},
-    Status,
-};
+use napi::bindgen_prelude::{BigInt, FromNapiValue, ToNapiValue};
 use napi_derive::napi;
 use rethnet_evm::CfgEnv;
 
@@ -179,10 +176,10 @@ impl TryFrom<ConfigOptions> for CfgEnv {
 
         let limit_contract_code_size = value
             .limit_contract_code_size
-            .map_or(Ok(None), bigint_to_usize)?;
+            .map_or(Ok(None), bigint_to_maybe_usize)?;
         let limit_initcode_size = value
             .limit_initcode_size
-            .map_or(Ok(None), bigint_to_usize)?;
+            .map_or(Ok(None), bigint_to_maybe_usize)?;
 
         let disable_block_gas_limit = value
             .disable_block_gas_limit
@@ -201,16 +198,6 @@ impl TryFrom<ConfigOptions> for CfgEnv {
     }
 }
 
-fn bigint_to_usize(value: BigInt) -> Result<Option<usize>, napi::Error> {
-    if let (false, size, true) = value.get_u64() {
-        usize::try_from(size).map_or_else(
-            |e| Err(napi::Error::new(Status::InvalidArg, e.to_string())),
-            |size| Ok(Some(size)),
-        )
-    } else {
-        Err(napi::Error::new(
-            Status::InvalidArg,
-            "BigInt cannot be larger than usize::MAX".to_owned(),
-        ))
-    }
+fn bigint_to_maybe_usize(value: BigInt) -> Result<Option<usize>, napi::Error> {
+    Ok(Some(value.try_cast()?))
 }
