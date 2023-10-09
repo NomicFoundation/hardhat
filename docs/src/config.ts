@@ -13,9 +13,8 @@ import NetworkIcon from "./assets/tools/network";
 import RunnerIconDark from "./assets/tools/runner-dark";
 import NetworkIconDark from "./assets/tools/network-dark";
 import SolidityIconDark from "./assets/tools/solidity-dark";
-// TODO: Re-enable Ignition section
-// import IgnitionIcon from "./assets/tools/ignition";
-// import IgnitionIconDark from "./assets/tools/ignition-dark";
+import IgnitionIcon from "./assets/tools/ignition";
+import IgnitionIconDark from "./assets/tools/ignition-dark";
 
 export const SOCIALS_LINKS = {
   [SocialsEnum.GITHUB]: "https://github.com/NomicFoundation/hardhat",
@@ -65,14 +64,13 @@ export const menuItemsList: MenuItemType[] = [
         icon: RunnerIcon,
         iconDark: RunnerIconDark,
       },
-      // TODO: Re-enable Ignition section
-      // {
-      //   prefix: "Hardhat",
-      //   label: "Ignition",
-      //   href: "/?tool=IGNITION#tools",
-      //   icon: IgnitionIcon,
-      //   iconDark: IgnitionIconDark,
-      // },
+      {
+        prefix: "Hardhat",
+        label: "Ignition",
+        href: "/hardhat-ignition",
+        icon: IgnitionIcon,
+        iconDark: IgnitionIconDark,
+      },
       {
         prefix: "Hardhat",
         label: "Network",
@@ -105,8 +103,7 @@ export const menuItemsList: MenuItemType[] = [
 
 export enum Tools {
   RUNNER = "RUNNER",
-  // TODO: Re-enable Ignition section
-  // IGNITION = "IGNITION",
+  IGNITION = "IGNITION",
   NETWORK = "NETWORK",
   SOLIDITY = "SOLIDITY",
 }
