@@ -290,26 +290,36 @@ async function getAction(isEsm: boolean): Promise<Action> {
         type: "select",
         message: "What do you want to do?",
         initial: 0,
-        choices: Object.values(Action).map((a: Action) => {
-          let message: string;
-          if (isEsm) {
-            if (a === Action.CREATE_EMPTY_HARDHAT_CONFIG_ACTION) {
-              message = a.replace(".js", ".cjs");
-            } else if (a === Action.CREATE_TYPESCRIPT_PROJECT_ACTION) {
-              message = `${a} (not available for ESM projects)`;
+        choices: Object.values(Action)
+          .filter((a: Action) => {
+            if (isEsm && a === Action.CREATE_TYPESCRIPT_VIEM_PROJECT_ACTION) {
+              // we omit the viem option for ESM projects to avoid showing
+              // two disabled options
+              return false;
+            }
+
+            return true;
+          })
+          .map((a: Action) => {
+            let message: string;
+            if (isEsm) {
+              if (a === Action.CREATE_EMPTY_HARDHAT_CONFIG_ACTION) {
+                message = a.replace(".js", ".cjs");
+              } else if (a === Action.CREATE_TYPESCRIPT_PROJECT_ACTION) {
+                message = `${a} (not available for ESM projects)`;
+              } else {
+                message = a;
+              }
             } else {
               message = a;
             }
-          } else {
-            message = a;
-          }
 
-          return {
-            name: a,
-            message,
-            value: a,
-          };
-        }),
+            return {
+              name: a,
+              message,
+              value: a,
+            };
+          }),
       },
     ]);
 
