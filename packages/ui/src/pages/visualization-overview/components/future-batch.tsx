@@ -156,7 +156,7 @@ function toDisplayText(future: Future): string {
     case FutureType.LIBRARY_DEPLOYMENT:
       return `Library deploy ${future.id} from artifact`;
     case FutureType.CONTRACT_CALL:
-      return `Call ${future.contract.contractName}/${future.functionName}`;
+      return `Call ${future.contract.contractName}.${future.functionName}`;
     case FutureType.STATIC_CALL:
       return `Static call ${future.id}`;
     case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
