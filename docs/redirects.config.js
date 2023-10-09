@@ -164,6 +164,16 @@ const customRedirects = [
     destination: "/hardhat-network-helpers/docs/overview",
     permanent: false,
   },
+  {
+    source: "/hardhat-ignition",
+    destination: "/hardhat-ignition/docs/overview",
+    permanent: false,
+  },
+  {
+    source: "/hardhat-ignition/docs",
+    destination: "/hardhat-ignition/docs/overview",
+    permanent: false,
+  },
 
   // legacy URLs
   {
