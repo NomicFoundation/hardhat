@@ -9,6 +9,8 @@
 /*.d.ts
 /*.d.ts.map
 
+!.eslintrc.js
+
 # Code coverage artifacts
 /coverage
 /.nyc_output
