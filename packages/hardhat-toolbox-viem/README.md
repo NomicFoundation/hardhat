@@ -13,7 +13,7 @@ When you use this plugin, you'll be able to:
 - Get metrics on the gas used by your contracts with the [hardhat-gas-reporter](https://github.com/cgewecke/hardhat-gas-reporter) plugin.
 - Measure your tests coverage with [solidity-coverage](https://github.com/sc-forks/solidity-coverage).
 
-**Note:** viem does not follow semantic versioning strictly for type changes. You can read more [here](https://hardhat.org/hardhat-runner/docs/advanced/hardhat-viem#managing-types-and-version-stability).
+**Note:** you might want to pin viem-related dependencies because viem does not strictly follow semantic versioning for type changes. You can read more [here](https://hardhat.org/hardhat-runner/docs/advanced/hardhat-viem#managing-types-and-version-stability).
 
 ### Usage
 
