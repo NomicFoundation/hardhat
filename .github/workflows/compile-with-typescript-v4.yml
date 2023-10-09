@@ -24,6 +24,6 @@ jobs:
       - name: Remove hardhat-viem directory
         run: rm -fr packages/hardhat-viem
       - name: Remove hardhat-viem from the build script
-        run: sed -i 's/packages\/hardhat-viem//' package.json
+        run: sed -i 's/packages\/hardhat-viem packages\/hardhat-toolbox-viem//' package.json
       - name: Build
         run: yarn build
