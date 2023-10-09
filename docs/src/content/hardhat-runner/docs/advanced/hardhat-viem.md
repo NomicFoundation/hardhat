@@ -20,7 +20,7 @@ npm init -y
 npm i hardhat @nomicfoundation/hardhat-toolbox-viem
 ```
 
-**Note:** viem does not follow semantic versioning strictly for type changes. You can read more [here](#managing-types-and-version-stability).
+**Note:** you might want to pin viem-related dependencies because viem does not strictly follow semantic versioning for type changes. You can read more [here](#managing-types-and-version-stability).
 
 3. Create a `tsconfig.json` file with the following content:
 
