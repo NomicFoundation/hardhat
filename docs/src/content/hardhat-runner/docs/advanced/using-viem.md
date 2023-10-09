@@ -10,48 +10,48 @@ To kickstart a Hardhat project with Typescript and `viem`, you can follow these 
 
 1. Initialize a new npm project in an empty directory:
 
-    ```bash
-    npm init -y
-    ```
+   ```bash
+   npm init -y
+   ```
 
 2. Install `hardhat` and the `hardhat-toolbox-viem` plugin:
 
-    ```bash
-    npm i hardhat @nomicfoundation/hardhat-toolbox-viem
-    ```
+   ```bash
+   npm i hardhat @nomicfoundation/hardhat-toolbox-viem
+   ```
 
-    **Note:** you might want to pin viem-related dependencies because viem does not strictly follow semantic versioning for type changes. You can read more [here](#managing-types-and-version-stability).
+   **Note:** you might want to pin viem-related dependencies because viem does not strictly follow semantic versioning for type changes. You can read more [here](#managing-types-and-version-stability).
 
 3. Create a `tsconfig.json` file with the following content:
 
-    ```json
-    {
-      "compilerOptions": {
-        "target": "es2020",
-        "module": "commonjs",
-        "esModuleInterop": true,
-        "forceConsistentCasingInFileNames": true,
-        "strict": true,
-        "skipLibCheck": true,
-        "resolveJsonModule": true
-      }
-    }
-    ```
+   ```json
+   {
+     "compilerOptions": {
+       "target": "es2020",
+       "module": "commonjs",
+       "esModuleInterop": true,
+       "forceConsistentCasingInFileNames": true,
+       "strict": true,
+       "skipLibCheck": true,
+       "resolveJsonModule": true
+     }
+   }
+   ```
 
 4. Create a `hardhat.config.ts` file with the following content:
 
-    ```tsx
-    import { HardhatUserConfig } from "hardhat/config";
-    import "@nomicfoundation/hardhat-toolbox-viem";
+   ```tsx
+   import { HardhatUserConfig } from "hardhat/config";
+   import "@nomicfoundation/hardhat-toolbox-viem";
 
-    const config: HardhatUserConfig = {
-      solidity: {
-        version: "{RECOMMENDED_SOLC_VERSION}",
-      },
-    };
+   const config: HardhatUserConfig = {
+     solidity: {
+       version: "{RECOMMENDED_SOLC_VERSION}",
+     },
+   };
 
-    export default config;
-    ```
+   export default config;
+   ```
 
 ## Quick Start
 
@@ -70,60 +70,60 @@ To start using the client interfaces, you need to import the Hardhat Runtime Env
 1. Create a `scripts/clients.ts` inside your project directory.
 2. Copy and paste the following code snippet into your `scripts/clients.ts` file:
 
-    ```tsx
-    import { parseEther, formatEther } from "viem";
-    import hre from "hardhat";
+   ```tsx
+   import { parseEther, formatEther } from "viem";
+   import hre from "hardhat";
 
-    async function main() {
-      const [bobWalletClient, aliceWalletClient] =
-        await hre.viem.getWalletClients();
+   async function main() {
+     const [bobWalletClient, aliceWalletClient] =
+       await hre.viem.getWalletClients();
 
-      const publicClient = await hre.viem.getPublicClient();
-      const balanceBefore = await publicClient.getBalance({
-        address: bobWalletClient.account.address,
-      });
+     const publicClient = await hre.viem.getPublicClient();
+     const balanceBefore = await publicClient.getBalance({
+       address: bobWalletClient.account.address,
+     });
 
-      console.log(
-        `Balance of ${bobWalletClient.account.address}: ${formatEther(
-          balanceBefore
-        )} ETH`
-      );
+     console.log(
+       `Balance of ${bobWalletClient.account.address}: ${formatEther(
+         balanceBefore
+       )} ETH`
+     );
 
-      const hash = await bobWalletClient.sendTransaction({
-        to: aliceWalletClient.account.address,
-        value: parseEther("1"),
-      });
+     const hash = await bobWalletClient.sendTransaction({
+       to: aliceWalletClient.account.address,
+       value: parseEther("1"),
+     });
 
-      const tx = await publicClient.waitForTransactionReceipt({ hash });
+     const tx = await publicClient.waitForTransactionReceipt({ hash });
 
-      console.log(
-        `Transaction from ${tx.from} to ${tx.to} mined in block ${tx.blockNumber}`
-      );
+     console.log(
+       `Transaction from ${tx.from} to ${tx.to} mined in block ${tx.blockNumber}`
+     );
 
-      const balanceAfter = await publicClient.getBalance({
-        address: bobWalletClient.account.address,
-      });
+     const balanceAfter = await publicClient.getBalance({
+       address: bobWalletClient.account.address,
+     });
 
-      console.log(
-        `Balance of ${bobWalletClient.account.address}: ${formatEther(
-          balanceAfter
-        )} ETH`
-      );
-    }
+     console.log(
+       `Balance of ${bobWalletClient.account.address}: ${formatEther(
+         balanceAfter
+       )} ETH`
+     );
+   }
 
-    main()
-      .then(() => {
-        process.exit();
-      })
-      .catch((error) => {
-        console.error(error);
-        process.exit(1);
-      });
-    ```
+   main()
+     .then(() => {
+       process.exit();
+     })
+     .catch((error) => {
+       console.error(error);
+       process.exit(1);
+     });
+   ```
 
 3. Open your terminal and run `npx hardhat run scripts/clients.ts` to execute the script.
 
-    This will run the code and display the results in your terminal.
+   This will run the code and display the results in your terminal.
 
 For more detailed documentation on clients, you can visit the [hardhat-viem plugin site](https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-viem#clients) and [Viem's official site](https://viem.sh/docs/clients/intro.html).
 
@@ -135,60 +135,60 @@ To access contract methods, import the Hardhat Runtime Environment and use the `
 
 1. Create a Solidity contract named `MyToken.sol` inside your project's `contract` directory and paste the following snippet:
 
-    ```solidity
-    // SPDX-License-Identifier: MIT
-    pragma solidity {RECOMMENDED_SOLC_VERSION};
+   ```solidity
+   // SPDX-License-Identifier: MIT
+   pragma solidity ^{RECOMMENDED_SOLC_VERSION};
 
-    contract MyToken {
-      uint256 public totalSupply;
+   contract MyToken {
+     uint256 public totalSupply;
 
-      constructor(uint256 _initialSupply) {
-        totalSupply = _initialSupply;
-      }
+     constructor(uint256 _initialSupply) {
+       totalSupply = _initialSupply;
+     }
 
-      function increaseSupply(uint256 _amount) public {
-        require(_amount > 0, "Amount must be greater than 0");
-        totalSupply += _amount;
-      }
+     function increaseSupply(uint256 _amount) public {
+       require(_amount > 0, "Amount must be greater than 0");
+       totalSupply += _amount;
+     }
 
-      function getCurrentSupply() public view returns (uint256) {
-        return totalSupply;
-      }
-    }
-    ```
+     function getCurrentSupply() public view returns (uint256) {
+       return totalSupply;
+     }
+   }
+   ```
 
 2. Compile your Solidity contract by running `npx hardhat compile`. This will generate the types for your contract inside the `artifacts` folder of your project.
 3. Create a `contracts.ts` inside your project's `scripts` directory with the following content:
 
-    ```tsx
-    import hre from "hardhat";
+   ```tsx
+   import hre from "hardhat";
 
-    async function main() {
-      const myToken = await hre.viem.deployContract("MyToken", [1_000_000n]);
+   async function main() {
+     const myToken = await hre.viem.deployContract("MyToken", [1_000_000n]);
 
-      const initialSupply = await myToken.read.getCurrentSupply();
-      console.log(`Initial supply of MyToken: ${initialSupply}`);
+     const initialSupply = await myToken.read.getCurrentSupply();
+     console.log(`Initial supply of MyToken: ${initialSupply}`);
 
-      await myToken.write.increaseSupply([500_000n]);
-      // increaseSupply sends a tx, so we need to wait for it to be mined
-      const publicClient = await hre.viem.getPublicClient();
-      await publicClient.waitForTransactionReceipt({ hash });
+     await myToken.write.increaseSupply([500_000n]);
+     // increaseSupply sends a tx, so we need to wait for it to be mined
+     const publicClient = await hre.viem.getPublicClient();
+     await publicClient.waitForTransactionReceipt({ hash });
 
-      const newSupply = await myToken.read.getCurrentSupply();
-      console.log(`New supply of MyToken: ${newSupply}`);
-    }
+     const newSupply = await myToken.read.getCurrentSupply();
+     console.log(`New supply of MyToken: ${newSupply}`);
+   }
 
-    main()
-      .then(() => process.exit(0))
-      .catch((error) => {
-        console.error(error);
-        process.exit(1);
-      });
-    ```
+   main()
+     .then(() => process.exit(0))
+     .catch((error) => {
+       console.error(error);
+       process.exit(1);
+     });
+   ```
 
 4. Open your terminal and run `npx hardhat run scripts/contracts.ts` to execute the script.
 
-    This will deploy the `MyToken` contract, use the `increaseSupply()` function to increase the initial supply, and display the result in your terminal.
+   This will deploy the `MyToken` contract, use the `increaseSupply()` function to increase the initial supply, and display the result in your terminal.
 
 #### Contract Type Generation
 
@@ -212,51 +212,51 @@ If you want to learn more about working with contracts, you can visit the [hardh
 
 ### Testing
 
-The `hardhat-toolbox-viem` comes with all the necessary tools to test viem contracts. In this example, we'll demonstrate how to write tests for the `MyToken` contract defined earlier. These tests cover scenarios like increasing supply and ensuring that certain operations revert as expected.
+In this example, we'll demonstrate how to write tests for the `MyToken` contract defined earlier. These tests cover scenarios like increasing supply and ensuring that certain operations revert as expected.
 
 1. Create a `test/my-token.ts` file inside your project's directory an copy the following code snippet:
 
-    ```tsx
-    import hre from "hardhat";
-    import { assert, expect } from "chai";
-    import { loadFixture } from "@nomicfoundation/hardhat-toolbox-viem/network-helpers";
+   ```tsx
+   import hre from "hardhat";
+   import { assert, expect } from "chai";
+   import { loadFixture } from "@nomicfoundation/hardhat-toolbox-viem/network-helpers";
 
-    // A deployment function to set up the initial state
-    const deploy = async () => {
-      const myToken = await hre.viem.deployContract("MyToken", [1_000_000n]);
+   // A deployment function to set up the initial state
+   const deploy = async () => {
+     const myToken = await hre.viem.deployContract("MyToken", [1_000_000n]);
 
-      return { myToken };
-    };
+     return { myToken };
+   };
 
-    describe("MyToken Contract Tests", function () {
-      it("should increase supply correctly", async function () {
-        // Load the contract instance using the deployment function
-        const { myToken } = await loadFixture(deploy);
+   describe("MyToken Contract Tests", function () {
+     it("should increase supply correctly", async function () {
+       // Load the contract instance using the deployment function
+       const { myToken } = await loadFixture(deploy);
 
-        // Get the initial supply
-        const initialSupply = await myToken.read.getCurrentSupply();
+       // Get the initial supply
+       const initialSupply = await myToken.read.getCurrentSupply();
 
-        // Increase the supply
-        await myToken.write.increaseSupply([500_000n]);
+       // Increase the supply
+       await myToken.write.increaseSupply([500_000n]);
 
-        // Get the new supply after the increase
-        const newSupply = await myToken.read.getCurrentSupply();
+       // Get the new supply after the increase
+       const newSupply = await myToken.read.getCurrentSupply();
 
-        // Assert that the supply increased as expected
-        assert.equal(initialSupply + 500_000n, newSupply);
-      });
+       // Assert that the supply increased as expected
+       assert.equal(initialSupply + 500_000n, newSupply);
+     });
 
-      it("should revert when increasing supply by less than 1", async function () {
-        // Load the contract instance using the deployment function
-        const { myToken } = await loadFixture(deploy);
+     it("should revert when increasing supply by less than 1", async function () {
+       // Load the contract instance using the deployment function
+       const { myToken } = await loadFixture(deploy);
 
-        // Attempt to increase supply by 0 (which should fail)
-        await expect(myToken.write.increaseSupply([0n])).to.be.rejectedWith(
-          "Amount must be greater than 0"
-        );
-      });
-    });
-    ```
+       // Attempt to increase supply by 0 (which should fail)
+       await expect(myToken.write.increaseSupply([0n])).to.be.rejectedWith(
+         "Amount must be greater than 0"
+       );
+     });
+   });
+   ```
 
 2. Open your terminal and run `npx hardhat test` to run your tests.
 
@@ -270,23 +270,23 @@ Viem recommends pinning their package version in your project. However, it's imp
 
 To pin the versions, follow these steps:
 
-1. Install `hardhat-viem`, `hardhat-toolbox-viem`, and `viem` as dependencies:
+1. Explicitly install `hardhat-viem`, `hardhat-toolbox-viem`, and `viem`. This will add these dependencies to your `package.json` file:
 
-    ```tsx
-    npm i @nomicfoundation/hardhat-toolbox-viem @nomicfoundation/hardhat-viem viem
-    ```
+   ```tsx
+   npm i @nomicfoundation/hardhat-toolbox-viem @nomicfoundation/hardhat-viem viem
+   ```
 
-2. Open your `package.json` file and remove the caret character (**`^`**) from in front of the three packages. This pins the versions of these packages:
+2. Open your `package.json` file and remove the caret character (**`^`**) from the versions of the three packages:
 
-    ```json
-    {
-      "dependencies": {
-        "@nomicfoundation/hardhat-toolbox-viem": "X.Y.Z",
-        "@nomicfoundation/hardhat-viem": "X.Y.Z",
-        "viem": "X.Y.Z"
-      }
-    }
-    ```
+   ```json
+   {
+     "dependencies": {
+       "@nomicfoundation/hardhat-toolbox-viem": "X.Y.Z",
+       "@nomicfoundation/hardhat-viem": "X.Y.Z",
+       "viem": "X.Y.Z"
+     }
+   }
+   ```
 
 **Option 2: Stay Updated (Recommended for Features)**
 
