@@ -2,9 +2,9 @@ import {
   time,
   loadFixture,
 } from "@nomicfoundation/hardhat-toolbox-viem/network-helpers";
-// import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
 import hre from "hardhat";
+import { parseGwei } from "viem";
 
 describe("Lock", function () {
   // We define a fixture to reuse the same setup in every test.
@@ -12,9 +12,8 @@ describe("Lock", function () {
   // and reset Hardhat Network to that snapshot in every test.
   async function deployOneYearLockFixture() {
     const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-    const ONE_GWEI = 1_000_000_000;
 
-    const lockedAmount = ONE_GWEI;
+    const lockedAmount = parseGwei("1");
     const unlockTime = BigInt((await time.latest()) + ONE_YEAR_IN_SECS);
 
     // Contracts are deployed using the first signer/account by default
@@ -66,9 +65,9 @@ describe("Lock", function () {
       const latestTime = BigInt(await time.latest());
       await expect(
         hre.viem.deployContract("Lock", [latestTime], {
-          value: 1,
+          value: 1n,
         })
-      ).to.be.revertedWith("Unlock time should be in the future");
+      ).to.be.rejectedWith("Unlock time should be in the future");
     });
   });
 
@@ -77,7 +76,7 @@ describe("Lock", function () {
       it("Should revert with the right error if called too soon", async function () {
         const { lock } = await loadFixture(deployOneYearLockFixture);
 
-        await expect(lock.write.withdraw()).to.be.revertedWith(
+        await expect(lock.write.withdraw()).to.be.rejectedWith(
           "You can't withdraw yet"
         );
       });
@@ -91,12 +90,12 @@ describe("Lock", function () {
         await time.increaseTo(unlockTime);
 
         // We retrieve the contract with a different account to send a transaction
-        const lockAsOtherAccount = hre.viem.getContractAt(
+        const lockAsOtherAccount = await hre.viem.getContractAt(
           "Lock",
           lock.address,
           { walletClient: otherAccount }
         );
-        await expect(lockAsOtherAccount.write.withdraw()).to.be.revertedWith(
+        await expect(lockAsOtherAccount.write.withdraw()).to.be.rejectedWith(
           "You aren't the owner"
         );
       });
@@ -109,7 +108,7 @@ describe("Lock", function () {
         // Transactions are sent using the first signer by default
         await time.increaseTo(unlockTime);
 
-        await expect(lock.write.withdraw()).not.to.be.reverted;
+        await expect(lock.write.withdraw()).to.be.fulfilled;
       });
     });
 
@@ -123,23 +122,10 @@ describe("Lock", function () {
         const hash = await lock.write.withdraw();
         await publicClient.waitForTransactionReceipt({ hash });
 
-        /*           .to.emit(lock, "Withdrawal")
-          .withArgs(lockedAmount, anyValue); // We accept any value as `when` arg */
-      });
-    });
-
-    describe("Transfers", function () {
-      it("Should transfer the funds to the owner", async function () {
-        const { lock, unlockTime, lockedAmount, owner } = await loadFixture(
-          deployOneYearLockFixture
-        );
-
-        await time.increaseTo(unlockTime);
-
-        await expect(lock.write.withdraw()); /* .to.changeEtherBalances(
-          [owner, lock],
-          [lockedAmount, -lockedAmount]
-        ); */
+        // get the withdrawal events in the latest block
+        const withdrawalEvents = await lock.getEvents.Withdrawal()
+        expect(withdrawalEvents).to.have.lengthOf(1);
+        expect(withdrawalEvents[0].args.amount).to.equal(lockedAmount);
       });
     });
   });
