@@ -72,7 +72,6 @@ const ETHERS_PEER_DEPENDENCIES: Dependencies = {
 
 const VIEM_PEER_DEPENDENCIES: Dependencies = {
   "@nomicfoundation/hardhat-viem": "^1.0.0",
-  "chai-as-promised": "^7.1.1",
   viem: "^1.15.1",
 };
 
@@ -92,7 +91,6 @@ const TYPESCRIPT_ETHERS_PEER_DEPENDENCIES: Dependencies = {
 
 const TYPESCRIPT_VIEM_PEER_DEPENDENCIES: Dependencies = {
   typescript: "~5.0.4",
-  "@types/chai-as-promised": "^7.1.6",
 };
 
 // generated with the "colossal" font
