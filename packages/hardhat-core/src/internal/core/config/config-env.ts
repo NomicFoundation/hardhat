@@ -181,7 +181,11 @@ export function experimentalAddHardhatNetworkMessageTraceHook(
 /**
  * Secrets manager functions
  */
-export function getSecret(key: string, defaultValue?: string): string {
+export const secrets = {
+  get: getSecret,
+};
+
+function getSecret(key: string, defaultValue?: string): string {
   const secretsManager = new SecretsManager(getSecretsFilePath());
 
   const value = secretsManager.get(key);
