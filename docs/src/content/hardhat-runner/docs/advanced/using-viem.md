@@ -68,8 +68,7 @@ To kickstart a Hardhat project with Typescript and `viem`, you can follow these 
 
    ::::
 
-
-3. Run `npx hardhat init` and select the *Create a TypeScript project (with viem)* option.
+3. Run `npx hardhat init` and select the _Create a TypeScript project (with viem)_ option.
 
    **Note:** you might want to pin viem-related dependencies because viem does not strictly follow semantic versioning for type changes. You can read more [here](#managing-types-and-version-stability).
 
