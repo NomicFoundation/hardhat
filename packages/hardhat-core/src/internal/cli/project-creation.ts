@@ -90,6 +90,7 @@ const TYPESCRIPT_ETHERS_PEER_DEPENDENCIES: Dependencies = {
 };
 
 const TYPESCRIPT_VIEM_PEER_DEPENDENCIES: Dependencies = {
+  "@types/chai-as-promised": "^7.1.6",
   typescript: "~5.0.4",
 };
 
