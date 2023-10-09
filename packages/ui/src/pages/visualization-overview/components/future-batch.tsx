@@ -218,12 +218,13 @@ const FutureDetailsSection: React.FC<{
           <p>{args.length === 0 ? "No " : null}Constructor Arguments</p>
           <ul>
             {args.map(([, arg], i) => (
-              <Argument
-                key={`arg-${i}`}
-                setToggled={setToggled}
-                arg={arg}
-                setHoveredFuture={setHoveredFuture}
-              />
+              <li key={`arg-${i}`}>
+                <Argument
+                  setToggled={setToggled}
+                  arg={arg}
+                  setHoveredFuture={setHoveredFuture}
+                />
+              </li>
             ))}
           </ul>
         </FutureDetailsStyle>
@@ -239,12 +240,13 @@ const FutureDetailsSection: React.FC<{
           <p>{args.length === 0 ? "No " : null}Arguments</p>
           <ul>
             {args.map(([, arg], i) => (
-              <Argument
-                key={`arg-${i}`}
-                setToggled={setToggled}
-                arg={arg}
-                setHoveredFuture={setHoveredFuture}
-              />
+              <li key={`arg-${i}`}>
+                <Argument
+                  setToggled={setToggled}
+                  arg={arg}
+                  setHoveredFuture={setHoveredFuture}
+                />
+              </li>
             ))}
           </ul>
         </FutureDetailsStyle>
@@ -257,12 +259,13 @@ const FutureDetailsSection: React.FC<{
           <p>{args.length === 0 ? "No " : null}Arguments</p>
           <ul>
             {args.map(([, arg], i) => (
-              <Argument
-                key={`arg-${i}`}
-                setToggled={setToggled}
-                arg={arg}
-                setHoveredFuture={setHoveredFuture}
-              />
+              <li key={`arg-${i}`}>
+                <Argument
+                  setToggled={setToggled}
+                  arg={arg}
+                  setHoveredFuture={setHoveredFuture}
+                />
+              </li>
             ))}
           </ul>
         </FutureDetailsStyle>
@@ -327,7 +330,7 @@ const Argument: React.FC<{
 }> = ({ setToggled, arg, setHoveredFuture }) => {
   if (isFuture(arg)) {
     return (
-      <li
+      <ArgumentLink
         style={{
           textDecoration: "underline",
           color: "#16181D",
@@ -339,9 +342,23 @@ const Argument: React.FC<{
         onMouseLeave={() => setHoveredFuture("")}
       >
         {argumentTypeToString(arg)}
-      </li>
+      </ArgumentLink>
     );
   }
 
-  return <li>{argumentTypeToString(arg)}</li>;
+  return <ArgumentText>{argumentTypeToString(arg)}</ArgumentText>;
 };
+
+const ArgumentText = styled.p`
+  margin: 0;
+`;
+
+const ArgumentLink = styled.a`
+  textdecoration: underline;
+  color: #16181d;
+  cursor: pointer;
+
+  &:hover {
+    font-weight: 700;
+  }
+`;

@@ -43,10 +43,6 @@ body {
   max-width: 391px !important;
 }
 
-.future-argument:hover {
-  font-weight: 700;
-}
-
 /* mermaid styles */
 
 .mermaid * {
