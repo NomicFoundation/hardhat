@@ -55,7 +55,7 @@ export const menuItemsList: MenuItemType[] = [
   },
   {
     label: "Tools",
-    href: "/tools",
+    href: "/#tools",
     subItems: [
       {
         prefix: "Hardhat",
