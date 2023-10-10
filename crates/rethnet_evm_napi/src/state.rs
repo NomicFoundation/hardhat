@@ -1,3 +1,5 @@
+mod overrides;
+
 use std::{
     mem,
     ops::Deref,
@@ -27,6 +29,8 @@ use crate::{
     sync::{await_promise, handle_error},
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
 };
+
+pub use overrides::*;
 
 // An arbitrarily large amount of memory to signal to the javascript garbage collector that it needs to
 // attempt to free the state object's memory.

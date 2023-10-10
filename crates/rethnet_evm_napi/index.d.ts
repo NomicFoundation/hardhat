@@ -212,9 +212,9 @@ export const enum MineOrdering {
 /** Mines a block using as many transactions as can fit in it. */
 export function mineBlock(blockchain: Blockchain, stateManager: State, memPool: MemPool, config: ConfigOptions, timestamp: bigint, beneficiary: Buffer, minGasPrice: bigint, mineOrdering: MineOrdering, reward: bigint, baseFee?: bigint | undefined | null, prevrandao?: Buffer | undefined | null): Promise<MineBlockResult>
 /** Executes the provided transaction without changing state. */
-export function dryRun(blockchain: Blockchain, stateManager: State, cfg: ConfigOptions, transaction: TransactionRequest, block: BlockConfig, withTrace: boolean): Promise<TransactionResult>
+export function dryRun(blockchain: Blockchain, state: State, stateOverrides: StateOverrides, cfg: ConfigOptions, transaction: TransactionRequest, block: BlockConfig, withTrace: boolean): Promise<TransactionResult>
 /** Executes the provided transaction without changing state, ignoring validation checks in the process. */
-export function guaranteedDryRun(blockchain: Blockchain, stateManager: State, cfg: ConfigOptions, transaction: TransactionRequest, block: BlockConfig, withTrace: boolean): Promise<TransactionResult>
+export function guaranteedDryRun(blockchain: Blockchain, state: State, stateOverrides: StateOverrides, cfg: ConfigOptions, transaction: TransactionRequest, block: BlockConfig, withTrace: boolean): Promise<TransactionResult>
 /** Executes the provided transaction, changing state in the process. */
 export function run(blockchain: Blockchain, stateManager: State, cfg: ConfigOptions, transaction: TransactionRequest, block: BlockConfig, withTrace: boolean): Promise<TransactionResult>
 export interface Signature {
@@ -224,6 +224,17 @@ export interface Signature {
   s: bigint
   /** V value */
   v: bigint
+}
+export interface StorageSlotChange {
+  index: bigint
+  value: bigint
+}
+/** Values for overriding account information. */
+export interface AccountOverride {
+  balance?: bigint
+  nonce?: bigint
+  code?: Buffer
+  storage?: StorageOverride
 }
 export interface TracingMessage {
   /** Recipient address. None if it is a Create message. */
@@ -602,6 +613,10 @@ export class Receipt {
   get transactionHash(): Buffer
   /**Returns the index of the receipt's transaction in the block. */
   get transactionIndex(): bigint
+}
+export class StateOverrides {
+  /**Constructs a new set of state overrides. */
+  constructor(accountOverrides: Array<[Buffer, AccountOverride]>)
 }
 /** The Rethnet state */
 export class State {

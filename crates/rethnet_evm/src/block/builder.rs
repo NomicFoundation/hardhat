@@ -199,7 +199,7 @@ impl BlockBuilder {
 
         let evm = build_evm(
             blockchain,
-            state,
+            &state,
             self.cfg.clone(),
             transaction.clone().into(),
             block.clone(),

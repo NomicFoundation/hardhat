@@ -18,6 +18,8 @@ import {
   ConfigOptions,
   State,
   PendingTransaction,
+  StateOverrides,
+  AccountOverride,
 } from "@ignored/edr";
 
 import { isForkedNodeConfig, NodeConfig } from "../node-types";
@@ -112,11 +114,6 @@ export class RethnetAdapter implements VMAdapter {
     forceBaseFeeZero?: boolean,
     stateOverrideSet: StateOverrideSet = {}
   ): Promise<RunTxResult> {
-    if (Object.keys(stateOverrideSet).length > 0) {
-      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
-      throw new Error("state override not implemented for EDR");
-    }
-
     // We know that this block number exists, because otherwise
     // there would be an error in the RPC layer.
     const blockContext = await this._blockchain.blockByNumber(blockNumber);
@@ -155,6 +152,17 @@ export class RethnetAdapter implements VMAdapter {
     const rethnetResult = await guaranteedDryRun(
       this._blockchain,
       this._state.asInner(),
+      new StateOverrides(
+        Object.entries(stateOverrideSet).map(([address, account]) => {
+          const accountOverride: AccountOverride = {
+            balance: account.balance,
+            nonce: account.nonce,
+            code: account.code,
+          };
+
+          return [Address.fromString(address).buf, accountOverride];
+        })
+      ),
       config,
       rethnetTx,
       {
