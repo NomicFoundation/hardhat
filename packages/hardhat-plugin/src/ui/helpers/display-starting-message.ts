@@ -7,6 +7,6 @@ import { UiState } from "../types";
  */
 export function displayStartingMessage(state: UiState) {
   process.stdout.write(
-    `Ignition starting for module ${state.moduleName ?? "unknown"}...`
+    `Hardhat Ignition starting for [ ${state.moduleName ?? "unknown"} ]...`
   );
 }

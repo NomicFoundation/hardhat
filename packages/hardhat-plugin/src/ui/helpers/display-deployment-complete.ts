@@ -44,20 +44,15 @@ function _displaySuccessfulDeployment(
   result: SuccessfulDeploymentResult
 ) {
   console.log("");
-  console.log(
-    chalk.bold(
-      `🚀 Deployment Complete for module ${chalk.italic(
-        state.moduleName ?? "unknown"
-      )}`
-    )
-  );
+  console.log(`[ ${state.moduleName ?? "unknown"} ] successfully deployed 🚀`);
   console.log("");
-  console.log("Deployed Addresses");
+  console.log(chalk.bold("Deployed Addresses"));
   console.log("");
 
   for (const contract of Object.values(result.contracts)) {
     console.log(`${contract.id} - ${contract.address}`);
   }
+  console.log("");
 }
 
 function _displayValidationErrors(

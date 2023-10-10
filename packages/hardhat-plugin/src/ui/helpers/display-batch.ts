@@ -42,19 +42,19 @@ export function displayBatch(state: UiState): void {
 function _futureStatus(future: UiFuture): string {
   switch (future.status.type) {
     case UiFutureStatusType.UNSTARTED: {
-      return `  🔄 ${future.futureId} running ...`;
+      return `  Executing ${future.futureId}...`;
     }
     case UiFutureStatusType.SUCCESS: {
-      return `  ✅ ${future.futureId} success`;
+      return `  Executed ${future.futureId}`;
     }
     case UiFutureStatusType.PENDING: {
-      return `  ⏳ ${future.futureId} timed out`;
+      return `  ${future.futureId} timed out`;
     }
     case UiFutureStatusType.ERRORED: {
-      return `  ⛔ ${future.futureId} failed`;
+      return `  ${future.futureId} failed`;
     }
     case UiFutureStatusType.HELD: {
-      return `  ⏳ ${future.futureId} held`;
+      return `  ${future.futureId} held`;
     }
   }
 }

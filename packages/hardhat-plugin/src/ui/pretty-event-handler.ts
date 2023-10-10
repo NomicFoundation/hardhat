@@ -36,7 +36,6 @@ import {
 import { displayBatch, redisplayBatch } from "./helpers/display-batch";
 import { displayDeployingModulePanel } from "./helpers/display-deploying-module-panel";
 import { displayDeploymentComplete } from "./helpers/display-deployment-complete";
-import { displaySeparator } from "./helpers/display-separator";
 import { displayStartingMessage } from "./helpers/display-starting-message";
 import {
   UiBatches,
@@ -340,8 +339,6 @@ export class PrettyEventHandler implements ExecutionEventListener {
 
     if (originalStatus !== UiStateDeploymentStatus.UNSTARTED) {
       redisplayBatch(this.state);
-
-      displaySeparator();
     }
 
     displayDeploymentComplete(this.state, event);
