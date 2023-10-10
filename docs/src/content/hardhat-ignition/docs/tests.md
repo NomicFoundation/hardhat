@@ -1,12 +1,12 @@
 # Using Hardhat Ignition in tests
 
-**Ignition** can be used in **Hardhat** tests to simplify test setup, as **Ignition** modules can capture complex deployments of contract systems, which is a common problem when creating test fixtures.
+**Hardhat Ignition** can be used in **Hardhat** tests to simplify test setup. **Hardhat Ignition** modules succinctly express complex deployment logic, simplifying your test fixtures.
 
 ## The Ignition object
 
-Requiring **Ignition** within your `hardhat.config.{ts,js}` will automatically inject the `ignition` object as a global variable within **Hardhat** test files.
+Requiring **Hardhat Ignition** within your `hardhat.config.{ts,js}` will automatically inject the `ignition` object as a global variable within **Hardhat** test files.
 
-The `ignition` object exposes a `deploy` method, that takes a Module as the first argument and an optional configuration object as the second argument. Module parameters can be passed under the `parameters` property of the options object, indexed by the `ModuleId`:
+The `ignition` object exposes a `deploy` method, that takes a Module as the first argument and an options object as the second argument. Module parameters can be passed under the `parameters` property of the options object, indexed by the `ModuleId`:
 
 ```js
 it("should allow setting the start count for new counters", async function () {
@@ -30,10 +30,10 @@ it("should allow setting the start count for new counters", async function () {
 });
 ```
 
-The `ignition.deploy` method automatically converts any `ContractFuture`s returned from the passed module into `ether`'s contract objects, so they can be manipulated and invoked.
+The `ignition.deploy` method automatically converts any `ContractFutures` returned from the module into `ether`'s contract objects.
 
 ---
 
 Next learn how to run a deployment:
 
-[Running a deployment](./running-a-deployment.md)
+[Running a deployment](./deploying.md)
