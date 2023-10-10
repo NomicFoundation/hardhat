@@ -6,7 +6,7 @@ Once you have built and tested your module, it is time to deploy it! Start by ma
 
 **Hardhat Ignition** adds a `visualize` task, that will generate an HTML report showing a _dry run_ of the deployment - the contract deploys and contract calls.
 
-The `visualize` task takes one argument, the path to the module to visualize. For example, using the `ENS.js` module from our [ENS example project](../examples/ens/README.md):
+The `visualize` task takes one argument, the path to the module to visualize. For example, using the `ENS.js` module from our [ENS example project](https://github.com/NomicFoundation/hardhat-ignition/tree/main/examples/ens):
 
 ```bash
 npx hardhat ignition visualize ./ignition/modules/ENS.js
@@ -14,7 +14,7 @@ npx hardhat ignition visualize ./ignition/modules/ENS.js
 
 Running `visualize` will generate the report based on the given module (in this case `ENS.js`), it will then open the report in your system's default browser:
 
-![Main visualize output](/hardhat-ignition-images/visualize-1.png)
+![Main visualize output](/hardhat-ignition-images/visualize_focus.png)
 
 The report summarises the contracts that will be deployed and the contract calls that will be made.
 
