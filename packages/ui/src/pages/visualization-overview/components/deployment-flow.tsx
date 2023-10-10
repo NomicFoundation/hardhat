@@ -50,30 +50,42 @@ export const DeploymentFlow: React.FC<{
         Deployment flow <FlowTooltip />
       </SectionHeader>
 
-      <BatchBtnSection>
-        <VisualizeDiv>Visualize batches</VisualizeDiv>
-        {batches.map((_, i) => (
-          <BatchBtn
-            key={`batch-btn-${i}`}
-            onMouseEnter={() => setCurrentlyHovered(`batch-${i}`)}
-            onMouseLeave={() => setCurrentlyHovered("")}
-            isCurrentlyHovered={currentlyHovered === `batch-${i}`}
-          >
-            Batch <strong>#{i + 1}</strong>
-          </BatchBtn>
-        ))}
-      </BatchBtnSection>
+      {batches.length > 1 ? (
+        <div>
+          <BatchBtnSection>
+            <VisualizeDiv>Visualize batches</VisualizeDiv>
+            {batches.map((_, i) => (
+              <BatchBtn
+                key={`batch-btn-${i}`}
+                onMouseEnter={() => setCurrentlyHovered(`batch-${i}`)}
+                onMouseLeave={() => setCurrentlyHovered("")}
+                isCurrentlyHovered={currentlyHovered === `batch-${i}`}
+              >
+                Batch <strong>#{i + 1}</strong>
+              </BatchBtn>
+            ))}
+          </BatchBtnSection>
 
-      <HighlightedFutures
-        futures={futuresToHighlight}
-        deploys={deploys}
-        others={others}
-      >
-        <Mermaid ignitionModule={ignitionModule} />
-      </HighlightedFutures>
+          <HighlightedFutures
+            futures={futuresToHighlight}
+            deploys={deploys}
+            others={others}
+          >
+            <Mermaid ignitionModule={ignitionModule} />
+          </HighlightedFutures>
+        </div>
+      ) : (
+        <SingleFutureNotice>
+          A module diagram will show once you have more than 1 future.
+        </SingleFutureNotice>
+      )}
     </div>
   );
 };
+
+const SingleFutureNotice = styled.div`
+  padding-top: 1rem;
+`;
 
 const VisualizeDiv = styled.div`
   font-weight: 700;
