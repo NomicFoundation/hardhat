@@ -9,7 +9,8 @@ order:
     href: /explanation
   - title: Creating modules
     href: /creating-modules
-  - title: Running a deployment
-    href: /deploying
   - title: Using Hardhat Ignition in tests
     href: /tests
+  - title: Running a deployment
+    href: /deploying
+
