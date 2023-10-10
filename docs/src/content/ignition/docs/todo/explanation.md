@@ -1,22 +1,22 @@
 # Explanation
 
-**Hardhat Ignition** is an infrastructure-as-code system to both deploy and, in the future, distribute smart contract systems.
+Hardhat Ignition is an infrastructure-as-code system to both deploy and, in the future, distribute smart contract systems.
 
-When working with **Hardhat Ignition** you define how your smart contracts should be deployed, and let it be in charge of the execution. This means that **Hardhat Ignition** will be responsible for sending your transactions, managing gas, handling errors and restarts, and other situations that can appear when deploying a complex system.
+When working with Hardhat Ignition you define how your smart contracts should be deployed, and let it be in charge of the execution. This means that Hardhat Ignition will be responsible for sending your transactions, managing gas, handling errors and restarts, and other situations that can appear when deploying a complex system.
 
-**Hardhat Ignition** will support your deployment with: planning tools, visualisations of the running deployment and the capability to restart partial or failed deployments.
+Hardhat Ignition will support your deployment with: planning tools, visualisations of the running deployment and the capability to restart partial or failed deployments.
 
-Specifying a deployment through **Hardhat Ignition** provides the option to leverage that specification in **Hardhat** tests, simplifying test setup. It is a goal of **Hardhat Ignition** to enable the distribution of deployments to allow Solidity developers to quickly create complex on-chain scenarios in their tests, that are not possible through forking tests (e.g. testing your contract's interaction with [Maker during an emergency shutdown](https://docs.makerdao.com/smart-contract-modules/shutdown)).
+Specifying a deployment through Hardhat Ignition provides the option to leverage that specification in Hardhat tests, simplifying test setup. It is a goal of Hardhat Ignition to enable the distribution of deployments to allow Solidity developers to quickly create complex on-chain scenarios in their tests, that are not possible through forking tests (e.g. testing your contract's interaction with [Maker during an emergency shutdown](https://docs.makerdao.com/smart-contract-modules/shutdown)).
 
-_**NOTE**: The current beta release focuses on deploying your local contracts, and not on distributing them._
+_NOTE: The current beta release focuses on deploying your local contracts, and not on distributing them._
 
 ## Understanding the Module API
 
-**Hardhat Ignition** achieves a separation of _what is to be deployed_ from _how it will be deployed_ through a `Future`-orientated declarative API called the **Module API**. In contrast to the procedural approach used in most deployment scripts, a declarative API allows **Hardhat Ignition** to statically analyse a deployment without running it. That analysis supports: improved validation, resuming partial deployments and efficient grouping and processing of transactions.
+Hardhat Ignition achieves a separation of _what is to be deployed_ from _how it will be deployed_ through a `Future`-orientated declarative API called the Module API. In contrast to the procedural approach used in most deployment scripts, a declarative API allows Hardhat Ignition to statically analyse a deployment without running it. That analysis supports: improved validation, resuming partial deployments and efficient grouping and processing of transactions.
 
 ### What is a Module?
 
-Deployments in **Hardhat Ignition** are organized by modules. A module is a set of related smart contracts to be deployed and, potentially, contract calls that need to be run on them (e.g. calling an `initialize()` function).
+Deployments in Hardhat Ignition are organized by modules. A module is a set of related smart contracts to be deployed and, potentially, contract calls that need to be run on them (e.g. calling an `initialize()` function).
 
 A module is built by calling the `buildModule` function and passing it a unique name and a callback, the `moduleDefinition`. A common pattern is building one module per file and exporting it.
 
@@ -56,11 +56,11 @@ Deploying a module goes through several stages:
 
 ![Stages](/hardhat-ignition-images/hardhat_ignition_stages.png)
 
-**Hardhat Ignition** first runs validation checks on the module to increase the likelyhood that it will execute on-chain (e.g. that all contract calls match methods available on the contract's abi).
+Hardhat Ignition first runs validation checks on the module to increase the likelyhood that it will execute on-chain (e.g. that all contract calls match methods available on the contract's abi).
 
-A valid module is then analysed to build a graph of `Actions` to be executed. Tracing the flow of `Futures` between `Actions` in the module allows **Hardhat Ignition** to understand each `Action`'s dependencies, which in turn will control the order of execution.
+A valid module is then analysed to build a graph of `Actions` to be executed. Tracing the flow of `Futures` between `Actions` in the module allows Hardhat Ignition to understand each `Action`'s dependencies, which in turn will control the order of execution.
 
-The graph of `Actions` is then run by **Hardhat Ignition**'s execution engine, which proceeds through the dependencies of the graph, batching those `Actions` without dependencies or whose dependencies have been included in a previous batch. `Actions` in a batch are run in parallel.
+The graph of `Actions` is then run by Hardhat Ignition's execution engine, which proceeds through the dependencies of the graph, batching those `Actions` without dependencies or whose dependencies have been included in a previous batch. `Actions` in a batch are run in parallel.
 
 Most actions get executed by submitting a transaction; though not every action results in a transaction. An action may lead to the submission of multiple transactions because of errors or gas management. The retrying of transactions is handled by the execution engine and is transparent to the user.
 
@@ -70,15 +70,15 @@ The execution is complete when all actions have been run successfully.
 
 ### Handling errors and restarting
 
-**Hardhat Ignition** keeps a journal of the execution. When a deployment fails, you can rerun the deployment. **Hardhat Ignition** will rebuild the previous state based on the journal, and will retry the failed transaction and proceed from there. Previous successful `Actions` will not be resubmitted.
+Hardhat Ignition keeps a journal of the execution. When a deployment fails, you can rerun the deployment. Hardhat Ignition will rebuild the previous state based on the journal, and will retry the failed transaction and proceed from there. Previous successful `Actions` will not be resubmitted.
 
 ### Modifying your Modules between deployments
 
-You can modify your deployments between **Hardhat Ignition** runs, for instance, when dealing with errors. This allows you to incrementally grow your system.
+You can modify your deployments between Hardhat Ignition runs, for instance, when dealing with errors. This allows you to incrementally grow your system.
 
-**Hardhat Ignition** will reconcile your modified Module with the `Actions` that are recorded in the journal from previous runs. If it determines that an `Action` has already been run, then it will not be rerun. If the Module has diverged too far for **Hardhat Ignition** to safely make an assessment of whether an `Action` has been previously run, then it will alert the user.
+Hardhat Ignition will reconcile your modified Module with the `Actions` that are recorded in the journal from previous runs. If it determines that an `Action` has already been run, then it will not be rerun. If the Module has diverged too far for Hardhat Ignition to safely make an assessment of whether an `Action` has been previously run, then it will alert the user.
 
-You can explicitly force **Hardhat Ignition** to run an `Action` that failed or timed out in a previous run by using the `wipe` task. This will wipe clear the recorded state of that `Action` allowing it to rerun.
+You can explicitly force Hardhat Ignition to run an `Action` that failed or timed out in a previous run by using the `wipe` task. This will wipe clear the recorded state of that `Action` allowing it to rerun.
 
 The tracking and reconciling of `Actions` in previous runs is done automatically, but you can identify an `Action` explicity with an `id` to eliminate ambiguity.
 

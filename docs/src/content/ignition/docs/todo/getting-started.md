@@ -24,13 +24,13 @@ $ npx hardhat
   Quit
 ```
 
-Add **Hardhat Ignition** to your **Hardhat** project by installing the plugin:
+Add Hardhat Ignition to your Hardhat project by installing the plugin:
 
 ```bash
 npm install --save-dev @nomicfoundation/hardhat-ignition
 ```
 
-Modify your `hardhat.config.js` file to include **Hardhat Ignition**:
+Modify your `hardhat.config.js` file to include Hardhat Ignition:
 
 ```javascript
 require("@nomicfoundation/hardhat-toolbox");
@@ -71,7 +71,7 @@ module.exports = buildModule("LockModule", (m) => {
 
 ### Deploying the Module
 
-Run the `deploy` task to test the module against an ephemeral **Hardhat** node (this will use the module's default parameter values for `unlockTime` and `lockedAmout`):
+Run the `deploy` task to test the module against an ephemeral Hardhat node (this will use the module's default parameter values for `unlockTime` and `lockedAmout`):
 
 ```bash
 npx hardhat ignition deploy LockModule
@@ -95,7 +95,7 @@ The deploy task accepts the path to the module parameters file via the `paramete
 npx hardhat ignition deploy --parameters ./ignition/modules/LockModule.config.json ./ignition/modules/LockModule.js
 ```
 
-To deploy against a specific network pass it via the `network` option, for instance to deploy against a local **Hardhat** node:
+To deploy against a specific network pass it via the `network` option, for instance to deploy against a local Hardhat node:
 
 ```bash
 npx hardhat node
@@ -127,7 +127,7 @@ npx hardhat ignition status --id network-31337
 
 ### Using the Module Within Hardhat Tests
 
-**Hardhat Ignition** modules can be used in **Hardhat** tests to simplify test setup. In the **Hardhat** quick start guide the `./test/Lock.js` test file can leverage **Hardhat Ignition** by updating the `deployOneYearLockFixture` fixture:
+Hardhat Ignition modules can be used in Hardhat tests to simplify test setup. In the Hardhat quick start guide the `./test/Lock.js` test file can leverage Hardhat Ignition by updating the `deployOneYearLockFixture` fixture:
 
 ```js
 ...
@@ -159,7 +159,7 @@ const LockModule = require("../ignition/modules/LockModule");
   }
 ```
 
-The **Hardhat** test command will automatically include the `ignition` object within test files when running tests:
+The Hardhat test command will automatically include the `ignition` object within test files when running tests:
 
 ```sh
 npx hardhat test
@@ -167,4 +167,4 @@ npx hardhat test
 
 ---
 
-Next, get a better understanding of the goals of **Hardhat Ignition** and how it sets out to achieve them: [Explanation](./explanation.md)
+Next, get a better understanding of the goals of Hardhat Ignition and how it sets out to achieve them: [Explanation](./explanation.md)
