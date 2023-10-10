@@ -54,18 +54,7 @@ You can create complex graphs of `Actions` like this.
 
 Deploying a module goes through several stages:
 
-```mermaid
-flowchart LR
-  0[Module]
-  subgraph Hardhat Ignition
-    1[Validate Module]
-    2[Build Action Graph]
-    3[Execute]
-  end
-  0 --> 1
-  1 --> 2
-  2 --> 3
-```
+![Stages](/hardhat-ignition-images/hardhat_ignition_stages.png)
 
 **Hardhat Ignition** first runs validation checks on the module to increase the likelyhood that it will execute on-chain (e.g. that all contract calls match methods available on the contract's abi).
 
