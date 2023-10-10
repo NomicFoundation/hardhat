@@ -25,11 +25,11 @@ function override(
 // ethers's Addressable have a .getAddress() that returns a Promise<string>. We don't want to deal with async here,
 // so we are looking for a sync way of getting the address. If an address was recovered, it is returned as a string,
 // otherwise undefined is returned.
-function tryGetAddress(value: any): string | undefined {
+function tryGetAddressSync(value: any): string | undefined {
   if (isAddress(value)) {
     return value;
   } else if (isAddressable(value)) {
-    return tryGetAddress((value as any).address ?? (value as any).target);
+    return tryGetAddressSync((value as any).address ?? (value as any).target);
   } else {
     return undefined;
   }
@@ -50,8 +50,8 @@ function overwriteAddressableFunction(
       chaiUtils.flag(this, "message", message);
     }
 
-    const actual = tryGetAddress(actualArg);
-    const expected = tryGetAddress(expectedFlag);
+    const actual = tryGetAddressSync(actualArg);
+    const expected = tryGetAddressSync(expectedFlag);
     if (
       functionName === "eq" &&
       expected !== undefined &&
