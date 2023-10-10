@@ -157,7 +157,6 @@ export class RethnetAdapter implements VMAdapter {
 
     // For solidity-coverage compatibility
     for (const step of this._vmTracer.tracingSteps) {
-      console.log("emitting", step);
       this._vm.evm.events.emit("step", {
         pc: Number(step.pc),
         depth: step.depth,
