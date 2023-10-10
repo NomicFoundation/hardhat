@@ -1,9 +1,6 @@
 use std::ops::Deref;
 
-use napi::{
-    bindgen_prelude::{BigInt, FromNapiValue, ToNapiValue},
-    Status,
-};
+use napi::bindgen_prelude::{BigInt, FromNapiValue, ToNapiValue};
 use napi_derive::napi;
 use rethnet_evm::CfgEnv;
 
@@ -157,6 +154,8 @@ pub struct ConfigOptions {
     pub spec_id: Option<SpecId>,
     /// The contract code size limit for EIP-170
     pub limit_contract_code_size: Option<BigInt>,
+    /// The initcode code size limit for EIP-31860
+    pub limit_initcode_size: Option<BigInt>,
     /// Disables block limit validation
     pub disable_block_gas_limit: Option<bool>,
     /// Disables EIP-3607, which rejects transactions from sender with deployed code
@@ -175,19 +174,14 @@ impl TryFrom<ConfigOptions> for CfgEnv {
 
         let spec_id = value.spec_id.map_or(default.spec_id, Into::into);
 
-        let limit_contract_code_size = value.limit_contract_code_size.map_or(Ok(None), |size| {
-            if let (false, size, true) = size.get_u64() {
-                usize::try_from(size).map_or_else(
-                    |e| Err(napi::Error::new(Status::InvalidArg, e.to_string())),
-                    |size| Ok(Some(size)),
-                )
-            } else {
-                Err(napi::Error::new(
-                    Status::InvalidArg,
-                    "BigInt cannot be larger than usize::MAX".to_owned(),
-                ))
-            }
-        })?;
+        let limit_contract_code_size = value
+            .limit_contract_code_size
+            .map(TryCast::<usize>::try_cast)
+            .transpose()?;
+        let limit_initcode_size = value
+            .limit_initcode_size
+            .map(TryCast::<usize>::try_cast)
+            .transpose()?;
 
         let disable_block_gas_limit = value
             .disable_block_gas_limit
@@ -198,6 +192,7 @@ impl TryFrom<ConfigOptions> for CfgEnv {
         cfg.chain_id = chain_id;
         cfg.spec_id = spec_id;
         cfg.limit_contract_code_size = limit_contract_code_size;
+        cfg.limit_initcode_size = limit_initcode_size;
         cfg.disable_block_gas_limit = disable_block_gas_limit;
         cfg.disable_eip3607 = disable_eip3607;
 

@@ -53,6 +53,15 @@ impl TryCast<u64> for BigInt {
     }
 }
 
+impl TryCast<usize> for BigInt {
+    type Error = napi::Error;
+
+    fn try_cast(self) -> std::result::Result<usize, Self::Error> {
+        let size: u64 = BigInt::try_cast(self)?;
+        usize::try_from(size).map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))
+    }
+}
+
 impl TryCast<U256> for BigInt {
     type Error = napi::Error;
 

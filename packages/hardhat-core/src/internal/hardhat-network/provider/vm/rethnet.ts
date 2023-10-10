@@ -35,7 +35,10 @@ import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTr
 import { MessageTrace } from "../../stack-traces/message-trace";
 import { VMTracer } from "../../stack-traces/vm-tracer";
 
-import { globalRethnetContext } from "../context/rethnet";
+import {
+  globalRethnetContext,
+  UNLIMITED_CONTRACT_SIZE_VALUE,
+} from "../context/rethnet";
 import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
 import { RethnetBlockBuilder } from "./block-builder/rethnet";
@@ -51,7 +54,8 @@ export class RethnetAdapter implements VMAdapter {
     private _blockchain: Blockchain,
     private _state: RethnetStateManager,
     private readonly _common: Common,
-    private readonly _limitContractCodeSize: bigint | undefined
+    private readonly _limitContractCodeSize: bigint | undefined,
+    private readonly _limitInitcodeSize: bigint | undefined
   ) {
     this._vmTracer = new VMTracer(_common, false);
   }
@@ -76,9 +80,22 @@ export class RethnetAdapter implements VMAdapter {
     }
 
     const limitContractCodeSize =
-      config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : undefined;
+      config.allowUnlimitedContractSize === true
+        ? UNLIMITED_CONTRACT_SIZE_VALUE
+        : undefined;
 
-    return new RethnetAdapter(blockchain, state, common, limitContractCodeSize);
+    const limitInitcodeSize =
+      config.allowUnlimitedContractSize === true
+        ? UNLIMITED_CONTRACT_SIZE_VALUE
+        : undefined;
+
+    return new RethnetAdapter(
+      blockchain,
+      state,
+      common,
+      limitContractCodeSize,
+      limitInitcodeSize
+    );
   }
 
   /**
@@ -107,6 +124,7 @@ export class RethnetAdapter implements VMAdapter {
       chainId: this._common.chainId(),
       specId,
       limitContractCodeSize: this._limitContractCodeSize,
+      limitInitcodeSize: this._limitInitcodeSize,
       disableBlockGasLimit: true,
       disableEip3607: true,
     };
