@@ -92,7 +92,7 @@ Module parameters can be passed as a json file. Within the json file parameter v
 The deploy task accepts the path to the module parameters file via the `parameters` option:
 
 ```bash
-npx hardhat ignition deploy --parameters ignition/modules/LockModule.config.json LockModule
+npx hardhat ignition deploy --parameters ./ignition/modules/LockModule.config.json ./ignition/modules/LockModule.js
 ```
 
 To deploy against a specific network pass it via the `network` option, for instance to deploy against a local **Hardhat** node:
