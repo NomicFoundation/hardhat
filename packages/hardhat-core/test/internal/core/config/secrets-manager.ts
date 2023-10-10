@@ -1,11 +1,21 @@
 import { expect } from "chai";
-import sinon from "sinon";
+import sinon, { SinonSandbox } from "sinon";
 import { secrets } from "../../../../src/internal/core/config/config-env";
 import { SecretsManager } from "../../../../src/internal/core/secrets/secrets-manager";
 
-const spyFunctionSecretManagerGet = sinon.stub(SecretsManager.prototype, "get");
-
 describe("SecretsManager", function () {
+  let sandbox: SinonSandbox;
+  let spyFunctionSecretManagerGet: any;
+
+  before(() => {
+    sandbox = sinon.createSandbox();
+    spyFunctionSecretManagerGet = sandbox.stub(SecretsManager.prototype, "get");
+  });
+
+  after(() => {
+    sandbox.restore();
+  });
+
   describe("getSecret", function () {
     it("should return the value associated to the key", function () {
       spyFunctionSecretManagerGet.returns("secret1");
@@ -24,7 +34,7 @@ describe("SecretsManager", function () {
       spyFunctionSecretManagerGet.returns(undefined);
 
       expect(() => secrets.get("non-existing")).to.throw(
-        "HH317: Cannot find a value associated to the key 'non-existing'"
+        "HH1201: Cannot find a secret value associated to the key 'non-existing'"
       );
     });
   });

@@ -1,14 +1,16 @@
 import fs from "fs-extra";
 import { expect } from "chai";
+import * as os from "os";
 import { SecretsManager } from "../../../../src/internal/core/secrets/secrets-manager";
 
-const TMP_FILE_PATH = `${__dirname}/test-secrets.json`;
-
-let secretsManager: SecretsManager;
-
 describe("SecretsManager", function () {
+  let TMP_FILE_PATH: string;
+  let secretsManager: SecretsManager;
+
   beforeEach(() => {
+    TMP_FILE_PATH = `${os.tmpdir()}/test-secrets.json`;
     fs.removeSync(TMP_FILE_PATH);
+
     secretsManager = new SecretsManager(TMP_FILE_PATH);
   });
 
