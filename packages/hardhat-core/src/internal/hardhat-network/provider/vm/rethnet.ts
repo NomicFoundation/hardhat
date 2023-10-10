@@ -1,8 +1,10 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
+import { EVMEvents } from "@nomicfoundation/ethereumjs-evm/src/types";
 import {
   Account,
   Address,
+  AsyncEventEmitter,
   KECCAK256_NULL,
 } from "@nomicfoundation/ethereumjs-util";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
@@ -51,7 +53,9 @@ export class RethnetAdapter implements VMAdapter {
     private _blockchain: Blockchain,
     private _state: RethnetStateManager,
     private readonly _common: Common,
-    private readonly _limitContractCodeSize: bigint | undefined
+    private readonly _limitContractCodeSize: bigint | undefined,
+    // For solidity-coverage compatibility. Name cannot be changed.
+    private _vm: VMStub
   ) {
     this._vmTracer = new VMTracer(_common, false);
   }
@@ -78,7 +82,18 @@ export class RethnetAdapter implements VMAdapter {
     const limitContractCodeSize =
       config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : undefined;
 
-    return new RethnetAdapter(blockchain, state, common, limitContractCodeSize);
+    const vmStub = {
+      evm: {
+        events: new AsyncEventEmitter<EVMEvents>(),
+      },
+    };
+    return new RethnetAdapter(
+      blockchain,
+      state,
+      common,
+      limitContractCodeSize,
+      vmStub
+    );
   }
 
   /**
@@ -138,6 +153,18 @@ export class RethnetAdapter implements VMAdapter {
       } else {
         await this._vmTracer.addBeforeMessage(traceItem);
       }
+    }
+
+    // For solidity-coverage compatibility
+    for (const step of this._vmTracer.tracingSteps) {
+      console.log("emitting", step);
+      this._vm.evm.events.emit("step", {
+        pc: Number(step.pc),
+        depth: step.depth,
+        // @ts-ignore
+        opcode: { name: step.opcode },
+        stackTop: step.stackTop,
+      });
     }
 
     try {
@@ -371,6 +398,17 @@ export class RethnetAdapter implements VMAdapter {
       }
     }
 
+    // For solidity-coverage compatibility
+    for (const step of this._vmTracer.tracingSteps) {
+      this._vm.evm.events.emit("step", {
+        pc: Number(step.pc),
+        depth: step.depth,
+        // @ts-ignore
+        opcode: { name: step.opcode },
+        stackTop: step.stackTop,
+      });
+    }
+
     try {
       const result = rethnetResultToRunTxResult(
         rethnetResult.result,
@@ -519,4 +557,13 @@ export class RethnetAdapter implements VMAdapter {
 
     return undefined;
   }
+}
+
+// For compatibility with solidity-coverage that attaches a listener to the step event.
+export interface VMStub {
+  evm: EVMStub;
+}
+
+export interface EVMStub {
+  events: AsyncEventEmitter<EVMEvents>;
 }

@@ -1,4 +1,7 @@
 import { Blockchain, RethnetContext, SpecId } from "@ignored/edr";
+import { AsyncEventEmitter } from "@nomicfoundation/ethereumjs-util";
+import { EVMEvents } from "@nomicfoundation/ethereumjs-evm/src/types";
+
 import { BlockchainAdapter } from "../blockchain";
 import { RethnetBlockchain } from "../blockchain/rethnet";
 import { EthContextAdapter } from "../context";
@@ -133,11 +136,18 @@ export class RethnetEthContext implements EthContextAdapter {
     const limitContractCodeSize =
       config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : undefined;
 
+    const vmStub = {
+      evm: {
+        events: new AsyncEventEmitter<EVMEvents>(),
+      },
+    };
+
     const vm = new RethnetAdapter(
       blockchain.asInner(),
       state,
       common,
-      limitContractCodeSize
+      limitContractCodeSize,
+      vmStub
     );
 
     const memPool = new RethnetMemPool(
@@ -153,7 +163,8 @@ export class RethnetEthContext implements EthContextAdapter {
       common,
       limitContractCodeSize,
       ethereumjsMempoolOrderToRethnetMineOrdering(config.mempoolOrder),
-      prevRandaoGenerator
+      prevRandaoGenerator,
+      vmStub
     );
 
     return new RethnetEthContext(blockchain, memPool, miner, vm);
