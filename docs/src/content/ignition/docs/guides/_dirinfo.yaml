@@ -1,0 +1,10 @@
+section-type: group
+section-title: Guides
+order:
+  - /creating-modules
+  - /visualize
+  - /deploy
+  - /parameters
+  - /error-handling
+  - /modifications
+  - /tests

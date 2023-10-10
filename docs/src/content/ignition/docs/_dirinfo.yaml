@@ -1,16 +1,1 @@
-section-type: group
-section-title: Hardhat Ignition
-order:
-  - title: Overview
-    href: /overview
-  - title: Getting started
-    href: /getting-started
-  - title: Explanation
-    href: /explanation
-  - title: Creating modules
-    href: /creating-modules
-  - title: Using Hardhat Ignition in tests
-    href: /tests
-  - title: Running a deployment
-    href: /deploying
-
+section-type: hidden

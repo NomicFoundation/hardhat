@@ -51,7 +51,11 @@ ignition:
   folders:
     - ignition
     - ignition/docs
-    - ignition/docs/reference
+    - ignition/docs/getting-started
+    - ignition/docs/config
+    - ignition/docs/guides
+    - ignition/docs/advanced
+    - ignition/docs/todo
     - ignition/docs/other-components
 
 hidden:
