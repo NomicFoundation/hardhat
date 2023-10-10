@@ -13,5 +13,3 @@ order:
     href: /deploying
   - title: Using Hardhat Ignition in tests
     href: /tests
-  - title: Ignition's design
-    href: /design
