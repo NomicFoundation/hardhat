@@ -41,17 +41,15 @@ export const ExecutionBatches: React.FC<{
 
   const [toggleState, setToggledInternal] = useState(toggleMap);
 
-  const setToggled = (id: string) => {
-    const newToggleStatus = !toggleState[id];
-
-    if (newToggleStatus) {
+  const setToggled = (id: string, newToggleState: boolean) => {
+    if (newToggleState) {
       scrollRefMap.current[id].current?.scrollIntoView({
         behavior: "smooth",
         block: "center",
       });
     }
 
-    const newState = { ...toggleState, [id]: newToggleStatus };
+    const newState = { ...toggleState, [id]: newToggleState };
     setToggledInternal(newState);
   };
 
@@ -125,10 +123,10 @@ const BatchesTooltip: React.FC = () => (
       </div>
       <br />
       <div>
-        The sequence order shown for each batch doesn&apos;t reflect the final execution order.
-        The exact order is determined once they&apos;re run. However, this
-        specific order isn&apos;t relevant to the process, allowing for
-        simultaneous execution.
+        The sequence order shown for each batch doesn&apos;t reflect the final
+        execution order. The exact order is determined once they&apos;re run.
+        However, this specific order isn&apos;t relevant to the process,
+        allowing for simultaneous execution.
       </div>
     </Tooltip>
   </span>

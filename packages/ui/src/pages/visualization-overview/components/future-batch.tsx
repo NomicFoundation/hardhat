@@ -14,7 +14,7 @@ export const FutureBatch: React.FC<{
   batch: Future[];
   index: number;
   toggleState: Record<string, boolean>;
-  setToggled: (id: string) => void;
+  setToggled: (id: string, newToggleState: boolean) => void;
   setCurrentlyHovered: (id: string) => void;
   setHoveredFuture: (id: string) => void;
   scrollRefMap: Record<string, React.RefObject<HTMLDivElement>>;
@@ -91,7 +91,7 @@ const FutureBtn = styled.div<{ isLibrary: boolean; toggled: boolean }>`
 const FutureBlock: React.FC<{
   future: Future;
   toggleState: Record<string, boolean>;
-  setToggled: (id: string) => void;
+  setToggled: (id: string, newToggleState: boolean) => void;
   setCurrentlyHovered: (id: string) => void;
   setHoveredFuture: (id: string) => void;
   classKey: string;
@@ -124,7 +124,7 @@ const FutureBlock: React.FC<{
         className={`${className} ${classKey}`}
         isLibrary={isLibrary}
         toggled={toggled}
-        onClick={() => setToggled(futureId)}
+        onClick={() => setToggled(futureId, !toggled)}
       >
         <FutureHeader
           isLibrary={isLibrary}
@@ -206,7 +206,7 @@ const FutureDetailsStyle = styled.div`
 const FutureDetailsSection: React.FC<{
   className: string;
   future: Future;
-  setToggled: (id: string) => void;
+  setToggled: (id: string, newToggleState: boolean) => void;
   setHoveredFuture: (id: string) => void;
 }> = ({ className, future, setToggled, setHoveredFuture }) => {
   switch (future.type) {
@@ -324,7 +324,7 @@ const FutureDetailsSection: React.FC<{
 };
 
 const Argument: React.FC<{
-  setToggled: (id: string) => void;
+  setToggled: (id: string, newToggleState: boolean) => void;
   setHoveredFuture: (id: string) => void;
   arg: ArgumentType;
 }> = ({ setToggled, arg, setHoveredFuture }) => {
@@ -337,7 +337,7 @@ const Argument: React.FC<{
           cursor: "pointer",
         }}
         className="future-argument"
-        onClick={() => setToggled(arg.id)}
+        onClick={() => setToggled(arg.id, true)}
         onMouseEnter={() => setHoveredFuture(arg.id)}
         onMouseLeave={() => setHoveredFuture("")}
       >
