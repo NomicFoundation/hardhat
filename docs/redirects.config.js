@@ -14,13 +14,6 @@ const path = require("path");
  *
  */
 const customRedirects = [
-  // workaround a website limitation as NavigationPagesPaths is an
-  // enum and we need a repeated entry
-  {
-    source: "/tools",
-    destination: "/docs",
-    permanent: false,
-  },
   // shortlinks
   {
     source: "/config",
