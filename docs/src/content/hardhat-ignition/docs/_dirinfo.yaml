@@ -11,7 +11,7 @@ order:
     href: /creating-modules
   - title: Running a deployment
     href: /deploying
-  - title: Using Hardhat Ignition in test
+  - title: Using Hardhat Ignition in tests
     href: /tests
   - title: Configuration
     href: /reference/config

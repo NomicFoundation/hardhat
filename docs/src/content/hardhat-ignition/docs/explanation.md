@@ -95,4 +95,4 @@ The tracking and reconciling of `Actions` in previous runs is done automatically
 
 Next, dig deeper into defining modules:
 
-[Creating modules for deployment](./creating-modules-for-deployment.md)
+[Creating modules for deployment](./creating-modules.md)

@@ -1,4 +1,4 @@
-# Using Ignition in _Hardhat_ tests
+# Using Hardhat Ignition in tests
 
 **Ignition** can be used in **Hardhat** tests to simplify test setup, as **Ignition** modules can capture complex deployments of contract systems, which is a common problem when creating test fixtures.
 
