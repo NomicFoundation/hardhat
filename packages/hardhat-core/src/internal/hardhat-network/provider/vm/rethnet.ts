@@ -3,7 +3,9 @@ import { Common } from "@nomicfoundation/ethereumjs-common";
 import {
   Account,
   Address,
+  bufferToBigInt,
   KECCAK256_NULL,
+  toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import {
@@ -154,13 +156,41 @@ export class RethnetAdapter implements VMAdapter {
       this._state.asInner(),
       new StateOverrides(
         Object.entries(stateOverrideSet).map(([address, account]) => {
+          const storage =
+            account.state !== undefined
+              ? Object.entries(account.state).map(([key, value]) => {
+                  const index = bufferToBigInt(toBuffer(key));
+                  const number = bufferToBigInt(toBuffer(value));
+
+                  return {
+                    index,
+                    value: number,
+                  };
+                })
+              : undefined;
+
+          const storageDiff =
+            account.stateDiff !== undefined
+              ? Object.entries(account.stateDiff).map(([key, value]) => {
+                  const index = bufferToBigInt(toBuffer(key));
+                  const number = bufferToBigInt(toBuffer(value));
+
+                  return {
+                    index,
+                    value: number,
+                  };
+                })
+              : undefined;
+
           const accountOverride: AccountOverride = {
             balance: account.balance,
             nonce: account.nonce,
             code: account.code,
+            storage,
+            storageDiff,
           };
 
-          return [Address.fromString(address).buf, accountOverride];
+          return [toBuffer(address), accountOverride];
         })
       ),
       config,
