@@ -46,13 +46,13 @@ hardhat-network-helpers:
     - hardhat-network-helpers/docs
     - hardhat-network-helpers/docs/other-components
 
-hardhat-ignition:
+ignition:
   title: Hardhat Ignition
   folders:
-    - hardhat-ignition
-    - hardhat-ignition/docs
-    - hardhat-ignition/docs/reference
-    - hardhat-ignition/docs/other-components
+    - ignition
+    - ignition/docs
+    - ignition/docs/reference
+    - ignition/docs/other-components
 
 hidden:
   title: hidden

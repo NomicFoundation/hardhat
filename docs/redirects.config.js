@@ -165,13 +165,13 @@ const customRedirects = [
     permanent: false,
   },
   {
-    source: "/hardhat-ignition",
-    destination: "/hardhat-ignition/docs/overview",
+    source: "/ignition",
+    destination: "/ignition/docs/overview",
     permanent: false,
   },
   {
-    source: "/hardhat-ignition/docs",
-    destination: "/hardhat-ignition/docs/overview",
+    source: "/ignition/docs",
+    destination: "/ignition/docs/overview",
     permanent: false,
   },
 

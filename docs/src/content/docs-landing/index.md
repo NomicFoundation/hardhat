@@ -29,7 +29,7 @@ Hardhat comes built-in with Hardhat Network, a local Ethereum network node desig
 
 ### Hardhat Ignition
 
-Hardhat Ignition is a declarative deployment system that enables you to deploy your smart contracts without navigating the mechanics of the deployment process. [Learn more.](/hardhat-ignition)
+Hardhat Ignition is a declarative deployment system that enables you to deploy your smart contracts without navigating the mechanics of the deployment process. [Learn more.](/ignition)
 
 ### Hardhat for Visual Studio Code
 

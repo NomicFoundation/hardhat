@@ -219,7 +219,7 @@ const toolsBlockContent = {
       mottos: ["deploy"],
       description:
         "Declarative deployment system that enables you to deploy your smart contracts without navigating the mechanics of the deployment process.",
-      link: "/hardhat-ignition",
+      link: "/ignition",
     },
     {
       icon: NetworkIcon,

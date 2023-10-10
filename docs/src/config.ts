@@ -67,7 +67,7 @@ export const menuItemsList: MenuItemType[] = [
       {
         prefix: "Hardhat",
         label: "Ignition",
-        href: "/hardhat-ignition",
+        href: "/ignition",
         icon: IgnitionIcon,
         iconDark: IgnitionIconDark,
       },
