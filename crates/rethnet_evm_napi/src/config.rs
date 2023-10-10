@@ -176,10 +176,12 @@ impl TryFrom<ConfigOptions> for CfgEnv {
 
         let limit_contract_code_size = value
             .limit_contract_code_size
-            .map_or(Ok(None), bigint_to_maybe_usize)?;
+            .map(TryCast::<usize>::try_cast)
+            .transpose()?;
         let limit_initcode_size = value
             .limit_initcode_size
-            .map_or(Ok(None), bigint_to_maybe_usize)?;
+            .map(TryCast::<usize>::try_cast)
+            .transpose()?;
 
         let disable_block_gas_limit = value
             .disable_block_gas_limit
@@ -196,8 +198,4 @@ impl TryFrom<ConfigOptions> for CfgEnv {
 
         Ok(cfg)
     }
-}
-
-fn bigint_to_maybe_usize(value: BigInt) -> Result<Option<usize>, napi::Error> {
-    Ok(Some(value.try_cast()?))
 }
