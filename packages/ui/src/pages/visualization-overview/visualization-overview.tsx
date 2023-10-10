@@ -24,10 +24,7 @@ export const VisualizationOverview: React.FC<{
 
         <span style={{ display: "flex", alignItems: "center" }}>
           <DocLink>
-            <a
-              href="https://github.com/NomicFoundation/hardhat-ignition"
-              target="_blank"
-            >
+            <a href="https://hardhat.org/ignition/docs" target="_blank">
               DOCUMENTATION <ExternalLinkIcon />
             </a>
           </DocLink>
