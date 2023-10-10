@@ -14,7 +14,7 @@ describe("chainId reconciliation", function () {
       this.hre.run(
         { scope: "ignition", task: "deploy" },
         {
-          moduleNameOrPath: "./ignition/modules/LockModule.js",
+          modulePath: "./ignition/modules/LockModule.js",
         }
       ),
       /Previous chain id: 123\. Current chain id: 31337/

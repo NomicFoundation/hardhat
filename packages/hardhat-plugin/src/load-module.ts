@@ -10,7 +10,7 @@ const MODULES_FOLDER = "modules";
 
 export function loadModule(
   ignitionDirectory: string,
-  moduleNameOrPath: string
+  modulePath: string
 ): IgnitionModule | undefined {
   const fullModulesDirectoryName = path.resolve(
     ignitionDirectory,
@@ -38,22 +38,19 @@ export function loadModule(
 
   debug(`Loading user modules from '${fullModulesDirectoryName}'`);
 
-  const fullpathToModule = resolveFullPathToModule(
-    fullModulesDirectoryName,
-    moduleNameOrPath
-  );
+  const fullpathToModule = path.resolve(modulePath);
 
-  if (fullpathToModule === undefined) {
+  if (!pathExistsSync(fullpathToModule)) {
     throw new HardhatPluginError(
       "hardhat-ignition",
-      `Could not find module ${moduleNameOrPath}`
+      `Could not find a module file at the path: ${modulePath}`
     );
   }
 
   if (!isInModuleDirectory(fullModulesDirectoryName, fullpathToModule)) {
     throw new HardhatPluginError(
       "hardhat-ignition",
-      `The referenced module ${moduleNameOrPath} is outside the module directory ${shortModulesDirectoryName}`
+      `The referenced module file ${modulePath} is outside the module directory ${shortModulesDirectoryName}`
     );
   }
 
@@ -62,40 +59,6 @@ export function loadModule(
   const module = require(fullpathToModule);
 
   return module.default ?? module;
-}
-
-function resolveFullPathToModule(
-  modulesDirectory: string,
-  moduleNameOrPath: string
-): string | undefined {
-  const pathToModule = path.resolve(moduleNameOrPath);
-  if (pathExistsSync(pathToModule)) {
-    return pathToModule;
-  }
-
-  const relativeToModules = path.resolve(modulesDirectory, moduleNameOrPath);
-  if (pathExistsSync(relativeToModules)) {
-    return relativeToModules;
-  }
-
-  const relativeToModulesWithJsExtension = path.resolve(
-    modulesDirectory,
-    `${moduleNameOrPath}.js`
-  );
-  if (pathExistsSync(relativeToModulesWithJsExtension)) {
-    return relativeToModulesWithJsExtension;
-  }
-
-  const relativeToModulesWithTsExtension = path.resolve(
-    modulesDirectory,
-    `${moduleNameOrPath}.ts`
-  );
-
-  if (pathExistsSync(relativeToModulesWithTsExtension)) {
-    return relativeToModulesWithTsExtension;
-  }
-
-  return undefined;
 }
 
 function isInModuleDirectory(modulesDirectory: string, modulePath: string) {

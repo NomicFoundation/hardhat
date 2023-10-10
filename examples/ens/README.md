@@ -7,7 +7,7 @@ This Hardhat project is an example of using ignition to deploy the ENS system of
 To run the Ignition deploy against the ephemeral Hardhat network:
 
 ```shell
-npx hardhat ignition deploy ENS.js
+npx hardhat ignition deploy ./ignition/modules/ENS.js
 ```
 
 To run a deploy of ENS with a test registrar against the local node:
@@ -15,7 +15,7 @@ To run a deploy of ENS with a test registrar against the local node:
 ```shell
 npx hardhat node
 # In another terminal
-npx hardhat ignition deploy test-registrar.js --network localhost
+npx hardhat ignition deploy ./ignition/modules/test-registrar.js --network localhost
 ```
 
 ## Test

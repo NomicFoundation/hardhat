@@ -7,7 +7,7 @@ This is a contrived example project, intended mostly to ensure working end-to-en
 To run the Ignition deploy against the ephemeral hardhat network:
 
 ```shell
-npx hardhat ignition deploy CompleteModule.js
+npx hardhat ignition deploy ./ignition/modules/CompleteModule.js
 ```
 
 ## Test

@@ -7,7 +7,7 @@ This project is Hardhat's sample project enhanced with Hardhat Ignition.
 To run the Ignition deploy against the ephemeral hardhat network:
 
 ```shell
-npx hardhat ignition deploy LockModule.js
+npx hardhat ignition deploy ./ignition/modules/LockModule.js
 ```
 
 ## Test

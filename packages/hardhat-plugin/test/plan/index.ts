@@ -20,7 +20,7 @@ describe("visualize", () => {
       },
       {
         noOpen: true,
-        moduleNameOrPath: "MyModule.js",
+        modulePath: "./ignition/modules/MyModule.js",
       }
     );
 

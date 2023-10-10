@@ -62,10 +62,7 @@ extendEnvironment((hre) => {
 
 ignitionScope
   .task("deploy")
-  .addPositionalParam(
-    "moduleNameOrPath",
-    "The name of the module file within the Ignition modules directory, or a path to the module file"
-  )
+  .addPositionalParam("modulePath", "The path to the module file to deploy")
   .addOptionalParam(
     "parameters",
     "A relative path to a JSON file to use for the module parameters,"
@@ -75,11 +72,11 @@ ignitionScope
   .setAction(
     async (
       {
-        moduleNameOrPath,
+        modulePath,
         parameters: parametersInput,
         id: givenDeploymentId,
       }: {
-        moduleNameOrPath: string;
+        modulePath: string;
         parameters?: string;
         id: string;
       },
@@ -117,10 +114,7 @@ ignitionScope
 
       await hre.run("compile", { quiet: true });
 
-      const userModule = loadModule(
-        hre.config.paths.ignition,
-        moduleNameOrPath
-      );
+      const userModule = loadModule(hre.config.paths.ignition, modulePath);
 
       if (userModule === undefined) {
         console.warn("No Ignition modules found");
@@ -174,17 +168,11 @@ ignitionScope
 ignitionScope
   .task("visualize")
   .addFlag("noOpen", "Disables opening report in browser")
-  .addPositionalParam(
-    "moduleNameOrPath",
-    "The name of the module file within the Ignition modules directory, or a path to the module file"
-  )
+  .addPositionalParam("modulePath", "The path to the module file to visualize")
   .setDescription("Visualize a module as an HTML report")
   .setAction(
     async (
-      {
-        noOpen = false,
-        moduleNameOrPath,
-      }: { noOpen: boolean; moduleNameOrPath: string },
+      { noOpen = false, modulePath }: { noOpen: boolean; modulePath: string },
       hre
     ) => {
       const { IgnitionModuleSerializer, batches } = await import(
@@ -199,10 +187,7 @@ ignitionScope
 
       await hre.run("compile", { quiet: true });
 
-      const userModule = loadModule(
-        hre.config.paths.ignition,
-        moduleNameOrPath
-      );
+      const userModule = loadModule(hre.config.paths.ignition, modulePath);
 
       if (userModule === undefined) {
         console.warn("No Ignition modules found");
@@ -344,7 +329,7 @@ ignitionScope
 ignitionScope
   .task("wipe")
   .addParam("id", "The id of the deployment that has the future to wipe")
-  .addParam("future", "The id of the future within the deploment to wipe")
+  .addParam("future", "The id of the future to wipe")
   .setDescription("Reset a deployment's future to allow rerunning")
   .setAction(
     async (

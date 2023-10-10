@@ -8,7 +8,7 @@ Ignition.
 To run the Ignition deploy against the ephemeral Hardhat network:
 
 ```shell
-npx hardhat ignition deploy LockModule
+npx hardhat ignition deploy ./ignition/modules/LockModule
 ```
 
 ## Test
