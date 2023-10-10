@@ -193,7 +193,7 @@ async function main() {
     }
 
     if (scopeOrTaskName === "secrets" && allUnparsedCLAs.length > 1) {
-      return await handleSecrets(allUnparsedCLAs);
+      process.exit(await handleSecrets(allUnparsedCLAs));
     }
 
     if (
