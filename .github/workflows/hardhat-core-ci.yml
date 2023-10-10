@@ -116,7 +116,7 @@ jobs:
         run: yarn test:except-provider
 
   test-provider:
-    name: Test provider (${{ matrix.os }}, Node ${{ matrix.node }}, ${{ matrix.vm }}, Retain RPC cache ${{ matrix.retain-rpc-cache }})
+    name: Test provider (${{ matrix.os }}, Node ${{ matrix.node }}, ${{ matrix.vm }})
     runs-on: ${{ matrix.os }}
     needs: check-rethnet
     strategy:
@@ -126,7 +126,6 @@ jobs:
         # disable until actions/virtual-environments#4896 is fixed
         # os: ["macos-latest", "ubuntu-latest", "windows-latest"]
         os: ["ubuntu-latest", "windows-latest"]
-        retain-rpc-cache: [true, false]
         vm: ["dual", "rethnet"]
     steps:
       - uses: actions/checkout@v3
@@ -157,7 +156,6 @@ jobs:
 
       - name: Cache EDR RPC cache
         uses: actions/cache@v2
-        if: matrix.retain-rpc-cache == true
         with:
           path: |
             packages/hardhat-core/test/internal/hardhat-network/edr-cache
