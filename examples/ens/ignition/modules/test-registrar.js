@@ -1,4 +1,4 @@
-const { buildModule } = require("@nomicfoundation/hardhat-ignition");
+const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 const namehash = require("eth-ens-namehash");
 
 const setupENSRegistry = require("./ENS");

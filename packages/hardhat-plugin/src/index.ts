@@ -21,16 +21,6 @@ const ignitionScope = scope(
   "Deploy your smart contracts using Hardhat Ignition"
 );
 
-// this is ugly, but it's fast :)
-// discussion: https://github.com/NomicFoundation/hardhat-ignition/pull/483
-export const buildModule: typeof import("@nomicfoundation/ignition-core").buildModule =
-  (...args) => {
-    const { buildModule: coreBuildModule } =
-      require("@nomicfoundation/ignition-core") as typeof import("@nomicfoundation/ignition-core");
-
-    return coreBuildModule(...args);
-  };
-
 extendConfig((config, userConfig) => {
   /* setup path configs */
   const userPathsConfig = userConfig.paths ?? {};

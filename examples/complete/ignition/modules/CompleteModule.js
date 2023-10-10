@@ -1,5 +1,5 @@
 // ./ignition/CompleteModule.js
-const { buildModule } = require("@nomicfoundation/hardhat-ignition");
+const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 
 const withLibArtifact = require("../../libArtifacts/ContractWithLibrary.json");
 const libArtifact = require("../../libArtifacts/BasicLibrary.json");

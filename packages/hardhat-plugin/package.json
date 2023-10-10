@@ -17,6 +17,17 @@
   ],
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": "./dist/src/index.js",
+    "./modules": "./dist/src/modules.js"
+  },
+  "typesVersions": {
+    "*": {
+      "modules": [
+        "./dist/src/modules.d.ts"
+      ]
+    }
+  },
   "scripts": {
     "build": "tsc --build",
     "lint": "npm run prettier -- --check && npm run eslint",
