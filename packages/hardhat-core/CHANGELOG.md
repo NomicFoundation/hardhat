@@ -1,5 +1,12 @@
 # hardhat
 
+## 2.18.1
+
+### Patch Changes
+
+- b77b665fd: Added a viem option to the project initialization
+- 03edea678: Updated the compilation logs to include the targeted EVM versions.
+
 ## 2.18.0
 
 ### Minor Changes
