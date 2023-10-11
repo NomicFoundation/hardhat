@@ -30,7 +30,7 @@ import { Dependencies, PackageManager } from "./types";
 enum Action {
   CREATE_JAVASCRIPT_PROJECT_ACTION = "Create a JavaScript project",
   CREATE_TYPESCRIPT_PROJECT_ACTION = "Create a TypeScript project",
-  CREATE_TYPESCRIPT_VIEM_PROJECT_ACTION = "Create a TypeScript project (with viem)",
+  CREATE_TYPESCRIPT_VIEM_PROJECT_ACTION = "Create a TypeScript project (with Viem)",
   CREATE_EMPTY_HARDHAT_CONFIG_ACTION = "Create an empty hardhat.config.js",
   QUIT_ACTION = "Quit",
 }

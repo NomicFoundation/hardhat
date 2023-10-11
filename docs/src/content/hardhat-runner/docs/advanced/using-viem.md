@@ -1,12 +1,12 @@
-# Using viem
+# Using Viem
 
 ## Overview
 
-Most of this documentation assumes that you are using [ethers](https://docs.ethers.org/v6/) as your connection library, but you can also use Hardhat with [viem](https://viem.sh/docs/introduction.html), a more lightweight and type-safe alternative. This guide explains how to setup a project that uses [the viem-based Toolbox](/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox-viem) instead of the main one.
+Most of this documentation assumes that you are using [ethers](https://docs.ethers.org/v6/) as your connection library, but you can also use Hardhat with [Viem](https://viem.sh/docs/introduction.html), a more lightweight and type-safe alternative. This guide explains how to setup a project that uses [the Viem-based Toolbox](/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox-viem) instead of the main one.
 
 ## Installation
 
-To kickstart a Hardhat project with Typescript and `viem`, you can follow these steps:
+To kickstart a Hardhat project with Typescript and Viem, you can follow these steps:
 
 1. Initialize a new npm project in an empty directory:
 
@@ -68,9 +68,9 @@ To kickstart a Hardhat project with Typescript and `viem`, you can follow these 
 
    ::::
 
-3. Run `npx hardhat init` and select the _Create a TypeScript project (with viem)_ option.
+3. Run `npx hardhat init` and select the _Create a TypeScript project (with Viem)_ option.
 
-   **Note:** you might want to pin viem-related dependencies because viem does not strictly follow semantic versioning for type changes. You can read more [here](#managing-types-and-version-stability).
+   **Note:** you might want to pin Viem-related dependencies because Viem does not strictly follow semantic versioning for type changes. You can read more [here](#managing-types-and-version-stability).
 
 ## Quick Start
 
@@ -211,7 +211,7 @@ To access contract methods, import the Hardhat Runtime Environment and use the `
 
 #### Contract Type Generation
 
-The proper types for each contract are generated during compilation. These types are used to overload the hardhat-viem types and improve type checking and suggestions. For example, if you copy and paste the following code at the end of the `main()` function of `scripts/contracts.ts`, TypeScript would highlight it as an error:
+The proper types for each contract are generated during compilation. These types are used to overload the `hardhat-viem` types and improve type checking and suggestions. For example, if you copy and paste the following code at the end of the `main()` function of `scripts/contracts.ts`, TypeScript would highlight it as an error:
 
 ```tsx
 // The amount is required as a parameter
@@ -227,7 +227,7 @@ const tokenPrice = await myToken.write.setSupply([5000000n]);
 const myToken2 = await hre.viem.deployContract("MyToken", ["1000000"]);
 ```
 
-If you want to learn more about working with contracts, you can visit the [hardhat-viem plugin site](/hardhat-runner/plugins/nomicfoundation-hardhat-viem#contracts) and [Viem's official site](https://viem.sh/docs/contract/getContract.html).
+If you want to learn more about working with contracts, you can visit the [`hardhat-viem` plugin site](/hardhat-runner/plugins/nomicfoundation-hardhat-viem#contracts) and [Viem's official site](https://viem.sh/docs/contract/getContract.html).
 
 ### Testing
 

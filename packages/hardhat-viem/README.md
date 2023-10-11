@@ -2,11 +2,11 @@
 
 # hardhat-viem
 
-[Hardhat](https://hardhat.org) plugin for integration with [viem](https://github.com/wagmi-dev/viem), an alternative Ethereum library.
+[Hardhat](https://hardhat.org) plugin for integration with [Viem](https://github.com/wagmi-dev/viem), a lightweight, composable, and type-safe Ethereum library.
 
 ## What
 
-This plugin integrates the Viem Ethereum library into your Hardhat development environment. Viem is designed as an alternative to ethers.js, offering developers a different way to interact with the Ethereum blockchain.
+This plugin integrates the Viem Ethereum library into your Hardhat development environment. Viem is an alternative to [ethers.js](https://docs.ethers.io/) that offers developers a different way to interact with the Ethereum blockchain.
 
 By installing and configuring `hardhat-viem`, you gain access to the capabilities of the Viem library directly within your Hardhat projects. This integration enables you to perform various Ethereum-related tasks using Viem's features and functionalities.
 
@@ -30,7 +30,7 @@ Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
 import "@nomicfoundation/hardhat-viem";
 ```
 
-**Note:** you might want to pin viem-related dependencies because viem does not strictly follow semantic versioning for type changes. You can read more [here](https://hardhat.org/hardhat-runner/docs/advanced/using-viem#managing-types-and-version-stability).
+**Note:** you might want to pin Viem-related dependencies because Viem does not strictly follow semantic versioning for type changes. You can read more [here](https://hardhat.org/hardhat-runner/docs/advanced/using-viem#managing-types-and-version-stability).
 
 ## Required plugins
 
@@ -232,6 +232,6 @@ await contract.write.method2([10, "arg2"]);
 
 There are no additional steps you need to take for this plugin to work.
 
-Install it and access viem through the Hardhat Runtime Environment anywhere you need it (tasks, scripts, tests, etc).
+Install it and access Viem through the Hardhat Runtime Environment anywhere you need it (tasks, scripts, tests, etc).
 
-Read the documentation on the [Hardhat Runtime Environment](https://hardhat.org/hardhat-runner/docs/advanced/hardhat-runtime-environment) to learn how to access the HRE in different ways to use viem from anywhere the HRE is accessible.
+Read the documentation on the [Hardhat Runtime Environment](https://hardhat.org/hardhat-runner/docs/advanced/hardhat-runtime-environment) to learn how to access the HRE in different ways to use Viem from anywhere the HRE is accessible.
