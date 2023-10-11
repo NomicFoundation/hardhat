@@ -80,8 +80,6 @@ export class RethnetMiner implements BlockMinerAdapter {
           this._vmStub.evm.events.emit("step", {
             pc: Number(traceItem.pc),
             depth: traceItem.depth,
-            // Ignored because we don't provide all the fields for opcode just what solidity-coverage expects.
-            // @ts-ignore
             opcode: { name: traceItem.opcode },
             stackTop: traceItem.stackTop,
           });
