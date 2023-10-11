@@ -10,7 +10,7 @@
 //   SpecId,
 //   StateManager,
 //   Transaction,
-// } from "../..";
+// } from "../../index.js";
 
 // describe("Rethnet", () => {
 //   const caller = Address.fromString(

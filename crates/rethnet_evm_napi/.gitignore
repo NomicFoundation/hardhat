@@ -13,6 +13,8 @@
 
 # TSC prod output. This has to be in sync with the to directories in ./src, and with npm script clean
 
+!index.d.ts
+!index.js
 /*.js
 /*.js.map
 /*.d.ts

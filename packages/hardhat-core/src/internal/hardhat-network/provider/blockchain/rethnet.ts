@@ -1,6 +1,6 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import { Blockchain, Block as EdrBlock, State } from "rethnet-evm";
+import { Blockchain, Block as EdrBlock, State } from "@ignored/edr";
 import { HardforkName, getHardforkName } from "../../../util/hardforks";
 import { BlockchainAdapter } from "../blockchain";
 import { RpcLogOutput, RpcReceiptOutput } from "../output";

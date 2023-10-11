@@ -35,7 +35,7 @@ import {
   DebugTraceConfig,
   Log,
   MineOrdering,
-} from "rethnet-evm";
+} from "@ignored/edr";
 import { fromBigIntLike, toHex } from "../../../util/bigint";
 import { HardforkName, hardforkGte } from "../../../util/hardforks";
 import {

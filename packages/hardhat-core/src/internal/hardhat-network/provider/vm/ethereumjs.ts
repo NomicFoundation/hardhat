@@ -20,7 +20,7 @@ import {
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
 import { EEI, VM } from "@nomicfoundation/ethereumjs-vm";
-import { SuccessReason } from "rethnet-evm";
+import { SuccessReason } from "@ignored/edr";
 import { assertHardhatInvariant } from "../../../core/errors";
 import {
   StateOverrideSet,

@@ -425,6 +425,20 @@ impl RpcClient {
             }
         };
 
+        // In case of many concurrent renames, files remain in the tmp dir on Windows.
+        #[cfg(target_os = "windows")]
+        match tokio::fs::remove_file(&tmp_path).await {
+            Ok(_) => (),
+            Err(error) => match error.kind() {
+                io::ErrorKind::NotFound => (),
+                _ => log_cache_error(
+                    cache_key,
+                    "failed to remove temporary file for RPC response cache",
+                    error,
+                ),
+            },
+        }
+
         Ok(())
     }
 
