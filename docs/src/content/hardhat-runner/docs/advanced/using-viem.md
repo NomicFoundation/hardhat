@@ -144,7 +144,7 @@ To start using the client interfaces, you need to import the Hardhat Runtime Env
 
    This will run the code and display the results in your terminal.
 
-For more detailed documentation on clients, you can visit the [hardhat-viem plugin site](https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-viem#clients) and [Viem's official site](https://viem.sh/docs/clients/intro.html).
+For more detailed documentation on clients, you can visit the [hardhat-viem plugin site](/hardhat-runner/plugins/nomicfoundation-hardhat-viem#clients) and [Viem's official site](https://viem.sh/docs/clients/intro.html).
 
 ### Contracts
 
@@ -227,7 +227,7 @@ const tokenPrice = await myToken.write.setSupply([5000000n]);
 const myToken2 = await hre.viem.deployContract("MyToken", ["1000000"]);
 ```
 
-If you want to learn more about working with contracts, you can visit the [hardhat-viem plugin site](https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-viem#contracts) and [Viem's official site](https://viem.sh/docs/contract/getContract.html).
+If you want to learn more about working with contracts, you can visit the [hardhat-viem plugin site](/hardhat-runner/plugins/nomicfoundation-hardhat-viem#contracts) and [Viem's official site](https://viem.sh/docs/contract/getContract.html).
 
 ### Testing
 
