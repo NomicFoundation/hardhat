@@ -1,6 +1,6 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import { EVMEvents } from "@nomicfoundation/ethereumjs-evm/src/types";
+import { InterpreterStep } from "@nomicfoundation/ethereumjs-evm";
 import {
   Account,
   Address,
@@ -82,9 +82,9 @@ export class RethnetAdapter implements VMAdapter {
     const limitContractCodeSize =
       config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : undefined;
 
-    const vmStub = {
+    const vmStub: VMStub = {
       evm: {
-        events: new AsyncEventEmitter<EVMEvents>(),
+        events: new AsyncEventEmitter(),
       },
     };
     return new RethnetAdapter(
@@ -160,7 +160,6 @@ export class RethnetAdapter implements VMAdapter {
       this._vm.evm.events.emit("step", {
         pc: Number(step.pc),
         depth: step.depth,
-        // @ts-ignore
         opcode: { name: step.opcode },
         stackTop: step.stackTop,
       });
@@ -402,7 +401,6 @@ export class RethnetAdapter implements VMAdapter {
       this._vm.evm.events.emit("step", {
         pc: Number(step.pc),
         depth: step.depth,
-        // @ts-ignore
         opcode: { name: step.opcode },
         stackTop: step.stackTop,
       });
@@ -558,11 +556,18 @@ export class RethnetAdapter implements VMAdapter {
   }
 }
 
+type InterpreterStepStub = Pick<InterpreterStep, "pc" | "depth"> & {
+  opcode: { name: string };
+  stackTop?: bigint;
+};
+
+interface EVMStub {
+  events: AsyncEventEmitter<{
+    step: (data: InterpreterStepStub, resolve?: (result?: any) => void) => void;
+  }>;
+}
+
 // For compatibility with solidity-coverage that attaches a listener to the step event.
 export interface VMStub {
   evm: EVMStub;
-}
-
-export interface EVMStub {
-  events: AsyncEventEmitter<EVMEvents>;
 }

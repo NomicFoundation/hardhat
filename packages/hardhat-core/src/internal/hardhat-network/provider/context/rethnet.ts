@@ -1,6 +1,5 @@
 import { Blockchain, RethnetContext, SpecId } from "@ignored/edr";
 import { AsyncEventEmitter } from "@nomicfoundation/ethereumjs-util";
-import { EVMEvents } from "@nomicfoundation/ethereumjs-evm/src/types";
 
 import { BlockchainAdapter } from "../blockchain";
 import { RethnetBlockchain } from "../blockchain/rethnet";
@@ -9,7 +8,7 @@ import { MemPoolAdapter } from "../mem-pool";
 import { BlockMinerAdapter } from "../miner";
 import { VMAdapter } from "../vm/vm-adapter";
 import { RethnetMiner } from "../miner/rethnet";
-import { RethnetAdapter } from "../vm/rethnet";
+import { RethnetAdapter, VMStub } from "../vm/rethnet";
 import { NodeConfig, isForkedNodeConfig } from "../node-types";
 import {
   ethereumjsHeaderDataToRethnetBlockOptions,
@@ -136,9 +135,9 @@ export class RethnetEthContext implements EthContextAdapter {
     const limitContractCodeSize =
       config.allowUnlimitedContractSize === true ? 2n ** 64n - 1n : undefined;
 
-    const vmStub = {
+    const vmStub: VMStub = {
       evm: {
-        events: new AsyncEventEmitter<EVMEvents>(),
+        events: new AsyncEventEmitter(),
       },
     };
 
