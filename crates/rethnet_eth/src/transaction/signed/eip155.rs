@@ -100,10 +100,11 @@ impl rlp::Decodable for EIP155SignedTransaction {
 mod tests {
     use std::str::FromStr;
 
+    use k256::SecretKey;
     use revm_primitives::Address;
-    use secp256k1::SecretKey;
 
     use super::*;
+    use crate::signature::secret_key_from_str;
 
     fn dummy_request() -> EIP155TransactionRequest {
         let to = Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e").unwrap();
@@ -119,8 +120,8 @@ mod tests {
         }
     }
 
-    fn dummy_private_key() -> SecretKey {
-        SecretKey::from_str("e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109")
+    fn dummy_secret_key() -> SecretKey {
+        secret_key_from_str("e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109")
             .unwrap()
     }
 
@@ -132,7 +133,7 @@ mod tests {
                 .unwrap();
 
         let request = dummy_request();
-        let signed = request.sign(&dummy_private_key());
+        let signed = request.sign(&dummy_secret_key()).unwrap();
 
         let encoded = rlp::encode(&signed);
         assert_eq!(expected, encoded.to_vec());
@@ -147,7 +148,7 @@ mod tests {
         );
 
         let request = dummy_request();
-        let signed = request.sign(&dummy_private_key());
+        let signed = request.sign(&dummy_secret_key()).unwrap();
 
         assert_eq!(expected, *signed.hash());
     }
@@ -155,7 +156,7 @@ mod tests {
     #[test]
     fn test_eip155_signed_transaction_rlp() {
         let request = dummy_request();
-        let signed = request.sign(&dummy_private_key());
+        let signed = request.sign(&dummy_secret_key()).unwrap();
 
         let encoded = rlp::encode(&signed);
         assert_eq!(signed, rlp::decode(&encoded).unwrap());

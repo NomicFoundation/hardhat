@@ -9,7 +9,6 @@ use rethnet_rpc_server::{
     AccountConfig as ServerAccountConfig, Config as ServerConfig, RpcForkConfig,
     RpcHardhatNetworkConfig,
 };
-use secp256k1::SecretKey;
 use serde::{Deserialize, Serialize};
 
 pub use super::NodeArgs;
@@ -90,10 +89,10 @@ impl Default for ConfigFile {
         Self {
             allow_blocks_with_same_timestamp: false,
             allow_unlimited_contract_size: false,
-            accounts: rethnet_defaults::PRIVATE_KEYS
+            accounts: rethnet_defaults::SECRET_KEYS
                 .into_iter()
                 .map(|s| AccountConfig {
-                    private_key: Bytes::from_iter(
+                    secret_key: Bytes::from_iter(
                         hex::decode(s)
                             .expect("should decode all default private keys from strings"),
                     )
@@ -117,17 +116,17 @@ impl Default for ConfigFile {
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct AccountConfig {
-    pub private_key: ZeroXPrefixedBytes,
+    pub secret_key: ZeroXPrefixedBytes,
     #[serde(deserialize_with = "u256_number")]
     pub balance: Number,
 }
 
 impl TryFrom<AccountConfig> for ServerAccountConfig {
-    type Error = secp256k1::Error;
+    type Error = k256::elliptic_curve::Error;
     fn try_from(account_config: AccountConfig) -> Result<Self, Self::Error> {
-        let bytes: Bytes = account_config.private_key.into();
+        let bytes: Bytes = account_config.secret_key.into();
         Ok(Self {
-            private_key: SecretKey::from_slice(&bytes[..])?,
+            secret_key: k256::SecretKey::from_slice(&bytes[..])?,
             balance: account_config.balance.into(),
         })
     }

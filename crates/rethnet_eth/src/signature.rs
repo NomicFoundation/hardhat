@@ -6,9 +6,13 @@
 use core::fmt;
 use std::str::FromStr;
 
-use secp256k1::{
-    ecdsa::{RecoverableSignature, RecoveryId},
-    PublicKey, Secp256k1, SecretKey, SignOnly, ThirtyTwoByteHash,
+use k256::{
+    ecdsa::{
+        signature::hazmat::PrehashSigner, RecoveryId, Signature as ECDSASignature, SigningKey,
+        VerifyingKey,
+    },
+    elliptic_curve::sec1::ToEncodedPoint,
+    FieldBytes, PublicKey, SecretKey,
 };
 use sha3::{Digest, Keccak256};
 
@@ -16,50 +20,54 @@ use crate::{utils::hash_message, Address, B256, U256};
 
 /// Converts a [`PublicKey`] to an [`Address`].
 pub fn public_key_to_address(public_key: PublicKey) -> Address {
-    let hash = Keccak256::digest(&public_key.serialize_uncompressed()[1..]);
+    let pk = public_key.to_encoded_point(/* compress = */ false);
+    let hash = Keccak256::digest(&pk.as_bytes()[1..]);
     // Only take the lower 160 bits of the hash
     Address::from_slice(&hash[12..])
 }
 
-/// Converts a private to an address using the provided context.
+/// Converts a secret key in a hex string format to an address.
 ///
 /// # Examples
 ///
 /// ```
-/// use rethnet_eth::signature::private_key_to_address;
-/// use secp256k1::Secp256k1;
+/// use rethnet_eth::signature::secret_key_to_address;
 ///
-/// let context = Secp256k1::signing_only();
-/// let private_key = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+/// let secret_key = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 ///
-/// let address = private_key_to_address(&context, private_key).unwrap();
+/// let address = secret_key_to_address(secret_key).unwrap();
 /// ```
-pub fn private_key_to_address(
-    context: &Secp256k1<SignOnly>,
-    private_key: &str,
-) -> Result<Address, secp256k1::Error> {
-    private_to_public_key(context, private_key).map(public_key_to_address)
+pub fn secret_key_to_address(secret_key: &str) -> Result<Address, SignatureError> {
+    let sk = secret_key_from_str(secret_key)?;
+    Ok(public_key_to_address(sk.public_key()))
 }
 
-fn private_to_public_key(
-    context: &Secp256k1<SignOnly>,
-    private_key: &str,
-) -> Result<PublicKey, secp256k1::Error> {
-    let private_key = private_key.strip_prefix("0x").unwrap_or(private_key);
-
-    SecretKey::from_str(private_key).map(|secret_key| secret_key.public_key(context))
+/// Converts a hex string to a secret key.
+pub fn secret_key_from_str(secret_key: &str) -> Result<SecretKey, SignatureError> {
+    let sk = if let Some(stripped) = secret_key.strip_prefix("0x") {
+        hex::decode(stripped)
+    } else {
+        hex::decode(secret_key)
+    }?;
+    let sk = FieldBytes::from_exact_iter(sk.into_iter()).ok_or_else(|| {
+        SignatureError::InvalidSecretKey("expected 32 byte secret key".to_string())
+    })?;
+    Ok(SecretKey::from_bytes(&sk)?)
 }
 
 /// An error involving a signature.
 #[derive(Debug)]
 #[cfg_attr(feature = "std", derive(thiserror::Error))]
 pub enum SignatureError {
-    /// Invalid length, secp256k1 signatures are 65 bytes
+    /// Invalid length, ECDSA secp256k1 signatures with recovery are 65 bytes
     #[cfg_attr(
         feature = "std",
         error("invalid signature length, got {0}, expected 65")
     )]
     InvalidLength(usize),
+    /// Invalid secret key.
+    #[cfg_attr(feature = "std", error("Invalid secret key: {0}"))]
+    InvalidSecretKey(String),
     /// When parsing a signature from string to hex
     #[cfg_attr(feature = "std", error(transparent))]
     DecodingError(#[cfg_attr(feature = "std", from)] hex::FromHexError),
@@ -70,9 +78,12 @@ pub enum SignatureError {
         error("Signature verification failed. Expected {0}, got {1}")
     )]
     VerificationError(Address, Address),
-    /// Internal error during signature recovery
+    /// ECDSA error
     #[cfg_attr(feature = "std", error(transparent))]
-    K256Error(#[cfg_attr(feature = "std", from)] secp256k1::Error),
+    ECDSAError(#[cfg_attr(feature = "std", from)] k256::ecdsa::signature::Error),
+    /// Elliptic curve error
+    #[cfg_attr(feature = "std", error(transparent))]
+    EllipticCurveError(#[cfg_attr(feature = "std", from)] k256::elliptic_curve::Error),
     /// Error in recovering public key from signature
     #[cfg_attr(feature = "std", error("Public key recovery error"))]
     RecoveryError,
@@ -89,14 +100,6 @@ pub enum RecoveryMessage {
     Data(Vec<u8>),
     /// Message hash
     Hash(B256),
-}
-
-struct Hash(B256);
-
-impl ThirtyTwoByteHash for Hash {
-    fn into_32(self) -> [u8; 32] {
-        self.0 .0
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Copy, Hash)]
@@ -119,30 +122,31 @@ impl fmt::Display for Signature {
 }
 
 impl Signature {
-    /// Constructs a new signature from a message and private key.
+    /// Constructs a new signature from a message and secret key.
     /// To obtain the hash of a message consider [`hash_message`].
-    pub fn new<M>(message: M, private_key: &SecretKey) -> Self
+    pub fn new<M>(message: M, secret_key: &SecretKey) -> Result<Self, SignatureError>
     where
         M: Into<RecoveryMessage>,
     {
-        let context = Secp256k1::signing_only();
-
         let message = message.into();
         let message_hash = match message {
             RecoveryMessage::Data(ref message) => hash_message(message),
             RecoveryMessage::Hash(hash) => hash,
         };
 
-        let message_hash = Hash(message_hash);
+        let signing_key: SigningKey = secret_key.into();
+        let (signature, recovery_id) = PrehashSigner::<(ECDSASignature, RecoveryId)>::sign_prehash(
+            &signing_key,
+            &*message_hash,
+        )?;
 
-        let signature = context.sign_ecdsa_recoverable(&message_hash.into(), private_key);
-        let (recovery_id, bytes) = signature.serialize_compact();
+        let r = U256::try_from_be_slice(&Into::<FieldBytes>::into(signature.r()))
+            .expect("Must be valid");
+        let s = U256::try_from_be_slice(&Into::<FieldBytes>::into(signature.s()))
+            .expect("Must be valid");
+        let v = 27 + u64::from(Into::<u8>::into(recovery_id));
 
-        let r = U256::try_from_be_slice(&bytes[..32]).expect("Must be valid");
-        let s = U256::try_from_be_slice(&bytes[32..64]).expect("Must be valid");
-        let v = 27 + u64::try_from(recovery_id.to_i32()).expect("Recovery IDs can only be 0..=3");
-
-        Self { r, s, v }
+        Ok(Self { r, s, v })
     }
 
     /// Returns whether the V value has odd Y parity.
@@ -166,41 +170,26 @@ impl Signature {
     }
 
     /// Recovers the Ethereum address which was used to sign the given message.
-    ///
-    /// Recovery signature data uses 'Electrum' notation, this means the `v`
-    /// value is expected to be either `27` or `28`.
     pub fn recover<M>(&self, message: M) -> Result<Address, SignatureError>
     where
         M: Into<RecoveryMessage>,
     {
-        struct Hash(B256);
-
-        impl ThirtyTwoByteHash for Hash {
-            fn into_32(self) -> [u8; 32] {
-                self.0 .0
-            }
-        }
-
         let message = message.into();
         let message_hash = match message {
             RecoveryMessage::Data(ref message) => hash_message(message),
             RecoveryMessage::Hash(hash) => hash,
         };
 
-        let message_hash = Hash(message_hash);
+        let (signature, recovery_id) = self.as_signature()?;
 
-        let (recoverable_sig, _recovery_id) = self.as_signature()?;
+        let verifying_key =
+            VerifyingKey::recover_from_prehash(message_hash.as_bytes(), &signature, recovery_id)?;
 
-        let context = Secp256k1::verification_only();
-        let public_key = context
-            .recover_ecdsa(&message_hash.into(), &recoverable_sig)
-            .map_err(SignatureError::K256Error)?;
-
-        Ok(public_key_to_address(public_key))
+        Ok(public_key_to_address(verifying_key.into()))
     }
 
     /// Retrieves the recovery signature.
-    fn as_signature(&self) -> Result<(RecoverableSignature, RecoveryId), SignatureError> {
+    fn as_signature(&self) -> Result<(ECDSASignature, RecoveryId), SignatureError> {
         let recovery_id = self.recovery_id()?;
         let signature = {
             let r_bytes = self.r.to_be_bytes::<32>();
@@ -209,9 +198,7 @@ impl Signature {
             let mut bytes = [0u8; 64];
             bytes[..32].copy_from_slice(&r_bytes);
             bytes[32..64].copy_from_slice(&s_bytes);
-
-            RecoverableSignature::from_compact(&bytes, recovery_id)
-                .map_err(SignatureError::K256Error)?
+            ECDSASignature::from_slice(&bytes)?
         };
 
         Ok((signature, recovery_id))
@@ -220,7 +207,7 @@ impl Signature {
     /// Retrieve the recovery ID.
     pub fn recovery_id(&self) -> Result<RecoveryId, SignatureError> {
         let standard_v = normalize_recovery_id(self.v);
-        RecoveryId::from_i32(standard_v).map_err(SignatureError::K256Error)
+        RecoveryId::try_from(standard_v).map_err(SignatureError::ECDSAError)
     }
 
     /// Copies and serializes `self` into a new `Vec` with the recovery id included
@@ -260,7 +247,7 @@ impl open_fastrlp::Encodable for Signature {
     }
 }
 
-fn normalize_recovery_id(v: u64) -> i32 {
+fn normalize_recovery_id(v: u64) -> u8 {
     match v {
         0 | 27 => 0,
         1 | 28 => 1,
@@ -417,8 +404,7 @@ mod tests {
         let expected_address = Address::from_str("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
             .expect("should parse address from string");
 
-        let actual_address = private_key_to_address(
-            &Secp256k1::signing_only(),
+        let actual_address = secret_key_to_address(
             "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
         )
         .expect("should derive address");
@@ -431,22 +417,21 @@ mod tests {
         where
             MsgOrHash: Into<RecoveryMessage>,
         {
-            let private_key_str =
-                "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
-            let private_key = SecretKey::from_str(private_key_str).unwrap();
+            let secret_key_str = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+            let secret_key = secret_key_from_str(secret_key_str).unwrap();
 
-            let signature = Signature::new(msg_input, &private_key);
+            let signature = Signature::new(msg_input, &secret_key).unwrap();
 
             let recovered_address = signature.recover(hashed_message).unwrap();
 
             assert_eq!(
                 recovered_address,
-                private_key_to_address(&Secp256k1::signing_only(), private_key_str).unwrap()
+                secret_key_to_address(secret_key_str).unwrap()
             );
         }
 
         let message = "whatever";
-        let hashed_message = crate::utils::hash_message(message);
+        let hashed_message = hash_message(message);
 
         verify(message, hashed_message);
         verify(hashed_message, hashed_message);

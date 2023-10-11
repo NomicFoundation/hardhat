@@ -98,12 +98,13 @@ impl rlp::Decodable for LegacySignedTransaction {
 
 #[cfg(test)]
 mod tests {
+    use k256::SecretKey;
     use std::str::FromStr;
 
     use revm_primitives::Address;
-    use secp256k1::SecretKey;
 
     use super::*;
+    use crate::signature::secret_key_from_str;
 
     fn dummy_request() -> LegacyTransactionRequest {
         let to = Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e").unwrap();
@@ -118,8 +119,8 @@ mod tests {
         }
     }
 
-    fn dummy_private_key() -> SecretKey {
-        SecretKey::from_str("e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109")
+    fn dummy_secret_key() -> SecretKey {
+        secret_key_from_str("e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109")
             .unwrap()
     }
 
@@ -130,7 +131,7 @@ mod tests {
             hex::decode("f85f01020394c014ba5ec014ba5ec014ba5ec014ba5ec014ba5e048212341ca0c62d73a484ff7c53a0cfdf8eaa5e5896491b70971e9ce4a3e8750772b7c0203fa00562866909572aee9ab72df7470c1dd7aa29b056597be57c17e06f1ee303e7eb").unwrap();
 
         let request = dummy_request();
-        let signed = request.sign(&dummy_private_key());
+        let signed = request.sign(&dummy_secret_key()).unwrap();
 
         let encoded = rlp::encode(&signed);
         assert_eq!(expected, encoded.to_vec());
@@ -145,7 +146,7 @@ mod tests {
         );
 
         let request = dummy_request();
-        let signed = request.sign(&dummy_private_key());
+        let signed = request.sign(&dummy_secret_key()).unwrap();
 
         assert_eq!(expected, *signed.hash());
     }
@@ -153,7 +154,7 @@ mod tests {
     #[test]
     fn test_legacy_signed_transaction_rlp() {
         let request = dummy_request();
-        let signed = request.sign(&dummy_private_key());
+        let signed = request.sign(&dummy_secret_key()).unwrap();
 
         let encoded = rlp::encode(&signed);
         assert_eq!(signed, rlp::decode(&encoded).unwrap());

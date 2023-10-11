@@ -2,8 +2,6 @@ use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::time::SystemTime;
 
-use secp256k1::SecretKey;
-
 use rethnet_eth::{Address, SpecId, U256};
 
 pub use crate::hardhat_methods::reset::{RpcForkConfig, RpcHardhatNetworkConfig};
@@ -27,8 +25,8 @@ pub struct Config {
 
 /// configuration input for a single account
 pub struct AccountConfig {
-    /// the private key of the account
-    pub private_key: SecretKey,
+    /// the secret key of the account
+    pub secret_key: k256::SecretKey,
     /// the balance of the account
     pub balance: U256,
 }

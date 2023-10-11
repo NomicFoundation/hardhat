@@ -4,7 +4,6 @@ use std::{
     time::SystemTime,
 };
 
-use secp256k1::{Secp256k1, SecretKey};
 use tempfile::TempDir;
 use tracing::Level;
 
@@ -17,7 +16,7 @@ use rethnet_eth::{
         BlockSpec,
     },
     serde::ZeroXPrefixedBytes,
-    signature::{private_key_to_address, Signature},
+    signature::{secret_key_from_str, secret_key_to_address, Signature},
     Address, Bytes, SpecId, B256, U256, U64,
 };
 use rethnet_evm::{AccountInfo, HashMap, KECCAK_EMPTY};
@@ -27,7 +26,7 @@ use rethnet_rpc_server::{
     Server,
 };
 
-const PRIVATE_KEY: &str = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+const SECRET_KEY: &str = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 
 struct TestFixture {
     server_address: SocketAddr,
@@ -55,8 +54,8 @@ async fn start_server() -> TestFixture {
         allow_unlimited_contract_size: false,
         rpc_hardhat_network_config: RpcHardhatNetworkConfig { forking: None },
         accounts: vec![AccountConfig {
-            private_key: SecretKey::from_str(PRIVATE_KEY)
-                .expect("should construct private key from string"),
+            secret_key: secret_key_from_str(SECRET_KEY)
+                .expect("should construct secret key from string"),
             balance: U256::ZERO,
         }],
         block_gas_limit: U256::from(30_000_000),
@@ -133,7 +132,7 @@ async fn test_accounts() {
     verify_response(
         &start_server().await,
         MethodInvocation::Eth(EthMethodInvocation::Accounts()),
-        vec![private_key_to_address(&Secp256k1::signing_only(), PRIVATE_KEY).unwrap()],
+        vec![secret_key_to_address(SECRET_KEY).unwrap()],
     )
     .await;
 }

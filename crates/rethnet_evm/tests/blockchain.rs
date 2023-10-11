@@ -144,10 +144,10 @@ fn create_dummy_transaction() -> SignedTransaction {
         chain_id: 1,
     };
 
-    let private_key = rethnet_eth::secp256k1::SecretKey::from_str(DUMMY_PRIVATE_KEY)
-        .expect("Failed to parse private key");
+    let secret_key = rethnet_eth::signature::secret_key_from_str(DUMMY_PRIVATE_KEY)
+        .expect("Failed to parse secret key");
 
-    SignedTransaction::PostEip155Legacy(transaction.sign(&private_key))
+    SignedTransaction::PostEip155Legacy(transaction.sign(&secret_key).expect("signs transaction"))
 }
 
 #[tokio::test]
