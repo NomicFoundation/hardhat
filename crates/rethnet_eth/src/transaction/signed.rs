@@ -1,6 +1,7 @@
 mod eip155;
 mod eip1559;
 mod eip2930;
+mod eip4844;
 mod legacy;
 
 use bytes::Bytes;
@@ -16,7 +17,8 @@ use super::kind::TransactionKind;
 
 pub use self::{
     eip155::EIP155SignedTransaction, eip1559::EIP1559SignedTransaction,
-    eip2930::EIP2930SignedTransaction, legacy::LegacySignedTransaction,
+    eip2930::EIP2930SignedTransaction, eip4844::Eip4844SignedTransaction,
+    legacy::LegacySignedTransaction,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -30,6 +32,8 @@ pub enum SignedTransaction {
     Eip2930(EIP2930SignedTransaction),
     /// EIP-1559 transaction
     Eip1559(EIP1559SignedTransaction),
+    /// EIP-4844 transaction
+    Eip4844(Eip4844SignedTransaction),
 }
 
 impl SignedTransaction {
@@ -40,6 +44,7 @@ impl SignedTransaction {
             SignedTransaction::PostEip155Legacy(tx) => tx.gas_price,
             SignedTransaction::Eip2930(tx) => tx.gas_price,
             SignedTransaction::Eip1559(tx) => tx.max_fee_per_gas,
+            SignedTransaction::Eip4844(tx) => tx.max_fee_per_gas,
         }
     }
 
@@ -50,6 +55,7 @@ impl SignedTransaction {
             SignedTransaction::PostEip155Legacy(tx) => tx.gas_limit,
             SignedTransaction::Eip2930(tx) => tx.gas_limit,
             SignedTransaction::Eip1559(tx) => tx.gas_limit,
+            SignedTransaction::Eip4844(tx) => tx.gas_limit,
         }
     }
 
@@ -60,6 +66,7 @@ impl SignedTransaction {
             SignedTransaction::PostEip155Legacy(tx) => tx.value,
             SignedTransaction::Eip2930(tx) => tx.value,
             SignedTransaction::Eip1559(tx) => tx.value,
+            SignedTransaction::Eip4844(tx) => tx.value,
         }
     }
 
@@ -70,6 +77,7 @@ impl SignedTransaction {
             SignedTransaction::PostEip155Legacy(tx) => &tx.input,
             SignedTransaction::Eip2930(tx) => &tx.input,
             SignedTransaction::Eip1559(tx) => &tx.input,
+            SignedTransaction::Eip4844(tx) => &tx.input,
         }
     }
 
@@ -79,6 +87,7 @@ impl SignedTransaction {
             SignedTransaction::PreEip155Legacy(_) | SignedTransaction::PostEip155Legacy(_) => None,
             SignedTransaction::Eip2930(tx) => Some(&tx.access_list),
             SignedTransaction::Eip1559(tx) => Some(&tx.access_list),
+            SignedTransaction::Eip4844(tx) => Some(&tx.access_list),
         }
     }
 
@@ -94,6 +103,7 @@ impl SignedTransaction {
             | SignedTransaction::PostEip155Legacy(_)
             | SignedTransaction::Eip2930(_) => None,
             SignedTransaction::Eip1559(tx) => Some(tx.max_priority_fee_per_gas),
+            SignedTransaction::Eip4844(tx) => Some(tx.max_priority_fee_per_gas),
         }
     }
 
@@ -109,6 +119,7 @@ impl SignedTransaction {
             SignedTransaction::PostEip155Legacy(t) => t.nonce,
             SignedTransaction::Eip2930(t) => t.nonce,
             SignedTransaction::Eip1559(t) => t.nonce,
+            SignedTransaction::Eip4844(t) => t.nonce,
         }
     }
 
@@ -119,6 +130,7 @@ impl SignedTransaction {
             SignedTransaction::PostEip155Legacy(t) => Some(t.chain_id()),
             SignedTransaction::Eip2930(t) => Some(t.chain_id),
             SignedTransaction::Eip1559(t) => Some(t.chain_id),
+            SignedTransaction::Eip4844(t) => Some(t.chain_id),
         }
     }
 
@@ -146,6 +158,7 @@ impl SignedTransaction {
             SignedTransaction::PostEip155Legacy(t) => t.hash(),
             SignedTransaction::Eip2930(t) => t.hash(),
             SignedTransaction::Eip1559(t) => t.hash(),
+            SignedTransaction::Eip4844(t) => t.hash(),
         }
     }
 
@@ -156,22 +169,24 @@ impl SignedTransaction {
             SignedTransaction::PostEip155Legacy(tx) => tx.recover(),
             SignedTransaction::Eip2930(tx) => tx.recover(),
             SignedTransaction::Eip1559(tx) => tx.recover(),
+            SignedTransaction::Eip4844(tx) => tx.recover(),
         }
     }
 
     /// Returns what kind of transaction this is
-    pub fn kind(&self) -> &TransactionKind {
+    pub fn kind(&self) -> TransactionKind {
         match self {
-            SignedTransaction::PreEip155Legacy(tx) => &tx.kind,
-            SignedTransaction::PostEip155Legacy(tx) => &tx.kind,
-            SignedTransaction::Eip2930(tx) => &tx.kind,
-            SignedTransaction::Eip1559(tx) => &tx.kind,
+            SignedTransaction::PreEip155Legacy(tx) => tx.kind,
+            SignedTransaction::PostEip155Legacy(tx) => tx.kind,
+            SignedTransaction::Eip2930(tx) => tx.kind,
+            SignedTransaction::Eip1559(tx) => tx.kind,
+            SignedTransaction::Eip4844(tx) => TransactionKind::Call(tx.to),
         }
     }
 
     /// Returns the callee if this transaction is a call
-    pub fn to(&self) -> Option<&Address> {
-        self.kind().as_call()
+    pub fn to(&self) -> Option<Address> {
+        self.kind().as_call().copied()
     }
 
     /// Returns the [`Signature`] of the transaction
@@ -189,6 +204,11 @@ impl SignedTransaction {
                 s: tx.s,
                 v: u64::from(tx.odd_y_parity),
             },
+            SignedTransaction::Eip4844(tx) => Signature {
+                r: tx.r,
+                s: tx.s,
+                v: u64::from(tx.odd_y_parity),
+            },
         }
     }
 }
@@ -200,6 +220,7 @@ impl rlp::Encodable for SignedTransaction {
             SignedTransaction::PostEip155Legacy(tx) => tx.rlp_append(s),
             SignedTransaction::Eip2930(tx) => enveloped(1, tx, s),
             SignedTransaction::Eip1559(tx) => enveloped(2, tx, s),
+            SignedTransaction::Eip4844(tx) => enveloped(3, tx, s),
         }
     }
 }
@@ -226,12 +247,14 @@ impl rlp::Decodable for SignedTransaction {
         }
 
         if first == 0x01 {
-            return rlp::decode(s).map(SignedTransaction::Eip2930);
+            rlp::decode(s).map(SignedTransaction::Eip2930)
+        } else if first == 0x02 {
+            rlp::decode(s).map(SignedTransaction::Eip1559)
+        } else if first == 0x03 {
+            rlp::decode(s).map(SignedTransaction::Eip4844)
+        } else {
+            Err(rlp::DecoderError::Custom("invalid tx type"))
         }
-        if first == 0x02 {
-            return rlp::decode(s).map(SignedTransaction::Eip1559);
-        }
-        Err(rlp::DecoderError::Custom("invalid tx type"))
     }
 }
 
@@ -330,6 +353,23 @@ mod tests {
                 value: U256::from(4),
                 input: Bytes::from(vec![1, 2]),
                 access_list: vec![].into(),
+                odd_y_parity: true,
+                r: U256::default(),
+                s: U256::default(),
+                hash: OnceLock::new(),
+            }),
+            SignedTransaction::Eip4844(Eip4844SignedTransaction {
+                chain_id: 1u64,
+                nonce: 0,
+                max_priority_fee_per_gas: U256::from(1),
+                max_fee_per_gas: U256::from(2),
+                max_fee_per_blob_gas: U256::from(7),
+                gas_limit: 3,
+                to: Address::random(),
+                value: U256::from(4),
+                input: Bytes::from(vec![1, 2]),
+                access_list: vec![].into(),
+                blob_hashes: vec![B256::random(), B256::random()],
                 odd_y_parity: true,
                 r: U256::default(),
                 s: U256::default(),

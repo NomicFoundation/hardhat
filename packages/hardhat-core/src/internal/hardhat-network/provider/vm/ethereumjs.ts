@@ -118,6 +118,7 @@ export class EthereumJSAdapter implements VMAdapter {
 
   constructor(
     private readonly _vm: VM,
+    private readonly _blockchain: HardhatBlockchainInterface,
     public readonly _stateManager: StateManagerWithAddresses,
     private readonly _common: Common,
     private readonly _configNetworkId: number,
@@ -205,6 +206,7 @@ export class EthereumJSAdapter implements VMAdapter {
 
     return new EthereumJSAdapter(
       vm,
+      blockchain,
       stateManager,
       common,
       config.networkId,
@@ -218,10 +220,21 @@ export class EthereumJSAdapter implements VMAdapter {
 
   public async dryRun(
     tx: TypedTransaction,
-    blockContext: Block,
+    blockNumber: bigint,
     forceBaseFeeZero = false,
     stateOverrideSet: StateOverrideSet = {}
   ): Promise<RunTxResult> {
+    // We know that this block number exists, because otherwise
+    // there would be an error in the RPC layer.
+    let blockContext = await this._blockchain.getBlockByNumber(blockNumber);
+    assertHardhatInvariant(
+      blockContext !== undefined,
+      "Tried to run a tx in the context of a non-existent block"
+    );
+
+    // we don't need to add the tx to the block because runTx doesn't
+    // know anything about the txs in the current block
+
     const initialStateRoot = await this.getStateRoot();
 
     await this._applyStateOverrideSet(stateOverrideSet);
@@ -477,14 +490,14 @@ export class EthereumJSAdapter implements VMAdapter {
   }
   public async traceCall(
     tx: TypedTransaction,
-    block: Block,
+    blockNumber: bigint,
     traceConfig: RpcDebugTracingConfig
   ): Promise<RpcDebugTraceOutput> {
     const vmDebugTracer = new VMDebugTracer(this._vm);
 
     return vmDebugTracer.trace(async () => {
       const forceBaseFeeZero = true;
-      await this.dryRun(tx, block, forceBaseFeeZero);
+      await this.dryRun(tx, blockNumber, forceBaseFeeZero);
     }, traceConfig);
   }
 

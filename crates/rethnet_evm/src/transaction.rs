@@ -40,7 +40,7 @@ where
             EVMError::Transaction(e) => Self::InvalidTransaction(e),
             EVMError::Header(
                 InvalidHeader::ExcessBlobGasNotSet | InvalidHeader::PrevrandaoNotSet,
-            ) => unreachable!(),
+            ) => unreachable!("error: {error:?}"),
             EVMError::Database(DatabaseComponentError::State(e)) => Self::State(e),
             EVMError::Database(DatabaseComponentError::BlockHash(e)) => Self::Blockchain(e),
         }

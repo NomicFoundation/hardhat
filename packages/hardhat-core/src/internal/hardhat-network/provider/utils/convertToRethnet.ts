@@ -187,6 +187,10 @@ export function rethnetSpecIdToEthereumHardfork(specId: SpecId): HardforkName {
       return HardforkName.MERGE;
     case SpecId.Shanghai:
       return HardforkName.SHANGHAI;
+    // HACK: EthereumJS doesn't support Cancun, so report Shanghai
+    case SpecId.Cancun:
+      return HardforkName.SHANGHAI;
+
     default:
       throw new Error(`Unknown spec id '${specId}', this shouldn't happen`);
   }

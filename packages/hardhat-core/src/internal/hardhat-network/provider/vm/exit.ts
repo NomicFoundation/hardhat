@@ -31,6 +31,8 @@ export class Exit {
 
       case ExceptionalHalt.OpcodeNotFound:
       case ExceptionalHalt.InvalidFEOpcode:
+      // Returned when an opcode is not implemented for the hardfork
+      case ExceptionalHalt.NotActivated:
         return new Exit(ExitCode.INVALID_OPCODE);
 
       case ExceptionalHalt.StackUnderflow:

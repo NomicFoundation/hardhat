@@ -40,7 +40,7 @@ export interface RunBlockResult {
 export interface VMAdapter {
   dryRun(
     tx: TypedTransaction,
-    blockContext: Block,
+    blockNumber: bigint,
     forceBaseFeeZero?: boolean,
     stateOverrideSet?: StateOverrideSet
   ): Promise<RunTxResult>;
@@ -79,7 +79,7 @@ export interface VMAdapter {
   ): Promise<RpcDebugTraceOutput>;
   traceCall(
     tx: TypedTransaction,
-    block: Block,
+    blockNumber: bigint,
     traceConfig: RpcDebugTracingConfig
   ): Promise<RpcDebugTraceOutput>;
 

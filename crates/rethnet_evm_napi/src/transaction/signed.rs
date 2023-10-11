@@ -1,25 +1,30 @@
-use napi::bindgen_prelude::Either3;
-
 mod eip1559;
 mod eip2930;
+mod eip4844;
 mod legacy;
+
+use napi::bindgen_prelude::Either4;
 
 use crate::cast::TryCast;
 
 pub use self::{
     eip1559::EIP1559SignedTransaction, eip2930::EIP2930SignedTransaction,
-    legacy::LegacySignedTransaction,
+    eip4844::Eip4844SignedTransaction, legacy::LegacySignedTransaction,
 };
 
-pub type SignedTransaction =
-    Either3<LegacySignedTransaction, EIP2930SignedTransaction, EIP1559SignedTransaction>;
+pub type SignedTransaction = Either4<
+    LegacySignedTransaction,
+    EIP2930SignedTransaction,
+    EIP1559SignedTransaction,
+    Eip4844SignedTransaction,
+>;
 
 impl TryCast<rethnet_eth::transaction::SignedTransaction> for SignedTransaction {
     type Error = napi::Error;
 
     fn try_cast(self) -> Result<rethnet_eth::transaction::SignedTransaction, Self::Error> {
         Ok(match self {
-            Either3::A(transaction) => {
+            Either4::A(transaction) => {
                 let v: u64 = transaction.signature.v.clone().try_cast()?;
 
                 if v >= 35 {
@@ -32,11 +37,14 @@ impl TryCast<rethnet_eth::transaction::SignedTransaction> for SignedTransaction 
                     )
                 }
             }
-            Either3::B(transaction) => {
+            Either4::B(transaction) => {
                 rethnet_eth::transaction::SignedTransaction::Eip2930(transaction.try_into()?)
             }
-            Either3::C(transaction) => {
+            Either4::C(transaction) => {
                 rethnet_eth::transaction::SignedTransaction::Eip1559(transaction.try_into()?)
+            }
+            Either4::D(transaction) => {
+                rethnet_eth::transaction::SignedTransaction::Eip4844(transaction.try_into()?)
             }
         })
     }
