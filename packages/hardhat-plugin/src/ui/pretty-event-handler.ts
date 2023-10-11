@@ -35,7 +35,7 @@ import {
 
 import { calculateBatchDisplay } from "./helpers/calculate-batch-display";
 import { calculateDeployingModulePanel } from "./helpers/calculate-deploying-module-panel";
-import { displayDeploymentComplete } from "./helpers/display-deployment-complete";
+import { calculateDeploymentCompleteDisplay } from "./helpers/calculate-deployment-complete-display";
 import { displayStartingMessage } from "./helpers/display-starting-message";
 import {
   UiBatches,
@@ -347,9 +347,10 @@ export class PrettyEventHandler implements ExecutionEventListener {
 
     if (originalStatus !== UiStateDeploymentStatus.UNSTARTED) {
       this._redisplayCurrentBatch();
+      this._clearUpToHeight(1);
     }
 
-    displayDeploymentComplete(this.state, event);
+    console.log(calculateDeploymentCompleteDisplay(event, this.state));
   }
 
   public reconciliationWarnings(event: ReconciliationWarningsEvent): void {

@@ -5,7 +5,7 @@ export function calculateBatchDisplay(state: UiState): {
   height: number;
 } {
   const batch = state.batches[state.currentBatch - 1];
-  const height = batch.length + 1;
+  const height = batch.length + 2;
 
   let text = `Batch #${state.currentBatch}\n`;
 
@@ -13,6 +13,8 @@ export function calculateBatchDisplay(state: UiState): {
     .sort((a, b) => a.futureId.localeCompare(b.futureId))
     .map(_futureStatus)
     .join("\n");
+
+  text += "\n";
 
   return { text, height };
 }
