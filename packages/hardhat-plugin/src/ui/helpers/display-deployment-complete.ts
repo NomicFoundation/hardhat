@@ -137,21 +137,24 @@ function _displayExecutionErrors(
 ) {
   console.log("");
   console.log(
-    chalk.bold(
-      `⛔ Execution failed for module ${chalk.italic(
-        state.moduleName ?? "unknown"
-      )}`
-    )
+    // [ ${state.moduleName ?? "unknown"} ] successfully deployed
+    chalk.bold(`[ ${chalk.italic(state.moduleName ?? "unknown")} ] failed ⛔`)
   );
   console.log("");
 
   if (result.timedOut.length > 0) {
-    console.log(chalk.yellow("Timed out:"));
+    console.log(
+      chalk.yellow("Transaction remains unconfirmed after fee bump:")
+    );
     console.log("");
 
     for (const { futureId } of Object.values(result.timedOut)) {
       console.log(` - ${futureId}`);
     }
+    console.log("");
+    console.log(
+      "Consider increasing the fee in your config.\nCheck out the docs to learn more: <LINK>"
+    );
   }
 
   if (result.failed.length > 0) {

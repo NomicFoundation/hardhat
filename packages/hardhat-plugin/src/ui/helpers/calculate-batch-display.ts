@@ -26,7 +26,7 @@ function _futureStatus(future: UiFuture): string {
       return `  Executed ${future.futureId}`;
     }
     case UiFutureStatusType.PENDING: {
-      return `  Timed out ${future.futureId}`;
+      return `  Pending ${future.futureId}`;
     }
     case UiFutureStatusType.ERRORED: {
       return `  Failed ${future.futureId}`;
