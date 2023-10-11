@@ -12,7 +12,7 @@ hash256-std-hasher = { version = "0.15.2", default-features = false }
 hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
 hyper = {version = "0.14.27", default-features = false}
 itertools = { version = "0.10.5", default-features = false, features = ["use_alloc"] }
-k256 = { version = "0.13.1", default-features = false, features = ["arithmetic", "ecdsa", "pkcs8", "precomputed-tables"] }
+k256 = { version = "0.13.1", default-features = false, features = ["arithmetic", "ecdsa", "pkcs8",] }
 log = { version = "0.4.17", default-features = false }
 open-fastrlp = { version = "0.1.2", default-features = false, features = ["derive"], optional = true }
 primitive-types = { version = "0.11.1", default-features = false, features = ["rlp"] }
@@ -46,5 +46,5 @@ walkdir = { version = "2.3.3", default-features =  false }
 default = ["std"]
 # fastrlp = ["dep:open-fastrlp", "ruint/fastrlp"] Broken due to lack of support for fastrlp in primitive-types
 serde = ["dep:serde", "bytes/serde", "ethbloom/serialize", "primitive-types/serde", "revm-primitives/serde", "serde_json"]
-std = ["bytes/std", "ethbloom/std", "futures/std", "hash256-std-hasher/std", "hash-db/std", "hex/std", "itertools/use_std", "k256/std", "open-fastrlp?/std", "primitive-types/std", "revm-primitives/std", "rlp/std", "serde?/std", "sha3/std", "triehash/std", "uuid/std"]
+std = ["bytes/std", "ethbloom/std", "futures/std", "hash256-std-hasher/std", "hash-db/std", "hex/std", "itertools/use_std", "k256/std", "k256/precomputed-tables", "open-fastrlp?/std", "primitive-types/std", "revm-primitives/std", "rlp/std", "serde?/std", "sha3/std", "triehash/std", "uuid/std"]
 test-remote = ["serde"]
