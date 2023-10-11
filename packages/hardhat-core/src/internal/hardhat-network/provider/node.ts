@@ -491,7 +491,11 @@ export class HardhatNode extends EventEmitter {
     blockNumberOrPending: bigint | "pending",
     stateOverrideSet: StateOverrideSet = {}
   ): Promise<RunCallResult> {
-    const tx = await this._getTransactionForCall(call, blockNumberOrPending);
+    const tx = await this._getTransactionForCall(
+      call,
+      blockNumberOrPending,
+      stateOverrideSet
+    );
 
     const result = await this._runInBlockContext(
       blockNumberOrPending,
@@ -2134,8 +2138,20 @@ export class HardhatNode extends EventEmitter {
 
   private async _getNonce(
     address: Address,
-    blockNumberOrPending: bigint | "pending"
+    blockNumberOrPending: bigint | "pending",
+    stateOverrideSet: StateOverrideSet = {}
   ): Promise<bigint> {
+    const overridenAccount = Object.entries(stateOverrideSet).find(([key]) =>
+      Address.fromString(key).equals(address)
+    )?.[1];
+
+    if (
+      overridenAccount !== undefined &&
+      overridenAccount.nonce !== undefined
+    ) {
+      return overridenAccount.nonce;
+    }
+
     if (blockNumberOrPending === "pending") {
       return this.getAccountNextPendingNonce(address);
     }
@@ -2276,7 +2292,8 @@ export class HardhatNode extends EventEmitter {
 
   private async _getTransactionForCall(
     call: CallParams,
-    blockNumberOrPending: bigint | "pending"
+    blockNumberOrPending: bigint | "pending",
+    stateOverrideSet: StateOverrideSet = {}
   ): Promise<
     | FakeSenderTransaction
     | FakeSenderAccessListEIP2930Transaction
@@ -2286,7 +2303,8 @@ export class HardhatNode extends EventEmitter {
 
     const nonce = await this._getNonce(
       new Address(call.from),
-      blockNumberOrPending
+      blockNumberOrPending,
+      stateOverrideSet
     );
 
     if (

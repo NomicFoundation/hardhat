@@ -857,7 +857,8 @@ describe("Eth module", function () {
                   "latest",
                   {
                     [deployerAddress]: {
-                      nonce: numberToRpcQuantity(maxNonce),
+                      // The maximum value that can be stored in a u64 is not allowed for a nonce
+                      nonce: numberToRpcQuantity(maxNonce - 1n),
                     },
                   },
                 ]);

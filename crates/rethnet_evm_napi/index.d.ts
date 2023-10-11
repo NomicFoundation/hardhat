@@ -234,7 +234,8 @@ export interface AccountOverride {
   balance?: bigint
   nonce?: bigint
   code?: Buffer
-  storage?: StorageOverride
+  storage?: Array<StorageSlotChange>
+  storageDiff?: Array<StorageSlotChange>
 }
 export interface TracingMessage {
   /** Recipient address. None if it is a Create message. */
