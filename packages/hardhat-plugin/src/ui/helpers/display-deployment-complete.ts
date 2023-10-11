@@ -52,7 +52,6 @@ function _displaySuccessfulDeployment(
   for (const contract of Object.values(result.contracts)) {
     console.log(`${contract.id} - ${contract.address}`);
   }
-  console.log("");
 }
 
 function _displayValidationErrors(

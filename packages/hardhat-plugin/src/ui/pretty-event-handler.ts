@@ -33,8 +33,8 @@ import {
   WipeApplyEvent,
 } from "@nomicfoundation/ignition-core";
 
-import { displayBatch, redisplayBatch } from "./helpers/display-batch";
-import { displayDeployingModulePanel } from "./helpers/display-deploying-module-panel";
+import { calculateBatchDisplay } from "./helpers/calculate-batch-display";
+import { calculateDeployingModulePanel } from "./helpers/calculate-deploying-module-panel";
 import { displayDeploymentComplete } from "./helpers/display-deployment-complete";
 import { displayStartingMessage } from "./helpers/display-starting-message";
 import {
@@ -85,19 +85,27 @@ export class PrettyEventHandler implements ExecutionEventListener {
       chainId: event.chainId,
     };
 
-    displayDeployingModulePanel(this.state);
+    this._clearCurrentLine();
+    console.log(calculateDeployingModulePanel(this.state));
   }
 
   public beginNextBatch(_event: BeginNextBatchEvent): void {
     // rerender the previous batch
-    redisplayBatch(this.state);
+    if (this.state.currentBatch > 0) {
+      this._redisplayCurrentBatch();
+    }
 
     this.state = {
       ...this.state,
       currentBatch: this.state.currentBatch + 1,
     };
 
-    displayBatch(this.state);
+    if (this.state.currentBatch === 0) {
+      return;
+    }
+
+    // render the new batch
+    console.log(calculateBatchDisplay(this.state).text);
   }
 
   public wipeApply(event: WipeApplyEvent): void {
@@ -152,7 +160,7 @@ export class PrettyEventHandler implements ExecutionEventListener {
       batches: this._applyUpdateToBatchFuture(updatedFuture),
     };
 
-    redisplayBatch(this.state);
+    this._redisplayCurrentBatch();
   }
 
   public callExecutionStateInitialize(
@@ -338,7 +346,7 @@ export class PrettyEventHandler implements ExecutionEventListener {
     };
 
     if (originalStatus !== UiStateDeploymentStatus.UNSTARTED) {
-      redisplayBatch(this.state);
+      this._redisplayCurrentBatch();
     }
 
     displayDeploymentComplete(this.state, event);
@@ -460,5 +468,23 @@ export class PrettyEventHandler implements ExecutionEventListener {
     }
 
     return null;
+  }
+
+  private _redisplayCurrentBatch() {
+    const { height, text: batch } = calculateBatchDisplay(this.state);
+
+    this._clearUpToHeight(height);
+
+    console.log(batch);
+  }
+
+  private _clearCurrentLine(): void {
+    process.stdout.clearLine(0);
+    process.stdout.cursorTo(0);
+  }
+
+  private _clearUpToHeight(height: number) {
+    process.stdout.moveCursor(0, -height);
+    process.stdout.clearScreenDown();
   }
 }
