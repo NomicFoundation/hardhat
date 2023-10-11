@@ -6,10 +6,10 @@ import {
 import React, { useState } from "react";
 import { Tooltip } from "react-tooltip";
 import styled, { css } from "styled-components";
+import { TooltipIcon } from "../../../assets/TooltipIcon";
 import { Mermaid } from "../../../components/mermaid";
 import { getAllFuturesForModule } from "../../../queries/futures";
 import { toEscapedId } from "../../../utils/to-escaped-id";
-import { TooltipIcon } from "../../../assets/TooltipIcon";
 
 export const DeploymentFlow: React.FC<{
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>;
@@ -50,7 +50,11 @@ export const DeploymentFlow: React.FC<{
         Deployment flow <FlowTooltip />
       </SectionHeader>
 
-      {batches.length > 1 ? (
+      {futures.length <= 1 ? (
+        <SingleFutureNotice>
+          A module diagram will show once you have more than 1 future.
+        </SingleFutureNotice>
+      ) : (
         <div>
           <BatchBtnSection>
             <VisualizeDiv>Visualize batches</VisualizeDiv>
@@ -74,10 +78,6 @@ export const DeploymentFlow: React.FC<{
             <Mermaid ignitionModule={ignitionModule} />
           </HighlightedFutures>
         </div>
-      ) : (
-        <SingleFutureNotice>
-          A module diagram will show once you have more than 1 future.
-        </SingleFutureNotice>
       )}
     </div>
   );
