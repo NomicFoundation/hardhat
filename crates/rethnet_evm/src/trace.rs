@@ -6,7 +6,7 @@ use revm::{
         instruction_result::SuccessOrHalt, opcode, return_revert, CallInputs, CreateInputs, Gas,
         InstructionResult, Interpreter,
     },
-    primitives::{AccountInfo, Bytecode, ExecutionResult, Output},
+    primitives::{Bytecode, ExecutionResult, Output},
     EVMData, Inspector,
 };
 
@@ -56,8 +56,10 @@ pub struct Step {
     pub pc: u64,
     /// The call depth
     pub depth: u64,
-    // /// The executed op code
-    // pub opcode: u8,
+    /// The executed op code
+    pub opcode: u8,
+    /// The top entry on the stack. None if the stack is empty.
+    pub stack_top: Option<U256>,
     // /// The amount of gas that was used by the step
     // pub gas_cost: u64,
     // /// The amount of gas that was refunded by the step
@@ -80,21 +82,12 @@ impl Trace {
     }
 
     /// Adds a VM step to the trace.
-    pub fn add_step(
-        &mut self,
-        depth: u64,
-        pc: usize,
-        _opcode: u8,
-        _gas: &Gas,
-        _contract: &AccountInfo,
-        _contract_address: &Address,
-    ) {
+    pub fn add_step(&mut self, depth: u64, pc: usize, opcode: u8, stack_top: Option<U256>) {
         self.messages.push(TraceMessage::Step(Step {
             pc: pc as u64,
             depth,
-            // opcode,
-            // contract: contract.clone(),
-            // contract_address: *contract_address,
+            opcode,
+            stack_top,
         }));
     }
 }
@@ -302,12 +295,7 @@ where
                 data.journaled_state().depth(),
                 interp.program_counter(),
                 interp.current_opcode(),
-                interp.gas(),
-                &data
-                    .journaled_state()
-                    .account(interp.contract().address)
-                    .info,
-                &interp.contract().address,
+                interp.stack.data().last().cloned(),
             );
         }
 

@@ -14,6 +14,7 @@ import { RethnetBlockchain } from "../blockchain/rethnet";
 import { RethnetStateManager } from "../RethnetState";
 import { RethnetMemPool } from "../mem-pool/rethnet";
 import { RandomBufferGenerator } from "../utils/random";
+import { VMStub } from "../vm/rethnet";
 
 export class RethnetMiner implements BlockMinerAdapter {
   constructor(
@@ -23,7 +24,8 @@ export class RethnetMiner implements BlockMinerAdapter {
     private readonly _common: Common,
     private readonly _limitContractCodeSize: bigint | undefined,
     private _mineOrdering: MineOrdering,
-    private _prevRandaoGenerator: RandomBufferGenerator
+    private _prevRandaoGenerator: RandomBufferGenerator,
+    private _vmStub: VMStub
   ) {}
 
   public async mineBlock(
@@ -73,6 +75,14 @@ export class RethnetMiner implements BlockMinerAdapter {
       for (const traceItem of mineTrace) {
         if ("pc" in traceItem) {
           await vmTracer.addStep(traceItem);
+
+          // For solidity-coverage compatibility
+          this._vmStub.evm.events.emit("step", {
+            pc: Number(traceItem.pc),
+            depth: traceItem.depth,
+            opcode: { name: traceItem.opcode },
+            stackTop: traceItem.stackTop,
+          });
         } else if ("executionResult" in traceItem) {
           await vmTracer.addAfterMessage(traceItem);
         } else {
