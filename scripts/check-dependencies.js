@@ -168,8 +168,11 @@ function main() {
 
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
 
-    // temporarily ignore hardhat-toolbox
-    if (packageJson.name === "@nomicfoundation/hardhat-toolbox") {
+    // temporarily ignore hardhat toolboxs
+    if (
+      packageJson.name === "@nomicfoundation/hardhat-toolbox" ||
+      packageJson.name === "@nomicfoundation/hardhat-toolbox-viem"
+    ) {
       continue;
     }
 
