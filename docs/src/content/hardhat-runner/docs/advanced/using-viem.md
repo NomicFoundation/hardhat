@@ -2,7 +2,7 @@
 
 ## Overview
 
-Most of this documentation assumes that you are using [ethers](https://docs.ethers.org/v6/) as your connection library, but you can also use Hardhat with [viem](https://viem.sh/docs/introduction.html), a more lightweight and type-safe alternative. This guide explains how to setup a project that uses the viem-based Toolbox instead of the main one.
+Most of this documentation assumes that you are using [ethers](https://docs.ethers.org/v6/) as your connection library, but you can also use Hardhat with [viem](https://viem.sh/docs/introduction.html), a more lightweight and type-safe alternative. This guide explains how to setup a project that uses [the viem-based Toolbox](/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox-viem) instead of the main one.
 
 ## Installation
 
