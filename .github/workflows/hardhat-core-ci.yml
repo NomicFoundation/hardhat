@@ -75,7 +75,7 @@ jobs:
         # disable until actions/virtual-environments#4896 is fixed
         # os: ["macos-latest", "ubuntu-latest", "windows-latest"]
         os: ["ubuntu-latest", "windows-latest"]
-        vm: ["dual", "rethnet"]
+        vm: ["dual", "ethereumjs", "rethnet"]
     steps:
       - uses: actions/checkout@v3
 
