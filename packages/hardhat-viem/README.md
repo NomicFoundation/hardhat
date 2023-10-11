@@ -66,7 +66,7 @@ const balance = await publicClient.getBalance({
 
 #### Wallet client
 
-A Wallet Client is an interface to interact with Ethereum Account(s) and provides the ability to retrieve accounts, execute transactions, sign messages, etc through [Wallet Actions](https://viem.sh/docs/actions/wallet/introduction.html).
+A Wallet Client is an interface to interact with Ethereum Accounts and provides the ability to retrieve accounts, execute transactions, sign messages, etc. through [Wallet Actions](https://viem.sh/docs/actions/wallet/introduction.html).
 
 ```typescript
 import hre from "hardhat";
@@ -94,7 +94,7 @@ const signature = await walletClient.signMessage({
 
 #### Test client
 
-A Test Client is an interface to "test" JSON-RPC API methods accessible through a local Ethereum test node such as Anvil or Hardhat such as mining blocks, impersonating accounts, setting fees, etc through [Test Actions](https://viem.sh/docs/actions/test/introduction.html).
+A Test Client is an interface to "test" JSON-RPC API methods such as mining blocks, impersonating accounts, setting fees, etc. through [Test Actions](https://viem.sh/docs/actions/test/introduction.html).
 
 ```typescript
 import hre from "hardhat";
@@ -162,6 +162,42 @@ const contractA = await hre.viem.deployContract(
 );
 ```
 
+#### Retrieving an Existing Contract
+
+If the contract is already deployed, you can retrieve an instance of it using the `getContractAt` method:
+
+```typescript
+import hre from "hardhat";
+
+const contract = await hre.viem.getContractAt(
+  "contractName",
+  "0x1234567890123456789012345678901234567890"
+);
+```
+
+By default, the first wallet client retrieved by `hre.viem.getWalletClients()` will be used for interacting with the contract. If you want to specify a different wallet client, you can do so by passing it as a third parameter, just like when deploying a contract:
+
+```typescript
+import hre from "hardhat";
+
+const [_, secondWalletClient] = await hre.viem.getWalletClients();
+
+const contract = await hre.viem.getContractAt(
+  "contractName",
+  "0x1234567890123456789012345678901234567890",
+  { walletClient: secondWalletClient }
+);
+```
+
+#### Interacting with Contracts
+
+Once you have an instance of a contract, you can interact with it by calling its methods:
+
+```typescript
+let response = await contract.read.method1();
+await contract.write.method2([10, "arg2"]);
+```
+
 ##### Send deployment transaction
 
 By default, the `deployContract` method sends a deployment transaction to the blockchain and waits for the transaction to be mined. If you want to send the transaction without waiting for it to be mined, you can do so by using `sendDeploymentTransaction`:
@@ -190,42 +226,6 @@ const publicClient = await hre.viem.getPublicClient();
 const { contractAddress } = await publicClient.waitForTransactionReceipt({
   hash: deploymentTransaction.hash,
 });
-```
-
-#### Retrieving an Existing Contract
-
-If the contract is already deployed, you can retrieve an instance of it using the `getContractAt` method:
-
-```typescript
-import hre from "hardhat";
-
-const contract = await hre.viem.getContractAt(
-  "contractName",
-  "0x1234567890123456789012345678901234567890"
-);
-```
-
-By default, the first wallet client retrieved by `hre.viem.getWalletClients()` is used for contract interaction. If you want to specify a different wallet client, you can do so by passing it as a third parameter, just like when deploying a contract.
-
-```typescript
-import hre from "hardhat";
-
-const [_, secondWalletClient] = await hre.viem.getWalletClients();
-
-const contract = await hre.viem.getContractAt(
-  "contractName",
-  "0x1234567890123456789012345678901234567890",
-  { walletClient: secondWalletClient }
-);
-```
-
-#### Interacting with Contracts
-
-Once you have an instance of a contract, you can interact with it by calling its methods:
-
-```typescript
-let response = await contract.read.method1();
-await contract.write.method2([10, "arg2"]);
 ```
 
 ## Usage
