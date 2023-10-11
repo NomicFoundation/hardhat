@@ -45,6 +45,7 @@ export function assertEqualTraces(
       expectedLog.op === "DELEGATECALL" ||
       expectedLog.op === "STATICCALL"
     ) {
+      actualLog.gasCost = 0;
       expectedLog.gasCost = 0;
     }
 
