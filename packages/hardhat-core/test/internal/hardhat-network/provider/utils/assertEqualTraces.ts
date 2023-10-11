@@ -6,20 +6,28 @@ export function assertEqualTraces(
   actual: RpcDebugTraceOutput,
   expected: RpcDebugTraceOutput
 ) {
+  // Deep copy because we modify the logs
+  actual = JSON.parse(JSON.stringify(actual));
+  expected = JSON.parse(JSON.stringify(expected));
+
   assert.equal(actual.failed, expected.failed);
   assert.equal(actual.gas, expected.gas);
 
   // geth doesn't seem to include the returnValue
   // assert.equal(actual.returnValue, expected.returnValue);
 
+  // EthereumJS doesn't include STOP at the end when REVM does.
+  if (actual.structLogs.length === expected.structLogs.length + 1) {
+    if (actual.structLogs[actual.structLogs.length - 1].op === "STOP") {
+      actual.structLogs.pop();
+    }
+  }
   assert.equal(actual.structLogs.length, expected.structLogs.length);
 
   // Eslint complains about not modifying `i`, but we need to modify `expectedLog`.
   // eslint-disable-next-line prefer-const
   for (let [i, expectedLog] of expected.structLogs.entries()) {
-    // Deep copy because we modify the logs
-    expectedLog = JSON.parse(JSON.stringify(expectedLog));
-    const actualLog = JSON.parse(JSON.stringify(actual.structLogs[i]));
+    const actualLog = actual.structLogs[i];
 
     // we ignore the gasCost of the last step because
     // we don't guarantee that it's correct
