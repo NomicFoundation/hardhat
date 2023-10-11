@@ -2609,7 +2609,7 @@ dependencies = [
 [[package]]
 name = "revm"
 version = "3.3.0"
-source = "git+https://github.com/Wodann/revm?rev=b6f8ebf#b6f8ebfd30739ef0672f82832277619519888de7"
+source = "git+https://github.com/Wodann/revm?rev=20df365#20df365b37f7e635bd802a6748db26a9eeee751c"
 dependencies = [
  "auto_impl",
  "revm-interpreter",
@@ -2621,7 +2621,7 @@ dependencies = [
 [[package]]
 name = "revm-interpreter"
 version = "1.1.2"
-source = "git+https://github.com/Wodann/revm?rev=b6f8ebf#b6f8ebfd30739ef0672f82832277619519888de7"
+source = "git+https://github.com/Wodann/revm?rev=20df365#20df365b37f7e635bd802a6748db26a9eeee751c"
 dependencies = [
  "derive_more",
  "enumn",
@@ -2633,7 +2633,7 @@ dependencies = [
 [[package]]
 name = "revm-precompile"
 version = "2.0.3"
-source = "git+https://github.com/Wodann/revm?rev=b6f8ebf#b6f8ebfd30739ef0672f82832277619519888de7"
+source = "git+https://github.com/Wodann/revm?rev=20df365#20df365b37f7e635bd802a6748db26a9eeee751c"
 dependencies = [
  "c-kzg",
  "hex",
@@ -2651,7 +2651,7 @@ dependencies = [
 [[package]]
 name = "revm-primitives"
 version = "1.1.2"
-source = "git+https://github.com/Wodann/revm?rev=b6f8ebf#b6f8ebfd30739ef0672f82832277619519888de7"
+source = "git+https://github.com/Wodann/revm?rev=20df365#20df365b37f7e635bd802a6748db26a9eeee751c"
 dependencies = [
  "auto_impl",
  "bitflags 2.4.0",
