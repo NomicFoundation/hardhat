@@ -54,7 +54,7 @@ pub fn secret_key_from_str(secret_key: &str) -> Result<SecretKey, SignatureError
     let sk = FieldBytes::from_exact_iter(sk.into_iter()).ok_or_else(|| {
         SignatureError::InvalidSecretKey("expected 32 byte secret key".to_string())
     })?;
-    Ok(SecretKey::from_bytes(&sk).map_err(SignatureError::EllipticCurveError)?)
+    SecretKey::from_bytes(&sk).map_err(SignatureError::EllipticCurveError)
 }
 
 /// An error involving a signature.
