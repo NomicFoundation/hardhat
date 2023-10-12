@@ -117,6 +117,16 @@ contract Rocket {
 
 - TODO: Explanation about how to create a module, what's a future, etc.
 
+```js
+module.exports = buildModule("Apollo", (m) => {
+  const apollo = m.contract("Rocket", ["Apollo"]);
+
+  m.call(apollo, "launch");
+
+  return { apollo };
+});
+```
+
 ### Deploying it
 
 - Finally, to run the deployment all you have to do is running `npx hardhat igintion deploy ignition/modules/Apollo.{j,t}s`
