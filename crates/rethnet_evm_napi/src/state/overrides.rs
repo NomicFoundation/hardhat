@@ -50,7 +50,7 @@ impl TryCast<rethnet_evm::state::AccountOverride> for AccountOverride {
                 )),
                 (Some(_), Some(_)) => return Err(napi::Error::new(
                     napi::Status::InvalidArg,
-                    "Both `storage` and `storageDiff` were specified. Only one can be provided.",
+                    "The properties 'state' and 'stateDiff' cannot be used simultaneously when configuring the state override set passed to the eth_call method.",
                 )),
             };
 

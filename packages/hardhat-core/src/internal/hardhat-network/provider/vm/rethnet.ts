@@ -41,6 +41,7 @@ import { RethnetStateManager } from "../RethnetState";
 import { assertHardhatInvariant } from "../../../core/errors";
 import { StateOverrideSet } from "../../../core/jsonrpc/types/input/callRequest";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
+import { InvalidInputError } from "../../../core/providers/errors";
 import { MessageTrace } from "../../stack-traces/message-trace";
 import { VMTracer } from "../../stack-traces/vm-tracer";
 
@@ -162,48 +163,64 @@ export class RethnetAdapter implements VMAdapter {
       disableEip3607: true,
     };
 
+    const MAX_NONCE = 2n ** 64n - 1n;
+    const MAX_BALANCE = 2n ** 256n - 1n;
+    const overrides = new StateOverrides(
+      Object.entries(stateOverrideSet).map(([address, account]) => {
+        if (account.nonce !== undefined && account.nonce > MAX_NONCE) {
+          throw new InvalidInputError(
+            `The 'nonce' property should occupy a maximum of 8 bytes (nonce=${account.nonce}).`
+          );
+        }
+
+        if (account.balance !== undefined && account.balance > MAX_BALANCE) {
+          throw new InvalidInputError(
+            `The 'balance' property should occupy a maximum of 32 bytes (balance=${account.balance}).`
+          );
+        }
+
+        const storage =
+          account.state !== undefined
+            ? Object.entries(account.state).map(([key, value]) => {
+                const index = bufferToBigInt(toBuffer(key));
+                const number = bufferToBigInt(toBuffer(value));
+
+                return {
+                  index,
+                  value: number,
+                };
+              })
+            : undefined;
+
+        const storageDiff =
+          account.stateDiff !== undefined
+            ? Object.entries(account.stateDiff).map(([key, value]) => {
+                const index = bufferToBigInt(toBuffer(key));
+                const number = bufferToBigInt(toBuffer(value));
+
+                return {
+                  index,
+                  value: number,
+                };
+              })
+            : undefined;
+
+        const accountOverride: AccountOverride = {
+          balance: account.balance,
+          nonce: account.nonce,
+          code: account.code,
+          storage,
+          storageDiff,
+        };
+
+        return [toBuffer(address), accountOverride];
+      })
+    );
+
     const rethnetResult = await guaranteedDryRun(
       this._blockchain,
       this._state.asInner(),
-      new StateOverrides(
-        Object.entries(stateOverrideSet).map(([address, account]) => {
-          const storage =
-            account.state !== undefined
-              ? Object.entries(account.state).map(([key, value]) => {
-                  const index = bufferToBigInt(toBuffer(key));
-                  const number = bufferToBigInt(toBuffer(value));
-
-                  return {
-                    index,
-                    value: number,
-                  };
-                })
-              : undefined;
-
-          const storageDiff =
-            account.stateDiff !== undefined
-              ? Object.entries(account.stateDiff).map(([key, value]) => {
-                  const index = bufferToBigInt(toBuffer(key));
-                  const number = bufferToBigInt(toBuffer(value));
-
-                  return {
-                    index,
-                    value: number,
-                  };
-                })
-              : undefined;
-
-          const accountOverride: AccountOverride = {
-            balance: account.balance,
-            nonce: account.nonce,
-            code: account.code,
-            storage,
-            storageDiff,
-          };
-
-          return [toBuffer(address), accountOverride];
-        })
-      ),
+      overrides,
       config,
       rethnetTx,
       {
