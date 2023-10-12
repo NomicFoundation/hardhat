@@ -12,13 +12,14 @@ import {
   HardhatUserConfig,
   Network,
   ParamDefinition,
+  ProviderExtender,
   RunSuperFunction,
   RunTaskFunction,
   SubtaskArguments,
   TaskArguments,
   TaskDefinition,
   TasksMap,
-  ProviderExtender,
+  ScopesMap,
 } from "../../types";
 import { Artifacts } from "../artifacts";
 
@@ -35,6 +36,7 @@ import {
   createTaskProfile,
   TaskProfile,
 } from "./task-profiling";
+import { parseTaskIdentifier } from "./tasks/util";
 
 const log = debug("hardhat:core:hre");
 
@@ -66,6 +68,7 @@ export class Environment implements HardhatRuntimeEnvironment {
    * @param config The hardhat's config object.
    * @param hardhatArguments The parsed hardhat's arguments.
    * @param tasks A map of tasks.
+   * @param scopes A map of scopes.
    * @param environmentExtenders A list of environment extenders.
    * @param providerExtenders A list of provider extenders.
    */
@@ -73,6 +76,7 @@ export class Environment implements HardhatRuntimeEnvironment {
     public readonly config: HardhatConfig,
     public readonly hardhatArguments: HardhatArguments,
     public readonly tasks: TasksMap,
+    public readonly scopes: ScopesMap,
     environmentExtenders: EnvironmentExtender[] = [],
     experimentalHardhatNetworkMessageTraceHooks: ExperimentalHardhatNetworkMessageTraceHook[] = [],
     public readonly userConfig: HardhatUserConfig = {},
@@ -123,7 +127,7 @@ export class Environment implements HardhatRuntimeEnvironment {
   /**
    * Executes the task with the given name.
    *
-   * @param name The task's name.
+   * @param taskIdentifier The task or scoped task to be executed.
    * @param taskArguments A map of task's arguments.
    * @param subtaskArguments A map of subtasks to their arguments.
    *
@@ -131,18 +135,39 @@ export class Environment implements HardhatRuntimeEnvironment {
    * @returns a promise with the task's execution result.
    */
   public readonly run: RunTaskFunction = async (
-    name,
+    taskIdentifier,
     taskArguments = {},
     subtaskArguments = {},
     callerTaskProfile?: TaskProfile
   ) => {
-    const taskDefinition = this.tasks[name];
+    const { scope, task } = parseTaskIdentifier(taskIdentifier);
 
-    log("Running task %s", name);
+    let taskDefinition;
+    if (scope === undefined) {
+      taskDefinition = this.tasks[task];
+      log("Running task %s", task);
+    } else {
+      const scopeDefinition = this.scopes[scope];
+      if (scopeDefinition === undefined) {
+        throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPE, {
+          scope,
+        });
+      }
+
+      taskDefinition = scopeDefinition.tasks?.[task];
+      log("Running scoped task %s %s", scope, task);
+    }
 
     if (taskDefinition === undefined) {
+      if (scope !== undefined) {
+        throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPED_TASK, {
+          scope,
+          task,
+        });
+      }
+
       throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_TASK, {
-        task: name,
+        task,
       });
     }
 
@@ -154,7 +179,7 @@ export class Environment implements HardhatRuntimeEnvironment {
 
     let taskProfile: TaskProfile | undefined;
     if (this.hardhatArguments.flamegraph === true) {
-      taskProfile = createTaskProfile(name);
+      taskProfile = createTaskProfile(task);
 
       if (callerTaskProfile !== undefined) {
         callerTaskProfile.children.push(taskProfile);

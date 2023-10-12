@@ -68,10 +68,10 @@ yarn add --dev hardhat
 
 ::::
 
-If you run `npx hardhat` now, you will be shown some options to facilitate project creation:
+If you run `npx hardhat init` now, you will be shown some options to facilitate project creation:
 
 ```
-$ npx hardhat
+$ npx hardhat init
 888    888                      888 888               888
 888    888                      888 888               888
 888    888                      888 888               888

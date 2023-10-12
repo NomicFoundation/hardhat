@@ -4,13 +4,17 @@ import {
   CLIArgumentType,
   ParamDefinition,
   ParamDefinitionsMap,
+  ScopeDefinition,
   TaskArguments,
   TaskDefinition,
+  TaskIdentifier,
+  TasksMap,
 } from "../../../types";
 import { HardhatError } from "../errors";
 import { ErrorDescriptor, ERRORS } from "../errors-list";
 import * as types from "../params/argumentTypes";
 import { HARDHAT_PARAM_DEFINITIONS } from "../params/hardhat-params";
+import { parseTaskIdentifier } from "./util";
 
 function isCLIArgumentType(
   type: ArgumentType<any>
@@ -26,6 +30,12 @@ function isCLIArgumentType(
  *
  */
 export class SimpleTaskDefinition implements TaskDefinition {
+  public get name() {
+    return this._task;
+  }
+  public get scope() {
+    return this._scope;
+  }
   public get description() {
     return this._description;
   }
@@ -36,6 +46,8 @@ export class SimpleTaskDefinition implements TaskDefinition {
   private _positionalParamNames: Set<string>;
   private _hasVariadicParam: boolean;
   private _hasOptionalPositionalParam: boolean;
+  private _scope?: string;
+  private _task: string;
   private _description?: string;
 
   /**
@@ -43,19 +55,22 @@ export class SimpleTaskDefinition implements TaskDefinition {
    *
    * This definition will have no params, and will throw a HH205 if executed.
    *
-   * @param name The task's name.
+   * @param taskIdentifier The task's identifier.
    * @param isSubtask `true` if the task is a subtask, `false` otherwise.
    */
   constructor(
-    public readonly name: string,
+    taskIdentifier: TaskIdentifier,
     public readonly isSubtask: boolean = false
   ) {
     this._positionalParamNames = new Set();
     this._hasVariadicParam = false;
     this._hasOptionalPositionalParam = false;
+    const { scope, task } = parseTaskIdentifier(taskIdentifier);
+    this._scope = scope;
+    this._task = task;
     this.action = () => {
       throw new HardhatError(ERRORS.TASK_DEFINITIONS.ACTION_NOT_SET, {
-        taskName: name,
+        taskName: this._task,
       });
     };
   }
@@ -562,6 +577,10 @@ export class OverriddenTaskDefinition implements TaskDefinition {
     this.parentTaskDefinition = parentTaskDefinition;
   }
 
+  /**
+   * Sets the task's description.
+   * @param description The description.
+   */
   public setDescription(description: string) {
     this._description = description;
     return this;
@@ -577,6 +596,13 @@ export class OverriddenTaskDefinition implements TaskDefinition {
     // TODO: There's probably something bad here. See types.ts for more info.
     this._action = action;
     return this;
+  }
+
+  /**
+   * Retrieves the parent task's scope.
+   */
+  public get scope() {
+    return this.parentTaskDefinition.scope;
   }
 
   /**
@@ -732,5 +758,73 @@ export class OverriddenTaskDefinition implements TaskDefinition {
     throw new HardhatError(errorDescriptor, {
       taskName: this.name,
     });
+  }
+}
+
+type AddTaskFunction = <TaskArgumentsT extends TaskArguments>(
+  name: string,
+  descriptionOrAction?: string | ActionType<TaskArgumentsT>,
+  action?: ActionType<TaskArgumentsT>
+) => TaskDefinition;
+
+export class SimpleScopeDefinition implements ScopeDefinition {
+  public tasks: TasksMap = {};
+
+  constructor(
+    public readonly name: string,
+    private _description: string | undefined,
+    private _addTask: AddTaskFunction,
+    private _addSubtask: AddTaskFunction
+  ) {}
+
+  public get description() {
+    return this._description;
+  }
+
+  public setDescription(description: string): this {
+    this._description = description;
+    return this;
+  }
+
+  public task<TaskArgumentsT extends TaskArguments>(
+    name: string,
+    description?: string,
+    action?: ActionType<TaskArgumentsT>
+  ): TaskDefinition;
+  public task<TaskArgumentsT extends TaskArguments>(
+    name: string,
+    action: ActionType<TaskArgumentsT>
+  ): TaskDefinition;
+  public task<TaskArgumentsT extends TaskArguments>(
+    name: string,
+    descriptionOrAction?: string | ActionType<TaskArgumentsT>,
+    action?: ActionType<TaskArgumentsT>
+  ) {
+    const task = this._addTask(name, descriptionOrAction, action);
+
+    this.tasks[name] = task;
+
+    return task;
+  }
+
+  public subtask<TaskArgumentsT extends TaskArguments>(
+    name: string,
+    description?: string,
+    action?: ActionType<TaskArgumentsT>
+  ): TaskDefinition;
+  public subtask<TaskArgumentsT extends TaskArguments>(
+    name: string,
+    action: ActionType<TaskArgumentsT>
+  ): TaskDefinition;
+  public subtask<TaskArgumentsT extends TaskArguments>(
+    name: string,
+    descriptionOrAction?: string | ActionType<TaskArgumentsT>,
+    action?: ActionType<TaskArgumentsT>
+  ) {
+    const subtask = this._addSubtask(name, descriptionOrAction, action);
+
+    this.tasks[name] = subtask;
+
+    return subtask;
   }
 }
