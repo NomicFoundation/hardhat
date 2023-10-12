@@ -5,9 +5,15 @@ import { SecretsManager } from "../core/secrets/secrets-manager";
 import { getSecretsFilePath } from "../util/global-dir";
 
 export async function handleSecrets(args: string[]): Promise<number> {
-  const [, action, key] = args;
+  const [, action, key, value] = args;
 
-  if (args.length > 3) {
+  if (args.length > 4) {
+    throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_POSITIONAL_ARG, {
+      argument: args[4],
+    });
+  }
+
+  if (args.length > 3 && action !== "set") {
     throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_POSITIONAL_ARG, {
       argument: args[3],
     });
@@ -21,7 +27,7 @@ export async function handleSecrets(args: string[]): Promise<number> {
 
   switch (action) {
     case "set":
-      return set(secretsManager, key);
+      return set(secretsManager, key, value);
     case "get":
       return get(secretsManager, key);
     case "list":
@@ -37,9 +43,10 @@ export async function handleSecrets(args: string[]): Promise<number> {
 
 async function set(
   secretsManager: SecretsManager,
-  key: string
+  key: string,
+  value: string | undefined
 ): Promise<number> {
-  secretsManager.set(key, await getSecretValue());
+  secretsManager.set(key, value ?? (await getSecretValue()));
   return 0;
 }
 

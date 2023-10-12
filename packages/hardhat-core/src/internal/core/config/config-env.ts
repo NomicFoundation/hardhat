@@ -186,6 +186,8 @@ export const secrets = {
 };
 
 function getSecret(key: string, defaultValue?: string): string {
+  if (process.env[key] !== undefined) return process.env[key]!;
+
   const secretsManager = new SecretsManager(getSecretsFilePath());
 
   const value = secretsManager.get(key);
