@@ -1,8 +1,13 @@
-import { IgnitionModule } from "@nomicfoundation/ignition-core";
+import { IgnitionError, IgnitionModule } from "@nomicfoundation/ignition-core";
 import setupDebug from "debug";
 import { existsSync, pathExistsSync } from "fs-extra";
-import { HardhatPluginError } from "hardhat/plugins";
+import {
+  HardhatPluginError,
+  NomicLabsHardhatPluginError,
+} from "hardhat/plugins";
 import path from "path";
+
+import { shouldBeHardhatPluginError } from "./utils/shouldBeHardhatPluginError";
 
 const debug = setupDebug("hardhat-ignition:modules");
 
@@ -56,7 +61,16 @@ export function loadModule(
 
   debug(`Loading module file '${fullpathToModule}'`);
 
-  const module = require(fullpathToModule);
+  let module;
+  try {
+    module = require(fullpathToModule);
+  } catch (e) {
+    if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
+      throw new NomicLabsHardhatPluginError("hardhat-ignition", e.message);
+    }
+
+    throw e;
+  }
 
   return module.default ?? module;
 }
