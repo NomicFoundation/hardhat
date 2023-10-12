@@ -247,6 +247,10 @@ export interface TracingStep {
   readonly depth: number
   /** The program counter */
   readonly pc: bigint
+  /** The executed op code */
+  readonly opcode: string
+  /** The top entry on the stack. None if the stack is empty. */
+  readonly stackTop?: bigint
 }
 export interface TracingMessageResult {
   /** Execution result */
