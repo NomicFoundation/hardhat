@@ -75,7 +75,7 @@ export class RethnetEthContext implements EthContextAdapter {
           config.forkCachePath,
           config.genesisAccounts.map((account) => {
             return {
-              privateKey: account.privateKey,
+              secretKey: account.privateKey,
               balance: BigInt(account.balance),
             };
           }),
@@ -123,7 +123,7 @@ export class RethnetEthContext implements EthContextAdapter {
           ethereumjsHeaderDataToRethnetBlockOptions(genesisBlockHeader),
           config.genesisAccounts.map((account) => {
             return {
-              privateKey: account.privateKey,
+              secretKey: account.privateKey,
               balance: BigInt(account.balance),
             };
           })

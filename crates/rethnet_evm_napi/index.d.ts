@@ -24,8 +24,8 @@ export interface Account {
 }
 /** An account that needs to be created during the genesis block. */
 export interface GenesisAccount {
-  /** Account private key */
-  privateKey: string
+  /** Account secret key */
+  secretKey: string
   /** Account balance */
   balance: bigint
 }
