@@ -35,27 +35,38 @@ impl AccountOverride {
             return original;
         }
 
-        let mut account_info = original.unwrap_or_default();
-        if let Some(balance) = &self.balance {
-            account_info.balance = *balance;
+        let AccountInfo {
+            mut balance,
+            mut nonce,
+            mut code_hash,
+            mut code,
+        } = original.unwrap_or_default();
+
+        if let Some(new_balance) = &self.balance {
+            balance = *new_balance;
         }
 
-        if let Some(nonce) = &self.nonce {
-            account_info.nonce = *nonce;
+        if let Some(new_nonce) = &self.nonce {
+            nonce = *new_nonce;
         }
 
-        if let Some(code) = &self.code {
-            let code_hash = code.hash_slow();
-            if code_hash == KECCAK_EMPTY {
-                account_info.code = None;
-                account_info.code_hash = KECCAK_EMPTY;
+        if let Some(new_code) = &self.code {
+            let new_code_hash = new_code.hash_slow();
+            if new_code_hash == KECCAK_EMPTY {
+                code = None;
+                code_hash = KECCAK_EMPTY;
             } else {
-                account_info.code = Some(code.clone());
-                account_info.code_hash = code_hash;
+                code = Some(new_code.clone());
+                code_hash = new_code_hash;
             }
         }
 
-        Some(account_info)
+        Some(AccountInfo {
+            balance,
+            nonce,
+            code_hash,
+            code,
+        })
     }
 }
 
