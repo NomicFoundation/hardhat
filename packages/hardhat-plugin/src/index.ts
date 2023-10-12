@@ -11,7 +11,6 @@ import { NomicLabsHardhatPluginError, lazyObject } from "hardhat/plugins";
 import path from "path";
 
 import "./type-extensions";
-import { shouldBeHardhatPluginError } from "./utils/shouldBeHardhatPluginError";
 
 /* ignition config defaults */
 const IGNITION_DIR = "ignition";
@@ -79,8 +78,10 @@ ignitionScope
         "./hardhat-artifact-resolver"
       );
       const { loadModule } = await import("./load-module");
-
       const { PrettyEventHandler } = await import("./ui/pretty-event-handler");
+      const { shouldBeHardhatPluginError } = await import(
+        "./utils/shouldBeHardhatPluginError"
+      );
 
       const chainId = Number(
         await hre.network.provider.request({
@@ -150,6 +151,10 @@ ignitionScope
           accounts,
         });
       } catch (e) {
+        if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
+          throw new NomicLabsHardhatPluginError("hardhat-ignition", e.message);
+        }
+
         throw e;
       }
     }
@@ -171,6 +176,9 @@ ignitionScope
 
       const { loadModule } = await import("./load-module");
       const { open } = await import("./utils/open");
+      const { shouldBeHardhatPluginError } = await import(
+        "./utils/shouldBeHardhatPluginError"
+      );
       const { writeVisualization } = await import(
         "./visualization/write-visualization"
       );
@@ -184,17 +192,25 @@ ignitionScope
         process.exit(0);
       }
 
-      const serializedIgnitionModule =
-        IgnitionModuleSerializer.serialize(userModule);
+      try {
+        const serializedIgnitionModule =
+          IgnitionModuleSerializer.serialize(userModule);
 
-      const batchInfo = batches(userModule);
+        const batchInfo = batches(userModule);
 
-      await writeVisualization(
-        { module: serializedIgnitionModule, batches: batchInfo },
-        {
-          cacheDir: hre.config.paths.cache,
+        await writeVisualization(
+          { module: serializedIgnitionModule, batches: batchInfo },
+          {
+            cacheDir: hre.config.paths.cache,
+          }
+        );
+      } catch (e) {
+        if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
+          throw new NomicLabsHardhatPluginError("hardhat-ignition", e.message);
         }
-      );
+
+        throw e;
+      }
 
       if (!noOpen) {
         const indexFile = path.join(
@@ -216,6 +232,9 @@ ignitionScope
   .setDescription("Show the current status of a deployment")
   .setAction(async ({ deploymentId }: { deploymentId: string }, hre) => {
     const { status } = await import("@nomicfoundation/ignition-core");
+    const { shouldBeHardhatPluginError } = await import(
+      "./utils/shouldBeHardhatPluginError"
+    );
 
     const deploymentDir = path.join(
       hre.config.paths.ignition,
@@ -334,6 +353,9 @@ ignitionScope
       const { HardhatArtifactResolver } = await import(
         "./hardhat-artifact-resolver"
       );
+      const { shouldBeHardhatPluginError } = await import(
+        "./utils/shouldBeHardhatPluginError"
+      );
 
       const deploymentDir = path.join(
         hre.config.paths.ignition,
@@ -341,7 +363,15 @@ ignitionScope
         deploymentId
       );
 
-      await wipe(deploymentDir, new HardhatArtifactResolver(hre), futureId);
+      try {
+        await wipe(deploymentDir, new HardhatArtifactResolver(hre), futureId);
+      } catch (e) {
+        if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
+          throw new NomicLabsHardhatPluginError("hardhat-ignition", e.message);
+        }
+
+        throw e;
+      }
 
       console.log(`${futureId} state has been cleared`);
     }
