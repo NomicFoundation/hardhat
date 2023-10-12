@@ -1,9 +1,9 @@
+import "@nomicfoundation/hardhat-ethers";
 import {
   DeploymentParameters,
   IgnitionError,
   StatusResult,
 } from "@nomicfoundation/ignition-core";
-import "@nomicfoundation/hardhat-ethers";
 import chalk from "chalk";
 import { readdirSync } from "fs-extra";
 import { extendConfig, extendEnvironment, scope } from "hardhat/config";
@@ -57,18 +57,18 @@ ignitionScope
     "parameters",
     "A relative path to a JSON file to use for the module parameters,"
   )
-  .addOptionalParam("id", "set the deployment id")
+  .addOptionalParam("deploymentId", "Set the id of the deployment")
   .setDescription("Deploy a module to the specified network")
   .setAction(
     async (
       {
         modulePath,
         parameters: parametersInput,
-        id: givenDeploymentId,
+        deploymentId: givenDeploymentId,
       }: {
         modulePath: string;
         parameters?: string;
-        id: string;
+        deploymentId: string;
       },
       hre
     ) => {
@@ -212,15 +212,15 @@ ignitionScope
 
 ignitionScope
   .task("status")
-  .addParam("id", "The id of the deployment to show")
+  .addPositionalParam("deploymentId", "The id of the deployment to show")
   .setDescription("Show the current status of a deployment")
-  .setAction(async ({ id }: { id: string }, hre) => {
+  .setAction(async ({ deploymentId }: { deploymentId: string }, hre) => {
     const { status } = await import("@nomicfoundation/ignition-core");
 
     const deploymentDir = path.join(
       hre.config.paths.ignition,
       "deployments",
-      id
+      deploymentId
     );
 
     let statusResult: StatusResult;
@@ -238,7 +238,7 @@ ignitionScope
       console.log("");
       console.log(
         chalk.bold(
-          `⛔ Deployment ${id} has not fully completed, there are futures have started but not finished`
+          `⛔ Deployment ${deploymentId} has not fully completed, there are futures have started but not finished`
         )
       );
       console.log("");
@@ -257,7 +257,7 @@ ignitionScope
       statusResult.held.length > 0
     ) {
       console.log("");
-      console.log(chalk.bold(toErrorResultHeading(id, statusResult)));
+      console.log(chalk.bold(toErrorResultHeading(deploymentId, statusResult)));
       console.log("");
 
       if (statusResult.timedOut.length > 0) {
@@ -301,7 +301,7 @@ ignitionScope
     }
 
     console.log("");
-    console.log(chalk.bold(`🚀 Deployment ${id} Complete `));
+    console.log(chalk.bold(`🚀 Deployment ${deploymentId} Complete `));
     console.log("");
 
     if (Object.values(statusResult.contracts).length === 0) {
@@ -318,15 +318,15 @@ ignitionScope
 
 ignitionScope
   .task("wipe")
-  .addParam("id", "The id of the deployment that has the future to wipe")
-  .addParam("future", "The id of the future to wipe")
+  .addPositionalParam(
+    "deploymentId",
+    "The id of the deployment with the future to wipe"
+  )
+  .addPositionalParam("futureId", "The id of the future to wipe")
   .setDescription("Reset a deployment's future to allow rerunning")
   .setAction(
     async (
-      {
-        deployment: deploymentId,
-        future: futureId,
-      }: { deployment: string; future: string },
+      { deploymentId, futureId }: { deploymentId: string; futureId: string },
       hre
     ) => {
       const { wipe } = await import("@nomicfoundation/ignition-core");
