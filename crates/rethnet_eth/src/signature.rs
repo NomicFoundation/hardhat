@@ -4,6 +4,7 @@
 // For the original context see: https://github.com/gakonst/ethers-rs/blob/cba6f071aedafb766e82e4c2f469ed5e4638337d/ethers-core/src/types/signature.rs
 
 use core::fmt;
+#[cfg(feature = "std")]
 use std::str::FromStr;
 
 use k256::{
@@ -48,11 +49,12 @@ pub fn secret_key_from_str(secret_key: &str) -> Result<SecretKey, SignatureError
         hex::decode(stripped)
     } else {
         hex::decode(secret_key)
-    }?;
+    }
+    .map_err(SignatureError::DecodingError)?;
     let sk = FieldBytes::from_exact_iter(sk.into_iter()).ok_or_else(|| {
         SignatureError::InvalidSecretKey("expected 32 byte secret key".to_string())
     })?;
-    Ok(SecretKey::from_bytes(&sk)?)
+    Ok(SecretKey::from_bytes(&sk).map_err(SignatureError::EllipticCurveError)?)
 }
 
 /// An error involving a signature.
@@ -138,7 +140,8 @@ impl Signature {
         let (signature, recovery_id) = PrehashSigner::<(ECDSASignature, RecoveryId)>::sign_prehash(
             &signing_key,
             &*message_hash,
-        )?;
+        )
+        .map_err(SignatureError::ECDSAError)?;
 
         let r = U256::try_from_be_slice(&Into::<FieldBytes>::into(signature.r()))
             .expect("Must be valid");
@@ -183,7 +186,8 @@ impl Signature {
         let (signature, recovery_id) = self.as_signature()?;
 
         let verifying_key =
-            VerifyingKey::recover_from_prehash(message_hash.as_bytes(), &signature, recovery_id)?;
+            VerifyingKey::recover_from_prehash(message_hash.as_bytes(), &signature, recovery_id)
+                .map_err(SignatureError::ECDSAError)?;
 
         Ok(public_key_to_address(verifying_key.into()))
     }
@@ -198,7 +202,7 @@ impl Signature {
             let mut bytes = [0u8; 64];
             bytes[..32].copy_from_slice(&r_bytes);
             bytes[32..64].copy_from_slice(&s_bytes);
-            ECDSASignature::from_slice(&bytes)?
+            ECDSASignature::from_slice(&bytes).map_err(SignatureError::ECDSAError)?
         };
 
         Ok((signature, recovery_id))
