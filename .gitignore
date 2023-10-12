@@ -113,6 +113,8 @@ docs/.env.example
 # EDR remote node cache
 edr-cache/
 
-# Brew package manager. 
+# Brew package manager.
 # Lock file is not recommended to be commited: https://github.com/Homebrew/homebrew-bundle#versions-and-lockfiles
 Brewfile.lock.json
+
+*.code-workspace

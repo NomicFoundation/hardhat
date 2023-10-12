@@ -1,6 +1,7 @@
 import {
   ActionType,
   ConfigExtender,
+  ConfigurableScopeDefinition,
   ConfigurableTaskDefinition,
   EnvironmentExtender,
   ExperimentalHardhatNetworkMessageTraceHook,
@@ -115,6 +116,16 @@ export function subtask<TaskArgumentsT extends TaskArguments>(
 
 // Backwards compatibility alias
 export const internalTask = subtask;
+
+export function scope(
+  name: string,
+  description?: string
+): ConfigurableScopeDefinition {
+  const ctx = HardhatContext.getHardhatContext();
+  const dsl = ctx.tasksDSL;
+
+  return dsl.scope(name, description);
+}
 
 export const types = argumentTypes;
 

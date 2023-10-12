@@ -16,11 +16,11 @@ export async function createContext(
 
   const prevRandaoGenerator = RandomBufferGenerator.create("randomMixHashSeed");
 
-  if (vmModeEnvVar === "ethereumjs") {
-    return HardhatEthContext.create(config, prevRandaoGenerator);
-  } else if (vmModeEnvVar === "rethnet") {
+  if (vmModeEnvVar === "edr") {
     return RethnetEthContext.create(config);
-  } else {
+  } else if (vmModeEnvVar === "dual") {
     return DualEthContext.create(config, prevRandaoGenerator);
+  } else {
+    return HardhatEthContext.create(config, prevRandaoGenerator);
   }
 }

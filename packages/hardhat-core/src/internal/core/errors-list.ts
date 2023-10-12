@@ -613,8 +613,26 @@ Please double check your task definitions.`,
 What makes these types special is that they can be represented as strings, so you can write them down in the terminal.`,
       shouldBeReported: false,
     },
-    DEPRECATED_TRANSFORM_IMPORT_TASK: {
+    TASK_SCOPE_CLASH: {
       number: 213,
+      message:
+        "A clash was found while creating scope '%scopeName%', since a task with that name already exists.",
+      title: "Attempted to create a scope with a name already used by a task",
+      description: `You can't create a scope if a task with that name already exists.
+Please double check your task definitions.`,
+      shouldBeReported: false,
+    },
+    SCOPE_TASK_CLASH: {
+      number: 214,
+      message:
+        "A clash was found while creating task '%taskName%', since a scope with that name already exists.",
+      title: "Attempted to create a task with a name already used by a scope",
+      description: `You can't create a task if a scope with that name already exists.
+Please double check your task definitions.`,
+      shouldBeReported: false,
+    },
+    DEPRECATED_TRANSFORM_IMPORT_TASK: {
+      number: 215,
       title: "Use of deprecated remapping task",
       message:
         "Task TASK_COMPILE_TRANSFORM_IMPORT_NAME is deprecated. Please update your @nomicfoundation/hardhat-foundry plugin version.",
@@ -654,7 +672,7 @@ Please double check your arguments.`,
     },
     UNRECOGNIZED_TASK: {
       number: 303,
-      message: "Unrecognized task %task%",
+      message: "Unrecognized task '%task%'",
       title: "Unrecognized task",
       description: `Tried to run a nonexistent task.
 
@@ -754,6 +772,24 @@ This is not supported. Please run the help task to see the available options.`,
       description: `You tried to run Hardhat with the \`--typecheck\` flag in a javascript project.
 
 This flag can only be used in typescript projects.`,
+      shouldBeReported: false,
+    },
+    UNRECOGNIZED_SCOPE: {
+      number: 314,
+      message: "Unrecognized scope '%scope%'",
+      title: "Unrecognized scope",
+      description: `Tried to run a task from a nonexistent scope.
+
+Please double check the scope of the task you are trying to run.`,
+      shouldBeReported: false,
+    },
+    UNRECOGNIZED_SCOPED_TASK: {
+      number: 315,
+      message: "Unrecognized task '%task%' under scope '%scope%'",
+      title: "Unrecognized scoped task",
+      description: `Tried to run a nonexistent scoped task.
+
+Please double check the name of the task you are trying to run.`,
       shouldBeReported: false,
     },
   },

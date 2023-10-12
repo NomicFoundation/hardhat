@@ -1,9 +1,11 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
+import { InterpreterStep } from "@nomicfoundation/ethereumjs-evm";
 import {
   Account,
   Address,
   bufferToBigInt,
+  AsyncEventEmitter,
   KECCAK256_NULL,
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
@@ -63,7 +65,9 @@ export class RethnetAdapter implements VMAdapter {
     private readonly _common: Common,
     private readonly _limitContractCodeSize: bigint | undefined,
     private readonly _limitInitcodeSize: bigint | undefined,
-    private readonly _enableTransientStorage: boolean
+    private readonly _enableTransientStorage: boolean,
+    // For solidity-coverage compatibility. Name cannot be changed.
+    private _vm: VMStub
   ) {
     this._vmTracer = new VMTracer(_common, false);
   }
@@ -97,13 +101,20 @@ export class RethnetAdapter implements VMAdapter {
         ? UNLIMITED_CONTRACT_SIZE_VALUE
         : undefined;
 
+    const vmStub: VMStub = {
+      evm: {
+        events: new AsyncEventEmitter(),
+      },
+    };
+
     return new RethnetAdapter(
       blockchain,
       state,
       common,
       limitContractCodeSize,
       limitInitcodeSize,
-      config.enableTransientStorage
+      config.enableTransientStorage,
+      vmStub
     );
   }
 
@@ -220,6 +231,16 @@ export class RethnetAdapter implements VMAdapter {
       } else {
         await this._vmTracer.addBeforeMessage(traceItem as any);
       }
+    }
+
+    // For solidity-coverage compatibility
+    for (const step of this._vmTracer.tracingSteps) {
+      this._vm.evm.events.emit("step", {
+        pc: Number(step.pc),
+        depth: step.depth,
+        opcode: { name: step.opcode },
+        stackTop: step.stackTop,
+      });
     }
 
     try {
@@ -453,6 +474,16 @@ export class RethnetAdapter implements VMAdapter {
       }
     }
 
+    // For solidity-coverage compatibility
+    for (const step of this._vmTracer.tracingSteps) {
+      this._vm.evm.events.emit("step", {
+        pc: Number(step.pc),
+        depth: step.depth,
+        opcode: { name: step.opcode },
+        stackTop: step.stackTop,
+      });
+    }
+
     try {
       const result = rethnetResultToRunTxResult(
         rethnetResult.result,
@@ -660,4 +691,20 @@ export class RethnetAdapter implements VMAdapter {
 
     return undefined;
   }
+}
+
+type InterpreterStepStub = Pick<InterpreterStep, "pc" | "depth"> & {
+  opcode: { name: string };
+  stackTop?: bigint;
+};
+
+interface EVMStub {
+  events: AsyncEventEmitter<{
+    step: (data: InterpreterStepStub, resolve?: (result?: any) => void) => void;
+  }>;
+}
+
+// For compatibility with solidity-coverage that attaches a listener to the step event.
+export interface VMStub {
+  evm: EVMStub;
 }
