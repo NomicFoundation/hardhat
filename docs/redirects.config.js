@@ -166,12 +166,12 @@ const customRedirects = [
   },
   {
     source: "/ignition",
-    destination: "/ignition/docs/overview",
+    destination: "/ignition/docs/getting-started#overview",
     permanent: false,
   },
   {
     source: "/ignition/docs",
-    destination: "/ignition/docs/overview",
+    destination: "/ignition/docs/getting-started#overview",
     permanent: false,
   },
 
