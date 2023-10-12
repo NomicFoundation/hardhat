@@ -2145,10 +2145,7 @@ export class HardhatNode extends EventEmitter {
       Address.fromString(key).equals(address)
     )?.[1];
 
-    if (
-      overridenAccount !== undefined &&
-      overridenAccount.nonce !== undefined
-    ) {
+    if (overridenAccount?.nonce !== undefined) {
       return overridenAccount.nonce;
     }
 
