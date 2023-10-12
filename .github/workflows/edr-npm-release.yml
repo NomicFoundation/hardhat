@@ -333,16 +333,38 @@ jobs:
           run: |
             set -e
             yarn test
+  check_commit:
+    name: Check commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Check if commit message is a release commit
+        id: check_commit
+        # Must match commit check in publish step
+        run: |
+          if git log -1 --pretty=%B | grep "^edr-[0-9]\+\.[0-9]\+\.[0-9]\+";
+          then
+            echo "{match}={true}" >> "$GITHUB_OUTPUT"
+          else
+            echo "{match}={false}" >> "$GITHUB_OUTPUT"
+          fi
+    outputs:
+      match: ${{ steps.check_commit.outputs.match }}
   publish:
     name: Publish
     environment: edr-release
     runs-on: ubuntu-latest
     needs:
+      - check_commit
       - test-macOS-windows-binding
       - test-linux-x64-gnu-binding
       - test-linux-x64-musl-binding
       - test-linux-aarch64-gnu-binding
       - test-linux-aarch64-musl-binding
+    if: ${{ needs.check_commit.outputs.match == 'true' }}
     defaults:
       run:
         working-directory: ./crates/rethnet_evm_napi
