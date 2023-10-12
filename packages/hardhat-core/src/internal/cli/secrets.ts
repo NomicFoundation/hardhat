@@ -7,15 +7,13 @@ import { getSecretsFilePath } from "../util/global-dir";
 export async function handleSecrets(args: string[]): Promise<number> {
   const [, action, key, value] = args;
 
-  if (args.length > 4) {
+  if (
+    args.length > 4 ||
+    (args.length > 3 && action !== "set") ||
+    (args.length > 2 && action === "list")
+  ) {
     throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_POSITIONAL_ARG, {
-      argument: args[4],
-    });
-  }
-
-  if (args.length > 3 && action !== "set") {
-    throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_POSITIONAL_ARG, {
-      argument: args[3],
+      argument: args[4] ?? args[3] ?? args[2],
     });
   }
 
