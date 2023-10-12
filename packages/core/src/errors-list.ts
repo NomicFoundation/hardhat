@@ -70,6 +70,12 @@ export const ERROR_RANGES: {
   },
 };
 
+/**
+ * DEV NOTE:
+ *
+ * When adding errors, please apply the hardhat-plugin rules
+ * and add the new error code to the whitelist if needed.
+ */
 export const ERRORS = {
   GENERAL: {
     ASSERTION_ERROR: {
