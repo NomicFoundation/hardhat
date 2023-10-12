@@ -2146,6 +2146,12 @@ export class HardhatNode extends EventEmitter {
     )?.[1];
 
     if (overridenAccount?.nonce !== undefined) {
+      const MAX_NONCE = 2n ** 64n - 1n;
+      if (overridenAccount.nonce > MAX_NONCE) {
+        throw new InvalidInputError(
+          `The 'nonce' property should occupy a maximum of 8 bytes (nonce=${overridenAccount.nonce}).`
+        );
+      }
       return overridenAccount.nonce;
     }
 
