@@ -13,14 +13,14 @@ export function assertHardhatNetworkInvariant(
   description: string
 ): asserts invariant {
   if (!invariant) {
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
     throw new InternalError(
       `Internal Hardhat Network invariant was violated: ${description}`
     );
   }
 }
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 
 export function assertEqualOptionalBlocks(

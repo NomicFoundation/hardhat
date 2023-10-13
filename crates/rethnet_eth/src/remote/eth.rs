@@ -16,7 +16,7 @@ use crate::{
     signature::Signature,
     transaction::{
         EIP1559SignedTransaction, EIP155SignedTransaction, EIP2930SignedTransaction,
-        LegacySignedTransaction, SignedTransaction, TransactionKind,
+        Eip4844SignedTransaction, LegacySignedTransaction, SignedTransaction, TransactionKind,
     },
     withdrawal::Withdrawal,
     Address, Bloom, Bytes, B256, U256,
@@ -82,6 +82,12 @@ pub struct Transaction {
     /// max priority fee per gas
     #[serde(default)]
     pub max_priority_fee_per_gas: Option<U256>,
+    /// The maximum total fee per gas the sender is willing to pay for blob gas in wei (EIP-4844)
+    #[serde(default)]
+    pub max_fee_per_blob_gas: Option<U256>,
+    /// List of versioned blob hashes associated with the transaction's EIP-4844 data blobs.
+    #[serde(default)]
+    pub blob_versioned_hashes: Option<Vec<B256>>,
 }
 
 impl Transaction {
@@ -102,6 +108,9 @@ pub enum TransactionConversionError {
     /// Missing access list
     #[error("Missing access list")]
     MissingAccessList,
+    /// EIP-4844 transaction is missing blob (versioned) hashes
+    #[error("Missing blob hashes")]
+    MissingBlobHashes,
     /// Missing chain ID
     #[error("Missing chain ID")]
     MissingChainId,
@@ -111,6 +120,12 @@ pub enum TransactionConversionError {
     /// Missing max priority fee per gas
     #[error("Missing max priority fee per gas")]
     MissingMaxPriorityFeePerGas,
+    /// EIP-4844 transaction is missing the max fee per blob gas
+    #[error("Missing max fee per blob gas")]
+    MissingMaxFeePerBlobGas,
+    /// EIP-4844 transaction is missing the receiver (to) address
+    #[error("Missing receiver (to) address")]
+    MissingReceiverAddress,
     /// The transaction type is not supported.
     #[error("Unsupported type {0}")]
     UnsupportedType(u64),
@@ -203,6 +218,38 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
                 s: value.s,
                 hash: OnceLock::from(value.hash),
             }),
+            3 => SignedTransaction::Eip4844(Eip4844SignedTransaction {
+                odd_y_parity: value.odd_y_parity(),
+                chain_id: value
+                    .chain_id
+                    .ok_or(TransactionConversionError::MissingChainId)?,
+                nonce: value.nonce,
+                max_priority_fee_per_gas: value
+                    .max_priority_fee_per_gas
+                    .ok_or(TransactionConversionError::MissingMaxPriorityFeePerGas)?,
+                max_fee_per_gas: value
+                    .max_fee_per_gas
+                    .ok_or(TransactionConversionError::MissingMaxFeePerGas)?,
+                max_fee_per_blob_gas: value
+                    .max_fee_per_blob_gas
+                    .ok_or(TransactionConversionError::MissingMaxFeePerBlobGas)?,
+                gas_limit: value.gas.to(),
+                to: value
+                    .to
+                    .ok_or(TransactionConversionError::MissingReceiverAddress)?,
+                value: value.value,
+                input: value.input,
+                access_list: value
+                    .access_list
+                    .ok_or(TransactionConversionError::MissingAccessList)?
+                    .into(),
+                blob_hashes: value
+                    .blob_versioned_hashes
+                    .ok_or(TransactionConversionError::MissingBlobHashes)?,
+                r: value.r,
+                s: value.s,
+                hash: OnceLock::from(value.hash),
+            }),
             r#type => {
                 return Err(TransactionConversionError::UnsupportedType(r#type));
             }
@@ -275,4 +322,12 @@ pub struct Block<TX> {
     pub withdrawals: Option<Vec<Withdrawal>>,
     /// withdrawals root
     pub withdrawals_root: Option<B256>,
+    /// The total amount of gas used by the transactions.
+    #[serde(default, with = "crate::serde::optional_u64")]
+    pub blob_gas_used: Option<u64>,
+    /// A running total of blob gas consumed in excess of the target, prior to the block.
+    #[serde(default, with = "crate::serde::optional_u64")]
+    pub excess_blob_gas: Option<u64>,
+    /// Root of the parent beacon block
+    pub parent_beacon_block_root: Option<B256>,
 }

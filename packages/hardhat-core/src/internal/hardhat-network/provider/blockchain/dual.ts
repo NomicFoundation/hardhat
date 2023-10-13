@@ -10,7 +10,7 @@ import {
 import { FilterParams } from "../node-types";
 import { RpcLogOutput } from "../output";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 
 export class DualBlockchain implements BlockchainAdapter {

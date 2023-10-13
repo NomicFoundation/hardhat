@@ -2,7 +2,7 @@ use std::sync::{Arc, OnceLock};
 
 use async_trait::async_trait;
 use rethnet_eth::{
-    block::Header,
+    block::{BlobGas, Header},
     receipt::BlockReceipt,
     remote::{
         eth::{self, TransactionConversionError},
@@ -56,48 +56,52 @@ pub struct RemoteBlock {
 impl RemoteBlock {
     /// Constructs a new instance with the provided JSON-RPC block and client.
     pub fn new(
-        transaction: eth::Block<eth::Transaction>,
+        block: eth::Block<eth::Transaction>,
         rpc_client: Arc<RpcClient>,
     ) -> Result<Self, CreationError> {
         let header = Header {
-            parent_hash: transaction.parent_hash,
-            ommers_hash: transaction.sha3_uncles,
-            beneficiary: transaction.miner.ok_or(CreationError::MissingMiner)?,
-            state_root: transaction.state_root,
-            transactions_root: transaction.transactions_root,
-            receipts_root: transaction.receipts_root,
-            logs_bloom: transaction.logs_bloom,
-            difficulty: transaction.difficulty,
-            number: transaction.number.ok_or(CreationError::MissingNumber)?,
-            gas_limit: transaction.gas_limit,
-            gas_used: transaction.gas_used,
-            timestamp: transaction.timestamp,
-            extra_data: transaction.extra_data,
-            mix_hash: transaction.mix_hash,
-            nonce: B64::from_limbs([transaction
-                .nonce
-                .ok_or(CreationError::MissingNonce)?
-                .to_be()]),
-            base_fee_per_gas: transaction.base_fee_per_gas,
-            withdrawals_root: transaction.withdrawals_root,
+            parent_hash: block.parent_hash,
+            ommers_hash: block.sha3_uncles,
+            beneficiary: block.miner.ok_or(CreationError::MissingMiner)?,
+            state_root: block.state_root,
+            transactions_root: block.transactions_root,
+            receipts_root: block.receipts_root,
+            logs_bloom: block.logs_bloom,
+            difficulty: block.difficulty,
+            number: block.number.ok_or(CreationError::MissingNumber)?,
+            gas_limit: block.gas_limit,
+            gas_used: block.gas_used,
+            timestamp: block.timestamp,
+            extra_data: block.extra_data,
+            mix_hash: block.mix_hash,
+            nonce: B64::from_limbs([block.nonce.ok_or(CreationError::MissingNonce)?.to_be()]),
+            base_fee_per_gas: block.base_fee_per_gas,
+            withdrawals_root: block.withdrawals_root,
+            blob_gas: block.blob_gas_used.and_then(|gas_used| {
+                block.excess_blob_gas.map(|excess_gas| BlobGas {
+                    gas_used,
+                    excess_gas,
+                })
+            }),
+            parent_beacon_block_root: block.parent_beacon_block_root,
         };
 
         let (transactions, callers): (Vec<SignedTransaction>, Vec<Address>) =
             itertools::process_results(
-                transaction.transactions.into_iter().map(TryInto::try_into),
+                block.transactions.into_iter().map(TryInto::try_into),
                 #[allow(clippy::redundant_closure_for_method_calls)]
                 |iter| iter.unzip(),
             )?;
 
-        let hash = transaction.hash.ok_or(CreationError::MissingHash)?;
+        let hash = block.hash.ok_or(CreationError::MissingHash)?;
 
         Ok(Self {
             header,
             transactions,
             callers,
             receipts: OnceLock::new(),
-            _ommers: transaction.uncles,
-            _withdrawals: transaction.withdrawals,
+            _ommers: block.uncles,
+            _withdrawals: block.withdrawals,
             hash,
             rpc_client,
         })

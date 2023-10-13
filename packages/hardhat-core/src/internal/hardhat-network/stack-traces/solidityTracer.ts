@@ -186,7 +186,10 @@ export class SolidityTracer {
       if (isEvmStep(step)) {
         const inst = trace.bytecode.getInstruction(step.pc);
 
-        if (inst.jumpType === JumpType.INTO_FUNCTION) {
+        if (
+          inst.jumpType === JumpType.INTO_FUNCTION &&
+          nextStep !== undefined
+        ) {
           const nextEvmStep = nextStep as EvmStep; // A jump can't be followed by a subtrace
           const nextInst = trace.bytecode.getInstruction(nextEvmStep.pc);
 

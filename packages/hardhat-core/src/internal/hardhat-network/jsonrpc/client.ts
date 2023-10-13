@@ -364,7 +364,7 @@ export class JsonRpcClient {
         return null;
       }
 
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw err;
     }
   }
@@ -379,7 +379,7 @@ export class JsonRpcClient {
       if (this._shouldRetry(isRetryCall, err)) {
         return this._sendBatch(batch, true);
       }
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw err;
     }
   }
@@ -473,7 +473,7 @@ export class JsonRpcClient {
         return undefined;
       }
 
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw error;
     }
   }

@@ -31,6 +31,8 @@ export class Exit {
 
       case ExceptionalHalt.OpcodeNotFound:
       case ExceptionalHalt.InvalidFEOpcode:
+      // Returned when an opcode is not implemented for the hardfork
+      case ExceptionalHalt.NotActivated:
         return new Exit(ExitCode.INVALID_OPCODE);
 
       case ExceptionalHalt.StackUnderflow:
@@ -44,7 +46,7 @@ export class Exit {
 
       default: {
         // TODO temporary, should be removed in production
-        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+        // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
         throw new Error(`Unmatched rethnet exceptional halt: ${halt}`);
       }
     }
@@ -84,7 +86,7 @@ export class Exit {
     }
 
     // TODO temporary, should be removed in production
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
     throw new Error(`Unmatched evm error: ${evmError.error}`);
   }
 
@@ -151,7 +153,7 @@ export class Exit {
 
       default:
         // TODO temporary, should be removed in production
-        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+        // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
         throw new Error(`Unmatched rethnet exceptional halt: ${this.kind}`);
     }
   }

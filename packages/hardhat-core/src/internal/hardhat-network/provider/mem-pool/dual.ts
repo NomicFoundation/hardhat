@@ -3,7 +3,7 @@ import { Address } from "@nomicfoundation/ethereumjs-util";
 import { transactionDifferences } from "../utils/assertions";
 import { MemPoolAdapter } from "../mem-pool";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 
 export class DualMemPool implements MemPoolAdapter {

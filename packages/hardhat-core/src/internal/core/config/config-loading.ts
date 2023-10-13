@@ -38,7 +38,7 @@ function importCsjOrEsModule(filePath: string): any {
       );
     }
 
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
     throw e;
   }
 }
@@ -95,7 +95,7 @@ export function loadConfigAndTasks(
   } catch (e) {
     analyzeModuleNotFoundError(e, configPath);
 
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
     throw e;
   } finally {
     ctx.setConfigLoadingAsFinished();

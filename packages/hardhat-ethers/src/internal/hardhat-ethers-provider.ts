@@ -1071,35 +1071,38 @@ export class HardhatEthersProvider implements ethers.Provider {
         toBlock: blockNumber,
       });
 
-      const eventLog = eventLogs.find((e) => {
+      const matchingLogs = eventLogs.filter((e) => {
         if (event.address !== undefined && e.address !== event.address) {
           return false;
         }
         if (event.topics !== undefined) {
           const topicsToMatch = event.topics;
-          if (
-            e.topics.every((topic, i) => {
-              const topicToMatch = topicsToMatch[i];
-              if (topicToMatch === null) {
-                return true;
-              }
+          // the array of topics to match can be smaller than the actual
+          // array of topics; in that case only those first topics are
+          // checked
+          const topics = e.topics.slice(0, topicsToMatch.length);
 
-              if (typeof topicToMatch === "string") {
-                return topic === topicsToMatch[i];
-              }
+          const topicsMatch = topics.every((topic, i) => {
+            const topicToMatch = topicsToMatch[i];
+            if (topicToMatch === null) {
+              return true;
+            }
 
-              return topicToMatch.includes(topic);
-            })
-          ) {
-            return true;
-          }
+            if (typeof topicToMatch === "string") {
+              return topic === topicsToMatch[i];
+            }
+
+            return topicToMatch.includes(topic);
+          });
+
+          return topicsMatch;
         }
 
         return true;
       });
 
-      if (eventLog !== undefined) {
-        listener(eventLog);
+      for (const matchingLog of matchingLogs) {
+        listener(matchingLog);
       }
     };
   }

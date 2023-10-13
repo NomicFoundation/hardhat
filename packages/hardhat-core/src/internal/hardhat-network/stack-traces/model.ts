@@ -4,7 +4,7 @@ import { AbiHelpers } from "../../util/abi-helpers";
 
 import { Opcode } from "./opcodes";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export enum JumpType {
   NOT_JUMP,

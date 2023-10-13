@@ -7,7 +7,7 @@ import { State, Account, Bytecode, RethnetContext } from "@ignored/edr";
 import { ForkConfig, GenesisAccount } from "./node-types";
 import { makeForkProvider } from "./utils/makeForkClient";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 export class RethnetStateManager {

@@ -7,6 +7,7 @@ import {
   bufferToHex,
 } from "@nomicfoundation/ethereumjs-util";
 
+import { StateOverrideSet } from "../../../core/jsonrpc/types/input/callRequest";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import {
   isEvmStep,
@@ -20,11 +21,11 @@ import { globalRethnetContext } from "../context/rethnet";
 import { randomHashSeed } from "../fork/ForkStateManager";
 import { assertEqualRunTxResults } from "../utils/assertions";
 
-import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
+import { RunTxResult, VMAdapter } from "./vm-adapter";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
 import { DualModeBlockBuilder } from "./block-builder/dual";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 
 function _printTrace(trace: any) {
@@ -60,23 +61,31 @@ export class DualModeAdapter implements VMAdapter {
 
   public async dryRun(
     tx: TypedTransaction,
-    blockContext: Block,
-    forceBaseFeeZero?: boolean
-  ): Promise<[RunTxResult, Trace]> {
+    blockNumber: bigint,
+    forceBaseFeeZero?: boolean,
+    stateOverrideSet: StateOverrideSet = {}
+  ): Promise<RunTxResult> {
     try {
-      const [
-        [ethereumJSResult, _ethereumJSTrace],
-        [rethnetResult, rethnetTrace],
-      ] = await Promise.all([
-        this._ethereumJSAdapter.dryRun(tx, blockContext, forceBaseFeeZero),
-        this._rethnetAdapter.dryRun(tx, blockContext, forceBaseFeeZero),
+      const [ethereumJSResult, rethnetResult] = await Promise.all([
+        this._ethereumJSAdapter.dryRun(
+          tx,
+          blockNumber,
+          forceBaseFeeZero,
+          stateOverrideSet
+        ),
+        this._rethnetAdapter.dryRun(
+          tx,
+          blockNumber,
+          forceBaseFeeZero,
+          stateOverrideSet
+        ),
       ]);
 
       // Matches EthereumJS' runCall checkpoint call
       globalRethnetContext.setStateRootGeneratorSeed(randomHashSeed());
 
       assertEqualRunTxResults(ethereumJSResult, rethnetResult);
-      return [rethnetResult, rethnetTrace];
+      return rethnetResult;
     } catch (error) {
       // Ensure that the state root generator seed is re-aligned upon an error
       globalRethnetContext.setStateRootGeneratorSeed(randomHashSeed());
@@ -208,6 +217,16 @@ export class DualModeAdapter implements VMAdapter {
     return rethnetResult;
   }
 
+  public async traceCall(
+    tx: TypedTransaction,
+    blockNumber: bigint,
+    config: RpcDebugTracingConfig
+  ): Promise<RpcDebugTraceOutput> {
+    // We aren't comparing the result as the output is expected to differ.
+    const _ = await this._ethereumJSAdapter.traceCall(tx, blockNumber, config);
+    return this._rethnetAdapter.traceCall(tx, blockNumber, config);
+  }
+
   public async setBlockContext(
     block: Block,
     irregularStateOrUndefined: Buffer | undefined
@@ -226,12 +245,9 @@ export class DualModeAdapter implements VMAdapter {
   public async runTxInBlock(
     tx: TypedTransaction,
     block: Block
-  ): Promise<[RunTxResult, Trace]> {
+  ): Promise<RunTxResult> {
     try {
-      const [
-        [ethereumJSResult, ethereumJSDebugTrace],
-        [rethnetResult, _rethnetDebugTrace],
-      ] = await Promise.all([
+      const [ethereumJSResult, rethnetResult] = await Promise.all([
         this._ethereumJSAdapter.runTxInBlock(tx, block),
         this._rethnetAdapter.runTxInBlock(tx, block),
       ]);
@@ -244,7 +260,7 @@ export class DualModeAdapter implements VMAdapter {
       // Validate trace
       const _trace = this.getLastTraceAndClear();
 
-      return [rethnetResult, ethereumJSDebugTrace];
+      return rethnetResult;
     } catch (error) {
       // Ensure that the state root generator seed is re-aligned upon an error
       globalRethnetContext.setStateRootGeneratorSeed(randomHashSeed());

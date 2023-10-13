@@ -60,7 +60,7 @@ export class DualModeBlockBuilder implements BlockBuilderAdapter {
         `Different gas used in block: ${ethereumJSGasUsed} (ethereumjs) !== ${rethnetGasUsed} (rethnet)`
       );
 
-      /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+      /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
       throw new Error("Different gas used in block");
     }
 

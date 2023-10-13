@@ -29,7 +29,7 @@ const encodeStorageKey = (address: Buffer, position: Buffer): string => {
   return `${address.toString("hex")}${unpadBuffer(position).toString("hex")}`;
 };
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 type State = ImmutableMap<string, ImmutableRecord<AccountState>>;
 

@@ -6,6 +6,7 @@ use napi::{
 };
 use napi_derive::napi;
 use rethnet_evm::trace::BeforeMessage;
+use rethnet_evm::OPCODE_JUMPMAP;
 
 use crate::transaction::result::ExecutionResult;
 
@@ -93,9 +94,12 @@ pub struct TracingStep {
     /// The program counter
     #[napi(readonly)]
     pub pc: BigInt,
-    // /// The executed op code
-    // #[napi(readonly)]
-    // pub opcode: String,
+    /// The executed op code
+    #[napi(readonly)]
+    pub opcode: String,
+    /// The top entry on the stack. None if the stack is empty.
+    #[napi(readonly)]
+    pub stack_top: Option<BigInt>,
     // /// The return value of the step
     // #[napi(readonly)]
     // pub return_value: u8,
@@ -130,9 +134,13 @@ impl TracingStep {
         Self {
             depth: step.depth as u8,
             pc: BigInt::from(step.pc),
-            // opcode: OPCODE_JUMPMAP[usize::from(step.opcode)]
-            //     .unwrap_or("")
-            //     .to_string(),
+            opcode: OPCODE_JUMPMAP[usize::from(step.opcode)]
+                .unwrap_or("")
+                .to_string(),
+            stack_top: step.stack_top.map(|v| BigInt {
+                sign_bit: false,
+                words: v.into_limbs().to_vec(),
+            }),
             // gas_cost: BigInt::from(0u64),
             // gas_refunded: BigInt::from(0u64),
             // gas_left: BigInt::from(0u64),

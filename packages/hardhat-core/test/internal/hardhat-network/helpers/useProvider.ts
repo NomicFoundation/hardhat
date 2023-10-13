@@ -100,6 +100,7 @@ export function useProvider({
         forkConfig,
         coinbase,
         allowBlocksWithSameTimestamp,
+        enableTransientStorage: false,
       },
       this.logger
     );

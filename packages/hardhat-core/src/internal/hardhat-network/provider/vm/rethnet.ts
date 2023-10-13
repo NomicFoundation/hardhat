@@ -1,8 +1,10 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
+import { InterpreterStep } from "@nomicfoundation/ethereumjs-evm";
 import {
   Account,
   Address,
+  AsyncEventEmitter,
   KECCAK256_NULL,
 } from "@nomicfoundation/ethereumjs-util";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
@@ -13,6 +15,7 @@ import {
   SpecId,
   guaranteedDryRun,
   debugTraceTransaction,
+  debugTraceCall,
   run,
   ConfigOptions,
   State,
@@ -31,6 +34,8 @@ import {
 import { keccak256 } from "../../../util/keccak";
 import { RpcDebugTraceOutput } from "../output";
 import { RethnetStateManager } from "../RethnetState";
+import { assertHardhatInvariant } from "../../../core/errors";
+import { StateOverrideSet } from "../../../core/jsonrpc/types/input/callRequest";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import { MessageTrace } from "../../stack-traces/message-trace";
 import { VMTracer } from "../../stack-traces/vm-tracer";
@@ -39,11 +44,11 @@ import {
   globalRethnetContext,
   UNLIMITED_CONTRACT_SIZE_VALUE,
 } from "../context/rethnet";
-import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
+import { RunTxResult, VMAdapter } from "./vm-adapter";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
 import { RethnetBlockBuilder } from "./block-builder/rethnet";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 export class RethnetAdapter implements VMAdapter {
@@ -55,7 +60,10 @@ export class RethnetAdapter implements VMAdapter {
     private _state: RethnetStateManager,
     private readonly _common: Common,
     private readonly _limitContractCodeSize: bigint | undefined,
-    private readonly _limitInitcodeSize: bigint | undefined
+    private readonly _limitInitcodeSize: bigint | undefined,
+    private readonly _enableTransientStorage: boolean,
+    // For solidity-coverage compatibility. Name cannot be changed.
+    private _vm: VMStub
   ) {
     this._vmTracer = new VMTracer(_common, false);
   }
@@ -89,12 +97,20 @@ export class RethnetAdapter implements VMAdapter {
         ? UNLIMITED_CONTRACT_SIZE_VALUE
         : undefined;
 
+    const vmStub: VMStub = {
+      evm: {
+        events: new AsyncEventEmitter(),
+      },
+    };
+
     return new RethnetAdapter(
       blockchain,
       state,
       common,
       limitContractCodeSize,
-      limitInitcodeSize
+      limitInitcodeSize,
+      config.enableTransientStorage,
+      vmStub
     );
   }
 
@@ -103,9 +119,26 @@ export class RethnetAdapter implements VMAdapter {
    */
   public async dryRun(
     tx: TypedTransaction,
-    blockContext: Block,
-    forceBaseFeeZero?: boolean
-  ): Promise<[RunTxResult, Trace]> {
+    blockNumber: bigint,
+    forceBaseFeeZero?: boolean,
+    stateOverrideSet: StateOverrideSet = {}
+  ): Promise<RunTxResult> {
+    if (Object.keys(stateOverrideSet).length > 0) {
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      throw new Error("state override not implemented for EDR");
+    }
+
+    // We know that this block number exists, because otherwise
+    // there would be an error in the RPC layer.
+    const blockContext = await this._blockchain.blockByNumber(blockNumber);
+    assertHardhatInvariant(
+      blockContext !== null,
+      "Tried to run a tx in the context of a non-existent block"
+    );
+
+    // we don't need to add the tx to the block because runTx doesn't
+    // know anything about the txs in the current block
+
     const rethnetTx = ethereumjsTransactionToRethnetTransactionRequest(tx);
 
     const difficulty = this._getBlockEnvDifficulty(
@@ -122,7 +155,8 @@ export class RethnetAdapter implements VMAdapter {
     );
     const config: ConfigOptions = {
       chainId: this._common.chainId(),
-      specId,
+      // Enable Cancun if transient storage is enabled
+      specId: this._enableTransientStorage ? SpecId.Cancun : specId,
       limitContractCodeSize: this._limitContractCodeSize,
       limitInitcodeSize: this._limitInitcodeSize,
       disableBlockGasLimit: true,
@@ -136,13 +170,14 @@ export class RethnetAdapter implements VMAdapter {
       rethnetTx,
       {
         number: blockContext.header.number,
-        beneficiary: blockContext.header.coinbase.buf,
+        beneficiary: blockContext.header.beneficiary,
         timestamp: blockContext.header.timestamp,
         baseFee:
           forceBaseFeeZero === true ? 0n : blockContext.header.baseFeePerGas,
         gasLimit: blockContext.header.gasLimit,
         difficulty,
         mixHash: prevRandao,
+        blobExcessGas: blockContext.header.blobGas?.excessGas,
       },
       true
     );
@@ -150,12 +185,24 @@ export class RethnetAdapter implements VMAdapter {
     const trace = rethnetResult.trace!;
     for (const traceItem of trace) {
       if ("pc" in traceItem) {
-        await this._vmTracer.addStep(traceItem);
+        // TODO: these "as any" shouldn't be necessary, we had
+        // to add them after merging the changes in main
+        await this._vmTracer.addStep(traceItem as any);
       } else if ("executionResult" in traceItem) {
-        await this._vmTracer.addAfterMessage(traceItem);
+        await this._vmTracer.addAfterMessage(traceItem as any);
       } else {
-        await this._vmTracer.addBeforeMessage(traceItem);
+        await this._vmTracer.addBeforeMessage(traceItem as any);
       }
+    }
+
+    // For solidity-coverage compatibility
+    for (const step of this._vmTracer.tracingSteps) {
+      this._vm.evm.events.emit("step", {
+        pc: Number(step.pc),
+        depth: step.depth,
+        opcode: { name: step.opcode },
+        stackTop: step.stackTop,
+      });
     }
 
     try {
@@ -163,7 +210,7 @@ export class RethnetAdapter implements VMAdapter {
         rethnetResult.result,
         blockContext.header.gasUsed + rethnetResult.result.result.gasUsed
       );
-      return [result, trace];
+      return result;
     } catch (e) {
       // console.log("Rethnet trace");
       // console.log(rethnetResult.execResult.trace);
@@ -344,7 +391,7 @@ export class RethnetAdapter implements VMAdapter {
   public async runTxInBlock(
     tx: TypedTransaction,
     block: Block
-  ): Promise<[RunTxResult, Trace]> {
+  ): Promise<RunTxResult> {
     const rethnetTx = ethereumjsTransactionToRethnetTransactionRequest(tx);
 
     const difficulty = this._getBlockEnvDifficulty(block.header.difficulty);
@@ -389,12 +436,22 @@ export class RethnetAdapter implements VMAdapter {
       }
     }
 
+    // For solidity-coverage compatibility
+    for (const step of this._vmTracer.tracingSteps) {
+      this._vm.evm.events.emit("step", {
+        pc: Number(step.pc),
+        depth: step.depth,
+        opcode: { name: step.opcode },
+        stackTop: step.stackTop,
+      });
+    }
+
     try {
       const result = rethnetResultToRunTxResult(
         rethnetResult.result,
         rethnetResult.result.result.gasUsed
       );
-      return [result, this._vmTracer.getLastTopLevelMessageTrace()];
+      return result;
     } catch (e) {
       // console.log("Rethnet trace");
       // console.log(rethnetResult.trace);
@@ -423,7 +480,8 @@ export class RethnetAdapter implements VMAdapter {
     );
     const evmConfig: ConfigOptions = {
       chainId: this._common.chainId(),
-      specId,
+      // Enable Cancun if transient storage is enabled
+      specId: this._enableTransientStorage ? SpecId.Cancun : specId,
       limitContractCodeSize: this._limitContractCodeSize,
       disableBlockGasLimit: false,
       disableEip3607: true,
@@ -455,6 +513,64 @@ export class RethnetAdapter implements VMAdapter {
       ),
       transactions,
       hash
+    );
+
+    return rethnetRpcDebugTraceToHardhat(result);
+  }
+
+  public async traceCall(
+    tx: TypedTransaction,
+    blockNumber: bigint,
+    traceConfig: RpcDebugTracingConfig
+  ): Promise<RpcDebugTraceOutput> {
+    // We know that this block number exists, because otherwise
+    // there would be an error in the RPC layer.
+    const blockContext = await this._blockchain.blockByNumber(blockNumber);
+    assertHardhatInvariant(
+      blockContext !== null,
+      "Tried to run a tx in the context of a non-existent block"
+    );
+
+    // we don't need to add the tx to the block because runTx doesn't
+    // know anything about the txs in the current block
+
+    const rethnetTx = ethereumjsTransactionToRethnetTransactionRequest(tx);
+
+    const difficulty = this._getBlockEnvDifficulty(
+      blockContext.header.difficulty
+    );
+
+    const prevRandao = await this._getBlockPrevRandao(
+      blockContext.header.number,
+      blockContext.header.mixHash
+    );
+
+    const specId = await this._blockchain.specAtBlockNumber(
+      blockContext.header.number
+    );
+    const evmConfig: ConfigOptions = {
+      chainId: this._common.chainId(),
+      specId,
+      limitContractCodeSize: this._limitContractCodeSize,
+      disableBlockGasLimit: true,
+      disableEip3607: true,
+    };
+
+    const result = await debugTraceCall(
+      this._blockchain,
+      this._state.asInner(),
+      evmConfig,
+      hardhatDebugTraceConfigToRethnet(traceConfig),
+      {
+        number: blockContext.header.number,
+        beneficiary: blockContext.header.beneficiary,
+        timestamp: blockContext.header.timestamp,
+        baseFee: 0n,
+        gasLimit: blockContext.header.gasLimit,
+        difficulty,
+        mixHash: prevRandao,
+      },
+      rethnetTx
     );
 
     return rethnetRpcDebugTraceToHardhat(result);
@@ -537,4 +653,20 @@ export class RethnetAdapter implements VMAdapter {
 
     return undefined;
   }
+}
+
+type InterpreterStepStub = Pick<InterpreterStep, "pc" | "depth"> & {
+  opcode: { name: string };
+  stackTop?: bigint;
+};
+
+interface EVMStub {
+  events: AsyncEventEmitter<{
+    step: (data: InterpreterStepStub, resolve?: (result?: any) => void) => void;
+  }>;
+}
+
+// For compatibility with solidity-coverage that attaches a listener to the step event.
+export interface VMStub {
+  evm: EVMStub;
 }

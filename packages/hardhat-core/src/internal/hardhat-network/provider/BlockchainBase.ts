@@ -14,7 +14,7 @@ import * as BigIntUtils from "../../util/bigint";
 import { BlockchainData } from "./BlockchainData";
 import { RpcReceiptOutput } from "./output";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export abstract class BlockchainBase {
   public consensus: Consensus;

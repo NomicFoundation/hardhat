@@ -67,7 +67,7 @@ const INFURA_API_KEY = "KEY";
 const SEPOLIA_PRIVATE_KEY = "YOUR SEPOLIA PRIVATE KEY";
 
 module.exports = {
-  solidity: "0.8.9",
+  solidity: "{RECOMMENDED_SOLC_VERSION}",
   networks: {
     sepolia: {
       url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
@@ -97,7 +97,7 @@ const ALCHEMY_API_KEY = "KEY";
 const SEPOLIA_PRIVATE_KEY = "YOUR SEPOLIA PRIVATE KEY";
 
 module.exports = {
-  solidity: "0.8.9",
+  solidity: "{RECOMMENDED_SOLC_VERSION}",
   networks: {
     sepolia: {
       url: `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}`,
@@ -113,11 +113,12 @@ module.exports = {
 
 We're using [Infura](https://infura.io) or [Alchemy](https://alchemy.com/), but pointing `url` to any Ethereum node or gateway. Go grab your API key and come back.
 
-To deploy on Sepolia you need to send some Sepolia ether to the address that's going to be making the deployment. You can get testnet ether from a faucet, a service that distributes testing-ETH for free. Here is one for Sepolia:
+To deploy on Sepolia you need to send some Sepolia ether to the address that's going to be making the deployment. You can get testnet ether from a faucet, a service that distributes testing-ETH for free. Here are a few for Sepolia:
 
 - [Alchemy Sepolia Faucet](https://sepoliafaucet.com/)
 - [Coinbase Sepolia Faucet](https://coinbase.com/faucets/ethereum-sepolia-faucet) (only works if you are using the Coinbase Wallet)
 - [Infura Sepolia Faucet](https://www.infura.io/faucet/sepolia)
+- [Chainstack Sepolia Faucet](https://faucet.chainstack.com/sepolia-faucet)
 
 You'll have to change your wallet's network to Sepolia before transacting.
 

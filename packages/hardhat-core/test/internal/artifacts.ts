@@ -1309,6 +1309,52 @@ describe("Artifacts class", function () {
       });
     });
   });
+
+  describe("artifactExists", function () {
+    useTmpDir("artifacts");
+
+    it("should check that the artifact exists", async function () {
+      const artifact = getArtifactFromContractOutput(
+        "source.sol",
+        "Interface",
+        {
+          ...COMPILER_OUTPUTS.Interface,
+          evm: undefined,
+        }
+      );
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
+
+      // FQN
+      assert.isTrue(await artifacts.artifactExists("source.sol:Interface"));
+      // non-FQN
+      assert.isTrue(await artifacts.artifactExists("Interface"));
+    });
+
+    it("should check that the artifact doesn't exist", async function () {
+      const artifact = getArtifactFromContractOutput(
+        "source.sol",
+        "Interface",
+        {
+          ...COMPILER_OUTPUTS.Interface,
+          evm: undefined,
+        }
+      );
+
+      const artifacts = new Artifacts(this.tmpDir);
+      await artifacts.saveArtifactAndDebugFile(artifact, "");
+
+      // FQN, missing file
+      assert.isFalse(await artifacts.artifactExists("invalid/path.sol:A"));
+      // FQN, missing artifact
+      assert.isFalse(await artifacts.artifactExists("source.sol:A"));
+      // FQN, wrong casing
+      assert.isFalse(await artifacts.artifactExists("source.sol:interface"));
+      // non-FQN, missing artifact
+      assert.isFalse(await artifacts.artifactExists("A"));
+    });
+  });
 });
 
 // TODO: All of these outputs have their evm.bytecode duplicated as

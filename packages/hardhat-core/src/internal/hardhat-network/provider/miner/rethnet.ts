@@ -1,6 +1,7 @@
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import { Address } from "@nomicfoundation/ethereumjs-util";
 import { ConfigOptions, MineOrdering, SpecId, mineBlock } from "@ignored/edr";
+import { assertHardhatInvariant } from "../../../core/errors";
 import { BlockMinerAdapter, PartialMineBlockResult } from "../miner";
 import {
   rethnetBlockToEthereumJS,
@@ -14,6 +15,7 @@ import { RethnetBlockchain } from "../blockchain/rethnet";
 import { RethnetStateManager } from "../RethnetState";
 import { RethnetMemPool } from "../mem-pool/rethnet";
 import { RandomBufferGenerator } from "../utils/random";
+import { VMStub } from "../vm/rethnet";
 
 export class RethnetMiner implements BlockMinerAdapter {
   constructor(
@@ -23,7 +25,8 @@ export class RethnetMiner implements BlockMinerAdapter {
     private readonly _common: Common,
     private readonly _limitContractCodeSize: bigint | undefined,
     private _mineOrdering: MineOrdering,
-    private _prevRandaoGenerator: RandomBufferGenerator
+    private _prevRandaoGenerator: RandomBufferGenerator,
+    private _vmStub: VMStub
   ) {}
 
   public async mineBlock(
@@ -73,6 +76,14 @@ export class RethnetMiner implements BlockMinerAdapter {
       for (const traceItem of mineTrace) {
         if ("pc" in traceItem) {
           await vmTracer.addStep(traceItem);
+
+          // For solidity-coverage compatibility
+          this._vmStub.evm.events.emit("step", {
+            pc: Number(traceItem.pc),
+            depth: traceItem.depth,
+            opcode: { name: traceItem.opcode },
+            stackTop: traceItem.stackTop,
+          });
         } else if ("executionResult" in traceItem) {
           await vmTracer.addAfterMessage(traceItem);
         } else {
@@ -89,6 +100,14 @@ export class RethnetMiner implements BlockMinerAdapter {
     }
 
     const receipts = await mineResult.block.receipts();
+
+    const totalDifficultyAfterBlock =
+      await this._blockchain.getTotalDifficultyByHash(mineResult.block.hash());
+
+    assertHardhatInvariant(
+      totalDifficultyAfterBlock !== undefined,
+      "the total difficulty of the mined block should be defined"
+    );
 
     return {
       block: rethnetBlockToEthereumJS(mineResult.block, common),
@@ -107,6 +126,7 @@ export class RethnetMiner implements BlockMinerAdapter {
         receiptsRoot: mineResult.block.header.receiptsRoot,
         gasUsed: mineResult.block.header.gasUsed,
       },
+      totalDifficultyAfterBlock,
       traces,
     };
   }

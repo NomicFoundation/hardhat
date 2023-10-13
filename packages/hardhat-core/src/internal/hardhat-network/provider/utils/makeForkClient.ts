@@ -42,12 +42,15 @@ export async function makeForkProvider(forkConfig: ForkConfig): Promise<{
   const maxReorg = actualMaxReorg ?? FALLBACK_MAX_REORG;
 
   const latestBlockNumber = await getLatestBlockNumber(forkProvider);
-  const lastSafeBlockNumber = latestBlockNumber - maxReorg;
+  const lastSafeBlockNumber = getLastSafeBlockNumber(
+    latestBlockNumber,
+    maxReorg
+  );
 
   let forkBlockNumber;
   if (forkConfig.blockNumber !== undefined) {
     if (forkConfig.blockNumber > latestBlockNumber) {
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw new Error(
         `Trying to initialize a provider with block ${forkConfig.blockNumber} but the current block is ${latestBlockNumber}`
       );
@@ -151,4 +154,15 @@ async function getLatestBlockNumber(provider: HttpProvider) {
 
   const latestBlock = BigInt(latestBlockString);
   return latestBlock;
+}
+
+export function getLastSafeBlockNumber(
+  latestBlockNumber: bigint,
+  maxReorg: bigint
+): bigint {
+  // Design choice: if latestBlock - maxReorg results in a negative number then the latestBlock block will be used.
+  // This decision is based on the assumption that if maxReorg > latestBlock then there is a high probability that the fork is occurring on a devnet.
+  return latestBlockNumber - maxReorg >= 0
+    ? latestBlockNumber - maxReorg
+    : latestBlockNumber;
 }

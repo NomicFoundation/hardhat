@@ -29,11 +29,13 @@ export function useFixtureProject(projectName: string) {
 export async function getFixtureProjectPath(
   projectName: string
 ): Promise<string> {
+  const normalizedProjectName = projectName.replaceAll("/", path.sep);
+
   const projectPath = path.join(
     __dirname,
     "..",
     "fixture-projects",
-    projectName
+    normalizedProjectName
   );
   if (!(await fsExtra.pathExists(projectPath))) {
     throw new Error(`Fixture project ${projectName} doesn't exist`);

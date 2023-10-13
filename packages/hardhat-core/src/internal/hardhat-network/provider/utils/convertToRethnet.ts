@@ -59,7 +59,7 @@ import { RunTxResult } from "../vm/vm-adapter";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import { Bloom } from "./bloom";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export function ethereumjsBlockHeaderToRethnet(
   blockHeader: EthereumJSBlockHeader
@@ -187,6 +187,10 @@ export function rethnetSpecIdToEthereumHardfork(specId: SpecId): HardforkName {
       return HardforkName.MERGE;
     case SpecId.Shanghai:
       return HardforkName.SHANGHAI;
+    // HACK: EthereumJS doesn't support Cancun, so report Shanghai
+    case SpecId.Cancun:
+      return HardforkName.SHANGHAI;
+
     default:
       throw new Error(`Unknown spec id '${specId}', this shouldn't happen`);
   }
