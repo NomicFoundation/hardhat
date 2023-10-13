@@ -2,6 +2,7 @@ mod account;
 mod debug;
 mod fork;
 mod irregular;
+mod overrides;
 mod remote;
 mod trie;
 
@@ -19,6 +20,7 @@ pub use self::{
     debug::{AccountModifierFn, StateDebug},
     fork::ForkState,
     irregular::IrregularState,
+    overrides::*,
     remote::RemoteState,
     trie::{AccountTrie, TrieState},
 };

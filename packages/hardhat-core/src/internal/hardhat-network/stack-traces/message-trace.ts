@@ -1,6 +1,6 @@
 import type { Bytecode } from "./model";
 import type { Exit } from "../provider/vm/exit";
-import {
+import type {
   CallOutput,
   CreateOutput,
   HaltResult,

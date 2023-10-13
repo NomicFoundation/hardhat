@@ -1,6 +1,7 @@
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import { Address } from "@nomicfoundation/ethereumjs-util";
 import { ConfigOptions, MineOrdering, SpecId, mineBlock } from "@ignored/edr";
+import { assertHardhatInvariant } from "../../../core/errors";
 import { BlockMinerAdapter, PartialMineBlockResult } from "../miner";
 import {
   rethnetBlockToEthereumJS,
@@ -100,6 +101,14 @@ export class RethnetMiner implements BlockMinerAdapter {
 
     const receipts = await mineResult.block.receipts();
 
+    const totalDifficultyAfterBlock =
+      await this._blockchain.getTotalDifficultyByHash(mineResult.block.hash());
+
+    assertHardhatInvariant(
+      totalDifficultyAfterBlock !== undefined,
+      "the total difficulty of the mined block should be defined"
+    );
+
     return {
       block: rethnetBlockToEthereumJS(mineResult.block, common),
       blockResult: {
@@ -117,6 +126,7 @@ export class RethnetMiner implements BlockMinerAdapter {
         receiptsRoot: mineResult.block.header.receiptsRoot,
         gasUsed: mineResult.block.header.gasUsed,
       },
+      totalDifficultyAfterBlock,
       traces,
     };
   }

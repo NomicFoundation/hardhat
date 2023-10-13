@@ -3,7 +3,7 @@ import { PathReporter } from "io-ts/lib/PathReporter";
 
 import { InvalidArgumentsError } from "../../../providers/errors";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 /**
  * This function validates a list of params, throwing InvalidArgumentsError

@@ -3,8 +3,11 @@ import type EthersT from "ethers";
 import { AssertionError } from "chai";
 import ordinal from "ordinal";
 
-import { ASSERTION_ABORTED } from "../constants";
-import { assertIsNotNull } from "../utils";
+import {
+  ASSERTION_ABORTED,
+  REVERTED_WITH_CUSTOM_ERROR_MATCHER,
+} from "../constants";
+import { assertIsNotNull, preventAsyncMatcherChaining } from "../utils";
 import { buildAssert, Ssfi } from "../../utils";
 import {
   decodeReturnData,
@@ -22,10 +25,10 @@ interface CustomErrorAssertionData {
 
 export function supportRevertedWithCustomError(
   Assertion: Chai.AssertionStatic,
-  utils: Chai.ChaiUtils
+  chaiUtils: Chai.ChaiUtils
 ) {
   Assertion.addMethod(
-    "revertedWithCustomError",
+    REVERTED_WITH_CUSTOM_ERROR_MATCHER,
     function (
       this: any,
       contract: EthersT.BaseContract,
@@ -40,8 +43,14 @@ export function supportRevertedWithCustomError(
         expectedCustomErrorName
       );
 
+      preventAsyncMatcherChaining(
+        this,
+        REVERTED_WITH_CUSTOM_ERROR_MATCHER,
+        chaiUtils
+      );
+
       const onSuccess = () => {
-        if (utils.flag(this, ASSERTION_ABORTED) === true) {
+        if (chaiUtils.flag(this, ASSERTION_ABORTED) === true) {
           return;
         }
 
@@ -54,7 +63,7 @@ export function supportRevertedWithCustomError(
       };
 
       const onError = (error: any) => {
-        if (utils.flag(this, ASSERTION_ABORTED) === true) {
+        if (chaiUtils.flag(this, ASSERTION_ABORTED) === true) {
           return;
         }
 
@@ -125,7 +134,7 @@ export function supportRevertedWithCustomError(
       );
 
       // needed for .withArgs
-      utils.flag(this, REVERTED_WITH_CUSTOM_ERROR_CALLED, true);
+      chaiUtils.flag(this, REVERTED_WITH_CUSTOM_ERROR_CALLED, true);
       this.promise = derivedPromise;
 
       this.then = derivedPromise.then.bind(derivedPromise);

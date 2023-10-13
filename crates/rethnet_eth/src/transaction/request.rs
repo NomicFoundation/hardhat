@@ -1,11 +1,13 @@
 mod eip155;
 mod eip1559;
 mod eip2930;
+mod eip4844;
 mod legacy;
 
 pub use self::{
     eip155::EIP155TransactionRequest, eip1559::EIP1559TransactionRequest,
-    eip2930::EIP2930TransactionRequest, legacy::LegacyTransactionRequest,
+    eip2930::EIP2930TransactionRequest, eip4844::Eip4844TransactionRequest,
+    legacy::LegacyTransactionRequest,
 };
 
 /// Container type for various Ethereum transaction requests
@@ -24,4 +26,6 @@ pub enum TransactionRequest {
     EIP2930(EIP2930TransactionRequest),
     /// An EIP-1559 transaction request
     EIP1559(EIP1559TransactionRequest),
+    /// An EIP-4844 transaction request
+    Eip4844(Eip4844TransactionRequest),
 }

@@ -171,9 +171,11 @@ export class Anonymizer {
 
   private _isHardhatFile(filename: string): boolean {
     const nomiclabsPath = path.join("node_modules", "@nomiclabs");
+    const nomicFoundationPath = path.join("node_modules", "@nomicfoundation");
     const truffleContractPath = path.join(nomiclabsPath, "truffle-contract");
     const isHardhatFile =
-      filename.startsWith(nomiclabsPath) &&
+      (filename.startsWith(nomiclabsPath) ||
+        filename.startsWith(nomicFoundationPath)) &&
       !filename.startsWith(truffleContractPath);
 
     return isHardhatFile;

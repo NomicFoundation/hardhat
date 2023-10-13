@@ -11,7 +11,7 @@ use crate::{
     block::BlockConfig,
     blockchain::Blockchain,
     config::ConfigOptions,
-    state::State,
+    state::{State, StateOverrides},
     transaction::{result::TransactionResult, TransactionRequest},
 };
 
@@ -20,7 +20,8 @@ use crate::{
 #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
 pub async fn dry_run(
     blockchain: &Blockchain,
-    state_manager: &State,
+    state: &State,
+    state_overrides: &StateOverrides,
     cfg: ConfigOptions,
     transaction: TransactionRequest,
     block: BlockConfig,
@@ -36,7 +37,8 @@ pub async fn dry_run(
 
     let ResultAndState { result, state } = rethnet_evm::dry_run(
         &*blockchain.read().await,
-        &*state_manager.read().await,
+        &*state.read().await,
+        state_overrides.as_inner(),
         cfg,
         transaction,
         block,
@@ -59,7 +61,8 @@ pub async fn dry_run(
 #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
 pub async fn guaranteed_dry_run(
     blockchain: &Blockchain,
-    state_manager: &State,
+    state: &State,
+    state_overrides: &StateOverrides,
     cfg: ConfigOptions,
     transaction: TransactionRequest,
     block: BlockConfig,
@@ -75,7 +78,8 @@ pub async fn guaranteed_dry_run(
 
     let ResultAndState { result, state } = rethnet_evm::guaranteed_dry_run(
         &*blockchain.read().await,
-        &*state_manager.read().await,
+        &*state.read().await,
+        state_overrides.as_inner(),
         cfg,
         transaction,
         block,

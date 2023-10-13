@@ -1,4 +1,4 @@
-import { wrapWithSolidityErrorsCorrection } from "hardhat/internal/hardhat-network/stack-traces/solidity-errors";
+import type { wrapWithSolidityErrorsCorrection as WrapWithSolidityErrorsCorrectionT } from "hardhat/internal/hardhat-network/stack-traces/solidity-errors";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { NetworkConfig } from "hardhat/types";
 import util from "util";
@@ -66,6 +66,11 @@ export class LazyTruffleContractProvisioner {
   private _addDefaultParamsHooks(Contract: TruffleContract) {
     const originalNew = Contract.new;
     const originalAt = Contract.at;
+
+    const { wrapWithSolidityErrorsCorrection } =
+      require("hardhat/internal/hardhat-network/stack-traces/solidity-errors") as {
+        wrapWithSolidityErrorsCorrection: typeof WrapWithSolidityErrorsCorrectionT;
+      };
 
     Contract.new = async (...args: any[]) => {
       return wrapWithSolidityErrorsCorrection(async () => {
@@ -174,6 +179,11 @@ export class LazyTruffleContractProvisioner {
     const originalEstimateGas = original.estimateGas;
     const originalSendTransaction = original.sendTransaction;
     const originalRequest = original.request;
+
+    const { wrapWithSolidityErrorsCorrection } =
+      require("hardhat/internal/hardhat-network/stack-traces/solidity-errors") as {
+        wrapWithSolidityErrorsCorrection: typeof WrapWithSolidityErrorsCorrectionT;
+      };
 
     instance[methodName] = async (...args: any[]) => {
       return wrapWithSolidityErrorsCorrection(async () => {

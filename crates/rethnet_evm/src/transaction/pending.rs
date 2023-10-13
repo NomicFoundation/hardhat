@@ -3,7 +3,7 @@ use std::ops::Deref;
 use rethnet_eth::{
     transaction::{
         EIP1559SignedTransaction, EIP155SignedTransaction, EIP2930SignedTransaction,
-        LegacySignedTransaction, SignedTransaction, TransactionKind,
+        Eip4844SignedTransaction, LegacySignedTransaction, SignedTransaction, TransactionKind,
     },
     Address, U256,
 };
@@ -47,7 +47,7 @@ impl PendingTransaction {
         transaction: SignedTransaction,
         caller: Address,
     ) -> Result<Self, TransactionCreationError<S::Error>> {
-        if transaction.kind() == &TransactionKind::Create && transaction.data().is_empty() {
+        if transaction.kind() == TransactionKind::Create && transaction.data().is_empty() {
             return Err(TransactionCreationError::ContractMissingData);
         }
 
@@ -101,69 +101,69 @@ impl PendingTransaction {
         match spec_id {
             SpecId::FRONTIER | SpecId::FRONTIER_THAWING => initial_tx_gas::<FrontierSpec>(
                 transaction.data(),
-                transaction.kind() == &TransactionKind::Create,
+                transaction.kind() == TransactionKind::Create,
                 access_list.as_ref().map_or(&[], |access_list| access_list),
             ),
             SpecId::HOMESTEAD | SpecId::DAO_FORK => initial_tx_gas::<HomesteadSpec>(
                 transaction.data(),
-                transaction.kind() == &TransactionKind::Create,
+                transaction.kind() == TransactionKind::Create,
                 access_list.as_ref().map_or(&[], |access_list| access_list),
             ),
             SpecId::TANGERINE => initial_tx_gas::<TangerineSpec>(
                 transaction.data(),
-                transaction.kind() == &TransactionKind::Create,
+                transaction.kind() == TransactionKind::Create,
                 access_list.as_ref().map_or(&[], |access_list| access_list),
             ),
             SpecId::SPURIOUS_DRAGON => initial_tx_gas::<SpuriousDragonSpec>(
                 transaction.data(),
-                transaction.kind() == &TransactionKind::Create,
+                transaction.kind() == TransactionKind::Create,
                 access_list.as_ref().map_or(&[], |access_list| access_list),
             ),
             SpecId::BYZANTIUM => initial_tx_gas::<ByzantiumSpec>(
                 transaction.data(),
-                transaction.kind() == &TransactionKind::Create,
+                transaction.kind() == TransactionKind::Create,
                 access_list.as_ref().map_or(&[], |access_list| access_list),
             ),
             SpecId::PETERSBURG | SpecId::CONSTANTINOPLE => initial_tx_gas::<PetersburgSpec>(
                 transaction.data(),
-                transaction.kind() == &TransactionKind::Create,
+                transaction.kind() == TransactionKind::Create,
                 access_list.as_ref().map_or(&[], |access_list| access_list),
             ),
             SpecId::ISTANBUL | SpecId::MUIR_GLACIER => initial_tx_gas::<IstanbulSpec>(
                 transaction.data(),
-                transaction.kind() == &TransactionKind::Create,
+                transaction.kind() == TransactionKind::Create,
                 access_list.as_ref().map_or(&[], |access_list| access_list),
             ),
             SpecId::BERLIN => initial_tx_gas::<BerlinSpec>(
                 transaction.data(),
-                transaction.kind() == &TransactionKind::Create,
+                transaction.kind() == TransactionKind::Create,
                 access_list.as_ref().map_or(&[], |access_list| access_list),
             ),
             SpecId::LONDON | SpecId::ARROW_GLACIER | SpecId::GRAY_GLACIER => {
                 initial_tx_gas::<LondonSpec>(
                     transaction.data(),
-                    transaction.kind() == &TransactionKind::Create,
+                    transaction.kind() == TransactionKind::Create,
                     access_list.as_ref().map_or(&[], |access_list| access_list),
                 )
             }
             SpecId::MERGE => initial_tx_gas::<MergeSpec>(
                 transaction.data(),
-                transaction.kind() == &TransactionKind::Create,
+                transaction.kind() == TransactionKind::Create,
                 access_list.as_ref().map_or(&[], |access_list| access_list),
             ),
             SpecId::SHANGHAI => initial_tx_gas::<ShanghaiSpec>(
                 transaction.data(),
-                transaction.kind() == &TransactionKind::Create,
+                transaction.kind() == TransactionKind::Create,
                 access_list.as_ref().map_or(&[], |access_list| access_list),
             ),
             SpecId::CANCUN => initial_tx_gas::<LatestSpec>(
                 transaction.data(),
-                transaction.kind() == &TransactionKind::Create,
+                transaction.kind() == TransactionKind::Create,
                 access_list.as_ref().map_or(&[], |access_list| access_list),
             ),
             SpecId::LATEST => initial_tx_gas::<LatestSpec>(
                 transaction.data(),
-                transaction.kind() == &TransactionKind::Create,
+                transaction.kind() == TransactionKind::Create,
                 access_list.as_ref().map_or(&[], |access_list| access_list),
             ),
         }
@@ -266,6 +266,32 @@ impl From<PendingTransaction> for TxEnv {
                 access_list: access_list.into(),
                 blob_hashes: Vec::new(),
                 max_fee_per_blob_gas: None,
+            },
+            SignedTransaction::Eip4844(Eip4844SignedTransaction {
+                nonce,
+                max_priority_fee_per_gas,
+                max_fee_per_gas,
+                max_fee_per_blob_gas,
+                gas_limit,
+                to,
+                value,
+                input,
+                access_list,
+                blob_hashes,
+                ..
+            }) => Self {
+                caller: transaction.caller,
+                gas_limit,
+                gas_price: max_fee_per_gas,
+                transact_to: TransactTo::Call(to),
+                value,
+                data: input,
+                nonce: Some(nonce),
+                chain_id,
+                access_list: access_list.into(),
+                gas_priority_fee: Some(max_priority_fee_per_gas),
+                blob_hashes,
+                max_fee_per_blob_gas: Some(max_fee_per_blob_gas),
             },
         }
     }

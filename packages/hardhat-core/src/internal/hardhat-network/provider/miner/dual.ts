@@ -66,7 +66,7 @@ export class DualBlockMiner implements BlockMinerAdapter {
       // Ensure that the state root generator seed is re-aligned upon an error
       globalRethnetContext.setStateRootGeneratorSeed(randomHashSeed());
 
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw error;
     }
   }
@@ -82,7 +82,7 @@ export class DualBlockMiner implements BlockMinerAdapter {
         )} (ethereumjs) !== ${rethnetSeed.toString("hex")} (rethnet)`
       );
 
-      /* eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+      /* eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
       throw new Error("Different prevRandaoGeneratorSeed");
     }
 

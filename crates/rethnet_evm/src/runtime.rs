@@ -1,20 +1,20 @@
 use std::fmt::Debug;
 
 use revm::{
-    db::DatabaseComponents,
+    db::{DatabaseComponents, StateRef},
     primitives::{BlockEnv, CfgEnv, ExecutionResult, ResultAndState, SpecId, TxEnv},
 };
 
 use crate::{
     blockchain::SyncBlockchain,
     evm::{build_evm, run_transaction, SyncInspector},
-    state::SyncState,
+    state::{StateOverrides, StateRefOverrider, SyncState},
     transaction::TransactionError,
 };
 
 /// Asynchronous implementation of the Database super-trait
 pub type SyncDatabase<'blockchain, 'state, BlockchainErrorT, StateErrorT> = DatabaseComponents<
-    &'state dyn SyncState<StateErrorT>,
+    &'state dyn StateRef<Error = StateErrorT>,
     &'blockchain dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
 >;
 
@@ -23,6 +23,7 @@ pub type SyncDatabase<'blockchain, 'state, BlockchainErrorT, StateErrorT> = Data
 pub async fn dry_run<BlockchainErrorT, StateErrorT>(
     blockchain: &dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
     state: &dyn SyncState<StateErrorT>,
+    state_overrides: &StateOverrides,
     cfg: CfgEnv,
     transaction: TxEnv,
     block: BlockEnv,
@@ -42,7 +43,9 @@ where
         return Err(TransactionError::Eip1559Unsupported);
     }
 
-    let evm = build_evm(blockchain, state, cfg, transaction, block);
+    let state_overrider = StateRefOverrider::new(state_overrides, &state);
+
+    let evm = build_evm(blockchain, &state_overrider, cfg, transaction, block);
 
     run_transaction(evm, inspector).map_err(TransactionError::from)
 }
@@ -52,6 +55,7 @@ where
 pub async fn guaranteed_dry_run<BlockchainErrorT, StateErrorT>(
     blockchain: &dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
     state: &dyn SyncState<StateErrorT>,
+    state_overrides: &StateOverrides,
     mut cfg: CfgEnv,
     transaction: TxEnv,
     block: BlockEnv,
@@ -62,7 +66,16 @@ where
     StateErrorT: Debug + Send + 'static,
 {
     cfg.disable_balance_check = true;
-    dry_run(blockchain, state, cfg, transaction, block, inspector).await
+    dry_run(
+        blockchain,
+        state,
+        state_overrides,
+        cfg,
+        transaction,
+        block,
+        inspector,
+    )
+    .await
 }
 
 /// Runs a transaction, committing the state in the process.
@@ -82,7 +95,16 @@ where
     let ResultAndState {
         result,
         state: changes,
-    } = dry_run(blockchain, state, cfg, transaction, block, inspector).await?;
+    } = dry_run(
+        blockchain,
+        state,
+        &StateOverrides::default(),
+        cfg,
+        transaction,
+        block,
+        inspector,
+    )
+    .await?;
 
     state.commit(changes);
 

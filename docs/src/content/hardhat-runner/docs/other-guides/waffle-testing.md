@@ -20,10 +20,10 @@ Ethers and Waffle support TypeScript. Learn how to set up Hardhat with TypeScrip
 
 ## Setting up
 
-[Install Hardhat](/hardhat-runner/docs/getting-started/index.md#installation) on an empty directory. When done, run `npx hardhat`:
+[Install Hardhat](/hardhat-runner/docs/getting-started/index.md#installation) on an empty directory. When done, run `npx hardhat init`:
 
 ```
-$ npx hardhat
+$ npx hardhat init
 888    888                      888 888               888
 888    888                      888 888               888
 888    888                      888 888               888
@@ -33,7 +33,7 @@ $ npx hardhat
 888    888 888  888 888    Y88b 888 888  888 888  888 Y88b.
 888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888
 
-Welcome to Hardhat v2.10.0
+Welcome to Hardhat v{HARDHAT_VERSION}
 
 ? What do you want to do? …
 ▸ Create a JavaScript project

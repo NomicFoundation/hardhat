@@ -5,6 +5,7 @@ import { PartialTrace, RunBlockResult } from "./vm/vm-adapter";
 export interface PartialMineBlockResult {
   block: Block;
   blockResult: RunBlockResult;
+  totalDifficultyAfterBlock: bigint;
   traces: PartialTrace[];
 }
 

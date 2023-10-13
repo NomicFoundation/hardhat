@@ -374,7 +374,7 @@ task(TASK_NODE, "Starts a JSON-RPC server on top of Hardhat Network")
           );
         }
 
-        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+        // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
         throw error;
       }
     }

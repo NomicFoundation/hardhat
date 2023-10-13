@@ -10,7 +10,10 @@ import { assert } from "chai";
 import { JsonRpcClient } from "../../../../../src/internal/hardhat-network/jsonrpc/client";
 import { ForkBlockchain } from "../../../../../src/internal/hardhat-network/provider/fork/ForkBlockchain";
 import { randomHashBuffer } from "../../../../../src/internal/hardhat-network/provider/utils/random";
-import { makeForkClient } from "../../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
+import {
+  makeForkClient,
+  getLastSafeBlockNumber,
+} from "../../../../../src/internal/hardhat-network/provider/utils/makeForkClient";
 import { ALCHEMY_URL } from "../../../../setup";
 import {
   createTestLog,
@@ -74,6 +77,17 @@ describe("ForkBlockchain", () => {
 
   it("can be constructed", () => {
     assert.instanceOf(fb, ForkBlockchain);
+  });
+
+  describe("getLastSafeBlock", () => {
+    it("should return a safe block that is the difference between the latestBlock and maxReorg", () => {
+      assert.strictEqual(getLastSafeBlockNumber(100n, 50n), 50n);
+      assert.strictEqual(getLastSafeBlockNumber(100n, 100n), 0n); // 0 is a valid fork block number
+    });
+
+    it("should return latestBlock as fork block because the difference between the latestBlock and maxReorg is < 0", () => {
+      assert.strictEqual(getLastSafeBlockNumber(20n, 200n), 20n);
+    });
   });
 
   describe("getBlock", () => {

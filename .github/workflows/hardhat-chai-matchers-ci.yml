@@ -14,6 +14,7 @@ on:
       - "packages/hardhat-chai-matchers/**"
       - "packages/hardhat-common/**"
       - "config/**"
+  workflow_dispatch:
 
 defaults:
   run:
@@ -31,7 +32,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: 18.15
+          node-version: 18
           cache: yarn
       - name: Install
         run: yarn --frozen-lockfile
@@ -41,23 +42,17 @@ jobs:
         env:
           FORCE_COLOR: 3
         run: yarn test:ci
-      - name: Cache downloaded compilers
-        uses: actions/cache@v2
-        with:
-          path: |
-            C:\Users\runneradmin\AppData\Local\hardhat-nodejs\Cache\compilers-v2
-          key: downloaded-compilers-v2
 
   test_on_macos:
     name: Test hardhat-chai-matchers on MacOS with Node 18
     runs-on: macos-latest
     # disable until actions/virtual-environments#4896 is fixed
-    # if: ${{ false }}
+    if: ${{ false }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: 18.15
+          node-version: 18
           cache: yarn
       - name: Install
         run: yarn --frozen-lockfile
@@ -67,19 +62,13 @@ jobs:
         env:
           FORCE_COLOR: 3
         run: yarn test:ci
-      - name: Cache downloaded compilers
-        uses: actions/cache@v2
-        with:
-          path: |
-            /Users/runner/Library/Caches/hardhat-nodejs/compilers-v2
-          key: downloaded-compilers-v2
 
   test_on_linux:
     name: Test hardhat-chai-matchers on Ubuntu with Node ${{ matrix.node }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [18.15]
+        node: [18, 20]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -94,9 +83,3 @@ jobs:
         env:
           FORCE_COLOR: 3
         run: yarn test:ci
-      - name: Cache downloaded compilers
-        uses: actions/cache@v2
-        with:
-          path: |
-            /home/runner/.cache/hardhat-nodejs/compilers-v2
-          key: downloaded-compilers-v2

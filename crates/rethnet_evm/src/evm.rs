@@ -1,12 +1,12 @@
 use std::fmt::Debug;
 
 use revm::{
-    db::{DatabaseComponentError, DatabaseComponents},
+    db::{DatabaseComponentError, DatabaseComponents, StateRef},
     primitives::{BlockEnv, CfgEnv, EVMError, ResultAndState, TxEnv},
     Inspector,
 };
 
-use crate::{blockchain::SyncBlockchain, state::SyncState, SyncDatabase};
+use crate::{blockchain::SyncBlockchain, SyncDatabase};
 
 /// Super trait for an inspector of an `AsyncDatabase` that's debuggable.
 pub trait SyncInspector<BE, SE>: Inspector<DatabaseComponentError<SE, BE>> + Debug + Send
@@ -25,10 +25,10 @@ where
 }
 
 /// Creates an evm from the provided database, config, transaction, and block.
-#[cfg_attr(feature = "tracing", tracing::instrument)]
+#[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
 pub fn build_evm<'b, 's, BlockchainErrorT, StateErrorT>(
     blockchain: &'b dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
-    state: &'s dyn SyncState<StateErrorT>,
+    state: &'s dyn StateRef<Error = StateErrorT>,
     cfg: CfgEnv,
     transaction: TxEnv,
     block: BlockEnv,

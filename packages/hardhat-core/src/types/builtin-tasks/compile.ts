@@ -15,6 +15,11 @@ export interface ResolvedFile {
   getVersionedName(): string;
 }
 
+export type ArtifactsEmittedPerFile = Array<{
+  file: ResolvedFile;
+  artifactsEmitted: string[];
+}>;
+
 /**
  * Information about an npm library.
  */

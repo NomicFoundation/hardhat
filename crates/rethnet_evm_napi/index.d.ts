@@ -38,6 +38,7 @@ export interface BlockConfig {
   baseFee?: bigint
   gasLimit?: bigint
   parentHash?: Buffer
+  blobExcessGas?: bigint
 }
 export interface BlockOptions {
   /** The parent block's hash */
@@ -66,6 +67,21 @@ export interface BlockOptions {
   nonce?: Buffer
   /** The block's base gas fee */
   baseFee?: bigint
+  /** The block's withdrawals root */
+  withdrawalsRoot?: Buffer
+  /** The hash tree root of the parent beacon block for the given execution block (EIP-4788). */
+  parentBeaconBlockRoot?: Buffer
+}
+/** Information about the blob gas used in a block. */
+export interface BlobGas {
+  /** The total amount of blob gas consumed by the transactions within the block. */
+  gasUsed: bigint
+  /**
+   * The running total of blob gas consumed in excess of the target, prior to
+   * the block. Blocks with above-target blob gas consumption increase this value,
+   * blocks with below-target blob gas consumption decrease it (bounded at 0).
+   */
+  excessGas: bigint
 }
 export interface BlockHeader {
   parentHash: Buffer
@@ -85,6 +101,8 @@ export interface BlockHeader {
   nonce: Buffer
   baseFeePerGas?: bigint
   withdrawalsRoot?: Buffer
+  blobGas?: BlobGas
+  parentBeaconBlockRoot?: Buffer
 }
 /** Identifier for the Ethereum spec. */
 export const enum SpecId {
@@ -144,6 +162,8 @@ export interface ConfigOptions {
 }
 /** Get trace output for `debug_traceTransaction` */
 export function debugTraceTransaction(blockchain: Blockchain, stateManager: State, evmConfig: ConfigOptions, traceConfig: DebugTraceConfig, blockConfig: BlockConfig, transactions: Array<PendingTransaction>, transactionHash: Buffer): Promise<DebugTraceResult>
+/** Get trace output for `debug_traceTransaction` */
+export function debugTraceCall(blockchain: Blockchain, stateManager: State, evmConfig: ConfigOptions, traceConfig: DebugTraceConfig, blockConfig: BlockConfig, transaction: TransactionRequest): Promise<DebugTraceResult>
 export interface DebugTraceConfig {
   disableStorage?: boolean
   disableMemory?: boolean
@@ -194,9 +214,9 @@ export const enum MineOrdering {
 /** Mines a block using as many transactions as can fit in it. */
 export function mineBlock(blockchain: Blockchain, stateManager: State, memPool: MemPool, config: ConfigOptions, timestamp: bigint, beneficiary: Buffer, minGasPrice: bigint, mineOrdering: MineOrdering, reward: bigint, baseFee?: bigint | undefined | null, prevrandao?: Buffer | undefined | null): Promise<MineBlockResult>
 /** Executes the provided transaction without changing state. */
-export function dryRun(blockchain: Blockchain, stateManager: State, cfg: ConfigOptions, transaction: TransactionRequest, block: BlockConfig, withTrace: boolean): Promise<TransactionResult>
+export function dryRun(blockchain: Blockchain, state: State, stateOverrides: StateOverrides, cfg: ConfigOptions, transaction: TransactionRequest, block: BlockConfig, withTrace: boolean): Promise<TransactionResult>
 /** Executes the provided transaction without changing state, ignoring validation checks in the process. */
-export function guaranteedDryRun(blockchain: Blockchain, stateManager: State, cfg: ConfigOptions, transaction: TransactionRequest, block: BlockConfig, withTrace: boolean): Promise<TransactionResult>
+export function guaranteedDryRun(blockchain: Blockchain, state: State, stateOverrides: StateOverrides, cfg: ConfigOptions, transaction: TransactionRequest, block: BlockConfig, withTrace: boolean): Promise<TransactionResult>
 /** Executes the provided transaction, changing state in the process. */
 export function run(blockchain: Blockchain, stateManager: State, cfg: ConfigOptions, transaction: TransactionRequest, block: BlockConfig, withTrace: boolean): Promise<TransactionResult>
 export interface Signature {
@@ -206,6 +226,18 @@ export interface Signature {
   s: bigint
   /** V value */
   v: bigint
+}
+export interface StorageSlotChange {
+  index: bigint
+  value: bigint
+}
+/** Values for overriding account information. */
+export interface AccountOverride {
+  balance?: bigint
+  nonce?: bigint
+  code?: Buffer
+  storage?: Array<StorageSlotChange>
+  storageDiff?: Array<StorageSlotChange>
 }
 export interface TracingMessage {
   /** Recipient address. None if it is a Create message. */
@@ -381,6 +413,23 @@ export interface Eip2930SignedTransaction {
   r: bigint
   s: bigint
 }
+export interface Eip4844SignedTransaction {
+  chainId: bigint
+  nonce: bigint
+  maxPriorityFeePerGas: bigint
+  maxFeePerGas: bigint
+  maxFeePerBlobGas: bigint
+  gasLimit: bigint
+  /** 160-bit address for receiver */
+  to: Buffer
+  value: bigint
+  input: Buffer
+  accessList: Array<AccessListItem>
+  blobHashes: Array<Buffer>
+  oddYParity: boolean
+  r: bigint
+  s: bigint
+}
 export interface LegacySignedTransaction {
   nonce: bigint
   gasPrice: bigint
@@ -419,10 +468,12 @@ export class BlockBuilder {
   finalize(rewards: Array<[Buffer, bigint]>, timestamp?: bigint | undefined | null): Promise<Block>
 }
 export class Block {
+  /**Retrieves the block's hash, potentially calculating it in the process. */
+  hash(): Buffer
   /**Retrieves the block's header. */
   get header(): BlockHeader
   /**Retrieves the block's transactions. */
-  get transactions(): Array<LegacySignedTransaction | EIP2930SignedTransaction | EIP1559SignedTransaction>
+  get transactions(): Array<LegacySignedTransaction | EIP2930SignedTransaction | EIP1559SignedTransaction | Eip4844SignedTransaction>
   /**Retrieves the callers of the block's transactions */
   get callers(): Array<Buffer>
   /**Retrieves the transactions' receipts. */
@@ -570,6 +621,10 @@ export class Receipt {
   /**Returns the index of the receipt's transaction in the block. */
   get transactionIndex(): bigint
 }
+export class StateOverrides {
+  /**Constructs a new set of state overrides. */
+  constructor(accountOverrides: Array<[Buffer, AccountOverride]>)
+}
 /** The Rethnet state */
 export class State {
   /** Constructs a [`State`] with an empty state. */
@@ -612,9 +667,9 @@ export class OrderedTransaction {
 }
 export class PendingTransaction {
   /** Tries to construct a new [`PendingTransaction`]. */
-  static create(stateManager: State, specId: SpecId, transaction: LegacySignedTransaction | EIP2930SignedTransaction | EIP1559SignedTransaction, caller?: Buffer | undefined | null): Promise<PendingTransaction>
+  static create(stateManager: State, specId: SpecId, transaction: LegacySignedTransaction | EIP2930SignedTransaction | EIP1559SignedTransaction | Eip4844SignedTransaction, caller?: Buffer | undefined | null): Promise<PendingTransaction>
   get caller(): Buffer
-  get transaction(): LegacySignedTransaction | EIP2930SignedTransaction | EIP1559SignedTransaction
+  get transaction(): LegacySignedTransaction | EIP2930SignedTransaction | EIP1559SignedTransaction | Eip4844SignedTransaction
 }
 export class TransactionResult {
   get result(): ExecutionResult

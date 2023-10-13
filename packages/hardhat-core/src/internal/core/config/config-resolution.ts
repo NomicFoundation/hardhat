@@ -1,5 +1,6 @@
 import cloneDeep from "lodash/cloneDeep";
 import path from "path";
+import semver from "semver";
 
 import {
   HardhatConfig,
@@ -384,6 +385,10 @@ function resolveCompiler(compiler: SolcUserConfig): SolcConfig {
     version: compiler.version,
     settings: compiler.settings ?? {},
   };
+
+  if (semver.gte(resolved.version, "0.8.20")) {
+    resolved.settings.evmVersion = compiler.settings?.evmVersion ?? "paris";
+  }
 
   resolved.settings.optimizer = {
     enabled: false,

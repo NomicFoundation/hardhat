@@ -5,18 +5,11 @@ import {
   TransactionFactory,
   TypedTransaction,
 } from "@nomicfoundation/ethereumjs-tx";
-import {
-  Address,
-  bufferToHex,
-  toBuffer,
-  toRpcSig,
-  zeroAddress,
-} from "@nomicfoundation/ethereumjs-util";
+import { Address, toBuffer, toRpcSig } from "@nomicfoundation/ethereumjs-util";
 import * as t from "io-ts";
 import cloneDeep from "lodash/cloneDeep";
-
 import { BoundExperimentalHardhatNetworkMessageTraceHook } from "../../../../types";
-import { RpcAccessList } from "../../../core/jsonrpc/types/access-list";
+import { assertHardhatInvariant } from "../../../core/errors";
 import {
   bufferToRpcData,
   numberToRpcQuantity,
@@ -37,6 +30,8 @@ import {
   RpcOldBlockTag,
 } from "../../../core/jsonrpc/types/input/blockTag";
 import {
+  optionalStateOverrideSet,
+  OptionalStateOverrideSet,
   rpcCallRequest,
   RpcCallRequest,
 } from "../../../core/jsonrpc/types/input/callRequest";
@@ -67,7 +62,6 @@ import { MessageTrace } from "../../stack-traces/message-trace";
 import { LATEST_BLOCK } from "../filter";
 import { HardhatNode } from "../node";
 import {
-  CallParams,
   FilterParams,
   GatherTracesResult,
   MineBlockResult,
@@ -83,28 +77,29 @@ import {
   shouldShowTransactionTypeForHardfork,
 } from "../output";
 
-import { assertHardhatInvariant } from "../../../core/errors";
-import { optional } from "../../../util/io-ts";
-import * as BigIntUtils from "../../../util/bigint";
-import { HardforkName } from "../../../util/hardforks";
 import { assertHardhatNetworkInvariant } from "../utils/assertions";
+import { optional } from "../../../util/io-ts";
+import { HardforkName } from "../../../util/hardforks";
 import { ModulesLogger } from "./logger";
+import { Base } from "./base";
 
 const EIP1559_MIN_HARDFORK = HardforkName.LONDON;
 const ACCESS_LIST_MIN_HARDFORK = HardforkName.BERLIN;
 const EIP155_MIN_HARDFORK = HardforkName.SPURIOUS_DRAGON;
 const EIP3860_MIN_HARDFORK = HardforkName.SHANGHAI;
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
-export class EthModule {
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
+export class EthModule extends Base {
   constructor(
     private readonly _common: Common,
-    private readonly _node: HardhatNode,
+    _node: HardhatNode,
     private readonly _throwOnTransactionFailures: boolean,
     private readonly _throwOnCallFailures: boolean,
     private readonly _logger: ModulesLogger,
     private readonly _experimentalHardhatNetworkMessageTraceHooks: BoundExperimentalHardhatNetworkMessageTraceHook[] = []
-  ) {}
+  ) {
+    super(_node);
+  }
 
   public async processRequest(
     method: string,
@@ -335,26 +330,38 @@ export class EthModule {
 
   // eth_call
 
-  private _callParams(params: any[]): [RpcCallRequest, OptionalRpcNewBlockTag] {
-    return validateParams(params, rpcCallRequest, optionalRpcNewBlockTag);
+  private _callParams(
+    params: any[]
+  ): [RpcCallRequest, OptionalRpcNewBlockTag, OptionalStateOverrideSet] {
+    return validateParams(
+      params,
+      rpcCallRequest,
+      optionalRpcNewBlockTag,
+      optionalStateOverrideSet
+    );
   }
 
   private async _callAction(
     rpcCall: RpcCallRequest,
-    blockTag: OptionalRpcNewBlockTag
+    blockTag: OptionalRpcNewBlockTag,
+    stateOverrideSet: OptionalStateOverrideSet
   ): Promise<string> {
     this._validateTransactionAndCallRequest(rpcCall);
 
-    const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
+    const blockNumberOrPending = await this.resolveNewBlockTag(blockTag);
 
-    const callParams = await this._rpcCallRequestToNodeCallParams(rpcCall);
+    const callParams = await this.rpcCallRequestToNodeCallParams(rpcCall);
 
     const {
       result: returnData,
       trace,
       error,
       consoleLogMessages,
-    } = await this._node.runCall(callParams, blockNumberOrPending);
+    } = await this._node.runCall(
+      callParams,
+      blockNumberOrPending,
+      stateOverrideSet
+    );
 
     const code = await this._node.getCodeFromTrace(trace, blockNumberOrPending);
 
@@ -421,12 +428,12 @@ export class EthModule {
 
     // estimateGas behaves differently when there's no blockTag
     // it uses "pending" as default instead of "latest"
-    const blockNumberOrPending = await this._resolveNewBlockTag(
+    const blockNumberOrPending = await this.resolveNewBlockTag(
       blockTag,
       "pending"
     );
 
-    const callParams = await this._rpcCallRequestToNodeCallParams(callRequest);
+    const callParams = await this.rpcCallRequestToNodeCallParams(callRequest);
 
     const { estimation, error, trace, consoleLogMessages } =
       await this._node.estimateGas(callParams, blockNumberOrPending);
@@ -474,13 +481,14 @@ export class EthModule {
     address: Buffer,
     blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
-    const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
-    const accountBalance = await this._node.getAccountBalance(
-      new Address(address),
-      blockNumberOrPending
-    );
+    const blockNumberOrPending = await this.resolveNewBlockTag(blockTag);
 
-    return numberToRpcQuantity(accountBalance);
+    return numberToRpcQuantity(
+      await this._node.getAccountBalance(
+        new Address(address),
+        blockNumberOrPending
+      )
+    );
   }
 
   // eth_getBlockByHash
@@ -500,9 +508,14 @@ export class EthModule {
 
     const totalDifficulty = await this._node.getBlockTotalDifficulty(block);
 
+    assertHardhatInvariant(
+      totalDifficulty !== undefined,
+      "Total difficulty should be defined"
+    );
+
     return getRpcBlock(
       block,
-      totalDifficulty!,
+      totalDifficulty,
       shouldShowTransactionTypeForHardfork(this._common),
       includeTransactions
     );
@@ -603,7 +616,7 @@ export class EthModule {
     address: Buffer,
     blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
-    const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
+    const blockNumberOrPending = await this.resolveNewBlockTag(blockTag);
 
     return bufferToRpcData(
       await this._node.getCode(new Address(address), blockNumberOrPending)
@@ -712,7 +725,7 @@ export class EthModule {
     slot: bigint,
     blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
-    const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
+    const blockNumberOrPending = await this.resolveNewBlockTag(blockTag);
 
     const data = await this._node.getStorageAt(
       new Address(address),
@@ -845,7 +858,7 @@ export class EthModule {
     address: Buffer,
     blockTag: OptionalRpcNewBlockTag
   ): Promise<string> {
-    const blockNumberOrPending = await this._resolveNewBlockTag(blockTag);
+    const blockNumberOrPending = await this.resolveNewBlockTag(blockTag);
 
     return numberToRpcQuantity(
       await this._node.getNextConfirmedNonce(
@@ -1231,7 +1244,7 @@ export class EthModule {
       );
     }
 
-    const resolvedNewestBlock = await this._resolveNewBlockTag(newestBlock);
+    const resolvedNewestBlock = await this.resolveNewBlockTag(newestBlock);
 
     const feeHistory = await this._node.getFeeHistory(
       blockCount,
@@ -1253,31 +1266,6 @@ export class EthModule {
   }
 
   // Utility methods
-
-  private async _rpcCallRequestToNodeCallParams(
-    rpcCall: RpcCallRequest
-  ): Promise<CallParams> {
-    return {
-      to: rpcCall.to,
-      from:
-        rpcCall.from !== undefined
-          ? rpcCall.from
-          : await this._getDefaultCallFrom(),
-      data: rpcCall.data !== undefined ? rpcCall.data : toBuffer([]),
-      gasLimit:
-        rpcCall.gas !== undefined
-          ? rpcCall.gas
-          : await this._node.getBlockGasLimit(),
-      value: rpcCall.value !== undefined ? rpcCall.value : 0n,
-      accessList:
-        rpcCall.accessList !== undefined
-          ? this._rpcAccessListToNodeAccessList(rpcCall.accessList)
-          : undefined,
-      gasPrice: rpcCall.gasPrice,
-      maxFeePerGas: rpcCall.maxFeePerGas,
-      maxPriorityFeePerGas: rpcCall.maxPriorityFeePerGas,
-    };
-  }
 
   private async _rpcTransactionRequestToNodeTransactionParams(
     rpcTx: RpcTransactionRequest
@@ -1360,15 +1348,6 @@ export class EthModule {
     };
   }
 
-  private _rpcAccessListToNodeAccessList(
-    rpcAccessList: RpcAccessList
-  ): Array<[Buffer, Buffer[]]> {
-    return rpcAccessList.map((tuple) => [
-      tuple.address,
-      tuple.storageKeys ?? [],
-    ]);
-  }
-
   private async _resolveOldBlockTag(
     oldBlockTag: RpcOldBlockTag
   ): Promise<bigint | "pending" | undefined> {
@@ -1394,68 +1373,6 @@ export class EthModule {
     return block?.header.number;
   }
 
-  private async _resolveNewBlockTag(
-    newBlockTag: OptionalRpcNewBlockTag,
-    defaultValue: RpcNewBlockTag = "latest"
-  ): Promise<bigint | "pending"> {
-    if (newBlockTag === undefined) {
-      newBlockTag = defaultValue;
-    }
-
-    if (newBlockTag === "pending") {
-      return "pending";
-    }
-
-    if (newBlockTag === "latest") {
-      return this._node.getLatestBlockNumber();
-    }
-
-    if (newBlockTag === "earliest") {
-      return 0n;
-    }
-
-    if (newBlockTag === "safe" || newBlockTag === "finalized") {
-      this._checkPostMergeBlockTags(newBlockTag);
-
-      return this._node.getLatestBlockNumber();
-    }
-
-    if (!BigIntUtils.isBigInt(newBlockTag)) {
-      if ("blockNumber" in newBlockTag && "blockHash" in newBlockTag) {
-        throw new InvalidArgumentsError(
-          "Invalid block tag received. Only one of hash or block number can be used."
-        );
-      }
-
-      if ("blockNumber" in newBlockTag && "requireCanonical" in newBlockTag) {
-        throw new InvalidArgumentsError(
-          "Invalid block tag received. requireCanonical only works with hashes."
-        );
-      }
-    }
-
-    let block: Block | undefined;
-    if (BigIntUtils.isBigInt(newBlockTag)) {
-      block = await this._node.getBlockByNumber(newBlockTag);
-    } else if ("blockNumber" in newBlockTag) {
-      block = await this._node.getBlockByNumber(newBlockTag.blockNumber);
-    } else {
-      block = await this._node.getBlockByHash(newBlockTag.blockHash);
-    }
-
-    if (block === undefined) {
-      const latestBlock = await this._node.getLatestBlockNumber();
-
-      throw new InvalidInputError(
-        `Received invalid block tag ${this._newBlockTagToString(
-          newBlockTag
-        )}. Latest block number is ${latestBlock.toString()}`
-      );
-    }
-
-    return block.header.number;
-  }
-
   private async _normalizeOldBlockTagForFilterRequest(
     blockTag: OptionalRpcOldBlockTag
   ): Promise<bigint> {
@@ -1478,22 +1395,6 @@ export class EthModule {
     }
 
     return blockTag;
-  }
-
-  private _newBlockTagToString(tag: RpcNewBlockTag): string {
-    if (typeof tag === "string") {
-      return tag;
-    }
-
-    if (BigIntUtils.isBigInt(tag)) {
-      return tag.toString();
-    }
-
-    if ("blockNumber" in tag) {
-      return tag.blockNumber.toString();
-    }
-
-    return bufferToHex(tag.blockHash);
   }
 
   private _extractNormalizedLogTopics(
@@ -1525,16 +1426,6 @@ export class EthModule {
     }
 
     return address;
-  }
-
-  private async _getDefaultCallFrom(): Promise<Buffer> {
-    const localAccounts = await this._node.getLocalAccountAddresses();
-
-    if (localAccounts.length === 0) {
-      return toBuffer(zeroAddress());
-    }
-
-    return toBuffer(localAccounts[0]);
   }
 
   private async _sendTransactionAndReturnHash(tx: TypedTransaction) {
@@ -1808,17 +1699,6 @@ You can use them by running Hardhat Network with 'hardfork' ${ACCESS_LIST_MIN_HA
         `Trying to send an EIP-1559 transaction but they are not supported by the current hard fork.
 
 You can use them by running Hardhat Network with 'hardfork' ${EIP1559_MIN_HARDFORK} or later.`
-      );
-    }
-  }
-
-  private _checkPostMergeBlockTags(blockTag: "safe" | "finalized") {
-    const isPostMerge = this._node.isPostMergeHardfork();
-    const hardfork = this._node.hardfork;
-
-    if (!isPostMerge) {
-      throw new InvalidArgumentsError(
-        `The '${blockTag}' block tag is not allowed in pre-merge hardforks. You are using the '${hardfork}' hardfork.`
       );
     }
   }

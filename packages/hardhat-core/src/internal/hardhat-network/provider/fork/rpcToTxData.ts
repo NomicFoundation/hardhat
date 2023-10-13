@@ -1,10 +1,19 @@
+import type { BigIntLike } from "@nomicfoundation/ethereumjs-util";
+
 import {
   AccessListEIP2930TxData,
   TxData,
 } from "@nomicfoundation/ethereumjs-tx";
 
-import { FeeMarketEIP1559TxData } from "@nomicfoundation/ethereumjs-tx/dist/types";
 import { RpcTransaction } from "../../../core/jsonrpc/types/output/transaction";
+
+// the FeeMarketEIP1559TxData interface from ethereum js also has a
+// `gasPrice?: never | null` property, which causes a compilation
+// error in the latest version of typescript
+interface FeeMarketEIP1559TxData extends AccessListEIP2930TxData {
+  maxPriorityFeePerGas?: BigIntLike;
+  maxFeePerGas?: BigIntLike;
+}
 
 export function rpcToTxData(
   rpcTransaction: RpcTransaction

@@ -80,7 +80,7 @@ yarn add --dev hardhat
 
 ::::
 
-and run `npx hardhat` to create a Hardhat project:
+and run `npx hardhat init` to create a Hardhat project:
 
 ```
 888    888                      888 888               888
@@ -92,7 +92,7 @@ and run `npx hardhat` to create a Hardhat project:
 888    888 888  888 888    Y88b 888 888  888 888  888 Y88b.
 888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888
 
-Welcome to Hardhat v2.13.0
+Welcome to Hardhat v{HARDHAT_VERSION}
 
 ? What do you want to do? …
 ▸ Create a JavaScript project

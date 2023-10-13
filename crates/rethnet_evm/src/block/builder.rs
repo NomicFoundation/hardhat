@@ -4,7 +4,7 @@ use std::{
 };
 
 use rethnet_eth::{
-    block::{BlockOptions, Header, PartialHeader},
+    block::{BlobGas, BlockOptions, Header, PartialHeader},
     log::Log,
     receipt::{TransactionReceipt, TypedReceipt, TypedReceiptData},
     transaction::SignedTransaction,
@@ -14,8 +14,9 @@ use rethnet_eth::{
 use revm::{
     db::DatabaseComponentError,
     primitives::{
-        Account, AccountInfo, AccountStatus, BlockEnv, CfgEnv, EVMError, ExecutionResult, HashMap,
-        InvalidHeader, InvalidTransaction, Output, ResultAndState, SpecId,
+        Account, AccountInfo, AccountStatus, BlobExcessGasAndPrice, BlockEnv, CfgEnv, EVMError,
+        ExecutionResult, HashMap, InvalidHeader, InvalidTransaction, Output, ResultAndState,
+        SpecId,
     },
 };
 
@@ -63,7 +64,7 @@ where
             EVMError::Transaction(e) => Self::InvalidTransaction(e),
             EVMError::Header(
                 InvalidHeader::ExcessBlobGasNotSet | InvalidHeader::PrevrandaoNotSet,
-            ) => unreachable!(),
+            ) => unreachable!("error: {error:?}"),
             EVMError::Database(DatabaseComponentError::State(e)) => Self::State(e),
             EVMError::Database(DatabaseComponentError::BlockHash(e)) => Self::BlockHash(e),
         }
@@ -189,14 +190,16 @@ impl BlockBuilder {
             } else {
                 None
             },
-            // TODO: Add support for EIP-4844
-            // https://github.com/NomicFoundation/edr/issues/191
-            blob_excess_gas_and_price: None,
+            blob_excess_gas_and_price: self
+                .header
+                .blob_gas
+                .as_ref()
+                .map(|BlobGas { excess_gas, .. }| BlobExcessGasAndPrice::new(*excess_gas)),
         };
 
         let evm = build_evm(
             blockchain,
-            state,
+            &state,
             self.cfg.clone(),
             transaction.clone().into(),
             block.clone(),
@@ -259,12 +262,13 @@ impl BlockBuilder {
                     }
                     SignedTransaction::Eip2930(_) => TypedReceiptData::Eip2930 { status },
                     SignedTransaction::Eip1559(_) => TypedReceiptData::Eip1559 { status },
+                    SignedTransaction::Eip4844(_) => TypedReceiptData::Eip4844 { status },
                 },
             },
             transaction_hash: *transaction.hash(),
             transaction_index: self.transactions.len() as u64,
             from: *transaction.caller(),
-            to: transaction.to().cloned(),
+            to: transaction.to(),
             contract_address,
             gas_used: U256::from(result.gas_used()),
             effective_gas_price,
@@ -352,12 +356,6 @@ impl BlockBuilder {
             );
         }
 
-        let withdrawals = if self.cfg.spec_id >= SpecId::SHANGHAI {
-            Some(Vec::new())
-        } else {
-            None
-        };
-
         // TODO: handle ommers
         let block = LocalBlock::new(
             self.header,
@@ -365,7 +363,7 @@ impl BlockBuilder {
             self.callers,
             self.receipts,
             Vec::new(),
-            withdrawals,
+            None,
         );
 
         Ok(BuildBlockResult {

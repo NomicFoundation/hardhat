@@ -98,12 +98,17 @@ impl LocalBlockchain {
             } else {
                 None
             },
+            withdrawals_root: if spec_id >= SpecId::SHANGHAI {
+                Some(KECCAK_NULL_RLP)
+            } else {
+                None
+            },
             ..PartialHeader::default()
         };
 
         Ok(unsafe {
             Self::with_genesis_block_unchecked(
-                LocalBlock::empty(partial_header, spec_id),
+                LocalBlock::empty(partial_header),
                 genesis_state,
                 chain_id,
                 spec_id,
