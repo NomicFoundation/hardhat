@@ -5,9 +5,8 @@ use napi::{
     Status,
 };
 use napi_derive::napi;
-use rethnet_eth::{signature::private_key_to_address, Address, Bytes, U256};
+use rethnet_eth::{signature::secret_key_to_address, Address, Bytes, U256};
 use rethnet_evm::{AccountInfo, HashMap, KECCAK_EMPTY};
-use secp256k1::Secp256k1;
 
 use crate::cast::TryCast;
 
@@ -99,8 +98,8 @@ impl TryCast<AccountInfo> for Account {
 /// An account that needs to be created during the genesis block.
 #[napi(object)]
 pub struct GenesisAccount {
-    /// Account private key
-    pub private_key: String,
+    /// Account secret key
+    pub secret_key: String,
     /// Account balance
     pub balance: BigInt,
 }
@@ -109,12 +108,10 @@ pub struct GenesisAccount {
 pub fn genesis_accounts(
     accounts: Vec<GenesisAccount>,
 ) -> napi::Result<HashMap<Address, AccountInfo>> {
-    let signer = Secp256k1::signing_only();
-
     accounts
         .into_iter()
         .map(|account| {
-            let address = private_key_to_address(&signer, &account.private_key)
+            let address = secret_key_to_address(&account.secret_key)
                 .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
             TryCast::<U256>::try_cast(account.balance).map(|balance| {
                 let account_info = AccountInfo {

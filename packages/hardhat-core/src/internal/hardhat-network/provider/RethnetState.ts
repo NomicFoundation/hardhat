@@ -21,7 +21,7 @@ export class RethnetStateManager {
       State.withGenesisAccounts(
         genesisAccounts.map((account) => {
           return {
-            privateKey: account.privateKey,
+            secretKey: account.privateKey,
             balance: BigInt(account.balance),
           };
         })
@@ -49,7 +49,7 @@ export class RethnetStateManager {
         blockNumber,
         genesisAccounts.map((account) => {
           return {
-            privateKey: account.privateKey,
+            secretKey: account.privateKey,
             balance: BigInt(account.balance),
           };
         })

@@ -7,12 +7,12 @@ edition = "2021"
 anyhow = "1.0.65"
 clap = { version = "3.2.22", default-features = false, features = ["std", "derive"] }
 hex = { version = "0.4.3", default-features = false }
+k256 = { version = "0.13.1", default-features = false, features = ["arithmetic", "ecdsa", "pkcs8", "precomputed-tables", "std"] }
 pretty_env_logger = { version = "0.4.0", default-features = false }
 rethnet_defaults = { version = "0.1.0-dev", path = "../rethnet_defaults" }
 rethnet_eth = { version = "0.1.0-dev", path = "../rethnet_eth" }
 rethnet_evm = { version = "0.1.0-dev", path = "../rethnet_evm" }
 rethnet_rpc_server = { version = "0.1.0-dev", path = "../rethnet_rpc_server" }
-secp256k1 = { version = "0.24.0", default-features = false, features = ["alloc"] }
 serde = { version = "1.0.147", default-features = false, features = ["derive"] }
 tokio = { version = "1.23.0", features = ["macros", "signal"] }
 toml = "0.7.6"

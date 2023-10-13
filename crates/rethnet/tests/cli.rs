@@ -5,7 +5,6 @@ use assert_cmd::{
     cargo::CommandCargoExt, // for process::Command::cargo_bin
 };
 use predicates::str::contains;
-use secp256k1::Secp256k1;
 
 use rethnet_eth::{
     remote::{
@@ -14,18 +13,14 @@ use rethnet_eth::{
         methods::{MethodInvocation as EthMethodInvocation, U256OrUsize},
         BlockSpec,
     },
-    signature::private_key_to_address,
+    signature::secret_key_to_address,
     Bytes, U256,
 };
 use rethnet_rpc_server::{HardhatMethodInvocation, MethodInvocation};
 
 #[tokio::test]
 async fn node() -> Result<(), Box<dyn std::error::Error>> {
-    let address = private_key_to_address(
-        &Secp256k1::signing_only(),
-        rethnet_defaults::PRIVATE_KEYS[0],
-    )
-    .unwrap();
+    let address = secret_key_to_address(rethnet_defaults::SECRET_KEYS[0]).unwrap();
 
     // the order of operations is a little weird in this test, because we spawn a separate process
     // for the server, and we want to make sure that we end that process gracefully. more
@@ -154,14 +149,13 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
 
     // assert that the standard output of the server process contains the expected log entries:
     Assert::new(output.clone()).stdout(contains("Listening on 127.0.0.1:8549"));
-    let context = Secp256k1::signing_only();
-    for (i, default_private_key) in rethnet_defaults::PRIVATE_KEYS.to_vec().iter().enumerate() {
+    for (i, default_secret_key) in rethnet_defaults::SECRET_KEYS.to_vec().iter().enumerate() {
         Assert::new(output.clone())
-            .stdout(contains(format!("Private Key: 0x{default_private_key}")))
+            .stdout(contains(format!("Secret Key: 0x{default_secret_key}")))
             .stdout(contains(format!(
                 "Account #{}: {:?}",
                 i + 1,
-                private_key_to_address(&context, default_private_key).unwrap()
+                secret_key_to_address(default_secret_key).unwrap()
             )));
     }
     for method_invocation in method_invocations {

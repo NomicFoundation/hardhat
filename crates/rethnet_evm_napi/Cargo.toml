@@ -9,6 +9,7 @@ crate-type = ["cdylib"]
 [dependencies]
 async-trait = { version = "0.1.73", default-features = false }
 crossbeam-channel = { version = "0.5.6", default-features = false }
+k256 = { version = "0.13.1", default-features = false, features = ["arithmetic", "ecdsa", "pkcs8", "precomputed-tables", "std"] }
 # when napi is pinned, be sure to pin napi-derive to the same version
 # The `async` feature ensures that a tokio runtime is available
 napi = { version = "2.12.4", default-features = false, features = ["async", "error_anyhow", "napi8", "serde-json"] }
@@ -17,7 +18,6 @@ rethnet = { version = "0.1.0-dev", path = "../rethnet" }
 rethnet_defaults = { version = "0.1.0-dev", path = "../rethnet_defaults" }
 rethnet_evm = { version = "0.1.0-dev", path = "../rethnet_evm" }
 rethnet_eth = { version = "0.1.0-dev", path = "../rethnet_eth" }
-secp256k1 = { version = "0.24.0", default-features = false, features = ["alloc"] }
 serde_json = { version = "1.0.85", default-features = false, features = ["alloc"] }
 tracing = { version = "0.1.37", default-features = false, features = ["std"] }
 tracing-flame = { version = "0.2.0", default-features = false, features = ["smallvec"] }

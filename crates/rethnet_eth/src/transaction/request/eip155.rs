@@ -1,9 +1,10 @@
 use std::sync::OnceLock;
 
 use bytes::Bytes;
+use k256::SecretKey;
 use revm_primitives::{keccak256, ruint::aliases::U64, B256, U256};
-use secp256k1::SecretKey;
 
+use crate::signature::SignatureError;
 use crate::{
     signature::Signature,
     transaction::{kind::TransactionKind, signed::EIP155SignedTransaction},
@@ -26,14 +27,14 @@ impl EIP155TransactionRequest {
         keccak256(&rlp::encode(self))
     }
 
-    /// Signs the transaction with the provided private key.
-    pub fn sign(self, private_key: &SecretKey) -> EIP155SignedTransaction {
+    /// Signs the transaction with the provided secret key.
+    pub fn sign(self, secret_key: &SecretKey) -> Result<EIP155SignedTransaction, SignatureError> {
         let hash = self.hash();
 
-        let mut signature = Signature::new(hash, private_key);
+        let mut signature = Signature::new(hash, secret_key)?;
         signature.v += self.chain_id * 2 + 35 - 27;
 
-        EIP155SignedTransaction {
+        Ok(EIP155SignedTransaction {
             nonce: self.nonce,
             gas_price: self.gas_price,
             gas_limit: self.gas_limit,
@@ -42,7 +43,7 @@ impl EIP155TransactionRequest {
             input: self.input,
             signature,
             hash: OnceLock::new(),
-        }
+        })
     }
 }
 

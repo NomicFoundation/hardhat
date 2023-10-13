@@ -33,7 +33,6 @@ use rethnet_evm::{
     AccountInfo, CfgEnv, HashMap, HashSet, MemPool, MineBlockResult, RandomHashGenerator,
     KECCAK_EMPTY,
 };
-use secp256k1::{Secp256k1, SecretKey};
 use sha3::{Digest, Keccak256};
 use tokio::sync::RwLock;
 use tracing::{event, Level};
@@ -68,7 +67,7 @@ struct AppData {
     filters: RwLock<HashMap<U256, Filter>>,
     impersonated_accounts: RwLock<HashSet<Address>>,
     last_filter_id: RwLock<U256>,
-    local_accounts: HashMap<Address, SecretKey>,
+    local_accounts: HashMap<Address, k256::SecretKey>,
     network_id: u64,
     node: Node,
 }
@@ -691,8 +690,9 @@ fn handle_sign(
 ) -> ResponseData<Signature> {
     event!(Level::INFO, "eth_sign({address:?}, {message:?})");
     match state.local_accounts.get(address) {
-        Some(private_key) => ResponseData::Success {
-            result: Signature::new(&Bytes::from(message.clone())[..], private_key),
+        Some(secret_key) => match Signature::new(&Bytes::from(message.clone())[..], secret_key) {
+            Ok(signature) => ResponseData::Success { result: signature },
+            Err(error) => ResponseData::new_error(-32000, &error.to_string(), None),
         },
         None => ResponseData::new_error(0, "{address} is not an account owned by this node", None),
     }
@@ -980,42 +980,37 @@ impl Server {
         event!(Level::INFO, "Listening on {}", config.address);
 
         let (local_accounts, genesis_accounts): (
-            HashMap<Address, SecretKey>,
+            HashMap<Address, k256::SecretKey>,
             HashMap<Address, AccountInfo>,
         ) = {
-            let secp256k1 = Secp256k1::signing_only();
             config
                 .accounts
                 .iter()
                 .enumerate()
-                .map(
-                    |(
-                        i,
-                        AccountConfig {
-                            private_key,
-                            balance,
+                .map(|(i, account_config)| {
+                    let AccountConfig {
+                        secret_key,
+                        balance,
+                    } = account_config;
+                    let address = public_key_to_address(secret_key.public_key());
+                    event!(Level::INFO, "Account #{}: {address:?}", i + 1);
+                    event!(
+                        Level::INFO,
+                        "Secret Key: 0x{}",
+                        hex::encode(secret_key.to_bytes())
+                    );
+                    let local_account = (address, secret_key.clone());
+                    let genesis_account = (
+                        address,
+                        AccountInfo {
+                            balance: *balance,
+                            nonce: 0,
+                            code: None,
+                            code_hash: KECCAK_EMPTY,
                         },
-                    )| {
-                        let address = public_key_to_address(private_key.public_key(&secp256k1));
-                        event!(Level::INFO, "Account #{}: {address:?}", i + 1);
-                        event!(
-                            Level::INFO,
-                            "Private Key: 0x{}",
-                            hex::encode(private_key.secret_bytes())
-                        );
-                        let local_account = (address, *private_key);
-                        let genesis_account = (
-                            address,
-                            AccountInfo {
-                                balance: *balance,
-                                nonce: 0,
-                                code: None,
-                                code_hash: KECCAK_EMPTY,
-                            },
-                        );
-                        (local_account, genesis_account)
-                    },
-                )
+                    );
+                    (local_account, genesis_account)
+                })
                 .unzip()
         };
 

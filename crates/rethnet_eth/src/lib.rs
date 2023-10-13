@@ -39,7 +39,6 @@ pub use revm_primitives::{
     ruint::aliases::{B512, B64, U64},
     Address, SpecId, B160, B256, U256,
 };
-pub use secp256k1;
 
 /// A secret key
 pub type Secret = B256;

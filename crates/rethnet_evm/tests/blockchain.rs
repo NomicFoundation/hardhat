@@ -129,9 +129,9 @@ fn create_dummy_block_with_header(partial_header: PartialHeader) -> LocalBlock {
 fn create_dummy_transaction() -> SignedTransaction {
     const DUMMY_INPUT: &[u8] = b"124";
 
-    // TODO: Consolidate DEFAULT_PRIVATE_KEYS in a centralised place
+    // TODO: Consolidate DEFAULT_SECRET_KEYS in a centralised place
     // these were taken from the standard output of a run of `hardhat node`
-    const DUMMY_PRIVATE_KEY: &str =
+    const DUMMY_SECRET_KEY: &str =
         "e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109";
 
     let to = Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e")
@@ -147,10 +147,10 @@ fn create_dummy_transaction() -> SignedTransaction {
         chain_id: 1,
     };
 
-    let private_key = rethnet_eth::secp256k1::SecretKey::from_str(DUMMY_PRIVATE_KEY)
-        .expect("Failed to parse private key");
+    let secret_key = rethnet_eth::signature::secret_key_from_str(DUMMY_SECRET_KEY)
+        .expect("Failed to parse secret key");
 
-    SignedTransaction::PostEip155Legacy(transaction.sign(&private_key))
+    SignedTransaction::PostEip155Legacy(transaction.sign(&secret_key).expect("signs transaction"))
 }
 
 #[tokio::test]

@@ -1,12 +1,12 @@
 use std::sync::OnceLock;
 
 use bytes::Bytes;
+use k256::SecretKey;
 use revm_primitives::{keccak256, ruint::aliases::U64, B256, U256};
-use secp256k1::SecretKey;
 
 use crate::{
     access_list::AccessListItem,
-    signature::Signature,
+    signature::{Signature, SignatureError},
     transaction::{kind::TransactionKind, signed::EIP2930SignedTransaction},
     utils::envelop_bytes,
 };
@@ -35,13 +35,13 @@ impl EIP2930TransactionRequest {
         keccak256(&envelop_bytes(1, &encoded))
     }
 
-    /// Signs the transaction with the provided private key.
-    pub fn sign(self, private_key: &SecretKey) -> EIP2930SignedTransaction {
+    /// Signs the transaction with the provided secret key.
+    pub fn sign(self, secret_key: &SecretKey) -> Result<EIP2930SignedTransaction, SignatureError> {
         let hash = self.hash();
 
-        let signature = Signature::new(hash, private_key);
+        let signature = Signature::new(hash, secret_key)?;
 
-        EIP2930SignedTransaction {
+        Ok(EIP2930SignedTransaction {
             chain_id: self.chain_id,
             nonce: self.nonce,
             gas_price: self.gas_price,
@@ -54,7 +54,7 @@ impl EIP2930TransactionRequest {
             r: signature.r,
             s: signature.s,
             hash: OnceLock::new(),
-        }
+        })
     }
 }
 

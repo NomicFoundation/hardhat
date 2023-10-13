@@ -127,14 +127,17 @@ impl rlp::Decodable for EIP1559SignedTransaction {
 mod tests {
     use std::str::FromStr;
 
+    use k256::SecretKey;
     use revm_primitives::Address;
-    use secp256k1::{Secp256k1, SecretKey};
 
-    use crate::{access_list::AccessListItem, signature::private_key_to_address};
+    use crate::{
+        access_list::AccessListItem,
+        signature::{secret_key_from_str, secret_key_to_address},
+    };
 
     use super::*;
 
-    const DUMMY_PRIVATE_KEY: &str =
+    const DUMMY_SECRET_KEY: &str =
         "e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109";
 
     fn dummy_request() -> EIP1559TransactionRequest {
@@ -156,8 +159,8 @@ mod tests {
         }
     }
 
-    fn dummy_private_key() -> SecretKey {
-        SecretKey::from_str(DUMMY_PRIVATE_KEY).unwrap()
+    fn dummy_secret_key() -> SecretKey {
+        secret_key_from_str(DUMMY_SECRET_KEY).unwrap()
     }
 
     #[test]
@@ -168,7 +171,7 @@ mod tests {
                 .unwrap();
 
         let request = dummy_request();
-        let signed = request.sign(&dummy_private_key());
+        let signed = request.sign(&dummy_secret_key()).unwrap();
 
         let encoded = rlp::encode(&signed);
         assert_eq!(expected, encoded.to_vec());
@@ -183,7 +186,7 @@ mod tests {
         );
 
         let request = dummy_request();
-        let signed = request.sign(&dummy_private_key());
+        let signed = request.sign(&dummy_secret_key()).unwrap();
 
         assert_eq!(expected, *signed.hash());
     }
@@ -192,17 +195,17 @@ mod tests {
     fn test_eip1559_signed_transaction_recover() {
         let request = dummy_request();
 
-        let signed = request.sign(&dummy_private_key());
+        let signed = request.sign(&dummy_secret_key()).unwrap();
 
-        let expected = private_key_to_address(&Secp256k1::signing_only(), DUMMY_PRIVATE_KEY)
-            .expect("Failed to retrieve address from private key");
+        let expected = secret_key_to_address(DUMMY_SECRET_KEY)
+            .expect("Failed to retrieve address from secret key");
         assert_eq!(expected, signed.recover().expect("should succeed"));
     }
 
     #[test]
     fn test_eip1559_signed_transaction_rlp() {
         let request = dummy_request();
-        let signed = request.sign(&dummy_private_key());
+        let signed = request.sign(&dummy_secret_key()).unwrap();
 
         let encoded = rlp::encode(&signed);
         assert_eq!(signed, rlp::decode(&encoded).unwrap());

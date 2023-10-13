@@ -1,11 +1,11 @@
 use std::sync::OnceLock;
 
 use bytes::Bytes;
+use k256::SecretKey;
 use revm_primitives::{keccak256, B256, U256};
-use secp256k1::SecretKey;
 
 use crate::{
-    signature::Signature,
+    signature::{Signature, SignatureError},
     transaction::{kind::TransactionKind, signed::LegacySignedTransaction},
 };
 
@@ -25,13 +25,13 @@ impl LegacyTransactionRequest {
         keccak256(&rlp::encode(self))
     }
 
-    /// Signs the transaction with the provided private key.
-    pub fn sign(self, private_key: &SecretKey) -> LegacySignedTransaction {
+    /// Signs the transaction with the provided secret key.
+    pub fn sign(self, secret_key: &SecretKey) -> Result<LegacySignedTransaction, SignatureError> {
         let hash = self.hash();
 
-        let signature = Signature::new(hash, private_key);
+        let signature = Signature::new(hash, secret_key)?;
 
-        LegacySignedTransaction {
+        Ok(LegacySignedTransaction {
             nonce: self.nonce,
             gas_price: self.gas_price,
             gas_limit: self.gas_limit,
@@ -40,7 +40,7 @@ impl LegacyTransactionRequest {
             input: self.input,
             signature,
             hash: OnceLock::new(),
-        }
+        })
     }
 }
 
