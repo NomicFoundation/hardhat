@@ -248,6 +248,7 @@ export function ethereumjsHeaderDataToRethnetBlockOptions(
     mixHash: fromBufferLike(headerData.mixHash),
     nonce: fromBufferLike(headerData.nonce),
     baseFee: fromBigIntLike(headerData.baseFeePerGas),
+    withdrawalsRoot: fromBufferLike(headerData.withdrawalsRoot),
   };
 }
 

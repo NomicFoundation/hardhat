@@ -199,7 +199,7 @@ impl BlockBuilder {
 
         let evm = build_evm(
             blockchain,
-            state,
+            &state,
             self.cfg.clone(),
             transaction.clone().into(),
             block.clone(),
@@ -356,12 +356,6 @@ impl BlockBuilder {
             );
         }
 
-        let withdrawals = if self.cfg.spec_id >= SpecId::SHANGHAI {
-            Some(Vec::new())
-        } else {
-            None
-        };
-
         // TODO: handle ommers
         let block = LocalBlock::new(
             self.header,
@@ -369,7 +363,7 @@ impl BlockBuilder {
             self.callers,
             self.receipts,
             Vec::new(),
-            withdrawals,
+            None,
         );
 
         Ok(BuildBlockResult {

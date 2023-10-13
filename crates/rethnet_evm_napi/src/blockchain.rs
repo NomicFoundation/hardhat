@@ -74,7 +74,7 @@ impl Blockchain {
         let options = rethnet_eth::block::BlockOptions::try_from(genesis_block)?;
 
         let header = rethnet_eth::block::PartialHeader::new(spec_id, options, None);
-        let genesis_block = rethnet_evm::LocalBlock::empty(header, spec_id);
+        let genesis_block = rethnet_evm::LocalBlock::empty(header);
 
         let accounts = genesis_accounts(accounts)?;
         let genesis_state = TrieState::with_accounts(AccountTrie::with_accounts(&accounts));
