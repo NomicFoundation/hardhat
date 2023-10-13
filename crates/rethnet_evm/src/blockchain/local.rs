@@ -98,6 +98,11 @@ impl LocalBlockchain {
             } else {
                 None
             },
+            withdrawals_root: if spec_id >= SpecId::SHANGHAI {
+                Some(KECCAK_NULL_RLP)
+            } else {
+                None
+            },
             ..PartialHeader::default()
         };
 
@@ -322,6 +327,7 @@ impl BlockchainMut for LocalBlockchain {
             last_header.base_fee_per_gas,
             last_header.state_root,
             previous_total_difficulty,
+            self.spec_id,
         );
 
         Ok(())

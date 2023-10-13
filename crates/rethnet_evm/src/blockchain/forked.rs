@@ -433,6 +433,7 @@ impl BlockchainMut for ForkedBlockchain {
             last_header.base_fee_per_gas,
             last_header.state_root,
             previous_total_difficulty,
+            self.spec_id,
         );
 
         Ok(())

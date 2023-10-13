@@ -394,11 +394,13 @@ impl PartialHeader {
                     None
                 }
             }),
-            withdrawals_root: if spec_id >= SpecId::SHANGHAI {
-                Some(options.withdrawals_root.unwrap_or(KECCAK_NULL_RLP))
-            } else {
-                None
-            },
+            withdrawals_root: options.withdrawals_root.or_else(|| {
+                if spec_id >= SpecId::SHANGHAI {
+                    Some(KECCAK_NULL_RLP)
+                } else {
+                    None
+                }
+            }),
             blob_gas: if spec_id >= SpecId::CANCUN {
                 let excess_gas = parent.and_then(|parent| parent.blob_gas.as_ref()).map_or(
                     // For the first (post-fork) block, both parent.blob_gas_used and parent.excess_blob_gas are evaluated as 0.
@@ -416,11 +418,13 @@ impl PartialHeader {
             } else {
                 None
             },
-            parent_beacon_block_root: if spec_id >= SpecId::CANCUN {
-                Some(options.parent_beacon_block_root.unwrap_or_else(B256::zero))
-            } else {
-                None
-            },
+            parent_beacon_block_root: options.parent_beacon_block_root.or_else(|| {
+                if spec_id >= SpecId::CANCUN {
+                    Some(B256::zero())
+                } else {
+                    None
+                }
+            }),
         }
     }
 }
