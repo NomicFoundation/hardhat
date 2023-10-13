@@ -8,7 +8,7 @@ import {
   HardhatNetworkMempoolConfig,
   HardhatNetworkMiningConfig,
 } from "../../../../src/types";
-import { ALCHEMY_URL, INFURA_URL, RETHNET_BINARY } from "../../../setup";
+import { ALCHEMY_URL, INFURA_URL, EDR_BINARY } from "../../../setup";
 
 import { useProvider, UseProviderOptions } from "./useProvider";
 
@@ -195,9 +195,9 @@ if (INFURA_URL !== undefined) {
   });
 }
 
-if (RETHNET_BINARY !== undefined) {
+if (EDR_BINARY !== undefined) {
   PROVIDERS.push({
-    name: "Rethnet",
+    name: "EDR",
     isFork: false,
     isJsonRpc: true,
     networkId: DEFAULT_NETWORK_ID,
@@ -205,7 +205,7 @@ if (RETHNET_BINARY !== undefined) {
     useProvider: (options: UseProviderOptions = {}) => {
       useProvider({
         useJsonRpc: true,
-        rethnetBinary: RETHNET_BINARY,
+        edrBinary: EDR_BINARY,
         loggerEnabled: true,
         ...options,
       });

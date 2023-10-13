@@ -14,7 +14,7 @@ export enum ExitCode {
 }
 
 export class Exit {
-  public static fromRethnetSuccessReason(reason: SuccessReason): Exit {
+  public static fromEdrSuccessReason(reason: SuccessReason): Exit {
     switch (reason) {
       case SuccessReason.Stop:
       case SuccessReason.Return:
@@ -24,7 +24,7 @@ export class Exit {
     }
   }
 
-  public static fromRethnetExceptionalHalt(halt: ExceptionalHalt): Exit {
+  public static fromEdrExceptionalHalt(halt: ExceptionalHalt): Exit {
     switch (halt) {
       case ExceptionalHalt.OutOfGas:
         return new Exit(ExitCode.OUT_OF_GAS);
@@ -47,7 +47,7 @@ export class Exit {
       default: {
         // TODO temporary, should be removed in production
         // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
-        throw new Error(`Unmatched rethnet exceptional halt: ${halt}`);
+        throw new Error(`Unmatched edr exceptional halt: ${halt}`);
       }
     }
   }
@@ -142,7 +142,7 @@ export class Exit {
     const _exhaustiveCheck: never = this.kind;
   }
 
-  public getRethnetExceptionalHalt(): ExceptionalHalt {
+  public getEdrExceptionalHalt(): ExceptionalHalt {
     switch (this.kind) {
       case ExitCode.OUT_OF_GAS:
         return ExceptionalHalt.OutOfGas;
@@ -154,7 +154,7 @@ export class Exit {
       default:
         // TODO temporary, should be removed in production
         // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
-        throw new Error(`Unmatched rethnet exceptional halt: ${this.kind}`);
+        throw new Error(`Unmatched edr exceptional halt: ${this.kind}`);
     }
   }
 }

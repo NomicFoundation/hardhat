@@ -197,7 +197,7 @@ export class VMTracer {
 
       const executionResult = result.executionResult.result;
       if (isSuccessResult(executionResult)) {
-        trace.exit = Exit.fromRethnetSuccessReason(executionResult.reason);
+        trace.exit = Exit.fromEdrSuccessReason(executionResult.reason);
         trace.returnData = executionResult.output.returnValue;
 
         if (isCreateTrace(trace)) {
@@ -206,7 +206,7 @@ export class VMTracer {
           ).address;
         }
       } else if (isHaltResult(executionResult)) {
-        trace.exit = Exit.fromRethnetExceptionalHalt(executionResult.reason);
+        trace.exit = Exit.fromEdrExceptionalHalt(executionResult.reason);
         trace.returnData = Buffer.from([]);
       } else {
         trace.exit = new Exit(ExitCode.REVERT);

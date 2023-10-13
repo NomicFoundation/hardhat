@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Intended to be in sync with .github/workflows/hardhat-core-ci.yml's
-# test-rethnet-rs
+# test-edr-rs
 
 if [ -z "${ALCHEMY_URL}" ] || [ -z "${INFURA_URL}" ]; then
   echo WARNING: skipping remote tests because the ALCHEMY_URL and INFURA_URL environment variables are not defined. Local test results may differ from those in CI.

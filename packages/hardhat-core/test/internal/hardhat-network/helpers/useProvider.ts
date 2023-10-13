@@ -26,7 +26,7 @@ import {
   DEFAULT_USE_JSON_RPC,
 } from "./providers";
 import { sleep } from "./sleep";
-import { spawnRethnetProvider } from "./spawnRethnetProvider";
+import { spawnEdrProvider } from "./spawnEdrProvider";
 
 declare module "mocha" {
   interface Context {
@@ -40,7 +40,7 @@ declare module "mocha" {
 
 export interface UseProviderOptions {
   useJsonRpc?: boolean;
-  rethnetBinary?: string;
+  edrBinary?: string;
   loggerEnabled?: boolean;
   forkConfig?: ForkConfig;
   mining?: HardhatNetworkMiningConfig;
@@ -60,7 +60,7 @@ export interface UseProviderOptions {
 
 export function useProvider({
   useJsonRpc = DEFAULT_USE_JSON_RPC,
-  rethnetBinary = undefined,
+  edrBinary = undefined,
   loggerEnabled = true,
   forkConfig,
   mining = DEFAULT_MINING_CONFIG,
@@ -121,13 +121,13 @@ export function useProvider({
       );
     }
 
-    if (rethnetBinary !== undefined) {
-      const { childProcess, isReady, httpProvider } = spawnRethnetProvider(
-        rethnetBinary,
+    if (edrBinary !== undefined) {
+      const { childProcess, isReady, httpProvider } = spawnEdrProvider(
+        edrBinary,
         { coinbase, chainId, networkId }
       );
 
-      this.rethnetProcess = childProcess;
+      this.edrProcess = childProcess;
 
       // wait for the server to initialize:
       await sleep(250);
@@ -162,8 +162,8 @@ export function useProvider({
       delete this.serverInfo;
     }
 
-    if (this.rethnetProcess !== undefined) {
-      this.rethnetProcess.kill();
+    if (this.edrProcess !== undefined) {
+      this.edrProcess.kill();
     }
   });
 }
