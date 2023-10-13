@@ -1,7 +1,7 @@
 use std::{fmt::Debug, num::NonZeroUsize, sync::Arc};
 
 use parking_lot::{RwLock, RwLockUpgradableReadGuard, RwLockWriteGuard};
-use rethnet_eth::{block::PartialHeader, receipt::BlockReceipt, SpecId, B256, U256};
+use rethnet_eth::{block::PartialHeader, receipt::BlockReceipt, B256, U256};
 use revm::primitives::HashMap;
 
 use crate::{state::StateDiff, Block, LocalBlock};
@@ -18,7 +18,6 @@ struct Reservation {
     previous_state_root: B256,
     previous_total_difficulty: U256,
     previous_diff_index: usize,
-    spec_id: SpecId,
 }
 
 /// A storage solution for storing a subset of a Blockchain's blocks in-memory, while lazily loading blocks that have been reserved.
@@ -124,7 +123,6 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
         previous_base_fee: Option<U256>,
         previous_state_root: B256,
         previous_total_difficulty: U256,
-        spec_id: SpecId,
     ) {
         let reservation = Reservation {
             first_number: self.last_block_number + U256::from(1),
@@ -134,7 +132,6 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
             previous_state_root,
             previous_total_difficulty,
             previous_diff_index: self.state_diffs.len(),
-            spec_id,
         };
 
         self.reservations.get_mut().push(reservation);
@@ -278,16 +275,13 @@ impl<BlockT: Block + Clone + From<LocalBlock>> ReservableSparseBlockchainStorage
                     block_number,
                 );
 
-                let block = LocalBlock::empty(
-                    PartialHeader {
-                        number: *block_number,
-                        state_root: reservation.previous_state_root,
-                        base_fee: reservation.previous_base_fee_per_gas,
-                        timestamp,
-                        ..PartialHeader::default()
-                    },
-                    reservation.spec_id,
-                );
+                let block = LocalBlock::empty(PartialHeader {
+                    number: *block_number,
+                    state_root: reservation.previous_state_root,
+                    base_fee: reservation.previous_base_fee_per_gas,
+                    timestamp,
+                    ..PartialHeader::default()
+                });
 
                 let mut storage = RwLockUpgradableReadGuard::upgrade(storage);
 

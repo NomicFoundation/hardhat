@@ -102,6 +102,8 @@ pub struct BlockOptions {
     pub nonce: Option<Buffer>,
     /// The block's base gas fee
     pub base_fee: Option<BigInt>,
+    /// The block's withdrawals root
+    pub withdrawals_root: Option<Buffer>,
     /// The hash tree root of the parent beacon block for the given execution block (EIP-4788).
     pub parent_beacon_block_root: Option<Buffer>,
 }
@@ -159,6 +161,10 @@ impl TryFrom<BlockOptions> for rethnet_eth::block::BlockOptions {
             base_fee: value
                 .base_fee
                 .map_or(Ok(None), |basefee| basefee.try_cast().map(Some))?,
+            withdrawals_root: value
+                .withdrawals_root
+                .map(TryCast::<B256>::try_cast)
+                .transpose()?,
             parent_beacon_block_root: value
                 .parent_beacon_block_root
                 .map(TryCast::<B256>::try_cast)

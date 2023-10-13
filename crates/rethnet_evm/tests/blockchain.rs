@@ -6,6 +6,7 @@ use lazy_static::lazy_static;
 use rethnet_eth::{
     block::PartialHeader,
     transaction::{EIP155TransactionRequest, SignedTransaction, TransactionKind},
+    trie::KECCAK_NULL_RLP,
     Address, Bytes, B256, U256,
 };
 use rethnet_evm::{
@@ -107,6 +108,7 @@ async fn create_dummy_block_with_difficulty(
         number,
         parent_hash,
         difficulty: U256::from(difficulty),
+        withdrawals_root: Some(KECCAK_NULL_RLP),
         ..PartialHeader::default()
     })
 }
@@ -115,12 +117,13 @@ fn create_dummy_block_with_hash(number: U256, parent_hash: B256) -> LocalBlock {
     create_dummy_block_with_header(PartialHeader {
         parent_hash,
         number,
+        withdrawals_root: Some(KECCAK_NULL_RLP),
         ..PartialHeader::default()
     })
 }
 
 fn create_dummy_block_with_header(partial_header: PartialHeader) -> LocalBlock {
-    LocalBlock::empty(partial_header, SpecId::SHANGHAI)
+    LocalBlock::empty(partial_header)
 }
 
 fn create_dummy_transaction() -> SignedTransaction {

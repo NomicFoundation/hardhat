@@ -103,7 +103,7 @@ impl LocalBlockchain {
 
         Ok(unsafe {
             Self::with_genesis_block_unchecked(
-                LocalBlock::empty(partial_header, spec_id),
+                LocalBlock::empty(partial_header),
                 genesis_state,
                 chain_id,
                 spec_id,
@@ -322,7 +322,6 @@ impl BlockchainMut for LocalBlockchain {
             last_header.base_fee_per_gas,
             last_header.state_root,
             previous_total_difficulty,
-            self.spec_id,
         );
 
         Ok(())

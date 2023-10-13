@@ -56,7 +56,7 @@ pub struct Block {
 impl Block {
     /// Constructs a new block from the provided partial header, transactions, and ommers.
     pub fn new(
-        partial_header: PartialHeader,
+        mut partial_header: PartialHeader,
         transactions: Vec<SignedTransaction>,
         ommers: Vec<Header>,
         withdrawals: Option<Vec<Withdrawal>>,
@@ -65,17 +65,14 @@ impl Block {
         let transactions_root =
             trie::ordered_trie_root(transactions.iter().map(|r| rlp::encode(r).freeze()));
 
-        let withdrawals_root = withdrawals.as_ref().map(|withdrawals| {
-            trie::ordered_trie_root(withdrawals.iter().map(|r| rlp::encode(r).freeze()))
-        });
+        if let Some(withdrawals) = withdrawals.as_ref() {
+            partial_header.withdrawals_root = Some(trie::ordered_trie_root(
+                withdrawals.iter().map(|r| rlp::encode(r).freeze()),
+            ));
+        }
 
         Self {
-            header: Header::new(
-                partial_header,
-                ommers_hash,
-                transactions_root,
-                withdrawals_root,
-            ),
+            header: Header::new(partial_header, ommers_hash, transactions_root),
             transactions,
             ommers,
             withdrawals,
@@ -172,12 +169,7 @@ pub struct BlobGas {
 
 impl Header {
     /// Constructs a header from the provided [`PartialHeader`], ommers' root hash, transactions' root hash, and withdrawals' root hash.
-    pub fn new(
-        partial_header: PartialHeader,
-        ommers_hash: B256,
-        transactions_root: B256,
-        withdrawals_root: Option<B256>,
-    ) -> Self {
+    pub fn new(partial_header: PartialHeader, ommers_hash: B256, transactions_root: B256) -> Self {
         Self {
             parent_hash: partial_header.parent_hash,
             ommers_hash,
@@ -195,7 +187,7 @@ impl Header {
             mix_hash: partial_header.mix_hash,
             nonce: partial_header.nonce,
             base_fee_per_gas: partial_header.base_fee,
-            withdrawals_root,
+            withdrawals_root: partial_header.withdrawals_root,
             blob_gas: partial_header.blob_gas,
             parent_beacon_block_root: partial_header.parent_beacon_block_root,
         }
@@ -345,6 +337,8 @@ pub struct PartialHeader {
     pub nonce: B64,
     /// BaseFee was added by EIP-1559 and is ignored in legacy headers.
     pub base_fee: Option<U256>,
+    /// WithdrawalsHash was added by EIP-4895 and is ignored in legacy headers.
+    pub withdrawals_root: Option<B256>,
     /// Blob gas was added by EIP-4844 and is ignored in older headers.
     pub blob_gas: Option<BlobGas>,
     /// The hash tree root of the parent beacon block for the given execution block (EIP-4788).
@@ -400,6 +394,11 @@ impl PartialHeader {
                     None
                 }
             }),
+            withdrawals_root: if spec_id >= SpecId::SHANGHAI {
+                Some(options.withdrawals_root.unwrap_or(KECCAK_NULL_RLP))
+            } else {
+                None
+            },
             blob_gas: if spec_id >= SpecId::CANCUN {
                 let excess_gas = parent.and_then(|parent| parent.blob_gas.as_ref()).map_or(
                     // For the first (post-fork) block, both parent.blob_gas_used and parent.excess_blob_gas are evaluated as 0.
@@ -445,6 +444,7 @@ impl Default for PartialHeader {
             mix_hash: B256::default(),
             nonce: B64::default(),
             base_fee: None,
+            withdrawals_root: None,
             blob_gas: None,
             parent_beacon_block_root: None,
         }
@@ -468,6 +468,7 @@ impl From<Header> for PartialHeader {
             mix_hash: header.mix_hash,
             nonce: header.nonce,
             base_fee: header.base_fee_per_gas,
+            withdrawals_root: header.withdrawals_root,
             blob_gas: header.blob_gas,
             parent_beacon_block_root: header.parent_beacon_block_root,
         }

@@ -67,6 +67,8 @@ export interface BlockOptions {
   nonce?: Buffer
   /** The block's base gas fee */
   baseFee?: bigint
+  /** The block's withdrawals root */
+  withdrawalsRoot?: Buffer
   /** The hash tree root of the parent beacon block for the given execution block (EIP-4788). */
   parentBeaconBlockRoot?: Buffer
 }
