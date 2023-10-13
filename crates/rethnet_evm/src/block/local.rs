@@ -9,7 +9,7 @@ use rethnet_eth::{
     transaction::{DetailedTransaction, SignedTransaction},
     trie,
     withdrawal::Withdrawal,
-    Address, SpecId, B256, U256,
+    Address, B256, U256,
 };
 use revm::primitives::keccak256;
 
@@ -29,26 +29,20 @@ pub struct LocalBlock {
 
 impl LocalBlock {
     /// Constructs an empty block, i.e. no transactions.
-    pub fn empty(partial_header: PartialHeader, spec_id: SpecId) -> Self {
-        let withdrawals = if spec_id >= SpecId::SHANGHAI {
-            Some(Vec::new())
-        } else {
-            None
-        };
-
+    pub fn empty(partial_header: PartialHeader) -> Self {
         Self::new(
             partial_header,
             Vec::new(),
             Vec::new(),
             Vec::new(),
             Vec::new(),
-            withdrawals,
+            None,
         )
     }
 
     /// Constructs a new instance with the provided data.
     pub fn new(
-        partial_header: PartialHeader,
+        mut partial_header: PartialHeader,
         transactions: Vec<SignedTransaction>,
         transaction_callers: Vec<Address>,
         transaction_receipts: Vec<TransactionReceipt<Log>>,
@@ -59,16 +53,13 @@ impl LocalBlock {
         let transactions_root =
             trie::ordered_trie_root(transactions.iter().map(|r| rlp::encode(r).freeze()));
 
-        let withdrawals_root = withdrawals.as_ref().map(|withdrawals| {
-            trie::ordered_trie_root(withdrawals.iter().map(|r| rlp::encode(r).freeze()))
-        });
+        if let Some(withdrawals) = withdrawals.as_ref() {
+            partial_header.withdrawals_root = Some(trie::ordered_trie_root(
+                withdrawals.iter().map(|r| rlp::encode(r).freeze()),
+            ));
+        }
 
-        let header = Header::new(
-            partial_header,
-            ommers_hash,
-            transactions_root,
-            withdrawals_root,
-        );
+        let header = Header::new(partial_header, ommers_hash, transactions_root);
 
         let hash = header.hash();
         let transaction_receipts =

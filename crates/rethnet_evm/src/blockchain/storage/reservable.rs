@@ -1,7 +1,9 @@
 use std::{fmt::Debug, num::NonZeroUsize, sync::Arc};
 
 use parking_lot::{RwLock, RwLockUpgradableReadGuard, RwLockWriteGuard};
-use rethnet_eth::{block::PartialHeader, receipt::BlockReceipt, SpecId, B256, U256};
+use rethnet_eth::{
+    block::PartialHeader, receipt::BlockReceipt, trie::KECCAK_NULL_RLP, SpecId, B256, U256,
+};
 use revm::primitives::HashMap;
 
 use crate::{state::StateDiff, Block, LocalBlock};
@@ -278,16 +280,18 @@ impl<BlockT: Block + Clone + From<LocalBlock>> ReservableSparseBlockchainStorage
                     block_number,
                 );
 
-                let block = LocalBlock::empty(
-                    PartialHeader {
-                        number: *block_number,
-                        state_root: reservation.previous_state_root,
-                        base_fee: reservation.previous_base_fee_per_gas,
-                        timestamp,
-                        ..PartialHeader::default()
+                let block = LocalBlock::empty(PartialHeader {
+                    number: *block_number,
+                    state_root: reservation.previous_state_root,
+                    base_fee: reservation.previous_base_fee_per_gas,
+                    timestamp,
+                    withdrawals_root: if reservation.spec_id >= SpecId::SHANGHAI {
+                        Some(KECCAK_NULL_RLP)
+                    } else {
+                        None
                     },
-                    reservation.spec_id,
-                );
+                    ..PartialHeader::default()
+                });
 
                 let mut storage = RwLockUpgradableReadGuard::upgrade(storage);
 

@@ -72,6 +72,7 @@ pub async fn debug_trace_call(
     } = rethnet_evm::guaranteed_dry_run(
         &*blockchain.read().await,
         &*state_manager.read().await,
+        &rethnet_evm::state::StateOverrides::default(),
         evm_config,
         transaction,
         block,
