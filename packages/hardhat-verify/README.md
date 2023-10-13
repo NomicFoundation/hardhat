@@ -262,6 +262,8 @@ if (!instance.isVerified("0x123abc...")) {
 }
 ```
 
+### Verifying on Sourcify
+
 ## How it works
 
 The plugin works by fetching the bytecode in the given address and using it to check which contract in your project corresponds to it. Besides that, some sanity checks are performed locally to make sure that the verification won't fail.
