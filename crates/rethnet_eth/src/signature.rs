@@ -399,10 +399,10 @@ mod tests {
     }
 
     #[test]
-    fn test_private_key_to_address() {
+    fn test_secret_key_to_address() {
         // `hardhat node`s default addresses are shown on startup. this is the first one:
         //     Account #0: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 (10000 ETH)
-        //     Private Key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+        //     Secret Key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
         // we'll use these as fixtures.
 
         let expected_address = Address::from_str("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")

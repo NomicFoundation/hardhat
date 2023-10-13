@@ -996,7 +996,7 @@ impl Server {
                     event!(Level::INFO, "Account #{}: {address:?}", i + 1);
                     event!(
                         Level::INFO,
-                        "Private Key: 0x{}",
+                        "Secret Key: 0x{}",
                         hex::encode(secret_key.to_bytes())
                     );
                     let local_account = (address, secret_key.clone());

@@ -149,13 +149,13 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
 
     // assert that the standard output of the server process contains the expected log entries:
     Assert::new(output.clone()).stdout(contains("Listening on 127.0.0.1:8549"));
-    for (i, default_private_key) in rethnet_defaults::SECRET_KEYS.to_vec().iter().enumerate() {
+    for (i, default_secret_key) in rethnet_defaults::SECRET_KEYS.to_vec().iter().enumerate() {
         Assert::new(output.clone())
-            .stdout(contains(format!("Private Key: 0x{default_private_key}")))
+            .stdout(contains(format!("Secret Key: 0x{default_secret_key}")))
             .stdout(contains(format!(
                 "Account #{}: {:?}",
                 i + 1,
-                secret_key_to_address(default_private_key).unwrap()
+                secret_key_to_address(default_secret_key).unwrap()
             )));
     }
     for method_invocation in method_invocations {

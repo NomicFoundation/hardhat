@@ -93,8 +93,7 @@ impl Default for ConfigFile {
                 .into_iter()
                 .map(|s| AccountConfig {
                     secret_key: Bytes::from_iter(
-                        hex::decode(s)
-                            .expect("should decode all default private keys from strings"),
+                        hex::decode(s).expect("should decode all default secret keys from strings"),
                     )
                     .into(),
                     balance: Number::U256(U256::from(10000)),

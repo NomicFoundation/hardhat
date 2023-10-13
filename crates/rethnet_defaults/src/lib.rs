@@ -1,4 +1,4 @@
-/// The default private keys from which the local accounts will be derived.
+/// The default secret keys from which the local accounts will be derived.
 pub const SECRET_KEYS: [&str; 20] = [
     // these were taken from the standard output of a run of `hardhat node`
     "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
