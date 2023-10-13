@@ -132,7 +132,7 @@ subtask(
       userConfig.sourcify?.enabled === undefined ||
       userConfig.sourcify?.enabled === false
     ) {
-      verificationSubtasks.push(TASK_VERIFY_SOURCIFY_DISABLED_WARNING);
+      verificationSubtasks.unshift(TASK_VERIFY_SOURCIFY_DISABLED_WARNING);
     }
 
     if (!config.etherscan.enabled && !config.sourcify.enabled) {
