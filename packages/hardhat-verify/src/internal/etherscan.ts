@@ -147,7 +147,8 @@ export class Etherscan {
     try {
       response = await sendPostRequest(
         new URL(this.apiUrl),
-        parameters.toString()
+        parameters.toString(),
+        { "Content-Type": "application/x-www-form-urlencoded" }
       );
     } catch (error: any) {
       throw new ContractVerificationRequestError(this.apiUrl, error);
