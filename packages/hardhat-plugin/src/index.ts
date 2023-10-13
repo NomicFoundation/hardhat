@@ -4,13 +4,13 @@ import {
   IgnitionError,
   StatusResult,
 } from "@nomicfoundation/ignition-core";
-import chalk from "chalk";
 import { readdirSync } from "fs-extra";
 import { extendConfig, extendEnvironment, scope } from "hardhat/config";
 import { NomicLabsHardhatPluginError, lazyObject } from "hardhat/plugins";
 import path from "path";
 
 import "./type-extensions";
+import { calculateDeploymentStatusDisplay } from "./ui/helpers/calculate-deployment-status-display";
 
 /* ignition config defaults */
 const IGNITION_DIR = "ignition";
@@ -253,86 +253,7 @@ ignitionScope
       throw e;
     }
 
-    if (statusResult.started.length > 0) {
-      console.log("");
-      console.log(
-        chalk.bold(
-          `⛔ Deployment ${deploymentId} has not fully completed, there are futures have started but not finished`
-        )
-      );
-      console.log("");
-
-      for (const futureId of Object.values(statusResult.started)) {
-        console.log(` - ${futureId}`);
-      }
-
-      console.log("");
-      return;
-    }
-
-    if (
-      statusResult.timedOut.length > 0 ||
-      statusResult.failed.length > 0 ||
-      statusResult.held.length > 0
-    ) {
-      console.log("");
-      console.log(chalk.bold(toErrorResultHeading(deploymentId, statusResult)));
-      console.log("");
-
-      if (statusResult.timedOut.length > 0) {
-        console.log(chalk.yellow("There are timed-out futures:"));
-        console.log("");
-
-        for (const { futureId } of Object.values(statusResult.timedOut)) {
-          console.log(` - ${futureId}`);
-        }
-
-        console.log("");
-      }
-
-      if (statusResult.failed.length > 0) {
-        console.log(chalk.red("There are failed futures"));
-        console.log("");
-
-        for (const { futureId, networkInteractionId, error } of Object.values(
-          statusResult.failed
-        )) {
-          console.log(` - ${futureId}/${networkInteractionId}: ${error}`);
-        }
-
-        console.log("");
-      }
-
-      if (statusResult.held.length > 0) {
-        console.log(chalk.yellow("There are futures that the strategy held:"));
-        console.log("");
-
-        for (const { futureId, heldId, reason } of Object.values(
-          statusResult.held
-        )) {
-          console.log(` - ${futureId}/${heldId}: ${reason}`);
-        }
-
-        console.log("");
-      }
-
-      return;
-    }
-
-    console.log("");
-    console.log(chalk.bold(`🚀 Deployment ${deploymentId} Complete `));
-    console.log("");
-
-    if (Object.values(statusResult.contracts).length === 0) {
-      console.log(chalk.italic("No contracts were deployed"));
-    } else {
-      console.log("Deployed Addresses");
-      console.log("");
-
-      for (const contract of Object.values(statusResult.contracts)) {
-        console.log(`${contract.id} - ${contract.address}`);
-      }
-    }
+    console.log(calculateDeploymentStatusDisplay(deploymentId, statusResult));
   });
 
 ignitionScope
@@ -411,36 +332,4 @@ function resolveParametersString(paramString: string): DeploymentParameters {
     console.warn(`Could not parse JSON parameters`);
     process.exit(0);
   }
-}
-
-function toErrorResultHeading(
-  deploymentId: string,
-  statusResult: StatusResult
-): string {
-  const didTimeout = statusResult.timedOut.length > 0;
-  const didFailed = statusResult.failed.length > 0;
-  const didHeld = statusResult.held.length > 0;
-
-  let reasons = "";
-  if (didTimeout && didFailed && didHeld) {
-    reasons = "timeouts, failures and holds";
-  } else if (didTimeout && didFailed) {
-    reasons = "timeouts and failures";
-  } else if (didFailed && didHeld) {
-    reasons = "failures and holds";
-  } else if (didTimeout && didHeld) {
-    reasons = "timeouts and holds";
-  } else if (didTimeout) {
-    reasons = "timeouts";
-  } else if (didFailed) {
-    reasons = "failures";
-  } else if (didHeld) {
-    reasons = "holds";
-  }
-
-  return chalk.bold(
-    `⛔ Deployment ${deploymentId} did ${chalk.bold(
-      "not"
-    )} complete as there were ${reasons}`
-  );
 }
