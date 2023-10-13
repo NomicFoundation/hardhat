@@ -173,13 +173,13 @@ ${contractURL}`);
 subtask(TASK_VERIFY_SOURCIFY_DISABLED_WARNING, async () => {
   console.info(
     chalk.cyan(
-      `[INFO] Skipping Sourcify verification: Sourcify is disabled. To enable it, add this entry to your config:
+      `[INFO] Sourcify Verification Skipped: Sourcify verification is currently disabled. To enable it, add the following entry to your Hardhat configuration:
 
 sourcify: {
   enabled: true
 }
 
-Learn more at https://...`
+For more information, visit https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-verify#verifying-on-sourcify`
     )
   );
 });
