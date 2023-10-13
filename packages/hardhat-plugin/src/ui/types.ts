@@ -3,7 +3,7 @@ import { DeploymentResult } from "@nomicfoundation/ignition-core";
 export enum UiFutureStatusType {
   UNSTARTED = "UNSTARTED",
   SUCCESS = "SUCCESS",
-  PENDING = "PENDING",
+  TIMEDOUT = "TIMEDOUT",
   ERRORED = "ERRORED",
   HELD = "HELD",
 }
@@ -23,8 +23,8 @@ export interface UiFutureSuccess {
   result?: string;
 }
 
-export interface UiFuturePending {
-  type: UiFutureStatusType.PENDING;
+export interface UiFutureTimedOut {
+  type: UiFutureStatusType.TIMEDOUT;
 }
 
 export interface UiFutureErrored {
@@ -41,7 +41,7 @@ export interface UiFutureHeld {
 export type UiFutureStatus =
   | UiFutureUnstarted
   | UiFutureSuccess
-  | UiFuturePending
+  | UiFutureTimedOut
   | UiFutureErrored
   | UiFutureHeld;
 

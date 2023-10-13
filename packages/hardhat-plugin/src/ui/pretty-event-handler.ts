@@ -42,6 +42,7 @@ import {
   UiFuture,
   UiFutureErrored,
   UiFutureHeld,
+  UiFutureStatus,
   UiFutureStatusType,
   UiFutureSuccess,
   UiState,
@@ -134,155 +135,65 @@ export class PrettyEventHandler implements ExecutionEventListener {
   public deploymentExecutionStateInitialize(
     event: DeploymentExecutionStateInitializeEvent
   ): void {
-    const updatedFuture: UiFuture = {
-      futureId: event.futureId,
-      status: {
-        type: UiFutureStatusType.PENDING,
-      },
-    };
-
-    this.state = {
-      ...this.state,
-      batches: this._applyUpdateToBatchFuture(updatedFuture),
-    };
+    this._setFutureStatusInitializedAndRedisplayBatch(event);
   }
 
   public deploymentExecutionStateComplete(
     event: DeploymentExecutionStateCompleteEvent
   ): void {
-    const updatedFuture: UiFuture = {
-      futureId: event.futureId,
-      status: this._getFutureStatusFromEventResult(event.result),
-    };
-
-    this.state = {
-      ...this.state,
-      batches: this._applyUpdateToBatchFuture(updatedFuture),
-    };
-
-    this._redisplayCurrentBatch();
+    this._setFutureStatusCompleteAndRedisplayBatch(event);
   }
 
   public callExecutionStateInitialize(
     event: CallExecutionStateInitializeEvent
   ): void {
-    const updatedFuture: UiFuture = {
-      futureId: event.futureId,
-      status: {
-        type: UiFutureStatusType.PENDING,
-      },
-    };
-
-    this.state = {
-      ...this.state,
-      batches: this._applyUpdateToBatchFuture(updatedFuture),
-    };
+    this._setFutureStatusInitializedAndRedisplayBatch(event);
   }
 
   public callExecutionStateComplete(
     event: CallExecutionStateCompleteEvent
   ): void {
-    const updatedFuture: UiFuture = {
-      futureId: event.futureId,
-      status: this._getFutureStatusFromEventResult(event.result),
-    };
-
-    this.state = {
-      ...this.state,
-      batches: this._applyUpdateToBatchFuture(updatedFuture),
-    };
+    this._setFutureStatusCompleteAndRedisplayBatch(event);
   }
 
   public staticCallExecutionStateInitialize(
     event: StaticCallExecutionStateInitializeEvent
   ): void {
-    const updatedFuture: UiFuture = {
-      futureId: event.futureId,
-      status: {
-        type: UiFutureStatusType.PENDING,
-      },
-    };
-
-    this.state = {
-      ...this.state,
-      batches: this._applyUpdateToBatchFuture(updatedFuture),
-    };
+    this._setFutureStatusInitializedAndRedisplayBatch(event);
   }
 
   public staticCallExecutionStateComplete(
     event: StaticCallExecutionStateCompleteEvent
   ): void {
-    const updatedFuture: UiFuture = {
-      futureId: event.futureId,
-      status: this._getFutureStatusFromEventResult(event.result),
-    };
-
-    this.state = {
-      ...this.state,
-      batches: this._applyUpdateToBatchFuture(updatedFuture),
-    };
+    this._setFutureStatusCompleteAndRedisplayBatch(event);
   }
 
   public sendDataExecutionStateInitialize(
     event: SendDataExecutionStateInitializeEvent
   ): void {
-    const updatedFuture: UiFuture = {
-      futureId: event.futureId,
-      status: {
-        type: UiFutureStatusType.PENDING,
-      },
-    };
-
-    this.state = {
-      ...this.state,
-      batches: this._applyUpdateToBatchFuture(updatedFuture),
-    };
+    this._setFutureStatusInitializedAndRedisplayBatch(event);
   }
 
   public sendDataExecutionStateComplete(
     event: SendDataExecutionStateCompleteEvent
   ): void {
-    const updatedFuture: UiFuture = {
-      futureId: event.futureId,
-      status: this._getFutureStatusFromEventResult(event.result),
-    };
-
-    this.state = {
-      ...this.state,
-      batches: this._applyUpdateToBatchFuture(updatedFuture),
-    };
+    this._setFutureStatusCompleteAndRedisplayBatch(event);
   }
 
   public contractAtExecutionStateInitialize(
     event: ContractAtExecutionStateInitializeEvent
   ): void {
-    const updatedFuture: UiFuture = {
-      futureId: event.futureId,
-      status: {
-        type: UiFutureStatusType.SUCCESS,
-      },
-    };
-
-    this.state = {
-      ...this.state,
-      batches: this._applyUpdateToBatchFuture(updatedFuture),
-    };
+    this._setFutureStatusAndRedisplayBatch(event.futureId, {
+      type: UiFutureStatusType.SUCCESS,
+    });
   }
 
   public readEventArgumentExecutionStateInitialize(
     event: ReadEventArgExecutionStateInitializeEvent
   ): void {
-    const updatedFuture: UiFuture = {
-      futureId: event.futureId,
-      status: {
-        type: UiFutureStatusType.SUCCESS,
-      },
-    };
-
-    this.state = {
-      ...this.state,
-      batches: this._applyUpdateToBatchFuture(updatedFuture),
-    };
+    this._setFutureStatusAndRedisplayBatch(event.futureId, {
+      type: UiFutureStatusType.SUCCESS,
+    });
   }
 
   public batchInitialize(event: BatchInitializeEvent): void {
@@ -365,6 +276,46 @@ export class PrettyEventHandler implements ExecutionEventListener {
       ...this.state,
       moduleName: event.moduleName,
     };
+  }
+
+  private _setFutureStatusInitializedAndRedisplayBatch({
+    futureId,
+  }: {
+    futureId: string;
+  }) {
+    this._setFutureStatusAndRedisplayBatch(futureId, {
+      type: UiFutureStatusType.UNSTARTED,
+    });
+  }
+
+  private _setFutureStatusCompleteAndRedisplayBatch({
+    futureId,
+    result,
+  }: {
+    futureId: string;
+    result: ExecutionEventResult;
+  }) {
+    this._setFutureStatusAndRedisplayBatch(
+      futureId,
+      this._getFutureStatusFromEventResult(result)
+    );
+  }
+
+  private _setFutureStatusAndRedisplayBatch(
+    futureId: string,
+    status: UiFutureStatus
+  ) {
+    const updatedFuture: UiFuture = {
+      futureId,
+      status,
+    };
+
+    this.state = {
+      ...this.state,
+      batches: this._applyUpdateToBatchFuture(updatedFuture),
+    };
+
+    this._redisplayCurrentBatch();
   }
 
   private _applyUpdateToBatchFuture(updatedFuture: UiFuture): UiBatches {
@@ -461,7 +412,7 @@ export class PrettyEventHandler implements ExecutionEventListener {
       const f: UiFuture = {
         futureId,
         status: {
-          type: UiFutureStatusType.PENDING,
+          type: UiFutureStatusType.TIMEDOUT,
         },
       };
 

@@ -27,7 +27,7 @@ function _futureStatus(future: UiFuture): string {
     case UiFutureStatusType.SUCCESS: {
       return `  Executed ${future.futureId}`;
     }
-    case UiFutureStatusType.PENDING: {
+    case UiFutureStatusType.TIMEDOUT: {
       return `  Pending ${future.futureId}`;
     }
     case UiFutureStatusType.ERRORED: {
