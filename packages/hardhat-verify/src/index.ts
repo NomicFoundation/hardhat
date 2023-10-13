@@ -138,7 +138,7 @@ subtask(
     if (!config.etherscan.enabled && !config.sourcify.enabled) {
       console.warn(
         chalk.yellow(
-          `WARNING: No verification services are enabled. Please enable at least one verification service in your configuration.`
+          `[WARNING] No verification services are enabled. Please enable at least one verification service in your configuration.`
         )
       );
     }
