@@ -21,8 +21,8 @@ use crate::{utils::hash_message, Address, B256, U256};
 
 /// Converts a [`PublicKey`] to an [`Address`].
 pub fn public_key_to_address(public_key: PublicKey) -> Address {
-    let pk = public_key.to_encoded_point(/* compress = */ false);
-    let hash = Keccak256::digest(&pk.as_bytes()[1..]);
+    let public_key = public_key.to_encoded_point(/* compress = */ false);
+    let hash = Keccak256::digest(&public_key.as_bytes()[1..]);
     // Only take the lower 160 bits of the hash
     Address::from_slice(&hash[12..])
 }
@@ -39,22 +39,22 @@ pub fn public_key_to_address(public_key: PublicKey) -> Address {
 /// let address = secret_key_to_address(secret_key).unwrap();
 /// ```
 pub fn secret_key_to_address(secret_key: &str) -> Result<Address, SignatureError> {
-    let sk = secret_key_from_str(secret_key)?;
-    Ok(public_key_to_address(sk.public_key()))
+    let secret_key = secret_key_from_str(secret_key)?;
+    Ok(public_key_to_address(secret_key.public_key()))
 }
 
 /// Converts a hex string to a secret key.
 pub fn secret_key_from_str(secret_key: &str) -> Result<SecretKey, SignatureError> {
-    let sk = if let Some(stripped) = secret_key.strip_prefix("0x") {
+    let secret_key = if let Some(stripped) = secret_key.strip_prefix("0x") {
         hex::decode(stripped)
     } else {
         hex::decode(secret_key)
     }
     .map_err(SignatureError::DecodingError)?;
-    let sk = FieldBytes::from_exact_iter(sk.into_iter()).ok_or_else(|| {
+    let secret_key = FieldBytes::from_exact_iter(secret_key.into_iter()).ok_or_else(|| {
         SignatureError::InvalidSecretKey("expected 32 byte secret key".to_string())
     })?;
-    SecretKey::from_bytes(&sk).map_err(SignatureError::EllipticCurveError)
+    SecretKey::from_bytes(&secret_key).map_err(SignatureError::EllipticCurveError)
 }
 
 /// An error involving a signature.
