@@ -1,13 +1,16 @@
 import type { Dispatcher } from "undici";
 import type { EthereumProvider } from "hardhat/types";
 import type { ChainConfig, ApiKey } from "../types";
+import type {
+  EtherscanGetSourceCodeResponse,
+  EtherscanVerifyResponse,
+} from "./etherscan.types";
 
 import { HARDHAT_NETWORK_NAME } from "hardhat/plugins";
 
 import {
   ContractStatusPollingError,
   ContractStatusPollingInvalidStatusCodeError,
-  ContractVerificationRequestError,
   ContractVerificationMissingBytecodeError,
   ContractVerificationInvalidStatusCodeError,
   HardhatVerifyError,
@@ -15,9 +18,10 @@ import {
   ContractStatusPollingResponseNotOkError,
   ChainConfigNotFoundError,
   HardhatNetworkNotSupportedError,
+  UnexpectedError,
 } from "./errors";
-import { sendGetRequest, sendPostRequest } from "./undici";
-import { sleep } from "./utilities";
+import { isSuccessStatusCode, sendGetRequest, sendPostRequest } from "./undici";
+import { ValidationResponse, sleep } from "./utilities";
 import { builtinChains } from "./chain-config";
 
 // Used for polling the result of the contract verification.
@@ -99,15 +103,29 @@ export class Etherscan {
     const url = new URL(this.apiUrl);
     url.search = parameters.toString();
 
-    const response = await sendGetRequest(url);
-    const json: any = await response.body.json();
+    try {
+      const response: Dispatcher.ResponseData = await sendGetRequest(url);
+      const json: EtherscanGetSourceCodeResponse = await response.body.json();
 
-    if (json.message !== "OK") {
-      return false;
+      if (!isSuccessStatusCode(response.statusCode)) {
+        throw new ContractVerificationInvalidStatusCodeError(
+          url.toString(),
+          response.statusCode,
+          JSON.stringify(json)
+        );
+      }
+
+      if (json.message !== "OK") {
+        return false;
+      }
+
+      return json.result[0].ABI !== "Contract source code not verified";
+    } catch (e) {
+      if (e instanceof ContractVerificationInvalidStatusCodeError) {
+        throw e;
+      }
+      throw new UnexpectedError(e, "Etherscan.isVerified");
     }
-
-    const sourceCode = json?.result?.[0]?.SourceCode;
-    return sourceCode !== undefined && sourceCode !== "";
   }
 
   /**
@@ -143,41 +161,47 @@ export class Etherscan {
       constructorArguements: constructorArguments,
     });
 
-    let response: Dispatcher.ResponseData;
+    const url = new URL(this.apiUrl);
     try {
-      response = await sendPostRequest(
-        new URL(this.apiUrl),
+      const response: Dispatcher.ResponseData = await sendPostRequest(
+        url,
         parameters.toString(),
         { "Content-Type": "application/x-www-form-urlencoded" }
       );
-    } catch (error: any) {
-      throw new ContractVerificationRequestError(this.apiUrl, error);
+      const json: EtherscanVerifyResponse = await response.body.json();
+
+      if (!isSuccessStatusCode(response.statusCode)) {
+        throw new ContractVerificationInvalidStatusCodeError(
+          url.toString(),
+          response.statusCode,
+          JSON.stringify(json),
+          parameters.toString()
+        );
+      }
+
+      const etherscanResponse = new EtherscanResponse(json);
+
+      if (etherscanResponse.isBytecodeMissingInNetworkError()) {
+        throw new ContractVerificationMissingBytecodeError(
+          this.apiUrl,
+          contractAddress
+        );
+      }
+
+      if (!etherscanResponse.isOk()) {
+        throw new HardhatVerifyError(etherscanResponse.message);
+      }
+
+      return etherscanResponse;
+    } catch (e) {
+      if (
+        e instanceof ContractVerificationInvalidStatusCodeError ||
+        e instanceof ContractVerificationMissingBytecodeError
+      ) {
+        throw e;
+      }
+      throw new UnexpectedError(e, "Etherscan.verify");
     }
-
-    if (!(response.statusCode >= 200 && response.statusCode <= 299)) {
-      // This could be always interpreted as JSON if there were any such guarantee in the Etherscan API.
-      const responseText = await response.body.text();
-      throw new ContractVerificationInvalidStatusCodeError(
-        this.apiUrl,
-        response.statusCode,
-        responseText
-      );
-    }
-
-    const etherscanResponse = new EtherscanResponse(await response.body.json());
-
-    if (etherscanResponse.isBytecodeMissingInNetworkError()) {
-      throw new ContractVerificationMissingBytecodeError(
-        this.apiUrl,
-        contractAddress
-      );
-    }
-
-    if (!etherscanResponse.isOk()) {
-      throw new HardhatVerifyError(etherscanResponse.message);
-    }
-
-    return etherscanResponse;
   }
 
   /**
@@ -207,7 +231,7 @@ export class Etherscan {
       throw new ContractStatusPollingError(url.toString(), error);
     }
 
-    if (!(response.statusCode >= 200 && response.statusCode <= 299)) {
+    if (!isSuccessStatusCode(response.statusCode)) {
       // This could be always interpreted as JSON if there were any such guarantee in the Etherscan API.
       const responseText = await response.body.text();
 
@@ -248,12 +272,11 @@ export class Etherscan {
   }
 }
 
-class EtherscanResponse {
+class EtherscanResponse implements ValidationResponse {
   public readonly status: number;
-
   public readonly message: string;
 
-  constructor(response: any) {
+  constructor(response: EtherscanVerifyResponse) {
     this.status = parseInt(response.status, 10);
     this.message = response.result;
   }

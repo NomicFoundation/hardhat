@@ -155,7 +155,7 @@ subtask(TASK_VERIFY_SOURCIFY_ATTEMPT_VERIFICATION)
       if (response.isOk()) {
         const contractURL = verificationInterface.getContractUrl(
           address,
-          response.getStatus()
+          response.status
         );
         console.log(`Successfully verified contract ${
           contractFQN.split(":")[1]

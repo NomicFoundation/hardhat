@@ -29,15 +29,15 @@ describe("verify task integration tests", () => {
   useEnvironment("hardhat-project");
   mockEnvironment();
 
-  // suppress warnings
-  let warnStub: SinonStub;
+  // suppress sourcify info message
+  let consoleInfoStub: SinonStub;
   before(() => {
-    warnStub = sinon.stub(console, "warn");
+    consoleInfoStub = sinon.stub(console, "info");
   });
 
   // suppress warnings
   after(() => {
-    warnStub.restore();
+    consoleInfoStub.restore();
   });
 
   it("should return after printing the supported networks", async function () {
@@ -306,7 +306,7 @@ This can occur if the library is only called in the contract constructor. The mi
           constructorArgsParams: [],
         })
       ).to.be.rejectedWith(
-        /Failed to send contract verification request.\nEndpoint URL: https:\/\/api-hardhat.etherscan.io\/api\nReason: getaddrinfo ENOTFOUND api-hardhat.etherscan.io/
+        /An unexpected error occurred during the verification process\.\nPlease report this issue to the Hardhat team\.\nError Details: getaddrinfo ENOTFOUND api-hardhat\.etherscan\.io/
       );
     });
 
@@ -318,9 +318,9 @@ This can occur if the library is only called in the contract constructor. The mi
           address: simpleContractAddress,
           constructorArgsParams: [],
         })
-      ).to.be.rejectedWith(`Failed to send contract verification request.
-Endpoint URL: https://api-hardhat.etherscan.io/api
-The HTTP server response is not ok. Status code: 500 Response text: {"error":"error verifying contract"}`);
+      ).to.be.rejectedWith(
+        /Failed to send contract verification request\.\nEndpoint URL: https:\/\/api-hardhat\.etherscan\.io\/api\nRequest body: (.*?)\nThe HTTP server response is not ok\. Status code: 500 Response text: {"error":"error verifying contract"}/s
+      );
     });
 
     it("should throw if the etherscan api can't find the bytecode at the contract address", async function () {

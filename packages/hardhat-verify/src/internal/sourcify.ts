@@ -1,28 +1,28 @@
 import type { Dispatcher } from "undici";
-import { EthereumProvider } from "hardhat/types";
+import type { EthereumProvider } from "hardhat/types";
+import type { ChainConfig } from "../types";
+import type {
+  SourcifyIsVerifiedResponse,
+  SourcifyVerifyResponse,
+} from "./sourcify.types";
+
 import { HARDHAT_NETWORK_NAME } from "hardhat/plugins";
-import { ChainConfig } from "../types";
 import {
-  ContractVerificationRequestError,
   ContractVerificationInvalidStatusCodeError,
-  HardhatSourcifyError,
-  MatchTypeNotSupportedError,
   SourcifyHardhatNetworkNotSupportedError,
   ChainConfigNotFoundError,
+  UnexpectedError,
 } from "./errors";
-import { sendGetRequest, sendPostRequest } from "./undici";
+import { isSuccessStatusCode, sendGetRequest, sendPostRequest } from "./undici";
 import { builtinChains } from "./chain-config";
+import { ContractStatus } from "./sourcify.types";
+import { ValidationResponse } from "./utilities";
 
 export class Sourcify {
-  public _apiUrl: string;
-  public _browserUrl: string;
-  public _chainId: number;
+  public apiUrl: string = "https://sourcify.dev/server";
+  public browserUrl: string = "https://repo.sourcify.dev";
 
-  constructor(chainId: number) {
-    this._apiUrl = "https://sourcify.dev/server";
-    this._browserUrl = "https://repo.sourcify.dev";
-    this._chainId = chainId;
-  }
+  constructor(public chainId: number) {}
 
   public static async getCurrentChainConfig(
     networkName: string,
@@ -55,116 +55,155 @@ export class Sourcify {
   public async isVerified(address: string) {
     const parameters = new URLSearchParams({
       addresses: address,
-      chainIds: `${this._chainId}`,
+      chainIds: `${this.chainId}`,
     });
 
-    const url = new URL(`${this._apiUrl}/check-all-by-addresses`);
+    const url = new URL(`${this.apiUrl}/check-all-by-addresses`);
     url.search = parameters.toString();
 
-    const response = await sendGetRequest(url);
-    const json = await response.body.json();
+    try {
+      const response: Dispatcher.ResponseData = await sendGetRequest(url);
+      const json: SourcifyIsVerifiedResponse[] = await response.body.json();
 
-    const contract = json.find(
-      (_contract: { address: string }) => _contract.address === address
-    );
-    if (contract.status === "perfect" || contract.status === "partial") {
-      return contract.status;
-    } else {
-      return false;
+      if (!isSuccessStatusCode(response.statusCode)) {
+        throw new ContractVerificationInvalidStatusCodeError(
+          url.toString(),
+          response.statusCode,
+          JSON.stringify(json)
+        );
+      }
+
+      if (!Array.isArray(json)) {
+        throw new Error(`Unexpected response body: ${JSON.stringify(json)}`);
+      }
+
+      const contract = json.find((match) => match.address === address);
+      if (contract === undefined) {
+        return false;
+      }
+
+      if (
+        "status" in contract &&
+        contract.status === ContractStatus.NOT_FOUND
+      ) {
+        return false;
+      }
+
+      if ("chainIds" in contract && contract.chainIds.length === 1) {
+        const { status } = contract.chainIds[0];
+        if (
+          status === ContractStatus.PERFECT ||
+          status === ContractStatus.PARTIAL
+        ) {
+          return status;
+        }
+      }
+
+      throw new Error(`Unexpected response body: ${JSON.stringify(json)}`);
+    } catch (e) {
+      if (e instanceof ContractVerificationInvalidStatusCodeError) {
+        throw e;
+      }
+      throw new UnexpectedError(e, "Sourcify.isVerified");
     }
   }
 
   // https://sourcify.dev/server/api-docs/#/Stateless%20Verification/post_verify
   public async verify(
     address: string,
-    files: {
-      [index: string]: string;
-    },
+    files: Record<string, string>,
     chosenContract?: number
   ): Promise<SourcifyResponse> {
     const parameters: any = {
       address,
       files,
-      chain: `${this._chainId}`,
+      chain: `${this.chainId}`,
     };
 
     if (chosenContract !== undefined) {
       parameters.chosenContract = `${chosenContract}`;
     }
 
-    let response: Dispatcher.ResponseData;
+    const url = new URL(this.apiUrl);
     try {
-      response = await sendPostRequest(
-        new URL(this._apiUrl),
+      const response: Dispatcher.ResponseData = await sendPostRequest(
+        url,
         JSON.stringify(parameters),
         { "Content-Type": "application/json" }
       );
-    } catch (error) {
-      throw new ContractVerificationRequestError(this._apiUrl, error as Error);
+      const json: SourcifyVerifyResponse = await response.body.json();
+
+      if (!isSuccessStatusCode(response.statusCode)) {
+        throw new ContractVerificationInvalidStatusCodeError(
+          url.toString(),
+          response.statusCode,
+          JSON.stringify(json),
+          JSON.stringify(parameters)
+        );
+      }
+
+      const sourcifyResponse = new SourcifyResponse(json);
+
+      if (!sourcifyResponse.isOk()) {
+        throw new Error(`Verify response is not ok: ${JSON.stringify(json)}`);
+      }
+
+      return sourcifyResponse;
+    } catch (e) {
+      if (e instanceof ContractVerificationInvalidStatusCodeError) {
+        throw e;
+      }
+      throw new UnexpectedError(e, "Sourcify.verify");
     }
-
-    if (!(response.statusCode >= 200 && response.statusCode <= 299)) {
-      const responseErrorJson = await response.body.json();
-      throw new ContractVerificationInvalidStatusCodeError(
-        this._apiUrl,
-        response.statusCode,
-        JSON.stringify(responseErrorJson)
-      );
-    }
-
-    const responseJson = await response.body.json();
-    const sourcifyResponse = new SourcifyResponse(responseJson);
-
-    if (!sourcifyResponse.isOk()) {
-      throw new HardhatSourcifyError(sourcifyResponse.error);
-    }
-
-    return sourcifyResponse;
   }
 
-  public getContractUrl(address: string, _matchType: string) {
-    let matchType;
-    if (_matchType === "perfect") {
-      matchType = "full_match";
-    } else if (_matchType === "partial") {
-      matchType = "partial_match";
-    } else {
-      throw new MatchTypeNotSupportedError(_matchType);
-    }
-    return `${this._browserUrl}/contracts/${matchType}/${this._chainId}/${address}/`;
+  public getContractUrl(
+    address: string,
+    contractStatus: ContractStatus.PERFECT | ContractStatus.PARTIAL
+  ) {
+    const matchType =
+      contractStatus === ContractStatus.PERFECT
+        ? "full_match"
+        : "partial_match";
+    return `${this.browserUrl}/contracts/${matchType}/${this.chainId}/${address}/`;
   }
 }
 
-interface SourcifyContract {
-  address: string;
-  chainId: string;
-  status: string;
-  storageTimestamp: string;
-}
+class SourcifyResponse implements ValidationResponse {
+  public readonly error: string | undefined;
+  public readonly status:
+    | ContractStatus.PERFECT
+    | ContractStatus.PARTIAL
+    | undefined;
 
-class SourcifyResponse {
-  public readonly error: string;
+  constructor(response: SourcifyVerifyResponse) {
+    if ("error" in response) {
+      this.error = response.error;
+    } else if (response.result[0].status === ContractStatus.PERFECT) {
+      this.status = ContractStatus.PERFECT;
+    } else if (response.result[0].status === ContractStatus.PARTIAL) {
+      this.status = ContractStatus.PARTIAL;
+    }
+  }
 
-  public readonly result: SourcifyContract[];
+  public isPending() {
+    return false;
+  }
 
-  constructor(response: any) {
-    this.error = response.error;
-    this.result = response.result;
+  public isFailure() {
+    return this.error !== undefined;
   }
 
   public isSuccess() {
-    return this.getError() === undefined;
+    return this.error === undefined;
   }
 
-  public isOk() {
-    return this.getStatus() === "perfect" || this.getStatus() === "partial";
-  }
-
-  public getStatus() {
-    return this.result[0].status;
-  }
-
-  public getError() {
-    return this.error;
+  public isOk(): this is {
+    status: ContractStatus.PERFECT | ContractStatus.PARTIAL;
+  } {
+    return (
+      this.status === ContractStatus.PERFECT ||
+      this.status === ContractStatus.PARTIAL
+    );
   }
 }

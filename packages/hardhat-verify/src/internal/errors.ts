@@ -132,21 +132,17 @@ To see the list of supported networks, run this command:
   }
 }
 
-export class ContractVerificationRequestError extends HardhatVerifyError {
-  constructor(url: string, parent: Error) {
-    super(
-      `Failed to send contract verification request.
-Endpoint URL: ${url}
-Reason: ${parent.message}`,
-      parent
-    );
-  }
-}
-
 export class ContractVerificationInvalidStatusCodeError extends HardhatVerifyError {
-  constructor(url: string, statusCode: number, responseText: string) {
+  constructor(
+    url: string,
+    statusCode: number,
+    responseText: string,
+    requestBody?: string
+  ) {
     super(`Failed to send contract verification request.
-Endpoint URL: ${url}
+Endpoint URL: ${url}${
+      requestBody !== undefined ? `\nRequest body: ${requestBody}\n` : ""
+    }
 The HTTP server response is not ok. Status code: ${statusCode} Response text: ${responseText}`);
   }
 }
@@ -453,6 +449,19 @@ Message: ${message}`);
   }
 }
 
+export class UnexpectedError extends HardhatVerifyError {
+  constructor(e: unknown, functionName: string) {
+    const defaultErrorDetails = `Unexpected error in ${functionName}`;
+    const errorDetails =
+      e instanceof Error
+        ? e.message ?? defaultErrorDetails
+        : defaultErrorDetails;
+    super(`An unexpected error occurred during the verification process.
+Please report this issue to the Hardhat team.
+Error Details: ${errorDetails}`);
+  }
+}
+
 export class ContractVerificationFailedError extends HardhatVerifyError {
   constructor(message: string, undetectableLibraries: string[]) {
     super(`The contract verification failed.
@@ -466,18 +475,6 @@ address for one of these libraries:
 ${undetectableLibraries.map((x) => `  * ${x}`).join("\n")}`
     : ""
 }`);
-  }
-}
-
-export class HardhatSourcifyError extends HardhatVerifyError {
-  constructor(message: string) {
-    super(`Error while contacting the Sourcify server: ${message}`);
-  }
-}
-
-export class MatchTypeNotSupportedError extends HardhatVerifyError {
-  constructor(matchType: string) {
-    super(`Match type not supported: ${matchType}`);
   }
 }
 

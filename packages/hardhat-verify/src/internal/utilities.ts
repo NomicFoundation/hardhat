@@ -252,3 +252,10 @@ export async function encodeArguments(
 
   return encodedConstructorArguments;
 }
+
+export abstract class ValidationResponse {
+  public isPending() {}
+  public isFailure() {}
+  public isSuccess() {}
+  public isOk() {}
+}

@@ -206,7 +206,7 @@ describe("verify task", () => {
 
       assert.isTrue(warnStub.calledOnce);
       expect(warnStub).to.be.calledWith(
-        sinon.match(/WARNING: No verification services are enabled./)
+        sinon.match(/\[WARNING\] No verification services are enabled./)
       );
     });
   });
