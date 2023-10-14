@@ -5,29 +5,21 @@ description: Getting started with Hardhat Ignition, a declarative smart contract
 
 ## Overview
 
-- Hardhat Ignition is a declarative smart contract deployment system.
-- It allows you to define smart contract instances, their relationships, and operations you want to run on them, and it takes care of deployment and execution.
-- This means focusing on what you want to do, and not in how to do it.
+Hardhat Ignition is a declarative smart contract deployment system. It allows you to define smart contract instances, their relationships, and operations you want to run on them, and it takes care of deployment and execution. This means focusing on what you want to do, and not in how to do it.
 
-- You organize your deployment definition using Ignition Modules, which describe your system.
-- An Ignition module is an abstraction that groups a set of smart contract instances of your system.
-- In JavaScript, you create a module to define functions, classes and values, and export some of them.
-- In Hardhat Ignition, you create a module to define smart contract instances and operations, and export some of those contracts.
+When using Hardhat Ignition, you organize you define your deployments using Ignition Modules. An Ignition module is an abstraction you use to describe the system you want to deploy. Each Ignition Module groups a set of smart contract instances of your system.
 
-- Creating a module doesn't interact with the Ethereum network.
-- Instead, once your modules are defined, Hardhat Ignition will deploy them.
+You can think of Ignition Modules as similar to JavaScript modules. In JavaScript, you create a module to define functions, classes and values, and export some of them. In Hardhat Ignition, you create a module to define smart contract instances and operations, and export some of those contracts.
 
-- TODOs:
+Creating a module doesn't interact with the Ethereum network. Instead, once your modules are defined, Hardhat Ignition will deploy them.
 
-  - Should mention that Ignition handles errors here?
-  - Should we mention that you can modify your modules after running them?
-  - If we do, it's more content than strictly necessary. If we don't, how would users be aware of those features?
+Using this declarative approach gives Hardhat Ignition more freedom to decide how to execute your deployment, which it uses to carefully execute things in parallel, handle and recover from errors, continue failed and partial deployments, and even resume a deployment after you modified or extended your modules.
 
-- This guide will teach you how to install Hardhat Ignition into an existing Hardhat project, define your first module, and deploy it.
+This guide will teach you how to install Hardhat Ignition into an existing Hardhat project, define your first module, and deploy it.
 
 :::tip
 
-If you don't have a Hardhat project yet or want to create a new one to try Hardhat Ignition, please follow [this guide](../../../hardhat-runner/docs/getting-started/index.md).
+If you don't have a Hardhat project yet, or if you want to create a new one to try Hardhat Ignition, please follow [this guide](../../../hardhat-runner/docs/getting-started/index.md) first.
 
 :::
 
