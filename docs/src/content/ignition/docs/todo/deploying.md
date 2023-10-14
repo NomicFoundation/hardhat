@@ -4,7 +4,7 @@ Once you have built and tested your module, it is time to deploy it! Start by ma
 
 ## Visualizing your deployment with the `visualize` task
 
-**Hardhat Ignition** adds a `visualize` task, that will generate an HTML report showing a _dry run_ of the deployment - the contract deploys and contract calls.
+Hardhat Ignition adds a `visualize` task, that will generate an HTML report showing a _dry run_ of the deployment - the contract deploys and contract calls.
 
 The `visualize` task takes one argument, the path to the module to visualize. For example, using the `ENS.js` module from our [ENS example project](https://github.com/NomicFoundation/hardhat-ignition/tree/main/examples/ens):
 
@@ -18,13 +18,13 @@ Running `visualize` will generate the report based on the given module (in this 
 
 The report summarises the contracts that will be deployed and the contract calls that will be made.
 
-It shows the dependency graph as it will be executed by **Hardhat Ignition** (where a dependency will not be run until all its dependents have successfully completed).
+It shows the dependency graph as it will be executed by Hardhat Ignition (where a dependency will not be run until all its dependents have successfully completed).
 
-If something in your deployment isn't behaving the way you expected, the `visualize` task can be an extremely helpful tool for debugging and verifying that your and **Hardhat Ignition**'s understanding of the deployment are the same.
+If something in your deployment isn't behaving the way you expected, the `visualize` task can be an extremely helpful tool for debugging and verifying that your and Hardhat Ignition's understanding of the deployment are the same.
 
 ## Executing the deployment
 
-Deploying a module is done using the **Hardhat Ignition** deploy task:
+Deploying a module is done using the Hardhat Ignition deploy task:
 
 ```sh
 npx hardhat ignition deploy ./ignition/modules/LockModule.js
@@ -56,7 +56,7 @@ npx hardhat ignition deploy ./ignition/modules/LockModule.js --network mainnet
 
 ### Configuration options
 
-There are configurable options you can add to your Hardhat config file to adjust the way **Hardhat Ignition** runs the deployment:
+There are configurable options you can add to your Hardhat config file to adjust the way Hardhat Ignition runs the deployment:
 
 ```tsx
 export interface DeployConfig {
@@ -96,19 +96,19 @@ The value of `timeBeforeBumpingFees` sets the time in milliseconds to wait for a
 
 #### `maxFeeBumps`
 
-The value of `maxFeeBumps` determines the number of times the transaction will have its fee bumped before **Hardhat Ignition** fails it as a timeout. The default is four.
+The value of `maxFeeBumps` determines the number of times the transaction will have its fee bumped before Hardhat Ignition fails it as a timeout. The default is four.
 
 ---
 
 #### `requiredConfirmations`
 
-The value of `requiredConfirmations` is the number of blocks after a transaction has been confirmed to wait before **Hardhat Ignition** will consider the transaction as complete. This provides control over block re-org risk. The default number of confirmations is five.
+The value of `requiredConfirmations` is the number of blocks after a transaction has been confirmed to wait before Hardhat Ignition will consider the transaction as complete. This provides control over block re-org risk. The default number of confirmations is five.
 
 ---
 
 ## Source control for deployments
 
-**Hardhat Ignition** creates several files when a deployment is run. You may want to commit some or all of these files to source control.
+Hardhat Ignition creates several files when a deployment is run. You may want to commit some or all of these files to source control.
 
 While committing the entire `deployments` directory is the recommended approach, there are some reasons why you may want to commit only some of the files: namely, repo bloat. The `deployments` directory can grow quite large, especially if you are deploying to multiple networks. At the very least, you should commit the `deployed_addresses.json` file found within each deployment directory. This file contains the addresses of all contracts deployed by the module.
 
@@ -124,7 +124,7 @@ A run of a deployment can succeed, fail or be on hold. A failed deployment or on
 
 Each run logs its events to a journal file (recorded in a sibling file to the module under `MyModule.journal.ndjson`). The journal file is used to reconstruct the state of the deployment during previous runs. Runs are scoped to the `chainId` of the network, so that runs against different networks do not interact. Any failed contract deploys or contract calls will be retried, the deployment picking up from where the last fail occurred. Any `event` invocations that had not returned and hence were on `Hold` on the last run, will be retried as well.
 
-> **NOTE**: Changes to modules between runs of a deployment are not currently supported
+> NOTE: Changes to modules between runs of a deployment are not currently supported
 
 To start a deployment again, ignoring the state from previous runs and rerunning the entirety of the module, the force flag can be used:
 
