@@ -310,7 +310,7 @@ export default buildModule("Apollo", (m) => {
 
 **ignition/modules/Apollo.js**
 
-```javascript
+```javascript{4}
 const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 
 module.exports = buildModule("Apollo", (m) => {
