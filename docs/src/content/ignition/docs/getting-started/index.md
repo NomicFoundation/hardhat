@@ -1,3 +1,8 @@
+---
+title: Getting started with Hardhat Ignition
+description: Getting started with Hardhat Ignition, a declarative smart contract deployment system.
+---
+
 ## Overview
 
 - Hardhat Ignition is a declarative smart contract deployment system.
@@ -36,7 +41,7 @@ Once you have a Hardhat project, open a terminal in its root, and run
 
 :::tab{value="npm 7+"}
 
-```
+```sh
 npm install --save-dev @nomicfoundation/hardhat-ignition
 ```
 
@@ -44,7 +49,7 @@ npm install --save-dev @nomicfoundation/hardhat-ignition
 
 :::tab{value="npm 6"}
 
-```
+```sh
 npm install --save-dev @nomicfoundation/hardhat-ignition
 ```
 
@@ -52,7 +57,7 @@ npm install --save-dev @nomicfoundation/hardhat-ignition
 
 :::tab{value=yarn}
 
-```
+```sh
 yarn add --dev @nomicfoundation/hardhat-ignition
 ```
 
@@ -60,7 +65,7 @@ yarn add --dev @nomicfoundation/hardhat-ignition
 
 ::::
 
-Finally, add this to your config file
+Finally, add this to your config file, after any other plugin
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
@@ -95,40 +100,137 @@ First, create a file `contracts/Rocket.sol` and save this code insde it
 pragma solidity ^0.8.0;
 
 contract Rocket {
-  string public name;
-  string public status;
+    string public name;
+    string public status;
 
-  constructor(string calldata _name) {
-    name = _name;
-    status = "ignition";
-  }
+    constructor(string memory _name) {
+        name = _name;
+        status = "ignition";
+    }
 
-  function launch() public {
-    status = "lift-off";
-  }
+    function launch() public {
+        status = "lift-off";
+    }
 }
 ```
 
-### Defining your first module
+It contains a simple smart contract, `Rocket`, with a `launch` method that we'd call after deployment.
 
-- Modules are created in javascript files inside the folder `ignition/modules`. Let's create it.
-- We recommend creating a single module per file, having the same name.
-- Create `ignition/modules/Apollo.{j,t}s`
+### Creating your first module
 
-- TODO: Explanation about how to create a module, what's a future, etc.
+Modules are created in JavaScript or TypeScript files inside of `ignition/modules`, so let's start by creating that folder
 
-```js
-module.exports = buildModule("Apollo", (m) => {
+```sh
+mkdir ignition
+mkdir ignition/modules
+```
+
+Next, let's first create a new file with this content, and then go over it.
+
+::::tabsgroup{options="TypeScript,JavaScript"}
+
+:::tab{value="TypeScript"}
+
+**ignition/modules/Apollo.ts**
+
+```typescript
+import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+
+export default buildModule("Apollo", (m) => {
   const apollo = m.contract("Rocket", ["Apollo"]);
 
-  m.call(apollo, "launch");
+  m.call(apollo, "launch", []);
 
   return { apollo };
 });
 ```
 
+:::
+
+:::tab{value="JavaScript"}
+
+**ignition/modules/Apollo.js**
+
+```javascript
+const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
+
+module.exports = buildModule("Apollo", (m) => {
+  const apollo = m.contract("Rocket", ["Apollo"]);
+
+  m.call(apollo, "launch", []);
+
+  return { apollo };
+});
+```
+
+:::
+
+::::
+
+The first thing to note, is that modules are created by calling the `buildModule` function, passing a module id and a callback.
+
+The callback is where the module it's actually defined. It receives an instance of a `ModuleBuilder`, which is an object with methods used to define and configure your smart contract instances.
+
+Calling one of this methods creates a `Future`, registers it within the module, and returns it. It doesn't execute anything.
+
+A `Future` is an object representing the result of an execution step that Hardhat Ignition needs to run to deploy a contract instance or interact with an existing one.
+
+In our module, we defined two `Future`s. The first one tells Hardhat Ignition that we want it to deploy an instance of the contract `Rocket`, and that its only constructor parameter should be `"Apollo"`. The second one declares that after deploying that instance of `Rocket`, we want to call its `launch` method, without passing it any argument.
+
+Finally, we return the `Future` representing the contract instance, to make it accessible to other modules and from tests.
+
 ### Deploying it
 
-- Finally, to run the deployment all you have to do is running `npx hardhat igintion deploy ignition/modules/Apollo.{j,t}s`
+With our module defined, we we'll now deploy to a local Hardhat node.
 
-- TODO: Should we explain that this is ephemeral here?
+Let's start the node first by running
+
+```sh
+npx hardhat node
+```
+
+Now, open a new terminal in the root of your Hardhat project, and run
+
+::::tabsgroup{options="TypeScript,JavaScript"}
+
+:::tab{value="TypeScript"}
+
+```sh
+npx hardhat ignition deploy ignition/modules/Apollo.ts
+```
+
+:::
+
+:::tab{value="JavaScript"}
+
+```sh
+npx hardhat ignition deploy ignition/modules/Apollo.js
+```
+
+:::
+
+::::
+
+Hardhat Ignition will execute every `Future` in the right order, and display these results
+
+```
+Hardhat Ignition 🚀
+
+Deploying [ Apollo ]
+
+Batch #1
+  Executed Apollo#Rocket
+
+Batch #2
+  Executed Apollo#Rocket.launch
+
+[ Apollo ] successfully deployed 🚀
+
+Deployed Addresses
+
+Apollo#Rocket - 0x5fbdb2315678afecb367f032d93f642f64180aa3
+```
+
+A new folder, `ignition/deployments/network-31337`, will be created, which contains all the information about your deployment, which Hardhat Ignition can use to recover from errors, continue a modified deployment, reproduce an existing one, and mode.
+
+Continue learning about Hardhat Ignition by reading the rest of the guides.
