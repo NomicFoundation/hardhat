@@ -2,9 +2,8 @@ section-type: group
 section-title: Guides
 order:
   - /creating-modules
-  - /visualize
   - /deploy
-  - /parameters
+  - /visualize
   - /error-handling
   - /modifications
   - /tests
