@@ -188,7 +188,7 @@ Now, open a new terminal in the root of your Hardhat project, and run
 :::tab{value="TypeScript"}
 
 ```sh
-npx hardhat ignition deploy ignition/modules/Apollo.ts
+npx hardhat ignition deploy ignition/modules/Apollo.ts --network localhost
 ```
 
 :::
@@ -196,7 +196,7 @@ npx hardhat ignition deploy ignition/modules/Apollo.ts
 :::tab{value="JavaScript"}
 
 ```sh
-npx hardhat ignition deploy ignition/modules/Apollo.js
+npx hardhat ignition deploy ignition/modules/Apollo.js --network localhost
 ```
 
 :::
