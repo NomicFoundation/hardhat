@@ -3,6 +3,4 @@ section-title: Existing content
 order:
   - /getting-started
   - /creating-modules
-  - /deploying
   - /explanation
-  - /tests
