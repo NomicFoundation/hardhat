@@ -7,12 +7,9 @@ use edr_eth::{
 use revm::primitives::{CfgEnv, ExecutionResult, InvalidTransaction, SpecId};
 
 use crate::{
-    block::BlockBuilderCreationError,
-    blockchain::SyncBlockchain,
-    mempool::OrderedTransaction,
-    state::SyncState,
-    trace::{Trace, TraceCollector},
-    BlockBuilder, BlockTransactionError, BuildBlockResult, MemPool, PendingTransaction, SyncBlock,
+    block::BlockBuilderCreationError, blockchain::SyncBlockchain, inspector::InspectorContainer,
+    mempool::OrderedTransaction, state::SyncState, trace::Trace, BlockBuilder,
+    BlockTransactionError, BuildBlockResult, MemPool, PendingTransaction, SyncBlock, SyncInspector,
 };
 
 /// The result of mining a block.
@@ -77,6 +74,7 @@ pub async fn mine_block<BlockchainErrorT, StateErrorT>(
     reward: U256,
     base_fee: Option<U256>,
     prevrandao: Option<B256>,
+    inspector: Option<Box<dyn SyncInspector<BlockchainErrorT, StateErrorT>>>,
 ) -> Result<
     MineBlockResult<BlockchainErrorT, StateErrorT>,
     MineBlockError<BlockchainErrorT, StateErrorT>,
@@ -158,17 +156,20 @@ where
     let mut results = Vec::new();
     let mut traces = Vec::new();
 
+    let mut container = InspectorContainer::new(true, inspector);
     while let Some(transaction) = pending_transactions.next() {
-        let mut tracer = TraceCollector::default();
-
         if transaction.gas_price() < min_gas_price {
             pending_transactions.remove_caller(transaction.caller());
             continue;
         }
 
         let caller = *transaction.caller();
-        match block_builder.add_transaction(blockchain, &mut state, transaction, Some(&mut tracer))
-        {
+        match block_builder.add_transaction(
+            blockchain,
+            &mut state,
+            transaction,
+            container.as_dyn_inspector(),
+        ) {
             Err(
                 BlockTransactionError::ExceedsBlockGasLimit
                 | BlockTransactionError::InvalidTransaction(
@@ -183,7 +184,7 @@ where
             }
             Ok(result) => {
                 results.push(result);
-                traces.push(tracer.into_trace());
+                traces.push(container.clear_trace().unwrap());
             }
         }
     }

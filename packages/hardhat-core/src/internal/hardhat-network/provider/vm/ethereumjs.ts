@@ -51,6 +51,7 @@ import { RunTxResult, VMAdapter } from "./vm-adapter";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
 import { HardhatBlockBuilder } from "./block-builder/hardhat";
 import { MinimalInterpreterStep } from "./proxy-vm";
+import { ethereumjsEvmResultToEdrResult } from "../utils/convertToEdr";
 
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
@@ -118,6 +119,12 @@ export class EthereumJSAdapter implements VMAdapter {
   private _vmTracer: VMTracer;
   private _stepListeners: Array<
     (step: MinimalInterpreterStep, next?: any) => Promise<void>
+  > = [];
+  private _beforeMessageListeners: Array<
+    (message: Message, next?: any) => Promise<void>
+  > = [];
+  private _afterMessageListeners: Array<
+    (result: EVMResult, next?: any) => Promise<void>
   > = [];
 
   constructor(
@@ -641,6 +648,14 @@ export class EthereumJSAdapter implements VMAdapter {
     this._stepListeners.push(cb);
   }
 
+  public onBeforeMessage(cb: (message: Message, next?: any) => Promise<void>) {
+    this._beforeMessageListeners.push(cb);
+  }
+
+  public onAfterMessage(cb: (result: EVMResult, next?: any) => Promise<void>) {
+    this._afterMessageListeners.push(cb);
+  }
+
   private _getCommonForTracing(networkId: number, blockNumber: bigint): Common {
     try {
       const common = Common.custom(
@@ -699,11 +714,16 @@ export class EthereumJSAdapter implements VMAdapter {
           : undefined;
       await this._vmTracer.addBeforeMessage({
         ...message,
+        caller: message.caller.toBuffer(),
         to: message.to?.toBuffer(),
         codeAddress:
           message.to !== undefined ? message.codeAddress.toBuffer() : undefined,
         code,
       });
+
+      for (const listener of this._beforeMessageListeners) {
+        await listener(message);
+      }
 
       return next();
     } catch (e) {
@@ -749,63 +769,15 @@ export class EthereumJSAdapter implements VMAdapter {
     next: any
   ): Promise<void> {
     try {
-      const gasUsed = result.execResult.executionGasUsed;
-
-      let executionResult;
-
-      if (result.execResult.exceptionError === undefined) {
-        const reason =
-          result.execResult.selfdestruct !== undefined &&
-          Object.keys(result.execResult.selfdestruct).length > 0
-            ? SuccessReason.SelfDestruct
-            : result.createdAddress !== undefined ||
-              result.execResult.returnValue.length > 0
-            ? SuccessReason.Return
-            : SuccessReason.Stop;
-
-        executionResult = {
-          reason,
-          gasUsed,
-          gasRefunded: result.execResult.gasRefund ?? 0n,
-          logs:
-            result.execResult.logs?.map((log) => {
-              return {
-                address: log[0],
-                topics: log[1],
-                data: log[2],
-              };
-            }) ?? [],
-          output:
-            result.createdAddress === undefined
-              ? {
-                  returnValue: result.execResult.returnValue,
-                }
-              : {
-                  address: result.createdAddress.toBuffer(),
-                  returnValue: result.execResult.returnValue,
-                },
-        };
-      } else if (result.execResult.exceptionError.error === ERROR.REVERT) {
-        executionResult = {
-          gasUsed,
-          output: result.execResult.returnValue,
-        };
-      } else {
-        const vmError = Exit.fromEthereumJSEvmError(
-          result.execResult.exceptionError
-        );
-
-        executionResult = {
-          reason: vmError.getEdrExceptionalHalt(),
-          gasUsed,
-        };
-      }
+      const executionResult = ethereumjsEvmResultToEdrResult(result);
 
       await this._vmTracer.addAfterMessage({
-        executionResult: {
-          result: executionResult,
-        },
+        executionResult,
       });
+
+      for (const listener of this._afterMessageListeners) {
+        await listener(result);
+      }
 
       return next();
     } catch (e) {

@@ -1,7 +1,10 @@
 use std::mem;
 
+use edr_eth::B256;
 use napi::{bindgen_prelude::Buffer, Env, JsBuffer, JsBufferValue};
 use napi_derive::napi;
+
+use crate::cast::TryCast;
 
 /// Ethereum execution log.
 #[napi(object)]
@@ -34,6 +37,27 @@ impl ExecutionLog {
 
         Ok(Self {
             address: Buffer::from(log.address.as_bytes()),
+            topics,
+            data,
+        })
+    }
+}
+
+impl TryCast<edr_evm::Log> for ExecutionLog {
+    type Error = napi::Error;
+
+    fn try_cast(self) -> Result<edr_evm::Log, Self::Error> {
+        let address = edr_eth::Address::from_slice(self.address.as_ref());
+        let topics = self
+            .topics
+            .into_iter()
+            .map(TryCast::<B256>::try_cast)
+            .collect::<napi::Result<_>>()?;
+
+        let data = edr_eth::Bytes::copy_from_slice(self.data.into_value()?.as_ref());
+
+        Ok(edr_evm::Log {
+            address,
             topics,
             data,
         })

@@ -1,15 +1,28 @@
 import type { MinimalInterpreterStep } from "../vm/proxy-vm";
 
 import { Common } from "@nomicfoundation/ethereumjs-common";
+import { EVMResult, Message } from "@nomicfoundation/ethereumjs-evm";
 import { Address } from "@nomicfoundation/ethereumjs-util";
-import { ConfigOptions, MineOrdering, SpecId, mineBlock } from "@ignored/edr";
+import {
+  ConfigOptions,
+  ExecutionResult,
+  MineOrdering,
+  SpecId,
+  Tracer,
+  TracingMessage,
+  mineBlock,
+} from "@ignored/edr";
 import { assertHardhatInvariant } from "../../../core/errors";
 import { BlockMinerAdapter, PartialMineBlockResult } from "../miner";
 import {
   edrBlockToEthereumJS,
   edrReceiptToEthereumJsTxReceipt,
+  edrResultToEthereumjsEvmResult,
   edrResultToRunTxResult,
   edrSpecIdToEthereumHardfork,
+  edrTracingMessageToEthereumjsMessage,
+  ethereumjsEvmResultToEdrResult,
+  ethereumjsMessageToEdrTracingMessage,
 } from "../utils/convertToEdr";
 import { VMTracer } from "../../stack-traces/vm-tracer";
 import { PartialTrace } from "../vm/vm-adapter";
@@ -21,6 +34,12 @@ import { RandomBufferGenerator } from "../utils/random";
 export class EdrMiner implements BlockMinerAdapter {
   private _stepListeners: Array<
     (step: MinimalInterpreterStep, next?: any) => Promise<void>
+  > = [];
+  private _beforeMessageListeners: Array<
+    (message: Message, next?: any) => Promise<void>
+  > = [];
+  private _afterMessageListeners: Array<
+    (result: EVMResult, next?: any) => Promise<void>
   > = [];
 
   constructor(
@@ -66,7 +85,8 @@ export class EdrMiner implements BlockMinerAdapter {
       this._mineOrdering,
       minerReward,
       baseFeePerGas,
-      prevRandao
+      prevRandao,
+      this._tracer()
     );
 
     this._stateManager.setInner(mineResult.state);
@@ -149,6 +169,47 @@ export class EdrMiner implements BlockMinerAdapter {
     cb: (step: MinimalInterpreterStep, next?: any) => Promise<void>
   ) {
     this._stepListeners.push(cb);
+  }
+
+  public onBeforeMessage(cb: (message: Message, next?: any) => Promise<void>) {
+    this._beforeMessageListeners.push(cb);
+  }
+
+  public onAfterMessage(cb: (result: EVMResult, next?: any) => Promise<void>) {
+    this._afterMessageListeners.push(cb);
+  }
+
+  private _tracer(): Tracer | undefined {
+    if (!this._hasListeners()) {
+      return undefined;
+    }
+
+    return new Tracer({
+      beforeCall: async (tracingMessage: TracingMessage, next: any) => {
+        const message = edrTracingMessageToEthereumjsMessage(tracingMessage);
+
+        for (const listener of this._beforeMessageListeners) {
+          await listener(message);
+        }
+
+        return ethereumjsMessageToEdrTracingMessage(message);
+      },
+      afterCall: async (result: ExecutionResult, next: any) => {
+        const evmResult = edrResultToEthereumjsEvmResult(result);
+        for (const listener of this._afterMessageListeners) {
+          await listener(evmResult);
+        }
+
+        return ethereumjsEvmResultToEdrResult(evmResult);
+      },
+    });
+  }
+
+  private _hasListeners(): boolean {
+    return (
+      this._beforeMessageListeners.length > 0 ||
+      this._afterMessageListeners.length > 0
+    );
   }
 }
 

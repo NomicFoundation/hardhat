@@ -1,3 +1,4 @@
+import type { EVMResult, Message } from "@nomicfoundation/ethereumjs-evm";
 import type { MinimalInterpreterStep } from "./proxy-vm";
 
 import { Block } from "@nomicfoundation/ethereumjs-block";
@@ -24,6 +25,9 @@ import {
   PendingTransaction,
   StateOverrides,
   AccountOverride,
+  Tracer,
+  TracingMessage,
+  ExecutionResult,
 } from "@ignored/edr";
 
 import { isForkedNodeConfig, NodeConfig } from "../node-types";
@@ -34,6 +38,10 @@ import {
   hardhatDebugTraceConfigToEdr,
   edrResultToRunTxResult,
   edrRpcDebugTraceToHardhat,
+  edrTracingMessageToEthereumjsMessage,
+  ethereumjsMessageToEdrTracingMessage,
+  edrResultToEthereumjsEvmResult,
+  ethereumjsEvmResultToEdrResult,
 } from "../utils/convertToEdr";
 import { keccak256 } from "../../../util/keccak";
 import { RpcDebugTraceOutput } from "../output";
@@ -62,6 +70,12 @@ export class EdrAdapter implements VMAdapter {
   private _stepListeners: Array<
     (step: MinimalInterpreterStep, next?: any) => Promise<void>
   > = [];
+  private _beforeMessageListeners: Array<
+    (message: Message, next?: any) => Promise<void>
+  > = [];
+  private _afterMessageListeners: Array<
+    (result: EVMResult, next?: any) => Promise<void>
+  > = [];
 
   constructor(
     private _blockchain: Blockchain,
@@ -80,6 +94,7 @@ export class EdrAdapter implements VMAdapter {
     common: Common
   ): Promise<EdrAdapter> {
     let state: EdrStateManager;
+
     if (isForkedNodeConfig(config)) {
       state = await EdrStateManager.forkRemote(
         globalEdrContext,
@@ -234,7 +249,8 @@ export class EdrAdapter implements VMAdapter {
         mixHash: prevRandao,
         blobExcessGas: blockContext.header.blobGas?.excessGas,
       },
-      true
+      true,
+      this._tracer()
     );
 
     const trace = edrResult.trace!;
@@ -479,7 +495,8 @@ export class EdrAdapter implements VMAdapter {
         difficulty,
         prevRandao
       ),
-      true
+      true,
+      this._tracer()
     );
 
     const trace = edrResult.trace!;
@@ -683,6 +700,47 @@ export class EdrAdapter implements VMAdapter {
     cb: (step: MinimalInterpreterStep, next?: any) => Promise<void>
   ) {
     this._stepListeners.push(cb);
+  }
+
+  public onBeforeMessage(cb: (message: Message, next?: any) => Promise<void>) {
+    this._beforeMessageListeners.push(cb);
+  }
+
+  public onAfterMessage(cb: (result: EVMResult, next?: any) => Promise<void>) {
+    this._afterMessageListeners.push(cb);
+  }
+
+  private _tracer(): Tracer | undefined {
+    if (!this._hasListeners()) {
+      return undefined;
+    }
+
+    return new Tracer({
+      beforeCall: async (tracingMessage: TracingMessage, next: any) => {
+        const message = edrTracingMessageToEthereumjsMessage(tracingMessage);
+
+        for (const listener of this._beforeMessageListeners) {
+          await listener(message);
+        }
+
+        return ethereumjsMessageToEdrTracingMessage(message);
+      },
+      afterCall: async (result: ExecutionResult, next: any) => {
+        const evmResult = edrResultToEthereumjsEvmResult(result);
+        for (const listener of this._afterMessageListeners) {
+          await listener(evmResult);
+        }
+
+        return ethereumjsEvmResultToEdrResult(evmResult);
+      },
+    });
+  }
+
+  private _hasListeners(): boolean {
+    return (
+      this._beforeMessageListeners.length > 0 ||
+      this._afterMessageListeners.length > 0
+    );
   }
 
   private _getBlockEnvDifficulty(

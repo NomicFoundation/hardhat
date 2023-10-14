@@ -26,8 +26,12 @@ pub enum TraceMessage {
 pub struct BeforeMessage {
     /// Call depth
     pub depth: usize,
+    /// Caller
+    pub caller: Address,
     /// Callee
     pub to: Option<Address>,
+    /// Transaction gas limit
+    pub gas_limit: u64,
     /// Input data
     pub data: Bytes,
     /// Value
@@ -153,7 +157,9 @@ where
 
         self.pending_before = Some(BeforeMessage {
             depth: data.journaled_state().depth,
+            caller: inputs.context.caller,
             to: Some(inputs.context.address),
+            gas_limit: inputs.gas_limit,
             data: inputs.input.clone(),
             value: inputs.context.apparent_value,
             code_address: Some(inputs.context.code_address),
@@ -224,7 +230,9 @@ where
 
         self.pending_before = Some(BeforeMessage {
             depth: data.journaled_state().depth,
+            caller: inputs.caller,
             to: None,
+            gas_limit: inputs.gas_limit,
             data: inputs.init_code.clone(),
             value: inputs.value,
             code_address: None,

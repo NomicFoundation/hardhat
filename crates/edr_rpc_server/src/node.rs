@@ -306,6 +306,7 @@ impl NodeData {
             reward,
             base_fee,
             prevrandao,
+            None,
         )
         .await?;
 

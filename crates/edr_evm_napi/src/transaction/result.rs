@@ -1,5 +1,7 @@
 use std::mem;
 
+use edr_eth::Address;
+use edr_evm::Bytes;
 use napi::{
     bindgen_prelude::{BigInt, Buffer, Either3, FromNapiValue, ToNapiValue},
     Either, Env, JsBuffer, JsBufferValue,
@@ -7,6 +9,7 @@ use napi::{
 use napi_derive::napi;
 
 use crate::{
+    cast::TryCast,
     log::ExecutionLog,
     trace::{TracingMessage, TracingMessageResult, TracingStep},
 };
@@ -28,6 +31,16 @@ impl From<edr_evm::Eval> for SuccessReason {
             edr_evm::Eval::Stop => Self::Stop,
             edr_evm::Eval::Return => Self::Return,
             edr_evm::Eval::SelfDestruct => Self::SelfDestruct,
+        }
+    }
+}
+
+impl From<SuccessReason> for edr_evm::Eval {
+    fn from(value: SuccessReason) -> Self {
+        match value {
+            SuccessReason::Stop => Self::Stop,
+            SuccessReason::Return => Self::Return,
+            SuccessReason::SelfDestruct => Self::SelfDestruct,
         }
     }
 }
@@ -119,6 +132,27 @@ impl From<edr_evm::Halt> for ExceptionalHalt {
             | edr_evm::Halt::CallTooDeep => {
                 unreachable!("Internal halts that can be only found inside Inspector: {halt:?}")
             }
+        }
+    }
+}
+
+impl From<ExceptionalHalt> for edr_evm::Halt {
+    fn from(value: ExceptionalHalt) -> Self {
+        match value {
+            ExceptionalHalt::OutOfGas => Self::OutOfGas(edr_evm::OutOfGasError::BasicOutOfGas),
+            ExceptionalHalt::OpcodeNotFound => Self::OpcodeNotFound,
+            ExceptionalHalt::InvalidFEOpcode => Self::InvalidFEOpcode,
+            ExceptionalHalt::InvalidJump => Self::InvalidJump,
+            ExceptionalHalt::NotActivated => Self::NotActivated,
+            ExceptionalHalt::StackUnderflow => Self::StackUnderflow,
+            ExceptionalHalt::StackOverflow => Self::StackOverflow,
+            ExceptionalHalt::OutOfOffset => Self::OutOfOffset,
+            ExceptionalHalt::CreateCollision => Self::CreateCollision,
+            ExceptionalHalt::PrecompileError => Self::PrecompileError,
+            ExceptionalHalt::NonceOverflow => Self::NonceOverflow,
+            ExceptionalHalt::CreateContractSizeLimit => Self::CreateContractSizeLimit,
+            ExceptionalHalt::CreateContractStartingWithEF => Self::CreateContractStartingWithEF,
+            ExceptionalHalt::CreateInitcodeSizeLimit => Self::CreateInitcodeSizeLimit,
         }
     }
 }
@@ -221,6 +255,52 @@ impl ExecutionResult {
         };
 
         Ok(Self { result })
+    }
+}
+
+impl TryCast<edr_evm::ExecutionResult> for ExecutionResult {
+    type Error = napi::Error;
+
+    fn try_cast(self) -> Result<edr_evm::ExecutionResult, Self::Error> {
+        let result = match self.result {
+            Either3::A(SuccessResult {
+                reason,
+                gas_used,
+                gas_refunded,
+                logs,
+                output,
+            }) => edr_evm::ExecutionResult::Success {
+                reason: reason.into(),
+                gas_used: gas_used.try_cast()?,
+                gas_refunded: gas_refunded.try_cast()?,
+                logs: logs
+                    .into_iter()
+                    .map(TryCast::try_cast)
+                    .collect::<Result<_, _>>()?,
+                output: match output {
+                    Either::A(CallOutput { return_value }) => edr_evm::Output::Call(
+                        Bytes::copy_from_slice(return_value.into_value()?.as_ref()),
+                    ),
+                    Either::B(CreateOutput {
+                        return_value,
+                        address,
+                    }) => edr_evm::Output::Create(
+                        Bytes::copy_from_slice(return_value.into_value()?.as_ref()),
+                        address.map(|address| Address::from_slice(address.as_ref())),
+                    ),
+                },
+            },
+            Either3::B(RevertResult { gas_used, output }) => edr_evm::ExecutionResult::Revert {
+                gas_used: gas_used.try_cast()?,
+                output: Bytes::copy_from_slice(output.into_value()?.as_ref()),
+            },
+            Either3::C(HaltResult { reason, gas_used }) => edr_evm::ExecutionResult::Halt {
+                reason: reason.into(),
+                gas_used: gas_used.try_cast()?,
+            },
+        };
+
+        Ok(result)
     }
 }
 
