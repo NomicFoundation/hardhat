@@ -1,11 +1,11 @@
-# Ignition and git
+# Version control of deployments
 
-**TODO**
+Hardhat Ignition creates several files when a deployment is run. To understand them, please read our [Deployment artifacts](./deployments.md) guide.
 
-Hardhat Ignition creates several files when a deployment is run. You may want to commit some or all of these files to source control.
+If you want to version your deployments, recommended way is commiting the entire `deployments` directory.
 
-While committing the entire `deployments` directory is the recommended approach, there are some reasons why you may want to commit only some of the files: namely, repo bloat. The `deployments` directory can grow quite large, especially if you are deploying to multiple networks. At the very least, you should commit the `deployed_addresses.json` file found within each deployment directory. This file contains the addresses of all contracts deployed by the module.
+If you think they are too large to be committed, you should at least commit their `deployed_addresses.json` file.
 
-You should make sure to store the rest of the files if you want to resume a deployment later.
+Note that if you don't keep track of the rest of the files, you won't be able to extend your deployment by modifying your modules or creating new ones, so consider saving somewhere else.
 
-Future versions of Ignition will make the `deployments` file system structure lighter, and friendlier to versioning.
+Future versions of Hardhat Ignition will make the `deployments` file system structure lighter, and friendlier to versioning.
