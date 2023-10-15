@@ -10,7 +10,7 @@ When you run this task, Hardhat Ignition loads an Ignition Module exported by th
 
 ## Deployment folders
 
-Before starting to run the deployment, Hardhat Ignition will create a deployment folder under `ignition/deployments/`. By default, the folder will be named `network-<chainId>`, where `<chainId>` depends on which network Hardhat is connected to.
+Before starting to run the deployment, Hardhat Ignition will create a deployment folder under `ignition/deployments/`. By default, the folder will be named `chain-<chainId>`, where `<chainId>` depends on which network Hardhat is connected to.
 
 You can customize the deployment folder name by provided an explicit deployment id with `--deployment-id <id>`.
 
@@ -119,9 +119,9 @@ npx hardhat ignition status DeploymentId
 For example, if we run it with the deployment from the [Quick Start guide](../getting-started/index.md#quick-start), we'd get something like this
 
 ```
-$ npx hardhat ignition status network-31337
+$ npx hardhat ignition status chain-31337
 
-[ network-31337 ] successfully deployed 🚀
+[ chain-31337 ] successfully deployed 🚀
 
 Deployed Addresses
 

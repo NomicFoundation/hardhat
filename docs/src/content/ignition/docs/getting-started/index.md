@@ -223,6 +223,6 @@ Deployed Addresses
 Apollo#Rocket - 0x5fbdb2315678afecb367f032d93f642f64180aa3
 ```
 
-A new folder, `ignition/deployments/network-31337`, will be created, which contains all the information about your deployment, which Hardhat Ignition can use to recover from errors, continue a modified deployment, reproduce an existing one, and mode.
+A new folder, `ignition/deployments/chain-31337`, will be created, which contains all the information about your deployment, which Hardhat Ignition can use to recover from errors, continue a modified deployment, reproduce an existing one, and mode.
 
 Continue learning about Hardhat Ignition by reading the rest of the guides.
