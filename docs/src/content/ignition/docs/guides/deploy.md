@@ -8,6 +8,8 @@ npx hardhat igntion deploy ignition/modules/MyModule.js
 
 When you run this task, Hardhat Ignition loads an Ignition Module exported by the file you provided, and deploys it.
 
+## Deployment folders
+
 Before starting to run the deployment, Hardhat Ignition will create a deployment folder under `ignition/deployments/`. By default, the folder will be named `network-<chainId>`, where `<chainId>` depends on which network Hardhat is connected to.
 
 You can customize the deployment folder name by provided an explicit deployment id with `--deployment-id <id>`.
@@ -26,7 +28,7 @@ Hardhat Ignition will know how to take over from where it left the previous depl
 
 ## Defining paramteres during deployment
 
-When you deploy a module using the `ingition deploy` task, you can provide a JSON file with module parameters. This allows you to customize some values during deployment.
+Ignition Modules can define [Module Parameters](./creating-modules.md#module-parameters) and use them to define their `Future`s. When you deploy a module using the `ingition deploy` task, you can provide a JSON file with their values. This allows you to customize some values during deployment.
 
 This JSON file should have an object, mapping module ids to their parameters and values.
 
