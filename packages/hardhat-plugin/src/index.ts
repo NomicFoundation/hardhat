@@ -11,6 +11,7 @@ import path from "path";
 
 import "./type-extensions";
 import { calculateDeploymentStatusDisplay } from "./ui/helpers/calculate-deployment-status-display";
+import { resolveDeploymentId } from "./utils/resolve-deployment-id";
 
 /* ignition config defaults */
 const IGNITION_DIR = "ignition";
@@ -67,7 +68,7 @@ ignitionScope
       }: {
         modulePath: string;
         parameters?: string;
-        deploymentId: string;
+        deploymentId: string | undefined;
       },
       hre
     ) => {
@@ -128,7 +129,7 @@ ignitionScope
         method: "eth_accounts",
       })) as string[];
 
-      const deploymentId = givenDeploymentId ?? `network-${chainId}`;
+      const deploymentId = resolveDeploymentId(givenDeploymentId, chainId);
 
       const deploymentDir =
         hre.network.name === "hardhat"
