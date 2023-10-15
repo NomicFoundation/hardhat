@@ -220,6 +220,8 @@ const token = m.contract("Token", [tokenName, "TKN2", 18]);
 
 Now, when we deploy the module, we can provide a custom name. To learn how to do this, please read the [Deploying a module guide](./deploy.md).
 
+You can also make your parameters optional by passing a default value as second argument to `m.getParameter`.
+
 ## Using submodules
 
 You can organize your deployment into different Ignition Modules, which can make them easier to write, read and reason about.
