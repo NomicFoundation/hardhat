@@ -243,7 +243,7 @@ const TokenOwnerModule = buildModule("TokenOwnerModule", (m) => {
 });
 ```
 
-If you use a `Future` from a submodule to create a new `Future`, the new one will have a dependency on every `Future` within the submodule. This means that any possible initialization within the submodule will be completed by the time your new `Future` gets executed.
+If you use a `Future` from a submodule to create a new `Future`, the new one will have a dependency on the existing one, and an implicit dependency on every `Future` within the submodule. This means that any possible initialization within the submodule will be completed by the time your new `Future` gets executed.
 
 Calling multiple times to `m.useModule` with the same Ignition Module doesn't lead to multiple deployments. Hardhat Ignition only executes `Future`s once.
 
