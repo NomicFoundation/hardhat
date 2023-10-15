@@ -7,7 +7,7 @@ description: Getting started with Hardhat Ignition, a declarative smart contract
 
 Hardhat Ignition is a declarative smart contract deployment system. It allows you to define smart contract instances, their relationships, and operations you want to run on them, and it takes care of deployment and execution. This means focusing on what you want to do, and not in how to do it.
 
-When using Hardhat Ignition, you organize you define your deployments using Ignition Modules. An Ignition module is an abstraction you use to describe the system you want to deploy. Each Ignition Module groups a set of smart contract instances of your system.
+When using Hardhat Ignition, you define your deployments using Ignition Modules. An Ignition module is an abstraction you use to describe the system you want to deploy. Each Ignition Module groups a set of smart contract instances of your system.
 
 You can think of Ignition Modules as similar to JavaScript modules. In JavaScript, you create a module to define functions, classes and values, and export some of them. In Hardhat Ignition, you create a module to define smart contract instances and operations, and export some of those contracts.
 
