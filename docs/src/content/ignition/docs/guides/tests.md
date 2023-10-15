@@ -29,7 +29,7 @@ it("should set the start count to 0 by default", async function () {
 
 The `ignition.deploy` method returns an boject with an `ethers` contract per contract `Future` returned in your module.
 
-### Using module parameters
+## Using module parameters
 
 The `ignition.deploy` also receives an options object as second argument. You can use it to pass [Module parameters](./parameters.md) under the `parameters` property of the options object. You can do it by passing a map from module ids to parameters, like this:
 
@@ -47,7 +47,7 @@ it("should allow setting the start count for new counters", async function () {
 });
 ```
 
-### Using Ignition Modules as fixtures
+## Using Ignition Modules as fixtures
 
 You can combine Hardhat Ignition with [Hardhat Network Helper's `loadFixture`](../../../hardhat-network-helpers/docs/reference.md#loadfixture) to use them to easily define your fixtures, you just need to call `ignition.deploy` within your fixture.
 
