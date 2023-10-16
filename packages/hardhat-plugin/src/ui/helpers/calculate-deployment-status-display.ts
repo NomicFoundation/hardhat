@@ -21,7 +21,7 @@ export function calculateDeploymentStatusDisplay(
 }
 
 function _calculateSuccess(deploymentId: string, statusResult: StatusResult) {
-  let successText = `[ ${deploymentId} ] successfully deployed 🚀\n\n`;
+  let successText = `Deployment ${deploymentId} was successful\n\n`;
 
   if (Object.values(statusResult.contracts).length === 0) {
     successText += chalk.italic("No contracts were deployed");
@@ -40,22 +40,24 @@ function _calculateStartedButUnfinished(
   deploymentId: string,
   statusResult: StatusResult
 ) {
-  let startedText = `[ ${deploymentId} ] has futures that have started but not finished ⛔\n\n`;
+  let startedText = `Deployment ${deploymentId} has futures that have started but not completed\n\n`;
 
   startedText += Object.values(statusResult.started)
     .map((futureId) => ` - ${futureId}`)
     .join("\n");
 
+  startedText += "\n\nPlease rerun your deployment.";
+
   return startedText;
 }
 
 function _calculateFailed(deploymentId: string, statusResult: StatusResult) {
-  let failedExecutionText = `[ ${deploymentId} ] failed ⛔\n`;
+  let failedExecutionText = `Deployment ${deploymentId} failed\n`;
 
   const sections: string[] = [];
 
   if (statusResult.timedOut.length > 0) {
-    let timedOutSection = `\nTransactions remain unconfirmed after fee bump:\n`;
+    let timedOutSection = `\nFutures with transactions unconfirmed after maximum fee bumps:\n`;
 
     timedOutSection += Object.values(statusResult.timedOut)
       .map(({ futureId }) => ` - ${futureId}`)
@@ -70,14 +72,11 @@ function _calculateFailed(deploymentId: string, statusResult: StatusResult) {
     let failedSection = `\nFutures failed during execution:\n`;
 
     failedSection += Object.values(statusResult.failed)
-      .map(
-        ({ futureId, networkInteractionId, error }) =>
-          ` - ${futureId}/${networkInteractionId}: ${error}`
-      )
+      .map(({ futureId, error }) => ` - ${futureId}: ${error}`)
       .join("\n");
 
     failedSection +=
-      "\n\nConsider addressing the cause of the errors and rerunning the deployment.";
+      "\n\nTo learn how to handle these errors: https://hardhat.org/ignition-errors";
 
     sections.push(failedSection);
   }
@@ -86,9 +85,7 @@ function _calculateFailed(deploymentId: string, statusResult: StatusResult) {
     let heldSection = `\nFutures where held by the strategy:\n`;
 
     heldSection += Object.values(statusResult.held)
-      .map(
-        ({ futureId, heldId, reason }) => ` - ${futureId}/${heldId}: ${reason}`
-      )
+      .map(({ futureId, reason }) => ` - ${futureId}: ${reason}`)
       .join("\n");
 
     sections.push(heldSection);

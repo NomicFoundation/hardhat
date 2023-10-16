@@ -133,7 +133,7 @@ function _displayExecutionErrors(
   let text = `[ ${moduleName} ] failed ⛔\n\n`;
 
   if (result.timedOut.length > 0) {
-    let timedOutSection = `Transactions remain unconfirmed after fee bump:\n`;
+    let timedOutSection = `Futures with transactions unconfirmed after maximum fee bumps:\n`;
 
     timedOutSection += Object.values(result.timedOut)
       .map(({ futureId }) => ` - ${futureId}`)
@@ -148,14 +148,11 @@ function _displayExecutionErrors(
     let failedSection = `Futures failed during execution:\n`;
 
     failedSection += Object.values(result.failed)
-      .map(
-        ({ futureId, networkInteractionId, error }) =>
-          ` - ${futureId}/${networkInteractionId}: ${error}`
-      )
+      .map(({ futureId, error }) => ` - ${futureId}: ${error}`)
       .join("\n");
 
     failedSection +=
-      "\n\nConsider addressing the cause of the errors and rerunning the deployment.";
+      "\n\nTo learn how to handle these errors: https://hardhat.org/ignition-errors";
 
     sections.push(failedSection);
   }
@@ -164,9 +161,7 @@ function _displayExecutionErrors(
     let heldSection = `Held:\n`;
 
     heldSection += Object.values(result.held)
-      .map(
-        ({ futureId, heldId, reason }) => ` - ${futureId}/${heldId}: ${reason}`
-      )
+      .map(({ futureId, reason }) => ` - ${futureId}: ${reason}`)
       .join("\n");
 
     sections.push(heldSection);

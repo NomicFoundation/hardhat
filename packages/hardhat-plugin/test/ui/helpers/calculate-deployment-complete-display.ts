@@ -83,11 +83,11 @@ describe("ui - calculate deployment complete display", () => {
 
         The module contains futures that would fail to execute:
 
-        MyModule:MyContract:
+        MyModule#MyContract:
          - The number of params does not match the constructor
          - The name of the contract is invalid
 
-        MyModule:AnotherContract:
+        MyModule#AnotherContract:
          - No library provided
 
         Update the invalid futures and rerun the deployment.`);
@@ -95,11 +95,11 @@ describe("ui - calculate deployment complete display", () => {
       const result: ValidationErrorDeploymentResult = {
         type: DeploymentResultType.VALIDATION_ERROR,
         errors: {
-          "MyModule:MyContract": [
+          "MyModule#MyContract": [
             "The number of params does not match the constructor",
             "The name of the contract is invalid",
           ],
-          "MyModule:AnotherContract": ["No library provided"],
+          "MyModule#AnotherContract": ["No library provided"],
         },
       };
 
@@ -123,11 +123,11 @@ describe("ui - calculate deployment complete display", () => {
 
         The module contains changes to executed futures:
 
-        MyModule:MyContract:
+        MyModule#MyContract:
          - The params don't match
          - The value doesn't match
 
-        MyModule:AnotherContract:
+        MyModule#AnotherContract:
          - The artifact bytecode has changed
 
         Consider modifying your module to remove the inconsistencies with deployed futures.`);
@@ -135,11 +135,11 @@ describe("ui - calculate deployment complete display", () => {
       const result: ReconciliationErrorDeploymentResult = {
         type: DeploymentResultType.RECONCILIATION_ERROR,
         errors: {
-          "MyModule:MyContract": [
+          "MyModule#MyContract": [
             "The params don't match",
             "The value doesn't match",
           ],
-          "MyModule:AnotherContract": ["The artifact bytecode has changed"],
+          "MyModule#AnotherContract": ["The artifact bytecode has changed"],
         },
       };
 
@@ -162,16 +162,16 @@ describe("ui - calculate deployment complete display", () => {
         [ MyModule ] deployment cancelled ⛔
 
         These futures failed or timed out on a previous run:
-         - MyModule:MyContract
-         - MyModule:AnotherContract
+         - MyModule#MyContract
+         - MyModule#AnotherContract
 
         Use the ${chalk.italic("wipe")} task to reset them.`);
 
       const result: PreviousRunErrorDeploymentResult = {
         type: DeploymentResultType.PREVIOUS_RUN_ERROR,
         errors: {
-          "MyModule:MyContract": ["The previous run failed"],
-          "MyModule:AnotherContract": ["The previous run timed out"],
+          "MyModule#MyContract": ["The previous run failed"],
+          "MyModule#AnotherContract": ["The previous run timed out"],
         },
       };
 
@@ -193,49 +193,49 @@ describe("ui - calculate deployment complete display", () => {
       const expectedText = testFormat(`
         [ MyModule ] failed ⛔
 
-        Transactions remain unconfirmed after fee bump:
-         - MyModule:MyContract1
-         - MyModule:AnotherContract1
+        Futures with transactions unconfirmed after maximum fee bumps:
+         - MyModule#MyContract1
+         - MyModule#AnotherContract1
 
         Consider increasing the fee in your config.
 
         Futures failed during execution:
-         - MyModule:MyContract3/1: Reverted with reason x
-         - MyModule:AnotherContract3/3: Reverted with reason y
+         - MyModule#MyContract3: Reverted with reason x
+         - MyModule#AnotherContract3: Reverted with reason y
 
-        Consider addressing the cause of the errors and rerunning the deployment.
+        To learn how to handle these errors: https://hardhat.org/ignition-errors
 
         Held:
-         - MyModule:MyContract2/1: Vote is not complete
-         - MyModule:AnotherContract2/3: Server timed out`);
+         - MyModule#MyContract2: Vote is not complete
+         - MyModule#AnotherContract2: Server timed out`);
 
       const result: ExecutionErrorDeploymentResult = {
         type: DeploymentResultType.EXECUTION_ERROR,
         started: [],
         timedOut: [
-          { futureId: "MyModule:MyContract1", networkInteractionId: 1 },
-          { futureId: "MyModule:AnotherContract1", networkInteractionId: 3 },
+          { futureId: "MyModule#MyContract1", networkInteractionId: 1 },
+          { futureId: "MyModule#AnotherContract1", networkInteractionId: 3 },
         ],
         held: [
           {
-            futureId: "MyModule:MyContract2",
+            futureId: "MyModule#MyContract2",
             heldId: 1,
             reason: "Vote is not complete",
           },
           {
-            futureId: "MyModule:AnotherContract2",
+            futureId: "MyModule#AnotherContract2",
             heldId: 3,
             reason: "Server timed out",
           },
         ],
         failed: [
           {
-            futureId: "MyModule:MyContract3",
+            futureId: "MyModule#MyContract3",
             networkInteractionId: 1,
             error: "Reverted with reason x",
           },
           {
-            futureId: "MyModule:AnotherContract3",
+            futureId: "MyModule#AnotherContract3",
             networkInteractionId: 3,
             error: "Reverted with reason y",
           },

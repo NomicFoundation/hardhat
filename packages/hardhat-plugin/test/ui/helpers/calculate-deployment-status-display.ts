@@ -20,7 +20,7 @@ describe("ui - calculate deployment status display", () => {
   describe("successful deployment", () => {
     it("should render a sucessful deployment", () => {
       const expectedText = testFormat(`
-        [ deployment-01 ] successfully deployed 🚀
+        Deployment deployment-01 was successful
 
         ${chalk.bold("Deployed Addresses")}
 
@@ -54,7 +54,7 @@ describe("ui - calculate deployment status display", () => {
 
     it("should render a sucessful deployment with no deploys", () => {
       const expectedText = testFormat(`
-        [ deployment-01 ] successfully deployed 🚀
+        Deployment deployment-01 was successful
 
         ${chalk.italic("No contracts were deployed")}`);
 
@@ -76,23 +76,23 @@ describe("ui - calculate deployment status display", () => {
   describe("failed deployment", () => {
     it("should render an execution failure with multiple of each problem type", () => {
       const expectedText = testFormat(`
-        [ deployment-01 ] failed ⛔
+        Deployment deployment-01 failed
 
-        Transactions remain unconfirmed after fee bump:
+        Futures with transactions unconfirmed after maximum fee bumps:
          - MyModule:MyContract1
          - MyModule:AnotherContract1
 
         Consider increasing the fee in your config.
 
         Futures failed during execution:
-         - MyModule:MyContract3/1: Reverted with reason x
-         - MyModule:AnotherContract3/3: Reverted with reason y
+         - MyModule:MyContract3: Reverted with reason x
+         - MyModule:AnotherContract3: Reverted with reason y
 
-        Consider addressing the cause of the errors and rerunning the deployment.
+        To learn how to handle these errors: https://hardhat.org/ignition-errors
 
         Futures where held by the strategy:
-         - MyModule:MyContract2/1: Vote is not complete
-         - MyModule:AnotherContract2/3: Server timed out`);
+         - MyModule:MyContract2: Vote is not complete
+         - MyModule:AnotherContract2: Server timed out`);
 
       const statusResult: StatusResult = {
         started: [],
@@ -151,10 +151,12 @@ describe("ui - calculate deployment status display", () => {
   describe("deployment with started but unfinished futures (e.g. simulation errors)", () => {
     it("should render a sucessful deployment", () => {
       const expectedText = testFormat(`
-        [ deployment-01 ] has futures that have started but not finished ⛔
+        Deployment deployment-01 has futures that have started but not completed
 
          - MyModule#Token
-         - MyModule#AnotherToken`);
+         - MyModule#AnotherToken
+
+        Please rerun your deployment.`);
 
       const statusResult: StatusResult = {
         ...exampleStatusResult,
