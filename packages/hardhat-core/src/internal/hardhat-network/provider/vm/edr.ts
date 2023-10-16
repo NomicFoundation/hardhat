@@ -489,12 +489,14 @@ export class EdrAdapter implements VMAdapter {
 
     // For solidity-coverage compatibility
     for (const step of this._vmTracer.tracingSteps) {
-      this._vm.evm.events.emit("step", {
-        pc: Number(step.pc),
-        depth: step.depth,
-        opcode: { name: step.opcode },
-        stackTop: step.stackTop,
-      });
+      for (const listener of this._stepListeners) {
+        await listener({
+          pc: Number(step.pc),
+          depth: step.depth,
+          opcode: { name: step.opcode },
+          stack: step.stackTop !== undefined ? [step.stackTop] : [],
+        });
+      }
     }
 
     try {
