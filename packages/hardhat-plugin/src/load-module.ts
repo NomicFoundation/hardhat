@@ -65,8 +65,25 @@ export function loadModule(
   try {
     module = require(fullpathToModule);
   } catch (e) {
-    if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-      throw new NomicLabsHardhatPluginError("hardhat-ignition", e.message);
+    if (e instanceof IgnitionError) {
+      /**
+       * Errors thrown from within ModuleBuilder use this errorNumber.
+       *
+       * They have a stack trace that's useful to the user, so we display it here, instead of
+       * wrapping the error in a NomicLabsHardhatPluginError.
+       */
+      if (e.errorNumber === 702) {
+        console.error(e);
+
+        throw new NomicLabsHardhatPluginError(
+          "hardhat-ignition",
+          "Module validation failed."
+        );
+      }
+
+      if (shouldBeHardhatPluginError(e)) {
+        throw new NomicLabsHardhatPluginError("hardhat-ignition", e.message, e);
+      }
     }
 
     throw e;
