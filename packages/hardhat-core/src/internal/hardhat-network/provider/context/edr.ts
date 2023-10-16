@@ -1,5 +1,4 @@
 import { Blockchain, EdrContext, SpecId } from "@ignored/edr";
-import { AsyncEventEmitter } from "@nomicfoundation/ethereumjs-util";
 import { BlockchainAdapter } from "../blockchain";
 import { EdrBlockchain } from "../blockchain/edr";
 import { EthContextAdapter } from "../context";
@@ -7,7 +6,7 @@ import { MemPoolAdapter } from "../mem-pool";
 import { BlockMinerAdapter } from "../miner";
 import { VMAdapter } from "../vm/vm-adapter";
 import { EdrMiner } from "../miner/edr";
-import { EdrAdapter, VMStub } from "../vm/edr";
+import { EdrAdapter } from "../vm/edr";
 import { NodeConfig, isForkedNodeConfig } from "../node-types";
 import {
   ethereumjsHeaderDataToEdrBlockOptions,
@@ -140,20 +139,13 @@ export class EdrEthContext implements EthContextAdapter {
         ? UNLIMITED_CONTRACT_SIZE_VALUE
         : undefined;
 
-    const vmStub: VMStub = {
-      evm: {
-        events: new AsyncEventEmitter(),
-      },
-    };
-
     const vm = new EdrAdapter(
       blockchain.asInner(),
       state,
       common,
       limitContractCodeSize,
       limitInitcodeSize,
-      config.enableTransientStorage,
-      vmStub
+      config.enableTransientStorage
     );
 
     const memPool = new EdrMemPool(BigInt(config.blockGasLimit), state, specId);
@@ -165,8 +157,7 @@ export class EdrEthContext implements EthContextAdapter {
       common,
       limitContractCodeSize,
       ethereumjsMempoolOrderToEdrMineOrdering(config.mempoolOrder),
-      prevRandaoGenerator,
-      vmStub
+      prevRandaoGenerator
     );
 
     return new EdrEthContext(blockchain, memPool, miner, vm);

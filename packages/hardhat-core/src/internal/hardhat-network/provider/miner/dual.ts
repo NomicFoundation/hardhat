@@ -1,3 +1,5 @@
+import type { MinimalInterpreterStep } from "../vm/proxy-vm";
+
 import { Address } from "@nomicfoundation/ethereumjs-util";
 import { keccak256 } from "../../../util/keccak";
 import { globalEdrContext } from "../context/edr";
@@ -92,5 +94,12 @@ export class DualBlockMiner implements BlockMinerAdapter {
   public setPrevRandaoGeneratorNextValue(nextValue: Buffer): void {
     this._hardhatMiner.setPrevRandaoGeneratorNextValue(nextValue);
     this._edrMiner.setPrevRandaoGeneratorNextValue(nextValue);
+  }
+
+  public onStep(
+    _cb: (step: MinimalInterpreterStep, next?: any) => Promise<void>
+  ) {
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+    throw new Error("Not implemented");
   }
 }

@@ -1,3 +1,5 @@
+import type { MinimalInterpreterStep } from "../vm/proxy-vm";
+
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import { Address } from "@nomicfoundation/ethereumjs-util";
 import { ConfigOptions, MineOrdering, SpecId, mineBlock } from "@ignored/edr";
@@ -15,9 +17,12 @@ import { EdrBlockchain } from "../blockchain/edr";
 import { EdrStateManager } from "../EdrState";
 import { EdrMemPool } from "../mem-pool/edr";
 import { RandomBufferGenerator } from "../utils/random";
-import { VMStub } from "../vm/edr";
 
 export class EdrMiner implements BlockMinerAdapter {
+  private _stepListeners: Array<
+    (step: MinimalInterpreterStep, next?: any) => Promise<void>
+  > = [];
+
   constructor(
     private readonly _blockchain: EdrBlockchain,
     private readonly _stateManager: EdrStateManager,
@@ -25,8 +30,7 @@ export class EdrMiner implements BlockMinerAdapter {
     private readonly _common: Common,
     private readonly _limitContractCodeSize: bigint | undefined,
     private _mineOrdering: MineOrdering,
-    private _prevRandaoGenerator: RandomBufferGenerator,
-    private _vmStub: VMStub
+    private _prevRandaoGenerator: RandomBufferGenerator
   ) {}
 
   public async mineBlock(
@@ -77,13 +81,15 @@ export class EdrMiner implements BlockMinerAdapter {
         if ("pc" in traceItem) {
           await vmTracer.addStep(traceItem);
 
-          // For solidity-coverage compatibility
-          this._vmStub.evm.events.emit("step", {
-            pc: Number(traceItem.pc),
-            depth: traceItem.depth,
-            opcode: { name: traceItem.opcode },
-            stackTop: traceItem.stackTop,
-          });
+          for (const listener of this._stepListeners) {
+            await listener({
+              pc: Number(traceItem.pc),
+              depth: traceItem.depth,
+              opcode: { name: traceItem.opcode },
+              stack:
+                traceItem.stackTop !== undefined ? [traceItem.stackTop] : [],
+            });
+          }
         } else if ("executionResult" in traceItem) {
           await vmTracer.addAfterMessage(traceItem);
         } else {
@@ -137,6 +143,12 @@ export class EdrMiner implements BlockMinerAdapter {
 
   public setPrevRandaoGeneratorNextValue(nextValue: Buffer): void {
     this._prevRandaoGenerator.setNext(nextValue);
+  }
+
+  public onStep(
+    cb: (step: MinimalInterpreterStep, next?: any) => Promise<void>
+  ) {
+    this._stepListeners.push(cb);
   }
 }
 

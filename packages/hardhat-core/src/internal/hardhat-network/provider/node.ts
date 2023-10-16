@@ -105,6 +105,7 @@ import { PartialMineBlockResult } from "./miner";
 import { EthContextAdapter } from "./context";
 import { hasTransactions } from "./mem-pool";
 import { makeForkClient } from "./utils/makeForkClient";
+import { getMinimalEthereumJsVm, MinimalEthereumJsVm } from "./vm/proxy-vm";
 
 const log = debug("hardhat:core:hardhat-network:node");
 
@@ -233,6 +234,9 @@ export class HardhatNode extends EventEmitter {
   // blockNumber => state root
   private _irregularStatesByBlockNumber: Map<bigint, Buffer> = new Map();
 
+  // temporarily added for backwards compatibility
+  private _vm: MinimalEthereumJsVm;
+
   private constructor(
     private readonly _context: EthContextAdapter,
     private readonly _instanceId: bigint,
@@ -264,6 +268,8 @@ export class HardhatNode extends EventEmitter {
     const contractsIdentifier = new ContractsIdentifier();
     this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
     this._solidityTracer = new SolidityTracer();
+
+    this._vm = getMinimalEthereumJsVm(this._context);
 
     if (tracingConfig === undefined || tracingConfig.buildInfos === undefined) {
       return;

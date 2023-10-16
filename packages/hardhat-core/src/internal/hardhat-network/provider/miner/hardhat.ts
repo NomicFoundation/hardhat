@@ -1,3 +1,5 @@
+import type { MinimalInterpreterStep } from "../vm/proxy-vm";
+
 import { HeaderData } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
@@ -149,6 +151,12 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
 
   public setPrevRandaoGeneratorNextValue(nextValue: Buffer): void {
     this._prevRandaoGenerator.setNext(nextValue);
+  }
+
+  public onStep(
+    _cb: (step: MinimalInterpreterStep, next?: any) => Promise<void>
+  ) {
+    // not necessary
   }
 
   private _isTxMinable(

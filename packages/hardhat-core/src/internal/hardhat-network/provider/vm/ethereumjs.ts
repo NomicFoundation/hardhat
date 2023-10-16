@@ -50,6 +50,7 @@ import { Exit } from "./exit";
 import { RunTxResult, VMAdapter } from "./vm-adapter";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
 import { HardhatBlockBuilder } from "./block-builder/hardhat";
+import { MinimalInterpreterStep } from "./proxy-vm";
 
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
@@ -115,6 +116,9 @@ type StateManagerWithAddresses = StateManager & {
 
 export class EthereumJSAdapter implements VMAdapter {
   private _vmTracer: VMTracer;
+  private _stepListeners: Array<
+    (step: MinimalInterpreterStep, next?: any) => Promise<void>
+  > = [];
 
   constructor(
     private readonly _vm: VM,
@@ -631,6 +635,12 @@ export class EthereumJSAdapter implements VMAdapter {
     return HardhatBlockBuilder.create(this, common, opts);
   }
 
+  public onStep(
+    cb: (step: MinimalInterpreterStep, next?: any) => Promise<void>
+  ) {
+    this._stepListeners.push(cb);
+  }
+
   private _getCommonForTracing(networkId: number, blockNumber: bigint): Common {
     try {
       const common = Common.custom(
@@ -723,6 +733,10 @@ export class EthereumJSAdapter implements VMAdapter {
         // },
         // contractAddress: step.address.buf,
       });
+
+      for (const listener of this._stepListeners) {
+        await listener(step);
+      }
 
       return next();
     } catch (e) {
