@@ -34,6 +34,8 @@ pub(crate) fn run(working_directory: PathBuf, test_command: &str, iterations: us
             stderr.write_all(&output.stderr)?;
             stderr.flush()?;
 
+            println!("Interim benchmark results (seconds): {deltas:?}");
+
             anyhow::bail!(
                 "Command `{}` failed in {} seconds with exit code {}",
                 test_command,
