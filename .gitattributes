@@ -3,3 +3,4 @@
 * text=auto
 
 *.sol text eol=lf
+*.d.ts text eol=lf
