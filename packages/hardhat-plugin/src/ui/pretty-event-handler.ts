@@ -36,7 +36,7 @@ import {
 import { calculateBatchDisplay } from "./helpers/calculate-batch-display";
 import { calculateDeployingModulePanel } from "./helpers/calculate-deploying-module-panel";
 import { calculateDeploymentCompleteDisplay } from "./helpers/calculate-deployment-complete-display";
-import { displayStartingMessage } from "./helpers/display-starting-message";
+import { calculateStartingMessage } from "./helpers/calculate-starting-message";
 import {
   UiBatches,
   UiFuture,
@@ -54,6 +54,7 @@ export class PrettyEventHandler implements ExecutionEventListener {
     status: UiStateDeploymentStatus.UNSTARTED,
     chainId: null,
     moduleName: null,
+    deploymentDir: null,
     batches: [],
     currentBatch: 0,
     result: null,
@@ -75,9 +76,10 @@ export class PrettyEventHandler implements ExecutionEventListener {
       ...this.state,
       status: UiStateDeploymentStatus.DEPLOYING,
       moduleName: event.moduleName,
+      deploymentDir: event.deploymentDir,
     };
 
-    displayStartingMessage(this.state);
+    process.stdout.write(calculateStartingMessage(this.state));
   }
 
   public runStart(event: RunStartEvent): void {

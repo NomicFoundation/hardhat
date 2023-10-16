@@ -117,6 +117,7 @@ export async function deploy<
 
   const deployer = new Deployer(
     resolvedConfig,
+    deploymentDir,
     executionStrategy,
     jsonRpcClient,
     artifactResolver,

@@ -12,6 +12,7 @@ const exampleState: UiState = {
   status: UiStateDeploymentStatus.DEPLOYING,
   chainId: 31337,
   moduleName: "ExampleModule",
+  deploymentDir: "/users/example",
   batches: [],
   currentBatch: 1,
   result: null,

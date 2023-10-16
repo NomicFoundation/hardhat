@@ -56,6 +56,7 @@ export interface UiState {
   status: UiStateDeploymentStatus;
   chainId: number | null;
   moduleName: string | null;
+  deploymentDir: string | undefined | null;
   batches: UiBatches;
   currentBatch: number;
   result: DeploymentResult | null;

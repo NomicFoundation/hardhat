@@ -47,6 +47,7 @@ import { findStatus } from "./views/find-status";
 export class Deployer {
   constructor(
     private readonly _config: DeployConfig,
+    private readonly _deploymentDir: string | undefined,
     private readonly _executionStrategy: ExecutionStrategy,
     private readonly _jsonRpcClient: JsonRpcClient,
     private readonly _artifactResolver: ArtifactResolver,
@@ -74,7 +75,8 @@ export class Deployer {
     defaultSender: string
   ): Promise<DeploymentResult> {
     let deploymentState = await this._getOrInitializeDeploymentState(
-      ignitionModule.id
+      ignitionModule.id,
+      this._deploymentDir
     );
 
     const contracts =
@@ -217,13 +219,14 @@ export class Deployer {
   }
 
   private async _getOrInitializeDeploymentState(
-    moduleId: string
+    moduleId: string,
+    deploymentDir: string | undefined
   ): Promise<DeploymentState> {
     const chainId = await this._jsonRpcClient.getChainId();
     const deploymentState = await loadDeploymentState(this._deploymentLoader);
 
     if (deploymentState === undefined) {
-      this._emitDeploymentStartEvent(moduleId);
+      this._emitDeploymentStartEvent(moduleId, deploymentDir);
 
       return initializeDeploymentState(chainId, this._deploymentLoader);
     }
@@ -236,7 +239,10 @@ export class Deployer {
     return deploymentState;
   }
 
-  private _emitDeploymentStartEvent(moduleId: string): void {
+  private _emitDeploymentStartEvent(
+    moduleId: string,
+    deploymentDir: string | undefined
+  ): void {
     if (this._executionEventListener === undefined) {
       return;
     }
@@ -244,6 +250,7 @@ export class Deployer {
     this._executionEventListener.deploymentStart({
       type: ExecutionEventType.DEPLOYMENT_START,
       moduleName: moduleId,
+      deploymentDir: deploymentDir ?? undefined,
     });
   }
 
