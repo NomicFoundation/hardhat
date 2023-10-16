@@ -50,7 +50,7 @@ impl TryCast<edr_evm::state::AccountOverride> for AccountOverride {
                 )),
                 (Some(_), Some(_)) => return Err(napi::Error::new(
                     napi::Status::InvalidArg,
-                    "The properties 'state' and 'stateDiff' cannot be used simultaneously when configuring the state override set passed to the eth_call method.",
+                    "The properties 'storage' and 'storageDiff' cannot be used simultaneously when configuring the state override set passed to the eth_call method.",
                 )),
             };
 
