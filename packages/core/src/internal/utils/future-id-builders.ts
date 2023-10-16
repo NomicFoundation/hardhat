@@ -5,6 +5,12 @@
 const MODULE_SEPERATOR = "#";
 
 /**
+ * The separator in ids that depend on futures that belong to a submodule.
+ * This separator is used to split the submodule and the rest of the dependency's id.
+ */
+const SUBMODULE_SEPARATOR = "-";
+
+/**
  * The seperator in ids that indicated different subparts of the future key.
  */
 const SUBKEY_SEPERATOR = ".";
@@ -43,13 +49,25 @@ export function toDeploymentFutureId(
 export function toCallFutureId(
   moduleId: string,
   userProvidedId: string | undefined,
-  contractName: string,
+  contractModuleId: string,
+  contractId: string,
   functionName: string
 ) {
-  const futureKey =
-    userProvidedId ?? `${contractName}${SUBKEY_SEPERATOR}${functionName}`;
+  if (userProvidedId !== undefined) {
+    return `${moduleId}${MODULE_SEPERATOR}${userProvidedId}`;
+  }
 
-  return `${moduleId}${MODULE_SEPERATOR}${futureKey}`;
+  // If the contract belongs to the call's module, we just need to add the function name
+  if (moduleId === contractModuleId) {
+    return `${contractId}${SUBKEY_SEPERATOR}${functionName}`;
+  }
+
+  // We replace the MODULE_SEPARATOR for SUBMODULE_SEPARATOR
+  const submoduleContractId = `${contractModuleId}${SUBMODULE_SEPARATOR}${contractId.substring(
+    contractModuleId.length + MODULE_SEPERATOR.length
+  )}`;
+
+  return `${moduleId}${MODULE_SEPERATOR}${submoduleContractId}${SUBKEY_SEPERATOR}${functionName}`;
 }
 
 /**

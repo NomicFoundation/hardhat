@@ -25,16 +25,41 @@ describe("future id rules", () => {
   });
 
   describe("call ids", () => {
-    it("the fallback id should be built based on the contractName and function name", () => {
+    it("the fallback id should be built based on the contract id and function name if they belong to the same module", () => {
       assert.equal(
-        toCallFutureId("MyModule", undefined, "MyContract", "MyFunction"),
+        toCallFutureId(
+          "MyModule",
+          undefined,
+          "MyModule",
+          "MyModule#MyContract",
+          "MyFunction"
+        ),
         "MyModule#MyContract.MyFunction"
+      );
+    });
+
+    it("should name a call to a future coming from a module representing the submodule relationship, and including namespaced by module id", () => {
+      assert.equal(
+        toCallFutureId(
+          "MyModule",
+          undefined,
+          "Submodule",
+          "Submodule#MyContract",
+          "MyFunction"
+        ),
+        "MyModule#Submodule-MyContract.MyFunction"
       );
     });
 
     it("namespaces the user provided id to the module", () => {
       assert.equal(
-        toCallFutureId("MyModule", "MyId", "MyContract", "MyFunction"),
+        toCallFutureId(
+          "MyModule",
+          "MyId",
+          "MyModule",
+          "MyModule#MyContract",
+          "MyFunction"
+        ),
         "MyModule#MyId"
       );
     });
