@@ -67,6 +67,9 @@ export function isValidFunctionOrEventName(functionName: string): boolean {
  * @returns true if the contract name is valid.
  */
 export function isValidContractName(contractName: string): boolean {
+  // IMPORTANT: Keep in sync with src/internal/utils/future-id-builders.ts#toContractFutureId
+
+  // Is it an FQN?
   if (contractName.includes(":")) {
     contractName = contractName.split(":").at(-1)!;
   }

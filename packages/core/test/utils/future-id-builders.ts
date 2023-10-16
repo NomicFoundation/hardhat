@@ -2,7 +2,7 @@ import { assert } from "chai";
 
 import {
   toCallFutureId,
-  toDeploymentFutureId,
+  toContractFutureId,
   toReadEventArgumentFutureId,
   toSendDataFutureId,
 } from "../../src/internal/utils/future-id-builders";
@@ -11,14 +11,14 @@ describe("future id rules", () => {
   describe("contract, library, contractAt ids", () => {
     it("the fallback id should be built based on the contract or library name", () => {
       assert.equal(
-        toDeploymentFutureId("MyModule", undefined, "MyContract"),
+        toContractFutureId("MyModule", undefined, "MyContract"),
         "MyModule#MyContract"
       );
     });
 
     it("namespaces to the module a user provided id", () => {
       assert.equal(
-        toDeploymentFutureId("MyModule", "MyId", "MyContract"),
+        toContractFutureId("MyModule", "MyId", "MyContract"),
         "MyModule#MyId"
       );
     });
