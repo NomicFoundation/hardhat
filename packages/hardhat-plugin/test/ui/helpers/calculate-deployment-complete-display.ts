@@ -19,7 +19,6 @@ describe("ui - calculate deployment complete display", () => {
   describe("successful deployment", () => {
     it("should render a sucessful deployment", () => {
       const expectedText = testFormat(`
-
         [ MyModule ] successfully deployed 🚀
 
         ${chalk.bold("Deployed Addresses")}
@@ -55,7 +54,6 @@ describe("ui - calculate deployment complete display", () => {
 
     it("should render a sucessful deployment with no contracts", () => {
       const expectedText = testFormat(`
-
         [ MyModule ] successfully deployed 🚀
 
         ${chalk.bold("Deployed Addresses")}
@@ -81,7 +79,6 @@ describe("ui - calculate deployment complete display", () => {
   describe("validation failures", () => {
     it("should render multiple validation errors on multiple futures", () => {
       const expectedText = testFormat(`
-
         [ MyModule ] validation failed ⛔
 
         The module contains futures that would fail to execute:
@@ -122,7 +119,6 @@ describe("ui - calculate deployment complete display", () => {
   describe("reconciliation errors", () => {
     it("should render a multiple reconciliation errors on multiple futures", () => {
       const expectedText = testFormat(`
-
         [ MyModule ] reconciliation failed ⛔
 
         The module contains changes to executed futures:
@@ -163,7 +159,6 @@ describe("ui - calculate deployment complete display", () => {
   describe("previous run errors", () => {
     it("should render a multiple previous run errors on multiple futures", () => {
       const expectedText = testFormat(`
-
         [ MyModule ] deployment cancelled ⛔
 
         These futures failed or timed out on a previous run:
@@ -196,7 +191,6 @@ describe("ui - calculate deployment complete display", () => {
   describe("execution errors", () => {
     it("should render an execution failure with multiple of each problem type", () => {
       const expectedText = testFormat(`
-
         [ MyModule ] failed ⛔
 
         Transactions remain unconfirmed after fee bump:

@@ -38,8 +38,7 @@ function _displaySuccessfulDeployment(
   result: SuccessfulDeploymentResult,
   { moduleName }: { moduleName: string }
 ): string {
-  let text = `
-[ ${moduleName} ] successfully deployed 🚀
+  let text = `[ ${moduleName} ] successfully deployed 🚀
 
 ${chalk.bold("Deployed Addresses")}
 
@@ -62,8 +61,7 @@ function _displayValidationErrors(
   result: ValidationErrorDeploymentResult,
   { moduleName }: { moduleName: string }
 ): string {
-  let text = `
-[ ${moduleName} ] validation failed ⛔
+  let text = `[ ${moduleName} ] validation failed ⛔
 
 The module contains futures that would fail to execute:
 
@@ -88,8 +86,7 @@ function _displayReconciliationErrors(
   result: ReconciliationErrorDeploymentResult,
   { moduleName }: { moduleName: string }
 ): string {
-  let text = `
-[ ${moduleName} ] reconciliation failed ⛔
+  let text = `[ ${moduleName} ] reconciliation failed ⛔
 
 The module contains changes to executed futures:
 
@@ -114,7 +111,7 @@ function _displayPreviousRunErrors(
   result: PreviousRunErrorDeploymentResult,
   { moduleName }: { moduleName: string }
 ): string {
-  let text = `\n[ ${moduleName} ] deployment cancelled ⛔\n\n`;
+  let text = `[ ${moduleName} ] deployment cancelled ⛔\n\n`;
 
   text += `These futures failed or timed out on a previous run:\n`;
 
@@ -133,7 +130,7 @@ function _displayExecutionErrors(
 ) {
   const sections: string[] = [];
 
-  let text = `\n[ ${moduleName} ] failed ⛔\n\n`;
+  let text = `[ ${moduleName} ] failed ⛔\n\n`;
 
   if (result.timedOut.length > 0) {
     let timedOutSection = `Transactions remain unconfirmed after fee bump:\n`;

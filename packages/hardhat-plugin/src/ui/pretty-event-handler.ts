@@ -258,7 +258,6 @@ export class PrettyEventHandler implements ExecutionEventListener {
 
     if (originalStatus !== UiStateDeploymentStatus.UNSTARTED) {
       this._redisplayCurrentBatch();
-      this._clearUpToHeight(1);
     }
 
     console.log(calculateDeploymentCompleteDisplay(event, this.state));

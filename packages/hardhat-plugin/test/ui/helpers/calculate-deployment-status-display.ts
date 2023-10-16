@@ -20,7 +20,6 @@ describe("ui - calculate deployment status display", () => {
   describe("successful deployment", () => {
     it("should render a sucessful deployment", () => {
       const expectedText = testFormat(`
-
         [ deployment-01 ] successfully deployed 🚀
 
         ${chalk.bold("Deployed Addresses")}
@@ -55,7 +54,6 @@ describe("ui - calculate deployment status display", () => {
 
     it("should render a sucessful deployment with no deploys", () => {
       const expectedText = testFormat(`
-
         [ deployment-01 ] successfully deployed 🚀
 
         ${chalk.italic("No contracts were deployed")}`);
@@ -78,7 +76,6 @@ describe("ui - calculate deployment status display", () => {
   describe("failed deployment", () => {
     it("should render an execution failure with multiple of each problem type", () => {
       const expectedText = testFormat(`
-
         [ deployment-01 ] failed ⛔
 
         Transactions remain unconfirmed after fee bump:
@@ -154,7 +151,6 @@ describe("ui - calculate deployment status display", () => {
   describe("deployment with started but unfinished futures (e.g. simulation errors)", () => {
     it("should render a sucessful deployment", () => {
       const expectedText = testFormat(`
-
         [ deployment-01 ] has futures that have started but not finished ⛔
 
          - MyModule#Token
