@@ -23,8 +23,8 @@ module.exports = buildModule("CompleteModule", (m) => {
   });
   const duplicateWithLib = m.contractAt(
     "ContractWithLibrary",
-    withLib,
     withLibArtifact,
+    withLib,
     { id: "ContractWithLibrary2" }
   );
 

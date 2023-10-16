@@ -18,24 +18,24 @@ import {
   AccountRuntimeValue,
   AddressResolvableFuture,
   ArgumentType,
-  ContractAtFuture,
-  ContractDeploymentFuture,
-  LibraryDeploymentFuture,
   CallableContractFuture,
+  ContractAtFuture,
+  ContractCallFuture,
+  ContractDeploymentFuture,
   ContractFuture,
   FutureType,
   IgnitionModule,
   IgnitionModuleResult,
+  LibraryDeploymentFuture,
   ModuleParameterRuntimeValue,
   ModuleParameterType,
   ModuleParameters,
   NamedArtifactContractAtFuture,
-  ContractCallFuture,
   NamedArtifactContractDeploymentFuture,
   NamedArtifactLibraryDeploymentFuture,
-  StaticCallFuture,
   ReadEventArgumentFuture,
   SendDataFuture,
+  StaticCallFuture,
 } from "../types/module";
 import {
   CallOptions,
@@ -610,20 +610,25 @@ class IgnitionModuleBuilderImplementation<
   ): NamedArtifactContractAtFuture<ContractNameT>;
   public contractAt(
     contractName: string,
+    artifact: Artifact,
     address:
       | string
       | AddressResolvableFuture
       | ModuleParameterRuntimeValue<string>,
-    artifact: Artifact,
     options?: ContractAtOptions
   ): ContractAtFuture;
   public contractAt<ContractNameT extends string>(
     contractName: ContractNameT,
-    address:
+    addressOrArtifact:
+      | string
+      | AddressResolvableFuture
+      | ModuleParameterRuntimeValue<string>
+      | Artifact,
+    optionsOrAddress?:
+      | ContractAtOptions
       | string
       | AddressResolvableFuture
       | ModuleParameterRuntimeValue<string>,
-    artifactOrOptions?: Artifact | ContractAtOptions,
     options?: ContractAtOptions
   ) {
     if (typeof contractName !== "string") {
@@ -633,19 +638,32 @@ class IgnitionModuleBuilderImplementation<
       );
     }
 
-    if (isArtifactType(artifactOrOptions)) {
+    if (isArtifactType(addressOrArtifact)) {
+      if (
+        !(
+          typeof optionsOrAddress === "string" ||
+          isFuture(optionsOrAddress) ||
+          isModuleParameterRuntimeValue(optionsOrAddress)
+        )
+      ) {
+        this._throwErrorWithStackTrace(
+          `Invalid parameter "address" provided to contractAt "${contractName}" in module "${this._module.id}"`,
+          this.contractAt
+        );
+      }
+
       return this._contractAtFromArtifact(
         contractName,
-        address,
-        artifactOrOptions,
+        addressOrArtifact,
+        optionsOrAddress,
         options
       );
     }
 
     return this._namedArtifactContractAt(
       contractName,
-      address,
-      artifactOrOptions
+      addressOrArtifact,
+      optionsOrAddress as ContractAtOptions
     );
   }
 
@@ -692,11 +710,11 @@ class IgnitionModuleBuilderImplementation<
 
   private _contractAtFromArtifact(
     contractName: string,
+    artifact: Artifact,
     address:
       | string
       | AddressResolvableFuture
       | ModuleParameterRuntimeValue<string>,
-    artifact: Artifact,
     options: ContractAtOptions = {}
   ): ContractAtFuture {
     const futureId = toDeploymentFutureId(

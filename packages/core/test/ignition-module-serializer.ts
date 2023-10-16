@@ -165,7 +165,7 @@ describe("stored deployment serializer", () => {
 
     it("should serialize a contractAt", () => {
       const module = buildModule("Module1", (m) => {
-        const contract1 = m.contractAt("Contract1", "0x0", fakeArtifact);
+        const contract1 = m.contractAt("Contract1", fakeArtifact, "0x0");
 
         return { contract1 };
       });
@@ -175,9 +175,9 @@ describe("stored deployment serializer", () => {
 
     it("should serialize a contractAt with a future address", () => {
       const module = buildModule("Module1", (m) => {
-        const contract1 = m.contractAt("Contract1", "0x0", fakeArtifact);
+        const contract1 = m.contractAt("Contract1", fakeArtifact, "0x0");
         const call = m.staticCall(contract1, "getAddress");
-        const contract2 = m.contractAt("Contract2", call, fakeArtifact);
+        const contract2 = m.contractAt("Contract2", fakeArtifact, call);
 
         return { contract1, contract2 };
       });
@@ -187,8 +187,8 @@ describe("stored deployment serializer", () => {
 
     it("should serialize a contractAt with dependency", () => {
       const module = buildModule("Module1", (m) => {
-        const contract1 = m.contractAt("Contract1", "0x0", fakeArtifact);
-        const contract2 = m.contractAt("Contract2", "0x0", fakeArtifact, {
+        const contract1 = m.contractAt("Contract1", fakeArtifact, "0x0");
+        const contract2 = m.contractAt("Contract2", fakeArtifact, "0x0", {
           after: [contract1],
         });
 

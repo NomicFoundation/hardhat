@@ -122,8 +122,8 @@ describe("id rules", () => {
         buildModule("MyModule", (m) => {
           const myContractAt = m.contractAt(
             "MyContract",
-            exampleAddress,
             fakeArtifact,
+            exampleAddress,
             {
               id: "MyContractAt:v2",
             }
@@ -218,8 +218,8 @@ describe("id rules", () => {
         buildModule("MyModule", (m) => {
           const myContractAt = m.contractAt(
             "MyContractAt:v2",
-            exampleAddress,
-            fakeArtifact
+            fakeArtifact,
+            exampleAddress
           );
 
           return { myContractAt };

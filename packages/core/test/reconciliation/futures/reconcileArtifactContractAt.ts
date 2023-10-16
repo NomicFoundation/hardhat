@@ -69,7 +69,7 @@ describe("Reconciliation - artifact contract at", () => {
 
   it("should reconcile when using an address string", async () => {
     const submoduleDefinition = buildModule("Submodule", (m) => {
-      const contract1 = m.contractAt("Contract1", exampleAddress, mockArtifact);
+      const contract1 = m.contractAt("Contract1", mockArtifact, exampleAddress);
 
       return { contract1 };
     });
@@ -97,7 +97,7 @@ describe("Reconciliation - artifact contract at", () => {
       const example = m.contract("Example");
       const call = m.staticCall(example, "getAddress");
 
-      const another = m.contractAt("Another", call, mockArtifact);
+      const another = m.contractAt("Another", mockArtifact, call);
 
       return { another };
     });
@@ -143,8 +143,8 @@ describe("Reconciliation - artifact contract at", () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contractAt(
         "ContractChanged",
-        exampleAddress,
         mockArtifact,
+        exampleAddress,
         {
           id: "Factory",
         }
@@ -179,8 +179,8 @@ describe("Reconciliation - artifact contract at", () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contractAt(
         "Contract1",
-        exampleAddress,
         mockArtifact,
+        exampleAddress,
         {
           id: "Factory",
         }

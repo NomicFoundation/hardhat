@@ -185,11 +185,11 @@ export interface IgnitionModuleBuilder {
 
   contractAt(
     contractName: string,
+    artifact: Artifact,
     address:
       | string
       | AddressResolvableFuture
       | ModuleParameterRuntimeValue<string>,
-    artifact: Artifact,
     options?: ContractAtOptions
   ): ContractAtFuture;
 

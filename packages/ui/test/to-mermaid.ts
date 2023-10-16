@@ -205,8 +205,8 @@ describe("to-mermaid", () => {
       });
       const duplicateWithLib = m.contractAt(
         "ContractWithLibrary",
-        withLib,
         withLibArtifact,
+        withLib,
         { id: "ContractWithLibrary2" }
       );
 

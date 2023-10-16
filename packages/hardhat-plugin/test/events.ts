@@ -48,7 +48,7 @@ describe("events", () => {
         "fooAddress"
       );
 
-      const foo = m.contractAt("Foo", newAddress, artifact);
+      const foo = m.contractAt("Foo", artifact, newAddress);
 
       return { fooFactory, foo };
     });
