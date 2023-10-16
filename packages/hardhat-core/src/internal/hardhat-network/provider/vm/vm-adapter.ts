@@ -6,6 +6,7 @@ import type { TxReceipt } from "@nomicfoundation/ethereumjs-vm";
 import type { StateOverrideSet } from "../../../core/jsonrpc/types/input/callRequest";
 import type { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import type { RpcDebugTraceOutput } from "../output";
+import type { MinimalInterpreterStep } from "./proxy-vm";
 
 import { MessageTrace } from "../../stack-traces/message-trace";
 import { Bloom } from "../utils/bloom";
@@ -94,4 +95,6 @@ export interface VMAdapter {
     common: Common,
     opts: BuildBlockOpts
   ): Promise<BlockBuilderAdapter>;
+
+  onStep(cb: (step: MinimalInterpreterStep, next?: any) => Promise<void>): void;
 }

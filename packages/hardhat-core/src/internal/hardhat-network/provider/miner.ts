@@ -1,3 +1,5 @@
+import type { MinimalInterpreterStep } from "./vm/proxy-vm";
+
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Address } from "@nomicfoundation/ethereumjs-util";
 import { PartialTrace, RunBlockResult } from "./vm/vm-adapter";
@@ -27,4 +29,6 @@ export interface BlockMinerAdapter {
   prevRandaoGeneratorSeed(): Buffer;
 
   setPrevRandaoGeneratorNextValue(nextValue: Buffer): void;
+
+  onStep(cb: (step: MinimalInterpreterStep, next?: any) => Promise<void>): void;
 }

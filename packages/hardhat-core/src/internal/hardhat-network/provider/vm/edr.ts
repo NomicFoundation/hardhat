@@ -1,11 +1,11 @@
+import type { MinimalInterpreterStep } from "./proxy-vm";
+
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import { InterpreterStep } from "@nomicfoundation/ethereumjs-evm";
 import {
   Account,
   Address,
   bufferToBigInt,
-  AsyncEventEmitter,
   KECCAK256_NULL,
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
@@ -59,6 +59,9 @@ import { EdrBlockBuilder } from "./block-builder/edr";
 export class EdrAdapter implements VMAdapter {
   private _vmTracer: VMTracer;
   private _stateRootToState: Map<Buffer, State> = new Map();
+  private _stepListeners: Array<
+    (step: MinimalInterpreterStep, next?: any) => Promise<void>
+  > = [];
 
   constructor(
     private _blockchain: Blockchain,
@@ -66,9 +69,7 @@ export class EdrAdapter implements VMAdapter {
     private readonly _common: Common,
     private readonly _limitContractCodeSize: bigint | undefined,
     private readonly _limitInitcodeSize: bigint | undefined,
-    private readonly _enableTransientStorage: boolean,
-    // For solidity-coverage compatibility. Name cannot be changed.
-    private _vm: VMStub
+    private readonly _enableTransientStorage: boolean
   ) {
     this._vmTracer = new VMTracer(_common, false);
   }
@@ -102,20 +103,13 @@ export class EdrAdapter implements VMAdapter {
         ? UNLIMITED_CONTRACT_SIZE_VALUE
         : undefined;
 
-    const vmStub: VMStub = {
-      evm: {
-        events: new AsyncEventEmitter(),
-      },
-    };
-
     return new EdrAdapter(
       blockchain,
       state,
       common,
       limitContractCodeSize,
       limitInitcodeSize,
-      config.enableTransientStorage,
-      vmStub
+      config.enableTransientStorage
     );
   }
 
@@ -258,12 +252,14 @@ export class EdrAdapter implements VMAdapter {
 
     // For solidity-coverage compatibility
     for (const step of this._vmTracer.tracingSteps) {
-      this._vm.evm.events.emit("step", {
-        pc: Number(step.pc),
-        depth: step.depth,
-        opcode: { name: step.opcode },
-        stackTop: step.stackTop,
-      });
+      for (const listener of this._stepListeners) {
+        await listener({
+          pc: Number(step.pc),
+          depth: step.depth,
+          opcode: { name: step.opcode },
+          stack: step.stackTop !== undefined ? [step.stackTop] : [],
+        });
+      }
     }
 
     try {
@@ -499,12 +495,14 @@ export class EdrAdapter implements VMAdapter {
 
     // For solidity-coverage compatibility
     for (const step of this._vmTracer.tracingSteps) {
-      this._vm.evm.events.emit("step", {
-        pc: Number(step.pc),
-        depth: step.depth,
-        opcode: { name: step.opcode },
-        stackTop: step.stackTop,
-      });
+      for (const listener of this._stepListeners) {
+        await listener({
+          pc: Number(step.pc),
+          depth: step.depth,
+          opcode: { name: step.opcode },
+          stack: step.stackTop !== undefined ? [step.stackTop] : [],
+        });
+      }
     }
 
     try {
@@ -681,6 +679,12 @@ export class EdrAdapter implements VMAdapter {
     );
   }
 
+  public onStep(
+    cb: (step: MinimalInterpreterStep, next?: any) => Promise<void>
+  ) {
+    this._stepListeners.push(cb);
+  }
+
   private _getBlockEnvDifficulty(
     difficulty: bigint | undefined
   ): bigint | undefined {
@@ -714,20 +718,4 @@ export class EdrAdapter implements VMAdapter {
 
     return undefined;
   }
-}
-
-type InterpreterStepStub = Pick<InterpreterStep, "pc" | "depth"> & {
-  opcode: { name: string };
-  stackTop?: bigint;
-};
-
-interface EVMStub {
-  events: AsyncEventEmitter<{
-    step: (data: InterpreterStepStub, resolve?: (result?: any) => void) => void;
-  }>;
-}
-
-// For compatibility with solidity-coverage that attaches a listener to the step event.
-export interface VMStub {
-  evm: EVMStub;
 }

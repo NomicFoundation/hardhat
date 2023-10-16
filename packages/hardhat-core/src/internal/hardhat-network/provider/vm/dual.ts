@@ -1,3 +1,5 @@
+import type { InterpreterStep } from "@nomicfoundation/ethereumjs-evm";
+
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
@@ -521,6 +523,10 @@ export class DualModeAdapter implements VMAdapter {
     ]);
 
     return new DualModeBlockBuilder(ethereumJSBlockBuilder, edrBlockBuilder);
+  }
+
+  public onStep(_cb: (step: InterpreterStep, next?: any) => Promise<void>) {
+    throw new Error("Method not implemented.");
   }
 }
 
