@@ -205,6 +205,12 @@ export class EdrAdapter implements VMAdapter {
               })
             : undefined;
 
+        if (storageDiff !== undefined && storage !== undefined) {
+          throw new InvalidInputError(
+            "The properties 'state' and 'stateDiff' cannot be used simultaneously when configuring the state override set passed to the eth_call method."
+          );
+        }
+
         const accountOverride: AccountOverride = {
           balance: account.balance,
           nonce: account.nonce,
