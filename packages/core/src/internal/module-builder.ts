@@ -72,6 +72,7 @@ import {
   toSendDataFutureId,
 } from "./utils/future-id-builders";
 import {
+  isValidContractName,
   isValidFunctionOrEventName,
   isValidIgnitionIdentifier,
   isValidSolidityIdentifier,
@@ -932,13 +933,12 @@ class IgnitionModuleBuilderImplementation<
     contractName: string,
     func: (...[]: any[]) => any
   ) {
-    // TODO: This doesn't support FQNs
-    if (isValidSolidityIdentifier(contractName)) {
+    if (isValidContractName(contractName)) {
       return;
     }
 
     this._throwErrorWithStackTrace(
-      `The contract name "${contractName}" is invalid, make sure you use a valid identifier.`,
+      `The contract name "${contractName}" is invalid.`,
       func
     );
   }

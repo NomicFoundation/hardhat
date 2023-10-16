@@ -49,3 +49,27 @@ export function isValidSolidityIdentifier(identifier: string): boolean {
 export function isValidFunctionOrEventName(functionName: string): boolean {
   return functionNameRegex.test(functionName);
 }
+
+/**
+ * Returns true if a contract name (either bare - e.g. `MyContract` - or fully
+ * qualified - e.g. `contracts/MyContract.sol:MyContract`) is valid.
+ *
+ * In the case of FQNs, we only validate the contract name part.
+ *
+ * The reason to validate the contract name is that we want to use them in
+ * future ids, and those need to be compatible with most common file systems
+ * (including Windows!).
+ *
+ * We don't validate the entire FQN, as we'll only use its bare name to
+ * derive ids.
+ *
+ * @param contractName A bare or FQN contract name to validate.
+ * @returns true if the contract name is valid.
+ */
+export function isValidContractName(contractName: string): boolean {
+  if (contractName.includes(":")) {
+    contractName = contractName.split(":").at(-1)!;
+  }
+
+  return isValidSolidityIdentifier(contractName);
+}
