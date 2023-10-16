@@ -28,7 +28,7 @@ concurrency:
 
 jobs:
   test_on_windows:
-    name: Test hardhat-viem on Windows with Node 16
+    name: Test hardhat-viem on Windows with Node 18
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
@@ -44,7 +44,7 @@ jobs:
         run: yarn test
 
   test_on_macos:
-    name: Test hardhat-viem on MacOS with Node 16
+    name: Test hardhat-viem on MacOS with Node 18
     runs-on: macos-latest
     # disable until actions/virtual-environments#4896 is fixed
     if: ${{ false }}
