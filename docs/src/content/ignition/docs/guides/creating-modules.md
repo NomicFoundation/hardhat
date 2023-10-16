@@ -277,7 +277,7 @@ const token = m.contract("Token", TokenArtifact, ["My Token", "TKN2", 18]);
 
 const myLib = m.library("MyLib", MyLibArtifact);
 
-const token2 = m.contractAt("Token", token2Address, TokenArtifact);
+const token2 = m.contractAt("Token", TokenArtifact, token2Address);
 ```
 
 In this case, the name of the contract is only used to generate [`Future` ids](#future-ids), and not to load any artifact.
