@@ -4,9 +4,9 @@ import { deploymentStateReducer } from "./reducers/deployment-state-reducer";
 import { DeploymentState } from "./types/deployment-state";
 import { ExecutionResultType } from "./types/execution-result";
 import {
+  DeploymentInitializeMessage,
   JournalMessage,
   JournalMessageType,
-  RunStartMessage,
 } from "./types/messages";
 
 /**
@@ -37,8 +37,8 @@ export async function initializeDeploymentState(
   chainId: number,
   deploymentLoader: DeploymentLoader
 ): Promise<DeploymentState> {
-  const message: RunStartMessage = {
-    type: JournalMessageType.RUN_START,
+  const message: DeploymentInitializeMessage = {
+    type: JournalMessageType.DEPLOYMENT_INITIALIZE,
     chainId,
   };
 

@@ -8,7 +8,7 @@ import { formatSolidityParameter } from "../../formatters";
 
 export function logJournalableMessage(message: JournalMessage): void {
   switch (message.type) {
-    case JournalMessageType.RUN_START:
+    case JournalMessageType.DEPLOYMENT_INITIALIZE:
       console.log(`Deployment started`);
       break;
 

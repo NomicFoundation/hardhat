@@ -7,6 +7,7 @@ import {
   DeploymentCompleteEvent,
   DeploymentExecutionStateCompleteEvent,
   DeploymentExecutionStateInitializeEvent,
+  DeploymentInitializeEvent,
   DeploymentParameters,
   DeploymentResult,
   DeploymentResultType,
@@ -82,12 +83,14 @@ export class PrettyEventHandler implements ExecutionEventListener {
     process.stdout.write(calculateStartingMessage(this.state));
   }
 
-  public runStart(event: RunStartEvent): void {
+  public deploymentInitialize(event: DeploymentInitializeEvent): void {
     this.state = {
       ...this.state,
       chainId: event.chainId,
     };
+  }
 
+  public runStart(_event: RunStartEvent): void {
     this._clearCurrentLine();
     console.log(calculateDeployingModulePanel(this.state));
   }
@@ -249,8 +252,6 @@ export class PrettyEventHandler implements ExecutionEventListener {
   ): void {}
 
   public deploymentComplete(event: DeploymentCompleteEvent): void {
-    const originalStatus = this.state.status;
-
     this.state = {
       ...this.state,
       status: UiStateDeploymentStatus.COMPLETE,
@@ -258,8 +259,13 @@ export class PrettyEventHandler implements ExecutionEventListener {
       batches: this._applyResultToBatches(this.state.batches, event.result),
     };
 
-    if (originalStatus !== UiStateDeploymentStatus.UNSTARTED) {
+    // If batches where executed, rerender the last batch
+    if (this.state.currentBatch > 0) {
       this._redisplayCurrentBatch();
+    } else {
+      // Otherwise only the completion panel will be shown so clear
+      // the Starting Ignition line.
+      this._clearCurrentLine();
     }
 
     console.log(calculateDeploymentCompleteDisplay(event, this.state));

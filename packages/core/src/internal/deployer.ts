@@ -74,10 +74,9 @@ export class Deployer {
     accounts: string[],
     defaultSender: string
   ): Promise<DeploymentResult> {
-    let deploymentState = await this._getOrInitializeDeploymentState(
-      ignitionModule.id,
-      this._deploymentDir
-    );
+    this._emitDeploymentStartEvent(ignitionModule.id, this._deploymentDir);
+
+    let deploymentState = await this._getOrInitializeDeploymentState();
 
     const contracts =
       getFuturesFromModule(ignitionModule).filter(isContractFuture);
@@ -167,26 +166,30 @@ export class Deployer {
 
     this._emitDeploymentBatchEvent(batches);
 
-    const executionEngine = new ExecutionEngine(
-      this._deploymentLoader,
-      this._artifactResolver,
-      this._executionStrategy,
-      this._jsonRpcClient,
-      this._executionEventListener,
-      this._config.requiredConfirmations,
-      this._config.timeBeforeBumpingFees,
-      this._config.maxFeeBumps,
-      this._config.blockPollingInterval
-    );
+    if (this._hasBatchesToExecute(batches)) {
+      this._emitRunStartEvent();
 
-    deploymentState = await executionEngine.executeModule(
-      deploymentState,
-      ignitionModule,
-      batches,
-      accounts,
-      deploymentParameters,
-      defaultSender
-    );
+      const executionEngine = new ExecutionEngine(
+        this._deploymentLoader,
+        this._artifactResolver,
+        this._executionStrategy,
+        this._jsonRpcClient,
+        this._executionEventListener,
+        this._config.requiredConfirmations,
+        this._config.timeBeforeBumpingFees,
+        this._config.maxFeeBumps,
+        this._config.blockPollingInterval
+      );
+
+      deploymentState = await executionEngine.executeModule(
+        deploymentState,
+        ignitionModule,
+        batches,
+        accounts,
+        deploymentParameters,
+        defaultSender
+      );
+    }
 
     const result = await this._getDeploymentResult(
       deploymentState,
@@ -218,16 +221,11 @@ export class Deployer {
     };
   }
 
-  private async _getOrInitializeDeploymentState(
-    moduleId: string,
-    deploymentDir: string | undefined
-  ): Promise<DeploymentState> {
+  private async _getOrInitializeDeploymentState(): Promise<DeploymentState> {
     const chainId = await this._jsonRpcClient.getChainId();
     const deploymentState = await loadDeploymentState(this._deploymentLoader);
 
     if (deploymentState === undefined) {
-      this._emitDeploymentStartEvent(moduleId, deploymentDir);
-
       return initializeDeploymentState(chainId, this._deploymentLoader);
     }
 
@@ -276,6 +274,16 @@ export class Deployer {
     });
   }
 
+  private _emitRunStartEvent(): void {
+    if (this._executionEventListener === undefined) {
+      return;
+    }
+
+    this._executionEventListener.runStart({
+      type: ExecutionEventType.RUN_START,
+    });
+  }
+
   private _emitDeploymentCompleteEvent(result: DeploymentResult): void {
     if (this._executionEventListener === undefined) {
       return;
@@ -302,5 +310,15 @@ export class Deployer {
       type: DeploymentResultType.EXECUTION_ERROR,
       ...status,
     };
+  }
+
+  /**
+   * Determine if an execution run is necessary.
+   *
+   * @param batches - the batches to be executed
+   * @returns if there are batches to be executed
+   */
+  private _hasBatchesToExecute(batches: string[][]) {
+    return batches.length > 0;
   }
 }
