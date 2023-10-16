@@ -16,7 +16,7 @@ import { RpcLogOutput } from "../output";
 export class DualBlockchain implements BlockchainAdapter {
   constructor(
     private readonly _hardhat: BlockchainAdapter,
-    private readonly _rethnet: BlockchainAdapter
+    private readonly _edr: BlockchainAdapter
   ) {}
 
   public async getHardforkAtBlockNumber(
@@ -25,87 +25,85 @@ export class DualBlockchain implements BlockchainAdapter {
     const hardhat = await this._hardhat.getHardforkAtBlockNumber(
       blockNumberOrPending
     );
-    const rethnet = await this._rethnet.getHardforkAtBlockNumber(
-      blockNumberOrPending
-    );
+    const edr = await this._edr.getHardforkAtBlockNumber(blockNumberOrPending);
 
-    if (hardhat !== rethnet) {
+    if (hardhat !== edr) {
       console.trace(
-        `Different hardfork: ${hardhat} (hardhat) !== ${rethnet} (rethnet)`
+        `Different hardfork: ${hardhat} (hardhat) !== ${edr} (edr)`
       );
       throw new Error("Different hardfork");
     }
 
-    return rethnet;
+    return edr;
   }
 
   public async getBlockByHash(hash: Buffer): Promise<Block | undefined> {
-    const [hardhatBlock, rethnetBlock] = await Promise.all([
+    const [hardhatBlock, edrBlock] = await Promise.all([
       this._hardhat.getBlockByHash(hash),
-      this._rethnet.getBlockByHash(hash),
+      this._edr.getBlockByHash(hash),
     ]);
 
-    assertEqualOptionalBlocks(hardhatBlock, rethnetBlock);
-    return rethnetBlock;
+    assertEqualOptionalBlocks(hardhatBlock, edrBlock);
+    return edrBlock;
   }
 
   public async getBlockByNumber(number: bigint): Promise<Block | undefined> {
-    const [hardhatBlock, rethnetBlock] = await Promise.all([
+    const [hardhatBlock, edrBlock] = await Promise.all([
       this._hardhat.getBlockByNumber(number),
-      this._rethnet.getBlockByNumber(number),
+      this._edr.getBlockByNumber(number),
     ]);
 
-    assertEqualOptionalBlocks(hardhatBlock, rethnetBlock);
-    return rethnetBlock;
+    assertEqualOptionalBlocks(hardhatBlock, edrBlock);
+    return edrBlock;
   }
 
   public async getBlockByTransactionHash(
     transactionHash: Buffer
   ): Promise<Block | undefined> {
-    const [hardhatBlock, rethnetBlock] = await Promise.all([
+    const [hardhatBlock, edrBlock] = await Promise.all([
       this._hardhat.getBlockByTransactionHash(transactionHash),
-      this._rethnet.getBlockByTransactionHash(transactionHash),
+      this._edr.getBlockByTransactionHash(transactionHash),
     ]);
 
-    assertEqualOptionalBlocks(hardhatBlock, rethnetBlock);
-    return rethnetBlock;
+    assertEqualOptionalBlocks(hardhatBlock, edrBlock);
+    return edrBlock;
   }
 
   public async getLatestBlock(): Promise<Block> {
-    const [hardhatBlock, rethnetBlock] = await Promise.all([
+    const [hardhatBlock, edrBlock] = await Promise.all([
       await this._hardhat.getLatestBlock(),
-      await this._rethnet.getLatestBlock(),
+      await this._edr.getLatestBlock(),
     ]);
 
-    assertEqualBlocks(hardhatBlock, rethnetBlock);
-    return rethnetBlock;
+    assertEqualBlocks(hardhatBlock, edrBlock);
+    return edrBlock;
   }
 
   public async getLatestBlockNumber(): Promise<bigint> {
-    const [hardhatBlockNumber, rethnetBlockNumber] = await Promise.all([
+    const [hardhatBlockNumber, edrBlockNumber] = await Promise.all([
       this._hardhat.getLatestBlockNumber(),
-      this._rethnet.getLatestBlockNumber(),
+      this._edr.getLatestBlockNumber(),
     ]);
 
-    if (hardhatBlockNumber !== rethnetBlockNumber) {
+    if (hardhatBlockNumber !== edrBlockNumber) {
       console.trace(
-        `Different latestBlockNumber: ${hardhatBlockNumber} (ethereumjs) !== ${rethnetBlockNumber} (rethnet)`
+        `Different latestBlockNumber: ${hardhatBlockNumber} (ethereumjs) !== ${edrBlockNumber} (edr)`
       );
       throw new Error("Different latestBlockNumber");
     }
 
-    return rethnetBlockNumber;
+    return edrBlockNumber;
   }
 
   public async getLogs(filterParams: FilterParams): Promise<RpcLogOutput[]> {
-    const [hardhat, rethnet] = await Promise.all([
+    const [hardhat, edr] = await Promise.all([
       this._hardhat.getLogs(filterParams),
-      this._rethnet.getLogs(filterParams),
+      this._edr.getLogs(filterParams),
     ]);
 
-    if (hardhat.length !== rethnet.length) {
+    if (hardhat.length !== edr.length) {
       console.trace(
-        `Different logs length: ${hardhat.length} (hardhat) !== ${rethnet.length} (rethnet)`
+        `Different logs length: ${hardhat.length} (hardhat) !== ${edr.length} (edr)`
       );
       throw new Error("Different logs length");
     }
@@ -114,9 +112,9 @@ export class DualBlockchain implements BlockchainAdapter {
 
     for (let i = 0; i < hardhat.length; i++) {
       const hardhatLog = hardhat[i];
-      const rethnetLog = rethnet[i];
+      const edrLog = edr[i];
 
-      const logDifferences = rpcLogDifferences(hardhatLog, rethnetLog);
+      const logDifferences = rpcLogDifferences(hardhatLog, edrLog);
 
       if (logDifferences.length > 0) {
         differences.push(
@@ -132,61 +130,61 @@ export class DualBlockchain implements BlockchainAdapter {
       throw new Error("Different logs");
     }
 
-    return rethnet;
+    return edr;
   }
 
   public async getReceiptByTransactionHash(transactionHash: Buffer) {
-    const [hardhat, rethnet] = await Promise.all([
+    const [hardhat, edr] = await Promise.all([
       this._hardhat.getReceiptByTransactionHash(transactionHash),
-      this._rethnet.getReceiptByTransactionHash(transactionHash),
+      this._edr.getReceiptByTransactionHash(transactionHash),
     ]);
 
-    assertEqualOptionalReceipts(hardhat, rethnet);
+    assertEqualOptionalReceipts(hardhat, edr);
 
-    return rethnet;
+    return edr;
   }
 
   public async getTotalDifficultyByHash(
     hash: Buffer
   ): Promise<bigint | undefined> {
-    const [hardhatTotalDifficulty, rethnetTotalDifficulty] = await Promise.all([
+    const [hardhatTotalDifficulty, edrTotalDifficulty] = await Promise.all([
       this._hardhat.getTotalDifficultyByHash(hash),
-      this._rethnet.getTotalDifficultyByHash(hash),
+      this._edr.getTotalDifficultyByHash(hash),
     ]);
 
     if (hardhatTotalDifficulty === undefined) {
-      if (rethnetTotalDifficulty !== undefined) {
+      if (edrTotalDifficulty !== undefined) {
         console.trace(
-          "hardhatTotalDifficulty is undefined but rethnetTotalDifficulty is defined"
+          "hardhatTotalDifficulty is undefined but edrTotalDifficulty is defined"
         );
         throw new Error(
-          "hardhatTotalDifficulty is undefined but rethnetTotalDifficulty is defined"
+          "hardhatTotalDifficulty is undefined but edrTotalDifficulty is defined"
         );
       }
     } else {
-      if (rethnetTotalDifficulty === undefined) {
+      if (edrTotalDifficulty === undefined) {
         console.trace(
-          "hardhatTotalDifficulty is defined but rethnetTotalDifficulty is undefined"
+          "hardhatTotalDifficulty is defined but edrTotalDifficulty is undefined"
         );
         throw new Error(
-          "hardhatTotalDifficulty is defined but rethnetTotalDifficulty is undefined"
+          "hardhatTotalDifficulty is defined but edrTotalDifficulty is undefined"
         );
       }
-      if (hardhatTotalDifficulty !== rethnetTotalDifficulty) {
+      if (hardhatTotalDifficulty !== edrTotalDifficulty) {
         console.trace(
-          `Different totalDifficulty: ${hardhatTotalDifficulty} (ethereumjs) !== ${rethnetTotalDifficulty} (rethnet)`
+          `Different totalDifficulty: ${hardhatTotalDifficulty} (ethereumjs) !== ${edrTotalDifficulty} (edr)`
         );
         throw new Error("Different totalDifficulty");
       }
     }
 
-    return rethnetTotalDifficulty;
+    return edrTotalDifficulty;
   }
 
   public async reserveBlocks(count: bigint, interval: bigint): Promise<void> {
     await Promise.all([
       this._hardhat.reserveBlocks(count, interval),
-      this._rethnet.reserveBlocks(count, interval),
+      this._edr.reserveBlocks(count, interval),
     ]);
 
     // Validate block number
@@ -196,7 +194,7 @@ export class DualBlockchain implements BlockchainAdapter {
   public async revertToBlock(blockNumber: bigint): Promise<void> {
     await Promise.all([
       this._hardhat.revertToBlock(blockNumber),
-      this._rethnet.revertToBlock(blockNumber),
+      this._edr.revertToBlock(blockNumber),
     ]);
 
     // Validate we deleted correctly

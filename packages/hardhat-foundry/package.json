@@ -22,7 +22,7 @@
     "prettier": "prettier \"**/*.{js,md,json}\"",
     "pretest": "cd ../.. && yarn build",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
-    "prebuild": "cd ../../crates/rethnet_evm_napi && yarn build",
+    "prebuild": "cd ../../crates/edr_evm_napi && yarn build",
     "build": "tsc --build .",
     "prepublishOnly": "yarn build",
     "clean": "rimraf dist"

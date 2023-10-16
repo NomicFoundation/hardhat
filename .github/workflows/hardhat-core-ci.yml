@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - $default-branch
-      - "rethnet/main"
+      - "edr/main"
     paths:
       - ".github/workflows/hardhat-core-ci.yml"
       - "rust-toolchain"
@@ -37,8 +37,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check-rethnet:
-    name: Check Rethnet
+  check-edr:
+    name: Check EDR
     runs-on: ubuntu-latest
     # Setting RUSTFLAGS env for clippy makes it not include custom rules
     env:
@@ -67,7 +67,7 @@ jobs:
   test-core:
     name: Test core (${{ matrix.os }}, Node ${{ matrix.node }}, ${{ matrix.vm }})
     runs-on: ${{ matrix.os }}
-    needs: check-rethnet
+    needs: check-edr
     strategy:
       fail-fast: false
       matrix:
@@ -75,7 +75,7 @@ jobs:
         # disable until actions/virtual-environments#4896 is fixed
         # os: ["macos-latest", "ubuntu-latest", "windows-latest"]
         os: ["ubuntu-latest", "windows-latest"]
-        vm: ["dual", "ethereumjs", "rethnet"]
+        vm: ["dual", "ethereumjs", "edr"]
     steps:
       - uses: actions/checkout@v3
 
@@ -118,7 +118,7 @@ jobs:
   test-provider:
     name: Test provider (${{ matrix.os }}, Node ${{ matrix.node }}, ${{ matrix.vm }})
     runs-on: ${{ matrix.os }}
-    needs: check-rethnet
+    needs: check-edr
     strategy:
       fail-fast: false
       matrix:
@@ -126,7 +126,7 @@ jobs:
         # disable until actions/virtual-environments#4896 is fixed
         # os: ["macos-latest", "ubuntu-latest", "windows-latest"]
         os: ["ubuntu-latest", "windows-latest"]
-        vm: ["dual", "rethnet"]
+        vm: ["dual", "edr"]
     steps:
       - uses: actions/checkout@v3
 
@@ -173,10 +173,10 @@ jobs:
           FORCE_COLOR: 3
         run: yarn test:provider
 
-  test-rethnet-js:
-    name: Test Rethnet bindings (${{ matrix.os }}, Node ${{ matrix.node }})
+  test-edr-js:
+    name: Test EDR bindings (${{ matrix.os }}, Node ${{ matrix.node }})
     runs-on: ${{ matrix.os }}
-    needs: check-rethnet
+    needs: check-edr
     strategy:
       fail-fast: false
       matrix:
@@ -188,7 +188,7 @@ jobs:
             RUSTFLAGS: "-Dwarnings -Ctarget-feature=+crt-static"
     defaults:
       run:
-        working-directory: crates/rethnet_evm_napi
+        working-directory: crates/edr_evm_napi
     steps:
       - uses: actions/checkout@v3
 
@@ -215,10 +215,10 @@ jobs:
       - name: Test
         run: yarn test
 
-  test-rethnet-rs:
-    name: Test Rethnet (${{ matrix.os }})
+  test-edr-rs:
+    name: Test EDR (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    needs: check-rethnet
+    needs: check-edr
     strategy:
       fail-fast: false
       matrix:
@@ -275,10 +275,10 @@ jobs:
       #     command: nextest
       #     args: run --workspace --all-features --all-targets
 
-  rethnet-style:
-    name: Check Rethnet Style
+  edr-style:
+    name: Check EDR Style
     runs-on: ubuntu-latest
-    needs: check-rethnet
+    needs: check-edr
     steps:
       - uses: actions/checkout@v3
 
@@ -303,10 +303,10 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --workspace --all-targets --all-features -- -Dwarnings
 
-  rethnet-docs:
-    name: Build Rethnet Docs
+  edr-docs:
+    name: Build EDR Docs
     runs-on: ubuntu-latest
-    needs: check-rethnet
+    needs: check-edr
     steps:
       - uses: actions/checkout@v3
 

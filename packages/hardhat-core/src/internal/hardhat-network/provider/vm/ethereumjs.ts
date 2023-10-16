@@ -782,7 +782,7 @@ export class EthereumJSAdapter implements VMAdapter {
         );
 
         executionResult = {
-          reason: vmError.getRethnetExceptionalHalt(),
+          reason: vmError.getEdrExceptionalHalt(),
           gasUsed,
         };
       }

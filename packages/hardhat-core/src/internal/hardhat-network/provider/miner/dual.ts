@@ -1,6 +1,6 @@
 import { Address } from "@nomicfoundation/ethereumjs-util";
 import { keccak256 } from "../../../util/keccak";
-import { globalRethnetContext } from "../context/rethnet";
+import { globalEdrContext } from "../context/edr";
 import { randomHashSeed } from "../fork/ForkStateManager";
 import { BlockMinerAdapter, PartialMineBlockResult } from "../miner";
 import {
@@ -11,7 +11,7 @@ import {
 export class DualBlockMiner implements BlockMinerAdapter {
   constructor(
     private _hardhatMiner: BlockMinerAdapter,
-    private _rethnetMiner: BlockMinerAdapter
+    private _edrMiner: BlockMinerAdapter
   ) {}
 
   public async mineBlock(
@@ -43,9 +43,9 @@ export class DualBlockMiner implements BlockMinerAdapter {
         nextStateRootSeed = keccak256(stateRootSeed);
       }
 
-      globalRethnetContext.setStateRootGeneratorSeed(stateRootSeed);
+      globalEdrContext.setStateRootGeneratorSeed(stateRootSeed);
 
-      const rethnetResult = await this._rethnetMiner.mineBlock(
+      const edrResult = await this._edrMiner.mineBlock(
         blockTimestamp,
         coinbase,
         minGasPrice,
@@ -53,18 +53,18 @@ export class DualBlockMiner implements BlockMinerAdapter {
         baseFeePerGas
       );
 
-      assertEqualBlocks(hardhatResult.block, rethnetResult.block);
+      assertEqualBlocks(hardhatResult.block, edrResult.block);
       assertEqualRunBlockResults(
         hardhatResult.blockResult,
-        rethnetResult.blockResult
+        edrResult.blockResult
       );
 
       // TODO: assert traces
 
-      return rethnetResult;
+      return edrResult;
     } catch (error) {
       // Ensure that the state root generator seed is re-aligned upon an error
-      globalRethnetContext.setStateRootGeneratorSeed(randomHashSeed());
+      globalEdrContext.setStateRootGeneratorSeed(randomHashSeed());
 
       // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw error;
@@ -73,24 +73,24 @@ export class DualBlockMiner implements BlockMinerAdapter {
 
   public prevRandaoGeneratorSeed(): Buffer {
     const hardhatSeed = this._hardhatMiner.prevRandaoGeneratorSeed();
-    const rethnetSeed = this._rethnetMiner.prevRandaoGeneratorSeed();
+    const edrSeed = this._edrMiner.prevRandaoGeneratorSeed();
 
-    if (!hardhatSeed.equals(rethnetSeed)) {
+    if (!hardhatSeed.equals(edrSeed)) {
       console.trace(
         `Different prevRandaoGeneratorSeed: ${hardhatSeed.toString(
           "hex"
-        )} (ethereumjs) !== ${rethnetSeed.toString("hex")} (rethnet)`
+        )} (ethereumjs) !== ${edrSeed.toString("hex")} (edr)`
       );
 
       /* eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
       throw new Error("Different prevRandaoGeneratorSeed");
     }
 
-    return rethnetSeed;
+    return edrSeed;
   }
 
   public setPrevRandaoGeneratorNextValue(nextValue: Buffer): void {
     this._hardhatMiner.setPrevRandaoGeneratorNextValue(nextValue);
-    this._rethnetMiner.setPrevRandaoGeneratorNextValue(nextValue);
+    this._edrMiner.setPrevRandaoGeneratorNextValue(nextValue);
   }
 }

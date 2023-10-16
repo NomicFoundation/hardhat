@@ -798,6 +798,164 @@ dependencies = [
 ]
 
 [[package]]
+name = "edr"
+version = "0.1.0-dev"
+dependencies = [
+ "anyhow",
+ "assert_cmd",
+ "bytes",
+ "cargo-husky",
+ "clap",
+ "edr_defaults",
+ "edr_eth",
+ "edr_evm",
+ "edr_rpc_server",
+ "hex",
+ "k256",
+ "predicates",
+ "pretty_env_logger",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "signal-child",
+ "tokio",
+ "toml 0.7.8",
+ "tracing",
+ "tracing-subscriber",
+ "winsafe",
+]
+
+[[package]]
+name = "edr_defaults"
+version = "0.1.0-dev"
+
+[[package]]
+name = "edr_eth"
+version = "0.1.0-dev"
+dependencies = [
+ "bytes",
+ "edr_test_utils",
+ "ethbloom",
+ "futures",
+ "hash-db",
+ "hash256-std-hasher",
+ "hex",
+ "hyper",
+ "itertools 0.10.5",
+ "k256",
+ "lazy_static",
+ "log",
+ "mockito",
+ "open-fastrlp",
+ "paste",
+ "primitive-types 0.11.1",
+ "reqwest",
+ "reqwest-middleware",
+ "reqwest-retry",
+ "revm-primitives",
+ "rlp",
+ "serde",
+ "serde_json",
+ "serial_test",
+ "sha3",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "triehash",
+ "uuid",
+ "walkdir",
+]
+
+[[package]]
+name = "edr_evm"
+version = "0.1.0-dev"
+dependencies = [
+ "async-rwlock",
+ "async-trait",
+ "auto_impl",
+ "cita_trie",
+ "criterion",
+ "dyn-clone",
+ "edr_defaults",
+ "edr_eth",
+ "edr_test_utils",
+ "futures",
+ "hasher",
+ "indexmap 2.0.2",
+ "itertools 0.11.0",
+ "lazy_static",
+ "log",
+ "once_cell",
+ "parking_lot 0.12.1",
+ "revm",
+ "rlp",
+ "serde",
+ "serde_json",
+ "serial_test",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "edr_evm_napi"
+version = "0.1.0-dev"
+dependencies = [
+ "async-trait",
+ "crossbeam-channel",
+ "edr",
+ "edr_defaults",
+ "edr_eth",
+ "edr_evm",
+ "k256",
+ "napi",
+ "napi-build",
+ "napi-derive",
+ "openssl-sys",
+ "parking_lot 0.12.1",
+ "serde_json",
+ "tracing",
+ "tracing-flame",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "edr_rpc_server"
+version = "0.1.0-dev"
+dependencies = [
+ "async-rwlock",
+ "async-trait",
+ "axum",
+ "cargo_toml",
+ "edr_eth",
+ "edr_evm",
+ "edr_test_utils",
+ "hex",
+ "hyper",
+ "k256",
+ "parking_lot 0.12.1",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha3",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "toml 0.5.11",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "edr_test_utils"
+version = "0.1.0-dev"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "either"
 version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2423,164 +2581,6 @@ dependencies = [
  "tokio",
  "tracing",
  "wasm-timer",
-]
-
-[[package]]
-name = "rethnet"
-version = "0.1.0-dev"
-dependencies = [
- "anyhow",
- "assert_cmd",
- "bytes",
- "cargo-husky",
- "clap",
- "hex",
- "k256",
- "predicates",
- "pretty_env_logger",
- "reqwest",
- "rethnet_defaults",
- "rethnet_eth",
- "rethnet_evm",
- "rethnet_rpc_server",
- "serde",
- "serde_json",
- "signal-child",
- "tokio",
- "toml 0.7.8",
- "tracing",
- "tracing-subscriber",
- "winsafe",
-]
-
-[[package]]
-name = "rethnet_defaults"
-version = "0.1.0-dev"
-
-[[package]]
-name = "rethnet_eth"
-version = "0.1.0-dev"
-dependencies = [
- "bytes",
- "ethbloom",
- "futures",
- "hash-db",
- "hash256-std-hasher",
- "hex",
- "hyper",
- "itertools 0.10.5",
- "k256",
- "lazy_static",
- "log",
- "mockito",
- "open-fastrlp",
- "paste",
- "primitive-types 0.11.1",
- "reqwest",
- "reqwest-middleware",
- "reqwest-retry",
- "rethnet_test_utils",
- "revm-primitives",
- "rlp",
- "serde",
- "serde_json",
- "serial_test",
- "sha3",
- "tempfile",
- "thiserror",
- "tokio",
- "triehash",
- "uuid",
- "walkdir",
-]
-
-[[package]]
-name = "rethnet_evm"
-version = "0.1.0-dev"
-dependencies = [
- "async-rwlock",
- "async-trait",
- "auto_impl",
- "cita_trie",
- "criterion",
- "dyn-clone",
- "futures",
- "hasher",
- "indexmap 2.0.2",
- "itertools 0.11.0",
- "lazy_static",
- "log",
- "once_cell",
- "parking_lot 0.12.1",
- "rethnet_defaults",
- "rethnet_eth",
- "rethnet_test_utils",
- "revm",
- "rlp",
- "serde",
- "serde_json",
- "serial_test",
- "tempfile",
- "thiserror",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "rethnet_evm_napi"
-version = "0.1.0-dev"
-dependencies = [
- "async-trait",
- "crossbeam-channel",
- "k256",
- "napi",
- "napi-build",
- "napi-derive",
- "openssl-sys",
- "parking_lot 0.12.1",
- "rethnet",
- "rethnet_defaults",
- "rethnet_eth",
- "rethnet_evm",
- "serde_json",
- "tracing",
- "tracing-flame",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "rethnet_rpc_server"
-version = "0.1.0-dev"
-dependencies = [
- "async-rwlock",
- "async-trait",
- "axum",
- "cargo_toml",
- "hex",
- "hyper",
- "k256",
- "parking_lot 0.12.1",
- "reqwest",
- "rethnet_eth",
- "rethnet_evm",
- "rethnet_test_utils",
- "serde",
- "serde_json",
- "sha3",
- "tempfile",
- "thiserror",
- "tokio",
- "toml 0.5.11",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "rethnet_test_utils"
-version = "0.1.0-dev"
-dependencies = [
- "serde",
- "serde_json",
 ]
 
 [[package]]

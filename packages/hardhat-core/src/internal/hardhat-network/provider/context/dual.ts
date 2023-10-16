@@ -15,12 +15,12 @@ import { DualModeAdapter } from "../vm/dual";
 import { VMAdapter } from "../vm/vm-adapter";
 import { EthereumJSAdapter } from "../vm/ethereumjs";
 import { HardhatEthContext } from "./hardhat";
-import { RethnetEthContext } from "./rethnet";
+import { EdrEthContext } from "./edr";
 
 export class DualEthContext implements EthContextAdapter {
   constructor(
     private readonly _hardhat: HardhatEthContext,
-    private readonly _rethnet: RethnetEthContext,
+    private readonly _edr: EdrEthContext,
     private readonly _vm: DualModeAdapter
   ) {}
 
@@ -65,11 +65,11 @@ export class DualEthContext implements EthContextAdapter {
       );
     }
 
-    const rethnet = await RethnetEthContext.create(tempConfig);
+    const edr = await EdrEthContext.create(tempConfig);
 
-    const vm = new DualModeAdapter(common, hardhat.vm(), rethnet.vm());
+    const vm = new DualModeAdapter(common, hardhat.vm(), edr.vm());
 
-    const context = new DualEthContext(hardhat, rethnet, vm);
+    const context = new DualEthContext(hardhat, edr, vm);
 
     // Validate that the latest block numbers are equal
     await context.blockchain().getLatestBlockNumber();
@@ -83,19 +83,19 @@ export class DualEthContext implements EthContextAdapter {
   public blockchain(): BlockchainAdapter {
     return new DualBlockchain(
       this._hardhat.blockchain(),
-      this._rethnet.blockchain()
+      this._edr.blockchain()
     );
   }
 
   public blockMiner(): BlockMinerAdapter {
     return new DualBlockMiner(
       this._hardhat.blockMiner(),
-      this._rethnet.blockMiner()
+      this._edr.blockMiner()
     );
   }
 
   public memPool(): MemPoolAdapter {
-    return new DualMemPool(this._hardhat.memPool(), this._rethnet.memPool());
+    return new DualMemPool(this._hardhat.memPool(), this._edr.memPool());
   }
 
   public vm(): VMAdapter {
