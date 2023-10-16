@@ -8,7 +8,7 @@ import { ERRORS, ErrorDescriptor, getErrorCode } from "./errors-list";
  */
 export class CustomError extends Error {
   constructor(message: string, cause?: Error) {
-    super(message, { cause });
+    super(message, cause !== undefined ? { cause } : undefined);
     this.name = this.constructor.name;
   }
 }
