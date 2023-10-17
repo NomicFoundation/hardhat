@@ -47,7 +47,7 @@ describe("future id rules", () => {
           "Submodule#MyContract",
           "MyFunction"
         ),
-        "MyModule#Submodule-MyContract.MyFunction"
+        "MyModule#Submodule~MyContract.MyFunction"
       );
     });
 

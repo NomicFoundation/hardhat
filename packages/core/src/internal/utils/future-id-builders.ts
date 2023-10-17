@@ -8,7 +8,7 @@ const MODULE_SEPERATOR = "#";
  * The separator in ids that depend on futures that belong to a submodule.
  * This separator is used to split the submodule and the rest of the dependency's id.
  */
-const SUBMODULE_SEPARATOR = "-";
+const SUBMODULE_SEPARATOR = "~";
 
 /**
  * The seperator in ids that indicated different subparts of the future key.
