@@ -14,7 +14,7 @@ describe("id rules", () => {
 
           return { myContract };
         });
-      }, /The moduleId "MyModule:v2" contains banned characters, ids can only contain alphanumerics or underscores/);
+      }, /IGN201: The moduleId "MyModule:v2" is invalid. Module ids can only have alphanumerics and underscore, and they must start with an alphanumeric./);
     });
   });
 
@@ -29,7 +29,7 @@ describe("id rules", () => {
 
           return { myContract };
         });
-      }, /The id "MyContract:v2" contains banned characters, ids can only contain alphanumerics or underscores/);
+      }, /IGN702: Module validation failed with reason: The id "MyContract:v2" is invalid. Ids can only contain alphanumerics or underscores, and they must start with an alphanumeric character./);
     });
 
     it("should not allow non-alphanumerics in contractFromArtifact ids", () => {
@@ -46,7 +46,7 @@ describe("id rules", () => {
 
           return { myContract };
         });
-      }, /The id "MyContractFromArtifact:v2" contains banned characters, ids can only contain alphanumerics or underscores/);
+      }, /IGN702: Module validation failed with reason: The id "MyContractFromArtifact:v2" is invalid. Ids can only contain alphanumerics or underscores, and they must start with an alphanumeric character./);
     });
 
     it("should not allow non-alphanumerics in library ids", () => {
@@ -58,7 +58,7 @@ describe("id rules", () => {
 
           return { library };
         });
-      }, /The id "MyLibrary:v2" contains banned characters, ids can only contain alphanumerics or underscores/);
+      }, /IGN702: Module validation failed with reason: The id "MyLibrary:v2" is invalid. Ids can only contain alphanumerics or underscores, and they must start with an alphanumeric character./);
     });
 
     it("should not allow non-alphanumerics in libraryFromArtifact ids", () => {
@@ -74,7 +74,7 @@ describe("id rules", () => {
 
           return { myLibraryFromArtifact };
         });
-      }, /The id "MyLibraryFromArtifact:v2" contains banned characters, ids can only contain alphanumerics or underscores/);
+      }, /IGN702: Module validation failed with reason: The id "MyLibraryFromArtifact:v2" is invalid. Ids can only contain alphanumerics or underscores, and they must start with an alphanumeric character./);
     });
 
     it("should not allow non-alphanumerics in call ids", () => {
@@ -88,7 +88,7 @@ describe("id rules", () => {
 
           return { myContract };
         });
-      }, /The id "MyCall:v2" contains banned characters, ids can only contain alphanumerics or underscores/);
+      }, /IGN702: Module validation failed with reason: The id "MyCall:v2" is invalid. Ids can only contain alphanumerics or underscores, and they must start with an alphanumeric character./);
     });
 
     it("should not allow non-alphanumerics in static call ids", () => {
@@ -102,7 +102,7 @@ describe("id rules", () => {
 
           return { myContract };
         });
-      }, /The id "MyStaticCall:v2" contains banned characters, ids can only contain alphanumerics or underscores/);
+      }, /IGN702: Module validation failed with reason: The id "MyStaticCall:v2" is invalid. Ids can only contain alphanumerics or underscores, and they must start with an alphanumeric character./);
     });
 
     it("should not allow non-alphanumerics in contractAt ids", () => {
@@ -114,7 +114,7 @@ describe("id rules", () => {
 
           return { myContractAt };
         });
-      }, /The id "MyContractAt:v2" contains banned characters, ids can only contain alphanumerics or underscores/);
+      }, /IGN702: Module validation failed with reason: The id "MyContractAt:v2" is invalid. Ids can only contain alphanumerics or underscores, and they must start with an alphanumeric character./);
     });
 
     it("should not allow non-alphanumerics in contractAtFromArtifact ids", () => {
@@ -131,7 +131,7 @@ describe("id rules", () => {
 
           return { myContractAt };
         });
-      }, /The id "MyContractAt:v2" contains banned characters, ids can only contain alphanumerics or underscores/);
+      }, /IGN702: Module validation failed with reason: The id "MyContractAt:v2" is invalid. Ids can only contain alphanumerics or underscores, and they must start with an alphanumeric character./);
     });
 
     it("should not allow non-alphanumerics in readEventArgument ids", () => {
@@ -145,7 +145,7 @@ describe("id rules", () => {
 
           return { myContract };
         });
-      }, /The id "MyReadEventArgument:v2" contains banned characters, ids can only contain alphanumerics or underscores/);
+      }, /IGN702: Module validation failed with reason: The id "MyReadEventArgument:v2" is invalid. Ids can only contain alphanumerics or underscores, and they must start with an alphanumeric character./);
     });
 
     it("should not allow non-alphanumerics in send id", () => {
@@ -155,7 +155,7 @@ describe("id rules", () => {
 
           return {};
         });
-      }, /The id "MySend:v2" contains banned characters, ids can only contain alphanumerics or underscores/);
+      }, /IGN702: Module validation failed with reason: The id "MySend:v2" is invalid. Ids can only contain alphanumerics or underscores, and they must start with an alphanumeric character./);
     });
   });
 
@@ -167,7 +167,7 @@ describe("id rules", () => {
 
           return { myContract };
         });
-      }, /The contract "MyContract:v2" contains banned characters, contract names can only contain alphanumerics, underscores or dollar signs/);
+      }, /IGN702: Module validation failed with reason: The contract name "MyContract:v2" is invalid, make sure you use a valid identifier./);
     });
 
     it("should not allow non-alphanumerics in contractFromArtifact contract name", () => {
@@ -177,7 +177,7 @@ describe("id rules", () => {
 
           return { myContract };
         });
-      }, /The contract "MyContract:v2" contains banned characters, contract names can only contain alphanumerics, underscores or dollar signs/);
+      }, /IGN702: Module validation failed with reason: The contract name "MyContract:v2" is invalid, make sure you use a valid identifier./);
     });
 
     it("should not allow non-alphanumerics in library contract names", () => {
@@ -187,7 +187,7 @@ describe("id rules", () => {
 
           return { library };
         });
-      }, /The contract "MyLibrary:v2" contains banned characters, contract names can only contain alphanumerics, underscores or dollar signs/);
+      }, /IGN702: Module validation failed with reason: The contract name "MyLibrary:v2" is invalid, make sure you use a valid identifier./);
     });
 
     it("should not allow non-alphanumerics in libraryFromArtifact contract names", () => {
@@ -200,7 +200,7 @@ describe("id rules", () => {
 
           return { myLibraryFromArtifact };
         });
-      }, /The contract "MyLibraryFromArtifact:v2" contains banned characters, contract names can only contain alphanumerics, underscores or dollar signs/);
+      }, /IGN702: Module validation failed with reason: The contract name "MyLibraryFromArtifact:v2" is invalid, make sure you use a valid identifier./);
     });
 
     it("should not allow non-alphanumerics in contractAt contract names", () => {
@@ -210,7 +210,7 @@ describe("id rules", () => {
 
           return { myContractAt };
         });
-      }, /The contract "MyContract:v2" contains banned characters, contract names can only contain alphanumerics, underscores or dollar signs/);
+      }, /IGN702: Module validation failed with reason: The contract name "MyContract:v2" is invalid, make sure you use a valid identifier./);
     });
 
     it("should not allow non-alphanumerics in contractAtFromArtifact contract names", () => {
@@ -224,7 +224,7 @@ describe("id rules", () => {
 
           return { myContractAt };
         });
-      }, /The contract "MyContractAt:v2" contains banned characters, contract names can only contain alphanumerics, underscores or dollar signs/);
+      }, /IGN702: Module validation failed with reason: The contract name "MyContractAt:v2" is invalid, make sure you use a valid identifier./);
     });
   });
 
@@ -238,7 +238,7 @@ describe("id rules", () => {
 
           return { myContract };
         });
-      }, /The function name "config:v2" contains banned characters, contract names can only contain alphanumerics, underscores or dollar signs/);
+      }, /IGN702: Module validation failed with reason: The function name "config:v2" is invalid, make sure you use a valid identifier./);
     });
 
     it("should not allow non-alphanumerics in static call ids", () => {
@@ -250,7 +250,7 @@ describe("id rules", () => {
 
           return { myContract };
         });
-      }, /The function name "config:v2" contains banned characters, contract names can only contain alphanumerics, underscores or dollar signs/);
+      }, /IGN702: Module validation failed with reason: The function name "config:v2" is invalid, make sure you use a valid identifier./);
     });
 
     it("should allow ethers style function specification", () => {
@@ -276,7 +276,7 @@ describe("id rules", () => {
 
           return { myContract };
         });
-      }, /The event "MyEvent:v2" contains banned characters, event names can only contain alphanumerics, underscores or dollar signs/);
+      }, /IGN702: Module validation failed with reason: The event name "MyEvent:v2" is invalid, make sure you use a valid identifier./);
     });
 
     it("should allow ethers sytle event specification", () => {
@@ -302,7 +302,7 @@ describe("id rules", () => {
 
           return { myContract };
         });
-      }, /The argument "MyArg:v2" contains banned characters, argument names can only contain alphanumerics, underscores or dollar signs/);
+      }, /IGN702: Module validation failed with reason: The argument "MyArg:v2" is expected to have a valid name, but it's invalid./);
     });
   });
 });

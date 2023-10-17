@@ -921,7 +921,7 @@ class IgnitionModuleBuilderImplementation<
     }
 
     this._throwErrorWithStackTrace(
-      `The id "${id}" contains banned characters, ids can only contain alphanumerics or underscores`,
+      `The id "${id}" is invalid. Ids can only contain alphanumerics or underscores, and they must start with an alphanumeric character.`,
       func
     );
   }
@@ -930,12 +930,13 @@ class IgnitionModuleBuilderImplementation<
     contractName: string,
     func: (...[]: any[]) => any
   ) {
+    // TODO: This doesn't support FQNs
     if (isValidSolidityIdentifier(contractName)) {
       return;
     }
 
     this._throwErrorWithStackTrace(
-      `The contract "${contractName}" contains banned characters, contract names can only contain alphanumerics, underscores or dollar signs`,
+      `The contract name "${contractName}" is invalid, make sure you use a valid identifier.`,
       func
     );
   }
@@ -949,7 +950,7 @@ class IgnitionModuleBuilderImplementation<
     }
 
     this._throwErrorWithStackTrace(
-      `The event "${eventName}" contains banned characters, event names can only contain alphanumerics, underscores or dollar signs`,
+      `The event name "${eventName}" is invalid, make sure you use a valid identifier.`,
       func
     );
   }
@@ -963,7 +964,7 @@ class IgnitionModuleBuilderImplementation<
     }
 
     this._throwErrorWithStackTrace(
-      `The function name "${functionName}" contains banned characters, contract names can only contain alphanumerics, underscores or dollar signs`,
+      `The function name "${functionName}" is invalid, make sure you use a valid identifier.`,
       func
     );
   }
@@ -983,7 +984,7 @@ class IgnitionModuleBuilderImplementation<
   private _assertUniqueContractId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.contract("MyContract", [], { id: "MyId"})\``,
+      `Duplicated id ${futureId} found in module ${this._module.id}. You can fix this by providing a unique id in as an option, like this \`m.contract(..., { id: "MyUniqueId"})\``,
       this.contract
     );
   }
@@ -991,7 +992,7 @@ class IgnitionModuleBuilderImplementation<
   private _assertUniqueArtifactContractId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.contract("MyContract", artifact, [], { id: "MyId"})\``,
+      `Duplicated id ${futureId} found in module ${this._module.id}. You can fix this by providing a unique id in as an option, like this \`m.contract(..., { id: "MyUniqueId"})\``,
       this.contract
     );
   }
@@ -999,7 +1000,7 @@ class IgnitionModuleBuilderImplementation<
   private _assertUniqueLibraryId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.library("MyLibrary", { id: "MyId"})\``,
+      `Duplicated id ${futureId} found in module ${this._module.id}. You can fix this by providing a unique id in as an option, like this \`m.library(..., { id: "MyUniqueId"})\``,
       this.library
     );
   }
@@ -1007,7 +1008,7 @@ class IgnitionModuleBuilderImplementation<
   private _assertUniqueArtifactLibraryId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.library("MyLibrary", artifact, { id: "MyId"})\``,
+      `Duplicated id ${futureId} found in module ${this._module.id}. You can fix this by providing a unique id in as an option, like this \`m.library(..., { id: "MyUniqueId"})\``,
       this.library
     );
   }
@@ -1015,7 +1016,7 @@ class IgnitionModuleBuilderImplementation<
   private _assertUniqueCallId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.call(myContract, "myFunction", [], { id: "MyId"})\``,
+      `Duplicated id ${futureId} found in module ${this._module.id}. You can fix this by providing a unique id in as an option, like this \`m.call(..., { id: "MyUniqueId"})\``,
       this.call
     );
   }
@@ -1023,7 +1024,7 @@ class IgnitionModuleBuilderImplementation<
   private _assertUniqueStaticCallId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.staticCall(myContract, "myFunction", [], { id: "MyId"})\``,
+      `Duplicated id ${futureId} found in module ${this._module.id}. You can fix this by providing a unique id in as an option, like this \`m.staticCall(..., { id: "MyUniqueId"})\``,
       this.staticCall
     );
   }
@@ -1031,7 +1032,7 @@ class IgnitionModuleBuilderImplementation<
   private _assertUniqueContractAtId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.contractAt("MyContract", "0x123...", artifact, { id: "MyId"})\``,
+      `Duplicated id ${futureId} found in module ${this._module.id}. You can fix this by providing a unique id in as an option, like this \`m.contractAt(..., { id: "MyUniqueId"})\``,
       this.contractAt
     );
   }
@@ -1039,7 +1040,7 @@ class IgnitionModuleBuilderImplementation<
   private _assertUniqueContractAtFromArtifactId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.contractAt("MyContract", "0x123...", { id: "MyId"})\``,
+      `Duplicated id ${futureId} found in module ${this._module.id}. You can fix this by providing a unique id in as an option, like this \`m.contractAt(..., { id: "MyUniqueId"})\``,
       this.contractAt
     );
   }
@@ -1047,7 +1048,7 @@ class IgnitionModuleBuilderImplementation<
   private _assertUniqueReadEventArgumentId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.readEventArgument(myContract, "MyEvent", "eventArg", { id: "MyId"})\``,
+      `Duplicated id ${futureId} found in module ${this._module.id}. You can fix this by providing a unique id in as an option, like this \`m.readEventArgument(..., { id: "MyUniqueId"})\``,
       this.readEventArgument
     );
   }
@@ -1055,7 +1056,7 @@ class IgnitionModuleBuilderImplementation<
   private _assertUniqueSendId(futureId: string) {
     return this._assertUniqueFutureId(
       futureId,
-      `Duplicated id ${futureId} found in module ${this._module.id}, ensure the id passed is unique \`m.send("MyId", "0xabcd")\``,
+      `Duplicated id ${futureId} found in module ${this._module.id}. Make sure the id passed as first argument to \`m.send\` is unique.`,
       this.send
     );
   }
@@ -1067,7 +1068,7 @@ class IgnitionModuleBuilderImplementation<
     for (const [libraryName, libraryFuture] of Object.entries(libraries)) {
       if (!isContractFuture(libraryFuture)) {
         this._throwErrorWithStackTrace(
-          `Given library '${libraryName}' is not a valid Future`,
+          `The value you provided for the library '${libraryName}' is not a valid Future or it doesn't represent a contract`,
           func
         );
       }
@@ -1090,7 +1091,7 @@ class IgnitionModuleBuilderImplementation<
       typeof value !== "bigint"
     ) {
       this._throwErrorWithStackTrace(
-        `Given value option '${value}' is not a \`bigint\``,
+        `Invalid option "value" received. It should be a bigint, a module parameter, or a value obtained from an event or static call.`,
         func
       );
     }
@@ -1106,7 +1107,7 @@ class IgnitionModuleBuilderImplementation<
       from !== undefined
     ) {
       this._throwErrorWithStackTrace(
-        `Invalid type for given option "from": ${typeof from}`,
+        `Invalid type for option "from": ${typeof from}`,
         func
       );
     }
@@ -1151,7 +1152,7 @@ class IgnitionModuleBuilderImplementation<
     }
 
     this._throwErrorWithStackTrace(
-      `The argument "${nameOrIndex}" contains banned characters, argument names can only contain alphanumerics, underscores or dollar signs`,
+      `The argument "${nameOrIndex}" is expected to have a valid name, but it's invalid.`,
       func
     );
   }

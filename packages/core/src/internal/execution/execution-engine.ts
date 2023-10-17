@@ -1,5 +1,3 @@
-import { IgnitionError } from "../../errors";
-import { ERRORS } from "../../errors-list";
 import { ArtifactResolver } from "../../types/artifact";
 import { DeploymentParameters } from "../../types/deploy";
 import {
@@ -12,6 +10,7 @@ import {
   IgnitionModuleResult,
 } from "../../types/module";
 import { DeploymentLoader } from "../deployment-loader/types";
+import { assertIgnitionInvariant } from "../utils/assertions";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 import { getPendingNonceAndSender } from "../views/execution-state/get-pending-nonce-and-sender";
 import { hasExecutionSucceeded } from "../views/has-execution-succeeded";
@@ -238,9 +237,10 @@ export class ExecutionEngine {
   private _lookupFuture(futures: Future[], futureId: string): Future {
     const future = futures.find((f) => f.id === futureId);
 
-    if (future === undefined) {
-      throw new IgnitionError(ERRORS.EXECUTION.FUTURE_NOT_FOUND);
-    }
+    assertIgnitionInvariant(
+      future !== undefined,
+      `Future ${futureId} not found`
+    );
 
     return future;
   }

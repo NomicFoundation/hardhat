@@ -453,7 +453,7 @@ describe("static call", () => {
 
               return { another };
             }),
-          /Invalid type for given option "from": number/
+          /IGN702: Module validation failed with reason: Invalid type for option "from": number/
         );
       });
 
@@ -699,7 +699,7 @@ describe("static call", () => {
           {},
           []
         ),
-        "Function inc in contract Another is not 'pure' or 'view' and cannot be statically called"
+        "Function inc in contract Another is not 'pure' or 'view' and should not be statically called"
       );
     });
 

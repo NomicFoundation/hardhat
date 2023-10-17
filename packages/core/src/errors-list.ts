@@ -31,7 +31,7 @@ export const ERROR_RANGES: {
   INTERNAL: {
     min: 100,
     max: 199,
-    title: "Internal Ignition errors",
+    title: "Internal Hardhat Ignition errors",
   },
   MODULE: {
     min: 200,
@@ -80,11 +80,13 @@ export const ERRORS = {
   GENERAL: {
     ASSERTION_ERROR: {
       number: 1,
-      message: "Internal Ignition invariant was violated: %description%",
+      message:
+        "Internal Hardhat Ignition invariant was violated: %description%",
     },
     UNSUPPORTED_DECODE: {
       number: 2,
-      message: "Ignition can't decode ethers.js value of type %type%: %value%",
+      message:
+        "Hardhat Ignition can't decode ethers.js value of type %type%: %value%",
     },
   },
   INTERNAL: {
@@ -111,11 +113,11 @@ export const ERRORS = {
     INVALID_MODULE_ID_CHARACTERS: {
       number: 201,
       message:
-        'The moduleId "%moduleId%" contains banned characters, ids can only contain alphanumerics or underscores',
+        'The moduleId "%moduleId%" is invalid. Module ids can only have alphanumerics and underscore, and they must start with an alphanumeric.',
     },
     INVALID_MODULE_DEFINITION_FUNCTION: {
       number: 202,
-      message: "Module definition function must be a function",
+      message: "Module definition function must be a function.",
     },
     ASYNC_MODULE_DEFINITION_FUNCTION: {
       number: 203,
@@ -138,14 +140,10 @@ export const ERRORS = {
     },
   },
   EXECUTION: {
-    FUTURE_NOT_FOUND: {
-      number: 400,
-      message: "Could not locate future id from batching",
-    },
     DROPPED_TRANSACTION: {
       number: 401,
       message:
-        "Error while executing %futureId%: all the transactions of its network interaction %networkInteractionId% were dropped. Please try rerunning Ignition.",
+        "Error while executing %futureId%: all the transactions of its network interaction %networkInteractionId% were dropped. Please try rerunning Hardhat Ignition.",
     },
     INVALID_JSON_RPC_RESPONSE: {
       number: 402,
@@ -154,12 +152,12 @@ export const ERRORS = {
     WAITING_FOR_CONFIRMATIONS: {
       number: 403,
       message:
-        "You have sent transactions from %sender%. Please wait until they get %requiredConfirmations% confirmations before running Ignition again.",
+        "You have sent transactions from %sender% and they interfere with Hardhat Ignition. Please wait until they get %requiredConfirmations% confirmations before running Hardhat Ignition again.",
     },
     WAITING_FOR_NONCE: {
       number: 404,
       message:
-        "You have sent transactions from %sender% with nonce %nonce%. Please wait until they get %requiredConfirmations% confirmations before running Ignition again.",
+        "You have sent transactions from %sender% with nonce %nonce% and it interferes with Hardhat Ignition. Please wait until they get %requiredConfirmations% confirmations before running Hardhat Ignition again.",
     },
     INVALID_NONCE: {
       number: 405,
@@ -181,18 +179,19 @@ export const ERRORS = {
     },
     NO_STATE_FOR_FUTURE: {
       number: 601,
-      message: "Cannot wipe %futureId% as no state recorded against it",
+      message:
+        "Cannot wipe %futureId% as it has no previous execution recorded",
     },
     DEPENDENT_FUTURES: {
       number: 602,
-      message: `Cannot wipe %futureId% as there are dependent futures that have already started: %dependents%`,
+      message: `Cannot wipe %futureId% as there are dependent futures that have previous executions recorded. Consider wiping these first: %dependents%`,
     },
   },
   VALIDATION: {
     INVALID_DEFAULT_SENDER: {
       number: 700,
       message:
-        "Default sender %defaultSender% is not part of the provided accounts",
+        "Default sender %defaultSender% is not part of the configured accounts.",
     },
     MISSING_EMITTER: {
       number: 701,
@@ -216,12 +215,12 @@ export const ERRORS = {
     INVALID_STATIC_CALL: {
       number: 705,
       message:
-        "Function %functionName% in contract %contractName% is not 'pure' or 'view' and cannot be statically called",
+        "Function %functionName% in contract %contractName% is not 'pure' or 'view' and should not be statically called",
     },
     INDEXED_EVENT_ARG: {
       number: 706,
       message:
-        "Indexed argument %argument% of event %eventName% of contract %contractName% is not stored in the receipt, but its hash is, so you can't read it.",
+        "Indexed argument %argument% of event %eventName% of contract %contractName% is not stored in the receipt (its hash is stored instead), so you can't read it.",
     },
     INVALID_OVERLOAD_NAME: {
       number: 707,
