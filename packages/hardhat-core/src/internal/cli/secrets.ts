@@ -101,7 +101,7 @@ function setup() {
   try {
     loadConfigAndTasks();
   } catch (err: any) {
-    if (err.code === "ERR_REQUIRE_ESM" || err.code === "MODULE_NOT_FOUND") {
+    if (err.message.trim() !== "Invalid Version:") {
       // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw err;
     }
@@ -121,7 +121,7 @@ async function getSecretValue(): Promise<string> {
     message: "Enter secret:",
   });
 
-  if (response.secret.length === 0) {
+  if (response.secret.replace(/[\s\t]/g, "").length === 0) {
     throw new HardhatError(ERRORS.SECRETS.INVALID_EMPTY_VALUE);
   }
 
