@@ -9,48 +9,11 @@ import type { IgnitionError } from "@nomicfoundation/ignition-core";
  *    - If there's an exception that doesn't fit in either category, let's discuss it and review the categories.
  */
 const whitelist = [
-  "200",
-  "201",
-  "202",
-  "203",
-  "403",
-  "404",
-  "405",
-  "600",
-  "601",
-  "602",
-  "700",
-  "701",
-  "702",
-  "703",
-  "704",
-  "705",
-  "706",
-  "707",
-  "708",
-  "709",
-  "710",
-  "711",
-  "712",
-  "713",
-  "714",
-  "715",
-  "716",
-  "717",
-  "718",
-  "719",
-  "720",
-  "721",
-  "722",
-  "723",
-  "724",
-  "725",
-  "726",
-  "800",
+  200, 201, 202, 203, 403, 404, 405, 600, 601, 602, 700, 701, 702, 703, 704,
+  705, 706, 707, 708, 709, 710, 711, 712, 713, 714, 715, 716, 717, 718, 719,
+  720, 721, 722, 723, 724, 725, 726, 800,
 ];
 
 export function shouldBeHardhatPluginError(error: IgnitionError): boolean {
-  const code = error.message.match(/IGN([0-9]+):/)![1];
-
-  return whitelist.includes(code);
+  return whitelist.includes(error.errorNumber);
 }

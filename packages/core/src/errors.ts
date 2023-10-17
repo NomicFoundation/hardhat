@@ -8,7 +8,7 @@ import { ERRORS, ErrorDescriptor, getErrorCode } from "./errors-list";
  */
 export class CustomError extends Error {
   constructor(message: string, cause?: Error) {
-    super(message, { cause });
+    super(message, cause !== undefined ? { cause } : undefined);
     this.name = this.constructor.name;
   }
 }
@@ -20,6 +20,15 @@ export class CustomError extends Error {
  * @alpha
  */
 export class IgnitionError extends CustomError {
+  // We store the error descriptor as private field to avoid
+  // interferring with Node's default error formatting.
+  // We can use getters to access any private field without
+  // interferring with it.
+  //
+  // Disabling this rule as private fields don't use `private`
+  // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
+  #errorDescriptor: ErrorDescriptor;
+
   constructor(
     errorDescriptor: ErrorDescriptor,
     messageArguments: Record<string, string | number> = {},
@@ -32,6 +41,12 @@ export class IgnitionError extends CustomError {
     );
 
     super(prefix + formattedMessage, cause);
+
+    this.#errorDescriptor = errorDescriptor;
+  }
+
+  public get errorNumber(): number {
+    return this.#errorDescriptor.number;
   }
 }
 

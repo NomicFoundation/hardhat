@@ -153,7 +153,11 @@ ignitionScope
         });
       } catch (e) {
         if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-          throw new NomicLabsHardhatPluginError("hardhat-ignition", e.message);
+          throw new NomicLabsHardhatPluginError(
+            "hardhat-ignition",
+            e.message,
+            e
+          );
         }
 
         throw e;
@@ -207,7 +211,11 @@ ignitionScope
         );
       } catch (e) {
         if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-          throw new NomicLabsHardhatPluginError("hardhat-ignition", e.message);
+          throw new NomicLabsHardhatPluginError(
+            "hardhat-ignition",
+            e.message,
+            e
+          );
         }
 
         throw e;
@@ -248,7 +256,7 @@ ignitionScope
       statusResult = await status(deploymentDir);
     } catch (e) {
       if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-        throw new NomicLabsHardhatPluginError("hardhat-ignition", e.message);
+        throw new NomicLabsHardhatPluginError("hardhat-ignition", e.message, e);
       }
 
       throw e;
@@ -289,7 +297,11 @@ ignitionScope
         await wipe(deploymentDir, new HardhatArtifactResolver(hre), futureId);
       } catch (e) {
         if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-          throw new NomicLabsHardhatPluginError("hardhat-ignition", e.message);
+          throw new NomicLabsHardhatPluginError(
+            "hardhat-ignition",
+            e.message,
+            e
+          );
         }
 
         throw e;
