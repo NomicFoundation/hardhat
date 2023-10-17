@@ -494,7 +494,8 @@ class IgnitionModuleBuilderImplementation<
     const futureId = toCallFutureId(
       this._module.id,
       options.id,
-      contractFuture.contractName,
+      contractFuture.module.id,
+      contractFuture.id,
       functionName
     );
 
@@ -562,7 +563,8 @@ class IgnitionModuleBuilderImplementation<
     const futureId = toCallFutureId(
       this._module.id,
       options.id,
-      contractFuture.contractName,
+      contractFuture.module.id,
+      contractFuture.id,
       functionName
     );
 
