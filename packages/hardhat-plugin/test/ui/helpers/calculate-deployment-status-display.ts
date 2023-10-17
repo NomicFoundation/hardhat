@@ -4,6 +4,8 @@ import chalk from "chalk";
 
 import { calculateDeploymentStatusDisplay } from "../../../src/ui/helpers/calculate-deployment-status-display";
 
+import { testFormat } from "./test-format";
+
 describe("ui - calculate deployment status display", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
   const differentAddress = "0x0011223344556677889900112233445566778899";
@@ -172,12 +174,3 @@ describe("ui - calculate deployment status display", () => {
     });
   });
 });
-
-function testFormat(expected: string): string {
-  return expected
-    .toString()
-    .substring(1) // Remove the first newline
-    .split("\n")
-    .map((line) => line.substring(8)) // remove prefix whitespace
-    .join("\n");
-}

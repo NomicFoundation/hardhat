@@ -8,6 +8,8 @@ import {
   UiStateDeploymentStatus,
 } from "../../../src/ui/types";
 
+import { testFormat } from "./test-format";
+
 const exampleState: UiState = {
   status: UiStateDeploymentStatus.DEPLOYING,
   chainId: 31337,
@@ -21,10 +23,10 @@ const exampleState: UiState = {
 
 describe("ui - calculate batch display", () => {
   it("should render a batch with a single running future", () => {
-    const expectedText = testFormat`
+    const expectedText = testFormat(`
       Batch #1
         Executing ExampleModule#Token...
-    `;
+    `);
 
     assertBatchText(
       [
@@ -41,10 +43,10 @@ describe("ui - calculate batch display", () => {
   });
 
   it("should render a batch with a single completed future", () => {
-    const expectedText = testFormat`
+    const expectedText = testFormat(`
       Batch #1
         Executed ExampleModule#Token
-    `;
+    `);
 
     assertBatchText(
       [
@@ -61,10 +63,10 @@ describe("ui - calculate batch display", () => {
   });
 
   it("should render a batch with a single failed future", () => {
-    const expectedText = testFormat`
+    const expectedText = testFormat(`
       Batch #1
         Failed ExampleModule#Token
-    `;
+    `);
 
     assertBatchText(
       [
@@ -82,10 +84,10 @@ describe("ui - calculate batch display", () => {
   });
 
   it("should render a batch with a single held future", () => {
-    const expectedText = testFormat`
+    const expectedText = testFormat(`
       Batch #1
         Held ExampleModule#Token
-    `;
+    `);
 
     assertBatchText(
       [
@@ -104,13 +106,13 @@ describe("ui - calculate batch display", () => {
   });
 
   it("should render a complex batch in multiple states", () => {
-    const expectedText = testFormat`
+    const expectedText = testFormat(`
       Batch #1
         Failed ExampleModule#Dex
         Held ExampleModule#ENS
         Executed ExampleModule#Router
         Executing ExampleModule#Token...
-      `;
+      `);
 
     assertBatchText(
       [
@@ -160,13 +162,4 @@ function assertBatchText(
 
   assert.equal(height, expectedHeight);
   assert.equal(actualText, expectedText);
-}
-
-function testFormat(expected: TemplateStringsArray): string {
-  return expected
-    .toString()
-    .substring(1) // Remove the first newline
-    .split("\n")
-    .map((line) => line.substring(6)) // remove prefix whitespace
-    .join("\n");
 }
