@@ -481,7 +481,7 @@ describe("contract", () => {
 
               return { another };
             }),
-          /Given value option '42' is not a `bigint`/
+          /IGN702: Module validation failed with reason: Invalid option "value" received. It should be a bigint, a module parameter, or a value obtained from an event or static call./
         );
       });
 
@@ -493,7 +493,7 @@ describe("contract", () => {
 
               return { another };
             }),
-          /Invalid type for given option "from": number/
+          /IGN702: Module validation failed with reason: Invalid type for option "from": number/
         );
       });
 
@@ -510,7 +510,7 @@ describe("contract", () => {
 
               return { another, test };
             }),
-          /Given library 'Call' is not a valid Future/
+          /IGN702: Module validation failed with reason: The value you provided for the library 'Call' is not a valid Future or it doesn't represent a contract/
         );
       });
     });

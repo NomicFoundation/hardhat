@@ -14,8 +14,8 @@ import { FutureType } from "../src/types/module";
 
 import {
   assertInstanceOf,
-  setupMockArtifactResolver,
   assertValidationError,
+  setupMockArtifactResolver,
 } from "./helpers";
 
 describe("call", () => {
@@ -438,7 +438,7 @@ describe("call", () => {
 
               return { another };
             }),
-          /Given value option '42' is not a `bigint`/
+          /IGN702: Module validation failed with reason: Invalid option "value" received. It should be a bigint, a module parameter, or a value obtained from an event or static call./
         );
       });
 
@@ -451,7 +451,7 @@ describe("call", () => {
 
               return { another };
             }),
-          /Invalid type for given option "from": number/
+          /IGN702: Module validation failed with reason: Invalid type for option "from": number/
         );
       });
 

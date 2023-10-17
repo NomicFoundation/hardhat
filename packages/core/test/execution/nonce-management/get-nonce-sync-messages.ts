@@ -118,7 +118,7 @@ describe("execution - getNonceSyncMessages", () => {
             },
           },
         },
-        `IGN403: You have sent transactions from ${exampleAccounts[1]}. Please wait until they get 5 confirmations before running Ignition again.`
+        `IGN403: You have sent transactions from ${exampleAccounts[1]} and they interfer with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`
       );
     });
 
@@ -141,7 +141,7 @@ describe("execution - getNonceSyncMessages", () => {
             },
           },
         },
-        `IGN403: You have sent transactions from ${exampleAccounts[1]}. Please wait until they get 5 confirmations before running Ignition again.`
+        `IGN403: You have sent transactions from ${exampleAccounts[1]} and they interfer with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`
       );
     });
 
@@ -219,7 +219,7 @@ describe("execution - getNonceSyncMessages", () => {
             },
             latestBlockNumber: 3,
           },
-          `IGN403: You have sent transactions from ${exampleAccounts[1]}. Please wait until they get 5 confirmations before running Ignition again.`
+          `IGN403: You have sent transactions from ${exampleAccounts[1]} and they interfer with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`
         );
       });
     });
@@ -431,7 +431,7 @@ describe("execution - getNonceSyncMessages", () => {
               },
               latestBlockNumber,
             },
-            `IGN404: You have sent transactions from ${exampleAccounts[1]} with nonce 16. Please wait until they get 5 confirmations before running Ignition again.`
+            `IGN404: You have sent transactions from ${exampleAccounts[1]} with nonce 16 and it interfers with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`
           );
         });
 
@@ -459,7 +459,7 @@ describe("execution - getNonceSyncMessages", () => {
               },
               latestBlockNumber,
             },
-            `IGN404: You have sent transactions from ${exampleAccounts[1]} with nonce 30. Please wait until they get 5 confirmations before running Ignition again.`
+            `IGN404: You have sent transactions from ${exampleAccounts[1]} with nonce 30 and it interfers with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`
           );
         });
 
@@ -511,7 +511,7 @@ describe("execution - getNonceSyncMessages", () => {
               },
               latestBlockNumber,
             },
-            `IGN404: You have sent transactions from ${exampleAccounts[1]} with nonce 11. Please wait until they get 5 confirmations before running Ignition again.`
+            `IGN404: You have sent transactions from ${exampleAccounts[1]} with nonce 11 and it interfers with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`
           );
         });
 
