@@ -31,7 +31,7 @@ export const ERROR_RANGES: {
   INTERNAL: {
     min: 100,
     max: 199,
-    title: "Internal Hardaht Ignition errors",
+    title: "Internal Hardhat Ignition errors",
   },
   MODULE: {
     min: 200,
