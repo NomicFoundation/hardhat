@@ -152,12 +152,12 @@ export const ERRORS = {
     WAITING_FOR_CONFIRMATIONS: {
       number: 403,
       message:
-        "You have sent transactions from %sender% and they interfer with Hardhat Ignition. Please wait until they get %requiredConfirmations% confirmations before running Hardhat Ignition again.",
+        "You have sent transactions from %sender% and they interfere with Hardhat Ignition. Please wait until they get %requiredConfirmations% confirmations before running Hardhat Ignition again.",
     },
     WAITING_FOR_NONCE: {
       number: 404,
       message:
-        "You have sent transactions from %sender% with nonce %nonce% and it interfers with Hardhat Ignition. Please wait until they get %requiredConfirmations% confirmations before running Hardhat Ignition again.",
+        "You have sent transactions from %sender% with nonce %nonce% and it interferes with Hardhat Ignition. Please wait until they get %requiredConfirmations% confirmations before running Hardhat Ignition again.",
     },
     INVALID_NONCE: {
       number: 405,
