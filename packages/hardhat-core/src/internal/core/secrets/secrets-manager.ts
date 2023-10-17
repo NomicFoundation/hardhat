@@ -27,7 +27,7 @@ export class SecretsManager {
   }
 
   public set(key: string, value: string) {
-    this._validateKey(key);
+    this.validateKey(key);
 
     const secrets = this._readSecrets();
 
@@ -58,6 +58,16 @@ export class SecretsManager {
     return true;
   }
 
+  public validateKey(key: string) {
+    const KEY_REGEX = /^[a-zA-Z_]+[a-zA-Z0-9_]*$/;
+
+    if (!KEY_REGEX.test(key)) {
+      throw new HardhatError(ERRORS.SECRETS.INVALID_KEY_VALUE, {
+        value: key,
+      });
+    }
+  }
+
   private _initializeSecretsFile() {
     if (!fs.pathExistsSync(this._secretsFilePath)) {
       // Initialize the secrets file if it does not exist
@@ -85,24 +95,12 @@ export class SecretsManager {
         }
 
         const managerKey = key.replace(this._ENV_VAR_PREFIX, "");
-        this._validateKey(managerKey);
+        this.validateKey(managerKey);
         secrets[managerKey] = { value: process.env[key]! };
 
         // Store only in cache, not in a file, as the secrets are sourced from environment variables
         this._cache.secrets = secrets;
       }
-    }
-  }
-
-  private _validateKey(key: string) {
-    const KEY_REGEX = /^[a-zA-Z_]+[a-zA-Z0-9_]*$/;
-
-    if (!KEY_REGEX.test(key)) {
-      throw new HardhatError(ERRORS.ARGUMENTS.INVALID_ARGUMENT_VALUE, {
-        value: key,
-        argument: "key",
-        reason: `The argument should match the following regex expression: ${KEY_REGEX.toString()}`,
-      });
     }
   }
 

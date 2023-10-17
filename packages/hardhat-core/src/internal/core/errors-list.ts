@@ -793,15 +793,6 @@ Please double check the scope of the task you are trying to run.`,
 Please double check the name of the task you are trying to run.`,
       shouldBeReported: false,
     },
-    INVALID_ARGUMENT_VALUE: {
-      number: 316,
-      message: "Invalid value '%value%' for argument %argument%. %reason%",
-      title: "Invalid value for argument",
-      description: `One of your arguments has an invalid value.
-
-Please double check the value of your argument and try to run again.`,
-      shouldBeReported: false,
-    },
   },
   RESOLVER: {
     FILE_NOT_FOUND: {
@@ -1332,6 +1323,25 @@ Please double check your key and try to run again.`,
       description: `Secret's key cannot be undefined.
 
 Please double check your key and try to run again.`,
+      shouldBeReported: false,
+    },
+    INVALID_KEY_VALUE: {
+      number: 1203,
+      message:
+        "Invalid key '%value%'. Keys can only have alphanumeric characters and underscores, and they cannot start with a number.",
+      title: "Invalid key",
+      description: `Invalid key.
+
+Please double check your key and try to run again.`,
+      shouldBeReported: false,
+    },
+    INVALID_EMPTY_VALUE: {
+      number: 1204,
+      message: "Invalid value. The value cannot be an empty string",
+      title: "Invalid value",
+      description: `Invalid value. The value cannot be an empty string.
+
+Please double check the value and try to run again.`,
       shouldBeReported: false,
     },
   },

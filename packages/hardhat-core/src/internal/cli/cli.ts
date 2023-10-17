@@ -49,7 +49,7 @@ import {
   installHardhatVSCode,
   isHardhatVSCodeInstalled,
 } from "./hardhat-vscode-installation";
-import { handleSecrets, listSecretsToSetup } from "./secrets";
+import { handleSecrets } from "./secrets";
 
 const log = debug("hardhat:core:cli");
 
@@ -213,9 +213,7 @@ async function main() {
     const ctx = HardhatContext.createHardhatContext();
 
     if (scopeOrTaskName === "secrets" && allUnparsedCLAs.length > 1) {
-      const code = await handleSecrets(allUnparsedCLAs);
-      if (code === 0 || code === 1) process.exit(code);
-      // Case 'npx hardhat secrets setup': continue execution, as the secrets that need to be filled must be listed
+      process.exit(await handleSecrets(allUnparsedCLAs));
     }
 
     const { resolvedConfig, userConfig } = loadConfigAndTasks(
@@ -225,11 +223,6 @@ async function main() {
         showSolidityConfigWarnings: scopeOrTaskName === TASK_COMPILE,
       }
     );
-
-    if (scopeOrTaskName === "secrets" && allUnparsedCLAs.length === 2) {
-      // If this code is executed it means that the user ran 'npx hardhat secrets setup'
-      return listSecretsToSetup();
-    }
 
     const envExtenders = ctx.environmentExtenders;
     const providerExtenders = ctx.providerExtenders;
