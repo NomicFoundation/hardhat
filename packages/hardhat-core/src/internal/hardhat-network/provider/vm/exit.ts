@@ -150,9 +150,10 @@ export class Exit {
         return ExceptionalHalt.OpcodeNotFound;
       case ExitCode.CODESIZE_EXCEEDS_MAXIMUM:
         return ExceptionalHalt.CreateContractSizeLimit;
+      case ExitCode.CREATE_COLLISION:
+        return ExceptionalHalt.CreateCollision;
 
       default:
-        // TODO temporary, should be removed in production
         // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
         throw new Error(`Unmatched edr exceptional halt: ${this.kind}`);
     }
