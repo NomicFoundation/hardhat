@@ -163,68 +163,168 @@ describe("id rules", () => {
     it("should not allow non-alphanumerics in contract name", () => {
       assert.throws(() => {
         buildModule("MyModule", (m) => {
-          const myContract = m.contract("MyContract:v2");
+          const myContract = m.contract("MyContract#v2");
 
           return { myContract };
         });
-      }, /IGN702: Module validation failed with reason: The contract name "MyContract:v2" is invalid, make sure you use a valid identifier./);
+      }, /The contract name "MyContract#v2" is invalid/);
     });
 
     it("should not allow non-alphanumerics in contractFromArtifact contract name", () => {
       assert.throws(() => {
         buildModule("MyModule", (m) => {
-          const myContract = m.contract("MyContract:v2", fakeArtifact);
+          const myContract = m.contract("MyContract#v2", fakeArtifact);
 
           return { myContract };
         });
-      }, /IGN702: Module validation failed with reason: The contract name "MyContract:v2" is invalid, make sure you use a valid identifier./);
+      }, /The contract name "MyContract#v2" is invalid/);
     });
 
     it("should not allow non-alphanumerics in library contract names", () => {
       assert.throws(() => {
         buildModule("MyModule", (m) => {
-          const library = m.library("MyLibrary:v2");
+          const library = m.library("MyLibrary#v2");
 
           return { library };
         });
-      }, /IGN702: Module validation failed with reason: The contract name "MyLibrary:v2" is invalid, make sure you use a valid identifier./);
+      }, /The contract name "MyLibrary#v2" is invalid/);
     });
 
     it("should not allow non-alphanumerics in libraryFromArtifact contract names", () => {
       assert.throws(() => {
         buildModule("MyModule", (m) => {
           const myLibraryFromArtifact = m.library(
-            "MyLibraryFromArtifact:v2",
+            "MyLibraryFromArtifact#v2",
             fakeArtifact
           );
 
           return { myLibraryFromArtifact };
         });
-      }, /IGN702: Module validation failed with reason: The contract name "MyLibraryFromArtifact:v2" is invalid, make sure you use a valid identifier./);
+      }, /The contract name "MyLibraryFromArtifact#v2" is invalid/);
     });
 
     it("should not allow non-alphanumerics in contractAt contract names", () => {
       assert.throws(() => {
         buildModule("MyModule", (m) => {
-          const myContractAt = m.contractAt("MyContract:v2", exampleAddress);
+          const myContractAt = m.contractAt("MyContract#v2", exampleAddress);
 
           return { myContractAt };
         });
-      }, /IGN702: Module validation failed with reason: The contract name "MyContract:v2" is invalid, make sure you use a valid identifier./);
+      }, /The contract name "MyContract#v2" is invalid/);
     });
 
     it("should not allow non-alphanumerics in contractAtFromArtifact contract names", () => {
       assert.throws(() => {
         buildModule("MyModule", (m) => {
           const myContractAt = m.contractAt(
-            "MyContractAt:v2",
+            "MyContractAt#v2",
             fakeArtifact,
             exampleAddress
           );
 
           return { myContractAt };
         });
-      }, /IGN702: Module validation failed with reason: The contract name "MyContractAt:v2" is invalid, make sure you use a valid identifier./);
+      }, /The contract name "MyContractAt#v2" is invalid/);
+    });
+
+    describe("With Fully Qualified Names", () => {
+      it("should allow non-alphanumerics in the source name", () => {
+        assert.doesNotThrow(() => {
+          buildModule("MyModule", (m) => {
+            m.contract("sourceName.sol:MyContract");
+            m.contract("asd/sourceName.sol:MyContract2");
+            m.contractAt("sourceName.sol:MyContractAt", "0x1234");
+            m.library("sourceName.sol:MyLibrary");
+
+            return {};
+          });
+        });
+      });
+
+      it("should throw if the FQN has no contract name", () => {
+        assert.throws(() => {
+          buildModule("MyModule", (m) => {
+            const myContract = m.contract("sourceName.sol:");
+
+            return { myContract };
+          });
+        }, /The contract name "sourceName.sol:" is invalid/);
+      });
+
+      describe("All the same validations should apply, but to the contract name part of the FQN", () => {
+        it("should not allow non-alphanumerics in contract name", () => {
+          assert.throws(() => {
+            buildModule("MyModule", (m) => {
+              const myContract = m.contract("sourceName.sol:MyContract#v2");
+
+              return { myContract };
+            });
+          }, /The contract name "sourceName.sol:MyContract#v2" is invalid/);
+        });
+
+        it("should not allow non-alphanumerics in contractFromArtifact contract name", () => {
+          assert.throws(() => {
+            buildModule("MyModule", (m) => {
+              const myContract = m.contract(
+                "sourceName.sol:MyContract#v2",
+                fakeArtifact
+              );
+
+              return { myContract };
+            });
+          }, /The contract name "sourceName.sol:MyContract#v2" is invalid/);
+        });
+
+        it("should not allow non-alphanumerics in library contract names", () => {
+          assert.throws(() => {
+            buildModule("MyModule", (m) => {
+              const library = m.library("sourceName.sol:MyLibrary#v2");
+
+              return { library };
+            });
+          }, /The contract name "sourceName.sol:MyLibrary#v2" is invalid/);
+        });
+
+        it("should not allow non-alphanumerics in libraryFromArtifact contract names", () => {
+          assert.throws(() => {
+            buildModule("MyModule", (m) => {
+              const myLibraryFromArtifact = m.library(
+                "sourceName.sol:MyLibraryFromArtifact#v2",
+                fakeArtifact
+              );
+
+              return { myLibraryFromArtifact };
+            });
+          }, /The contract name "sourceName.sol:MyLibraryFromArtifact#v2" is invalid/);
+        });
+
+        it("should not allow non-alphanumerics in contractAt contract names", () => {
+          assert.throws(() => {
+            buildModule("MyModule", (m) => {
+              const myContractAt = m.contractAt(
+                "sourceName.sol:MyContract#v2",
+                exampleAddress
+              );
+
+              return { myContractAt };
+            });
+          }, /The contract name "sourceName.sol:MyContract#v2" is invalid/);
+        });
+
+        it("should not allow non-alphanumerics in contractAtFromArtifact contract names", () => {
+          assert.throws(() => {
+            buildModule("MyModule", (m) => {
+              const myContractAt = m.contractAt(
+                "sourceName.sol:MyContractAt#v2",
+                fakeArtifact,
+                exampleAddress
+              );
+
+              return { myContractAt };
+            });
+          }, /The contract name "sourceName.sol:MyContractAt#v2" is invalid/);
+        });
+      });
     });
   });
 

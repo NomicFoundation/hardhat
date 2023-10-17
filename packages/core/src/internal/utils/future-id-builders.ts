@@ -16,23 +16,40 @@ const SUBMODULE_SEPARATOR = "~";
 const SUBKEY_SEPERATOR = ".";
 
 /**
- * Construct the future id for a contract or library deployment, namespaced by the
+ * Construct the future id for a contract, contractAt or library, namespaced by the
  * moduleId.
+ *
+ * This method supports both bare contract names (e.g. `MyContract`) and fully
+ * qualified names (e.g. `contracts/MyModule.sol:MyContract`).
+ *
+ * If a fully qualified name is used, the id is only direvied from its contract
+ * name, ignoring its source name part. The reason is that ids need to be
+ * compatible with most common file systems (including Windows!), and the source
+ * name may have incompatible characters.
  *
  * @param moduleId - the id of the module the future is part of
  * @param userProvidedId - the overriding id provided by the user (it will still
  * be namespaced)
- * @param contractOrLibraryName - the contract or library name as a fallback
+ * @param contractOrLibraryName - the contract or library name, either a bare name
+ * or a fully qualified name.
  * @returns the future id
  */
-export function toDeploymentFutureId(
+export function toContractFutureId(
   moduleId: string,
   userProvidedId: string | undefined,
   contractOrLibraryName: string
 ) {
-  return `${moduleId}${MODULE_SEPERATOR}${
-    userProvidedId ?? contractOrLibraryName
-  }`;
+  // IMPORTANT: Keep in sync with src/internal/utils/identifier-validators.ts#isValidContractName
+
+  if (userProvidedId !== undefined) {
+    return `${moduleId}${MODULE_SEPERATOR}${userProvidedId}`;
+  }
+
+  const contractName = contractOrLibraryName.includes(":")
+    ? contractOrLibraryName.split(":").at(-1)!
+    : contractOrLibraryName;
+
+  return `${moduleId}${MODULE_SEPERATOR}${contractName}`;
 }
 
 /**

@@ -67,11 +67,12 @@ import { resolveArgsToFutures } from "./utils";
 import { assertIgnitionInvariant } from "./utils/assertions";
 import {
   toCallFutureId,
-  toDeploymentFutureId,
+  toContractFutureId,
   toReadEventArgumentFutureId,
   toSendDataFutureId,
 } from "./utils/future-id-builders";
 import {
+  isValidContractName,
   isValidFunctionOrEventName,
   isValidIgnitionIdentifier,
   isValidSolidityIdentifier,
@@ -254,7 +255,7 @@ class IgnitionModuleBuilderImplementation<
     args: ArgumentType[] = [],
     options: ContractOptions = {}
   ): NamedArtifactContractDeploymentFuture<ContractNameT> {
-    const futureId = toDeploymentFutureId(
+    const futureId = toContractFutureId(
       this._module.id,
       options.id,
       contractName
@@ -309,7 +310,7 @@ class IgnitionModuleBuilderImplementation<
     args: ArgumentType[] = [],
     options: ContractOptions = {}
   ): ContractDeploymentFuture {
-    const futureId = toDeploymentFutureId(
+    const futureId = toContractFutureId(
       this._module.id,
       options.id,
       contractName
@@ -391,7 +392,7 @@ class IgnitionModuleBuilderImplementation<
     libraryName: LibraryNameT,
     options: LibraryOptions = {}
   ): NamedArtifactLibraryDeploymentFuture<LibraryNameT> {
-    const futureId = toDeploymentFutureId(
+    const futureId = toContractFutureId(
       this._module.id,
       options.id,
       libraryName
@@ -433,7 +434,7 @@ class IgnitionModuleBuilderImplementation<
     artifact: Artifact,
     options: LibraryOptions = {}
   ): LibraryDeploymentFuture {
-    const futureId = toDeploymentFutureId(
+    const futureId = toContractFutureId(
       this._module.id,
       options.id,
       libraryName
@@ -677,7 +678,7 @@ class IgnitionModuleBuilderImplementation<
       | ModuleParameterRuntimeValue<string>,
     options: ContractAtOptions = {}
   ): NamedArtifactContractAtFuture<ContractNameT> {
-    const futureId = toDeploymentFutureId(
+    const futureId = toContractFutureId(
       this._module.id,
       options.id,
       contractName
@@ -719,7 +720,7 @@ class IgnitionModuleBuilderImplementation<
       | ModuleParameterRuntimeValue<string>,
     options: ContractAtOptions = {}
   ): ContractAtFuture {
-    const futureId = toDeploymentFutureId(
+    const futureId = toContractFutureId(
       this._module.id,
       options.id,
       contractName
@@ -932,13 +933,12 @@ class IgnitionModuleBuilderImplementation<
     contractName: string,
     func: (...[]: any[]) => any
   ) {
-    // TODO: This doesn't support FQNs
-    if (isValidSolidityIdentifier(contractName)) {
+    if (isValidContractName(contractName)) {
       return;
     }
 
     this._throwErrorWithStackTrace(
-      `The contract name "${contractName}" is invalid, make sure you use a valid identifier.`,
+      `The contract name "${contractName}" is invalid.`,
       func
     );
   }
