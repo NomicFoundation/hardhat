@@ -87,10 +87,13 @@ export class SecretsManager {
 
     for (const key in process.env) {
       if (key.startsWith(this._ENV_VAR_PREFIX)) {
-        if (process.env[key] === undefined) {
+        if (
+          process.env[key] === undefined ||
+          process.env[key]!.replace(/[\s\t]/g, "").length === 0
+        ) {
           throw new HardhatError(ERRORS.ARGUMENTS.INVALID_ENV_VAR_VALUE, {
             varName: key,
-            value: process.env[key] ?? "undefined",
+            value: process.env[key]!,
           });
         }
 

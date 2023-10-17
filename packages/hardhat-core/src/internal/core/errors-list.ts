@@ -644,7 +644,7 @@ Please double check your task definitions.`,
   ARGUMENTS: {
     INVALID_ENV_VAR_VALUE: {
       number: 300,
-      message: "Invalid environment variable %varName%'s value: %value%",
+      message: "Invalid environment variable '%varName%' with value: '%value%'",
       title: "Invalid environment variable value",
       description: `You are setting one of Hardhat's arguments using an environment variable, but it has an incorrect value.
 
