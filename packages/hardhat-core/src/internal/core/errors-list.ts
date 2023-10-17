@@ -1334,16 +1334,6 @@ Please double check your key and try to run again.`,
 Please double check your key and try to run again.`,
       shouldBeReported: false,
     },
-    INVALID_ACTION: {
-      number: 1203,
-      message:
-        "Invalid action '%value%' performed on secrets. The action should be one of the following: set, get, list or delete",
-      title: "Invalid action performed on secrets",
-      description: `Invalid action performed on secrets.
-
-Please double check your action and try to run again. Allowed actions are: set, get, list or delete.`,
-      shouldBeReported: false,
-    },
   },
 };
 

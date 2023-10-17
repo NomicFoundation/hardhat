@@ -1,84 +1,140 @@
 import chalk from "chalk";
 import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
-import { SecretsManager } from "../core/secrets/secrets-manager";
-import { getSecretsFilePath } from "../util/global-dir";
+import { HardhatContext } from "../context";
+import { SecretsManagerSetup } from "../core/secrets/secret-manager-setup";
+import { ArgumentsParser } from "./ArgumentsParser";
 
-export async function handleSecrets(args: string[]): Promise<number> {
-  const [, action, key, value] = args;
+export async function handleSecrets(
+  allUnparsedCLAs: string[]
+): Promise<number> {
+  const { taskDefinition, taskArguments } =
+    await getTaskDefinitionAndTaskArguments(allUnparsedCLAs);
 
-  if (
-    args.length > 4 ||
-    (args.length > 3 && action !== "set") ||
-    (args.length > 2 && action === "list")
-  ) {
-    throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_POSITIONAL_ARG, {
-      argument: args[4] ?? args[3] ?? args[2],
-    });
-  }
-
-  if (key === undefined && ["set", "get", "delete"].includes(action)) {
-    throw new HardhatError(ERRORS.SECRETS.SECRET_KEY_UNDEFINED);
-  }
-
-  const secretsManager = new SecretsManager(getSecretsFilePath());
-
-  switch (action) {
+  switch (taskDefinition.name) {
     case "set":
-      return set(secretsManager, key, value);
+      return set(taskArguments.key, taskArguments.value);
     case "get":
-      return get(secretsManager, key);
+      return get(taskArguments.key);
     case "list":
-      return list(secretsManager);
+      return list();
     case "delete":
-      return del(secretsManager, key);
+      return del(taskArguments.key);
+    case "path":
+      return path();
+    case "setup":
+      return setup();
     default:
-      throw new HardhatError(ERRORS.SECRETS.INVALID_ACTION, {
-        value: action,
-      });
+      return 1; // Error code
   }
 }
 
-async function set(
-  secretsManager: SecretsManager,
-  key: string,
-  value: string | undefined
-): Promise<number> {
-  secretsManager.set(key, value ?? (await getSecretValue()));
+export function listSecretsToSetup() {
+  const secretsManager = HardhatContext.getHardhatContext()
+    .secretManager as SecretsManagerSetup;
+
+  const requiredKeys = secretsManager.getRequiredSecretsKeys();
+  const optionalKeys = secretsManager.getOptionalSecretsKeys();
+
+  if (requiredKeys.length === 0 && optionalKeys.length === 0) {
+    console.log(chalk.green("There are no secrets to setup"));
+    return;
+  }
+
+  console.log(
+    `Secrets can be set using the command '${chalk.italic(
+      "npx hardhat secrets set <key>"
+    )}' or the command '${chalk.italic(
+      "npx hardhat secrets set <key> <value>"
+    )}'\n`
+  );
+
+  if (requiredKeys.length > 0) {
+    console.log(
+      chalk.red(
+        `The following required secrets are needed:\n${requiredKeys.join("\n")}`
+      )
+    );
+    console.log("\n");
+  }
+
+  if (optionalKeys.length > 0) {
+    console.log(
+      chalk.yellow(
+        `The following optional secrets can be provided:\n${optionalKeys.join(
+          "\n"
+        )}`
+      )
+    );
+  }
+}
+
+async function set(key: string, value?: string): Promise<number> {
+  HardhatContext.getHardhatContext().secretManager.set(
+    key,
+    value ?? (await getSecretValue())
+  );
+
+  console.warn(
+    `Secret stored at the following path: ${HardhatContext.getHardhatContext().secretManager.getStoragePath()}`
+  );
+
   return 0;
 }
 
-function get(secretsManager: SecretsManager, key: string): number {
-  const secret = secretsManager.get(key);
+function get(key: string): number {
+  const secret = HardhatContext.getHardhatContext().secretManager.get(key);
 
   if (secret !== undefined) {
+    console.warn(
+      `The secret is stored at the following path: ${HardhatContext.getHardhatContext().secretManager.getStoragePath()}`
+    );
     console.log(secret);
     return 0;
   }
 
-  console.log(chalk.yellow(`There is no secret associated to the key ${key}`));
+  console.warn(chalk.yellow(`There is no secret associated to the key ${key}`));
   return 1;
 }
 
-function list(secretsManager: SecretsManager): number {
-  const keys = secretsManager.list();
+function list(): number {
+  const keys = HardhatContext.getHardhatContext().secretManager.list();
 
   if (keys.length > 0) {
+    console.warn(
+      `The secrets are stored at the following path: ${HardhatContext.getHardhatContext().secretManager.getStoragePath()}`
+    );
+
     keys.forEach((k) => console.log(k));
   } else {
-    console.log(chalk.yellow(`There are no secrets in the secret manager`));
+    console.warn(chalk.yellow(`There are no secrets in the secret manager`));
   }
 
   return 0;
 }
 
-function del(secretsManager: SecretsManager, key: string): number {
-  const deleted = secretsManager.delete(key);
+function del(key: string): number {
+  if (HardhatContext.getHardhatContext().secretManager.delete(key)) {
+    console.warn(
+      `The secret was deleted at the following path: ${HardhatContext.getHardhatContext().secretManager.getStoragePath()}`
+    );
+    return 0;
+  }
 
-  if (deleted) return 0;
-
-  console.log(chalk.yellow(`There is no secret associated to the key ${key}`));
+  console.warn(chalk.yellow(`There is no secret associated to the key ${key}`));
   return 1;
+}
+
+function path() {
+  console.log(
+    HardhatContext.getHardhatContext().secretManager.getStoragePath()
+  );
+  return 0;
+}
+
+function setup() {
+  HardhatContext.getHardhatContext().switchToSetupSecretManager();
+  return 2;
 }
 
 async function getSecretValue(): Promise<string> {
@@ -99,4 +155,37 @@ async function getSecretValue(): Promise<string> {
   }
 
   return response.secret;
+}
+
+async function getTaskDefinitionAndTaskArguments(allUnparsedCLAs: string[]) {
+  await import("../../builtin-tasks/secrets");
+
+  const ctx = HardhatContext.getHardhatContext();
+  const argumentsParser = new ArgumentsParser();
+
+  const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();
+  const scopesDefinitions = ctx.tasksDSL.getScopesDefinitions();
+
+  const { scopeName, taskName, unparsedCLAs } =
+    argumentsParser.parseScopeAndTaskNames(
+      allUnparsedCLAs,
+      taskDefinitions,
+      scopesDefinitions
+    );
+
+  const taskDefinition = ctx.tasksDSL.getTaskDefinition(scopeName, taskName);
+
+  if (taskDefinition === undefined) {
+    throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPED_TASK, {
+      scope: scopeName!,
+      task: taskName,
+    });
+  }
+
+  const taskArguments = argumentsParser.parseTaskArguments(
+    taskDefinition,
+    unparsedCLAs
+  );
+
+  return { taskDefinition, taskArguments };
 }

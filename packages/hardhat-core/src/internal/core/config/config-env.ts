@@ -9,11 +9,9 @@ import {
   TaskArguments,
 } from "../../../types";
 import { HardhatContext } from "../../context";
-import { getSecretsFilePath } from "../../util/global-dir";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 import * as argumentTypes from "../params/argumentTypes";
-import { SecretsManager } from "../secrets/secrets-manager";
 
 /**
  * Creates a task, overriding any previous task with the same name.
@@ -182,19 +180,21 @@ export function experimentalAddHardhatNetworkMessageTraceHook(
  * Secrets manager functions
  */
 export const secrets = {
+  has: hasSecret,
   get: getSecret,
 };
 
+function hasSecret(key: string): boolean {
+  return HardhatContext.getHardhatContext().secretManager.has(key);
+}
+
 function getSecret(key: string, defaultValue?: string): string {
-  if (process.env[key] !== undefined) return process.env[key]!;
-
-  const secretsManager = new SecretsManager(getSecretsFilePath());
-
-  const value = secretsManager.get(key);
+  const value = HardhatContext.getHardhatContext().secretManager.get(
+    key,
+    defaultValue
+  );
 
   if (value !== undefined) return value;
-
-  if (defaultValue !== undefined) return defaultValue;
 
   throw new HardhatError(ERRORS.SECRETS.SECRET_NOT_FOUND_FOR_KEY, {
     value: key,

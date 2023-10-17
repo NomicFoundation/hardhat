@@ -8,7 +8,10 @@ import {
 
 import { assertHardhatInvariant, HardhatError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
+import { SecretsManagerSetup } from "./core/secrets/secret-manager-setup";
+import { SecretsManager } from "./core/secrets/secrets-manager";
 import { TasksDSL } from "./core/tasks/dsl";
+import { getSecretsFilePath } from "./util/global-dir";
 import { getRequireCachedFiles } from "./util/platform";
 
 export type GlobalWithHardhatContext = typeof global & {
@@ -16,6 +19,10 @@ export type GlobalWithHardhatContext = typeof global & {
 };
 
 export class HardhatContext {
+  constructor() {
+    this.secretManager = new SecretsManager(getSecretsFilePath());
+  }
+
   public static isCreated(): boolean {
     const globalWithHardhatContext = global as GlobalWithHardhatContext;
     return globalWithHardhatContext.__hardhatContext !== undefined;
@@ -45,10 +52,15 @@ export class HardhatContext {
     globalAsAny.__hardhatContext = undefined;
   }
 
+  public switchToSetupSecretManager() {
+    this.secretManager = new SecretsManagerSetup(getSecretsFilePath());
+  }
+
   public readonly tasksDSL = new TasksDSL();
   public readonly environmentExtenders: EnvironmentExtender[] = [];
   public environment?: HardhatRuntimeEnvironment;
   public readonly providerExtenders: ProviderExtender[] = [];
+  public secretManager: SecretsManager | SecretsManagerSetup;
 
   public readonly configExtenders: ConfigExtender[] = [];
 

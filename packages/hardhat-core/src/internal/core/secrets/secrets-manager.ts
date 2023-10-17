@@ -12,24 +12,22 @@ interface SecretsFile {
 }
 
 export class SecretsManager {
+  private readonly _VERSION = "hh-secrets-1";
+  private readonly _ENV_VAR_PREFIX = "HARDHAT_SECRET_";
   private readonly _cache: SecretsFile;
-  private readonly _version = "hh-secrets-1";
 
   constructor(private readonly _secretsFilePath: string) {
     this._initializeSecretsFile();
     this._cache = fs.readJSONSync(this._secretsFilePath);
+    this._loadSecretsFromEnv();
+  }
+
+  public getStoragePath(): string {
+    return this._secretsFilePath;
   }
 
   public set(key: string, value: string) {
-    const KEY_REGEX = /^[a-zA-Z_]+[a-zA-Z0-9_]*$/;
-
-    if (!KEY_REGEX.test(key)) {
-      throw new HardhatError(ERRORS.ARGUMENTS.INVALID_ARGUMENT_VALUE, {
-        value: key,
-        argument: "key",
-        reason: `The argument should match the following regex expression: ${KEY_REGEX.toString()}`,
-      });
-    }
+    this._validateKey(key);
 
     const secrets = this._readSecrets();
 
@@ -37,14 +35,16 @@ export class SecretsManager {
     this._writeSecrets(secrets);
   }
 
-  public get(key: string): string | undefined {
-    const secrets = this._readSecrets();
-    return secrets[key]?.value ?? undefined;
+  public has(key: string): boolean {
+    return key in this._readSecrets();
+  }
+
+  public get(key: string, defaultValue?: string): string | undefined {
+    return this._readSecrets()[key]?.value ?? defaultValue;
   }
 
   public list(): string[] {
-    const secrets = this._readSecrets();
-    return Object.keys(secrets);
+    return Object.keys(this._readSecrets());
   }
 
   public delete(key: string): boolean {
@@ -64,11 +64,45 @@ export class SecretsManager {
       fs.writeJSONSync(
         this._secretsFilePath,
         {
-          _format: this._version,
+          _format: this._VERSION,
           secrets: {},
         },
         { spaces: 2 }
       );
+    }
+  }
+
+  private _loadSecretsFromEnv() {
+    const secrets = this._readSecrets();
+
+    for (const key in process.env) {
+      if (key.startsWith(this._ENV_VAR_PREFIX)) {
+        if (process.env[key] === undefined) {
+          throw new HardhatError(ERRORS.ARGUMENTS.INVALID_ENV_VAR_VALUE, {
+            varName: key,
+            value: process.env[key] ?? "undefined",
+          });
+        }
+
+        const managerKey = key.replace(this._ENV_VAR_PREFIX, "");
+        this._validateKey(managerKey);
+        secrets[managerKey] = { value: process.env[key]! };
+
+        // Store only in cache, not in a file, as the secrets are sourced from environment variables
+        this._cache.secrets = secrets;
+      }
+    }
+  }
+
+  private _validateKey(key: string) {
+    const KEY_REGEX = /^[a-zA-Z_]+[a-zA-Z0-9_]*$/;
+
+    if (!KEY_REGEX.test(key)) {
+      throw new HardhatError(ERRORS.ARGUMENTS.INVALID_ARGUMENT_VALUE, {
+        value: key,
+        argument: "key",
+        reason: `The argument should match the following regex expression: ${KEY_REGEX.toString()}`,
+      });
     }
   }
 
