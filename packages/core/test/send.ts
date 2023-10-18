@@ -244,7 +244,7 @@ describe("send", () => {
 
             return {};
           }),
-        /Duplicated id Module1#test_send found in module Module1/
+        'The future id "test_send" is already used, please provide a different one.'
       );
     });
 
@@ -256,7 +256,7 @@ describe("send", () => {
             m.send("first", "0xtest", 0n, "test");
             return {};
           }),
-        /Duplicated id Module1#first found in module Module1/
+        'The future id "first" is already used, please provide a different one.'
       );
     });
   });
