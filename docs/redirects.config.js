@@ -112,7 +112,11 @@ const customRedirects = [
       "/plugins/nomicfoundation-hardhat-chai-matchers#chaining-async-matchers",
     permanent: false,
   },
-
+  {
+    source: "/ignition-errors",
+    destination: "/ignition/docs/guides/error-handling",
+    permanent: false,
+  },
   // top-level component URLs
   {
     source: "/hardhat-runner",
