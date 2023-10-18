@@ -6,7 +6,6 @@ import {
   InterpreterStep,
   Message,
 } from "@nomicfoundation/ethereumjs-evm";
-import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
 import {
   DefaultStateManager,
   StateManager,
@@ -20,7 +19,6 @@ import {
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
 import { EEI, VM } from "@nomicfoundation/ethereumjs-vm";
-import { SuccessReason } from "@ignored/edr";
 import { assertHardhatInvariant } from "../../../core/errors";
 import {
   StateOverrideSet,
@@ -43,6 +41,7 @@ import { FakeSenderEIP1559Transaction } from "../transactions/FakeSenderEIP1559T
 import { FakeSenderTransaction } from "../transactions/FakeSenderTransaction";
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
 import { Bloom } from "../utils/bloom";
+import { ethereumjsEvmResultToEdrResult } from "../utils/convertToEdr";
 import { makeForkClient } from "../utils/makeForkClient";
 import { makeAccount } from "../utils/makeAccount";
 import { makeStateTrie } from "../utils/makeStateTrie";
@@ -51,7 +50,6 @@ import { RunTxResult, VMAdapter } from "./vm-adapter";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
 import { HardhatBlockBuilder } from "./block-builder/hardhat";
 import { MinimalInterpreterStep } from "./proxy-vm";
-import { ethereumjsEvmResultToEdrResult } from "../utils/convertToEdr";
 
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 

@@ -185,7 +185,7 @@ export class EdrMiner implements BlockMinerAdapter {
     }
 
     return new Tracer({
-      beforeCall: async (tracingMessage: TracingMessage, next: any) => {
+      beforeCall: async (tracingMessage: TracingMessage, _next: any) => {
         const message = edrTracingMessageToEthereumjsMessage(tracingMessage);
 
         for (const listener of this._beforeMessageListeners) {
@@ -194,7 +194,7 @@ export class EdrMiner implements BlockMinerAdapter {
 
         return ethereumjsMessageToEdrTracingMessage(message);
       },
-      afterCall: async (result: ExecutionResult, next: any) => {
+      afterCall: async (result: ExecutionResult, _next: any) => {
         const evmResult = edrResultToEthereumjsEvmResult(result);
         for (const listener of this._afterMessageListeners) {
           await listener(evmResult);

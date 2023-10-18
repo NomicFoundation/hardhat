@@ -10,6 +10,7 @@ import {
   Log as EthereumJsLog,
   Message,
 } from "@nomicfoundation/ethereumjs-evm";
+import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
 import {
   AccessListEIP2930Transaction,
   FeeMarketEIP1559Transaction,
@@ -65,7 +66,6 @@ import { Exit, ExitCode } from "../vm/exit";
 import { RunTxResult } from "../vm/vm-adapter";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import { Bloom } from "./bloom";
-import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
 
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
