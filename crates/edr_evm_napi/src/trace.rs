@@ -109,8 +109,8 @@ impl TryCast<BeforeMessage> for TracingMessage {
             .map(|code_address| Address::from_slice(code_address.as_ref()));
         let code = self
             .code
-            .map(|code| {
-                napi::Result::Ok(Bytecode::new_raw(Bytes::copy_from_slice(
+            .map::<napi::Result<_>, _>(|code| {
+                Ok(Bytecode::new_raw(Bytes::copy_from_slice(
                     code.into_value()?.as_ref(),
                 )))
             })
