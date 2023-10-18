@@ -77,7 +77,7 @@ export function loadModule(
 
         throw new NomicLabsHardhatPluginError(
           "hardhat-ignition",
-          "Module validation failed."
+          "Module validation failed. Check the stack trace above to identify the issue and its source code location."
         );
       }
 
