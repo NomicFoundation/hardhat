@@ -4,7 +4,7 @@
   "license": "MIT",
   "author": "Nomic Foundation",
   "homepage": "https://hardhat.org",
-  "repository": "github:nomicfoundation/ignition",
+  "repository": "github:NomicFoundation/hardhat-ignition",
   "keywords": [
     "ethereum",
     "smart-contracts",
