@@ -48,18 +48,22 @@ impl JsTracer {
     pub fn new(env: &Env, callbacks: TracingCallbacks) -> napi::Result<Self> {
         let before_call_fn = ThreadsafeFunction::create(
             env.raw(),
+            // SAFETY: The callback is guaranteed to be valid for the lifetime of the tracer.
             unsafe { callbacks.before_call.raw() },
             0,
             |mut ctx: ThreadSafeCallContext<BeforeCallEvent>| {
                 let sender = ctx.value.sender.clone();
 
+                // beforeCall: TracingMessage
                 let mut before_call = ctx.env.create_object()?;
 
+                // TracingMessage.caller: Buffer
                 ctx.env
                     .create_buffer_copy(ctx.value.data.caller)
                     .map(JsBufferValue::into_unknown)
                     .and_then(|caller| before_call.set_named_property("caller", caller))?;
 
+                // TracingMessage.to: Buffer | undefined
                 ctx.value
                     .data
                     .to
@@ -74,20 +78,24 @@ impl JsTracer {
                     )
                     .and_then(|to| before_call.set_named_property("to", to))?;
 
+                // TracingMessage.gasLimit: bigint
                 ctx.env
                     .create_bigint_from_u64(ctx.value.data.gas_limit)
                     .and_then(|gas_limit| before_call.set_named_property("gasLimit", gas_limit))?;
 
+                // TracingMessage.depth: number
                 ctx.env
                     .create_int64(ctx.value.data.depth as i64)
                     .and_then(|depth| before_call.set_named_property("depth", depth))?;
 
+                // TracingMessage.data: Buffer
                 let data = ctx.value.data.data;
 
                 ctx.env
                     .adjust_external_memory(data.len() as i64)
                     .expect("Failed to adjust external memory");
 
+                // SAFETY: The data is guaranteed to be valid until finalize_callback is called.
                 unsafe {
                     ctx.env.create_buffer_with_borrowed_data(
                         data.as_ptr(),
@@ -101,10 +109,12 @@ impl JsTracer {
                 }
                 .and_then(|data| before_call.set_named_property("data", data.into_raw()))?;
 
+                // TracingMessage.value: bigint
                 ctx.env
                     .create_bigint_from_words(false, ctx.value.data.value.as_limbs().to_vec())
                     .and_then(|value| before_call.set_named_property("value", value))?;
 
+                // TracingMessage.codeAddress: Buffer | undefined
                 ctx.value
                     .data
                     .code_address
@@ -121,12 +131,14 @@ impl JsTracer {
                         before_call.set_named_property("codeAddress", code_address)
                     })?;
 
+                // TracingMessage.code: Buffer | undefined
                 if let Some(code) = &ctx.value.data.code {
                     let code = code.original_bytes();
                     ctx.env
                         .adjust_external_memory(code.len() as i64)
                         .expect("Failed to adjust external memory");
 
+                    // SAFETY: The code is guaranteed to be valid until finalize_callback is called.
                     unsafe {
                         ctx.env.create_buffer_with_borrowed_data(
                             code.as_ptr(),
@@ -144,6 +156,7 @@ impl JsTracer {
                 }
                 .and_then(|code_address| before_call.set_named_property("code", code_address))?;
 
+                // next: any
                 let next = ctx.env.create_object()?;
 
                 let promise = ctx.callback.call(None, &[before_call, next])?;
@@ -159,13 +172,16 @@ impl JsTracer {
 
         let after_call_fn = ThreadsafeFunction::create(
             env.raw(),
+            // SAFETY: The callback is guaranteed to be valid for the lifetime of the tracer.
             unsafe { callbacks.after_call.raw() },
             0,
             |mut ctx: ThreadSafeCallContext<AfterCallEvent>| {
                 let sender = ctx.value.sender.clone();
 
+                // result: SuccessResult | RevertResult | HaltResult
                 let mut result = ctx.env.create_object()?;
 
+                // All variants have a `gasUsed` field, so return it to avoid code duplication
                 let gas_used = match ctx.value.result {
                     edr_evm::ExecutionResult::Success {
                         reason,
@@ -174,16 +190,19 @@ impl JsTracer {
                         logs,
                         output,
                     } => {
+                        // SuccessResult.reason: SuccessReason
                         ctx.env
                             .create_uint32(reason as u32)
                             .and_then(|reason| result.set_named_property("reason", reason))?;
 
+                        // SuccessResult.gasRefunded: bigint
                         ctx.env
                             .create_bigint_from_u64(gas_refunded)
                             .and_then(|gas_refunded| {
                                 result.set_named_property("gasRefunded", gas_refunded)
                             })?;
 
+                        // SuccessResult.logs: ExecutionLog[]
                         u32::try_from(logs.len())
                             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
                             .and_then(|num_logs| ctx.env.create_array(num_logs))
@@ -191,6 +210,7 @@ impl JsTracer {
                                 for log in logs {
                                     let mut log_object = ctx.env.create_object()?;
 
+                                    // ExecutionLog.address: Buffer
                                     ctx.env.create_buffer_copy(log.address).and_then(
                                         |address| {
                                             log_object
@@ -198,6 +218,7 @@ impl JsTracer {
                                         },
                                     )?;
 
+                                    // ExecutionLog.topics: Buffer[]
                                     u32::try_from(log.topics.len())
                                         .map_err(|e| {
                                             napi::Error::new(Status::GenericFailure, e.to_string())
@@ -216,10 +237,12 @@ impl JsTracer {
                                             log_object.set_named_property("topics", topics)
                                         })?;
 
+                                    // ExecutionLog.data: Buffer
                                     ctx.env
                                         .adjust_external_memory(log.data.len() as i64)
                                         .expect("Failed to adjust external memory");
 
+                                    // SAFETY: The data is guaranteed to be valid until finalize_callback is called.
                                     unsafe {
                                         ctx.env.create_buffer_with_borrowed_data(
                                             log.data.as_ptr(),
@@ -247,12 +270,15 @@ impl JsTracer {
                             edr_evm::Output::Create(output, address) => (output, address),
                         };
 
+                        // SuccessResult.output: CallOutput | CreateOutput
                         let mut transaction_output = ctx.env.create_object()?;
 
+                        // [CallOutput | CreateOutput].returnValue: Buffer
                         ctx.env
                             .adjust_external_memory(output.len() as i64)
                             .expect("Failed to adjust external memory");
 
+                        // SAFETY: The output is guaranteed to be valid until finalize_callback is called.
                         unsafe {
                             ctx.env.create_buffer_with_borrowed_data(
                                 output.as_ptr(),
@@ -269,6 +295,7 @@ impl JsTracer {
                             transaction_output.set_named_property("returnValue", output)
                         })?;
 
+                        // CreateOutput.address: Buffer
                         address
                             .map_or_else(
                                 || ctx.env.get_undefined().map(JsUndefined::into_unknown),
@@ -287,10 +314,12 @@ impl JsTracer {
                         gas_used
                     }
                     edr_evm::ExecutionResult::Revert { gas_used, output } => {
+                        // RevertResult.output: Buffer
                         ctx.env
                             .adjust_external_memory(output.len() as i64)
                             .expect("Failed to adjust external memory");
 
+                        // SAFETY: The output is guaranteed to be valid until finalize_callback is called.
                         unsafe {
                             ctx.env.create_buffer_with_borrowed_data(
                                 output.as_ptr(),
@@ -308,6 +337,7 @@ impl JsTracer {
                         gas_used
                     }
                     edr_evm::ExecutionResult::Halt { reason, gas_used } => {
+                        // HaltResult.reason: HaltReason
                         let halt = ExceptionalHalt::from(reason);
                         ctx.env
                             .create_uint32(halt as u32)
@@ -317,13 +347,16 @@ impl JsTracer {
                     }
                 };
 
+                // [SuccessResult | RevertResult | HaltResult].gasUsed: bigint
                 ctx.env
                     .create_bigint_from_u64(gas_used)
                     .and_then(|gas_used| result.set_named_property("gasUsed", gas_used))?;
 
+                // executionResult: ExecutionResult
                 let mut execution_result = ctx.env.create_object()?;
                 execution_result.set_named_property("result", result)?;
 
+                // next: any
                 let next = ctx.env.create_object()?;
 
                 let promise = ctx.callback.call(None, &[execution_result, next])?;
