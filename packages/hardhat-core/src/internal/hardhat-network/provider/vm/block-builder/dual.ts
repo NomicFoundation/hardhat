@@ -7,7 +7,7 @@ import {
   assertEqualRunTxResults,
 } from "../../utils/assertions";
 import { randomHashSeed } from "../../fork/ForkStateManager";
-import { globalEdrContext } from "../../context/edr";
+import { getGlobalEdrContext } from "../../context/edr";
 
 export class DualModeBlockBuilder implements BlockBuilderAdapter {
   constructor(
@@ -20,7 +20,7 @@ export class DualModeBlockBuilder implements BlockBuilderAdapter {
     const edrResult = await this._edrBuilder.addTransaction(tx);
 
     // Matches EthereumJS' runCall checkpoint call
-    globalEdrContext.setStateRootGeneratorSeed(randomHashSeed());
+    getGlobalEdrContext().setStateRootGeneratorSeed(randomHashSeed());
 
     assertEqualRunTxResults(ethereumJSResult, edrResult);
 

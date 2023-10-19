@@ -23,7 +23,7 @@ import {
 import { opcodeName } from "../../stack-traces/opcodes";
 import { VMTracer } from "../../stack-traces/vm-tracer";
 import { RpcDebugTraceOutput } from "../output";
-import { globalEdrContext } from "../context/edr";
+import { getGlobalEdrContext } from "../context/edr";
 import { randomHashSeed } from "../fork/ForkStateManager";
 import { assertEqualRunTxResults } from "../utils/assertions";
 
@@ -88,13 +88,13 @@ export class DualModeAdapter implements VMAdapter {
       ]);
 
       // Matches EthereumJS' runCall checkpoint call
-      globalEdrContext.setStateRootGeneratorSeed(randomHashSeed());
+      getGlobalEdrContext().setStateRootGeneratorSeed(randomHashSeed());
 
       assertEqualRunTxResults(ethereumJSResult, edrResult);
       return edrResult;
     } catch (error) {
       // Ensure that the state root generator seed is re-aligned upon an error
-      globalEdrContext.setStateRootGeneratorSeed(randomHashSeed());
+      getGlobalEdrContext().setStateRootGeneratorSeed(randomHashSeed());
 
       throw error;
     }
@@ -218,7 +218,7 @@ export class DualModeAdapter implements VMAdapter {
       config
     );
 
-    globalEdrContext.setStateRootGeneratorSeed(randomHashSeed());
+    getGlobalEdrContext().setStateRootGeneratorSeed(randomHashSeed());
 
     return edrResult;
   }
@@ -256,7 +256,7 @@ export class DualModeAdapter implements VMAdapter {
       ]);
 
       // Matches EthereumJS' runCall checkpoint call
-      globalEdrContext.setStateRootGeneratorSeed(randomHashSeed());
+      getGlobalEdrContext().setStateRootGeneratorSeed(randomHashSeed());
 
       assertEqualRunTxResults(ethereumJSResult, edrResult);
 
@@ -266,7 +266,7 @@ export class DualModeAdapter implements VMAdapter {
       return edrResult;
     } catch (error) {
       // Ensure that the state root generator seed is re-aligned upon an error
-      globalEdrContext.setStateRootGeneratorSeed(randomHashSeed());
+      getGlobalEdrContext().setStateRootGeneratorSeed(randomHashSeed());
 
       throw error;
     }
