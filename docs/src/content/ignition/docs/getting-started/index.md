@@ -5,17 +5,17 @@ description: Getting started with Hardhat Ignition, a declarative smart contract
 
 ## Overview
 
-Hardhat Ignition is a declarative smart contract deployment system. It allows you to define smart contract instances, their relationships, and operations you want to run on them, and it takes care of deployment and execution. This means focusing on what you want to do, and not in how to do it.
+Hardhat Ignition is a [declarative](https://en.wikipedia.org/wiki/Declarative_programming) system for deploying smart contracts on Ethereum. It enables you to describe smart contract instances, identify their dependencies, and establish the operations to run on them. By taking over the deployment and execution, Hardhat Ignition lets you focus on creating the desired contract functionality and outcomes instead of getting caught up in the deployment details.
 
-When using Hardhat Ignition, you define your deployments using Ignition Modules. An Ignition module is an abstraction you use to describe the system you want to deploy. Each Ignition Module groups a set of smart contract instances of your system.
+In Hardhat Ignition, deployments are defined through Ignition Modules. These modules serve as abstractions, helping you outline and describe the system that you want to deploy. Each Ignition Module encapsulates a group of smart contract instances and operations within your system.
 
-You can think of Ignition Modules as similar to JavaScript modules. In JavaScript, you create a module to define functions, classes and values, and export some of them. In Hardhat Ignition, you create a module to define smart contract instances and operations, and export some of those contracts.
+You can think of Ignition Modules as being conceptually similar to JavaScript modules. In JavaScript, you create a module to group definitions of functions, classes, and values, and then you export some of them. In Hardhat Ignition, you create a module where you group definitions of smart contract instances and operations, and you export some of those contracts.
 
-Creating a module doesn't interact with the Ethereum network. Instead, once your modules are defined, Hardhat Ignition will deploy them.
+Creating a module doesn't lead to an interaction with the Ethereum network. After your modules are defined, then you can ask Hardhat Ignition to deploy them.
 
-Using this declarative approach gives Hardhat Ignition more freedom to decide how to execute your deployment, which it uses to carefully execute things in parallel, handle and recover from errors, continue failed and partial deployments, and even resume a deployment after you modified or extended your modules.
+This declarative approach provides Hardhat Ignition with the autonomy to determine the best way to execute your deployment. It leverages this advantage to execute steps in parallel, manage and recover from errors, resume interrupted or partial deployments, and even adapt to modifications in your modules.
 
-This guide will teach you how to install Hardhat Ignition into an existing Hardhat project, define your first module, and deploy it.
+This guide will walk you through the steps to install Hardhat Ignition into an existing Hardhat project, define your first module, and deploy it.
 
 :::tip
 
@@ -25,9 +25,13 @@ If you don't have a Hardhat project yet, or if you want to create a new one to t
 
 ## Installation
 
-To install Hardhat Ignition in an existing Hardhat project, you should make sure that's you are using Hardhat version 2.18.0 or higher, and Ethers.js version 6. If you are unsure about it, you can follow [Hardhat's Quick Start guide](../../../hardhat-runner/docs/getting-started/index.md) to create a new project to follow this guide.
+To install Hardhat Ignition in an existing Hardhat project, you will need:
+- Hardhat version 2.18.0 or higher
+- Ethers.js version 6 or higher
 
-Once you have a Hardhat project, open a terminal in its root, and run
+You can also follow [Hardhat's Quick Start guide](../../../hardhat-runner/docs/getting-started/index.md) to create a new project from scratch to follow this guide.
+
+Once you have a Hardhat project ready, open a terminal in its root directory, and run:
 
 ::::tabsgroup{options="npm 7+,npm 6,yarn"}
 
@@ -57,7 +61,8 @@ yarn add --dev @nomicfoundation/hardhat-ignition
 
 ::::
 
-Finally, add this to your config file, after any other plugin
+Finally, add this to your config file to [enable the plugin](../../../hardhat-runner/docs/guides/project-setup.md#plugins-and-dependencies):
+
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
@@ -81,11 +86,11 @@ require("@nomicfoundation/hardhat-ignition");
 
 ## Quick start
 
-We are going to create a simple contract, deploy it, and run a post-deployment initialization method.
+We are going to explore a basic scenario where we deploy a simple contract and then run a post-deployment initialization method.
 
-### Creating a contract
+### Creating your contract
 
-First, create a file `contracts/Rocket.sol` and save this code insde it
+Paste the following code into `contracts/Rocket.sol`:
 
 ```solidity
 // SPDX-License-Identifier: UNLICENSED
@@ -106,18 +111,18 @@ contract Rocket {
 }
 ```
 
-It contains a simple smart contract, `Rocket`, with a `launch` method that we'd call after deployment.
+It contains a simple smart contract called `Rocket`, featuring a `launch` method that we'll call after deployment.
 
 ### Creating your first module
 
-Modules are created in JavaScript or TypeScript files inside of `ignition/modules`, so let's start by creating that folder
+Modules are defined in JavaScript or TypeScript files inside of `ignition/modules`. Let's create that folder structure:
 
 ```sh
 mkdir ignition
 mkdir ignition/modules
 ```
 
-Next, let's first create a new file with this content, and then go over it.
+And paste the following code into a `ignition/modules/Apollo.ts`. We'll explain it in a moment.
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
@@ -159,29 +164,29 @@ module.exports = buildModule("Apollo", (m) => {
 
 ::::
 
-The first thing to note, is that modules are created by calling the `buildModule` function, passing a module id and a callback.
+The first aspect to note is that modules are created by calling the `buildModule` function, which requires a module ID and a callback function. Our module will be identified as `"Apollo"`.
 
-The callback is where the module it's actually defined. It receives an instance of a `ModuleBuilder`, which is an object with methods used to define and configure your smart contract instances.
+The callback function is where the module definition actually happens. The `m` parameter being fed into the callback is an instance of a `ModuleBuilder`, which is an object with methods to define and configure your smart contract instances.
 
-Calling one of this methods creates a `Future`, registers it within the module, and returns it. It doesn't execute anything.
+When we call these `ModuleBuilder` methods, they create a `Future` object, which represents the result of an execution step that Hardhat Ignition needs to run to deploy a contract instance or interact with an existing one.
 
-A `Future` is an object representing the result of an execution step that Hardhat Ignition needs to run to deploy a contract instance or interact with an existing one.
+This doesn't execute anything against the network, it simply represents it internally.
+After the `Future` is created, it gets registered within the module, and the method returns it.
 
-In our module, we defined two `Future`s. The first one tells Hardhat Ignition that we want it to deploy an instance of the contract `Rocket`, and that its only constructor parameter should be `"Apollo"`. The second one declares that after deploying that instance of `Rocket`, we want to call its `launch` method, without passing it any argument.
+In our module, we created two `Future` objects by calling the `contract` and `call` methods. The initial one instructs Hardhat Ignition to deploy a `Rocket` contract instance, specifying `"Apollo"` as the only constructor parameter. The second one indicates that we intend to execute the `launch` method of the deployed `Rocket` instance, with no arguments provided.
 
-Finally, we return the `Future` representing the contract instance, to make it accessible to other modules and from tests.
+Finally, we return the `Future` object representing the `Rocket` contract instance, to make it accessible for other modules and tests as well.
 
 ### Deploying it
 
-With our module defined, we we'll now deploy to a local Hardhat node.
-
-Let's start the node first by running
+Now that our module definition is ready, let's deploy it to a local Hardhat node.
+Let's start by spinning up a local node:
 
 ```sh
 npx hardhat node
 ```
 
-Now, open a new terminal in the root of your Hardhat project, and run
+Next, in a terminal in the root of your Hardhat project, run:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
@@ -203,7 +208,7 @@ npx hardhat ignition deploy ignition/modules/Apollo.js --network localhost
 
 ::::
 
-Hardhat Ignition will execute every `Future` in the right order, and display these results
+Hardhat Ignition will execute every `Future` that we defined in the right order, and display the results:
 
 ```
 Hardhat Ignition 🚀
@@ -223,6 +228,7 @@ Deployed Addresses
 Apollo#Rocket - 0x5fbdb2315678afecb367f032d93f642f64180aa3
 ```
 
-A new folder, `ignition/deployments/chain-31337`, will be created, which contains all the information about your deployment, which Hardhat Ignition can use to recover from errors, continue a modified deployment, reproduce an existing one, and mode.
+A `ignition/deployments/chain-31337` folder will be created. This contains all details about your deployment. Hardhat Ignition uses this data to recover from errors, resume a modified deployment, replicate previous ones, and more.
 
-Continue learning about Hardhat Ignition by reading the rest of the guides.
+That's all it takes to define and execute a deployment using Hardhat Ignition. 
+Check out the rest of the guides to learn more!
