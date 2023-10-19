@@ -54,7 +54,7 @@ import { MessageTrace } from "../../stack-traces/message-trace";
 import { VMTracer } from "../../stack-traces/vm-tracer";
 
 import {
-  globalEdrContext,
+  getGlobalEdrContext,
   UNLIMITED_CONTRACT_SIZE_VALUE,
 } from "../context/edr";
 import { RunTxResult, VMAdapter } from "./vm-adapter";
@@ -97,13 +97,13 @@ export class EdrAdapter implements VMAdapter {
 
     if (isForkedNodeConfig(config)) {
       state = await EdrStateManager.forkRemote(
-        globalEdrContext,
+        getGlobalEdrContext(),
         config.forkConfig,
         config.genesisAccounts
       );
     } else {
       state = EdrStateManager.withGenesisAccounts(
-        globalEdrContext,
+        getGlobalEdrContext(),
         config.genesisAccounts
       );
     }

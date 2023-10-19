@@ -3,7 +3,7 @@ import type { MinimalInterpreterStep } from "../vm/proxy-vm";
 
 import { Address } from "@nomicfoundation/ethereumjs-util";
 import { keccak256 } from "../../../util/keccak";
-import { globalEdrContext } from "../context/edr";
+import { getGlobalEdrContext } from "../context/edr";
 import { randomHashSeed } from "../fork/ForkStateManager";
 import { BlockMinerAdapter, PartialMineBlockResult } from "../miner";
 import {
@@ -46,7 +46,7 @@ export class DualBlockMiner implements BlockMinerAdapter {
         nextStateRootSeed = keccak256(stateRootSeed);
       }
 
-      globalEdrContext.setStateRootGeneratorSeed(stateRootSeed);
+      getGlobalEdrContext().setStateRootGeneratorSeed(stateRootSeed);
 
       const edrResult = await this._edrMiner.mineBlock(
         blockTimestamp,
@@ -67,7 +67,7 @@ export class DualBlockMiner implements BlockMinerAdapter {
       return edrResult;
     } catch (error) {
       // Ensure that the state root generator seed is re-aligned upon an error
-      globalEdrContext.setStateRootGeneratorSeed(randomHashSeed());
+      getGlobalEdrContext().setStateRootGeneratorSeed(randomHashSeed());
 
       // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw error;

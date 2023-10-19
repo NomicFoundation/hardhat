@@ -23,8 +23,17 @@ import { RandomBufferGenerator } from "../utils/random";
 
 export const UNLIMITED_CONTRACT_SIZE_VALUE = 2n ** 64n - 1n;
 
-// Only one is allowed to exist
-export const globalEdrContext = new EdrContext();
+let _globalEdrContext: EdrContext | undefined;
+
+// Lazy initialize the global EDR context.
+export function getGlobalEdrContext(): EdrContext {
+  if (_globalEdrContext === undefined) {
+    // Only one is allowed to exist
+    _globalEdrContext = new EdrContext();
+  }
+
+  return _globalEdrContext;
+}
 
 export class EdrEthContext implements EthContextAdapter {
   constructor(
@@ -65,7 +74,7 @@ export class EdrEthContext implements EthContextAdapter {
 
       blockchain = new EdrBlockchain(
         await Blockchain.fork(
-          globalEdrContext,
+          getGlobalEdrContext(),
           specId,
           config.forkConfig.jsonRpcUrl,
           config.forkConfig.blockNumber !== undefined
@@ -91,7 +100,7 @@ export class EdrEthContext implements EthContextAdapter {
       config.forkConfig.blockNumber = Number(latestBlockNumber);
     } else {
       state = EdrStateManager.withGenesisAccounts(
-        globalEdrContext,
+        getGlobalEdrContext(),
         config.genesisAccounts
       );
 
