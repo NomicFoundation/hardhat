@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.18.2
+
+### Patch Changes
+
+- abca5abaf: Fixed the compiler download, which broke with the latest version of undici
+
 ## 2.18.1
 
 ### Patch Changes
