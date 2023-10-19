@@ -7,7 +7,7 @@ use revm_primitives::{keccak256, ruint::aliases::U64, B256, U256};
 use crate::{
     access_list::AccessListItem,
     signature::{Signature, SignatureError},
-    transaction::{kind::TransactionKind, signed::EIP2930SignedTransaction},
+    transaction::{kind::TransactionKind, signed::Eip2930SignedTransaction},
     utils::envelop_bytes,
 };
 
@@ -36,12 +36,12 @@ impl EIP2930TransactionRequest {
     }
 
     /// Signs the transaction with the provided secret key.
-    pub fn sign(self, secret_key: &SecretKey) -> Result<EIP2930SignedTransaction, SignatureError> {
+    pub fn sign(self, secret_key: &SecretKey) -> Result<Eip2930SignedTransaction, SignatureError> {
         let hash = self.hash();
 
         let signature = Signature::new(hash, secret_key)?;
 
-        Ok(EIP2930SignedTransaction {
+        Ok(Eip2930SignedTransaction {
             chain_id: self.chain_id,
             nonce: self.nonce,
             gas_price: self.gas_price,
@@ -58,8 +58,8 @@ impl EIP2930TransactionRequest {
     }
 }
 
-impl From<&EIP2930SignedTransaction> for EIP2930TransactionRequest {
-    fn from(tx: &EIP2930SignedTransaction) -> Self {
+impl From<&Eip2930SignedTransaction> for EIP2930TransactionRequest {
+    fn from(tx: &Eip2930SignedTransaction) -> Self {
         Self {
             chain_id: tx.chain_id,
             nonce: tx.nonce,

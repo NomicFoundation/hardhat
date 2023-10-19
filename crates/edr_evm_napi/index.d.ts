@@ -481,7 +481,7 @@ export class Block {
   /**Retrieves the block's header. */
   get header(): BlockHeader
   /**Retrieves the block's transactions. */
-  get transactions(): Array<LegacySignedTransaction | EIP2930SignedTransaction | EIP1559SignedTransaction | Eip4844SignedTransaction>
+  get transactions(): Array<LegacySignedTransaction | Eip2930SignedTransaction | Eip1559SignedTransaction | Eip4844SignedTransaction>
   /**Retrieves the callers of the block's transactions */
   get callers(): Array<Buffer>
   /**Retrieves the transactions' receipts. */
@@ -678,9 +678,9 @@ export class OrderedTransaction {
 }
 export class PendingTransaction {
   /** Tries to construct a new [`PendingTransaction`]. */
-  static create(stateManager: State, specId: SpecId, transaction: LegacySignedTransaction | EIP2930SignedTransaction | EIP1559SignedTransaction | Eip4844SignedTransaction, caller?: Buffer | undefined | null): Promise<PendingTransaction>
+  static create(stateManager: State, specId: SpecId, transaction: LegacySignedTransaction | Eip2930SignedTransaction | Eip1559SignedTransaction | Eip4844SignedTransaction, caller?: Buffer | undefined | null): Promise<PendingTransaction>
   get caller(): Buffer
-  get transaction(): LegacySignedTransaction | EIP2930SignedTransaction | EIP1559SignedTransaction | Eip4844SignedTransaction
+  get transaction(): LegacySignedTransaction | Eip2930SignedTransaction | Eip1559SignedTransaction | Eip4844SignedTransaction
 }
 export class TransactionResult {
   get result(): ExecutionResult

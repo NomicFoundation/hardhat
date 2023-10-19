@@ -15,7 +15,7 @@ use crate::{
     access_list::AccessListItem,
     signature::Signature,
     transaction::{
-        EIP1559SignedTransaction, EIP155SignedTransaction, EIP2930SignedTransaction,
+        EIP155SignedTransaction, Eip1559SignedTransaction, Eip2930SignedTransaction,
         Eip4844SignedTransaction, LegacySignedTransaction, SignedTransaction, TransactionKind,
     },
     withdrawal::Withdrawal,
@@ -175,7 +175,7 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
                     })
                 }
             }
-            1 => SignedTransaction::Eip2930(EIP2930SignedTransaction {
+            1 => SignedTransaction::Eip2930(Eip2930SignedTransaction {
                 odd_y_parity: value.odd_y_parity(),
                 chain_id: value
                     .chain_id
@@ -194,7 +194,7 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
                 s: value.s,
                 hash: OnceLock::from(value.hash),
             }),
-            2 => SignedTransaction::Eip1559(EIP1559SignedTransaction {
+            2 => SignedTransaction::Eip1559(Eip1559SignedTransaction {
                 odd_y_parity: value.odd_y_parity(),
                 chain_id: value
                     .chain_id
