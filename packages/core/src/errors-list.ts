@@ -68,6 +68,11 @@ export const ERROR_RANGES: {
     max: 899,
     title: "Status errors",
   },
+  DEPLOY: {
+    min: 900,
+    max: 999,
+    title: "Deploy errors",
+  },
 };
 
 /**
@@ -322,6 +327,12 @@ export const ERRORS = {
       number: 800,
       message:
         "Cannot get status for nonexistant deployment at %deploymentDir%",
+    },
+  },
+  DEPLOY: {
+    CHANGED_CHAINID: {
+      number: 900,
+      message: `The deployment's chain cannot be changed between runs. The deployment was previously run against the chain %previousChainId%, but the current network is the chain %currentChainId%.`,
     },
   },
 };

@@ -1,5 +1,7 @@
 import type { IgnitionModule, IgnitionModuleResult } from "../types/module";
 
+import { IgnitionError } from "../errors";
+import { ERRORS } from "../errors-list";
 import { isContractFuture } from "../type-guards";
 import { ArtifactResolver } from "../types/artifact";
 import {
@@ -74,9 +76,9 @@ export class Deployer {
     accounts: string[],
     defaultSender: string
   ): Promise<DeploymentResult> {
-    this._emitDeploymentStartEvent(ignitionModule.id, this._deploymentDir);
-
     let deploymentState = await this._getOrInitializeDeploymentState();
+
+    this._emitDeploymentStartEvent(ignitionModule.id, this._deploymentDir);
 
     const contracts =
       getFuturesFromModule(ignitionModule).filter(isContractFuture);
@@ -229,10 +231,14 @@ export class Deployer {
       return initializeDeploymentState(chainId, this._deploymentLoader);
     }
 
-    assertIgnitionInvariant(
-      deploymentState.chainId === chainId,
-      `Trying to continue deployment in a different chain. Previous chain id: ${deploymentState.chainId}. Current chain id: ${chainId}`
-    );
+    // TODO: this should be moved out, it is not obvious that a significant
+    // check is being done in an init method
+    if (deploymentState.chainId !== chainId) {
+      throw new IgnitionError(ERRORS.DEPLOY.CHANGED_CHAINID, {
+        previousChainId: deploymentState.chainId,
+        currentChainId: chainId,
+      });
+    }
 
     return deploymentState;
   }
