@@ -53,7 +53,18 @@ describe("execution - getNonceSyncMessages", () => {
 
   beforeEach(() => {
     exampleModule = buildModule("Example", (m) => {
-      m.contract("MyContract", [], { from: exampleAccounts[1] });
+      const myContract = m.contract("MyContract", [], {
+        from: exampleAccounts[1],
+      });
+
+      // A follow on contract deploy using the same sender.
+      // This was added, due to a bug where the presence
+      // of futures with the same sender cleared the
+      // pending transactions. See issue #574.
+      m.contract("AnotherContract", [], {
+        from: exampleAccounts[1],
+        after: [myContract],
+      });
 
       return {};
     });
@@ -621,6 +632,11 @@ describe("execution - getNonceSyncMessages", () => {
                 "Example#MyContract": {
                   ...exampleDeploymentState,
                   id: "Example#MyContract",
+                  status: ExecutionStatus.SUCCESS,
+                },
+                "Example#AnotherContract": {
+                  ...exampleDeploymentState,
+                  id: "Example#AnotherContract",
                   status: ExecutionStatus.SUCCESS,
                 },
               },

@@ -291,7 +291,9 @@ function createMapFromSenderToNonceAndTransactions(
   );
 
   for (const futureSender of futureSenders) {
-    pendingTransactionsPerAccount[futureSender] = [];
+    if (pendingTransactionsPerAccount[futureSender] === undefined) {
+      pendingTransactionsPerAccount[futureSender] = [];
+    }
   }
 
   for (const pendingTransactions of Object.values(
