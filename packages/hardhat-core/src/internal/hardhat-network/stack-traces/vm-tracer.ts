@@ -199,9 +199,7 @@ export class VMTracer {
         }
       } else if (isHaltResult(executionResult)) {
         trace.exit =
-          haltOverride === undefined
-            ? Exit.fromEdrExceptionalHalt(executionResult.reason)
-            : haltOverride;
+          haltOverride ?? Exit.fromEdrExceptionalHalt(executionResult.reason);
 
         trace.returnData = Buffer.from([]);
       } else {
