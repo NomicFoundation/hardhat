@@ -23,16 +23,16 @@ import { RandomBufferGenerator } from "../utils/random";
 
 export const UNLIMITED_CONTRACT_SIZE_VALUE = 2n ** 64n - 1n;
 
-let _getGlobalEdrContext: EdrContext | undefined;
+let _globalEdrContext: EdrContext | undefined;
 
 // Lazy initialize the global EDR context.
 export function getGlobalEdrContext(): EdrContext {
-  if (_getGlobalEdrContext === undefined) {
+  if (_globalEdrContext === undefined) {
     // Only one is allowed to exist
-    _getGlobalEdrContext = new EdrContext();
+    _globalEdrContext = new EdrContext();
   }
 
-  return _getGlobalEdrContext;
+  return _globalEdrContext;
 }
 
 export class EdrEthContext implements EthContextAdapter {
