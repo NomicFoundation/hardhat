@@ -256,13 +256,11 @@ export class EdrAdapter implements VMAdapter {
     const trace = edrResult.trace!;
     for (const traceItem of trace) {
       if ("pc" in traceItem) {
-        // TODO: these "as any" shouldn't be necessary, we had
-        // to add them after merging the changes in main
-        await this._vmTracer.addStep(traceItem as any);
+        await this._vmTracer.addStep(traceItem);
       } else if ("executionResult" in traceItem) {
-        await this._vmTracer.addAfterMessage(traceItem as any);
+        await this._vmTracer.addAfterMessage(traceItem.executionResult);
       } else {
-        await this._vmTracer.addBeforeMessage(traceItem as any);
+        await this._vmTracer.addBeforeMessage(traceItem);
       }
     }
 

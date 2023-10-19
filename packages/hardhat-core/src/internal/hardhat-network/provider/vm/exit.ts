@@ -21,8 +21,9 @@ export class Exit {
       case SuccessReason.Return:
       case SuccessReason.SelfDestruct:
         return new Exit(ExitCode.SUCCESS);
-      // TODO: Should we throw an error if default is hit?
     }
+
+    const _exhaustiveCheck: never = reason;
   }
 
   public static fromEdrExceptionalHalt(halt: ExceptionalHalt): Exit {
@@ -46,7 +47,6 @@ export class Exit {
         return new Exit(ExitCode.CODESIZE_EXCEEDS_MAXIMUM);
 
       default: {
-        // TODO temporary, should be removed in production
         // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
         throw new Error(`Unmatched EDR exceptional halt: ${halt}`);
       }
