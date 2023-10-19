@@ -118,3 +118,6 @@ edr-cache/
 Brewfile.lock.json
 
 *.code-workspace
+
+# Performance profiling application
+.clinic
