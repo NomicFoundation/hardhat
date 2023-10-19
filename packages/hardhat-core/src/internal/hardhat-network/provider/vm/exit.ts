@@ -11,6 +11,7 @@ export enum ExitCode {
   STACK_UNDERFLOW,
   CODESIZE_EXCEEDS_MAXIMUM,
   CREATE_COLLISION,
+  STATIC_STATE_CHANGE,
 }
 
 export class Exit {
@@ -47,7 +48,7 @@ export class Exit {
       default: {
         // TODO temporary, should be removed in production
         // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
-        throw new Error(`Unmatched edr exceptional halt: ${halt}`);
+        throw new Error(`Unmatched EDR exceptional halt: ${halt}`);
       }
     }
   }
@@ -85,6 +86,10 @@ export class Exit {
       return new Exit(ExitCode.CREATE_COLLISION);
     }
 
+    if (evmError.error === ERROR.STATIC_STATE_CHANGE) {
+      return new Exit(ExitCode.STATIC_STATE_CHANGE);
+    }
+
     // TODO temporary, should be removed in production
     // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
     throw new Error(`Unmatched evm error: ${evmError.error}`);
@@ -114,6 +119,8 @@ export class Exit {
         return "Codesize exceeds maximum";
       case ExitCode.CREATE_COLLISION:
         return "Create collision";
+      case ExitCode.STATIC_STATE_CHANGE:
+        return "Static state change";
     }
 
     const _exhaustiveCheck: never = this.kind;
@@ -137,6 +144,8 @@ export class Exit {
         return new EvmError(ERROR.CODESIZE_EXCEEDS_MAXIMUM);
       case ExitCode.CREATE_COLLISION:
         return new EvmError(ERROR.CREATE_COLLISION);
+      case ExitCode.STATIC_STATE_CHANGE:
+        return new EvmError(ERROR.STATIC_STATE_CHANGE);
     }
 
     const _exhaustiveCheck: never = this.kind;
@@ -155,7 +164,7 @@ export class Exit {
 
       default:
         // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
-        throw new Error(`Unmatched edr exceptional halt: ${this.kind}`);
+        throw new Error(`Unmatched exit code: ${this.kind}`);
     }
   }
 }

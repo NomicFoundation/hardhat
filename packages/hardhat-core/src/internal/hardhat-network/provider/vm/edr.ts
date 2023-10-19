@@ -504,7 +504,7 @@ export class EdrAdapter implements VMAdapter {
       if ("pc" in traceItem) {
         await this._vmTracer.addStep(traceItem);
       } else if ("executionResult" in traceItem) {
-        await this._vmTracer.addAfterMessage(traceItem);
+        await this._vmTracer.addAfterMessage(traceItem.executionResult);
       } else {
         await this._vmTracer.addBeforeMessage(traceItem);
       }

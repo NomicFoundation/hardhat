@@ -1,8 +1,8 @@
 import type { Common } from "@nomicfoundation/ethereumjs-common";
 import {
   CreateOutput,
+  ExecutionResult,
   TracingMessage,
-  TracingMessageResult,
   TracingStep,
 } from "@ignored/edr";
 
@@ -29,9 +29,7 @@ const DUMMY_RETURN_DATA = Buffer.from([]);
 const DUMMY_GAS_USED = 0n;
 
 export class VMTracer {
-  public tracingMessages: TracingMessage[] = [];
   public tracingSteps: TracingStep[] = [];
-  public tracingMessageResults: TracingMessageResult[] = [];
 
   private _messageTraces: MessageTrace[] = [];
   private _lastError: Error | undefined;
@@ -67,12 +65,8 @@ export class VMTracer {
 
       if (message.depth === 0) {
         this._messageTraces = [];
-        this.tracingMessages = [];
         this.tracingSteps = [];
-        this.tracingMessageResults = [];
       }
-
-      this.tracingMessages.push(message);
 
       if (message.to === undefined) {
         const createTrace: CreateMessageTrace = {
@@ -184,18 +178,16 @@ export class VMTracer {
     }
   }
 
-  public async addAfterMessage(result: TracingMessageResult) {
+  public async addAfterMessage(result: ExecutionResult, haltOverride?: Exit) {
     if (!this._shouldKeepTracing()) {
       return;
     }
 
-    this.tracingMessageResults.push(result);
-
     try {
       const trace = this._messageTraces[this._messageTraces.length - 1];
-      trace.gasUsed = result.executionResult.result.gasUsed;
+      trace.gasUsed = result.result.gasUsed;
 
-      const executionResult = result.executionResult.result;
+      const executionResult = result.result;
       if (isSuccessResult(executionResult)) {
         trace.exit = Exit.fromEdrSuccessReason(executionResult.reason);
         trace.returnData = executionResult.output.returnValue;
@@ -206,10 +198,15 @@ export class VMTracer {
           ).address;
         }
       } else if (isHaltResult(executionResult)) {
-        trace.exit = Exit.fromEdrExceptionalHalt(executionResult.reason);
+        trace.exit =
+          haltOverride === undefined
+            ? Exit.fromEdrExceptionalHalt(executionResult.reason)
+            : haltOverride;
+
         trace.returnData = Buffer.from([]);
       } else {
         trace.exit = new Exit(ExitCode.REVERT);
+
         trace.returnData = executionResult.output;
       }
 
