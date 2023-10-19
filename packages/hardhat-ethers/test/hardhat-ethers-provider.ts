@@ -540,7 +540,15 @@ describe("hardhat ethers provider", function () {
         blockTag: blockNumber - 1,
       });
 
+      const gasEstimationBigInt = await this.env.ethers.provider.estimateGas({
+        from: signer.address,
+        to: await contract.getAddress(),
+        data: "0x371303c0", // inc()
+        blockTag: BigInt(blockNumber - 1),
+      });
+
       assertWithin(Number(gasEstimationBefore), 65_000, 70_000);
+      assert.strictEqual(gasEstimationBefore, gasEstimationBigInt);
     });
 
     it("should accept a block hash", async function () {
