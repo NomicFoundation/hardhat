@@ -1,3 +1,4 @@
+import type { EVMResult, Message } from "@nomicfoundation/ethereumjs-evm";
 import type { MinimalInterpreterStep } from "./vm/proxy-vm";
 
 import { Block } from "@nomicfoundation/ethereumjs-block";
@@ -31,4 +32,6 @@ export interface BlockMinerAdapter {
   setPrevRandaoGeneratorNextValue(nextValue: Buffer): void;
 
   onStep(cb: (step: MinimalInterpreterStep, next?: any) => Promise<void>): void;
+  onBeforeMessage(cb: (message: Message, next?: any) => Promise<void>): void;
+  onAfterMessage(cb: (result: EVMResult, next?: any) => Promise<void>): void;
 }

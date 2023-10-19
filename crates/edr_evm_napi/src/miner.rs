@@ -13,7 +13,7 @@ use napi_derive::napi;
 
 use crate::{
     blockchain::Blockchain, cast::TryCast, config::ConfigOptions, mempool::MemPool,
-    miner::ordering::MineOrdering, state::State,
+    miner::ordering::MineOrdering, state::State, tracer::Tracer,
 };
 
 use self::result::MineBlockResult;
@@ -34,6 +34,7 @@ pub async fn mine_block(
     reward: BigInt,
     base_fee: Option<BigInt>,
     prevrandao: Option<Buffer>,
+    tracer: Option<&Tracer>,
 ) -> napi::Result<MineBlockResult> {
     let config = CfgEnv::try_from(config)?;
     let beneficiary = Address::from_slice(&beneficiary);
@@ -59,6 +60,7 @@ pub async fn mine_block(
         reward,
         base_fee,
         prevrandao,
+        tracer.map(Tracer::as_dyn_inspector)
     )
     .await
     .map_or_else(

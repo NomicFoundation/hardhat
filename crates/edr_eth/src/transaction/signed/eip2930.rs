@@ -16,7 +16,7 @@ use crate::{
     derive(open_fastrlp::RlpEncodable, open_fastrlp::RlpDecodable)
 )]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct EIP2930SignedTransaction {
+pub struct Eip2930SignedTransaction {
     #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
     pub chain_id: u64,
     #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
@@ -37,7 +37,7 @@ pub struct EIP2930SignedTransaction {
     pub hash: OnceLock<B256>,
 }
 
-impl EIP2930SignedTransaction {
+impl Eip2930SignedTransaction {
     pub fn nonce(&self) -> &u64 {
         &self.nonce
     }
@@ -63,7 +63,7 @@ impl EIP2930SignedTransaction {
     }
 }
 
-impl PartialEq for EIP2930SignedTransaction {
+impl PartialEq for Eip2930SignedTransaction {
     fn eq(&self, other: &Self) -> bool {
         self.chain_id == other.chain_id
             && self.nonce == other.nonce
@@ -79,7 +79,7 @@ impl PartialEq for EIP2930SignedTransaction {
     }
 }
 
-impl rlp::Encodable for EIP2930SignedTransaction {
+impl rlp::Encodable for Eip2930SignedTransaction {
     fn rlp_append(&self, s: &mut rlp::RlpStream) {
         s.begin_list(11);
         s.append(&U64::from(self.chain_id));
@@ -96,7 +96,7 @@ impl rlp::Encodable for EIP2930SignedTransaction {
     }
 }
 
-impl rlp::Decodable for EIP2930SignedTransaction {
+impl rlp::Decodable for Eip2930SignedTransaction {
     fn decode(rlp: &rlp::Rlp<'_>) -> Result<Self, rlp::DecoderError> {
         if rlp.item_count()? != 11 {
             return Err(rlp::DecoderError::RlpIncorrectListLen);

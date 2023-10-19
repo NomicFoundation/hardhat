@@ -2,6 +2,7 @@ import type { MinimalInterpreterStep } from "../vm/proxy-vm";
 
 import { HeaderData } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
+import { EVMResult, Message } from "@nomicfoundation/ethereumjs-evm";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import { Address } from "@nomicfoundation/ethereumjs-util";
 import { TxReceipt } from "@nomicfoundation/ethereumjs-vm";
@@ -156,6 +157,14 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
   public onStep(
     _cb: (step: MinimalInterpreterStep, next?: any) => Promise<void>
   ) {
+    // not necessary
+  }
+
+  public onBeforeMessage(_cb: (message: Message, next?: any) => Promise<void>) {
+    // not necessary
+  }
+
+  public onAfterMessage(_cb: (result: EVMResult, next?: any) => Promise<void>) {
     // not necessary
   }
 

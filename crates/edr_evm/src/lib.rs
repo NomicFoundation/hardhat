@@ -11,7 +11,7 @@ pub use revm::{
         InstructionResult, Interpreter, OPCODE_JUMPMAP,
     },
     primitives::*,
-    Inspector,
+    EVMData, Inspector,
 };
 
 pub use crate::{
@@ -21,6 +21,7 @@ pub use crate::{
         DebugTraceLogItem, DebugTraceResult, TracerEip3155,
     },
     evm::SyncInspector,
+    inspector::*,
     mempool::{MemPool, OrderedTransaction},
     miner::*,
     random::RandomHashGenerator,
@@ -41,6 +42,7 @@ mod block;
 pub(crate) mod collections;
 mod debug_trace;
 pub(crate) mod evm;
+mod inspector;
 mod mempool;
 mod miner;
 pub(crate) mod random;

@@ -252,7 +252,7 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { BlockBuilder, Block, Blockchain, SpecId, Config, EdrContext, debugTraceTransaction, debugTraceCall, Log, MemPool, MineOrdering, MineBlockResult, mineBlock, Receipt, dryRun, guaranteedDryRun, run, StateOverrides, State, OrderedTransaction, PendingTransaction, SuccessReason, ExceptionalHalt, TransactionResult } = nativeBinding
+const { BlockBuilder, Block, Blockchain, SpecId, Config, EdrContext, debugTraceTransaction, debugTraceCall, Log, MemPool, MineOrdering, MineBlockResult, mineBlock, Receipt, dryRun, guaranteedDryRun, run, StateOverrides, State, Tracer, OrderedTransaction, PendingTransaction, SuccessReason, ExceptionalHalt, TransactionResult } = nativeBinding
 
 module.exports.BlockBuilder = BlockBuilder
 module.exports.Block = Block
@@ -273,6 +273,7 @@ module.exports.guaranteedDryRun = guaranteedDryRun
 module.exports.run = run
 module.exports.StateOverrides = StateOverrides
 module.exports.State = State
+module.exports.Tracer = Tracer
 module.exports.OrderedTransaction = OrderedTransaction
 module.exports.PendingTransaction = PendingTransaction
 module.exports.SuccessReason = SuccessReason

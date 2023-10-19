@@ -85,13 +85,21 @@ export function getMinimalEthereumJsVm(
       events: {
         on: (event, cb) => {
           assertHardhatInvariant(
-            event === "step",
+            event === "step" ||
+              event === "beforeMessage" ||
+              event === "afterMessage",
             `Event ${event} is not supported in node._vm`
           );
 
           if (event === "step") {
             context.vm().onStep(cb as any);
             context.blockMiner().onStep(cb as any);
+          } else if (event === "beforeMessage") {
+            context.vm().onBeforeMessage(cb as any);
+            context.blockMiner().onBeforeMessage(cb as any);
+          } else if (event === "afterMessage") {
+            context.vm().onAfterMessage(cb as any);
+            context.blockMiner().onAfterMessage(cb as any);
           }
         },
       },

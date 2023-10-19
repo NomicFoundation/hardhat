@@ -16,8 +16,8 @@ use crate::{
 use super::kind::TransactionKind;
 
 pub use self::{
-    eip155::EIP155SignedTransaction, eip1559::EIP1559SignedTransaction,
-    eip2930::EIP2930SignedTransaction, eip4844::Eip4844SignedTransaction,
+    eip155::EIP155SignedTransaction, eip1559::Eip1559SignedTransaction,
+    eip2930::Eip2930SignedTransaction, eip4844::Eip4844SignedTransaction,
     legacy::LegacySignedTransaction,
 };
 
@@ -29,9 +29,9 @@ pub enum SignedTransaction {
     /// EIP-155 transaction
     PostEip155Legacy(EIP155SignedTransaction),
     /// EIP-2930 transaction
-    Eip2930(EIP2930SignedTransaction),
+    Eip2930(Eip2930SignedTransaction),
     /// EIP-1559 transaction
-    Eip1559(EIP1559SignedTransaction),
+    Eip1559(Eip1559SignedTransaction),
     /// EIP-4844 transaction
     Eip4844(Eip4844SignedTransaction),
 }
@@ -329,7 +329,7 @@ mod tests {
                 },
                 hash: OnceLock::new(),
             }),
-            SignedTransaction::Eip2930(EIP2930SignedTransaction {
+            SignedTransaction::Eip2930(Eip2930SignedTransaction {
                 chain_id: 1,
                 nonce: 0,
                 gas_price: U256::from(1),
@@ -343,7 +343,7 @@ mod tests {
                 access_list: vec![].into(),
                 hash: OnceLock::new(),
             }),
-            SignedTransaction::Eip1559(EIP1559SignedTransaction {
+            SignedTransaction::Eip1559(Eip1559SignedTransaction {
                 chain_id: 1u64,
                 nonce: 0,
                 max_priority_fee_per_gas: U256::from(1),
@@ -465,7 +465,7 @@ mod tests {
         assert_eq!(expected, rlp::decode(&bytes_third).unwrap());
 
         let bytes_fourth = hex::decode("02f872041a8459682f008459682f0d8252089461815774383099e24810ab832a5b2a5425c154d58829a2241af62c000080c001a059e6b67f48fb32e7e570dfb11e042b5ad2e55e3ce3ce9cd989c7e06e07feeafda0016b83f4f980694ed2eee4d10667242b1f40dc406901b34125b008d334d47469").unwrap();
-        let expected = SignedTransaction::Eip1559(EIP1559SignedTransaction {
+        let expected = SignedTransaction::Eip1559(Eip1559SignedTransaction {
             chain_id: 4,
             nonce: 26,
             max_priority_fee_per_gas: U256::from(1500000000u64),

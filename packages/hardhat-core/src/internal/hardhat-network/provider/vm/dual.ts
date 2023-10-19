@@ -1,4 +1,8 @@
-import type { InterpreterStep } from "@nomicfoundation/ethereumjs-evm";
+import type {
+  InterpreterStep,
+  EVMResult,
+  Message,
+} from "@nomicfoundation/ethereumjs-evm";
 
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
@@ -526,6 +530,14 @@ export class DualModeAdapter implements VMAdapter {
   }
 
   public onStep(_cb: (step: InterpreterStep, next?: any) => Promise<void>) {
+    throw new Error("Method not implemented.");
+  }
+
+  public onBeforeMessage(_cb: (message: Message, next?: any) => Promise<void>) {
+    throw new Error("Method not implemented.");
+  }
+
+  public onAfterMessage(_cb: (result: EVMResult, next?: any) => Promise<void>) {
     throw new Error("Method not implemented.");
   }
 }

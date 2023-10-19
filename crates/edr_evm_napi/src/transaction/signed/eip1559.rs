@@ -10,7 +10,7 @@ use napi_derive::napi;
 use crate::{access_list::AccessListItem, cast::TryCast};
 
 #[napi(object)]
-pub struct EIP1559SignedTransaction {
+pub struct Eip1559SignedTransaction {
     pub chain_id: BigInt,
     pub nonce: BigInt,
     pub max_priority_fee_per_gas: BigInt,
@@ -27,11 +27,11 @@ pub struct EIP1559SignedTransaction {
     pub s: BigInt,
 }
 
-impl EIP1559SignedTransaction {
-    /// Constructs a [`EIP1559SignedTransaction`] instance.
+impl Eip1559SignedTransaction {
+    /// Constructs an instance.
     pub fn new(
         env: &Env,
-        transaction: &edr_eth::transaction::EIP1559SignedTransaction,
+        transaction: &edr_eth::transaction::Eip1559SignedTransaction,
     ) -> napi::Result<Self> {
         let input = transaction.input.clone();
         let input = unsafe {
@@ -87,10 +87,10 @@ impl EIP1559SignedTransaction {
     }
 }
 
-impl TryFrom<EIP1559SignedTransaction> for edr_eth::transaction::EIP1559SignedTransaction {
+impl TryFrom<Eip1559SignedTransaction> for edr_eth::transaction::Eip1559SignedTransaction {
     type Error = napi::Error;
 
-    fn try_from(value: EIP1559SignedTransaction) -> Result<Self, Self::Error> {
+    fn try_from(value: Eip1559SignedTransaction) -> Result<Self, Self::Error> {
         Ok(Self {
             chain_id: value.chain_id.try_cast()?,
             nonce: value.nonce.try_cast()?,

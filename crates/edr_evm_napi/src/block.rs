@@ -14,7 +14,7 @@ use crate::{
     cast::TryCast,
     receipt::Receipt,
     transaction::signed::{
-        EIP1559SignedTransaction, EIP2930SignedTransaction, Eip4844SignedTransaction,
+        Eip1559SignedTransaction, Eip2930SignedTransaction, Eip4844SignedTransaction,
         LegacySignedTransaction,
     },
 };
@@ -369,8 +369,8 @@ impl Block {
         Vec<
             Either4<
                 LegacySignedTransaction,
-                EIP2930SignedTransaction,
-                EIP1559SignedTransaction,
+                Eip2930SignedTransaction,
+                Eip1559SignedTransaction,
                 Eip4844SignedTransaction,
             >,
         >,
@@ -386,10 +386,10 @@ impl Block {
                     LegacySignedTransaction::from_eip155(&env, transaction).map(Either4::A)
                 }
                 edr_eth::transaction::SignedTransaction::Eip2930(transaction) => {
-                    EIP2930SignedTransaction::new(&env, transaction).map(Either4::B)
+                    Eip2930SignedTransaction::new(&env, transaction).map(Either4::B)
                 }
                 edr_eth::transaction::SignedTransaction::Eip1559(transaction) => {
-                    EIP1559SignedTransaction::new(&env, transaction).map(Either4::C)
+                    Eip1559SignedTransaction::new(&env, transaction).map(Either4::C)
                 }
                 edr_eth::transaction::SignedTransaction::Eip4844(transaction) => {
                     Eip4844SignedTransaction::new(&env, transaction).map(Either4::D)

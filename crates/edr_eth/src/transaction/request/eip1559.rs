@@ -7,7 +7,7 @@ use revm_primitives::{keccak256, B256, U256};
 use crate::{
     access_list::AccessListItem,
     signature::{Signature, SignatureError},
-    transaction::{kind::TransactionKind, signed::EIP1559SignedTransaction},
+    transaction::{kind::TransactionKind, signed::Eip1559SignedTransaction},
     utils::envelop_bytes,
 };
 
@@ -36,12 +36,12 @@ impl EIP1559TransactionRequest {
         keccak256(&envelop_bytes(2, &encoded))
     }
 
-    pub fn sign(self, secret_key: &SecretKey) -> Result<EIP1559SignedTransaction, SignatureError> {
+    pub fn sign(self, secret_key: &SecretKey) -> Result<Eip1559SignedTransaction, SignatureError> {
         let hash = self.hash();
 
         let signature = Signature::new(hash, secret_key)?;
 
-        Ok(EIP1559SignedTransaction {
+        Ok(Eip1559SignedTransaction {
             chain_id: self.chain_id,
             nonce: self.nonce,
             max_priority_fee_per_gas: self.max_priority_fee_per_gas,
@@ -59,8 +59,8 @@ impl EIP1559TransactionRequest {
     }
 }
 
-impl From<&EIP1559SignedTransaction> for EIP1559TransactionRequest {
-    fn from(t: &EIP1559SignedTransaction) -> Self {
+impl From<&Eip1559SignedTransaction> for EIP1559TransactionRequest {
+    fn from(t: &Eip1559SignedTransaction) -> Self {
         Self {
             chain_id: t.chain_id,
             nonce: t.nonce,

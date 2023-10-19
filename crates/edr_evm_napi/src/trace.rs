@@ -1,20 +1,29 @@
 use std::mem;
 
-use edr_evm::trace::BeforeMessage;
+use edr_eth::{Address, Bytes};
 use edr_evm::OPCODE_JUMPMAP;
+use edr_evm::{trace::BeforeMessage, Bytecode};
 use napi::{
     bindgen_prelude::{BigInt, Buffer},
     Env, JsBuffer, JsBufferValue,
 };
 use napi_derive::napi;
 
-use crate::transaction::result::ExecutionResult;
+use crate::{cast::TryCast, transaction::result::ExecutionResult};
 
 #[napi(object)]
 pub struct TracingMessage {
+    /// Sender address
+    #[napi(readonly)]
+    pub caller: Buffer,
+
     /// Recipient address. None if it is a Create message.
     #[napi(readonly)]
     pub to: Option<Buffer>,
+
+    /// Transaction gas limit
+    #[napi(readonly)]
+    pub gas_limit: BigInt,
 
     /// Depth of the message
     #[napi(readonly)]
@@ -71,7 +80,9 @@ impl TracingMessage {
         })?;
 
         Ok(TracingMessage {
-            to: message.to.map(|to| Buffer::from(to.to_vec())),
+            caller: Buffer::from(message.caller.as_bytes()),
+            to: message.to.map(|to| Buffer::from(to.as_bytes())),
+            gas_limit: BigInt::from(message.gas_limit),
             depth: message.depth as u8,
             data,
             value: BigInt {
@@ -81,6 +92,38 @@ impl TracingMessage {
             code_address: message
                 .code_address
                 .map(|address| Buffer::from(address.to_vec())),
+            code,
+        })
+    }
+}
+
+impl TryCast<BeforeMessage> for TracingMessage {
+    type Error = napi::Error;
+
+    fn try_cast(self) -> napi::Result<BeforeMessage> {
+        let to = self.to.map(|to| Address::from_slice(to.as_ref()));
+        let data = Bytes::copy_from_slice(self.data.into_value()?.as_ref());
+        let value = BigInt::try_cast(self.value)?;
+        let code_address = self
+            .code_address
+            .map(|code_address| Address::from_slice(code_address.as_ref()));
+        let code = self
+            .code
+            .map::<napi::Result<_>, _>(|code| {
+                Ok(Bytecode::new_raw(Bytes::copy_from_slice(
+                    code.into_value()?.as_ref(),
+                )))
+            })
+            .transpose()?;
+
+        Ok(BeforeMessage {
+            depth: self.depth as usize,
+            caller: Address::from_slice(self.caller.as_ref()),
+            to,
+            gas_limit: BigInt::try_cast(self.gas_limit)?,
+            data,
+            value,
+            code_address,
             code,
         })
     }

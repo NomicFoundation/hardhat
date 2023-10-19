@@ -212,13 +212,13 @@ export const enum MineOrdering {
   Priority = 'Priority'
 }
 /** Mines a block using as many transactions as can fit in it. */
-export function mineBlock(blockchain: Blockchain, stateManager: State, memPool: MemPool, config: ConfigOptions, timestamp: bigint, beneficiary: Buffer, minGasPrice: bigint, mineOrdering: MineOrdering, reward: bigint, baseFee?: bigint | undefined | null, prevrandao?: Buffer | undefined | null): Promise<MineBlockResult>
+export function mineBlock(blockchain: Blockchain, stateManager: State, memPool: MemPool, config: ConfigOptions, timestamp: bigint, beneficiary: Buffer, minGasPrice: bigint, mineOrdering: MineOrdering, reward: bigint, baseFee?: bigint | undefined | null, prevrandao?: Buffer | undefined | null, tracer?: Tracer | undefined | null): Promise<MineBlockResult>
 /** Executes the provided transaction without changing state. */
-export function dryRun(blockchain: Blockchain, state: State, stateOverrides: StateOverrides, cfg: ConfigOptions, transaction: TransactionRequest, block: BlockConfig, withTrace: boolean): Promise<TransactionResult>
+export function dryRun(blockchain: Blockchain, state: State, stateOverrides: StateOverrides, cfg: ConfigOptions, transaction: TransactionRequest, block: BlockConfig, withTrace: boolean, tracer?: Tracer | undefined | null): Promise<TransactionResult>
 /** Executes the provided transaction without changing state, ignoring validation checks in the process. */
-export function guaranteedDryRun(blockchain: Blockchain, state: State, stateOverrides: StateOverrides, cfg: ConfigOptions, transaction: TransactionRequest, block: BlockConfig, withTrace: boolean): Promise<TransactionResult>
+export function guaranteedDryRun(blockchain: Blockchain, state: State, stateOverrides: StateOverrides, cfg: ConfigOptions, transaction: TransactionRequest, block: BlockConfig, withTrace: boolean, tracer?: Tracer | undefined | null): Promise<TransactionResult>
 /** Executes the provided transaction, changing state in the process. */
-export function run(blockchain: Blockchain, stateManager: State, cfg: ConfigOptions, transaction: TransactionRequest, block: BlockConfig, withTrace: boolean): Promise<TransactionResult>
+export function run(blockchain: Blockchain, stateManager: State, cfg: ConfigOptions, transaction: TransactionRequest, block: BlockConfig, withTrace: boolean, tracer?: Tracer | undefined | null): Promise<TransactionResult>
 export interface Signature {
   /** R value */
   r: bigint
@@ -240,8 +240,12 @@ export interface AccountOverride {
   storageDiff?: Array<StorageSlotChange>
 }
 export interface TracingMessage {
+  /** Sender address */
+  readonly caller: Buffer
   /** Recipient address. None if it is a Create message. */
   readonly to?: Buffer
+  /** Transaction gas limit */
+  readonly gasLimit: bigint
   /** Depth of the message */
   readonly depth: number
   /** Input data of the message */
@@ -269,6 +273,10 @@ export interface TracingStep {
 export interface TracingMessageResult {
   /** Execution result */
   readonly executionResult: ExecutionResult
+}
+export interface TracingCallbacks {
+  beforeCall: (message: TracingMessage, next: any) => Promise<TracingMessage>
+  afterCall: (result: ExecutionResult, next: any) => Promise<ExecutionResult>
 }
 export interface TransactionRequest {
   /**
@@ -473,7 +481,7 @@ export class Block {
   /**Retrieves the block's header. */
   get header(): BlockHeader
   /**Retrieves the block's transactions. */
-  get transactions(): Array<LegacySignedTransaction | EIP2930SignedTransaction | EIP1559SignedTransaction | Eip4844SignedTransaction>
+  get transactions(): Array<LegacySignedTransaction | Eip2930SignedTransaction | Eip1559SignedTransaction | Eip4844SignedTransaction>
   /**Retrieves the callers of the block's transactions */
   get callers(): Array<Buffer>
   /**Retrieves the transactions' receipts. */
@@ -661,15 +669,18 @@ export class State {
   /** Sets the storage slot at the specified address and index to the provided value. */
   setAccountStorageSlot(address: Buffer, index: bigint, value: bigint): Promise<void>
 }
+export class Tracer {
+  constructor(callbacks: TracingCallbacks)
+}
 export class OrderedTransaction {
   get transaction(): PendingTransaction
   get orderId(): bigint
 }
 export class PendingTransaction {
   /** Tries to construct a new [`PendingTransaction`]. */
-  static create(stateManager: State, specId: SpecId, transaction: LegacySignedTransaction | EIP2930SignedTransaction | EIP1559SignedTransaction | Eip4844SignedTransaction, caller?: Buffer | undefined | null): Promise<PendingTransaction>
+  static create(stateManager: State, specId: SpecId, transaction: LegacySignedTransaction | Eip2930SignedTransaction | Eip1559SignedTransaction | Eip4844SignedTransaction, caller?: Buffer | undefined | null): Promise<PendingTransaction>
   get caller(): Buffer
-  get transaction(): LegacySignedTransaction | EIP2930SignedTransaction | EIP1559SignedTransaction | Eip4844SignedTransaction
+  get transaction(): LegacySignedTransaction | Eip2930SignedTransaction | Eip1559SignedTransaction | Eip4844SignedTransaction
 }
 export class TransactionResult {
   get result(): ExecutionResult

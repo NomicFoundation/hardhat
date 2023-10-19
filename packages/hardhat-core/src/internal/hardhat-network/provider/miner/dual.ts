@@ -1,3 +1,4 @@
+import type { EVMResult, Message } from "@nomicfoundation/ethereumjs-evm";
 import type { MinimalInterpreterStep } from "../vm/proxy-vm";
 
 import { Address } from "@nomicfoundation/ethereumjs-util";
@@ -101,5 +102,15 @@ export class DualBlockMiner implements BlockMinerAdapter {
   ) {
     // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
     throw new Error("Not implemented");
+  }
+
+  public onBeforeMessage(_cb: (message: Message, next?: any) => Promise<void>) {
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+    throw new Error("Method not implemented.");
+  }
+
+  public onAfterMessage(_cb: (result: EVMResult, next: any) => Promise<void>) {
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+    throw new Error("Method not implemented.");
   }
 }

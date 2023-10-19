@@ -2,7 +2,7 @@ use std::ops::Deref;
 
 use edr_eth::{
     transaction::{
-        EIP1559SignedTransaction, EIP155SignedTransaction, EIP2930SignedTransaction,
+        EIP155SignedTransaction, Eip1559SignedTransaction, Eip2930SignedTransaction,
         Eip4844SignedTransaction, LegacySignedTransaction, SignedTransaction, TransactionKind,
     },
     Address, U256,
@@ -220,7 +220,7 @@ impl From<PendingTransaction> for TxEnv {
                 blob_hashes: Vec::new(),
                 max_fee_per_blob_gas: None,
             },
-            SignedTransaction::Eip2930(EIP2930SignedTransaction {
+            SignedTransaction::Eip2930(Eip2930SignedTransaction {
                 nonce,
                 gas_price,
                 gas_limit,
@@ -243,7 +243,7 @@ impl From<PendingTransaction> for TxEnv {
                 blob_hashes: Vec::new(),
                 max_fee_per_blob_gas: None,
             },
-            SignedTransaction::Eip1559(EIP1559SignedTransaction {
+            SignedTransaction::Eip1559(Eip1559SignedTransaction {
                 nonce,
                 max_priority_fee_per_gas,
                 max_fee_per_gas,
