@@ -47,8 +47,9 @@ export class JsonRpcNonceManager implements NonceManager {
       });
     }
 
-    // The nonce hasn't been used yet, but we update as it will be immediately used.
-    this._maxUsedNonce[expectedNonce] = expectedNonce;
+    // The nonce hasn't been used yet, but we update as
+    // it will be immediately used.
+    this._maxUsedNonce[sender] = expectedNonce;
 
     return expectedNonce;
   }
