@@ -73,7 +73,7 @@ const token = m.contract("Token", ["My Token", "TKN", 18]);
 
 We call `m.contract` and provide the contract name as the first argument. Then we provide an array of arguments that the constructor needs.
 
-If you want to use the future value that a `Future` object represents as an argument for another method call, you can simply use the `Future` object itself. Hardhat Ignition will figure out how to resolve it during execution.
+If you want to use the future value that a `Future` object represents as an argument for another function call, you can simply use the `Future` object itself. Hardhat Ignition will figure out how to resolve it during execution.
 
 For example, we can use the address of `token` like this:
 
@@ -101,19 +101,19 @@ Just like with `m.contract`, the first value is the name of the contract, and th
 
 You can also use another `Future` for the address (the second argument). This can be useful when using a factory, or to create a contract `Future` with a different interface (like when deploying a proxy instantiating it as its implementation).
 
-### Calling contract methods
+### Calling contract functions
 
-To call a method of an contract you need to use the `m.call` method in `ModuleBuilder`:
+To call a function of an contract you need to use the `m.call` method in `ModuleBuilder`:
 
 ```js
 m.call(token, "transfer", [receiver, amount]);
 ```
 
-The first argument is the `Future` object for the contract you want to call, the second one the method name, and the third one is an array of arguments. Once again, the array of arguments can contain other `Future` objects and Hardhat Ignition will figure out how to resolve them during execution.
+The first argument is the `Future` object for the contract you want to call, the second one the function name, and the third one is an array of arguments. Once again, the array of arguments can contain other `Future` objects and Hardhat Ignition will figure out how to resolve them during execution.
 
 In this example, the `m.call` returns a `Future` which we aren't assigning to any variable. This isn't a problem. Hardhat Ignition will execute every `Future` within a module, regardless of whether we store it or not.
 
-If you need to send ETH while calling a method, you can pass an object with options as the third argument to `m.contract`, and put in how much you want to send in the `value` field:
+If you need to send ETH while calling a function, you can pass an object with options as the third argument to `m.contract`, and put in how much you want to send in the `value` field:
 
 
 ```js
@@ -124,15 +124,15 @@ m.call(myContract, "receivesEth" [], {
 
 ### Reading a value from a contract
 
-If you need to call a `view` or `pure` method in a contract to retreive a value, you can do it with `m.staticCall`:
+If you need to call a `view` or `pure` function in a contract to retreive a value, you can do it with `m.staticCall`:
 
 ```js
 const balance = m.staticCall(token, "balanceOf", [address]);
 ```
 
-Just like with `m.call`, the `m.staticCall` function requires you to provide the contract's `Future` object, the method name, and its arguments. It returns a `Future` representing the value returned by the contract call.
+Just like with `m.call`, the `m.staticCall` function requires you to provide the contract's `Future` object, the function name, and its arguments. It returns a `Future` representing the value returned by the contract call.
 
-If the method you are calling returns more than one value, `m.staticCall` will return the first one by default. If you need a value other than the first one, you can provide an index or name as the fourth parameter.
+If the function you are calling returns more than one value, `m.staticCall` will return the first one by default. If you need a value other than the first one, you can provide an index or name as the fourth parameter.
 
 To execute this `Future`, Hardhat Ignition won't send any transactions and it will use [`eth_call`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_call) instead. Just like every other `Future`, it gets executed once, and the result is recorded.
 
