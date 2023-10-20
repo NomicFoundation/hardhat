@@ -215,20 +215,58 @@ const transfer = m.call(token, "transfer", [receiver, 1000], {
 
 ## Module parameters
 
-When you define your Ignition Modules you may want to use parameters to tweak some values during deployment.
+When defining Ignition Modules, you can use configurable parameters for flexibility.
 
-You can do this by calling `m.getParamter`, and using its return value to define your `Future`s.
+During deployment, you can specify these parameters in a JSON file that maps module IDs with respective parameter names and values. This section will focus on retrieving parameters, while the [Defining parameters during deployment](./deploy.md#defining-parameters-during-deployment) section explains how to provide them.
 
-For example, we make our token name parametric like this:
+To access these values, you can call `m.getParameter` providing the name for the parameter as the first argument.
+You can also make your parameters optional by providing a second argument to `m.getParameter` which will act as the default value in case the parameter isn't provided.
 
-```js
-const tokenName = m.getParamter("name");
-const token = m.contract("Token", [tokenName, "TKN2", 18]);
+For example, we can modify the `Apollo` module from the [Quick Start guide](../getting-started/index.md#quick-start) to make the `name` field in the `Rocket` smart contract configurable with a parameter:
+
+::::tabsgroup{options="TypeScript,JavaScript"}
+
+:::tab{value="TypeScript"}
+
+**ignition/modules/Apollo.ts**
+
+```typescript
+import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+
+export default buildModule("Apollo", (m) => {
+  const apollo = m.contract("Rocket", m.getParameter("name", "Apollo"));
+
+  m.call(apollo, "launch", []);
+
+  return { apollo };
+});
 ```
 
-Now, when we deploy the module, we can provide a custom name. To learn how to do this, please read the [Deploying a module guide](./deploy.md).
+:::
 
-You can also make your parameters optional by passing a default value as second argument to `m.getParameter`.
+:::tab{value="JavaScript"}
+
+**ignition/modules/Apollo.js**
+
+```javascript
+const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
+
+module.exports = buildModule("Apollo", (m) => {
+  const apollo = m.contract("Rocket", m.getParameter("name", "Apollo"));
+
+  m.call(apollo, "launch", []);
+
+  return { apollo };
+});
+```
+
+:::
+
+::::
+
+The above module code will deploy `Rocket` with the name provided in the parameters.
+
+Learn more about how to provide a deployment with parameters in the [Defining parameters during deployment](./deploy.md#defining-parameters-during-deployment) section.
 
 ## Using submodules
 

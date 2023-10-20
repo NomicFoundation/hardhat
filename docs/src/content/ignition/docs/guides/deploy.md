@@ -26,55 +26,11 @@ When you do this, you can deploy new modules. This new modules can import your e
 
 Hardhat Ignition will know how to take over from where it left the previous deployment, and continue with the execution.
 
-## Defining paramteres during deployment
+## Defining parameters during deployment
 
-Ignition Modules can define [Module Parameters](./creating-modules.md#module-parameters) and use them to define their `Future`s. When you deploy a module using the `ingition deploy` task, you can provide a JSON file with their values. This allows you to customize some values during deployment.
+Ignition Modules can define [Module Parameters](./creating-modules.md#module-parameters) and use them programmatically. When you deploy a module using the `ingition deploy` task you can provide a JSON file with their values. This section will focus on providing the parameters, while the [Module Parameters section](./creating-modules.md#module-parameters) explains how to retrieve them within a module.
 
-This JSON file should have an object, mapping module ids to their parameters and values.
-
-For example, we can modify the `Apollo` module from the [Quick Start guide](../getting-started/index.md#quick-start), by making the `Rocket`'s name a parameter:
-
-::::tabsgroup{options="TypeScript,JavaScript"}
-
-:::tab{value="TypeScript"}
-
-**ignition/modules/Apollo.ts**
-
-```typescript
-import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-
-export default buildModule("Apollo", (m) => {
-  const apollo = m.contract("Rocket", m.getParamter("name", "Apollo"));
-
-  m.call(apollo, "launch", []);
-
-  return { apollo };
-});
-```
-
-:::
-
-:::tab{value="JavaScript"}
-
-**ignition/modules/Apollo.js**
-
-```javascript
-const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
-
-module.exports = buildModule("Apollo", (m) => {
-  const apollo = m.contract("Rocket", m.getParamter("name", "Apollo"));
-
-  m.call(apollo, "launch", []);
-
-  return { apollo };
-});
-```
-
-:::
-
-::::
-
-Then create `./ignition/parameters.json` with
+An example file could be called `./ignition/parameters.json` and contain the following:
 
 ```json
 {
@@ -83,8 +39,9 @@ Then create `./ignition/parameters.json` with
   }
 }
 ```
+This makes the `name` parameter for the `Apollo` module be `"Apollo 11"`.
 
-and deploy our module using it by running
+To execute a deployment using parameters, you need to use the `--parameters` argument, like this:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
@@ -106,7 +63,6 @@ npx hardhat ignition deploy ignition/modules/Apollo.js --parameters ignition/par
 
 ::::
 
-which will deploy `Rocket` with the name `"Apollo 11"`.
 
 ## Inspecting an existing deployment
 
