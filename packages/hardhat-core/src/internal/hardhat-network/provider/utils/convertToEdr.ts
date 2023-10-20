@@ -543,7 +543,8 @@ export function edrResultToEthereumjsEvmResult(
 }
 
 export function ethereumjsEvmResultToEdrResult(
-  result: EVMResult
+  result: EVMResult,
+  overrideExceptionalHalt: boolean = false
 ): ExecutionResult {
   const gasUsed = result.execResult.executionGasUsed;
 
@@ -589,16 +590,35 @@ export function ethereumjsEvmResultToEdrResult(
       },
     };
   } else {
-    const vmError = Exit.fromEthereumJSEvmError(
-      result.execResult.exceptionError
-    );
-
-    return {
-      result: {
-        reason: vmError.getEdrExceptionalHalt(),
+    if (overrideExceptionalHalt) {
+      const overridenResult: any = {
         gasUsed,
-      },
-    };
+      };
+
+      // Throw an error if reason is accessed
+      Object.defineProperty(overridenResult, "reason", {
+        get: () => {
+          throw new Error(
+            "Cannot access reason of an exceptional halt in EthereumJS mode"
+          );
+        },
+      });
+
+      return {
+        result: overridenResult,
+      };
+    } else {
+      const vmError = Exit.fromEthereumJSEvmError(
+        result.execResult.exceptionError
+      );
+
+      return {
+        result: {
+          reason: vmError.getEdrExceptionalHalt(),
+          gasUsed,
+        },
+      };
+    }
   }
 }
 

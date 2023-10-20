@@ -111,7 +111,7 @@ export class EdrMiner implements BlockMinerAdapter {
             });
           }
         } else if ("executionResult" in traceItem) {
-          await vmTracer.addAfterMessage(traceItem);
+          await vmTracer.addAfterMessage(traceItem.executionResult);
         } else {
           await vmTracer.addBeforeMessage(traceItem);
         }

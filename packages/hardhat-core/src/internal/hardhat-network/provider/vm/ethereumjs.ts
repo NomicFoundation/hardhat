@@ -6,6 +6,7 @@ import {
   InterpreterStep,
   Message,
 } from "@nomicfoundation/ethereumjs-evm";
+import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
 import {
   DefaultStateManager,
   StateManager,
@@ -767,11 +768,21 @@ export class EthereumJSAdapter implements VMAdapter {
     next: any
   ): Promise<void> {
     try {
-      const executionResult = ethereumjsEvmResultToEdrResult(result);
+      const hasExceptionalHalt =
+        result.execResult.exceptionError !== undefined &&
+        result.execResult.exceptionError.error !== ERROR.REVERT;
 
-      await this._vmTracer.addAfterMessage({
+      const executionResult = ethereumjsEvmResultToEdrResult(
+        result,
+        hasExceptionalHalt
+      );
+
+      await this._vmTracer.addAfterMessage(
         executionResult,
-      });
+        hasExceptionalHalt
+          ? Exit.fromEthereumJSEvmError(result.execResult.exceptionError)
+          : undefined
+      );
 
       for (const listener of this._afterMessageListeners) {
         await listener(result);
