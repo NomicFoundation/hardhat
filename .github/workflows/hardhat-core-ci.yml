@@ -126,7 +126,7 @@ jobs:
         # disable until actions/virtual-environments#4896 is fixed
         # os: ["macos-latest", "ubuntu-latest", "windows-latest"]
         os: ["ubuntu-latest", "windows-latest"]
-        vm: ["dual", "edr"]
+        vm: ["dual", "ethereumjs", "edr"]
     steps:
       - uses: actions/checkout@v3
 
