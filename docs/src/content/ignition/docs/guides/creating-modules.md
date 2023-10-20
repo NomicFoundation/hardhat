@@ -268,11 +268,11 @@ The above module code will deploy `Rocket` with the name provided in the paramet
 
 Learn more about how to provide a deployment with parameters in the [Defining parameters during deployment](./deploy.md#defining-parameters-during-deployment) section.
 
-## Using submodules
+## Creating a module hierarchy using submodules
 
-You can organize your deployment into different Ignition Modules, which can make them easier to write, read and reason about.
+You can organize your deployment into different Ignition Modules, which makes it easier to build the setup and reason about the deployment big picture.
 
-When you are defining a module, you can access other modules as submodules and use their result `Future`s. To do it, you need to call `m.useModule` passing the module, as returned by `buildModule`:
+When you are defining a module, you can access other modules as submodules and use their resulting `Future` objects. To do this you need to call `m.useModule` with a module object as returned by `buildModule` as an argument:
 
 ```js
 const TokenModule = buildModule("TokenModule", (m) => {
@@ -291,21 +291,21 @@ const TokenOwnerModule = buildModule("TokenOwnerModule", (m) => {
 });
 ```
 
-If you use a `Future` from a submodule to create a new `Future`, the new one will have a dependency on the existing one, and an implicit dependency on every `Future` within the submodule. This means that any possible initialization within the submodule will be completed by the time your new `Future` gets executed.
+If you use a `Future` called `A` that you retrieved from a submodule `Sub` to create another `Future` called `B`, then `B` will depend on `A`, but it will also have an implicit dependency on every `Future` within `Sub`. This means `B` will only be executed after `Sub` is fully executed.
 
-Calling multiple times to `m.useModule` with the same Ignition Module doesn't lead to multiple deployments. Hardhat Ignition only executes `Future`s once.
+Calling `m.useModule` multiple times with the same Ignition Module as a parameter doesn't lead to multiple deployments. Hardhat Ignition only executes `Future` objects once.
 
 ## Deploying and calling contracts from different accounts
 
-If you need to change the sender of a deployment, call, or another future, you can do it by providing a `from` option.
+If you need to change the sender of a deployment, call, or another `Future`, you can do it by providing the `from` field in an options object.
 
-For example, to deploy a contract from a different account you can do
+For example, to deploy a contract from a specific account:
 
 ```js
 const token = m.contract("Token", ["My Token", "TKN2", 18], { from: "0x...." });
 ```
 
-You can also define a module that uses the accounts that Hardhat has available during the deployment. To do it, you can use `m.getAccount(index)`, like this:
+You can also define a module that uses the accounts that Hardhat has available during the deployment. To access the Hardhat accounts use `m.getAccount(index)`:
 
 ```js
 const account1 = m.getAccount(1);
@@ -316,7 +316,7 @@ const token = m.contract("Token", ["My Token", "TKN2", 18], { from: account1 });
 
 If you need to deploy or interact with a contract that isn't part of your Hardhat project, you can provide your own artifacts.
 
-All the methods that create `Future`s that represent contracts have overloads that accept artifacts. Here are examples of all of them:
+All the methods that create `Future` objects for contracts also accept artifacts in the second argument through overloads. Here are examples for each of them:
 
 ```js
 const token = m.contract("Token", TokenArtifact, ["My Token", "TKN2", 18]);
@@ -326,13 +326,11 @@ const myLib = m.library("MyLib", MyLibArtifact);
 const token2 = m.contractAt("Token", TokenArtifact, token2Address);
 ```
 
-In this case, the name of the contract is only used to generate [`Future` ids](#future-ids), and not to load any artifact.
+In this case, the name of the contract is only used to generate [`Future` IDs](#future-ids), and not to load any artifact.
 
 ## Linking libraries
 
-If you need to link a library when deploying a contract, you can do it by passing them in the options object when calling `m.contract` or `m.library`.
-
-For example, you can do
+To link a library when deploying a contract, you can use the `libraries` field in an options object when calling `m.contract` or `m.library`:
 
 ```js
 const myLib = m.library("MyLib");
