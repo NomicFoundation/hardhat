@@ -10,7 +10,7 @@ The different files inside each deployment folder are detailed below:
 
 The main file in a deployment folder is `journal.jsonl`. This is were Hardhat Ignition writes every operation it takes, before executing it.
 
-This file allows Hardhat Ignition to resume the deployment.
+The journal file allows Hardhat Ignition to resume the deployment.
 
 ## Contract Artifacts and `BuildInfo`s
 
