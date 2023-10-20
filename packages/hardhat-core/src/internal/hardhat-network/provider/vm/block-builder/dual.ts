@@ -7,24 +7,24 @@ import {
   assertEqualRunTxResults,
 } from "../../utils/assertions";
 import { randomHashSeed } from "../../fork/ForkStateManager";
-import { globalRethnetContext } from "../../context/rethnet";
+import { getGlobalEdrContext } from "../../context/edr";
 
 export class DualModeBlockBuilder implements BlockBuilderAdapter {
   constructor(
     private _ethereumJSBuilder: BlockBuilderAdapter,
-    private _rethnetBuilder: BlockBuilderAdapter
+    private _edrBuilder: BlockBuilderAdapter
   ) {}
 
   public async addTransaction(tx: TypedTransaction): Promise<RunTxResult> {
     const ethereumJSResult = await this._ethereumJSBuilder.addTransaction(tx);
-    const rethnetResult = await this._rethnetBuilder.addTransaction(tx);
+    const edrResult = await this._edrBuilder.addTransaction(tx);
 
     // Matches EthereumJS' runCall checkpoint call
-    globalRethnetContext.setStateRootGeneratorSeed(randomHashSeed());
+    getGlobalEdrContext().setStateRootGeneratorSeed(randomHashSeed());
 
-    assertEqualRunTxResults(ethereumJSResult, rethnetResult);
+    assertEqualRunTxResults(ethereumJSResult, edrResult);
 
-    return rethnetResult;
+    return edrResult;
   }
 
   public async finalize(
@@ -32,38 +32,38 @@ export class DualModeBlockBuilder implements BlockBuilderAdapter {
     _timestamp?: bigint
   ): Promise<Block> {
     const ethereumJSBlock = await this._ethereumJSBuilder.finalize(rewards);
-    const rethnetBlock = await this._rethnetBuilder.finalize(
+    const edrBlock = await this._edrBuilder.finalize(
       rewards,
-      // We have to overwite rethnet's timestamp, as the blocks might have
+      // We have to overwite edr's timestamp, as the blocks might have
       // been made and slightly different times
       ethereumJSBlock.header.timestamp
     );
 
-    assertEqualBlocks(ethereumJSBlock, rethnetBlock);
+    assertEqualBlocks(ethereumJSBlock, edrBlock);
 
-    return rethnetBlock;
+    return edrBlock;
   }
 
   public async revert(): Promise<void> {
     await this._ethereumJSBuilder.revert();
-    await this._rethnetBuilder.revert();
+    await this._edrBuilder.revert();
   }
 
   public async getGasUsed(): Promise<bigint> {
-    const [ethereumJSGasUsed, rethnetGasUsed] = await Promise.all([
+    const [ethereumJSGasUsed, edrGasUsed] = await Promise.all([
       this._ethereumJSBuilder.getGasUsed(),
-      this._rethnetBuilder.getGasUsed(),
+      this._edrBuilder.getGasUsed(),
     ]);
 
-    if (ethereumJSGasUsed !== rethnetGasUsed) {
+    if (ethereumJSGasUsed !== edrGasUsed) {
       console.trace(
-        `Different gas used in block: ${ethereumJSGasUsed} (ethereumjs) !== ${rethnetGasUsed} (rethnet)`
+        `Different gas used in block: ${ethereumJSGasUsed} (ethereumjs) !== ${edrGasUsed} (edr)`
       );
 
-      /* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+      /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
       throw new Error("Different gas used in block");
     }
 
-    return rethnetGasUsed;
+    return edrGasUsed;
   }
 }

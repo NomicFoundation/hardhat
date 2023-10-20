@@ -20,7 +20,7 @@ import { getCurrentTimestamp } from "../../utils/getCurrentTimestamp";
 // reverted: can't do anything
 type BlockBuilderState = "started" | "sealed" | "reverted";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export class HardhatBlockBuilder implements BlockBuilderAdapter {
   private _state: BlockBuilderState = "started";
@@ -74,7 +74,7 @@ export class HardhatBlockBuilder implements BlockBuilderAdapter {
       calcDifficultyFromHeader: this._opts.parentBlock.header,
     });
 
-    const [result] = await this._vm.runTxInBlock(tx, block);
+    const result = await this._vm.runTxInBlock(tx, block);
 
     this._transactions.push(tx);
     this._transactionResults.push(result);

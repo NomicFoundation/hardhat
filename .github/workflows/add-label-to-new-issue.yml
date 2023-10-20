@@ -27,6 +27,7 @@ jobs:
             );
 
             if (statusLabel === undefined) {
+              console.log("Author association:", issue.data.author_association);
               const isCollaborator = ["OWNER", "MEMBER", "COLLABORATOR"].includes(issue.data.author_association)
               const label = isCollaborator ? "status:ready" : "status:triaging"
 

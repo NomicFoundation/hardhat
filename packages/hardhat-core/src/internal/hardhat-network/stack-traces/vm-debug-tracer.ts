@@ -1,8 +1,8 @@
-import type { AfterTxEvent, VM } from "@nomicfoundation/ethereumjs-vm";
-import type { EVMResult } from "@nomicfoundation/ethereumjs-evm";
-import type { InterpreterStep } from "@nomicfoundation/ethereumjs-evm/dist/interpreter";
-import type { Message } from "@nomicfoundation/ethereumjs-evm/dist/message";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
+import { AfterTxEvent, VM } from "@nomicfoundation/ethereumjs-vm";
+import { EVMResult } from "@nomicfoundation/ethereumjs-evm";
+import { InterpreterStep } from "@nomicfoundation/ethereumjs-evm/dist/interpreter";
+import { Message } from "@nomicfoundation/ethereumjs-evm/dist/message";
 import {
   Address,
   bufferToBigInt,
@@ -16,7 +16,7 @@ import { InvalidInputError } from "../../core/providers/errors";
 import { RpcDebugTraceOutput, RpcStructLog } from "../provider/output";
 import * as BigIntUtils from "../../util/bigint";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 interface StructLog {
   depth: number;
@@ -280,10 +280,12 @@ export class VMDebugTracer {
           "There shouldn't be two messages one after another"
         );
 
-        // the increase in memory size of a revert is immediately
-        // reflected, so we don't treat it as a memory expansion
-        // of the previous step
-        if (structLog.op !== "REVERT") {
+        // memory opcodes reflect the expanded memory in that step,
+        // so we correct them
+        if (
+          previousStructLog.op === "MSTORE" ||
+          previousStructLog.op === "MLOAD"
+        ) {
           const memoryLengthDifference =
             structLog.memory.length - previousStructLog.memory.length;
           for (let k = 0; k < memoryLengthDifference; k++) {
@@ -315,20 +317,13 @@ export class VMDebugTracer {
   }
 
   private _getMemory(step: InterpreterStep): string[] {
-    // if disableMemory is true, we just return an empty array to
-    // avoid wasting (real) memory, since we are going to discard
-    // this later anyway
-    if (this._config?.disableMemory === true) {
-      return [];
-    }
+    const rawMemory =
+      Buffer.from(step.memory)
+        .toString("hex")
+        .match(/.{1,64}/g) ?? [];
 
-    const memory = Buffer.from(step.memory)
-      .toString("hex")
-      .match(/.{1,64}/g);
-
-    const result = memory === null ? [] : [...memory];
-
-    return result;
+    // Remove the additional non allocated memory
+    return rawMemory.slice(0, Number(step.memoryWordCount));
   }
 
   private _getStack(step: InterpreterStep): string[] {
@@ -453,16 +448,8 @@ export class VMDebugTracer {
     } else if (step.opcode.name === "INVALID") {
       const code = await this._getContractCode(step.codeAddress);
 
-      if (code.length > step.pc) {
-        const opcodeHex = code[step.pc].toString(16);
-        op = `opcode 0x${opcodeHex} not defined`;
-      } else {
-        // This can happen if there is an invalid opcode in a constructor.
-        // We don't have an easy way to access the init code from here, so we
-        // don't show the value of the opcode in this case.
-        op = "opcode not defined";
-      }
-
+      const opcodeHex = code[step.pc].toString(16);
+      op = `opcode 0x${opcodeHex} not defined`;
       error = {};
     }
 

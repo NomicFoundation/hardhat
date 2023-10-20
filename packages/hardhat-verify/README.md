@@ -4,6 +4,21 @@
 
 [Hardhat](https://hardhat.org) plugin to verify the source of code of deployed contracts.
 
+1. [What](#what)
+2. [Installation](#installation)
+3. [Tasks](#tasks)
+4. [Environment extensions](#environment-extensions)
+5. [Usage](#usage)
+   1. [Complex arguments](#complex-arguments)
+   2. [Libraries with undetectable addresses](#libraries-with-undetectable-addresses)
+   3. [Multiple API keys and alternative block explorers](#multiple-api-keys-and-alternative-block-explorers)
+   4. [Adding support for other networks](#adding-support-for-other-networks)
+   5. [Using programmatically](#using-programmatically)
+      1. [Providing libraries from a script or task](#providing-libraries-from-a-script-or-task)
+      2. [Advanced Usage: Using the Etherscan class from another plugin](#advanced-usage-using-the-etherscan-class-from-another-plugin)
+6. [How it works](#how-it-works)
+7. [Known limitations](#known-limitations)
+
 ## What
 
 This plugin helps you verify the source code for your Solidity contracts. At the moment, it supports [Etherscan](https://etherscan.io)-based explorers and explorers compatible with its API like [Blockscout](https://www.blockscout.com/).
@@ -204,6 +219,45 @@ hre.run("verify:verify", {
   // other args
   libraries: {
     SomeLibrary: "0x...",
+  }
+}
+```
+
+#### Advanced Usage: Using the Etherscan class from another plugin
+
+The Etherscan class used for contract verification can be imported from the plugin, allowing its direct usage:
+
+```js
+import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
+
+const instance = new Etherscan(
+  "abc123def123", // Etherscan API key
+  "https://api.etherscan.io/api", // Etherscan API URL
+  "https://etherscan.io" // Etherscan browser URL
+);
+
+if (!instance.isVerified("0x123abc...")) {
+  const { message: guid } = await instance.verify(
+    // Contract address
+    "0x123abc...",
+    // Contract source code
+    '{"language":"Solidity","sources":{"contracts/Sample.sol":{"content":"// SPDX-Lic..."}},"settings":{ ... }}',
+    // Contract name
+    "contracts/Sample.sol:MyContract",
+    // Compiler version
+    "v0.8.19+commit.7dd6d404",
+    // Encoded constructor arguments
+    "0000000000000000000000000000000000000000000000000000000000000032"
+  );
+
+  await sleep(1000);
+  const verificationStatus = await instance.getVerificationStatus(guid);
+
+  if (verificationStatus.isSuccess()) {
+    const contractURL = instance.getContractUrl("0x123abc...");
+    console.log(
+      `Successfully verified contract "MyContract" on Etherscan: ${contractURL}`
+    );
   }
 }
 ```

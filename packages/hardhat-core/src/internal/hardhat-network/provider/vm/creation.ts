@@ -1,7 +1,7 @@
 import { EthContextAdapter } from "../context";
 import { DualEthContext } from "../context/dual";
 import { HardhatEthContext } from "../context/hardhat";
-import { RethnetEthContext } from "../context/rethnet";
+import { EdrEthContext } from "../context/edr";
 import { NodeConfig } from "../node-types";
 import { RandomBufferGenerator } from "../utils/random";
 
@@ -16,11 +16,11 @@ export async function createContext(
 
   const prevRandaoGenerator = RandomBufferGenerator.create("randomMixHashSeed");
 
-  if (vmModeEnvVar === "ethereumjs") {
-    return HardhatEthContext.create(config, prevRandaoGenerator);
-  } else if (vmModeEnvVar === "rethnet") {
-    return RethnetEthContext.create(config);
-  } else {
+  if (vmModeEnvVar === "edr") {
+    return EdrEthContext.create(config);
+  } else if (vmModeEnvVar === "dual") {
     return DualEthContext.create(config, prevRandaoGenerator);
+  } else {
+    return HardhatEthContext.create(config, prevRandaoGenerator);
   }
 }

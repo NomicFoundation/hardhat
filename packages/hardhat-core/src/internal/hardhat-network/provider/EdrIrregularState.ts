@@ -1,4 +1,4 @@
-import { IrregularState } from "rethnet-evm";
+import { IrregularState } from "@ignored/edr";
 
 /**
  * Wrapper for EDR's `IrregularState` object.

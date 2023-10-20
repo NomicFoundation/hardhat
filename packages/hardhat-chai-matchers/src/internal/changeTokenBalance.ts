@@ -10,7 +10,11 @@ import type {
 import { buildAssert } from "../utils";
 import { ensure } from "./calledOnContract/utils";
 import { getAddressOf } from "./misc/account";
-import { assertIsNotNull } from "./utils";
+import {
+  CHANGE_TOKEN_BALANCES_MATCHER,
+  CHANGE_TOKEN_BALANCE_MATCHER,
+} from "./constants";
+import { assertIsNotNull, preventAsyncMatcherChaining } from "./utils";
 
 type TransactionResponse = EthersT.TransactionResponse;
 
@@ -25,9 +29,12 @@ export type Token = BaseContract & {
   symbol: BaseContractMethod<[], string, string>;
 };
 
-export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
+export function supportChangeTokenBalance(
+  Assertion: Chai.AssertionStatic,
+  chaiUtils: Chai.ChaiUtils
+) {
   Assertion.addMethod(
-    "changeTokenBalance",
+    CHANGE_TOKEN_BALANCE_MATCHER,
     function (
       this: any,
       token: Token,
@@ -44,7 +51,13 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
         subject = subject();
       }
 
-      checkToken(token, "changeTokenBalance");
+      preventAsyncMatcherChaining(
+        this,
+        CHANGE_TOKEN_BALANCE_MATCHER,
+        chaiUtils
+      );
+
+      checkToken(token, CHANGE_TOKEN_BALANCE_MATCHER);
 
       const checkBalanceChange = ([actualChange, address, tokenDescription]: [
         bigint,
@@ -74,7 +87,7 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
   );
 
   Assertion.addMethod(
-    "changeTokenBalances",
+    CHANGE_TOKEN_BALANCES_MATCHER,
     function (
       this: any,
       token: Token,
@@ -90,6 +103,12 @@ export function supportChangeTokenBalance(Assertion: Chai.AssertionStatic) {
       if (typeof subject === "function") {
         subject = subject();
       }
+
+      preventAsyncMatcherChaining(
+        this,
+        CHANGE_TOKEN_BALANCES_MATCHER,
+        chaiUtils
+      );
 
       validateInput(this._obj, token, accounts, balanceChanges);
 
@@ -143,7 +162,7 @@ function validateInput(
   balanceChanges: EthersT.BigNumberish[]
 ) {
   try {
-    checkToken(token, "changeTokenBalances");
+    checkToken(token, CHANGE_TOKEN_BALANCES_MATCHER);
 
     if (accounts.length !== balanceChanges.length) {
       throw new Error(

@@ -1,15 +1,18 @@
 import type { Block } from "@nomicfoundation/ethereumjs-block";
 import type { Common } from "@nomicfoundation/ethereumjs-common";
+import type { EVMResult, Message } from "@nomicfoundation/ethereumjs-evm";
 import type { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import type { Account, Address } from "@nomicfoundation/ethereumjs-util";
 import type { TxReceipt } from "@nomicfoundation/ethereumjs-vm";
+import type { StateOverrideSet } from "../../../core/jsonrpc/types/input/callRequest";
 import type { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import type { RpcDebugTraceOutput } from "../output";
+import type { MinimalInterpreterStep } from "./proxy-vm";
 
 import { MessageTrace } from "../../stack-traces/message-trace";
 import { Bloom } from "../utils/bloom";
-import { Exit } from "./exit";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
+import { Exit } from "./exit";
 
 export interface PartialTrace {
   trace?: MessageTrace;
@@ -39,9 +42,10 @@ export interface RunBlockResult {
 export interface VMAdapter {
   dryRun(
     tx: TypedTransaction,
-    blockContext: Block,
-    forceBaseFeeZero?: boolean
-  ): Promise<[RunTxResult, Trace]>;
+    blockNumber: bigint,
+    forceBaseFeeZero?: boolean,
+    stateOverrideSet?: StateOverrideSet
+  ): Promise<RunTxResult>;
 
   // getters
   getAccount(address: Address): Promise<Account>;
@@ -96,10 +100,7 @@ export interface VMAdapter {
   restoreBlockContext(blockNumber: bigint): Promise<void>;
 
   // methods for block-building
-  runTxInBlock(
-    tx: TypedTransaction,
-    block: Block
-  ): Promise<[RunTxResult, Trace]>;
+  runTxInBlock(tx: TypedTransaction, block: Block): Promise<RunTxResult>;
 
   // methods for tracing
   getLastTraceAndClear(): PartialTrace;
@@ -107,6 +108,11 @@ export interface VMAdapter {
     hash: Buffer,
     block: Block,
     config: RpcDebugTracingConfig
+  ): Promise<RpcDebugTraceOutput>;
+  traceCall(
+    tx: TypedTransaction,
+    blockNumber: bigint,
+    traceConfig: RpcDebugTracingConfig
   ): Promise<RpcDebugTraceOutput>;
 
   revert(): Promise<void>;
@@ -128,4 +134,8 @@ export interface VMAdapter {
     common: Common,
     opts: BuildBlockOpts
   ): Promise<BlockBuilderAdapter>;
+
+  onStep(cb: (step: MinimalInterpreterStep, next?: any) => Promise<void>): void;
+  onBeforeMessage(cb: (message: Message, next?: any) => Promise<void>): void;
+  onAfterMessage(cb: (result: EVMResult, next?: any) => Promise<void>): void;
 }

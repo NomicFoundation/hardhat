@@ -1,0 +1,35 @@
+[package]
+name = "edr"
+version = "0.1.0-dev"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.65"
+clap = { version = "3.2.22", default-features = false, features = ["std", "derive"] }
+hex = { version = "0.4.3", default-features = false }
+k256 = { version = "0.13.1", default-features = false, features = ["arithmetic", "ecdsa", "pkcs8", "precomputed-tables", "std"] }
+pretty_env_logger = { version = "0.4.0", default-features = false }
+edr_defaults = { version = "0.1.0-dev", path = "../edr_defaults" }
+edr_eth = { version = "0.1.0-dev", path = "../edr_eth" }
+edr_evm = { version = "0.1.0-dev", path = "../edr_evm" }
+edr_rpc_server = { version = "0.1.0-dev", path = "../edr_rpc_server" }
+serde = { version = "1.0.147", default-features = false, features = ["derive"] }
+tokio = { version = "1.23.0", features = ["macros", "signal"] }
+toml = "0.7.6"
+tracing = { version = "0.1.37", default-features = false, features = ["std"] }
+tracing-subscriber = { version = "0.3.17", default-features = false, features = ["fmt"] }
+
+[dev-dependencies]
+assert_cmd = { version = "2.0.11", default-features = false }
+bytes = { version = "1.2.1", default-features = false }
+predicates = { version = "3.0.3", default-features = false }
+reqwest = { version = "0.11.18", default-features = false }
+edr_eth = { version = "0.1.0-dev", path = "../edr_eth" }
+serde_json = { version = "1.0.99", default-features = false }
+signal-child = { version = "1.0.5", default-features = false }
+winsafe = { version = "0.0.16", default-features = false, features = ["kernel", "user"] }
+
+[dev-dependencies.cargo-husky]
+version = "1.5.0"
+default-features = false
+features = ["user-hooks"]

@@ -1,3 +1,6 @@
+import type { EVMResult, Message } from "@nomicfoundation/ethereumjs-evm";
+import type { MinimalInterpreterStep } from "./vm/proxy-vm";
+
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Address } from "@nomicfoundation/ethereumjs-util";
 import { PartialTrace, RunBlockResult } from "./vm/vm-adapter";
@@ -5,6 +8,7 @@ import { PartialTrace, RunBlockResult } from "./vm/vm-adapter";
 export interface PartialMineBlockResult {
   block: Block;
   blockResult: RunBlockResult;
+  totalDifficultyAfterBlock: bigint;
   traces: PartialTrace[];
 }
 
@@ -26,4 +30,8 @@ export interface BlockMinerAdapter {
   prevRandaoGeneratorSeed(): Buffer;
 
   setPrevRandaoGeneratorNextValue(nextValue: Buffer): void;
+
+  onStep(cb: (step: MinimalInterpreterStep, next?: any) => Promise<void>): void;
+  onBeforeMessage(cb: (message: Message, next?: any) => Promise<void>): void;
+  onAfterMessage(cb: (result: EVMResult, next?: any) => Promise<void>): void;
 }

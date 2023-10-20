@@ -40,6 +40,17 @@ export const rpcStorageSlot = new t.Type<bigint>(
   t.identity
 );
 
+// This type is necessary because objects' keys need to be either strings or numbers to be properly handled by the 'io-ts' module.
+// If they are not defined as strings or numbers, the type definition will result in an empty object without the required properties.
+// For example, instead of displaying { ke1: value1 }, it will display {}
+export const rpcStorageSlotHexString = new t.Type<string>(
+  "Storage slot hex string",
+  (x): x is string => typeof x === "string",
+  (u, c) =>
+    validateRpcStorageSlotHexString(u) ? t.success(u) : t.failure(u, c),
+  t.identity
+);
+
 function validateStorageSlot(u: unknown, c: t.Context): t.Validation<bigint> {
   if (typeof u !== "string") {
     return t.failure(
@@ -184,6 +195,10 @@ export function rpcDataToBuffer(data: string): Buffer {
 }
 
 // Type guards
+
+function validateRpcStorageSlotHexString(u: unknown): u is string {
+  return typeof u === "string" && /^0x([0-9a-fA-F]){64}$/.test(u);
+}
 
 function isRpcQuantityString(u: unknown): u is string {
   return (

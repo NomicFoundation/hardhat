@@ -1,5 +1,5 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
-import { Common } from "@nomicfoundation/ethereumjs-common";
+import { Common, CustomCommonOpts } from "@nomicfoundation/ethereumjs-common";
 import {
   EVM,
   EVMResult,
@@ -12,14 +12,19 @@ import {
   StateManager,
 } from "@nomicfoundation/ethereumjs-statemanager";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
-import { Account, Address } from "@nomicfoundation/ethereumjs-util";
 import {
-  EEI,
-  RunTxResult as EthereumJSRunTxResult,
-  VM,
-} from "@nomicfoundation/ethereumjs-vm";
-import { SuccessReason } from "rethnet-evm";
+  Account,
+  Address,
+  bigIntToBuffer,
+  setLengthLeft,
+  toBuffer,
+} from "@nomicfoundation/ethereumjs-util";
+import { EEI, VM } from "@nomicfoundation/ethereumjs-vm";
 import { assertHardhatInvariant } from "../../../core/errors";
+import {
+  StateOverrideSet,
+  StateProperties,
+} from "../../../core/jsonrpc/types/input/callRequest";
 import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTraceTransaction";
 import {
   InternalError,
@@ -37,16 +42,18 @@ import { FakeSenderEIP1559Transaction } from "../transactions/FakeSenderEIP1559T
 import { FakeSenderTransaction } from "../transactions/FakeSenderTransaction";
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
 import { Bloom } from "../utils/bloom";
+import { ethereumjsEvmResultToEdrResult } from "../utils/convertToEdr";
 import { makeForkClient } from "../utils/makeForkClient";
 import { makeAccount } from "../utils/makeAccount";
 import { makeStateTrie } from "../utils/makeStateTrie";
 import { BlockchainAdapter } from "../blockchain";
 import { Exit } from "./exit";
-import { RunTxResult, Trace, VMAdapter } from "./vm-adapter";
+import { RunTxResult, VMAdapter } from "./vm-adapter";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
 import { HardhatBlockBuilder } from "./block-builder/hardhat";
+import { MinimalInterpreterStep } from "./proxy-vm";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 // temporary wrapper class used to print the whole storage
 class DefaultStateManagerWithAddresses extends DefaultStateManager {
@@ -121,6 +128,15 @@ export class EthereumJSAdapter implements VMAdapter {
   private _nextSnapshotId = 0;
 
   private _vmTracer: VMTracer;
+  private _stepListeners: Array<
+    (step: MinimalInterpreterStep, next?: any) => Promise<void>
+  > = [];
+  private _beforeMessageListeners: Array<
+    (message: Message, next?: any) => Promise<void>
+  > = [];
+  private _afterMessageListeners: Array<
+    (result: EVMResult, next?: any) => Promise<void>
+  > = [];
 
   constructor(
     private readonly _vm: VM,
@@ -131,7 +147,8 @@ export class EthereumJSAdapter implements VMAdapter {
     private readonly _configChainId: number,
     private readonly _selectHardfork: (blockNumber: bigint) => string,
     private readonly _forkNetworkId?: number,
-    private readonly _forkBlockNumber?: bigint
+    private readonly _forkBlockNumber?: bigint,
+    private readonly _enableTransientStorage: boolean = false
   ) {
     this._vmTracer = new VMTracer(_common, false);
 
@@ -222,7 +239,8 @@ export class EthereumJSAdapter implements VMAdapter {
       config.chainId,
       selectHardfork,
       forkNetworkId,
-      forkBlockNum
+      forkBlockNum,
+      config.enableTransientStorage
     );
 
     // If we're forking and using genesis account, add it as an irregular state
@@ -235,10 +253,24 @@ export class EthereumJSAdapter implements VMAdapter {
 
   public async dryRun(
     tx: TypedTransaction,
-    blockContext: Block,
-    forceBaseFeeZero = false
-  ): Promise<[RunTxResult, Trace]> {
+    blockNumber: bigint,
+    forceBaseFeeZero = false,
+    stateOverrideSet: StateOverrideSet = {}
+  ): Promise<RunTxResult> {
+    // We know that this block number exists, because otherwise
+    // there would be an error in the RPC layer.
+    let blockContext = await this._blockchain.getBlockByNumber(blockNumber);
+    assertHardhatInvariant(
+      blockContext !== undefined,
+      "Tried to run a tx in the context of a non-existent block"
+    );
+
+    // we don't need to add the tx to the block because runTx doesn't
+    // know anything about the txs in the current block
+
     const initialStateRoot = await this.getStateRoot();
+
+    await this._applyStateOverrideSet(stateOverrideSet);
 
     let originalCommon: Common | undefined;
 
@@ -256,6 +288,7 @@ export class EthereumJSAdapter implements VMAdapter {
         },
         {
           hardfork: this._selectHardfork(blockContext.header.number),
+          ...this._getTransientStorageSettings(),
         }
       );
 
@@ -311,25 +344,14 @@ export class EthereumJSAdapter implements VMAdapter {
         (blockContext.header as any).baseFeePerGas = 0n;
       }
 
-      const vmDebugTracer = new VMDebugTracer(this._vm);
-      let ethereumJSResult: EthereumJSRunTxResult | undefined;
-      const trace = await vmDebugTracer.trace(
-        async () => {
-          ethereumJSResult = await this._vm.runTx({
-            block: blockContext,
-            tx,
-            skipNonce: true,
-            skipBalance: true,
-            skipBlockGasLimitValidation: true,
-            skipHardForkValidation: true,
-          });
-        },
-        {
-          disableStorage: true,
-          disableMemory: true,
-          disableStack: true,
-        }
-      );
+      const ethereumJSResult = await this._vm.runTx({
+        block: blockContext,
+        tx,
+        skipNonce: true,
+        skipBalance: true,
+        skipBlockGasLimitValidation: true,
+        skipHardForkValidation: true,
+      });
 
       assertHardhatInvariant(
         ethereumJSResult !== undefined,
@@ -349,7 +371,7 @@ export class EthereumJSAdapter implements VMAdapter {
         exit: Exit.fromEthereumJSEvmError(ethereumJSError),
       };
 
-      return [result, trace];
+      return result;
     } finally {
       if (originalCommon !== undefined) {
         (this._vm as any)._common = originalCommon;
@@ -543,23 +565,24 @@ export class EthereumJSAdapter implements VMAdapter {
       `Unable to find a transaction in a block that contains that transaction, this should never happen`
     );
   }
+  public async traceCall(
+    tx: TypedTransaction,
+    blockNumber: bigint,
+    traceConfig: RpcDebugTracingConfig
+  ): Promise<RpcDebugTraceOutput> {
+    const vmDebugTracer = new VMDebugTracer(this._vm);
+
+    return vmDebugTracer.trace(async () => {
+      const forceBaseFeeZero = true;
+      await this.dryRun(tx, blockNumber, forceBaseFeeZero);
+    }, traceConfig);
+  }
 
   public async runTxInBlock(
     tx: TypedTransaction,
     block: Block
-  ): Promise<[RunTxResult, Trace]> {
-    const vmTracer = new VMDebugTracer(this._vm);
-    let ethereumJSResult: EthereumJSRunTxResult | undefined;
-    const trace = await vmTracer.trace(
-      async () => {
-        ethereumJSResult = await this._vm.runTx({ tx, block });
-      },
-      {
-        disableStorage: true,
-        disableMemory: true,
-        disableStack: true,
-      }
-    );
+  ): Promise<RunTxResult> {
+    const ethereumJSResult = await this._vm.runTx({ tx, block });
 
     assertHardhatInvariant(
       ethereumJSResult !== undefined,
@@ -579,7 +602,7 @@ export class EthereumJSAdapter implements VMAdapter {
       exit: Exit.fromEthereumJSEvmError(ethereumJSError),
     };
 
-    return [result, trace];
+    return result;
   }
 
   public async revert(): Promise<void> {
@@ -706,6 +729,20 @@ export class EthereumJSAdapter implements VMAdapter {
     return HardhatBlockBuilder.create(this, common, opts);
   }
 
+  public onStep(
+    cb: (step: MinimalInterpreterStep, next?: any) => Promise<void>
+  ) {
+    this._stepListeners.push(cb);
+  }
+
+  public onBeforeMessage(cb: (message: Message, next?: any) => Promise<void>) {
+    this._beforeMessageListeners.push(cb);
+  }
+
+  public onAfterMessage(cb: (result: EVMResult, next?: any) => Promise<void>) {
+    this._afterMessageListeners.push(cb);
+  }
+
   private _getCommonForTracing(networkId: number, blockNumber: bigint): Common {
     try {
       const common = Common.custom(
@@ -715,6 +752,7 @@ export class EthereumJSAdapter implements VMAdapter {
         },
         {
           hardfork: this._selectHardfork(BigInt(blockNumber)),
+          ...this._getTransientStorageSettings(),
         }
       );
 
@@ -763,11 +801,16 @@ export class EthereumJSAdapter implements VMAdapter {
           : undefined;
       await this._vmTracer.addBeforeMessage({
         ...message,
+        caller: message.caller.toBuffer(),
         to: message.to?.toBuffer(),
         codeAddress:
           message.to !== undefined ? message.codeAddress.toBuffer() : undefined,
         code,
       });
+
+      for (const listener of this._beforeMessageListeners) {
+        await listener(message);
+      }
 
       return next();
     } catch (e) {
@@ -789,7 +832,7 @@ export class EthereumJSAdapter implements VMAdapter {
       await this._vmTracer.addStep({
         depth: step.depth,
         pc: BigInt(step.pc),
-        // opcode: step.opcode.name,
+        opcode: step.opcode.name,
         // returnValue: 0, // Do we have error values in ethereumjs?
         // gasCost: BigInt(step.opcode.fee) + (step.opcode.dynamicFee ?? 0n),
         // gasRefunded: step.gasRefund,
@@ -807,6 +850,10 @@ export class EthereumJSAdapter implements VMAdapter {
         // contractAddress: step.address.buf,
       });
 
+      for (const listener of this._stepListeners) {
+        await listener(step);
+      }
+
       return next();
     } catch (e) {
       return next(e);
@@ -818,67 +865,114 @@ export class EthereumJSAdapter implements VMAdapter {
     next: any
   ): Promise<void> {
     try {
-      const gasUsed = result.execResult.executionGasUsed;
+      const hasExceptionalHalt =
+        result.execResult.exceptionError !== undefined &&
+        result.execResult.exceptionError.error !== ERROR.REVERT;
 
-      let executionResult;
+      const executionResult = ethereumjsEvmResultToEdrResult(
+        result,
+        hasExceptionalHalt
+      );
 
-      if (result.execResult.exceptionError === undefined) {
-        const reason =
-          result.execResult.selfdestruct !== undefined &&
-          Object.keys(result.execResult.selfdestruct).length > 0
-            ? SuccessReason.SelfDestruct
-            : result.createdAddress !== undefined ||
-              result.execResult.returnValue.length > 0
-            ? SuccessReason.Return
-            : SuccessReason.Stop;
+      await this._vmTracer.addAfterMessage(
+        executionResult,
+        hasExceptionalHalt
+          ? Exit.fromEthereumJSEvmError(result.execResult.exceptionError)
+          : undefined
+      );
 
-        executionResult = {
-          reason,
-          gasUsed,
-          gasRefunded: result.execResult.gasRefund ?? 0n,
-          logs:
-            result.execResult.logs?.map((log) => {
-              return {
-                address: log[0],
-                topics: log[1],
-                data: log[2],
-              };
-            }) ?? [],
-          output:
-            result.createdAddress === undefined
-              ? {
-                  returnValue: result.execResult.returnValue,
-                }
-              : {
-                  address: result.createdAddress.toBuffer(),
-                  returnValue: result.execResult.returnValue,
-                },
-        };
-      } else if (result.execResult.exceptionError.error === ERROR.REVERT) {
-        executionResult = {
-          gasUsed,
-          output: result.execResult.returnValue,
-        };
-      } else {
-        const vmError = Exit.fromEthereumJSEvmError(
-          result.execResult.exceptionError
-        );
-
-        executionResult = {
-          reason: vmError.getRethnetExceptionalHalt(),
-          gasUsed,
-        };
+      for (const listener of this._afterMessageListeners) {
+        await listener(result);
       }
-
-      await this._vmTracer.addAfterMessage({
-        executionResult: {
-          result: executionResult,
-        },
-      });
 
       return next();
     } catch (e) {
       return next(e);
     }
+  }
+
+  private async _applyStateOverrideSet(stateOverrideSet: StateOverrideSet) {
+    // Multiple state override set can be configured for different addresses, hence the loop
+    for (const [addrToOverride, stateOverrideOptions] of Object.entries(
+      stateOverrideSet
+    )) {
+      const address = new Address(toBuffer(addrToOverride));
+
+      const { balance, nonce, code, state, stateDiff } = stateOverrideOptions;
+
+      await this._overrideBalanceAndNonce(address, balance, nonce);
+      await this._overrideCode(address, code);
+      await this._overrideStateAndStateDiff(address, state, stateDiff);
+    }
+  }
+
+  private async _overrideBalanceAndNonce(
+    address: Address,
+    balance: bigint | undefined,
+    nonce: bigint | undefined
+  ) {
+    const MAX_NONCE = 2n ** 64n - 1n;
+    const MAX_BALANCE = 2n ** 256n - 1n;
+
+    if (nonce !== undefined && nonce > MAX_NONCE) {
+      throw new InvalidInputError(
+        `The 'nonce' property should occupy a maximum of 8 bytes (nonce=${nonce}).`
+      );
+    }
+
+    if (balance !== undefined && balance > MAX_BALANCE) {
+      throw new InvalidInputError(
+        `The 'balance' property should occupy a maximum of 32 bytes (balance=${balance}).`
+      );
+    }
+
+    await this._stateManager.modifyAccountFields(address, {
+      balance,
+      nonce,
+    });
+  }
+
+  private async _overrideCode(address: Address, code: Buffer | undefined) {
+    if (code === undefined) return;
+
+    await this._stateManager.putContractCode(address, code);
+  }
+
+  private async _overrideStateAndStateDiff(
+    address: Address,
+    state: StateProperties | undefined,
+    stateDiff: StateProperties | undefined
+  ) {
+    let newState;
+
+    if (state !== undefined && stateDiff === undefined) {
+      await this._stateManager.clearContractStorage(address);
+      newState = state;
+    } else if (state === undefined && stateDiff !== undefined) {
+      newState = stateDiff;
+    } else if (state === undefined && stateDiff === undefined) {
+      // nothing to do
+      return;
+    } else {
+      throw new InvalidInputError(
+        "The properties 'state' and 'stateDiff' cannot be used simultaneously when configuring the state override set passed to the eth_call method."
+      );
+    }
+
+    for (const [storageKey, value] of Object.entries(newState)) {
+      await this._stateManager.putContractStorage(
+        address,
+        toBuffer(storageKey),
+        setLengthLeft(bigIntToBuffer(value), 32)
+      );
+    }
+  }
+
+  private _getTransientStorageSettings(): Partial<CustomCommonOpts> {
+    if (this._enableTransientStorage) {
+      return { eips: [1153] };
+    }
+
+    return {};
   }
 }

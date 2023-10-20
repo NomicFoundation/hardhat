@@ -91,6 +91,19 @@ describe("time#increaseTo", function () {
         assert.equal(newTimestamp, endTimestamp);
         assert(endTimestamp - initialTimestamp === 3600);
       });
+
+      it(`should accept an argument of type [Date]`, async function () {
+        const initialTimestamp = await hh.time.latest();
+
+        const newTimestamp = initialTimestamp + 3600;
+        // multiply by 1000 because Date accepts Epoch millis
+        await hh.time.increaseTo(new Date(newTimestamp * 1000));
+
+        const endTimestamp = await hh.time.latest();
+
+        assert.equal(newTimestamp, endTimestamp);
+        assert(endTimestamp - initialTimestamp === 3600);
+      });
     });
   });
 

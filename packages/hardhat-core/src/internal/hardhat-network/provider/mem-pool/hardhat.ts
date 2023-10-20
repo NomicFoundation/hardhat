@@ -28,7 +28,7 @@ import {
 import { reorganizeTransactionsLists } from "../utils/reorganizeTransactionsLists";
 import { txMapToArray } from "../utils/txMapToArray";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 export function serializeTransaction(
   tx: OrderedTransaction

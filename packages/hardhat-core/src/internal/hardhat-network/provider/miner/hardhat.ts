@@ -1,8 +1,12 @@
+import type { MinimalInterpreterStep } from "../vm/proxy-vm";
+
 import { HeaderData } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
+import { EVMResult, Message } from "@nomicfoundation/ethereumjs-evm";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
 import { Address } from "@nomicfoundation/ethereumjs-util";
 import { TxReceipt } from "@nomicfoundation/ethereumjs-vm";
+import { assertHardhatInvariant } from "../../../core/errors";
 import { HardforkName, hardforkGte } from "../../../util/hardforks";
 import { HardhatBlockchainInterface } from "../types/HardhatBlockchainInterface";
 import { RandomBufferGenerator } from "../utils/random";
@@ -113,6 +117,14 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
 
       await this._memPool.update();
 
+      const totalDifficultyAfterBlock =
+        await this._blockchain.getTotalDifficultyByHash(block.hash());
+
+      assertHardhatInvariant(
+        totalDifficultyAfterBlock !== undefined,
+        "the total difficulty of the mined block should be defined"
+      );
+
       return {
         block,
         blockResult: {
@@ -123,12 +135,13 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
           receiptsRoot: block.header.receiptTrie,
           gasUsed: block.header.gasUsed,
         },
+        totalDifficultyAfterBlock,
         traces,
       };
     } catch (err) {
       await blockBuilder.revert();
 
-      // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw err;
     }
   }
@@ -139,6 +152,20 @@ export class HardhatBlockMiner implements BlockMinerAdapter {
 
   public setPrevRandaoGeneratorNextValue(nextValue: Buffer): void {
     this._prevRandaoGenerator.setNext(nextValue);
+  }
+
+  public onStep(
+    _cb: (step: MinimalInterpreterStep, next?: any) => Promise<void>
+  ) {
+    // not necessary
+  }
+
+  public onBeforeMessage(_cb: (message: Message, next?: any) => Promise<void>) {
+    // not necessary
+  }
+
+  public onAfterMessage(_cb: (result: EVMResult, next?: any) => Promise<void>) {
+    // not necessary
   }
 
   private _isTxMinable(

@@ -1,6 +1,6 @@
 import { EvmError } from "@nomicfoundation/ethereumjs-evm";
 import { ERROR } from "@nomicfoundation/ethereumjs-evm/dist/exceptions";
-import { ExceptionalHalt, SuccessReason } from "rethnet-evm";
+import { ExceptionalHalt, SuccessReason } from "@ignored/edr";
 
 export enum ExitCode {
   SUCCESS,
@@ -11,26 +11,30 @@ export enum ExitCode {
   STACK_UNDERFLOW,
   CODESIZE_EXCEEDS_MAXIMUM,
   CREATE_COLLISION,
+  STATIC_STATE_CHANGE,
 }
 
 export class Exit {
-  public static fromRethnetSuccessReason(reason: SuccessReason): Exit {
+  public static fromEdrSuccessReason(reason: SuccessReason): Exit {
     switch (reason) {
       case SuccessReason.Stop:
       case SuccessReason.Return:
       case SuccessReason.SelfDestruct:
         return new Exit(ExitCode.SUCCESS);
-      // TODO: Should we throw an error if default is hit?
     }
+
+    const _exhaustiveCheck: never = reason;
   }
 
-  public static fromRethnetExceptionalHalt(halt: ExceptionalHalt): Exit {
+  public static fromEdrExceptionalHalt(halt: ExceptionalHalt): Exit {
     switch (halt) {
       case ExceptionalHalt.OutOfGas:
         return new Exit(ExitCode.OUT_OF_GAS);
 
       case ExceptionalHalt.OpcodeNotFound:
       case ExceptionalHalt.InvalidFEOpcode:
+      // Returned when an opcode is not implemented for the hardfork
+      case ExceptionalHalt.NotActivated:
         return new Exit(ExitCode.INVALID_OPCODE);
 
       case ExceptionalHalt.StackUnderflow:
@@ -43,9 +47,8 @@ export class Exit {
         return new Exit(ExitCode.CODESIZE_EXCEEDS_MAXIMUM);
 
       default: {
-        // TODO temporary, should be removed in production
-        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-        throw new Error(`Unmatched rethnet exceptional halt: ${halt}`);
+        // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+        throw new Error(`Unmatched EDR exceptional halt: ${halt}`);
       }
     }
   }
@@ -83,8 +86,12 @@ export class Exit {
       return new Exit(ExitCode.CREATE_COLLISION);
     }
 
+    if (evmError.error === ERROR.STATIC_STATE_CHANGE) {
+      return new Exit(ExitCode.STATIC_STATE_CHANGE);
+    }
+
     // TODO temporary, should be removed in production
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
     throw new Error(`Unmatched evm error: ${evmError.error}`);
   }
 
@@ -112,6 +119,8 @@ export class Exit {
         return "Codesize exceeds maximum";
       case ExitCode.CREATE_COLLISION:
         return "Create collision";
+      case ExitCode.STATIC_STATE_CHANGE:
+        return "Static state change";
     }
 
     const _exhaustiveCheck: never = this.kind;
@@ -135,12 +144,14 @@ export class Exit {
         return new EvmError(ERROR.CODESIZE_EXCEEDS_MAXIMUM);
       case ExitCode.CREATE_COLLISION:
         return new EvmError(ERROR.CREATE_COLLISION);
+      case ExitCode.STATIC_STATE_CHANGE:
+        return new EvmError(ERROR.STATIC_STATE_CHANGE);
     }
 
     const _exhaustiveCheck: never = this.kind;
   }
 
-  public getRethnetExceptionalHalt(): ExceptionalHalt {
+  public getEdrExceptionalHalt(): ExceptionalHalt {
     switch (this.kind) {
       case ExitCode.OUT_OF_GAS:
         return ExceptionalHalt.OutOfGas;
@@ -148,11 +159,12 @@ export class Exit {
         return ExceptionalHalt.OpcodeNotFound;
       case ExitCode.CODESIZE_EXCEEDS_MAXIMUM:
         return ExceptionalHalt.CreateContractSizeLimit;
+      case ExitCode.CREATE_COLLISION:
+        return ExceptionalHalt.CreateCollision;
 
       default:
-        // TODO temporary, should be removed in production
-        // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
-        throw new Error(`Unmatched rethnet exceptional halt: ${this.kind}`);
+        // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+        throw new Error(`Unmatched exit code: ${this.kind}`);
     }
   }
 }

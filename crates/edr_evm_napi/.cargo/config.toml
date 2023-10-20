@@ -1,0 +1,8 @@
+# The monorepo Cargo workspace builds to `$REPO_ROOT/target` by default.
+# However, it uses different settings than the one NAPI sets during the build for this crate.
+# Let's use a separate target-dir "$THIS_CRATE/target" to avoid invalidating the workspace-level cache.
+target-dir = "./target"
+
+[target.aarch64-unknown-linux-musl]
+linker = "aarch64-linux-musl-gcc"
+rustflags = ["-C", "target-feature=-crt-static"]

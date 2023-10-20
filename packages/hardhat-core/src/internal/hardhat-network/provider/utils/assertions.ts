@@ -13,173 +13,169 @@ export function assertHardhatNetworkInvariant(
   description: string
 ): asserts invariant {
   if (!invariant) {
-    // eslint-disable-next-line @nomiclabs/hardhat-internal-rules/only-hardhat-error
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
     throw new InternalError(
       `Internal Hardhat Network invariant was violated: ${description}`
     );
   }
 }
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 
 export function assertEqualOptionalBlocks(
   hardhatBlock: Block | undefined,
-  rethnetBlock: Block | undefined
+  edrBlock: Block | undefined
 ) {
   if (hardhatBlock === undefined) {
-    if (rethnetBlock !== undefined) {
-      console.log("hardhatBlock is undefined but rethnetBlock is defined");
-      throw new Error("hardhatBlock is undefined but rethnetBlock is defined");
+    if (edrBlock !== undefined) {
+      console.log("hardhatBlock is undefined but edrBlock is defined");
+      throw new Error("hardhatBlock is undefined but edrBlock is defined");
     }
   } else {
-    if (rethnetBlock === undefined) {
-      console.log("hardhatBlock is defined but rethnetBlock is undefined");
-      throw new Error("hardhatBlock is defined but rethnetBlock is undefined");
+    if (edrBlock === undefined) {
+      console.log("hardhatBlock is defined but edrBlock is undefined");
+      throw new Error("hardhatBlock is defined but edrBlock is undefined");
     }
 
-    assertEqualBlocks(hardhatBlock, rethnetBlock);
+    assertEqualBlocks(hardhatBlock, edrBlock);
   }
 }
 
-export function assertEqualBlocks(ethereumJSBlock: Block, rethnetBlock: Block) {
+export function assertEqualBlocks(ethereumJSBlock: Block, edrBlock: Block) {
   const differences: string[] = [];
 
   const ethereumJSHeader = ethereumJSBlock.header;
-  const rethnetHeader = rethnetBlock.header;
+  const edrHeader = edrBlock.header;
 
-  if (ethereumJSHeader.baseFeePerGas !== rethnetHeader.baseFeePerGas) {
+  if (ethereumJSHeader.baseFeePerGas !== edrHeader.baseFeePerGas) {
     console.log(
-      `Different baseFeePerGas: ${ethereumJSHeader.baseFeePerGas} (ethereumjs) !== ${rethnetHeader.baseFeePerGas} (rethnet)`
+      `Different baseFeePerGas: ${ethereumJSHeader.baseFeePerGas} (ethereumjs) !== ${edrHeader.baseFeePerGas} (edr)`
     );
     differences.push("baseFeePerGas");
   }
 
-  if (!ethereumJSHeader.coinbase.equals(rethnetHeader.coinbase)) {
+  if (!ethereumJSHeader.coinbase.equals(edrHeader.coinbase)) {
     console.log(
       `Different coinbase: ${bufferToHex(
         ethereumJSHeader.coinbase.buf
-      )} (ethereumjs) !== ${bufferToHex(rethnetHeader.coinbase.buf)} (rethnet)`
+      )} (ethereumjs) !== ${bufferToHex(edrHeader.coinbase.buf)} (edr)`
     );
     differences.push("coinbase");
   }
 
-  if (ethereumJSHeader.difficulty !== rethnetHeader.difficulty) {
+  if (ethereumJSHeader.difficulty !== edrHeader.difficulty) {
     console.log(
-      `Different difficulty: ${ethereumJSHeader.difficulty} (ethereumjs) !== ${rethnetHeader.difficulty} (rethnet)`
+      `Different difficulty: ${ethereumJSHeader.difficulty} (ethereumjs) !== ${edrHeader.difficulty} (edr)`
     );
     differences.push("difficulty");
   }
 
-  if (!ethereumJSHeader.extraData.equals(rethnetHeader.extraData)) {
+  if (!ethereumJSHeader.extraData.equals(edrHeader.extraData)) {
     console.log(
       `Different extraData: ${bufferToHex(
         ethereumJSHeader.extraData
-      )} (ethereumjs) !== ${bufferToHex(rethnetHeader.extraData)} (rethnet)`
+      )} (ethereumjs) !== ${bufferToHex(edrHeader.extraData)} (edr)`
     );
     differences.push("extraData");
   }
 
-  if (ethereumJSHeader.gasLimit !== rethnetHeader.gasLimit) {
+  if (ethereumJSHeader.gasLimit !== edrHeader.gasLimit) {
     console.log(
-      `Different gasLimit: ${ethereumJSHeader.gasLimit} (ethereumjs) !== ${rethnetHeader.gasLimit} (rethnet)`
+      `Different gasLimit: ${ethereumJSHeader.gasLimit} (ethereumjs) !== ${edrHeader.gasLimit} (edr)`
     );
     differences.push("gasLimit");
   }
 
-  if (ethereumJSHeader.gasUsed !== rethnetHeader.gasUsed) {
+  if (ethereumJSHeader.gasUsed !== edrHeader.gasUsed) {
     console.log(
-      `Different gasUsed: ${ethereumJSHeader.gasUsed} (ethereumjs) !== ${rethnetHeader.gasUsed} (rethnet)`
+      `Different gasUsed: ${ethereumJSHeader.gasUsed} (ethereumjs) !== ${edrHeader.gasUsed} (edr)`
     );
     differences.push("gasUsed");
   }
 
-  if (!ethereumJSHeader.logsBloom.equals(rethnetHeader.logsBloom)) {
+  if (!ethereumJSHeader.logsBloom.equals(edrHeader.logsBloom)) {
     console.log(
       `Different logsBloom: ${bufferToHex(
         ethereumJSHeader.logsBloom
-      )} (ethereumjs) !== ${bufferToHex(rethnetHeader.logsBloom)} (rethnet)`
+      )} (ethereumjs) !== ${bufferToHex(edrHeader.logsBloom)} (edr)`
     );
     differences.push("logsBloom");
   }
 
-  if (!ethereumJSHeader.mixHash.equals(rethnetHeader.mixHash)) {
+  if (!ethereumJSHeader.mixHash.equals(edrHeader.mixHash)) {
     console.log(
       `Different mixHash: ${bufferToHex(
         ethereumJSHeader.mixHash
-      )} (ethereumjs) !== ${bufferToHex(rethnetHeader.mixHash)} (rethnet)`
+      )} (ethereumjs) !== ${bufferToHex(edrHeader.mixHash)} (edr)`
     );
     differences.push("mixHash");
   }
 
-  if (!ethereumJSHeader.nonce.equals(rethnetHeader.nonce)) {
+  if (!ethereumJSHeader.nonce.equals(edrHeader.nonce)) {
     console.log(
       `Different nonce: ${bufferToHex(
         ethereumJSHeader.nonce
-      )} (ethereumjs) !== ${bufferToHex(rethnetHeader.nonce)} (rethnet)`
+      )} (ethereumjs) !== ${bufferToHex(edrHeader.nonce)} (edr)`
     );
     differences.push("nonce");
   }
 
-  if (ethereumJSHeader.number !== rethnetHeader.number) {
+  if (ethereumJSHeader.number !== edrHeader.number) {
     console.log(
-      `Different number: ${ethereumJSHeader.number} (ethereumjs) !== ${rethnetHeader.number} (rethnet)`
+      `Different number: ${ethereumJSHeader.number} (ethereumjs) !== ${edrHeader.number} (edr)`
     );
     differences.push("number");
   }
 
-  if (!ethereumJSHeader.parentHash.equals(rethnetHeader.parentHash)) {
+  if (!ethereumJSHeader.parentHash.equals(edrHeader.parentHash)) {
     console.log(
       `Different parentHash: ${bufferToHex(
         ethereumJSHeader.parentHash
-      )} (ethereumjs) !== ${bufferToHex(rethnetHeader.parentHash)} (rethnet)`
+      )} (ethereumjs) !== ${bufferToHex(edrHeader.parentHash)} (edr)`
     );
     differences.push("parentHash");
   }
 
-  if (!ethereumJSHeader.receiptTrie.equals(rethnetHeader.receiptTrie)) {
+  if (!ethereumJSHeader.receiptTrie.equals(edrHeader.receiptTrie)) {
     console.log(
       `Different receiptTrie: ${bufferToHex(
         ethereumJSHeader.receiptTrie
-      )} (ethereumjs) !== ${bufferToHex(rethnetHeader.receiptTrie)} (rethnet)`
+      )} (ethereumjs) !== ${bufferToHex(edrHeader.receiptTrie)} (edr)`
     );
     differences.push("receiptTrie");
   }
 
-  if (!ethereumJSHeader.stateRoot.equals(rethnetHeader.stateRoot)) {
+  if (!ethereumJSHeader.stateRoot.equals(edrHeader.stateRoot)) {
     console.log(
       `Different stateRoot: ${bufferToHex(
         ethereumJSHeader.stateRoot
-      )} (ethereumjs) !== ${bufferToHex(rethnetHeader.stateRoot)} (rethnet)`
+      )} (ethereumjs) !== ${bufferToHex(edrHeader.stateRoot)} (edr)`
     );
     differences.push("stateRoot");
   }
 
-  if (ethereumJSHeader.timestamp !== rethnetHeader.timestamp) {
+  if (ethereumJSHeader.timestamp !== edrHeader.timestamp) {
     console.log(
-      `Different timestamp: ${ethereumJSHeader.timestamp} (ethereumjs) !== ${rethnetHeader.timestamp} (rethnet)`
+      `Different timestamp: ${ethereumJSHeader.timestamp} (ethereumjs) !== ${edrHeader.timestamp} (edr)`
     );
     differences.push("timestamp");
   }
 
-  if (
-    !ethereumJSHeader.transactionsTrie.equals(rethnetHeader.transactionsTrie)
-  ) {
+  if (!ethereumJSHeader.transactionsTrie.equals(edrHeader.transactionsTrie)) {
     console.log(
       `Different transactionsTrie: ${bufferToHex(
         ethereumJSHeader.transactionsTrie
-      )} (ethereumjs) !== ${bufferToHex(
-        rethnetHeader.transactionsTrie
-      )} (rethnet)`
+      )} (ethereumjs) !== ${bufferToHex(edrHeader.transactionsTrie)} (edr)`
     );
     differences.push("transactionsTrie");
   }
 
-  if (!ethereumJSHeader.uncleHash.equals(rethnetHeader.uncleHash)) {
+  if (!ethereumJSHeader.uncleHash.equals(edrHeader.uncleHash)) {
     console.log(
       `Different uncleHash: ${bufferToHex(
         ethereumJSHeader.uncleHash
-      )} (ethereumjs) !== ${bufferToHex(rethnetHeader.uncleHash)} (rethnet)`
+      )} (ethereumjs) !== ${bufferToHex(edrHeader.uncleHash)} (edr)`
     );
     differences.push("uncleHash");
   }
@@ -187,18 +183,16 @@ export function assertEqualBlocks(ethereumJSBlock: Block, rethnetBlock: Block) {
   if (
     !areOptionalBuffersEqual(
       ethereumJSHeader.withdrawalsRoot,
-      rethnetHeader.withdrawalsRoot,
+      edrHeader.withdrawalsRoot,
       "withdrawalsRoot"
     )
   ) {
     differences.push("withdrawalsRoot");
   }
 
-  if (
-    ethereumJSBlock.transactions.length !== rethnetBlock.transactions.length
-  ) {
+  if (ethereumJSBlock.transactions.length !== edrBlock.transactions.length) {
     console.log(
-      `Different transactions length: ${ethereumJSBlock.transactions.length} (ethereumjs) !== ${rethnetBlock.transactions.length} (rethnet)`
+      `Different transactions length: ${ethereumJSBlock.transactions.length} (ethereumjs) !== ${edrBlock.transactions.length} (edr)`
     );
     differences.push("transactions.length");
   }
@@ -210,7 +204,7 @@ export function assertEqualBlocks(ethereumJSBlock: Block, rethnetBlock: Block) {
   ) {
     const txDifferences = transactionDifferences(
       ethereumJSBlock.transactions[transactionIdx],
-      rethnetBlock.transactions[transactionIdx]
+      edrBlock.transactions[transactionIdx]
     );
 
     if (txDifferences.length > 0) {
@@ -227,85 +221,85 @@ export function assertEqualBlocks(ethereumJSBlock: Block, rethnetBlock: Block) {
 
 export function transactionDifferences(
   ethereumJSTransaction: TypedTransaction,
-  rethnetTransaction: TypedTransaction
+  edrTransaction: TypedTransaction
 ): string[] {
   const differences: string[] = [];
 
-  if (!ethereumJSTransaction.data.equals(rethnetTransaction.data)) {
+  if (!ethereumJSTransaction.data.equals(edrTransaction.data)) {
     console.log(
-      `Different data: ${ethereumJSTransaction.data} (ethereumjs) !== ${rethnetTransaction.data} (rethnet)`
+      `Different data: ${ethereumJSTransaction.data} (ethereumjs) !== ${edrTransaction.data} (edr)`
     );
     differences.push("data");
   }
 
-  if (ethereumJSTransaction.gasLimit !== rethnetTransaction.gasLimit) {
+  if (ethereumJSTransaction.gasLimit !== edrTransaction.gasLimit) {
     console.log(
-      `Different gasLimit: ${ethereumJSTransaction.gasLimit} (ethereumjs) !== ${rethnetTransaction.gasLimit} (rethnet)`
+      `Different gasLimit: ${ethereumJSTransaction.gasLimit} (ethereumjs) !== ${edrTransaction.gasLimit} (edr)`
     );
     differences.push("gasLimit");
   }
 
-  if (ethereumJSTransaction.nonce !== rethnetTransaction.nonce) {
+  if (ethereumJSTransaction.nonce !== edrTransaction.nonce) {
     console.log(
-      `Different nonce: ${ethereumJSTransaction.nonce} (ethereumjs) !== ${rethnetTransaction.nonce} (rethnet)`
+      `Different nonce: ${ethereumJSTransaction.nonce} (ethereumjs) !== ${edrTransaction.nonce} (edr)`
     );
     differences.push("nonce");
   }
 
   if (ethereumJSTransaction.to === undefined) {
-    if (rethnetTransaction.to !== undefined) {
+    if (edrTransaction.to !== undefined) {
       console.log(
-        "ethereumJSTransaction.to is undefined but rethnetTransaction.to is defined"
+        "ethereumJSTransaction.to is undefined but edrTransaction.to is defined"
       );
       differences.push("to");
     }
   } else {
-    if (rethnetTransaction.to === undefined) {
+    if (edrTransaction.to === undefined) {
       throw new Error(
-        "ethereumJSTransaction.to is defined but rethnetTransaction.to is undefined"
+        "ethereumJSTransaction.to is defined but edrTransaction.to is undefined"
       );
     }
 
     // Both traces contain to
-    if (!ethereumJSTransaction.to.equals(rethnetTransaction.to)) {
+    if (!ethereumJSTransaction.to.equals(edrTransaction.to)) {
       console.log(
-        `Different to: ${ethereumJSTransaction.to} (ethereumjs) !== ${rethnetTransaction.to} (rethnet)`
+        `Different to: ${ethereumJSTransaction.to} (ethereumjs) !== ${edrTransaction.to} (edr)`
       );
       differences.push("to");
     }
   }
 
-  if (ethereumJSTransaction.type !== rethnetTransaction.type) {
+  if (ethereumJSTransaction.type !== edrTransaction.type) {
     console.log(
-      `Different type: ${ethereumJSTransaction.type} (ethereumjs) !== ${rethnetTransaction.type} (rethnet)`
+      `Different type: ${ethereumJSTransaction.type} (ethereumjs) !== ${edrTransaction.type} (edr)`
     );
     differences.push("type");
   }
 
-  if (ethereumJSTransaction.value !== rethnetTransaction.value) {
+  if (ethereumJSTransaction.value !== edrTransaction.value) {
     console.log(
-      `Different value: ${ethereumJSTransaction.value} (ethereumjs) !== ${rethnetTransaction.value} (rethnet)`
+      `Different value: ${ethereumJSTransaction.value} (ethereumjs) !== ${edrTransaction.value} (edr)`
     );
     differences.push("value");
   }
 
-  if (ethereumJSTransaction.r !== rethnetTransaction.r) {
+  if (ethereumJSTransaction.r !== edrTransaction.r) {
     console.log(
-      `Different r: ${ethereumJSTransaction.r} (ethereumjs) !== ${rethnetTransaction.r} (rethnet)`
+      `Different r: ${ethereumJSTransaction.r} (ethereumjs) !== ${edrTransaction.r} (edr)`
     );
     differences.push("r");
   }
 
-  if (ethereumJSTransaction.s !== rethnetTransaction.s) {
+  if (ethereumJSTransaction.s !== edrTransaction.s) {
     console.log(
-      `Different s: ${ethereumJSTransaction.s} (ethereumjs) !== ${rethnetTransaction.s} (rethnet)`
+      `Different s: ${ethereumJSTransaction.s} (ethereumjs) !== ${edrTransaction.s} (edr)`
     );
     differences.push("s");
   }
 
-  if (ethereumJSTransaction.v !== rethnetTransaction.v) {
+  if (ethereumJSTransaction.v !== edrTransaction.v) {
     console.log(
-      `Different v: ${ethereumJSTransaction.v} (ethereumjs) !== ${rethnetTransaction.v} (rethnet)`
+      `Different v: ${ethereumJSTransaction.v} (ethereumjs) !== ${edrTransaction.v} (edr)`
     );
     differences.push("v");
   }
@@ -315,13 +309,13 @@ export function transactionDifferences(
 
 export function assertEqualRunBlockResults(
   ethereumJSResult: RunBlockResult,
-  rethnetResult: RunBlockResult
+  edrResult: RunBlockResult
 ) {
   const differences: string[] = [];
 
-  if (ethereumJSResult.results.length !== rethnetResult.results.length) {
+  if (ethereumJSResult.results.length !== edrResult.results.length) {
     console.log(
-      `Different results length: ${ethereumJSResult.results.length} (ethereumjs) !== ${rethnetResult.results.length} (rethnet)`
+      `Different results length: ${ethereumJSResult.results.length} (ethereumjs) !== ${edrResult.results.length} (edr)`
     );
     differences.push("length");
   }
@@ -333,7 +327,7 @@ export function assertEqualRunBlockResults(
   ) {
     const resultDifferences = runTxResultDifferences(
       ethereumJSResult.results[resultIdx],
-      rethnetResult.results[resultIdx]
+      edrResult.results[resultIdx]
     );
 
     if (resultDifferences.length > 0) {
@@ -348,7 +342,7 @@ export function assertEqualRunBlockResults(
   ) {
     const receiptDifferences = txReceiptDifferences(
       ethereumJSResult.receipts[receiptIdx],
-      rethnetResult.receipts[receiptIdx]
+      edrResult.receipts[receiptIdx]
     );
 
     if (receiptDifferences.length > 0) {
@@ -356,30 +350,30 @@ export function assertEqualRunBlockResults(
     }
   }
 
-  if (!ethereumJSResult.stateRoot.equals(rethnetResult.stateRoot)) {
+  if (!ethereumJSResult.stateRoot.equals(edrResult.stateRoot)) {
     console.log(
-      `Different stateRoot: ${ethereumJSResult.stateRoot} (ethereumjs) !== ${rethnetResult.stateRoot} (rethnet)`
+      `Different stateRoot: ${ethereumJSResult.stateRoot} (ethereumjs) !== ${edrResult.stateRoot} (edr)`
     );
     differences.push("stateRoot");
   }
 
-  if (!ethereumJSResult.logsBloom.equals(rethnetResult.logsBloom)) {
+  if (!ethereumJSResult.logsBloom.equals(edrResult.logsBloom)) {
     console.log(
-      `Different logsBloom: ${ethereumJSResult.logsBloom} (ethereumjs) !== ${rethnetResult.logsBloom} (rethnet)`
+      `Different logsBloom: ${ethereumJSResult.logsBloom} (ethereumjs) !== ${edrResult.logsBloom} (edr)`
     );
     differences.push("logsBloom");
   }
 
-  if (!ethereumJSResult.receiptsRoot.equals(rethnetResult.receiptsRoot)) {
+  if (!ethereumJSResult.receiptsRoot.equals(edrResult.receiptsRoot)) {
     console.log(
-      `Different receiptsRoot: ${ethereumJSResult.receiptsRoot} (ethereumjs) !== ${rethnetResult.receiptsRoot} (rethnet)`
+      `Different receiptsRoot: ${ethereumJSResult.receiptsRoot} (ethereumjs) !== ${edrResult.receiptsRoot} (edr)`
     );
     differences.push("receiptsRoot");
   }
 
-  if (ethereumJSResult.gasUsed !== rethnetResult.gasUsed) {
+  if (ethereumJSResult.gasUsed !== edrResult.gasUsed) {
     console.log(
-      `Different gasUsed: ${ethereumJSResult.gasUsed} (ethereumjs) !== ${rethnetResult.gasUsed} (rethnet)`
+      `Different gasUsed: ${ethereumJSResult.gasUsed} (ethereumjs) !== ${edrResult.gasUsed} (edr)`
     );
     differences.push("gasUsed");
   }
@@ -392,9 +386,9 @@ export function assertEqualRunBlockResults(
 
 export function assertEqualRunTxResults(
   ethereumJSResult: RunTxResult,
-  rethnetResult: RunTxResult
+  edrResult: RunTxResult
 ) {
-  const differences = runTxResultDifferences(ethereumJSResult, rethnetResult);
+  const differences = runTxResultDifferences(ethereumJSResult, edrResult);
 
   if (differences.length !== 0) {
     throw new Error(`Different result fields: ${differences}`);
@@ -403,20 +397,20 @@ export function assertEqualRunTxResults(
 
 function runTxResultDifferences(
   ethereumJSResult: RunTxResult,
-  rethnetResult: RunTxResult
+  edrResult: RunTxResult
 ): string[] {
   const differences: string[] = [];
 
-  if (ethereumJSResult.exit.kind !== rethnetResult.exit.kind) {
+  if (ethereumJSResult.exit.kind !== edrResult.exit.kind) {
     console.log(
-      `Different exceptionError.error: ${ethereumJSResult.exit.kind} (ethereumjs) !== ${rethnetResult.exit.kind} (rethnet)`
+      `Different exceptionError.error: ${ethereumJSResult.exit.kind} (ethereumjs) !== ${edrResult.exit.kind} (edr)`
     );
     differences.push("exceptionError.error");
   }
 
-  if (ethereumJSResult.gasUsed !== rethnetResult.gasUsed) {
+  if (ethereumJSResult.gasUsed !== edrResult.gasUsed) {
     console.log(
-      `Different totalGasSpent: ${ethereumJSResult.gasUsed} (ethereumjs) !== ${rethnetResult.gasUsed} (rethnet)`
+      `Different totalGasSpent: ${ethereumJSResult.gasUsed} (ethereumjs) !== ${edrResult.gasUsed} (edr)`
     );
     differences.push("totalGasSpent");
   }
@@ -425,54 +419,50 @@ function runTxResultDifferences(
   if (exitCode === ExitCode.SUCCESS || exitCode === ExitCode.REVERT) {
     // TODO: we only compare the return values when a contract was *not* created,
     // because sometimes ethereumjs has the created bytecode in the return value
-    // and rethnet doesn't
+    // and edr doesn't
     // if (ethereumJSResult.createdAddress === undefined) {
     if (
       ethereumJSResult.returnValue.toString("hex") !==
-      rethnetResult.returnValue.toString("hex")
+      edrResult.returnValue.toString("hex")
     ) {
       console.log(
         `Different returnValue: ${ethereumJSResult.returnValue.toString(
           "hex"
-        )} (ethereumjs) !== ${rethnetResult.returnValue.toString(
-          "hex"
-        )} (rethnet)`
+        )} (ethereumjs) !== ${edrResult.returnValue.toString("hex")} (edr)`
       );
       differences.push("returnValue");
     }
     // }
 
-    if (!ethereumJSResult.bloom.equals(rethnetResult.bloom)) {
+    if (!ethereumJSResult.bloom.equals(edrResult.bloom)) {
       console.log(
-        `Different bloom: ${ethereumJSResult.bloom} (ethereumjs) !== ${rethnetResult.bloom} (rethnet)`
+        `Different bloom: ${ethereumJSResult.bloom} (ethereumjs) !== ${edrResult.bloom} (edr)`
       );
       differences.push("bloom");
     }
 
     if (
-      !ethereumJSResult.receipt.bitvector.equals(
-        rethnetResult.receipt.bitvector
-      )
+      !ethereumJSResult.receipt.bitvector.equals(edrResult.receipt.bitvector)
     ) {
       console.log(
-        `Different receipt bitvector: ${ethereumJSResult.receipt.bitvector} (ethereumjs) !== ${rethnetResult.receipt.bitvector} (rethnet)`
+        `Different receipt bitvector: ${ethereumJSResult.receipt.bitvector} (ethereumjs) !== ${edrResult.receipt.bitvector} (edr)`
       );
       differences.push("receipt.bitvector");
     }
 
     if (
       ethereumJSResult.receipt.cumulativeBlockGasUsed !==
-      rethnetResult.receipt.cumulativeBlockGasUsed
+      edrResult.receipt.cumulativeBlockGasUsed
     ) {
       console.log(
-        `Different receipt cumulativeBlockGasUsed: ${ethereumJSResult.receipt.cumulativeBlockGasUsed} (ethereumjs) !== ${rethnetResult.receipt.cumulativeBlockGasUsed} (rethnet)`
+        `Different receipt cumulativeBlockGasUsed: ${ethereumJSResult.receipt.cumulativeBlockGasUsed} (ethereumjs) !== ${edrResult.receipt.cumulativeBlockGasUsed} (edr)`
       );
       differences.push("receipt.cumulativeBlockGasUsed");
     }
 
     const logsDifferences = executionLogsDifferences(
       ethereumJSResult.receipt.logs,
-      rethnetResult.receipt.logs
+      edrResult.receipt.logs
     );
     if (logsDifferences.length > 0) {
       differences.push(`receipt.logs: ${logsDifferences}`);
@@ -482,15 +472,15 @@ function runTxResultDifferences(
   if (exitCode === ExitCode.SUCCESS) {
     if (
       ethereumJSResult.createdAddress?.toString() !==
-        rethnetResult.createdAddress?.toString() &&
+        edrResult.createdAddress?.toString() &&
       // ethereumjs returns a createdAddress, even when reverting
       !(
-        rethnetResult.createdAddress === undefined &&
+        edrResult.createdAddress === undefined &&
         ethereumJSResult.exit.kind !== ExitCode.SUCCESS
       )
     ) {
       console.log(
-        `Different createdAddress: ${ethereumJSResult.createdAddress?.toString()} (ethereumjs) !== ${rethnetResult.createdAddress?.toString()} (rethnet)`
+        `Different createdAddress: ${ethereumJSResult.createdAddress?.toString()} (ethereumjs) !== ${edrResult.createdAddress?.toString()} (edr)`
       );
       differences.push("createdAddress");
     }
@@ -501,46 +491,46 @@ function runTxResultDifferences(
 
 function executionLogsDifferences(
   ethereumJSLogs: Log[],
-  rethnetLogs: Log[]
+  edrLogs: Log[]
 ): string[] {
   const differences: string[] = [];
 
-  if (ethereumJSLogs.length !== rethnetLogs.length) {
+  if (ethereumJSLogs.length !== edrLogs.length) {
     console.log(
-      `Different logs length: ${ethereumJSLogs.length} (ethereumjs) !== ${rethnetLogs.length} (rethnet)`
+      `Different logs length: ${ethereumJSLogs.length} (ethereumjs) !== ${edrLogs.length} (edr)`
     );
     differences.push("length");
   }
 
   for (let logIdx = 0; logIdx < ethereumJSLogs.length; ++logIdx) {
-    if (!ethereumJSLogs[logIdx][0].equals(rethnetLogs[logIdx][0])) {
+    if (!ethereumJSLogs[logIdx][0].equals(edrLogs[logIdx][0])) {
       console.log(
-        `Different log[${logIdx}] address: ${ethereumJSLogs[logIdx][0]} (ethereumjs) !== ${rethnetLogs[logIdx][0]} (rethnet)`
+        `Different log[${logIdx}] address: ${ethereumJSLogs[logIdx][0]} (ethereumjs) !== ${edrLogs[logIdx][0]} (edr)`
       );
       differences.push("address");
     }
 
     const ethereumJSTopics = ethereumJSLogs[logIdx][1];
-    const rethnetTopics = rethnetLogs[logIdx][1];
-    if (ethereumJSTopics.length !== rethnetTopics.length) {
+    const edrTopics = edrLogs[logIdx][1];
+    if (ethereumJSTopics.length !== edrTopics.length) {
       console.log(
-        `Different log[${logIdx}] topics length: ${ethereumJSTopics.length} (ethereumjs) !== ${rethnetTopics.length} (rethnet)`
+        `Different log[${logIdx}] topics length: ${ethereumJSTopics.length} (ethereumjs) !== ${edrTopics.length} (edr)`
       );
       differences.push("topics length");
     }
 
     for (let topicIdx = 0; topicIdx < ethereumJSTopics.length; ++topicIdx) {
-      if (!ethereumJSTopics[topicIdx].equals(rethnetTopics[topicIdx])) {
+      if (!ethereumJSTopics[topicIdx].equals(edrTopics[topicIdx])) {
         console.log(
-          `Different log[${logIdx}] topic[${topicIdx}]: ${ethereumJSTopics[topicIdx]} (ethereumjs) !== ${rethnetTopics[topicIdx]} (rethnet)`
+          `Different log[${logIdx}] topic[${topicIdx}]: ${ethereumJSTopics[topicIdx]} (ethereumjs) !== ${edrTopics[topicIdx]} (edr)`
         );
         differences.push("topic");
       }
     }
 
-    if (!ethereumJSLogs[logIdx][2].equals(rethnetLogs[logIdx][2])) {
+    if (!ethereumJSLogs[logIdx][2].equals(edrLogs[logIdx][2])) {
       console.log(
-        `Different log[${logIdx}] data: ${ethereumJSLogs[logIdx][2]} (ethereumjs) !== ${rethnetLogs[logIdx][2]} (rethnet)`
+        `Different log[${logIdx}] data: ${ethereumJSLogs[logIdx][2]} (ethereumjs) !== ${edrLogs[logIdx][2]} (edr)`
       );
       differences.push("data");
     }
@@ -551,31 +541,30 @@ function executionLogsDifferences(
 
 function txReceiptDifferences(
   hardhatReceipt: TxReceipt,
-  rethnetReceipt: TxReceipt
+  edrReceipt: TxReceipt
 ) {
   const differences: string[] = [];
   // TODO: check stateRoot and status
 
-  if (!hardhatReceipt.bitvector.equals(rethnetReceipt.bitvector)) {
+  if (!hardhatReceipt.bitvector.equals(edrReceipt.bitvector)) {
     console.log(
-      `Different bitvector: ${hardhatReceipt.bitvector} (hardhat) !== ${rethnetReceipt.bitvector} (rethnet)`
+      `Different bitvector: ${hardhatReceipt.bitvector} (hardhat) !== ${edrReceipt.bitvector} (edr)`
     );
     differences.push("bitvector");
   }
 
   if (
-    hardhatReceipt.cumulativeBlockGasUsed !==
-    rethnetReceipt.cumulativeBlockGasUsed
+    hardhatReceipt.cumulativeBlockGasUsed !== edrReceipt.cumulativeBlockGasUsed
   ) {
     console.log(
-      `Different cumulativeBlockGasUsed: ${hardhatReceipt.cumulativeBlockGasUsed} (hardhat) !== ${rethnetReceipt.cumulativeBlockGasUsed} (rethnet)`
+      `Different cumulativeBlockGasUsed: ${hardhatReceipt.cumulativeBlockGasUsed} (hardhat) !== ${edrReceipt.cumulativeBlockGasUsed} (edr)`
     );
     differences.push("cumulativeBlockGasUsed");
   }
 
   const logsDifferences = executionLogsDifferences(
     hardhatReceipt.logs,
-    rethnetReceipt.logs
+    edrReceipt.logs
   );
   if (logsDifferences.length > 0) {
     throw new Error(`logs: ${differences}`);
@@ -586,41 +575,41 @@ function txReceiptDifferences(
 
 function areOptionalBuffersEqual(
   hardhat: Buffer | undefined,
-  rethnet: Buffer | undefined,
+  edr: Buffer | undefined,
   description: string
 ): boolean {
   if (hardhat === undefined) {
-    if (rethnet !== undefined) {
+    if (edr !== undefined) {
       console.log(
-        `${description} (hardhat) is undefined but ${description} (rethnet) is defined`
+        `${description} (hardhat) is undefined but ${description} (edr) is defined`
       );
       return false;
     }
 
     return true;
   } else {
-    if (rethnet === undefined) {
+    if (edr === undefined) {
       console.log(
-        `${description} (hardhat) is defined but ${description} (rethnet) is undefined`
+        `${description} (hardhat) is defined but ${description} (edr) is undefined`
       );
       return false;
     }
 
-    return areBuffersEqual(hardhat, rethnet, description);
+    return areBuffersEqual(hardhat, edr, description);
   }
 }
 
 function areBuffersEqual(
   hardhat: Buffer,
-  rethnet: Buffer,
+  edr: Buffer,
   description: string
 ): boolean {
-  const areEqual = hardhat.equals(rethnet);
+  const areEqual = hardhat.equals(edr);
   if (!areEqual) {
     console.log(
       `Different ${description}: ${bufferToHex(
         hardhat
-      )} (hardhat) !== ${bufferToHex(rethnet)} (rethnet)`
+      )} (hardhat) !== ${bufferToHex(edr)} (edr)`
     );
   }
 
@@ -629,80 +618,76 @@ function areBuffersEqual(
 
 export function assertEqualOptionalReceipts(
   hardhatReceipt: RpcReceiptOutput | undefined,
-  rethnetReceipt: RpcReceiptOutput | undefined
+  edrReceipt: RpcReceiptOutput | undefined
 ) {
   if (hardhatReceipt === undefined) {
-    if (rethnetReceipt !== undefined) {
-      console.log("hardhatReceipt is undefined but rethnetReceipt is defined");
-      throw new Error(
-        "hardhatReceipt is undefined but rethnetReceipt is defined"
-      );
+    if (edrReceipt !== undefined) {
+      console.log("hardhatReceipt is undefined but edrReceipt is defined");
+      throw new Error("hardhatReceipt is undefined but edrReceipt is defined");
     }
 
     return [];
   } else {
-    if (rethnetReceipt === undefined) {
-      console.log("hardhatReceipt is defined but rethnetReceipt is undefined");
-      throw new Error(
-        "hardhatReceipt is defined but rethnetReceipt is undefined"
-      );
+    if (edrReceipt === undefined) {
+      console.log("hardhatReceipt is defined but edrReceipt is undefined");
+      throw new Error("hardhatReceipt is defined but edrReceipt is undefined");
     }
 
-    assertEqualReceipts(hardhatReceipt, rethnetReceipt);
+    assertEqualReceipts(hardhatReceipt, edrReceipt);
   }
 }
 
 export function assertEqualReceipts(
   hardhatReceipt: RpcReceiptOutput,
-  rethnetReceipt: RpcReceiptOutput
+  edrReceipt: RpcReceiptOutput
 ) {
   const differences: string[] = [];
 
-  if (hardhatReceipt.blockHash !== rethnetReceipt.blockHash) {
+  if (hardhatReceipt.blockHash !== edrReceipt.blockHash) {
     console.log(
-      `Different blockHash: ${hardhatReceipt.blockHash} (hardhat) !== ${rethnetReceipt.blockHash} (rethnet)`
+      `Different blockHash: ${hardhatReceipt.blockHash} (hardhat) !== ${edrReceipt.blockHash} (edr)`
     );
     differences.push("blockHash");
   }
 
-  if (hardhatReceipt.blockNumber !== rethnetReceipt.blockNumber) {
+  if (hardhatReceipt.blockNumber !== edrReceipt.blockNumber) {
     console.log(
-      `Different blockNumber: ${hardhatReceipt.blockNumber} (hardhat) !== ${rethnetReceipt.blockNumber} (rethnet)`
+      `Different blockNumber: ${hardhatReceipt.blockNumber} (hardhat) !== ${edrReceipt.blockNumber} (edr)`
     );
     differences.push("blockNumber");
   }
 
-  if (hardhatReceipt.contractAddress !== rethnetReceipt.contractAddress) {
+  if (hardhatReceipt.contractAddress !== edrReceipt.contractAddress) {
     console.log(
-      `Different contractAddress: ${hardhatReceipt.contractAddress} (hardhat) !== ${rethnetReceipt.contractAddress} (rethnet)`
+      `Different contractAddress: ${hardhatReceipt.contractAddress} (hardhat) !== ${edrReceipt.contractAddress} (edr)`
     );
     differences.push("contractAddress");
   }
 
-  if (hardhatReceipt.cumulativeGasUsed !== rethnetReceipt.cumulativeGasUsed) {
+  if (hardhatReceipt.cumulativeGasUsed !== edrReceipt.cumulativeGasUsed) {
     console.log(
-      `Different cumulativeGasUsed: ${hardhatReceipt.cumulativeGasUsed} (hardhat) !== ${rethnetReceipt.cumulativeGasUsed} (rethnet)`
+      `Different cumulativeGasUsed: ${hardhatReceipt.cumulativeGasUsed} (hardhat) !== ${edrReceipt.cumulativeGasUsed} (edr)`
     );
     differences.push("cumulativeGasUsed");
   }
 
-  if (hardhatReceipt.from !== rethnetReceipt.from) {
+  if (hardhatReceipt.from !== edrReceipt.from) {
     console.log(
-      `Different from: ${hardhatReceipt.from} (hardhat) !== ${rethnetReceipt.from} (rethnet)`
+      `Different from: ${hardhatReceipt.from} (hardhat) !== ${edrReceipt.from} (edr)`
     );
     differences.push("from");
   }
 
-  if (hardhatReceipt.gasUsed !== rethnetReceipt.gasUsed) {
+  if (hardhatReceipt.gasUsed !== edrReceipt.gasUsed) {
     console.log(
-      `Different gasUsed: ${hardhatReceipt.gasUsed} (hardhat) !== ${rethnetReceipt.gasUsed} (rethnet)`
+      `Different gasUsed: ${hardhatReceipt.gasUsed} (hardhat) !== ${edrReceipt.gasUsed} (edr)`
     );
     differences.push("gasUsed");
   }
 
-  if (hardhatReceipt.logs.length !== rethnetReceipt.logs.length) {
+  if (hardhatReceipt.logs.length !== edrReceipt.logs.length) {
     console.log(
-      `Different logs length: ${hardhatReceipt.logs.length} (hardhat) !== ${rethnetReceipt.logs.length} (rethnet)`
+      `Different logs length: ${hardhatReceipt.logs.length} (hardhat) !== ${edrReceipt.logs.length} (edr)`
     );
     differences.push("logs length");
   }
@@ -710,7 +695,7 @@ export function assertEqualReceipts(
   for (let logIdx = 0; logIdx < hardhatReceipt.logs.length; ++logIdx) {
     const logDifferences = rpcLogDifferences(
       hardhatReceipt.logs[logIdx],
-      rethnetReceipt.logs[logIdx]
+      edrReceipt.logs[logIdx]
     );
 
     if (logDifferences.length > 0) {
@@ -718,58 +703,58 @@ export function assertEqualReceipts(
     }
   }
 
-  if (hardhatReceipt.logsBloom !== rethnetReceipt.logsBloom) {
+  if (hardhatReceipt.logsBloom !== edrReceipt.logsBloom) {
     console.log(
-      `Different logsBloom: ${hardhatReceipt.logsBloom} (hardhat) !== ${rethnetReceipt.logsBloom} (rethnet)`
+      `Different logsBloom: ${hardhatReceipt.logsBloom} (hardhat) !== ${edrReceipt.logsBloom} (edr)`
     );
     differences.push("logsBloom");
   }
 
-  if (hardhatReceipt.to !== rethnetReceipt.to) {
+  if (hardhatReceipt.to !== edrReceipt.to) {
     console.log(
-      `Different to: ${hardhatReceipt.to} (hardhat) !== ${rethnetReceipt.to} (rethnet)`
+      `Different to: ${hardhatReceipt.to} (hardhat) !== ${edrReceipt.to} (edr)`
     );
     differences.push("to");
   }
 
-  if (hardhatReceipt.transactionHash !== rethnetReceipt.transactionHash) {
+  if (hardhatReceipt.transactionHash !== edrReceipt.transactionHash) {
     console.log(
-      `Different transactionHash: ${hardhatReceipt.transactionHash} (hardhat) !== ${rethnetReceipt.transactionHash} (rethnet)`
+      `Different transactionHash: ${hardhatReceipt.transactionHash} (hardhat) !== ${edrReceipt.transactionHash} (edr)`
     );
     differences.push("transactionHash");
   }
 
-  if (hardhatReceipt.transactionIndex !== rethnetReceipt.transactionIndex) {
+  if (hardhatReceipt.transactionIndex !== edrReceipt.transactionIndex) {
     console.log(
-      `Different transactionIndex: ${hardhatReceipt.transactionIndex} (hardhat) !== ${rethnetReceipt.transactionIndex} (rethnet)`
+      `Different transactionIndex: ${hardhatReceipt.transactionIndex} (hardhat) !== ${edrReceipt.transactionIndex} (edr)`
     );
     differences.push("transactionIndex");
   }
 
-  if (hardhatReceipt.status !== rethnetReceipt.status) {
+  if (hardhatReceipt.status !== edrReceipt.status) {
     console.log(
-      `Different status: ${hardhatReceipt.status} (hardhat) !== ${rethnetReceipt.status} (rethnet)`
+      `Different status: ${hardhatReceipt.status} (hardhat) !== ${edrReceipt.status} (edr)`
     );
     differences.push("status");
   }
 
-  if (hardhatReceipt.root !== rethnetReceipt.root) {
+  if (hardhatReceipt.root !== edrReceipt.root) {
     console.log(
-      `Different root: ${hardhatReceipt.root} (hardhat) !== ${rethnetReceipt.root} (rethnet)`
+      `Different root: ${hardhatReceipt.root} (hardhat) !== ${edrReceipt.root} (edr)`
     );
     differences.push("root");
   }
 
-  if (hardhatReceipt.type !== rethnetReceipt.type) {
+  if (hardhatReceipt.type !== edrReceipt.type) {
     console.log(
-      `Different type: ${hardhatReceipt.type} (hardhat) !== ${rethnetReceipt.type} (rethnet)`
+      `Different type: ${hardhatReceipt.type} (hardhat) !== ${edrReceipt.type} (edr)`
     );
     differences.push("type");
   }
 
-  if (hardhatReceipt.effectiveGasPrice !== rethnetReceipt.effectiveGasPrice) {
+  if (hardhatReceipt.effectiveGasPrice !== edrReceipt.effectiveGasPrice) {
     console.log(
-      `Different effectiveGasPrice: ${hardhatReceipt.effectiveGasPrice} (hardhat) !== ${rethnetReceipt.effectiveGasPrice} (rethnet)`
+      `Different effectiveGasPrice: ${hardhatReceipt.effectiveGasPrice} (hardhat) !== ${edrReceipt.effectiveGasPrice} (edr)`
     );
     differences.push("effectiveGasPrice");
   }
@@ -782,78 +767,78 @@ export function assertEqualReceipts(
 
 export function rpcLogDifferences(
   hardhatLog: RpcLogOutput,
-  rethnetLog: RpcLogOutput
+  edrLog: RpcLogOutput
 ): string[] {
   const differences: string[] = [];
 
-  if (hardhatLog.address !== rethnetLog.address) {
+  if (hardhatLog.address !== edrLog.address) {
     console.log(
-      `Different address: ${hardhatLog.address} (hardhat) !== ${rethnetLog.address} (rethnet)`
+      `Different address: ${hardhatLog.address} (hardhat) !== ${edrLog.address} (edr)`
     );
     differences.push("address");
   }
 
-  if (hardhatLog.blockHash !== rethnetLog.blockHash) {
+  if (hardhatLog.blockHash !== edrLog.blockHash) {
     console.log(
-      `Different blockHash: ${hardhatLog.blockHash} (hardhat) !== ${rethnetLog.blockHash} (rethnet)`
+      `Different blockHash: ${hardhatLog.blockHash} (hardhat) !== ${edrLog.blockHash} (edr)`
     );
     differences.push("blockHash");
   }
 
-  if (hardhatLog.blockNumber !== rethnetLog.blockNumber) {
+  if (hardhatLog.blockNumber !== edrLog.blockNumber) {
     console.log(
-      `Different blockNumber: ${hardhatLog.blockNumber} (hardhat) !== ${rethnetLog.blockNumber} (rethnet)`
+      `Different blockNumber: ${hardhatLog.blockNumber} (hardhat) !== ${edrLog.blockNumber} (edr)`
     );
     differences.push("blockNumber");
   }
 
-  if (hardhatLog.data !== rethnetLog.data) {
+  if (hardhatLog.data !== edrLog.data) {
     console.log(
-      `Different data: ${hardhatLog.data} (hardhat) !== ${rethnetLog.data} (rethnet)`
+      `Different data: ${hardhatLog.data} (hardhat) !== ${edrLog.data} (edr)`
     );
     differences.push("data");
   }
 
-  if (hardhatLog.logIndex !== rethnetLog.logIndex) {
+  if (hardhatLog.logIndex !== edrLog.logIndex) {
     console.log(
-      `Different logIndex: ${hardhatLog.logIndex} (hardhat) !== ${rethnetLog.logIndex} (rethnet)`
+      `Different logIndex: ${hardhatLog.logIndex} (hardhat) !== ${edrLog.logIndex} (edr)`
     );
     differences.push("logIndex");
   }
 
-  if (hardhatLog.removed !== rethnetLog.removed) {
+  if (hardhatLog.removed !== edrLog.removed) {
     console.log(
-      `Different removed: ${hardhatLog.removed} (hardhat) !== ${rethnetLog.removed} (rethnet)`
+      `Different removed: ${hardhatLog.removed} (hardhat) !== ${edrLog.removed} (edr)`
     );
     differences.push("removed");
   }
 
-  if (hardhatLog.topics.length !== rethnetLog.topics.length) {
+  if (hardhatLog.topics.length !== edrLog.topics.length) {
     console.log(
-      `Different topics length: ${hardhatLog.topics.length} (hardhat) !== ${rethnetLog.topics.length} (rethnet)`
+      `Different topics length: ${hardhatLog.topics.length} (hardhat) !== ${edrLog.topics.length} (edr)`
     );
     differences.push("topics length");
   }
 
   for (let topicIdx = 0; topicIdx < hardhatLog.topics.length; ++topicIdx) {
-    if (hardhatLog.topics[topicIdx] !== rethnetLog.topics[topicIdx]) {
+    if (hardhatLog.topics[topicIdx] !== edrLog.topics[topicIdx]) {
       console.log(
-        `Different topics[${topicIdx}]: ${hardhatLog.topics[topicIdx]} (hardhat) !== ${rethnetLog.topics[topicIdx]} (rethnet)`
+        `Different topics[${topicIdx}]: ${hardhatLog.topics[topicIdx]} (hardhat) !== ${edrLog.topics[topicIdx]} (edr)`
       );
       differences.push(`topics[${topicIdx}]`);
     }
   }
 
-  if (hardhatLog.transactionHash !== rethnetLog.transactionHash) {
+  if (hardhatLog.transactionHash !== edrLog.transactionHash) {
     console.log(
-      `Different transactionHash: ${hardhatLog.transactionHash} (hardhat) !== ${rethnetLog.transactionHash} (rethnet)`
+      `Different transactionHash: ${hardhatLog.transactionHash} (hardhat) !== ${edrLog.transactionHash} (edr)`
     );
     differences.push("transactionHash");
   }
 
-  if (hardhatLog.transactionIndex !== rethnetLog.transactionIndex) {
+  if (hardhatLog.transactionIndex !== edrLog.transactionIndex) {
     console.log(
-      `Different transactionIndex: ${hardhatLog.transactionIndex} (hardhat) !== ${rethnetLog.transactionIndex} (rethnet)`
+      `Different transactionIndex: ${hardhatLog.transactionIndex} (hardhat) !== ${edrLog.transactionIndex} (edr)`
     );
     differences.push("transactionIndex");
   }

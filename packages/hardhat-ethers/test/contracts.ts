@@ -113,8 +113,7 @@ describe("contracts", function () {
     await contract.off("Inc", listener);
   });
 
-  // temporarily skipped because contract.once doesn't call provider.off
-  it.skip("should wait for an event using .once", async function () {
+  it("should wait for an event using .once", async function () {
     const signer = await this.env.ethers.provider.getSigner(0);
 
     const factory = new this.env.ethers.ContractFactory<[], ExampleContract>(
@@ -158,5 +157,126 @@ describe("contracts", function () {
     await eventPromise;
 
     await contract.off(contractEvent, listener);
+  });
+
+  it("should be able to wait for indexed events", async function () {
+    const signer = await this.env.ethers.provider.getSigner(0);
+
+    const factory = new this.env.ethers.ContractFactory<[], ExampleContract>(
+      EXAMPLE_CONTRACT.abi,
+      EXAMPLE_CONTRACT.deploymentBytecode,
+      signer
+    );
+
+    const contract = await factory.deploy();
+
+    let listener: any;
+    const eventPromise = new Promise((resolve) => {
+      listener = resolve;
+      return contract.on("IncBy", resolve);
+    });
+
+    await contract.incBy();
+
+    await eventPromise;
+
+    await contract.off("IncBy", listener);
+  });
+
+  it("shouldn't trigger a listener for an unrelated event", async function () {
+    const signer = await this.env.ethers.provider.getSigner(0);
+
+    const factory = new this.env.ethers.ContractFactory<[], ExampleContract>(
+      EXAMPLE_CONTRACT.abi,
+      EXAMPLE_CONTRACT.deploymentBytecode,
+      signer
+    );
+
+    const contract = await factory.deploy();
+
+    let listener: any;
+    let listenerTriggered = false;
+    const eventPromise = new Promise<void>((resolve) => {
+      listener = () => {
+        listenerTriggered = true;
+        resolve();
+      };
+      return contract.on("IncBy", listener);
+    });
+
+    // call a function that doesn't trigger IncBy
+    await contract.inc();
+
+    // contract events are implemented by polling the network, so we have to wait
+    // some time to be sure that the event wasn't emitted
+    await Promise.race([eventPromise, sleep(250)]);
+
+    assert.isFalse(listenerTriggered);
+
+    await contract.off("IncBy", listener);
+  });
+
+  it("should work when a tx emits multiple transactions", async function () {
+    const signer = await this.env.ethers.provider.getSigner(0);
+
+    const factory = new this.env.ethers.ContractFactory<[], ExampleContract>(
+      EXAMPLE_CONTRACT.abi,
+      EXAMPLE_CONTRACT.deploymentBytecode,
+      signer
+    );
+
+    const contract = await factory.deploy();
+
+    let listenerInc: any;
+    const incEventPromise = new Promise<void>((resolve) => {
+      listenerInc = resolve;
+      return contract.on("Inc", listenerInc);
+    });
+
+    let listenerAnotherEvent: any;
+    const anotherEventPromise = new Promise<void>((resolve) => {
+      listenerAnotherEvent = resolve;
+      return contract.on("AnotherEvent", listenerAnotherEvent);
+    });
+
+    // call a function that doesn't trigger IncBy
+    await contract.emitsTwoEvents();
+
+    await Promise.all([incEventPromise, anotherEventPromise]);
+
+    await contract.off("Inc", listenerInc);
+    await contract.off("AnotherEvent", listenerAnotherEvent);
+  });
+
+  it("should work when the same transaction emits the same event twice", async function () {
+    const signer = await this.env.ethers.provider.getSigner(0);
+
+    const factory = new this.env.ethers.ContractFactory<[], ExampleContract>(
+      EXAMPLE_CONTRACT.abi,
+      EXAMPLE_CONTRACT.deploymentBytecode,
+      signer
+    );
+
+    const contract = await factory.deploy();
+
+    let listenerInc: any;
+    let timesCalled = 0;
+    const incEventPromise = new Promise<void>((resolve) => {
+      listenerInc = () => {
+        timesCalled++;
+        if (timesCalled === 2) {
+          resolve();
+        }
+      };
+      return contract.on("Inc", listenerInc);
+    });
+
+    await contract.incTwice();
+
+    await incEventPromise;
+
+    assert.equal(timesCalled, 2);
+
+    await contract.off("Inc", listenerInc);
   });
 });

@@ -3,82 +3,82 @@ import { Address } from "@nomicfoundation/ethereumjs-util";
 import { transactionDifferences } from "../utils/assertions";
 import { MemPoolAdapter } from "../mem-pool";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 
 export class DualMemPool implements MemPoolAdapter {
   constructor(
     private readonly _ethereumJS: MemPoolAdapter,
-    private readonly _rethnet: MemPoolAdapter
+    private readonly _edr: MemPoolAdapter
   ) {}
 
   public async getBlockGasLimit(): Promise<bigint> {
     const ethereumJS = await this._ethereumJS.getBlockGasLimit();
-    const rethnet = await this._rethnet.getBlockGasLimit();
+    const edr = await this._edr.getBlockGasLimit();
 
-    if (ethereumJS !== rethnet) {
+    if (ethereumJS !== edr) {
       console.trace(
-        `Different blockGasLimit: ${ethereumJS} (ethereumjs) !== ${rethnet} (rethnet)`
+        `Different blockGasLimit: ${ethereumJS} (ethereumjs) !== ${edr} (edr)`
       );
       throw new Error("Different blockGasLimit");
     }
 
-    return rethnet;
+    return edr;
   }
 
   public async setBlockGasLimit(blockGasLimit: bigint): Promise<void> {
     await this._ethereumJS.setBlockGasLimit(blockGasLimit);
-    await this._rethnet.setBlockGasLimit(blockGasLimit);
+    await this._edr.setBlockGasLimit(blockGasLimit);
   }
 
   public async getNextPendingNonce(accountAddress: Address): Promise<bigint> {
     const ethereumJS = await this._ethereumJS.getNextPendingNonce(
       accountAddress
     );
-    const rethnet = await this._rethnet.getNextPendingNonce(accountAddress);
+    const edr = await this._edr.getNextPendingNonce(accountAddress);
 
-    if (ethereumJS !== rethnet) {
+    if (ethereumJS !== edr) {
       console.trace(
-        `Different nextPendingNonce: ${ethereumJS} (ethereumjs) !== ${rethnet} (rethnet)`
+        `Different nextPendingNonce: ${ethereumJS} (ethereumjs) !== ${edr} (edr)`
       );
       throw new Error("Different nextPendingNonce");
     }
 
-    return rethnet;
+    return edr;
   }
 
   public async addTransaction(transaction: TypedTransaction): Promise<void> {
     await this._ethereumJS.addTransaction(transaction);
-    await this._rethnet.addTransaction(transaction);
+    await this._edr.addTransaction(transaction);
   }
 
   public async removeTransaction(hash: Buffer): Promise<boolean> {
     const ethereumJSRemoved = await this._ethereumJS.removeTransaction(hash);
-    const rethnetRemoved = await this._rethnet.removeTransaction(hash);
+    const edrRemoved = await this._edr.removeTransaction(hash);
 
-    if (ethereumJSRemoved !== rethnetRemoved) {
+    if (ethereumJSRemoved !== edrRemoved) {
       console.trace(
-        `Different removed: ${ethereumJSRemoved} (ethereumjs) !== ${rethnetRemoved} (rethnet)`
+        `Different removed: ${ethereumJSRemoved} (ethereumjs) !== ${edrRemoved} (edr)`
       );
       throw new Error("Different removed");
     }
 
-    return rethnetRemoved;
+    return edrRemoved;
   }
 
   public async update(): Promise<void> {
     await this._ethereumJS.update();
-    await this._rethnet.update();
+    await this._edr.update();
   }
 
   public async getTransactions(): Promise<TypedTransaction[]> {
     const ethereumJSTransactions = await this._ethereumJS.getTransactions();
-    const rethnetTransactions = await this._rethnet.getTransactions();
+    const edrTransactions = await this._edr.getTransactions();
 
     const differences: string[] = [];
-    if (ethereumJSTransactions.length !== rethnetTransactions.length) {
+    if (ethereumJSTransactions.length !== edrTransactions.length) {
       console.log(
-        `Different transactions length: ${ethereumJSTransactions.length} (ethereumjs) !== ${rethnetTransactions.length} (rethnet)`
+        `Different transactions length: ${ethereumJSTransactions.length} (ethereumjs) !== ${edrTransactions.length} (edr)`
       );
       differences.push("transactions.length");
     }
@@ -90,7 +90,7 @@ export class DualMemPool implements MemPoolAdapter {
     ) {
       const txDifferences = transactionDifferences(
         ethereumJSTransactions[transactionIdx],
-        rethnetTransactions[transactionIdx]
+        edrTransactions[transactionIdx]
       );
 
       if (txDifferences.length > 0) {
@@ -106,7 +106,7 @@ export class DualMemPool implements MemPoolAdapter {
       throw new Error(`Different transactions: ${differences}`);
     }
 
-    return rethnetTransactions;
+    return edrTransactions;
   }
 
   public async getTransactionByHash(
@@ -115,23 +115,23 @@ export class DualMemPool implements MemPoolAdapter {
     const ethereumJSTransaction = await this._ethereumJS.getTransactionByHash(
       hash
     );
-    const rethnetTransaction = await this._rethnet.getTransactionByHash(hash);
+    const edrTransaction = await this._edr.getTransactionByHash(hash);
 
     if (ethereumJSTransaction === undefined) {
-      if (rethnetTransaction !== undefined) {
+      if (edrTransaction !== undefined) {
         throw new Error(
-          "ethereumJSTransaction is undefined but rethnetTransaction is defined"
+          "ethereumJSTransaction is undefined but edrTransaction is defined"
         );
       }
     } else {
-      if (rethnetTransaction === undefined) {
+      if (edrTransaction === undefined) {
         throw new Error(
-          "ethereumJSTransaction is defined but rethnetTransaction is undefined"
+          "ethereumJSTransaction is defined but edrTransaction is undefined"
         );
       }
       const differences = transactionDifferences(
         ethereumJSTransaction,
-        rethnetTransaction
+        edrTransaction
       );
 
       if (differences.length > 0) {
@@ -140,53 +140,53 @@ export class DualMemPool implements MemPoolAdapter {
       }
     }
 
-    return rethnetTransaction;
+    return edrTransaction;
   }
 
   public async hasFutureTransactions(): Promise<boolean> {
     const ethereumJS = await this._ethereumJS.hasFutureTransactions();
-    const rethnet = await this._rethnet.hasFutureTransactions();
+    const edr = await this._edr.hasFutureTransactions();
 
-    if (ethereumJS !== rethnet) {
+    if (ethereumJS !== edr) {
       console.trace(
-        `Different hasFutureTransactions: ${ethereumJS} (ethereumjs) !== ${rethnet} (rethnet)`
+        `Different hasFutureTransactions: ${ethereumJS} (ethereumjs) !== ${edr} (edr)`
       );
       throw new Error("Different hasFutureTransactions");
     }
 
-    return rethnet;
+    return edr;
   }
 
   public async hasPendingTransactions(): Promise<boolean> {
     const ethereumJS = await this._ethereumJS.hasPendingTransactions();
-    const rethnet = await this._rethnet.hasPendingTransactions();
+    const edr = await this._edr.hasPendingTransactions();
 
-    if (ethereumJS !== rethnet) {
+    if (ethereumJS !== edr) {
       console.trace(
-        `Different hasPendingTransactions: ${ethereumJS} (ethereumjs) !== ${rethnet} (rethnet)`
+        `Different hasPendingTransactions: ${ethereumJS} (ethereumjs) !== ${edr} (edr)`
       );
       throw new Error("Different hasPendingTransactions");
     }
 
-    return rethnet;
+    return edr;
   }
 
   public async makeSnapshot(): Promise<number> {
     const ethereumJS = await this._ethereumJS.makeSnapshot();
-    const rethnet = await this._rethnet.makeSnapshot();
+    const edr = await this._edr.makeSnapshot();
 
-    if (ethereumJS !== rethnet) {
+    if (ethereumJS !== edr) {
       console.trace(
-        `Different snapshotId: ${ethereumJS} (ethereumjs) !== ${rethnet} (rethnet)`
+        `Different snapshotId: ${ethereumJS} (ethereumjs) !== ${edr} (edr)`
       );
       throw new Error("Different snapshotId");
     }
 
-    return rethnet;
+    return edr;
   }
 
   public async revertToSnapshot(snapshotId: number): Promise<void> {
     await this._ethereumJS.revertToSnapshot(snapshotId);
-    await this._rethnet.revertToSnapshot(snapshotId);
+    await this._edr.revertToSnapshot(snapshotId);
   }
 }

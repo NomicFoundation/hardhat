@@ -24,7 +24,7 @@ const hre = require("hardhat");
 
 You can get access to all your tasks and plugins. To run these scripts you simply go through node: `node script.js`.
 
-To try this out, let's look at [a fresh Hardhat project](../guides/project-setup.md). Run `npx hardhat` and go through the steps to create a JavaScript project. When you're done, your project directory should look like this:
+To try this out, let's look at [a fresh Hardhat project](../guides/project-setup.md). Run `npx hardhat init` and go through the steps to create a JavaScript project. When you're done, your project directory should look like this:
 
 ```
 $ ls -l

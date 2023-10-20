@@ -1,10 +1,12 @@
-import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import type { Token } from "../src/internal/changeTokenBalance";
+import type { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import type { ChangeEtherBalance } from "./contracts";
+
 import { expect, AssertionError } from "chai";
 import path from "path";
 import util from "util";
 
 import "../src/internal/add-chai-matchers";
-import { ChangeEtherBalance } from "./contracts";
 import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 
 describe("INTEGRATION: changeEtherBalance matcher", function () {
@@ -27,6 +29,7 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
     let receiver: HardhatEthersSigner;
     let contract: ChangeEtherBalance;
     let txGasFees: number;
+    let mockToken: Token;
 
     beforeEach(async function () {
       const wallets = await this.hre.ethers.getSigners();
@@ -42,6 +45,11 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
         "hardhat_setNextBlockBaseFeePerGas",
         ["0x0"]
       );
+
+      const MockToken = await this.hre.ethers.getContractFactory<[], Token>(
+        "MockToken"
+      );
+      mockToken = await MockToken.deploy();
     });
 
     describe("Transaction Callback (legacy tx)", () => {
@@ -509,6 +517,21 @@ describe("INTEGRATION: changeEtherBalance matcher", function () {
           ).to.be.eventually.rejectedWith(
             AssertionError,
             `Expected the ether balance of "${sender.address}" NOT to change by -200 wei, but it did`
+          );
+        });
+
+        it("Should throw if chained to another non-chainable method", () => {
+          expect(() =>
+            expect(
+              sender.sendTransaction({
+                to: receiver.address,
+                value: 200,
+              })
+            )
+              .to.changeTokenBalance(mockToken, receiver, 50)
+              .and.to.changeEtherBalance(sender, "-200")
+          ).to.throw(
+            /The matcher 'changeEtherBalance' cannot be chained after 'changeTokenBalance'./
           );
         });
       });

@@ -1,5 +1,18 @@
 # @nomiclabs/hardhat-ethers
 
+## 3.0.4
+
+### Patch Changes
+
+- 487cd4a81: Reduced the load time of the plugin
+- 84283d119: Fixed two issues related to `contract.on` (https://github.com/NomicFoundation/hardhat/issues/4098). The first one was about events with indexed arguments not being handled correctly. The second one was related to transactions that emitted the same event twice or more.
+
+## 3.0.3
+
+### Patch Changes
+
+- a1e37a40b: Added support for listening for events with `contract.on`
+
 ## 3.0.2
 
 ### Patch Changes

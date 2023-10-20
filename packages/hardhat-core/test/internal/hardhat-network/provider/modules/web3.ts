@@ -26,7 +26,7 @@ describe("Web3 module", function () {
             /^HardhatNetwork\/.*\/@nomicfoundation\/ethereumjs-vm/;
           const expectedEDRVersion = /^edr\/.*\/revm\/.*$/;
           const expected =
-            this.rethnetProcess === undefined
+            this.edrProcess === undefined
               ? expectedHardhatVersion
               : expectedEDRVersion;
           assert.match(res, expected);

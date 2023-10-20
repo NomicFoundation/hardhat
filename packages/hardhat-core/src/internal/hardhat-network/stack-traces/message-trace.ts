@@ -1,12 +1,12 @@
 import type { Bytecode } from "./model";
 import type { Exit } from "../provider/vm/exit";
-import {
+import type {
   CallOutput,
   CreateOutput,
   HaltResult,
   RevertResult,
   SuccessResult,
-} from "rethnet-evm";
+} from "@ignored/edr";
 
 export type MessageTrace =
   | CreateMessageTrace

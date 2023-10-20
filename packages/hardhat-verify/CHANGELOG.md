@@ -1,5 +1,29 @@
 # @nomicfoundation/hardhat-verify
 
+## 1.1.1
+
+### Patch Changes
+
+- 4ed196924: Added `base` mainnet
+
+## 1.1.0
+
+### Minor Changes
+
+- e2fc27766: Exposed the Etherscan class as a public API for third-party consumers.
+
+## 1.0.4
+
+### Patch Changes
+
+- 0f4411ce0: Added `baseGoerli` testnet.
+
+## 1.0.3
+
+### Patch Changes
+
+- efe7824e0: Removed the `rinkeby`, `ropsten` and `kovan` deprecated test networks (thanks @pcaversaccio!)
+
 ## 1.0.2
 
 ### Patch Changes
