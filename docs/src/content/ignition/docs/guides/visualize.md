@@ -1,17 +1,18 @@
 # Visualizing your module
 
-Hardhat Ignition adds a `visualize` task, that will generate an HTML report showing the module and its execution order.
+Hardhat Ignition comes built-in with a `visualize` task that generates an HTML report, illustrating visually the module's deployment process execution. This can be helpful for debugging and verifying that your perception of your modules aligns with Hardhat Ignition's execution plan.
 
-The `visualize` task takes one argument, the path to the module to visualize. For example
+The `visualize` task takes the path to the module to visualize as an argument:
 
 ```bash
 npx hardhat ignition visualize ./ignition/modules/Apollo.js
 ```
 
-Running `visualize` will generate the report based on the given module and it will then open it in your system's default browser.
+Running `visualize` will generate the report and open it in your system's default browser.
 
-The report summarises the contracts that will be deployed and the contract calls that will be made.
+The report includes:
+- A summary of the contracts that will be deployed
+- A summary of the contract calls that will be made
+- A dependency graph of featuring modules and `Future` objects
 
-It shows the dependency graph as it will be executed by Hardhat Ignition (where a dependency will not be run until all its dependents have successfully completed).
-
-If something in your deployment isn't behaving the way you expected, the `visualize` task can be an extremely helpful tool for debugging and verifying that your and Hardhat Ignition's understanding of the deployment are the same.
+Check out the visualize report for the ENS protocol. TODO: add link
