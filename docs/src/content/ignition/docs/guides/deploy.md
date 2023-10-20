@@ -1,30 +1,30 @@
 # Deploying a module
 
-All you need to do to run a deployment is running
+To execute your deployments, you need to use the `ignition deploy` task. It takes a path to a module file as an argument:
 
 ```sh
 npx hardhat igntion deploy ignition/modules/MyModule.js
 ```
 
-When you run this task, Hardhat Ignition loads an Ignition Module exported by the file you provided, and deploys it.
+Hardhat Ignition will load the Ignition Module exported by the file you provided, and deploy it.
 
-## Deployment folders
+## Deployment artifact folders
 
 Before starting to run the deployment, Hardhat Ignition will create a deployment folder under `ignition/deployments/`. By default, the folder will be named `chain-<chainId>`, where `<chainId>` depends on which network Hardhat is connected to.
 
-You can customize the deployment folder name by provided an explicit deployment id with `--deployment-id <id>`.
+You can customize the deployment folder name by providing an explicit deployment ID with `--deployment-id <id>`.
 
-The deployment folder will contain any deployment result, and a journal file with all the actions Hardhat Ignition takes, so that it can recover from errors and resume existing deployments.
+This folder will contain all the deployment results, and a journal file which records every deployment action executed, enabling recovery from errors and resuming deployments.
 
-To learn more about the files in your deployment folder, read the [Deployment artifacts section](./../advanced/deployments.md).
+Read the [Deployment artifacts section](./../advanced/deployments.md) to learn more about the files in your deployment folder.
 
-## Reusing an existing deployment
+## Extending an existing deployment
 
-You can reuse an existing deployment folder by connecting to the same network and using the default deployment id or providing the same one.
+If you've previously executed a deployment and need to make adjustments, you can continue from where you left off by reusing the current deployment artifacts. Simply reconnect to the same network and keep the same deployment ID (either manually or by keeping the default).
 
-When you do this, you can deploy new modules. This new modules can import your existing ones if needed.
+You can add new `Future` objects to your existing Ignition Modules, and you can also add entirely new modules. All of the additions can make use of the previously existing `Future` objects and modules.
 
-Hardhat Ignition will know how to take over from where it left the previous deployment, and continue with the execution.
+Hardhat Ignition will figure out how to pick up from where it left off last time, and continue with executing the new modifications.
 
 ## Defining parameters during deployment
 
@@ -66,13 +66,13 @@ npx hardhat ignition deploy ignition/modules/Apollo.js --parameters ignition/par
 
 ## Inspecting an existing deployment
 
-Hardhat Ignition provides a task to understand the current status of an existing deployment. To use it, you should run
+To check on the current status of a deployment, run:
 
 ```sh
 npx hardhat ignition status DeploymentId
 ```
 
-For example, if we run it with the deployment from the [Quick Start guide](../getting-started/index.md#quick-start), we'd get something like this
+If you run it on the [Quick Start guide](../getting-started/index.md#quick-start) project after executing the deploying, you'd see something like this:
 
 ```
 $ npx hardhat ignition status chain-31337
