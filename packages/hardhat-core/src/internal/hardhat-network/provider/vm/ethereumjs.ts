@@ -605,6 +605,10 @@ export class EthereumJSAdapter implements VMAdapter {
     return result;
   }
 
+  public async checkpoint(): Promise<void> {
+    await this._stateManager.checkpoint();
+  }
+
   public async revert(): Promise<void> {
     await this._stateManager.revert();
   }
