@@ -100,9 +100,9 @@ function setup() {
     if (err.message.trim() !== "Invalid Version:") {
       console.error(
         chalk.red(
-          `There is an error in your ${chalk.italic(
+          `There is an error in your '${chalk.italic(
             "hardhat.config.ts"
-          )} file. Please double check it.\n`
+          )}' file. Please double check it.\n`
         )
       );
 
@@ -167,7 +167,7 @@ function listVarsToSetup() {
 }
 
 async function getTaskDefinitionAndTaskArguments(allUnparsedCLAs: string[]) {
-  await import("../../builtin-tasks/vars");
+  require("../../builtin-tasks/vars");
 
   const ctx = HardhatContext.getHardhatContext();
   const argumentsParser = new ArgumentsParser();

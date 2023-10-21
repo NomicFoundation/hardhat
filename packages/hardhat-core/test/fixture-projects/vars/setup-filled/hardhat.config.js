@@ -2,6 +2,4 @@
 vars.get("key1");
 vars.has("key2");
 
-module.exports = {
-  solidity: "0.8.3",
-};
+module.exports = {};
