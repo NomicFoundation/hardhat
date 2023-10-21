@@ -91,7 +91,7 @@ describe("verify task integration tests", () => {
       });
 
       expect(logStub).to.be.calledOnceWith(
-        `The contract ${address} has already been verified.
+        `The contract ${address} has already been verified on Etherscan.
 https://hardhat.etherscan.io/address/${address}#code`
       );
       logStub.restore();
@@ -230,7 +230,9 @@ https://hardhat.etherscan.io/address/${address}#code`
           contract: contractFQN,
         })
       ).to.be.rejectedWith(
-        new RegExp(`HH700: Artifact for contract "${contractFQN}" not found. `)
+        new RegExp(
+          `The contract ${contractFQN} is not present in your project.`
+        )
       );
     });
 
@@ -368,7 +370,9 @@ This can occur if the library is only called in the contract constructor. The mi
           address: simpleContractAddress,
           constructorArgsParams: [],
         })
-      ).to.be.rejectedWith(/Failure during etherscan status polling./);
+      ).to.be.rejectedWith(
+        /An unexpected error occurred during the verification process\.\nPlease report this issue to the Hardhat team\.\nError Details: getaddrinfo ENOTFOUND api-hardhat\.etherscan\.io/
+      );
 
       expect(logStub).to.be
         .calledOnceWith(`Successfully submitted source code for contract
@@ -656,6 +660,8 @@ describe("verify task Sourcify's integration tests", () => {
         ],
       });
       const logStub = sinon.stub(console, "log");
+      // set network name to localhost to avoid the "hardhat is not supported" error
+      this.hre.network.name = "localhost";
 
       const taskResponse = await this.hre.run(TASK_VERIFY_SOURCIFY, {
         address: simpleContractAddress,

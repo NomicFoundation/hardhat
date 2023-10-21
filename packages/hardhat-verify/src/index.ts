@@ -1,7 +1,13 @@
-import type { LibraryToAddress } from "./internal/solc/artifacts";
+import type {
+  ContractInformation,
+  ExtendedContractInformation,
+  LibraryToAddress,
+} from "./internal/solc/artifacts";
+import type { Bytecode } from "./internal/solc/bytecode";
 
 import chalk from "chalk";
 import { extendConfig, subtask, task, types } from "hardhat/config";
+
 import {
   TASK_VERIFY,
   TASK_VERIFY_GET_VERIFICATION_SUBTASKS,
@@ -10,6 +16,7 @@ import {
   TASK_VERIFY_PRINT_SUPPORTED_NETWORKS,
   TASK_VERIFY_SOURCIFY,
   TASK_VERIFY_SOURCIFY_DISABLED_WARNING,
+  TASK_VERIFY_GET_CONTRACT_INFORMATION,
 } from "./internal/task-names";
 import {
   etherscanConfigExtender,
@@ -19,11 +26,20 @@ import {
   InvalidConstructorArgumentsError,
   InvalidLibrariesError,
   HardhatVerifyError,
+  ContractNotFoundError,
+  BuildInfoNotFoundError,
+  BuildInfoCompilerVersionMismatchError,
+  DeployedBytecodeMismatchError,
 } from "./internal/errors";
 import {
   printSupportedNetworks,
   printVerificationErrors,
 } from "./internal/utilities";
+import {
+  extractMatchingContractInformation,
+  extractInferredContractInformation,
+  getLibraryInformation,
+} from "./internal/solc/artifacts";
 
 import "./internal/type-extensions";
 import "./internal/tasks/etherscan";
@@ -47,6 +63,18 @@ interface VerifySubtaskArgs {
   contract?: string;
 }
 
+export interface VerificationResponse {
+  success: boolean;
+  message: string;
+}
+
+interface GetContractInformationArgs {
+  contractFQN?: string;
+  deployedBytecode: Bytecode;
+  matchingCompilerVersions: string[];
+  libraries: LibraryToAddress;
+}
+
 extendConfig(etherscanConfigExtender);
 extendConfig(sourcifyConfigExtender);
 
@@ -54,9 +82,9 @@ extendConfig(sourcifyConfigExtender);
  * Main verification task.
  *
  * This is a meta-task that gets all the verification tasks and runs them.
- * Right now there's only a "verify-etherscan" task.
+ * It supports Etherscan and Sourcify.
  */
-task(TASK_VERIFY, "Verifies a contract on Etherscan")
+task(TASK_VERIFY, "Verifies a contract on Etherscan or Sourcify")
   .addOptionalPositionalParam("address", "Address of the contract to verify")
   .addOptionalVariadicPositionalParam(
     "constructorArgsParams",
@@ -146,6 +174,79 @@ subtask(
     return verificationSubtasks;
   }
 );
+
+subtask(TASK_VERIFY_GET_CONTRACT_INFORMATION)
+  .addParam("deployedBytecode", undefined, undefined, types.any)
+  .addParam("matchingCompilerVersions", undefined, undefined, types.any)
+  .addParam("libraries", undefined, undefined, types.any)
+  .addOptionalParam("contractFQN")
+  .setAction(
+    async (
+      {
+        contractFQN,
+        deployedBytecode,
+        matchingCompilerVersions,
+        libraries,
+      }: GetContractInformationArgs,
+      { network, artifacts }
+    ): Promise<ExtendedContractInformation> => {
+      let contractInformation: ContractInformation | null;
+
+      if (contractFQN !== undefined) {
+        const artifactExists = await artifacts.artifactExists(contractFQN);
+
+        if (!artifactExists) {
+          throw new ContractNotFoundError(contractFQN);
+        }
+
+        const buildInfo = await artifacts.getBuildInfo(contractFQN);
+        if (buildInfo === undefined) {
+          throw new BuildInfoNotFoundError(contractFQN);
+        }
+
+        if (
+          !matchingCompilerVersions.includes(buildInfo.solcVersion) &&
+          !deployedBytecode.isOvm()
+        ) {
+          throw new BuildInfoCompilerVersionMismatchError(
+            contractFQN,
+            deployedBytecode.getVersion(),
+            deployedBytecode.hasVersionRange(),
+            buildInfo.solcVersion,
+            network.name
+          );
+        }
+
+        contractInformation = extractMatchingContractInformation(
+          contractFQN,
+          buildInfo,
+          deployedBytecode
+        );
+
+        if (contractInformation === null) {
+          throw new DeployedBytecodeMismatchError(network.name, contractFQN);
+        }
+      } else {
+        contractInformation = await extractInferredContractInformation(
+          artifacts,
+          network,
+          matchingCompilerVersions,
+          deployedBytecode
+        );
+      }
+
+      // map contractInformation libraries
+      const libraryInformation = await getLibraryInformation(
+        contractInformation,
+        libraries
+      );
+
+      return {
+        ...contractInformation,
+        ...libraryInformation,
+      };
+    }
+  );
 
 /**
  * This subtask is used for backwards compatibility.

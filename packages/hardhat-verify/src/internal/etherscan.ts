@@ -1,4 +1,3 @@
-import type { Dispatcher } from "undici";
 import type { EthereumProvider } from "hardhat/types";
 import type { ChainConfig, ApiKey } from "../types";
 import type {
@@ -9,7 +8,6 @@ import type {
 import { HARDHAT_NETWORK_NAME } from "hardhat/plugins";
 
 import {
-  ContractStatusPollingError,
   ContractStatusPollingInvalidStatusCodeError,
   ContractVerificationMissingBytecodeError,
   ContractVerificationInvalidStatusCodeError,
@@ -76,9 +74,6 @@ export class Etherscan {
     apiKey: ApiKey | undefined,
     chainConfig: ChainConfig
   ) {
-    if (chainConfig.urls === undefined) {
-      throw new ChainConfigNotFoundError(chainConfig.chainId);
-    }
     const resolvedApiKey = resolveApiKey(apiKey, chainConfig.network);
     const apiUrl = chainConfig.urls.apiURL;
     const browserUrl = chainConfig.urls.browserURL.trim().replace(/\/$/, "");
@@ -104,8 +99,9 @@ export class Etherscan {
     url.search = parameters.toString();
 
     try {
-      const response: Dispatcher.ResponseData = await sendGetRequest(url);
-      const json: EtherscanGetSourceCodeResponse = await response.body.json();
+      const response = await sendGetRequest(url);
+      const json =
+        (await response.body.json()) as EtherscanGetSourceCodeResponse;
 
       if (!isSuccessStatusCode(response.statusCode)) {
         throw new ContractVerificationInvalidStatusCodeError(
@@ -163,12 +159,10 @@ export class Etherscan {
 
     const url = new URL(this.apiUrl);
     try {
-      const response: Dispatcher.ResponseData = await sendPostRequest(
-        url,
-        parameters.toString(),
-        { "Content-Type": "application/x-www-form-urlencoded" }
-      );
-      const json: EtherscanVerifyResponse = await response.body.json();
+      const response = await sendPostRequest(url, parameters.toString(), {
+        "Content-Type": "application/x-www-form-urlencoded",
+      });
+      const json = (await response.body.json()) as EtherscanVerifyResponse;
 
       if (!isSuccessStatusCode(response.statusCode)) {
         throw new ContractVerificationInvalidStatusCodeError(
@@ -224,42 +218,45 @@ export class Etherscan {
     const url = new URL(this.apiUrl);
     url.search = parameters.toString();
 
-    let response;
     try {
-      response = await sendGetRequest(url);
-    } catch (error: any) {
-      throw new ContractStatusPollingError(url.toString(), error);
-    }
+      const response = await sendGetRequest(url);
+      const json = (await response.body.json()) as EtherscanVerifyResponse;
 
-    if (!isSuccessStatusCode(response.statusCode)) {
-      // This could be always interpreted as JSON if there were any such guarantee in the Etherscan API.
-      const responseText = await response.body.text();
+      if (!isSuccessStatusCode(response.statusCode)) {
+        throw new ContractStatusPollingInvalidStatusCodeError(
+          response.statusCode,
+          JSON.stringify(json)
+        );
+      }
 
-      throw new ContractStatusPollingInvalidStatusCodeError(
-        response.statusCode,
-        responseText
-      );
-    }
+      const etherscanResponse = new EtherscanResponse(json);
 
-    const etherscanResponse = new EtherscanResponse(await response.body.json());
+      if (etherscanResponse.isPending()) {
+        await sleep(VERIFICATION_STATUS_POLLING_TIME);
 
-    if (etherscanResponse.isPending()) {
-      await sleep(VERIFICATION_STATUS_POLLING_TIME);
+        return await this.getVerificationStatus(guid);
+      }
 
-      return this.getVerificationStatus(guid);
-    }
+      if (etherscanResponse.isFailure()) {
+        return etherscanResponse;
+      }
 
-    if (etherscanResponse.isFailure()) {
+      if (!etherscanResponse.isOk()) {
+        throw new ContractStatusPollingResponseNotOkError(
+          etherscanResponse.message
+        );
+      }
+
       return etherscanResponse;
+    } catch (e) {
+      if (
+        e instanceof ContractStatusPollingInvalidStatusCodeError ||
+        e instanceof ContractStatusPollingResponseNotOkError
+      ) {
+        throw e;
+      }
+      throw new UnexpectedError(e, "Etherscan.getVerificationStatus");
     }
-
-    if (!etherscanResponse.isOk()) {
-      throw new ContractStatusPollingResponseNotOkError(
-        etherscanResponse.message
-      );
-    }
-
-    return etherscanResponse;
   }
 
   /**

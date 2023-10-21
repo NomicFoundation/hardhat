@@ -5,6 +5,7 @@ import {
   ABIArgumentTypeErrorType,
 } from "./abi-validation-extras";
 import { TASK_VERIFY_VERIFY } from "./task-names";
+import { truncate } from "./utilities";
 
 export class HardhatVerifyError extends NomicLabsHardhatPluginError {
   constructor(message: string, parent?: Error) {
@@ -111,7 +112,7 @@ Reason: ${parent.message}`,
 export class HardhatNetworkNotSupportedError extends HardhatVerifyError {
   constructor() {
     super(
-      `The selected network is "hardhat", which is not supported for contract verification. Please choose a network supported by Etherscan.
+      `The selected network is "hardhat", which is not supported for contract verification.
 
 If you intended to use a different network, ensure that you provide the --network parameter when running the command.
 
@@ -141,7 +142,9 @@ export class ContractVerificationInvalidStatusCodeError extends HardhatVerifyErr
   ) {
     super(`Failed to send contract verification request.
 Endpoint URL: ${url}${
-      requestBody !== undefined ? `\nRequest body: ${requestBody}\n` : ""
+      requestBody !== undefined
+        ? `\nRequest body: ${truncate(requestBody)}\n`
+        : ""
     }
 The HTTP server response is not ok. Status code: ${statusCode} Response text: ${responseText}`);
   }
@@ -155,18 +158,6 @@ Reason: The Etherscan API responded that the address ${contractAddress} does not
 This can happen if the contract was recently deployed and this fact hasn't propagated to the backend yet.
 Try waiting for a minute before verifying your contract. If you are invoking this from a script,
 try to wait for five confirmations of your contract deployment transaction before running the verification subtask.`);
-  }
-}
-
-export class ContractStatusPollingError extends HardhatVerifyError {
-  constructor(url: string, parent: Error) {
-    super(
-      `Failure during etherscan status polling. The verification may still succeed but
-should be checked manually.
-Endpoint URL: ${url}
-Reason: ${parent.message}`,
-      parent
-    );
   }
 }
 
@@ -475,23 +466,5 @@ address for one of these libraries:
 ${undetectableLibraries.map((x) => `  * ${x}`).join("\n")}`
     : ""
 }`);
-  }
-}
-
-export class NonUniqueContractNameError extends HardhatVerifyError {
-  constructor() {
-    super(`Non-unique contract name is used`);
-  }
-}
-
-export class SourcifyHardhatNetworkNotSupportedError extends HardhatVerifyError {
-  constructor() {
-    super(
-      `The selected network is "hardhat", which is not supported for contract verification. Please choose a network supported by Sourcify.
-
-If you intended to use a different network, ensure that you provide the --network parameter when running the command.
-
-For example: npx hardhat verify --network <network-name>`
-    );
   }
 }

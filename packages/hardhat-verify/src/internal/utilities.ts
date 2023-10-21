@@ -259,3 +259,10 @@ export abstract class ValidationResponse {
   public isSuccess() {}
   public isOk() {}
 }
+
+export function truncate(str: string, maxLength: number = 1000): string {
+  if (str.length > maxLength) {
+    return `${str.substring(0, maxLength - 3)}...`;
+  }
+  return str;
+}

@@ -4,11 +4,10 @@ import type {
   DependencyGraph,
   CompilationJob,
 } from "hardhat/types";
-import type { VerifyTaskArgs } from "../..";
+import type { VerificationResponse, VerifyTaskArgs } from "../..";
 import type {
   LibraryToAddress,
   ExtendedContractInformation,
-  ContractInformation,
 } from "../solc/artifacts";
 
 import { subtask, types } from "hardhat/config";
@@ -25,26 +24,17 @@ import {
   MissingAddressError,
   InvalidAddressError,
   InvalidContractNameError,
-  ContractNotFoundError,
-  BuildInfoNotFoundError,
-  BuildInfoCompilerVersionMismatchError,
-  DeployedBytecodeMismatchError,
   UnexpectedNumberOfFilesError,
   VerificationAPIUnexpectedMessageError,
 } from "../errors";
 import { Etherscan } from "../etherscan";
-import {
-  extractMatchingContractInformation,
-  extractInferredContractInformation,
-  getLibraryInformation,
-} from "../solc/artifacts";
 import { Bytecode } from "../solc/bytecode";
 import {
   TASK_VERIFY_ETHERSCAN,
   TASK_VERIFY_ETHERSCAN_RESOLVE_ARGUMENTS,
-  TASK_VERIFY_ETHERSCAN_GET_CONTRACT_INFORMATION,
   TASK_VERIFY_ETHERSCAN_GET_MINIMAL_INPUT,
   TASK_VERIFY_ETHERSCAN_ATTEMPT_VERIFICATION,
+  TASK_VERIFY_GET_CONTRACT_INFORMATION,
 } from "../task-names";
 import {
   getCompilerVersions,
@@ -62,13 +52,6 @@ interface VerificationArgs {
   contractFQN?: string;
 }
 
-interface GetContractInformationArgs {
-  contractFQN?: string;
-  deployedBytecode: Bytecode;
-  matchingCompilerVersions: string[];
-  libraries: LibraryToAddress;
-}
-
 interface GetMinimalInputArgs {
   sourceName: string;
 }
@@ -79,11 +62,6 @@ interface AttemptVerificationArgs {
   contractInformation: ExtendedContractInformation;
   verificationInterface: Etherscan;
   encodedConstructorArguments: string;
-}
-
-interface VerificationResponse {
-  success: boolean;
-  message: string;
 }
 
 /**
@@ -124,7 +102,7 @@ subtask(TASK_VERIFY_ETHERSCAN)
     const isVerified = await etherscan.isVerified(address);
     if (isVerified) {
       const contractURL = etherscan.getContractUrl(address);
-      console.log(`The contract ${address} has already been verified.
+      console.log(`The contract ${address} has already been verified on Etherscan.
 ${contractURL}`);
       return;
     }
@@ -150,7 +128,7 @@ ${contractURL}`);
     }
 
     const contractInformation: ExtendedContractInformation = await run(
-      TASK_VERIFY_ETHERSCAN_GET_CONTRACT_INFORMATION,
+      TASK_VERIFY_GET_CONTRACT_INFORMATION,
       {
         contractFQN,
         deployedBytecode,
@@ -263,79 +241,6 @@ subtask(TASK_VERIFY_ETHERSCAN_RESOLVE_ARGUMENTS)
         constructorArgs,
         libraries,
         contractFQN: contract,
-      };
-    }
-  );
-
-subtask(TASK_VERIFY_ETHERSCAN_GET_CONTRACT_INFORMATION)
-  .addParam("deployedBytecode", undefined, undefined, types.any)
-  .addParam("matchingCompilerVersions", undefined, undefined, types.any)
-  .addParam("libraries", undefined, undefined, types.any)
-  .addOptionalParam("contractFQN")
-  .setAction(
-    async (
-      {
-        contractFQN,
-        deployedBytecode,
-        matchingCompilerVersions,
-        libraries,
-      }: GetContractInformationArgs,
-      { network, artifacts }
-    ): Promise<ExtendedContractInformation> => {
-      let contractInformation: ContractInformation | null;
-
-      if (contractFQN !== undefined) {
-        const artifactExists = await artifacts.artifactExists(contractFQN);
-
-        if (!artifactExists) {
-          throw new ContractNotFoundError(contractFQN);
-        }
-
-        const buildInfo = await artifacts.getBuildInfo(contractFQN);
-        if (buildInfo === undefined) {
-          throw new BuildInfoNotFoundError(contractFQN);
-        }
-
-        if (
-          !matchingCompilerVersions.includes(buildInfo.solcVersion) &&
-          !deployedBytecode.isOvm()
-        ) {
-          throw new BuildInfoCompilerVersionMismatchError(
-            contractFQN,
-            deployedBytecode.getVersion(),
-            deployedBytecode.hasVersionRange(),
-            buildInfo.solcVersion,
-            network.name
-          );
-        }
-
-        contractInformation = extractMatchingContractInformation(
-          contractFQN,
-          buildInfo,
-          deployedBytecode
-        );
-
-        if (contractInformation === null) {
-          throw new DeployedBytecodeMismatchError(network.name, contractFQN);
-        }
-      } else {
-        contractInformation = await extractInferredContractInformation(
-          artifacts,
-          network,
-          matchingCompilerVersions,
-          deployedBytecode
-        );
-      }
-
-      // map contractInformation libraries
-      const libraryInformation = await getLibraryInformation(
-        contractInformation,
-        libraries
-      );
-
-      return {
-        ...contractInformation,
-        ...libraryInformation,
       };
     }
   );

@@ -1,39 +1,45 @@
+import type { VerificationResponse, VerifyTaskArgs } from "../..";
+import type {
+  ExtendedContractInformation,
+  LibraryToAddress,
+} from "../solc/artifacts";
+
 import chalk from "chalk";
 import { subtask, types } from "hardhat/config";
 import { isFullyQualifiedName } from "hardhat/utils/contract-names";
-import { Artifact } from "hardhat/types";
-import { ChainConfig } from "../../types";
-import { Sourcify } from "../sourcify";
+import { HARDHAT_NETWORK_NAME } from "hardhat/plugins";
 
+import { Sourcify } from "../sourcify";
 import {
   BuildInfoNotFoundError,
-  ContractNotFoundError,
+  CompilerVersionsMismatchError,
   ContractVerificationFailedError,
+  HardhatNetworkNotSupportedError,
+  InvalidAddressError,
   InvalidContractNameError,
-  NonUniqueContractNameError,
+  MissingAddressError,
 } from "../errors";
-
 import {
   TASK_VERIFY_SOURCIFY,
+  TASK_VERIFY_SOURCIFY_RESOLVE_ARGUMENTS,
+  TASK_VERIFY_GET_CONTRACT_INFORMATION,
   TASK_VERIFY_SOURCIFY_ATTEMPT_VERIFICATION,
   TASK_VERIFY_SOURCIFY_DISABLED_WARNING,
 } from "../task-names";
+import { getCompilerVersions, resolveLibraries } from "../utilities";
+import { Bytecode } from "../solc/bytecode";
 
-interface VerificationResponse {
-  success: boolean;
-  message: string;
-}
-
+// parsed verification args
 interface VerificationArgs {
   address: string;
-  constructorArgs: string[];
-  contract?: string;
+  libraries: LibraryToAddress;
+  contractFQN?: string;
 }
 
 interface AttemptVerificationArgs {
   address: string;
   verificationInterface: Sourcify;
-  contractFQN: string;
+  contractInformation: ExtendedContractInformation;
 }
 
 /**
@@ -45,104 +51,150 @@ interface AttemptVerificationArgs {
 subtask(TASK_VERIFY_SOURCIFY)
   .addParam("address")
   .addOptionalParam("contract")
-  .setAction(
-    async (
-      { address, contract }: VerificationArgs,
-      { config, network, run, artifacts }
-    ) => {
-      if (contract === undefined) {
-        console.log(
-          "In order to verify on Sourcify you must provide a contract fully qualified name"
-        );
-        return;
-      }
+  // TODO: [remove-verify-subtask] change to types.inputFile
+  .addOptionalParam("libraries", undefined, undefined, types.any)
+  .setAction(async (taskArgs: VerifyTaskArgs, { config, network, run }) => {
+    const { address, libraries, contractFQN }: VerificationArgs = await run(
+      TASK_VERIFY_SOURCIFY_RESOLVE_ARGUMENTS,
+      taskArgs
+    );
 
-      let customChains: ChainConfig[] = [];
-      if (
-        config.sourcify.customChains !== undefined &&
-        config.sourcify.customChains.length > 0
-      ) {
-        customChains = config.sourcify.customChains;
-      }
+    if (network.name === HARDHAT_NETWORK_NAME) {
+      throw new HardhatNetworkNotSupportedError();
+    }
 
-      const chainConfig = await Sourcify.getCurrentChainConfig(
-        network.name,
-        network.provider,
-        customChains
+    const currentChainId = parseInt(
+      await network.provider.send("eth_chainId"),
+      16
+    );
+
+    const sourcify = new Sourcify(currentChainId);
+
+    const status = await sourcify.isVerified(address);
+    if (status !== false) {
+      const contractURL = sourcify.getContractUrl(address, status);
+      console.log(`The contract ${address} has already been verified on Sourcify.
+${contractURL}`);
+      return;
+    }
+
+    const configCompilerVersions = await getCompilerVersions(config.solidity);
+
+    const deployedBytecode = await Bytecode.getDeployedContractBytecode(
+      address,
+      network.provider,
+      network.name
+    );
+
+    const matchingCompilerVersions = await deployedBytecode.getMatchingVersions(
+      configCompilerVersions
+    );
+    // don't error if the bytecode appears to be OVM bytecode, because we can't infer a specific OVM solc version from the bytecode
+    if (matchingCompilerVersions.length === 0 && !deployedBytecode.isOvm()) {
+      throw new CompilerVersionsMismatchError(
+        configCompilerVersions,
+        deployedBytecode.getVersion(),
+        network.name
       );
+    }
 
-      if (chainConfig.chainId === undefined) {
-        console.log("Missing chainId");
-        return;
+    const contractInformation: ExtendedContractInformation = await run(
+      TASK_VERIFY_GET_CONTRACT_INFORMATION,
+      {
+        contractFQN,
+        deployedBytecode,
+        matchingCompilerVersions,
+        libraries,
+      }
+    );
+
+    const {
+      success: verificationSuccess,
+      message: verificationMessage,
+    }: VerificationResponse = await run(
+      TASK_VERIFY_SOURCIFY_ATTEMPT_VERIFICATION,
+      {
+        address,
+        verificationInterface: sourcify,
+        contractInformation,
+      }
+    );
+
+    if (verificationSuccess) {
+      return;
+    }
+
+    throw new ContractVerificationFailedError(verificationMessage, []);
+  });
+
+subtask(TASK_VERIFY_SOURCIFY_RESOLVE_ARGUMENTS)
+  .addOptionalParam("address")
+  .addOptionalParam("contract")
+  // TODO: [remove-verify-subtask] change to types.inputFile
+  .addOptionalParam("libraries", undefined, undefined, types.any)
+  .setAction(
+    async ({
+      address,
+      contract,
+      libraries: librariesModule,
+    }: VerifyTaskArgs): Promise<VerificationArgs> => {
+      if (address === undefined) {
+        throw new MissingAddressError();
+      }
+
+      const { isAddress } = await import("@ethersproject/address");
+      if (!isAddress(address)) {
+        throw new InvalidAddressError(address);
       }
 
       if (contract !== undefined && !isFullyQualifiedName(contract)) {
         throw new InvalidContractNameError(contract);
       }
 
-      const artifactExists = await artifacts.artifactExists(contract);
-
-      if (!artifactExists) {
-        throw new ContractNotFoundError(contract);
+      // TODO: [remove-verify-subtask] librariesModule should always be string
+      let libraries;
+      if (typeof librariesModule === "object") {
+        libraries = librariesModule;
+      } else {
+        libraries = await resolveLibraries(librariesModule);
       }
 
-      const sourcify = new Sourcify(chainConfig.chainId);
-
-      const status = await sourcify.isVerified(address);
-      if (status !== false) {
-        const contractURL = sourcify.getContractUrl(address, status);
-        console.log(`The contract ${address} has already been verified.
-${contractURL}`);
-        return;
-      }
-
-      const {
-        success: verificationSuccess,
-        message: verificationMessage,
-      }: VerificationResponse = await run(
-        TASK_VERIFY_SOURCIFY_ATTEMPT_VERIFICATION,
-        {
-          address,
-          verificationInterface: sourcify,
-          contractFQN: contract,
-        }
-      );
-      if (verificationSuccess) {
-        return;
-      }
-
-      throw new ContractVerificationFailedError(verificationMessage, []);
+      return {
+        address,
+        libraries,
+        contractFQN: contract,
+      };
     }
   );
 
 subtask(TASK_VERIFY_SOURCIFY_ATTEMPT_VERIFICATION)
   .addParam("address")
-  .addParam("contractFQN")
+  .addParam("contractInformation", undefined, undefined, types.any)
   .addParam("verificationInterface", undefined, undefined, types.any)
   .setAction(
     async (
-      { address, verificationInterface, contractFQN }: AttemptVerificationArgs,
+      {
+        address,
+        verificationInterface,
+        contractInformation,
+      }: AttemptVerificationArgs,
       { artifacts }
     ): Promise<VerificationResponse> => {
+      const { sourceName, contractName, contractOutput, compilerInput } =
+        contractInformation;
+
+      /*      const contractFQN = `${sourceName}:${contractName}`;
       const buildInfo = await artifacts.getBuildInfo(contractFQN);
       if (buildInfo === undefined) {
         throw new BuildInfoNotFoundError(contractFQN);
       }
 
-      let artifact: Artifact;
-      try {
-        artifact = await artifacts.readArtifact(contractFQN);
-      } catch (e) {
-        throw new NonUniqueContractNameError();
-      }
+      // Ensure the linking information is present in the compiler input;
+      buildInfo.input.settings.libraries = contractInformation.libraries;
 
       const chosenContract = Object.keys(buildInfo.output.contracts).findIndex(
-        (source) => source === artifact.sourceName
+        (source) => source === sourceName
       );
-
-      if (chosenContract === -1) {
-        throw new ContractNotFoundError(artifact.sourceName);
-      }
 
       const response = await verificationInterface.verify(
         address,
@@ -150,16 +202,31 @@ subtask(TASK_VERIFY_SOURCIFY_ATTEMPT_VERIFICATION)
           hardhatOutputBuffer: JSON.stringify(buildInfo),
         },
         chosenContract
+      ); */
+
+      const metadata = (contractOutput as any).metadata;
+      const fileContent = compilerInput.sources[sourceName].content;
+
+      const librarySources = Object.keys(contractInformation.libraries).reduce(
+        (acc: any, libraryName) => {
+          const libraryContent = compilerInput.sources[sourceName].content;
+          acc[libraryName] = libraryContent;
+          return acc;
+        },
+        {}
       );
+      const response = await verificationInterface.verify(address, {
+        "metadata.json": metadata,
+        [sourceName]: fileContent,
+        ...librarySources,
+      });
 
       if (response.isOk()) {
         const contractURL = verificationInterface.getContractUrl(
           address,
           response.status
         );
-        console.log(`Successfully verified contract ${
-          contractFQN.split(":")[1]
-        } on Sourcify.
+        console.log(`Successfully verified contract ${contractName} on Sourcify.
 ${contractURL}`);
       }
 

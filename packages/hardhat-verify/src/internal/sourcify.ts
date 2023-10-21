@@ -1,20 +1,13 @@
-import type { Dispatcher } from "undici";
-import type { EthereumProvider } from "hardhat/types";
-import type { ChainConfig } from "../types";
 import type {
   SourcifyIsVerifiedResponse,
   SourcifyVerifyResponse,
 } from "./sourcify.types";
 
-import { HARDHAT_NETWORK_NAME } from "hardhat/plugins";
 import {
   ContractVerificationInvalidStatusCodeError,
-  SourcifyHardhatNetworkNotSupportedError,
-  ChainConfigNotFoundError,
   UnexpectedError,
 } from "./errors";
 import { isSuccessStatusCode, sendGetRequest, sendPostRequest } from "./undici";
-import { builtinChains } from "./chain-config";
 import { ContractStatus } from "./sourcify.types";
 import { ValidationResponse } from "./utilities";
 
@@ -23,33 +16,6 @@ export class Sourcify {
   public browserUrl: string = "https://repo.sourcify.dev";
 
   constructor(public chainId: number) {}
-
-  public static async getCurrentChainConfig(
-    networkName: string,
-    ethereumProvider: EthereumProvider,
-    customChains: ChainConfig[]
-  ): Promise<ChainConfig> {
-    const currentChainId = parseInt(
-      await ethereumProvider.send("eth_chainId"),
-      16
-    );
-
-    const currentChainConfig = [
-      // custom chains has higher precedence than builtin chains
-      ...[...customChains].reverse(), // the last entry has higher precedence
-      ...builtinChains,
-    ].find(({ chainId }) => chainId === currentChainId);
-
-    if (currentChainConfig === undefined) {
-      if (networkName === HARDHAT_NETWORK_NAME) {
-        throw new SourcifyHardhatNetworkNotSupportedError();
-      }
-
-      throw new ChainConfigNotFoundError(currentChainId);
-    }
-
-    return currentChainConfig;
-  }
 
   // https://sourcify.dev/server/api-docs/#/Repository/get_check_all_by_addresses
   public async isVerified(address: string) {
@@ -62,8 +28,8 @@ export class Sourcify {
     url.search = parameters.toString();
 
     try {
-      const response: Dispatcher.ResponseData = await sendGetRequest(url);
-      const json: SourcifyIsVerifiedResponse[] = await response.body.json();
+      const response = await sendGetRequest(url);
+      const json = (await response.body.json()) as SourcifyIsVerifiedResponse[];
 
       if (!isSuccessStatusCode(response.statusCode)) {
         throw new ContractVerificationInvalidStatusCodeError(
@@ -126,12 +92,10 @@ export class Sourcify {
 
     const url = new URL(this.apiUrl);
     try {
-      const response: Dispatcher.ResponseData = await sendPostRequest(
-        url,
-        JSON.stringify(parameters),
-        { "Content-Type": "application/json" }
-      );
-      const json: SourcifyVerifyResponse = await response.body.json();
+      const response = await sendPostRequest(url, JSON.stringify(parameters), {
+        "Content-Type": "application/json",
+      });
+      const json = (await response.body.json()) as SourcifyVerifyResponse;
 
       if (!isSuccessStatusCode(response.statusCode)) {
         throw new ContractVerificationInvalidStatusCodeError(

@@ -1,7 +1,7 @@
 export interface ChainConfig {
   network: string;
   chainId: number;
-  urls?: {
+  urls: {
     apiURL: string;
     browserURL: string;
   };
@@ -15,7 +15,6 @@ export interface EtherscanConfig {
 
 export interface SourcifyConfig {
   enabled: boolean;
-  customChains?: ChainConfig[];
 }
 
 export type ApiKey = string | Record<string, string>;
