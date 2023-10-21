@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import {
   ActionType,
   ConfigExtender,
@@ -177,26 +178,35 @@ export function experimentalAddHardhatNetworkMessageTraceHook(
 }
 
 /**
- * Secrets manager functions
+ * Vars manager functions
  */
-export const secrets = {
-  has: hasSecret,
-  get: getSecret,
+export const vars = {
+  has: hasVar,
+  get: getVar,
 };
 
-function hasSecret(key: string): boolean {
-  return HardhatContext.getHardhatContext().secretManager.has(key);
+function hasVar(key: string): boolean {
+  return HardhatContext.getHardhatContext().varsManager.has(key);
 }
 
-function getSecret(key: string, defaultValue?: string): string {
-  const value = HardhatContext.getHardhatContext().secretManager.get(
+function getVar(key: string, defaultValue?: string): string {
+  const value = HardhatContext.getHardhatContext().varsManager.get(
     key,
     defaultValue
   );
 
   if (value !== undefined) return value;
 
-  throw new HardhatError(ERRORS.SECRETS.SECRET_NOT_FOUND_FOR_KEY, {
+  // TODO: where to show error in config?
+  console.error(
+    chalk.red(
+      `Error in the configuration file 'hardhat.config.ts', use '${chalk.italic(
+        "npx hardhat vars setup"
+      )}' to list the vars that need to be setup`
+    )
+  );
+
+  throw new HardhatError(ERRORS.VARS.VALUE_NOT_FOUND_FOR_KEY, {
     value: key,
   });
 }

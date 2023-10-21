@@ -141,6 +141,6 @@ export function writePromptedForHHVSCode() {
   fs.writeFileSync(extensionPromptedPath, "{}");
 }
 
-export function getSecretsFilePath(): string {
-  return path.join(getConfigDirSync(), "secrets.json");
+export function getVarsFilePath(): string {
+  return path.join(getConfigDirSync(), "vars.json");
 }

@@ -49,7 +49,7 @@ import {
   installHardhatVSCode,
   isHardhatVSCodeInstalled,
 } from "./hardhat-vscode-installation";
-import { handleSecrets } from "./secrets";
+import { handleVars } from "./vars";
 
 const log = debug("hardhat:core:cli");
 
@@ -212,8 +212,8 @@ async function main() {
 
     const ctx = HardhatContext.createHardhatContext();
 
-    if (scopeOrTaskName === "secrets" && allUnparsedCLAs.length > 1) {
-      process.exit(await handleSecrets(allUnparsedCLAs));
+    if (scopeOrTaskName === "vars" && allUnparsedCLAs.length > 1) {
+      process.exit(await handleVars(allUnparsedCLAs));
     }
 
     const { resolvedConfig, userConfig } = loadConfigAndTasks(

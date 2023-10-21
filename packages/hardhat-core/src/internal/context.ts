@@ -8,10 +8,10 @@ import {
 
 import { assertHardhatInvariant, HardhatError } from "./core/errors";
 import { ERRORS } from "./core/errors-list";
-import { SecretsManagerSetup } from "./core/secrets/secret-manager-setup";
-import { SecretsManager } from "./core/secrets/secrets-manager";
+import { VarsManagerSetup } from "./core/vars/vars-manager-setup";
+import { VarsManager } from "./core/vars/vars-manager";
 import { TasksDSL } from "./core/tasks/dsl";
-import { getSecretsFilePath } from "./util/global-dir";
+import { getVarsFilePath } from "./util/global-dir";
 import { getRequireCachedFiles } from "./util/platform";
 
 export type GlobalWithHardhatContext = typeof global & {
@@ -20,7 +20,7 @@ export type GlobalWithHardhatContext = typeof global & {
 
 export class HardhatContext {
   constructor() {
-    this.secretManager = new SecretsManager(getSecretsFilePath());
+    this.varsManager = new VarsManager(getVarsFilePath());
   }
 
   public static isCreated(): boolean {
@@ -52,15 +52,16 @@ export class HardhatContext {
     globalAsAny.__hardhatContext = undefined;
   }
 
-  public switchToSetupSecretManager() {
-    this.secretManager = new SecretsManagerSetup(getSecretsFilePath());
+  // This function is used only when the user is setting up the vars manager via 'npx hardhat vars setup'
+  public switchToSetupVarsManager() {
+    this.varsManager = new VarsManagerSetup(getVarsFilePath());
   }
 
   public readonly tasksDSL = new TasksDSL();
   public readonly environmentExtenders: EnvironmentExtender[] = [];
   public environment?: HardhatRuntimeEnvironment;
   public readonly providerExtenders: ProviderExtender[] = [];
-  public secretManager: SecretsManager | SecretsManagerSetup;
+  public varsManager: VarsManager | VarsManagerSetup;
 
   public readonly configExtenders: ConfigExtender[] = [];
 

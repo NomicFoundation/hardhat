@@ -2,13 +2,11 @@ import chalk from "chalk";
 import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 import { HardhatContext } from "../context";
-import { SecretsManagerSetup } from "../core/secrets/secret-manager-setup";
+import { VarsManagerSetup } from "../core/vars/vars-manager-setup";
 import { loadConfigAndTasks } from "../core/config/config-loading";
 import { ArgumentsParser } from "./ArgumentsParser";
 
-export async function handleSecrets(
-  allUnparsedCLAs: string[]
-): Promise<number> {
+export async function handleVars(allUnparsedCLAs: string[]): Promise<number> {
   const { taskDefinition, taskArguments } =
     await getTaskDefinitionAndTaskArguments(allUnparsedCLAs);
 
@@ -31,120 +29,126 @@ export async function handleSecrets(
 }
 
 async function set(key: string, value?: string): Promise<number> {
-  const secretManager = HardhatContext.getHardhatContext().secretManager;
+  const varsManager = HardhatContext.getHardhatContext().varsManager;
 
-  secretManager.validateKey(key);
+  varsManager.validateKey(key);
 
-  secretManager.set(key, value ?? (await getSecretValue()));
+  varsManager.set(key, value ?? (await getVarValue()));
 
   console.warn(
-    `Secret stored at the following path: ${HardhatContext.getHardhatContext().secretManager.getStoragePath()}`
+    `Key-value pair stored at the following path: ${HardhatContext.getHardhatContext().varsManager.getStoragePath()}`
   );
 
   return 0;
 }
 
 function get(key: string): number {
-  const secret = HardhatContext.getHardhatContext().secretManager.get(key);
+  const value = HardhatContext.getHardhatContext().varsManager.get(key);
 
-  if (secret !== undefined) {
-    console.log(secret);
+  if (value !== undefined) {
+    console.log(value);
     return 0;
   }
 
   console.warn(
-    chalk.yellow(`There is no secret associated to the key '${key}'`)
+    chalk.yellow(`There is no value associated to the key '${key}'`)
   );
   return 1;
 }
 
 function list(): number {
-  const keys = HardhatContext.getHardhatContext().secretManager.list();
+  const keys = HardhatContext.getHardhatContext().varsManager.list();
 
   if (keys.length > 0) {
     keys.forEach((k) => console.log(k));
 
     console.warn(
-      `\nThe secrets are stored at the following path: ${HardhatContext.getHardhatContext().secretManager.getStoragePath()}`
+      `\nAll the key-value pairs are stored at the following path: ${HardhatContext.getHardhatContext().varsManager.getStoragePath()}`
     );
   } else {
-    console.warn(chalk.yellow(`There are no secrets in the secret manager`));
+    console.warn(chalk.yellow(`There are no key-value pairs stored`));
   }
 
   return 0;
 }
 
 function del(key: string): number {
-  if (HardhatContext.getHardhatContext().secretManager.delete(key)) {
+  if (HardhatContext.getHardhatContext().varsManager.delete(key)) {
     console.warn(
-      `The secret was deleted at the following path: ${HardhatContext.getHardhatContext().secretManager.getStoragePath()}`
+      `The key was deleted at the following path: ${HardhatContext.getHardhatContext().varsManager.getStoragePath()}`
     );
     return 0;
   }
 
   console.warn(
-    chalk.yellow(`There is no secret associated to the key '${key}'`)
+    chalk.yellow(`There is no value associated to the key '${key}'`)
   );
   return 1;
 }
 
 function path() {
-  console.log(
-    HardhatContext.getHardhatContext().secretManager.getStoragePath()
-  );
+  console.log(HardhatContext.getHardhatContext().varsManager.getStoragePath());
   return 0;
 }
 
 function setup() {
-  HardhatContext.getHardhatContext().switchToSetupSecretManager();
+  HardhatContext.getHardhatContext().switchToSetupVarsManager();
 
   try {
     loadConfigAndTasks();
   } catch (err: any) {
     if (err.message.trim() !== "Invalid Version:") {
+      console.error(
+        chalk.red(
+          `There is an error in your ${chalk.italic(
+            "hardhat.config.ts"
+          )} file. Please double check it.\n`
+        )
+      );
+
       // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw err;
     }
   }
 
-  listSecretsToSetup();
+  listVarsToSetup();
 
   return 0;
 }
 
-async function getSecretValue(): Promise<string> {
+async function getVarValue(): Promise<string> {
   const { default: enquirer } = await import("enquirer");
 
-  const response: { secret: string } = await enquirer.prompt({
+  const response: { value: string } = await enquirer.prompt({
     type: "password",
-    name: "secret",
-    message: "Enter secret:",
+    name: "value",
+    message: "Enter value:",
   });
 
-  if (response.secret.replace(/[\s\t]/g, "").length === 0) {
-    throw new HardhatError(ERRORS.SECRETS.INVALID_EMPTY_VALUE);
+  if (response.value.replace(/[\s\t]/g, "").length === 0) {
+    throw new HardhatError(ERRORS.VARS.INVALID_EMPTY_VALUE);
   }
 
-  return response.secret;
+  return response.value;
 }
 
-function listSecretsToSetup() {
-  const secretsManager = HardhatContext.getHardhatContext()
-    .secretManager as SecretsManagerSetup;
+function listVarsToSetup() {
+  const varsManagerSetup = HardhatContext.getHardhatContext()
+    .varsManager as VarsManagerSetup;
 
-  const requiredKeys = secretsManager.getRequiredSecretsKeys();
-  const optionalKeys = secretsManager.getOptionalSecretsKeys();
+  const requiredKeys = varsManagerSetup.getRequiredVarsKeys();
+  const optionalKeys = varsManagerSetup.getOptionalVarsKeys();
 
   if (requiredKeys.length === 0 && optionalKeys.length === 0) {
-    console.log(chalk.green("There are no secrets to setup"));
+    console.log(chalk.green("There are no key-value pairs to setup"));
     return;
   }
 
   if (requiredKeys.length > 0) {
     console.log(
       chalk.red(
-        `The following required secrets are needed:\n${requiredKeys
-          .map((k) => `npx hardhat secrets set ${k}`)
+        `The following required vars are needed:\n${requiredKeys
+          .map((k) => `npx hardhat vars set ${k}`)
           .join("\n")}`
       )
     );
@@ -154,8 +158,8 @@ function listSecretsToSetup() {
   if (optionalKeys.length > 0) {
     console.log(
       chalk.yellow(
-        `The following optional secrets can be provided:\n${optionalKeys
-          .map((k) => `npx hardhat secrets set ${k}`)
+        `The following optional vars can be provided:\n${optionalKeys
+          .map((k) => `npx hardhat vars set ${k}`)
           .join("\n")}`
       )
     );
@@ -163,7 +167,7 @@ function listSecretsToSetup() {
 }
 
 async function getTaskDefinitionAndTaskArguments(allUnparsedCLAs: string[]) {
-  await import("../../builtin-tasks/secrets");
+  await import("../../builtin-tasks/vars");
 
   const ctx = HardhatContext.getHardhatContext();
   const argumentsParser = new ArgumentsParser();

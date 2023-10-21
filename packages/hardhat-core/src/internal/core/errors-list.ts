@@ -41,7 +41,7 @@ export const ERROR_RANGES: {
   INTERNAL: { min: 900, max: 999, title: "Internal Hardhat errors" },
   SOURCE_NAMES: { min: 1000, max: 1099, title: "Source name errors" },
   CONTRACT_NAMES: { min: 1100, max: 1199, title: "Contract name errors" },
-  SECRETS: { min: 1200, max: 1299, title: "Secrets errors" },
+  VARS: { min: 1200, max: 1299, title: "Vars errors" },
 };
 
 export const ERRORS = {
@@ -1299,28 +1299,28 @@ A fully qualified name should look like file.sol:Contract`,
       shouldBeReported: false,
     },
   },
-  SECRETS: {
-    SECRETS_ONLY_MANAGED_IN_CLI: {
+  VARS: {
+    ONLY_MANAGED_IN_CLI: {
       number: 1200,
-      title: "Secrets can only be managed from the CLI",
-      message: "Secrets can only be managed from the CLI.",
-      description: `Secrets can only be managed from the CLI.`,
+      title: "Vars can only be managed from the CLI",
+      message: "Vars can only be managed from the CLI.",
+      description: `Vars can only be managed from the CLI.`,
       shouldBeReported: false,
     },
-    SECRET_NOT_FOUND_FOR_KEY: {
+    VALUE_NOT_FOUND_FOR_KEY: {
       number: 1201,
-      message: "Cannot find a secret value associated to the key '%value%'",
-      title: "Cannot find secret value",
-      description: `Cannot find secret value.
+      message: "Cannot find a value associated to the key '%value%'",
+      title: "Cannot find a value associated to the key",
+      description: `Cannot find a value associated to the key.
 
 Please double check your key and try to run again.`,
       shouldBeReported: false,
     },
-    SECRET_KEY_UNDEFINED: {
+    KEY_UNDEFINED: {
       number: 1202,
-      message: "The key associated to a secret cannot be undefined",
-      title: "Secret's key cannot be undefined",
-      description: `Secret's key cannot be undefined.
+      message: "The key of a var's key-value pair cannot be undefined",
+      title: "Var's key cannot be undefined",
+      description: `Var's key cannot be undefined.
 
 Please double check your key and try to run again.`,
       shouldBeReported: false,
