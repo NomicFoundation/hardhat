@@ -132,7 +132,7 @@ And paste the following code into a `ignition/modules/Apollo.ts`. We'll explain 
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 export default buildModule("Apollo", (m) => {
-  const apollo = m.contract("Rocket", ["Apollo"]);
+  const apollo = m.contract("Rocket", ["Saturn V"]);
 
   m.call(apollo, "launch", []);
 
@@ -150,7 +150,7 @@ And paste the following code into a `ignition/modules/Apollo.js`. We'll explain 
 const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 
 module.exports = buildModule("Apollo", (m) => {
-  const apollo = m.contract("Rocket", ["Apollo"]);
+  const apollo = m.contract("Rocket", ["Saturn V"]);
 
   m.call(apollo, "launch", []);
 
@@ -170,7 +170,7 @@ When we call these `ModuleBuilder` methods, they create a `Future` object, which
 
 This doesn't execute anything against the network, it simply represents it internally. After the `Future` is created, it gets registered within the module, and the method returns it.
 
-In our module, we created two `Future` objects by calling the `contract` and `call` methods. The initial one instructs Hardhat Ignition to deploy a `Rocket` contract instance, specifying `"Apollo"` as the only constructor parameter. The second one indicates that we intend to execute the `launch` function of the deployed `Rocket` instance, with no arguments provided.
+In our module, we created two `Future` objects by calling the `contract` and `call` methods. The initial one instructs Hardhat Ignition to deploy a `Rocket` contract instance, specifying `"Saturn V"` as the only constructor parameter. The second one indicates that we intend to execute the `launch` function of the deployed `Rocket` instance, with no arguments provided.
 
 Finally, we return the `Future` object representing the `Rocket` contract instance, to make it accessible to other modules and tests as well.
 

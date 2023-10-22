@@ -14,15 +14,15 @@ For example, if we wanted to add a new `Rocket` contract instance to the module 
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 export default buildModule("Apollo", (m) => {
-  const apollo = m.contract("Rocket", ["Apollo"]);
+  const apollo = m.contract("Rocket", ["Saturn V"]);
 
   m.call(apollo, "launch", []);
 
-  const starship = m.contract("Rocket", ["Starship"], { id: "starship" });
+  const artemis = m.contract("Rocket", ["Artemis 2"], { id: "artemis" });
 
-  m.call(starship, "launch", []);
+  m.call(artemis, "launch", []);
 
-  return { apollo, starship };
+  return { apollo, artemis };
 });
 ```
 
@@ -36,15 +36,15 @@ export default buildModule("Apollo", (m) => {
 const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 
 module.exports = buildModule("Apollo", (m) => {
-  const apollo = m.contract("Rocket", ["Apollo"]);
+  const apollo = m.contract("Rocket", ["Saturn V"]);
 
   m.call(apollo, "launch", []);
 
-  const starship = m.contract("Rocket", ["Starship"], { id: "starship" });
+  const artemis = m.contract("Rocket", ["Artemis 2"], { id: "artemis" });
 
-  m.call(starship, "launch", []);
+  m.call(artemis, "launch", []);
 
-  return { apollo, starship };
+  return { apollo, artemis };
 });
 ```
 
@@ -78,10 +78,10 @@ This is what the output would look like:
 
 ```
 Batch #1
-  Executed Apollo#starship
+  Executed Apollo#artemis
 
 Batch #2
-  Executed Apollo#Apollo.starship.launch
+  Executed Apollo#Apollo.artemis.launch
 
 
 [ Apollo ] successfully deployed 🚀
@@ -89,7 +89,7 @@ Batch #2
 Deployed Addresses
 
 Apollo#Rocket - 0x5fbdb2315678afecb367f032d93f642f64180aa3
-Apollo#starship - 0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0
+Apollo#artemis - 0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0
 ```
 
 We can see two new batches that execute the new parts of the module, while keeping the previous already deployed parts intact.

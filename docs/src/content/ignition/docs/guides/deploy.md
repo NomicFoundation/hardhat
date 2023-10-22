@@ -35,12 +35,12 @@ An example file could be called `./ignition/parameters.json` and contain the fol
 ```json
 {
   "Apollo": {
-    "name": "Apollo 11"
+    "name": "Saturn V"
   }
 }
 ```
 
-This makes the `name` parameter for the `Apollo` module be `"Apollo 11"`.
+This makes the `name` parameter for the `Apollo` module be `"Saturn V"`.
 
 To execute a deployment using parameters, you need to use the `--parameters` argument, like this:
 

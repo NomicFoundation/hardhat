@@ -227,7 +227,7 @@ For example, we can modify the `Apollo` module from the [Quick Start guide](../g
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 export default buildModule("Apollo", (m) => {
-  const apollo = m.contract("Rocket", m.getParameter("name", "Apollo"));
+  const apollo = m.contract("Rocket", m.getParameter("name", "Saturn V"));
 
   m.call(apollo, "launch", []);
 
@@ -245,7 +245,7 @@ export default buildModule("Apollo", (m) => {
 const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 
 module.exports = buildModule("Apollo", (m) => {
-  const apollo = m.contract("Rocket", m.getParameter("name", "Apollo"));
+  const apollo = m.contract("Rocket", m.getParameter("name", "Saturn V"));
 
   m.call(apollo, "launch", []);
 
