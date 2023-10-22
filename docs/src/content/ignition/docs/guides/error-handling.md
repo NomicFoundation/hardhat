@@ -14,7 +14,7 @@ While simulations catch most errors, sometimes a transaction simulation can be s
 
 Hardhat Ignition uses a journal to record every execution step it performs, as well as the results of each of them. This allows it to resume a previous execution when needed. As soon as a `Future` starts its execution, it will be recoreded into the journal.
 
-This means that if the way a `Future` was defined is what's causing an error, you will need to wipe the `Future` object's previous execution from the journal, since its definition changed. You can use the `ignition wipe` task for this, by providing it with a deployment ID **and** a future ID.
+If your deployment is failing due to a `Future`, and you need to change its definition to fix it, you will need to wipe the `Future` object's previous execution from the journal, since its definition changed. You can use the `ignition wipe` task for this, by providing it with a deployment ID **and** a future ID.
 
 ```sh
 npx hardhat ignition wipe deploymentId futureId
