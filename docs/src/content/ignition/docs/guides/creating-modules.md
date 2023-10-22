@@ -154,7 +154,7 @@ You can also provide as a fourth parameter an object with options, which can con
 
 ### Sending ETH or data to an account
 
-To send ETH or data to an EOA you can use `m.send`:
+To send ETH or data to an account you can use `m.send`:
 
 ```js
 const send = m.send("SendingEth", address, 1_000_000n);
