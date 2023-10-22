@@ -6,7 +6,7 @@ As explained in the [Module execution](./execution.md) guide, Hardhat Ignition c
 
 This previous state may have been created with a different version of your modules or contracts though. Hardhat Ignition runs a process called Reconciliation to understand if the previous state is compatible with your current modules and contracts.
 
-If the reconciliation process fails, Hardhat Ignition won't let you resume the deployment, and will indicate which `Futures` have incompatible changes.
+If the reconciliation process fails, Hardhat Ignition won't let you resume the deployment, and will indicate which futures have incompatible changes.
 
 ## Compatible changes
 
@@ -27,7 +27,7 @@ and deployed it with `5` as the value of `param`, you can modify it like this an
 const foo = m.contract("Foo", [5]);
 ```
 
-You can delete `Futures` from modules as long as they haven't been executed yet. You can also delete a `Future` if it has been successfully executed, though Hardhat Ignition will print a warning when the modified module is deployed.
+You can delete futures from modules as long as they haven't been executed yet. You can also delete a `Future` if it has been successfully executed, though Hardhat Ignition will print a warning when the modified module is deployed.
 
 You can also modify the dependencies of a `Future` as long as it hasn't started executing, or if the dependencies have already been successfully executed.
 
