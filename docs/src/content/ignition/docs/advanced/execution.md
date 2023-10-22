@@ -6,9 +6,9 @@ This section explains how Hardhat Ignition deploys your modules. You don't need 
 
 When you run `npx hardhat ignition deploy <file>`, Hardhat Ignition will read the `<file>`, then execute its code including the call to `buildModule` that defines your module.
 
-`buildModule` uses your module defintion callback to create different futures. `buildModule` runs some initial validations that only depend on the module defintion itself. If these validations pass, an Ignition Module will be created based on the futures.
+`buildModule` uses your module definition callback to create different futures. `buildModule` runs some initial validations that only depend on the module definition itself. If these validations pass, an Ignition Module will be created based on the futures.
 
-Hardhat Ignition will next check the created module in the context of your project. It will perform additional validations to ensure the futures are correct with respect to your contracts (e.g. the contracts you want to deploy exist, that you are passing them the right number of arguments, etc).
+Hardhat Ignition will next check the created module in the context of your project. It will perform additional validations to ensure the futures are correct with respect to your contracts (i.e the contracts you want to deploy exist, that you are passing them valid arguments, etc).
 
 ## Previous state and reconciliation
 
@@ -26,21 +26,21 @@ If there's a journal, and the reconciliation process passes, Hardhat Ignition st
 
 Deploying a module means executing all of its futures, which in turn requires executing all of their dependencies, which may come from different modules.
 
-To decide the right order of execution, Hardhat Ignition creates a graph of futures, including those in your module, and those in submodules. In this graph, edges represent [explicit or implicit dependencies between futures](../guides/creating-modules.md#dependencies-between-futures).
+To decide the right order of execution, Hardhat Ignition creates a graph of `Future` objects, including those in your module, and those in submodules. In this graph, edges represent [explicit or implicit dependencies between `Future` objects](../guides/creating-modules.md#dependencies-between--future--objects).
 
-Using this graph, Hardhat Ignition will create different execution batches. Each batch has a set of futures that can be executed in parallel.
+Using this graph, Hardhat Ignition will create different execution batches. Each batch has a set of `Future` objects that can be executed in parallel.
 
-The first batch will contain futures that meet one of these rules:
+The first batch will contain `Future` objects that meet one of these rules:
 
 - It has started executing in a previous run and has neither completed nor failed.
 - It has no dependency.
 - All of its dependencies were succesfully executed in a the previous run.
 
-The successive batches will have futures whose dependencies are included in the batches preceding it. For example, batch 4 would have futures whose dependencies were executed in a previous run, or are included in the batches 1, 2 or 3.
+The successive batches will have `Future` objects whose dependencies are included in the batches preceding it. For example, batch 4 would have `Future` objects whose dependencies were executed in a previous run, or are included in the batches 1, 2 or 3.
 
 This batching process is run before starting to execute, and the batches are not updated during the execution.
 
-When Hardhat Ignition starts executing a batch, it will wait until all its futures are complete before executing the next batch.
+When Hardhat Ignition starts executing a batch, it will wait until all its `Future` objects are complete before executing the next batch.
 
 ## `Future` execution
 
@@ -52,15 +52,15 @@ As explained above, Hardhat Ignition uses a journal to be able to recreate its i
 
 The first message recorded into the journal indicates that Hardhat Ignition will start executing a `Future`. This message records a concrete view of your `Future`, where any `Future`, Module Parameter or account used as argument or option is replaced with their concrete value. This allows Hardhat Ignition, during the reconciliation process, to prevent the execution of an unmodified `Future` with different values (e.g. different Module Parameters).
 
-Subsequent steps of the future's execution are also recorded to the journal, including both success and failure results. The only exception to this rule are failed transaction simulations; these are not recorded. See [Transaction execution](./execution.md#transaction-execution) to learn more about transaction simulations.
+Subsequent steps of the `Future` execution are also recorded to the journal, including both success and failure results. The only exception to this rule are failed transaction simulations; these are not recorded. See [Transaction execution](./execution.md#transaction-execution) to learn more about transaction simulations.
 
-Hardhat Ignition will error if you try to resume the execution of a `Future` that has a failed result recorded in the journal. It will indicate that you need to [wipe the future's previous execution](../guides/error-handling.md#deleting-a-previous-execution).
+Hardhat Ignition will error if you try to resume the execution of a `Future` that has a failed result recorded in the journal. It will indicate that you need to [wipe the future's previous execution](../guides/error-handling.md#wiping-a-previous-execution).
 
 ### Executing the different kinds of `Future`
 
 Hardhat Ignition knows how to execute each kind of `Future`: deploying a contract, instantiating an existing one, calling a contract, reading from one, deploying a library, sending ETH or data, or reading an event argument.
 
-Some of these futures require sending transactions, which Hardhat Ignition does through the [Hardhat Runtime Environment](../../../hardhat-runner/docs/advanced/hardhat-runtime-environment.md)'s network connection.
+Some of these require sending transactions, which Hardhat Ignition does through the [Hardhat Runtime Environment](../../../hardhat-runner/docs/advanced/hardhat-runtime-environment.md)'s network connection.
 
 ### Transaction execution
 
