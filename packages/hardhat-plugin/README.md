@@ -49,6 +49,6 @@ Go to [CONTRIBUTING.md](https://github.com/NomicFoundation/hardhat-ignition/blob
 
 ## Feedback, help and news
 
-[Hardhat Support Discord server](https://hardhat.org/ignition-discord): for questions and feedback.
+[Hardhat Ignition on Discord](https://hardhat.org/ignition-discord): for questions and feedback.
 
 [Follow Hardhat on Twitter.](https://twitter.com/HardhatHQ)
