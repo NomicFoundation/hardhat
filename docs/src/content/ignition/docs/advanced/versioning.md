@@ -1,6 +1,6 @@
 # Version control of deployments
 
-Hardhat Ignition creates files for each deployment. The files are stored under the directory `./ignition/deployments/<DeploymentId>`. To understand the files created, please read our [Deployment artifacts](./deployments.md) guide.
+Hardhat Ignition creates files for each deployment. The files are stored under the directory `./ignition/deployments/<DeploymentId>`. To understand the files created, please read our [Deployment artifacts](./deployment-artifacts.md) guide.
 
 If you want to store your deployments in version control, the recommended way is commiting the entire `./ignition/deployments` directory.
 
