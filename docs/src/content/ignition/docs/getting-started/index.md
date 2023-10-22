@@ -122,13 +122,11 @@ mkdir ignition
 mkdir ignition/modules
 ```
 
-And paste the following code into a `ignition/modules/Apollo.ts`. We'll explain it in a moment.
-
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
 :::tab{value="TypeScript"}
 
-**ignition/modules/Apollo.ts**
+And paste the following code into a `ignition/modules/Apollo.ts`. We'll explain it in a moment.
 
 ```typescript
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
@@ -146,7 +144,7 @@ export default buildModule("Apollo", (m) => {
 
 :::tab{value="JavaScript"}
 
-**ignition/modules/Apollo.js**
+And paste the following code into a `ignition/modules/Apollo.js`. We'll explain it in a moment.
 
 ```javascript
 const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
