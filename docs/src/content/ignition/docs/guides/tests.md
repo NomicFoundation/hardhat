@@ -29,7 +29,7 @@ The `ignition.deploy` method returns an object with an `ethers` contract per con
 
 ## Using module parameters
 
-The `ignition.deploy` receives an options object as second argument which can be used to provide [Module parameters](./parameters.md) under the `parameters` field of the object. You should provide an object mapping module ID to parameters, like this:
+The `ignition.deploy` receives an options object as second argument which can be used to provide [Module parameters](./creating-modules.md#module-parameters) under the `parameters` field of the object. You should provide an object mapping module ID to parameters, like this:
 
 ```js
 it("should allow setting the start count for new counters", async function () {
