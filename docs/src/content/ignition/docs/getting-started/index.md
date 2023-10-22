@@ -164,7 +164,7 @@ module.exports = buildModule("Apollo", (m) => {
 
 The first aspect to note is that modules are created by calling the `buildModule` function, which requires a module ID and a callback function. Our module will be identified as `"Apollo"`.
 
-The callback function is where the module definition actually happens. The `m` parameter being fed into the callback is an instance of a `ModuleBuilder`, which is an object with methods to define and configure your smart contract instances.
+The callback function is where the module definition actually happens. The `m` parameter being passed into the callback is an instance of a `ModuleBuilder`, which is an object with methods to define and configure your smart contract instances.
 
 When we call these `ModuleBuilder` methods, they create a `Future` object, which represents the result of an execution step that Hardhat Ignition needs to run to deploy a contract instance or interact with an existing one.
 
