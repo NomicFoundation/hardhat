@@ -2,7 +2,7 @@
 
 Hardhat Ignition stores the information for each of your deployments in folders inside of `./ignition/deployments`.
 
-Within each deployment folder, Hardhat Ignition saves the deployment results, along with all the data needed to: recover from errors, resume existing deployments and reproduce them.
+Thes folders contain all the deployment results, and a journal file which records every deployment action executed, enabling recovery from errors and resuming deployments.
 
 The different files inside each deployment folder are detailed below:
 
