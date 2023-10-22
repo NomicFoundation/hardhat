@@ -1,22 +1,20 @@
 # Handling errors
 
-Hardhat Ignition takes different approaches to error handling depending on the kind of error its dealing with. This guide explains them in detail.
+There are many reasons that con lead to a failure when operating a smart contract. Hardhat Ignition uses different approaches for error handling depending on the error type. This guide explains these methods thoroughly.
 
 ## Contract errors
 
-Interacting with a smart contract can lead to it failing and reverting. Hardhat Ignition handles them with two different techniques.
+When interacting with a smart contract, there are always some chances that it might fail and revert. Hardhat Ignition handles these situations using two strategies.
 
-First, before sending a transaction, Hardhat Ignition runs a simulation of it. If the simulation fails, the execution gets interrupted. All you need to do to continue your deployment in this case is rerunning Hardhat Ignition. If your simulation still fail, you can consider [deleting a previous execution](#deleting-a-previous-execution).
+When it comes to catching errors and reverts, Hardhat Ignition starts by running a simulation of every transaction. If this simulation doesn't succeed, the execution stops. All you need to do to continue your deployment in this case is rerunning Hardhat Ignition. If the simulation failure persists, you might want to consider [deleting a previous execution](#deleting-a-previous-execution) from the journal, and trying again.
 
-While simulations catch most errors, sometimes a transaction simulation can be successful, and it still reverts. In those cases Hardhat Ignition won't send a new transaction automatically. Instead, you need to [delete the previous execution](#deleting-a-previous-execution) and rerun the deployment.
+While simulations catch most errors, sometimes a transaction simulation can be successful, and the network execution still reverts. Hardhat Ignition won't send a new transaction automatically in those cases. Instead, you need to [wipe the previous execution](#wiping-a-previous-execution) and rerun the deployment.
 
-### Deleting a previous execution.
+### Wiping a previous execution
 
-Hardhat Ignition uses a journal to record everything it does, and the results of its operations. This allows it to resume a previous execution.
+Hardhat Ignition uses a journal to record every execution step it performs, as well as the results of each of them. This allows it to resume a previous execution when needed. As soon as a `Future` starts its execution, it will be recoreded into the journal.
 
-As soon as a `Future` starts its execution, it will be recoreded into the journal.
-
-This means that if you need to change how a `Future` gets defined to recover from an error, you will need to delete its previous execution from the journal. You can do this by running
+This means that if the way a `Future` was defined is what's causing an error, you will need to wipe the `Future` object's previous execution from the journal, since its definition changed. You can use the `ignition wipe` task for this, by providing it with a deployment ID **and** a future ID.
 
 ```sh
 npx hardhat ignition wipe deploymentId futureId
@@ -24,6 +22,6 @@ npx hardhat ignition wipe deploymentId futureId
 
 ## Network-related errors
 
-Hardhat Ignition tries to be robust to netowrk related errors. If handles things like gas price volatility, resending transactions with updated fees, or different situations with nonces being out of sync between Hardhat Ignition and the network.
+Hardhat Ignition tries its best to be robust in the face of network-related errors. It manages tricky situations like changing gas prices that need updated fees for transactions, or when nonces don't match between Hardhat Ignition and the network.
 
-Nevertheless, there can be situations where Hardhat Ignition may not be able to handle an error. If that happens, its design allows you to continuing your deployment by simply rerunning the same command you used to start it.
+However, sometimes Hardhat Ignition might face an error it can't manage. If this happens, you can just run the same command again to pick up where you left off with your deployment.
