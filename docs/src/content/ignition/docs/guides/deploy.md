@@ -16,7 +16,7 @@ You can customize the deployment folder name by providing an explicit deployment
 
 This folder will contain all the deployment results, and a journal file which records every deployment action executed, enabling recovery from errors and resuming deployments.
 
-Read the [Deployment artifacts section](./../advanced/deployments.md) to learn more about the files in your deployment folder.
+Read the [Deployment artifacts section](./../advanced/deployment-artifacts.md) to learn more about the files in your deployment folder.
 
 ## Extending an existing deployment
 

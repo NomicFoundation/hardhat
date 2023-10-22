@@ -2,6 +2,6 @@ section-type: group
 section-title: Advanced
 order:
   - /execution
-  - /deployments
+  - /deployment-artifacts
   - /reconciliation
   - /versioning

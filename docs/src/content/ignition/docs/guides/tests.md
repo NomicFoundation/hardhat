@@ -1,14 +1,12 @@
 # Using Hardhat Ignition in your tests
 
-Hardhat Ignition can be used in Hardhat tests to deploy your Ignition Modules.
-
-If you want to test that your deployment was correctly defined, your you want to use Ignition Modules to simplify your test setup, continue reading this guide.
+If you want to test that your deployment was correctly defined, or if you want to use your Ignition Modules to simplify your test setup, continue reading this guide.
 
 ## The Ignition object
 
 Requiring Hardhat Ignition within your Hardhat config will automatically add an `ignition` object to the [Hardhat Runtime Environment](../../../hardhat-runner/docs/advanced/hardhat-runtime-environment.md).
 
-The `ignition` object exposes a `deploy` method, that takes a Module as the first argument.
+The `ignition` object exposes a `deploy` method, that takes an Ignition Module as the first argument.
 
 ```js
 // We define a module in the test file here, but you can also `require`/`import` it.
@@ -31,7 +29,7 @@ The `ignition.deploy` method returns an object with an `ethers` contract per con
 
 ## Using module parameters
 
-The `ignition.deploy` also receives an options object as second argument. You can use it to pass [Module parameters](./parameters.md) under the `parameters` property of the options object. You can do it by passing a map from module ids to parameters, like this:
+The `ignition.deploy` receives an options object as second argument which can be used to provide [Module parameters](./parameters.md) under the `parameters` field of the object. You should provide an object mapping module ID to parameters, like this:
 
 ```js
 it("should allow setting the start count for new counters", async function () {
@@ -49,7 +47,7 @@ it("should allow setting the start count for new counters", async function () {
 
 ## Using Ignition Modules as fixtures
 
-You can combine Hardhat Ignition with [Hardhat Network Helper's `loadFixture`](../../../hardhat-network-helpers/docs/reference.md#loadfixture) to use them to easily define your fixtures, you just need to call `ignition.deploy` within your fixture.
+You can combine Hardhat Ignition with [Hardhat Network Helper's `loadFixture`](../../../hardhat-network-helpers/docs/reference.md#loadfixture) to use them to easily define your fixtures by calling `ignition.deploy` within them.
 
 ```js
 async function deployCounterModuleFixture() {

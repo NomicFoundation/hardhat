@@ -1,8 +1,8 @@
 # Modifying an existing module
 
-If you have defined your modules and deployed them, you can still modify them.
+It's possible to make changes to modules after having deployed them.
 
-If we wanted to add a new `Rocket` to the module we deployed in the [Quick Start guide](../getting-started/index.md#quick-start), all we need to do is modifying the module definition like this
+For example, if we wanted to add a new `Rocket` contract instance to the module we deployed in the [Quick Start guide](../getting-started/index.md#quick-start), this is what we would do:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
@@ -52,7 +52,7 @@ module.exports = buildModule("Apollo", (m) => {
 
 ::::
 
-Then, we can run it just like the first time, and Hardhat Ignition will continue from where it left
+Then run it again. Hardhat Ignition will continue from where it left off, and execute the new parts of the module.
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
@@ -74,7 +74,7 @@ npx hardhat ignition deploy ignition/modules/Apollo.js --network localhost
 
 ::::
 
-and we'll get a result like this
+This is what the output would look like:
 
 ```
 Batch #1
@@ -92,8 +92,8 @@ Apollo#Rocket - 0x5fbdb2315678afecb367f032d93f642f64180aa3
 Apollo#starship - 0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0
 ```
 
-with two new batches, that execute the new parts of the module, while keeping the previous results.
+We can see two new batches that execute the new parts of the module, while keeping the previous already deployed parts intact.
 
 ## Incompatible modifications
 
-If you try to modify the definition of a `Future` that has already been partially or completely executed in an incompatible way, it may not be possible to resume your existing deployment. To learn more about this, please read the [Reconciliation](../advanced/reconciliation.md) guide.
+There are certain modifications one can make to a `Future` definition that would make the new version incompatible with the previous one _if_ the previous one has already been partially or completely executed. This would lead to Hardhat Ignition being unable to continue your deployment from where it was left off. Read the [Reconciliation](../advanced/reconciliation.md) guide to learn more about this.
