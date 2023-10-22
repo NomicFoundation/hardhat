@@ -5,7 +5,7 @@
 
 # Hardhat Ignition
 
-Hardhat Ignition is a [declarative](https://en.wikipedia.org/wiki/Declarative_programming) system for deploying smart contracts on Ethereum. It enables you to describe smart contract instances, identify their dependencies, and establish the operations to run on them. By taking over the deployment and execution, Hardhat Ignition lets you focus on creating the desired contract functionality and outcomes instead of getting caught up in the deployment details.
+Hardhat Ignition is a declarative system for deploying smart contracts on Ethereum. It enables you to define smart contract instances you want to deploy, and any operation you want to run on them. By taking over the deployment and execution, Hardhat Ignition lets you focus on your project instead of getting caught up in the deployment details.
 
 Built by the [Nomic Foundation](https://nomic.foundation/) for the Ethereum community.
 
