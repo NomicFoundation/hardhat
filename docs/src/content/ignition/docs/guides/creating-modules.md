@@ -134,7 +134,7 @@ If the function you are calling returns more than one value, `m.staticCall` will
 
 To execute this `Future`, Hardhat Ignition won't send any transactions and it will use [`eth_call`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_call) instead. Just like every other `Future`, it gets executed once, and the result is recorded.
 
-#### Reading values from events emitted during `Future` execution
+### Reading values from events emitted during `Future` execution
 
 If you're dealing with a `Future` that emits a Solidity event when executed, and you need to extract an argument from said event, then you can use `m.readEventArgument`:
 
