@@ -44,7 +44,7 @@ module.exports = buildModule("My token", (m) => {
 
 You can create multiple modules in a single file, but each must have a unique ID. To deploy a module, you must export it using `module.exports =` or `export default`. As a best practice, we suggest maintaining one module per file, naming the file after the module ID.
 
-The callback function is where the module definition actually happens. The `m` parameter being fed into the callback is an instance of a `ModuleBuilder`, which is an object with methods to define and configure your smart contract instances.
+The callback function is where the module definition actually happens. The `m` parameter being passed into the callback is an instance of a `ModuleBuilder`, which is an object with methods to define and configure your smart contract instances.
 
 When we call these `ModuleBuilder` methods, they create a `Future` object, which represents the result of an execution step that Hardhat Ignition needs to run to deploy a contract instance or interact with an existing one.
 
