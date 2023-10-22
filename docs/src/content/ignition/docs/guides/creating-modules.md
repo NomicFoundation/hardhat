@@ -72,7 +72,7 @@ const token = m.contract("Token", ["My Token", "TKN", 18]);
 
 We call `m.contract` and provide the contract name as the first argument. Then we provide an array of arguments that the constructor needs.
 
-If you want to use the future value that a `Future` object represents as an argument for another function call, you can simply use the `Future` object itself. Hardhat Ignition will figure out how to resolve it during execution.
+If you want to use the future value that a `Future` object represents as an argument for another method call, you can simply use the `Future` object itself. Hardhat Ignition will figure out how to resolve it during execution.
 
 For example, we can use the address of `token` like this:
 
@@ -102,7 +102,7 @@ You can also use another `Future` for the address (the second argument). This ca
 
 ### Calling contract functions
 
-To call a function of an contract you need to use the `m.call` method in `ModuleBuilder`:
+To call a function of a contract you need to use the `m.call` method in `ModuleBuilder`:
 
 ```js
 m.call(token, "transfer", [receiver, amount]);
@@ -128,7 +128,7 @@ If you need to call a `view` or `pure` function in a contract to retreive a valu
 const balance = m.staticCall(token, "balanceOf", [address]);
 ```
 
-Just like with `m.call`, the `m.staticCall` function requires you to provide the contract's `Future` object, the function name, and its arguments. It returns a `Future` representing the value returned by the contract call.
+Just like with `m.call`, the `m.staticCall` method requires you to provide the contract's `Future` object, the function name, and its arguments. It returns a `Future` representing the value returned by the contract call.
 
 If the function you are calling returns more than one value, `m.staticCall` will return the first one by default. If you need a value other than the first one, you can provide an index or name as the fourth parameter.
 

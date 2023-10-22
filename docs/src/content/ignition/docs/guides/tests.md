@@ -8,7 +8,7 @@ If you want to test that your deployment was correctly defined, your you want to
 
 Requiring Hardhat Ignition within your Hardhat config will automatically add an `ignition` object to the [Hardhat Runtime Environment](../../../hardhat-runner/docs/advanced/hardhat-runtime-environment.md).
 
-The `ignition` object exposes a `deploy` function, that takes a Module as the first argument.
+The `ignition` object exposes a `deploy` method, that takes a Module as the first argument.
 
 ```js
 // We define a module in the test file here, but you can also `require`/`import` it.
@@ -27,7 +27,7 @@ it("should set the start count to 0 by default", async function () {
 });
 ```
 
-The `ignition.deploy` method returns an boject with an `ethers` contract per contract `Future` returned in your module.
+The `ignition.deploy` method returns an object with an `ethers` contract per contract `Future` returned in your module.
 
 ## Using module parameters
 
