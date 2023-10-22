@@ -10,10 +10,11 @@ If you find a bug or want to propose a new feature, please open an issue. Pull r
 
 This repository is a monorepo handled with `npm` workspaces.
 
-There are two packages:
+There are three packages:
 
 - [**core**](./packages/core/README.md) - containing the ignition library for orchestrating deployments
 - [**hardhat-plugin**](./packages/hardhat-plugin/README.md) - containing the Hardhat plugin wrapper for the core library
+- [**ui**](./packages/ui/README.md) - containing the UI for the visualize report
 
 ## Setup
 
