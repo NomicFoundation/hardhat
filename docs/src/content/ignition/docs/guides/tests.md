@@ -1,6 +1,6 @@
 # Using Hardhat Ignition in your tests
 
-If you want to test that your deployment was correctly defined, or if you want to use your Ignition Modules to simplify your test setup.
+If you want to test that your deployment was correctly defined, or if you want to use your Ignition Modules to simplify your test setup, continue reading this guide.
 
 ## The Ignition object
 
