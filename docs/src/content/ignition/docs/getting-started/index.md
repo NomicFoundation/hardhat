@@ -172,7 +172,7 @@ This doesn't execute anything against the network, it simply represents it inter
 
 In our module, we created two `Future` objects by calling the `contract` and `call` methods. The initial one instructs Hardhat Ignition to deploy a `Rocket` contract instance, specifying `"Apollo"` as the only constructor parameter. The second one indicates that we intend to execute the `launch` function of the deployed `Rocket` instance, with no arguments provided.
 
-Finally, we return the `Future` object representing the `Rocket` contract instance, to make it accessible for other modules and tests as well.
+Finally, we return the `Future` object representing the `Rocket` contract instance, to make it accessible to other modules and tests as well.
 
 ### Deploying it
 
