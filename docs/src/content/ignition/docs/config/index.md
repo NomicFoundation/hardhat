@@ -28,7 +28,7 @@ Default value: 1000 milliseconds (1 second).
 
 The time in milliseconds to wait before bumping the fee for an unconfirmed transaction.
 
-Default value: 180,000.00 milliseconds (3 minutes).
+Default value: 180,000 milliseconds (3 minutes).
 
 ### `maxFeeBumps`
 
