@@ -136,7 +136,7 @@ To execute this `Future`, Hardhat Ignition won't send any transactions and it wi
 
 #### Reading values from events emitted during `Future` execution
 
-If you're dealing with a `Future` that triggers a Solidity event when executed, and you need to extract an argument from said event, then you can use `m.readEventArgument`:
+If you're dealing with a `Future` that emits a Solidity event when executed, and you need to extract an argument from said event, then you can use `m.readEventArgument`:
 
 ```tsx
 const transfer = m.call(token, "transfer", [receiver, amount]);
