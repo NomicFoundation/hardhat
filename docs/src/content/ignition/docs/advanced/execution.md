@@ -1,6 +1,6 @@
 # Module execution
 
-This section explains how Hardhat Ignition deploys your modules.  You don't need to understand this to start using it, you can read the [Quick Start guide](../getting-started/index.md#quick-start) instead.
+This section explains how Hardhat Ignition deploys your modules. You don't need to understand this to start using it, you can read the [Quick Start guide](../getting-started/index.md#quick-start) instead.
 
 ## Module loading and validation
 

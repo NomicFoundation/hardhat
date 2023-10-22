@@ -39,6 +39,7 @@ An example file could be called `./ignition/parameters.json` and contain the fol
   }
 }
 ```
+
 This makes the `name` parameter for the `Apollo` module be `"Apollo 11"`.
 
 To execute a deployment using parameters, you need to use the `--parameters` argument, like this:
@@ -62,7 +63,6 @@ npx hardhat ignition deploy ignition/modules/Apollo.js --parameters ignition/par
 :::
 
 ::::
-
 
 ## Inspecting an existing deployment
 

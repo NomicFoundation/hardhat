@@ -11,6 +11,7 @@ npx hardhat ignition visualize ./ignition/modules/Apollo.js
 Running `visualize` will generate the report and open it in your system's default browser.
 
 The report includes:
+
 - A summary of the contracts that will be deployed
 - A summary of the contract calls that will be made
 - A dependency graph of featuring modules and `Future` objects

@@ -48,8 +48,7 @@ The callback function is where the module definition actually happens. The `m` p
 
 When we call these `ModuleBuilder` methods, they create a `Future` object, which represents the result of an execution step that Hardhat Ignition needs to run to deploy a contract instance or interact with an existing one.
 
-This doesn't execute anything against the network, it simply represents it internally.
-After the `Future` is created, it gets registered within the module, and the method returns it.
+This doesn't execute anything against the network, it simply represents it internally. After the `Future` is created, it gets registered within the module, and the method returns it.
 
 To deploy a module, Hardhat Ignition executes each of the `Future` objects that the module defines once, and stores the results.
 
@@ -114,7 +113,6 @@ The first argument is the `Future` object for the contract you want to call, the
 In this example, the `m.call` returns a `Future` which we aren't assigning to any variable. This isn't a problem. Hardhat Ignition will execute every `Future` within a module, regardless of whether we store it or not.
 
 If you need to send ETH while calling a function, you can pass an object with options as the third argument to `m.contract`, and put in how much you want to send in the `value` field:
-
 
 ```js
 m.call(myContract, "receivesEth" [], {
@@ -205,11 +203,11 @@ You also have the option to set explicit dependencies between `Future` objects. 
 const token = m.contract("Token", ["My Token", "TKN", 18]);
 
 const receiver = m.contract("Receiver", [], {
-  after: token // `receiver` is deployed after `token`
+  after: token, // `receiver` is deployed after `token`
 });
 
 const transfer = m.call(token, "transfer", [receiver, 1000], {
-  after: receiver // the transfer happens after `receiver` is deployed
+  after: receiver, // the transfer happens after `receiver` is deployed
 });
 ```
 
@@ -219,8 +217,7 @@ When defining Ignition Modules, you can use configurable parameters for flexibil
 
 During deployment, you can specify these parameters in a JSON file that maps module IDs with respective parameter names and values. This section will focus on retrieving parameters, while the [Defining parameters during deployment](./deploy.md#defining-parameters-during-deployment) section explains how to provide them.
 
-To access these values, you can call `m.getParameter` providing the name for the parameter as the first argument.
-You can also make your parameters optional by providing a second argument to `m.getParameter` which will act as the default value in case the parameter isn't provided.
+To access these values, you can call `m.getParameter` providing the name for the parameter as the first argument. You can also make your parameters optional by providing a second argument to `m.getParameter` which will act as the default value in case the parameter isn't provided.
 
 For example, we can modify the `Apollo` module from the [Quick Start guide](../getting-started/index.md#quick-start) to make the `name` field in the `Rocket` smart contract configurable with a parameter:
 

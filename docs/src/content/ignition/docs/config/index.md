@@ -32,7 +32,7 @@ Default value: 180,000.00 milliseconds (3 minutes).
 
 ### `maxFeeBumps`
 
-The number of times an unconfirmed transaction will have its fee bumped before Hardhat Ignition considers it timed out. 
+The number of times an unconfirmed transaction will have its fee bumped before Hardhat Ignition considers it timed out.
 
 Default value: 4.
 

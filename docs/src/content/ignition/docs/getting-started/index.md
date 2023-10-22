@@ -26,6 +26,7 @@ If you don't have a Hardhat project yet, or if you want to create a new one to t
 ## Installation
 
 To install Hardhat Ignition in an existing Hardhat project, you will need:
+
 - Hardhat version 2.18.0 or higher
 - Ethers.js version 6 or higher
 
@@ -62,7 +63,6 @@ yarn add --dev @nomicfoundation/hardhat-ignition
 ::::
 
 Finally, add this to your config file to [enable the plugin](../../../hardhat-runner/docs/guides/project-setup.md#plugins-and-dependencies):
-
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
@@ -170,8 +170,7 @@ The callback function is where the module definition actually happens. The `m` p
 
 When we call these `ModuleBuilder` methods, they create a `Future` object, which represents the result of an execution step that Hardhat Ignition needs to run to deploy a contract instance or interact with an existing one.
 
-This doesn't execute anything against the network, it simply represents it internally.
-After the `Future` is created, it gets registered within the module, and the method returns it.
+This doesn't execute anything against the network, it simply represents it internally. After the `Future` is created, it gets registered within the module, and the method returns it.
 
 In our module, we created two `Future` objects by calling the `contract` and `call` functions. The initial one instructs Hardhat Ignition to deploy a `Rocket` contract instance, specifying `"Apollo"` as the only constructor parameter. The second one indicates that we intend to execute the `launch` function of the deployed `Rocket` instance, with no arguments provided.
 
@@ -179,8 +178,7 @@ Finally, we return the `Future` object representing the `Rocket` contract instan
 
 ### Deploying it
 
-Now that our module definition is ready, let's deploy it to a local Hardhat node.
-Let's start by spinning up a local node:
+Now that our module definition is ready, let's deploy it to a local Hardhat node. Let's start by spinning up a local node:
 
 ```sh
 npx hardhat node
@@ -230,5 +228,4 @@ Apollo#Rocket - 0x5fbdb2315678afecb367f032d93f642f64180aa3
 
 A `ignition/deployments/chain-31337` folder will be created. This contains all details about your deployment. Hardhat Ignition uses this data to recover from errors, resume a modified deployment, and more.
 
-That's all it takes to define and execute a deployment using Hardhat Ignition. 
-Check out the rest of the guides to learn more!
+That's all it takes to define and execute a deployment using Hardhat Ignition. Check out the rest of the guides to learn more!
