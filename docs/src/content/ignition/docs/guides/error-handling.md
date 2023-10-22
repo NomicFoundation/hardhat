@@ -6,7 +6,7 @@ There are many reasons that con lead to a failure when operating a smart contrac
 
 When interacting with a smart contract, there are always some chances that it might fail and revert. Hardhat Ignition handles these situations using two strategies.
 
-When it comes to catching errors and reverts, Hardhat Ignition starts by running a simulation of every transaction. If this simulation doesn't succeed, the execution stops. All you need to do to continue your deployment in this case is rerunning Hardhat Ignition. If the simulation failure persists, you might want to consider [deleting a previous execution](#deleting-a-previous-execution) from the journal, and trying again.
+When it comes to catching errors and reverts, Hardhat Ignition starts by running a simulation of every transaction. If this simulation doesn't succeed, the execution stops. All you need to do to continue your deployment in this case is rerunning Hardhat Ignition. If the simulation failure persists, you might want to consider [deleting a previous execution](#wiping-a-previous-execution) from the journal, and trying again.
 
 While simulations catch most errors, sometimes a transaction simulation can be successful, and the network execution still reverts. Hardhat Ignition won't send a new transaction automatically in those cases. Instead, you need to [wipe the previous execution](#wiping-a-previous-execution) and rerun the deployment.
 
