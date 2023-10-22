@@ -33,13 +33,13 @@ import "@nomicfoundation/hardhat-ignition";
 
 On [Hardhat Ignition's website](https://hardhat.org/hardhat-ignition) you will find guides for:
 
-- [Getting started](https://hardhat.org/hardhat-ignition/getting-started)
-- [Creating Modules](https://hardhat.org/hardhat-ignition/creating-modules)
-- [Deploying a module](https://hardhat.org/hardhat-ignition/deploy)
-- [Visualizing your module](https://hardhat.org/hardhat-ignition/visualize)
-- [Handling errors](https://hardhat.org/hardhat-ignition/error-handling)
-- [Modifying an existing module](https://hardhat.org/hardhat-ignition/modifications)
-- [Using Hardhat Ignition in your tests](https://hardhat.org/hardhat-ignition/tests)
+- [Getting started](https://hardhat.org/ignition/docs/getting-started)
+- [Creating Modules](https://hardhat.org/ignition/docs/guides/creating-modules)
+- [Deploying a module](https://hardhat.org/ignition/docs/guides/deploy)
+- [Visualizing your module](https://hardhat.org/ignition/docs/guides/visualize)
+- [Handling errors](https://hardhat.org/ignition/docs/guides/error-handling)
+- [Modifying an existing module](https://hardhat.org/ignition/docs/guides/modifications)
+- [Using Hardhat Ignition in your tests](https://hardhat.org/ignition/docs/guides/tests)
 
 ## Contributing
 
