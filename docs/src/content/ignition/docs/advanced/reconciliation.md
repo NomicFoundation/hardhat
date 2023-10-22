@@ -37,6 +37,6 @@ Finally, you can modify the contracts used by `Future` objects that have already
 
 There are three ways to recover from incompatible changes:
 
-1. revert the change.
+1. Revert the change.
 2. Apply a new change so that your module matches what you have already deployed in a different way, as explained above.
 3. Delete the previous execution of a `Future`, as explained [here](../guides/error-handling.md#wiping-a-previous-execution).
