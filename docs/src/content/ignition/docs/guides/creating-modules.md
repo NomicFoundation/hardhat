@@ -1,6 +1,6 @@
 # Creating Ignition Modules
 
-In Hardhat Ignition, deployments are defined through Ignition Modules. These modules serve as abstractions, helping you outline and describe the system that you want to deploy. Each Ignition Module encapsulates a group of smart contract instances and operations within your system.
+In Hardhat Ignition, deployments are defined through Ignition Modules. These modules help you outline and describe the system that you want to deploy. Each Ignition Module encapsulates a group of smart contract instances and operations within your system.
 
 This guide will explain how to create Ignition Modules.
 
