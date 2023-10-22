@@ -90,7 +90,7 @@ const bar = m.contract("ReceivesETH", [], {
 
 ### Using an existing contract
 
-If you need to interact with existing live contracts, you can create a `Future` to represent it in your module like this:
+If you need to interact with existing contract instances, you can create a `Future` to represent it in your module like this:
 
 ```js
 const existingToken = m.contractAt("Token", "0x...");
