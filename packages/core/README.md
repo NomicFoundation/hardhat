@@ -10,4 +10,4 @@ The core logic of [Hardhat Ignition](https://hardhat.org/ignition). Read [this g
 
 [Hardhat Ignition on Discord](https://hardhat.org/ignition-discord): for questions and feedback.
 
-[Follow Hardhat on Twitter.](https://twitter.com/HardhatHQ)
+Follow [Hardhat](https://twitter.com/HardhatHQ) and [Nomic Foundation](https://twitter.com/NomicFoundation) on Twitter.

@@ -9,7 +9,7 @@ Hardhat Ignition is a declarative system for deploying smart contracts on Ethere
 
 Built by the [Nomic Foundation](https://nomic.foundation/) for the Ethereum community.
 
-Join the Hardhat Ignition channel of our [Hardhat Support Discord server](https://hardhat.org/ignition-discord) to stay up to date on new releases and tutorials.
+Join the Hardhat Ignition channel of our [Hardhat Community Discord server](https://hardhat.org/ignition-discord) to stay up to date on new releases and tutorials.
 
 ## Installation
 
@@ -51,4 +51,4 @@ Go to [CONTRIBUTING.md](https://github.com/NomicFoundation/hardhat-ignition/blob
 
 [Hardhat Ignition on Discord](https://hardhat.org/ignition-discord): for questions and feedback.
 
-[Follow Hardhat on Twitter.](https://twitter.com/HardhatHQ)
+Follow [Hardhat](https://twitter.com/HardhatHQ) and [Nomic Foundation](https://twitter.com/NomicFoundation) on Twitter.
