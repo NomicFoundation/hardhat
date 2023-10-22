@@ -31,7 +31,7 @@ import "@nomicfoundation/hardhat-ignition";
 
 ## Documentation
 
-On [Hardhat Ignition's website](https://hardhat.org/hardhat-ignition) you will find guides for:
+On [Hardhat Ignition's website](https://hardhat.org/ignition) you will find guides for:
 
 - [Getting started](https://hardhat.org/ignition/docs/getting-started)
 - [Creating Modules](https://hardhat.org/ignition/docs/guides/creating-modules)
