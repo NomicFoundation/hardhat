@@ -22,6 +22,6 @@ npx hardhat ignition wipe deploymentId futureId
 
 ## Network-related errors
 
-Hardhat Ignition tries its best to be robust in the face of network-related errors. It manages tricky situations like changing gas prices that need updated fees for transactions, or when nonces don't match between Hardhat Ignition and the network.
+Hardhat Ignition tries its best to be robust in the face of network-related errors. It manages tricky situations like resending transactions that need updated gas prices, or when nonces don't match between Hardhat Ignition and the network.
 
 However, sometimes Hardhat Ignition might face an error it can't manage. If this happens, you can just run the same command again to pick up where you left off with your deployment.
