@@ -56,7 +56,7 @@ Finally, the module definition callback can return `Future` objects that represe
 
 ## The different kinds of `Future`
 
-This section will explore the different types of `Future` objects that Hardhat Ignition supports, and how to define them using `ModuleBuilder`.
+This section will explore the different kinds of `Future` objects that Hardhat Ignition supports, and how to define them using `ModuleBuilder`.
 
 ### Deploying a contract
 
