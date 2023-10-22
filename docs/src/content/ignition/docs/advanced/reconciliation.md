@@ -6,11 +6,11 @@ As explained in the [Module execution](./execution.md) guide, Hardhat Ignition c
 
 This previous state may have been created with a different version of your modules or contracts though. Hardhat Ignition runs a process called Reconciliation to understand if the previous state is compatible with your current modules and contracts.
 
-If the Reconciliation process fails, Hardhat Ignition won't let you resume the deployment, and will indicate which `Futures` have incompatible changes.
+If the reconciliation process fails, Hardhat Ignition won't let you resume the deployment, and will indicate which `Futures` have incompatible changes.
 
 ## Compatible changes
 
-There are different changes that you can apply to your module that will pass the Reconciliation process.
+There are different changes that you can apply to your module that will pass the reconciliation process.
 
 You can always define a new `Future` in an existing module, including importing from submodules.
 
