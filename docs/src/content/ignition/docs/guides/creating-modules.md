@@ -205,10 +205,6 @@ const token = m.contract("Token", ["My Token", "TKN", 18]);
 const receiver = m.contract("Receiver", [], {
   after: token, // `receiver` is deployed after `token`
 });
-
-const transfer = m.call(token, "transfer", [receiver, 1000], {
-  after: receiver, // the transfer happens after `receiver` is deployed
-});
 ```
 
 ## Module parameters
