@@ -15,4 +15,4 @@ The report includes:
 - A summary of the contract calls that will be made
 - A dependency graph of featuring modules and `Future` objects
 
-Check out the visualize report for the ENS protocol. TODO: add link
+Check out the [visualize report of a module to deploy the ENS protocol](/static/ignition-visualize-example.html).
