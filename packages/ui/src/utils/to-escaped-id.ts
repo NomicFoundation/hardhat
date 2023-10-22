@@ -3,8 +3,10 @@
  */
 export function toEscapedId(id: string): string {
   return id
-    .replace("(", "_")
-    .replace(")", "_")
-    .replace(",", "_")
-    .replace(" ", "_");
+    .replaceAll("(", "__")
+    .replaceAll(")", "___")
+    .replaceAll(",", "____")
+    .replaceAll("~", "_____")
+    .replaceAll("#", "______")
+    .replaceAll(" ", "_______");
 }

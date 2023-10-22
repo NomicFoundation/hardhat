@@ -44,7 +44,7 @@ export function toMermaid(
     ),
   ].join("\n");
 
-  return `flowchart TB\n\n${toEscapedId(
+  return `flowchart BT\n\n${toEscapedId(
     ignitionModule.id
   )}\n\n${subgraphSections}${
     futureDependencies === "" ? "" : "\n\n" + futureDependencies
@@ -73,18 +73,40 @@ function prettyPrintModule(
     .join(`\n${lineIndent}`);
 
   if (futures.length > 0) {
-    const inner = `${lineIndent}subgraph ${module.id}Inner[ ]\n${lineIndent}  direction TB\n\n${lineIndent}${futureList}\n${lineIndent}end\n\nstyle ${module.id}Inner fill:none,stroke:none`;
+    const inner = `${lineIndent}subgraph ${toEscapedId(
+      module.id
+    )}Inner[ ]\n${lineIndent}  direction BT\n\n${lineIndent}${futureList}\n${lineIndent}end\n\nstyle ${toEscapedId(
+      module.id
+    )}Inner fill:none,stroke:none`;
 
-    const title = `${lineIndent}subgraph ${module.id}Padding["[ ${module.id} ]"]\n${lineIndent}  direction TB\n\n${lineIndent}${inner}\n${lineIndent}end\n\nstyle ${module.id}Padding fill:none,stroke:none`;
+    const title = `${lineIndent}subgraph ${toEscapedId(module.id)}Padding["[ ${
+      module.id
+    } ]"]\n${lineIndent}  direction BT\n\n${lineIndent}${inner}\n${lineIndent}end\n\nstyle ${toEscapedId(
+      module.id
+    )}Padding fill:none,stroke:none`;
 
-    const outer = `${lineIndent}subgraph ${module.id}[ ]\n${lineIndent} direction TB\n\n${lineIndent}${title}\n${lineIndent}end\n\nstyle ${module.id} fill:#fbfbfb,stroke:#e5e6e7`;
+    const outer = `${lineIndent}subgraph ${toEscapedId(
+      module.id
+    )}[ ]\n${lineIndent} direction BT\n\n${lineIndent}${title}\n${lineIndent}end\n\nstyle ${toEscapedId(
+      module.id
+    )} fill:#fbfbfb,stroke:#e5e6e7`;
 
     return outer;
   }
 
-  const title = `${lineIndent}subgraph ${module.id}Padding["<strong>[ ${module.id} ]</strong>"]\n${lineIndent}  direction TB\n\n${lineIndent}end\n\nstyle ${module.id}Padding fill:none,stroke:none`;
+  const title = `${lineIndent}subgraph ${toEscapedId(
+    module.id
+  )}Padding["<strong>[ ${
+    module.id
+  } ]</strong>"]\n${lineIndent}  direction BT\n\n${lineIndent}end\n\nstyle ${toEscapedId(
+    module.id
+  )}Padding fill:none,stroke:none`;
 
-  return `${lineIndent}subgraph ${module.id}[ ]\n${lineIndent} direction TB\n\n${lineIndent}${title}\n${lineIndent}end\n\nstyle ${module.id} fill:#fbfbfb,stroke:#e5e6e7`;
+  return `${lineIndent}subgraph ${toEscapedId(
+    module.id
+  )}[ ]\n${lineIndent} direction BT\n\n${lineIndent}${title}\n${lineIndent}end\n\nstyle ${toEscapedId(
+    module.id
+  )} fill:#fbfbfb,stroke:#e5e6e7`;
 }
 
 function toLabel(f: Future): string {

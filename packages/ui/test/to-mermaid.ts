@@ -16,20 +16,20 @@ describe("to-mermaid", () => {
     });
 
     const expectedResult = testFormat`
-      flowchart TB
+      flowchart BT
 
       Module
 
         subgraph Module[ ]
-         direction TB
+         direction BT
 
           subgraph ModulePadding["[ Module ]"]
-          direction TB
+          direction BT
 
           subgraph ModuleInner[ ]
-          direction TB
+          direction BT
 
-          Module#Contract1["Deploy Contract1"]:::futureNode
+          Module______Contract1["Deploy Contract1"]:::futureNode
         end
 
       style ModuleInner fill:none,stroke:none
@@ -52,20 +52,20 @@ describe("to-mermaid", () => {
     });
 
     const expectedResult = testFormat`
-      flowchart TB
+      flowchart BT
 
       Test_registrar
 
         subgraph Test_registrar[ ]
-         direction TB
+         direction BT
 
           subgraph Test_registrarPadding["[ Test_registrar ]"]
-          direction TB
+          direction BT
 
           subgraph Test_registrarInner[ ]
-          direction TB
+          direction BT
 
-          Test_registrar#Contract1["Deploy Contract1"]:::futureNode
+          Test_registrar______Contract1["Deploy Contract1"]:::futureNode
         end
 
       style Test_registrarInner fill:none,stroke:none
@@ -104,20 +104,20 @@ describe("to-mermaid", () => {
     });
 
     const expectedResult = testFormat`
-      flowchart TB
+      flowchart BT
 
       Module
 
         subgraph Module[ ]
-         direction TB
+         direction BT
 
           subgraph ModulePadding["[ Module ]"]
-          direction TB
+          direction BT
 
           subgraph ModuleInner[ ]
-          direction TB
+          direction BT
 
-          Module#Contract3["Deploy Contract3"]:::futureNode
+          Module______Contract3["Deploy Contract3"]:::futureNode
         end
 
       style ModuleInner fill:none,stroke:none
@@ -128,15 +128,15 @@ describe("to-mermaid", () => {
 
       style Module fill:#fbfbfb,stroke:#e5e6e7
         subgraph Submodule1[ ]
-         direction TB
+         direction BT
 
           subgraph Submodule1Padding["[ Submodule1 ]"]
-          direction TB
+          direction BT
 
           subgraph Submodule1Inner[ ]
-          direction TB
+          direction BT
 
-          Submodule1#Contract1["Deploy Contract1"]:::futureNode
+          Submodule1______Contract1["Deploy Contract1"]:::futureNode
         end
 
       style Submodule1Inner fill:none,stroke:none
@@ -147,15 +147,15 @@ describe("to-mermaid", () => {
 
       style Submodule1 fill:#fbfbfb,stroke:#e5e6e7
         subgraph Submodule2[ ]
-         direction TB
+         direction BT
 
           subgraph Submodule2Padding["[ Submodule2 ]"]
-          direction TB
+          direction BT
 
           subgraph Submodule2Inner[ ]
-          direction TB
+          direction BT
 
-          Submodule2#Contract2["Deploy Contract2"]:::futureNode
+          Submodule2______Contract2["Deploy Contract2"]:::futureNode
         end
 
       style Submodule2Inner fill:none,stroke:none
@@ -166,8 +166,8 @@ describe("to-mermaid", () => {
 
       style Submodule2 fill:#fbfbfb,stroke:#e5e6e7
 
-      Module#Contract3 --> Submodule1#Contract1
-      Module#Contract3 --> Submodule2#Contract2
+      Module______Contract3 --> Submodule1______Contract1
+      Module______Contract3 --> Submodule2______Contract2
 
       Module -.-> Submodule1
       Module -.-> Submodule2`;
@@ -223,29 +223,29 @@ describe("to-mermaid", () => {
     });
 
     const expectedResult = testFormat`
-      flowchart TB
+      flowchart BT
 
       Module
 
         subgraph Module[ ]
-         direction TB
+         direction BT
 
           subgraph ModulePadding["[ Module ]"]
-          direction TB
+          direction BT
 
           subgraph ModuleInner[ ]
-          direction TB
+          direction BT
 
-          Module#BasicContract["Deploy BasicContract"]:::futureNode
-          Module#BasicLibrary["Deploy library BasicLibrary"]:::futureNode
-          Module#BasicLibrary2["Deploy library from artifact BasicLibrary"]:::futureNode
-          Module#ContractWithLibrary["Deploy from artifact ContractWithLibrary"]:::futureNode
-          Module#BasicContract.basicFunction["Call BasicContract.basicFunction"]:::futureNode
-          Module#BasicContract.BasicEvent.eventArg.0["Read event from future Module#BasicContract.basicFunction (event BasicEvent argument eventArg)"]:::futureNode
-          Module#ContractWithLibrary.readonlyFunction["Static call ContractWithLibrary.readonlyFunction"]:::futureNode
-          Module#BasicContract2["Existing contract BasicContract (Module#BasicContract)"]:::futureNode
-          Module#ContractWithLibrary2["Existing contract from artifact ContractWithLibrary (Module#ContractWithLibrary)"]:::futureNode
-          Module#test_send["Send data to Module#BasicContract2"]:::futureNode
+          Module______BasicContract["Deploy BasicContract"]:::futureNode
+          Module______BasicLibrary["Deploy library BasicLibrary"]:::futureNode
+          Module______BasicLibrary2["Deploy library from artifact BasicLibrary"]:::futureNode
+          Module______ContractWithLibrary["Deploy from artifact ContractWithLibrary"]:::futureNode
+          Module______BasicContract.basicFunction["Call BasicContract.basicFunction"]:::futureNode
+          Module______BasicContract.BasicEvent.eventArg.0["Read event from future Module#BasicContract.basicFunction (event BasicEvent argument eventArg)"]:::futureNode
+          Module______ContractWithLibrary.readonlyFunction["Static call ContractWithLibrary.readonlyFunction"]:::futureNode
+          Module______BasicContract2["Existing contract BasicContract (Module#BasicContract)"]:::futureNode
+          Module______ContractWithLibrary2["Existing contract from artifact ContractWithLibrary (Module#ContractWithLibrary)"]:::futureNode
+          Module______test_send["Send data to Module#BasicContract2"]:::futureNode
         end
 
       style ModuleInner fill:none,stroke:none
@@ -256,14 +256,14 @@ describe("to-mermaid", () => {
 
       style Module fill:#fbfbfb,stroke:#e5e6e7
 
-      Module#ContractWithLibrary --> Module#BasicLibrary
-      Module#BasicContract.basicFunction --> Module#BasicContract
-      Module#BasicContract.BasicEvent.eventArg.0 --> Module#BasicContract.basicFunction
-      Module#ContractWithLibrary.readonlyFunction --> Module#ContractWithLibrary
-      Module#ContractWithLibrary.readonlyFunction --> Module#BasicContract.BasicEvent.eventArg.0
-      Module#BasicContract2 --> Module#BasicContract
-      Module#ContractWithLibrary2 --> Module#ContractWithLibrary
-      Module#test_send --> Module#BasicContract2`;
+      Module______ContractWithLibrary --> Module______BasicLibrary
+      Module______BasicContract.basicFunction --> Module______BasicContract
+      Module______BasicContract.BasicEvent.eventArg.0 --> Module______BasicContract.basicFunction
+      Module______ContractWithLibrary.readonlyFunction --> Module______ContractWithLibrary
+      Module______ContractWithLibrary.readonlyFunction --> Module______BasicContract.BasicEvent.eventArg.0
+      Module______BasicContract2 --> Module______BasicContract
+      Module______ContractWithLibrary2 --> Module______ContractWithLibrary
+      Module______test_send --> Module______BasicContract2`;
 
     assertDiagram(moduleDefinition, expectedResult);
   });
@@ -279,22 +279,22 @@ describe("to-mermaid", () => {
     });
 
     const expectedResult = testFormat`
-      flowchart TB
+      flowchart BT
 
       Module
 
         subgraph Module[ ]
-         direction TB
+         direction BT
 
           subgraph ModulePadding["[ Module ]"]
-          direction TB
+          direction BT
 
           subgraph ModuleInner[ ]
-          direction TB
+          direction BT
 
-          Module#ens["Deploy ens"]:::futureNode
-          Module#ens.setAddr_bytes32_address_["Call ens.setAddr(bytes32,address)"]:::futureNode
-          Module#ens.getAddr_bytes32_address_["Static call ens.getAddr(bytes32,address)"]:::futureNode
+          Module______ens["Deploy ens"]:::futureNode
+          Module______ens.setAddr__bytes32____address___["Call ens.setAddr(bytes32,address)"]:::futureNode
+          Module______ens.getAddr__bytes32____address___["Static call ens.getAddr(bytes32,address)"]:::futureNode
         end
 
       style ModuleInner fill:none,stroke:none
@@ -305,8 +305,8 @@ describe("to-mermaid", () => {
 
       style Module fill:#fbfbfb,stroke:#e5e6e7
 
-      Module#ens.setAddr_bytes32_address_ --> Module#ens
-      Module#ens.getAddr_bytes32_address_ --> Module#ens`;
+      Module______ens.setAddr__bytes32____address___ --> Module______ens
+      Module______ens.getAddr__bytes32____address___ --> Module______ens`;
 
     assertDiagram(moduleDefinition, expectedResult);
   });
