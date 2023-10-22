@@ -98,7 +98,7 @@ const existingToken = m.contractAt("Token", "0x...");
 
 Just like with `m.contract`, the first value is the name of the contract, and the second value is its address.
 
-You can also use another `Future` for the address (the second argument). This can be useful when using a factory, or to create a contract `Future` with a different interface (like when deploying a proxy instantiating it as its implementation).
+You can also use another `Future` for the address (the second argument). This can be useful when using a factory, or to create a contract `Future` with a different interface (like when deploying a proxy and instantiating it as its implementation).
 
 ### Calling contract functions
 
