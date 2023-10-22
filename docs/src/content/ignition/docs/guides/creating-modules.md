@@ -1,14 +1,14 @@
 # Creating Ignition Modules
 
-When using Hardhat Ignition, you define your deployments using Ignition Modules. An Ignition module is an abstraction you use to describe the system you want to deploy. Each Ignition Module groups a set of smart contract instances of your system.
+In Hardhat Ignition, deployments are defined through Ignition Modules. These modules help you outline and describe the system that you want to deploy. Each Ignition Module encapsulates a group of smart contract instances and operations within your system.
 
-This guide will explain you how to create Ignition Modules.
+This guide will explain how to create Ignition Modules.
 
 ## The module definition API
 
-To create an Ignition Module, you need to import the `buildModule` function from `@nomicfoundation/hardhat-ignition/modules` and call it passing a `string` that will be use as the module id, and a callback that defines the content of the module.
+To create an Ignition Module, import the `buildModule` function from `@nomicfoundation/hardhat-ignition/modules`. Then, call it with a `string` that will be used as the module ID, and a callback that will define the content of the module.
 
-For example, this is a module which will have the string `"MyToken"` as id:
+This is a module which will be identified as `"MyToken"`:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
@@ -42,35 +42,37 @@ module.exports = buildModule("My token", (m) => {
 
 ::::
 
-While you can create as many modules in a file as you want as long as their ids are unique, to deploy a module, you need to export it using `module.exports =` or `export default`. We recommend creating a single module per file, and using the module id as file name.
+You can create multiple modules in a single file, but each must have a unique ID. To deploy a module, you must export it using `module.exports =` or `export default`. As a best practice, we suggest maintaining one module per file, naming the file after the module ID.
 
-The second argument we passed to `buildModule` is a module definition callback, which receives a `ModuleBuilder` object. This object has mehtods you use to define the contents of the module. For example, we used the `contract` method to define an instance of the contract `Token`.
+The callback function is where the module definition actually happens. The `m` parameter being passed into the callback is an instance of a `ModuleBuilder`, which is an object with methods to define and configure your smart contract instances.
 
-Calling a methods of `ModuleBuilder` won't deploy any contract nor interact with the network in any way. Instead, it will create a `Future`, register it within the module, and return it.
+When we call these `ModuleBuilder` methods, they create a `Future` object, which represents the result of an execution step that Hardhat Ignition needs to run to deploy a contract instance or interact with an existing one.
 
-A `Future` is an object representing the result of an execution step that Hardhat Ignition needs to run to deploy a contract or interact with an existing one. To deploy a module, Hardhat Ignition executes every one of its future, running its execution step once, and storing its results.
+This doesn't execute anything against the network, it simply represents it internally. After the `Future` is created, it gets registered within the module, and the method returns it.
 
-Finally, `Future`s representing contract instances can be returned by the module defintion callback to expose one or more contracts to other modules and tests, just like we returned `token` in our example.
+To deploy a module, Hardhat Ignition executes each of the `Future` objects that the module defines once, and stores the results.
+
+Finally, the module definition callback can return `Future` objects that represent contract instances, making these contracts accessible to other modules and tests, just like we returned `token` in our example.
 
 ## The different kinds of `Future`
 
-This section will explore the different kind of `Future` Hardhat Ignition supports, and how to defined them using a `ModuleBuilder`.
+This section will explore the different kinds of `Future` objects that Hardhat Ignition supports, and how to define them using `ModuleBuilder`.
 
 ### Deploying a contract
 
-As we saw in our example above, to deploy an instance of a contract, you need to create a `Future` using `m.contract`.
+As explained above, to define a new contract instance you'll have to use `m.contract` to create a `Future`.
 
-Hardhat Ignition is aware of the contracts in your Hardhat project, so you can refer to them by their name, like you would do in a test.
+Hardhat Ignition knows all the contracts you have in your Hardhat project, so you can refer to them by their names like you would when you're writing tests.
 
-Let's look at the example again:
+Let's go over the example again:
 
 ```js
 const token = m.contract("Token", ["My Token", "TKN", 18]);
 ```
 
-Here we call `m.contract` and pass the contract name as the first argument. Then, we pass an array with the arguments that the constructor should receive.
+We call `m.contract` and provide the contract name as the first argument. Then we provide an array of arguments that the constructor needs.
 
-If you want to use the value that a `Future` represents as an argument, all you need to do is passing the `Future` itself. Hardhat Ignition will know how to resolve it during execution.
+If you want to use the future value that a `Future` object represents as an argument for another function call, you can simply use the `Future` object itself. Hardhat Ignition will figure out how to resolve it during execution.
 
 For example, we can use the address of `token` like this:
 
@@ -78,7 +80,7 @@ For example, we can use the address of `token` like this:
 const foo = m.contract("ReceivesAnAddress", [token]);
 ```
 
-If you need to send ETH to the constructor, you can pass an object with options as third argument to `m.contract`, and use its `value` field:
+If you need to send ETH to the constructor, you can pass an object with options as the third argument to `m.contract`, and put in how much you want to send in the `value` field:
 
 ```js
 const bar = m.contract("ReceivesETH", [], {
@@ -88,7 +90,7 @@ const bar = m.contract("ReceivesETH", [], {
 
 ### Using an existing contract
 
-If you need to interact with existing contract you can create a `Future` to represent it like this:
+If you need to interact with existing contract instances, you can create a `Future` to represent it in your module like this:
 
 ```js
 const existingToken = m.contractAt("Token", "0x...");
@@ -96,21 +98,21 @@ const existingToken = m.contractAt("Token", "0x...");
 
 Just like with `m.contract`, the first value is the name of the contract, and the second value is its address.
 
-You can also use another `Future` as its address, which can be useful when using a factory, or to create a contract `Future` with a different interface (e.g. deploying a proxy instantiating it as its implementation).
+You can also use another `Future` for the address (the second argument). This can be useful when using a factory, or to create a contract `Future` with a different interface (like when deploying a proxy and instantiating it as its implementation).
 
-### Calling contract methods
+### Calling contract functions
 
-If you need to call a method of an contract all you need to do is
+To call a function of an contract you need to use the `m.call` method in `ModuleBuilder`:
 
 ```js
 m.call(token, "transfer", [receiver, amount]);
 ```
 
-Here the first argument is the contract we want to call, the second one the method name, and the third one is an array of arguments. The array of arguments can contain other `Future`s and Hardhat Ignition will know how to resolve them.
+The first argument is the `Future` object for the contract you want to call, the second one the function name, and the third one is an array of arguments. Once again, the array of arguments can contain other `Future` objects and Hardhat Ignition will figure out how to resolve them during execution.
 
-This method returns a `Future` which we aren't assigning to any variable. This isn't a problem, as Hardhat Ignition will execute every `Future` within a module.
+In this example, the `m.call` returns a `Future` which we aren't assigning to any variable. This isn't a problem. Hardhat Ignition will execute every `Future` within a module, regardless of whether we store it or not.
 
-Finally, if you need to send ETH while calling this method, you can pass an object with options as third argument to `m.contract`, and use its `value` field:
+If you need to send ETH while calling a function, you can pass an object with options as the third argument to `m.contract`, and put in how much you want to send in the `value` field:
 
 ```js
 m.call(myContract, "receivesEth" [], {
@@ -120,21 +122,21 @@ m.call(myContract, "receivesEth" [], {
 
 ### Reading a value from a contract
 
-If you need to call a `view` or `pure` method of a contract to retreive a value, you can do it with `m.staticCall`:
+If you need to call a `view` or `pure` function in a contract to retreive a value, you can do it with `m.staticCall`:
 
 ```js
 const balance = m.staticCall(token, "balanceOf", [address]);
 ```
 
-Just like with `m.call`, `m.staticCall`'s first three arguments are the contract, the method name, and its argumetns, and it returns a `Future` representing the value returned by the method.
+Just like with `m.call`, the `m.staticCall` function requires you to provide the contract's `Future` object, the function name, and its arguments. It returns a `Future` representing the value returned by the contract call.
 
-If the method you are calling returns more than one value, it will return the first one by default. You can customize this by passing an index or name as the forth value.
+If the function you are calling returns more than one value, `m.staticCall` will return the first one by default. If you need a value other than the first one, you can provide an index or name as the fourth parameter.
 
-To execute this `Future`, Hardhat Ignition won't send any transaction, and use `eth_call` instead. Like every `Future`, it only gets executed once, and its result is recorded.
+To execute this `Future`, Hardhat Ignition won't send any transactions and it will use [`eth_call`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_call) instead. Just like every other `Future`, it gets executed once, and the result is recorded.
 
-#### Reading a value from an event emitted by a contract
+#### Reading values from events emitted during `Future` execution
 
-If you need to read a value that was generated by a contract and exposed through Solidity events, you can use `m.readEventArgument`:
+If you're dealing with a `Future` that emits a Solidity event when executed, and you need to extract an argument from said event, then you can use `m.readEventArgument`:
 
 ```tsx
 const transfer = m.call(token, "transfer", [receiver, amount]);
@@ -142,43 +144,44 @@ const transfer = m.call(token, "transfer", [receiver, amount]);
 const value = m.readEventArgument(transfer, "Transfer", "_value");
 ```
 
-Here, you pass the `Future` whose execution will emit the event, the event name, and the event argument (index or name) you want to read.
+The first parameter is the `Future` object, whose execution results in the event's emission. Next, you specify the event's name and the particular argument you wish to extract from this event, using either its index or name for identification.
 
-You can also pass an object with options, which can contain:
+You can also provide as a fourth parameter an object with options, which can contain:
 
-- `emitter`: A `Future` representing the contract instance that emits the event. This defaults to the contract you are interacting with in the `Future` you pass as first argument.
-- `eventIndex`: If the are multiple events with the same name emitted by the `emitter`, you can use this parameter to select one of them. It defaults to `0`.
+- `emitter`: A `Future` representing the contract instance that **directly emits** the event. This defaults to the `Future` you pass as first argument, but they’re not always the same. A `Future` can be executed and indirectly lead to an event emission by calling other contracts during its execution, which then directly emit the event.
+
+- `eventIndex`: If the are multiple events with the same name emitted by the `emitter`, you can use this parameter to pick one of them. It defaults to `0`.
 
 ### Sending ETH or data to an account
 
-If you need to send ETH or data to an account, you can do it like this
+To send ETH or data to an account you can use `m.send`:
 
 ```js
 const send = m.send("SendingEth", address, 1_000_000n);
 const send = m.send("SendingData", address, undefined, "0x16417104");
 ```
 
-The first argumetn of `m.send` is the id of the `Future`. To learn more about them jump to [this section](#future-ids).
+Calling `m.send` will create a `Future` representing the sending action. The first parameter it requires is the ID for the `Future` that will be created.
 
-The second argument is the address of the account you want to send the ETH or data to.
+The second argument is the address of the account where you want to send the ETH or data to.
 
-The third and forth one are optional, and are the amount of ETH to send, and the data.
+The third and forth parameters are both optional. They represent the amount of ETH and the data to be sent.
 
 ### Deploying a library
 
-If you need to deploy a library, you can do it with
+To deploy a library you can use `m.library`:
 
 ```js
 const myLib = m.library("MyLib");
 ```
 
-To learn how to link them, please read [this section](#linking-libraries)
+If you need to link libraries take a look at the [Linking Libraries](#linking-libraries) section.
 
-## `Future` ids
+## `Future` IDs
 
-Each `Future` inside your should have a unique id. Normally, Hardhat Ignition will automatically generate an id for you, based on some of the parameters you pass when creating the `Future`.
+Each `Future` that is created should have a unique ID. In most cases, Hardhat Ignition will automatically generate an ID for the every `Future` you create, based on the creation parameters.
 
-In some cases, this automatic process may lead to a clash with an existing `Future`. If that happens, Hardhat Ignition won't try to resolve the clash, and you'd have to define an id manually. Every method of `ModuleBuilder` accepts an options object as last argument, which has an `id` field that can be used like this:
+In some cases, this automatic process may lead to an ID clash with an existing `Future`. If that happens, Hardhat Ignition won't try to resolve the clash, and you will need to define an ID manually to resolve the issue. Every method of `ModuleBuilder` accepts an options object as last argument, which has an `id` field that can be used like this:
 
 ```js
 const token = m.contract("Token", ["My Token 2", "TKN2", 18], {
@@ -186,47 +189,83 @@ const token = m.contract("Token", ["My Token 2", "TKN2", 18], {
 });
 ```
 
-They are used to continue the execution of a deployment if it failed or if you want to modify it.
+The `Future` IDs are used to organize your deployment results, artifacts, and to resume a deployment after interruptions or modifications. For this reason, you should avoid changing IDs after running a deployment.
 
-The `Future` ids are used to organize your deployment results, artifacts, and to resume a deployment after it failed or you extended it. For this reason, you should avoid changing your ids after running a deployment.
+## Dependencies between `Future` objects
 
-## Dependencies between futures
+If you provide a `Future` object `A` as an argument when constructing `Future` object `B`, a dependency from `B` to `A` is created.
 
-If you pass a `Future` as an argument when constructing a new one, a dependency from thew new one to the existing one is created.
+Dependencies are used by Hardhat Ignition to understand how to order and batch the execution of the different `Future` objects.
 
-Dependencies are used by Hardhat Ignition to understand in which order it needs to execute the `Future`s.
-
-You can also decleare dependencies between `Future`s explictly. To do this, you can use the options object that all the methods to construct `Future`s accept. For example:
+You also have the option to set explicit dependencies between `Future` objects. This is done through the `after` field in the options object, accepted by all `ModuleBuilder` methods when creating a `Future`. Here's how you can do it:
 
 ```js
-const a = m.contract("A");
-const b = m.contract("B", [], {
-  after: [a],
+const token = m.contract("Token", ["My Token", "TKN", 18]);
+
+const receiver = m.contract("Receiver", [], {
+  after: token, // `receiver` is deployed after `token`
 });
 ```
 
 ## Module parameters
 
-When you define your Ignition Modules you may want to use parameters to tweak some values during deployment.
+When defining Ignition Modules, you can use configurable parameters for flexibility.
 
-You can do this by calling `m.getParamter`, and using its return value to define your `Future`s.
+During deployment, you can specify these parameters in a JSON file that maps module IDs with respective parameter names and values. This section will focus on retrieving parameters, while the [Defining parameters during deployment](./deploy.md#defining-parameters-during-deployment) section explains how to provide them.
 
-For example, we make our token name parametric like this:
+To access these values, you can call `m.getParameter` providing the name for the parameter as the first argument. You can also make your parameters optional by providing a second argument to `m.getParameter` which will act as the default value in case the parameter isn't provided.
 
-```js
-const tokenName = m.getParamter("name");
-const token = m.contract("Token", [tokenName, "TKN2", 18]);
+For example, we can modify the `Apollo` module from the [Quick Start guide](../getting-started/index.md#quick-start) to make the `name` field in the `Rocket` smart contract configurable with a parameter:
+
+::::tabsgroup{options="TypeScript,JavaScript"}
+
+:::tab{value="TypeScript"}
+
+**ignition/modules/Apollo.ts**
+
+```typescript
+import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+
+export default buildModule("Apollo", (m) => {
+  const apollo = m.contract("Rocket", m.getParameter("name", "Apollo"));
+
+  m.call(apollo, "launch", []);
+
+  return { apollo };
+});
 ```
 
-Now, when we deploy the module, we can provide a custom name. To learn how to do this, please read the [Deploying a module guide](./deploy.md).
+:::
 
-You can also make your parameters optional by passing a default value as second argument to `m.getParameter`.
+:::tab{value="JavaScript"}
 
-## Using submodules
+**ignition/modules/Apollo.js**
 
-You can organize your deployment into different Ignition Modules, which can make them easier to write, read and reason about.
+```javascript
+const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 
-When you are defining a module, you can access other modules as submodules and use their result `Future`s. To do it, you need to call `m.useModule` passing the module, as returned by `buildModule`:
+module.exports = buildModule("Apollo", (m) => {
+  const apollo = m.contract("Rocket", m.getParameter("name", "Apollo"));
+
+  m.call(apollo, "launch", []);
+
+  return { apollo };
+});
+```
+
+:::
+
+::::
+
+The above module code will deploy `Rocket` with the name provided in the parameters.
+
+Learn more about how to provide a deployment with parameters in the [Defining parameters during deployment](./deploy.md#defining-parameters-during-deployment) section.
+
+## Creating a module hierarchy using submodules
+
+You can organize your deployment into different Ignition Modules, which makes it easier to build the setup and reason about the deployment big picture.
+
+When you are defining a module, you can access other modules as submodules and use their resulting `Future` objects. To do this you need to call `m.useModule` with a module object as returned by `buildModule` as an argument:
 
 ```js
 const TokenModule = buildModule("TokenModule", (m) => {
@@ -245,21 +284,21 @@ const TokenOwnerModule = buildModule("TokenOwnerModule", (m) => {
 });
 ```
 
-If you use a `Future` from a submodule to create a new `Future`, the new one will have a dependency on the existing one, and an implicit dependency on every `Future` within the submodule. This means that any possible initialization within the submodule will be completed by the time your new `Future` gets executed.
+If you use a `Future` called `A` that you retrieved from a submodule `Sub` to create another `Future` called `B`, then `B` will depend on `A`, but it will also have an implicit dependency on every `Future` within `Sub`. This means `B` will only be executed after `Sub` is fully executed.
 
-Calling multiple times to `m.useModule` with the same Ignition Module doesn't lead to multiple deployments. Hardhat Ignition only executes `Future`s once.
+Calling `m.useModule` multiple times with the same Ignition Module as a parameter doesn't lead to multiple deployments. Hardhat Ignition only executes `Future` objects once.
 
 ## Deploying and calling contracts from different accounts
 
-If you need to change the sender of a deployment, call, or another future, you can do it by providing a `from` option.
+If you need to change the sender of a deployment, call, or another `Future`, you can do it by providing the `from` field in an options object.
 
-For example, to deploy a contract from a different account you can do
+For example, to deploy a contract from a specific account:
 
 ```js
 const token = m.contract("Token", ["My Token", "TKN2", 18], { from: "0x...." });
 ```
 
-You can also define a module that uses the accounts that Hardhat has available during the deployment. To do it, you can use `m.getAccount(index)`, like this:
+You can also define a module that uses the accounts that Hardhat has available during the deployment. To access the Hardhat accounts use `m.getAccount(index)`:
 
 ```js
 const account1 = m.getAccount(1);
@@ -270,7 +309,7 @@ const token = m.contract("Token", ["My Token", "TKN2", 18], { from: account1 });
 
 If you need to deploy or interact with a contract that isn't part of your Hardhat project, you can provide your own artifacts.
 
-All the methods that create `Future`s that represent contracts have overloads that accept artifacts. Here are examples of all of them:
+All the methods that create `Future` objects for contracts also accept artifacts in the second argument through overloads. Here are examples for each of them:
 
 ```js
 const token = m.contract("Token", TokenArtifact, ["My Token", "TKN2", 18]);
@@ -280,13 +319,11 @@ const myLib = m.library("MyLib", MyLibArtifact);
 const token2 = m.contractAt("Token", TokenArtifact, token2Address);
 ```
 
-In this case, the name of the contract is only used to generate [`Future` ids](#future-ids), and not to load any artifact.
+In this case, the name of the contract is only used to generate [`Future` IDs](#future-ids), and not to load any artifact.
 
 ## Linking libraries
 
-If you need to link a library when deploying a contract, you can do it by passing them in the options object when calling `m.contract` or `m.library`.
-
-For example, you can do
+To link a library when deploying a contract, you can use the `libraries` field in an options object when calling `m.contract` or `m.library`:
 
 ```js
 const myLib = m.library("MyLib");

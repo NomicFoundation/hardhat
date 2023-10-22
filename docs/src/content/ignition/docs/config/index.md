@@ -1,8 +1,6 @@
 # Configuration
 
-You can customize how Hardhat Ignition works by modifying your Hardhat config.
-
-To do so, you can set different config properties in the `ignition` field. For example:
+You can use the `ignition` field in the Hardhat config to customize how Hardhat Ignition behaves:
 
 ```js
 // hardhat.config.js
@@ -22,16 +20,24 @@ These are the different options you can add to your Hardhat config file.
 
 ### `blockPollingInterval`
 
-The value of `blockPollingInterval` is the time in milliseconds between checks that a new block has been minted. The default value is 1000 milliseconds (aka 1 second).
+The time in milliseconds that Hardhat Ignition will wait between checks that a new block has been minted.
+
+Default value: 1000 milliseconds (1 second).
 
 ### `timeBeforeBumpingFees`
 
-The value of `timeBeforeBumpingFees` sets the time in milliseconds to wait for a transaction to be confirmed on-chain before bumping its fee. The default is 180.000 milliseconds (aka 3min).
+The time in milliseconds to wait before bumping the fee for an unconfirmed transaction.
+
+Default value: 180,000 milliseconds (3 minutes).
 
 ### `maxFeeBumps`
 
-The value of `maxFeeBumps` determines the number of times a transaction will have its fee bumped before Hardhat Ignition considers it timed out. The default is 4.
+The number of times an unconfirmed transaction will have its fee bumped before Hardhat Ignition considers it timed out.
+
+Default value: 4.
 
 ### `requiredConfirmations`
 
-The value of `requiredConfirmations` is the number of confirmations Hardhat Ignition waits before considering a transaction as complete. This provides control over block re-org risk. The default number of confirmations is 5.
+The number of confirmations Hardhat Ignition waits before considering a transaction as complete. This provides control over block re-org risk.
+
+Default value: 5
