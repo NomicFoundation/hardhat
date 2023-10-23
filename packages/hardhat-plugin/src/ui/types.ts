@@ -61,6 +61,7 @@ export interface UiState {
   currentBatch: number;
   result: DeploymentResult | null;
   warnings: string[];
+  isResumed: boolean | null;
 }
 
 export interface AddressMap {

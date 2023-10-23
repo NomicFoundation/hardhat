@@ -2,10 +2,24 @@ import chalk from "chalk";
 
 import { UiState } from "../types";
 
+import { pathFromCwd } from "./cwd-relative-path";
+
 export function calculateDeployingModulePanel(state: UiState): string {
   let deployingMessage = `Hardhat Ignition 🚀
 
-${chalk.bold(`Deploying [ ${state.moduleName ?? "unknown"} ]`)}
+`;
+
+  if (state.isResumed === true) {
+    deployingMessage += `${chalk.bold(
+      `Resuming existing deployment from ${pathFromCwd(state.deploymentDir!)}`
+    )}
+
+`;
+  }
+
+  deployingMessage += `${chalk.bold(
+    `Deploying [ ${state.moduleName ?? "unknown"} ]`
+  )}
 `;
 
   if (state.warnings.length > 0) {

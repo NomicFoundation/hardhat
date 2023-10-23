@@ -18,6 +18,13 @@
   ],
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
+  "files": [
+    "dist/src/",
+    "src/",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md"
+  ],
   "exports": {
     ".": "./dist/src/index.js",
     "./modules": "./dist/src/modules.js"

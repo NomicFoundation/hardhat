@@ -60,6 +60,7 @@ export class PrettyEventHandler implements ExecutionEventListener {
     currentBatch: 0,
     result: null,
     warnings: [],
+    isResumed: null,
   };
 
   constructor(private _deploymentParams: DeploymentParameters = {}) {}
@@ -78,6 +79,7 @@ export class PrettyEventHandler implements ExecutionEventListener {
       status: UiStateDeploymentStatus.DEPLOYING,
       moduleName: event.moduleName,
       deploymentDir: event.deploymentDir,
+      isResumed: event.isResumed,
     };
 
     process.stdout.write(calculateStartingMessage(this.state));

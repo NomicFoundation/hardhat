@@ -76,9 +76,16 @@ export class Deployer {
     accounts: string[],
     defaultSender: string
   ): Promise<DeploymentResult> {
-    let deploymentState = await this._getOrInitializeDeploymentState();
+    const deployment = await this._getOrInitializeDeploymentState();
 
-    this._emitDeploymentStartEvent(ignitionModule.id, this._deploymentDir);
+    const isResumed = deployment.isResumed;
+    let deploymentState = deployment.deploymentState;
+
+    this._emitDeploymentStartEvent(
+      ignitionModule.id,
+      this._deploymentDir,
+      isResumed
+    );
 
     const contracts =
       getFuturesFromModule(ignitionModule).filter(isContractFuture);
@@ -223,12 +230,27 @@ export class Deployer {
     };
   }
 
-  private async _getOrInitializeDeploymentState(): Promise<DeploymentState> {
+  /**
+   * Fetches the existing deployment state or initializes a new one.
+   *
+   * @returns An object with the deployment state and a boolean indicating
+   * if the deployment is being resumed (i.e. the deployment state is not
+   * new).
+   */
+  private async _getOrInitializeDeploymentState(): Promise<{
+    deploymentState: DeploymentState;
+    isResumed: boolean;
+  }> {
     const chainId = await this._jsonRpcClient.getChainId();
     const deploymentState = await loadDeploymentState(this._deploymentLoader);
 
     if (deploymentState === undefined) {
-      return initializeDeploymentState(chainId, this._deploymentLoader);
+      const newState = await initializeDeploymentState(
+        chainId,
+        this._deploymentLoader
+      );
+
+      return { deploymentState: newState, isResumed: false };
     }
 
     // TODO: this should be moved out, it is not obvious that a significant
@@ -240,12 +262,13 @@ export class Deployer {
       });
     }
 
-    return deploymentState;
+    return { deploymentState, isResumed: true };
   }
 
   private _emitDeploymentStartEvent(
     moduleId: string,
-    deploymentDir: string | undefined
+    deploymentDir: string | undefined,
+    isResumed: boolean
   ): void {
     if (this._executionEventListener === undefined) {
       return;
@@ -255,6 +278,7 @@ export class Deployer {
       type: ExecutionEventType.DEPLOYMENT_START,
       moduleName: moduleId,
       deploymentDir: deploymentDir ?? undefined,
+      isResumed,
     });
   }
 

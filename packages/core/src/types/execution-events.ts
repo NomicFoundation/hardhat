@@ -77,6 +77,7 @@ export interface DeploymentStartEvent {
   type: ExecutionEventType.DEPLOYMENT_START;
   moduleName: string;
   deploymentDir: string | undefined;
+  isResumed: boolean;
 }
 
 /**
