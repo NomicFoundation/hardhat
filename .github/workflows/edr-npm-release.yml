@@ -368,7 +368,7 @@ jobs:
 #      - test-linux-x64-musl-binding
 #      - test-linux-aarch64-gnu-binding
 #      - test-linux-aarch64-musl-binding
-    if: ${{ needs.check_commit.outputs.match == 'true' }}
+    if: ${{ needs.check_commit.outputs.match == true }}
     defaults:
       run:
         working-directory: ./crates/edr_evm_napi
