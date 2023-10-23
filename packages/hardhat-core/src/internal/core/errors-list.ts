@@ -1309,7 +1309,8 @@ A fully qualified name should look like file.sol:Contract`,
     },
     VALUE_NOT_FOUND_FOR_KEY: {
       number: 1201,
-      message: "Cannot find a value associated to the key '%value%'",
+      message:
+        "Cannot find a value associated to the key '%value%'. Use 'npx hardhat vars setup' to list the vars that need to be setup in your Hardhat configuration file.",
       title: "Cannot find a value associated to the key",
       description: `Cannot find a value associated to the key.
 

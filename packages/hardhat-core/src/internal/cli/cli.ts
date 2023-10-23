@@ -213,7 +213,7 @@ async function main() {
     const ctx = HardhatContext.createHardhatContext();
 
     if (scopeOrTaskName === "vars" && allUnparsedCLAs.length > 1) {
-      process.exit(await handleVars(allUnparsedCLAs));
+      process.exit(await handleVars(allUnparsedCLAs, hardhatArguments.config));
     }
 
     const { resolvedConfig, userConfig } = loadConfigAndTasks(

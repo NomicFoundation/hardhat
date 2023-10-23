@@ -360,8 +360,7 @@ Hardhat plugin instead.`
           // The task names and the utils may have been loaded before, so we ignore them.
           if (
             file.endsWith("task-names.ts") ||
-            file.includes(path.join(path.sep, "utils", path.sep)) ||
-            file.endsWith("vars.ts") // builtin scopes should not be included
+            file.includes(path.join(path.sep, "utils", path.sep))
           ) {
             continue;
           }

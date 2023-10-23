@@ -43,10 +43,6 @@ describe("vars", function () {
     });
 
     beforeEach(function () {
-      // Force the reload of the scopes otherwise they will only be loaded once and then the tests will fail
-      delete require
-        .cache[require.resolve("../../../../src/builtin-tasks/vars.ts")];
-
       fs.removeSync(TMP_FILE_PATH);
 
       ctx = HardhatContext.createHardhatContext();
@@ -61,7 +57,10 @@ describe("vars", function () {
 
     describe("set", () => {
       it("should set a new value when both key and value are passed", async () => {
-        const code = await handleVars(["vars", "set", "newKey", "newVal"]);
+        const code = await handleVars(
+          ["vars", "set", "newKey", "newVal"],
+          undefined
+        );
 
         expect(ctx.varsManager.get("newKey")).equals("newVal");
         assert(
@@ -90,7 +89,7 @@ describe("vars", function () {
         it("should set a new value when only the key is passed (user cli prompt expected)", async () => {
           stubUserPrompt.resolves({ value: "valueFromCli" });
 
-          const code = await handleVars(["vars", "set", "newKey"]);
+          const code = await handleVars(["vars", "set", "newKey"], undefined);
 
           expect(ctx.varsManager.get("newKey")).equals("valueFromCli");
           assert(
@@ -106,7 +105,7 @@ describe("vars", function () {
           stubUserPrompt.resolves({ value: "  " });
 
           await expect(
-            handleVars(["vars", "set", "newKey"])
+            handleVars(["vars", "set", "newKey"], undefined)
           ).to.be.rejectedWith(
             "HH1203: Invalid value. The value cannot be an empty string"
           );
@@ -116,7 +115,7 @@ describe("vars", function () {
 
       it("should throw an error when the key is not valid", async () => {
         await expect(
-          handleVars(["vars", "set", "0invalidKey", "newVal"])
+          handleVars(["vars", "set", "0invalidKey", "newVal"], undefined)
         ).to.be.rejectedWith(
           "HH1202: Invalid key '0invalidKey'. Keys can only have alphanumeric characters and underscores, and they cannot start with a number."
         );
@@ -126,14 +125,17 @@ describe("vars", function () {
 
     describe("get", () => {
       it("should get the value associated to the key", async () => {
-        const code = await handleVars(["vars", "get", "key1"]);
+        const code = await handleVars(["vars", "get", "key1"], undefined);
 
         assert(spyConsoleLog.calledWith("val1"));
         expect(code).equals(0);
       });
 
       it("should not get any value because the key is not defined", async () => {
-        const code = await handleVars(["vars", "get", "nonExistingKey"]);
+        const code = await handleVars(
+          ["vars", "get", "nonExistingKey"],
+          undefined
+        );
 
         assert(
           spyConsoleWarn.calledWith(
@@ -148,7 +150,7 @@ describe("vars", function () {
 
     describe("list", () => {
       it("should list all the keys", async () => {
-        const code = await handleVars(["vars", "list"]);
+        const code = await handleVars(["vars", "list"], undefined);
         expect(spyConsoleLog.callCount).to.equal(2);
         assert(spyConsoleLog.firstCall.calledWith("key1"));
         assert(spyConsoleLog.secondCall.calledWith("key2"));
@@ -163,7 +165,7 @@ describe("vars", function () {
       it("should not list any key because they are not defined", async () => {
         ctx.varsManager.delete("key1");
         ctx.varsManager.delete("key2");
-        const code = await handleVars(["vars", "list"]);
+        const code = await handleVars(["vars", "list"], undefined);
         assert(
           spyConsoleWarn.calledWith(
             chalk.yellow(`There are no key-value pairs stored`)
@@ -175,7 +177,7 @@ describe("vars", function () {
 
     describe("delete", () => {
       it("should successfully delete a key and its value", async () => {
-        const code = await handleVars(["vars", "delete", "key1"]);
+        const code = await handleVars(["vars", "delete", "key1"], undefined);
         assert(ctx.varsManager.get("key1") === undefined);
         assert(
           spyConsoleWarn.calledWith(
@@ -186,7 +188,10 @@ describe("vars", function () {
       });
 
       it("should show a warning because the key to delete cannot be found", async () => {
-        const code = await handleVars(["vars", "delete", "nonExistingKey"]);
+        const code = await handleVars(
+          ["vars", "delete", "nonExistingKey"],
+          undefined
+        );
         assert(
           spyConsoleWarn.calledWith(
             chalk.yellow(
@@ -200,7 +205,7 @@ describe("vars", function () {
 
     describe("path", () => {
       it("should show the path where the key-value pairs are stored", async () => {
-        const code = await handleVars(["vars", "path"]);
+        const code = await handleVars(["vars", "path"], undefined);
         assert(spyConsoleLog.calledWith(TMP_FILE_PATH));
         expect(code).equals(0);
       });
@@ -209,7 +214,7 @@ describe("vars", function () {
     describe("default", () => {
       it("should throw an error if the action does not exist", async () => {
         await expect(
-          handleVars(["vars", "nonExistingAction"])
+          handleVars(["vars", "nonExistingAction"], undefined)
         ).to.be.rejectedWith(
           "HH315: Unrecognized task 'nonExistingAction' under scope 'vars'"
         );
@@ -221,7 +226,7 @@ describe("vars", function () {
         useFixtureProject("vars/setup-filled");
 
         it("should say that alle the key-value pairs are set", async function () {
-          const code = await handleVars(["vars", "setup"]);
+          const code = await handleVars(["vars", "setup"], undefined);
 
           assert(
             spyConsoleLog.calledWith(
@@ -236,7 +241,7 @@ describe("vars", function () {
         useFixtureProject("vars/setup-to-fill");
 
         it("should show the key-value pairs that need to be filled", async () => {
-          const code = await handleVars(["vars", "setup"]);
+          const code = await handleVars(["vars", "setup"], undefined);
 
           // required keys
           assert(
@@ -256,33 +261,26 @@ describe("vars", function () {
               )
             )
           );
+
           expect(code).equals(0);
         });
       });
 
       describe("simulate setup errors when loading hardhat.config.ts", () => {
-        describe("the error should be ignored", () => {
-          useFixtureProject("vars/setup-error-to-ignore");
-
-          it("should ignore the error", async () => {
-            await handleVars(["vars", "setup"]);
-          });
-        });
-
         describe("the error should stop the execution", () => {
           useFixtureProject("vars/setup-error-to-throw");
 
           it("should throw the error", async () => {
             const spyConsoleError = sandbox.stub(console, "error");
 
-            await expect(handleVars(["vars", "setup"])).to.be.rejectedWith(
-              "Simulate error to throw during vars setup"
-            );
+            await expect(
+              handleVars(["vars", "setup"], undefined)
+            ).to.be.rejectedWith("Simulate error to throw during vars setup");
 
             assert(
               spyConsoleError.calledWith(
                 chalk.red(
-                  "There is an error in your 'hardhat.config.ts' file. Please double check it.\n"
+                  "There is an error in your hardhat configuration file. Please double check it.\n"
                 )
               )
             );

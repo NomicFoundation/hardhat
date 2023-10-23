@@ -1,4 +1,5 @@
 import fs from "fs-extra";
+import debug from "debug";
 import { HardhatError } from "../errors";
 import { ERRORS } from "../errors-list";
 
@@ -11,14 +12,21 @@ interface VarsFile {
   vars: Record<string, Var>;
 }
 
+const log = debug("hardhat:core:vars:varsManager");
+
 export class VarsManager {
   private readonly _VERSION = "hh-vars-1";
   private readonly _ENV_VAR_PREFIX = "HARDHAT_VAR_";
   private readonly _cache: VarsFile;
+  private readonly _cacheEnv: VarsFile;
 
   constructor(private readonly _varsFilePath: string) {
+    log("Creating a new instance of VarsManager");
+
     this._initializeVarsFile();
     this._cache = fs.readJSONSync(this._varsFilePath);
+
+    this._cacheEnv = this._getVarsFileStructure();
     this._loadVarsFromEnv();
   }
 
@@ -39,8 +47,19 @@ export class VarsManager {
     return key in this._readVars();
   }
 
+  public hasWithEnvVars(key: string): boolean {
+    return key in this._readVars(true);
+  }
+
   public get(key: string, defaultValue?: string): string | undefined {
     return this._readVars()[key]?.value ?? defaultValue;
+  }
+
+  public getWithEnvVars(
+    key: string,
+    defaultValue?: string
+  ): string | undefined {
+    return this._readVars(true)[key]?.value ?? defaultValue;
   }
 
   public list(): string[] {
@@ -71,19 +90,25 @@ export class VarsManager {
   private _initializeVarsFile() {
     if (!fs.pathExistsSync(this._varsFilePath)) {
       // Initialize the vars file if it does not exist
-      fs.writeJSONSync(
-        this._varsFilePath,
-        {
-          _format: this._VERSION,
-          vars: {},
-        },
-        { spaces: 2 }
+      log(
+        `Vars file do not exist. Creating a new one at '${this._varsFilePath}' with version '${this._VERSION}'`
       );
+
+      fs.writeJSONSync(this._varsFilePath, this._getVarsFileStructure(), {
+        spaces: 2,
+      });
     }
   }
 
+  private _getVarsFileStructure(): VarsFile {
+    return {
+      _format: this._VERSION,
+      vars: {},
+    };
+  }
+
   private _loadVarsFromEnv() {
-    const vars = this._readVars();
+    log("Loading ENV variables if any");
 
     for (const key in process.env) {
       if (key.startsWith(this._ENV_VAR_PREFIX)) {
@@ -97,12 +122,11 @@ export class VarsManager {
           });
         }
 
-        const managerKey = key.replace(this._ENV_VAR_PREFIX, "");
-        this.validateKey(managerKey);
-        vars[managerKey] = { value: process.env[key]! };
+        const envKey = key.replace(this._ENV_VAR_PREFIX, "");
+        this.validateKey(envKey);
 
         // Store only in cache, not in a file, as the vars are sourced from environment variables
-        this._cache.vars = vars;
+        this._cacheEnv.vars[envKey] = { value: process.env[key]! };
       }
     }
   }
@@ -112,7 +136,10 @@ export class VarsManager {
     fs.writeJSONSync(this._varsFilePath, this._cache, { spaces: 2 });
   }
 
-  private _readVars(): Record<string, Var> {
-    return this._cache.vars;
+  private _readVars(includeEnvs: boolean = false): Record<string, Var> {
+    // Env vars have priority over stored vars, _cacheEnv will overwrite the _cache vars if the key is the same
+    return includeEnvs
+      ? { ...this._cache.vars, ...this._cacheEnv.vars }
+      : this._cache.vars;
   }
 }

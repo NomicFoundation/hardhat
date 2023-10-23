@@ -1,12 +1,21 @@
 import chalk from "chalk";
+import debug from "debug";
 import { HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 import { HardhatContext } from "../context";
 import { VarsManagerSetup } from "../core/vars/vars-manager-setup";
-import { loadConfigAndTasks } from "../core/config/config-loading";
+import {
+  importCsjOrEsModule,
+  resolveConfigPath,
+} from "../core/config/config-loading";
 import { ArgumentsParser } from "./ArgumentsParser";
 
-export async function handleVars(allUnparsedCLAs: string[]): Promise<number> {
+const log = debug("hardhat:cli:vars");
+
+export async function handleVars(
+  allUnparsedCLAs: string[],
+  configPath: string | undefined
+): Promise<number> {
   const { taskDefinition, taskArguments } =
     await getTaskDefinitionAndTaskArguments(allUnparsedCLAs);
 
@@ -22,7 +31,7 @@ export async function handleVars(allUnparsedCLAs: string[]): Promise<number> {
     case "path":
       return path();
     case "setup":
-      return setup();
+      return setup(configPath);
     default:
       return 1; // Error code
   }
@@ -92,27 +101,39 @@ function path() {
   return 0;
 }
 
-function setup() {
+function setup(configPath: string | undefined) {
+  log("Switching to VarsManagerSetup to collect vars");
   HardhatContext.getHardhatContext().switchToSetupVarsManager();
 
   try {
-    loadConfigAndTasks();
+    log("Loading config and tasks to trigger vars collection");
+    loadConfigFile(configPath);
   } catch (err: any) {
-    if (err.message.trim() !== "Invalid Version:") {
-      console.error(
-        chalk.red(
-          "There is an error in your 'hardhat.config.ts' file. Please double check it.\n"
-        )
-      );
+    console.error(
+      chalk.red(
+        "There is an error in your hardhat configuration file. Please double check it.\n"
+      )
+    );
 
-      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
-      throw err;
-    }
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+    throw err;
   }
 
   listVarsToSetup();
 
   return 0;
+}
+
+function loadConfigFile(configPath: string | undefined) {
+  const configEnv = require("../../../src/internal/core/config/config-env");
+
+  const globalAsAny: any = global;
+  Object.entries(configEnv).forEach(
+    ([key, value]) => (globalAsAny[key] = value)
+  );
+
+  const resolvedConfigPath = resolveConfigPath(configPath);
+  importCsjOrEsModule(resolvedConfigPath);
 }
 
 async function getVarValue(): Promise<string> {
@@ -166,9 +187,11 @@ function listVarsToSetup() {
 }
 
 async function getTaskDefinitionAndTaskArguments(allUnparsedCLAs: string[]) {
-  require("../../builtin-tasks/vars");
-
   const ctx = HardhatContext.getHardhatContext();
+  ctx.setConfigLoadingAsStarted();
+  require("../../builtin-tasks/vars");
+  ctx.setConfigLoadingAsFinished();
+
   const argumentsParser = new ArgumentsParser();
 
   const taskDefinitions = ctx.tasksDSL.getTaskDefinitions();

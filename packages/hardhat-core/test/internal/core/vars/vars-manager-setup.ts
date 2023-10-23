@@ -1,6 +1,6 @@
 import "mocha";
 import fs from "fs-extra";
-import { assert } from "chai";
+import { assert, expect } from "chai";
 import * as os from "os";
 import { VarsManagerSetup } from "../../../../src/internal/core/vars/vars-manager-setup";
 
@@ -96,6 +96,35 @@ describe("VarsManagerSetup", function () {
       assert.deepEqual(varsManagerSetup.getOptionalVarsKeys(), [
         "nonExistingKey",
       ]);
+    });
+  });
+
+  describe("env variables are present", function () {
+    const ENV_VAR_PREFIX = "HARDHAT_VAR_";
+    const KEY = "key_env_1";
+
+    beforeEach(() => {
+      process.env[`${ENV_VAR_PREFIX}${KEY}`] = "val1";
+    });
+
+    afterEach(() => {
+      delete process.env[`${ENV_VAR_PREFIX}${KEY}`];
+    });
+
+    describe("hasWithEnvVars has the same behavior as has", function () {
+      it("should return the same value", () => {
+        expect(varsManagerSetup.hasWithEnvVars(KEY)).to.equal(
+          varsManagerSetup.has(KEY)
+        );
+      });
+    });
+
+    describe("getWithEnvVars has the same behavior as has", function () {
+      it("should return the same value", () => {
+        expect(varsManagerSetup.getWithEnvVars(KEY)).to.equal(
+          varsManagerSetup.get(KEY)
+        );
+      });
     });
   });
 });

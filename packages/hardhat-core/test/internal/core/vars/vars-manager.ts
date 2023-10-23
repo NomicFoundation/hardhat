@@ -138,24 +138,63 @@ describe("VarsManager", function () {
 
   describe("load vars from environment variables", function () {
     const ENV_VAR_PREFIX = "HARDHAT_VAR_";
+    const KEY = "key_env_1";
 
     describe("when ENV variables are correctly set", () => {
       beforeEach(() => {
-        process.env[`${ENV_VAR_PREFIX}key_env_1`] = "val1";
+        process.env[`${ENV_VAR_PREFIX}${KEY}`] = "val1";
         varsManager = new VarsManager(TMP_FILE_PATH);
       });
 
       afterEach(() => {
-        delete process.env[`${ENV_VAR_PREFIX}key_env_1`];
+        delete process.env[`${ENV_VAR_PREFIX}${KEY}`];
       });
 
-      it("should load the key-value pairs from the environment variables", function () {
-        expect(varsManager.get("key_env_1")).to.equal("val1");
+      describe("function has (without env variables)", () => {
+        it("should not have the key-value pairs from the environment variables", function () {
+          expect(varsManager.has(KEY)).to.equal(false);
+        });
+      });
+
+      describe("function hasWithEnvVars (with env variables)", () => {
+        it("should have the key-value pairs from the environment variables", function () {
+          expect(varsManager.hasWithEnvVars(KEY)).to.equal(true);
+        });
+      });
+
+      describe("function get (without env variables)", () => {
+        it("should get the value from the file, not from the env keys", function () {
+          expect(varsManager.get(KEY)).to.equal(undefined);
+        });
+
+        it("should get the value from the file, not from the env keys (same key as the env variable)", function () {
+          varsManager.set(KEY, "storedValue");
+
+          expect(varsManager.get(KEY)).to.equal("storedValue");
+        });
+      });
+
+      describe("function getWithEnvVars (with env variables)", () => {
+        it("should load the key-value pairs from the environment variables", function () {
+          expect(varsManager.getWithEnvVars(KEY)).to.equal("val1");
+        });
+
+        it("should show the env variable value. Env variables have priority over the stored ones", function () {
+          varsManager.set(KEY, "storedValue");
+
+          expect(varsManager.getWithEnvVars(KEY)).to.equal("val1");
+        });
       });
 
       it("should not store the env variable in the file but only in the cache", function () {
+        // Add a new key-value pair to be sure that env variables are not added when the cache is stored on file during the set operation
+        varsManager.set("key", "val");
+
         const vars = fs.readJSONSync(TMP_FILE_PATH).vars;
-        expect(vars).to.deep.equal({});
+
+        expect(vars).to.deep.equal({
+          key: { value: "val" },
+        });
       });
     });
 

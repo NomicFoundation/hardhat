@@ -1,4 +1,3 @@
-import chalk from "chalk";
 import {
   ActionType,
   ConfigExtender,
@@ -186,25 +185,16 @@ export const vars = {
 };
 
 function hasVar(key: string): boolean {
-  return HardhatContext.getHardhatContext().varsManager.has(key);
+  return HardhatContext.getHardhatContext().varsManager.hasWithEnvVars(key);
 }
 
 function getVar(key: string, defaultValue?: string): string {
-  const value = HardhatContext.getHardhatContext().varsManager.get(
+  const value = HardhatContext.getHardhatContext().varsManager.getWithEnvVars(
     key,
     defaultValue
   );
 
   if (value !== undefined) return value;
-
-  // TODO: where to show error in config?
-  console.error(
-    chalk.red(
-      `Error in the configuration file 'hardhat.config.ts', use '${chalk.italic(
-        "npx hardhat vars setup"
-      )}' to list the vars that need to be setup`
-    )
-  );
 
   throw new HardhatError(ERRORS.VARS.VALUE_NOT_FOUND_FOR_KEY, {
     value: key,
