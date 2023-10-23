@@ -10,6 +10,7 @@ permissions:
   push:
     branches:
       - main
+      - edr/main
     tags-ignore:
       - "**"
     paths-ignore:
