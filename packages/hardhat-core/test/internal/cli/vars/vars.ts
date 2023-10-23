@@ -108,7 +108,7 @@ describe("vars", function () {
           await expect(
             handleVars(["vars", "set", "newKey"])
           ).to.be.rejectedWith(
-            "HH1204: Invalid value. The value cannot be an empty string"
+            "HH1203: Invalid value. The value cannot be an empty string"
           );
           expect(ctx.varsManager.get("newKey")).equals(undefined);
         });
@@ -118,7 +118,7 @@ describe("vars", function () {
         await expect(
           handleVars(["vars", "set", "0invalidKey", "newVal"])
         ).to.be.rejectedWith(
-          "HH1203: Invalid key '0invalidKey'. Keys can only have alphanumeric characters and underscores, and they cannot start with a number."
+          "HH1202: Invalid key '0invalidKey'. Keys can only have alphanumeric characters and underscores, and they cannot start with a number."
         );
         expect(ctx.varsManager.get("0invalidKey")).equals(undefined);
       });
@@ -282,9 +282,7 @@ describe("vars", function () {
             assert(
               spyConsoleError.calledWith(
                 chalk.red(
-                  `There is an error in your '${chalk.italic(
-                    "hardhat.config.ts"
-                  )}' file. Please double check it.\n`
+                  "There is an error in your 'hardhat.config.ts' file. Please double check it.\n"
                 )
               )
             );

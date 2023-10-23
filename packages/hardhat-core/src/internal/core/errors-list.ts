@@ -1316,17 +1316,8 @@ A fully qualified name should look like file.sol:Contract`,
 Please double check your key and try to run again.`,
       shouldBeReported: false,
     },
-    KEY_UNDEFINED: {
-      number: 1202,
-      message: "The key of a var's key-value pair cannot be undefined",
-      title: "Var's key cannot be undefined",
-      description: `Var's key cannot be undefined.
-
-Please double check your key and try to run again.`,
-      shouldBeReported: false,
-    },
     INVALID_KEY_VALUE: {
-      number: 1203,
+      number: 1202,
       message:
         "Invalid key '%value%'. Keys can only have alphanumeric characters and underscores, and they cannot start with a number.",
       title: "Invalid key",
@@ -1336,7 +1327,7 @@ Please double check your key and try to run again.`,
       shouldBeReported: false,
     },
     INVALID_EMPTY_VALUE: {
-      number: 1204,
+      number: 1203,
       message: "Invalid value. The value cannot be an empty string",
       title: "Invalid value",
       description: `Invalid value. The value cannot be an empty string.

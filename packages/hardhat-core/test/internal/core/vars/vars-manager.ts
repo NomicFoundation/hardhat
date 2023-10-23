@@ -36,15 +36,15 @@ describe("VarsManager", function () {
   describe("set", function () {
     it("should throw if the key is invalid", function () {
       expect(() => varsManager.set("invalid key", "val")).to.throw(
-        "HH1203: Invalid key 'invalid key'. Keys can only have alphanumeric characters and underscores, and they cannot start with a number."
+        "HH1202: Invalid key 'invalid key'. Keys can only have alphanumeric characters and underscores, and they cannot start with a number."
       );
 
       expect(() => varsManager.set("0key", "val")).to.throw(
-        "HH1203: Invalid key '0key'. Keys can only have alphanumeric characters and underscores, and they cannot start with a number."
+        "HH1202: Invalid key '0key'. Keys can only have alphanumeric characters and underscores, and they cannot start with a number."
       );
 
       expect(() => varsManager.set("invalid!", "val")).to.throw(
-        "HH1203: Invalid key 'invalid!'. Keys can only have alphanumeric characters and underscores, and they cannot start with a number."
+        "HH1202: Invalid key 'invalid!'. Keys can only have alphanumeric characters and underscores, and they cannot start with a number."
       );
     });
   });

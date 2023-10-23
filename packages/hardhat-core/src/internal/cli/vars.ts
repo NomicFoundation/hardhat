@@ -83,6 +83,7 @@ function del(key: string): number {
   console.warn(
     chalk.yellow(`There is no value associated to the key '${key}'`)
   );
+
   return 1;
 }
 
@@ -100,9 +101,7 @@ function setup() {
     if (err.message.trim() !== "Invalid Version:") {
       console.error(
         chalk.red(
-          `There is an error in your '${chalk.italic(
-            "hardhat.config.ts"
-          )}' file. Please double check it.\n`
+          "There is an error in your 'hardhat.config.ts' file. Please double check it.\n"
         )
       );
 
