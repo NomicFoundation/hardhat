@@ -10,6 +10,7 @@ permissions:
   push:
     branches:
       - main
+      - edr/main
     tags-ignore:
       - "**"
     paths-ignore:
@@ -347,9 +348,11 @@ jobs:
         run: |
           if git log -1 --pretty=%B | grep "^edr-[0-9]\+\.[0-9]\+\.[0-9]\+";
           then
-            echo "{match}={true}" >> "$GITHUB_OUTPUT"
+            echo "Check commit: matches"
+            echo "match=true" >> "$GITHUB_OUTPUT"
           else
-            echo "{match}={false}" >> "$GITHUB_OUTPUT"
+            echo "Check commit: no match"
+            echo "match=false" >> "$GITHUB_OUTPUT"
           fi
     outputs:
       match: ${{ steps.check_commit.outputs.match }}
@@ -391,10 +394,12 @@ jobs:
         run: |
           if git log -1 --pretty=%B | grep "^edr-[0-9]\+\.[0-9]\+\.[0-9]\+$";
           then
+            echo "Publishing release"
             echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
             npm publish --provenance --access public
           elif git log -1 --pretty=%B | grep "^edr-[0-9]\+\.[0-9]\+\.[0-9]\+";
           then
+            echo "Publishing pre-release"
             echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
             npm publish --provenance --tag next --access public
           else
