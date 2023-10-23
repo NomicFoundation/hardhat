@@ -21,6 +21,7 @@ export interface CallParams {
   from: string;
   nonce?: number;
   fees?: NetworkFees;
+  gasLimit?: bigint;
 }
 
 /**
@@ -258,6 +259,10 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
         nonce:
           callParams.nonce !== undefined
             ? numberToJsonRpcQuantity(callParams.nonce)
+            : undefined,
+        gas:
+          callParams.gasLimit !== undefined
+            ? bigIntToJsonRpcQuantity(callParams.gasLimit)
             : undefined,
         ...jsonRpcEncodeNetworkFees(callParams.fees),
       };
