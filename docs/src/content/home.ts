@@ -1,7 +1,6 @@
 import SolidityIcon from "../assets/tools/solidity";
 import RunnerIcon from "../assets/tools/runner";
-// TODO: Re-enable Ignition section
-// import IgnitionIcon from "../assets/tools/ignition";
+import IgnitionIcon from "../assets/tools/ignition";
 import NetworkIcon from "../assets/tools/network";
 
 import SolidityImageMobile from "../assets/feature-cards/Mobile/SolidityImage.svg";
@@ -29,7 +28,7 @@ import vibrantCommunityImageDark from "../assets/vibrantCommunityImageDark.svg";
 import { Tools } from "../components/ui/types";
 import reviewsBlock from "../assets/homepage-assets/reviews-block";
 import RunnerIconDark from "../assets/tools/runner-dark";
-// import IgnitionIconDark from "../assets/tools/ignition-dark";
+import IgnitionIconDark from "../assets/tools/ignition-dark";
 import NetworkIconDark from "../assets/tools/network-dark";
 import SolidityIconDark from "../assets/tools/solidity-dark";
 
@@ -212,16 +211,16 @@ const toolsBlockContent = {
         "Hardhat Runner is the main component you interact with when using Hardhat. It's a flexible and extensible task runner that helps you manage and automate the recurring tasks inherent to developing smart contracts and dApps.",
       link: "/hardhat-runner",
     },
-    // TODO: Re-enable Ignition section
-    // {
-    //   icon: IgnitionIcon,
-    //   title: "Ignition",
-    //   value: Tools.IGNITION,
-    //   mottos: ["deploy", "distribute"],
-    //   description:
-    //     "Deployment system for structuring, automating and distributing smart contract deployment setups.",
-    //   link: "/hardhat-ignition",
-    // },
+    {
+      icon: IgnitionIcon,
+      iconDark: IgnitionIconDark,
+      title: "Ignition",
+      value: Tools.IGNITION,
+      mottos: ["deploy"],
+      description:
+        "Declarative deployment system that enables you to deploy your smart contracts without navigating the mechanics of the deployment process.",
+      link: "/ignition",
+    },
     {
       icon: NetworkIcon,
       iconDark: NetworkIconDark,
