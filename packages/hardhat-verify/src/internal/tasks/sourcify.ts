@@ -11,7 +11,6 @@ import { HARDHAT_NETWORK_NAME } from "hardhat/plugins";
 
 import { Sourcify } from "../sourcify";
 import {
-  BuildInfoNotFoundError,
   CompilerVersionsMismatchError,
   ContractVerificationFailedError,
   HardhatNetworkNotSupportedError,
@@ -172,53 +171,25 @@ subtask(TASK_VERIFY_SOURCIFY_ATTEMPT_VERIFICATION)
   .addParam("contractInformation", undefined, undefined, types.any)
   .addParam("verificationInterface", undefined, undefined, types.any)
   .setAction(
-    async (
-      {
-        address,
-        verificationInterface,
-        contractInformation,
-      }: AttemptVerificationArgs,
-      { artifacts }
-    ): Promise<VerificationResponse> => {
+    async ({
+      address,
+      verificationInterface,
+      contractInformation,
+    }: AttemptVerificationArgs): Promise<VerificationResponse> => {
       const { sourceName, contractName, contractOutput, compilerInput } =
         contractInformation;
 
-      /*      const contractFQN = `${sourceName}:${contractName}`;
-      const buildInfo = await artifacts.getBuildInfo(contractFQN);
-      if (buildInfo === undefined) {
-        throw new BuildInfoNotFoundError(contractFQN);
-      }
-
-      // Ensure the linking information is present in the compiler input;
-      buildInfo.input.settings.libraries = contractInformation.libraries;
-
-      const chosenContract = Object.keys(buildInfo.output.contracts).findIndex(
-        (source) => source === sourceName
-      );
-
-      const response = await verificationInterface.verify(
-        address,
-        {
-          hardhatOutputBuffer: JSON.stringify(buildInfo),
-        },
-        chosenContract
-      ); */
-
-      const metadata = (contractOutput as any).metadata;
-      const fileContent = compilerInput.sources[sourceName].content;
-
-      const librarySources = Object.keys(contractInformation.libraries).reduce(
-        (acc: any, libraryName) => {
-          const libraryContent = compilerInput.sources[sourceName].content;
-          acc[libraryName] = libraryContent;
-          return acc;
-        },
-        {}
-      );
+      const sourcesToContent = Object.keys(
+        contractInformation.libraries
+      ).reduce((acc: Record<string, string>, libSourceName) => {
+        const libContent = compilerInput.sources[libSourceName].content;
+        acc[libSourceName] = libContent;
+        return acc;
+      }, {});
       const response = await verificationInterface.verify(address, {
-        "metadata.json": metadata,
-        [sourceName]: fileContent,
-        ...librarySources,
+        "metadata.json": (contractOutput as any).metadata,
+        [sourceName]: compilerInput.sources[sourceName].content,
+        ...sourcesToContent,
       });
 
       if (response.isOk()) {
