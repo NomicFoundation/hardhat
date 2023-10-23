@@ -10,7 +10,6 @@ permissions:
   push:
     branches:
       - main
-      - edr/ci/fix-missing-type-def-in-edr-package
     tags-ignore:
       - "**"
     paths-ignore:
