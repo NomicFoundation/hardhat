@@ -11,6 +11,7 @@ permissions:
     branches:
       - main
       - edr/ci/fix-missing-type-def-in-edr-package
+      - edr/ci/fix-commit-check
     tags-ignore:
       - "**"
     paths-ignore:
