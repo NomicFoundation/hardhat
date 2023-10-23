@@ -22,7 +22,11 @@ export const Mermaid: React.FC<{
   }, [ignitionModule]);
 
   useEffect(() => {
-    mermaid.initialize({});
+    mermaid.initialize({
+      flowchart: {
+        padding: 50,
+      },
+    });
 
     mermaid.contentLoaded();
   });

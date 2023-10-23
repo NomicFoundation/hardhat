@@ -12,6 +12,13 @@ export const exampleAccounts: string[] = [
   "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
 ];
 
+export function assertValidationError(errors: string[], expectedError: string) {
+  assert.includeMembers(
+    errors.map((e) => e.split(/IGN\d+: /)[1]),
+    [expectedError]
+  );
+}
+
 export function assertInstanceOf<ObjectT>(
   obj: unknown,
   klass: new (...args: any[]) => ObjectT

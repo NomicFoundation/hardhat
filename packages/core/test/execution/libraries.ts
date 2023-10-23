@@ -4,6 +4,7 @@ import {
   linkLibraries,
   validateLibraryNames,
 } from "../../src/internal/execution/libraries";
+import { assertValidationError } from "../helpers";
 import { deploymentFixturesArtifacts } from "../helpers/execution-result-fixtures";
 
 const mockAddress = "0x1122334455667788990011223344556677889900";
@@ -18,48 +19,45 @@ describe("Libraries handling", () => {
     });
 
     it("Should throw if a library name is not recognized", async () => {
-      assert.throws(() => {
+      assertValidationError(
         validateLibraryNames(deploymentFixturesArtifacts.WithLibrary, [
           "NotALibrary",
-        ]);
-      }, "not needed");
+        ]).map((e) => e.message),
+        "Invalid library NotALibrary for contract WithLibrary: this library is not needed by this contract."
+      );
     });
 
     it("Should throw if a library name is ambiguous", () => {
-      try {
-        validateLibraryNames(
-          deploymentFixturesArtifacts.WithAmbiguousLibraryName,
-          ["Lib"]
-        );
-      } catch (error: any) {
-        assert.include(error.message, `The name "Lib" is ambiguous`);
-        assert.include(error.message, `contracts/C.sol:Lib`);
-        assert.include(error.message, `contracts/Libs.sol:Lib`);
-        return;
-      }
+      const [error] = validateLibraryNames(
+        deploymentFixturesArtifacts.WithAmbiguousLibraryName,
+        ["Lib"]
+      ).map((e) => e.message);
 
-      assert.fail("Should have thrown");
+      assert(error !== undefined);
+      assert.include(error, `The name "Lib" is ambiguous`);
+      assert.include(error, `contracts/C.sol:Lib`);
+      assert.include(error, `contracts/Libs.sol:Lib`);
     });
 
     it("Should throw if a library is missing", () => {
-      try {
-        validateLibraryNames(deploymentFixturesArtifacts.WithLibrary, []);
-      } catch (error: any) {
-        assert.include(error.message, `The following libraries are missing:`);
-        assert.include(error.message, `contracts/C.sol:Lib`);
-        return;
-      }
+      const [error] = validateLibraryNames(
+        deploymentFixturesArtifacts.WithLibrary,
+        []
+      ).map((e) => e.message);
 
-      assert.fail("Should have thrown");
+      assert(error !== undefined);
+      assert.include(error, `The following libraries are missing:`);
+      assert.include(error, `contracts/C.sol:Lib`);
     });
 
     it("Should throw if a name is used twice, as FQN and bare name", () => {
-      assert.throws(() => {
+      assertValidationError(
         validateLibraryNames(deploymentFixturesArtifacts.WithLibrary, [
           "Lib",
           "contracts/C.sol:Lib",
-        ]);
-      }, `The names "contracts/C.sol:Lib" and "Lib" clash with each other`);
+        ]).map((e) => e.message),
+        `Invalid libraries for contract WithLibrary: The names 'contracts/C.sol:Lib' and 'Lib' clash with each other, please use qualified names for both.`
+      );
     });
 
     it("Should accept bare names if non-ambiguous", () => {

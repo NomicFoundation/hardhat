@@ -5,28 +5,51 @@
 const MODULE_SEPERATOR = "#";
 
 /**
+ * The separator in ids that depend on futures that belong to a submodule.
+ * This separator is used to split the submodule and the rest of the dependency's id.
+ */
+const SUBMODULE_SEPARATOR = "~";
+
+/**
  * The seperator in ids that indicated different subparts of the future key.
  */
 const SUBKEY_SEPERATOR = ".";
 
 /**
- * Construct the future id for a contract or library deployment, namespaced by the
+ * Construct the future id for a contract, contractAt or library, namespaced by the
  * moduleId.
+ *
+ * This method supports both bare contract names (e.g. `MyContract`) and fully
+ * qualified names (e.g. `contracts/MyModule.sol:MyContract`).
+ *
+ * If a fully qualified name is used, the id is only direvied from its contract
+ * name, ignoring its source name part. The reason is that ids need to be
+ * compatible with most common file systems (including Windows!), and the source
+ * name may have incompatible characters.
  *
  * @param moduleId - the id of the module the future is part of
  * @param userProvidedId - the overriding id provided by the user (it will still
  * be namespaced)
- * @param contractOrLibraryName - the contract or library name as a fallback
+ * @param contractOrLibraryName - the contract or library name, either a bare name
+ * or a fully qualified name.
  * @returns the future id
  */
-export function toDeploymentFutureId(
+export function toContractFutureId(
   moduleId: string,
   userProvidedId: string | undefined,
   contractOrLibraryName: string
 ) {
-  return `${moduleId}${MODULE_SEPERATOR}${
-    userProvidedId ?? contractOrLibraryName
-  }`;
+  // IMPORTANT: Keep in sync with src/internal/utils/identifier-validators.ts#isValidContractName
+
+  if (userProvidedId !== undefined) {
+    return `${moduleId}${MODULE_SEPERATOR}${userProvidedId}`;
+  }
+
+  const contractName = contractOrLibraryName.includes(":")
+    ? contractOrLibraryName.split(":").at(-1)!
+    : contractOrLibraryName;
+
+  return `${moduleId}${MODULE_SEPERATOR}${contractName}`;
 }
 
 /**
@@ -43,13 +66,25 @@ export function toDeploymentFutureId(
 export function toCallFutureId(
   moduleId: string,
   userProvidedId: string | undefined,
-  contractName: string,
+  contractModuleId: string,
+  contractId: string,
   functionName: string
 ) {
-  const futureKey =
-    userProvidedId ?? `${contractName}${SUBKEY_SEPERATOR}${functionName}`;
+  if (userProvidedId !== undefined) {
+    return `${moduleId}${MODULE_SEPERATOR}${userProvidedId}`;
+  }
 
-  return `${moduleId}${MODULE_SEPERATOR}${futureKey}`;
+  // If the contract belongs to the call's module, we just need to add the function name
+  if (moduleId === contractModuleId) {
+    return `${contractId}${SUBKEY_SEPERATOR}${functionName}`;
+  }
+
+  // We replace the MODULE_SEPARATOR for SUBMODULE_SEPARATOR
+  const submoduleContractId = `${contractModuleId}${SUBMODULE_SEPARATOR}${contractId.substring(
+    contractModuleId.length + MODULE_SEPERATOR.length
+  )}`;
+
+  return `${moduleId}${MODULE_SEPERATOR}${submoduleContractId}${SUBKEY_SEPERATOR}${functionName}`;
 }
 
 /**

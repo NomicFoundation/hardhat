@@ -1,5 +1,7 @@
 import type { IgnitionModule, IgnitionModuleResult } from "../types/module";
 
+import { IgnitionError } from "../errors";
+import { ERRORS } from "../errors-list";
 import { isContractFuture } from "../type-guards";
 import { ArtifactResolver } from "../types/artifact";
 import {
@@ -10,7 +12,6 @@ import {
   ExecutionErrorDeploymentResult,
   PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
-  SuccessfulDeploymentResult,
 } from "../types/deploy";
 import {
   ExecutionEventListener,
@@ -26,23 +27,19 @@ import {
 import { ExecutionEngine } from "./execution/execution-engine";
 import { JsonRpcClient } from "./execution/jsonrpc-client";
 import { DeploymentState } from "./execution/types/deployment-state";
-import { ExecutionResultType } from "./execution/types/execution-result";
 import {
-  CallExecutionState,
   ContractAtExecutionState,
   DeploymentExecutionState,
   ExecutionSateType,
   ExecutionState,
   ExecutionStatus,
-  SendDataExecutionState,
-  StaticCallExecutionState,
 } from "./execution/types/execution-state";
 import { ExecutionStrategy } from "./execution/types/execution-strategy";
-import { formatExecutionError } from "./formatters";
 import { Reconciler } from "./reconciliation/reconciler";
 import { assertIgnitionInvariant } from "./utils/assertions";
 import { getFuturesFromModule } from "./utils/get-futures-from-module";
-import { validateStageTwo } from "./validation/validateStageTwo";
+import { findDeployedContracts } from "./views/find-deployed-contracts";
+import { findStatus } from "./views/find-status";
 
 /**
  * Run an Igntition deployment.
@@ -52,6 +49,7 @@ import { validateStageTwo } from "./validation/validateStageTwo";
 export class Deployer {
   constructor(
     private readonly _config: DeployConfig,
+    private readonly _deploymentDir: string | undefined,
     private readonly _executionStrategy: ExecutionStrategy,
     private readonly _jsonRpcClient: JsonRpcClient,
     private readonly _artifactResolver: ArtifactResolver,
@@ -77,22 +75,16 @@ export class Deployer {
     deploymentParameters: DeploymentParameters,
     accounts: string[],
     defaultSender: string
-  ): Promise<DeploymentResult<ContractNameT, IgnitionModuleResultsT>> {
-    const validationResult = await validateStageTwo(
-      ignitionModule,
-      this._artifactResolver,
-      deploymentParameters,
-      accounts
-    );
+  ): Promise<DeploymentResult> {
+    const deployment = await this._getOrInitializeDeploymentState();
 
-    if (validationResult !== null) {
-      this._emitDeploymentCompleteEvent(validationResult);
+    const isResumed = deployment.isResumed;
+    let deploymentState = deployment.deploymentState;
 
-      return validationResult;
-    }
-
-    let deploymentState = await this._getOrInitializeDeploymentState(
-      ignitionModule.id
+    this._emitDeploymentStartEvent(
+      ignitionModule.id,
+      this._deploymentDir,
+      isResumed
     );
 
     const contracts =
@@ -174,33 +166,39 @@ export class Deployer {
     }
 
     if (reconciliationResult.missingExecutedFutures.length > 0) {
-      // TODO: indicate to UI that warnings should be shown
+      this._emitReconciliationWarningsEvent(
+        reconciliationResult.missingExecutedFutures
+      );
     }
 
     const batches = Batcher.batch(ignitionModule, deploymentState);
 
     this._emitDeploymentBatchEvent(batches);
 
-    const executionEngine = new ExecutionEngine(
-      this._deploymentLoader,
-      this._artifactResolver,
-      this._executionStrategy,
-      this._jsonRpcClient,
-      this._executionEventListener,
-      this._config.requiredConfirmations,
-      this._config.timeBeforeBumpingFees,
-      this._config.maxFeeBumps,
-      this._config.blockPollingInterval
-    );
+    if (this._hasBatchesToExecute(batches)) {
+      this._emitRunStartEvent();
 
-    deploymentState = await executionEngine.executeModule(
-      deploymentState,
-      ignitionModule,
-      batches,
-      accounts,
-      deploymentParameters,
-      defaultSender
-    );
+      const executionEngine = new ExecutionEngine(
+        this._deploymentLoader,
+        this._artifactResolver,
+        this._executionStrategy,
+        this._jsonRpcClient,
+        this._executionEventListener,
+        this._config.requiredConfirmations,
+        this._config.timeBeforeBumpingFees,
+        this._config.maxFeeBumps,
+        this._config.blockPollingInterval
+      );
+
+      deploymentState = await executionEngine.executeModule(
+        deploymentState,
+        ignitionModule,
+        batches,
+        accounts,
+        deploymentParameters,
+        defaultSender
+      );
+    }
 
     const result = await this._getDeploymentResult(
       deploymentState,
@@ -218,53 +216,60 @@ export class Deployer {
     IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
   >(
     deploymentState: DeploymentState,
-    module: IgnitionModule<ModuleIdT, ContractNameT, IgnitionModuleResultsT>
-  ): Promise<DeploymentResult<ContractNameT, IgnitionModuleResultsT>> {
+    _module: IgnitionModule<ModuleIdT, ContractNameT, IgnitionModuleResultsT>
+  ): Promise<DeploymentResult> {
     if (!this._isSuccessful(deploymentState)) {
       return this._getExecutionErrorResult(deploymentState);
     }
 
+    const deployedContracts = findDeployedContracts(deploymentState);
+
     return {
       type: DeploymentResultType.SUCCESSFUL_DEPLOYMENT,
-      contracts: Object.fromEntries(
-        Object.entries(module.results).map(([name, contractFuture]) => [
-          name,
-          {
-            id: contractFuture.id,
-            contractName: contractFuture.contractName,
-            address: getContractAddress(
-              deploymentState.executionStates[contractFuture.id]
-            ),
-          },
-        ])
-      ) as SuccessfulDeploymentResult<
-        ContractNameT,
-        IgnitionModuleResultsT
-      >["contracts"],
+      contracts: deployedContracts,
     };
   }
 
-  private async _getOrInitializeDeploymentState(
-    moduleId: string
-  ): Promise<DeploymentState> {
+  /**
+   * Fetches the existing deployment state or initializes a new one.
+   *
+   * @returns An object with the deployment state and a boolean indicating
+   * if the deployment is being resumed (i.e. the deployment state is not
+   * new).
+   */
+  private async _getOrInitializeDeploymentState(): Promise<{
+    deploymentState: DeploymentState;
+    isResumed: boolean;
+  }> {
     const chainId = await this._jsonRpcClient.getChainId();
     const deploymentState = await loadDeploymentState(this._deploymentLoader);
 
     if (deploymentState === undefined) {
-      this._emitDeploymentStartEvent(moduleId);
+      const newState = await initializeDeploymentState(
+        chainId,
+        this._deploymentLoader
+      );
 
-      return initializeDeploymentState(chainId, this._deploymentLoader);
+      return { deploymentState: newState, isResumed: false };
     }
 
-    assertIgnitionInvariant(
-      deploymentState.chainId === chainId,
-      `Trying to continue deployment in a different chain. Previous chain id: ${deploymentState.chainId}. Current chain id: ${chainId}`
-    );
+    // TODO: this should be moved out, it is not obvious that a significant
+    // check is being done in an init method
+    if (deploymentState.chainId !== chainId) {
+      throw new IgnitionError(ERRORS.DEPLOY.CHANGED_CHAINID, {
+        previousChainId: deploymentState.chainId,
+        currentChainId: chainId,
+      });
+    }
 
-    return deploymentState;
+    return { deploymentState, isResumed: true };
   }
 
-  private _emitDeploymentStartEvent(moduleId: string): void {
+  private _emitDeploymentStartEvent(
+    moduleId: string,
+    deploymentDir: string | undefined,
+    isResumed: boolean
+  ): void {
     if (this._executionEventListener === undefined) {
       return;
     }
@@ -272,6 +277,19 @@ export class Deployer {
     this._executionEventListener.deploymentStart({
       type: ExecutionEventType.DEPLOYMENT_START,
       moduleName: moduleId,
+      deploymentDir: deploymentDir ?? undefined,
+      isResumed,
+    });
+  }
+
+  private _emitReconciliationWarningsEvent(warnings: string[]): void {
+    if (this._executionEventListener === undefined) {
+      return;
+    }
+
+    this._executionEventListener.reconciliationWarnings({
+      type: ExecutionEventType.RECONCILIATION_WARNINGS,
+      warnings,
     });
   }
 
@@ -286,9 +304,17 @@ export class Deployer {
     });
   }
 
-  private _emitDeploymentCompleteEvent(
-    result: DeploymentResult<string, IgnitionModuleResult<string>>
-  ): void {
+  private _emitRunStartEvent(): void {
+    if (this._executionEventListener === undefined) {
+      return;
+    }
+
+    this._executionEventListener.runStart({
+      type: ExecutionEventType.RUN_START,
+    });
+  }
+
+  private _emitDeploymentCompleteEvent(result: DeploymentResult): void {
     if (this._executionEventListener === undefined) {
       return;
     }
@@ -308,113 +334,21 @@ export class Deployer {
   private _getExecutionErrorResult(
     deploymentState: DeploymentState
   ): ExecutionErrorDeploymentResult {
+    const status = findStatus(deploymentState);
+
     return {
       type: DeploymentResultType.EXECUTION_ERROR,
-      started: Object.values(deploymentState.executionStates)
-        .filter((ex) => ex.status === ExecutionStatus.STARTED)
-        .map((ex) => ex.id),
-      successful: Object.values(deploymentState.executionStates)
-        .filter((ex) => ex.status === ExecutionStatus.SUCCESS)
-        .map((ex) => ex.id),
-      held: Object.values(deploymentState.executionStates)
-        .filter(canFail)
-        .filter((ex) => ex.status === ExecutionStatus.HELD)
-        .map((ex) => {
-          assertIgnitionInvariant(
-            ex.result !== undefined,
-            `Execution state ${ex.id} is marked as held but has no result`
-          );
-
-          assertIgnitionInvariant(
-            ex.result.type === ExecutionResultType.STRATEGY_HELD,
-            `Execution state ${ex.id} is marked as held but has ${ex.result.type} instead of a held result`
-          );
-
-          return {
-            futureId: ex.id,
-            heldId: ex.result.heldId,
-            reason: ex.result.reason,
-          };
-        }),
-      timedOut: Object.values(deploymentState.executionStates)
-        .filter(canTimeout)
-        .filter((ex) => ex.status === ExecutionStatus.TIMEOUT)
-        .map((ex) => ({
-          futureId: ex.id,
-          networkInteractionId: ex.networkInteractions.at(-1)!.id,
-        })),
-      failed: Object.values(deploymentState.executionStates)
-        .filter(canFail)
-        .filter((ex) => ex.status === ExecutionStatus.FAILED)
-        .map((ex) => {
-          assertIgnitionInvariant(
-            ex.result !== undefined &&
-              ex.result.type !== ExecutionResultType.SUCCESS &&
-              ex.result.type !== ExecutionResultType.STRATEGY_HELD,
-            `Execution state ${ex.id} is marked as failed but has no error result`
-          );
-
-          return {
-            futureId: ex.id,
-            networkInteractionId: ex.networkInteractions.at(-1)!.id,
-            error: formatExecutionError(ex.result),
-          };
-        }),
+      ...status,
     };
   }
-}
 
-// TODO: Does this exist anywhere else? It's in fact just checking if it sends txs
-function canTimeout(
-  exState: ExecutionState
-): exState is
-  | DeploymentExecutionState
-  | CallExecutionState
-  | SendDataExecutionState {
-  return (
-    exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
-    exState.type === ExecutionSateType.CALL_EXECUTION_STATE ||
-    exState.type === ExecutionSateType.SEND_DATA_EXECUTION_STATE
-  );
-}
-
-// TODO: Does this exist anywhere else? It's in fact just checking if has network interactions
-function canFail(
-  exState: ExecutionState
-): exState is
-  | DeploymentExecutionState
-  | CallExecutionState
-  | SendDataExecutionState
-  | StaticCallExecutionState {
-  return (
-    exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
-    exState.type === ExecutionSateType.CALL_EXECUTION_STATE ||
-    exState.type === ExecutionSateType.SEND_DATA_EXECUTION_STATE ||
-    exState.type === ExecutionSateType.STATIC_CALL_EXECUTION_STATE
-  );
-}
-
-// TODO: Does this exist somewhere else?
-function getContractAddress(exState: ExecutionState): string {
-  assertIgnitionInvariant(
-    exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
-      exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
-    `Execution state ${exState.id} should be a deployment or contract at execution state`
-  );
-
-  assertIgnitionInvariant(
-    exState.status === ExecutionStatus.SUCCESS,
-    `Cannot get contract address from execution state ${exState.id} because it is not successful`
-  );
-
-  if (exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE) {
-    return exState.contractAddress;
+  /**
+   * Determine if an execution run is necessary.
+   *
+   * @param batches - the batches to be executed
+   * @returns if there are batches to be executed
+   */
+  private _hasBatchesToExecute(batches: string[][]) {
+    return batches.length > 0;
   }
-
-  assertIgnitionInvariant(
-    exState.result?.type === ExecutionResultType.SUCCESS,
-    `Cannot get contract address from execution state ${exState.id} because it is not successful`
-  );
-
-  return exState.result.address;
 }

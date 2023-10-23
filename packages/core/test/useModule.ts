@@ -3,7 +3,7 @@ import { assert } from "chai";
 
 import { Artifact, DeploymentResultType } from "../src";
 import { buildModule } from "../src/build-module";
-import { validateStageTwo } from "../src/internal/validation/validateStageTwo";
+import { validate } from "../src/internal/validation/validate";
 
 import { setupMockArtifactResolver } from "./helpers";
 
@@ -130,7 +130,7 @@ describe("useModule", () => {
       };
 
       await assert.isFulfilled(
-        validateStageTwo(
+        validate(
           moduleWithSubmodule,
           setupMockArtifactResolver({
             Contract1: fakeArtifact,
@@ -197,7 +197,7 @@ describe("useModule", () => {
         },
       };
 
-      const result = await validateStageTwo(
+      const result = await validate(
         moduleWithSubmodule,
         setupMockArtifactResolver({
           Contract1: fakeArtifact,
@@ -212,7 +212,7 @@ describe("useModule", () => {
         type: DeploymentResultType.VALIDATION_ERROR,
         errors: {
           "Submodule1#Contract1": [
-            "Module parameter 'param1' requires a value but was given none",
+            "IGN725: Module parameter 'param1' requires a value but was given none",
           ],
         },
       });

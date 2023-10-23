@@ -26,10 +26,10 @@ export function deploymentStateReducer(
     return state;
   }
 
-  if (action.type === JournalMessageType.RUN_START) {
+  if (action.type === JournalMessageType.DEPLOYMENT_INITIALIZE) {
     return {
+      ...state,
       chainId: action.chainId,
-      executionStates: {},
     };
   }
 

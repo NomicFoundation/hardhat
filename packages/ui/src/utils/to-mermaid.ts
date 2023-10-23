@@ -7,6 +7,7 @@ import {
 } from "@nomicfoundation/ignition-core/ui-helpers";
 import { getAllFuturesForModule } from "../queries/futures.js";
 import { argumentTypeToString } from "./argumentTypeToString.js";
+import { toEscapedId } from "./to-escaped-id.js";
 
 export function toMermaid(
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>
@@ -45,11 +46,9 @@ export function toMermaid(
 
   return `flowchart BT\n\n${toEscapedId(
     ignitionModule.id
-  )}:::startModule\n\n${subgraphSections}${
+  )}\n\n${subgraphSections}${
     futureDependencies === "" ? "" : "\n\n" + futureDependencies
-  }${
-    moduleDependencies === "" ? "" : "\n\n" + moduleDependencies
-  }\n\nclassDef startModule stroke-width:4px`;
+  }${moduleDependencies === "" ? "" : "\n\n" + moduleDependencies}`;
 }
 
 function recursivelyListModulesAndSubmodulesFor(
@@ -66,11 +65,48 @@ function prettyPrintModule(
   module: IgnitionModule<string, string, IgnitionModuleResult<string>>,
   lineIndent = ""
 ): string {
-  const futureList = Array.from(module.futures)
-    .map((f) => `${lineIndent}${toEscapedId(f.id)}["${toLabel(f)}"]`)
+  const futures = Array.from(module.futures);
+  const futureList = futures
+    .map(
+      (f) => `${lineIndent}${toEscapedId(f.id)}["${toLabel(f)}"]:::futureNode`
+    )
     .join(`\n${lineIndent}`);
 
-  return `${lineIndent}subgraph ${module.id}\n${lineIndent}  direction BT\n\n${lineIndent}${futureList}\n${lineIndent}end`;
+  if (futures.length > 0) {
+    const inner = `${lineIndent}subgraph ${toEscapedId(
+      module.id
+    )}Inner[ ]\n${lineIndent}  direction BT\n\n${lineIndent}${futureList}\n${lineIndent}end\n\nstyle ${toEscapedId(
+      module.id
+    )}Inner fill:none,stroke:none`;
+
+    const title = `${lineIndent}subgraph ${toEscapedId(module.id)}Padding["[ ${
+      module.id
+    } ]"]\n${lineIndent}  direction BT\n\n${lineIndent}${inner}\n${lineIndent}end\n\nstyle ${toEscapedId(
+      module.id
+    )}Padding fill:none,stroke:none`;
+
+    const outer = `${lineIndent}subgraph ${toEscapedId(
+      module.id
+    )}[ ]\n${lineIndent} direction BT\n\n${lineIndent}${title}\n${lineIndent}end\n\nstyle ${toEscapedId(
+      module.id
+    )} fill:#fbfbfb,stroke:#e5e6e7`;
+
+    return outer;
+  }
+
+  const title = `${lineIndent}subgraph ${toEscapedId(
+    module.id
+  )}Padding["<strong>[ ${
+    module.id
+  } ]</strong>"]\n${lineIndent}  direction BT\n\n${lineIndent}end\n\nstyle ${toEscapedId(
+    module.id
+  )}Padding fill:none,stroke:none`;
+
+  return `${lineIndent}subgraph ${toEscapedId(
+    module.id
+  )}[ ]\n${lineIndent} direction BT\n\n${lineIndent}${title}\n${lineIndent}end\n\nstyle ${toEscapedId(
+    module.id
+  )} fill:#fbfbfb,stroke:#e5e6e7`;
 }
 
 function toLabel(f: Future): string {
@@ -84,9 +120,9 @@ function toLabel(f: Future): string {
     case FutureType.LIBRARY_DEPLOYMENT:
       return `Deploy library from artifact ${f.contractName}`;
     case FutureType.CONTRACT_CALL:
-      return `Call ${f.contract.contractName}/${f.functionName}`;
+      return `Call ${f.contract.contractName}.${f.functionName}`;
     case FutureType.STATIC_CALL:
-      return `Static call ${f.contract.contractName}/${f.functionName}`;
+      return `Static call ${f.contract.contractName}.${f.functionName}`;
     case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
       return `Existing contract ${f.contractName} (${
         typeof f.address === "string"
@@ -114,12 +150,4 @@ function toLabel(f: Future): string {
           : argumentTypeToString(f.to)
       }`;
   }
-}
-
-function toEscapedId(id: string): string {
-  return id
-    .replace("(", "_")
-    .replace(")", "_")
-    .replace(",", "_")
-    .replace(" ", "_");
 }

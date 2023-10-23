@@ -13,7 +13,7 @@ describe("DeploymentStateReducer", () => {
       initialState = deploymentStateReducer(undefined);
 
       updatedState = deploymentStateReducer(initialState, {
-        type: JournalMessageType.RUN_START,
+        type: JournalMessageType.DEPLOYMENT_INITIALIZE,
         chainId: 31337,
       });
     });

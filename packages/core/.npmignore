@@ -8,6 +8,8 @@ coverage/
 .prettierrc
 !dist
 dist/test
+dist/test-integrations
 test/
 src/
 temp
+test-integrations/

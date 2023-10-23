@@ -1,31 +1,25 @@
 import "@nomicfoundation/hardhat-ethers";
 import {
-  deploy,
   DeploymentParameters,
-  IgnitionModuleSerializer,
-  wipe,
+  IgnitionError,
+  StatusResult,
 } from "@nomicfoundation/ignition-core";
-import { existsSync, readdirSync, readJSONSync } from "fs-extra";
-import { extendConfig, extendEnvironment, task } from "hardhat/config";
-import { lazyObject } from "hardhat/plugins";
+import { readdirSync } from "fs-extra";
+import { extendConfig, extendEnvironment, scope } from "hardhat/config";
+import { NomicLabsHardhatPluginError, lazyObject } from "hardhat/plugins";
 import path from "path";
-import Prompt from "prompts";
-
-import { HardhatArtifactResolver } from "./hardhat-artifact-resolver";
-import { IgnitionHelper } from "./ignition-helper";
-import { loadModule } from "./load-module";
-import { UiEventHandler } from "./ui/UiEventHandler";
-import { VerboseEventHandler } from "./ui/VerboseEventHandler";
-import { open } from "./utils/open";
-import { writeVisualization } from "./visualization/write-visualization";
 
 import "./type-extensions";
-
-// eslint-disable-next-line import/no-unused-modules
-export { buildModule } from "@nomicfoundation/ignition-core";
+import { calculateDeploymentStatusDisplay } from "./ui/helpers/calculate-deployment-status-display";
+import { resolveDeploymentId } from "./utils/resolve-deployment-id";
 
 /* ignition config defaults */
 const IGNITION_DIR = "ignition";
+
+const ignitionScope = scope(
+  "ignition",
+  "Deploy your smart contracts using Hardhat Ignition"
+);
 
 extendConfig((config, userConfig) => {
   /* setup path configs */
@@ -50,38 +44,46 @@ extendConfig((config, userConfig) => {
  */
 extendEnvironment((hre) => {
   hre.ignition = lazyObject(() => {
+    const { IgnitionHelper } = require("./ignition-helper");
+
     return new IgnitionHelper(hre);
   });
 });
 
-task("deploy")
-  .addPositionalParam("moduleNameOrPath")
+ignitionScope
+  .task("deploy")
+  .addPositionalParam("modulePath", "The path to the module file to deploy")
   .addOptionalParam(
     "parameters",
-    "A JSON object as a string, of the module parameters, or a relative path to a JSON file"
+    "A relative path to a JSON file to use for the module parameters,"
   )
-  .addOptionalParam("id", "set the deployment id")
-  .addFlag("force", "restart the deployment ignoring previous history")
-  .addFlag(
-    "simpleTextUi",
-    "use a simple text based UI instead of the default UI"
-  )
+  .addOptionalParam("deploymentId", "Set the id of the deployment")
+  .setDescription("Deploy a module to the specified network")
   .setAction(
     async (
       {
-        moduleNameOrPath,
+        modulePath,
         parameters: parametersInput,
-        simpleTextUi,
-        id: givenDeploymentId,
+        deploymentId: givenDeploymentId,
       }: {
-        moduleNameOrPath: string;
+        modulePath: string;
         parameters?: string;
-        force: boolean;
-        simpleTextUi: boolean;
-        id: string;
+        deploymentId: string | undefined;
       },
       hre
     ) => {
+      const { default: Prompt } = await import("prompts");
+      const { deploy } = await import("@nomicfoundation/ignition-core");
+
+      const { HardhatArtifactResolver } = await import(
+        "./hardhat-artifact-resolver"
+      );
+      const { loadModule } = await import("./load-module");
+      const { PrettyEventHandler } = await import("./ui/pretty-event-handler");
+      const { shouldBeHardhatPluginError } = await import(
+        "./utils/shouldBeHardhatPluginError"
+      );
+
       const chainId = Number(
         await hre.network.provider.request({
           method: "eth_chainId",
@@ -104,10 +106,7 @@ task("deploy")
 
       await hre.run("compile", { quiet: true });
 
-      const userModule = loadModule(
-        hre.config.paths.ignition,
-        moduleNameOrPath
-      );
+      const userModule = loadModule(hre.config.paths.ignition, modulePath);
 
       if (userModule === undefined) {
         console.warn("No Ignition modules found");
@@ -130,7 +129,7 @@ task("deploy")
         method: "eth_accounts",
       })) as string[];
 
-      const deploymentId = givenDeploymentId ?? `network-${chainId}`;
+      const deploymentId = resolveDeploymentId(givenDeploymentId, chainId);
 
       const deploymentDir =
         hre.network.name === "hardhat"
@@ -139,9 +138,7 @@ task("deploy")
 
       const artifactResolver = new HardhatArtifactResolver(hre);
 
-      const executionEventListener = simpleTextUi
-        ? new VerboseEventHandler()
-        : new UiEventHandler(parameters);
+      const executionEventListener = new PrettyEventHandler();
 
       try {
         await deploy({
@@ -155,48 +152,76 @@ task("deploy")
           accounts,
         });
       } catch (e) {
-        if (executionEventListener instanceof UiEventHandler) {
-          executionEventListener.unmountCli();
+        if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
+          throw new NomicLabsHardhatPluginError(
+            "hardhat-ignition",
+            e.message,
+            e
+          );
         }
+
         throw e;
       }
     }
   );
 
-task("visualize")
-  .addFlag("quiet", "Disables logging output path to terminal")
-  .addPositionalParam("moduleNameOrPath")
+ignitionScope
+  .task("visualize")
+  .addFlag("noOpen", "Disables opening report in browser")
+  .addPositionalParam("modulePath", "The path to the module file to visualize")
+  .setDescription("Visualize a module as an HTML report")
   .setAction(
     async (
-      {
-        quiet = false,
-        moduleNameOrPath,
-      }: { quiet: boolean; moduleNameOrPath: string },
+      { noOpen = false, modulePath }: { noOpen: boolean; modulePath: string },
       hre
     ) => {
+      const { IgnitionModuleSerializer, batches } = await import(
+        "@nomicfoundation/ignition-core"
+      );
+
+      const { loadModule } = await import("./load-module");
+      const { open } = await import("./utils/open");
+      const { shouldBeHardhatPluginError } = await import(
+        "./utils/shouldBeHardhatPluginError"
+      );
+      const { writeVisualization } = await import(
+        "./visualization/write-visualization"
+      );
+
       await hre.run("compile", { quiet: true });
 
-      const userModule = loadModule(
-        hre.config.paths.ignition,
-        moduleNameOrPath
-      );
+      const userModule = loadModule(hre.config.paths.ignition, modulePath);
 
       if (userModule === undefined) {
         console.warn("No Ignition modules found");
         process.exit(0);
       }
 
-      const serializedIgnitionModule =
-        IgnitionModuleSerializer.serialize(userModule);
+      try {
+        const serializedIgnitionModule =
+          IgnitionModuleSerializer.serialize(userModule);
 
-      await writeVisualization(
-        { module: serializedIgnitionModule },
-        {
-          cacheDir: hre.config.paths.cache,
+        const batchInfo = batches(userModule);
+
+        await writeVisualization(
+          { module: serializedIgnitionModule, batches: batchInfo },
+          {
+            cacheDir: hre.config.paths.cache,
+          }
+        );
+      } catch (e) {
+        if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
+          throw new NomicLabsHardhatPluginError(
+            "hardhat-ignition",
+            e.message,
+            e
+          );
         }
-      );
 
-      if (!quiet) {
+        throw e;
+      }
+
+      if (!noOpen) {
         const indexFile = path.join(
           hre.config.paths.cache,
           "visualization",
@@ -210,75 +235,77 @@ task("visualize")
     }
   );
 
-task("ignition-info")
-  .addParam("deploymentId")
-  .addFlag("json", "format as json")
-  .setDescription("Lists the deployed contract addresses of a deployment")
+ignitionScope
+  .task("status")
+  .addPositionalParam("deploymentId", "The id of the deployment to show")
+  .setDescription("Show the current status of a deployment")
+  .setAction(async ({ deploymentId }: { deploymentId: string }, hre) => {
+    const { status } = await import("@nomicfoundation/ignition-core");
+    const { shouldBeHardhatPluginError } = await import(
+      "./utils/shouldBeHardhatPluginError"
+    );
+
+    const deploymentDir = path.join(
+      hre.config.paths.ignition,
+      "deployments",
+      deploymentId
+    );
+
+    let statusResult: StatusResult;
+    try {
+      statusResult = await status(deploymentDir);
+    } catch (e) {
+      if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
+        throw new NomicLabsHardhatPluginError("hardhat-ignition", e.message, e);
+      }
+
+      throw e;
+    }
+
+    console.log(calculateDeploymentStatusDisplay(deploymentId, statusResult));
+  });
+
+ignitionScope
+  .task("wipe")
+  .addPositionalParam(
+    "deploymentId",
+    "The id of the deployment with the future to wipe"
+  )
+  .addPositionalParam("futureId", "The id of the future to wipe")
+  .setDescription("Reset a deployment's future to allow rerunning")
   .setAction(
     async (
-      {
-        deploymentId,
-        json: formatAsJson,
-      }: { deploymentId: string; json: boolean },
+      { deploymentId, futureId }: { deploymentId: string; futureId: string },
       hre
     ) => {
+      const { wipe } = await import("@nomicfoundation/ignition-core");
+
+      const { HardhatArtifactResolver } = await import(
+        "./hardhat-artifact-resolver"
+      );
+      const { shouldBeHardhatPluginError } = await import(
+        "./utils/shouldBeHardhatPluginError"
+      );
+
       const deploymentDir = path.join(
         hre.config.paths.ignition,
         "deployments",
         deploymentId
       );
-      const deployedAddressesPath = path.join(
-        deploymentDir,
-        "deployed_addresses.json"
-      );
 
-      if (!existsSync(deploymentDir)) {
-        console.error(`No deployment found with id ${deploymentDir}`);
-        process.exit(1);
-      }
-
-      if (!existsSync(deployedAddressesPath)) {
-        console.log(`No contracts deployed`);
-        process.exit(0);
-      }
-
-      const deployedAddresses = readJSONSync(deployedAddressesPath);
-
-      if (formatAsJson) {
-        console.log(JSON.stringify(deployedAddresses, undefined, 2));
-      } else {
-        console.log("Deployed Addresses");
-        console.log("==================");
-        console.log("");
-
-        for (const [futureId, address] of Object.entries(deployedAddresses)) {
-          console.log(`${futureId}\t${address as string}`);
+      try {
+        await wipe(deploymentDir, new HardhatArtifactResolver(hre), futureId);
+      } catch (e) {
+        if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
+          throw new NomicLabsHardhatPluginError(
+            "hardhat-ignition",
+            e.message,
+            e
+          );
         }
 
-        console.log("");
+        throw e;
       }
-    }
-  );
-
-task("wipe")
-  .addParam("deployment")
-  .addParam("future")
-  .setDescription("Reset a deployments future to allow rerunning")
-  .setAction(
-    async (
-      {
-        deployment: deploymentId,
-        future: futureId,
-      }: { deployment: string; future: string },
-      hre
-    ) => {
-      const deploymentDir = path.join(
-        hre.config.paths.ignition,
-        "deployments",
-        deploymentId
-      );
-
-      await wipe(deploymentDir, new HardhatArtifactResolver(hre), futureId);
 
       console.log(`${futureId} state has been cleared`);
     }

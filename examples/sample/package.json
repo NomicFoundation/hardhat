@@ -1,18 +1,18 @@
 {
   "name": "@nomicfoundation/ignition-sample-example",
   "private": true,
-  "version": "0.4.0",
+  "version": "0.11.0",
   "scripts": {
     "test": "hardhat test",
     "lint": "npm run prettier -- --check && npm run eslint",
     "lint:fix": "npm run prettier -- --write && npm run eslint -- --fix",
     "eslint": "eslint \"ignition/**/*.{js,jsx}\" \"test/**/*.{js,jsx}\"",
-    "prettier": "prettier \"*.{js,md,json}\" \"ignition/*.{js,md,json}\" \"test/*.{js,md,json}\" \"contracts/**/*.sol\""
+    "prettier": "prettier \"*.{js,md,json}\" \"ignition/modules/*.{js,md,json}\" \"test/*.{js,md,json}\" \"contracts/**/*.sol\""
   },
   "devDependencies": {
-    "@nomicfoundation/hardhat-ignition": "^0.4.0",
+    "@nomicfoundation/hardhat-ignition": "^0.11.0",
     "@nomicfoundation/hardhat-toolbox": "3.0.0",
-    "hardhat": "^2.14.0",
+    "hardhat": "^2.18.0",
     "prettier-plugin-solidity": "1.1.3"
   }
 }

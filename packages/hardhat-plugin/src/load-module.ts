@@ -1,73 +1,95 @@
 import { IgnitionError, IgnitionModule } from "@nomicfoundation/ignition-core";
 import setupDebug from "debug";
 import { existsSync, pathExistsSync } from "fs-extra";
+import {
+  HardhatPluginError,
+  NomicLabsHardhatPluginError,
+} from "hardhat/plugins";
 import path from "path";
+
+import { shouldBeHardhatPluginError } from "./utils/shouldBeHardhatPluginError";
 
 const debug = setupDebug("hardhat-ignition:modules");
 
+const MODULES_FOLDER = "modules";
+
 export function loadModule(
-  modulesDirectory: string,
-  moduleNameOrPath: string
+  ignitionDirectory: string,
+  modulePath: string
 ): IgnitionModule | undefined {
-  debug(`Loading user modules from '${modulesDirectory}'`);
-
-  if (!existsSync(modulesDirectory)) {
-    throw new IgnitionError(`Directory ${modulesDirectory} not found.`);
-  }
-
-  const fullpathToModule = resolveFullPathToModule(
-    modulesDirectory,
-    moduleNameOrPath
+  const fullModulesDirectoryName = path.resolve(
+    ignitionDirectory,
+    MODULES_FOLDER
   );
 
-  if (fullpathToModule === undefined) {
-    throw new IgnitionError(`Could not find module ${moduleNameOrPath}`);
+  const shortModulesDirectoryName = path.join(
+    ignitionDirectory,
+    MODULES_FOLDER
+  );
+
+  if (!existsSync(ignitionDirectory)) {
+    throw new HardhatPluginError(
+      "hardhat-ignition",
+      `Ignition directory ${ignitionDirectory} not found.`
+    );
   }
 
-  if (!isInModuleDirectory(modulesDirectory, fullpathToModule)) {
-    throw new IgnitionError(
-      `The referenced module ${moduleNameOrPath} is outside the module directory ${modulesDirectory}`
+  if (!existsSync(fullModulesDirectoryName)) {
+    throw new HardhatPluginError(
+      "hardhat-ignition",
+      `Ignition modules directory ${shortModulesDirectoryName} not found.`
+    );
+  }
+
+  debug(`Loading user modules from '${fullModulesDirectoryName}'`);
+
+  const fullpathToModule = path.resolve(modulePath);
+
+  if (!pathExistsSync(fullpathToModule)) {
+    throw new HardhatPluginError(
+      "hardhat-ignition",
+      `Could not find a module file at the path: ${modulePath}`
+    );
+  }
+
+  if (!isInModuleDirectory(fullModulesDirectoryName, fullpathToModule)) {
+    throw new HardhatPluginError(
+      "hardhat-ignition",
+      `The referenced module file ${modulePath} is outside the module directory ${shortModulesDirectoryName}`
     );
   }
 
   debug(`Loading module file '${fullpathToModule}'`);
 
-  const module = require(fullpathToModule);
+  let module;
+  try {
+    module = require(fullpathToModule);
+  } catch (e) {
+    if (e instanceof IgnitionError) {
+      /**
+       * Errors thrown from within ModuleBuilder use this errorNumber.
+       *
+       * They have a stack trace that's useful to the user, so we display it here, instead of
+       * wrapping the error in a NomicLabsHardhatPluginError.
+       */
+      if (e.errorNumber === 702) {
+        console.error(e);
+
+        throw new NomicLabsHardhatPluginError(
+          "hardhat-ignition",
+          "Module validation failed. Check the stack trace above to identify the issue and its source code location."
+        );
+      }
+
+      if (shouldBeHardhatPluginError(e)) {
+        throw new NomicLabsHardhatPluginError("hardhat-ignition", e.message, e);
+      }
+    }
+
+    throw e;
+  }
 
   return module.default ?? module;
-}
-
-function resolveFullPathToModule(
-  modulesDirectory: string,
-  moduleNameOrPath: string
-): string | undefined {
-  const pathToModule = path.resolve(moduleNameOrPath);
-  if (pathExistsSync(pathToModule)) {
-    return pathToModule;
-  }
-
-  const relativeToModules = path.resolve(modulesDirectory, moduleNameOrPath);
-  if (pathExistsSync(relativeToModules)) {
-    return relativeToModules;
-  }
-
-  const relativeToModulesWithJsExtension = path.resolve(
-    modulesDirectory,
-    `${moduleNameOrPath}.js`
-  );
-  if (pathExistsSync(relativeToModulesWithJsExtension)) {
-    return relativeToModulesWithJsExtension;
-  }
-
-  const relativeToModulesWithTsExtension = path.resolve(
-    modulesDirectory,
-    `${moduleNameOrPath}.ts`
-  );
-  if (pathExistsSync(relativeToModulesWithTsExtension)) {
-    return relativeToModulesWithTsExtension;
-  }
-
-  return undefined;
 }
 
 function isInModuleDirectory(modulesDirectory: string, modulePath: string) {

@@ -1,6 +1,9 @@
 import { isAddress } from "ethers";
 
-import { isModuleParameterRuntimeValue } from "../../../../type-guards";
+import {
+  isFuture,
+  isModuleParameterRuntimeValue,
+} from "../../../../type-guards";
 import { DeploymentParameters } from "../../../../types/deploy";
 import {
   AccountRuntimeValue,
@@ -9,7 +12,9 @@ import {
   ContractFuture,
   Future,
   ModuleParameterRuntimeValue,
+  ReadEventArgumentFuture,
   SolidityParameterType,
+  StaticCallFuture,
 } from "../../../../types/module";
 import { DeploymentLoader } from "../../../deployment-loader/types";
 import { assertIgnitionInvariant } from "../../../utils/assertions";
@@ -30,23 +35,33 @@ import { convertEvmValueToSolidityParam } from "../../utils/convert-evm-tuple-to
  * @returns the resolved bigint
  */
 export function resolveValue(
-  givenValue: bigint | ModuleParameterRuntimeValue<bigint>,
-  deploymentParameters: DeploymentParameters
+  givenValue:
+    | bigint
+    | ModuleParameterRuntimeValue<bigint>
+    | StaticCallFuture<string, string>
+    | ReadEventArgumentFuture,
+  deploymentParameters: DeploymentParameters,
+  deploymentState: DeploymentState
 ): bigint {
   if (typeof givenValue === "bigint") {
     return givenValue;
   }
 
-  const moduleParam = resolveModuleParameter(givenValue, {
-    deploymentParameters,
-  });
+  let result: SolidityParameterType;
+  if (isFuture(givenValue)) {
+    result = findResultForFutureById(deploymentState, givenValue.id);
+  } else {
+    result = resolveModuleParameter(givenValue, {
+      deploymentParameters,
+    });
+  }
 
   assertIgnitionInvariant(
-    typeof moduleParam === "bigint",
-    "Module parameter used as value must be a bigint"
+    typeof result === "bigint",
+    "Module parameter or future result used as value must be a bigint"
   );
 
-  return moduleParam;
+  return result;
 }
 
 /**

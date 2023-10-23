@@ -1,6 +1,6 @@
 import { assertIgnitionInvariant } from "../../../utils/assertions";
 import { JsonRpcClient } from "../../jsonrpc-client";
-import { NonceManager } from "../../nonce-management";
+import { NonceManager } from "../../nonce-management/json-rpc-nonce-manager";
 import { TransactionTrackingTimer } from "../../transaction-tracking-timer";
 import { ExecutionResultType } from "../../types/execution-result";
 import {

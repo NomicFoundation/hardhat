@@ -6,33 +6,25 @@ import {
 } from "@nomicfoundation/ignition-core/ui-helpers";
 
 export function argumentTypeToString(argument: ArgumentType): string {
-  return JSON.stringify(
-    argument,
-    (_key, value) => {
-      if (typeof value === "bigint") {
-        return `<BigInt ${value.toString(10)}>`;
-      }
+  if (typeof argument === "bigint") {
+    return `<BigInt ${argument.toString(10)}>`;
+  }
 
-      if (isFuture(value)) {
-        return `<Future ${value.id}>`;
-      }
+  if (isFuture(argument)) {
+    return `<Future ${argument.id}>`;
+  }
 
-      if (isRuntimeValue(value)) {
-        if (value.type === RuntimeValueType.ACCOUNT) {
-          return `<AccountRuntimeValue accountIndex=${value.accountIndex}>`;
-        }
+  if (isRuntimeValue(argument)) {
+    if (argument.type === RuntimeValueType.ACCOUNT) {
+      return `<AccountRuntimeValue accountIndex=${argument.accountIndex}>`;
+    }
 
-        return `<ModuleParameterRuntimeValue name="${
-          value.name
-        }" defaultValue=${
-          value.defaultValue === undefined
-            ? "undefined"
-            : argumentTypeToString(value.defaultValue)
-        }>`;
-      }
+    return `<ModuleParameterRuntimeValue name="${argument.name}" defaultValue=${
+      argument.defaultValue === undefined
+        ? "undefined"
+        : argumentTypeToString(argument.defaultValue)
+    }>`;
+  }
 
-      return value;
-    },
-    2
-  );
+  return JSON.stringify(argument, null, 2);
 }

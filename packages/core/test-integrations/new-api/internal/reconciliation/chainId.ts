@@ -11,8 +11,13 @@ describe("chainId reconciliation", function () {
     this.hre.network.name = "something-else";
 
     await assert.isRejected(
-      this.hre.run("deploy", { moduleNameOrPath: "./ignition/LockModule.js" }),
-      /Previous chain id: 123\. Current chain id: 31337/
+      this.hre.run(
+        { scope: "ignition", task: "deploy" },
+        {
+          modulePath: "./ignition/modules/LockModule.js",
+        }
+      ),
+      /The deployment's chain cannot be changed between runs. The deployment was previously run against the chain 123, but the current network is the chain 31337./
     );
   });
 });

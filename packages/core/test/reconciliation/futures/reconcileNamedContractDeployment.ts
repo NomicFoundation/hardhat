@@ -96,6 +96,34 @@ describe("Reconciliation - named contract", () => {
     );
   });
 
+  /**
+   * This test here is in a first run, the from is undefined and the defaultSender is used.
+   * On the second run the from is undefined but a different defaultSender is now in play.
+   * We say this should reconcile but the account from the first run should be used, as long
+   * as it is in the accounts list
+   */
+  it("should reconcile where the future is undefined but the exState's from is in the accounts list", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const contract1 = m.contract("Contract", [], {
+        id: "Example",
+        from: undefined,
+      });
+
+      return { contract1 };
+    });
+
+    await assertSuccessReconciliation(
+      moduleDefinition,
+      createDeploymentState({
+        ...exampleDeploymentState,
+        id: "Module#Example",
+        status: ExecutionStatus.STARTED,
+        contractName: "Contract",
+        from: exampleAccounts[3],
+      })
+    );
+  });
+
   it("should find changes to contract name unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       const contract1 = m.contract("ContractChanged", [], {

@@ -1,10 +1,11 @@
 {
   "name": "@nomicfoundation/hardhat-ignition",
-  "version": "0.4.0",
+  "version": "0.11.0",
   "license": "MIT",
   "author": "Nomic Foundation",
   "homepage": "https://hardhat.org",
-  "repository": "github:nomicfoundation/ignition",
+  "description": "Hardhat Ignition is a declarative system for deploying smart contracts on Ethereum. It enables you to define smart contract instances you want to deploy, and any operation you want to run on them. By taking over the deployment and execution, Hardhat Ignition lets you focus on your project instead of getting caught up in the deployment details.",
+  "repository": "github:NomicFoundation/hardhat-ignition",
   "keywords": [
     "ethereum",
     "smart-contracts",
@@ -17,6 +18,24 @@
   ],
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
+  "files": [
+    "dist/src/",
+    "src/",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "exports": {
+    ".": "./dist/src/index.js",
+    "./modules": "./dist/src/modules.js"
+  },
+  "typesVersions": {
+    "*": {
+      "modules": [
+        "./dist/src/modules.d.ts"
+      ]
+    }
+  },
   "scripts": {
     "build": "tsc --build",
     "lint": "npm run prettier -- --check && npm run eslint",
@@ -31,8 +50,6 @@
     "prepack": "npm run build"
   },
   "devDependencies": {
-    "@nomicfoundation/ignition-core": "^0.4.0",
-    "@nomicfoundation/ignition-ui": "^0.4.0",
     "@istanbuljs/nyc-config-typescript": "1.0.2",
     "@nomicfoundation/hardhat-ethers": "^3.0.4",
     "@types/chai": "^4.2.22",
@@ -45,8 +62,7 @@
     "@types/lodash.flattendeep": "^4.4.7",
     "@types/mermaid": "^9.1.0",
     "@types/mocha": "^9.0.0",
-    "@types/ndjson": "2.0.1",
-    "@types/node": "12.20.25",
+    "@types/node": "16.11.7",
     "@types/prompts": "^2.4.2",
     "@types/sinon": "^10.0.13",
     "@typescript-eslint/eslint-plugin": "4.31.2",
@@ -60,7 +76,7 @@
     "eslint-plugin-import": "2.24.2",
     "eslint-plugin-mocha": "^9.0.0",
     "eslint-plugin-prettier": "4.0.0",
-    "hardhat": "^2.14.0",
+    "hardhat": "^2.18.0",
     "mermaid": "^9.1.7",
     "mocha": "^9.1.1",
     "nyc": "15.1.0",
@@ -72,21 +88,16 @@
     "typescript": "^4.7.4"
   },
   "peerDependencies": {
-    "@nomicfoundation/ignition-core": "^0.4.0",
-    "@nomicfoundation/ignition-ui": "^0.4.0",
     "@nomicfoundation/hardhat-ethers": "^3.0.4",
-    "hardhat": "^2.14.0"
+    "hardhat": "^2.18.0"
   },
   "dependencies": {
+    "@nomicfoundation/ignition-core": "^0.11.0",
+    "@nomicfoundation/ignition-ui": "^0.11.0",
+    "chalk": "^4.0.0",
     "debug": "^4.3.2",
     "ethers": "^6.7.0",
     "fs-extra": "^10.0.0",
-    "ink": "3.2.0",
-    "ink-spinner": "4.0.3",
-    "lodash.flattendeep": "^4.4.0",
-    "ndjson": "2.0.0",
-    "prompts": "^2.4.2",
-    "react": "18.2.0",
-    "serialize-error": "8.1.0"
+    "prompts": "^2.4.2"
   }
 }

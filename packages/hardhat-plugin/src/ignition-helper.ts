@@ -7,7 +7,6 @@ import {
   DeploymentResultType,
   EIP1193Provider,
   Future,
-  IgnitionError,
   IgnitionModule,
   IgnitionModuleResult,
   isContractFuture,
@@ -89,7 +88,7 @@ export class IgnitionHelper {
     if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {
       const message = errorDeploymentResultToExceptionMessage(result);
 
-      throw new IgnitionError(message);
+      throw new HardhatPluginError("hardhat-ignition", message);
     }
 
     return this._toEthersContracts(ignitionModule, result);
@@ -105,7 +104,7 @@ export class IgnitionHelper {
       ContractNameT,
       IgnitionModuleResultsT
     >,
-    result: SuccessfulDeploymentResult<ContractNameT, IgnitionModuleResultsT>
+    result: SuccessfulDeploymentResult
   ): Promise<
     IgnitionModuleResultsTToEthersContracts<
       ContractNameT,
@@ -114,12 +113,12 @@ export class IgnitionHelper {
   > {
     return Object.fromEntries(
       await Promise.all(
-        Object.entries(result.contracts).map(
-          async ([name, deployedContract]) => [
+        Object.entries(ignitionModule.results).map(
+          async ([name, contractFuture]) => [
             name,
             await this._getContract(
-              ignitionModule.results[name],
-              deployedContract
+              contractFuture,
+              result.contracts[contractFuture.id]
             ),
           ]
         )
@@ -133,7 +132,7 @@ export class IgnitionHelper {
   ): Promise<Contract> {
     if (!isContractFuture(future)) {
       throw new HardhatPluginError(
-        "@nomicfoundation/hardhat-ignition",
+        "hardhat-ignition",
         `Expected contract future but got ${future.id} with type ${future.type} instead`
       );
     }

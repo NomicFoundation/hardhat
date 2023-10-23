@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const ENSModule = require("../ignition/test-registrar");
+const ENSModule = require("../ignition/modules/test-registrar");
 const namehash = require("eth-ens-namehash");
 const labelhash = (label) =>
   hre.ethers.keccak256(hre.ethers.toUtf8Bytes(label));

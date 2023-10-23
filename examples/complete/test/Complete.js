@@ -2,7 +2,7 @@ const {
   loadFixture,
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { expect } = require("chai");
-const CompleteModule = require("../ignition/CompleteModule");
+const CompleteModule = require("../ignition/modules/CompleteModule");
 
 describe("Complete", function () {
   // We define a fixture to reuse the same setup in every test.

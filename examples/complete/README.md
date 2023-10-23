@@ -1,18 +1,18 @@
-# Complete Example for Ignition
+# Complete Example for Hardhat Ignition
 
-This is a bit of a contrived example project, intended mostly to ensure working end-to-end functionality across the API.
+This is a contrived example project, intended mostly to ensure working end-to-end functionality across the API.
 
 ## Deploying
 
-To run the ignition deploy against the ephemeral hardhat network:
+To run the Ignition deploy against the ephemeral hardhat network:
 
 ```shell
-npx hardhat deploy CompleteModule.js
+npx hardhat ignition deploy ./ignition/modules/CompleteModule.js
 ```
 
 ## Test
 
-To run the hardhat tests using ignition:
+To run the Hardhat tests using Ignition:
 
 ```shell
 npm run test

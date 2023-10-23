@@ -3,7 +3,10 @@ import { ensureDir, pathExists, readFile, writeFile } from "fs-extra";
 import path from "path";
 
 export async function writeVisualization(
-  visualizationPayload: { module: SerializedIgnitionModule },
+  visualizationPayload: {
+    module: SerializedIgnitionModule;
+    batches: string[][];
+  },
   { cacheDir }: { cacheDir: string }
 ) {
   const templateDir = path.join(
@@ -25,7 +28,7 @@ export async function writeVisualization(
   const indexHtml = await readFile(path.join(templateDir, "index.html"));
   const updatedHtml = indexHtml
     .toString()
-    .replace('{"unloaded":true}', JSON.stringify(visualizationPayload));
+    .replace('{ "unloaded": true }', JSON.stringify(visualizationPayload));
 
   await writeFile(path.join(visualizationDir, "index.html"), updatedHtml);
 }

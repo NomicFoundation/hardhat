@@ -51,7 +51,11 @@ export async function buildInitializeMessageFor(
               accounts
             ),
             libraries: resolveLibraries(future.libraries, deploymentState),
-            value: resolveValue(future.value, deploymentParameters),
+            value: resolveValue(
+              future.value,
+              deploymentParameters,
+              deploymentState
+            ),
             from: resolveFutureFrom(future.from, accounts, defaultSender),
           }
         );
@@ -95,7 +99,11 @@ export async function buildInitializeMessageFor(
               deploymentState
             ),
             artifactId: future.contract.id,
-            value: resolveValue(future.value, deploymentParameters),
+            value: resolveValue(
+              future.value,
+              deploymentParameters,
+              deploymentState
+            ),
             from: resolveFutureFrom(future.from, accounts, defaultSender),
           }
         );
@@ -191,7 +199,11 @@ export async function buildInitializeMessageFor(
               deploymentState,
               deploymentParameters
             ),
-            value: resolveValue(future.value, deploymentParameters),
+            value: resolveValue(
+              future.value,
+              deploymentParameters,
+              deploymentState
+            ),
             data: future.data ?? "0x",
             from: resolveFutureFrom(future.from, accounts, defaultSender),
           }

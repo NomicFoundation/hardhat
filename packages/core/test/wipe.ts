@@ -101,7 +101,7 @@ describe("wipe", () => {
     const wiper = new Wiper(deploymentLoader);
     await assert.isRejected(
       wiper.wipe("Module1:Nonexistant"),
-      "Cannot wipe Module1:Nonexistant as no state recorded against it"
+      "IGN601: Cannot wipe Module1:Nonexistant as it has no previous execution recorded"
     );
   });
 
@@ -134,7 +134,7 @@ describe("wipe", () => {
 
     await assert.isRejected(
       wiper.wipe(contract1Id),
-      `Cannot wipe ${contract1Id} as there are dependent futures that have already started:\n  ${contract2Id}`
+      `IGN602: Cannot wipe ${contract1Id} as there are dependent futures that have previous executions recorded. Consider wiping these first: ${contract2Id}`
     );
   });
 });

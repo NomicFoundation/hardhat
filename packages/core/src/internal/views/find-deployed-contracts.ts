@@ -1,3 +1,4 @@
+import { DeployedContract } from "../../types/deploy";
 import { DeploymentState } from "../execution/types/deployment-state";
 import { ExecutionResultType } from "../execution/types/execution-result";
 import {
@@ -8,15 +9,9 @@ import {
 } from "../execution/types/execution-state";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
-interface DeployedContract {
-  futureId: string;
-  contractName: string;
-  contractAddress: string;
-}
-
-export function findDeployedContracts(
-  deploymentState: DeploymentState
-): DeployedContract[] {
+export function findDeployedContracts(deploymentState: DeploymentState): {
+  [futureId: string]: DeployedContract;
+} {
   return Object.values(deploymentState.executionStates)
     .filter(
       (
@@ -26,7 +21,11 @@ export function findDeployedContracts(
         exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE
     )
     .filter((des) => des.status === ExecutionStatus.SUCCESS)
-    .map(_toDeployedContract);
+    .map(_toDeployedContract)
+    .reduce<{ [futureId: string]: DeployedContract }>((acc, contract) => {
+      acc[contract.id] = contract;
+      return acc;
+    }, {});
 }
 
 function _toDeployedContract(
@@ -41,16 +40,16 @@ function _toDeployedContract(
       );
 
       return {
-        futureId: des.id,
+        id: des.id,
         contractName: des.contractName,
-        contractAddress: des.result.address,
+        address: des.result.address,
       };
     }
     case ExecutionSateType.CONTRACT_AT_EXECUTION_STATE: {
       return {
-        futureId: des.id,
+        id: des.id,
         contractName: des.contractName,
-        contractAddress: des.contractAddress,
+        address: des.contractAddress,
       };
     }
   }

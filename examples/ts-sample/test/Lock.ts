@@ -5,7 +5,7 @@ import {
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import { ethers, ignition } from "hardhat";
-import LockModule from "../ignition/LockModule";
+import LockModule from "../ignition/modules/LockModule";
 
 describe("Lock", function () {
   // We define a fixture to reuse the same setup in every test.

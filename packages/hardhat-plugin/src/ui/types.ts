@@ -1,12 +1,9 @@
-import {
-  DeploymentResult,
-  IgnitionModuleResult,
-} from "@nomicfoundation/ignition-core";
+import { DeploymentResult } from "@nomicfoundation/ignition-core";
 
 export enum UiFutureStatusType {
   UNSTARTED = "UNSTARTED",
   SUCCESS = "SUCCESS",
-  PENDING = "PENDING",
+  TIMEDOUT = "TIMEDOUT",
   ERRORED = "ERRORED",
   HELD = "HELD",
 }
@@ -26,8 +23,8 @@ export interface UiFutureSuccess {
   result?: string;
 }
 
-export interface UiFuturePending {
-  type: UiFutureStatusType.PENDING;
+export interface UiFutureTimedOut {
+  type: UiFutureStatusType.TIMEDOUT;
 }
 
 export interface UiFutureErrored {
@@ -44,7 +41,7 @@ export interface UiFutureHeld {
 export type UiFutureStatus =
   | UiFutureUnstarted
   | UiFutureSuccess
-  | UiFuturePending
+  | UiFutureTimedOut
   | UiFutureErrored
   | UiFutureHeld;
 
@@ -59,8 +56,12 @@ export interface UiState {
   status: UiStateDeploymentStatus;
   chainId: number | null;
   moduleName: string | null;
+  deploymentDir: string | undefined | null;
   batches: UiBatches;
-  result: DeploymentResult<string, IgnitionModuleResult<string>> | null;
+  currentBatch: number;
+  result: DeploymentResult | null;
+  warnings: string[];
+  isResumed: boolean | null;
 }
 
 export interface AddressMap {

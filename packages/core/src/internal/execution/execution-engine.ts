@@ -1,4 +1,3 @@
-import { IgnitionError } from "../../errors";
 import { ArtifactResolver } from "../../types/artifact";
 import { DeploymentParameters } from "../../types/deploy";
 import {
@@ -11,6 +10,7 @@ import {
   IgnitionModuleResult,
 } from "../../types/module";
 import { DeploymentLoader } from "../deployment-loader/types";
+import { assertIgnitionInvariant } from "../utils/assertions";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 import { getPendingNonceAndSender } from "../views/execution-state/get-pending-nonce-and-sender";
 import { hasExecutionSucceeded } from "../views/has-execution-succeeded";
@@ -19,11 +19,9 @@ import { isBatchFinished } from "../views/is-batch-finished";
 import { applyNewMessage } from "./deployment-state-helpers";
 import { FutureProcessor } from "./future-processor/future-processor";
 import { Block, JsonRpcClient } from "./jsonrpc-client";
-import {
-  JsonRpcNonceManager,
-  getMaxNonceUsedBySender,
-  getNonceSyncMessages,
-} from "./nonce-management";
+import { getMaxNonceUsedBySender } from "./nonce-management/get-max-nonce-used-by-sender";
+import { getNonceSyncMessages } from "./nonce-management/get-nonce-sync-messages";
+import { JsonRpcNonceManager } from "./nonce-management/json-rpc-nonce-manager";
 import { TransactionTrackingTimer } from "./transaction-tracking-timer";
 import { DeploymentState } from "./types/deployment-state";
 import { ExecutionStrategy } from "./types/execution-strategy";
@@ -69,9 +67,15 @@ export class ExecutionEngine {
     deploymentParameters: DeploymentParameters,
     defaultSender: string
   ): Promise<DeploymentState> {
-    deploymentState = await this._syncNonces(deploymentState);
+    deploymentState = await this._syncNonces(
+      deploymentState,
+      module,
+      accounts,
+      defaultSender
+    );
 
     const transactionTrackingTimer = new TransactionTrackingTimer();
+
     const nonceManager = new JsonRpcNonceManager(
       this._jsonRpcClient,
       getMaxNonceUsedBySender(deploymentState)
@@ -194,14 +198,25 @@ export class ExecutionEngine {
    * This method processes dropped and replaced transactions.
    *
    * @param deploymentState The existing deployment state.
+   * @param ignitionModule The module that will be executed.
    * @returns The updated deployment state.
    */
   private async _syncNonces(
-    deploymentState: DeploymentState
+    deploymentState: DeploymentState,
+    ignitionModule: IgnitionModule<
+      string,
+      string,
+      IgnitionModuleResult<string>
+    >,
+    accounts: string[],
+    defaultSender: string
   ): Promise<DeploymentState> {
     const nonceSyncMessages = await getNonceSyncMessages(
       this._jsonRpcClient,
       deploymentState,
+      ignitionModule,
+      accounts,
+      defaultSender,
       this._requiredConfirmations
     );
 
@@ -222,9 +237,10 @@ export class ExecutionEngine {
   private _lookupFuture(futures: Future[], futureId: string): Future {
     const future = futures.find((f) => f.id === futureId);
 
-    if (future === undefined) {
-      throw new IgnitionError("Could not locate future id from batching");
-    }
+    assertIgnitionInvariant(
+      future !== undefined,
+      `Future ${futureId} not found`
+    );
 
     return future;
   }

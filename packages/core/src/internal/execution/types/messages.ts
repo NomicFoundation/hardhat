@@ -18,7 +18,7 @@ import {
 } from "./jsonrpc";
 
 export type JournalMessage =
-  | RunStartMessage
+  | DeploymentInitializeMessage
   | WipeExecutionStateMessage
   | DeploymentExecutionStateInitializeMessage
   | DeploymentExecutionStateCompleteMessage
@@ -46,6 +46,7 @@ export type JournalMessage =
  * be sure to update UiEventType accordingly
  */
 export enum JournalMessageType {
+  DEPLOYMENT_INITIALIZE = "DEPLOYMENT_INITIALIZE",
   RUN_START = "RUN_START",
   WIPE_APPLY = "WIPE_APPLY",
   DEPLOYMENT_EXECUTION_STATE_INITIALIZE = "DEPLOYMENT_EXECUTION_STATE_INITIALIZE",
@@ -68,8 +69,8 @@ export enum JournalMessageType {
   ONCHAIN_INTERACTION_TIMEOUT = "ONCHAIN_INTERACTION_TIMEOUT",
 }
 
-export interface RunStartMessage {
-  type: JournalMessageType.RUN_START;
+export interface DeploymentInitializeMessage {
+  type: JournalMessageType.DEPLOYMENT_INITIALIZE;
   chainId: number;
 }
 

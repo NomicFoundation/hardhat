@@ -6,7 +6,7 @@ import { assertIgnitionInvariant } from "../../utils/assertions";
 import { isExecutionStateComplete } from "../../views/is-execution-state-complete";
 import { applyNewMessage } from "../deployment-state-helpers";
 import { JsonRpcClient } from "../jsonrpc-client";
-import { NonceManager } from "../nonce-management";
+import { NonceManager } from "../nonce-management/json-rpc-nonce-manager";
 import { TransactionTrackingTimer } from "../transaction-tracking-timer";
 import { DeploymentState } from "../types/deployment-state";
 import { ExecutionResultType } from "../types/execution-result";

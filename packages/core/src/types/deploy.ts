@@ -1,4 +1,4 @@
-import { IgnitionModuleResult, ModuleParameters } from "./module";
+import { ModuleParameters } from "./module";
 
 /**
  * Configuration options for the deployment.
@@ -35,15 +35,12 @@ export interface DeployConfig {
  *
  * @beta
  */
-export type DeploymentResult<
-  ContractNameT extends string,
-  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
-> =
+export type DeploymentResult =
   | ValidationErrorDeploymentResult
   | ReconciliationErrorDeploymentResult
   | ExecutionErrorDeploymentResult
   | PreviousRunErrorDeploymentResult
-  | SuccessfulDeploymentResult<ContractNameT, IgnitionModuleResultsT>;
+  | SuccessfulDeploymentResult;
 
 /**
  * The different kinds of results that a deployment can produce.
@@ -171,27 +168,35 @@ export interface PreviousRunErrorDeploymentResult {
 }
 
 /**
- * A deployment result where all of the futures of the module have completed
- * successfully.
+ * The details of a deployed contract.
  *
  * @beta
  */
-export interface SuccessfulDeploymentResult<
-  ContractNameT extends string,
-  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
-> {
+export interface DeployedContract {
+  id: string;
+  contractName: string;
+  address: string;
+}
+
+/**
+ * A deployment result where all of the futures of the module have completed
+ * successfully.
+ *
+ * The deployed contracts returned include the deployed contracts from previous
+ * runs.
+ *
+ * @beta
+ */
+export interface SuccessfulDeploymentResult {
   type: DeploymentResultType.SUCCESSFUL_DEPLOYMENT;
   /**
    * A map with the contracts returned by the deployed module.
    *
-   * The contracts can be the result of a deployment or a contractAt call.
+   * The contracts can be the result of a deployment or a contractAt call,
+   * in the current run and the previous runs
    */
   contracts: {
-    [key in keyof IgnitionModuleResultsT]: {
-      id: string;
-      contractName: IgnitionModuleResultsT[key]["contractName"];
-      address: string;
-    };
+    [key: string]: DeployedContract;
   };
 }
 

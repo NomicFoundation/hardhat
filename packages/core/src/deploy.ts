@@ -1,4 +1,5 @@
-import { IgnitionValidationError } from "./errors";
+import { IgnitionError } from "./errors";
+import { ERRORS } from "./errors-list";
 import {
   DEFAULT_AUTOMINE_REQUIRED_CONFIRMATIONS,
   defaultConfig,
@@ -10,7 +11,7 @@ import { BasicExecutionStrategy } from "./internal/execution/basic-execution-str
 import { EIP1193JsonRpcClient } from "./internal/execution/jsonrpc-client";
 import { getDefaultSender } from "./internal/execution/utils/get-default-sender";
 import { checkAutominedNetwork } from "./internal/utils/check-automined-network";
-import { validateStageOne } from "./internal/validation/validateStageOne";
+import { validate } from "./internal/validation/validate";
 import { ArtifactResolver } from "./types/artifact";
 import {
   DeployConfig,
@@ -57,7 +58,7 @@ export async function deploy<
   deploymentParameters: DeploymentParameters;
   accounts: string[];
   defaultSender?: string;
-}): Promise<DeploymentResult<ContractNameT, IgnitionModuleResultsT>> {
+}): Promise<DeploymentResult> {
   if (executionEventListener !== undefined) {
     executionEventListener.setModuleId({
       type: ExecutionEventType.SET_MODULE_ID,
@@ -65,9 +66,11 @@ export async function deploy<
     });
   }
 
-  const validationResult = await validateStageOne(
+  const validationResult = await validate(
     ignitionModule,
-    artifactResolver
+    artifactResolver,
+    deploymentParameters,
+    accounts
   );
 
   if (validationResult !== null) {
@@ -83,9 +86,9 @@ export async function deploy<
 
   if (defaultSender !== undefined) {
     if (!accounts.includes(defaultSender)) {
-      throw new IgnitionValidationError(
-        `Default sender ${defaultSender} is not part of the provided accounts`
-      );
+      throw new IgnitionError(ERRORS.VALIDATION.INVALID_DEFAULT_SENDER, {
+        defaultSender,
+      });
     }
   } else {
     defaultSender = getDefaultSender(accounts);
@@ -114,6 +117,7 @@ export async function deploy<
 
   const deployer = new Deployer(
     resolvedConfig,
+    deploymentDir,
     executionStrategy,
     jsonRpcClient,
     artifactResolver,

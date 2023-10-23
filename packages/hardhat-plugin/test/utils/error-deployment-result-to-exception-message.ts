@@ -1,6 +1,7 @@
 import {
   DeploymentResultType,
   ExecutionErrorDeploymentResult,
+  PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
   ValidationErrorDeploymentResult,
 } from "@nomicfoundation/ignition-core";
@@ -53,6 +54,26 @@ describe("display error deployment result", () => {
   * MyModule:MyContract: The params don\'t match
   * MyModule:MyContract: The value doesn\'t match
   * MyModule:AnotherContract: The future is timed out`
+      );
+    });
+  });
+
+  describe("previous run", () => {
+    it("should display a previous run error", () => {
+      const result: PreviousRunErrorDeploymentResult = {
+        type: DeploymentResultType.PREVIOUS_RUN_ERROR,
+        errors: {
+          "MyModule:MyContract": ["The previous run failed"],
+          "MyModule:AnotherContract": ["The previous run timed out"],
+        },
+      };
+
+      assert.equal(
+        errorDeploymentResultToExceptionMessage(result),
+        `The deployment wasn't run because of the following errors in a previous run:
+
+  * MyModule:MyContract: The previous run failed
+  * MyModule:AnotherContract: The previous run timed out`
       );
     });
   });

@@ -26,9 +26,9 @@ export function emitExecutionEvent(
   executionEventListener: ExecutionEventListener
 ): void {
   switch (message.type) {
-    case JournalMessageType.RUN_START: {
-      executionEventListener.runStart({
-        type: ExecutionEventType.RUN_START,
+    case JournalMessageType.DEPLOYMENT_INITIALIZE: {
+      executionEventListener.deploymentInitialize({
+        type: ExecutionEventType.DEPLOYMENT_INITIALIZE,
         chainId: message.chainId,
       });
       break;

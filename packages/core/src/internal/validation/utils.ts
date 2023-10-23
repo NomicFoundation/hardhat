@@ -1,4 +1,5 @@
-import { IgnitionValidationError } from "../../errors";
+import { IgnitionError } from "../../errors";
+import { ERRORS } from "../../errors-list";
 import { isFuture, isRuntimeValue } from "../../type-guards";
 import {
   AccountRuntimeValue,
@@ -9,18 +10,23 @@ import {
 export function validateAccountRuntimeValue(
   arv: AccountRuntimeValue,
   accounts: string[]
-): void {
+): IgnitionError[] {
+  const errors: IgnitionError[] = [];
+
   if (arv.accountIndex < 0) {
-    throw new IgnitionValidationError(
-      `Account index cannot be a negative number`
-    );
+    errors.push(new IgnitionError(ERRORS.VALIDATION.NEGATIVE_ACCOUNT_INDEX));
   }
 
   if (arv.accountIndex >= accounts.length) {
-    throw new IgnitionValidationError(
-      `Requested account index '${arv.accountIndex}' is greater than the total number of available accounts '${accounts.length}'`
+    errors.push(
+      new IgnitionError(ERRORS.VALIDATION.ACCOUNT_INDEX_TOO_HIGH, {
+        accountIndex: arv.accountIndex,
+        accountsLength: accounts.length,
+      })
     );
   }
+
+  return errors;
 }
 
 export function retrieveNestedRuntimeValues(

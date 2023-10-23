@@ -1,3 +1,5 @@
+import { assertIgnitionInvariant } from "./assertions";
+
 export class AdjacencyList {
   /**
    * A mapping from futures to each futures dependencies.
@@ -71,9 +73,10 @@ export class AdjacencyList {
     for (const dependent of dependents) {
       const toSet = this._list.get(dependent);
 
-      if (toSet === undefined) {
-        throw new Error("Dependency sets should be defined");
-      }
+      assertIgnitionInvariant(
+        toSet !== undefined,
+        "Dependency sets should be defined"
+      );
 
       const setWithoutFuture = new Set<string>(
         [...toSet].filter((n) => n !== futureId)

@@ -79,7 +79,7 @@ export interface SerializedNamedContractDeploymentFuture
   contractName: string;
   constructorArgs: SerializedArgumentType[];
   libraries: SerializedLibraries;
-  value: SerializedBigInt | SerializedModuleParameterRuntimeValue;
+  value: SerializedBigInt | SerializedModuleParameterRuntimeValue | FutureToken;
   from: string | SerializedAccountRuntimeValue | undefined;
 }
 
@@ -95,7 +95,7 @@ export interface SerializedArtifactContractDeploymentFuture
   constructorArgs: SerializedArgumentType[];
   artifact: Artifact;
   libraries: SerializedLibraries;
-  value: SerializedBigInt | SerializedModuleParameterRuntimeValue;
+  value: SerializedBigInt | SerializedModuleParameterRuntimeValue | FutureToken;
   from: string | SerializedAccountRuntimeValue | undefined;
 }
 
@@ -137,7 +137,7 @@ export interface SerializedNamedContractCallFuture
   functionName: string;
   contract: FutureToken;
   args: SerializedArgumentType[];
-  value: SerializedBigInt | SerializedModuleParameterRuntimeValue;
+  value: SerializedBigInt | SerializedModuleParameterRuntimeValue | FutureToken;
   from: string | SerializedAccountRuntimeValue | undefined;
 }
 

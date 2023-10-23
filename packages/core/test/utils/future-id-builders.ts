@@ -2,7 +2,7 @@ import { assert } from "chai";
 
 import {
   toCallFutureId,
-  toDeploymentFutureId,
+  toContractFutureId,
   toReadEventArgumentFutureId,
   toSendDataFutureId,
 } from "../../src/internal/utils/future-id-builders";
@@ -11,30 +11,55 @@ describe("future id rules", () => {
   describe("contract, library, contractAt ids", () => {
     it("the fallback id should be built based on the contract or library name", () => {
       assert.equal(
-        toDeploymentFutureId("MyModule", undefined, "MyContract"),
+        toContractFutureId("MyModule", undefined, "MyContract"),
         "MyModule#MyContract"
       );
     });
 
     it("namespaces to the module a user provided id", () => {
       assert.equal(
-        toDeploymentFutureId("MyModule", "MyId", "MyContract"),
+        toContractFutureId("MyModule", "MyId", "MyContract"),
         "MyModule#MyId"
       );
     });
   });
 
   describe("call ids", () => {
-    it("the fallback id should be built based on the contractName and function name", () => {
+    it("the fallback id should be built based on the contract id and function name if they belong to the same module", () => {
       assert.equal(
-        toCallFutureId("MyModule", undefined, "MyContract", "MyFunction"),
+        toCallFutureId(
+          "MyModule",
+          undefined,
+          "MyModule",
+          "MyModule#MyContract",
+          "MyFunction"
+        ),
         "MyModule#MyContract.MyFunction"
+      );
+    });
+
+    it("should name a call to a future coming from a module representing the submodule relationship, and including namespaced by module id", () => {
+      assert.equal(
+        toCallFutureId(
+          "MyModule",
+          undefined,
+          "Submodule",
+          "Submodule#MyContract",
+          "MyFunction"
+        ),
+        "MyModule#Submodule~MyContract.MyFunction"
       );
     });
 
     it("namespaces the user provided id to the module", () => {
       assert.equal(
-        toCallFutureId("MyModule", "MyId", "MyContract", "MyFunction"),
+        toCallFutureId(
+          "MyModule",
+          "MyId",
+          "MyModule",
+          "MyModule#MyContract",
+          "MyFunction"
+        ),
         "MyModule#MyId"
       );
     });

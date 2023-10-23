@@ -1,4 +1,5 @@
 import { IgnitionError } from "../../errors";
+import { ERRORS } from "../../errors-list";
 import { EIP1193Provider } from "../../types/provider";
 
 import {
@@ -20,6 +21,7 @@ export interface CallParams {
   from: string;
   nonce?: number;
   fees?: NetworkFees;
+  gasLimit?: bigint;
 }
 
 /**
@@ -257,6 +259,10 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
         nonce:
           callParams.nonce !== undefined
             ? numberToJsonRpcQuantity(callParams.nonce)
+            : undefined,
+        gas:
+          callParams.gasLimit !== undefined
+            ? bigIntToJsonRpcQuantity(callParams.gasLimit)
             : undefined,
         ...jsonRpcEncodeNetworkFees(callParams.fees),
       };
@@ -599,9 +605,10 @@ function assertResponseType(
   assertion: boolean
 ): asserts assertion {
   if (!assertion) {
-    throw new IgnitionError(
-      `Invalid JSON-RPC response for ${method}: ${JSON.stringify(response)}`
-    );
+    throw new IgnitionError(ERRORS.EXECUTION.INVALID_JSON_RPC_RESPONSE, {
+      method,
+      response: JSON.stringify(response),
+    });
   }
 }
 function formatReceiptLogs(method: string, response: object): TransactionLog[] {

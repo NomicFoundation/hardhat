@@ -1,3 +1,6 @@
+import "@fontsource/roboto";
+import "@fontsource/roboto/400.css";
+import "@fontsource/roboto/700.css";
 import React from "react";
 
 import {
@@ -7,14 +10,14 @@ import {
 } from "@nomicfoundation/ignition-core/ui-helpers";
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createHashRouter } from "react-router-dom";
-import { FutureDetails } from "./pages/future-details/future-details";
 import { VisualizationOverview } from "./pages/visualization-overview/visualization-overview";
 
-const loadDeploymentFromEmbeddedDiv = (): IgnitionModule<
-  string,
-  string,
-  IgnitionModuleResult<string>
-> | null => {
+import "./main.css";
+
+const loadDeploymentFromEmbeddedDiv = (): {
+  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>;
+  batches: string[][];
+} | null => {
   const scriptTag = document.getElementById("deployment");
 
   if (scriptTag === null || scriptTag.textContent === null) {
@@ -27,13 +30,23 @@ const loadDeploymentFromEmbeddedDiv = (): IgnitionModule<
     return null;
   }
 
-  return IgnitionModuleDeserializer.deserialize(data.module);
+  return {
+    ignitionModule: IgnitionModuleDeserializer.deserialize(data.module),
+    batches: data.batches,
+  };
 };
 
-const loadDeploymentFromDevFile = async () => {
+const loadDeploymentFromDevFile = async (): Promise<{
+  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>;
+  batches: string[][];
+}> => {
   const response = await fetch("./deployment.json");
   const data = await response.json();
-  return IgnitionModuleDeserializer.deserialize(data.module);
+
+  return {
+    ignitionModule: IgnitionModuleDeserializer.deserialize(data.module),
+    batches: data.batches,
+  };
 };
 
 const loadDeploymentData = () => {
@@ -42,16 +55,19 @@ const loadDeploymentData = () => {
 
 const main = async () => {
   try {
-    const ignitionModule = await loadDeploymentData();
+    const { ignitionModule, batches } = await loadDeploymentData();
+
+    document.title = `${ignitionModule.id} Deployment Visualization - Hardhat Ignition`;
 
     const router = createHashRouter([
       {
         path: "/",
-        element: <VisualizationOverview ignitionModule={ignitionModule} />,
-      },
-      {
-        path: "/future/:futureId",
-        element: <FutureDetails ignitionModule={ignitionModule} />,
+        element: (
+          <VisualizationOverview
+            ignitionModule={ignitionModule}
+            batches={batches}
+          />
+        ),
       },
     ]);
 

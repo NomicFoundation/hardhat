@@ -1,5 +1,4 @@
 import { DeploymentResult } from "./deploy";
-import { IgnitionModuleResult } from "./module";
 
 /**
  * Events emitted by the execution engine to allow tracking
@@ -8,7 +7,7 @@ import { IgnitionModuleResult } from "./module";
  * @beta
  */
 export type ExecutionEvent =
-  | RunStartEvent
+  | DeploymentInitializeEvent
   | WipeApplyEvent
   | DeploymentExecutionStateInitializeEvent
   | DeploymentExecutionStateCompleteEvent
@@ -30,6 +29,7 @@ export type ExecutionEvent =
   | OnchainInteractionTimeoutEvent
   | BatchInitializeEvent
   | DeploymentStartEvent
+  | ReconciliationWarningsEvent
   | BeginNextBatchEvent
   | SetModuleIdEvent;
 
@@ -39,7 +39,6 @@ export type ExecutionEvent =
  * @beta
  */
 export enum ExecutionEventType {
-  RUN_START = "RUN_START",
   WIPE_APPLY = "WIPE_APPLY",
   DEPLOYMENT_EXECUTION_STATE_INITIALIZE = "DEPLOYMENT_EXECUTION_STATE_INITIALIZE",
   DEPLOYMENT_EXECUTION_STATE_COMPLETE = "DEPLOYMENT_EXECUTION_STATE_COMPLETE",
@@ -59,8 +58,11 @@ export enum ExecutionEventType {
   ONCHAIN_INTERACTION_DROPPED = "ONCHAIN_INTERACTION_DROPPED",
   ONCHAIN_INTERACTION_REPLACED_BY_USER = "ONCHAIN_INTERACTION_REPLACED_BY_USER",
   ONCHAIN_INTERACTION_TIMEOUT = "ONCHAIN_INTERACTION_TIMEOUT",
-  BATCH_INITIALIZE = "BATCH_INITIALIZE",
   DEPLOYMENT_START = "DEPLOYMENT_START",
+  DEPLOYMENT_INITIALIZE = "DEPLOYMENT_INITIALIZE",
+  RECONCILIATION_WARNINGS = "RECONCILIATION_WARNINGS",
+  BATCH_INITIALIZE = "BATCH_INITIALIZE",
+  RUN_START = "RUN_START",
   BEGIN_NEXT_BATCH = "BEGIN_NEXT_BATCH",
   DEPLOYMENT_COMPLETE = "DEPLOYMENT_COMPLETE",
   SET_MODULE_ID = "SET_MODULE_ID",
@@ -74,15 +76,17 @@ export enum ExecutionEventType {
 export interface DeploymentStartEvent {
   type: ExecutionEventType.DEPLOYMENT_START;
   moduleName: string;
+  deploymentDir: string | undefined;
+  isResumed: boolean;
 }
 
 /**
- * An event indicating a new run has started.
+ * An event indicating a new deployment has been initialized.
  *
  * @beta
  */
-export interface RunStartEvent {
-  type: ExecutionEventType.RUN_START;
+export interface DeploymentInitializeEvent {
+  type: ExecutionEventType.DEPLOYMENT_INITIALIZE;
   chainId: number;
 }
 
@@ -94,6 +98,15 @@ export interface RunStartEvent {
 export interface BatchInitializeEvent {
   type: ExecutionEventType.BATCH_INITIALIZE;
   batches: string[][];
+}
+
+/**
+ * An event indicating that the deployment is commenencing an execution run.
+ *
+ * @beta
+ */
+export interface RunStartEvent {
+  type: ExecutionEventType.RUN_START;
 }
 
 /**
@@ -113,7 +126,17 @@ export interface BeginNextBatchEvent {
  */
 export interface DeploymentCompleteEvent {
   type: ExecutionEventType.DEPLOYMENT_COMPLETE;
-  result: DeploymentResult<string, IgnitionModuleResult<string>>;
+  result: DeploymentResult;
+}
+
+/**
+ * An event indicating that a deployment has reconciliation warnings.
+ *
+ * @beta
+ */
+export interface ReconciliationWarningsEvent {
+  type: ExecutionEventType.RECONCILIATION_WARNINGS;
+  warnings: string[];
 }
 
 /**
@@ -410,7 +433,6 @@ export interface ExecutionEventHeld {
  * @beta
  */
 export interface ExecutionEventTypeMap {
-  [ExecutionEventType.RUN_START]: RunStartEvent;
   [ExecutionEventType.WIPE_APPLY]: WipeApplyEvent;
   [ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE]: DeploymentExecutionStateInitializeEvent;
   [ExecutionEventType.DEPLOYMENT_EXECUTION_STATE_COMPLETE]: DeploymentExecutionStateCompleteEvent;
@@ -430,8 +452,11 @@ export interface ExecutionEventTypeMap {
   [ExecutionEventType.ONCHAIN_INTERACTION_DROPPED]: OnchainInteractionDroppedEvent;
   [ExecutionEventType.ONCHAIN_INTERACTION_REPLACED_BY_USER]: OnchainInteractionReplacedByUserEvent;
   [ExecutionEventType.ONCHAIN_INTERACTION_TIMEOUT]: OnchainInteractionTimeoutEvent;
-  [ExecutionEventType.BATCH_INITIALIZE]: BatchInitializeEvent;
   [ExecutionEventType.DEPLOYMENT_START]: DeploymentStartEvent;
+  [ExecutionEventType.DEPLOYMENT_INITIALIZE]: DeploymentInitializeEvent;
+  [ExecutionEventType.RECONCILIATION_WARNINGS]: ReconciliationWarningsEvent;
+  [ExecutionEventType.BATCH_INITIALIZE]: BatchInitializeEvent;
+  [ExecutionEventType.RUN_START]: RunStartEvent;
   [ExecutionEventType.BEGIN_NEXT_BATCH]: BeginNextBatchEvent;
   [ExecutionEventType.DEPLOYMENT_COMPLETE]: DeploymentCompleteEvent;
   [ExecutionEventType.SET_MODULE_ID]: SetModuleIdEvent;

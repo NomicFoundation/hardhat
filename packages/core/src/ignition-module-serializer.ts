@@ -1,4 +1,5 @@
 import { IgnitionError } from "./errors";
+import { ERRORS } from "./errors-list";
 import {
   AccountRuntimeValueImplementation,
   ArtifactContractAtFutureImplementation,
@@ -29,6 +30,7 @@ import {
   AccountRuntimeValue,
   AddressResolvableFuture,
   ArgumentType,
+  ContractCallFuture,
   ContractDeploymentFuture,
   ContractFuture,
   Future,
@@ -37,9 +39,10 @@ import {
   IgnitionModuleResult,
   ModuleParameterRuntimeValue,
   ModuleParameterType,
-  ContractCallFuture,
   NamedArtifactContractDeploymentFuture,
+  ReadEventArgumentFuture,
   RuntimeValueType,
+  StaticCallFuture,
 } from "./types/module";
 import {
   FutureToken,
@@ -137,7 +140,9 @@ export class IgnitionModuleSerializer {
               ? this._serializeAccountRuntimeValue(future.from)
               : future.from,
             libraries: this._convertLibrariesToLibraryTokens(future.libraries),
-            value: isRuntimeValue(future.value)
+            value: isFuture(future.value)
+              ? this._convertFutureToFutureToken(future.value)
+              : isRuntimeValue(future.value)
               ? this._serializeModuleParamterRuntimeValue(future.value)
               : this._serializeBigint(future.value),
           };
@@ -161,7 +166,9 @@ export class IgnitionModuleSerializer {
               ? this._serializeAccountRuntimeValue(future.from)
               : future.from,
             libraries: this._convertLibrariesToLibraryTokens(future.libraries),
-            value: isRuntimeValue(future.value)
+            value: isFuture(future.value)
+              ? this._convertFutureToFutureToken(future.value)
+              : isRuntimeValue(future.value)
               ? this._serializeModuleParamterRuntimeValue(future.value)
               : this._serializeBigint(future.value),
           };
@@ -214,7 +221,9 @@ export class IgnitionModuleSerializer {
             contract: this._convertFutureToFutureToken(future.contract),
             functionName: future.functionName,
             args: future.args.map((arg) => context.argReplacer(arg)),
-            value: isRuntimeValue(future.value)
+            value: isFuture(future.value)
+              ? this._convertFutureToFutureToken(future.value)
+              : isRuntimeValue(future.value)
               ? this._serializeModuleParamterRuntimeValue(future.value)
               : this._serializeBigint(future.value),
             from: isRuntimeValue(future.from)
@@ -530,20 +539,18 @@ export class IgnitionModuleDeserializer {
       const swappedFuture = this._lookup(futureLookup, arg.futureId);
 
       if (swappedFuture === undefined) {
-        throw new IgnitionError(
-          `Unable to lookup future during deserialization: ${arg.futureId}`
-        );
+        throw new IgnitionError(ERRORS.SERIALIZATION.INVALID_FUTURE_ID, {
+          futureId: arg.futureId,
+        });
       }
 
       if (
         swappedFuture.type === FutureType.CONTRACT_CALL ||
         swappedFuture.type === FutureType.SEND_DATA
       ) {
-        throw new IgnitionError(
-          `Invalid FutureType ${
-            FutureType[swappedFuture.type]
-          } as serialized argument`
-        );
+        throw new IgnitionError(ERRORS.SERIALIZATION.INVALID_FUTURE_TYPE, {
+          type: FutureType[swappedFuture.type],
+        });
       }
 
       return swappedFuture;
@@ -640,7 +647,13 @@ export class IgnitionModuleDeserializer {
               this._lookup(contractFuturesLookup, lib.futureId),
             ])
           ),
-          this._isSerializedModuleParameterRuntimeValue(serializedFuture.value)
+          this._isSerializedFutureToken(serializedFuture.value)
+            ? (this._lookup(futuresLookup, serializedFuture.value.futureId) as
+                | StaticCallFuture<string, string>
+                | ReadEventArgumentFuture)
+            : this._isSerializedModuleParameterRuntimeValue(
+                serializedFuture.value
+              )
             ? (this._deserializeModuleParameterRuntimeValue(
                 serializedFuture.value
               ) as ModuleParameterRuntimeValue<bigint>) // This is unsafe, but we only serialize valid values
@@ -664,7 +677,13 @@ export class IgnitionModuleDeserializer {
               this._lookup(contractFuturesLookup, lib.futureId),
             ])
           ),
-          this._isSerializedModuleParameterRuntimeValue(serializedFuture.value)
+          this._isSerializedFutureToken(serializedFuture.value)
+            ? (this._lookup(futuresLookup, serializedFuture.value.futureId) as
+                | StaticCallFuture<string, string>
+                | ReadEventArgumentFuture)
+            : this._isSerializedModuleParameterRuntimeValue(
+                serializedFuture.value
+              )
             ? (this._deserializeModuleParameterRuntimeValue(
                 serializedFuture.value
               ) as ModuleParameterRuntimeValue<bigint>) // This is unsafe, but we only serialize valid values
@@ -716,7 +735,13 @@ export class IgnitionModuleDeserializer {
           serializedFuture.args.map((arg) =>
             this._deserializeArgument(arg, futuresLookup)
           ),
-          this._isSerializedModuleParameterRuntimeValue(serializedFuture.value)
+          this._isSerializedFutureToken(serializedFuture.value)
+            ? (this._lookup(futuresLookup, serializedFuture.value.futureId) as
+                | StaticCallFuture<string, string>
+                | ReadEventArgumentFuture)
+            : this._isSerializedModuleParameterRuntimeValue(
+                serializedFuture.value
+              )
             ? (this._deserializeModuleParameterRuntimeValue(
                 serializedFuture.value
               ) as ModuleParameterRuntimeValue<bigint>) // This is unsafe, but we only serialize valid values
@@ -829,7 +854,9 @@ export class IgnitionModuleDeserializer {
     const value = lookupTable.get(key);
 
     if (value === undefined) {
-      throw new IgnitionError(`Lookahead value ${key} missing`);
+      throw new IgnitionError(ERRORS.SERIALIZATION.LOOKAHEAD_NOT_FOUND, {
+        key,
+      });
     }
 
     return value;
