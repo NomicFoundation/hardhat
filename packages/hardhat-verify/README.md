@@ -264,6 +264,30 @@ if (!instance.isVerified("0x123abc...")) {
 
 ### Verifying on Sourcify
 
+To verify a contract using Sourcify, you need to add to your Hardhat config:
+
+```js
+sourcify: {
+  enabled: true;
+}
+```
+
+and then run the `verify` task, passing the address of the contract and the network where it's deployed:
+
+```bash
+npx hardhat verify --network mainnet DEPLOYED_CONTRACT_ADDRESS
+```
+
+**Note:** Constructor arguments are not required for Sourcify verification, but you'll need to provide them if you also have Etherscan verification enabled.
+
+To disable Sourcify verification and suppress related messages, set `enabled` to `false`:
+
+```js
+sourcify: {
+  enabled: false;
+}
+```
+
 ## How it works
 
 The plugin works by fetching the bytecode in the given address and using it to check which contract in your project corresponds to it. Besides that, some sanity checks are performed locally to make sure that the verification won't fail.
