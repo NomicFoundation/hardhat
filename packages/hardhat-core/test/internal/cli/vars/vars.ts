@@ -211,8 +211,14 @@ describe("vars", function () {
       });
     });
 
-    describe("default", () => {
-      it("should throw an error if the action does not exist", async () => {
+    describe("parsing errors", () => {
+      it("should throw an error if the command is not 'vars'", async () => {
+        await expect(
+          handleVars(["nonExisting", "list"], undefined)
+        ).to.be.rejectedWith("HH303: Unrecognized task 'nonExisting'");
+      });
+
+      it("should throw an error if the vars action does not exist", async () => {
         await expect(
           handleVars(["vars", "nonExistingAction"], undefined)
         ).to.be.rejectedWith(
