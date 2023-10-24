@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.18.3
+
+### Patch Changes
+
+- bddfcff8d: Send GA hits for `ignition deploy` tasks
+
 ## 2.18.2
 
 ### Patch Changes
