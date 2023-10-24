@@ -179,17 +179,18 @@ subtask(TASK_VERIFY_SOURCIFY_ATTEMPT_VERIFICATION)
       const { sourceName, contractName, contractOutput, compilerInput } =
         contractInformation;
 
-      const sourcesToContent = Object.keys(
+      const librarySourcesToContent = Object.keys(
         contractInformation.libraries
       ).reduce((acc: Record<string, string>, libSourceName) => {
         const libContent = compilerInput.sources[libSourceName].content;
         acc[libSourceName] = libContent;
         return acc;
       }, {});
+
       const response = await verificationInterface.verify(address, {
         "metadata.json": (contractOutput as any).metadata,
         [sourceName]: compilerInput.sources[sourceName].content,
-        ...sourcesToContent,
+        ...librarySourcesToContent,
       });
 
       if (response.isOk()) {
