@@ -172,7 +172,8 @@ function listVarsToSetup() {
           .join("\n")}`
       )
     );
-    console.log("\n");
+
+    if (optionalKeys.length > 0) console.log("\n");
   }
 
   if (optionalKeys.length > 0) {
