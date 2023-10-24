@@ -115,7 +115,10 @@ export class Etherscan {
         return false;
       }
 
-      return json.result[0].ABI !== "Contract source code not verified";
+      const sourceCode = json.result[0]?.SourceCode;
+      return (
+        sourceCode !== undefined && sourceCode !== null && sourceCode !== ""
+      );
     } catch (e) {
       if (e instanceof ContractVerificationInvalidStatusCodeError) {
         throw e;
