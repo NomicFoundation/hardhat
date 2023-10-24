@@ -2,4 +2,4 @@
 "@nomicfoundation/hardhat-verify": major
 ---
 
-- Add Sourcify as a verification provider.
+- Added Sourcify as a verification provider.
