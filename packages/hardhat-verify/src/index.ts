@@ -122,16 +122,15 @@ task(TASK_VERIFY, "Verifies a contract on Etherscan or Sourcify")
     );
 
     const errors: Record<string, HardhatVerifyError> = {};
-    let hasErrors = false;
     for (const verificationSubtask of verificationSubtasks) {
       try {
         await run(verificationSubtask, taskArgs);
       } catch (error) {
-        hasErrors = true;
         errors[verificationSubtask] = error as HardhatVerifyError;
       }
     }
 
+    const hasErrors = Object.keys(errors).length > 0;
     if (hasErrors) {
       printVerificationErrors(errors);
       process.exit(1);
