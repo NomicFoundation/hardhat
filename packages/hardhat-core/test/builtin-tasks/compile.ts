@@ -2,7 +2,7 @@ import { assert, expect } from "chai";
 import ci from "ci-info";
 import * as fsExtra from "fs-extra";
 import * as path from "path";
-
+import sinon from "sinon";
 import {
   TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS,
   TASK_COMPILE_SOLIDITY_READ_FILE,
@@ -138,6 +138,25 @@ describe("compile task", function () {
       assert.lengthOf(buildInfos, 2);
       assertValidJson(buildInfos[0]);
       assertValidJson(buildInfos[1]);
+    });
+  });
+
+  describe("project with multiple different evm versions", function () {
+    useFixtureProject("compilation-multiple-files-different-evm-versions");
+    useEnvironment();
+
+    it("should compile and show a message listing all the evm versions used", async function () {
+      const spyFunctionConsoleLog = sinon.stub(console, "log");
+
+      await this.env.run("compile");
+
+      assert(
+        spyFunctionConsoleLog.calledWith(
+          "Compiled 4 Solidity files successfully (evm targets: paris, petersburg, shanghai, unknown evm version for solc version 0.4.11)."
+        )
+      );
+
+      spyFunctionConsoleLog.restore();
     });
   });
 

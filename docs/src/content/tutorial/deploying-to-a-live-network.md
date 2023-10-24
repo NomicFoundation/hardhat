@@ -1,5 +1,11 @@
 # 7. Deploying to a live network
 
+:::tip
+
+Try [Hardhat Ignition](/ignition) for your deployments! Our new declarative system for deploying smart contracts without getting caught up in execution details.
+
+:::
+
 Once you're ready to share your dApp with other people, you may want to deploy it to a live network. This way others can access an instance that's not running locally on your system.
 
 The "mainnet" Ethereum network deals with real money, but there are separate "testnet" networks that do not. These testnets provide shared staging environments that do a good job of mimicking the real world scenario without putting real money at stake, and [Ethereum has several](https://ethereum.org/en/developers/docs/networks/#ethereum-testnets), like _Sepolia_ and _Goerli_. We recommend you deploy your contracts to the _Sepolia_ testnet.

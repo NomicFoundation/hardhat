@@ -52,6 +52,11 @@ const customRedirects = [
     permanent: false,
   },
   {
+    source: "/ignition-discord",
+    destination: "https://discord.gg/7jBkZQXB25",
+    permanent: false,
+  },
+  {
     source: "/hre",
     destination: "/advanced/hardhat-runtime-environment",
     permanent: false,
@@ -107,7 +112,11 @@ const customRedirects = [
       "/plugins/nomicfoundation-hardhat-chai-matchers#chaining-async-matchers",
     permanent: false,
   },
-
+  {
+    source: "/ignition-errors",
+    destination: "/ignition/docs/guides/error-handling",
+    permanent: false,
+  },
   // top-level component URLs
   {
     source: "/hardhat-runner",
@@ -157,6 +166,16 @@ const customRedirects = [
   {
     source: "/hardhat-network-helpers/docs",
     destination: "/hardhat-network-helpers/docs/overview",
+    permanent: false,
+  },
+  {
+    source: "/ignition",
+    destination: "/ignition/docs/getting-started#overview",
+    permanent: false,
+  },
+  {
+    source: "/ignition/docs",
+    destination: "/ignition/docs/getting-started#overview",
     permanent: false,
   },
 

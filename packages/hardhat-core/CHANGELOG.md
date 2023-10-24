@@ -1,5 +1,28 @@
 # hardhat
 
+## 2.18.2
+
+### Patch Changes
+
+- abca5abaf: Fixed the compiler download, which broke with the latest version of undici
+
+## 2.18.1
+
+### Patch Changes
+
+- b77b665fd: Added a viem option to the project initialization
+- 03edea678: Updated the compilation logs to include the targeted EVM versions.
+
+## 2.18.0
+
+### Minor Changes
+
+- 9412419b8: Added support for scoped tasks
+
+### Patch Changes
+
+- e95e954b4: Report issues from `@nomicfoundation` npm scope
+
 ## 2.17.4
 
 ### Patch Changes

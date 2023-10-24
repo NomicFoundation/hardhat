@@ -106,7 +106,7 @@ export class Bytecode {
   }
 
   /**
-   * Compare the bytecode agaisnt a compiler's output bytecode, ignoring metadata.
+   * Compare the bytecode against a compiler's output bytecode, ignoring metadata.
    */
   public compare(
     compilerOutputDeployedBytecode: CompilerOutputBytecode

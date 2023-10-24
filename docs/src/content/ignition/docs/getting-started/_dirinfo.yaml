@@ -1,0 +1,9 @@
+section-type: group
+section-title: Hardhat Ignition
+order:
+  - href: "#overview"
+    title: Overview
+  - href: "#installation"
+    title: Installation
+  - href: "#quick-start"
+    title: Quick start
