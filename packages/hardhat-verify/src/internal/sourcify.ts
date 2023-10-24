@@ -101,8 +101,7 @@ export class Sourcify {
         throw new ContractVerificationInvalidStatusCodeError(
           url.toString(),
           response.statusCode,
-          JSON.stringify(json),
-          JSON.stringify(parameters)
+          JSON.stringify(json)
         );
       }
 

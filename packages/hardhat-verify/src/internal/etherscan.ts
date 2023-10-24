@@ -171,8 +171,7 @@ export class Etherscan {
         throw new ContractVerificationInvalidStatusCodeError(
           url.toString(),
           response.statusCode,
-          JSON.stringify(json),
-          parameters.toString()
+          JSON.stringify(json)
         );
       }
 

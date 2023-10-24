@@ -5,7 +5,6 @@ import {
   ABIArgumentTypeErrorType,
 } from "./abi-validation-extras";
 import { TASK_VERIFY_VERIFY } from "./task-names";
-import { truncate } from "./utilities";
 
 export class HardhatVerifyError extends NomicLabsHardhatPluginError {
   constructor(message: string, parent?: Error) {
@@ -134,18 +133,9 @@ To see the list of supported networks, run this command:
 }
 
 export class ContractVerificationInvalidStatusCodeError extends HardhatVerifyError {
-  constructor(
-    url: string,
-    statusCode: number,
-    responseText: string,
-    requestBody?: string
-  ) {
+  constructor(url: string, statusCode: number, responseText: string) {
     super(`Failed to send contract verification request.
-Endpoint URL: ${url}${
-      requestBody !== undefined
-        ? `\nRequest body: ${truncate(requestBody)}\n`
-        : ""
-    }
+Endpoint URL: ${url}
 The HTTP server response is not ok. Status code: ${statusCode} Response text: ${responseText}`);
   }
 }

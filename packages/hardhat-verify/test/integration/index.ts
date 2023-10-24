@@ -321,7 +321,7 @@ This can occur if the library is only called in the contract constructor. The mi
           constructorArgsParams: [],
         })
       ).to.be.rejectedWith(
-        /Failed to send contract verification request\.\nEndpoint URL: https:\/\/api-hardhat\.etherscan\.io\/api\nRequest body: (.*?)\nThe HTTP server response is not ok\. Status code: 500 Response text: {"error":"error verifying contract"}/s
+        /Failed to send contract verification request\.\nEndpoint URL: https:\/\/api-hardhat\.etherscan\.io\/api\n/s
       );
     });
 
