@@ -14,7 +14,8 @@ export async function sendGetRequest(
 
 export async function sendPostRequest(
   url: URL,
-  body: string
+  body: string,
+  headers: Record<string, string> = {}
 ): Promise<Undici.Dispatcher.ResponseData> {
   const { request } = await import("undici");
   const dispatcher = getDispatcher();
@@ -22,7 +23,7 @@ export async function sendPostRequest(
   return request(url, {
     dispatcher,
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    headers,
     body,
   });
 }
@@ -35,4 +36,8 @@ function getDispatcher(): Undici.Dispatcher {
   }
 
   return getGlobalDispatcher();
+}
+
+export function isSuccessStatusCode(statusCode: number): boolean {
+  return statusCode >= 200 && statusCode <= 299;
 }
