@@ -125,7 +125,7 @@ function setup(configPath: string | undefined) {
 }
 
 function loadConfigFile(configPath: string | undefined) {
-  const configEnv = require("../../../src/internal/core/config/config-env");
+  const configEnv = require(`../core/config/config-env`);
 
   const globalAsAny: any = global;
   Object.entries(configEnv).forEach(
