@@ -123,7 +123,10 @@ ${contractURL}`);
       return;
     }
 
-    throw new ContractVerificationFailedError(verificationMessage, []);
+    throw new ContractVerificationFailedError(
+      verificationMessage,
+      contractInformation.undetectableLibraries
+    );
   });
 
 subtask(TASK_VERIFY_SOURCIFY_RESOLVE_ARGUMENTS)
@@ -217,6 +220,8 @@ subtask(TASK_VERIFY_SOURCIFY_DISABLED_WARNING, async () => {
 sourcify: {
   enabled: true
 }
+
+Or set 'enabled' to false to hide this message.
 
 For more information, visit https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-verify#verifying-on-sourcify`
     )
