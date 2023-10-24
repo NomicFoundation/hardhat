@@ -253,11 +253,11 @@ export async function encodeArguments(
   return encodedConstructorArguments;
 }
 
-export abstract class ValidationResponse {
-  public isPending() {}
-  public isFailure() {}
-  public isSuccess() {}
-  public isOk() {}
+export interface ValidationResponse {
+  isPending(): void;
+  isFailure(): void;
+  isSuccess(): void;
+  isOk(): void;
 }
 
 export function truncate(str: string, maxLength: number = 1000): string {
