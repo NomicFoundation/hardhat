@@ -51,8 +51,8 @@ describe("Utilities", () => {
   describe("printVerificationErrors", () => {
     it("should print verification errors", () => {
       const errors: Record<string, HardhatVerifyError> = {
-        "verify:etherscan": new HardhatVerifyError("Etherscan error message"),
-        "verify:sourcify": new HardhatVerifyError("Sourcify error message"),
+        Etherscan: new HardhatVerifyError("Etherscan error message"),
+        Sourcify: new HardhatVerifyError("Sourcify error message"),
       };
 
       const errorStub = sinon.stub(console, "error");

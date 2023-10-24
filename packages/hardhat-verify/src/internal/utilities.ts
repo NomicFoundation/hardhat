@@ -110,11 +110,8 @@ export function printVerificationErrors(
   let errorMessage =
     "hardhat-verify found one or more errors during the verification process:\n\n";
 
-  for (const [verificationSubtask, error] of Object.entries(errors)) {
-    const verificationProvider = verificationSubtask
-      .split(":")[1]
-      .replace(/^\w/, (c) => c.toUpperCase());
-    errorMessage += `${verificationProvider}:\n${error.message}\n\n`;
+  for (const [subtaskLabel, error] of Object.entries(errors)) {
+    errorMessage += `${subtaskLabel}:\n${error.message}\n\n`;
   }
 
   console.error(chalk.red(errorMessage));

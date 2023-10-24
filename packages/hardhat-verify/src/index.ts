@@ -75,6 +75,11 @@ interface GetContractInformationArgs {
   libraries: LibraryToAddress;
 }
 
+export interface VerificationSubtask {
+  label: string;
+  subtaskName: string;
+}
+
 extendConfig(etherscanConfigExtender);
 extendConfig(sourcifyConfigExtender);
 
@@ -117,16 +122,16 @@ task(TASK_VERIFY, "Verifies a contract on Etherscan or Sourcify")
       return;
     }
 
-    const verificationSubtasks: string[] = await run(
+    const verificationSubtasks: VerificationSubtask[] = await run(
       TASK_VERIFY_GET_VERIFICATION_SUBTASKS
     );
 
     const errors: Record<string, HardhatVerifyError> = {};
-    for (const verificationSubtask of verificationSubtasks) {
+    for (const { label, subtaskName } of verificationSubtasks) {
       try {
-        await run(verificationSubtask, taskArgs);
+        await run(subtaskName, taskArgs);
       } catch (error) {
-        errors[verificationSubtask] = error as HardhatVerifyError;
+        errors[label] = error as HardhatVerifyError;
       }
     }
 
@@ -146,20 +151,29 @@ subtask(
 
 subtask(
   TASK_VERIFY_GET_VERIFICATION_SUBTASKS,
-  async (_, { config, userConfig }): Promise<string[]> => {
-    const verificationSubtasks = [];
+  async (_, { config, userConfig }): Promise<VerificationSubtask[]> => {
+    const verificationSubtasks: VerificationSubtask[] = [];
 
     if (config.etherscan.enabled) {
-      verificationSubtasks.push(TASK_VERIFY_ETHERSCAN);
+      verificationSubtasks.push({
+        label: "Etherscan",
+        subtaskName: TASK_VERIFY_ETHERSCAN,
+      });
     }
 
     if (config.sourcify.enabled) {
-      verificationSubtasks.push(TASK_VERIFY_SOURCIFY);
+      verificationSubtasks.push({
+        label: "Sourcify",
+        subtaskName: TASK_VERIFY_SOURCIFY,
+      });
     } else if (
       userConfig.sourcify?.enabled === undefined ||
       userConfig.sourcify?.enabled === false
     ) {
-      verificationSubtasks.unshift(TASK_VERIFY_SOURCIFY_DISABLED_WARNING);
+      verificationSubtasks.unshift({
+        label: "Common",
+        subtaskName: TASK_VERIFY_SOURCIFY_DISABLED_WARNING,
+      });
     }
 
     if (!config.etherscan.enabled && !config.sourcify.enabled) {

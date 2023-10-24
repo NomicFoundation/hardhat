@@ -1,3 +1,4 @@
+import type { VerificationSubtask } from "../..";
 import { assert, expect } from "chai";
 import sinon, { SinonStub } from "sinon";
 
@@ -117,11 +118,15 @@ describe("verify task", () => {
     });
 
     it("should return the etherscan subtask by default", async function () {
-      const verificationSubtasks: string[] = await this.hre.run(
+      const verificationSubtasks: VerificationSubtask[] = await this.hre.run(
         TASK_VERIFY_GET_VERIFICATION_SUBTASKS
       );
 
-      assert.isTrue(verificationSubtasks.includes(TASK_VERIFY_ETHERSCAN));
+      assert.isTrue(
+        verificationSubtasks.some(
+          ({ subtaskName }) => subtaskName === TASK_VERIFY_ETHERSCAN
+        )
+      );
     });
 
     it("should return the etherscan subtask if it is enabled", async function () {
@@ -132,13 +137,17 @@ describe("verify task", () => {
         customChains: [],
       };
 
-      const verificationSubtasks: string[] = await this.hre.run(
+      const verificationSubtasks: VerificationSubtask[] = await this.hre.run(
         TASK_VERIFY_GET_VERIFICATION_SUBTASKS
       );
 
       this.hre.config.etherscan = originalConfig;
 
-      assert.isTrue(verificationSubtasks.includes(TASK_VERIFY_ETHERSCAN));
+      assert.isTrue(
+        verificationSubtasks.some(
+          ({ subtaskName }) => subtaskName === TASK_VERIFY_ETHERSCAN
+        )
+      );
     });
 
     it("should ignore the etherscan subtask if it is disabled", async function () {
@@ -149,23 +158,28 @@ describe("verify task", () => {
         customChains: [],
       };
 
-      const verificationSubtasks: string[] = await this.hre.run(
+      const verificationSubtasks: VerificationSubtask[] = await this.hre.run(
         TASK_VERIFY_GET_VERIFICATION_SUBTASKS
       );
 
       this.hre.config.etherscan = originalConfig;
 
-      assert.isFalse(verificationSubtasks.includes(TASK_VERIFY_ETHERSCAN));
+      assert.isFalse(
+        verificationSubtasks.some(
+          ({ subtaskName }) => subtaskName === TASK_VERIFY_ETHERSCAN
+        )
+      );
     });
 
     it("should ignore the sourcify subtask by default", async function () {
-      const verificationSubtasks: string[] = await this.hre.run(
+      const verificationSubtasks: VerificationSubtask[] = await this.hre.run(
         TASK_VERIFY_GET_VERIFICATION_SUBTASKS
       );
 
-      assert.isFalse(verificationSubtasks.includes(TASK_VERIFY_SOURCIFY));
-      assert.isTrue(
-        verificationSubtasks.includes(TASK_VERIFY_SOURCIFY_DISABLED_WARNING)
+      assert.isFalse(
+        verificationSubtasks.some(
+          ({ subtaskName }) => subtaskName === TASK_VERIFY_SOURCIFY
+        )
       );
     });
 
@@ -175,15 +189,22 @@ describe("verify task", () => {
         enabled: true,
       };
 
-      const verificationSubtasks: string[] = await this.hre.run(
+      const verificationSubtasks: VerificationSubtask[] = await this.hre.run(
         TASK_VERIFY_GET_VERIFICATION_SUBTASKS
       );
 
       this.hre.config.sourcify = originalConfig;
 
-      assert.isTrue(verificationSubtasks.includes(TASK_VERIFY_SOURCIFY));
+      assert.isTrue(
+        verificationSubtasks.some(
+          ({ subtaskName }) => subtaskName === TASK_VERIFY_SOURCIFY
+        )
+      );
       assert.isFalse(
-        verificationSubtasks.includes(TASK_VERIFY_SOURCIFY_DISABLED_WARNING)
+        verificationSubtasks.some(
+          ({ subtaskName }) =>
+            subtaskName === TASK_VERIFY_SOURCIFY_DISABLED_WARNING
+        )
       );
     });
 
