@@ -166,10 +166,7 @@ subtask(
         label: "Sourcify",
         subtaskName: TASK_VERIFY_SOURCIFY,
       });
-    } else if (
-      userConfig.sourcify?.enabled === undefined ||
-      userConfig.sourcify?.enabled === false
-    ) {
+    } else if (userConfig.sourcify?.enabled === undefined) {
       verificationSubtasks.unshift({
         label: "Common",
         subtaskName: TASK_VERIFY_SOURCIFY_DISABLED_WARNING,
