@@ -4,90 +4,26 @@
 
 Most of this documentation assumes that you are using [ethers](https://docs.ethers.org/v6/) as your connection library, but you can also use Hardhat with [Viem](https://viem.sh/docs/introduction.html), a more lightweight and type-safe alternative. This guide explains how to setup a project that uses [the Viem-based Toolbox](/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox-viem) instead of the main one.
 
-## Installation
+## Quick start
 
-To kickstart a Hardhat project with Typescript and Viem, you can follow these steps:
+To create a new Hardhat project with Viem, initialize a project as [you normally do](/hardhat-runner/docs/guides/project-setup), but select the _“Create a TypeScript project (with Viem)”_ option.
 
-1. Initialize a new npm project in an empty directory:
-
-   ::::tabsgroup{options="npm 7+,npm 6,yarn"}
-
-   :::tab{value="npm 7+"}
-
-   ```
-   npm init -y
-   ```
-
-   :::
-
-   :::tab{value="npm 6"}
-
-   ```
-   npm init -y
-   ```
-
-   :::
-
-   :::tab{value="yarn"}
-
-   ```
-   yarn init -y
-   ```
-
-   :::
-
-   ::::
-
-2. Install `hardhat`:
-
-   ::::tabsgroup{options="npm 7+,npm 6,yarn"}
-
-   :::tab{value="npm 7+"}
-
-   ```
-   npm i hardhat
-   ```
-
-   :::
-
-   :::tab{value="npm 6"}
-
-   ```
-   npm i hardhat
-   ```
-
-   :::
-
-   :::tab{value="yarn"}
-
-   ```
-   yarn add hardhat
-   ```
-
-   :::
-
-   ::::
-
-3. Run `npx hardhat init` and select the _Create a TypeScript project (with Viem)_ option.
-
-   **Note:** you might want to pin Viem-related dependencies because Viem does not strictly follow semantic versioning for type changes. You can read more [here](#managing-types-and-version-stability).
-
-## Quick Start
+You can also try `hardhat-viem` in an existing project, even if it uses `hardhat-ethers`, since both plugins are compatible. To do this, just install the `@nomicfoundation/hardhat-viem` package and add it to your config.
 
 ### Clients
 
-Viem provides a set of interfaces to interact with the blockchain. The `hardhat-viem` plugin wraps these interfaces and pre-configures them based on your Hardhat project settings, offering a more Hardhat-friendly experience.
+Viem provides a set of interfaces to interact with the blockchain. `hardhat-viem` wraps and auto-configures these based on your Hardhat project settings for a seamless experience.
 
-These interfaces are called **clients**, and each one is tailored to a specific type of interaction:
+These **clients** are tailored for specific interactions:
 
-- The **Public Client** is an interface to the "public” JSON-RPC API methods used to retrieve information from a node.
-- The **Wallet Client** is an interface to interact with Ethereum Accounts used to retrieve accounts, execute transactions, sign messages, etc.
-- The **Test Client** is an interface to the "test" JSON-RPC API methods used to perform actions that are only possible when connecting to a development node.
+- **Public Client** fetches node information from the “public” JSON-RPC API.
+- **Wallet Client** interacts with Ethereum Accounts for tasks like transactions and message signing.
+- **Test Client** performs actions that are only available in development nodes.
 
-To start using the client interfaces, you need to import the Hardhat Runtime Environment. You can then access them through the `viem` property of the `hre` object. In the following example, we will demonstrate how to use the public and wallet clients to log the balance of an account and then send a transaction. Follow these steps:
+You can access clients via `hre.viem`. Read our documentation to learn more about the [HRE](/hardhat-runner/docs/advanced/hardhat-runtime-environment). Find below an example of how to use the public and wallet clients:
 
 1. Create a `scripts/clients.ts` inside your project directory.
-2. Copy and paste the following code snippet into your `scripts/clients.ts` file:
+2. Add this code to `scripts/clients.ts`:
 
    ```tsx
    import { parseEther, formatEther } from "viem";
@@ -98,13 +34,13 @@ To start using the client interfaces, you need to import the Hardhat Runtime Env
        await hre.viem.getWalletClients();
 
      const publicClient = await hre.viem.getPublicClient();
-     const balanceBefore = await publicClient.getBalance({
+     const bobBalance = await publicClient.getBalance({
        address: bobWalletClient.account.address,
      });
 
      console.log(
        `Balance of ${bobWalletClient.account.address}: ${formatEther(
-         balanceBefore
+         bobBalance
        )} ETH`
      );
 
@@ -112,47 +48,28 @@ To start using the client interfaces, you need to import the Hardhat Runtime Env
        to: aliceWalletClient.account.address,
        value: parseEther("1"),
      });
-
-     const tx = await publicClient.waitForTransactionReceipt({ hash });
-
-     console.log(
-       `Transaction from ${tx.from} to ${tx.to} mined in block ${tx.blockNumber}`
-     );
-
-     const balanceAfter = await publicClient.getBalance({
-       address: bobWalletClient.account.address,
-     });
-
-     console.log(
-       `Balance of ${bobWalletClient.account.address}: ${formatEther(
-         balanceAfter
-       )} ETH`
-     );
+     await publicClient.waitForTransactionReceipt({ hash });
    }
 
    main()
-     .then(() => {
-       process.exit();
-     })
+     .then(() => process.exit())
      .catch((error) => {
        console.error(error);
        process.exit(1);
      });
    ```
 
-3. Open your terminal and run `npx hardhat run scripts/clients.ts` to execute the script.
-
-   This will run the code and display the results in your terminal.
+3. Run `npx hardhat run scripts/clients.ts`.
 
 For more detailed documentation on clients, you can visit the [hardhat-viem plugin site](/hardhat-runner/plugins/nomicfoundation-hardhat-viem#clients) and [Viem's official site](https://viem.sh/docs/clients/intro.html).
 
 ### Contracts
 
-In addition to the client interfaces, Viem provides functionality for interacting with contracts. The `hardhat-viem` plugin once again provides wrappers for the most useful methods. Additionally, it offers **type generation** for all your contracts, enhancing type checking and suggestions within your IDE!
+Viem also provides functionality for interacting with contracts, and `hardhat-viem` provides wrappers for the most useful methods. Plus, it generates types for your contracts, enhancing type-checking and IDE suggestions.
 
-To access contract methods, import the Hardhat Runtime Environment and use the `viem` property of the `hre` object, similar to how you access clients. In the following example, we'll obtain an instance of an existing contract to call one of its methods, and then use the retrieved value to deploy a different contract. Follow these steps:
+Use the `hre.viem` object to get these helpers, similar to how clients are used. The next example shows how to get a contract instance and call one of its methods:
 
-1. Create a Solidity contract named `MyToken.sol` inside your project's `contract` directory and paste the following snippet:
+1. Create a `MyToken.sol` file inside your project’s `contracts` directory:
 
    ```solidity
    // SPDX-License-Identifier: MIT
@@ -176,8 +93,8 @@ To access contract methods, import the Hardhat Runtime Environment and use the `
    }
    ```
 
-2. Compile your Solidity contract by running `npx hardhat compile`. This will generate the types for your contract inside the `artifacts` folder of your project.
-3. Create a `contracts.ts` inside your project's `scripts` directory with the following content:
+2. Run `npx hardhat compile` to compile your contracts and produce types in the `artifacts` directory.
+3. Create a `contracts.ts` inside the `scripts` directory:
 
    ```tsx
    import hre from "hardhat";
@@ -205,35 +122,13 @@ To access contract methods, import the Hardhat Runtime Environment and use the `
      });
    ```
 
-4. Open your terminal and run `npx hardhat run scripts/contracts.ts` to execute the script.
-
-   This will deploy the `MyToken` contract, use the `increaseSupply()` function to increase the initial supply, and display the result in your terminal.
-
-#### Contract Type Generation
-
-The proper types for each contract are generated during compilation. These types are used to overload the `hardhat-viem` types and improve type checking and suggestions. For example, if you copy and paste the following code at the end of the `main()` function of `scripts/contracts.ts`, TypeScript would highlight it as an error:
-
-```tsx
-// The amount is required as a parameter
-// TS Error: Expected 1-2 arguments, but got 0.
-await myToken.write.increaseSupply();
-
-// There is no setSupply function in the MyToken contract
-// TS Error: Property 'setSupply' does not exist on type...
-const tokenPrice = await myToken.write.setSupply([5000000n]);
-
-// The first argument of the constructor arguments is expected to be an bigint
-// TS Error: No overload matches this call.
-const myToken2 = await hre.viem.deployContract("MyToken", ["1000000"]);
-```
-
-If you want to learn more about working with contracts, you can visit the [`hardhat-viem` plugin site](/hardhat-runner/plugins/nomicfoundation-hardhat-viem#contracts) and [Viem's official site](https://viem.sh/docs/contract/getContract.html).
+4. Open your terminal and run `npx hardhat run scripts/contracts.ts`. This will deploy the `MyToken` contract, call the `increaseSupply()` function, and display the new supply in your terminal.
 
 ### Testing
 
-In this example, we'll demonstrate how to write tests for the `MyToken` contract defined earlier. These tests cover scenarios like increasing supply and ensuring that certain operations revert as expected.
+In this example, we’ll test the `MyToken` contract, covering scenarios like supply increase and expected operation reverts.
 
-1. Create a `test/my-token.ts` file inside your project's directory an copy the following code snippet:
+1. Create a `test/my-token.ts` file:
 
    ```tsx
    import hre from "hardhat";
@@ -277,7 +172,7 @@ In this example, we'll demonstrate how to write tests for the `MyToken` contract
    });
    ```
 
-2. Open your terminal and run `npx hardhat test` to run your tests.
+2. Open your terminal and run `npx hardhat test` to run these tests.
 
 ### Managing Types and Version Stability
 
