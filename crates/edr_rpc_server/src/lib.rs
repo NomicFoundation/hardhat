@@ -63,12 +63,9 @@ pub enum MethodInvocation {
 }
 
 struct AppData {
-    chain_id: u64,
     filters: RwLock<HashMap<U256, Filter>>,
     impersonated_accounts: RwLock<HashSet<Address>>,
     last_filter_id: RwLock<U256>,
-    local_accounts: HashMap<Address, k256::SecretKey>,
-    network_id: u64,
     node: Node,
 }
 
@@ -82,7 +79,7 @@ pub struct Server {
 }
 
 #[derive(thiserror::Error, Debug)]
-pub enum Error {
+pub enum ServerError {
     #[error("failed to construct Address from string {address}: {reason}")]
     AddressParse { address: String, reason: String },
 
@@ -258,8 +255,9 @@ async fn get_account_info<T>(
 
 async fn handle_accounts(state: Arc<AppData>) -> ResponseData<Vec<Address>> {
     event!(Level::INFO, "eth_accounts()");
+
     ResponseData::Success {
-        result: state.local_accounts.keys().copied().collect(),
+        result: state.node.accounts().await,
     }
 }
 
@@ -271,17 +269,19 @@ async fn handle_block_number(app_data: Arc<AppData>) -> ResponseData<U256> {
     }
 }
 
-fn handle_chain_id(state: Arc<AppData>) -> ResponseData<U64> {
+async fn handle_chain_id(state: Arc<AppData>) -> ResponseData<U64> {
     event!(Level::INFO, "eth_chainId()");
+
     ResponseData::Success {
-        result: U64::from(state.chain_id),
+        result: state.node.chain_id().await,
     }
 }
 
 async fn handle_coinbase(state: Arc<AppData>) -> ResponseData<Address> {
     event!(Level::INFO, "eth_coinbase()");
+
     ResponseData::Success {
-        result: state.node.lock_data().await.beneficiary,
+        result: state.node.coinbase().await,
     }
 }
 
@@ -384,27 +384,13 @@ async fn handle_get_balance(
 async fn handle_get_code(
     app_data: Arc<AppData>,
     address: Address,
-    block: Option<BlockSpec>,
+    block_spec: Option<BlockSpec>,
 ) -> ResponseData<ZeroXPrefixedBytes> {
-    event!(Level::INFO, "eth_getCode({address:?}, {block:?})");
-    let mut node_data = app_data.node.lock_data().await;
-    match set_block_context(&mut node_data, block).await {
-        Ok(previous_state) => {
-            let account_info = get_account_info(&node_data, address).await;
+    event!(Level::INFO, "eth_getCode({address:?}, {block_spec:?})");
 
-            node_data.state = previous_state;
-
-            match account_info {
-                Ok(account_info) => match node_data.state.code_by_hash(account_info.code_hash) {
-                    Ok(code) => ResponseData::Success {
-                        result: ZeroXPrefixedBytes::from(code.bytecode),
-                    },
-                    Err(e) => error_response_data(0, &format!("failed to retrieve code: {e}")),
-                },
-                Err(e) => e,
-            }
-        }
-        Err(e) => e,
+    match app_data.node.get_code(address, block_spec).await {
+        Ok(code) => ResponseData::Success { result: code },
+        Err(e) => error_response_data(0, &format!("failed to retrieve code: {e}")),
     }
 }
 
@@ -586,8 +572,9 @@ async fn get_next_filter_id(state: Arc<AppData>) -> U256 {
 
 async fn handle_net_version(state: Arc<AppData>) -> ResponseData<String> {
     event!(Level::INFO, "net_version()");
+
     ResponseData::Success {
-        result: state.network_id.to_string(),
+        result: state.node.network_id().await,
     }
 }
 
@@ -683,18 +670,21 @@ fn handle_net_peer_count() -> ResponseData<U64> {
     }
 }
 
-fn handle_sign(
+async fn handle_sign(
     state: Arc<AppData>,
     address: &Address,
     message: &ZeroXPrefixedBytes,
 ) -> ResponseData<Signature> {
     event!(Level::INFO, "eth_sign({address:?}, {message:?})");
-    match state.local_accounts.get(address) {
-        Some(secret_key) => match Signature::new(&Bytes::from(message.clone())[..], secret_key) {
-            Ok(signature) => ResponseData::Success { result: signature },
-            Err(error) => ResponseData::new_error(-32000, &error.to_string(), None),
+
+    match state.node.sign(address, message).await {
+        Ok(signature) => ResponseData::Success { result: signature },
+        Err(error) => match error {
+            NodeError::UnknownAddress { .. } => {
+                ResponseData::new_error(0, &error.to_string(), None)
+            }
+            _ => ResponseData::new_error(-32000, &error.to_string(), None),
         },
-        None => ResponseData::new_error(0, "{address} is not an account owned by this node", None),
     }
 }
 
@@ -796,7 +786,7 @@ async fn handle_request(
                     response(id, handle_block_number(state).await)
                 }
                 MethodInvocation::Eth(EthMethodInvocation::ChainId()) => {
-                    response(id, handle_chain_id(state))
+                    response(id, handle_chain_id(state).await)
                 }
                 MethodInvocation::Eth(EthMethodInvocation::Coinbase()) => {
                     response(id, handle_coinbase(state).await)
@@ -852,7 +842,7 @@ async fn handle_request(
                     response(id, handle_new_pending_transaction_filter(state).await)
                 }
                 MethodInvocation::Eth(EthMethodInvocation::Sign(address, message)) => {
-                    response(id, handle_sign(state, address, message))
+                    response(id, handle_sign(state, address, message).await)
                 }
                 MethodInvocation::Eth(EthMethodInvocation::Web3ClientVersion()) => {
                     response(id, handle_web3_client_version())
@@ -973,167 +963,199 @@ async fn router(state: Arc<AppData>) -> Router {
         .with_state(state)
 }
 
-impl Server {
-    /// accepts a configuration and a set of initial accounts to initialize the state.
-    pub async fn new(config: Config) -> Result<Self, Error> {
-        let listener = TcpListener::bind(config.address).map_err(Error::Listen)?;
-        event!(Level::INFO, "Listening on {}", config.address);
+pub(crate) struct InitialAccounts {
+    pub(crate) local_accounts: HashMap<Address, k256::SecretKey>,
+    pub(crate) genesis_accounts: HashMap<Address, AccountInfo>,
+}
 
-        let (local_accounts, genesis_accounts): (
-            HashMap<Address, k256::SecretKey>,
-            HashMap<Address, AccountInfo>,
-        ) = {
-            config
-                .accounts
-                .iter()
-                .enumerate()
-                .map(|(i, account_config)| {
-                    let AccountConfig {
-                        secret_key,
-                        balance,
-                    } = account_config;
-                    let address = public_key_to_address(secret_key.public_key());
-                    event!(Level::INFO, "Account #{}: {address:?}", i + 1);
-                    event!(
-                        Level::INFO,
-                        "Secret Key: 0x{}",
-                        hex::encode(secret_key.to_bytes())
-                    );
-                    let local_account = (address, secret_key.clone());
-                    let genesis_account = (
-                        address,
-                        AccountInfo {
-                            balance: *balance,
-                            nonce: 0,
-                            code: None,
-                            code_hash: KECCAK_EMPTY,
-                        },
-                    );
-                    (local_account, genesis_account)
-                })
-                .unzip()
-        };
-
-        let chain_id = config.chain_id;
-        let spec_id = config.hardfork;
-        let cache_dir = config.cache_dir;
-        let prevrandao_generator = RandomHashGenerator::with_seed("randomMixHashSeed");
-
-        #[allow(clippy::type_complexity)]
-        let (state, blockchain, fork_block_number): (
-            Box<dyn SyncState<StateError>>,
-            Box<dyn SyncBlockchain<BlockchainError, StateError>>,
-            _,
-        ) = if let Some(config) = config.rpc_hardhat_network_config.forking {
-            let runtime = Arc::new(
-                tokio::runtime::Builder::new_multi_thread()
-                    .enable_io()
-                    .enable_time()
-                    .build()
-                    .expect("failed to construct async runtime"),
+pub(crate) fn create_accounts(config: &Config) -> InitialAccounts {
+    let (local_accounts, genesis_accounts) = config
+        .accounts
+        .iter()
+        .enumerate()
+        .map(|(i, account_config)| {
+            let AccountConfig {
+                secret_key,
+                balance,
+            } = account_config;
+            let address = public_key_to_address(secret_key.public_key());
+            event!(Level::INFO, "Account #{}: {address:?}", i + 1);
+            event!(
+                Level::INFO,
+                "Secret Key: 0x{}",
+                hex::encode(secret_key.to_bytes())
+            );
+            let local_account = (address, secret_key.clone());
+            let genesis_account = (
+                address,
+                AccountInfo {
+                    balance: *balance,
+                    nonce: 0,
+                    code: None,
+                    code_hash: KECCAK_EMPTY,
+                },
             );
 
-            let state_root_generator = Arc::new(parking_lot::Mutex::new(
-                RandomHashGenerator::with_seed("seed"),
-            ));
+            (local_account, genesis_account)
+        })
+        .unzip();
 
-            let rpc_client = RpcClient::new(&config.json_rpc_url, cache_dir);
+    InitialAccounts {
+        local_accounts,
+        genesis_accounts,
+    }
+}
 
-            let blockchain = ForkedBlockchain::new(
-                runtime.handle().clone(),
-                spec_id,
-                rpc_client,
-                config.block_number.map(U256::from),
-                state_root_generator,
-                genesis_accounts,
-                // TODO: make hardfork activations configurable (https://github.com/NomicFoundation/edr/issues/111)
-                HashMap::new(),
-            )
-            .await?;
+pub(crate) struct BlockchainAndState {
+    pub(crate) blockchain: Box<dyn SyncBlockchain<BlockchainError, StateError>>,
+    pub(crate) state: Box<dyn SyncState<StateError>>,
+    pub(crate) fork_block_number: Option<U256>,
+}
 
-            let fork_block_number = blockchain.last_block_number().await;
+pub(crate) async fn create_blockchain_and_state(
+    config: &Config,
+    genesis_accounts: HashMap<Address, AccountInfo>,
+) -> Result<BlockchainAndState, ServerError> {
+    if let Some(fork_config) = &config.rpc_hardhat_network_config.forking {
+        let runtime = Arc::new(
+            tokio::runtime::Builder::new_multi_thread()
+                .enable_io()
+                .enable_time()
+                .build()
+                .expect("failed to construct async runtime"),
+        );
 
-            let state = blockchain
-                .state_at_block_number(&fork_block_number)
-                .await
-                .expect("Fork state must exist");
+        let state_root_generator = Arc::new(parking_lot::Mutex::new(
+            RandomHashGenerator::with_seed("seed"),
+        ));
 
-            (
-                Box::new(state),
-                Box::new(blockchain),
-                Some(fork_block_number),
-            )
-        } else {
-            let state = TrieState::with_accounts(AccountTrie::with_accounts(&genesis_accounts));
+        let rpc_client = RpcClient::new(&fork_config.json_rpc_url, config.cache_dir.clone());
 
-            let blockchain = LocalBlockchain::new(
-                state,
-                U256::from(chain_id),
-                spec_id,
-                config.gas,
-                config.initial_date.map(|d| {
-                    U256::from(
-                        d.duration_since(UNIX_EPOCH)
-                            .expect("initial date must be after UNIX epoch")
-                            .as_secs(),
-                    )
-                }),
-                Some(RandomHashGenerator::with_seed("seed").next_value()),
-                config.initial_base_fee_per_gas,
-            )?;
+        let blockchain = ForkedBlockchain::new(
+            runtime.handle().clone(),
+            config.hardfork,
+            rpc_client,
+            fork_config.block_number.map(U256::from),
+            state_root_generator,
+            genesis_accounts,
+            // TODO: make hardfork activations configurable (https://github.com/NomicFoundation/edr/issues/111)
+            HashMap::new(),
+        )
+        .await?;
 
-            let state = blockchain
-                .state_at_block_number(&U256::ZERO)
-                .await
-                .expect("Genesis state must exist");
+        let fork_block_number = blockchain.last_block_number().await;
 
-            let fork_block_number = None;
-            (state, Box::new(blockchain), fork_block_number)
-        };
+        let state = blockchain
+            .state_at_block_number(&fork_block_number)
+            .await
+            .expect("Fork state must exist");
 
-        let block_time_offset_seconds = if let Some(initial_date) = config.initial_date {
-            U256::from(
-                SystemTime::now()
-                    .duration_since(initial_date)
-                    .map_err(|_e| Error::InitialDateInFuture(initial_date))?
-                    .as_secs(),
-            )
-        } else {
-            U256::ZERO
-        };
+        Ok(BlockchainAndState {
+            state: Box::new(state),
+            blockchain: Box::new(blockchain),
+            fork_block_number: Some(fork_block_number),
+        })
+    } else {
+        let state = TrieState::with_accounts(AccountTrie::with_accounts(&genesis_accounts));
 
-        let mut evm_config = CfgEnv::default();
-        evm_config.chain_id = config.chain_id;
-        evm_config.spec_id = config.hardfork;
-        evm_config.limit_contract_code_size = if config.allow_unlimited_contract_size {
-            Some(usize::MAX)
-        } else {
-            None
-        };
+        let blockchain = LocalBlockchain::new(
+            state,
+            U256::from(config.chain_id),
+            config.hardfork,
+            config.gas,
+            config.initial_date.map(|d| {
+                U256::from(
+                    d.duration_since(UNIX_EPOCH)
+                        .expect("initial date must be after UNIX epoch")
+                        .as_secs(),
+                )
+            }),
+            Some(RandomHashGenerator::with_seed("seed").next_value()),
+            config.initial_base_fee_per_gas,
+        )?;
+
+        let state = blockchain
+            .state_at_block_number(&U256::ZERO)
+            .await
+            .expect("Genesis state must exist");
+
+        Ok(BlockchainAndState {
+            state,
+            blockchain: Box::new(blockchain),
+            fork_block_number: None,
+        })
+    }
+}
+
+pub(crate) fn block_time_offset_seconds(config: &Config) -> Result<U256, ServerError> {
+    let block_time_offset_seconds = if let Some(initial_date) = config.initial_date {
+        U256::from(
+            SystemTime::now()
+                .duration_since(initial_date)
+                .map_err(|_e| ServerError::InitialDateInFuture(initial_date))?
+                .as_secs(),
+        )
+    } else {
+        U256::ZERO
+    };
+    Ok(block_time_offset_seconds)
+}
+
+pub(crate) fn create_evm_config(config: &Config) -> CfgEnv {
+    let mut evm_config = CfgEnv::default();
+    evm_config.chain_id = config.chain_id;
+    evm_config.spec_id = config.hardfork;
+    evm_config.limit_contract_code_size = if config.allow_unlimited_contract_size {
+        Some(usize::MAX)
+    } else {
+        None
+    };
+    evm_config
+}
+
+impl Server {
+    /// accepts a configuration and a set of initial accounts to initialize the state.
+    pub async fn new(config: Config) -> Result<Self, ServerError> {
+        let listener = TcpListener::bind(config.address).map_err(ServerError::Listen)?;
+        event!(Level::INFO, "Listening on {}", config.address);
+
+        let InitialAccounts {
+            local_accounts,
+            genesis_accounts,
+        } = create_accounts(&config);
+
+        let BlockchainAndState {
+            state,
+            blockchain,
+            fork_block_number,
+        } = create_blockchain_and_state(&config, genesis_accounts).await?;
+
+        let evm_config = create_evm_config(&config);
+
+        let prevrandao_generator = RandomHashGenerator::with_seed("randomMixHashSeed");
 
         let node_data = NodeData {
             blockchain,
             state,
             irregular_state: IrregularState::default(),
             mem_pool: MemPool::new(config.block_gas_limit),
+            network_id: config.network_id,
             evm_config,
             beneficiary: config.coinbase,
             // TODO: Add config option (https://github.com/NomicFoundation/edr/issues/111)
             min_gas_price: U256::MAX,
             prevrandao_generator,
-            block_time_offset_seconds,
+            block_time_offset_seconds: block_time_offset_seconds(&config)?,
             next_block_timestamp: None,
             allow_blocks_with_same_timestamp: config.allow_blocks_with_same_timestamp,
             fork_block_number,
+            local_accounts,
         };
 
         let app_data = Arc::new(AppData {
-            chain_id,
             filters: RwLock::new(HashMap::default()),
             impersonated_accounts: RwLock::new(HashSet::new()),
             last_filter_id: RwLock::new(U256::ZERO),
-            local_accounts,
-            network_id: config.network_id,
             node: Node::new(node_data),
         });
 
@@ -1144,18 +1166,18 @@ impl Server {
         })
     }
 
-    pub async fn serve(self) -> Result<(), Error> {
-        self.inner.await.map_err(Error::Serve)
+    pub async fn serve(self) -> Result<(), ServerError> {
+        self.inner.await.map_err(ServerError::Serve)
     }
 
-    pub async fn serve_with_shutdown_signal<Signal>(self, signal: Signal) -> Result<(), Error>
+    pub async fn serve_with_shutdown_signal<Signal>(self, signal: Signal) -> Result<(), ServerError>
     where
         Signal: std::future::Future<Output = ()>,
     {
         self.inner
             .with_graceful_shutdown(signal)
             .await
-            .map_err(Error::Serve)
+            .map_err(ServerError::Serve)
     }
 
     pub fn local_addr(&self) -> SocketAddr {

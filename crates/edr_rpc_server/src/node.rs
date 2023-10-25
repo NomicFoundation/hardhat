@@ -2,20 +2,21 @@ use std::mem;
 use std::sync::Arc;
 use std::time::{SystemTime, SystemTimeError, UNIX_EPOCH};
 
-use edr_eth::Bytes;
 use edr_eth::{
     remote::{BlockSpec, BlockTag, Eip1898BlockSpec},
     Address, SpecId, B256, U256,
 };
+use edr_eth::{Bytes, U64};
 use edr_evm::{
     blockchain::{BlockchainError, SyncBlockchain},
     mine_block,
     state::{AccountModifierFn, IrregularState, StateError, SyncState},
-    AccountInfo, CfgEnv, MemPool, MineBlockError, MineBlockResult, RandomHashGenerator,
+    AccountInfo, CfgEnv, HashMap, MemPool, MineBlockError, MineBlockResult, RandomHashGenerator,
     KECCAK_EMPTY,
 };
 use edr_evm::{Block, Bytecode, MineOrdering, SyncBlock};
 
+use edr_eth::{serde::ZeroXPrefixedBytes, signature::Signature};
 use tokio::sync::Mutex;
 
 pub(super) struct Node {
@@ -29,7 +30,9 @@ impl Node {
         }
     }
 
-    pub async fn lock_data(&self) -> tokio::sync::MutexGuard<'_, NodeData> {
+    // TODO make this private once all methods are ported
+    // https://github.com/NomicFoundation/edr/issues/141
+    pub(crate) async fn lock_data(&self) -> tokio::sync::MutexGuard<'_, NodeData> {
         self.data.lock().await
     }
 
@@ -71,18 +74,64 @@ impl Node {
         Ok(result)
     }
 
+    pub async fn accounts(&self) -> Vec<Address> {
+        let node_data = self.lock_data().await;
+        node_data.local_accounts.keys().copied().collect()
+    }
+
     pub async fn balance(
         &self,
         address: Address,
         block_spec: Option<BlockSpec>,
     ) -> Result<U256, NodeError> {
-        self.execute_in_block_context::<Result<U256, NodeError>>(block_spec, move |node| {
-            Ok(node
+        self.execute_in_block_context::<Result<U256, NodeError>>(block_spec, move |node_data| {
+            Ok(node_data
                 .state
                 .basic(address)?
                 .map_or(U256::ZERO, |account| account.balance))
         })
         .await?
+    }
+
+    pub async fn chain_id(&self) -> U64 {
+        let node_data = self.lock_data().await;
+        U64::from(node_data.evm_config.chain_id)
+    }
+
+    pub async fn coinbase(&self) -> Address {
+        let node_data = self.lock_data().await;
+        node_data.beneficiary
+    }
+
+    pub async fn get_code(
+        &self,
+        address: Address,
+        block_spec: Option<BlockSpec>,
+    ) -> Result<ZeroXPrefixedBytes, NodeError> {
+        self.execute_in_block_context::<Result<ZeroXPrefixedBytes, NodeError>>(
+            block_spec,
+            move |node_data| {
+                let account_info = node_data.get_account_info(address)?;
+                let bytecode = account_info
+                    .code
+                    .map_or_else::<Result<Bytes, NodeError>, _, _>(
+                        || {
+                            Ok(node_data
+                                .state
+                                .code_by_hash(account_info.code_hash)?
+                                .bytecode)
+                        },
+                        |code| Ok(code.bytecode),
+                    )?;
+                Ok(ZeroXPrefixedBytes::from(bytecode))
+            },
+        )
+        .await?
+    }
+
+    pub async fn network_id(&self) -> String {
+        let node_data = self.lock_data().await;
+        node_data.network_id.to_string()
     }
 
     pub async fn set_balance(&self, address: Address, balance: U256) -> Result<(), NodeError> {
@@ -177,6 +226,21 @@ impl Node {
 
         Ok(())
     }
+
+    pub async fn sign(
+        &self,
+        address: &Address,
+        message: &ZeroXPrefixedBytes,
+    ) -> Result<Signature, NodeError> {
+        let node_data = self.lock_data().await;
+        match node_data.local_accounts.get(address) {
+            Some(secret_key) => Ok(Signature::new(
+                &Bytes::from(message.clone())[..],
+                secret_key,
+            )?),
+            None => Err(NodeError::UnknownAddress { address: *address }),
+        }
+    }
 }
 
 pub(super) struct NodeData {
@@ -184,6 +248,7 @@ pub(super) struct NodeData {
     pub state: Box<dyn SyncState<StateError>>,
     pub irregular_state: IrregularState<StateError, Box<dyn SyncState<StateError>>>,
     pub mem_pool: MemPool,
+    pub network_id: u64,
     pub evm_config: CfgEnv,
     pub beneficiary: Address,
     pub min_gas_price: U256,
@@ -192,6 +257,7 @@ pub(super) struct NodeData {
     pub next_block_timestamp: Option<U256>,
     pub allow_blocks_with_same_timestamp: bool,
     pub fork_block_number: Option<U256>,
+    pub local_accounts: HashMap<Address, k256::SecretKey>,
 }
 
 impl NodeData {
@@ -233,6 +299,18 @@ impl NodeData {
                     },
                 )
             }
+        }
+    }
+
+    fn get_account_info(&self, address: Address) -> Result<AccountInfo, NodeError> {
+        match self.state.basic(address)? {
+            Some(account_info) => Ok(account_info),
+            None => Ok(AccountInfo {
+                balance: U256::ZERO,
+                nonce: 0,
+                code: None,
+                code_hash: KECCAK_EMPTY,
+            }),
         }
     }
 
@@ -331,6 +409,9 @@ pub enum NodeError {
         "The given timestamp {proposed} is lower than the previous block's timestamp {previous}"
     )]
     TimestampLowerThanPrevious { proposed: U256, previous: U256 },
+    /// The address is not owned by this node.
+    #[error("{address} is not owned by this node")]
+    UnknownAddress { address: Address },
     /// Block hash doesn't exist in blockchain
     /// Returned if the block spec is an EIP-1898 block spec for a hash and it's not found
     /// <https://eips.ethereum.org/EIPS/eip-1898>
@@ -349,8 +430,126 @@ pub enum NodeError {
     MineBlock(#[from] MineBlockError<BlockchainError, StateError>),
 
     #[error(transparent)]
+    Signature(#[from] edr_eth::signature::SignatureError),
+
+    #[error(transparent)]
     State(#[from] StateError),
 
     #[error(transparent)]
     SystemTime(#[from] SystemTimeError),
+}
+
+#[cfg(test)]
+pub(crate) mod tests {
+    use std::{
+        net::{IpAddr, Ipv4Addr, SocketAddr},
+        path::PathBuf,
+        time::SystemTime,
+    };
+
+    use anyhow::Result;
+    use tempfile::TempDir;
+
+    use edr_eth::{signature::secret_key_from_str, Address, SpecId, U256, U64};
+
+    use crate::{
+        block_time_offset_seconds, create_accounts, create_blockchain_and_state, create_evm_config,
+        AccountConfig, BlockchainAndState, Config, InitialAccounts, RpcHardhatNetworkConfig,
+    };
+
+    use super::*;
+
+    pub(crate) const SECRET_KEY: &str =
+        "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+
+    pub(crate) struct NodeTestFixture {
+        // We need to keep the tempdir alive for the duration of the test
+        _cache_dir: TempDir,
+        config: Config,
+        node: Node,
+    }
+
+    impl NodeTestFixture {
+        pub(crate) async fn new() -> Result<Self> {
+            let cache_dir = TempDir::new().expect("should create temp dir");
+            let config = Self::test_config(cache_dir.path().to_path_buf());
+            let node = Self::test_node(&config).await?;
+
+            Ok(Self {
+                _cache_dir: cache_dir,
+                config,
+                node,
+            })
+        }
+
+        pub(crate) fn test_config(cache_dir: PathBuf) -> Config {
+            Config {
+                address: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0),
+                allow_blocks_with_same_timestamp: false,
+                allow_unlimited_contract_size: false,
+                rpc_hardhat_network_config: RpcHardhatNetworkConfig { forking: None },
+                accounts: vec![AccountConfig {
+                    secret_key: secret_key_from_str(SECRET_KEY)
+                        .expect("should construct secret key from string"),
+                    balance: U256::ZERO,
+                }],
+                block_gas_limit: U256::from(30_000_000),
+                chain_id: 1,
+                coinbase: Address::from_low_u64_ne(1),
+                gas: U256::from(30_000_000),
+                hardfork: SpecId::LATEST,
+                initial_base_fee_per_gas: Some(U256::from(1000000000)),
+                initial_date: Some(SystemTime::now()),
+                network_id: 123,
+                cache_dir,
+            }
+        }
+
+        async fn test_node(config: &Config) -> Result<Node> {
+            let InitialAccounts {
+                local_accounts,
+                genesis_accounts,
+            } = create_accounts(config);
+
+            let BlockchainAndState {
+                state,
+                blockchain,
+                fork_block_number,
+            } = create_blockchain_and_state(config, genesis_accounts).await?;
+
+            let evm_config = create_evm_config(config);
+
+            let prevrandao_generator = RandomHashGenerator::with_seed("randomMixHashSeed");
+
+            let node_data = NodeData {
+                blockchain,
+                state,
+                irregular_state: IrregularState::default(),
+                mem_pool: MemPool::new(config.block_gas_limit),
+                network_id: config.network_id,
+                evm_config,
+                beneficiary: config.coinbase,
+                // TODO: Add config option (https://github.com/NomicFoundation/edr/issues/111)
+                min_gas_price: U256::MAX,
+                prevrandao_generator,
+                block_time_offset_seconds: block_time_offset_seconds(config)?,
+                next_block_timestamp: None,
+                allow_blocks_with_same_timestamp: config.allow_blocks_with_same_timestamp,
+                fork_block_number,
+                local_accounts,
+            };
+
+            Ok(Node::new(node_data))
+        }
+    }
+
+    #[tokio::test]
+    async fn chain_id() -> Result<()> {
+        let fixture = NodeTestFixture::new().await?;
+
+        let chain_id = fixture.node.chain_id().await;
+        assert_eq!(chain_id, U64::from(fixture.config.chain_id));
+
+        Ok(())
+    }
 }
