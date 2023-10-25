@@ -4,7 +4,7 @@ import { assert, expect } from "chai";
 import * as os from "os";
 import { VarsManagerSetup } from "../../../../src/internal/core/vars/vars-manager-setup";
 
-describe("VarsManagerSetup", function () {
+describe("VarsManagerSetup", () => {
   const TMP_FILE_PATH = `${os.tmpdir()}/test-vars.json`;
   let varsManagerSetup: VarsManagerSetup;
 
@@ -25,81 +25,155 @@ describe("VarsManagerSetup", function () {
   });
 
   //
-  // getOptionalVarsKeys and getRequiredVarsKeys are tested when testing the functions has and get
+  // getRequiredVarsAlreadySet, getOptionalVarsAlreadySet, getRequiredVarsToSet and getOptionalVarsToSet are tested when testing the functions has and get
   //
 
-  describe("has", function () {
-    it("should not add keys to the optional or required vars if they are already present", function () {
+  describe("has", () => {
+    it("should have keys only in the _optionalVarsAlreadySet array", () => {
       varsManagerSetup.has("key1");
       varsManagerSetup.has("key2");
 
-      assert.deepEqual(varsManagerSetup.getOptionalVarsKeys(), []);
-      assert.deepEqual(varsManagerSetup.getRequiredVarsKeys(), []);
-    });
-
-    it("should not add a key to the optional keys if it is already present in the required keys", function () {
-      varsManagerSetup.get("nonExistingKey");
-      varsManagerSetup.has("nonExistingKey");
-
-      assert.deepEqual(varsManagerSetup.getRequiredVarsKeys(), [
-        "nonExistingKey",
-      ]);
-      assert.deepEqual(varsManagerSetup.getOptionalVarsKeys(), []);
-    });
-
-    it("should add a key to the optional keys if the key is not stored", function () {
-      varsManagerSetup.has("nonExistingKey");
-
-      assert.deepEqual(varsManagerSetup.getRequiredVarsKeys(), []);
-      assert.deepEqual(varsManagerSetup.getOptionalVarsKeys(), [
-        "nonExistingKey",
-      ]);
-    });
-  });
-
-  describe("get", function () {
-    it("should not add keys to the optional or required vars if they are already present", function () {
-      varsManagerSetup.get("key3");
-      varsManagerSetup.get("key4");
-
-      assert.deepEqual(varsManagerSetup.getOptionalVarsKeys(), []);
-      assert.deepEqual(varsManagerSetup.getRequiredVarsKeys(), []);
-    });
-
-    it("should add a key to the required keys if it is already present in the optional keys and remove it from the optional keys", function () {
-      varsManagerSetup.has("nonExistingKey");
-      assert.deepEqual(varsManagerSetup.getOptionalVarsKeys(), [
-        "nonExistingKey",
+      assert.deepEqual(varsManagerSetup.getRequiredVarsAlreadySet(), []);
+      assert.deepEqual(varsManagerSetup.getOptionalVarsAlreadySet(), [
+        "key1",
+        "key2",
       ]);
 
-      varsManagerSetup.get("nonExistingKey");
-
-      assert.deepEqual(varsManagerSetup.getRequiredVarsKeys(), [
-        "nonExistingKey",
-      ]);
-      assert.deepEqual(varsManagerSetup.getOptionalVarsKeys(), []);
+      assert.deepEqual(varsManagerSetup.getRequiredVarsToSet(), []);
+      assert.deepEqual(varsManagerSetup.getOptionalVarsToSet(), []);
     });
 
-    it("should add a key to the required keys if the key is not stored", function () {
-      varsManagerSetup.get("nonExistingKey");
+    it("should have keys only in the _optionalVarsToSet array", () => {
+      varsManagerSetup.has("nonExistingKey1");
+      varsManagerSetup.has("nonExistingKey2");
 
-      assert.deepEqual(varsManagerSetup.getRequiredVarsKeys(), [
-        "nonExistingKey",
-      ]);
-      assert.deepEqual(varsManagerSetup.getOptionalVarsKeys(), []);
-    });
+      assert.deepEqual(varsManagerSetup.getRequiredVarsAlreadySet(), []);
+      assert.deepEqual(varsManagerSetup.getOptionalVarsAlreadySet(), []);
 
-    it("should add a key to the optional keys if the default value is specified", function () {
-      varsManagerSetup.get("nonExistingKey", "defaultValue");
-
-      assert.deepEqual(varsManagerSetup.getRequiredVarsKeys(), []);
-      assert.deepEqual(varsManagerSetup.getOptionalVarsKeys(), [
-        "nonExistingKey",
+      assert.deepEqual(varsManagerSetup.getRequiredVarsToSet(), []);
+      assert.deepEqual(varsManagerSetup.getOptionalVarsToSet(), [
+        "nonExistingKey1",
+        "nonExistingKey2",
       ]);
     });
   });
 
-  describe("env variables are present", function () {
+  describe("get", () => {
+    it("should have keys only in the _requiredVarsAlreadySet array", () => {
+      varsManagerSetup.get("key1");
+      varsManagerSetup.get("key2");
+
+      assert.deepEqual(varsManagerSetup.getRequiredVarsAlreadySet(), [
+        "key1",
+        "key2",
+      ]);
+      assert.deepEqual(varsManagerSetup.getOptionalVarsAlreadySet(), []);
+
+      assert.deepEqual(varsManagerSetup.getRequiredVarsToSet(), []);
+      assert.deepEqual(varsManagerSetup.getOptionalVarsToSet(), []);
+    });
+
+    it("should have keys only in the _requiredVarsToSet array", () => {
+      varsManagerSetup.get("nonExistingKey1");
+      varsManagerSetup.get("nonExistingKey2");
+
+      assert.deepEqual(varsManagerSetup.getRequiredVarsAlreadySet(), []);
+      assert.deepEqual(varsManagerSetup.getOptionalVarsAlreadySet(), []);
+
+      assert.deepEqual(varsManagerSetup.getRequiredVarsToSet(), [
+        "nonExistingKey1",
+        "nonExistingKey2",
+      ]);
+      assert.deepEqual(varsManagerSetup.getOptionalVarsToSet(), []);
+    });
+
+    describe("default values is passed", () => {
+      it("should have the key in the _requiredVarsAlreadySet array", () => {
+        varsManagerSetup.get("key1", "defaultValue");
+
+        assert.deepEqual(varsManagerSetup.getRequiredVarsAlreadySet(), [
+          "key1",
+        ]);
+        assert.deepEqual(varsManagerSetup.getOptionalVarsAlreadySet(), []);
+
+        assert.deepEqual(varsManagerSetup.getRequiredVarsToSet(), []);
+        assert.deepEqual(varsManagerSetup.getOptionalVarsToSet(), []);
+      });
+
+      it("should have keys in the _optionalVarsToSet array", () => {
+        varsManagerSetup.get("nonExistingKey", "defaultValue");
+
+        assert.deepEqual(varsManagerSetup.getRequiredVarsAlreadySet(), []);
+        assert.deepEqual(varsManagerSetup.getOptionalVarsAlreadySet(), []);
+
+        assert.deepEqual(varsManagerSetup.getRequiredVarsToSet(), []);
+        assert.deepEqual(varsManagerSetup.getOptionalVarsToSet(), [
+          "nonExistingKey",
+        ]);
+      });
+    });
+  });
+
+  describe("has and get order priority", () => {
+    it("should have keys only in the _requiredVarsAlreadySet array", () => {
+      varsManagerSetup.has("key1");
+      varsManagerSetup.get("key1");
+
+      varsManagerSetup.get("key2");
+      varsManagerSetup.has("key2");
+
+      assert.deepEqual(varsManagerSetup.getRequiredVarsAlreadySet(), [
+        "key1",
+        "key2",
+      ]);
+      assert.deepEqual(varsManagerSetup.getOptionalVarsAlreadySet(), []);
+
+      assert.deepEqual(varsManagerSetup.getRequiredVarsToSet(), []);
+      assert.deepEqual(varsManagerSetup.getOptionalVarsToSet(), []);
+    });
+
+    it("should have keys only in the _requiredVarsToSet array", () => {
+      varsManagerSetup.has("nonExistingKey1");
+      varsManagerSetup.get("nonExistingKey1");
+
+      varsManagerSetup.get("nonExistingKey2");
+      varsManagerSetup.has("nonExistingKey2");
+
+      assert.deepEqual(varsManagerSetup.getRequiredVarsAlreadySet(), []);
+      assert.deepEqual(varsManagerSetup.getOptionalVarsAlreadySet(), []);
+
+      assert.deepEqual(varsManagerSetup.getRequiredVarsToSet(), [
+        "nonExistingKey1",
+        "nonExistingKey2",
+      ]);
+      assert.deepEqual(varsManagerSetup.getOptionalVarsToSet(), []);
+    });
+
+    describe("default value", () => {
+      it("should have keys in the _requiredVarsToSet", () => {
+        // The second get should overwrite the first optional one (optional because of the default value)
+        varsManagerSetup.get("nonExistingKey", "defaultValue");
+
+        assert.deepEqual(varsManagerSetup.getRequiredVarsToSet(), []);
+        assert.deepEqual(varsManagerSetup.getOptionalVarsToSet(), [
+          "nonExistingKey",
+        ]);
+
+        // Overwrite the first get
+        varsManagerSetup.get("nonExistingKey");
+
+        assert.deepEqual(varsManagerSetup.getRequiredVarsAlreadySet(), []);
+        assert.deepEqual(varsManagerSetup.getOptionalVarsAlreadySet(), []);
+
+        assert.deepEqual(varsManagerSetup.getRequiredVarsToSet(), [
+          "nonExistingKey",
+        ]);
+        assert.deepEqual(varsManagerSetup.getOptionalVarsToSet(), []);
+      });
+    });
+  });
+
+  describe("env variables are present", () => {
     const ENV_VAR_PREFIX = "HARDHAT_VAR_";
     const KEY = "key_env_1";
 
@@ -111,7 +185,7 @@ describe("VarsManagerSetup", function () {
       delete process.env[`${ENV_VAR_PREFIX}${KEY}`];
     });
 
-    describe("hasWithEnvVars has the same behavior as has", function () {
+    describe("hasWithEnvVars has the same behavior as has", () => {
       it("should return the same value", () => {
         expect(varsManagerSetup.hasWithEnvVars(KEY)).to.equal(
           varsManagerSetup.has(KEY)
@@ -119,7 +193,7 @@ describe("VarsManagerSetup", function () {
       });
     });
 
-    describe("getWithEnvVars has the same behavior as has", function () {
+    describe("getWithEnvVars has the same behavior as has", () => {
       it("should return the same value", () => {
         expect(varsManagerSetup.getWithEnvVars(KEY)).to.equal(
           varsManagerSetup.get(KEY)
