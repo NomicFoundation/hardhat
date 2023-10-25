@@ -43,7 +43,9 @@ export class Sourcify {
         throw new Error(`Unexpected response body: ${JSON.stringify(json)}`);
       }
 
-      const contract = json.find((match) => match.address === address);
+      const contract = json.find(
+        (match) => match.address.toLowerCase() === address.toLowerCase()
+      );
       if (contract === undefined) {
         return false;
       }
