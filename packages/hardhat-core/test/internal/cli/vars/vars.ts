@@ -11,7 +11,7 @@ import { resetHardhatContext } from "../../../../src/internal/reset";
 import * as globalDir from "../../../../src/internal/util/global-dir";
 import { useFixtureProject } from "../../../helpers/project";
 
-describe("vars", function () {
+describe("vars", () => {
   describe("handleVars", () => {
     const TMP_FILE_PATH = `${os.tmpdir()}/test-vars.json`;
     let ctx: HardhatContext;
@@ -20,7 +20,7 @@ describe("vars", function () {
     let spyConsoleWarn: any;
     let stubGetVarsFilePath: any;
 
-    before(function () {
+    before(() => {
       // Stub functions
       sandbox = sinon.createSandbox();
 
@@ -31,18 +31,18 @@ describe("vars", function () {
       stubGetVarsFilePath.returns(TMP_FILE_PATH);
     });
 
-    after(function () {
+    after(() => {
       spyConsoleLog.restore();
       spyConsoleWarn.restore();
       stubGetVarsFilePath.restore();
     });
 
-    afterEach(function () {
+    afterEach(() => {
       spyConsoleLog.reset();
       spyConsoleWarn.reset();
     });
 
-    beforeEach(function () {
+    beforeEach(() => {
       fs.removeSync(TMP_FILE_PATH);
 
       ctx = HardhatContext.createHardhatContext();
@@ -51,7 +51,7 @@ describe("vars", function () {
       ctx.varsManager.set("key2", "val2");
     });
 
-    afterEach(function () {
+    afterEach(() => {
       resetHardhatContext();
     });
 
@@ -71,7 +71,7 @@ describe("vars", function () {
         expect(code).equals(0);
       });
 
-      describe("cli user prompt", function () {
+      describe("cli user prompt", () => {
         let stubUserPrompt: any;
 
         before(() => {
@@ -231,41 +231,109 @@ describe("vars", function () {
       describe("all key-value pairs are set", () => {
         useFixtureProject("vars/setup-filled");
 
-        it("should say that alle the key-value pairs are set", async function () {
+        it("should say that alle the key-value pairs are set", async () => {
           const code = await handleVars(["vars", "setup"], undefined);
 
           assert(
-            spyConsoleLog.calledWith(
-              chalk.green("There are no key-value pairs to setup")
-            )
+            spyConsoleLog
+              .getCall(0)
+              .calledWith(chalk.green("There are no key-value pairs to setup"))
           );
+
+          assert(
+            spyConsoleLog
+              .getCall(1)
+              .calledWith(`\n${chalk.green("<already set variables>")}`)
+          );
+
+          assert(spyConsoleLog.getCall(2).calledWith("<mandatory>"));
+          assert(spyConsoleLog.getCall(3).calledWith("key1"));
+          assert(spyConsoleLog.getCall(4).calledWith("<optional>"));
+          assert(spyConsoleLog.getCall(5).calledWith("key2"));
+
           expect(code).equals(0);
         });
       });
 
       describe("there are key-value pairs to fill", () => {
+        const ENV_VAR_PREFIX = "HARDHAT_VAR_";
+        const KEY1 = "KEY_ENV_1";
+        const KEY2 = "KEY_ENV_2";
+
         useFixtureProject("vars/setup-to-fill");
 
-        it("should show the key-value pairs that need to be filled", async () => {
+        beforeEach(() => {
+          process.env[`${ENV_VAR_PREFIX}${KEY1}`] = "val1";
+          process.env[`${ENV_VAR_PREFIX}${KEY2}`] = "val2";
+        });
+
+        afterEach(() => {
+          delete process.env[`${ENV_VAR_PREFIX}${KEY1}`];
+          delete process.env[`${ENV_VAR_PREFIX}${KEY2}`];
+        });
+
+        useFixtureProject("vars/setup-to-fill");
+
+        it("should show the key-value pairs that need to be filled, including env variables", async () => {
           const code = await handleVars(["vars", "setup"], undefined);
+
+          assert(
+            spyConsoleLog
+              .getCall(0)
+              .calledWith("The following key-value pairs need to be setup:")
+          );
 
           // required keys
           assert(
-            spyConsoleLog.firstCall.calledWith(
-              chalk.red(
-                "The following required vars are needed:\nnpx hardhat vars set REQUIRED_KEY1\nnpx hardhat vars set REQUIRED_KEY2\nnpx hardhat vars set KEY3"
-              )
-            )
+            spyConsoleLog
+              .getCall(1)
+              .calledWith(chalk.red("<mandatory variables>"))
           );
-          assert(spyConsoleLog.secondCall.calledWith("\n"));
+
+          assert(
+            spyConsoleLog
+              .getCall(2)
+              .calledWith(
+                chalk.red(
+                  "npx hardhat vars set REQUIRED_KEY1\nnpx hardhat vars set REQUIRED_KEY2\nnpx hardhat vars set KEY3\nnpx hardhat vars set KEY4\nnpx hardhat vars set KEY_ENV_1"
+                )
+              )
+          );
 
           // optional keys
           assert(
-            spyConsoleLog.thirdCall.calledWith(
-              chalk.yellow(
-                "The following optional vars can be provided:\nnpx hardhat vars set OPTIONAL_KEY_1\nnpx hardhat vars set OPTIONAL_KEY_2"
+            spyConsoleLog
+              .getCall(3)
+              .calledWith(chalk.yellow("<optional variables>"))
+          );
+
+          assert(
+            spyConsoleLog
+              .getCall(4)
+              .calledWith(
+                chalk.yellow(
+                  "npx hardhat vars set OPTIONAL_KEY_1\nnpx hardhat vars set OPTIONAL_KEY_2\nnpx hardhat vars set KEY_ENV_2"
+                )
               )
-            )
+          );
+
+          // show already set variables
+          assert(
+            spyConsoleLog
+              .getCall(5)
+              .calledWith(`\n${chalk.green("<already set variables>")}`)
+          );
+
+          // env variables
+          assert(
+            spyConsoleLog
+              .getCall(6)
+              .calledWith("<environment variables with values>")
+          );
+          assert(
+            spyConsoleLog
+              .getCall(7)
+              .calledWith(`${ENV_VAR_PREFIX}${KEY1}\n${ENV_VAR_PREFIX}${KEY2}`)
           );
 
           expect(code).equals(0);

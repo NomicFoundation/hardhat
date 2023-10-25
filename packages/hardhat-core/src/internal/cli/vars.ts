@@ -153,37 +153,73 @@ async function getVarValue(): Promise<string> {
 }
 
 function listVarsToSetup() {
+  const HH_SET_COMMAND = "npx hardhat vars set";
   const varsManagerSetup = HardhatContext.getHardhatContext()
     .varsManager as VarsManagerSetup;
 
-  const requiredKeys = varsManagerSetup.getRequiredVarsKeys();
-  const optionalKeys = varsManagerSetup.getOptionalVarsKeys();
+  const requiredKeysToSet = varsManagerSetup.getRequiredVarsToSet();
+  const optionalKeysToSet = varsManagerSetup.getOptionalVarsToSet();
 
-  if (requiredKeys.length === 0 && optionalKeys.length === 0) {
+  if (requiredKeysToSet.length === 0 && optionalKeysToSet.length === 0) {
     console.log(chalk.green("There are no key-value pairs to setup"));
+    printAlreadySetKeys();
     return;
   }
 
-  if (requiredKeys.length > 0) {
+  console.log("The following key-value pairs need to be setup:");
+
+  if (requiredKeysToSet.length > 0) {
+    console.log(chalk.red("<mandatory variables>"));
     console.log(
       chalk.red(
-        `The following required vars are needed:\n${requiredKeys
-          .map((k) => `npx hardhat vars set ${k}`)
-          .join("\n")}`
+        requiredKeysToSet.map((k) => `${HH_SET_COMMAND} ${k}`).join("\n")
       )
     );
-
-    if (optionalKeys.length > 0) console.log("\n");
   }
 
-  if (optionalKeys.length > 0) {
+  if (optionalKeysToSet.length > 0) {
+    console.log(chalk.yellow("<optional variables>"));
     console.log(
       chalk.yellow(
-        `The following optional vars can be provided:\n${optionalKeys
-          .map((k) => `npx hardhat vars set ${k}`)
-          .join("\n")}`
+        optionalKeysToSet.map((k) => `${HH_SET_COMMAND} ${k}`).join("\n")
       )
     );
+  }
+
+  printAlreadySetKeys();
+}
+
+function printAlreadySetKeys() {
+  const varsManagerSetup = HardhatContext.getHardhatContext()
+    .varsManager as VarsManagerSetup;
+
+  const requiredKeysAlreadySet = varsManagerSetup.getRequiredVarsAlreadySet();
+  const optionalKeysAlreadySet = varsManagerSetup.getOptionalVarsAlreadySet();
+  const envVars = varsManagerSetup.getEnvVars();
+
+  if (
+    requiredKeysAlreadySet.length === 0 &&
+    optionalKeysAlreadySet.length === 0 &&
+    envVars.length === 0
+  ) {
+    return;
+  }
+
+  console.log(`\n${chalk.green("<already set variables>")}`);
+
+  if (requiredKeysAlreadySet.length > 0) {
+    console.log("<mandatory>");
+    console.log(requiredKeysAlreadySet.join("\n"));
+  }
+
+  if (optionalKeysAlreadySet.length > 0) {
+    console.log("<optional>");
+    console.log(optionalKeysAlreadySet.join("\n"));
+  }
+
+  if (envVars.length > 0) {
+    console.log("<environment variables with values>");
+    console.log(envVars.join("\n"));
   }
 }
 

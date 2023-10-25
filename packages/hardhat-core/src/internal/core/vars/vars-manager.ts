@@ -63,7 +63,9 @@ export class VarsManager {
   }
 
   public getEnvVars(): string[] {
-    return Object.keys(this._cacheEnv.vars);
+    return Object.keys(this._cacheEnv.vars).map(
+      (k) => `${this._ENV_VAR_PREFIX}${k}`
+    );
   }
 
   public list(): string[] {

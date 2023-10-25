@@ -138,8 +138,8 @@ describe("VarsManager", () => {
 
   describe("load vars from environment variables", () => {
     const ENV_VAR_PREFIX = "HARDHAT_VAR_";
-    const KEY1 = "key_env_1";
-    const KEY2 = "key_env_2";
+    const KEY1 = "KEY_ENV_1";
+    const KEY2 = "KEY_ENV_2";
 
     describe("when ENV variables are correctly set", () => {
       beforeEach(() => {
@@ -190,7 +190,10 @@ describe("VarsManager", () => {
       });
 
       it("should return only the env variables keys", () => {
-        expect(varsManager.getEnvVars()).to.deep.equal([KEY1, KEY2]);
+        expect(varsManager.getEnvVars()).to.deep.equal([
+          `${ENV_VAR_PREFIX}${KEY1}`,
+          `${ENV_VAR_PREFIX}${KEY2}`,
+        ]);
       });
 
       it("should not store the env variable in the file but only in the cache", () => {
@@ -217,13 +220,13 @@ describe("VarsManager", () => {
       });
 
       it("should throw an error because the env variable value is not correct", () => {
-        process.env[`${ENV_VAR_PREFIX}key_env_1`] = "   "; // space and tab to be sure that spaces are striped correctly
+        process.env[`${ENV_VAR_PREFIX}${KEY1}`] = "   "; // space and tab to be sure that spaces are striped correctly
 
         expect(() => new VarsManager(TMP_FILE_PATH)).to.throw(
-          "HH300: Invalid environment variable 'HARDHAT_VAR_key_env_1' with value: '   '"
+          `HH300: Invalid environment variable '${ENV_VAR_PREFIX}${KEY1}' with value: '   '`
         );
 
-        delete process.env[`${ENV_VAR_PREFIX}key_env_1`];
+        delete process.env[`${ENV_VAR_PREFIX}${KEY1}`];
       });
     });
   });
