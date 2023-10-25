@@ -62,6 +62,10 @@ export class VarsManager {
     return this._readVars(true)[key]?.value ?? defaultValue;
   }
 
+  public getEnvVars(): string[] {
+    return Object.keys(this._cacheEnv.vars);
+  }
+
   public list(): string[] {
     return Object.keys(this._readVars());
   }

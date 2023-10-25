@@ -3,7 +3,7 @@ import { expect } from "chai";
 import * as os from "os";
 import { VarsManager } from "../../../../src/internal/core/vars/vars-manager";
 
-describe("VarsManager", function () {
+describe("VarsManager", () => {
   let TMP_FILE_PATH: string;
   let varsManager: VarsManager;
 
@@ -18,8 +18,8 @@ describe("VarsManager", function () {
   // For deep testing of the set, has, get, list and delete methods, see the last test
   //
 
-  describe("format", function () {
-    it("should contain the _format property and it should have a valid value", function () {
+  describe("format", () => {
+    it("should contain the _format property and it should have a valid value", () => {
       const format = fs.readJSONSync(TMP_FILE_PATH)._format;
 
       expect(format).to.not.equal(undefined);
@@ -33,8 +33,8 @@ describe("VarsManager", function () {
     });
   });
 
-  describe("set", function () {
-    it("should throw if the key is invalid", function () {
+  describe("set", () => {
+    it("should throw if the key is invalid", () => {
       expect(() => varsManager.set("invalid key", "val")).to.throw(
         "HH1202: Invalid key 'invalid key'. Keys can only have alphanumeric characters and underscores, and they cannot start with a number."
       );
@@ -49,7 +49,7 @@ describe("VarsManager", function () {
     });
   });
 
-  describe("the json file should match all the operations performed with the VarsManager", function () {
+  describe("the json file should match all the operations performed with the VarsManager", () => {
     function performOperations() {
       varsManager.set("key1", "val1");
       varsManager.set("key2", "val2");
@@ -64,7 +64,7 @@ describe("VarsManager", function () {
       varsManager.delete("key5");
     }
 
-    it("should match", function () {
+    it("should match", () => {
       performOperations();
 
       const vars = fs.readJSONSync(TMP_FILE_PATH).vars;
@@ -75,7 +75,7 @@ describe("VarsManager", function () {
       });
     });
 
-    it("should match after reloading the VarsManager (json file is persistent in storage)", function () {
+    it("should match after reloading the VarsManager (json file is persistent in storage)", () => {
       performOperations();
 
       const newVarsManager = new VarsManager(TMP_FILE_PATH);
@@ -88,8 +88,8 @@ describe("VarsManager", function () {
     });
   });
 
-  describe("test all methods (set, get, list and delete)", function () {
-    it("should execute all methods correctly", function () {
+  describe("test all methods (set, get, list and delete)", () => {
+    it("should execute all methods correctly", () => {
       // set
       varsManager.set("key1", "val1");
       varsManager.set("key2", "val2");
@@ -136,57 +136,64 @@ describe("VarsManager", function () {
     });
   });
 
-  describe("load vars from environment variables", function () {
+  describe("load vars from environment variables", () => {
     const ENV_VAR_PREFIX = "HARDHAT_VAR_";
-    const KEY = "key_env_1";
+    const KEY1 = "key_env_1";
+    const KEY2 = "key_env_2";
 
     describe("when ENV variables are correctly set", () => {
       beforeEach(() => {
-        process.env[`${ENV_VAR_PREFIX}${KEY}`] = "val1";
+        process.env[`${ENV_VAR_PREFIX}${KEY1}`] = "val1";
+        process.env[`${ENV_VAR_PREFIX}${KEY2}`] = "val2";
         varsManager = new VarsManager(TMP_FILE_PATH);
       });
 
       afterEach(() => {
-        delete process.env[`${ENV_VAR_PREFIX}${KEY}`];
+        delete process.env[`${ENV_VAR_PREFIX}${KEY1}`];
+        delete process.env[`${ENV_VAR_PREFIX}${KEY2}`];
       });
 
       describe("function has (without env variables)", () => {
-        it("should not have the key-value pairs from the environment variables", function () {
-          expect(varsManager.has(KEY)).to.equal(false);
+        it("should not have the key-value pairs from the environment variables", () => {
+          expect(varsManager.has(KEY1)).to.equal(false);
         });
       });
 
       describe("function hasWithEnvVars (with env variables)", () => {
-        it("should have the key-value pairs from the environment variables", function () {
-          expect(varsManager.hasWithEnvVars(KEY)).to.equal(true);
+        it("should have the key-value pairs from the environment variables", () => {
+          expect(varsManager.hasWithEnvVars(KEY1)).to.equal(true);
         });
       });
 
       describe("function get (without env variables)", () => {
-        it("should get the value from the file, not from the env keys", function () {
-          expect(varsManager.get(KEY)).to.equal(undefined);
+        it("should get the value from the file, not from the env keys", () => {
+          expect(varsManager.get(KEY1)).to.equal(undefined);
         });
 
-        it("should get the value from the file, not from the env keys (same key as the env variable)", function () {
-          varsManager.set(KEY, "storedValue");
+        it("should get the value from the file, not from the env keys (same key as the env variable)", () => {
+          varsManager.set(KEY1, "storedValue");
 
-          expect(varsManager.get(KEY)).to.equal("storedValue");
+          expect(varsManager.get(KEY1)).to.equal("storedValue");
         });
       });
 
       describe("function getWithEnvVars (with env variables)", () => {
-        it("should load the key-value pairs from the environment variables", function () {
-          expect(varsManager.getWithEnvVars(KEY)).to.equal("val1");
+        it("should load the key-value pairs from the environment variables", () => {
+          expect(varsManager.getWithEnvVars(KEY1)).to.equal("val1");
         });
 
-        it("should show the env variable value. Env variables have priority over the stored ones", function () {
-          varsManager.set(KEY, "storedValue");
+        it("should show the env variable value. Env variables have priority over the stored ones", () => {
+          varsManager.set(KEY1, "storedValue");
 
-          expect(varsManager.getWithEnvVars(KEY)).to.equal("val1");
+          expect(varsManager.getWithEnvVars(KEY1)).to.equal("val1");
         });
       });
 
-      it("should not store the env variable in the file but only in the cache", function () {
+      it("should return only the env variables keys", () => {
+        expect(varsManager.getEnvVars()).to.deep.equal([KEY1, KEY2]);
+      });
+
+      it("should not store the env variable in the file but only in the cache", () => {
         // Add a new key-value pair to be sure that env variables are not added when the cache is stored on file during the set operation
         varsManager.set("key", "val");
 
@@ -199,7 +206,7 @@ describe("VarsManager", function () {
     });
 
     describe("error when env key is wrong", () => {
-      it("should throw an error because the env variable key is not correct", function () {
+      it("should throw an error because the env variable key is not correct", () => {
         process.env[`${ENV_VAR_PREFIX}0_invalidKey`] = "val1";
 
         expect(() => new VarsManager(TMP_FILE_PATH)).to.throw(
@@ -209,7 +216,7 @@ describe("VarsManager", function () {
         delete process.env[`${ENV_VAR_PREFIX}0_invalidKey`];
       });
 
-      it("should throw an error because the env variable value is not correct", function () {
+      it("should throw an error because the env variable value is not correct", () => {
         process.env[`${ENV_VAR_PREFIX}key_env_1`] = "   "; // space and tab to be sure that spaces are striped correctly
 
         expect(() => new VarsManager(TMP_FILE_PATH)).to.throw(
