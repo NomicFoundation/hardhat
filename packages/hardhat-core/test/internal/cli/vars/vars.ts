@@ -260,8 +260,6 @@ describe("vars", () => {
         const KEY1 = "KEY_ENV_1";
         const KEY2 = "KEY_ENV_2";
 
-        useFixtureProject("vars/setup-to-fill");
-
         beforeEach(() => {
           process.env[`${ENV_VAR_PREFIX}${KEY1}`] = "val1";
           process.env[`${ENV_VAR_PREFIX}${KEY2}`] = "val2";

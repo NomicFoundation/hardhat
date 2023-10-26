@@ -159,9 +159,9 @@ describe("VarsManager", () => {
         });
       });
 
-      describe("function hasWithEnvVars (with env variables)", () => {
+      describe("function has (with env variables)", () => {
         it("should have the key-value pairs from the environment variables", () => {
-          expect(varsManager.hasWithEnvVars(KEY1)).to.equal(true);
+          expect(varsManager.has(KEY1, true)).to.equal(true);
         });
       });
 
@@ -177,15 +177,15 @@ describe("VarsManager", () => {
         });
       });
 
-      describe("function getWithEnvVars (with env variables)", () => {
+      describe("function get (with env variables)", () => {
         it("should load the key-value pairs from the environment variables", () => {
-          expect(varsManager.getWithEnvVars(KEY1)).to.equal("val1");
+          expect(varsManager.get(KEY1, undefined, true)).to.equal("val1");
         });
 
         it("should show the env variable value. Env variables have priority over the stored ones", () => {
           varsManager.set(KEY1, "storedValue");
 
-          expect(varsManager.getWithEnvVars(KEY1)).to.equal("val1");
+          expect(varsManager.get(KEY1, undefined, true)).to.equal("val1");
         });
       });
 

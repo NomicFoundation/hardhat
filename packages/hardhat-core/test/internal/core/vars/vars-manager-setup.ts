@@ -185,20 +185,12 @@ describe("VarsManagerSetup", () => {
       delete process.env[`${ENV_VAR_PREFIX}${KEY}`];
     });
 
-    describe("hasWithEnvVars has the same behavior as has", () => {
-      it("should return the same value", () => {
-        expect(varsManagerSetup.hasWithEnvVars(KEY)).to.equal(
-          varsManagerSetup.has(KEY)
-        );
-      });
+    it("should return false, env vars should be ignored during setup", () => {
+      expect(varsManagerSetup.has(KEY)).to.equal(false);
     });
 
-    describe("getWithEnvVars has the same behavior as has", () => {
-      it("should return the same value", () => {
-        expect(varsManagerSetup.getWithEnvVars(KEY)).to.equal(
-          varsManagerSetup.get(KEY)
-        );
-      });
+    it("should return an empty string, env vars should be ignored during setup", () => {
+      expect(varsManagerSetup.get(KEY)).to.equal("");
     });
   });
 });

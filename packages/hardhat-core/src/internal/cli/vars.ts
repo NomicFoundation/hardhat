@@ -45,7 +45,7 @@ async function set(key: string, value?: string): Promise<number> {
   varsManager.set(key, value ?? (await getVarValue()));
 
   console.warn(
-    `Key-value pair stored at the following path: ${HardhatContext.getHardhatContext().varsManager.getStoragePath()}`
+    `Key-value pair stored at the following path: ${varsManager.getStoragePath()}`
   );
 
   return 0;

@@ -22,21 +22,9 @@ export class VarsManagerSetup extends VarsManager {
     this._optionalVarsToSet = new Set();
   }
 
-  // During setup we ignore env variables, so this function is the same as 'has'
-  public hasWithEnvVars(key: string): boolean {
-    return this.has(key);
-  }
-
-  // During setup we ignore env variables, so this function is the same as 'get'
-  public getWithEnvVars(
-    key: string,
-    defaultValue?: string | undefined
-  ): string | undefined {
-    return this.get(key, defaultValue);
-  }
-
   // Checks if the key exists, and updates optional sets accordingly.
   // Required vars have priority over optional vars.
+  // Ignore the parameter 'includeEnvs' defined in the parent class because during setup env vars are ignored.
   public has(key: string): boolean {
     log(`function 'has' called with key '${key}'`);
 
@@ -55,6 +43,7 @@ export class VarsManagerSetup extends VarsManager {
 
   // Gets the value for the provided key, and updates required/optional sets accordingly.
   // Required vars have priority over optional vars.
+  // Ignore the parameter 'includeEnvs' defined in the parent class because during setup env vars are ignored.
   public get(key: string, defaultValue?: string): string {
     log(`function 'get' called with key '${key}'`);
 

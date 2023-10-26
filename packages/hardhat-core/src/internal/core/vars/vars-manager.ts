@@ -43,23 +43,16 @@ export class VarsManager {
     this._writeVars(vars);
   }
 
-  public has(key: string): boolean {
-    return key in this._readVars();
+  public has(key: string, includeEnvs: boolean = false): boolean {
+    return key in this._readVars(includeEnvs);
   }
 
-  public hasWithEnvVars(key: string): boolean {
-    return key in this._readVars(true);
-  }
-
-  public get(key: string, defaultValue?: string): string | undefined {
-    return this._readVars()[key]?.value ?? defaultValue;
-  }
-
-  public getWithEnvVars(
+  public get(
     key: string,
-    defaultValue?: string
+    defaultValue?: string,
+    includeEnvs: boolean = false
   ): string | undefined {
-    return this._readVars(true)[key]?.value ?? defaultValue;
+    return this._readVars(includeEnvs)[key]?.value ?? defaultValue;
   }
 
   public getEnvVars(): string[] {

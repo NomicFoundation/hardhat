@@ -195,7 +195,8 @@ export const vars = {
  * @returns `true` if the variable exists, `false` otherwise.
  */
 function hasVar(key: string): boolean {
-  return HardhatContext.getHardhatContext().varsManager.hasWithEnvVars(key);
+  // varsManager will be an instance of VarsManager or VarsManagerSetup depending on the context (vars setup mode or not)
+  return HardhatContext.getHardhatContext().varsManager.has(key, true);
 }
 
 /**
@@ -212,9 +213,11 @@ function hasVar(key: string): boolean {
  * @throws HH1201 if the variable does not exist and no default value is set.
  */
 function getVar(key: string, defaultValue?: string): string {
-  const value = HardhatContext.getHardhatContext().varsManager.getWithEnvVars(
+  // varsManager will be an instance of VarsManager or VarsManagerSetup depending on the context (vars setup mode or not)
+  const value = HardhatContext.getHardhatContext().varsManager.get(
     key,
-    defaultValue
+    defaultValue,
+    true
   );
 
   if (value !== undefined) return value;
