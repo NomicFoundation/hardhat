@@ -111,13 +111,15 @@ export class VarsManager {
 
     for (const key in process.env) {
       if (key.startsWith(this._ENV_VAR_PREFIX)) {
+        const envVar = process.env[key];
+
         if (
-          process.env[key] === undefined ||
-          process.env[key]!.replace(/[\s\t]/g, "").length === 0
+          envVar === undefined ||
+          envVar.replace(/[\s\t]/g, "").length === 0
         ) {
           throw new HardhatError(ERRORS.ARGUMENTS.INVALID_ENV_VAR_VALUE, {
             varName: key,
-            value: process.env[key]!,
+            value: envVar!,
           });
         }
 
@@ -125,7 +127,7 @@ export class VarsManager {
         this.validateKey(envKey);
 
         // Store only in cache, not in a file, as the vars are sourced from environment variables
-        this._cacheEnv.vars[envKey] = { value: process.env[key]! };
+        this._cacheEnv.vars[envKey] = { value: envVar };
       }
     }
   }
