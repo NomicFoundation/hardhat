@@ -55,7 +55,7 @@ ignitionScope
   .addPositionalParam("modulePath", "The path to the module file to deploy")
   .addOptionalParam(
     "parameters",
-    "A relative path to a JSON file to use for the module parameters,"
+    "A relative path to a JSON file to use for the module parameters"
   )
   .addOptionalParam("deploymentId", "Set the id of the deployment")
   .setDescription("Deploy a module to the specified network")
