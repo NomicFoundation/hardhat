@@ -177,17 +177,40 @@ export function experimentalAddHardhatNetworkMessageTraceHook(
 }
 
 /**
- * Vars manager functions
+ * This object provides methods to interact with the configuration variables.
  */
 export const vars = {
   has: hasVar,
   get: getVar,
 };
 
+/**
+ * Checks if a variable exists based on its key.
+ *
+ * @remarks
+ * This method, when used during setup (via `npx hardhat vars setup`), will mark the variable as optional.
+ *
+ * @param key - The key of the variable to check.
+ *
+ * @returns `true` if the variable exists, `false` otherwise.
+ */
 function hasVar(key: string): boolean {
   return HardhatContext.getHardhatContext().varsManager.hasWithEnvVars(key);
 }
 
+/**
+ * Gets the variable value associated with the given key.
+ *
+ * @remarks
+ * This method, when used during setup (via `npx hardhat vars setup`), will mark the variable as required.
+ *
+ * @param key - The key of the variable to retrieve.
+ * @param [defaultValue] - An optional default value to return if the variable does not exist.
+ *
+ * @returns The value associated with the key if it exists, or the default value if provided.
+ *
+ * @throws HH1201 if the variable does not exist and no default value is set.
+ */
 function getVar(key: string, defaultValue?: string): string {
   const value = HardhatContext.getHardhatContext().varsManager.getWithEnvVars(
     key,
