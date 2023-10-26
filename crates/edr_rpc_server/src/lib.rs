@@ -1,7 +1,15 @@
-use std::mem;
-use std::net::{SocketAddr, TcpListener};
-use std::sync::Arc;
-use std::time::{SystemTime, UNIX_EPOCH};
+mod config;
+mod filter;
+mod hardhat_methods;
+mod logger;
+mod node;
+
+use std::{
+    mem,
+    net::{SocketAddr, TcpListener},
+    sync::Arc,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 use axum::{
     extract::{Json, State},
@@ -37,19 +45,21 @@ use sha3::{Digest, Keccak256};
 use tokio::sync::RwLock;
 use tracing::{event, Level};
 
-mod hardhat_methods;
-mod node;
-pub use hardhat_methods::{
-    reset::{RpcForkConfig, RpcHardhatNetworkConfig},
-    HardhatMethodInvocation,
+use self::{
+    filter::{new_filter_deadline, Filter},
+    node::{Node, NodeData, NodeError},
 };
 
-mod config;
-pub use config::{AccountConfig, Config};
+pub use self::{
+    config::{AccountConfig, Config},
+    hardhat_methods::{
+        reset::{RpcForkConfig, RpcHardhatNetworkConfig},
+        HardhatMethodInvocation,
+    },
+};
 
-mod filter;
-use crate::node::{Node, NodeData, NodeError};
-use filter::{new_filter_deadline, Filter};
+// TODO: Remove this once we are internally using `Logger`
+pub use self::logger::Logger;
 
 /// an RPC method with its parameters
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
