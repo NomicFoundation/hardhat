@@ -38,7 +38,7 @@ pub fn calculate_ethash_canonical_difficulty(
     let bound_divisor = U256::from(2048);
     let offset = parent.difficulty / bound_divisor;
 
-    let mut diff = {
+    let mut difficulty = {
         let uncle_addend = if parent.ommers_hash == KECCAK_RLP_EMPTY_ARRAY {
             1
         } else {
@@ -60,10 +60,9 @@ pub fn calculate_ethash_canonical_difficulty(
         .checked_sub(bomb_delay(spec_id))
         .and_then(|num| (num / 100000).checked_sub(2))
     {
-        let exp = u32::try_from(exp).expect("The exponent must fit into a u32");
-        diff += U256::from(2u64.pow(exp));
+        difficulty += U256::from(2u64).pow(U256::from(exp));
     }
 
     let min_difficulty = U256::from(131072);
-    diff.max(min_difficulty)
+    difficulty.max(min_difficulty)
 }
