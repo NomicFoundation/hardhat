@@ -1151,7 +1151,6 @@ export class HardhatNode extends EventEmitter {
     }
 
     await this._context.memPool().setBlockGasLimit(gasLimit);
-    await this._context.memPool().update();
   }
 
   public async setMinGasPrice(minGasPrice: bigint) {
