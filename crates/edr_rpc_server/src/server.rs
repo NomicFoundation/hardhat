@@ -1,5 +1,7 @@
-use std::net::{SocketAddr, TcpListener};
-use std::sync::Arc;
+use std::{
+    net::{SocketAddr, TcpListener},
+    sync::Arc,
+};
 
 use axum::{
     extract::{Json, State},

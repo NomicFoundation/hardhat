@@ -1,20 +1,19 @@
-use std::sync::Arc;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::{
+    sync::Arc,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 use indexmap::IndexMap;
 
-use edr_eth::remote::RpcClient;
-use edr_eth::signature::public_key_to_address;
 use edr_eth::{
-    remote::{BlockSpec, BlockTag, Eip1898BlockSpec},
+    remote::{BlockSpec, BlockTag, Eip1898BlockSpec, RpcClient},
+    signature::public_key_to_address,
     Address, SpecId, U256,
 };
-use edr_evm::blockchain::{Blockchain, ForkedBlockchain, LocalBlockchain};
-use edr_evm::state::{AccountTrie, TrieState};
 use edr_evm::{
-    blockchain::{BlockchainError, SyncBlockchain},
+    blockchain::{Blockchain, BlockchainError, ForkedBlockchain, LocalBlockchain, SyncBlockchain},
     mine_block,
-    state::{IrregularState, StateError, SyncState},
+    state::{AccountTrie, IrregularState, StateError, SyncState, TrieState},
     AccountInfo, Block, CfgEnv, HashMap, HashSet, MemPool, MineBlockResult, MineOrdering,
     RandomHashGenerator, SyncBlock, KECCAK_EMPTY,
 };
