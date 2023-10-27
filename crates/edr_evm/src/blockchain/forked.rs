@@ -1,4 +1,4 @@
-use std::num::NonZeroUsize;
+use std::num::NonZeroU64;
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -36,15 +36,15 @@ pub enum CreationError {
     #[error("Trying to initialize a provider with block {fork_block_number} but the current block is {latest_block_number}")]
     InvalidBlockNumber {
         /// Requested fork block number
-        fork_block_number: U256,
+        fork_block_number: u64,
         /// Latest block number
-        latest_block_number: U256,
+        latest_block_number: u64,
     },
     /// The detected hardfork is not supported
     #[error("Cannot fork {chain_name} from block {fork_block_number}. The hardfork must be at least Spurious Dragon, but {hardfork:?} was detected.")]
     InvalidHardfork {
         /// Requested fork block number
-        fork_block_number: U256,
+        fork_block_number: u64,
         /// Chain name
         chain_name: String,
         /// Detected hardfork
@@ -61,8 +61,8 @@ pub struct ForkedBlockchain {
     // The state at the time of forking
     fork_state: ForkState,
     runtime: runtime::Handle,
-    fork_block_number: U256,
-    chain_id: U256,
+    fork_block_number: u64,
+    chain_id: u64,
     _network_id: U256,
     spec_id: SpecId,
     hardfork_activations: Option<HardforkActivations>,
@@ -75,10 +75,10 @@ impl ForkedBlockchain {
         runtime: runtime::Handle,
         spec_id: SpecId,
         rpc_client: RpcClient,
-        fork_block_number: Option<U256>,
+        fork_block_number: Option<u64>,
         state_root_generator: Arc<Mutex<RandomHashGenerator>>,
         account_overrides: HashMap<Address, AccountInfo>,
-        hardfork_activation_overrides: HashMap<U256, HardforkActivations>,
+        hardfork_activation_overrides: HashMap<u64, HardforkActivations>,
     ) -> Result<Self, CreationError> {
         let (chain_id, network_id, latest_block_number) = tokio::join!(
             rpc_client.chain_id(),
@@ -91,8 +91,8 @@ impl ForkedBlockchain {
         let latest_block_number = latest_block_number?;
 
         let safe_block_number = largest_safe_block_number(LargestSafeBlockNumberArgs {
-            chain_id: &chain_id,
-            latest_block_number: &latest_block_number,
+            chain_id,
+            latest_block_number,
         });
 
         let fork_block_number = if let Some(fork_block_number) = fork_block_number {
@@ -104,8 +104,8 @@ impl ForkedBlockchain {
             }
 
             if fork_block_number > safe_block_number {
-                let num_confirmations = latest_block_number - fork_block_number + U256::from(1);
-                let required_confirmations = safe_block_depth(&chain_id) + U256::from(1);
+                let num_confirmations = latest_block_number - fork_block_number + 1;
+                let required_confirmations = safe_block_depth(chain_id) + 1;
                 let missing_confirmations = required_confirmations - num_confirmations;
 
                 log::warn!("You are forking from block {fork_block_number} which has less than {required_confirmations} confirmations, and will affect Hardhat Network's performance. Please use block number {safe_block_number} or wait for the block to get {missing_confirmations} more confirmations.");
@@ -118,7 +118,7 @@ impl ForkedBlockchain {
 
         let hardfork_activations = hardfork_activation_overrides
             .get(&chain_id)
-            .or_else(|| chain_hardfork_activations(&chain_id))
+            .or_else(|| chain_hardfork_activations(chain_id))
             .cloned()
             .and_then(|hardfork_activations| {
                 // Ignore empty hardfork activations
@@ -132,12 +132,12 @@ impl ForkedBlockchain {
         if let Some(hardfork) = hardfork_activations
             .as_ref()
             .and_then(|hardfork_activations| {
-                hardfork_activations.hardfork_at_block_number(&fork_block_number)
+                hardfork_activations.hardfork_at_block_number(fork_block_number)
             })
         {
             if hardfork < SpecId::SPURIOUS_DRAGON {
                 return Err(CreationError::InvalidHardfork {
-                    chain_name: chain_name(&chain_id)
+                    chain_name: chain_name(chain_id)
                         .map_or_else(|| "unknown".to_string(), ToString::to_string),
                     fork_block_number,
                     hardfork,
@@ -174,9 +174,12 @@ impl BlockHashRef for ForkedBlockchain {
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn block_hash(&self, number: U256) -> Result<B256, Self::Error> {
+        let number =
+            u64::try_from(number).map_err(|_error| BlockchainError::BlockNumberTooLarge)?;
+
         if number <= self.fork_block_number {
             tokio::task::block_in_place(move || {
-                self.runtime.block_on(self.remote.block_by_number(&number))
+                self.runtime.block_on(self.remote.block_by_number(number))
             })
             .map_or_else(
                 |e| Err(BlockchainError::JsonRpcError(e)),
@@ -184,7 +187,7 @@ impl BlockHashRef for ForkedBlockchain {
             )
         } else {
             self.local_storage
-                .block_by_number(&number)
+                .block_by_number(number)
                 .map(|block| *block.hash())
                 .ok_or(BlockchainError::UnknownBlockNumber)
         }
@@ -216,10 +219,10 @@ impl Blockchain for ForkedBlockchain {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn block_by_number(
         &self,
-        number: &U256,
+        number: u64,
     ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>
     {
-        if *number <= self.fork_block_number {
+        if number <= self.fork_block_number {
             self.remote.block_by_number(number).await.map_or_else(
                 |e| Err(BlockchainError::JsonRpcError(e)),
                 |block| Ok(Some(block)),
@@ -248,7 +251,7 @@ impl Blockchain for ForkedBlockchain {
         }
     }
 
-    async fn chain_id(&self) -> U256 {
+    async fn chain_id(&self) -> u64 {
         self.chain_id
     }
 
@@ -260,18 +263,18 @@ impl Blockchain for ForkedBlockchain {
         if self.fork_block_number < last_block_number {
             Ok(self
                 .local_storage
-                .block_by_number(&last_block_number)
+                .block_by_number(last_block_number)
                 .expect("Block must exist"))
         } else {
             self.remote
-                .block_by_number(&self.fork_block_number)
+                .block_by_number(self.fork_block_number)
                 .await
                 .map_err(BlockchainError::JsonRpcError)
         }
     }
 
-    async fn last_block_number(&self) -> U256 {
-        *self.local_storage.last_block_number()
+    async fn last_block_number(&self) -> u64 {
+        self.local_storage.last_block_number()
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
@@ -295,26 +298,26 @@ impl Blockchain for ForkedBlockchain {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn spec_at_block_number(
         &self,
-        block_number: &U256,
+        block_number: u64,
     ) -> Result<SpecId, Self::BlockchainError> {
-        if *block_number > self.last_block_number().await {
+        if block_number > self.last_block_number().await {
             return Err(BlockchainError::UnknownBlockNumber);
         }
 
-        if *block_number <= self.fork_block_number {
+        if block_number <= self.fork_block_number {
             self.remote.block_by_number(block_number).await.map_or_else(
                 |e| Err(BlockchainError::JsonRpcError(e)),
                 |block| {
                     if let Some(hardfork_activations) = &self.hardfork_activations {
                         hardfork_activations
-                            .hardfork_at_block_number(&block.header().number)
+                            .hardfork_at_block_number(block.header().number)
                             .ok_or(BlockchainError::UnknownBlockSpec {
-                                block_number: *block_number,
+                                block_number,
                                 hardfork_activations: hardfork_activations.clone(),
                             })
                     } else {
                         Err(BlockchainError::MissingHardforkActivations {
-                            block_number: *block_number,
+                            block_number,
                             fork_block_number: self.fork_block_number,
                         })
                     }
@@ -332,9 +335,9 @@ impl Blockchain for ForkedBlockchain {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn state_at_block_number(
         &self,
-        block_number: &U256,
+        block_number: u64,
     ) -> Result<Box<dyn SyncState<Self::StateError>>, Self::BlockchainError> {
-        if *block_number > self.last_block_number().await {
+        if block_number > self.last_block_number().await {
             return Err(BlockchainError::UnknownBlockNumber);
         }
 
@@ -345,7 +348,7 @@ impl Blockchain for ForkedBlockchain {
                     self.runtime.clone(),
                     self.remote.client().clone(),
                     self.fork_state.state_root_generator().clone(),
-                    *block_number,
+                    block_number,
                     HashMap::new(),
                 )
                 .await?
@@ -409,12 +412,8 @@ impl BlockchainMut for ForkedBlockchain {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn reserve_blocks(
-        &mut self,
-        additional: usize,
-        interval: U256,
-    ) -> Result<(), Self::Error> {
-        let additional = if let Some(additional) = NonZeroUsize::new(additional) {
+    async fn reserve_blocks(&mut self, additional: u64, interval: u64) -> Result<(), Self::Error> {
+        let additional = if let Some(additional) = NonZeroU64::new(additional) {
             additional
         } else {
             return Ok(()); // nothing to do
@@ -440,7 +439,7 @@ impl BlockchainMut for ForkedBlockchain {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn revert_to_block(&mut self, block_number: &U256) -> Result<(), Self::Error> {
+    async fn revert_to_block(&mut self, block_number: u64) -> Result<(), Self::Error> {
         match block_number.cmp(&self.fork_block_number) {
             std::cmp::Ordering::Less => Err(BlockchainError::CannotDeleteRemote),
             std::cmp::Ordering::Equal => {

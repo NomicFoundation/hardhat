@@ -8,7 +8,7 @@ use edr_eth::{
         client::Request as RpcRequest,
         filter::FilteredEvents,
         jsonrpc,
-        methods::{MethodInvocation as EthMethodInvocation, U256OrUsize},
+        methods::{MethodInvocation as EthMethodInvocation, U64OrUsize},
         BlockSpec,
     },
     serde::ZeroXPrefixedBytes,
@@ -133,8 +133,8 @@ async fn test_coinbase() {
 async fn test_evm_increase_time() {
     verify_response(
         &start_server().await,
-        MethodInvocation::Eth(EthMethodInvocation::EvmIncreaseTime(U256OrUsize::U256(
-            U256::from(12345),
+        MethodInvocation::Eth(EthMethodInvocation::EvmIncreaseTime(U64OrUsize::U64(
+            U64::from(12345),
         ))),
         String::from("12345"),
     )
@@ -146,15 +146,15 @@ async fn test_evm_mine() {
     let server = start_server().await;
     verify_response(
         &server,
-        MethodInvocation::Eth(EthMethodInvocation::EvmMine(Some(U256OrUsize::U256(
-            U256::from(2147483647),
+        MethodInvocation::Eth(EthMethodInvocation::EvmMine(Some(U64OrUsize::U64(
+            U64::from(2147483647),
         )))),
         String::from("0"),
     )
     .await;
     verify_response(
         &server,
-        MethodInvocation::Eth(EthMethodInvocation::EvmMine(Some(U256OrUsize::Usize(
+        MethodInvocation::Eth(EthMethodInvocation::EvmMine(Some(U64OrUsize::Usize(
             2147483647,
         )))),
         String::from("0"),
@@ -173,7 +173,7 @@ async fn test_evm_set_next_block_timestamp() {
     verify_response(
         &start_server().await,
         MethodInvocation::Eth(EthMethodInvocation::EvmSetNextBlockTimestamp(
-            U256OrUsize::U256(U256::from(2147483647)),
+            U64OrUsize::U64(U64::from(2147483647)),
         )),
         String::from("2147483647"),
     )

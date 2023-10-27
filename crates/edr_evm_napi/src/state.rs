@@ -130,7 +130,7 @@ impl State {
         account_overrides: Vec<GenesisAccount>,
         cache_dir: Option<String>,
     ) -> napi::Result<JsObject> {
-        let fork_block_number: U256 = BigInt::try_cast(fork_block_number)?;
+        let fork_block_number: u64 = BigInt::try_cast(fork_block_number)?;
         let cache_dir: PathBuf = cache_dir
             .unwrap_or_else(|| edr_defaults::CACHE_DIR.into())
             .into();

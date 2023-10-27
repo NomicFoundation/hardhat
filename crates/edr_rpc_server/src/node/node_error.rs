@@ -18,9 +18,9 @@ pub enum NodeError {
     #[error(
         "The given timestamp {proposed} is lower than the previous block's timestamp {previous}."
     )]
-    TimestampLowerThanPrevious { proposed: U256, previous: U256 },
+    TimestampLowerThanPrevious { proposed: u64, previous: u64 },
     #[error("The given timestamp {proposed} is equal to the previous block's timestamp.")]
-    TimestampEqualsPrevious { proposed: U256 },
+    TimestampEqualsPrevious { proposed: u64 },
     /// The address is not owned by this node.
     #[error("{address} is not owned by this node")]
     UnknownAddress { address: Address },
@@ -33,7 +33,7 @@ pub enum NodeError {
     /// Returned if the block spec is an EIP-1898 block spec for a block number and it's not found
     /// <https://eips.ethereum.org/EIPS/eip-1898>
     #[error("Unknown block number: {block_number}")]
-    UnknownBlockNumber { block_number: U256 },
+    UnknownBlockNumber { block_number: u64 },
 
     #[error(transparent)]
     Blockchain(#[from] BlockchainError),

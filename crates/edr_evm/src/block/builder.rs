@@ -87,7 +87,7 @@ pub struct BlockBuilder {
     transactions: Vec<SignedTransaction>,
     state_diff: StateDiff,
     receipts: Vec<TransactionReceipt<Log>>,
-    parent_gas_limit: Option<U256>,
+    parent_gas_limit: Option<u64>,
 }
 
 impl BlockBuilder {
@@ -143,12 +143,12 @@ impl BlockBuilder {
     }
 
     /// Retrieves the amount of gas used in the block, so far.
-    pub fn gas_used(&self) -> U256 {
+    pub fn gas_used(&self) -> u64 {
         self.header.gas_used
     }
 
     /// Retrieves the amount of gas left in the block.
-    pub fn gas_remaining(&self) -> U256 {
+    pub fn gas_remaining(&self) -> u64 {
         self.header.gas_limit - self.gas_used()
     }
 
@@ -174,17 +174,17 @@ impl BlockBuilder {
         StateErrorT: Debug + Send + 'static,
     {
         //  transaction's gas limit cannot be greater than the remaining gas in the block
-        if U256::from(transaction.gas_limit()) > self.gas_remaining() {
+        if transaction.gas_limit() > self.gas_remaining() {
             return Err(BlockTransactionError::ExceedsBlockGasLimit);
         }
 
         let block = BlockEnv {
-            number: self.header.number,
+            number: U256::from(self.header.number),
             coinbase: self.header.beneficiary,
-            timestamp: self.header.timestamp,
+            timestamp: U256::from(self.header.timestamp),
             difficulty: self.header.difficulty,
             basefee: self.header.base_fee.unwrap_or(U256::ZERO),
-            gas_limit: self.header.gas_limit,
+            gas_limit: U256::from(self.header.gas_limit),
             prevrandao: if self.cfg.spec_id >= SpecId::MERGE {
                 Some(self.header.mix_hash)
             } else {
@@ -213,7 +213,7 @@ impl BlockBuilder {
         self.state_diff.extend(state_diff.clone());
         state.commit(state_diff);
 
-        self.header.gas_used += U256::from(result.gas_used());
+        self.header.gas_used += result.gas_used();
 
         let logs: Vec<Log> = result.logs().into_iter().map(Log::from).collect();
         let logs_bloom = {
@@ -289,7 +289,7 @@ impl BlockBuilder {
         mut self,
         state: &mut StateT,
         rewards: Vec<(Address, U256)>,
-        timestamp: Option<U256>,
+        timestamp: Option<u64>,
     ) -> Result<BuildBlockResult, StateErrorT>
     where
         StateT: SyncState<StateErrorT> + ?Sized,
@@ -347,13 +347,11 @@ impl BlockBuilder {
 
         if let Some(timestamp) = timestamp {
             self.header.timestamp = timestamp;
-        } else if self.header.timestamp == U256::ZERO {
-            self.header.timestamp = U256::from(
-                SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .expect("Current time must be after unix epoch")
-                    .as_secs(),
-            );
+        } else if self.header.timestamp == 0 {
+            self.header.timestamp = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .expect("Current time must be after unix epoch")
+                .as_secs();
         }
 
         // TODO: handle ommers

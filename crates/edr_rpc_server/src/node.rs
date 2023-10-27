@@ -58,13 +58,13 @@ impl Node {
 
         let mut contextual_state = if let Some(irregular_state) = data
             .irregular_state
-            .state_by_block_number(&block_header.number)
+            .state_by_block_number(block_header.number)
             .cloned()
         {
             irregular_state
         } else {
             data.blockchain
-                .state_at_block_number(&block_header.number)
+                .state_at_block_number(block_header.number)
                 .await?
         };
 
@@ -98,7 +98,7 @@ impl Node {
         .await?
     }
 
-    pub async fn block_number(&self) -> U256 {
+    pub async fn block_number(&self) -> u64 {
         let node_data = self.lock_data().await;
         node_data.blockchain.last_block_number().await
     }
@@ -198,7 +198,7 @@ impl Node {
         node_data.impersonated_accounts.insert(address);
     }
 
-    pub async fn increase_block_time(&self, increment: U256) -> U256 {
+    pub async fn increase_block_time(&self, increment: u64) -> u64 {
         let mut node_data = self.lock_data().await;
 
         node_data.block_time_offset_seconds += increment;
@@ -220,7 +220,7 @@ impl Node {
 
     pub async fn mine_block(
         &self,
-        timestamp: Option<U256>,
+        timestamp: Option<u64>,
     ) -> Result<MineBlockResult<BlockchainError, StateError>, NodeError> {
         let mut node_data = self.lock_data().await;
         let result = node_data.mine_block(timestamp).await?;
@@ -310,7 +310,7 @@ impl Node {
     }
 
     /// Set the next block timestamp.
-    pub async fn set_next_block_timestamp(&self, timestamp: U256) -> Result<U256, NodeError> {
+    pub async fn set_next_block_timestamp(&self, timestamp: u64) -> Result<u64, NodeError> {
         use std::cmp::Ordering;
 
         let mut node_data = self.lock_data().await;

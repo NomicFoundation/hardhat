@@ -17,7 +17,7 @@ use edr_eth::{
         filter::{FilteredEvents, LogOutput},
         jsonrpc,
         jsonrpc::{Response, ResponseData},
-        methods::{MethodInvocation as EthMethodInvocation, U256OrUsize},
+        methods::{MethodInvocation as EthMethodInvocation, U64OrUsize},
         BlockSpec,
     },
     serde::ZeroXPrefixedBytes,
@@ -76,11 +76,11 @@ async fn handle_accounts(node: Arc<Node>) -> ResponseData<Vec<Address>> {
     }
 }
 
-async fn handle_block_number(node: Arc<Node>) -> ResponseData<U256> {
+async fn handle_block_number(node: Arc<Node>) -> ResponseData<U64> {
     event!(Level::INFO, "eth_blockNumber()");
 
     ResponseData::Success {
-        result: node.block_number().await,
+        result: U64::from(node.block_number().await),
     }
 }
 
@@ -100,7 +100,7 @@ async fn handle_coinbase(node: Arc<Node>) -> ResponseData<Address> {
     }
 }
 
-async fn handle_evm_increase_time(node: Arc<Node>, increment: U256OrUsize) -> ResponseData<String> {
+async fn handle_evm_increase_time(node: Arc<Node>, increment: U64OrUsize) -> ResponseData<String> {
     event!(Level::INFO, "evm_increaseTime({increment:?})");
 
     let new_block_time = node.increase_block_time(increment.into()).await;
@@ -114,17 +114,17 @@ fn log_block(_result: &MineBlockResult<BlockchainError, StateError>, _is_interva
 }
 
 fn log_interval_mined_block_number(
-    _block_number: U256,
+    _block_number: u64,
     _is_empty: bool,
     _base_fee_per_gas: Option<U256>,
 ) {
     // TODO
 }
 
-async fn handle_evm_mine(node: Arc<Node>, timestamp: Option<U256OrUsize>) -> ResponseData<String> {
+async fn handle_evm_mine(node: Arc<Node>, timestamp: Option<U64OrUsize>) -> ResponseData<String> {
     event!(Level::INFO, "evm_mine({timestamp:?})");
 
-    let timestamp: Option<U256> = timestamp.map(U256OrUsize::into);
+    let timestamp: Option<u64> = timestamp.map(U64OrUsize::into);
     match node.mine_block(timestamp).await {
         Ok(mine_block_result) => {
             log_block(&mine_block_result, false);
@@ -139,7 +139,7 @@ async fn handle_evm_mine(node: Arc<Node>, timestamp: Option<U256OrUsize>) -> Res
 
 async fn handle_evm_set_next_block_timestamp(
     node: Arc<Node>,
-    timestamp: U256OrUsize,
+    timestamp: U64OrUsize,
 ) -> ResponseData<String> {
     event!(Level::INFO, "evm_setNextBlockTimestamp({timestamp:?})");
 

@@ -31,9 +31,9 @@ async fn create_dummy_blockchains() -> Vec<Box<dyn SyncBlockchain<BlockchainErro
 
     let local_blockchain = LocalBlockchain::new(
         state,
-        U256::from(1),
+        1,
         SpecId::LATEST,
-        U256::from(DEFAULT_GAS_LIMIT),
+        DEFAULT_GAS_LIMIT,
         None,
         Some(B256::zero()),
         Some(U256::from(DEFAULT_INITIAL_BASE_FEE)),
@@ -75,14 +75,14 @@ async fn create_dummy_blockchains() -> Vec<Box<dyn SyncBlockchain<BlockchainErro
 async fn create_dummy_block(
     blockchain: &dyn SyncBlockchain<BlockchainError, StateError>,
 ) -> LocalBlock {
-    let block_number = blockchain.last_block_number().await + U256::from(1);
+    let block_number = blockchain.last_block_number().await + 1;
 
     create_dummy_block_with_number(blockchain, block_number).await
 }
 
 async fn create_dummy_block_with_number(
     blockchain: &dyn SyncBlockchain<BlockchainError, StateError>,
-    number: U256,
+    number: u64,
 ) -> LocalBlock {
     let parent_hash = *blockchain
         .last_block()
@@ -95,7 +95,7 @@ async fn create_dummy_block_with_number(
 
 async fn create_dummy_block_with_difficulty(
     blockchain: &dyn SyncBlockchain<BlockchainError, StateError>,
-    number: U256,
+    number: u64,
     difficulty: u64,
 ) -> LocalBlock {
     let parent_hash = *blockchain
@@ -113,7 +113,7 @@ async fn create_dummy_block_with_difficulty(
     })
 }
 
-fn create_dummy_block_with_hash(number: U256, parent_hash: B256) -> LocalBlock {
+fn create_dummy_block_with_hash(number: u64, parent_hash: B256) -> LocalBlock {
     create_dummy_block_with_header(PartialHeader {
         parent_hash,
         number,
@@ -224,7 +224,7 @@ async fn test_get_block_by_number_some() {
 
         assert_eq!(
             blockchain
-                .block_by_number(&expected.header().number)
+                .block_by_number(expected.header().number)
                 .await
                 .unwrap()
                 .unwrap()
@@ -240,9 +240,9 @@ async fn test_get_block_by_number_none() {
     let blockchains = create_dummy_blockchains().await;
 
     for blockchain in blockchains {
-        let next_block_number = blockchain.last_block_number().await + U256::from(1);
+        let next_block_number = blockchain.last_block_number().await + 1;
         assert!(blockchain
-            .block_by_number(&next_block_number)
+            .block_by_number(next_block_number)
             .await
             .unwrap()
             .is_none());
@@ -269,7 +269,7 @@ async fn test_insert_block_multiple() {
 
         assert_eq!(
             blockchain
-                .block_by_number(&one.header().number)
+                .block_by_number(one.header().number)
                 .await
                 .unwrap()
                 .unwrap()
@@ -278,7 +278,7 @@ async fn test_insert_block_multiple() {
         );
         assert_eq!(
             blockchain
-                .block_by_number(&two.header().number)
+                .block_by_number(two.header().number)
                 .await
                 .unwrap()
                 .unwrap()
@@ -294,8 +294,8 @@ async fn test_insert_block_invalid_block_number() {
     let blockchains = create_dummy_blockchains().await;
 
     for mut blockchain in blockchains {
-        let next_block_number = blockchain.last_block_number().await + U256::from(1);
-        let invalid_block_number = next_block_number + U256::from(1);
+        let next_block_number = blockchain.last_block_number().await + 1;
+        let invalid_block_number = next_block_number + 1;
 
         let invalid_block =
             create_dummy_block_with_number(blockchain.as_ref(), invalid_block_number).await;
@@ -305,8 +305,8 @@ async fn test_insert_block_invalid_block_number() {
             .expect_err("Should fail to insert block");
 
         if let BlockchainError::InvalidBlockNumber { actual, expected } = error {
-            assert_eq!(actual, U256::from(invalid_block_number));
-            assert_eq!(expected, U256::from(next_block_number));
+            assert_eq!(actual, invalid_block_number);
+            assert_eq!(expected, next_block_number);
         } else {
             panic!("Unexpected error: {error:?}");
         }
@@ -320,7 +320,7 @@ async fn test_insert_block_invalid_parent_hash() {
 
     for mut blockchain in blockchains {
         const INVALID_BLOCK_HASH: B256 = B256::zero();
-        let next_block_number = blockchain.last_block_number().await + U256::from(1);
+        let next_block_number = blockchain.last_block_number().await + 1;
 
         let one = create_dummy_block_with_hash(next_block_number, INVALID_BLOCK_HASH);
         let error = blockchain
@@ -358,7 +358,7 @@ async fn test_revert_to_block() {
             .unwrap();
 
         blockchain
-            .revert_to_block(&last_block.header().number)
+            .revert_to_block(last_block.header().number)
             .await
             .unwrap();
 
@@ -380,13 +380,13 @@ async fn test_revert_to_block() {
 
         // Blocks 1 and 2 are gone
         assert!(blockchain
-            .block_by_number(&one.header().number)
+            .block_by_number(one.header().number)
             .await
             .unwrap()
             .is_none());
 
         assert!(blockchain
-            .block_by_number(&two.header().number)
+            .block_by_number(two.header().number)
             .await
             .unwrap()
             .is_none());
@@ -410,9 +410,9 @@ async fn test_revert_to_block_invalid_number() {
     let blockchains = create_dummy_blockchains().await;
 
     for mut blockchain in blockchains {
-        let next_block_number = blockchain.last_block_number().await + U256::from(1);
+        let next_block_number = blockchain.last_block_number().await + 1;
         let error = blockchain
-            .revert_to_block(&next_block_number)
+            .revert_to_block(next_block_number)
             .await
             .expect_err("Should fail to insert block");
 
@@ -435,7 +435,7 @@ async fn test_block_total_difficulty_by_hash() {
 
         let one = create_dummy_block_with_difficulty(
             blockchain.as_ref(),
-            last_block_header.number + U256::from(1),
+            last_block_header.number + 1,
             1000,
         )
         .await;
@@ -446,7 +446,7 @@ async fn test_block_total_difficulty_by_hash() {
 
         let two = create_dummy_block_with_difficulty(
             blockchain.as_ref(),
-            last_block_header.number + U256::from(2),
+            last_block_header.number + 2,
             2000,
         )
         .await;
@@ -478,7 +478,7 @@ async fn test_block_total_difficulty_by_hash() {
         );
 
         blockchain
-            .revert_to_block(&one.header().number)
+            .revert_to_block(one.header().number)
             .await
             .unwrap();
 

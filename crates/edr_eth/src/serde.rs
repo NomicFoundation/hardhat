@@ -2,7 +2,7 @@
 
 use std::ops::Deref;
 
-use ::bytes::Bytes;
+use revm_primitives::bytes::Bytes;
 
 /// Type for specifying a byte string that will have a 0x prefix when serialized and
 /// deserialized
@@ -180,7 +180,7 @@ pub mod u64 {
         D: serde::Deserializer<'de>,
     {
         let value: U64 = serde::Deserialize::deserialize(deserializer)?;
-        Ok(value.to())
+        Ok(value.as_limbs()[0])
     }
 
     /// Helper function for serializing a [`std::primitive::u64`] into a 0x-prefixed hexadecimal string.
@@ -202,7 +202,7 @@ pub mod optional_u64 {
         D: serde::Deserializer<'de>,
     {
         let value: Option<U64> = serde::Deserialize::deserialize(deserializer)?;
-        Ok(value.map(|value| value.to()))
+        Ok(value.map(|value| value.as_limbs()[0]))
     }
 
     /// Helper function for serializing a [`Option<std::primitive::u64>`] into a `0x`-prefixed hexadecimal string.

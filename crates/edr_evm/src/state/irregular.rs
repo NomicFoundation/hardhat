@@ -1,7 +1,4 @@
-use std::marker::PhantomData;
-use std::{collections::HashMap, fmt::Debug};
-
-use edr_eth::U256;
+use std::{collections::HashMap, fmt::Debug, marker::PhantomData};
 
 use crate::state::SyncState;
 
@@ -14,7 +11,7 @@ where
 {
     // Muse use `ErrorT`
     phantom: PhantomData<ErrorT>,
-    inner: HashMap<U256, StateT>,
+    inner: HashMap<u64, StateT>,
 }
 
 impl<ErrorT, StateT> Default for IrregularState<ErrorT, StateT>
@@ -36,12 +33,12 @@ where
     StateT: SyncState<ErrorT>,
 {
     /// Gets an irregular state by block number.
-    pub fn state_by_block_number(&self, block_number: &U256) -> Option<&StateT> {
-        self.inner.get(block_number)
+    pub fn state_by_block_number(&self, block_number: u64) -> Option<&StateT> {
+        self.inner.get(&block_number)
     }
 
     /// Inserts the state for a block number and returns the previous state if it exists.
-    pub fn insert_state(&mut self, block_number: U256, state: StateT) -> Option<StateT> {
+    pub fn insert_state(&mut self, block_number: u64, state: StateT) -> Option<StateT> {
         self.inner.insert(block_number, state)
     }
 }

@@ -33,7 +33,7 @@ pub struct TransactionReceipt<L> {
 
 impl<L> TransactionReceipt<L> {
     /// Returns the gas used by the transactions up until this point.
-    pub fn cumulative_gas_used(&self) -> U256 {
+    pub fn cumulative_gas_used(&self) -> u64 {
         self.inner.cumulative_gas_used
     }
 
@@ -89,7 +89,7 @@ mod test {
     fn test_transaction_receipt_serde() {
         let receipt = TransactionReceipt {
             inner: TypedReceipt {
-                cumulative_gas_used: U256::from(100),
+                cumulative_gas_used: 100,
                 logs_bloom: Bloom::default(),
                 logs: vec![],
                 data: TypedReceiptData::Eip1559 { status: 1 },

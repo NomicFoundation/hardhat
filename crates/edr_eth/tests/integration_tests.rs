@@ -1,20 +1,18 @@
-use bytes::Bytes;
-
 use edr_eth::{
     remote::{
         eth::eip712,
         filter::{
             FilterBlockTarget, FilterOptions, LogOutput, OneOrMoreAddresses, SubscriptionType,
         },
-        methods::{GetLogsInput, MethodInvocation, OneUsizeOrTwo, TransactionInput, U256OrUsize},
+        methods::{GetLogsInput, MethodInvocation, OneUsizeOrTwo, TransactionInput, U64OrUsize},
         BlockSpec, BlockTag,
     },
-    Address, B256, U256,
+    Address, B256, U256, U64,
 };
 use edr_test_utils::{
     help_test_method_invocation_serde, help_test_method_invocation_serde_with_expected,
 };
-use revm_primitives::HashMap;
+use revm_primitives::{Bytes, HashMap};
 
 #[test]
 fn test_serde_eth_accounts() {
@@ -80,7 +78,7 @@ fn test_serde_eth_estimate_gas() {
 fn test_serde_eth_fee_history() {
     help_test_method_invocation_serde(MethodInvocation::FeeHistory(
         U256::from(3),
-        BlockSpec::Number(U256::from(100)),
+        BlockSpec::Number(100),
         vec![0.5_f64, 10_f64, 80_f64, 90_f64, 99.5_f64],
     ));
 }
@@ -105,7 +103,7 @@ fn test_serde_eth_get_balance() {
 #[test]
 fn test_serde_eth_get_block_by_number() {
     help_test_method_invocation_serde(MethodInvocation::GetBlockByNumber(
-        BlockSpec::Number(U256::from(100)),
+        BlockSpec::Number(100),
         true,
     ));
 }
@@ -151,7 +149,7 @@ fn test_serde_eth_get_transaction() {
 #[test]
 fn test_serde_eth_get_transaction_count_by_number() {
     help_test_method_invocation_serde(MethodInvocation::GetBlockTransactionCountByNumber(
-        BlockSpec::Number(U256::from(100)),
+        BlockSpec::Number(100),
     ));
 }
 
@@ -181,8 +179,8 @@ fn test_serde_eth_get_filter_logs() {
 fn test_serde_eth_get_logs_by_block_numbers() {
     help_test_method_invocation_serde(MethodInvocation::GetLogs(GetLogsInput {
         address: Address::from_low_u64_ne(1),
-        from_block: BlockSpec::Number(U256::from(100)),
-        to_block: BlockSpec::Number(U256::from(102)),
+        from_block: BlockSpec::Number(100),
+        to_block: BlockSpec::Number(102),
     }));
 }
 
@@ -239,7 +237,7 @@ fn test_serde_eth_get_tx_by_hash() {
 fn test_serde_eth_get_tx_count_by_block_number() {
     help_test_method_invocation_serde(MethodInvocation::GetTransactionCount(
         Address::from_low_u64_ne(1),
-        Some(BlockSpec::Number(U256::from(100))),
+        Some(BlockSpec::Number(100)),
     ));
 }
 
@@ -272,7 +270,7 @@ fn test_serde_eth_new_block_filter() {
 fn test_serde_eth_new_filter() {
     help_test_method_invocation_serde(MethodInvocation::NewFilter(FilterOptions {
         block_target: Some(FilterBlockTarget::Range {
-            from: Some(BlockSpec::Number(U256::from(1000))),
+            from: Some(BlockSpec::Number(1000)),
             to: Some(BlockSpec::latest()),
         }),
         addresses: Some(OneOrMoreAddresses::One(Address::from_low_u64_ne(1))),
@@ -413,25 +411,25 @@ fn test_serde_one_or_more_addresses() {
 
 #[test]
 fn test_evm_increase_time() {
-    help_test_method_invocation_serde(MethodInvocation::EvmIncreaseTime(U256OrUsize::U256(
-        U256::from(12345),
+    help_test_method_invocation_serde(MethodInvocation::EvmIncreaseTime(U64OrUsize::U64(
+        U64::from(12345),
     )));
 }
 
 #[test]
 fn test_evm_mine() {
-    help_test_method_invocation_serde(MethodInvocation::EvmMine(Some(U256OrUsize::U256(
-        U256::from(12345),
-    ))));
-    help_test_method_invocation_serde(MethodInvocation::EvmMine(Some(U256OrUsize::Usize(12345))));
+    help_test_method_invocation_serde(MethodInvocation::EvmMine(Some(U64OrUsize::U64(U64::from(
+        12345,
+    )))));
+    help_test_method_invocation_serde(MethodInvocation::EvmMine(Some(U64OrUsize::Usize(12345))));
     help_test_method_invocation_serde(MethodInvocation::EvmMine(None));
 }
 
 #[test]
 fn test_evm_set_next_block_timestamp() {
-    help_test_method_invocation_serde(MethodInvocation::EvmSetNextBlockTimestamp(
-        U256OrUsize::U256(U256::from(12345)),
-    ));
+    help_test_method_invocation_serde(MethodInvocation::EvmSetNextBlockTimestamp(U64OrUsize::U64(
+        U64::from(12345),
+    )));
 }
 
 #[test]

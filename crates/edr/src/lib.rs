@@ -46,7 +46,7 @@ pub struct NodeArgs {
     #[clap(long)]
     fork_url: Option<String>,
     #[clap(long)]
-    fork_block_number: Option<usize>,
+    fork_block_number: Option<u64>,
     #[clap(long)]
     chain_id: Option<u64>,
     #[clap(long)]

@@ -18,26 +18,9 @@ pub mod methods;
 
 mod cacheable_method_invocation;
 
-use crate::{B256, U256};
+use crate::B256;
 
 pub use client::{RpcClient, RpcClientError};
-
-struct U64(u64);
-
-impl serde::Serialize for U64 {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.serialize_str(&format!("{:#x}", self.0))
-    }
-}
-
-impl From<u64> for U64 {
-    fn from(u: u64) -> U64 {
-        U64(u)
-    }
-}
 
 /// for representing block specifications per EIP-1898
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -54,7 +37,8 @@ pub enum Eip1898BlockSpec {
     /// to represent the Object { blockNumber } in EIP-1898
     Number {
         /// the block number
-        block_number: U256,
+        #[serde(with = "crate::serde::u64")]
+        block_number: u64,
     },
 }
 
@@ -101,7 +85,7 @@ impl Display for BlockTag {
 #[serde(untagged)]
 pub enum BlockSpec {
     /// as a block number
-    Number(U256),
+    Number(#[serde(with = "crate::serde::u64")] u64),
     /// as a block tag (eg "latest")
     Tag(BlockTag),
     /// as an EIP-1898-compliant block specifier
@@ -163,7 +147,7 @@ mod tests {
 
     #[test]
     fn test_serde_block_spec() {
-        help_test_block_spec_serde(BlockSpec::Number(U256::from(123)));
+        help_test_block_spec_serde(BlockSpec::Number(123));
         help_test_block_spec_serde(BlockSpec::Tag(BlockTag::Earliest));
         help_test_block_spec_serde(BlockSpec::Tag(BlockTag::Finalized));
         help_test_block_spec_serde(BlockSpec::Tag(BlockTag::Latest));
@@ -174,7 +158,7 @@ mod tests {
             require_canonical: Some(true),
         }));
         help_test_block_spec_serde(BlockSpec::Eip1898(Eip1898BlockSpec::Number {
-            block_number: U256::from(1),
+            block_number: 1,
         }));
     }
 }

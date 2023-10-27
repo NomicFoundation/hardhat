@@ -1,6 +1,6 @@
 use std::fmt::Debug;
+use std::num::NonZeroU64;
 use std::{
-    num::NonZeroUsize,
     sync::Arc,
     time::{SystemTime, UNIX_EPOCH},
 };
@@ -32,7 +32,7 @@ pub enum CreationError {
 #[derive(Debug, thiserror::Error)]
 pub enum InsertBlockError {
     #[error("Invalid block number: {actual}. Expected: {expected}")]
-    InvalidBlockNumber { actual: U256, expected: U256 },
+    InvalidBlockNumber { actual: u64, expected: u64 },
     /// Missing withdrawals for post-Shanghai blockchain
     #[error("Missing withdrawals for post-Shanghai blockchain")]
     MissingWithdrawals,
@@ -43,7 +43,7 @@ pub enum InsertBlockError {
 pub struct LocalBlockchain {
     storage: ReservableSparseBlockchainStorage<Arc<dyn SyncBlock<Error = BlockchainError>>>,
     genesis_state: TrieState,
-    chain_id: U256,
+    chain_id: u64,
     spec_id: SpecId,
 }
 
@@ -52,10 +52,10 @@ impl LocalBlockchain {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn new(
         genesis_state: TrieState,
-        chain_id: U256,
+        chain_id: u64,
         spec_id: SpecId,
-        gas_limit: U256,
-        timestamp: Option<U256>,
+        gas_limit: u64,
+        timestamp: Option<u64>,
         prevrandao: Option<B256>,
         base_fee: Option<U256>,
     ) -> Result<Self, CreationError> {
@@ -71,16 +71,14 @@ impl LocalBlockchain {
             } else {
                 U256::from(1)
             },
-            number: U256::ZERO,
+            number: 0,
             gas_limit,
-            gas_used: U256::ZERO,
+            gas_used: 0,
             timestamp: timestamp.unwrap_or_else(|| {
-                U256::from(
-                    SystemTime::now()
-                        .duration_since(UNIX_EPOCH)
-                        .expect("Current time must be after unix epoch")
-                        .as_secs(),
-                )
+                SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .expect("Current time must be after unix epoch")
+                    .as_secs()
             }),
             extra_data: Bytes::from(EXTRA_DATA),
             mix_hash: if spec_id >= SpecId::MERGE {
@@ -121,15 +119,15 @@ impl LocalBlockchain {
     pub fn with_genesis_block(
         genesis_block: LocalBlock,
         genesis_state: TrieState,
-        chain_id: U256,
+        chain_id: u64,
         spec_id: SpecId,
     ) -> Result<Self, InsertBlockError> {
         let genesis_header = genesis_block.header();
 
-        if genesis_header.number != U256::ZERO {
+        if genesis_header.number != 0 {
             return Err(InsertBlockError::InvalidBlockNumber {
                 actual: genesis_header.number,
-                expected: U256::ZERO,
+                expected: 0,
             });
         }
 
@@ -151,7 +149,7 @@ impl LocalBlockchain {
     pub unsafe fn with_genesis_block_unchecked(
         genesis_block: LocalBlock,
         genesis_state: TrieState,
-        chain_id: U256,
+        chain_id: u64,
         spec_id: SpecId,
     ) -> Self {
         let genesis_block: Arc<dyn SyncBlock<Error = BlockchainError>> = Arc::new(genesis_block);
@@ -187,7 +185,7 @@ impl Blockchain for LocalBlockchain {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn block_by_number(
         &self,
-        number: &U256,
+        number: u64,
     ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>
     {
         Ok(self.storage.block_by_number(number))
@@ -202,7 +200,7 @@ impl Blockchain for LocalBlockchain {
         Ok(self.storage.block_by_transaction_hash(transaction_hash))
     }
 
-    async fn chain_id(&self) -> U256 {
+    async fn chain_id(&self) -> u64 {
         self.chain_id
     }
 
@@ -216,8 +214,8 @@ impl Blockchain for LocalBlockchain {
             .expect("Block must exist"))
     }
 
-    async fn last_block_number(&self) -> U256 {
-        *self.storage.last_block_number()
+    async fn last_block_number(&self) -> u64 {
+        self.storage.last_block_number()
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
@@ -231,9 +229,9 @@ impl Blockchain for LocalBlockchain {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn spec_at_block_number(
         &self,
-        block_number: &U256,
+        block_number: u64,
     ) -> Result<SpecId, Self::BlockchainError> {
-        if *block_number > self.last_block_number().await {
+        if block_number > self.last_block_number().await {
             return Err(BlockchainError::UnknownBlockNumber);
         }
 
@@ -247,14 +245,14 @@ impl Blockchain for LocalBlockchain {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     async fn state_at_block_number(
         &self,
-        block_number: &U256,
+        block_number: u64,
     ) -> Result<Box<dyn SyncState<Self::StateError>>, Self::BlockchainError> {
-        if *block_number > self.last_block_number().await {
+        if block_number > self.last_block_number().await {
             return Err(BlockchainError::UnknownBlockNumber);
         }
 
         let mut state = self.genesis_state.clone();
-        if *block_number > U256::ZERO {
+        if block_number > 0 {
             compute_state_at_block(&mut state, &self.storage, block_number);
         }
 
@@ -302,12 +300,8 @@ impl BlockchainMut for LocalBlockchain {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn reserve_blocks(
-        &mut self,
-        additional: usize,
-        interval: U256,
-    ) -> Result<(), Self::Error> {
-        let additional = if let Some(additional) = NonZeroUsize::new(additional) {
+    async fn reserve_blocks(&mut self, additional: u64, interval: u64) -> Result<(), Self::Error> {
+        let additional = if let Some(additional) = NonZeroU64::new(additional) {
             additional
         } else {
             return Ok(()); // nothing to do
@@ -334,7 +328,7 @@ impl BlockchainMut for LocalBlockchain {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn revert_to_block(&mut self, block_number: &U256) -> Result<(), Self::Error> {
+    async fn revert_to_block(&mut self, block_number: u64) -> Result<(), Self::Error> {
         if self.storage.revert_to_block(block_number) {
             Ok(())
         } else {
@@ -348,8 +342,11 @@ impl BlockHashRef for LocalBlockchain {
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn block_hash(&self, number: U256) -> Result<B256, Self::Error> {
+        let number =
+            u64::try_from(number).map_err(|_error| BlockchainError::BlockNumberTooLarge)?;
+
         self.storage
-            .block_by_number(&number)
+            .block_by_number(number)
             .map(|block| *block.hash())
             .ok_or(BlockchainError::UnknownBlockNumber)
     }

@@ -878,7 +878,6 @@ describe("Tx Pool", () => {
 
       await txPool.setBlockGasLimit(5_000_000n);
 
-      await txPool.update();
       const pendingTransactions = txPool.getOrderedPendingTransactions();
 
       assertEqualTransactionMaps(pendingTransactions, makeOrderedTxMap([]));
@@ -892,7 +891,6 @@ describe("Tx Pool", () => {
 
       await txPool.setBlockGasLimit(5_000_000n);
 
-      await txPool.update();
       const queuedTransactions = txPool.getOrderedQueuedTransactions();
 
       assertEqualTransactionMaps(queuedTransactions, makeOrderedTxMap([]));
@@ -1052,7 +1050,6 @@ describe("Tx Pool", () => {
 
       // this should drop tx1
       await txPool.setBlockGasLimit(150_000n);
-      await txPool.update();
 
       // pending: [0]
       // queued: [2, 4, 5]
@@ -1085,7 +1082,6 @@ describe("Tx Pool", () => {
       assert.lengthOf(txMapToArray(queuedTxs), 0);
 
       await txPool.setBlockGasLimit(90_000n);
-      await txPool.update();
 
       const tx2 = createTestFakeTransaction({
         gasLimit: 80_000,
@@ -1142,7 +1138,6 @@ describe("Tx Pool", () => {
 
       // this should drop tx1
       await txPool.setBlockGasLimit(100_000n);
-      await txPool.update();
 
       const tx3 = createTestFakeTransaction({
         nonce: 3,
