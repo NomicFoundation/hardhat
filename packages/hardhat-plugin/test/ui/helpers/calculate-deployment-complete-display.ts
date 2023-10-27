@@ -11,12 +11,27 @@ import { assert } from "chai";
 import chalk from "chalk";
 
 import { calculateDeploymentCompleteDisplay } from "../../../src/ui/helpers/calculate-deployment-complete-display";
+import { UiBatches, UiFutureStatusType } from "../../../src/ui/types";
 
 import { testFormat } from "./test-format";
 
 describe("ui - calculate deployment complete display", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
   const differentAddress = "0x0011223344556677889900112233445566778899";
+
+  const exampleMultipleBatches: UiBatches = [
+    [
+      {
+        status: {
+          type: UiFutureStatusType.SUCCESS,
+          result: "0x0",
+        },
+        futureId: "MyModule#MyContract1",
+      },
+    ],
+  ];
+
+  const exampleNoBatches: UiBatches = [];
 
   describe("successful deployment", () => {
     it("should render a sucessful deployment", () => {
@@ -49,6 +64,9 @@ describe("ui - calculate deployment complete display", () => {
 
       const actualText = calculateDeploymentCompleteDisplay(event, {
         moduleName: "MyModule",
+        isResumed: false,
+        batches: exampleMultipleBatches,
+        deploymentDir: "",
       });
 
       assert.equal(actualText, expectedText);
@@ -72,6 +90,35 @@ describe("ui - calculate deployment complete display", () => {
 
       const actualText = calculateDeploymentCompleteDisplay(event, {
         moduleName: "MyModule",
+        isResumed: false,
+        batches: exampleMultipleBatches,
+        deploymentDir: "",
+      });
+
+      assert.equal(actualText, expectedText);
+    });
+
+    it("should render a resumed deployment with no new deployments", () => {
+      const expectedText = testFormat(`
+        [ MyModule ] Nothing new to deploy based on previous execution stored in test
+
+        ${chalk.bold("Deployed Addresses")}
+
+        ${chalk.italic("No contracts were deployed")}`);
+
+      const event: DeploymentCompleteEvent = {
+        type: ExecutionEventType.DEPLOYMENT_COMPLETE,
+        result: {
+          type: DeploymentResultType.SUCCESSFUL_DEPLOYMENT,
+          contracts: {},
+        },
+      };
+
+      const actualText = calculateDeploymentCompleteDisplay(event, {
+        moduleName: "MyModule",
+        isResumed: true,
+        batches: exampleNoBatches,
+        deploymentDir: "test",
       });
 
       assert.equal(actualText, expectedText);
@@ -112,6 +159,9 @@ describe("ui - calculate deployment complete display", () => {
 
       const actualText = calculateDeploymentCompleteDisplay(event, {
         moduleName: "MyModule",
+        isResumed: false,
+        batches: exampleMultipleBatches,
+        deploymentDir: "",
       });
 
       assert.equal(actualText, expectedText);
@@ -152,6 +202,9 @@ describe("ui - calculate deployment complete display", () => {
 
       const actualText = calculateDeploymentCompleteDisplay(event, {
         moduleName: "MyModule",
+        isResumed: false,
+        batches: exampleMultipleBatches,
+        deploymentDir: "",
       });
 
       assert.equal(actualText, expectedText);
@@ -184,6 +237,9 @@ describe("ui - calculate deployment complete display", () => {
 
       const actualText = calculateDeploymentCompleteDisplay(event, {
         moduleName: "MyModule",
+        isResumed: false,
+        batches: exampleMultipleBatches,
+        deploymentDir: "",
       });
 
       assert.equal(actualText, expectedText);
@@ -252,6 +308,9 @@ describe("ui - calculate deployment complete display", () => {
 
       const actualText = calculateDeploymentCompleteDisplay(event, {
         moduleName: "MyModule",
+        isResumed: false,
+        batches: exampleMultipleBatches,
+        deploymentDir: "",
       });
 
       assert.equal(actualText, expectedText);

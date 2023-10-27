@@ -9,15 +9,31 @@ import {
 } from "@nomicfoundation/ignition-core";
 import chalk from "chalk";
 
+import { UiState } from "../types";
+
+import { pathFromCwd } from "./cwd-relative-path";
+import { wasAnythingExecuted } from "./was-anything-executed";
+
 export function calculateDeploymentCompleteDisplay(
   event: DeploymentCompleteEvent,
-  { moduleName: givenModuleName }: { moduleName: string | null }
+  uiState: Pick<
+    UiState,
+    "moduleName" | "isResumed" | "batches" | "deploymentDir"
+  >
 ): string {
-  const moduleName = givenModuleName ?? "unknown";
+  const moduleName = uiState.moduleName ?? "unknown";
+  const isResumed = uiState.isResumed ?? false;
 
   switch (event.result.type) {
     case DeploymentResultType.SUCCESSFUL_DEPLOYMENT: {
-      return _displaySuccessfulDeployment(event.result, { moduleName });
+      const isRerunWithNoChanges: boolean =
+        isResumed && !wasAnythingExecuted(uiState);
+
+      return _displaySuccessfulDeployment(event.result, {
+        moduleName,
+        isRerunWithNoChanges,
+        deploymentDir: uiState.deploymentDir,
+      });
     }
     case DeploymentResultType.VALIDATION_ERROR: {
       return _displayValidationErrors(event.result, { moduleName });
@@ -36,9 +52,23 @@ export function calculateDeploymentCompleteDisplay(
 
 function _displaySuccessfulDeployment(
   result: SuccessfulDeploymentResult,
-  { moduleName }: { moduleName: string }
+  {
+    moduleName,
+    isRerunWithNoChanges,
+    deploymentDir,
+  }: {
+    moduleName: string;
+    isRerunWithNoChanges: boolean;
+    deploymentDir: string | null | undefined;
+  }
 ): string {
-  let text = `[ ${moduleName} ] successfully deployed 🚀
+  const fillerText = isRerunWithNoChanges
+    ? `Nothing new to deploy based on previous execution stored in ${pathFromCwd(
+        deploymentDir ?? "Not provided"
+      )}`
+    : `successfully deployed 🚀`;
+
+  let text = `[ ${moduleName} ] ${fillerText}
 
 ${chalk.bold("Deployed Addresses")}
 
