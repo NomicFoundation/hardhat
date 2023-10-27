@@ -25,13 +25,8 @@ pub struct ForkState {
     local_state: TrieState,
     remote_state: Arc<Mutex<CachedRemoteState>>,
     removed_storage_slots: HashSet<(Address, U256)>,
-    fork_block_number: u64,
-    /// client-facing state root (pseudorandomly generated) mapped to internal
-    /// (layered_state) state root
-    state_root_to_state: RwLock<HashMap<B256, B256>>,
-    /// A pair of the generated state root and local state root
+    /// A pair of the latest state root and local state root
     current_state: RwLock<(B256, B256)>,
-    initial_state_root: B256,
     hash_generator: Arc<Mutex<RandomHashGenerator>>,
     removed_remote_accounts: HashSet<Address>,
 }
@@ -65,10 +60,7 @@ impl ForkState {
             local_state,
             remote_state: Arc::new(Mutex::new(CachedRemoteState::new(remote_state))),
             removed_storage_slots: HashSet::new(),
-            fork_block_number,
-            state_root_to_state: RwLock::new(state_root_to_state),
             current_state: RwLock::new((generated_state_root, local_root)),
-            initial_state_root: generated_state_root,
             hash_generator,
             removed_remote_accounts: HashSet::new(),
         })
@@ -92,10 +84,7 @@ impl Clone for ForkState {
             local_state: self.local_state.clone(),
             remote_state: self.remote_state.clone(),
             removed_storage_slots: self.removed_storage_slots.clone(),
-            fork_block_number: self.fork_block_number,
-            state_root_to_state: RwLock::new(self.state_root_to_state.read().clone()),
             current_state: RwLock::new(*self.current_state.read()),
-            initial_state_root: self.initial_state_root,
             hash_generator: self.hash_generator.clone(),
             removed_remote_accounts: self.removed_remote_accounts.clone(),
         }
@@ -204,8 +193,6 @@ impl StateDebug for ForkState {
         index: U256,
         value: U256,
     ) -> Result<(), Self::Error> {
-        // We never need to remove zero entries as a "removed" entry means that the
-        // lookup for a value in the hybrid state succeeded.
         if value == U256::ZERO {
             self.removed_storage_slots.insert((address, index));
         }
@@ -218,15 +205,11 @@ impl StateDebug for ForkState {
         let local_root = self.local_state.state_root().unwrap();
 
         let current_state = self.current_state.upgradable_read();
-        let state_root_to_state = self.state_root_to_state.upgradable_read();
 
         Ok(if local_root == current_state.1 {
             current_state.0
         } else {
             let next_state_root = self.hash_generator.lock().next_value();
-
-            let mut state_root_to_state = RwLockUpgradableReadGuard::upgrade(state_root_to_state);
-            state_root_to_state.insert(next_state_root, local_root);
 
             *RwLockUpgradableReadGuard::upgrade(current_state) = (next_state_root, local_root);
 
