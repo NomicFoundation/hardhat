@@ -1,3 +1,6 @@
+mod node_data;
+mod node_error;
+
 use std::mem;
 
 use k256::SecretKey;
@@ -18,11 +21,9 @@ use edr_evm::{
     AccountInfo, Block, Bytecode, MineBlockResult, KECCAK_EMPTY,
 };
 
-use crate::{
-    filter::Filter,
-    node::{node_data::NodeData, NodeError},
-    Config,
-};
+use crate::{filter::Filter, node::node_data::NodeData, Config};
+
+pub use self::node_error::NodeError;
 
 pub struct Node {
     data: Mutex<NodeData>,
