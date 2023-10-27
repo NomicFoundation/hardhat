@@ -1,6 +1,6 @@
 import { IgnitionError, IgnitionModule } from "@nomicfoundation/ignition-core";
 import setupDebug from "debug";
-import { existsSync, pathExistsSync } from "fs-extra";
+import { pathExistsSync } from "fs-extra";
 import {
   HardhatPluginError,
   NomicLabsHardhatPluginError,
@@ -26,20 +26,6 @@ export function loadModule(
     ignitionDirectory,
     MODULES_FOLDER
   );
-
-  if (!existsSync(ignitionDirectory)) {
-    throw new HardhatPluginError(
-      "hardhat-ignition",
-      `Ignition directory ${ignitionDirectory} not found.`
-    );
-  }
-
-  if (!existsSync(fullModulesDirectoryName)) {
-    throw new HardhatPluginError(
-      "hardhat-ignition",
-      `Ignition modules directory ${shortModulesDirectoryName} not found.`
-    );
-  }
 
   debug(`Loading user modules from '${fullModulesDirectoryName}'`);
 

@@ -8,13 +8,6 @@ import { useEphemeralIgnitionProject } from "./use-ignition-project";
 describe("loadModule", function () {
   useEphemeralIgnitionProject("user-modules");
 
-  it("should throw if given a user module directory that does not exist", async () => {
-    assert.throws(
-      () => loadModule("/fake", "AFile.js"),
-      `Ignition directory /fake not found.`
-    );
-  });
-
   it("should throw if the full path to the module does not exist", () => {
     assert.throws(
       () => loadModule("ignition", "./ignition/modules/Fake.js"),
