@@ -9,7 +9,7 @@ mod block;
 mod transaction;
 
 use ethbloom::Bloom;
-use revm_primitives::{B256, U256};
+use revm_primitives::B256;
 
 pub use self::{block::BlockReceipt, transaction::TransactionReceipt};
 
@@ -20,7 +20,8 @@ pub use self::{block::BlockReceipt, transaction::TransactionReceipt};
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct TypedReceipt<LogT> {
     /// Cumulative gas used in block after this transaction was executed
-    pub cumulative_gas_used: U256,
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
+    pub cumulative_gas_used: u64,
     /// Bloom filter of the logs generated within this transaction
     pub logs_bloom: Bloom,
     /// Logs generated within this transaction
@@ -138,12 +139,14 @@ where
             where
                 MapAccessT: serde::de::MapAccess<'deserializer>,
             {
+                use revm_primitives::ruint::aliases::U64;
                 use serde::de::Error;
+
                 // These are `String` to support deserializing from `serde_json::Value`
                 let mut transaction_type: Option<String> = None;
                 let mut status_code: Option<String> = None;
                 let mut state_root = None;
-                let mut cumulative_gas_used = None;
+                let mut cumulative_gas_used: Option<U64> = None;
                 let mut logs_bloom = None;
                 let mut logs = None;
 
@@ -217,7 +220,7 @@ where
                 };
 
                 Ok(TypedReceipt {
-                    cumulative_gas_used,
+                    cumulative_gas_used: cumulative_gas_used.as_limbs()[0],
                     logs_bloom,
                     logs,
                     data,
@@ -346,8 +349,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use bytes::Bytes;
-    use revm_primitives::Address;
+    use revm_primitives::{Address, Bytes};
 
     use crate::log::Log;
 
@@ -364,7 +366,7 @@ mod tests {
         ]
         .into_iter()
         .map(|data| TypedReceipt {
-            cumulative_gas_used: U256::from(0xffff),
+            cumulative_gas_used: 0xffff,
             logs_bloom: Bloom::random(),
             logs: vec![
                 Log {

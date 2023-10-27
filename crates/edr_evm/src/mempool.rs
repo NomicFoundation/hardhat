@@ -79,8 +79,8 @@ pub enum MinerTransactionError<SE> {
     /// Transaction gas limit exceeds block gas limit.
     #[error("Transaction gas limit is {transaction_gas_limit} and exceeds block gas limit of {block_gas_limit}")]
     ExceedsBlockGasLimit {
-        block_gas_limit: U256,
-        transaction_gas_limit: U256,
+        block_gas_limit: u64,
+        transaction_gas_limit: u64,
     },
     /// Transaction already exists in the mempool.
     #[error("Known transaction: 0x{transaction_hash:x}")]
@@ -137,7 +137,7 @@ impl OrderedTransaction {
 #[derive(Clone, Debug)]
 pub struct MemPool {
     /// The block's gas limit
-    block_gas_limit: U256,
+    block_gas_limit: u64,
     /// Transactions that can be executed now
     pending_transactions: IndexMap<Address, Vec<OrderedTransaction>>,
     /// Mapping of transaction hashes to transaction
@@ -149,7 +149,7 @@ pub struct MemPool {
 
 impl MemPool {
     /// Constructs a new [`MemPool`] with the specified block gas limit.
-    pub fn new(block_gas_limit: U256) -> Self {
+    pub fn new(block_gas_limit: u64) -> Self {
         Self {
             block_gas_limit,
             pending_transactions: IndexMap::new(),
@@ -160,12 +160,12 @@ impl MemPool {
     }
 
     /// Retrieves the instance's block gas limit.
-    pub fn block_gas_limit(&self) -> &U256 {
-        &self.block_gas_limit
+    pub fn block_gas_limit(&self) -> u64 {
+        self.block_gas_limit
     }
 
     /// Sets the instance's block gas limit.
-    pub fn set_block_gas_limit<S>(&mut self, state: &S, limit: U256) -> Result<(), S::Error>
+    pub fn set_block_gas_limit<S>(&mut self, state: &S, limit: u64) -> Result<(), S::Error>
     where
         S: StateRef + ?Sized,
         S::Error: Debug,
@@ -224,7 +224,7 @@ impl MemPool {
         state: &S,
         transaction: PendingTransaction,
     ) -> Result<(), MinerTransactionError<S::Error>> {
-        let transaction_gas_limit = U256::from(transaction.gas_limit());
+        let transaction_gas_limit = transaction.gas_limit();
         if transaction_gas_limit > self.block_gas_limit {
             return Err(MinerTransactionError::ExceedsBlockGasLimit {
                 block_gas_limit: self.block_gas_limit,
@@ -314,10 +314,10 @@ impl MemPool {
     {
         fn is_valid_tx(
             transaction: &PendingTransaction,
-            block_gas_limit: &U256,
+            block_gas_limit: u64,
             sender: &AccountInfo,
         ) -> bool {
-            U256::from(transaction.gas_limit()) <= *block_gas_limit
+            transaction.gas_limit() <= block_gas_limit
                 && transaction.upfront_cost() <= sender.balance
         }
 
@@ -337,7 +337,7 @@ impl MemPool {
             });
 
             if let Some((idx, _)) = transactions.iter().enumerate().find(|(_, transaction)| {
-                !is_valid_tx(&transaction.transaction, &self.block_gas_limit, &sender)
+                !is_valid_tx(&transaction.transaction, self.block_gas_limit, &sender)
             }) {
                 // Move all consequent transactions to the future queue
                 let mut invalidated_transactions = transactions.split_off(idx);
@@ -359,7 +359,7 @@ impl MemPool {
 
             transactions.retain(|transaction| {
                 let should_retain =
-                    is_valid_tx(&transaction.transaction, &self.block_gas_limit, &sender);
+                    is_valid_tx(&transaction.transaction, self.block_gas_limit, &sender);
 
                 if !should_retain {
                     self.hash_to_transaction.remove(transaction.hash());

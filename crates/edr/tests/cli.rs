@@ -10,11 +10,11 @@ use edr_eth::{
     remote::{
         client::Request as RpcRequest,
         jsonrpc,
-        methods::{MethodInvocation as EthMethodInvocation, U256OrUsize},
+        methods::{MethodInvocation as EthMethodInvocation, U64OrUsize},
         BlockSpec,
     },
     signature::secret_key_to_address,
-    Bytes, U256,
+    Bytes, U256, U64,
 };
 use edr_rpc_server::{HardhatMethodInvocation, MethodInvocation};
 
@@ -34,14 +34,14 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
         MethodInvocation::Eth(EthMethodInvocation::BlockNumber()),
         MethodInvocation::Eth(EthMethodInvocation::ChainId()),
         MethodInvocation::Eth(EthMethodInvocation::Coinbase()),
-        MethodInvocation::Eth(EthMethodInvocation::EvmIncreaseTime(U256OrUsize::U256(
-            U256::from(12345),
+        MethodInvocation::Eth(EthMethodInvocation::EvmIncreaseTime(U64OrUsize::U64(
+            U64::from(12345),
         ))),
-        MethodInvocation::Eth(EthMethodInvocation::EvmMine(Some(U256OrUsize::U256(
-            U256::from(12345),
+        MethodInvocation::Eth(EthMethodInvocation::EvmMine(Some(U64OrUsize::U64(
+            U64::from(12345),
         )))),
         MethodInvocation::Eth(EthMethodInvocation::EvmSetNextBlockTimestamp(
-            U256OrUsize::U256(U256::from(12345)),
+            U64OrUsize::U64(U64::from(12345)),
         )),
         MethodInvocation::Eth(EthMethodInvocation::GetBalance(
             address,
@@ -80,8 +80,8 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
         MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(address)),
         MethodInvocation::Hardhat(HardhatMethodInvocation::IntervalMine()),
         MethodInvocation::Hardhat(HardhatMethodInvocation::Mine(
-            Some(U256::from(10)),   // block count
-            Some(U256::from(5000)), // interval
+            Some(10),   // block count
+            Some(5000), // interval
         )),
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(address, U256::ZERO)),
         MethodInvocation::Hardhat(HardhatMethodInvocation::SetCode(

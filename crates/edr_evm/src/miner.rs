@@ -67,7 +67,7 @@ pub async fn mine_block<BlockchainErrorT, StateErrorT>(
     mut state: Box<dyn SyncState<StateErrorT>>,
     mem_pool: &mut MemPool,
     cfg: &CfgEnv,
-    timestamp: U256,
+    timestamp: u64,
     beneficiary: Address,
     min_gas_price: U256,
     mine_ordering: MineOrdering,
@@ -100,8 +100,8 @@ where
         parent_header,
         BlockOptions {
             beneficiary: Some(beneficiary),
-            number: Some(parent_header.number + U256::from(1)),
-            gas_limit: Some(*mem_pool.block_gas_limit()),
+            number: Some(parent_header.number + 1),
+            gas_limit: Some(mem_pool.block_gas_limit()),
             timestamp: Some(timestamp),
             mix_hash: if cfg.spec_id >= SpecId::MERGE {
                 Some(prevrandao.ok_or(MineBlockError::MissingPrevrandao)?)
@@ -217,7 +217,7 @@ where
 ///
 /// Panics if the parent header does not contain a base fee.
 fn calculate_next_base_fee(parent: &Header) -> U256 {
-    let elasticity = U256::from(2);
+    let elasticity = 2;
     let base_fee_max_change_denominator = U256::from(8);
 
     let parent_gas_target = parent.gas_limit / elasticity;
@@ -229,8 +229,8 @@ fn calculate_next_base_fee(parent: &Header) -> U256 {
         std::cmp::Ordering::Less => {
             let gas_used_delta = parent_gas_target - parent.gas_used;
 
-            let delta = parent_base_fee * gas_used_delta
-                / parent_gas_target
+            let delta = parent_base_fee * U256::from(gas_used_delta)
+                / U256::from(parent_gas_target)
                 / base_fee_max_change_denominator;
 
             parent_base_fee.saturating_sub(delta)
@@ -239,8 +239,8 @@ fn calculate_next_base_fee(parent: &Header) -> U256 {
         std::cmp::Ordering::Greater => {
             let gas_used_delta = parent.gas_used - parent_gas_target;
 
-            let delta = parent_base_fee * gas_used_delta
-                / parent_gas_target
+            let delta = parent_base_fee * U256::from(gas_used_delta)
+                / U256::from(parent_gas_target)
                 / base_fee_max_change_denominator;
 
             parent_base_fee + delta.max(U256::from(1))
@@ -278,8 +278,8 @@ mod tests {
         {
             let parent_header = Header {
                 base_fee_per_gas: Some(U256::from(base_fee)),
-                gas_used: U256::from(gas_used),
-                gas_limit: U256::from(gas_limit),
+                gas_used,
+                gas_limit,
                 ..Default::default()
             };
 

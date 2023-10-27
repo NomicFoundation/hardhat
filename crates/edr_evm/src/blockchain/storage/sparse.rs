@@ -12,7 +12,7 @@ use super::InsertError;
 pub struct SparseBlockchainStorage<BlockT: Block + Clone + ?Sized> {
     hash_to_block: HashMap<B256, BlockT>,
     hash_to_total_difficulty: HashMap<B256, U256>,
-    number_to_block: HashMap<U256, BlockT>,
+    number_to_block: HashMap<u64, BlockT>,
     transaction_hash_to_block: HashMap<B256, BlockT>,
     transaction_hash_to_receipt: HashMap<B256, Arc<BlockReceipt>>,
 }
@@ -55,8 +55,8 @@ impl<BlockT: Block + Clone + ?Sized> SparseBlockchainStorage<BlockT> {
 
     /// Retrieves the block by number, if it exists.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn block_by_number(&self, number: &U256) -> Option<&BlockT> {
-        self.number_to_block.get(number)
+    pub fn block_by_number(&self, number: u64) -> Option<&BlockT> {
+        self.number_to_block.get(&number)
     }
 
     /// Retrieves the block that contains the transaction with the provided hash, if it exists.
@@ -67,8 +67,8 @@ impl<BlockT: Block + Clone + ?Sized> SparseBlockchainStorage<BlockT> {
 
     /// Retrieves whether a block with the provided number exists.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn contains_block_number(&self, number: &U256) -> bool {
-        self.number_to_block.contains_key(number)
+    pub fn contains_block_number(&self, block_number: u64) -> bool {
+        self.number_to_block.contains_key(&block_number)
     }
 
     /// Retrieves the receipt of the transaction with the provided hash, if it exists.
@@ -82,10 +82,10 @@ impl<BlockT: Block + Clone + ?Sized> SparseBlockchainStorage<BlockT> {
 
     /// Reverts to the block with the provided number, deleting all later blocks.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn revert_to_block(&mut self, block_number: &U256) {
+    pub fn revert_to_block(&mut self, block_number: u64) {
         let removed_blocks = self
             .number_to_block
-            .extract_if(|number, _| number > block_number);
+            .extract_if(|number, _| *number > block_number);
 
         for (_, block) in removed_blocks {
             let block_hash = block.hash();

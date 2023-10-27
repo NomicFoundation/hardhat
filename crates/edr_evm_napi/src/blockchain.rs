@@ -7,7 +7,7 @@ use napi::{
 };
 use napi_derive::napi;
 
-use edr_eth::{remote::RpcClient, spec::HardforkActivations, B256, U256};
+use edr_eth::{remote::RpcClient, spec::HardforkActivations, B256};
 use edr_evm::{
     blockchain::{BlockchainError, SyncBlockchain},
     state::{AccountTrie, StateError, TrieState},
@@ -69,7 +69,7 @@ impl Blockchain {
         genesis_block: BlockOptions,
         accounts: Vec<GenesisAccount>,
     ) -> napi::Result<Self> {
-        let chain_id: U256 = chain_id.try_cast()?;
+        let chain_id: u64 = chain_id.try_cast()?;
         let spec_id = edr_evm::SpecId::from(spec_id);
         let options = edr_eth::block::BlockOptions::try_from(genesis_block)?;
 
@@ -104,9 +104,7 @@ impl Blockchain {
         hardfork_activation_overrides: Vec<(BigInt, Vec<(BigInt, SpecId)>)>,
     ) -> napi::Result<JsObject> {
         let spec_id = edr_evm::SpecId::from(spec_id);
-        let fork_block_number: Option<U256> = fork_block_number.map_or(Ok(None), |number| {
-            BigInt::try_cast(number).map(Option::Some)
-        })?;
+        let fork_block_number: Option<u64> = fork_block_number.map(BigInt::try_cast).transpose()?;
         let cache_dir = cache_dir.map_or_else(|| edr_defaults::CACHE_DIR.into(), PathBuf::from);
         let accounts = genesis_accounts(accounts)?;
 
@@ -114,20 +112,20 @@ impl Blockchain {
         let hardfork_activation_overrides = hardfork_activation_overrides
             .into_iter()
             .map(|(chain_id, hardfork_activations)| {
-                let chain_id: U256 = BigInt::try_cast(chain_id)?;
+                let chain_id: u64 = BigInt::try_cast(chain_id)?;
 
                 hardfork_activations
                     .into_iter()
                     .map(|(block_number, spec_id)| {
-                        let block_number: U256 = BigInt::try_cast(block_number)?;
+                        let block_number: u64 = BigInt::try_cast(block_number)?;
                         let spec_id = edr_evm::SpecId::from(spec_id);
 
                         Ok((block_number, spec_id))
                     })
                     .collect::<napi::Result<Vec<_>>>()
-                    .map(|activations| (chain_id, HardforkActivations::from(activations)))
+                    .map(|activations| (chain_id, HardforkActivations::from(&activations[..])))
             })
-            .collect::<napi::Result<HashMap<U256, HardforkActivations>>>()?;
+            .collect::<napi::Result<HashMap<u64, HardforkActivations>>>()?;
 
         let runtime = runtime::Handle::current();
 
@@ -170,16 +168,12 @@ impl Blockchain {
     #[napi]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn block_by_number(&self, number: BigInt) -> napi::Result<Option<Block>> {
-        let number: U256 = BigInt::try_cast(number)?;
+        let number: u64 = BigInt::try_cast(number)?;
 
-        self.read()
-            .await
-            .block_by_number(&number)
-            .await
-            .map_or_else(
-                |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
-                |block| Ok(block.map(Block::from)),
-            )
+        self.read().await.block_by_number(number).await.map_or_else(
+            |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+            |block| Ok(block.map(Block::from)),
+        )
     }
 
     #[doc = "Retrieves the block that contains a transaction with the provided hash, if it exists."]
@@ -207,10 +201,7 @@ impl Blockchain {
     pub async fn chain_id(&self) -> BigInt {
         let chain_id = self.read().await.chain_id().await;
 
-        BigInt {
-            sign_bit: false,
-            words: chain_id.into_limbs().to_vec(),
-        }
+        BigInt::from(chain_id)
     }
 
     // #[napi]
@@ -244,10 +235,7 @@ impl Blockchain {
     pub async fn last_block_number(&self) -> BigInt {
         let block_number = self.read().await.last_block_number().await;
 
-        BigInt {
-            sign_bit: false,
-            words: block_number.into_limbs().to_vec(),
-        }
+        BigInt::from(block_number)
     }
 
     #[doc = "Retrieves the receipt of the transaction with the provided hash, if it exists."]
@@ -274,11 +262,7 @@ impl Blockchain {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn reserve_blocks(&self, additional: BigInt, interval: BigInt) -> napi::Result<()> {
         let additional: u64 = BigInt::try_cast(additional)?;
-        let interval: U256 = BigInt::try_cast(interval)?;
-
-        let additional = usize::try_from(additional).map_err(|_error| {
-            napi::Error::new(Status::InvalidArg, "Additional storage exceeds capacity.")
-        })?;
+        let interval: u64 = BigInt::try_cast(interval)?;
 
         self.write()
             .await
@@ -291,11 +275,11 @@ impl Blockchain {
     #[napi]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn revert_to_block(&self, block_number: BigInt) -> napi::Result<()> {
-        let block_number: U256 = BigInt::try_cast(block_number)?;
+        let block_number: u64 = BigInt::try_cast(block_number)?;
 
         self.write()
             .await
-            .revert_to_block(&block_number)
+            .revert_to_block(block_number)
             .await
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
@@ -304,11 +288,11 @@ impl Blockchain {
     #[napi]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn spec_at_block_number(&self, block_number: BigInt) -> napi::Result<SpecId> {
-        let block_number: U256 = BigInt::try_cast(block_number)?;
+        let block_number: u64 = BigInt::try_cast(block_number)?;
 
         self.read()
             .await
-            .spec_at_block_number(&block_number)
+            .spec_at_block_number(block_number)
             .await
             .map_or_else(
                 |error| Err(napi::Error::new(Status::GenericFailure, error.to_string())),
@@ -327,11 +311,11 @@ impl Blockchain {
     #[napi]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn state_at_block_number(&self, block_number: BigInt) -> napi::Result<State> {
-        let block_number: U256 = BigInt::try_cast(block_number)?;
+        let block_number: u64 = BigInt::try_cast(block_number)?;
 
         self.read()
             .await
-            .state_at_block_number(&block_number)
+            .state_at_block_number(block_number)
             .await
             .map_or_else(
                 |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),

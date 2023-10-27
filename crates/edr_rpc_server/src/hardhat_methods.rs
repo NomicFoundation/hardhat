@@ -52,11 +52,15 @@ pub enum HardhatMethodInvocation {
     #[serde(rename = "hardhat_mine")]
     Mine(
         /// block count:
-        #[serde(default)]
-        Option<U256>,
+        #[serde(default, with = "edr_eth::serde::optional_u64")]
+        Option<u64>,
         /// interval:
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        Option<U256>,
+        #[serde(
+            default,
+            skip_serializing_if = "Option::is_none",
+            with = "edr_eth::serde::optional_u64"
+        )]
+        Option<u64>,
     ),
     /// hardhat_reset
     #[serde(
@@ -208,12 +212,9 @@ mod tests {
 
     #[test]
     fn test_serde_hardhat_mine() {
-        help_test_method_invocation_serde(HardhatMethodInvocation::Mine(
-            Some(U256::from(1)),
-            Some(U256::from(1)),
-        ));
-        help_test_method_invocation_serde(HardhatMethodInvocation::Mine(Some(U256::from(1)), None));
-        help_test_method_invocation_serde(HardhatMethodInvocation::Mine(None, Some(U256::from(1))));
+        help_test_method_invocation_serde(HardhatMethodInvocation::Mine(Some(1), Some(1)));
+        help_test_method_invocation_serde(HardhatMethodInvocation::Mine(Some(1), None));
+        help_test_method_invocation_serde(HardhatMethodInvocation::Mine(None, Some(1)));
         help_test_method_invocation_serde(HardhatMethodInvocation::Mine(None, None));
 
         let json = r#"{"jsonrpc":"2.0","method":"hardhat_mine","params":[],"id":2}"#;

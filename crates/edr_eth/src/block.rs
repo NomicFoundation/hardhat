@@ -117,13 +117,13 @@ pub struct Header {
     /// The block's difficulty
     pub difficulty: U256,
     /// The block's number
-    pub number: U256,
+    pub number: u64,
     /// The block's gas limit
-    pub gas_limit: U256,
+    pub gas_limit: u64,
     /// The amount of gas used by the block
-    pub gas_used: U256,
+    pub gas_used: u64,
     /// The block's timestamp
-    pub timestamp: U256,
+    pub timestamp: u64,
     /// The block's extra data
     pub extra_data: Bytes,
     /// The block's mix hash
@@ -322,13 +322,13 @@ pub struct PartialHeader {
     /// The block's difficulty
     pub difficulty: U256,
     /// The block's number
-    pub number: U256,
+    pub number: u64,
     /// The block's gas limit
-    pub gas_limit: U256,
+    pub gas_limit: u64,
     /// The amount of gas used by the block
-    pub gas_used: U256,
+    pub gas_used: u64,
     /// The block's timestamp
-    pub timestamp: U256,
+    pub timestamp: u64,
     /// The block's extra data
     pub extra_data: Bytes,
     /// The block's mix hash
@@ -349,11 +349,11 @@ impl PartialHeader {
     /// Constructs a new instance based on the provided [`BlockOptions`] and parent [`Header`] for the given [`SpecId`].
     pub fn new(spec_id: SpecId, options: BlockOptions, parent: Option<&Header>) -> Self {
         let timestamp = options.timestamp.unwrap_or_default();
-        let number = options.number.unwrap_or_else(|| {
+        let number = options.number.unwrap_or({
             if let Some(parent) = &parent {
-                parent.number + U256::from(1)
+                parent.number + 1
             } else {
-                U256::ZERO
+                0
             }
         });
 
@@ -375,14 +375,14 @@ impl PartialHeader {
                 if spec_id >= SpecId::MERGE {
                     U256::ZERO
                 } else if let Some(parent) = parent {
-                    calculate_ethash_canonical_difficulty(spec_id, parent, &number, &timestamp)
+                    calculate_ethash_canonical_difficulty(spec_id, parent, number, timestamp)
                 } else {
                     U256::from(1)
                 }
             }),
             number,
-            gas_limit: options.gas_limit.unwrap_or(U256::from(1_000_000)),
-            gas_used: U256::ZERO,
+            gas_limit: options.gas_limit.unwrap_or(1_000_000),
+            gas_used: 0,
             timestamp,
             extra_data: options.extra_data.unwrap_or_default(),
             mix_hash: options.mix_hash.unwrap_or_default(),
@@ -440,10 +440,10 @@ impl Default for PartialHeader {
             receipts_root: KECCAK_NULL_RLP,
             logs_bloom: Bloom::default(),
             difficulty: U256::default(),
-            number: U256::default(),
-            gas_limit: U256::from(DEFAULT_GAS),
-            gas_used: U256::default(),
-            timestamp: U256::default(),
+            number: u64::default(),
+            gas_limit: DEFAULT_GAS,
+            gas_used: u64::default(),
+            timestamp: u64::default(),
             extra_data: Bytes::default(),
             mix_hash: B256::default(),
             nonce: B64::default(),
@@ -500,10 +500,10 @@ mod tests {
             receipts_root: B256::default(),
             logs_bloom: Bloom::default(),
             difficulty: U256::default(),
-            number: U256::from(124),
-            gas_limit: U256::default(),
-            gas_used: U256::from(1337),
-            timestamp: U256::ZERO,
+            number: 124,
+            gas_limit: u64::default(),
+            gas_used: 1337,
+            timestamp: 0,
             extra_data: Bytes::default(),
             mix_hash: B256::default(),
             nonce: B64::from_limbs([99u64.to_be()]),
@@ -538,10 +538,10 @@ mod tests {
             receipts_root: B256::zero(),
             logs_bloom: Bloom::zero(),
             difficulty: U256::from(0x8aeu64),
-            number: U256::from(0xd05u64),
-            gas_limit: U256::from(0x115cu64),
-            gas_used: U256::from(0x15b3u64),
-            timestamp: U256::from(0x1a0au64),
+            number: 0xd05u64,
+            gas_limit: 0x115cu64,
+            gas_used: 0x15b3u64,
+            timestamp: 0x1a0au64,
             extra_data: hex::decode("7788").unwrap().into(),
             mix_hash: B256::zero(),
             nonce: B64::ZERO,
@@ -557,8 +557,6 @@ mod tests {
     #[test]
     // Test vector from: https://github.com/ethereum/tests/blob/f47bbef4da376a49c8fc3166f09ab8a6d182f765/BlockchainTests/ValidBlocks/bcEIP1559/baseFee.json#L15-L36
     fn test_eip1559_block_header_hash() {
-        use hex::FromHex;
-
         let expected_hash =
             B256::from_str("0x6a251c7c3c5dca7b42407a3752ff48f3bbca1fab7f9868371d9918daf1988d1f")
                 .unwrap();
@@ -584,17 +582,14 @@ mod tests {
                 "0x29b0562f7140574dd0d50dee8a271b22e1a0a7b78fca58f7c60370d8317ba2a9",
             )
             .unwrap(),
-            logs_bloom: <[u8; 256]>::from_hex("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap().into(),
+            logs_bloom: Bloom::zero(),
             difficulty: U256::from(0x020000u64),
-            number: U256::from(0x01u64),
-            gas_limit: U256::from_str("0x016345785d8a0000").unwrap(),
-            gas_used: U256::from(0x015534u64),
-            timestamp: U256::from(0x079eu64),
+            number: 0x01,
+            gas_limit: 0x016345785d8a0000,
+            gas_used: 0x015534,
+            timestamp: 0x079e,
             extra_data: hex::decode("42").unwrap().into(),
-            mix_hash: B256::from_str(
-                "0000000000000000000000000000000000000000000000000000000000000000",
-            )
-            .unwrap(),
+            mix_hash: B256::zero(),
             nonce: B64::from(U64::ZERO),
             base_fee_per_gas: Some(U256::from(0x036bu64)),
             withdrawals_root: None,
@@ -618,10 +613,10 @@ mod tests {
             receipts_root: B256::zero(),
             logs_bloom: Bloom::zero(),
             difficulty: U256::from(0x8aeu64),
-            number: U256::from(0xd05u64),
-            gas_limit: U256::from(0x115cu64),
-            gas_used: U256::from(0x15b3u64),
-            timestamp: U256::from(0x1a0au64),
+            number: 0xd05u64,
+            gas_limit: 0x115cu64,
+            gas_used: 0x15b3u64,
+            timestamp: 0x1a0au64,
             extra_data: hex::decode("7788").unwrap().into(),
             mix_hash: B256::zero(),
             nonce: B64::ZERO,
@@ -652,11 +647,11 @@ mod tests {
             beneficiary: Address::from_str("0x2adc25665018aa1fe0e6bc666dac8fc2697ff9ba").unwrap(),
             difficulty: U256::ZERO,
             extra_data: Bytes::default(),
-            gas_limit: U256::from(0x016345785d8a0000u64),
-            gas_used: U256::from(0x5208u64),
+            gas_limit: 0x016345785d8a0000u64,
+            gas_used: 0x5208u64,
             mix_hash: B256::zero(),
             nonce: B64::ZERO,
-            number: U256::from(0x01u64),
+            number: 0x01u64,
             parent_beacon_block_root: Some(B256::zero()),
             parent_hash: B256::from_str(
                 "0x258811d02512e87e09253a948330eff05da06b7656143a211fa3687901217f57",
@@ -670,7 +665,7 @@ mod tests {
                 "0x6a086c92bb1d4ee6dc4ca73e66529037591bd4d6590350f6c904bc78dc21b75c",
             )
             .unwrap(),
-            timestamp: U256::from(0x0cu64),
+            timestamp: 0x0cu64,
             transactions_root: B256::from_str(
                 "0xdc387fc6ef9e3eb53baa85df89a1f9b91a4a9ab472ee7e928b4b7fdc06dfa5d1",
             )

@@ -2,11 +2,10 @@ mod block;
 mod filter;
 mod receipt;
 
-use bytes::Bytes;
 use ethbloom::Bloom;
 use revm_primitives::{
     ruint::{self, aliases::U160},
-    Address, B256, U256,
+    Address, Bytes, B256, U256,
 };
 
 pub use self::{
@@ -111,11 +110,6 @@ impl rlp::Decodable for Log {
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
-
-    use bytes::Bytes;
-    use revm_primitives::Address;
-
-    use crate::log::Log;
 
     use super::*;
 

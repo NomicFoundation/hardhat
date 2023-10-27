@@ -833,7 +833,6 @@ version = "0.1.0-dev"
 name = "edr_eth"
 version = "0.1.0-dev"
 dependencies = [
- "bytes",
  "edr_test_utils",
  "ethbloom",
  "futures",
@@ -846,7 +845,6 @@ dependencies = [
  "lazy_static",
  "log",
  "mockito",
- "open-fastrlp",
  "paste",
  "primitive-types 0.11.1",
  "reqwest",
@@ -1994,30 +1992,6 @@ name = "oorandom"
 version = "11.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ab1bc2a289d34bd04a330323ac98a1b4bc82c9d9fcb1e66b63caa84da26b575"
-
-[[package]]
-name = "open-fastrlp"
-version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "786393f80485445794f6043fd3138854dd109cc6c4bd1a6383db304c9ce9b9ce"
-dependencies = [
- "arrayvec",
- "auto_impl",
- "bytes",
- "open-fastrlp-derive",
-]
-
-[[package]]
-name = "open-fastrlp-derive"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "003b2be5c6c53c1cfeb0a238b8a1c3915cd410feb684457a36c10038f764bb1c"
-dependencies = [
- "bytes",
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
 
 [[package]]
 name = "openssl"

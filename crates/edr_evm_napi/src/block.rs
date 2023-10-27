@@ -245,22 +245,10 @@ impl BlockHeader {
                 sign_bit: false,
                 words: header.difficulty.as_limbs().to_vec(),
             },
-            number: BigInt {
-                sign_bit: false,
-                words: header.number.as_limbs().to_vec(),
-            },
-            gas_limit: BigInt {
-                sign_bit: false,
-                words: header.gas_limit.as_limbs().to_vec(),
-            },
-            gas_used: BigInt {
-                sign_bit: false,
-                words: header.gas_used.as_limbs().to_vec(),
-            },
-            timestamp: BigInt {
-                sign_bit: false,
-                words: header.timestamp.as_limbs().to_vec(),
-            },
+            number: BigInt::from(header.number),
+            gas_limit: BigInt::from(header.gas_limit),
+            gas_used: BigInt::from(header.gas_used),
+            timestamp: BigInt::from(header.timestamp),
             extra_data,
             mix_hash: Buffer::from(header.mix_hash.as_bytes()),
             nonce: Buffer::from(header.nonce.as_le_bytes().as_ref()),

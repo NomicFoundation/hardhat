@@ -1,7 +1,7 @@
 mod reservable;
 mod sparse;
 
-use edr_eth::{B256, U256};
+use edr_eth::B256;
 
 pub use self::{reservable::ReservableSparseBlockchainStorage, sparse::SparseBlockchainStorage};
 
@@ -14,7 +14,7 @@ pub enum InsertError {
         /// The block's hash
         block_hash: B256,
         /// The block's number
-        block_number: U256,
+        block_number: u64,
     },
     /// Transaction already exists
     #[error("A transaction with hash {hash} already exists.")]
