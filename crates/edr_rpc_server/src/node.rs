@@ -1,50 +1,55 @@
+mod node_data;
+mod node_error;
+
 use std::mem;
-use std::sync::Arc;
-use std::time::{SystemTime, SystemTimeError, UNIX_EPOCH};
 
-use edr_eth::{
-    remote::{BlockSpec, BlockTag, Eip1898BlockSpec},
-    Address, SpecId, B256, U256,
-};
-use edr_eth::{Bytes, U64};
-use edr_evm::{
-    blockchain::{BlockchainError, SyncBlockchain},
-    mine_block,
-    state::{AccountModifierFn, IrregularState, StateError, SyncState},
-    AccountInfo, CfgEnv, HashMap, MemPool, MineBlockError, MineBlockResult, RandomHashGenerator,
-    KECCAK_EMPTY,
-};
-use edr_evm::{Block, Bytecode, MineOrdering, SyncBlock};
-
-use edr_eth::{serde::ZeroXPrefixedBytes, signature::Signature};
+use k256::SecretKey;
 use tokio::sync::Mutex;
 
-pub(super) struct Node {
+use edr_eth::{
+    remote::{
+        filter::{FilteredEvents, LogOutput},
+        BlockSpec,
+    },
+    serde::ZeroXPrefixedBytes,
+    signature::Signature,
+    Address, Bytes, U256, U64,
+};
+use edr_evm::{
+    blockchain::BlockchainError,
+    state::{AccountModifierFn, StateError},
+    AccountInfo, Block, Bytecode, MineBlockResult, KECCAK_EMPTY,
+};
+
+use crate::{filter::Filter, node::node_data::NodeData, Config};
+
+pub use self::node_error::NodeError;
+
+pub struct Node {
     data: Mutex<NodeData>,
 }
 
 impl Node {
-    pub fn new(state: NodeData) -> Self {
-        Self {
-            data: Mutex::new(state),
-        }
+    pub async fn new(config: &Config) -> Result<Self, NodeError> {
+        let node_data = NodeData::new(config).await?;
+        Ok(Self {
+            data: Mutex::new(node_data),
+        })
     }
 
-    // TODO make this private once all methods are ported
-    // https://github.com/NomicFoundation/edr/issues/141
-    pub(crate) async fn lock_data(&self) -> tokio::sync::MutexGuard<'_, NodeData> {
+    async fn lock_data(&self) -> tokio::sync::MutexGuard<'_, NodeData> {
         self.data.lock().await
     }
 
     async fn execute_in_block_context<T>(
         &self,
-        block_spec: Option<BlockSpec>,
+        block_spec: Option<&BlockSpec>,
         function: impl FnOnce(&mut NodeData) -> T,
     ) -> Result<T, NodeError> {
         let mut data = self.lock_data().await;
 
         let block = if let Some(block_spec) = block_spec {
-            data.block_by_block_spec(&block_spec).await?
+            data.block_by_block_spec(block_spec).await?
         } else {
             data.blockchain.last_block().await?
         };
@@ -82,7 +87,7 @@ impl Node {
     pub async fn balance(
         &self,
         address: Address,
-        block_spec: Option<BlockSpec>,
+        block_spec: Option<&BlockSpec>,
     ) -> Result<U256, NodeError> {
         self.execute_in_block_context::<Result<U256, NodeError>>(block_spec, move |node_data| {
             Ok(node_data
@@ -91,6 +96,11 @@ impl Node {
                 .map_or(U256::ZERO, |account| account.balance))
         })
         .await?
+    }
+
+    pub async fn block_number(&self) -> u64 {
+        let node_data = self.lock_data().await;
+        node_data.blockchain.last_block_number().await
     }
 
     pub async fn chain_id(&self) -> U64 {
@@ -106,7 +116,7 @@ impl Node {
     pub async fn get_code(
         &self,
         address: Address,
-        block_spec: Option<BlockSpec>,
+        block_spec: Option<&BlockSpec>,
     ) -> Result<ZeroXPrefixedBytes, NodeError> {
         self.execute_in_block_context::<Result<ZeroXPrefixedBytes, NodeError>>(
             block_spec,
@@ -129,9 +139,123 @@ impl Node {
         .await?
     }
 
+    pub async fn get_filter_changes(&self, filter_id: &U256) -> Option<FilteredEvents> {
+        let mut node_data = self.lock_data().await;
+
+        node_data
+            .filters
+            .get_mut(filter_id)
+            .map(Filter::take_events)
+    }
+
+    pub async fn get_filter_logs(
+        &self,
+        filter_id: &U256,
+    ) -> Result<Option<Vec<LogOutput>>, NodeError> {
+        let mut node_data = self.lock_data().await;
+
+        node_data
+            .filters
+            .get_mut(filter_id)
+            .map(|filter| {
+                if let Some(events) = filter.take_log_events() {
+                    Ok(events)
+                } else {
+                    Err(NodeError::NotLogSubscription {
+                        filter_id: *filter_id,
+                    })
+                }
+            })
+            .transpose()
+    }
+
+    pub async fn get_storage_at(
+        &self,
+        address: Address,
+        position: U256,
+        block_spec: Option<&BlockSpec>,
+    ) -> Result<U256, NodeError> {
+        self.execute_in_block_context::<Result<U256, NodeError>>(block_spec, move |node_data| {
+            Ok(node_data.state.storage(address, position)?)
+        })
+        .await?
+    }
+
+    pub async fn get_transaction_count(
+        &self,
+        address: Address,
+        block_spec: Option<&BlockSpec>,
+    ) -> Result<u64, NodeError> {
+        self.execute_in_block_context::<Result<u64, NodeError>>(block_spec, move |node_data| {
+            Ok(node_data.get_account_info(address)?.nonce)
+        })
+        .await?
+    }
+
+    pub async fn impersonate_account(&self, address: Address) {
+        let mut node_data = self.lock_data().await;
+
+        node_data.impersonated_accounts.insert(address);
+    }
+
+    pub async fn increase_block_time(&self, increment: u64) -> u64 {
+        let mut node_data = self.lock_data().await;
+
+        node_data.block_time_offset_seconds += increment;
+        node_data.block_time_offset_seconds
+    }
+
+    pub async fn local_accounts(&self) -> Vec<LocalAccountInfo> {
+        let node_data = self.lock_data().await;
+
+        node_data
+            .local_accounts
+            .iter()
+            .map(|(address, secret_key)| LocalAccountInfo {
+                address: *address,
+                secret_key: secret_key.clone(),
+            })
+            .collect()
+    }
+
+    pub async fn mine_block(
+        &self,
+        timestamp: Option<u64>,
+    ) -> Result<MineBlockResult<BlockchainError, StateError>, NodeError> {
+        let mut node_data = self.lock_data().await;
+        let result = node_data.mine_block(timestamp).await?;
+        Ok(result)
+    }
+
     pub async fn network_id(&self) -> String {
         let node_data = self.lock_data().await;
         node_data.network_id.to_string()
+    }
+
+    pub async fn new_pending_transaction_filter(&self) -> U256 {
+        let mut node_data = self.lock_data().await;
+
+        let filter_id = node_data.next_filter_id();
+        node_data.filters.insert(
+            filter_id,
+            Filter::new(
+                FilteredEvents::NewPendingTransactions(Vec::new()),
+                /* is_subscription */ false,
+            ),
+        );
+        filter_id
+    }
+
+    pub async fn remove_filter(&self, filter_id: &U256) -> bool {
+        let mut node_data = self.lock_data().await;
+
+        node_data.remove_filter::</* IS_SUBSCRIPTION */ false>(filter_id).await
+    }
+
+    pub async fn remove_subscription(&self, filter_id: &U256) -> bool {
+        let mut node_data = self.lock_data().await;
+
+        node_data.remove_filter::</* IS_SUBSCRIPTION */ true>(filter_id).await
     }
 
     pub async fn set_balance(&self, address: Address, balance: U256) -> Result<(), NodeError> {
@@ -183,6 +307,30 @@ impl Node {
         node_data.irregular_state.insert_state(block_number, state);
 
         Ok(())
+    }
+
+    /// Set the next block timestamp.
+    pub async fn set_next_block_timestamp(&self, timestamp: u64) -> Result<u64, NodeError> {
+        use std::cmp::Ordering;
+
+        let mut node_data = self.lock_data().await;
+
+        let latest_block = node_data.blockchain.last_block().await?;
+        let latest_block_header = latest_block.header();
+
+        match timestamp.cmp(&latest_block_header.timestamp) {
+            Ordering::Less => Err(NodeError::TimestampLowerThanPrevious {
+                proposed: timestamp,
+                previous: latest_block_header.timestamp,
+            }),
+            Ordering::Equal => Err(NodeError::TimestampEqualsPrevious {
+                proposed: timestamp,
+            }),
+            Ordering::Greater => {
+                node_data.next_block_timestamp = Some(timestamp);
+                Ok(timestamp)
+            }
+        }
     }
 
     pub async fn set_nonce(&self, address: Address, nonce: u64) -> Result<(), NodeError> {
@@ -241,228 +389,32 @@ impl Node {
             None => Err(NodeError::UnknownAddress { address: *address }),
         }
     }
-}
 
-pub(super) struct NodeData {
-    pub blockchain: Box<dyn SyncBlockchain<BlockchainError, StateError>>,
-    pub state: Box<dyn SyncState<StateError>>,
-    pub irregular_state: IrregularState<StateError, Box<dyn SyncState<StateError>>>,
-    pub mem_pool: MemPool,
-    pub network_id: u64,
-    pub evm_config: CfgEnv,
-    pub beneficiary: Address,
-    pub min_gas_price: U256,
-    pub prevrandao_generator: RandomHashGenerator,
-    pub block_time_offset_seconds: u64,
-    pub next_block_timestamp: Option<u64>,
-    pub allow_blocks_with_same_timestamp: bool,
-    pub fork_block_number: Option<u64>,
-    pub local_accounts: HashMap<Address, k256::SecretKey>,
-}
+    pub async fn stop_impersonating_account(&self, address: Address) -> bool {
+        let mut node_data = self.lock_data().await;
 
-impl NodeData {
-    async fn block_by_block_spec(
-        &mut self,
-        block_spec: &BlockSpec,
-    ) -> Result<Arc<dyn SyncBlock<Error = BlockchainError>>, NodeError> {
-        match block_spec {
-            BlockSpec::Number(block_number) => {
-                self.blockchain.block_by_number(*block_number).await?.ok_or(
-                    NodeError::UnknownBlockNumber {
-                        block_number: *block_number,
-                    },
-                )
-            }
-            BlockSpec::Tag(BlockTag::Earliest) => Ok(self
-                .blockchain
-                .block_by_number(0)
-                .await?
-                .expect("genesis block should always exist")),
-            // Matching Hardhat behaviour by returning the last block for finalized and safe.
-            // https://github.com/NomicFoundation/hardhat/blob/b84baf2d9f5d3ea897c06e0ecd5e7084780d8b6c/packages/hardhat-core/src/internal/hardhat-network/provider/modules/eth.ts#L1395
-            BlockSpec::Tag(BlockTag::Finalized | BlockTag::Safe | BlockTag::Latest) => {
-                Ok(self.blockchain.last_block().await?)
-            }
-            BlockSpec::Tag(BlockTag::Pending) => Ok(self.mine_block(None).await?.block),
-            BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
-                block_hash,
-                require_canonical: _,
-            }) => self.blockchain.block_by_hash(block_hash).await?.ok_or(
-                NodeError::UnknownBlockHash {
-                    block_hash: *block_hash,
-                },
-            ),
-            BlockSpec::Eip1898(Eip1898BlockSpec::Number { block_number }) => {
-                self.blockchain.block_by_number(*block_number).await?.ok_or(
-                    NodeError::UnknownBlockNumber {
-                        block_number: *block_number,
-                    },
-                )
-            }
-        }
-    }
-
-    fn get_account_info(&self, address: Address) -> Result<AccountInfo, NodeError> {
-        match self.state.basic(address)? {
-            Some(account_info) => Ok(account_info),
-            None => Ok(AccountInfo {
-                balance: U256::ZERO,
-                nonce: 0,
-                code: None,
-                code_hash: KECCAK_EMPTY,
-            }),
-        }
-    }
-
-    /// Get the timestamp for the next block.
-    /// Ported from <https://github.com/NomicFoundation/hardhat/blob/b84baf2d9f5d3ea897c06e0ecd5e7084780d8b6c/packages/hardhat-core/src/internal/hardhat-network/provider/node.ts#L1942>
-    async fn next_block_timestamp(
-        &self,
-        timestamp: Option<u64>,
-    ) -> Result<(u64, Option<u64>), NodeError> {
-        let latest_block = self.blockchain.last_block().await?;
-        let latest_block_header = latest_block.header();
-
-        let current_timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
-        let (mut block_timestamp, new_offset) = if let Some(timestamp) = timestamp {
-            timestamp.checked_sub(latest_block_header.timestamp).ok_or(
-                NodeError::TimestampLowerThanPrevious {
-                    proposed: timestamp,
-                    previous: latest_block_header.timestamp,
-                },
-            )?;
-            (timestamp, Some(timestamp - current_timestamp))
-        } else if let Some(next_block_timestamp) = self.next_block_timestamp {
-            (
-                next_block_timestamp,
-                Some(next_block_timestamp - current_timestamp),
-            )
-        } else {
-            (current_timestamp + self.block_time_offset_seconds, None)
-        };
-
-        let timestamp_needs_increase = block_timestamp == latest_block_header.timestamp
-            && !self.allow_blocks_with_same_timestamp;
-        if timestamp_needs_increase {
-            block_timestamp += 1;
-        }
-
-        Ok((block_timestamp, new_offset))
-    }
-
-    /// Mine a block at a specific timestamp
-    pub async fn mine_block(
-        &mut self,
-        timestamp: Option<u64>,
-    ) -> Result<MineBlockResult<BlockchainError, StateError>, NodeError> {
-        let (block_timestamp, new_offset) = self.next_block_timestamp(timestamp).await?;
-
-        // TODO: when we support hardhat_setNextBlockBaseFeePerGas, incorporate
-        // the last-passed value here. (but don't .take() it yet, because we only
-        // want to clear it if the block mining is successful.
-        // https://github.com/NomicFoundation/edr/issues/145
-        let base_fee = None;
-
-        // TODO: https://github.com/NomicFoundation/edr/issues/156
-        let reward = U256::ZERO;
-        let prevrandao = if self.evm_config.spec_id >= SpecId::MERGE {
-            Some(self.prevrandao_generator.next_value())
-        } else {
-            None
-        };
-
-        let result = mine_block(
-            &mut *self.blockchain,
-            self.state.clone(),
-            &mut self.mem_pool,
-            &self.evm_config,
-            block_timestamp,
-            self.beneficiary,
-            self.min_gas_price,
-            // TODO: make this configurable (https://github.com/NomicFoundation/edr/issues/111)
-            MineOrdering::Fifo,
-            reward,
-            base_fee,
-            prevrandao,
-            None,
-        )
-        .await?;
-
-        if let Some(new_offset) = new_offset {
-            self.block_time_offset_seconds = new_offset;
-        }
-
-        // Reset next block time stamp
-        self.next_block_timestamp.take();
-
-        // TODO: when we support hardhat_setNextBlockBaseFeePerGas, reset the user provided
-        // next block base fee per gas to `None`
-        // https://github.com/NomicFoundation/edr/issues/145
-
-        Ok(result)
+        node_data.impersonated_accounts.remove(&address)
     }
 }
 
-#[derive(Debug, thiserror::Error)]
-pub enum NodeError {
-    #[error(
-        "The given timestamp {proposed} is lower than the previous block's timestamp {previous}"
-    )]
-    TimestampLowerThanPrevious { proposed: u64, previous: u64 },
-    /// The address is not owned by this node.
-    #[error("{address} is not owned by this node")]
-    UnknownAddress { address: Address },
-    /// Block hash doesn't exist in blockchain
-    /// Returned if the block spec is an EIP-1898 block spec for a hash and it's not found
-    /// <https://eips.ethereum.org/EIPS/eip-1898>
-    #[error("Unknown block hash: {block_hash}")]
-    UnknownBlockHash { block_hash: B256 },
-    /// Block number doesn't exist in blockchain
-    /// Returned if the block spec is an EIP-1898 block spec for a block number and it's not found
-    /// <https://eips.ethereum.org/EIPS/eip-1898>
-    #[error("Unknown block number: {block_number}")]
-    UnknownBlockNumber { block_number: u64 },
-
-    #[error(transparent)]
-    Blockchain(#[from] BlockchainError),
-
-    #[error(transparent)]
-    MineBlock(#[from] MineBlockError<BlockchainError, StateError>),
-
-    #[error(transparent)]
-    Signature(#[from] edr_eth::signature::SignatureError),
-
-    #[error(transparent)]
-    State(#[from] StateError),
-
-    #[error(transparent)]
-    SystemTime(#[from] SystemTimeError),
+/// An account in this node.
+pub struct LocalAccountInfo {
+    pub address: Address,
+    pub secret_key: SecretKey,
 }
 
 #[cfg(test)]
-pub(crate) mod tests {
-    use std::{
-        net::{IpAddr, Ipv4Addr, SocketAddr},
-        path::PathBuf,
-        time::SystemTime,
-    };
-
+mod tests {
     use anyhow::Result;
     use tempfile::TempDir;
 
-    use edr_eth::{signature::secret_key_from_str, Address, SpecId, U256, U64};
+    use edr_eth::U64;
 
-    use crate::{
-        block_time_offset_seconds, create_accounts, create_blockchain_and_state, create_evm_config,
-        AccountConfig, BlockchainAndState, Config, InitialAccounts, RpcHardhatNetworkConfig,
-    };
+    use crate::{create_test_config, Config};
 
     use super::*;
 
-    pub(crate) const SECRET_KEY: &str =
-        "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
-
-    pub(crate) struct NodeTestFixture {
+    struct NodeTestFixture {
         // We need to keep the tempdir alive for the duration of the test
         _cache_dir: TempDir,
         config: Config,
@@ -472,74 +424,14 @@ pub(crate) mod tests {
     impl NodeTestFixture {
         pub(crate) async fn new() -> Result<Self> {
             let cache_dir = TempDir::new().expect("should create temp dir");
-            let config = Self::test_config(cache_dir.path().to_path_buf());
-            let node = Self::test_node(&config).await?;
+            let config = create_test_config(cache_dir.path().to_path_buf());
+            let node = Node::new(&config).await?;
 
             Ok(Self {
                 _cache_dir: cache_dir,
                 config,
                 node,
             })
-        }
-
-        pub(crate) fn test_config(cache_dir: PathBuf) -> Config {
-            Config {
-                address: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0),
-                allow_blocks_with_same_timestamp: false,
-                allow_unlimited_contract_size: false,
-                rpc_hardhat_network_config: RpcHardhatNetworkConfig { forking: None },
-                accounts: vec![AccountConfig {
-                    secret_key: secret_key_from_str(SECRET_KEY)
-                        .expect("should construct secret key from string"),
-                    balance: U256::ZERO,
-                }],
-                block_gas_limit: 30_000_000,
-                chain_id: 1,
-                coinbase: Address::from_low_u64_ne(1),
-                gas: 30_000_000,
-                hardfork: SpecId::LATEST,
-                initial_base_fee_per_gas: Some(U256::from(1000000000)),
-                initial_date: Some(SystemTime::now()),
-                network_id: 123,
-                cache_dir,
-            }
-        }
-
-        async fn test_node(config: &Config) -> Result<Node> {
-            let InitialAccounts {
-                local_accounts,
-                genesis_accounts,
-            } = create_accounts(config);
-
-            let BlockchainAndState {
-                state,
-                blockchain,
-                fork_block_number,
-            } = create_blockchain_and_state(config, genesis_accounts).await?;
-
-            let evm_config = create_evm_config(config);
-
-            let prevrandao_generator = RandomHashGenerator::with_seed("randomMixHashSeed");
-
-            let node_data = NodeData {
-                blockchain,
-                state,
-                irregular_state: IrregularState::default(),
-                mem_pool: MemPool::new(config.block_gas_limit),
-                network_id: config.network_id,
-                evm_config,
-                beneficiary: config.coinbase,
-                // TODO: Add config option (https://github.com/NomicFoundation/edr/issues/111)
-                min_gas_price: U256::MAX,
-                prevrandao_generator,
-                block_time_offset_seconds: block_time_offset_seconds(config)?,
-                next_block_timestamp: None,
-                allow_blocks_with_same_timestamp: config.allow_blocks_with_same_timestamp,
-                fork_block_number,
-                local_accounts,
-            };
-
-            Ok(Node::new(node_data))
         }
     }
 

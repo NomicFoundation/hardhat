@@ -138,8 +138,8 @@ where
                 ConfigFile::default()
             };
 
-            let server =
-                edr_rpc_server::Server::new(config_file.into_server_config(node_args)?).await?;
+            let config = config_file.into_server_config(node_args)?;
+            let server = edr_rpc_server::Server::new(&config).await?;
 
             Ok(server
                 .serve_with_shutdown_signal(await_signal())

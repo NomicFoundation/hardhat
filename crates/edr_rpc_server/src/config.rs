@@ -30,3 +30,37 @@ pub struct AccountConfig {
     /// the balance of the account
     pub balance: U256,
 }
+
+#[cfg(feature = "test-tools")]
+pub mod test_tools {
+    use std::net::{IpAddr, Ipv4Addr};
+
+    use edr_eth::signature::secret_key_from_str;
+
+    use super::*;
+
+    pub const SECRET_KEY: &str = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+
+    pub fn create_test_config(cache_dir: PathBuf) -> Config {
+        Config {
+            address: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0),
+            allow_blocks_with_same_timestamp: false,
+            allow_unlimited_contract_size: false,
+            rpc_hardhat_network_config: RpcHardhatNetworkConfig { forking: None },
+            accounts: vec![AccountConfig {
+                secret_key: secret_key_from_str(SECRET_KEY)
+                    .expect("should construct secret key from string"),
+                balance: U256::ZERO,
+            }],
+            block_gas_limit: 30_000_000,
+            chain_id: 1,
+            coinbase: Address::from_low_u64_ne(1),
+            gas: 30_000_000,
+            hardfork: SpecId::LATEST,
+            initial_base_fee_per_gas: Some(U256::from(1000000000)),
+            initial_date: Some(SystemTime::now()),
+            network_id: 123,
+            cache_dir,
+        }
+    }
+}

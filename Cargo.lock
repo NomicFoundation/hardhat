@@ -932,6 +932,7 @@ dependencies = [
  "edr_test_utils",
  "hex",
  "hyper",
+ "indexmap 2.0.2",
  "k256",
  "parking_lot 0.12.1",
  "reqwest",
