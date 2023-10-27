@@ -251,8 +251,9 @@ mod tests {
             let runtime = runtime::Handle::current();
             let rpc_client = RpcClient::new(&get_alchemy_url(), tempdir.path().to_path_buf());
 
-            let block = runtime
-                .block_on(rpc_client.get_block_by_number(BlockSpec::Number(FORK_BLOCK)))
+            let block = rpc_client
+                .get_block_by_number(BlockSpec::Number(FORK_BLOCK))
+                .await
                 .expect("Failed to retrieve block")
                 .expect("Block must exist");
 
