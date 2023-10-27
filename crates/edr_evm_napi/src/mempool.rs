@@ -64,10 +64,18 @@ impl MemPool {
 
     #[doc = "Sets the instance's block gas limit."]
     #[napi]
-    pub async fn set_block_gas_limit(&self, block_gas_limit: BigInt) -> napi::Result<()> {
+    pub async fn set_block_gas_limit(
+        &self,
+        state: &State,
+        block_gas_limit: BigInt,
+    ) -> napi::Result<()> {
         let block_gas_limit: U256 = block_gas_limit.try_cast()?;
 
-        self.write().await.set_block_gas_limit(block_gas_limit);
+        let state = state.read().await;
+        self.write()
+            .await
+            .set_block_gas_limit(&*state, block_gas_limit)
+            .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))?;
 
         Ok(())
     }
@@ -87,10 +95,10 @@ impl MemPool {
     #[napi]
     pub async fn add_transaction(
         &self,
-        state_manager: &State,
+        state: &State,
         transaction: &PendingTransaction,
     ) -> napi::Result<()> {
-        let state = state_manager.read().await;
+        let state = state.read().await;
 
         self.write()
             .await
@@ -108,8 +116,8 @@ impl MemPool {
 
     #[doc = "Updates the instance, moving any future transactions to the pending status, if their nonces are high enough."]
     #[napi]
-    pub async fn update(&self, state_manager: &State) -> napi::Result<()> {
-        let state = state_manager.read().await;
+    pub async fn update(&self, state: &State) -> napi::Result<()> {
+        let state = state.read().await;
 
         self.write()
             .await

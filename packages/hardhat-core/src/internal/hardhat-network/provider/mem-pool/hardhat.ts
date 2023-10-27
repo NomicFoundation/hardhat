@@ -263,6 +263,8 @@ export class HardhatMemPool implements MemPoolAdapter {
       "blockGasLimit",
       BigIntUtils.toHex(blockGasLimit)
     );
+
+    await this.update();
   }
 
   public async update(): Promise<void> {

@@ -165,8 +165,14 @@ impl MemPool {
     }
 
     /// Sets the instance's block gas limit.
-    pub fn set_block_gas_limit(&mut self, limit: U256) {
+    pub fn set_block_gas_limit<S>(&mut self, state: &S, limit: U256) -> Result<(), S::Error>
+    where
+        S: StateRef + ?Sized,
+        S::Error: Debug,
+    {
         self.block_gas_limit = limit;
+
+        self.update(state)
     }
 
     /// Creates an iterator for all pending transactions; i.e. for which the nonces are guaranteed to be high enough.

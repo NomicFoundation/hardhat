@@ -33,7 +33,10 @@ export class EdrMemPool implements MemPoolAdapter {
   }
 
   public async setBlockGasLimit(blockGasLimit: bigint): Promise<void> {
-    return this._memPool.setBlockGasLimit(blockGasLimit);
+    return this._memPool.setBlockGasLimit(
+      this._stateManager.asInner(),
+      blockGasLimit
+    );
   }
 
   public async getNextPendingNonce(accountAddress: Address): Promise<bigint> {
