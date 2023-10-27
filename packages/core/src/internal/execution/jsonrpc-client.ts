@@ -10,6 +10,7 @@ import {
   TransactionReceipt,
   TransactionReceiptStatus,
 } from "./types/jsonrpc";
+import { toChecksumFormat } from "./utils/address";
 
 /**
  * The params to make an `eth_call`.
@@ -537,7 +538,10 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
     return {
       blockHash: response.blockHash,
       blockNumber: jsonRpcQuantityToNumber(response.blockNumber),
-      contractAddress,
+      contractAddress:
+        contractAddress === undefined
+          ? undefined
+          : toChecksumFormat(contractAddress),
       status,
       logs: formatReceiptLogs(method, response),
     };
@@ -611,6 +615,7 @@ function assertResponseType(
     });
   }
 }
+
 function formatReceiptLogs(method: string, response: object): TransactionLog[] {
   const formattedLogs: TransactionLog[] = [];
 
@@ -660,7 +665,7 @@ function formatReceiptLogs(method: string, response: object): TransactionLog[] {
     );
 
     formattedLogs.push({
-      address: rawLog.address,
+      address: toChecksumFormat(rawLog.address),
       logIndex: jsonRpcQuantityToNumber(rawLog.logIndex),
       data: rawLog.data,
       topics: rawLog.topics,

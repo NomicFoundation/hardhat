@@ -27,6 +27,7 @@ import {
   SuccessfulEvmExecutionResult,
 } from "./types/evm-execution";
 import { TransactionReceipt } from "./types/jsonrpc";
+import { equalAddresses } from "./utils/address";
 
 const REVERT_REASON_SIGNATURE = "0x08c379a0";
 const PANIC_CODE_SIGNATURE = "0x4e487b71";
@@ -362,7 +363,9 @@ export function getEventArgumentFromReceipt(
   eventIndex: number,
   nameOrIndex: string | number
 ): EvmValue {
-  const emitterLogs = receipt.logs.filter((l) => l.address === emitterAddress);
+  const emitterLogs = receipt.logs.filter((l) =>
+    equalAddresses(l.address, emitterAddress)
+  );
 
   const { ethers } = require("ethers") as typeof import("ethers");
   const iface = new ethers.Interface(emitterArtifact.abi);
