@@ -78,6 +78,7 @@ export interface DeploymentStartEvent {
   moduleName: string;
   deploymentDir: string | undefined;
   isResumed: boolean;
+  maxFeeBumps: number;
 }
 
 /**

@@ -163,13 +163,11 @@ function _displayExecutionErrors(
   let text = `[ ${moduleName} ] failed ⛔\n\n`;
 
   if (result.timedOut.length > 0) {
-    let timedOutSection = `Futures with transactions unconfirmed after maximum fee bumps:\n`;
+    let timedOutSection = `Futures timed out with transactions unconfirmed after maximum fee bumps:\n`;
 
     timedOutSection += Object.values(result.timedOut)
       .map(({ futureId }) => ` - ${futureId}`)
       .join("\n");
-
-    timedOutSection += "\n\nConsider increasing the fee in your config.";
 
     sections.push(timedOutSection);
   }

@@ -62,6 +62,8 @@ export class PrettyEventHandler implements ExecutionEventListener {
     result: null,
     warnings: [],
     isResumed: null,
+    maxFeeBumps: 0,
+    gasBumps: {},
   };
 
   constructor(private _deploymentParams: DeploymentParameters = {}) {}
@@ -81,6 +83,7 @@ export class PrettyEventHandler implements ExecutionEventListener {
       moduleName: event.moduleName,
       deploymentDir: event.deploymentDir,
       isResumed: event.isResumed,
+      maxFeeBumps: event.maxFeeBumps,
     };
 
     process.stdout.write(calculateStartingMessage(this.state));
@@ -239,8 +242,16 @@ export class PrettyEventHandler implements ExecutionEventListener {
   public staticCallComplete(_event: StaticCallCompleteEvent): void {}
 
   public onchainInteractionBumpFees(
-    _event: OnchainInteractionBumpFeesEvent
-  ): void {}
+    event: OnchainInteractionBumpFeesEvent
+  ): void {
+    if (this._uiState.gasBumps[event.futureId] === undefined) {
+      this._uiState.gasBumps[event.futureId] = 0;
+    }
+
+    this._uiState.gasBumps[event.futureId] += 1;
+
+    this._redisplayCurrentBatch();
+  }
 
   public onchainInteractionDropped(
     _event: OnchainInteractionDroppedEvent

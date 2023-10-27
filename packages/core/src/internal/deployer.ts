@@ -84,7 +84,8 @@ export class Deployer {
     this._emitDeploymentStartEvent(
       ignitionModule.id,
       this._deploymentDir,
-      isResumed
+      isResumed,
+      this._config.maxFeeBumps
     );
 
     const contracts =
@@ -268,7 +269,8 @@ export class Deployer {
   private _emitDeploymentStartEvent(
     moduleId: string,
     deploymentDir: string | undefined,
-    isResumed: boolean
+    isResumed: boolean,
+    maxFeeBumps: number
   ): void {
     if (this._executionEventListener === undefined) {
       return;
@@ -279,6 +281,7 @@ export class Deployer {
       moduleName: moduleId,
       deploymentDir: deploymentDir ?? undefined,
       isResumed,
+      maxFeeBumps,
     });
   }
 

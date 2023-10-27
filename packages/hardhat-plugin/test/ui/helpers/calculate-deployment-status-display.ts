@@ -80,11 +80,9 @@ describe("ui - calculate deployment status display", () => {
       const expectedText = testFormat(`
         Deployment deployment-01 failed
 
-        Futures with transactions unconfirmed after maximum fee bumps:
+        Futures timed out with transactions unconfirmed after maximum fee bumps:
          - MyModule:MyContract1
          - MyModule:AnotherContract1
-
-        Consider increasing the fee in your config.
 
         Futures failed during execution:
          - MyModule:MyContract3: Reverted with reason x

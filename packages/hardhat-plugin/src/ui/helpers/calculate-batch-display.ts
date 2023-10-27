@@ -11,7 +11,7 @@ export function calculateBatchDisplay(state: UiState): {
 
   text += batch
     .sort((a, b) => a.futureId.localeCompare(b.futureId))
-    .map(_futureStatus)
+    .map((v) => _futureStatus(v, state.gasBumps, state.maxFeeBumps))
     .join("\n");
 
   text += "\n";
@@ -19,16 +19,25 @@ export function calculateBatchDisplay(state: UiState): {
   return { text, height };
 }
 
-function _futureStatus(future: UiFuture): string {
+function _futureStatus(
+  future: UiFuture,
+  gasBumps: Record<string, number>,
+  maxFeeBumps: number
+): string {
   switch (future.status.type) {
     case UiFutureStatusType.UNSTARTED: {
-      return `  Executing ${future.futureId}...`;
+      const gas = gasBumps[future.futureId];
+      return `  Executing ${future.futureId}${
+        gas !== undefined
+          ? ` - bumping gas fee (${gas}/${maxFeeBumps})...`
+          : "..."
+      }`;
     }
     case UiFutureStatusType.SUCCESS: {
       return `  Executed ${future.futureId}`;
     }
     case UiFutureStatusType.TIMEDOUT: {
-      return `  Pending ${future.futureId}`;
+      return `  Timed out ${future.futureId}`;
     }
     case UiFutureStatusType.ERRORED: {
       return `  Failed ${future.futureId}`;

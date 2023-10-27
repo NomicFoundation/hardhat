@@ -251,11 +251,9 @@ describe("ui - calculate deployment complete display", () => {
       const expectedText = testFormat(`
         [ MyModule ] failed ⛔
 
-        Futures with transactions unconfirmed after maximum fee bumps:
+        Futures timed out with transactions unconfirmed after maximum fee bumps:
          - MyModule#MyContract1
          - MyModule#AnotherContract1
-
-        Consider increasing the fee in your config.
 
         Futures failed during execution:
          - MyModule#MyContract3: Reverted with reason x

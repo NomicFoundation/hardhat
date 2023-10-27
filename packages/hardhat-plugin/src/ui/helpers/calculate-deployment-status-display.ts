@@ -57,13 +57,11 @@ function _calculateFailed(deploymentId: string, statusResult: StatusResult) {
   const sections: string[] = [];
 
   if (statusResult.timedOut.length > 0) {
-    let timedOutSection = `\nFutures with transactions unconfirmed after maximum fee bumps:\n`;
+    let timedOutSection = `\nFutures timed out with transactions unconfirmed after maximum fee bumps:\n`;
 
     timedOutSection += Object.values(statusResult.timedOut)
       .map(({ futureId }) => ` - ${futureId}`)
       .join("\n");
-
-    timedOutSection += "\n\nConsider increasing the fee in your config.";
 
     sections.push(timedOutSection);
   }
