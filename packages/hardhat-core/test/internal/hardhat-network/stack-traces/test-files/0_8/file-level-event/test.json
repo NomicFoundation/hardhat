@@ -1,0 +1,9 @@
+{
+  "solc": "^0.8.22",
+  "transactions": [
+    {
+      "file": "c.sol",
+      "contract": "C"
+    }
+  ]
+}
