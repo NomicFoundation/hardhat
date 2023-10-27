@@ -320,6 +320,13 @@ pub struct Block {
     inner: Arc<dyn SyncBlock<Error = BlockchainError>>,
 }
 
+impl Block {
+    /// Retrieves a reference to the inner [`SyncBlock`].
+    pub fn as_inner(&self) -> &Arc<dyn SyncBlock<Error = BlockchainError>> {
+        &self.inner
+    }
+}
+
 impl From<Arc<dyn SyncBlock<Error = BlockchainError>>> for Block {
     fn from(value: Arc<dyn SyncBlock<Error = BlockchainError>>) -> Self {
         Self { inner: value }

@@ -30,7 +30,6 @@ import {
   ExecutionResult,
 } from "@ignored/edr";
 
-import { isForkedNodeConfig, NodeConfig } from "../node-types";
 import {
   ethereumjsHeaderDataToEdrBlockConfig,
   ethereumjsTransactionToEdrTransactionRequest,
@@ -53,10 +52,6 @@ import { InvalidInputError } from "../../../core/providers/errors";
 import { MessageTrace } from "../../stack-traces/message-trace";
 import { VMTracer } from "../../stack-traces/vm-tracer";
 
-import {
-  getGlobalEdrContext,
-  UNLIMITED_CONTRACT_SIZE_VALUE,
-} from "../context/edr";
 import { RunTxResult, VMAdapter } from "./vm-adapter";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
 import { EdrBlockBuilder } from "./block-builder/edr";
@@ -86,46 +81,6 @@ export class EdrAdapter implements VMAdapter {
     private readonly _enableTransientStorage: boolean
   ) {
     this._vmTracer = new VMTracer(_common, false);
-  }
-
-  public static async create(
-    config: NodeConfig,
-    blockchain: Blockchain,
-    common: Common
-  ): Promise<EdrAdapter> {
-    let state: EdrStateManager;
-
-    if (isForkedNodeConfig(config)) {
-      state = await EdrStateManager.forkRemote(
-        getGlobalEdrContext(),
-        config.forkConfig,
-        config.genesisAccounts
-      );
-    } else {
-      state = EdrStateManager.withGenesisAccounts(
-        getGlobalEdrContext(),
-        config.genesisAccounts
-      );
-    }
-
-    const limitContractCodeSize =
-      config.allowUnlimitedContractSize === true
-        ? UNLIMITED_CONTRACT_SIZE_VALUE
-        : undefined;
-
-    const limitInitcodeSize =
-      config.allowUnlimitedContractSize === true
-        ? UNLIMITED_CONTRACT_SIZE_VALUE
-        : undefined;
-
-    return new EdrAdapter(
-      blockchain,
-      state,
-      common,
-      limitContractCodeSize,
-      limitInitcodeSize,
-      config.enableTransientStorage
-    );
   }
 
   /**

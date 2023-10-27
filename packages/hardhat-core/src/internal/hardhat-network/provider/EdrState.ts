@@ -4,8 +4,7 @@ import {
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
 import { State, Account, Bytecode, EdrContext } from "@ignored/edr";
-import { ForkConfig, GenesisAccount } from "./node-types";
-import { makeForkProvider } from "./utils/makeForkClient";
+import { GenesisAccount } from "./node-types";
 
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -26,36 +25,6 @@ export class EdrStateManager {
           };
         })
       )
-    );
-  }
-
-  public static async forkRemote(
-    context: EdrContext,
-    forkConfig: ForkConfig,
-    genesisAccounts: GenesisAccount[]
-  ): Promise<EdrStateManager> {
-    let blockNumber: bigint;
-    if (forkConfig.blockNumber !== undefined) {
-      blockNumber = BigInt(forkConfig.blockNumber);
-    } else {
-      const { forkBlockNumber } = await makeForkProvider(forkConfig);
-      blockNumber = forkBlockNumber;
-    }
-
-    return new EdrStateManager(
-      await State.forkRemote(
-        context,
-        forkConfig.jsonRpcUrl,
-        blockNumber,
-        genesisAccounts.map((account) => {
-          return {
-            secretKey: account.privateKey,
-            balance: BigInt(account.balance),
-          };
-        })
-      )
-      // TODO: consider changing State.withFork() to also support
-      // passing in (and of course using) forkConfig.httpHeaders.
     );
   }
 

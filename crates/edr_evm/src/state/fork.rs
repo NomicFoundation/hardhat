@@ -38,6 +38,7 @@ impl ForkState {
         rpc_client: Arc<RpcClient>,
         hash_generator: Arc<Mutex<RandomHashGenerator>>,
         fork_block_number: u64,
+        state_root: B256,
         mut accounts: HashMap<Address, AccountInfo>,
     ) -> Result<Self, RpcClientError> {
         for (address, account_info) in &mut accounts {
@@ -51,16 +52,15 @@ impl ForkState {
         let remote_state = RemoteState::new(runtime, rpc_client, fork_block_number);
         let local_state = TrieState::with_accounts(AccountTrie::with_accounts(&accounts));
 
-        let generated_state_root = hash_generator.lock().next_value();
         let mut state_root_to_state = HashMap::new();
         let local_root = local_state.state_root().unwrap();
-        state_root_to_state.insert(generated_state_root, local_root);
+        state_root_to_state.insert(state_root, local_root);
 
         Ok(Self {
             local_state,
             remote_state: Arc::new(Mutex::new(CachedRemoteState::new(remote_state))),
             removed_storage_slots: HashSet::new(),
-            current_state: RwLock::new((generated_state_root, local_root)),
+            current_state: RwLock::new((state_root, local_root)),
             hash_generator,
             removed_remote_accounts: HashSet::new(),
         })
@@ -251,11 +251,17 @@ mod tests {
             let runtime = runtime::Handle::current();
             let rpc_client = RpcClient::new(&get_alchemy_url(), tempdir.path().to_path_buf());
 
+            let block = runtime
+                .block_on(rpc_client.get_block_by_number(BlockSpec::Number(FORK_BLOCK)))
+                .expect("Failed to retrieve block")
+                .expect("Block must exist");
+
             let fork_state = ForkState::new(
                 runtime,
                 Arc::new(rpc_client),
                 hash_generator,
                 FORK_BLOCK,
+                block.state_root,
                 HashMap::default(),
             )
             .await

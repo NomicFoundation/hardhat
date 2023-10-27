@@ -143,12 +143,23 @@ impl ForkedBlockchain {
             }
         }
 
+        let state_root = if account_overrides.is_empty() {
+            rpc_client
+                .get_block_by_number(edr_eth::remote::BlockSpec::Number(fork_block_number))
+                .await?
+                .expect("Block must exist")
+                .state_root
+        } else {
+            state_root_generator.lock().next_value()
+        };
+
         let rpc_client = Arc::new(rpc_client);
         let fork_state = ForkState::new(
             runtime.clone(),
             rpc_client.clone(),
             state_root_generator,
             fork_block_number,
+            state_root,
             account_overrides,
         )
         .await?;
@@ -341,12 +352,19 @@ impl Blockchain for ForkedBlockchain {
 
         let state = match block_number.cmp(&self.fork_block_number) {
             std::cmp::Ordering::Less => {
+                let block = self
+                    .remote
+                    .block_by_number(block_number)
+                    .await
+                    .map_err(BlockchainError::JsonRpcError)?;
+
                 // We don't apply account overrides to pre-fork states
                 ForkState::new(
                     self.runtime.clone(),
                     self.remote.client().clone(),
                     self.fork_state.state_root_generator().clone(),
                     block_number,
+                    block.header().state_root,
                     HashMap::new(),
                 )
                 .await?

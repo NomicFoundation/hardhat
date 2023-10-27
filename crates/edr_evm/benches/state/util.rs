@@ -43,7 +43,7 @@ impl EdrStates {
 
         #[cfg(all(test, feature = "test-remote"))]
         let fork = {
-            use edr_eth::remote::RpcClient;
+            use edr_eth::remote::{BlockSpec, RpcClient};
 
             let rpc_client = Arc::new(RpcClient::new(
                 &std::env::var_os("ALCHEMY_URL")
@@ -53,12 +53,18 @@ impl EdrStates {
                 cache_dir.path().to_path_buf(),
             ));
 
+            let block = runtime
+                .block_on(rpc_client.get_block_by_number(BlockSpec::Number(fork_block_number)))
+                .expect("Failed to retrieve block")
+                .expect("Block must exist");
+
             runtime
                 .block_on(ForkState::new(
                     runtime.handle().clone(),
                     rpc_client,
                     Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed"))),
                     fork_block_number,
+                    block.state_root,
                     HashMap::default(),
                 ))
                 .expect("Failed to construct ForkedState")

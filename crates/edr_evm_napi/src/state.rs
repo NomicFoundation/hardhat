@@ -10,7 +10,10 @@ use std::{
     },
 };
 
-use edr_eth::{remote::RpcClient, Address, Bytes, U256};
+use edr_eth::{
+    remote::{BlockSpec, RpcClient},
+    Address, Bytes, U256,
+};
 use edr_evm::{
     state::{AccountModifierFn, AccountTrie, ForkState, StateError, SyncState, TrieState},
     AccountInfo, Bytecode, HashMap, KECCAK_EMPTY,
@@ -144,15 +147,31 @@ impl State {
         runtime.clone().spawn(async move {
             let rpc_client = RpcClient::new(&remote_node_url, cache_dir);
 
-            let result = ForkState::new(
-                runtime.clone(),
-                Arc::new(rpc_client),
-                state_root_generator,
-                fork_block_number,
-                account_overrides,
-            )
-            .await
-            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()));
+            let block = rpc_client
+                .get_block_by_number(BlockSpec::Number(fork_block_number))
+                .await
+                .map_or_else(
+                    |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+                    |block| {
+                        block.ok_or_else(|| {
+                            napi::Error::new(Status::InvalidArg, "Block does not exist")
+                        })
+                    },
+                );
+
+            let result = match block {
+                Ok(block) => ForkState::new(
+                    runtime.clone(),
+                    Arc::new(rpc_client),
+                    state_root_generator,
+                    fork_block_number,
+                    block.state_root,
+                    account_overrides,
+                )
+                .await
+                .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string())),
+                Err(e) => Err(e),
+            };
 
             deferred.resolve(|mut env| result.map(|state| Self::with_state(&mut env, state)));
         });
