@@ -765,7 +765,7 @@ export class EdrAdapter implements VMAdapter {
     account: EdrAccount
   ): Promise<void> {
     const [blockNumber, stateRoot] = await this._persistIrregularState();
-    this._irregularState
+    await this._irregularState
       .asInner()
       .applyAccountChanges(blockNumber, stateRoot, [[address.buf, account]]);
   }
@@ -778,7 +778,7 @@ export class EdrAdapter implements VMAdapter {
     account: EdrAccount | null
   ) {
     const [blockNumber, stateRoot] = await this._persistIrregularState();
-    this._irregularState
+    await this._irregularState
       .asInner()
       .applyAccountStorageChange(
         blockNumber,
