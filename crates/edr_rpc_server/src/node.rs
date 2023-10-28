@@ -285,21 +285,26 @@ impl Node {
     pub async fn set_code(&self, address: Address, code: Bytes) -> Result<(), NodeError> {
         let mut node_data = self.lock_data().await;
 
+        let code = Bytecode::new_raw(code.clone());
         let default_code = code.clone();
-        let account_info = node_data.state.modify_account(
+        let irregular_code = code.clone();
+        let mut account_info = node_data.state.modify_account(
             address,
             AccountModifierFn::new(Box::new(move |_, _, account_code| {
-                *account_code = Some(Bytecode::new_raw(code.clone()));
+                *account_code = Some(code.clone());
             })),
             &|| {
                 Ok(AccountInfo {
                     balance: U256::ZERO,
                     nonce: 0,
-                    code: Some(Bytecode::new_raw(default_code.clone())),
+                    code: Some(default_code.clone()),
                     code_hash: KECCAK_EMPTY,
                 })
             },
         )?;
+
+        // The code was stripped from the account, so we need to re-add it for the irregular state.
+        account_info.code = Some(irregular_code.clone());
 
         let block_number = node_data.blockchain.last_block_number().await;
         let state_root = node_data.state.state_root()?;

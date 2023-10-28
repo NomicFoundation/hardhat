@@ -41,18 +41,12 @@ impl StateDiff {
             })
             .or_insert_with(|| {
                 let storage: HashMap<_, _> = std::iter::once((index, slot.clone())).collect();
-                account_info.map_or_else(
-                    || Account {
-                        info: AccountInfo::default(),
-                        storage: storage.clone(),
-                        status: AccountStatus::Created | AccountStatus::Touched,
-                    },
-                    |info| Account {
-                        info,
-                        storage: storage.clone(),
-                        status: AccountStatus::Touched,
-                    },
-                )
+
+                Account {
+                    info: account_info.unwrap_or_default(),
+                    storage,
+                    status: AccountStatus::Created | AccountStatus::Touched,
+                }
             });
     }
 

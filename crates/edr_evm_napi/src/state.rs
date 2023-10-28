@@ -355,7 +355,18 @@ impl State {
                 )
                 .map_or_else(
                     |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
-                    |account_info| Ok(Account::from(account_info)),
+                    |mut account_info| {
+                        // Add the code to the account info if it exists
+                        if account_info.code_hash != KECCAK_EMPTY {
+                            account_info.code = Some(
+                                state
+                                    .code_by_hash(account_info.code_hash)
+                                    .expect("Code must exist"),
+                            );
+                        }
+
+                        Ok(Account::from(account_info))
+                    },
                 );
 
             deferred.resolve(|_| result);
