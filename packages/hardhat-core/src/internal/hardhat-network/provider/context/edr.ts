@@ -123,7 +123,7 @@ export class EdrEthContext implements EthContextAdapter {
       const stateRoot = await forkState.getStateRoot();
 
       // Store the overrides in the irregular state
-      irregularState
+      await irregularState
         .asInner()
         .applyAccountChanges(latestBlockNumber, stateRoot, genesisAccounts);
 

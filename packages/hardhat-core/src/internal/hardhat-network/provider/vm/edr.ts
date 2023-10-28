@@ -31,7 +31,6 @@ import {
   IrregularState,
 } from "@ignored/edr";
 
-import { isForkedNodeConfig, NodeConfig } from "../node-types";
 import {
   ethereumjsHeaderDataToEdrBlockConfig,
   ethereumjsTransactionToEdrTransactionRequest,
@@ -53,11 +52,10 @@ import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTr
 import { InvalidInputError } from "../../../core/providers/errors";
 import { MessageTrace } from "../../stack-traces/message-trace";
 import { VMTracer } from "../../stack-traces/vm-tracer";
-
+import { EdrIrregularState } from "../EdrIrregularState";
 import { RunTxResult, VMAdapter } from "./vm-adapter";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
 import { EdrBlockBuilder } from "./block-builder/edr";
-import { EdrIrregularState } from "../EdrIrregularState";
 
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/no-unused-vars */
