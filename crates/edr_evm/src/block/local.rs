@@ -8,7 +8,7 @@ use edr_eth::{
     transaction::{DetailedTransaction, SignedTransaction},
     trie,
     withdrawal::Withdrawal,
-    Address, B256, U256,
+    Address, B256,
 };
 use itertools::izip;
 use revm::primitives::keccak256;
@@ -121,7 +121,7 @@ impl Block for LocalBlock {
 
 fn transaction_to_block_receipts(
     block_hash: &B256,
-    block_number: U256,
+    block_number: u64,
     receipts: Vec<TransactionReceipt<Log>>,
 ) -> Vec<Arc<BlockReceipt>> {
     let mut log_index = 0;

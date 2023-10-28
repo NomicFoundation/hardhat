@@ -13,9 +13,7 @@ pub(super) fn try_read_cache_key(method_invocation: &MethodInvocation) -> Option
         .and_then(CacheableMethodInvocation::read_cache_key)
 }
 
-pub(super) fn try_write_cache_key(
-    method_invocation: &MethodInvocation,
-) -> Option<WriteCacheKey<'_>> {
+pub(super) fn try_write_cache_key(method_invocation: &MethodInvocation) -> Option<WriteCacheKey> {
     CacheableMethodInvocation::try_from(method_invocation)
         .ok()
         .and_then(CacheableMethodInvocation::write_cache_key)
@@ -92,7 +90,7 @@ impl<'a> CacheableMethodInvocation<'a> {
     }
 
     #[allow(clippy::match_same_arms)]
-    fn write_cache_key(self) -> Option<WriteCacheKey<'a>> {
+    fn write_cache_key(self) -> Option<WriteCacheKey> {
         match Hasher::new().hash_method_invocation(&self) {
             Err(SymbolicBlogTagError) => WriteCacheKey::needs_block_number(self),
             Ok(hasher) => match self {
@@ -277,7 +275,7 @@ impl<'a> TryFrom<&'a MethodInvocation> for CacheableMethodInvocation<'a> {
 #[derive(Clone, Debug)]
 enum CacheableBlockSpec<'a> {
     /// Block number
-    Number { block_number: &'a U256 },
+    Number { block_number: u64 },
     /// Block hash
     Hash {
         block_hash: &'a B256,
@@ -301,7 +299,9 @@ impl<'a> TryFrom<&'a BlockSpec> for CacheableBlockSpec<'a> {
 
     fn try_from(value: &'a BlockSpec) -> Result<Self, Self::Error> {
         match value {
-            BlockSpec::Number(block_number) => Ok(CacheableBlockSpec::Number { block_number }),
+            BlockSpec::Number(block_number) => Ok(CacheableBlockSpec::Number {
+                block_number: *block_number,
+            }),
             BlockSpec::Tag(tag) => match tag {
                 // Latest and pending can be never resolved to a safe block number.
                 BlockTag::Latest | BlockTag::Pending => {
@@ -320,9 +320,9 @@ impl<'a> TryFrom<&'a BlockSpec> for CacheableBlockSpec<'a> {
                     block_hash,
                     require_canonical: *require_canonical,
                 }),
-                Eip1898BlockSpec::Number { block_number } => {
-                    Ok(CacheableBlockSpec::Number { block_number })
-                }
+                Eip1898BlockSpec::Number { block_number } => Ok(CacheableBlockSpec::Number {
+                    block_number: *block_number,
+                }),
             },
         }
     }
@@ -369,10 +369,10 @@ impl<'a> TryFrom<&'a GetLogsInput> for CacheableGetLogsInput<'a> {
 }
 
 #[derive(Debug, Clone)]
-pub(super) enum WriteCacheKey<'a> {
+pub(super) enum WriteCacheKey {
     /// It needs to be checked whether the block number is safe (reorg-free) before writing to the
     /// cache.
-    NeedsSafetyCheck(CacheKeyForUncheckedBlockNumber<'a>),
+    NeedsSafetyCheck(CacheKeyForUncheckedBlockNumber),
     /// The method invocation contains a symbolic block spec (e.g. "finalized") that needs to be
     /// resolved to a block number before the result can be cached.
     NeedsBlockNumber(CacheKeyForSymbolicBlockTag),
@@ -380,12 +380,12 @@ pub(super) enum WriteCacheKey<'a> {
     Resolved(String),
 }
 
-impl<'a> WriteCacheKey<'a> {
+impl WriteCacheKey {
     fn finalize(hasher: Hasher) -> Self {
         Self::Resolved(hasher.finalize())
     }
 
-    fn needs_safety_check(hasher: Hasher, block_spec: CacheableBlockSpec<'a>) -> Option<Self> {
+    fn needs_safety_check(hasher: Hasher, block_spec: CacheableBlockSpec<'_>) -> Option<Self> {
         match block_spec {
             CacheableBlockSpec::Number { block_number } => {
                 Some(Self::NeedsSafetyCheck(CacheKeyForUncheckedBlockNumber {
@@ -400,7 +400,7 @@ impl<'a> WriteCacheKey<'a> {
         }
     }
 
-    fn needs_block_number(method_invocation: CacheableMethodInvocation<'a>) -> Option<Self> {
+    fn needs_block_number(method_invocation: CacheableMethodInvocation<'_>) -> Option<Self> {
         Some(Self::NeedsBlockNumber(CacheKeyForSymbolicBlockTag {
             method_invocation: MethodWithResolvableSymbolicBlockSpec::new(method_invocation)?,
         }))
@@ -408,19 +408,15 @@ impl<'a> WriteCacheKey<'a> {
 }
 
 #[derive(Debug, Clone)]
-pub(super) struct CacheKeyForUncheckedBlockNumber<'a> {
+pub(super) struct CacheKeyForUncheckedBlockNumber {
     // Boxed to keep the size of the enum small.
     hasher: Box<Hasher>,
-    pub(super) block_number: &'a U256,
+    pub(super) block_number: u64,
 }
 
-impl<'a> CacheKeyForUncheckedBlockNumber<'a> {
+impl CacheKeyForUncheckedBlockNumber {
     /// Check whether the block number is safe to cache before returning a cache key.
-    pub fn validate_block_number(
-        self,
-        chain_id: &U256,
-        latest_block_number: &U256,
-    ) -> Option<String> {
+    pub fn validate_block_number(self, chain_id: u64, latest_block_number: u64) -> Option<String> {
         let is_safe = is_safe_block_number(IsSafeBlockNumberArgs {
             chain_id,
             latest_block_number,
@@ -435,10 +431,10 @@ impl<'a> CacheKeyForUncheckedBlockNumber<'a> {
 }
 
 #[derive(Debug, Clone)]
-pub(super) enum ResolvedSymbolicTag<'a> {
+pub(super) enum ResolvedSymbolicTag {
     /// It needs to be checked whether the block number is safe (reorg-free) before writing to the
     /// cache.
-    NeedsSafetyCheck(CacheKeyForUncheckedBlockNumber<'a>),
+    NeedsSafetyCheck(CacheKeyForUncheckedBlockNumber),
     /// The cache key is fully resolved and can be used to write to the cache.
     Resolved(String),
 }
@@ -448,12 +444,9 @@ pub(super) struct CacheKeyForSymbolicBlockTag {
     method_invocation: MethodWithResolvableSymbolicBlockSpec,
 }
 
-impl<'a> CacheKeyForSymbolicBlockTag {
+impl CacheKeyForSymbolicBlockTag {
     /// Check whether the block number is safe to cache before returning a cache key.
-    pub(super) fn resolve_symbolic_tag(
-        self,
-        block_number: &'a U256,
-    ) -> Option<ResolvedSymbolicTag<'a>> {
+    pub(super) fn resolve_symbolic_tag(self, block_number: u64) -> Option<ResolvedSymbolicTag> {
         let resolved_block_spec = CacheableBlockSpec::Number { block_number };
 
         let resolved_method_invocation = match self.method_invocation {
@@ -561,6 +554,10 @@ impl Hasher {
         self.hash_bytes(address.as_bytes())
     }
 
+    fn hash_u64(self, value: u64) -> Self {
+        self.hash_bytes(value.to_le_bytes())
+    }
+
     fn hash_u256(self, value: &U256) -> Self {
         self.hash_bytes(value.as_le_bytes())
     }
@@ -576,7 +573,7 @@ impl Hasher {
         let this = self.hash_u8(block_spec.cache_key_variant());
 
         match block_spec {
-            CacheableBlockSpec::Number { block_number } => Ok(this.hash_u256(block_number)),
+            CacheableBlockSpec::Number { block_number } => Ok(this.hash_u64(*block_number)),
             CacheableBlockSpec::Hash {
                 block_hash,
                 require_canonical,
@@ -749,10 +746,8 @@ mod test {
 
     #[test]
     fn test_hasher_block_spec_hash_and_number_not_equal() {
-        let block_number = U256::default();
+        let block_number = u64::default();
         let block_hash = B256::default();
-
-        assert_eq!(block_number.as_le_bytes(), block_hash.as_bytes());
 
         let hash_one = Hasher::new()
             .hash_block_spec(&CacheableBlockSpec::Hash {
@@ -762,9 +757,7 @@ mod test {
             .unwrap()
             .finalize();
         let hash_two = Hasher::new()
-            .hash_block_spec(&CacheableBlockSpec::Number {
-                block_number: &block_number,
-            })
+            .hash_block_spec(&CacheableBlockSpec::Number { block_number })
             .unwrap()
             .finalize();
 
@@ -773,12 +766,8 @@ mod test {
 
     #[test]
     fn test_get_logs_input_from_to_matters() {
-        let from = CacheableBlockSpec::Number {
-            block_number: &U256::try_from(1).unwrap(),
-        };
-        let to = CacheableBlockSpec::Number {
-            block_number: &U256::try_from(2).unwrap(),
-        };
+        let from = CacheableBlockSpec::Number { block_number: 1 };
+        let to = CacheableBlockSpec::Number { block_number: 2 };
         let address = Address::default();
 
         let hash_one = Hasher::new()
@@ -849,7 +838,7 @@ mod test {
             address: &address,
             position: &position,
             block_spec: CacheableBlockSpec::Number {
-                block_number: &U256::default(),
+                block_number: u64::default(),
             },
         }
         .read_cache_key()
@@ -862,10 +851,8 @@ mod test {
     fn test_get_storage_at_block_same_matches() {
         let address = Address::default();
         let position = U256::default();
-        let block_number = U256::default();
-        let block_spec = CacheableBlockSpec::Number {
-            block_number: &block_number,
-        };
+        let block_number = u64::default();
+        let block_spec = CacheableBlockSpec::Number { block_number };
 
         let key_one = CacheableMethodInvocation::GetStorageAt {
             address: &address,

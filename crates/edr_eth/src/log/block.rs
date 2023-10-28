@@ -1,6 +1,6 @@
 use std::ops::Deref;
 
-use revm_primitives::{B256, U256};
+use revm_primitives::B256;
 
 use super::receipt::ReceiptLog;
 
@@ -26,7 +26,8 @@ pub struct FullBlockLog {
     /// block hash
     pub block_hash: B256,
     /// block number
-    pub block_number: U256,
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
+    pub block_number: u64,
     /// Index of the log within the block
     #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
     pub log_index: u64,
@@ -62,8 +63,7 @@ impl rlp::Encodable for BlockLog {
 mod tests {
     use std::str::FromStr;
 
-    use bytes::Bytes;
-    use revm_primitives::Address;
+    use revm_primitives::{Address, Bytes};
 
     use crate::log::Log;
 
@@ -96,9 +96,9 @@ mod tests {
                 "0x88fadbb673928c61b9ede3694ae0589ac77ae38ec90a24a6e12e83f42f18c7e8",
             )
             .unwrap(),
-            block_number: U256::from_str_radix("a74fde", 16).expect("couldn't parse data"),
-            log_index: u64::from_str_radix("653b", 16).expect("couldn't parse data"),
-            transaction_index: u64::from_str_radix("1f", 16).expect("couldn't parse data"),
+            block_number: 0xa74fde,
+            log_index: 0x653b,
+            transaction_index: 0x1f,
         });
 
         let serialized = serde_json::to_string(&log).unwrap();

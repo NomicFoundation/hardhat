@@ -13,9 +13,9 @@ use super::RemoteState;
 pub struct CachedRemoteState {
     remote: RemoteState,
     /// Mapping of block numbers to cached accounts
-    account_cache: HashMap<U256, HashMap<Address, EdrAccount>>,
+    account_cache: HashMap<u64, HashMap<Address, EdrAccount>>,
     /// Mapping of block numbers to cached code
-    code_cache: HashMap<U256, HashMap<B256, Bytecode>>,
+    code_cache: HashMap<u64, HashMap<B256, Bytecode>>,
 }
 
 impl CachedRemoteState {
@@ -35,7 +35,7 @@ impl State for CachedRemoteState {
     fn basic(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error> {
         let block_accounts = self
             .account_cache
-            .entry(*self.remote.block_number())
+            .entry(self.remote.block_number())
             .or_default();
 
         if let Some(account) = block_accounts.get(&address) {
@@ -51,7 +51,7 @@ impl State for CachedRemoteState {
             if let Some(code) = account_info.code.take() {
                 let block_code = self
                     .code_cache
-                    .entry(*self.remote.block_number())
+                    .entry(self.remote.block_number())
                     .or_default();
 
                 block_code.entry(account_info.code_hash).or_insert(code);
@@ -69,7 +69,7 @@ impl State for CachedRemoteState {
     fn code_by_hash(&mut self, code_hash: B256) -> Result<Bytecode, Self::Error> {
         let block_code = self
             .code_cache
-            .entry(*self.remote.block_number())
+            .entry(self.remote.block_number())
             .or_default();
 
         block_code
@@ -81,7 +81,7 @@ impl State for CachedRemoteState {
     fn storage(&mut self, address: Address, index: U256) -> Result<U256, Self::Error> {
         let block_accounts = self
             .account_cache
-            .entry(*self.remote.block_number())
+            .entry(self.remote.block_number())
             .or_default();
 
         Ok(match block_accounts.entry(address) {

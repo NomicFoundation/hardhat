@@ -32,7 +32,7 @@ impl ForkState {
         runtime: runtime::Handle,
         rpc_client: Arc<RpcClient>,
         hash_generator: Arc<Mutex<RandomHashGenerator>>,
-        fork_block_number: U256,
+        fork_block_number: u64,
         state_root: B256,
     ) -> Self {
         let remote_state = RemoteState::new(runtime, rpc_client, fork_block_number);
@@ -226,15 +226,16 @@ mod tests {
             let rpc_client = RpcClient::new(&get_alchemy_url(), tempdir.path().to_path_buf());
 
             let block = rpc_client
-                .get_block_by_number(BlockSpec::Number(U256::from(FORK_BLOCK)))
+                .get_block_by_number(BlockSpec::Number(FORK_BLOCK))
                 .await
-                .expect("failed to retrieve block by number");
+                .expect("failed to retrieve block by number")
+                .expect("block should exist");
 
             let fork_state = ForkState::new(
                 runtime,
                 Arc::new(rpc_client),
                 hash_generator,
-                U256::from(FORK_BLOCK),
+                FORK_BLOCK,
                 block.state_root,
             );
 

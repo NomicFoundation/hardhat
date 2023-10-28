@@ -1,7 +1,6 @@
 use std::sync::OnceLock;
 
-use bytes::Bytes;
-use revm_primitives::{keccak256, ruint::aliases::U64, Address, B256, U256};
+use revm_primitives::{keccak256, ruint::aliases::U64, Address, Bytes, B256, U256};
 
 use crate::{
     access_list::AccessList,
@@ -39,10 +38,6 @@ pub struct Eip1559SignedTransaction {
 }
 
 impl Eip1559SignedTransaction {
-    pub fn nonce(&self) -> &u64 {
-        &self.nonce
-    }
-
     pub fn hash(&self) -> &B256 {
         self.hash.get_or_init(|| {
             let encoded = rlp::encode(self);

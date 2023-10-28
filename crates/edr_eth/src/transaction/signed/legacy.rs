@@ -1,7 +1,6 @@
 use std::sync::OnceLock;
 
-use bytes::Bytes;
-use revm_primitives::{keccak256, Address, B256, U256};
+use revm_primitives::{keccak256, Address, Bytes, B256, U256};
 
 use crate::{
     signature::{Signature, SignatureError},
@@ -31,10 +30,6 @@ pub struct LegacySignedTransaction {
 }
 
 impl LegacySignedTransaction {
-    pub fn nonce(&self) -> &u64 {
-        &self.nonce
-    }
-
     pub fn hash(&self) -> &B256 {
         self.hash.get_or_init(|| keccak256(&rlp::encode(self)))
     }

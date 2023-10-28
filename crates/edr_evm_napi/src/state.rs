@@ -4,16 +4,15 @@ mod overrides;
 use std::{
     mem,
     ops::Deref,
-    path::PathBuf,
     sync::{
         mpsc::{channel, Sender},
         Arc,
     },
 };
 
-use edr_eth::{remote::RpcClient, Address, Bytes, U256};
+use edr_eth::{Address, Bytes, U256};
 use edr_evm::{
-    state::{AccountModifierFn, AccountTrie, ForkState, StateError, SyncState, TrieState},
+    state::{AccountModifierFn, AccountTrie, StateError, SyncState, TrieState},
     AccountInfo, Bytecode, HashMap, KECCAK_EMPTY,
 };
 use napi::{
@@ -25,9 +24,7 @@ use napi_derive::napi;
 
 use crate::{
     account::{add_precompiles, genesis_accounts, Account, GenesisAccount},
-    block::Block,
     cast::TryCast,
-    context::EdrContext,
     sync::{await_promise, handle_error},
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
 };
@@ -108,40 +105,6 @@ impl State {
 
         let state = TrieState::with_accounts(AccountTrie::with_accounts(&accounts));
         Self::with_state(&mut env, state)
-    }
-
-    /// Constructs a [`State`] that uses the remote node and block number as the basis for
-    /// its state.
-    #[napi]
-    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn fork_remote(
-        mut env: Env,
-        context: &EdrContext,
-        remote_node_url: String,
-        fork_block: &Block,
-        cache_dir: Option<String>,
-    ) -> napi::Result<Self> {
-        let fork_block = fork_block.as_inner().clone();
-        let cache_dir: PathBuf = cache_dir
-            .unwrap_or_else(|| edr_defaults::CACHE_DIR.into())
-            .into();
-
-        let runtime = runtime::Handle::current();
-        let state_root_generator = context.state_root_generator.clone();
-
-        let rpc_client = RpcClient::new(&remote_node_url, cache_dir);
-
-        let header = fork_block.header();
-        Self::with_state(
-            &mut env,
-            ForkState::new(
-                runtime.clone(),
-                Arc::new(rpc_client),
-                state_root_generator,
-                header.number,
-                header.state_root,
-            ),
-        )
     }
 
     #[doc = "Clones the state"]

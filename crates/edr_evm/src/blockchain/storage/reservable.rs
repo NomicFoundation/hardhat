@@ -1,4 +1,4 @@
-use std::{fmt::Debug, num::NonZeroUsize, sync::Arc};
+use std::{num::NonZeroU64, sync::Arc};
 
 use edr_eth::{
     block::PartialHeader, receipt::BlockReceipt, trie::KECCAK_NULL_RLP, SpecId, B256, U256,
@@ -13,9 +13,9 @@ use super::SparseBlockchainStorage;
 /// A reservation for a sequence of blocks that have not yet been inserted into storage.
 #[derive(Debug)]
 struct Reservation {
-    first_number: U256,
-    last_number: U256,
-    interval: U256,
+    first_number: u64,
+    last_number: u64,
+    interval: u64,
     previous_base_fee_per_gas: Option<U256>,
     previous_state_root: B256,
     previous_total_difficulty: U256,
@@ -30,9 +30,9 @@ pub struct ReservableSparseBlockchainStorage<BlockT: Block + Clone + ?Sized> {
     storage: RwLock<SparseBlockchainStorage<BlockT>>,
     // We can store the state diffs contiguously, as reservations don't contain any diffs.
     // Diffs are a mapping from one state to the next, so the genesis block contains the initial state.
-    state_diffs: Vec<(U256, StateDiff)>,
-    number_to_diff_index: HashMap<U256, usize>,
-    last_block_number: U256,
+    state_diffs: Vec<(u64, StateDiff)>,
+    number_to_diff_index: HashMap<u64, usize>,
+    last_block_number: u64,
 }
 
 impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
@@ -42,15 +42,15 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
         Self {
             reservations: RwLock::new(Vec::new()),
             storage: RwLock::new(SparseBlockchainStorage::with_block(block, total_difficulty)),
-            state_diffs: vec![(U256::ZERO, diff)],
-            number_to_diff_index: std::iter::once((U256::ZERO, 0)).collect(),
-            last_block_number: U256::ZERO,
+            state_diffs: vec![(0, diff)],
+            number_to_diff_index: std::iter::once((0, 0)).collect(),
+            last_block_number: 0,
         }
     }
 
     /// Constructs a new instance with no blocks.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn empty(last_block_number: U256) -> Self {
+    pub fn empty(last_block_number: u64) -> Self {
         Self {
             reservations: RwLock::new(Vec::new()),
             storage: RwLock::new(SparseBlockchainStorage::default()),
@@ -77,22 +77,22 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
 
     /// Retrieves whether a block with the provided number exists.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn contains_block_number(&self, number: &U256) -> bool {
+    pub fn contains_block_number(&self, number: u64) -> bool {
         self.storage.read().contains_block_number(number)
     }
 
     /// Retrieves the last block number.
-    pub fn last_block_number(&self) -> &U256 {
-        &self.last_block_number
+    pub fn last_block_number(&self) -> u64 {
+        self.last_block_number
     }
 
     /// Retrieves the sequence of diffs from the genesis state to the state of the block with
     /// the provided number, if it exists.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn state_diffs_until_block(&self, block_number: &U256) -> Option<&[(U256, StateDiff)]> {
+    pub fn state_diffs_until_block(&self, block_number: u64) -> Option<&[(u64, StateDiff)]> {
         let diff_index = self
             .number_to_diff_index
-            .get(block_number)
+            .get(&block_number)
             .copied()
             .or_else(|| {
                 let reservations = self.reservations.read();
@@ -119,16 +119,16 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn reserve_blocks(
         &mut self,
-        additional: NonZeroUsize,
-        interval: U256,
+        additional: NonZeroU64,
+        interval: u64,
         previous_base_fee: Option<U256>,
         previous_state_root: B256,
         previous_total_difficulty: U256,
         spec_id: SpecId,
     ) {
         let reservation = Reservation {
-            first_number: self.last_block_number + U256::from(1),
-            last_number: self.last_block_number + U256::from(additional.get()),
+            first_number: self.last_block_number + 1,
+            last_number: self.last_block_number + additional.get(),
             interval,
             previous_base_fee_per_gas: previous_base_fee,
             previous_state_root,
@@ -138,21 +138,21 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
         };
 
         self.reservations.get_mut().push(reservation);
-        self.last_block_number += U256::from(additional.get());
+        self.last_block_number += additional.get();
     }
 
     /// Reverts to the block with the provided number, deleting all later blocks.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn revert_to_block(&mut self, block_number: &U256) -> bool {
-        if *block_number > self.last_block_number {
+    pub fn revert_to_block(&mut self, block_number: u64) -> bool {
+        if block_number > self.last_block_number {
             return false;
         }
 
-        self.last_block_number = *block_number;
+        self.last_block_number = block_number;
 
         self.storage.get_mut().revert_to_block(block_number);
 
-        if *block_number == U256::ZERO {
+        if block_number == 0 {
             // Reservations and state diffs can only occur after the genesis block,
             // so we can clear them all
             self.reservations.get_mut().clear();
@@ -162,10 +162,10 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
         } else {
             // Only retain reservations that are not fully reverted
             self.reservations.get_mut().retain_mut(|reservation| {
-                if reservation.last_number <= *block_number {
+                if reservation.last_number <= block_number {
                     true
-                } else if reservation.first_number <= *block_number {
-                    reservation.last_number = *block_number;
+                } else if reservation.first_number <= block_number {
+                    reservation.last_number = block_number;
                     true
                 } else {
                     false
@@ -175,7 +175,7 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
             // Remove all diffs that are newer than the reverted block
             let diff_index = self
                 .number_to_diff_index
-                .get(block_number)
+                .get(&block_number)
                 .copied()
                 .unwrap_or_else(|| {
                     let reservations = self.reservations.get_mut();
@@ -187,7 +187,7 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
             self.state_diffs.truncate(diff_index + 1);
 
             self.number_to_diff_index
-                .retain(|number, _| number <= block_number);
+                .retain(|number, _| *number <= block_number);
         }
 
         true
@@ -203,7 +203,7 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
 impl<BlockT: Block + Clone + From<LocalBlock>> ReservableSparseBlockchainStorage<BlockT> {
     /// Retrieves the block by number, if it exists.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn block_by_number(&self, number: &U256) -> Option<BlockT> {
+    pub fn block_by_number(&self, number: u64) -> Option<BlockT> {
         self.try_fulfilling_reservation(number)
             .or_else(|| self.storage.read().block_by_number(number).cloned())
     }
@@ -240,15 +240,15 @@ impl<BlockT: Block + Clone + From<LocalBlock>> ReservableSparseBlockchainStorage
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    fn try_fulfilling_reservation(&self, block_number: &U256) -> Option<BlockT> {
+    fn try_fulfilling_reservation(&self, block_number: u64) -> Option<BlockT> {
         let reservations = self.reservations.upgradable_read();
 
         reservations
             .iter()
             .enumerate()
             .find_map(|(idx, reservation)| {
-                if reservation.first_number <= *block_number
-                    && *block_number <= reservation.last_number
+                if reservation.first_number <= block_number
+                    && block_number <= reservation.last_number
                 {
                     Some(idx)
                 } else {
@@ -259,16 +259,16 @@ impl<BlockT: Block + Clone + From<LocalBlock>> ReservableSparseBlockchainStorage
                 let mut reservations = RwLockUpgradableReadGuard::upgrade(reservations);
                 let reservation = reservations.remove(idx);
 
-                if *block_number != reservation.first_number {
+                if block_number != reservation.first_number {
                     reservations.push(Reservation {
-                        last_number: block_number - U256::from(1),
+                        last_number: block_number - 1,
                         ..reservation
                     });
                 }
 
-                if *block_number != reservation.last_number {
+                if block_number != reservation.last_number {
                     reservations.push(Reservation {
-                        first_number: block_number + U256::from(1),
+                        first_number: block_number + 1,
                         ..reservation
                     });
                 }
@@ -284,7 +284,7 @@ impl<BlockT: Block + Clone + From<LocalBlock>> ReservableSparseBlockchainStorage
                 );
 
                 let block = LocalBlock::empty(PartialHeader {
-                    number: *block_number,
+                    number: block_number,
                     state_root: reservation.previous_state_root,
                     base_fee: reservation.previous_base_fee_per_gas,
                     timestamp,
@@ -314,32 +314,30 @@ fn calculate_timestamp_for_reserved_block<BlockT: Block + Clone>(
     storage: &SparseBlockchainStorage<BlockT>,
     reservations: &Vec<Reservation>,
     reservation: &Reservation,
-    block_number: &U256,
-) -> U256 {
-    let previous_block_number = reservation.first_number - U256::from(1);
-    let previous_timestamp = if let Some(previous_reservation) =
-        find_reservation(reservations, &previous_block_number)
-    {
-        calculate_timestamp_for_reserved_block(
-            storage,
-            reservations,
-            previous_reservation,
-            &previous_block_number,
-        )
-    } else {
-        let previous_block = storage
-            .block_by_number(&previous_block_number)
-            .expect("Block must exist");
+    block_number: u64,
+) -> u64 {
+    let previous_block_number = reservation.first_number - 1;
+    let previous_timestamp =
+        if let Some(previous_reservation) = find_reservation(reservations, previous_block_number) {
+            calculate_timestamp_for_reserved_block(
+                storage,
+                reservations,
+                previous_reservation,
+                previous_block_number,
+            )
+        } else {
+            let previous_block = storage
+                .block_by_number(previous_block_number)
+                .expect("Block must exist");
 
-        previous_block.header().timestamp
-    };
+            previous_block.header().timestamp
+        };
 
-    previous_timestamp
-        + reservation.interval * (block_number - reservation.first_number + U256::from(1))
+    previous_timestamp + reservation.interval * (block_number - reservation.first_number + 1)
 }
 
-fn find_reservation<'r>(reservations: &'r [Reservation], number: &U256) -> Option<&'r Reservation> {
-    reservations.iter().find(|reservation| {
-        reservation.first_number <= *number && *number <= reservation.last_number
-    })
+fn find_reservation(reservations: &[Reservation], number: u64) -> Option<&Reservation> {
+    reservations
+        .iter()
+        .find(|reservation| reservation.first_number <= number && number <= reservation.last_number)
 }

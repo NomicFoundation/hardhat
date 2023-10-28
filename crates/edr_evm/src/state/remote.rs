@@ -9,7 +9,7 @@ use revm::{
 use tokio::runtime;
 
 use edr_eth::{
-    remote::{BlockSpec, RpcClient},
+    remote::{BlockSpec, RpcClient, RpcClientError},
     Address, B256, U256,
 };
 
@@ -22,13 +22,13 @@ pub use cached::CachedRemoteState;
 pub struct RemoteState {
     client: Arc<RpcClient>,
     runtime: runtime::Handle,
-    block_number: U256,
+    block_number: u64,
 }
 
 impl RemoteState {
     /// Construct a new instance using an RPC client for a remote Ethereum node and a block number
     /// from which data will be pulled.
-    pub fn new(runtime: runtime::Handle, client: Arc<RpcClient>, block_number: U256) -> Self {
+    pub fn new(runtime: runtime::Handle, client: Arc<RpcClient>, block_number: u64) -> Self {
         Self {
             client,
             runtime,
@@ -37,32 +37,32 @@ impl RemoteState {
     }
 
     /// Retrieves the current block number
-    pub fn block_number(&self) -> &U256 {
-        &self.block_number
+    pub fn block_number(&self) -> u64 {
+        self.block_number
     }
 
     /// Whether the current state is cacheable based on the block number.
     pub fn is_cacheable(&self) -> Result<bool, StateError> {
         Ok(tokio::task::block_in_place(move || {
             self.runtime
-                .block_on(self.client.is_cacheable_block_number(&self.block_number))
+                .block_on(self.client.is_cacheable_block_number(self.block_number))
         })?)
     }
 
     /// Sets the block number used for calls to the remote Ethereum node.
-    pub fn set_block_number(&mut self, block_number: &U256) {
-        self.block_number = *block_number;
+    pub fn set_block_number(&mut self, block_number: u64) {
+        self.block_number = block_number;
     }
 
-    /// Retrieve the state root of the given block
-    pub fn state_root(&self, block_number: U256) -> Result<B256, StateError> {
+    /// Retrieve the state root of the given block, if it exists.
+    pub fn state_root(&self, block_number: u64) -> Result<Option<B256>, RpcClientError> {
         Ok(tokio::task::block_in_place(move || {
             self.runtime.block_on(
                 self.client
                     .get_block_by_number(BlockSpec::Number(block_number)),
             )
         })?
-        .state_root)
+        .map(|block| block.state_root))
     }
 }
 
@@ -87,7 +87,7 @@ impl StateRef for RemoteState {
 
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn storage(&self, address: Address, index: U256) -> Result<U256, Self::Error> {
-        tokio::task::block_in_place(move || {
+        Ok(tokio::task::block_in_place(move || {
             self.runtime
                 .block_on(self.client.get_storage_at(
                     &address,
@@ -95,7 +95,8 @@ impl StateRef for RemoteState {
                     Some(BlockSpec::Number(self.block_number)),
                 ))
                 .map_err(StateError::Remote)
-        })
+        })?
+        .unwrap_or(U256::ZERO))
     }
 }
 
@@ -123,11 +124,10 @@ mod tests {
 
         let runtime = runtime::Handle::current();
 
-        let account_info: AccountInfo =
-            RemoteState::new(runtime, Arc::new(rpc_client), U256::from(16643427))
-                .basic(dai_address)
-                .expect("should succeed")
-                .unwrap();
+        let account_info: AccountInfo = RemoteState::new(runtime, Arc::new(rpc_client), 16643427)
+            .basic(dai_address)
+            .expect("should succeed")
+            .unwrap();
 
         assert_eq!(account_info.balance, U256::from(0));
         assert_eq!(account_info.nonce, 1);

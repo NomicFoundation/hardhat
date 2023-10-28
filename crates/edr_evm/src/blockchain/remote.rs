@@ -52,7 +52,7 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
 
     /// Retrieves the block with the provided number, if it exists.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub async fn block_by_number(&self, number: &U256) -> Result<BlockT, RpcClientError> {
+    pub async fn block_by_number(&self, number: u64) -> Result<BlockT, RpcClientError> {
         let cache = self.cache.upgradable_read().await;
 
         if let Some(block) = cache.block_by_number(number).cloned() {
@@ -60,7 +60,7 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
         } else {
             let block = self
                 .client
-                .get_block_by_number_with_transaction_data(BlockSpec::Number(*number))
+                .get_block_by_number_with_transaction_data(BlockSpec::Number(number))
                 .await?;
 
             self.fetch_and_cache_block(cache, block).await
@@ -172,7 +172,7 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
         let is_cacheable = FORCE_CACHING
             || self
                 .client
-                .is_cacheable_block_number(&block.header().number)
+                .is_cacheable_block_number(block.header().number)
                 .await?;
 
         let block = BlockT::from(block);
@@ -207,12 +207,12 @@ mod tests {
 
         let remote = RemoteBlockchain::<RemoteBlock, false>::new(Arc::new(rpc_client));
 
-        let _ = remote.block_by_number(&block_number).await.unwrap();
+        let _ = remote.block_by_number(block_number).await.unwrap();
         assert!(remote
             .cache
             .read()
             .await
-            .block_by_number(&block_number)
+            .block_by_number(block_number)
             .is_none());
     }
 }

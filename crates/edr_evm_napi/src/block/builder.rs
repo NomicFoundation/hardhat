@@ -76,10 +76,7 @@ impl BlockBuilder {
     pub async fn gas_used(&self) -> napi::Result<BigInt> {
         let builder = self.builder.read().await;
         if let Some(builder) = builder.as_ref() {
-            Ok(BigInt {
-                sign_bit: false,
-                words: builder.gas_used().as_limbs().to_vec(),
-            })
+            Ok(BigInt::from(builder.gas_used()))
         } else {
             Err(napi::Error::new(
                 Status::InvalidArg,
@@ -162,7 +159,7 @@ impl BlockBuilder {
                 })
                 .collect::<napi::Result<Vec<(Address, U256)>>>()?;
 
-            let timestamp: Option<U256> = timestamp.map_or(Ok(None), |timestamp| {
+            let timestamp: Option<u64> = timestamp.map_or(Ok(None), |timestamp| {
                 BigInt::try_cast(timestamp).map(Option::Some)
             })?;
 

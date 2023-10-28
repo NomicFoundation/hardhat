@@ -40,7 +40,7 @@ pub async fn mine_block(
     let beneficiary = Address::from_slice(&beneficiary);
     let min_gas_price: U256 = BigInt::try_cast(min_gas_price)?;
     let mine_ordering = mine_ordering.into();
-    let timestamp: U256 = BigInt::try_cast(timestamp)?;
+    let timestamp: u64 = BigInt::try_cast(timestamp)?;
     let reward: U256 = BigInt::try_cast(reward)?;
     let base_fee: Option<U256> =
         base_fee.map_or(Ok(None), |base_fee| BigInt::try_cast(base_fee).map(Some))?;

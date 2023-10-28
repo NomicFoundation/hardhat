@@ -491,7 +491,7 @@ export class Block {
 export class Blockchain {
   /** Constructs a new blockchain from a genesis block. */
   constructor(chainId: bigint, specId: SpecId, gasLimit: bigint, accounts: Array<GenesisAccount>, timestamp?: bigint | undefined | null, prevRandao?: Buffer | undefined | null, baseFee?: bigint | undefined | null)
-  static fork(context: EdrContext, specId: SpecId, remoteUrl: string, forkBlockNumber: bigint | undefined | null, cacheDir: string | undefined | null, hardforkActivationOverrides: Array<[bigint, Array<[bigint, SpecId]>]>): Promise<Blockchain>
+  static fork(context: EdrContext, specId: SpecId, hardforkActivationOverrides: Array<[bigint, Array<[bigint, SpecId]>]>, remoteUrl: string, forkBlockNumber?: bigint | undefined | null, cacheDir?: string | undefined | null): Promise<Blockchain>
   /**Retrieves the block with the provided hash, if it exists. */
   blockByHash(hash: Buffer): Promise<Block | null>
   /**Retrieves the block with the provided number, if it exists. */
@@ -564,15 +564,15 @@ export class MemPool {
   /**Retrieves the instance's block gas limit. */
   blockGasLimit(): Promise<bigint>
   /**Sets the instance's block gas limit. */
-  setBlockGasLimit(blockGasLimit: bigint): Promise<void>
+  setBlockGasLimit(state: State, blockGasLimit: bigint): Promise<void>
   /**Retrieves the last pending nonce of the account corresponding to the specified address, if it exists. */
   lastPendingNonce(address: Buffer): Promise<bigint | null>
   /**Tries to add the provided transaction to the instance. */
-  addTransaction(stateManager: State, transaction: PendingTransaction): Promise<void>
+  addTransaction(state: State, transaction: PendingTransaction): Promise<void>
   /**Removes the transaction corresponding to the provided hash, if it exists. */
   removeTransaction(hash: Buffer): Promise<boolean>
   /**Updates the instance, moving any future transactions to the pending status, if their nonces are high enough. */
-  update(stateManager: State): Promise<void>
+  update(state: State): Promise<void>
   /**Returns all transactions in the mem pool. */
   transactions(): Promise<Array<PendingTransaction>>
   /**Returns whether the [`MemPool`] contains any future transactions. */
@@ -654,11 +654,6 @@ export class State {
   constructor()
   /** Constructs a [`State`] with the provided accounts present in the genesis state. */
   static withGenesisAccounts(accounts: Array<GenesisAccount>): State
-  /**
-   * Constructs a [`State`] that uses the remote node and block number as the basis for
-   * its state.
-   */
-  static forkRemote(context: EdrContext, remoteNodeUrl: string, forkBlock: Block, cacheDir?: string | undefined | null): this
   /**Clones the state */
   deepClone(): Promise<State>
   /** Retrieves the account corresponding to the specified address. */

@@ -35,10 +35,7 @@ impl Receipt {
     #[doc = "Returns the number of the block the receipt is included in."]
     #[napi(getter)]
     pub fn block_number(&self) -> BigInt {
-        BigInt {
-            sign_bit: false,
-            words: self.block_number.as_limbs().to_vec(),
-        }
+        BigInt::from(self.block_number)
     }
 
     #[doc = "Return the address of the transaction's receiver, if any."]
@@ -63,10 +60,7 @@ impl Receipt {
     #[doc = "Returns the cumulative gas used after this transaction was executed."]
     #[napi(getter)]
     pub fn cumulative_gas_used(&self) -> BigInt {
-        BigInt {
-            sign_bit: false,
-            words: self.cumulative_gas_used.as_limbs().to_vec(),
-        }
+        BigInt::from(self.cumulative_gas_used)
     }
 
     #[doc = "Returns the gas used by the receipt's transaction."]

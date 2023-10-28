@@ -84,12 +84,12 @@ export class EdrEthContext implements EthContextAdapter {
         await Blockchain.fork(
           getGlobalEdrContext(),
           specId,
+          chainIdToHardforkActivations,
           config.forkConfig.jsonRpcUrl,
           config.forkConfig.blockNumber !== undefined
             ? BigInt(config.forkConfig.blockNumber)
             : undefined,
-          config.forkCachePath,
-          chainIdToHardforkActivations
+          config.forkCachePath
         ),
         irregularState,
         common

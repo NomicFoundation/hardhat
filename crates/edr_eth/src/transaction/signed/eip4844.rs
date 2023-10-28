@@ -1,10 +1,9 @@
 use std::sync::OnceLock;
 
-use bytes::Bytes;
 use revm_primitives::{
     keccak256,
     ruint::aliases::{U160, U64},
-    Address, B256, U256,
+    Address, Bytes, B256, U256,
 };
 
 use crate::{

@@ -25,8 +25,7 @@ impl Deref for FilterLog {
 mod tests {
     use std::str::FromStr;
 
-    use bytes::Bytes;
-    use revm_primitives::{Address, B256, U256};
+    use revm_primitives::{Address, Bytes, B256};
 
     use crate::log::{FullBlockLog, Log, ReceiptLog};
 
@@ -61,9 +60,9 @@ mod tests {
                     "0x88fadbb673928c61b9ede3694ae0589ac77ae38ec90a24a6e12e83f42f18c7e8",
                 )
                 .unwrap(),
-                block_number: U256::from_str_radix("a74fde", 16).expect("couldn't parse data"),
-                log_index: u64::from_str_radix("653b", 16).expect("couldn't parse data"),
-                transaction_index: u64::from_str_radix("1f", 16).expect("couldn't parse data"),
+                block_number: 0xa74fde,
+                log_index: 0x653b,
+                transaction_index: 0x1f,
             }),
             removed: false,
         };

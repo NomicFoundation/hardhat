@@ -46,7 +46,7 @@ pub struct NodeArgs {
     #[clap(long)]
     fork_url: Option<String>,
     #[clap(long)]
-    fork_block_number: Option<usize>,
+    fork_block_number: Option<u64>,
     #[clap(long)]
     chain_id: Option<u64>,
     #[clap(long)]
@@ -138,8 +138,8 @@ where
                 ConfigFile::default()
             };
 
-            let server =
-                edr_rpc_server::Server::new(config_file.into_server_config(node_args)?).await?;
+            let config = config_file.into_server_config(node_args)?;
+            let server = edr_rpc_server::Server::new(&config).await?;
 
             Ok(server
                 .serve_with_shutdown_signal(await_signal())

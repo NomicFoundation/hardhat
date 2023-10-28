@@ -62,10 +62,7 @@ impl Log {
     pub fn block_number(&self) -> Option<BigInt> {
         match &self.inner {
             LogType::Execution(_) => None,
-            LogType::Full(log) => Some(BigInt {
-                sign_bit: false,
-                words: log.block_number.as_limbs().to_vec(),
-            }),
+            LogType::Full(log) => Some(BigInt::from(log.block_number)),
         }
     }
 

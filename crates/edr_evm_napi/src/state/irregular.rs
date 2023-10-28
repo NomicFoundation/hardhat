@@ -50,7 +50,7 @@ impl IrregularState {
         state_root: Buffer,
         changes: Vec<(Buffer, Account)>,
     ) -> napi::Result<()> {
-        let block_number: U256 = BigInt::try_cast(block_number)?;
+        let block_number: u64 = BigInt::try_cast(block_number)?;
         let state_root = TryCast::<B256>::try_cast(state_root)?;
         let changes: Vec<(Address, AccountInfo)> = changes
             .into_iter()
@@ -96,7 +96,7 @@ impl IrregularState {
         new_value: BigInt,
         account: Option<Account>,
     ) -> napi::Result<()> {
-        let block_number: U256 = BigInt::try_cast(block_number)?;
+        let block_number: u64 = BigInt::try_cast(block_number)?;
         let state_root = TryCast::<B256>::try_cast(state_root)?;
         let address = Address::from_slice(&address);
         let index: U256 = BigInt::try_cast(index)?;

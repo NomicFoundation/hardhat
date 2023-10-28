@@ -14,16 +14,14 @@ mod alchemy {
                             Address
                         };
                         use edr_test_utils::env::get_alchemy_url;
-                        use revm_primitives::{B256, U256};
+                        use revm_primitives::{B256};
                         use tempfile::TempDir;
 
                         let tempdir = TempDir::new().unwrap();
                         let client = RpcClient::new(&get_alchemy_url(), tempdir.path().into());
 
-                        let block_number = U256::from($block_number);
-
                         let block = client
-                            .get_block_by_number_with_transaction_data(BlockSpec::Number(block_number))
+                            .get_block_by_number_with_transaction_data(BlockSpec::Number($block_number))
                             .await
                             .expect("Should succeed");
 
