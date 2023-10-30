@@ -393,11 +393,6 @@ impl Node {
         node_data.impersonated_accounts.remove(&address)
     }
 
-    pub async fn last_block_number(&self) -> u64 {
-        let node_data = self.lock_data().await;
-        node_data.blockchain.last_block_number().await
-    }
-
     pub async fn block_by_block_spec(
         &self,
         block_spec: &BlockSpec,
@@ -594,15 +589,15 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn last_block_number() -> Result<()> {
+    async fn block_number() -> Result<()> {
         let fixture = NodeTestFixture::new().await?;
 
-        let last_block_number = fixture.node.last_block_number().await;
-        assert_eq!(last_block_number, 0);
+        let block_number = fixture.node.block_number().await;
+        assert_eq!(block_number, 0);
 
         fixture.node.lock_data().await.mine_block(None).await?;
-        let last_block_number = fixture.node.last_block_number().await;
-        assert_eq!(last_block_number, 1);
+        let block_number = fixture.node.block_number().await;
+        assert_eq!(block_number, 1);
 
         Ok(())
     }
