@@ -604,11 +604,6 @@ mod tests {
 
     #[tokio::test]
     async fn block_by_block_spec_tags() -> Result<()> {
-        let fixture = NodeTestFixture::new().await?;
-
-        fixture.node.lock_data().await.mine_block(None).await?;
-        fixture.node.lock_data().await.mine_block(None).await?;
-
         async fn assert_block_number(
             fixture: &NodeTestFixture,
             block_tag: BlockTag,
@@ -621,6 +616,11 @@ mod tests {
 
             assert_eq!(block.unwrap().header().number, expected_block_number);
         }
+
+        let fixture = NodeTestFixture::new().await?;
+
+        fixture.node.lock_data().await.mine_block(None).await?;
+        fixture.node.lock_data().await.mine_block(None).await?;
 
         assert_block_number(&fixture, BlockTag::Earliest, 0).await;
 
@@ -638,11 +638,6 @@ mod tests {
 
     #[tokio::test]
     async fn block_by_block_spec_numbers() -> Result<()> {
-        let fixture = NodeTestFixture::new().await?;
-
-        fixture.node.lock_data().await.mine_block(None).await?;
-        fixture.node.lock_data().await.mine_block(None).await?;
-
         async fn assert_block_number(fixture: &NodeTestFixture, block_number: u64) {
             let block = fixture
                 .node
@@ -651,6 +646,11 @@ mod tests {
 
             assert_eq!(block.unwrap().header().number, block_number);
         }
+
+        let fixture = NodeTestFixture::new().await?;
+
+        fixture.node.lock_data().await.mine_block(None).await?;
+        fixture.node.lock_data().await.mine_block(None).await?;
 
         assert_block_number(&fixture, 0).await;
         assert_block_number(&fixture, 1).await;
@@ -671,21 +671,21 @@ mod tests {
 
     #[tokio::test]
     async fn block_by_block_spec_eip1898_numbers() -> Result<()> {
-        let fixture = NodeTestFixture::new().await?;
-
-        fixture.node.lock_data().await.mine_block(None).await?;
-        fixture.node.lock_data().await.mine_block(None).await?;
-
         async fn assert_block_number(fixture: &NodeTestFixture, block_number: u64) {
             let block = fixture
                 .node
                 .block_by_block_spec(&BlockSpec::Eip1898(Eip1898BlockSpec::Number {
-                    block_number: block_number,
+                    block_number,
                 }))
                 .await;
 
             assert_eq!(block.unwrap().header().number, block_number);
         }
+
+        let fixture = NodeTestFixture::new().await?;
+
+        fixture.node.lock_data().await.mine_block(None).await?;
+        fixture.node.lock_data().await.mine_block(None).await?;
 
         assert_block_number(&fixture, 0).await;
         assert_block_number(&fixture, 1).await;
@@ -706,16 +706,6 @@ mod tests {
 
     #[tokio::test]
     async fn block_by_block_spec_eip1898_hashes() -> Result<()> {
-        let fixture = NodeTestFixture::new().await?;
-
-        let block = fixture
-            .node
-            .block_by_block_spec(&BlockSpec::Tag(BlockTag::Earliest))
-            .await
-            .unwrap();
-
-        let block_hash = block.header().hash();
-
         async fn assert_block_hash(
             fixture: &NodeTestFixture,
             block_hash: &B256,
@@ -732,6 +722,16 @@ mod tests {
 
             assert_eq!(block_by_hash.header().hash(), *block_hash);
         }
+
+        let fixture = NodeTestFixture::new().await?;
+
+        let block = fixture
+            .node
+            .block_by_block_spec(&BlockSpec::Tag(BlockTag::Earliest))
+            .await
+            .unwrap();
+
+        let block_hash = block.header().hash();
 
         assert_block_hash(&fixture, &block_hash, None).await;
         assert_block_hash(&fixture, &block_hash, Some(true)).await;
@@ -815,14 +815,6 @@ mod tests {
 
     #[tokio::test]
     async fn block_transaction_count_by_block_spec() -> Result<()> {
-        let fixture = NodeTestFixture::new().await?;
-
-        let block = fixture
-            .node
-            .block_by_block_spec(&BlockSpec::Tag(BlockTag::Earliest))
-            .await
-            .unwrap();
-
         async fn assert_block_transaction_count(
             fixture: &NodeTestFixture,
             block_spec: BlockSpec,
@@ -836,6 +828,14 @@ mod tests {
 
             assert_eq!(count, expected_count);
         }
+
+        let fixture = NodeTestFixture::new().await?;
+
+        let block = fixture
+            .node
+            .block_by_block_spec(&BlockSpec::Tag(BlockTag::Earliest))
+            .await
+            .unwrap();
 
         assert_block_transaction_count(&fixture, BlockSpec::Tag(BlockTag::Earliest), 0).await;
         assert_block_transaction_count(&fixture, BlockSpec::Tag(BlockTag::Latest), 0).await;
