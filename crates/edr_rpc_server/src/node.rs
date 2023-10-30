@@ -479,6 +479,26 @@ impl Node {
             .await?
             .and_then(|block| block.transactions().get(index).cloned()))
     }
+
+    pub async fn transaction_by_block_spec_and_index(
+        &self,
+        block_spec: &BlockSpec,
+        index: usize,
+    ) -> Result<Option<SignedTransaction>, NodeError> {
+        let mut node_data = self.lock_data().await;
+
+        let tx = node_data
+            .block_by_block_spec(block_spec)
+            .await?
+            .transactions()
+            .get(index)
+            .cloned();
+
+        self.workaround_block_by_spec(&mut *node_data.blockchain, block_spec)
+            .await?;
+
+        Ok(tx)
+    }
 }
 
 /// An account in this node.
@@ -862,6 +882,50 @@ mod tests {
 
         assert_eq!(non_existing_block_tx, None);
 
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn transaction_by_block_spec_and_index() -> Result<()> {
+        let fixture = NodeTestFixture::new().await?;
+
+        let tx = fixture
+            .node
+            .transaction_by_block_spec_and_index(&BlockSpec::Tag(BlockTag::Latest), 0)
+            .await
+            .unwrap();
+
+        assert_eq!(tx, None);
+
+        let non_existing_block_tx = fixture
+            .node
+            .transaction_by_block_spec_and_index(&BlockSpec::Number(1), 0)
+            .await;
+
+        assert_error!(non_existing_block_tx, NodeError::UnknownBlockNumber { block_number } => assert_eq!(block_number, 1));
+
+        let non_existing_block_tx = fixture
+            .node
+            .transaction_by_block_spec_and_index(
+                &BlockSpec::Eip1898(Eip1898BlockSpec::Number { block_number: 1 }),
+                0,
+            )
+            .await;
+
+        assert_error!(non_existing_block_tx, NodeError::UnknownBlockNumber { block_number } => assert_eq!(block_number, 1));
+
+        let non_existing_block_tx = fixture
+            .node
+            .transaction_by_block_spec_and_index(
+                &BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
+                    block_hash: B256::zero(),
+                    require_canonical: None,
+                }),
+                0,
+            )
+            .await;
+
+        assert_error!(non_existing_block_tx, NodeError::UnknownBlockHash { block_hash } => assert_eq!(block_hash, B256::zero()));
         Ok(())
     }
 }
