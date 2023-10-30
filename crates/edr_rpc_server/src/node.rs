@@ -432,6 +432,24 @@ impl Node {
             .map(|block| block.transactions().len()))
     }
 
+    pub async fn block_transaction_count_by_block_spec(
+        &self,
+        block_spec: &BlockSpec,
+    ) -> Result<usize, NodeError> {
+        let mut node_data = self.lock_data().await;
+
+        let count = node_data
+            .block_by_block_spec(block_spec)
+            .await?
+            .transactions()
+            .len();
+
+        self.workaround_block_by_spec(&mut *node_data.blockchain, block_spec)
+            .await?;
+
+        Ok(count)
+    }
+
     // Temporary workaround until this gets fixed
     // https://github.com/NomicFoundation/edr/issues/186
     async fn workaround_block_by_spec(
@@ -725,6 +743,81 @@ mod tests {
             .unwrap();
 
         assert_eq!(non_existing_count, None);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn block_transaction_count_by_block_spec() -> Result<()> {
+        let fixture = NodeTestFixture::new().await?;
+
+        let block = fixture
+            .node
+            .block_by_block_spec(&BlockSpec::Tag(BlockTag::Earliest))
+            .await
+            .unwrap();
+
+        async fn assert_block_transaction_count(
+            fixture: &NodeTestFixture,
+            block_spec: BlockSpec,
+            expected_count: usize,
+        ) {
+            let count = fixture
+                .node
+                .block_transaction_count_by_block_spec(&block_spec)
+                .await
+                .unwrap();
+
+            assert_eq!(count, expected_count);
+        }
+
+        assert_block_transaction_count(&fixture, BlockSpec::Tag(BlockTag::Earliest), 0).await;
+        assert_block_transaction_count(&fixture, BlockSpec::Tag(BlockTag::Latest), 0).await;
+        assert_block_transaction_count(&fixture, BlockSpec::Tag(BlockTag::Pending), 0).await;
+        assert_block_transaction_count(&fixture, BlockSpec::Number(0), 0).await;
+
+        assert_block_transaction_count(
+            &fixture,
+            BlockSpec::Eip1898(Eip1898BlockSpec::Number { block_number: 0 }),
+            0,
+        )
+        .await;
+
+        assert_block_transaction_count(
+            &fixture,
+            BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
+                block_hash: block.header().hash(),
+                require_canonical: None,
+            }),
+            0,
+        )
+        .await;
+
+        let non_existing_count = fixture
+            .node
+            .block_transaction_count_by_block_spec(&BlockSpec::Number(1))
+            .await;
+
+        assert_error!(non_existing_count, NodeError::UnknownBlockNumber { block_number } => assert_eq!(block_number, 1));
+
+        let non_existing_count = fixture
+            .node
+            .block_transaction_count_by_block_spec(&BlockSpec::Eip1898(Eip1898BlockSpec::Number {
+                block_number: 1,
+            }))
+            .await;
+
+        assert_error!(non_existing_count, NodeError::UnknownBlockNumber { block_number } => assert_eq!(block_number, 1));
+
+        let non_existing_count = fixture
+            .node
+            .block_transaction_count_by_block_spec(&BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
+                block_hash: B256::zero(),
+                require_canonical: None,
+            }))
+            .await;
+
+        assert_error!(non_existing_count, NodeError::UnknownBlockHash { block_hash } => assert_eq!(block_hash, B256::zero()));
 
         Ok(())
     }
