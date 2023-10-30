@@ -10,6 +10,7 @@ use edr_eth::{
     },
     serde::ZeroXPrefixedBytes,
     signature::Signature,
+    transaction::SignedTransaction,
     Address, Bytes, B256, U256, U64,
 };
 use edr_evm::{
@@ -464,6 +465,20 @@ impl Node {
 
         Ok(())
     }
+
+    pub async fn transaction_by_block_hash_and_index(
+        &self,
+        block_hash: &B256,
+        index: usize,
+    ) -> Result<Option<SignedTransaction>, BlockchainError> {
+        let node_data = self.lock_data().await;
+
+        Ok(node_data
+            .blockchain
+            .block_by_hash(block_hash)
+            .await?
+            .and_then(|block| block.transactions().get(index).cloned()))
+    }
 }
 
 /// An account in this node.
@@ -818,6 +833,34 @@ mod tests {
             .await;
 
         assert_error!(non_existing_count, NodeError::UnknownBlockHash { block_hash } => assert_eq!(block_hash, B256::zero()));
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn transaction_by_block_hash_and_index() -> Result<()> {
+        let fixture = NodeTestFixture::new().await?;
+
+        let block = fixture
+            .node
+            .block_by_block_spec(&BlockSpec::Tag(BlockTag::Latest))
+            .await?;
+
+        let tx = fixture
+            .node
+            .transaction_by_block_hash_and_index(&block.header().hash(), 0)
+            .await
+            .unwrap();
+
+        assert_eq!(tx, None);
+
+        let non_existing_block_tx = fixture
+            .node
+            .transaction_by_block_hash_and_index(&B256::zero(), 0)
+            .await
+            .unwrap();
+
+        assert_eq!(non_existing_block_tx, None);
 
         Ok(())
     }
