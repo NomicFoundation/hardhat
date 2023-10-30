@@ -39,7 +39,8 @@ pub mod test_tools {
 
     use super::*;
 
-    pub const SECRET_KEY: &str = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+    pub const TEST_SECRET_KEY: &str =
+        "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 
     pub fn create_test_config(cache_dir: PathBuf) -> Config {
         Config {
@@ -48,9 +49,9 @@ pub mod test_tools {
             allow_unlimited_contract_size: false,
             rpc_hardhat_network_config: RpcHardhatNetworkConfig { forking: None },
             accounts: vec![AccountConfig {
-                secret_key: secret_key_from_str(SECRET_KEY)
+                secret_key: secret_key_from_str(TEST_SECRET_KEY)
                     .expect("should construct secret key from string"),
-                balance: U256::ZERO,
+                balance: U256::from(10).pow(U256::from(18)),
             }],
             block_gas_limit: 30_000_000,
             chain_id: 1,

@@ -13,4 +13,4 @@ pub use node::{Node, NodeError};
 pub use server::{MethodInvocation, Server, ServerError};
 
 #[cfg(feature = "test-tools")]
-pub use config::test_tools::create_test_config;
+pub use config::test_tools::{create_test_config, TEST_SECRET_KEY};

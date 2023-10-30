@@ -4,6 +4,10 @@ mod eip2930;
 mod eip4844;
 mod legacy;
 
+use k256::SecretKey;
+
+use crate::{signature::SignatureError, transaction::SignedTransaction};
+
 pub use self::{
     eip155::EIP155TransactionRequest, eip1559::EIP1559TransactionRequest,
     eip2930::EIP2930TransactionRequest, eip4844::Eip4844TransactionRequest,
@@ -28,4 +32,16 @@ pub enum TransactionRequest {
     EIP1559(EIP1559TransactionRequest),
     /// An EIP-4844 transaction request
     Eip4844(Eip4844TransactionRequest),
+}
+
+impl TransactionRequest {
+    pub fn sign(self, secret_key: &SecretKey) -> Result<SignedTransaction, SignatureError> {
+        Ok(match self {
+            TransactionRequest::Legacy(transaction) => transaction.sign(secret_key)?.into(),
+            TransactionRequest::EIP155(transaction) => transaction.sign(secret_key)?.into(),
+            TransactionRequest::EIP2930(transaction) => transaction.sign(secret_key)?.into(),
+            TransactionRequest::EIP1559(transaction) => transaction.sign(secret_key)?.into(),
+            TransactionRequest::Eip4844(transaction) => transaction.sign(secret_key)?.into(),
+        })
+    }
 }

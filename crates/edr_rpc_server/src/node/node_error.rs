@@ -1,18 +1,22 @@
 use std::time::{SystemTime, SystemTimeError};
 
-use edr_eth::{remote::RpcClientError, Address, B256, U256};
+use edr_eth::{remote::RpcClientError, transaction::EthTransactionRequest, Address, B256, U256};
 use edr_evm::{
     blockchain::{BlockchainError, ForkedCreationError, LocalCreationError},
     state::StateError,
-    MineBlockError,
+    MineBlockError, MinerTransactionError, TransactionCreationError,
 };
 
 #[derive(Debug, thiserror::Error)]
 pub enum NodeError {
     #[error("The initial date configuration value {0:?} is in the future")]
     InitialDateInFuture(SystemTime),
+    #[error("Could not convert transaction request into a typed request")]
+    InvalidTransactionRequest,
     #[error("Requested to mine too many blocks")]
     MineCountTooLarge { count: U256 },
+    #[error("Requested to mine too many blocks")]
+    MissingSender { transaction: EthTransactionRequest },
     #[error("Subscription {filter_id} is not a logs subscription")]
     NotLogSubscription { filter_id: U256 },
     #[error(
@@ -51,6 +55,12 @@ pub enum NodeError {
     MineBlock(#[from] MineBlockError<BlockchainError, StateError>),
 
     #[error(transparent)]
+    MinerTransactionError(#[from] MinerTransactionError<StateError>),
+
+    #[error(transparent)]
+    RlpDecodeError(#[from] rlp::DecoderError),
+
+    #[error(transparent)]
     Signature(#[from] edr_eth::signature::SignatureError),
 
     #[error(transparent)]
@@ -58,4 +68,7 @@ pub enum NodeError {
 
     #[error(transparent)]
     SystemTime(#[from] SystemTimeError),
+
+    #[error(transparent)]
+    TransactionCreationError(#[from] TransactionCreationError<StateError>),
 }

@@ -22,6 +22,7 @@ use edr_eth::{
     },
     serde::ZeroXPrefixedBytes,
     signature::Signature,
+    transaction::EthTransactionRequest,
     Address, Bytes, B256, U256, U64,
 };
 use edr_evm::{blockchain::BlockchainError, state::StateError, MineBlockResult};
@@ -299,6 +300,34 @@ async fn handle_new_pending_transaction_filter(node: Arc<Node>) -> ResponseData<
     ResponseData::Success { result: filter_id }
 }
 
+async fn handle_send_transaction(
+    node: Arc<Node>,
+    transaction_request: EthTransactionRequest,
+) -> ResponseData<B256> {
+    event!(Level::INFO, "eth_sendTransaction({transaction_request:?})");
+
+    match node.send_transaction(transaction_request).await {
+        Ok(transaction_hash) => ResponseData::Success {
+            result: transaction_hash,
+        },
+        Err(e) => error_response_data(-32000, &format!("failed to send transaction: {e}")),
+    }
+}
+
+async fn handle_send_raw_transaction(
+    node: Arc<Node>,
+    raw_transaction: ZeroXPrefixedBytes,
+) -> ResponseData<B256> {
+    event!(Level::INFO, "eth_sendRawTransaction({raw_transaction:?})");
+
+    match node.send_raw_transaction(raw_transaction.as_ref()).await {
+        Ok(transaction_hash) => ResponseData::Success {
+            result: transaction_hash,
+        },
+        Err(e) => error_response_data(-32000, &format!("failed to send transaction: {e}")),
+    }
+}
+
 async fn handle_set_balance(
     node: Arc<Node>,
     address: Address,
@@ -531,6 +560,12 @@ async fn handle_request(
                 }
                 MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()) => {
                     response(id, handle_new_pending_transaction_filter(node).await)
+                }
+                MethodInvocation::Eth(EthMethodInvocation::SendTransaction(
+                    transaction_request,
+                )) => response(id, handle_send_transaction(node, transaction_request).await),
+                MethodInvocation::Eth(EthMethodInvocation::SendRawTransaction(raw_transaction)) => {
+                    response(id, handle_send_raw_transaction(node, raw_transaction).await)
                 }
                 MethodInvocation::Eth(EthMethodInvocation::Sign(address, message)) => {
                     response(id, handle_sign(node, address, message).await)
