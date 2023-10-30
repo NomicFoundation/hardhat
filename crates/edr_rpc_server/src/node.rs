@@ -452,21 +452,6 @@ impl Node {
         Ok(count)
     }
 
-    // Temporary workaround until this gets fixed
-    // https://github.com/NomicFoundation/edr/issues/186
-    async fn workaround_block_by_spec(
-        &self,
-        blockchain: &mut dyn SyncBlockchain<BlockchainError, StateError>,
-        block_spec: &BlockSpec,
-    ) -> Result<(), NodeError> {
-        if block_spec == &BlockSpec::Tag(BlockTag::Pending) {
-            let prev_block_number = blockchain.last_block_number().await - 1;
-            blockchain.revert_to_block(prev_block_number).await?;
-        }
-
-        Ok(())
-    }
-
     pub async fn transaction_by_block_hash_and_index(
         &self,
         block_hash: &B256,
@@ -534,6 +519,21 @@ impl Node {
         let node_data = self.lock_data().await;
 
         node_data.blockchain.receipt_by_transaction_hash(hash).await
+    }
+
+    // Temporary workaround until this gets fixed
+    // https://github.com/NomicFoundation/edr/issues/186
+    async fn workaround_block_by_spec(
+        &self,
+        blockchain: &mut dyn SyncBlockchain<BlockchainError, StateError>,
+        block_spec: &BlockSpec,
+    ) -> Result<(), NodeError> {
+        if block_spec == &BlockSpec::Tag(BlockTag::Pending) {
+            let prev_block_number = blockchain.last_block_number().await - 1;
+            blockchain.revert_to_block(prev_block_number).await?;
+        }
+
+        Ok(())
     }
 }
 
