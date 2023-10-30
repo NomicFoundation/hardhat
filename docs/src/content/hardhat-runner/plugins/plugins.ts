@@ -854,6 +854,15 @@ const communityPlugins: IPlugin[] = [
       "Show transaction params before hardhat send transaction to network",
     tags: ["log", "logger", "transaction"],
   },
+  {
+    name: "hardhat-contract-signatures",
+    author: "Axel Loupias",
+    npmPackage: "hardhat-contract-signatures",
+    authorUrl: "https://github.com/AxelLoupias",
+    description:
+      "Display different signatures that have the methods, events and errors of your contracts by console",
+    tags: ["functions", "errors",	"events",	"tooling", "selectorss"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
