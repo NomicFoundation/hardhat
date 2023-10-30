@@ -861,7 +861,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/AxelLoupias",
     description:
       "Display different signatures that have the methods, events and errors of your contracts by console",
-    tags: ["functions", "errors",	"events",	"tooling", "selectorss"],
+    tags: ["functions", "errors", "events", "tooling", "selectorss"],
   },
 ];
 
