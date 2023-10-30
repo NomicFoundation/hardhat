@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.11.1 - 2023-10-30
+
+### Added
+
+- Give visual indication that there was a gas bump in `deploy` task ([#587](https://github.com/NomicFoundation/hardhat-ignition/issues/587))
+
+### Changed
+
+- When displaying an Ethereum Address at the cli, show in checksum format ([#600](https://github.com/NomicFoundation/hardhat-ignition/issues/600))
+- Show a better message when no futures were executed during a rerun ([#586](https://github.com/NomicFoundation/hardhat-ignition/issues/586))
+- Less confusing message for no modules folder error ([#602](https://github.com/NomicFoundation/hardhat-ignition/issues/602))
+
 ## 0.11.0 - 2023-10-23
 
 First public launch 🚀
