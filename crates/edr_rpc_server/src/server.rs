@@ -371,12 +371,12 @@ fn handle_net_peer_count() -> ResponseData<U64> {
 
 async fn handle_sign(
     node: Arc<Node>,
-    address: &Address,
-    message: &ZeroXPrefixedBytes,
+    address: Address,
+    message: ZeroXPrefixedBytes,
 ) -> ResponseData<Signature> {
     event!(Level::INFO, "eth_sign({address:?}, {message:?})");
 
-    match node.sign(address, message).await {
+    match node.sign(&address, message).await {
         Ok(signature) => ResponseData::Success { result: signature },
         Err(error) => match error {
             NodeError::UnknownAddress { .. } => {
@@ -437,15 +437,15 @@ fn handle_web3_sha3(message: ZeroXPrefixedBytes) -> ResponseData<B256> {
 
 async fn handle_request(
     node: Arc<Node>,
-    request: &RpcRequest<MethodInvocation>,
+    request: RpcRequest<MethodInvocation>,
 ) -> Result<serde_json::Value, String> {
-    fn response<T>(id: &jsonrpc::Id, data: ResponseData<T>) -> Result<serde_json::Value, String>
+    fn response<T>(id: jsonrpc::Id, data: ResponseData<T>) -> Result<serde_json::Value, String>
     where
         T: serde::Serialize,
     {
         let response: Response<T> = Response {
             jsonrpc: jsonrpc::Version::V2_0,
-            id: id.clone(),
+            id,
             data,
         };
         serde_json::to_value(response).map_err(|e| {
@@ -460,7 +460,7 @@ async fn handle_request(
             version,
             id,
             method: _,
-        } if *version != jsonrpc::Version::V2_0 => response(
+        } if version != jsonrpc::Version::V2_0 => response(
             id,
             error_response_data::<serde_json::Value>(
                 0,
@@ -486,28 +486,28 @@ async fn handle_request(
                     response(id, handle_coinbase(node).await)
                 }
                 MethodInvocation::Eth(EthMethodInvocation::EvmIncreaseTime(increment)) => {
-                    response(id, handle_evm_increase_time(node, increment.clone()).await)
+                    response(id, handle_evm_increase_time(node, increment).await)
                 }
                 MethodInvocation::Eth(EthMethodInvocation::EvmMine(timestamp)) => {
-                    response(id, handle_evm_mine(node, timestamp.clone()).await)
+                    response(id, handle_evm_mine(node, timestamp).await)
                 }
                 MethodInvocation::Eth(EthMethodInvocation::EvmSetNextBlockTimestamp(timestamp)) => {
                     response(
                         id,
-                        handle_evm_set_next_block_timestamp(node, timestamp.clone()).await,
+                        handle_evm_set_next_block_timestamp(node, timestamp).await,
                     )
                 }
                 MethodInvocation::Eth(EthMethodInvocation::GetBalance(address, block)) => {
-                    response(id, handle_get_balance(node, *address, block.clone()).await)
+                    response(id, handle_get_balance(node, address, block).await)
                 }
                 MethodInvocation::Eth(EthMethodInvocation::GetCode(address, block)) => {
-                    response(id, handle_get_code(node, *address, block.clone()).await)
+                    response(id, handle_get_code(node, address, block).await)
                 }
                 MethodInvocation::Eth(EthMethodInvocation::GetFilterChanges(filter_id)) => {
-                    response(id, handle_get_filter_changes(node, *filter_id).await)
+                    response(id, handle_get_filter_changes(node, filter_id).await)
                 }
                 MethodInvocation::Eth(EthMethodInvocation::GetFilterLogs(filter_id)) => {
-                    response(id, handle_get_filter_logs(node, *filter_id).await)
+                    response(id, handle_get_filter_logs(node, filter_id).await)
                 }
                 MethodInvocation::Eth(EthMethodInvocation::GetStorageAt(
                     address,
@@ -515,13 +515,10 @@ async fn handle_request(
                     block,
                 )) => response(
                     id,
-                    handle_get_storage_at(node, *address, *position, block.clone()).await,
+                    handle_get_storage_at(node, address, position, block).await,
                 ),
                 MethodInvocation::Eth(EthMethodInvocation::GetTransactionCount(address, block)) => {
-                    response(
-                        id,
-                        handle_get_transaction_count(node, *address, block.clone()).await,
-                    )
+                    response(id, handle_get_transaction_count(node, address, block).await)
                 }
                 MethodInvocation::Eth(EthMethodInvocation::NetListening()) => {
                     response(id, handle_net_listening())
@@ -545,13 +542,13 @@ async fn handle_request(
                     response(id, handle_web3_sha3(message.clone()))
                 }
                 MethodInvocation::Eth(EthMethodInvocation::UninstallFilter(filter_id)) => {
-                    response(id, handle_uninstall_filter(node, *filter_id).await)
+                    response(id, handle_uninstall_filter(node, filter_id).await)
                 }
                 MethodInvocation::Eth(EthMethodInvocation::Unsubscribe(subscription_id)) => {
-                    response(id, handle_unsubscribe(node, *subscription_id).await)
+                    response(id, handle_unsubscribe(node, subscription_id).await)
                 }
                 MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(address)) => {
-                    response(id, handle_impersonate_account(node, *address).await)
+                    response(id, handle_impersonate_account(node, address).await)
                 }
                 MethodInvocation::Hardhat(HardhatMethodInvocation::IntervalMine()) => {
                     response(id, handle_interval_mine(node).await)
@@ -559,12 +556,12 @@ async fn handle_request(
                 MethodInvocation::Hardhat(HardhatMethodInvocation::SetBalance(
                     address,
                     balance,
-                )) => response(id, handle_set_balance(node, *address, *balance).await),
+                )) => response(id, handle_set_balance(node, address, balance).await),
                 MethodInvocation::Hardhat(HardhatMethodInvocation::SetCode(address, code)) => {
-                    response(id, handle_set_code(node, *address, code.clone()).await)
+                    response(id, handle_set_code(node, address, code).await)
                 }
                 MethodInvocation::Hardhat(HardhatMethodInvocation::SetNonce(address, nonce)) => {
-                    response(id, handle_set_nonce(node, *address, *nonce).await)
+                    response(id, handle_set_nonce(node, address, nonce).await)
                 }
                 MethodInvocation::Hardhat(HardhatMethodInvocation::SetStorageAt(
                     address,
@@ -572,11 +569,11 @@ async fn handle_request(
                     value,
                 )) => response(
                     id,
-                    handle_set_storage_at(node, *address, *position, *value).await,
+                    handle_set_storage_at(node, address, position, value).await,
                 ),
                 MethodInvocation::Hardhat(HardhatMethodInvocation::StopImpersonatingAccount(
                     address,
-                )) => response(id, handle_stop_impersonating_account(node, *address).await),
+                )) => response(id, handle_stop_impersonating_account(node, address).await),
                 // TODO: after adding all the methods here, eliminate this
                 // catch-all match arm:
                 _ => {
@@ -614,7 +611,7 @@ async fn router(node: Arc<Node>) -> Router {
                     let responses = {
                         let mut responses: Vec<serde_json::Value> =
                             Vec::with_capacity(requests.len());
-                        for request in requests.iter() {
+                        for request in requests {
                             match handle_request(Arc::clone(&node), request).await {
                                 Ok(response) => responses.push(response),
                                 Err(s) => {

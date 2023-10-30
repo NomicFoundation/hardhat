@@ -378,14 +378,11 @@ impl Node {
     pub async fn sign(
         &self,
         address: &Address,
-        message: &ZeroXPrefixedBytes,
+        message: ZeroXPrefixedBytes,
     ) -> Result<Signature, NodeError> {
         let node_data = self.lock_data().await;
         match node_data.local_accounts.get(address) {
-            Some(secret_key) => Ok(Signature::new(
-                &Bytes::from(message.clone())[..],
-                secret_key,
-            )?),
+            Some(secret_key) => Ok(Signature::new(&Bytes::from(message)[..], secret_key)?),
             None => Err(NodeError::UnknownAddress { address: *address }),
         }
     }
