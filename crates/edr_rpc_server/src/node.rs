@@ -419,6 +419,19 @@ impl Node {
         node_data.blockchain.block_by_hash(block_hash).await
     }
 
+    pub async fn block_transaction_count_by_hash(
+        &self,
+        block_hash: &B256,
+    ) -> Result<Option<usize>, BlockchainError> {
+        let node_data = self.lock_data().await;
+
+        Ok(node_data
+            .blockchain
+            .block_by_hash(block_hash)
+            .await?
+            .map(|block| block.transactions().len()))
+    }
+
     // Temporary workaround until this gets fixed
     // https://github.com/NomicFoundation/edr/issues/186
     async fn workaround_block_by_spec(
@@ -680,6 +693,38 @@ mod tests {
         let non_existing_block = fixture.node.block_by_hash(&B256::zero()).await.unwrap();
 
         assert!(non_existing_block.is_none());
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn block_transaction_count_by_hash() -> Result<()> {
+        let fixture = NodeTestFixture::new().await?;
+
+        let block = fixture
+            .node
+            .block_by_block_spec(&BlockSpec::Tag(BlockTag::Earliest))
+            .await
+            .unwrap();
+
+        let block_hash = block.header().hash();
+
+        let count = fixture
+            .node
+            .block_transaction_count_by_hash(&block_hash)
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(count, 0);
+
+        let non_existing_count = fixture
+            .node
+            .block_transaction_count_by_hash(&B256::zero())
+            .await
+            .unwrap();
+
+        assert_eq!(non_existing_count, None);
 
         Ok(())
     }
