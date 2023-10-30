@@ -390,6 +390,11 @@ impl Node {
 
         node_data.impersonated_accounts.remove(&address)
     }
+
+    pub async fn last_block_number(&self) -> u64 {
+        let node_data = self.lock_data().await;
+        node_data.blockchain.last_block_number().await
+    }
 }
 
 /// An account in this node.
@@ -434,6 +439,20 @@ mod tests {
 
         let chain_id = fixture.node.chain_id().await;
         assert_eq!(chain_id, U64::from(fixture.config.chain_id));
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn last_block_number() -> Result<()> {
+        let fixture = NodeTestFixture::new().await?;
+
+        let last_block_number = fixture.node.last_block_number().await;
+        assert_eq!(last_block_number, 0);
+
+        fixture.node.lock_data().await.mine_block(None).await?;
+        let last_block_number = fixture.node.last_block_number().await;
+        assert_eq!(last_block_number, 1);
 
         Ok(())
     }
