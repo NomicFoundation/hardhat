@@ -4,6 +4,7 @@ mod node_error;
 use std::{mem, sync::Arc};
 
 use edr_eth::{
+    receipt::BlockReceipt,
     remote::{
         filter::{FilteredEvents, LogOutput},
         BlockSpec, BlockTag,
@@ -525,6 +526,15 @@ impl Node {
 
         Ok(transaction)
     }
+
+    pub async fn transaction_receipt(
+        &self,
+        hash: &B256,
+    ) -> Result<Option<Arc<BlockReceipt>>, BlockchainError> {
+        let node_data = self.lock_data().await;
+
+        node_data.blockchain.receipt_by_transaction_hash(hash).await
+    }
 }
 
 /// An account in this node.
@@ -1021,6 +1031,21 @@ mod tests {
             .unwrap();
 
         assert_eq!(non_existing_tx, None);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn transaction_receipt() -> Result<()> {
+        let fixture = NodeTestFixture::new().await?;
+
+        let non_existing_receipt = fixture
+            .node
+            .transaction_receipt(&B256::zero())
+            .await
+            .unwrap();
+
+        assert_eq!(non_existing_receipt, None);
 
         Ok(())
     }
