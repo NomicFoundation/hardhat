@@ -37,7 +37,8 @@ where
         self.inner.get(&block_number)
     }
 
-    /// Inserts the state for a block number and returns the previous state if it exists.
+    /// Inserts the state for a block number and returns the previous state if
+    /// it exists.
     pub fn insert_state(&mut self, block_number: u64, state: StateT) -> Option<StateT> {
         self.inner.insert(block_number, state)
     }

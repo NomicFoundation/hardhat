@@ -1,5 +1,6 @@
-// Fork of threadsafe_function from napi-rs that allows calling JS function manually rather than
-// only returning args. This enables us to use the return value of the function.
+// Fork of threadsafe_function from napi-rs that allows calling JS function
+// manually rather than only returning args. This enables us to use the return
+// value of the function.
 
 #![allow(clippy::single_component_path_imports)]
 
@@ -40,7 +41,8 @@ impl From<ThreadsafeFunctionCallMode> for sys::napi_threadsafe_function_call_mod
     }
 }
 
-/// Communicate with the addon's main thread by invoking a JavaScript function from other threads.
+/// Communicate with the addon's main thread by invoking a JavaScript function
+/// from other threads.
 ///
 /// ## Example
 /// An example of using `ThreadsafeFunction`:

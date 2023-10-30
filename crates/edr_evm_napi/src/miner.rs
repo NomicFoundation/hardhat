@@ -11,12 +11,11 @@ use napi::{
 };
 use napi_derive::napi;
 
+use self::result::MineBlockResult;
 use crate::{
     blockchain::Blockchain, cast::TryCast, config::ConfigOptions, mempool::MemPool,
     miner::ordering::MineOrdering, state::State, tracer::Tracer,
 };
-
-use self::result::MineBlockResult;
 
 /// Mines a block using as many transactions as can fit in it.
 #[allow(clippy::too_many_arguments)]

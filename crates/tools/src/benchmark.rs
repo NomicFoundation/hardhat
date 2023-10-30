@@ -1,5 +1,4 @@
-use std::io::Write;
-use std::path::PathBuf;
+use std::{io::Write, path::PathBuf};
 
 use anyhow::Result;
 
@@ -7,7 +6,8 @@ use anyhow::Result;
 pub(crate) fn run(working_directory: PathBuf, test_command: &str, iterations: usize) -> Result<()> {
     let mut deltas = Vec::new();
 
-    // Run test command in working directory iterations times and capture the time it takes to run
+    // Run test command in working directory iterations times and capture the time
+    // it takes to run
     for i in 1..(iterations + 1) {
         println!("Running {i}/{iterations} `{test_command}`");
         let start = std::time::Instant::now();

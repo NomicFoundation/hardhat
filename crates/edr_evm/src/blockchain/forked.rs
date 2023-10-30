@@ -1,29 +1,27 @@
-use std::num::NonZeroU64;
-use std::sync::Arc;
+use std::{num::NonZeroU64, sync::Arc};
 
 use async_trait::async_trait;
-use edr_eth::block::LargestSafeBlockNumberArgs;
-use edr_eth::receipt::BlockReceipt;
-use edr_eth::spec::chain_hardfork_activations;
-use edr_eth::Address;
 use edr_eth::{
-    block::{largest_safe_block_number, safe_block_depth},
+    block::{largest_safe_block_number, safe_block_depth, LargestSafeBlockNumberArgs},
+    receipt::BlockReceipt,
     remote::{RpcClient, RpcClientError},
-    spec::{chain_name, HardforkActivations},
-    B256, U256,
+    spec::{chain_hardfork_activations, chain_name, HardforkActivations},
+    Address, B256, U256,
 };
 use parking_lot::Mutex;
-use revm::primitives::{AccountInfo, HashMap};
-use revm::{db::BlockHashRef, primitives::SpecId};
+use revm::{
+    db::BlockHashRef,
+    primitives::{AccountInfo, HashMap, SpecId},
+};
 use tokio::runtime;
 
-use crate::state::{ForkState, StateDiff, StateError, SyncState};
-use crate::{Block, LocalBlock, RandomHashGenerator, SyncBlock};
-
-use super::compute_state_at_block;
 use super::{
-    remote::RemoteBlockchain, storage::ReservableSparseBlockchainStorage, validate_next_block,
-    Blockchain, BlockchainError, BlockchainMut,
+    compute_state_at_block, remote::RemoteBlockchain, storage::ReservableSparseBlockchainStorage,
+    validate_next_block, Blockchain, BlockchainError, BlockchainMut,
+};
+use crate::{
+    state::{ForkState, StateDiff, StateError, SyncState},
+    Block, LocalBlock, RandomHashGenerator, SyncBlock,
 };
 
 /// An error that occurs upon creation of a [`ForkedBlockchain`].
@@ -402,7 +400,8 @@ impl BlockchainMut for ForkedBlockchain {
 
         let total_difficulty = previous_total_difficulty + block.header().difficulty;
 
-        // SAFETY: The block number is guaranteed to be unique, so the block hash must be too.
+        // SAFETY: The block number is guaranteed to be unique, so the block hash must
+        // be too.
         let block = unsafe {
             self.local_storage
                 .insert_block_unchecked(block, state_diff, total_difficulty)

@@ -125,12 +125,11 @@ mod tests {
     use k256::SecretKey;
     use revm_primitives::Address;
 
+    use super::*;
     use crate::{
         access_list::AccessListItem,
         signature::{secret_key_from_str, secret_key_to_address},
     };
-
-    use super::*;
 
     const DUMMY_SECRET_KEY: &str =
         "e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109";

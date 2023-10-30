@@ -1,7 +1,5 @@
 use std::str::FromStr;
 
-use serial_test::serial;
-
 use edr_eth::{
     block::PartialHeader,
     transaction::{EIP155TransactionRequest, SignedTransaction, TransactionKind},
@@ -14,6 +12,7 @@ use edr_evm::{
     LocalBlock, SpecId,
 };
 use lazy_static::lazy_static;
+use serial_test::serial;
 use tempfile::TempDir;
 
 lazy_static! {

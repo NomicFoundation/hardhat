@@ -5,12 +5,11 @@ mod legacy;
 
 use napi::bindgen_prelude::Either4;
 
-use crate::cast::TryCast;
-
 pub use self::{
     eip1559::Eip1559SignedTransaction, eip2930::Eip2930SignedTransaction,
     eip4844::Eip4844SignedTransaction, legacy::LegacySignedTransaction,
 };
+use crate::cast::TryCast;
 
 pub type SignedTransaction = Either4<
     LegacySignedTransaction,

@@ -2,7 +2,8 @@
 
 //! Ethereum types
 //!
-//! Ethereum types as needed by EDR. In particular, they are based on the same primitive types as `revm`.
+//! Ethereum types as needed by EDR. In particular, they are based on the same
+//! primitive types as `revm`.
 
 /// Ethereum access list types
 pub mod access_list;

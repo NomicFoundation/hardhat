@@ -22,8 +22,8 @@ impl<T> SharedMapEntry<T> {
         self.occurences += 1;
     }
 
-    /// Decrements the number of occurences. If no occurences are left, the [`SharedMapEntry`]
-    /// is consumed.
+    /// Decrements the number of occurences. If no occurences are left, the
+    /// [`SharedMapEntry`] is consumed.
     pub fn decrement(mut self) -> Option<Self> {
         self.occurences -= 1;
 
@@ -44,8 +44,8 @@ impl<K, V> SharedMap<K, V>
 where
     K: Eq + Hash,
 {
-    /// Inserts new value or, if it already exists, increments the number of occurences of
-    /// the corresponding entry.
+    /// Inserts new value or, if it already exists, increments the number of
+    /// occurences of the corresponding entry.
     pub fn insert(&mut self, key: K, value: V) {
         self.entries
             .entry(key)
@@ -58,8 +58,8 @@ impl<K, V> SharedMap<K, V>
 where
     K: Clone + Eq + Hash,
 {
-    /// Decremenents the number of occurences of the value corresponding to the provided key,
-    /// if it exists, and removes unused entry.
+    /// Decremenents the number of occurences of the value corresponding to the
+    /// provided key, if it exists, and removes unused entry.
     pub fn remove(&mut self, key: &K) {
         self.entries
             .entry(key.clone())

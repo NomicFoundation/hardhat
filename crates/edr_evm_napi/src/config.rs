@@ -158,7 +158,8 @@ pub struct ConfigOptions {
     pub limit_initcode_size: Option<BigInt>,
     /// Disables block limit validation
     pub disable_block_gas_limit: Option<bool>,
-    /// Disables EIP-3607, which rejects transactions from sender with deployed code
+    /// Disables EIP-3607, which rejects transactions from sender with deployed
+    /// code
     pub disable_eip3607: Option<bool>,
 }
 

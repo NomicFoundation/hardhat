@@ -7,9 +7,8 @@ use edr_eth::{
     B256, U256,
 };
 
-use crate::{Block, RemoteBlock};
-
 use super::storage::SparseBlockchainStorage;
+use crate::{Block, RemoteBlock};
 
 #[derive(Debug)]
 pub struct RemoteBlockchain<BlockT: Block + Clone, const FORCE_CACHING: bool> {
@@ -67,7 +66,8 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
         }
     }
 
-    /// Retrieves the block that contains a transaction with the provided hash, if it exists.
+    /// Retrieves the block that contains a transaction with the provided hash,
+    /// if it exists.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn block_by_transaction_hash(
         &self,
@@ -103,7 +103,8 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
         &self.client
     }
 
-    /// Retrieves the receipt of the transaction with the provided hash, if it exists.
+    /// Retrieves the receipt of the transaction with the provided hash, if it
+    /// exists.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn receipt_by_transaction_hash(
         &self,

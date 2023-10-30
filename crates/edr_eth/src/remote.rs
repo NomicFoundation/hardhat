@@ -1,5 +1,7 @@
-use std::fmt;
-use std::fmt::{Display, Formatter};
+use std::{
+    fmt,
+    fmt::{Display, Formatter},
+};
 
 /// an Ethereum JSON-RPC client
 pub mod client;
@@ -18,9 +20,9 @@ pub mod methods;
 
 mod cacheable_method_invocation;
 
-use crate::B256;
-
 pub use client::{RpcClient, RpcClientError};
+
+use crate::B256;
 
 /// for representing block specifications per EIP-1898
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -30,8 +32,8 @@ pub enum Eip1898BlockSpec {
     Hash {
         /// the block hash
         block_hash: B256,
-        /// whether the server should additionally raise a JSON-RPC error if the block is not in
-        /// the canonical chain
+        /// whether the server should additionally raise a JSON-RPC error if the
+        /// block is not in the canonical chain
         require_canonical: Option<bool>,
     },
     /// to represent the Object { blockNumber } in EIP-1898

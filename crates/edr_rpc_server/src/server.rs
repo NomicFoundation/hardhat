@@ -8,9 +8,6 @@ use axum::{
     http::StatusCode,
     Router,
 };
-use sha3::{Digest, Keccak256};
-use tracing::{event, Level};
-
 use edr_eth::{
     remote::{
         client::Request as RpcRequest,
@@ -25,6 +22,8 @@ use edr_eth::{
     Address, Bytes, B256, U256, U64,
 };
 use edr_evm::{blockchain::BlockchainError, state::StateError, MineBlockResult};
+use sha3::{Digest, Keccak256};
+use tracing::{event, Level};
 
 use crate::{
     node::{Node, NodeError},
@@ -66,8 +65,8 @@ pub enum ServerError {
     Node(#[from] NodeError),
 }
 
-/// `require_canonical`: whether the server should additionally raise a JSON-RPC error if the block
-/// is not in the canonical chain
+/// `require_canonical`: whether the server should additionally raise a JSON-RPC
+/// error if the block is not in the canonical chain
 async fn handle_accounts(node: Arc<Node>) -> ResponseData<Vec<Address>> {
     event!(Level::INFO, "eth_accounts()");
 
@@ -652,7 +651,8 @@ async fn router(node: Arc<Node>) -> Router {
 }
 
 impl Server {
-    /// Accepts a configuration and a set of initial accounts to initialize the state.
+    /// Accepts a configuration and a set of initial accounts to initialize the
+    /// state.
     pub async fn new(config: &Config) -> Result<Self, ServerError> {
         let listener = TcpListener::bind(config.address).map_err(ServerError::Listen)?;
         event!(Level::INFO, "Listening on {}", config.address);

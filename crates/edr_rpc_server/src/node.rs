@@ -3,9 +3,6 @@ mod node_error;
 
 use std::mem;
 
-use k256::SecretKey;
-use tokio::sync::Mutex;
-
 use edr_eth::{
     remote::{
         filter::{FilteredEvents, LogOutput},
@@ -20,10 +17,11 @@ use edr_evm::{
     state::{AccountModifierFn, StateError},
     AccountInfo, Block, Bytecode, MineBlockResult, KECCAK_EMPTY,
 };
-
-use crate::{filter::Filter, node::node_data::NodeData, Config};
+use k256::SecretKey;
+use tokio::sync::Mutex;
 
 pub use self::node_error::NodeError;
+use crate::{filter::Filter, node::node_data::NodeData, Config};
 
 pub struct Node {
     data: Mutex<NodeData>,
@@ -403,13 +401,11 @@ pub struct LocalAccountInfo {
 #[cfg(test)]
 mod tests {
     use anyhow::Result;
+    use edr_eth::U64;
     use tempfile::TempDir;
 
-    use edr_eth::U64;
-
-    use crate::{create_test_config, Config};
-
     use super::*;
+    use crate::{create_test_config, Config};
 
     struct NodeTestFixture {
         // We need to keep the tempdir alive for the duration of the test

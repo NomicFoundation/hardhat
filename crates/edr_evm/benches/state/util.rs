@@ -3,17 +3,16 @@ use std::clone::Clone;
 use std::sync::Arc;
 
 use criterion::{BatchSize, BenchmarkId, Criterion};
-#[cfg(all(test, feature = "test-remote"))]
-use parking_lot::Mutex;
-use tempfile::TempDir;
-#[cfg(all(test, feature = "test-remote"))]
-use tokio::runtime::Builder;
-
 use edr_eth::{Address, Bytes, U256};
 use edr_evm::state::{StateError, SyncState, TrieState};
 #[cfg(all(test, feature = "test-remote"))]
 use edr_evm::{state::ForkState, HashMap, RandomHashGenerator};
+#[cfg(all(test, feature = "test-remote"))]
+use parking_lot::Mutex;
 use revm::primitives::{AccountInfo, Bytecode, KECCAK_EMPTY};
+use tempfile::TempDir;
+#[cfg(all(test, feature = "test-remote"))]
+use tokio::runtime::Builder;
 
 #[allow(dead_code)]
 struct TestState<'t> {
@@ -113,7 +112,8 @@ impl EdrStates {
         }
     }
 
-    /// Returns a set of factories, each member of which produces a clone of one of the state objects in this struct.
+    /// Returns a set of factories, each member of which produces a clone of one
+    /// of the state objects in this struct.
     #[allow(dead_code)]
     fn make_state_refs(&self) -> Vec<TestState<'_>> {
         vec![

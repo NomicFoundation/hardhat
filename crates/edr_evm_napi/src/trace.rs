@@ -1,8 +1,7 @@
 use std::mem;
 
 use edr_eth::{Address, Bytes};
-use edr_evm::OPCODE_JUMPMAP;
-use edr_evm::{trace::BeforeMessage, Bytecode};
+use edr_evm::{trace::BeforeMessage, Bytecode, OPCODE_JUMPMAP};
 use napi::{
     bindgen_prelude::{BigInt, Buffer},
     Env, JsBuffer, JsBufferValue,
@@ -37,8 +36,8 @@ pub struct TracingMessage {
     #[napi(readonly)]
     pub value: BigInt,
 
-    /// Address of the code that is being executed. Can be different from `to` if a delegate call
-    /// is being done.
+    /// Address of the code that is being executed. Can be different from `to`
+    /// if a delegate call is being done.
     #[napi(readonly)]
     pub code_address: Option<Buffer>,
 

@@ -3,9 +3,10 @@ use std::sync::OnceLock;
 use k256::SecretKey;
 use revm_primitives::{keccak256, Address, Bytes, B256, U256};
 
-use crate::signature::SignatureError;
 use crate::{
-    access_list::AccessListItem, signature::Signature, transaction::Eip4844SignedTransaction,
+    access_list::AccessListItem,
+    signature::{Signature, SignatureError},
+    transaction::Eip4844SignedTransaction,
     utils::envelop_bytes,
 };
 

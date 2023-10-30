@@ -22,7 +22,8 @@ impl HardforkActivations {
         self.hardforks.is_empty()
     }
 
-    /// Returns the hardfork's `SpecId` corresponding to the provided block number.
+    /// Returns the hardfork's `SpecId` corresponding to the provided block
+    /// number.
     pub fn hardfork_at_block_number(&self, block_number: u64) -> Option<SpecId> {
         self.hardforks
             .iter()
@@ -188,7 +189,8 @@ pub fn chain_name(chain_id: u64) -> Option<&'static str> {
         .map(|config| config.name.as_str())
 }
 
-/// Returns the hardfork activations corresponding to the provided chain ID, if it is supported.
+/// Returns the hardfork activations corresponding to the provided chain ID, if
+/// it is supported.
 pub fn chain_hardfork_activations(chain_id: u64) -> Option<&'static HardforkActivations> {
     chain_configs()
         .get(&chain_id)

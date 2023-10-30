@@ -31,6 +31,7 @@ pub struct BlockOptions {
     pub base_fee: Option<U256>,
     /// The block's withdrawals root
     pub withdrawals_root: Option<B256>,
-    /// The hash tree root of the parent beacon block for the given execution block (EIP-4788).
+    /// The hash tree root of the parent beacon block for the given execution
+    /// block (EIP-4788).
     pub parent_beacon_block_root: Option<B256>,
 }

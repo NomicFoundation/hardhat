@@ -2,13 +2,12 @@ mod execution;
 
 use std::mem;
 
+pub use execution::ExecutionLog;
 use napi::{
     bindgen_prelude::{BigInt, Buffer},
     Env, JsBuffer, JsBufferValue,
 };
 use napi_derive::napi;
-
-pub use execution::ExecutionLog;
 
 enum LogType {
     Execution(edr_eth::log::Log),

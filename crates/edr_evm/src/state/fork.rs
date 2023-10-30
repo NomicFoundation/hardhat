@@ -13,21 +13,21 @@ use revm::{
 };
 use tokio::runtime;
 
-use crate::random::RandomHashGenerator;
-
 use super::{
     remote::CachedRemoteState, AccountTrie, RemoteState, StateDebug, StateError, TrieState,
 };
+use crate::random::RandomHashGenerator;
 
-/// A database integrating the state from a remote node and the state from a local layered
-/// database.
+/// A database integrating the state from a remote node and the state from a
+/// local layered database.
 #[derive(Debug)]
 pub struct ForkState {
     local_state: TrieState,
     remote_state: Arc<Mutex<CachedRemoteState>>,
     removed_storage_slots: HashSet<(Address, U256)>,
     fork_block_number: u64,
-    /// client-facing state root (pseudorandomly generated) mapped to internal (layered_state) state root
+    /// client-facing state root (pseudorandomly generated) mapped to internal
+    /// (layered_state) state root
     state_root_to_state: RwLock<HashMap<B256, B256>>,
     /// A pair of the generated state root and local state root
     current_state: RwLock<(B256, B256)>,
@@ -137,8 +137,8 @@ impl DatabaseCommit for ForkState {
     fn commit(&mut self, changes: HashMap<Address, Account>) {
         changes.iter().for_each(|(address, account)| {
             account.storage.iter().for_each(|(index, value)| {
-                // We never need to remove zero entries as a "removed" entry means that the lookup for
-                // a value in the hybrid state succeeded.
+                // We never need to remove zero entries as a "removed" entry means that the
+                // lookup for a value in the hybrid state succeeded.
                 if value.present_value() == U256::ZERO {
                     self.removed_storage_slots.insert((*address, *index));
                 }
@@ -204,8 +204,8 @@ impl StateDebug for ForkState {
         index: U256,
         value: U256,
     ) -> Result<(), Self::Error> {
-        // We never need to remove zero entries as a "removed" entry means that the lookup for
-        // a value in the hybrid state succeeded.
+        // We never need to remove zero entries as a "removed" entry means that the
+        // lookup for a value in the hybrid state succeeded.
         if value == U256::ZERO {
             self.removed_storage_slots.insert((address, index));
         }
@@ -237,8 +237,10 @@ impl StateDebug for ForkState {
 
 #[cfg(all(test, feature = "test-remote"))]
 mod tests {
-    use std::ops::{Deref, DerefMut};
-    use std::str::FromStr;
+    use std::{
+        ops::{Deref, DerefMut},
+        str::FromStr,
+    };
 
     use edr_test_utils::env::get_alchemy_url;
 

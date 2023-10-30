@@ -23,9 +23,10 @@ pub const SECRET_KEYS: [&str; 20] = [
     "df57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e",
 ];
 
-/// The default cache directory. Cache dirs for specific subsystems such as the RPC Client are
-/// subdirectories of this directory.
+/// The default cache directory. Cache dirs for specific subsystems such as the
+/// RPC Client are subdirectories of this directory.
 pub const CACHE_DIR: &str = "./edr-cache";
 
-/// Maximum concurrent requests to a remote blockchain node to avoid getting rate limited.
+/// Maximum concurrent requests to a remote blockchain node to avoid getting
+/// rate limited.
 pub const MAX_CONCURRENT_REQUESTS: usize = 5;

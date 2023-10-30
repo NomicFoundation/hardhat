@@ -4,8 +4,8 @@ use std::ops::Deref;
 
 use revm_primitives::bytes::Bytes;
 
-/// Type for specifying a byte string that will have a 0x prefix when serialized and
-/// deserialized
+/// Type for specifying a byte string that will have a 0x prefix when serialized
+/// and deserialized
 #[derive(Clone, Debug, PartialEq)]
 pub struct ZeroXPrefixedBytes {
     inner: Bytes,
@@ -82,8 +82,8 @@ impl serde::Serialize for ZeroXPrefixedBytes {
     }
 }
 
-/// for use with serde's `serialize_with` on a single value that should be serialized as a
-/// sequence
+/// for use with serde's `serialize_with` on a single value that should be
+/// serialized as a sequence
 pub fn single_to_sequence<S, T>(val: &T, s: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
@@ -95,8 +95,8 @@ where
     seq.end()
 }
 
-/// for use with serde's `deserialize_with` on a sequence that should be deserialized as a
-/// single value
+/// for use with serde's `deserialize_with` on a sequence that should be
+/// deserialized as a single value
 pub fn sequence_to_single<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where
     D: serde::Deserializer<'de>,
@@ -106,8 +106,8 @@ where
     Ok(s[0].clone())
 }
 
-/// for use with serde's `serialize_with` on an optional single value that should be serialized as
-/// a sequence
+/// for use with serde's `serialize_with` on an optional single value that
+/// should be serialized as a sequence
 pub fn optional_single_to_sequence<S, T>(val: &Option<T>, s: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
@@ -121,8 +121,8 @@ where
     seq.end()
 }
 
-/// for use with serde's `deserialize_with` on a sequence that should be deserialized as a single
-/// but optional value.
+/// for use with serde's `deserialize_with` on a sequence that should be
+/// deserialized as a single but optional value.
 pub fn sequence_to_optional_single<'de, D, T>(deserializer: D) -> Result<Option<T>, D::Error>
 where
     D: serde::Deserializer<'de>,
@@ -136,14 +136,16 @@ where
     }
 }
 
-/// Helper module for (de)serializing bytes into hexadecimal strings. This is necessary because
-/// the default bytes serialization considers a string as bytes.
+/// Helper module for (de)serializing bytes into hexadecimal strings. This is
+/// necessary because the default bytes serialization considers a string as
+/// bytes.
 pub mod bytes {
     use serde::Deserialize;
 
     use super::Bytes;
 
-    /// Helper function for deserializing [`Bytes`] from a `0x`-prefixed hexadecimal string.
+    /// Helper function for deserializing [`Bytes`] from a `0x`-prefixed
+    /// hexadecimal string.
     pub fn deserialize<'de, Deserializer>(d: Deserializer) -> Result<Bytes, Deserializer::Error>
     where
         Deserializer: serde::Deserializer<'de>,
@@ -170,11 +172,13 @@ pub mod bytes {
     }
 }
 
-/// Helper module for (de)serializing [`std::primitive::u64`]s from and into `0x`-prefixed hexadecimal strings.
+/// Helper module for (de)serializing [`std::primitive::u64`]s from and into
+/// `0x`-prefixed hexadecimal strings.
 pub mod u64 {
     use revm_primitives::ruint::aliases::U64;
 
-    /// Helper function for deserializing a [`std::primitive::u64`] from a `0x`-prefixed hexadecimal string.
+    /// Helper function for deserializing a [`std::primitive::u64`] from a
+    /// `0x`-prefixed hexadecimal string.
     pub fn deserialize<'de, D>(deserializer: D) -> Result<u64, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -183,7 +187,8 @@ pub mod u64 {
         Ok(value.as_limbs()[0])
     }
 
-    /// Helper function for serializing a [`std::primitive::u64`] into a 0x-prefixed hexadecimal string.
+    /// Helper function for serializing a [`std::primitive::u64`] into a
+    /// 0x-prefixed hexadecimal string.
     pub fn serialize<S>(value: &u64, s: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -192,11 +197,13 @@ pub mod u64 {
     }
 }
 
-/// Helper module for (de)serializing an [`Option<std::primitive::u64>`] from a `0x`-prefixed hexadecimal string.
+/// Helper module for (de)serializing an [`Option<std::primitive::u64>`] from a
+/// `0x`-prefixed hexadecimal string.
 pub mod optional_u64 {
     use revm_primitives::ruint::aliases::U64;
 
-    /// Helper function for deserializing an [`Option<std::primitive::u64>`] from a `0x`-prefixed hexadecimal string.
+    /// Helper function for deserializing an [`Option<std::primitive::u64>`]
+    /// from a `0x`-prefixed hexadecimal string.
     pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<u64>, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -205,7 +212,8 @@ pub mod optional_u64 {
         Ok(value.map(|value| value.as_limbs()[0]))
     }
 
-    /// Helper function for serializing a [`Option<std::primitive::u64>`] into a `0x`-prefixed hexadecimal string.
+    /// Helper function for serializing a [`Option<std::primitive::u64>`] into a
+    /// `0x`-prefixed hexadecimal string.
     pub fn serialize<S>(value: &Option<u64>, s: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -214,11 +222,13 @@ pub mod optional_u64 {
     }
 }
 
-/// Helper module for (de)serializing [`std::primitive::u8`]s from and into `0x`-prefixed hexadecimal strings.
+/// Helper module for (de)serializing [`std::primitive::u8`]s from and into
+/// `0x`-prefixed hexadecimal strings.
 pub mod u8 {
     use revm_primitives::ruint::aliases::U8;
 
-    /// Helper function for deserializing a [`std::primitive::u8`] from a `0x`-prefixed hexadecimal string.
+    /// Helper function for deserializing a [`std::primitive::u8`] from a
+    /// `0x`-prefixed hexadecimal string.
     pub fn deserialize<'de, D>(deserializer: D) -> Result<u8, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -227,7 +237,8 @@ pub mod u8 {
         Ok(value.to())
     }
 
-    /// Helper function for serializing a [`std::primitive::u8`] into a `0x`-prefixed hexadecimal string.
+    /// Helper function for serializing a [`std::primitive::u8`] into a
+    /// `0x`-prefixed hexadecimal string.
     pub fn serialize<S>(value: &u8, s: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -238,8 +249,9 @@ pub mod u8 {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use serde_json::json;
+
+    use super::*;
 
     #[derive(Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
     struct TestStructSerde {
