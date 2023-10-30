@@ -799,7 +799,7 @@ dependencies = [
 
 [[package]]
 name = "edr"
-version = "0.1.0-dev"
+version = "0.2.0-dev"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -827,11 +827,11 @@ dependencies = [
 
 [[package]]
 name = "edr_defaults"
-version = "0.1.0-dev"
+version = "0.2.0-dev"
 
 [[package]]
 name = "edr_eth"
-version = "0.1.0-dev"
+version = "0.2.0-dev"
 dependencies = [
  "bytes",
  "edr_test_utils",
@@ -868,7 +868,7 @@ dependencies = [
 
 [[package]]
 name = "edr_evm"
-version = "0.1.0-dev"
+version = "0.2.0-dev"
 dependencies = [
  "async-rwlock",
  "async-trait",
@@ -900,7 +900,7 @@ dependencies = [
 
 [[package]]
 name = "edr_evm_napi"
-version = "0.1.0-dev"
+version = "0.2.0-dev"
 dependencies = [
  "async-trait",
  "crossbeam-channel",
@@ -922,7 +922,7 @@ dependencies = [
 
 [[package]]
 name = "edr_rpc_server"
-version = "0.1.0-dev"
+version = "0.2.0-dev"
 dependencies = [
  "anyhow",
  "async-rwlock",
@@ -950,7 +950,7 @@ dependencies = [
 
 [[package]]
 name = "edr_test_utils"
-version = "0.1.0-dev"
+version = "0.2.0-dev"
 dependencies = [
  "serde",
  "serde_json",

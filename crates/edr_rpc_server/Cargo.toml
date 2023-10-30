@@ -1,6 +1,6 @@
 [package]
 name = "edr_rpc_server"
-version = "0.1.0-dev"
+version = "0.2.0-dev"
 edition = "2021"
 
 [dependencies]
@@ -12,8 +12,8 @@ hyper = { version = "0.14.27", default-features = false, features = ["server"] }
 k256 = { version = "0.13.1", default-features = false, features = ["arithmetic", "ecdsa", "pkcs8", "precomputed-tables", "std"] }
 parking_lot = { version = "0.12.1", default-features = false }
 reqwest = { version = "0.11", features = ["blocking", "json"] }
-edr_eth = { version = "0.1.0-dev", path = "../edr_eth", features = ["serde"] }
-edr_evm = { version = "0.1.0-dev", path = "../edr_evm" }
+edr_eth = { version = "0.2.0-dev", path = "../edr_eth", features = ["serde"] }
+edr_evm = { version = "0.2.0-dev", path = "../edr_evm" }
 serde = { version = "1.0.147", default-features = false, features = ["derive"] }
 serde_json = { version = "1.0.89" }
 sha3 = { version = "0.10.6", default-features = false }
@@ -23,7 +23,7 @@ tracing = { version = "0.1.37", default-features = false, features = ["std"] }
 
 [dev-dependencies]
 anyhow = "1.0.75"
-edr_test_utils = { version = "0.1.0-dev", path = "../edr_test_utils" }
+edr_test_utils = { version = "0.2.0-dev", path = "../edr_test_utils" }
 tempfile = "3.7.1"
 tracing-subscriber = { version = "0.3.17", default-features = false, features = ["fmt"] }
 
