@@ -928,4 +928,59 @@ mod tests {
         assert_error!(non_existing_block_tx, NodeError::UnknownBlockHash { block_hash } => assert_eq!(block_hash, B256::zero()));
         Ok(())
     }
+
+    #[tokio::test]
+    async fn get_transaction_count() -> Result<()> {
+        let fixture = NodeTestFixture::new().await?;
+
+        let count = fixture
+            .node
+            .get_transaction_count(Address::zero(), Some(&BlockSpec::Tag(BlockTag::Earliest)))
+            .await
+            .unwrap();
+
+        assert_eq!(count, 0);
+
+        let count = fixture
+            .node
+            .get_transaction_count(Address::zero(), Some(&BlockSpec::Tag(BlockTag::Latest)))
+            .await
+            .unwrap();
+
+        assert_eq!(count, 0);
+
+        let non_existing_count = fixture
+            .node
+            .get_transaction_count(Address::zero(), Some(&BlockSpec::Number(1)))
+            .await;
+
+        assert_error!(non_existing_count, NodeError::UnknownBlockNumber { block_number } => assert_eq!(block_number, 1));
+
+        let non_existing_count = fixture
+            .node
+            .get_transaction_count(
+                Address::zero(),
+                Some(&BlockSpec::Eip1898(Eip1898BlockSpec::Number {
+                    block_number: 1,
+                })),
+            )
+            .await;
+
+        assert_error!(non_existing_count, NodeError::UnknownBlockNumber { block_number } => assert_eq!(block_number, 1));
+
+        let non_existing_count = fixture
+            .node
+            .get_transaction_count(
+                Address::zero(),
+                Some(&BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
+                    block_hash: B256::zero(),
+                    require_canonical: None,
+                })),
+            )
+            .await;
+
+        assert_error!(non_existing_count, NodeError::UnknownBlockHash { block_hash } => assert_eq!(block_hash, B256::zero()));
+
+        Ok(())
+    }
 }
