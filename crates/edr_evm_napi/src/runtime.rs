@@ -52,7 +52,8 @@ pub async fn dry_run(
     Ok(TransactionResult::new(result, Some(state), trace))
 }
 
-/// Executes the provided transaction without changing state, ignoring validation checks in the process.
+/// Executes the provided transaction without changing state, ignoring
+/// validation checks in the process.
 #[napi]
 #[allow(clippy::too_many_arguments)]
 #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]

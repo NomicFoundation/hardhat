@@ -1,7 +1,7 @@
 #![cfg(feature = "serde")]
 
-// Parts of this code were adapted from github.com/gakonst/ethers-rs and are distributed under its
-// licenses:
+// Parts of this code were adapted from github.com/gakonst/ethers-rs and are
+// distributed under its licenses:
 // - https://github.com/gakonst/ethers-rs/blob/7e6c3ba98363bdf6131e8284f186cc2c70ff48c3/LICENSE-APACHE
 // - https://github.com/gakonst/ethers-rs/blob/7e6c3ba98363bdf6131e8284f186cc2c70ff48c3/LICENSE-MIT
 // For the original context, see https://github.com/gakonst/ethers-rs/tree/7e6c3ba98363bdf6131e8284f186cc2c70ff48c3
@@ -35,7 +35,8 @@ pub struct Transaction {
     pub block_hash: Option<B256>,
     /// block number where this transaction was in
     pub block_number: Option<U256>,
-    /// integer of the transactions index position in the block. null when its pending
+    /// integer of the transactions index position in the block. null when its
+    /// pending
     #[serde(with = "crate::serde::optional_u64")]
     pub transaction_index: Option<u64>,
     /// address of the sender
@@ -54,8 +55,9 @@ pub struct Transaction {
     /// ECDSA recovery id
     #[serde(with = "crate::serde::u64")]
     pub v: u64,
-    /// Y-parity for EIP-2930 and EIP-1559 transactions. In theory these transactions types
-    /// shouldn't have a `v` field, but in practice they are returned by nodes.
+    /// Y-parity for EIP-2930 and EIP-1559 transactions. In theory these
+    /// transactions types shouldn't have a `v` field, but in practice they
+    /// are returned by nodes.
     #[serde(
         default,
         rename = "yParity",
@@ -70,7 +72,8 @@ pub struct Transaction {
     /// chain ID
     #[serde(default, with = "crate::serde::optional_u64")]
     pub chain_id: Option<u64>,
-    /// integer of the transaction type, 0x0 for legacy transactions, 0x1 for access list types, 0x2 for dynamic fees
+    /// integer of the transaction type, 0x0 for legacy transactions, 0x1 for
+    /// access list types, 0x2 for dynamic fees
     #[serde(rename = "type", default, with = "crate::serde::u64")]
     pub transaction_type: u64,
     /// access list
@@ -82,10 +85,12 @@ pub struct Transaction {
     /// max priority fee per gas
     #[serde(default)]
     pub max_priority_fee_per_gas: Option<U256>,
-    /// The maximum total fee per gas the sender is willing to pay for blob gas in wei (EIP-4844)
+    /// The maximum total fee per gas the sender is willing to pay for blob gas
+    /// in wei (EIP-4844)
     #[serde(default)]
     pub max_fee_per_blob_gas: Option<U256>,
-    /// List of versioned blob hashes associated with the transaction's EIP-4844 data blobs.
+    /// List of versioned blob hashes associated with the transaction's EIP-4844
+    /// data blobs.
     #[serde(default)]
     pub blob_versioned_hashes: Option<Vec<B256>>,
 }
@@ -259,7 +264,8 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
     }
 }
 
-/// Error that occurs when trying to convert the JSON-RPC `TransactionReceipt` type.
+/// Error that occurs when trying to convert the JSON-RPC `TransactionReceipt`
+/// type.
 #[derive(Debug, thiserror::Error)]
 pub enum ReceiptConversionError {
     /// The transaction type is not supported.
@@ -308,7 +314,8 @@ pub struct Block<TX> {
     /// Array of uncle hashes
     #[serde(default)]
     pub uncles: Vec<B256>,
-    /// Array of transaction objects, or 32 Bytes transaction hashes depending on the last given parameter
+    /// Array of transaction objects, or 32 Bytes transaction hashes depending
+    /// on the last given parameter
     #[serde(default)]
     pub transactions: Vec<TX>,
     /// integer the size of this block in bytes
@@ -329,7 +336,8 @@ pub struct Block<TX> {
     /// The total amount of gas used by the transactions.
     #[serde(default, with = "crate::serde::optional_u64")]
     pub blob_gas_used: Option<u64>,
-    /// A running total of blob gas consumed in excess of the target, prior to the block.
+    /// A running total of blob gas consumed in excess of the target, prior to
+    /// the block.
     #[serde(default, with = "crate::serde::optional_u64")]
     pub excess_blob_gas: Option<u64>,
     /// Root of the parent beacon block

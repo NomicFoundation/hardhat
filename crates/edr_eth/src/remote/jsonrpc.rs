@@ -1,5 +1,5 @@
-// Parts of this code were adapted from github.com/koushiro/async-jsonrpc and are distributed under its
-// licenses:
+// Parts of this code were adapted from github.com/koushiro/async-jsonrpc and
+// are distributed under its licenses:
 // - https://github.com/koushiro/async-jsonrpc/blob/9b42602f4faa63dd4b6a1a9fe359bffa97e636d5/LICENSE-APACHE
 // - https://github.com/koushiro/async-jsonrpc/blob/9b42602f4faa63dd4b6a1a9fe359bffa97e636d5/LICENSE-MIT
 // For the original context, see https://github.com/koushiro/async-jsonrpc/tree/9b42602f4faa63dd4b6a1a9fe359bffa97e636d5
@@ -26,7 +26,8 @@ pub struct Response<T> {
     //
     /// Correlation id.
     ///
-    /// It **MUST** be the same as the value of the id member in the Request Object.
+    /// It **MUST** be the same as the value of the id member in the Request
+    /// Object.
     pub id: Id,
     /// Response data.
     #[serde(flatten)]
@@ -50,7 +51,8 @@ pub enum ResponseData<T> {
 }
 
 impl<T> ResponseData<T> {
-    /// Returns a [`Result`] where `Success` is mapped to `Ok` and `Error` to `Err`.
+    /// Returns a [`Result`] where `Success` is mapped to `Ok` and `Error` to
+    /// `Err`.
     pub fn into_result(self) -> Result<T, Error> {
         match self {
             ResponseData::Success { result } => Ok(result),
@@ -73,11 +75,13 @@ impl<T> ResponseData<T> {
 /// Represents JSON-RPC request/response id.
 ///
 /// An identifier established by the Client that MUST contain a String, Number,
-/// or NULL value if included, If it is not included it is assumed to be a notification.
-/// The value SHOULD normally not be Null and Numbers SHOULD NOT contain fractional parts.
+/// or NULL value if included, If it is not included it is assumed to be a
+/// notification. The value SHOULD normally not be Null and Numbers SHOULD NOT
+/// contain fractional parts.
 ///
-/// The Server **MUST** reply with the same value in the Response object if included.
-/// This member is used to correlate the context between the two objects.
+/// The Server **MUST** reply with the same value in the Response object if
+/// included. This member is used to correlate the context between the two
+/// objects.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 #[serde(untagged)]

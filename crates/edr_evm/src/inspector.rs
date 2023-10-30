@@ -14,10 +14,11 @@ use crate::{
 
 // TODO: Improve this design by introducing a InspectorMut trait
 
-/// Inspector that allows two inspectors to operate side-by-side. The immutable inspector runs
-/// first, followed by the mutable inspector. To ensure both inspectors observe a valid state, you
-/// have to ensure that only the mutable inspector modifies state. The returned values are solely
-/// determined by the mutable inspector.
+/// Inspector that allows two inspectors to operate side-by-side. The immutable
+/// inspector runs first, followed by the mutable inspector. To ensure both
+/// inspectors observe a valid state, you have to ensure that only the mutable
+/// inspector modifies state. The returned values are solely determined by the
+/// mutable inspector.
 #[derive(Debug)]
 pub struct DualInspector<A, B, E>
 where

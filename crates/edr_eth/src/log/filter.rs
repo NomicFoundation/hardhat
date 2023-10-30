@@ -27,9 +27,8 @@ mod tests {
 
     use revm_primitives::{Address, Bytes, B256};
 
-    use crate::log::{FullBlockLog, Log, ReceiptLog};
-
     use super::*;
+    use crate::log::{FullBlockLog, Log, ReceiptLog};
 
     #[test]
     fn test_filter_log_serde() {

@@ -54,7 +54,8 @@ pub enum MineBlockError<BE, SE> {
     /// An error that occurred while updating the mempool.
     #[error(transparent)]
     MemPoolUpdate(SE),
-    /// The block is expected to have a prevrandao, as the executor's config is on a post-merge hardfork.
+    /// The block is expected to have a prevrandao, as the executor's config is
+    /// on a post-merge hardfork.
     #[error("Post-merge transaction is missing prevrandao")]
     MissingPrevrandao,
 }
@@ -211,7 +212,8 @@ where
     })
 }
 
-/// Calculates the next base fee for a post-London block, given the parent's header.
+/// Calculates the next base fee for a post-London block, given the parent's
+/// header.
 ///
 /// # Panics
 ///

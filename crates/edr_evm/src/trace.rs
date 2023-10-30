@@ -96,7 +96,8 @@ impl Trace {
     }
 }
 
-/// Object that gathers trace information during EVM execution and can be turned into a trace upon completion.
+/// Object that gathers trace information during EVM execution and can be turned
+/// into a trace upon completion.
 #[derive(Debug, Default)]
 pub struct TraceCollector {
     trace: Trace,

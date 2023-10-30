@@ -1,18 +1,19 @@
-use crate::blockchain::SyncBlockchain;
-use crate::evm::build_evm;
-use crate::state::SyncState;
-use crate::{PendingTransaction, TransactionError};
-use edr_eth::signature::SignatureError;
-use edr_eth::B256;
-use revm::inspectors::GasInspector;
-use revm::interpreter::{
-    opcode, CallInputs, CreateInputs, Gas, InstructionResult, Interpreter, Stack,
+use std::{collections::HashMap, fmt::Debug};
+
+use edr_eth::{signature::SignatureError, B256};
+use revm::{
+    inspectors::GasInspector,
+    interpreter::{opcode, CallInputs, CreateInputs, Gas, InstructionResult, Interpreter, Stack},
+    primitives::{
+        hex, Address, BlockEnv, Bytes, CfgEnv, ExecutionResult, ResultAndState, SpecId, B160, U256,
+    },
+    EVMData, Inspector, JournalEntry,
 };
-use revm::primitives::{hex, Address, B160, U256};
-use revm::primitives::{BlockEnv, Bytes, CfgEnv, ExecutionResult, ResultAndState, SpecId};
-use revm::{EVMData, Inspector, JournalEntry};
-use std::collections::HashMap;
-use std::fmt::Debug;
+
+use crate::{
+    blockchain::SyncBlockchain, evm::build_evm, state::SyncState, PendingTransaction,
+    TransactionError,
+};
 
 /// Get trace output for `debug_traceTransaction`
 #[cfg_attr(feature = "tracing", tracing::instrument)]
@@ -152,7 +153,8 @@ pub struct DebugTraceResult {
 /// The output of an EIP-3155 trace.
 /// The required fields match <https://eips.ethereum.org/EIPS/eip-3155#output> except for
 /// `returnData` and `refund` which are not used currently by Hardhat.
-/// The `opName`, `error`, `memory` and `storage` optional fields are supported as well.
+/// The `opName`, `error`, `memory` and `storage` optional fields are supported
+/// as well.
 #[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
 pub struct DebugTraceLogItem {
     /// Program Counter

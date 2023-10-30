@@ -2,6 +2,7 @@ mod builder;
 
 use std::{mem, ops::Deref, sync::Arc};
 
+pub use builder::BlockBuilder;
 use edr_eth::{Address, Bloom, Bytes, B256, B64};
 use edr_evm::{blockchain::BlockchainError, BlobExcessGasAndPrice, BlockEnv, SyncBlock};
 use napi::{
@@ -18,8 +19,6 @@ use crate::{
         LegacySignedTransaction,
     },
 };
-
-pub use builder::BlockBuilder;
 
 #[napi(object)]
 pub struct BlockConfig {
@@ -104,7 +103,8 @@ pub struct BlockOptions {
     pub base_fee: Option<BigInt>,
     /// The block's withdrawals root
     pub withdrawals_root: Option<Buffer>,
-    /// The hash tree root of the parent beacon block for the given execution block (EIP-4788).
+    /// The hash tree root of the parent beacon block for the given execution
+    /// block (EIP-4788).
     pub parent_beacon_block_root: Option<Buffer>,
 }
 
@@ -176,11 +176,13 @@ impl TryFrom<BlockOptions> for edr_eth::block::BlockOptions {
 /// Information about the blob gas used in a block.
 #[napi(object)]
 pub struct BlobGas {
-    /// The total amount of blob gas consumed by the transactions within the block.
+    /// The total amount of blob gas consumed by the transactions within the
+    /// block.
     pub gas_used: BigInt,
     /// The running total of blob gas consumed in excess of the target, prior to
-    /// the block. Blocks with above-target blob gas consumption increase this value,
-    /// blocks with below-target blob gas consumption decrease it (bounded at 0).
+    /// the block. Blocks with above-target blob gas consumption increase this
+    /// value, blocks with below-target blob gas consumption decrease it
+    /// (bounded at 0).
     pub excess_gas: BigInt,
 }
 
@@ -352,8 +354,8 @@ impl Block {
         &self,
         env: Env,
     ) -> napi::Result<
-        // HACK: napi does not convert Rust type aliases to its underlaying types when generating bindings
-        // so manually do that here
+        // HACK: napi does not convert Rust type aliases to its underlaying types when generating
+        // bindings so manually do that here
         Vec<
             Either4<
                 LegacySignedTransaction,

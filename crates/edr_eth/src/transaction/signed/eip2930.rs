@@ -121,10 +121,8 @@ mod tests {
     use k256::SecretKey;
     use revm_primitives::Address;
 
-    use crate::access_list::AccessListItem;
-    use crate::signature::secret_key_from_str;
-
     use super::*;
+    use crate::{access_list::AccessListItem, signature::secret_key_from_str};
 
     fn dummy_request() -> EIP2930TransactionRequest {
         let to = Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e").unwrap();

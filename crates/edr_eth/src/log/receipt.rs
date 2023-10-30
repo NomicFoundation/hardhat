@@ -36,9 +36,8 @@ mod tests {
 
     use revm_primitives::{Address, Bytes};
 
-    use crate::log::Log;
-
     use super::*;
+    use crate::log::Log;
 
     #[test]
     fn test_receipt_log_serde() {

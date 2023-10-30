@@ -27,7 +27,8 @@ pub struct TransactionRequest {
     pub nonce: Option<BigInt>,
     /// Input byte data
     pub input: Option<Buffer>,
-    /// A list of addresses and storage keys that the transaction plans to access.
+    /// A list of addresses and storage keys that the transaction plans to
+    /// access.
     pub access_list: Option<Vec<AccessListItem>>,
     /// Transaction is only valid on networks with this chain ID.
     pub chain_id: Option<BigInt>,

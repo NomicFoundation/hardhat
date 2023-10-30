@@ -4,7 +4,8 @@ use revm::{
     primitives::{AccountInfo, Bytecode, HashMap},
 };
 
-/// Type representing either a diff or full set of overrides for storage information.
+/// Type representing either a diff or full set of overrides for storage
+/// information.
 #[derive(Clone, Debug)]
 pub enum StorageOverride {
     /// A diff of storage overrides.
@@ -99,7 +100,8 @@ impl StateOverrides {
         }
     }
 
-    /// Retrieves the account information for the provided address, applying any overrides.
+    /// Retrieves the account information for the provided address, applying any
+    /// overrides.
     pub fn account_info<StateError>(
         &self,
         state: &dyn StateRef<Error = StateError>,
@@ -116,7 +118,8 @@ impl StateOverrides {
         )
     }
 
-    /// Retrieves the storage information for the provided address and index, applying any overrides.
+    /// Retrieves the storage information for the provided address and index,
+    /// applying any overrides.
     pub fn account_storage_at<StateError>(
         &self,
         state: &dyn StateRef<Error = StateError>,

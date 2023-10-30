@@ -34,9 +34,8 @@ where
 mod tests {
     use std::str::FromStr;
 
-    use crate::trie::KECCAK_NULL_RLP;
-
     use super::*;
+    use crate::trie::KECCAK_NULL_RLP;
 
     #[test]
     fn empty_state_root() {

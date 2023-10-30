@@ -1,4 +1,5 @@
-// Part of this code was adapted from foundry and is distributed under their licenss:
+// Part of this code was adapted from foundry and is distributed under their
+// licenss:
 // - https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/LICENSE-APACHE
 // - https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/LICENSE-MIT
 // For the original context see: https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/anvil/core/src/eth/trie.rs
@@ -35,7 +36,8 @@ where
     B256::from_slice(triehash::trie_root::<KeccakHasher, _, _, _>(input).as_ref())
 }
 
-/// Generates a key-hashed (secure) trie root hash for a vector of key-value tuples.
+/// Generates a key-hashed (secure) trie root hash for a vector of key-value
+/// tuples.
 pub fn sec_trie_root<I, K, V>(input: I) -> B256
 where
     I: IntoIterator<Item = (K, V)>,

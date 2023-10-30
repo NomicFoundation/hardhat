@@ -1,4 +1,5 @@
-// Part of this code was adapted from foundry and is distributed under their licenss:
+// Part of this code was adapted from foundry and is distributed under their
+// licenss:
 // - https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/LICENSE-APACHE
 // - https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/LICENSE-MIT
 // For the original context see: https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/anvil/core/src/eth/receipt.rs
@@ -351,9 +352,8 @@ where
 mod tests {
     use revm_primitives::{Address, Bytes};
 
-    use crate::log::Log;
-
     use super::*;
+    use crate::log::Log;
 
     fn dummy_receipts() -> Vec<TypedReceipt<Log>> {
         [
@@ -404,8 +404,8 @@ mod tests {
             let deserialized: TypedReceipt<Log> = serde_json::from_str(&serialized).unwrap();
             assert_eq!(receipt, deserialized);
 
-            // This is necessary to ensure that the deser implementation doesn't expect a &str
-            // where a String can be passed.
+            // This is necessary to ensure that the deser implementation doesn't expect a
+            // &str where a String can be passed.
             let serialized = serde_json::to_value(&receipt).unwrap();
             let deserialized: TypedReceipt<Log> = serde_json::from_value(serialized).unwrap();
 

@@ -1,6 +1,6 @@
-use std::fmt::Debug;
-use std::num::NonZeroU64;
 use std::{
+    fmt::Debug,
+    num::NonZeroU64,
     sync::Arc,
     time::{SystemTime, UNIX_EPOCH},
 };
@@ -9,13 +9,13 @@ use async_trait::async_trait;
 use edr_eth::{block::PartialHeader, trie::KECCAK_NULL_RLP, Bytes, B256, B64, U256};
 use revm::{db::BlockHashRef, primitives::SpecId};
 
-use crate::state::{StateDebug, StateDiff, StateError, SyncState, TrieState};
-use crate::{Block, LocalBlock, SyncBlock};
-
-use super::compute_state_at_block;
 use super::{
-    storage::ReservableSparseBlockchainStorage, validate_next_block, Blockchain, BlockchainError,
-    BlockchainMut,
+    compute_state_at_block, storage::ReservableSparseBlockchainStorage, validate_next_block,
+    Blockchain, BlockchainError, BlockchainMut,
+};
+use crate::{
+    state::{StateDebug, StateDiff, StateError, SyncState, TrieState},
+    Block, LocalBlock, SyncBlock,
 };
 
 /// An error that occurs upon creation of a [`LocalBlockchain`].
@@ -48,7 +48,8 @@ pub struct LocalBlockchain {
 }
 
 impl LocalBlockchain {
-    /// Constructs a new instance using the provided arguments to build a genesis block.
+    /// Constructs a new instance using the provided arguments to build a
+    /// genesis block.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn new(
         genesis_state: TrieState,
@@ -114,7 +115,8 @@ impl LocalBlockchain {
         })
     }
 
-    /// Constructs a new instance with the provided genesis block, validating a zero block number.
+    /// Constructs a new instance with the provided genesis block, validating a
+    /// zero block number.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn with_genesis_block(
         genesis_block: LocalBlock,
@@ -140,7 +142,8 @@ impl LocalBlockchain {
         })
     }
 
-    /// Constructs a new instance with the provided genesis block, without validating the provided block's number.
+    /// Constructs a new instance with the provided genesis block, without
+    /// validating the provided block's number.
     ///
     /// # Safety
     ///
@@ -290,7 +293,8 @@ impl BlockchainMut for LocalBlockchain {
 
         let total_difficulty = previous_total_difficulty + block.header().difficulty;
 
-        // SAFETY: The block number is guaranteed to be unique, so the block hash must be too.
+        // SAFETY: The block number is guaranteed to be unique, so the block hash must
+        // be too.
         let block = unsafe {
             self.storage
                 .insert_block_unchecked(block, state_diff, total_difficulty)

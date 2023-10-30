@@ -13,8 +13,8 @@ use crate::{
     Address, B256, U256,
 };
 
-/// for specifying input to methods requiring a transaction object, like `eth_call`,
-/// `eth_sendTransaction` and `eth_estimateGas`
+/// for specifying input to methods requiring a transaction object, like
+/// `eth_call`, `eth_sendTransaction` and `eth_estimateGas`
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct TransactionInput {
     /// the address from which the transaction should be sent

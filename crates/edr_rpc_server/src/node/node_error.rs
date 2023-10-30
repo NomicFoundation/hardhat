@@ -25,13 +25,13 @@ pub enum NodeError {
     #[error("{address} is not owned by this node")]
     UnknownAddress { address: Address },
     /// Block hash doesn't exist in blockchain
-    /// Returned if the block spec is an EIP-1898 block spec for a hash and it's not found
-    /// <https://eips.ethereum.org/EIPS/eip-1898>
+    /// Returned if the block spec is an EIP-1898 block spec for a hash and it's
+    /// not found <https://eips.ethereum.org/EIPS/eip-1898>
     #[error("Unknown block hash: {block_hash}")]
     UnknownBlockHash { block_hash: B256 },
     /// Block number doesn't exist in blockchain
-    /// Returned if the block spec is an EIP-1898 block spec for a block number and it's not found
-    /// <https://eips.ethereum.org/EIPS/eip-1898>
+    /// Returned if the block spec is an EIP-1898 block spec for a block number
+    /// and it's not found <https://eips.ethereum.org/EIPS/eip-1898>
     #[error("Unknown block number: {block_number}")]
     UnknownBlockNumber { block_number: u64 },
 

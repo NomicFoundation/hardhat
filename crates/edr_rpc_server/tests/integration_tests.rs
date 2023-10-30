@@ -1,8 +1,5 @@
 use std::{net::SocketAddr, str::FromStr};
 
-use tempfile::TempDir;
-use tracing::Level;
-
 use edr_eth::{
     remote::{
         client::Request as RpcRequest,
@@ -16,8 +13,9 @@ use edr_eth::{
     Address, Bytes, B256, U256, U64,
 };
 use edr_evm::KECCAK_EMPTY;
-
 use edr_rpc_server::{create_test_config, HardhatMethodInvocation, MethodInvocation, Server};
+use tempfile::TempDir;
+use tracing::Level;
 
 const SECRET_KEY: &str = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 
@@ -455,8 +453,8 @@ async fn test_set_storage_at_success() {
 
 #[tokio::test]
 async fn test_sign() {
-    // the expected response for this test case was created by submitting the same request to a
-    // default-configured instance of Hardhat Network.
+    // the expected response for this test case was created by submitting the same
+    // request to a default-configured instance of Hardhat Network.
     verify_response(
         &start_server().await,
         MethodInvocation::Eth(EthMethodInvocation::Sign(
@@ -471,8 +469,8 @@ async fn test_sign() {
 async fn test_stop_impersonating_account() {
     let server_address = start_server().await;
 
-    // verify that stopping the impersonation of an account that wasn't already being impersonated
-    // results in a `false` return value:
+    // verify that stopping the impersonation of an account that wasn't already
+    // being impersonated results in a `false` return value:
     verify_response(
         &server_address,
         MethodInvocation::Hardhat(HardhatMethodInvocation::StopImpersonatingAccount(
@@ -482,8 +480,8 @@ async fn test_stop_impersonating_account() {
     )
     .await;
 
-    // verify that stopping the impersonation of an account that WAS already being impersonated
-    // results in a `false` return value:
+    // verify that stopping the impersonation of an account that WAS already being
+    // impersonated results in a `false` return value:
     verify_response(
         &server_address,
         MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(

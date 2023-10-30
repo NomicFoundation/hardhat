@@ -4,8 +4,6 @@ use assert_cmd::{
     assert::Assert,
     cargo::CommandCargoExt, // for process::Command::cargo_bin
 };
-use predicates::str::contains;
-
 use edr_eth::{
     remote::{
         client::Request as RpcRequest,
@@ -17,18 +15,20 @@ use edr_eth::{
     Bytes, U256, U64,
 };
 use edr_rpc_server::{HardhatMethodInvocation, MethodInvocation};
+use predicates::str::contains;
 
 #[tokio::test]
 async fn node() -> Result<(), Box<dyn std::error::Error>> {
     let address = secret_key_to_address(edr_defaults::SECRET_KEYS[0]).unwrap();
 
-    // the order of operations is a little weird in this test, because we spawn a separate process
-    // for the server, and we want to make sure that we end that process gracefully. more
-    // specifically, once the server is started, we avoid the ? operator until the server has been
-    // stopped.
+    // the order of operations is a little weird in this test, because we spawn a
+    // separate process for the server, and we want to make sure that we end
+    // that process gracefully. more specifically, once the server is started,
+    // we avoid the ? operator until the server has been stopped.
 
-    // hold method invocations separately from requests so that we can easily iterate over them in
-    // order to check for corresponding log entries in the server output:
+    // hold method invocations separately from requests so that we can easily
+    // iterate over them in order to check for corresponding log entries in the
+    // server output:
     let method_invocations = [
         MethodInvocation::Eth(EthMethodInvocation::Accounts()),
         MethodInvocation::Eth(EthMethodInvocation::BlockNumber()),
@@ -93,7 +93,8 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
         MethodInvocation::Hardhat(HardhatMethodInvocation::StopImpersonatingAccount(address)),
     ];
 
-    // prepare request body before even spawning the server because serialization could fail:
+    // prepare request body before even spawning the server because serialization
+    // could fail:
     let request_body: String = serde_json::to_string(
         &method_invocations
             .iter()
@@ -121,12 +122,12 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
         .stdout(Stdio::piped())
         .spawn()?;
 
-    // (required for CI runs on MacOS) sleep a moment to make sure the server comes up before we
-    // start sending requests:
+    // (required for CI runs on MacOS) sleep a moment to make sure the server comes
+    // up before we start sending requests:
     std::thread::sleep(std::time::Duration::from_secs(1));
 
-    // query the server, but don't check the Result yet, because returning early would prevent us
-    // from gracefully terminating the server:
+    // query the server, but don't check the Result yet, because returning early
+    // would prevent us from gracefully terminating the server:
     let send_result = reqwest::Client::new()
         .post("http://127.0.0.1:8549/")
         .header(reqwest::header::CONTENT_TYPE, "application/json")
@@ -143,7 +144,8 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
     // validate query Result:
     send_result?.text().await?;
 
-    // assert that the standard output of the server process contains the expected log entries:
+    // assert that the standard output of the server process contains the expected
+    // log entries:
     Assert::new(output.clone()).stdout(contains("Listening on 127.0.0.1:8549"));
     for (i, default_secret_key) in edr_defaults::SECRET_KEYS.to_vec().iter().enumerate() {
         Assert::new(output.clone())
