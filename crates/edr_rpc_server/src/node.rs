@@ -10,7 +10,7 @@ use edr_eth::{
     },
     serde::ZeroXPrefixedBytes,
     signature::Signature,
-    Address, Bytes, U256, U64,
+    Address, Bytes, B256, U256, U64,
 };
 use edr_evm::{
     blockchain::{BlockchainError, SyncBlockchain},
@@ -410,6 +410,15 @@ impl Node {
         Ok(block)
     }
 
+    pub async fn block_by_hash(
+        &self,
+        block_hash: &B256,
+    ) -> Result<Option<Arc<dyn SyncBlock<Error = BlockchainError>>>, BlockchainError> {
+        let node_data = self.lock_data().await;
+
+        node_data.blockchain.block_by_hash(block_hash).await
+    }
+
     // Temporary workaround until this gets fixed
     // https://github.com/NomicFoundation/edr/issues/186
     async fn workaround_block_by_spec(
@@ -643,6 +652,34 @@ mod tests {
             non_existing_block,
             NodeError::UnknownBlockHash { block_hash } => assert_eq!(block_hash, B256::zero())
         );
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn block_by_hash() -> Result<()> {
+        let fixture = NodeTestFixture::new().await?;
+
+        let block = fixture
+            .node
+            .block_by_block_spec(&BlockSpec::Tag(BlockTag::Earliest))
+            .await
+            .unwrap();
+
+        let block_hash = block.header().hash();
+
+        let block_by_hash = fixture
+            .node
+            .block_by_hash(&block_hash)
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(block_by_hash.header().hash(), block_hash);
+
+        let non_existing_block = fixture.node.block_by_hash(&B256::zero()).await.unwrap();
+
+        assert!(non_existing_block.is_none());
 
         Ok(())
     }
