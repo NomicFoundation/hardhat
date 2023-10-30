@@ -25,6 +25,12 @@ use tokio::sync::Mutex;
 pub use self::node_error::NodeError;
 use crate::{filter::Filter, node::node_data::NodeData, Config};
 
+#[derive(Debug)]
+pub struct BlockAndTotalDifficulty {
+    pub block: Arc<dyn SyncBlock<Error = BlockchainError>>,
+    pub total_difficulty: U256,
+}
+
 pub struct Node {
     data: Mutex<NodeData>,
 }
@@ -393,27 +399,52 @@ impl Node {
         node_data.impersonated_accounts.remove(&address)
     }
 
-    pub async fn block_by_block_spec(
+    pub async fn block_and_total_difficulty_by_block_spec(
         &self,
         block_spec: &BlockSpec,
-    ) -> Result<Arc<dyn SyncBlock<Error = BlockchainError>>, NodeError> {
+    ) -> Result<BlockAndTotalDifficulty, NodeError> {
         let mut node_data = self.lock_data().await;
 
         let block = node_data.block_by_block_spec(block_spec).await?;
 
+        let total_difficulty = node_data
+            .blockchain
+            .total_difficulty_by_hash(block.hash())
+            .await?
+            .expect("The block exists, so it must have a total difficulty");
+
         self.workaround_block_by_spec(&mut *node_data.blockchain, block_spec)
             .await?;
 
-        Ok(block)
+        Ok(BlockAndTotalDifficulty {
+            block,
+            total_difficulty,
+        })
     }
 
-    pub async fn block_by_hash(
+    pub async fn block_and_total_difficulty_by_hash(
         &self,
         block_hash: &B256,
-    ) -> Result<Option<Arc<dyn SyncBlock<Error = BlockchainError>>>, BlockchainError> {
+    ) -> Result<Option<BlockAndTotalDifficulty>, BlockchainError> {
         let node_data = self.lock_data().await;
 
-        node_data.blockchain.block_by_hash(block_hash).await
+        let block = node_data.blockchain.block_by_hash(block_hash).await?;
+
+        match block {
+            Some(block) => {
+                let total_difficulty = node_data
+                    .blockchain
+                    .total_difficulty_by_hash(block.hash())
+                    .await?
+                    .expect("The block exists, so it must have a total difficulty");
+
+                Ok(Some(BlockAndTotalDifficulty {
+                    block,
+                    total_difficulty,
+                }))
+            }
+            None => Ok(None),
+        }
     }
 
     pub async fn block_transaction_count_by_hash(
@@ -603,7 +634,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn block_by_block_spec_tags() -> Result<()> {
+    async fn block_and_total_difficulty_by_block_spec_tags() -> Result<()> {
         async fn assert_block_number(
             fixture: &NodeTestFixture,
             block_tag: BlockTag,
@@ -611,10 +642,10 @@ mod tests {
         ) {
             let block = fixture
                 .node
-                .block_by_block_spec(&BlockSpec::Tag(block_tag))
+                .block_and_total_difficulty_by_block_spec(&BlockSpec::Tag(block_tag))
                 .await;
 
-            assert_eq!(block.unwrap().header().number, expected_block_number);
+            assert_eq!(block.unwrap().block.header().number, expected_block_number);
         }
 
         let fixture = NodeTestFixture::new().await?;
@@ -637,14 +668,14 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn block_by_block_spec_numbers() -> Result<()> {
+    async fn block_and_total_difficulty_by_block_spec_numbers() -> Result<()> {
         async fn assert_block_number(fixture: &NodeTestFixture, block_number: u64) {
             let block = fixture
                 .node
-                .block_by_block_spec(&BlockSpec::Number(block_number))
+                .block_and_total_difficulty_by_block_spec(&BlockSpec::Number(block_number))
                 .await;
 
-            assert_eq!(block.unwrap().header().number, block_number);
+            assert_eq!(block.unwrap().block.header().number, block_number);
         }
 
         let fixture = NodeTestFixture::new().await?;
@@ -658,7 +689,7 @@ mod tests {
 
         let non_existing_block = fixture
             .node
-            .block_by_block_spec(&BlockSpec::Number(3))
+            .block_and_total_difficulty_by_block_spec(&BlockSpec::Number(3))
             .await;
 
         assert_error!(
@@ -670,16 +701,20 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn block_by_block_spec_eip1898_numbers() -> Result<()> {
+    async fn block_and_total_difficulty_by_block_spec_eip1898_numbers() -> Result<()> {
         async fn assert_block_number(fixture: &NodeTestFixture, block_number: u64) {
-            let block = fixture
+            let block_and_total_difficulty = fixture
                 .node
-                .block_by_block_spec(&BlockSpec::Eip1898(Eip1898BlockSpec::Number {
-                    block_number,
-                }))
-                .await;
+                .block_and_total_difficulty_by_block_spec(&BlockSpec::Eip1898(
+                    Eip1898BlockSpec::Number { block_number },
+                ))
+                .await
+                .unwrap();
 
-            assert_eq!(block.unwrap().header().number, block_number);
+            assert_eq!(
+                block_and_total_difficulty.block.header().number,
+                block_number
+            );
         }
 
         let fixture = NodeTestFixture::new().await?;
@@ -693,7 +728,7 @@ mod tests {
 
         let non_existing_block = fixture
             .node
-            .block_by_block_spec(&BlockSpec::Number(3))
+            .block_and_total_difficulty_by_block_spec(&BlockSpec::Number(3))
             .await;
 
         assert_error!(
@@ -705,33 +740,38 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn block_by_block_spec_eip1898_hashes() -> Result<()> {
+    async fn block_and_total_difficulty_by_block_spec_eip1898_hashes() -> Result<()> {
         async fn assert_block_hash(
             fixture: &NodeTestFixture,
             block_hash: &B256,
             require_canonical: Option<bool>,
         ) {
-            let block_by_hash = fixture
+            let block_and_total_difficulty = fixture
                 .node
-                .block_by_block_spec(&BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
-                    block_hash: *block_hash,
-                    require_canonical,
-                }))
+                .block_and_total_difficulty_by_block_spec(&BlockSpec::Eip1898(
+                    Eip1898BlockSpec::Hash {
+                        block_hash: *block_hash,
+                        require_canonical,
+                    },
+                ))
                 .await
                 .unwrap();
 
-            assert_eq!(block_by_hash.header().hash(), *block_hash);
+            assert_eq!(
+                block_and_total_difficulty.block.header().hash(),
+                *block_hash
+            );
         }
 
         let fixture = NodeTestFixture::new().await?;
 
-        let block = fixture
+        let block_and_total_difficulty = fixture
             .node
-            .block_by_block_spec(&BlockSpec::Tag(BlockTag::Earliest))
+            .block_and_total_difficulty_by_block_spec(&BlockSpec::Tag(BlockTag::Earliest))
             .await
             .unwrap();
 
-        let block_hash = block.header().hash();
+        let block_hash = block_and_total_difficulty.block.header().hash();
 
         assert_block_hash(&fixture, &block_hash, None).await;
         assert_block_hash(&fixture, &block_hash, Some(true)).await;
@@ -739,7 +779,7 @@ mod tests {
 
         let non_existing_block = fixture
             .node
-            .block_by_block_spec(&BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
+            .block_and_total_difficulty_by_block_spec(&BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
                 block_hash: B256::zero(),
                 require_canonical: None,
             }))
@@ -754,29 +794,104 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn block_by_hash() -> Result<()> {
+    async fn block_and_total_difficulty_by_block_spec_total_difficulty() -> Result<()> {
         let fixture = NodeTestFixture::new().await?;
 
-        let block = fixture
+        fixture.node.lock_data().await.mine_block(None).await?;
+        fixture.node.lock_data().await.mine_block(None).await?;
+
+        let block_and_total_difficulty0 = fixture
             .node
-            .block_by_block_spec(&BlockSpec::Tag(BlockTag::Earliest))
+            .block_and_total_difficulty_by_block_spec(&BlockSpec::Number(0))
             .await
             .unwrap();
 
-        let block_hash = block.header().hash();
-
-        let block_by_hash = fixture
+        let block_and_total_difficulty1 = fixture
             .node
-            .block_by_hash(&block_hash)
+            .block_and_total_difficulty_by_block_spec(&BlockSpec::Number(1))
+            .await
+            .unwrap();
+
+        assert_eq!(
+            block_and_total_difficulty1.total_difficulty,
+            block_and_total_difficulty0.total_difficulty
+                + block_and_total_difficulty1.block.header().difficulty
+        );
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn block_and_total_difficulty_by_hash() -> Result<()> {
+        let fixture = NodeTestFixture::new().await?;
+
+        let block_and_total_difficulty = fixture
+            .node
+            .block_and_total_difficulty_by_block_spec(&BlockSpec::Tag(BlockTag::Earliest))
+            .await
+            .unwrap();
+
+        let block_hash = block_and_total_difficulty.block.header().hash();
+
+        let block_and_total_difficulty = fixture
+            .node
+            .block_and_total_difficulty_by_hash(&block_hash)
             .await
             .unwrap()
             .unwrap();
 
-        assert_eq!(block_by_hash.header().hash(), block_hash);
+        assert_eq!(block_and_total_difficulty.block.header().hash(), block_hash);
 
-        let non_existing_block = fixture.node.block_by_hash(&B256::zero()).await.unwrap();
+        let non_existing_block = fixture
+            .node
+            .block_and_total_difficulty_by_hash(&B256::zero())
+            .await
+            .unwrap();
 
         assert!(non_existing_block.is_none());
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn block_and_total_difficulty_by_hash_total_difficulty() -> Result<()> {
+        let fixture = NodeTestFixture::new().await?;
+
+        fixture.node.lock_data().await.mine_block(None).await?;
+        fixture.node.lock_data().await.mine_block(None).await?;
+
+        let block_and_total_difficulty0 = fixture
+            .node
+            .block_and_total_difficulty_by_block_spec(&BlockSpec::Number(0))
+            .await
+            .unwrap();
+
+        let block1_hash = *fixture
+            .node
+            .block_and_total_difficulty_by_block_spec(&BlockSpec::Number(1))
+            .await
+            .unwrap()
+            .block
+            .hash();
+
+        let block_and_total_difficulty1 = fixture
+            .node
+            .block_and_total_difficulty_by_hash(&block1_hash)
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(
+            block_and_total_difficulty1.total_difficulty,
+            block_and_total_difficulty0.total_difficulty
+                + block_and_total_difficulty1.block.header().difficulty
+        );
+
+        assert_eq!(
+            block_and_total_difficulty1.total_difficulty,
+            block_and_total_difficulty0.total_difficulty
+                + block_and_total_difficulty1.block.header().difficulty
+        );
 
         Ok(())
     }
@@ -785,13 +900,13 @@ mod tests {
     async fn block_transaction_count_by_hash() -> Result<()> {
         let fixture = NodeTestFixture::new().await?;
 
-        let block = fixture
+        let block_and_total_difficulty = fixture
             .node
-            .block_by_block_spec(&BlockSpec::Tag(BlockTag::Earliest))
+            .block_and_total_difficulty_by_block_spec(&BlockSpec::Tag(BlockTag::Earliest))
             .await
             .unwrap();
 
-        let block_hash = block.header().hash();
+        let block_hash = block_and_total_difficulty.block.header().hash();
 
         let count = fixture
             .node
@@ -831,9 +946,9 @@ mod tests {
 
         let fixture = NodeTestFixture::new().await?;
 
-        let block = fixture
+        let block_and_total_difficulty = fixture
             .node
-            .block_by_block_spec(&BlockSpec::Tag(BlockTag::Earliest))
+            .block_and_total_difficulty_by_block_spec(&BlockSpec::Tag(BlockTag::Earliest))
             .await
             .unwrap();
 
@@ -852,7 +967,7 @@ mod tests {
         assert_block_transaction_count(
             &fixture,
             BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
-                block_hash: block.header().hash(),
+                block_hash: block_and_total_difficulty.block.header().hash(),
                 require_canonical: None,
             }),
             0,
@@ -892,14 +1007,17 @@ mod tests {
     async fn transaction_by_block_hash_and_index() -> Result<()> {
         let fixture = NodeTestFixture::new().await?;
 
-        let block = fixture
+        let block_and_total_difficulty = fixture
             .node
-            .block_by_block_spec(&BlockSpec::Tag(BlockTag::Latest))
+            .block_and_total_difficulty_by_block_spec(&BlockSpec::Tag(BlockTag::Latest))
             .await?;
 
         let tx = fixture
             .node
-            .transaction_by_block_hash_and_index(&block.header().hash(), 0)
+            .transaction_by_block_hash_and_index(
+                &block_and_total_difficulty.block.header().hash(),
+                0,
+            )
             .await
             .unwrap();
 
