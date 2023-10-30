@@ -499,6 +499,32 @@ impl Node {
 
         Ok(tx)
     }
+
+    pub async fn transaction_by_hash(
+        &self,
+        hash: &B256,
+    ) -> Result<Option<SignedTransaction>, BlockchainError> {
+        let node_data = self.lock_data().await;
+
+        let transaction = if let Some(tx) = node_data.mem_pool.transaction_by_hash(hash) {
+            Some(tx.transaction().transaction().clone())
+        } else if let Some(tx_block) = node_data.blockchain.block_by_transaction_hash(hash).await? {
+            let tx_index = node_data
+                .blockchain
+                .receipt_by_transaction_hash(hash)
+                .await?
+                .expect("If the transaction was inserted in a block, it must have a receipt")
+                .transaction_index;
+
+            let tx_index =
+                usize::try_from(tx_index).expect("Indices cannot be larger than usize::MAX");
+            Some(tx_block.transactions()[tx_index].clone())
+        } else {
+            None
+        };
+
+        Ok(transaction)
+    }
 }
 
 /// An account in this node.
@@ -980,6 +1006,21 @@ mod tests {
             .await;
 
         assert_error!(non_existing_count, NodeError::UnknownBlockHash { block_hash } => assert_eq!(block_hash, B256::zero()));
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn transaction_by_hash() -> Result<()> {
+        let fixture = NodeTestFixture::new().await?;
+
+        let non_existing_tx = fixture
+            .node
+            .transaction_by_hash(&B256::zero())
+            .await
+            .unwrap();
+
+        assert_eq!(non_existing_tx, None);
 
         Ok(())
     }
