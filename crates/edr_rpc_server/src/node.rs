@@ -1,21 +1,21 @@
 mod node_data;
 mod node_error;
 
-use std::mem;
+use std::{mem, sync::Arc};
 
 use edr_eth::{
     remote::{
         filter::{FilteredEvents, LogOutput},
-        BlockSpec,
+        BlockSpec, BlockTag,
     },
     serde::ZeroXPrefixedBytes,
     signature::Signature,
     Address, Bytes, U256, U64,
 };
 use edr_evm::{
-    blockchain::BlockchainError,
+    blockchain::{BlockchainError, SyncBlockchain},
     state::{AccountModifierFn, StateError},
-    AccountInfo, Block, Bytecode, MineBlockResult, KECCAK_EMPTY,
+    AccountInfo, Block, Bytecode, MineBlockResult, SyncBlock, KECCAK_EMPTY,
 };
 use k256::SecretKey;
 use tokio::sync::Mutex;
@@ -395,6 +395,35 @@ impl Node {
         let node_data = self.lock_data().await;
         node_data.blockchain.last_block_number().await
     }
+
+    pub async fn block_by_block_spec(
+        &self,
+        block_spec: &BlockSpec,
+    ) -> Result<Arc<dyn SyncBlock<Error = BlockchainError>>, NodeError> {
+        let mut node_data = self.lock_data().await;
+
+        let block = node_data.block_by_block_spec(block_spec).await?;
+
+        self.workaround_block_by_spec(&mut *node_data.blockchain, block_spec)
+            .await?;
+
+        Ok(block)
+    }
+
+    // Temporary workaround until this gets fixed
+    // https://github.com/NomicFoundation/edr/issues/186
+    async fn workaround_block_by_spec(
+        &self,
+        blockchain: &mut dyn SyncBlockchain<BlockchainError, StateError>,
+        block_spec: &BlockSpec,
+    ) -> Result<(), NodeError> {
+        if block_spec == &BlockSpec::Tag(BlockTag::Pending) {
+            let prev_block_number = blockchain.last_block_number().await - 1;
+            blockchain.revert_to_block(prev_block_number).await?;
+        }
+
+        Ok(())
+    }
 }
 
 /// An account in this node.
@@ -406,7 +435,7 @@ pub struct LocalAccountInfo {
 #[cfg(test)]
 mod tests {
     use anyhow::Result;
-    use edr_eth::U64;
+    use edr_eth::{remote::Eip1898BlockSpec, B256, U64};
     use tempfile::TempDir;
 
     use super::*;
@@ -433,6 +462,16 @@ mod tests {
         }
     }
 
+    macro_rules! assert_error {
+        ($expression:expr, $pattern:pat => $assertion:expr) => {
+            match $expression {
+                Err($pattern) => $assertion,
+                Err(_) => unreachable!("Expected error to match pattern"),
+                Ok(_) => unreachable!("Error expected"),
+            }
+        };
+    }
+
     #[tokio::test]
     async fn chain_id() -> Result<()> {
         let fixture = NodeTestFixture::new().await?;
@@ -453,6 +492,157 @@ mod tests {
         fixture.node.lock_data().await.mine_block(None).await?;
         let last_block_number = fixture.node.last_block_number().await;
         assert_eq!(last_block_number, 1);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn block_by_block_spec_tags() -> Result<()> {
+        let fixture = NodeTestFixture::new().await?;
+
+        fixture.node.lock_data().await.mine_block(None).await?;
+        fixture.node.lock_data().await.mine_block(None).await?;
+
+        async fn assert_block_number(
+            fixture: &NodeTestFixture,
+            block_tag: BlockTag,
+            expected_block_number: u64,
+        ) {
+            let block = fixture
+                .node
+                .block_by_block_spec(&BlockSpec::Tag(block_tag))
+                .await;
+
+            assert_eq!(block.unwrap().header().number, expected_block_number);
+        }
+
+        assert_block_number(&fixture, BlockTag::Earliest, 0).await;
+
+        assert_block_number(&fixture, BlockTag::Latest, 2).await;
+        assert_block_number(&fixture, BlockTag::Finalized, 2).await;
+        assert_block_number(&fixture, BlockTag::Safe, 2).await;
+
+        assert_block_number(&fixture, BlockTag::Pending, 3).await;
+        // Getting the pending block shouldn't mutate the blockchain, so latest should
+        // still be 2
+        assert_block_number(&fixture, BlockTag::Latest, 2).await;
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn block_by_block_spec_numbers() -> Result<()> {
+        let fixture = NodeTestFixture::new().await?;
+
+        fixture.node.lock_data().await.mine_block(None).await?;
+        fixture.node.lock_data().await.mine_block(None).await?;
+
+        async fn assert_block_number(fixture: &NodeTestFixture, block_number: u64) {
+            let block = fixture
+                .node
+                .block_by_block_spec(&BlockSpec::Number(block_number))
+                .await;
+
+            assert_eq!(block.unwrap().header().number, block_number);
+        }
+
+        assert_block_number(&fixture, 0).await;
+        assert_block_number(&fixture, 1).await;
+        assert_block_number(&fixture, 2).await;
+
+        let non_existing_block = fixture
+            .node
+            .block_by_block_spec(&BlockSpec::Number(3))
+            .await;
+
+        assert_error!(
+            non_existing_block,
+            NodeError::UnknownBlockNumber { block_number } => assert_eq!(block_number, 3)
+        );
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn block_by_block_spec_eip1898_numbers() -> Result<()> {
+        let fixture = NodeTestFixture::new().await?;
+
+        fixture.node.lock_data().await.mine_block(None).await?;
+        fixture.node.lock_data().await.mine_block(None).await?;
+
+        async fn assert_block_number(fixture: &NodeTestFixture, block_number: u64) {
+            let block = fixture
+                .node
+                .block_by_block_spec(&BlockSpec::Eip1898(Eip1898BlockSpec::Number {
+                    block_number: block_number,
+                }))
+                .await;
+
+            assert_eq!(block.unwrap().header().number, block_number);
+        }
+
+        assert_block_number(&fixture, 0).await;
+        assert_block_number(&fixture, 1).await;
+        assert_block_number(&fixture, 2).await;
+
+        let non_existing_block = fixture
+            .node
+            .block_by_block_spec(&BlockSpec::Number(3))
+            .await;
+
+        assert_error!(
+            non_existing_block,
+            NodeError::UnknownBlockNumber { block_number } => assert_eq!(block_number, 3)
+        );
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn block_by_block_spec_eip1898_hashes() -> Result<()> {
+        let fixture = NodeTestFixture::new().await?;
+
+        let block = fixture
+            .node
+            .block_by_block_spec(&BlockSpec::Tag(BlockTag::Earliest))
+            .await
+            .unwrap();
+
+        let block_hash = block.header().hash();
+
+        async fn assert_block_hash(
+            fixture: &NodeTestFixture,
+            block_hash: &B256,
+            require_canonical: Option<bool>,
+        ) {
+            let block_by_hash = fixture
+                .node
+                .block_by_block_spec(&BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
+                    block_hash: *block_hash,
+                    require_canonical,
+                }))
+                .await
+                .unwrap();
+
+            assert_eq!(block_by_hash.header().hash(), *block_hash);
+        }
+
+        assert_block_hash(&fixture, &block_hash, None).await;
+        assert_block_hash(&fixture, &block_hash, Some(true)).await;
+        assert_block_hash(&fixture, &block_hash, Some(false)).await;
+
+        let non_existing_block = fixture
+            .node
+            .block_by_block_spec(&BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
+                block_hash: B256::zero(),
+                require_canonical: None,
+            }))
+            .await;
+
+        assert_error!(
+            non_existing_block,
+            NodeError::UnknownBlockHash { block_hash } => assert_eq!(block_hash, B256::zero())
+        );
 
         Ok(())
     }
