@@ -93,9 +93,9 @@ impl rlp::Decodable for LegacySignedTransaction {
 
 #[cfg(test)]
 mod tests {
-    use k256::SecretKey;
     use std::str::FromStr;
 
+    use k256::SecretKey;
     use revm_primitives::Address;
 
     use super::*;

@@ -6,13 +6,12 @@ mod legacy;
 
 use k256::SecretKey;
 
-use crate::{signature::SignatureError, transaction::SignedTransaction};
-
 pub use self::{
     eip155::EIP155TransactionRequest, eip1559::EIP1559TransactionRequest,
     eip2930::EIP2930TransactionRequest, eip4844::Eip4844TransactionRequest,
     legacy::LegacyTransactionRequest,
 };
+use crate::{signature::SignatureError, transaction::SignedTransaction};
 
 /// Container type for various Ethereum transaction requests
 ///

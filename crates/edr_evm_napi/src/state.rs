@@ -21,6 +21,7 @@ use napi::{
     Env, JsFunction, JsObject, NapiRaw, Status,
 };
 use napi_derive::napi;
+pub use overrides::*;
 
 use crate::{
     account::{genesis_accounts, Account, GenesisAccount},
@@ -30,10 +31,8 @@ use crate::{
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
 };
 
-pub use overrides::*;
-
-// An arbitrarily large amount of memory to signal to the javascript garbage collector that it needs to
-// attempt to free the state object's memory.
+// An arbitrarily large amount of memory to signal to the javascript garbage
+// collector that it needs to attempt to free the state object's memory.
 const STATE_MEMORY_SIZE: i64 = 10_000;
 
 struct ModifyAccountCall {
@@ -103,7 +102,8 @@ impl State {
         Self::with_state(&mut env, state)
     }
 
-    /// Constructs a [`State`] with the provided accounts present in the genesis state.
+    /// Constructs a [`State`] with the provided accounts present in the genesis
+    /// state.
     #[napi(factory)]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn with_genesis_accounts(
@@ -117,8 +117,8 @@ impl State {
         Self::with_state(&mut env, state)
     }
 
-    /// Constructs a [`State`] that uses the remote node and block number as the basis for
-    /// its state.
+    /// Constructs a [`State`] that uses the remote node and block number as the
+    /// basis for its state.
     #[napi]
     #[napi(ts_return_type = "Promise<State>")]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
@@ -286,9 +286,10 @@ impl State {
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
 
-    /// Modifies the account with the provided address using the specified modifier function.
-    /// The modifier function receives the current values as individual parameters and will update the account's values
-    /// to the returned `Account` values.
+    /// Modifies the account with the provided address using the specified
+    /// modifier function. The modifier function receives the current values
+    /// as individual parameters and will update the account's values to the
+    /// returned `Account` values.
     #[napi(ts_return_type = "Promise<void>")]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn modify_account(
@@ -448,7 +449,8 @@ impl State {
             .unwrap()
     }
 
-    /// Sets the storage slot at the specified address and index to the provided value.
+    /// Sets the storage slot at the specified address and index to the provided
+    /// value.
     #[napi]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn set_account_storage_slot(

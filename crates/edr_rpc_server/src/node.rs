@@ -3,9 +3,6 @@ mod node_error;
 
 use std::mem;
 
-use k256::SecretKey;
-use tokio::sync::Mutex;
-
 use edr_eth::{
     remote::{
         filter::{FilteredEvents, LogOutput},
@@ -21,10 +18,11 @@ use edr_evm::{
     state::{AccountModifierFn, StateError},
     AccountInfo, Block, Bytecode, MineBlockResult, KECCAK_EMPTY,
 };
-
-use crate::{node::node_data::NodeData, Config};
+use k256::SecretKey;
+use tokio::sync::Mutex;
 
 pub use self::node_error::NodeError;
+use crate::{node::node_data::NodeData, Config};
 
 pub struct Node {
     data: Mutex<NodeData>,
@@ -254,8 +252,9 @@ impl Node {
 
         let signed_transaction = node_data.get_signed_transaction(transaction_request)?;
 
-        // TODO discuss in review: this can block the async executor if the state is remote or
-        // forked. Do we want to do something about in this PR or should we add a follow up issue?
+        // TODO discuss in review: this can block the async executor if the state is
+        // remote or forked. Do we want to do something about in this PR or
+        // should we add a follow up issue?
         node_data.add_pending_transaction(signed_transaction)
     }
 
@@ -413,13 +412,11 @@ pub struct LocalAccountInfo {
 #[cfg(test)]
 mod tests {
     use anyhow::Result;
+    use edr_eth::U64;
     use tempfile::TempDir;
 
-    use edr_eth::U64;
-
-    use crate::{create_test_config, Config};
-
     use super::*;
+    use crate::{create_test_config, Config};
 
     struct NodeTestFixture {
         // We need to keep the tempdir alive for the duration of the test

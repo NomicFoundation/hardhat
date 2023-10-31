@@ -13,8 +13,8 @@ where
     I: FromNapiValue + TryCast<O, Error = napi::Error>,
     O: 'static,
 {
-    // If the result is a promise, wait for it to resolve, and send the result to the channel.
-    // Otherwise, send the result immediately.
+    // If the result is a promise, wait for it to resolve, and send the result to
+    // the channel. Otherwise, send the result immediately.
     if result.is_promise()? {
         let result: JsObject = result.try_into()?;
         let then: JsFunction = result.get_named_property("then")?;
@@ -45,8 +45,8 @@ pub fn await_void_promise(
     result: JsUnknown,
     tx: Sender<napi::Result<()>>,
 ) -> napi::Result<()> {
-    // If the result is a promise, wait for it to resolve, and send the result to the channel.
-    // Otherwise, send the result immediately.
+    // If the result is a promise, wait for it to resolve, and send the result to
+    // the channel. Otherwise, send the result immediately.
     if result.is_promise()? {
         let result: JsObject = result.try_into()?;
         let then: JsFunction = result.get_named_property("then")?;

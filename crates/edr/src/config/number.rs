@@ -58,7 +58,8 @@ where
     }
 }
 
-/// deserialize a [`Number`] but always as a [`Number::U64`], panicking if the value overflows.
+/// deserialize a [`Number`] but always as a [`Number::U64`], panicking if the
+/// value overflows.
 pub fn u64_number<'de, D>(deserializer: D) -> Result<Number, D::Error>
 where
     D: serde::Deserializer<'de>,

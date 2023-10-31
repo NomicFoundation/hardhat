@@ -1,4 +1,5 @@
-// Part of this code was adapted from ethers-rs and is distributed under their licenss:
+// Part of this code was adapted from ethers-rs and is distributed under their
+// licenss:
 // - https://github.com/gakonst/ethers-rs/blob/cba6f071aedafb766e82e4c2f469ed5e4638337d/LICENSE-APACHE
 // - https://github.com/gakonst/ethers-rs/blob/cba6f071aedafb766e82e4c2f469ed5e4638337d/LICENSE-MIT
 // For the original context see: https://github.com/gakonst/ethers-rs/blob/cba6f071aedafb766e82e4c2f469ed5e4638337d/ethers-core/src/types/signature.rs
@@ -214,7 +215,8 @@ impl Signature {
         RecoveryId::try_from(standard_v).map_err(SignatureError::ECDSAError)
     }
 
-    /// Copies and serializes `self` into a new `Vec` with the recovery id included
+    /// Copies and serializes `self` into a new `Vec` with the recovery id
+    /// included
     #[allow(clippy::wrong_self_convention)]
     pub fn to_vec(&self) -> Vec<u8> {
         self.into()
@@ -369,8 +371,9 @@ impl From<B256> for RecoveryMessage {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::str::FromStr;
+
+    use super::*;
 
     #[test]
     fn recover_web3_signature() {
@@ -400,9 +403,10 @@ mod tests {
 
     #[test]
     fn test_secret_key_to_address() {
-        // `hardhat node`s default addresses are shown on startup. this is the first one:
-        //     Account #0: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 (10000 ETH)
-        //     Secret Key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+        // `hardhat node`s default addresses are shown on startup. this is the first
+        // one:     Account #0: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+        // (10000 ETH)     Secret Key:
+        // 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
         // we'll use these as fixtures.
 
         let expected_address = Address::from_str("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")

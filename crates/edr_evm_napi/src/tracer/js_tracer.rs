@@ -242,7 +242,8 @@ impl JsTracer {
                                         .adjust_external_memory(log.data.len() as i64)
                                         .expect("Failed to adjust external memory");
 
-                                    // SAFETY: The data is guaranteed to be valid until finalize_callback is called.
+                                    // SAFETY: The data is guaranteed to be valid until
+                                    // finalize_callback is called.
                                     unsafe {
                                         ctx.env.create_buffer_with_borrowed_data(
                                             log.data.as_ptr(),
@@ -278,7 +279,8 @@ impl JsTracer {
                             .adjust_external_memory(output.len() as i64)
                             .expect("Failed to adjust external memory");
 
-                        // SAFETY: The output is guaranteed to be valid until finalize_callback is called.
+                        // SAFETY: The output is guaranteed to be valid until finalize_callback is
+                        // called.
                         unsafe {
                             ctx.env.create_buffer_with_borrowed_data(
                                 output.as_ptr(),
@@ -319,7 +321,8 @@ impl JsTracer {
                             .adjust_external_memory(output.len() as i64)
                             .expect("Failed to adjust external memory");
 
-                        // SAFETY: The output is guaranteed to be valid until finalize_callback is called.
+                        // SAFETY: The output is guaranteed to be valid until finalize_callback is
+                        // called.
                         unsafe {
                             ctx.env.create_buffer_with_borrowed_data(
                                 output.as_ptr(),

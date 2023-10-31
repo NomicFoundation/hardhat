@@ -1,13 +1,15 @@
 use std::time::Duration;
 
-/// The default depth of blocks to consider safe from a reorg and thus cacheable.
+/// The default depth of blocks to consider safe from a reorg and thus
+/// cacheable.
 const DEFAULT_SAFE_BLOCK_DEPTH: u64 = 128;
 
-/// The default delay between blocks. Should be the lowest possible to stay on the safe side.
+/// The default delay between blocks. Should be the lowest possible to stay on
+/// the safe side.
 const DEFAULT_SAFE_BLOCK_TIME: Duration = Duration::from_secs(1);
 
-/// Test whether a block number is safe from a reorg for a specific chain based on the latest block
-/// number.
+/// Test whether a block number is safe from a reorg for a specific chain based
+/// on the latest block number.
 pub fn is_safe_block_number(args: IsSafeBlockNumberArgs) -> bool {
     let safe_block_number = largest_safe_block_number((&args).into());
     args.block_number <= safe_block_number
@@ -33,8 +35,8 @@ impl<'a> From<&'a IsSafeBlockNumberArgs> for LargestSafeBlockNumberArgs {
     }
 }
 
-/// The largest block number that is safe from a reorg for a specific chain based on the latest
-/// block number.
+/// The largest block number that is safe from a reorg for a specific chain
+/// based on the latest block number.
 pub fn largest_safe_block_number(args: LargestSafeBlockNumberArgs) -> u64 {
     args.latest_block_number
         .saturating_sub(safe_block_depth(args.chain_id))

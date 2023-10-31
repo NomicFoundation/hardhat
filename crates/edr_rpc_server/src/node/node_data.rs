@@ -3,8 +3,6 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use indexmap::IndexMap;
-
 use edr_eth::{
     remote::{filter::FilteredEvents, BlockSpec, BlockTag, Eip1898BlockSpec, RpcClient},
     signature::public_key_to_address,
@@ -18,6 +16,7 @@ use edr_evm::{
     AccountInfo, Block, CfgEnv, HashMap, HashSet, MemPool, MineBlockResult, MineOrdering,
     PendingTransaction, RandomHashGenerator, SyncBlock, KECCAK_EMPTY,
 };
+use indexmap::IndexMap;
 
 use crate::{filter::Filter, node::node_error::NodeError, AccountConfig, Config};
 
@@ -77,9 +76,9 @@ impl NodeData {
     }
 }
 
-// Implement methods on `NodeData` as opposed to on `Node` that are helper methods for methods on
-// `Node` as these helper methods shouldn't try to acquire the lock in `Node`. That would lead to
-// deadlocks.
+// Implement methods on `NodeData` as opposed to on `Node` that are helper
+// methods for methods on `Node` as these helper methods shouldn't try to
+// acquire the lock in `Node`. That would lead to deadlocks.
 impl NodeData {
     pub fn add_pending_transaction(
         &mut self,
@@ -282,8 +281,8 @@ impl NodeData {
         // Reset next block time stamp
         self.next_block_timestamp.take();
 
-        // TODO: when we support hardhat_setNextBlockBaseFeePerGas, reset the user provided
-        // next block base fee per gas to `None`
+        // TODO: when we support hardhat_setNextBlockBaseFeePerGas, reset the user
+        // provided next block base fee per gas to `None`
         // https://github.com/NomicFoundation/edr/issues/145
 
         Ok(result)
@@ -432,9 +431,8 @@ mod tests {
     use anyhow::Result;
     use tempfile::TempDir;
 
-    use crate::config::test_tools::create_test_config;
-
     use super::*;
+    use crate::config::test_tools::create_test_config;
 
     struct NodeDataTestFixture {
         // We need to keep the tempdir alive for the duration of the test

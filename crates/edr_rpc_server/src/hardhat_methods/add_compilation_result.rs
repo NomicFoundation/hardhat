@@ -22,7 +22,8 @@ struct CompilerSettings {
     via_ir: Option<bool>,
     optimizer: OptimizerSettings,
     metadata: Option<MetadataSettings>,
-    /// mapping: source name -> (mapping: contract name -> compiler output selections)
+    /// mapping: source name -> (mapping: contract name -> compiler output
+    /// selections)
     output_selection: HashMap<String, HashMap<String, Vec<String>>>,
     evm_version: Option<String>,
     /// mapping: library file name -> (mapping: library name -> library content)
@@ -61,7 +62,8 @@ struct MetadataSettings {
 pub struct CompilerOutput {
     /// mapping: source name -> CompilerOutputSource
     sources: HashMap<String, CompilerOutputSource>,
-    /// mapping: source name -> (mapping: contract name -> CompilerOutputContract)
+    /// mapping: source name -> (mapping: contract name ->
+    /// CompilerOutputContract)
     contracts: HashMap<String, HashMap<String, CompilerOutputContract>>,
 }
 

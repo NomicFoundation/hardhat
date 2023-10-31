@@ -40,29 +40,36 @@ pub struct FilterOptions {
     pub topics: Option<Vec<B256>>,
 }
 
-/// represents the output of `eth_getFilterLogs` and `eth_getFilterChanges` when used with a log
-/// filter
+/// represents the output of `eth_getFilterLogs` and `eth_getFilterChanges` when
+/// used with a log filter
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct LogOutput {
-    /// true when the log was removed, due to a chain reorganization. false if it's a valid log
+    /// true when the log was removed, due to a chain reorganization. false if
+    /// it's a valid log
     pub removed: bool,
-    /// integer of the log index position in the block. None when its pending log.
+    /// integer of the log index position in the block. None when its pending
+    /// log.
     pub log_index: Option<U256>,
-    /// integer of the transactions index position log was created from. None when its pending log.
+    /// integer of the transactions index position log was created from. None
+    /// when its pending log.
     pub transaction_index: Option<u64>,
-    /// hash of the transactions this log was created from. None when its pending log.
+    /// hash of the transactions this log was created from. None when its
+    /// pending log.
     pub transaction_hash: Option<B256>,
-    /// hash of the block where this log was in. null when its pending. None when its pending log.
+    /// hash of the block where this log was in. null when its pending. None
+    /// when its pending log.
     pub block_hash: Option<B256>,
-    /// the block number where this log was in. null when its pending. None when its pending log.
+    /// the block number where this log was in. null when its pending. None when
+    /// its pending log.
     pub block_number: Option<U256>,
     /// address from which this log originated.
     pub address: Address,
     /// contains one or more 32 Bytes non-indexed arguments of the log.
     pub data: Bytes,
-    /// Array of 0 to 4 32 Bytes DATA of indexed log arguments. (In solidity: The first topic is
-    /// the hash of the signature of the event (e.g. Deposit(address,bytes32,uint256)), except you
-    /// declared the event with the anonymous specifier.)
+    /// Array of 0 to 4 32 Bytes DATA of indexed log arguments. (In solidity:
+    /// The first topic is the hash of the signature of the event (e.g.
+    /// Deposit(address,bytes32,uint256)), except you declared the event
+    /// with the anonymous specifier.)
     pub topics: Vec<B256>,
 }
 
@@ -91,11 +98,13 @@ impl FilteredEvents {
 /// subscription type to be used with `eth_subscribe`
 #[derive(Clone, Debug, PartialEq)]
 pub enum SubscriptionType {
-    /// Induces the emission of logs attached to a new block that match certain topic filters.
+    /// Induces the emission of logs attached to a new block that match certain
+    /// topic filters.
     Logs,
     /// Induces the emission of new blocks that are added to the blockchain.
     NewHeads,
-    /// Induces the emission of transaction hashes that are sent to the network and marked as "pending".
+    /// Induces the emission of transaction hashes that are sent to the network
+    /// and marked as "pending".
     NewPendingTransactions,
 }
 

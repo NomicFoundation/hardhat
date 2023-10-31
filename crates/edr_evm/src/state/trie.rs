@@ -1,9 +1,5 @@
 mod account;
 
-use crate::collections::SharedMap;
-
-pub use self::account::AccountTrie;
-
 use edr_eth::{account::KECCAK_EMPTY, Address, B160, B256, U256};
 use revm::{
     db::StateRef,
@@ -11,7 +7,9 @@ use revm::{
     DatabaseCommit,
 };
 
+pub use self::account::AccountTrie;
 use super::{StateDebug, StateError};
+use crate::collections::SharedMap;
 
 /// An implementation of revm's state that uses a trie.
 #[derive(Clone, Debug)]
@@ -30,7 +28,8 @@ impl TrieState {
         }
     }
 
-    /// Inserts the provided bytecode using its hash, potentially overwriting an existing value.
+    /// Inserts the provided bytecode using its hash, potentially overwriting an
+    /// existing value.
     pub fn insert_code(&mut self, code_hash: B256, code: Bytecode) {
         debug_assert_eq!(code_hash, code.hash_slow());
 

@@ -2,8 +2,8 @@
 
 //! The EDR EVM
 //!
-//! The EDR EVM exposes APIs for running and interacting with a multi-threaded Ethereum
-//! Virtual Machine (or EVM).
+//! The EDR EVM exposes APIs for running and interacting with a multi-threaded
+//! Ethereum Virtual Machine (or EVM).
 
 pub use revm::{
     interpreter::{

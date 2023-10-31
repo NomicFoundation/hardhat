@@ -83,8 +83,8 @@ pub struct RevertResult {
     pub output: JsBuffer,
 }
 
-/// Indicates that the EVM has experienced an exceptional halt. This causes execution to
-/// immediately end with all gas being consumed.
+/// Indicates that the EVM has experienced an exceptional halt. This causes
+/// execution to immediately end with all gas being consumed.
 #[napi]
 pub enum ExceptionalHalt {
     OutOfGas,
@@ -162,7 +162,8 @@ impl From<ExceptionalHalt> for edr_evm::Halt {
 pub struct HaltResult {
     /// The exceptional halt that occurred
     pub reason: ExceptionalHalt,
-    /// Halting will spend all the gas and will thus be equal to the specified gas limit
+    /// Halting will spend all the gas and will thus be equal to the specified
+    /// gas limit
     pub gas_used: BigInt,
 }
 

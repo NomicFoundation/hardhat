@@ -9,9 +9,8 @@ mod kind;
 mod request;
 mod signed;
 
-use crate::{access_list::AccessListItem, Address, Bytes, U256};
-
 pub use self::{detailed::DetailedTransaction, kind::TransactionKind, request::*, signed::*};
+use crate::{access_list::AccessListItem, Address, Bytes, U256};
 
 /// Represents _all_ transaction requests received from RPC
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
@@ -19,7 +18,8 @@ pub use self::{detailed::DetailedTransaction, kind::TransactionKind, request::*,
 #[cfg_attr(feature = "serde", serde(deny_unknown_fields))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct EthTransactionRequest {
-    // TODO review question: should this be non-optional? In the `eth_sendTransaction` docs and in the Hardhat `rpcTransactionRequest` type, `from` is marked as compulsory.
+    // TODO review question: should this be non-optional? In the `eth_sendTransaction` docs and in
+    // the Hardhat `rpcTransactionRequest` type, `from` is marked as compulsory.
     /// from address
     pub from: Option<Address>,
     /// to address

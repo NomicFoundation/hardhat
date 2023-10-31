@@ -1,13 +1,14 @@
-use std::ffi::OsString;
-use std::fs;
-use std::net::{IpAddr, Ipv4Addr};
-use std::path::{Path, PathBuf};
+use std::{
+    ffi::OsString,
+    fs,
+    net::{IpAddr, Ipv4Addr},
+    path::{Path, PathBuf},
+};
 
 use anyhow::anyhow;
 use clap::{Args, Parser, Subcommand};
-use tracing::{event, Level};
-
 use edr_eth::Address;
+use tracing::{event, Level};
 
 pub mod config;
 
@@ -23,9 +24,11 @@ struct Cli {
 #[derive(Subcommand)]
 #[allow(clippy::large_enum_variant)]
 enum Command {
-    /// Start the local Ethereum development node to serve JSON-RPC requests over HTTP.
+    /// Start the local Ethereum development node to serve JSON-RPC requests
+    /// over HTTP.
     Node(NodeArgs),
-    /// Write default configuration values to edr.toml, overwriting any existing file.
+    /// Write default configuration values to edr.toml, overwriting any existing
+    /// file.
     InitConfigFile,
 }
 

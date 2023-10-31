@@ -121,7 +121,8 @@ impl AccountTrie {
         }
     }
 
-    /// Retrieves an account corresponding to the specified address from the state.
+    /// Retrieves an account corresponding to the specified address from the
+    /// state.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub fn account(&self, address: &Address) -> Option<BasicAccount> {
         let state_trie = Trie::from(
@@ -143,7 +144,8 @@ impl AccountTrie {
             .map(|encoded_account| rlp::decode::<BasicAccount>(&encoded_account).unwrap())
     }
 
-    /// Retrieves the storage storage corresponding to the account at the specified address and the specified index, if they exist.
+    /// Retrieves the storage storage corresponding to the account at the
+    /// specified address and the specified index, if they exist.
     pub fn account_storage_slot(&self, address: &Address, index: &U256) -> Option<U256> {
         self.storage_trie_dbs
             .get(address)
@@ -180,7 +182,8 @@ impl AccountTrie {
                     Self::remove_account_in(address, &mut state_trie, &mut self.storage_trie_dbs);
                 } else {
                     if account.is_created() {
-                        // We can simply remove the storage trie db, as it will get reinitialized in the next operation
+                        // We can simply remove the storage trie db, as it will get reinitialized in
+                        // the next operation
                         self.storage_trie_dbs.remove(address);
                     }
 
@@ -253,7 +256,8 @@ impl AccountTrie {
         self.state_root = B256::from_slice(&state_trie.root().unwrap());
     }
 
-    /// Helper function for setting the account at the specified address into the provided state trie.
+    /// Helper function for setting the account at the specified address into
+    /// the provided state trie.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn set_account_in(
         address: &Address,
@@ -286,7 +290,8 @@ impl AccountTrie {
         account
     }
 
-    /// Helper function for removing the account at the specified address from the provided state trie and storage tries, if it exists.
+    /// Helper function for removing the account at the specified address from
+    /// the provided state trie and storage tries, if it exists.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn remove_account_in(
         address: &Address,
@@ -375,7 +380,8 @@ impl AccountTrie {
         serde_json::to_string_pretty(&state).unwrap()
     }
 
-    /// Sets the storage slot at the specified address and index to the provided value.
+    /// Sets the storage slot at the specified address and index to the provided
+    /// value.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     pub fn set_account_storage_slot(&mut self, address: &Address, index: &U256, value: &U256) {
         let (storage_trie_db, storage_root) =
@@ -430,7 +436,8 @@ impl AccountTrie {
         self.state_root = B256::from_slice(&state_trie.root().unwrap());
     }
 
-    /// Helper function for setting the storage slot at the specified address and index to the provided value.
+    /// Helper function for setting the storage slot at the specified address
+    /// and index to the provided value.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
     fn set_account_storage_slot_in(index: &U256, value: &U256, storage_trie: &mut Trie) {
         let hashed_index = HasherKeccak::new().digest(&index.to_be_bytes::<32>());

@@ -8,12 +8,11 @@ use napi::{
 };
 use napi_derive::napi;
 
-use crate::{cast::TryCast, config::SpecId, state::State};
-
 use super::signed::{
     Eip1559SignedTransaction, Eip2930SignedTransaction, Eip4844SignedTransaction,
     LegacySignedTransaction,
 };
+use crate::{cast::TryCast, config::SpecId, state::State};
 
 #[napi]
 pub struct PendingTransaction {
@@ -81,8 +80,8 @@ impl PendingTransaction {
         &self,
         env: Env,
     ) -> napi::Result<
-        // HACK: napi does not convert Rust type aliases to its underlaying types when generating bindings
-        // so manually do that here
+        // HACK: napi does not convert Rust type aliases to its underlaying types when generating
+        // bindings so manually do that here
         Either4<
             LegacySignedTransaction,
             Eip2930SignedTransaction,

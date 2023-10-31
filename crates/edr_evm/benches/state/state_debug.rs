@@ -1,11 +1,10 @@
 use criterion::{criterion_group, criterion_main, Criterion};
+use edr_eth::{Address, Bytes, U256};
+use edr_evm::state::AccountModifierFn;
 use revm::{
     db::StateRef,
     primitives::{AccountInfo, Bytecode},
 };
-
-use edr_eth::{Address, Bytes, U256};
-use edr_evm::state::AccountModifierFn;
 
 mod util;
 use util::{account_has_code, bench_sync_state_method, permutations, state_prep_no_op};
