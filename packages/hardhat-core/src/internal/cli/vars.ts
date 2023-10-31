@@ -21,13 +21,13 @@ export async function handleVars(
 
   switch (taskDefinition.name) {
     case "set":
-      return set(taskArguments.key, taskArguments.value);
+      return set(taskArguments.var, taskArguments.value);
     case "get":
-      return get(taskArguments.key);
+      return get(taskArguments.var);
     case "list":
       return list();
     case "delete":
-      return del(taskArguments.key);
+      return del(taskArguments.var);
     case "path":
       return path();
     case "setup":
@@ -44,9 +44,11 @@ async function set(key: string, value?: string): Promise<number> {
 
   varsManager.set(key, value ?? (await getVarValue()));
 
-  console.warn(
-    `Key-value pair stored at the following path: ${varsManager.getStoragePath()}`
-  );
+  if (process.stdout.isTTY) {
+    console.warn(
+      `The configuration variable has been stored in ${varsManager.getStoragePath()}`
+    );
+  }
 
   return 0;
 }
@@ -60,37 +62,56 @@ function get(key: string): number {
   }
 
   console.warn(
-    chalk.yellow(`There is no value associated to the key '${key}'`)
+    chalk.yellow(
+      `The configuration variable '${key}' is not set in ${HardhatContext.getHardhatContext().varsManager.getStoragePath()}`
+    )
   );
   return 1;
 }
 
 function list(): number {
   const keys = HardhatContext.getHardhatContext().varsManager.list();
+  const varsStoragePath =
+    HardhatContext.getHardhatContext().varsManager.getStoragePath();
 
   if (keys.length > 0) {
     keys.forEach((k) => console.log(k));
 
-    console.warn(
-      `\nAll the key-value pairs are stored at the following path: ${HardhatContext.getHardhatContext().varsManager.getStoragePath()}`
-    );
+    if (process.stdout.isTTY) {
+      console.warn(
+        `\nAll configuration variables are stored in ${varsStoragePath}`
+      );
+    }
   } else {
-    console.warn(chalk.yellow(`There are no key-value pairs stored`));
+    if (process.stdout.isTTY) {
+      console.warn(
+        chalk.yellow(
+          `There are no configuration variables stored in ${varsStoragePath}`
+        )
+      );
+    }
   }
 
   return 0;
 }
 
 function del(key: string): number {
+  const varsStoragePath =
+    HardhatContext.getHardhatContext().varsManager.getStoragePath();
+
   if (HardhatContext.getHardhatContext().varsManager.delete(key)) {
-    console.warn(
-      `The key was deleted at the following path: ${HardhatContext.getHardhatContext().varsManager.getStoragePath()}`
-    );
+    if (process.stdout.isTTY) {
+      console.warn(
+        `The configuration variable was deleted from ${varsStoragePath}`
+      );
+    }
     return 0;
   }
 
   console.warn(
-    chalk.yellow(`There is no value associated to the key '${key}'`)
+    chalk.yellow(
+      `There is no configuration variable '${key}' to delete from ${varsStoragePath}`
+    )
   );
 
   return 1;
@@ -102,7 +123,7 @@ function path() {
 }
 
 function setup(configPath: string | undefined) {
-  log("Switching to VarsManagerSetup to collect vars");
+  log("Switching to SetupVarsManager to collect vars");
   HardhatContext.getHardhatContext().switchToSetupVarsManager();
 
   try {
@@ -111,7 +132,7 @@ function setup(configPath: string | undefined) {
   } catch (err: any) {
     console.error(
       chalk.red(
-        "There is an error in your hardhat configuration file. Please double check it.\n"
+        "There is an error in your Hardhat configuration file. Please double check it.\n"
       )
     );
 

@@ -13,3 +13,5 @@ order:
     title: Running tests in VS Code
   - /using-esm
   - /using-viem
+  - title: Migrating away from hardhat-waffle
+    href: /migrating-from-hardhat-waffle
