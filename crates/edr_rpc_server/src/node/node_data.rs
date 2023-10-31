@@ -175,6 +175,7 @@ impl NodeData {
             .ok_or(NodeError::InvalidTransactionRequest)?;
 
         // TODO handle transactions from impersonated accounts
+        // https://github.com/NomicFoundation/edr/issues/222
         Ok(typed_transaction.sign(secret_key)?)
     }
 
