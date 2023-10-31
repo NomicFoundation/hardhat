@@ -234,44 +234,66 @@ hre.run("verify:verify", {
 }
 ```
 
-#### Advanced Usage: Using the Etherscan class from another plugin
+#### Advanced Usage: Using the Etherscan and Sourcify classes from another plugin
 
-The Etherscan class used for contract verification can be imported from the plugin, allowing its direct usage:
+- The **Etherscan** class used for contract verification can be imported from the plugin, allowing its direct usage:
 
-```js
-import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
+  ```js
+  import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
 
-const instance = new Etherscan(
-  "abc123def123", // Etherscan API key
-  "https://api.etherscan.io/api", // Etherscan API URL
-  "https://etherscan.io" // Etherscan browser URL
-);
-
-if (!instance.isVerified("0x123abc...")) {
-  const { message: guid } = await instance.verify(
-    // Contract address
-    "0x123abc...",
-    // Contract source code
-    '{"language":"Solidity","sources":{"contracts/Sample.sol":{"content":"// SPDX-Lic..."}},"settings":{ ... }}',
-    // Contract name
-    "contracts/Sample.sol:MyContract",
-    // Compiler version
-    "v0.8.19+commit.7dd6d404",
-    // Encoded constructor arguments
-    "0000000000000000000000000000000000000000000000000000000000000032"
+  const instance = new Etherscan(
+    "abc123def123", // Etherscan API key
+    "https://api.etherscan.io/api", // Etherscan API URL
+    "https://etherscan.io" // Etherscan browser URL
   );
 
-  await sleep(1000);
-  const verificationStatus = await instance.getVerificationStatus(guid);
-
-  if (verificationStatus.isSuccess()) {
-    const contractURL = instance.getContractUrl("0x123abc...");
-    console.log(
-      `Successfully verified contract "MyContract" on Etherscan: ${contractURL}`
+  if (!instance.isVerified("0x123abc...")) {
+    const { message: guid } = await instance.verify(
+      // Contract address
+      "0x123abc...",
+      // Contract source code
+      '{"language":"Solidity","sources":{"contracts/Sample.sol":{"content":"// SPDX-Lic..."}},"settings":{ ... }}',
+      // Contract name
+      "contracts/Sample.sol:MyContract",
+      // Compiler version
+      "v0.8.19+commit.7dd6d404",
+      // Encoded constructor arguments
+      "0000000000000000000000000000000000000000000000000000000000000032"
     );
+
+    await sleep(1000);
+    const verificationStatus = await instance.getVerificationStatus(guid);
+
+    if (verificationStatus.isSuccess()) {
+      const contractURL = instance.getContractUrl("0x123abc...");
+      console.log(
+        `Successfully verified contract "MyContract" on Etherscan: ${contractURL}`
+      );
+    }
   }
-}
-```
+  ```
+
+- The **Sourcify** class used for contract verification can be imported from the plugin, allowing its direct usage:
+
+  ```js
+  import { Sourcify } from "@nomicfoundation/hardhat-verify/sourcify";
+
+  const instance = new Sourcify(1); // Set chainId
+
+  if (!instance.isVerified("0x123abc...")) {
+    const sourcifyResponse = await instance.verify("0x123abc...", {
+      "metadata.json": "{...}",
+      "otherFile.sol": "...",
+    });
+    if (sourcifyResponse.isOk()) {
+      const contractURL = instance.getContractUrl(
+        "0x123abc...",
+        sourcifyResponse.status
+      );
+      console.log(`Successfully verified contract on Sourcify: ${contractURL}`);
+    }
+  }
+  ```
 
 ## How it works
 
