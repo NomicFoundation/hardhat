@@ -163,14 +163,12 @@ impl NodeData {
         &self,
         transaction: EthTransactionRequest,
     ) -> Result<SignedTransaction, NodeError> {
-        let sender = transaction.from.ok_or_else(|| NodeError::MissingSender {
-            transaction: transaction.clone(),
-        })?;
-
-        let secret_key = self
-            .local_accounts
-            .get(&sender)
-            .ok_or(NodeError::UnknownAddress { address: sender })?;
+        let secret_key =
+            self.local_accounts
+                .get(&transaction.from)
+                .ok_or(NodeError::UnknownAddress {
+                    address: transaction.from,
+                })?;
 
         let typed_transaction = transaction
             .into_typed_request()
@@ -454,7 +452,7 @@ mod tests {
 
         fn dummy_transaction_request(&self) -> EthTransactionRequest {
             EthTransactionRequest {
-                from: Some(*self.node_data.local_accounts.keys().next().unwrap()),
+                from: *self.node_data.local_accounts.keys().next().unwrap(),
                 to: Some(Address::zero()),
                 gas: Some(100_000),
                 gas_price: Some(U256::from(1)),

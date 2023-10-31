@@ -24,7 +24,7 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
     let address = secret_key_to_address(edr_defaults::SECRET_KEYS[0]).unwrap();
 
     let transaction_request = EthTransactionRequest {
-        from: Some(secret_key_to_address(edr_defaults::SECRET_KEYS[0]).unwrap()),
+        from: secret_key_to_address(edr_defaults::SECRET_KEYS[0]).unwrap(),
         to: Some(Address::zero()),
         gas_price: None,
         max_fee_per_gas: None,

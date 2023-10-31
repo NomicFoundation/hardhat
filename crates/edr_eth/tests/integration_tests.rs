@@ -299,7 +299,7 @@ fn test_serde_eth_send_raw_transaction() {
 #[test]
 fn test_serde_eth_send_transaction() {
     help_test_method_invocation_serde(MethodInvocation::SendTransaction(EthTransactionRequest {
-        from: Some(Address::from_low_u64_ne(1)),
+        from: Address::from_low_u64_ne(1),
         to: Some(Address::from_low_u64_ne(2)),
         gas: Some(3_u64),
         gas_price: Some(U256::from(4)),

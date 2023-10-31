@@ -18,10 +18,8 @@ use crate::{access_list::AccessListItem, Address, Bytes, U256};
 #[cfg_attr(feature = "serde", serde(deny_unknown_fields))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct EthTransactionRequest {
-    // TODO review question: should this be non-optional? In the `eth_sendTransaction` docs and in
-    // the Hardhat `rpcTransactionRequest` type, `from` is marked as compulsory.
     /// from address
-    pub from: Option<Address>,
+    pub from: Address,
     /// to address
     pub to: Option<Address>,
     /// legacy, gas Price

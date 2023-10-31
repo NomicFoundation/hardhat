@@ -393,7 +393,7 @@ async fn test_interval_mine() {
 
 fn dummy_transaction_request() -> EthTransactionRequest {
     EthTransactionRequest {
-        from: Some(secret_key_to_address(TEST_SECRET_KEY).unwrap()),
+        from: secret_key_to_address(TEST_SECRET_KEY).unwrap(),
         to: Some(Address::zero()),
         gas_price: None,
         max_fee_per_gas: None,
