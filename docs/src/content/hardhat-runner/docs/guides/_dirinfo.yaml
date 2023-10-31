@@ -10,6 +10,4 @@ order:
   - /hardhat-console
   - /typescript
   - /command-line-completion
-  - title: Migrating away from hardhat-waffle
-    href: /migrating-from-hardhat-waffle
   - /getting-help
