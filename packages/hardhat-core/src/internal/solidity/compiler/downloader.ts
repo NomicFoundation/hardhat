@@ -60,7 +60,11 @@ export interface ICompilerDownloader {
    * Downloads the compiler for a given version, which can later be obtained
    * with getCompiler.
    */
-  downloadCompiler(version: string): Promise<void>;
+  downloadCompiler(
+    version: string,
+    downloadStartedCb: (isCompilerDownloaded: boolean) => Promise<any>,
+    downloadEndedCb: (isCompilerDownloaded: boolean) => Promise<any>
+  ): Promise<void>;
 
   /**
    * Returns the compiler, which MUST be downloaded before calling this function.
@@ -146,8 +150,20 @@ export class CompilerDownloader implements ICompilerDownloader {
     return fsExtra.pathExists(downloadPath);
   }
 
-  public async downloadCompiler(version: string): Promise<void> {
+  public async downloadCompiler(
+    version: string,
+    downloadStartedCb: (isCompilerDownloaded: boolean) => Promise<any>,
+    downloadEndedCb: (isCompilerDownloaded: boolean) => Promise<any>
+  ): Promise<void> {
     await this._mutex.use(async () => {
+      const isCompilerDownloaded = await this.isCompilerDownloaded(version);
+
+      if (isCompilerDownloaded === true) {
+        return;
+      }
+
+      await downloadStartedCb(isCompilerDownloaded);
+
       let build = await this._getCompilerBuild(version);
 
       if (build === undefined && (await this._shouldDownloadCompilerList())) {
@@ -189,6 +205,8 @@ export class CompilerDownloader implements ICompilerDownloader {
       }
 
       await this._postProcessCompilerDownload(build, downloadPath);
+
+      await downloadEndedCb(isCompilerDownloaded);
     });
   }
 
