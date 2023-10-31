@@ -16,6 +16,22 @@ describe("id rules", () => {
         });
       }, /IGN201: The moduleId "MyModule:v2" is invalid. Module ids can only have alphanumerics and underscore, and they must start with an alphanumeric./);
     });
+
+    it("should not allow duplicate module ids", () => {
+      const MyModule = buildModule("MyModule", (m) => {
+        const myContract = m.contract("MyContract");
+
+        return { myContract };
+      });
+
+      assert.throws(() => {
+        buildModule("MyModule", (m) => {
+          const { myContract } = m.useModule(MyModule);
+
+          return { myContract };
+        });
+      }, /IGN204: The following module ids are duplicated: MyModule\. Please make sure all module ids are unique\./);
+    });
   });
 
   // Windows is not going to allow these characters in filenames

@@ -129,6 +129,11 @@ export const ERRORS = {
       message:
         "The callback passed to 'buildModule' for %moduleDefinitionId% returns a Promise; async callbacks are not allowed in 'buildModule'.",
     },
+    DUPLICATE_MODULE_ID: {
+      number: 204,
+      message:
+        "The following module ids are duplicated: %duplicateModuleIds%. Please make sure all module ids are unique.",
+    },
   },
   SERIALIZATION: {
     INVALID_FUTURE_ID: {

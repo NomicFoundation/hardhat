@@ -47,5 +47,16 @@ export function buildModule<
     moduleDefintionFunction,
   });
 
+  const duplicateModuleIds = [
+    ignitionModule.id,
+    ...Array.from(ignitionModule.submodules).map((submodule) => submodule.id),
+  ].filter((id, index, array) => array.indexOf(id) !== index);
+
+  if (duplicateModuleIds.length > 0) {
+    throw new IgnitionError(ERRORS.MODULE.DUPLICATE_MODULE_ID, {
+      duplicateModuleIds: duplicateModuleIds.join(", "),
+    });
+  }
+
   return ignitionModule;
 }

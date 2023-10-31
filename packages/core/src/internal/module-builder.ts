@@ -900,11 +900,12 @@ class IgnitionModuleBuilderImplementation<
       "Trying to use `undefined` as submodule. Make sure you don't have a circular dependency of modules."
     );
 
-    // Some things that should be done here:
-    //   - Keep track of the submodule
-    //   - return the submodule's results
-    //
-    this._module.submodules.add(ignitionSubmodule);
+    if (this._module.submodules)
+      // Some things that should be done here:
+      //   - Keep track of the submodule
+      //   - return the submodule's results
+      //
+      this._module.submodules.add(ignitionSubmodule);
 
     return ignitionSubmodule.results;
   }
