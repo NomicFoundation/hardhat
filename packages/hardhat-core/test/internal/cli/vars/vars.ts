@@ -68,7 +68,7 @@ describe("vars", () => {
         expect(ctx.varsManager.get("newKey")).equals("newVal");
         assert(
           spyConsoleWarn.calledWith(
-            `Key-value pair stored at the following path: ${TMP_FILE_PATH}`
+            `The configuration variable has been stored in ${TMP_FILE_PATH}`
           )
         );
         expect(code).equals(0);
@@ -97,7 +97,7 @@ describe("vars", () => {
           expect(ctx.varsManager.get("newKey")).equals("valueFromCli");
           assert(
             spyConsoleWarn.calledWith(
-              `Key-value pair stored at the following path: ${TMP_FILE_PATH}`
+              `The configuration variable has been stored in ${TMP_FILE_PATH}`
             )
           );
           expect(code).equals(0);
@@ -110,7 +110,7 @@ describe("vars", () => {
           await expect(
             handleVars(["vars", "set", "newKey"], undefined)
           ).to.be.rejectedWith(
-            "HH1203: Invalid value. The value cannot be an empty string"
+            "HH1203: A configuration variable cannot have an empty value."
           );
           expect(ctx.varsManager.get("newKey")).equals(undefined);
         });
@@ -120,7 +120,7 @@ describe("vars", () => {
         await expect(
           handleVars(["vars", "set", "0invalidKey", "newVal"], undefined)
         ).to.be.rejectedWith(
-          "HH1202: Invalid key '0invalidKey'. Keys can only have alphanumeric characters and underscores, and they cannot start with a number."
+          "HH1202: Invalid name for a configuration variable: '0invalidKey'. Configuration variables can only have alphanumeric characters and underscores, and they cannot start with a number."
         );
         expect(ctx.varsManager.get("0invalidKey")).equals(undefined);
       });
@@ -143,7 +143,7 @@ describe("vars", () => {
         assert(
           spyConsoleWarn.calledWith(
             chalk.yellow(
-              `There is no value associated to the key 'nonExistingKey'`
+              `The configuration variable 'nonExistingKey' is not set in ${TMP_FILE_PATH}`
             )
           )
         );
@@ -163,7 +163,7 @@ describe("vars", () => {
         assert(spyConsoleLog.getCall(4).calledWith("key5"));
         assert(
           spyConsoleWarn.calledWith(
-            `\nAll the key-value pairs are stored at the following path: ${TMP_FILE_PATH}`
+            `\nAll configuration variables are stored in ${TMP_FILE_PATH}`
           )
         );
         expect(code).equals(0);
@@ -180,7 +180,9 @@ describe("vars", () => {
 
         assert(
           spyConsoleWarn.calledWith(
-            chalk.yellow(`There are no key-value pairs stored`)
+            chalk.yellow(
+              `There are no configuration variables stored in ${TMP_FILE_PATH}`
+            )
           )
         );
         expect(code).equals(0);
@@ -193,7 +195,7 @@ describe("vars", () => {
         assert(ctx.varsManager.get("key1") === undefined);
         assert(
           spyConsoleWarn.calledWith(
-            `The key was deleted at the following path: ${TMP_FILE_PATH}`
+            `The configuration variable was deleted from ${TMP_FILE_PATH}`
           )
         );
         expect(code).equals(0);
@@ -207,7 +209,7 @@ describe("vars", () => {
         assert(
           spyConsoleWarn.calledWith(
             chalk.yellow(
-              `There is no value associated to the key 'nonExistingKey'`
+              `There is no configuration variable 'nonExistingKey' to delete from ${TMP_FILE_PATH}`
             )
           )
         );
@@ -284,7 +286,7 @@ describe("vars", () => {
 
         useFixtureProject("vars/setup-to-fill");
 
-        it.only("should show the key-value pairs that need to be filled, including env variables", async () => {
+        it("should show the configuration variables that need to be filled, including env variables", async () => {
           const code = await handleVars(["vars", "setup"], undefined);
 
           assert(
@@ -373,7 +375,7 @@ describe("vars", () => {
             assert(
               spyConsoleError.calledWith(
                 chalk.red(
-                  "There is an error in your hardhat configuration file. Please double check it.\n"
+                  "There is an error in your Hardhat configuration file. Please double check it.\n"
                 )
               )
             );

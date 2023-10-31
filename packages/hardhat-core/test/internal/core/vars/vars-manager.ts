@@ -36,15 +36,26 @@ describe("VarsManager", () => {
   describe("set", () => {
     it("should throw if the key is invalid", () => {
       expect(() => varsManager.set("invalid key", "val")).to.throw(
-        "HH1202: Invalid key 'invalid key'. Keys can only have alphanumeric characters and underscores, and they cannot start with a number."
+        "HH1202: Invalid name for a configuration variable: 'invalid key'. Configuration variables can only have alphanumeric characters and underscores, and they cannot start with a number."
       );
 
       expect(() => varsManager.set("0key", "val")).to.throw(
-        "HH1202: Invalid key '0key'. Keys can only have alphanumeric characters and underscores, and they cannot start with a number."
+        "HH1202: Invalid name for a configuration variable: '0key'. Configuration variables can only have alphanumeric characters and underscores, and they cannot start with a number."
       );
 
       expect(() => varsManager.set("invalid!", "val")).to.throw(
-        "HH1202: Invalid key 'invalid!'. Keys can only have alphanumeric characters and underscores, and they cannot start with a number."
+        "HH1202: Invalid name for a configuration variable: 'invalid!'. Configuration variables can only have alphanumeric characters and underscores, and they cannot start with a number."
+      );
+    });
+
+    it("should throw if the value is invalid", () => {
+      expect(() => varsManager.set("key", "")).to.throw(
+        "HH1203: A configuration variable cannot have an empty value."
+      );
+
+      // space and tab to be sure that spaces are striped correctly
+      expect(() => varsManager.set("key", "   ")).to.throw(
+        "HH1203: A configuration variable cannot have an empty value."
       );
     });
   });
@@ -213,7 +224,7 @@ describe("VarsManager", () => {
         process.env[`${ENV_VAR_PREFIX}0_invalidKey`] = "val1";
 
         expect(() => new VarsManager(TMP_FILE_PATH)).to.throw(
-          "Invalid key '0_invalidKey'. Keys can only have alphanumeric characters and underscores, and they cannot start with a number."
+          "HH1202: Invalid name for a configuration variable: '0_invalidKey'. Configuration variables can only have alphanumeric characters and underscores, and they cannot start with a number."
         );
 
         delete process.env[`${ENV_VAR_PREFIX}0_invalidKey`];

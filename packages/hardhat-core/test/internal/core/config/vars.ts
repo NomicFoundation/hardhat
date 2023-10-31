@@ -109,7 +109,7 @@ describe("vars", () => {
 
       it("should throw an error if the key does not exist and no default value is set", () => {
         expect(() => vars.get("nonExistingKey")).to.throw(
-          "HH1201: Cannot find a value associated to the key 'nonExistingKey'. Use 'npx hardhat vars setup' to list the vars that need to be setup in your Hardhat configuration file."
+          "HH1201: Cannot find a value for the configuration variable 'nonExistingKey'. Use 'npx hardhat vars set nonExistingKey' to set it or 'npx hardhat vars setup' to list all the configuration variables used by this project."
         );
       });
     });

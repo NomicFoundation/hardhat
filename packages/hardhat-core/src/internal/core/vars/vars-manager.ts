@@ -37,6 +37,10 @@ export class VarsManager {
   public set(key: string, value: string) {
     this.validateKey(key);
 
+    if (value.replace(/[\s\t]/g, "").length === 0) {
+      throw new HardhatError(ERRORS.VARS.INVALID_EMPTY_VALUE);
+    }
+
     const vars = this._readVars();
 
     vars[key] = { value };
