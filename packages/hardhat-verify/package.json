@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-verify",
-  "version": "1.1.1",
+  "version": "2.0.0",
   "description": "Hardhat plugin for verifying contracts",
   "keywords": [
     "ethereum",
