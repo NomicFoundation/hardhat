@@ -252,9 +252,6 @@ impl Node {
 
         let signed_transaction = node_data.get_signed_transaction(transaction_request)?;
 
-        // TODO discuss in review: this can block the async executor if the state is
-        // remote or forked. Do we want to do something about in this PR or
-        // should we add a follow up issue?
         node_data.add_pending_transaction(signed_transaction)
     }
 
@@ -263,7 +260,6 @@ impl Node {
 
         let mut node_data = self.lock_data().await;
 
-        // TODO same discussion as line 257
         node_data.add_pending_transaction(signed_transaction)
     }
 
