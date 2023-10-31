@@ -41,7 +41,7 @@ export const ERROR_RANGES: {
   INTERNAL: { min: 900, max: 999, title: "Internal Hardhat errors" },
   SOURCE_NAMES: { min: 1000, max: 1099, title: "Source name errors" },
   CONTRACT_NAMES: { min: 1100, max: 1199, title: "Contract name errors" },
-  VARS: { min: 1200, max: 1299, title: "Vars errors" },
+  VARS: { min: 1200, max: 1299, title: "Connfiguration variables errors" },
 };
 
 export const ERRORS = {
@@ -1302,38 +1302,37 @@ A fully qualified name should look like file.sol:Contract`,
   VARS: {
     ONLY_MANAGED_IN_CLI: {
       number: 1200,
-      title: "Vars can only be managed from the CLI",
-      message: "Vars can only be managed from the CLI.",
-      description: `Vars can only be managed from the CLI.`,
+      title: "Configuration variables can only be managed from the CLI",
+      message:
+        "Configuration variables can only be managed from the CLI. They cannot be modified programmatically.",
+      description: `Configuration variables can only be managed from the CLI. They cannot be modified programmatically.`,
       shouldBeReported: false,
     },
     VALUE_NOT_FOUND_FOR_KEY: {
       number: 1201,
+      title: "Configuration variable is not set",
       message:
-        "Cannot find a value associated to the key '%value%'. Use 'npx hardhat vars setup' to list the vars that need to be setup in your Hardhat configuration file.",
-      title: "Cannot find a value associated to the key",
-      description: `Cannot find a value associated to the key.
+        "Cannot find a value for the configuration variable '%value%'. Use 'npx hardhat vars set %value%' to set it or 'npx hardhat vars setup' to list all the configuration variables used by this project.",
+      description: `Cannot find a value for a mandatory configuration variable.
 
-Please double check your key and try to run again.`,
+Use 'npx hardhat vars set KEY' to set it or 'npx hardhat vars setup' to list all the configuration variables used by this project.`,
       shouldBeReported: false,
     },
     INVALID_KEY_VALUE: {
       number: 1202,
+      title: "Invalid name for a configuration variable",
       message:
-        "Invalid key '%value%'. Keys can only have alphanumeric characters and underscores, and they cannot start with a number.",
-      title: "Invalid key",
-      description: `Invalid key.
+        "Invalid name for a configuration variable: '%value%'. Configuration variables can only have alphanumeric characters and underscores, and they cannot start with a number.",
+      description: `Invalid name for a configuration variable.
 
-Please double check your key and try to run again.`,
+Configuration variables can only have alphanumeric characters and underscores, and they cannot start with a number.`,
       shouldBeReported: false,
     },
     INVALID_EMPTY_VALUE: {
       number: 1203,
-      message: "Invalid value. The value cannot be an empty string",
-      title: "Invalid value",
-      description: `Invalid value. The value cannot be an empty string.
-
-Please double check the value and try to run again.`,
+      title: "Invalid empty value for configuration variable",
+      message: "A configuration variable cannot have an empty value.",
+      description: "A configuration variable cannot have an empty value.",
       shouldBeReported: false,
     },
   },
