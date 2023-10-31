@@ -25,6 +25,7 @@ use tokio::sync::Mutex;
 pub use self::node_error::NodeError;
 use crate::{filter::Filter, node::node_data::NodeData, Config};
 
+/// A block and its total difficulty.
 #[derive(Debug)]
 pub struct BlockAndTotalDifficulty {
     pub block: Arc<dyn SyncBlock<Error = BlockchainError>>,
