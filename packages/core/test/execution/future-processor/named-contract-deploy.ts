@@ -1,6 +1,9 @@
 import { assert } from "chai";
 
-import { NamedArtifactContractDeploymentFuture } from "../../../src";
+import {
+  NamedArtifactContractAtFuture,
+  NamedArtifactContractDeploymentFuture,
+} from "../../../src";
 import { TransactionParams } from "../../../src/internal/execution/jsonrpc-client";
 import { deploymentStateReducer } from "../../../src/internal/execution/reducers/deployment-state-reducer";
 import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result";
@@ -9,7 +12,10 @@ import {
   ExecutionStatus,
 } from "../../../src/internal/execution/types/execution-state";
 import { TransactionReceiptStatus } from "../../../src/internal/execution/types/jsonrpc";
-import { NamedContractDeploymentFutureImplementation } from "../../../src/internal/module";
+import {
+  NamedContractAtFutureImplementation,
+  NamedContractDeploymentFutureImplementation,
+} from "../../../src/internal/module";
 import { assertIgnitionInvariant } from "../../../src/internal/utils/assertions";
 import { exampleAccounts } from "../../helpers";
 
@@ -78,6 +84,33 @@ describe("future processor", () => {
         type: ExecutionResultType.SUCCESS,
         address: exampleAddress,
       });
+    });
+
+    it("should record the address of a contractAt future", async () => {
+      // Arrange
+      const fakeModule = {} as any;
+
+      const deploymentFuture: NamedArtifactContractAtFuture<string> =
+        new NamedContractAtFutureImplementation(
+          "MyModule:TestContract",
+          fakeModule,
+          "TestContract",
+          exampleAddress
+        );
+
+      const { processor, storedDeployedAddresses } = setupFutureProcessor(
+        (() => {}) as any,
+        {}
+      );
+
+      // Act
+      await processor.processFuture(deploymentFuture, initialDeploymentState);
+
+      // Assert
+      assert.equal(
+        storedDeployedAddresses["MyModule:TestContract"],
+        exampleAddress
+      );
     });
   });
 });
