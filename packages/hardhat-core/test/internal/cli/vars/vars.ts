@@ -1,3 +1,5 @@
+import type Sinon from "sinon";
+
 import "mocha";
 import fs from "fs-extra";
 import * as os from "os";
@@ -16,9 +18,9 @@ describe("vars", () => {
     const TMP_FILE_PATH = `${os.tmpdir()}/test-vars.json`;
     let ctx: HardhatContext;
     let sandbox: SinonSandbox;
-    let spyConsoleLog: any;
-    let spyConsoleWarn: any;
-    let stubGetVarsFilePath: any;
+    let spyConsoleLog: Sinon.SinonStub;
+    let spyConsoleWarn: Sinon.SinonStub;
+    let stubGetVarsFilePath: Sinon.SinonStub;
 
     before(() => {
       // Stub functions
@@ -248,22 +250,21 @@ describe("vars", () => {
         it("should say that alle the key-value pairs are set", async () => {
           const code = await handleVars(["vars", "setup"], undefined);
 
-          assert(
-            spyConsoleLog
-              .getCall(0)
-              .calledWith(chalk.green("There are no key-value pairs to setup"))
-          );
+          const consoleLogCalls = spyConsoleLog.getCalls();
 
-          assert(
-            spyConsoleLog
-              .getCall(1)
-              .calledWith(`\n${chalk.green("<already set variables>")}`)
+          assert.include(
+            consoleLogCalls[0].args[0],
+            "There are no configuration variables that need to be set for this project"
           );
+          assert.include(
+            consoleLogCalls[2].args[0],
+            "Configuration variables already set:"
+          );
+          assert.include(consoleLogCalls[4].args[0], "Mandatory:");
+          assert.include(consoleLogCalls[5].args[0], "key1");
 
-          assert(spyConsoleLog.getCall(2).calledWith("<mandatory>"));
-          assert(spyConsoleLog.getCall(3).calledWith("key1"));
-          assert(spyConsoleLog.getCall(4).calledWith("<optional>"));
-          assert(spyConsoleLog.getCall(5).calledWith("key2"));
+          assert.include(consoleLogCalls[7].args[0], "Optional:");
+          assert.include(consoleLogCalls[8].args[0], "key2");
 
           expect(code).equals(0);
         });
@@ -289,72 +290,53 @@ describe("vars", () => {
         it("should show the configuration variables that need to be filled, including env variables", async () => {
           const code = await handleVars(["vars", "setup"], undefined);
 
-          assert(
-            spyConsoleLog
-              .getCall(0)
-              .calledWith("The following key-value pairs need to be setup:")
+          const consoleLogCalls = spyConsoleLog.getCalls();
+
+          assert.include(
+            consoleLogCalls[0].args[0],
+            "The following configuration variables need to be set:"
           );
 
-          // required keys
-          assert(
-            spyConsoleLog
-              .getCall(1)
-              .calledWith(chalk.red("<mandatory variables>"))
-          );
-
-          assert(
-            spyConsoleLog
-              .getCall(2)
-              .calledWith(
-                chalk.red(
-                  "npx hardhat vars set nonExistingKey3\nnpx hardhat vars set nonExistingKey5\nnpx hardhat vars set KEY_ENV_1"
-                )
-              )
+          assert.include(
+            consoleLogCalls[1].args[0],
+            "npx hardhat vars set nonExistingKey3\n  npx hardhat vars set nonExistingKey5\n  npx hardhat vars set KEY_ENV_1"
           );
 
           // optional keys
-          assert(
-            spyConsoleLog
-              .getCall(3)
-              .calledWith(chalk.yellow("<optional variables>"))
+          assert.include(
+            consoleLogCalls[3].args[0],
+            "The following configuration variables are optional:"
           );
-
-          assert(
-            spyConsoleLog
-              .getCall(4)
-              .calledWith(
-                chalk.yellow(
-                  "npx hardhat vars set nonExistingKey1\nnpx hardhat vars set nonExistingKey4\nnpx hardhat vars set KEY_ENV_2\nnpx hardhat vars set nonExistingKey2"
-                )
-              )
+          assert.include(
+            consoleLogCalls[4].args[0],
+            "npx hardhat vars set nonExistingKey1\n  npx hardhat vars set nonExistingKey4\n  npx hardhat vars set KEY_ENV_2\n  npx hardhat vars set nonExistingKey2"
           );
 
           // show already set variables
-          assert(
-            spyConsoleLog
-              .getCall(5)
-              .calledWith(`\n${chalk.green("<already set variables>")}`)
+          assert.include(
+            consoleLogCalls[6].args[0],
+            "Configuration variables already set:"
           );
 
           // mandatory variables
-          assert(spyConsoleLog.getCall(6).calledWith("<mandatory>"));
-          assert(spyConsoleLog.getCall(7).calledWith("key3\nkey5"));
+          assert.include(consoleLogCalls[8].args[0], "Mandatory:");
+          assert.include(consoleLogCalls[9].args[0], "key3\n    key5");
 
           // optional variables
-          assert(spyConsoleLog.getCall(8).calledWith("<optional>"));
-          assert(spyConsoleLog.getCall(9).calledWith("key1\nkey4\nkey2"));
-
-          // env variables
-          assert(
-            spyConsoleLog
-              .getCall(10)
-              .calledWith("<environment variables with values>")
+          assert.include(consoleLogCalls[11].args[0], "Optional:");
+          assert.include(
+            consoleLogCalls[12].args[0],
+            "key1\n    key4\n    key2"
           );
 
-          assert(
-            spyConsoleLog
-              .getCall(11)
-              .calledWith(`${ENV_VAR_PREFIX}${KEY1}\n${ENV_VAR_PREFIX}${KEY2}`)
+          // env variables
+          assert.include(
+            consoleLogCalls[14].args[0],
+            "Set via environment variables:"
+          );
+          assert.include(
+            consoleLogCalls[15].args[0],
+            `${ENV_VAR_PREFIX}${KEY1}\n    ${ENV_VAR_PREFIX}${KEY2}`
           );
 
           expect(code).equals(0);

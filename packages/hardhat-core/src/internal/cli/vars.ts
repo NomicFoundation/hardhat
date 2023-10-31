@@ -9,6 +9,7 @@ import {
   resolveConfigPath,
 } from "../core/config/config-loading";
 import { ArgumentsParser } from "./ArgumentsParser";
+import { emoji } from "./emoji";
 
 const log = debug("hardhat:cli:vars");
 
@@ -182,29 +183,38 @@ function listVarsToSetup() {
   const optionalKeysToSet = varsManagerSetup.getOptionalVarsToSet();
 
   if (requiredKeysToSet.length === 0 && optionalKeysToSet.length === 0) {
-    console.log(chalk.green("There are no key-value pairs to setup"));
+    console.log(
+      chalk.green(
+        "There are no configuration variables that need to be set for this project"
+      )
+    );
+    console.log();
     printAlreadySetKeys();
     return;
   }
 
-  console.log("The following key-value pairs need to be setup:");
-
   if (requiredKeysToSet.length > 0) {
-    console.log(chalk.red("<mandatory variables>"));
     console.log(
-      chalk.red(
-        requiredKeysToSet.map((k) => `${HH_SET_COMMAND} ${k}`).join("\n")
+      chalk.bold(
+        `${emoji("❗ ")}The following configuration variables need to be set:\n`
       )
     );
+    console.log(
+      requiredKeysToSet.map((k) => `  ${HH_SET_COMMAND} ${k}`).join("\n")
+    );
+    console.log();
   }
 
   if (optionalKeysToSet.length > 0) {
-    console.log(chalk.yellow("<optional variables>"));
     console.log(
-      chalk.yellow(
-        optionalKeysToSet.map((k) => `${HH_SET_COMMAND} ${k}`).join("\n")
+      chalk.bold(
+        `${emoji("💡 ")}The following configuration variables are optional:\n`
       )
     );
+    console.log(
+      optionalKeysToSet.map((k) => `  ${HH_SET_COMMAND} ${k}`).join("\n")
+    );
+    console.log();
   }
 
   printAlreadySetKeys();
@@ -226,21 +236,27 @@ function printAlreadySetKeys() {
     return;
   }
 
-  console.log(`\n${chalk.green("<already set variables>")}`);
+  console.log(
+    `${chalk.bold(`${emoji("✔️  ")}Configuration variables already set:`)}`
+  );
+  console.log();
 
   if (requiredKeysAlreadySet.length > 0) {
-    console.log("<mandatory>");
-    console.log(requiredKeysAlreadySet.join("\n"));
+    console.log("  Mandatory:");
+    console.log(requiredKeysAlreadySet.map((x) => `    ${x}`).join("\n"));
+    console.log();
   }
 
   if (optionalKeysAlreadySet.length > 0) {
-    console.log("<optional>");
-    console.log(optionalKeysAlreadySet.join("\n"));
+    console.log("  Optional:");
+    console.log(optionalKeysAlreadySet.map((x) => `    ${x}`).join("\n"));
+    console.log();
   }
 
   if (envVars.length > 0) {
-    console.log("<environment variables with values>");
-    console.log(envVars.join("\n"));
+    console.log("  Set via environment variables:");
+    console.log(envVars.map((x) => `    ${x}`).join("\n"));
+    console.log();
   }
 }
 
