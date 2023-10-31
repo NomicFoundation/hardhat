@@ -10,4 +10,5 @@ order:
   - /hardhat-console
   - /typescript
   - /command-line-completion
+  - /configuration-variables
   - /getting-help
