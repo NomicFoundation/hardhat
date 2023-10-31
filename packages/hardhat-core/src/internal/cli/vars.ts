@@ -44,9 +44,11 @@ async function set(key: string, value?: string): Promise<number> {
 
   varsManager.set(key, value ?? (await getVarValue()));
 
-  console.warn(
-    `Key-value pair stored at the following path: ${varsManager.getStoragePath()}`
-  );
+  if (process.stdout.isTTY) {
+    console.warn(
+      `Key-value pair stored at the following path: ${varsManager.getStoragePath()}`
+    );
+  }
 
   return 0;
 }
@@ -71,9 +73,11 @@ function list(): number {
   if (keys.length > 0) {
     keys.forEach((k) => console.log(k));
 
-    console.warn(
-      `\nAll the key-value pairs are stored at the following path: ${HardhatContext.getHardhatContext().varsManager.getStoragePath()}`
-    );
+    if (process.stdout.isTTY) {
+      console.warn(
+        `\nAll the key-value pairs are stored at the following path: ${HardhatContext.getHardhatContext().varsManager.getStoragePath()}`
+      );
+    }
   } else {
     console.warn(chalk.yellow(`There are no key-value pairs stored`));
   }
@@ -83,9 +87,11 @@ function list(): number {
 
 function del(key: string): number {
   if (HardhatContext.getHardhatContext().varsManager.delete(key)) {
-    console.warn(
-      `The key was deleted at the following path: ${HardhatContext.getHardhatContext().varsManager.getStoragePath()}`
-    );
+    if (process.stdout.isTTY) {
+      console.warn(
+        `The key was deleted at the following path: ${HardhatContext.getHardhatContext().varsManager.getStoragePath()}`
+      );
+    }
     return 0;
   }
 
