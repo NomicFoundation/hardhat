@@ -116,13 +116,13 @@ vars.get("MANDATORY_VARIABLE");
 However, when combined with `vars.has`, the variable is considered optional:
 
 ```js
-vars.has("OPTIONAL_VARIABLE") ? ["OPTIONAL_VARIABLE"] : [];
+vars.has("OPTIONAL_VARIABLE") ? [vars.get("OPTIONAL_VARIABLE")] : [];
 ```
 
 Variables always used with a default value are also considered optional:
 
 ```js
-vars.has("ANOTHER_OPTIONAL_VARIABLE", "DEFAULT_VALUE");
+vars.get("ANOTHER_OPTIONAL_VARIABLE", "DEFAULT_VALUE");
 ```
 
 ## Migrating from `dotenv`
