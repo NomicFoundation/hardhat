@@ -43,4 +43,6 @@ varsScope
 
 varsScope
   .task("setup", "Display a list of key-value pairs that need to be set up")
-  .setAction(async () => {});
+  .setAction(async () => {
+    throw new HardhatError(ERRORS.VARS.ONLY_MANAGED_IN_CLI);
+  });

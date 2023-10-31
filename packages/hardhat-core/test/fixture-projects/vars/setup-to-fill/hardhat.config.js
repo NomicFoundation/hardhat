@@ -1,18 +1,43 @@
-vars.get("REQUIRED_KEY1");
-vars.has("OPTIONAL_KEY_1");
-vars.get("REQUIRED_KEY2");
-vars.has("OPTIONAL_KEY_2");
+//
+// The following keys are not stored in the variables file
+//
 
-// A required key has a priority over an optional key (get > has)
-// Check when the 'has' function comes first
-vars.has("KEY3");
-vars.get("KEY3");
+// Same key
+vars.has("nonExistingKey1");
+vars.get("nonExistingKey1");
 
-// Check when the 'has' function comes later
-vars.get("KEY4");
-vars.has("KEY4");
+vars.get("nonExistingKey2", "defaultValue2");
 
-// Vars to test ENV variables
+vars.get("nonExistingKey3");
+
+vars.has("nonExistingKey4");
+
+// vars.get "overwrites" vars.get with default value
+vars.get("nonExistingKey5", "defaultValue5");
+vars.get("nonExistingKey5");
+
+//
+// The following keys are stored in the variables file
+//
+
+// Same key
+vars.has("key1");
+vars.get("key1");
+
+// Key exists and there is a default value
+vars.get("key2", "defaultValue");
+
+vars.get("key3");
+
+vars.has("key4");
+
+// vars.get "overwrites" vars.get with default value
+vars.get("key5", "defaultValue");
+vars.get("key5");
+
+//
+// The following keys are passed as ENV variables
+//
 vars.get("KEY_ENV_1");
 vars.has("KEY_ENV_2");
 
