@@ -21,13 +21,13 @@ export async function handleVars(
 
   switch (taskDefinition.name) {
     case "set":
-      return set(taskArguments.key, taskArguments.value);
+      return set(taskArguments.var, taskArguments.value);
     case "get":
-      return get(taskArguments.key);
+      return get(taskArguments.var);
     case "list":
       return list();
     case "delete":
-      return del(taskArguments.key);
+      return del(taskArguments.var);
     case "path":
       return path();
     case "setup":
