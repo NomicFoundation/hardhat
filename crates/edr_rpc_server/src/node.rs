@@ -431,20 +431,19 @@ impl Node {
 
         let block = node_data.blockchain.block_by_hash(block_hash).await?;
 
-        match block {
-            Some(block) => {
-                let total_difficulty = node_data
-                    .blockchain
-                    .total_difficulty_by_hash(block.hash())
-                    .await?
-                    .expect("The block exists, so it must have a total difficulty");
+        if let Some(block) = block {
+            let total_difficulty = node_data
+                .blockchain
+                .total_difficulty_by_hash(block.hash())
+                .await?
+                .expect("The block exists, so it must have a total difficulty");
 
-                Ok(Some(BlockAndTotalDifficulty {
-                    block,
-                    total_difficulty,
-                }))
-            }
-            None => Ok(None),
+            Ok(Some(BlockAndTotalDifficulty {
+                block,
+                total_difficulty,
+            }))
+        } else {
+            Ok(None)
         }
     }
 
