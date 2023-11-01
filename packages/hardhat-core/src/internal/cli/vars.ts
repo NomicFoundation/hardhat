@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import debug from "debug";
-import { HardhatError } from "../core/errors";
+import { HardhatError, assertHardhatInvariant } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 import { HardhatContext } from "../context";
 import { VarsManagerSetup } from "../core/vars/vars-manager-setup";
@@ -8,6 +8,7 @@ import {
   importCsjOrEsModule,
   resolveConfigPath,
 } from "../core/config/config-loading";
+import { getVarsFilePath } from "../util/global-dir";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { emoji } from "./emoji";
 
@@ -34,7 +35,9 @@ export async function handleVars(
     case "setup":
       return setup(configPath);
     default:
-      return 1; // Error code
+      throw new HardhatError(ERRORS.VARS.INVALID_TASK_DEFINITION_NAME, {
+        value: taskDefinition.name,
+      });
   }
 }
 
@@ -125,7 +128,10 @@ function path() {
 
 function setup(configPath: string | undefined) {
   log("Switching to SetupVarsManager to collect vars");
-  HardhatContext.getHardhatContext().switchToSetupVarsManager();
+
+  const varsManagerSetup = new VarsManagerSetup(getVarsFilePath());
+
+  HardhatContext.getHardhatContext().varsManager = varsManagerSetup;
 
   try {
     log("Loading config and tasks to trigger vars collection");
@@ -141,14 +147,18 @@ function setup(configPath: string | undefined) {
     throw err;
   }
 
-  listVarsToSetup();
+  listVarsToSetup(varsManagerSetup);
 
   return 0;
 }
 
+// The code below duplicates a section from the 'loadConfigAndTasks' function.
+// While we could have refactored the 'config-loading.ts' module to make this logic reusable,
+// it would have added complexity and potentially made the code harder to understand.
 function loadConfigFile(configPath: string | undefined) {
   const configEnv = require(`../core/config/config-env`);
 
+  // Load all the functions and objects exported by the 'config-env' file in a global scope
   const globalAsAny: any = global;
   Object.entries(configEnv).forEach(
     ([key, value]) => (globalAsAny[key] = value)
@@ -167,17 +177,11 @@ async function getVarValue(): Promise<string> {
     message: "Enter value:",
   });
 
-  if (response.value.replace(/[\s\t]/g, "").length === 0) {
-    throw new HardhatError(ERRORS.VARS.INVALID_EMPTY_VALUE);
-  }
-
   return response.value;
 }
 
-function listVarsToSetup() {
+function listVarsToSetup(varsManagerSetup: VarsManagerSetup) {
   const HH_SET_COMMAND = "npx hardhat vars set";
-  const varsManagerSetup = HardhatContext.getHardhatContext()
-    .varsManager as VarsManagerSetup;
 
   const requiredKeysToSet = varsManagerSetup.getRequiredVarsToSet();
   const optionalKeysToSet = varsManagerSetup.getOptionalVarsToSet();
@@ -278,11 +282,16 @@ async function getTaskDefinitionAndTaskArguments(allUnparsedCLAs: string[]) {
       scopesDefinitions
     );
 
+  assertHardhatInvariant(
+    scopeName === "vars",
+    "This function should only be called to handle tasks under the 'vars' scope"
+  );
+
   const taskDefinition = ctx.tasksDSL.getTaskDefinition(scopeName, taskName);
 
   if (taskDefinition === undefined) {
     throw new HardhatError(ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPED_TASK, {
-      scope: scopeName!,
+      scope: scopeName,
       task: taskName,
     });
   }

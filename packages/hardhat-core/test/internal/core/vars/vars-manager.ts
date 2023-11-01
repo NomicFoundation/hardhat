@@ -52,11 +52,6 @@ describe("VarsManager", () => {
       expect(() => varsManager.set("key", "")).to.throw(
         "HH1203: A configuration variable cannot have an empty value."
       );
-
-      // space and tab to be sure that spaces are striped correctly
-      expect(() => varsManager.set("key", "   ")).to.throw(
-        "HH1203: A configuration variable cannot have an empty value."
-      );
     });
   });
 

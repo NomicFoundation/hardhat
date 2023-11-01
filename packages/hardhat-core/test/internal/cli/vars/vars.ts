@@ -106,8 +106,7 @@ describe("vars", () => {
         });
 
         it("should throw an error because the cli user prompt for the value is not valid", async () => {
-          // Add spaces and tabs to be sure they are stripped during the value's check
-          stubUserPrompt.resolves({ value: "  " });
+          stubUserPrompt.resolves({ value: "" });
 
           await expect(
             handleVars(["vars", "set", "newKey"], undefined)

@@ -5,15 +5,6 @@ const log = debug("hardhat:core:vars:varsManagerSetup");
 
 /**
  * This class is ONLY used when collecting the required and optional vars that have to be filled by the user
- *
- * How to calculate required and optional variables:
- *
- * G = get function
- * H = has function
- * GD = get function with default value
- *
- * optional variables = H + (GD - G)
- * required variables = G - H
  */
 export class VarsManagerSetup extends VarsManager {
   private readonly _getVarsAlreadySet: Set<string>;
@@ -59,27 +50,24 @@ export class VarsManagerSetup extends VarsManager {
   public get(key: string, defaultValue?: string): string {
     log(`function 'get' called with key '${key}'`);
 
-    const value = super.get(key, defaultValue);
+    const varAlreadySet = super.has(key);
 
-    if (value === undefined) {
-      this._getVarsToSet.add(key);
-      // Do not return undefined to avoid throwing an error
-      return "";
-    }
-
-    if (super.has(key) && defaultValue === undefined) {
-      this._getVarsAlreadySet.add(key);
-      return value;
-    }
-
-    // defaultValue is defined
-    if (super.has(key)) {
-      this._getVarsWithDefaultValueAlreadySet.add(key);
+    if (varAlreadySet) {
+      if (defaultValue !== undefined) {
+        this._getVarsWithDefaultValueAlreadySet.add(key);
+      } else {
+        this._getVarsAlreadySet.add(key);
+      }
     } else {
-      this._getVarsWithDefaultValueToSet.add(key);
+      if (defaultValue !== undefined) {
+        this._getVarsWithDefaultValueToSet.add(key);
+      } else {
+        this._getVarsToSet.add(key);
+      }
     }
 
-    return value;
+    // Do not return undefined to avoid throwing an error
+    return super.get(key, defaultValue) ?? "";
   }
 
   public getRequiredVarsAlreadySet(): string[] {
@@ -106,6 +94,14 @@ export class VarsManagerSetup extends VarsManager {
     );
   }
 
+  // How to calculate required and optional variables:
+  //
+  // G = get function
+  // H = has function
+  // GD = get function with default value
+  //
+  // optional variables = H + (GD - G)
+  // required variables = G - H
   private _getRequired(getVars: Set<string>, hasVars: Set<string>): string[] {
     return Array.from(getVars).filter((k) => !hasVars.has(k));
   }

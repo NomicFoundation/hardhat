@@ -52,11 +52,6 @@ export class HardhatContext {
     globalAsAny.__hardhatContext = undefined;
   }
 
-  // This function is used only when the user is setting up the vars manager via 'npx hardhat vars setup'
-  public switchToSetupVarsManager() {
-    this.varsManager = new VarsManagerSetup(getVarsFilePath());
-  }
-
   public readonly tasksDSL = new TasksDSL();
   public readonly environmentExtenders: EnvironmentExtender[] = [];
   public environment?: HardhatRuntimeEnvironment;

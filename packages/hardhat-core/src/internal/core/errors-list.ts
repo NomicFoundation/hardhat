@@ -1335,6 +1335,13 @@ Configuration variables can only have alphanumeric characters and underscores, a
       description: "A configuration variable cannot have an empty value.",
       shouldBeReported: false,
     },
+    INVALID_TASK_DEFINITION_NAME: {
+      number: 1204,
+      title: "Invalid task definition name",
+      message: "The task definition name '%value%' is invalid.",
+      description: "Invalid task definition name.",
+      shouldBeReported: true,
+    },
   },
 };
 
