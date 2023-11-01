@@ -35,9 +35,7 @@ export async function handleVars(
     case "setup":
       return setup(configPath);
     default:
-      throw new HardhatError(ERRORS.VARS.INVALID_TASK_DEFINITION_NAME, {
-        value: taskDefinition.name,
-      });
+      console.error(chalk.red(`Invalid task '${taskDefinition.name}'`));
   }
 }
 
@@ -193,7 +191,7 @@ function listVarsToSetup(varsManagerSetup: VarsManagerSetup) {
       )
     );
     console.log();
-    printAlreadySetKeys();
+    printAlreadySetKeys(varsManagerSetup);
     return;
   }
 
@@ -221,13 +219,10 @@ function listVarsToSetup(varsManagerSetup: VarsManagerSetup) {
     console.log();
   }
 
-  printAlreadySetKeys();
+  printAlreadySetKeys(varsManagerSetup);
 }
 
-function printAlreadySetKeys() {
-  const varsManagerSetup = HardhatContext.getHardhatContext()
-    .varsManager as VarsManagerSetup;
-
+function printAlreadySetKeys(varsManagerSetup: VarsManagerSetup) {
   const requiredKeysAlreadySet = varsManagerSetup.getRequiredVarsAlreadySet();
   const optionalKeysAlreadySet = varsManagerSetup.getOptionalVarsAlreadySet();
   const envVars = varsManagerSetup.getEnvVars();
