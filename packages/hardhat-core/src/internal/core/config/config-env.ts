@@ -185,7 +185,7 @@ export const vars = {
 };
 
 /**
- * Checks if a configuration variable exists based on its key.
+ * Checks if a configuration variable exists.
  *
  * @remarks
  * This method, when used during setup (via `npx hardhat vars setup`), will mark the variable as optional.
