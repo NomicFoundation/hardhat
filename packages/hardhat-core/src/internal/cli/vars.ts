@@ -36,6 +36,7 @@ export async function handleVars(
       return setup(configPath);
     default:
       console.error(chalk.red(`Invalid task '${taskDefinition.name}'`));
+      return 1; // Error code
   }
 }
 
