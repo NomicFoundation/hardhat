@@ -84,7 +84,7 @@ export class VarsManager {
     const KEY_REGEX = /^[a-zA-Z_]+[a-zA-Z0-9_]*$/;
 
     if (!KEY_REGEX.test(key)) {
-      throw new HardhatError(ERRORS.VARS.INVALID_KEY_VALUE, {
+      throw new HardhatError(ERRORS.VARS.INVALID_CONFIG_VAR_NAME, {
         value: key,
       });
     }

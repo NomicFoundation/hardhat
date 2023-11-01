@@ -1308,17 +1308,17 @@ A fully qualified name should look like file.sol:Contract`,
       description: `Configuration variables can only be managed from the CLI. They cannot be modified programmatically.`,
       shouldBeReported: false,
     },
-    VALUE_NOT_FOUND_FOR_KEY: {
+    VALUE_NOT_FOUND_FOR_VAR: {
       number: 1201,
       title: "Configuration variable is not set",
       message:
         "Cannot find a value for the configuration variable '%value%'. Use 'npx hardhat vars set %value%' to set it or 'npx hardhat vars setup' to list all the configuration variables used by this project.",
       description: `Cannot find a value for a mandatory configuration variable.
 
-Use 'npx hardhat vars set KEY' to set it or 'npx hardhat vars setup' to list all the configuration variables used by this project.`,
+Use 'npx hardhat vars set VAR' to set it or 'npx hardhat vars setup' to list all the configuration variables used by this project.`,
       shouldBeReported: false,
     },
-    INVALID_KEY_VALUE: {
+    INVALID_CONFIG_VAR_NAME: {
       number: 1202,
       title: "Invalid name for a configuration variable",
       message:

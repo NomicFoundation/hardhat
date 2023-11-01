@@ -185,44 +185,45 @@ export const vars = {
 };
 
 /**
- * Checks if a variable exists based on its key.
+ * Checks if a configuration variable exists based on its key.
  *
  * @remarks
  * This method, when used during setup (via `npx hardhat vars setup`), will mark the variable as optional.
  *
- * @param key - The key of the variable to check.
+ * @param varName - The name of the variable to check.
  *
  * @returns `true` if the variable exists, `false` otherwise.
  */
-function hasVar(key: string): boolean {
+function hasVar(varName: string): boolean {
   // varsManager will be an instance of VarsManager or VarsManagerSetup depending on the context (vars setup mode or not)
-  return HardhatContext.getHardhatContext().varsManager.has(key, true);
+  return HardhatContext.getHardhatContext().varsManager.has(varName, true);
 }
 
 /**
- * Gets the variable value associated with the given key.
+ * Gets the value of the given configuration variable.
  *
  * @remarks
- * This method, when used during setup (via `npx hardhat vars setup`), will mark the variable as required.
+ * This method, when used during setup (via `npx hardhat vars setup`), will mark the variable as required,
+ * unless a default value is provided.
  *
- * @param key - The key of the variable to retrieve.
+ * @param varName - The name of the variable to retrieve.
  * @param [defaultValue] - An optional default value to return if the variable does not exist.
  *
- * @returns The value associated with the key if it exists, or the default value if provided.
+ * @returns The value of the configuration variable if it exists, or the default value if provided.
  *
  * @throws HH1201 if the variable does not exist and no default value is set.
  */
-function getVar(key: string, defaultValue?: string): string {
+function getVar(varName: string, defaultValue?: string): string {
   // varsManager will be an instance of VarsManager or VarsManagerSetup depending on the context (vars setup mode or not)
   const value = HardhatContext.getHardhatContext().varsManager.get(
-    key,
+    varName,
     defaultValue,
     true
   );
 
   if (value !== undefined) return value;
 
-  throw new HardhatError(ERRORS.VARS.VALUE_NOT_FOUND_FOR_KEY, {
-    value: key,
+  throw new HardhatError(ERRORS.VARS.VALUE_NOT_FOUND_FOR_VAR, {
+    value: varName,
   });
 }
