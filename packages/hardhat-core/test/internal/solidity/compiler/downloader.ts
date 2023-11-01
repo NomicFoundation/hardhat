@@ -40,7 +40,11 @@ describe("Compiler downloader", function () {
     });
 
     it("should return true when the compiler is already downloaded", async function () {
-      await wasmDownloader.downloadCompiler("0.4.12");
+      await wasmDownloader.downloadCompiler(
+        "0.4.12",
+        async () => {},
+        async () => {}
+      );
       assert.isTrue(await wasmDownloader.isCompilerDownloaded("0.4.12"));
     });
   });
@@ -55,7 +59,11 @@ describe("Compiler downloader", function () {
     });
 
     it("should return true when the compiler is already downloaded", async function () {
-      await downloader.downloadCompiler("0.4.12");
+      await downloader.downloadCompiler(
+        "0.4.12",
+        async () => {},
+        async () => {}
+      );
       assert.isTrue(await downloader.isCompilerDownloaded("0.4.12"));
     });
   });
@@ -63,12 +71,22 @@ describe("Compiler downloader", function () {
   describe("downloadCompiler", function () {
     it("Should throw if the version is invalid or doesn't exist", async function () {
       await expectHardhatErrorAsync(
-        () => downloader.downloadCompiler("asd"),
+        () =>
+          downloader.downloadCompiler(
+            "asd",
+            async () => {},
+            async () => {}
+          ),
         ERRORS.SOLC.INVALID_VERSION
       );
 
       await expectHardhatErrorAsync(
-        () => downloader.downloadCompiler("100.0.0"),
+        () =>
+          downloader.downloadCompiler(
+            "100.0.0",
+            async () => {},
+            async () => {}
+          ),
         ERRORS.SOLC.INVALID_VERSION
       );
     });
@@ -84,7 +102,12 @@ describe("Compiler downloader", function () {
       );
 
       await expectHardhatErrorAsync(
-        () => mockDownloader.downloadCompiler("0.4.12"),
+        () =>
+          mockDownloader.downloadCompiler(
+            "0.4.12",
+            async () => {},
+            async () => {}
+          ),
         ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED
       );
     });
@@ -105,7 +128,12 @@ describe("Compiler downloader", function () {
       );
 
       await expectHardhatErrorAsync(
-        () => mockDownloader.downloadCompiler("0.4.12"),
+        () =>
+          mockDownloader.downloadCompiler(
+            "0.4.12",
+            async () => {},
+            async () => {}
+          ),
         ERRORS.SOLC.DOWNLOAD_FAILED
       );
     });
@@ -122,8 +150,16 @@ describe("Compiler downloader", function () {
         }
       );
 
-      await mockDownloader.downloadCompiler("0.4.12");
-      await mockDownloader.downloadCompiler("0.4.13");
+      await mockDownloader.downloadCompiler(
+        "0.4.12",
+        async () => {},
+        async () => {}
+      );
+      await mockDownloader.downloadCompiler(
+        "0.4.13",
+        async () => {},
+        async () => {}
+      );
 
       assert.equal(downloads, 3);
     });
@@ -152,7 +188,12 @@ describe("Compiler downloader", function () {
       );
 
       await expectHardhatErrorAsync(
-        () => mockDownloader.downloadCompiler("0.4.12"),
+        () =>
+          mockDownloader.downloadCompiler(
+            "0.4.12",
+            async () => {},
+            async () => {}
+          ),
         ERRORS.SOLC.INVALID_DOWNLOAD
       );
 
@@ -160,8 +201,73 @@ describe("Compiler downloader", function () {
 
       // it should work with the normal download now
       stopMocking = true;
-      await mockDownloader.downloadCompiler("0.4.12");
+      await mockDownloader.downloadCompiler(
+        "0.4.12",
+        async () => {},
+        async () => {}
+      );
       assert.isTrue(await mockDownloader.isCompilerDownloaded("0.4.12"));
+    });
+
+    describe("multiple downloads", function () {
+      it("should not download multiple times the same compiler", async function () {
+        // The intention is for the value to be 1 if the compiler is downloaded only once.
+        // Without a mutex, the value would be 10 because the compiler would be downloaded multiple times.
+        // However, the check is implemented to ensure that the value remains 1.
+
+        const VERSION = "0.4.12";
+
+        const value = [0];
+
+        const promises = [];
+        for (let i = 0; i < 10; i++) {
+          promises.push(
+            downloader.downloadCompiler(
+              VERSION,
+              // downloadStartedCb
+              async () => {
+                value[0]++;
+              },
+              // downloadEndedCb
+              async () => {}
+            )
+          );
+        }
+
+        await Promise.all(promises);
+
+        assert.isDefined(downloader.getCompiler(VERSION));
+        assert(value[0] === 1);
+      });
+
+      it("should download multiple different compilers", async function () {
+        const VERSIONS = ["0.5.1", "0.5.2", "0.5.3", "0.5.4", "0.5.5"];
+
+        const value = [0];
+
+        const promises = [];
+        for (const version of VERSIONS) {
+          promises.push(
+            downloader.downloadCompiler(
+              version,
+              // downloadStartedCb
+              async () => {
+                value[0]++;
+              },
+              // downloadEndedCb
+              async () => {}
+            )
+          );
+        }
+
+        await Promise.all(promises);
+
+        for (const version of VERSIONS) {
+          assert.isDefined(downloader.getCompiler(version));
+        }
+
+        assert(value[0] === VERSIONS.length);
+      });
     });
   });
 
@@ -174,7 +280,11 @@ describe("Compiler downloader", function () {
     });
 
     it("should throw when trying to get a compiler that's in the compiler list but hasn't been downloaded yet", async function () {
-      await downloader.downloadCompiler("0.4.12");
+      await downloader.downloadCompiler(
+        "0.4.12",
+        async () => {},
+        async () => {}
+      );
 
       await expectHardhatErrorAsync(
         () => downloader.getCompiler("0.4.13"),
@@ -223,15 +333,27 @@ describe("Compiler downloader", function () {
         }
       );
 
-      await mockDownloader.downloadCompiler("0.4.12");
+      await mockDownloader.downloadCompiler(
+        "0.4.12",
+        async () => {},
+        async () => {}
+      );
       assert.isUndefined(await mockDownloader.getCompiler("0.4.12"));
     });
 
     it("should work for downloaded compilers", async function () {
-      await downloader.downloadCompiler("0.4.12");
+      await downloader.downloadCompiler(
+        "0.4.12",
+        async () => {},
+        async () => {}
+      );
       assert.isDefined(downloader.getCompiler("0.4.12"));
 
-      await downloader.downloadCompiler("0.4.13");
+      await downloader.downloadCompiler(
+        "0.4.13",
+        async () => {},
+        async () => {}
+      );
       assert.isDefined(downloader.getCompiler("0.4.13"));
     });
   });
