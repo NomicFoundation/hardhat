@@ -4,16 +4,17 @@ use std::{
 };
 
 use edr_eth::{
-    remote::{BlockSpec, BlockTag, Eip1898BlockSpec, RpcClient},
+    remote::{filter::FilteredEvents, BlockSpec, BlockTag, Eip1898BlockSpec, RpcClient},
     signature::public_key_to_address,
-    Address, SpecId, U256,
+    transaction::{EthTransactionRequest, SignedTransaction},
+    Address, SpecId, B256, U256,
 };
 use edr_evm::{
     blockchain::{Blockchain, BlockchainError, ForkedBlockchain, LocalBlockchain, SyncBlockchain},
     mine_block,
     state::{AccountTrie, IrregularState, StateError, SyncState, TrieState},
     AccountInfo, Block, CfgEnv, HashMap, HashSet, MemPool, MineBlockResult, MineOrdering,
-    RandomHashGenerator, SyncBlock, KECCAK_EMPTY,
+    PendingTransaction, RandomHashGenerator, SyncBlock, KECCAK_EMPTY,
 };
 use indexmap::IndexMap;
 
@@ -79,6 +80,28 @@ impl NodeData {
 // methods for methods on `Node` as these helper methods shouldn't try to
 // acquire the lock in `Node`. That would lead to deadlocks.
 impl NodeData {
+    pub fn add_pending_transaction(
+        &mut self,
+        transaction: SignedTransaction,
+    ) -> Result<B256, NodeError> {
+        let transaction_hash = *transaction.hash();
+
+        let pending_transaction =
+            PendingTransaction::new(&self.state, self.evm_config.spec_id, transaction)?;
+
+        // Handles validation
+        self.mem_pool
+            .add_transaction(&self.state, pending_transaction)?;
+
+        for filter in self.filters.values_mut() {
+            if let FilteredEvents::NewPendingTransactions(events) = &mut filter.events {
+                events.push(transaction_hash);
+            }
+        }
+
+        Ok(transaction_hash)
+    }
+
     pub async fn block_by_block_spec(
         &mut self,
         block_spec: &BlockSpec,
@@ -130,6 +153,42 @@ impl NodeData {
                 code_hash: KECCAK_EMPTY,
             }),
         }
+    }
+
+    pub fn get_filter_changes(&mut self, filter_id: &U256) -> Option<FilteredEvents> {
+        self.filters.get_mut(filter_id).map(Filter::take_events)
+    }
+
+    pub fn get_signed_transaction(
+        &self,
+        transaction: EthTransactionRequest,
+    ) -> Result<SignedTransaction, NodeError> {
+        let secret_key =
+            self.local_accounts
+                .get(&transaction.from)
+                .ok_or(NodeError::UnknownAddress {
+                    address: transaction.from,
+                })?;
+
+        let typed_transaction = transaction
+            .into_typed_request()
+            .ok_or(NodeError::InvalidTransactionRequest)?;
+
+        // TODO handle transactions from impersonated accounts
+        // https://github.com/NomicFoundation/edr/issues/222
+        Ok(typed_transaction.sign(secret_key)?)
+    }
+
+    pub fn new_pending_transaction_filter(&mut self) -> U256 {
+        let filter_id = self.next_filter_id();
+        self.filters.insert(
+            filter_id,
+            Filter::new(
+                FilteredEvents::NewPendingTransactions(Vec::new()),
+                /* is_subscription */ false,
+            ),
+        );
+        filter_id
     }
 
     pub fn next_filter_id(&mut self) -> U256 {
@@ -391,6 +450,52 @@ mod tests {
                 node_data,
             })
         }
+
+        fn dummy_transaction_request(&self) -> EthTransactionRequest {
+            EthTransactionRequest {
+                from: *self.node_data.local_accounts.keys().next().unwrap(),
+                to: Some(Address::zero()),
+                gas: Some(100_000),
+                gas_price: Some(U256::from(1)),
+                value: Some(U256::from(1)),
+                data: None,
+                nonce: None,
+                max_fee_per_gas: None,
+                max_priority_fee_per_gas: None,
+                access_list: None,
+                transaction_type: None,
+            }
+        }
+
+        fn signed_dummy_transaction(&self) -> Result<SignedTransaction> {
+            let transaction = self.dummy_transaction_request();
+            Ok(self.node_data.get_signed_transaction(transaction)?)
+        }
+    }
+
+    #[tokio::test]
+    async fn add_pending_transaction() -> Result<()> {
+        let mut fixture = NodeDataTestFixture::new().await?;
+        let transaction = fixture.signed_dummy_transaction()?;
+
+        let filter_id = fixture.node_data.new_pending_transaction_filter();
+
+        let transaction_hash = fixture.node_data.add_pending_transaction(transaction)?;
+
+        assert!(fixture
+            .node_data
+            .mem_pool
+            .transaction_by_hash(&transaction_hash)
+            .is_some());
+
+        match fixture.node_data.get_filter_changes(&filter_id).unwrap() {
+            FilteredEvents::NewPendingTransactions(hashes) => {
+                assert!(hashes.contains(&transaction_hash));
+            }
+            _ => panic!("expected pending transaction"),
+        };
+
+        Ok(())
     }
 
     #[tokio::test]

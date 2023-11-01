@@ -10,7 +10,8 @@ use edr_eth::{
     },
     serde::ZeroXPrefixedBytes,
     signature::Signature,
-    Address, Bytes, U256, U64,
+    transaction::{EthTransactionRequest, SignedTransaction},
+    Address, Bytes, B256, U256, U64,
 };
 use edr_evm::{
     blockchain::BlockchainError,
@@ -21,7 +22,7 @@ use k256::SecretKey;
 use tokio::sync::Mutex;
 
 pub use self::node_error::NodeError;
-use crate::{filter::Filter, node::node_data::NodeData, Config};
+use crate::{node::node_data::NodeData, Config};
 
 pub struct Node {
     data: Mutex<NodeData>,
@@ -139,11 +140,7 @@ impl Node {
 
     pub async fn get_filter_changes(&self, filter_id: &U256) -> Option<FilteredEvents> {
         let mut node_data = self.lock_data().await;
-
-        node_data
-            .filters
-            .get_mut(filter_id)
-            .map(Filter::take_events)
+        node_data.get_filter_changes(filter_id)
     }
 
     pub async fn get_filter_logs(
@@ -232,16 +229,7 @@ impl Node {
 
     pub async fn new_pending_transaction_filter(&self) -> U256 {
         let mut node_data = self.lock_data().await;
-
-        let filter_id = node_data.next_filter_id();
-        node_data.filters.insert(
-            filter_id,
-            Filter::new(
-                FilteredEvents::NewPendingTransactions(Vec::new()),
-                /* is_subscription */ false,
-            ),
-        );
-        filter_id
+        node_data.new_pending_transaction_filter()
     }
 
     pub async fn remove_filter(&self, filter_id: &U256) -> bool {
@@ -254,6 +242,25 @@ impl Node {
         let mut node_data = self.lock_data().await;
 
         node_data.remove_filter::</* IS_SUBSCRIPTION */ true>(filter_id).await
+    }
+
+    pub async fn send_transaction(
+        &self,
+        transaction_request: EthTransactionRequest,
+    ) -> Result<B256, NodeError> {
+        let mut node_data = self.lock_data().await;
+
+        let signed_transaction = node_data.get_signed_transaction(transaction_request)?;
+
+        node_data.add_pending_transaction(signed_transaction)
+    }
+
+    pub async fn send_raw_transaction(&self, raw_transaction: &[u8]) -> Result<B256, NodeError> {
+        let signed_transaction: SignedTransaction = rlp::decode(raw_transaction)?;
+
+        let mut node_data = self.lock_data().await;
+
+        node_data.add_pending_transaction(signed_transaction)
     }
 
     pub async fn set_balance(&self, address: Address, balance: U256) -> Result<(), NodeError> {

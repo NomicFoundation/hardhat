@@ -15,6 +15,7 @@ parking_lot = { version = "0.12.1", default-features = false }
 reqwest = { version = "0.11", features = ["blocking", "json"] }
 edr_eth = { version = "0.2.0-dev", path = "../edr_eth", features = ["serde"] }
 edr_evm = { version = "0.2.0-dev", path = "../edr_evm" }
+rlp = { version = "0.5.2", default-features = false }
 serde = { version = "1.0.147", default-features = false, features = ["derive"] }
 serde_json = { version = "1.0.89" }
 sha3 = { version = "0.10.6", default-features = false }

@@ -255,6 +255,36 @@ impl rlp::Decodable for SignedTransaction {
     }
 }
 
+impl From<LegacySignedTransaction> for SignedTransaction {
+    fn from(transaction: LegacySignedTransaction) -> Self {
+        Self::PreEip155Legacy(transaction)
+    }
+}
+
+impl From<EIP155SignedTransaction> for SignedTransaction {
+    fn from(transaction: EIP155SignedTransaction) -> Self {
+        Self::PostEip155Legacy(transaction)
+    }
+}
+
+impl From<Eip2930SignedTransaction> for SignedTransaction {
+    fn from(transaction: Eip2930SignedTransaction) -> Self {
+        Self::Eip2930(transaction)
+    }
+}
+
+impl From<Eip1559SignedTransaction> for SignedTransaction {
+    fn from(transaction: Eip1559SignedTransaction) -> Self {
+        Self::Eip1559(transaction)
+    }
+}
+
+impl From<Eip4844SignedTransaction> for SignedTransaction {
+    fn from(transaction: Eip4844SignedTransaction) -> Self {
+        Self::Eip4844(transaction)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::sync::OnceLock;
@@ -520,5 +550,18 @@ mod tests {
             .parse()
             .unwrap();
         assert_eq!(expected, recovered);
+    }
+
+    #[test]
+    fn from_is_implemented_for_all_variants() {
+        fn _compile_test(transaction: SignedTransaction) -> SignedTransaction {
+            match transaction {
+                SignedTransaction::PreEip155Legacy(transaction) => transaction.into(),
+                SignedTransaction::PostEip155Legacy(transaction) => transaction.into(),
+                SignedTransaction::Eip2930(transaction) => transaction.into(),
+                SignedTransaction::Eip1559(transaction) => transaction.into(),
+                SignedTransaction::Eip4844(transaction) => transaction.into(),
+            }
+        }
     }
 }

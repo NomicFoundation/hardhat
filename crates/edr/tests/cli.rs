@@ -11,8 +11,10 @@ use edr_eth::{
         methods::{MethodInvocation as EthMethodInvocation, U64OrUsize},
         BlockSpec,
     },
-    signature::secret_key_to_address,
-    Bytes, U256, U64,
+    serde::ZeroXPrefixedBytes,
+    signature::{secret_key_from_str, secret_key_to_address},
+    transaction::EthTransactionRequest,
+    Address, Bytes, U256, U64,
 };
 use edr_rpc_server::{HardhatMethodInvocation, MethodInvocation};
 use predicates::str::contains;
@@ -20,6 +22,27 @@ use predicates::str::contains;
 #[tokio::test]
 async fn node() -> Result<(), Box<dyn std::error::Error>> {
     let address = secret_key_to_address(edr_defaults::SECRET_KEYS[0]).unwrap();
+
+    let transaction_request = EthTransactionRequest {
+        from: secret_key_to_address(edr_defaults::SECRET_KEYS[0]).unwrap(),
+        to: Some(Address::zero()),
+        gas_price: None,
+        max_fee_per_gas: None,
+        max_priority_fee_per_gas: None,
+        gas: Some(21_000),
+        value: None,
+        data: None,
+        nonce: None,
+        access_list: None,
+        transaction_type: None,
+    };
+
+    let signed_transaction = transaction_request
+        .clone()
+        .into_typed_request()
+        .expect("failed to convert transaction request")
+        .sign(&secret_key_from_str(edr_defaults::SECRET_KEYS[0])?)?;
+    let raw_transaction: ZeroXPrefixedBytes = rlp::encode(&signed_transaction).freeze().into();
 
     // the order of operations is a little weird in this test, because we spawn a
     // separate process for the server, and we want to make sure that we end
@@ -69,6 +92,8 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
         MethodInvocation::Eth(EthMethodInvocation::UninstallFilter(U256::from(1))),
         MethodInvocation::Eth(EthMethodInvocation::Unsubscribe(U256::from(1))),
         MethodInvocation::Eth(EthMethodInvocation::Unsubscribe(U256::from(1))),
+        MethodInvocation::Eth(EthMethodInvocation::SendTransaction(transaction_request)),
+        MethodInvocation::Eth(EthMethodInvocation::SendRawTransaction(raw_transaction)),
         MethodInvocation::Eth(EthMethodInvocation::Sign(
             address,
             bytes::Bytes::from(hex::decode("deadbeef").unwrap()).into(),
@@ -209,6 +234,12 @@ async fn node() -> Result<(), Box<dyn std::error::Error>> {
             }
             MethodInvocation::Eth(EthMethodInvocation::NewPendingTransactionFilter()) => {
                 String::from("eth_newPendingTransactionFilter()")
+            }
+            MethodInvocation::Eth(EthMethodInvocation::SendTransaction(transaction_request)) => {
+                format!("eth_sendTransaction({transaction_request:?})")
+            }
+            MethodInvocation::Eth(EthMethodInvocation::SendRawTransaction(raw_transaction)) => {
+                format!("eth_sendRawTransaction({raw_transaction:?})")
             }
             MethodInvocation::Eth(EthMethodInvocation::UninstallFilter(filter_id)) => {
                 format!("eth_uninstallFilter({filter_id:?})")

@@ -74,30 +74,40 @@ where
     }
 }
 
+/// An error that can occur when adding a transaction to the mempool.
 #[derive(Debug, thiserror::Error)]
 pub enum MinerTransactionError<SE> {
     /// Transaction gas limit exceeds block gas limit.
     #[error("Transaction gas limit is {transaction_gas_limit} and exceeds block gas limit of {block_gas_limit}")]
     ExceedsBlockGasLimit {
+        /// The block gas limit
         block_gas_limit: u64,
+        /// The transaction gas limit
         transaction_gas_limit: u64,
     },
     /// Transaction already exists in the mempool.
     #[error("Known transaction: 0x{transaction_hash:x}")]
-    TransactionAlreadyExists { transaction_hash: B256 },
+    TransactionAlreadyExists {
+        /// The transaction hash
+        transaction_hash: B256,
+    },
     /// State error
     #[error(transparent)]
     State(#[from] SE),
     /// Replacement transaction has underpriced max fee per gas.
     #[error("Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least 0x{min_new_max_fee_per_gas:x} is necessary to replace the existing transaction with nonce {transaction_nonce}.")]
     ReplacementMaxFeePerGasTooLow {
+        /// The minimum new max fee per gas
         min_new_max_fee_per_gas: U256,
+        /// The transaction nonce
         transaction_nonce: u64,
     },
     /// Replacement transaction has underpriced max priority fee per gas.
     #[error("Replacement transaction underpriced. A gasPrice/maxPriorityFeePerGas of at least 0x{min_new_max_priority_fee_per_gas} is necessary to replace the existing transaction with nonce {transaction_nonce}.")]
     ReplacementMaxPriorityFeePerGasTooLow {
+        /// The minimum new max priority fee per gas
         min_new_max_priority_fee_per_gas: U256,
+        /// The transaction nonce
         transaction_nonce: u64,
     },
 }

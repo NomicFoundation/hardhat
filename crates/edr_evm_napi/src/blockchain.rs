@@ -208,9 +208,8 @@ impl Blockchain {
     //     &mut self,
     //     block_number: BigInt,
     //     block_hash: Buffer,
-    // ) -> napi::Result<()> {
-    //     let block_number = BigInt::try_cast(block_number)?;
-    //     let block_hash = TryCast::<B256>::try_cast(block_hash);
+    // ) -> napi::Result<()> { let block_number = BigInt::try_cast(block_number)?;
+    //   let block_hash = TryCast::<B256>::try_cast(block_hash);
 
     //     self.db
     //         .insert_block(block_number, block_hash)

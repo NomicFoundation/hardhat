@@ -7,6 +7,7 @@ use edr_eth::{
         methods::{GetLogsInput, MethodInvocation, OneUsizeOrTwo, TransactionInput, U64OrUsize},
         BlockSpec, BlockTag,
     },
+    transaction::EthTransactionRequest,
     Address, B256, U256, U64,
 };
 use edr_test_utils::{
@@ -297,13 +298,18 @@ fn test_serde_eth_send_raw_transaction() {
 
 #[test]
 fn test_serde_eth_send_transaction() {
-    help_test_method_invocation_serde(MethodInvocation::SendTransaction(TransactionInput {
-        from: Some(Address::from_low_u64_ne(1)),
+    help_test_method_invocation_serde(MethodInvocation::SendTransaction(EthTransactionRequest {
+        from: Address::from_low_u64_ne(1),
         to: Some(Address::from_low_u64_ne(2)),
-        gas: Some(U256::from(3)),
+        gas: Some(3_u64),
         gas_price: Some(U256::from(4)),
+        max_fee_per_gas: None,
         value: Some(U256::from(123568919)),
-        data: Some(Bytes::from(&b"whatever"[..]).into()),
+        data: Some(Bytes::from(&b"whatever"[..])),
+        nonce: None,
+        access_list: None,
+        max_priority_fee_per_gas: None,
+        transaction_type: None,
     }));
 }
 
