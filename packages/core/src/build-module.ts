@@ -47,16 +47,28 @@ export function buildModule<
     moduleDefintionFunction,
   });
 
+  _checkForDuplicateModuleIds(ignitionModule);
+
+  return ignitionModule;
+}
+
+/**
+ * Check to ensure that there are no duplicate module ids among the root
+ * module and its submodules.
+ */
+function _checkForDuplicateModuleIds(
+  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>
+): void {
   const duplicateModuleIds = [
     ignitionModule.id,
     ...Array.from(ignitionModule.submodules).map((submodule) => submodule.id),
   ].filter((id, index, array) => array.indexOf(id) !== index);
 
-  if (duplicateModuleIds.length > 0) {
-    throw new IgnitionError(ERRORS.MODULE.DUPLICATE_MODULE_ID, {
-      duplicateModuleIds: duplicateModuleIds.join(", "),
-    });
+  if (duplicateModuleIds.length === 0) {
+    return;
   }
 
-  return ignitionModule;
+  throw new IgnitionError(ERRORS.MODULE.DUPLICATE_MODULE_ID, {
+    duplicateModuleIds: duplicateModuleIds.join(", "),
+  });
 }
