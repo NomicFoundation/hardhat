@@ -48,7 +48,9 @@ export class VarsManager {
   }
 
   public has(key: string, includeEnvs: boolean = false): boolean {
-    if (includeEnvs && key in this._envCache) return true;
+    if (includeEnvs && key in this._envCache) {
+      return true;
+    }
 
     return key in this._storageCache.vars;
   }
@@ -58,7 +60,9 @@ export class VarsManager {
     defaultValue?: string,
     includeEnvs: boolean = false
   ): string | undefined {
-    if (includeEnvs && key in this._envCache) return this._envCache[key];
+    if (includeEnvs && key in this._envCache) {
+      return this._envCache[key];
+    }
 
     return this._storageCache.vars[key]?.value ?? defaultValue;
   }
