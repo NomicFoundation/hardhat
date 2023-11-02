@@ -13,8 +13,8 @@ use edr_evm::{
     blockchain::{Blockchain, BlockchainError, ForkedBlockchain, LocalBlockchain, SyncBlockchain},
     mine_block,
     state::{AccountTrie, IrregularState, StateError, SyncState, TrieState},
-    AccountInfo, Block, CfgEnv, HashMap, HashSet, MemPool, MineBlockResult, MineOrdering,
-    PendingTransaction, RandomHashGenerator, SyncBlock, KECCAK_EMPTY,
+    AccountInfo, Block, CfgEnv, HashMap, HashSet, MemPool, MineBlockResultAndState, MineOrdering,
+    PendingTransaction, RandomHashGenerator, KECCAK_EMPTY,
 };
 use indexmap::IndexMap;
 
@@ -102,45 +102,68 @@ impl NodeData {
         Ok(transaction_hash)
     }
 
-    pub async fn block_by_block_spec(
+    pub async fn state_by_block_spec(
         &mut self,
-        block_spec: &BlockSpec,
-    ) -> Result<Arc<dyn SyncBlock<Error = BlockchainError>>, NodeError> {
-        match block_spec {
-            BlockSpec::Number(block_number) => {
-                self.blockchain.block_by_number(*block_number).await?.ok_or(
-                    NodeError::UnknownBlockNumber {
+        block_spec: Option<&BlockSpec>,
+    ) -> Result<Box<dyn SyncState<StateError>>, NodeError> {
+        let block = if let Some(block_spec) = block_spec {
+            match block_spec {
+                BlockSpec::Number(block_number) => self
+                    .blockchain
+                    .block_by_number(*block_number)
+                    .await?
+                    .ok_or(NodeError::UnknownBlockNumber {
                         block_number: *block_number,
+                    })?,
+                BlockSpec::Tag(BlockTag::Earliest) => self
+                    .blockchain
+                    .block_by_number(0)
+                    .await?
+                    .expect("genesis block should always exist"),
+                // Matching Hardhat behaviour by returning the last block for finalized and safe.
+                // https://github.com/NomicFoundation/hardhat/blob/b84baf2d9f5d3ea897c06e0ecd5e7084780d8b6c/packages/hardhat-core/src/internal/hardhat-network/provider/modules/eth.ts#L1395
+                BlockSpec::Tag(BlockTag::Finalized | BlockTag::Safe | BlockTag::Latest) => {
+                    self.blockchain.last_block().await?
+                }
+                BlockSpec::Tag(BlockTag::Pending) => {
+                    let result = self.mine_pending_block().await?;
+                    return Ok(result.state);
+                }
+                BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
+                    block_hash,
+                    require_canonical: _,
+                }) => self.blockchain.block_by_hash(block_hash).await?.ok_or(
+                    NodeError::UnknownBlockHash {
+                        block_hash: *block_hash,
                     },
-                )
+                )?,
+                BlockSpec::Eip1898(Eip1898BlockSpec::Number { block_number }) => self
+                    .blockchain
+                    .block_by_number(*block_number)
+                    .await?
+                    .ok_or(NodeError::UnknownBlockNumber {
+                        block_number: *block_number,
+                    })?,
             }
-            BlockSpec::Tag(BlockTag::Earliest) => Ok(self
-                .blockchain
-                .block_by_number(0)
+        } else {
+            self.blockchain.last_block().await?
+        };
+
+        let block_header = block.header();
+
+        let contextual_state = if let Some(irregular_state) = self
+            .irregular_state
+            .state_by_block_number(block_header.number)
+            .cloned()
+        {
+            irregular_state
+        } else {
+            self.blockchain
+                .state_at_block_number(block_header.number)
                 .await?
-                .expect("genesis block should always exist")),
-            // Matching Hardhat behaviour by returning the last block for finalized and safe.
-            // https://github.com/NomicFoundation/hardhat/blob/b84baf2d9f5d3ea897c06e0ecd5e7084780d8b6c/packages/hardhat-core/src/internal/hardhat-network/provider/modules/eth.ts#L1395
-            BlockSpec::Tag(BlockTag::Finalized | BlockTag::Safe | BlockTag::Latest) => {
-                Ok(self.blockchain.last_block().await?)
-            }
-            BlockSpec::Tag(BlockTag::Pending) => Ok(self.mine_block(None).await?.block),
-            BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
-                block_hash,
-                require_canonical: _,
-            }) => self.blockchain.block_by_hash(block_hash).await?.ok_or(
-                NodeError::UnknownBlockHash {
-                    block_hash: *block_hash,
-                },
-            ),
-            BlockSpec::Eip1898(Eip1898BlockSpec::Number { block_number }) => {
-                self.blockchain.block_by_number(*block_number).await?.ok_or(
-                    NodeError::UnknownBlockNumber {
-                        block_number: *block_number,
-                    },
-                )
-            }
-        }
+        };
+
+        Ok(contextual_state)
     }
 
     pub fn get_account_info(&self, address: Address) -> Result<AccountInfo, NodeError> {
@@ -201,7 +224,7 @@ impl NodeData {
 
     /// Get the timestamp for the next block.
     /// Ported from <https://github.com/NomicFoundation/hardhat/blob/b84baf2d9f5d3ea897c06e0ecd5e7084780d8b6c/packages/hardhat-core/src/internal/hardhat-network/provider/node.ts#L1942>
-    async fn next_block_timestamp(
+    pub async fn next_block_timestamp(
         &self,
         timestamp: Option<u64>,
     ) -> Result<(u64, Option<u64>), NodeError> {
@@ -235,13 +258,24 @@ impl NodeData {
         Ok((block_timestamp, new_offset))
     }
 
+    /// Mines a pending block, without modifying any values.
+    async fn mine_pending_block(&self) -> Result<MineBlockResultAndState<StateError>, NodeError> {
+        let (block_timestamp, _new_offset) = self.next_block_timestamp(None).await?;
+        let prevrandao = if self.evm_config.spec_id >= SpecId::MERGE {
+            Some(self.prevrandao_generator.seed())
+        } else {
+            None
+        };
+
+        self.mine_block(block_timestamp, prevrandao).await
+    }
+
     /// Mine a block at a specific timestamp
     pub async fn mine_block(
-        &mut self,
-        timestamp: Option<u64>,
-    ) -> Result<MineBlockResult<BlockchainError, StateError>, NodeError> {
-        let (block_timestamp, new_offset) = self.next_block_timestamp(timestamp).await?;
-
+        &self,
+        timestamp: u64,
+        prevrandao: Option<B256>,
+    ) -> Result<MineBlockResultAndState<StateError>, NodeError> {
         // TODO: when we support hardhat_setNextBlockBaseFeePerGas, incorporate
         // the last-passed value here. (but don't .take() it yet, because we only
         // want to clear it if the block mining is successful.
@@ -250,18 +284,13 @@ impl NodeData {
 
         // TODO: https://github.com/NomicFoundation/edr/issues/156
         let reward = U256::ZERO;
-        let prevrandao = if self.evm_config.spec_id >= SpecId::MERGE {
-            Some(self.prevrandao_generator.next_value())
-        } else {
-            None
-        };
 
         let result = mine_block(
-            &mut *self.blockchain,
+            &*self.blockchain,
             self.state.clone(),
-            &mut self.mem_pool,
+            &self.mem_pool,
             &self.evm_config,
-            block_timestamp,
+            timestamp,
             self.beneficiary,
             self.min_gas_price,
             // TODO: make this configurable (https://github.com/NomicFoundation/edr/issues/111)
@@ -272,13 +301,6 @@ impl NodeData {
             None,
         )
         .await?;
-
-        if let Some(new_offset) = new_offset {
-            self.block_time_offset_seconds = new_offset;
-        }
-
-        // Reset next block time stamp
-        self.next_block_timestamp.take();
 
         // TODO: when we support hardhat_setNextBlockBaseFeePerGas, reset the user
         // provided next block base fee per gas to `None`

@@ -11,12 +11,11 @@ use edr_eth::{
     serde::ZeroXPrefixedBytes,
     signature::Signature,
     transaction::{EthTransactionRequest, SignedTransaction},
-    Address, Bytes, B256, U256, U64,
+    Address, Bytes, SpecId, B256, U256, U64,
 };
 use edr_evm::{
-    blockchain::BlockchainError,
-    state::{AccountModifierFn, StateError},
-    AccountInfo, Block, Bytecode, MineBlockResult, KECCAK_EMPTY,
+    blockchain::BlockchainError, state::AccountModifierFn, AccountInfo, Block, Bytecode,
+    MineBlockResult, KECCAK_EMPTY,
 };
 use k256::SecretKey;
 use tokio::sync::Mutex;
@@ -47,25 +46,7 @@ impl Node {
     ) -> Result<T, NodeError> {
         let mut data = self.lock_data().await;
 
-        let block = if let Some(block_spec) = block_spec {
-            data.block_by_block_spec(block_spec).await?
-        } else {
-            data.blockchain.last_block().await?
-        };
-
-        let block_header = block.header();
-
-        let mut contextual_state = if let Some(irregular_state) = data
-            .irregular_state
-            .state_by_block_number(block_header.number)
-            .cloned()
-        {
-            irregular_state
-        } else {
-            data.blockchain
-                .state_at_block_number(block_header.number)
-                .await?
-        };
+        let mut contextual_state = data.state_by_block_spec(block_spec).await?;
 
         mem::swap(&mut data.state, &mut contextual_state);
 
@@ -213,13 +194,46 @@ impl Node {
             .collect()
     }
 
-    pub async fn mine_block(
+    pub async fn mine_and_commit_block(
         &self,
         timestamp: Option<u64>,
-    ) -> Result<MineBlockResult<BlockchainError, StateError>, NodeError> {
+    ) -> Result<MineBlockResult<BlockchainError>, NodeError> {
         let mut node_data = self.lock_data().await;
-        let result = node_data.mine_block(timestamp).await?;
-        Ok(result)
+
+        let (block_timestamp, new_offset) = node_data.next_block_timestamp(timestamp).await?;
+        let prevrandao = if node_data.evm_config.spec_id >= SpecId::MERGE {
+            Some(node_data.prevrandao_generator.next_value())
+        } else {
+            None
+        };
+
+        let result = node_data.mine_block(block_timestamp, prevrandao).await?;
+
+        if let Some(new_offset) = new_offset {
+            node_data.block_time_offset_seconds = new_offset;
+        }
+
+        // Reset next block time stamp
+        node_data.next_block_timestamp.take();
+
+        let block = node_data
+            .blockchain
+            .insert_block(result.block, result.state_diff)
+            .await
+            .map_err(NodeError::Blockchain)?;
+
+        node_data
+            .mem_pool
+            .update(&result.state)
+            .map_err(NodeError::MemPoolUpdate)?;
+
+        node_data.state = result.state;
+
+        Ok(MineBlockResult {
+            block,
+            transaction_results: result.transaction_results,
+            transaction_traces: result.transaction_traces,
+        })
     }
 
     pub async fn network_id(&self) -> String {

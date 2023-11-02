@@ -163,7 +163,7 @@ impl BlockBuilder {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn add_transaction<BlockchainErrorT, StateErrorT>(
         &mut self,
-        blockchain: &mut dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
+        blockchain: &dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
         state: &mut dyn SyncState<StateErrorT>,
         transaction: PendingTransaction,
         inspector: Option<&mut dyn SyncInspector<BlockchainErrorT, StateErrorT>>,

@@ -13,6 +13,9 @@ pub enum NodeError {
     InitialDateInFuture(SystemTime),
     #[error("Could not convert transaction request into a typed request")]
     InvalidTransactionRequest,
+    /// An error that occurred while updating the mempool.
+    #[error(transparent)]
+    MemPoolUpdate(StateError),
     #[error("Requested to mine too many blocks")]
     MineCountTooLarge { count: U256 },
     #[error("Requested to mine too many blocks")]

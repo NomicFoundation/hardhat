@@ -22,7 +22,7 @@ use edr_eth::{
     transaction::EthTransactionRequest,
     Address, Bytes, B256, U256, U64,
 };
-use edr_evm::{blockchain::BlockchainError, state::StateError, MineBlockResult};
+use edr_evm::{blockchain::BlockchainError, MineBlockResult};
 use sha3::{Digest, Keccak256};
 use tracing::{event, Level};
 
@@ -109,7 +109,7 @@ async fn handle_evm_increase_time(node: Arc<Node>, increment: U64OrUsize) -> Res
     }
 }
 
-fn log_block(_result: &MineBlockResult<BlockchainError, StateError>, _is_interval_mined: bool) {
+fn log_block(_result: &MineBlockResult<BlockchainError>, _is_interval_mined: bool) {
     // TODO
 }
 
@@ -125,7 +125,7 @@ async fn handle_evm_mine(node: Arc<Node>, timestamp: Option<U64OrUsize>) -> Resp
     event!(Level::INFO, "evm_mine({timestamp:?})");
 
     let timestamp: Option<u64> = timestamp.map(U64OrUsize::into);
-    match node.mine_block(timestamp).await {
+    match node.mine_and_commit_block(timestamp).await {
         Ok(mine_block_result) => {
             log_block(&mine_block_result, false);
 
@@ -264,7 +264,7 @@ async fn handle_impersonate_account(node: Arc<Node>, address: Address) -> Respon
 async fn handle_interval_mine(node: Arc<Node>) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_intervalMine()");
 
-    match node.mine_block(None).await {
+    match node.mine_and_commit_block(None).await {
         Ok(mine_block_result) => {
             let block_header = mine_block_result.block.header();
             if mine_block_result.block.transactions().is_empty() {
