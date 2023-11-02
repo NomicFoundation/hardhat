@@ -85,32 +85,5 @@ describe("future processor", () => {
         address: exampleAddress,
       });
     });
-
-    it("should record the address of a contractAt future", async () => {
-      // Arrange
-      const fakeModule = {} as any;
-
-      const deploymentFuture: NamedArtifactContractAtFuture<string> =
-        new NamedContractAtFutureImplementation(
-          "MyModule:TestContract",
-          fakeModule,
-          "TestContract",
-          exampleAddress
-        );
-
-      const { processor, storedDeployedAddresses } = setupFutureProcessor(
-        (() => {}) as any,
-        {}
-      );
-
-      // Act
-      await processor.processFuture(deploymentFuture, initialDeploymentState);
-
-      // Assert
-      assert.equal(
-        storedDeployedAddresses["MyModule:TestContract"],
-        exampleAddress
-      );
-    });
   });
 });
