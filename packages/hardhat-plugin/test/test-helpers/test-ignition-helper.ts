@@ -65,9 +65,11 @@ export class TestIgnitionHelper {
     {
       parameters = {},
       config: perDeployConfig = {},
+      strategy = "basic",
     }: {
       parameters?: DeploymentParameters;
       config?: Partial<DeployConfig>;
+      strategy?: "basic" | "create2";
     } = {
       parameters: {},
       config: {},
@@ -94,6 +96,7 @@ export class TestIgnitionHelper {
       ignitionModule,
       deploymentParameters: parameters,
       accounts,
+      strategy,
     });
 
     if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {

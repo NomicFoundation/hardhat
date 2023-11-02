@@ -2,6 +2,19 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Debug ignition deploy in samples",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/hardhat/internal/cli/cli.js",
+      "skipFiles": ["<node_internals>/**"],
+      "type": "node",
+      "cwd": "${workspaceFolder}/examples/sample",
+      "args": [
+        "ignition",
+        "deploy",
+        "${workspaceFolder}/examples/sample/ignition/modules/LockModule.js"
+      ]
+    },
+    {
       "name": "New Modules",
       "internalConsoleOptions": "openOnSessionStart",
       "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",

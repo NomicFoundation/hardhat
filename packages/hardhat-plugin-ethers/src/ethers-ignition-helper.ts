@@ -74,14 +74,17 @@ export class EthersIgnitionHelper {
       parameters = {},
       config: perDeployConfig = {},
       defaultSender = undefined,
+      strategy = "basic",
     }: {
       parameters?: DeploymentParameters;
       config?: Partial<DeployConfig>;
       defaultSender?: string;
+      strategy?: "basic" | "create2";
     } = {
       parameters: {},
       config: {},
       defaultSender: undefined,
+      strategy: "basic",
     }
   ): Promise<
     IgnitionModuleResultsTToEthersContracts<
@@ -109,6 +112,7 @@ export class EthersIgnitionHelper {
       deploymentParameters: parameters,
       accounts,
       defaultSender,
+      strategy,
     });
 
     if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {

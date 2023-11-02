@@ -9,11 +9,11 @@ import { assertIgnitionInvariant } from "../utils/assertions";
 
 import { decodeError } from "./abi";
 import {
+  EvmExecutionResultTypes,
+  InvalidResultError,
   RevertWithCustomError,
   RevertWithInvalidData,
-  InvalidResultError,
   SuccessfulEvmExecutionResult,
-  EvmExecutionResultTypes,
 } from "./types/evm-execution";
 import {
   ExecutionResultType,

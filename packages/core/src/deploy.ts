@@ -6,8 +6,10 @@ import {
 import { Deployer } from "./internal/deployer";
 import { EphemeralDeploymentLoader } from "./internal/deployment-loader/ephemeral-deployment-loader";
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader";
+import { DeploymentLoader } from "./internal/deployment-loader/types";
 import { ERRORS } from "./internal/errors-list";
 import { BasicExecutionStrategy } from "./internal/execution/basic-execution-strategy";
+import { Create2ExecutionStrategy } from "./internal/execution/create2-execution-strategy";
 import { EIP1193JsonRpcClient } from "./internal/execution/jsonrpc-client";
 import { equalAddresses } from "./internal/execution/utils/address";
 import { getDefaultSender } from "./internal/execution/utils/get-default-sender";
@@ -45,6 +47,7 @@ export async function deploy<
   deploymentParameters,
   accounts,
   defaultSender: givenDefaultSender,
+  strategy = "basic",
 }: {
   config?: Partial<DeployConfig>;
   artifactResolver: ArtifactResolver;
@@ -59,6 +62,7 @@ export async function deploy<
   deploymentParameters: DeploymentParameters;
   accounts: string[];
   defaultSender?: string;
+  strategy?: "basic" | "create2";
 }): Promise<DeploymentResult> {
   if (executionEventListener !== undefined) {
     executionEventListener.setModuleId({
@@ -87,16 +91,19 @@ export async function deploy<
 
   const defaultSender = _resolveDefaultSender(givenDefaultSender, accounts);
 
-  const deploymentLoader =
+  const deploymentLoader: DeploymentLoader =
     deploymentDir === undefined
       ? new EphemeralDeploymentLoader(artifactResolver, executionEventListener)
       : new FileDeploymentLoader(deploymentDir, executionEventListener);
 
-  const executionStrategy = new BasicExecutionStrategy((artifactId) =>
-    deploymentLoader.loadArtifact(artifactId)
-  );
-
   const jsonRpcClient = new EIP1193JsonRpcClient(provider);
+
+  const executionStrategy = setupStrategy(
+    strategy,
+    deploymentLoader,
+    provider,
+    accounts
+  );
 
   const isAutominedNetwork = await checkAutominedNetwork(provider);
 
@@ -148,4 +155,22 @@ function _resolveDefaultSender(
   }
 
   return defaultSender;
+}
+
+function setupStrategy(
+  strategyName: "basic" | "create2",
+  deploymentLoader: DeploymentLoader,
+  provider: EIP1193Provider,
+  accounts: string[]
+) {
+  switch (strategyName) {
+    case "basic":
+      return new BasicExecutionStrategy((artifactId) =>
+        deploymentLoader.loadArtifact(artifactId)
+      );
+    case "create2":
+      return new Create2ExecutionStrategy(provider, accounts, (artifactId) =>
+        deploymentLoader.loadArtifact(artifactId)
+      );
+  }
 }

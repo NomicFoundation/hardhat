@@ -126,6 +126,7 @@ export async function sendTransactionForOnchainInteraction(
     value: onchainInteraction.value,
     nonce,
     fees,
+    gasLimit: undefined,
   };
 
   let gasLimit: bigint;
@@ -139,7 +140,7 @@ export async function sendTransactionForOnchainInteraction(
     // too broad and make the assertion below fail. We could try to catch only
     // estimation errors.
     const failedEstimateGasSimulationResult = await client.call(
-      estimateGasPrams,
+      estimateGasPrams, // TODO: we need to set a gas limit here, or the simulation could fail due to a lack of funds
       "pending"
     );
 

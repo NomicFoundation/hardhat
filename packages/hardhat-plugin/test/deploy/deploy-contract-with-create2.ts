@@ -1,0 +1,41 @@
+/* eslint-disable import/no-unused-modules */
+import { buildModule } from "@nomicfoundation/ignition-core";
+import { assert } from "chai";
+
+import { mineBlock } from "../test-helpers/mine-block";
+import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project";
+import { waitForPendingTxs } from "../test-helpers/wait-for-pending-txs";
+
+/**
+ * This is the simplest contract deploy case.
+ *
+ * Deploy a single contract with non-problematic network
+ */
+describe("execution - deploy contract with create2", function () {
+  useEphemeralIgnitionProject("minimal");
+
+  // eslint-disable-next-line no-only-tests/no-only-tests
+  it("should deploy a contract that is callable via create2", async function () {
+    const moduleDefinition = buildModule("FooModule", (m) => {
+      const foo = m.contract("Foo");
+
+      return { foo };
+    });
+
+    const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
+      strategy: "create2",
+    });
+
+    await waitForPendingTxs(this.hre, 1, deployPromise);
+    await mineBlock(this.hre);
+
+    const result = await deployPromise;
+
+    assert.equal(
+      result.foo.address,
+      "0x41DA93903Ad107d382fc63d30289477255280AA7"
+    );
+
+    assert.equal(await result.foo.read.x(), Number(1));
+  });
+});

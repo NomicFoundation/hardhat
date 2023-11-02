@@ -216,6 +216,8 @@ export interface ExecutionStrategy {
    */
   name: string;
 
+  init: () => Promise<void>;
+
   /**
    * Executes a deployment execution state.
    */
