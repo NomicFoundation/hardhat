@@ -28,6 +28,11 @@ impl RandomHashGenerator {
         next_value
     }
 
+    /// Returns the current seed.
+    pub fn seed(&self) -> B256 {
+        self.next_value
+    }
+
     /// Overwrites the next hash output by the generator.
     pub fn set_next(&mut self, next_value: B256) {
         self.next_value = next_value;

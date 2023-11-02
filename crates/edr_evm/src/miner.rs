@@ -7,17 +7,35 @@ use edr_eth::{
 use revm::primitives::{CfgEnv, ExecutionResult, InvalidTransaction, SpecId};
 
 use crate::{
-    block::BlockBuilderCreationError, blockchain::SyncBlockchain, inspector::InspectorContainer,
-    mempool::OrderedTransaction, state::SyncState, trace::Trace, BlockBuilder,
-    BlockTransactionError, BuildBlockResult, MemPool, PendingTransaction, SyncBlock, SyncInspector,
+    block::BlockBuilderCreationError,
+    blockchain::SyncBlockchain,
+    inspector::InspectorContainer,
+    mempool::OrderedTransaction,
+    state::{StateDiff, SyncState},
+    trace::Trace,
+    BlockBuilder, BlockTransactionError, BuildBlockResult, LocalBlock, MemPool, PendingTransaction,
+    SyncBlock, SyncInspector,
 };
 
-/// The result of mining a block.
-pub struct MineBlockResult<BlockchainErrorT, StateErrorT> {
+/// The result of mining a block, after having been committed to the blockchain.
+pub struct MineBlockResult<BlockchainErrorT> {
     /// Mined block
     pub block: Arc<dyn SyncBlock<Error = BlockchainErrorT>>,
+    /// Transaction results
+    pub transaction_results: Vec<ExecutionResult>,
+    /// Transaction traces
+    pub transaction_traces: Vec<Trace>,
+}
+
+/// The result of mining a block, including the state. This result needs to be
+/// inserted into the blockchain to be persistent.
+pub struct MineBlockResultAndState<StateErrorT> {
+    /// Mined block
+    pub block: LocalBlock,
     /// State after mining the block
     pub state: Box<dyn SyncState<StateErrorT>>,
+    /// State diff applied by block
+    pub state_diff: StateDiff,
     /// Transaction results
     pub transaction_results: Vec<ExecutionResult>,
     /// Transaction traces
@@ -36,9 +54,6 @@ pub enum MineOrdering {
 /// An error that occurred while mining a block.
 #[derive(Debug, thiserror::Error)]
 pub enum MineBlockError<BE, SE> {
-    /// An error that occurred while aborting the block builder.
-    #[error(transparent)]
-    BlockAbort(SE),
     /// An error that occurred while constructing a block builder.
     #[error(transparent)]
     BlockBuilderCreation(#[from] BlockBuilderCreationError),
@@ -51,9 +66,6 @@ pub enum MineBlockError<BE, SE> {
     /// A blockchain error
     #[error(transparent)]
     Blockchain(BE),
-    /// An error that occurred while updating the mempool.
-    #[error(transparent)]
-    MemPoolUpdate(SE),
     /// The block is expected to have a prevrandao, as the executor's config is
     /// on a post-merge hardfork.
     #[error("Post-merge transaction is missing prevrandao")]
@@ -64,9 +76,9 @@ pub enum MineBlockError<BE, SE> {
 #[allow(clippy::too_many_arguments)]
 #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
 pub async fn mine_block<BlockchainErrorT, StateErrorT>(
-    blockchain: &mut dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
+    blockchain: &dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
     mut state: Box<dyn SyncState<StateErrorT>>,
-    mem_pool: &mut MemPool,
+    mem_pool: &MemPool,
     cfg: &CfgEnv,
     timestamp: u64,
     beneficiary: Address,
@@ -76,10 +88,7 @@ pub async fn mine_block<BlockchainErrorT, StateErrorT>(
     base_fee: Option<U256>,
     prevrandao: Option<B256>,
     inspector: Option<Box<dyn SyncInspector<BlockchainErrorT, StateErrorT>>>,
-) -> Result<
-    MineBlockResult<BlockchainErrorT, StateErrorT>,
-    MineBlockError<BlockchainErrorT, StateErrorT>,
->
+) -> Result<MineBlockResultAndState<StateErrorT>, MineBlockError<BlockchainErrorT, StateErrorT>>
 where
     BlockchainErrorT: Debug + Send + 'static,
     StateErrorT: Debug + Send + 'static,
@@ -195,18 +204,10 @@ where
         .finalize(&mut state, rewards, None)
         .map_err(MineBlockError::BlockFinalize)?;
 
-    let block = blockchain
-        .insert_block(block, state_diff)
-        .await
-        .map_err(MineBlockError::Blockchain)?;
-
-    mem_pool
-        .update(&state)
-        .map_err(MineBlockError::MemPoolUpdate)?;
-
-    Ok(MineBlockResult {
+    Ok(MineBlockResultAndState {
         block,
         state,
+        state_diff,
         transaction_results: results,
         transaction_traces: traces,
     })

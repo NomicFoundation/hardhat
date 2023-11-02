@@ -108,7 +108,7 @@ impl BlockBuilder {
                     if with_trace { Some(&mut tracer) } else { None };
 
                 builder
-                    .add_transaction(&mut *blockchain.write().await, &mut *state.write().await, transaction, inspector)
+                    .add_transaction(&*blockchain.read().await, &mut *state.write().await, transaction, inspector)
                     .map_or_else(
                         |e| Err(napi::Error::new(Status::GenericFailure, match e {
                             BlockTransactionError::InvalidTransaction(

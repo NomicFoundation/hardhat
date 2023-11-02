@@ -89,8 +89,6 @@ export class EdrMiner implements BlockMinerAdapter {
       this._tracer()
     );
 
-    this._stateManager.setInner(mineResult.state);
-
     const traces: PartialTrace[] = [];
 
     const common = _commonWithSpecId(this._common, specId);
