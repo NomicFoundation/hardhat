@@ -6,7 +6,7 @@
 
 ## What
 
-This plugin helps you verify the source code for your Solidity contracts. At the moment, it supports [Etherscan](https://etherscan.io)-based explorers and explorers compatible with its API like [Blockscout](https://www.blockscout.com/).
+This plugin helps you verify the source code for your Solidity contracts. At the moment, it supports [Etherscan](https://etherscan.io)-based explorers, explorers compatible with its API like [Blockscout](https://www.blockscout.com/) and [Sourcify](https://sourcify.dev/).
 
 It's smart and it tries to do as much as possible to facilitate the process:
 
@@ -35,7 +35,7 @@ import "@nomicfoundation/hardhat-verify";
 
 ## Tasks
 
-This plugin provides the `verify` task, which allows you to verify contracts through Etherscan's service.
+This plugin provides the `verify` task, which allows you to verify contracts through Sourcify and Etherscan's service.
 
 ## Environment extensions
 
@@ -43,7 +43,7 @@ This plugin does not extend the environment.
 
 ## Usage
 
-You need to add the following Etherscan config to your `hardhat.config.js` file:
+You need to add the following Etherscan and Sourcify configs to your `hardhat.config.js` file:
 
 ```js
 module.exports = {
@@ -54,6 +54,11 @@ module.exports = {
     // Your API key for Etherscan
     // Obtain one at https://etherscan.io/
     apiKey: "YOUR_ETHERSCAN_API_KEY"
+  },
+  sourcify: {
+    // Disabled by default
+    // Does not need API Key
+    enabled: true
   }
 };
 ```
@@ -236,7 +241,9 @@ hre.run("verify:verify", {
 
 #### Advanced Usage: Using the Etherscan and Sourcify classes from another plugin
 
-- The **Etherscan** class used for contract verification can be imported from the plugin, allowing its direct usage:
+Both Etherscan and Sourcify classes can be imported from the plugin for direct use.
+
+- **Etherscan Class Usage**
 
   ```js
   import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
@@ -273,7 +280,7 @@ hre.run("verify:verify", {
   }
   ```
 
-- The **Sourcify** class used for contract verification can be imported from the plugin, allowing its direct usage:
+- **Sourcify Class Usage**
 
   ```js
   import { Sourcify } from "@nomicfoundation/hardhat-verify/sourcify";
