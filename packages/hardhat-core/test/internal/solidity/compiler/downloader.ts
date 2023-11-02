@@ -217,7 +217,7 @@ describe("Compiler downloader", function () {
 
         const VERSION = "0.4.12";
 
-        const value = [0];
+        let value = 0;
 
         const promises = [];
         for (let i = 0; i < 10; i++) {
@@ -226,7 +226,7 @@ describe("Compiler downloader", function () {
               VERSION,
               // downloadStartedCb
               async () => {
-                value[0]++;
+                value++;
               },
               // downloadEndedCb
               async () => {}
@@ -237,13 +237,13 @@ describe("Compiler downloader", function () {
         await Promise.all(promises);
 
         assert.isDefined(downloader.getCompiler(VERSION));
-        assert(value[0] === 1);
+        assert(value === 1);
       });
 
       it("should download multiple different compilers", async function () {
         const VERSIONS = ["0.5.1", "0.5.2", "0.5.3", "0.5.4", "0.5.5"];
 
-        const value = [0];
+        let value = 0;
 
         const promises = [];
         for (const version of VERSIONS) {
@@ -252,7 +252,7 @@ describe("Compiler downloader", function () {
               version,
               // downloadStartedCb
               async () => {
-                value[0]++;
+                value++;
               },
               // downloadEndedCb
               async () => {}
@@ -266,7 +266,7 @@ describe("Compiler downloader", function () {
           assert.isDefined(downloader.getCompiler(version));
         }
 
-        assert(value[0] === VERSIONS.length);
+        assert(value === VERSIONS.length);
       });
     });
   });
