@@ -1,9 +1,6 @@
 import { assert } from "chai";
 
-import {
-  NamedArtifactContractAtFuture,
-  NamedArtifactContractDeploymentFuture,
-} from "../../../src";
+import { NamedArtifactContractDeploymentFuture } from "../../../src";
 import { TransactionParams } from "../../../src/internal/execution/jsonrpc-client";
 import { deploymentStateReducer } from "../../../src/internal/execution/reducers/deployment-state-reducer";
 import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result";
@@ -12,10 +9,7 @@ import {
   ExecutionStatus,
 } from "../../../src/internal/execution/types/execution-state";
 import { TransactionReceiptStatus } from "../../../src/internal/execution/types/jsonrpc";
-import {
-  NamedContractAtFutureImplementation,
-  NamedContractDeploymentFutureImplementation,
-} from "../../../src/internal/module";
+import { NamedContractDeploymentFutureImplementation } from "../../../src/internal/module";
 import { assertIgnitionInvariant } from "../../../src/internal/utils/assertions";
 import { exampleAccounts } from "../../helpers";
 

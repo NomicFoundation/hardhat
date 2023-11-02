@@ -97,12 +97,7 @@ export class FutureProcessor {
         `Invalid initialization message for future ${future.id}: it didn't create its execution state`
       );
 
-      if (
-        initMessage.type ===
-        JournalMessageType.CONTRACT_AT_EXECUTION_STATE_INITIALIZE
-      ) {
-        await this._recordDeployedAddressIfNeeded(initMessage);
-      }
+      await this._recordDeployedAddressIfNeeded(initMessage);
     }
 
     while (!isExecutionStateComplete(exState)) {
