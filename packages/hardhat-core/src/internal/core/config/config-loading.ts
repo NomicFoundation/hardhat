@@ -25,7 +25,7 @@ import { DEFAULT_SOLC_VERSION } from "./default-config";
 
 const log = debug("hardhat:core:config");
 
-function importCsjOrEsModule(filePath: string): any {
+export function importCsjOrEsModule(filePath: string): any {
   try {
     const imported = require(filePath);
     return imported.default !== undefined ? imported.default : imported;

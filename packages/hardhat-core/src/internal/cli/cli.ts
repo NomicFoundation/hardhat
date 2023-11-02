@@ -1,7 +1,6 @@
 import chalk from "chalk";
 import debug from "debug";
 import "source-map-support/register";
-
 import {
   TASK_COMPILE,
   TASK_HELP,
@@ -50,6 +49,7 @@ import {
   installHardhatVSCode,
   isHardhatVSCodeInstalled,
 } from "./hardhat-vscode-installation";
+import { handleVars } from "./vars";
 
 const log = debug("hardhat:core:cli");
 
@@ -211,6 +211,10 @@ async function main() {
     }
 
     const ctx = HardhatContext.createHardhatContext();
+
+    if (scopeOrTaskName === "vars" && allUnparsedCLAs.length > 1) {
+      process.exit(await handleVars(allUnparsedCLAs, hardhatArguments.config));
+    }
 
     const { resolvedConfig, userConfig } = loadConfigAndTasks(
       hardhatArguments,
