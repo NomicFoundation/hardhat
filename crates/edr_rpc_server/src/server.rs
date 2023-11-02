@@ -24,6 +24,7 @@ use edr_eth::{
 };
 use edr_evm::{blockchain::BlockchainError, MineBlockResult};
 use sha3::{Digest, Keccak256};
+use tokio::sync::Mutex;
 use tracing::{event, Level};
 
 use crate::{
@@ -68,42 +69,50 @@ pub enum ServerError {
 
 /// `require_canonical`: whether the server should additionally raise a JSON-RPC
 /// error if the block is not in the canonical chain
-async fn handle_accounts(node: Arc<Node>) -> ResponseData<Vec<Address>> {
+async fn handle_accounts(node: Arc<Mutex<Node>>) -> ResponseData<Vec<Address>> {
     event!(Level::INFO, "eth_accounts()");
 
+    let node = node.lock().await;
     ResponseData::Success {
-        result: node.accounts().await,
+        result: node.accounts().copied().collect(),
     }
 }
 
-async fn handle_block_number(node: Arc<Node>) -> ResponseData<U64> {
+async fn handle_block_number(node: Arc<Mutex<Node>>) -> ResponseData<U64> {
     event!(Level::INFO, "eth_blockNumber()");
 
+    let node = node.lock().await;
     ResponseData::Success {
         result: U64::from(node.block_number().await),
     }
 }
 
-async fn handle_chain_id(node: Arc<Node>) -> ResponseData<U64> {
+async fn handle_chain_id(node: Arc<Mutex<Node>>) -> ResponseData<U64> {
     event!(Level::INFO, "eth_chainId()");
 
+    let node = node.lock().await;
     ResponseData::Success {
-        result: node.chain_id().await,
+        result: U64::from(node.chain_id()),
     }
 }
 
-async fn handle_coinbase(node: Arc<Node>) -> ResponseData<Address> {
+async fn handle_coinbase(node: Arc<Mutex<Node>>) -> ResponseData<Address> {
     event!(Level::INFO, "eth_coinbase()");
 
+    let node = node.lock().await;
     ResponseData::Success {
-        result: node.coinbase().await,
+        result: node.coinbase(),
     }
 }
 
-async fn handle_evm_increase_time(node: Arc<Node>, increment: U64OrUsize) -> ResponseData<String> {
+async fn handle_evm_increase_time(
+    node: Arc<Mutex<Node>>,
+    increment: U64OrUsize,
+) -> ResponseData<String> {
     event!(Level::INFO, "evm_increaseTime({increment:?})");
 
-    let new_block_time = node.increase_block_time(increment.into()).await;
+    let mut node = node.lock().await;
+    let new_block_time = node.increase_block_time(increment.into());
     ResponseData::Success {
         result: new_block_time.to_string(),
     }
@@ -121,9 +130,13 @@ fn log_interval_mined_block_number(
     // TODO
 }
 
-async fn handle_evm_mine(node: Arc<Node>, timestamp: Option<U64OrUsize>) -> ResponseData<String> {
+async fn handle_evm_mine(
+    node: Arc<Mutex<Node>>,
+    timestamp: Option<U64OrUsize>,
+) -> ResponseData<String> {
     event!(Level::INFO, "evm_mine({timestamp:?})");
 
+    let mut node = node.lock().await;
     let timestamp: Option<u64> = timestamp.map(U64OrUsize::into);
     match node.mine_and_commit_block(timestamp).await {
         Ok(mine_block_result) => {
@@ -138,11 +151,12 @@ async fn handle_evm_mine(node: Arc<Node>, timestamp: Option<U64OrUsize>) -> Resp
 }
 
 async fn handle_evm_set_next_block_timestamp(
-    node: Arc<Node>,
+    node: Arc<Mutex<Node>>,
     timestamp: U64OrUsize,
 ) -> ResponseData<String> {
     event!(Level::INFO, "evm_setNextBlockTimestamp({timestamp:?})");
 
+    let mut node = node.lock().await;
     match node.set_next_block_timestamp(timestamp.into()).await {
         Ok(new_timestamp) => {
             ResponseData::Success {
@@ -165,11 +179,13 @@ async fn handle_evm_set_next_block_timestamp(
 }
 
 async fn handle_get_balance(
-    node: Arc<Node>,
+    node: Arc<Mutex<Node>>,
     address: Address,
     block_spec: Option<BlockSpec>,
 ) -> ResponseData<U256> {
     event!(Level::INFO, "eth_getBalance({address:?}, {block_spec:?})");
+
+    let node = node.lock().await;
     match node.balance(address, block_spec.as_ref()).await {
         Ok(balance) => ResponseData::Success { result: balance },
         // Internal server error
@@ -178,12 +194,13 @@ async fn handle_get_balance(
 }
 
 async fn handle_get_code(
-    node: Arc<Node>,
+    node: Arc<Mutex<Node>>,
     address: Address,
     block_spec: Option<BlockSpec>,
 ) -> ResponseData<ZeroXPrefixedBytes> {
     event!(Level::INFO, "eth_getCode({address:?}, {block_spec:?})");
 
+    let node = node.lock().await;
     match node.get_code(address, block_spec.as_ref()).await {
         Ok(code) => ResponseData::Success { result: code },
         Err(e) => error_response_data(0, &format!("failed to retrieve code: {e}")),
@@ -191,30 +208,32 @@ async fn handle_get_code(
 }
 
 async fn handle_get_filter_changes(
-    node: Arc<Node>,
+    node: Arc<Mutex<Node>>,
     filter_id: U256,
 ) -> ResponseData<Option<FilteredEvents>> {
     event!(Level::INFO, "eth_getFilterChanges({filter_id:?})");
 
+    let mut node = node.lock().await;
     ResponseData::Success {
-        result: node.get_filter_changes(&filter_id).await,
+        result: node.get_filter_changes(&filter_id),
     }
 }
 
 async fn handle_get_filter_logs(
-    node: Arc<Node>,
+    node: Arc<Mutex<Node>>,
     filter_id: U256,
 ) -> ResponseData<Option<Vec<LogOutput>>> {
     event!(Level::INFO, "eth_getFilterLogs({filter_id:?})");
 
-    match node.get_filter_logs(&filter_id).await {
+    let mut node = node.lock().await;
+    match node.get_filter_logs(&filter_id) {
         Ok(result) => ResponseData::Success { result },
         Err(err) => error_response_data(0, &err.to_string()),
     }
 }
 
 async fn handle_get_storage_at(
-    node: Arc<Node>,
+    node: Arc<Mutex<Node>>,
     address: Address,
     position: U256,
     block_spec: Option<BlockSpec>,
@@ -224,6 +243,7 @@ async fn handle_get_storage_at(
         "eth_getStorageAt({address:?}, {position:?}, {block_spec:?})"
     );
 
+    let node = node.lock().await;
     let storage = node
         .get_storage_at(address, position, block_spec.as_ref())
         .await;
@@ -234,7 +254,7 @@ async fn handle_get_storage_at(
 }
 
 async fn handle_get_transaction_count(
-    node: Arc<Node>,
+    node: Arc<Mutex<Node>>,
     address: Address,
     block_spec: Option<BlockSpec>,
 ) -> ResponseData<U256> {
@@ -243,6 +263,7 @@ async fn handle_get_transaction_count(
         "eth_getTransactionCount({address:?}, {block_spec:?})"
     );
 
+    let node = node.lock().await;
     let transaction_count = node
         .get_transaction_count(address, block_spec.as_ref())
         .await;
@@ -254,16 +275,21 @@ async fn handle_get_transaction_count(
     }
 }
 
-async fn handle_impersonate_account(node: Arc<Node>, address: Address) -> ResponseData<bool> {
+async fn handle_impersonate_account(
+    node: Arc<Mutex<Node>>,
+    address: Address,
+) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_impersonateAccount({address:?})");
 
-    node.impersonate_account(address).await;
+    let mut node = node.lock().await;
+    node.impersonate_account(address);
     ResponseData::Success { result: true }
 }
 
-async fn handle_interval_mine(node: Arc<Node>) -> ResponseData<bool> {
+async fn handle_interval_mine(node: Arc<Mutex<Node>>) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_intervalMine()");
 
+    let mut node = node.lock().await;
     match node.mine_and_commit_block(None).await {
         Ok(mine_block_result) => {
             let block_header = mine_block_result.block.header();
@@ -283,29 +309,32 @@ async fn handle_interval_mine(node: Arc<Node>) -> ResponseData<bool> {
     }
 }
 
-async fn handle_net_version(node: Arc<Node>) -> ResponseData<String> {
+async fn handle_net_version(node: Arc<Mutex<Node>>) -> ResponseData<String> {
     event!(Level::INFO, "net_version()");
 
+    let node = node.lock().await;
     ResponseData::Success {
-        result: node.network_id().await,
+        result: node.network_id(),
     }
 }
 
-async fn handle_new_pending_transaction_filter(node: Arc<Node>) -> ResponseData<U256> {
+async fn handle_new_pending_transaction_filter(node: Arc<Mutex<Node>>) -> ResponseData<U256> {
     event!(Level::INFO, "eth_newPendingTransactionFilter()");
 
-    let filter_id = node.new_pending_transaction_filter().await;
+    let mut node = node.lock().await;
+    let filter_id = node.new_pending_transaction_filter();
 
     ResponseData::Success { result: filter_id }
 }
 
 async fn handle_send_transaction(
-    node: Arc<Node>,
+    node: Arc<Mutex<Node>>,
     transaction_request: EthTransactionRequest,
 ) -> ResponseData<B256> {
     event!(Level::INFO, "eth_sendTransaction({transaction_request:?})");
 
-    match node.send_transaction(transaction_request).await {
+    let mut node = node.lock().await;
+    match node.send_transaction(transaction_request) {
         Ok(transaction_hash) => ResponseData::Success {
             result: transaction_hash,
         },
@@ -314,12 +343,13 @@ async fn handle_send_transaction(
 }
 
 async fn handle_send_raw_transaction(
-    node: Arc<Node>,
+    node: Arc<Mutex<Node>>,
     raw_transaction: ZeroXPrefixedBytes,
 ) -> ResponseData<B256> {
     event!(Level::INFO, "eth_sendRawTransaction({raw_transaction:?})");
 
-    match node.send_raw_transaction(raw_transaction.as_ref()).await {
+    let mut node = node.lock().await;
+    match node.send_raw_transaction(raw_transaction.as_ref()) {
         Ok(transaction_hash) => ResponseData::Success {
             result: transaction_hash,
         },
@@ -328,12 +358,13 @@ async fn handle_send_raw_transaction(
 }
 
 async fn handle_set_balance(
-    node: Arc<Node>,
+    node: Arc<Mutex<Node>>,
     address: Address,
     balance: U256,
 ) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_setBalance({address:?}, {balance:?})");
 
+    let mut node = node.lock().await;
     match node.set_balance(address, balance).await {
         // Hardhat always returns true if there is no error.
         Ok(()) => ResponseData::Success { result: true },
@@ -343,12 +374,13 @@ async fn handle_set_balance(
 }
 
 async fn handle_set_code(
-    node: Arc<Node>,
+    node: Arc<Mutex<Node>>,
     address: Address,
     code: ZeroXPrefixedBytes,
 ) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_setCode({address:?}, {code:?})");
 
+    let mut node = node.lock().await;
     match node.set_code(address, code.into()).await {
         // Hardhat always returns true if there is no error.
         Ok(()) => ResponseData::Success { result: true },
@@ -356,9 +388,14 @@ async fn handle_set_code(
     }
 }
 
-async fn handle_set_nonce(node: Arc<Node>, address: Address, nonce: U256) -> ResponseData<bool> {
+async fn handle_set_nonce(
+    node: Arc<Mutex<Node>>,
+    address: Address,
+    nonce: U256,
+) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_setNonce({address:?}, {nonce:?})");
 
+    let mut node = node.lock().await;
     match TryInto::<u64>::try_into(nonce) {
         Ok(nonce) => match node.set_nonce(address, nonce).await {
             Ok(()) => ResponseData::Success { result: true },
@@ -369,7 +406,7 @@ async fn handle_set_nonce(node: Arc<Node>, address: Address, nonce: U256) -> Res
 }
 
 async fn handle_set_storage_at(
-    node: Arc<Node>,
+    node: Arc<Mutex<Node>>,
     address: Address,
     index: U256,
     value: U256,
@@ -378,6 +415,8 @@ async fn handle_set_storage_at(
         Level::INFO,
         "hardhat_setStorageAt({address:?}, {index:?}, {value:?})"
     );
+
+    let mut node = node.lock().await;
     match node.set_account_storage_slot(address, index, value).await {
         Ok(()) => ResponseData::Success { result: true },
         Err(e) => ResponseData::new_error(0, &e.to_string(), None),
@@ -398,13 +437,14 @@ fn handle_net_peer_count() -> ResponseData<U64> {
 }
 
 async fn handle_sign(
-    node: Arc<Node>,
+    node: Arc<Mutex<Node>>,
     address: Address,
     message: ZeroXPrefixedBytes,
 ) -> ResponseData<Signature> {
     event!(Level::INFO, "eth_sign({address:?}, {message:?})");
 
-    match node.sign(&address, message).await {
+    let node = node.lock().await;
+    match node.sign(&address, message) {
         Ok(signature) => ResponseData::Success { result: signature },
         Err(error) => match error {
             NodeError::UnknownAddress { .. } => {
@@ -416,29 +456,32 @@ async fn handle_sign(
 }
 
 async fn handle_stop_impersonating_account(
-    node: Arc<Node>,
+    node: Arc<Mutex<Node>>,
     address: Address,
 ) -> ResponseData<bool> {
     event!(Level::INFO, "hardhat_stopImpersonatingAccount({address:?})");
 
+    let mut node = node.lock().await;
     ResponseData::Success {
-        result: node.stop_impersonating_account(address).await,
+        result: node.stop_impersonating_account(address),
     }
 }
 
-async fn handle_uninstall_filter(node: Arc<Node>, filter_id: U256) -> ResponseData<bool> {
+async fn handle_uninstall_filter(node: Arc<Mutex<Node>>, filter_id: U256) -> ResponseData<bool> {
     event!(Level::INFO, "eth_uninstallFilter({filter_id:?})");
 
+    let mut node = node.lock().await;
     ResponseData::Success {
-        result: node.remove_filter(&filter_id).await,
+        result: node.remove_filter(&filter_id),
     }
 }
 
-async fn handle_unsubscribe(node: Arc<Node>, filter_id: U256) -> ResponseData<bool> {
+async fn handle_unsubscribe(node: Arc<Mutex<Node>>, filter_id: U256) -> ResponseData<bool> {
     event!(Level::INFO, "eth_unsubscribe({filter_id:?})");
 
+    let mut node = node.lock().await;
     ResponseData::Success {
-        result: node.remove_subscription(&filter_id).await,
+        result: node.remove_subscription(&filter_id),
     }
 }
 
@@ -464,7 +507,7 @@ fn handle_web3_sha3(message: ZeroXPrefixedBytes) -> ResponseData<B256> {
 }
 
 async fn handle_request(
-    node: Arc<Node>,
+    node: Arc<Mutex<Node>>,
     request: RpcRequest<MethodInvocation>,
 ) -> Result<serde_json::Value, String> {
     fn response<T>(id: jsonrpc::Id, data: ResponseData<T>) -> Result<serde_json::Value, String>
@@ -631,12 +674,12 @@ pub enum Request {
     Batch(Vec<RpcRequest<MethodInvocation>>),
 }
 
-async fn router(node: Arc<Node>) -> Router {
+async fn router(node: Arc<Mutex<Node>>) -> Router {
     Router::new()
         .route(
             "/",
             axum::routing::post(
-                |State(node): State<Arc<Node>>, payload: Json<Request>| async move {
+                |State(node): State<Arc<Mutex<Node>>>, payload: Json<Request>| async move {
                     let requests: Vec<RpcRequest<MethodInvocation>> = match payload {
                         Json(Request::Single(request)) => vec![request],
                         Json(Request::Batch(requests)) => requests,
@@ -692,16 +735,18 @@ impl Server {
         let listener = TcpListener::bind(config.address).map_err(ServerError::Listen)?;
         event!(Level::INFO, "Listening on {}", config.address);
 
-        let node = Arc::new(Node::new(config).await?);
+        let node = Node::new(config).await?;
 
-        for (i, account) in node.local_accounts().await.into_iter().enumerate() {
-            event!(Level::INFO, "Account #{}: {:?}", i + 1, account.address);
+        for (i, (address, secret_key)) in node.local_accounts().enumerate() {
+            event!(Level::INFO, "Account #{}: {:?}", i + 1, address);
             event!(
                 Level::INFO,
                 "Secret Key: 0x{}",
-                hex::encode(account.secret_key.to_bytes())
+                hex::encode(secret_key.to_bytes())
             );
         }
+
+        let node = Arc::new(Mutex::new(node));
 
         Ok(Self {
             inner: axum::Server::from_tcp(listener)
