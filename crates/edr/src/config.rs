@@ -2,6 +2,7 @@ use std::{net::SocketAddr, path::PathBuf, str::FromStr, time::SystemTime};
 
 use anyhow::anyhow;
 use edr_eth::{serde::ZeroXPrefixedBytes, Address, Bytes, SpecId, U256};
+use edr_evm::HashMap;
 use edr_rpc_server::{
     AccountConfig as ServerAccountConfig, Config as ServerConfig, RpcForkConfig,
     RpcHardhatNetworkConfig,
@@ -65,6 +66,7 @@ impl ConfigFile {
                 .into_iter()
                 .map(ServerAccountConfig::try_from)
                 .collect::<Result<Vec<_>, _>>()?,
+            genesis_accounts: HashMap::default(),
             allow_unlimited_contract_size: cli_args.allow_unlimited_contract_size
                 || self.allow_unlimited_contract_size,
             block_gas_limit: self.block_gas_limit.into(),

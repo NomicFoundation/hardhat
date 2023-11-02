@@ -2,6 +2,7 @@ mod eip155;
 mod eip1559;
 mod eip2930;
 mod eip4844;
+mod fake_signature;
 mod legacy;
 
 use k256::SecretKey;
@@ -11,7 +12,7 @@ pub use self::{
     eip2930::EIP2930TransactionRequest, eip4844::Eip4844TransactionRequest,
     legacy::LegacyTransactionRequest,
 };
-use crate::{signature::SignatureError, transaction::SignedTransaction};
+use crate::{signature::SignatureError, transaction::SignedTransaction, Address};
 
 /// Container type for various Ethereum transaction requests
 ///
@@ -42,5 +43,15 @@ impl TransactionRequest {
             TransactionRequest::EIP1559(transaction) => transaction.sign(secret_key)?.into(),
             TransactionRequest::Eip4844(transaction) => transaction.sign(secret_key)?.into(),
         })
+    }
+
+    pub fn fake_sign(self, sender: &Address) -> SignedTransaction {
+        match self {
+            TransactionRequest::Legacy(transaction) => transaction.fake_sign(sender).into(),
+            TransactionRequest::EIP155(transaction) => transaction.fake_sign(sender).into(),
+            TransactionRequest::EIP2930(transaction) => transaction.fake_sign(sender).into(),
+            TransactionRequest::EIP1559(transaction) => transaction.fake_sign(sender).into(),
+            TransactionRequest::Eip4844(transaction) => transaction.fake_sign(sender).into(),
+        }
     }
 }

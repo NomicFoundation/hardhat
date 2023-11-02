@@ -8,6 +8,7 @@ import {
 import {
   Address,
   arrToBufArr,
+  bufferToBigInt,
   bufferToInt,
 } from "@nomicfoundation/ethereumjs-util";
 
@@ -110,8 +111,8 @@ export class FakeSenderEIP1559Transaction extends FeeMarketEIP1559Transaction {
         data: data ?? Buffer.from([]),
         accessList: accessList ?? [],
         v: v !== undefined ? bufferToInt(v) : undefined, // EIP1559 supports v's with value 0 (empty Buffer)
-        r: r !== undefined && r.length !== 0 ? bufferToInt(r) : undefined,
-        s: s !== undefined && s.length !== 0 ? bufferToInt(s) : undefined,
+        r: r !== undefined && r.length !== 0 ? bufferToBigInt(r) : undefined,
+        s: s !== undefined && s.length !== 0 ? bufferToBigInt(s) : undefined,
       },
       opts
     );
@@ -124,7 +125,7 @@ export class FakeSenderEIP1559Transaction extends FeeMarketEIP1559Transaction {
     data: FeeMarketEIP1559TxData = {},
     opts?: TxOptions
   ) {
-    const fakeSignature = makeFakeSignature(data, sender);
+    const fakeSignature = makeFakeSignature(sender);
 
     super(
       {

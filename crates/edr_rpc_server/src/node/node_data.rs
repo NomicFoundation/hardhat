@@ -6,7 +6,7 @@ use std::{
 use edr_eth::{
     remote::{filter::FilteredEvents, BlockSpec, BlockTag, Eip1898BlockSpec, RpcClient},
     signature::public_key_to_address,
-    transaction::{EthTransactionRequest, SignedTransaction},
+    transaction::EthTransactionRequest,
     Address, SpecId, B256, U256,
 };
 use edr_evm::{
@@ -82,16 +82,12 @@ impl NodeData {
 impl NodeData {
     pub fn add_pending_transaction(
         &mut self,
-        transaction: SignedTransaction,
+        transaction: PendingTransaction,
     ) -> Result<B256, NodeError> {
         let transaction_hash = *transaction.hash();
 
-        let pending_transaction =
-            PendingTransaction::new(&self.state, self.evm_config.spec_id, transaction)?;
-
         // Handles validation
-        self.mem_pool
-            .add_transaction(&self.state, pending_transaction)?;
+        self.mem_pool.add_transaction(&self.state, transaction)?;
 
         for filter in self.filters.values_mut() {
             if let FilteredEvents::NewPendingTransactions(events) = &mut filter.events {
@@ -184,22 +180,36 @@ impl NodeData {
 
     pub fn get_signed_transaction(
         &self,
-        transaction: EthTransactionRequest,
-    ) -> Result<SignedTransaction, NodeError> {
-        let secret_key =
-            self.local_accounts
-                .get(&transaction.from)
-                .ok_or(NodeError::UnknownAddress {
-                    address: transaction.from,
-                })?;
+        transaction_request: EthTransactionRequest,
+    ) -> Result<PendingTransaction, NodeError> {
+        let sender = transaction_request.from;
 
-        let typed_transaction = transaction
+        let typed_transaction = transaction_request
             .into_typed_request()
             .ok_or(NodeError::InvalidTransactionRequest)?;
 
-        // TODO handle transactions from impersonated accounts
-        // https://github.com/NomicFoundation/edr/issues/222
-        Ok(typed_transaction.sign(secret_key)?)
+        if self.impersonated_accounts.contains(&sender) {
+            let signed_transaction = typed_transaction.fake_sign(&sender);
+
+            Ok(PendingTransaction::with_caller(
+                &*self.state,
+                self.evm_config.spec_id,
+                signed_transaction,
+                sender,
+            )?)
+        } else {
+            let secret_key = self
+                .local_accounts
+                .get(&sender)
+                .ok_or(NodeError::UnknownAddress { address: sender })?;
+
+            let signed_transaction = typed_transaction.sign(secret_key)?;
+            Ok(PendingTransaction::new(
+                &*self.state,
+                self.evm_config.spec_id,
+                signed_transaction,
+            )?)
+        }
     }
 
     pub fn new_pending_transaction_filter(&mut self) -> U256 {
@@ -325,7 +335,7 @@ struct InitialAccounts {
 
 fn create_accounts(config: &Config) -> InitialAccounts {
     let mut local_accounts = IndexMap::default();
-    let mut genesis_accounts = HashMap::default();
+    let mut genesis_accounts = config.genesis_accounts.clone();
 
     for account_config in &config.accounts {
         let AccountConfig {
@@ -453,29 +463,43 @@ mod tests {
     use tempfile::TempDir;
 
     use super::*;
-    use crate::config::test_tools::create_test_config;
+    use crate::config::test_tools::create_test_config_with_impersonated_accounts;
 
     struct NodeDataTestFixture {
         // We need to keep the tempdir alive for the duration of the test
         _cache_dir: TempDir,
         node_data: NodeData,
+        impersonated_account: Address,
     }
 
     impl NodeDataTestFixture {
         async fn new() -> Result<Self> {
             let cache_dir = TempDir::new()?;
-            let config = create_test_config(cache_dir.path().to_path_buf());
-            let node_data = NodeData::new(&config).await?;
+
+            let impersonated_account = Address::random();
+            let config = create_test_config_with_impersonated_accounts(
+                cache_dir.path().to_path_buf(),
+                vec![impersonated_account],
+            );
+
+            let mut node_data = NodeData::new(&config).await?;
+            node_data.impersonated_accounts.insert(impersonated_account);
 
             Ok(Self {
                 _cache_dir: cache_dir,
+                impersonated_account,
                 node_data,
             })
         }
 
         fn dummy_transaction_request(&self) -> EthTransactionRequest {
             EthTransactionRequest {
-                from: *self.node_data.local_accounts.keys().next().unwrap(),
+                from: *self
+                    .node_data
+                    .local_accounts
+                    .keys()
+                    .next()
+                    .expect("there are local accounts"),
                 to: Some(Address::zero()),
                 gas: Some(100_000),
                 gas_price: Some(U256::from(1)),
@@ -489,17 +513,50 @@ mod tests {
             }
         }
 
-        fn signed_dummy_transaction(&self) -> Result<SignedTransaction> {
+        fn signed_dummy_transaction(&self) -> Result<PendingTransaction> {
             let transaction = self.dummy_transaction_request();
+            Ok(self.node_data.get_signed_transaction(transaction)?)
+        }
+
+        fn impersonated_dummy_transaction(&self) -> Result<PendingTransaction> {
+            let mut transaction = self.dummy_transaction_request();
+
+            transaction.from = self.impersonated_account;
+
             Ok(self.node_data.get_signed_transaction(transaction)?)
         }
     }
 
     #[tokio::test]
-    async fn add_pending_transaction() -> Result<()> {
-        let mut fixture = NodeDataTestFixture::new().await?;
-        let transaction = fixture.signed_dummy_transaction()?;
+    async fn test_get_signed_transaction() -> Result<()> {
+        let fixture = NodeDataTestFixture::new().await?;
 
+        let transaction = fixture.signed_dummy_transaction()?;
+        let recovered_address = transaction.recover()?;
+
+        assert!(fixture
+            .node_data
+            .local_accounts
+            .contains_key(&recovered_address));
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_get_signed_transaction_impersonated_account() -> Result<()> {
+        let fixture = NodeDataTestFixture::new().await?;
+
+        let transaction = fixture.impersonated_dummy_transaction()?;
+
+        assert_eq!(transaction.caller(), &fixture.impersonated_account);
+
+        Ok(())
+    }
+
+    fn test_add_pending_transaction(
+        mut fixture: NodeDataTestFixture,
+        transaction: PendingTransaction,
+    ) -> Result<()> {
         let filter_id = fixture.node_data.new_pending_transaction_filter();
 
         let transaction_hash = fixture.node_data.add_pending_transaction(transaction)?;
@@ -518,6 +575,22 @@ mod tests {
         };
 
         Ok(())
+    }
+
+    #[tokio::test]
+    async fn add_pending_transaction() -> Result<()> {
+        let fixture = NodeDataTestFixture::new().await?;
+        let transaction = fixture.signed_dummy_transaction()?;
+
+        test_add_pending_transaction(fixture, transaction)
+    }
+
+    #[tokio::test]
+    async fn add_pending_transaction_from_impersonated_account() -> Result<()> {
+        let fixture = NodeDataTestFixture::new().await?;
+        let transaction = fixture.impersonated_dummy_transaction()?;
+
+        test_add_pending_transaction(fixture, transaction)
     }
 
     #[tokio::test]

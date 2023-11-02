@@ -15,7 +15,7 @@ use edr_eth::{
 };
 use edr_evm::{
     blockchain::BlockchainError, state::AccountModifierFn, AccountInfo, Block, Bytecode,
-    MineBlockResult, KECCAK_EMPTY,
+    MineBlockResult, PendingTransaction, KECCAK_EMPTY,
 };
 use k256::SecretKey;
 use tokio::sync::Mutex;
@@ -274,7 +274,13 @@ impl Node {
 
         let mut node_data = self.lock_data().await;
 
-        node_data.add_pending_transaction(signed_transaction)
+        let pending_transaction = PendingTransaction::new(
+            &node_data.state,
+            node_data.evm_config.spec_id,
+            signed_transaction,
+        )?;
+
+        node_data.add_pending_transaction(pending_transaction)
     }
 
     pub async fn set_balance(&self, address: Address, balance: U256) -> Result<(), NodeError> {
