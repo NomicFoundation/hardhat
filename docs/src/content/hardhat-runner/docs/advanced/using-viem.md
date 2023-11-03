@@ -124,6 +124,26 @@ Use the `hre.viem` object to get these helpers, similar to how clients are used.
 
 4. Open your terminal and run `npx hardhat run scripts/contracts.ts`. This will deploy the `MyToken` contract, call the `increaseSupply()` function, and display the new supply in your terminal.
 
+#### Contract Type Generation
+
+The proper types for each contract are generated during compilation. These types are used to overload the `hardhat-viem` types and improve type checking and suggestions. For example, if you copy and paste the following code at the end of the `main()` function of `scripts/contracts.ts`, TypeScript would highlight it as an error:
+
+```tsx
+// The amount is required as a parameter
+// TS Error: Expected 1-2 arguments, but got 0.
+await myToken.write.increaseSupply();
+
+// There is no setSupply function in the MyToken contract
+// TS Error: Property 'setSupply' does not exist on type...
+const tokenPrice = await myToken.write.setSupply([5000000n]);
+
+// The first argument of the constructor arguments is expected to be an bigint
+// TS Error: No overload matches this call.
+const myToken2 = await hre.viem.deployContract("MyToken", ["1000000"]);
+```
+
+If you want to learn more about working with contracts, you can visit the [`hardhat-viem` plugin site](/hardhat-runner/plugins/nomicfoundation-hardhat-viem#contracts) and [Viem's official site](https://viem.sh/docs/contract/getContract.html).
+
 ### Testing
 
 In this example, we’ll test the `MyToken` contract, covering scenarios like supply increase and expected operation reverts.
