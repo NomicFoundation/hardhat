@@ -147,8 +147,8 @@ where
                 };
 
                 // Invert lhs and rhs to get decreasing order by effective miner fee
-                let ordering = effective_miner_fee(rhs.transaction())
-                    .cmp(&effective_miner_fee(lhs.transaction()));
+                let ordering =
+                    effective_miner_fee(rhs.pending()).cmp(&effective_miner_fee(lhs.pending()));
 
                 // If two txs have the same effective miner fee we want to sort them
                 // in increasing order by orderId

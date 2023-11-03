@@ -126,7 +126,7 @@ impl OrderedTransaction {
     }
 
     /// Retrieves the pending transaction.
-    pub fn transaction(&self) -> &PendingTransaction {
+    pub fn pending(&self) -> &PendingTransaction {
         &self.transaction
     }
 
@@ -218,7 +218,7 @@ impl MemPool {
             .values()
             .chain(self.future_transactions.values())
             .flatten()
-            .map(OrderedTransaction::transaction)
+            .map(OrderedTransaction::pending)
     }
 
     /// Whether the instance has any future transactions; i.e. for which the
@@ -337,15 +337,18 @@ impl MemPool {
         ) -> bool {
             transaction.gas_limit() <= block_gas_limit
                 && transaction.upfront_cost() <= sender.balance
+                // Remove all finalized transactions
+                && transaction.nonce() >= sender.nonce
         }
 
         for entry in self.pending_transactions.iter_mut() {
             let (caller, transactions) = entry;
             let sender = state.basic(*caller)?.unwrap_or_default();
 
-            // Remove all finalized transactions
+            // Remove invalidated transactions
             transactions.retain(|transaction| {
-                let should_retain = transaction.nonce() >= sender.nonce;
+                let should_retain =
+                    is_valid_tx(transaction.pending(), self.block_gas_limit, &sender);
 
                 if !should_retain {
                     self.hash_to_transaction.remove(transaction.hash());
@@ -354,9 +357,13 @@ impl MemPool {
                 should_retain
             });
 
-            if let Some((idx, _)) = transactions.iter().enumerate().find(|(_, transaction)| {
-                !is_valid_tx(&transaction.transaction, self.block_gas_limit, &sender)
-            }) {
+            // Check that the pending transactions still have consecutive nonces, starting
+            // from the sender's nonce
+            if let Some((idx, _)) = transactions
+                .iter()
+                .enumerate()
+                .find(|(idx, transaction)| transaction.nonce() != sender.nonce + *idx as u64)
+            {
                 // Move all consequent transactions to the future queue
                 let mut invalidated_transactions = transactions.split_off(idx);
 
