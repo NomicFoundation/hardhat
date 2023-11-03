@@ -1,7 +1,4 @@
 use std::{collections::BTreeMap, path::Path};
-
-use anyhow::Result;
-
 #[derive(Debug, PartialEq, Eq, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct TestRun {
@@ -13,20 +10,17 @@ struct TestRun {
     speed: Option<String>,
     err: serde_json::Value,
 }
-
 #[derive(Debug, PartialEq, Eq, serde::Deserialize)]
 struct TestRuns {
     tests: Vec<TestRun>,
 }
-
 #[derive(Debug)]
 struct Diff {
     test_title: String,
     absolute_diff: u32,
     increase_percent: f64,
 }
-
-pub(crate) fn compare(baseline: &Path, candidate: &Path) -> Result<()> {
+pub(crate) fn compare(baseline: &Path, candidate: &Path) -> anyhow::Result<()> {
     let baseline_runs = read_test_runs(baseline)?;
     let candidate_runs = read_test_runs(candidate)?;
     let mut diffs = Vec::new();
@@ -67,8 +61,7 @@ pub(crate) fn compare(baseline: &Path, candidate: &Path) -> Result<()> {
 
     Ok(())
 }
-
-fn read_test_runs(json_path: &Path) -> Result<BTreeMap<String, TestRun>> {
+fn read_test_runs(json_path: &Path) -> anyhow::Result<BTreeMap<String, TestRun>> {
     let runs: TestRuns = serde_json::from_reader(std::fs::File::open(json_path)?)?;
     let result = runs
         .tests

@@ -1,11 +1,14 @@
 use std::sync::OnceLock;
 
 use k256::SecretKey;
-use revm_primitives::{keccak256, ruint::aliases::U64, Bytes, B256, U256};
+use revm_primitives::{keccak256, ruint::aliases::U64, Address, Bytes, B256, U256};
 
 use crate::{
     signature::{Signature, SignatureError},
-    transaction::{kind::TransactionKind, signed::EIP155SignedTransaction},
+    transaction::{
+        kind::TransactionKind, request::fake_signature::make_fake_signature,
+        signed::EIP155SignedTransaction,
+    },
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -30,7 +33,7 @@ impl EIP155TransactionRequest {
         let hash = self.hash();
 
         let mut signature = Signature::new(hash, secret_key)?;
-        signature.v += self.chain_id * 2 + 35 - 27;
+        signature.v += self.v_value_adjustment();
 
         Ok(EIP155SignedTransaction {
             nonce: self.nonce,
@@ -42,6 +45,29 @@ impl EIP155TransactionRequest {
             signature,
             hash: OnceLock::new(),
         })
+    }
+
+    /// Creates a fake signature for an impersonated account.
+    pub fn fake_sign(self, address: &Address) -> EIP155SignedTransaction {
+        let mut signature = make_fake_signature::<0>(address);
+        signature.v += self.v_value_adjustment();
+
+        EIP155SignedTransaction {
+            nonce: self.nonce,
+            gas_price: self.gas_price,
+            gas_limit: self.gas_limit,
+            kind: self.kind,
+            value: self.value,
+            input: self.input,
+            signature,
+            hash: OnceLock::new(),
+        }
+    }
+
+    fn v_value_adjustment(&self) -> u64 {
+        // `CHAIN_ID * 2 + 35` comes from EIP-155 and we subtract the Bitcoin magic
+        // number 27, because `Signature::new` adds that.
+        self.chain_id * 2 + 35 - 27
     }
 }
 
@@ -82,6 +108,7 @@ mod tests {
     use revm_primitives::Address;
 
     use super::*;
+    use crate::transaction::request::fake_signature::tests::test_fake_sign_properties;
 
     fn dummy_request() -> EIP155TransactionRequest {
         let to = Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e").unwrap();
@@ -120,5 +147,30 @@ mod tests {
 
         let request = dummy_request();
         assert_eq!(expected, request.hash());
+    }
+
+    test_fake_sign_properties!();
+
+    #[test]
+    fn test_fake_sign_test_vector() -> anyhow::Result<()> {
+        let transaction = EIP155TransactionRequest {
+            nonce: 0,
+            gas_price: U256::from(678_912),
+            gas_limit: 30_000,
+            kind: TransactionKind::Call("0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead".parse()?),
+            value: U256::from(1),
+            input: Bytes::default(),
+            chain_id: 123,
+        };
+
+        let fake_sender: Address = "0xa5bc06d4548a3ac17d72b372ae1e416bf65b8ead".parse()?;
+
+        let signed = transaction.fake_sign(&fake_sender);
+
+        let expected_hash: B256 =
+            "bcdd3230665912079522dfbfe605e70443c81bf78db768a688a8d8007accf14b".parse()?;
+        assert_eq!(signed.hash(), &expected_hash);
+
+        Ok(())
     }
 }

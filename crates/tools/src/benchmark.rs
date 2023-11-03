@@ -1,9 +1,11 @@
 use std::{io::Write, path::PathBuf};
 
-use anyhow::Result;
-
 /// Run a command iterations times and print the time it takes to run each time.
-pub(crate) fn run(working_directory: PathBuf, test_command: &str, iterations: usize) -> Result<()> {
+pub(crate) fn run(
+    working_directory: PathBuf,
+    test_command: &str,
+    iterations: usize,
+) -> anyhow::Result<()> {
     let mut deltas = Vec::new();
 
     // Run test command in working directory iterations times and capture the time

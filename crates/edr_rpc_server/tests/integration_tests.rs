@@ -1,6 +1,5 @@
 use std::{net::SocketAddr, str::FromStr};
 
-use anyhow::Result;
 use edr_eth::{
     remote::{
         client::Request as RpcRequest,
@@ -45,7 +44,7 @@ async fn start_server() -> TestFixture {
 async fn submit_request<ResponseT>(
     fixture: &TestFixture,
     method: MethodInvocation,
-) -> Result<RequestResponse<ResponseT>>
+) -> anyhow::Result<RequestResponse<ResponseT>>
 where
     ResponseT: serde::de::DeserializeOwned + std::fmt::Debug + PartialEq,
 {
@@ -114,7 +113,7 @@ async fn verify_response<ResponseT>(
 async fn verify_response_shape<ResponseT>(
     fixture: &TestFixture,
     method: MethodInvocation,
-) -> Result<()>
+) -> anyhow::Result<()>
 where
     ResponseT: serde::de::DeserializeOwned + std::fmt::Debug + PartialEq,
 {
@@ -408,7 +407,7 @@ fn dummy_transaction_request() -> EthTransactionRequest {
 }
 
 #[tokio::test]
-async fn test_send_transaction() -> Result<()> {
+async fn test_send_transaction() -> anyhow::Result<()> {
     verify_response_shape::<B256>(
         &start_server().await,
         MethodInvocation::Eth(EthMethodInvocation::SendTransaction(
@@ -419,7 +418,7 @@ async fn test_send_transaction() -> Result<()> {
 }
 
 #[tokio::test]
-async fn test_send_raw_transaction() -> Result<()> {
+async fn test_send_raw_transaction() -> anyhow::Result<()> {
     let transaction = dummy_transaction_request()
         .into_typed_request()
         .ok_or(anyhow::anyhow!("failed to convert transaction request"))?;

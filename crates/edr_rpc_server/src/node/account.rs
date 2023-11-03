@@ -11,7 +11,7 @@ pub(super) struct InitialAccounts {
 
 pub(super) fn create_accounts(config: &Config) -> InitialAccounts {
     let mut local_accounts = IndexMap::default();
-    let mut genesis_accounts = HashMap::default();
+    let mut genesis_accounts = config.genesis_accounts.clone();
 
     for account_config in &config.accounts {
         let AccountConfig {

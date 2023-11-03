@@ -31,6 +31,7 @@ triehash = { version = "0.8.4", default-features = false }
 uuid = { version = "1.4.1", default-features = false, features = ["v4"]}
 
 [dev-dependencies]
+anyhow = "1.0.75"
 lazy_static = "1.4.0"
 mockito = { version = "1.0.2", default-features = false }
 paste = { version = "1.0.14", default-features = false }

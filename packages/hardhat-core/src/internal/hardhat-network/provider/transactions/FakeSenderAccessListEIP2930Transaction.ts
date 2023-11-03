@@ -9,6 +9,7 @@ import {
 import {
   Address,
   arrToBufArr,
+  bufferToBigInt,
   bufferToInt,
 } from "@nomicfoundation/ethereumjs-util";
 
@@ -109,8 +110,8 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
         data: data ?? Buffer.from([]),
         accessList: accessList ?? [],
         v: v !== undefined ? bufferToInt(v) : undefined, // EIP2930 supports v's with value 0 (empty Buffer)
-        r: r !== undefined && r.length !== 0 ? bufferToInt(r) : undefined,
-        s: s !== undefined && s.length !== 0 ? bufferToInt(s) : undefined,
+        r: r !== undefined && r.length !== 0 ? bufferToBigInt(r) : undefined,
+        s: s !== undefined && s.length !== 0 ? bufferToBigInt(s) : undefined,
       },
       opts
     );
@@ -125,7 +126,7 @@ export class FakeSenderAccessListEIP2930Transaction extends AccessListEIP2930Tra
     data: AccessListEIP2930TxData = {},
     opts?: TxOptions
   ) {
-    const fakeSignature = makeFakeSignature(data, sender);
+    const fakeSignature = makeFakeSignature(sender);
 
     super(
       {
