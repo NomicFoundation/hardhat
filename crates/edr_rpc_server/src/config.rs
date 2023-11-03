@@ -1,7 +1,7 @@
 use std::{net::SocketAddr, path::PathBuf, time::SystemTime};
 
 use edr_eth::{Address, SpecId, U256};
-use edr_evm::{AccountInfo, HashMap, KECCAK_EMPTY};
+use edr_evm::{AccountInfo, HashMap};
 
 pub use crate::hardhat_methods::reset::{RpcForkConfig, RpcHardhatNetworkConfig};
 
@@ -37,6 +37,7 @@ pub mod test_tools {
     use std::net::{IpAddr, Ipv4Addr};
 
     use edr_eth::signature::secret_key_from_str;
+    use edr_evm::KECCAK_EMPTY;
 
     use super::*;
 

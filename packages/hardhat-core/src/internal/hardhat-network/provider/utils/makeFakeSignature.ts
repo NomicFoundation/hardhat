@@ -1,7 +1,5 @@
 import { Address } from "@nomicfoundation/ethereumjs-util";
 
-import { createNonCryptographicHashBasedIdentifier } from "../../../util/hash";
-
 // Must match the EDR implementation to make sure that transaction hashes and by
 // extension block hashes match for identical input.
 //
