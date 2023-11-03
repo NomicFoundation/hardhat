@@ -209,6 +209,31 @@ describe("Compiler downloader", function () {
       assert.isTrue(await mockDownloader.isCompilerDownloaded("0.4.12"));
     });
 
+    it("should execute both the callback before downloading the compiler and the callback after downloading the compiler", async function () {
+      const VERSION = "0.4.12";
+
+      let value = 0;
+
+      await downloader.downloadCompiler(
+        VERSION,
+        // downloadStartedCb
+        async () => {
+          // Check that the callback is executed before downloading the compiler
+          value++;
+          assert.isFalse(await downloader.isCompilerDownloaded(VERSION));
+        },
+        // downloadEndedCb
+        async () => {
+          // Check that the callback is executed after downloading the compiler
+          value++;
+          assert.isDefined(downloader.getCompiler(VERSION));
+        }
+      );
+
+      // Check that both callbacks have been called
+      assert(value === 2);
+    });
+
     describe("multiple downloads", function () {
       it("should not download multiple times the same compiler", async function () {
         // The intention is for the value to be 1 if the compiler is downloaded only once.
