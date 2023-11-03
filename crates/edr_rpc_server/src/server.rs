@@ -14,7 +14,7 @@ use edr_eth::{
         filter::{FilteredEvents, LogOutput},
         jsonrpc,
         jsonrpc::{Response, ResponseData},
-        methods::{MethodInvocation as EthMethodInvocation, U64OrUsize},
+        methods::{CallInput, MethodInvocation as EthMethodInvocation, U64OrUsize},
         BlockSpec,
     },
     serde::ZeroXPrefixedBytes,
@@ -84,6 +84,22 @@ async fn handle_block_number(node: Arc<Mutex<Node>>) -> ResponseData<U64> {
     let node = node.lock().await;
     ResponseData::Success {
         result: U64::from(node.block_number().await),
+    }
+}
+
+async fn handle_call(
+    node: Arc<Mutex<Node>>,
+    input: CallInput,
+    block_spec: Option<BlockSpec>,
+) -> ResponseData<ZeroXPrefixedBytes> {
+    event!(Level::INFO, "eth_call({input:?}, {block_spec:?})");
+
+    let node = node.lock().await;
+    match node.run_call(input, block_spec.as_ref()).await {
+        Ok(result) => ResponseData::Success {
+            result: result.into(),
+        },
+        Err(e) => error_response_data(-32_000, &format!("call failed with error: {e}")),
     }
 }
 
@@ -549,6 +565,9 @@ async fn handle_request(
                 }
                 MethodInvocation::Eth(EthMethodInvocation::BlockNumber()) => {
                     response(id, handle_block_number(node).await)
+                }
+                MethodInvocation::Eth(EthMethodInvocation::Call(transaction, block_spec)) => {
+                    response(id, handle_call(node, transaction, block_spec).await)
                 }
                 MethodInvocation::Eth(EthMethodInvocation::ChainId()) => {
                     response(id, handle_chain_id(node).await)

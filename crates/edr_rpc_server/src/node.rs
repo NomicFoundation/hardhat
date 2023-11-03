@@ -7,8 +7,10 @@ use std::{
 };
 
 use edr_eth::{
+    block::BlobGas,
     remote::{
         filter::{FilteredEvents, LogOutput},
+        methods::CallInput,
         BlockSpec, BlockTag, Eip1898BlockSpec, RpcClient,
     },
     serde::ZeroXPrefixedBytes,
@@ -19,9 +21,14 @@ use edr_eth::{
 use edr_evm::{
     blockchain::{Blockchain, BlockchainError, ForkedBlockchain, LocalBlockchain, SyncBlockchain},
     mine_block,
-    state::{AccountModifierFn, AccountTrie, IrregularState, StateError, SyncState, TrieState},
-    AccountInfo, Block, Bytecode, CfgEnv, HashMap, HashSet, MemPool, MineBlockResult,
-    MineBlockResultAndState, MineOrdering, PendingTransaction, RandomHashGenerator, KECCAK_EMPTY,
+    state::{
+        AccountModifierFn, AccountTrie, IrregularState, StateError, StateOverrides, SyncState,
+        TrieState,
+    },
+    AccountInfo, BlobExcessGasAndPrice, Block, BlockEnv, Bytecode, CfgEnv, HashMap, HashSet,
+    InspectorContainer, MemPool, MineBlockResult, MineBlockResultAndState, MineOrdering,
+    PendingTransaction, RandomHashGenerator, ResultAndState, SyncBlock, TransactTo, TxEnv,
+    KECCAK_EMPTY,
 };
 use indexmap::IndexMap;
 
@@ -93,7 +100,7 @@ impl Node {
         address: Address,
         block_spec: Option<&BlockSpec>,
     ) -> Result<U256, NodeError> {
-        self.execute_in_block_state::<Result<U256, NodeError>>(block_spec, move |state| {
+        self.execute_in_block_state::<Result<U256, NodeError>>(block_spec, move |state, _| {
             Ok(state
                 .basic(address)?
                 .map_or(U256::ZERO, |account| account.balance))
@@ -120,7 +127,7 @@ impl Node {
     ) -> Result<ZeroXPrefixedBytes, NodeError> {
         self.execute_in_block_state::<Result<ZeroXPrefixedBytes, NodeError>>(
             block_spec,
-            move |state| {
+            move |state, _| {
                 let bytecode = state
                     .basic(address)?
                     .map_or(Ok(Bytes::new()), |account_info| {
@@ -163,7 +170,7 @@ impl Node {
         position: U256,
         block_spec: Option<&BlockSpec>,
     ) -> Result<U256, NodeError> {
-        self.execute_in_block_state::<Result<U256, NodeError>>(block_spec, move |state| {
+        self.execute_in_block_state::<Result<U256, NodeError>>(block_spec, move |state, _| {
             Ok(state.storage(address, position)?)
         })
         .await?
@@ -174,7 +181,7 @@ impl Node {
         address: Address,
         block_spec: Option<&BlockSpec>,
     ) -> Result<u64, NodeError> {
-        self.execute_in_block_state::<Result<u64, NodeError>>(block_spec, move |state| {
+        self.execute_in_block_state::<Result<u64, NodeError>>(block_spec, move |state, _| {
             let nonce = state
                 .basic(address)?
                 .map_or(0, |account_info| account_info.nonce);
@@ -258,6 +265,84 @@ impl Node {
 
     pub fn remove_subscription(&mut self, filter_id: &U256) -> bool {
         self.remove_filter_impl::</* IS_SUBSCRIPTION */ true>(filter_id)
+    }
+
+    pub async fn run_call(
+        &self,
+        input: CallInput,
+        block_spec: Option<&BlockSpec>,
+    ) -> Result<Bytes, NodeError> {
+        // TODO
+        let mut container = InspectorContainer::new(/* with_trace */ false, None);
+
+        let result = self
+            .execute_in_block_state(block_spec, move |state, block| async move {
+                let header = block.header();
+
+                let block_env = BlockEnv {
+                    number: U256::from(header.number),
+                    coinbase: header.beneficiary,
+                    timestamp: U256::from(header.timestamp),
+                    gas_limit: U256::from(header.gas_limit),
+                    basefee: header
+                        .base_fee_per_gas
+                        .unwrap_or_else(|| BlockEnv::default().basefee),
+                    difficulty: header.difficulty,
+                    prevrandao: if self.evm_config.spec_id >= SpecId::MERGE {
+                        Some(header.mix_hash)
+                    } else {
+                        None
+                    },
+                    blob_excess_gas_and_price: header
+                        .blob_gas
+                        .as_ref()
+                        .map(|BlobGas { excess_gas, .. }| BlobExcessGasAndPrice::new(*excess_gas)),
+                };
+
+                let transact_to =
+                    TransactTo::Call(input.to.ok_or_else(|| NodeError::MissingToField {
+                        call_input: input.clone(),
+                    })?);
+
+                let tx_env = TxEnv {
+                    // Matches https://github.com/NomicFoundation/hardhat/blob/e51fb57185bb1554f158ac8e841695d95fc32495/packages/hardhat-core/src/internal/hardhat-network/provider/modules/base.ts#L93
+                    caller: input.from.unwrap_or_else(|| self.default_call_from()),
+                    // Matches https://github.com/NomicFoundation/hardhat/blob/e51fb57185bb1554f158ac8e841695d95fc32495/packages/hardhat-core/src/internal/hardhat-network/provider/modules/base.ts#L101C29-L101C29
+                    gas_limit: input.gas.unwrap_or(header.gas_limit),
+                    gas_price: input.gas_price.unwrap_or_default(),
+                    transact_to,
+                    value: input.value.unwrap_or_default(),
+                    data: input.data.map(Into::into).unwrap_or_default(),
+                    nonce: None,
+                    chain_id: Some(self.chain_id()),
+                    access_list: input
+                        .access_list
+                        .map(|list| list.into_iter().map(Into::into).collect())
+                        .unwrap_or_default(),
+                    gas_priority_fee: input.max_priority_fee_per_gas,
+                    blob_hashes: vec![],
+                    max_fee_per_blob_gas: None,
+                };
+
+                let evm_config = self.evm_config.clone();
+
+                let ResultAndState { result, .. } = edr_evm::guaranteed_dry_run(
+                    &*self.blockchain,
+                    &*state,
+                    &StateOverrides::default(),
+                    evm_config,
+                    tx_env,
+                    block_env,
+                    container.as_dyn_inspector(),
+                )
+                .await?;
+
+                Ok::<_, NodeError>(result.into_output())
+            })
+            .await?
+            .await?;
+
+        Ok(result.unwrap_or_default())
     }
 
     pub fn send_transaction(
@@ -419,14 +504,26 @@ impl Node {
     async fn execute_in_block_state<T>(
         &self,
         block_spec: Option<&BlockSpec>,
-        function: impl FnOnce(Box<dyn SyncState<StateError>>) -> T,
+        function: impl FnOnce(
+            Box<dyn SyncState<StateError>>,
+            Arc<dyn SyncBlock<Error = BlockchainError>>,
+        ) -> T,
     ) -> Result<T, NodeError> {
-        let contextual_state = self.state_by_block_spec(block_spec).await?;
+        let StateByBlockSpec { state, block } = self.state_by_block_spec(block_spec).await?;
 
         // Execute function in the requested block context.
-        let result = function(contextual_state);
+        let result = function(state, block);
 
         Ok(result)
+    }
+
+    // Matches https://github.com/NomicFoundation/hardhat/blob/e51fb57185bb1554f158ac8e841695d95fc32495/packages/hardhat-core/src/internal/hardhat-network/provider/modules/base.ts#L149
+    fn default_call_from(&self) -> Address {
+        self.local_accounts
+            .keys()
+            .next()
+            .copied()
+            .unwrap_or_default()
     }
 
     /// Mine a block at a specific timestamp
@@ -569,7 +666,7 @@ impl Node {
     async fn state_by_block_spec(
         &self,
         block_spec: Option<&BlockSpec>,
-    ) -> Result<Box<dyn SyncState<StateError>>, NodeError> {
+    ) -> Result<StateByBlockSpec, NodeError> {
         let block = if let Some(block_spec) = block_spec {
             match block_spec {
                 BlockSpec::Number(block_number) => self
@@ -591,7 +688,10 @@ impl Node {
                 }
                 BlockSpec::Tag(BlockTag::Pending) => {
                     let result = self.mine_pending_block().await?;
-                    return Ok(result.state);
+                    return Ok(StateByBlockSpec {
+                        state: result.state,
+                        block: Arc::new(result.block),
+                    });
                 }
                 BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
                     block_hash,
@@ -615,7 +715,7 @@ impl Node {
 
         let block_header = block.header();
 
-        let contextual_state = if let Some(irregular_state) = self
+        let state = if let Some(irregular_state) = self
             .irregular_state
             .state_by_block_number(block_header.number)
             .cloned()
@@ -627,8 +727,13 @@ impl Node {
                 .await?
         };
 
-        Ok(contextual_state)
+        Ok(StateByBlockSpec { state, block })
     }
+}
+
+struct StateByBlockSpec {
+    state: Box<dyn SyncState<StateError>>,
+    block: Arc<dyn SyncBlock<Error = BlockchainError>>,
 }
 
 fn block_time_offset_seconds(config: &Config) -> Result<u64, NodeError> {
@@ -764,12 +869,7 @@ mod tests {
 
         fn dummy_transaction_request(&self) -> EthTransactionRequest {
             EthTransactionRequest {
-                from: *self
-                    .node_data
-                    .local_accounts
-                    .keys()
-                    .next()
-                    .expect("there are local accounts"),
+                from: self.local_account(),
                 to: Some(Address::zero()),
                 gas: Some(100_000),
                 gas_price: Some(U256::from(1)),
@@ -781,6 +881,15 @@ mod tests {
                 access_list: None,
                 transaction_type: None,
             }
+        }
+
+        fn local_account(&self) -> Address {
+            *self
+                .node_data
+                .local_accounts
+                .keys()
+                .next()
+                .expect("there are local accounts")
         }
 
         fn signed_dummy_transaction(&self) -> anyhow::Result<PendingTransaction> {
@@ -795,32 +904,6 @@ mod tests {
 
             Ok(self.node_data.sign_transaction_request(transaction)?)
         }
-    }
-
-    #[tokio::test]
-    async fn test_sign_transaction_request() -> anyhow::Result<()> {
-        let fixture = NodeTestFixture::new().await?;
-
-        let transaction = fixture.signed_dummy_transaction()?;
-        let recovered_address = transaction.recover()?;
-
-        assert!(fixture
-            .node_data
-            .local_accounts
-            .contains_key(&recovered_address));
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_sign_transaction_request_impersonated_account() -> anyhow::Result<()> {
-        let fixture = NodeTestFixture::new().await?;
-
-        let transaction = fixture.impersonated_dummy_transaction()?;
-
-        assert_eq!(transaction.caller(), &fixture.impersonated_account);
-
-        Ok(())
     }
 
     fn test_add_pending_transaction(
@@ -864,11 +947,56 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn call_transfer() -> Result<()> {
+        let mut fixture = NodeTestFixture::new().await?;
+        fixture.node_data.mine_and_commit_block(None).await?;
+
+        let call_input = CallInput {
+            from: Some(fixture.local_account()),
+            to: Some(Address::zero()),
+            gas: None,
+            gas_price: Some(U256::from(875_000_000)),
+            value: Some(U256::from(1)),
+            data: None,
+            access_list: None,
+            max_fee_per_gas: None,
+            max_priority_fee_per_gas: None,
+        };
+
+        let result = fixture.node_data.run_call(call_input, None).await?;
+        assert!(result.is_empty());
+
+        Ok(())
+    }
+
+    #[tokio::test]
     async fn chain_id() -> anyhow::Result<()> {
         let fixture = NodeTestFixture::new().await?;
 
         let chain_id = fixture.node_data.chain_id();
         assert_eq!(chain_id, fixture.config.chain_id);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn default_call_from() -> anyhow::Result<()> {
+        let fixture = NodeTestFixture::new().await?;
+
+        let from = fixture.node_data.default_call_from();
+
+        assert!(fixture.node_data.local_accounts.contains_key(&from));
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn default_call_from_no_local_accounts() -> anyhow::Result<()> {
+        let mut fixture = NodeTestFixture::new().await?;
+        fixture.node_data.local_accounts = IndexMap::default();
+
+        let from = fixture.node_data.default_call_from();
+        assert_eq!(from, Address::zero());
 
         Ok(())
     }
@@ -883,6 +1011,32 @@ mod tests {
             assert!(prev_filter_id < filter_id);
             prev_filter_id = filter_id;
         }
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn sign_transaction_request() -> anyhow::Result<()> {
+        let fixture = NodeTestFixture::new().await?;
+
+        let transaction = fixture.signed_dummy_transaction()?;
+        let recovered_address = transaction.recover()?;
+
+        assert!(fixture
+            .node_data
+            .local_accounts
+            .contains_key(&recovered_address));
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn sign_transaction_request_impersonated_account() -> anyhow::Result<()> {
+        let fixture = NodeTestFixture::new().await?;
+
+        let transaction = fixture.impersonated_dummy_transaction()?;
+
+        assert_eq!(transaction.caller(), &fixture.impersonated_account);
 
         Ok(())
     }

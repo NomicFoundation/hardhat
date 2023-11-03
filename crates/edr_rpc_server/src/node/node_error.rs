@@ -1,14 +1,19 @@
 use std::time::{SystemTime, SystemTimeError};
 
-use edr_eth::{remote::RpcClientError, transaction::EthTransactionRequest, Address, B256, U256};
+use edr_eth::{
+    remote::{methods::CallInput, RpcClientError},
+    Address, B256, U256,
+};
 use edr_evm::{
     blockchain::{BlockchainError, ForkedCreationError, LocalCreationError},
     state::StateError,
-    MineBlockError, MinerTransactionError, TransactionCreationError,
+    MineBlockError, MinerTransactionError, TransactionCreationError, TransactionError,
 };
 
 #[derive(Debug, thiserror::Error)]
 pub enum NodeError {
+    #[error("The gas limit {gas_limit} doesn't fit into an u64.")]
+    GasLimitTooLarge { gas_limit: U256 },
     #[error("The initial date configuration value {0:?} is in the future")]
     InitialDateInFuture(SystemTime),
     #[error("Could not convert transaction request into a typed request")]
@@ -18,8 +23,8 @@ pub enum NodeError {
     MemPoolUpdate(StateError),
     #[error("Requested to mine too many blocks")]
     MineCountTooLarge { count: U256 },
-    #[error("Requested to mine too many blocks")]
-    MissingSender { transaction: EthTransactionRequest },
+    #[error("Call input is missing to field")]
+    MissingToField { call_input: CallInput },
     #[error("Subscription {filter_id} is not a logs subscription")]
     NotLogSubscription { filter_id: U256 },
     #[error(
@@ -71,6 +76,9 @@ pub enum NodeError {
 
     #[error(transparent)]
     SystemTime(#[from] SystemTimeError),
+
+    #[error(transparent)]
+    TransactionError(#[from] TransactionError<BlockchainError, StateError>),
 
     #[error(transparent)]
     TransactionCreationError(#[from] TransactionCreationError<StateError>),

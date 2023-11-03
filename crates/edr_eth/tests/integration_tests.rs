@@ -4,7 +4,9 @@ use edr_eth::{
         filter::{
             FilterBlockTarget, FilterOptions, LogOutput, OneOrMoreAddresses, SubscriptionType,
         },
-        methods::{GetLogsInput, MethodInvocation, OneUsizeOrTwo, TransactionInput, U64OrUsize},
+        methods::{
+            CallInput, GetLogsInput, MethodInvocation, OneUsizeOrTwo, TransactionInput, U64OrUsize,
+        },
         BlockSpec, BlockTag,
     },
     transaction::EthTransactionRequest,
@@ -27,13 +29,16 @@ fn test_serde_eth_block_number() {
 
 #[test]
 fn test_serde_eth_call() {
-    let tx = TransactionInput {
+    let tx = CallInput {
         from: Some(Address::from_low_u64_ne(1)),
         to: Some(Address::from_low_u64_ne(2)),
-        gas: Some(U256::from(3)),
+        gas: Some(3),
         gas_price: Some(U256::from(4)),
         value: Some(U256::from(123568919)),
         data: Some(Bytes::from(&b"whatever"[..]).into()),
+        access_list: None,
+        max_fee_per_gas: None,
+        max_priority_fee_per_gas: None,
     };
     help_test_method_invocation_serde(MethodInvocation::Call(
         tx.clone(),

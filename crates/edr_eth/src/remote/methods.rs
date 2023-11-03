@@ -1,6 +1,7 @@
 use revm_primitives::ruint::aliases::U64;
 
 use crate::{
+    access_list::AccessListItem,
     remote::{
         eth::eip712,
         filter::{FilterOptions, SubscriptionType},
@@ -33,6 +34,34 @@ pub struct TransactionInput {
     pub data: Option<ZeroXPrefixedBytes>,
 }
 
+/// `eth_call` input
+/// Matches <https://github.com/NomicFoundation/hardhat/blob/e51fb57185bb1554f158ac8e841695d95fc32495/packages/hardhat-core/src/internal/core/jsonrpc/types/input/callRequest.ts#L15>
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CallInput {
+    /// The address from which the transaction should be sent
+    pub from: Option<Address>,
+    /// The address to which the transaction should be sent
+    pub to: Option<Address>,
+    /// Gas limit
+    pub gas: Option<u64>,
+    /// Gas price
+    #[cfg_attr(feature = "serde", serde(default))]
+    pub gas_price: Option<U256>,
+    /// The weis sent with the transaction
+    pub value: Option<U256>,
+    /// Transaction data
+    pub data: Option<ZeroXPrefixedBytes>,
+    /// Transaction access list
+    pub access_list: Option<Vec<AccessListItem>>,
+    /// Max base fee per gas sender is willing to pay
+    #[cfg_attr(feature = "serde", serde(default))]
+    pub max_fee_per_gas: Option<U256>,
+    /// Miner tip
+    #[cfg_attr(feature = "serde", serde(default))]
+    pub max_priority_fee_per_gas: Option<U256>,
+}
+
 mod optional_block_spec_resolved {
     use super::BlockSpec;
 
@@ -58,7 +87,7 @@ pub enum MethodInvocation {
     /// eth_call
     #[serde(rename = "eth_call")]
     Call(
-        TransactionInput,
+        CallInput,
         #[serde(
             skip_serializing_if = "Option::is_none",
             default = "optional_block_spec_resolved::latest"
