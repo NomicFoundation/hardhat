@@ -249,11 +249,11 @@ describe("Compiler downloader", function () {
           promises.push(
             downloader.downloadCompiler(
               VERSION,
-              // downloadStartedCb
+              // callback called before compiler download
               async () => {
                 value++;
               },
-              // downloadEndedCb
+              // callback called after compiler download
               async () => {}
             )
           );
@@ -275,11 +275,11 @@ describe("Compiler downloader", function () {
           promises.push(
             downloader.downloadCompiler(
               version,
-              // downloadStartedCb
+              // callback called before compiler download
               async () => {
                 value++;
               },
-              // downloadEndedCb
+              // callback called after compiler download
               async () => {}
             )
           );

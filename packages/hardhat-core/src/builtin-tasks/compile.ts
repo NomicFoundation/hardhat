@@ -582,7 +582,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
 
       await downloader.downloadCompiler(
         solcVersion,
-        // downloadStartedCb
+        // callback called before compiler download
         async (isCompilerDownloaded: boolean) => {
           await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START, {
             solcVersion,
@@ -590,7 +590,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
             quiet,
           });
         },
-        // downloadEndedCb
+        // callback called after compiler download
         async (isCompilerDownloaded: boolean) => {
           await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END, {
             solcVersion,
@@ -618,14 +618,14 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
       await wasmDownloader.downloadCompiler(
         solcVersion,
         async (isCompilerDownloaded: boolean) => {
-          // downloadStartedCb
+          // callback called before compiler download
           await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START, {
             solcVersion,
             isCompilerDownloaded,
             quiet,
           });
         },
-        // downloadEndedCb
+        // callback called after compiler download
         async (isCompilerDownloaded: boolean) => {
           await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END, {
             solcVersion,
