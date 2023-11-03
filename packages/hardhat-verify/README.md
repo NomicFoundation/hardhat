@@ -57,7 +57,7 @@ module.exports = {
   },
   sourcify: {
     // Disabled by default
-    // Does not need API Key
+    // Doesn't need an API key
     enabled: true
   }
 };
