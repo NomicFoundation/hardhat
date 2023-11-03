@@ -157,5 +157,6 @@ pub(crate) mod tests {
 
     test_fake_sign_properties!();
 
-    // Hardhat doesn't support EIP-4844 yet, hence no test vector.
+    // Hardhat doesn't support EIP-4844 yet, hence no fake signature test
+    // vector.
 }
