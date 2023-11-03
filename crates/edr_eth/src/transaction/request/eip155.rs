@@ -105,7 +105,6 @@ impl rlp::Encodable for EIP155TransactionRequest {
 mod tests {
     use std::str::FromStr;
 
-    use anyhow::Result;
     use revm_primitives::Address;
 
     use super::*;
@@ -153,7 +152,7 @@ mod tests {
     test_fake_sign_properties!();
 
     #[test]
-    fn test_fake_sign_test_vector() -> Result<()> {
+    fn test_fake_sign_test_vector() -> anyhow::Result<()> {
         let transaction = EIP155TransactionRequest {
             nonce: 0,
             gas_price: U256::from(678_912),

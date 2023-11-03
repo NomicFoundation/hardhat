@@ -728,7 +728,6 @@ fn create_evm_config(config: &Config) -> CfgEnv {
 
 #[cfg(test)]
 mod tests {
-    use anyhow::Result;
     use tempfile::TempDir;
 
     use super::*;
@@ -743,7 +742,7 @@ mod tests {
     }
 
     impl NodeTestFixture {
-        pub(crate) async fn new() -> Result<Self> {
+        pub(crate) async fn new() -> anyhow::Result<Self> {
             let cache_dir = TempDir::new()?;
 
             let impersonated_account = Address::random();
@@ -784,12 +783,12 @@ mod tests {
             }
         }
 
-        fn signed_dummy_transaction(&self) -> Result<PendingTransaction> {
+        fn signed_dummy_transaction(&self) -> anyhow::Result<PendingTransaction> {
             let transaction = self.dummy_transaction_request();
             Ok(self.node_data.sign_transaction_request(transaction)?)
         }
 
-        fn impersonated_dummy_transaction(&self) -> Result<PendingTransaction> {
+        fn impersonated_dummy_transaction(&self) -> anyhow::Result<PendingTransaction> {
             let mut transaction = self.dummy_transaction_request();
 
             transaction.from = self.impersonated_account;
@@ -799,7 +798,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_sign_transaction_request() -> Result<()> {
+    async fn test_sign_transaction_request() -> anyhow::Result<()> {
         let fixture = NodeTestFixture::new().await?;
 
         let transaction = fixture.signed_dummy_transaction()?;
@@ -814,7 +813,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_sign_transaction_request_impersonated_account() -> Result<()> {
+    async fn test_sign_transaction_request_impersonated_account() -> anyhow::Result<()> {
         let fixture = NodeTestFixture::new().await?;
 
         let transaction = fixture.impersonated_dummy_transaction()?;
@@ -827,7 +826,7 @@ mod tests {
     fn test_add_pending_transaction(
         mut fixture: NodeTestFixture,
         transaction: PendingTransaction,
-    ) -> Result<()> {
+    ) -> anyhow::Result<()> {
         let filter_id = fixture.node_data.new_pending_transaction_filter();
 
         let transaction_hash = fixture.node_data.add_pending_transaction(transaction)?;
@@ -849,7 +848,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn add_pending_transaction() -> Result<()> {
+    async fn add_pending_transaction() -> anyhow::Result<()> {
         let fixture = NodeTestFixture::new().await?;
         let transaction = fixture.signed_dummy_transaction()?;
 
@@ -857,7 +856,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn add_pending_transaction_from_impersonated_account() -> Result<()> {
+    async fn add_pending_transaction_from_impersonated_account() -> anyhow::Result<()> {
         let fixture = NodeTestFixture::new().await?;
         let transaction = fixture.impersonated_dummy_transaction()?;
 
@@ -865,7 +864,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn chain_id() -> Result<()> {
+    async fn chain_id() -> anyhow::Result<()> {
         let fixture = NodeTestFixture::new().await?;
 
         let chain_id = fixture.node_data.chain_id();
@@ -875,7 +874,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn next_filter_id() -> Result<()> {
+    async fn next_filter_id() -> anyhow::Result<()> {
         let mut fixture = NodeTestFixture::new().await?;
 
         let mut prev_filter_id = fixture.node_data.last_filter_id;

@@ -116,7 +116,6 @@ impl rlp::Encodable for EIP1559TransactionRequest {
 pub(crate) mod tests {
     use std::str::FromStr;
 
-    use anyhow::Result;
     use revm_primitives::Address;
 
     use super::*;
@@ -192,7 +191,7 @@ pub(crate) mod tests {
     test_fake_sign_properties!();
 
     #[test]
-    fn test_fake_sign_test_vector() -> Result<()> {
+    fn test_fake_sign_test_vector() -> anyhow::Result<()> {
         let transaction = EIP1559TransactionRequest {
             chain_id: 123,
             nonce: 0,
