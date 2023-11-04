@@ -3,7 +3,8 @@ use edr_eth::{
     Address, B256, U256,
 };
 
-/// Compiler input and output structures used as parameters to Hardhat RPC methods
+/// Compiler input and output structures used as parameters to Hardhat RPC
+/// methods
 pub mod add_compilation_result;
 
 /// input types for use with `hardhat_reset`

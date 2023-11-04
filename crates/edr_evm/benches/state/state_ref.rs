@@ -1,9 +1,8 @@
 use std::str::FromStr;
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use revm::{db::StateRef, primitives::Bytecode};
-
 use edr_eth::{Address, Bytes, U256};
+use revm::{db::StateRef, primitives::Bytecode};
 
 mod util;
 use util::{bench_sync_state_method, permutations, state_prep_no_op};

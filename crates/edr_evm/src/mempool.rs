@@ -74,30 +74,40 @@ where
     }
 }
 
+/// An error that can occur when adding a transaction to the mempool.
 #[derive(Debug, thiserror::Error)]
 pub enum MinerTransactionError<SE> {
     /// Transaction gas limit exceeds block gas limit.
     #[error("Transaction gas limit is {transaction_gas_limit} and exceeds block gas limit of {block_gas_limit}")]
     ExceedsBlockGasLimit {
+        /// The block gas limit
         block_gas_limit: u64,
+        /// The transaction gas limit
         transaction_gas_limit: u64,
     },
     /// Transaction already exists in the mempool.
     #[error("Known transaction: 0x{transaction_hash:x}")]
-    TransactionAlreadyExists { transaction_hash: B256 },
+    TransactionAlreadyExists {
+        /// The transaction hash
+        transaction_hash: B256,
+    },
     /// State error
     #[error(transparent)]
     State(#[from] SE),
     /// Replacement transaction has underpriced max fee per gas.
     #[error("Replacement transaction underpriced. A gasPrice/maxFeePerGas of at least 0x{min_new_max_fee_per_gas:x} is necessary to replace the existing transaction with nonce {transaction_nonce}.")]
     ReplacementMaxFeePerGasTooLow {
+        /// The minimum new max fee per gas
         min_new_max_fee_per_gas: U256,
+        /// The transaction nonce
         transaction_nonce: u64,
     },
     /// Replacement transaction has underpriced max priority fee per gas.
     #[error("Replacement transaction underpriced. A gasPrice/maxPriorityFeePerGas of at least 0x{min_new_max_priority_fee_per_gas} is necessary to replace the existing transaction with nonce {transaction_nonce}.")]
     ReplacementMaxPriorityFeePerGasTooLow {
+        /// The minimum new max priority fee per gas
         min_new_max_priority_fee_per_gas: U256,
+        /// The transaction nonce
         transaction_nonce: u64,
     },
 }
@@ -142,7 +152,8 @@ pub struct MemPool {
     pending_transactions: IndexMap<Address, Vec<OrderedTransaction>>,
     /// Mapping of transaction hashes to transaction
     hash_to_transaction: HashMap<B256, OrderedTransaction>,
-    /// Transactions that can be executed in the future, once the nonce is high enough
+    /// Transactions that can be executed in the future, once the nonce is high
+    /// enough
     future_transactions: IndexMap<Address, Vec<OrderedTransaction>>,
     next_order_id: usize,
 }
@@ -175,7 +186,8 @@ impl MemPool {
         self.update(state)
     }
 
-    /// Creates an iterator for all pending transactions; i.e. for which the nonces are guaranteed to be high enough.
+    /// Creates an iterator for all pending transactions; i.e. for which the
+    /// nonces are guaranteed to be high enough.
     pub fn iter<ComparatorT>(&self, comparator: ComparatorT) -> PendingTransactions<ComparatorT>
     where
         ComparatorT: Fn(&OrderedTransaction, &OrderedTransaction) -> Ordering,
@@ -186,7 +198,8 @@ impl MemPool {
         }
     }
 
-    /// Retrieves the nonce of the last pending transaction of the account corresponding to the specified address, if it exists.
+    /// Retrieves the nonce of the last pending transaction of the account
+    /// corresponding to the specified address, if it exists.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn last_pending_nonce(&self, address: &Address) -> Option<u64> {
         self.pending_transactions.get(address).map(|transactions| {
@@ -197,8 +210,9 @@ impl MemPool {
         })
     }
 
-    /// Retrieves an iterator for all transactions in the instance. Pending transactions are followed by future transactions,
-    /// grouped by sender in order of insertion.
+    /// Retrieves an iterator for all transactions in the instance. Pending
+    /// transactions are followed by future transactions, grouped by sender
+    /// in order of insertion.
     pub fn transactions(&self) -> impl Iterator<Item = &PendingTransaction> {
         self.pending_transactions
             .values()
@@ -207,12 +221,14 @@ impl MemPool {
             .map(OrderedTransaction::transaction)
     }
 
-    /// Whether the instance has any future transactions; i.e. for which the nonces are not high enough.
+    /// Whether the instance has any future transactions; i.e. for which the
+    /// nonces are not high enough.
     pub fn has_future_transactions(&self) -> bool {
         !self.future_transactions.is_empty()
     }
 
-    /// Whether the instance has any pending transactions; i.e. for which the nonces are guaranteed to be high enough.
+    /// Whether the instance has any pending transactions; i.e. for which the
+    /// nonces are guaranteed to be high enough.
     pub fn has_pending_transactions(&self) -> bool {
         !self.pending_transactions.is_empty()
     }
@@ -266,7 +282,8 @@ impl MemPool {
         Ok(())
     }
 
-    /// Removes the transaction corresponding to the provided transaction hash, if it exists.
+    /// Removes the transaction corresponding to the provided transaction hash,
+    /// if it exists.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn remove_transaction(&mut self, hash: &B256) -> Option<OrderedTransaction> {
         if let Some(old_transaction) = self.hash_to_transaction.remove(hash) {
@@ -305,7 +322,8 @@ impl MemPool {
         None
     }
 
-    /// Updates the [`MemPool`], moving any future transactions to the pending status, if their nonces are high enough.
+    /// Updates the [`MemPool`], moving any future transactions to the pending
+    /// status, if their nonces are high enough.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn update<S>(&mut self, state: &S) -> Result<(), S::Error>
     where
@@ -376,7 +394,8 @@ impl MemPool {
         Ok(())
     }
 
-    /// Returns the transaction corresponding to the provided hash, if it exists.
+    /// Returns the transaction corresponding to the provided hash, if it
+    /// exists.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn transaction_by_hash(&self, hash: &B256) -> Option<&OrderedTransaction> {
         self.hash_to_transaction.get(hash)

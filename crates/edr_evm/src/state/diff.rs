@@ -1,15 +1,16 @@
 use edr_eth::{Address, U256};
 use revm::primitives::{Account, AccountInfo, AccountStatus, HashMap, StorageSlot};
 
-/// The difference between two states, which can be applied to a state to get the new state
-/// using [`revm::db::DatabaseCommit::commit`].
+/// The difference between two states, which can be applied to a state to get
+/// the new state using [`revm::db::DatabaseCommit::commit`].
 #[derive(Clone, Debug, Default)]
 pub struct StateDiff {
     inner: HashMap<Address, Account>,
 }
 
 impl StateDiff {
-    /// Applies a single change to this instance, combining it with any existing change.
+    /// Applies a single change to this instance, combining it with any existing
+    /// change.
     pub fn apply_account_change(&mut self, address: Address, account_info: AccountInfo) {
         self.inner
             .entry(address)
@@ -23,10 +24,12 @@ impl StateDiff {
             });
     }
 
-    /// Applies a single storage change to this instance, combining it with any existing change.
+    /// Applies a single storage change to this instance, combining it with any
+    /// existing change.
     ///
-    /// If the account corresponding to the specified address hasn't been modified before, either the
-    /// value provided in `account_info` will be used, or alternatively a default account will be created.
+    /// If the account corresponding to the specified address hasn't been
+    /// modified before, either the value provided in `account_info` will be
+    /// used, or alternatively a default account will be created.
     pub fn apply_storage_change(
         &mut self,
         address: Address,
@@ -50,7 +53,8 @@ impl StateDiff {
             });
     }
 
-    /// Applies a state diff to this instance, combining with any and all existing changes.
+    /// Applies a state diff to this instance, combining with any and all
+    /// existing changes.
     pub fn apply_diff(&mut self, diff: HashMap<Address, Account>) {
         for (address, account_diff) in diff {
             self.inner

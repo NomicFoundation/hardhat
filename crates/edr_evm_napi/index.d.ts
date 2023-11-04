@@ -69,17 +69,24 @@ export interface BlockOptions {
   baseFee?: bigint
   /** The block's withdrawals root */
   withdrawalsRoot?: Buffer
-  /** The hash tree root of the parent beacon block for the given execution block (EIP-4788). */
+  /**
+   * The hash tree root of the parent beacon block for the given execution
+   * block (EIP-4788).
+   */
   parentBeaconBlockRoot?: Buffer
 }
 /** Information about the blob gas used in a block. */
 export interface BlobGas {
-  /** The total amount of blob gas consumed by the transactions within the block. */
+  /**
+   * The total amount of blob gas consumed by the transactions within the
+   * block.
+   */
   gasUsed: bigint
   /**
    * The running total of blob gas consumed in excess of the target, prior to
-   * the block. Blocks with above-target blob gas consumption increase this value,
-   * blocks with below-target blob gas consumption decrease it (bounded at 0).
+   * the block. Blocks with above-target blob gas consumption increase this
+   * value, blocks with below-target blob gas consumption decrease it
+   * (bounded at 0).
    */
   excessGas: bigint
 }
@@ -157,7 +164,10 @@ export interface ConfigOptions {
   limitInitcodeSize?: bigint
   /** Disables block limit validation */
   disableBlockGasLimit?: boolean
-  /** Disables EIP-3607, which rejects transactions from sender with deployed code */
+  /**
+   * Disables EIP-3607, which rejects transactions from sender with deployed
+   * code
+   */
   disableEip3607?: boolean
 }
 /** Get trace output for `debug_traceTransaction` */
@@ -215,7 +225,10 @@ export const enum MineOrdering {
 export function mineBlock(blockchain: Blockchain, stateManager: State, memPool: MemPool, config: ConfigOptions, timestamp: bigint, beneficiary: Buffer, minGasPrice: bigint, mineOrdering: MineOrdering, reward: bigint, baseFee?: bigint | undefined | null, prevrandao?: Buffer | undefined | null, tracer?: Tracer | undefined | null): Promise<MineBlockResult>
 /** Executes the provided transaction without changing state. */
 export function dryRun(blockchain: Blockchain, state: State, stateOverrides: StateOverrides, cfg: ConfigOptions, transaction: TransactionRequest, block: BlockConfig, withTrace: boolean, tracer?: Tracer | undefined | null): Promise<TransactionResult>
-/** Executes the provided transaction without changing state, ignoring validation checks in the process. */
+/**
+ * Executes the provided transaction without changing state, ignoring
+ * validation checks in the process.
+ */
 export function guaranteedDryRun(blockchain: Blockchain, state: State, stateOverrides: StateOverrides, cfg: ConfigOptions, transaction: TransactionRequest, block: BlockConfig, withTrace: boolean, tracer?: Tracer | undefined | null): Promise<TransactionResult>
 /** Executes the provided transaction, changing state in the process. */
 export function run(blockchain: Blockchain, stateManager: State, cfg: ConfigOptions, transaction: TransactionRequest, block: BlockConfig, withTrace: boolean, tracer?: Tracer | undefined | null): Promise<TransactionResult>
@@ -253,8 +266,8 @@ export interface TracingMessage {
   /** Value sent in the message */
   readonly value: bigint
   /**
-   * Address of the code that is being executed. Can be different from `to` if a delegate call
-   * is being done.
+   * Address of the code that is being executed. Can be different from `to`
+   * if a delegate call is being done.
    */
   readonly codeAddress?: Buffer
   /** Code of the contract that is being executed. */
@@ -307,7 +320,10 @@ export interface TransactionRequest {
   nonce?: bigint
   /** Input byte data */
   input?: Buffer
-  /** A list of addresses and storage keys that the transaction plans to access. */
+  /**
+   * A list of addresses and storage keys that the transaction plans to
+   * access.
+   */
   accessList?: Array<AccessListItem>
   /** Transaction is only valid on networks with this chain ID. */
   chainId?: bigint
@@ -352,8 +368,8 @@ export interface RevertResult {
   output: Buffer
 }
 /**
- * Indicates that the EVM has experienced an exceptional halt. This causes execution to
- * immediately end with all gas being consumed.
+ * Indicates that the EVM has experienced an exceptional halt. This causes
+ * execution to immediately end with all gas being consumed.
  */
 export const enum ExceptionalHalt {
   OutOfGas = 0,
@@ -378,7 +394,10 @@ export const enum ExceptionalHalt {
 export interface HaltResult {
   /** The exceptional halt that occurred */
   reason: ExceptionalHalt
-  /** Halting will spend all the gas and will thus be equal to the specified gas limit */
+  /**
+   * Halting will spend all the gas and will thus be equal to the specified
+   * gas limit
+   */
   gasUsed: bigint
 }
 /** The result of executing a transaction. */
@@ -470,8 +489,8 @@ export class BlockBuilder {
   get gasUsed(): Promise<bigint>
   addTransaction(transaction: PendingTransaction, withTrace: boolean): Promise<TransactionResult>
   /**
-   * This call consumes the [`BlockBuilder`] object in Rust. Afterwards, you can no longer call
-   * methods on the JS object.
+   * This call consumes the [`BlockBuilder`] object in Rust. Afterwards, you
+   * can no longer call methods on the JS object.
    */
   finalize(rewards: Array<[Buffer, bigint]>, timestamp?: bigint | undefined | null): Promise<Block>
 }
@@ -585,8 +604,6 @@ export class MemPool {
 export class MineBlockResult {
   /**Retrieves the mined block. */
   get block(): Block
-  /** */
-  get state(): State
   /**Retrieves the transactions' results. */
   get results(): Array<ExecutionResult>
   /**Retrieves the transactions' traces. */
@@ -652,7 +669,10 @@ export class StateOverrides {
 export class State {
   /** Constructs a [`State`] with an empty state. */
   constructor()
-  /** Constructs a [`State`] with the provided accounts present in the genesis state. */
+  /**
+   * Constructs a [`State`] with the provided accounts present in the genesis
+   * state.
+   */
   static withGenesisAccounts(accounts: Array<GenesisAccount>): State
   /**Clones the state */
   deepClone(): Promise<State>
@@ -667,16 +687,20 @@ export class State {
   /** Inserts the provided account at the specified address. */
   insertAccount(address: Buffer, account: Account): Promise<void>
   /**
-   * Modifies the account with the provided address using the specified modifier function.
-   * The modifier function receives the current values as individual parameters and will update the account's values
-   * to the returned `Account` values.
+   * Modifies the account with the provided address using the specified
+   * modifier function. The modifier function receives the current values
+   * as individual parameters and will update the account's values to the
+   * returned `Account` values.
    */
   modifyAccount(address: Buffer, modifyAccountFn: (balance: bigint, nonce: bigint, code: Bytecode | undefined) => Promise<Account>): Promise<Account>
   /** Removes and returns the account at the specified address, if it exists. */
   removeAccount(address: Buffer): Promise<Account | null>
   /** Serializes the state using ordering of addresses and storage indices. */
   serialize(): Promise<string>
-  /** Sets the storage slot at the specified address and index to the provided value. */
+  /**
+   * Sets the storage slot at the specified address and index to the provided
+   * value.
+   */
   setAccountStorageSlot(address: Buffer, index: bigint, value: bigint): Promise<bigint>
 }
 export class Tracer {

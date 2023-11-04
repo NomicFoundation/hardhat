@@ -3,17 +3,14 @@ use std::clone::Clone;
 use std::sync::Arc;
 
 use criterion::{BatchSize, BenchmarkId, Criterion};
+use edr_eth::{Address, Bytes, U256};
 #[cfg(all(test, feature = "test-remote"))]
-use parking_lot::Mutex;
+use edr_evm::state::ForkState;
+use edr_evm::state::{StateError, SyncState, TrieState};
+use revm::primitives::{AccountInfo, Bytecode, KECCAK_EMPTY};
 use tempfile::TempDir;
 #[cfg(all(test, feature = "test-remote"))]
 use tokio::runtime::Builder;
-
-use edr_eth::{Address, Bytes, U256};
-use edr_evm::state::{StateError, SyncState, TrieState};
-#[cfg(all(test, feature = "test-remote"))]
-use edr_evm::{state::ForkState, RandomHashGenerator};
-use revm::primitives::{AccountInfo, Bytecode, KECCAK_EMPTY};
 
 #[allow(dead_code)]
 struct TestState<'t> {
@@ -45,6 +42,8 @@ impl EdrStates {
         #[cfg(all(test, feature = "test-remote"))]
         let fork = {
             use edr_eth::remote::{BlockSpec, RpcClient};
+            use edr_evm::RandomHashGenerator;
+            use parking_lot::Mutex;
 
             let rpc_client = Arc::new(RpcClient::new(
                 &std::env::var_os("ALCHEMY_URL")
@@ -116,7 +115,8 @@ impl EdrStates {
         }
     }
 
-    /// Returns a set of factories, each member of which produces a clone of one of the state objects in this struct.
+    /// Returns a set of factories, each member of which produces a clone of one
+    /// of the state objects in this struct.
     #[allow(dead_code)]
     fn make_state_refs(&self) -> Vec<TestState<'_>> {
         vec![

@@ -1,6 +1,6 @@
 [package]
 name = "edr_eth"
-version = "0.1.0-dev"
+version = "0.2.0-dev"
 edition = "2021"
 
 [dependencies]
@@ -31,10 +31,11 @@ triehash = { version = "0.8.4", default-features = false }
 uuid = { version = "1.4.1", default-features = false, features = ["v4"]}
 
 [dev-dependencies]
+anyhow = "1.0.75"
 lazy_static = "1.4.0"
 mockito = { version = "1.0.2", default-features = false }
 paste = { version = "1.0.14", default-features = false }
-edr_test_utils = { version = "0.1.0-dev", path = "../edr_test_utils" }
+edr_test_utils = { version = "0.2.0-dev", path = "../edr_test_utils" }
 serial_test = "2.0.0"
 tempfile = { version = "3.7.1", default-features = false }
 tokio = { version = "1.23.0", features = ["macros"] }

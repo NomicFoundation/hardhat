@@ -1,4 +1,5 @@
-// Part of this code was adapted from foundry and is distributed under their licenss:
+// Part of this code was adapted from foundry and is distributed under their
+// licenss:
 // - https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/LICENSE-APACHE
 // - https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/LICENSE-MIT
 // For the original context see: https://github.com/foundry-rs/foundry/blob/01b16238ff87dc7ca8ee3f5f13e389888c2a2ee4/anvil/core/src/eth/block.rs
@@ -16,13 +17,6 @@ use revm_primitives::{
 };
 use rlp::Decodable;
 
-use crate::{
-    transaction::SignedTransaction,
-    trie::{self, KECCAK_NULL_RLP},
-    withdrawal::Withdrawal,
-    Address, Bloom, Bytes, B256, B64, U256,
-};
-
 use self::difficulty::calculate_ethash_canonical_difficulty;
 pub use self::{
     options::BlockOptions,
@@ -30,6 +24,12 @@ pub use self::{
         block_time, is_safe_block_number, largest_safe_block_number, safe_block_depth,
         IsSafeBlockNumberArgs, LargestSafeBlockNumberArgs,
     },
+};
+use crate::{
+    transaction::SignedTransaction,
+    trie::{self, KECCAK_NULL_RLP},
+    withdrawal::Withdrawal,
+    Address, Bloom, Bytes, B256, B64, U256,
 };
 
 /// Ethereum block
@@ -54,7 +54,8 @@ pub struct Block {
 }
 
 impl Block {
-    /// Constructs a new block from the provided partial header, transactions, and ommers.
+    /// Constructs a new block from the provided partial header, transactions,
+    /// and ommers.
     pub fn new(
         mut partial_header: PartialHeader,
         transactions: Vec<SignedTransaction>,
@@ -138,7 +139,8 @@ pub struct Header {
     /// Blob gas was added by EIP-4844 and is ignored in older headers.
     #[cfg_attr(feature = "serde", serde(flatten))]
     pub blob_gas: Option<BlobGas>,
-    /// The hash tree root of the parent beacon block for the given execution block (EIP-4788).
+    /// The hash tree root of the parent beacon block for the given execution
+    /// block (EIP-4788).
     pub parent_beacon_block_root: Option<B256>,
 }
 
@@ -159,16 +161,19 @@ impl From<B64Def> for B64 {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct BlobGas {
-    /// The total amount of blob gas consumed by the transactions within the block.
+    /// The total amount of blob gas consumed by the transactions within the
+    /// block.
     pub gas_used: u64,
     /// The running total of blob gas consumed in excess of the target, prior to
-    /// the block. Blocks with above-target blob gas consumption increase this value,
-    /// blocks with below-target blob gas consumption decrease it (bounded at 0).
+    /// the block. Blocks with above-target blob gas consumption increase this
+    /// value, blocks with below-target blob gas consumption decrease it
+    /// (bounded at 0).
     pub excess_gas: u64,
 }
 
 impl Header {
-    /// Constructs a header from the provided [`PartialHeader`], ommers' root hash, transactions' root hash, and withdrawals' root hash.
+    /// Constructs a header from the provided [`PartialHeader`], ommers' root
+    /// hash, transactions' root hash, and withdrawals' root hash.
     pub fn new(partial_header: PartialHeader, ommers_hash: B256, transactions_root: B256) -> Self {
         Self {
             parent_hash: partial_header.parent_hash,
@@ -341,12 +346,14 @@ pub struct PartialHeader {
     pub withdrawals_root: Option<B256>,
     /// Blob gas was added by EIP-4844 and is ignored in older headers.
     pub blob_gas: Option<BlobGas>,
-    /// The hash tree root of the parent beacon block for the given execution block (EIP-4788).
+    /// The hash tree root of the parent beacon block for the given execution
+    /// block (EIP-4788).
     pub parent_beacon_block_root: Option<B256>,
 }
 
 impl PartialHeader {
-    /// Constructs a new instance based on the provided [`BlockOptions`] and parent [`Header`] for the given [`SpecId`].
+    /// Constructs a new instance based on the provided [`BlockOptions`] and
+    /// parent [`Header`] for the given [`SpecId`].
     pub fn new(spec_id: SpecId, options: BlockOptions, parent: Option<&Header>) -> Self {
         let timestamp = options.timestamp.unwrap_or_default();
         let number = options.number.unwrap_or({
@@ -403,7 +410,8 @@ impl PartialHeader {
             }),
             blob_gas: if spec_id >= SpecId::CANCUN {
                 let excess_gas = parent.and_then(|parent| parent.blob_gas.as_ref()).map_or(
-                    // For the first (post-fork) block, both parent.blob_gas_used and parent.excess_blob_gas are evaluated as 0.
+                    // For the first (post-fork) block, both parent.blob_gas_used and
+                    // parent.excess_blob_gas are evaluated as 0.
                     0,
                     |BlobGas {
                          gas_used,
@@ -485,9 +493,8 @@ mod tests {
 
     use revm_primitives::ruint::aliases::U64;
 
-    use crate::trie::KECCAK_RLP_EMPTY_ARRAY;
-
     use super::*;
+    use crate::trie::KECCAK_RLP_EMPTY_ARRAY;
 
     #[test]
     fn header_rlp_roundtrip() {

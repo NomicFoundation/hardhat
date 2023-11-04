@@ -52,9 +52,9 @@ pub trait StateDebug {
         account_info: AccountInfo,
     ) -> Result<(), Self::Error>;
 
-    /// Modifies the account at the specified address using the provided function. If no account
-    /// exists for the specified address, an account will be generated using the `default_account_fn`
-    /// and modified.
+    /// Modifies the account at the specified address using the provided
+    /// function. If no account exists for the specified address, an account
+    /// will be generated using the `default_account_fn` and modified.
     ///
     /// Returns the modified (or created) account.
     fn modify_account(
@@ -70,7 +70,8 @@ pub trait StateDebug {
     /// Serializes the state using ordering of addresses and storage indices.
     fn serialize(&self) -> String;
 
-    /// Sets the storage slot at the specified address and index to the provided value.
+    /// Sets the storage slot at the specified address and index to the provided
+    /// value.
     ///
     /// Returns the old value.
     fn set_account_storage_slot(

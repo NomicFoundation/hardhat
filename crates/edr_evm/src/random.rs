@@ -3,7 +3,8 @@
 use edr_eth::B256;
 use revm::primitives::keccak256;
 
-/// A pseudorandom hash generator which allows overriding of the next generated hash.
+/// A pseudorandom hash generator which allows overriding of the next generated
+/// hash.
 #[derive(Clone, Debug)]
 pub struct RandomHashGenerator {
     /// The next hash that will be returned
@@ -25,6 +26,11 @@ impl RandomHashGenerator {
         std::mem::swap(&mut self.next_value, &mut next_value);
 
         next_value
+    }
+
+    /// Returns the current seed.
+    pub fn seed(&self) -> B256 {
+        self.next_value
     }
 
     /// Overwrites the next hash output by the generator.

@@ -2,9 +2,8 @@ use std::ops::Deref;
 
 use revm_primitives::B256;
 
-use crate::log::FullBlockLog;
-
 use super::TransactionReceipt;
+use crate::log::FullBlockLog;
 
 /// Type for a receipt that's included in a block.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -40,9 +39,8 @@ mod test {
     use ethbloom::Bloom;
     use revm_primitives::{Address, U256};
 
-    use crate::receipt::{TypedReceipt, TypedReceiptData};
-
     use super::*;
+    use crate::receipt::{TypedReceipt, TypedReceiptData};
 
     #[test]
     fn test_block_receipt_serde() {

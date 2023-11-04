@@ -55,7 +55,8 @@ where
     run_transaction(evm, inspector).map_err(TransactionError::from)
 }
 
-/// Runs a transaction without committing the state, while disabling balance checks and creating accounts for new addresses.
+/// Runs a transaction without committing the state, while disabling balance
+/// checks and creating accounts for new addresses.
 #[cfg_attr(feature = "tracing", tracing::instrument)]
 pub async fn guaranteed_dry_run<BlockchainErrorT, StateErrorT>(
     blockchain: &dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,

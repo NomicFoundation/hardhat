@@ -8,9 +8,9 @@ mod overrides;
 mod remote;
 mod trie;
 
-use dyn_clone::DynClone;
 use std::fmt::Debug;
 
+use dyn_clone::DynClone;
 use edr_eth::{remote::RpcClientError, B256};
 use revm::{db::StateRef, DatabaseCommit};
 

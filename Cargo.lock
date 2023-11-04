@@ -615,9 +615,9 @@ checksum = "7a81dae078cea95a014a339291cec439d2f232ebe854a9d672b796c6afafa9b7"
 
 [[package]]
 name = "crypto-bigint"
-version = "0.5.3"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "740fe28e594155f10cfc383984cbefd529d7396050557148f79cb0f621204124"
+checksum = "071c0f5945634bc9ba7a452f492377dd6b1993665ddb58f28704119b32f07a9a"
 dependencies = [
  "generic-array",
  "rand_core",
@@ -799,7 +799,7 @@ dependencies = [
 
 [[package]]
 name = "edr"
-version = "0.1.0-dev"
+version = "0.2.0-dev"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -815,6 +815,7 @@ dependencies = [
  "predicates",
  "pretty_env_logger",
  "reqwest",
+ "rlp",
  "serde",
  "serde_json",
  "signal-child",
@@ -827,12 +828,13 @@ dependencies = [
 
 [[package]]
 name = "edr_defaults"
-version = "0.1.0-dev"
+version = "0.2.0-dev"
 
 [[package]]
 name = "edr_eth"
-version = "0.1.0-dev"
+version = "0.2.0-dev"
 dependencies = [
+ "anyhow",
  "edr_test_utils",
  "ethbloom",
  "futures",
@@ -866,7 +868,7 @@ dependencies = [
 
 [[package]]
 name = "edr_evm"
-version = "0.1.0-dev"
+version = "0.2.0-dev"
 dependencies = [
  "async-rwlock",
  "async-trait",
@@ -898,7 +900,7 @@ dependencies = [
 
 [[package]]
 name = "edr_evm_napi"
-version = "0.1.0-dev"
+version = "0.2.0-dev"
 dependencies = [
  "async-trait",
  "crossbeam-channel",
@@ -920,7 +922,7 @@ dependencies = [
 
 [[package]]
 name = "edr_rpc_server"
-version = "0.1.0-dev"
+version = "0.2.0-dev"
 dependencies = [
  "anyhow",
  "async-rwlock",
@@ -936,6 +938,7 @@ dependencies = [
  "k256",
  "parking_lot 0.12.1",
  "reqwest",
+ "rlp",
  "serde",
  "serde_json",
  "sha3",
@@ -949,7 +952,7 @@ dependencies = [
 
 [[package]]
 name = "edr_test_utils"
-version = "0.1.0-dev"
+version = "0.2.0-dev"
 dependencies = [
  "serde",
  "serde_json",

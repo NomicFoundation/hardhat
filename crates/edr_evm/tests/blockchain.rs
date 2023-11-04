@@ -1,7 +1,5 @@
 use std::str::FromStr;
 
-use serial_test::serial;
-
 use edr_eth::{
     block::PartialHeader,
     transaction::{EIP155TransactionRequest, SignedTransaction, TransactionKind},
@@ -14,11 +12,38 @@ use edr_evm::{
     LocalBlock, SpecId,
 };
 use lazy_static::lazy_static;
+use serial_test::serial;
 use tempfile::TempDir;
 
 lazy_static! {
     // Use same cache dir for all tests
     static ref CACHE_DIR: TempDir = TempDir::new().unwrap();
+}
+
+#[cfg(feature = "test-remote")]
+async fn create_forked_dummy_blockchain() -> Box<dyn SyncBlockchain<BlockchainError, StateError>> {
+    use std::sync::Arc;
+
+    use edr_eth::remote::RpcClient;
+    use edr_evm::{blockchain::ForkedBlockchain, HashMap, RandomHashGenerator};
+    use edr_test_utils::env::get_alchemy_url;
+    use parking_lot::Mutex;
+
+    let cache_dir = CACHE_DIR.path().into();
+    let rpc_client = RpcClient::new(&get_alchemy_url(), cache_dir);
+
+    Box::new(
+        ForkedBlockchain::new(
+            tokio::runtime::Handle::current().clone(),
+            SpecId::LATEST,
+            rpc_client,
+            None,
+            Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed"))),
+            HashMap::new(),
+        )
+        .await
+        .expect("Failed to construct forked blockchain"),
+    )
 }
 
 // The cache directory is only used when the `test-remote` feature is enabled
@@ -38,34 +63,10 @@ async fn create_dummy_blockchains() -> Vec<Box<dyn SyncBlockchain<BlockchainErro
     )
     .expect("Should construct without issues");
 
-    #[cfg(feature = "test-remote")]
-    let forked_blockchain = {
-        use std::sync::Arc;
-
-        use edr_eth::remote::RpcClient;
-        use edr_evm::{blockchain::ForkedBlockchain, HashMap, RandomHashGenerator};
-        use edr_test_utils::env::get_alchemy_url;
-        use parking_lot::Mutex;
-
-        let cache_dir = CACHE_DIR.path().into();
-        let rpc_client = RpcClient::new(&get_alchemy_url(), cache_dir);
-
-        ForkedBlockchain::new(
-            tokio::runtime::Handle::current().clone(),
-            SpecId::LATEST,
-            rpc_client,
-            None,
-            Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed"))),
-            HashMap::new(),
-        )
-        .await
-        .expect("Failed to construct forked blockchain")
-    };
-
     vec![
         Box::new(local_blockchain),
         #[cfg(feature = "test-remote")]
-        Box::new(forked_blockchain),
+        create_forked_dummy_blockchain().await,
     ]
 }
 
@@ -152,7 +153,7 @@ fn create_dummy_transaction() -> SignedTransaction {
 
 #[tokio::test]
 #[serial]
-async fn test_get_last_block() {
+async fn get_last_block() {
     let blockchains = create_dummy_blockchains().await;
 
     for mut blockchain in blockchains {
@@ -171,7 +172,7 @@ async fn test_get_last_block() {
 
 #[tokio::test]
 #[serial]
-async fn test_get_block_by_hash_some() {
+async fn get_block_by_hash_some() {
     let blockchains = create_dummy_blockchains().await;
 
     for mut blockchain in blockchains {
@@ -195,7 +196,7 @@ async fn test_get_block_by_hash_some() {
 
 #[tokio::test]
 #[serial]
-async fn test_get_block_by_hash_none() {
+async fn get_block_by_hash_none() {
     let blockchains = create_dummy_blockchains().await;
 
     for blockchain in blockchains {
@@ -209,7 +210,7 @@ async fn test_get_block_by_hash_none() {
 
 #[tokio::test]
 #[serial]
-async fn test_get_block_by_number_some() {
+async fn get_block_by_number_some() {
     let blockchains = create_dummy_blockchains().await;
 
     for mut blockchain in blockchains {
@@ -233,7 +234,7 @@ async fn test_get_block_by_number_some() {
 
 #[tokio::test]
 #[serial]
-async fn test_get_block_by_number_none() {
+async fn get_block_by_number_none() {
     let blockchains = create_dummy_blockchains().await;
 
     for blockchain in blockchains {
@@ -248,7 +249,7 @@ async fn test_get_block_by_number_none() {
 
 #[tokio::test]
 #[serial]
-async fn test_insert_block_multiple() {
+async fn insert_block_multiple() {
     let blockchains = create_dummy_blockchains().await;
 
     for mut blockchain in blockchains {
@@ -287,7 +288,7 @@ async fn test_insert_block_multiple() {
 
 #[tokio::test]
 #[serial]
-async fn test_insert_block_invalid_block_number() {
+async fn insert_block_invalid_block_number() {
     let blockchains = create_dummy_blockchains().await;
 
     for mut blockchain in blockchains {
@@ -312,7 +313,7 @@ async fn test_insert_block_invalid_block_number() {
 
 #[tokio::test]
 #[serial]
-async fn test_insert_block_invalid_parent_hash() {
+async fn insert_block_invalid_parent_hash() {
     let blockchains = create_dummy_blockchains().await;
 
     for mut blockchain in blockchains {
@@ -336,7 +337,7 @@ async fn test_insert_block_invalid_parent_hash() {
 
 #[tokio::test]
 #[serial]
-async fn test_revert_to_block() {
+async fn revert_to_block() {
     let blockchains = create_dummy_blockchains().await;
 
     for mut blockchain in blockchains {
@@ -403,7 +404,7 @@ async fn test_revert_to_block() {
 
 #[tokio::test]
 #[serial]
-async fn test_revert_to_block_invalid_number() {
+async fn revert_to_block_invalid_number() {
     let blockchains = create_dummy_blockchains().await;
 
     for mut blockchain in blockchains {
@@ -422,7 +423,7 @@ async fn test_revert_to_block_invalid_number() {
 
 #[tokio::test]
 #[serial]
-async fn test_block_total_difficulty_by_hash() {
+async fn block_total_difficulty_by_hash() {
     let blockchains: Vec<Box<dyn SyncBlockchain<BlockchainError, StateError>>> =
         create_dummy_blockchains().await;
 
@@ -499,7 +500,7 @@ async fn test_block_total_difficulty_by_hash() {
 
 #[tokio::test]
 #[serial]
-async fn test_block_total_difficulty_by_hash_invalid_hash() {
+async fn block_total_difficulty_by_hash_invalid_hash() {
     let blockchains = create_dummy_blockchains().await;
 
     for blockchain in blockchains {
@@ -514,7 +515,7 @@ async fn test_block_total_difficulty_by_hash_invalid_hash() {
 
 #[tokio::test]
 #[serial]
-async fn test_transaction_by_hash() {
+async fn transaction_by_hash() {
     let blockchains = create_dummy_blockchains().await;
 
     for blockchain in blockchains {
@@ -527,4 +528,29 @@ async fn test_transaction_by_hash() {
 
         assert!(block.is_none());
     }
+}
+
+#[cfg(feature = "test-remote")]
+#[tokio::test]
+#[serial]
+async fn state_at_block_number_historic() {
+    use edr_evm::state::IrregularState;
+
+    let blockchain = create_forked_dummy_blockchain().await;
+    let irregular_state = IrregularState::default();
+
+    let genesis_block = blockchain
+        .block_by_number(0)
+        .await
+        .expect("Failed to retrieve block")
+        .expect("Block should exist");
+
+    let state = blockchain
+        .state_at_block_number(0, irregular_state.state_overrides())
+        .await
+        .unwrap();
+    assert_eq!(
+        state.state_root().expect("State root should be returned"),
+        genesis_block.header().state_root
+    );
 }

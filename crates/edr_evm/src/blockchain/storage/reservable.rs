@@ -6,11 +6,11 @@ use edr_eth::{
 use parking_lot::{RwLock, RwLockUpgradableReadGuard, RwLockWriteGuard};
 use revm::primitives::HashMap;
 
+use super::SparseBlockchainStorage;
 use crate::{state::StateDiff, Block, LocalBlock};
 
-use super::SparseBlockchainStorage;
-
-/// A reservation for a sequence of blocks that have not yet been inserted into storage.
+/// A reservation for a sequence of blocks that have not yet been inserted into
+/// storage.
 #[derive(Debug)]
 struct Reservation {
     first_number: u64,
@@ -23,13 +23,15 @@ struct Reservation {
     spec_id: SpecId,
 }
 
-/// A storage solution for storing a subset of a Blockchain's blocks in-memory, while lazily loading blocks that have been reserved.
+/// A storage solution for storing a subset of a Blockchain's blocks in-memory,
+/// while lazily loading blocks that have been reserved.
 #[derive(Debug)]
 pub struct ReservableSparseBlockchainStorage<BlockT: Block + Clone + ?Sized> {
     reservations: RwLock<Vec<Reservation>>,
     storage: RwLock<SparseBlockchainStorage<BlockT>>,
     // We can store the state diffs contiguously, as reservations don't contain any diffs.
-    // Diffs are a mapping from one state to the next, so the genesis block contains the initial state.
+    // Diffs are a mapping from one state to the next, so the genesis block contains the initial
+    // state.
     state_diffs: Vec<(u64, StateDiff)>,
     number_to_diff_index: HashMap<u64, usize>,
     last_block_number: u64,
@@ -66,7 +68,8 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
         self.storage.read().block_by_hash(hash).cloned()
     }
 
-    /// Retrieves the block that contains the transaction with the provided hash, if it exists.
+    /// Retrieves the block that contains the transaction with the provided
+    /// hash, if it exists.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn block_by_transaction_hash(&self, transaction_hash: &B256) -> Option<BlockT> {
         self.storage
@@ -86,8 +89,8 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
         self.last_block_number
     }
 
-    /// Retrieves the sequence of diffs from the genesis state to the state of the block with
-    /// the provided number, if it exists.
+    /// Retrieves the sequence of diffs from the genesis state to the state of
+    /// the block with the provided number, if it exists.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn state_diffs_until_block(&self, block_number: u64) -> Option<&[(u64, StateDiff)]> {
         let diff_index = self
@@ -103,7 +106,8 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
         Some(&self.state_diffs[..=diff_index])
     }
 
-    /// Retrieves the receipt of the transaction with the provided hash, if it exists.
+    /// Retrieves the receipt of the transaction with the provided hash, if it
+    /// exists.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn receipt_by_transaction_hash(
         &self,
@@ -115,7 +119,8 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
             .cloned()
     }
 
-    /// Reserves the provided number of blocks, starting from the next block number.
+    /// Reserves the provided number of blocks, starting from the next block
+    /// number.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn reserve_blocks(
         &mut self,
@@ -141,7 +146,8 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
         self.last_block_number += additional.get();
     }
 
-    /// Reverts to the block with the provided number, deleting all later blocks.
+    /// Reverts to the block with the provided number, deleting all later
+    /// blocks.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn revert_to_block(&mut self, block_number: u64) -> bool {
         if block_number > self.last_block_number {
@@ -212,8 +218,8 @@ impl<BlockT: Block + Clone + From<LocalBlock>> ReservableSparseBlockchainStorage
     ///
     /// # Safety
     ///
-    /// Ensure that the instance does not contain a block with the same hash or number,
-    /// nor any transactions with the same hash.
+    /// Ensure that the instance does not contain a block with the same hash or
+    /// number, nor any transactions with the same hash.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub unsafe fn insert_block_unchecked(
         &mut self,
@@ -298,8 +304,9 @@ impl<BlockT: Block + Clone + From<LocalBlock>> ReservableSparseBlockchainStorage
 
                 let mut storage = RwLockUpgradableReadGuard::upgrade(storage);
 
-                // SAFETY: Reservations are guaranteed to not overlap with other reservations or blocks, so the
-                // generated block must have a unique block number and thus hash.
+                // SAFETY: Reservations are guaranteed to not overlap with other reservations or
+                // blocks, so the generated block must have a unique block
+                // number and thus hash.
                 unsafe {
                     storage
                         .insert_block_unchecked(block.into(), reservation.previous_total_difficulty)

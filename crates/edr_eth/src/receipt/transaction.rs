@@ -19,15 +19,18 @@ pub struct TransactionReceipt<L> {
     pub transaction_index: u64,
     /// Address of the sender
     pub from: Address,
-    /// Address of the receiver. `None` when it's a contract creation transaction.
+    /// Address of the receiver. `None` when it's a contract creation
+    /// transaction.
     pub to: Option<Address>,
-    /// The contract address created, if the transaction was a contract creation, otherwise `None`.
+    /// The contract address created, if the transaction was a contract
+    /// creation, otherwise `None`.
     pub contract_address: Option<Address>,
     /// Gas used by this transaction alone.
     pub gas_used: U256,
-    /// The actual value per gas deducted from the senders account. Before EIP-1559, this is equal
-    /// to the transaction's gas price. After, it is equal to baseFeePerGas + min(maxFeePerGas -
-    /// baseFeePerGas, maxPriorityFeePerGas).
+    /// The actual value per gas deducted from the senders account. Before
+    /// EIP-1559, this is equal to the transaction's gas price. After, it is
+    /// equal to baseFeePerGas + min(maxFeePerGas - baseFeePerGas,
+    /// maxPriorityFeePerGas).
     pub effective_gas_price: U256,
 }
 
@@ -81,9 +84,8 @@ where
 
 #[cfg(test)]
 mod test {
-    use crate::receipt::TypedReceiptData;
-
     use super::*;
+    use crate::receipt::TypedReceiptData;
 
     #[test]
     fn test_transaction_receipt_serde() {

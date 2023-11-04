@@ -9,9 +9,8 @@ mod kind;
 mod request;
 mod signed;
 
-use crate::{access_list::AccessListItem, Address, Bytes, U256};
-
 pub use self::{detailed::DetailedTransaction, kind::TransactionKind, request::*, signed::*};
+use crate::{access_list::AccessListItem, Address, Bytes, U256};
 
 /// Represents _all_ transaction requests received from RPC
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
@@ -20,7 +19,7 @@ pub use self::{detailed::DetailedTransaction, kind::TransactionKind, request::*,
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct EthTransactionRequest {
     /// from address
-    pub from: Option<Address>,
+    pub from: Address,
     /// to address
     pub to: Option<Address>,
     /// legacy, gas Price

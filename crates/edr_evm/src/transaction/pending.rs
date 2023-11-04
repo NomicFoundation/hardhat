@@ -27,7 +27,8 @@ pub struct PendingTransaction {
 }
 
 impl PendingTransaction {
-    /// Create a [`PendingTransaction`] by attempting to validate and recover the caller address of the provided transaction.
+    /// Create a [`PendingTransaction`] by attempting to validate and recover
+    /// the caller address of the provided transaction.
     pub fn new<S: StateRef + ?Sized>(
         state: &S,
         spec_id: SpecId,
@@ -40,7 +41,8 @@ impl PendingTransaction {
         Self::with_caller(state, spec_id, transaction, caller)
     }
 
-    /// Creates a [`PendingTransaction`] with the provided transaction and caller address.
+    /// Creates a [`PendingTransaction`] with the provided transaction and
+    /// caller address.
     pub fn with_caller<S: StateRef + ?Sized>(
         state: &S,
         spec_id: SpecId,

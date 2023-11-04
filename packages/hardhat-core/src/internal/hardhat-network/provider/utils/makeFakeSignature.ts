@@ -1,46 +1,21 @@
-import {
-  AccessListEIP2930Transaction,
-  FeeMarketEIP1559Transaction,
-  TxData,
-} from "@nomicfoundation/ethereumjs-tx";
 import { Address } from "@nomicfoundation/ethereumjs-util";
 
-import { createNonCryptographicHashBasedIdentifier } from "../../../util/hash";
-
+// Must match the EDR implementation to make sure that transaction hashes and by
+// extension block hashes match for identical input.
+//
 // Produces a signature with r and s values taken from a hash of the inputs.
-export function makeFakeSignature(
-  tx: TxData | AccessListEIP2930Transaction | FeeMarketEIP1559Transaction,
-  sender: Address
-): {
-  r: number;
-  s: number;
+// The only requirements on a fake signature are that when it is encoded as part
+// of a transaction, it produces the same hash for the same transaction from a
+// sender, and it produces different hashes for different senders. We achieve
+// this by setting the `r` and `s` values to the sender's address. This is the
+// simplest implementation and it helps us recognize fake signatures in debug
+// logs.
+export function makeFakeSignature(sender: Address): {
+  r: Buffer;
+  s: Buffer;
 } {
-  const hashInputString = [
-    sender,
-    tx.nonce,
-    tx.gasLimit,
-    tx.value,
-    tx.to,
-    tx.data,
-    "gasPrice" in tx ? tx.gasPrice : "",
-    "chainId" in tx ? tx.chainId : "",
-    "maxPriorityFeePerGas" in tx ? tx.maxPriorityFeePerGas : "",
-    "maxFeePerGas" in tx ? tx.maxFeePerGas : "",
-    "accessList" in tx
-      ? tx.accessList?.map(([buf, bufs]) =>
-          [buf, ...bufs].map((b) => b.toString("hex")).join(";")
-        )
-      : "",
-  ]
-    .map((a) => a?.toString() ?? "")
-    .join(",");
-
-  const hashDigest = createNonCryptographicHashBasedIdentifier(
-    Buffer.from(hashInputString)
-  );
-
   return {
-    r: hashDigest.readUInt32LE(),
-    s: hashDigest.readUInt32LE(4),
+    r: sender.toBuffer(),
+    s: sender.toBuffer(),
   };
 }

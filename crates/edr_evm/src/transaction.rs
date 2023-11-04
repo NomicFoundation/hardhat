@@ -22,7 +22,8 @@ pub enum TransactionError<BE, SE> {
     /// Corrupt transaction data
     #[error("Invalid transaction: {0:?}")]
     InvalidTransaction(InvalidTransaction),
-    /// The transaction is expected to have a prevrandao, as the executor's config is on a post-merge hardfork.
+    /// The transaction is expected to have a prevrandao, as the executor's
+    /// config is on a post-merge hardfork.
     #[error("Post-merge transaction is missing prevrandao")]
     MissingPrevrandao,
     /// State errors

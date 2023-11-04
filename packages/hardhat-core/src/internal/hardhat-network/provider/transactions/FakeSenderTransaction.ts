@@ -98,7 +98,7 @@ export class FakeSenderTransaction extends Transaction {
   private readonly _sender: Address;
 
   constructor(sender: Address, data: TxData = {}, opts?: TxOptions) {
-    const fakeSignature = makeFakeSignature(data, sender);
+    const fakeSignature = makeFakeSignature(sender);
 
     super(
       {

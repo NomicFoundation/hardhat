@@ -1,11 +1,14 @@
-use crate::block::{is_safe_block_number, IsSafeBlockNumberArgs};
 use revm_primitives::{Address, B256};
-use sha3::digest::FixedOutput;
-use sha3::{Digest, Sha3_256};
+use sha3::{digest::FixedOutput, Digest, Sha3_256};
 
-use crate::remote::methods::{GetLogsInput, MethodInvocation};
-use crate::remote::{BlockSpec, BlockTag, Eip1898BlockSpec};
-use crate::U256;
+use crate::{
+    block::{is_safe_block_number, IsSafeBlockNumberArgs},
+    remote::{
+        methods::{GetLogsInput, MethodInvocation},
+        BlockSpec, BlockTag, Eip1898BlockSpec,
+    },
+    U256,
+};
 
 pub(super) fn try_read_cache_key(method_invocation: &MethodInvocation) -> Option<ReadCacheKey> {
     CacheableMethodInvocation::try_from(method_invocation)
@@ -370,11 +373,12 @@ impl<'a> TryFrom<&'a GetLogsInput> for CacheableGetLogsInput<'a> {
 
 #[derive(Debug, Clone)]
 pub(super) enum WriteCacheKey {
-    /// It needs to be checked whether the block number is safe (reorg-free) before writing to the
-    /// cache.
+    /// It needs to be checked whether the block number is safe (reorg-free)
+    /// before writing to the cache.
     NeedsSafetyCheck(CacheKeyForUncheckedBlockNumber),
-    /// The method invocation contains a symbolic block spec (e.g. "finalized") that needs to be
-    /// resolved to a block number before the result can be cached.
+    /// The method invocation contains a symbolic block spec (e.g. "finalized")
+    /// that needs to be resolved to a block number before the result can be
+    /// cached.
     NeedsBlockNumber(CacheKeyForSymbolicBlockTag),
     /// The cache key is fully resolved and can be used to write to the cache.
     Resolved(String),
@@ -415,7 +419,8 @@ pub(super) struct CacheKeyForUncheckedBlockNumber {
 }
 
 impl CacheKeyForUncheckedBlockNumber {
-    /// Check whether the block number is safe to cache before returning a cache key.
+    /// Check whether the block number is safe to cache before returning a cache
+    /// key.
     pub fn validate_block_number(self, chain_id: u64, latest_block_number: u64) -> Option<String> {
         let is_safe = is_safe_block_number(IsSafeBlockNumberArgs {
             chain_id,
@@ -432,8 +437,8 @@ impl CacheKeyForUncheckedBlockNumber {
 
 #[derive(Debug, Clone)]
 pub(super) enum ResolvedSymbolicTag {
-    /// It needs to be checked whether the block number is safe (reorg-free) before writing to the
-    /// cache.
+    /// It needs to be checked whether the block number is safe (reorg-free)
+    /// before writing to the cache.
     NeedsSafetyCheck(CacheKeyForUncheckedBlockNumber),
     /// The cache key is fully resolved and can be used to write to the cache.
     Resolved(String),
@@ -445,7 +450,8 @@ pub(super) struct CacheKeyForSymbolicBlockTag {
 }
 
 impl CacheKeyForSymbolicBlockTag {
-    /// Check whether the block number is safe to cache before returning a cache key.
+    /// Check whether the block number is safe to cache before returning a cache
+    /// key.
     pub(super) fn resolve_symbolic_tag(self, block_number: u64) -> Option<ResolvedSymbolicTag> {
         let resolved_block_spec = CacheableBlockSpec::Number { block_number };
 
@@ -472,8 +478,8 @@ impl CacheKeyForSymbolicBlockTag {
     }
 }
 
-/// Method invocations where, if the block spec argument is symbolic, it can be resolved to a block
-/// number from the response.
+/// Method invocations where, if the block spec argument is symbolic, it can be
+/// resolved to a block number from the response.
 #[derive(Debug, Clone)]
 pub(super) enum MethodWithResolvableSymbolicBlockSpec {
     GetBlockByNumber { include_tx_data: bool },
@@ -492,11 +498,11 @@ impl<'a> MethodWithResolvableSymbolicBlockSpec {
 }
 
 /// A cache key that can be used to read from the cache.
-/// It's based on not-fully resolved data, so it's not safe to write to this cache key.
-/// Specifically, it's not checked whether the block number is safe to cache (safe from reorgs).
-/// This is ok for reading from the cache, since the result will be a cache miss if the block number
-/// is not safe to cache and not having to resolve this data for reading offers performance
-/// advantages.
+/// It's based on not-fully resolved data, so it's not safe to write to this
+/// cache key. Specifically, it's not checked whether the block number is safe
+/// to cache (safe from reorgs). This is ok for reading from the cache, since
+/// the result will be a cache miss if the block number is not safe to cache and
+/// not having to resolve this data for reading offers performance advantages.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[repr(transparent)]
 pub(super) struct ReadCacheKey(String);
@@ -512,19 +518,23 @@ struct Hasher {
     hasher: Sha3_256,
 }
 
-// The methods take `mut self` instead of `&mut self` to make sure no hash is constructed if one of
-// the method arguments are invalid (in which case the method returns None and consumes self).
+// The methods take `mut self` instead of `&mut self` to make sure no hash is
+// constructed if one of the method arguments are invalid (in which case the
+// method returns None and consumes self).
 //
-// Before variants of an enum are hashed, a variant marker is hashed before hashing the values of
-// the variants to distinguish between them. E.g. the hash of `Enum::Foo(1u8)` should not equal the
-// hash of `Enum::Bar(1u8)`, since these are not logically equivalent. This matches the behavior of
-// the `Hash` derivation of the Rust standard library for enums.
+// Before variants of an enum are hashed, a variant marker is hashed before
+// hashing the values of the variants to distinguish between them. E.g. the hash
+// of `Enum::Foo(1u8)` should not equal the hash of `Enum::Bar(1u8)`, since
+// these are not logically equivalent. This matches the behavior of the `Hash`
+// derivation of the Rust standard library for enums.
 //
-// Instead of ignoring `None` values, the same pattern is followed for Options in order to let us
-// distinguish between `[None, Some("a")]` and `[Some("a")]`. Note that if we use the cache key
-// variant `0u8` for `None`, it's ok if `None` and `0u8`, hash to the same values since a type where
-// `Option` and `u8` are valid values must be wrapped in an enum in Rust and the enum cache key
-// variant prefix will distinguish between them. This wouldn't be the case with JSON though.
+// Instead of ignoring `None` values, the same pattern is followed for Options
+// in order to let us distinguish between `[None, Some("a")]` and `[Some("a")]`.
+// Note that if we use the cache key variant `0u8` for `None`, it's ok if `None`
+// and `0u8`, hash to the same values since a type where `Option` and `u8` are
+// valid values must be wrapped in an enum in Rust and the enum cache key
+// variant prefix will distinguish between them. This wouldn't be the case with
+// JSON though.
 //
 // When adding new types such as sequences or strings, [prefix
 // collisions](https://doc.rust-lang.org/std/hash/trait.Hash.html#prefix-collisions) should be

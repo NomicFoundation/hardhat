@@ -14,6 +14,7 @@ use napi::{
 };
 use napi_derive::napi;
 
+use super::{Block, BlockHeader, BlockOptions};
 use crate::{
     blockchain::Blockchain,
     cast::TryCast,
@@ -21,8 +22,6 @@ use crate::{
     state::State,
     transaction::{result::TransactionResult, PendingTransaction},
 };
-
-use super::{Block, BlockHeader, BlockOptions};
 
 #[napi]
 pub struct BlockBuilder {
@@ -33,8 +32,8 @@ pub struct BlockBuilder {
 
 #[napi]
 impl BlockBuilder {
-    // TODO: There seems to be a limitation in napi-rs that prevents us from creating
-    // a #[napi(factory)] with an async fn
+    // TODO: There seems to be a limitation in napi-rs that prevents us from
+    // creating a #[napi(factory)] with an async fn
     #[napi(ts_return_type = "Promise<BlockBuilder>")]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn create(
@@ -109,7 +108,7 @@ impl BlockBuilder {
                     if with_trace { Some(&mut tracer) } else { None };
 
                 builder
-                    .add_transaction(&mut *blockchain.write().await, &mut *state.write().await, transaction, inspector)
+                    .add_transaction(&*blockchain.read().await, &mut *state.write().await, transaction, inspector)
                     .map_or_else(
                         |e| Err(napi::Error::new(Status::GenericFailure, match e {
                             BlockTransactionError::InvalidTransaction(
@@ -140,8 +139,8 @@ impl BlockBuilder {
         Ok(promise)
     }
 
-    /// This call consumes the [`BlockBuilder`] object in Rust. Afterwards, you can no longer call
-    /// methods on the JS object.
+    /// This call consumes the [`BlockBuilder`] object in Rust. Afterwards, you
+    /// can no longer call methods on the JS object.
     #[napi]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn finalize(

@@ -9,18 +9,19 @@ use edr_eth::{
     B256, U256,
 };
 use parking_lot::Mutex;
-use revm::primitives::HashMap;
-use revm::{db::BlockHashRef, primitives::SpecId};
-use tokio::runtime;
-
-use crate::{
-    state::{ForkState, StateDiff, StateError, StateOverride, SyncState},
-    Block, LocalBlock, RandomHashGenerator, SyncBlock,
+use revm::{
+    db::BlockHashRef,
+    primitives::{HashMap, SpecId},
 };
+use tokio::runtime;
 
 use super::{
     compute_state_at_block, remote::RemoteBlockchain, storage::ReservableSparseBlockchainStorage,
     validate_next_block, Blockchain, BlockchainError, BlockchainMut,
+};
+use crate::{
+    state::{ForkState, StateDiff, StateError, StateOverride, SyncState},
+    Block, LocalBlock, RandomHashGenerator, SyncBlock,
 };
 
 /// An error that occurs upon creation of a [`ForkedBlockchain`].
@@ -396,7 +397,8 @@ impl BlockchainMut for ForkedBlockchain {
 
         let total_difficulty = previous_total_difficulty + block.header().difficulty;
 
-        // SAFETY: The block number is guaranteed to be unique, so the block hash must be too.
+        // SAFETY: The block number is guaranteed to be unique, so the block hash must
+        // be too.
         let block = unsafe {
             self.local_storage
                 .insert_block_unchecked(block, state_diff, total_difficulty)

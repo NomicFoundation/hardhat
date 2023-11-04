@@ -1,16 +1,14 @@
 use criterion::{criterion_group, criterion_main, Criterion};
+use edr_eth::{Address, Bytes, U256};
 use edr_evm::{AccountStatus, HashMap};
 use revm::primitives::Bytecode;
-
-use edr_eth::{Address, Bytes, U256};
 
 mod util;
 use util::{bench_sync_state_method, state_prep_no_op};
 
 fn bench_database_commit(c: &mut Criterion) {
-    use revm::primitives::KECCAK_EMPTY;
-
     use edr_evm::{Account, AccountInfo, StorageSlot};
+    use revm::primitives::KECCAK_EMPTY;
 
     #[derive(Debug, serde::Deserialize)]
     #[serde(rename_all = "camelCase")]

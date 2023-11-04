@@ -18,8 +18,9 @@ pub fn help_test_method_invocation_serde_with_expected<MethodInvocation>(
 ) where
     MethodInvocation: PartialEq + std::fmt::Debug + serde::de::DeserializeOwned + serde::Serialize,
 {
-    // validate that variations of MethodInvocation which have single values can still be
-    // deserialized when presented with `params` as a vector rather than a single value:
+    // validate that variations of MethodInvocation which have single values can
+    // still be deserialized when presented with `params` as a vector rather
+    // than a single value:
     #[derive(Debug, serde::Deserialize)]
     struct MethodInvocationStructWithUntypedParams {
         #[allow(dead_code)]

@@ -19,14 +19,13 @@ use revm::{
     },
 };
 
+use super::local::LocalBlock;
 use crate::{
     blockchain::SyncBlockchain,
     evm::{build_evm, run_transaction, SyncInspector},
     state::{AccountModifierFn, StateDiff, SyncState},
     PendingTransaction,
 };
-
-use super::local::LocalBlock;
 
 /// An error caused during construction of a block builder.
 #[derive(Debug, thiserror::Error)]
@@ -110,8 +109,8 @@ impl BlockBuilder {
         let header = PartialHeader::new(cfg.spec_id, options, Some(parent));
 
         // TODO: Validate DAO extra data
-        // if (this._common.hardforkIsActiveOnBlock(Hardfork.Dao, this.number) === false) {
-        //     return
+        // if (this._common.hardforkIsActiveOnBlock(Hardfork.Dao, this.number) ===
+        // false) {     return
         // }
         // const DAOActivationBlock = this._common.hardforkBlock(Hardfork.Dao)
         // if (DAOActivationBlock === null || this.number < DAOActivationBlock) {
@@ -120,10 +119,10 @@ impl BlockBuilder {
         // const DAO_ExtraData = Buffer.from('64616f2d686172642d666f726b', 'hex')
         // const DAO_ForceExtraDataRange = BigInt(9)
         // const drift = this.number - DAOActivationBlock
-        // if (drift <= DAO_ForceExtraDataRange && !this.extraData.equals(DAO_ExtraData)) {
-        //     const msg = this._errorMsg("extraData should be 'dao-hard-fork'")
-        //     throw new Error(msg)
-        // }
+        // if (drift <= DAO_ForceExtraDataRange &&
+        // !this.extraData.equals(DAO_ExtraData)) {     const msg =
+        // this._errorMsg("extraData should be 'dao-hard-fork'")     throw new
+        // Error(msg) }
 
         Ok(Self {
             cfg,
@@ -163,7 +162,7 @@ impl BlockBuilder {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn add_transaction<BlockchainErrorT, StateErrorT>(
         &mut self,
-        blockchain: &mut dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
+        blockchain: &dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
         state: &mut dyn SyncState<StateErrorT>,
         transaction: PendingTransaction,
         inspector: Option<&mut dyn SyncInspector<BlockchainErrorT, StateErrorT>>,
@@ -172,7 +171,8 @@ impl BlockBuilder {
         BlockchainErrorT: Debug + Send + 'static,
         StateErrorT: Debug + Send + 'static,
     {
-        //  transaction's gas limit cannot be greater than the remaining gas in the block
+        //  transaction's gas limit cannot be greater than the remaining gas in the
+        // block
         if transaction.gas_limit() > self.gas_remaining() {
             return Err(BlockTransactionError::ExceedsBlockGasLimit);
         }
@@ -283,7 +283,8 @@ impl BlockBuilder {
         Ok(result)
     }
 
-    /// Finalizes the block, returning the block and the callers of the transactions.
+    /// Finalizes the block, returning the block and the callers of the
+    /// transactions.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn finalize<StateT, StateErrorT>(
         mut self,

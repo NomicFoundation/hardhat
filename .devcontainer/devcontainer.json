@@ -18,4 +18,12 @@
     "ALCHEMY_URL": "${localEnv:ALCHEMY_URL}",
     "INFURA_URL": "${localEnv:INFURA_URL}"
   },
+  "customizations": {
+    "vscode": {
+      "extensions": ["rust-lang.rust-analyzer"],
+      "settings": {
+        "rust-analyzer.rustfmt.extraArgs": ["+nightly"]
+      }
+    }
+  }
 }

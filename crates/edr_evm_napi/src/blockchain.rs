@@ -1,18 +1,17 @@
 use std::{fmt::Debug, ops::Deref, path::PathBuf, sync::Arc};
 
-use napi::{
-    bindgen_prelude::{BigInt, Buffer, ObjectFinalize},
-    tokio::{runtime, sync::RwLock},
-    Env, JsObject, Status,
-};
-use napi_derive::napi;
-
 use edr_eth::{remote::RpcClient, spec::HardforkActivations, B256, U256};
 use edr_evm::{
     blockchain::{BlockchainError, SyncBlockchain},
     state::StateError,
     AccountStatus, HashMap,
 };
+use napi::{
+    bindgen_prelude::{BigInt, Buffer, ObjectFinalize},
+    tokio::{runtime, sync::RwLock},
+    Env, JsObject, Status,
+};
+use napi_derive::napi;
 
 use crate::{
     account::{add_precompiles, genesis_accounts, GenesisAccount},
@@ -24,8 +23,8 @@ use crate::{
     state::{IrregularState, State},
 };
 
-// An arbitrarily large amount of memory to signal to the javascript garbage collector that it needs to
-// attempt to free the blockchain object's memory.
+// An arbitrarily large amount of memory to signal to the javascript garbage
+// collector that it needs to attempt to free the blockchain object's memory.
 const BLOCKCHAIN_MEMORY_SIZE: i64 = 10_000;
 
 /// The EDR blockchain
@@ -228,9 +227,8 @@ impl Blockchain {
     //     &mut self,
     //     block_number: BigInt,
     //     block_hash: Buffer,
-    // ) -> napi::Result<()> {
-    //     let block_number = BigInt::try_cast(block_number)?;
-    //     let block_hash = TryCast::<B256>::try_cast(block_hash);
+    // ) -> napi::Result<()> { let block_number = BigInt::try_cast(block_number)?;
+    //   let block_hash = TryCast::<B256>::try_cast(block_hash);
 
     //     self.db
     //         .insert_block(block_number, block_hash)

@@ -2,7 +2,8 @@ use edr_eth::B256;
 
 use super::StateDiff;
 
-/// Data for overriding a state with a diff and the state's resulting state root.
+/// Data for overriding a state with a diff and the state's resulting state
+/// root.
 #[derive(Clone, Debug)]
 pub struct StateOverride {
     /// The diff to be applied.

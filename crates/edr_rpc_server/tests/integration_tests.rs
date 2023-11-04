@@ -1,8 +1,5 @@
 use std::{net::SocketAddr, str::FromStr};
 
-use tempfile::TempDir;
-use tracing::Level;
-
 use edr_eth::{
     remote::{
         client::Request as RpcRequest,
@@ -12,14 +9,16 @@ use edr_eth::{
         BlockSpec,
     },
     serde::ZeroXPrefixedBytes,
-    signature::{secret_key_to_address, Signature},
+    signature::{secret_key_from_str, secret_key_to_address, Signature},
+    transaction::EthTransactionRequest,
     Address, Bytes, B256, U256, U64,
 };
 use edr_evm::KECCAK_EMPTY;
-
-use edr_rpc_server::{create_test_config, HardhatMethodInvocation, MethodInvocation, Server};
-
-const SECRET_KEY: &str = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+use edr_rpc_server::{
+    create_test_config, HardhatMethodInvocation, MethodInvocation, Server, TEST_SECRET_KEY,
+};
+use tempfile::TempDir;
+use tracing::Level;
 
 struct TestFixture {
     server_address: SocketAddr,
@@ -42,15 +41,29 @@ async fn start_server() -> TestFixture {
     }
 }
 
-async fn submit_request(address: &SocketAddr, request: &RpcRequest<MethodInvocation>) -> String {
+async fn submit_request<ResponseT>(
+    fixture: &TestFixture,
+    method: MethodInvocation,
+) -> anyhow::Result<RequestResponse<ResponseT>>
+where
+    ResponseT: serde::de::DeserializeOwned + std::fmt::Debug + PartialEq,
+{
     tracing_subscriber::fmt::Subscriber::builder()
         .with_max_level(Level::INFO)
         .with_test_writer()
         .try_init()
         .ok();
-    let url = format!("http://{address}/");
+
+    let url = format!("http://{}/", fixture.server_address);
+
+    let request = RpcRequest {
+        version: jsonrpc::Version::V2_0,
+        id: jsonrpc::Id::Num(0),
+        method,
+    };
     let body = serde_json::to_string(&request).expect("should serialize request to JSON");
-    reqwest::Client::new()
+
+    let unparsed_response = reqwest::Client::new()
         .post(&url)
         .header(reqwest::header::CONTENT_TYPE, "application/json")
         .body(body.clone())
@@ -59,9 +72,20 @@ async fn submit_request(address: &SocketAddr, request: &RpcRequest<MethodInvocat
         .unwrap_or_else(|_| panic!("should send to url '{url}' request body '{body}'"))
         .text()
         .await
-        .unwrap_or_else(|_| panic!("should get full response text"))
+        .unwrap_or_else(|_| panic!("should get full response text"));
+
+    let response: jsonrpc::Response<ResponseT> =
+        serde_json::from_str(&unparsed_response).expect("should deserialize from JSON");
+
+    Ok(RequestResponse { request, response })
 }
 
+struct RequestResponse<ResponseT> {
+    request: RpcRequest<MethodInvocation>,
+    response: jsonrpc::Response<ResponseT>,
+}
+
+/// Verify that a method call returns a certain value.
 async fn verify_response<ResponseT>(
     fixture: &TestFixture,
     method: MethodInvocation,
@@ -69,11 +93,12 @@ async fn verify_response<ResponseT>(
 ) where
     ResponseT: serde::de::DeserializeOwned + std::fmt::Debug + PartialEq,
 {
-    let request = RpcRequest {
-        version: jsonrpc::Version::V2_0,
-        id: jsonrpc::Id::Num(0),
-        method,
-    };
+    let RequestResponse {
+        request,
+        response: actual_response,
+    } = submit_request(fixture, method)
+        .await
+        .expect("request succeeds");
 
     let expected_response = jsonrpc::Response::<ResponseT> {
         jsonrpc: request.version,
@@ -81,12 +106,29 @@ async fn verify_response<ResponseT>(
         data: jsonrpc::ResponseData::Success { result: response },
     };
 
-    let unparsed_response = submit_request(&fixture.server_address, &request).await;
-
-    let actual_response: jsonrpc::Response<ResponseT> =
-        serde_json::from_str(&unparsed_response).expect("should deserialize from JSON");
-
     assert_eq!(actual_response, expected_response);
+}
+
+/// Verify that the a method call returns a certain type.
+async fn verify_response_shape<ResponseT>(
+    fixture: &TestFixture,
+    method: MethodInvocation,
+) -> anyhow::Result<()>
+where
+    ResponseT: serde::de::DeserializeOwned + std::fmt::Debug + PartialEq,
+{
+    let RequestResponse { response, request } =
+        submit_request::<ResponseT>(fixture, method).await?;
+
+    match response.data {
+        jsonrpc::ResponseData::Success { .. } => {
+            assert_eq!(request.id, response.id);
+            Ok(())
+        }
+        jsonrpc::ResponseData::Error { error } => {
+            anyhow::bail!("expected success response, got error response: {:?}", error)
+        }
+    }
 }
 
 #[tokio::test]
@@ -94,7 +136,7 @@ async fn test_accounts() {
     verify_response(
         &start_server().await,
         MethodInvocation::Eth(EthMethodInvocation::Accounts()),
-        vec![secret_key_to_address(SECRET_KEY).unwrap()],
+        vec![secret_key_to_address(TEST_SECRET_KEY).unwrap()],
     )
     .await;
 }
@@ -348,6 +390,50 @@ async fn test_interval_mine() {
     .await;
 }
 
+fn dummy_transaction_request() -> EthTransactionRequest {
+    EthTransactionRequest {
+        from: secret_key_to_address(TEST_SECRET_KEY).unwrap(),
+        to: Some(Address::zero()),
+        gas_price: None,
+        max_fee_per_gas: None,
+        max_priority_fee_per_gas: None,
+        gas: Some(21_000),
+        value: None,
+        data: None,
+        nonce: None,
+        access_list: None,
+        transaction_type: None,
+    }
+}
+
+#[tokio::test]
+async fn test_send_transaction() -> anyhow::Result<()> {
+    verify_response_shape::<B256>(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::SendTransaction(
+            dummy_transaction_request(),
+        )),
+    )
+    .await
+}
+
+#[tokio::test]
+async fn test_send_raw_transaction() -> anyhow::Result<()> {
+    let transaction = dummy_transaction_request()
+        .into_typed_request()
+        .ok_or(anyhow::anyhow!("failed to convert transaction request"))?;
+    let signed_transaction = transaction.sign(&secret_key_from_str(TEST_SECRET_KEY)?)?;
+    let raw_transaction = rlp::encode(&signed_transaction);
+
+    verify_response_shape::<B256>(
+        &start_server().await,
+        MethodInvocation::Eth(EthMethodInvocation::SendRawTransaction(
+            raw_transaction.freeze().into(),
+        )),
+    )
+    .await
+}
+
 #[tokio::test]
 async fn test_set_balance_success() {
     let server_address = start_server().await;
@@ -455,8 +541,8 @@ async fn test_set_storage_at_success() {
 
 #[tokio::test]
 async fn test_sign() {
-    // the expected response for this test case was created by submitting the same request to a
-    // default-configured instance of Hardhat Network.
+    // the expected response for this test case was created by submitting the same
+    // request to a default-configured instance of Hardhat Network.
     verify_response(
         &start_server().await,
         MethodInvocation::Eth(EthMethodInvocation::Sign(
@@ -471,8 +557,8 @@ async fn test_sign() {
 async fn test_stop_impersonating_account() {
     let server_address = start_server().await;
 
-    // verify that stopping the impersonation of an account that wasn't already being impersonated
-    // results in a `false` return value:
+    // verify that stopping the impersonation of an account that wasn't already
+    // being impersonated results in a `false` return value:
     verify_response(
         &server_address,
         MethodInvocation::Hardhat(HardhatMethodInvocation::StopImpersonatingAccount(
@@ -482,8 +568,8 @@ async fn test_stop_impersonating_account() {
     )
     .await;
 
-    // verify that stopping the impersonation of an account that WAS already being impersonated
-    // results in a `false` return value:
+    // verify that stopping the impersonation of an account that WAS already being
+    // impersonated results in a `false` return value:
     verify_response(
         &server_address,
         MethodInvocation::Hardhat(HardhatMethodInvocation::ImpersonateAccount(
