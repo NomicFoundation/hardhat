@@ -21,9 +21,11 @@ import {
 } from "./internal/topological-order";
 import { replaceWithinArg } from "./internal/utils/replace-within-arg";
 import {
+  isAccountRuntimeValue,
   isAddressResolvableFuture,
   isContractFuture,
   isFuture,
+  isModuleParameterRuntimeValue,
   isRuntimeValue,
 } from "./type-guards";
 import {
@@ -319,8 +321,10 @@ export class IgnitionModuleSerializer {
           ),
           to: isFuture(future.to)
             ? this._convertFutureToFutureToken(future.to)
-            : isRuntimeValue(future.to)
+            : isModuleParameterRuntimeValue(future.to)
             ? this._serializeModuleParamterRuntimeValue(future.to)
+            : isAccountRuntimeValue(future.to)
+            ? this._serializeAccountRuntimeValue(future.to)
             : future.to,
           value: isRuntimeValue(future.value)
             ? this._serializeModuleParamterRuntimeValue(future.value)
@@ -836,6 +840,8 @@ export class IgnitionModuleDeserializer {
             ? (this._deserializeModuleParameterRuntimeValue(
                 serializedFuture.to
               ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid valus
+            : this._isSerializedAccountRuntimeValue(serializedFuture.to)
+            ? this._deserializeAccountRuntimeValue(serializedFuture.to)
             : serializedFuture.to,
           this._isSerializedModuleParameterRuntimeValue(serializedFuture.value)
             ? (this._deserializeModuleParameterRuntimeValue(

@@ -99,6 +99,27 @@ describe("Reconciliation - send data", () => {
     );
   });
 
+  it("should reconcile between `to` and an account value", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const givenAccount = m.getAccount(2);
+
+      m.send("test_send", givenAccount, 0n, "example_data");
+
+      return {};
+    });
+
+    await assertSuccessReconciliation(
+      moduleDefinition,
+      createDeploymentState({
+        ...exampleSendState,
+        id: "Module#test_send",
+        status: ExecutionStatus.STARTED,
+        to: exampleAccounts[2],
+        data: "example_data",
+      })
+    );
+  });
+
   it("should find changes to the to address unreconciliable", async () => {
     const moduleDefinition = buildModule("Module", (m) => {
       m.send("test_send", differentAddress, 0n, "example_data");

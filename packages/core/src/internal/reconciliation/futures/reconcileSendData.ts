@@ -1,5 +1,5 @@
 import { SendDataFuture } from "../../../types/module";
-import { resolveAddressLike } from "../../execution/future-processor/helpers/future-resolvers";
+import { resolveSendToAddress } from "../../execution/future-processor/helpers/future-resolvers";
 import { SendDataExecutionState } from "../../execution/types/execution-state";
 import { compare } from "../helpers/compare";
 import { reconcileData } from "../helpers/reconcile-data";
@@ -12,10 +12,11 @@ export function reconcileSendData(
   executionState: SendDataExecutionState,
   context: ReconciliationContext
 ): ReconciliationFutureResult {
-  const resolvedAddress = resolveAddressLike(
+  const resolvedAddress = resolveSendToAddress(
     future.to,
     context.deploymentState,
-    context.deploymentParameters
+    context.deploymentParameters,
+    context.accounts
   );
 
   let result = compare(

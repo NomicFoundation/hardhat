@@ -242,7 +242,8 @@ export class SendDataFutureImplementation
     public readonly to:
       | string
       | AddressResolvableFuture
-      | ModuleParameterRuntimeValue<string>,
+      | ModuleParameterRuntimeValue<string>
+      | AccountRuntimeValue,
     public readonly value: bigint | ModuleParameterRuntimeValue<bigint>,
     public readonly data: string | undefined,
     public readonly from: string | AccountRuntimeValue | undefined

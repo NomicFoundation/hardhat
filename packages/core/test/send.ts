@@ -18,9 +18,12 @@ import {
 } from "./helpers";
 
 describe("send", () => {
+  const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
+  const differentAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
+
   it("should be able to setup a send", () => {
     const moduleWithASingleContract = buildModule("Module1", (m) => {
-      m.send("test_send", "0xtest", 0n, "test-data");
+      m.send("test_send", exampleAddress, 0n, "test-data");
 
       return {};
     });
@@ -77,7 +80,7 @@ describe("send", () => {
   it("should be able to pass one contract as an after dependency of a send", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
       const example = m.contract("Example");
-      m.send("test_send", "0xtest", 0n, "", { after: [example] });
+      m.send("test_send", exampleAddress, 0n, "", { after: [example] });
 
       return { example };
     });
@@ -102,7 +105,7 @@ describe("send", () => {
 
   it("should be able to pass a value", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
-      m.send("test_send", "0xtest", 42n, "");
+      m.send("test_send", exampleAddress, 42n, "");
 
       return {};
     });
@@ -122,7 +125,7 @@ describe("send", () => {
 
   it("Should be able to pass a ModuleParameterRuntimeValue as a value option", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
-      m.send("test_send", "0xtest", m.getParameter("value"), "");
+      m.send("test_send", exampleAddress, m.getParameter("value"), "");
 
       return {};
     });
@@ -145,7 +148,7 @@ describe("send", () => {
 
   it("should be able to pass a string as from option", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
-      m.send("test_send", "0xtest", 0n, "", { from: "0x2" });
+      m.send("test_send", exampleAddress, 0n, "", { from: differentAddress });
 
       return {};
     });
@@ -160,12 +163,12 @@ describe("send", () => {
       assert.fail("Not a send data future");
     }
 
-    assert.equal(sendFuture.from, "0x2");
+    assert.equal(sendFuture.from, differentAddress);
   });
 
   it("Should be able to pass an AccountRuntimeValue as from option", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
-      m.send("test_send", "0xtest", 0n, "", { from: m.getAccount(1) });
+      m.send("test_send", exampleAddress, 0n, "", { from: m.getAccount(1) });
 
       return {};
     });
@@ -182,6 +185,27 @@ describe("send", () => {
 
     assertInstanceOf(sendFuture.from, AccountRuntimeValueImplementation);
     assert.equal(sendFuture.from.accountIndex, 1);
+  });
+
+  it("Should be able to pass an AccountRuntimeValue as address", () => {
+    const moduleWithDependentContracts = buildModule("Module1", (m) => {
+      m.send("test_send", m.getAccount(1), 0n, "");
+
+      return {};
+    });
+
+    assert.isDefined(moduleWithDependentContracts);
+
+    const sendFuture = [...moduleWithDependentContracts.futures].find(
+      ({ id }) => id === "Module1#test_send"
+    );
+
+    if (!(sendFuture instanceof SendDataFutureImplementation)) {
+      assert.fail("Not a send data future");
+    }
+
+    assertInstanceOf(sendFuture.to, AccountRuntimeValueImplementation);
+    assert.equal(sendFuture.to.accountIndex, 1);
   });
 
   it("Should be able to pass a module param as address", () => {
@@ -215,8 +239,8 @@ describe("send", () => {
   describe("passing id", () => {
     it("should be able to call the same function twice by passing an id", () => {
       const moduleWithSameCallTwice = buildModule("Module1", (m) => {
-        m.send("first", "0xtest", 0n, "test");
-        m.send("second", "0xtest", 0n, "test");
+        m.send("first", exampleAddress, 0n, "test");
+        m.send("second", exampleAddress, 0n, "test");
 
         return {};
       });
@@ -239,8 +263,8 @@ describe("send", () => {
       assert.throws(
         () =>
           buildModule("Module1", (m) => {
-            m.send("test_send", "0xtest", 0n, "test");
-            m.send("test_send", "0xtest", 0n, "test");
+            m.send("test_send", exampleAddress, 0n, "test");
+            m.send("test_send", exampleAddress, 0n, "test");
 
             return {};
           }),
@@ -252,8 +276,8 @@ describe("send", () => {
       assert.throws(
         () =>
           buildModule("Module1", (m) => {
-            m.send("first", "0xtest", 0n, "test");
-            m.send("first", "0xtest", 0n, "test");
+            m.send("first", exampleAddress, 0n, "test");
+            m.send("first", exampleAddress, 0n, "test");
             return {};
           }),
         'The future id "first" is already used, please provide a different one.'
@@ -268,7 +292,7 @@ describe("send", () => {
           () =>
             buildModule("Module1", (m) => {
               const another = m.contract("Another", []);
-              m.send("id", "test", 42 as any);
+              m.send("id", exampleAddress, 42 as any);
 
               return { another };
             }),
@@ -281,7 +305,7 @@ describe("send", () => {
           () =>
             buildModule("Module1", (m) => {
               const another = m.contract("Another", []);
-              m.send("id", "test", 0n, 42 as any);
+              m.send("id", exampleAddress, 0n, 42 as any);
 
               return { another };
             }),
@@ -314,6 +338,30 @@ describe("send", () => {
               return { another };
             }),
           /Invalid address given/
+        );
+      });
+
+      it("should not validate a `to` as a string that is not an address", () => {
+        assert.throws(
+          () =>
+            buildModule("Module1", (m) => {
+              m.send("id", "0xnot-an-address", 0n, "");
+
+              return {};
+            }),
+          /Invalid address given/
+        );
+      });
+
+      it("should not allow the from and to address to be the same", () => {
+        assert.throws(
+          () =>
+            buildModule("Module1", (m) => {
+              m.send("id", m.getAccount(1), 0n, "", { from: m.getAccount(1) });
+
+              return {};
+            }),
+          /The "to" and "from" addresses are the same/
         );
       });
     });
@@ -361,7 +409,7 @@ describe("send", () => {
     it("should not validate a module parameter of the wrong type for value", async () => {
       const module = buildModule("Module1", (m) => {
         const p = m.getParameter("p", false as unknown as bigint);
-        m.send("id", "0xasdf", p, "");
+        m.send("id", exampleAddress, p, "");
 
         return {};
       });
@@ -384,7 +432,7 @@ describe("send", () => {
     it("should validate a module parameter of the correct type for value", async () => {
       const module = buildModule("Module1", (m) => {
         const p = m.getParameter("p", 42n);
-        m.send("id", "0xasdf", p, "");
+        m.send("id", exampleAddress, p, "");
 
         return {};
       });
@@ -401,7 +449,7 @@ describe("send", () => {
     it("should not validate a negative account index", async () => {
       const module = buildModule("Module1", (m) => {
         const account = m.getAccount(-1);
-        m.send("id", "0xasdf", 0n, "", { from: account });
+        m.send("id", exampleAddress, 0n, "", { from: account });
 
         return {};
       });
@@ -424,7 +472,7 @@ describe("send", () => {
     it("should not validate an account index greater than the number of available accounts", async () => {
       const module = buildModule("Module1", (m) => {
         const account = m.getAccount(1);
-        m.send("id", "0xasdf", 0n, "", { from: account });
+        m.send("id", exampleAddress, 0n, "", { from: account });
 
         return {};
       });

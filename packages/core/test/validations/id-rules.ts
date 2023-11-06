@@ -249,7 +249,7 @@ describe("id rules", () => {
           buildModule("MyModule", (m) => {
             m.contract("sourceName.sol:MyContract");
             m.contract("asd/sourceName.sol:MyContract2");
-            m.contractAt("sourceName.sol:MyContractAt", "0x1234");
+            m.contractAt("sourceName.sol:MyContractAt", exampleAddress);
             m.library("sourceName.sol:MyLibrary");
 
             return {};

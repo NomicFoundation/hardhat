@@ -14,6 +14,9 @@ import {
 } from "./helpers";
 
 describe("contractAtFromArtifact", () => {
+  const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
+  const differentAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
+
   const fakeArtifact: Artifact = {
     abi: [],
     contractName: "",
@@ -23,7 +26,7 @@ describe("contractAtFromArtifact", () => {
 
   it("should be able to setup a contract at a given address", () => {
     const moduleWithContractFromArtifact = buildModule("Module1", (m) => {
-      const contract1 = m.contractAt("Contract1", fakeArtifact, "0xtest");
+      const contract1 = m.contractAt("Contract1", fakeArtifact, exampleAddress);
 
       return { contract1 };
     });
@@ -40,7 +43,7 @@ describe("contractAtFromArtifact", () => {
     // Stores the address
     assert.deepStrictEqual(
       moduleWithContractFromArtifact.results.contract1.address,
-      "0xtest"
+      exampleAddress
     );
 
     // 1 contract future
@@ -53,7 +56,7 @@ describe("contractAtFromArtifact", () => {
   it("should be able to pass an after dependency", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
       const example = m.contract("Example");
-      const another = m.contractAt("Another", fakeArtifact, "0xtest", {
+      const another = m.contractAt("Another", fakeArtifact, exampleAddress, {
         after: [example],
       });
 
@@ -130,13 +133,13 @@ describe("contractAtFromArtifact", () => {
         const sameContract1 = m.contractAt(
           "SameContract",
           fakeArtifact,
-          "0x123",
+          exampleAddress,
           { id: "first" }
         );
         const sameContract2 = m.contractAt(
           "SameContract",
           fakeArtifact,
-          "0x123",
+          differentAddress,
           {
             id: "second",
           }
@@ -163,7 +166,7 @@ describe("contractAtFromArtifact", () => {
             const sameContract1 = m.contractAt(
               "SameContract",
               fakeArtifact,
-              "0x123"
+              exampleAddress
             );
             const sameContract2 = m.contractAt(
               "SameContract",
@@ -186,7 +189,7 @@ m.contractAt(..., { id: "MyUniqueId"})`
             const sameContract1 = m.contractAt(
               "SameContract",
               fakeArtifact,
-              "0x123",
+              exampleAddress,
               {
                 id: "same",
               }

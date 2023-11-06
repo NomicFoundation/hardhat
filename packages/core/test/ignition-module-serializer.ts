@@ -20,6 +20,9 @@ import {
 } from "../src/types/module";
 
 describe("stored deployment serializer", () => {
+  const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
+  const differentAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";
+
   describe("contract", () => {
     it("should serialize a contract deployment", () => {
       const module = buildModule("Module1", (m) => {
@@ -121,7 +124,7 @@ describe("stored deployment serializer", () => {
   describe("contractAt", () => {
     it("should serialize a contractAt", () => {
       const module = buildModule("Module1", (m) => {
-        const contract1 = m.contractAt("Contract1", "0x0");
+        const contract1 = m.contractAt("Contract1", exampleAddress);
 
         return { contract1 };
       });
@@ -131,7 +134,7 @@ describe("stored deployment serializer", () => {
 
     it("should serialize a contractAt with a future address", () => {
       const module = buildModule("Module1", (m) => {
-        const contract1 = m.contractAt("Contract1", "0x0");
+        const contract1 = m.contractAt("Contract1", exampleAddress);
         const call = m.staticCall(contract1, "getAddress");
         const contract2 = m.contractAt("Contract2", call);
 
@@ -143,8 +146,8 @@ describe("stored deployment serializer", () => {
 
     it("should serialize a contractAt with dependency", () => {
       const module = buildModule("Module1", (m) => {
-        const contract1 = m.contractAt("Contract1", "0x0");
-        const contract2 = m.contractAt("Contract2", "0x0", {
+        const contract1 = m.contractAt("Contract1", exampleAddress);
+        const contract2 = m.contractAt("Contract2", differentAddress, {
           after: [contract1],
         });
 
@@ -165,7 +168,11 @@ describe("stored deployment serializer", () => {
 
     it("should serialize a contractAt", () => {
       const module = buildModule("Module1", (m) => {
-        const contract1 = m.contractAt("Contract1", fakeArtifact, "0x0");
+        const contract1 = m.contractAt(
+          "Contract1",
+          fakeArtifact,
+          exampleAddress
+        );
 
         return { contract1 };
       });
@@ -175,7 +182,11 @@ describe("stored deployment serializer", () => {
 
     it("should serialize a contractAt with a future address", () => {
       const module = buildModule("Module1", (m) => {
-        const contract1 = m.contractAt("Contract1", fakeArtifact, "0x0");
+        const contract1 = m.contractAt(
+          "Contract1",
+          fakeArtifact,
+          exampleAddress
+        );
         const call = m.staticCall(contract1, "getAddress");
         const contract2 = m.contractAt("Contract2", fakeArtifact, call);
 
@@ -187,10 +198,19 @@ describe("stored deployment serializer", () => {
 
     it("should serialize a contractAt with dependency", () => {
       const module = buildModule("Module1", (m) => {
-        const contract1 = m.contractAt("Contract1", fakeArtifact, "0x0");
-        const contract2 = m.contractAt("Contract2", fakeArtifact, "0x0", {
-          after: [contract1],
-        });
+        const contract1 = m.contractAt(
+          "Contract1",
+          fakeArtifact,
+          exampleAddress
+        );
+        const contract2 = m.contractAt(
+          "Contract2",
+          fakeArtifact,
+          differentAddress,
+          {
+            after: [contract1],
+          }
+        );
 
         return { contract1, contract2 };
       });
@@ -396,6 +416,43 @@ describe("stored deployment serializer", () => {
         });
 
         return { contract1 };
+      });
+
+      assertSerializableModuleIn(module);
+    });
+  });
+
+  describe("send", () => {
+    it("should serialize a send", () => {
+      const module = buildModule("Module1", (m) => {
+        m.send("test_send", exampleAddress, 12n, "example_data");
+
+        return {};
+      });
+
+      assertSerializableModuleIn(module);
+    });
+
+    it("should serialize a send with dependencies", () => {
+      const module = buildModule("Module1", (m) => {
+        const contract1 = m.contract("Contract1");
+        const contract2 = m.contract("Contract2");
+
+        m.send("test_send", contract1, 0n, undefined, { after: [contract2] });
+
+        return {};
+      });
+
+      assertSerializableModuleIn(module);
+    });
+
+    it("should serialize a send where the to is from an account", () => {
+      const module = buildModule("Module1", (m) => {
+        const givenAccount = m.getAccount(3);
+
+        m.send("test_send", givenAccount, 12n, "example_data");
+
+        return {};
       });
 
       assertSerializableModuleIn(module);

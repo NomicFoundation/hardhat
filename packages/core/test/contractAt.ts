@@ -14,6 +14,8 @@ import {
 } from "./helpers";
 
 describe("contractAt", () => {
+  const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
+
   const fakeArtifact: Artifact = {
     abi: [],
     contractName: "",
@@ -23,7 +25,7 @@ describe("contractAt", () => {
 
   it("should be able to setup a contract at a given address", () => {
     const moduleWithContractFromArtifact = buildModule("Module1", (m) => {
-      const contract1 = m.contractAt("Contract1", "0xtest");
+      const contract1 = m.contractAt("Contract1", exampleAddress);
 
       return { contract1 };
     });
@@ -40,7 +42,7 @@ describe("contractAt", () => {
     // Stores the address
     assert.deepStrictEqual(
       moduleWithContractFromArtifact.results.contract1.address,
-      "0xtest"
+      exampleAddress
     );
 
     // 1 contract future
@@ -53,7 +55,7 @@ describe("contractAt", () => {
   it("should be able to pass an after dependency", () => {
     const moduleWithDependentContracts = buildModule("Module1", (m) => {
       const example = m.contract("Example");
-      const another = m.contractAt("Another", "0xtest", {
+      const another = m.contractAt("Another", exampleAddress, {
         after: [example],
       });
 
@@ -123,20 +125,12 @@ describe("contractAt", () => {
   describe("passing id", () => {
     it("should be able to deploy the same contract twice by passing an id", () => {
       const moduleWithSameContractTwice = buildModule("Module1", (m) => {
-        const sameContract1 = m.contractAt(
-          "SameContract",
-          "0x123",
-
-          { id: "first" }
-        );
-        const sameContract2 = m.contractAt(
-          "SameContract",
-          "0x123",
-
-          {
-            id: "second",
-          }
-        );
+        const sameContract1 = m.contractAt("SameContract", exampleAddress, {
+          id: "first",
+        });
+        const sameContract2 = m.contractAt("SameContract", exampleAddress, {
+          id: "second",
+        });
 
         return { sameContract1, sameContract2 };
       });
@@ -156,8 +150,8 @@ describe("contractAt", () => {
       assert.throws(
         () =>
           buildModule("Module1", (m) => {
-            const sameContract1 = m.contractAt("SameContract", "0x123");
-            const sameContract2 = m.contractAt("SameContract", "0x123");
+            const sameContract1 = m.contractAt("SameContract", exampleAddress);
+            const sameContract2 = m.contractAt("SameContract", exampleAddress);
 
             return { sameContract1, sameContract2 };
           }),
@@ -171,14 +165,9 @@ m.contractAt(..., { id: "MyUniqueId"})`
       assert.throws(
         () =>
           buildModule("Module1", (m) => {
-            const sameContract1 = m.contractAt(
-              "SameContract",
-              "0x123",
-
-              {
-                id: "same",
-              }
-            );
+            const sameContract1 = m.contractAt("SameContract", exampleAddress, {
+              id: "same",
+            });
             const sameContract2 = m.contractAt(
               "SameContract",
               "0x123",
@@ -212,7 +201,7 @@ m.contractAt(..., { id: "MyUniqueId"})`
 
     it("should not validate an invalid artifact", async () => {
       const module = buildModule("Module1", (m) => {
-        const another = m.contractAt("Another", "");
+        const another = m.contractAt("Another", exampleAddress);
 
         return { another };
       });
@@ -223,7 +212,7 @@ m.contractAt(..., { id: "MyUniqueId"})`
         await validateNamedContractAt(
           future as any,
           setupMockArtifactResolver({
-            Another: {} as any,
+            Another: { _kind: "invalid artifact" } as any,
           }),
           {},
           []

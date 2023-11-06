@@ -1,6 +1,7 @@
 import { isAddress } from "ethers";
 
 import {
+  isAccountRuntimeValue,
   isFuture,
   isModuleParameterRuntimeValue,
 } from "../../../../type-guards";
@@ -150,6 +151,30 @@ export function resolveAddressForContractFuture(
   deploymentState: DeploymentState
 ): string {
   return findAddressForContractFuture(deploymentState, contract.id);
+}
+
+/**
+ * Resolve a SendDataFuture's "to" field to a valid ethereum address.
+ */
+export function resolveSendToAddress(
+  to:
+    | string
+    | AddressResolvableFuture
+    | ModuleParameterRuntimeValue<string>
+    | AccountRuntimeValue,
+  deploymentState: DeploymentState,
+  deploymentParameters: DeploymentParameters,
+  accounts: string[]
+): string {
+  if (typeof to === "string") {
+    return to;
+  }
+
+  if (isAccountRuntimeValue(to)) {
+    return resolveAccountRuntimeValue(to, accounts);
+  }
+
+  return resolveAddressLike(to, deploymentState, deploymentParameters);
 }
 
 /**

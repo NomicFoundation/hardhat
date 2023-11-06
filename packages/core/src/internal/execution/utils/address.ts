@@ -1,6 +1,13 @@
-import { getAddress, isAddress } from "ethers";
+import { isAddress as ethersIsAddress, getAddress } from "ethers";
 
 import { assertIgnitionInvariant } from "../../utils/assertions";
+
+/**
+ * Is the string a valid ethereum address?
+ */
+export function isAddress(address: string): boolean {
+  return ethersIsAddress(address);
+}
 
 /**
  * Returns a normalized and checksumed address for the given address.

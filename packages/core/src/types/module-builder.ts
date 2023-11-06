@@ -206,7 +206,11 @@ export interface IgnitionModuleBuilder {
 
   send(
     id: string,
-    to: string | AddressResolvableFuture | ModuleParameterRuntimeValue<string>,
+    to:
+      | string
+      | AddressResolvableFuture
+      | ModuleParameterRuntimeValue<string>
+      | AccountRuntimeValue,
     value?: bigint | ModuleParameterRuntimeValue<bigint>,
     data?: string,
     options?: SendDataOptions

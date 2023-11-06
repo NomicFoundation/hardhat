@@ -9,6 +9,8 @@ import { validateReadEventArgument } from "../src/internal/validation/futures/va
 import { assertValidationError, setupMockArtifactResolver } from "./helpers";
 
 describe("Read event argument", () => {
+  const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
+
   describe("creating modules with it", () => {
     it("should support reading arguments from all the futures that can emit them", () => {
       const fakeArtifact: Artifact = {
@@ -235,7 +237,7 @@ m.readEventArgument(..., { id: "MyUniqueId"})`
         assert.throws(
           () =>
             buildModule("Module1", (m) => {
-              const send = m.send("id", "test", 42n);
+              const send = m.send("id", exampleAddress, 42n);
 
               m.readEventArgument(send, "SomeEvent", "someArg");
 
