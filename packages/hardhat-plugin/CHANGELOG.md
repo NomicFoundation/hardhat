@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.11.2 - 2023-11-06
+
+### Added
+
+- Support account values in _send_ `to` in Module API ([#618](https://github.com/NomicFoundation/hardhat-ignition/issues/618))
+- Validation check for duplicate module ids ([#608](https://github.com/NomicFoundation/hardhat-ignition/issues/608))
+
+### Fixed
+
+- Fix `ContractAt`s being recorded to `deployed_addresses.json` ([#607](https://github.com/NomicFoundation/hardhat-ignition/issues/607))
+
 ## 0.11.1 - 2023-10-30
 
 ### Added
