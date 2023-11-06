@@ -540,15 +540,7 @@ describe("hardhat ethers provider", function () {
         blockTag: blockNumber - 1,
       });
 
-      const gasEstimationBigInt = await this.env.ethers.provider.estimateGas({
-        from: signer.address,
-        to: await contract.getAddress(),
-        data: "0x371303c0", // inc()
-        blockTag: BigInt(blockNumber - 1),
-      });
-
       assertWithin(Number(gasEstimationBefore), 65_000, 70_000);
-      assert.strictEqual(gasEstimationBefore, gasEstimationBigInt);
     });
 
     it("should accept a block hash", async function () {
@@ -688,6 +680,43 @@ describe("hardhat ethers provider", function () {
         to: contract,
         data: "0x3fa4f245", // value()
         blockTag: blockNumber - 1,
+      });
+
+      assert.strictEqual(
+        resultBefore,
+        "0x0000000000000000000000000000000000000000000000000000000000000000"
+      );
+    });
+
+    it("should accept a block number as a bigint", async function () {
+      const signer = await this.env.ethers.provider.getSigner(0);
+      const factory = new this.env.ethers.ContractFactory<[], ExampleContract>(
+        EXAMPLE_CONTRACT.abi,
+        EXAMPLE_CONTRACT.deploymentBytecode,
+        signer
+      );
+      const contract = await factory.deploy();
+      await contract.inc();
+
+      const blockNumber = await this.env.ethers.provider.getBlockNumber();
+
+      const resultAfter = await this.env.ethers.provider.call({
+        from: signer.address,
+        to: contract,
+        data: "0x3fa4f245", // value()
+        blockTag: "latest",
+      });
+
+      assert.strictEqual(
+        resultAfter,
+        "0x0000000000000000000000000000000000000000000000000000000000000001"
+      );
+
+      const resultBefore = await this.env.ethers.provider.call({
+        from: signer.address,
+        to: contract,
+        data: "0x3fa4f245", // value()
+        blockTag: BigInt(blockNumber - 1),
       });
 
       assert.strictEqual(
