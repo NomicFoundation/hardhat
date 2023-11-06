@@ -103,7 +103,7 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
                     .map(|reservation| reservation.previous_diff_index)
             })?;
 
-        Some(&self.state_diffs[..=diff_index])
+        Some(&self.state_diffs[0..=diff_index])
     }
 
     /// Retrieves the receipt of the transaction with the provided hash, if it
@@ -163,8 +163,12 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
             // so we can clear them all
             self.reservations.get_mut().clear();
 
-            self.state_diffs.clear();
+            // Keep the genesis block's diff
+            self.state_diffs.truncate(1);
+
+            // Keep the genesis block's mapping
             self.number_to_diff_index.clear();
+            self.number_to_diff_index.insert(0, 0);
         } else {
             // Only retain reservations that are not fully reverted
             self.reservations.get_mut().retain_mut(|reservation| {

@@ -1,4 +1,5 @@
 use std::{
+    collections::BTreeMap,
     fmt::Debug,
     num::NonZeroU64,
     sync::Arc,
@@ -7,11 +8,7 @@ use std::{
 
 use async_trait::async_trait;
 use edr_eth::{block::PartialHeader, trie::KECCAK_NULL_RLP, Bytes, B256, B64, U256};
-use revm::{
-    db::BlockHashRef,
-    primitives::{HashMap, SpecId},
-    DatabaseCommit,
-};
+use revm::{db::BlockHashRef, primitives::SpecId, DatabaseCommit};
 
 use super::{
     compute_state_at_block, storage::ReservableSparseBlockchainStorage, validate_next_block,
@@ -257,14 +254,14 @@ impl Blockchain for LocalBlockchain {
     async fn state_at_block_number(
         &self,
         block_number: u64,
-        state_overrides: &HashMap<u64, StateOverride>,
+        state_overrides: &BTreeMap<u64, StateOverride>,
     ) -> Result<Box<dyn SyncState<Self::StateError>>, Self::BlockchainError> {
         if block_number > self.last_block_number().await {
             return Err(BlockchainError::UnknownBlockNumber);
         }
 
         let mut state = TrieState::default();
-        compute_state_at_block(&mut state, &self.storage, block_number, state_overrides);
+        compute_state_at_block(&mut state, &self.storage, 0, block_number, state_overrides);
 
         Ok(Box::new(state))
     }

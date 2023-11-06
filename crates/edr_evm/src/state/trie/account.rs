@@ -177,17 +177,11 @@ impl AccountTrie {
 
         changes.iter().for_each(|(address, account)| {
             if account.is_touched() {
-                if account.is_empty() && !account.is_created() {
-                    println!("deleted empty account[{address:x}]: {account:?}");
-                    // Removes account only if it exists, so safe to use for empty, touched accounts
-                    Self::remove_account_in(address, &mut state_trie, &mut self.storage_trie_dbs);
-                } else if account.is_selfdestructed() {
+                if (account.is_empty() && !account.is_created()) || account.is_selfdestructed() {
                     // Removes account only if it exists, so safe to use for empty, touched accounts
                     Self::remove_account_in(address, &mut state_trie, &mut self.storage_trie_dbs);
                 } else {
                     if account.is_created() {
-                        println!("useless empty account[{address:x}]: {account:?}");
-
                         // We can simply remove the storage trie db, as it will get reinitialized in
                         // the next operation
                         self.storage_trie_dbs.remove(address);

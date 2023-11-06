@@ -1,4 +1,4 @@
-use std::{num::NonZeroU64, sync::Arc};
+use std::{collections::BTreeMap, num::NonZeroU64, sync::Arc};
 
 use async_trait::async_trait;
 use edr_eth::{
@@ -325,7 +325,7 @@ impl Blockchain for ForkedBlockchain {
     async fn state_at_block_number(
         &self,
         block_number: u64,
-        state_overrides: &HashMap<u64, StateOverride>,
+        state_overrides: &BTreeMap<u64, StateOverride>,
     ) -> Result<Box<dyn SyncState<Self::StateError>>, Self::BlockchainError> {
         if block_number > self.last_block_number().await {
             return Err(BlockchainError::UnknownBlockNumber);
@@ -352,6 +352,7 @@ impl Blockchain for ForkedBlockchain {
         compute_state_at_block(
             &mut state,
             &self.local_storage,
+            self.fork_block_number,
             block_number,
             state_overrides,
         );

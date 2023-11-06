@@ -4,17 +4,13 @@ mod remote;
 /// Storage data structures for a blockchain
 pub mod storage;
 
-use std::{fmt::Debug, sync::Arc};
+use std::{collections::BTreeMap, fmt::Debug, ops::Bound::Included, sync::Arc};
 
 use async_trait::async_trait;
 use edr_eth::{
     receipt::BlockReceipt, remote::RpcClientError, spec::HardforkActivations, B256, U256,
 };
-use revm::{
-    db::BlockHashRef,
-    primitives::{HashMap, SpecId},
-    DatabaseCommit,
-};
+use revm::{db::BlockHashRef, primitives::SpecId, DatabaseCommit};
 
 use self::storage::ReservableSparseBlockchainStorage;
 pub use self::{
@@ -143,7 +139,7 @@ pub trait Blockchain {
         &self,
         block_number: u64,
         // Block number -> state overrides
-        state_overrides: &HashMap<u64, StateOverride>,
+        state_overrides: &BTreeMap<u64, StateOverride>,
     ) -> Result<Box<dyn SyncState<Self::StateError>>, Self::BlockchainError>;
 
     /// Retrieves the total difficulty at the block with the provided hash.
@@ -207,32 +203,30 @@ where
 fn compute_state_at_block<BlockT: Block + Clone>(
     state: &mut dyn DatabaseCommit,
     local_storage: &ReservableSparseBlockchainStorage<BlockT>,
-    block_number: u64,
-    state_overrides: &HashMap<u64, StateOverride>,
+    first_local_block_number: u64,
+    last_local_block_number: u64,
+    state_overrides: &BTreeMap<u64, StateOverride>,
 ) {
     // If we're dealing with a local block, apply their state diffs
     let state_diffs = local_storage
-        .state_diffs_until_block(block_number)
+        .state_diffs_until_block(last_local_block_number)
         .unwrap_or_default();
 
-    // state diffs are already sorted by block number
-    let mut overriden_state_diffs: Vec<(u64, StateDiff)> = state_diffs
+    let mut overriden_state_diffs: BTreeMap<u64, StateDiff> = state_diffs
         .iter()
         .map(|(block_number, state_diff)| (*block_number, state_diff.clone()))
         .collect();
 
-    // Override states (in sorted order)
-    for (block_number, overrides) in state_overrides {
-        let index = overriden_state_diffs
-            .binary_search_by_key(block_number, |(block_number, _)| *block_number);
-        match index {
-            Ok(index) => overriden_state_diffs[index]
-                .1
-                .apply_diff(overrides.diff.clone().into()),
-            Err(index) => {
-                overriden_state_diffs.insert(index, (*block_number, overrides.diff.clone()));
-            }
-        }
+    for (block_number, state_override) in state_overrides.range((
+        Included(&first_local_block_number),
+        Included(&last_local_block_number),
+    )) {
+        overriden_state_diffs
+            .entry(*block_number)
+            .and_modify(|state_diff| {
+                state_diff.apply_diff(state_override.diff.as_inner().clone());
+            })
+            .or_insert_with(|| state_override.diff.clone());
     }
 
     for (_block_number, state_diff) in overriden_state_diffs {
