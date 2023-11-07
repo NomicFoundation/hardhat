@@ -298,6 +298,8 @@ impl Node {
         let state = self.state.clone();
         self.irregular_state.insert_state(block_number, state);
 
+        self.mem_pool.update(&self.state)?;
+
         Ok(())
     }
 
@@ -364,6 +366,8 @@ impl Node {
         let block_number = self.blockchain.last_block_number().await;
         let state = self.state.clone();
         self.irregular_state.insert_state(block_number, state);
+
+        self.mem_pool.update(&self.state)?;
 
         Ok(())
     }
@@ -824,7 +828,7 @@ mod tests {
     }
 
     fn test_add_pending_transaction(
-        mut fixture: NodeTestFixture,
+        fixture: &mut NodeTestFixture,
         transaction: PendingTransaction,
     ) -> anyhow::Result<()> {
         let filter_id = fixture.node_data.new_pending_transaction_filter();
@@ -844,23 +848,25 @@ mod tests {
             _ => panic!("expected pending transaction"),
         };
 
+        assert!(fixture.node_data.mem_pool.has_pending_transactions());
+
         Ok(())
     }
 
     #[tokio::test]
     async fn add_pending_transaction() -> anyhow::Result<()> {
-        let fixture = NodeTestFixture::new().await?;
+        let mut fixture = NodeTestFixture::new().await?;
         let transaction = fixture.signed_dummy_transaction()?;
 
-        test_add_pending_transaction(fixture, transaction)
+        test_add_pending_transaction(&mut fixture, transaction)
     }
 
     #[tokio::test]
     async fn add_pending_transaction_from_impersonated_account() -> anyhow::Result<()> {
-        let fixture = NodeTestFixture::new().await?;
+        let mut fixture = NodeTestFixture::new().await?;
         let transaction = fixture.impersonated_dummy_transaction()?;
 
-        test_add_pending_transaction(fixture, transaction)
+        test_add_pending_transaction(&mut fixture, transaction)
     }
 
     #[tokio::test]
@@ -883,6 +889,90 @@ mod tests {
             assert!(prev_filter_id < filter_id);
             prev_filter_id = filter_id;
         }
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn set_balance_updates_mem_pool() -> anyhow::Result<()> {
+        let mut fixture = NodeTestFixture::new().await?;
+
+        let transaction = {
+            let mut request = fixture.dummy_transaction_request();
+            request.from = fixture.impersonated_account;
+
+            fixture.node_data.sign_transaction_request(request)?
+        };
+
+        let transaction_hash = fixture.node_data.add_pending_transaction(transaction)?;
+
+        assert!(fixture
+            .node_data
+            .mem_pool
+            .transaction_by_hash(&transaction_hash)
+            .is_some());
+
+        fixture
+            .node_data
+            .set_balance(fixture.impersonated_account, U256::from(100))
+            .await?;
+
+        assert!(fixture
+            .node_data
+            .mem_pool
+            .transaction_by_hash(&transaction_hash)
+            .is_none());
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn set_nonce_updates_mem_pool() -> anyhow::Result<()> {
+        let mut fixture = NodeTestFixture::new().await?;
+
+        // Artificially raise the nonce, to ensure the transaction is not rejected
+        fixture
+            .node_data
+            .set_nonce(fixture.impersonated_account, 1)
+            .await?;
+
+        let transaction = {
+            let mut request = fixture.dummy_transaction_request();
+            request.from = fixture.impersonated_account;
+            request.nonce = Some(1);
+
+            fixture.node_data.sign_transaction_request(request)?
+        };
+
+        let transaction_hash = fixture.node_data.add_pending_transaction(transaction)?;
+
+        assert!(fixture
+            .node_data
+            .mem_pool
+            .transaction_by_hash(&transaction_hash)
+            .is_some());
+
+        // The transaction is a pending transaction, as the nonce is the same as the
+        // account
+        assert!(fixture.node_data.mem_pool.has_pending_transactions());
+        assert!(!fixture.node_data.mem_pool.has_future_transactions());
+
+        // Lower the nonce, to ensure the transaction is not rejected
+        fixture
+            .node_data
+            .set_nonce(fixture.impersonated_account, 0)
+            .await?;
+
+        assert!(fixture
+            .node_data
+            .mem_pool
+            .transaction_by_hash(&transaction_hash)
+            .is_some());
+
+        // The pending transaction now is a future transaction, as there is not enough
+        // balance
+        assert!(!fixture.node_data.mem_pool.has_pending_transactions());
+        assert!(fixture.node_data.mem_pool.has_future_transactions());
 
         Ok(())
     }

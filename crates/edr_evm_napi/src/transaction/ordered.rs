@@ -11,7 +11,7 @@ pub struct OrderedTransaction {
 impl OrderedTransaction {
     #[napi(getter)]
     pub fn transaction(&self) -> PendingTransaction {
-        PendingTransaction::from(self.transaction.transaction().clone())
+        PendingTransaction::from(self.transaction.pending().clone())
     }
 
     #[napi(getter)]
