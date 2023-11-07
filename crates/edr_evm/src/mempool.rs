@@ -337,7 +337,7 @@ impl MemPool {
         ) -> bool {
             transaction.gas_limit() <= block_gas_limit
                 && transaction.upfront_cost() <= sender.balance
-                // Remove all finalized transactions
+                // Remove all mined transactions
                 && transaction.nonce() >= sender.nonce
         }
 
