@@ -921,6 +921,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "edr_provider"
+version = "0.2.0-dev"
+dependencies = [
+ "anyhow",
+ "edr_eth",
+ "edr_evm",
+ "edr_test_utils",
+ "indexmap 2.0.2",
+ "k256",
+ "parking_lot 0.12.1",
+ "rlp",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
 name = "edr_rpc_server"
 version = "0.2.0-dev"
 dependencies = [
@@ -931,6 +950,7 @@ dependencies = [
  "cargo_toml",
  "edr_eth",
  "edr_evm",
+ "edr_provider",
  "edr_test_utils",
  "hex",
  "hyper",
@@ -938,11 +958,9 @@ dependencies = [
  "k256",
  "parking_lot 0.12.1",
  "reqwest",
- "rlp",
  "serde",
  "serde_json",
  "sha3",
- "tempfile",
  "thiserror",
  "tokio",
  "toml 0.5.11",

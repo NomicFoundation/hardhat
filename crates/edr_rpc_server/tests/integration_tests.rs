@@ -14,9 +14,8 @@ use edr_eth::{
     Address, Bytes, B256, U256, U64,
 };
 use edr_evm::KECCAK_EMPTY;
-use edr_rpc_server::{
-    create_test_config, HardhatMethodInvocation, MethodInvocation, Server, TEST_SECRET_KEY,
-};
+use edr_provider::test_utils::{create_test_config, TEST_SECRET_KEY};
+use edr_rpc_server::Server;
 use tempfile::TempDir;
 use tracing::Level;
 

@@ -1,4 +1,4 @@
-use edr_evm::HashMap;
+use edr_eth::HashMap;
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]

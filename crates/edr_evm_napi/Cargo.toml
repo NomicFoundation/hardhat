@@ -14,7 +14,6 @@ k256 = { version = "0.13.1", default-features = false, features = ["arithmetic",
 # The `async` feature ensures that a tokio runtime is available
 napi = { version = "2.12.4", default-features = false, features = ["async", "error_anyhow", "napi8", "serde-json"] }
 napi-derive = "2.12.3"
-edr = { version = "0.2.0-dev", path = "../edr" }
 edr_defaults = { version = "0.2.0-dev", path = "../edr_defaults" }
 edr_evm = { version = "0.2.0-dev", path = "../edr_evm" }
 edr_eth = { version = "0.2.0-dev", path = "../edr_eth" }
