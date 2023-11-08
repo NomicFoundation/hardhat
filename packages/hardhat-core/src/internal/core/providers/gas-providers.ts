@@ -4,6 +4,7 @@ import {
   rpcQuantityToNumber,
   rpcQuantityToBigInt,
 } from "../jsonrpc/types/base-types";
+import * as BigIntUtils from "../../util/bigint";
 
 import { ProviderWrapper } from "./wrapper";
 
@@ -268,7 +269,10 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
             (AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE -
               1n),
 
-        maxPriorityFeePerGas: rpcQuantityToBigInt(response.reward[0][0]),
+        maxPriorityFeePerGas: BigIntUtils.max(
+          rpcQuantityToBigInt(response.reward[0][0]),
+          1n
+        ),
       };
     } catch {
       this._nodeHasFeeHistory = false;
