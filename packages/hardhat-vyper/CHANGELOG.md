@@ -1,5 +1,17 @@
 # @nomiclabs/hardhat-vyper
 
+## 3.0.5
+
+### Patch Changes
+
+- 2f73386b1: Fixed a problem with the Vyper compilers downloader
+
+## 3.0.4
+
+### Patch Changes
+
+- 03745576c: Added a check to validate that the Brownie code does not contain the directive `#@ if mode == "test":` because we do not support this feature.
+
 ## 3.0.3
 
 ### Patch Changes

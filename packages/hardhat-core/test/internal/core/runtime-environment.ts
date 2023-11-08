@@ -17,6 +17,7 @@ import {
   HardhatConfig,
   HardhatRuntimeEnvironment,
   ParamDefinition,
+  ScopesMap,
   TasksMap,
 } from "../../../src/types";
 import {
@@ -80,6 +81,7 @@ describe("Environment", () => {
   };
 
   let tasks: TasksMap;
+  let scopes: ScopesMap;
   let env: HardhatRuntimeEnvironment;
   let dsl: TasksDSL;
 
@@ -88,6 +90,10 @@ describe("Environment", () => {
     dsl = ctx.tasksDSL;
     dsl.task("example", async () => {
       return 27;
+    });
+
+    dsl.scope("scoped").task("task", async () => {
+      return 28;
     });
 
     dsl
@@ -133,8 +139,9 @@ describe("Environment", () => {
       .setAction(async (_args: any[]) => _args);
 
     tasks = ctx.tasksDSL.getTaskDefinitions();
+    scopes = ctx.tasksDSL.getScopesDefinitions();
 
-    env = new Environment(config, args, tasks);
+    env = new Environment(config, args, tasks, scopes);
     ctx.setHardhatRuntimeEnvironment(env);
   });
 
@@ -152,6 +159,37 @@ describe("Environment", () => {
     it("should run a task correctly", async () => {
       const ret = await env.run("example");
       assert.equal(ret, 27);
+    });
+
+    it("should run a scoped task correctly", async () => {
+      const ret = await env.run({ scope: "scoped", task: "task" });
+      assert.equal(ret, 28);
+    });
+
+    it("should throw if the scope doesn't exist", async () => {
+      await expectHardhatErrorAsync(
+        () => env.run({ scope: "scopd", task: "task" }),
+        ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPE
+      );
+    });
+
+    it("should throw if a scoped task doesn't exist", async () => {
+      await expectHardhatErrorAsync(
+        () => env.run({ scope: "scoped", task: "tsk" }),
+        ERRORS.ARGUMENTS.UNRECOGNIZED_SCOPED_TASK
+      );
+    });
+
+    it("should not run a scoped task with just task name", async () => {
+      await expectHardhatErrorAsync(
+        () => env.run("task"),
+        ERRORS.ARGUMENTS.UNRECOGNIZED_TASK
+      );
+
+      await expectHardhatErrorAsync(
+        () => env.run({ task: "task" }),
+        ERRORS.ARGUMENTS.UNRECOGNIZED_TASK
+      );
     });
 
     describe("run task arguments validation", () => {
@@ -287,10 +325,11 @@ describe("Environment", () => {
       });
     });
 
-    it("should fail trying to run a non existent task", () => {
-      env.run("invalid").catch((err) => {
-        assert.equal(err.number, ERRORS.ARGUMENTS.UNRECOGNIZED_TASK.number);
-      });
+    it("should fail trying to run a non existent task", async () => {
+      await expectHardhatErrorAsync(
+        () => env.run("invalid"),
+        ERRORS.ARGUMENTS.UNRECOGNIZED_TASK
+      );
     });
 
     it("should clean global state after task execution", async () => {
@@ -306,7 +345,8 @@ describe("Environment", () => {
         return 28;
       });
       tasks = dsl.getTaskDefinitions();
-      const localEnv = new Environment(config, args, tasks);
+      scopes = dsl.getScopesDefinitions();
+      const localEnv = new Environment(config, args, tasks, scopes);
       assert.equal(await localEnv.run("example"), 28);
     });
 
@@ -407,7 +447,8 @@ describe("Environment", () => {
           config,
           { ...args, network: "NOPE" },
           tasks,
-          ctx.extendersManager.getExtenders()
+          scopes,
+          ctx.environmentExtenders
         );
       }, ERRORS.NETWORK.CONFIG_NOT_FOUND);
     });
@@ -418,7 +459,8 @@ describe("Environment", () => {
         config,
         { ...args, network: undefined },
         tasks,
-        ctx.extendersManager.getExtenders()
+        scopes,
+        ctx.environmentExtenders
       );
 
       assert.equal(env.network.name, "default");
@@ -525,7 +567,8 @@ describe("Environment", () => {
         config,
         args,
         tasks,
-        ctx.extendersManager.getExtenders()
+        scopes,
+        ctx.environmentExtenders
       );
       assert.equal((env as any).__test_key, "a value");
       assert.equal((env as any).__test_bleep(2), 4);

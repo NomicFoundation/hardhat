@@ -1,15 +1,85 @@
+import type { JsonFragment } from "@ethersproject/abi";
+import type { SolidityConfig } from "hardhat/types";
+import type { ChainConfig } from "../../src/types";
+
 import path from "path";
 import { assert, expect } from "chai";
-import { SolidityConfig } from "hardhat/types";
-import { JsonFragment } from "@ethersproject/abi";
+import sinon from "sinon";
+import chalk from "chalk";
+
 import {
   encodeArguments,
   getCompilerVersions,
+  printSupportedNetworks,
+  printVerificationErrors,
   resolveConstructorArguments,
   resolveLibraries,
-} from "../../src/utilities";
+} from "../../src/internal/utilities";
+import { HardhatVerifyError } from "../../src/internal/errors";
+import { builtinChains } from "../../src/internal/chain-config";
 
 describe("Utilities", () => {
+  describe("printSupportedNetworks", () => {
+    it("should print supported and custom networks", async () => {
+      const customChains: ChainConfig[] = [
+        {
+          network: "MyNetwork",
+          chainId: 1337,
+          urls: {
+            apiURL: "https://api.mynetwork.io/api",
+            browserURL: "https://mynetwork.io",
+          },
+        },
+      ];
+
+      const logStub = sinon.stub(console, "log");
+
+      await printSupportedNetworks(customChains);
+
+      sinon.restore();
+
+      assert.isTrue(logStub.calledOnce);
+      const actualTableOutput = logStub.getCall(0).args[0];
+      const allChains = [...builtinChains, ...customChains];
+      allChains.forEach(({ network, chainId }) => {
+        const regex = new RegExp(`║\\s*${network}\\s*│\\s*${chainId}\\s*║`);
+        assert.isTrue(regex.test(actualTableOutput));
+      });
+    });
+  });
+
+  describe("printVerificationErrors", () => {
+    it("should print verification errors", () => {
+      const errors: Record<string, HardhatVerifyError> = {
+        Etherscan: new HardhatVerifyError("Etherscan error message"),
+        Sourcify: new HardhatVerifyError("Sourcify error message"),
+      };
+
+      const errorStub = sinon.stub(console, "error");
+
+      printVerificationErrors(errors);
+
+      sinon.restore();
+
+      assert.isTrue(errorStub.calledOnce);
+      const errorMessage = errorStub.getCall(0).args[0];
+      assert.equal(
+        errorMessage,
+        chalk.red(
+          `hardhat-verify found one or more errors during the verification process:
+
+Etherscan:
+Etherscan error message
+
+Sourcify:
+Sourcify error message
+
+`
+        )
+      );
+    });
+  });
+
   describe("resolveConstructorArguments", () => {
     it("should return the constructorArgsParams if constructorArgsModule is not defined", async () => {
       const constructorArgsParams = ["1", "arg2", "false"];

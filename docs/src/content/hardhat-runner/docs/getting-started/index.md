@@ -55,7 +55,7 @@ yarn add --dev hardhat
 
 ::::
 
-To use your local installation of Hardhat, you need to use `npx` to run it (i.e. `npx hardhat`).
+To use your local installation of Hardhat, you need to use `npx` to run it (i.e. `npx hardhat init`).
 
 ## Quick Start
 
@@ -67,10 +67,10 @@ If you are using Windows, we **strongly recommend** using [WSL 2](https://docs.m
 
 We will explore the basics of creating a Hardhat project with a sample contract, tests of that contract, and a script to deploy it.
 
-To create the sample project, run `npx hardhat` in your project folder:
+To create the sample project, run `npx hardhat init` in your project folder:
 
 ```
-$ npx hardhat
+$ npx hardhat init
 888    888                      888 888               888
 888    888                      888 888               888
 888    888                      888 888               888
@@ -80,7 +80,7 @@ $ npx hardhat
 888    888 888  888 888    Y88b 888 888  888 888  888 Y88b.
 888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888
 
-👷 Welcome to Hardhat v2.9.9 👷‍
+👷 Welcome to Hardhat v{HARDHAT_VERSION} 👷‍
 
 ? What do you want to do? …
 ❯ Create a JavaScript project
@@ -237,6 +237,12 @@ Compiled 2 Solidity files successfully
 ::::
 
 ### Deploying your contracts
+
+:::tip
+
+Try [Hardhat Ignition](/ignition) for your deployments! Our new declarative system for deploying smart contracts without getting caught up in execution details.
+
+:::
 
 Next, to deploy the contract we will use a Hardhat script.
 

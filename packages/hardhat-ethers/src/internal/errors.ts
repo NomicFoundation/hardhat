@@ -12,9 +12,9 @@ export class NotImplementedError extends HardhatEthersError {
   }
 }
 
-export class NonStringEventError extends HardhatEthersError {
-  constructor(method: string, event: any) {
-    super(`Method '${method}' only supports string events, got '${event}'`);
+export class UnsupportedEventError extends HardhatEthersError {
+  constructor(event: any) {
+    super(`Event '${event}' is not supported`);
   }
 }
 

@@ -18,7 +18,7 @@ import {
 } from "../../../core/providers/errors";
 import { makeFakeSignature } from "../utils/makeFakeSignature";
 
-/* eslint-disable @nomiclabs/hardhat-internal-rules/only-hardhat-error */
+/* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 /**
  * This class is the EIP-2930 version of FakeSenderTransaction.

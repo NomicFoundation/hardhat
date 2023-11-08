@@ -1,5 +1,11 @@
 # 7. Deploying to a live network
 
+:::tip
+
+Try [Hardhat Ignition](/ignition) for your deployments! Our new declarative system for deploying smart contracts without getting caught up in execution details.
+
+:::
+
 Once you're ready to share your dApp with other people, you may want to deploy it to a live network. This way others can access an instance that's not running locally on your system.
 
 The "mainnet" Ethereum network deals with real money, but there are separate "testnet" networks that do not. These testnets provide shared staging environments that do a good job of mimicking the real world scenario without putting real money at stake, and [Ethereum has several](https://ethereum.org/en/developers/docs/networks/#ethereum-testnets), like _Sepolia_ and _Goerli_. We recommend you deploy your contracts to the _Sepolia_ testnet.
@@ -67,7 +73,7 @@ const INFURA_API_KEY = "KEY";
 const SEPOLIA_PRIVATE_KEY = "YOUR SEPOLIA PRIVATE KEY";
 
 module.exports = {
-  solidity: "0.8.9",
+  solidity: "{RECOMMENDED_SOLC_VERSION}",
   networks: {
     sepolia: {
       url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
@@ -97,7 +103,7 @@ const ALCHEMY_API_KEY = "KEY";
 const SEPOLIA_PRIVATE_KEY = "YOUR SEPOLIA PRIVATE KEY";
 
 module.exports = {
-  solidity: "0.8.9",
+  solidity: "{RECOMMENDED_SOLC_VERSION}",
   networks: {
     sepolia: {
       url: `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}`,
@@ -113,11 +119,12 @@ module.exports = {
 
 We're using [Infura](https://infura.io) or [Alchemy](https://alchemy.com/), but pointing `url` to any Ethereum node or gateway. Go grab your API key and come back.
 
-To deploy on Sepolia you need to send some Sepolia ether to the address that's going to be making the deployment. You can get testnet ether from a faucet, a service that distributes testing-ETH for free. Here is one for Sepolia:
+To deploy on Sepolia you need to send some Sepolia ether to the address that's going to be making the deployment. You can get testnet ether from a faucet, a service that distributes testing-ETH for free. Here are a few for Sepolia:
 
 - [Alchemy Sepolia Faucet](https://sepoliafaucet.com/)
 - [Coinbase Sepolia Faucet](https://coinbase.com/faucets/ethereum-sepolia-faucet) (only works if you are using the Coinbase Wallet)
 - [Infura Sepolia Faucet](https://www.infura.io/faucet/sepolia)
+- [Chainstack Sepolia Faucet](https://faucet.chainstack.com/sepolia-faucet)
 
 You'll have to change your wallet's network to Sepolia before transacting.
 

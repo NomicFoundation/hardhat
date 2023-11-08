@@ -1,14 +1,17 @@
-import path from "path";
-import { resetHardhatContext } from "hardhat/plugins-testing";
-
 import type {} from "@nomicfoundation/hardhat-ethers";
-import { FactoryOptions, HardhatRuntimeEnvironment } from "hardhat/types";
+import type { FactoryOptions, HardhatRuntimeEnvironment } from "hardhat/types";
+
+import path from "path";
+import debug from "debug";
+import { resetHardhatContext } from "hardhat/plugins-testing";
 
 declare module "mocha" {
   interface Context {
     hre: HardhatRuntimeEnvironment;
   }
 }
+
+const log = debug("hardhat:hardhat-verify:tests");
 
 export const useEnvironment = (fixtureProjectName: string): void => {
   before("Loading hardhat environment", function () {
@@ -36,7 +39,7 @@ export const deployContract = async (
   const contract = await factory.deploy(...constructorArguments);
   await contract.deploymentTransaction()?.wait(confirmations);
   const contractAddress = await contract.getAddress();
-  console.log(`Deployed ${contractName} at ${contractAddress}`);
+  log(`Deployed ${contractName} at ${contractAddress}`);
   return contractAddress;
 };
 

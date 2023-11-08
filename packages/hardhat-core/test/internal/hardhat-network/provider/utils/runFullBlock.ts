@@ -57,6 +57,7 @@ export async function runFullBlock(
     coinbase: "0x0000000000000000000000000000000000000000",
     chains: defaultHardhatNetworkParams.chains,
     allowBlocksWithSameTimestamp: false,
+    enableTransientStorage: false,
   };
 
   const [common, forkedNode] = await HardhatNode.create(forkedNodeConfig);

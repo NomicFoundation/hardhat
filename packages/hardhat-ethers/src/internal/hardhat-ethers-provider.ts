@@ -12,7 +12,9 @@ import type {
   TransactionReceiptParams,
   LogParams,
   PerformActionFilter,
+  EventFilter,
 } from "ethers";
+import type LodashIsEqualT from "lodash.isequal";
 
 import debug from "debug";
 import {
@@ -30,6 +32,7 @@ import {
   toQuantity,
 } from "ethers";
 import { EthereumProvider } from "hardhat/types";
+
 import { HardhatEthersSigner } from "../signers";
 import {
   copyRequest,
@@ -43,24 +46,49 @@ import {
   AccountIndexOutOfRange,
   BroadcastedTxDifferentHash,
   HardhatEthersError,
-  NonStringEventError,
+  UnsupportedEventError,
   NotImplementedError,
 } from "./errors";
 
 const log = debug("hardhat:hardhat-ethers:provider");
 
+interface ListenerItem {
+  listener: Listener;
+  once: boolean;
+}
+
+interface EventListenerItem {
+  event: EventFilter;
+  // map from the given listener to the block listener registered for that listener
+  listenersMap: Map<Listener, Listener>;
+}
+
+// this type has a more explicit and type-safe list
+// of the events that we support
+type HardhatEthersProviderEvent =
+  | {
+      kind: "block";
+    }
+  | {
+      kind: "transactionHash";
+      txHash: string;
+    }
+  | {
+      kind: "event";
+      eventFilter: EventFilter;
+    };
+
 export class HardhatEthersProvider implements ethers.Provider {
   private _isHardhatNetworkCached: boolean | undefined;
 
-  private _transactionHashListeners: Map<
-    string,
-    Array<{
-      listener: Listener;
-      once: boolean;
-    }>
-  > = new Map();
+  // event-emitter related fields
+  private _latestBlockNumberPolled: number | undefined;
+  private _blockListeners: ListenerItem[] = [];
+  private _transactionHashListeners: Map<string, ListenerItem[]> = new Map();
+  private _eventListeners: EventListenerItem[] = [];
 
   private _transactionHashPollingInterval: NodeJS.Timeout | undefined;
+  private _blockPollingInterval: NodeJS.Timeout | undefined;
 
   constructor(
     private readonly _hardhatProvider: EthereumProvider,
@@ -345,113 +373,173 @@ export class HardhatEthersProvider implements ethers.Provider {
     throw new NotImplementedError("HardhatEthersProvider.waitForBlock");
   }
 
-  public async on(event: ProviderEvent, listener: Listener): Promise<this> {
-    if (typeof event === "string") {
-      if (isTransactionHash(event)) {
-        await this._onTransactionHash(event, listener, { once: false });
-      } else {
-        this._hardhatProvider.on(event, listener);
-      }
+  // -------------------------------------- //
+  // event-emitter related public functions //
+  // -------------------------------------- //
+
+  public async on(
+    ethersEvent: ProviderEvent,
+    listener: Listener
+  ): Promise<this> {
+    const event = ethersToHardhatEvent(ethersEvent);
+
+    if (event.kind === "block") {
+      await this._onBlock(listener, { once: false });
+    } else if (event.kind === "transactionHash") {
+      await this._onTransactionHash(event.txHash, listener, { once: false });
+    } else if (event.kind === "event") {
+      const { eventFilter } = event;
+      const blockListener = this._getBlockListenerForEvent(
+        eventFilter,
+        listener
+      );
+
+      this._addEventListener(eventFilter, listener, blockListener);
+
+      await this.on("block", blockListener);
     } else {
-      throw new NonStringEventError("on", event);
+      const _exhaustiveCheck: never = event;
     }
 
     return this;
   }
 
-  public async once(event: ProviderEvent, listener: Listener): Promise<this> {
-    if (typeof event === "string") {
-      if (isTransactionHash(event)) {
-        await this._onTransactionHash(event, listener, { once: true });
-      } else {
-        this._hardhatProvider.once(event, listener);
-      }
+  public async once(
+    ethersEvent: ProviderEvent,
+    listener: Listener
+  ): Promise<this> {
+    const event = ethersToHardhatEvent(ethersEvent);
+
+    if (event.kind === "block") {
+      await this._onBlock(listener, { once: true });
+    } else if (event.kind === "transactionHash") {
+      await this._onTransactionHash(event.txHash, listener, { once: true });
+    } else if (event.kind === "event") {
+      const { eventFilter } = event;
+      const blockListener = this._getBlockListenerForEvent(
+        eventFilter,
+        listener
+      );
+
+      this._addEventListener(eventFilter, listener, blockListener);
+
+      await this.once("block", blockListener);
     } else {
-      throw new NonStringEventError("once", event);
+      const _exhaustiveCheck: never = event;
     }
 
     return this;
   }
 
-  public async emit(event: ProviderEvent, ...args: any[]): Promise<boolean> {
-    if (typeof event === "string") {
-      if (isTransactionHash(event)) {
-        return this._emitTransactionHash(event, ...args);
-      } else {
-        return this._hardhatProvider.emit(event, ...args);
-      }
+  public async emit(
+    ethersEvent: ProviderEvent,
+    ...args: any[]
+  ): Promise<boolean> {
+    const event = ethersToHardhatEvent(ethersEvent);
+
+    if (event.kind === "block") {
+      return this._emitBlock(...args);
+    } else if (event.kind === "transactionHash") {
+      return this._emitTransactionHash(event.txHash, ...args);
+    } else if (event.kind === "event") {
+      throw new NotImplementedError("emit(event)");
     } else {
-      throw new NonStringEventError("emit", event);
+      const _exhaustiveCheck: never = event;
+      return _exhaustiveCheck;
     }
   }
 
   public async listenerCount(
     event?: ProviderEvent | undefined
   ): Promise<number> {
-    if (typeof event === "string") {
-      if (isTransactionHash(event)) {
-        return this._transactionHashListeners.get(event)?.length ?? 0;
-      } else {
-        return this._hardhatProvider.listenerCount(event);
-      }
-    } else {
-      throw new NonStringEventError("listenerCount", event);
-    }
+    const listeners = await this.listeners(event);
+
+    return listeners.length;
   }
 
   public async listeners(
-    event?: ProviderEvent | undefined
+    ethersEvent?: ProviderEvent | undefined
   ): Promise<Listener[]> {
-    if (typeof event === "string") {
-      if (isTransactionHash(event)) {
-        return (
-          this._transactionHashListeners
-            .get(event)
-            ?.map(({ listener }) => listener) ?? []
-        );
-      } else {
-        return this._hardhatProvider.listeners(event) as any;
+    if (ethersEvent === undefined) {
+      throw new NotImplementedError("listeners()");
+    }
+
+    const event = ethersToHardhatEvent(ethersEvent);
+
+    if (event.kind === "block") {
+      return this._blockListeners.map(({ listener }) => listener);
+    } else if (event.kind === "transactionHash") {
+      return (
+        this._transactionHashListeners
+          .get(event.txHash)
+          ?.map(({ listener }) => listener) ?? []
+      );
+    } else if (event.kind === "event") {
+      const isEqual = require("lodash.isequal") as typeof LodashIsEqualT;
+
+      const eventListener = this._eventListeners.find((item) =>
+        isEqual(item.event, event)
+      );
+      if (eventListener === undefined) {
+        return [];
       }
+      return [...eventListener.listenersMap.keys()];
     } else {
-      throw new NonStringEventError("listeners", event);
+      const _exhaustiveCheck: never = event;
+      return _exhaustiveCheck;
     }
   }
 
   public async off(
-    event: ProviderEvent,
+    ethersEvent: ProviderEvent,
     listener?: Listener | undefined
   ): Promise<this> {
-    if (typeof event === "string") {
-      if (isTransactionHash(event)) {
-        this._offTransactionHash(event, listener);
-      } else if (listener !== undefined) {
-        this._hardhatProvider.off(event, listener);
+    const event = ethersToHardhatEvent(ethersEvent);
+
+    if (event.kind === "block") {
+      this._clearBlockListeners(listener);
+    } else if (event.kind === "transactionHash") {
+      this._clearTransactionHashListeners(event.txHash, listener);
+    } else if (event.kind === "event") {
+      const { eventFilter } = event;
+      if (listener === undefined) {
+        await this._clearEventListeners(eventFilter);
       } else {
-        const registeredListeners = this._hardhatProvider.listeners(event);
-        for (const registeredListener of registeredListeners) {
-          this._hardhatProvider.off(event, registeredListener as any);
-        }
+        await this._removeEventListener(eventFilter, listener);
       }
     } else {
-      throw new NonStringEventError("off", event);
+      const _exhaustiveCheck: never = event;
     }
 
     return this;
   }
 
   public async removeAllListeners(
-    event?: ProviderEvent | undefined
+    ethersEvent?: ProviderEvent | undefined
   ): Promise<this> {
-    if (event === undefined) {
-      this._hardhatProvider.removeAllListeners(event);
-    } else if (typeof event === "string") {
-      if (isTransactionHash(event)) {
-        this._transactionHashListeners.delete(event);
-      } else {
-        this._hardhatProvider.removeAllListeners(event);
-      }
-    } else {
-      throw new NonStringEventError("removeAllListeners", event);
+    const event =
+      ethersEvent !== undefined ? ethersToHardhatEvent(ethersEvent) : undefined;
+
+    if (event === undefined || event.kind === "block") {
+      this._clearBlockListeners();
+    }
+    if (event === undefined || event.kind === "transactionHash") {
+      this._clearTransactionHashListeners(event?.txHash);
+    }
+    if (event === undefined || event.kind === "event") {
+      await this._clearEventListeners(event?.eventFilter);
+    }
+
+    if (
+      event !== undefined &&
+      event.kind !== "block" &&
+      event.kind !== "transactionHash" &&
+      event.kind !== "event"
+    ) {
+      // this check is only to remeber to add a proper if block
+      // in this method's implementation if we add support for a
+      // new kind of event
+      const _exhaustiveCheck: never = event;
     }
 
     return this;
@@ -461,38 +549,18 @@ export class HardhatEthersProvider implements ethers.Provider {
     event: ProviderEvent,
     listener: Listener
   ): Promise<this> {
-    if (typeof event === "string") {
-      if (isTransactionHash(event)) {
-        await this._onTransactionHash(event, listener, { once: false });
-      } else {
-        this._hardhatProvider.addListener(event, listener);
-      }
-    } else {
-      throw new NonStringEventError("addListener", event);
-    }
-
-    return this;
+    return this.on(event, listener);
   }
 
   public async removeListener(
     event: ProviderEvent,
     listener: Listener
   ): Promise<this> {
-    if (typeof event === "string") {
-      if (isTransactionHash(event)) {
-        this._offTransactionHash(event, listener);
-      } else {
-        this._hardhatProvider.removeListener(event, listener);
-      }
-    } else {
-      throw new NonStringEventError("removeListener", event);
-    }
-
-    return this;
+    return this.off(event, listener);
   }
 
   public toJSON() {
-    return "<WrappedHardhatProvider>";
+    return "<EthersHardhatProvider>";
   }
 
   private _getAddress(address: AddressLike): string | Promise<string> {
@@ -527,6 +595,15 @@ export class HardhatEthersProvider implements ethers.Provider {
         return toQuantity(blockTag);
       }
       return this.getBlockNumber().then((b) => toQuantity(b + blockTag));
+    }
+
+    if (typeof blockTag === "bigint") {
+      if (blockTag >= 0n) {
+        return toQuantity(blockTag);
+      }
+      return this.getBlockNumber().then((b) =>
+        toQuantity(b + Number(blockTag))
+      );
     }
 
     throw new HardhatEthersError(`Invalid blockTag: ${blockTag}`);
@@ -733,6 +810,22 @@ export class HardhatEthersProvider implements ethers.Provider {
     return blockTag;
   }
 
+  private async _isHardhatNetwork(): Promise<boolean> {
+    if (this._isHardhatNetworkCached === undefined) {
+      this._isHardhatNetworkCached = false;
+      try {
+        await this._hardhatProvider.send("hardhat_metadata");
+        this._isHardhatNetworkCached = true;
+      } catch {}
+    }
+
+    return this._isHardhatNetworkCached;
+  }
+
+  // ------------------------------------- //
+  // event-emitter related private helpers //
+  // ------------------------------------- //
+
   private async _onTransactionHash(
     transactionHash: string,
     listener: Listener,
@@ -744,11 +837,13 @@ export class HardhatEthersProvider implements ethers.Provider {
     await this._startTransactionHashPolling();
   }
 
-  private _offTransactionHash(
-    transactionHash: string,
+  private _clearTransactionHashListeners(
+    transactionHash?: string,
     listener?: Listener
   ): void {
-    if (listener === undefined) {
+    if (transactionHash === undefined) {
+      this._transactionHashListeners = new Map();
+    } else if (listener === undefined) {
       this._transactionHashListeners.delete(transactionHash);
     } else {
       const listeners = this._transactionHashListeners.get(transactionHash);
@@ -764,11 +859,11 @@ export class HardhatEthersProvider implements ethers.Provider {
         if (listeners.length === 0) {
           this._transactionHashListeners.delete(transactionHash);
         }
-
-        if (this._transactionHashListeners.size === 0) {
-          this._stopTransactionHashPolling();
-        }
       }
+    }
+
+    if (this._transactionHashListeners.size === 0) {
+      this._stopTransactionHashPolling();
     }
   }
 
@@ -779,6 +874,12 @@ export class HardhatEthersProvider implements ethers.Provider {
 
     if (_isHardhatNetwork) {
       await this._pollTransactionHashes();
+    }
+
+    if (this._transactionHashListeners.size === 0) {
+      // it's possible that the first poll cleans all the listeners,
+      // in that case we don't start the interval
+      return;
     }
 
     if (this._transactionHashPollingInterval === undefined) {
@@ -792,6 +893,37 @@ export class HardhatEthersProvider implements ethers.Provider {
     if (this._transactionHashPollingInterval !== undefined) {
       clearInterval(this._transactionHashPollingInterval);
       this._transactionHashPollingInterval = undefined;
+    }
+  }
+
+  private async _startBlockPolling() {
+    const _isHardhatNetwork = await this._isHardhatNetwork();
+
+    const interval = _isHardhatNetwork ? 50 : 500;
+
+    this._latestBlockNumberPolled = await this.getBlockNumber();
+
+    if (_isHardhatNetwork) {
+      await this._pollBlocks();
+    }
+
+    if (this._blockListeners.length === 0) {
+      // it's possible that the first poll cleans all the listeners,
+      // in that case we don't start the interval
+      return;
+    }
+
+    if (this._blockPollingInterval === undefined) {
+      this._blockPollingInterval = setInterval(async () => {
+        await this._pollBlocks();
+      }, interval);
+    }
+  }
+
+  private _stopBlockPolling() {
+    if (this._blockPollingInterval !== undefined) {
+      clearInterval(this._blockPollingInterval);
+      this._blockPollingInterval = undefined;
     }
   }
 
@@ -821,10 +953,51 @@ export class HardhatEthersProvider implements ethers.Provider {
       }
 
       for (const [transactionHash, listener] of listenersToRemove) {
-        this._offTransactionHash(transactionHash, listener);
+        this._clearTransactionHashListeners(transactionHash, listener);
       }
     } catch (e: any) {
       log(`Error during transaction hash polling: ${e.message}`);
+    }
+  }
+
+  private async _pollBlocks() {
+    try {
+      const currentBlockNumber = await this.getBlockNumber();
+      const previousBlockNumber = this._latestBlockNumberPolled ?? 0;
+
+      if (currentBlockNumber === previousBlockNumber) {
+        // Don't do anything, there are no new blocks
+        return;
+      } else if (currentBlockNumber < previousBlockNumber) {
+        // This can happen if there was a reset or a snapshot was reverted.
+        // We don't know which number the network was reset to, so we update
+        // the latest block number seen and do nothing else.
+        this._latestBlockNumberPolled = currentBlockNumber;
+        return;
+      }
+
+      this._latestBlockNumberPolled = currentBlockNumber;
+
+      for (
+        let blockNumber = previousBlockNumber + 1;
+        blockNumber <= this._latestBlockNumberPolled;
+        blockNumber++
+      ) {
+        const listenersToRemove: Listener[] = [];
+
+        for (const { listener, once } of this._blockListeners) {
+          listener(blockNumber);
+          if (once) {
+            listenersToRemove.push(listener);
+          }
+        }
+
+        for (const listener of listenersToRemove) {
+          this._clearBlockListeners(listener);
+        }
+      }
+    } catch (e: any) {
+      log(`Error during block polling: ${e.message}`);
     }
   }
 
@@ -847,22 +1020,174 @@ export class HardhatEthersProvider implements ethers.Provider {
     }
 
     for (const listener of listenersToRemove) {
-      this._offTransactionHash(transactionHash, listener);
+      this._clearTransactionHashListeners(transactionHash, listener);
     }
 
     return true;
   }
 
-  private async _isHardhatNetwork(): Promise<boolean> {
-    if (this._isHardhatNetworkCached === undefined) {
-      this._isHardhatNetworkCached = false;
-      try {
-        await this._hardhatProvider.send("hardhat_metadata");
-        this._isHardhatNetworkCached = true;
-      } catch {}
+  private _emitBlock(...args: any[]): boolean {
+    const listeners = this._blockListeners;
+    const listenersToRemove: Listener[] = [];
+
+    for (const { listener, once } of listeners) {
+      listener(...args);
+      if (once) {
+        listenersToRemove.push(listener);
+      }
     }
 
-    return this._isHardhatNetworkCached;
+    for (const listener of listenersToRemove) {
+      this._clearBlockListeners(listener);
+    }
+
+    return true;
+  }
+
+  private async _onBlock(
+    listener: Listener,
+    { once }: { once: boolean }
+  ): Promise<void> {
+    const listeners = this._blockListeners;
+    listeners.push({ listener, once });
+    this._blockListeners = listeners;
+    await this._startBlockPolling();
+  }
+
+  private _clearBlockListeners(listener?: Listener): void {
+    if (listener === undefined) {
+      this._blockListeners = [];
+      this._stopBlockPolling();
+    } else {
+      const listenerIndex = this._blockListeners.findIndex(
+        (item) => item.listener === listener
+      );
+
+      if (listenerIndex >= 0) {
+        this._blockListeners.splice(listenerIndex, 1);
+      }
+
+      if (this._blockListeners.length === 0) {
+        this._stopBlockPolling();
+      }
+    }
+  }
+
+  private _getBlockListenerForEvent(event: EventFilter, listener: Listener) {
+    return async (blockNumber: number) => {
+      const eventLogs = await this.getLogs({
+        fromBlock: blockNumber,
+        toBlock: blockNumber,
+      });
+
+      const matchingLogs = eventLogs.filter((e) => {
+        if (event.address !== undefined && e.address !== event.address) {
+          return false;
+        }
+        if (event.topics !== undefined) {
+          const topicsToMatch = event.topics;
+          // the array of topics to match can be smaller than the actual
+          // array of topics; in that case only those first topics are
+          // checked
+          const topics = e.topics.slice(0, topicsToMatch.length);
+
+          const topicsMatch = topics.every((topic, i) => {
+            const topicToMatch = topicsToMatch[i];
+            if (topicToMatch === null) {
+              return true;
+            }
+
+            if (typeof topicToMatch === "string") {
+              return topic === topicsToMatch[i];
+            }
+
+            return topicToMatch.includes(topic);
+          });
+
+          return topicsMatch;
+        }
+
+        return true;
+      });
+
+      for (const matchingLog of matchingLogs) {
+        listener(matchingLog);
+      }
+    };
+  }
+
+  private _addEventListener(
+    event: EventFilter,
+    listener: Listener,
+    blockListener: Listener
+  ) {
+    const isEqual = require("lodash.isequal") as typeof LodashIsEqualT;
+
+    const eventListener = this._eventListeners.find((item) =>
+      isEqual(item.event, event)
+    );
+
+    if (eventListener === undefined) {
+      const listenersMap = new Map();
+      listenersMap.set(listener, blockListener);
+      this._eventListeners.push({ event, listenersMap });
+    } else {
+      eventListener.listenersMap.set(listener, blockListener);
+    }
+  }
+
+  private async _clearEventListeners(event?: EventFilter) {
+    const isEqual = require("lodash.isequal") as typeof LodashIsEqualT;
+
+    const blockListenersToRemove: Listener[] = [];
+
+    if (event === undefined) {
+      for (const eventListener of this._eventListeners) {
+        for (const blockListener of eventListener.listenersMap.values()) {
+          blockListenersToRemove.push(blockListener);
+        }
+      }
+
+      this._eventListeners = [];
+    } else {
+      const index = this._eventListeners.findIndex((item) =>
+        isEqual(item.event, event)
+      );
+      if (index === -1) {
+        const { listenersMap } = this._eventListeners[index];
+        this._eventListeners.splice(index, 1);
+        for (const blockListener of listenersMap.values()) {
+          blockListenersToRemove.push(blockListener);
+        }
+      }
+    }
+
+    for (const blockListener of blockListenersToRemove) {
+      await this.off("block", blockListener);
+    }
+  }
+
+  private async _removeEventListener(event: EventFilter, listener: Listener) {
+    const isEqual = require("lodash.isequal") as typeof LodashIsEqualT;
+
+    const index = this._eventListeners.findIndex((item) =>
+      isEqual(item.event, event)
+    );
+    if (index === -1) {
+      // nothing to do
+      return;
+    }
+
+    const { listenersMap } = this._eventListeners[index];
+
+    const blockListener = listenersMap.get(listener);
+    listenersMap.delete(listener);
+    if (blockListener === undefined) {
+      // nothing to do
+      return;
+    }
+
+    await this.off("block", blockListener);
   }
 }
 
@@ -878,4 +1203,30 @@ function concisify(items: string[]): string[] {
 
 function isTransactionHash(x: string): boolean {
   return x.startsWith("0x") && x.length === 66;
+}
+
+function isEventFilter(x: ProviderEvent): x is EventFilter {
+  if (typeof x !== "string" && !Array.isArray(x) && !("orphan" in x)) {
+    return true;
+  }
+
+  return false;
+}
+
+function ethersToHardhatEvent(
+  event: ProviderEvent
+): HardhatEthersProviderEvent {
+  if (typeof event === "string") {
+    if (event === "block") {
+      return { kind: "block" };
+    } else if (isTransactionHash(event)) {
+      return { kind: "transactionHash", txHash: event };
+    } else {
+      throw new UnsupportedEventError(event);
+    }
+  } else if (isEventFilter(event)) {
+    return { kind: "event", eventFilter: event };
+  } else {
+    throw new UnsupportedEventError(event);
+  }
 }

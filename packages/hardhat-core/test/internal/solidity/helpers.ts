@@ -75,6 +75,7 @@ export async function createMockData(
   const resolver = new Resolver(
     projectRoot,
     new Parser(),
+    {},
     (absolutePath: string) =>
       fsExtra.readFile(absolutePath, { encoding: "utf8" }),
     async (sourceName: string) => sourceName
