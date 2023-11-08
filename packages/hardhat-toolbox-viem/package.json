@@ -45,9 +45,9 @@
   "devDependencies": {
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
-    "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
-    "@nomicfoundation/hardhat-verify": "^2.0.0",
-    "@nomicfoundation/hardhat-viem": "^1.0.0",
+    "@nomicfoundation/hardhat-network-helpers": "workspace:^",
+    "@nomicfoundation/hardhat-verify": "workspace:^",
+    "@nomicfoundation/hardhat-viem": "workspace:^",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^7.1.6",
     "@types/mocha": ">=9.1.0",
@@ -71,9 +71,9 @@
     "viem": "^1.15.1"
   },
   "peerDependencies": {
-    "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
-    "@nomicfoundation/hardhat-verify": "^2.0.0",
-    "@nomicfoundation/hardhat-viem": "^1.0.0",
+    "@nomicfoundation/hardhat-network-helpers": "workspace:^",
+    "@nomicfoundation/hardhat-verify": "workspace:^",
+    "@nomicfoundation/hardhat-viem": "workspace:^",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^7.1.6",
     "@types/mocha": ">=9.1.0",
