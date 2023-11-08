@@ -1,4 +1,4 @@
-[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-web3.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-web3) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
+[![npm](https://img.shields.io/npm/v/@nomicfoundation/hardhat-web3-v4.svg)](https://www.npmjs.com/package/@nomicfoundation/hardhat-web3-v4) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-web3-v4
 
@@ -11,19 +11,19 @@ This plugin brings to Hardhat the Web3 module and an initialized instance of Web
 # Installation
 
 ```bash
-npm install --save-dev @nomiclabs/hardhat-web3 'web3@4'
+npm install --save-dev @nomicfoundation/hardhat-web3-v4 'web3@4'
 ```
 
 And add the following statement to your `hardhat.config.js`:
 
 ```js
-require("@nomiclabs/hardhat-web3");
+require("@nomicfoundation/hardhat-web3-v4");
 ```
 
 Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
 
 ```js
-import "@nomiclabs/hardhat-web3";
+import "@nomifoundation/hardhat-web3-v4";
 ```
 
 By default, contract invocations will not be typesafe. Consider installing [@chainsafe/hardhat-ts-artifact-plugin](https://www.npmjs.com/package/@chainsafe/hardhat-ts-artifact-plugin) to obtain available contract methods and events. Read more about inferring types [here](https://docs.web3js.org/guides/smart_contracts/infer_contract_types_guide/).
@@ -44,7 +44,7 @@ This plugin adds the following elements to the `HardhatRuntimeEnvironment`:
 Install it and access Web3.js through the Hardhat Runtime Environment anywhere you need it (tasks, scripts, tests, etc). For example, in your `hardhat.config.js`:
 
 ```js
-require("@nomiclabs/hardhat-web3");
+require("@nomicfoundation/hardhat-web3-v4");
 
 // task action function receives the Hardhat Runtime Environment as second argument
 task("accounts", "Prints accounts", async (_, { web3 }) => {
