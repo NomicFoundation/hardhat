@@ -19,14 +19,14 @@
     "hardhat-viem"
   ],
   "scripts": {
-    "lint": "yarn prettier --check && yarn eslint",
-    "lint:fix": "yarn prettier --write && yarn eslint --fix",
+    "lint": "pnpm prettier --check && pnpm eslint",
+    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
-    "pretest": "cd ../.. && yarn build",
+    "pretest": "cd ../.. && pnpm build",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
     "build": "tsc --build .",
-    "prepublishOnly": "yarn build",
+    "prepublishOnly": "pnpm build",
     "clean": "rimraf dist *.{d.ts,js}{,.map} build-test tsconfig.tsbuildinfo"
   },
   "files": [
@@ -43,6 +43,8 @@
     "chai-as-promised": "^7.1.1"
   },
   "devDependencies": {
+    "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
+    "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
     "@nomicfoundation/hardhat-verify": "^2.0.0",
     "@nomicfoundation/hardhat-viem": "^1.0.0",
@@ -58,7 +60,7 @@
     "eslint-plugin-import": "2.27.5",
     "eslint-plugin-no-only-tests": "3.0.0",
     "eslint-plugin-prettier": "3.4.0",
-    "hardhat": "^2.11.0",
+    "hardhat": "workspace:^",
     "hardhat-gas-reporter": "^1.0.8",
     "mocha": "^10.0.0",
     "prettier": "2.4.1",
@@ -77,7 +79,7 @@
     "@types/mocha": ">=9.1.0",
     "@types/node": ">=16.0.0",
     "chai": "^4.2.0",
-    "hardhat": "^2.11.0",
+    "hardhat": "workspace:^",
     "hardhat-gas-reporter": "^1.0.8",
     "solidity-coverage": "^0.8.1",
     "ts-node": ">=8.0.0",
