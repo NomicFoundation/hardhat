@@ -51,14 +51,6 @@ export const builtinChains: ChainConfig[] = [
     },
   },
   {
-    network: "xdai",
-    chainId: 100,
-    urls: {
-      apiURL: "https://api.gnosisscan.io/api",
-      browserURL: "https://gnosisscan.io",
-    },
-  },
-  {
     network: "gnosis",
     chainId: 100,
     urls: {
@@ -166,8 +158,8 @@ export const builtinChains: ChainConfig[] = [
     network: "chiado",
     chainId: 10200,
     urls: {
-      apiURL: "https://blockscout.chiadochain.net/api",
-      browserURL: "https://blockscout.chiadochain.net",
+      apiURL: "https://gnosis-chiado.blockscout.com/api",
+      browserURL: "https://gnosis-chiado.blockscout.com",
     },
   },
   {
