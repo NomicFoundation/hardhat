@@ -16,16 +16,16 @@
     "viem"
   ],
   "scripts": {
-    "lint": "yarn prettier --check && yarn eslint",
-    "lint:fix": "yarn prettier --write && yarn eslint --fix",
+    "lint": "pnpm prettier --check && pnpm eslint",
+    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
-    "pretest": "cd ../.. && yarn build",
+    "pretest": "cd ../.. && pnpm build",
     "test": "mocha --recursive \"test/**/*.ts\" -c --exit",
     "snapshots:update": "ts-node test/update-snapshots.ts",
-    "coverage": "nyc yarn test -- --reporter min",
+    "coverage": "nyc pnpm test -- --reporter min",
     "build": "tsc --build .",
-    "prepublishOnly": "yarn build",
+    "prepublishOnly": "pnpm build",
     "clean": "rimraf internal *.{d.ts,js}{,.map} build-test tsconfig.tsbuildinfo"
   },
   "files": [
@@ -39,8 +39,11 @@
     "README.md"
   ],
   "devDependencies": {
+    "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
+    "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^7.1.3",
+    "@types/lodash": "^4.14.197",
     "@types/lodash.memoize": "^4.1.7",
     "@types/mocha": ">=9.1.0",
     "@types/node": "^16.0.0",
@@ -54,17 +57,19 @@
     "eslint-plugin-import": "2.27.5",
     "eslint-plugin-no-only-tests": "3.0.0",
     "eslint-plugin-prettier": "3.4.0",
-    "hardhat": "^2.17.0",
+    "hardhat": "workspace:^",
     "jest-diff": "^29.7.0",
     "mocha": "^10.0.0",
+    "nyc": "^15.1.0",
     "prettier": "2.4.1",
+    "rimraf": "^3.0.2",
     "sinon": "^9.0.0",
     "ts-node": "^10.8.0",
     "typescript": "~5.0.0",
     "viem": "^1.15.1"
   },
   "peerDependencies": {
-    "hardhat": "^2.17.0",
+    "hardhat": "workspace:^",
     "typescript": "~5.0.0",
     "viem": "^1.15.1"
   },
