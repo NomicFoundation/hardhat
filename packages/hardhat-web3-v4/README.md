@@ -2,7 +2,9 @@
 
 # hardhat-web3-v4
 
-This plugin integrates [Web3.js](https://github.com/ethereum/web3.js) `4.x` into [Hardhat](https://hardhat.org).
+_This plugin is a collaboration between the Nomic Foundation and [ChainSafe](https://chainsafe.io/)_
+
+Integrate [Web3.js](https://github.com/ethereum/web3.js) `4.x` into [Hardhat](https://hardhat.org).
 
 ## What
 
