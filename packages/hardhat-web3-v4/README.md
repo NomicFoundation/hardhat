@@ -52,8 +52,6 @@ require("@nomicfoundation/hardhat-web3-v4");
 task("accounts", "Prints accounts", async (_, { web3 }) => {
   console.log(await web3.eth.getAccounts());
 });
-
-module.exports = {};
 ```
 
 And then run `npx hardhat accounts` to try it.
