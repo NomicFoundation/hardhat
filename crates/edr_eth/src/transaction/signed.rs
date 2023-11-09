@@ -94,6 +94,17 @@ impl SignedTransaction {
     }
 
     /// Retrieves the max fee per gas of the transaction, if any.
+    pub fn max_fee_per_gas(&self) -> Option<U256> {
+        match self {
+            SignedTransaction::PreEip155Legacy(_)
+            | SignedTransaction::PostEip155Legacy(_)
+            | SignedTransaction::Eip2930(_) => None,
+            SignedTransaction::Eip1559(tx) => Some(tx.max_priority_fee_per_gas),
+            SignedTransaction::Eip4844(tx) => Some(tx.max_priority_fee_per_gas),
+        }
+    }
+
+    /// Retrieves the max priority fee per gas of the transaction, if any.
     pub fn max_priority_fee_per_gas(&self) -> Option<U256> {
         match self {
             SignedTransaction::PreEip155Legacy(_)
@@ -101,6 +112,28 @@ impl SignedTransaction {
             | SignedTransaction::Eip2930(_) => None,
             SignedTransaction::Eip1559(tx) => Some(tx.max_priority_fee_per_gas),
             SignedTransaction::Eip4844(tx) => Some(tx.max_priority_fee_per_gas),
+        }
+    }
+
+    /// Retrieves the max fee per blob gas of the transaction, if any.
+    pub fn max_fee_per_blob_gas(&self) -> Option<U256> {
+        match self {
+            SignedTransaction::PreEip155Legacy(_)
+            | SignedTransaction::PostEip155Legacy(_)
+            | SignedTransaction::Eip2930(_)
+            | SignedTransaction::Eip1559(_) => None,
+            SignedTransaction::Eip4844(tx) => Some(tx.max_fee_per_blob_gas),
+        }
+    }
+
+    /// Retrieves the blob hashes of the transaction, if any.
+    pub fn blob_hashes(&self) -> Option<Vec<B256>> {
+        match self {
+            SignedTransaction::PreEip155Legacy(_)
+            | SignedTransaction::PostEip155Legacy(_)
+            | SignedTransaction::Eip2930(_)
+            | SignedTransaction::Eip1559(_) => None,
+            SignedTransaction::Eip4844(tx) => Some(tx.blob_hashes.clone()),
         }
     }
 
@@ -206,6 +239,15 @@ impl SignedTransaction {
                 s: tx.s,
                 v: u64::from(tx.odd_y_parity),
             },
+        }
+    }
+
+    pub fn transaction_type(&self) -> u64 {
+        match self {
+            SignedTransaction::PreEip155Legacy(_) | SignedTransaction::PostEip155Legacy(_) => 0,
+            SignedTransaction::Eip2930(_) => 1,
+            SignedTransaction::Eip1559(_) => 2,
+            SignedTransaction::Eip4844(_) => 3,
         }
     }
 }

@@ -74,8 +74,13 @@ pub struct Transaction {
     pub chain_id: Option<u64>,
     /// integer of the transaction type, 0x0 for legacy transactions, 0x1 for
     /// access list types, 0x2 for dynamic fees
-    #[serde(rename = "type", default, with = "crate::serde::u64")]
-    pub transaction_type: u64,
+    #[serde(
+        rename = "type",
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "crate::serde::optional_u64"
+    )]
+    pub transaction_type: Option<u64>,
     /// access list
     #[serde(default)]
     pub access_list: Option<Vec<AccessListItem>>,
@@ -103,7 +108,7 @@ impl Transaction {
 
     /// Returns whether the transaction is a legacy transaction.
     pub fn is_legacy(&self) -> bool {
-        self.transaction_type == 0 && (self.v == 27 || self.v == 28)
+        self.transaction_type == Some(0) && (self.v == 27 || self.v == 28)
     }
 }
 
@@ -147,7 +152,7 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
         };
 
         let transaction = match value.transaction_type {
-            0 => {
+            Some(0) | None => {
                 if value.is_legacy() {
                     SignedTransaction::PreEip155Legacy(LegacySignedTransaction {
                         nonce: value.nonce,
@@ -180,7 +185,7 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
                     })
                 }
             }
-            1 => SignedTransaction::Eip2930(Eip2930SignedTransaction {
+            Some(1) => SignedTransaction::Eip2930(Eip2930SignedTransaction {
                 odd_y_parity: value.odd_y_parity(),
                 chain_id: value
                     .chain_id
@@ -199,7 +204,7 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
                 s: value.s,
                 hash: OnceLock::from(value.hash),
             }),
-            2 => SignedTransaction::Eip1559(Eip1559SignedTransaction {
+            Some(2) => SignedTransaction::Eip1559(Eip1559SignedTransaction {
                 odd_y_parity: value.odd_y_parity(),
                 chain_id: value
                     .chain_id
@@ -223,7 +228,7 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
                 s: value.s,
                 hash: OnceLock::from(value.hash),
             }),
-            3 => SignedTransaction::Eip4844(Eip4844SignedTransaction {
+            Some(3) => SignedTransaction::Eip4844(Eip4844SignedTransaction {
                 odd_y_parity: value.odd_y_parity(),
                 chain_id: value
                     .chain_id
@@ -255,7 +260,7 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
                 s: value.s,
                 hash: OnceLock::from(value.hash),
             }),
-            r#type => {
+            Some(r#type) => {
                 return Err(TransactionConversionError::UnsupportedType(r#type));
             }
         };

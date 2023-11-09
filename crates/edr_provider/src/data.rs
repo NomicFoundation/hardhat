@@ -72,7 +72,7 @@ impl ProviderData {
             network_id: config.network_id,
             beneficiary: config.coinbase,
             // TODO: Add config option (https://github.com/NomicFoundation/edr/issues/111)
-            min_gas_price: U256::MAX,
+            min_gas_price: U256::from(1),
             prevrandao_generator,
             block_time_offset_seconds: block_time_offset_seconds(config)?,
             next_block_timestamp: None,
@@ -411,6 +411,51 @@ impl ProviderData {
         self.impersonated_accounts.remove(&address)
     }
 
+    /// Get a transaction by hash from the blockchain or from the mempool if
+    /// it's not mined yet.
+    pub async fn transaction_by_hash(
+        &self,
+        hash: &B256,
+    ) -> Result<Option<GetTransactionResult>, ProviderError> {
+        let transaction = if let Some(tx) = self.mem_pool.transaction_by_hash(hash) {
+            let signed_transaction = tx.pending().transaction().clone();
+
+            Some(GetTransactionResult {
+                signed_transaction,
+                spec_id: self.blockchain.spec_id(),
+                block_metadata: None,
+            })
+        } else if let Some(tx_block) = self.blockchain.block_by_transaction_hash(hash).await? {
+            let tx_index = self
+                .blockchain
+                .receipt_by_transaction_hash(hash)
+                .await?
+                .expect("If the transaction was inserted in a block, it must have a receipt")
+                .transaction_index;
+
+            let tx_index_usize =
+                usize::try_from(tx_index).expect("Indices cannot be larger than usize::MAX");
+            let signed_transaction = tx_block.transactions()[tx_index_usize].clone();
+
+            let block_metadata = BlockMetadataForTransaction {
+                base_fee_per_gas: tx_block.header().base_fee_per_gas,
+                block_hash: *tx_block.hash(),
+                block_number: tx_block.header().number,
+                transaction_index: tx_index,
+            };
+
+            Some(GetTransactionResult {
+                signed_transaction,
+                spec_id: self.blockchain.spec_id(),
+                block_metadata: Some(block_metadata),
+            })
+        } else {
+            None
+        };
+
+        Ok(transaction)
+    }
+
     fn add_pending_transaction(
         &mut self,
         transaction: PendingTransaction,
@@ -738,14 +783,36 @@ async fn create_blockchain_and_state(
     }
 }
 
+/// The result returned by requesting a transaction.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct GetTransactionResult {
+    /// The signed transaction.
+    pub signed_transaction: SignedTransaction,
+    /// Information about the active hardforks.
+    pub spec_id: SpecId,
+    /// The block metadata for the transaction. None if the transaction is
+    /// pending.
+    pub block_metadata: Option<BlockMetadataForTransaction>,
+}
+
+/// Block metadata for a transaction.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BlockMetadataForTransaction {
+    pub base_fee_per_gas: Option<U256>,
+    pub block_hash: B256,
+    pub block_number: u64,
+    pub transaction_index: u64,
+}
+
 #[cfg(test)]
 mod tests {
+    use anyhow::Context;
     use tempfile::TempDir;
 
     use super::*;
     use crate::{test_utils::create_test_config_with_impersonated_accounts, ProviderConfig};
 
-    struct NodeTestFixture {
+    struct ProviderTestFixture {
         // We need to keep the tempdir alive for the duration of the test
         _cache_dir: TempDir,
         config: ProviderConfig,
@@ -753,8 +820,8 @@ mod tests {
         impersonated_account: Address,
     }
 
-    impl NodeTestFixture {
-        pub(crate) async fn new(runtime: &runtime::Handle) -> anyhow::Result<Self> {
+    impl ProviderTestFixture {
+        pub(crate) async fn new() -> anyhow::Result<Self> {
             let cache_dir = TempDir::new()?;
 
             let impersonated_account = Address::random();
@@ -763,7 +830,8 @@ mod tests {
                 vec![impersonated_account],
             );
 
-            let mut provider_data = ProviderData::new(runtime, &config).await?;
+            let runtime = runtime::Handle::try_current()?;
+            let mut provider_data = ProviderData::new(&runtime, &config).await?;
             provider_data
                 .impersonated_accounts
                 .insert(impersonated_account);
@@ -786,7 +854,7 @@ mod tests {
                     .expect("there are local accounts"),
                 to: Some(Address::zero()),
                 gas: Some(100_000),
-                gas_price: Some(U256::from(1)),
+                gas_price: Some(U256::from(42_000_000_000_u64)),
                 value: Some(U256::from(1)),
                 data: None,
                 nonce: None,
@@ -813,7 +881,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_sign_transaction_request() -> anyhow::Result<()> {
-        let fixture = NodeTestFixture::new(&runtime::Handle::current()).await?;
+        let fixture = ProviderTestFixture::new().await?;
 
         let transaction = fixture.signed_dummy_transaction()?;
         let recovered_address = transaction.recover()?;
@@ -828,7 +896,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_sign_transaction_request_impersonated_account() -> anyhow::Result<()> {
-        let fixture = NodeTestFixture::new(&runtime::Handle::current()).await?;
+        let fixture = ProviderTestFixture::new().await?;
 
         let transaction = fixture.impersonated_dummy_transaction()?;
 
@@ -838,7 +906,7 @@ mod tests {
     }
 
     fn test_add_pending_transaction(
-        fixture: &mut NodeTestFixture,
+        fixture: &mut ProviderTestFixture,
         transaction: PendingTransaction,
     ) -> anyhow::Result<()> {
         let filter_id = fixture.provider_data.new_pending_transaction_filter();
@@ -869,7 +937,7 @@ mod tests {
 
     #[tokio::test]
     async fn add_pending_transaction() -> anyhow::Result<()> {
-        let mut fixture = NodeTestFixture::new(&runtime::Handle::current()).await?;
+        let mut fixture = ProviderTestFixture::new().await?;
         let transaction = fixture.signed_dummy_transaction()?;
 
         test_add_pending_transaction(&mut fixture, transaction)
@@ -877,7 +945,7 @@ mod tests {
 
     #[tokio::test]
     async fn add_pending_transaction_from_impersonated_account() -> anyhow::Result<()> {
-        let mut fixture = NodeTestFixture::new(&runtime::Handle::current()).await?;
+        let mut fixture = ProviderTestFixture::new().await?;
         let transaction = fixture.impersonated_dummy_transaction()?;
 
         test_add_pending_transaction(&mut fixture, transaction)
@@ -885,7 +953,7 @@ mod tests {
 
     #[tokio::test]
     async fn chain_id() -> anyhow::Result<()> {
-        let fixture = NodeTestFixture::new(&runtime::Handle::current()).await?;
+        let fixture = ProviderTestFixture::new().await?;
 
         let chain_id = fixture.provider_data.chain_id().await;
         assert_eq!(chain_id, fixture.config.chain_id);
@@ -895,7 +963,7 @@ mod tests {
 
     #[tokio::test]
     async fn next_filter_id() -> anyhow::Result<()> {
-        let mut fixture = NodeTestFixture::new(&runtime::Handle::current()).await?;
+        let mut fixture = ProviderTestFixture::new().await?;
 
         let mut prev_filter_id = fixture.provider_data.last_filter_id;
         for _ in 0..10 {
@@ -909,7 +977,7 @@ mod tests {
 
     #[tokio::test]
     async fn set_balance_updates_mem_pool() -> anyhow::Result<()> {
-        let mut fixture = NodeTestFixture::new(&runtime::Handle::current()).await?;
+        let mut fixture = ProviderTestFixture::new().await?;
 
         let transaction = {
             let mut request = fixture.dummy_transaction_request();
@@ -942,7 +1010,7 @@ mod tests {
 
     #[tokio::test]
     async fn set_nonce_updates_mem_pool() -> anyhow::Result<()> {
-        let mut fixture = NodeTestFixture::new(&runtime::Handle::current()).await?;
+        let mut fixture = ProviderTestFixture::new().await?;
 
         // Artificially raise the nonce, to ensure the transaction is not rejected
         fixture
@@ -987,6 +1055,77 @@ mod tests {
         // balance
         assert!(!fixture.provider_data.mem_pool.has_pending_transactions());
         assert!(fixture.provider_data.mem_pool.has_future_transactions());
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn transaction_by_invalid_hash() -> anyhow::Result<()> {
+        let fixture = ProviderTestFixture::new().await?;
+
+        let non_existing_tx = fixture
+            .provider_data
+            .transaction_by_hash(&B256::zero())
+            .await?;
+
+        assert_eq!(non_existing_tx, None);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn pending_transaction_by_hash() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new().await?;
+
+        let transaction_request = fixture.signed_dummy_transaction()?;
+        let transaction_hash = fixture
+            .provider_data
+            .add_pending_transaction(transaction_request)?;
+
+        let transaction_result = fixture
+            .provider_data
+            .transaction_by_hash(&transaction_hash)
+            .await?
+            .context("transaction not found")?;
+
+        assert_eq!(
+            transaction_result.signed_transaction.hash(),
+            &transaction_hash
+        );
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn transaction_by_hash() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new().await?;
+
+        let transaction_request = fixture.signed_dummy_transaction()?;
+        let transaction_hash = fixture
+            .provider_data
+            .add_pending_transaction(transaction_request)?;
+
+        let results = fixture.provider_data.mine_and_commit_block(None).await?;
+
+        // Make sure transaction was mined successfully.
+        assert!(results
+            .transaction_results
+            .first()
+            .context("failed to mine transaction")?
+            .is_success());
+        // Sanity check that the mempool is empty.
+        assert_eq!(fixture.provider_data.mem_pool.transactions().count(), 0);
+
+        let transaction_result = fixture
+            .provider_data
+            .transaction_by_hash(&transaction_hash)
+            .await?
+            .context("transaction not found")?;
+
+        assert_eq!(
+            transaction_result.signed_transaction.hash(),
+            &transaction_hash
+        );
 
         Ok(())
     }

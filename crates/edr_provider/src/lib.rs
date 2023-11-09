@@ -23,42 +23,38 @@ pub use self::{
 };
 
 /// A JSON-RPC provider for Ethereum.
+///
+/// Add a layer in front that handles this
+///
+/// ```rust,ignore
+/// let RpcRequest {
+///     version,
+///     method: request,
+///     id,
+/// } = request;
+///
+/// if version != jsonrpc::Version::V2_0 {
+///     return Err(ProviderError::RpcVersion(version));
+/// }
+///
+/// fn to_response(
+///     id: jsonrpc::Id,
+///     result: Result<serde_json::Value, ProviderError>,
+/// ) -> jsonrpc::Response<serde_json::Value> { let data = match result {
+///   Ok(result) => jsonrpc::ResponseData::Success { result }, Err(error) =>
+///   jsonrpc::ResponseData::Error { error: jsonrpc::Error { code: -32000,
+///   message: error.to_string(), data: None, }, }, };
+///
+///     jsonrpc::Response {
+///         jsonrpc: jsonrpc::Version::V2_0,
+///         id,
+///         data,
+///     }
+/// }
+/// ```
 pub struct Provider {
     data: Mutex<ProviderData>,
 }
-
-// Add a layer in front that handles this
-// let RpcRequest {
-//     version,
-//     method: request,
-//     id,
-// } = request;
-
-// if version != jsonrpc::Version::V2_0 {
-//     return Err(ProviderError::RpcVersion(version));
-// }
-//
-// fn to_response(
-//     id: jsonrpc::Id,
-//     result: Result<serde_json::Value, ProviderError>,
-// ) -> jsonrpc::Response<serde_json::Value> {
-//     let data = match result {
-//         Ok(result) => jsonrpc::ResponseData::Success { result },
-//         Err(error) => jsonrpc::ResponseData::Error {
-//             error: jsonrpc::Error {
-//                 code: -32000,
-//                 message: error.to_string(),
-//                 data: None,
-//             },
-//         },
-//     };
-
-//     jsonrpc::Response {
-//         jsonrpc: jsonrpc::Version::V2_0,
-//         id,
-//         data,
-//     }
-// }
 
 impl Provider {
     pub async fn handle_request(
@@ -155,7 +151,11 @@ async fn handle_eth_request(
         EthRequest::GetTransactionByBlockNumberAndIndex(_, _) => {
             Err(ProviderError::Unimplemented("".to_string()))
         }
-        EthRequest::GetTransactionByHash(_) => Err(ProviderError::Unimplemented("".to_string())),
+        EthRequest::GetTransactionByHash(transaction_hash) => {
+            eth::handle_get_transaction_by_hash(data, transaction_hash)
+                .await
+                .and_then(to_json)
+        }
         EthRequest::GetTransactionCount(address, block_spec) => {
             eth::handle_get_transaction_count_request(data, address, block_spec)
                 .await
