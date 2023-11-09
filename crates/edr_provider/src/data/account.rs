@@ -2,14 +2,14 @@ use edr_eth::{signature::public_key_to_address, Address};
 use edr_evm::{AccountInfo, HashMap, KECCAK_EMPTY};
 use indexmap::IndexMap;
 
-use crate::{AccountConfig, Config};
+use crate::{AccountConfig, ProviderConfig};
 
 pub(super) struct InitialAccounts {
     pub local_accounts: IndexMap<Address, k256::SecretKey>,
     pub genesis_accounts: HashMap<Address, AccountInfo>,
 }
 
-pub(super) fn create_accounts(config: &Config) -> InitialAccounts {
+pub(super) fn create_accounts(config: &ProviderConfig) -> InitialAccounts {
     let mut local_accounts = IndexMap::default();
     let mut genesis_accounts = config.genesis_accounts.clone();
 

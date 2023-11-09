@@ -1,5 +1,4 @@
 mod account;
-mod node_error;
 
 use std::{
     sync::Arc,
@@ -8,7 +7,7 @@ use std::{
 
 use edr_eth::{
     remote::{
-        filter::{FilteredEvents, LogOutput},
+        filter::{FilteredEvents, LogOutput, SubscriptionType},
         BlockSpec, BlockTag, Eip1898BlockSpec, RpcClient,
     },
     serde::ZeroXPrefixedBytes,
@@ -24,42 +23,44 @@ use edr_evm::{
     MineBlockResultAndState, MineOrdering, PendingTransaction, RandomHashGenerator, KECCAK_EMPTY,
 };
 use indexmap::IndexMap;
+use tokio::runtime;
 
 use self::account::{create_accounts, InitialAccounts};
-pub use self::node_error::NodeError;
-use crate::{filter::Filter, Config};
+use crate::{filter::Filter, logger::Logger, ProviderConfig, ProviderError};
 
-pub struct Node {
-    pub blockchain: Box<dyn SyncBlockchain<BlockchainError, StateError>>,
-    pub state: Box<dyn SyncState<StateError>>,
-    pub irregular_state: IrregularState<StateError, Box<dyn SyncState<StateError>>>,
-    pub mem_pool: MemPool,
-    pub network_id: u64,
-    pub evm_config: CfgEnv,
-    pub beneficiary: Address,
-    pub min_gas_price: U256,
-    pub prevrandao_generator: RandomHashGenerator,
-    pub block_time_offset_seconds: u64,
-    pub next_block_timestamp: Option<u64>,
-    pub allow_blocks_with_same_timestamp: bool,
+pub struct ProviderData {
+    blockchain: Box<dyn SyncBlockchain<BlockchainError, StateError>>,
+    state: Box<dyn SyncState<StateError>>,
+    irregular_state: IrregularState<StateError, Box<dyn SyncState<StateError>>>,
+    mem_pool: MemPool,
+    network_id: u64,
+    beneficiary: Address,
+    min_gas_price: U256,
+    prevrandao_generator: RandomHashGenerator,
+    block_time_offset_seconds: u64,
+    next_block_timestamp: Option<u64>,
+    allow_blocks_with_same_timestamp: bool,
+    allow_unlimited_contract_size: bool,
     // IndexMap to preserve account order for logging.
-    pub local_accounts: IndexMap<Address, k256::SecretKey>,
-    pub filters: HashMap<U256, Filter>,
-    pub last_filter_id: U256,
-    pub impersonated_accounts: HashSet<Address>,
+    local_accounts: IndexMap<Address, k256::SecretKey>,
+    filters: HashMap<U256, Filter>,
+    last_filter_id: U256,
+    logger: Logger,
+    impersonated_accounts: HashSet<Address>,
 }
 
-impl Node {
-    pub async fn new(config: &Config) -> Result<Self, NodeError> {
+impl ProviderData {
+    pub async fn new(
+        runtime: &runtime::Handle,
+        config: &ProviderConfig,
+    ) -> Result<Self, ProviderError> {
         let InitialAccounts {
             local_accounts,
             genesis_accounts,
         } = create_accounts(config);
 
         let BlockchainAndState { state, blockchain } =
-            create_blockchain_and_state(config, genesis_accounts).await?;
-
-        let evm_config = create_evm_config(config);
+            create_blockchain_and_state(runtime, config, genesis_accounts).await?;
 
         let prevrandao_generator = RandomHashGenerator::with_seed("randomMixHashSeed");
 
@@ -69,7 +70,6 @@ impl Node {
             irregular_state: IrregularState::default(),
             mem_pool: MemPool::new(config.block_gas_limit),
             network_id: config.network_id,
-            evm_config,
             beneficiary: config.coinbase,
             // TODO: Add config option (https://github.com/NomicFoundation/edr/issues/111)
             min_gas_price: U256::MAX,
@@ -77,9 +77,11 @@ impl Node {
             block_time_offset_seconds: block_time_offset_seconds(config)?,
             next_block_timestamp: None,
             allow_blocks_with_same_timestamp: config.allow_blocks_with_same_timestamp,
+            allow_unlimited_contract_size: config.allow_unlimited_contract_size,
             local_accounts,
             filters: HashMap::default(),
             last_filter_id: U256::ZERO,
+            logger: Logger::new(false),
             impersonated_accounts: HashSet::new(),
         })
     }
@@ -92,8 +94,8 @@ impl Node {
         &self,
         address: Address,
         block_spec: Option<&BlockSpec>,
-    ) -> Result<U256, NodeError> {
-        self.execute_in_block_state::<Result<U256, NodeError>>(block_spec, move |state| {
+    ) -> Result<U256, ProviderError> {
+        self.execute_in_block_state::<Result<U256, ProviderError>>(block_spec, move |state| {
             Ok(state
                 .basic(address)?
                 .map_or(U256::ZERO, |account| account.balance))
@@ -105,8 +107,8 @@ impl Node {
         self.blockchain.last_block_number().await
     }
 
-    pub fn chain_id(&self) -> u64 {
-        self.evm_config.chain_id
+    pub async fn chain_id(&self) -> u64 {
+        self.blockchain.chain_id().await
     }
 
     pub fn coinbase(&self) -> Address {
@@ -117,21 +119,18 @@ impl Node {
         &self,
         address: Address,
         block_spec: Option<&BlockSpec>,
-    ) -> Result<ZeroXPrefixedBytes, NodeError> {
-        self.execute_in_block_state::<Result<ZeroXPrefixedBytes, NodeError>>(
-            block_spec,
-            move |state| {
-                let bytecode = state
-                    .basic(address)?
-                    .map_or(Ok(Bytes::new()), |account_info| {
-                        state
-                            .code_by_hash(account_info.code_hash)
-                            .map(|bytecode| bytecode.bytecode)
-                    })?;
+    ) -> Result<Bytes, ProviderError> {
+        self.execute_in_block_state(block_spec, move |state| {
+            let code = state
+                .basic(address)?
+                .map_or(Ok(Bytes::new()), |account_info| {
+                    state
+                        .code_by_hash(account_info.code_hash)
+                        .map(|bytecode| bytecode.bytecode)
+                })?;
 
-                Ok(ZeroXPrefixedBytes::from(bytecode))
-            },
-        )
+            Ok(code)
+        })
         .await?
     }
 
@@ -142,15 +141,17 @@ impl Node {
     pub fn get_filter_logs(
         &mut self,
         filter_id: &U256,
-    ) -> Result<Option<Vec<LogOutput>>, NodeError> {
+    ) -> Result<Option<Vec<LogOutput>>, ProviderError> {
         self.filters
             .get_mut(filter_id)
             .map(|filter| {
                 if let Some(events) = filter.take_log_events() {
                     Ok(events)
                 } else {
-                    Err(NodeError::NotLogSubscription {
+                    Err(ProviderError::InvalidFilterSubscriptionType {
                         filter_id: *filter_id,
+                        expected: SubscriptionType::Logs,
+                        actual: filter.events.subscription_type(),
                     })
                 }
             })
@@ -160,11 +161,11 @@ impl Node {
     pub async fn get_storage_at(
         &self,
         address: Address,
-        position: U256,
+        index: U256,
         block_spec: Option<&BlockSpec>,
-    ) -> Result<U256, NodeError> {
-        self.execute_in_block_state::<Result<U256, NodeError>>(block_spec, move |state| {
-            Ok(state.storage(address, position)?)
+    ) -> Result<U256, ProviderError> {
+        self.execute_in_block_state::<Result<U256, ProviderError>>(block_spec, move |state| {
+            Ok(state.storage(address, index)?)
         })
         .await?
     }
@@ -173,8 +174,8 @@ impl Node {
         &self,
         address: Address,
         block_spec: Option<&BlockSpec>,
-    ) -> Result<u64, NodeError> {
-        self.execute_in_block_state::<Result<u64, NodeError>>(block_spec, move |state| {
+    ) -> Result<u64, ProviderError> {
+        self.execute_in_block_state::<Result<u64, ProviderError>>(block_spec, move |state| {
             let nonce = state
                 .basic(address)?
                 .map_or(0, |account_info| account_info.nonce);
@@ -197,12 +198,16 @@ impl Node {
         self.local_accounts.iter()
     }
 
+    pub fn logger(&self) -> &Logger {
+        &self.logger
+    }
+
     pub async fn mine_and_commit_block(
         &mut self,
         timestamp: Option<u64>,
-    ) -> Result<MineBlockResult<BlockchainError>, NodeError> {
+    ) -> Result<MineBlockResult<BlockchainError>, ProviderError> {
         let (block_timestamp, new_offset) = self.next_block_timestamp(timestamp).await?;
-        let prevrandao = if self.evm_config.spec_id >= SpecId::MERGE {
+        let prevrandao = if self.blockchain.spec_id() >= SpecId::MERGE {
             Some(self.prevrandao_generator.next_value())
         } else {
             None
@@ -221,11 +226,11 @@ impl Node {
             .blockchain
             .insert_block(result.block, result.state_diff)
             .await
-            .map_err(NodeError::Blockchain)?;
+            .map_err(ProviderError::Blockchain)?;
 
         self.mem_pool
             .update(&result.state)
-            .map_err(NodeError::MemPoolUpdate)?;
+            .map_err(ProviderError::MemPoolUpdate)?;
 
         self.state = result.state;
 
@@ -263,22 +268,26 @@ impl Node {
     pub fn send_transaction(
         &mut self,
         transaction_request: EthTransactionRequest,
-    ) -> Result<B256, NodeError> {
+    ) -> Result<B256, ProviderError> {
         let signed_transaction = self.sign_transaction_request(transaction_request)?;
 
         self.add_pending_transaction(signed_transaction)
     }
 
-    pub fn send_raw_transaction(&mut self, raw_transaction: &[u8]) -> Result<B256, NodeError> {
+    pub fn send_raw_transaction(&mut self, raw_transaction: &[u8]) -> Result<B256, ProviderError> {
         let signed_transaction: SignedTransaction = rlp::decode(raw_transaction)?;
 
         let pending_transaction =
-            PendingTransaction::new(&self.state, self.evm_config.spec_id, signed_transaction)?;
+            PendingTransaction::new(&self.state, self.blockchain.spec_id(), signed_transaction)?;
 
         self.add_pending_transaction(pending_transaction)
     }
 
-    pub async fn set_balance(&mut self, address: Address, balance: U256) -> Result<(), NodeError> {
+    pub async fn set_balance(
+        &mut self,
+        address: Address,
+        balance: U256,
+    ) -> Result<(), ProviderError> {
         self.state.modify_account(
             address,
             AccountModifierFn::new(Box::new(move |account_balance, _, _| {
@@ -303,7 +312,7 @@ impl Node {
         Ok(())
     }
 
-    pub async fn set_code(&mut self, address: Address, code: Bytes) -> Result<(), NodeError> {
+    pub async fn set_code(&mut self, address: Address, code: Bytes) -> Result<(), ProviderError> {
         let default_code = code.clone();
         self.state.modify_account(
             address,
@@ -328,18 +337,18 @@ impl Node {
     }
 
     /// Set the next block timestamp.
-    pub async fn set_next_block_timestamp(&mut self, timestamp: u64) -> Result<u64, NodeError> {
+    pub async fn set_next_block_timestamp(&mut self, timestamp: u64) -> Result<u64, ProviderError> {
         use std::cmp::Ordering;
 
         let latest_block = self.blockchain.last_block().await?;
         let latest_block_header = latest_block.header();
 
         match timestamp.cmp(&latest_block_header.timestamp) {
-            Ordering::Less => Err(NodeError::TimestampLowerThanPrevious {
+            Ordering::Less => Err(ProviderError::TimestampLowerThanPrevious {
                 proposed: timestamp,
                 previous: latest_block_header.timestamp,
             }),
-            Ordering::Equal => Err(NodeError::TimestampEqualsPrevious {
+            Ordering::Equal => Err(ProviderError::TimestampEqualsPrevious {
                 proposed: timestamp,
             }),
             Ordering::Greater => {
@@ -349,7 +358,7 @@ impl Node {
         }
     }
 
-    pub async fn set_nonce(&mut self, address: Address, nonce: u64) -> Result<(), NodeError> {
+    pub async fn set_nonce(&mut self, address: Address, nonce: u64) -> Result<(), ProviderError> {
         self.state.modify_account(
             address,
             AccountModifierFn::new(Box::new(move |_, account_nonce, _| *account_nonce = nonce)),
@@ -377,7 +386,7 @@ impl Node {
         address: Address,
         index: U256,
         value: U256,
-    ) -> Result<(), NodeError> {
+    ) -> Result<(), ProviderError> {
         self.state.set_account_storage_slot(address, index, value)?;
 
         let block_number = self.blockchain.last_block_number().await;
@@ -391,10 +400,10 @@ impl Node {
         &self,
         address: &Address,
         message: ZeroXPrefixedBytes,
-    ) -> Result<Signature, NodeError> {
+    ) -> Result<Signature, ProviderError> {
         match self.local_accounts.get(address) {
             Some(secret_key) => Ok(Signature::new(&Bytes::from(message)[..], secret_key)?),
-            None => Err(NodeError::UnknownAddress { address: *address }),
+            None => Err(ProviderError::UnknownAddress { address: *address }),
         }
     }
 
@@ -405,7 +414,7 @@ impl Node {
     fn add_pending_transaction(
         &mut self,
         transaction: PendingTransaction,
-    ) -> Result<B256, NodeError> {
+    ) -> Result<B256, ProviderError> {
         let transaction_hash = *transaction.hash();
 
         // Handles validation
@@ -420,11 +429,23 @@ impl Node {
         Ok(transaction_hash)
     }
 
+    async fn create_evm_config(&self) -> CfgEnv {
+        let mut evm_config = CfgEnv::default();
+        evm_config.chain_id = self.blockchain.chain_id().await;
+        evm_config.spec_id = self.blockchain.spec_id();
+        evm_config.limit_contract_code_size = if self.allow_unlimited_contract_size {
+            Some(usize::MAX)
+        } else {
+            None
+        };
+        evm_config
+    }
+
     async fn execute_in_block_state<T>(
         &self,
         block_spec: Option<&BlockSpec>,
         function: impl FnOnce(Box<dyn SyncState<StateError>>) -> T,
-    ) -> Result<T, NodeError> {
+    ) -> Result<T, ProviderError> {
         let contextual_state = self.state_by_block_spec(block_spec).await?;
 
         // Execute function in the requested block context.
@@ -438,7 +459,7 @@ impl Node {
         &self,
         timestamp: u64,
         prevrandao: Option<B256>,
-    ) -> Result<MineBlockResultAndState<StateError>, NodeError> {
+    ) -> Result<MineBlockResultAndState<StateError>, ProviderError> {
         // TODO: when we support hardhat_setNextBlockBaseFeePerGas, incorporate
         // the last-passed value here. (but don't .take() it yet, because we only
         // want to clear it if the block mining is successful.
@@ -448,11 +469,13 @@ impl Node {
         // TODO: https://github.com/NomicFoundation/edr/issues/156
         let reward = U256::ZERO;
 
+        let evm_config = self.create_evm_config().await;
+
         let result = mine_block(
             &*self.blockchain,
             self.state.clone(),
             &self.mem_pool,
-            &self.evm_config,
+            &evm_config,
             timestamp,
             self.beneficiary,
             self.min_gas_price,
@@ -473,9 +496,11 @@ impl Node {
     }
 
     /// Mines a pending block, without modifying any values.
-    async fn mine_pending_block(&self) -> Result<MineBlockResultAndState<StateError>, NodeError> {
+    async fn mine_pending_block(
+        &self,
+    ) -> Result<MineBlockResultAndState<StateError>, ProviderError> {
         let (block_timestamp, _new_offset) = self.next_block_timestamp(None).await?;
-        let prevrandao = if self.evm_config.spec_id >= SpecId::MERGE {
+        let prevrandao = if self.blockchain.spec_id() >= SpecId::MERGE {
             Some(self.prevrandao_generator.seed())
         } else {
             None
@@ -489,14 +514,14 @@ impl Node {
     async fn next_block_timestamp(
         &self,
         timestamp: Option<u64>,
-    ) -> Result<(u64, Option<u64>), NodeError> {
+    ) -> Result<(u64, Option<u64>), ProviderError> {
         let latest_block = self.blockchain.last_block().await?;
         let latest_block_header = latest_block.header();
 
         let current_timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
         let (mut block_timestamp, new_offset) = if let Some(timestamp) = timestamp {
             timestamp.checked_sub(latest_block_header.timestamp).ok_or(
-                NodeError::TimestampLowerThanPrevious {
+                ProviderError::TimestampLowerThanPrevious {
                     proposed: timestamp,
                     previous: latest_block_header.timestamp,
                 },
@@ -539,19 +564,19 @@ impl Node {
     fn sign_transaction_request(
         &self,
         transaction_request: EthTransactionRequest,
-    ) -> Result<PendingTransaction, NodeError> {
+    ) -> Result<PendingTransaction, ProviderError> {
         let sender = transaction_request.from;
 
         let typed_transaction = transaction_request
             .into_typed_request()
-            .ok_or(NodeError::InvalidTransactionRequest)?;
+            .ok_or(ProviderError::InvalidTransactionRequest)?;
 
         if self.impersonated_accounts.contains(&sender) {
             let signed_transaction = typed_transaction.fake_sign(&sender);
 
             Ok(PendingTransaction::with_caller(
                 &*self.state,
-                self.evm_config.spec_id,
+                self.blockchain.spec_id(),
                 signed_transaction,
                 sender,
             )?)
@@ -559,12 +584,12 @@ impl Node {
             let secret_key = self
                 .local_accounts
                 .get(&sender)
-                .ok_or(NodeError::UnknownAddress { address: sender })?;
+                .ok_or(ProviderError::UnknownAddress { address: sender })?;
 
             let signed_transaction = typed_transaction.sign(secret_key)?;
             Ok(PendingTransaction::new(
                 &*self.state,
-                self.evm_config.spec_id,
+                self.blockchain.spec_id(),
                 signed_transaction,
             )?)
         }
@@ -573,14 +598,14 @@ impl Node {
     async fn state_by_block_spec(
         &self,
         block_spec: Option<&BlockSpec>,
-    ) -> Result<Box<dyn SyncState<StateError>>, NodeError> {
+    ) -> Result<Box<dyn SyncState<StateError>>, ProviderError> {
         let block = if let Some(block_spec) = block_spec {
             match block_spec {
                 BlockSpec::Number(block_number) => self
                     .blockchain
                     .block_by_number(*block_number)
                     .await?
-                    .ok_or(NodeError::UnknownBlockNumber {
+                    .ok_or(ProviderError::UnknownBlockNumber {
                         block_number: *block_number,
                     })?,
                 BlockSpec::Tag(BlockTag::Earliest) => self
@@ -601,7 +626,7 @@ impl Node {
                     block_hash,
                     require_canonical: _,
                 }) => self.blockchain.block_by_hash(block_hash).await?.ok_or(
-                    NodeError::UnknownBlockHash {
+                    ProviderError::UnknownBlockHash {
                         block_hash: *block_hash,
                     },
                 )?,
@@ -609,7 +634,7 @@ impl Node {
                     .blockchain
                     .block_by_number(*block_number)
                     .await?
-                    .ok_or(NodeError::UnknownBlockNumber {
+                    .ok_or(ProviderError::UnknownBlockNumber {
                         block_number: *block_number,
                     })?,
             }
@@ -635,11 +660,11 @@ impl Node {
     }
 }
 
-fn block_time_offset_seconds(config: &Config) -> Result<u64, NodeError> {
+fn block_time_offset_seconds(config: &ProviderConfig) -> Result<u64, ProviderError> {
     config.initial_date.map_or(Ok(0), |initial_date| {
         Ok(SystemTime::now()
             .duration_since(initial_date)
-            .map_err(|_e| NodeError::InitialDateInFuture(initial_date))?
+            .map_err(|_e| ProviderError::InvalidInitialDate(initial_date))?
             .as_secs())
     })
 }
@@ -650,16 +675,11 @@ struct BlockchainAndState {
 }
 
 async fn create_blockchain_and_state(
-    config: &Config,
+    runtime: &runtime::Handle,
+    config: &ProviderConfig,
     genesis_accounts: HashMap<Address, AccountInfo>,
-) -> Result<BlockchainAndState, NodeError> {
-    if let Some(fork_config) = &config.rpc_hardhat_network_config.forking {
-        let runtime = tokio::runtime::Builder::new_multi_thread()
-            .enable_io()
-            .enable_time()
-            .build()
-            .expect("failed to construct async runtime");
-
+) -> Result<BlockchainAndState, ProviderError> {
+    if let Some(fork_config) = &config.fork {
         let state_root_generator = Arc::new(parking_lot::Mutex::new(
             RandomHashGenerator::with_seed("seed"),
         ));
@@ -667,7 +687,7 @@ async fn create_blockchain_and_state(
         let rpc_client = RpcClient::new(&fork_config.json_rpc_url, config.cache_dir.clone());
 
         let blockchain = ForkedBlockchain::new(
-            runtime.handle().clone(),
+            runtime.clone(),
             config.hardfork,
             rpc_client,
             fork_config.block_number,
@@ -718,35 +738,23 @@ async fn create_blockchain_and_state(
     }
 }
 
-fn create_evm_config(config: &Config) -> CfgEnv {
-    let mut evm_config = CfgEnv::default();
-    evm_config.chain_id = config.chain_id;
-    evm_config.spec_id = config.hardfork;
-    evm_config.limit_contract_code_size = if config.allow_unlimited_contract_size {
-        Some(usize::MAX)
-    } else {
-        None
-    };
-    evm_config
-}
-
 #[cfg(test)]
 mod tests {
     use tempfile::TempDir;
 
     use super::*;
-    use crate::config::{test_tools::create_test_config_with_impersonated_accounts, Config};
+    use crate::{test_utils::create_test_config_with_impersonated_accounts, ProviderConfig};
 
     struct NodeTestFixture {
         // We need to keep the tempdir alive for the duration of the test
         _cache_dir: TempDir,
-        config: Config,
-        node_data: Node,
+        config: ProviderConfig,
+        provider_data: ProviderData,
         impersonated_account: Address,
     }
 
     impl NodeTestFixture {
-        pub(crate) async fn new() -> anyhow::Result<Self> {
+        pub(crate) async fn new(runtime: &runtime::Handle) -> anyhow::Result<Self> {
             let cache_dir = TempDir::new()?;
 
             let impersonated_account = Address::random();
@@ -755,13 +763,15 @@ mod tests {
                 vec![impersonated_account],
             );
 
-            let mut node_data = Node::new(&config).await?;
-            node_data.impersonated_accounts.insert(impersonated_account);
+            let mut provider_data = ProviderData::new(runtime, &config).await?;
+            provider_data
+                .impersonated_accounts
+                .insert(impersonated_account);
 
             Ok(Self {
                 _cache_dir: cache_dir,
                 config,
-                node_data,
+                provider_data,
                 impersonated_account,
             })
         }
@@ -769,7 +779,7 @@ mod tests {
         fn dummy_transaction_request(&self) -> EthTransactionRequest {
             EthTransactionRequest {
                 from: *self
-                    .node_data
+                    .provider_data
                     .local_accounts
                     .keys()
                     .next()
@@ -789,7 +799,7 @@ mod tests {
 
         fn signed_dummy_transaction(&self) -> anyhow::Result<PendingTransaction> {
             let transaction = self.dummy_transaction_request();
-            Ok(self.node_data.sign_transaction_request(transaction)?)
+            Ok(self.provider_data.sign_transaction_request(transaction)?)
         }
 
         fn impersonated_dummy_transaction(&self) -> anyhow::Result<PendingTransaction> {
@@ -797,19 +807,19 @@ mod tests {
 
             transaction.from = self.impersonated_account;
 
-            Ok(self.node_data.sign_transaction_request(transaction)?)
+            Ok(self.provider_data.sign_transaction_request(transaction)?)
         }
     }
 
     #[tokio::test]
     async fn test_sign_transaction_request() -> anyhow::Result<()> {
-        let fixture = NodeTestFixture::new().await?;
+        let fixture = NodeTestFixture::new(&runtime::Handle::current()).await?;
 
         let transaction = fixture.signed_dummy_transaction()?;
         let recovered_address = transaction.recover()?;
 
         assert!(fixture
-            .node_data
+            .provider_data
             .local_accounts
             .contains_key(&recovered_address));
 
@@ -818,7 +828,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_sign_transaction_request_impersonated_account() -> anyhow::Result<()> {
-        let fixture = NodeTestFixture::new().await?;
+        let fixture = NodeTestFixture::new(&runtime::Handle::current()).await?;
 
         let transaction = fixture.impersonated_dummy_transaction()?;
 
@@ -831,31 +841,35 @@ mod tests {
         fixture: &mut NodeTestFixture,
         transaction: PendingTransaction,
     ) -> anyhow::Result<()> {
-        let filter_id = fixture.node_data.new_pending_transaction_filter();
+        let filter_id = fixture.provider_data.new_pending_transaction_filter();
 
-        let transaction_hash = fixture.node_data.add_pending_transaction(transaction)?;
+        let transaction_hash = fixture.provider_data.add_pending_transaction(transaction)?;
 
         assert!(fixture
-            .node_data
+            .provider_data
             .mem_pool
             .transaction_by_hash(&transaction_hash)
             .is_some());
 
-        match fixture.node_data.get_filter_changes(&filter_id).unwrap() {
+        match fixture
+            .provider_data
+            .get_filter_changes(&filter_id)
+            .unwrap()
+        {
             FilteredEvents::NewPendingTransactions(hashes) => {
                 assert!(hashes.contains(&transaction_hash));
             }
             _ => panic!("expected pending transaction"),
         };
 
-        assert!(fixture.node_data.mem_pool.has_pending_transactions());
+        assert!(fixture.provider_data.mem_pool.has_pending_transactions());
 
         Ok(())
     }
 
     #[tokio::test]
     async fn add_pending_transaction() -> anyhow::Result<()> {
-        let mut fixture = NodeTestFixture::new().await?;
+        let mut fixture = NodeTestFixture::new(&runtime::Handle::current()).await?;
         let transaction = fixture.signed_dummy_transaction()?;
 
         test_add_pending_transaction(&mut fixture, transaction)
@@ -863,7 +877,7 @@ mod tests {
 
     #[tokio::test]
     async fn add_pending_transaction_from_impersonated_account() -> anyhow::Result<()> {
-        let mut fixture = NodeTestFixture::new().await?;
+        let mut fixture = NodeTestFixture::new(&runtime::Handle::current()).await?;
         let transaction = fixture.impersonated_dummy_transaction()?;
 
         test_add_pending_transaction(&mut fixture, transaction)
@@ -871,9 +885,9 @@ mod tests {
 
     #[tokio::test]
     async fn chain_id() -> anyhow::Result<()> {
-        let fixture = NodeTestFixture::new().await?;
+        let fixture = NodeTestFixture::new(&runtime::Handle::current()).await?;
 
-        let chain_id = fixture.node_data.chain_id();
+        let chain_id = fixture.provider_data.chain_id().await;
         assert_eq!(chain_id, fixture.config.chain_id);
 
         Ok(())
@@ -881,11 +895,11 @@ mod tests {
 
     #[tokio::test]
     async fn next_filter_id() -> anyhow::Result<()> {
-        let mut fixture = NodeTestFixture::new().await?;
+        let mut fixture = NodeTestFixture::new(&runtime::Handle::current()).await?;
 
-        let mut prev_filter_id = fixture.node_data.last_filter_id;
+        let mut prev_filter_id = fixture.provider_data.last_filter_id;
         for _ in 0..10 {
-            let filter_id = fixture.node_data.next_filter_id();
+            let filter_id = fixture.provider_data.next_filter_id();
             assert!(prev_filter_id < filter_id);
             prev_filter_id = filter_id;
         }
@@ -895,30 +909,30 @@ mod tests {
 
     #[tokio::test]
     async fn set_balance_updates_mem_pool() -> anyhow::Result<()> {
-        let mut fixture = NodeTestFixture::new().await?;
+        let mut fixture = NodeTestFixture::new(&runtime::Handle::current()).await?;
 
         let transaction = {
             let mut request = fixture.dummy_transaction_request();
             request.from = fixture.impersonated_account;
 
-            fixture.node_data.sign_transaction_request(request)?
+            fixture.provider_data.sign_transaction_request(request)?
         };
 
-        let transaction_hash = fixture.node_data.add_pending_transaction(transaction)?;
+        let transaction_hash = fixture.provider_data.add_pending_transaction(transaction)?;
 
         assert!(fixture
-            .node_data
+            .provider_data
             .mem_pool
             .transaction_by_hash(&transaction_hash)
             .is_some());
 
         fixture
-            .node_data
+            .provider_data
             .set_balance(fixture.impersonated_account, U256::from(100))
             .await?;
 
         assert!(fixture
-            .node_data
+            .provider_data
             .mem_pool
             .transaction_by_hash(&transaction_hash)
             .is_none());
@@ -928,11 +942,11 @@ mod tests {
 
     #[tokio::test]
     async fn set_nonce_updates_mem_pool() -> anyhow::Result<()> {
-        let mut fixture = NodeTestFixture::new().await?;
+        let mut fixture = NodeTestFixture::new(&runtime::Handle::current()).await?;
 
         // Artificially raise the nonce, to ensure the transaction is not rejected
         fixture
-            .node_data
+            .provider_data
             .set_nonce(fixture.impersonated_account, 1)
             .await?;
 
@@ -941,38 +955,38 @@ mod tests {
             request.from = fixture.impersonated_account;
             request.nonce = Some(1);
 
-            fixture.node_data.sign_transaction_request(request)?
+            fixture.provider_data.sign_transaction_request(request)?
         };
 
-        let transaction_hash = fixture.node_data.add_pending_transaction(transaction)?;
+        let transaction_hash = fixture.provider_data.add_pending_transaction(transaction)?;
 
         assert!(fixture
-            .node_data
+            .provider_data
             .mem_pool
             .transaction_by_hash(&transaction_hash)
             .is_some());
 
         // The transaction is a pending transaction, as the nonce is the same as the
         // account
-        assert!(fixture.node_data.mem_pool.has_pending_transactions());
-        assert!(!fixture.node_data.mem_pool.has_future_transactions());
+        assert!(fixture.provider_data.mem_pool.has_pending_transactions());
+        assert!(!fixture.provider_data.mem_pool.has_future_transactions());
 
         // Lower the nonce, to ensure the transaction is not rejected
         fixture
-            .node_data
+            .provider_data
             .set_nonce(fixture.impersonated_account, 0)
             .await?;
 
         assert!(fixture
-            .node_data
+            .provider_data
             .mem_pool
             .transaction_by_hash(&transaction_hash)
             .is_some());
 
         // The pending transaction now is a future transaction, as there is not enough
         // balance
-        assert!(!fixture.node_data.mem_pool.has_pending_transactions());
-        assert!(fixture.node_data.mem_pool.has_future_transactions());
+        assert!(!fixture.provider_data.mem_pool.has_pending_transactions());
+        assert!(fixture.provider_data.mem_pool.has_future_transactions());
 
         Ok(())
     }
