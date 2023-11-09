@@ -260,6 +260,35 @@ describe("JSON-RPC client", function () {
         assert.isFalse(result1.customErrorReported);
       });
 
+      it("Should rethrow an IgnitionError if the error message indicates an incorrectly configured base gas fee versus the node's block gas limit", async function () {
+        class MockProvider {
+          public async request(req: { method: string; _: any[] }) {
+            if (req.method === "eth_call") {
+              throw new Error("base fee exceeds gas limit");
+            }
+
+            assertIgnitionInvariant(
+              false,
+              `Unimplemented mock for ${req.method}`
+            );
+          }
+        }
+
+        const mockClient = new EIP1193JsonRpcClient(new MockProvider());
+
+        await assert.isRejected(
+          mockClient.call(
+            {
+              data: "0x",
+              value: 0n,
+              from: this.accounts[0],
+            },
+            "latest"
+          ),
+          /IGN406\: The configured base fee exceeds the block gas limit\. Please reduce the configured base fee or increase the block gas limit\./
+        );
+      });
+
       it("Should return customErrorReported true when the server reports a custom error", async function () {
         const { artifact, address } = await deployContract(this);
 

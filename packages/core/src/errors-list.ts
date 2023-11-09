@@ -174,6 +174,11 @@ export const ERRORS = {
       message:
         "The next nonce for %sender% should be %expectedNonce%, but is %pendingCount%. Please make sure not to send transactions from %sender% while running this deployment and try again.",
     },
+    BASE_FEE_EXCEEDS_GAS_LIMIT: {
+      number: 406,
+      message:
+        "The configured base fee exceeds the block gas limit. Please reduce the configured base fee or increase the block gas limit.",
+    },
   },
   RECONCILIATION: {
     INVALID_EXECUTION_STATUS: {

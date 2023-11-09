@@ -311,6 +311,10 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
             customErrorReported: false,
           };
         }
+
+        if (error.message.includes("base fee exceeds gas limit")) {
+          throw new IgnitionError(ERRORS.EXECUTION.BASE_FEE_EXCEEDS_GAS_LIMIT);
+        }
       }
 
       throw error;
