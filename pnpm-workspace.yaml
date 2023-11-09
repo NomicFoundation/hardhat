@@ -1,0 +1,16 @@
+packages:
+  # include packages in sub-folders (e.g. apps/ and packages/)
+  - "packages/**"
+
+  # - "packages/hardhat-core/test/fixture-projects/memory-safe-console/**"
+
+  # # if required, exclude some directories
+  - "!**/test/**"
+  # - "!packages/hardhat-core/test/fixture-projects/compilation-import-folder-from-module/**"
+  # - "!packages/hardhat-core/test/fixture-projects/import-dependency-not-installed/**"
+  # - "!packages/hardhat-core/test/fixture-projects/buidler-plugin/**"
+  # - "!packages/hardhat-core/test/fixture-projects/compilation-import-non-existing-file-from-module/**"
+  # - "!packages/hardhat-core/test/fixture-projects/plugin-dynamic-import-not-installed/**"
+  # - "!packages/hardhat-core/test/fixture-projects/plugin-multiple-peer-dependencies-not-installed/**"
+  # - "!packages/hardhat-core/test/fixture-projects/import-dev-dependency-not-installed/**"
+  # - "!packages/hardhat-core/test/fixture-projects/plugin-peer-dependency-not-installed/**"
