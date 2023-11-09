@@ -1,3 +1,6 @@
+// TODO: Remove once stubs have been implemented.
+#![allow(clippy::unused_self)]
+
 use edr_eth::{
     transaction::{SignedTransaction, TransactionRequest},
     B256, U256,
