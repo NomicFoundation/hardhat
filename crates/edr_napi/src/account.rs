@@ -1,6 +1,9 @@
 use std::fmt::Debug;
 
-use edr_eth::{signature::secret_key_to_address, Address, Bytes, U256};
+use edr_eth::{
+    signature::{secret_key_from_str, secret_key_to_address},
+    Address, Bytes, U256,
+};
 use edr_evm::{AccountInfo, HashMap, KECCAK_EMPTY};
 use napi::{
     bindgen_prelude::{BigInt, Buffer},
@@ -102,6 +105,20 @@ pub struct GenesisAccount {
     pub secret_key: String,
     /// Account balance
     pub balance: BigInt,
+}
+
+impl TryFrom<GenesisAccount> for edr_provider::AccountConfig {
+    type Error = napi::Error;
+
+    fn try_from(value: GenesisAccount) -> Result<Self, Self::Error> {
+        let secret_key = secret_key_from_str(&value.secret_key)
+            .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
+
+        Ok(Self {
+            secret_key,
+            balance: value.balance.try_cast()?,
+        })
+    }
 }
 
 #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
