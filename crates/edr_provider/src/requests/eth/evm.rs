@@ -8,7 +8,8 @@ pub fn handle_evm_increase_time_request(
     increment: U64OrUsize,
 ) -> Result<String, ProviderError> {
     let new_block_time = data.increase_block_time(increment.into());
-    // Question: Do we need a string?
+
+    // This RPC call is an exception: it returns a number as a string decimal
     Ok(new_block_time.to_string())
 }
 
@@ -30,7 +31,7 @@ pub async fn handle_evm_set_next_block_timestamp(
 ) -> Result<String, ProviderError> {
     let new_timestamp = data.set_next_block_timestamp(timestamp.into()).await?;
 
-    // Question: Does this need to be a string?
+    // This RPC call is an exception: it returns a number as a string decimal
     Ok(new_timestamp.to_string())
 }
 
