@@ -1,3 +1,6 @@
 {
-  "name": "memory-safe-console"
+  "name": "memory-safe-console",
+  "devDependencies": {
+    "hardhat": "latest"
+  }
 }
