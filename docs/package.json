@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
     "prebuild": "ts-node --transpileOnly --skipProject scripts/prepare-error-list.ts",
     "dev": "next-remote-watch ./src/content",
     "dev:debug": "NODE_OPTIONS='--inspect' next dev",
@@ -47,6 +48,8 @@
     "@storybook/addon-links": "^6.4.19",
     "@storybook/react": "^6.4.19",
     "@storybook/testing-library": "^0.0.9",
+    "@types/glob": "^8.1.0",
+    "@types/js-yaml": "^4.0.9",
     "@types/mdx-js__react": "^1.5.5",
     "@types/node": "17.0.21",
     "@types/react": "17.0.39",
