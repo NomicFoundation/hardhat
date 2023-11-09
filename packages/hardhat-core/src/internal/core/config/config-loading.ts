@@ -218,7 +218,10 @@ export function analyzeModuleNotFoundError(error: any, configPath: string) {
 
   const missingPeerDependencies: { [name: string]: string } = {};
   for (const [peerDependency, version] of Object.entries(peerDependencies)) {
-    const peerDependencyPackageJson = readPackageJson(peerDependency);
+    const peerDependencyPackageJson = readPackageJson(
+      peerDependency,
+      configPath
+    );
     if (peerDependencyPackageJson === undefined) {
       missingPeerDependencies[peerDependency] = version;
     }
@@ -244,10 +247,18 @@ interface PackageJson {
   };
 }
 
-function readPackageJson(packageName: string): PackageJson | undefined {
+function readPackageJson(
+  packageName: string,
+  configPath: string
+): PackageJson | undefined {
+  const resolve = require("resolve") as typeof import("resolve");
+
   try {
-    const packageJsonPath = require.resolve(
-      path.join(packageName, "package.json")
+    const packageJsonPath = resolve.sync(
+      path.join(packageName, "package.json"),
+      {
+        basedir: path.dirname(configPath),
+      }
     );
 
     return require(packageJsonPath);
