@@ -43,8 +43,12 @@ impl Provider {
     #[doc = "Handles a JSON-RPC request and returns a JSON-RPC response."]
     #[napi]
     pub async fn handle_request(&self, json_request: String) -> napi::Result<String> {
-        let request = serde_json::from_str(&json_request)
-            .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
+        let request = serde_json::from_str(&json_request).map_err(|error| {
+            napi::Error::new(
+                Status::InvalidArg,
+                format!("Invalid JSON `{json_request}` due to: {error}"),
+            )
+        })?;
 
         let response = self
             .provider
