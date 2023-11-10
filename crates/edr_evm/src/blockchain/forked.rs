@@ -349,11 +349,21 @@ impl Blockchain for ForkedBlockchain {
             state_root,
         );
 
+        let (first_block_number, last_block_number) =
+            match block_number.cmp(&self.fork_block_number) {
+                // Only override the state at the forked block
+                std::cmp::Ordering::Less => (block_number, block_number),
+                // Override blocks between the forked block and the requested block
+                std::cmp::Ordering::Equal | std::cmp::Ordering::Greater => {
+                    (self.fork_block_number, block_number)
+                }
+            };
+
         compute_state_at_block(
             &mut state,
             &self.local_storage,
-            self.fork_block_number,
-            block_number,
+            first_block_number,
+            last_block_number,
             state_overrides,
         );
 
