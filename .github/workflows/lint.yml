@@ -25,6 +25,8 @@ jobs:
           cache-dependency-path: |
             pnpm-lock.yaml
             docs/pnpm-lock.yaml
+      - name: Install pnpm # pnpm is not insatlled by default in the CI
+        run: npm install -g pnpm
       - name: Install
         run: pnpm install --frozen-lockfile
       - name: Build

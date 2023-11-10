@@ -37,6 +37,8 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: pnpm
+      - name: Install pnpm # pnpm is not insatlled by default in the CI
+        run: npm install -g pnpm
       - name: Install
         run: pnpm install --frozen-lockfile
       - name: Build
