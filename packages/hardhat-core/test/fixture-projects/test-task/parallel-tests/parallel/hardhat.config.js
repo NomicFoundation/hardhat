@@ -4,6 +4,6 @@ module.exports = {
     // disable test output of the fixture so that
     // the output of the fixture isn't mixed with
     // the output of the hardhat tests
-    // reporter: function () {},
+    reporter: function () {},
   },
 };
