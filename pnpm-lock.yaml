@@ -1,9 +1,5 @@
 lockfileVersion: '6.0'
 
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false
-
 importers:
 
   .:
@@ -11,6 +7,9 @@ importers:
       '@changesets/cli':
         specifier: ^2.16.0
         version: 2.26.2
+      hardhat:
+        specifier: workspace:*
+        version: link:packages/hardhat-core
       prettier:
         specifier: 2.4.1
         version: 2.4.1
@@ -11653,3 +11652,7 @@ packages:
     resolution: {tarball: https://codeload.github.com/frozeman/bignumber.js-nolookahead/tar.gz/57692b3ecfc98bbdd6b3a516cb2353652ea49934}
     name: bignumber.js
     version: 2.0.7
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
