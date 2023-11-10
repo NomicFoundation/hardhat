@@ -509,7 +509,7 @@ export class Block {
 /** The EDR blockchain */
 export class Blockchain {
   /** Constructs a new blockchain from a genesis block. */
-  constructor(chainId: bigint, specId: SpecId, gasLimit: bigint, accounts: Array<GenesisAccount>, timestamp?: bigint | undefined | null, prevRandao?: Buffer | undefined | null, baseFee?: bigint | undefined | null)
+  constructor(chainId: bigint, specId: SpecId, gasLimit: bigint, accounts: Array<GenesisAccount>, timestamp?: bigint | undefined | null, prevRandao?: Buffer | undefined | null, baseFee?: bigint | undefined | null, blobGas?: BlobGas | undefined | null, parentBeaconBlockRoot?: Buffer | undefined | null)
   static fork(context: EdrContext, specId: SpecId, hardforkActivationOverrides: Array<[bigint, Array<[bigint, SpecId]>]>, remoteUrl: string, forkBlockNumber?: bigint | undefined | null, cacheDir?: string | undefined | null): Promise<Blockchain>
   /**Retrieves the block with the provided hash, if it exists. */
   blockByHash(hash: Buffer): Promise<Block | null>

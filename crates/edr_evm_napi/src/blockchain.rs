@@ -15,7 +15,7 @@ use napi_derive::napi;
 
 use crate::{
     account::{add_precompiles, genesis_accounts, GenesisAccount},
-    block::Block,
+    block::{BlobGas, Block},
     cast::TryCast,
     config::SpecId,
     context::EdrContext,
@@ -71,6 +71,8 @@ impl Blockchain {
         timestamp: Option<BigInt>,
         prev_randao: Option<Buffer>,
         base_fee: Option<BigInt>,
+        blob_gas: Option<BlobGas>,
+        parent_beacon_block_root: Option<Buffer>,
     ) -> napi::Result<Self> {
         let chain_id: u64 = chain_id.try_cast()?;
         let spec_id = edr_evm::SpecId::from(spec_id);
@@ -78,6 +80,11 @@ impl Blockchain {
         let timestamp: Option<u64> = timestamp.map(TryCast::<u64>::try_cast).transpose()?;
         let prev_randao: Option<B256> = prev_randao.map(TryCast::<B256>::try_cast).transpose()?;
         let base_fee: Option<U256> = base_fee.map(TryCast::<U256>::try_cast).transpose()?;
+        let blob_gas: Option<edr_eth::block::BlobGas> =
+            blob_gas.map(TryInto::try_into).transpose()?;
+        let parent_beacon_block_root: Option<B256> = parent_beacon_block_root
+            .map(TryCast::<B256>::try_cast)
+            .transpose()?;
 
         let mut accounts = genesis_accounts(accounts)?;
         add_precompiles(&mut accounts);
@@ -105,6 +112,8 @@ impl Blockchain {
             timestamp,
             prev_randao,
             base_fee,
+            blob_gas,
+            parent_beacon_block_root,
         )
         .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
 

@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use edr_eth::{
-    block::PartialHeader,
+    block::{BlobGas, PartialHeader},
     transaction::{EIP155TransactionRequest, SignedTransaction, TransactionKind},
     trie::KECCAK_NULL_RLP,
     Address, Bytes, B256, U256,
@@ -60,6 +60,11 @@ async fn create_dummy_blockchains() -> Vec<Box<dyn SyncBlockchain<BlockchainErro
         None,
         Some(B256::zero()),
         Some(U256::from(DEFAULT_INITIAL_BASE_FEE)),
+        Some(BlobGas {
+            gas_used: 0,
+            excess_gas: 0,
+        }),
+        Some(KECCAK_NULL_RLP),
     )
     .expect("Should construct without issues");
 

@@ -7,7 +7,11 @@ use std::{
 };
 
 use async_trait::async_trait;
-use edr_eth::{block::PartialHeader, trie::KECCAK_NULL_RLP, Bytes, B256, B64, U256};
+use edr_eth::{
+    block::{BlobGas, PartialHeader},
+    trie::KECCAK_NULL_RLP,
+    Bytes, B256, B64, U256,
+};
 use revm::{db::BlockHashRef, primitives::SpecId, DatabaseCommit};
 
 use super::{
@@ -25,6 +29,12 @@ pub enum CreationError {
     /// Missing base fee per gas for post-London blockchain
     #[error("Missing base fee per gas for post-London blockchain")]
     MissingBaseFee,
+    /// Missing blob gas information for post-Cancun blockchain
+    #[error("Missing blob gas information for post-Cancun blockchain")]
+    MissingBlobGas,
+    /// Missing parent beacon block root for post-Cancun blockchain
+    #[error("Missing parent beacon block root for post-Cancun blockchain")]
+    MissingParentBeaconBlockRoot,
     /// Missing prevrandao for post-merge blockchain
     #[error("Missing prevrandao for post-merge blockchain")]
     MissingPrevrandao,
@@ -51,6 +61,7 @@ impl LocalBlockchain {
     /// Constructs a new instance using the provided arguments to build a
     /// genesis block.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         genesis_diff: StateDiff,
         chain_id: u64,
@@ -59,6 +70,8 @@ impl LocalBlockchain {
         timestamp: Option<u64>,
         prevrandao: Option<B256>,
         base_fee: Option<U256>,
+        blob_gas: Option<BlobGas>,
+        parent_beacon_block_root: Option<B256>,
     ) -> Result<Self, CreationError> {
         const EXTRA_DATA: &[u8] = b"\x12\x34";
 
@@ -102,6 +115,16 @@ impl LocalBlockchain {
             },
             withdrawals_root: if spec_id >= SpecId::SHANGHAI {
                 Some(KECCAK_NULL_RLP)
+            } else {
+                None
+            },
+            blob_gas: if spec_id >= SpecId::CANCUN {
+                Some(blob_gas.ok_or(CreationError::MissingBlobGas)?)
+            } else {
+                None
+            },
+            parent_beacon_block_root: if spec_id >= SpecId::CANCUN {
+                Some(parent_beacon_block_root.ok_or(CreationError::MissingParentBeaconBlockRoot)?)
             } else {
                 None
             },

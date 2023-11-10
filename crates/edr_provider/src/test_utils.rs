@@ -1,6 +1,9 @@
 use std::{path::PathBuf, time::SystemTime};
 
-use edr_eth::{signature::secret_key_from_str, AccountInfo, Address, SpecId, U256};
+use edr_eth::{
+    block::BlobGas, signature::secret_key_from_str, trie::KECCAK_NULL_RLP, AccountInfo, Address,
+    SpecId, U256,
+};
 use edr_evm::KECCAK_EMPTY;
 
 use super::*;
@@ -50,7 +53,12 @@ pub fn create_test_config_with_impersonated_accounts(
         gas: 30_000_000,
         hardfork: SpecId::LATEST,
         initial_base_fee_per_gas: Some(U256::from(1000000000)),
+        initial_blob_gas: Some(BlobGas {
+            gas_used: 0,
+            excess_gas: 0,
+        }),
         initial_date: Some(SystemTime::now()),
+        initial_parent_beacon_block_root: Some(KECCAK_NULL_RLP),
         network_id: 123,
         cache_dir,
     }

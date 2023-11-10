@@ -1,4 +1,8 @@
-import { privateToAddress, toBuffer } from "@nomicfoundation/ethereumjs-util";
+import {
+  KECCAK256_RLP,
+  privateToAddress,
+  toBuffer,
+} from "@nomicfoundation/ethereumjs-util";
 import { Account, Blockchain, EdrContext, SpecId } from "@ignored/edr";
 import { BlockchainAdapter } from "../blockchain";
 import { EdrBlockchain } from "../blockchain/edr";
@@ -13,11 +17,7 @@ import {
   ethereumjsMempoolOrderToEdrMineOrdering,
   ethereumsjsHardforkToEdrSpecId,
 } from "../utils/convertToEdr";
-import {
-  HardforkName,
-  getHardforkName,
-  hardforkGte,
-} from "../../../util/hardforks";
+import { getHardforkName } from "../../../util/hardforks";
 import { EdrStateManager } from "../EdrState";
 import { EdrMemPool } from "../mem-pool/edr";
 import { makeCommon } from "../utils/makeCommon";
@@ -50,7 +50,6 @@ export class EdrEthContext implements EthContextAdapter {
 
   public static async create(config: NodeConfig): Promise<EdrEthContext> {
     const common = makeCommon(config);
-    const hardforkName = getHardforkName(config.hardfork);
 
     const prevRandaoGenerator =
       RandomBufferGenerator.create("randomMixHashSeed");
@@ -134,28 +133,36 @@ export class EdrEthContext implements EthContextAdapter {
 
       config.forkConfig.blockNumber = Number(latestBlockNumber);
     } else {
-      const isPostLondon = hardforkGte(hardforkName, HardforkName.LONDON);
-
-      const initialBaseFeePerGas = isPostLondon
-        ? config.initialBaseFeePerGas !== undefined
-          ? BigInt(config.initialBaseFeePerGas)
-          : BigInt(HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS)
-        : undefined;
+      const initialBaseFeePerGas =
+        specId >= SpecId.London
+          ? config.initialBaseFeePerGas !== undefined
+            ? BigInt(config.initialBaseFeePerGas)
+            : BigInt(HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS)
+          : undefined;
 
       const initialBlockTimestamp =
         config.initialDate !== undefined
           ? BigInt(dateToTimestampSeconds(config.initialDate))
           : undefined;
 
-      const isPostMerge = hardforkGte(hardforkName, HardforkName.MERGE);
-      const initialMixHash = isPostMerge
-        ? prevRandaoGenerator.next()
-        : undefined;
+      const initialMixHash =
+        specId >= SpecId.Merge ? prevRandaoGenerator.next() : undefined;
+
+      const initialBlobGas =
+        specId >= SpecId.Cancun
+          ? {
+              gasUsed: 0n,
+              excessGas: 0n,
+            }
+          : undefined;
+
+      const initialParentBeaconRoot =
+        specId >= SpecId.Cancun ? KECCAK256_RLP : undefined;
 
       blockchain = new EdrBlockchain(
         new Blockchain(
           common.chainId(),
-          ethereumsjsHardforkToEdrSpecId(hardforkName),
+          specId,
           BigInt(config.blockGasLimit),
           config.genesisAccounts.map((account) => {
             return {
@@ -165,7 +172,9 @@ export class EdrEthContext implements EthContextAdapter {
           }),
           initialBlockTimestamp,
           initialMixHash,
-          initialBaseFeePerGas
+          initialBaseFeePerGas,
+          initialBlobGas,
+          initialParentBeaconRoot
         ),
         irregularState,
         common

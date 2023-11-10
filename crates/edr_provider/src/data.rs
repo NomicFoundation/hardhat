@@ -763,6 +763,8 @@ async fn create_blockchain_and_state(
             }),
             Some(RandomHashGenerator::with_seed("seed").next_value()),
             config.initial_base_fee_per_gas,
+            config.initial_blob_gas.clone(),
+            config.initial_parent_beacon_block_root,
         )?;
 
         let state = blockchain
