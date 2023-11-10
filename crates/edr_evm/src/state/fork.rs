@@ -50,6 +50,13 @@ impl ForkState {
             removed_remote_accounts: HashSet::new(),
         }
     }
+
+    /// Overrides the state root of the fork state.
+    pub fn set_state_root(&mut self, state_root: B256) {
+        let local_root = self.local_state.state_root().unwrap();
+
+        *self.current_state.get_mut() = (state_root, local_root);
+    }
 }
 
 impl Clone for ForkState {

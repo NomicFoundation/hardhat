@@ -367,6 +367,9 @@ impl Blockchain for ForkedBlockchain {
             state_overrides,
         );
 
+        // Override the state root in case the local state was modified
+        state.set_state_root(state_root);
+
         Ok(Box::new(state))
     }
 

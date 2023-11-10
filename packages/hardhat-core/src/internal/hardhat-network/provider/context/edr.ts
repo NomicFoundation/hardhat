@@ -98,38 +98,49 @@ export class EdrEthContext implements EthContextAdapter {
       const forkState = await blockchain.getStateAtBlockNumber(
         latestBlockNumber
       );
-      const genesisAccounts: Array<[Buffer, Account]> = await Promise.all(
-        config.genesisAccounts.map(async (genesisAccount) => {
-          const privateKey = toBuffer(genesisAccount.privateKey);
-          const address = privateToAddress(privateKey);
 
-          const originalAccount = await forkState.getAccountByAddress(address);
-          const modifiedAccount =
-            originalAccount !== null
-              ? {
-                  ...originalAccount,
+      if (config.genesisAccounts.length > 0) {
+        // Override the genesis accounts
+        const genesisAccounts: Array<[Buffer, Account]> = await Promise.all(
+          config.genesisAccounts.map(async (genesisAccount) => {
+            const privateKey = toBuffer(genesisAccount.privateKey);
+            const address = privateToAddress(privateKey);
+
+            const originalAccount = await forkState.modifyAccount(
+              address,
+              async (balance, nonce, code) => {
+                return {
                   balance: BigInt(genesisAccount.balance),
-                }
-              : {
-                  balance: BigInt(genesisAccount.balance),
-                  nonce: 0n,
+                  nonce,
+                  code,
                 };
+              }
+            );
+            const modifiedAccount =
+              originalAccount !== null
+                ? {
+                    ...originalAccount,
+                    balance: BigInt(genesisAccount.balance),
+                  }
+                : {
+                    balance: BigInt(genesisAccount.balance),
+                    nonce: 0n,
+                  };
 
-          return [address, modifiedAccount];
-        })
-      );
+            return [address, modifiedAccount];
+          })
+        );
 
-      const stateRoot = await forkState.getStateRoot();
+        // Generate a new state root
+        const stateRoot = await forkState.getStateRoot();
 
-      // Store the overrides in the irregular state
-      await irregularState
-        .asInner()
-        .applyAccountChanges(latestBlockNumber, stateRoot, genesisAccounts);
+        // Store the overrides in the irregular state
+        await irregularState
+          .asInner()
+          .applyAccountChanges(latestBlockNumber, stateRoot, genesisAccounts);
+      }
 
-      // Get the state including state overrides
-      state = new EdrStateManager(
-        await blockchain.getStateAtBlockNumber(latestBlockNumber)
-      );
+      state = new EdrStateManager(forkState);
 
       config.forkConfig.blockNumber = Number(latestBlockNumber);
     } else {
