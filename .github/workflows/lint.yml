@@ -21,21 +21,21 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: yarn
+          cache: pnpm
           cache-dependency-path: |
-            yarn.lock
-            docs/yarn.lock
+            pnpm-lock.yaml
+            docs/pnpm-lock.yaml
       - name: Install
-        run: yarn --frozen-lockfile
+        run: pnpm install --frozen-lockfile
       - name: Build
-        run: yarn build
+        run: pnpm build
       - name: lint
-        run: yarn lint
+        run: pnpm lint
       - name: Check dependency versions
         run: node scripts/check-dependencies.js
       - name: Install website
         working-directory: docs/
-        run: yarn
+        run: pnpm install
       - name: Lint website
         working-directory: docs/
-        run: yarn lint
+        run: pnpm lint
