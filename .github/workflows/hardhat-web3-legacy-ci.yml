@@ -1,19 +1,18 @@
-name: hardhat-ledger CI
+name: hardhat-web3-legacy CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [$default-branch]
     paths:
-      - "packages/hardhat-ledger/**"
+      - "packages/hardhat-web3-legacy/**"
       - "packages/hardhat-core/**"
-      - "packages/hardhat-common/**"
+      - "packages/hardhat-common/**/*"
       - "config/**"
   pull_request:
     branches:
       - "**"
     paths:
-      - "packages/hardhat-ledger/**"
+      - "packages/hardhat-web3-legacy/**"
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"
       - "config/**"
@@ -21,7 +20,7 @@ on:
 
 defaults:
   run:
-    working-directory: packages/hardhat-ledger
+    working-directory: packages/hardhat-web3-legacy
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
@@ -29,7 +28,7 @@ concurrency:
 
 jobs:
   test_on_windows:
-    name: Test hardhat-ledger on Windows with Node 16
+    name: Test hardhat-web3-legacy on Windows with Node 16
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
@@ -47,7 +46,7 @@ jobs:
         run: pnpm test
 
   test_on_macos:
-    name: Test hardhat-ledger on MacOS with Node 16
+    name: Test hardhat-web3-legacy on MacOS with Node 16
     runs-on: macos-latest
     # disable until actions/virtual-environments#4896 is fixed
     if: ${{ false }}
@@ -67,7 +66,7 @@ jobs:
         run: pnpm test
 
   test_on_linux:
-    name: Test hardhat-ledger on Ubuntu with Node ${{ matrix.node }}
+    name: Test hardhat-web3-legacy on Ubuntu with Node ${{ matrix.node }}
     runs-on: ubuntu-latest
     strategy:
       matrix:

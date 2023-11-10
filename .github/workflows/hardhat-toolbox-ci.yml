@@ -1,27 +1,34 @@
-name: hardhat-ledger CI
+name: hardhat-toolbox CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [$default-branch]
     paths:
-      - "packages/hardhat-ledger/**"
+      - "packages/hardhat-toolbox/**"
       - "packages/hardhat-core/**"
+      - "packages/hardhat-chai-matchers/**"
+      - "packages/hardhat-network-helpers/**"
+      - "packages/hardhat-ethers/**"
+      - "packages/hardhat-verify/**"
       - "packages/hardhat-common/**"
       - "config/**"
   pull_request:
     branches:
       - "**"
     paths:
-      - "packages/hardhat-ledger/**"
+      - "packages/hardhat-toolbox/**"
       - "packages/hardhat-core/**"
+      - "packages/hardhat-chai-matchers/**"
+      - "packages/hardhat-network-helpers/**"
+      - "packages/hardhat-ethers/**"
+      - "packages/hardhat-verify/**"
       - "packages/hardhat-common/**"
       - "config/**"
   workflow_dispatch:
 
 defaults:
   run:
-    working-directory: packages/hardhat-ledger
+    working-directory: packages/hardhat-toolbox
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
@@ -29,7 +36,7 @@ concurrency:
 
 jobs:
   test_on_windows:
-    name: Test hardhat-ledger on Windows with Node 16
+    name: Test hardhat-toolbox on Windows with Node 16
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
@@ -47,7 +54,7 @@ jobs:
         run: pnpm test
 
   test_on_macos:
-    name: Test hardhat-ledger on MacOS with Node 16
+    name: Test hardhat-toolbox on MacOS with Node 16
     runs-on: macos-latest
     # disable until actions/virtual-environments#4896 is fixed
     if: ${{ false }}
@@ -67,7 +74,7 @@ jobs:
         run: pnpm test
 
   test_on_linux:
-    name: Test hardhat-ledger on Ubuntu with Node ${{ matrix.node }}
+    name: Test hardhat-toolbox on Ubuntu with Node ${{ matrix.node }}
     runs-on: ubuntu-latest
     strategy:
       matrix:

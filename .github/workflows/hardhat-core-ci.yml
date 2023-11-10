@@ -1,11 +1,9 @@
-name: hardhat-ledger CI
+name: hardhat-core CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [$default-branch]
     paths:
-      - "packages/hardhat-ledger/**"
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"
       - "config/**"
@@ -13,7 +11,6 @@ on:
     branches:
       - "**"
     paths:
-      - "packages/hardhat-ledger/**"
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"
       - "config/**"
@@ -21,7 +18,7 @@ on:
 
 defaults:
   run:
-    working-directory: packages/hardhat-ledger
+    working-directory: packages/hardhat-core
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
@@ -29,7 +26,7 @@ concurrency:
 
 jobs:
   test_on_windows:
-    name: Test hardhat-ledger on Windows with Node 16
+    name: Test hardhat-core on Windows with Node 16
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
@@ -44,10 +41,13 @@ jobs:
       - name: Build
         run: pnpm build
       - name: Run tests
-        run: pnpm test
+        env:
+          DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
+          FORCE_COLOR: 3
+        run: pnpm test:except-tracing
 
   test_on_macos:
-    name: Test hardhat-ledger on MacOS with Node 16
+    name: Test hardhat-core on MacOS with Node 16
     runs-on: macos-latest
     # disable until actions/virtual-environments#4896 is fixed
     if: ${{ false }}
@@ -64,10 +64,13 @@ jobs:
       - name: Build
         run: pnpm build
       - name: Run tests
-        run: pnpm test
+        env:
+          DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
+          FORCE_COLOR: 3
+        run: pnpm test:except-tracing
 
   test_on_linux:
-    name: Test hardhat-ledger on Ubuntu with Node ${{ matrix.node }}
+    name: Test hardhat-core on Ubuntu with Node ${{ matrix.node }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -85,4 +88,33 @@ jobs:
       - name: Build
         run: pnpm build
       - name: Run tests
-        run: pnpm test
+        env:
+          DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
+          FORCE_COLOR: 3
+        run: pnpm test:except-tracing
+
+  test_types_node:
+    name: Test different versions of @types/node
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [16, 18, 20]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+      - name: Install pnpm # pnpm is not insatlled by default in the CI
+        run: npm install -g pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Install @types/node
+        run: pnpm add --dev @types/node@${{ matrix.node }}
+      - name: Build
+        run: pnpm build
+      - name: Run tests
+        env:
+          DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
+          FORCE_COLOR: 3
+        run: pnpm test:except-tracing
