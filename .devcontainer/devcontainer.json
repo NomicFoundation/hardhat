@@ -20,9 +20,17 @@
   },
   "customizations": {
     "vscode": {
-      "extensions": ["rust-lang.rust-analyzer"],
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "NomicFoundation.hardhat-solidity",
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml",
+        "vadimcn.vscode-lldb"
+      ],
       "settings": {
-        "rust-analyzer.rustfmt.extraArgs": ["+nightly"]
+        "rust-analyzer.rustfmt.extraArgs": [
+          "+nightly"
+        ]
       }
     }
   }

@@ -93,6 +93,15 @@ impl FilteredEvents {
             Self::NewPendingTransactions(v) => Self::NewPendingTransactions(take(v)),
         }
     }
+
+    /// Returns the type of the variant.
+    pub fn subscription_type(&self) -> SubscriptionType {
+        match self {
+            Self::Logs(_) => SubscriptionType::Logs,
+            Self::NewHeads(_) => SubscriptionType::NewHeads,
+            Self::NewPendingTransactions(_) => SubscriptionType::NewPendingTransactions,
+        }
+    }
 }
 
 /// subscription type to be used with `eth_subscribe`
