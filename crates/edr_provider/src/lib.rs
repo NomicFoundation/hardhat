@@ -145,11 +145,15 @@ async fn handle_eth_request(
                 .await
                 .and_then(to_json)
         }
-        EthRequest::GetTransactionByBlockHashAndIndex(_, _) => {
-            Err(ProviderError::Unimplemented("".to_string()))
+        EthRequest::GetTransactionByBlockHashAndIndex(block_hash, index) => {
+            eth::handle_get_transaction_by_block_hash_and_index(data, block_hash, index)
+                .await
+                .and_then(to_json)
         }
-        EthRequest::GetTransactionByBlockNumberAndIndex(_, _) => {
-            Err(ProviderError::Unimplemented("".to_string()))
+        EthRequest::GetTransactionByBlockNumberAndIndex(block_spec, index) => {
+            eth::handle_get_transaction_by_block_spec_and_index(data, block_spec, index)
+                .await
+                .and_then(to_json)
         }
         EthRequest::GetTransactionByHash(transaction_hash) => {
             eth::handle_get_transaction_by_hash(data, transaction_hash)

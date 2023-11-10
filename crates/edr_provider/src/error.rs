@@ -1,8 +1,8 @@
 use std::time::{SystemTime, SystemTimeError};
 
 use edr_eth::{
-    remote::{filter::SubscriptionType, jsonrpc},
-    Address, B256, U256,
+    remote::{filter::SubscriptionType, jsonrpc, BlockSpec},
+    Address, U256,
 };
 use edr_evm::{
     blockchain::{BlockchainError, ForkedCreationError, LocalCreationError},
@@ -18,6 +18,9 @@ pub enum ProviderError {
     /// An error that occurred while constructing a forked blockchain.
     #[error(transparent)]
     ForkedBlockchainCreation(#[from] ForkedCreationError),
+    /// Block number or hash doesn't exist in blockchain
+    #[error("Block number or block hash doesn't exist: '{0}'")]
+    InvalidBlockNumberOrHash(BlockSpec),
     /// Invalid filter subscription type
     #[error("Subscription {filter_id} is not a {expected:?} subscription, but a {actual:?} subscription")]
     InvalidFilterSubscriptionType {
@@ -28,6 +31,9 @@ pub enum ProviderError {
     /// Invalid initial date
     #[error("The initial date configuration value {0:?} is in the future")]
     InvalidInitialDate(SystemTime),
+    /// Invalid initial date
+    #[error("Transaction index '{0}' is too large")]
+    InvalidTransactionIndex(U256),
     /// Invalid transaction request
     #[error("Could not convert transaction request into a typed request")]
     InvalidTransactionRequest,
@@ -76,14 +82,4 @@ pub enum ProviderError {
     /// The address is not owned by this node.
     #[error("{address} is not owned by this node")]
     UnknownAddress { address: Address },
-    /// Block number doesn't exist in blockchain
-    /// Returned if the block spec is an EIP-1898 block spec for a block number
-    /// and it's not found <https://eips.ethereum.org/EIPS/eip-1898>
-    #[error("Unknown block number: {block_number}")]
-    UnknownBlockNumber { block_number: u64 },
-    /// Block hash doesn't exist in blockchain
-    /// Returned if the block spec is an EIP-1898 block spec for a hash and it's
-    /// not found <https://eips.ethereum.org/EIPS/eip-1898>
-    #[error("Unknown block hash: {block_hash}")]
-    UnknownBlockHash { block_hash: B256 },
 }

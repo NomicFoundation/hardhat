@@ -5,7 +5,7 @@ use crate::{
     block::{is_safe_block_number, IsSafeBlockNumberArgs},
     remote::{
         methods::{GetLogsInput, MethodInvocation},
-        BlockSpec, BlockTag, Eip1898BlockSpec,
+        BlockSpec, BlockTag, Eip1898BlockSpec, PreEip1898BlockSpec,
     },
     U256,
 };
@@ -70,7 +70,7 @@ enum CacheableMethodInvocation<'a> {
     },
     /// eth_getTransactionByBlockNumberAndIndex
     GetTransactionByBlockNumberAndIndex {
-        block_number: &'a U256,
+        block_spec: CacheableBlockSpec<'a>,
         index: &'a U256,
     },
     /// eth_getTransactionByHash
@@ -134,7 +134,7 @@ impl<'a> CacheableMethodInvocation<'a> {
                     index: _,
                 } => Some(WriteCacheKey::finalize(hasher)),
                 CacheableMethodInvocation::GetTransactionByBlockNumberAndIndex {
-                    block_number: _,
+                    block_spec: _,
                     index: _,
                 } => Some(WriteCacheKey::finalize(hasher)),
                 CacheableMethodInvocation::GetTransactionByHash {
@@ -156,12 +156,14 @@ impl<'a> CacheableMethodInvocation<'a> {
 /// Error type for [`CacheableMethodInvocation::try_from`].
 #[derive(thiserror::Error, Debug)]
 enum MethodNotCacheableError {
+    #[error(transparent)]
+    BlockSpec(#[from] BlockSpecNotCacheableError),
     #[error("Method is not cacheable: {0:?}")]
     MethodInvocation(MethodInvocation),
-    #[error("Block spec is not cacheable: {0:?}")]
-    BlockSpec(#[from] BlockSpecNotCacheableError),
     #[error("Get logs input is not cacheable: {0:?}")]
     GetLogsInput(#[from] GetLogsInputNotCacheableError),
+    #[error(transparent)]
+    PreEip18989BlockSpec(#[from] PreEip1898BlockSpecNotCacheableError),
 }
 
 impl<'a> TryFrom<&'a MethodInvocation> for CacheableMethodInvocation<'a> {
@@ -215,9 +217,9 @@ impl<'a> TryFrom<&'a MethodInvocation> for CacheableMethodInvocation<'a> {
             MethodInvocation::GetTransactionByBlockHashAndIndex(block_hash, index) => Ok(
                 CacheableMethodInvocation::GetTransactionByBlockHashAndIndex { block_hash, index },
             ),
-            MethodInvocation::GetTransactionByBlockNumberAndIndex(block_number, index) => Ok(
+            MethodInvocation::GetTransactionByBlockNumberAndIndex(block_spec, index) => Ok(
                 CacheableMethodInvocation::GetTransactionByBlockNumberAndIndex {
-                    block_number,
+                    block_spec: block_spec.try_into()?,
                     index,
                 },
             ),
@@ -294,7 +296,7 @@ enum CacheableBlockSpec<'a> {
 
 /// Error type for [`CacheableBlockSpec::try_from`].
 #[derive(thiserror::Error, Debug)]
-#[error("Method is not cacheable: {0:?}")]
+#[error("Block spec is not cacheable: {0:?}")]
 struct BlockSpecNotCacheableError(Option<BlockSpec>);
 
 impl<'a> TryFrom<&'a BlockSpec> for CacheableBlockSpec<'a> {
@@ -338,6 +340,33 @@ impl<'a> TryFrom<&'a Option<BlockSpec>> for CacheableBlockSpec<'a> {
         match value {
             None => Err(BlockSpecNotCacheableError(None)),
             Some(block_spec) => CacheableBlockSpec::try_from(block_spec),
+        }
+    }
+}
+
+/// Error type for [`CacheableBlockSpec::try_from`].
+#[derive(thiserror::Error, Debug)]
+#[error("Block spec is not cacheable: {0:?}")]
+struct PreEip1898BlockSpecNotCacheableError(PreEip1898BlockSpec);
+
+impl<'a> TryFrom<&'a PreEip1898BlockSpec> for CacheableBlockSpec<'a> {
+    type Error = PreEip1898BlockSpecNotCacheableError;
+
+    fn try_from(value: &'a PreEip1898BlockSpec) -> Result<Self, Self::Error> {
+        match value {
+            PreEip1898BlockSpec::Number(block_number) => Ok(CacheableBlockSpec::Number {
+                block_number: *block_number,
+            }),
+            PreEip1898BlockSpec::Tag(tag) => match tag {
+                // Latest and pending can be never resolved to a safe block number.
+                BlockTag::Latest | BlockTag::Pending => {
+                    Err(PreEip1898BlockSpecNotCacheableError(value.clone()))
+                }
+                // Earliest, safe and finalized are potentially resolvable to a safe block number.
+                BlockTag::Earliest => Ok(CacheableBlockSpec::Earliest),
+                BlockTag::Safe => Ok(CacheableBlockSpec::Safe),
+                BlockTag::Finalized => Ok(CacheableBlockSpec::Finalized),
+            },
         }
     }
 }
@@ -665,9 +694,9 @@ impl Hasher {
                 this.hash_b256(block_hash).hash_u256(index)
             }
             CacheableMethodInvocation::GetTransactionByBlockNumberAndIndex {
-                block_number,
+                block_spec,
                 index,
-            } => this.hash_u256(block_number).hash_u256(index),
+            } => this.hash_block_spec(block_spec)?.hash_u256(index),
             CacheableMethodInvocation::GetTransactionByHash { transaction_hash } => {
                 this.hash_b256(transaction_hash)
             }
