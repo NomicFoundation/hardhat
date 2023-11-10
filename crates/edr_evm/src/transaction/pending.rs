@@ -91,6 +91,11 @@ impl PendingTransaction {
         &self.caller
     }
 
+    /// Returns the inner [`SignedTransaction`]
+    pub fn transaction(&self) -> &SignedTransaction {
+        &self.transaction
+    }
+
     /// Returns the inner transaction and caller
     pub fn into_inner(self) -> (SignedTransaction, Address) {
         (self.transaction, self.caller)
