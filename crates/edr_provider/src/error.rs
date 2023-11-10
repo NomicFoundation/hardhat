@@ -1,13 +1,12 @@
-use std::time::{SystemTime, SystemTimeError};
+use std::time::SystemTimeError;
 
 use edr_eth::{
     remote::{filter::SubscriptionType, jsonrpc},
     Address, B256, U256,
 };
 use edr_evm::{
-    blockchain::{BlockchainError, ForkedCreationError, LocalCreationError},
-    state::StateError,
-    MineBlockError, MinerTransactionError, TransactionCreationError,
+    blockchain::BlockchainError, state::StateError, MineBlockError, MinerTransactionError,
+    TransactionCreationError,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -15,9 +14,6 @@ pub enum ProviderError {
     /// Blockchain error
     #[error(transparent)]
     Blockchain(#[from] BlockchainError),
-    /// An error that occurred while constructing a forked blockchain.
-    #[error(transparent)]
-    ForkedBlockchainCreation(#[from] ForkedCreationError),
     /// Invalid filter subscription type
     #[error("Subscription {filter_id} is not a {expected:?} subscription, but a {actual:?} subscription")]
     InvalidFilterSubscriptionType {
@@ -25,9 +21,6 @@ pub enum ProviderError {
         expected: SubscriptionType,
         actual: SubscriptionType,
     },
-    /// Invalid initial date
-    #[error("The initial date configuration value {0:?} is in the future")]
-    InvalidInitialDate(SystemTime),
     /// Invalid transaction request
     #[error("Could not convert transaction request into a typed request")]
     InvalidTransactionRequest,
@@ -40,9 +33,6 @@ pub enum ProviderError {
     /// An error occurred while adding a pending transaction to the mem pool.
     #[error(transparent)]
     MinerTransactionError(#[from] MinerTransactionError<StateError>),
-    /// An error that occurred while constructing a local blockchain.
-    #[error(transparent)]
-    LocalBlockchainCreation(#[from] LocalCreationError),
     /// Rlp decode error
     #[error(transparent)]
     RlpDecodeError(#[from] rlp::DecoderError),

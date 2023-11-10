@@ -223,6 +223,49 @@ export const enum MineOrdering {
 }
 /** Mines a block using as many transactions as can fit in it. */
 export function mineBlock(blockchain: Blockchain, stateManager: State, memPool: MemPool, config: ConfigOptions, timestamp: bigint, beneficiary: Buffer, minGasPrice: bigint, mineOrdering: MineOrdering, reward: bigint, baseFee?: bigint | undefined | null, prevrandao?: Buffer | undefined | null, tracer?: Tracer | undefined | null): Promise<MineBlockResult>
+/** Configuration for forking a blockchain */
+export interface ForkConfig {
+  /** The URL of the JSON-RPC endpoint to fork from */
+  jsonRpcUrl: string
+  /**
+   * The block number to fork from. If not provided, the latest safe block is
+   * used.
+   */
+  blockNumber?: bigint
+}
+/** Configuration for a provider */
+export interface ProviderConfig {
+  /** Whether to allow blocks with the same timestamp */
+  allowBlocksWithSameTimestamp: boolean
+  /** Whether to allow unlimited contract size */
+  allowUnlimitedContractSize: boolean
+  /** The gas limit of each block */
+  blockGasLimit: bigint
+  /** The directory to cache remote JSON-RPC responses */
+  cacheDir: string
+  /** The chain ID of the blockchain */
+  chainId: bigint
+  /** The address of the coinbase */
+  coinbase: Buffer
+  /**
+   * The configuration for forking a blockchain. If not provided, a local
+   * blockchain will be created
+   */
+  fork?: ForkConfig
+  /** The genesis accounts of the blockchain */
+  genesisAccounts: Array<GenesisAccount>
+  /** The hardfork of the blockchain */
+  hardfork: SpecId
+  /**
+   * The initial base fee per gas of the blockchain. Required for EIP-1559
+   * transactions and later
+   */
+  initialBaseFeePerGas?: bigint
+  /** The initial date of the blockchain, in seconds since the Unix epoch */
+  initialDate?: bigint
+  /** The network ID of the blockchain */
+  networkId: bigint
+}
 /** Executes the provided transaction without changing state. */
 export function dryRun(blockchain: Blockchain, state: State, stateOverrides: StateOverrides, cfg: ConfigOptions, transaction: TransactionRequest, block: BlockConfig, withTrace: boolean, tracer?: Tracer | undefined | null): Promise<TransactionResult>
 /**
@@ -608,6 +651,13 @@ export class MineBlockResult {
   get results(): Array<ExecutionResult>
   /**Retrieves the transactions' traces. */
   get traces(): Array<Array<TracingMessage | TracingStep | TracingMessageResult>>
+}
+/** A JSON-RPC provider for Ethereum. */
+export class Provider {
+  /**Constructs a new provider with the provided configuration. */
+  static withConfig(config: ProviderConfig): Promise<Provider>
+  /**Handles a JSON-RPC request and returns a JSON-RPC response. */
+  handleRequest(jsonRequest: string): Promise<string>
 }
 export class Receipt {
   /**Returns the hash of the block the receipt is included in. */

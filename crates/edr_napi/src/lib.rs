@@ -13,6 +13,7 @@ mod debug_trace;
 mod log;
 mod mempool;
 pub mod miner;
+mod provider;
 mod receipt;
 pub mod runtime;
 mod signature;

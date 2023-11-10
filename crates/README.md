@@ -39,7 +39,7 @@ Make sure you have the following dependencies installed on your machine:
 Use `npm` (or `yarn`) to build a release version:
 
 ```bash
-cd crates/edr_evm_napi
+cd crates/edr_napi
 npm run build
 # yarn build
 ```
