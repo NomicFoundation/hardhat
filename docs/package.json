@@ -12,7 +12,7 @@
     "build:test": "ANALYZE=true next build",
     "start": "next start",
     "lint": "eslint src -f unix",
-    "storybook": "start-storybook -p 6006 --ci",
+    "storybook": "NODE_OPTIONS='--openssl-legacy-provider' start-storybook -p 6006 --ci",
     "build-storybook": "NODE_OPTIONS='--openssl-legacy-provider' build-storybook"
   },
   "dependencies": {
