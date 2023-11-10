@@ -33,13 +33,11 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8
       - uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: "pnpm"
+      - name: Install pnpm # pnpm is not insatlled by default in the CI
+        run: npm install -g pnpm
       - name: Install
         run: pnpm install --frozen-lockfile
       - name: Build
