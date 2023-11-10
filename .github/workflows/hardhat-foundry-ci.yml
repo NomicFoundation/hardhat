@@ -1,27 +1,24 @@
-name: hardhat-ledger CI
+name: hardhat-foundry CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [$default-branch]
     paths:
-      - "packages/hardhat-ledger/**"
-      - "packages/hardhat-core/**"
+      - "packages/hardhat-foundry/**"
       - "packages/hardhat-common/**"
       - "config/**"
   pull_request:
     branches:
       - "**"
     paths:
-      - "packages/hardhat-ledger/**"
-      - "packages/hardhat-core/**"
+      - "packages/hardhat-foundry/**"
       - "packages/hardhat-common/**"
       - "config/**"
   workflow_dispatch:
 
 defaults:
   run:
-    working-directory: packages/hardhat-ledger
+    working-directory: packages/hardhat-foundry
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
@@ -29,7 +26,7 @@ concurrency:
 
 jobs:
   test_on_windows:
-    name: Test hardhat-ledger on Windows with Node 16
+    name: Test hardhat-foundry on Windows with Node 16
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
@@ -45,10 +42,12 @@ jobs:
       - name: Build
         run: pnpm build
       - name: Run tests
+        env:
+          FORCE_COLOR: 3
         run: pnpm test
 
   test_on_macos:
-    name: Test hardhat-ledger on MacOS with Node 16
+    name: Test hardhat-foundry on MacOS with Node 16
     runs-on: macos-latest
     # disable until actions/virtual-environments#4896 is fixed
     if: ${{ false }}
@@ -66,10 +65,12 @@ jobs:
       - name: Build
         run: pnpm build
       - name: Run tests
+        env:
+          FORCE_COLOR: 3
         run: pnpm test
 
   test_on_linux:
-    name: Test hardhat-ledger on Ubuntu with Node ${{ matrix.node }}
+    name: Test hardhat-foundry on Ubuntu with Node ${{ matrix.node }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -88,4 +89,6 @@ jobs:
       - name: Build
         run: pnpm build
       - name: Run tests
+        env:
+          FORCE_COLOR: 3
         run: pnpm test
