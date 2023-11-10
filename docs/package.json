@@ -13,7 +13,7 @@
     "start": "next start",
     "lint": "eslint src -f unix",
     "storybook": "start-storybook -p 6006 --ci",
-    "build-storybook": "build-storybook"
+    "build-storybook": "NODE_OPTIONS='--openssl-legacy-provider' build-storybook"
   },
   "dependencies": {
     "@callstack/react-theme-provider": "^3.0.7",
