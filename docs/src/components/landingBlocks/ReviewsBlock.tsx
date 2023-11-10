@@ -1,5 +1,5 @@
 import React from "react";
-import Image from "next/image";
+import Image, { StaticImageData } from "next/image";
 import { Carousel } from "react-responsive-carousel";
 import { styled } from "linaria/react";
 
