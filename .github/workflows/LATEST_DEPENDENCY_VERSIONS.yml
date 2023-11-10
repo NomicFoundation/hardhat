@@ -19,6 +19,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Delete pnpm-lock.yaml
         run: "rm pnpm-lock.yaml"
+      - name: Install pnpm # pnpm is not insatlled by default in the CI
+        run: npm install -g pnpm
       - name: Install
         run: pnpm install
       - name: List dependencies

@@ -22,6 +22,9 @@ jobs:
           node-version: 16.x
           cache: "pnpm"
 
+      - name: Install pnpm # pnpm is not insatlled by default in the CI
+        run: npm install -g pnpm
+
       - name: Install Dependencies
         run: pnpm install
 
