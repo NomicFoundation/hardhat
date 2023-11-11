@@ -114,7 +114,7 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
       - name: Install @types/node
-        run: pnpm add --dev @types/node@${{ matrix.node }}
+        run: pnpm add --save-dev @types/node@${{ matrix.node }}
       - name: Build
         run: pnpm build
       - name: Run tests
