@@ -21,12 +21,14 @@ jobs:
     name: Check that the slow-imports rule works correctly
     runs-on: "ubuntu-latest"
     steps:
+      - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - uses: actions/setup-node@v2
         with:
           node-version: 16
-      - uses: actions/checkout@v2
-      - name: Install pnpm # pnpm is not insatlled by default in the CI
-        run: npm install -g pnpm
+          cache: "pnpm"
       - name: Install
         run: pnpm install
       - name: Add slow import

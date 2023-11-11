@@ -14,11 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - uses: actions/setup-node@v2
         with:
           node-version: 16
-      - name: Install pnpm # pnpm is not insatlled by default in the CI
-        run: npm install -g pnpm
+          cache: "pnpm"
       - name: Install typescript v4 in all packages
         run: |
           sed -i 's/"typescript": "~5.0.0"/"typescript": "^4.0.0"/' package.json packages/*/package.json && pnpm install
