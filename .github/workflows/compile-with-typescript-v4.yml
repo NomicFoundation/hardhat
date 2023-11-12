@@ -23,7 +23,7 @@ jobs:
           cache: "pnpm"
       - name: Install typescript v4 in all packages
         run: |
-          sed -i 's/"typescript": "~5.0.0"/"typescript": "^4.0.0"/' package.json packages/*/package.json && pnpm install
+          sed -i 's/"typescript": "~5.0.0"/"typescript": "^4.0.0"/' package.json packages/*/package.json && pnpm install --no-frozen-lockfile
       # hardhat-viem is the only package that requires TypeScript v5
       - name: Remove hardhat-viem directory
         run: rm -fr packages/hardhat-viem
