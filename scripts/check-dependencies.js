@@ -14,16 +14,8 @@ const IGNORE_SAME_VERSION_FOR_PACKAGES = {
     "@nomiclabs/hardhat-truffle5",
   ],
   ethers: ["@nomicfoundation/hardhat-verify"],
-  ["@types/node"]: ["docs"],
-  ["@typescript-eslint/eslint-plugin"]: ["docs"],
-  ["@typescript-eslint/parser"]: ["docs"],
-  eslint: ["docs"],
-  ["eslint-config-prettier"]: ["docs"],
-  ["eslint-plugin-prettier"]: ["docs"],
-  ["glob"]: ["docs"],
-  ["undici"]: ["docs"],
-  ["ts-node"]: ["docs", "hardhat"],
-  ["typescript"]: ["docs", "hardhat"],
+  ["ts-node"]: ["hardhat"],
+  ["typescript"]: ["hardhat"],
 };
 
 const IGNORE_PEER_DEPENDENCIES_CHECK_FOR_PACKAGES = {
@@ -152,7 +144,6 @@ function getAllPackageJsonPaths() {
   );
 
   packageJsons.push(path.join(__dirname, "..", "package.json"));
-  packageJsons.push(path.join(__dirname, "..", "docs", "package.json"));
 
   return packageJsons;
 }
