@@ -358,7 +358,7 @@ impl<'a> TryFrom<&'a PreEip1898BlockSpec> for CacheableBlockSpec<'a> {
                 block_number: *block_number,
             }),
             PreEip1898BlockSpec::Tag(tag) => match tag {
-                // Latest and pending can be never resolved to a safe block number.
+                // Latest and pending can never be resolved to a safe block number.
                 BlockTag::Latest | BlockTag::Pending => {
                     Err(PreEip1898BlockSpecNotCacheableError(value.clone()))
                 }
