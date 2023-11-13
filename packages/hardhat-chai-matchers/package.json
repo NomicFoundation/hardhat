@@ -40,6 +40,7 @@
   "devDependencies": {
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
+    "@nomicfoundation/hardhat-chai-matchers": "workspace:*",
     "@nomicfoundation/hardhat-ethers": "workspace:^3.0.0",
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.2.0",

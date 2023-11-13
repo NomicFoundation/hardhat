@@ -116,6 +116,9 @@ importers:
       '@nomicfoundation/eslint-plugin-slow-imports':
         specifier: workspace:^
         version: link:../eslint-plugin-slow-imports
+      '@nomicfoundation/hardhat-chai-matchers':
+        specifier: workspace:*
+        version: 'link:'
       '@nomicfoundation/hardhat-ethers':
         specifier: workspace:^3.0.0
         version: link:../hardhat-ethers
