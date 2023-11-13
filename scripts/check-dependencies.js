@@ -150,9 +150,10 @@ function mergeDependenciesMap(dependencyMaps) {
 function getAllPackageJsonPaths() {
   const packageNames = fs.readdirSync(path.join(__dirname, "..", "packages"));
 
-  const packageJsons = packageNames.map((p) =>
-    path.join(__dirname, "..", "packages", p, "package.json")
-  );
+  const packageJsons = packageNames
+    // ignore hh-etherscan and hh-waffle because they only have a readme
+    .filter((p) => !["hardhat-etherscan", "hardhat-waffle"].includes(p))
+    .map((p) => path.join(__dirname, "..", "packages", p, "package.json"));
 
   packageJsons.push(path.join(__dirname, "..", "package.json"));
 
