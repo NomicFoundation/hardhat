@@ -54,7 +54,7 @@
     "eslint-plugin-no-only-tests": "3.0.0",
     "eslint-plugin-prettier": "3.4.0",
     "fs-extra": "^7.0.1",
-    "hardhat": "workspace:^",
+    "hardhat": "workspace:^2.0.0",
     "mocha": "^10.0.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",
@@ -63,6 +63,6 @@
     "typescript": "~5.0.0"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^"
+    "hardhat": "^2.0.0"
   }
 }

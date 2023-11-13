@@ -40,8 +40,7 @@
   "devDependencies": {
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
-    "@nomicfoundation/hardhat-chai-matchers": "workspace:^",
-    "@nomicfoundation/hardhat-ethers": "workspace:^",
+    "@nomicfoundation/hardhat-ethers": "workspace:^3.0.0",
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.2.0",
     "@types/mocha": ">=9.1.0",
@@ -58,7 +57,7 @@
     "eslint-plugin-prettier": "3.4.0",
     "ethers": "^6.1.0",
     "get-port": "^5.1.1",
-    "hardhat": "workspace:^",
+    "hardhat": "workspace:^2.9.4",
     "mocha": "^10.0.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",
@@ -66,10 +65,10 @@
     "typescript": "~5.0.0"
   },
   "peerDependencies": {
-    "@nomicfoundation/hardhat-ethers": "workspace:^",
+    "@nomicfoundation/hardhat-ethers": "^3.0.0",
     "chai": "^4.2.0",
     "ethers": "^6.1.0",
-    "hardhat": "workspace:^"
+    "hardhat": "^2.9.4"
   },
   "dependencies": {
     "@types/chai-as-promised": "^7.1.3",

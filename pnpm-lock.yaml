@@ -116,11 +116,8 @@ importers:
       '@nomicfoundation/eslint-plugin-slow-imports':
         specifier: workspace:^
         version: link:../eslint-plugin-slow-imports
-      '@nomicfoundation/hardhat-chai-matchers':
-        specifier: workspace:^
-        version: 'link:'
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^
+        specifier: workspace:^3.0.0
         version: link:../hardhat-ethers
       '@types/bn.js':
         specifier: ^5.1.0
@@ -171,7 +168,7 @@ importers:
         specifier: ^5.1.1
         version: 5.1.1
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.9.4
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -521,7 +518,7 @@ importers:
         specifier: ^6.1.0
         version: 6.7.0
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.0.0
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -585,7 +582,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.47.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.17.2
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -688,7 +685,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.47.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.16.0
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -767,7 +764,7 @@ importers:
         specifier: npm:ethers@5
         version: /ethers@5.7.2
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.9.5
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -846,7 +843,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.47.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.0.0
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -919,7 +916,7 @@ importers:
         specifier: ^7.0.1
         version: 7.0.1
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.0.0
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -992,7 +989,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.47.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.0.0
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -1019,16 +1016,16 @@ importers:
         specifier: workspace:^
         version: link:../eslint-plugin-slow-imports
       '@nomicfoundation/hardhat-chai-matchers':
-        specifier: workspace:^
+        specifier: workspace:^2.0.0
         version: link:../hardhat-chai-matchers
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^
+        specifier: workspace:^3.0.0
         version: link:../hardhat-ethers
       '@nomicfoundation/hardhat-network-helpers':
-        specifier: workspace:^
+        specifier: workspace:^1.0.0
         version: link:../hardhat-network-helpers
       '@nomicfoundation/hardhat-verify':
-        specifier: workspace:^
+        specifier: workspace:^2.0.0
         version: link:../hardhat-verify
       '@typechain/ethers-v6':
         specifier: ^0.5.0
@@ -1073,7 +1070,7 @@ importers:
         specifier: ^6.4.0
         version: 6.7.0
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.11.0
         version: link:../hardhat-core
       hardhat-gas-reporter:
         specifier: ^1.0.8
@@ -1113,13 +1110,13 @@ importers:
         specifier: workspace:^
         version: link:../eslint-plugin-slow-imports
       '@nomicfoundation/hardhat-network-helpers':
-        specifier: workspace:^
+        specifier: workspace:^1.0.0
         version: link:../hardhat-network-helpers
       '@nomicfoundation/hardhat-verify':
-        specifier: workspace:^
+        specifier: workspace:^2.0.0
         version: link:../hardhat-verify
       '@nomicfoundation/hardhat-viem':
-        specifier: workspace:^
+        specifier: workspace:^1.0.0
         version: link:../hardhat-viem
       '@types/chai':
         specifier: ^4.2.0
@@ -1158,7 +1155,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.47.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.11.0
         version: link:../hardhat-core
       hardhat-gas-reporter:
         specifier: ^1.0.8
@@ -1210,7 +1207,7 @@ importers:
         specifier: workspace:^
         version: link:../eslint-plugin-slow-imports
       '@nomiclabs/hardhat-web3-legacy':
-        specifier: workspace:^
+        specifier: workspace:^2.0.0
         version: link:../hardhat-web3-legacy
       '@types/fs-extra':
         specifier: ^5.1.0
@@ -1246,7 +1243,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.47.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.6.4
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -1292,7 +1289,7 @@ importers:
         specifier: workspace:^
         version: link:../eslint-plugin-slow-imports
       '@nomiclabs/hardhat-web3':
-        specifier: workspace:^
+        specifier: workspace:^2.0.0
         version: link:../hardhat-web3
       '@types/fs-extra':
         specifier: ^5.1.0
@@ -1328,7 +1325,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.47.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.6.4
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -1386,7 +1383,7 @@ importers:
         specifier: workspace:^
         version: link:../eslint-plugin-slow-imports
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^
+        specifier: workspace:^3.0.0
         version: link:../hardhat-ethers
       '@types/chai':
         specifier: ^4.2.0
@@ -1446,7 +1443,7 @@ importers:
         specifier: ^5.0.0
         version: 5.7.2
       hardhat:
-        specifier: workspace:^
+        specifier: ^2.0.4
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -1537,7 +1534,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.47.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.17.0
         version: link:../hardhat-core
       jest-diff:
         specifier: ^29.7.0
@@ -1643,7 +1640,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.47.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.8.3
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -1707,7 +1704,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.47.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.0.0
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -1773,7 +1770,7 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0)(eslint@8.47.0)(prettier@2.4.1)
       hardhat:
-        specifier: workspace:^
+        specifier: workspace:^2.0.0
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
@@ -3073,6 +3070,7 @@ packages:
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
     requiresBuild: true
     dev: false
     optional: true
@@ -3082,6 +3080,7 @@ packages:
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
     requiresBuild: true
     dev: false
     optional: true
@@ -3091,6 +3090,7 @@ packages:
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
     requiresBuild: true
     dev: false
     optional: true
@@ -3100,6 +3100,7 @@ packages:
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
     requiresBuild: true
     dev: false
     optional: true
