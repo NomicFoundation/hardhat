@@ -15,7 +15,8 @@ import { DualModeAdapter } from "../vm/dual";
 import { VMAdapter } from "../vm/vm-adapter";
 import { EthereumJSAdapter } from "../vm/ethereumjs";
 import { HardhatEthContext } from "./hardhat";
-import { EdrEthContext } from "./edr";
+import { EdrEthContext, getGlobalEdrContext } from "./edr";
+import { randomHashSeed } from "../fork/ForkStateManager";
 
 export class DualEthContext implements EthContextAdapter {
   constructor(
@@ -37,6 +38,10 @@ export class DualEthContext implements EthContextAdapter {
     if (tempConfig.enableTransientStorage) {
       tempConfig.hardfork = HardforkName.SHANGHAI;
     }
+
+    // Ensure that the state root generators' seeds are the same.
+    // This avoids a failing test from affecting consequent tests.
+    getGlobalEdrContext().setStateRootGeneratorSeed(randomHashSeed());
 
     const common = makeCommon(tempConfig);
 
