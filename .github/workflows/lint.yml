@@ -29,7 +29,7 @@ jobs:
             pnpm-lock.yaml
             docs/pnpm-lock.yaml
       - name: Install
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
         run: pnpm build
       - name: lint

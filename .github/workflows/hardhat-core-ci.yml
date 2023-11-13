@@ -38,7 +38,7 @@ jobs:
           node-version: 16
           cache: "pnpm"
       - name: Install
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
         run: pnpm build
       - name: Run tests
@@ -62,7 +62,7 @@ jobs:
           node-version: 16
           cache: "pnpm"
       - name: Install
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
         run: pnpm build
       - name: Run tests
@@ -87,7 +87,7 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: "pnpm"
       - name: Install
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
         run: pnpm build
       - name: Run tests
@@ -112,7 +112,7 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: "pnpm"
       - name: Install
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Install @types/node
         run: pnpm add --save-dev @types/node@${{ matrix.node }}
       - name: Build

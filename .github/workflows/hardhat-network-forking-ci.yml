@@ -46,7 +46,7 @@ jobs:
           node-version: 16
           cache: "pnpm"
       - name: Install
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Cache network requests
         uses: actions/cache@v2
         with:
