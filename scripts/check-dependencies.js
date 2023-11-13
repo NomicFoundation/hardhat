@@ -56,10 +56,20 @@ function checkPeerDepedencies(packageJson) {
       continue;
     }
 
-    if (
-      packageJson.peerDependencies[dependency] !==
-      packageJson.devDependencies[dependency]
-    ) {
+    const peerDep = packageJson.peerDependencies[dependency];
+    if (peerDep.startsWith("workspace:")) {
+      console.error(
+        `${packageJson.name} uses the workspace protocol for ${dependency}, which is a peer dependency`
+      );
+
+      success = false;
+    }
+
+    const devDep = packageJson.devDependencies[dependency].replace(
+      /^workspace:/,
+      ""
+    );
+    if (peerDep !== devDep) {
       console.error(
         `${packageJson.name} has different versions of ${dependency} as peerDependency and devDependency`
       );
@@ -76,7 +86,8 @@ function addDependencies(packageName, dependenciesToAdd, allDependenciesMap) {
     return;
   }
 
-  for (const [name, spec] of Object.entries(dependenciesToAdd)) {
+  for (const [name, specWithWorspace] of Object.entries(dependenciesToAdd)) {
+    const spec = specWithWorspace.replace(/^workspace:/, "");
     if (IGNORE_SAME_VERSION_FROM_ALL.includes(name)) {
       continue;
     }
