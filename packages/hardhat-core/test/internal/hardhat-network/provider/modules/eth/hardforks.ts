@@ -49,10 +49,11 @@ describe("Eth module - hardfork dependant tests", function () {
     beforeEach(async function () {
       // TODO: Find out a better way to obtain the common here
 
+      // EDR-TODO: this should be adapted or removed
       // eslint-disable-next-line dot-notation,@typescript-eslint/dot-notation
-      await this.hardhatNetworkProvider["_init"]();
+      await (this.hardhatNetworkProvider as any)["_init"]();
       // eslint-disable-next-line dot-notation,@typescript-eslint/dot-notation
-      this.common = this.hardhatNetworkProvider["_common"];
+      this.common = (this.hardhatNetworkProvider as any)["_common"];
     });
   }
 

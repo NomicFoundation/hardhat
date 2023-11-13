@@ -6,8 +6,9 @@ import {
   ForkConfig,
   MempoolOrder,
 } from "../../../../src/internal/hardhat-network/provider/node-types";
-import { HardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
+import { createHardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
 import {
+  EIP1193Provider,
   EthereumProvider,
   HardhatNetworkMempoolConfig,
   HardhatNetworkMiningConfig,
@@ -32,7 +33,7 @@ declare module "mocha" {
   interface Context {
     logger: FakeModulesLogger;
     provider: EthereumProvider;
-    hardhatNetworkProvider: HardhatNetworkProvider;
+    hardhatNetworkProvider: EIP1193Provider;
     server?: JsonRpcServer;
     serverInfo?: { address: string; port: number };
   }
@@ -78,7 +79,7 @@ export function useProvider({
 }: UseProviderOptions = {}) {
   beforeEach("Initialize provider", async function () {
     this.logger = new FakeModulesLogger(loggerEnabled);
-    this.hardhatNetworkProvider = new HardhatNetworkProvider(
+    this.hardhatNetworkProvider = await createHardhatNetworkProvider(
       {
         hardfork,
         chainId,

@@ -230,10 +230,11 @@ describe("Eth module", function () {
               keepAliveMaxTimeout: 10,
             });
 
+            // EDR-TODO: this should be adapted or removed
             // eslint-disable-next-line dot-notation,@typescript-eslint/dot-notation
-            await this.hardhatNetworkProvider["_init"]();
+            await (this.hardhatNetworkProvider as any)["_init"]();
             // eslint-disable-next-line dot-notation,@typescript-eslint/dot-notation
-            common = this.hardhatNetworkProvider["_common"]!;
+            common = (this.hardhatNetworkProvider as any)["_common"]!;
           });
 
           const pk = Buffer.from(
