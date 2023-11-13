@@ -159,7 +159,7 @@ impl ProviderData {
         &self,
         block_hash: &B256,
     ) -> Result<Option<Arc<dyn SyncBlock<Error = BlockchainError>>>, ProviderError> {
-        Ok(self.blockchain.block_by_hash(block_hash).await?)
+        self.blockchain.block_by_hash(block_hash).await.map_err(ProviderError::Blockchain)
     }
 
     pub async fn chain_id(&self) -> u64 {
