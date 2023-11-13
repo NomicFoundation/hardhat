@@ -30,7 +30,7 @@ jobs:
           node-version: 16
           cache: "pnpm"
       - name: Install
-        run: pnpm install
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Add slow import
         run: echo 'import "lodash";' >> src/internal/constants.ts
       - name: Build

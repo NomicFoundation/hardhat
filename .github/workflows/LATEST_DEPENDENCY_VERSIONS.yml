@@ -24,7 +24,7 @@ jobs:
       - name: Delete pnpm-lock.yaml
         run: "rm pnpm-lock.yaml"
       - name: Install
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
       - name: List dependencies
         run: pnpm list
       - name: Run tests
