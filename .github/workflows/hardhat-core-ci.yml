@@ -188,7 +188,7 @@ jobs:
             RUSTFLAGS: "-Dwarnings -Ctarget-feature=+crt-static"
     defaults:
       run:
-        working-directory: crates/edr_evm_napi
+        working-directory: crates/edr_napi
     steps:
       - uses: actions/checkout@v3
 

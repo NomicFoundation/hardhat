@@ -30,6 +30,12 @@ impl From<Vec<AccessListItem>> for AccessList {
     }
 }
 
+impl From<AccessList> for Vec<AccessListItem> {
+    fn from(src: AccessList) -> Vec<AccessListItem> {
+        src.0
+    }
+}
+
 /// Access list item
 #[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
 #[cfg_attr(

@@ -15,7 +15,6 @@ pub struct ProviderConfig {
     pub fork: Option<ForkConfig>,
     // Genesis accounts in addition to accounts. Useful for adding impersonated accounts for tests.
     pub genesis_accounts: HashMap<Address, AccountInfo>,
-    pub gas: u64,
     pub hardfork: SpecId,
     pub initial_base_fee_per_gas: Option<U256>,
     pub initial_blob_gas: Option<BlobGas>,

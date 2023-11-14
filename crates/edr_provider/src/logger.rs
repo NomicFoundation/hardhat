@@ -1,5 +1,5 @@
 // TODO: Remove once stubs have been implemented.
-#![allow(clippy::unused_self)]
+#![allow(dead_code, clippy::unused_self)]
 
 use edr_eth::{
     transaction::{SignedTransaction, TransactionRequest},
