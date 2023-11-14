@@ -16,7 +16,10 @@ use edr_eth::{
     Address, Bytes, SpecId, B256, U256,
 };
 use edr_evm::{
-    blockchain::{Blockchain, BlockchainError, ForkedBlockchain, LocalBlockchain, SyncBlockchain},
+    blockchain::{
+        Blockchain, BlockchainError, ForkedBlockchain, ForkedCreationError, LocalBlockchain,
+        LocalCreationError, SyncBlockchain,
+    },
     mine_block,
     state::{AccountModifierFn, AccountTrie, IrregularState, StateError, SyncState, TrieState},
     AccountInfo, Block, Bytecode, CfgEnv, HashMap, HashSet, MemPool, MineBlockResult,
@@ -28,6 +31,19 @@ use tokio::runtime;
 
 use self::account::{create_accounts, InitialAccounts};
 use crate::{filter::Filter, logger::Logger, ProviderConfig, ProviderError};
+
+#[derive(Debug, thiserror::Error)]
+pub enum CreationError {
+    /// An error that occurred while constructing a forked blockchain.
+    #[error(transparent)]
+    ForkedBlockchainCreation(#[from] ForkedCreationError),
+    /// Invalid initial date
+    #[error("The initial date configuration value {0:?} is in the future")]
+    InvalidInitialDate(SystemTime),
+    /// An error that occurred while constructing a local blockchain.
+    #[error(transparent)]
+    LocalBlockchainCreation(#[from] LocalCreationError),
+}
 
 pub struct ProviderData {
     blockchain: Box<dyn SyncBlockchain<BlockchainError, StateError>>,
@@ -54,7 +70,7 @@ impl ProviderData {
     pub async fn new(
         runtime: &runtime::Handle,
         config: &ProviderConfig,
-    ) -> Result<Self, ProviderError> {
+    ) -> Result<Self, CreationError> {
         let InitialAccounts {
             local_accounts,
             genesis_accounts,
@@ -159,7 +175,10 @@ impl ProviderData {
         &self,
         block_hash: &B256,
     ) -> Result<Option<Arc<dyn SyncBlock<Error = BlockchainError>>>, ProviderError> {
-        self.blockchain.block_by_hash(block_hash).await.map_err(ProviderError::Blockchain)
+        self.blockchain
+            .block_by_hash(block_hash)
+            .await
+            .map_err(ProviderError::Blockchain)
     }
 
     pub async fn chain_id(&self) -> u64 {
@@ -247,10 +266,6 @@ impl ProviderData {
     pub fn increase_block_time(&mut self, increment: u64) -> u64 {
         self.block_time_offset_seconds += increment;
         self.block_time_offset_seconds
-    }
-
-    pub fn local_accounts(&self) -> impl Iterator<Item = (&Address, &k256::SecretKey)> {
-        self.local_accounts.iter()
     }
 
     pub fn logger(&self) -> &Logger {
@@ -742,11 +757,11 @@ pub fn transaction_from_block(
     })
 }
 
-fn block_time_offset_seconds(config: &ProviderConfig) -> Result<u64, ProviderError> {
+fn block_time_offset_seconds(config: &ProviderConfig) -> Result<u64, CreationError> {
     config.initial_date.map_or(Ok(0), |initial_date| {
         Ok(SystemTime::now()
             .duration_since(initial_date)
-            .map_err(|_e| ProviderError::InvalidInitialDate(initial_date))?
+            .map_err(|_e| CreationError::InvalidInitialDate(initial_date))?
             .as_secs())
     })
 }
@@ -760,7 +775,7 @@ async fn create_blockchain_and_state(
     runtime: &runtime::Handle,
     config: &ProviderConfig,
     genesis_accounts: HashMap<Address, AccountInfo>,
-) -> Result<BlockchainAndState, ProviderError> {
+) -> Result<BlockchainAndState, CreationError> {
     if let Some(fork_config) = &config.fork {
         let state_root_generator = Arc::new(parking_lot::Mutex::new(
             RandomHashGenerator::with_seed("seed"),
@@ -798,7 +813,7 @@ async fn create_blockchain_and_state(
             state,
             config.chain_id,
             config.hardfork,
-            config.gas,
+            config.block_gas_limit,
             config.initial_date.map(|d| {
                 d.duration_since(UNIX_EPOCH)
                     .expect("initial date must be after UNIX epoch")

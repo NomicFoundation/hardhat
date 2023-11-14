@@ -89,7 +89,7 @@ jobs:
     runs-on: ${{ matrix.settings.host }}
     defaults:
       run:
-        working-directory: ./crates/edr_evm_napi
+        working-directory: ./crates/edr_napi
     steps:
       - uses: actions/checkout@v3
       - name: Setup node
@@ -144,7 +144,7 @@ jobs:
         if: ${{ matrix.settings.docker }}
         with:
           image: ${{ matrix.settings.docker }}
-          options: "--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build/crates/edr_evm_napi"
+          options: "--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build/crates/edr_napi"
           run: ${{ matrix.settings.build }}
       - name: Build
         run: ${{ matrix.settings.build }}
@@ -156,7 +156,7 @@ jobs:
           name: bindings-${{ matrix.settings.target }}
           # The upload artifact action doesn't respect the working directory setting. Unclear if this is a bug or not
           # https://github.com/actions/upload-artifact/issues/294
-          path: ./crates/edr_evm_napi/${{ env.APP_NAME }}.*.node
+          path: ./crates/edr_napi/${{ env.APP_NAME }}.*.node
           if-no-files-found: error
   test-macOS-windows-binding:
     name: Test bindings on ${{ matrix.settings.target }} - node@${{ matrix.node }}
@@ -176,7 +176,7 @@ jobs:
     runs-on: ${{ matrix.settings.host }}
     defaults:
       run:
-        working-directory: ./crates/edr_evm_napi
+        working-directory: ./crates/edr_napi
     steps:
       - uses: actions/checkout@v3
       - name: Setup node
@@ -191,7 +191,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: bindings-${{ matrix.settings.target }}
-          path: ./crates/edr_evm_napi/
+          path: ./crates/edr_napi/
       - name: List packages
         run: ls -R .
         shell: bash
@@ -222,12 +222,12 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: bindings-x86_64-unknown-linux-gnu
-          path: ./crates/edr_evm_napi/
+          path: ./crates/edr_napi/
       - name: List packages
         run: ls -R .
         shell: bash
       - name: Test bindings
-        run: docker run --rm -v $(pwd):/build -w /build/crates/edr_evm_napi node:${{ matrix.node }}-slim yarn test
+        run: docker run --rm -v $(pwd):/build -w /build/crates/edr_napi node:${{ matrix.node }}-slim yarn test
   test-linux-x64-musl-binding:
     name: Test bindings on x86_64-unknown-linux-musl - node@${{ matrix.node }}
     needs:
@@ -255,12 +255,12 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: bindings-x86_64-unknown-linux-musl
-          path: ./crates/edr_evm_napi/
+          path: ./crates/edr_napi/
       - name: List packages
         run: ls -R .
         shell: bash
       - name: Test bindings
-        run: docker run --rm -v $(pwd):/build -w /build/crates/edr_evm_napi node:${{ matrix.node }}-alpine yarn test
+        run: docker run --rm -v $(pwd):/build -w /build/crates/edr_napi node:${{ matrix.node }}-alpine yarn test
   test-linux-aarch64-gnu-binding:
     name: Test bindings on aarch64-unknown-linux-gnu - node@${{ matrix.node }}
     needs:
@@ -278,7 +278,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: bindings-aarch64-unknown-linux-gnu
-          path: ./crates/edr_evm_napi/
+          path: ./crates/edr_napi/
       - name: List packages
         run: ls -R .
         shell: bash
@@ -296,7 +296,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: node:${{ matrix.node }}-slim
-          options: "--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build/crates/edr_evm_napi"
+          options: "--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build/crates/edr_napi"
           run: |
             set -e
             yarn test
@@ -312,7 +312,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: bindings-aarch64-unknown-linux-musl
-          path: ./crates/edr_evm_napi/
+          path: ./crates/edr_napi/
       - name: List packages
         run: ls -R .
         shell: bash
@@ -330,7 +330,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: node:lts-alpine
-          options: "--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build/crates/edr_evm_napi"
+          options: "--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build/crates/edr_napi"
           run: |
             set -e
             yarn test
@@ -370,7 +370,7 @@ jobs:
     if: ${{ needs.check_commit.outputs.match == 'true' }}
     defaults:
       run:
-        working-directory: ./crates/edr_evm_napi
+        working-directory: ./crates/edr_napi
     steps:
       - uses: actions/checkout@v3
       - name: Setup node
@@ -384,7 +384,7 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v3
         with:
-          path: ./crates/edr_evm_napi/artifacts
+          path: ./crates/edr_napi/artifacts
       - name: Move artifacts
         run: yarn artifacts
       - name: List packages

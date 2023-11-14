@@ -47,7 +47,6 @@ pub fn create_test_config_with_impersonated_accounts(
         block_gas_limit: 30_000_000,
         chain_id: 1,
         coinbase: Address::from_low_u64_ne(1),
-        gas: 30_000_000,
         hardfork: SpecId::LATEST,
         initial_base_fee_per_gas: Some(U256::from(1000000000)),
         initial_date: Some(SystemTime::now()),

@@ -8,12 +8,12 @@ mod requests;
 #[cfg(test)]
 pub mod test_utils;
 
-use data::ProviderData;
+use data::{CreationError, ProviderData};
 use requests::{
     eth::{self, handle_evm_mine_request},
     hardhat,
 };
-use tokio::sync::Mutex;
+use tokio::{runtime, sync::Mutex};
 
 use self::requests::{EthRequest, Request};
 pub use self::{
@@ -57,6 +57,18 @@ pub struct Provider {
 }
 
 impl Provider {
+    /// Constructs a new instance.
+    pub async fn new(
+        runtime: &runtime::Handle,
+        config: &ProviderConfig,
+    ) -> Result<Self, CreationError> {
+        let data = ProviderData::new(runtime, config).await?;
+
+        Ok(Self {
+            data: Mutex::new(data),
+        })
+    }
+
     pub async fn handle_request(
         &self,
         request: ProviderRequest,
@@ -74,7 +86,7 @@ impl Provider {
 }
 
 /// Handles a JSON request for an execution provider.
-pub async fn handle_single_request(
+async fn handle_single_request(
     data: &mut ProviderData,
     request: Request,
 ) -> Result<serde_json::Value, ProviderError> {
@@ -85,7 +97,7 @@ pub async fn handle_single_request(
 }
 
 /// Handles a batch of JSON requests for an execution provider.
-pub async fn handle_batch_request(
+async fn handle_batch_request(
     data: &mut ProviderData,
     request: Vec<Request>,
 ) -> Result<serde_json::Value, ProviderError> {

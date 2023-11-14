@@ -771,7 +771,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "edr_evm_napi"
+name = "edr_napi"
 version = "0.2.0-dev"
 dependencies = [
  "async-trait",
@@ -779,6 +779,8 @@ dependencies = [
  "edr_defaults",
  "edr_eth",
  "edr_evm",
+ "edr_provider",
+ "edr_rpc_hardhat",
  "k256",
  "napi",
  "napi-build",
