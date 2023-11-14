@@ -37,7 +37,7 @@ jobs:
         run: node scripts/check-dependencies.js
       - name: Install website
         working-directory: docs/
-        run: pnpm
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Lint website
         working-directory: docs/
         run: pnpm lint
