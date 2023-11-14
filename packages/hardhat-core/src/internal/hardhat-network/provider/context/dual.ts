@@ -8,6 +8,7 @@ import { RandomBufferGenerator } from "../utils/random";
 import { BlockchainAdapter } from "../blockchain";
 import { DualBlockchain } from "../blockchain/dual";
 import { EthContextAdapter } from "../context";
+import { randomHashSeed } from "../fork/ForkStateManager";
 import { MemPoolAdapter } from "../mem-pool";
 import { BlockMinerAdapter } from "../miner";
 import { NodeConfig, isForkedNodeConfig } from "../node-types";
@@ -16,7 +17,6 @@ import { VMAdapter } from "../vm/vm-adapter";
 import { EthereumJSAdapter } from "../vm/ethereumjs";
 import { HardhatEthContext } from "./hardhat";
 import { EdrEthContext, getGlobalEdrContext } from "./edr";
-import { randomHashSeed } from "../fork/ForkStateManager";
 
 export class DualEthContext implements EthContextAdapter {
   constructor(
