@@ -1,7 +1,4 @@
 {
   "name": "console-log",
-  "version": "1.0.0",
-  "devDependencies": {
-    "hardhat": "latest"
-  }
+  "version": "1.0.0"
 }

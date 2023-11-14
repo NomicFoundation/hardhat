@@ -1,7 +1,4 @@
 {
   "name": "project-with-hardhat-directory",
-  "version": "1.0.0",
-  "devDependencies": {
-    "hardhat": "latest"
-  }
+  "version": "1.0.0"
 }
