@@ -462,6 +462,10 @@ impl ProviderData {
         }
     }
 
+    pub fn spec_id(&self) -> SpecId {
+        self.blockchain.spec_id()
+    }
+
     pub fn stop_impersonating_account(&mut self, address: Address) -> bool {
         self.impersonated_accounts.remove(&address)
     }
@@ -491,33 +495,12 @@ impl ProviderData {
             let tx_index =
                 usize::try_from(tx_index).expect("Indices cannot be larger than usize::MAX");
 
-            self.transaction_from_block(&tx_block, tx_index)
+            transaction_from_block(&tx_block, tx_index, self.spec_id())
         } else {
             None
         };
 
         Ok(transaction)
-    }
-
-    pub fn transaction_from_block(
-        &self,
-        block: &Arc<dyn SyncBlock<Error = BlockchainError>>,
-        index: usize,
-    ) -> Option<GetTransactionResult> {
-        block.transactions().get(index).map(|tx| {
-            let block_metadata = BlockMetadataForTransaction {
-                base_fee_per_gas: block.header().base_fee_per_gas,
-                block_hash: *block.hash(),
-                block_number: block.header().number,
-                transaction_index: index.try_into().expect("usize fits into u64"),
-            };
-
-            GetTransactionResult {
-                signed_transaction: tx.clone(),
-                spec_id: self.blockchain.spec_id(),
-                block_metadata: Some(block_metadata),
-            }
-        })
     }
 
     fn add_pending_transaction(
@@ -736,6 +719,27 @@ impl ProviderData {
 
         Ok(contextual_state)
     }
+}
+
+pub fn transaction_from_block(
+    block: &Arc<dyn SyncBlock<Error = BlockchainError>>,
+    index: usize,
+    spec_id: SpecId,
+) -> Option<GetTransactionResult> {
+    block.transactions().get(index).map(|tx| {
+        let block_metadata = BlockMetadataForTransaction {
+            base_fee_per_gas: block.header().base_fee_per_gas,
+            block_hash: *block.hash(),
+            block_number: block.header().number,
+            transaction_index: index.try_into().expect("usize fits into u64"),
+        };
+
+        GetTransactionResult {
+            signed_transaction: tx.clone(),
+            spec_id,
+            block_metadata: Some(block_metadata),
+        }
+    })
 }
 
 fn block_time_offset_seconds(config: &ProviderConfig) -> Result<u64, ProviderError> {

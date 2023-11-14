@@ -10,7 +10,9 @@ use edr_eth::{
 use edr_evm::{blockchain::BlockchainError, SyncBlock};
 
 use crate::{
-    data::{BlockMetadataForTransaction, GetTransactionResult, ProviderData},
+    data::{
+        transaction_from_block, BlockMetadataForTransaction, GetTransactionResult, ProviderData,
+    },
     ProviderError,
 };
 
@@ -25,7 +27,7 @@ pub async fn handle_get_transaction_by_block_hash_and_index(
 
     data.block_by_hash(&block_hash)
         .await?
-        .and_then(|block| data.transaction_from_block(&block, index))
+        .and_then(|block| transaction_from_block(&block, index, data.spec_id()))
         .map(get_transaction_result_to_rpc_result)
         .transpose()
 }
@@ -49,7 +51,7 @@ pub async fn handle_get_transaction_by_block_spec_and_index(
         Err(ProviderError::InvalidBlockNumberOrHash(_)) => None,
         Err(err) => return Err(err),
     }
-    .and_then(|block| data.transaction_from_block(&block, index))
+    .and_then(|block| transaction_from_block(&block, index, data.spec_id()))
     .map(get_transaction_result_to_rpc_result)
     .transpose()
 }
