@@ -31,7 +31,7 @@ fn bench_database_commit(c: &mut Criterion) {
             BLOCK=17295357 \
                 HARDHAT_EXPERIMENTAL_VM_MODE=ethereumjs \
                 HARDHAT_RUN_FULL_BLOCK_DUMP_STATE_TO_FILE=../../crates/edr_evm/benches/fixtures/accounts_changed_in_mainnet_block_${BLOCK}.json \
-                sh -c 'yarn ts-node scripts/test-run-forked-block.ts $ALCHEMY_URL $BLOCK'
+                sh -c 'pnpm ts-node scripts/test-run-forked-block.ts $ALCHEMY_URL $BLOCK'
             note that this should be done from the packages/hardhat-core directory.
         */
     )

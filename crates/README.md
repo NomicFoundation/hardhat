@@ -36,12 +36,11 @@ Make sure you have the following dependencies installed on your machine:
 
 - [node.js](https://nodejs.org)
 
-Use `npm` (or `yarn`) to build a release version:
+Use `pnpm` to build a release version:
 
 ```bash
 cd crates/edr_napi
-npm run build
-# yarn build
+pnpm build
 ```
 
 ## Contributing
