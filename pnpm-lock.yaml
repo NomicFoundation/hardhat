@@ -11,6 +11,9 @@ importers:
       '@changesets/cli':
         specifier: ^2.16.0
         version: 2.26.2
+      '@open-rpc/typings':
+        specifier: ^1.12.1
+        version: 1.12.3
       hardhat:
         specifier: workspace:*
         version: link:packages/hardhat-core
@@ -23,6 +26,24 @@ importers:
       typescript:
         specifier: ~5.0.0
         version: 5.0.4
+
+  crates/edr_napi:
+    devDependencies:
+      '@napi-rs/cli':
+        specifier: ^2.16.3
+        version: 2.16.5
+      '@nomicfoundation/ethereumjs-util':
+        specifier: ^8.0.0
+        version: 8.0.6
+      chai:
+        specifier: ^4.3.6
+        version: 4.3.7
+      mocha:
+        specifier: ^10.0.0
+        version: 10.2.0
+      typescript:
+        specifier: ~4.5.2
+        version: 4.5.5
 
   packages/common:
     devDependencies:
@@ -194,39 +215,42 @@ importers:
       '@ethersproject/abi':
         specifier: ^5.1.2
         version: 5.7.0
+      '@ignored/edr':
+        specifier: workspace:^0.2.0-alpha.1
+        version: link:../../crates/edr_napi
       '@metamask/eth-sig-util':
         specifier: ^4.0.0
         version: 4.0.1
       '@nomicfoundation/ethereumjs-block':
-        specifier: 5.0.2
-        version: 5.0.2
+        specifier: 5.0.3
+        version: 5.0.3
       '@nomicfoundation/ethereumjs-blockchain':
-        specifier: 7.0.2
-        version: 7.0.2
+        specifier: 7.0.3
+        version: 7.0.3
       '@nomicfoundation/ethereumjs-common':
-        specifier: 4.0.2
-        version: 4.0.2
+        specifier: 4.0.3
+        version: 4.0.3
       '@nomicfoundation/ethereumjs-evm':
-        specifier: 2.0.2
-        version: 2.0.2
+        specifier: 2.0.3
+        version: 2.0.3
       '@nomicfoundation/ethereumjs-rlp':
-        specifier: 5.0.2
-        version: 5.0.2
+        specifier: 5.0.3
+        version: 5.0.3
       '@nomicfoundation/ethereumjs-statemanager':
-        specifier: 2.0.2
-        version: 2.0.2
+        specifier: 2.0.3
+        version: 2.0.3
       '@nomicfoundation/ethereumjs-trie':
-        specifier: 6.0.2
-        version: 6.0.2
+        specifier: 6.0.3
+        version: 6.0.3
       '@nomicfoundation/ethereumjs-tx':
-        specifier: 5.0.2
-        version: 5.0.2
+        specifier: 5.0.3
+        version: 5.0.3
       '@nomicfoundation/ethereumjs-util':
-        specifier: 9.0.2
-        version: 9.0.2
+        specifier: 9.0.3
+        version: 9.0.3
       '@nomicfoundation/ethereumjs-vm':
-        specifier: 7.0.2
-        version: 7.0.2
+        specifier: 7.0.3
+        version: 7.0.3
       '@nomicfoundation/solidity-analyzer':
         specifier: ^0.1.0
         version: 0.1.1
@@ -618,8 +642,8 @@ importers:
         specifier: ^6.27.13
         version: 6.27.13
       '@nomicfoundation/ethereumjs-util':
-        specifier: 9.0.2
-        version: 9.0.2
+        specifier: 9.0.3
+        version: 9.0.3
       chalk:
         specifier: ^2.4.2
         version: 2.4.2
@@ -2756,6 +2780,61 @@ packages:
       '@jridgewell/sourcemap-codec': 1.4.15
     dev: true
 
+  /@json-schema-spec/json-pointer@0.1.2:
+    resolution: {integrity: sha512-BYY7IavBjwsWWSmVcMz2A9mKiDD9RvacnsItgmy1xV8cmgbtxFfKmKMtkVpD7pYtkx4mIW4800yZBXueVFIWPw==}
+    dev: true
+
+  /@json-schema-tools/dereferencer@1.5.4:
+    resolution: {integrity: sha512-4cmEdRPIG7WrcSWGRV6HBDCLXEOXGkaOZnopqBxoG24mKYuCHWg4M6N9nioTQyNfKqlPkOPvT4lStQqkPnhLgA==}
+    dependencies:
+      '@json-schema-tools/reference-resolver': 1.2.4
+      '@json-schema-tools/traverse': 1.10.1
+      fast-safe-stringify: 2.1.1
+    transitivePeerDependencies:
+      - encoding
+    dev: true
+
+  /@json-schema-tools/meta-schema@1.6.19:
+    resolution: {integrity: sha512-55zuWFW7tr4tf/G5AYmybcPdGOkVAreQbt2JdnogX4I2r/zkxZiimYPJESDf5je9BI2oRveak2p296HzDppeaA==}
+    dev: true
+
+  /@json-schema-tools/reference-resolver@1.2.4:
+    resolution: {integrity: sha512-Oag20zDuapO6nBQp00k8Rd5sDTb8Gfz9uH43Tf7dHKNx7nHDK/WdeTe7OxkOmLQCL6aS+mCJx1Zv+fZBCD+tzQ==}
+    dependencies:
+      '@json-schema-spec/json-pointer': 0.1.2
+      isomorphic-fetch: 3.0.0
+    transitivePeerDependencies:
+      - encoding
+    dev: true
+
+  /@json-schema-tools/referencer@1.1.0:
+    resolution: {integrity: sha512-t9XTMNRhFQPFBOPkqIOGck2rMoI1wMqD8EdboZJAVR2erUHezpsxyXO6EjuH3mE4LSCOnXI2wrBspeRFtAskoQ==}
+    dependencies:
+      '@json-schema-tools/traverse': 1.10.1
+    dev: true
+
+  /@json-schema-tools/titleizer@1.0.8:
+    resolution: {integrity: sha512-xgsg7ghVhd+9ZrhpmakNJUMmp+R+1mB6n4zn4iRg6P47GTfN04L/GR7mjC8LvO+XaZxbIzE6EzvHeZ5+nmhjJA==}
+    dependencies:
+      '@json-schema-tools/traverse': 1.10.1
+    dev: true
+
+  /@json-schema-tools/transpiler@1.10.3:
+    resolution: {integrity: sha512-IOtTHSL9vUZA8xss7Am5NrqQopwM10VS4yjFYmZ/QaqTLx6moE7j/md0k+BhMMsKMjZul/D0GXLerZXg9HU7Mg==}
+    dependencies:
+      '@json-schema-tools/referencer': 1.1.0
+      '@json-schema-tools/titleizer': 1.0.8
+      '@json-schema-tools/traverse': 1.10.1
+      lodash.camelcase: 4.3.0
+      lodash.deburr: 4.1.0
+      lodash.snakecase: 4.1.1
+      lodash.trim: 4.5.1
+    dev: true
+
+  /@json-schema-tools/traverse@1.10.1:
+    resolution: {integrity: sha512-vYY5EIxCPzEXEWL/vTjdHy4g92tv1ApUQCjPJsj9gEoXLNNVwJlwwgRZisuvgFBZ3zeLzQygrbehERSpYdmFZA==}
+    dev: true
+
   /@ledgerhq/cryptoassets@11.0.1:
     resolution: {integrity: sha512-VhSA1ydoTnNjoC5c+S/a+YURJV+UNvuLVkRrKpP87zaQ2a+odPkP3EVDrU+G1Dvt/LipA24ZgcpoxXTbO6fQ9Q==}
     dependencies:
@@ -2906,6 +2985,12 @@ packages:
       tweetnacl-util: 0.15.1
     dev: false
 
+  /@napi-rs/cli@2.16.5:
+    resolution: {integrity: sha512-mFEzwrg4IOLngGd2/P6yeqIWgwQNn59Z08n1rndu6kLDq1gg954NH9cM1O9Da0RJuybt46p43lqgSsnAY2mxqA==}
+    engines: {node: '>= 10'}
+    hasBin: true
+    dev: true
+
   /@noble/curves@1.1.0:
     resolution: {integrity: sha512-091oBExgENk/kGj3AZmtBDMpxQPDtxQABR2B9lb1JbVTs6ytdzZNwvhxQ4MWasRNEzlbEH8jCWFCwhF/Obj5AA==}
     dependencies:
@@ -2952,15 +3037,15 @@ packages:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.15.0
 
-  /@nomicfoundation/ethereumjs-block@5.0.2:
-    resolution: {integrity: sha512-hSe6CuHI4SsSiWWjHDIzWhSiAVpzMUcDRpWYzN0T9l8/Rz7xNn3elwVOJ/tAyS0LqL6vitUD78Uk7lQDXZun7Q==}
+  /@nomicfoundation/ethereumjs-block@5.0.3:
+    resolution: {integrity: sha512-bpLkD5yZ/v2BQeFz0MyIp7i0ALTFJCuh+jA/UAF4Znt2s0n48vFOYX4yk4qqz4yj+xwtWuVldH4DYIWJuVIvBg==}
     engines: {node: '>=14'}
     dependencies:
-      '@nomicfoundation/ethereumjs-common': 4.0.2
-      '@nomicfoundation/ethereumjs-rlp': 5.0.2
-      '@nomicfoundation/ethereumjs-trie': 6.0.2
-      '@nomicfoundation/ethereumjs-tx': 5.0.2
-      '@nomicfoundation/ethereumjs-util': 9.0.2
+      '@nomicfoundation/ethereumjs-common': 4.0.3
+      '@nomicfoundation/ethereumjs-rlp': 5.0.3
+      '@nomicfoundation/ethereumjs-trie': 6.0.3
+      '@nomicfoundation/ethereumjs-tx': 5.0.3
+      '@nomicfoundation/ethereumjs-util': 9.0.3
       ethereum-cryptography: 0.1.3
       ethers: 5.7.2
     transitivePeerDependencies:
@@ -2968,17 +3053,17 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@nomicfoundation/ethereumjs-blockchain@7.0.2:
-    resolution: {integrity: sha512-8UUsSXJs+MFfIIAKdh3cG16iNmWzWC/91P40sazNvrqhhdR/RtGDlFk2iFTGbBAZPs2+klZVzhRX8m2wvuvz3w==}
+  /@nomicfoundation/ethereumjs-blockchain@7.0.3:
+    resolution: {integrity: sha512-UUFnrwzaWs1jX4B9HjnYpVtMnwUAbFbAWexBzRbxAo6B0yvoG5jUYUcI/EiQlA+qOE+h+r5hz7Sdn84MAg2HOA==}
     engines: {node: '>=14'}
     dependencies:
-      '@nomicfoundation/ethereumjs-block': 5.0.2
-      '@nomicfoundation/ethereumjs-common': 4.0.2
-      '@nomicfoundation/ethereumjs-ethash': 3.0.2
-      '@nomicfoundation/ethereumjs-rlp': 5.0.2
-      '@nomicfoundation/ethereumjs-trie': 6.0.2
-      '@nomicfoundation/ethereumjs-tx': 5.0.2
-      '@nomicfoundation/ethereumjs-util': 9.0.2
+      '@nomicfoundation/ethereumjs-block': 5.0.3
+      '@nomicfoundation/ethereumjs-common': 4.0.3
+      '@nomicfoundation/ethereumjs-ethash': 3.0.3
+      '@nomicfoundation/ethereumjs-rlp': 5.0.3
+      '@nomicfoundation/ethereumjs-trie': 6.0.3
+      '@nomicfoundation/ethereumjs-tx': 5.0.3
+      '@nomicfoundation/ethereumjs-util': 9.0.3
       abstract-level: 1.0.3
       debug: 4.3.4(supports-color@8.1.1)
       ethereum-cryptography: 0.1.3
@@ -2991,20 +3076,20 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@nomicfoundation/ethereumjs-common@4.0.2:
-    resolution: {integrity: sha512-I2WGP3HMGsOoycSdOTSqIaES0ughQTueOsddJ36aYVpI3SN8YSusgRFLwzDJwRFVIYDKx/iJz0sQ5kBHVgdDwg==}
+  /@nomicfoundation/ethereumjs-common@4.0.3:
+    resolution: {integrity: sha512-hpFLto5zk70/8qNJdyRHIH0pKKm/vtbqAG68+AtSlw2jdPZQTGJgntACYWpHXTUU8tLsB8+ksem312aJ0ICh+A==}
     dependencies:
-      '@nomicfoundation/ethereumjs-util': 9.0.2
+      '@nomicfoundation/ethereumjs-util': 9.0.3
       crc-32: 1.2.2
     dev: false
 
-  /@nomicfoundation/ethereumjs-ethash@3.0.2:
-    resolution: {integrity: sha512-8PfoOQCcIcO9Pylq0Buijuq/O73tmMVURK0OqdjhwqcGHYC2PwhbajDh7GZ55ekB0Px197ajK3PQhpKoiI/UPg==}
+  /@nomicfoundation/ethereumjs-ethash@3.0.3:
+    resolution: {integrity: sha512-64R5obqw3XNELxydPEQUWv84dM+vfL7a1oc9wkb+23yUVAksgt7iW7aE4Z+Br5NIRtmgfQ/04UvmHsOr5Jv4mA==}
     engines: {node: '>=14'}
     dependencies:
-      '@nomicfoundation/ethereumjs-block': 5.0.2
-      '@nomicfoundation/ethereumjs-rlp': 5.0.2
-      '@nomicfoundation/ethereumjs-util': 9.0.2
+      '@nomicfoundation/ethereumjs-block': 5.0.3
+      '@nomicfoundation/ethereumjs-rlp': 5.0.3
+      '@nomicfoundation/ethereumjs-util': 9.0.3
       abstract-level: 1.0.3
       bigint-crypto-utils: 3.3.0
       ethereum-cryptography: 0.1.3
@@ -3013,14 +3098,14 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@nomicfoundation/ethereumjs-evm@2.0.2:
-    resolution: {integrity: sha512-rBLcUaUfANJxyOx9HIdMX6uXGin6lANCulIm/pjMgRqfiCRMZie3WKYxTSd8ZE/d+qT+zTedBF4+VHTdTSePmQ==}
+  /@nomicfoundation/ethereumjs-evm@2.0.3:
+    resolution: {integrity: sha512-Nh9Loi5gwrX+akx5ef8tvM5olrUdIn+Hp+uk8yh294YgQcAwHiwxEPiSaMrkj6bBllwETH/6yyuYMxlsMjmoNw==}
     engines: {node: '>=14'}
     dependencies:
       '@ethersproject/providers': 5.7.2
-      '@nomicfoundation/ethereumjs-common': 4.0.2
-      '@nomicfoundation/ethereumjs-tx': 5.0.2
-      '@nomicfoundation/ethereumjs-util': 9.0.2
+      '@nomicfoundation/ethereumjs-common': 4.0.3
+      '@nomicfoundation/ethereumjs-tx': 5.0.3
+      '@nomicfoundation/ethereumjs-util': 9.0.3
       debug: 4.3.4(supports-color@8.1.1)
       ethereum-cryptography: 0.1.3
       mcl-wasm: 0.7.9
@@ -3031,17 +3116,23 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@nomicfoundation/ethereumjs-rlp@5.0.2:
-    resolution: {integrity: sha512-QwmemBc+MMsHJ1P1QvPl8R8p2aPvvVcKBbvHnQOKBpBztEo0omN0eaob6FeZS/e3y9NSe+mfu3nNFBHszqkjTA==}
+  /@nomicfoundation/ethereumjs-rlp@4.0.3:
+    resolution: {integrity: sha512-DZMzB/lqPK78T6MluyXqtlRmOMcsZbTTbbEyAjo0ncaff2mqu/k8a79PBcyvpgAhWD/R59Fjq/x3ro5Lof0AtA==}
+    engines: {node: '>=14'}
+    hasBin: true
+    dev: true
+
+  /@nomicfoundation/ethereumjs-rlp@5.0.3:
+    resolution: {integrity: sha512-5D16EqzW4TeuOgBQeq+/atcYs8Sq9eD1C3vvXzIsr+LI3riNLFsLs8Xy9rqYazTWdqI6AWHZiSWmVlijOMr5qg==}
     engines: {node: '>=14'}
     hasBin: true
     dev: false
 
-  /@nomicfoundation/ethereumjs-statemanager@2.0.2:
-    resolution: {integrity: sha512-dlKy5dIXLuDubx8Z74sipciZnJTRSV/uHG48RSijhgm1V7eXYFC567xgKtsKiVZB1ViTP9iFL4B6Je0xD6X2OA==}
+  /@nomicfoundation/ethereumjs-statemanager@2.0.3:
+    resolution: {integrity: sha512-7Tqeqq36ama0JoBo4vH+opumPMi/jGctYlki82cw6myY/LMTxgeQat68v4hUMMDL8Kk+d/SToI34ekPbWGueIQ==}
     dependencies:
-      '@nomicfoundation/ethereumjs-common': 4.0.2
-      '@nomicfoundation/ethereumjs-rlp': 5.0.2
+      '@nomicfoundation/ethereumjs-common': 4.0.3
+      '@nomicfoundation/ethereumjs-rlp': 5.0.3
       debug: 4.3.4(supports-color@8.1.1)
       ethereum-cryptography: 0.1.3
       ethers: 5.7.2
@@ -3052,54 +3143,62 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@nomicfoundation/ethereumjs-trie@6.0.2:
-    resolution: {integrity: sha512-yw8vg9hBeLYk4YNg5MrSJ5H55TLOv2FSWUTROtDtTMMmDGROsAu+0tBjiNGTnKRi400M6cEzoFfa89Fc5k8NTQ==}
+  /@nomicfoundation/ethereumjs-trie@6.0.3:
+    resolution: {integrity: sha512-/X01guRWJTm6vYIvB/x5M6qKT6QaPAtzUvyXDiaLdmwRmtD9VDV10ZKlb3TSoGviTE549JaREUUhpj8eaHTylg==}
     engines: {node: '>=14'}
     dependencies:
-      '@nomicfoundation/ethereumjs-rlp': 5.0.2
-      '@nomicfoundation/ethereumjs-util': 9.0.2
+      '@nomicfoundation/ethereumjs-rlp': 5.0.3
+      '@nomicfoundation/ethereumjs-util': 9.0.3
       '@types/readable-stream': 2.3.15
       ethereum-cryptography: 0.1.3
       readable-stream: 3.6.2
     dev: false
 
-  /@nomicfoundation/ethereumjs-tx@5.0.2:
-    resolution: {integrity: sha512-T+l4/MmTp7VhJeNloMkM+lPU3YMUaXdcXgTGCf8+ZFvV9NYZTRLFekRwlG6/JMmVfIfbrW+dRRJ9A6H5Q/Z64g==}
+  /@nomicfoundation/ethereumjs-tx@5.0.3:
+    resolution: {integrity: sha512-JTPNNXzlP+vZqV1o7QtKSeAgZl2V/yrsebwewFXUMYx/49CcF4UYQuC+xuTx91w3Fdr2OJmOZWw78GMid2qXiQ==}
     engines: {node: '>=14'}
     dependencies:
       '@chainsafe/ssz': 0.9.4
       '@ethersproject/providers': 5.7.2
-      '@nomicfoundation/ethereumjs-common': 4.0.2
-      '@nomicfoundation/ethereumjs-rlp': 5.0.2
-      '@nomicfoundation/ethereumjs-util': 9.0.2
+      '@nomicfoundation/ethereumjs-common': 4.0.3
+      '@nomicfoundation/ethereumjs-rlp': 5.0.3
+      '@nomicfoundation/ethereumjs-util': 9.0.3
       ethereum-cryptography: 0.1.3
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
     dev: false
 
-  /@nomicfoundation/ethereumjs-util@9.0.2:
-    resolution: {integrity: sha512-4Wu9D3LykbSBWZo8nJCnzVIYGvGCuyiYLIJa9XXNVt1q1jUzHdB+sJvx95VGCpPkCT+IbLecW6yfzy3E1bQrwQ==}
+  /@nomicfoundation/ethereumjs-util@8.0.6:
+    resolution: {integrity: sha512-jOQfF44laa7xRfbfLXojdlcpkvxeHrE2Xu7tSeITsWFgoII163MzjOwFEzSNozHYieFysyoEMhCdP+NY5ikstw==}
+    engines: {node: '>=14'}
+    dependencies:
+      '@nomicfoundation/ethereumjs-rlp': 4.0.3
+      ethereum-cryptography: 0.1.3
+    dev: true
+
+  /@nomicfoundation/ethereumjs-util@9.0.3:
+    resolution: {integrity: sha512-AcvsKHdYqGnDu24P4N3BSYmqUGvLd0vCGIPt0PeFGe0zM37oeswVCAbB2Wpt6IFlIbIKtWQrV9gXj+410WEyfw==}
     engines: {node: '>=14'}
     dependencies:
       '@chainsafe/ssz': 0.10.2
-      '@nomicfoundation/ethereumjs-rlp': 5.0.2
+      '@nomicfoundation/ethereumjs-rlp': 5.0.3
       ethereum-cryptography: 0.1.3
     dev: false
 
-  /@nomicfoundation/ethereumjs-vm@7.0.2:
-    resolution: {integrity: sha512-Bj3KZT64j54Tcwr7Qm/0jkeZXJMfdcAtRBedou+Hx0dPOSIgqaIr0vvLwP65TpHbak2DmAq+KJbW2KNtIoFwvA==}
+  /@nomicfoundation/ethereumjs-vm@7.0.3:
+    resolution: {integrity: sha512-uQu2emoq+YTxjzFazsDMnJKHnwxmPTb3CV+oQ/o54KnJGQ8rc0appVmiC+Yrlxf818tz6iw0tr4UigJUX4qmkg==}
     engines: {node: '>=14'}
     dependencies:
-      '@nomicfoundation/ethereumjs-block': 5.0.2
-      '@nomicfoundation/ethereumjs-blockchain': 7.0.2
-      '@nomicfoundation/ethereumjs-common': 4.0.2
-      '@nomicfoundation/ethereumjs-evm': 2.0.2
-      '@nomicfoundation/ethereumjs-rlp': 5.0.2
-      '@nomicfoundation/ethereumjs-statemanager': 2.0.2
-      '@nomicfoundation/ethereumjs-trie': 6.0.2
-      '@nomicfoundation/ethereumjs-tx': 5.0.2
-      '@nomicfoundation/ethereumjs-util': 9.0.2
+      '@nomicfoundation/ethereumjs-block': 5.0.3
+      '@nomicfoundation/ethereumjs-blockchain': 7.0.3
+      '@nomicfoundation/ethereumjs-common': 4.0.3
+      '@nomicfoundation/ethereumjs-evm': 2.0.3
+      '@nomicfoundation/ethereumjs-rlp': 5.0.3
+      '@nomicfoundation/ethereumjs-statemanager': 2.0.3
+      '@nomicfoundation/ethereumjs-trie': 6.0.3
+      '@nomicfoundation/ethereumjs-tx': 5.0.3
+      '@nomicfoundation/ethereumjs-util': 9.0.3
       debug: 4.3.4(supports-color@8.1.1)
       ethereum-cryptography: 0.1.3
       mcl-wasm: 0.7.9
@@ -3249,6 +3348,40 @@ packages:
       - supports-color
       - utf-8-validate
     dev: false
+
+  /@open-rpc/meta-schema@1.14.2:
+    resolution: {integrity: sha512-vD4Nbkrb7wYFRcSQf+j228LwOy1C6/KKpy5NADlpMElGrAWPRxhTa2yTi6xG+x88OHzg2+cydQ0GAD6o40KUcg==}
+    dev: true
+
+  /@open-rpc/schema-utils-js@1.16.1:
+    resolution: {integrity: sha512-8D4OgBnHDAv7JeaYZ5v7SL4yR0YLLO4WLTWtdR8vmqSqvX3SvPzSsGYv06zqm9z1Lhm563MAcuearrc8g9eJ4w==}
+    dependencies:
+      '@json-schema-tools/dereferencer': 1.5.4
+      '@json-schema-tools/meta-schema': 1.6.19
+      '@json-schema-tools/reference-resolver': 1.2.4
+      '@open-rpc/meta-schema': 1.14.2
+      ajv: 6.12.6
+      detect-node: 2.1.0
+      fast-safe-stringify: 2.1.1
+      fs-extra: 9.1.0
+      is-url: 1.2.4
+      isomorphic-fetch: 3.0.0
+    transitivePeerDependencies:
+      - encoding
+    dev: true
+
+  /@open-rpc/typings@1.12.3:
+    resolution: {integrity: sha512-YxoC0WBMmxOAYNk9T6sFlOsy2H3YNnXJKFwkRb5GWg1ixOOEFm/3AYOciI/4Ieq08xNzjPhIz6XfC4u4fsmAWg==}
+    hasBin: true
+    dependencies:
+      '@json-schema-tools/titleizer': 1.0.8
+      '@json-schema-tools/transpiler': 1.10.3
+      '@open-rpc/schema-utils-js': 1.16.1
+      commander: 6.2.1
+      fs-extra: 10.1.0
+    transitivePeerDependencies:
+      - encoding
+    dev: true
 
   /@scure/base@1.1.3:
     resolution: {integrity: sha512-/+SgoRjLq7Xlf0CWuLHq2LUZeL/w65kfzAPG5NH9pcmBhs+nunQTn4gvdwgMTIXnt9b2C/1SeL2XiysZEyIC9Q==}
@@ -5091,6 +5224,11 @@ packages:
     resolution: {integrity: sha512-Gar0ASD4BDyKC4hl4DwHqDrmvjoxWKZigVnAbn5H1owvm4CxCPdb0HQDehwNYMJpla5+M2tPmPARzhtYuwpHow==}
     dev: false
 
+  /commander@6.2.1:
+    resolution: {integrity: sha512-U7VdrJFnJgo4xjrHpTzu0yrHPGImdsmD95ZlgYSEajAn2JKzDhDTPG9kBTefmObL2w/ngeZnilk+OV9CG3d7UA==}
+    engines: {node: '>= 6'}
+    dev: true
+
   /commondir@1.0.1:
     resolution: {integrity: sha512-W9pAhw0ja1Edb5GVdIF1mjZw/ASI0AlShXM83UUGe2DVr5TdAPEA1OA8m/g8zWp9x6On7gqufY+FatDbC3MDQg==}
     dev: true
@@ -5480,6 +5618,10 @@ packages:
     resolution: {integrity: sha512-UX6sGumvvqSaXgdKGUsgZWqcUyIXZ/vZTrlRT/iobiKhGL0zL4d3osHj3uqllWJK+i+sixDS/3COVEOFbupFyw==}
     engines: {node: '>=8'}
     dev: false
+
+  /detect-node@2.1.0:
+    resolution: {integrity: sha512-T0NIuQpnTvFDATNuHN5roPwSBG83rFsuO+MXXH9/3N1eFbn4wcPjttvjMLEPWJ0RGUYgQE7cGgS3tNxbqCGM7g==}
+    dev: true
 
   /detect-port@1.5.1:
     resolution: {integrity: sha512-aBzdj76lueB6uUst5iAs7+0H/oOjqI5D16XUWxlWMIMROhcM0rfsNVk93zTngq1dDNpoXRr++Sus7ETAExppAQ==}
@@ -6457,6 +6599,10 @@ packages:
   /fast-levenshtein@2.0.6:
     resolution: {integrity: sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==}
 
+  /fast-safe-stringify@2.1.1:
+    resolution: {integrity: sha512-W+KJc2dmILlPplD/H4K9l9LcAHAfPtP6BY84uVLXQ6Evcz9Lcg33Y2z1IVblT6xdY54PXYVHEv+0Wpq8Io6zkA==}
+    dev: true
+
   /fastq@1.15.0:
     resolution: {integrity: sha512-wBrocU2LCXXa+lWBt8RoIRD89Fi8OdABODa/kEnyeyjS5aZO5/GNvI5sEINADqP/h8M29UHTHUb53sUu5Ihqdw==}
     dependencies:
@@ -6649,6 +6795,15 @@ packages:
       path-is-absolute: 1.0.1
       rimraf: 2.7.1
     dev: false
+
+  /fs-extra@10.1.0:
+    resolution: {integrity: sha512-oRXApq54ETRj4eMiFzGnHWGy+zo5raudjuxN0b8H7s/RU2oW0Wvsx9O0ACRN/kRq9E8Vu/ReskGB5o3ji+FzHQ==}
+    engines: {node: '>=12'}
+    dependencies:
+      graceful-fs: 4.2.11
+      jsonfile: 6.1.0
+      universalify: 2.0.1
+    dev: true
 
   /fs-extra@4.0.3:
     resolution: {integrity: sha512-q6rbdDd1o2mAnQreO7YADIxf/Whx4AHBiRf6d+/cVT8h44ss+lHgxf1FemcqDnQt9X3ct4McHr+JMGlYSsK7Cg==}
@@ -7535,6 +7690,10 @@ packages:
     resolution: {integrity: sha512-knxG2q4UC3u8stRGyAVJCOdxFmv5DZiRcdlIaAQXAbSfJya+OhopNotLQrstBhququ4ZpuKbDc/8S6mgXgPFPw==}
     engines: {node: '>=10'}
 
+  /is-url@1.2.4:
+    resolution: {integrity: sha512-ITvGim8FhRiYe4IQ5uHSkj7pVaPDrCTkNd3yq3cV7iZAcJdHTUMPMEHcqSOy9xZ9qFenQCvi+2wjH9a1nXqHww==}
+    dev: true
+
   /is-weakref@1.0.2:
     resolution: {integrity: sha512-qctsuLZmIQ0+vSSMfoVvyFe2+GSEvnmZ2ezTup1SBse9+twCCeial6EEi3Nc2KFcf6+qz2FBPnjXsk8xhKSaPQ==}
     dependencies:
@@ -7565,6 +7724,15 @@ packages:
     resolution: {integrity: sha512-27fFRDnPAMnHGLq36bWTpKET+eiXct3ENlCcdcMdk+mjXrb2kw3mhBUg1B7ewAC0kVzlOPhADzQgz1SE6Tglog==}
     engines: {node: '>=10'}
     dev: false
+
+  /isomorphic-fetch@3.0.0:
+    resolution: {integrity: sha512-qvUtwJ3j6qwsF3jLxkZ72qCgjMysPzDfeV240JHiGZsANBYd+EEuu35v7dfrJ9Up0Ak07D7GGSkGhCHTqg/5wA==}
+    dependencies:
+      node-fetch: 2.7.0
+      whatwg-fetch: 3.6.19
+    transitivePeerDependencies:
+      - encoding
+    dev: true
 
   /isomorphic-ws@5.0.0(ws@8.13.0):
     resolution: {integrity: sha512-muId7Zzn9ywDsyXgTIafTry2sV3nySZeUDe6YedVd1Hvuuep5AsIlqK+XefWpYTyJG5e503F2xIuT2lcU6rCSw==}
@@ -7910,6 +8078,10 @@ packages:
     resolution: {integrity: sha512-H5ZhCF25riFd9uB5UCkVKo61m3S/xZk1x4wA6yp/L3RFP6Z/eHH1ymQcGLo7J3GMPfm0V/7m1tryHuGVxpqEBQ==}
     dev: false
 
+  /lodash.deburr@4.1.0:
+    resolution: {integrity: sha512-m/M1U1f3ddMCs6Hq2tAsYThTBDaAKFDX3dwDo97GEYzamXi9SqUpjWi/Rrj/gf3X2n8ktwgZrlP1z6E3v/IExQ==}
+    dev: true
+
   /lodash.escaperegexp@4.1.2:
     resolution: {integrity: sha512-TM9YBvyC84ZxE3rgfefxUWiQKLilstD6k7PTGt6wfbtXF8ixIJLOL3VYyV/z+ZiPLsVxAsKAFVwWlWeb2Y8Yyw==}
     dev: false
@@ -7937,6 +8109,10 @@ packages:
     resolution: {integrity: sha512-35L3dSF3Q6V1w5j6V3NhNlQjzsRDC/pYKCTdYTmwqSib+Q8ponkAmt/PwEOq3EmI38DSCl+SkIVwLd+uSlVdrg==}
     dev: false
 
+  /lodash.snakecase@4.1.1:
+    resolution: {integrity: sha512-QZ1d4xoBHYUeuouhEq3lk3Uq7ldgyFXGBhg04+oRLnIz8o9T65Eh+8YdroUwn846zchkA9yDsDl5CVVaV2nqYw==}
+    dev: true
+
   /lodash.startcase@4.4.0:
     resolution: {integrity: sha512-+WKqsK294HMSc2jEbNgpHpd0JfIBhp7rEV4aqXWqFr6AlXov+SlcgB1Fv01y2kGe3Gc8nMW7VA0SrGuSkRfIEg==}
     dev: true
@@ -7944,6 +8120,10 @@ packages:
   /lodash.sum@4.0.2:
     resolution: {integrity: sha512-1GcLFsMpU0K7uGPjo5FePq0fNlL3sSTZtSWwQUxr9VL8T3xeJiprwbfjDptTUPtkB8cUBpAnMtvQpju5XXaBeA==}
     dev: false
+
+  /lodash.trim@4.5.1:
+    resolution: {integrity: sha512-nJAlRl/K+eiOehWKDzoBVrSMhK0K3A3YQsUNXHQa5yIrKBAhsZgSu3KoAFoFT+mEgiyBHddZ0pRk1ITpIp90Wg==}
+    dev: true
 
   /lodash.truncate@4.4.2:
     resolution: {integrity: sha512-jttmRe7bRse52OsWIMDLaXxWqRAmtIUccAQ3garviCqJjafXOfNMO0yMfNpdD6zbGaTU0P5Nz7e7gAT6cKmJRw==}
@@ -10576,6 +10756,12 @@ packages:
     resolution: {integrity: sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==}
     dev: true
 
+  /typescript@4.5.5:
+    resolution: {integrity: sha512-TCTIul70LyWe6IJWT8QSYeA54WQe8EjQFU4wY52Fasj5UKx88LNYKCgBEHcOMOrFF1rKGbD8v/xcNWVUq9SymA==}
+    engines: {node: '>=4.2.0'}
+    hasBin: true
+    dev: true
+
   /typescript@5.0.4:
     resolution: {integrity: sha512-cW9T5W9xY37cc+jfEnaUvX91foxtHkza3Nw3wkoF4sSlKn0MONdkdEndig/qPBWXNkmplh3NzayQzCiHM4/hqw==}
     engines: {node: '>=12.20'}
@@ -11635,6 +11821,10 @@ packages:
       yaeti: 0.0.6
     transitivePeerDependencies:
       - supports-color
+
+  /whatwg-fetch@3.6.19:
+    resolution: {integrity: sha512-d67JP4dHSbm2TrpFj8AbO8DnL1JXL5J9u0Kq2xW6d0TFDbCA3Muhdt8orXC22utleTVj7Prqt82baN6RBvnEgw==}
+    dev: true
 
   /whatwg-url@5.0.0:
     resolution: {integrity: sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==}
