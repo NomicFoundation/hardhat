@@ -44,7 +44,7 @@ Generated file differs from the expected snapshot:
 ${generatedFilePath} should match ${snapshotPath}
 
 To update the snapshot, run:
-yarn snapshots:update
+pnpm snapshots:update
 
 ${diffLinesUnified(
   expectedSnapshotContent.split("\n"),
