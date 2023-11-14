@@ -26,7 +26,7 @@ jobs:
       - name: Install
         run: pnpm install --no-frozen-lockfile
       - name: List dependencies
-        run: pnpm list
+        run: pnpm list -r --depth 2
       - name: Run tests
         env:
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
