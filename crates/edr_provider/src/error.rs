@@ -31,7 +31,7 @@ pub enum ProviderError {
     /// Invalid initial date
     #[error("The initial date configuration value {0:?} is in the future")]
     InvalidInitialDate(SystemTime),
-    /// Invalid initial date
+    /// Invalid transaction index
     #[error("Transaction index '{0}' is too large")]
     InvalidTransactionIndex(U256),
     /// Invalid transaction request
