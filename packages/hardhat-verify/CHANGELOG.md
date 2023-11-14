@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 2.0.0
+
+### Major Changes
+
+- a32e68589: - Added Sourcify as a verification provider.
+
 ## 1.1.1
 
 ### Patch Changes

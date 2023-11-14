@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "2.18.1",
+  "version": "2.19.0",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "homepage": "https://hardhat.org",
@@ -23,21 +23,22 @@
     "hardhat": "internal/cli/bootstrap.js"
   },
   "scripts": {
-    "lint": "yarn prettier --check && yarn eslint",
-    "lint:fix": "yarn prettier --write && yarn eslint --fix",
+    "lint": "pnpm prettier --check && pnpm eslint",
+    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
-    "prebuild": "cd ../../crates/edr_napi && yarn build",
-    "prebuild:tracing": "cd ../../crates/edr_napi && yarn build:tracing",
-    "build": "tsc --build --force --incremental .",
-    "build:tracing": "tsc --build --force --incremental .",
-    "pretest": "cd ../.. && yarn build",
+    "pretest": "cd ../.. && pnpm build",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
     "test:except-provider": "mocha --recursive \"test/**/*.ts\" --exclude \"test/internal/hardhat-network/provider/**/*.ts\" --exit",
     "test:except-tracing": "mocha --recursive \"test/**/*.ts\" --exclude \"test/internal/hardhat-network/stack-traces/**/*.ts\" --exit",
     "test:provider": "mocha --recursive \"test/internal/hardhat-network/provider/**/*.ts\" --exit",
     "test:tracing": "mocha --recursive \"test/internal/hardhat-network/stack-traces/**/*.ts\" --exit",
-    "prepublishOnly": "yarn build",
+    "test:forking": "mocha --recursive \"test/internal/hardhat-network/{helpers,jsonrpc,provider}/**/*.ts\"",
+    "prebuild": "cd ../../crates/edr_napi && pnpm build",
+    "prebuild:tracing": "cd ../../crates/edr_napi && pnpm build:tracing",
+    "build": "tsc --build --force --incremental .",
+    "build:tracing": "tsc --build --force --incremental .",
+    "prepublishOnly": "pnpm build",
     "clean": "rimraf builtin-tasks internal types utils *.d.ts *.map *.js build-test tsconfig.tsbuildinfo test/internal/hardhat-network/provider/.hardhat_node_test_cache test/internal/hardhat-network/stack-traces/test-files/artifacts"
   },
   "files": [
@@ -58,8 +59,8 @@
     "console.sol"
   ],
   "devDependencies": {
-    "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "^1.0.0",
-    "@nomicfoundation/eslint-plugin-slow-imports": "^1.0.0",
+    "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
+    "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
     "@types/async-eventemitter": "^0.2.1",
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.2.0",
@@ -101,6 +102,7 @@
   },
   "dependencies": {
     "@ethersproject/abi": "^5.1.2",
+    "@ignored/edr": "workspace:^0.2.0-alpha.1",
     "@metamask/eth-sig-util": "^4.0.0",
     "@nomicfoundation/ethereumjs-block": "5.0.3",
     "@nomicfoundation/ethereumjs-blockchain": "7.0.3",
@@ -140,7 +142,6 @@
     "p-map": "^4.0.0",
     "raw-body": "^2.4.1",
     "resolve": "1.17.0",
-    "@ignored/edr": "^0.2.0-alpha.1",
     "semver": "^6.3.0",
     "solc": "0.7.3",
     "source-map-support": "^0.5.13",

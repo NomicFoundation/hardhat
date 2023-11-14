@@ -10,6 +10,11 @@ export interface ChainConfig {
 export interface EtherscanConfig {
   apiKey: ApiKey;
   customChains: ChainConfig[];
+  enabled: boolean;
+}
+
+export interface SourcifyConfig {
+  enabled: boolean;
 }
 
 export type ApiKey = string | Record<string, string>;

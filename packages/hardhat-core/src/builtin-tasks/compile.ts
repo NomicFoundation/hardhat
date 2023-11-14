@@ -580,25 +580,25 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
         compilersCache
       );
 
-      const isCompilerDownloaded = await downloader.isCompilerDownloaded(
-        solcVersion
+      await downloader.downloadCompiler(
+        solcVersion,
+        // callback called before compiler download
+        async (isCompilerDownloaded: boolean) => {
+          await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START, {
+            solcVersion,
+            isCompilerDownloaded,
+            quiet,
+          });
+        },
+        // callback called after compiler download
+        async (isCompilerDownloaded: boolean) => {
+          await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END, {
+            solcVersion,
+            isCompilerDownloaded,
+            quiet,
+          });
+        }
       );
-
-      if (!isCompilerDownloaded) {
-        await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START, {
-          solcVersion,
-          isCompilerDownloaded,
-          quiet,
-        });
-
-        await downloader.downloadCompiler(solcVersion);
-
-        await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END, {
-          solcVersion,
-          isCompilerDownloaded,
-          quiet,
-        });
-      }
 
       const compiler = await downloader.getCompiler(solcVersion);
 
@@ -615,24 +615,25 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
         compilersCache
       );
 
-      const isWasmCompilerDownloader =
-        await wasmDownloader.isCompilerDownloaded(solcVersion);
-
-      if (!isWasmCompilerDownloader) {
-        await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START, {
-          solcVersion,
-          isCompilerDownloaded,
-          quiet,
-        });
-
-        await wasmDownloader.downloadCompiler(solcVersion);
-
-        await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END, {
-          solcVersion,
-          isCompilerDownloaded,
-          quiet,
-        });
-      }
+      await wasmDownloader.downloadCompiler(
+        solcVersion,
+        async (isCompilerDownloaded: boolean) => {
+          // callback called before compiler download
+          await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START, {
+            solcVersion,
+            isCompilerDownloaded,
+            quiet,
+          });
+        },
+        // callback called after compiler download
+        async (isCompilerDownloaded: boolean) => {
+          await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END, {
+            solcVersion,
+            isCompilerDownloaded,
+            quiet,
+          });
+        }
+      );
 
       const wasmCompiler = await wasmDownloader.getCompiler(solcVersion);
 
