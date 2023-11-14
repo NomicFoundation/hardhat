@@ -39,7 +39,7 @@
     "prepublishOnly": "napi prepublish -t npm --skip-gh-release",
     "universal": "napi universal",
     "version": "napi version",
-    "test": "yarn tsc && mocha --recursive \"test/**/*.ts\" --exit",
+    "test": "pnpm tsc && mocha --recursive \"test/**/*.ts\" --exit",
     "clean": "rm -rf @ignored/edr.node"
   }
 }
