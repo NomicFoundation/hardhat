@@ -23,7 +23,8 @@ use edr_evm::{
     mine_block,
     state::{AccountModifierFn, AccountTrie, IrregularState, StateError, SyncState, TrieState},
     AccountInfo, Block, Bytecode, CfgEnv, HashMap, HashSet, MemPool, MineBlockResult,
-    MineBlockResultAndState, MineOrdering, PendingTransaction, RandomHashGenerator, KECCAK_EMPTY,
+    MineBlockResultAndState, MineOrdering, PendingTransaction, RandomHashGenerator, SyncBlock,
+    KECCAK_EMPTY,
 };
 use indexmap::IndexMap;
 use tokio::runtime;
@@ -121,6 +122,63 @@ impl ProviderData {
 
     pub async fn block_number(&self) -> u64 {
         self.blockchain.last_block_number().await
+    }
+
+    /// Fetch a block by block spec.
+    /// Returns `None` if the block spec is `pending`.
+    /// Returns `ProviderError::InvalidBlockSpec` if the block spec is a number
+    /// or a hash and the block isn't found.
+    pub async fn block_by_block_spec(
+        &self,
+        block_spec: &BlockSpec,
+    ) -> Result<Option<Arc<dyn SyncBlock<Error = BlockchainError>>>, ProviderError> {
+        let result = match block_spec {
+            BlockSpec::Number(block_number) => Some(
+                self.blockchain
+                    .block_by_number(*block_number)
+                    .await?
+                    .ok_or_else(|| ProviderError::InvalidBlockNumberOrHash(block_spec.clone()))?,
+            ),
+            BlockSpec::Tag(BlockTag::Earliest) => Some(
+                self.blockchain
+                    .block_by_number(0)
+                    .await?
+                    .expect("genesis block should always exist"),
+            ),
+            // Matching Hardhat behaviour by returning the last block for finalized and safe.
+            // https://github.com/NomicFoundation/hardhat/blob/b84baf2d9f5d3ea897c06e0ecd5e7084780d8b6c/packages/hardhat-core/src/internal/hardhat-network/provider/modules/eth.ts#L1395
+            BlockSpec::Tag(BlockTag::Finalized | BlockTag::Safe | BlockTag::Latest) => {
+                Some(self.blockchain.last_block().await?)
+            }
+            BlockSpec::Tag(BlockTag::Pending) => None,
+            BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
+                block_hash,
+                require_canonical: _,
+            }) => Some(
+                self.blockchain
+                    .block_by_hash(block_hash)
+                    .await?
+                    .ok_or_else(|| ProviderError::InvalidBlockNumberOrHash(block_spec.clone()))?,
+            ),
+            BlockSpec::Eip1898(Eip1898BlockSpec::Number { block_number }) => Some(
+                self.blockchain
+                    .block_by_number(*block_number)
+                    .await?
+                    .ok_or_else(|| ProviderError::InvalidBlockNumberOrHash(block_spec.clone()))?,
+            ),
+        };
+
+        Ok(result)
+    }
+
+    pub async fn block_by_hash(
+        &self,
+        block_hash: &B256,
+    ) -> Result<Option<Arc<dyn SyncBlock<Error = BlockchainError>>>, ProviderError> {
+        self.blockchain
+            .block_by_hash(block_hash)
+            .await
+            .map_err(ProviderError::Blockchain)
     }
 
     pub async fn chain_id(&self) -> u64 {
@@ -419,6 +477,10 @@ impl ProviderData {
         }
     }
 
+    pub fn spec_id(&self) -> SpecId {
+        self.blockchain.spec_id()
+    }
+
     pub fn stop_impersonating_account(&mut self, address: Address) -> bool {
         self.impersonated_accounts.remove(&address)
     }
@@ -445,22 +507,10 @@ impl ProviderData {
                 .expect("If the transaction was inserted in a block, it must have a receipt")
                 .transaction_index;
 
-            let tx_index_usize =
+            let tx_index =
                 usize::try_from(tx_index).expect("Indices cannot be larger than usize::MAX");
-            let signed_transaction = tx_block.transactions()[tx_index_usize].clone();
 
-            let block_metadata = BlockMetadataForTransaction {
-                base_fee_per_gas: tx_block.header().base_fee_per_gas,
-                block_hash: *tx_block.hash(),
-                block_number: tx_block.header().number,
-                transaction_index: tx_index,
-            };
-
-            Some(GetTransactionResult {
-                signed_transaction,
-                spec_id: self.blockchain.spec_id(),
-                block_metadata: Some(block_metadata),
-            })
+            transaction_from_block(&tx_block, tx_index, self.spec_id())
         } else {
             None
         };
@@ -553,7 +603,7 @@ impl ProviderData {
     }
 
     /// Mines a pending block, without modifying any values.
-    async fn mine_pending_block(
+    pub async fn mine_pending_block(
         &self,
     ) -> Result<MineBlockResultAndState<StateError>, ProviderError> {
         let (block_timestamp, _new_offset) = self.next_block_timestamp(None).await?;
@@ -657,43 +707,12 @@ impl ProviderData {
         block_spec: Option<&BlockSpec>,
     ) -> Result<Box<dyn SyncState<StateError>>, ProviderError> {
         let block = if let Some(block_spec) = block_spec {
-            match block_spec {
-                BlockSpec::Number(block_number) => self
-                    .blockchain
-                    .block_by_number(*block_number)
-                    .await?
-                    .ok_or(ProviderError::UnknownBlockNumber {
-                        block_number: *block_number,
-                    })?,
-                BlockSpec::Tag(BlockTag::Earliest) => self
-                    .blockchain
-                    .block_by_number(0)
-                    .await?
-                    .expect("genesis block should always exist"),
-                // Matching Hardhat behaviour by returning the last block for finalized and safe.
-                // https://github.com/NomicFoundation/hardhat/blob/b84baf2d9f5d3ea897c06e0ecd5e7084780d8b6c/packages/hardhat-core/src/internal/hardhat-network/provider/modules/eth.ts#L1395
-                BlockSpec::Tag(BlockTag::Finalized | BlockTag::Safe | BlockTag::Latest) => {
-                    self.blockchain.last_block().await?
-                }
-                BlockSpec::Tag(BlockTag::Pending) => {
-                    let result = self.mine_pending_block().await?;
-                    return Ok(result.state);
-                }
-                BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
-                    block_hash,
-                    require_canonical: _,
-                }) => self.blockchain.block_by_hash(block_hash).await?.ok_or(
-                    ProviderError::UnknownBlockHash {
-                        block_hash: *block_hash,
-                    },
-                )?,
-                BlockSpec::Eip1898(Eip1898BlockSpec::Number { block_number }) => self
-                    .blockchain
-                    .block_by_number(*block_number)
-                    .await?
-                    .ok_or(ProviderError::UnknownBlockNumber {
-                        block_number: *block_number,
-                    })?,
+            if let Some(block) = self.block_by_block_spec(block_spec).await? {
+                block
+            } else {
+                // Block spec is pending
+                let result = self.mine_pending_block().await?;
+                return Ok(result.state);
             }
         } else {
             self.blockchain.last_block().await?
@@ -715,6 +734,27 @@ impl ProviderData {
 
         Ok(contextual_state)
     }
+}
+
+pub fn transaction_from_block(
+    block: &Arc<dyn SyncBlock<Error = BlockchainError>>,
+    index: usize,
+    spec_id: SpecId,
+) -> Option<GetTransactionResult> {
+    block.transactions().get(index).map(|tx| {
+        let block_metadata = BlockMetadataForTransaction {
+            base_fee_per_gas: block.header().base_fee_per_gas,
+            block_hash: *block.hash(),
+            block_number: block.header().number,
+            transaction_index: index.try_into().expect("usize fits into u64"),
+        };
+
+        GetTransactionResult {
+            signed_transaction: tx.clone(),
+            spec_id,
+            block_metadata: Some(block_metadata),
+        }
+    })
 }
 
 fn block_time_offset_seconds(config: &ProviderConfig) -> Result<u64, CreationError> {
@@ -961,6 +1001,65 @@ mod tests {
         let transaction = fixture.impersonated_dummy_transaction()?;
 
         test_add_pending_transaction(&mut fixture, transaction)
+    }
+
+    #[tokio::test]
+    async fn block_by_block_spec_earliest() -> anyhow::Result<()> {
+        let fixture = ProviderTestFixture::new().await?;
+
+        let block_spec = BlockSpec::Tag(BlockTag::Earliest);
+
+        let block = fixture
+            .provider_data
+            .block_by_block_spec(&block_spec)
+            .await?
+            .context("block should exist")?;
+
+        assert_eq!(block.header().number, 0);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn block_by_block_spec_finalized_safe_latest() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new().await?;
+
+        // Mine a block to make sure we're not getting the genesis block
+        fixture.provider_data.mine_and_commit_block(None).await?;
+        let last_block_number = fixture.provider_data.block_number().await;
+        // Sanity check
+        assert!(last_block_number > 0);
+
+        let block_tags = vec![BlockTag::Finalized, BlockTag::Safe, BlockTag::Latest];
+        for tag in block_tags {
+            let block_spec = BlockSpec::Tag(tag);
+
+            let block = fixture
+                .provider_data
+                .block_by_block_spec(&block_spec)
+                .await?
+                .context("block should exist")?;
+
+            assert_eq!(block.header().number, last_block_number);
+        }
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn block_by_block_spec_pending() -> anyhow::Result<()> {
+        let fixture = ProviderTestFixture::new().await?;
+
+        let block_spec = BlockSpec::Tag(BlockTag::Pending);
+
+        let block = fixture
+            .provider_data
+            .block_by_block_spec(&block_spec)
+            .await?;
+
+        assert!(block.is_none());
+
+        Ok(())
     }
 
     #[tokio::test]
