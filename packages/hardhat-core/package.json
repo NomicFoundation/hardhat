@@ -33,7 +33,6 @@
     "test:except-tracing": "mocha --recursive \"test/**/*.ts\" --exclude \"test/internal/hardhat-network/stack-traces/**/*.ts\" --exit",
     "test:provider": "mocha --recursive \"test/internal/hardhat-network/provider/**/*.ts\" --exit",
     "test:tracing": "mocha --recursive \"test/internal/hardhat-network/stack-traces/**/*.ts\" --exit",
-    "test:forking": "mocha --recursive \"test/internal/hardhat-network/{helpers,jsonrpc,provider}/**/*.ts\"",
     "prebuild": "cd ../../crates/edr_napi && pnpm build",
     "prebuild:tracing": "cd ../../crates/edr_napi && pnpm build:tracing",
     "build": "tsc --build --force --incremental .",
