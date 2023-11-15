@@ -4,7 +4,7 @@ use crate::{
     remote::{
         eth::eip712,
         filter::{FilterOptions, SubscriptionType},
-        BlockSpec,
+        BlockSpec, PreEip1898BlockSpec,
     },
     serde::{
         optional_single_to_sequence, sequence_to_optional_single, sequence_to_single,
@@ -180,8 +180,10 @@ pub enum MethodInvocation {
     #[serde(rename = "eth_getTransactionByBlockHashAndIndex")]
     GetTransactionByBlockHashAndIndex(B256, U256),
     /// eth_getTransactionByBlockNumberAndIndex
+    // Matching Hardhat behavior in not accepting EIP-1898 block tags
+    // https://github.com/NomicFoundation/hardhat/blob/06474681f72e1cd895abbec419f6f10be3d8e4ed/packages/hardhat-core/src/internal/hardhat-network/provider/modules/eth.ts#L775
     #[serde(rename = "eth_getTransactionByBlockNumberAndIndex")]
-    GetTransactionByBlockNumberAndIndex(U256, U256),
+    GetTransactionByBlockNumberAndIndex(PreEip1898BlockSpec, U256),
     /// eth_getTransactionByHash
     #[serde(
         rename = "eth_getTransactionByHash",

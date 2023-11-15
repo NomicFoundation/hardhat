@@ -1,16 +1,66 @@
+use std::sync::Arc;
+
 use edr_eth::{
     remote,
+    remote::PreEip1898BlockSpec,
     serde::ZeroXPrefixedBytes,
     transaction::{EthTransactionRequest, SignedTransaction},
     SpecId, B256, U256,
 };
+use edr_evm::{blockchain::BlockchainError, SyncBlock};
 
 use crate::{
-    data::{BlockMetadataForTransaction, GetTransactionResult, ProviderData},
+    data::{
+        transaction_from_block, BlockMetadataForTransaction, GetTransactionResult, ProviderData,
+    },
     ProviderError,
 };
 
 const FIRST_HARDFORK_WITH_TRANSACTION_TYPE: SpecId = SpecId::BERLIN;
+
+pub async fn handle_get_transaction_by_block_hash_and_index(
+    data: &ProviderData,
+    block_hash: B256,
+    index: U256,
+) -> Result<Option<remote::eth::Transaction>, ProviderError> {
+    let index = rpc_index_to_usize(&index)?;
+
+    data.block_by_hash(&block_hash)
+        .await?
+        .and_then(|block| transaction_from_block(&block, index, data.spec_id()))
+        .map(get_transaction_result_to_rpc_result)
+        .transpose()
+}
+
+pub async fn handle_get_transaction_by_block_spec_and_index(
+    data: &ProviderData,
+    block_spec: PreEip1898BlockSpec,
+    index: U256,
+) -> Result<Option<remote::eth::Transaction>, ProviderError> {
+    let index = rpc_index_to_usize(&index)?;
+
+    match data.block_by_block_spec(&block_spec.into()).await {
+        Ok(Some(block)) => Some(block),
+        // Pending block requested
+        Ok(None) => {
+            let result = data.mine_pending_block().await?;
+            let block: Arc<dyn SyncBlock<Error = BlockchainError>> = Arc::new(result.block);
+            Some(block)
+        }
+        // Matching Hardhat behavior in returning None for invalid block hash or number.
+        Err(ProviderError::InvalidBlockNumberOrHash(_)) => None,
+        Err(err) => return Err(err),
+    }
+    .and_then(|block| transaction_from_block(&block, index, data.spec_id()))
+    .map(get_transaction_result_to_rpc_result)
+    .transpose()
+}
+
+fn rpc_index_to_usize(index: &U256) -> Result<usize, ProviderError> {
+    index
+        .try_into()
+        .map_err(|_err| ProviderError::InvalidTransactionIndex(*index))
+}
 
 pub async fn handle_get_transaction_by_hash(
     data: &ProviderData,
