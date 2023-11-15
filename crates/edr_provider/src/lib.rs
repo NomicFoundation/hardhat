@@ -246,7 +246,9 @@ fn handle_hardhat_request(
         rpc_hardhat::Request::SetCode(address, code) => {
             hardhat::handle_set_code(data, address, code).and_then(to_json)
         }
-        rpc_hardhat::Request::SetCoinbase(_) => Err(ProviderError::Unimplemented("".to_string())),
+        rpc_hardhat::Request::SetCoinbase(coinbase) => {
+            hardhat::handle_set_coinbase_request(data, coinbase).and_then(to_json)
+        }
         rpc_hardhat::Request::SetLoggingEnabled(_) => {
             Err(ProviderError::Unimplemented("".to_string()))
         }

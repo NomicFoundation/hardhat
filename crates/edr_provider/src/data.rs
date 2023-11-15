@@ -401,6 +401,10 @@ impl ProviderData {
 
         Ok(())
     }
+    /// Sets the coinbase.
+    pub fn set_coinbase(&mut self, coinbase: Address) {
+        self.beneficiary = coinbase;
+    }
 
     /// Set the next block timestamp.
     pub fn set_next_block_timestamp(&mut self, timestamp: u64) -> Result<u64, ProviderError> {
