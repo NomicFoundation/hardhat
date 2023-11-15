@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "preinstall": "npx -y only-allow pnpm",
     "prebuild": "ts-node --transpileOnly --skipProject scripts/prepare-error-list.ts",
     "dev": "next-remote-watch ./src/content",
     "dev:debug": "NODE_OPTIONS='--inspect' next dev",
