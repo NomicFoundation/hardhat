@@ -368,7 +368,7 @@ function mergeLibraries(
       ) {
         const detectedAddress = detectedLibraries[sourceName][libraryName];
         // Our detection logic encodes bytes into lowercase hex.
-        if (libraryAddress.toLowerCase() !== detectedAddress) {
+        if (libraryAddress.toLowerCase() !== detectedAddress.toLowerCase()) {
           conflicts.push({
             library: `${sourceName}:${libraryName}`,
             detectedAddress,

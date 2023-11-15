@@ -111,7 +111,7 @@ Reason: ${parent.message}`,
 export class HardhatNetworkNotSupportedError extends HardhatVerifyError {
   constructor() {
     super(
-      `The selected network is "hardhat", which is not supported for contract verification. Please choose a network supported by Etherscan.
+      `The selected network is "hardhat", which is not supported for contract verification.
 
 If you intended to use a different network, ensure that you provide the --network parameter when running the command.
 
@@ -132,17 +132,6 @@ To see the list of supported networks, run this command:
   }
 }
 
-export class ContractVerificationRequestError extends HardhatVerifyError {
-  constructor(url: string, parent: Error) {
-    super(
-      `Failed to send contract verification request.
-Endpoint URL: ${url}
-Reason: ${parent.message}`,
-      parent
-    );
-  }
-}
-
 export class ContractVerificationInvalidStatusCodeError extends HardhatVerifyError {
   constructor(url: string, statusCode: number, responseText: string) {
     super(`Failed to send contract verification request.
@@ -159,18 +148,6 @@ Reason: The Etherscan API responded that the address ${contractAddress} does not
 This can happen if the contract was recently deployed and this fact hasn't propagated to the backend yet.
 Try waiting for a minute before verifying your contract. If you are invoking this from a script,
 try to wait for five confirmations of your contract deployment transaction before running the verification subtask.`);
-  }
-}
-
-export class ContractStatusPollingError extends HardhatVerifyError {
-  constructor(url: string, parent: Error) {
-    super(
-      `Failure during etherscan status polling. The verification may still succeed but
-should be checked manually.
-Endpoint URL: ${url}
-Reason: ${parent.message}`,
-      parent
-    );
   }
 }
 
@@ -450,6 +427,19 @@ export class VerificationAPIUnexpectedMessageError extends HardhatVerifyError {
 Please report this issue to the Hardhat team.
 Contract verification may have succeeded and should be checked manually.
 Message: ${message}`);
+  }
+}
+
+export class UnexpectedError extends HardhatVerifyError {
+  constructor(e: unknown, functionName: string) {
+    const defaultErrorDetails = `Unexpected error in ${functionName}`;
+    const errorDetails =
+      e instanceof Error
+        ? e.message ?? defaultErrorDetails
+        : defaultErrorDetails;
+    super(`An unexpected error occurred during the verification process.
+Please report this issue to the Hardhat team.
+Error Details: ${errorDetails}`);
   }
 }
 

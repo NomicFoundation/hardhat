@@ -79,11 +79,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - name: Install Node
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
-          cache: yarn
+          cache: pnpm
 
       - name: Install Rust (stable)
         uses: actions-rs/toolchain@v1
@@ -94,17 +97,17 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Install package
-        run: yarn --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Cache network requests
         uses: actions/cache@v2
         with:
           path: |
             packages/hardhat-core/test/internal/hardhat-network/provider/.hardhat_node_test_cache
-          key: hardhat-network-forking-tests-${{ hashFiles('yarn.lock') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/provider/node.ts') }}
+          key: hardhat-network-forking-tests-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/hardhat-core/test/internal/hardhat-network/provider/node.ts') }}
 
       - name: Build
-        run: yarn build
+        run: pnpm build
 
       - name: Run tests
         env:
@@ -113,7 +116,7 @@ jobs:
           HARDHAT_EXPERIMENTAL_VM_MODE: ${{ matrix.vm }}
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
-        run: yarn test:except-provider
+        run: pnpm test:except-provider
 
   test-provider:
     name: Test provider (${{ matrix.os }}, Node ${{ matrix.node }}, ${{ matrix.vm }})
@@ -130,11 +133,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - name: Install Node
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
-          cache: yarn
+          cache: pnpm
 
       - name: Install Rust (stable)
         uses: actions-rs/toolchain@v1
@@ -145,7 +151,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Install package
-        run: yarn --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Cache stack trace artifacts
         uses: actions/cache@v2
@@ -162,7 +168,7 @@ jobs:
           key: hardhat-network-edr-cache
 
       - name: Build
-        run: yarn build
+        run: pnpm build
 
       - name: Run tests
         env:
@@ -171,7 +177,7 @@ jobs:
           HARDHAT_EXPERIMENTAL_VM_MODE: ${{ matrix.vm }}
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
-        run: yarn test:provider
+        run: pnpm test:provider
 
   test-edr-js:
     name: Test EDR bindings (${{ matrix.os }}, Node ${{ matrix.node }})
@@ -192,13 +198,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
-          cache: yarn
+          cache: pnpm
 
       - name: Install node dependencies
-        run: yarn --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Install Rust (stable)
         uses: actions-rs/toolchain@v1
@@ -210,10 +219,10 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Build
-        run: yarn build
+        run: pnpm build
 
       - name: Test
-        run: yarn test
+        run: pnpm test
 
   test-edr-rs:
     name: Test EDR (${{ matrix.os }})
@@ -340,18 +349,21 @@ jobs:
         node: [18, 20]
     steps:
       - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
-          cache: yarn
+          cache: pnpm
       - name: Install
-        run: yarn --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Install @types/node
-        run: yarn add --dev @types/node@${{ matrix.node }}
+        run: pnpm add --save-dev @types/node@${{ matrix.node }}
       - name: Build
-        run: yarn build
+        run: pnpm build
       - name: Run tests
         env:
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
-        run: yarn test:except-tracing
+        run: pnpm test:except-tracing

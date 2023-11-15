@@ -5,7 +5,7 @@ use edr_eth::{
             FilterBlockTarget, FilterOptions, LogOutput, OneOrMoreAddresses, SubscriptionType,
         },
         methods::{GetLogsInput, MethodInvocation, OneUsizeOrTwo, TransactionInput, U64OrUsize},
-        BlockSpec, BlockTag,
+        BlockSpec, BlockTag, PreEip1898BlockSpec,
     },
     transaction::EthTransactionRequest,
     Address, B256, U256, U64,
@@ -222,7 +222,7 @@ fn test_serde_eth_get_tx_by_block_hash_and_index() {
 #[test]
 fn test_serde_eth_get_tx_by_block_number_and_index() {
     help_test_method_invocation_serde(MethodInvocation::GetTransactionByBlockNumberAndIndex(
-        U256::from(100),
+        PreEip1898BlockSpec::Number(100),
         U256::from(1),
     ));
 }
