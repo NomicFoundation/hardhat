@@ -136,6 +136,25 @@ impl Display for BlockSpec {
     }
 }
 
+/// A block spec without EIP-1898 support.
+#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
+pub enum PreEip1898BlockSpec {
+    /// as a block number
+    Number(#[serde(with = "crate::serde::u64")] u64),
+    /// as a block tag (eg "latest")
+    Tag(BlockTag),
+}
+
+impl From<PreEip1898BlockSpec> for BlockSpec {
+    fn from(value: PreEip1898BlockSpec) -> Self {
+        match value {
+            PreEip1898BlockSpec::Number(block_number) => BlockSpec::Number(block_number),
+            PreEip1898BlockSpec::Tag(block_tag) => BlockSpec::Tag(block_tag),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
