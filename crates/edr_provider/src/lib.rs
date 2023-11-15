@@ -262,7 +262,9 @@ fn handle_hardhat_request(
         rpc_hardhat::Request::SetNonce(address, nonce) => {
             hardhat::handle_set_nonce(data, address, nonce).and_then(to_json)
         }
-        rpc_hardhat::Request::SetPrevRandao(_) => Err(ProviderError::Unimplemented("".to_string())),
+        rpc_hardhat::Request::SetPrevRandao(prev_randao) => {
+            hardhat::handle_set_prev_randao_request(data, prev_randao).and_then(to_json)
+        }
         rpc_hardhat::Request::SetStorageAt(address, index, value) => {
             hardhat::handle_set_storage_at(data, address, index, value).and_then(to_json)
         }

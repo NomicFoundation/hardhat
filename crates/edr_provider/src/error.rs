@@ -73,6 +73,6 @@ pub enum ProviderError {
     #[error("{address} is not owned by this node")]
     UnknownAddress { address: Address },
     /// Minimum required hardfork not met
-    #[error("Hardfork {minimum:?} not met, actual hardfork is {actual:?}")]
+    #[error("Feature is only available in post-{minimum:?} hardforks, the current hardfork is {actual:?}")]
     UnmetHardfork { actual: SpecId, minimum: SpecId },
 }

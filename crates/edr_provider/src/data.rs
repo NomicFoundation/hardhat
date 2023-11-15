@@ -439,6 +439,11 @@ impl ProviderData {
         }
     }
 
+    /// Sets the next block's prevrandao.
+    pub fn set_next_prev_randao(&mut self, prev_randao: B256) {
+        self.prevrandao_generator.set_next(prev_randao);
+    }
+
     pub fn set_nonce(&mut self, address: Address, nonce: u64) -> Result<(), ProviderError> {
         self.state.modify_account(
             address,

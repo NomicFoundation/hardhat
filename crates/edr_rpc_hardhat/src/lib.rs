@@ -118,7 +118,7 @@ pub enum Request {
         serialize_with = "single_to_sequence",
         deserialize_with = "sequence_to_single"
     )]
-    SetPrevRandao(ZeroXPrefixedBytes),
+    SetPrevRandao(B256),
     /// hardhat_setStorageAt
     #[serde(rename = "hardhat_setStorageAt")]
     SetStorageAt(Address, U256, U256),

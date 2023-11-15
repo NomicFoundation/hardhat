@@ -149,9 +149,7 @@ fn serde_hardhat_set_nonce() {
 
 #[test]
 fn serde_hardhat_set_prev_randao() {
-    help_test_method_invocation_serde(edr_rpc_hardhat::Request::SetPrevRandao(
-        Bytes::from(&b"whatever"[..]).into(),
-    ));
+    help_test_method_invocation_serde(edr_rpc_hardhat::Request::SetPrevRandao(B256::random()));
 }
 
 #[test]
