@@ -6,6 +6,7 @@ use std::{
 };
 
 use edr_eth::{
+    receipt::BlockReceipt,
     remote::{
         filter::{FilteredEvents, LogOutput, SubscriptionType},
         BlockSpec, BlockTag, Eip1898BlockSpec, RpcClient,
@@ -333,6 +334,16 @@ impl ProviderData {
 
     pub fn remove_subscription(&mut self, filter_id: &U256) -> bool {
         self.remove_filter_impl::</* IS_SUBSCRIPTION */ true>(filter_id)
+    }
+
+    pub async fn transaction_receipt(
+        &self,
+        transaction_hash: &B256,
+    ) -> Result<Option<Arc<BlockReceipt>>, ProviderError> {
+        self.blockchain
+            .receipt_by_transaction_hash(transaction_hash)
+            .await
+            .map_err(ProviderError::Blockchain)
     }
 
     pub fn send_transaction(
