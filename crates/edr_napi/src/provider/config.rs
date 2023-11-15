@@ -79,7 +79,11 @@ impl TryFrom<ProviderConfig> for edr_provider::ProviderConfig {
             allow_blocks_with_same_timestamp: value.allow_blocks_with_same_timestamp,
             allow_unlimited_contract_size: value.allow_unlimited_contract_size,
             block_gas_limit: value.block_gas_limit.try_cast()?,
-            cache_dir: PathBuf::from(value.cache_dir.unwrap_or(String::from(edr_defaults::CACHE_DIR))),
+            cache_dir: PathBuf::from(
+                value
+                    .cache_dir
+                    .unwrap_or(String::from(edr_defaults::CACHE_DIR)),
+            ),
             chain_id: value.chain_id.try_cast()?,
             coinbase: Address::from_slice(value.coinbase.as_ref()),
             fork: value.fork.map(TryInto::try_into).transpose()?,
