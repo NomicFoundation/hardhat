@@ -29,35 +29,35 @@ jobs:
           - host: macos-latest
             target: x86_64-apple-darwin
             build: |
-              yarn build
+              pnpm build
               strip -x *.node
           - host: windows-latest
-            build: yarn build
+            build: pnpm build
             target: x86_64-pc-windows-msvc
           - host: windows-latest
             build: |
-              yarn build --target i686-pc-windows-msvc
-              yarn test
+              pnpm build --target i686-pc-windows-msvc
+              pnpm test
             target: i686-pc-windows-msvc
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
             build: |-
               set -e &&
-              yarn build --target x86_64-unknown-linux-gnu &&
+              pnpm run build --target x86_64-unknown-linux-gnu &&
               strip *.node
           - host: ubuntu-latest
             target: x86_64-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
             build: |-
               apk add perl;
-              set -e && 
-              yarn build && 
+              set -e &&
+              pnpm run build &&
               strip *.node
           - host: macos-latest
             target: aarch64-apple-darwin
             build: |
-              yarn build --target aarch64-apple-darwin
+              pnpm build --target aarch64-apple-darwin
               strip -x *.node
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
@@ -71,7 +71,7 @@ jobs:
               export LDFLAGS="-L/usr/aarch64-unknown-linux-gnu/lib/gcc/aarch64-unknown-linux-gnu/4.8.5" &&
               export CFLAGS="-fuse-ld=lld -mcrc -B/usr/aarch64-unknown-linux-gnu/lib/gcc/aarch64-unknown-linux-gnu/4.8.5 --sysroot=/usr/aarch64-unknown-linux-gnu/aarch64-unknown-linux-gnu/sysroot" &&
               export CXXFLAGS="-fuse-ld=lld -mcrc -B/usr/aarch64-unknown-linux-gnu/lib/gcc/aarch64-unknown-linux-gnu/4.8.5 --sysroot=/usr/aarch64-unknown-linux-gnu/aarch64-unknown-linux-gnu/sysroot" &&
-              yarn build --target aarch64-unknown-linux-gnu &&
+              pnpm run build --target aarch64-unknown-linux-gnu &&
               aarch64-unknown-linux-gnu-strip *.node
           - host: ubuntu-latest
             target: aarch64-unknown-linux-musl
@@ -80,11 +80,11 @@ jobs:
               apk add perl;
               set -e &&
               rustup target add aarch64-unknown-linux-musl &&
-              yarn build --target aarch64-unknown-linux-musl &&
+              pnpm run build --target aarch64-unknown-linux-musl &&
               /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
           - host: windows-latest
             target: aarch64-pc-windows-msvc
-            build: yarn build --target aarch64-pc-windows-msvc
+            build: pnpm build --target aarch64-pc-windows-msvc
     name: stable - ${{ matrix.settings.target }} - node@18
     runs-on: ${{ matrix.settings.host }}
     defaults:
@@ -92,13 +92,16 @@ jobs:
         working-directory: ./crates/edr_napi
     steps:
       - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - name: Setup node
         uses: actions/setup-node@v3
         if: ${{ !matrix.settings.docker }}
         with:
           node-version: 18
           check-latest: true
-          cache: yarn
+          cache: pnpm
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         if: ${{ !matrix.settings.docker }}
@@ -127,17 +130,17 @@ jobs:
           version: 0.10.1
       - name: Setup node x86
         if: matrix.settings.target == 'i686-pc-windows-msvc'
-        run: yarn config set supportedArchitectures.cpu "ia32"
+        run: pnpm config set supportedArchitectures.cpu "ia32"
         shell: bash
       - name: Install dependencies
-        run: yarn install
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Setup node x86
         uses: actions/setup-node@v3
         if: matrix.settings.target == 'i686-pc-windows-msvc'
         with:
           node-version: 18
           check-latest: true
-          cache: yarn
+          cache: pnpm
           architecture: x86
       - name: Build in docker
         uses: addnab/docker-run-action@v3
@@ -179,14 +182,17 @@ jobs:
         working-directory: ./crates/edr_napi
     steps:
       - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - name: Setup node
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
-          cache: yarn
+          cache: pnpm
       - name: Install dependencies
-        run: yarn install
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
@@ -196,7 +202,7 @@ jobs:
         run: ls -R .
         shell: bash
       - name: Test bindings
-        run: yarn test
+        run: pnpm test
   test-linux-x64-gnu-binding:
     name: Test bindings on Linux-x64-gnu - node@${{ matrix.node }}
     needs:
@@ -210,14 +216,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - name: Setup node
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
-          cache: yarn
+          cache: pnpm
       - name: Install dependencies
-        run: yarn install
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
@@ -227,7 +236,7 @@ jobs:
         run: ls -R .
         shell: bash
       - name: Test bindings
-        run: docker run --rm -v $(pwd):/build -w /build/crates/edr_napi node:${{ matrix.node }}-slim yarn test
+        run: docker run --rm -v $(pwd):/build -w /build/crates/edr_napi node:${{ matrix.node }} bash -c "wget -qO- 'https://unpkg.com/@pnpm/self-installer' | node; pnpm test"
   test-linux-x64-musl-binding:
     name: Test bindings on x86_64-unknown-linux-musl - node@${{ matrix.node }}
     needs:
@@ -241,16 +250,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - name: Setup node
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
           check-latest: true
-          cache: yarn
+          cache: pnpm
       - name: Install dependencies
         run: |
-          yarn config set supportedArchitectures.libc "musl"
-          yarn install
+          pnpm config set supportedArchitectures.libc "musl"
+          pnpm install --frozen-lockfile --prefer-offline
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
@@ -260,7 +272,7 @@ jobs:
         run: ls -R .
         shell: bash
       - name: Test bindings
-        run: docker run --rm -v $(pwd):/build -w /build/crates/edr_napi node:${{ matrix.node }}-alpine yarn test
+        run: docker run --rm -v $(pwd):/build -w /build/crates/edr_napi node:${{ matrix.node }}-alpine sh -c "wget -qO- 'https://unpkg.com/@pnpm/self-installer' | node; pnpm test"
   test-linux-aarch64-gnu-binding:
     name: Test bindings on aarch64-unknown-linux-gnu - node@${{ matrix.node }}
     needs:
@@ -274,6 +286,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
@@ -284,9 +299,9 @@ jobs:
         shell: bash
       - name: Install dependencies
         run: |
-          yarn config set supportedArchitectures.cpu "arm64"
-          yarn config set supportedArchitectures.libc "glibc"
-          yarn install
+          pnpm config set supportedArchitectures.cpu "arm64"
+          pnpm config set supportedArchitectures.libc "glibc"
+          pnpm install --frozen-lockfile --prefer-offline
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
         with:
@@ -295,11 +310,12 @@ jobs:
       - name: Setup and run tests
         uses: addnab/docker-run-action@v3
         with:
-          image: node:${{ matrix.node }}-slim
+          image: node:${{ matrix.node }}
           options: "--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build/crates/edr_napi"
           run: |
+            wget -qO- 'https://unpkg.com/@pnpm/self-installer' | node
             set -e
-            yarn test
+            pnpm test
             ls -la
   test-linux-aarch64-musl-binding:
     name: Test bindings on aarch64-unknown-linux-musl - node@lts
@@ -308,6 +324,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
@@ -318,9 +337,9 @@ jobs:
         shell: bash
       - name: Install dependencies
         run: |
-          yarn config set supportedArchitectures.cpu "arm64"
-          yarn config set supportedArchitectures.libc "musl"
-          yarn install
+          pnpm config set supportedArchitectures.cpu "arm64"
+          pnpm config set supportedArchitectures.libc "musl"
+          pnpm install --frozen-lockfile --prefer-offline
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
         with:
@@ -332,8 +351,9 @@ jobs:
           image: node:lts-alpine
           options: "--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build/crates/edr_napi"
           run: |
+            wget -qO- 'https://unpkg.com/@pnpm/self-installer' | node
             set -e
-            yarn test
+            pnpm test
   check_commit:
     name: Check commit
     runs-on: ubuntu-latest
@@ -373,35 +393,35 @@ jobs:
         working-directory: ./crates/edr_napi
     steps:
       - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - name: Setup node
         uses: actions/setup-node@v3
         with:
           node-version: 18
           check-latest: true
-          cache: yarn
+          cache: pnpm
       - name: Install dependencies
-        run: yarn install
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Download all artifacts
         uses: actions/download-artifact@v3
         with:
           path: ./crates/edr_napi/artifacts
       - name: Move artifacts
-        run: yarn artifacts
-      - name: List packages
-        run: ls -R ./npm
-        shell: bash
+        run: pnpm artifacts
       - name: Publish
         run: |
           if git log -1 --pretty=%B | grep "^edr-[0-9]\+\.[0-9]\+\.[0-9]\+$";
           then
             echo "Publishing release"
             echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-            npm publish --provenance --access public
+            pnpm publish --provenance --access public
           elif git log -1 --pretty=%B | grep "^edr-[0-9]\+\.[0-9]\+\.[0-9]\+";
           then
             echo "Publishing pre-release"
             echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-            npm publish --provenance --tag next --access public
+            pnpm publish --provenance --tag next --access public
           else
             echo "Not a release, skipping publish"
           fi

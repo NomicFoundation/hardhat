@@ -845,6 +845,24 @@ const communityPlugins: IPlugin[] = [
     description: "Hardhat plugin to deeply compare smart contracts",
     tags: ["Storage Layout", "Bytecode", "Diff", "Compare"],
   },
+  {
+    name: "hardhat-logger",
+    author: "kruglay",
+    npmPackage: "hardhat-logger",
+    authorUrl: "https://github.com/kruglay/hardhat-logger",
+    description:
+      "Show transaction params before hardhat send transaction to network",
+    tags: ["log", "logger", "transaction"],
+  },
+  {
+    name: "hardhat-contract-signatures",
+    author: "Axel Loupias",
+    npmPackage: "hardhat-contract-signatures",
+    authorUrl: "https://github.com/AxelLoupias",
+    description:
+      "Display different signatures that have the methods, events and errors of your contracts by console",
+    tags: ["functions", "errors", "events", "tooling", "selectorss"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [

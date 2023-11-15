@@ -11,6 +11,7 @@ import {
   ABIArgumentTypeError,
   EtherscanVersionNotSupportedError,
   ExclusiveConstructorArgumentsError,
+  HardhatVerifyError,
   ImportingModuleError,
   InvalidConstructorArgumentsModuleError,
   InvalidLibrariesModuleError,
@@ -75,6 +76,45 @@ ${customNetworksTable}
 To learn how to add custom networks, follow these instructions: https://hardhat.org/verify-custom-networks
 `.trimStart()
   );
+}
+
+/**
+ * Prints verification errors to the console.
+ * @param errors - An object containing verification errors, where the keys
+ * are the names of verification subtasks and the values are HardhatVerifyError
+ * objects describing the specific errors.
+ * @remarks This function formats and logs the verification errors to the
+ * console with a red color using chalk. Each error is displayed along with the
+ * name of the verification provider it belongs to.
+ * @example
+ * const errors: Record<string, HardhatVerifyError> = {
+ *   verify:etherscan: { message: 'Error message for Etherscan' },
+ *   verify:sourcify: { message: 'Error message for Sourcify' },
+ *   // Add more errors here...
+ * };
+ * printVerificationErrors(errors);
+ * // Output:
+ * // hardhat-verify found one or more errors during the verification process:
+ * //
+ * // Etherscan:
+ * // Error message for Etherscan
+ * //
+ * // Sourcify:
+ * // Error message for Sourcify
+ * //
+ * // ... (more errors if present)
+ */
+export function printVerificationErrors(
+  errors: Record<string, HardhatVerifyError>
+) {
+  let errorMessage =
+    "hardhat-verify found one or more errors during the verification process:\n\n";
+
+  for (const [subtaskLabel, error] of Object.entries(errors)) {
+    errorMessage += `${subtaskLabel}:\n${error.message}\n\n`;
+  }
+
+  console.error(chalk.red(errorMessage));
 }
 
 /**
@@ -207,4 +247,11 @@ export async function encodeArguments(
   }
 
   return encodedConstructorArguments;
+}
+
+export interface ValidationResponse {
+  isPending(): void;
+  isFailure(): void;
+  isSuccess(): void;
+  isOk(): void;
 }
