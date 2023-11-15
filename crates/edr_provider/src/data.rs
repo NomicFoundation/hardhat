@@ -56,6 +56,7 @@ pub struct ProviderData {
     min_gas_price: U256,
     prevrandao_generator: RandomHashGenerator,
     block_time_offset_seconds: u64,
+    next_block_base_fee_per_gas: Option<U256>,
     next_block_timestamp: Option<u64>,
     allow_blocks_with_same_timestamp: bool,
     allow_unlimited_contract_size: bool,
@@ -93,6 +94,7 @@ impl ProviderData {
             min_gas_price: U256::from(1),
             prevrandao_generator,
             block_time_offset_seconds: block_time_offset_seconds(config)?,
+            next_block_base_fee_per_gas: None,
             next_block_timestamp: None,
             allow_blocks_with_same_timestamp: config.allow_blocks_with_same_timestamp,
             allow_unlimited_contract_size: config.allow_unlimited_contract_size,
@@ -281,6 +283,9 @@ impl ProviderData {
             self.block_time_offset_seconds = new_offset;
         }
 
+        // Reset the next block base fee per gas upon successful execution
+        self.next_block_base_fee_per_gas.take();
+
         // Reset next block time stamp
         self.next_block_timestamp.take();
 
@@ -401,9 +406,15 @@ impl ProviderData {
 
         Ok(())
     }
+
     /// Sets the coinbase.
     pub fn set_coinbase(&mut self, coinbase: Address) {
         self.beneficiary = coinbase;
+    }
+
+    /// Sets the next block's base fee per gas.
+    pub fn set_next_block_base_fee_per_gas(&mut self, base_fee_per_gas: U256) {
+        self.next_block_base_fee_per_gas = Some(base_fee_per_gas);
     }
 
     /// Set the next block timestamp.
@@ -566,12 +577,6 @@ impl ProviderData {
         timestamp: u64,
         prevrandao: Option<B256>,
     ) -> Result<MineBlockResultAndState<StateError>, ProviderError> {
-        // TODO: when we support hardhat_setNextBlockBaseFeePerGas, incorporate
-        // the last-passed value here. (but don't .take() it yet, because we only
-        // want to clear it if the block mining is successful.
-        // https://github.com/NomicFoundation/edr/issues/145
-        let base_fee = None;
-
         // TODO: https://github.com/NomicFoundation/edr/issues/156
         let reward = U256::ZERO;
 
@@ -588,14 +593,10 @@ impl ProviderData {
             // TODO: make this configurable (https://github.com/NomicFoundation/edr/issues/111)
             MineOrdering::Fifo,
             reward,
-            base_fee,
+            self.next_block_base_fee_per_gas,
             prevrandao,
             None,
         )?;
-
-        // TODO: when we support hardhat_setNextBlockBaseFeePerGas, reset the user
-        // provided next block base fee per gas to `None`
-        // https://github.com/NomicFoundation/edr/issues/145
 
         Ok(result)
     }

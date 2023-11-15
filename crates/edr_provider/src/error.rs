@@ -2,7 +2,7 @@ use std::time::SystemTimeError;
 
 use edr_eth::{
     remote::{filter::SubscriptionType, jsonrpc, BlockSpec},
-    Address, U256,
+    Address, SpecId, U256,
 };
 use edr_evm::{
     blockchain::BlockchainError, state::StateError, MineBlockError, MinerTransactionError,
@@ -72,4 +72,7 @@ pub enum ProviderError {
     /// The address is not owned by this node.
     #[error("{address} is not owned by this node")]
     UnknownAddress { address: Address },
+    /// Minimum required hardfork not met
+    #[error("Hardfork {minimum:?} not met, actual hardfork is {actual:?}")]
+    UnmetHardfork { actual: SpecId, minimum: SpecId },
 }

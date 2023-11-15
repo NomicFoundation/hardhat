@@ -255,8 +255,9 @@ fn handle_hardhat_request(
         rpc_hardhat::Request::SetMinGasPrice(_) => {
             Err(ProviderError::Unimplemented("".to_string()))
         }
-        rpc_hardhat::Request::SetNextBlockBaseFeePerGas(_) => {
-            Err(ProviderError::Unimplemented("".to_string()))
+        rpc_hardhat::Request::SetNextBlockBaseFeePerGas(base_fee_per_gas) => {
+            hardhat::handle_set_next_block_base_fee_per_gas_request(data, base_fee_per_gas)
+                .and_then(to_json)
         }
         rpc_hardhat::Request::SetNonce(address, nonce) => {
             hardhat::handle_set_nonce(data, address, nonce).and_then(to_json)
