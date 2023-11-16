@@ -6,6 +6,7 @@ use edr_evm::{
 };
 use napi::{
     bindgen_prelude::{BigInt, Buffer},
+    tokio::runtime,
     Status,
 };
 use napi_derive::napi;
@@ -24,7 +25,7 @@ use crate::{
 #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
 pub async fn debug_trace_transaction(
     blockchain: &Blockchain,
-    state_manager: &State,
+    state: &State,
     evm_config: ConfigOptions,
     trace_config: DebugTraceConfig,
     block_config: BlockConfig,
@@ -39,20 +40,27 @@ pub async fn debug_trace_transaction(
     let transactions: Vec<edr_evm::PendingTransaction> =
         transactions.into_iter().map(|tx| (*tx).clone()).collect();
 
-    let state = { state_manager.read().await.clone() };
+    let blockchain = (*blockchain).clone();
+    let state = (*state).clone();
 
-    let result = edr_evm::debug_trace_transaction(
-        &*blockchain.read().await,
-        state,
-        evm_config,
-        trace_config.into(),
-        block_env,
-        transactions,
-        &transaction_hash,
-    )
-    .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?
-    .try_into()?;
-    Ok(result)
+    runtime::Handle::current()
+        .spawn_blocking(move || {
+            edr_evm::debug_trace_transaction(
+                &*blockchain.read(),
+                state.read().clone(),
+                evm_config,
+                trace_config.into(),
+                block_env,
+                transactions,
+                &transaction_hash,
+            )
+            .map_or_else(
+                |error| Err(napi::Error::new(Status::GenericFailure, error.to_string())),
+                TryInto::try_into,
+            )
+        })
+        .await
+        .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?
 }
 
 /// Get trace output for `debug_traceTransaction`
@@ -60,7 +68,7 @@ pub async fn debug_trace_transaction(
 #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
 pub async fn debug_trace_call(
     blockchain: &Blockchain,
-    state_manager: &State,
+    state: &State,
     evm_config: ConfigOptions,
     trace_config: DebugTraceConfig,
     block_config: BlockConfig,
@@ -72,22 +80,29 @@ pub async fn debug_trace_call(
 
     let mut tracer = TracerEip3155::new(trace_config.into());
 
-    let ResultAndState {
-        result: execution_result,
-        ..
-    } = edr_evm::guaranteed_dry_run(
-        &*blockchain.read().await,
-        &*state_manager.read().await,
-        &edr_evm::state::StateOverrides::default(),
-        evm_config,
-        transaction,
-        block,
-        Some(&mut tracer),
-    )
-    .await
-    .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
+    let blockchain = (*blockchain).clone();
+    let state = (*state).clone();
 
-    execution_result_to_debug_result(execution_result, tracer).try_into()
+    runtime::Handle::current()
+        .spawn_blocking(move || {
+            let ResultAndState {
+                result: execution_result,
+                ..
+            } = edr_evm::guaranteed_dry_run(
+                &*blockchain.read(),
+                &*state.read(),
+                &edr_evm::state::StateOverrides::default(),
+                evm_config,
+                transaction,
+                block,
+                Some(&mut tracer),
+            )
+            .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))?;
+
+            execution_result_to_debug_result(execution_result, tracer).try_into()
+        })
+        .await
+        .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))?
 }
 
 #[napi(object)]

@@ -171,9 +171,9 @@ export interface ConfigOptions {
   disableEip3607?: boolean
 }
 /** Get trace output for `debug_traceTransaction` */
-export function debugTraceTransaction(blockchain: Blockchain, stateManager: State, evmConfig: ConfigOptions, traceConfig: DebugTraceConfig, blockConfig: BlockConfig, transactions: Array<PendingTransaction>, transactionHash: Buffer): Promise<DebugTraceResult>
+export function debugTraceTransaction(blockchain: Blockchain, state: State, evmConfig: ConfigOptions, traceConfig: DebugTraceConfig, blockConfig: BlockConfig, transactions: Array<PendingTransaction>, transactionHash: Buffer): Promise<DebugTraceResult>
 /** Get trace output for `debug_traceTransaction` */
-export function debugTraceCall(blockchain: Blockchain, stateManager: State, evmConfig: ConfigOptions, traceConfig: DebugTraceConfig, blockConfig: BlockConfig, transaction: TransactionRequest): Promise<DebugTraceResult>
+export function debugTraceCall(blockchain: Blockchain, state: State, evmConfig: ConfigOptions, traceConfig: DebugTraceConfig, blockConfig: BlockConfig, transaction: TransactionRequest): Promise<DebugTraceResult>
 export interface DebugTraceConfig {
   disableStorage?: boolean
   disableMemory?: boolean
@@ -222,7 +222,7 @@ export const enum MineOrdering {
   Priority = 'Priority'
 }
 /** Mines a block using as many transactions as can fit in it. */
-export function mineBlock(blockchain: Blockchain, stateManager: State, memPool: MemPool, config: ConfigOptions, timestamp: bigint, beneficiary: Buffer, minGasPrice: bigint, mineOrdering: MineOrdering, reward: bigint, baseFee?: bigint | undefined | null, prevrandao?: Buffer | undefined | null, tracer?: Tracer | undefined | null): Promise<MineBlockResult>
+export function mineBlock(blockchain: Blockchain, state: State, memPool: MemPool, config: ConfigOptions, timestamp: bigint, beneficiary: Buffer, minGasPrice: bigint, mineOrdering: MineOrdering, reward: bigint, baseFee?: bigint | undefined | null, prevrandao?: Buffer | undefined | null, tracer?: Tracer | undefined | null): Promise<MineBlockResult>
 /** Configuration for forking a blockchain */
 export interface ForkConfig {
   /** The URL of the JSON-RPC endpoint to fork from */
@@ -527,7 +527,7 @@ export interface Withdrawal {
   amount: bigint
 }
 export class BlockBuilder {
-  static create(blockchain: Blockchain, stateManager: State, config: ConfigOptions, parent: BlockHeader, block: BlockOptions): Promise<BlockBuilder>
+  constructor(blockchain: Blockchain, stateManager: State, config: ConfigOptions, parent: BlockHeader, block: BlockOptions)
   /** Retrieves the amount of gas used by the builder. */
   get gasUsed(): Promise<bigint>
   addTransaction(transaction: PendingTransaction, withTrace: boolean): Promise<TransactionResult>
@@ -617,7 +617,7 @@ export class Log {
   /**Returns the index of the transaction the log is included in. */
   get transactionIndex(): bigint | null
 }
-/** The mempool contains transactions pending inclusion in the blockchain. */
+/** The mem pool contains transactions pending inclusion in the blockchain. */
 export class MemPool {
   /**Constructs a new [`MemPool`]. */
   constructor(blockGasLimit: bigint)

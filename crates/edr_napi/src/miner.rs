@@ -7,6 +7,7 @@ use edr_eth::{Address, B256, U256};
 use edr_evm::{BlockTransactionError, CfgEnv, InvalidTransaction, MineBlockError};
 use napi::{
     bindgen_prelude::{BigInt, Buffer},
+    tokio::runtime,
     Status,
 };
 use napi_derive::napi;
@@ -23,7 +24,7 @@ use crate::{
 #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
 pub async fn mine_block(
     blockchain: &Blockchain,
-    state_manager: &State,
+    state: &State,
     mem_pool: &MemPool,
     config: ConfigOptions,
     timestamp: BigInt,
@@ -45,49 +46,56 @@ pub async fn mine_block(
         base_fee.map_or(Ok(None), |base_fee| BigInt::try_cast(base_fee).map(Some))?;
     let prevrandao: Option<B256> = prevrandao.map(TryCast::<B256>::try_cast).transpose()?;
 
-    let mut state = state_manager.write().await;
-    let mut blockchain = blockchain.write().await;
-    let mut mem_pool = mem_pool.write().await;
+    let blockchain = (*blockchain).clone();
+    let mem_pool = (*mem_pool).clone();
+    let state = (*state).clone();
+    let inspector = tracer.map(Tracer::as_dyn_inspector);
 
-    let result = edr_evm::mine_block(
-        &*blockchain,
-        state.clone(),
-        &mem_pool,
-        &config,
-        timestamp,
-        beneficiary,
-        min_gas_price,
-        mine_ordering,
-        reward,
-        base_fee,
-        prevrandao,
-        tracer.map(Tracer::as_dyn_inspector)
-    )
-    .await
-    .map_err(
-        |e| napi::Error::new(Status::GenericFailure,
-            match e {
-                MineBlockError::BlockTransaction(
-                BlockTransactionError::InvalidTransaction(
-                    InvalidTransaction::LackOfFundForMaxFee { fee, balance }
-                )) => format!("sender doesn't have enough funds to send tx. The max upfront cost is: {fee} and the sender's account only has: {balance}"),
-                e => e.to_string(),
-            }))?;
+    runtime::Handle::current().spawn_blocking(move || {
+        let mut blockchain = blockchain.write();
+        let mut state = state.write();
+        let mut mem_pool = mem_pool.write();
 
-    let block = blockchain
-        .insert_block(result.block, result.state_diff)
+        let result = edr_evm::mine_block(
+            &*blockchain,
+            state.clone(),
+            &mem_pool,
+            &config,
+            timestamp,
+            beneficiary,
+            min_gas_price,
+            mine_ordering,
+            reward,
+            base_fee,
+            prevrandao,
+            inspector
+        )
+            .map_err(
+            |e| napi::Error::new(Status::GenericFailure,
+                match e {
+                    MineBlockError::BlockTransaction(
+                    BlockTransactionError::InvalidTransaction(
+                        InvalidTransaction::LackOfFundForMaxFee { fee, balance }
+                    )) => format!("sender doesn't have enough funds to send tx. The max upfront cost is: {fee} and the sender's account only has: {balance}"),
+                    e => e.to_string(),
+                }))?;
+
+        let block = blockchain
+            .insert_block(result.block, result.state_diff)
+            .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))?;
+
+        mem_pool
+            .update(&result.state)
+            .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))?;
+
+        *state = result.state;
+
+        Ok(MineBlockResult::from(edr_evm::MineBlockResult {
+            block,
+            transaction_results: result.transaction_results,
+            transaction_traces: result.transaction_traces,
+        }))
+    })
         .await
-        .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))?;
-
-    mem_pool
-        .update(&result.state)
-        .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))?;
-
-    *state = result.state;
-
-    Ok(MineBlockResult::from(edr_evm::MineBlockResult {
-        block,
-        transaction_results: result.transaction_results,
-        transaction_traces: result.transaction_traces,
-    }))
+        .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))?
 }

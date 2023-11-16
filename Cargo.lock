@@ -743,7 +743,6 @@ name = "edr_evm"
 version = "0.2.0-dev"
 dependencies = [
  "async-rwlock",
- "async-trait",
  "auto_impl",
  "cita_trie",
  "criterion",
@@ -774,7 +773,6 @@ dependencies = [
 name = "edr_napi"
 version = "0.2.0-dev"
 dependencies = [
- "async-trait",
  "crossbeam-channel",
  "edr_defaults",
  "edr_eth",

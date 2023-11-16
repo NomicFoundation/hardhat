@@ -4,7 +4,7 @@ use edr_evm::{
     trace::TraceCollector, BlockEnv, CfgEnv, InspectorContainer, InvalidTransaction,
     ResultAndState, TransactionError, TxEnv,
 };
-use napi::Status;
+use napi::{tokio::runtime, Status};
 use napi_derive::napi;
 
 use crate::{
@@ -35,21 +35,28 @@ pub async fn dry_run(
     let block = BlockEnv::try_from(block)?;
 
     let mut container = InspectorContainer::new(with_trace, tracer.map(Tracer::as_dyn_inspector));
+    let blockchain = (*blockchain).clone();
+    let state = (*state).clone();
+    let state_overrides = state_overrides.as_inner().clone();
 
-    let ResultAndState { result, state } = edr_evm::dry_run(
-        &*blockchain.read().await,
-        &*state.read().await,
-        state_overrides.as_inner(),
-        cfg,
-        transaction,
-        block,
-        container.as_dyn_inspector(),
-    )
-    .await
-    .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
+    runtime::Handle::current()
+        .spawn_blocking(move || {
+            let ResultAndState { result, state } = edr_evm::dry_run(
+                &*blockchain.read(),
+                &*state.read(),
+                &state_overrides,
+                cfg,
+                transaction,
+                block,
+                container.as_dyn_inspector(),
+            )
+            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
 
-    let trace = container.into_tracer().map(TraceCollector::into_trace);
-    Ok(TransactionResult::new(result, Some(state), trace))
+            let trace = container.into_tracer().map(TraceCollector::into_trace);
+            Ok(TransactionResult::new(result, Some(state), trace))
+        })
+        .await
+        .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?
 }
 
 /// Executes the provided transaction without changing state, ignoring
@@ -72,21 +79,28 @@ pub async fn guaranteed_dry_run(
     let block = BlockEnv::try_from(block)?;
 
     let mut container = InspectorContainer::new(with_trace, tracer.map(Tracer::as_dyn_inspector));
+    let blockchain = (*blockchain).clone();
+    let state = (*state).clone();
+    let state_overrides = state_overrides.as_inner().clone();
 
-    let ResultAndState { result, state } = edr_evm::guaranteed_dry_run(
-        &*blockchain.read().await,
-        &*state.read().await,
-        state_overrides.as_inner(),
-        cfg,
-        transaction,
-        block,
-        container.as_dyn_inspector(),
-    )
-    .await
-    .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
+    runtime::Handle::current()
+        .spawn_blocking(move || {
+            let ResultAndState { result, state } = edr_evm::guaranteed_dry_run(
+                &*blockchain.read(),
+                &*state.read(),
+                &state_overrides,
+                cfg,
+                transaction,
+                block,
+                container.as_dyn_inspector(),
+            )
+            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
 
-    let trace = container.into_tracer().map(TraceCollector::into_trace);
-    Ok(TransactionResult::new(result, Some(state), trace))
+            let trace = container.into_tracer().map(TraceCollector::into_trace);
+            Ok(TransactionResult::new(result, Some(state), trace))
+        })
+        .await
+        .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))?
 }
 
 /// Executes the provided transaction, changing state in the process.
@@ -94,7 +108,7 @@ pub async fn guaranteed_dry_run(
 #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
 pub async fn run(
     blockchain: &Blockchain,
-    state_manager: &State,
+    state: &State,
     cfg: ConfigOptions,
     transaction: TransactionRequest,
     block: BlockConfig,
@@ -106,23 +120,30 @@ pub async fn run(
     let block = BlockEnv::try_from(block)?;
 
     let mut container = InspectorContainer::new(with_trace, tracer.map(Tracer::as_dyn_inspector));
+    let blockchain = (*blockchain).clone();
+    let state = (*state).clone();
 
-    let result = edr_evm::run(
-        &*blockchain.read().await,
-        &mut *state_manager.write().await,
-        cfg, transaction, block, container.as_dyn_inspector()).await
-    .map_err(|e| {
-        napi::Error::new(
-            Status::GenericFailure,
-            match e {
-                TransactionError::InvalidTransaction(
-                    InvalidTransaction::LackOfFundForMaxFee { fee, balance }
-                ) => format!("sender doesn't have enough funds to send tx. The max upfront cost is: {fee} and the sender's account only has: {balance}"),
-                e => e.to_string(),
-            },
+    runtime::Handle::current().spawn_blocking(move || {
+        let result = edr_evm::run(
+            &*blockchain.read(),
+            &mut *state.write(),
+            cfg, transaction, block, container.as_dyn_inspector()
         )
-    })?;
+            .map_err(|e| {
+                napi::Error::new(
+                    Status::GenericFailure,
+                    match e {
+                        TransactionError::InvalidTransaction(
+                            InvalidTransaction::LackOfFundForMaxFee { fee, balance }
+                        ) => format!("sender doesn't have enough funds to send tx. The max upfront cost is: {fee} and the sender's account only has: {balance}"),
+                        e => e.to_string(),
+                    },
+                )
+            })?;
 
-    let trace = container.into_tracer().map(TraceCollector::into_trace);
-    Ok(TransactionResult::new(result, None, trace))
+        let trace = container.into_tracer().map(TraceCollector::into_trace);
+        Ok(TransactionResult::new(result, None, trace))
+    })
+        .await
+        .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))?
 }

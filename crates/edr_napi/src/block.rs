@@ -400,8 +400,8 @@ impl Block {
 
     #[doc = "Retrieves the transactions' receipts."]
     #[napi]
-    pub async fn receipts(&self) -> napi::Result<Vec<Receipt>> {
-        self.inner.transaction_receipts().await.map_or_else(
+    pub fn receipts(&self) -> napi::Result<Vec<Receipt>> {
+        self.inner.transaction_receipts().map_or_else(
             |error| Err(napi::Error::new(Status::InvalidArg, error.to_string())),
             |receipts: Vec<Arc<edr_eth::receipt::BlockReceipt>>| {
                 Ok(receipts.into_iter().map(Receipt::from).collect())

@@ -6,7 +6,6 @@ pub mod storage;
 
 use std::{fmt::Debug, sync::Arc};
 
-use async_trait::async_trait;
 use edr_eth::{
     receipt::BlockReceipt, remote::RpcClientError, spec::HardforkActivations, B256, U256,
 };
@@ -75,7 +74,6 @@ pub enum BlockchainError {
 }
 
 /// Trait for implementations of an Ethereum blockchain.
-#[async_trait]
 pub trait Blockchain {
     /// The blockchain's error type
     type BlockchainError;
@@ -84,74 +82,70 @@ pub trait Blockchain {
     type StateError;
 
     /// Retrieves the block with the provided hash, if it exists.
-    async fn block_by_hash(
+    #[allow(clippy::type_complexity)]
+    fn block_by_hash(
         &self,
         hash: &B256,
     ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>;
 
     /// Retrieves the block with the provided number, if it exists.
-    async fn block_by_number(
+    #[allow(clippy::type_complexity)]
+    fn block_by_number(
         &self,
         number: u64,
     ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>;
 
     /// Retrieves the block that contains a transaction with the provided hash,
     /// if it exists.
-    async fn block_by_transaction_hash(
+    #[allow(clippy::type_complexity)]
+    fn block_by_transaction_hash(
         &self,
         transaction_hash: &B256,
     ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>;
 
     /// Retrieves the instances chain ID.
-    async fn chain_id(&self) -> u64;
+    fn chain_id(&self) -> u64;
 
     /// Retrieves the last block in the blockchain.
-    async fn last_block(
+    fn last_block(
         &self,
     ) -> Result<Arc<dyn SyncBlock<Error = Self::BlockchainError>>, Self::BlockchainError>;
 
     /// Retrieves the last block number in the blockchain.
-    async fn last_block_number(&self) -> u64;
+    fn last_block_number(&self) -> u64;
 
     /// Retrieves the receipt of the transaction with the provided hash, if it
     /// exists.
-    async fn receipt_by_transaction_hash(
+    fn receipt_by_transaction_hash(
         &self,
         transaction_hash: &B256,
     ) -> Result<Option<Arc<BlockReceipt>>, Self::BlockchainError>;
 
     /// Retrieves the hardfork specification of the block at the provided
     /// number.
-    async fn spec_at_block_number(
-        &self,
-        block_number: u64,
-    ) -> Result<SpecId, Self::BlockchainError>;
+    fn spec_at_block_number(&self, block_number: u64) -> Result<SpecId, Self::BlockchainError>;
 
     /// Retrieves the hardfork specification used for new blocks.
     fn spec_id(&self) -> SpecId;
 
     /// Retrieves the state at a given block
-    async fn state_at_block_number(
+    fn state_at_block_number(
         &self,
         block_number: u64,
     ) -> Result<Box<dyn SyncState<Self::StateError>>, Self::BlockchainError>;
 
     /// Retrieves the total difficulty at the block with the provided hash.
-    async fn total_difficulty_by_hash(
-        &self,
-        hash: &B256,
-    ) -> Result<Option<U256>, Self::BlockchainError>;
+    fn total_difficulty_by_hash(&self, hash: &B256) -> Result<Option<U256>, Self::BlockchainError>;
 }
 
 /// Trait for implementations of a mutable Ethereum blockchain
-#[async_trait]
 pub trait BlockchainMut {
     /// The blockchain's error type
     type Error;
 
     /// Inserts the provided block into the blockchain, returning a reference to
     /// the inserted block.
-    async fn insert_block(
+    fn insert_block(
         &mut self,
         block: LocalBlock,
         state_diff: StateDiff,
@@ -159,11 +153,11 @@ pub trait BlockchainMut {
 
     /// Reserves the provided number of blocks, starting from the next block
     /// number.
-    async fn reserve_blocks(&mut self, additional: u64, interval: u64) -> Result<(), Self::Error>;
+    fn reserve_blocks(&mut self, additional: u64, interval: u64) -> Result<(), Self::Error>;
 
     /// Reverts to the block with the provided number, deleting all later
     /// blocks.
-    async fn revert_to_block(&mut self, block_number: u64) -> Result<(), Self::Error>;
+    fn revert_to_block(&mut self, block_number: u64) -> Result<(), Self::Error>;
 }
 
 /// Trait that meets all requirements for a synchronous blockchain.
@@ -174,7 +168,6 @@ pub trait SyncBlockchain<BlockchainErrorT, StateErrorT>:
     + Send
     + Sync
     + Debug
-    + 'static
 where
     BlockchainErrorT: Debug + Send,
 {
@@ -188,8 +181,7 @@ where
         + BlockHashRef<Error = BlockchainErrorT>
         + Send
         + Sync
-        + Debug
-        + 'static,
+        + Debug,
     BlockchainErrorT: Debug + Send,
 {
 }

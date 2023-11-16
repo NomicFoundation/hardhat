@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use edr_eth::{Address, Bytes};
 use edr_evm::HashMap;
 use napi::bindgen_prelude::{BigInt, Buffer};
@@ -65,12 +67,12 @@ impl TryCast<edr_evm::state::AccountOverride> for AccountOverride {
 
 #[napi]
 pub struct StateOverrides {
-    inner: edr_evm::state::StateOverrides,
+    inner: Arc<edr_evm::state::StateOverrides>,
 }
 
 impl StateOverrides {
     /// Returns a reference to the inner state overrides.
-    pub fn as_inner(&self) -> &edr_evm::state::StateOverrides {
+    pub fn as_inner(&self) -> &Arc<edr_evm::state::StateOverrides> {
         &self.inner
     }
 }
@@ -91,7 +93,7 @@ impl StateOverrides {
             .collect::<napi::Result<_>>()?;
 
         Ok(Self {
-            inner: edr_evm::state::StateOverrides::new(account_overrides),
+            inner: Arc::new(edr_evm::state::StateOverrides::new(account_overrides)),
         })
     }
 }

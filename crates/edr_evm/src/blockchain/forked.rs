@@ -1,6 +1,5 @@
 use std::{num::NonZeroU64, sync::Arc};
 
-use async_trait::async_trait;
 use edr_eth::{
     block::{largest_safe_block_number, safe_block_depth, LargestSafeBlockNumberArgs},
     receipt::BlockReceipt,
@@ -58,7 +57,6 @@ pub struct ForkedBlockchain {
     remote: RemoteBlockchain<Arc<dyn SyncBlock<Error = BlockchainError>>, true>,
     // The state at the time of forking
     fork_state: ForkState,
-    runtime: runtime::Handle,
     fork_block_number: u64,
     chain_id: u64,
     _network_id: U256,
@@ -155,15 +153,18 @@ impl ForkedBlockchain {
 
         Ok(Self {
             local_storage: ReservableSparseBlockchainStorage::empty(fork_block_number),
-            remote: RemoteBlockchain::new(rpc_client),
+            remote: RemoteBlockchain::new(rpc_client, runtime),
             fork_state,
-            runtime,
             fork_block_number,
             chain_id,
             _network_id: network_id,
             spec_id,
             hardfork_activations,
         })
+    }
+
+    fn runtime(&self) -> &runtime::Handle {
+        self.remote.runtime()
     }
 }
 
@@ -177,7 +178,7 @@ impl BlockHashRef for ForkedBlockchain {
 
         if number <= self.fork_block_number {
             tokio::task::block_in_place(move || {
-                self.runtime.block_on(self.remote.block_by_number(number))
+                self.runtime().block_on(self.remote.block_by_number(number))
             })
             .map_or_else(
                 |e| Err(BlockchainError::JsonRpcError(e)),
@@ -192,14 +193,14 @@ impl BlockHashRef for ForkedBlockchain {
     }
 }
 
-#[async_trait]
 impl Blockchain for ForkedBlockchain {
     type BlockchainError = BlockchainError;
 
     type StateError = StateError;
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn block_by_hash(
+    #[allow(clippy::type_complexity)]
+    fn block_by_hash(
         &self,
         hash: &B256,
     ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>
@@ -207,21 +208,26 @@ impl Blockchain for ForkedBlockchain {
         if let Some(block) = self.local_storage.block_by_hash(hash) {
             Ok(Some(block))
         } else {
-            self.remote
-                .block_by_hash(hash)
-                .await
-                .map_err(BlockchainError::JsonRpcError)
+            tokio::task::block_in_place(move || {
+                self.runtime()
+                    .block_on(self.remote.block_by_hash(hash))
+                    .map_err(BlockchainError::JsonRpcError)
+            })
         }
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn block_by_number(
+    #[allow(clippy::type_complexity)]
+    fn block_by_number(
         &self,
         number: u64,
     ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>
     {
         if number <= self.fork_block_number {
-            self.remote.block_by_number(number).await.map_or_else(
+            tokio::task::block_in_place(move || {
+                self.runtime().block_on(self.remote.block_by_number(number))
+            })
+            .map_or_else(
                 |e| Err(BlockchainError::JsonRpcError(e)),
                 |block| Ok(Some(block)),
             )
@@ -231,7 +237,8 @@ impl Blockchain for ForkedBlockchain {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn block_by_transaction_hash(
+    #[allow(clippy::type_complexity)]
+    fn block_by_transaction_hash(
         &self,
         transaction_hash: &B256,
     ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>
@@ -242,41 +249,43 @@ impl Blockchain for ForkedBlockchain {
         {
             Ok(Some(block))
         } else {
-            self.remote
-                .block_by_transaction_hash(transaction_hash)
-                .await
-                .map_err(BlockchainError::JsonRpcError)
+            tokio::task::block_in_place(move || {
+                self.runtime()
+                    .block_on(self.remote.block_by_transaction_hash(transaction_hash))
+            })
+            .map_err(BlockchainError::JsonRpcError)
         }
     }
 
-    async fn chain_id(&self) -> u64 {
+    fn chain_id(&self) -> u64 {
         self.chain_id
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn last_block(
+    fn last_block(
         &self,
     ) -> Result<Arc<dyn SyncBlock<Error = Self::BlockchainError>>, Self::BlockchainError> {
-        let last_block_number = self.last_block_number().await;
+        let last_block_number = self.last_block_number();
         if self.fork_block_number < last_block_number {
             Ok(self
                 .local_storage
                 .block_by_number(last_block_number)
                 .expect("Block must exist"))
         } else {
-            self.remote
-                .block_by_number(self.fork_block_number)
-                .await
-                .map_err(BlockchainError::JsonRpcError)
+            tokio::task::block_in_place(move || {
+                self.runtime()
+                    .block_on(self.remote.block_by_number(self.fork_block_number))
+            })
+            .map_err(BlockchainError::JsonRpcError)
         }
     }
 
-    async fn last_block_number(&self) -> u64 {
+    fn last_block_number(&self) -> u64 {
         self.local_storage.last_block_number()
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn receipt_by_transaction_hash(
+    fn receipt_by_transaction_hash(
         &self,
         transaction_hash: &B256,
     ) -> Result<Option<Arc<BlockReceipt>>, Self::BlockchainError> {
@@ -286,24 +295,26 @@ impl Blockchain for ForkedBlockchain {
         {
             Ok(Some(receipt))
         } else {
-            self.remote
-                .receipt_by_transaction_hash(transaction_hash)
-                .await
-                .map_err(BlockchainError::JsonRpcError)
+            tokio::task::block_in_place(move || {
+                self.runtime()
+                    .block_on(self.remote.receipt_by_transaction_hash(transaction_hash))
+            })
+            .map_err(BlockchainError::JsonRpcError)
         }
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn spec_at_block_number(
-        &self,
-        block_number: u64,
-    ) -> Result<SpecId, Self::BlockchainError> {
-        if block_number > self.last_block_number().await {
+    fn spec_at_block_number(&self, block_number: u64) -> Result<SpecId, Self::BlockchainError> {
+        if block_number > self.last_block_number() {
             return Err(BlockchainError::UnknownBlockNumber);
         }
 
         if block_number <= self.fork_block_number {
-            self.remote.block_by_number(block_number).await.map_or_else(
+            tokio::task::block_in_place(move || {
+                self.runtime()
+                    .block_on(self.remote.block_by_number(block_number))
+            })
+            .map_or_else(
                 |e| Err(BlockchainError::JsonRpcError(e)),
                 |block| {
                     if let Some(hardfork_activations) = &self.hardfork_activations {
@@ -331,25 +342,27 @@ impl Blockchain for ForkedBlockchain {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn state_at_block_number(
+    fn state_at_block_number(
         &self,
         block_number: u64,
     ) -> Result<Box<dyn SyncState<Self::StateError>>, Self::BlockchainError> {
-        if block_number > self.last_block_number().await {
+        if block_number > self.last_block_number() {
             return Err(BlockchainError::UnknownBlockNumber);
         }
 
         let state = match block_number.cmp(&self.fork_block_number) {
             std::cmp::Ordering::Less => {
                 // We don't apply account overrides to pre-fork states
-                ForkState::new(
-                    self.runtime.clone(),
-                    self.remote.client().clone(),
-                    self.fork_state.state_root_generator().clone(),
-                    block_number,
-                    HashMap::new(),
-                )
-                .await?
+
+                tokio::task::block_in_place(move || {
+                    self.runtime().block_on(ForkState::new(
+                        self.runtime().clone(),
+                        self.remote.client().clone(),
+                        self.fork_state.state_root_generator().clone(),
+                        block_number,
+                        HashMap::new(),
+                    ))
+                })?
             }
             std::cmp::Ordering::Equal => self.fork_state.clone(),
             std::cmp::Ordering::Greater => {
@@ -363,38 +376,34 @@ impl Blockchain for ForkedBlockchain {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn total_difficulty_by_hash(
-        &self,
-        hash: &B256,
-    ) -> Result<Option<U256>, Self::BlockchainError> {
+    fn total_difficulty_by_hash(&self, hash: &B256) -> Result<Option<U256>, Self::BlockchainError> {
         if let Some(difficulty) = self.local_storage.total_difficulty_by_hash(hash) {
             Ok(Some(difficulty))
         } else {
-            self.remote
-                .total_difficulty_by_hash(hash)
-                .await
-                .map_err(BlockchainError::JsonRpcError)
+            tokio::task::block_in_place(move || {
+                self.runtime()
+                    .block_on(self.remote.total_difficulty_by_hash(hash))
+            })
+            .map_err(BlockchainError::JsonRpcError)
         }
     }
 }
 
-#[async_trait]
 impl BlockchainMut for ForkedBlockchain {
     type Error = BlockchainError;
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn insert_block(
+    fn insert_block(
         &mut self,
         block: LocalBlock,
         state_diff: StateDiff,
     ) -> Result<Arc<dyn SyncBlock<Error = Self::Error>>, Self::Error> {
-        let last_block = self.last_block().await?;
+        let last_block = self.last_block()?;
 
         validate_next_block(self.spec_id, &last_block, &block)?;
 
         let previous_total_difficulty = self
             .total_difficulty_by_hash(last_block.hash())
-            .await
             .expect("No error can occur as it is stored locally")
             .expect("Must exist as its block is stored");
 
@@ -411,17 +420,16 @@ impl BlockchainMut for ForkedBlockchain {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn reserve_blocks(&mut self, additional: u64, interval: u64) -> Result<(), Self::Error> {
+    fn reserve_blocks(&mut self, additional: u64, interval: u64) -> Result<(), Self::Error> {
         let additional = if let Some(additional) = NonZeroU64::new(additional) {
             additional
         } else {
             return Ok(()); // nothing to do
         };
 
-        let last_block = self.last_block().await?;
+        let last_block = self.last_block()?;
         let previous_total_difficulty = self
-            .total_difficulty_by_hash(last_block.hash())
-            .await?
+            .total_difficulty_by_hash(last_block.hash())?
             .expect("Must exist as its block is stored");
 
         let last_header = last_block.header();
@@ -438,7 +446,7 @@ impl BlockchainMut for ForkedBlockchain {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn revert_to_block(&mut self, block_number: u64) -> Result<(), Self::Error> {
+    fn revert_to_block(&mut self, block_number: u64) -> Result<(), Self::Error> {
         match block_number.cmp(&self.fork_block_number) {
             std::cmp::Ordering::Less => Err(BlockchainError::CannotDeleteRemote),
             std::cmp::Ordering::Equal => {

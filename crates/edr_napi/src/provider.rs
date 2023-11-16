@@ -50,11 +50,15 @@ impl Provider {
             )
         })?;
 
-        let response = self
-            .provider
-            .handle_request(request)
+        let provider = self.provider.clone();
+        let response = runtime::Handle::current()
+            .spawn_blocking(move || {
+                provider
+                    .handle_request(request)
+                    .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
+            })
             .await
-            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
+            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))??;
 
         serde_json::to_string(&response)
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
