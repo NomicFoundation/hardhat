@@ -1,5 +1,5 @@
 import React from "react";
-import Image from "next/image";
+import Image, { StaticImageData } from "next/image";
 import { styled } from "linaria/react";
 import { CTAType } from "./types";
 import CTA from "./CTA";

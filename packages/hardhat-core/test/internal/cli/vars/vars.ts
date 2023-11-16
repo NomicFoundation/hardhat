@@ -68,12 +68,15 @@ describe("vars", () => {
         );
 
         expect(ctx.varsManager.get("newKey")).equals("newVal");
-        assert(
-          spyConsoleWarn.calledWith(
-            `The configuration variable has been stored in ${TMP_FILE_PATH}`
-          )
-        );
         expect(code).equals(0);
+
+        if (process.stdout.isTTY) {
+          assert(
+            spyConsoleWarn.calledWith(
+              `The configuration variable has been stored in ${TMP_FILE_PATH}`
+            )
+          );
+        }
       });
 
       describe("cli user prompt", () => {
@@ -97,12 +100,15 @@ describe("vars", () => {
           const code = await handleVars(["vars", "set", "newKey"], undefined);
 
           expect(ctx.varsManager.get("newKey")).equals("valueFromCli");
-          assert(
-            spyConsoleWarn.calledWith(
-              `The configuration variable has been stored in ${TMP_FILE_PATH}`
-            )
-          );
           expect(code).equals(0);
+
+          if (process.stdout.isTTY) {
+            assert(
+              spyConsoleWarn.calledWith(
+                `The configuration variable has been stored in ${TMP_FILE_PATH}`
+              )
+            );
+          }
         });
 
         it("should throw an error because the cli user prompt for the value is not valid", async () => {
@@ -162,12 +168,16 @@ describe("vars", () => {
         assert(spyConsoleLog.getCall(2).calledWith("key3"));
         assert(spyConsoleLog.getCall(3).calledWith("key4"));
         assert(spyConsoleLog.getCall(4).calledWith("key5"));
-        assert(
-          spyConsoleWarn.calledWith(
-            `\nAll configuration variables are stored in ${TMP_FILE_PATH}`
-          )
-        );
+
         expect(code).equals(0);
+
+        if (process.stdout.isTTY) {
+          assert(
+            spyConsoleWarn.calledWith(
+              `\nAll configuration variables are stored in ${TMP_FILE_PATH}`
+            )
+          );
+        }
       });
 
       it("should not list any key because they are not defined", async () => {
@@ -179,27 +189,35 @@ describe("vars", () => {
 
         const code = await handleVars(["vars", "list"], undefined);
 
-        assert(
-          spyConsoleWarn.calledWith(
-            chalk.yellow(
-              `There are no configuration variables stored in ${TMP_FILE_PATH}`
-            )
-          )
-        );
         expect(code).equals(0);
+
+        if (process.stdout.isTTY) {
+          assert(
+            spyConsoleWarn.calledWith(
+              chalk.yellow(
+                `There are no configuration variables stored in ${TMP_FILE_PATH}`
+              )
+            )
+          );
+        }
       });
     });
 
     describe("delete", () => {
       it("should successfully delete a key and its value", async () => {
         const code = await handleVars(["vars", "delete", "key1"], undefined);
+
         assert(ctx.varsManager.get("key1") === undefined);
-        assert(
-          spyConsoleWarn.calledWith(
-            `The configuration variable was deleted from ${TMP_FILE_PATH}`
-          )
-        );
+
         expect(code).equals(0);
+
+        if (process.stdout.isTTY) {
+          assert(
+            spyConsoleWarn.calledWith(
+              `The configuration variable was deleted from ${TMP_FILE_PATH}`
+            )
+          );
+        }
       });
 
       it("should show a warning because the key to delete cannot be found", async () => {

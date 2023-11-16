@@ -138,7 +138,7 @@ To migrate from `dotenv`, follow these steps:
 
 ## Overriding configuration variables with environment variables
 
-Environmeent variables prefixed with `HARDHAT_VAR_` can be used to override the values of configuration variables.
+Environment variables prefixed with `HARDHAT_VAR_` can be used to override the values of configuration variables.
 
 For example, if your config uses `vars.get("MY_KEY")` and you run Hardhat with the environment variable `HARDHAT_VAR_MY_KEY` set to some value, then that value is going to be used:
 

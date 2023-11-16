@@ -1,5 +1,24 @@
 # hardhat
 
+## 2.19.1
+
+### Patch Changes
+
+- 23665f399: Upgraded toolboxes versions used in project initialization
+- 106235cb0: Fixed an issue in low-traffic chains that resulted in txs using a `maxPriorityFeePerGas` of 0
+- c52a5d653: Added logic to avoid downloading the same compiler version multiple times
+- b46ccf46d: Updated the `.gitignore` files generated during project initialization to use relative paths
+
+## 2.19.0
+
+### Minor Changes
+
+- 27f3d6355: Added support for configuration variables management
+
+### Patch Changes
+
+- f2f67df3c: Added support for solc 0.8.22
+
 ## 2.18.3
 
 ### Patch Changes

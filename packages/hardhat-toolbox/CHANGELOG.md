@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-toolbox
 
+## 4.0.0
+
+### Major Changes
+
+- 23665f399: Upgraded typechain and hardhat-verify dependencies
+
 ## 3.0.0
 
 ### Major Changes

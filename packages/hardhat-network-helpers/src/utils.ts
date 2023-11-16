@@ -5,31 +5,31 @@ import type { NumberLike } from "./types";
 
 import { HardhatNetworkHelpersError, OnlyHardhatNetworkError } from "./errors";
 
-let cachedIsHardhatNetwork: boolean;
-async function checkIfHardhatNetwork(
+let cachedIsDevelopmentNetwork: boolean;
+async function checkIfDevelopmentNetwork(
   provider: EIP1193Provider,
   networkName: string
 ): Promise<boolean> {
   let version: string | undefined;
-  if (cachedIsHardhatNetwork === undefined) {
+  if (cachedIsDevelopmentNetwork === undefined) {
     try {
       version = (await provider.request({
         method: "web3_clientVersion",
       })) as string;
 
-      cachedIsHardhatNetwork = version
-        .toLowerCase()
-        .startsWith("hardhatnetwork");
+      cachedIsDevelopmentNetwork =
+        version.toLowerCase().startsWith("hardhatnetwork") ||
+        version.toLowerCase().startsWith("anvil");
     } catch (e) {
-      cachedIsHardhatNetwork = false;
+      cachedIsDevelopmentNetwork = false;
     }
   }
 
-  if (!cachedIsHardhatNetwork) {
+  if (!cachedIsDevelopmentNetwork) {
     throw new OnlyHardhatNetworkError(networkName, version);
   }
 
-  return cachedIsHardhatNetwork;
+  return cachedIsDevelopmentNetwork;
 }
 
 export async function getHardhatProvider(): Promise<EIP1193Provider> {
@@ -37,7 +37,7 @@ export async function getHardhatProvider(): Promise<EIP1193Provider> {
 
   const provider = hre.network.provider;
 
-  await checkIfHardhatNetwork(provider, hre.network.name);
+  await checkIfDevelopmentNetwork(provider, hre.network.name);
 
   return hre.network.provider;
 }
