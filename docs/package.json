@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "preinstall": "npx -y only-allow pnpm",
     "prebuild": "ts-node --transpileOnly --skipProject scripts/prepare-error-list.ts",
     "dev": "next-remote-watch ./src/content",
     "dev:debug": "NODE_OPTIONS='--inspect' next dev",
@@ -11,9 +10,7 @@
     "postbuild": "next-sitemap",
     "build:test": "ANALYZE=true next build",
     "start": "next start",
-    "lint": "eslint src -f unix",
-    "storybook": "NODE_OPTIONS='--openssl-legacy-provider' start-storybook -p 6006 --ci",
-    "build-storybook": "NODE_OPTIONS='--openssl-legacy-provider' build-storybook"
+    "lint": "eslint src -f unix"
   },
   "dependencies": {
     "@callstack/react-theme-provider": "^3.0.7",

@@ -3,7 +3,7 @@ name: Check Docs Site
 on:
   push:
     branches:
-      - "fr/**"
+      - "**"
   workflow_dispatch:
 
 concurrency:
@@ -31,5 +31,3 @@ jobs:
         run: cd docs && pnpm lint
       - name: Build
         run: cd docs && pnpm build
-      - name: Storybook
-        run: cd docs && pnpm build-storybook
