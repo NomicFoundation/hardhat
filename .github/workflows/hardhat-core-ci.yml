@@ -159,7 +159,7 @@ jobs:
         with:
           path: |
             packages/hardhat-core/test/internal/hardhat-network/edr-cache
-          key: hardhat-network-edr-cache
+          key: hardhat-network-edr-cache-v1
 
       - name: Build
         run: yarn build
