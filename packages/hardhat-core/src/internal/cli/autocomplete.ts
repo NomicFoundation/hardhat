@@ -232,12 +232,6 @@ async function getCompletionData(): Promise<CompletionData | undefined> {
   const scopes: CompletionData["scopes"] = mapValues(hre.scopes, (scope) => ({
     name: scope.name,
     description: scope.description ?? "",
-    // isSubtask: task.isSubtask,
-    // paramDefinitions: mapValues(task.paramDefinitions, (paramDefinition) => ({
-    //   name: paramDefinition.name,
-    //   description: paramDefinition.description ?? "",
-    //   isFlag: paramDefinition.isFlag,
-    // })),
   }));
 
   const completionData: CompletionData = {
