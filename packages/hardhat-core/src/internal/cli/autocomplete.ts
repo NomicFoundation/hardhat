@@ -42,6 +42,10 @@ interface CompletionData {
     [taskName: string]: {
       name: string;
       description: string;
+      tasks: Array<{
+        name: string;
+        description: string;
+      }>;
     };
   };
 }
@@ -74,7 +78,7 @@ export async function complete({
   const words = line.split(/\s+/).filter((x) => x.length > 0);
 
   const wordsBeforeCursor = line.slice(0, point).split(/\s+/);
-  // examples:
+  // 'prev' and 'last' variables examples:
   // `hh compile --network|` => prev: "compile" last: "--network"
   // `hh compile --network |` => prev: "--network" last: ""
   // `hh compile --network ha|` => prev: "--network" last: "ha"
@@ -134,16 +138,12 @@ export async function complete({
       taskOrScope !== undefined &&
       tasks[taskOrScope]?.paramDefinitions[paramName]?.isFlag === false;
 
-    const isScopeParam =
-      taskOrScope !== undefined && scopes[taskOrScope].name !== undefined;
-
-    if (isTaskParam || isScopeParam) {
+    if (isTaskParam) {
       return HARDHAT_COMPLETE_FILES;
     }
   }
 
   // if there's no task or scope, we complete either tasks or params
-  // if (task === undefined || tasks[task] === undefined) {
   if (
     taskOrScope === undefined ||
     (tasks[taskOrScope] === undefined && scopes[taskOrScope] === undefined)
@@ -167,6 +167,11 @@ export async function complete({
     return taskSuggestions
       .concat(scopeSuggestions)
       .filter((x) => startsWithLast(x.name));
+  }
+
+  // If the previous word is a scope, then suggest the tasks assigned to it
+  if (scopes[prev] !== undefined) {
+    return scopes[prev].tasks;
   }
 
   if (!last.startsWith("-")) {
@@ -232,6 +237,10 @@ async function getCompletionData(): Promise<CompletionData | undefined> {
   const scopes: CompletionData["scopes"] = mapValues(hre.scopes, (scope) => ({
     name: scope.name,
     description: scope.description ?? "",
+    tasks: Object.values(scope.tasks).map((task) => ({
+      name: task.name,
+      description: task.description ?? "",
+    })),
   }));
 
   const completionData: CompletionData = {

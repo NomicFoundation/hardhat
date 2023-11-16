@@ -66,6 +66,11 @@ const coreTasks = [
     description: "Runs mocha tests",
     name: "test",
   },
+  // 'vars' is a scope
+  {
+    description: "Manage your configuration variables",
+    name: "vars",
+  },
 ];
 
 const verboseParam = {
@@ -402,7 +407,7 @@ describe("autocomplete", function () {
     });
   });
 
-  describe("overriden task", () => {
+  describe("override task", () => {
     useFixtureProject("autocomplete/overriden-task");
 
     after(() => {
@@ -418,6 +423,101 @@ describe("autocomplete", function () {
       const suggestions = await complete("hh ");
 
       expect(suggestions).to.have.deep.members(coreTasks);
+    });
+  });
+
+  describe("scopes", () => {
+    describe("autocomplete the scope'tasks", () => {
+      useFixtureProject("autocomplete/basic-project");
+
+      it("should suggest the tasks assigned to a scope", async () => {
+        const suggestions = await complete("hh vars ");
+
+        expect(suggestions).same.deep.members([
+          {
+            description: "Set the value of a configuration variable",
+            name: "set",
+          },
+          {
+            description: "Get the value of a configuration variable",
+            name: "get",
+          },
+          {
+            description: "List all the configuration variables",
+            name: "list",
+          },
+          {
+            description: "Delete a configuration variable",
+            name: "delete",
+          },
+          {
+            description:
+              "Show the path of the file where all the configuration variables are stored",
+            name: "path",
+          },
+          {
+            description:
+              "Show how to setup the configuration variables used by this project",
+            name: "setup",
+          },
+        ]);
+      });
+    });
+
+    describe("custom tasks", () => {
+      useFixtureProject("autocomplete/custom-scopes");
+
+      after(() => {
+        resetHardhatContext();
+      });
+
+      it("should include custom scopes", async () => {
+        const suggestions = await complete("hh ");
+
+        expect(suggestions).to.have.deep.members([
+          ...coreTasks,
+          {
+            name: "scope1",
+            description: "",
+          },
+          {
+            name: "scope-2",
+            description: "scope-2 description",
+          },
+        ]);
+      });
+
+      it("should complete scopes after a - in the middle of the scope name", async () => {
+        const suggestions = await complete("hh scope-");
+
+        expect(suggestions).to.have.deep.members([
+          {
+            name: "scope-2",
+            description: "scope-2 description",
+          },
+        ]);
+      });
+
+      it("should autocomplete with the scope's tasks", async () => {
+        const suggestions = await complete("hh scope1 ");
+
+        expect(suggestions).to.have.deep.members([
+          {
+            name: "task1",
+            description: "task1 description",
+          },
+          {
+            name: "task2",
+            description: "task2 description",
+          },
+        ]);
+      });
+
+      it("should not autocomplete with the scope's tasks, because there are no tasks assigned", async () => {
+        const suggestions = await complete("hh scope-2 ");
+
+        expect(suggestions).to.have.deep.members([]);
+      });
     });
   });
 });
