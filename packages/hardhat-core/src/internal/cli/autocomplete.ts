@@ -38,6 +38,12 @@ interface CompletionData {
       };
     };
   };
+  scopes: {
+    [taskName: string]: {
+      name: string;
+      description: string;
+    };
+  };
 }
 
 interface Mtimes {
@@ -63,7 +69,7 @@ export async function complete({
     return [];
   }
 
-  const { networks, tasks } = completionData;
+  const { networks, tasks, scopes } = completionData;
 
   const words = line.split(/\s+/).filter((x) => x.length > 0);
 
@@ -84,7 +90,7 @@ export async function complete({
     .filter((x) => !words.includes(x.name));
 
   // check if the user entered a task
-  let task: string | undefined;
+  let taskOrScope: string | undefined;
   let index = 1;
   while (index < words.length) {
     if (isGlobalFlag(words[index])) {
@@ -94,17 +100,17 @@ export async function complete({
     } else if (words[index].startsWith("--")) {
       index += 1;
     } else {
-      task = words[index];
+      taskOrScope = words[index];
       break;
     }
   }
 
-  // if a task was found but it's equal to the last word, it means
-  // that the cursor is after the task, we ignore the task in this
-  // case because if you have a task `foo` and `foobar` and the
-  // line is: `hh foo|`, we want tasks to be suggested
-  if (task === last) {
-    task = undefined;
+  // If a task or scope is found and it is equal to the last word, it means
+  // that the cursor is after the task or scope. In this case, we ignore the task or scope,
+  // because if you have a task or scope 'foo' and 'foobar,' and the line is: 'hh foo|',
+  // we want tasks or scopes suggested.
+  if (taskOrScope === last) {
+    taskOrScope = undefined;
   }
 
   if (prev === "--network") {
@@ -125,34 +131,51 @@ export async function complete({
     }
 
     const isTaskParam =
-      task !== undefined &&
-      tasks[task]?.paramDefinitions[paramName]?.isFlag === false;
+      taskOrScope !== undefined &&
+      tasks[taskOrScope]?.paramDefinitions[paramName]?.isFlag === false;
 
-    if (isTaskParam) {
+    const isScopeParam =
+      taskOrScope !== undefined && scopes[taskOrScope].name !== undefined;
+
+    if (isTaskParam || isScopeParam) {
       return HARDHAT_COMPLETE_FILES;
     }
   }
 
-  // if there's no task, we complete either tasks or params
-  if (task === undefined || tasks[task] === undefined) {
+  // if there's no task or scope, we complete either tasks or params
+  // if (task === undefined || tasks[task] === undefined) {
+  if (
+    taskOrScope === undefined ||
+    (tasks[taskOrScope] === undefined && scopes[taskOrScope] === undefined)
+  ) {
     const taskSuggestions = Object.values(tasks)
       .filter((x) => !x.isSubtask)
       .map((x) => ({
         name: x.name,
         description: x.description,
       }));
+
+    const scopeSuggestions = Object.values(scopes).map((x) => ({
+      name: x.name,
+      description: x.description,
+    }));
+
     if (last.startsWith("-")) {
       return coreParams.filter((param) => startsWithLast(param.name));
     }
-    return taskSuggestions.filter((x) => startsWithLast(x.name));
+
+    return taskSuggestions
+      .concat(scopeSuggestions)
+      .filter((x) => startsWithLast(x.name));
   }
 
   if (!last.startsWith("-")) {
     return HARDHAT_COMPLETE_FILES;
   }
 
-  // if there's a task and the last word starts with -, we complete its params and the global params
-  const taskParams = Object.values(tasks[task].paramDefinitions)
+  // If there's a task and the last word starts with -, we complete its params and the global params.
+  // Only tasks have params
+  const taskParams = Object.values(tasks[taskOrScope].paramDefinitions)
     .map((param) => ({
       name: ArgumentsParser.paramNameToCLA(param.name),
       description: param.description,
@@ -206,9 +229,21 @@ async function getCompletionData(): Promise<CompletionData | undefined> {
     })),
   }));
 
+  const scopes: CompletionData["scopes"] = mapValues(hre.scopes, (scope) => ({
+    name: scope.name,
+    description: scope.description ?? "",
+    // isSubtask: task.isSubtask,
+    // paramDefinitions: mapValues(task.paramDefinitions, (paramDefinition) => ({
+    //   name: paramDefinition.name,
+    //   description: paramDefinition.description ?? "",
+    //   isFlag: paramDefinition.isFlag,
+    // })),
+  }));
+
   const completionData: CompletionData = {
     networks,
     tasks,
+    scopes,
   };
 
   await saveCachedCompletionData(projectId, completionData, mtimes);
