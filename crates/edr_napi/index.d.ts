@@ -242,7 +242,7 @@ export interface ProviderConfig {
   /** The gas limit of each block */
   blockGasLimit: bigint
   /** The directory to cache remote JSON-RPC responses */
-  cacheDir: string
+  cacheDir?: string
   /** The chain ID of the blockchain */
   chainId: bigint
   /** The address of the coinbase */

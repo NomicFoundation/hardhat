@@ -6,7 +6,7 @@ import { BackwardsCompatibilityProviderAdapter } from "../../../../../../src/int
 import { ModulesLogger } from "../../../../../../src/internal/hardhat-network/provider/modules/logger";
 import { ForkConfig } from "../../../../../../src/internal/hardhat-network/provider/node-types";
 import { RpcDebugTraceOutput } from "../../../../../../src/internal/hardhat-network/provider/output";
-import { HardhatNetworkProvider } from "../../../../../../src/internal/hardhat-network/provider/provider";
+import { createHardhatNetworkProvider } from "../../../../../../src/internal/hardhat-network/provider/provider";
 import { EthereumProvider } from "../../../../../../src/types";
 import { trace as mainnetPostLondonTxTrace } from "../../../../../fixture-debug-traces/mainnetPostLondonTxTrace";
 import { trace as mainnetReturnsDataTrace } from "../../../../../fixture-debug-traces/mainnetReturnsDataTrace";
@@ -230,7 +230,7 @@ describe("Debug module", function () {
 
     let provider: EthereumProvider;
 
-    beforeEach(function () {
+    beforeEach(async function () {
       if (ALCHEMY_URL === undefined) {
         this.skip();
       }
@@ -241,7 +241,7 @@ describe("Debug module", function () {
 
       const logger = new ModulesLogger(false);
 
-      const hardhatNetworkProvider = new HardhatNetworkProvider(
+      const hardhatNetworkProvider = await createHardhatNetworkProvider(
         {
           hardfork: "muirGlacier",
           chainId: 1,
@@ -355,7 +355,7 @@ describe("Debug module", function () {
   describe("fork tests (post-london)", function () {
     let provider: EthereumProvider;
 
-    beforeEach(function () {
+    beforeEach(async function () {
       if (ALCHEMY_URL === undefined) {
         this.skip();
       }
@@ -366,7 +366,7 @@ describe("Debug module", function () {
 
       const logger = new ModulesLogger(false);
 
-      const hardhatNetworkProvider = new HardhatNetworkProvider(
+      const hardhatNetworkProvider = await createHardhatNetworkProvider(
         {
           hardfork: DEFAULT_HARDFORK,
           chainId: 1,
