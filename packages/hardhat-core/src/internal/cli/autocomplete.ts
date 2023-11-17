@@ -109,10 +109,10 @@ export async function complete({
     }
   }
 
-  // If a task or scope is found and it is equal to the last word, it means
-  // that the cursor is after the task or scope. In this case, we ignore the task or scope,
-  // because if you have a task or scope 'foo' and 'foobar,' and the line is: 'hh foo|',
-  // we want tasks or scopes suggested.
+  // If a task or a scope is found and it is equal to the last word,
+  // this indicates that the cursor is positioned after the task or scope.
+  // In this case, we ignore the task or scope. For instance, if you have a task or a scope named 'foo' and 'foobar',
+  // and the line is 'hh foo|', we want to suggest the value for 'foo' and 'foobar'.
   if (taskOrScope === last) {
     taskOrScope = undefined;
   }
