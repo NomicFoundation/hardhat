@@ -13,7 +13,6 @@ pub struct ReceiptLog {
     #[cfg_attr(feature = "serde", serde(flatten))]
     pub inner: Log,
     /// transaction hash
-    // TODO review: this is optional in Hardhat
     pub transaction_hash: B256,
 }
 

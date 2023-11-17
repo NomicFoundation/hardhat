@@ -24,21 +24,16 @@ pub struct FullBlockLog {
     #[cfg_attr(feature = "serde", serde(flatten))]
     pub inner: ReceiptLog,
     /// block hash
-    // TODO review: this is optional in Hardhat. Should we keep it as is or make it optional to
-    // match Hardhat?
     // https://github.com/NomicFoundation/hardhat/blob/7d25b1b5a7bfbd7e7fabbf540b0f32186cba2b11/packages/hardhat-core/src/internal/hardhat-network/provider/output.ts#L120
     pub block_hash: B256,
     /// block number
     #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
-    // TODO review: this is optional in Hardhat
     pub block_number: u64,
     /// Index of the log within the block
     #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
-    // TODO review: this is optional in Hardhat
     pub log_index: u64,
     /// Index of the transaction within the block
     #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
-    // TODO review: this is optional in Hardhat
     pub transaction_index: u64,
 }
 
