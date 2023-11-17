@@ -399,7 +399,7 @@ impl Block {
     }
 
     #[doc = "Retrieves the transactions' receipts."]
-    #[napi]
+    #[napi(getter)]
     pub fn receipts(&self) -> napi::Result<Vec<Receipt>> {
         self.inner.transaction_receipts().map_or_else(
             |error| Err(napi::Error::new(Status::InvalidArg, error.to_string())),

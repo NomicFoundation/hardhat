@@ -274,7 +274,7 @@ export function dryRun(blockchain: Blockchain, state: State, stateOverrides: Sta
  */
 export function guaranteedDryRun(blockchain: Blockchain, state: State, stateOverrides: StateOverrides, cfg: ConfigOptions, transaction: TransactionRequest, block: BlockConfig, withTrace: boolean, tracer?: Tracer | undefined | null): Promise<TransactionResult>
 /** Executes the provided transaction, changing state in the process. */
-export function run(blockchain: Blockchain, stateManager: State, cfg: ConfigOptions, transaction: TransactionRequest, block: BlockConfig, withTrace: boolean, tracer?: Tracer | undefined | null): Promise<TransactionResult>
+export function run(blockchain: Blockchain, state: State, cfg: ConfigOptions, transaction: TransactionRequest, block: BlockConfig, withTrace: boolean, tracer?: Tracer | undefined | null): Promise<TransactionResult>
 export interface Signature {
   /** R value */
   r: bigint
@@ -547,7 +547,7 @@ export class Block {
   /**Retrieves the callers of the block's transactions */
   get callers(): Array<Buffer>
   /**Retrieves the transactions' receipts. */
-  receipts(): Promise<Array<Receipt>>
+  get receipts(): Array<Receipt>
 }
 /** The EDR blockchain */
 export class Blockchain {

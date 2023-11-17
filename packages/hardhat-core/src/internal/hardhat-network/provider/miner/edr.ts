@@ -123,7 +123,7 @@ export class EdrMiner implements BlockMinerAdapter {
       traces.push({ trace, error });
     }
 
-    const receipts = await mineResult.block.receipts();
+    const receipts = mineResult.block.receipts;
 
     const totalDifficultyAfterBlock =
       await this._blockchain.getTotalDifficultyByHash(mineResult.block.hash());
