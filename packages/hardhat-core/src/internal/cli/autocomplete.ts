@@ -143,11 +143,15 @@ export async function complete({
     }
   }
 
-  // if there's no task or scope, we complete either tasks or params
+  // If there's no task or scope, we complete either tasks and scopes or params
   if (
     taskOrScope === undefined ||
     (tasks[taskOrScope] === undefined && scopes[taskOrScope] === undefined)
   ) {
+    if (last.startsWith("-")) {
+      return coreParams.filter((param) => startsWithLast(param.name));
+    }
+
     const taskSuggestions = Object.values(tasks)
       .filter((x) => !x.isSubtask)
       .map((x) => ({
@@ -160,16 +164,12 @@ export async function complete({
       description: x.description,
     }));
 
-    if (last.startsWith("-")) {
-      return coreParams.filter((param) => startsWithLast(param.name));
-    }
-
     return taskSuggestions
       .concat(scopeSuggestions)
       .filter((x) => startsWithLast(x.name));
   }
 
-  // If the previous word is a scope, then suggest the tasks assigned to it
+  // If the previous word is a scope, then suggest the tasks assigned to it (if any)
   if (scopes[prev] !== undefined) {
     return scopes[prev].tasks;
   }
