@@ -5,10 +5,13 @@ use std::{
 
 use edr_eth::{Address, HashMap};
 use edr_provider::AccountConfig;
-use napi::bindgen_prelude::{BigInt, Buffer};
+use napi::{
+    bindgen_prelude::{BigInt, Buffer},
+    Either,
+};
 use napi_derive::napi;
 
-use crate::{account::GenesisAccount, cast::TryCast, config::SpecId};
+use crate::{account::GenesisAccount, cast::TryCast, config::SpecId, miner::MineOrdering};
 
 /// Configuration for forking a blockchain
 #[napi(object)]
@@ -19,6 +22,26 @@ pub struct ForkConfig {
     /// used.
     pub block_number: Option<BigInt>,
     // TODO: add http_headers,
+}
+
+/// Configuration for the provider's mempool.
+#[napi(object)]
+pub struct MemPoolConfig {
+    pub order: MineOrdering,
+}
+
+#[napi(object)]
+pub struct IntervalRange {
+    pub min: i64,
+    pub max: i64,
+}
+
+/// Configuration for the provider's miner.
+#[napi(object)]
+pub struct MiningConfig {
+    pub auto_mine: Option<bool>,
+    pub interval: Option<Either<i64, IntervalRange>>,
+    pub mem_pool: Option<MemPoolConfig>,
 }
 
 /// Configuration for a provider
@@ -48,6 +71,8 @@ pub struct ProviderConfig {
     pub initial_base_fee_per_gas: Option<BigInt>,
     /// The initial date of the blockchain, in seconds since the Unix epoch
     pub initial_date: Option<BigInt>,
+    /// The configuration for the miner
+    pub mining: Option<MiningConfig>,
     /// The network ID of the blockchain
     pub network_id: BigInt,
 }
@@ -63,6 +88,60 @@ impl TryFrom<ForkConfig> for edr_rpc_hardhat::config::ForkConfig {
             block_number,
             http_headers: None,
         })
+    }
+}
+
+impl From<MemPoolConfig> for edr_provider::MemPoolConfig {
+    fn from(value: MemPoolConfig) -> Self {
+        Self {
+            order: value.order.into(),
+        }
+    }
+}
+
+impl TryFrom<MiningConfig> for edr_provider::MiningConfig {
+    type Error = napi::Error;
+
+    fn try_from(value: MiningConfig) -> Result<Self, Self::Error> {
+        let mem_pool = value
+            .mem_pool
+            .map_or(edr_provider::MemPoolConfig::default(), Into::into);
+
+        let interval = value.interval.map(|interval| match interval {
+            Either::A(interval) => edr_provider::IntervalConfig::Fixed(interval),
+            Either::B(IntervalRange { min, max }) => {
+                edr_provider::IntervalConfig::Range { min, max }
+            }
+        });
+
+        let config = if let Some(auto_mine) = value.auto_mine {
+            if let Some(interval) = interval {
+                Self {
+                    auto_mine,
+                    interval,
+                    mem_pool,
+                }
+            } else {
+                Self {
+                    auto_mine,
+                    interval: edr_provider::IntervalConfig::Fixed(0),
+                    mem_pool,
+                }
+            }
+        } else if let Some(interval) = interval {
+            Self {
+                auto_mine: false,
+                interval,
+                mem_pool,
+            }
+        } else {
+            Self {
+                mem_pool,
+                ..edr_provider::MiningConfig::default()
+            }
+        };
+
+        Ok(config)
     }
 }
 
@@ -100,6 +179,9 @@ impl TryFrom<ProviderConfig> for edr_provider::ProviderConfig {
                     napi::Result::Ok(SystemTime::UNIX_EPOCH + elapsed_since_epoch)
                 })
                 .transpose()?,
+            mining: value
+                .mining
+                .map_or(Ok(edr_provider::MiningConfig::default()), TryInto::try_into)?,
             network_id: value.network_id.try_cast()?,
         })
     }

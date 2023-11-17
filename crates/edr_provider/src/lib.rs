@@ -10,18 +10,11 @@ pub mod test_utils;
 
 use data::{CreationError, ProviderData};
 use parking_lot::Mutex;
-use requests::{
-    eth::{self, handle_evm_mine_request},
-    hardhat,
-};
+use requests::{eth, hardhat};
 use tokio::runtime;
 
 use self::requests::{EthRequest, Request};
-pub use self::{
-    config::{AccountConfig, ProviderConfig},
-    error::ProviderError,
-    requests::ProviderRequest,
-};
+pub use self::{config::*, error::ProviderError, requests::ProviderRequest};
 
 /// A JSON-RPC provider for Ethereum.
 ///
@@ -200,15 +193,17 @@ fn handle_eth_request(
         }
         EthRequest::Web3Sha3(message) => eth::handle_web3_sha3_request(message).and_then(to_json),
         EthRequest::EvmIncreaseTime(increment) => {
-            eth::handle_evm_increase_time_request(data, increment).and_then(to_json)
+            eth::handle_increase_time_request(data, increment).and_then(to_json)
         }
         EthRequest::EvmMine(timestamp) => {
-            handle_evm_mine_request(data, timestamp).and_then(to_json)
+            eth::handle_mine_request(data, timestamp).and_then(to_json)
         }
-        EthRequest::EvmSetAutomine(_) => Err(ProviderError::Unimplemented("".to_string())),
+        EthRequest::EvmSetAutomine(enabled) => {
+            eth::handle_set_automine(data, enabled).and_then(to_json)
+        }
         EthRequest::EvmSetIntervalMining(_) => Err(ProviderError::Unimplemented("".to_string())),
         EthRequest::EvmSetNextBlockTimestamp(timestamp) => {
-            eth::handle_evm_set_next_block_timestamp(data, timestamp).and_then(to_json)
+            eth::handle_set_next_block_timestamp(data, timestamp).and_then(to_json)
         }
         EthRequest::EvmSnapshot() => Err(ProviderError::Unimplemented("".to_string())),
     }
@@ -227,7 +222,9 @@ fn handle_hardhat_request(
         rpc_hardhat::Request::DropTransaction(_) => {
             Err(ProviderError::Unimplemented("".to_string()))
         }
-        rpc_hardhat::Request::GetAutomine() => Err(ProviderError::Unimplemented("".to_string())),
+        rpc_hardhat::Request::GetAutomine() => {
+            hardhat::handle_get_automine_request(data).and_then(to_json)
+        }
         rpc_hardhat::Request::GetStackTraceFailuresCount() => {
             Err(ProviderError::Unimplemented("".to_string()))
         }

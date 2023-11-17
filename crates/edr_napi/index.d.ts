@@ -233,6 +233,20 @@ export interface ForkConfig {
    */
   blockNumber?: bigint
 }
+/** Configuration for the provider's mempool. */
+export interface MemPoolConfig {
+  order: MineOrdering
+}
+export interface IntervalRange {
+  min: number
+  max: number
+}
+/** Configuration for the provider's miner. */
+export interface MiningConfig {
+  autoMine?: boolean
+  interval?: number | IntervalRange
+  memPool?: MemPoolConfig
+}
 /** Configuration for a provider */
 export interface ProviderConfig {
   /** Whether to allow blocks with the same timestamp */
@@ -263,6 +277,8 @@ export interface ProviderConfig {
   initialBaseFeePerGas?: bigint
   /** The initial date of the blockchain, in seconds since the Unix epoch */
   initialDate?: bigint
+  /** The configuration for the miner */
+  mining?: MiningConfig
   /** The network ID of the blockchain */
   networkId: bigint
 }

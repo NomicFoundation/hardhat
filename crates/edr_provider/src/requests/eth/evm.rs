@@ -3,7 +3,7 @@ use edr_evm::{blockchain::BlockchainError, MineBlockResult};
 
 use crate::{data::ProviderData, ProviderError};
 
-pub fn handle_evm_increase_time_request(
+pub fn handle_increase_time_request(
     data: &mut ProviderData,
     increment: U64OrUsize,
 ) -> Result<String, ProviderError> {
@@ -13,7 +13,7 @@ pub fn handle_evm_increase_time_request(
     Ok(new_block_time.to_string())
 }
 
-pub fn handle_evm_mine_request(
+pub fn handle_mine_request(
     data: &mut ProviderData,
     timestamp: Option<U64OrUsize>,
 ) -> Result<String, ProviderError> {
@@ -25,7 +25,13 @@ pub fn handle_evm_mine_request(
     Ok(String::from("0"))
 }
 
-pub fn handle_evm_set_next_block_timestamp(
+pub fn handle_set_automine(data: &mut ProviderData, automine: bool) -> Result<bool, ProviderError> {
+    data.set_auto_mining(automine);
+
+    Ok(true)
+}
+
+pub fn handle_set_next_block_timestamp(
     data: &mut ProviderData,
     timestamp: U64OrUsize,
 ) -> Result<String, ProviderError> {

@@ -62,6 +62,7 @@ pub struct ProviderData {
     block_time_offset_seconds: u64,
     fork_metadata: Option<ForkMetadata>,
     instance_id: B256,
+    is_auto_mining: bool,
     next_block_base_fee_per_gas: Option<U256>,
     next_block_timestamp: Option<u64>,
     allow_blocks_with_same_timestamp: bool,
@@ -105,6 +106,7 @@ impl ProviderData {
             block_time_offset_seconds: block_time_offset_seconds(config)?,
             fork_metadata,
             instance_id: B256::random(),
+            is_auto_mining: config.mining.auto_mine,
             next_block_base_fee_per_gas: None,
             next_block_timestamp: None,
             allow_blocks_with_same_timestamp: config.allow_blocks_with_same_timestamp,
@@ -119,6 +121,11 @@ impl ProviderData {
 
     pub fn accounts(&self) -> impl Iterator<Item = &Address> {
         self.local_accounts.keys()
+    }
+
+    /// Returns whether the miner is mining automatically.
+    pub fn is_auto_mining(&self) -> bool {
+        self.is_auto_mining
     }
 
     pub fn balance(
@@ -384,6 +391,11 @@ impl ProviderData {
             PendingTransaction::new(&self.state, self.blockchain.spec_id(), signed_transaction)?;
 
         self.add_pending_transaction(pending_transaction)
+    }
+
+    /// Sets whether the miner should mine automatically.
+    pub fn set_auto_mining(&mut self, enabled: bool) {
+        self.is_auto_mining = enabled;
     }
 
     pub fn set_balance(&mut self, address: Address, balance: U256) -> Result<(), ProviderError> {

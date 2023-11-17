@@ -4,6 +4,7 @@ use edr_eth::{signature::secret_key_from_str, AccountInfo, Address, SpecId, U256
 use edr_evm::KECCAK_EMPTY;
 
 use super::*;
+use crate::config::MiningConfig;
 
 pub const TEST_SECRET_KEY: &str =
     "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
@@ -50,6 +51,7 @@ pub fn create_test_config_with_impersonated_accounts(
         hardfork: SpecId::LATEST,
         initial_base_fee_per_gas: Some(U256::from(1000000000)),
         initial_date: Some(SystemTime::now()),
+        mining: MiningConfig::default(),
         network_id: 123,
         cache_dir,
     }
