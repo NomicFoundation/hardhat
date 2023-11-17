@@ -30,7 +30,7 @@ Website content is located in `*.md` files within `src/content` folder. It's wri
 
 To tune pages, behavior and appearance also use optional `*.yaml` files with additional configurations.
 
-To preview content locally, launch the app with `yarn dev` and open http://127.0.0.1:3000 in your browser. See details in [Development](#development) section.
+To preview content locally, launch the app with `pnpm dev` and open http://127.0.0.1:3000 in your browser. See details in [Development](#development) section.
 
 ### Layouts
 
@@ -134,13 +134,13 @@ First, install dependencies:
 
 ```sh
 cd docs
-yarn
+pnpm install
 ```
 
 Then, run the development server:
 
 ```bash
-yarn dev
+pnpm dev
 ```
 
 Open [http://127.0.0.1:3000](http://127.0.0.1:3000) with your browser to see the result.
@@ -167,7 +167,7 @@ When developing the application you might need these main folders
 
 ## Storybook
 
-You can use Storybook to develop components in isolation. Launch it via `yarn storybook` and open http://127.0.0.1:6006/ You will see a list of components in the left-side sidebar. When you edit component's code and save it, the Storybook is auto-updating it.
+You can use Storybook to develop components in isolation. Launch it via `pnpm storybook` and open http://127.0.0.1:6006/ You will see a list of components in the left-side sidebar. When you edit component's code and save it, the Storybook is auto-updating it.
 
 Each component can be exposed with different states (stories) independently by passing props you need. You can find component stories settings in `Component.stories.ts` files.
 

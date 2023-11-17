@@ -51,7 +51,7 @@ export interface MinimalEthereumJsVm {
  * Creates a proxy for the given object that throws if a property is accessed
  * that is not in the original object. It also works for nested objects.
  */
-function createVmProxy<T>(obj: T, prefix?: string): T {
+function createVmProxy<T extends object>(obj: T, prefix?: string): T {
   if (typeof obj !== "object" || obj === null) {
     return obj;
   }

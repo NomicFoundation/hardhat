@@ -90,15 +90,31 @@ export class Analytics {
    *
    * @returns The abort function
    */
-  public async sendTaskHit(): Promise<[AbortAnalytics, Promise<void>]> {
+  public async sendTaskHit(
+    scopeName: string | undefined,
+    taskName: string
+  ): Promise<[AbortAnalytics, Promise<void>]> {
     if (!this._enabled) {
       return [() => {}, Promise.resolve()];
     }
 
-    return this._sendHit(await this._buildTaskHitPayload());
+    let eventParams = {};
+    if (scopeName === "ignition" && taskName === "deploy") {
+      eventParams = {
+        scope: scopeName,
+        task: taskName,
+      };
+    }
+
+    return this._sendHit(await this._buildTaskHitPayload(eventParams));
   }
 
-  private async _buildTaskHitPayload(): Promise<AnalyticsPayload> {
+  private async _buildTaskHitPayload(
+    eventParams: {
+      scope?: string;
+      task?: string;
+    } = {}
+  ): Promise<AnalyticsPayload> {
     return {
       client_id: this._clientId,
       user_id: this._clientId,
@@ -119,6 +135,7 @@ export class Analytics {
             // for user activity to display in standard reports like Realtime
             engagement_time_msec: "10000",
             session_id: this._sessionId,
+            ...eventParams,
           },
         },
       ],

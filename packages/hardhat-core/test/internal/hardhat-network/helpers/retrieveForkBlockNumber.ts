@@ -1,9 +1,8 @@
-import { HardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
-
 /* eslint-disable @typescript-eslint/dot-notation */
 
+// EDR-TODO: this should be adapted or removed
 export async function retrieveLatestBlockNumber(
-  provider: HardhatNetworkProvider
+  provider: any
 ): Promise<number> {
   if (provider["_node"] === undefined) {
     await provider["_init"]();

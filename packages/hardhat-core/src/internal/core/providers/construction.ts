@@ -61,10 +61,9 @@ export async function createProvider(
   if (networkName === HARDHAT_NETWORK_NAME) {
     const hardhatNetConfig = networkConfig as HardhatNetworkConfig;
 
-    const HardhatNetworkProvider = importProvider<
-      typeof import("../../hardhat-network/provider/provider"),
-      "HardhatNetworkProvider"
-    >("../../hardhat-network/provider/provider", "HardhatNetworkProvider");
+    const { createHardhatNetworkProvider } = await import(
+      "../../hardhat-network/provider/provider"
+    );
 
     let forkConfig: ForkConfig | undefined;
 
@@ -88,7 +87,7 @@ export async function createProvider(
     const { getForkCacheDirPath } =
       require("../../hardhat-network/provider/utils/disk-cache") as typeof DiskCacheT;
 
-    eip1193Provider = new HardhatNetworkProvider(
+    eip1193Provider = await createHardhatNetworkProvider(
       {
         chainId: hardhatNetConfig.chainId,
         networkId: hardhatNetConfig.chainId,

@@ -1,11 +1,8 @@
 /* eslint-disable dot-notation,@typescript-eslint/dot-notation */
 import { Common } from "@nomicfoundation/ethereumjs-common";
 
-import { HardhatNetworkProvider } from "../../../../src/internal/hardhat-network/provider/provider";
-
-export async function retrieveCommon(
-  provider: HardhatNetworkProvider
-): Promise<Common> {
+// EDR-TODO: this should be adapted or removed
+export async function retrieveCommon(provider: any): Promise<Common> {
   if (provider["_node"] === undefined) {
     await provider["_init"]();
   }

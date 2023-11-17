@@ -3,6 +3,8 @@ section-title: Other Hardhat components
 order:
   - href: /../../../hardhat-network/docs
     title: Hardhat Network
+  - href: /../../../ignition/docs
+    title: Hardhat Ignition
   - href: /../../../hardhat-vscode/docs
     title: Hardhat VSCode
   - href: /../../../hardhat-chai-matchers/docs

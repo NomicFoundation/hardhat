@@ -41,6 +41,7 @@ export const ERROR_RANGES: {
   INTERNAL: { min: 900, max: 999, title: "Internal Hardhat errors" },
   SOURCE_NAMES: { min: 1000, max: 1099, title: "Source name errors" },
   CONTRACT_NAMES: { min: 1100, max: 1199, title: "Contract name errors" },
+  VARS: { min: 1200, max: 1299, title: "Connfiguration variables errors" },
 };
 
 export const ERRORS = {
@@ -643,7 +644,7 @@ Please double check your task definitions.`,
   ARGUMENTS: {
     INVALID_ENV_VAR_VALUE: {
       number: 300,
-      message: "Invalid environment variable %varName%'s value: %value%",
+      message: "Invalid environment variable '%varName%' with value: '%value%'",
       title: "Invalid environment variable value",
       description: `You are setting one of Hardhat's arguments using an environment variable, but it has an incorrect value.
 
@@ -1295,6 +1296,43 @@ If you aren't overriding compilation-related tasks, please report this as a bug.
       description: `A contract name was expected to be in fully qualified form, but it's not.
 
 A fully qualified name should look like file.sol:Contract`,
+      shouldBeReported: false,
+    },
+  },
+  VARS: {
+    ONLY_MANAGED_IN_CLI: {
+      number: 1200,
+      title: "Configuration variables can only be managed from the CLI",
+      message:
+        "Configuration variables can only be managed from the CLI. They cannot be modified programmatically.",
+      description: `Configuration variables can only be managed from the CLI. They cannot be modified programmatically.`,
+      shouldBeReported: false,
+    },
+    VALUE_NOT_FOUND_FOR_VAR: {
+      number: 1201,
+      title: "Configuration variable is not set",
+      message:
+        "Cannot find a value for the configuration variable '%value%'. Use 'npx hardhat vars set %value%' to set it or 'npx hardhat vars setup' to list all the configuration variables used by this project.",
+      description: `Cannot find a value for a mandatory configuration variable.
+
+Use 'npx hardhat vars set VAR' to set it or 'npx hardhat vars setup' to list all the configuration variables used by this project.`,
+      shouldBeReported: false,
+    },
+    INVALID_CONFIG_VAR_NAME: {
+      number: 1202,
+      title: "Invalid name for a configuration variable",
+      message:
+        "Invalid name for a configuration variable: '%value%'. Configuration variables can only have alphanumeric characters and underscores, and they cannot start with a number.",
+      description: `Invalid name for a configuration variable.
+
+Configuration variables can only have alphanumeric characters and underscores, and they cannot start with a number.`,
+      shouldBeReported: false,
+    },
+    INVALID_EMPTY_VALUE: {
+      number: 1203,
+      title: "Invalid empty value for configuration variable",
+      message: "A configuration variable cannot have an empty value.",
+      description: "A configuration variable cannot have an empty value.",
       shouldBeReported: false,
     },
   },

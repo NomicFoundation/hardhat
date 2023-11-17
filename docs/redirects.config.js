@@ -112,7 +112,11 @@ const customRedirects = [
       "/plugins/nomicfoundation-hardhat-chai-matchers#chaining-async-matchers",
     permanent: false,
   },
-
+  {
+    source: "/ignition-errors",
+    destination: "/ignition/docs/guides/error-handling",
+    permanent: false,
+  },
   // top-level component URLs
   {
     source: "/hardhat-runner",
@@ -162,6 +166,16 @@ const customRedirects = [
   {
     source: "/hardhat-network-helpers/docs",
     destination: "/hardhat-network-helpers/docs/overview",
+    permanent: false,
+  },
+  {
+    source: "/ignition",
+    destination: "/ignition/docs/getting-started#overview",
+    permanent: false,
+  },
+  {
+    source: "/ignition/docs",
+    destination: "/ignition/docs/getting-started#overview",
     permanent: false,
   },
 

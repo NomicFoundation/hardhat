@@ -1,3 +1,4 @@
+import type { Provider as EdrProviderT } from "@ignored/edr";
 import type {
   Artifacts,
   BoundExperimentalHardhatNetworkMessageTraceHook,
@@ -24,9 +25,10 @@ import {
   MethodNotSupportedError,
   ProviderError,
 } from "../../core/providers/errors";
+import { getHardforkName } from "../../util/hardforks";
 import { Mutex } from "../../vendor/await-semaphore";
-
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/constants";
+
 import { MiningTimer } from "./MiningTimer";
 import { DebugModule } from "./modules/debug";
 import { EthModule } from "./modules/eth";
@@ -45,6 +47,7 @@ import {
   NodeConfig,
   TracingConfig,
 } from "./node-types";
+import { ethereumsjsHardforkToEdrSpecId } from "./utils/convertToEdr";
 
 const log = debug("hardhat:core:hardhat-network:provider");
 
@@ -83,10 +86,7 @@ interface HardhatNetworkProviderConfig {
   enableTransientStorage: boolean;
 }
 
-export class HardhatNetworkProvider
-  extends EventEmitter
-  implements EIP1193Provider
-{
+class HardhatNetworkProvider extends EventEmitter implements EIP1193Provider {
   private _node?: HardhatNode;
   private _ethModule?: EthModule;
   private _netModule?: NetModule;
@@ -392,4 +392,83 @@ export class HardhatNetworkProvider
 
     this.emit("message", message);
   }
+}
+
+class EdrProviderWrapper extends EventEmitter implements EIP1193Provider {
+  private _provider: EdrProviderT;
+
+  public static async create(
+    config: HardhatNetworkProviderConfig
+  ): Promise<EdrProviderWrapper> {
+    const { Provider } =
+      require("@ignored/edr") as typeof import("@ignored/edr");
+
+    const coinbase = config.coinbase ?? DEFAULT_COINBASE;
+
+    const provider = await Provider.withConfig({
+      chainId: BigInt(config.chainId),
+      cacheDir: config.forkCachePath,
+      coinbase: Buffer.from(coinbase.slice(2), "hex"),
+      hardfork: ethereumsjsHardforkToEdrSpecId(
+        getHardforkName(config.hardfork)
+      ),
+      networkId: BigInt(config.chainId),
+      blockGasLimit: BigInt(config.blockGasLimit),
+      genesisAccounts: config.genesisAccounts.map((account) => {
+        return {
+          secretKey: account.privateKey,
+          balance: BigInt(account.balance),
+        };
+      }),
+      allowUnlimitedContractSize: config.allowUnlimitedContractSize,
+      allowBlocksWithSameTimestamp:
+        config.allowBlocksWithSameTimestamp ?? false,
+      initialBaseFeePerGas: BigInt(
+        config.initialBaseFeePerGas ?? 1_000_000_000
+      ),
+    });
+
+    return new EdrProviderWrapper(provider);
+  }
+
+  private constructor(provider: EdrProviderT) {
+    super();
+
+    this._provider = provider;
+  }
+
+  public async request(args: RequestArguments): Promise<unknown> {
+    const stringifiedArgs = JSON.stringify(args);
+    const response = await this._provider.handleRequest(stringifiedArgs);
+    return JSON.parse(response);
+  }
+}
+
+export async function createHardhatNetworkProvider(
+  hardhatNetworkProviderConfig: HardhatNetworkProviderConfig,
+  logger: ModulesLogger,
+  artifacts?: Artifacts
+): Promise<EIP1193Provider> {
+  let eip1193Provider: EIP1193Provider;
+
+  const vmModeEnvVar = process.env.HARDHAT_EXPERIMENTAL_VM_MODE ?? "ethereumjs";
+
+  if (vmModeEnvVar === "edr") {
+    eip1193Provider = await EdrProviderWrapper.create(
+      hardhatNetworkProviderConfig
+    );
+  } else if (vmModeEnvVar === "ethereumjs") {
+    eip1193Provider = new HardhatNetworkProvider(
+      hardhatNetworkProviderConfig,
+      logger,
+      artifacts
+    );
+  } else {
+    // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+    throw new Error(
+      `Invalid value for HARDHAT_EXPERIMENTAL_VM_MODE: ${vmModeEnvVar}`
+    );
+  }
+
+  return eip1193Provider;
 }
