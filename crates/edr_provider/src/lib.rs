@@ -165,9 +165,7 @@ fn handle_eth_request(
             eth::handle_get_transaction_count_request(data, address, block_spec).and_then(to_json)
         }
         EthRequest::GetTransactionReceipt(transaction_hash) => {
-            eth::handle_get_transaction_receipt(data, transaction_hash)
-                .await
-                .and_then(to_json)
+            eth::handle_get_transaction_receipt(data, transaction_hash).and_then(to_json)
         }
         EthRequest::Mining() => Err(ProviderError::Unimplemented("".to_string())),
         EthRequest::NetListening() => eth::handle_net_listening_request().and_then(to_json),
