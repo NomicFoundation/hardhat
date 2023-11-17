@@ -19,32 +19,31 @@ use crate::{
 
 const FIRST_HARDFORK_WITH_TRANSACTION_TYPE: SpecId = SpecId::BERLIN;
 
-pub async fn handle_get_transaction_by_block_hash_and_index(
+pub fn handle_get_transaction_by_block_hash_and_index(
     data: &ProviderData,
     block_hash: B256,
     index: U256,
 ) -> Result<Option<remote::eth::Transaction>, ProviderError> {
     let index = rpc_index_to_usize(&index)?;
 
-    data.block_by_hash(&block_hash)
-        .await?
+    data.block_by_hash(&block_hash)?
         .and_then(|block| transaction_from_block(&block, index, data.spec_id()))
         .map(get_transaction_result_to_rpc_result)
         .transpose()
 }
 
-pub async fn handle_get_transaction_by_block_spec_and_index(
+pub fn handle_get_transaction_by_block_spec_and_index(
     data: &ProviderData,
     block_spec: PreEip1898BlockSpec,
     index: U256,
 ) -> Result<Option<remote::eth::Transaction>, ProviderError> {
     let index = rpc_index_to_usize(&index)?;
 
-    match data.block_by_block_spec(&block_spec.into()).await {
+    match data.block_by_block_spec(&block_spec.into()) {
         Ok(Some(block)) => Some(block),
         // Pending block requested
         Ok(None) => {
-            let result = data.mine_pending_block().await?;
+            let result = data.mine_pending_block()?;
             let block: Arc<dyn SyncBlock<Error = BlockchainError>> = Arc::new(result.block);
             Some(block)
         }
@@ -63,12 +62,11 @@ fn rpc_index_to_usize(index: &U256) -> Result<usize, ProviderError> {
         .map_err(|_err| ProviderError::InvalidTransactionIndex(*index))
 }
 
-pub async fn handle_get_transaction_by_hash(
+pub fn handle_get_transaction_by_hash(
     data: &ProviderData,
     transaction_hash: B256,
 ) -> Result<Option<remote::eth::Transaction>, ProviderError> {
-    data.transaction_by_hash(&transaction_hash)
-        .await?
+    data.transaction_by_hash(&transaction_hash)?
         .map(get_transaction_result_to_rpc_result)
         .transpose()
 }

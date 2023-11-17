@@ -6,6 +6,7 @@ use edr_eth::{
     remote::{self, BlockSpec, RpcClient, RpcClientError},
     B256, U256,
 };
+use tokio::runtime;
 
 use super::storage::SparseBlockchainStorage;
 use crate::{Block, RemoteBlock};
@@ -14,16 +15,18 @@ use crate::{Block, RemoteBlock};
 pub struct RemoteBlockchain<BlockT: Block + Clone, const FORCE_CACHING: bool> {
     client: Arc<RpcClient>,
     cache: RwLock<SparseBlockchainStorage<BlockT>>,
+    runtime: runtime::Handle,
 }
 
 impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
     RemoteBlockchain<BlockT, FORCE_CACHING>
 {
     /// Constructs a new instance with the provided RPC client.
-    pub fn new(client: Arc<RpcClient>) -> Self {
+    pub fn new(client: Arc<RpcClient>, runtime: runtime::Handle) -> Self {
         Self {
             client,
             cache: RwLock::new(SparseBlockchainStorage::default()),
+            runtime,
         }
     }
 
@@ -129,6 +132,11 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
         }
     }
 
+    /// Retrieves the blockchain's runtime.
+    pub fn runtime(&self) -> &runtime::Handle {
+        &self.runtime
+    }
+
     /// Retrieves the total difficulty at the block with the provided hash.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn total_difficulty_by_hash(
@@ -167,7 +175,7 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
             .total_difficulty
             .expect("Must be present as this is not a pending block");
 
-        let block = RemoteBlock::new(block, self.client.clone())
+        let block = RemoteBlock::new(block, self.client.clone(), self.runtime.clone())
             .expect("Conversion must succeed, as we're not retrieving a pending block");
 
         let is_cacheable = FORCE_CACHING
@@ -206,7 +214,10 @@ mod tests {
         // Latest block number is always unsafe to cache
         let block_number = rpc_client.block_number().await.unwrap();
 
-        let remote = RemoteBlockchain::<RemoteBlock, false>::new(Arc::new(rpc_client));
+        let remote = RemoteBlockchain::<RemoteBlock, false>::new(
+            Arc::new(rpc_client),
+            runtime::Handle::current(),
+        );
 
         let _ = remote.block_by_number(block_number).await.unwrap();
         assert!(remote

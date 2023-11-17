@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use async_trait::async_trait;
 use edr_eth::{
     block::{self, Header, PartialHeader},
     log::{FilterLog, FullBlockLog, Log, ReceiptLog},
@@ -94,7 +93,6 @@ impl LocalBlock {
     }
 }
 
-#[async_trait]
 impl Block for LocalBlock {
     type Error = BlockchainError;
 
@@ -114,7 +112,7 @@ impl Block for LocalBlock {
         &self.transaction_callers
     }
 
-    async fn transaction_receipts(&self) -> Result<Vec<Arc<BlockReceipt>>, Self::Error> {
+    fn transaction_receipts(&self) -> Result<Vec<Arc<BlockReceipt>>, Self::Error> {
         Ok(self.transaction_receipts.clone())
     }
 }

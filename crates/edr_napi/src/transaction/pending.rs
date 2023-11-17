@@ -49,8 +49,8 @@ impl PendingTransaction {
         let state = (*state_manager).clone();
 
         let (deferred, promise) = env.create_deferred()?;
-        runtime::Handle::current().spawn(async move {
-            let state = state.read().await;
+        runtime::Handle::current().spawn_blocking(move || {
+            let state = state.read();
 
             let result = if let Some(caller) = caller {
                 let caller = Address::from_slice(&caller);

@@ -7,7 +7,6 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-async-trait = { version = "0.1.73", default-features = false }
 crossbeam-channel = { version = "0.5.6", default-features = false }
 k256 = { version = "0.13.1", default-features = false, features = ["arithmetic", "ecdsa", "pkcs8", "precomputed-tables", "std"] }
 # when napi is pinned, be sure to pin napi-derive to the same version

@@ -8,10 +8,11 @@ use edr_evm::{
 };
 use napi::{
     bindgen_prelude::{BigInt, Buffer, ObjectFinalize},
-    tokio::{runtime, sync::RwLock},
+    tokio::runtime,
     Env, JsObject, Status,
 };
 use napi_derive::napi;
+use parking_lot::RwLock;
 
 use crate::{
     account::{genesis_accounts, GenesisAccount},
@@ -37,7 +38,7 @@ pub struct Blockchain {
 impl Blockchain {
     fn with_blockchain<BlockchainT>(env: &mut Env, blockchain: BlockchainT) -> napi::Result<Self>
     where
-        BlockchainT: SyncBlockchain<BlockchainError, StateError>,
+        BlockchainT: SyncBlockchain<BlockchainError, StateError> + 'static,
     {
         // Signal that memory was externally allocated
         env.adjust_external_memory(BLOCKCHAIN_MEMORY_SIZE)?;
@@ -129,19 +130,20 @@ impl Blockchain {
         let runtime = runtime::Handle::current();
 
         let (deferred, promise) = env.create_deferred()?;
-        runtime.clone().spawn(async move {
+        runtime.clone().spawn_blocking(move || {
             let rpc_client = RpcClient::new(&remote_url, cache_dir);
-            let result = edr_evm::blockchain::ForkedBlockchain::new(
-                runtime,
-                spec_id,
-                rpc_client,
-                fork_block_number,
-                state_root_generator,
-                accounts,
-                hardfork_activation_overrides,
-            )
-            .await
-            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()));
+            let result = runtime
+                .clone()
+                .block_on(edr_evm::blockchain::ForkedBlockchain::new(
+                    runtime,
+                    spec_id,
+                    rpc_client,
+                    fork_block_number,
+                    state_root_generator,
+                    accounts,
+                    hardfork_activation_overrides,
+                ))
+                .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()));
 
             deferred.resolve(|mut env| {
                 result.map(|blockchain| Self::with_blockchain(&mut env, blockchain))
@@ -157,10 +159,15 @@ impl Blockchain {
     pub async fn block_by_hash(&self, hash: Buffer) -> napi::Result<Option<Block>> {
         let hash = TryCast::<B256>::try_cast(hash)?;
 
-        self.read().await.block_by_hash(&hash).await.map_or_else(
-            |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
-            |block| Ok(block.map(Block::from)),
-        )
+        let blockchain = self.inner.clone();
+        runtime::Handle::current()
+            .spawn_blocking(move || blockchain.read().block_by_hash(&hash))
+            .await
+            .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))?
+            .map_or_else(
+                |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+                |block| Ok(block.map(Block::from)),
+            )
     }
 
     #[doc = "Retrieves the block with the provided number, if it exists."]
@@ -169,10 +176,15 @@ impl Blockchain {
     pub async fn block_by_number(&self, number: BigInt) -> napi::Result<Option<Block>> {
         let number: u64 = BigInt::try_cast(number)?;
 
-        self.read().await.block_by_number(number).await.map_or_else(
-            |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
-            |block| Ok(block.map(Block::from)),
-        )
+        let blockchain = self.inner.clone();
+        runtime::Handle::current()
+            .spawn_blocking(move || blockchain.read().block_by_number(number))
+            .await
+            .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))?
+            .map_or_else(
+                |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+                |block| Ok(block.map(Block::from)),
+            )
     }
 
     #[doc = "Retrieves the block that contains a transaction with the provided hash, if it exists."]
@@ -184,10 +196,15 @@ impl Blockchain {
     ) -> napi::Result<Option<Block>> {
         let transaction_hash = TryCast::<B256>::try_cast(transaction_hash)?;
 
-        self.read()
+        let blockchain = self.inner.clone();
+        runtime::Handle::current()
+            .spawn_blocking(move || {
+                blockchain
+                    .read()
+                    .block_by_transaction_hash(&transaction_hash)
+            })
             .await
-            .block_by_transaction_hash(&transaction_hash)
-            .await
+            .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))?
             .map_or_else(
                 |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
                 |block| Ok(block.map(Block::from)),
@@ -197,10 +214,14 @@ impl Blockchain {
     #[doc = "Retrieves the instance's chain ID."]
     #[napi]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub async fn chain_id(&self) -> BigInt {
-        let chain_id = self.read().await.chain_id().await;
+    pub async fn chain_id(&self) -> napi::Result<BigInt> {
+        let blockchain = self.inner.clone();
+        let chain_id = runtime::Handle::current()
+            .spawn_blocking(move || blockchain.read().chain_id())
+            .await
+            .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))?;
 
-        BigInt::from(chain_id)
+        Ok(BigInt::from(chain_id))
     }
 
     // #[napi]
@@ -221,19 +242,29 @@ impl Blockchain {
     #[napi]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn last_block(&self) -> napi::Result<Block> {
-        self.read().await.last_block().await.map_or_else(
-            |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
-            |block| Ok(Block::from(block)),
-        )
+        let blockchain = self.inner.clone();
+        runtime::Handle::current()
+            .spawn_blocking(move || blockchain.read().last_block())
+            .await
+            .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))?
+            .map_or_else(
+                |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+                |block| Ok(Block::from(block)),
+            )
     }
 
     #[doc = "Retrieves the number of the last block in the blockchain."]
     #[napi]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub async fn last_block_number(&self) -> BigInt {
-        let block_number = self.read().await.last_block_number().await;
-
-        BigInt::from(block_number)
+    pub async fn last_block_number(&self) -> napi::Result<BigInt> {
+        let blockchain = self.inner.clone();
+        runtime::Handle::current()
+            .spawn_blocking(move || blockchain.read().last_block_number())
+            .await
+            .map_or_else(
+                |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+                |block_number| Ok(BigInt::from(block_number)),
+            )
     }
 
     #[doc = "Retrieves the receipt of the transaction with the provided hash, if it exists."]
@@ -245,10 +276,15 @@ impl Blockchain {
     ) -> napi::Result<Option<Receipt>> {
         let transaction_hash = TryCast::<B256>::try_cast(transaction_hash)?;
 
-        self.read()
+        let blockchain = self.inner.clone();
+        runtime::Handle::current()
+            .spawn_blocking(move || {
+                blockchain
+                    .read()
+                    .receipt_by_transaction_hash(&transaction_hash)
+            })
             .await
-            .receipt_by_transaction_hash(&transaction_hash)
-            .await
+            .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))?
             .map_or_else(
                 |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
                 |receipt| Ok(receipt.map(Into::into)),
@@ -262,10 +298,11 @@ impl Blockchain {
         let additional: u64 = BigInt::try_cast(additional)?;
         let interval: u64 = BigInt::try_cast(interval)?;
 
-        self.write()
+        let blockchain = self.inner.clone();
+        runtime::Handle::current()
+            .spawn_blocking(move || blockchain.write().reserve_blocks(additional, interval))
             .await
-            .reserve_blocks(additional, interval)
-            .await
+            .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))?
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
 
@@ -275,10 +312,11 @@ impl Blockchain {
     pub async fn revert_to_block(&self, block_number: BigInt) -> napi::Result<()> {
         let block_number: u64 = BigInt::try_cast(block_number)?;
 
-        self.write()
+        let blockchain = self.inner.clone();
+        runtime::Handle::current()
+            .spawn_blocking(move || blockchain.write().revert_to_block(block_number))
             .await
-            .revert_to_block(block_number)
-            .await
+            .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))?
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
 
@@ -288,10 +326,11 @@ impl Blockchain {
     pub async fn spec_at_block_number(&self, block_number: BigInt) -> napi::Result<SpecId> {
         let block_number: u64 = BigInt::try_cast(block_number)?;
 
-        self.read()
+        let blockchain = self.inner.clone();
+        runtime::Handle::current()
+            .spawn_blocking(move || blockchain.read().spec_at_block_number(block_number))
             .await
-            .spec_at_block_number(block_number)
-            .await
+            .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))?
             .map_or_else(
                 |error| Err(napi::Error::new(Status::GenericFailure, error.to_string())),
                 |spec_id| Ok(SpecId::from(spec_id)),
@@ -301,8 +340,15 @@ impl Blockchain {
     #[doc = "Retrieves the hardfork specification used for new blocks."]
     #[napi]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub async fn spec_id(&self) -> SpecId {
-        SpecId::from(self.read().await.spec_id())
+    pub async fn spec_id(&self) -> napi::Result<SpecId> {
+        let blockchain = self.inner.clone();
+        runtime::Handle::current()
+            .spawn_blocking(move || blockchain.read().spec_id())
+            .await
+            .map_or_else(
+                |error| Err(napi::Error::new(Status::GenericFailure, error.to_string())),
+                |spec_id| Ok(spec_id.into()),
+            )
     }
 
     #[doc = "Retrieves the state at the block with the provided number."]
@@ -311,10 +357,11 @@ impl Blockchain {
     pub async fn state_at_block_number(&self, block_number: BigInt) -> napi::Result<State> {
         let block_number: u64 = BigInt::try_cast(block_number)?;
 
-        self.read()
+        let blockchain = self.inner.clone();
+        runtime::Handle::current()
+            .spawn_blocking(move || blockchain.read().state_at_block_number(block_number))
             .await
-            .state_at_block_number(block_number)
-            .await
+            .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))?
             .map_or_else(
                 |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
                 |state| Ok(State::from(state)),
@@ -327,10 +374,11 @@ impl Blockchain {
     pub async fn total_difficulty_by_hash(&self, hash: Buffer) -> napi::Result<Option<BigInt>> {
         let hash = TryCast::<B256>::try_cast(hash)?;
 
-        self.read()
+        let blockchain = self.inner.clone();
+        runtime::Handle::current()
+            .spawn_blocking(move || blockchain.read().total_difficulty_by_hash(&hash))
             .await
-            .total_difficulty_by_hash(&hash)
-            .await
+            .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))?
             .map_or_else(
                 |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
                 |value| {
