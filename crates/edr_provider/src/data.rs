@@ -326,13 +326,12 @@ impl ProviderData {
         self.remove_filter_impl::</* IS_SUBSCRIPTION */ true>(filter_id)
     }
 
-    pub async fn transaction_receipt(
+    pub fn transaction_receipt(
         &self,
         transaction_hash: &B256,
     ) -> Result<Option<Arc<BlockReceipt>>, ProviderError> {
         self.blockchain
             .receipt_by_transaction_hash(transaction_hash)
-            .await
             .map_err(ProviderError::Blockchain)
     }
 

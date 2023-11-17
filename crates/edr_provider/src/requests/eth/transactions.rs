@@ -71,11 +71,11 @@ pub fn handle_get_transaction_by_hash(
         .transpose()
 }
 
-pub async fn handle_get_transaction_receipt(
+pub fn handle_get_transaction_receipt(
     data: &ProviderData,
     transaction_hash: B256,
 ) -> Result<Option<Arc<BlockReceipt>>, ProviderError> {
-    data.transaction_receipt(&transaction_hash).await
+    data.transaction_receipt(&transaction_hash)
 }
 
 fn get_transaction_result_to_rpc_result(
