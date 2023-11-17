@@ -59,7 +59,7 @@ pub struct ForkedBlockchain {
     fork_state: ForkState,
     fork_block_number: u64,
     chain_id: u64,
-    _network_id: U256,
+    network_id: u64,
     spec_id: SpecId,
     hardfork_activations: Option<HardforkActivations>,
 }
@@ -157,7 +157,7 @@ impl ForkedBlockchain {
             fork_state,
             fork_block_number,
             chain_id,
-            _network_id: network_id,
+            network_id,
             spec_id,
             hardfork_activations,
         })
@@ -282,6 +282,10 @@ impl Blockchain for ForkedBlockchain {
 
     fn last_block_number(&self) -> u64 {
         self.local_storage.last_block_number()
+    }
+
+    fn network_id(&self) -> u64 {
+        self.network_id
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]

@@ -28,6 +28,7 @@ use edr_evm::{
     KECCAK_EMPTY,
 };
 use indexmap::IndexMap;
+use rpc_hardhat::ForkMetadata;
 use tokio::runtime;
 
 use self::account::{create_accounts, InitialAccounts};
@@ -35,6 +36,9 @@ use crate::{filter::Filter, logger::Logger, ProviderConfig, ProviderError};
 
 #[derive(Debug, thiserror::Error)]
 pub enum CreationError {
+    /// A blockchain error
+    #[error(transparent)]
+    Blockchain(BlockchainError),
     /// An error that occurred while constructing a forked blockchain.
     #[error(transparent)]
     ForkedBlockchainCreation(#[from] ForkedCreationError),
@@ -56,6 +60,8 @@ pub struct ProviderData {
     min_gas_price: U256,
     prevrandao_generator: RandomHashGenerator,
     block_time_offset_seconds: u64,
+    fork_metadata: Option<ForkMetadata>,
+    instance_id: B256,
     next_block_base_fee_per_gas: Option<U256>,
     next_block_timestamp: Option<u64>,
     allow_blocks_with_same_timestamp: bool,
@@ -78,8 +84,11 @@ impl ProviderData {
             genesis_accounts,
         } = create_accounts(config);
 
-        let BlockchainAndState { state, blockchain } =
-            create_blockchain_and_state(runtime, config, genesis_accounts).await?;
+        let BlockchainAndState {
+            blockchain,
+            state,
+            fork_metadata,
+        } = create_blockchain_and_state(runtime, config, genesis_accounts).await?;
 
         let prevrandao_generator = RandomHashGenerator::with_seed("randomMixHashSeed");
 
@@ -94,6 +103,8 @@ impl ProviderData {
             min_gas_price: U256::from(1),
             prevrandao_generator,
             block_time_offset_seconds: block_time_offset_seconds(config)?,
+            fork_metadata,
+            instance_id: B256::random(),
             next_block_base_fee_per_gas: None,
             next_block_timestamp: None,
             allow_blocks_with_same_timestamp: config.allow_blocks_with_same_timestamp,
@@ -122,7 +133,20 @@ impl ProviderData {
         })?
     }
 
-    pub fn block_number(&self) -> u64 {
+    /// Returns the metadata of the forked blockchain, if it exists.
+    pub fn fork_metadata(&self) -> Option<&ForkMetadata> {
+        self.fork_metadata.as_ref()
+    }
+
+    /// Returns the last block in the blockchain.
+    pub fn last_block(
+        &self,
+    ) -> Result<Arc<dyn SyncBlock<Error = BlockchainError>>, BlockchainError> {
+        self.blockchain.last_block()
+    }
+
+    /// Returns the number of the last block in the blockchain.
+    pub fn last_block_number(&self) -> u64 {
         self.blockchain.last_block_number()
     }
 
@@ -260,6 +284,10 @@ impl ProviderData {
     pub fn increase_block_time(&mut self, increment: u64) -> u64 {
         self.block_time_offset_seconds += increment;
         self.block_time_offset_seconds
+    }
+
+    pub fn instance_id(&self) -> &B256 {
+        &self.instance_id
     }
 
     pub fn logger(&self) -> &Logger {
@@ -768,6 +796,7 @@ fn block_time_offset_seconds(config: &ProviderConfig) -> Result<u64, CreationErr
 
 struct BlockchainAndState {
     blockchain: Box<dyn SyncBlockchain<BlockchainError, StateError>>,
+    fork_metadata: Option<ForkMetadata>,
     state: Box<dyn SyncState<StateError>>,
 }
 
@@ -803,6 +832,15 @@ async fn create_blockchain_and_state(
 
         Ok(BlockchainAndState {
             state: Box::new(state),
+            fork_metadata: Some(ForkMetadata {
+                chain_id: blockchain.chain_id(),
+                fork_block_number,
+                fork_block_hash: *blockchain
+                    .block_by_number(fork_block_number)
+                    .map_err(CreationError::Blockchain)?
+                    .expect("Fork block must exist")
+                    .hash(),
+            }),
             blockchain: Box::new(blockchain),
         })
     } else {
@@ -828,6 +866,7 @@ async fn create_blockchain_and_state(
 
         Ok(BlockchainAndState {
             state,
+            fork_metadata: None,
             blockchain: Box::new(blockchain),
         })
     }
@@ -1023,7 +1062,7 @@ mod tests {
 
         // Mine a block to make sure we're not getting the genesis block
         fixture.provider_data.mine_and_commit_block(None)?;
-        let last_block_number = fixture.provider_data.block_number();
+        let last_block_number = fixture.provider_data.last_block_number();
         // Sanity check
         assert!(last_block_number > 0);
 

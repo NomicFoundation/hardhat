@@ -1,6 +1,18 @@
 use edr_eth::{Address, SpecId, B256, U256};
+use rpc_hardhat::Metadata;
 
-use crate::{data::ProviderData, ProviderError};
+use crate::{data::ProviderData, requests::eth::client_version, ProviderError};
+
+pub fn handle_metadata_request(data: &ProviderData) -> Result<Metadata, ProviderError> {
+    Ok(Metadata {
+        client_version: client_version(),
+        chain_id: data.chain_id(),
+        instance_id: *data.instance_id(),
+        latest_block_number: data.last_block_number(),
+        latest_block_hash: *data.last_block()?.hash(),
+        forked_network: data.fork_metadata().cloned(),
+    })
+}
 
 pub fn handle_set_coinbase_request(
     data: &mut ProviderData,

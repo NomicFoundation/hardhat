@@ -237,7 +237,9 @@ fn handle_hardhat_request(
         rpc_hardhat::Request::IntervalMine() => {
             hardhat::handle_interval_mine_request(data).and_then(to_json)
         }
-        rpc_hardhat::Request::Metadata() => Err(ProviderError::Unimplemented("".to_string())),
+        rpc_hardhat::Request::Metadata() => {
+            hardhat::handle_metadata_request(data).and_then(to_json)
+        }
         rpc_hardhat::Request::Mine(_, _) => Err(ProviderError::Unimplemented("".to_string())),
         rpc_hardhat::Request::Reset(_) => Err(ProviderError::Unimplemented("".to_string())),
         rpc_hardhat::Request::SetBalance(address, balance) => {

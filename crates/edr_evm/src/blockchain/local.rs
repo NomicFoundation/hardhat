@@ -222,6 +222,10 @@ impl Blockchain for LocalBlockchain {
         self.storage.last_block_number()
     }
 
+    fn network_id(&self) -> u64 {
+        self.chain_id
+    }
+
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn receipt_by_transaction_hash(
         &self,
