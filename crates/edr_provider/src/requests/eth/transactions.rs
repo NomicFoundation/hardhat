@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use edr_eth::{
+    receipt::BlockReceipt,
     remote,
     remote::PreEip1898BlockSpec,
     serde::ZeroXPrefixedBytes,
@@ -70,6 +71,13 @@ pub async fn handle_get_transaction_by_hash(
         .await?
         .map(get_transaction_result_to_rpc_result)
         .transpose()
+}
+
+pub async fn handle_get_transaction_receipt(
+    data: &ProviderData,
+    transaction_hash: B256,
+) -> Result<Option<Arc<BlockReceipt>>, ProviderError> {
+    data.transaction_receipt(&transaction_hash).await
 }
 
 fn get_transaction_result_to_rpc_result(

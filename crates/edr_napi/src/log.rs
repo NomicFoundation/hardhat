@@ -11,6 +11,7 @@ use napi_derive::napi;
 
 enum LogType {
     Execution(edr_eth::log::Log),
+    Filter(edr_eth::log::FilterLog),
     Full(edr_eth::log::FullBlockLog),
 }
 
@@ -18,6 +19,14 @@ enum LogType {
 #[napi]
 pub struct Log {
     inner: LogType,
+}
+
+impl From<edr_eth::log::FilterLog> for Log {
+    fn from(value: edr_eth::log::FilterLog) -> Self {
+        Self {
+            inner: LogType::Filter(value),
+        }
+    }
 }
 
 impl From<edr_eth::log::FullBlockLog> for Log {
@@ -43,6 +52,7 @@ impl Log {
     pub fn address(&self) -> Buffer {
         Buffer::from(match &self.inner {
             LogType::Execution(log) => log.address.as_bytes(),
+            LogType::Filter(log) => log.address.as_bytes(),
             LogType::Full(log) => log.address.as_bytes(),
         })
     }
@@ -52,6 +62,7 @@ impl Log {
     pub fn block_hash(&self) -> Option<Buffer> {
         match &self.inner {
             LogType::Execution(_) => None,
+            LogType::Filter(log) => Some(Buffer::from(log.block_hash.as_bytes())),
             LogType::Full(log) => Some(Buffer::from(log.block_hash.as_bytes())),
         }
     }
@@ -61,6 +72,7 @@ impl Log {
     pub fn block_number(&self) -> Option<BigInt> {
         match &self.inner {
             LogType::Execution(_) => None,
+            LogType::Filter(log) => Some(BigInt::from(log.block_number)),
             LogType::Full(log) => Some(BigInt::from(log.block_number)),
         }
     }
@@ -70,6 +82,7 @@ impl Log {
     pub fn data(&self, env: Env) -> napi::Result<JsBuffer> {
         let data = match &self.inner {
             LogType::Execution(log) => log.data.clone(),
+            LogType::Filter(log) => log.data.clone(),
             LogType::Full(log) => log.data.clone(),
         };
 
@@ -91,6 +104,7 @@ impl Log {
     pub fn log_index(&self) -> Option<BigInt> {
         match &self.inner {
             LogType::Execution(_) => None,
+            LogType::Filter(log) => Some(BigInt::from(log.log_index)),
             LogType::Full(log) => Some(BigInt::from(log.log_index)),
         }
     }
@@ -107,6 +121,7 @@ impl Log {
     pub fn topics(&self) -> Vec<Buffer> {
         match &self.inner {
             LogType::Execution(log) => &log.topics,
+            LogType::Filter(log) => &log.topics,
             LogType::Full(log) => &log.topics,
         }
         .iter()
@@ -119,6 +134,7 @@ impl Log {
     pub fn transaction_hash(&self) -> Option<Buffer> {
         match &self.inner {
             LogType::Execution(_) => None,
+            LogType::Filter(log) => Some(Buffer::from(log.transaction_hash.as_bytes())),
             LogType::Full(log) => Some(Buffer::from(log.transaction_hash.as_bytes())),
         }
     }
@@ -128,6 +144,7 @@ impl Log {
     pub fn transaction_index(&self) -> Option<BigInt> {
         match &self.inner {
             LogType::Execution(_) => None,
+            LogType::Filter(log) => Some(BigInt::from(log.transaction_index)),
             LogType::Full(log) => Some(BigInt::from(log.transaction_index)),
         }
     }

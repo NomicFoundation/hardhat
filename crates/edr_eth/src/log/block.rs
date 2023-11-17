@@ -24,6 +24,7 @@ pub struct FullBlockLog {
     #[cfg_attr(feature = "serde", serde(flatten))]
     pub inner: ReceiptLog,
     /// block hash
+    // https://github.com/NomicFoundation/hardhat/blob/7d25b1b5a7bfbd7e7fabbf540b0f32186cba2b11/packages/hardhat-core/src/internal/hardhat-network/provider/output.ts#L120
     pub block_hash: B256,
     /// block number
     #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]

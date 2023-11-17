@@ -3,7 +3,7 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use edr_eth::{
     block::{self, Header, PartialHeader},
-    log::{FullBlockLog, Log, ReceiptLog},
+    log::{FilterLog, FullBlockLog, Log, ReceiptLog},
     receipt::{BlockReceipt, TransactionReceipt, TypedReceipt},
     transaction::{DetailedTransaction, SignedTransaction},
     trie,
@@ -141,19 +141,23 @@ fn transaction_to_block_receipts(
                             .inner
                             .logs
                             .into_iter()
-                            .map(|log| FullBlockLog {
-                                inner: ReceiptLog {
-                                    inner: log,
-                                    transaction_hash: receipt.transaction_hash,
+                            .map(|log| FilterLog {
+                                inner: FullBlockLog {
+                                    inner: ReceiptLog {
+                                        inner: log,
+                                        transaction_hash: receipt.transaction_hash,
+                                    },
+                                    block_hash: *block_hash,
+                                    block_number,
+                                    log_index: {
+                                        let index = log_index;
+                                        log_index += 1;
+                                        index
+                                    },
+                                    transaction_index,
                                 },
-                                block_hash: *block_hash,
-                                block_number,
-                                log_index: {
-                                    let index = log_index;
-                                    log_index += 1;
-                                    index
-                                },
-                                transaction_index,
+                                // Assuming a local block is never reorged out.
+                                removed: false,
                             })
                             .collect(),
                         data: receipt.inner.data,
