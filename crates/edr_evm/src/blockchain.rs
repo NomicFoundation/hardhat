@@ -114,6 +114,9 @@ pub trait Blockchain {
     /// Retrieves the last block number in the blockchain.
     fn last_block_number(&self) -> u64;
 
+    /// Retrieves the network ID of the blockchain.
+    fn network_id(&self) -> u64;
+
     /// Retrieves the receipt of the transaction with the provided hash, if it
     /// exists.
     fn receipt_by_transaction_hash(

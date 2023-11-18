@@ -3,12 +3,16 @@ use sha3::{Digest, Keccak256};
 
 use crate::ProviderError;
 
-pub fn handle_web3_client_version_request() -> Result<String, ProviderError> {
-    Ok(format!(
+pub fn client_version() -> String {
+    format!(
         "edr/{}/revm/{}",
         env!("CARGO_PKG_VERSION"),
         env!("REVM_VERSION"),
-    ))
+    )
+}
+
+pub fn handle_web3_client_version_request() -> Result<String, ProviderError> {
+    Ok(client_version())
 }
 
 pub fn handle_web3_sha3_request(message: ZeroXPrefixedBytes) -> Result<B256, ProviderError> {

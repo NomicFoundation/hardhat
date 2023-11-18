@@ -823,8 +823,10 @@ impl RpcClient {
     }
 
     /// Calls `net_version`.
-    pub async fn network_id(&self) -> Result<U256, RpcClientError> {
-        self.call(MethodInvocation::NetVersion()).await
+    pub async fn network_id(&self) -> Result<u64, RpcClientError> {
+        self.call::<U64>(MethodInvocation::NetVersion())
+            .await
+            .map(|network_id| network_id.as_limbs()[0])
     }
 }
 
@@ -1935,7 +1937,7 @@ mod tests {
                 .await
                 .expect("should have succeeded");
 
-            assert_eq!(version, U256::from(1));
+            assert_eq!(version, 1);
         }
 
         #[tokio::test]

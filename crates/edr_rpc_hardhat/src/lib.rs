@@ -1,19 +1,20 @@
+/// Compiler input and output structures used as parameters to Hardhat RPC
+/// methods
+pub mod compiler;
+/// Configuration types for Hardhat RPC methods
+pub mod config;
+mod metadata;
+
 use edr_eth::{
     serde::{sequence_to_single, single_to_sequence, ZeroXPrefixedBytes},
     Address, B256, U256,
 };
 
+pub use self::metadata::{ForkMetadata, Metadata};
 use self::{
     compiler::{CompilerInput, CompilerOutput},
     config::ResetProviderConfig,
 };
-
-/// Compiler input and output structures used as parameters to Hardhat RPC
-/// methods
-pub mod compiler;
-
-/// Configuration types for Hardhat RPC methods
-pub mod config;
 
 /// an invocation of a hardhat_* RPC method, with its parameters
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -118,7 +119,7 @@ pub enum Request {
         serialize_with = "single_to_sequence",
         deserialize_with = "sequence_to_single"
     )]
-    SetPrevRandao(ZeroXPrefixedBytes),
+    SetPrevRandao(B256),
     /// hardhat_setStorageAt
     #[serde(rename = "hardhat_setStorageAt")]
     SetStorageAt(Address, U256, U256),

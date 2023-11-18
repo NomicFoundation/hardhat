@@ -237,7 +237,9 @@ fn handle_hardhat_request(
         rpc_hardhat::Request::IntervalMine() => {
             hardhat::handle_interval_mine_request(data).and_then(to_json)
         }
-        rpc_hardhat::Request::Metadata() => Err(ProviderError::Unimplemented("".to_string())),
+        rpc_hardhat::Request::Metadata() => {
+            hardhat::handle_metadata_request(data).and_then(to_json)
+        }
         rpc_hardhat::Request::Mine(_, _) => Err(ProviderError::Unimplemented("".to_string())),
         rpc_hardhat::Request::Reset(_) => Err(ProviderError::Unimplemented("".to_string())),
         rpc_hardhat::Request::SetBalance(address, balance) => {
@@ -246,20 +248,25 @@ fn handle_hardhat_request(
         rpc_hardhat::Request::SetCode(address, code) => {
             hardhat::handle_set_code(data, address, code).and_then(to_json)
         }
-        rpc_hardhat::Request::SetCoinbase(_) => Err(ProviderError::Unimplemented("".to_string())),
+        rpc_hardhat::Request::SetCoinbase(coinbase) => {
+            hardhat::handle_set_coinbase_request(data, coinbase).and_then(to_json)
+        }
         rpc_hardhat::Request::SetLoggingEnabled(_) => {
             Err(ProviderError::Unimplemented("".to_string()))
         }
         rpc_hardhat::Request::SetMinGasPrice(_) => {
             Err(ProviderError::Unimplemented("".to_string()))
         }
-        rpc_hardhat::Request::SetNextBlockBaseFeePerGas(_) => {
-            Err(ProviderError::Unimplemented("".to_string()))
+        rpc_hardhat::Request::SetNextBlockBaseFeePerGas(base_fee_per_gas) => {
+            hardhat::handle_set_next_block_base_fee_per_gas_request(data, base_fee_per_gas)
+                .and_then(to_json)
         }
         rpc_hardhat::Request::SetNonce(address, nonce) => {
             hardhat::handle_set_nonce(data, address, nonce).and_then(to_json)
         }
-        rpc_hardhat::Request::SetPrevRandao(_) => Err(ProviderError::Unimplemented("".to_string())),
+        rpc_hardhat::Request::SetPrevRandao(prev_randao) => {
+            hardhat::handle_set_prev_randao_request(data, prev_randao).and_then(to_json)
+        }
         rpc_hardhat::Request::SetStorageAt(address, index, value) => {
             hardhat::handle_set_storage_at(data, address, index, value).and_then(to_json)
         }
