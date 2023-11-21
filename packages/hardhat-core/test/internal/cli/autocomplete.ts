@@ -352,6 +352,14 @@ describe("autocomplete", function () {
 
       expect(suggestions).to.equal(HARDHAT_COMPLETE_FILES);
     });
+
+    it("should not confuse arguments as scopes", async () => {
+      // "flatten" should not be identified as scope and "contracts/foo.sol" should
+      // not be identified as task
+      const suggestions = await complete("hh flatten contracts/foo.sol");
+
+      expect(suggestions).to.equal(HARDHAT_COMPLETE_FILES);
+    });
   });
 
   describe("custom tasks", () => {
@@ -464,7 +472,7 @@ describe("autocomplete", function () {
       });
     });
 
-    describe("custom tasks", () => {
+    describe("custom scopes", () => {
       useFixtureProject("autocomplete/custom-scopes");
 
       after(() => {
@@ -484,6 +492,10 @@ describe("autocomplete", function () {
             name: "scope-2",
             description: "scope-2 description",
           },
+          {
+            name: "scope-3",
+            description: "scope-3 description",
+          },
         ]);
       });
 
@@ -494,6 +506,10 @@ describe("autocomplete", function () {
           {
             name: "scope-2",
             description: "scope-2 description",
+          },
+          {
+            name: "scope-3",
+            description: "scope-3 description",
           },
         ]);
       });
@@ -517,6 +533,84 @@ describe("autocomplete", function () {
         const suggestions = await complete("hh scope-2 ");
 
         expect(suggestions).to.have.deep.members([]);
+      });
+
+      it("should autocomplete with the scope's task's flags and the core parameters", async () => {
+        const suggestions = await complete("hh scope1 task2 --flag --");
+
+        expect(suggestions).to.have.deep.members([
+          {
+            name: "--flag1",
+            description: "flag1 description",
+          },
+          {
+            name: "--flag2",
+            description: "",
+          },
+          {
+            name: "--tmpflag",
+            description: "",
+          },
+          ...coreParams,
+        ]);
+      });
+
+      it("should autocomplete with the matching flags", async () => {
+        const suggestions = await complete("hh scope1 task2 --fla");
+
+        expect(suggestions).to.have.deep.members([
+          {
+            name: "--flag1",
+            description: "flag1 description",
+          },
+          {
+            name: "--flag2",
+            description: "",
+          },
+          {
+            description: "Generate a flamegraph of your Hardhat tasks",
+            name: "--flamegraph",
+          },
+        ]);
+      });
+
+      it("should autocomplete with the matching flags that haven't been used yet", async () => {
+        const suggestions = await complete(
+          "hh scope1 --flamegraph task2 --fla"
+        );
+
+        expect(suggestions).to.have.deep.members([
+          {
+            name: "--flag1",
+            description: "flag1 description",
+          },
+          {
+            name: "--flag2",
+            description: "",
+          },
+        ]);
+      });
+
+      it("should autocomplete with a scope's task that has the same name as the scope itself", async () => {
+        const suggestions = await complete("hh scope-3 s");
+
+        expect(suggestions).to.have.deep.members([
+          {
+            name: "scope-3",
+            description: "task description",
+          },
+        ]);
+      });
+
+      it("should autocomplete with a scope's task that has the same name as a stand alone task", async () => {
+        const suggestions = await complete("hh scope-3 c");
+
+        expect(suggestions).to.have.deep.members([
+          {
+            name: "compile",
+            description: "",
+          },
+        ]);
       });
     });
   });

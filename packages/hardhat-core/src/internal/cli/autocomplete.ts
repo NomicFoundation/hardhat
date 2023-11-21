@@ -2,7 +2,7 @@ import findup from "find-up";
 import * as fs from "fs-extra";
 import * as path from "path";
 
-import { HardhatRuntimeEnvironment } from "../../types";
+import { HardhatRuntimeEnvironment, TaskDefinition } from "../../types";
 import { HARDHAT_PARAM_DEFINITIONS } from "../core/params/hardhat-params";
 import { getCacheDir } from "../util/global-dir";
 import { createNonCryptographicHashBasedIdentifier } from "../util/hash";
@@ -22,30 +22,31 @@ interface CompletionEnv {
   point: number;
 }
 
+interface Task {
+  name: string;
+  description: string;
+  isSubtask: boolean;
+  paramDefinitions: {
+    [paramName: string]: {
+      name: string;
+      description: string;
+      isFlag: boolean;
+    };
+  };
+}
+
 interface CompletionData {
   networks: string[];
   tasks: {
-    [taskName: string]: {
-      name: string;
-      description: string;
-      isSubtask: boolean;
-      paramDefinitions: {
-        [paramName: string]: {
-          name: string;
-          description: string;
-          isFlag: boolean;
-        };
-      };
-    };
+    [taskName: string]: Task;
   };
   scopes: {
     [taskName: string]: {
       name: string;
       description: string;
-      tasks: Array<{
-        name: string;
-        description: string;
-      }>;
+      tasks: {
+        [taskName: string]: Task;
+      };
     };
   };
 }
@@ -93,19 +94,34 @@ export async function complete({
     }))
     .filter((x) => !words.includes(x.name));
 
-  // check if the user entered a task
-  let taskOrScope: string | undefined;
+  // Get the task or scope if the user has entered one
+  let taskName: string | undefined;
+  let scopeName: string | undefined;
+
   let index = 1;
   while (index < words.length) {
-    if (isGlobalFlag(words[index])) {
+    const word = words[index];
+
+    if (isGlobalFlag(word)) {
       index += 1;
-    } else if (isGlobalParam(words[index])) {
+    } else if (isGlobalParam(word)) {
       index += 2;
-    } else if (words[index].startsWith("--")) {
+    } else if (word.startsWith("--")) {
       index += 1;
     } else {
-      taskOrScope = words[index];
-      break;
+      if (scopeName === undefined) {
+        if (tasks[word] !== undefined) {
+          taskName = word;
+          break;
+        } else if (scopes[word] !== undefined) {
+          scopeName = word;
+        }
+      } else {
+        taskName = word;
+        break;
+      }
+
+      index += 1;
     }
   }
 
@@ -113,8 +129,17 @@ export async function complete({
   // this indicates that the cursor is positioned after the task or scope.
   // In this case, we ignore the task or scope. For instance, if you have a task or a scope named 'foo' and 'foobar',
   // and the line is 'hh foo|', we want to suggest the value for 'foo' and 'foobar'.
-  if (taskOrScope === last) {
-    taskOrScope = undefined;
+  // Possible scenarios:
+  // hh
+  // hh task
+  // hh scope
+  // hh scope task
+  if (taskName === last || scopeName === last) {
+    if (taskName !== undefined && scopeName !== undefined) {
+      [taskName, scopeName] = [undefined, scopeName];
+    } else {
+      [taskName, scopeName] = [undefined, undefined];
+    }
   }
 
   if (prev === "--network") {
@@ -123,6 +148,16 @@ export async function complete({
       description: "",
     }));
   }
+
+  const scopeDefinition =
+    scopeName === undefined ? undefined : scopes[scopeName];
+
+  const taskDefinition =
+    taskName === undefined
+      ? undefined
+      : scopeDefinition === undefined
+      ? tasks[taskName]
+      : scopeDefinition.tasks[taskName];
 
   // if the previous word is a param, then a value is expected
   // we don't complete anything here
@@ -135,8 +170,7 @@ export async function complete({
     }
 
     const isTaskParam =
-      taskOrScope !== undefined &&
-      tasks[taskOrScope]?.paramDefinitions[paramName]?.isFlag === false;
+      taskDefinition?.paramDefinitions[paramName]?.isFlag === false;
 
     if (isTaskParam) {
       return HARDHAT_COMPLETE_FILES;
@@ -145,8 +179,8 @@ export async function complete({
 
   // If there's no task or scope, we complete either tasks and scopes or params
   if (
-    taskOrScope === undefined ||
-    (tasks[taskOrScope] === undefined && scopes[taskOrScope] === undefined)
+    (taskName === undefined || tasks[taskName] === undefined) &&
+    (scopeName === undefined || scopes[scopeName] === undefined)
   ) {
     if (last.startsWith("-")) {
       return coreParams.filter((param) => startsWithLast(param.name));
@@ -171,21 +205,25 @@ export async function complete({
 
   // If the previous word is a scope, then suggest the tasks assigned to it (if any)
   if (scopes[prev] !== undefined) {
-    return scopes[prev].tasks;
+    return Object.values(scopes[prev].tasks).map((t) => ({
+      name: t.name,
+      description: t.description,
+    }));
   }
 
   if (!last.startsWith("-")) {
     return HARDHAT_COMPLETE_FILES;
   }
 
-  // If there's a task and the last word starts with -, we complete its params and the global params.
-  // Only tasks have params
-  const taskParams = Object.values(tasks[taskOrScope].paramDefinitions)
-    .map((param) => ({
-      name: ArgumentsParser.paramNameToCLA(param.name),
-      description: param.description,
-    }))
-    .filter((x) => !words.includes(x.name));
+  const taskParams =
+    taskDefinition === undefined
+      ? []
+      : Object.values(taskDefinition.paramDefinitions)
+          .map((param) => ({
+            name: ArgumentsParser.paramNameToCLA(param.name),
+            description: param.description,
+          }))
+          .filter((x) => !words.includes(x.name));
 
   return [...taskParams, ...coreParams].filter((suggestion) =>
     startsWithLast(suggestion.name)
@@ -223,24 +261,14 @@ async function getCompletionData(): Promise<CompletionData | undefined> {
 
   // we extract the tasks data explicitly to make sure everything
   // is serializable and to avoid saving unnecessary things from the HRE
-  const tasks: CompletionData["tasks"] = mapValues(hre.tasks, (task) => ({
-    name: task.name,
-    description: task.description ?? "",
-    isSubtask: task.isSubtask,
-    paramDefinitions: mapValues(task.paramDefinitions, (paramDefinition) => ({
-      name: paramDefinition.name,
-      description: paramDefinition.description ?? "",
-      isFlag: paramDefinition.isFlag,
-    })),
-  }));
+  const tasks: CompletionData["tasks"] = mapValues(hre.tasks, (task) =>
+    getTaskFromTaskDefinition(task)
+  );
 
   const scopes: CompletionData["scopes"] = mapValues(hre.scopes, (scope) => ({
     name: scope.name,
     description: scope.description ?? "",
-    tasks: Object.values(scope.tasks).map((task) => ({
-      name: task.name,
-      description: task.description ?? "",
-    })),
+    tasks: mapValues(scope.tasks, (task) => getTaskFromTaskDefinition(task)),
   }));
 
   const completionData: CompletionData = {
@@ -252,6 +280,22 @@ async function getCompletionData(): Promise<CompletionData | undefined> {
   await saveCachedCompletionData(projectId, completionData, mtimes);
 
   return completionData;
+}
+
+function getTaskFromTaskDefinition(taskDef: TaskDefinition): Task {
+  return {
+    name: taskDef.name,
+    description: taskDef.description ?? "",
+    isSubtask: taskDef.isSubtask,
+    paramDefinitions: mapValues(
+      taskDef.paramDefinitions,
+      (paramDefinition) => ({
+        name: paramDefinition.name,
+        description: paramDefinition.description ?? "",
+        isFlag: paramDefinition.isFlag,
+      })
+    ),
+  };
 }
 
 function getProjectId(): string | undefined {
