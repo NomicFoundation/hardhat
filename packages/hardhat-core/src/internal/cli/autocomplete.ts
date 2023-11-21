@@ -109,6 +109,12 @@ export async function complete({
     } else if (word.startsWith("--")) {
       index += 1;
     } else {
+      // Possible scenarios:
+      // - no task or scope: `hh `
+      // - only a task: `hh task `
+      // - only a scope: `hh scope `
+      // - both a scope and a task (the task always follow the scope): `hh scope task `
+      // Between a scope and a task there could be other words, e.g.: `hh scope --flag task `
       if (scopeName === undefined) {
         if (tasks[word] !== undefined) {
           taskName = word;
@@ -130,10 +136,10 @@ export async function complete({
   // In this case, we ignore the task or scope. For instance, if you have a task or a scope named 'foo' and 'foobar',
   // and the line is 'hh foo|', we want to suggest the value for 'foo' and 'foobar'.
   // Possible scenarios:
-  // hh
-  // hh task
-  // hh scope
-  // hh scope task
+  // - no task or scope: `hh ` -> task and scope already undefined
+  // - only a task: `hh task ` -> task set to undefined, scope already undefined
+  // - only a scope: `hh scope ` -> scope set to undefined, task already undefined
+  // - both a scope and a task (the task always follow the scope): `hh scope task ` -> task set to undefined, scope stays defined
   if (taskName === last || scopeName === last) {
     if (taskName !== undefined && scopeName !== undefined) {
       [taskName, scopeName] = [undefined, scopeName];
