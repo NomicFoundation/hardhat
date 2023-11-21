@@ -41,7 +41,7 @@ interface CompletionData {
     [taskName: string]: Task;
   };
   scopes: {
-    [taskName: string]: {
+    [scopeName: string]: {
       name: string;
       description: string;
       tasks: {
