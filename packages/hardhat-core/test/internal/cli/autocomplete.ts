@@ -427,13 +427,13 @@ describe("autocomplete", function () {
   });
 
   describe("override task", () => {
-    useFixtureProject("autocomplete/overriden-task");
+    useFixtureProject("autocomplete/overridden-task");
 
     after(() => {
       resetHardhatContext();
     });
 
-    it("should work when a task is overriden", async () => {
+    it("should work when a task is overridden", async () => {
       const suggestions = await complete("hh ");
       expect(suggestions).to.have.deep.members(coreTasks);
     });
