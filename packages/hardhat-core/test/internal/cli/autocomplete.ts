@@ -156,6 +156,17 @@ describe("autocomplete", function () {
       expect(suggestions).to.have.deep.members(coreTasks);
     });
 
+    it("should suggest all task names that starts with the correct letter", async () => {
+      const suggestions = await complete("hh t");
+
+      expect(suggestions).same.deep.members([
+        {
+          name: "test",
+          description: "Runs mocha tests",
+        },
+      ]);
+    });
+
     it("should suggest all core params after a -", async () => {
       const suggestions = await complete("hh -");
 
@@ -604,6 +615,17 @@ describe("autocomplete", function () {
 
       it("should autocomplete with a scope's task that has the same name as a stand alone task", async () => {
         const suggestions = await complete("hh scope-3 c");
+
+        expect(suggestions).to.have.deep.members([
+          {
+            name: "compile",
+            description: "",
+          },
+        ]);
+      });
+
+      it("should autocomplete with a scope's task that with the task being declared after a flag", async () => {
+        const suggestions = await complete("hh scope-3 --verbose c");
 
         expect(suggestions).to.have.deep.members([
           {

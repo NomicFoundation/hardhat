@@ -203,12 +203,19 @@ export async function complete({
       .filter((x) => startsWithLast(x.name));
   }
 
-  // If the previous word is a scope, then suggest the tasks assigned to it (if any)
-  if (scopes[prev] !== undefined) {
-    return Object.values(scopes[prev].tasks).map((t) => ({
-      name: t.name,
-      description: t.description,
-    }));
+  // If there's a scope but not a task, we complete with the scopes'tasks
+  if (
+    taskName === undefined &&
+    scopeName !== undefined &&
+    scopes[scopeName] !== undefined
+  ) {
+    return Object.values(scopes[scopeName].tasks)
+      .filter((x) => !x.isSubtask)
+      .map((x) => ({
+        name: x.name,
+        description: x.description,
+      }))
+      .filter((x) => startsWithLast(x.name));
   }
 
   if (!last.startsWith("-")) {
