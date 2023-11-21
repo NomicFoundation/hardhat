@@ -156,7 +156,7 @@ describe("autocomplete", function () {
       expect(suggestions).to.have.deep.members(coreTasks);
     });
 
-    it("should suggest all task names that starts with the correct letter", async () => {
+    it("should suggest all tasks' names that starts with the correct letters", async () => {
       const suggestions = await complete("hh t");
 
       expect(suggestions).same.deep.members([
@@ -426,7 +426,7 @@ describe("autocomplete", function () {
     });
   });
 
-  describe("override task", () => {
+  describe("overridden task", () => {
     useFixtureProject("autocomplete/overridden-task");
 
     after(() => {
