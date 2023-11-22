@@ -20,7 +20,10 @@ for dir in ${FIXTURE_PROJECTS_DIR}/*; do
   if [ -d "$dir" ]; then
     echo "[e2e] Running tests in $dir"
     cd "$dir"
+    echo "[e2e] Insatlling modules in $dir"
     npm install ../../../packages/hardhat-core/$HARDHAT_TGZ_FILE >/dev/null 2>&1
+    echo "[e2e] All modules have been insatlled in $dir"
+    echo "[e2e] Starting test in $dir"
     ./test.sh
     cd -
   fi

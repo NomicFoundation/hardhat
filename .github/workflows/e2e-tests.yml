@@ -1,0 +1,35 @@
+name: Run script
+
+on:
+  push:
+    branches:
+      - "**"
+
+jobs:
+  run-script-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run fixture-projects script
+        run: |
+          chmod +x run-fixture-projects.sh
+          ./run-fixture-projects.sh
+        shell: bash
+  # run-script-macos:
+  #   runs-on: macos-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Run script
+  #       run: |
+  #         chmod +x test.sh
+  #         ./test.sh
+  #       shell: bash
+  # run-script-windows:
+  #   runs-on: windows-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Run script
+  #       run: |
+  #         chmod +x test.sh
+  #         ./test.sh
+  #       shell: bash
