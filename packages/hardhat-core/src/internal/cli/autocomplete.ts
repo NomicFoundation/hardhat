@@ -184,10 +184,7 @@ export async function complete({
   }
 
   // If there's no task or scope, we complete either tasks and scopes or params
-  if (
-    (taskName === undefined || tasks[taskName] === undefined) &&
-    (scopeName === undefined || scopes[scopeName] === undefined)
-  ) {
+  if (taskDefinition === undefined && scopeDefinition === undefined) {
     if (last.startsWith("-")) {
       return coreParams.filter((param) => startsWithLast(param.name));
     }
@@ -210,12 +207,8 @@ export async function complete({
   }
 
   // If there's a scope but not a task, we complete with the scopes'tasks
-  if (
-    taskName === undefined &&
-    scopeName !== undefined &&
-    scopes[scopeName] !== undefined
-  ) {
-    return Object.values(scopes[scopeName].tasks)
+  if (taskDefinition === undefined && scopeDefinition !== undefined) {
+    return Object.values(scopes[scopeName!].tasks)
       .filter((x) => !x.isSubtask)
       .map((x) => ({
         name: x.name,
