@@ -243,9 +243,9 @@ export interface IntervalRange {
 }
 /** Configuration for the provider's miner. */
 export interface MiningConfig {
-  autoMine?: boolean
-  interval?: number | IntervalRange
-  memPool?: MemPoolConfig
+  autoMine: boolean
+  interval: number | IntervalRange
+  memPool: MemPoolConfig
 }
 /** Configuration for a provider */
 export interface ProviderConfig {
@@ -278,7 +278,7 @@ export interface ProviderConfig {
   /** The initial date of the blockchain, in seconds since the Unix epoch */
   initialDate?: bigint
   /** The configuration for the miner */
-  mining?: MiningConfig
+  mining: MiningConfig
   /** The network ID of the blockchain */
   networkId: bigint
 }

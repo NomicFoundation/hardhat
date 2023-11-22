@@ -39,9 +39,9 @@ pub struct IntervalRange {
 /// Configuration for the provider's miner.
 #[napi(object)]
 pub struct MiningConfig {
-    pub auto_mine: Option<bool>,
-    pub interval: Option<Either<i64, IntervalRange>>,
-    pub mem_pool: Option<MemPoolConfig>,
+    pub auto_mine: bool,
+    pub interval: Either<i64, IntervalRange>,
+    pub mem_pool: MemPoolConfig,
 }
 
 /// Configuration for a provider
@@ -72,7 +72,7 @@ pub struct ProviderConfig {
     /// The initial date of the blockchain, in seconds since the Unix epoch
     pub initial_date: Option<BigInt>,
     /// The configuration for the miner
-    pub mining: Option<MiningConfig>,
+    pub mining: MiningConfig,
     /// The network ID of the blockchain
     pub network_id: BigInt,
 }
@@ -99,49 +99,22 @@ impl From<MemPoolConfig> for edr_provider::MemPoolConfig {
     }
 }
 
-impl TryFrom<MiningConfig> for edr_provider::MiningConfig {
-    type Error = napi::Error;
+impl From<MiningConfig> for edr_provider::MiningConfig {
+    fn from(value: MiningConfig) -> Self {
+        let mem_pool = value.mem_pool.into();
 
-    fn try_from(value: MiningConfig) -> Result<Self, Self::Error> {
-        let mem_pool = value
-            .mem_pool
-            .map_or(edr_provider::MemPoolConfig::default(), Into::into);
-
-        let interval = value.interval.map(|interval| match interval {
+        let interval = match value.interval {
             Either::A(interval) => edr_provider::IntervalConfig::Fixed(interval),
             Either::B(IntervalRange { min, max }) => {
                 edr_provider::IntervalConfig::Range { min, max }
             }
-        });
-
-        let config = if let Some(auto_mine) = value.auto_mine {
-            if let Some(interval) = interval {
-                Self {
-                    auto_mine,
-                    interval,
-                    mem_pool,
-                }
-            } else {
-                Self {
-                    auto_mine,
-                    interval: edr_provider::IntervalConfig::Fixed(0),
-                    mem_pool,
-                }
-            }
-        } else if let Some(interval) = interval {
-            Self {
-                auto_mine: false,
-                interval,
-                mem_pool,
-            }
-        } else {
-            Self {
-                mem_pool,
-                ..edr_provider::MiningConfig::default()
-            }
         };
 
-        Ok(config)
+        Self {
+            auto_mine: value.auto_mine,
+            interval,
+            mem_pool,
+        }
     }
 }
 
@@ -179,9 +152,7 @@ impl TryFrom<ProviderConfig> for edr_provider::ProviderConfig {
                     napi::Result::Ok(SystemTime::UNIX_EPOCH + elapsed_since_epoch)
                 })
                 .transpose()?,
-            mining: value
-                .mining
-                .map_or(Ok(edr_provider::MiningConfig::default()), TryInto::try_into)?,
+            mining: value.mining.into(),
             network_id: value.network_id.try_cast()?,
         })
     }
