@@ -1,0 +1,51 @@
+{
+  "name": "e2e-tests",
+  "version": "1.0.0",
+  "description": "__________",
+  "homepage": "__________",
+  "repository": "github:nomicfoundation/hardhat",
+  "author": "Nomic Foundation",
+  "license": "MIT",
+  "main": "__________",
+  "types": "__________",
+  "keywords": [
+    "__________"
+  ],
+  "scripts": {
+    "lint": "pnpm prettier --check && pnpm eslint",
+    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
+    "prettier": "prettier \"**/*.{js,md,json}\"",
+    "coverage": "nyc pnpm test -- --reporter min",
+    "build": "tsc --build .",
+    "prepublishOnly": "pnpm build",
+    "clean": "rimraf dist",
+    "pretest": "",
+    "test-pkg": "mocha --recursive \"test/packages/$PKG_NAME/**/*.ts\" -c --exit",
+    "add-hardhat-core-pkg": "pnpm add ./hardhat-2.19.1.tgz --no-save",
+    "test-hardhat-core": "PKG_NAME=hardhat-core pnpm test-pkg"
+  },
+  "files": [
+    "dist/src/",
+    "src/",
+    "LICENSE",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@types/chai": "^4.2.0",
+    "@types/mocha": ">=9.1.0",
+    "@types/node": "^16.0.0",
+    "@typescript-eslint/eslint-plugin": "5.61.0",
+    "@typescript-eslint/parser": "5.61.0",
+    "chai": "^4.2.0",
+    "eslint": "^8.44.0",
+    "eslint-config-prettier": "8.3.0",
+    "eslint-plugin-import": "2.27.5",
+    "eslint-plugin-no-only-tests": "3.0.0",
+    "eslint-plugin-prettier": "3.4.0",
+    "mocha": "^10.0.0",
+    "prettier": "2.4.1",
+    "ts-node": "^10.8.0",
+    "typescript": "~5.0.0"
+  }
+}
