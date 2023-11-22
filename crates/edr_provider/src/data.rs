@@ -423,6 +423,13 @@ impl ProviderData {
         Ok(())
     }
 
+    /// Sets the gas limit used for mining new blocks.
+    pub fn set_block_gas_limit(&mut self, gas_limit: u64) -> Result<(), ProviderError> {
+        self.mem_pool
+            .set_block_gas_limit(&self.state, gas_limit)
+            .map_err(ProviderError::State)
+    }
+
     pub fn set_code(&mut self, address: Address, code: Bytes) -> Result<(), ProviderError> {
         let default_code = code.clone();
         self.state.modify_account(

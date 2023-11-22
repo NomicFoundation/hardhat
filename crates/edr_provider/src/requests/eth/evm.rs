@@ -25,13 +25,25 @@ pub fn handle_mine_request(
     Ok(String::from("0"))
 }
 
-pub fn handle_set_automine(data: &mut ProviderData, automine: bool) -> Result<bool, ProviderError> {
+pub fn handle_set_automine_request(
+    data: &mut ProviderData,
+    automine: bool,
+) -> Result<bool, ProviderError> {
     data.set_auto_mining(automine);
 
     Ok(true)
 }
 
-pub fn handle_set_next_block_timestamp(
+pub fn handle_set_block_gas_limit_request(
+    data: &mut ProviderData,
+    gas_limit: u64,
+) -> Result<bool, ProviderError> {
+    data.set_block_gas_limit(gas_limit)?;
+
+    Ok(true)
+}
+
+pub fn handle_set_next_block_timestamp_request(
     data: &mut ProviderData,
     timestamp: U64OrUsize,
 ) -> Result<String, ProviderError> {

@@ -199,11 +199,14 @@ fn handle_eth_request(
             eth::handle_mine_request(data, timestamp).and_then(to_json)
         }
         EthRequest::EvmSetAutomine(enabled) => {
-            eth::handle_set_automine(data, enabled).and_then(to_json)
+            eth::handle_set_automine_request(data, enabled).and_then(to_json)
+        }
+        EthRequest::EvmSetBlockGasLimit(gas_limit) => {
+            eth::handle_set_block_gas_limit_request(data, gas_limit).and_then(to_json)
         }
         EthRequest::EvmSetIntervalMining(_) => Err(ProviderError::Unimplemented("".to_string())),
         EthRequest::EvmSetNextBlockTimestamp(timestamp) => {
-            eth::handle_set_next_block_timestamp(data, timestamp).and_then(to_json)
+            eth::handle_set_next_block_timestamp_request(data, timestamp).and_then(to_json)
         }
         EthRequest::EvmSnapshot() => Err(ProviderError::Unimplemented("".to_string())),
     }
