@@ -47,16 +47,10 @@ mod optional_block_spec_resolved {
 #[serde(tag = "method", content = "params")]
 pub enum MethodInvocation {
     /// eth_accounts
-    #[serde(
-        rename = "eth_accounts",
-        deserialize_with = "crate::serde::empty_params::deserialize"
-    )]
+    #[serde(rename = "eth_accounts", with = "crate::serde::empty_params")]
     Accounts(()),
     /// eth_blockNumber
-    #[serde(
-        rename = "eth_blockNumber",
-        deserialize_with = "crate::serde::empty_params::deserialize"
-    )]
+    #[serde(rename = "eth_blockNumber", with = "crate::serde::empty_params")]
     BlockNumber(()),
     /// eth_call
     #[serde(rename = "eth_call")]
@@ -69,16 +63,10 @@ pub enum MethodInvocation {
         Option<BlockSpec>,
     ),
     /// eth_chainId
-    #[serde(
-        rename = "eth_chainId",
-        deserialize_with = "crate::serde::empty_params::deserialize"
-    )]
+    #[serde(rename = "eth_chainId", with = "crate::serde::empty_params")]
     ChainId(()),
     /// eth_coinbase
-    #[serde(
-        rename = "eth_coinbase",
-        deserialize_with = "crate::serde::empty_params::deserialize"
-    )]
+    #[serde(rename = "eth_coinbase", with = "crate::serde::empty_params")]
     Coinbase(()),
     /// eth_estimateGas
     #[serde(rename = "eth_estimateGas")]
@@ -101,10 +89,7 @@ pub enum MethodInvocation {
         Vec<f64>,
     ),
     /// eth_gasPrice
-    #[serde(
-        rename = "eth_gasPrice",
-        deserialize_with = "crate::serde::empty_params::deserialize"
-    )]
+    #[serde(rename = "eth_gasPrice", with = "crate::serde::empty_params")]
     GasPrice(()),
     /// eth_getBalance
     #[serde(rename = "eth_getBalance")]
@@ -199,34 +184,19 @@ pub enum MethodInvocation {
     #[serde(rename = "eth_getTransactionReceipt", with = "crate::serde::sequence")]
     GetTransactionReceipt(B256),
     /// eth_mining
-    #[serde(
-        rename = "eth_mining",
-        deserialize_with = "crate::serde::empty_params::deserialize"
-    )]
+    #[serde(rename = "eth_mining", with = "crate::serde::empty_params")]
     Mining(()),
     /// net_listening
-    #[serde(
-        rename = "net_listening",
-        deserialize_with = "crate::serde::empty_params::deserialize"
-    )]
+    #[serde(rename = "net_listening", with = "crate::serde::empty_params")]
     NetListening(()),
     /// net_peerCount
-    #[serde(
-        rename = "net_peerCount",
-        deserialize_with = "crate::serde::empty_params::deserialize"
-    )]
+    #[serde(rename = "net_peerCount", with = "crate::serde::empty_params")]
     NetPeerCount(()),
     /// net_version
-    #[serde(
-        rename = "net_version",
-        deserialize_with = "crate::serde::empty_params::deserialize"
-    )]
+    #[serde(rename = "net_version", with = "crate::serde::empty_params")]
     NetVersion(()),
     /// eth_newBlockFilter
-    #[serde(
-        rename = "eth_newBlockFilter",
-        deserialize_with = "crate::serde::empty_params::deserialize"
-    )]
+    #[serde(rename = "eth_newBlockFilter", with = "crate::serde::empty_params")]
     NewBlockFilter(()),
     /// eth_newFilter
     #[serde(rename = "eth_newFilter", with = "crate::serde::sequence")]
@@ -234,13 +204,13 @@ pub enum MethodInvocation {
     /// eth_newPendingTransactionFilter
     #[serde(
         rename = "eth_newPendingTransactionFilter",
-        deserialize_with = "crate::serde::empty_params::deserialize"
+        with = "crate::serde::empty_params"
     )]
     NewPendingTransactionFilter(()),
     /// eth_pendingTransactions
     #[serde(
         rename = "eth_pendingTransactions",
-        deserialize_with = "crate::serde::empty_params::deserialize"
+        with = "crate::serde::empty_params"
     )]
     PendingTransactions(()),
     /// eth_sendRawTransaction
@@ -259,10 +229,7 @@ pub enum MethodInvocation {
     #[serde(rename = "eth_subscribe", with = "crate::serde::sequence")]
     Subscribe(Vec<SubscriptionType>),
     /// eth_syncing
-    #[serde(
-        rename = "eth_syncing",
-        deserialize_with = "crate::serde::empty_params::deserialize"
-    )]
+    #[serde(rename = "eth_syncing", with = "crate::serde::empty_params")]
     Syncing(()),
     /// eth_uninstallFilter
     #[serde(rename = "eth_uninstallFilter", with = "crate::serde::sequence")]
@@ -271,10 +238,7 @@ pub enum MethodInvocation {
     #[serde(rename = "eth_unsubscribe", with = "crate::serde::sequence")]
     Unsubscribe(U256),
     /// web3_clientVersion
-    #[serde(
-        rename = "web3_clientVersion",
-        deserialize_with = "crate::serde::empty_params::deserialize"
-    )]
+    #[serde(rename = "web3_clientVersion", with = "crate::serde::empty_params")]
     Web3ClientVersion(()),
     /// web3_sha3
     #[serde(rename = "web3_sha3", with = "crate::serde::sequence")]
@@ -305,10 +269,7 @@ pub enum MethodInvocation {
     #[serde(rename = "evm_setNextBlockTimestamp", with = "crate::serde::sequence")]
     EvmSetNextBlockTimestamp(U64OrUsize),
     /// evm_snapshot
-    #[serde(
-        rename = "evm_snapshot",
-        deserialize_with = "crate::serde::empty_params::deserialize"
-    )]
+    #[serde(rename = "evm_snapshot", with = "crate::serde::empty_params")]
     EvmSnapshot(()),
 }
 

@@ -30,15 +30,12 @@ pub enum Request {
     #[serde(rename = "hardhat_dropTransaction", with = "edr_eth::serde::sequence")]
     DropTransaction(B256),
     /// hardhat_getAutomine
-    #[serde(
-        rename = "hardhat_getAutomine",
-        deserialize_with = "edr_eth::serde::empty_params::deserialize"
-    )]
+    #[serde(rename = "hardhat_getAutomine", with = "edr_eth::serde::empty_params")]
     GetAutomine(()),
     /// hardhat_getStackTraceFailuresCount
     #[serde(
         rename = "hardhat_getStackTraceFailuresCount",
-        deserialize_with = "edr_eth::serde::empty_params::deserialize"
+        with = "edr_eth::serde::empty_params"
     )]
     GetStackTraceFailuresCount(()),
     /// hardhat_impersonateAccount
@@ -48,16 +45,10 @@ pub enum Request {
     )]
     ImpersonateAccount(Address),
     /// hardhat_intervalMine
-    #[serde(
-        rename = "hardhat_intervalMine",
-        deserialize_with = "edr_eth::serde::empty_params::deserialize"
-    )]
+    #[serde(rename = "hardhat_intervalMine", with = "edr_eth::serde::empty_params")]
     IntervalMine(()),
     /// hardhat_metadata
-    #[serde(
-        rename = "hardhat_metadata",
-        deserialize_with = "edr_eth::serde::empty_params::deserialize"
-    )]
+    #[serde(rename = "hardhat_metadata", with = "edr_eth::serde::empty_params")]
     Metadata(()),
     /// hardhat_mine
     #[serde(rename = "hardhat_mine")]

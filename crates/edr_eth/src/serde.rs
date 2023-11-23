@@ -150,7 +150,7 @@ pub mod bytes {
 
 /// Helper module for optionally (de)serializing `[]` into `()`.
 pub mod empty_params {
-    use super::{Deserialize, Deserializer};
+    use super::{Deserialize, Deserializer, Serialize, SerializeSeq, Serializer};
 
     /// Helper function for deserializing `[]` into `()`.
     pub fn deserialize<'de, DeserializerT>(d: DeserializerT) -> Result<(), DeserializerT::Error>
@@ -165,6 +165,19 @@ pub mod empty_params {
             )));
         }
         Ok(())
+    }
+
+    /// Helper function for serializing `()` into `[]`.
+    pub fn serialize<SerializerT, T>(
+        _val: &T,
+        s: SerializerT,
+    ) -> Result<SerializerT::Ok, SerializerT::Error>
+    where
+        SerializerT: Serializer,
+        T: Serialize,
+    {
+        let seq = s.serialize_seq(Some(0))?;
+        seq.end()
     }
 }
 
