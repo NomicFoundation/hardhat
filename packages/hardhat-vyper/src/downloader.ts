@@ -130,7 +130,7 @@ export class CompilerDownloader {
     return this.compilersList.find(
       (release) =>
         semver.valid(release.tag_name) !== null &&
-        semver.eq(release.tag_name, version)
+        semver.eq(semver.coerce(release.tag_name).version, version)
     );
   }
 
