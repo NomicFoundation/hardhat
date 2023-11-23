@@ -22,7 +22,6 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   PROVIDERS,
 } from "../../../../helpers/providers";
-import { retrieveLatestBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 import {
   deployContract,
   getSignedTxHash,
@@ -40,9 +39,6 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      const getFirstBlock = async () =>
-        retrieveLatestBlockNumber(this.ctx.hardhatNetworkProvider);
-
       describe("eth_getTransactionReceipt", async function () {
         it("should return null for unknown txs", async function () {
           const receipt = await this.provider.send(
@@ -56,7 +52,9 @@ describe("Eth module", function () {
         });
 
         it("should return the right tx index and gas used", async function () {
-          const firstBlock = await getFirstBlock();
+          const firstBlockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
           const contractAddress = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -79,7 +77,7 @@ describe("Eth module", function () {
           await this.provider.send("evm_mine", []);
           const block: RpcBlockOutput = await this.provider.send(
             "eth_getBlockByNumber",
-            [numberToRpcQuantity(firstBlock + 2), false]
+            [numberToRpcQuantity(firstBlockNumber + 2), false]
           );
 
           assert.equal(block.transactions.length, 2);
@@ -115,7 +113,9 @@ describe("Eth module", function () {
         });
 
         it("should return the right values for successful txs", async function () {
-          const firstBlock = await getFirstBlock();
+          const firstBlockNumber = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
+          );
           const contractAddress = await deployContract(
             this.provider,
             `0x${EXAMPLE_CONTRACT.bytecode.object}`
@@ -131,7 +131,7 @@ describe("Eth module", function () {
 
           const block: RpcBlockOutput = await this.provider.send(
             "eth_getBlockByNumber",
-            [numberToRpcQuantity(firstBlock + 2), false]
+            [numberToRpcQuantity(firstBlockNumber + 2), false]
           );
 
           const receipt: RpcReceiptOutput = await this.provider.send(
@@ -140,7 +140,7 @@ describe("Eth module", function () {
           );
 
           assert.equal(receipt.blockHash, block.hash);
-          assertQuantity(receipt.blockNumber, firstBlock + 2);
+          assertQuantity(receipt.blockNumber, firstBlockNumber + 2);
           assert.isNull(receipt.contractAddress);
           assert.equal(receipt.cumulativeGasUsed, receipt.gasUsed);
           assert.equal(receipt.from, DEFAULT_ACCOUNTS_ADDRESSES[0]);
@@ -157,7 +157,7 @@ describe("Eth module", function () {
           assertQuantity(log.transactionIndex, 0);
           assert.equal(log.transactionHash, txHash);
           assert.equal(log.blockHash, block.hash);
-          assertQuantity(log.blockNumber, firstBlock + 2);
+          assertQuantity(log.blockNumber, firstBlockNumber + 2);
           assert.equal(log.address, contractAddress);
 
           // The new value of i is not indexed
