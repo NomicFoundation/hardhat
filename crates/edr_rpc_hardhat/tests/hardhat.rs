@@ -50,12 +50,12 @@ fn serde_hardhat_drop_transaction() {
 
 #[test]
 fn serde_hardhat_get_automine() {
-    help_test_method_invocation_serde(edr_rpc_hardhat::Request::GetAutomine());
+    help_test_method_invocation_serde(edr_rpc_hardhat::Request::GetAutomine(()));
 }
 
 #[test]
 fn serde_hardhat_get_stack_trace_failures_count() {
-    help_test_method_invocation_serde(edr_rpc_hardhat::Request::GetStackTraceFailuresCount());
+    help_test_method_invocation_serde(edr_rpc_hardhat::Request::GetStackTraceFailuresCount(()));
 }
 
 #[test]
@@ -67,12 +67,12 @@ fn serde_hardhat_impersonate_account() {
 
 #[test]
 fn serde_hardhat_interval_mine() {
-    help_test_method_invocation_serde(edr_rpc_hardhat::Request::IntervalMine());
+    help_test_method_invocation_serde(edr_rpc_hardhat::Request::IntervalMine(()));
 }
 
 #[test]
 fn serde_hardhat_metadata() {
-    help_test_method_invocation_serde(edr_rpc_hardhat::Request::Metadata());
+    help_test_method_invocation_serde(edr_rpc_hardhat::Request::Metadata(()));
 }
 
 #[test]

@@ -3,6 +3,9 @@
 use std::ops::Deref;
 
 use revm_primitives::bytes::Bytes;
+use serde::{
+    de::DeserializeOwned, ser::SerializeSeq, Deserialize, Deserializer, Serialize, Serializer,
+};
 
 /// Type for specifying a byte string that will have a 0x prefix when serialized
 /// and deserialized
@@ -31,10 +34,10 @@ impl From<ZeroXPrefixedBytes> for Bytes {
     }
 }
 
-impl<'a> serde::Deserialize<'a> for ZeroXPrefixedBytes {
+impl<'a> Deserialize<'a> for ZeroXPrefixedBytes {
     fn deserialize<D>(deserializer: D) -> Result<ZeroXPrefixedBytes, D::Error>
     where
-        D: serde::Deserializer<'a>,
+        D: Deserializer<'a>,
     {
         struct ZeroXPrefixedBytesVisitor;
         impl<'a> serde::de::Visitor<'a> for ZeroXPrefixedBytesVisitor {
@@ -66,10 +69,10 @@ impl<'a> serde::Deserialize<'a> for ZeroXPrefixedBytes {
     }
 }
 
-impl serde::Serialize for ZeroXPrefixedBytes {
+impl Serialize for ZeroXPrefixedBytes {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: serde::Serializer,
+        S: Serializer,
     {
         let encoded = hex::encode(&self.inner);
         serializer.serialize_str(&format!(
@@ -82,38 +85,13 @@ impl serde::Serialize for ZeroXPrefixedBytes {
     }
 }
 
-/// for use with serde's `serialize_with` on a single value that should be
-/// serialized as a sequence
-pub fn single_to_sequence<S, T>(val: &T, s: S) -> Result<S::Ok, S::Error>
-where
-    S: serde::Serializer,
-    T: serde::Serialize,
-{
-    use serde::ser::SerializeSeq;
-    let mut seq = s.serialize_seq(Some(1))?;
-    seq.serialize_element(val)?;
-    seq.end()
-}
-
-/// for use with serde's `deserialize_with` on a sequence that should be
-/// deserialized as a single value
-pub fn sequence_to_single<'de, D, T>(deserializer: D) -> Result<T, D::Error>
-where
-    D: serde::Deserializer<'de>,
-    T: serde::Deserialize<'de> + Clone,
-{
-    let s: Vec<T> = serde::de::Deserialize::deserialize(deserializer)?;
-    Ok(s[0].clone())
-}
-
 /// for use with serde's `serialize_with` on an optional single value that
 /// should be serialized as a sequence
 pub fn optional_single_to_sequence<S, T>(val: &Option<T>, s: S) -> Result<S::Ok, S::Error>
 where
-    S: serde::Serializer,
-    T: serde::Serialize,
+    S: Serializer,
+    T: Serialize,
 {
-    use serde::ser::SerializeSeq;
     let mut seq = s.serialize_seq(Some(1))?;
     if val.is_some() {
         seq.serialize_element(val)?;
@@ -125,10 +103,10 @@ where
 /// deserialized as a single but optional value.
 pub fn sequence_to_optional_single<'de, D, T>(deserializer: D) -> Result<Option<T>, D::Error>
 where
-    D: serde::Deserializer<'de>,
-    T: serde::Deserialize<'de> + Clone,
+    D: Deserializer<'de>,
+    T: Deserialize<'de> + Clone,
 {
-    let s: Vec<T> = serde::de::Deserialize::deserialize(deserializer)?;
+    let s: Vec<T> = Deserialize::deserialize(deserializer)?;
     if s.is_empty() {
         Ok(None)
     } else {
@@ -140,15 +118,13 @@ where
 /// necessary because the default bytes serialization considers a string as
 /// bytes.
 pub mod bytes {
-    use serde::Deserialize;
-
-    use super::Bytes;
+    use super::{Bytes, Deserialize, Deserializer, Serializer};
 
     /// Helper function for deserializing [`Bytes`] from a `0x`-prefixed
     /// hexadecimal string.
-    pub fn deserialize<'de, Deserializer>(d: Deserializer) -> Result<Bytes, Deserializer::Error>
+    pub fn deserialize<'de, DeserializerT>(d: DeserializerT) -> Result<Bytes, DeserializerT::Error>
     where
-        Deserializer: serde::Deserializer<'de>,
+        DeserializerT: Deserializer<'de>,
     {
         let value = String::deserialize(d)?;
         if let Some(remaining) = value.strip_prefix("0x") {
@@ -161,14 +137,69 @@ pub mod bytes {
     }
 
     /// Helper function for serializing [`Bytes`] into a hexadecimal string.
-    pub fn serialize<Serializer>(
+    pub fn serialize<SerializerT>(
         value: &Bytes,
-        s: Serializer,
-    ) -> Result<Serializer::Ok, Serializer::Error>
+        s: SerializerT,
+    ) -> Result<SerializerT::Ok, SerializerT::Error>
     where
-        Serializer: serde::Serializer,
+        SerializerT: Serializer,
     {
         s.serialize_str(&format!("0x{}", hex::encode(value.as_ref())))
+    }
+}
+
+/// Helper module for optionally (de)serializing `[]` into `()`.
+pub mod empty_params {
+    use super::{Deserialize, Deserializer};
+
+    /// Helper function for deserializing `[]` into `()`.
+    pub fn deserialize<'de, DeserializerT>(d: DeserializerT) -> Result<(), DeserializerT::Error>
+    where
+        DeserializerT: Deserializer<'de>,
+    {
+        let seq = Option::<Vec<()>>::deserialize(d)?.unwrap_or_default();
+        if !seq.is_empty() {
+            return Err(serde::de::Error::custom(format!(
+                "expected params sequence with length 0 but got {}",
+                seq.len()
+            )));
+        }
+        Ok(())
+    }
+}
+
+/// Helper module for (de)serializing from/to a single value to/from a sequence.
+pub mod sequence {
+    use super::{Deserialize, DeserializeOwned, Deserializer, Serialize, SerializeSeq, Serializer};
+
+    /// Helper function for deserializing a single value from a sequence.
+    pub fn deserialize<'de, T, DeserializerT>(d: DeserializerT) -> Result<T, DeserializerT::Error>
+    where
+        DeserializerT: Deserializer<'de>,
+        T: DeserializeOwned,
+    {
+        let mut seq = Vec::<T>::deserialize(d)?;
+        if seq.len() != 1 {
+            return Err(serde::de::Error::custom(format!(
+                "expected params sequence with length 1 but got {}",
+                seq.len()
+            )));
+        }
+        Ok(seq.remove(0))
+    }
+
+    /// Helper function for serializing a single value into a sequence.
+    pub fn serialize<SerializerT, T>(
+        val: &T,
+        s: SerializerT,
+    ) -> Result<SerializerT::Ok, SerializerT::Error>
+    where
+        SerializerT: Serializer,
+        T: Serialize,
+    {
+        let mut seq = s.serialize_seq(Some(1))?;
+        seq.serialize_element(val)?;
+        seq.end()
     }
 }
 
@@ -177,13 +208,15 @@ pub mod bytes {
 pub mod u64 {
     use revm_primitives::ruint::aliases::U64;
 
+    use super::{Deserialize, Deserializer, Serialize, Serializer};
+
     /// Helper function for deserializing a [`std::primitive::u64`] from a
     /// `0x`-prefixed hexadecimal string.
     pub fn deserialize<'de, D>(deserializer: D) -> Result<u64, D::Error>
     where
-        D: serde::Deserializer<'de>,
+        D: Deserializer<'de>,
     {
-        let value: U64 = serde::Deserialize::deserialize(deserializer)?;
+        let value: U64 = Deserialize::deserialize(deserializer)?;
         Ok(value.as_limbs()[0])
     }
 
@@ -191,9 +224,9 @@ pub mod u64 {
     /// 0x-prefixed hexadecimal string.
     pub fn serialize<S>(value: &u64, s: S) -> Result<S::Ok, S::Error>
     where
-        S: serde::Serializer,
+        S: Serializer,
     {
-        serde::Serialize::serialize(&U64::from(*value), s)
+        Serialize::serialize(&U64::from(*value), s)
     }
 }
 
@@ -202,23 +235,30 @@ pub mod u64 {
 pub mod optional_u64 {
     use revm_primitives::ruint::aliases::U64;
 
+    use super::{Deserialize, Deserializer, Serialize, Serializer};
+
     /// Helper function for deserializing an [`Option<std::primitive::u64>`]
     /// from a `0x`-prefixed hexadecimal string.
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<u64>, D::Error>
+    pub fn deserialize<'de, DeserializerT>(
+        deserializer: DeserializerT,
+    ) -> Result<Option<u64>, DeserializerT::Error>
     where
-        D: serde::Deserializer<'de>,
+        DeserializerT: Deserializer<'de>,
     {
-        let value: Option<U64> = serde::Deserialize::deserialize(deserializer)?;
+        let value: Option<U64> = Deserialize::deserialize(deserializer)?;
         Ok(value.map(|value| value.as_limbs()[0]))
     }
 
     /// Helper function for serializing a [`Option<std::primitive::u64>`] into a
     /// `0x`-prefixed hexadecimal string.
-    pub fn serialize<S>(value: &Option<u64>, s: S) -> Result<S::Ok, S::Error>
+    pub fn serialize<SerializerT>(
+        value: &Option<u64>,
+        s: SerializerT,
+    ) -> Result<SerializerT::Ok, SerializerT::Error>
     where
-        S: serde::Serializer,
+        SerializerT: Serializer,
     {
-        serde::Serialize::serialize(&value.map(U64::from), s)
+        Serialize::serialize(&value.map(U64::from), s)
     }
 }
 
@@ -227,23 +267,30 @@ pub mod optional_u64 {
 pub mod u8 {
     use revm_primitives::ruint::aliases::U8;
 
+    use super::{Deserialize, Deserializer, Serialize, Serializer};
+
     /// Helper function for deserializing a [`std::primitive::u8`] from a
     /// `0x`-prefixed hexadecimal string.
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<u8, D::Error>
+    pub fn deserialize<'de, DeserializerT>(
+        deserializer: DeserializerT,
+    ) -> Result<u8, DeserializerT::Error>
     where
-        D: serde::Deserializer<'de>,
+        DeserializerT: Deserializer<'de>,
     {
-        let value: U8 = serde::Deserialize::deserialize(deserializer)?;
+        let value: U8 = Deserialize::deserialize(deserializer)?;
         Ok(value.to())
     }
 
     /// Helper function for serializing a [`std::primitive::u8`] into a
     /// `0x`-prefixed hexadecimal string.
-    pub fn serialize<S>(value: &u8, s: S) -> Result<S::Ok, S::Error>
+    pub fn serialize<SerializerT>(
+        value: &u8,
+        s: SerializerT,
+    ) -> Result<SerializerT::Ok, SerializerT::Error>
     where
-        S: serde::Serializer,
+        SerializerT: Serializer,
     {
-        serde::Serialize::serialize(&U8::from(*value), s)
+        Serialize::serialize(&U8::from(*value), s)
     }
 }
 
@@ -253,7 +300,7 @@ mod tests {
 
     use super::*;
 
-    #[derive(Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+    #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
     struct TestStructSerde {
         #[serde(with = "u8")]
         u8: u8,

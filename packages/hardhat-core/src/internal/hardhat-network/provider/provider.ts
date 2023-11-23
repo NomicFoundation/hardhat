@@ -449,7 +449,11 @@ class EdrProviderWrapper extends EventEmitter implements EIP1193Provider {
   }
 
   public async request(args: RequestArguments): Promise<unknown> {
-    const stringifiedArgs = JSON.stringify(args);
+    const stringifiedArgs = JSON.stringify({
+      method: args.method,
+      params: args.params ?? [],
+    });
+
     const response = await this._provider.handleRequest(stringifiedArgs);
     return JSON.parse(response);
   }

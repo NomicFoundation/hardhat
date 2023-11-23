@@ -43,9 +43,9 @@ pub fn handle_set_automine_request(
 
 pub fn handle_set_block_gas_limit_request(
     data: &mut ProviderData,
-    gas_limit: u64,
+    gas_limit: U64,
 ) -> Result<bool, ProviderError> {
-    data.set_block_gas_limit(gas_limit)?;
+    data.set_block_gas_limit(gas_limit.as_limbs()[0])?;
 
     Ok(true)
 }
@@ -67,5 +67,7 @@ pub fn handle_snapshot_request(data: &mut ProviderData) -> Result<U64, ProviderE
 }
 
 fn log_block(_mine_block_result: &MineBlockResult<BlockchainError>) -> Result<(), ProviderError> {
-    Err(ProviderError::Unimplemented("log_block".to_string()))
+    log::error!("TODO: log block");
+
+    Ok(())
 }

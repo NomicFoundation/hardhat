@@ -171,7 +171,7 @@ impl<'a> TryFrom<&'a MethodInvocation> for CacheableMethodInvocation<'a> {
 
     fn try_from(value: &'a MethodInvocation) -> Result<Self, Self::Error> {
         match value {
-            MethodInvocation::ChainId() => Ok(CacheableMethodInvocation::ChainId),
+            MethodInvocation::ChainId(_) => Ok(CacheableMethodInvocation::ChainId),
             MethodInvocation::GetBalance(address, block_spec) => {
                 Ok(CacheableMethodInvocation::GetBalance {
                     address,
@@ -235,34 +235,34 @@ impl<'a> TryFrom<&'a MethodInvocation> for CacheableMethodInvocation<'a> {
             MethodInvocation::GetTransactionReceipt(transaction_hash) => {
                 Ok(CacheableMethodInvocation::GetTransactionReceipt { transaction_hash })
             }
-            MethodInvocation::NetVersion() => Ok(CacheableMethodInvocation::NetVersion),
+            MethodInvocation::NetVersion(_) => Ok(CacheableMethodInvocation::NetVersion),
 
             // Explicit to make sure if a new method is added, it is not forgotten here.
-            MethodInvocation::Accounts()
-            | MethodInvocation::BlockNumber()
+            MethodInvocation::Accounts(_)
+            | MethodInvocation::BlockNumber(_)
             | MethodInvocation::Call(_, _)
-            | MethodInvocation::Coinbase()
+            | MethodInvocation::Coinbase(_)
             | MethodInvocation::EstimateGas(_, _)
             | MethodInvocation::FeeHistory(_, _, _)
-            | MethodInvocation::GasPrice()
+            | MethodInvocation::GasPrice(_)
             | MethodInvocation::GetFilterChanges(_)
             | MethodInvocation::GetFilterLogs(_)
-            | MethodInvocation::Mining()
-            | MethodInvocation::NetListening()
-            | MethodInvocation::NetPeerCount()
-            | MethodInvocation::NewBlockFilter()
+            | MethodInvocation::Mining(_)
+            | MethodInvocation::NetListening(_)
+            | MethodInvocation::NetPeerCount(_)
+            | MethodInvocation::NewBlockFilter(_)
             | MethodInvocation::NewFilter(_)
-            | MethodInvocation::NewPendingTransactionFilter()
-            | MethodInvocation::PendingTransactions()
+            | MethodInvocation::NewPendingTransactionFilter(_)
+            | MethodInvocation::PendingTransactions(_)
             | MethodInvocation::SendRawTransaction(_)
             | MethodInvocation::SendTransaction(_)
             | MethodInvocation::Sign(_, _)
             | MethodInvocation::SignTypedDataV4(_, _)
             | MethodInvocation::Subscribe(_)
-            | MethodInvocation::Syncing()
+            | MethodInvocation::Syncing(_)
             | MethodInvocation::UninstallFilter(_)
             | MethodInvocation::Unsubscribe(_)
-            | MethodInvocation::Web3ClientVersion()
+            | MethodInvocation::Web3ClientVersion(_)
             | MethodInvocation::Web3Sha3(_)
             | MethodInvocation::EvmIncreaseTime(_)
             | MethodInvocation::EvmMine(_)
@@ -271,7 +271,7 @@ impl<'a> TryFrom<&'a MethodInvocation> for CacheableMethodInvocation<'a> {
             | MethodInvocation::EvmSetBlockGasLimit(_)
             | MethodInvocation::EvmSetIntervalMining(_)
             | MethodInvocation::EvmSetNextBlockTimestamp(_)
-            | MethodInvocation::EvmSnapshot() => {
+            | MethodInvocation::EvmSnapshot(_) => {
                 Err(MethodNotCacheableError::MethodInvocation(value.clone()))
             }
         }
