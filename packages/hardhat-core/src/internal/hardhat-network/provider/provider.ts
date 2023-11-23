@@ -47,7 +47,11 @@ import {
   NodeConfig,
   TracingConfig,
 } from "./node-types";
-import { ethereumsjsHardforkToEdrSpecId } from "./utils/convertToEdr";
+import {
+  ethereumjsIntervalMiningConfigToEdr,
+  ethereumjsMempoolOrderToEdrMineOrdering,
+  ethereumsjsHardforkToEdrSpecId,
+} from "./utils/convertToEdr";
 
 const log = debug("hardhat:core:hardhat-network:provider");
 
@@ -426,6 +430,13 @@ class EdrProviderWrapper extends EventEmitter implements EIP1193Provider {
       initialBaseFeePerGas: BigInt(
         config.initialBaseFeePerGas ?? 1_000_000_000
       ),
+      mining: {
+        autoMine: config.automine,
+        interval: ethereumjsIntervalMiningConfigToEdr(config.intervalMining),
+        memPool: {
+          order: ethereumjsMempoolOrderToEdrMineOrdering(config.mempoolOrder),
+        },
+      },
     });
 
     return new EdrProviderWrapper(provider);

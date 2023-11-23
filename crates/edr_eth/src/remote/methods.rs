@@ -311,6 +311,13 @@ pub enum MethodInvocation {
         deserialize_with = "sequence_to_single"
     )]
     EvmSetAutomine(bool),
+    /// evm_setBlockGasLimit
+    #[serde(
+        rename = "evm_setBlockGasLimit",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
+    EvmSetBlockGasLimit(#[serde(with = "crate::serde::u64")] u64),
     /// evm_setIntervalMining
     #[serde(
         rename = "evm_setIntervalMining",

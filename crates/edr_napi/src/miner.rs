@@ -12,10 +12,11 @@ use napi::{
 };
 use napi_derive::napi;
 
+pub use self::ordering::MineOrdering;
 use self::result::MineBlockResult;
 use crate::{
-    blockchain::Blockchain, cast::TryCast, config::ConfigOptions, mempool::MemPool,
-    miner::ordering::MineOrdering, state::State, tracer::Tracer,
+    blockchain::Blockchain, cast::TryCast, config::ConfigOptions, mempool::MemPool, state::State,
+    tracer::Tracer,
 };
 
 /// Mines a block using as many transactions as can fit in it.

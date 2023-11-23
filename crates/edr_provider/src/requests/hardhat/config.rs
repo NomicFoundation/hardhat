@@ -3,6 +3,10 @@ use rpc_hardhat::Metadata;
 
 use crate::{data::ProviderData, requests::eth::client_version, ProviderError};
 
+pub fn handle_get_automine_request(data: &ProviderData) -> Result<bool, ProviderError> {
+    Ok(data.is_auto_mining())
+}
+
 pub fn handle_metadata_request(data: &ProviderData) -> Result<Metadata, ProviderError> {
     Ok(Metadata {
         client_version: client_version(),

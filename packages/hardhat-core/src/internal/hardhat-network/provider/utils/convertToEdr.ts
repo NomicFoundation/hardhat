@@ -43,7 +43,9 @@ import {
   MineOrdering,
   TracingMessage,
   SuccessReason,
+  IntervalRange,
 } from "@ignored/edr";
+import { isNumber } from "lodash";
 import { fromBigIntLike, toHex } from "../../../util/bigint";
 import { HardforkName, hardforkGte } from "../../../util/hardforks";
 import {
@@ -52,7 +54,7 @@ import {
   isRevertResult,
   isSuccessResult,
 } from "../../stack-traces/message-trace";
-import { MempoolOrder } from "../node-types";
+import { IntervalMiningConfig, MempoolOrder } from "../node-types";
 import {
   RpcLogOutput,
   RpcReceiptOutput,
@@ -256,6 +258,19 @@ export function ethereumjsHeaderDataToEdrBlockOptions(
     baseFee: fromBigIntLike(headerData.baseFeePerGas),
     withdrawalsRoot: fromBufferLike(headerData.withdrawalsRoot),
   };
+}
+
+export function ethereumjsIntervalMiningConfigToEdr(
+  config: IntervalMiningConfig
+): number | IntervalRange {
+  if (isNumber(config)) {
+    return config;
+  } else {
+    return {
+      min: config[0],
+      max: config[1],
+    };
+  }
 }
 
 export function ethereumjsMempoolOrderToEdrMineOrdering(
