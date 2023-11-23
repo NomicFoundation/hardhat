@@ -266,6 +266,7 @@ impl<'a> TryFrom<&'a MethodInvocation> for CacheableMethodInvocation<'a> {
             | MethodInvocation::Web3Sha3(_)
             | MethodInvocation::EvmIncreaseTime(_)
             | MethodInvocation::EvmMine(_)
+            | MethodInvocation::EvmRevert(_)
             | MethodInvocation::EvmSetAutomine(_)
             | MethodInvocation::EvmSetBlockGasLimit(_)
             | MethodInvocation::EvmSetIntervalMining(_)

@@ -304,6 +304,13 @@ pub enum MethodInvocation {
         deserialize_with = "sequence_to_optional_single"
     )]
     EvmMine(Option<U64OrUsize>),
+    /// evm_revert
+    #[serde(
+        rename = "evm_revert",
+        serialize_with = "single_to_sequence",
+        deserialize_with = "sequence_to_single"
+    )]
+    EvmRevert(U64),
     /// evm_setAutomine
     #[serde(
         rename = "evm_setAutomine",

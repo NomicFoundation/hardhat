@@ -1,4 +1,4 @@
-use edr_eth::remote::methods::U64OrUsize;
+use edr_eth::{remote::methods::U64OrUsize, U64};
 use edr_evm::{blockchain::BlockchainError, MineBlockResult};
 
 use crate::{data::ProviderData, ProviderError};
@@ -23,6 +23,13 @@ pub fn handle_mine_request(
     log_block(&mine_block_result)?;
 
     Ok(String::from("0"))
+}
+
+pub fn handle_revert_request(
+    data: &mut ProviderData,
+    snapshot_id: U64,
+) -> Result<bool, ProviderError> {
+    Ok(data.revert_to_snapshot(snapshot_id.as_limbs()[0]))
 }
 
 pub fn handle_set_automine_request(
@@ -51,6 +58,12 @@ pub fn handle_set_next_block_timestamp_request(
 
     // This RPC call is an exception: it returns a number as a string decimal
     Ok(new_timestamp.to_string())
+}
+
+pub fn handle_snapshot_request(data: &mut ProviderData) -> Result<U64, ProviderError> {
+    let snapshot_id = data.make_snapshot();
+
+    Ok(U64::from(snapshot_id))
 }
 
 fn log_block(_mine_block_result: &MineBlockResult<BlockchainError>) -> Result<(), ProviderError> {

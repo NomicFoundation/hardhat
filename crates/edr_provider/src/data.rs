@@ -1,8 +1,9 @@
 mod account;
 
 use std::{
+    collections::BTreeMap,
     sync::Arc,
-    time::{SystemTime, UNIX_EPOCH},
+    time::{Instant, SystemTime, UNIX_EPOCH},
 };
 
 use edr_eth::{
@@ -32,7 +33,7 @@ use rpc_hardhat::ForkMetadata;
 use tokio::runtime;
 
 use self::account::{create_accounts, InitialAccounts};
-use crate::{filter::Filter, logger::Logger, ProviderConfig, ProviderError};
+use crate::{filter::Filter, logger::Logger, snapshot::Snapshot, ProviderConfig, ProviderError};
 
 #[derive(Debug, thiserror::Error)]
 pub enum CreationError {
@@ -58,13 +59,15 @@ pub struct ProviderData {
     network_id: u64,
     beneficiary: Address,
     min_gas_price: U256,
-    prevrandao_generator: RandomHashGenerator,
+    prev_randao_generator: RandomHashGenerator,
     block_time_offset_seconds: u64,
     fork_metadata: Option<ForkMetadata>,
     instance_id: B256,
     is_auto_mining: bool,
     next_block_base_fee_per_gas: Option<U256>,
     next_block_timestamp: Option<u64>,
+    next_snapshot_id: u64,
+    snapshots: BTreeMap<u64, Snapshot>,
     allow_blocks_with_same_timestamp: bool,
     allow_unlimited_contract_size: bool,
     // IndexMap to preserve account order for logging.
@@ -102,13 +105,16 @@ impl ProviderData {
             beneficiary: config.coinbase,
             // TODO: Add config option (https://github.com/NomicFoundation/edr/issues/111)
             min_gas_price: U256::from(1),
-            prevrandao_generator,
+            prev_randao_generator: prevrandao_generator,
             block_time_offset_seconds: block_time_offset_seconds(config)?,
             fork_metadata,
             instance_id: B256::random(),
             is_auto_mining: config.mining.auto_mine,
             next_block_base_fee_per_gas: None,
             next_block_timestamp: None,
+            // Start with 1 to mimic Ganache
+            next_snapshot_id: 1,
+            snapshots: BTreeMap::new(),
             allow_blocks_with_same_timestamp: config.allow_blocks_with_same_timestamp,
             allow_unlimited_contract_size: config.allow_unlimited_contract_size,
             local_accounts,
@@ -301,13 +307,34 @@ impl ProviderData {
         &self.logger
     }
 
+    pub fn make_snapshot(&mut self) -> u64 {
+        let id = self.next_snapshot_id;
+        self.next_snapshot_id += 1;
+
+        let snapshot = Snapshot {
+            block_number: self.blockchain.last_block_number(),
+            block_time_offset_seconds: self.block_time_offset_seconds,
+            coinbase: self.beneficiary,
+            irregular_state: self.irregular_state.clone(),
+            mem_pool: self.mem_pool.clone(),
+            next_block_base_fee_per_gas: self.next_block_base_fee_per_gas,
+            next_block_timestamp: self.next_block_timestamp,
+            next_prev_randao: self.prev_randao_generator.seed(),
+            state: self.state.clone(),
+            time: Instant::now(),
+        };
+        self.snapshots.insert(id, snapshot);
+
+        id
+    }
+
     pub fn mine_and_commit_block(
         &mut self,
         timestamp: Option<u64>,
     ) -> Result<MineBlockResult<BlockchainError>, ProviderError> {
         let (block_timestamp, new_offset) = self.next_block_timestamp(timestamp)?;
         let prevrandao = if self.blockchain.spec_id() >= SpecId::MERGE {
-            Some(self.prevrandao_generator.next_value())
+            Some(self.prev_randao_generator.next_value())
         } else {
             None
         };
@@ -364,6 +391,32 @@ impl ProviderData {
 
     pub fn remove_subscription(&mut self, filter_id: &U256) -> bool {
         self.remove_filter_impl::</* IS_SUBSCRIPTION */ true>(filter_id)
+    }
+
+    pub fn revert_to_snapshot(&mut self, snapshot_id: u64) -> bool {
+        // Ensure that, if the snapshot exists, we also remove all subsequent snapshots,
+        // as they can only be used once in Ganache.
+        let mut removed_snapshots = self.snapshots.split_off(&snapshot_id);
+
+        if let Some(snapshot) = removed_snapshots.remove(&snapshot_id) {
+            let duration_since_snapshot = Instant::now().duration_since(snapshot.time);
+            self.block_time_offset_seconds =
+                snapshot.block_time_offset_seconds + duration_since_snapshot.as_secs();
+
+            self.beneficiary = snapshot.coinbase;
+            self.irregular_state = snapshot.irregular_state;
+            self.mem_pool = snapshot.mem_pool;
+            self.next_block_base_fee_per_gas = snapshot.next_block_base_fee_per_gas;
+            self.next_block_timestamp = snapshot.next_block_timestamp;
+            self.prev_randao_generator
+                .set_next(snapshot.next_prev_randao);
+
+            self.state = snapshot.state;
+
+            true
+        } else {
+            false
+        }
     }
 
     pub fn transaction_receipt(
@@ -488,7 +541,7 @@ impl ProviderData {
 
     /// Sets the next block's prevrandao.
     pub fn set_next_prev_randao(&mut self, prev_randao: B256) {
-        self.prevrandao_generator.set_next(prev_randao);
+        self.prev_randao_generator.set_next(prev_randao);
     }
 
     pub fn set_nonce(&mut self, address: Address, nonce: u64) -> Result<(), ProviderError> {
@@ -657,7 +710,7 @@ impl ProviderData {
     pub fn mine_pending_block(&self) -> Result<MineBlockResultAndState<StateError>, ProviderError> {
         let (block_timestamp, _new_offset) = self.next_block_timestamp(None)?;
         let prevrandao = if self.blockchain.spec_id() >= SpecId::MERGE {
-            Some(self.prevrandao_generator.seed())
+            Some(self.prev_randao_generator.seed())
         } else {
             None
         };

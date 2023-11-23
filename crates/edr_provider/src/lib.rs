@@ -4,6 +4,7 @@ mod error;
 mod filter;
 mod logger;
 mod requests;
+mod snapshot;
 /// Test utilities
 #[cfg(test)]
 pub mod test_utils;
@@ -198,6 +199,9 @@ fn handle_eth_request(
         EthRequest::EvmMine(timestamp) => {
             eth::handle_mine_request(data, timestamp).and_then(to_json)
         }
+        EthRequest::EvmRevert(snapshot_id) => {
+            eth::handle_revert_request(data, snapshot_id).and_then(to_json)
+        }
         EthRequest::EvmSetAutomine(enabled) => {
             eth::handle_set_automine_request(data, enabled).and_then(to_json)
         }
@@ -208,7 +212,7 @@ fn handle_eth_request(
         EthRequest::EvmSetNextBlockTimestamp(timestamp) => {
             eth::handle_set_next_block_timestamp_request(data, timestamp).and_then(to_json)
         }
-        EthRequest::EvmSnapshot() => Err(ProviderError::Unimplemented("".to_string())),
+        EthRequest::EvmSnapshot() => eth::handle_snapshot_request(data).and_then(to_json),
     }
 }
 
