@@ -472,7 +472,8 @@ export async function createHardhatNetworkProvider(
     eip1193Provider = await EdrProviderWrapper.create(
       hardhatNetworkProviderConfig
     );
-  } else if (vmModeEnvVar === "ethereumjs") {
+  } else if (vmModeEnvVar === "ethereumjs" || vmModeEnvVar === "dual") {
+    // Dual mode will internally use the ethereumjs and EDR adapters
     eip1193Provider = new HardhatNetworkProvider(
       hardhatNetworkProviderConfig,
       logger,
