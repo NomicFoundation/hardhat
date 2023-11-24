@@ -6,6 +6,7 @@ mod fake_signature;
 mod legacy;
 
 use k256::SecretKey;
+use revm_primitives::U256;
 
 pub use self::{
     eip155::Eip155TransactionRequest, eip1559::Eip1559TransactionRequest,
@@ -35,6 +36,28 @@ pub enum TransactionRequest {
 }
 
 impl TransactionRequest {
+    /// Retrieves the instance's gas price.
+    pub fn gas_price(&self) -> &U256 {
+        match self {
+            TransactionRequest::Legacy(transaction) => &transaction.gas_price,
+            TransactionRequest::Eip155(transaction) => &transaction.gas_price,
+            TransactionRequest::Eip2930(transaction) => &transaction.gas_price,
+            TransactionRequest::Eip1559(transaction) => &transaction.max_fee_per_gas,
+            TransactionRequest::Eip4844(transaction) => &transaction.max_priority_fee_per_gas,
+        }
+    }
+
+    /// Retrieves the instance's nonce.
+    pub fn nonce(&self) -> u64 {
+        match self {
+            TransactionRequest::Legacy(transaction) => transaction.nonce,
+            TransactionRequest::Eip155(transaction) => transaction.nonce,
+            TransactionRequest::Eip2930(transaction) => transaction.nonce,
+            TransactionRequest::Eip1559(transaction) => transaction.nonce,
+            TransactionRequest::Eip4844(transaction) => transaction.nonce,
+        }
+    }
+
     pub fn sign(self, secret_key: &SecretKey) -> Result<SignedTransaction, SignatureError> {
         Ok(match self {
             TransactionRequest::Legacy(transaction) => transaction.sign(secret_key)?.into(),
@@ -48,10 +71,18 @@ impl TransactionRequest {
     pub fn fake_sign(self, sender: &Address) -> SignedTransaction {
         match self {
             TransactionRequest::Legacy(transaction) => transaction.fake_sign(sender).into(),
-            TransactionRequest::EIP155(transaction) => transaction.fake_sign(sender).into(),
-            TransactionRequest::EIP2930(transaction) => transaction.fake_sign(sender).into(),
-            TransactionRequest::EIP1559(transaction) => transaction.fake_sign(sender).into(),
+            TransactionRequest::Eip155(transaction) => transaction.fake_sign(sender).into(),
+            TransactionRequest::Eip2930(transaction) => transaction.fake_sign(sender).into(),
+            TransactionRequest::Eip1559(transaction) => transaction.fake_sign(sender).into(),
             TransactionRequest::Eip4844(transaction) => transaction.fake_sign(sender).into(),
         }
     }
+}
+
+/// A transaction request and the sender's address.
+pub struct TransactionRequestAndSender {
+    /// The transaction request.
+    pub request: TransactionRequest,
+    /// The sender's address.
+    pub sender: Address,
 }

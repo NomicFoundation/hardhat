@@ -11,6 +11,12 @@ use edr_evm::{
 
 #[derive(Debug, thiserror::Error)]
 pub enum ProviderError {
+    /// The transaction gas price is too low, while automatically mining.
+    #[error("Transaction gas price is 0x{actual:x}, which is below the minimum of 0x{expected:x}")]
+    AutoMineGasPriceTooLow { expected: U256, actual: U256 },
+    /// The transaction nonce is too high, while automatically mining.
+    #[error("Nonce too high. Expected nonce to be 0x{expected:x}, but got 0x{actual:x}. Note that transactions can't be queued when automining.")]
+    AutoMineNonceTooHigh { expected: u64, actual: u64 },
     /// Blockchain error
     #[error(transparent)]
     Blockchain(#[from] BlockchainError),

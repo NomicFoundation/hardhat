@@ -13,7 +13,7 @@ use edr_eth::{
     },
     serde::ZeroXPrefixedBytes,
     signature::Signature,
-    transaction::{EthTransactionRequest, SignedTransaction},
+    transaction::{SignedTransaction, TransactionRequestAndSender},
     Address, Bytes, SpecId, B256, U256,
 };
 use edr_evm::{
@@ -119,6 +119,12 @@ impl ProviderData {
         })
     }
 
+    /// Retrieves the last pending nonce of the account corresponding to the
+    /// provided address, if it exists.
+    pub fn account_last_pending_nonce(&self, address: &Address) -> Option<u64> {
+        self.mem_pool.last_pending_nonce(address)
+    }
+
     pub fn accounts(&self) -> impl Iterator<Item = &Address> {
         self.local_accounts.keys()
     }
@@ -138,6 +144,11 @@ impl ProviderData {
                 .basic(address)?
                 .map_or(U256::ZERO, |account| account.balance))
         })?
+    }
+
+    /// Retrieves the gas limit of the next block.
+    pub fn block_gas_limit(&self) -> u64 {
+        self.mem_pool.block_gas_limit()
     }
 
     /// Returns the metadata of the forked blockchain, if it exists.
@@ -377,11 +388,29 @@ impl ProviderData {
 
     pub fn send_transaction(
         &mut self,
-        transaction_request: EthTransactionRequest,
+        transaction_request: TransactionRequestAndSender,
     ) -> Result<B256, ProviderError> {
+        if self.is_auto_mining {
+            self.validate_auto_mine_transaction(&transaction_request)?;
+        }
+
+        // TODO: Make snapshot of current state
+
         let signed_transaction = self.sign_transaction_request(transaction_request)?;
 
-        self.add_pending_transaction(signed_transaction)
+        let tx_hash = self.add_pending_transaction(signed_transaction)?;
+
+        // TODO: Use a guard to revert to snapshot if something goes wrong
+
+        if self.is_auto_mining {
+            while self.mem_pool.transaction_by_hash(&tx_hash).is_some() {
+                self.mine_and_commit_block(None)?;
+            }
+        }
+
+        // TODO: Clear the guard
+
+        Ok(tx_hash)
     }
 
     pub fn send_raw_transaction(&mut self, raw_transaction: &[u8]) -> Result<B256, ProviderError> {
@@ -719,16 +748,12 @@ impl ProviderData {
 
     fn sign_transaction_request(
         &self,
-        transaction_request: EthTransactionRequest,
+        transaction_request: TransactionRequestAndSender,
     ) -> Result<PendingTransaction, ProviderError> {
-        let sender = transaction_request.from;
-
-        let typed_transaction = transaction_request
-            .into_typed_request()
-            .ok_or(ProviderError::InvalidTransactionRequest)?;
+        let TransactionRequestAndSender { request, sender } = transaction_request;
 
         if self.impersonated_accounts.contains(&sender) {
-            let signed_transaction = typed_transaction.fake_sign(&sender);
+            let signed_transaction = request.fake_sign(&sender);
 
             Ok(PendingTransaction::with_caller(
                 &*self.state,
@@ -742,7 +767,7 @@ impl ProviderData {
                 .get(&sender)
                 .ok_or(ProviderError::UnknownAddress { address: sender })?;
 
-            let signed_transaction = typed_transaction.sign(secret_key)?;
+            let signed_transaction = request.sign(secret_key)?;
             Ok(PendingTransaction::new(
                 &*self.state,
                 self.blockchain.spec_id(),
@@ -780,6 +805,30 @@ impl ProviderData {
         };
 
         Ok(contextual_state)
+    }
+
+    fn validate_auto_mine_transaction(
+        &self,
+        transaction_request: &TransactionRequestAndSender,
+    ) -> Result<(), ProviderError> {
+        let TransactionRequestAndSender { request, sender } = transaction_request;
+
+        let last_pending_nonce = self.account_last_pending_nonce(sender).unwrap_or(0);
+        if request.nonce() > last_pending_nonce {
+            return Err(ProviderError::AutoMineNonceTooHigh {
+                expected: last_pending_nonce,
+                actual: request.nonce(),
+            });
+        }
+
+        if *request.gas_price() < self.min_gas_price {
+            return Err(ProviderError::AutoMineGasPriceTooLow {
+                expected: self.min_gas_price,
+                actual: *request.gas_price(),
+            });
+        }
+
+        Ok(())
     }
 }
 
@@ -915,6 +964,7 @@ pub struct BlockMetadataForTransaction {
 #[cfg(test)]
 mod tests {
     use anyhow::Context;
+    use edr_eth::transaction::{Eip155TransactionRequest, TransactionKind, TransactionRequest};
     use tempfile::TempDir;
 
     use super::*;
@@ -952,36 +1002,35 @@ mod tests {
             })
         }
 
-        fn dummy_transaction_request(&self) -> EthTransactionRequest {
-            EthTransactionRequest {
-                from: *self
-                    .provider_data
-                    .local_accounts
-                    .keys()
-                    .next()
-                    .expect("there are local accounts"),
-                to: Some(Address::zero()),
-                gas: Some(100_000),
-                gas_price: Some(U256::from(42_000_000_000_u64)),
-                value: Some(U256::from(1)),
-                data: None,
-                nonce: None,
-                max_fee_per_gas: None,
-                max_priority_fee_per_gas: None,
-                access_list: None,
-                transaction_type: None,
-            }
+        fn dummy_transaction_request(&self, nonce: Option<u64>) -> TransactionRequestAndSender {
+            let request = TransactionRequest::Eip155(Eip155TransactionRequest {
+                kind: TransactionKind::Call(Address::zero()),
+                gas_limit: 100_000,
+                gas_price: U256::from(42_000_000_000_u64),
+                value: U256::from(1),
+                input: Bytes::default(),
+                nonce: nonce.unwrap_or(0),
+                chain_id: 1,
+            });
+
+            let sender = *self
+                .provider_data
+                .local_accounts
+                .keys()
+                .next()
+                .expect("there are local accounts");
+
+            TransactionRequestAndSender { request, sender }
         }
 
         fn signed_dummy_transaction(&self) -> anyhow::Result<PendingTransaction> {
-            let transaction = self.dummy_transaction_request();
+            let transaction = self.dummy_transaction_request(None);
             Ok(self.provider_data.sign_transaction_request(transaction)?)
         }
 
         fn impersonated_dummy_transaction(&self) -> anyhow::Result<PendingTransaction> {
-            let mut transaction = self.dummy_transaction_request();
-
-            transaction.from = self.impersonated_account;
+            let mut transaction = self.dummy_transaction_request(None);
+            transaction.sender = self.impersonated_account;
 
             Ok(self.provider_data.sign_transaction_request(transaction)?)
         }
@@ -1142,8 +1191,8 @@ mod tests {
         let mut fixture = ProviderTestFixture::new().await?;
 
         let transaction = {
-            let mut request = fixture.dummy_transaction_request();
-            request.from = fixture.impersonated_account;
+            let mut request = fixture.dummy_transaction_request(None);
+            request.sender = fixture.impersonated_account;
 
             fixture.provider_data.sign_transaction_request(request)?
         };
@@ -1179,9 +1228,8 @@ mod tests {
             .set_nonce(fixture.impersonated_account, 1)?;
 
         let transaction = {
-            let mut request = fixture.dummy_transaction_request();
-            request.from = fixture.impersonated_account;
-            request.nonce = Some(1);
+            let mut request = fixture.dummy_transaction_request(Some(1));
+            request.sender = fixture.impersonated_account;
 
             fixture.provider_data.sign_transaction_request(request)?
         };

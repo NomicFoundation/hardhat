@@ -5,7 +5,11 @@ use edr_eth::{
     remote,
     remote::PreEip1898BlockSpec,
     serde::ZeroXPrefixedBytes,
-    transaction::{EthTransactionRequest, SignedTransaction},
+    transaction::{
+        Eip1559TransactionRequest, Eip2930TransactionRequest, EthTransactionRequest,
+        LegacyTransactionRequest, SignedTransaction, TransactionKind, TransactionRequest,
+        TransactionRequestAndSender,
+    },
     SpecId, B256, U256,
 };
 use edr_evm::{blockchain::BlockchainError, SyncBlock};
@@ -173,6 +177,8 @@ pub fn handle_send_transaction_request(
     data: &mut ProviderData,
     transaction_request: EthTransactionRequest,
 ) -> Result<B256, ProviderError> {
+    let transaction_request = resolve_transaction_request(data, transaction_request)?;
+
     data.send_transaction(transaction_request)
 }
 
@@ -181,4 +187,85 @@ pub fn handle_send_raw_transaction_request(
     raw_transaction: ZeroXPrefixedBytes,
 ) -> Result<B256, ProviderError> {
     data.send_raw_transaction(raw_transaction.as_ref())
+}
+
+fn resolve_transaction_request(
+    data: &ProviderData,
+    transaction_request: EthTransactionRequest,
+) -> Result<TransactionRequestAndSender, ProviderError> {
+    let EthTransactionRequest {
+        from,
+        to,
+        gas_price,
+        max_fee_per_gas,
+        max_priority_fee_per_gas,
+        gas,
+        value,
+        data: input,
+        nonce,
+        mut access_list,
+        ..
+    } = transaction_request;
+
+    let gas_limit = gas.unwrap_or_else(|| data.block_gas_limit());
+    let input = input.unwrap_or_default();
+    let nonce = nonce.unwrap_or_else(|| data.account_last_pending_nonce(&from).unwrap_or(0));
+    let value = value.unwrap_or(U256::ZERO);
+
+    let request = match (gas_price, max_fee_per_gas, access_list.take()) {
+        // legacy transaction
+        (Some(_), None, None) => Some(TransactionRequest::Legacy(LegacyTransactionRequest {
+            nonce,
+            gas_price: gas_price.unwrap_or_default(),
+            gas_limit,
+            value,
+            input,
+            kind: match to {
+                Some(to) => TransactionKind::Call(to),
+                None => TransactionKind::Create,
+            },
+        })),
+        // EIP2930
+        (_, None, Some(access_list)) => {
+            Some(TransactionRequest::Eip2930(Eip2930TransactionRequest {
+                nonce,
+                gas_price: gas_price.unwrap_or_default(),
+                gas_limit,
+                value,
+                input,
+                kind: match to {
+                    Some(to) => TransactionKind::Call(to),
+                    None => TransactionKind::Create,
+                },
+                chain_id: 0,
+                access_list,
+            }))
+        }
+        // EIP1559
+        (None, Some(_), access_list) | (None, None, access_list @ None) => {
+            // Empty fields fall back to the canonical transaction schema.
+            Some(TransactionRequest::Eip1559(Eip1559TransactionRequest {
+                nonce,
+                max_fee_per_gas: max_fee_per_gas.unwrap_or_default(),
+                max_priority_fee_per_gas: max_priority_fee_per_gas.unwrap_or(U256::ZERO),
+                gas_limit,
+                value,
+                input,
+                kind: match to {
+                    Some(to) => TransactionKind::Call(to),
+                    None => TransactionKind::Create,
+                },
+                chain_id: 0,
+                access_list: access_list.unwrap_or_default(),
+            }))
+        }
+        _ => None,
+    };
+
+    request
+        .ok_or_else(|| ProviderError::InvalidTransactionRequest)
+        .map(|request| TransactionRequestAndSender {
+            request,
+            sender: from,
+        })
 }
