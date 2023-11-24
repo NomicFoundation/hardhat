@@ -19,21 +19,29 @@ jobs:
           chmod +x run-fixture-projects.sh
           ./run-fixture-projects.sh
         shell: bash
-  # run-script-macos:
-  #   runs-on: macos-latest
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #     - name: Run script
-  #       run: |
-  #         chmod +x test.sh
-  #         ./test.sh
-  #       shell: bash
-  # run-script-windows:
-  #   runs-on: windows-latest
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #     - name: Run script
-  #       run: |
-  #         chmod +x test.sh
-  #         ./test.sh
-  #       shell: bash
+  run-script-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Run fixture-projects script
+        run: |
+          cd e2e
+          chmod +x run-fixture-projects.sh
+          ./run-fixture-projects.sh
+        shell: bash
+  run-script-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Run fixture-projects script
+        run: |
+          cd e2e
+          chmod +x run-fixture-projects.sh
+          ./run-fixture-projects.sh
+        shell: bash
