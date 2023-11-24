@@ -5,7 +5,7 @@ use revm_primitives::{keccak256, ruint::aliases::U64, Address, Bytes, B256, U256
 use crate::{
     access_list::AccessList,
     signature::{Signature, SignatureError},
-    transaction::{kind::TransactionKind, request::EIP1559TransactionRequest},
+    transaction::{kind::TransactionKind, request::Eip1559TransactionRequest},
     utils::envelop_bytes,
 };
 
@@ -55,7 +55,7 @@ impl Eip1559SignedTransaction {
             v: u64::from(self.odd_y_parity),
         };
 
-        signature.recover(EIP1559TransactionRequest::from(self).hash())
+        signature.recover(Eip1559TransactionRequest::from(self).hash())
     }
 }
 
@@ -134,10 +134,10 @@ mod tests {
     const DUMMY_SECRET_KEY: &str =
         "e331b6d69882b4cb4ea581d88e0b604039a3de5967688d3dcffdd2270c0fd109";
 
-    fn dummy_request() -> EIP1559TransactionRequest {
+    fn dummy_request() -> Eip1559TransactionRequest {
         let to = Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e").unwrap();
         let input = hex::decode("1234").unwrap();
-        EIP1559TransactionRequest {
+        Eip1559TransactionRequest {
             chain_id: 1,
             nonce: 1,
             max_priority_fee_per_gas: U256::from(2),

@@ -12,7 +12,7 @@ use crate::{
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct EIP155TransactionRequest {
+pub struct Eip155TransactionRequest {
     pub nonce: u64,
     pub gas_price: U256,
     pub gas_limit: u64,
@@ -22,7 +22,7 @@ pub struct EIP155TransactionRequest {
     pub chain_id: u64,
 }
 
-impl EIP155TransactionRequest {
+impl Eip155TransactionRequest {
     /// Computes the hash of the transaction.
     pub fn hash(&self) -> B256 {
         keccak256(&rlp::encode(self))
@@ -71,7 +71,7 @@ impl EIP155TransactionRequest {
     }
 }
 
-impl From<&EIP155SignedTransaction> for EIP155TransactionRequest {
+impl From<&EIP155SignedTransaction> for Eip155TransactionRequest {
     fn from(tx: &EIP155SignedTransaction) -> Self {
         let chain_id = tx.chain_id();
         Self {
@@ -86,7 +86,7 @@ impl From<&EIP155SignedTransaction> for EIP155TransactionRequest {
     }
 }
 
-impl rlp::Encodable for EIP155TransactionRequest {
+impl rlp::Encodable for Eip155TransactionRequest {
     fn rlp_append(&self, s: &mut rlp::RlpStream) {
         s.begin_list(9);
         s.append(&self.nonce);
@@ -110,10 +110,10 @@ mod tests {
     use super::*;
     use crate::transaction::request::fake_signature::tests::test_fake_sign_properties;
 
-    fn dummy_request() -> EIP155TransactionRequest {
+    fn dummy_request() -> Eip155TransactionRequest {
         let to = Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e").unwrap();
         let input = hex::decode("1234").unwrap();
-        EIP155TransactionRequest {
+        Eip155TransactionRequest {
             nonce: 1,
             gas_price: U256::from(2),
             gas_limit: 3,
@@ -153,7 +153,7 @@ mod tests {
 
     #[test]
     fn test_fake_sign_test_vector() -> anyhow::Result<()> {
-        let transaction = EIP155TransactionRequest {
+        let transaction = Eip155TransactionRequest {
             nonce: 0,
             gas_price: U256::from(678_912),
             gas_limit: 30_000,
