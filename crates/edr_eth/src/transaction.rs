@@ -21,6 +21,7 @@ pub struct EthTransactionRequest {
     /// from address
     pub from: Address,
     /// to address
+    #[cfg_attr(feature = "serde", serde(default))]
     pub to: Option<Address>,
     /// legacy, gas Price
     #[cfg_attr(feature = "serde", serde(default))]
@@ -32,18 +33,20 @@ pub struct EthTransactionRequest {
     #[cfg_attr(feature = "serde", serde(default))]
     pub max_priority_fee_per_gas: Option<U256>,
     /// gas
+    #[cfg_attr(feature = "serde", serde(default, with = "crate::serde::optional_u64"))]
     pub gas: Option<u64>,
     /// value of th tx in wei
     pub value: Option<U256>,
     /// Any additional data sent
     pub data: Option<Bytes>,
     /// Transaction nonce
+    #[cfg_attr(feature = "serde", serde(default, with = "crate::serde::optional_u64"))]
     pub nonce: Option<u64>,
     /// warm storage access pre-payment
     #[cfg_attr(feature = "serde", serde(default))]
     pub access_list: Option<Vec<AccessListItem>>,
     /// EIP-2718 type
-    #[cfg_attr(feature = "serde", serde(rename = "type"))]
+    #[cfg_attr(feature = "serde", serde(default, rename = "type"))]
     pub transaction_type: Option<U256>,
 }
 
