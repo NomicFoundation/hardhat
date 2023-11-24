@@ -1,4 +1,4 @@
-name: Run script
+name: E2E tests
 
 on:
   push:
@@ -12,8 +12,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Run fixture-projects script
         run: |
-          chmod +x run-fixture-projects.sh
-          ./run-fixture-projects.sh
+          cd e2e && chmod +x run-fixture-projects.sh
+          cd e2e && ./run-fixture-projects.sh
         shell: bash
   # run-script-macos:
   #   runs-on: macos-latest
