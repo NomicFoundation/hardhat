@@ -2,11 +2,24 @@ use std::{path::PathBuf, time::SystemTime};
 
 use edr_eth::{AccountInfo, Address, HashMap, SpecId, U256};
 use edr_evm::MineOrdering;
+use rand::Rng;
 use rpc_hardhat::config::ForkConfig;
 
+/// Configuration for interval mining.
+#[derive(Clone)]
 pub enum IntervalConfig {
-    Fixed(i64),
-    Range { min: i64, max: i64 },
+    Fixed(u64),
+    Range { min: u64, max: u64 },
+}
+
+impl IntervalConfig {
+    /// Generates a (random) interval based on the configuration.
+    pub fn generate_interval(&self) -> u64 {
+        match self {
+            IntervalConfig::Fixed(interval) => *interval,
+            IntervalConfig::Range { min, max } => rand::thread_rng().gen_range(*min..=*max),
+        }
+    }
 }
 
 /// Configuration for the provider's mempool.
@@ -17,7 +30,7 @@ pub struct MemPoolConfig {
 /// Configuration for the provider's miner.
 pub struct MiningConfig {
     pub auto_mine: bool,
-    pub interval: IntervalConfig,
+    pub interval: Option<IntervalConfig>,
     pub mem_pool: MemPoolConfig,
 }
 
@@ -60,7 +73,7 @@ impl Default for MiningConfig {
     fn default() -> Self {
         Self {
             auto_mine: true,
-            interval: IntervalConfig::Fixed(0),
+            interval: None,
             mem_pool: MemPoolConfig::default(),
         }
     }

@@ -125,7 +125,9 @@ impl Logger {
     pub fn print_method(&self, _method: &str) {}
 
     /// Prints all accumulated logs.
-    pub fn print_logs(&self) {}
+    pub fn print_logs(&self) -> bool {
+        false
+    }
 
     /// Prints the block number of an interval-mined block.
     pub fn print_interval_mined_block_number(
