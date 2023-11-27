@@ -1,19 +1,24 @@
 use std::{
+    collections::BTreeMap,
     fmt::Debug,
     num::NonZeroU64,
     sync::Arc,
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use edr_eth::{block::PartialHeader, trie::KECCAK_NULL_RLP, Bytes, B256, B64, U256};
-use revm::{db::BlockHashRef, primitives::SpecId};
+use edr_eth::{
+    block::{BlobGas, PartialHeader},
+    trie::KECCAK_NULL_RLP,
+    Bytes, B256, B64, U256,
+};
+use revm::{db::BlockHashRef, primitives::SpecId, DatabaseCommit};
 
 use super::{
     compute_state_at_block, storage::ReservableSparseBlockchainStorage, validate_next_block,
     Blockchain, BlockchainError, BlockchainMut,
 };
 use crate::{
-    state::{StateDebug, StateDiff, StateError, SyncState, TrieState},
+    state::{StateDebug, StateDiff, StateError, StateOverride, SyncState, TrieState},
     Block, LocalBlock, SyncBlock,
 };
 
@@ -23,6 +28,12 @@ pub enum CreationError {
     /// Missing base fee per gas for post-London blockchain
     #[error("Missing base fee per gas for post-London blockchain")]
     MissingBaseFee,
+    /// Missing blob gas information for post-Cancun blockchain
+    #[error("Missing blob gas information for post-Cancun blockchain")]
+    MissingBlobGas,
+    /// Missing parent beacon block root for post-Cancun blockchain
+    #[error("Missing parent beacon block root for post-Cancun blockchain")]
+    MissingParentBeaconBlockRoot,
     /// Missing prevrandao for post-merge blockchain
     #[error("Missing prevrandao for post-merge blockchain")]
     MissingPrevrandao,
@@ -41,7 +52,6 @@ pub enum InsertBlockError {
 #[derive(Debug)]
 pub struct LocalBlockchain {
     storage: ReservableSparseBlockchainStorage<Arc<dyn SyncBlock<Error = BlockchainError>>>,
-    genesis_state: TrieState,
     chain_id: u64,
     spec_id: SpecId,
 }
@@ -50,16 +60,22 @@ impl LocalBlockchain {
     /// Constructs a new instance using the provided arguments to build a
     /// genesis block.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
-        genesis_state: TrieState,
+        genesis_diff: StateDiff,
         chain_id: u64,
         spec_id: SpecId,
         gas_limit: u64,
         timestamp: Option<u64>,
         prevrandao: Option<B256>,
         base_fee: Option<U256>,
+        blob_gas: Option<BlobGas>,
+        parent_beacon_block_root: Option<B256>,
     ) -> Result<Self, CreationError> {
-        const EXTRA_DATA: &[u8] = b"124";
+        const EXTRA_DATA: &[u8] = b"\x12\x34";
+
+        let mut genesis_state = TrieState::default();
+        genesis_state.commit(genesis_diff.clone().into());
 
         let partial_header = PartialHeader {
             state_root: genesis_state
@@ -101,13 +117,23 @@ impl LocalBlockchain {
             } else {
                 None
             },
+            blob_gas: if spec_id >= SpecId::CANCUN {
+                Some(blob_gas.ok_or(CreationError::MissingBlobGas)?)
+            } else {
+                None
+            },
+            parent_beacon_block_root: if spec_id >= SpecId::CANCUN {
+                Some(parent_beacon_block_root.ok_or(CreationError::MissingParentBeaconBlockRoot)?)
+            } else {
+                None
+            },
             ..PartialHeader::default()
         };
 
         Ok(unsafe {
             Self::with_genesis_block_unchecked(
                 LocalBlock::empty(partial_header),
-                genesis_state,
+                genesis_diff,
                 chain_id,
                 spec_id,
             )
@@ -119,7 +145,7 @@ impl LocalBlockchain {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn with_genesis_block(
         genesis_block: LocalBlock,
-        genesis_state: TrieState,
+        genesis_diff: StateDiff,
         chain_id: u64,
         spec_id: SpecId,
     ) -> Result<Self, InsertBlockError> {
@@ -137,7 +163,7 @@ impl LocalBlockchain {
         }
 
         Ok(unsafe {
-            Self::with_genesis_block_unchecked(genesis_block, genesis_state, chain_id, spec_id)
+            Self::with_genesis_block_unchecked(genesis_block, genesis_diff, chain_id, spec_id)
         })
     }
 
@@ -150,19 +176,21 @@ impl LocalBlockchain {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub unsafe fn with_genesis_block_unchecked(
         genesis_block: LocalBlock,
-        genesis_state: TrieState,
+        genesis_diff: StateDiff,
         chain_id: u64,
         spec_id: SpecId,
     ) -> Self {
         let genesis_block: Arc<dyn SyncBlock<Error = BlockchainError>> = Arc::new(genesis_block);
 
         let total_difficulty = genesis_block.header().difficulty;
-        let storage =
-            ReservableSparseBlockchainStorage::with_genesis_block(genesis_block, total_difficulty);
+        let storage = ReservableSparseBlockchainStorage::with_genesis_block(
+            genesis_block,
+            genesis_diff,
+            total_difficulty,
+        );
 
         Self {
             storage,
-            genesis_state,
             chain_id,
             spec_id,
         }
@@ -251,15 +279,14 @@ impl Blockchain for LocalBlockchain {
     fn state_at_block_number(
         &self,
         block_number: u64,
+        state_overrides: &BTreeMap<u64, StateOverride>,
     ) -> Result<Box<dyn SyncState<Self::StateError>>, Self::BlockchainError> {
         if block_number > self.last_block_number() {
             return Err(BlockchainError::UnknownBlockNumber);
         }
 
-        let mut state = self.genesis_state.clone();
-        if block_number > 0 {
-            compute_state_at_block(&mut state, &self.storage, block_number);
-        }
+        let mut state = TrieState::default();
+        compute_state_at_block(&mut state, &self.storage, 0, block_number, state_overrides);
 
         Ok(Box::new(state))
     }

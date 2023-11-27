@@ -141,3 +141,12 @@ pub fn genesis_accounts(
         })
         .collect::<napi::Result<HashMap<Address, AccountInfo>>>()
 }
+
+/// Mimics activation of precompiles
+pub fn add_precompiles(accounts: &mut HashMap<Address, AccountInfo>) {
+    for idx in 1..=8 {
+        let mut address = Address::zero();
+        address.0[19] = idx;
+        accounts.insert(address, AccountInfo::default());
+    }
+}

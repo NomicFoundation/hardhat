@@ -94,6 +94,7 @@ export async function makeForkClient(
   forkBlockNumber: bigint;
   forkBlockTimestamp: number;
   forkBlockHash: string;
+  forkBlockStateRoot: string;
 }> {
   const {
     forkProvider,
@@ -125,7 +126,15 @@ export async function makeForkClient(
     "Forked block should have a hash"
   );
 
-  return { forkClient, forkBlockNumber, forkBlockTimestamp, forkBlockHash };
+  const forkBlockStateRoot = block.stateRoot;
+
+  return {
+    forkClient,
+    forkBlockNumber,
+    forkBlockTimestamp,
+    forkBlockHash,
+    forkBlockStateRoot,
+  };
 }
 
 async function getBlockByNumber(

@@ -1,18 +1,18 @@
+mod irregular;
 mod overrides;
 
 use std::{
     mem,
     ops::Deref,
-    path::PathBuf,
     sync::{
         mpsc::{channel, Sender},
         Arc,
     },
 };
 
-use edr_eth::{remote::RpcClient, Address, Bytes, U256};
+use edr_eth::{Address, Bytes, U256};
 use edr_evm::{
-    state::{AccountModifierFn, AccountTrie, ForkState, StateError, SyncState, TrieState},
+    state::{AccountModifierFn, AccountTrie, StateError, SyncState, TrieState},
     AccountInfo, Bytecode, HashMap, KECCAK_EMPTY,
 };
 use napi::{
@@ -24,10 +24,10 @@ use napi_derive::napi;
 pub use overrides::*;
 use parking_lot::RwLock;
 
+pub use self::{irregular::IrregularState, overrides::*};
 use crate::{
-    account::{genesis_accounts, Account, GenesisAccount},
+    account::{add_precompiles, genesis_accounts, Account, GenesisAccount},
     cast::TryCast,
-    context::EdrContext,
     sync::{await_promise, handle_error},
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
 };
@@ -41,15 +41,6 @@ struct ModifyAccountCall {
     pub nonce: u64,
     pub code: Option<Bytecode>,
     pub sender: Sender<napi::Result<AccountInfo>>,
-}
-
-// Mimic precompiles activation
-fn add_precompiles(accounts: &mut HashMap<Address, AccountInfo>) {
-    for idx in 1..=8 {
-        let mut address = Address::zero();
-        address.0[19] = idx;
-        accounts.insert(address, AccountInfo::default());
-    }
 }
 
 /// The EDR state
@@ -116,50 +107,6 @@ impl State {
 
         let state = TrieState::with_accounts(AccountTrie::with_accounts(&accounts));
         Self::with_state(&mut env, state)
-    }
-
-    /// Constructs a [`State`] that uses the remote node and block number as the
-    /// basis for its state.
-    #[napi]
-    #[napi(ts_return_type = "Promise<State>")]
-    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn fork_remote(
-        env: Env,
-        context: &EdrContext,
-        remote_node_url: String,
-        fork_block_number: BigInt,
-        account_overrides: Vec<GenesisAccount>,
-        cache_dir: Option<String>,
-    ) -> napi::Result<JsObject> {
-        let fork_block_number: u64 = BigInt::try_cast(fork_block_number)?;
-        let cache_dir: PathBuf = cache_dir
-            .unwrap_or_else(|| edr_defaults::CACHE_DIR.into())
-            .into();
-
-        let account_overrides = genesis_accounts(account_overrides)?;
-
-        let runtime = runtime::Handle::current();
-        let state_root_generator = context.state_root_generator.clone();
-
-        let (deferred, promise) = env.create_deferred()?;
-        runtime.clone().spawn_blocking(move || {
-            let rpc_client = RpcClient::new(&remote_node_url, cache_dir);
-
-            let result = runtime
-                .clone()
-                .block_on(ForkState::new(
-                    runtime,
-                    Arc::new(rpc_client),
-                    state_root_generator,
-                    fork_block_number,
-                    account_overrides,
-                ))
-                .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()));
-
-            deferred.resolve(|mut env| result.map(|state| Self::with_state(&mut env, state)));
-        });
-
-        Ok(promise)
     }
 
     #[doc = "Clones the state"]
@@ -287,7 +234,7 @@ impl State {
     /// modifier function. The modifier function receives the current values
     /// as individual parameters and will update the account's values to the
     /// returned `Account` values.
-    #[napi(ts_return_type = "Promise<void>")]
+    #[napi(ts_return_type = "Promise<Account>")]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub fn modify_account(
         &self,
@@ -370,8 +317,9 @@ impl State {
         let (deferred, promise) = env.create_deferred()?;
         let state = self.state.clone();
         runtime::Handle::current().spawn_blocking(move || {
+            let mut state = state.write();
+
             let result = state
-                .write()
                 .modify_account(
                     address,
                     AccountModifierFn::new(Box::new(
@@ -403,7 +351,21 @@ impl State {
                         })
                     },
                 )
-                .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()));
+                .map_or_else(
+                    |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+                    |mut account_info| {
+                        // Add the code to the account info if it exists
+                        if account_info.code_hash != KECCAK_EMPTY {
+                            account_info.code = Some(
+                                state
+                                    .code_by_hash(account_info.code_hash)
+                                    .expect("Code must exist"),
+                            );
+                        }
+
+                        Ok(Account::from(account_info))
+                    },
+                );
 
             deferred.resolve(|_| result);
         });
@@ -448,7 +410,7 @@ impl State {
         address: Buffer,
         index: BigInt,
         value: BigInt,
-    ) -> napi::Result<()> {
+    ) -> napi::Result<BigInt> {
         let address = Address::from_slice(&address);
         let index: U256 = BigInt::try_cast(index)?;
         let value: U256 = BigInt::try_cast(value)?;
@@ -462,7 +424,15 @@ impl State {
             })
             .await
             .unwrap()
-            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
+            .map_or_else(
+                |e| Err(napi::Error::new(Status::GenericFailure, e.to_string())),
+                |value| {
+                    Ok(BigInt {
+                        sign_bit: false,
+                        words: value.into_limbs().to_vec(),
+                    })
+                },
+            )
     }
 }
 

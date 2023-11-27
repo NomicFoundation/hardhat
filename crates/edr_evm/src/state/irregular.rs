@@ -1,58 +1,27 @@
-use std::{collections::HashMap, fmt::Debug, marker::PhantomData};
+use std::{
+    collections::{btree_map, BTreeMap},
+    fmt::Debug,
+};
 
-use crate::state::SyncState;
+use super::StateOverride;
 
 /// Container for state that was modified outside of mining a block.
-#[derive(Debug)]
-pub struct IrregularState<ErrorT, StateT>
-where
-    ErrorT: Debug + Send,
-    StateT: SyncState<ErrorT>,
-{
-    // Muse use `ErrorT`
-    phantom: PhantomData<ErrorT>,
-    inner: HashMap<u64, StateT>,
+#[derive(Clone, Debug, Default)]
+pub struct IrregularState {
+    block_number_to_override: BTreeMap<u64, StateOverride>,
 }
 
-impl<ErrorT, StateT> Clone for IrregularState<ErrorT, StateT>
-where
-    ErrorT: Debug + Send,
-    StateT: Clone + SyncState<ErrorT>,
-{
-    fn clone(&self) -> Self {
-        Self {
-            phantom: PhantomData,
-            inner: self.inner.clone(),
-        }
-    }
-}
-
-impl<ErrorT, StateT> Default for IrregularState<ErrorT, StateT>
-where
-    ErrorT: Debug + Send,
-    StateT: SyncState<ErrorT>,
-{
-    fn default() -> Self {
-        Self {
-            phantom: PhantomData,
-            inner: HashMap::default(),
-        }
-    }
-}
-
-impl<ErrorT, StateT> IrregularState<ErrorT, StateT>
-where
-    ErrorT: Debug + Send,
-    StateT: SyncState<ErrorT>,
-{
-    /// Gets an irregular state by block number.
-    pub fn state_by_block_number(&self, block_number: u64) -> Option<&StateT> {
-        self.inner.get(&block_number)
+impl IrregularState {
+    /// Retrieves the state override at the specified block number.
+    pub fn state_override_at_block_number(
+        &mut self,
+        block_number: u64,
+    ) -> btree_map::Entry<'_, u64, StateOverride> {
+        self.block_number_to_override.entry(block_number)
     }
 
-    /// Inserts the state for a block number and returns the previous state if
-    /// it exists.
-    pub fn insert_state(&mut self, block_number: u64, state: StateT) -> Option<StateT> {
-        self.inner.insert(block_number, state)
+    /// Retrieves the irregular state overrides.
+    pub fn state_overrides(&self) -> &BTreeMap<u64, StateOverride> {
+        &self.block_number_to_override
     }
 }

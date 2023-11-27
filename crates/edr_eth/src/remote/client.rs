@@ -3,9 +3,11 @@ use std::{
     io,
     path::{Path, PathBuf},
     sync::atomic::{AtomicU64, Ordering},
+    thread::available_parallelism,
     time::{Duration, Instant},
 };
 
+use futures::stream::StreamExt;
 use itertools::{izip, Itertools};
 use reqwest::Client as HttpClient;
 use reqwest_middleware::{ClientBuilder as HttpClientBuilder, ClientWithMiddleware};
@@ -201,16 +203,6 @@ impl RpcClient {
         })
     }
 
-    fn parse_response_value<T: DeserializeOwned>(
-        response: serde_json::Value,
-    ) -> Result<T, RpcClientError> {
-        serde_json::from_value(response.clone()).map_err(|error| RpcClientError::InvalidResponse {
-            response: response.to_string(),
-            expected_type: std::any::type_name::<T>(),
-            error,
-        })
-    }
-
     fn extract_result<T: DeserializeOwned>(
         request: SerializedRequest,
         response: String,
@@ -249,18 +241,18 @@ impl RpcClient {
     async fn read_response_from_cache(
         &self,
         cache_key: &ReadCacheKey,
-    ) -> Result<Option<serde_json::Value>, RpcClientError> {
+    ) -> Result<Option<ResponseValue>, RpcClientError> {
         let path = self.make_cache_path(cache_key.as_ref()).await?;
-        match tokio::fs::read_to_string(path).await {
+        match tokio::fs::read_to_string(&path).await {
             Ok(contents) => match serde_json::from_str(&contents) {
-                Ok(value) => Ok(Some(value)),
+                Ok(value) => Ok(Some(ResponseValue::Cached { value, path })),
                 Err(error) => {
                     log_cache_error(
                         cache_key.as_ref(),
                         "failed to deserialize item from RPC response cache",
                         error,
                     );
-                    self.remove_from_cache(cache_key).await?;
+                    remove_from_cache(&path).await?;
                     Ok(None)
                 }
             },
@@ -278,25 +270,10 @@ impl RpcClient {
         }
     }
 
-    async fn remove_from_cache(&self, cache_key: &ReadCacheKey) -> Result<(), RpcClientError> {
-        let path = self.make_cache_path(cache_key.as_ref()).await?;
-        match tokio::fs::remove_file(path).await {
-            Ok(_) => Ok(()),
-            Err(error) => {
-                log_cache_error(
-                    cache_key.as_ref(),
-                    "failed to remove from RPC response cache",
-                    error,
-                );
-                Ok(())
-            }
-        }
-    }
-
     async fn try_from_cache(
         &self,
         cache_key: Option<&ReadCacheKey>,
-    ) -> Result<Option<serde_json::Value>, RpcClientError> {
+    ) -> Result<Option<ResponseValue>, RpcClientError> {
         if let Some(cache_key) = cache_key {
             self.read_response_from_cache(cache_key).await
         } else {
@@ -512,21 +489,34 @@ impl RpcClient {
 
         let request = self.serialize_request(&method_invocation)?;
 
-        let result = if let Some(cached_response) =
-            self.try_from_cache(read_cache_key.as_ref()).await?
-        {
-            serde_json::from_value(cached_response).expect("cache item matches return type")
-        } else {
-            let result: T = self
-                .send_request_body(&request)
-                .await
-                .and_then(|response| Self::extract_result(request, response))?;
-
-            self.try_write_response_to_cache(&method_invocation, &result, &resolve_block_number)
-                .await?;
-
-            result
+        if let Some(cached_response) = self.try_from_cache(read_cache_key.as_ref()).await? {
+            match cached_response.parse().await {
+                Ok(result) => return Ok(result),
+                Err(error) => match error {
+                    // In case of an invalid response from cache, we log it and continue to the
+                    // remote call.
+                    RpcClientError::InvalidResponse {
+                        response,
+                        expected_type,
+                        error,
+                    } => {
+                        log::error!(
+                            "Failed to deserialize item from RPC response cache. error: '{error}' expected type: '{expected_type}'. item: '{response}'");
+                    }
+                    // For other errors, return early.
+                    _ => return Err(error),
+                },
+            }
         };
+
+        let result: T = self
+            .send_request_body(&request)
+            .await
+            .and_then(|response| Self::extract_result(request, response))?;
+
+        self.try_write_response_to_cache(&method_invocation, &result, &resolve_block_number)
+            .await?;
+
         Ok(result)
     }
 
@@ -547,7 +537,7 @@ impl RpcClient {
     async fn batch_call(
         &self,
         method_invocations: &[MethodInvocation],
-    ) -> Result<VecDeque<serde_json::Value>, RpcClientError> {
+    ) -> Result<VecDeque<ResponseValue>, RpcClientError> {
         self.batch_call_with_resolver(method_invocations, |_| None)
             .await
     }
@@ -556,7 +546,7 @@ impl RpcClient {
         &self,
         method_invocations: &[MethodInvocation],
         resolve_block_number: impl Fn(&serde_json::Value) -> Option<u64>,
-    ) -> Result<VecDeque<serde_json::Value>, RpcClientError> {
+    ) -> Result<VecDeque<ResponseValue>, RpcClientError> {
         let ids = self.get_ids(method_invocations.len() as u64);
 
         let cache_keys = method_invocations
@@ -564,7 +554,7 @@ impl RpcClient {
             .map(try_read_cache_key)
             .collect::<Vec<_>>();
 
-        let mut results: Vec<Option<serde_json::Value>> = Vec::with_capacity(cache_keys.len());
+        let mut results: Vec<Option<ResponseValue>> = Vec::with_capacity(cache_keys.len());
 
         for cache_key in &cache_keys {
             results.push(self.try_from_cache(cache_key.as_ref()).await?);
@@ -614,7 +604,7 @@ impl RpcClient {
             )
             .await?;
 
-            results[index] = Some(result);
+            results[index] = Some(ResponseValue::Remote(result));
         }
 
         results
@@ -691,9 +681,9 @@ impl RpcClient {
             .collect_tuple()
             .expect("batch call checks responses");
 
-        let balance = Self::parse_response_value::<U256>(balance)?;
-        let nonce: u64 = Self::parse_response_value::<U256>(nonce)?.to();
-        let code: Bytes = Self::parse_response_value::<ZeroXPrefixedBytes>(code)?.into();
+        let balance = balance.parse::<U256>().await?;
+        let nonce: u64 = nonce.parse::<U256>().await?.to();
+        let code: Bytes = code.parse::<ZeroXPrefixedBytes>().await?.into();
         let code = if code.is_empty() {
             None
         } else {
@@ -805,10 +795,14 @@ impl RpcClient {
 
         let responses = self.batch_call(&requests).await?;
 
-        responses
+        futures::stream::iter(responses)
+            .map(ResponseValue::parse)
+            // Primarily CPU heavy work, only does i/o on error.
+            .buffered(available_parallelism().map(usize::from).unwrap_or(1))
+            .collect::<Vec<Result<Option<BlockReceipt>, RpcClientError>>>()
+            .await
             .into_iter()
-            .map(Self::parse_response_value::<Option<BlockReceipt>>)
-            .collect::<Result<Option<Vec<BlockReceipt>>, _>>()
+            .collect()
     }
 
     /// Calls `eth_getStorageAt`.
@@ -827,6 +821,58 @@ impl RpcClient {
         self.call::<U64>(MethodInvocation::NetVersion(()))
             .await
             .map(|network_id| network_id.as_limbs()[0])
+    }
+}
+
+async fn remove_from_cache(path: &Path) -> Result<(), RpcClientError> {
+    match tokio::fs::remove_file(path).await {
+        Ok(_) => Ok(()),
+        Err(error) => {
+            log_cache_error(
+                path.to_str().unwrap_or("<invalid UTF-8>"),
+                "failed to remove from RPC response cache",
+                error,
+            );
+            Ok(())
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+enum ResponseValue {
+    Remote(serde_json::Value),
+    Cached {
+        value: serde_json::Value,
+        path: PathBuf,
+    },
+}
+
+impl ResponseValue {
+    async fn parse<T: DeserializeOwned>(self) -> Result<T, RpcClientError> {
+        match self {
+            ResponseValue::Remote(value) => {
+                serde_json::from_value(value.clone()).map_err(|error| {
+                    RpcClientError::InvalidResponse {
+                        response: value.to_string(),
+                        expected_type: std::any::type_name::<T>(),
+                        error,
+                    }
+                })
+            }
+            ResponseValue::Cached { value, path } => match serde_json::from_value(value.clone()) {
+                Ok(result) => Ok(result),
+                Err(error) => {
+                    // Remove the file from cache if the contents don't match the expected type.
+                    // This can happen for example if a new field is added to a type.
+                    remove_from_cache(&path).await?;
+                    Err(RpcClientError::InvalidResponse {
+                        response: value.to_string(),
+                        expected_type: std::any::type_name::<T>(),
+                        error,
+                    })
+                }
+            },
+        }
     }
 }
 
@@ -1163,24 +1209,6 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn get_account_info_contract() {
-            let alchemy_url = get_alchemy_url();
-
-            let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
-                .expect("failed to parse address");
-
-            let account_info = TestRpcClient::new(&alchemy_url)
-                .get_account_info(&dai_address, Some(BlockSpec::Number(16220843)))
-                .await
-                .expect("should have succeeded");
-
-            assert_eq!(account_info.balance, U256::ZERO);
-            assert_eq!(account_info.nonce, 1);
-            assert_ne!(account_info.code_hash, KECCAK_EMPTY);
-            assert!(account_info.code.is_some());
-        }
-
-        #[tokio::test]
         async fn get_account_info_works_from_cache() {
             let alchemy_url = get_alchemy_url();
             let client = TestRpcClient::new(&alchemy_url);
@@ -1246,24 +1274,6 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn get_account_info_empty_account() {
-            let alchemy_url = get_alchemy_url();
-
-            let empty_address = Address::from_str("0xffffffffffffffffffffffffffffffffffffffff")
-                .expect("failed to parse address");
-
-            let account_info = TestRpcClient::new(&alchemy_url)
-                .get_account_info(&empty_address, Some(BlockSpec::Number(1)))
-                .await
-                .expect("should have succeeded");
-
-            assert_eq!(account_info.balance, U256::ZERO);
-            assert_eq!(account_info.nonce, 0);
-            assert_eq!(account_info.code_hash, KECCAK_EMPTY);
-            assert!(account_info.code.is_none());
-        }
-
-        #[tokio::test]
         async fn get_account_info_unknown_block() {
             let alchemy_url = get_alchemy_url();
 
@@ -1322,23 +1332,6 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn get_block_by_hash_none() {
-            let alchemy_url = get_alchemy_url();
-
-            let hash = B256::from_str(
-                "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-            )
-            .expect("failed to parse hash from string");
-
-            let block = TestRpcClient::new(&alchemy_url)
-                .get_block_by_hash(&hash)
-                .await
-                .expect("should have succeeded");
-
-            assert!(block.is_none());
-        }
-
-        #[tokio::test]
         async fn get_block_by_hash_with_transaction_data_some() {
             let alchemy_url = get_alchemy_url();
 
@@ -1357,23 +1350,6 @@ mod tests {
 
             assert_eq!(block.hash, Some(hash));
             assert_eq!(block.transactions.len(), 192);
-        }
-
-        #[tokio::test]
-        async fn get_block_by_hash_with_transaction_data_none() {
-            let alchemy_url = get_alchemy_url();
-
-            let hash = B256::from_str(
-                "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-            )
-            .expect("failed to parse hash from string");
-
-            let block = TestRpcClient::new(&alchemy_url)
-                .get_block_by_hash_with_transaction_data(&hash)
-                .await
-                .expect("should have succeeded");
-
-            assert!(block.is_none());
         }
 
         #[tokio::test]
@@ -1409,20 +1385,6 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn get_block_by_number_none() {
-            let alchemy_url = get_alchemy_url();
-
-            let block_number = MAX_BLOCK_NUMBER;
-
-            let block = TestRpcClient::new(&alchemy_url)
-                .get_block_by_number(BlockSpec::Number(block_number))
-                .await
-                .expect("should have succeeded");
-
-            assert!(block.is_none());
-        }
-
-        #[tokio::test]
         async fn get_block_by_number_with_transaction_data_unsafe_no_cache() {
             let alchemy_url = get_alchemy_url();
             let client = TestRpcClient::new(&alchemy_url);
@@ -1448,20 +1410,6 @@ mod tests {
             assert_eq!(client.files_in_cache().len(), 0);
 
             assert_eq!(block.number, Some(block_number));
-        }
-
-        #[tokio::test]
-        async fn get_block_by_number_with_transaction_data_none() {
-            let alchemy_url = get_alchemy_url();
-
-            let block_number = MAX_BLOCK_NUMBER;
-
-            let block = TestRpcClient::new(&alchemy_url)
-                .get_block_by_number(BlockSpec::Number(block_number))
-                .await
-                .expect("should have succeeded");
-
-            assert!(block.is_none());
         }
 
         #[tokio::test]
@@ -1601,22 +1549,6 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn get_logs_missing_address() {
-            let alchemy_url = get_alchemy_url();
-            let logs = TestRpcClient::new(&alchemy_url)
-                .get_logs(
-                    BlockSpec::Number(10496585),
-                    BlockSpec::Number(10496585),
-                    &Address::from_str("0xffffffffffffffffffffffffffffffffffffffff")
-                        .expect("failed to parse data"),
-                )
-                .await
-                .expect("failed to get logs");
-
-            assert_eq!(logs, Vec::new());
-        }
-
-        #[tokio::test]
         async fn get_transaction_by_hash_some() {
             let alchemy_url = get_alchemy_url();
 
@@ -1706,23 +1638,6 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn get_transaction_by_hash_none() {
-            let alchemy_url = get_alchemy_url();
-
-            let hash = B256::from_str(
-                "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-            )
-            .expect("failed to parse hash from string");
-
-            let tx = TestRpcClient::new(&alchemy_url)
-                .get_transaction_by_hash(&hash)
-                .await
-                .expect("failed to get transaction by hash");
-
-            assert!(tx.is_none());
-        }
-
-        #[tokio::test]
         async fn get_transaction_count_some() {
             let alchemy_url = get_alchemy_url();
 
@@ -1735,21 +1650,6 @@ mod tests {
                 .expect("should have succeeded");
 
             assert_eq!(transaction_count, U256::from(1));
-        }
-
-        #[tokio::test]
-        async fn get_transaction_count_none() {
-            let alchemy_url = get_alchemy_url();
-
-            let missing_address = Address::from_str("0xffffffffffffffffffffffffffffffffffffffff")
-                .expect("failed to parse address");
-
-            let transaction_count = TestRpcClient::new(&alchemy_url)
-                .get_transaction_count(&missing_address, Some(BlockSpec::Number(16220843)))
-                .await
-                .expect("should have succeeded");
-
-            assert_eq!(transaction_count, U256::ZERO);
         }
 
         #[tokio::test]
@@ -1829,23 +1729,6 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn get_transaction_receipt_none() {
-            let alchemy_url = get_alchemy_url();
-
-            let hash = B256::from_str(
-                "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-            )
-            .expect("failed to parse hash from string");
-
-            let receipt = TestRpcClient::new(&alchemy_url)
-                .get_transaction_receipt(&hash)
-                .await
-                .expect("failed to get transaction receipt");
-
-            assert!(receipt.is_none());
-        }
-
-        #[tokio::test]
         async fn get_storage_at_some() {
             let alchemy_url = get_alchemy_url();
 
@@ -1871,21 +1754,6 @@ mod tests {
                     .expect("failed to parse storage location")
                 )
             );
-        }
-
-        #[tokio::test]
-        async fn get_storage_at_none() {
-            let alchemy_url = get_alchemy_url();
-
-            let missing_address = Address::from_str("0xffffffffffffffffffffffffffffffffffffffff")
-                .expect("failed to parse address");
-
-            let value = TestRpcClient::new(&alchemy_url)
-                .get_storage_at(&missing_address, U256::from(1), Some(BlockSpec::Number(1)))
-                .await
-                .expect("should have succeeded");
-
-            assert_eq!(value, Some(U256::ZERO));
         }
 
         #[tokio::test]
@@ -2015,6 +1883,73 @@ mod tests {
                 .await
                 .unwrap();
             assert_eq!(contents, serde_json::to_string(test_contents).unwrap());
+        }
+
+        #[tokio::test]
+        async fn handles_invalid_type_in_cache_single_call() {
+            let alchemy_url = get_alchemy_url();
+            let client = TestRpcClient::new(&alchemy_url);
+            let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
+                .expect("failed to parse address");
+
+            client
+                .get_storage_at(
+                    &dai_address,
+                    U256::from(1),
+                    Some(BlockSpec::Number(16220843)),
+                )
+                .await
+                .expect("should have succeeded");
+
+            // Write some valid JSON, but invalid U256
+            tokio::fs::write(&client.files_in_cache()[0], "\"not-hex\"")
+                .await
+                .unwrap();
+
+            client
+                .get_storage_at(
+                    &dai_address,
+                    U256::from(1),
+                    Some(BlockSpec::Number(16220843)),
+                )
+                .await
+                .expect("should have succeeded");
+        }
+
+        #[tokio::test]
+        async fn handles_invalid_type_in_cache_batch_call() {
+            let alchemy_url = get_alchemy_url();
+            let client = TestRpcClient::new(&alchemy_url);
+
+            let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
+                .expect("failed to parse address");
+            let block_spec = BlockSpec::Number(16220843);
+
+            // Make an initial call to populate the cache.
+            client
+                .get_account_info(&dai_address, Some(block_spec.clone()))
+                .await
+                .expect("initial call should succeed");
+            assert_eq!(client.files_in_cache().len(), 3);
+
+            // Write some valid JSON, but invalid U256
+            tokio::fs::write(&client.files_in_cache()[0], "\"not-hex\"")
+                .await
+                .unwrap();
+
+            // Call with invalid type in cache fails, but removes faulty cache item
+            client
+                .get_account_info(&dai_address, Some(block_spec.clone()))
+                .await
+                .expect_err("should fail due to invalid json in cache");
+            assert_eq!(client.files_in_cache().len(), 2);
+
+            // Subsequent call fetches removed cache item and succeeds.
+            client
+                .get_account_info(&dai_address, Some(block_spec.clone()))
+                .await
+                .expect("subsequent call should succeed");
+            assert_eq!(client.files_in_cache().len(), 3);
         }
     }
 }

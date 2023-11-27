@@ -11,7 +11,9 @@ use napi::{
 };
 use napi_derive::napi;
 
-use crate::{account::GenesisAccount, cast::TryCast, config::SpecId, miner::MineOrdering};
+use crate::{
+    account::GenesisAccount, block::BlobGas, cast::TryCast, config::SpecId, miner::MineOrdering,
+};
 
 /// Configuration for forking a blockchain
 #[napi(object)]
@@ -69,8 +71,13 @@ pub struct ProviderConfig {
     /// The initial base fee per gas of the blockchain. Required for EIP-1559
     /// transactions and later
     pub initial_base_fee_per_gas: Option<BigInt>,
+    /// The initial blob gas of the blockchain. Required for EIP-4844
+    pub initial_blob_gas: Option<BlobGas>,
     /// The initial date of the blockchain, in seconds since the Unix epoch
     pub initial_date: Option<BigInt>,
+    /// The initial parent beacon block root of the blockchain. Required for
+    /// EIP-4788
+    pub initial_parent_beacon_block_root: Option<Buffer>,
     /// The configuration for the miner
     pub mining: MiningConfig,
     /// The network ID of the blockchain
@@ -145,12 +152,17 @@ impl TryFrom<ProviderConfig> for edr_provider::ProviderConfig {
                 .initial_base_fee_per_gas
                 .map(TryCast::try_cast)
                 .transpose()?,
+            initial_blob_gas: value.initial_blob_gas.map(TryInto::try_into).transpose()?,
             initial_date: value
                 .initial_date
                 .map(|date| {
                     let elapsed_since_epoch = Duration::from_secs(date.try_cast()?);
                     napi::Result::Ok(SystemTime::UNIX_EPOCH + elapsed_since_epoch)
                 })
+                .transpose()?,
+            initial_parent_beacon_block_root: value
+                .initial_parent_beacon_block_root
+                .map(TryCast::try_cast)
                 .transpose()?,
             mining: value.mining.into(),
             network_id: value.network_id.try_cast()?,

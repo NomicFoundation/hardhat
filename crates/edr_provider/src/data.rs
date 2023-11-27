@@ -23,10 +23,10 @@ use edr_evm::{
         LocalCreationError, SyncBlockchain,
     },
     mine_block,
-    state::{AccountModifierFn, AccountTrie, IrregularState, StateError, SyncState, TrieState},
-    AccountInfo, Block, Bytecode, CfgEnv, HashMap, HashSet, MemPool, MineBlockResult,
-    MineBlockResultAndState, MineOrdering, PendingTransaction, RandomHashGenerator, SyncBlock,
-    KECCAK_EMPTY,
+    state::{AccountModifierFn, IrregularState, StateDiff, StateError, StateOverride, SyncState},
+    Account, AccountInfo, Block, Bytecode, CfgEnv, HashMap, HashSet, MemPool, MineBlockResult,
+    MineBlockResultAndState, MineOrdering, PendingTransaction, RandomHashGenerator, StorageSlot,
+    SyncBlock, KECCAK_EMPTY,
 };
 use indexmap::IndexMap;
 use rpc_hardhat::ForkMetadata;
@@ -54,7 +54,7 @@ pub enum CreationError {
 pub struct ProviderData {
     blockchain: Box<dyn SyncBlockchain<BlockchainError, StateError>>,
     state: Box<dyn SyncState<StateError>>,
-    irregular_state: IrregularState<StateError, Box<dyn SyncState<StateError>>>,
+    pub irregular_state: IrregularState,
     mem_pool: MemPool,
     network_id: u64,
     beneficiary: Address,
@@ -452,7 +452,7 @@ impl ProviderData {
     }
 
     pub fn set_balance(&mut self, address: Address, balance: U256) -> Result<(), ProviderError> {
-        self.state.modify_account(
+        let account_info = self.state.modify_account(
             address,
             AccountModifierFn::new(Box::new(move |account_balance, _, _| {
                 *account_balance = balance;
@@ -468,8 +468,13 @@ impl ProviderData {
         )?;
 
         let block_number = self.blockchain.last_block_number();
-        let state = self.state.clone();
-        self.irregular_state.insert_state(block_number, state);
+        let state_root = self.state.state_root()?;
+
+        self.irregular_state
+            .state_override_at_block_number(block_number)
+            .or_insert_with(|| StateOverride::with_state_root(state_root))
+            .diff
+            .apply_account_change(address, account_info.clone());
 
         self.mem_pool.update(&self.state)?;
 
@@ -484,25 +489,37 @@ impl ProviderData {
     }
 
     pub fn set_code(&mut self, address: Address, code: Bytes) -> Result<(), ProviderError> {
+        let code = Bytecode::new_raw(code.clone());
         let default_code = code.clone();
-        self.state.modify_account(
+        let irregular_code = code.clone();
+
+        let mut account_info = self.state.modify_account(
             address,
             AccountModifierFn::new(Box::new(move |_, _, account_code| {
-                *account_code = Some(Bytecode::new_raw(code.clone()));
+                *account_code = Some(code.clone());
             })),
             &|| {
                 Ok(AccountInfo {
                     balance: U256::ZERO,
                     nonce: 0,
-                    code: Some(Bytecode::new_raw(default_code.clone())),
+                    code: Some(default_code.clone()),
                     code_hash: KECCAK_EMPTY,
                 })
             },
         )?;
 
+        // The code was stripped from the account, so we need to re-add it for the
+        // irregular state.
+        account_info.code = Some(irregular_code.clone());
+
         let block_number = self.blockchain.last_block_number();
-        let state = self.state.clone();
-        self.irregular_state.insert_state(block_number, state);
+        let state_root = self.state.state_root()?;
+
+        self.irregular_state
+            .state_override_at_block_number(block_number)
+            .or_insert_with(|| StateOverride::with_state_root(state_root))
+            .diff
+            .apply_account_change(address, account_info.clone());
 
         Ok(())
     }
@@ -545,7 +562,7 @@ impl ProviderData {
     }
 
     pub fn set_nonce(&mut self, address: Address, nonce: u64) -> Result<(), ProviderError> {
-        self.state.modify_account(
+        let account_info = self.state.modify_account(
             address,
             AccountModifierFn::new(Box::new(move |_, account_nonce, _| *account_nonce = nonce)),
             &|| {
@@ -559,8 +576,13 @@ impl ProviderData {
         )?;
 
         let block_number = self.blockchain.last_block_number();
-        let state = self.state.clone();
-        self.irregular_state.insert_state(block_number, state);
+        let state_root = self.state.state_root()?;
+
+        self.irregular_state
+            .state_override_at_block_number(block_number)
+            .or_insert_with(|| StateOverride::with_state_root(state_root))
+            .diff
+            .apply_account_change(address, account_info.clone());
 
         self.mem_pool.update(&self.state)?;
 
@@ -575,9 +597,19 @@ impl ProviderData {
     ) -> Result<(), ProviderError> {
         self.state.set_account_storage_slot(address, index, value)?;
 
+        let old_value = self.state.set_account_storage_slot(address, index, value)?;
+
+        let slot = StorageSlot::new_changed(old_value, value);
+        let account_info = self.state.basic(address)?;
+
         let block_number = self.blockchain.last_block_number();
-        let state = self.state.clone();
-        self.irregular_state.insert_state(block_number, state);
+        let state_root = self.state.state_root()?;
+
+        self.irregular_state
+            .state_override_at_block_number(block_number)
+            .or_insert_with(|| StateOverride::with_state_root(state_root))
+            .diff
+            .apply_storage_change(address, index, slot, account_info);
 
         Ok(())
     }
@@ -822,15 +854,9 @@ impl ProviderData {
 
         let block_header = block.header();
 
-        let contextual_state = if let Some(irregular_state) = self
-            .irregular_state
-            .state_by_block_number(block_header.number)
-            .cloned()
-        {
-            irregular_state
-        } else {
-            self.blockchain.state_at_block_number(block_header.number)?
-        };
+        let contextual_state = self
+            .blockchain
+            .state_at_block_number(block_header.number, self.irregular_state.state_overrides())?;
 
         Ok(contextual_state)
     }
@@ -875,8 +901,13 @@ struct BlockchainAndState {
 async fn create_blockchain_and_state(
     runtime: &runtime::Handle,
     config: &ProviderConfig,
-    genesis_accounts: HashMap<Address, AccountInfo>,
+    genesis_accounts: HashMap<Address, Account>,
 ) -> Result<BlockchainAndState, CreationError> {
+    let has_account_overrides = !genesis_accounts.is_empty();
+
+    let initial_diff = StateDiff::from(genesis_accounts);
+    let mut irregular_state = IrregularState::default();
+
     if let Some(fork_config) = &config.fork {
         let state_root_generator = Arc::new(parking_lot::Mutex::new(
             RandomHashGenerator::with_seed("seed"),
@@ -889,8 +920,7 @@ async fn create_blockchain_and_state(
             config.hardfork,
             rpc_client,
             fork_config.block_number,
-            state_root_generator,
-            genesis_accounts,
+            state_root_generator.clone(),
             // TODO: make hardfork activations configurable (https://github.com/NomicFoundation/edr/issues/111)
             HashMap::new(),
         )
@@ -898,8 +928,19 @@ async fn create_blockchain_and_state(
 
         let fork_block_number = blockchain.last_block_number();
 
+        if has_account_overrides {
+            let state_root = state_root_generator.lock().next_value();
+
+            irregular_state
+                .state_override_at_block_number(fork_block_number)
+                .or_insert(StateOverride {
+                    diff: initial_diff,
+                    state_root,
+                });
+        }
+
         let state = blockchain
-            .state_at_block_number(fork_block_number)
+            .state_at_block_number(fork_block_number, irregular_state.state_overrides())
             .expect("Fork state must exist");
 
         Ok(BlockchainAndState {
@@ -916,10 +957,8 @@ async fn create_blockchain_and_state(
             blockchain: Box::new(blockchain),
         })
     } else {
-        let state = TrieState::with_accounts(AccountTrie::with_accounts(&genesis_accounts));
-
         let blockchain = LocalBlockchain::new(
-            state,
+            initial_diff,
             config.chain_id,
             config.hardfork,
             config.block_gas_limit,
@@ -930,10 +969,12 @@ async fn create_blockchain_and_state(
             }),
             Some(RandomHashGenerator::with_seed("seed").next_value()),
             config.initial_base_fee_per_gas,
+            config.initial_blob_gas.clone(),
+            config.initial_parent_beacon_block_root,
         )?;
 
         let state = blockchain
-            .state_at_block_number(0)
+            .state_at_block_number(0, irregular_state.state_overrides())
             .expect("Genesis state must exist");
 
         Ok(BlockchainAndState {

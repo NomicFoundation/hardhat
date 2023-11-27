@@ -30,9 +30,9 @@ pub struct ReservableSparseBlockchainStorage<BlockT: Block + Clone + ?Sized> {
     reservations: RwLock<Vec<Reservation>>,
     storage: RwLock<SparseBlockchainStorage<BlockT>>,
     // We can store the state diffs contiguously, as reservations don't contain any diffs.
-    // Diffs are a mapping from one state to the next, so the genesis state does not have a
-    // corresponding diff.
-    state_diffs: Vec<StateDiff>,
+    // Diffs are a mapping from one state to the next, so the genesis block contains the initial
+    // state.
+    state_diffs: Vec<(u64, StateDiff)>,
     number_to_diff_index: HashMap<u64, usize>,
     last_block_number: u64,
 }
@@ -40,12 +40,12 @@ pub struct ReservableSparseBlockchainStorage<BlockT: Block + Clone + ?Sized> {
 impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
     /// Constructs a new instance with the provided block as genesis block.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn with_genesis_block(block: BlockT, total_difficulty: U256) -> Self {
+    pub fn with_genesis_block(block: BlockT, diff: StateDiff, total_difficulty: U256) -> Self {
         Self {
             reservations: RwLock::new(Vec::new()),
             storage: RwLock::new(SparseBlockchainStorage::with_block(block, total_difficulty)),
-            state_diffs: Vec::new(),
-            number_to_diff_index: HashMap::new(),
+            state_diffs: vec![(0, diff)],
+            number_to_diff_index: std::iter::once((0, 0)).collect(),
             last_block_number: 0,
         }
     }
@@ -92,19 +92,18 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
     /// Retrieves the sequence of diffs from the genesis state to the state of
     /// the block with the provided number, if it exists.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn state_diffs_until_block(&self, block_number: u64) -> Option<&[StateDiff]> {
+    pub fn state_diffs_until_block(&self, block_number: u64) -> Option<&[(u64, StateDiff)]> {
         let diff_index = self
             .number_to_diff_index
             .get(&block_number)
             .copied()
             .or_else(|| {
-                self.reservations
-                    .read()
-                    .last()
+                let reservations = self.reservations.read();
+                find_reservation(&reservations, block_number)
                     .map(|reservation| reservation.previous_diff_index)
             })?;
 
-        Some(&self.state_diffs[..=diff_index])
+        Some(&self.state_diffs[0..=diff_index])
     }
 
     /// Retrieves the receipt of the transaction with the provided hash, if it
@@ -164,8 +163,12 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
             // so we can clear them all
             self.reservations.get_mut().clear();
 
-            self.state_diffs.clear();
+            // Keep the genesis block's diff
+            self.state_diffs.truncate(1);
+
+            // Keep the genesis block's mapping
             self.number_to_diff_index.clear();
+            self.number_to_diff_index.insert(0, 0);
         } else {
             // Only retain reservations that are not fully reverted
             self.reservations.get_mut().retain_mut(|reservation| {
@@ -184,7 +187,12 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
                 .number_to_diff_index
                 .get(&block_number)
                 .copied()
-                .unwrap_or_else(|| self.reservations.get_mut().last().expect("There must either be a block or a reservation matching the block number").previous_diff_index);
+                .unwrap_or_else(|| {
+                    let reservations = self.reservations.get_mut();
+
+                    find_reservation(reservations, block_number)
+                    .expect("There must either be a block or a reservation matching the block number").previous_diff_index
+                });
 
             self.state_diffs.truncate(diff_index + 1);
 
@@ -227,7 +235,7 @@ impl<BlockT: Block + Clone + From<LocalBlock>> ReservableSparseBlockchainStorage
         self.number_to_diff_index
             .insert(self.last_block_number, self.state_diffs.len());
 
-        self.state_diffs.push(state_diff);
+        self.state_diffs.push((self.last_block_number, state_diff));
 
         let receipts: Vec<_> = block.transaction_receipts().to_vec();
         let block = BlockT::from(block);
@@ -319,12 +327,6 @@ fn calculate_timestamp_for_reserved_block<BlockT: Block + Clone>(
     reservation: &Reservation,
     block_number: u64,
 ) -> u64 {
-    fn find_reservation(reservations: &[Reservation], number: u64) -> Option<&Reservation> {
-        reservations.iter().find(|reservation| {
-            reservation.first_number <= number && number <= reservation.last_number
-        })
-    }
-
     let previous_block_number = reservation.first_number - 1;
     let previous_timestamp =
         if let Some(previous_reservation) = find_reservation(reservations, previous_block_number) {
@@ -343,4 +345,10 @@ fn calculate_timestamp_for_reserved_block<BlockT: Block + Clone>(
         };
 
     previous_timestamp + reservation.interval * (block_number - reservation.first_number + 1)
+}
+
+fn find_reservation(reservations: &[Reservation], number: u64) -> Option<&Reservation> {
+    reservations
+        .iter()
+        .find(|reservation| reservation.first_number <= number && number <= reservation.last_number)
 }
