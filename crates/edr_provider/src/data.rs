@@ -412,6 +412,8 @@ impl ProviderData {
                 time,
             } = snapshot;
 
+            // We compute a new offset such that:
+            // now + new_offset == snapshot_date + old_offset
             let duration_since_snapshot = Instant::now().duration_since(time);
             self.block_time_offset_seconds =
                 block_time_offset_seconds + duration_since_snapshot.as_secs();
