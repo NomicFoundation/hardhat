@@ -186,13 +186,13 @@ pub struct BlobGas {
     pub excess_gas: BigInt,
 }
 
-impl TryCast<edr_eth::block::BlobGas> for BlobGas {
+impl TryFrom<BlobGas> for edr_eth::block::BlobGas {
     type Error = napi::Error;
 
-    fn try_cast(self) -> Result<edr_eth::block::BlobGas, Self::Error> {
-        Ok(edr_eth::block::BlobGas {
-            gas_used: BigInt::try_cast(self.gas_used)?,
-            excess_gas: BigInt::try_cast(self.excess_gas)?,
+    fn try_from(value: BlobGas) -> Result<Self, Self::Error> {
+        Ok(Self {
+            gas_used: BigInt::try_cast(value.gas_used)?,
+            excess_gas: BigInt::try_cast(value.excess_gas)?,
         })
     }
 }
@@ -306,7 +306,7 @@ impl TryFrom<BlockHeader> for edr_eth::block::Header {
                 .withdrawals_root
                 .map(TryCast::<B256>::try_cast)
                 .transpose()?,
-            blob_gas: value.blob_gas.map(BlobGas::try_cast).transpose()?,
+            blob_gas: value.blob_gas.map(BlobGas::try_into).transpose()?,
             parent_beacon_block_root: value
                 .parent_beacon_block_root
                 .map(TryCast::<B256>::try_cast)
@@ -318,6 +318,13 @@ impl TryFrom<BlockHeader> for edr_eth::block::Header {
 #[napi]
 pub struct Block {
     inner: Arc<dyn SyncBlock<Error = BlockchainError>>,
+}
+
+impl Block {
+    /// Retrieves a reference to the inner [`SyncBlock`].
+    pub fn as_inner(&self) -> &Arc<dyn SyncBlock<Error = BlockchainError>> {
+        &self.inner
+    }
 }
 
 impl From<Arc<dyn SyncBlock<Error = BlockchainError>>> for Block {

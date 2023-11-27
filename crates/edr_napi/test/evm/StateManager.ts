@@ -1,7 +1,15 @@
 import { expect } from "chai";
 import { Address, KECCAK256_NULL } from "@nomicfoundation/ethereumjs-util";
 
-import { Account, Bytecode, EdrContext, State } from "../../index.js";
+import {
+  Account,
+  Blockchain,
+  Bytecode,
+  EdrContext,
+  IrregularState,
+  SpecId,
+  State,
+} from "../../index.js";
 
 describe("State Manager", () => {
   const caller = Address.fromString(
@@ -25,8 +33,23 @@ describe("State Manager", () => {
   } else {
     stateManagers.push({
       name: "fork",
-      getStateManager: async () =>
-        await State.forkRemote(context, alchemyUrl, BigInt(16220843), []),
+      getStateManager: async () => {
+        const forkBlockNumber = 16220843n;
+        const forkedBlockchain = await Blockchain.fork(
+          context,
+          SpecId.Latest,
+          [],
+          alchemyUrl,
+          forkBlockNumber
+        );
+
+        const irregularState = new IrregularState();
+
+        return forkedBlockchain.stateAtBlockNumber(
+          forkBlockNumber,
+          irregularState
+        );
+      },
     });
   }
 

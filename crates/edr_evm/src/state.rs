@@ -1,7 +1,9 @@
 mod account;
 mod debug;
+mod diff;
 mod fork;
 mod irregular;
+mod r#override;
 mod overrides;
 mod remote;
 mod trie;
@@ -9,25 +11,19 @@ mod trie;
 use std::fmt::Debug;
 
 use dyn_clone::DynClone;
-use edr_eth::{remote::RpcClientError, Address, B256};
-use revm::{
-    db::StateRef,
-    primitives::{Account, HashMap},
-    DatabaseCommit,
-};
+use edr_eth::{remote::RpcClientError, B256};
+use revm::{db::StateRef, DatabaseCommit};
 
 pub use self::{
     debug::{AccountModifierFn, StateDebug},
+    diff::StateDiff,
     fork::ForkState,
     irregular::IrregularState,
     overrides::*,
+    r#override::StateOverride,
     remote::RemoteState,
     trie::{AccountTrie, TrieState},
 };
-
-/// The difference between two states, which can be applied to a state to get
-/// the new state using [`revm::db::DatabaseCommit::commit`].
-pub type StateDiff = HashMap<Address, Account>;
 
 /// Combinatorial error for the state API
 #[derive(Debug, thiserror::Error)]

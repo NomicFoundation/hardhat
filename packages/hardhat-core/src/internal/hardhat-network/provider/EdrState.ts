@@ -3,9 +3,8 @@ import {
   bufferToBigInt,
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
-import { State, Account, Bytecode, EdrContext } from "@ignored/edr";
-import { ForkConfig, GenesisAccount } from "./node-types";
-import { makeForkProvider } from "./utils/makeForkClient";
+import { State, Account, Bytecode } from "@ignored/edr";
+import { GenesisAccount } from "./node-types";
 
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -14,7 +13,6 @@ export class EdrStateManager {
   constructor(private _state: State) {}
 
   public static withGenesisAccounts(
-    context: EdrContext,
     genesisAccounts: GenesisAccount[]
   ): EdrStateManager {
     return new EdrStateManager(
@@ -29,46 +27,12 @@ export class EdrStateManager {
     );
   }
 
-  public static async forkRemote(
-    context: EdrContext,
-    forkConfig: ForkConfig,
-    genesisAccounts: GenesisAccount[]
-  ): Promise<EdrStateManager> {
-    let blockNumber: bigint;
-    if (forkConfig.blockNumber !== undefined) {
-      blockNumber = BigInt(forkConfig.blockNumber);
-    } else {
-      const { forkBlockNumber } = await makeForkProvider(forkConfig);
-      blockNumber = forkBlockNumber;
-    }
-
-    return new EdrStateManager(
-      await State.forkRemote(
-        context,
-        forkConfig.jsonRpcUrl,
-        blockNumber,
-        genesisAccounts.map((account) => {
-          return {
-            secretKey: account.privateKey,
-            balance: BigInt(account.balance),
-          };
-        })
-      )
-      // TODO: consider changing State.withFork() to also support
-      // passing in (and of course using) forkConfig.httpHeaders.
-    );
-  }
-
   public asInner(): State {
     return this._state;
   }
 
   public setInner(state: State): void {
     this._state = state;
-  }
-
-  public async deepClone(): Promise<EdrStateManager> {
-    return new EdrStateManager(await this._state.deepClone());
   }
 
   public async accountExists(address: Address): Promise<boolean> {
@@ -105,8 +69,8 @@ export class EdrStateManager {
       nonce: bigint,
       code: Bytecode | undefined
     ) => Promise<Account>
-  ): Promise<void> {
-    await this._state.modifyAccount(address.buf, modifyAccountFn);
+  ): Promise<Account> {
+    return this._state.modifyAccount(address.buf, modifyAccountFn);
   }
 
   public async getContractCode(address: Address): Promise<Buffer> {
@@ -134,13 +98,10 @@ export class EdrStateManager {
 
   public async putContractStorage(
     address: Address,
-    key: Buffer,
-    value: Buffer
-  ): Promise<void> {
-    const index = bufferToBigInt(key);
-    const number = bufferToBigInt(value);
-
-    await this._state.setAccountStorageSlot(address.buf, index, number);
+    index: bigint,
+    value: bigint
+  ): Promise<bigint> {
+    return this._state.setAccountStorageSlot(address.buf, index, value);
   }
 
   public async getStateRoot(): Promise<Buffer> {

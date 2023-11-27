@@ -14,9 +14,8 @@ use edr_eth::{
 use revm::{
     db::DatabaseComponentError,
     primitives::{
-        Account, AccountInfo, AccountStatus, BlobExcessGasAndPrice, BlockEnv, CfgEnv, EVMError,
-        ExecutionResult, HashMap, InvalidHeader, InvalidTransaction, Output, ResultAndState,
-        SpecId,
+        AccountInfo, BlobExcessGasAndPrice, BlockEnv, CfgEnv, EVMError, ExecutionResult,
+        InvalidHeader, InvalidTransaction, Output, ResultAndState, SpecId,
     },
 };
 
@@ -130,7 +129,7 @@ impl BlockBuilder {
             header,
             callers: Vec::new(),
             transactions: Vec::new(),
-            state_diff: StateDiff::new(),
+            state_diff: StateDiff::default(),
             receipts: Vec::new(),
             parent_gas_limit,
         })
@@ -210,7 +209,8 @@ impl BlockBuilder {
             state: state_diff,
         } = run_transaction(evm, inspector)?;
 
-        self.state_diff.extend(state_diff.clone());
+        self.state_diff.apply_diff(state_diff.clone());
+
         state.commit(state_diff);
 
         self.header.gas_used += result.gas_used();
@@ -314,14 +314,7 @@ impl BlockBuilder {
                 .basic(address)?
                 .expect("Account must exist after modification");
 
-            self.state_diff.insert(
-                address,
-                Account {
-                    info: account_info,
-                    storage: HashMap::new(),
-                    status: AccountStatus::Touched,
-                },
-            );
+            self.state_diff.apply_account_change(address, account_info);
         }
 
         if let Some(gas_limit) = self.parent_gas_limit {

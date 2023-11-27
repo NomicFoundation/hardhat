@@ -275,8 +275,15 @@ export interface ProviderConfig {
    * transactions and later
    */
   initialBaseFeePerGas?: bigint
+  /** The initial blob gas of the blockchain. Required for EIP-4844 */
+  initialBlobGas?: BlobGas
   /** The initial date of the blockchain, in seconds since the Unix epoch */
   initialDate?: bigint
+  /**
+   * The initial parent beacon block root of the blockchain. Required for
+   * EIP-4788
+   */
+  initialParentBeaconBlockRoot?: Buffer
   /** The configuration for the miner */
   mining: MiningConfig
   /** The network ID of the blockchain */
@@ -568,8 +575,8 @@ export class Block {
 /** The EDR blockchain */
 export class Blockchain {
   /** Constructs a new blockchain from a genesis block. */
-  static withGenesisBlock(chainId: bigint, specId: SpecId, genesisBlock: BlockOptions, accounts: Array<GenesisAccount>): Blockchain
-  static fork(context: EdrContext, specId: SpecId, remoteUrl: string, forkBlockNumber: bigint | undefined | null, cacheDir: string | undefined | null, accounts: Array<GenesisAccount>, hardforkActivationOverrides: Array<[bigint, Array<[bigint, SpecId]>]>): Promise<Blockchain>
+  constructor(chainId: bigint, specId: SpecId, gasLimit: bigint, accounts: Array<GenesisAccount>, timestamp?: bigint | undefined | null, prevRandao?: Buffer | undefined | null, baseFee?: bigint | undefined | null, blobGas?: BlobGas | undefined | null, parentBeaconBlockRoot?: Buffer | undefined | null)
+  static fork(context: EdrContext, specId: SpecId, hardforkActivationOverrides: Array<[bigint, Array<[bigint, SpecId]>]>, remoteUrl: string, forkBlockNumber?: bigint | undefined | null, cacheDir?: string | undefined | null): Promise<Blockchain>
   /**Retrieves the block with the provided hash, if it exists. */
   blockByHash(hash: Buffer): Promise<Block | null>
   /**Retrieves the block with the provided number, if it exists. */
@@ -593,7 +600,7 @@ export class Blockchain {
   /**Retrieves the hardfork specification used for new blocks. */
   specId(): Promise<SpecId>
   /**Retrieves the state at the block with the provided number. */
-  stateAtBlockNumber(blockNumber: bigint): Promise<State>
+  stateAtBlockNumber(blockNumber: bigint, irregularState: IrregularState): Promise<State>
   /**Retrieves the total difficulty at the block with the provided hash. */
   totalDifficultyByHash(hash: Buffer): Promise<bigint | null>
 }
@@ -712,6 +719,21 @@ export class Receipt {
   /**Returns the index of the receipt's transaction in the block. */
   get transactionIndex(): bigint
 }
+/**Container for state that was modified outside of mining a block. */
+export class IrregularState {
+  /**Creates a new irregular state. */
+  constructor()
+  deepClone(): Promise<IrregularState>
+  /**Applies a single change to this instance, combining it with any existing change. */
+  applyAccountChanges(blockNumber: bigint, stateRoot: Buffer, changes: Array<[Buffer, Account]>): Promise<void>
+  /**
+   *Applies a storage change for the block corresponding to the specified block number.
+   *
+   *If the account corresponding to the specified address hasn't been modified before, either the
+   *value provided in `account_info` will be used, or alternatively a default account will be created.
+   */
+  applyAccountStorageChange(blockNumber: bigint, stateRoot: Buffer, address: Buffer, index: bigint, oldValue: bigint, newValue: bigint, account?: Account | undefined | null): Promise<void>
+}
 export class StateOverrides {
   /**Constructs a new set of state overrides. */
   constructor(accountOverrides: Array<[Buffer, AccountOverride]>)
@@ -725,11 +747,6 @@ export class State {
    * state.
    */
   static withGenesisAccounts(accounts: Array<GenesisAccount>): State
-  /**
-   * Constructs a [`State`] that uses the remote node and block number as the
-   * basis for its state.
-   */
-  static forkRemote(context: EdrContext, remoteNodeUrl: string, forkBlockNumber: bigint, accountOverrides: Array<GenesisAccount>, cacheDir?: string | undefined | null): Promise<State>
   /**Clones the state */
   deepClone(): Promise<State>
   /** Retrieves the account corresponding to the specified address. */
@@ -748,7 +765,7 @@ export class State {
    * as individual parameters and will update the account's values to the
    * returned `Account` values.
    */
-  modifyAccount(address: Buffer, modifyAccountFn: (balance: bigint, nonce: bigint, code: Bytecode | undefined) => Promise<Account>): Promise<void>
+  modifyAccount(address: Buffer, modifyAccountFn: (balance: bigint, nonce: bigint, code: Bytecode | undefined) => Promise<Account>): Promise<Account>
   /** Removes and returns the account at the specified address, if it exists. */
   removeAccount(address: Buffer): Promise<Account | null>
   /** Serializes the state using ordering of addresses and storage indices. */
@@ -757,7 +774,7 @@ export class State {
    * Sets the storage slot at the specified address and index to the provided
    * value.
    */
-  setAccountStorageSlot(address: Buffer, index: bigint, value: bigint): Promise<void>
+  setAccountStorageSlot(address: Buffer, index: bigint, value: bigint): Promise<bigint>
 }
 export class Tracer {
   constructor(callbacks: TracingCallbacks)

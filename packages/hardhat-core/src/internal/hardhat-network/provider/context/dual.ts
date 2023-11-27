@@ -8,6 +8,7 @@ import { RandomBufferGenerator } from "../utils/random";
 import { BlockchainAdapter } from "../blockchain";
 import { DualBlockchain } from "../blockchain/dual";
 import { EthContextAdapter } from "../context";
+import { randomHashSeed } from "../fork/ForkStateManager";
 import { MemPoolAdapter } from "../mem-pool";
 import { BlockMinerAdapter } from "../miner";
 import { NodeConfig, isForkedNodeConfig } from "../node-types";
@@ -15,7 +16,7 @@ import { DualModeAdapter } from "../vm/dual";
 import { VMAdapter } from "../vm/vm-adapter";
 import { EthereumJSAdapter } from "../vm/ethereumjs";
 import { HardhatEthContext } from "./hardhat";
-import { EdrEthContext } from "./edr";
+import { EdrEthContext, getGlobalEdrContext } from "./edr";
 
 export class DualEthContext implements EthContextAdapter {
   constructor(
@@ -37,6 +38,10 @@ export class DualEthContext implements EthContextAdapter {
     if (tempConfig.enableTransientStorage) {
       tempConfig.hardfork = HardforkName.SHANGHAI;
     }
+
+    // Ensure that the state root generators' seeds are the same.
+    // This avoids a failing test from affecting consequent tests.
+    getGlobalEdrContext().setStateRootGeneratorSeed(randomHashSeed());
 
     const common = makeCommon(tempConfig);
 
@@ -70,6 +75,9 @@ export class DualEthContext implements EthContextAdapter {
     const vm = new DualModeAdapter(common, hardhat.vm(), edr.vm());
 
     const context = new DualEthContext(hardhat, edr, vm);
+
+    // Validate the state root
+    await context.vm().getStateRoot();
 
     // Validate that the latest block numbers are equal
     await context.blockchain().getLatestBlockNumber();

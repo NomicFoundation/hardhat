@@ -4,11 +4,9 @@ use std::sync::Arc;
 
 use criterion::{BatchSize, BenchmarkId, Criterion};
 use edr_eth::{Address, Bytes, U256};
+#[cfg(all(test, feature = "test-remote"))]
+use edr_evm::state::ForkState;
 use edr_evm::state::{StateError, SyncState, TrieState};
-#[cfg(all(test, feature = "test-remote"))]
-use edr_evm::{state::ForkState, HashMap, RandomHashGenerator};
-#[cfg(all(test, feature = "test-remote"))]
-use parking_lot::Mutex;
 use revm::primitives::{AccountInfo, Bytecode, KECCAK_EMPTY};
 use tempfile::TempDir;
 #[cfg(all(test, feature = "test-remote"))]
@@ -43,7 +41,9 @@ impl EdrStates {
 
         #[cfg(all(test, feature = "test-remote"))]
         let fork = {
-            use edr_eth::remote::RpcClient;
+            use edr_eth::remote::{BlockSpec, RpcClient};
+            use edr_evm::RandomHashGenerator;
+            use parking_lot::Mutex;
 
             let rpc_client = Arc::new(RpcClient::new(
                 &std::env::var_os("ALCHEMY_URL")
@@ -53,15 +53,18 @@ impl EdrStates {
                 cache_dir.path().to_path_buf(),
             ));
 
-            runtime
-                .block_on(ForkState::new(
-                    runtime.handle().clone(),
-                    rpc_client,
-                    Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed"))),
-                    fork_block_number,
-                    HashMap::default(),
-                ))
-                .expect("Failed to construct ForkedState")
+            let block = runtime
+                .block_on(rpc_client.get_block_by_number(BlockSpec::Number(fork_block_number)))
+                .expect("failed to retrieve block by number")
+                .expect("block should exist");
+
+            ForkState::new(
+                runtime.handle().clone(),
+                rpc_client,
+                Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed"))),
+                fork_block_number,
+                block.state_root,
+            )
         };
 
         Self {
