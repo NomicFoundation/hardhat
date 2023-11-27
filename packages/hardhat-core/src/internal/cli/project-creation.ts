@@ -279,6 +279,11 @@ async function getAction(isEsm: boolean): Promise<Action> {
     process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !== undefined
   ) {
     return Action.CREATE_TYPESCRIPT_PROJECT_ACTION;
+  } else if (
+    process.env.HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS !==
+    undefined
+  ) {
+    return Action.CREATE_TYPESCRIPT_VIEM_PROJECT_ACTION;
   }
 
   const { default: enquirer } = await import("enquirer");
@@ -414,7 +419,9 @@ export async function createProject() {
 
   const useDefaultPromptResponses =
     process.env.HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS !== undefined ||
-    process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !== undefined;
+    process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !== undefined ||
+    process.env.HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS !==
+      undefined;
 
   if (useDefaultPromptResponses) {
     responses = {
