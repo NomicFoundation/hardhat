@@ -28,9 +28,9 @@ import {
   Tracer,
   TracingMessage,
   ExecutionResult,
+  IrregularState,
 } from "@ignored/edr";
 
-import { isForkedNodeConfig, NodeConfig } from "../node-types";
 import {
   ethereumjsHeaderDataToEdrBlockConfig,
   ethereumjsTransactionToEdrTransactionRequest,
@@ -52,11 +52,7 @@ import { RpcDebugTracingConfig } from "../../../core/jsonrpc/types/input/debugTr
 import { InvalidInputError } from "../../../core/providers/errors";
 import { MessageTrace } from "../../stack-traces/message-trace";
 import { VMTracer } from "../../stack-traces/vm-tracer";
-
-import {
-  getGlobalEdrContext,
-  UNLIMITED_CONTRACT_SIZE_VALUE,
-} from "../context/edr";
+import { EdrIrregularState } from "../EdrIrregularState";
 import { RunTxResult, VMAdapter } from "./vm-adapter";
 import { BlockBuilderAdapter, BuildBlockOpts } from "./block-builder";
 import { EdrBlockBuilder } from "./block-builder/edr";
@@ -64,9 +60,17 @@ import { EdrBlockBuilder } from "./block-builder/edr";
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
+interface Snapshot {
+  irregularState: IrregularState;
+  state: State;
+}
+
 export class EdrAdapter implements VMAdapter {
   private _vmTracer: VMTracer;
-  private _stateRootToState: Map<Buffer, State> = new Map();
+
+  private _idToSnapshot: Map<number, Snapshot> = new Map();
+  private _nextSnapshotId = 0;
+
   private _stepListeners: Array<
     (step: MinimalInterpreterStep, next?: any) => Promise<void>
   > = [];
@@ -79,53 +83,14 @@ export class EdrAdapter implements VMAdapter {
 
   constructor(
     private _blockchain: Blockchain,
-    private _state: EdrStateManager,
+    private readonly _irregularState: EdrIrregularState,
+    private readonly _state: EdrStateManager,
     private readonly _common: Common,
     private readonly _limitContractCodeSize: bigint | undefined,
     private readonly _limitInitcodeSize: bigint | undefined,
     private readonly _enableTransientStorage: boolean
   ) {
     this._vmTracer = new VMTracer(_common, false);
-  }
-
-  public static async create(
-    config: NodeConfig,
-    blockchain: Blockchain,
-    common: Common
-  ): Promise<EdrAdapter> {
-    let state: EdrStateManager;
-
-    if (isForkedNodeConfig(config)) {
-      state = await EdrStateManager.forkRemote(
-        getGlobalEdrContext(),
-        config.forkConfig,
-        config.genesisAccounts
-      );
-    } else {
-      state = EdrStateManager.withGenesisAccounts(
-        getGlobalEdrContext(),
-        config.genesisAccounts
-      );
-    }
-
-    const limitContractCodeSize =
-      config.allowUnlimitedContractSize === true
-        ? UNLIMITED_CONTRACT_SIZE_VALUE
-        : undefined;
-
-    const limitInitcodeSize =
-      config.allowUnlimitedContractSize === true
-        ? UNLIMITED_CONTRACT_SIZE_VALUE
-        : undefined;
-
-    return new EdrAdapter(
-      blockchain,
-      state,
-      common,
-      limitContractCodeSize,
-      limitInitcodeSize,
-      config.enableTransientStorage
-    );
   }
 
   /**
@@ -325,13 +290,17 @@ export class EdrAdapter implements VMAdapter {
   /**
    * Update the account info for the given address.
    */
-  public async putAccount(address: Address, account: Account): Promise<void> {
+  public async putAccount(
+    address: Address,
+    account: Account,
+    isIrregularChange: boolean = false
+  ): Promise<void> {
     const contractCode =
       account.codeHash === KECCAK256_NULL
         ? undefined
         : await this._state.getContractCode(address);
 
-    await this._state.modifyAccount(
+    const modifiedAccount = await this._state.modifyAccount(
       address,
       async function (
         balance: bigint,
@@ -356,18 +325,21 @@ export class EdrAdapter implements VMAdapter {
       }
     );
 
-    this._stateRootToState.set(
-      await this.getStateRoot(),
-      await this._state.asInner().deepClone()
-    );
+    if (isIrregularChange === true) {
+      await this._persistIrregularAccount(address, modifiedAccount);
+    }
   }
 
   /**
    * Update the contract code for the given address.
    */
-  public async putContractCode(address: Address, value: Buffer): Promise<void> {
+  public async putContractCode(
+    address: Address,
+    value: Buffer,
+    isIrregularChange: boolean = false
+  ): Promise<void> {
     const codeHash = keccak256(value);
-    await this._state.modifyAccount(
+    const modifiedAccount = await this._state.modifyAccount(
       address,
       async function (
         balance: bigint,
@@ -392,10 +364,9 @@ export class EdrAdapter implements VMAdapter {
       }
     );
 
-    this._stateRootToState.set(
-      await this.getStateRoot(),
-      await this._state.asInner().deepClone()
-    );
+    if (isIrregularChange === true) {
+      await this._persistIrregularAccount(address, modifiedAccount);
+    }
   }
 
   /**
@@ -404,14 +375,28 @@ export class EdrAdapter implements VMAdapter {
   public async putContractStorage(
     address: Address,
     key: Buffer,
-    value: Buffer
+    value: Buffer,
+    isIrregularChange: boolean = false
   ): Promise<void> {
-    await this._state.putContractStorage(address, key, value);
+    const index = bufferToBigInt(key);
+    const newValue = bufferToBigInt(value);
 
-    this._stateRootToState.set(
-      await this.getStateRoot(),
-      await this._state.asInner().deepClone()
+    const oldValue = await this._state.putContractStorage(
+      address,
+      index,
+      newValue
     );
+
+    if (isIrregularChange === true) {
+      const account = await this._state.getAccount(address);
+      await this._persistIrregularStorageSlot(
+        address,
+        index,
+        oldValue,
+        newValue,
+        account
+      );
+    }
   }
 
   /**
@@ -425,21 +410,12 @@ export class EdrAdapter implements VMAdapter {
    * Reset the state trie to the point after `block` was mined. If
    * `irregularStateOrUndefined` is passed, use it as the state root.
    */
-  public async setBlockContext(
-    block: Block,
-    irregularStateOrUndefined: Buffer | undefined
-  ): Promise<void> {
-    if (irregularStateOrUndefined !== undefined) {
-      const state = this._stateRootToState.get(irregularStateOrUndefined);
-      if (state === undefined) {
-        throw new Error("Unknown state root");
-      }
-      this._state.setInner(await state.deepClone());
-    } else {
-      this._state.setInner(
-        await this._blockchain.stateAtBlockNumber(block.header.number)
-      );
-    }
+  public async setBlockContext(blockNumber: bigint): Promise<void> {
+    const state = await this._blockchain.stateAtBlockNumber(
+      blockNumber,
+      this._irregularState.asInner()
+    );
+    this._state.setInner(state);
   }
 
   /**
@@ -447,13 +423,8 @@ export class EdrAdapter implements VMAdapter {
    *
    * Throw if it can't.
    */
-  public async restoreContext(stateRoot: Buffer): Promise<void> {
-    const state = this._stateRootToState.get(stateRoot);
-    if (state === undefined) {
-      throw new Error("Unknown state root");
-    }
-
-    this._state.setInner(state);
+  public async restoreBlockContext(blockNumber: bigint): Promise<void> {
+    await this.setBlockContext(blockNumber);
   }
 
   /**
@@ -650,18 +621,33 @@ export class EdrAdapter implements VMAdapter {
     return edrRpcDebugTraceToHardhat(result);
   }
 
-  public async makeSnapshot(): Promise<Buffer> {
-    const stateRoot = await this.getStateRoot();
-    this._stateRootToState.set(
-      stateRoot,
-      await this._state.asInner().deepClone()
-    );
-
-    return stateRoot;
+  public async revert(): Promise<void> {
+    // EDR is stateless, so we don't need to revert anything
   }
 
-  public async removeSnapshot(stateRoot: Buffer): Promise<void> {
-    this._stateRootToState.delete(stateRoot);
+  public async makeSnapshot(): Promise<number> {
+    const id = this._nextSnapshotId++;
+    this._idToSnapshot.set(id, {
+      irregularState: await this._irregularState.asInner().deepClone(),
+      state: await this._state.asInner().deepClone(),
+    });
+    return id;
+  }
+
+  public async restoreSnapshot(snapshotId: number): Promise<void> {
+    const snapshot = this._idToSnapshot.get(snapshotId);
+    if (snapshot === undefined) {
+      throw new Error(`No snapshot with id ${snapshotId}`);
+    }
+
+    this._irregularState.setInner(snapshot.irregularState);
+    this._state.setInner(snapshot.state);
+
+    this._idToSnapshot.delete(snapshotId);
+  }
+
+  public async removeSnapshot(snapshotId: number): Promise<void> {
+    this._idToSnapshot.delete(snapshotId);
   }
 
   public getLastTraceAndClear(): {
@@ -773,5 +759,42 @@ export class EdrAdapter implements VMAdapter {
     }
 
     return undefined;
+  }
+  private async _persistIrregularAccount(
+    address: Address,
+    account: EdrAccount
+  ): Promise<void> {
+    const [blockNumber, stateRoot] = await this._persistIrregularState();
+    await this._irregularState
+      .asInner()
+      .applyAccountChanges(blockNumber, stateRoot, [[address.buf, account]]);
+  }
+
+  private async _persistIrregularStorageSlot(
+    address: Address,
+    index: bigint,
+    oldValue: bigint,
+    newValue: bigint,
+    account: EdrAccount | null
+  ) {
+    const [blockNumber, stateRoot] = await this._persistIrregularState();
+    await this._irregularState
+      .asInner()
+      .applyAccountStorageChange(
+        blockNumber,
+        stateRoot,
+        address.buf,
+        index,
+        oldValue,
+        newValue,
+        account
+      );
+  }
+
+  private async _persistIrregularState(): Promise<[bigint, Buffer]> {
+    return Promise.all([
+      this._blockchain.lastBlockNumber(),
+      this.getStateRoot(),
+    ]);
   }
 }

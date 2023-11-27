@@ -1,6 +1,6 @@
 use std::{path::PathBuf, time::SystemTime};
 
-use edr_eth::{AccountInfo, Address, HashMap, SpecId, U256};
+use edr_eth::{block::BlobGas, AccountInfo, Address, HashMap, SpecId, B256, U256};
 use edr_evm::MineOrdering;
 use rpc_hardhat::config::ForkConfig;
 
@@ -35,7 +35,9 @@ pub struct ProviderConfig {
     pub genesis_accounts: HashMap<Address, AccountInfo>,
     pub hardfork: SpecId,
     pub initial_base_fee_per_gas: Option<U256>,
+    pub initial_blob_gas: Option<BlobGas>,
     pub initial_date: Option<SystemTime>,
+    pub initial_parent_beacon_block_root: Option<B256>,
     pub mining: MiningConfig,
     pub network_id: u64,
 }

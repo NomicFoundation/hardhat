@@ -1,14 +1,14 @@
 use std::str::FromStr;
 
 use edr_eth::{
-    block::PartialHeader,
+    block::{BlobGas, PartialHeader},
     transaction::{Eip155TransactionRequest, SignedTransaction, TransactionKind},
     trie::KECCAK_NULL_RLP,
     Address, Bytes, B256, U256,
 };
 use edr_evm::{
     blockchain::{BlockchainError, LocalBlockchain, SyncBlockchain},
-    state::{StateDiff, StateError, TrieState},
+    state::{StateDiff, StateError},
     LocalBlock, SpecId,
 };
 use lazy_static::lazy_static;
@@ -20,37 +20,19 @@ lazy_static! {
     static ref CACHE_DIR: TempDir = TempDir::new().unwrap();
 }
 
-// The cache directory is only used when the `test-remote` feature is enabled
-#[allow(unused_variables)]
-async fn create_dummy_blockchains() -> Vec<Box<dyn SyncBlockchain<BlockchainError, StateError>>> {
-    const DEFAULT_GAS_LIMIT: u64 = 0xffffffffffffff;
-    const DEFAULT_INITIAL_BASE_FEE: u64 = 1000000000;
+#[cfg(feature = "test-remote")]
+async fn create_forked_dummy_blockchain() -> Box<dyn SyncBlockchain<BlockchainError, StateError>> {
+    use std::sync::Arc;
 
-    let state = TrieState::default();
+    use edr_eth::remote::RpcClient;
+    use edr_evm::{blockchain::ForkedBlockchain, HashMap, RandomHashGenerator};
+    use edr_test_utils::env::get_alchemy_url;
+    use parking_lot::Mutex;
 
-    let local_blockchain = LocalBlockchain::new(
-        state,
-        1,
-        SpecId::LATEST,
-        DEFAULT_GAS_LIMIT,
-        None,
-        Some(B256::zero()),
-        Some(U256::from(DEFAULT_INITIAL_BASE_FEE)),
-    )
-    .expect("Should construct without issues");
+    let cache_dir = CACHE_DIR.path().into();
+    let rpc_client = RpcClient::new(&get_alchemy_url(), cache_dir);
 
-    #[cfg(feature = "test-remote")]
-    let forked_blockchain = {
-        use std::sync::Arc;
-
-        use edr_eth::remote::RpcClient;
-        use edr_evm::{blockchain::ForkedBlockchain, HashMap, RandomHashGenerator};
-        use edr_test_utils::env::get_alchemy_url;
-        use parking_lot::Mutex;
-
-        let cache_dir = CACHE_DIR.path().into();
-        let rpc_client = RpcClient::new(&get_alchemy_url(), cache_dir);
-
+    Box::new(
         ForkedBlockchain::new(
             tokio::runtime::Handle::current().clone(),
             SpecId::LATEST,
@@ -58,16 +40,38 @@ async fn create_dummy_blockchains() -> Vec<Box<dyn SyncBlockchain<BlockchainErro
             None,
             Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed"))),
             HashMap::new(),
-            HashMap::new(),
         )
         .await
-        .expect("Failed to construct forked blockchain")
-    };
+        .expect("Failed to construct forked blockchain"),
+    )
+}
+
+// The cache directory is only used when the `test-remote` feature is enabled
+#[allow(unused_variables)]
+async fn create_dummy_blockchains() -> Vec<Box<dyn SyncBlockchain<BlockchainError, StateError>>> {
+    const DEFAULT_GAS_LIMIT: u64 = 0xffffffffffffff;
+    const DEFAULT_INITIAL_BASE_FEE: u64 = 1000000000;
+
+    let local_blockchain = LocalBlockchain::new(
+        StateDiff::default(),
+        1,
+        SpecId::LATEST,
+        DEFAULT_GAS_LIMIT,
+        None,
+        Some(B256::zero()),
+        Some(U256::from(DEFAULT_INITIAL_BASE_FEE)),
+        Some(BlobGas {
+            gas_used: 0,
+            excess_gas: 0,
+        }),
+        Some(KECCAK_NULL_RLP),
+    )
+    .expect("Should construct without issues");
 
     vec![
         Box::new(local_blockchain),
         #[cfg(feature = "test-remote")]
-        Box::new(forked_blockchain),
+        create_forked_dummy_blockchain().await,
     ]
 }
 
@@ -454,4 +458,27 @@ async fn transaction_by_hash() {
 
         assert!(block.is_none());
     }
+}
+
+#[cfg(feature = "test-remote")]
+#[tokio::test(flavor = "multi_thread")]
+#[serial]
+async fn state_at_block_number_historic() {
+    use edr_evm::state::IrregularState;
+
+    let blockchain = create_forked_dummy_blockchain().await;
+    let irregular_state = IrregularState::default();
+
+    let genesis_block = blockchain
+        .block_by_number(0)
+        .expect("Failed to retrieve block")
+        .expect("Block should exist");
+
+    let state = blockchain
+        .state_at_block_number(0, irregular_state.state_overrides())
+        .unwrap();
+    assert_eq!(
+        state.state_root().expect("State root should be returned"),
+        genesis_block.header().state_root
+    );
 }

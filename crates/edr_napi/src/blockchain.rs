@@ -1,10 +1,10 @@
 use std::{fmt::Debug, ops::Deref, path::PathBuf, sync::Arc};
 
-use edr_eth::{remote::RpcClient, spec::HardforkActivations, B256};
+use edr_eth::{remote::RpcClient, spec::HardforkActivations, B256, U256};
 use edr_evm::{
     blockchain::{BlockchainError, SyncBlockchain},
-    state::{AccountTrie, StateError, TrieState},
-    HashMap,
+    state::StateError,
+    AccountStatus, HashMap,
 };
 use napi::{
     bindgen_prelude::{BigInt, Buffer, ObjectFinalize},
@@ -15,13 +15,13 @@ use napi_derive::napi;
 use parking_lot::RwLock;
 
 use crate::{
-    account::{genesis_accounts, GenesisAccount},
-    block::{Block, BlockOptions},
+    account::{add_precompiles, genesis_accounts, GenesisAccount},
+    block::{BlobGas, Block},
     cast::TryCast,
     config::SpecId,
     context::EdrContext,
     receipt::Receipt,
-    state::State,
+    state::{IrregularState, State},
 };
 
 // An arbitrarily large amount of memory to signal to the javascript garbage
@@ -60,30 +60,61 @@ impl Deref for Blockchain {
 #[napi]
 impl Blockchain {
     /// Constructs a new blockchain from a genesis block.
-    #[napi(factory)]
+    #[napi(constructor)]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub fn with_genesis_block(
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
         mut env: Env,
         chain_id: BigInt,
         spec_id: SpecId,
-        genesis_block: BlockOptions,
+        gas_limit: BigInt,
         accounts: Vec<GenesisAccount>,
+        timestamp: Option<BigInt>,
+        prev_randao: Option<Buffer>,
+        base_fee: Option<BigInt>,
+        blob_gas: Option<BlobGas>,
+        parent_beacon_block_root: Option<Buffer>,
     ) -> napi::Result<Self> {
         let chain_id: u64 = chain_id.try_cast()?;
         let spec_id = edr_evm::SpecId::from(spec_id);
-        let options = edr_eth::block::BlockOptions::try_from(genesis_block)?;
+        let gas_limit: u64 = BigInt::try_cast(gas_limit)?;
+        let timestamp: Option<u64> = timestamp.map(TryCast::<u64>::try_cast).transpose()?;
+        let prev_randao: Option<B256> = prev_randao.map(TryCast::<B256>::try_cast).transpose()?;
+        let base_fee: Option<U256> = base_fee.map(TryCast::<U256>::try_cast).transpose()?;
+        let blob_gas: Option<edr_eth::block::BlobGas> =
+            blob_gas.map(TryInto::try_into).transpose()?;
+        let parent_beacon_block_root: Option<B256> = parent_beacon_block_root
+            .map(TryCast::<B256>::try_cast)
+            .transpose()?;
 
-        let header = edr_eth::block::PartialHeader::new(spec_id, options, None);
-        let genesis_block = edr_evm::LocalBlock::empty(header);
+        let mut accounts = genesis_accounts(accounts)?;
+        add_precompiles(&mut accounts);
 
-        let accounts = genesis_accounts(accounts)?;
-        let genesis_state = TrieState::with_accounts(AccountTrie::with_accounts(&accounts));
+        let genesis_diff = accounts
+            .into_iter()
+            .map(|(address, info)| {
+                (
+                    address,
+                    edr_evm::Account {
+                        info,
+                        storage: HashMap::new(),
+                        status: AccountStatus::Created | AccountStatus::Touched,
+                    },
+                )
+            })
+            .collect::<HashMap<_, _>>()
+            .into();
 
-        let blockchain = edr_evm::blockchain::LocalBlockchain::with_genesis_block(
-            genesis_block,
-            genesis_state,
+        let blockchain = edr_evm::blockchain::LocalBlockchain::new(
+            genesis_diff,
             chain_id,
             spec_id,
+            gas_limit,
+            timestamp,
+            prev_randao,
+            base_fee,
+            blob_gas,
+            parent_beacon_block_root,
         )
         .map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
 
@@ -97,16 +128,14 @@ impl Blockchain {
         env: Env,
         context: &EdrContext,
         spec_id: SpecId,
+        hardfork_activation_overrides: Vec<(BigInt, Vec<(BigInt, SpecId)>)>,
         remote_url: String,
         fork_block_number: Option<BigInt>,
         cache_dir: Option<String>,
-        accounts: Vec<GenesisAccount>,
-        hardfork_activation_overrides: Vec<(BigInt, Vec<(BigInt, SpecId)>)>,
     ) -> napi::Result<JsObject> {
         let spec_id = edr_evm::SpecId::from(spec_id);
         let fork_block_number: Option<u64> = fork_block_number.map(BigInt::try_cast).transpose()?;
         let cache_dir = cache_dir.map_or_else(|| edr_defaults::CACHE_DIR.into(), PathBuf::from);
-        let accounts = genesis_accounts(accounts)?;
 
         let state_root_generator = context.state_root_generator.clone();
         let hardfork_activation_overrides = hardfork_activation_overrides
@@ -140,7 +169,6 @@ impl Blockchain {
                     rpc_client,
                     fork_block_number,
                     state_root_generator,
-                    accounts,
                     hardfork_activation_overrides,
                 ))
                 .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()));
@@ -354,12 +382,23 @@ impl Blockchain {
     #[doc = "Retrieves the state at the block with the provided number."]
     #[napi]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub async fn state_at_block_number(&self, block_number: BigInt) -> napi::Result<State> {
+    pub async fn state_at_block_number(
+        &self,
+        block_number: BigInt,
+        irregular_state: &IrregularState,
+    ) -> napi::Result<State> {
         let block_number: u64 = BigInt::try_cast(block_number)?;
+        let irregular_state = irregular_state.as_inner().clone();
 
         let blockchain = self.inner.clone();
         runtime::Handle::current()
-            .spawn_blocking(move || blockchain.read().state_at_block_number(block_number))
+            .spawn_blocking(move || {
+                let irregular_state = irregular_state.read();
+
+                blockchain
+                    .read()
+                    .state_at_block_number(block_number, irregular_state.state_overrides())
+            })
             .await
             .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))?
             .map_or_else(

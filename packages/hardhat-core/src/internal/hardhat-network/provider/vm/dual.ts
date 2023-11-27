@@ -176,28 +176,67 @@ export class DualModeAdapter implements VMAdapter {
     return edrCode;
   }
 
-  public async putAccount(address: Address, account: Account): Promise<void> {
-    await this._ethereumJSAdapter.putAccount(address, account);
-    await this._edrAdapter.putAccount(address, account);
+  public async putAccount(
+    address: Address,
+    account: Account,
+    isIrregularChange: boolean
+  ): Promise<void> {
+    await this._ethereumJSAdapter.putAccount(
+      address,
+      account,
+      isIrregularChange
+    );
+    await this._edrAdapter.putAccount(address, account, isIrregularChange);
+
+    // Validate state roots
+    await this.getStateRoot();
   }
 
-  public async putContractCode(address: Address, value: Buffer): Promise<void> {
-    await this._ethereumJSAdapter.putContractCode(address, value);
-    await this._edrAdapter.putContractCode(address, value);
+  public async putContractCode(
+    address: Address,
+    value: Buffer,
+    isIrregularChange: boolean
+  ): Promise<void> {
+    await this._ethereumJSAdapter.putContractCode(
+      address,
+      value,
+      isIrregularChange
+    );
+    await this._edrAdapter.putContractCode(address, value, isIrregularChange);
+
+    // Validate state roots
+    await this.getStateRoot();
   }
 
   public async putContractStorage(
     address: Address,
     key: Buffer,
-    value: Buffer
+    value: Buffer,
+    isIrregularChange: boolean
   ): Promise<void> {
-    await this._ethereumJSAdapter.putContractStorage(address, key, value);
-    await this._edrAdapter.putContractStorage(address, key, value);
+    await this._ethereumJSAdapter.putContractStorage(
+      address,
+      key,
+      value,
+      isIrregularChange
+    );
+    await this._edrAdapter.putContractStorage(
+      address,
+      key,
+      value,
+      isIrregularChange
+    );
+
+    // Validate state roots
+    await this.getStateRoot();
   }
 
-  public async restoreContext(stateRoot: Buffer): Promise<void> {
-    await this._ethereumJSAdapter.restoreContext(stateRoot);
-    await this._edrAdapter.restoreContext(stateRoot);
+  public async restoreBlockContext(blockNumber: bigint): Promise<void> {
+    await this._ethereumJSAdapter.restoreBlockContext(blockNumber);
+    await this._edrAdapter.restoreBlockContext(blockNumber);
+
+    // Validate state roots
+    await this.getStateRoot();
   }
 
   public async traceTransaction(
@@ -233,16 +272,12 @@ export class DualModeAdapter implements VMAdapter {
     return this._edrAdapter.traceCall(tx, blockNumber, config);
   }
 
-  public async setBlockContext(
-    block: Block,
-    irregularStateOrUndefined: Buffer | undefined
-  ): Promise<void> {
-    await this._ethereumJSAdapter.setBlockContext(
-      block,
-      irregularStateOrUndefined
-    );
+  public async setBlockContext(blockNumber: bigint): Promise<void> {
+    await this._ethereumJSAdapter.setBlockContext(blockNumber);
+    await this._edrAdapter.setBlockContext(blockNumber);
 
-    await this._edrAdapter.setBlockContext(block, irregularStateOrUndefined);
+    // Validate state roots
+    await this.getStateRoot();
   }
 
   public async runTxInBlock(
@@ -272,26 +307,40 @@ export class DualModeAdapter implements VMAdapter {
     }
   }
 
-  public async makeSnapshot(): Promise<Buffer> {
-    const ethereumJSRoot = await this._ethereumJSAdapter.makeSnapshot();
-    const edrRoot = await this._edrAdapter.makeSnapshot();
+  public async revert(): Promise<void> {
+    await this._ethereumJSAdapter.revert();
+    await this._edrAdapter.revert();
 
-    if (!ethereumJSRoot.equals(edrRoot)) {
-      console.trace(
-        `Different snapshot state root: ${ethereumJSRoot.toString(
-          "hex"
-        )} (ethereumjs) !== ${edrRoot.toString("hex")} (edr)`
-      );
-      await this.printState();
-      throw new Error("Different snapshot state root");
-    }
-
-    return edrRoot;
+    // Validate state roots
+    await this.getStateRoot();
   }
 
-  public async removeSnapshot(stateRoot: Buffer): Promise<void> {
-    await this._ethereumJSAdapter.removeSnapshot(stateRoot);
-    await this._edrAdapter.removeSnapshot(stateRoot);
+  public async makeSnapshot(): Promise<number> {
+    const ethereumJSSnapshotId = await this._ethereumJSAdapter.makeSnapshot();
+    const edrSnapshotId = await this._edrAdapter.makeSnapshot();
+
+    if (ethereumJSSnapshotId !== edrSnapshotId) {
+      console.trace(
+        `Different snapshot id: ${ethereumJSSnapshotId} (ethereumjs) !== ${edrSnapshotId} (edr)`
+      );
+      await this.printState();
+      throw new Error("Different snapshot id");
+    }
+
+    return edrSnapshotId;
+  }
+
+  public async restoreSnapshot(snapshotId: number): Promise<void> {
+    await this._ethereumJSAdapter.restoreSnapshot(snapshotId);
+    await this._edrAdapter.restoreSnapshot(snapshotId);
+
+    // Validate state roots
+    await this.getStateRoot();
+  }
+
+  public async removeSnapshot(snapshotId: number): Promise<void> {
+    await this._ethereumJSAdapter.removeSnapshot(snapshotId);
+    await this._edrAdapter.removeSnapshot(snapshotId);
   }
 
   public getLastTraceAndClear(): {

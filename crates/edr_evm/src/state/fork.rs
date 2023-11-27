@@ -1,10 +1,6 @@
 use std::sync::Arc;
 
-use edr_eth::{
-    remote::{BlockSpec, RpcClient, RpcClientError},
-    trie::KECCAK_NULL_RLP,
-    Address, B256, U256,
-};
+use edr_eth::{remote::RpcClient, trie::KECCAK_NULL_RLP, Address, B256, U256};
 use parking_lot::{Mutex, RwLock, RwLockUpgradableReadGuard};
 use revm::{
     db::components::{State, StateRef},
@@ -13,9 +9,7 @@ use revm::{
 };
 use tokio::runtime;
 
-use super::{
-    remote::CachedRemoteState, AccountTrie, RemoteState, StateDebug, StateError, TrieState,
-};
+use super::{remote::CachedRemoteState, RemoteState, StateDebug, StateError, TrieState};
 use crate::random::RandomHashGenerator;
 
 /// A database integrating the state from a remote node and the state from a
@@ -25,63 +19,43 @@ pub struct ForkState {
     local_state: TrieState,
     remote_state: Arc<Mutex<CachedRemoteState>>,
     removed_storage_slots: HashSet<(Address, U256)>,
-    fork_block_number: u64,
-    /// client-facing state root (pseudorandomly generated) mapped to internal
-    /// (layered_state) state root
-    state_root_to_state: RwLock<HashMap<B256, B256>>,
-    /// A pair of the generated state root and local state root
+    /// A pair of the latest state root and local state root
     current_state: RwLock<(B256, B256)>,
-    initial_state_root: B256,
     hash_generator: Arc<Mutex<RandomHashGenerator>>,
     removed_remote_accounts: HashSet<Address>,
 }
 
 impl ForkState {
-    /// Constructs a new instance.
-    pub async fn new(
+    /// Constructs a new instance
+    pub fn new(
         runtime: runtime::Handle,
         rpc_client: Arc<RpcClient>,
         hash_generator: Arc<Mutex<RandomHashGenerator>>,
         fork_block_number: u64,
-        mut accounts: HashMap<Address, AccountInfo>,
-    ) -> Result<Self, RpcClientError> {
-        for (address, account_info) in &mut accounts {
-            let nonce = rpc_client
-                .get_transaction_count(address, Some(BlockSpec::Number(fork_block_number)))
-                .await?;
-
-            account_info.nonce = nonce.to();
-        }
-
+        state_root: B256,
+    ) -> Self {
         let remote_state = RemoteState::new(runtime, rpc_client, fork_block_number);
-        let local_state = TrieState::with_accounts(AccountTrie::with_accounts(&accounts));
+        let local_state = TrieState::default();
 
-        let generated_state_root = hash_generator.lock().next_value();
         let mut state_root_to_state = HashMap::new();
         let local_root = local_state.state_root().unwrap();
-        state_root_to_state.insert(generated_state_root, local_root);
+        state_root_to_state.insert(state_root, local_root);
 
-        Ok(Self {
+        Self {
             local_state,
             remote_state: Arc::new(Mutex::new(CachedRemoteState::new(remote_state))),
             removed_storage_slots: HashSet::new(),
-            fork_block_number,
-            state_root_to_state: RwLock::new(state_root_to_state),
-            current_state: RwLock::new((generated_state_root, local_root)),
-            initial_state_root: generated_state_root,
+            current_state: RwLock::new((state_root, local_root)),
             hash_generator,
             removed_remote_accounts: HashSet::new(),
-        })
+        }
     }
 
-    /// Sets the block number of the remote state.
-    pub fn set_fork_block_number(&mut self, block_number: u64) {
-        self.remote_state.lock().set_block_number(block_number);
-    }
+    /// Overrides the state root of the fork state.
+    pub fn set_state_root(&mut self, state_root: B256) {
+        let local_root = self.local_state.state_root().unwrap();
 
-    /// Retrieves the state root generator
-    pub fn state_root_generator(&self) -> &Arc<Mutex<RandomHashGenerator>> {
-        &self.hash_generator
+        *self.current_state.get_mut() = (state_root, local_root);
     }
 }
 
@@ -92,10 +66,7 @@ impl Clone for ForkState {
             local_state: self.local_state.clone(),
             remote_state: self.remote_state.clone(),
             removed_storage_slots: self.removed_storage_slots.clone(),
-            fork_block_number: self.fork_block_number,
-            state_root_to_state: RwLock::new(self.state_root_to_state.read().clone()),
             current_state: RwLock::new(*self.current_state.read()),
-            initial_state_root: self.initial_state_root,
             hash_generator: self.hash_generator.clone(),
             removed_remote_accounts: self.removed_remote_accounts.clone(),
         }
@@ -170,7 +141,7 @@ impl StateDebug for ForkState {
         address: Address,
         modifier: crate::state::AccountModifierFn,
         default_account_fn: &dyn Fn() -> Result<AccountInfo, Self::Error>,
-    ) -> Result<(), Self::Error> {
+    ) -> Result<AccountInfo, Self::Error> {
         #[allow(clippy::redundant_closure)]
         self.local_state.modify_account(address, modifier, &|| {
             self.remote_state
@@ -194,7 +165,6 @@ impl StateDebug for ForkState {
     }
 
     fn serialize(&self) -> String {
-        // TODO: Do we want to print history?
         self.local_state.serialize()
     }
 
@@ -203,9 +173,7 @@ impl StateDebug for ForkState {
         address: Address,
         index: U256,
         value: U256,
-    ) -> Result<(), Self::Error> {
-        // We never need to remove zero entries as a "removed" entry means that the
-        // lookup for a value in the hybrid state succeeded.
+    ) -> Result<U256, Self::Error> {
         if value == U256::ZERO {
             self.removed_storage_slots.insert((address, index));
         }
@@ -218,15 +186,11 @@ impl StateDebug for ForkState {
         let local_root = self.local_state.state_root().unwrap();
 
         let current_state = self.current_state.upgradable_read();
-        let state_root_to_state = self.state_root_to_state.upgradable_read();
 
         Ok(if local_root == current_state.1 {
             current_state.0
         } else {
             let next_state_root = self.hash_generator.lock().next_value();
-
-            let mut state_root_to_state = RwLockUpgradableReadGuard::upgrade(state_root_to_state);
-            state_root_to_state.insert(next_state_root, local_root);
 
             *RwLockUpgradableReadGuard::upgrade(current_state) = (next_state_root, local_root);
 
@@ -242,6 +206,7 @@ mod tests {
         str::FromStr,
     };
 
+    use edr_eth::remote::BlockSpec;
     use edr_test_utils::env::get_alchemy_url;
 
     use super::*;
@@ -268,15 +233,19 @@ mod tests {
             let runtime = runtime::Handle::current();
             let rpc_client = RpcClient::new(&get_alchemy_url(), tempdir.path().to_path_buf());
 
+            let block = rpc_client
+                .get_block_by_number(BlockSpec::Number(FORK_BLOCK))
+                .await
+                .expect("failed to retrieve block by number")
+                .expect("block should exist");
+
             let fork_state = ForkState::new(
                 runtime,
                 Arc::new(rpc_client),
                 hash_generator,
                 FORK_BLOCK,
-                HashMap::default(),
-            )
-            .await
-            .expect("failed to construct ForkState");
+                block.state_root,
+            );
 
             Self {
                 fork_state,

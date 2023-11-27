@@ -4,7 +4,7 @@ mod remote;
 /// Storage data structures for a blockchain
 pub mod storage;
 
-use std::{fmt::Debug, sync::Arc};
+use std::{collections::BTreeMap, fmt::Debug, ops::Bound::Included, sync::Arc};
 
 use edr_eth::{
     receipt::BlockReceipt, remote::RpcClientError, spec::HardforkActivations, B256, U256,
@@ -17,7 +17,7 @@ pub use self::{
     local::{CreationError as LocalCreationError, LocalBlockchain},
 };
 use crate::{
-    state::{StateDiff, SyncState},
+    state::{StateDiff, StateOverride, SyncState},
     Block, LocalBlock, SyncBlock,
 };
 
@@ -131,10 +131,16 @@ pub trait Blockchain {
     /// Retrieves the hardfork specification used for new blocks.
     fn spec_id(&self) -> SpecId;
 
-    /// Retrieves the state at a given block
+    /// Retrieves the state at a given block.
+    ///
+    /// The state overrides are applied after the block they are associated
+    /// with. The specified override of a nonce may be ignored to maintain
+    /// validity.
     fn state_at_block_number(
         &self,
         block_number: u64,
+        // Block number -> state overrides
+        state_overrides: &BTreeMap<u64, StateOverride>,
     ) -> Result<Box<dyn SyncState<Self::StateError>>, Self::BlockchainError>;
 
     /// Retrieves the total difficulty at the block with the provided hash.
@@ -192,14 +198,34 @@ where
 fn compute_state_at_block<BlockT: Block + Clone>(
     state: &mut dyn DatabaseCommit,
     local_storage: &ReservableSparseBlockchainStorage<BlockT>,
-    block_number: u64,
+    first_local_block_number: u64,
+    last_local_block_number: u64,
+    state_overrides: &BTreeMap<u64, StateOverride>,
 ) {
+    // If we're dealing with a local block, apply their state diffs
     let state_diffs = local_storage
-        .state_diffs_until_block(block_number)
-        .expect("The block is validated to exist");
+        .state_diffs_until_block(last_local_block_number)
+        .unwrap_or_default();
 
-    for state_diff in state_diffs {
-        state.commit(state_diff.clone());
+    let mut overriden_state_diffs: BTreeMap<u64, StateDiff> = state_diffs
+        .iter()
+        .map(|(block_number, state_diff)| (*block_number, state_diff.clone()))
+        .collect();
+
+    for (block_number, state_override) in state_overrides.range((
+        Included(&first_local_block_number),
+        Included(&last_local_block_number),
+    )) {
+        overriden_state_diffs
+            .entry(*block_number)
+            .and_modify(|state_diff| {
+                state_diff.apply_diff(state_override.diff.as_inner().clone());
+            })
+            .or_insert_with(|| state_override.diff.clone());
+    }
+
+    for (_block_number, state_diff) in overriden_state_diffs {
+        state.commit(state_diff.into());
     }
 }
 

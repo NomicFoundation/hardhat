@@ -55,12 +55,14 @@ pub trait StateDebug {
     /// Modifies the account at the specified address using the provided
     /// function. If no account exists for the specified address, an account
     /// will be generated using the `default_account_fn` and modified.
+    ///
+    /// Returns the modified (or created) account.
     fn modify_account(
         &mut self,
         address: Address,
         modifier: AccountModifierFn,
         default_account_fn: &dyn Fn() -> Result<AccountInfo, Self::Error>,
-    ) -> Result<(), Self::Error>;
+    ) -> Result<AccountInfo, Self::Error>;
 
     /// Removes and returns the account at the specified address, if it exists.
     fn remove_account(&mut self, address: Address) -> Result<Option<AccountInfo>, Self::Error>;
@@ -70,12 +72,14 @@ pub trait StateDebug {
 
     /// Sets the storage slot at the specified address and index to the provided
     /// value.
+    ///
+    /// Returns the old value.
     fn set_account_storage_slot(
         &mut self,
         address: Address,
         index: U256,
         value: U256,
-    ) -> Result<(), Self::Error>;
+    ) -> Result<U256, Self::Error>;
 
     /// Retrieves the storage root of the database.
     fn state_root(&self) -> Result<B256, Self::Error>;

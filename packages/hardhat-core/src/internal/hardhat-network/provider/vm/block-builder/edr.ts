@@ -111,7 +111,9 @@ export class EdrBlockBuilder implements BlockBuilderAdapter {
     return edrBlockToEthereumJS(block, this._common);
   }
 
-  public async revert(): Promise<void> {}
+  public async revert(): Promise<void> {
+    // EDR is stateless, so we don't need to revert anything
+  }
 
   public async getGasUsed(): Promise<bigint> {
     return this._blockBuilder.gasUsed;

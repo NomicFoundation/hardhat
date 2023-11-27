@@ -12,8 +12,9 @@ import {
   Reward,
   encodeReceipt,
 } from "../block-builder";
-import { RunTxResult, VMAdapter } from "../vm-adapter";
+import { RunTxResult } from "../vm-adapter";
 import { getCurrentTimestamp } from "../../utils/getCurrentTimestamp";
+import { EthereumJSAdapter } from "../ethereumjs";
 
 // started: can add txs or rewards
 // sealed: can't do anything
@@ -24,25 +25,23 @@ type BlockBuilderState = "started" | "sealed" | "reverted";
 
 export class HardhatBlockBuilder implements BlockBuilderAdapter {
   private _state: BlockBuilderState = "started";
+  private _checkpointed = false;
   private _gasUsed = 0n;
   private _transactions: TypedTransaction[] = [];
   private _transactionResults: RunTxResult[] = [];
 
   constructor(
-    private _vm: VMAdapter,
+    private _vm: EthereumJSAdapter,
     private _common: Common,
-    private _opts: BuildBlockOpts,
-    private _blockStartStateRoot: Buffer
+    private _opts: BuildBlockOpts
   ) {}
 
   public static async create(
-    vm: VMAdapter,
+    vm: EthereumJSAdapter,
     common: Common,
     opts: BuildBlockOpts
   ): Promise<HardhatBlockBuilder> {
-    const blockStartStateRoot = await vm.getStateRoot();
-
-    return new HardhatBlockBuilder(vm, common, opts, blockStartStateRoot);
+    return new HardhatBlockBuilder(vm, common, opts);
   }
 
   public async addTransaction(tx: TypedTransaction): Promise<RunTxResult> {
@@ -50,6 +49,11 @@ export class HardhatBlockBuilder implements BlockBuilderAdapter {
       throw new Error(
         `BlockBuilder.addTransaction cannot be used in state ${this._state}`
       );
+    }
+
+    if (!this._checkpointed) {
+      await this._vm.checkpoint();
+      this._checkpointed = true;
     }
 
     const blockGasLimit =
@@ -137,6 +141,11 @@ export class HardhatBlockBuilder implements BlockBuilderAdapter {
       calcDifficultyFromHeader: this._opts.parentBlock.header,
     });
 
+    if (this._checkpointed) {
+      await this._vm._stateManager.commit();
+      this._checkpointed = false;
+    }
+
     this._state = "sealed";
 
     return block;
@@ -149,7 +158,10 @@ export class HardhatBlockBuilder implements BlockBuilderAdapter {
       );
     }
 
-    await this._vm.restoreContext(this._blockStartStateRoot!);
+    if (this._checkpointed) {
+      await this._vm.revert();
+      this._checkpointed = false;
+    }
 
     this._state = "reverted";
   }
