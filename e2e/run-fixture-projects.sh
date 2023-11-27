@@ -15,14 +15,17 @@ cd - >/dev/null
 FIXTURE_PROJECTS_DIR=fixture-projects-run-$(date +%Y-%m-%d-%H-%M-%S)
 cp -r fixture-projects $FIXTURE_PROJECTS_DIR
 
+# run all the e2e tests in the temporary directory
 echo "[e2e] Running tests in $FIXTURE_PROJECTS_DIR"
 for dir in ${FIXTURE_PROJECTS_DIR}/*; do
   if [ -d "$dir" ]; then
     echo "[e2e] Running tests in $dir"
     cd "$dir"
+
     echo "[e2e] Insatlling modules in $dir"
-    npm install ../../../packages/hardhat-core/$HARDHAT_TGZ_FILE >/dev/null 2>&1
+    npm add ../../../packages/hardhat-core/$HARDHAT_TGZ_FILE >/dev/null 2>&1
     echo "[e2e] All modules have been insatlled in $dir"
+
     echo "[e2e] Starting test in $dir"
     ./test.sh
     cd -
