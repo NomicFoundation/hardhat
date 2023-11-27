@@ -58,7 +58,7 @@ export interface VMAdapter {
   putAccount(
     address: Address,
     account: Account,
-    isIrregularChange?: boolean
+    isIrregularChange: boolean
   ): Promise<void>;
 
   /**
@@ -67,7 +67,7 @@ export interface VMAdapter {
   putContractCode(
     address: Address,
     value: Buffer,
-    isIrregularChange?: boolean
+    isIrregularChange: boolean
   ): Promise<void>;
 
   /**
@@ -77,7 +77,7 @@ export interface VMAdapter {
     address: Address,
     key: Buffer,
     value: Buffer,
-    isIrregularChange?: boolean
+    isIrregularChange: boolean
   ): Promise<void>;
 
   /**

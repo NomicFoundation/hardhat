@@ -106,13 +106,15 @@ export function getMinimalEthereumJsVm(
     },
     stateManager: {
       putContractCode: async (address, code) => {
-        return context.vm().putContractCode(address, code);
+        return context.vm().putContractCode(address, code, true);
       },
       getContractStorage: async (address, slotHash) => {
         return context.vm().getContractStorage(address, slotHash);
       },
       putContractStorage: async (address, slotHash, slotValue) => {
-        return context.vm().putContractStorage(address, slotHash, slotValue);
+        return context
+          .vm()
+          .putContractStorage(address, slotHash, slotValue, true);
       },
     },
   };

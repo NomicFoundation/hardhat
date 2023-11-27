@@ -179,7 +179,7 @@ export class DualModeAdapter implements VMAdapter {
   public async putAccount(
     address: Address,
     account: Account,
-    isIrregularChange?: boolean
+    isIrregularChange: boolean
   ): Promise<void> {
     await this._ethereumJSAdapter.putAccount(
       address,
@@ -195,7 +195,7 @@ export class DualModeAdapter implements VMAdapter {
   public async putContractCode(
     address: Address,
     value: Buffer,
-    isIrregularChange?: boolean
+    isIrregularChange: boolean
   ): Promise<void> {
     await this._ethereumJSAdapter.putContractCode(
       address,
@@ -212,7 +212,7 @@ export class DualModeAdapter implements VMAdapter {
     address: Address,
     key: Buffer,
     value: Buffer,
-    isIrregularChange?: boolean
+    isIrregularChange: boolean
   ): Promise<void> {
     await this._ethereumJSAdapter.putContractStorage(
       address,
