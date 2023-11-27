@@ -399,17 +399,34 @@ impl ProviderData {
         let mut removed_snapshots = self.snapshots.split_off(&snapshot_id);
 
         if let Some(snapshot) = removed_snapshots.remove(&snapshot_id) {
-            let duration_since_snapshot = Instant::now().duration_since(snapshot.time);
-            self.block_time_offset_seconds =
-                snapshot.block_time_offset_seconds + duration_since_snapshot.as_secs();
+            let Snapshot {
+                block_number,
+                block_time_offset_seconds,
+                coinbase,
+                irregular_state,
+                mem_pool,
+                next_block_base_fee_per_gas,
+                next_block_timestamp,
+                prev_randao_generator,
+                state,
+                time,
+            } = snapshot;
 
-            self.beneficiary = snapshot.coinbase;
-            self.irregular_state = snapshot.irregular_state;
-            self.mem_pool = snapshot.mem_pool;
-            self.next_block_base_fee_per_gas = snapshot.next_block_base_fee_per_gas;
-            self.next_block_timestamp = snapshot.next_block_timestamp;
-            self.prev_randao_generator = snapshot.prev_randao_generator;
-            self.state = snapshot.state;
+            let duration_since_snapshot = Instant::now().duration_since(time);
+            self.block_time_offset_seconds =
+                block_time_offset_seconds + duration_since_snapshot.as_secs();
+
+            self.beneficiary = coinbase;
+            self.blockchain
+                .revert_to_block(block_number)
+                .expect("Snapshotted block should exist");
+
+            self.irregular_state = irregular_state;
+            self.mem_pool = mem_pool;
+            self.next_block_base_fee_per_gas = next_block_base_fee_per_gas;
+            self.next_block_timestamp = next_block_timestamp;
+            self.prev_randao_generator = prev_randao_generator;
+            self.state = state;
 
             true
         } else {
