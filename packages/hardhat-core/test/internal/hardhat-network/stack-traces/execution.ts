@@ -46,7 +46,7 @@ export async function instantiateContext(): Promise<
   const common = new Common({ chain: "mainnet", hardfork: "shanghai" });
 
   const context = await createContext(config);
-  await context.vm().putAccount(new Address(senderAddress), account);
+  await context.vm().putAccount(new Address(senderAddress), account, true);
 
   return [context, common];
 }

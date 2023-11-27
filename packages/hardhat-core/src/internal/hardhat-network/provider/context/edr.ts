@@ -1,4 +1,9 @@
-import { Blockchain, EdrContext, SpecId } from "@ignored/edr";
+import {
+  KECCAK256_RLP,
+  privateToAddress,
+  toBuffer,
+} from "@nomicfoundation/ethereumjs-util";
+import { Account, Blockchain, EdrContext, SpecId } from "@ignored/edr";
 import { BlockchainAdapter } from "../blockchain";
 import { EdrBlockchain } from "../blockchain/edr";
 import { EthContextAdapter } from "../context";
@@ -9,17 +14,17 @@ import { EdrMiner } from "../miner/edr";
 import { EdrAdapter } from "../vm/edr";
 import { NodeConfig, isForkedNodeConfig } from "../node-types";
 import {
-  ethereumjsHeaderDataToEdrBlockOptions,
   ethereumjsMempoolOrderToEdrMineOrdering,
   ethereumsjsHardforkToEdrSpecId,
 } from "../utils/convertToEdr";
-import { HardforkName, getHardforkName } from "../../../util/hardforks";
+import { getHardforkName } from "../../../util/hardforks";
 import { EdrStateManager } from "../EdrState";
 import { EdrMemPool } from "../mem-pool/edr";
 import { makeCommon } from "../utils/makeCommon";
 import { HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS } from "../../../core/config/default-config";
-import { makeGenesisBlock } from "../utils/putGenesisBlock";
 import { RandomBufferGenerator } from "../utils/random";
+import { dateToTimestampSeconds } from "../../../util/date";
+import { EdrIrregularState } from "../EdrIrregularState";
 
 export const UNLIMITED_CONTRACT_SIZE_VALUE = 2n ** 64n - 1n;
 
@@ -56,6 +61,8 @@ export class EdrEthContext implements EthContextAdapter {
       ? SpecId.Cancun
       : ethereumsjsHardforkToEdrSpecId(getHardforkName(config.hardfork));
 
+    const irregularState = new EdrIrregularState();
+
     if (isForkedNodeConfig(config)) {
       const chainIdToHardforkActivations: Array<
         [bigint, Array<[bigint, SpecId]>]
@@ -76,67 +83,115 @@ export class EdrEthContext implements EthContextAdapter {
         await Blockchain.fork(
           getGlobalEdrContext(),
           specId,
+          chainIdToHardforkActivations,
           config.forkConfig.jsonRpcUrl,
           config.forkConfig.blockNumber !== undefined
             ? BigInt(config.forkConfig.blockNumber)
             : undefined,
-          config.forkCachePath,
+          config.forkCachePath
+        ),
+        irregularState,
+        common
+      );
+
+      const latestBlockNumber = await blockchain.getLatestBlockNumber();
+      const forkState = await blockchain.getStateAtBlockNumber(
+        latestBlockNumber
+      );
+
+      if (config.genesisAccounts.length > 0) {
+        // Override the genesis accounts
+        const genesisAccounts: Array<[Buffer, Account]> = await Promise.all(
+          config.genesisAccounts.map(async (genesisAccount) => {
+            const privateKey = toBuffer(genesisAccount.privateKey);
+            const address = privateToAddress(privateKey);
+
+            const originalAccount = await forkState.modifyAccount(
+              address,
+              async (balance, nonce, code) => {
+                return {
+                  balance: BigInt(genesisAccount.balance),
+                  nonce,
+                  code,
+                };
+              }
+            );
+            const modifiedAccount =
+              originalAccount !== null
+                ? {
+                    ...originalAccount,
+                    balance: BigInt(genesisAccount.balance),
+                  }
+                : {
+                    balance: BigInt(genesisAccount.balance),
+                    nonce: 0n,
+                  };
+
+            return [address, modifiedAccount];
+          })
+        );
+
+        // Generate a new state root
+        const stateRoot = await forkState.getStateRoot();
+
+        // Store the overrides in the irregular state
+        await irregularState
+          .asInner()
+          .applyAccountChanges(latestBlockNumber, stateRoot, genesisAccounts);
+      }
+
+      state = new EdrStateManager(forkState);
+
+      config.forkConfig.blockNumber = Number(latestBlockNumber);
+    } else {
+      const initialBaseFeePerGas =
+        specId >= SpecId.London
+          ? config.initialBaseFeePerGas !== undefined
+            ? BigInt(config.initialBaseFeePerGas)
+            : BigInt(HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS)
+          : undefined;
+
+      const initialBlockTimestamp =
+        config.initialDate !== undefined
+          ? BigInt(dateToTimestampSeconds(config.initialDate))
+          : undefined;
+
+      const initialMixHash =
+        specId >= SpecId.Merge ? prevRandaoGenerator.next() : undefined;
+
+      const initialBlobGas =
+        specId >= SpecId.Cancun
+          ? {
+              gasUsed: 0n,
+              excessGas: 0n,
+            }
+          : undefined;
+
+      const initialParentBeaconRoot =
+        specId >= SpecId.Cancun ? KECCAK256_RLP : undefined;
+
+      blockchain = new EdrBlockchain(
+        new Blockchain(
+          common.chainId(),
+          specId,
+          BigInt(config.blockGasLimit),
           config.genesisAccounts.map((account) => {
             return {
               secretKey: account.privateKey,
               balance: BigInt(account.balance),
             };
           }),
-          chainIdToHardforkActivations
+          initialBlockTimestamp,
+          initialMixHash,
+          initialBaseFeePerGas,
+          initialBlobGas,
+          initialParentBeaconRoot
         ),
+        irregularState,
         common
       );
 
-      const latestBlockNumber = await blockchain.getLatestBlockNumber();
-      state = new EdrStateManager(
-        await blockchain.getStateAtBlockNumber(latestBlockNumber)
-      );
-
-      config.forkConfig.blockNumber = Number(latestBlockNumber);
-    } else {
-      state = EdrStateManager.withGenesisAccounts(
-        getGlobalEdrContext(),
-        config.genesisAccounts
-      );
-
-      const initialBaseFeePerGas =
-        config.initialBaseFeePerGas !== undefined
-          ? BigInt(config.initialBaseFeePerGas)
-          : BigInt(HARDHAT_NETWORK_DEFAULT_INITIAL_BASE_FEE_PER_GAS);
-
-      const genesisBlockBaseFeePerGas =
-        specId >= SpecId.London ? initialBaseFeePerGas : undefined;
-
-      const genesisBlockHeader = makeGenesisBlock(
-        config,
-        await state.getStateRoot(),
-        // HardforkName.CANCUN is not supported yet, so use SHANGHAI instead
-        config.enableTransientStorage
-          ? HardforkName.SHANGHAI
-          : getHardforkName(config.hardfork),
-        prevRandaoGenerator,
-        genesisBlockBaseFeePerGas
-      );
-
-      blockchain = new EdrBlockchain(
-        Blockchain.withGenesisBlock(
-          common.chainId(),
-          specId,
-          ethereumjsHeaderDataToEdrBlockOptions(genesisBlockHeader),
-          config.genesisAccounts.map((account) => {
-            return {
-              secretKey: account.privateKey,
-              balance: BigInt(account.balance),
-            };
-          })
-        ),
-        common
-      );
+      state = new EdrStateManager(await blockchain.getStateAtBlockNumber(0n));
     }
 
     const limitContractCodeSize =
@@ -150,6 +205,7 @@ export class EdrEthContext implements EthContextAdapter {
 
     const vm = new EdrAdapter(
       blockchain.asInner(),
+      irregularState,
       state,
       common,
       limitContractCodeSize,

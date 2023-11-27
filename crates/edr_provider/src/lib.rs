@@ -70,7 +70,7 @@ impl Provider {
             .mining
             .interval
             .as_ref()
-            .map(|config| IntervalMiner::new(config.clone(), data.clone()));
+            .map(|config| IntervalMiner::new(runtime.clone(), config.clone(), data.clone()));
 
         Ok(Self {
             data,
