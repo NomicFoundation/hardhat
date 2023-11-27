@@ -1,23 +1,30 @@
 use std::ops::Deref;
 
-use super::block::BlockLog;
+use crate::log::FullBlockLog;
 
 /// A log that's returned through a filter query.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct FilterLog {
+    /// Full block log
     #[cfg_attr(feature = "serde", serde(flatten))]
-    inner: BlockLog,
+    pub inner: FullBlockLog,
     /// Whether this log was reverted due to a chain reorganisation
     pub removed: bool,
 }
 
 impl Deref for FilterLog {
-    type Target = BlockLog;
+    type Target = FullBlockLog;
 
     fn deref(&self) -> &Self::Target {
         &self.inner
+    }
+}
+
+impl rlp::Encodable for FilterLog {
+    fn rlp_append(&self, s: &mut rlp::RlpStream) {
+        s.append(&self.inner);
     }
 }
 
@@ -33,7 +40,7 @@ mod tests {
     #[test]
     fn test_filter_log_serde() {
         let log = FilterLog {
-            inner: BlockLog::Full(FullBlockLog {
+            inner: FullBlockLog {
                 inner: ReceiptLog {
                     inner: Log {
                         address: Address::from_str("0000000000000000000000000000000000000011")
@@ -62,7 +69,7 @@ mod tests {
                 block_number: 0xa74fde,
                 log_index: 0x653b,
                 transaction_index: 0x1f,
-            }),
+            },
             removed: false,
         };
 

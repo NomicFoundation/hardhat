@@ -50,7 +50,7 @@ export class EdrBlockBuilder implements BlockBuilderAdapter {
       disableEip3607: true,
     };
 
-    const blockBuilder = await BlockBuilder.create(
+    const blockBuilder = new BlockBuilder(
       blockchain,
       clonedState,
       config,

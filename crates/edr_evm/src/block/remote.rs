@@ -1,6 +1,5 @@
 use std::sync::{Arc, OnceLock};
 
-use async_trait::async_trait;
 use edr_eth::{
     block::{BlobGas, Header},
     receipt::BlockReceipt,
@@ -12,6 +11,7 @@ use edr_eth::{
     withdrawal::Withdrawal,
     Address, B256, B64,
 };
+use tokio::runtime;
 
 use crate::{blockchain::BlockchainError, Block, SyncBlock};
 
@@ -51,6 +51,7 @@ pub struct RemoteBlock {
     hash: B256,
     // The RPC client is needed to lazily fetch receipts
     rpc_client: Arc<RpcClient>,
+    runtime: runtime::Handle,
 }
 
 impl RemoteBlock {
@@ -58,6 +59,7 @@ impl RemoteBlock {
     pub fn new(
         block: eth::Block<eth::Transaction>,
         rpc_client: Arc<RpcClient>,
+        runtime: runtime::Handle,
     ) -> Result<Self, CreationError> {
         let header = Header {
             parent_hash: block.parent_hash,
@@ -104,11 +106,11 @@ impl RemoteBlock {
             _withdrawals: block.withdrawals,
             hash,
             rpc_client,
+            runtime,
         })
     }
 }
 
-#[async_trait]
 impl Block for RemoteBlock {
     type Error = BlockchainError;
 
@@ -128,19 +130,22 @@ impl Block for RemoteBlock {
         &self.callers
     }
 
-    async fn transaction_receipts(&self) -> Result<Vec<Arc<BlockReceipt>>, Self::Error> {
+    fn transaction_receipts(&self) -> Result<Vec<Arc<BlockReceipt>>, Self::Error> {
         if let Some(receipts) = self.receipts.get() {
             return Ok(receipts.clone());
         }
 
-        let receipts: Vec<Arc<BlockReceipt>> = self
-            .rpc_client
-            .get_transaction_receipts(self.transactions.iter().map(SignedTransaction::hash))
-            .await?
-            .expect("All receipts of the block should exist")
-            .into_iter()
-            .map(Arc::new)
-            .collect();
+        let receipts: Vec<Arc<BlockReceipt>> = tokio::task::block_in_place(|| {
+            self.runtime.block_on(
+                self.rpc_client.get_transaction_receipts(
+                    self.transactions.iter().map(SignedTransaction::hash),
+                ),
+            )
+        })?
+        .expect("All receipts of the block should exist")
+        .into_iter()
+        .map(Arc::new)
+        .collect();
 
         self.receipts
             .set(receipts.clone())

@@ -7,6 +7,7 @@ use edr_eth::{
 use edr_evm::KECCAK_EMPTY;
 
 use super::*;
+use crate::config::MiningConfig;
 
 pub const TEST_SECRET_KEY: &str =
     "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
@@ -58,6 +59,7 @@ pub fn create_test_config_with_impersonated_accounts(
         }),
         initial_date: Some(SystemTime::now()),
         initial_parent_beacon_block_root: Some(KECCAK_NULL_RLP),
+        mining: MiningConfig::default(),
         network_id: 123,
         cache_dir,
     }

@@ -5,10 +5,15 @@ use std::{
 
 use edr_eth::{Address, HashMap};
 use edr_provider::AccountConfig;
-use napi::bindgen_prelude::{BigInt, Buffer};
+use napi::{
+    bindgen_prelude::{BigInt, Buffer},
+    Either,
+};
 use napi_derive::napi;
 
-use crate::{account::GenesisAccount, block::BlobGas, cast::TryCast, config::SpecId};
+use crate::{
+    account::GenesisAccount, block::BlobGas, cast::TryCast, config::SpecId, miner::MineOrdering,
+};
 
 /// Configuration for forking a blockchain
 #[napi(object)]
@@ -21,6 +26,26 @@ pub struct ForkConfig {
     // TODO: add http_headers,
 }
 
+/// Configuration for the provider's mempool.
+#[napi(object)]
+pub struct MemPoolConfig {
+    pub order: MineOrdering,
+}
+
+#[napi(object)]
+pub struct IntervalRange {
+    pub min: i64,
+    pub max: i64,
+}
+
+/// Configuration for the provider's miner.
+#[napi(object)]
+pub struct MiningConfig {
+    pub auto_mine: bool,
+    pub interval: Either<i64, IntervalRange>,
+    pub mem_pool: MemPoolConfig,
+}
+
 /// Configuration for a provider
 #[napi(object)]
 pub struct ProviderConfig {
@@ -31,7 +56,7 @@ pub struct ProviderConfig {
     /// The gas limit of each block
     pub block_gas_limit: BigInt,
     /// The directory to cache remote JSON-RPC responses
-    pub cache_dir: String,
+    pub cache_dir: Option<String>,
     /// The chain ID of the blockchain
     pub chain_id: BigInt,
     /// The address of the coinbase
@@ -53,6 +78,8 @@ pub struct ProviderConfig {
     /// The initial parent beacon block root of the blockchain. Required for
     /// EIP-4788
     pub initial_parent_beacon_block_root: Option<Buffer>,
+    /// The configuration for the miner
+    pub mining: MiningConfig,
     /// The network ID of the blockchain
     pub network_id: BigInt,
 }
@@ -71,6 +98,33 @@ impl TryFrom<ForkConfig> for edr_rpc_hardhat::config::ForkConfig {
     }
 }
 
+impl From<MemPoolConfig> for edr_provider::MemPoolConfig {
+    fn from(value: MemPoolConfig) -> Self {
+        Self {
+            order: value.order.into(),
+        }
+    }
+}
+
+impl From<MiningConfig> for edr_provider::MiningConfig {
+    fn from(value: MiningConfig) -> Self {
+        let mem_pool = value.mem_pool.into();
+
+        let interval = match value.interval {
+            Either::A(interval) => edr_provider::IntervalConfig::Fixed(interval),
+            Either::B(IntervalRange { min, max }) => {
+                edr_provider::IntervalConfig::Range { min, max }
+            }
+        };
+
+        Self {
+            auto_mine: value.auto_mine,
+            interval,
+            mem_pool,
+        }
+    }
+}
+
 impl TryFrom<ProviderConfig> for edr_provider::ProviderConfig {
     type Error = napi::Error;
 
@@ -84,7 +138,11 @@ impl TryFrom<ProviderConfig> for edr_provider::ProviderConfig {
             allow_blocks_with_same_timestamp: value.allow_blocks_with_same_timestamp,
             allow_unlimited_contract_size: value.allow_unlimited_contract_size,
             block_gas_limit: value.block_gas_limit.try_cast()?,
-            cache_dir: PathBuf::from(value.cache_dir),
+            cache_dir: PathBuf::from(
+                value
+                    .cache_dir
+                    .unwrap_or(String::from(edr_defaults::CACHE_DIR)),
+            ),
             chain_id: value.chain_id.try_cast()?,
             coinbase: Address::from_slice(value.coinbase.as_ref()),
             fork: value.fork.map(TryInto::try_into).transpose()?,
@@ -106,6 +164,7 @@ impl TryFrom<ProviderConfig> for edr_provider::ProviderConfig {
                 .initial_parent_beacon_block_root
                 .map(TryCast::try_cast)
                 .transpose()?,
+            mining: value.mining.into(),
             network_id: value.network_id.try_cast()?,
         })
     }

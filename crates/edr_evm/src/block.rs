@@ -4,7 +4,6 @@ mod remote;
 
 use std::{fmt::Debug, sync::Arc};
 
-use async_trait::async_trait;
 use auto_impl::auto_impl;
 use edr_eth::{block, receipt::BlockReceipt, transaction::SignedTransaction, Address, B256};
 
@@ -15,7 +14,6 @@ pub use self::{
 };
 
 /// Trait for implementations of an Ethereum block.
-#[async_trait]
 #[auto_impl(Arc)]
 pub trait Block: Debug {
     /// The blockchain error type.
@@ -34,10 +32,10 @@ pub trait Block: Debug {
     fn transaction_callers(&self) -> &[Address];
 
     /// Returns the receipts of the block's transactions.
-    async fn transaction_receipts(&self) -> Result<Vec<Arc<BlockReceipt>>, Self::Error>;
+    fn transaction_receipts(&self) -> Result<Vec<Arc<BlockReceipt>>, Self::Error>;
 }
 
 /// Trait that meets all requirements for a synchronous block.
-pub trait SyncBlock: Block + Send + Sync + 'static {}
+pub trait SyncBlock: Block + Send + Sync {}
 
-impl<BlockT> SyncBlock for BlockT where BlockT: Block + Send + Sync + 'static {}
+impl<BlockT> SyncBlock for BlockT where BlockT: Block + Send + Sync {}

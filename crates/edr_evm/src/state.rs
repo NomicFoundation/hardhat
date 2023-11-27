@@ -49,14 +49,7 @@ pub enum StateError {
 
 /// Trait that meets all requirements for a synchronous database
 pub trait SyncState<E>:
-    StateRef<Error = E>
-    + DatabaseCommit
-    + StateDebug<Error = E>
-    + Debug
-    + DynClone
-    + Send
-    + Sync
-    + 'static
+    StateRef<Error = E> + DatabaseCommit + StateDebug<Error = E> + Debug + DynClone + Send + Sync
 where
     E: Debug + Send,
 {
@@ -79,8 +72,7 @@ where
         + Debug
         + DynClone
         + Send
-        + Sync
-        + 'static,
+        + Sync,
     E: Debug + Send,
 {
 }

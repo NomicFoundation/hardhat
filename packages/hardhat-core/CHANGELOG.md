@@ -1,5 +1,27 @@
 # hardhat
 
+## 2.19.0
+
+### Minor Changes
+
+- 27f3d6355: Added support for configuration variables management
+
+### Patch Changes
+
+- f2f67df3c: Added support for solc 0.8.22
+
+## 2.18.3
+
+### Patch Changes
+
+- bddfcff8d: Send GA hits for `ignition deploy` tasks
+
+## 2.18.2
+
+### Patch Changes
+
+- abca5abaf: Fixed the compiler download, which broke with the latest version of undici
+
 ## 2.18.1
 
 ### Patch Changes

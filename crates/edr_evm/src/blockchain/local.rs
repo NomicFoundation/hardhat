@@ -6,7 +6,6 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use async_trait::async_trait;
 use edr_eth::{
     block::{BlobGas, PartialHeader},
     trie::KECCAK_NULL_RLP,
@@ -198,14 +197,14 @@ impl LocalBlockchain {
     }
 }
 
-#[async_trait]
 impl Blockchain for LocalBlockchain {
     type BlockchainError = BlockchainError;
 
     type StateError = StateError;
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn block_by_hash(
+    #[allow(clippy::type_complexity)]
+    fn block_by_hash(
         &self,
         hash: &B256,
     ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>
@@ -214,7 +213,8 @@ impl Blockchain for LocalBlockchain {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn block_by_number(
+    #[allow(clippy::type_complexity)]
+    fn block_by_number(
         &self,
         number: u64,
     ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>
@@ -223,7 +223,8 @@ impl Blockchain for LocalBlockchain {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn block_by_transaction_hash(
+    #[allow(clippy::type_complexity)]
+    fn block_by_transaction_hash(
         &self,
         transaction_hash: &B256,
     ) -> Result<Option<Arc<dyn SyncBlock<Error = Self::BlockchainError>>>, Self::BlockchainError>
@@ -231,12 +232,12 @@ impl Blockchain for LocalBlockchain {
         Ok(self.storage.block_by_transaction_hash(transaction_hash))
     }
 
-    async fn chain_id(&self) -> u64 {
+    fn chain_id(&self) -> u64 {
         self.chain_id
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn last_block(
+    fn last_block(
         &self,
     ) -> Result<Arc<dyn SyncBlock<Error = Self::BlockchainError>>, Self::BlockchainError> {
         Ok(self
@@ -245,12 +246,16 @@ impl Blockchain for LocalBlockchain {
             .expect("Block must exist"))
     }
 
-    async fn last_block_number(&self) -> u64 {
+    fn last_block_number(&self) -> u64 {
         self.storage.last_block_number()
     }
 
+    fn network_id(&self) -> u64 {
+        self.chain_id
+    }
+
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn receipt_by_transaction_hash(
+    fn receipt_by_transaction_hash(
         &self,
         transaction_hash: &B256,
     ) -> Result<Option<Arc<edr_eth::receipt::BlockReceipt>>, Self::BlockchainError> {
@@ -258,11 +263,8 @@ impl Blockchain for LocalBlockchain {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn spec_at_block_number(
-        &self,
-        block_number: u64,
-    ) -> Result<SpecId, Self::BlockchainError> {
-        if block_number > self.last_block_number().await {
+    fn spec_at_block_number(&self, block_number: u64) -> Result<SpecId, Self::BlockchainError> {
+        if block_number > self.last_block_number() {
             return Err(BlockchainError::UnknownBlockNumber);
         }
 
@@ -274,12 +276,12 @@ impl Blockchain for LocalBlockchain {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn state_at_block_number(
+    fn state_at_block_number(
         &self,
         block_number: u64,
         state_overrides: &BTreeMap<u64, StateOverride>,
     ) -> Result<Box<dyn SyncState<Self::StateError>>, Self::BlockchainError> {
-        if block_number > self.last_block_number().await {
+        if block_number > self.last_block_number() {
             return Err(BlockchainError::UnknownBlockNumber);
         }
 
@@ -290,31 +292,26 @@ impl Blockchain for LocalBlockchain {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn total_difficulty_by_hash(
-        &self,
-        hash: &B256,
-    ) -> Result<Option<U256>, Self::BlockchainError> {
+    fn total_difficulty_by_hash(&self, hash: &B256) -> Result<Option<U256>, Self::BlockchainError> {
         Ok(self.storage.total_difficulty_by_hash(hash))
     }
 }
 
-#[async_trait]
 impl BlockchainMut for LocalBlockchain {
     type Error = BlockchainError;
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn insert_block(
+    fn insert_block(
         &mut self,
         block: LocalBlock,
         state_diff: StateDiff,
     ) -> Result<Arc<dyn SyncBlock<Error = Self::Error>>, Self::Error> {
-        let last_block = self.last_block().await?;
+        let last_block = self.last_block()?;
 
         validate_next_block(self.spec_id, &last_block, &block)?;
 
         let previous_total_difficulty = self
             .total_difficulty_by_hash(last_block.hash())
-            .await
             .expect("No error can occur as it is stored locally")
             .expect("Must exist as its block is stored");
 
@@ -331,17 +328,16 @@ impl BlockchainMut for LocalBlockchain {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn reserve_blocks(&mut self, additional: u64, interval: u64) -> Result<(), Self::Error> {
+    fn reserve_blocks(&mut self, additional: u64, interval: u64) -> Result<(), Self::Error> {
         let additional = if let Some(additional) = NonZeroU64::new(additional) {
             additional
         } else {
             return Ok(()); // nothing to do
         };
 
-        let last_block = self.last_block().await?;
+        let last_block = self.last_block()?;
         let previous_total_difficulty = self
-            .total_difficulty_by_hash(last_block.hash())
-            .await?
+            .total_difficulty_by_hash(last_block.hash())?
             .expect("Must exist as its block is stored");
 
         let last_header = last_block.header();
@@ -359,7 +355,7 @@ impl BlockchainMut for LocalBlockchain {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    async fn revert_to_block(&mut self, block_number: u64) -> Result<(), Self::Error> {
+    fn revert_to_block(&mut self, block_number: u64) -> Result<(), Self::Error> {
         if self.storage.revert_to_block(block_number) {
             Ok(())
         } else {

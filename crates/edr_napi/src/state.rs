@@ -17,11 +17,12 @@ use edr_evm::{
 };
 use napi::{
     bindgen_prelude::{BigInt, Buffer, ObjectFinalize},
-    tokio::{runtime, sync::RwLock},
+    tokio::runtime,
     Env, JsFunction, JsObject, NapiRaw, Status,
 };
 use napi_derive::napi;
 pub use overrides::*;
+use parking_lot::RwLock;
 
 pub use self::{irregular::IrregularState, overrides::*};
 use crate::{
@@ -61,7 +62,7 @@ impl State {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn with_state<S>(env: &mut Env, state: S) -> napi::Result<Self>
     where
-        S: SyncState<StateError>,
+        S: SyncState<StateError> + 'static,
     {
         // Signal that memory was externally allocated
         env.adjust_external_memory(STATE_MEMORY_SIZE)?;
@@ -111,12 +112,19 @@ impl State {
     #[doc = "Clones the state"]
     #[napi]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub async fn deep_clone(&self) -> Self {
-        let state = self.state.read().await.clone();
+    pub async fn deep_clone(&self) -> napi::Result<State> {
+        let state = self.state.clone();
 
-        Self {
-            state: Arc::new(RwLock::new(state)),
-        }
+        runtime::Handle::current()
+            .spawn_blocking(move || {
+                let state = state.read().clone();
+
+                Self {
+                    state: Arc::new(RwLock::new(state)),
+                }
+            })
+            .await
+            .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))
     }
 
     /// Retrieves the account corresponding to the specified address.
@@ -127,8 +135,8 @@ impl State {
 
         let state = self.state.clone();
         runtime::Handle::current()
-            .spawn(async move {
-                let state = state.read().await;
+            .spawn_blocking(move || {
+                let state = state.read();
 
                 state.basic(address).and_then(|account_info| {
                     account_info.map_or(Ok(None), |mut account_info| {
@@ -156,10 +164,7 @@ impl State {
 
         let state = self.state.clone();
         runtime::Handle::current()
-            .spawn(async move {
-                let state = state.read().await;
-                state.account_storage_root(&address)
-            })
+            .spawn_blocking(move || state.read().account_storage_root(&address))
             .await
             .unwrap()
             .map_or_else(
@@ -181,10 +186,7 @@ impl State {
 
         let state = self.state.clone();
         runtime::Handle::current()
-            .spawn(async move {
-                let state = state.read().await;
-                state.storage(address, index)
-            })
+            .spawn_blocking(move || state.read().storage(address, index))
             .await
             .unwrap()
             .map_or_else(
@@ -204,10 +206,7 @@ impl State {
     pub async fn get_state_root(&self) -> napi::Result<Buffer> {
         let state = self.state.clone();
         runtime::Handle::current()
-            .spawn(async move {
-                let state = state.read().await;
-                state.state_root()
-            })
+            .spawn_blocking(move || state.read().state_root())
             .await
             .unwrap()
             .map_or_else(
@@ -225,10 +224,7 @@ impl State {
 
         let state = self.state.clone();
         runtime::Handle::current()
-            .spawn(async move {
-                let mut state = state.write().await;
-                state.insert_account(address, account_info)
-            })
+            .spawn_blocking(move || state.write().insert_account(address, account_info))
             .await
             .unwrap()
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
@@ -320,8 +316,8 @@ impl State {
 
         let (deferred, promise) = env.create_deferred()?;
         let state = self.state.clone();
-        runtime::Handle::current().spawn(async move {
-            let mut state = state.write().await;
+        runtime::Handle::current().spawn_blocking(move || {
+            let mut state = state.write();
 
             let result = state
                 .modify_account(
@@ -385,10 +381,7 @@ impl State {
 
         let state = self.state.clone();
         runtime::Handle::current()
-            .spawn(async move {
-                let mut state = state.write().await;
-                state.remove_account(address)
-            })
+            .spawn_blocking(move || state.write().remove_account(address))
             .await
             .unwrap()
             .map_or_else(
@@ -403,10 +396,7 @@ impl State {
     pub async fn serialize(&self) -> String {
         let state = self.state.clone();
         runtime::Handle::current()
-            .spawn(async move {
-                let state = state.read().await;
-                state.serialize()
-            })
+            .spawn_blocking(move || state.read().serialize())
             .await
             .unwrap()
     }
@@ -427,9 +417,10 @@ impl State {
 
         let state = self.state.clone();
         runtime::Handle::current()
-            .spawn(async move {
-                let mut state = state.write().await;
-                state.set_account_storage_slot(address, index, value)
+            .spawn_blocking(move || {
+                state
+                    .write()
+                    .set_account_storage_slot(address, index, value)
             })
             .await
             .unwrap()

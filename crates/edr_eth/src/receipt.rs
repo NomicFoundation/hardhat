@@ -453,7 +453,7 @@ mod tests {
                                 cumulative_gas_used: receipt.inner.inner.cumulative_gas_used,
                                 logs_bloom: receipt.inner.inner.logs_bloom,
                                 logs: receipt.inner.inner.logs.into_iter().map(|log| {
-                                    let log = log.inner.inner;
+                                    let log = log.inner.inner.inner.clone();
                                     Log {
                                         address: log.address,
                                         topics: log.topics,

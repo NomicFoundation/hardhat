@@ -707,6 +707,7 @@ name = "edr_eth"
 version = "0.2.0-dev"
 dependencies = [
  "anyhow",
+ "assert-json-diff",
  "edr_test_utils",
  "ethbloom",
  "futures",
@@ -743,7 +744,6 @@ name = "edr_evm"
 version = "0.2.0-dev"
 dependencies = [
  "async-rwlock",
- "async-trait",
  "auto_impl",
  "cita_trie",
  "criterion",
@@ -774,7 +774,6 @@ dependencies = [
 name = "edr_napi"
 version = "0.2.0-dev"
 dependencies = [
- "async-trait",
  "crossbeam-channel",
  "edr_defaults",
  "edr_eth",

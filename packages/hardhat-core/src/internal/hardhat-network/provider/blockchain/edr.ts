@@ -101,7 +101,7 @@ export class EdrBlockchain implements BlockchainAdapter {
       ) {
         continue;
       }
-      const receipts = await block.receipts();
+      const receipts = block.receipts;
       for (const receipt of receipts) {
         logs.push(
           ...filterLogs(

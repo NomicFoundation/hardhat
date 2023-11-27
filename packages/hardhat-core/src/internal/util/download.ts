@@ -48,7 +48,7 @@ export async function download(
   });
 
   if (response.statusCode >= 200 && response.statusCode <= 299) {
-    const responseBody = await response.body.arrayBuffer();
+    const responseBody = Buffer.from(await response.body.arrayBuffer());
     const tmpFilePath = resolveTempFileName(filePath);
     await fsExtra.ensureDir(path.dirname(filePath));
 

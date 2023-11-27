@@ -3,7 +3,7 @@ use edr_evm::{blockchain::BlockchainError, MineBlockResult};
 
 use crate::{data::ProviderData, ProviderError};
 
-pub fn handle_evm_increase_time_request(
+pub fn handle_increase_time_request(
     data: &mut ProviderData,
     increment: U64OrUsize,
 ) -> Result<String, ProviderError> {
@@ -13,23 +13,41 @@ pub fn handle_evm_increase_time_request(
     Ok(new_block_time.to_string())
 }
 
-pub async fn handle_evm_mine_request(
+pub fn handle_mine_request(
     data: &mut ProviderData,
     timestamp: Option<U64OrUsize>,
 ) -> Result<String, ProviderError> {
     let timestamp: Option<u64> = timestamp.map(U64OrUsize::into);
-    let mine_block_result = data.mine_and_commit_block(timestamp).await?;
+    let mine_block_result = data.mine_and_commit_block(timestamp)?;
 
     log_block(&mine_block_result)?;
 
     Ok(String::from("0"))
 }
 
-pub async fn handle_evm_set_next_block_timestamp(
+pub fn handle_set_automine_request(
+    data: &mut ProviderData,
+    automine: bool,
+) -> Result<bool, ProviderError> {
+    data.set_auto_mining(automine);
+
+    Ok(true)
+}
+
+pub fn handle_set_block_gas_limit_request(
+    data: &mut ProviderData,
+    gas_limit: u64,
+) -> Result<bool, ProviderError> {
+    data.set_block_gas_limit(gas_limit)?;
+
+    Ok(true)
+}
+
+pub fn handle_set_next_block_timestamp_request(
     data: &mut ProviderData,
     timestamp: U64OrUsize,
 ) -> Result<String, ProviderError> {
-    let new_timestamp = data.set_next_block_timestamp(timestamp.into()).await?;
+    let new_timestamp = data.set_next_block_timestamp(timestamp.into())?;
 
     // This RPC call is an exception: it returns a number as a string decimal
     Ok(new_timestamp.to_string())

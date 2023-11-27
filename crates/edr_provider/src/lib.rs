@@ -9,18 +9,12 @@ mod requests;
 pub mod test_utils;
 
 use data::{CreationError, ProviderData};
-use requests::{
-    eth::{self, handle_evm_mine_request},
-    hardhat,
-};
-use tokio::{runtime, sync::Mutex};
+use parking_lot::Mutex;
+use requests::{eth, hardhat};
+use tokio::runtime;
 
 use self::requests::{EthRequest, Request};
-pub use self::{
-    config::{AccountConfig, ProviderConfig},
-    error::ProviderError,
-    requests::ProviderRequest,
-};
+pub use self::{config::*, error::ProviderError, requests::ProviderRequest};
 
 /// A JSON-RPC provider for Ethereum.
 ///
@@ -69,48 +63,48 @@ impl Provider {
         })
     }
 
-    pub async fn handle_request(
+    pub fn handle_request(
         &self,
         request: ProviderRequest,
     ) -> Result<serde_json::Value, ProviderError> {
-        let mut data = self.data.lock().await;
+        let mut data = self.data.lock();
 
         // TODO: resolve deserialization defaults using data
         // Will require changes to `ProviderRequest` to receive `json_serde::Value`
 
         match request {
-            ProviderRequest::Single(request) => handle_single_request(&mut data, request).await,
-            ProviderRequest::Batch(requests) => handle_batch_request(&mut data, requests).await,
+            ProviderRequest::Single(request) => handle_single_request(&mut data, request),
+            ProviderRequest::Batch(requests) => handle_batch_request(&mut data, requests),
         }
     }
 }
 
 /// Handles a JSON request for an execution provider.
-async fn handle_single_request(
+fn handle_single_request(
     data: &mut ProviderData,
     request: Request,
 ) -> Result<serde_json::Value, ProviderError> {
     match request {
-        Request::Eth(request) => handle_eth_request(data, request).await,
-        Request::Hardhat(request) => handle_hardhat_request(data, request).await,
+        Request::Eth(request) => handle_eth_request(data, request),
+        Request::Hardhat(request) => handle_hardhat_request(data, request),
     }
 }
 
 /// Handles a batch of JSON requests for an execution provider.
-async fn handle_batch_request(
+fn handle_batch_request(
     data: &mut ProviderData,
     request: Vec<Request>,
 ) -> Result<serde_json::Value, ProviderError> {
     let mut results = Vec::new();
 
     for req in request {
-        results.push(handle_single_request(data, req).await?);
+        results.push(handle_single_request(data, req)?);
     }
 
     serde_json::to_value(results).map_err(ProviderError::Serialization)
 }
 
-async fn handle_eth_request(
+fn handle_eth_request(
     data: &mut ProviderData,
     request: EthRequest,
 ) -> Result<serde_json::Value, ProviderError> {
@@ -118,19 +112,15 @@ async fn handle_eth_request(
     #[allow(clippy::match_same_arms)]
     match request {
         EthRequest::Accounts() => eth::handle_accounts_request(data).and_then(to_json),
-        EthRequest::BlockNumber() => eth::handle_block_number_request(data)
-            .await
-            .and_then(to_json),
+        EthRequest::BlockNumber() => eth::handle_block_number_request(data).and_then(to_json),
         EthRequest::Call(_, _) => Err(ProviderError::Unimplemented("".to_string())),
-        EthRequest::ChainId() => eth::handle_chain_id_request(data).await.and_then(to_json),
+        EthRequest::ChainId() => eth::handle_chain_id_request(data).and_then(to_json),
         EthRequest::Coinbase() => eth::handle_coinbase_request(data).and_then(to_json),
         EthRequest::EstimateGas(_, _) => Err(ProviderError::Unimplemented("".to_string())),
         EthRequest::FeeHistory(_, _, _) => Err(ProviderError::Unimplemented("".to_string())),
         EthRequest::GasPrice() => Err(ProviderError::Unimplemented("".to_string())),
         EthRequest::GetBalance(address, block_spec) => {
-            eth::handle_get_balance_request(data, address, block_spec)
-                .await
-                .and_then(to_json)
+            eth::handle_get_balance_request(data, address, block_spec).and_then(to_json)
         }
         EthRequest::GetBlockByNumber(_, _) => Err(ProviderError::Unimplemented("".to_string())),
         EthRequest::GetBlockByHash(_, _) => Err(ProviderError::Unimplemented("".to_string())),
@@ -141,9 +131,7 @@ async fn handle_eth_request(
             Err(ProviderError::Unimplemented("".to_string()))
         }
         EthRequest::GetCode(address, block_spec) => {
-            eth::handle_get_code_request(data, address, block_spec)
-                .await
-                .and_then(to_json)
+            eth::handle_get_code_request(data, address, block_spec).and_then(to_json)
         }
         EthRequest::GetFilterChanges(filter_id) => {
             eth::handle_get_filter_changes_request(data, filter_id).and_then(to_json)
@@ -153,31 +141,25 @@ async fn handle_eth_request(
         }
         EthRequest::GetLogs(_) => Err(ProviderError::Unimplemented("".to_string())),
         EthRequest::GetStorageAt(address, index, block_spec) => {
-            eth::handle_get_storage_at_request(data, address, index, block_spec)
-                .await
-                .and_then(to_json)
+            eth::handle_get_storage_at_request(data, address, index, block_spec).and_then(to_json)
         }
         EthRequest::GetTransactionByBlockHashAndIndex(block_hash, index) => {
             eth::handle_get_transaction_by_block_hash_and_index(data, block_hash, index)
-                .await
                 .and_then(to_json)
         }
         EthRequest::GetTransactionByBlockNumberAndIndex(block_spec, index) => {
             eth::handle_get_transaction_by_block_spec_and_index(data, block_spec, index)
-                .await
                 .and_then(to_json)
         }
         EthRequest::GetTransactionByHash(transaction_hash) => {
-            eth::handle_get_transaction_by_hash(data, transaction_hash)
-                .await
-                .and_then(to_json)
+            eth::handle_get_transaction_by_hash(data, transaction_hash).and_then(to_json)
         }
         EthRequest::GetTransactionCount(address, block_spec) => {
-            eth::handle_get_transaction_count_request(data, address, block_spec)
-                .await
-                .and_then(to_json)
+            eth::handle_get_transaction_count_request(data, address, block_spec).and_then(to_json)
         }
-        EthRequest::GetTransactionReceipt(_) => Err(ProviderError::Unimplemented("".to_string())),
+        EthRequest::GetTransactionReceipt(transaction_hash) => {
+            eth::handle_get_transaction_receipt(data, transaction_hash).and_then(to_json)
+        }
         EthRequest::Mining() => Err(ProviderError::Unimplemented("".to_string())),
         EthRequest::NetListening() => eth::handle_net_listening_request().and_then(to_json),
         EthRequest::NetPeerCount() => eth::handle_net_peer_count_request().and_then(to_json),
@@ -211,23 +193,26 @@ async fn handle_eth_request(
         }
         EthRequest::Web3Sha3(message) => eth::handle_web3_sha3_request(message).and_then(to_json),
         EthRequest::EvmIncreaseTime(increment) => {
-            eth::handle_evm_increase_time_request(data, increment).and_then(to_json)
+            eth::handle_increase_time_request(data, increment).and_then(to_json)
         }
-        EthRequest::EvmMine(timestamp) => handle_evm_mine_request(data, timestamp)
-            .await
-            .and_then(to_json),
-        EthRequest::EvmSetAutomine(_) => Err(ProviderError::Unimplemented("".to_string())),
+        EthRequest::EvmMine(timestamp) => {
+            eth::handle_mine_request(data, timestamp).and_then(to_json)
+        }
+        EthRequest::EvmSetAutomine(enabled) => {
+            eth::handle_set_automine_request(data, enabled).and_then(to_json)
+        }
+        EthRequest::EvmSetBlockGasLimit(gas_limit) => {
+            eth::handle_set_block_gas_limit_request(data, gas_limit).and_then(to_json)
+        }
         EthRequest::EvmSetIntervalMining(_) => Err(ProviderError::Unimplemented("".to_string())),
         EthRequest::EvmSetNextBlockTimestamp(timestamp) => {
-            eth::handle_evm_set_next_block_timestamp(data, timestamp)
-                .await
-                .and_then(to_json)
+            eth::handle_set_next_block_timestamp_request(data, timestamp).and_then(to_json)
         }
         EthRequest::EvmSnapshot() => Err(ProviderError::Unimplemented("".to_string())),
     }
 }
 
-async fn handle_hardhat_request(
+fn handle_hardhat_request(
     data: &mut ProviderData,
     request: rpc_hardhat::Request,
 ) -> Result<serde_json::Value, ProviderError> {
@@ -240,49 +225,50 @@ async fn handle_hardhat_request(
         rpc_hardhat::Request::DropTransaction(_) => {
             Err(ProviderError::Unimplemented("".to_string()))
         }
-        rpc_hardhat::Request::GetAutomine() => Err(ProviderError::Unimplemented("".to_string())),
+        rpc_hardhat::Request::GetAutomine() => {
+            hardhat::handle_get_automine_request(data).and_then(to_json)
+        }
         rpc_hardhat::Request::GetStackTraceFailuresCount() => {
             Err(ProviderError::Unimplemented("".to_string()))
         }
         rpc_hardhat::Request::ImpersonateAccount(address) => {
             hardhat::handle_impersonate_account_request(data, address).and_then(to_json)
         }
-        rpc_hardhat::Request::IntervalMine() => hardhat::handle_interval_mine_request(data)
-            .await
-            .and_then(to_json),
-        rpc_hardhat::Request::Metadata() => Err(ProviderError::Unimplemented("".to_string())),
+        rpc_hardhat::Request::IntervalMine() => {
+            hardhat::handle_interval_mine_request(data).and_then(to_json)
+        }
+        rpc_hardhat::Request::Metadata() => {
+            hardhat::handle_metadata_request(data).and_then(to_json)
+        }
         rpc_hardhat::Request::Mine(_, _) => Err(ProviderError::Unimplemented("".to_string())),
         rpc_hardhat::Request::Reset(_) => Err(ProviderError::Unimplemented("".to_string())),
         rpc_hardhat::Request::SetBalance(address, balance) => {
-            hardhat::handle_set_balance(data, address, balance)
-                .await
-                .and_then(to_json)
+            hardhat::handle_set_balance(data, address, balance).and_then(to_json)
         }
         rpc_hardhat::Request::SetCode(address, code) => {
-            hardhat::handle_set_code(data, address, code)
-                .await
-                .and_then(to_json)
+            hardhat::handle_set_code(data, address, code).and_then(to_json)
         }
-        rpc_hardhat::Request::SetCoinbase(_) => Err(ProviderError::Unimplemented("".to_string())),
+        rpc_hardhat::Request::SetCoinbase(coinbase) => {
+            hardhat::handle_set_coinbase_request(data, coinbase).and_then(to_json)
+        }
         rpc_hardhat::Request::SetLoggingEnabled(_) => {
             Err(ProviderError::Unimplemented("".to_string()))
         }
         rpc_hardhat::Request::SetMinGasPrice(_) => {
             Err(ProviderError::Unimplemented("".to_string()))
         }
-        rpc_hardhat::Request::SetNextBlockBaseFeePerGas(_) => {
-            Err(ProviderError::Unimplemented("".to_string()))
+        rpc_hardhat::Request::SetNextBlockBaseFeePerGas(base_fee_per_gas) => {
+            hardhat::handle_set_next_block_base_fee_per_gas_request(data, base_fee_per_gas)
+                .and_then(to_json)
         }
         rpc_hardhat::Request::SetNonce(address, nonce) => {
-            hardhat::handle_set_nonce(data, address, nonce)
-                .await
-                .and_then(to_json)
+            hardhat::handle_set_nonce(data, address, nonce).and_then(to_json)
         }
-        rpc_hardhat::Request::SetPrevRandao(_) => Err(ProviderError::Unimplemented("".to_string())),
+        rpc_hardhat::Request::SetPrevRandao(prev_randao) => {
+            hardhat::handle_set_prev_randao_request(data, prev_randao).and_then(to_json)
+        }
         rpc_hardhat::Request::SetStorageAt(address, index, value) => {
-            hardhat::handle_set_storage_at(data, address, index, value)
-                .await
-                .and_then(to_json)
+            hardhat::handle_set_storage_at(data, address, index, value).and_then(to_json)
         }
         rpc_hardhat::Request::StopImpersonatingAccount(address) => {
             hardhat::handle_stop_impersonating_account_request(data, address).and_then(to_json)

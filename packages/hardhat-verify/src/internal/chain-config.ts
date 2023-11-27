@@ -107,6 +107,14 @@ export const builtinChains: ChainConfig[] = [
     },
   },
   {
+    network: "polygonZkEVM",
+    chainId: 1101,
+    urls: {
+      apiURL: "https://api-zkevm.polygonscan.com/api",
+      browserURL: "https://zkevm.polygonscan.com",
+    },
+  },
+  {
     network: "moonbeam",
     chainId: 1284,
     urls: {
@@ -128,6 +136,14 @@ export const builtinChains: ChainConfig[] = [
     urls: {
       apiURL: "https://api-moonbase.moonscan.io/api",
       browserURL: "https://moonbase.moonscan.io/",
+    },
+  },
+  {
+    network: "polygonZkEVMTestnet",
+    chainId: 1442,
+    urls: {
+      apiURL: "https://api-testnet-zkevm.polygonscan.com/api",
+      browserURL: "https://testnet-zkevm.polygonscan.com",
     },
   },
   {

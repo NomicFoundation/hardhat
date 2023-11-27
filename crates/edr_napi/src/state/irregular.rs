@@ -4,9 +4,11 @@ use edr_eth::{Address, B256, U256};
 use edr_evm::{state::StateOverride, AccountInfo, StorageSlot};
 use napi::{
     bindgen_prelude::{BigInt, Buffer},
-    tokio::sync::RwLock,
+    tokio::runtime,
+    Status,
 };
 use napi_derive::napi;
+use parking_lot::RwLock;
 
 use crate::{account::Account, cast::TryCast};
 
@@ -35,11 +37,19 @@ impl IrregularState {
 
     #[napi]
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub async fn deep_clone(&self) -> Self {
-        let irregular_state = (*self.inner.read().await).clone();
-        Self {
-            inner: Arc::new(RwLock::new(irregular_state)),
-        }
+    pub async fn deep_clone(&self) -> napi::Result<IrregularState> {
+        let irregular_state = self.inner.clone();
+
+        runtime::Handle::current()
+            .spawn_blocking(move || {
+                let irregular_state = irregular_state.read().clone();
+
+                Self {
+                    inner: Arc::new(RwLock::new(irregular_state)),
+                }
+            })
+            .await
+            .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))
     }
 
     #[doc = "Applies a single change to this instance, combining it with any existing change."]
@@ -62,22 +72,27 @@ impl IrregularState {
             })
             .collect::<napi::Result<_>>()?;
 
-        let mut irregular_state = self.inner.write().await;
+        let irregular_state = self.inner.clone();
 
-        let state_override = irregular_state
-            .state_override_at_block_number(block_number)
-            .and_modify(|state_override| {
-                state_override.state_root = state_root;
+        runtime::Handle::current()
+            .spawn_blocking(move || {
+                let mut irregular_state = irregular_state.write();
+
+                let state_override = irregular_state
+                    .state_override_at_block_number(block_number)
+                    .and_modify(|state_override| {
+                        state_override.state_root = state_root;
+                    })
+                    .or_insert_with(|| StateOverride::with_state_root(state_root));
+
+                for (address, account_info) in changes {
+                    state_override
+                        .diff
+                        .apply_account_change(address, account_info);
+                }
             })
-            .or_insert_with(|| StateOverride::with_state_root(state_root));
-
-        for (address, account_info) in changes {
-            state_override
-                .diff
-                .apply_account_change(address, account_info);
-        }
-
-        Ok(())
+            .await
+            .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))
     }
 
     #[doc = "Applies a storage change for the block corresponding to the specified block number."]
@@ -106,16 +121,21 @@ impl IrregularState {
 
         let slot = StorageSlot::new_changed(old_value, new_value);
 
-        let mut irregular_state = self.inner.write().await;
-        irregular_state
-            .state_override_at_block_number(block_number)
-            .and_modify(|state_override| {
-                state_override.state_root = state_root;
-            })
-            .or_insert_with(|| StateOverride::with_state_root(state_root))
-            .diff
-            .apply_storage_change(address, index, slot, account_info);
+        let irregular_state = self.inner.clone();
 
-        Ok(())
+        runtime::Handle::current()
+            .spawn_blocking(move || {
+                irregular_state
+                    .write()
+                    .state_override_at_block_number(block_number)
+                    .and_modify(|state_override| {
+                        state_override.state_root = state_root;
+                    })
+                    .or_insert_with(|| StateOverride::with_state_root(state_root))
+                    .diff
+                    .apply_storage_change(address, index, slot, account_info);
+            })
+            .await
+            .map_err(|error| napi::Error::new(Status::GenericFailure, error.to_string()))
     }
 }
