@@ -19,6 +19,12 @@ jobs:
           chmod +x run-fixture-projects.sh
           ./run-fixture-projects.sh
         shell: bash
+      - name: Run test-project-initialization script
+        run: |
+          cd e2e
+          chmod +x test-project-initialization.sh
+          ./test-project-initialization.sh
+        shell: bash
   run-script-macos:
     runs-on: macos-latest
     steps:
@@ -32,6 +38,12 @@ jobs:
           chmod +x run-fixture-projects.sh
           ./run-fixture-projects.sh
         shell: bash
+      - name: Run test-project-initialization script
+        run: |
+          cd e2e
+          chmod +x test-project-initialization.sh
+          ./test-project-initialization.sh
+        shell: bash
   run-script-windows:
     runs-on: windows-latest
     steps:
@@ -44,4 +56,10 @@ jobs:
           cd e2e
           chmod +x run-fixture-projects.sh
           ./run-fixture-projects.sh
+        shell: bash
+      - name: Run test-project-initialization script
+        run: |
+          cd e2e
+          chmod +x test-project-initialization.sh
+          ./test-project-initialization.sh
         shell: bash
