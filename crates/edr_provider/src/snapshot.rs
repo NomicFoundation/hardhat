@@ -1,9 +1,9 @@
 use std::time::Instant;
 
-use edr_eth::{Address, B256, U256};
+use edr_eth::{Address, U256};
 use edr_evm::{
     state::{IrregularState, StateError, SyncState},
-    MemPool,
+    MemPool, RandomHashGenerator,
 };
 
 pub struct Snapshot {
@@ -14,7 +14,7 @@ pub struct Snapshot {
     pub mem_pool: MemPool,
     pub next_block_base_fee_per_gas: Option<U256>,
     pub next_block_timestamp: Option<u64>,
-    pub next_prev_randao: B256,
+    pub prev_randao_generator: RandomHashGenerator,
     pub state: Box<dyn SyncState<StateError>>,
     pub time: Instant,
 }

@@ -94,7 +94,7 @@ impl ProviderData {
             fork_metadata,
         } = create_blockchain_and_state(runtime, config, genesis_accounts).await?;
 
-        let prevrandao_generator = RandomHashGenerator::with_seed("randomMixHashSeed");
+        let prev_randao_generator = RandomHashGenerator::with_seed("randomMixHashSeed");
 
         Ok(Self {
             blockchain,
@@ -105,7 +105,7 @@ impl ProviderData {
             beneficiary: config.coinbase,
             // TODO: Add config option (https://github.com/NomicFoundation/edr/issues/111)
             min_gas_price: U256::from(1),
-            prev_randao_generator: prevrandao_generator,
+            prev_randao_generator,
             block_time_offset_seconds: block_time_offset_seconds(config)?,
             fork_metadata,
             instance_id: B256::random(),
@@ -319,7 +319,7 @@ impl ProviderData {
             mem_pool: self.mem_pool.clone(),
             next_block_base_fee_per_gas: self.next_block_base_fee_per_gas,
             next_block_timestamp: self.next_block_timestamp,
-            next_prev_randao: self.prev_randao_generator.seed(),
+            prev_randao_generator: self.prev_randao_generator.clone(),
             state: self.state.clone(),
             time: Instant::now(),
         };
@@ -408,9 +408,7 @@ impl ProviderData {
             self.mem_pool = snapshot.mem_pool;
             self.next_block_base_fee_per_gas = snapshot.next_block_base_fee_per_gas;
             self.next_block_timestamp = snapshot.next_block_timestamp;
-            self.prev_randao_generator
-                .set_next(snapshot.next_prev_randao);
-
+            self.prev_randao_generator = snapshot.prev_randao_generator;
             self.state = snapshot.state;
 
             true
