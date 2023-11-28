@@ -1,5 +1,5 @@
 {
-  "name": "minimal",
+  "name": "compile-fails",
   "dependencies": {
     "hardhat": "file:../../../packages/hardhat-core/hardhat-2.19.1.tgz"
   }
