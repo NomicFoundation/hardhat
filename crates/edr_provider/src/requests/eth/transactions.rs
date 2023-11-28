@@ -193,6 +193,21 @@ fn resolve_transaction_request(
     data: &ProviderData,
     transaction_request: EthTransactionRequest,
 ) -> Result<TransactionRequestAndSender, ProviderError> {
+    const DEFAULT_MAX_PRIORITY_FEE_PER_GAS: u64 = 1_000_000_000;
+
+    /// # Panics
+    ///
+    /// Panics if `data.spec_id()` is less than `SpecId::LONDON`.
+    fn calculate_max_fee_per_gas(
+        data: &ProviderData,
+        max_priority_fee_per_gas: U256,
+    ) -> Result<U256, BlockchainError> {
+        let base_fee_per_gas = data
+            .next_block_base_fee_per_gas()?
+            .expect("We already validated that the block is post-London.");
+        Ok(U256::from(2) * base_fee_per_gas + max_priority_fee_per_gas)
+    }
+
     let EthTransactionRequest {
         from,
         to,
@@ -203,51 +218,51 @@ fn resolve_transaction_request(
         value,
         data: input,
         nonce,
-        mut access_list,
+        access_list,
         ..
     } = transaction_request;
 
     let gas_limit = gas.unwrap_or_else(|| data.block_gas_limit());
     let input = input.unwrap_or_default();
-    let nonce = nonce.unwrap_or_else(|| data.account_last_pending_nonce(&from).unwrap_or(0));
+    let nonce = nonce.map_or_else(|| data.account_next_nonce(&from), Ok)?;
     let value = value.unwrap_or(U256::ZERO);
 
-    let request = match (gas_price, max_fee_per_gas, access_list.take()) {
-        // legacy transaction
-        (Some(_), None, None) => Some(TransactionRequest::Legacy(LegacyTransactionRequest {
-            nonce,
-            gas_price: gas_price.unwrap_or_default(),
-            gas_limit,
-            value,
-            input,
-            kind: match to {
-                Some(to) => TransactionKind::Call(to),
-                None => TransactionKind::Create,
-            },
-        })),
-        // EIP2930
-        (_, None, Some(access_list)) => {
-            Some(TransactionRequest::Eip2930(Eip2930TransactionRequest {
+    let request = match (
+        gas_price,
+        max_fee_per_gas,
+        max_priority_fee_per_gas,
+        access_list,
+    ) {
+        (None, max_fee_per_gas, max_priority_fee_per_gas, access_list)
+            if data.spec_id() >= SpecId::LONDON
+                && (max_fee_per_gas.is_some() || max_priority_fee_per_gas.is_some()) =>
+        {
+            let (max_fee_per_gas, max_priority_fee_per_gas) =
+                match (max_fee_per_gas, max_priority_fee_per_gas) {
+                    (Some(max_fee_per_gas), Some(max_priority_fee_per_gas)) => {
+                        (max_fee_per_gas, max_priority_fee_per_gas)
+                    }
+                    (Some(max_fee_per_gas), None) => (
+                        max_fee_per_gas,
+                        max_fee_per_gas.min(U256::from(DEFAULT_MAX_PRIORITY_FEE_PER_GAS)),
+                    ),
+                    (None, Some(max_priority_fee_per_gas)) => {
+                        let max_fee_per_gas =
+                            calculate_max_fee_per_gas(data, max_priority_fee_per_gas)?;
+                        (max_fee_per_gas, max_priority_fee_per_gas)
+                    }
+                    (None, None) => {
+                        let max_priority_fee_per_gas = U256::from(DEFAULT_MAX_PRIORITY_FEE_PER_GAS);
+                        let max_fee_per_gas =
+                            calculate_max_fee_per_gas(data, max_priority_fee_per_gas)?;
+                        (max_fee_per_gas, max_priority_fee_per_gas)
+                    }
+                };
+
+            TransactionRequest::Eip1559(Eip1559TransactionRequest {
                 nonce,
-                gas_price: gas_price.unwrap_or_default(),
-                gas_limit,
-                value,
-                input,
-                kind: match to {
-                    Some(to) => TransactionKind::Call(to),
-                    None => TransactionKind::Create,
-                },
-                chain_id: 0,
-                access_list,
-            }))
-        }
-        // EIP1559
-        (None, Some(_), access_list) | (None, None, access_list @ None) => {
-            // Empty fields fall back to the canonical transaction schema.
-            Some(TransactionRequest::Eip1559(Eip1559TransactionRequest {
-                nonce,
-                max_fee_per_gas: max_fee_per_gas.unwrap_or_default(),
-                max_priority_fee_per_gas: max_priority_fee_per_gas.unwrap_or(U256::ZERO),
+                max_priority_fee_per_gas,
+                max_fee_per_gas,
                 gas_limit,
                 value,
                 input,
@@ -257,15 +272,38 @@ fn resolve_transaction_request(
                 },
                 chain_id: 0,
                 access_list: access_list.unwrap_or_default(),
-            }))
+            })
         }
-        _ => None,
+        (gas_price, _, _, Some(access_list)) => {
+            TransactionRequest::Eip2930(Eip2930TransactionRequest {
+                nonce,
+                gas_price: gas_price.map_or_else(|| data.next_gas_price(), Ok)?,
+                gas_limit,
+                value,
+                input,
+                kind: match to {
+                    Some(to) => TransactionKind::Call(to),
+                    None => TransactionKind::Create,
+                },
+                chain_id: 0,
+                access_list,
+            })
+        }
+        (gas_price, _, _, _) => TransactionRequest::Legacy(LegacyTransactionRequest {
+            nonce,
+            gas_price: gas_price.map_or_else(|| data.next_gas_price(), Ok)?,
+            gas_limit,
+            value,
+            input,
+            kind: match to {
+                Some(to) => TransactionKind::Call(to),
+                None => TransactionKind::Create,
+            },
+        }),
     };
 
-    request
-        .ok_or_else(|| ProviderError::InvalidTransactionRequest)
-        .map(|request| TransactionRequestAndSender {
-            request,
-            sender: from,
-        })
+    Ok(TransactionRequestAndSender {
+        request,
+        sender: from,
+    })
 }

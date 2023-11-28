@@ -21,7 +21,7 @@ use edr_evm::{
         Blockchain, BlockchainError, ForkedBlockchain, ForkedCreationError, LocalBlockchain,
         LocalCreationError, SyncBlockchain,
     },
-    mine_block,
+    calculate_next_base_fee, mempool, mine_block,
     state::{AccountModifierFn, IrregularState, StateDiff, StateError, StateOverride, SyncState},
     Account, AccountInfo, Block, Bytecode, CfgEnv, HashMap, HashSet, MemPool, MineBlockResult,
     MineBlockResultAndState, MineOrdering, PendingTransaction, RandomHashGenerator, StorageSlot,
@@ -121,8 +121,8 @@ impl ProviderData {
 
     /// Retrieves the last pending nonce of the account corresponding to the
     /// provided address, if it exists.
-    pub fn account_last_pending_nonce(&self, address: &Address) -> Option<u64> {
-        self.mem_pool.last_pending_nonce(address)
+    pub fn account_next_nonce(&self, address: &Address) -> Result<u64, StateError> {
+        mempool::account_next_nonce(&self.mem_pool, &self.state, address)
     }
 
     pub fn accounts(&self) -> impl Iterator<Item = &Address> {
@@ -367,6 +367,39 @@ impl ProviderData {
             ),
         );
         filter_id
+    }
+
+    pub fn next_block_base_fee_per_gas(&self) -> Result<Option<U256>, BlockchainError> {
+        if self.spec_id() < SpecId::LONDON {
+            return Ok(None);
+        }
+
+        self.next_block_base_fee_per_gas
+            .map_or_else(
+                || {
+                    let last_block = self.last_block()?;
+
+                    let base_fee = last_block
+                        .header()
+                        .base_fee_per_gas
+                        .unwrap_or_else(|| calculate_next_base_fee(last_block.header()));
+
+                    Ok(base_fee)
+                },
+                Ok,
+            )
+            .map(Some)
+    }
+
+    /// Calculates the gas price for the next block.
+    pub fn next_gas_price(&self) -> Result<U256, BlockchainError> {
+        if let Some(next_block_base_fee_per_gas) = self.next_block_base_fee_per_gas()? {
+            let suggested_priority_fee_per_gas = U256::from(1_000_000_000u64);
+            Ok(next_block_base_fee_per_gas + suggested_priority_fee_per_gas)
+        } else {
+            // We return a hardcoded value for networks without EIP-1559
+            Ok(U256::from(8_000_000_000u64))
+        }
     }
 
     pub fn remove_filter(&mut self, filter_id: &U256) -> bool {
@@ -839,10 +872,10 @@ impl ProviderData {
     ) -> Result<(), ProviderError> {
         let TransactionRequestAndSender { request, sender } = transaction_request;
 
-        let last_pending_nonce = self.account_last_pending_nonce(sender).unwrap_or(0);
-        if request.nonce() > last_pending_nonce {
+        let next_nonce = self.account_next_nonce(sender)?;
+        if request.nonce() > next_nonce {
             return Err(ProviderError::AutoMineNonceTooHigh {
-                expected: last_pending_nonce,
+                expected: next_nonce,
                 actual: request.nonce(),
             });
         }
