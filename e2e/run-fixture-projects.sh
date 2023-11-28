@@ -39,5 +39,7 @@ for dir in ${FIXTURE_PROJECTS_DIR}/*; do
   fi
 done
 
+echo "\n[e2e] All tests passed\n"
+
 # remove the temporary directory
 rm -fr $FIXTURE_PROJECTS_DIR
