@@ -307,7 +307,7 @@ pub struct Block<TX> {
     /// the "extra data" field of this block
     #[serde(with = "crate::serde::bytes")]
     pub extra_data: Bytes,
-    /// the bloom filter for the logs of the block. None when its pending block.
+    /// the bloom filter for the logs of the block
     pub logs_bloom: Bloom,
     /// the unix timestamp for when the block was collated
     #[serde(with = "crate::serde::u64")]

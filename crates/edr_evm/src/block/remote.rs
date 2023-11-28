@@ -9,7 +9,7 @@ use edr_eth::{
     },
     transaction::SignedTransaction,
     withdrawal::Withdrawal,
-    Address, B256, B64,
+    Address, B256, B64, U256,
 };
 use tokio::runtime;
 
@@ -30,6 +30,9 @@ pub enum CreationError {
     /// Missing number
     #[error("Missing numbeer")]
     MissingNumber,
+    /// Size too large
+    #[error("Size too large: {0}")]
+    SizeTooLarge(U256),
     /// Transaction conversion error
     #[error(transparent)]
     TransactionConversionError(#[from] TransactionConversionError),
@@ -45,10 +48,13 @@ pub struct RemoteBlock {
     /// The receipts of the block's transactions
     receipts: OnceLock<Vec<Arc<BlockReceipt>>>,
     /// The hashes of the block's ommers
-    _ommers: Vec<B256>,
-    _withdrawals: Option<Vec<Withdrawal>>,
+    ommer_hashes: Vec<B256>,
+    /// The staking withdrawals
+    withdrawals: Option<Vec<Withdrawal>>,
     /// The block's hash
     hash: B256,
+    /// Integer size of this block in bytes
+    size: u64,
     // The RPC client is needed to lazily fetch receipts
     rpc_client: Arc<RpcClient>,
     runtime: runtime::Handle,
@@ -97,15 +103,21 @@ impl RemoteBlock {
 
         let hash = block.hash.ok_or(CreationError::MissingHash)?;
 
+        let size = block
+            .size
+            .try_into()
+            .map_err(|_err| CreationError::SizeTooLarge(block.size))?;
+
         Ok(Self {
             header,
             transactions,
             callers,
             receipts: OnceLock::new(),
-            _ommers: block.uncles,
-            _withdrawals: block.withdrawals,
+            ommer_hashes: block.uncles,
+            withdrawals: block.withdrawals,
             hash,
             rpc_client,
+            size,
             runtime,
         })
     }
@@ -120,6 +132,14 @@ impl Block for RemoteBlock {
 
     fn header(&self) -> &Header {
         &self.header
+    }
+
+    fn ommer_hashes(&self) -> &[B256] {
+        self.ommer_hashes.as_slice()
+    }
+
+    fn size(&self) -> u64 {
+        self.size
     }
 
     fn transactions(&self) -> &[SignedTransaction] {
@@ -152,6 +172,10 @@ impl Block for RemoteBlock {
             .expect("Receipts should not be set");
 
         Ok(receipts)
+    }
+
+    fn withdrawals(&self) -> Option<&[Withdrawal]> {
+        self.withdrawals.as_deref()
     }
 }
 

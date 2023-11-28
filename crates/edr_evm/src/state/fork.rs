@@ -206,7 +206,7 @@ mod tests {
         str::FromStr,
     };
 
-    use edr_eth::remote::BlockSpec;
+    use edr_eth::remote::PreEip1898BlockSpec;
     use edr_test_utils::env::get_alchemy_url;
 
     use super::*;
@@ -234,7 +234,7 @@ mod tests {
             let rpc_client = RpcClient::new(&get_alchemy_url(), tempdir.path().to_path_buf());
 
             let block = rpc_client
-                .get_block_by_number(BlockSpec::Number(FORK_BLOCK))
+                .get_block_by_number(PreEip1898BlockSpec::Number(FORK_BLOCK))
                 .await
                 .expect("failed to retrieve block by number")
                 .expect("block should exist");

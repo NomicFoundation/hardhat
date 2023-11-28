@@ -17,6 +17,10 @@ pub enum ProviderError {
     /// Block number or hash doesn't exist in blockchain
     #[error("Block number or block hash doesn't exist: '{0}'")]
     InvalidBlockNumberOrHash(BlockSpec),
+    /// The block tag is not allowed in pre-merge hardforks.
+    /// https://github.com/NomicFoundation/hardhat/blob/b84baf2d9f5d3ea897c06e0ecd5e7084780d8b6c/packages/hardhat-core/src/internal/hardhat-network/provider/modules/eth.ts#L1820
+    #[error("The '{block_spec}' block tag is not allowed in pre-merge hardforks. You are using the '{spec:?}' hardfork.")]
+    InvalidBlockTag { block_spec: BlockSpec, spec: SpecId },
     /// Invalid filter subscription type
     #[error("Subscription {filter_id} is not a {expected:?} subscription, but a {actual:?} subscription")]
     InvalidFilterSubscriptionType {

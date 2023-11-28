@@ -3,7 +3,7 @@ use std::clone::Clone;
 use std::sync::Arc;
 
 use criterion::{BatchSize, BenchmarkId, Criterion};
-use edr_eth::{Address, Bytes, U256};
+use edr_eth::{remote::PreEip1898BlockSpec, Address, Bytes, U256};
 #[cfg(all(test, feature = "test-remote"))]
 use edr_evm::state::ForkState;
 use edr_evm::state::{StateError, SyncState, TrieState};
@@ -41,7 +41,7 @@ impl EdrStates {
 
         #[cfg(all(test, feature = "test-remote"))]
         let fork = {
-            use edr_eth::remote::{BlockSpec, RpcClient};
+            use edr_eth::remote::RpcClient;
             use edr_evm::RandomHashGenerator;
             use parking_lot::Mutex;
 
@@ -54,7 +54,9 @@ impl EdrStates {
             ));
 
             let block = runtime
-                .block_on(rpc_client.get_block_by_number(BlockSpec::Number(fork_block_number)))
+                .block_on(
+                    rpc_client.get_block_by_number(PreEip1898BlockSpec::Number(fork_block_number)),
+                )
                 .expect("failed to retrieve block by number")
                 .expect("block should exist");
 
