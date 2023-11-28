@@ -10,6 +10,8 @@ echo "Running tests: $(basename "$(pwd)")"
 
 npx hardhat clean >stdout 2>stderr
 
+print_error_msg "---------------------- TMP"
+
 # the folder "artifacts" should not exist
 if [ -d "artifacts" ]; then
   print_error_msg "The directory 'artifacts' should not exist"
