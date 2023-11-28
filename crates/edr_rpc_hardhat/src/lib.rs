@@ -5,10 +5,7 @@ pub mod compiler;
 pub mod config;
 mod metadata;
 
-use edr_eth::{
-    serde::{sequence_to_single, single_to_sequence, ZeroXPrefixedBytes},
-    Address, B256, U256,
-};
+use edr_eth::{serde::ZeroXPrefixedBytes, Address, B256, U256};
 
 pub use self::metadata::{ForkMetadata, Metadata};
 use self::{
@@ -30,31 +27,29 @@ pub enum Request {
         CompilerOutput,
     ),
     /// hardhat_dropTransaction
-    #[serde(
-        rename = "hardhat_dropTransaction",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
-    )]
+    #[serde(rename = "hardhat_dropTransaction", with = "edr_eth::serde::sequence")]
     DropTransaction(B256),
     /// hardhat_getAutomine
-    #[serde(rename = "hardhat_getAutomine")]
-    GetAutomine(),
+    #[serde(rename = "hardhat_getAutomine", with = "edr_eth::serde::empty_params")]
+    GetAutomine(()),
     /// hardhat_getStackTraceFailuresCount
-    #[serde(rename = "hardhat_getStackTraceFailuresCount")]
-    GetStackTraceFailuresCount(),
+    #[serde(
+        rename = "hardhat_getStackTraceFailuresCount",
+        with = "edr_eth::serde::empty_params"
+    )]
+    GetStackTraceFailuresCount(()),
     /// hardhat_impersonateAccount
     #[serde(
         rename = "hardhat_impersonateAccount",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
+        with = "edr_eth::serde::sequence"
     )]
     ImpersonateAccount(Address),
     /// hardhat_intervalMine
-    #[serde(rename = "hardhat_intervalMine")]
-    IntervalMine(),
+    #[serde(rename = "hardhat_intervalMine", with = "edr_eth::serde::empty_params")]
+    IntervalMine(()),
     /// hardhat_metadata
-    #[serde(rename = "hardhat_metadata")]
-    Metadata(),
+    #[serde(rename = "hardhat_metadata", with = "edr_eth::serde::empty_params")]
+    Metadata(()),
     /// hardhat_mine
     #[serde(rename = "hardhat_mine")]
     Mine(
@@ -70,11 +65,7 @@ pub enum Request {
         Option<u64>,
     ),
     /// hardhat_reset
-    #[serde(
-        rename = "hardhat_reset",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
-    )]
+    #[serde(rename = "hardhat_reset", with = "edr_eth::serde::sequence")]
     Reset(Option<ResetProviderConfig>),
     /// hardhat_setBalance
     #[serde(rename = "hardhat_setBalance")]
@@ -83,42 +74,28 @@ pub enum Request {
     #[serde(rename = "hardhat_setCode")]
     SetCode(Address, ZeroXPrefixedBytes),
     /// hardhat_setCoinbase
-    #[serde(
-        rename = "hardhat_setCoinbase",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
-    )]
+    #[serde(rename = "hardhat_setCoinbase", with = "edr_eth::serde::sequence")]
     SetCoinbase(Address),
     /// hardhat_setLoggingEnabled
     #[serde(
         rename = "hardhat_setLoggingEnabled",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
+        with = "edr_eth::serde::sequence"
     )]
     SetLoggingEnabled(bool),
     /// hardhat_setMinGasPrice
-    #[serde(
-        rename = "hardhat_setMinGasPrice",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
-    )]
+    #[serde(rename = "hardhat_setMinGasPrice", with = "edr_eth::serde::sequence")]
     SetMinGasPrice(U256),
     /// hardhat_setNextBlockBaseFeePerGas
     #[serde(
         rename = "hardhat_setNextBlockBaseFeePerGas",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
+        with = "edr_eth::serde::sequence"
     )]
     SetNextBlockBaseFeePerGas(U256),
     /// hardhat_setNonce
     #[serde(rename = "hardhat_setNonce")]
     SetNonce(Address, #[serde(with = "edr_eth::serde::u64")] u64),
     /// hardhat_setPrevRandao
-    #[serde(
-        rename = "hardhat_setPrevRandao",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
-    )]
+    #[serde(rename = "hardhat_setPrevRandao", with = "edr_eth::serde::sequence")]
     SetPrevRandao(B256),
     /// hardhat_setStorageAt
     #[serde(rename = "hardhat_setStorageAt")]
@@ -126,8 +103,7 @@ pub enum Request {
     /// hardhat_stopImpersonatingAccount
     #[serde(
         rename = "hardhat_stopImpersonatingAccount",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
+        with = "edr_eth::serde::sequence"
     )]
     StopImpersonatingAccount(Address),
 }

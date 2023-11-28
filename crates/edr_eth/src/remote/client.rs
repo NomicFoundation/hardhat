@@ -623,7 +623,7 @@ impl RpcClient {
     /// Calls `eth_blockNumber` and returns the block number.
     pub async fn block_number(&self) -> Result<u64, RpcClientError> {
         let block_number = self
-            .call_without_cache::<U64>(MethodInvocation::BlockNumber())
+            .call_without_cache::<U64>(MethodInvocation::BlockNumber(()))
             .await?
             .as_limbs()[0];
 
@@ -654,7 +654,7 @@ impl RpcClient {
         let chain_id = *self
             .chain_id
             .get_or_try_init(|| async {
-                self.call_without_cache::<U64>(MethodInvocation::ChainId())
+                self.call_without_cache::<U64>(MethodInvocation::ChainId(()))
                     .await
                     .map(|chain_id| chain_id.as_limbs()[0])
             })
@@ -818,7 +818,7 @@ impl RpcClient {
 
     /// Calls `net_version`.
     pub async fn network_id(&self) -> Result<u64, RpcClientError> {
-        self.call::<U64>(MethodInvocation::NetVersion())
+        self.call::<U64>(MethodInvocation::NetVersion(()))
             .await
             .map(|network_id| network_id.as_limbs()[0])
     }

@@ -53,9 +53,6 @@ describe("Eth module", function () {
       setCWD();
       useProvider();
 
-      const getFirstBlock = async () =>
-        retrieveLatestBlockNumber(this.ctx.hardhatNetworkProvider);
-
       describe("eth_call", async function () {
         describe("when called without blockTag param", () => {
           it("Should return the value returned by the contract", async function () {
@@ -127,7 +124,9 @@ describe("Eth module", function () {
           });
 
           it("Should be run in the context of the last block", async function () {
-            const firstBlock = await getFirstBlock();
+            const firstBlockNumber = rpcQuantityToNumber(
+              await this.provider.send("eth_blockNumber")
+            );
             const timestamp = getCurrentTimestamp() + 60;
             await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
 
@@ -143,7 +142,7 @@ describe("Eth module", function () {
               },
             ]);
 
-            assert.equal(rpcDataToNumber(blockResult), firstBlock + 1);
+            assert.equal(rpcDataToNumber(blockResult), firstBlockNumber + 1);
 
             const timestampResult = await this.provider.send("eth_call", [
               {
@@ -285,7 +284,9 @@ describe("Eth module", function () {
 
         describe("when called with 'latest' blockTag param", () => {
           it("Should be run in the context of the last block", async function () {
-            const firstBlock = await getFirstBlock();
+            const firstBlockNumber = rpcQuantityToNumber(
+              await this.provider.send("eth_blockNumber")
+            );
             const timestamp = getCurrentTimestamp() + 60;
             await this.provider.send("evm_setNextBlockTimestamp", [timestamp]);
 
@@ -302,7 +303,7 @@ describe("Eth module", function () {
               "latest",
             ]);
 
-            assert.equal(rpcDataToNumber(blockResult), firstBlock + 1);
+            assert.equal(rpcDataToNumber(blockResult), firstBlockNumber + 1);
 
             const timestampResult = await this.provider.send("eth_call", [
               {
@@ -318,7 +319,9 @@ describe("Eth module", function () {
 
         describe("when called with 'pending' blockTag param", () => {
           it("Should be run in the context of a new block", async function () {
-            const firstBlock = await getFirstBlock();
+            const firstBlockNumber = rpcQuantityToNumber(
+              await this.provider.send("eth_blockNumber")
+            );
             const contractAddress = await deployContract(
               this.provider,
               `0x${EXAMPLE_READ_CONTRACT.bytecode.object}`
@@ -335,7 +338,7 @@ describe("Eth module", function () {
               "pending",
             ]);
 
-            assert.equal(rpcDataToNumber(blockResult), firstBlock + 2);
+            assert.equal(rpcDataToNumber(blockResult), firstBlockNumber + 2);
 
             const timestampResult = await this.provider.send("eth_call", [
               {
@@ -400,7 +403,9 @@ describe("Eth module", function () {
 
         describe("when called with a block number as blockTag param", () => {
           it("Should be run in the context of the block passed as a parameter", async function () {
-            const firstBlock = await getFirstBlock();
+            const firstBlockNumber = rpcQuantityToNumber(
+              await this.provider.send("eth_blockNumber")
+            );
 
             const contractAddress = await deployContract(
               this.provider,
@@ -416,15 +421,17 @@ describe("Eth module", function () {
                 to: contractAddress,
                 data: EXAMPLE_READ_CONTRACT.selectors.blockNumber,
               },
-              numberToRpcQuantity(firstBlock + 1),
+              numberToRpcQuantity(firstBlockNumber + 1),
             ]);
 
-            assert.equal(rpcDataToNumber(blockResult), firstBlock + 1);
+            assert.equal(rpcDataToNumber(blockResult), firstBlockNumber + 1);
           });
 
           it("Should throw invalid input error if called in the context of a nonexistent block", async function () {
-            const firstBlock = await getFirstBlock();
-            const futureBlock = firstBlock + 1;
+            const firstBlockNumber = rpcQuantityToNumber(
+              await this.provider.send("eth_blockNumber")
+            );
+            const futureBlock = firstBlockNumber + 1;
 
             await assertInvalidInputError(
               this.provider,
@@ -437,12 +444,14 @@ describe("Eth module", function () {
                 },
                 numberToRpcQuantity(futureBlock),
               ],
-              `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlock}`
+              `Received invalid block tag ${futureBlock}. Latest block number is ${firstBlockNumber}`
             );
           });
 
           it("Should leverage block tag parameter", async function () {
-            const firstBlock = await getFirstBlock();
+            const firstBlockNumber = rpcQuantityToNumber(
+              await this.provider.send("eth_blockNumber")
+            );
 
             const contractAddress = await deployContract(
               this.provider,
@@ -467,7 +476,7 @@ describe("Eth module", function () {
                   data: EXAMPLE_CONTRACT.selectors.i,
                   from: DEFAULT_ACCOUNTS_ADDRESSES[0],
                 },
-                numberToRpcQuantity(firstBlock + 1),
+                numberToRpcQuantity(firstBlockNumber + 1),
               ]),
               "0x0000000000000000000000000000000000000000000000000000000000000000"
             );

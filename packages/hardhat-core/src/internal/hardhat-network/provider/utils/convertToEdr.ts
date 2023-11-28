@@ -45,7 +45,6 @@ import {
   SuccessReason,
   IntervalRange,
 } from "@ignored/edr";
-import { isNumber } from "lodash";
 import { fromBigIntLike, toHex } from "../../../util/bigint";
 import { HardforkName, hardforkGte } from "../../../util/hardforks";
 import {
@@ -262,13 +261,18 @@ export function ethereumjsHeaderDataToEdrBlockOptions(
 
 export function ethereumjsIntervalMiningConfigToEdr(
   config: IntervalMiningConfig
-): number | IntervalRange {
-  if (isNumber(config)) {
-    return config;
+): bigint | IntervalRange | undefined {
+  if (typeof config === "number") {
+    // Is interval mining disabled?
+    if (config === 0) {
+      return undefined;
+    } else {
+      return BigInt(config);
+    }
   } else {
     return {
-      min: config[0],
-      max: config[1],
+      min: BigInt(config[0]),
+      max: BigInt(config[1]),
     };
   }
 }
