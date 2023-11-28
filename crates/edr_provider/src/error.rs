@@ -23,6 +23,9 @@ pub enum ProviderError {
     /// Block number or hash doesn't exist in blockchain
     #[error("Block number or block hash doesn't exist: '{0}'")]
     InvalidBlockNumberOrHash(BlockSpec),
+    /// Invalid chain ID
+    #[error("Invalid chainId ${actual} provided, expected ${expected} instead.")]
+    InvalidChainId { expected: u64, actual: u64 },
     /// Invalid filter subscription type
     #[error("Subscription {filter_id} is not a {expected:?} subscription, but a {actual:?} subscription")]
     InvalidFilterSubscriptionType {

@@ -36,6 +36,17 @@ pub enum TransactionRequest {
 }
 
 impl TransactionRequest {
+    /// Retrieves the instance's chain ID.
+    pub fn chain_id(&self) -> Option<u64> {
+        match self {
+            TransactionRequest::Legacy(_) => None,
+            TransactionRequest::Eip155(transaction) => Some(transaction.chain_id),
+            TransactionRequest::Eip2930(transaction) => Some(transaction.chain_id),
+            TransactionRequest::Eip1559(transaction) => Some(transaction.chain_id),
+            TransactionRequest::Eip4844(transaction) => Some(transaction.chain_id),
+        }
+    }
+
     /// Retrieves the instance's gas price.
     pub fn gas_price(&self) -> &U256 {
         match self {

@@ -518,6 +518,16 @@ impl ProviderData {
         &mut self,
         transaction_request: TransactionRequestAndSender,
     ) -> Result<B256, ProviderError> {
+        if let Some(chain_id) = transaction_request.request.chain_id() {
+            let expected = self.chain_id();
+            if chain_id != expected {
+                return Err(ProviderError::InvalidChainId {
+                    expected,
+                    actual: chain_id,
+                });
+            }
+        }
+
         if self.is_auto_mining {
             self.validate_auto_mine_transaction(&transaction_request)?;
         }

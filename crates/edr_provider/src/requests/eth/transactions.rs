@@ -6,11 +6,11 @@ use edr_eth::{
     remote::PreEip1898BlockSpec,
     serde::ZeroXPrefixedBytes,
     transaction::{
-        Eip1559TransactionRequest, Eip2930TransactionRequest, EthTransactionRequest,
-        LegacyTransactionRequest, SignedTransaction, TransactionKind, TransactionRequest,
+        Eip1559TransactionRequest, Eip155TransactionRequest, Eip2930TransactionRequest,
+        EthTransactionRequest, SignedTransaction, TransactionKind, TransactionRequest,
         TransactionRequestAndSender,
     },
-    SpecId, B256, U256,
+    Bytes, SpecId, B256, U256,
 };
 use edr_evm::{blockchain::BlockchainError, SyncBlock};
 
@@ -218,12 +218,15 @@ fn resolve_transaction_request(
         value,
         data: input,
         nonce,
+        chain_id,
         access_list,
-        ..
+        // We ignore the transaction type
+        transaction_type: _transaction_type,
     } = transaction_request;
 
+    let chain_id = chain_id.unwrap_or_else(|| data.chain_id());
     let gas_limit = gas.unwrap_or_else(|| data.block_gas_limit());
-    let input = input.unwrap_or_default();
+    let input = input.map_or(Bytes::new(), Into::into);
     let nonce = nonce.map_or_else(|| data.account_next_nonce(&from), Ok)?;
     let value = value.unwrap_or(U256::ZERO);
 
@@ -233,9 +236,11 @@ fn resolve_transaction_request(
         max_priority_fee_per_gas,
         access_list,
     ) {
-        (None, max_fee_per_gas, max_priority_fee_per_gas, access_list)
+        (gas_price, max_fee_per_gas, max_priority_fee_per_gas, access_list)
             if data.spec_id() >= SpecId::LONDON
-                && (max_fee_per_gas.is_some() || max_priority_fee_per_gas.is_some()) =>
+                && (gas_price.is_none()
+                    || max_fee_per_gas.is_some()
+                    || max_priority_fee_per_gas.is_some()) =>
         {
             let (max_fee_per_gas, max_priority_fee_per_gas) =
                 match (max_fee_per_gas, max_priority_fee_per_gas) {
@@ -270,7 +275,7 @@ fn resolve_transaction_request(
                     Some(to) => TransactionKind::Call(to),
                     None => TransactionKind::Create,
                 },
-                chain_id: 0,
+                chain_id,
                 access_list: access_list.unwrap_or_default(),
             })
         }
@@ -285,11 +290,11 @@ fn resolve_transaction_request(
                     Some(to) => TransactionKind::Call(to),
                     None => TransactionKind::Create,
                 },
-                chain_id: 0,
+                chain_id,
                 access_list,
             })
         }
-        (gas_price, _, _, _) => TransactionRequest::Legacy(LegacyTransactionRequest {
+        (gas_price, _, _, _) => TransactionRequest::Eip155(Eip155TransactionRequest {
             nonce,
             gas_price: gas_price.map_or_else(|| data.next_gas_price(), Ok)?,
             gas_limit,
@@ -299,6 +304,7 @@ fn resolve_transaction_request(
                 Some(to) => TransactionKind::Call(to),
                 None => TransactionKind::Create,
             },
+            chain_id,
         }),
     };
 
