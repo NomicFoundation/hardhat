@@ -1,4 +1,10 @@
 # !/usr/bin/env bash
+
+#
+# NOTE: you can pass the name of a single fixture-projects folder to this script to execute a single test project.
+# E.g.: ./run-fixture-projects.sh vars
+#
+
 # fail if any commands fails
 set -e
 
@@ -22,6 +28,12 @@ echo "[e2e] Running tests in $FIXTURE_PROJECTS_DIR\n\n"
 
 for dir in ${FIXTURE_PROJECTS_DIR}/*; do
   if [ -d "$dir" ]; then
+
+    # uncomment when locally testing to just execute
+    if [ $1 != "" ] && [ "$(basename "$dir")" != "vars" ]; then
+      continue
+    fi
+
     echo "[e2e] Running tests in $dir"
     cd "$dir"
 
