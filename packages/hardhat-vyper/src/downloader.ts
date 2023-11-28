@@ -127,11 +127,15 @@ export class CompilerDownloader {
   }
 
   private _findVersionRelease(version: string): CompilerRelease | undefined {
-    return this.compilersList.find(
-      (release) =>
-        semver.valid(release.tag_name) !== null &&
-        semver.eq(semver.coerce(release.tag_name).version, version)
-    );
+    return this.compilersList.find((release) => {
+      const valid = semver.valid(release.tag_name);
+      const normalized = semver.coerce(release.tag_name);
+      return (
+        valid !== null &&
+        normalized !== null &&
+        semver.eq(normalized.version, version)
+      );
+    });
   }
 
   private async _downloadCompilersList(): Promise<void> {
