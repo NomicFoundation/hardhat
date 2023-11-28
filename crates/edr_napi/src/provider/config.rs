@@ -34,15 +34,15 @@ pub struct MemPoolConfig {
 
 #[napi(object)]
 pub struct IntervalRange {
-    pub min: i64,
-    pub max: i64,
+    pub min: BigInt,
+    pub max: BigInt,
 }
 
 /// Configuration for the provider's miner.
 #[napi(object)]
 pub struct MiningConfig {
     pub auto_mine: bool,
-    pub interval: Either<i64, IntervalRange>,
+    pub interval: Option<Either<BigInt, IntervalRange>>,
     pub mem_pool: MemPoolConfig,
 }
 
@@ -106,22 +106,34 @@ impl From<MemPoolConfig> for edr_provider::MemPoolConfig {
     }
 }
 
-impl From<MiningConfig> for edr_provider::MiningConfig {
-    fn from(value: MiningConfig) -> Self {
+impl TryFrom<MiningConfig> for edr_provider::MiningConfig {
+    type Error = napi::Error;
+
+    fn try_from(value: MiningConfig) -> Result<Self, Self::Error> {
         let mem_pool = value.mem_pool.into();
 
-        let interval = match value.interval {
-            Either::A(interval) => edr_provider::IntervalConfig::Fixed(interval),
-            Either::B(IntervalRange { min, max }) => {
-                edr_provider::IntervalConfig::Range { min, max }
-            }
-        };
+        let interval = value
+            .interval
+            .map(|interval| {
+                let interval = match interval {
+                    Either::A(interval) => {
+                        edr_provider::IntervalConfig::Fixed(interval.try_cast()?)
+                    }
+                    Either::B(IntervalRange { min, max }) => edr_provider::IntervalConfig::Range {
+                        min: min.try_cast()?,
+                        max: max.try_cast()?,
+                    },
+                };
 
-        Self {
+                napi::Result::Ok(interval)
+            })
+            .transpose()?;
+
+        Ok(Self {
             auto_mine: value.auto_mine,
             interval,
             mem_pool,
-        }
+        })
     }
 }
 
@@ -164,7 +176,7 @@ impl TryFrom<ProviderConfig> for edr_provider::ProviderConfig {
                 .initial_parent_beacon_block_root
                 .map(TryCast::try_cast)
                 .transpose()?,
-            mining: value.mining.into(),
+            mining: value.mining.try_into()?,
             network_id: value.network_id.try_cast()?,
         })
     }

@@ -238,13 +238,13 @@ export interface MemPoolConfig {
   order: MineOrdering
 }
 export interface IntervalRange {
-  min: number
-  max: number
+  min: bigint
+  max: bigint
 }
 /** Configuration for the provider's miner. */
 export interface MiningConfig {
   autoMine: boolean
-  interval: number | IntervalRange
+  interval?: bigint | IntervalRange
   memPool: MemPoolConfig
 }
 /** Configuration for a provider */

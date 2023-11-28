@@ -303,6 +303,31 @@ impl ProviderData {
         &self.instance_id
     }
 
+    pub fn interval_mine(&mut self) -> Result<bool, ProviderError> {
+        let result = self.mine_and_commit_block(None)?;
+
+        let header = result.block.header();
+        let is_empty = result.block.transactions().is_empty();
+        if is_empty {
+            self.logger.print_interval_mined_block_number(
+                header.number,
+                is_empty,
+                header.base_fee_per_gas,
+            );
+        } else {
+            log::error!("TODO: interval_mine: log mined block");
+
+            self.logger
+                .print_interval_mined_block_number(header.number, is_empty, None);
+
+            if self.logger.print_logs() {
+                self.logger.print_empty_line();
+            }
+        }
+
+        Ok(true)
+    }
+
     pub fn logger(&self) -> &Logger {
         &self.logger
     }

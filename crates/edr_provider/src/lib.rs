@@ -2,6 +2,7 @@ mod config;
 mod data;
 mod error;
 mod filter;
+mod interval;
 mod logger;
 mod requests;
 mod snapshot;
@@ -9,13 +10,17 @@ mod snapshot;
 #[cfg(test)]
 pub mod test_utils;
 
-use data::{CreationError, ProviderData};
+use std::sync::Arc;
+
 use parking_lot::Mutex;
-use requests::{eth, hardhat};
 use tokio::runtime;
 
-use self::requests::{EthRequest, Request};
 pub use self::{config::*, error::ProviderError, requests::ProviderRequest};
+use self::{
+    data::{CreationError, ProviderData},
+    interval::IntervalMiner,
+    requests::{eth, hardhat, EthRequest, Request},
+};
 
 /// A JSON-RPC provider for Ethereum.
 ///
@@ -48,7 +53,9 @@ pub use self::{config::*, error::ProviderError, requests::ProviderRequest};
 /// }
 /// ```
 pub struct Provider {
-    data: Mutex<ProviderData>,
+    data: Arc<Mutex<ProviderData>>,
+    /// Interval miner runs in the background, if enabled.
+    _interval_miner: Option<IntervalMiner>,
 }
 
 impl Provider {
@@ -58,9 +65,17 @@ impl Provider {
         config: &ProviderConfig,
     ) -> Result<Self, CreationError> {
         let data = ProviderData::new(runtime, config).await?;
+        let data = Arc::new(Mutex::new(data));
+
+        let interval_miner = config
+            .mining
+            .interval
+            .as_ref()
+            .map(|config| IntervalMiner::new(runtime.clone(), config.clone(), data.clone()));
 
         Ok(Self {
-            data: Mutex::new(data),
+            data,
+            _interval_miner: interval_miner,
         })
     }
 

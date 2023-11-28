@@ -805,6 +805,7 @@ dependencies = [
  "k256",
  "log",
  "parking_lot 0.12.1",
+ "rand",
  "rlp",
  "serde",
  "serde_json",
