@@ -1,0 +1,9 @@
+The following configuration variables need to be set:
+
+  npx hardhat vars set HH_E2E_TESTS_KEY_1
+
+The following configuration variables are optional:
+
+  npx hardhat vars set HH_E2E_TESTS_KEY_3
+  npx hardhat vars set HH_E2E_TESTS_KEY_2
+
