@@ -10,7 +10,7 @@ mod request;
 mod signed;
 
 pub use self::{detailed::DetailedTransaction, kind::TransactionKind, request::*, signed::*};
-use crate::{access_list::AccessListItem, Address, Bytes, U256};
+use crate::{access_list::AccessListItem, serde::ZeroXPrefixedBytes, Address, U256};
 
 /// Represents _all_ transaction requests received from RPC
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
@@ -38,10 +38,13 @@ pub struct EthTransactionRequest {
     /// value of th tx in wei
     pub value: Option<U256>,
     /// Any additional data sent
-    pub data: Option<Bytes>,
+    pub data: Option<ZeroXPrefixedBytes>,
     /// Transaction nonce
     #[cfg_attr(feature = "serde", serde(default, with = "crate::serde::optional_u64"))]
     pub nonce: Option<u64>,
+    /// Chain ID
+    #[cfg_attr(feature = "serde", serde(default, with = "crate::serde::optional_u64"))]
+    pub chain_id: Option<u64>,
     /// warm storage access pre-payment
     #[cfg_attr(feature = "serde", serde(default))]
     pub access_list: Option<Vec<AccessListItem>>,
