@@ -1,4 +1,4 @@
-use edr_eth::remote::methods::U64OrUsize;
+use edr_eth::{remote::methods::U64OrUsize, U64};
 use edr_evm::{blockchain::BlockchainError, MineBlockResult};
 
 use crate::{data::ProviderData, ProviderError};
@@ -18,11 +18,18 @@ pub fn handle_mine_request(
     timestamp: Option<U64OrUsize>,
 ) -> Result<String, ProviderError> {
     let timestamp: Option<u64> = timestamp.map(U64OrUsize::into);
-    let mine_block_result = data.mine_and_commit_block(timestamp)?;
+    let _mine_block_result = data.mine_and_commit_block(timestamp)?;
 
-    log_block(&mine_block_result)?;
+    // log_block(&mine_block_result)?;
 
     Ok(String::from("0"))
+}
+
+pub fn handle_revert_request(
+    data: &mut ProviderData,
+    snapshot_id: U64,
+) -> Result<bool, ProviderError> {
+    Ok(data.revert_to_snapshot(snapshot_id.as_limbs()[0]))
 }
 
 pub fn handle_set_automine_request(
@@ -36,9 +43,9 @@ pub fn handle_set_automine_request(
 
 pub fn handle_set_block_gas_limit_request(
     data: &mut ProviderData,
-    gas_limit: u64,
+    gas_limit: U64,
 ) -> Result<bool, ProviderError> {
-    data.set_block_gas_limit(gas_limit)?;
+    data.set_block_gas_limit(gas_limit.as_limbs()[0])?;
 
     Ok(true)
 }
@@ -53,6 +60,12 @@ pub fn handle_set_next_block_timestamp_request(
     Ok(new_timestamp.to_string())
 }
 
-fn log_block(_mine_block_result: &MineBlockResult<BlockchainError>) -> Result<(), ProviderError> {
+pub fn handle_snapshot_request(data: &mut ProviderData) -> Result<U64, ProviderError> {
+    let snapshot_id = data.make_snapshot();
+
+    Ok(U64::from(snapshot_id))
+}
+
+fn _log_block(_mine_block_result: &MineBlockResult<BlockchainError>) -> Result<(), ProviderError> {
     Err(ProviderError::Unimplemented("log_block".to_string()))
 }

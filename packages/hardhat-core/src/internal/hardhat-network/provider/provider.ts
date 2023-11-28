@@ -449,7 +449,11 @@ class EdrProviderWrapper extends EventEmitter implements EIP1193Provider {
   }
 
   public async request(args: RequestArguments): Promise<unknown> {
-    const stringifiedArgs = JSON.stringify(args);
+    const stringifiedArgs = JSON.stringify({
+      method: args.method,
+      params: args.params ?? [],
+    });
+
     const response = await this._provider.handleRequest(stringifiedArgs);
     return JSON.parse(response);
   }
@@ -468,7 +472,8 @@ export async function createHardhatNetworkProvider(
     eip1193Provider = await EdrProviderWrapper.create(
       hardhatNetworkProviderConfig
     );
-  } else if (vmModeEnvVar === "ethereumjs") {
+  } else if (vmModeEnvVar === "ethereumjs" || vmModeEnvVar === "dual") {
+    // Dual mode will internally use the ethereumjs and EDR adapters
     eip1193Provider = new HardhatNetworkProvider(
       hardhatNetworkProviderConfig,
       logger,

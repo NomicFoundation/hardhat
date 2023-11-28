@@ -6,10 +6,7 @@ use crate::{
         filter::{FilterOptions, SubscriptionType},
         BlockSpec, PreEip1898BlockSpec,
     },
-    serde::{
-        optional_single_to_sequence, sequence_to_optional_single, sequence_to_single,
-        single_to_sequence, ZeroXPrefixedBytes,
-    },
+    serde::{optional_single_to_sequence, sequence_to_optional_single, ZeroXPrefixedBytes},
     transaction::EthTransactionRequest,
     Address, B256, U256,
 };
@@ -50,11 +47,11 @@ mod optional_block_spec_resolved {
 #[serde(tag = "method", content = "params")]
 pub enum MethodInvocation {
     /// eth_accounts
-    #[serde(rename = "eth_accounts")]
-    Accounts(),
-    /// eth_block_number
-    #[serde(rename = "eth_blockNumber")]
-    BlockNumber(),
+    #[serde(rename = "eth_accounts", with = "crate::serde::empty_params")]
+    Accounts(()),
+    /// eth_blockNumber
+    #[serde(rename = "eth_blockNumber", with = "crate::serde::empty_params")]
+    BlockNumber(()),
     /// eth_call
     #[serde(rename = "eth_call")]
     Call(
@@ -66,11 +63,11 @@ pub enum MethodInvocation {
         Option<BlockSpec>,
     ),
     /// eth_chainId
-    #[serde(rename = "eth_chainId")]
-    ChainId(),
+    #[serde(rename = "eth_chainId", with = "crate::serde::empty_params")]
+    ChainId(()),
     /// eth_coinbase
-    #[serde(rename = "eth_coinbase")]
-    Coinbase(),
+    #[serde(rename = "eth_coinbase", with = "crate::serde::empty_params")]
+    Coinbase(()),
     /// eth_estimateGas
     #[serde(rename = "eth_estimateGas")]
     EstimateGas(
@@ -92,8 +89,8 @@ pub enum MethodInvocation {
         Vec<f64>,
     ),
     /// eth_gasPrice
-    #[serde(rename = "eth_gasPrice")]
-    GasPrice(),
+    #[serde(rename = "eth_gasPrice", with = "crate::serde::empty_params")]
+    GasPrice(()),
     /// eth_getBalance
     #[serde(rename = "eth_getBalance")]
     GetBalance(
@@ -122,15 +119,13 @@ pub enum MethodInvocation {
     /// eth_getBlockTransactionCountByHash
     #[serde(
         rename = "eth_getBlockTransactionCountByHash",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
+        with = "crate::serde::sequence"
     )]
     GetBlockTransactionCountByHash(B256),
     /// eth_getBlockTransactionCountByNumber
     #[serde(
         rename = "eth_getBlockTransactionCountByNumber",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
+        with = "crate::serde::sequence"
     )]
     GetBlockTransactionCountByNumber(BlockSpec),
     /// eth_getCode
@@ -144,25 +139,13 @@ pub enum MethodInvocation {
         Option<BlockSpec>,
     ),
     /// eth_getFilterChanges
-    #[serde(
-        rename = "eth_getFilterChanges",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
-    )]
+    #[serde(rename = "eth_getFilterChanges", with = "crate::serde::sequence")]
     GetFilterChanges(U256),
     /// eth_getFilterLogs
-    #[serde(
-        rename = "eth_getFilterLogs",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
-    )]
+    #[serde(rename = "eth_getFilterLogs", with = "crate::serde::sequence")]
     GetFilterLogs(U256),
     /// eth_getLogs
-    #[serde(
-        rename = "eth_getLogs",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
-    )]
+    #[serde(rename = "eth_getLogs", with = "crate::serde::sequence")]
     GetLogs(GetLogsInput),
     /// eth_getStorageAt
     #[serde(rename = "eth_getStorageAt")]
@@ -185,11 +168,7 @@ pub enum MethodInvocation {
     #[serde(rename = "eth_getTransactionByBlockNumberAndIndex")]
     GetTransactionByBlockNumberAndIndex(PreEip1898BlockSpec, U256),
     /// eth_getTransactionByHash
-    #[serde(
-        rename = "eth_getTransactionByHash",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
-    )]
+    #[serde(rename = "eth_getTransactionByHash", with = "crate::serde::sequence")]
     GetTransactionByHash(B256),
     /// eth_getTransactionCount
     #[serde(rename = "eth_getTransactionCount")]
@@ -202,53 +181,43 @@ pub enum MethodInvocation {
         Option<BlockSpec>,
     ),
     /// eth_getTransactionReceipt
-    #[serde(
-        rename = "eth_getTransactionReceipt",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
-    )]
+    #[serde(rename = "eth_getTransactionReceipt", with = "crate::serde::sequence")]
     GetTransactionReceipt(B256),
     /// eth_mining
-    #[serde(rename = "eth_mining")]
-    Mining(),
+    #[serde(rename = "eth_mining", with = "crate::serde::empty_params")]
+    Mining(()),
     /// net_listening
-    #[serde(rename = "net_listening")]
-    NetListening(),
+    #[serde(rename = "net_listening", with = "crate::serde::empty_params")]
+    NetListening(()),
     /// net_peerCount
-    #[serde(rename = "net_peerCount")]
-    NetPeerCount(),
+    #[serde(rename = "net_peerCount", with = "crate::serde::empty_params")]
+    NetPeerCount(()),
     /// net_version
-    #[serde(rename = "net_version")]
-    NetVersion(),
+    #[serde(rename = "net_version", with = "crate::serde::empty_params")]
+    NetVersion(()),
     /// eth_newBlockFilter
-    #[serde(rename = "eth_newBlockFilter")]
-    NewBlockFilter(),
+    #[serde(rename = "eth_newBlockFilter", with = "crate::serde::empty_params")]
+    NewBlockFilter(()),
     /// eth_newFilter
-    #[serde(
-        rename = "eth_newFilter",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
-    )]
+    #[serde(rename = "eth_newFilter", with = "crate::serde::sequence")]
     NewFilter(FilterOptions),
     /// eth_newPendingTransactionFilter
-    #[serde(rename = "eth_newPendingTransactionFilter")]
-    NewPendingTransactionFilter(),
-    /// eth_pendingTransactions
-    #[serde(rename = "eth_pendingTransactions")]
-    PendingTransactions(),
-    /// eth_sendRawTransaction
     #[serde(
-        rename = "eth_sendRawTransaction",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
+        rename = "eth_newPendingTransactionFilter",
+        with = "crate::serde::empty_params"
     )]
+    NewPendingTransactionFilter(()),
+    /// eth_pendingTransactions
+    #[serde(
+        rename = "eth_pendingTransactions",
+        with = "crate::serde::empty_params"
+    )]
+    PendingTransactions(()),
+    /// eth_sendRawTransaction
+    #[serde(rename = "eth_sendRawTransaction", with = "crate::serde::sequence")]
     SendRawTransaction(ZeroXPrefixedBytes),
     /// eth_sendTransaction
-    #[serde(
-        rename = "eth_sendTransaction",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
-    )]
+    #[serde(rename = "eth_sendTransaction", with = "crate::serde::sequence")]
     SendTransaction(EthTransactionRequest),
     /// eth_sign
     #[serde(rename = "eth_sign", alias = "personal_sign")]
@@ -257,45 +226,25 @@ pub enum MethodInvocation {
     #[serde(rename = "eth_signTypedData_v4")]
     SignTypedDataV4(Address, eip712::Message),
     /// eth_subscribe
-    #[serde(
-        rename = "eth_subscribe",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
-    )]
+    #[serde(rename = "eth_subscribe", with = "crate::serde::sequence")]
     Subscribe(Vec<SubscriptionType>),
     /// eth_syncing
-    #[serde(rename = "eth_syncing")]
-    Syncing(),
+    #[serde(rename = "eth_syncing", with = "crate::serde::empty_params")]
+    Syncing(()),
     /// eth_uninstallFilter
-    #[serde(
-        rename = "eth_uninstallFilter",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
-    )]
+    #[serde(rename = "eth_uninstallFilter", with = "crate::serde::sequence")]
     UninstallFilter(U256),
     /// eth_unsubscribe
-    #[serde(
-        rename = "eth_unsubscribe",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
-    )]
+    #[serde(rename = "eth_unsubscribe", with = "crate::serde::sequence")]
     Unsubscribe(U256),
     /// web3_clientVersion
-    #[serde(rename = "web3_clientVersion")]
-    Web3ClientVersion(),
+    #[serde(rename = "web3_clientVersion", with = "crate::serde::empty_params")]
+    Web3ClientVersion(()),
     /// web3_sha3
-    #[serde(
-        rename = "web3_sha3",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
-    )]
+    #[serde(rename = "web3_sha3", with = "crate::serde::sequence")]
     Web3Sha3(ZeroXPrefixedBytes),
     /// evm_increaseTime
-    #[serde(
-        rename = "evm_increaseTime",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
-    )]
+    #[serde(rename = "evm_increaseTime", with = "crate::serde::sequence")]
     EvmIncreaseTime(U64OrUsize),
     /// evm_mine
     #[serde(
@@ -304,37 +253,24 @@ pub enum MethodInvocation {
         deserialize_with = "sequence_to_optional_single"
     )]
     EvmMine(Option<U64OrUsize>),
+    /// evm_revert
+    #[serde(rename = "evm_revert", with = "crate::serde::sequence")]
+    EvmRevert(U64),
     /// evm_setAutomine
-    #[serde(
-        rename = "evm_setAutomine",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
-    )]
+    #[serde(rename = "evm_setAutomine", with = "crate::serde::sequence")]
     EvmSetAutomine(bool),
     /// evm_setBlockGasLimit
-    #[serde(
-        rename = "evm_setBlockGasLimit",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
-    )]
-    EvmSetBlockGasLimit(#[serde(with = "crate::serde::u64")] u64),
+    #[serde(rename = "evm_setBlockGasLimit", with = "crate::serde::sequence")]
+    EvmSetBlockGasLimit(U64),
     /// evm_setIntervalMining
-    #[serde(
-        rename = "evm_setIntervalMining",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
-    )]
+    #[serde(rename = "evm_setIntervalMining", with = "crate::serde::sequence")]
     EvmSetIntervalMining(OneUsizeOrTwo),
     /// evm_setNextBlockTimestamp
-    #[serde(
-        rename = "evm_setNextBlockTimestamp",
-        serialize_with = "single_to_sequence",
-        deserialize_with = "sequence_to_single"
-    )]
+    #[serde(rename = "evm_setNextBlockTimestamp", with = "crate::serde::sequence")]
     EvmSetNextBlockTimestamp(U64OrUsize),
     /// evm_snapshot
-    #[serde(rename = "evm_snapshot")]
-    EvmSnapshot(),
+    #[serde(rename = "evm_snapshot", with = "crate::serde::empty_params")]
+    EvmSnapshot(()),
 }
 
 /// an input that can be either a single usize or an array of two usize values

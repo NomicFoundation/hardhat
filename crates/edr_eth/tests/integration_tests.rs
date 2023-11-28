@@ -17,12 +17,12 @@ use revm_primitives::{Bytes, HashMap};
 
 #[test]
 fn test_serde_eth_accounts() {
-    help_test_method_invocation_serde(MethodInvocation::Accounts());
+    help_test_method_invocation_serde(MethodInvocation::Accounts(()));
 }
 
 #[test]
 fn test_serde_eth_block_number() {
-    help_test_method_invocation_serde(MethodInvocation::BlockNumber());
+    help_test_method_invocation_serde(MethodInvocation::BlockNumber(()));
 }
 
 #[test]
@@ -47,12 +47,12 @@ fn test_serde_eth_call() {
 
 #[test]
 fn test_serde_eth_chain_id() {
-    help_test_method_invocation_serde(MethodInvocation::ChainId());
+    help_test_method_invocation_serde(MethodInvocation::ChainId(()));
 }
 
 #[test]
 fn test_serde_eth_coinbase() {
-    help_test_method_invocation_serde(MethodInvocation::Coinbase());
+    help_test_method_invocation_serde(MethodInvocation::Coinbase(()));
 }
 
 #[test]
@@ -86,7 +86,7 @@ fn test_serde_eth_fee_history() {
 
 #[test]
 fn test_serde_eth_gas_price() {
-    help_test_method_invocation_serde(MethodInvocation::GasPrice());
+    help_test_method_invocation_serde(MethodInvocation::GasPrice(()));
 }
 
 #[test]
@@ -259,12 +259,12 @@ fn test_serde_eth_get_tx_receipt() {
 
 #[test]
 fn test_serde_eth_mining() {
-    help_test_method_invocation_serde(MethodInvocation::Mining());
+    help_test_method_invocation_serde(MethodInvocation::Mining(()));
 }
 
 #[test]
 fn test_serde_eth_new_block_filter() {
-    help_test_method_invocation_serde(MethodInvocation::NewBlockFilter());
+    help_test_method_invocation_serde(MethodInvocation::NewBlockFilter(()));
 }
 
 #[test]
@@ -281,12 +281,12 @@ fn test_serde_eth_new_filter() {
 
 #[test]
 fn test_serde_eth_new_pending_transaction_filter() {
-    help_test_method_invocation_serde(MethodInvocation::NewPendingTransactionFilter());
+    help_test_method_invocation_serde(MethodInvocation::NewPendingTransactionFilter(()));
 }
 
 #[test]
 fn test_serde_eth_pending_transactions() {
-    help_test_method_invocation_serde(MethodInvocation::PendingTransactions());
+    help_test_method_invocation_serde(MethodInvocation::PendingTransactions(()));
 }
 
 #[test]
@@ -357,7 +357,7 @@ fn test_serde_eth_subscribe() {
 
 #[test]
 fn test_serde_eth_syncing() {
-    help_test_method_invocation_serde(MethodInvocation::Syncing());
+    help_test_method_invocation_serde(MethodInvocation::Syncing(()));
 }
 
 #[test]
@@ -440,7 +440,7 @@ fn test_evm_set_next_block_timestamp() {
 
 #[test]
 fn test_serde_web3_client_version() {
-    help_test_method_invocation_serde(MethodInvocation::Web3ClientVersion());
+    help_test_method_invocation_serde(MethodInvocation::Web3ClientVersion(()));
 }
 
 #[test]
@@ -467,17 +467,17 @@ fn test_evm_set_interval_mining() {
 
 #[test]
 fn test_evm_snapshot() {
-    help_test_method_invocation_serde(MethodInvocation::EvmSnapshot());
+    help_test_method_invocation_serde(MethodInvocation::EvmSnapshot(()));
 }
 
 #[test]
 fn test_net_listening() {
-    help_test_method_invocation_serde(MethodInvocation::NetListening());
+    help_test_method_invocation_serde(MethodInvocation::NetListening(()));
 }
 
 #[test]
 fn test_net_peer_count() {
-    help_test_method_invocation_serde(MethodInvocation::NetPeerCount());
+    help_test_method_invocation_serde(MethodInvocation::NetPeerCount(()));
 }
 
 #[test]

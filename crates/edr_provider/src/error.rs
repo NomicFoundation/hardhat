@@ -1,4 +1,4 @@
-use std::time::SystemTimeError;
+use std::{num::TryFromIntError, time::SystemTimeError};
 
 use edr_eth::{
     remote::{filter::SubscriptionType, jsonrpc, BlockSpec},
@@ -66,6 +66,9 @@ pub enum ProviderError {
     /// An error occurred while creating a pending transaction.
     #[error(transparent)]
     TransactionCreationError(#[from] TransactionCreationError<StateError>),
+    /// Failed to convert an integer type
+    #[error("Could not convert the integer argument, due to: {0}")]
+    TryFromIntError(#[from] TryFromIntError),
     /// The request hasn't been implemented yet
     #[error("Unimplemented: {0}")]
     Unimplemented(String),
