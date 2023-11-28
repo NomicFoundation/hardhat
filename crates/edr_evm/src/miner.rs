@@ -218,7 +218,7 @@ where
 /// # Panics
 ///
 /// Panics if the parent header does not contain a base fee.
-fn calculate_next_base_fee(parent: &Header) -> U256 {
+pub fn calculate_next_base_fee(parent: &Header) -> U256 {
     let elasticity = 2;
     let base_fee_max_change_denominator = U256::from(8);
 

@@ -9,6 +9,7 @@ use revm::{
 
 use crate::PendingTransaction;
 
+/// An iterator over pending transactions.
 pub struct PendingTransactions<ComparatorT>
 where
     ComparatorT: Fn(&OrderedTransaction, &OrderedTransaction) -> Ordering,
@@ -21,6 +22,8 @@ impl<ComparatorT> PendingTransactions<ComparatorT>
 where
     ComparatorT: Fn(&OrderedTransaction, &OrderedTransaction) -> Ordering,
 {
+    /// Removes all pending transactions of the account corresponding to the
+    /// provided address.
     pub fn remove_caller(&mut self, caller: &Address) -> Option<Vec<OrderedTransaction>> {
         self.transactions.remove(caller)
     }
@@ -254,15 +257,7 @@ impl MemPool {
             });
         }
 
-        let next_nonce = self.last_pending_nonce(transaction.caller()).map_or_else(
-            || {
-                state
-                    .basic(*transaction.caller())
-                    .map(|account| account.map_or(0, |account| account.nonce))
-            },
-            |nonce| Ok(nonce + 1),
-        )?;
-
+        let next_nonce = account_next_nonce(self, state, transaction.caller())?;
         let transaction = OrderedTransaction {
             order_id: self.next_order_id,
             transaction,
@@ -487,6 +482,23 @@ impl MemPool {
 
         Ok(())
     }
+}
+
+/// Calculates the next nonce of the account corresponding to the provided
+/// address.
+pub fn account_next_nonce<StateT: StateRef + ?Sized>(
+    mem_pool: &MemPool,
+    state: &StateT,
+    address: &Address,
+) -> Result<u64, StateT::Error> {
+    mem_pool.last_pending_nonce(address).map_or_else(
+        || {
+            state
+                .basic(*address)
+                .map(|account| account.map_or(0, |account| account.nonce))
+        },
+        |nonce| Ok(nonce + 1),
+    )
 }
 
 fn validate_replacement_transaction<StateError>(
