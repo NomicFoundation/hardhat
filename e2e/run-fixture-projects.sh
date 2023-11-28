@@ -11,7 +11,7 @@ HARDHAT_TGZ_FILE=$(pnpm pack)
 echo "[e2e] Built $HARDHAT_TGZ_FILE"
 cd - >/dev/null
 
-HARDHAT_VERSION=$(echo $HARDHAT_TGZ_FILE | grep -o -P 'hardhat-\K[0-9]+\.[0-9]+\.[0-9]+')
+HARDHAT_VERSION=$(echo $HARDHAT_TGZ_FILE | grep -o -E 'hardhat-[0-9]+\.[0-9]+\.[0-9]+' | sed 's/hardhat-//')
 
 # create a temporary directory to run the tests
 FIXTURE_PROJECTS_DIR=fixture-projects-run-$(date +%Y-%m-%d-%H-%M-%S)
