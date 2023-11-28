@@ -18,9 +18,9 @@ pub fn handle_mine_request(
     timestamp: Option<U64OrUsize>,
 ) -> Result<String, ProviderError> {
     let timestamp: Option<u64> = timestamp.map(U64OrUsize::into);
-    let mine_block_result = data.mine_and_commit_block(timestamp)?;
+    let _mine_block_result = data.mine_and_commit_block(timestamp)?;
 
-    log_block(&mine_block_result)?;
+    // log_block(&mine_block_result)?;
 
     Ok(String::from("0"))
 }
@@ -66,8 +66,6 @@ pub fn handle_snapshot_request(data: &mut ProviderData) -> Result<U64, ProviderE
     Ok(U64::from(snapshot_id))
 }
 
-fn log_block(_mine_block_result: &MineBlockResult<BlockchainError>) -> Result<(), ProviderError> {
-    log::error!("TODO: log block");
-
-    Ok(())
+fn _log_block(_mine_block_result: &MineBlockResult<BlockchainError>) -> Result<(), ProviderError> {
+    Err(ProviderError::Unimplemented("log_block".to_string()))
 }
