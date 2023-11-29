@@ -29,7 +29,7 @@ echo "[e2e] Running tests in $FIXTURE_PROJECTS_DIR\n\n"
 for dir in ${FIXTURE_PROJECTS_DIR}/*; do
   if [ -d "$dir" ]; then
 
-    if [ -n "$1" ] && [ "$(basename "$dir")" != "vars" ]; then
+    if [ -n "$1" ] && [ "$(basename "$dir")" != "$1" ]; then
       # only execute the tests for the project passed as argument to this script, if any
       continue
     fi
