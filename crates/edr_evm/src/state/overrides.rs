@@ -1,4 +1,8 @@
-use edr_eth::{account::KECCAK_EMPTY, Address, B256, U256};
+use edr_eth::{
+    account::KECCAK_EMPTY,
+    remote::{AccountOverrideOptions, StateOverrideOptions},
+    Address, B256, U256,
+};
 use revm::{
     db::StateRef,
     primitives::{AccountInfo, Bytecode, HashMap},
@@ -67,6 +71,46 @@ impl AccountOverride {
             nonce,
             code_hash,
             code,
+        })
+    }
+}
+
+/// Error that occurs when converting account override options into an account
+/// override.
+#[derive(Debug, thiserror::Error)]
+pub enum AccountOverrideConversionError {
+    /// Storage override options are mutually exclusive.
+    #[error("The properties `storage` and `storageDiff` cannot be used simultaneously when configuring the state override set passed to the eth_call method.")]
+    StorageOverrideConflict,
+}
+
+impl TryFrom<AccountOverrideOptions> for AccountOverride {
+    type Error = AccountOverrideConversionError;
+
+    fn try_from(value: AccountOverrideOptions) -> Result<Self, Self::Error> {
+        let AccountOverrideOptions {
+            balance,
+            nonce,
+            code,
+            storage,
+            storage_diff,
+        } = value;
+
+        let storage = if let Some(storage) = storage {
+            if storage_diff.is_some() {
+                return Err(AccountOverrideConversionError::StorageOverrideConflict);
+            } else {
+                Some(StorageOverride::Full(storage))
+            }
+        } else {
+            storage_diff.map(StorageOverride::Diff)
+        };
+
+        Ok(Self {
+            balance,
+            nonce,
+            code: code.map(|bytes| Bytecode::new_raw(bytes.into())),
+            storage,
         })
     }
 }
@@ -155,6 +199,23 @@ impl StateOverrides {
         } else {
             state.code_by_hash(hash)
         }
+    }
+}
+
+impl TryFrom<StateOverrideOptions> for StateOverrides {
+    type Error = AccountOverrideConversionError;
+
+    fn try_from(value: StateOverrideOptions) -> Result<Self, Self::Error> {
+        let account_overrides = value
+            .into_iter()
+            .map(|(address, options)| {
+                let account_override = AccountOverride::try_from(options)?;
+
+                Ok((address, account_override))
+            })
+            .collect::<Result<_, _>>()?;
+
+        Ok(Self::new(account_overrides))
     }
 }
 

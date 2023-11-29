@@ -5,12 +5,16 @@ use edr_eth::{
     Address, SpecId, U256,
 };
 use edr_evm::{
-    blockchain::BlockchainError, state::StateError, MineBlockError, MinerTransactionError,
-    TransactionCreationError,
+    blockchain::BlockchainError,
+    state::{AccountOverrideConversionError, StateError},
+    MineBlockError, MinerTransactionError, TransactionCreationError, TransactionError,
 };
 
 #[derive(Debug, thiserror::Error)]
 pub enum ProviderError {
+    /// Account override conversion error.
+    #[error(transparent)]
+    AccountOverrideConversionError(#[from] AccountOverrideConversionError),
     /// The transaction gas price is too low, while automatically mining.
     #[error("Transaction gas price is 0x{actual:x}, which is below the minimum of 0x{expected:x}")]
     AutoMineGasPriceTooLow { expected: U256, actual: U256 },
@@ -54,6 +58,9 @@ pub enum ProviderError {
     /// Unsupported RPC version
     #[error("unsupported JSON-RPC version: {0:?}")]
     RpcVersion(jsonrpc::Version),
+    /// Error while running a transaction
+    #[error(transparent)]
+    RunTransaction(#[from] TransactionError<BlockchainError, StateError>),
     /// Serialization error
     #[error("Failed to serialize response: {0}")]
     Serialization(serde_json::Error),

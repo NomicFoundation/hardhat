@@ -7,6 +7,7 @@ use std::{
 };
 
 use edr_eth::{
+    block::BlobGas,
     receipt::BlockReceipt,
     remote::{
         filter::{FilteredEvents, LogOutput, SubscriptionType},
@@ -22,11 +23,16 @@ use edr_evm::{
         Blockchain, BlockchainError, ForkedBlockchain, ForkedCreationError, LocalBlockchain,
         LocalCreationError, SyncBlockchain,
     },
-    calculate_next_base_fee, mempool, mine_block,
-    state::{AccountModifierFn, IrregularState, StateDiff, StateError, StateOverride, SyncState},
-    Account, AccountInfo, Block, Bytecode, CfgEnv, HashMap, HashSet, MemPool, MineBlockResult,
-    MineBlockResultAndState, MineOrdering, PendingTransaction, RandomHashGenerator, StorageSlot,
-    SyncBlock, KECCAK_EMPTY,
+    calculate_next_base_fee,
+    db::StateRef,
+    guaranteed_dry_run, mempool, mine_block,
+    state::{
+        AccountModifierFn, IrregularState, StateDiff, StateError, StateOverride, StateOverrides,
+        SyncState,
+    },
+    Account, AccountInfo, BlobExcessGasAndPrice, Block, BlockEnv, Bytecode, CfgEnv, HashMap,
+    HashSet, MemPool, MineBlockResult, MineBlockResultAndState, MineOrdering, PendingTransaction,
+    RandomHashGenerator, StorageSlot, SyncBlock, KECCAK_EMPTY,
 };
 use indexmap::IndexMap;
 use rpc_hardhat::ForkMetadata;
@@ -49,6 +55,11 @@ pub enum CreationError {
     /// An error that occurred while constructing a local blockchain.
     #[error(transparent)]
     LocalBlockchainCreation(#[from] LocalCreationError),
+}
+
+struct BlockContext {
+    pub block: Arc<dyn SyncBlock<Error = BlockchainError>>,
+    pub state: Box<dyn SyncState<StateError>>,
 }
 
 pub struct ProviderData {
@@ -145,16 +156,28 @@ impl ProviderData {
         address: Address,
         block_spec: Option<&BlockSpec>,
     ) -> Result<U256, ProviderError> {
-        self.execute_in_block_state::<Result<U256, ProviderError>>(block_spec, move |state| {
-            Ok(state
-                .basic(address)?
-                .map_or(U256::ZERO, |account| account.balance))
-        })?
+        self.execute_in_block_context::<Result<U256, ProviderError>>(
+            block_spec,
+            move |_block, state| {
+                Ok(state
+                    .basic(address)?
+                    .map_or(U256::ZERO, |account| account.balance))
+            },
+        )?
     }
 
     /// Retrieves the gas limit of the next block.
     pub fn block_gas_limit(&self) -> u64 {
         self.mem_pool.block_gas_limit()
+    }
+
+    /// Returns the default caller.
+    pub fn default_caller(&self) -> Address {
+        self.local_accounts
+            .keys()
+            .next()
+            .copied()
+            .unwrap_or(Address::zero())
     }
 
     /// Returns the metadata of the forked blockchain, if it exists.
@@ -239,7 +262,7 @@ impl ProviderData {
         address: Address,
         block_spec: Option<&BlockSpec>,
     ) -> Result<Bytes, ProviderError> {
-        self.execute_in_block_state(block_spec, move |state| {
+        self.execute_in_block_context(block_spec, move |_block, state| {
             let code = state
                 .basic(address)?
                 .map_or(Ok(Bytes::new()), |account_info| {
@@ -282,9 +305,10 @@ impl ProviderData {
         index: U256,
         block_spec: Option<&BlockSpec>,
     ) -> Result<U256, ProviderError> {
-        self.execute_in_block_state::<Result<U256, ProviderError>>(block_spec, move |state| {
-            Ok(state.storage(address, index)?)
-        })?
+        self.execute_in_block_context::<Result<U256, ProviderError>>(
+            block_spec,
+            move |_block, state| Ok(state.storage(address, index)?),
+        )?
     }
 
     pub fn get_transaction_count(
@@ -292,13 +316,16 @@ impl ProviderData {
         address: Address,
         block_spec: Option<&BlockSpec>,
     ) -> Result<u64, ProviderError> {
-        self.execute_in_block_state::<Result<u64, ProviderError>>(block_spec, move |state| {
-            let nonce = state
-                .basic(address)?
-                .map_or(0, |account_info| account_info.nonce);
+        self.execute_in_block_context::<Result<u64, ProviderError>>(
+            block_spec,
+            move |_block, state| {
+                let nonce = state
+                    .basic(address)?
+                    .map_or(0, |account_info| account_info.nonce);
 
-            Ok(nonce)
-        })?
+                Ok(nonce)
+            },
+        )?
     }
 
     pub fn impersonate_account(&mut self, address: Address) {
@@ -503,6 +530,54 @@ impl ProviderData {
         } else {
             false
         }
+    }
+
+    pub fn run_call(
+        &self,
+        transaction: PendingTransaction,
+        block_spec: Option<&BlockSpec>,
+        state_overrides: &StateOverrides,
+    ) -> Result<Bytes, ProviderError> {
+        let cfg = self.create_evm_config();
+        let transaction = transaction.into();
+
+        self.execute_in_block_context(block_spec, |block, state| {
+            let header = block.header();
+            let block = BlockEnv {
+                number: U256::from(header.number),
+                coinbase: header.beneficiary,
+                timestamp: U256::from(header.timestamp),
+                gas_limit: U256::from(header.gas_limit),
+                basefee: U256::from(0),
+                difficulty: header.difficulty,
+                prevrandao: if self.spec_id() >= SpecId::MERGE {
+                    Some(header.mix_hash)
+                } else {
+                    None
+                },
+                blob_excess_gas_and_price: header
+                    .blob_gas
+                    .as_ref()
+                    .map(|BlobGas { excess_gas, .. }| BlobExcessGasAndPrice::new(*excess_gas)),
+            };
+
+            let result = guaranteed_dry_run(
+                &*self.blockchain,
+                &state,
+                state_overrides,
+                cfg,
+                transaction,
+                block,
+                None,
+            )
+            .map_err(ProviderError::RunTransaction)?;
+
+            Ok(result.result.into_output().unwrap_or_default())
+        })?
+    }
+
+    pub fn state(&self) -> &dyn StateRef<Error = StateError> {
+        &self.state
     }
 
     pub fn transaction_receipt(
@@ -809,15 +884,18 @@ impl ProviderData {
         evm_config
     }
 
-    fn execute_in_block_state<T>(
+    fn execute_in_block_context<T>(
         &self,
         block_spec: Option<&BlockSpec>,
-        function: impl FnOnce(Box<dyn SyncState<StateError>>) -> T,
+        function: impl FnOnce(
+            Arc<dyn SyncBlock<Error = BlockchainError>>,
+            Box<dyn SyncState<StateError>>,
+        ) -> T,
     ) -> Result<T, ProviderError> {
-        let contextual_state = self.state_by_block_spec(block_spec)?;
+        let context = self.context_by_block_spec(block_spec)?;
 
         // Execute function in the requested block context.
-        let result = function(contextual_state);
+        let result = function(context.block, context.state);
 
         Ok(result)
     }
@@ -946,17 +1024,20 @@ impl ProviderData {
         }
     }
 
-    fn state_by_block_spec(
+    fn context_by_block_spec(
         &self,
         block_spec: Option<&BlockSpec>,
-    ) -> Result<Box<dyn SyncState<StateError>>, ProviderError> {
+    ) -> Result<BlockContext, ProviderError> {
         let block = if let Some(block_spec) = block_spec {
             if let Some(block) = self.block_by_block_spec(block_spec)? {
                 block
             } else {
                 // Block spec is pending
                 let result = self.mine_pending_block()?;
-                return Ok(result.state);
+                return Ok(BlockContext {
+                    block: Arc::new(result.block),
+                    state: result.state,
+                });
             }
         } else {
             self.blockchain.last_block()?
@@ -968,7 +1049,10 @@ impl ProviderData {
             .blockchain
             .state_at_block_number(block_header.number, self.irregular_state.state_overrides())?;
 
-        Ok(contextual_state)
+        Ok(BlockContext {
+            block,
+            state: contextual_state,
+        })
     }
 
     fn validate_auto_mine_transaction(

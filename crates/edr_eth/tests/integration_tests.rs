@@ -4,7 +4,7 @@ use edr_eth::{
         filter::{
             FilterBlockTarget, FilterOptions, LogOutput, OneOrMoreAddresses, SubscriptionType,
         },
-        methods::{GetLogsInput, MethodInvocation, OneUsizeOrTwo, TransactionInput, U64OrUsize},
+        methods::{CallRequest, GetLogsInput, MethodInvocation, OneUsizeOrTwo, U64OrUsize},
         BlockSpec, BlockTag, PreEip1898BlockSpec,
     },
     transaction::EthTransactionRequest,
@@ -27,21 +27,25 @@ fn test_serde_eth_block_number() {
 
 #[test]
 fn test_serde_eth_call() {
-    let tx = TransactionInput {
+    let tx = CallRequest {
         from: Some(Address::from_low_u64_ne(1)),
         to: Some(Address::from_low_u64_ne(2)),
-        gas: Some(U256::from(3)),
+        gas: Some(3),
         gas_price: Some(U256::from(4)),
+        max_fee_per_gas: None,
+        max_priority_fee_per_gas: None,
         value: Some(U256::from(123568919)),
         data: Some(Bytes::from(&b"whatever"[..]).into()),
+        access_list: None,
     };
     help_test_method_invocation_serde(MethodInvocation::Call(
         tx.clone(),
         Some(BlockSpec::latest()),
+        None,
     ));
     help_test_method_invocation_serde_with_expected(
-        MethodInvocation::Call(tx.clone(), None),
-        MethodInvocation::Call(tx, Some(BlockSpec::latest())),
+        MethodInvocation::Call(tx.clone(), None, None),
+        MethodInvocation::Call(tx, Some(BlockSpec::latest()), None),
     );
 }
 
@@ -57,13 +61,16 @@ fn test_serde_eth_coinbase() {
 
 #[test]
 fn test_serde_eth_estimate_gas() {
-    let tx = TransactionInput {
+    let tx = CallRequest {
         from: Some(Address::from_low_u64_ne(1)),
         to: Some(Address::from_low_u64_ne(2)),
-        gas: Some(U256::from(3)),
+        gas: Some(3),
         gas_price: Some(U256::from(4)),
+        max_fee_per_gas: None,
+        max_priority_fee_per_gas: None,
         value: Some(U256::from(123568919)),
         data: Some(Bytes::from(&b"whatever"[..]).into()),
+        access_list: None,
     };
     help_test_method_invocation_serde(MethodInvocation::EstimateGas(
         tx.clone(),

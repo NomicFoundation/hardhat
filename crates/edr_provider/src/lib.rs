@@ -129,7 +129,9 @@ fn handle_eth_request(
     match request {
         EthRequest::Accounts(()) => eth::handle_accounts_request(data).and_then(to_json),
         EthRequest::BlockNumber(()) => eth::handle_block_number_request(data).and_then(to_json),
-        EthRequest::Call(_, _) => Err(ProviderError::Unimplemented("".to_string())),
+        EthRequest::Call(request, block_spec, state_overrides) => {
+            eth::handle_call_request(data, request, block_spec, state_overrides).and_then(to_json)
+        }
         EthRequest::ChainId(()) => eth::handle_chain_id_request(data).and_then(to_json),
         EthRequest::Coinbase(()) => eth::handle_coinbase_request(data).and_then(to_json),
         EthRequest::EstimateGas(_, _) => Err(ProviderError::Unimplemented("".to_string())),

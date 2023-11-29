@@ -1,6 +1,8 @@
 use revm_primitives::ruint::aliases::U64;
 
+use super::StateOverrideOptions;
 use crate::{
+    access_list::AccessListItem,
     remote::{
         eth::eip712,
         filter::{FilterOptions, SubscriptionType},
@@ -14,23 +16,31 @@ use crate::{
 /// for specifying input to methods requiring a transaction object, like
 /// `eth_call`, `eth_sendTransaction` and `eth_estimateGas`
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
-pub struct TransactionInput {
+#[cfg_attr(feature = "serde", serde(deny_unknown_fields))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+pub struct CallRequest {
     /// the address from which the transaction should be sent
     pub from: Option<Address>,
     /// the address to which the transaction should be sent
     pub to: Option<Address>,
+    #[cfg_attr(feature = "serde", serde(default, with = "crate::serde::optional_u64"))]
     /// gas
-    pub gas: Option<U256>,
+    pub gas: Option<u64>,
     /// gas price
-    #[serde(rename = "gasPrice")]
     pub gas_price: Option<U256>,
+    /// max base fee per gas sender is willing to pay
+    pub max_fee_per_gas: Option<U256>,
+    /// miner tip
+    pub max_priority_fee_per_gas: Option<U256>,
     /// transaction value
     pub value: Option<U256>,
     /// transaction data
     pub data: Option<ZeroXPrefixedBytes>,
+    /// warm storage access pre-payment
+    pub access_list: Option<Vec<AccessListItem>>,
 }
 
-mod optional_block_spec_resolved {
+mod optional_block_spec {
     use super::BlockSpec;
 
     pub fn latest() -> Option<BlockSpec> {
@@ -55,12 +65,13 @@ pub enum MethodInvocation {
     /// eth_call
     #[serde(rename = "eth_call")]
     Call(
-        TransactionInput,
+        CallRequest,
         #[serde(
             skip_serializing_if = "Option::is_none",
-            default = "optional_block_spec_resolved::latest"
+            default = "optional_block_spec::latest"
         )]
         Option<BlockSpec>,
+        #[serde(default, skip_serializing_if = "Option::is_none")] Option<StateOverrideOptions>,
     ),
     /// eth_chainId
     #[serde(rename = "eth_chainId", with = "crate::serde::empty_params")]
@@ -71,10 +82,10 @@ pub enum MethodInvocation {
     /// eth_estimateGas
     #[serde(rename = "eth_estimateGas")]
     EstimateGas(
-        TransactionInput,
+        CallRequest,
         #[serde(
             skip_serializing_if = "Option::is_none",
-            default = "optional_block_spec_resolved::pending"
+            default = "optional_block_spec::pending"
         )]
         Option<BlockSpec>,
     ),
@@ -97,7 +108,7 @@ pub enum MethodInvocation {
         Address,
         #[serde(
             skip_serializing_if = "Option::is_none",
-            default = "optional_block_spec_resolved::latest"
+            default = "optional_block_spec::latest"
         )]
         Option<BlockSpec>,
     ),
@@ -134,7 +145,7 @@ pub enum MethodInvocation {
         Address,
         #[serde(
             skip_serializing_if = "Option::is_none",
-            default = "optional_block_spec_resolved::latest"
+            default = "optional_block_spec::latest"
         )]
         Option<BlockSpec>,
     ),
@@ -155,7 +166,7 @@ pub enum MethodInvocation {
         U256,
         #[serde(
             skip_serializing_if = "Option::is_none",
-            default = "optional_block_spec_resolved::latest"
+            default = "optional_block_spec::latest"
         )]
         Option<BlockSpec>,
     ),
@@ -176,7 +187,7 @@ pub enum MethodInvocation {
         Address,
         #[serde(
             skip_serializing_if = "Option::is_none",
-            default = "optional_block_spec_resolved::latest"
+            default = "optional_block_spec::latest"
         )]
         Option<BlockSpec>,
     ),
