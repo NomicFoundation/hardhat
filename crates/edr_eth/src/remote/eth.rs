@@ -323,8 +323,9 @@ pub struct Block<TX> {
     /// on the last given parameter
     #[serde(default)]
     pub transactions: Vec<TX>,
-    /// integer the size of this block in bytes
-    pub size: U256,
+    /// the length of the RLP encoding of this block in bytes
+    #[serde(with = "crate::serde::u64")]
+    pub size: u64,
     /// mix hash
     pub mix_hash: B256,
     /// hash of the generated proof-of-work. null when its pending block.

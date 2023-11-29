@@ -28,11 +28,11 @@ pub trait Block: Debug {
     /// Returns the block's header.
     fn header(&self) -> &block::Header;
 
-    /// Uncle block hashes.
+    /// Ommer/uncle block hashes.
     fn ommer_hashes(&self) -> &[B256];
 
-    /// The size of this block in bytes.
-    fn size(&self) -> u64;
+    /// The length of the RLP encoding of this block in bytes.
+    fn rlp_size(&self) -> u64;
 
     /// Returns the block's transactions.
     fn transactions(&self) -> &[SignedTransaction];

@@ -107,7 +107,7 @@ impl Block for LocalBlock {
         &self.header
     }
 
-    fn size(&self) -> u64 {
+    fn rlp_size(&self) -> u64 {
         rlp::encode(self)
             .len()
             .try_into()

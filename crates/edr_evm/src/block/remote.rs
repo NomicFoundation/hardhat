@@ -53,7 +53,7 @@ pub struct RemoteBlock {
     withdrawals: Option<Vec<Withdrawal>>,
     /// The block's hash
     hash: B256,
-    /// Integer size of this block in bytes
+    /// The length of the RLP encoding of this block in bytes
     size: u64,
     // The RPC client is needed to lazily fetch receipts
     rpc_client: Arc<RpcClient>,
@@ -103,11 +103,6 @@ impl RemoteBlock {
 
         let hash = block.hash.ok_or(CreationError::MissingHash)?;
 
-        let size = block
-            .size
-            .try_into()
-            .map_err(|_err| CreationError::SizeTooLarge(block.size))?;
-
         Ok(Self {
             header,
             transactions,
@@ -117,7 +112,7 @@ impl RemoteBlock {
             withdrawals: block.withdrawals,
             hash,
             rpc_client,
-            size,
+            size: block.size,
             runtime,
         })
     }
@@ -138,7 +133,7 @@ impl Block for RemoteBlock {
         self.ommer_hashes.as_slice()
     }
 
-    fn size(&self) -> u64 {
+    fn rlp_size(&self) -> u64 {
         self.size
     }
 

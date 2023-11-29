@@ -104,7 +104,7 @@ fn block_to_rpc_output(
         total_difficulty,
         uncles: block.ommer_hashes().to_vec(),
         transactions,
-        size: U256::from(block.size()),
+        size: block.rlp_size(),
         mix_hash: header.mix_hash,
         nonce: Some(header.nonce.as_limbs()[0]),
         base_fee_per_gas: header.base_fee_per_gas,
