@@ -9,7 +9,7 @@ set -e
 echo "Running tests: $(basename "$(pwd)")"
 
 # replace the hardhat version in the files used to check that the output is correct because it changes in every release
-sed -i "s/Hardhat version [0-9]*\.[0-9]*\.[0-9]*/Hardhat version $1/g" "help.txt"
+sed "s/Hardhat version [0-9]*\.[0-9]*\.[0-9]*/Hardhat version $1/g" help.txt >temp.txt && mv temp.txt help.txt
 
 echo "it should show the help information when no argument is passed"
 if ! npx hardhat 2>stderr | diff - help.txt; then
