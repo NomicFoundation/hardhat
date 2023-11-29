@@ -564,7 +564,7 @@ async function installRecommendedDependencies(dependencies: Dependencies) {
   console.log("");
 
   // The reason we don't quote the dependencies here is because they are going
-  // to be used in child_process.sapwn, which doesn't require escaping string,
+  // to be used in child_process.spawn, which doesn't require escaping string,
   // and can actually fail if you do.
   const installCmd = await getRecommendedDependenciesInstallationCommand(
     dependencies,
@@ -583,6 +583,7 @@ async function installDependencies(
 
   const childProcess = spawn(packageManager, args, {
     stdio: "inherit",
+    shell: true,
   });
 
   return new Promise((resolve, reject) => {
