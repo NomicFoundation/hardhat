@@ -150,7 +150,7 @@ fn test_serde_eth_get_transaction() {
 #[test]
 fn test_serde_eth_get_transaction_count_by_number() {
     help_test_method_invocation_serde(MethodInvocation::GetBlockTransactionCountByNumber(
-        BlockSpec::Number(100),
+        PreEip1898BlockSpec::Number(100),
     ));
 }
 

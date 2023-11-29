@@ -225,6 +225,39 @@ impl ProviderData {
             .map_err(ProviderError::Blockchain)
     }
 
+    pub fn block_by_number(
+        &self,
+        block_spec: &BlockSpec,
+    ) -> Result<Option<BlockAndTotalDifficulty>, ProviderError> {
+        match self.block_by_block_spec(block_spec) {
+            Ok(Some(block)) => {
+                let total_difficulty = self.total_difficulty_by_hash(block.hash())?;
+                Ok(Some(BlockAndTotalDifficulty {
+                    block,
+                    total_difficulty,
+                }))
+            }
+            // Pending block
+            Ok(None) => {
+                let result = self.mine_pending_block()?;
+                let block: Arc<dyn SyncBlock<Error = BlockchainError>> = Arc::new(result.block);
+
+                let last_block = self.last_block()?;
+                let previous_total_difficulty = self
+                    .total_difficulty_by_hash(last_block.hash())?
+                    .expect("last block has total difficulty");
+                let total_difficulty = previous_total_difficulty + block.header().difficulty;
+
+                Ok(Some(BlockAndTotalDifficulty {
+                    block,
+                    total_difficulty: Some(total_difficulty),
+                }))
+            }
+            Err(ProviderError::InvalidBlockNumberOrHash(_)) => Ok(None),
+            Err(err) => Err(err),
+        }
+    }
+
     pub fn chain_id(&self) -> u64 {
         self.blockchain.chain_id()
     }
@@ -1030,6 +1063,15 @@ async fn create_blockchain_and_state(
             blockchain: Box::new(blockchain),
         })
     }
+}
+
+/// The result returned by requesting a block by number.
+#[derive(Debug, Clone)]
+pub struct BlockAndTotalDifficulty {
+    /// The block
+    pub block: Arc<dyn SyncBlock<Error = BlockchainError>>,
+    /// The total difficulty with the block
+    pub total_difficulty: Option<U256>,
 }
 
 /// The result returned by requesting a transaction.
