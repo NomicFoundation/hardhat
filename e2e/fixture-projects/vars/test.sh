@@ -36,8 +36,10 @@ fi
 # Test that the path to the configuration variables file is shown correctly
 #
 echo "it should show the path where the configuration variables are stored"
-if ! npx hardhat vars path | grep -q "/.config/hardhat-nodejs/vars.json"; then
-  print_error_msg "The 'vars path' output is not the expected one"
+output=$(npx hardhat vars path)
+expected_output="/.config/hardhat-nodejs/vars.json"
+if ! echo "$output" | grep -q "$expected_output"; then
+  print_error_msg "The 'vars path' output is not the expected one. Got: '$output', but expected: '$expected_output'"
   exit 1
 fi
 
