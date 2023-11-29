@@ -603,25 +603,36 @@ impl ProviderData {
             }
         }
 
-        if self.is_auto_mining {
+        let snapshot_id = if self.is_auto_mining {
             self.validate_auto_mine_transaction(&transaction_request)?;
-        }
 
-        // TODO: Make snapshot of current state
+            Some(self.make_snapshot())
+        } else {
+            None
+        };
 
         let signed_transaction = self.sign_transaction_request(transaction_request)?;
+        let tx_hash = self
+            .add_pending_transaction(signed_transaction)
+            .map_err(|error| {
+                if let Some(snapshot_id) = snapshot_id {
+                    self.revert_to_snapshot(snapshot_id);
+                }
 
-        let tx_hash = self.add_pending_transaction(signed_transaction)?;
+                error
+            })?;
 
-        // TODO: Use a guard to revert to snapshot if something goes wrong
-
-        if self.is_auto_mining {
+        if let Some(snapshot_id) = snapshot_id {
             while self.mem_pool.transaction_by_hash(&tx_hash).is_some() {
-                self.mine_and_commit_block(None)?;
-            }
-        }
+                self.mine_and_commit_block(None).map_err(|error| {
+                    self.revert_to_snapshot(snapshot_id);
 
-        // TODO: Clear the guard
+                    error
+                })?;
+            }
+
+            self.snapshots.remove(&snapshot_id);
+        }
 
         Ok(tx_hash)
     }
