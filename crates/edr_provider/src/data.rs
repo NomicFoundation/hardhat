@@ -1,6 +1,7 @@
 mod account;
 
 use std::{
+    cmp::Ordering,
     collections::BTreeMap,
     sync::Arc,
     time::{Instant, SystemTime, UNIX_EPOCH},
@@ -746,8 +747,6 @@ impl ProviderData {
 
     /// Set the next block timestamp.
     pub fn set_next_block_timestamp(&mut self, timestamp: u64) -> Result<u64, ProviderError> {
-        use std::cmp::Ordering;
-
         let latest_block = self.blockchain.last_block()?;
         let latest_block_header = latest_block.header();
 
@@ -1099,11 +1098,20 @@ impl ProviderData {
         let TransactionRequestAndSender { request, sender } = transaction_request;
 
         let next_nonce = self.account_next_nonce(sender)?;
-        if request.nonce() > next_nonce {
-            return Err(ProviderError::AutoMineNonceTooHigh {
-                expected: next_nonce,
-                actual: request.nonce(),
-            });
+        match request.nonce().cmp(&next_nonce) {
+            Ordering::Less => {
+                return Err(ProviderError::AutoMineNonceTooLow {
+                    expected: next_nonce,
+                    actual: request.nonce(),
+                })
+            }
+            Ordering::Equal => (),
+            Ordering::Greater => {
+                return Err(ProviderError::AutoMineNonceTooHigh {
+                    expected: next_nonce,
+                    actual: request.nonce(),
+                })
+            }
         }
 
         if *request.gas_price() < self.min_gas_price {

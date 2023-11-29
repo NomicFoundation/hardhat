@@ -194,6 +194,8 @@ pub fn handle_send_transaction_request(
     data: &mut ProviderData,
     transaction_request: EthTransactionRequest,
 ) -> Result<B256, ProviderError> {
+    validate_send_transaction_request(data, &transaction_request)?;
+
     let transaction_request = resolve_transaction_request(data, transaction_request)?;
 
     data.send_transaction(transaction_request)
@@ -329,4 +331,70 @@ fn resolve_transaction_request(
         request,
         sender: from,
     })
+}
+
+fn validate_send_transaction_request(
+    data: &ProviderData,
+    request: &EthTransactionRequest,
+) -> Result<(), ProviderError> {
+    let EthTransactionRequest {
+        gas_price,
+        max_fee_per_gas,
+        max_priority_fee_per_gas,
+        chain_id,
+        access_list,
+        ..
+    } = request;
+
+    if let Some(chain_id) = chain_id {
+        let expected = data.chain_id();
+        if *chain_id != expected {
+            return Err(ProviderError::InvalidChainId {
+                expected,
+                actual: *chain_id,
+            });
+        }
+    }
+
+    let spec_id = data.spec_id();
+    if spec_id < SpecId::LONDON && (max_fee_per_gas.is_some() || max_priority_fee_per_gas.is_some())
+    {
+        return Err(ProviderError::UnmetHardfork {
+            actual: spec_id,
+            minimum: SpecId::LONDON,
+        });
+    }
+
+    if spec_id < SpecId::BERLIN && access_list.is_some() {
+        return Err(ProviderError::UnmetHardfork {
+            actual: spec_id,
+            minimum: SpecId::BERLIN,
+        });
+    }
+
+    if gas_price.is_some() {
+        if max_fee_per_gas.is_some() {
+            return Err(ProviderError::InvalidTransactionInput(
+                "Cannot send both gasPrice and maxFeePerGas params".to_string(),
+            ));
+        }
+
+        if max_priority_fee_per_gas.is_some() {
+            return Err(ProviderError::InvalidTransactionInput(
+                "Cannot send both gasPrice and maxPriorityFeePerGas".to_string(),
+            ));
+        }
+    }
+
+    if let Some(max_fee_per_gas) = max_fee_per_gas {
+        if let Some(max_priority_fee_per_gas) = max_priority_fee_per_gas {
+            if max_priority_fee_per_gas > max_fee_per_gas {
+                return Err(ProviderError::InvalidTransactionInput(format!(
+                    "maxPriorityFeePerGas ({max_priority_fee_per_gas}) is bigger than maxFeePerGas ({max_fee_per_gas})"),
+                ));
+            }
+        }
+    }
+
+    Ok(())
 }

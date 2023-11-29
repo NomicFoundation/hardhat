@@ -19,8 +19,11 @@ pub enum ProviderError {
     #[error("Transaction gas price is 0x{actual:x}, which is below the minimum of 0x{expected:x}")]
     AutoMineGasPriceTooLow { expected: U256, actual: U256 },
     /// The transaction nonce is too high, while automatically mining.
-    #[error("Nonce too high. Expected nonce to be 0x{expected:x}, but got 0x{actual:x}. Note that transactions can't be queued when automining.")]
+    #[error("Nonce too high. Expected nonce to be {expected} but got {actual}. Note that transactions can't be queued when automining.")]
     AutoMineNonceTooHigh { expected: u64, actual: u64 },
+    /// The transaction nonce is too high, while automatically mining.
+    #[error("Nonce too low. Expected nonce to be {expected} but got {actual}. Note that transactions can't be queued when automining.")]
+    AutoMineNonceTooLow { expected: u64, actual: u64 },
     /// Blockchain error
     #[error(transparent)]
     Blockchain(#[from] BlockchainError),
@@ -45,8 +48,8 @@ pub enum ProviderError {
     #[error("Transaction index '{0}' is too large")]
     InvalidTransactionIndex(U256),
     /// Invalid transaction request
-    #[error("Could not convert transaction request into a typed request")]
-    InvalidTransactionRequest,
+    #[error("{0}")]
+    InvalidTransactionInput(String),
     /// An error occurred while updating the mem pool.
     #[error(transparent)]
     MemPoolUpdate(StateError),
@@ -98,4 +101,46 @@ pub enum ProviderError {
     /// Minimum required hardfork not met
     #[error("Feature is only available in post-{minimum:?} hardforks, the current hardfork is {actual:?}")]
     UnmetHardfork { actual: SpecId, minimum: SpecId },
+}
+
+impl From<ProviderError> for jsonrpc::Error {
+    fn from(value: ProviderError) -> Self {
+        #[allow(clippy::match_same_arms)]
+        let code = match &value {
+            ProviderError::AccountOverrideConversionError(_) => -32000,
+            ProviderError::AutoMineGasPriceTooLow { .. } => -32000,
+            ProviderError::AutoMineNonceTooHigh { .. } => -32000,
+            ProviderError::AutoMineNonceTooLow { .. } => -32000,
+            ProviderError::Blockchain(_) => -32000,
+            ProviderError::InvalidBlockNumberOrHash(_) => -32000,
+            ProviderError::InvalidBlockTag { .. } => -32000,
+            ProviderError::InvalidChainId { .. } => -32000,
+            ProviderError::InvalidFilterSubscriptionType { .. } => -32000,
+            ProviderError::InvalidTransactionIndex(_) => -32000,
+            ProviderError::InvalidTransactionInput(_) => -32000,
+            ProviderError::MemPoolUpdate(_) => -32000,
+            ProviderError::MineBlock(_) => -32000,
+            ProviderError::MinerTransactionError(_) => -32000,
+            ProviderError::RlpDecodeError(_) => -32000,
+            ProviderError::RpcVersion(_) => -32000,
+            ProviderError::RunTransaction(_) => -32000,
+            ProviderError::Serialization(_) => -32000,
+            ProviderError::Signature(_) => -32000,
+            ProviderError::State(_) => -32000,
+            ProviderError::SystemTime(_) => -32000,
+            ProviderError::TimestampLowerThanPrevious { .. } => -32000,
+            ProviderError::TimestampEqualsPrevious { .. } => -32000,
+            ProviderError::TransactionCreationError(_) => -32000,
+            ProviderError::TryFromIntError(_) => -32000,
+            ProviderError::Unimplemented(_) => -32000,
+            ProviderError::UnknownAddress { .. } => -32000,
+            ProviderError::UnmetHardfork { .. } => -32602,
+        };
+
+        Self {
+            code,
+            message: value.to_string(),
+            data: None,
+        }
+    }
 }
