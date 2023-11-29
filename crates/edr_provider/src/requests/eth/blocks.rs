@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use edr_eth::{
-    remote::{eth, PreEip1898BlockSpec},
+    remote::{eth, BlockSpec, PreEip1898BlockSpec},
     B256, U256, U64,
 };
 use edr_evm::{blockchain::BlockchainError, SyncBlock};
@@ -37,7 +37,7 @@ pub fn handle_get_block_by_number_request(
     block_spec: PreEip1898BlockSpec,
     transaction_detail_flag: bool,
 ) -> Result<Option<eth::Block<HashOrTransaction>>, ProviderError> {
-    data.block_by_number(&block_spec.into())?
+    block_by_number(data, &block_spec.into())?
         .map(
             |BlockAndTotalDifficulty {
                  block,
@@ -62,9 +62,41 @@ pub fn handle_get_block_transaction_count_by_block_number(
     data: &ProviderData,
     block_spec: PreEip1898BlockSpec,
 ) -> Result<Option<U64>, ProviderError> {
-    Ok(data
-        .block_by_number(&block_spec.into())?
+    Ok(block_by_number(data, &block_spec.into())?
         .map(|BlockAndTotalDifficulty { block, .. }| U64::from(block.transactions().len())))
+}
+
+fn block_by_number(
+    data: &ProviderData,
+    block_spec: &BlockSpec,
+) -> Result<Option<BlockAndTotalDifficulty>, ProviderError> {
+    match data.block_by_block_spec(block_spec) {
+        Ok(Some(block)) => {
+            let total_difficulty = data.total_difficulty_by_hash(block.hash())?;
+            Ok(Some(BlockAndTotalDifficulty {
+                block,
+                total_difficulty,
+            }))
+        }
+        // Pending block
+        Ok(None) => {
+            let result = data.mine_pending_block()?;
+            let block: Arc<dyn SyncBlock<Error = BlockchainError>> = Arc::new(result.block);
+
+            let last_block = data.last_block()?;
+            let previous_total_difficulty = data
+                .total_difficulty_by_hash(last_block.hash())?
+                .expect("last block has total difficulty");
+            let total_difficulty = previous_total_difficulty + block.header().difficulty;
+
+            Ok(Some(BlockAndTotalDifficulty {
+                block,
+                total_difficulty: Some(total_difficulty),
+            }))
+        }
+        Err(ProviderError::InvalidBlockNumberOrHash(_)) => Ok(None),
+        Err(err) => Err(err),
+    }
 }
 
 fn block_to_rpc_output(
