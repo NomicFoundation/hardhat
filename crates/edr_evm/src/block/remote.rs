@@ -45,10 +45,13 @@ pub struct RemoteBlock {
     /// The receipts of the block's transactions
     receipts: OnceLock<Vec<Arc<BlockReceipt>>>,
     /// The hashes of the block's ommers
-    _ommers: Vec<B256>,
-    _withdrawals: Option<Vec<Withdrawal>>,
+    ommer_hashes: Vec<B256>,
+    /// The staking withdrawals
+    withdrawals: Option<Vec<Withdrawal>>,
     /// The block's hash
     hash: B256,
+    /// The length of the RLP encoding of this block in bytes
+    size: u64,
     // The RPC client is needed to lazily fetch receipts
     rpc_client: Arc<RpcClient>,
     runtime: runtime::Handle,
@@ -102,10 +105,11 @@ impl RemoteBlock {
             transactions,
             callers,
             receipts: OnceLock::new(),
-            _ommers: block.uncles,
-            _withdrawals: block.withdrawals,
+            ommer_hashes: block.uncles,
+            withdrawals: block.withdrawals,
             hash,
             rpc_client,
+            size: block.size,
             runtime,
         })
     }
@@ -120,6 +124,14 @@ impl Block for RemoteBlock {
 
     fn header(&self) -> &Header {
         &self.header
+    }
+
+    fn ommer_hashes(&self) -> &[B256] {
+        self.ommer_hashes.as_slice()
+    }
+
+    fn rlp_size(&self) -> u64 {
+        self.size
     }
 
     fn transactions(&self) -> &[SignedTransaction] {
@@ -152,6 +164,10 @@ impl Block for RemoteBlock {
             .expect("Receipts should not be set");
 
         Ok(receipts)
+    }
+
+    fn withdrawals(&self) -> Option<&[Withdrawal]> {
+        self.withdrawals.as_deref()
     }
 }
 

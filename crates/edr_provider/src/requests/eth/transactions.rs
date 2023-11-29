@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use edr_eth::{
+    block::Header,
     receipt::BlockReceipt,
     remote,
     remote::PreEip1898BlockSpec,
@@ -15,9 +16,7 @@ use edr_eth::{
 use edr_evm::{blockchain::BlockchainError, SyncBlock};
 
 use crate::{
-    data::{
-        transaction_from_block, BlockMetadataForTransaction, GetTransactionResult, ProviderData,
-    },
+    data::{BlockDataForTransaction, ProviderData, TransactionAndBlock},
     ProviderError,
 };
 
@@ -31,8 +30,8 @@ pub fn handle_get_transaction_by_block_hash_and_index(
     let index = rpc_index_to_usize(&index)?;
 
     data.block_by_hash(&block_hash)?
-        .and_then(|block| transaction_from_block(&block, index, data.spec_id()))
-        .map(get_transaction_result_to_rpc_result)
+        .and_then(|block| transaction_from_block(block, index))
+        .map(|tx| transaction_to_rpc_result(data, tx))
         .transpose()
 }
 
@@ -55,8 +54,8 @@ pub fn handle_get_transaction_by_block_spec_and_index(
         Err(ProviderError::InvalidBlockNumberOrHash(_)) => None,
         Err(err) => return Err(err),
     }
-    .and_then(|block| transaction_from_block(&block, index, data.spec_id()))
-    .map(get_transaction_result_to_rpc_result)
+    .and_then(|block| transaction_from_block(block, index))
+    .map(|tx| transaction_to_rpc_result(data, tx))
     .transpose()
 }
 
@@ -71,7 +70,7 @@ pub fn handle_get_transaction_by_hash(
     transaction_hash: B256,
 ) -> Result<Option<remote::eth::Transaction>, ProviderError> {
     data.transaction_by_hash(&transaction_hash)?
-        .map(get_transaction_result_to_rpc_result)
+        .map(|tx| transaction_to_rpc_result(data, tx))
         .transpose()
 }
 
@@ -82,12 +81,29 @@ pub fn handle_get_transaction_receipt(
     data.transaction_receipt(&transaction_hash)
 }
 
-fn get_transaction_result_to_rpc_result(
-    result: GetTransactionResult,
+fn transaction_from_block(
+    block: Arc<dyn SyncBlock<Error = BlockchainError>>,
+    transaction_index: usize,
+) -> Option<TransactionAndBlock> {
+    block
+        .transactions()
+        .get(transaction_index)
+        .map(|transaction| TransactionAndBlock {
+            signed_transaction: transaction.clone(),
+            block_data: Some(BlockDataForTransaction {
+                block: block.clone(),
+                transaction_index: transaction_index.try_into().expect("usize fits into u64"),
+            }),
+        })
+}
+
+pub fn transaction_to_rpc_result(
+    data: &ProviderData,
+    transaction_and_block: TransactionAndBlock,
 ) -> Result<remote::eth::Transaction, ProviderError> {
     fn gas_price_for_post_eip1559(
         signed_transaction: &SignedTransaction,
-        block_metadata: Option<&BlockMetadataForTransaction>,
+        block: Option<&Arc<dyn SyncBlock<Error = BlockchainError>>>,
     ) -> U256 {
         let max_fee_per_gas = signed_transaction
             .max_fee_per_gas()
@@ -96,8 +112,8 @@ fn get_transaction_result_to_rpc_result(
             .max_priority_fee_per_gas()
             .expect("Transaction must be post EIP-1559 transaction.");
 
-        if let Some(block_metadata) = block_metadata {
-            let base_fee_per_gas = block_metadata.base_fee_per_gas.expect(
+        if let Some(block) = block {
+            let base_fee_per_gas = block.header().base_fee_per_gas.expect(
                 "Transaction must have base fee per gas in block metadata if EIP-1559 is active.",
             );
             let priority_fee_per_gas =
@@ -110,18 +126,19 @@ fn get_transaction_result_to_rpc_result(
         }
     }
 
-    let GetTransactionResult {
+    let TransactionAndBlock {
         signed_transaction,
-        spec_id,
-        block_metadata,
-    } = result;
+        block_data,
+    } = transaction_and_block;
+    let block = block_data.as_ref().map(|b| &b.block);
+    let header = block.map(|b| b.header());
 
     let gas_price = match &signed_transaction {
         SignedTransaction::PreEip155Legacy(tx) => tx.gas_price,
         SignedTransaction::PostEip155Legacy(tx) => tx.gas_price,
         SignedTransaction::Eip2930(tx) => tx.gas_price,
         SignedTransaction::Eip1559(_) | SignedTransaction::Eip4844(_) => {
-            gas_price_for_post_eip1559(&signed_transaction, block_metadata.as_ref())
+            gas_price_for_post_eip1559(&signed_transaction, block)
         }
     };
 
@@ -134,7 +151,7 @@ fn get_transaction_result_to_rpc_result(
         SignedTransaction::Eip4844(tx) => Some(tx.chain_id),
     };
 
-    let show_transaction_type = spec_id >= FIRST_HARDFORK_WITH_TRANSACTION_TYPE;
+    let show_transaction_type = data.spec_id() >= FIRST_HARDFORK_WITH_TRANSACTION_TYPE;
     let is_typed_transaction = signed_transaction.transaction_type() > 0;
     let transaction_type = if show_transaction_type || is_typed_transaction {
         Some(signed_transaction.transaction_type())
@@ -147,9 +164,9 @@ fn get_transaction_result_to_rpc_result(
     Ok(remote::eth::Transaction {
         hash: *signed_transaction.hash(),
         nonce: signed_transaction.nonce(),
-        block_hash: block_metadata.as_ref().map(|m| m.block_hash),
-        block_number: block_metadata.as_ref().map(|m| U256::from(m.block_number)),
-        transaction_index: block_metadata.map(|m| m.transaction_index),
+        block_hash: header.map(Header::hash),
+        block_number: header.map(|h| U256::from(h.number)),
+        transaction_index: block_data.as_ref().map(|bd| bd.transaction_index),
         from: signed_transaction.recover()?,
         to: signed_transaction.to(),
         value: signed_transaction.value(),

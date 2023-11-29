@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 pub use cached::CachedRemoteState;
 use edr_eth::{
-    remote::{BlockSpec, RpcClient, RpcClientError},
+    remote::{BlockSpec, PreEip1898BlockSpec, RpcClient, RpcClientError},
     Address, B256, U256,
 };
 use revm::{
@@ -57,7 +57,7 @@ impl RemoteState {
         Ok(tokio::task::block_in_place(move || {
             self.runtime.block_on(
                 self.client
-                    .get_block_by_number(BlockSpec::Number(block_number)),
+                    .get_block_by_number(PreEip1898BlockSpec::Number(block_number)),
             )
         })?
         .map(|block| block.state_root))

@@ -115,7 +115,7 @@ pub enum MethodInvocation {
     /// eth_getBlockByNumber
     #[serde(rename = "eth_getBlockByNumber")]
     GetBlockByNumber(
-        BlockSpec,
+        PreEip1898BlockSpec,
         /// include transaction data
         bool,
     ),

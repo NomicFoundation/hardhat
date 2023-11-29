@@ -9,7 +9,7 @@ mod alchemy {
                     #[tokio::test]
                     async fn [<test_transaction_remote_ $name _hash>]() {
                         use edr_eth::{
-                            remote::{RpcClient, BlockSpec},
+                            remote::{RpcClient, PreEip1898BlockSpec},
                             transaction::SignedTransaction,
                             Address
                         };
@@ -21,7 +21,7 @@ mod alchemy {
                         let client = RpcClient::new(&get_alchemy_url(), tempdir.path().into());
 
                         let block = client
-                            .get_block_by_number_with_transaction_data(BlockSpec::Number($block_number))
+                            .get_block_by_number_with_transaction_data(PreEip1898BlockSpec::Number($block_number))
                             .await
                             .expect("Should succeed");
 

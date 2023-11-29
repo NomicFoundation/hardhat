@@ -144,8 +144,9 @@ fn handle_eth_request(
         EthRequest::GetBalance(address, block_spec) => {
             eth::handle_get_balance_request(data, address, block_spec).and_then(to_json)
         }
-        EthRequest::GetBlockByNumber(_, _) => {
-            Err(ProviderError::Unimplemented("GetBlockByNumber".to_string()))
+        EthRequest::GetBlockByNumber(block_spec, transaction_detail_flag) => {
+            eth::handle_get_block_by_number_request(data, block_spec, transaction_detail_flag)
+                .and_then(to_json)
         }
         EthRequest::GetBlockByHash(_, _) => {
             Err(ProviderError::Unimplemented("GetBlockByHash".to_string()))

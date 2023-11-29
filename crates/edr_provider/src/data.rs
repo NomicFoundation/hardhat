@@ -199,8 +199,10 @@ impl ProviderData {
 
     /// Fetch a block by block spec.
     /// Returns `None` if the block spec is `pending`.
-    /// Returns `ProviderError::InvalidBlockSpec` if the block spec is a number
-    /// or a hash and the block isn't found.
+    /// Returns `ProviderError::InvalidBlockSpec` error if the block spec is a
+    /// number or a hash and the block isn't found.
+    /// Returns `ProviderError::InvalidBlockTag` error if the block tag is safe
+    /// or finalized and block spec is pre-merge.
     pub fn block_by_block_spec(
         &self,
         block_spec: &BlockSpec,
@@ -218,9 +220,17 @@ impl ProviderData {
             ),
             // Matching Hardhat behaviour by returning the last block for finalized and safe.
             // https://github.com/NomicFoundation/hardhat/blob/b84baf2d9f5d3ea897c06e0ecd5e7084780d8b6c/packages/hardhat-core/src/internal/hardhat-network/provider/modules/eth.ts#L1395
-            BlockSpec::Tag(BlockTag::Finalized | BlockTag::Safe | BlockTag::Latest) => {
-                Some(self.blockchain.last_block()?)
+            BlockSpec::Tag(BlockTag::Finalized | BlockTag::Safe) => {
+                if self.spec_id() >= SpecId::MERGE {
+                    Some(self.blockchain.last_block()?)
+                } else {
+                    return Err(ProviderError::InvalidBlockTag {
+                        block_spec: block_spec.clone(),
+                        spec: self.spec_id(),
+                    });
+                }
             }
+            BlockSpec::Tag(BlockTag::Latest) => Some(self.blockchain.last_block()?),
             BlockSpec::Tag(BlockTag::Pending) => None,
             BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
                 block_hash,
@@ -833,31 +843,47 @@ impl ProviderData {
         self.impersonated_accounts.remove(&address)
     }
 
+    pub fn total_difficulty_by_hash(&self, hash: &B256) -> Result<Option<U256>, ProviderError> {
+        self.blockchain
+            .total_difficulty_by_hash(hash)
+            .map_err(ProviderError::Blockchain)
+    }
+
     /// Get a transaction by hash from the blockchain or from the mempool if
     /// it's not mined yet.
     pub fn transaction_by_hash(
         &self,
         hash: &B256,
-    ) -> Result<Option<GetTransactionResult>, ProviderError> {
+    ) -> Result<Option<TransactionAndBlock>, ProviderError> {
         let transaction = if let Some(tx) = self.mem_pool.transaction_by_hash(hash) {
             let signed_transaction = tx.pending().transaction().clone();
 
-            Some(GetTransactionResult {
+            Some(TransactionAndBlock {
                 signed_transaction,
-                spec_id: self.blockchain.spec_id(),
-                block_metadata: None,
+                block_data: None,
             })
-        } else if let Some(tx_block) = self.blockchain.block_by_transaction_hash(hash)? {
-            let tx_index = self
+        } else if let Some(block) = self.blockchain.block_by_transaction_hash(hash)? {
+            let tx_index_u64 = self
                 .blockchain
                 .receipt_by_transaction_hash(hash)?
                 .expect("If the transaction was inserted in a block, it must have a receipt")
                 .transaction_index;
-
             let tx_index =
-                usize::try_from(tx_index).expect("Indices cannot be larger than usize::MAX");
+                usize::try_from(tx_index_u64).expect("Indices cannot be larger than usize::MAX");
 
-            transaction_from_block(&tx_block, tx_index, self.spec_id())
+            let signed_transaction = block
+                .transactions()
+                .get(tx_index)
+                .expect("Transaction index must be valid, since it's from the receipt.")
+                .clone();
+
+            Some(TransactionAndBlock {
+                signed_transaction,
+                block_data: Some(BlockDataForTransaction {
+                    block,
+                    transaction_index: tx_index_u64,
+                }),
+            })
         } else {
             None
         };
@@ -1091,27 +1117,6 @@ impl ProviderData {
     }
 }
 
-pub fn transaction_from_block(
-    block: &Arc<dyn SyncBlock<Error = BlockchainError>>,
-    index: usize,
-    spec_id: SpecId,
-) -> Option<GetTransactionResult> {
-    block.transactions().get(index).map(|tx| {
-        let block_metadata = BlockMetadataForTransaction {
-            base_fee_per_gas: block.header().base_fee_per_gas,
-            block_hash: *block.hash(),
-            block_number: block.header().number,
-            transaction_index: index.try_into().expect("usize fits into u64"),
-        };
-
-        GetTransactionResult {
-            signed_transaction: tx.clone(),
-            spec_id,
-            block_metadata: Some(block_metadata),
-        }
-    })
-}
-
 fn block_time_offset_seconds(config: &ProviderConfig) -> Result<u64, CreationError> {
     config.initial_date.map_or(Ok(0), |initial_date| {
         Ok(SystemTime::now()
@@ -1215,23 +1220,18 @@ async fn create_blockchain_and_state(
 }
 
 /// The result returned by requesting a transaction.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct GetTransactionResult {
+#[derive(Debug, Clone)]
+pub struct TransactionAndBlock {
     /// The signed transaction.
     pub signed_transaction: SignedTransaction,
-    /// Information about the active hardforks.
-    pub spec_id: SpecId,
-    /// The block metadata for the transaction. None if the transaction is
-    /// pending.
-    pub block_metadata: Option<BlockMetadataForTransaction>,
+    /// Block data in which the transaction is found if it has been mined.
+    pub block_data: Option<BlockDataForTransaction>,
 }
 
 /// Block metadata for a transaction.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct BlockMetadataForTransaction {
-    pub base_fee_per_gas: Option<U256>,
-    pub block_hash: B256,
-    pub block_number: u64,
+#[derive(Debug, Clone)]
+pub struct BlockDataForTransaction {
+    pub block: Arc<dyn SyncBlock<Error = BlockchainError>>,
     pub transaction_index: u64,
 }
 
@@ -1546,7 +1546,7 @@ mod tests {
 
         let non_existing_tx = fixture.provider_data.transaction_by_hash(&B256::zero())?;
 
-        assert_eq!(non_existing_tx, None);
+        assert!(non_existing_tx.is_none());
 
         Ok(())
     }

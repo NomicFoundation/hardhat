@@ -27,6 +27,10 @@ pub enum ProviderError {
     /// Block number or hash doesn't exist in blockchain
     #[error("Block number or block hash doesn't exist: '{0}'")]
     InvalidBlockNumberOrHash(BlockSpec),
+    /// The block tag is not allowed in pre-merge hardforks.
+    /// https://github.com/NomicFoundation/hardhat/blob/b84baf2d9f5d3ea897c06e0ecd5e7084780d8b6c/packages/hardhat-core/src/internal/hardhat-network/provider/modules/eth.ts#L1820
+    #[error("The '{block_spec}' block tag is not allowed in pre-merge hardforks. You are using the '{spec:?}' hardfork.")]
+    InvalidBlockTag { block_spec: BlockSpec, spec: SpecId },
     /// Invalid chain ID
     #[error("Invalid chainId ${actual} provided, expected ${expected} instead.")]
     InvalidChainId { expected: u64, actual: u64 },
@@ -89,7 +93,7 @@ pub enum ProviderError {
     #[error("Unimplemented: {0}")]
     Unimplemented(String),
     /// The address is not owned by this node.
-    #[error("{address} is not owned by this node")]
+    #[error("Unknown account {address}")]
     UnknownAddress { address: Address },
     /// Minimum required hardfork not met
     #[error("Feature is only available in post-{minimum:?} hardforks, the current hardfork is {actual:?}")]

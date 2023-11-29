@@ -22,6 +22,7 @@ pub struct LocalBlock {
     transaction_callers: Vec<Address>,
     transaction_receipts: Vec<Arc<BlockReceipt>>,
     ommers: Vec<block::Header>,
+    ommer_hashes: Vec<B256>,
     withdrawals: Option<Vec<Withdrawal>>,
     hash: B256,
 }
@@ -48,6 +49,7 @@ impl LocalBlock {
         ommers: Vec<Header>,
         withdrawals: Option<Vec<Withdrawal>>,
     ) -> Self {
+        let ommer_hashes = ommers.iter().map(Header::hash).collect::<Vec<_>>();
         let ommers_hash = keccak256(&rlp::encode_list(&ommers)[..]);
         let transactions_root =
             trie::ordered_trie_root(transactions.iter().map(|r| rlp::encode(r).freeze()));
@@ -70,6 +72,7 @@ impl LocalBlock {
             transaction_callers,
             transaction_receipts,
             ommers,
+            ommer_hashes,
             withdrawals,
             hash,
         }
@@ -104,6 +107,13 @@ impl Block for LocalBlock {
         &self.header
     }
 
+    fn rlp_size(&self) -> u64 {
+        rlp::encode(self)
+            .len()
+            .try_into()
+            .expect("usize fits into u64")
+    }
+
     fn transactions(&self) -> &[SignedTransaction] {
         &self.transactions
     }
@@ -114,6 +124,33 @@ impl Block for LocalBlock {
 
     fn transaction_receipts(&self) -> Result<Vec<Arc<BlockReceipt>>, Self::Error> {
         Ok(self.transaction_receipts.clone())
+    }
+
+    fn ommer_hashes(&self) -> &[B256] {
+        self.ommer_hashes.as_slice()
+    }
+
+    fn withdrawals(&self) -> Option<&[Withdrawal]> {
+        self.withdrawals.as_deref()
+    }
+}
+
+impl rlp::Encodable for LocalBlock {
+    fn rlp_append(&self, s: &mut rlp::RlpStream) {
+        let mut num_fields = 3;
+        if self.withdrawals.is_some() {
+            num_fields += 1;
+        }
+
+        s.begin_list(num_fields);
+
+        s.append(&self.header);
+        s.append_list(&self.transactions);
+        s.append_list(&self.ommers);
+
+        if let Some(withdrawals) = self.withdrawals.as_ref() {
+            s.append_list(withdrawals);
+        }
     }
 }
 

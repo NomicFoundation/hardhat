@@ -111,7 +111,7 @@ fn test_serde_eth_get_balance() {
 #[test]
 fn test_serde_eth_get_block_by_number() {
     help_test_method_invocation_serde(MethodInvocation::GetBlockByNumber(
-        BlockSpec::Number(100),
+        PreEip1898BlockSpec::Number(100),
         true,
     ));
 }
@@ -119,7 +119,7 @@ fn test_serde_eth_get_block_by_number() {
 #[test]
 fn test_serde_eth_get_block_by_tag() {
     help_test_method_invocation_serde(MethodInvocation::GetBlockByNumber(
-        BlockSpec::latest(),
+        PreEip1898BlockSpec::latest(),
         true,
     ));
 }

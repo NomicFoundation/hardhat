@@ -3,7 +3,7 @@ use std::sync::Arc;
 use async_rwlock::{RwLock, RwLockUpgradableReadGuard};
 use edr_eth::{
     receipt::BlockReceipt,
-    remote::{self, BlockSpec, RpcClient, RpcClientError},
+    remote::{self, PreEip1898BlockSpec, RpcClient, RpcClientError},
     B256, U256,
 };
 use tokio::runtime;
@@ -62,7 +62,7 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
         } else {
             let block = self
                 .client
-                .get_block_by_number_with_transaction_data(BlockSpec::Number(number))
+                .get_block_by_number_with_transaction_data(PreEip1898BlockSpec::Number(number))
                 .await?;
 
             self.fetch_and_cache_block(cache, block).await

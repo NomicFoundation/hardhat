@@ -92,37 +92,43 @@ pub enum BlockSpec {
     Eip1898(Eip1898BlockSpec),
 }
 
-impl BlockSpec {
-    /// Constructs an instance for the earliest block.
-    #[must_use]
-    pub fn earliest() -> Self {
-        Self::Tag(BlockTag::Earliest)
-    }
+macro_rules! impl_block_tags {
+    ($type_name:ident) => {
+        impl $type_name {
+            /// Constructs an instance for the earliest block.
+            #[must_use]
+            pub fn earliest() -> Self {
+                Self::Tag(BlockTag::Earliest)
+            }
 
-    /// Constructs an instance for the latest block.
-    #[must_use]
-    pub fn latest() -> Self {
-        Self::Tag(BlockTag::Latest)
-    }
+            /// Constructs an instance for the latest block.
+            #[must_use]
+            pub fn latest() -> Self {
+                Self::Tag(BlockTag::Latest)
+            }
 
-    /// Constructs an instance for the pending block.
-    #[must_use]
-    pub fn pending() -> Self {
-        Self::Tag(BlockTag::Pending)
-    }
+            /// Constructs an instance for the pending block.
+            #[must_use]
+            pub fn pending() -> Self {
+                Self::Tag(BlockTag::Pending)
+            }
 
-    /// Constructs an instance for the safe block.
-    #[must_use]
-    pub fn safe() -> Self {
-        Self::Tag(BlockTag::Safe)
-    }
+            /// Constructs an instance for the safe block.
+            #[must_use]
+            pub fn safe() -> Self {
+                Self::Tag(BlockTag::Safe)
+            }
 
-    /// Constructs an instance for the finalized block.
-    #[must_use]
-    pub fn finalized() -> Self {
-        Self::Tag(BlockTag::Finalized)
-    }
+            /// Constructs an instance for the finalized block.
+            #[must_use]
+            pub fn finalized() -> Self {
+                Self::Tag(BlockTag::Finalized)
+            }
+        }
+    };
 }
+
+impl_block_tags!(BlockSpec);
 
 impl Display for BlockSpec {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> Result<(), fmt::Error> {
@@ -152,6 +158,8 @@ impl From<PreEip1898BlockSpec> for BlockSpec {
         }
     }
 }
+
+impl_block_tags!(PreEip1898BlockSpec);
 
 #[cfg(test)]
 mod tests {
