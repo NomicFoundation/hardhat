@@ -37,7 +37,7 @@ fi
 #
 echo "it should show the path where the configuration variables are stored"
 output=$(npx hardhat vars path)
-expected_output="/.config/hardhat-nodejs/vars.json"
+expected_output="vars.json" # just check the final part of the path because unix path != windows path
 if ! echo "$output" | grep -q "$expected_output"; then
   print_error_msg "The 'vars path' output is not the expected one. Got: '$output', but expected: '$expected_output'"
   exit 1
