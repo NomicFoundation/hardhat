@@ -516,12 +516,11 @@ export async function createProject() {
 }
 
 async function canInstallRecommendedDeps() {
-  return (
-    (await fsExtra.pathExists("package.json")) &&
-    // TODO: Figure out why this doesn't work on Win
-    // cf. https://github.com/nomiclabs/hardhat/issues/1698
-    os.type() !== "Windows_NT"
-  );
+  return fsExtra.pathExists("package.json");
+  //  &&
+  // TODO: Figure out why this doesn't work on Win
+  // cf. https://github.com/nomiclabs/hardhat/issues/1698
+  // os.type() !== "Windows_NT"
 }
 
 function isInstalled(dep: string) {
