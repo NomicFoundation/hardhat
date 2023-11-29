@@ -18,13 +18,13 @@ mod remote {
                     #[tokio::test]
                     #[serial]
                     async fn [<test_remote_block_receipt_root_ $name>]() {
-                        use edr_eth::{remote::{RpcClient, BlockSpec}, trie::ordered_trie_root};
+                        use edr_eth::{remote::{RpcClient, PreEip1898BlockSpec}, trie::ordered_trie_root};
                         use edr_test_utils::env::get_alchemy_url;
 
                         let client = RpcClient::new(&get_alchemy_url(), CACHE_DIR.path().into());
 
                         let block = client
-                            .get_block_by_number_with_transaction_data(BlockSpec::Number($block_number))
+                            .get_block_by_number_with_transaction_data(PreEip1898BlockSpec::Number($block_number))
                             .await
                             .expect("Should succeed");
 

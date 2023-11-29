@@ -25,7 +25,7 @@ use uuid::Uuid;
 use super::{
     eth, jsonrpc,
     methods::{GetLogsInput, MethodInvocation},
-    BlockSpec,
+    BlockSpec, PreEip1898BlockSpec,
 };
 use crate::{
     block::{block_time, is_safe_block_number, IsSafeBlockNumberArgs},
@@ -719,7 +719,7 @@ impl RpcClient {
     /// Calls `eth_getBlockByNumber` and returns the transaction's hash.
     pub async fn get_block_by_number(
         &self,
-        spec: BlockSpec,
+        spec: PreEip1898BlockSpec,
     ) -> Result<Option<eth::Block<B256>>, RpcClientError> {
         self.call_with_resolver(
             MethodInvocation::GetBlockByNumber(spec, false),
@@ -731,7 +731,7 @@ impl RpcClient {
     /// Calls `eth_getBlockByNumber` and returns the transaction's data.
     pub async fn get_block_by_number_with_transaction_data(
         &self,
-        spec: BlockSpec,
+        spec: PreEip1898BlockSpec,
     ) -> Result<eth::Block<eth::Transaction>, RpcClientError> {
         self.call_with_resolver(
             MethodInvocation::GetBlockByNumber(spec, true),
@@ -1360,7 +1360,7 @@ mod tests {
             assert_eq!(client.files_in_cache().len(), 0);
 
             client
-                .get_block_by_number(BlockSpec::finalized())
+                .get_block_by_number(PreEip1898BlockSpec::finalized())
                 .await
                 .expect("should have succeeded");
 
@@ -1375,7 +1375,7 @@ mod tests {
             let block_number = 16222385;
 
             let block = TestRpcClient::new(&alchemy_url)
-                .get_block_by_number(BlockSpec::Number(block_number))
+                .get_block_by_number(PreEip1898BlockSpec::Number(block_number))
                 .await
                 .expect("should have succeeded")
                 .expect("Block must exist");
@@ -1401,7 +1401,7 @@ mod tests {
             assert_eq!(client.files_in_cache().len(), 0);
 
             let block = client
-                .get_block_by_number(BlockSpec::Number(block_number))
+                .get_block_by_number(PreEip1898BlockSpec::Number(block_number))
                 .await
                 .expect("should have succeeded")
                 .expect("Block must exist");
@@ -1417,7 +1417,7 @@ mod tests {
             let alchemy_url = get_alchemy_url();
             let client = TestRpcClient::new(&alchemy_url);
 
-            let block_spec = BlockSpec::Number(16220843);
+            let block_spec = PreEip1898BlockSpec::Number(16220843);
 
             assert_eq!(client.files_in_cache().len(), 0);
 
@@ -1444,7 +1444,7 @@ mod tests {
             assert_eq!(client.files_in_cache().len(), 0);
 
             client
-                .get_block_by_number_with_transaction_data(BlockSpec::earliest())
+                .get_block_by_number_with_transaction_data(PreEip1898BlockSpec::earliest())
                 .await
                 .expect("should have succeeded");
 
@@ -1457,7 +1457,7 @@ mod tests {
             let alchemy_url = get_alchemy_url();
 
             let _block = TestRpcClient::new(&alchemy_url)
-                .get_block_by_number(BlockSpec::latest())
+                .get_block_by_number(PreEip1898BlockSpec::latest())
                 .await
                 .expect("should have succeeded");
         }
@@ -1467,7 +1467,7 @@ mod tests {
             let alchemy_url = get_alchemy_url();
 
             let _block = TestRpcClient::new(&alchemy_url)
-                .get_block_by_number_with_transaction_data(BlockSpec::latest())
+                .get_block_by_number_with_transaction_data(PreEip1898BlockSpec::latest())
                 .await
                 .expect("should have succeeded");
         }
@@ -1477,7 +1477,7 @@ mod tests {
             let alchemy_url = get_alchemy_url();
 
             let _block = TestRpcClient::new(&alchemy_url)
-                .get_block_by_number(BlockSpec::pending())
+                .get_block_by_number(PreEip1898BlockSpec::pending())
                 .await
                 .expect("should have succeeded");
         }
@@ -1487,7 +1487,7 @@ mod tests {
             let alchemy_url = get_alchemy_url();
 
             let _block = TestRpcClient::new(&alchemy_url)
-                .get_block_by_number_with_transaction_data(BlockSpec::pending())
+                .get_block_by_number_with_transaction_data(PreEip1898BlockSpec::pending())
                 .await
                 .expect("should have succeeded");
         }

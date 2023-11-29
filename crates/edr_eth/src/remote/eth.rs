@@ -307,7 +307,7 @@ pub struct Block<TX> {
     /// the "extra data" field of this block
     #[serde(with = "crate::serde::bytes")]
     pub extra_data: Bytes,
-    /// the bloom filter for the logs of the block. None when its pending block.
+    /// the bloom filter for the logs of the block
     pub logs_bloom: Bloom,
     /// the unix timestamp for when the block was collated
     #[serde(with = "crate::serde::u64")]
@@ -323,8 +323,9 @@ pub struct Block<TX> {
     /// on the last given parameter
     #[serde(default)]
     pub transactions: Vec<TX>,
-    /// integer the size of this block in bytes
-    pub size: U256,
+    /// the length of the RLP encoding of this block in bytes
+    #[serde(with = "crate::serde::u64")]
+    pub size: u64,
     /// mix hash
     pub mix_hash: B256,
     /// hash of the generated proof-of-work. null when its pending block.
