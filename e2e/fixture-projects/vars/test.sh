@@ -27,7 +27,10 @@ fi
 # Test that the configuration variables to set are shown correctly
 #
 echo "it should list the configuartion variables that need to be set"
-if ! npx hardhat vars setup | diff - setup.txt; then
+output=$(npx hardhat vars setup)
+# Replace "❗" and "💡" because in macOS these simbols are printed
+output=$(echo "$output" | sed 's/ ❗ //g' | sed 's/ 💡 //g')
+if ! echo "$output" | diff - setup.txt; then
   print_error_msg "The 'vars setup' output does not match the expected one stored in the setup.txt file"
   exit 1
 fi
