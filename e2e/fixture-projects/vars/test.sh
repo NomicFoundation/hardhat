@@ -28,8 +28,9 @@ fi
 #
 echo "it should list the configuartion variables that need to be set"
 output=$(npx hardhat vars setup)
-# Replace "❗" and "💡" because in macOS these simbols are printed
-output=$(echo "$output" | sed 's/ ❗ //g' | sed 's/ 💡 //g')
+# Replace "❗" and "💡" because in macOS these simbols are printed. They come before the 'The following configuration...' part
+output=$(echo "$output" | sed 's/.*\(The following configuration variables need to be set:\)/\1/')
+output=$(echo "$output" | sed 's/.*\(The following configuration variables are optional:\)/\1/')
 if ! echo "$output" | diff - setup.txt; then
   print_error_msg "The 'vars setup' output does not match the expected one stored in the setup.txt file"
   exit 1
