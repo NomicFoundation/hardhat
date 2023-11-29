@@ -9,7 +9,7 @@ use edr_eth::{
     },
     transaction::SignedTransaction,
     withdrawal::Withdrawal,
-    Address, B256, B64, U256,
+    Address, B256, B64,
 };
 use tokio::runtime;
 
@@ -30,9 +30,6 @@ pub enum CreationError {
     /// Missing number
     #[error("Missing numbeer")]
     MissingNumber,
-    /// Size too large
-    #[error("Size too large: {0}")]
-    SizeTooLarge(U256),
     /// Transaction conversion error
     #[error(transparent)]
     TransactionConversionError(#[from] TransactionConversionError),
