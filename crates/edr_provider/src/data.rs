@@ -1032,6 +1032,15 @@ async fn create_blockchain_and_state(
     }
 }
 
+/// The result returned by requesting a block by number.
+#[derive(Debug, Clone)]
+pub struct BlockAndTotalDifficulty {
+    /// The block
+    pub block: Arc<dyn SyncBlock<Error = BlockchainError>>,
+    /// The total difficulty with the block
+    pub total_difficulty: Option<U256>,
+}
+
 /// The result returned by requesting a transaction.
 #[derive(Debug, Clone)]
 pub struct TransactionAndBlock {

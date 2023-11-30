@@ -127,7 +127,7 @@ pub enum MethodInvocation {
         rename = "eth_getBlockTransactionCountByNumber",
         with = "crate::serde::sequence"
     )]
-    GetBlockTransactionCountByNumber(BlockSpec),
+    GetBlockTransactionCountByNumber(PreEip1898BlockSpec),
     /// eth_getCode
     #[serde(rename = "eth_getCode")]
     GetCode(
