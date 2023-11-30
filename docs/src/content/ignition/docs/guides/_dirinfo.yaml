@@ -3,6 +3,7 @@ section-title: Guides
 order:
   - /creating-modules
   - /deploy
+  - /verify
   - /visualize
   - /error-handling
   - /modifications
