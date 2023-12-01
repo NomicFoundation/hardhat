@@ -9,4 +9,4 @@ set -e
 echo "Running tests: $(basename "$(pwd)")"
 
 echo "it should run the command clean successfully"
-run_test_and_handle_failure "npx hardhat clean" "0"
+run_test_and_handle_failure "npx hardhat clean" 0
