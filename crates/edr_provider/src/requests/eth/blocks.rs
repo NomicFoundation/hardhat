@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
 use edr_eth::{
-    remote::{eth, PreEip1898BlockSpec},
-    B256, U256,
+    remote::{eth, BlockSpec, PreEip1898BlockSpec},
+    B256, U256, U64,
 };
 use edr_evm::{blockchain::BlockchainError, SyncBlock};
 
 use crate::{
-    data::{BlockDataForTransaction, ProviderData, TransactionAndBlock},
+    data::{BlockAndTotalDifficulty, BlockDataForTransaction, ProviderData, TransactionAndBlock},
     requests::eth::transaction_to_rpc_result,
     ProviderError,
 };
@@ -19,20 +19,64 @@ pub enum HashOrTransaction {
     Transaction(eth::Transaction),
 }
 
+pub fn handle_get_block_by_hash_request(
+    data: &ProviderData,
+    block_hash: B256,
+    transaction_detail_flag: bool,
+) -> Result<Option<eth::Block<HashOrTransaction>>, ProviderError> {
+    data.block_by_hash(&block_hash)?
+        .map(|block| {
+            let total_difficulty = data.total_difficulty_by_hash(block.hash())?;
+            block_to_rpc_output(data, block, total_difficulty, transaction_detail_flag)
+        })
+        .transpose()
+}
+
 pub fn handle_get_block_by_number_request(
     data: &ProviderData,
     block_spec: PreEip1898BlockSpec,
     transaction_detail_flag: bool,
 ) -> Result<Option<eth::Block<HashOrTransaction>>, ProviderError> {
-    match data.block_by_block_spec(&block_spec.into()) {
+    block_by_number(data, &block_spec.into())?
+        .map(
+            |BlockAndTotalDifficulty {
+                 block,
+                 total_difficulty,
+             }| {
+                block_to_rpc_output(data, block, total_difficulty, transaction_detail_flag)
+            },
+        )
+        .transpose()
+}
+
+pub fn handle_get_block_transaction_count_by_hash_request(
+    data: &ProviderData,
+    block_hash: B256,
+) -> Result<Option<U64>, ProviderError> {
+    Ok(data
+        .block_by_hash(&block_hash)?
+        .map(|block| U64::from(block.transactions().len())))
+}
+
+pub fn handle_get_block_transaction_count_by_block_number(
+    data: &ProviderData,
+    block_spec: PreEip1898BlockSpec,
+) -> Result<Option<U64>, ProviderError> {
+    Ok(block_by_number(data, &block_spec.into())?
+        .map(|BlockAndTotalDifficulty { block, .. }| U64::from(block.transactions().len())))
+}
+
+fn block_by_number(
+    data: &ProviderData,
+    block_spec: &BlockSpec,
+) -> Result<Option<BlockAndTotalDifficulty>, ProviderError> {
+    match data.block_by_block_spec(block_spec) {
         Ok(Some(block)) => {
             let total_difficulty = data.total_difficulty_by_hash(block.hash())?;
-            Ok(Some(block_to_rpc_output(
-                data,
+            Ok(Some(BlockAndTotalDifficulty {
                 block,
                 total_difficulty,
-                transaction_detail_flag,
-            )?))
+            }))
         }
         // Pending block
         Ok(None) => {
@@ -45,12 +89,10 @@ pub fn handle_get_block_by_number_request(
                 .expect("last block has total difficulty");
             let total_difficulty = previous_total_difficulty + block.header().difficulty;
 
-            Ok(Some(block_to_rpc_output(
-                data,
+            Ok(Some(BlockAndTotalDifficulty {
                 block,
-                Some(total_difficulty),
-                transaction_detail_flag,
-            )?))
+                total_difficulty: Some(total_difficulty),
+            }))
         }
         Err(ProviderError::InvalidBlockNumberOrHash(_)) => Ok(None),
         Err(err) => Err(err),
@@ -77,7 +119,9 @@ fn block_to_rpc_output(
                     transaction_index: i.try_into().expect("usize fits into u64"),
                 }),
             })
-            .map(|tx| transaction_to_rpc_result(data, tx).map(HashOrTransaction::Transaction))
+            .map(|tx| {
+                transaction_to_rpc_result(tx, data.spec_id()).map(HashOrTransaction::Transaction)
+            })
             .collect::<Result<_, _>>()?
     } else {
         block

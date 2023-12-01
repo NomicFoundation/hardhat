@@ -148,15 +148,18 @@ fn handle_eth_request(
             eth::handle_get_block_by_number_request(data, block_spec, transaction_detail_flag)
                 .and_then(to_json)
         }
-        EthRequest::GetBlockByHash(_, _) => {
-            Err(ProviderError::Unimplemented("GetBlockByHash".to_string()))
+        EthRequest::GetBlockByHash(block_hash, transaction_detail_flag) => {
+            eth::handle_get_block_by_hash_request(data, block_hash, transaction_detail_flag)
+                .and_then(to_json)
         }
-        EthRequest::GetBlockTransactionCountByHash(_) => Err(ProviderError::Unimplemented(
-            "GetBlockTransactionCountByHash".to_string(),
-        )),
-        EthRequest::GetBlockTransactionCountByNumber(_) => Err(ProviderError::Unimplemented(
-            "GetBlockTransactionCountByNumber".to_string(),
-        )),
+        EthRequest::GetBlockTransactionCountByHash(block_hash) => {
+            eth::handle_get_block_transaction_count_by_hash_request(data, block_hash)
+                .and_then(to_json)
+        }
+        EthRequest::GetBlockTransactionCountByNumber(block_spec) => {
+            eth::handle_get_block_transaction_count_by_block_number(data, block_spec)
+                .and_then(to_json)
+        }
         EthRequest::GetCode(address, block_spec) => {
             eth::handle_get_code_request(data, address, block_spec).and_then(to_json)
         }

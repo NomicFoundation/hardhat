@@ -31,7 +31,7 @@ pub fn handle_get_transaction_by_block_hash_and_index(
 
     data.block_by_hash(&block_hash)?
         .and_then(|block| transaction_from_block(block, index))
-        .map(|tx| transaction_to_rpc_result(data, tx))
+        .map(|tx| transaction_to_rpc_result(tx, data.spec_id()))
         .transpose()
 }
 
@@ -55,7 +55,7 @@ pub fn handle_get_transaction_by_block_spec_and_index(
         Err(err) => return Err(err),
     }
     .and_then(|block| transaction_from_block(block, index))
-    .map(|tx| transaction_to_rpc_result(data, tx))
+    .map(|tx| transaction_to_rpc_result(tx, data.spec_id()))
     .transpose()
 }
 
@@ -70,7 +70,7 @@ pub fn handle_get_transaction_by_hash(
     transaction_hash: B256,
 ) -> Result<Option<remote::eth::Transaction>, ProviderError> {
     data.transaction_by_hash(&transaction_hash)?
-        .map(|tx| transaction_to_rpc_result(data, tx))
+        .map(|tx| transaction_to_rpc_result(tx, data.spec_id()))
         .transpose()
 }
 
@@ -98,8 +98,8 @@ fn transaction_from_block(
 }
 
 pub fn transaction_to_rpc_result(
-    data: &ProviderData,
     transaction_and_block: TransactionAndBlock,
+    spec_id: SpecId,
 ) -> Result<remote::eth::Transaction, ProviderError> {
     fn gas_price_for_post_eip1559(
         signed_transaction: &SignedTransaction,
@@ -151,7 +151,7 @@ pub fn transaction_to_rpc_result(
         SignedTransaction::Eip4844(tx) => Some(tx.chain_id),
     };
 
-    let show_transaction_type = data.spec_id() >= FIRST_HARDFORK_WITH_TRANSACTION_TYPE;
+    let show_transaction_type = spec_id >= FIRST_HARDFORK_WITH_TRANSACTION_TYPE;
     let is_typed_transaction = signed_transaction.transaction_type() > 0;
     let transaction_type = if show_transaction_type || is_typed_transaction {
         Some(signed_transaction.transaction_type())
