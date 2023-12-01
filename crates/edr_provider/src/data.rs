@@ -987,7 +987,7 @@ impl ProviderData {
             // TODO: make this configurable (https://github.com/NomicFoundation/edr/issues/111)
             MineOrdering::Fifo,
             reward,
-            self.next_block_base_fee_per_gas,
+            self.next_block_base_fee_per_gas()?,
             prevrandao,
             None,
         )?;
