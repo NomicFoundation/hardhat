@@ -15,7 +15,7 @@ jobs:
           version: 8
       - uses: actions/setup-node@v2
         with:
-          node-version: 20
+          node-version: 18
       - name: Run fixture-projects script
         run: |
           cd e2e
@@ -37,7 +37,7 @@ jobs:
           version: 8
       - uses: actions/setup-node@v2
         with:
-          node-version: 20
+          node-version: 18
       - name: Run fixture-projects script
         run: |
           cd e2e
@@ -59,7 +59,7 @@ jobs:
           version: 8
       - uses: actions/setup-node@v2
         with:
-          node-version: 20
+          node-version: 18
       - name: Run fixture-projects script
         run: |
           cd e2e
