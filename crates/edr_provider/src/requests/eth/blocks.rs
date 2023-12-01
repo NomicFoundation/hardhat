@@ -119,7 +119,9 @@ fn block_to_rpc_output(
                     transaction_index: i.try_into().expect("usize fits into u64"),
                 }),
             })
-            .map(|tx| transaction_to_rpc_result(data, tx).map(HashOrTransaction::Transaction))
+            .map(|tx| {
+                transaction_to_rpc_result(tx, data.spec_id()).map(HashOrTransaction::Transaction)
+            })
             .collect::<Result<_, _>>()?
     } else {
         block
