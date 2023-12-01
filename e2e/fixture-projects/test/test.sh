@@ -9,7 +9,4 @@ set -e
 echo "Running tests: $(basename "$(pwd)")"
 
 echo "it should run the tests in the project folder"
-if ! npx hardhat test >stdout 2>stderr; then
-  print_error_msg "The command failed.\nOutput:'$(cat stdout)'\nError: '$(cat stderr)'"
-  exit 1
-fi
+run_test_and_handle_failure "npx hardhat test" 0

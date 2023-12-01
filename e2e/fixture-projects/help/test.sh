@@ -9,13 +9,7 @@ set -e
 echo "Running tests: $(basename "$(pwd)")"
 
 echo "it should show the help information when no argument is passed"
-if ! npx hardhat >stdout 2>stderr; then
-  print_error_msg "The command failed.\nOutput:'$(cat stdout)'\nError: '$(cat stderr)'"
-  exit 1
-fi
+run_test_and_handle_failure "npx hardhat" 0
 
 echo "it should show the help information when the 'help' argument is passed"
-if ! npx hardhat help >stdout 2>stderr; then
-  print_error_msg "The command failed.\nOutput:'$(cat stdout)'\nError: '$(cat stderr)'"
-  exit 1
-fi
+run_test_and_handle_failure "npx hardhat help" 0
