@@ -26,6 +26,9 @@ cp -r fixture-projects $FIXTURE_PROJECTS_DIR
 # run all the e2e tests in the temporary directory
 echo "[e2e] Running tests in $FIXTURE_PROJECTS_DIR\n\n"
 
+# log version of each package manager
+echo "[e2e] Package manager version: npm version $(npm --version)\n\n"
+
 for dir in ${FIXTURE_PROJECTS_DIR}/*; do
   if [ -d "$dir" ]; then
 

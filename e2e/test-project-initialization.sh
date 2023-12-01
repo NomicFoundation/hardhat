@@ -5,7 +5,7 @@ set -e
 # Use this function because yarn init -y throws a warning, and the whole script will fail
 # because of "set -e"
 create_package_json() {
-    cat > package.json <<EOF
+  cat >package.json <<EOF
 {
   "name": "tmp",
   "version": "1.0.0",
@@ -34,11 +34,18 @@ cd - >/dev/null
 TESTS_DIR=projects-initialization-tests-$(date +%Y-%m-%d-%H-%M-%S)
 mkdir $TESTS_DIR
 
-echo "[e2e] Starting e2e initialization tests in $TESTS_DIR"
+echo "[e2e] Starting e2e initialization tests in $TESTS_DIR\n\n"
 
 pkg_managers="npm pnpm yarn"
+
+# log version of each package manager
+echo "[e2e] Package managers versions:"
 for pkg_manager in $pkg_managers; do
-  echo "[e2e] Running tests with package manager: $pkg_manager"
+  echo "[e2e] $pkg_manager version: $($pkg_manager --version)"
+done
+
+for pkg_manager in $pkg_managers; do
+  echo "\n\n[e2e] Running tests with package manager: $pkg_manager"
 
   # pkg_manager, javascript, cjs
   echo "[e2e] Testing: $pkg_manager, javascript, cjs"
@@ -56,7 +63,7 @@ for pkg_manager in $pkg_managers; do
   mkdir ${TESTS_DIR}/${pkg_manager}-javascript-esm
   cd ${TESTS_DIR}/${pkg_manager}-javascript-esm
   create_package_json
-  jq '. += {"type": "module"}' package.json > esm-package.json
+  jq '. += {"type": "module"}' package.json >esm-package.json
   mv esm-package.json package.json
   $pkg_manager add ../../../packages/hardhat-core/$HARDHAT_TGZ_FILE >/dev/null 2>&1
   HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS=true npx hardhat init
@@ -80,7 +87,7 @@ for pkg_manager in $pkg_managers; do
   mkdir ${TESTS_DIR}/${pkg_manager}-typescript-esm
   cd ${TESTS_DIR}/${pkg_manager}-typescript-esm
   create_package_json
-  jq '. += {"type": "module"}' package.json > esm-package.json
+  jq '. += {"type": "module"}' package.json >esm-package.json
   mv esm-package.json package.json
   $pkg_manager add ../../../packages/hardhat-core/$HARDHAT_TGZ_FILE >/dev/null 2>&1
   if HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS=true npx hardhat init; then
@@ -107,7 +114,7 @@ for pkg_manager in $pkg_managers; do
   mkdir ${TESTS_DIR}/${pkg_manager}-typescript-viem-esm
   cd ${TESTS_DIR}/${pkg_manager}-typescript-viem-esm
   create_package_json
-  jq '. += {"type": "module"}' package.json > esm-package.json
+  jq '. += {"type": "module"}' package.json >esm-package.json
   mv esm-package.json package.json
   $pkg_manager add ../../../packages/hardhat-core/$HARDHAT_TGZ_FILE >/dev/null 2>&1
   if HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS=true npx hardhat init; then
