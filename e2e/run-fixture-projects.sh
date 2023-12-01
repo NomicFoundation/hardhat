@@ -42,6 +42,7 @@ for dir in ${FIXTURE_PROJECTS_DIR}/*; do
 
     echo "[e2e] Insatlling modules in $dir"
     npm add ../../../packages/hardhat-core/$HARDHAT_TGZ_FILE >/dev/null 2>&1
+    npm install >/dev/null 2>&1 # install moduled specified in the package.json
     echo "[e2e] All modules have been insatlled in $dir"
 
     echo "[e2e] Starting test in $dir"
