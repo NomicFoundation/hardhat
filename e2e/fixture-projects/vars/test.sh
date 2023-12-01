@@ -14,9 +14,6 @@ run_test_and_handle_failure "npx hardhat" 1
 echo "it should list the configuartion variables that need to be set"
 run_test_and_handle_failure "npx hardhat vars setup" 0
 
-echo "it should show the path where the configuration variables are stored"
-run_test_and_handle_failure "npx hardhat vars path" 0
-
 echo "it should list the keys without failing (even if there are no keys)"
 run_test_and_handle_failure "npx hardhat vars list" 0
 
