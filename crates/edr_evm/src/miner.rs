@@ -18,6 +18,7 @@ use crate::{
 };
 
 /// The result of mining a block, after having been committed to the blockchain.
+#[derive(Debug)]
 pub struct MineBlockResult<BlockchainErrorT> {
     /// Mined block
     pub block: Arc<dyn SyncBlock<Error = BlockchainErrorT>>,

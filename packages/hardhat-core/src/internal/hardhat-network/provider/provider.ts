@@ -411,6 +411,8 @@ class EdrProviderWrapper extends EventEmitter implements EIP1193Provider {
     const coinbase = config.coinbase ?? DEFAULT_COINBASE;
 
     const provider = await Provider.withConfig({
+      bailOnCallFailure: config.throwOnCallFailures,
+      bailOnTransactionFailure: config.throwOnTransactionFailures,
       chainId: BigInt(config.chainId),
       cacheDir: config.forkCachePath,
       coinbase: Buffer.from(coinbase.slice(2), "hex"),

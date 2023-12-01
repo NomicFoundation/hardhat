@@ -54,7 +54,29 @@ impl TransactionRequest {
             TransactionRequest::Eip155(transaction) => &transaction.gas_price,
             TransactionRequest::Eip2930(transaction) => &transaction.gas_price,
             TransactionRequest::Eip1559(transaction) => &transaction.max_fee_per_gas,
-            TransactionRequest::Eip4844(transaction) => &transaction.max_priority_fee_per_gas,
+            TransactionRequest::Eip4844(transaction) => &transaction.max_fee_per_gas,
+        }
+    }
+
+    /// Retrieves the instance's max fee per gas, if it exists.
+    pub fn max_fee_per_gas(&self) -> Option<&U256> {
+        match self {
+            TransactionRequest::Legacy(_)
+            | TransactionRequest::Eip155(_)
+            | TransactionRequest::Eip2930(_) => None,
+            TransactionRequest::Eip1559(transaction) => Some(&transaction.max_fee_per_gas),
+            TransactionRequest::Eip4844(transaction) => Some(&transaction.max_fee_per_gas),
+        }
+    }
+
+    /// Retrieves the instance's max priority fee per gas, if it exists.
+    pub fn max_priority_fee_per_gas(&self) -> Option<&U256> {
+        match self {
+            TransactionRequest::Legacy(_)
+            | TransactionRequest::Eip155(_)
+            | TransactionRequest::Eip2930(_) => None,
+            TransactionRequest::Eip1559(transaction) => Some(&transaction.max_priority_fee_per_gas),
+            TransactionRequest::Eip4844(transaction) => Some(&transaction.max_priority_fee_per_gas),
         }
     }
 

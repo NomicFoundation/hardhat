@@ -31,16 +31,19 @@ use edr_evm::{
         AccountModifierFn, IrregularState, StateDiff, StateError, StateOverride, StateOverrides,
         SyncState,
     },
-    Account, AccountInfo, BlobExcessGasAndPrice, Block, BlockEnv, Bytecode, CfgEnv, HashMap,
-    HashSet, MemPool, MineBlockResult, MineBlockResultAndState, MineOrdering, PendingTransaction,
-    RandomHashGenerator, StorageSlot, SyncBlock, KECCAK_EMPTY,
+    Account, AccountInfo, BlobExcessGasAndPrice, Block, BlockEnv, Bytecode, CfgEnv,
+    ExecutionResult, HashMap, HashSet, MemPool, MineBlockResult, MineBlockResultAndState,
+    MineOrdering, PendingTransaction, RandomHashGenerator, StorageSlot, SyncBlock, KECCAK_EMPTY,
 };
 use indexmap::IndexMap;
 use rpc_hardhat::ForkMetadata;
 use tokio::runtime;
 
 use self::account::{create_accounts, InitialAccounts};
-use crate::{filter::Filter, logger::Logger, snapshot::Snapshot, ProviderConfig, ProviderError};
+use crate::{
+    error::TransactionFailure, filter::Filter, logger::Logger, snapshot::Snapshot, ProviderConfig,
+    ProviderError,
+};
 
 #[derive(Debug, thiserror::Error)]
 pub enum CreationError {
@@ -614,15 +617,15 @@ impl ProviderData {
             }
         }
 
+        let signed_transaction = self.sign_transaction_request(transaction_request)?;
         let snapshot_id = if self.is_auto_mining {
-            self.validate_auto_mine_transaction(&transaction_request)?;
+            self.validate_auto_mine_transaction(&signed_transaction)?;
 
             Some(self.make_snapshot())
         } else {
             None
         };
 
-        let signed_transaction = self.sign_transaction_request(transaction_request)?;
         let tx_hash = self
             .add_pending_transaction(signed_transaction)
             .map_err(|error| {
@@ -634,12 +637,38 @@ impl ProviderData {
             })?;
 
         if let Some(snapshot_id) = snapshot_id {
-            while self.mem_pool.transaction_by_hash(&tx_hash).is_some() {
-                self.mine_and_commit_block(None).map_err(|error| {
+            loop {
+                let result = self.mine_and_commit_block(None).map_err(|error| {
                     self.revert_to_snapshot(snapshot_id);
 
                     error
                 })?;
+
+                let transaction_result = result.block.transactions().iter().enumerate().find_map(
+                    |(idx, transaction)| {
+                        if *transaction.hash() == tx_hash {
+                            Some(result.transaction_results[idx].clone())
+                        } else {
+                            None
+                        }
+                    },
+                );
+
+                if let Some(transaction_result) = transaction_result {
+                    match transaction_result {
+                        ExecutionResult::Success { .. } => break,
+                        ExecutionResult::Revert { output, .. } => {
+                            self.revert_to_snapshot(snapshot_id);
+
+                            return Err(TransactionFailure::revert(output).into());
+                        }
+                        ExecutionResult::Halt { reason, .. } => {
+                            self.revert_to_snapshot(snapshot_id);
+
+                            return Err(TransactionFailure::from(reason).into());
+                        }
+                    }
+                }
             }
 
             self.snapshots.remove(&snapshot_id);
@@ -1093,32 +1122,54 @@ impl ProviderData {
 
     fn validate_auto_mine_transaction(
         &self,
-        transaction_request: &TransactionRequestAndSender,
+        transaction: &PendingTransaction,
     ) -> Result<(), ProviderError> {
-        let TransactionRequestAndSender { request, sender } = transaction_request;
-
-        let next_nonce = self.account_next_nonce(sender)?;
-        match request.nonce().cmp(&next_nonce) {
+        let next_nonce = self.account_next_nonce(transaction.caller())?;
+        match transaction.nonce().cmp(&next_nonce) {
             Ordering::Less => {
                 return Err(ProviderError::AutoMineNonceTooLow {
                     expected: next_nonce,
-                    actual: request.nonce(),
+                    actual: transaction.nonce(),
                 })
             }
             Ordering::Equal => (),
             Ordering::Greater => {
                 return Err(ProviderError::AutoMineNonceTooHigh {
                     expected: next_nonce,
-                    actual: request.nonce(),
+                    actual: transaction.nonce(),
                 })
             }
         }
 
-        if *request.gas_price() < self.min_gas_price {
-            return Err(ProviderError::AutoMineGasPriceTooLow {
+        // Question: Why do we use the max priority fee per gas as gas price?
+        let max_priority_fee_per_gas = transaction
+            .max_priority_fee_per_gas()
+            .unwrap_or_else(|| transaction.gas_price());
+
+        if max_priority_fee_per_gas < self.min_gas_price {
+            return Err(ProviderError::AutoMinePriorityFeeTooLow {
                 expected: self.min_gas_price,
-                actual: *request.gas_price(),
+                actual: max_priority_fee_per_gas,
             });
+        }
+
+        if let Some(next_block_base_fee) = self.next_block_base_fee_per_gas()? {
+            if let Some(max_fee_per_gas) = transaction.max_fee_per_gas() {
+                if max_fee_per_gas < next_block_base_fee {
+                    return Err(ProviderError::AutoMineMaxFeeTooLow {
+                        expected: next_block_base_fee,
+                        actual: max_fee_per_gas,
+                    });
+                }
+            } else {
+                let gas_price = transaction.gas_price();
+                if gas_price < next_block_base_fee {
+                    return Err(ProviderError::AutoMineGasPriceTooLow {
+                        expected: next_block_base_fee,
+                        actual: gas_price,
+                    });
+                }
+            }
         }
 
         Ok(())

@@ -39,6 +39,10 @@ pub struct ProviderConfig {
     pub allow_blocks_with_same_timestamp: bool,
     pub allow_unlimited_contract_size: bool,
     pub accounts: Vec<AccountConfig>,
+    /// Whether to return an `Err` when `eth_call` fails
+    pub bail_on_call_failure: bool,
+    /// Whether to return an `Err` when a `eth_sendTransaction` fails
+    pub bail_on_transaction_failure: bool,
     pub block_gas_limit: u64,
     pub cache_dir: PathBuf,
     pub chain_id: u64,

@@ -253,6 +253,10 @@ export interface ProviderConfig {
   allowBlocksWithSameTimestamp: boolean
   /** Whether to allow unlimited contract size */
   allowUnlimitedContractSize: boolean
+  /** Whether to return an `Err` when `eth_call` fails */
+  bailOnCallFailure: boolean
+  /** Whether to return an `Err` when a `eth_sendTransaction` fails */
+  bailOnTransactionFailure: boolean
   /** The gas limit of each block */
   blockGasLimit: bigint
   /** The directory to cache remote JSON-RPC responses */
