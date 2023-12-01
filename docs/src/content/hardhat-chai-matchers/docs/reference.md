@@ -128,7 +128,7 @@ If the event has arguments, the `.withArgs` matcher can be added:
 
 ```ts
 await expect(token.transfer(address, 0))
-  .to.be.revertedWithCustomError(token, "InvalidTransferValue")
+  .to.be.emit(token, "Transfer")
   .withArgs(100);
 ```
 
@@ -203,7 +203,7 @@ Can be used after a `.emit` or a `.revertedWithCustomError` matcher to assert th
 ```ts
 // events
 await expect(token.transfer(address, 0))
-  .to.be.revertedWithCustomError(token, "InvalidTransferValue")
+  .to.be.emit(token, "Transfer")
   .withArgs(100);
 
 // errors
