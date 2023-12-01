@@ -1,11 +1,13 @@
 use std::{num::TryFromIntError, time::SystemTimeError};
 
+use alloy_sol_types::{ContractError, SolInterface};
 use edr_eth::{
     remote::{filter::SubscriptionType, jsonrpc, BlockSpec},
-    Address, Bytes, SpecId, U256,
+    Address, Bytes, SpecId, B256, U256,
 };
 use edr_evm::{
     blockchain::BlockchainError,
+    hex,
     state::{AccountOverrideConversionError, StateError},
     Halt, MineBlockError, MinerTransactionError, OutOfGasError, TransactionCreationError,
     TransactionError,
@@ -120,83 +122,160 @@ pub enum ProviderError {
 impl From<ProviderError> for jsonrpc::Error {
     fn from(value: ProviderError) -> Self {
         #[allow(clippy::match_same_arms)]
-        let code = match &value {
-            ProviderError::AccountOverrideConversionError(_) => -32000,
-            ProviderError::AutoMineGasPriceTooLow { .. } => -32000,
-            ProviderError::AutoMineMaxFeeTooLow { .. } => -32000,
-            ProviderError::AutoMineNonceTooHigh { .. } => -32000,
-            ProviderError::AutoMineNonceTooLow { .. } => -32000,
-            ProviderError::AutoMinePriorityFeeTooLow { .. } => -32000,
-            ProviderError::Blockchain(_) => -32000,
-            ProviderError::InvalidBlockNumberOrHash(_) => -32000,
-            ProviderError::InvalidBlockTag { .. } => -32000,
-            ProviderError::InvalidChainId { .. } => -32000,
-            ProviderError::InvalidFilterSubscriptionType { .. } => -32000,
-            ProviderError::InvalidTransactionIndex(_) => -32000,
-            ProviderError::InvalidTransactionInput(_) => -32000,
-            ProviderError::MemPoolUpdate(_) => -32000,
-            ProviderError::MineBlock(_) => -32000,
-            ProviderError::MinerTransactionError(_) => -32000,
-            ProviderError::RlpDecodeError(_) => -32000,
-            ProviderError::RpcVersion(_) => -32000,
-            ProviderError::RunTransaction(_) => -32000,
-            ProviderError::Serialization(_) => -32000,
-            ProviderError::Signature(_) => -32000,
-            ProviderError::State(_) => -32000,
-            ProviderError::SystemTime(_) => -32000,
-            ProviderError::TimestampLowerThanPrevious { .. } => -32000,
-            ProviderError::TimestampEqualsPrevious { .. } => -32000,
-            ProviderError::TransactionFailed(_) => -32000,
-            ProviderError::TransactionCreationError(_) => -32000,
-            ProviderError::TryFromIntError(_) => -32000,
-            ProviderError::Unimplemented(_) => -32000,
-            ProviderError::UnknownAddress { .. } => -32000,
-            ProviderError::UnmetHardfork { .. } => -32602,
+        let (code, data) = match &value {
+            ProviderError::AccountOverrideConversionError(_) => (-32000, None),
+            ProviderError::AutoMineGasPriceTooLow { .. } => (-32000, None),
+            ProviderError::AutoMineMaxFeeTooLow { .. } => (-32000, None),
+            ProviderError::AutoMineNonceTooHigh { .. } => (-32000, None),
+            ProviderError::AutoMineNonceTooLow { .. } => (-32000, None),
+            ProviderError::AutoMinePriorityFeeTooLow { .. } => (-32000, None),
+            ProviderError::Blockchain(_) => (-32000, None),
+            ProviderError::InvalidBlockNumberOrHash(_) => (-32000, None),
+            ProviderError::InvalidBlockTag { .. } => (-32000, None),
+            ProviderError::InvalidChainId { .. } => (-32000, None),
+            ProviderError::InvalidFilterSubscriptionType { .. } => (-32000, None),
+            ProviderError::InvalidTransactionIndex(_) => (-32000, None),
+            ProviderError::InvalidTransactionInput(_) => (-32000, None),
+            ProviderError::MemPoolUpdate(_) => (-32000, None),
+            ProviderError::MineBlock(_) => (-32000, None),
+            ProviderError::MinerTransactionError(_) => (-32000, None),
+            ProviderError::RlpDecodeError(_) => (-32000, None),
+            ProviderError::RpcVersion(_) => (-32000, None),
+            ProviderError::RunTransaction(_) => (-32000, None),
+            ProviderError::Serialization(_) => (-32000, None),
+            ProviderError::Signature(_) => (-32000, None),
+            ProviderError::State(_) => (-32000, None),
+            ProviderError::SystemTime(_) => (-32000, None),
+            ProviderError::TimestampLowerThanPrevious { .. } => (-32000, None),
+            ProviderError::TimestampEqualsPrevious { .. } => (-32000, None),
+            ProviderError::TransactionFailed(transaction_failure) => (
+                -32000,
+                Some(
+                    serde_json::to_value(transaction_failure).expect("transaction_failure to json"),
+                ),
+            ),
+            ProviderError::TransactionCreationError(_) => (-32000, None),
+            ProviderError::TryFromIntError(_) => (-32000, None),
+            ProviderError::Unimplemented(_) => (-32000, None),
+            ProviderError::UnknownAddress { .. } => (-32000, None),
+            ProviderError::UnmetHardfork { .. } => (-32602, None),
         };
 
         Self {
             code,
             message: value.to_string(),
-            data: None,
+            data,
         }
     }
 }
 
 /// Wrapper around [`revm_primitives::Halt`] to convert error messages to match
 /// Hardhat.
-#[derive(Debug, thiserror::Error)]
-pub enum TransactionFailure {
-    #[error("{0:?}")]
-    Inner(Halt),
-    #[error("VM Exception while processing transaction: invalid opcode")]
-    OpcodeNotFound,
-    #[error("out of gas")]
-    OutOfGas(OutOfGasError),
-    #[error("{}", revert_error(.0))]
-    Revert(Bytes),
+#[derive(Debug, thiserror::Error, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TransactionFailure {
+    pub reason: TransactionFailureReason,
+    pub data: Option<String>,
+    pub transaction_hash: B256,
 }
 
 impl TransactionFailure {
-    pub fn revert(output: Bytes) -> Self {
-        Self::Revert(output)
+    pub fn revert(output: Bytes, transaction_hash: B256) -> Self {
+        let data = format!("0x{}", hex::encode(output.as_ref()));
+        Self {
+            reason: TransactionFailureReason::Revert(output),
+            data: Some(data),
+            transaction_hash,
+        }
     }
-}
 
-impl From<Halt> for TransactionFailure {
-    fn from(value: Halt) -> Self {
-        match value {
-            Halt::OpcodeNotFound => Self::OpcodeNotFound,
-            Halt::OutOfGas(error) => Self::OutOfGas(error),
-            halt => Self::Inner(halt),
+    pub fn halt(halt: Halt, tx_hash: B256) -> Self {
+        let reason = match halt {
+            Halt::OpcodeNotFound | Halt::InvalidFEOpcode => {
+                TransactionFailureReason::OpcodeNotFound
+            }
+            Halt::OutOfGas(error) => TransactionFailureReason::OutOfGas(error),
+            halt => TransactionFailureReason::Inner(halt),
+        };
+
+        Self {
+            reason,
+            data: None,
+            transaction_hash: tx_hash,
         }
     }
 }
 
+impl std::fmt::Display for TransactionFailure {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self.reason {
+            TransactionFailureReason::Inner(halt) => write!(f, "{halt:?}"),
+            TransactionFailureReason::OpcodeNotFound => {
+                write!(
+                    f,
+                    "VM Exception while processing transaction: invalid opcode"
+                )
+            }
+            TransactionFailureReason::OutOfGas(_error) => write!(f, "out of gas"),
+            TransactionFailureReason::Revert(output) => write!(f, "{}", revert_error(output)),
+        }
+    }
+}
+
+#[derive(Debug, serde::Serialize)]
+pub enum TransactionFailureReason {
+    Inner(Halt),
+    OpcodeNotFound,
+    OutOfGas(OutOfGasError),
+    Revert(Bytes),
+}
+
 fn revert_error(output: &Bytes) -> String {
     if output.is_empty() {
-        "Transaction reverted without a reason".to_string()
-    } else {
-        // TODO: ABI decode reason
-        format!("reverted with reason string '{output:x}'")
+        return "Transaction reverted without a reason".to_string();
+    }
+
+    match alloy_sol_types::GenericContractError::abi_decode(
+        output.as_ref(),
+        /* validate */ false,
+    ) {
+        Ok(contract_error) => {
+            match contract_error {
+                ContractError::CustomError(custom_error) => {
+                    format!("VM Exception while processing transaction: reverted with an unrecognized custom error (return data: {custom_error})")
+                }
+                ContractError::Revert(revert) => {
+                    format!("reverted with reason string '{}'", revert.reason())
+                }
+                ContractError::Panic(panic) => {
+                    format!(
+                        "VM Exception while processing transaction: reverted with panic code {} ({})",
+                        serde_json::to_string(&panic.code).unwrap().replace('\"', ""),
+                        panic_code_to_error_reason(panic.code.try_into().expect("panic code fits into u64"))
+                    )
+                }
+            }
+        }
+        Err(decode_error) => match decode_error {
+            alloy_sol_types::Error::TypeCheckFail { .. } => {
+                format!("VM Exception while processing transaction: reverted with an unrecognized custom error (return data: 0x{})", hex::encode(output))
+            }
+            _ => unreachable!("Since we are not validating, no other error can occur"),
+        },
+    }
+}
+
+fn panic_code_to_error_reason(error_code: u64) -> &'static str {
+    match error_code {
+        0x1 => "Assertion error",
+        0x11 => "Arithmetic operation underflowed or overflowed outside of an unchecked block",
+        0x12 => "Division or modulo division by zero",
+        0x21 => "Tried to convert a value into an enum, but the value was too big or negative",
+        0x22 => "Incorrectly encoded storage byte array",
+        0x31 => ".pop() was called on an empty array",
+        0x32 => "Array accessed at an out-of-bounds or negative index",
+        0x41 => "Too much memory was allocated, or an array was created that is too large",
+        0x51 => "Called a zero-initialized variable of internal function type",
+        _ => "Unknown panic code",
     }
 }

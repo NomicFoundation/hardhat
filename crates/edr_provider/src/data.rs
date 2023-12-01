@@ -660,12 +660,12 @@ impl ProviderData {
                         ExecutionResult::Revert { output, .. } => {
                             self.revert_to_snapshot(snapshot_id);
 
-                            return Err(TransactionFailure::revert(output).into());
+                            return Err(TransactionFailure::revert(output, tx_hash).into());
                         }
                         ExecutionResult::Halt { reason, .. } => {
                             self.revert_to_snapshot(snapshot_id);
 
-                            return Err(TransactionFailure::from(reason).into());
+                            return Err(TransactionFailure::halt(reason, tx_hash).into());
                         }
                     }
                 }
