@@ -89,6 +89,11 @@ const customRedirects = [
     permanent: false,
   },
   {
+    source: "/hardhat-runner/docs/guides/migrating-from-hardhat-waffle",
+    destination: "/hardhat-runner/docs/advanced/migrating-from-hardhat-waffle",
+    permanent: false,
+  },
+  {
     source: "/custom-hardfork-history",
     destination:
       "/hardhat-network/docs/guides/forking-other-networks.html#using-a-custom-hardfork-history",
