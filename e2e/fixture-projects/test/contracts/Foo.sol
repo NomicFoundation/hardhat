@@ -5,6 +5,6 @@ contract Foo {
   uint public x;
 
   function inc() public {
-    x++
+    x++;
   }
 }

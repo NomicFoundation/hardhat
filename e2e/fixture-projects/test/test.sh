@@ -8,8 +8,8 @@ set -e
 
 echo "Running tests: $(basename "$(pwd)")"
 
-echo "it should run the command clean successfully"
-if ! npx hardhat clean >stdout 2>stderr >stdout 2>stderr; then
+echo "it should run the tests in the project folder"
+if ! npx hardhat test >stdout 2>stderr; then
   print_error_msg "The command failed.\nOutput:'$(cat stdout)'\nError: '$(cat stderr)'"
   exit 1
 fi
