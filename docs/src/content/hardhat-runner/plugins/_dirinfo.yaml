@@ -14,6 +14,7 @@ order:
   - "@nomiclabs/hardhat-solpp"
   - "@nomiclabs/hardhat-waffle"
   - "@nomiclabs/hardhat-web3"
+  - "@nomiclabs/hardhat-web3-v4"
   - "@nomiclabs/hardhat-truffle5"
   - "@nomiclabs/hardhat-web3-legacy"
   - "@nomiclabs/hardhat-truffle4"
