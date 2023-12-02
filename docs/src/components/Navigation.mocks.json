@@ -170,8 +170,8 @@
         "href": "/plugins/nomiclabs-hardhat-web3"
       },
       {
-        "label": "@nomiclabs/hardhat-web3-v4",
-        "href": "/plugins/nomiclabs-hardhat-web3-v4"
+        "label": "@nomicfoundation/hardhat-web3-v4",
+        "href": "/plugins/nomicfoundation-hardhat-web3-v4"
       },
       {
         "label": "@nomiclabs/hardhat-truffle5",
