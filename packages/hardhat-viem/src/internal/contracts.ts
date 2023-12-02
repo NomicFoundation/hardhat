@@ -198,7 +198,7 @@ export async function getContractAt(
   config: GetContractAtConfig = {}
 ): Promise<GetContractReturnType> {
   const [publicClient, walletClient, contractArtifact] = await Promise.all([
-    getPublicClient(network.provider),
+    config.publicClient ?? getPublicClient(network.provider),
     config.walletClient ??
       getDefaultWalletClient(network.provider, network.name),
     artifacts.readArtifact(contractName),

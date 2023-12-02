@@ -34,6 +34,7 @@ export type SendDeploymentTransactionConfig = SendTransactionConfig;
 
 export interface GetContractAtConfig {
   walletClient?: WalletClient;
+  publicClient?: PublicClient;
 }
 
 export type GetContractReturnType<
