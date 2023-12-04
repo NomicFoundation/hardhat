@@ -496,6 +496,10 @@ impl ProviderData {
         }
     }
 
+    pub fn pending_transactions(&self) -> impl Iterator<Item = &PendingTransaction> {
+        self.mem_pool.transactions()
+    }
+
     pub fn remove_filter(&mut self, filter_id: &U256) -> bool {
         self.remove_filter_impl::</* IS_SUBSCRIPTION */ false>(filter_id)
     }

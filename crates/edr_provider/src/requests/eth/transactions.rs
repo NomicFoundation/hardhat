@@ -59,6 +59,21 @@ pub fn handle_get_transaction_by_block_spec_and_index(
     .transpose()
 }
 
+pub fn handle_pending_transactions(
+    data: &ProviderData,
+) -> Result<Vec<remote::eth::Transaction>, ProviderError> {
+    let spec_id = data.spec_id();
+    data.pending_transactions()
+        .map(|pending_transaction| {
+            let transaction_and_block = TransactionAndBlock {
+                signed_transaction: pending_transaction.transaction().clone(),
+                block_data: None,
+            };
+            transaction_to_rpc_result(transaction_and_block, spec_id)
+        })
+        .collect()
+}
+
 fn rpc_index_to_usize(index: &U256) -> Result<usize, ProviderError> {
     index
         .try_into()

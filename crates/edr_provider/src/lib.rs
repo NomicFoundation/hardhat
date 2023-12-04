@@ -201,9 +201,9 @@ fn handle_eth_request(
         EthRequest::NewPendingTransactionFilter(()) => {
             eth::handle_new_pending_transaction_filter_request(data).and_then(to_json)
         }
-        EthRequest::PendingTransactions(()) => Err(ProviderError::Unimplemented(
-            "PendingTransactions".to_string(),
-        )),
+        EthRequest::PendingTransactions(()) => {
+            eth::handle_pending_transactions(data).and_then(to_json)
+        }
         EthRequest::SendRawTransaction(raw_transaction) => {
             eth::handle_send_raw_transaction_request(data, raw_transaction).and_then(to_json)
         }
