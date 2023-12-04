@@ -410,12 +410,23 @@ class EdrProviderWrapper extends EventEmitter implements EIP1193Provider {
 
     const coinbase = config.coinbase ?? DEFAULT_COINBASE;
 
+    let fork = undefined;
+    if (config.forkConfig !== undefined) {
+      fork = {
+        jsonRpcUrl: config.forkConfig.jsonRpcUrl,
+        blockNumber: config.forkConfig.blockNumber
+          ? BigInt(config.forkConfig.blockNumber)
+          : undefined,
+      };
+    }
+
     const provider = await Provider.withConfig({
       bailOnCallFailure: config.throwOnCallFailures,
       bailOnTransactionFailure: config.throwOnTransactionFailures,
       chainId: BigInt(config.chainId),
       cacheDir: config.forkCachePath,
       coinbase: Buffer.from(coinbase.slice(2), "hex"),
+      fork,
       hardfork: ethereumsjsHardforkToEdrSpecId(
         getHardforkName(config.hardfork)
       ),
