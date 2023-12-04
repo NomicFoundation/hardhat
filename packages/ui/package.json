@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/ignition-ui",
-  "version": "0.11.2",
+  "version": "0.12.0",
   "type": "module",
   "scripts": {
     "predev": "npm run regenerate-deployment-example",
@@ -16,7 +16,7 @@
   "dependencies": {},
   "devDependencies": {
     "@fontsource/roboto": "^5.0.8",
-    "@nomicfoundation/ignition-core": "^0.11.2",
+    "@nomicfoundation/ignition-core": "^0.12.0",
     "@types/chai": "^4.2.22",
     "@types/chai-as-promised": "^7.1.5",
     "@types/react": "^18.0.28",
