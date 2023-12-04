@@ -9,7 +9,10 @@ describe("Chain Config", () => {
         (id, index) => chainIds.indexOf(id) !== index
       );
 
-      assert.isEmpty(duplicatedIds, `Duplicate chainIds found: ${duplicatedIds.join(', ')}`);
+      assert.isEmpty(
+        duplicatedIds,
+        `Duplicate chainIds found: ${duplicatedIds.join(", ")}`
+      );
     });
 
     it("should be sorted by chainId in ascending order", () => {
