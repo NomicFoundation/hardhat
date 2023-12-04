@@ -33,7 +33,8 @@ use edr_evm::{
     },
     Account, AccountInfo, BlobExcessGasAndPrice, Block, BlockEnv, Bytecode, CfgEnv,
     ExecutionResult, HashMap, HashSet, MemPool, MineBlockResult, MineBlockResultAndState,
-    MineOrdering, PendingTransaction, RandomHashGenerator, StorageSlot, SyncBlock, KECCAK_EMPTY,
+    MineOrdering, PendingTransaction, RandomHashGenerator, StorageSlot, SyncBlock,
+    TransactionCreationError, KECCAK_EMPTY,
 };
 use indexmap::IndexMap;
 use rpc_hardhat::ForkMetadata;
@@ -617,10 +618,17 @@ impl ProviderData {
             }
         }
 
-        let signed_transaction = self.sign_transaction_request(transaction_request)?;
-        let snapshot_id = if self.is_auto_mining {
-            self.validate_auto_mine_transaction(&signed_transaction)?;
+        let signed_transaction = if self.is_auto_mining {
+            let sender = transaction_request.sender;
+            self.validate_auto_mine_transaction(
+                self.sign_transaction_request(transaction_request),
+                &sender,
+            )
+        } else {
+            self.sign_transaction_request(transaction_request)
+        }?;
 
+        let snapshot_id = if self.is_auto_mining {
             Some(self.make_snapshot())
         } else {
             None
@@ -1122,9 +1130,24 @@ impl ProviderData {
 
     fn validate_auto_mine_transaction(
         &self,
-        transaction: &PendingTransaction,
-    ) -> Result<(), ProviderError> {
-        let next_nonce = self.account_next_nonce(transaction.caller())?;
+        transaction_result: Result<PendingTransaction, ProviderError>,
+        caller: &Address,
+    ) -> Result<PendingTransaction, ProviderError> {
+        let next_nonce = self.account_next_nonce(caller)?;
+
+        let transaction = transaction_result.map_err(|error| match error {
+            ProviderError::TransactionCreationError(tx_creation_error) => match tx_creation_error {
+                TransactionCreationError::NonceTooLow {
+                    transaction_nonce, ..
+                } => ProviderError::AutoMineNonceTooLow {
+                    expected: next_nonce,
+                    actual: transaction_nonce,
+                },
+                _ => ProviderError::TransactionCreationError(tx_creation_error),
+            },
+            _ => error,
+        })?;
+
         match transaction.nonce().cmp(&next_nonce) {
             Ordering::Less => {
                 return Err(ProviderError::AutoMineNonceTooLow {
@@ -1172,7 +1195,7 @@ impl ProviderData {
             }
         }
 
-        Ok(())
+        Ok(transaction)
     }
 }
 
