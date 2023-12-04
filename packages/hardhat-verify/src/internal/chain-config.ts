@@ -51,6 +51,14 @@ export const builtinChains: ChainConfig[] = [
     },
   },
   {
+    network: "xdai",
+    chainId: 100,
+    urls: {
+      apiURL: "https://api.gnosisscan.io/api",
+      browserURL: "https://gnosisscan.io",
+    },
+  },
+  {
     network: "gnosis",
     chainId: 100,
     urls: {
