@@ -408,10 +408,10 @@ impl MemPool {
         &mut self,
         transaction: OrderedTransaction,
     ) -> Result<(), MinerTransactionError<StateError>> {
-        let pending_transactions = self.pending_transactions.entry(*transaction.caller());
+        let mut pending_transactions = self.pending_transactions.entry(*transaction.caller());
 
         // Check whether an existing transaction can be replaced
-        if let Entry::Occupied(mut pending_transactions) = pending_transactions {
+        if let Entry::Occupied(ref mut pending_transactions) = pending_transactions {
             let replaced_transaction = pending_transactions
                 .get_mut()
                 .iter_mut()
@@ -426,9 +426,9 @@ impl MemPool {
                 self.hash_to_transaction.remove(replaced_transaction.hash());
 
                 *replaced_transaction = transaction.clone();
-            }
 
-            return Ok(());
+                return Ok(());
+            }
         }
 
         let caller = *transaction.caller();
@@ -462,10 +462,10 @@ impl MemPool {
         &mut self,
         transaction: OrderedTransaction,
     ) -> Result<(), MinerTransactionError<StateError>> {
-        let future_transactions = self.future_transactions.entry(*transaction.caller());
+        let mut future_transactions = self.future_transactions.entry(*transaction.caller());
 
         // Check whether an existing transaction can be replaced
-        if let Entry::Occupied(mut future_transactions) = future_transactions {
+        if let Entry::Occupied(ref mut future_transactions) = future_transactions {
             let replaced_transaction = future_transactions
                 .get_mut()
                 .iter_mut()
@@ -480,9 +480,9 @@ impl MemPool {
                 self.hash_to_transaction.remove(replaced_transaction.hash());
 
                 *replaced_transaction = transaction.clone();
-            }
 
-            return Ok(());
+                return Ok(());
+            }
         }
 
         future_transactions.or_default().push(transaction);
