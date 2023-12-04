@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Added support for using the .cts file extension in the Hardhat configuration file
+Added support for using ESM modules with TypeScript
