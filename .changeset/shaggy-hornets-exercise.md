@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Added support for using ESM modules with TypeScript
+Added experimental support for using ESM modules with TypeScript
