@@ -295,8 +295,8 @@ fn handle_hardhat_request(
         rpc_hardhat::Request::SetLoggingEnabled(_) => Err(ProviderError::Unimplemented(
             "SetLoggingEnabled".to_string(),
         )),
-        rpc_hardhat::Request::SetMinGasPrice(_) => {
-            Err(ProviderError::Unimplemented("SetMinGasPrice".to_string()))
+        rpc_hardhat::Request::SetMinGasPrice(min_gas_price) => {
+            hardhat::handle_set_min_gas_price(data, min_gas_price).and_then(to_json)
         }
         rpc_hardhat::Request::SetNextBlockBaseFeePerGas(base_fee_per_gas) => {
             hardhat::handle_set_next_block_base_fee_per_gas_request(data, base_fee_per_gas)

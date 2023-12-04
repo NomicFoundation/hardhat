@@ -80,6 +80,10 @@ pub enum ProviderError {
     /// Error while running a transaction
     #[error(transparent)]
     RunTransaction(#[from] TransactionError<BlockchainError, StateError>),
+    /// The `hardhat_setMinGasPrice` method is not supported when EIP-1559 is
+    /// active.
+    #[error("hardhat_setMinGasPrice is not supported when EIP-1559 is active")]
+    SetMinGasPriceUnsupported,
     /// Serialization error
     #[error("Failed to serialize response: {0}")]
     Serialization(serde_json::Error),
@@ -143,6 +147,7 @@ impl From<ProviderError> for jsonrpc::Error {
             ProviderError::RpcVersion(_) => (-32000, None),
             ProviderError::RunTransaction(_) => (-32000, None),
             ProviderError::Serialization(_) => (-32000, None),
+            ProviderError::SetMinGasPriceUnsupported => (-32000, None),
             ProviderError::Signature(_) => (-32000, None),
             ProviderError::State(_) => (-32000, None),
             ProviderError::SystemTime(_) => (-32000, None),

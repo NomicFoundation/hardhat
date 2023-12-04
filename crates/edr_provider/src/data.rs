@@ -119,8 +119,8 @@ impl ProviderData {
             mem_pool: MemPool::new(config.block_gas_limit),
             network_id: config.network_id,
             beneficiary: config.coinbase,
-            // TODO: Add config option (https://github.com/NomicFoundation/edr/issues/111)
-            min_gas_price: U256::from(1),
+            // Matches Hardhat default
+            min_gas_price: U256::ZERO,
             prev_randao_generator,
             block_time_offset_seconds: block_time_offset_seconds(config)?,
             fork_metadata,
@@ -606,6 +606,16 @@ impl ProviderData {
         self.blockchain
             .receipt_by_transaction_hash(transaction_hash)
             .map_err(ProviderError::Blockchain)
+    }
+
+    pub fn set_min_gas_price(&mut self, min_gas_price: U256) -> Result<(), ProviderError> {
+        if self.spec_id() >= SpecId::LONDON {
+            return Err(ProviderError::SetMinGasPriceUnsupported);
+        }
+
+        self.min_gas_price = min_gas_price;
+
+        Ok(())
     }
 
     pub fn send_transaction(
