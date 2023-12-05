@@ -154,14 +154,8 @@ export class Artifacts implements IArtifacts {
       return cached;
     }
 
-    const buildInfosDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
-
-    const paths = await getAllFilesMatching(
-      this._artifactsPath,
-      (f) =>
-        f.endsWith(".json") &&
-        !f.startsWith(buildInfosDir) &&
-        !f.endsWith(".dbg.json")
+    const paths = await getAllFilesMatching(this._artifactsPath, (f) =>
+      this._isArtifactPath(f)
     );
 
     const result = paths.sort();
@@ -563,14 +557,8 @@ export class Artifacts implements IArtifacts {
       return cached;
     }
 
-    const buildInfosDir = path.join(this._artifactsPath, BUILD_INFO_DIR_NAME);
-
-    const paths = getAllFilesMatchingSync(
-      this._artifactsPath,
-      (f) =>
-        f.endsWith(".json") &&
-        !f.startsWith(buildInfosDir) &&
-        !f.endsWith(".dbg.json")
+    const paths = getAllFilesMatchingSync(this._artifactsPath, (f) =>
+      this._isArtifactPath(f)
     );
 
     const result = paths.sort();
@@ -933,6 +921,15 @@ Please replace "${contractName}" for the correct contract name wherever you are 
     }
 
     return undefined;
+  }
+
+  private _isArtifactPath(file: string) {
+    return (
+      file.endsWith(".json") &&
+      file !== path.join(this._artifactsPath, "package.json") &&
+      !file.startsWith(path.join(this._artifactsPath, BUILD_INFO_DIR_NAME)) &&
+      !file.endsWith(".dbg.json")
+    );
   }
 }
 
