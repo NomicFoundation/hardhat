@@ -10,7 +10,11 @@ mod request;
 mod signed;
 
 pub use self::{detailed::DetailedTransaction, kind::TransactionKind, request::*, signed::*};
-use crate::{access_list::AccessListItem, serde::ZeroXPrefixedBytes, Address, U256};
+#[cfg(feature = "serde")]
+use crate::serde::ZeroXPrefixedBytes;
+#[cfg(not(feature = "serde"))]
+use crate::Bytes;
+use crate::{access_list::AccessListItem, Address, U256};
 
 /// Represents _all_ transaction requests received from RPC
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
@@ -38,7 +42,10 @@ pub struct EthTransactionRequest {
     /// value of th tx in wei
     pub value: Option<U256>,
     /// Any additional data sent
+    #[cfg(feature = "serde")]
     pub data: Option<ZeroXPrefixedBytes>,
+    #[cfg(not(feature = "serde"))]
+    pub data: Option<Bytes>,
     /// Transaction nonce
     #[cfg_attr(feature = "serde", serde(default, with = "crate::serde::optional_u64"))]
     pub nonce: Option<u64>,
