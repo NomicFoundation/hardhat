@@ -1,5 +1,1 @@
-{
-  "TypeScript/JavaScript": "TypeScript",
-  "npm 7+/npm 6/yarn": "npm 7+",
-  "Infura/Alchemy": "Infura"
-}
+{"TypeScript/JavaScript":"TypeScript","Alchemy/Infura":"Alchemy"}
