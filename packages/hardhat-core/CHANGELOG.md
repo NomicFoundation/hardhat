@@ -1,5 +1,13 @@
 # hardhat
 
+## 2.19.2
+
+### Patch Changes
+
+- b475fc49c: Modified the artifacts cleanup logic to avoid removing a `package.json` file under the artifacts directory
+- c3aad2c55: Added support for scopes in hh autocomplete.
+- 4bc6a2726: Added experimental support for using ESM modules with TypeScript
+
 ## 2.19.1
 
 ### Patch Changes

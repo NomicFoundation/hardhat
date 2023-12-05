@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 2.0.2
+
+### Patch Changes
+
+- 5cab65fb7: Updated chiado urls to avoid redirect
+
 ## 2.0.1
 
 ### Patch Changes
