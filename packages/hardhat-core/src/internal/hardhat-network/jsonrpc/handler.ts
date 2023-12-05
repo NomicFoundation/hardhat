@@ -246,7 +246,7 @@ const _handleError = (error: any): JsonRpcResponse => {
     txHash = error.transactionHash;
   }
   if (error.data !== undefined) {
-    if (error.data?.data) {
+    if (error.data?.data !== undefined) {
       returnData = error.data.data;
     } else {
       returnData = error.data;

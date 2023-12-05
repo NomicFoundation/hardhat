@@ -410,13 +410,14 @@ class EdrProviderWrapper extends EventEmitter implements EIP1193Provider {
 
     const coinbase = config.coinbase ?? DEFAULT_COINBASE;
 
-    let fork = undefined;
+    let fork;
     if (config.forkConfig !== undefined) {
       fork = {
         jsonRpcUrl: config.forkConfig.jsonRpcUrl,
-        blockNumber: config.forkConfig.blockNumber
-          ? BigInt(config.forkConfig.blockNumber)
-          : undefined,
+        blockNumber:
+          config.forkConfig.blockNumber !== undefined
+            ? BigInt(config.forkConfig.blockNumber)
+            : undefined,
       };
     }
 
