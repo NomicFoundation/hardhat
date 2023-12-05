@@ -12,7 +12,7 @@ use edr_eth::{
     receipt::BlockReceipt,
     remote::{
         filter::{FilteredEvents, LogOutput, SubscriptionType},
-        BlockSpec, BlockTag, Eip1898BlockSpec, RpcClient,
+        BlockSpec, BlockTag, Eip1898BlockSpec, RpcClient, RpcClientError,
     },
     serde::ZeroXPrefixedBytes,
     signature::Signature,
@@ -60,6 +60,9 @@ pub enum CreationError {
     /// An error that occurred while constructing a local blockchain.
     #[error(transparent)]
     LocalBlockchainCreation(#[from] LocalCreationError),
+    /// An error that occured while querying the remote state.
+    #[error(transparent)]
+    RpcClient(#[from] RpcClientError),
 }
 
 struct BlockContext {
@@ -1232,11 +1235,8 @@ struct BlockchainAndState {
 async fn create_blockchain_and_state(
     runtime: &runtime::Handle,
     config: &ProviderConfig,
-    genesis_accounts: HashMap<Address, Account>,
+    mut genesis_accounts: HashMap<Address, Account>,
 ) -> Result<BlockchainAndState, CreationError> {
-    let has_account_overrides = !genesis_accounts.is_empty();
-
-    let initial_diff = StateDiff::from(genesis_accounts);
     let mut irregular_state = IrregularState::default();
 
     if let Some(fork_config) = &config.fork {
@@ -1259,13 +1259,41 @@ async fn create_blockchain_and_state(
 
         let fork_block_number = blockchain.last_block_number();
 
-        if has_account_overrides {
+        if !genesis_accounts.is_empty() {
+            let rpc_client = RpcClient::new(&fork_config.json_rpc_url, config.cache_dir.clone());
+
+            let genesis_addresses = genesis_accounts.keys().cloned().collect::<Vec<_>>();
+            let genesis_account_infos = rpc_client
+                .get_account_infos(
+                    &genesis_addresses,
+                    Some(BlockSpec::Number(fork_block_number)),
+                )
+                .await?;
+
+            // Make sure that the nonce and the code of genesis accounts matches the fork
+            // state as we only want to overwrite the balance.
+            for (address, account_info) in genesis_addresses.into_iter().zip(genesis_account_infos)
+            {
+                genesis_accounts.entry(address).and_modify(|account| {
+                    let AccountInfo {
+                        balance: _,
+                        nonce,
+                        code,
+                        code_hash,
+                    } = &mut account.info;
+
+                    *nonce = account_info.nonce;
+                    *code = account_info.code;
+                    *code_hash = account_info.code_hash;
+                });
+            }
+
             let state_root = state_root_generator.lock().next_value();
 
             irregular_state
                 .state_override_at_block_number(fork_block_number)
                 .or_insert(StateOverride {
-                    diff: initial_diff,
+                    diff: StateDiff::from(genesis_accounts),
                     state_root,
                 });
         }
@@ -1289,7 +1317,7 @@ async fn create_blockchain_and_state(
         })
     } else {
         let blockchain = LocalBlockchain::new(
-            initial_diff,
+            StateDiff::from(genesis_accounts),
             config.chain_id,
             config.hardfork,
             config.block_gas_limit,
