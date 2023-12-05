@@ -46,6 +46,12 @@ module.exports = {
 
 We are going to use the [Sepolia testnet](https://ethereum.org/en/developers/docs/networks/#sepolia) to deploy and verify our Ignition module, so you need to add this network in your Hardhat config. Here we are using [Alchemy](https://alchemy.com/) to connect to the network.
 
+:::tip
+
+For more information on `vars` and configuration variables, please see our [configuration variables guide](../../../hardhat-runner/docs/guides/configuration-variables.md).
+
+:::
+
 ::::tabsgroup{options=TypeScript,JavaScript}
 
 :::tab{value=TypeScript}
