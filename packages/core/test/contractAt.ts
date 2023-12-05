@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { Artifact, FutureType } from "../src";
+import { FutureType } from "../src";
 import { buildModule } from "../src/build-module";
 import { ModuleParameterRuntimeValueImplementation } from "../src/internal/module";
 import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module";
@@ -10,18 +10,12 @@ import { validateNamedContractAt } from "../src/internal/validation/futures/vali
 import {
   assertInstanceOf,
   assertValidationError,
+  fakeArtifact,
   setupMockArtifactResolver,
 } from "./helpers";
 
 describe("contractAt", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
-
-  const fakeArtifact: Artifact = {
-    abi: [],
-    contractName: "",
-    bytecode: "",
-    linkReferences: {},
-  };
 
   it("should be able to setup a contract at a given address", () => {
     const moduleWithContractFromArtifact = buildModule("Module1", (m) => {

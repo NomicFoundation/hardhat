@@ -5,6 +5,7 @@
  */
 export interface Artifact {
   contractName: string;
+  sourceName: string;
   bytecode: string;
   abi: any[];
   linkReferences: Record<

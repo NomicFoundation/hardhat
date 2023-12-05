@@ -17,6 +17,7 @@ import { FutureType } from "../src/types/module";
 import {
   assertInstanceOf,
   assertValidationError,
+  fakeArtifact,
   setupMockArtifactResolver,
 } from "./helpers";
 
@@ -540,13 +541,6 @@ m.contract(..., { id: "MyUniqueId"})`
     });
 
     it("should not validate an incorrect number of constructor args", async () => {
-      const fakeArtifact: Artifact = {
-        abi: [],
-        contractName: "",
-        bytecode: "",
-        linkReferences: {},
-      };
-
       const module = buildModule("Module1", (m) => {
         const contract1 = m.contract("Test", [1, 2, 3]);
 
@@ -567,7 +561,8 @@ m.contract(..., { id: "MyUniqueId"})`
     });
 
     it("should not validate a missing module parameter", async () => {
-      const fakeArtifact: Artifact = {
+      const fakerArtifact: Artifact = {
+        ...fakeArtifact,
         abi: [
           {
             inputs: [
@@ -581,9 +576,6 @@ m.contract(..., { id: "MyUniqueId"})`
             type: "constructor",
           },
         ],
-        contractName: "",
-        bytecode: "",
-        linkReferences: {},
       };
 
       const module = buildModule("Module1", (m) => {
@@ -598,7 +590,7 @@ m.contract(..., { id: "MyUniqueId"})`
       assertValidationError(
         await validateNamedContractDeployment(
           future as any,
-          setupMockArtifactResolver({ Test: fakeArtifact }),
+          setupMockArtifactResolver({ Test: fakerArtifact }),
           {},
           []
         ),
@@ -607,7 +599,8 @@ m.contract(..., { id: "MyUniqueId"})`
     });
 
     it("should not validate a module parameter of the wrong type for value", async () => {
-      const fakeArtifact: Artifact = {
+      const fakerArtifact: Artifact = {
+        ...fakeArtifact,
         abi: [
           {
             inputs: [],
@@ -615,9 +608,6 @@ m.contract(..., { id: "MyUniqueId"})`
             type: "constructor",
           },
         ],
-        contractName: "",
-        bytecode: "",
-        linkReferences: {},
       };
 
       const module = buildModule("Module1", (m) => {
@@ -632,7 +622,7 @@ m.contract(..., { id: "MyUniqueId"})`
       assertValidationError(
         await validateNamedContractDeployment(
           future as any,
-          setupMockArtifactResolver({ Test: fakeArtifact }),
+          setupMockArtifactResolver({ Test: fakerArtifact }),
           {},
           []
         ),
@@ -641,7 +631,8 @@ m.contract(..., { id: "MyUniqueId"})`
     });
 
     it("should validate a module parameter of the correct type for value", async () => {
-      const fakeArtifact: Artifact = {
+      const fakerArtifact: Artifact = {
+        ...fakeArtifact,
         abi: [
           {
             inputs: [],
@@ -649,9 +640,6 @@ m.contract(..., { id: "MyUniqueId"})`
             type: "constructor",
           },
         ],
-        contractName: "",
-        bytecode: "",
-        linkReferences: {},
       };
 
       const module = buildModule("Module1", (m) => {
@@ -666,7 +654,7 @@ m.contract(..., { id: "MyUniqueId"})`
       await assert.isFulfilled(
         validateNamedContractDeployment(
           future as any,
-          setupMockArtifactResolver({ Test: fakeArtifact }),
+          setupMockArtifactResolver({ Test: fakerArtifact }),
           {},
           []
         )
@@ -674,7 +662,8 @@ m.contract(..., { id: "MyUniqueId"})`
     });
 
     it("should validate a missing module parameter if a default parameter is present", async () => {
-      const fakeArtifact: Artifact = {
+      const fakerArtifact: Artifact = {
+        ...fakeArtifact,
         abi: [
           {
             inputs: [
@@ -688,9 +677,6 @@ m.contract(..., { id: "MyUniqueId"})`
             type: "constructor",
           },
         ],
-        contractName: "",
-        bytecode: "",
-        linkReferences: {},
       };
 
       const module = buildModule("Module1", (m) => {
@@ -705,7 +691,7 @@ m.contract(..., { id: "MyUniqueId"})`
       await assert.isFulfilled(
         validateNamedContractDeployment(
           future as any,
-          setupMockArtifactResolver({ Test: fakeArtifact }),
+          setupMockArtifactResolver({ Test: fakerArtifact }),
           {},
           []
         )
@@ -713,7 +699,8 @@ m.contract(..., { id: "MyUniqueId"})`
     });
 
     it("should not validate a missing module parameter (deeply nested)", async () => {
-      const fakeArtifact: Artifact = {
+      const fakerArtifact: Artifact = {
+        ...fakeArtifact,
         abi: [
           {
             inputs: [
@@ -727,9 +714,6 @@ m.contract(..., { id: "MyUniqueId"})`
             type: "constructor",
           },
         ],
-        contractName: "",
-        bytecode: "",
-        linkReferences: {},
       };
 
       const module = buildModule("Module1", (m) => {
@@ -746,7 +730,7 @@ m.contract(..., { id: "MyUniqueId"})`
       assertValidationError(
         await validateNamedContractDeployment(
           future as any,
-          setupMockArtifactResolver({ Test: fakeArtifact }),
+          setupMockArtifactResolver({ Test: fakerArtifact }),
           {},
           []
         ),
@@ -755,7 +739,8 @@ m.contract(..., { id: "MyUniqueId"})`
     });
 
     it("should validate a missing module parameter if a default parameter is present (deeply nested)", async () => {
-      const fakeArtifact: Artifact = {
+      const fakerArtifact: Artifact = {
+        ...fakeArtifact,
         abi: [
           {
             inputs: [
@@ -769,9 +754,6 @@ m.contract(..., { id: "MyUniqueId"})`
             type: "constructor",
           },
         ],
-        contractName: "",
-        bytecode: "",
-        linkReferences: {},
       };
 
       const module = buildModule("Module1", (m) => {
@@ -788,7 +770,7 @@ m.contract(..., { id: "MyUniqueId"})`
       await assert.isFulfilled(
         validateNamedContractDeployment(
           future as any,
-          setupMockArtifactResolver({ Test: fakeArtifact }),
+          setupMockArtifactResolver({ Test: fakerArtifact }),
           {},
           []
         )
@@ -796,13 +778,6 @@ m.contract(..., { id: "MyUniqueId"})`
     });
 
     it("should not validate a negative account index", async () => {
-      const fakeArtifact: Artifact = {
-        abi: [],
-        contractName: "",
-        bytecode: "",
-        linkReferences: {},
-      };
-
       const module = buildModule("Module1", (m) => {
         const account = m.getAccount(-1);
         const contract1 = m.contract("Test", [], { from: account });
@@ -824,13 +799,6 @@ m.contract(..., { id: "MyUniqueId"})`
     });
 
     it("should not validate an account index greater than the number of available accounts", async () => {
-      const fakeArtifact: Artifact = {
-        abi: [],
-        contractName: "",
-        bytecode: "",
-        linkReferences: {},
-      };
-
       const module = buildModule("Module1", (m) => {
         const account = m.getAccount(1);
         const contract1 = m.contract("Test", [], { from: account });

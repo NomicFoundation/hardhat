@@ -12,7 +12,9 @@ describe("DeploymentLoaderImpls", function () {
     it("Shouldn't have any property apart from the ones defined in the Deployment loader interface", function () {
       const _implementation: ExactInterface<
         DeploymentLoader,
-        FileDeploymentLoader
+        // we omit readBuildInfo as it is a known addition to file deployment loader
+        // above the DeploylmentLoader interface
+        Omit<FileDeploymentLoader, "readBuildInfo">
       > = new FileDeploymentLoader("./example");
 
       assert.isDefined(_implementation);

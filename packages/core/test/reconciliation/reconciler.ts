@@ -434,6 +434,7 @@ describe("Reconciliation", () => {
           abi: [],
           bytecode: "0xaaaaaa",
           contractName: "Contract1",
+          sourceName: "",
           linkReferences: {},
         },
       };
@@ -468,6 +469,7 @@ describe("Reconciliation", () => {
           abi: [],
           bytecode: "0xaaaaaa",
           contractName: "Contract1",
+          sourceName: "",
           linkReferences: {},
         },
       };
@@ -477,6 +479,7 @@ describe("Reconciliation", () => {
           abi: [],
           bytecode: "0xbbbbbb",
           contractName: "Contract1",
+          sourceName: "",
           linkReferences: {},
         },
       };
@@ -525,6 +528,7 @@ describe("Reconciliation", () => {
           abi: [],
           bytecode: mainnetWethBytecode,
           contractName: "Contract1",
+          sourceName: "",
           linkReferences: {},
         },
       };
@@ -534,6 +538,7 @@ describe("Reconciliation", () => {
           abi: [],
           bytecode: mainnetWethWithModifiedMetadata,
           contractName: "Contract1",
+          sourceName: "",
           linkReferences: {},
         },
       };

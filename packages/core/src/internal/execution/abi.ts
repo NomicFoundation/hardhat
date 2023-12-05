@@ -45,6 +45,21 @@ const PANIC_CODE_NAMES: { [key: number]: string | undefined } = {
 };
 
 /**
+ * Encodes the constructor arguments for a deployment.
+ */
+export function encodeDeploymentArguments(
+  artifact: Artifact,
+  args: SolidityParameterType[]
+): string {
+  const { ethers } = require("ethers") as typeof import("ethers");
+  const iface = new ethers.Interface(artifact.abi);
+
+  const encodedArgs = iface.encodeDeploy(args);
+
+  return encodedArgs.slice(2);
+}
+
+/**
  * Links the libraries in the artifact's deployment bytecode, encodes the constructor
  * arguments and returns the result, which can be used as the `data` field of a
  * deployment.
@@ -54,13 +69,10 @@ export function encodeArtifactDeploymentData(
   args: SolidityParameterType[],
   libraries: { [libraryName: string]: string }
 ): string {
-  const { ethers } = require("ethers") as typeof import("ethers");
-  const iface = new ethers.Interface(artifact.abi);
-
   const linkedBytecode = linkLibraries(artifact, libraries);
-  const encodedArgs = iface.encodeDeploy(args);
+  const encodedArgs = encodeDeploymentArguments(artifact, args);
 
-  return linkedBytecode + encodedArgs.slice(2);
+  return linkedBytecode + encodedArgs;
 }
 
 /**

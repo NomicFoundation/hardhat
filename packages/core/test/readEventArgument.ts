@@ -6,20 +6,17 @@ import { buildModule } from "../src/build-module";
 import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module";
 import { validateReadEventArgument } from "../src/internal/validation/futures/validateReadEventArgument";
 
-import { assertValidationError, setupMockArtifactResolver } from "./helpers";
+import {
+  assertValidationError,
+  fakeArtifact,
+  setupMockArtifactResolver,
+} from "./helpers";
 
 describe("Read event argument", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 
   describe("creating modules with it", () => {
     it("should support reading arguments from all the futures that can emit them", () => {
-      const fakeArtifact: Artifact = {
-        abi: [],
-        contractName: "",
-        bytecode: "",
-        linkReferences: {},
-      };
-
       const mod = buildModule("Module1", (m) => {
         const contract = m.contract("Contract");
         const contractFromArtifact = m.contract(
@@ -286,15 +283,13 @@ m.readEventArgument(..., { id: "MyUniqueId"})`
     });
 
     it("should not validate a non-existant event", async () => {
-      const fakeArtifact: Artifact = {
-        abi: [],
+      const fakerArtifact: Artifact = {
+        ...fakeArtifact,
         contractName: "Another",
-        bytecode: "",
-        linkReferences: {},
       };
 
       const module = buildModule("Module1", (m) => {
-        const another = m.contract("Another", fakeArtifact, []);
+        const another = m.contract("Another", fakerArtifact, []);
         m.readEventArgument(another, "test", "arg");
 
         return { another };

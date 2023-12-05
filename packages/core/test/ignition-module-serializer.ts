@@ -1,7 +1,6 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { Artifact } from "../src";
 import { buildModule } from "../src/build-module";
 import {
   IgnitionModuleDeserializer,
@@ -18,6 +17,8 @@ import {
   IgnitionModule,
   IgnitionModuleResult,
 } from "../src/types/module";
+
+import { fakeArtifact } from "./helpers";
 
 describe("stored deployment serializer", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
@@ -87,13 +88,6 @@ describe("stored deployment serializer", () => {
   });
 
   describe("contractFromArtifact", () => {
-    const fakeArtifact: Artifact = {
-      abi: [],
-      contractName: "",
-      bytecode: "",
-      linkReferences: {},
-    };
-
     it("should serialize a contractFromArtifact deployment", () => {
       const module = buildModule("Module1", (m) => {
         const contract1 = m.contract("Contract1", fakeArtifact, []);
@@ -159,13 +153,6 @@ describe("stored deployment serializer", () => {
   });
 
   describe("contractAtFromArtifact", () => {
-    const fakeArtifact: Artifact = {
-      abi: [],
-      contractName: "",
-      bytecode: "",
-      linkReferences: {},
-    };
-
     it("should serialize a contractAt", () => {
       const module = buildModule("Module1", (m) => {
         const contract1 = m.contractAt(
@@ -220,13 +207,6 @@ describe("stored deployment serializer", () => {
   });
 
   describe("library", () => {
-    const fakeArtifact: Artifact = {
-      abi: [],
-      contractName: "",
-      bytecode: "",
-      linkReferences: {},
-    };
-
     it("should serialize a library deployment", () => {
       const module = buildModule("Module1", (m) => {
         const library1 = m.library("Library1");
@@ -289,13 +269,6 @@ describe("stored deployment serializer", () => {
   });
 
   describe("libraryFromArtifact", () => {
-    const fakeArtifact: Artifact = {
-      abi: [],
-      contractName: "",
-      bytecode: "",
-      linkReferences: {},
-    };
-
     it("should serialize a libraryFromArtifact deployment", () => {
       const module = buildModule("Module1", (m) => {
         const library1 = m.library("Contract1", fakeArtifact);

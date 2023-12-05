@@ -89,6 +89,7 @@
   },
   "peerDependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.4",
+    "@nomicfoundation/hardhat-verify": "^2.0.1",
     "hardhat": "^2.18.0"
   },
   "dependencies": {

@@ -29,6 +29,7 @@ export function assertInstanceOf<ObjectT>(
 export const fakeArtifact: Artifact = {
   abi: [],
   contractName: "",
+  sourceName: "",
   bytecode: "",
   linkReferences: {},
 };

@@ -179,6 +179,7 @@ describe("to-mermaid", () => {
     const fakeArtifact: Artifact = {
       abi: [],
       contractName: "",
+      sourceName: "",
       bytecode: "",
       linkReferences: {},
     };

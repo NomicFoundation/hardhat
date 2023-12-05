@@ -73,6 +73,11 @@ export const ERROR_RANGES: {
     max: 999,
     title: "Deploy errors",
   },
+  VERIFY: {
+    min: 1000,
+    max: 1099,
+    title: "Verify errors",
+  },
 };
 
 /**
@@ -343,6 +348,23 @@ export const ERRORS = {
     CHANGED_CHAINID: {
       number: 900,
       message: `The deployment's chain cannot be changed between runs. The deployment was previously run against the chain %previousChainId%, but the current network is the chain %currentChainId%.`,
+    },
+  },
+  VERIFY: {
+    UNINITIALIZED_DEPLOYMENT: {
+      number: 1000,
+      message:
+        "Cannot verify contracts for nonexistant deployment at %deploymentDir%",
+    },
+    NO_CONTRACTS_DEPLOYED: {
+      number: 1001,
+      message:
+        "Cannot verify deployment %deploymentDir% as no contracts were deployed",
+    },
+    UNSUPPORTED_CHAIN: {
+      number: 1002,
+      message:
+        "Verification not natively supported for chainId %chainId%. Please use a custom chain configuration to add support.",
     },
   },
 };

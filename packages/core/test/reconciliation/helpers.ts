@@ -21,6 +21,7 @@ export const twoAddress = "0x2222222222222222222222222222222222222222";
 
 export const mockArtifact = {
   contractName: "Contract1",
+  sourceName: "",
   bytecode: "0x",
   linkReferences: {},
   abi: [],

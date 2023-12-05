@@ -5,3 +5,5 @@
 /temp
 /test-integrations/fixture-projects/*/artifacts
 /test-integrations/fixture-projects/*/cache
+/test/mocks/verify/*/artifacts
+/test/mocks/verify/*/build-info

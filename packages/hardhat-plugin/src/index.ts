@@ -1,4 +1,6 @@
 import "@nomicfoundation/hardhat-ethers";
+import "@nomicfoundation/hardhat-verify";
+import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
 import {
   DeploymentParameters,
   IgnitionError,
@@ -11,7 +13,10 @@ import path from "path";
 
 import "./type-extensions";
 import { calculateDeploymentStatusDisplay } from "./ui/helpers/calculate-deployment-status-display";
+import { getApiKeyAndUrls } from "./utils/getApiKeyAndUrls";
 import { resolveDeploymentId } from "./utils/resolve-deployment-id";
+import { shouldBeHardhatPluginError } from "./utils/shouldBeHardhatPluginError";
+import { verifyEtherscanContract } from "./utils/verifyEtherscanContract";
 
 /* ignition config defaults */
 const IGNITION_DIR = "ignition";
@@ -58,6 +63,7 @@ ignitionScope
     "A relative path to a JSON file to use for the module parameters"
   )
   .addOptionalParam("deploymentId", "Set the id of the deployment")
+  .addFlag("verify", "Verify the deployment on Etherscan")
   .setDescription("Deploy a module to the specified network")
   .setAction(
     async (
@@ -65,13 +71,16 @@ ignitionScope
         modulePath,
         parameters: parametersInput,
         deploymentId: givenDeploymentId,
+        verify,
       }: {
         modulePath: string;
         parameters?: string;
         deploymentId: string | undefined;
+        verify: boolean;
       },
       hre
     ) => {
+      const { default: chalk } = await import("chalk");
       const { default: Prompt } = await import("prompts");
       const { deploy } = await import("@nomicfoundation/ignition-core");
 
@@ -80,9 +89,19 @@ ignitionScope
       );
       const { loadModule } = await import("./load-module");
       const { PrettyEventHandler } = await import("./ui/pretty-event-handler");
-      const { shouldBeHardhatPluginError } = await import(
-        "./utils/shouldBeHardhatPluginError"
-      );
+
+      if (verify) {
+        if (
+          hre.config.etherscan === undefined ||
+          hre.config.etherscan.apiKey === undefined ||
+          hre.config.etherscan.apiKey === ""
+        ) {
+          throw new NomicLabsHardhatPluginError(
+            "@nomicfoundation/hardhat-ignition",
+            "No etherscan API key configured"
+          );
+        }
+      }
 
       const chainId = Number(
         await hre.network.provider.request({
@@ -141,7 +160,7 @@ ignitionScope
       const executionEventListener = new PrettyEventHandler();
 
       try {
-        await deploy({
+        const result = await deploy({
           config: hre.config.ignition,
           provider: hre.network.provider,
           executionEventListener,
@@ -151,6 +170,17 @@ ignitionScope
           deploymentParameters: parameters ?? {},
           accounts,
         });
+
+        if (result.type === "SUCCESSFUL_DEPLOYMENT" && verify) {
+          console.log("");
+          console.log(chalk.bold("Verifying deployed contracts"));
+          console.log("");
+
+          await hre.run(
+            { scope: "ignition", task: "verify" },
+            { deploymentId }
+          );
+        }
       } catch (e) {
         if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
           throw new NomicLabsHardhatPluginError(
@@ -181,9 +211,7 @@ ignitionScope
 
       const { loadModule } = await import("./load-module");
       const { open } = await import("./utils/open");
-      const { shouldBeHardhatPluginError } = await import(
-        "./utils/shouldBeHardhatPluginError"
-      );
+
       const { writeVisualization } = await import(
         "./visualization/write-visualization"
       );
@@ -241,9 +269,6 @@ ignitionScope
   .setDescription("Show the current status of a deployment")
   .setAction(async ({ deploymentId }: { deploymentId: string }, hre) => {
     const { status } = await import("@nomicfoundation/ignition-core");
-    const { shouldBeHardhatPluginError } = await import(
-      "./utils/shouldBeHardhatPluginError"
-    );
 
     const deploymentDir = path.join(
       hre.config.paths.ignition,
@@ -283,9 +308,6 @@ ignitionScope
       const { HardhatArtifactResolver } = await import(
         "./hardhat-artifact-resolver"
       );
-      const { shouldBeHardhatPluginError } = await import(
-        "./utils/shouldBeHardhatPluginError"
-      );
 
       const deploymentDir = path.join(
         hre.config.paths.ignition,
@@ -310,6 +332,85 @@ ignitionScope
       console.log(`${futureId} state has been cleared`);
     }
   );
+
+ignitionScope
+  .task("verify")
+  .addPositionalParam("deploymentId", "The id of the deployment to verify")
+  .setDescription(
+    "Verify contracts from a deployment against the configured block explorers"
+  )
+  .setAction(async ({ deploymentId }: { deploymentId: string }, hre) => {
+    const { getVerificationInformation } = await import(
+      "@nomicfoundation/ignition-core"
+    );
+
+    const deploymentDir = path.join(
+      hre.config.paths.ignition,
+      "deployments",
+      deploymentId
+    );
+
+    if (
+      hre.config.etherscan === undefined ||
+      hre.config.etherscan.apiKey === undefined ||
+      hre.config.etherscan.apiKey === ""
+    ) {
+      throw new NomicLabsHardhatPluginError(
+        "@nomicfoundation/hardhat-ignition",
+        "No etherscan API key configured"
+      );
+    }
+
+    try {
+      for await (const [
+        chainConfig,
+        contractInfo,
+      ] of getVerificationInformation(
+        deploymentDir,
+        hre.config.etherscan.customChains
+      )) {
+        const apiKeyAndUrls = getApiKeyAndUrls(
+          hre.config.etherscan.apiKey,
+          chainConfig
+        );
+
+        const instance = new Etherscan(...apiKeyAndUrls);
+
+        console.log(
+          `Verifying contract "${contractInfo.name}" for network ${chainConfig.network}...`
+        );
+
+        const result = await verifyEtherscanContract(instance, contractInfo);
+
+        if (result.type === "success") {
+          console.log(
+            `Successfully verified contract "${contractInfo.name}" for network ${chainConfig.network}:\n  - ${result.contractURL}`
+          );
+          console.log("");
+        } else {
+          if (/already verified/gi.test(result.reason.message)) {
+            const contractURL = instance.getContractUrl(contractInfo.address);
+            console.log(
+              `Contract ${contractInfo.name} already verified on network ${chainConfig.network}:\n  - ${contractURL}`
+            );
+            console.log("");
+            continue;
+          } else {
+            throw new NomicLabsHardhatPluginError(
+              "hardhat-ignition",
+              result.reason.message
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
+        throw new NomicLabsHardhatPluginError("hardhat-ignition", e.message, e);
+      }
+
+      throw e;
+    }
+  });
 
 function resolveParametersFromModuleName(
   moduleName: string,

@@ -1,7 +1,6 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { Artifact } from "../src";
 import { buildModule } from "../src/build-module";
 import {
   AccountRuntimeValueImplementation,
@@ -13,17 +12,11 @@ import { validateArtifactLibraryDeployment } from "../src/internal/validation/fu
 import {
   assertInstanceOf,
   assertValidationError,
+  fakeArtifact,
   setupMockArtifactResolver,
 } from "./helpers";
 
 describe("libraryFromArtifact", () => {
-  const fakeArtifact: Artifact = {
-    abi: [],
-    contractName: "",
-    bytecode: "",
-    linkReferences: {},
-  };
-
   it("should be able to deploy with a library based on an artifact", () => {
     const moduleWithContractFromArtifact = buildModule("Module1", (m) => {
       const library1 = m.library("Library1", fakeArtifact);

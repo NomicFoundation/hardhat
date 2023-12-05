@@ -117,6 +117,26 @@ export class FileDeploymentLoader implements DeploymentLoader {
     );
   }
 
+  public async readBuildInfo(futureId: string): Promise<BuildInfo> {
+    await this._initialize();
+
+    const debugInfoFilePath = path.join(
+      this._paths.artifactsDir,
+      `${futureId}.dbg.json`
+    );
+
+    const json = JSON.parse((await readFile(debugInfoFilePath)).toString());
+
+    const buildInfoPath = path.resolve(
+      this._paths.artifactsDir,
+      json.buildInfo
+    );
+
+    const buildInfo = JSON.parse((await readFile(buildInfoPath)).toString());
+
+    return buildInfo;
+  }
+
   public async loadArtifact(futureId: string): Promise<Artifact> {
     await this._initialize();
 
