@@ -467,6 +467,7 @@ impl ProviderData {
         filter_id
     }
 
+    /// Calculates the next block's base fee per gas.
     pub fn next_block_base_fee_per_gas(&self) -> Result<Option<U256>, BlockchainError> {
         if self.spec_id() < SpecId::LONDON {
             return Ok(None);
@@ -626,16 +627,6 @@ impl ProviderData {
         &mut self,
         transaction_request: TransactionRequestAndSender,
     ) -> Result<B256, ProviderError> {
-        if let Some(chain_id) = transaction_request.request.chain_id() {
-            let expected = self.chain_id();
-            if chain_id != expected {
-                return Err(ProviderError::InvalidChainId {
-                    expected,
-                    actual: chain_id,
-                });
-            }
-        }
-
         let signed_transaction = if self.is_auto_mining {
             let sender = transaction_request.sender;
             self.validate_auto_mine_transaction(

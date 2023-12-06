@@ -99,8 +99,8 @@ impl SignedTransaction {
             SignedTransaction::PreEip155Legacy(_)
             | SignedTransaction::PostEip155Legacy(_)
             | SignedTransaction::Eip2930(_) => None,
-            SignedTransaction::Eip1559(tx) => Some(tx.max_priority_fee_per_gas),
-            SignedTransaction::Eip4844(tx) => Some(tx.max_priority_fee_per_gas),
+            SignedTransaction::Eip1559(tx) => Some(tx.max_fee_per_gas),
+            SignedTransaction::Eip4844(tx) => Some(tx.max_fee_per_gas),
         }
     }
 
