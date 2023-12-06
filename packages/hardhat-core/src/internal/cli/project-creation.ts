@@ -1,6 +1,5 @@
 import chalk from "chalk";
 import fsExtra from "fs-extra";
-import os from "os";
 import path from "path";
 
 import { HARDHAT_NAME } from "../constants";
@@ -279,6 +278,11 @@ async function getAction(isEsm: boolean): Promise<Action> {
     process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !== undefined
   ) {
     return Action.CREATE_TYPESCRIPT_PROJECT_ACTION;
+  } else if (
+    process.env.HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS !==
+    undefined
+  ) {
+    return Action.CREATE_TYPESCRIPT_VIEM_PROJECT_ACTION;
   }
 
   const { default: enquirer } = await import("enquirer");
@@ -414,7 +418,9 @@ export async function createProject() {
 
   const useDefaultPromptResponses =
     process.env.HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS !== undefined ||
-    process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !== undefined;
+    process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !== undefined ||
+    process.env.HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS !==
+      undefined;
 
   if (useDefaultPromptResponses) {
     responses = {
@@ -509,12 +515,7 @@ export async function createProject() {
 }
 
 async function canInstallRecommendedDeps() {
-  return (
-    (await fsExtra.pathExists("package.json")) &&
-    // TODO: Figure out why this doesn't work on Win
-    // cf. https://github.com/nomiclabs/hardhat/issues/1698
-    os.type() !== "Windows_NT"
-  );
+  return fsExtra.pathExists("package.json");
 }
 
 function isInstalled(dep: string) {
@@ -557,7 +558,7 @@ async function installRecommendedDependencies(dependencies: Dependencies) {
   console.log("");
 
   // The reason we don't quote the dependencies here is because they are going
-  // to be used in child_process.sapwn, which doesn't require escaping string,
+  // to be used in child_process.spawn, which doesn't require escaping string,
   // and can actually fail if you do.
   const installCmd = await getRecommendedDependenciesInstallationCommand(
     dependencies,
@@ -576,6 +577,7 @@ async function installDependencies(
 
   const childProcess = spawn(packageManager, args, {
     stdio: "inherit",
+    shell: true,
   });
 
   return new Promise((resolve, reject) => {
