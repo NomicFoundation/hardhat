@@ -2,6 +2,7 @@ mod config;
 
 use std::sync::Arc;
 
+use edr_eth::remote::jsonrpc;
 use napi::{tokio::runtime, Env, JsObject, Status};
 use napi_derive::napi;
 
@@ -52,13 +53,11 @@ impl Provider {
 
         let provider = self.provider.clone();
         let response = runtime::Handle::current()
-            .spawn_blocking(move || {
-                provider
-                    .handle_request(request)
-                    .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
-            })
+            .spawn_blocking(move || provider.handle_request(request))
             .await
-            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))??;
+            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))?;
+
+        let response = jsonrpc::ResponseData::from(response);
 
         serde_json::to_string(&response)
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))

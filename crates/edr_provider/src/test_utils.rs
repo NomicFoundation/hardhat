@@ -41,6 +41,8 @@ pub fn create_test_config_with_impersonated_accounts(
     ProviderConfig {
         allow_blocks_with_same_timestamp: false,
         allow_unlimited_contract_size: false,
+        bail_on_call_failure: false,
+        bail_on_transaction_failure: false,
         fork: None,
         accounts: vec![AccountConfig {
             secret_key: secret_key_from_str(TEST_SECRET_KEY)

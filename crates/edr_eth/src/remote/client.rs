@@ -669,33 +669,53 @@ impl RpcClient {
         address: &Address,
         block: Option<BlockSpec>,
     ) -> Result<AccountInfo, RpcClientError> {
-        let inputs = &[
-            MethodInvocation::GetBalance(*address, block.clone()),
-            MethodInvocation::GetTransactionCount(*address, block.clone()),
-            MethodInvocation::GetCode(*address, block),
-        ];
+        Ok(self
+            .get_account_infos(&[*address], block)
+            .await?
+            .pop()
+            .expect("batch call returns as many results as inputs if there was no error"))
+    }
 
-        let responses = self.batch_call(inputs).await?;
-        let (balance, nonce, code) = responses
-            .into_iter()
-            .collect_tuple()
-            .expect("batch call checks responses");
+    /// Fetch account infos for multiple addresses in a batch call.
+    pub async fn get_account_infos(
+        &self,
+        addresses: &[Address],
+        block: Option<BlockSpec>,
+    ) -> Result<Vec<AccountInfo>, RpcClientError> {
+        let inputs: Vec<MethodInvocation> = addresses
+            .iter()
+            .flat_map(|address| {
+                [
+                    MethodInvocation::GetBalance(*address, block.clone()),
+                    MethodInvocation::GetTransactionCount(*address, block.clone()),
+                    MethodInvocation::GetCode(*address, block.clone()),
+                ]
+            })
+            .collect();
 
-        let balance = balance.parse::<U256>().await?;
-        let nonce: u64 = nonce.parse::<U256>().await?.to();
-        let code: Bytes = code.parse::<ZeroXPrefixedBytes>().await?.into();
-        let code = if code.is_empty() {
-            None
-        } else {
-            Some(Bytecode::new_raw(code))
-        };
+        let responses = self.batch_call(inputs.as_slice()).await?;
+        let mut results = Vec::with_capacity(inputs.len() / 3);
+        for (balance, nonce, code) in responses.into_iter().tuples() {
+            let balance = balance.parse::<U256>().await?;
+            let nonce: u64 = nonce.parse::<U256>().await?.to();
+            let code: Bytes = code.parse::<ZeroXPrefixedBytes>().await?.into();
+            let code = if code.is_empty() {
+                None
+            } else {
+                Some(Bytecode::new_raw(code))
+            };
 
-        Ok(AccountInfo {
-            balance,
-            code_hash: code.as_ref().map_or(KECCAK_EMPTY, Bytecode::hash_slow),
-            code,
-            nonce,
-        })
+            let account_info = AccountInfo {
+                balance,
+                code_hash: code.as_ref().map_or(KECCAK_EMPTY, Bytecode::hash_slow),
+                code,
+                nonce,
+            };
+
+            results.push(account_info);
+        }
+
+        Ok(results)
     }
 
     /// Calls `eth_getBlockByHash` and returns the transaction's hash.
@@ -1295,19 +1315,24 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn get_account_info_latest_contract() {
+        async fn get_account_infos() {
             let alchemy_url = get_alchemy_url();
 
             let dai_address = Address::from_str("0x6b175474e89094c44da98b954eedeac495271d0f")
                 .expect("failed to parse address");
+            let hardhat_default_address =
+                Address::from_str("0xbe862ad9abfe6f22bcb087716c7d89a26051f74c")
+                    .expect("failed to parse address");
 
-            let account_info = TestRpcClient::new(&alchemy_url)
-                .get_account_info(&dai_address, Some(BlockSpec::latest()))
+            let account_infos = TestRpcClient::new(&alchemy_url)
+                .get_account_infos(
+                    &[dai_address, hardhat_default_address],
+                    Some(BlockSpec::latest()),
+                )
                 .await
                 .expect("should have succeeded");
 
-            assert_ne!(account_info.code_hash, KECCAK_EMPTY);
-            assert!(account_info.code.is_some());
+            assert_eq!(account_infos.len(), 2);
         }
 
         #[tokio::test]

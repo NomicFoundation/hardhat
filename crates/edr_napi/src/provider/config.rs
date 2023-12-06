@@ -53,6 +53,10 @@ pub struct ProviderConfig {
     pub allow_blocks_with_same_timestamp: bool,
     /// Whether to allow unlimited contract size
     pub allow_unlimited_contract_size: bool,
+    /// Whether to return an `Err` when `eth_call` fails
+    pub bail_on_call_failure: bool,
+    /// Whether to return an `Err` when a `eth_sendTransaction` fails
+    pub bail_on_transaction_failure: bool,
     /// The gas limit of each block
     pub block_gas_limit: BigInt,
     /// The directory to cache remote JSON-RPC responses
@@ -149,6 +153,8 @@ impl TryFrom<ProviderConfig> for edr_provider::ProviderConfig {
                 .collect::<napi::Result<Vec<_>>>()?,
             allow_blocks_with_same_timestamp: value.allow_blocks_with_same_timestamp,
             allow_unlimited_contract_size: value.allow_unlimited_contract_size,
+            bail_on_call_failure: value.bail_on_call_failure,
+            bail_on_transaction_failure: value.bail_on_transaction_failure,
             block_gas_limit: value.block_gas_limit.try_cast()?,
             cache_dir: PathBuf::from(
                 value

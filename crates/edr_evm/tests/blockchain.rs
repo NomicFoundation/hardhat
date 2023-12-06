@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use edr_eth::{
     block::{BlobGas, PartialHeader},
-    transaction::{EIP155TransactionRequest, SignedTransaction, TransactionKind},
+    transaction::{Eip155TransactionRequest, SignedTransaction, TransactionKind},
     trie::KECCAK_NULL_RLP,
     Address, Bytes, B256, U256,
 };
@@ -136,7 +136,7 @@ fn create_dummy_transaction() -> SignedTransaction {
     let to = Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e")
         .expect("default value should be known to succeed");
 
-    let transaction = EIP155TransactionRequest {
+    let transaction = Eip155TransactionRequest {
         nonce: 0,
         gas_price: U256::ZERO,
         gas_limit: 0,

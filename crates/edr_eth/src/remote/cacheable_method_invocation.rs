@@ -240,7 +240,7 @@ impl<'a> TryFrom<&'a MethodInvocation> for CacheableMethodInvocation<'a> {
             // Explicit to make sure if a new method is added, it is not forgotten here.
             MethodInvocation::Accounts(_)
             | MethodInvocation::BlockNumber(_)
-            | MethodInvocation::Call(_, _)
+            | MethodInvocation::Call(_, _, _)
             | MethodInvocation::Coinbase(_)
             | MethodInvocation::EstimateGas(_, _)
             | MethodInvocation::FeeHistory(_, _, _)

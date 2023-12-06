@@ -129,12 +129,18 @@ fn handle_eth_request(
     match request {
         EthRequest::Accounts(()) => eth::handle_accounts_request(data).and_then(to_json),
         EthRequest::BlockNumber(()) => eth::handle_block_number_request(data).and_then(to_json),
-        EthRequest::Call(_, _) => Err(ProviderError::Unimplemented("".to_string())),
+        EthRequest::Call(request, block_spec, state_overrides) => {
+            eth::handle_call_request(data, request, block_spec, state_overrides).and_then(to_json)
+        }
         EthRequest::ChainId(()) => eth::handle_chain_id_request(data).and_then(to_json),
         EthRequest::Coinbase(()) => eth::handle_coinbase_request(data).and_then(to_json),
-        EthRequest::EstimateGas(_, _) => Err(ProviderError::Unimplemented("".to_string())),
-        EthRequest::FeeHistory(_, _, _) => Err(ProviderError::Unimplemented("".to_string())),
-        EthRequest::GasPrice(()) => Err(ProviderError::Unimplemented("".to_string())),
+        EthRequest::EstimateGas(_, _) => {
+            Err(ProviderError::Unimplemented("EstimateGas".to_string()))
+        }
+        EthRequest::FeeHistory(_, _, _) => {
+            Err(ProviderError::Unimplemented("FeeHistory".to_string()))
+        }
+        EthRequest::GasPrice(()) => Err(ProviderError::Unimplemented("GasPrice".to_string())),
         EthRequest::GetBalance(address, block_spec) => {
             eth::handle_get_balance_request(data, address, block_spec).and_then(to_json)
         }
@@ -163,7 +169,7 @@ fn handle_eth_request(
         EthRequest::GetFilterLogs(filter_id) => {
             eth::handle_get_filter_logs_request(data, filter_id).and_then(to_json)
         }
-        EthRequest::GetLogs(_) => Err(ProviderError::Unimplemented("".to_string())),
+        EthRequest::GetLogs(_) => Err(ProviderError::Unimplemented("GetLogs".to_string())),
         EthRequest::GetStorageAt(address, index, block_spec) => {
             eth::handle_get_storage_at_request(data, address, index, block_spec).and_then(to_json)
         }
@@ -184,16 +190,20 @@ fn handle_eth_request(
         EthRequest::GetTransactionReceipt(transaction_hash) => {
             eth::handle_get_transaction_receipt(data, transaction_hash).and_then(to_json)
         }
-        EthRequest::Mining(()) => Err(ProviderError::Unimplemented("".to_string())),
+        EthRequest::Mining(()) => Err(ProviderError::Unimplemented("Mining".to_string())),
         EthRequest::NetListening(()) => eth::handle_net_listening_request().and_then(to_json),
         EthRequest::NetPeerCount(()) => eth::handle_net_peer_count_request().and_then(to_json),
         EthRequest::NetVersion(()) => eth::handle_net_version_request(data).and_then(to_json),
-        EthRequest::NewBlockFilter(()) => Err(ProviderError::Unimplemented("".to_string())),
-        EthRequest::NewFilter(_) => Err(ProviderError::Unimplemented("".to_string())),
+        EthRequest::NewBlockFilter(()) => {
+            Err(ProviderError::Unimplemented("NewBlockFilter".to_string()))
+        }
+        EthRequest::NewFilter(_) => Err(ProviderError::Unimplemented("NewFilter".to_string())),
         EthRequest::NewPendingTransactionFilter(()) => {
             eth::handle_new_pending_transaction_filter_request(data).and_then(to_json)
         }
-        EthRequest::PendingTransactions(()) => Err(ProviderError::Unimplemented("".to_string())),
+        EthRequest::PendingTransactions(()) => {
+            eth::handle_pending_transactions(data).and_then(to_json)
+        }
         EthRequest::SendRawTransaction(raw_transaction) => {
             eth::handle_send_raw_transaction_request(data, raw_transaction).and_then(to_json)
         }
@@ -203,9 +213,11 @@ fn handle_eth_request(
         EthRequest::Sign(address, message) => {
             eth::handle_sign_request(data, address, message).and_then(to_json)
         }
-        EthRequest::SignTypedDataV4(_, _) => Err(ProviderError::Unimplemented("".to_string())),
-        EthRequest::Subscribe(_) => Err(ProviderError::Unimplemented("".to_string())),
-        EthRequest::Syncing(()) => Err(ProviderError::Unimplemented("".to_string())),
+        EthRequest::SignTypedDataV4(_, _) => {
+            Err(ProviderError::Unimplemented("SignTypedDataV4".to_string()))
+        }
+        EthRequest::Subscribe(_) => Err(ProviderError::Unimplemented("Subscribe".to_string())),
+        EthRequest::Syncing(()) => Err(ProviderError::Unimplemented("Syncing".to_string())),
         EthRequest::UninstallFilter(filter_id) => {
             eth::handle_uninstall_filter_request(data, filter_id).and_then(to_json)
         }
@@ -231,7 +243,9 @@ fn handle_eth_request(
         EthRequest::EvmSetBlockGasLimit(gas_limit) => {
             eth::handle_set_block_gas_limit_request(data, gas_limit).and_then(to_json)
         }
-        EthRequest::EvmSetIntervalMining(_) => Err(ProviderError::Unimplemented("".to_string())),
+        EthRequest::EvmSetIntervalMining(_) => Err(ProviderError::Unimplemented(
+            "EvmSetIntervalMining".to_string(),
+        )),
         EthRequest::EvmSetNextBlockTimestamp(timestamp) => {
             eth::handle_set_next_block_timestamp_request(data, timestamp).and_then(to_json)
         }
@@ -246,18 +260,18 @@ fn handle_hardhat_request(
     // TODO: Remove the lint override once all methods have been implemented
     #[allow(clippy::match_same_arms)]
     match request {
-        rpc_hardhat::Request::AddCompilationResult(_, _, _) => {
-            Err(ProviderError::Unimplemented("".to_string()))
-        }
+        rpc_hardhat::Request::AddCompilationResult(_, _, _) => Err(ProviderError::Unimplemented(
+            "AddCompilationResult".to_string(),
+        )),
         rpc_hardhat::Request::DropTransaction(_) => {
-            Err(ProviderError::Unimplemented("".to_string()))
+            Err(ProviderError::Unimplemented("DropTransaction".to_string()))
         }
         rpc_hardhat::Request::GetAutomine(()) => {
             hardhat::handle_get_automine_request(data).and_then(to_json)
         }
-        rpc_hardhat::Request::GetStackTraceFailuresCount(()) => {
-            Err(ProviderError::Unimplemented("".to_string()))
-        }
+        rpc_hardhat::Request::GetStackTraceFailuresCount(()) => Err(ProviderError::Unimplemented(
+            "GetStackTraceFailuresCount".to_string(),
+        )),
         rpc_hardhat::Request::ImpersonateAccount(address) => {
             hardhat::handle_impersonate_account_request(data, address).and_then(to_json)
         }
@@ -267,8 +281,8 @@ fn handle_hardhat_request(
         rpc_hardhat::Request::Metadata(()) => {
             hardhat::handle_metadata_request(data).and_then(to_json)
         }
-        rpc_hardhat::Request::Mine(_, _) => Err(ProviderError::Unimplemented("".to_string())),
-        rpc_hardhat::Request::Reset(_) => Err(ProviderError::Unimplemented("".to_string())),
+        rpc_hardhat::Request::Mine(_, _) => Err(ProviderError::Unimplemented("Mine".to_string())),
+        rpc_hardhat::Request::Reset(_) => Err(ProviderError::Unimplemented("Reset".to_string())),
         rpc_hardhat::Request::SetBalance(address, balance) => {
             hardhat::handle_set_balance(data, address, balance).and_then(to_json)
         }
@@ -278,11 +292,11 @@ fn handle_hardhat_request(
         rpc_hardhat::Request::SetCoinbase(coinbase) => {
             hardhat::handle_set_coinbase_request(data, coinbase).and_then(to_json)
         }
-        rpc_hardhat::Request::SetLoggingEnabled(_) => {
-            Err(ProviderError::Unimplemented("".to_string()))
-        }
-        rpc_hardhat::Request::SetMinGasPrice(_) => {
-            Err(ProviderError::Unimplemented("".to_string()))
+        rpc_hardhat::Request::SetLoggingEnabled(_) => Err(ProviderError::Unimplemented(
+            "SetLoggingEnabled".to_string(),
+        )),
+        rpc_hardhat::Request::SetMinGasPrice(min_gas_price) => {
+            hardhat::handle_set_min_gas_price(data, min_gas_price).and_then(to_json)
         }
         rpc_hardhat::Request::SetNextBlockBaseFeePerGas(base_fee_per_gas) => {
             hardhat::handle_set_next_block_base_fee_per_gas_request(data, base_fee_per_gas)

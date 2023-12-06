@@ -1,7 +1,7 @@
 use std::{cmp::Ordering, fmt::Debug};
 
 use edr_eth::{Address, B256, U256};
-use indexmap::IndexMap;
+use indexmap::{map::Entry, IndexMap};
 use revm::{
     db::StateRef,
     primitives::{AccountInfo, HashMap},
@@ -9,6 +9,7 @@ use revm::{
 
 use crate::PendingTransaction;
 
+/// An iterator over pending transactions.
 pub struct PendingTransactions<ComparatorT>
 where
     ComparatorT: Fn(&OrderedTransaction, &OrderedTransaction) -> Ordering,
@@ -21,6 +22,8 @@ impl<ComparatorT> PendingTransactions<ComparatorT>
 where
     ComparatorT: Fn(&OrderedTransaction, &OrderedTransaction) -> Ordering,
 {
+    /// Removes all pending transactions of the account corresponding to the
+    /// provided address.
     pub fn remove_caller(&mut self, caller: &Address) -> Option<Vec<OrderedTransaction>> {
         self.transactions.remove(caller)
     }
@@ -254,27 +257,19 @@ impl MemPool {
             });
         }
 
-        let next_nonce = self.last_pending_nonce(transaction.caller()).map_or_else(
-            || {
-                state
-                    .basic(*transaction.caller())
-                    .map(|account| account.map_or(0, |account| account.nonce))
-            },
-            |nonce| Ok(nonce + 1),
-        )?;
-
+        let next_nonce = account_next_nonce(self, state, transaction.caller())?;
         let transaction = OrderedTransaction {
             order_id: self.next_order_id,
             transaction,
         };
 
-        self.next_order_id += 1;
-
         if transaction.nonce() > next_nonce {
-            self.insert_queued_transaction(transaction.clone())?;
+            self.insert_future_transaction(transaction.clone())?;
         } else {
             self.insert_pending_transaction(transaction.clone())?;
         }
+
+        self.next_order_id += 1;
 
         self.hash_to_transaction
             .insert(*transaction.hash(), transaction);
@@ -413,45 +408,49 @@ impl MemPool {
         &mut self,
         transaction: OrderedTransaction,
     ) -> Result<(), MinerTransactionError<StateError>> {
-        let pending_transactions = self
-            .pending_transactions
-            .entry(*transaction.caller())
-            .or_default();
+        let mut pending_transactions = self.pending_transactions.entry(*transaction.caller());
 
-        let replaced_transaction = pending_transactions
-            .iter_mut()
-            .find(|pending_transaction| transaction.nonce() == pending_transaction.nonce());
+        // Check whether an existing transaction can be replaced
+        if let Entry::Occupied(ref mut pending_transactions) = pending_transactions {
+            let replaced_transaction = pending_transactions
+                .get_mut()
+                .iter_mut()
+                .find(|pending_transaction| transaction.nonce() == pending_transaction.nonce());
 
-        if let Some(replaced_transaction) = replaced_transaction {
-            validate_replacement_transaction(
-                &replaced_transaction.transaction,
-                &transaction.transaction,
-            )?;
+            if let Some(replaced_transaction) = replaced_transaction {
+                validate_replacement_transaction(
+                    &replaced_transaction.transaction,
+                    &transaction.transaction,
+                )?;
 
-            self.hash_to_transaction.remove(replaced_transaction.hash());
+                self.hash_to_transaction.remove(replaced_transaction.hash());
 
-            *replaced_transaction = transaction.clone();
-        } else {
-            let caller = *transaction.caller();
-            let mut next_pending_nonce = transaction.nonce() + 1;
+                *replaced_transaction = transaction.clone();
 
-            pending_transactions.push(transaction);
+                return Ok(());
+            }
+        }
 
-            // Move as many future transactions as possible to the pending status
-            if let Some(future_transactions) = self.future_transactions.get_mut(&caller) {
-                while let Some((idx, _)) = future_transactions
-                    .iter()
-                    .enumerate()
-                    .find(|(_, transaction)| transaction.nonce() == next_pending_nonce)
-                {
-                    pending_transactions.push(future_transactions.remove(idx));
+        let caller = *transaction.caller();
+        let mut next_pending_nonce = transaction.nonce() + 1;
 
-                    next_pending_nonce += 1;
-                }
+        let pending_transactions = pending_transactions.or_default();
+        pending_transactions.push(transaction);
 
-                if future_transactions.is_empty() {
-                    self.future_transactions.remove(&caller);
-                }
+        // Move as many future transactions as possible to the pending status
+        if let Some(future_transactions) = self.future_transactions.get_mut(&caller) {
+            while let Some((idx, _)) = future_transactions
+                .iter()
+                .enumerate()
+                .find(|(_, transaction)| transaction.nonce() == next_pending_nonce)
+            {
+                pending_transactions.push(future_transactions.remove(idx));
+
+                next_pending_nonce += 1;
+            }
+
+            if future_transactions.is_empty() {
+                self.future_transactions.remove(&caller);
             }
         }
 
@@ -459,34 +458,53 @@ impl MemPool {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    fn insert_queued_transaction<StateError>(
+    fn insert_future_transaction<StateError>(
         &mut self,
         transaction: OrderedTransaction,
     ) -> Result<(), MinerTransactionError<StateError>> {
-        let future_transactions = self
-            .future_transactions
-            .entry(*transaction.caller())
-            .or_default();
+        let mut future_transactions = self.future_transactions.entry(*transaction.caller());
 
-        let replaced_transaction = future_transactions
-            .iter_mut()
-            .find(|pending_transaction| transaction.nonce() == pending_transaction.nonce());
+        // Check whether an existing transaction can be replaced
+        if let Entry::Occupied(ref mut future_transactions) = future_transactions {
+            let replaced_transaction = future_transactions
+                .get_mut()
+                .iter_mut()
+                .find(|pending_transaction| transaction.nonce() == pending_transaction.nonce());
 
-        if let Some(replaced_transaction) = replaced_transaction {
-            validate_replacement_transaction(
-                &replaced_transaction.transaction,
-                &transaction.transaction,
-            )?;
+            if let Some(replaced_transaction) = replaced_transaction {
+                validate_replacement_transaction(
+                    &replaced_transaction.transaction,
+                    &transaction.transaction,
+                )?;
 
-            self.hash_to_transaction.remove(replaced_transaction.hash());
+                self.hash_to_transaction.remove(replaced_transaction.hash());
 
-            *replaced_transaction = transaction.clone();
-        } else {
-            future_transactions.push(transaction);
+                *replaced_transaction = transaction.clone();
+
+                return Ok(());
+            }
         }
 
+        future_transactions.or_default().push(transaction);
         Ok(())
     }
+}
+
+/// Calculates the next nonce of the account corresponding to the provided
+/// address.
+pub fn account_next_nonce<StateT: StateRef + ?Sized>(
+    mem_pool: &MemPool,
+    state: &StateT,
+    address: &Address,
+) -> Result<u64, StateT::Error> {
+    mem_pool.last_pending_nonce(address).map_or_else(
+        || {
+            state
+                .basic(*address)
+                .map(|account| account.map_or(0, |account| account.nonce))
+        },
+        |nonce| Ok(nonce + 1),
+    )
 }
 
 fn validate_replacement_transaction<StateError>(

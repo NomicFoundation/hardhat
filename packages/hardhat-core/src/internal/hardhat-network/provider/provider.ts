@@ -25,6 +25,7 @@ import {
   MethodNotSupportedError,
   ProviderError,
 } from "../../core/providers/errors";
+import { isErrorResponse } from "../../core/providers/http";
 import { getHardforkName } from "../../util/hardforks";
 import { Mutex } from "../../vendor/await-semaphore";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/constants";
@@ -409,10 +410,24 @@ class EdrProviderWrapper extends EventEmitter implements EIP1193Provider {
 
     const coinbase = config.coinbase ?? DEFAULT_COINBASE;
 
+    let fork;
+    if (config.forkConfig !== undefined) {
+      fork = {
+        jsonRpcUrl: config.forkConfig.jsonRpcUrl,
+        blockNumber:
+          config.forkConfig.blockNumber !== undefined
+            ? BigInt(config.forkConfig.blockNumber)
+            : undefined,
+      };
+    }
+
     const provider = await Provider.withConfig({
+      bailOnCallFailure: config.throwOnCallFailures,
+      bailOnTransactionFailure: config.throwOnTransactionFailures,
       chainId: BigInt(config.chainId),
       cacheDir: config.forkCachePath,
       coinbase: Buffer.from(coinbase.slice(2), "hex"),
+      fork,
       hardfork: ethereumsjsHardforkToEdrSpecId(
         getHardforkName(config.hardfork)
       ),
@@ -454,8 +469,22 @@ class EdrProviderWrapper extends EventEmitter implements EIP1193Provider {
       params: args.params ?? [],
     });
 
-    const response = await this._provider.handleRequest(stringifiedArgs);
-    return JSON.parse(response);
+    const response = JSON.parse(
+      await this._provider.handleRequest(stringifiedArgs)
+    );
+
+    if (isErrorResponse(response)) {
+      const error = new ProviderError(
+        response.error.message,
+        response.error.code
+      );
+      error.data = response.error.data;
+
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      throw error;
+    }
+
+    return response.result;
   }
 }
 

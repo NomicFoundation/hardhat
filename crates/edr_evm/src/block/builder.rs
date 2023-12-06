@@ -24,7 +24,7 @@ use crate::{
     blockchain::SyncBlockchain,
     evm::{build_evm, run_transaction, SyncInspector},
     state::{AccountModifierFn, StateDiff, SyncState},
-    PendingTransaction,
+    PendingTransaction, TransactionCreationError,
 };
 
 /// An error caused during construction of a block builder.
@@ -50,6 +50,10 @@ pub enum BlockTransactionError<BE, SE> {
     /// State errors
     #[error(transparent)]
     State(SE),
+    /// An error that occurred while trying to construct a
+    /// [`PendingTransaction`].
+    #[error(transparent)]
+    TransactionCreation(TransactionCreationError<SE>),
 }
 
 impl<BE, SE> From<EVMError<DatabaseComponentError<SE, BE>>> for BlockTransactionError<BE, SE>
@@ -59,7 +63,15 @@ where
 {
     fn from(error: EVMError<DatabaseComponentError<SE, BE>>) -> Self {
         match error {
-            EVMError::Transaction(e) => Self::InvalidTransaction(e),
+            EVMError::Transaction(e) => match e {
+                InvalidTransaction::LackOfFundForMaxFee { fee, balance } => {
+                    Self::TransactionCreation(TransactionCreationError::InsufficientFunds {
+                        max_upfront_cost: U256::from(fee),
+                        sender_balance: balance,
+                    })
+                }
+                _ => Self::InvalidTransaction(e),
+            },
             EVMError::Header(
                 InvalidHeader::ExcessBlobGasNotSet | InvalidHeader::PrevrandaoNotSet,
             ) => unreachable!("error: {error:?}"),

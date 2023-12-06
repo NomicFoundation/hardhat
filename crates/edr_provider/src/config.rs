@@ -6,7 +6,7 @@ use rand::Rng;
 use rpc_hardhat::config::ForkConfig;
 
 /// Configuration for interval mining.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum IntervalConfig {
     Fixed(u64),
     Range { min: u64, max: u64 },
@@ -23,11 +23,13 @@ impl IntervalConfig {
 }
 
 /// Configuration for the provider's mempool.
+#[derive(Debug)]
 pub struct MemPoolConfig {
     pub order: MineOrdering,
 }
 
 /// Configuration for the provider's miner.
+#[derive(Debug)]
 pub struct MiningConfig {
     pub auto_mine: bool,
     pub interval: Option<IntervalConfig>,
@@ -35,10 +37,15 @@ pub struct MiningConfig {
 }
 
 /// Configuration for the provider
+#[derive(Debug)]
 pub struct ProviderConfig {
     pub allow_blocks_with_same_timestamp: bool,
     pub allow_unlimited_contract_size: bool,
     pub accounts: Vec<AccountConfig>,
+    /// Whether to return an `Err` when `eth_call` fails
+    pub bail_on_call_failure: bool,
+    /// Whether to return an `Err` when a `eth_sendTransaction` fails
+    pub bail_on_transaction_failure: bool,
     pub block_gas_limit: u64,
     pub cache_dir: PathBuf,
     pub chain_id: u64,
@@ -56,6 +63,7 @@ pub struct ProviderConfig {
 }
 
 /// Configuration input for a single account
+#[derive(Debug)]
 pub struct AccountConfig {
     /// the secret key of the account
     pub secret_key: k256::SecretKey,

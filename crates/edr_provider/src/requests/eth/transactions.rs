@@ -6,8 +6,12 @@ use edr_eth::{
     remote,
     remote::PreEip1898BlockSpec,
     serde::ZeroXPrefixedBytes,
-    transaction::{EthTransactionRequest, SignedTransaction},
-    SpecId, B256, U256,
+    transaction::{
+        Eip1559TransactionRequest, Eip155TransactionRequest, Eip2930TransactionRequest,
+        EthTransactionRequest, SignedTransaction, TransactionKind, TransactionRequest,
+        TransactionRequestAndSender,
+    },
+    Bytes, SpecId, B256, U256,
 };
 use edr_evm::{blockchain::BlockchainError, SyncBlock};
 
@@ -53,6 +57,21 @@ pub fn handle_get_transaction_by_block_spec_and_index(
     .and_then(|block| transaction_from_block(block, index))
     .map(|tx| transaction_to_rpc_result(tx, data.spec_id()))
     .transpose()
+}
+
+pub fn handle_pending_transactions(
+    data: &ProviderData,
+) -> Result<Vec<remote::eth::Transaction>, ProviderError> {
+    let spec_id = data.spec_id();
+    data.pending_transactions()
+        .map(|pending_transaction| {
+            let transaction_and_block = TransactionAndBlock {
+                signed_transaction: pending_transaction.transaction().clone(),
+                block_data: None,
+            };
+            transaction_to_rpc_result(transaction_and_block, spec_id)
+        })
+        .collect()
 }
 
 fn rpc_index_to_usize(index: &U256) -> Result<usize, ProviderError> {
@@ -190,6 +209,10 @@ pub fn handle_send_transaction_request(
     data: &mut ProviderData,
     transaction_request: EthTransactionRequest,
 ) -> Result<B256, ProviderError> {
+    validate_send_transaction_request(data, &transaction_request)?;
+
+    let transaction_request = resolve_transaction_request(data, transaction_request)?;
+
     data.send_transaction(transaction_request)
 }
 
@@ -198,4 +221,195 @@ pub fn handle_send_raw_transaction_request(
     raw_transaction: ZeroXPrefixedBytes,
 ) -> Result<B256, ProviderError> {
     data.send_raw_transaction(raw_transaction.as_ref())
+}
+
+fn resolve_transaction_request(
+    data: &ProviderData,
+    transaction_request: EthTransactionRequest,
+) -> Result<TransactionRequestAndSender, ProviderError> {
+    const DEFAULT_MAX_PRIORITY_FEE_PER_GAS: u64 = 1_000_000_000;
+
+    /// # Panics
+    ///
+    /// Panics if `data.spec_id()` is less than `SpecId::LONDON`.
+    fn calculate_max_fee_per_gas(
+        data: &ProviderData,
+        max_priority_fee_per_gas: U256,
+    ) -> Result<U256, BlockchainError> {
+        let base_fee_per_gas = data
+            .next_block_base_fee_per_gas()?
+            .expect("We already validated that the block is post-London.");
+        Ok(U256::from(2) * base_fee_per_gas + max_priority_fee_per_gas)
+    }
+
+    let EthTransactionRequest {
+        from,
+        to,
+        gas_price,
+        max_fee_per_gas,
+        max_priority_fee_per_gas,
+        gas,
+        value,
+        data: input,
+        nonce,
+        chain_id,
+        access_list,
+        // We ignore the transaction type
+        transaction_type: _transaction_type,
+    } = transaction_request;
+
+    let chain_id = chain_id.unwrap_or_else(|| data.chain_id());
+    let gas_limit = gas.unwrap_or_else(|| data.block_gas_limit());
+    let input = input.map_or(Bytes::new(), Into::into);
+    let nonce = nonce.map_or_else(|| data.account_next_nonce(&from), Ok)?;
+    let value = value.unwrap_or(U256::ZERO);
+
+    let request = match (
+        gas_price,
+        max_fee_per_gas,
+        max_priority_fee_per_gas,
+        access_list,
+    ) {
+        (gas_price, max_fee_per_gas, max_priority_fee_per_gas, access_list)
+            if data.spec_id() >= SpecId::LONDON
+                && (gas_price.is_none()
+                    || max_fee_per_gas.is_some()
+                    || max_priority_fee_per_gas.is_some()) =>
+        {
+            let (max_fee_per_gas, max_priority_fee_per_gas) =
+                match (max_fee_per_gas, max_priority_fee_per_gas) {
+                    (Some(max_fee_per_gas), Some(max_priority_fee_per_gas)) => {
+                        (max_fee_per_gas, max_priority_fee_per_gas)
+                    }
+                    (Some(max_fee_per_gas), None) => (
+                        max_fee_per_gas,
+                        max_fee_per_gas.min(U256::from(DEFAULT_MAX_PRIORITY_FEE_PER_GAS)),
+                    ),
+                    (None, Some(max_priority_fee_per_gas)) => {
+                        let max_fee_per_gas =
+                            calculate_max_fee_per_gas(data, max_priority_fee_per_gas)?;
+                        (max_fee_per_gas, max_priority_fee_per_gas)
+                    }
+                    (None, None) => {
+                        let max_priority_fee_per_gas = U256::from(DEFAULT_MAX_PRIORITY_FEE_PER_GAS);
+                        let max_fee_per_gas =
+                            calculate_max_fee_per_gas(data, max_priority_fee_per_gas)?;
+                        (max_fee_per_gas, max_priority_fee_per_gas)
+                    }
+                };
+
+            TransactionRequest::Eip1559(Eip1559TransactionRequest {
+                nonce,
+                max_priority_fee_per_gas,
+                max_fee_per_gas,
+                gas_limit,
+                value,
+                input,
+                kind: match to {
+                    Some(to) => TransactionKind::Call(to),
+                    None => TransactionKind::Create,
+                },
+                chain_id,
+                access_list: access_list.unwrap_or_default(),
+            })
+        }
+        (gas_price, _, _, Some(access_list)) => {
+            TransactionRequest::Eip2930(Eip2930TransactionRequest {
+                nonce,
+                gas_price: gas_price.map_or_else(|| data.next_gas_price(), Ok)?,
+                gas_limit,
+                value,
+                input,
+                kind: match to {
+                    Some(to) => TransactionKind::Call(to),
+                    None => TransactionKind::Create,
+                },
+                chain_id,
+                access_list,
+            })
+        }
+        (gas_price, _, _, _) => TransactionRequest::Eip155(Eip155TransactionRequest {
+            nonce,
+            gas_price: gas_price.map_or_else(|| data.next_gas_price(), Ok)?,
+            gas_limit,
+            value,
+            input,
+            kind: match to {
+                Some(to) => TransactionKind::Call(to),
+                None => TransactionKind::Create,
+            },
+            chain_id,
+        }),
+    };
+
+    Ok(TransactionRequestAndSender {
+        request,
+        sender: from,
+    })
+}
+
+fn validate_send_transaction_request(
+    data: &ProviderData,
+    request: &EthTransactionRequest,
+) -> Result<(), ProviderError> {
+    let EthTransactionRequest {
+        gas_price,
+        max_fee_per_gas,
+        max_priority_fee_per_gas,
+        chain_id,
+        access_list,
+        ..
+    } = request;
+
+    if let Some(chain_id) = chain_id {
+        let expected = data.chain_id();
+        if *chain_id != expected {
+            return Err(ProviderError::InvalidChainId {
+                expected,
+                actual: *chain_id,
+            });
+        }
+    }
+
+    let spec_id = data.spec_id();
+    if spec_id < SpecId::LONDON && (max_fee_per_gas.is_some() || max_priority_fee_per_gas.is_some())
+    {
+        return Err(ProviderError::UnmetHardfork {
+            actual: spec_id,
+            minimum: SpecId::LONDON,
+        });
+    }
+
+    if spec_id < SpecId::BERLIN && access_list.is_some() {
+        return Err(ProviderError::UnmetHardfork {
+            actual: spec_id,
+            minimum: SpecId::BERLIN,
+        });
+    }
+
+    if gas_price.is_some() {
+        if max_fee_per_gas.is_some() {
+            return Err(ProviderError::InvalidTransactionInput(
+                "Cannot send both gasPrice and maxFeePerGas params".to_string(),
+            ));
+        }
+
+        if max_priority_fee_per_gas.is_some() {
+            return Err(ProviderError::InvalidTransactionInput(
+                "Cannot send both gasPrice and maxPriorityFeePerGas".to_string(),
+            ));
+        }
+    }
+
+    if let Some(max_fee_per_gas) = max_fee_per_gas {
+        if let Some(max_priority_fee_per_gas) = max_priority_fee_per_gas {
+            if max_priority_fee_per_gas > max_fee_per_gas {
+                return Err(ProviderError::InvalidTransactionInput(format!(
+                    "maxPriorityFeePerGas ({max_priority_fee_per_gas}) is bigger than maxFeePerGas ({max_fee_per_gas})"),
+                ));
+            }
+        }
+    }
+
+    Ok(())
 }

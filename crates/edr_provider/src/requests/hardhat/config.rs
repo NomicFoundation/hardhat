@@ -27,6 +27,15 @@ pub fn handle_set_coinbase_request(
     Ok(true)
 }
 
+pub fn handle_set_min_gas_price(
+    data: &mut ProviderData,
+    min_gas_price: U256,
+) -> Result<bool, ProviderError> {
+    data.set_min_gas_price(min_gas_price)?;
+
+    Ok(true)
+}
+
 pub fn handle_set_next_block_base_fee_per_gas_request(
     data: &mut ProviderData,
     base_fee_per_gas: U256,

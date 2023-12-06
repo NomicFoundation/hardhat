@@ -72,6 +72,19 @@ impl<T> ResponseData<T> {
     }
 }
 
+impl<SuccessT: Serialize, ErrorT: Into<Error>> From<Result<SuccessT, ErrorT>>
+    for ResponseData<SuccessT>
+{
+    fn from(result: Result<SuccessT, ErrorT>) -> Self {
+        match result {
+            Ok(result) => ResponseData::Success { result },
+            Err(error) => ResponseData::Error {
+                error: error.into(),
+            },
+        }
+    }
+}
+
 /// Represents JSON-RPC request/response id.
 ///
 /// An identifier established by the Client that MUST contain a String, Number,

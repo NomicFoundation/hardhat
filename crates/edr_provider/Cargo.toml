@@ -4,6 +4,7 @@ version = "0.2.0-dev"
 edition = "2021"
 
 [dependencies]
+alloy-sol-types = { version = "0.5.1", default-features = false, features = ["std"]}
 edr_eth = { version = "0.2.0-dev", path = "../edr_eth" }
 edr_evm = { version = "0.2.0-dev", path = "../edr_evm" }
 rpc_hardhat = { package = "edr_rpc_hardhat", version = "0.2.0-dev", path = "../edr_rpc_hardhat" }
