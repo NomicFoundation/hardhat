@@ -8,5 +8,5 @@ set -e
 
 echo "Running tests: $(basename "$(pwd)")"
 
-echo "it should fail the compilation the contracts in the default project folder"
+echo "it should fail the compilation"
 run_test_and_handle_failure "npx hardhat compile" 1
