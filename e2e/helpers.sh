@@ -30,3 +30,31 @@ run_test_and_handle_failure() {
     fi
   fi
 }
+
+assert_directory_exists() {
+  if [ ! -d "$1" ]; then
+    echo "Expected directory $1 to exist, but it doesn't"
+    exit 1
+  fi
+}
+
+assert_directory_doesnt_exist() {
+  if [ -d "$1" ]; then
+    echo "Expected directory $1 to not exist, but it does"
+    exit 1
+  fi
+}
+
+assert_directory_empty() {
+  if [ "$(ls -A $1)" ]; then
+    echo "Expected directory $1 to be empty, but it isn't"
+    exit 1
+  fi
+}
+
+assert_directory_not_empty() {
+  if [ ! "$(ls -A $1)" ]; then
+    echo "Expected directory $1 to not be empty, but it is"
+    exit 1
+  fi
+}
