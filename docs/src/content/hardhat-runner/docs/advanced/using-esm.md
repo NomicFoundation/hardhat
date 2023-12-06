@@ -97,7 +97,6 @@ Welcome to Hardhat v{HARDHAT_VERSION}
 ? What do you want to do? …
 ▸ Create a JavaScript project
   Create a TypeScript project (not available for ESM projects)
-  Create a TypeScript project (with Viem)
   Create an empty hardhat.config.cjs
   Quit
 ```
