@@ -17,7 +17,7 @@ run_test_and_handle_failure "npx hardhat vars setup" 0
 echo "it should list the keys without failing (even if there are no keys)"
 run_test_and_handle_failure "npx hardhat vars list" 0
 
-echo "it should fail becuase the key does not exist"
+echo "it should fail because the key does not exist"
 # random key to be sure that it does not exist if this test is ran locally
 run_test_and_handle_failure "npx hardhat vars get HH_KEY_DO_NOT_EXIST_3468267" 1
 
