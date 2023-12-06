@@ -19,6 +19,7 @@ export type TestClientMode = Parameters<
 
 export interface SendTransactionConfig {
   walletClient?: WalletClient;
+  publicClient?: PublicClient;
   gas?: bigint;
   gasPrice?: bigint;
   maxFeePerGas?: bigint;
