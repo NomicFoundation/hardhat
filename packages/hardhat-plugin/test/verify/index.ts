@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { useEphemeralIgnitionProject } from "../use-ignition-project";
+import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project";
 
 describe("verify", function () {
   describe("when there is no etherscan API key configured", function () {

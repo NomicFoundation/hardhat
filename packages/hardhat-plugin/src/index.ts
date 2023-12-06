@@ -1,4 +1,3 @@
-import "@nomicfoundation/hardhat-ethers";
 import "@nomicfoundation/hardhat-verify";
 import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
 import {
@@ -8,7 +7,10 @@ import {
 } from "@nomicfoundation/ignition-core";
 import { readdirSync } from "fs-extra";
 import { extendConfig, extendEnvironment, scope } from "hardhat/config";
-import { NomicLabsHardhatPluginError, lazyObject } from "hardhat/plugins";
+import {
+  HardhatPluginError,
+  NomicLabsHardhatPluginError,
+} from "hardhat/plugins";
 import path from "path";
 
 import "./type-extensions";
@@ -45,14 +47,20 @@ extendConfig((config, userConfig) => {
 });
 
 /**
- * Add an `ignition` object to the HRE.
+ * Add an `ignition` stub to throw
  */
 extendEnvironment((hre) => {
-  hre.ignition = lazyObject(() => {
-    const { IgnitionHelper } = require("./ignition-helper");
-
-    return new IgnitionHelper(hre);
-  });
+  if ((hre as any).ignition === undefined) {
+    (hre as any).ignition = {
+      type: "stub",
+      deploy: () => {
+        throw new HardhatPluginError(
+          "hardhat-ignition",
+          "Please install either `@nomicfoundation/hardhat-ignition-viem` or `@nomicfoundation/hardhat-ignition-ethers` to use Ignition in your Hardhat tests"
+        );
+      },
+    };
+  }
 });
 
 ignitionScope
@@ -87,7 +95,7 @@ ignitionScope
       const { HardhatArtifactResolver } = await import(
         "./hardhat-artifact-resolver"
       );
-      const { loadModule } = await import("./load-module");
+      const { loadModule } = await import("./utils/load-module");
       const { PrettyEventHandler } = await import("./ui/pretty-event-handler");
 
       if (verify) {
@@ -209,7 +217,7 @@ ignitionScope
         "@nomicfoundation/ignition-core"
       );
 
-      const { loadModule } = await import("./load-module");
+      const { loadModule } = await import("./utils/load-module");
       const { open } = await import("./utils/open");
 
       const { writeVisualization } = await import(

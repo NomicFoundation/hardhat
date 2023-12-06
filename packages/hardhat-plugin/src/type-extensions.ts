@@ -4,8 +4,6 @@ import "hardhat/types/runtime";
 
 import { DeployConfig } from "@nomicfoundation/ignition-core";
 
-import { IgnitionHelper } from "./ignition-helper";
-
 declare module "hardhat/types/config" {
   export interface ProjectPathsUserConfig {
     ignition?: string;
@@ -21,11 +19,5 @@ declare module "hardhat/types/config" {
 
   export interface HardhatConfig {
     ignition: Partial<DeployConfig>;
-  }
-}
-
-declare module "hardhat/types/runtime" {
-  export interface HardhatRuntimeEnvironment {
-    ignition: IgnitionHelper;
   }
 }

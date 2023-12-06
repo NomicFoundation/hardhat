@@ -3,7 +3,7 @@ import { assert } from "chai";
 import { emptyDirSync, readdir } from "fs-extra";
 import path from "path";
 
-import { useEphemeralIgnitionProject } from "../use-ignition-project";
+import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project";
 
 describe("visualize", () => {
   useEphemeralIgnitionProject("minimal");

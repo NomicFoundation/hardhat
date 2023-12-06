@@ -475,7 +475,7 @@ describe("abi", () => {
   describe("Error decoding", () => {
     function decode(
       contractName: keyof typeof staticCallResultFixtures,
-      functionName: keyof typeof staticCallResultFixtures[typeof contractName]
+      functionName: keyof (typeof staticCallResultFixtures)[typeof contractName]
     ) {
       const decoded = decodeError(
         staticCallResultFixtures[contractName][functionName].returnData,

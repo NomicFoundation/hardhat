@@ -27,12 +27,16 @@
   ],
   "exports": {
     ".": "./dist/src/index.js",
-    "./modules": "./dist/src/modules.js"
+    "./modules": "./dist/src/modules.js",
+    "./helpers": "./dist/src/helpers.js"
   },
   "typesVersions": {
     "*": {
       "modules": [
         "./dist/src/modules.d.ts"
+      ],
+      "helpers": [
+        "./dist/src/helpers.d.ts"
       ]
     }
   },
@@ -46,49 +50,18 @@
     "test:debug": "DEBUG='hardhat-ignition:*,ignition:*' npm run test",
     "test:coverage": "nyc mocha \"test/**/*.ts\"",
     "test:build": "tsc --project ./test/",
-    "clean": "rimraf .nyc_output coverage dist tsconfig.tsbuildinfo ./test/fixture-projects/**/deployments",
+    "clean": "rimraf .nyc_output coverage dist tsconfig.tsbuildinfo ./test/fixture-projects/**/deployments ./test/fixture-projects/**/artifacts",
     "prepack": "npm run build"
   },
   "devDependencies": {
-    "@istanbuljs/nyc-config-typescript": "1.0.2",
-    "@nomicfoundation/hardhat-ethers": "^3.0.4",
     "@types/chai": "^4.2.22",
     "@types/chai-as-promised": "^7.1.4",
-    "@types/d3": "7.4.0",
-    "@types/debug": "^4.1.7",
-    "@types/dompurify": "2.4.0",
-    "@types/fs-extra": "^9.0.13",
-    "@types/lodash": "4.14.189",
-    "@types/lodash.flattendeep": "^4.4.7",
-    "@types/mermaid": "^9.1.0",
-    "@types/mocha": "^9.0.0",
-    "@types/node": "16.11.7",
-    "@types/prompts": "^2.4.2",
     "@types/sinon": "^10.0.13",
-    "@typescript-eslint/eslint-plugin": "4.31.2",
-    "@typescript-eslint/parser": "4.31.2",
-    "chai": "^4.3.4",
-    "chai-as-promised": "7.1.1",
-    "esbuild": "^0.15.9",
-    "eslint": "^7.32.0",
-    "eslint-config-prettier": "8.3.0",
-    "eslint-import-resolver-typescript": "3.5.5",
-    "eslint-plugin-import": "2.24.2",
-    "eslint-plugin-mocha": "^9.0.0",
-    "eslint-plugin-prettier": "4.0.0",
+    "@nomicfoundation/hardhat-network-helpers": "1.0.9",
     "hardhat": "^2.18.0",
-    "mermaid": "^9.1.7",
-    "mocha": "^9.1.1",
-    "nyc": "15.1.0",
-    "prettier": "2.4.1",
-    "purecss": "^2.1.0",
-    "rimraf": "3.0.2",
-    "sinon": "^14.0.0",
-    "ts-node": "10.9.1",
-    "typescript": "^5.0.2"
+    "viem": "^1.18.1"
   },
   "peerDependencies": {
-    "@nomicfoundation/hardhat-ethers": "^3.0.4",
     "@nomicfoundation/hardhat-verify": "^2.0.1",
     "hardhat": "^2.18.0"
   },
@@ -97,7 +70,6 @@
     "@nomicfoundation/ignition-ui": "^0.12.0",
     "chalk": "^4.0.0",
     "debug": "^4.3.2",
-    "ethers": "^6.7.0",
     "fs-extra": "^10.0.0",
     "prompts": "^2.4.2"
   }

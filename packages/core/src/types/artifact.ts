@@ -1,13 +1,20 @@
 /**
+ * The type of the contract artifact's ABI.
+ *
+ * @beta
+ */
+export type Abi = readonly any[] | any[];
+
+/**
  * An compilation artifact representing a smart contract.
  *
  * @beta
  */
-export interface Artifact {
+export interface Artifact<AbiT extends Abi = Abi> {
   contractName: string;
   sourceName: string;
   bytecode: string;
-  abi: any[];
+  abi: AbiT;
   linkReferences: Record<
     string,
     Record<string, Array<{ length: number; start: number }>>

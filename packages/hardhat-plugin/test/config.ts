@@ -3,8 +3,8 @@
 import { DeployConfig, buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
-import { KeyListOf } from "./type-helper";
-import { useEphemeralIgnitionProject } from "./use-ignition-project";
+import { KeyListOf } from "./test-helpers/type-helper";
+import { useEphemeralIgnitionProject } from "./test-helpers/use-ignition-project";
 
 describe("config", () => {
   describe("loading", () => {
@@ -55,7 +55,7 @@ describe("config", () => {
       });
 
       await assert.isRejected(
-        this.deploy(moduleDefinition, {
+        this.hre.ignition.deploy(moduleDefinition, {
           config: {
             requiredConfirmations: 0,
           },

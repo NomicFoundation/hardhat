@@ -4,5 +4,5 @@ module.exports = {
     project: `${__dirname}/tsconfig.json`,
     sourceType: "module",
   },
-  ignorePatterns: [".eslintrc.js"],
+  ignorePatterns: [".eslintrc.js", "./dist/**/*", "./node_modules/**/*"],
 };

@@ -14,19 +14,31 @@ Join the Hardhat Ignition channel of our [Hardhat Community Discord server](http
 ## Installation
 
 ```bash
-npm install --save-dev @nomicfoundation/hardhat-ignition
+# ethers users
+npm install --save-dev @nomicfoundation/hardhat-ignition-ethers
+
+# viem users
+npm install --save-dev @nomicfoundation/hardhat-ignition-viem
 ```
 
 Import the plugin in your `hardhat.config.js``:
 
 ```js
-require("@nomicfoundation/hardhat-ignition");
+// ethers users
+require("@nomicfoundation/hardhat-ignition-ethers");
+
+// viem users
+require("@nomicfoundation/hardhat-ignition-viem");
 ```
 
 Or if you are using TypeScript, in your `hardhat.config.ts``:
 
 ```js
-import "@nomicfoundation/hardhat-ignition";
+// ethers users
+import "@nomicfoundation/hardhat-ignition-ethers";
+
+// viem users
+import "@nomicfoundation/hardhat-ignition-viem";
 ```
 
 ## Documentation
