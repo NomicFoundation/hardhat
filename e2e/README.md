@@ -8,7 +8,7 @@ To run the "hardhat init" tests, use the command:
 
 ### All other Hardhat scenario tests
 
-To run the all the fixture tests, use the command:
+To run all the fixture tests, use the command:
 
 ```
 ./run-fixture-projects.sh
