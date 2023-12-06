@@ -288,6 +288,8 @@ export interface ProviderConfig {
    * EIP-4788
    */
   initialParentBeaconBlockRoot?: Buffer
+  /** The minimum gas price of the next block. */
+  minGasPrice: bigint
   /** The configuration for the miner */
   mining: MiningConfig
   /** The network ID of the blockchain */

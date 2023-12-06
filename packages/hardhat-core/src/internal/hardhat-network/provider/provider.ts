@@ -452,6 +452,7 @@ class EdrProviderWrapper extends EventEmitter implements EIP1193Provider {
           order: ethereumjsMempoolOrderToEdrMineOrdering(config.mempoolOrder),
         },
       },
+      minGasPrice: config.minGasPrice,
     });
 
     return new EdrProviderWrapper(provider);

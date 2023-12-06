@@ -122,9 +122,7 @@ impl ProviderData {
             mem_pool: MemPool::new(config.block_gas_limit),
             network_id: config.network_id,
             beneficiary: config.coinbase,
-            // TODO: Add config option (https://github.com/NomicFoundation/edr/issues/111)
-            // Matches Hardhat default
-            min_gas_price: U256::ZERO,
+            min_gas_price: config.min_gas_price,
             prev_randao_generator,
             block_time_offset_seconds: block_time_offset_seconds(config)?,
             fork_metadata,
