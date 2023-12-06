@@ -654,7 +654,7 @@ impl ProviderData {
             })?;
 
         if let Some(snapshot_id) = snapshot_id {
-            loop {
+            let transaction_result = loop {
                 let result = self.mine_and_commit_block(None).map_err(|error| {
                     self.revert_to_snapshot(snapshot_id);
 
@@ -672,23 +672,31 @@ impl ProviderData {
                 );
 
                 if let Some(transaction_result) = transaction_result {
-                    match transaction_result {
-                        ExecutionResult::Success { .. } => break,
-                        ExecutionResult::Revert { output, .. } => {
-                            self.revert_to_snapshot(snapshot_id);
-
-                            return Err(TransactionFailure::revert(output, tx_hash).into());
-                        }
-                        ExecutionResult::Halt { reason, .. } => {
-                            self.revert_to_snapshot(snapshot_id);
-
-                            return Err(TransactionFailure::halt(reason, tx_hash).into());
-                        }
-                    }
+                    break transaction_result;
                 }
+            };
+
+            while self.mem_pool.has_pending_transactions() {
+                self.mine_and_commit_block(None).map_err(|error| {
+                    self.revert_to_snapshot(snapshot_id);
+
+                    error
+                })?;
             }
 
             self.snapshots.remove(&snapshot_id);
+
+            match transaction_result {
+                ExecutionResult::Success { .. } => (),
+                ExecutionResult::Revert { output, .. } => {
+                    return Err(TransactionFailure::revert(output, tx_hash).into());
+                }
+                ExecutionResult::Halt { reason, .. } => {
+                    self.revert_to_snapshot(snapshot_id);
+
+                    return Err(TransactionFailure::halt(reason, tx_hash).into());
+                }
+            }
         }
 
         Ok(tx_hash)
