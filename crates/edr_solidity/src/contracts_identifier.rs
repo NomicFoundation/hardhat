@@ -1,413 +1,107 @@
+mod radix_tree;
+
+use std::collections::hash_map::DefaultHasher;
 use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
 
-#[derive(Debug)]
-struct RadixNode {
-    content: Vec<u8>,
-    is_present: bool,
-    bytes_matched_before: usize,
-    child_nodes: HashMap<u8, RadixNode>,
+use radix_tree::RadixTree;
+
+// bytecode and trace stubs
+pub struct Bytecode {
+    normalized_code: Vec<u8>,
 }
 
-impl RadixNode {
-    fn new(content: Vec<u8>, is_present: bool, bytes_matched_before: usize) -> RadixNode {
-        RadixNode {
-            content,
-            is_present,
-            bytes_matched_before,
-            child_nodes: HashMap::new(),
-        }
-    }
+pub struct CreateMessageTrace {
+    code: Vec<u8>,
+}
 
-    fn add_word(&mut self, word: Vec<u8>) {
-        if word.is_empty() {
-            return;
-        }
+pub struct CallMessageTrace {
+    code: Vec<u8>,
+}
 
-        let b = word[0];
+pub enum EvmMessageTrace {
+    Create(CreateMessageTrace),
+    Call(CallMessageTrace),
+}
 
-        // we temporarily remove the next node and then insert it back, possibly mutated and/or in a different position
-        let next_node = self.child_nodes.remove(&b);
-
-        match next_node {
-            None => {
-                let bytes_matched_before = self.bytes_matched_before + self.content.len();
-
-                let node = RadixNode::new(word, true, bytes_matched_before);
-
-                self.child_nodes.insert(b, node);
-            }
-            Some(mut next_node) => {
-                let prefix_length = get_shared_prefix_length(&word, &next_node.content);
-
-                // We know it's at least 1
-                assert!(prefix_length > 0);
-
-                // Check if the next node's label is included in the word
-                if prefix_length == next_node.content.len() {
-                    // Check if the next node matches the word exactly
-                    if prefix_length == word.len() {
-                        next_node.is_present = true;
-                        self.child_nodes.insert(b, next_node);
-                        return;
-                    }
-
-                    // TODO can this (and all the other to_vec's) be replaced with .drain()?
-                    next_node.add_word(word[prefix_length..].to_vec());
-                    self.child_nodes.insert(b, next_node);
-
-                    return;
-                }
-
-                // If the content includes what's left of the word and some extra
-                if prefix_length == word.len() {
-                    // nextNode includes the current word and some extra, so we insert a
-                    // new node with the word
-                    let mut node =
-                        RadixNode::new(word, true, self.bytes_matched_before + self.content.len());
-
-                    // the new node points to next_node
-                    next_node.content = next_node.content[prefix_length..].to_vec();
-                    next_node.bytes_matched_before += node.content.len();
-                    node.child_nodes.insert(next_node.content[0], next_node);
-
-                    // the current node now points to the new node
-                    self.child_nodes.insert(b, node);
-
-                    return;
-                }
-
-                // The content includes some part of the word, but not all of it
-                // insert a new in-between node between current node and it's child, that
-                // will have children for the old child and a new node for the given word.
-                let mut middle_node = RadixNode::new(
-                    word[..prefix_length].to_vec(),
-                    false,
-                    self.bytes_matched_before + self.content.len(),
-                );
-
-                // next_node should come after middle_node and its content and bytes_matched_before need to be adapted
-                next_node.content = next_node.content[prefix_length..].to_vec();
-                next_node.bytes_matched_before +=
-                    middle_node.bytes_matched_before + middle_node.content.len();
-                middle_node
-                    .child_nodes
-                    .insert(next_node.content[0], next_node);
-
-                // create a new node for the word
-                let new_node = RadixNode::new(
-                    word[prefix_length..].to_vec(),
-                    true,
-                    middle_node.bytes_matched_before + middle_node.content.len(),
-                );
-                middle_node
-                    .child_nodes
-                    .insert(word[prefix_length], new_node);
-
-                // set the middle_node as current_node's child
-                self.child_nodes.insert(b, middle_node);
-            }
-        }
-    }
-
-    /**
-     * Returns a tuple containing:
-     * - a boolean indicating if the word was matched exactly
-     * - the number of bytes matched
-     * - the node that matched the word
-     * If the word is not matched exactly, the node will be the one that matched the longest prefix.
-     */
-    fn get_max_match(&self, word: &[u8]) -> (bool, usize, &RadixNode) {
-        let prefix_length = get_shared_prefix_length(word, &self.content);
-
-        let matched = prefix_length + self.bytes_matched_before;
-
-        let entire_word_matched = prefix_length == word.len();
-        let entire_content_matched = prefix_length == self.content.len();
-
-        if entire_word_matched {
-            if entire_content_matched {
-                return (self.is_present, matched, &self);
-            }
-
-            return (false, matched, &self);
-        }
-
-        if !entire_content_matched {
-            return (false, matched, &self);
-        }
-
-        let next_node = self.child_nodes.get(&word[prefix_length]);
-
-        match next_node {
-            None => (false, matched, &self),
-            Some(next_node) => next_node.get_max_match(&word[prefix_length..]),
+impl EvmMessageTrace {
+    fn get_code(&self) -> &Vec<u8> {
+        match self {
+            EvmMessageTrace::Create(create_message_trace) => &create_message_trace.code,
+            EvmMessageTrace::Call(call_message_trace) => &call_message_trace.code,
         }
     }
 }
 
-#[derive(Debug)]
-struct RadixTree {
-    root: RadixNode,
+// TODO add cache
+pub struct ContractsIdentifier<'a> {
+    tree: RadixTree,
+    bytecodes: HashMap<u64, &'a Bytecode>,
 }
 
-impl RadixTree {
-    fn new() -> RadixTree {
-        RadixTree {
-            root: RadixNode::new(Vec::new(), false, 0),
+impl<'a> ContractsIdentifier<'a> {
+    pub fn new() -> Self {
+        Self {
+            tree: RadixTree::new(),
+            bytecodes: HashMap::new(),
         }
     }
 
-    fn add_word(&mut self, word: Vec<u8>) {
-        self.root.add_word(word);
+    pub fn add_bytecode(&mut self, bytecode: &'a Bytecode) {
+        // TODO reduce cloning
+        self.tree.add_word(bytecode.normalized_code.clone());
+        self.bytecodes
+            .insert(calculate_hash(&bytecode.normalized_code), bytecode);
     }
 
-    fn get_max_match<'a>(&'a self, word: &[u8]) -> (bool, usize, &RadixNode) {
-        self.root.get_max_match(word)
+    pub fn get_bytecode_from_message_trace(&mut self, trace: EvmMessageTrace) -> Option<&Bytecode> {
+        let normalized_code =
+            normalize_library_runtime_bytecode_if_necessary(trace.get_code().clone());
+
+        self.search_bytecode_in_radix_tree(&trace, &normalized_code)
     }
-}
 
-fn get_shared_prefix_length(a: &[u8], b: &[u8]) -> usize {
-    let max_index = std::cmp::min(a.len(), b.len());
+    pub fn search_bytecode_in_radix_tree(
+        &self,
+        _trace: &EvmMessageTrace,
+        normalized_code: &[u8],
+    ) -> Option<&Bytecode> {
+        let (found, matched_bytes, node) = self.tree.get_max_match(normalized_code);
 
-    let mut i = 0;
-    while i < max_index {
-        if a[i] != b[i] {
-            return i;
+        if found {
+            let key = calculate_hash(node.get_content());
+
+            return self.bytecodes.get(&key).copied();
         }
-        i += 1;
-    }
 
-    i
+        // The entire vector is present as a prefix, but not exactly
+        if normalized_code.len() == matched_bytes {
+            return None;
+        }
+
+        // TODO: handle create traces and constructor arguments
+
+        // TODO: add normalize_libraries option
+
+        // TODO: handle metadata hashes
+
+        None
+    }
 }
 
-// tests
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_radix_tree_empty() {
-        let tree = RadixTree::new();
-
-        // check that the root content is empty
-        assert_eq!(tree.root.content.len(), 0);
-
-        // check that the root is not present
-        assert_eq!(tree.root.is_present, false);
-
-        // check that the bytes matched before in the root is 0
-        assert_eq!(tree.root.bytes_matched_before, 0);
-
-        // check that the root doesn't have children
-        assert_eq!(tree.root.child_nodes.len(), 0);
+impl<'a> Default for ContractsIdentifier<'a> {
+    fn default() -> Self {
+        Self::new()
     }
+}
 
-    #[test]
-    fn test_radix_tree_add_single_word() {
-        let mut tree = RadixTree::new();
-        tree.add_word("test".as_bytes().to_vec());
+fn normalize_library_runtime_bytecode_if_necessary(bytecode: Vec<u8>) -> Vec<u8> {
+    // TODO
+    bytecode
+}
 
-        assert_eq!(tree.root.child_nodes.len(), 1);
-
-        let child = tree.root.child_nodes.get(&('t' as u8)).unwrap();
-
-        assert_eq!(child.content, "test".as_bytes().to_vec());
-        assert_eq!(child.is_present, true);
-        assert_eq!(child.bytes_matched_before, 0);
-        assert_eq!(child.child_nodes.len(), 0);
-    }
-
-    #[test]
-    fn test_radix_tree_add_same_word_twice() {
-        let mut tree = RadixTree::new();
-        tree.add_word("test".as_bytes().to_vec());
-        tree.add_word("test".as_bytes().to_vec());
-
-        assert_eq!(tree.root.child_nodes.len(), 1);
-
-        let child = tree.root.child_nodes.get(&('t' as u8)).unwrap();
-
-        assert_eq!(child.content, "test".as_bytes().to_vec());
-        assert_eq!(child.is_present, true);
-        assert_eq!(child.bytes_matched_before, 0);
-        assert_eq!(child.child_nodes.len(), 0);
-    }
-
-    #[test]
-    fn test_radix_tree_add_word_same_prefix() {
-        let mut tree = RadixTree::new();
-        tree.add_word("test".as_bytes().to_vec());
-        tree.add_word("test2".as_bytes().to_vec());
-
-        assert_eq!(tree.root.child_nodes.len(), 1);
-
-        let child = tree.root.child_nodes.get(&('t' as u8)).unwrap();
-
-        assert_eq!(child.content, "test".as_bytes().to_vec());
-        assert_eq!(child.is_present, true);
-        assert_eq!(child.bytes_matched_before, 0);
-        assert_eq!(child.child_nodes.len(), 1);
-
-        let grandchild = child.child_nodes.get(&('2' as u8)).unwrap();
-        assert_eq!(grandchild.content, "2".as_bytes().to_vec());
-        assert_eq!(grandchild.is_present, true);
-        assert_eq!(grandchild.bytes_matched_before, 4);
-        assert_eq!(grandchild.child_nodes.len(), 0);
-    }
-
-    #[test]
-    fn test_radix_tree_add_word_prefix_existing_one() {
-        let mut tree = RadixTree::new();
-        tree.add_word("test".as_bytes().to_vec());
-        tree.add_word("te".as_bytes().to_vec());
-
-        assert_eq!(tree.root.child_nodes.len(), 1);
-        let child = tree.root.child_nodes.get(&('t' as u8)).unwrap();
-        assert_eq!(child.content, "te".as_bytes().to_vec());
-        assert_eq!(child.is_present, true);
-        assert_eq!(child.bytes_matched_before, 0);
-        assert_eq!(child.child_nodes.len(), 1);
-
-        let grandchild = child.child_nodes.get(&('s' as u8)).unwrap();
-        assert_eq!(grandchild.content, "st".as_bytes().to_vec());
-        assert_eq!(grandchild.is_present, true);
-        assert_eq!(grandchild.bytes_matched_before, 2);
-        assert_eq!(grandchild.child_nodes.len(), 0);
-    }
-
-    #[test]
-    fn test_radix_tree_add_word_with_shared_prefix_but_different_existing_ones() {
-        let mut tree = RadixTree::new();
-        tree.add_word("test".as_bytes().to_vec());
-        tree.add_word("tast".as_bytes().to_vec());
-
-        assert_eq!(tree.root.child_nodes.len(), 1);
-        let child = tree.root.child_nodes.get(&('t' as u8)).unwrap();
-        assert_eq!(child.content, "t".as_bytes().to_vec());
-        assert_eq!(child.is_present, false);
-        assert_eq!(child.bytes_matched_before, 0);
-        assert_eq!(child.child_nodes.len(), 2);
-
-        let grandchild1 = child.child_nodes.get(&('e' as u8)).unwrap();
-        assert_eq!(grandchild1.content, "est".as_bytes().to_vec());
-        assert_eq!(grandchild1.is_present, true);
-        assert_eq!(grandchild1.bytes_matched_before, 1);
-        assert_eq!(grandchild1.child_nodes.len(), 0);
-
-        let grandchild2 = child.child_nodes.get(&('a' as u8)).unwrap();
-        assert_eq!(grandchild2.content, "ast".as_bytes().to_vec());
-        assert_eq!(grandchild2.is_present, true);
-        assert_eq!(grandchild2.bytes_matched_before, 1);
-        assert_eq!(grandchild2.child_nodes.len(), 0);
-    }
-
-    #[test]
-    fn test_radix_tree_add_word_match_existing_nodes() {
-        let mut tree = RadixTree::new();
-        tree.add_word("test".as_bytes().to_vec());
-        tree.add_word("tast".as_bytes().to_vec());
-        tree.add_word("t".as_bytes().to_vec());
-
-        assert_eq!(tree.root.child_nodes.len(), 1);
-        let child = tree.root.child_nodes.get(&('t' as u8)).unwrap();
-        assert_eq!(child.content, "t".as_bytes().to_vec());
-        assert_eq!(child.is_present, true);
-        assert_eq!(child.bytes_matched_before, 0);
-        assert_eq!(child.child_nodes.len(), 2);
-
-        let grandchild1 = child.child_nodes.get(&('e' as u8)).unwrap();
-        assert_eq!(grandchild1.content, "est".as_bytes().to_vec());
-        assert_eq!(grandchild1.is_present, true);
-        assert_eq!(grandchild1.bytes_matched_before, 1);
-        assert_eq!(grandchild1.child_nodes.len(), 0);
-
-        let grandchild2 = child.child_nodes.get(&('a' as u8)).unwrap();
-        assert_eq!(grandchild2.content, "ast".as_bytes().to_vec());
-        assert_eq!(grandchild2.is_present, true);
-        assert_eq!(grandchild2.bytes_matched_before, 1);
-        assert_eq!(grandchild2.child_nodes.len(), 0);
-    }
-
-    #[test]
-    fn test_radix_tree_get_max_match_default_first_node_empty_tree() {
-        let tree = RadixTree::new();
-        let (exact_match, length_matched, node) = tree.get_max_match("word".as_bytes());
-
-        assert_eq!(exact_match, false);
-        assert_eq!(length_matched, 0);
-        assert_eq!(std::ptr::eq(node, &tree.root), true);
-    }
-
-    #[test]
-    fn test_radix_tree_get_max_match_default_first_node_words_without_prefix() {
-        let mut tree = RadixTree::new();
-        tree.add_word("asdf".as_bytes().to_vec());
-        let (exact_match, length_matched, node) = tree.get_max_match("word".as_bytes());
-
-        assert_eq!(exact_match, false);
-        assert_eq!(length_matched, 0);
-        assert_eq!(std::ptr::eq(node, &tree.root), true);
-    }
-
-    #[test]
-    fn test_radix_tree_get_max_match_default_first_node_prefix_smaller_than_content() {
-        let mut tree = RadixTree::new();
-        tree.add_word("asd".as_bytes().to_vec());
-        let (exact_match, length_matched, node) = tree.get_max_match("as".as_bytes());
-
-        assert_eq!(exact_match, false);
-        assert_eq!(length_matched, 2);
-        assert_eq!(
-            std::ptr::eq(node, tree.root.child_nodes.get(&('a' as u8)).unwrap()),
-            true
-        );
-    }
-
-    #[test]
-    fn test_radix_tree_get_max_match_default_first_node_words_present_after_some_nodes() {
-        let mut tree = RadixTree::new();
-        tree.add_word("a".as_bytes().to_vec());
-        tree.add_word("as".as_bytes().to_vec());
-        tree.add_word("asd".as_bytes().to_vec());
-        let (exact_match, length_matched, node) = tree.get_max_match("asd".as_bytes());
-
-        assert_eq!(exact_match, true);
-        assert_eq!(length_matched, 3);
-        let expected_node = tree
-            .root
-            .child_nodes
-            .get(&('a' as u8))
-            .unwrap()
-            .child_nodes
-            .get(&('s' as u8))
-            .unwrap()
-            .child_nodes
-            .get(&('d' as u8))
-            .unwrap();
-        assert_eq!(std::ptr::eq(node, expected_node), true);
-    }
-
-    #[test]
-    fn test_radix_tree_get_max_match_default_first_node_word_longer_than_existing_nodes() {
-        let mut tree = RadixTree::new();
-        tree.add_word("a".as_bytes().to_vec());
-        tree.add_word("as".as_bytes().to_vec());
-        tree.add_word("asd".as_bytes().to_vec());
-        let (exact_match, length_matched, node) = tree.get_max_match("asdf".as_bytes());
-
-        assert_eq!(exact_match, false);
-        assert_eq!(length_matched, 3);
-        let expected_node = tree
-            .root
-            .child_nodes
-            .get(&('a' as u8))
-            .unwrap()
-            .child_nodes
-            .get(&('s' as u8))
-            .unwrap()
-            .child_nodes
-            .get(&('d' as u8))
-            .unwrap();
-        assert_eq!(std::ptr::eq(node, expected_node), true);
-    }
+fn calculate_hash<T: Hash>(t: &T) -> u64 {
+    let mut s = DefaultHasher::new();
+    t.hash(&mut s);
+    s.finish()
 }
