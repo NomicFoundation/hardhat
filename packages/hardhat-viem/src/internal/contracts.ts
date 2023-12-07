@@ -120,12 +120,11 @@ export async function sendDeploymentTransaction(
   contract: GetContractReturnType;
   deploymentTransaction: GetTransactionReturnType;
 }> {
-  const { 
-    walletClient: configWalletClient, 
-    publicClient: configPublicClient, 
-    ...deployContractParameters 
-  } =
-    config;
+  const {
+    walletClient: configWalletClient,
+    publicClient: configPublicClient,
+    ...deployContractParameters
+  } = config;
   const [publicClient, walletClient, contractArtifact] = await Promise.all([
     configPublicClient ?? getPublicClient(network.provider),
     configWalletClient ??
