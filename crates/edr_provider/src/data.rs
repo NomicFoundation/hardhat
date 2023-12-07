@@ -3,6 +3,7 @@ mod account;
 use std::{
     cmp::Ordering,
     collections::BTreeMap,
+    fmt::Debug,
     sync::Arc,
     time::{Instant, SystemTime, UNIX_EPOCH},
 };
@@ -31,12 +32,13 @@ use edr_evm::{
         AccountModifierFn, IrregularState, StateDiff, StateError, StateOverride, StateOverrides,
         SyncState,
     },
-    Account, AccountInfo, BlobExcessGasAndPrice, Block, BlockEnv, Bytecode, CfgEnv,
-    ExecutionResult, HashMap, HashSet, MemPool, MineBlockResult, MineBlockResultAndState,
-    MineOrdering, PendingTransaction, RandomHashGenerator, StorageSlot, SyncBlock,
-    TransactionCreationError, KECCAK_EMPTY,
+    Account, AccountInfo, BlobExcessGasAndPrice, Block, BlockEnv, Bytecode, CallInputs, CfgEnv,
+    EVMData, ExecutionResult, Gas, HashMap, HashSet, Inspector, InstructionResult, MemPool,
+    MineBlockResult, MineBlockResultAndState, MineOrdering, PendingTransaction,
+    RandomHashGenerator, StorageSlot, SyncBlock, TransactionCreationError, KECCAK_EMPTY,
 };
 use indexmap::IndexMap;
+use lazy_static::lazy_static;
 use rpc_hardhat::ForkMetadata;
 use tokio::runtime;
 
@@ -95,11 +97,22 @@ pub struct ProviderData {
     last_filter_id: U256,
     logger: Logger,
     impersonated_accounts: HashSet<Address>,
+    callbacks: Arc<dyn SendInspectorCallbacks>,
 }
+
+pub trait InspectorCallbacks {
+    /// Calls to `console.*` from Solidity
+    fn console(&self, call_input: Bytes);
+}
+
+pub trait SendInspectorCallbacks: InspectorCallbacks + Debug + Send + Sync {}
+
+impl<I> SendInspectorCallbacks for I where I: InspectorCallbacks + Debug + Send + Sync {}
 
 impl ProviderData {
     pub async fn new(
         runtime: &runtime::Handle,
+        callbacks: Arc<dyn SendInspectorCallbacks>,
         config: &ProviderConfig,
     ) -> Result<Self, CreationError> {
         let InitialAccounts {
@@ -142,6 +155,7 @@ impl ProviderData {
             last_filter_id: U256::ZERO,
             logger: Logger::new(false),
             impersonated_accounts: HashSet::new(),
+            callbacks,
         })
     }
 
@@ -585,6 +599,8 @@ impl ProviderData {
                     .map(|BlobGas { excess_gas, .. }| BlobExcessGasAndPrice::new(*excess_gas)),
             };
 
+            let mut inspector = self.callback_inspector();
+
             let result = guaranteed_dry_run(
                 &*self.blockchain,
                 &state,
@@ -592,7 +608,7 @@ impl ProviderData {
                 cfg,
                 transaction,
                 block,
-                None,
+                Some(&mut inspector),
             )
             .map_err(ProviderError::RunTransaction)?;
 
@@ -962,6 +978,10 @@ impl ProviderData {
         Ok(transaction_hash)
     }
 
+    fn callback_inspector(&self) -> Box<EvmInspector> {
+        Box::new(EvmInspector::new(self.callbacks.clone()))
+    }
+
     fn create_evm_config(&self) -> CfgEnv {
         let mut evm_config = CfgEnv::default();
         evm_config.chain_id = self.blockchain.chain_id();
@@ -1014,7 +1034,7 @@ impl ProviderData {
             reward,
             self.next_block_base_fee_per_gas()?,
             prevrandao,
-            None,
+            Some(self.callback_inspector()),
         )?;
 
         Ok(result)
@@ -1368,10 +1388,46 @@ pub struct BlockDataForTransaction {
     pub transaction_index: u64,
 }
 
+lazy_static! {
+    static ref CONSOLE_ADDRESS: Address = "0x000000000000000000636F6e736F6c652e6c6f67"
+        .parse()
+        .expect("static ok");
+}
+
+#[derive(Debug)]
+struct EvmInspector {
+    callbacks: Arc<dyn SendInspectorCallbacks>,
+}
+
+impl EvmInspector {
+    fn new(callbacks: Arc<dyn SendInspectorCallbacks>) -> Self {
+        Self { callbacks }
+    }
+}
+
+impl<DatabaseErrorT> Inspector<DatabaseErrorT> for EvmInspector {
+    fn call(
+        &mut self,
+        _data: &mut dyn EVMData<DatabaseErrorT>,
+        inputs: &mut CallInputs,
+    ) -> (InstructionResult, Gas, Bytes) {
+        if inputs.contract == *CONSOLE_ADDRESS {
+            self.callbacks.console(inputs.input.clone());
+        }
+
+        (
+            InstructionResult::Continue,
+            Gas::new(inputs.gas_limit),
+            Bytes::new(),
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use anyhow::Context;
     use edr_eth::transaction::{Eip155TransactionRequest, TransactionKind, TransactionRequest};
+    use parking_lot::Mutex;
     use tempfile::TempDir;
 
     use super::*;
@@ -1383,6 +1439,7 @@ mod tests {
         config: ProviderConfig,
         provider_data: ProviderData,
         impersonated_account: Address,
+        callbacks: Arc<InspectorCallbacksStub>,
     }
 
     impl ProviderTestFixture {
@@ -1395,8 +1452,10 @@ mod tests {
                 vec![impersonated_account],
             );
 
+            let callbacks = Arc::new(InspectorCallbacksStub::default());
+
             let runtime = runtime::Handle::try_current()?;
-            let mut provider_data = ProviderData::new(&runtime, &config).await?;
+            let mut provider_data = ProviderData::new(&runtime, callbacks.clone(), &config).await?;
             provider_data
                 .impersonated_accounts
                 .insert(impersonated_account);
@@ -1406,7 +1465,12 @@ mod tests {
                 config,
                 provider_data,
                 impersonated_account,
+                callbacks,
             })
+        }
+
+        fn callbacks(&self) -> Vec<Bytes> {
+            self.callbacks.calls.lock().clone()
         }
 
         fn dummy_transaction_request(&self, nonce: Option<u64>) -> TransactionRequestAndSender {
@@ -1440,6 +1504,17 @@ mod tests {
             transaction.sender = self.impersonated_account;
 
             Ok(self.provider_data.sign_transaction_request(transaction)?)
+        }
+    }
+
+    #[derive(Debug, Default)]
+    struct InspectorCallbacksStub {
+        calls: Mutex<Vec<Bytes>>,
+    }
+
+    impl InspectorCallbacks for InspectorCallbacksStub {
+        fn console(&self, call_input: Bytes) {
+            self.calls.lock().push(call_input);
         }
     }
 
@@ -1575,6 +1650,22 @@ mod tests {
 
         let chain_id = fixture.provider_data.chain_id();
         assert_eq!(chain_id, fixture.config.chain_id);
+
+        Ok(())
+    }
+
+    // TODO change this to deploy a contract with console.log
+    #[tokio::test]
+    async fn console_log_mine_block() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new().await?;
+
+        let transaction = fixture.signed_dummy_transaction()?;
+        let _transaction_hash = fixture.provider_data.add_pending_transaction(transaction)?;
+        let block = fixture.provider_data.mine_pending_block()?;
+
+        assert_ne!(block.transaction_results.len(), 0);
+        assert_ne!(block.transaction_traces.len(), 0);
+        assert_eq!(fixture.callbacks().len(), 0);
 
         Ok(())
     }

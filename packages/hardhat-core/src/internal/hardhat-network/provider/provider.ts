@@ -421,38 +421,41 @@ class EdrProviderWrapper extends EventEmitter implements EIP1193Provider {
       };
     }
 
-    const provider = await Provider.withConfig({
-      bailOnCallFailure: config.throwOnCallFailures,
-      bailOnTransactionFailure: config.throwOnTransactionFailures,
-      chainId: BigInt(config.chainId),
-      cacheDir: config.forkCachePath,
-      coinbase: Buffer.from(coinbase.slice(2), "hex"),
-      fork,
-      hardfork: ethereumsjsHardforkToEdrSpecId(
-        getHardforkName(config.hardfork)
-      ),
-      networkId: BigInt(config.chainId),
-      blockGasLimit: BigInt(config.blockGasLimit),
-      genesisAccounts: config.genesisAccounts.map((account) => {
-        return {
-          secretKey: account.privateKey,
-          balance: BigInt(account.balance),
-        };
-      }),
-      allowUnlimitedContractSize: config.allowUnlimitedContractSize,
-      allowBlocksWithSameTimestamp:
-        config.allowBlocksWithSameTimestamp ?? false,
-      initialBaseFeePerGas: BigInt(
-        config.initialBaseFeePerGas ?? 1_000_000_000
-      ),
-      mining: {
-        autoMine: config.automine,
-        interval: ethereumjsIntervalMiningConfigToEdr(config.intervalMining),
-        memPool: {
-          order: ethereumjsMempoolOrderToEdrMineOrdering(config.mempoolOrder),
+    const provider = await Provider.withConfig(
+      {
+        bailOnCallFailure: config.throwOnCallFailures,
+        bailOnTransactionFailure: config.throwOnTransactionFailures,
+        chainId: BigInt(config.chainId),
+        cacheDir: config.forkCachePath,
+        coinbase: Buffer.from(coinbase.slice(2), "hex"),
+        fork,
+        hardfork: ethereumsjsHardforkToEdrSpecId(
+          getHardforkName(config.hardfork)
+        ),
+        networkId: BigInt(config.chainId),
+        blockGasLimit: BigInt(config.blockGasLimit),
+        genesisAccounts: config.genesisAccounts.map((account) => {
+          return {
+            secretKey: account.privateKey,
+            balance: BigInt(account.balance),
+          };
+        }),
+        allowUnlimitedContractSize: config.allowUnlimitedContractSize,
+        allowBlocksWithSameTimestamp:
+          config.allowBlocksWithSameTimestamp ?? false,
+        initialBaseFeePerGas: BigInt(
+          config.initialBaseFeePerGas ?? 1_000_000_000
+        ),
+        mining: {
+          autoMine: config.automine,
+          interval: ethereumjsIntervalMiningConfigToEdr(config.intervalMining),
+          memPool: {
+            order: ethereumjsMempoolOrderToEdrMineOrdering(config.mempoolOrder),
+          },
         },
       },
-    });
+      (message: Buffer) => console.log("console.log callback", message)
+    );
 
     return new EdrProviderWrapper(provider);
   }

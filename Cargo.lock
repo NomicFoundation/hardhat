@@ -1043,6 +1043,7 @@ dependencies = [
  "edr_rpc_hardhat",
  "indexmap 2.0.2",
  "k256",
+ "lazy_static",
  "log",
  "parking_lot 0.12.1",
  "rand",

@@ -15,12 +15,15 @@ use std::sync::Arc;
 use parking_lot::Mutex;
 use tokio::runtime;
 
-pub use self::{config::*, error::ProviderError, requests::ProviderRequest};
+pub use self::{
+    config::*, data::InspectorCallbacks, error::ProviderError, requests::ProviderRequest,
+};
 use self::{
     data::{CreationError, ProviderData},
     interval::IntervalMiner,
     requests::{eth, hardhat, EthRequest, Request},
 };
+use crate::data::SendInspectorCallbacks;
 
 /// A JSON-RPC provider for Ethereum.
 ///
@@ -62,9 +65,10 @@ impl Provider {
     /// Constructs a new instance.
     pub async fn new(
         runtime: &runtime::Handle,
+        callbacks: Arc<dyn SendInspectorCallbacks>,
         config: &ProviderConfig,
     ) -> Result<Self, CreationError> {
-        let data = ProviderData::new(runtime, config).await?;
+        let data = ProviderData::new(runtime, callbacks, config).await?;
         let data = Arc::new(Mutex::new(data));
 
         let interval_miner = config
