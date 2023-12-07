@@ -10,5 +10,5 @@ module.exports = {
   rules: {
     "no-console": "error",
   },
-  ignorePatterns: ["post-build.js", "artifacts/*", "cache/*"],
+  ignorePatterns: [".eslintrc.js", "artifacts/*", "cache/*"],
 };

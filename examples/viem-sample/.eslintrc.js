@@ -2,8 +2,7 @@ module.exports = {
   extends: ["plugin:prettier/recommended"],
   parser: "@typescript-eslint/parser",
   parserOptions: {
-    project: "./tsconfig.json",
-    tsConfigRootDir: "./",
+    ecmaVersion: "latest",
   },
   plugins: ["eslint-plugin-import", "@typescript-eslint"],
   env: {
@@ -13,5 +12,5 @@ module.exports = {
   rules: {
     "no-console": "error",
   },
-  ignorePatterns: ["post-build.js", "artifacts/*", "cache/*"],
+  ignorePatterns: [".eslintrc.js", "artifacts/*", "cache/*"],
 };
