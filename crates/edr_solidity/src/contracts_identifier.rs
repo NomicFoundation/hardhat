@@ -4,12 +4,12 @@ use std::collections::HashMap;
 struct RadixNode {
     content: Vec<u8>,
     is_present: bool,
-    bytes_matched_before: u32,
+    bytes_matched_before: usize,
     child_nodes: HashMap<u8, RadixNode>,
 }
 
 impl RadixNode {
-    fn new(content: Vec<u8>, is_present: bool, bytes_matched_before: u32) -> RadixNode {
+    fn new(content: Vec<u8>, is_present: bool, bytes_matched_before: usize) -> RadixNode {
         RadixNode {
             content,
             is_present,
@@ -25,11 +25,12 @@ impl RadixNode {
 
         let b = word[0];
 
+        // we temporarily remove the next node and then insert it back, possibly mutated and/or in a different position
         let next_node = self.child_nodes.remove(&b);
 
         match next_node {
             None => {
-                let bytes_matched_before = self.bytes_matched_before + self.content.len() as u32;
+                let bytes_matched_before = self.bytes_matched_before + self.content.len();
 
                 let node = RadixNode::new(word, true, bytes_matched_before);
 
@@ -63,12 +64,12 @@ impl RadixNode {
                     let mut node = RadixNode::new(
                         word,
                         true,
-                        self.bytes_matched_before + self.content.len() as u32,
+                        self.bytes_matched_before + self.content.len(),
                     );
 
                     // the new node points to next_node
                     next_node.content = next_node.content[prefix_length..].to_vec();
-                    next_node.bytes_matched_before += node.content.len() as u32;
+                    next_node.bytes_matched_before += node.content.len();
                     node.child_nodes
                         .insert(next_node.content[0], next_node);
 
@@ -84,13 +85,13 @@ impl RadixNode {
                 let mut middle_node = RadixNode::new(
                     word[..prefix_length].to_vec(),
                     false,
-                    self.bytes_matched_before + self.content.len() as u32,
+                    self.bytes_matched_before + self.content.len(),
                 );
 
                 // next_node should come after middle_node and its content and bytes_matched_before need to be adapted
                 next_node.content = next_node.content[prefix_length..].to_vec();
                 next_node.bytes_matched_before +=
-                    middle_node.bytes_matched_before + middle_node.content.len() as u32;
+                    middle_node.bytes_matched_before + middle_node.content.len();
                 middle_node
                     .child_nodes
                     .insert(next_node.content[0], next_node);
@@ -99,7 +100,7 @@ impl RadixNode {
                 let new_node = RadixNode::new(
                     word[prefix_length..].to_vec(),
                     true,
-                    middle_node.bytes_matched_before + middle_node.content.len() as u32,
+                    middle_node.bytes_matched_before + middle_node.content.len(),
                 );
                 middle_node
                     .child_nodes
