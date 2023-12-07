@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 struct RadixNode {
     content: Vec<u8>,
     is_present: bool,
@@ -25,7 +25,8 @@ impl RadixNode {
         }
 
         let b = word[0];
-        let next_node = self.child_nodes.get_mut(&b);
+
+        let next_node = self.child_nodes.remove(&b);
 
         match next_node {
             None => {
@@ -35,7 +36,7 @@ impl RadixNode {
 
                 self.child_nodes.insert(b, node);
             }
-            Some(next_node) => {
+            Some(mut next_node) => {
                 // TODO drop a_offset param
                 let prefix_length = get_shared_prefix_length(&word, &next_node.content);
 
@@ -47,10 +48,12 @@ impl RadixNode {
                     // Check if the next node matches the word exactly
                     if prefix_length == word.len() {
                         next_node.is_present = true;
+                        self.child_nodes.insert(b, next_node);
                         return;
                     }
 
                     next_node.add_word(word[prefix_length..].to_vec());
+                    self.child_nodes.insert(b, next_node);
 
                     return;
                 }
@@ -66,11 +69,10 @@ impl RadixNode {
                     );
 
                     // the new node points to next_node
-                    // TODO can we avoid this clone?
                     next_node.content = next_node.content[prefix_length..].to_vec();
                     next_node.bytes_matched_before += node.content.len() as u32;
                     node.child_nodes
-                        .insert(next_node.content[0], next_node.clone());
+                        .insert(next_node.content[0], next_node);
 
                     // the current node now points to the new node
                     self.child_nodes.insert(b, node);
@@ -88,17 +90,12 @@ impl RadixNode {
                 );
 
                 // next_node should come after middle_node and its content and bytes_matched_before need to be adapted
-                // TODO: how can I avoid this clone?
-                middle_node
-                    .child_nodes
-                    .insert(next_node.content[prefix_length], next_node.clone());
-                let next_node = middle_node
-                    .child_nodes
-                    .get_mut(&next_node.content[prefix_length])
-                    .unwrap();
                 next_node.content = next_node.content[prefix_length..].to_vec();
                 next_node.bytes_matched_before +=
                     middle_node.bytes_matched_before + middle_node.content.len() as u32;
+                middle_node
+                    .child_nodes
+                    .insert(next_node.content[0], next_node);
 
                 // create a new node for the word
                 let new_node = RadixNode::new(
