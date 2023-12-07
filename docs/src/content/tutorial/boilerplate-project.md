@@ -48,7 +48,7 @@ npx hardhat node
 Here we just install the npm project's dependencies, and by running `npx hardhat node` we spin up an instance of Hardhat Network that you can connect to using your wallet. In a different terminal in the same directory, run:
 
 ```
-npx hardhat --network localhost run scripts/deploy.js
+npx hardhat ignition deploy ./ignition/modules/TokenModule.js --network localhost
 ```
 
 This will deploy the contract to Hardhat Network. After this completes, start the react web app:

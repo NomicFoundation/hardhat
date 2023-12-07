@@ -7,25 +7,25 @@ You can use certain environment variables to configure Hardhat's behavior.
 Every global flag or parameter accepted by Hardhat can also be specified using an environment variable. For example, to select the network you normally do:
 
 ```bash
-npx hardhat --network localhost run scripts/deploy.js
+npx hardhat ignition deploy ./ignition/modules/LockModule.js --network localhost
 ```
 
 But you can get the same behavior by setting the `HARDHAT_NETWORK` environment variable:
 
 ```bash
-HARDHAT_NETWORK=localhost npx hardhat run scripts/deploy.js
+HARDHAT_NETWORK=localhost npx hardhat ignition deploy ./ignition/modules/LockModule.js
 ```
 
 In general, each flag or parameter of the form `--some-option` can be set using the `HARDHAT_SOME_OPTION` environment variable. For flags, which don't accept values, you can enable or disable them by setting them to `true` or `false`:
 
 ```bash
-HARDHAT_VERBOSE=true npx hardhat run scripts/deploy.js
+HARDHAT_VERBOSE=true npx hardhat ignition deploy ./ignition/modules/LockModule.js
 ```
 
 Options specified with the `--some-option` form have precedence over environment variables. That is, if you run:
 
 ```bash
-HARDHAT_NETWORK=mainnet npx hardhat run --network localhost scripts/deploy.js
+HARDHAT_NETWORK=mainnet npx hardhat ignition deploy ./ignition/modules/LockModule.js --network localhost
 ```
 
 then the `localhost` network is going to be used.

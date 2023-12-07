@@ -2,7 +2,7 @@
 
 After [compiling your contracts](./compile-contracts.md), the next step is to write some tests to verify that they work as intended.
 
-This guide explains our recommended approach for testing contracts in Hardhat. It relies on [ethers](https://docs.ethers.org/v6/) to connect to [Hardhat Network](/hardhat-network) and on [Mocha](https://mochajs.org/) and [Chai](https://www.chaijs.com/) for the tests. It also uses our custom [Chai matchers](/hardhat-chai-matchers) and our [Hardhat Network Helpers](/hardhat-network-helpers) to make it easier to write clean test code. These packages are part of the Hardhat Toolbox plugin; if you followed the previous guides, you should already have them installed.
+This guide explains our recommended approach for testing contracts in Hardhat. It relies on [ethers](https://docs.ethers.org/v6/) to connect to [Hardhat Network](/hardhat-network) and on [Hardhat Ignition](/ignition), [Mocha](https://mochajs.org/), and [Chai](https://www.chaijs.com/) for the tests. It also uses our custom [Chai matchers](/hardhat-chai-matchers) and our [Hardhat Network Helpers](/hardhat-network-helpers) to make it easier to write clean test code. These packages are part of the Hardhat Toolbox plugin; if you followed the previous guides, you should already have them installed.
 
 While this is our recommended test setup, Hardhat is flexible: you can customize the approach or take a completely different path with other tools.
 
@@ -27,7 +27,20 @@ For our first test we’ll deploy the `Lock` contract and assert that the unlock
 ```tsx
 import { expect } from "chai";
 import hre from "hardhat";
+import { buildModule } from "@nomicfoundation/hardhat-toolbox";
 import { time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+
+// We define a module in the test file here, but you can also `import` it.
+const LockModule = buildModule("Lock", (m) => {
+  const lockedAmount = m.getParameter("lockedAmount");
+  const unlockTime = m.getParameter("unlockTime");
+
+  const lock = m.contract("Lock", [unlockTime], {
+    value: lockedAmount,
+  });
+
+  return { lock };
+});
 
 describe("Lock", function () {
   it("Should set the right unlockTime", async function () {
@@ -37,8 +50,8 @@ describe("Lock", function () {
 
     // deploy a lock contract where funds can be withdrawn
     // one year in the future
-    const lock = await ethers.deployContract("Lock", [unlockTime], {
-      value: lockedAmount,
+    const { lock } = await hre.ignition.deploy(LockModule, {
+      parameters: { Lock: { lockedAmount, unlockTime } },
     });
 
     // assert that the value is correct
@@ -54,7 +67,20 @@ describe("Lock", function () {
 ```js
 const { expect } = require("chai");
 const hre = require("hardhat");
+const { buildModule } = require("@nomicfoundation/hardhat-toolbox");
 const { time } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
+
+// We define a module in the test file here, but you can also `require` it.
+const LockModule = buildModule("Lock", (m) => {
+  const lockedAmount = m.getParameter("lockedAmount");
+  const unlockTime = m.getParameter("unlockTime");
+
+  const lock = m.contract("Lock", [unlockTime], {
+    value: lockedAmount,
+  });
+
+  return { lock };
+});
 
 describe("Lock", function () {
   it("Should set the right unlockTime", async function () {
@@ -64,8 +90,8 @@ describe("Lock", function () {
 
     // deploy a lock contract where funds can be withdrawn
     // one year in the future
-    const lock = await ethers.deployContract("Lock", [unlockTime], {
-      value: lockedAmount,
+    const { lock } = await hre.ignition.deploy(LockModule, {
+      parameters: { Lock: { lockedAmount, unlockTime } },
     });
 
     // assert that the value is correct
@@ -78,9 +104,11 @@ describe("Lock", function () {
 
 ::::
 
-First we import the things we are going to use: the [`expect`](https://www.chaijs.com/api/bdd/) function from `chai` to write our assertions, the [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md) (`hre`), and the [network helpers](/hardhat-network-helpers) to interact with the Hardhat Network. After that we use the `describe` and `it` functions, which are global Mocha functions used to describe and group your tests. (You can read more about Mocha [here](https://mochajs.org/#getting-started).)
+First we import the things we are going to use: the [`expect`](https://www.chaijs.com/api/bdd/) function from `chai` to write our assertions, the [Hardhat Runtime Environment](../advanced/hardhat-runtime-environment.md) (`hre`), the [`buildModule`](/ignition/docs/guides/creating-modules) function from Hardhat Ignition to deploy and interact with our contracts, and the [network helpers](/hardhat-network-helpers) to interact with the Hardhat Network. After that we use the `describe` and `it` functions, which are global Mocha functions used to describe and group your tests. (You can read more about Mocha [here](https://mochajs.org/#getting-started).)
 
-The test itself is what’s inside the callback argument to the `it` function. First we set the values for the amount we want to lock (in [wei](https://ethereum.org/en/glossary/#wei)) and the unlock time. For the latter we use [`time.latest`](</hardhat-network-helpers/docs/reference#latest()>), a network helper that returns the timestamp of the last mined block. Then we deploy the contract itself: we call `ethers.deployContract` with the name of the contract we want to deploy and an array of constructor arguments that has the unlock time. We also pass an object with the transaction parameters. This is optional, but we'll use it to send some ETH by setting its `value` field.
+Before we write our actual test, we define an Ignition module to deploy our contract using the `buildModule` function. For brevity, we define our module in the test file here, but the recommended way to define your Ignition modules is in separate files. You can read more about creating Ignition modules in the [Hardhat Ignition docs](/ignition/docs/guides/creating-modules).
+
+The test itself is what’s inside the callback argument to the `it` function. First we set the values for the amount we want to lock (in [wei](https://ethereum.org/en/glossary/#wei)) and the unlock time. For the latter we use [`time.latest`](</hardhat-network-helpers/docs/reference#latest()>), a network helper that returns the timestamp of the last mined block. Then we deploy the contract itself: we call `hre.ignition.deploy` with our Ignition module we want to deploy and an object containing the deployment parameters `lockedAmount` and `unlockTime`.
 
 Finally, we check that the value returned by the `unlockTime()` [getter](https://docs.soliditylang.org/en/v0.8.13/contracts.html#getter-functions) in the contract matches the value that we used when we deployed it. Since all the functions on a contract are async, we have to use the `await` keyword to get its value; otherwise, we would be comparing a promise with a number and this would always fail.
 
@@ -153,7 +181,7 @@ Here again we are calling a function and asserting that it reverts with the corr
 
 ### Using fixtures
 
-So far we've deployed the `Lock` contract in each test. This means that at the beginning of each test we have to get the contract factory and then deploy the contract. This might be fine for a single contract but, if you have a more complicated setup, each test will have several lines at the beginning just to set up the desired state, and most of the time these lines will be the same.
+So far we've deployed the `Lock` contract in each test. This means that at the beginning of each test we have to redeploy our Ignition module. This might be fine for a single contract but, if you have a more complicated setup, each test will have several lines at the beginning just to set up the desired state, and most of the time these lines will be the same.
 
 In a typical Mocha test, this duplication of code is handled with a `beforeEach` hook:
 
@@ -173,9 +201,11 @@ describe("Lock", function () {
     const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
     unlockTime = (await helpers.time.latest()) + ONE_YEAR_IN_SECS;
 
-    lock = await ethers.deployContract("Lock", [unlockTime], {
-      value: lockedAmount,
+    const result = await hre.ignition.deploy(LockModule, {
+      parameters: { Lock: { lockedAmount, unlockTime } },
     });
+
+    lock = result.lock;
   });
 
   it("some test", async function () {
@@ -198,9 +228,11 @@ describe("Lock", function () {
     const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
     unlockTime = (await helpers.time.latest()) + ONE_YEAR_IN_SECS;
 
-    lock = await ethers.deployContract("Lock", [unlockTime], {
-      value: lockedAmount,
+    const result = await hre.ignition.deploy(LockModule, {
+      parameters: { Lock: { lockedAmount, unlockTime } },
     });
+
+    lock = result.lock;
   });
 
   it("some test", async function () {
@@ -236,8 +268,8 @@ describe("Lock", function () {
     const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
     const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
 
-    const lock = await ethers.deployContract("Lock", [unlockTime], {
-      value: lockedAmount,
+    const { lock } = await hre.ignition.deploy(LockModule, {
+      parameters: { Lock: { lockedAmount, unlockTime } },
     });
 
     return { lock, unlockTime, lockedAmount };
