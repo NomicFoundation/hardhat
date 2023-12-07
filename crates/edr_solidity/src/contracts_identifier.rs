@@ -20,7 +20,6 @@ impl RadixNode {
 
     fn add_word(&mut self, word: Vec<u8>) {
         if word.is_empty() {
-            // TODO? self.is_present = true;
             return;
         }
 
@@ -37,7 +36,6 @@ impl RadixNode {
                 self.child_nodes.insert(b, node);
             }
             Some(mut next_node) => {
-                // TODO drop a_offset param
                 let prefix_length = get_shared_prefix_length(&word, &next_node.content);
 
                 // We know it's at least 1
