@@ -64,12 +64,15 @@ export class EthersIgnitionHelper {
     {
       parameters = {},
       config: perDeployConfig = {},
+      defaultSender = undefined,
     }: {
       parameters?: DeploymentParameters;
       config?: Partial<DeployConfig>;
+      defaultSender?: string;
     } = {
       parameters: {},
       config: {},
+      defaultSender: undefined,
     }
   ): Promise<
     IgnitionModuleResultsTToEthersContracts<
@@ -96,6 +99,7 @@ export class EthersIgnitionHelper {
       ignitionModule,
       deploymentParameters: parameters,
       accounts,
+      defaultSender,
     });
 
     if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {

@@ -9,6 +9,7 @@ import { EphemeralDeploymentLoader } from "./internal/deployment-loader/ephemera
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader";
 import { BasicExecutionStrategy } from "./internal/execution/basic-execution-strategy";
 import { EIP1193JsonRpcClient } from "./internal/execution/jsonrpc-client";
+import { equalAddresses } from "./internal/execution/utils/address";
 import { getDefaultSender } from "./internal/execution/utils/get-default-sender";
 import { checkAutominedNetwork } from "./internal/utils/check-automined-network";
 import { validate } from "./internal/validation/validate";
@@ -43,7 +44,7 @@ export async function deploy<
   ignitionModule,
   deploymentParameters,
   accounts,
-  defaultSender,
+  defaultSender: givenDefaultSender,
 }: {
   config?: Partial<DeployConfig>;
   artifactResolver: ArtifactResolver;
@@ -84,15 +85,7 @@ export async function deploy<
     return validationResult;
   }
 
-  if (defaultSender !== undefined) {
-    if (!accounts.includes(defaultSender)) {
-      throw new IgnitionError(ERRORS.VALIDATION.INVALID_DEFAULT_SENDER, {
-        defaultSender,
-      });
-    }
-  } else {
-    defaultSender = getDefaultSender(accounts);
-  }
+  const defaultSender = _resolveDefaultSender(givenDefaultSender, accounts);
 
   const deploymentLoader =
     deploymentDir === undefined
@@ -131,4 +124,28 @@ export async function deploy<
     accounts,
     defaultSender
   );
+}
+
+function _resolveDefaultSender(
+  givenDefaultSender: string | undefined,
+  accounts: string[]
+): string {
+  let defaultSender: string;
+  if (givenDefaultSender !== undefined) {
+    const isDefaultSenderInAccounts = accounts.some((account) =>
+      equalAddresses(account, givenDefaultSender)
+    );
+
+    if (!isDefaultSenderInAccounts) {
+      throw new IgnitionError(ERRORS.VALIDATION.INVALID_DEFAULT_SENDER, {
+        givenDefaultSender,
+      });
+    }
+
+    defaultSender = givenDefaultSender;
+  } else {
+    defaultSender = getDefaultSender(accounts);
+  }
+
+  return defaultSender;
 }

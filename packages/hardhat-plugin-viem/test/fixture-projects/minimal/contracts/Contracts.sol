@@ -28,3 +28,11 @@ contract Foo {
 contract Bar {
   bool public isBar = true;
 }
+
+contract OwnerSender {
+  address public owner;
+
+  constructor() {
+    owner = msg.sender;
+  }
+}

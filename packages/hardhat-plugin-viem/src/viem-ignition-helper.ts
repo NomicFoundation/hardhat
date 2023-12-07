@@ -58,12 +58,15 @@ export class ViemIgnitionHelper {
     {
       parameters = {},
       config: perDeployConfig = {},
+      defaultSender = undefined,
     }: {
       parameters?: DeploymentParameters;
       config?: Partial<DeployConfig>;
+      defaultSender?: string;
     } = {
       parameters: {},
       config: {},
+      defaultSender: undefined,
     }
   ): Promise<
     IgnitionModuleResultsToViemContracts<ContractNameT, IgnitionModuleResultsT>
@@ -87,6 +90,7 @@ export class ViemIgnitionHelper {
       ignitionModule,
       deploymentParameters: parameters,
       accounts,
+      defaultSender,
     });
 
     if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {

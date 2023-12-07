@@ -220,3 +220,11 @@ contract SendDataEmitter {
     require(arg == true, "arg is wrong");
   }
 }
+
+contract OwnerSender {
+  address public owner;
+
+  constructor() {
+    owner = msg.sender;
+  }
+}
