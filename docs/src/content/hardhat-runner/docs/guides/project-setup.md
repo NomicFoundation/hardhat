@@ -110,6 +110,7 @@ The initialized project has the following structure:
 
 ```
 contracts/
+ignition/modules/
 scripts/
 test/
 hardhat.config.js
@@ -118,6 +119,7 @@ hardhat.config.js
 These are the default paths for a Hardhat project.
 
 - `contracts/` is where the source files for your contracts should be.
+- `ignition/modules/` is where the files exporting your Ignition modules should be.
 - `test/` is where your tests should go.
 - `scripts/` is where simple automation scripts go.
 
@@ -129,7 +131,7 @@ When it comes to testing your contracts, the sample project comes with some usef
 
 - The built-in [Hardhat Network](/hardhat-network/docs) as the development network to test on, along with the [Hardhat Network Helpers](/hardhat-network-helpers) library to manipulate this network.
 - [Mocha](https://mochajs.org/) as the test runner, [Chai](https://chaijs.com/) as the assertion library, and the [Hardhat Chai Matchers](/hardhat-chai-matchers) to extend Chai with contracts-related functionality.
-- The [`ethers.js`](https://docs.ethers.org/v6/) library to interact with the network and with contracts.
+- [Hardhat Ignition](/ignition) to deploy your contracts and the [`ethers.js`](https://docs.ethers.org/v6/) library to interact with interact with them.
 
 As well as other useful plugins. You can learn more about this in the [Testing contracts guide](./test-contracts.md).
 

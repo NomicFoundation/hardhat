@@ -1,5 +1,7 @@
 # Writing scripts with Hardhat
 
+<!-- TODO: We should write this guide based on a different common use case for scripts now that Ignition exists -->
+
 In this guide we will go through the steps of creating a script with Hardhat. For a general overview of using Hardhat refer to the [Getting started guide](../getting-started/index.md).
 
 You can write your own custom scripts that can use all of Hardhat's functionality. A classic use case is writing a deployment script for your smart contracts.

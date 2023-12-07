@@ -1,24 +1,18 @@
 # Deploying your contracts
 
-:::tip
-
-Try [Hardhat Ignition](/ignition) for your deployments! Our new declarative system for deploying smart contracts without getting caught up in execution details.
-
-:::
-
-When it comes to deploying, you can use a deployment system like [Hardhat Ignition](/ignition) or you can deploy your smart contracts using scripts. You can deploy the `Lock` contract from the sample project with a deployment script like this:
+To deploy your contracts, you can use [Hardhat Ignition](/ignition), our declarative deployment system. You can find a sample Hardhat Ignition module inside the `ignition/modules` directory of the sample project:
 
 ::::tabsgroup{options="TypeScript,JavaScript"}
 
 :::tab{value="TypeScript"}
 
-<<< @/../packages/hardhat-core/sample-projects/typescript/scripts/deploy.ts
+<<< @/../packages/hardhat-core/sample-projects/typescript/ignition/modules/LockModule.ts
 
 :::
 
 :::tab{value="JavaScript"}
 
-<<< @/../packages/hardhat-core/sample-projects/javascript/scripts/deploy.js
+<<< @/../packages/hardhat-core/sample-projects/javascript/ignition/modules/LockModule.js
 
 :::
 
@@ -32,14 +26,14 @@ You can deploy in the `localhost` network following these steps:
    npx hardhat node
    ```
 
-2. Open a new terminal and deploy the smart contract in the `localhost` network
+2. Open a new terminal and deploy the Hardhat Ignition module in the `localhost` network
 
    ::::tabsgroup{options="TypeScript,JavaScript"}
 
    :::tab{value="TypeScript"}
 
    ```
-   npx hardhat run --network localhost scripts/deploy.ts
+   npx hardhat ignition deploy ./ignition/modules/LockModule.ts --network localhost
    ```
 
    :::
@@ -47,7 +41,7 @@ You can deploy in the `localhost` network following these steps:
    :::tab{value="JavaScript"}
 
    ```
-   npx hardhat run --network localhost scripts/deploy.js
+   npx hardhat ignition deploy ./ignition/modules/LockModule.js --network localhost
    ```
 
    :::
@@ -57,5 +51,13 @@ You can deploy in the `localhost` network following these steps:
 As general rule, you can target any network from your Hardhat config using:
 
 ```
-npx hardhat run --network <your-network> scripts/deploy.js
+npx hardhat ignition deploy ./ignition/modules/LockModule.js --network <your-network>
 ```
+
+Alternatively, you can also deploy to an ephemeral instance of the Hardhat Network by running the command without the `--network` parameter:
+
+```
+npx hardhat ignition deploy ./ignition/modules/LockModule.js
+```
+
+Read more about Hardhat Ignition in the [Ignition documentation](/ignition).
