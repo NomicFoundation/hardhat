@@ -51,6 +51,7 @@ impl RadixNode {
                         return;
                     }
 
+                    // TODO can this (and all the other to_vec's) be replaced with .drain()?
                     next_node.add_word(word[prefix_length..].to_vec());
                     self.child_nodes.insert(b, next_node);
 
@@ -61,17 +62,13 @@ impl RadixNode {
                 if prefix_length == word.len() {
                     // nextNode includes the current word and some extra, so we insert a
                     // new node with the word
-                    let mut node = RadixNode::new(
-                        word,
-                        true,
-                        self.bytes_matched_before + self.content.len(),
-                    );
+                    let mut node =
+                        RadixNode::new(word, true, self.bytes_matched_before + self.content.len());
 
                     // the new node points to next_node
                     next_node.content = next_node.content[prefix_length..].to_vec();
                     next_node.bytes_matched_before += node.content.len();
-                    node.child_nodes
-                        .insert(next_node.content[0], next_node);
+                    node.child_nodes.insert(next_node.content[0], next_node);
 
                     // the current node now points to the new node
                     self.child_nodes.insert(b, node);
@@ -111,6 +108,41 @@ impl RadixNode {
             }
         }
     }
+
+    /**
+     * Returns a tuple containing:
+     * - a boolean indicating if the word was matched exactly
+     * - the number of bytes matched
+     * - the node that matched the word
+     * If the word is not matched exactly, the node will be the one that matched the longest prefix.
+     */
+    fn get_max_match(&self, word: &[u8]) -> (bool, usize, &RadixNode) {
+        let prefix_length = get_shared_prefix_length(word, &self.content);
+
+        let matched = prefix_length + self.bytes_matched_before;
+
+        let entire_word_matched = prefix_length == word.len();
+        let entire_content_matched = prefix_length == self.content.len();
+
+        if entire_word_matched {
+            if entire_content_matched {
+                return (self.is_present, matched, &self);
+            }
+
+            return (false, matched, &self);
+        }
+
+        if !entire_content_matched {
+            return (false, matched, &self);
+        }
+
+        let next_node = self.child_nodes.get(&word[prefix_length]);
+
+        match next_node {
+            None => (false, matched, &self),
+            Some(next_node) => next_node.get_max_match(&word[prefix_length..]),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -127,6 +159,10 @@ impl RadixTree {
 
     fn add_word(&mut self, word: Vec<u8>) {
         self.root.add_word(word);
+    }
+
+    fn get_max_match<'a>(&'a self, word: &[u8]) -> (bool, usize, &RadixNode) {
+        self.root.get_max_match(word)
     }
 }
 
@@ -290,5 +326,88 @@ mod tests {
         assert_eq!(grandchild2.is_present, true);
         assert_eq!(grandchild2.bytes_matched_before, 1);
         assert_eq!(grandchild2.child_nodes.len(), 0);
+    }
+
+    #[test]
+    fn test_radix_tree_get_max_match_default_first_node_empty_tree() {
+        let tree = RadixTree::new();
+        let (exact_match, length_matched, node) = tree.get_max_match("word".as_bytes());
+
+        assert_eq!(exact_match, false);
+        assert_eq!(length_matched, 0);
+        assert_eq!(std::ptr::eq(node, &tree.root), true);
+    }
+
+    #[test]
+    fn test_radix_tree_get_max_match_default_first_node_words_without_prefix() {
+        let mut tree = RadixTree::new();
+        tree.add_word("asdf".as_bytes().to_vec());
+        let (exact_match, length_matched, node) = tree.get_max_match("word".as_bytes());
+
+        assert_eq!(exact_match, false);
+        assert_eq!(length_matched, 0);
+        assert_eq!(std::ptr::eq(node, &tree.root), true);
+    }
+
+    #[test]
+    fn test_radix_tree_get_max_match_default_first_node_prefix_smaller_than_content() {
+        let mut tree = RadixTree::new();
+        tree.add_word("asd".as_bytes().to_vec());
+        let (exact_match, length_matched, node) = tree.get_max_match("as".as_bytes());
+
+        assert_eq!(exact_match, false);
+        assert_eq!(length_matched, 2);
+        assert_eq!(
+            std::ptr::eq(node, tree.root.child_nodes.get(&('a' as u8)).unwrap()),
+            true
+        );
+    }
+
+    #[test]
+    fn test_radix_tree_get_max_match_default_first_node_words_present_after_some_nodes() {
+        let mut tree = RadixTree::new();
+        tree.add_word("a".as_bytes().to_vec());
+        tree.add_word("as".as_bytes().to_vec());
+        tree.add_word("asd".as_bytes().to_vec());
+        let (exact_match, length_matched, node) = tree.get_max_match("asd".as_bytes());
+
+        assert_eq!(exact_match, true);
+        assert_eq!(length_matched, 3);
+        let expected_node = tree
+            .root
+            .child_nodes
+            .get(&('a' as u8))
+            .unwrap()
+            .child_nodes
+            .get(&('s' as u8))
+            .unwrap()
+            .child_nodes
+            .get(&('d' as u8))
+            .unwrap();
+        assert_eq!(std::ptr::eq(node, expected_node), true);
+    }
+
+    #[test]
+    fn test_radix_tree_get_max_match_default_first_node_word_longer_than_existing_nodes() {
+        let mut tree = RadixTree::new();
+        tree.add_word("a".as_bytes().to_vec());
+        tree.add_word("as".as_bytes().to_vec());
+        tree.add_word("asd".as_bytes().to_vec());
+        let (exact_match, length_matched, node) = tree.get_max_match("asdf".as_bytes());
+
+        assert_eq!(exact_match, false);
+        assert_eq!(length_matched, 3);
+        let expected_node = tree
+            .root
+            .child_nodes
+            .get(&('a' as u8))
+            .unwrap()
+            .child_nodes
+            .get(&('s' as u8))
+            .unwrap()
+            .child_nodes
+            .get(&('d' as u8))
+            .unwrap();
+        assert_eq!(std::ptr::eq(node, expected_node), true);
     }
 }
