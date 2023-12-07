@@ -4,7 +4,7 @@ Writing automated tests when building smart contracts is of crucial importance, 
 
 To test our contract, we are going to use Hardhat Network, a local Ethereum network designed for development. It comes built-in with Hardhat, and it's used as the default network. You don't need to setup anything to use it.
 
-In our tests we're going to use [ethers.js](https://docs.ethers.org/v6/) to interact with the Ethereum contract we built in the previous section, and we'll use [Mocha](https://mochajs.org/) as our test runner.
+In our tests we're going to use [Hardhat Ignition](/ignition) to deploy and interact with the Ethereum contract we built in the previous section, and we'll use [Mocha](https://mochajs.org/) as our test runner.
 
 ## Writing tests
 
@@ -14,12 +14,20 @@ Let's start with the code below. We'll explain it next, but for now paste this i
 
 ```js
 const { expect } = require("chai");
+const { buildModule } = require("@nomicfoundation/hardhat-toolbox");
+
+// We define a module in the test file here, but you can also `require` it.
+const TokenModule = buildModule("TokenModule", (m) => {
+  const token = m.contract("Token");
+
+  return { token };
+});
 
 describe("Token contract", function () {
   it("Deployment should assign the total supply of tokens to the owner", async function () {
     const [owner] = await ethers.getSigners();
 
-    const hardhatToken = await ethers.deployContract("Token");
+    const { token: hardhatToken } = await ignition.deploy(TokenModule);
 
     const ownerBalance = await hardhatToken.balanceOf(owner.address);
     expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
@@ -42,6 +50,17 @@ $ npx hardhat test
 This means the test passed. Let's now explain each line:
 
 ```js
+// We define a module in the test file here, but you can also `require` it.
+const TokenModule = buildModule("TokenModule", (m) => {
+  const hardhatToken = m.contract("Token");
+
+  return { hardhatToken };
+});
+```
+
+This is a Hardhat Ignition module. It's a way to deploy and interact with smart contracts in your Hardhat project. In this case, we're defining a module that contains a single contract, our token. We're defining it here in the test file, but you can also define it in a separate file and `require` it. We'll go more in depth with Hardhat Ignition modules in the [deploying to a live network](./deploying-to-a-live-network.md) section. For now it's enough to know that this module will deploy our token contract.
+
+```js
 const [owner] = await ethers.getSigners();
 ```
 
@@ -60,16 +79,22 @@ To learn more about `Signer`, you can look at the [Signers documentation](https:
 :::
 
 ```js
-const hardhatToken = await ethers.deployContract("Token");
+const { hardhatToken } = await ignition.deploy(TokenModule);
 ```
 
-Calling `ethers.deployContract("Token")` will start the deployment of our token contract, and return a `Promise` that resolves to a `Contract`. This is the object that has a method for each of your smart contract functions.
+Calling `ignition.deploy(TokenModule)` will start the deployment of our token contract, and return a `Promise` that resolves to an object containing the `Contract` we returned from `TestModule`. This contract is the object that has a method for each of your smart contract functions.
+
+Similar to `ethers`, `ignition` is available in the global scope. If you like your code always being explicit, you can add this line at the top:
+
+```js
+const { ignition } = require("hardhat");
+```
+
+Once the contract is deployed, we can call our contract methods on `hardhatToken`. Here we get the balance of the owner account by calling the contract's `balanceOf()` method.
 
 ```js
 const ownerBalance = await hardhatToken.balanceOf(owner.address);
 ```
-
-Once the contract is deployed, we can call our contract methods on `hardhatToken`. Here we get the balance of the owner account by calling the contract's `balanceOf()` method.
 
 Recall that the account that deploys the token gets its entire supply. By default, `Contract` instances are connected to the first signer. This means that the account in the `owner` variable executed the deployment, and `balanceOf()` should return the entire supply amount.
 
@@ -94,7 +119,7 @@ describe("Token contract", function () {
   it("Should transfer tokens between accounts", async function() {
     const [owner, addr1, addr2] = await ethers.getSigners();
 
-    const hardhatToken = await ethers.deployContract("Token");
+    const { hardhatToken } = await ignition.deploy(TokenModule);
 
     // Transfer 50 tokens from owner to addr1
     await hardhatToken.transfer(addr1.address, 50);
@@ -119,11 +144,18 @@ const {
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { expect } = require("chai");
 
+// We define a module in the test file here, but you can also `require` it.
+const TokenModule = buildModule("TokenModule", (m) => {
+  const hardhatToken = m.contract("Token");
+
+  return { hardhatToken };
+});
+
 describe("Token contract", function () {
   async function deployTokenFixture() {
     const [owner, addr1, addr2] = await ethers.getSigners();
 
-    const hardhatToken = await ethers.deployContract("Token");
+    const { hardhatToken } = await ignition.deploy(TokenModule);
 
     // Fixtures can return anything you consider useful for your tests
     return { hardhatToken, owner, addr1, addr2 };
@@ -177,6 +209,12 @@ const {
   loadFixture,
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 
+// We recommend writing your Hardhat Ignition modules in a separate file and
+// importing them into your tests, instead of writing them in the test file.
+// The reason for this is that you will be using these same Hardhat Ignition modules
+// when you're ready to deploy to live networks as well.
+const TokenModule = require("../ignition/modules/TokenModule");
+
 // `describe` is a Mocha function that allows you to organize your tests.
 // Having your tests organized makes debugging them easier. All Mocha
 // functions are available in the global scope.
@@ -192,12 +230,9 @@ describe("Token contract", function () {
     // Get the Signers here.
     const [owner, addr1, addr2] = await ethers.getSigners();
 
-    // To deploy our contract, we just have to call ethers.deployContract and await
-    // its waitForDeployment() method, which happens once its transaction has been
-    // mined.
-    const hardhatToken = await ethers.deployContract("Token");
-
-    await hardhatToken.waitForDeployment();
+    // To deploy our contract, we just have to call ignition.deploy with our
+    // imported Hardhat Ignition module.
+    const { hardhatToken } = await ignition.deploy(TokenModule);
 
     // Fixtures can return anything you consider useful for your tests
     return { hardhatToken, owner, addr1, addr2 };
