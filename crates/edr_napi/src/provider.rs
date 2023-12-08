@@ -104,7 +104,8 @@ impl InspectorCallback {
 
 impl InspectorCallbacks for InspectorCallback {
     fn console(&self, call_input: Bytes) {
-        // TODO do we want this async?
+        // This is blocking because it's important that the console log messages are
+        // passed on in the order they're received.
         self.console_log_callback
             .call(call_input, ThreadsafeFunctionCallMode::Blocking);
     }
