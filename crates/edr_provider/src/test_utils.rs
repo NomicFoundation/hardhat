@@ -41,15 +41,16 @@ pub fn create_test_config_with_impersonated_accounts_and_fork(
         })
         .collect();
 
-    let mut fork = None;
-    if forked {
-        fork = Some(ForkConfig {
+    let fork = if forked {
+        Some(ForkConfig {
             json_rpc_url: get_alchemy_url(),
             // Random recent block for better cache consistency
             block_number: Some(18_725_000),
             http_headers: None,
         });
-    }
+    } else {
+        None
+    };
 
     ProviderConfig {
         allow_blocks_with_same_timestamp: false,
