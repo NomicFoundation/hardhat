@@ -107,7 +107,7 @@ pub trait InspectorCallbacks {
 
 pub trait SendInspectorCallbacks: InspectorCallbacks + Debug + Send + Sync {}
 
-impl<I> SendInspectorCallbacks for I where I: InspectorCallbacks + Debug + Send + Sync {}
+impl<T> SendInspectorCallbacks for T where T: InspectorCallbacks + Debug + Send + Sync {}
 
 impl ProviderData {
     pub async fn new(
@@ -1426,7 +1426,10 @@ impl<DatabaseErrorT> Inspector<DatabaseErrorT> for EvmInspector {
 #[cfg(test)]
 mod tests {
     use anyhow::Context;
-    use edr_eth::transaction::{Eip155TransactionRequest, TransactionKind, TransactionRequest};
+    use edr_eth::transaction::{
+        Eip1559TransactionRequest, Eip155TransactionRequest, TransactionKind, TransactionRequest,
+    };
+    use edr_evm::hex;
     use parking_lot::Mutex;
     use tempfile::TempDir;
 
@@ -1469,8 +1472,78 @@ mod tests {
             })
         }
 
-        fn callbacks(&self) -> Vec<Bytes> {
-            self.callbacks.calls.lock().clone()
+        fn console_log_calls(&self) -> Vec<Bytes> {
+            self.callbacks.console_log_calls.lock().clone()
+        }
+
+        fn deploy_console_log_contract(&mut self) -> anyhow::Result<ConsoleLogTransaction> {
+            // Compiled with solc 0.8.17, without optimizations
+            /*
+            // SPDX-License-Identifier: MIT
+            pragma solidity ^0.8.0;
+
+            import "hardhat/console.sol";
+
+            contract Foo {
+              function f() public pure {
+                console.log("hello");
+              }
+            }
+            */
+            let byte_code = hex::decode("608060405234801561001057600080fd5b5061027a806100206000396000f3fe608060405234801561001057600080fd5b506004361061002b5760003560e01c806326121ff014610030575b600080fd5b61003861003a565b005b6100786040518060400160405280600581526020017f68656c6c6f00000000000000000000000000000000000000000000000000000081525061007a565b565b6101108160405160240161008e91906101f3565b6040516020818303038152906040527f41304fac000000000000000000000000000000000000000000000000000000007bffffffffffffffffffffffffffffffffffffffffffffffffffffffff19166020820180517bffffffffffffffffffffffffffffffffffffffffffffffffffffffff8381831617835250505050610113565b50565b61012a8161012261012d61014e565b63ffffffff16565b50565b60006a636f6e736f6c652e6c6f679050600080835160208501845afa505050565b610159819050919050565b610161610215565b565b600081519050919050565b600082825260208201905092915050565b60005b8381101561019d578082015181840152602081019050610182565b60008484015250505050565b6000601f19601f8301169050919050565b60006101c582610163565b6101cf818561016e565b93506101df81856020860161017f565b6101e8816101a9565b840191505092915050565b6000602082019050818103600083015261020d81846101ba565b905092915050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052605160045260246000fdfea26469706673582212201e965281cb15cf946ada70867e2acb07debad82404e574500944a7b3e0b799ac64736f6c63430008110033")?;
+
+            let deploy_tx = TransactionRequest::Eip1559(Eip1559TransactionRequest {
+                kind: TransactionKind::Create,
+                gas_limit: 10_000_000,
+                value: U256::ZERO,
+                input: byte_code.into(),
+                nonce: 0,
+                max_priority_fee_per_gas: U256::from(42_000_000_000_u64),
+                chain_id: 1,
+                max_fee_per_gas: U256::from(42_000_000_000_u64),
+                access_list: vec![],
+            });
+
+            let deploy_tx_hash =
+                self.provider_data
+                    .send_transaction(TransactionRequestAndSender {
+                        request: deploy_tx,
+                        sender: self.first_local_account(),
+                    })?;
+
+            let deploy_receipt = self
+                .provider_data
+                .transaction_receipt(&deploy_tx_hash)?
+                .context("deploy receipt should exist")?;
+            let contract_address = deploy_receipt
+                .contract_address
+                .context("contract address should exist")?;
+
+            // Call f()
+            let call_data = hex::decode("26121ff0")?;
+
+            // Expected call data for `console.log("hello")`
+            let expected_call_data = hex::decode("41304fac0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000568656c6c6f000000000000000000000000000000000000000000000000000000")?.into();
+
+            let transaction_request = TransactionRequest::Eip1559(Eip1559TransactionRequest {
+                kind: TransactionKind::Call(contract_address),
+                gas_limit: 10_000_000,
+                value: U256::ZERO,
+                input: call_data.into(),
+                nonce: 1,
+                max_priority_fee_per_gas: U256::from(42_000_000_000_u64),
+                chain_id: 1,
+                max_fee_per_gas: U256::from(42_000_000_000_u64),
+                access_list: vec![],
+            });
+
+            Ok(ConsoleLogTransaction {
+                transaction: TransactionRequestAndSender {
+                    request: transaction_request,
+                    sender: self.first_local_account(),
+                },
+                expected_call_data,
+            })
         }
 
         fn dummy_transaction_request(&self, nonce: Option<u64>) -> TransactionRequestAndSender {
@@ -1484,19 +1557,19 @@ mod tests {
                 chain_id: 1,
             });
 
-            let sender = *self
+            TransactionRequestAndSender {
+                request,
+                sender: self.first_local_account(),
+            }
+        }
+
+        fn first_local_account(&self) -> Address {
+            *self
                 .provider_data
                 .local_accounts
                 .keys()
                 .next()
-                .expect("there are local accounts");
-
-            TransactionRequestAndSender { request, sender }
-        }
-
-        fn signed_dummy_transaction(&self) -> anyhow::Result<PendingTransaction> {
-            let transaction = self.dummy_transaction_request(None);
-            Ok(self.provider_data.sign_transaction_request(transaction)?)
+                .expect("there are local accounts")
         }
 
         fn impersonated_dummy_transaction(&self) -> anyhow::Result<PendingTransaction> {
@@ -1505,16 +1578,26 @@ mod tests {
 
             Ok(self.provider_data.sign_transaction_request(transaction)?)
         }
+
+        fn signed_dummy_transaction(&self) -> anyhow::Result<PendingTransaction> {
+            let transaction = self.dummy_transaction_request(None);
+            Ok(self.provider_data.sign_transaction_request(transaction)?)
+        }
+    }
+
+    struct ConsoleLogTransaction {
+        transaction: TransactionRequestAndSender,
+        expected_call_data: Bytes,
     }
 
     #[derive(Debug, Default)]
     struct InspectorCallbacksStub {
-        calls: Mutex<Vec<Bytes>>,
+        console_log_calls: Mutex<Vec<Bytes>>,
     }
 
     impl InspectorCallbacks for InspectorCallbacksStub {
         fn console(&self, call_input: Bytes) {
-            self.calls.lock().push(call_input);
+            self.console_log_calls.lock().push(call_input);
         }
     }
 
@@ -1654,18 +1737,51 @@ mod tests {
         Ok(())
     }
 
-    // TODO change this to deploy a contract with console.log
     #[tokio::test]
     async fn console_log_mine_block() -> anyhow::Result<()> {
         let mut fixture = ProviderTestFixture::new().await?;
+        let ConsoleLogTransaction {
+            transaction,
+            expected_call_data,
+        } = fixture.deploy_console_log_contract()?;
 
-        let transaction = fixture.signed_dummy_transaction()?;
-        let _transaction_hash = fixture.provider_data.add_pending_transaction(transaction)?;
-        let block = fixture.provider_data.mine_pending_block()?;
+        assert_eq!(fixture.console_log_calls().len(), 0);
 
-        assert_ne!(block.transaction_results.len(), 0);
-        assert_ne!(block.transaction_traces.len(), 0);
-        assert_eq!(fixture.callbacks().len(), 0);
+        fixture.provider_data.set_auto_mining(false);
+        fixture.provider_data.send_transaction(transaction)?;
+        let (block_timestamp, _) = fixture.provider_data.next_block_timestamp(None)?;
+        let prevrandao = fixture.provider_data.prev_randao_generator.next_value();
+        fixture
+            .provider_data
+            .mine_block(block_timestamp, Some(prevrandao))?;
+
+        let console_log_calls = fixture.console_log_calls();
+        assert_eq!(console_log_calls.len(), 1);
+        assert_eq!(console_log_calls[0], expected_call_data);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn console_log_run_call() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new().await?;
+        let ConsoleLogTransaction {
+            transaction,
+            expected_call_data,
+        } = fixture.deploy_console_log_contract()?;
+
+        assert_eq!(fixture.console_log_calls().len(), 0);
+
+        let pending_transaction = fixture
+            .provider_data
+            .sign_transaction_request(transaction)?;
+        fixture
+            .provider_data
+            .run_call(pending_transaction, None, &StateOverrides::default())?;
+
+        let console_log_calls = fixture.console_log_calls();
+        assert_eq!(console_log_calls.len(), 1);
+        assert_eq!(console_log_calls[0], expected_call_data);
 
         Ok(())
     }
