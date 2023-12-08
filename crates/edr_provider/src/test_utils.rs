@@ -47,7 +47,7 @@ pub fn create_test_config_with_impersonated_accounts_and_fork(
             // Random recent block for better cache consistency
             block_number: Some(18_725_000),
             http_headers: None,
-        });
+        })
     } else {
         None
     };
