@@ -28,6 +28,7 @@ import {
 import { isErrorResponse } from "../../core/providers/http";
 import { getHardforkName } from "../../util/hardforks";
 import { Mutex } from "../../vendor/await-semaphore";
+import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/constants";
 
 import { MiningTimer } from "./MiningTimer";
@@ -454,7 +455,11 @@ class EdrProviderWrapper extends EventEmitter implements EIP1193Provider {
           },
         },
       },
-      (message: Buffer) => console.log("console.log callback", message)
+      (message: Buffer) => {
+        const consoleLogger = new ConsoleLogger();
+
+        consoleLogger.log(message);
+      }
     );
 
     return new EdrProviderWrapper(provider);
