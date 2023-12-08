@@ -5,6 +5,8 @@ use edr_eth::{
     SpecId, U256,
 };
 use edr_evm::KECCAK_EMPTY;
+use edr_test_utils::env::get_alchemy_url;
+use rpc_hardhat::config::ForkConfig;
 
 use super::*;
 use crate::config::MiningConfig;
@@ -14,16 +16,17 @@ pub const TEST_SECRET_KEY: &str =
 
 /// Constructs a test config with a single account with 1 ether
 pub fn create_test_config(cache_dir: PathBuf) -> ProviderConfig {
-    create_test_config_with_impersonated_accounts(cache_dir, vec![])
+    create_test_config_with_impersonated_accounts_and_fork(cache_dir, vec![], false)
 }
 
-fn one_ether() -> U256 {
+pub fn one_ether() -> U256 {
     U256::from(10).pow(U256::from(18))
 }
 
-pub fn create_test_config_with_impersonated_accounts(
+pub fn create_test_config_with_impersonated_accounts_and_fork(
     cache_dir: PathBuf,
     impersonated_accounts: Vec<Address>,
+    forked: bool,
 ) -> ProviderConfig {
     let genesis_accounts = impersonated_accounts
         .into_iter()
@@ -38,12 +41,23 @@ pub fn create_test_config_with_impersonated_accounts(
         })
         .collect();
 
+    let fork = if forked {
+        Some(ForkConfig {
+            json_rpc_url: get_alchemy_url(),
+            // Random recent block for better cache consistency
+            block_number: Some(18_725_000),
+            http_headers: None,
+        })
+    } else {
+        None
+    };
+
     ProviderConfig {
         allow_blocks_with_same_timestamp: false,
         allow_unlimited_contract_size: false,
         bail_on_call_failure: false,
         bail_on_transaction_failure: false,
-        fork: None,
+        fork,
         accounts: vec![AccountConfig {
             secret_key: secret_key_from_str(TEST_SECRET_KEY)
                 .expect("should construct secret key from string"),

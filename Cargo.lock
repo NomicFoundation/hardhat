@@ -1041,6 +1041,7 @@ dependencies = [
  "edr_eth",
  "edr_evm",
  "edr_rpc_hardhat",
+ "edr_test_utils",
  "indexmap 2.0.2",
  "k256",
  "log",

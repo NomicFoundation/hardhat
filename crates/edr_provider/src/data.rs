@@ -109,8 +109,9 @@ impl ProviderData {
 
         let BlockchainAndState {
             blockchain,
-            state,
             fork_metadata,
+            state,
+            irregular_state,
         } = create_blockchain_and_state(runtime, config, genesis_accounts).await?;
 
         let prev_randao_generator = RandomHashGenerator::with_seed("randomMixHashSeed");
@@ -118,7 +119,7 @@ impl ProviderData {
         Ok(Self {
             blockchain,
             state,
-            irregular_state: IrregularState::default(),
+            irregular_state,
             mem_pool: MemPool::new(config.block_gas_limit),
             network_id: config.network_id,
             beneficiary: config.coinbase,
@@ -1229,6 +1230,7 @@ struct BlockchainAndState {
     blockchain: Box<dyn SyncBlockchain<BlockchainError, StateError>>,
     fork_metadata: Option<ForkMetadata>,
     state: Box<dyn SyncState<StateError>>,
+    irregular_state: IrregularState,
 }
 
 async fn create_blockchain_and_state(
@@ -1302,7 +1304,6 @@ async fn create_blockchain_and_state(
             .expect("Fork state must exist");
 
         Ok(BlockchainAndState {
-            state: Box::new(state),
             fork_metadata: Some(ForkMetadata {
                 chain_id: blockchain.chain_id(),
                 fork_block_number,
@@ -1313,6 +1314,8 @@ async fn create_blockchain_and_state(
                     .hash(),
             }),
             blockchain: Box::new(blockchain),
+            state: Box::new(state),
+            irregular_state,
         })
     } else {
         let blockchain = LocalBlockchain::new(
@@ -1336,9 +1339,10 @@ async fn create_blockchain_and_state(
             .expect("Genesis state must exist");
 
         Ok(BlockchainAndState {
-            state,
             fork_metadata: None,
             blockchain: Box::new(blockchain),
+            state,
+            irregular_state,
         })
     }
 }
@@ -1375,7 +1379,10 @@ mod tests {
     use tempfile::TempDir;
 
     use super::*;
-    use crate::{test_utils::create_test_config_with_impersonated_accounts, ProviderConfig};
+    use crate::{
+        test_utils::{create_test_config_with_impersonated_accounts_and_fork, one_ether},
+        ProviderConfig,
+    };
 
     struct ProviderTestFixture {
         // We need to keep the tempdir alive for the duration of the test
@@ -1387,12 +1394,21 @@ mod tests {
 
     impl ProviderTestFixture {
         pub(crate) async fn new() -> anyhow::Result<Self> {
+            Self::new_with_config(false).await
+        }
+
+        pub(crate) async fn new_forked() -> anyhow::Result<Self> {
+            Self::new_with_config(true).await
+        }
+
+        async fn new_with_config(forked: bool) -> anyhow::Result<Self> {
             let cache_dir = TempDir::new()?;
 
             let impersonated_account = Address::random();
-            let config = create_test_config_with_impersonated_accounts(
+            let config = create_test_config_with_impersonated_accounts_and_fork(
                 cache_dir.path().to_path_buf(),
                 vec![impersonated_account],
+                forked,
             );
 
             let runtime = runtime::Handle::try_current()?;
@@ -1441,6 +1457,48 @@ mod tests {
 
             Ok(self.provider_data.sign_transaction_request(transaction)?)
         }
+    }
+
+    #[tokio::test]
+    async fn test_local_account_balance() -> anyhow::Result<()> {
+        let fixture = ProviderTestFixture::new().await?;
+
+        let account = *fixture
+            .provider_data
+            .local_accounts
+            .keys()
+            .next()
+            .expect("there are local accounts");
+
+        let last_block_number = fixture.provider_data.last_block_number();
+        let block_spec = BlockSpec::Number(last_block_number);
+
+        let balance = fixture.provider_data.balance(account, Some(&block_spec))?;
+
+        assert_eq!(balance, one_ether());
+
+        Ok(())
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
+    async fn test_local_account_balance_forked() -> anyhow::Result<()> {
+        let fixture = ProviderTestFixture::new_forked().await?;
+
+        let account = *fixture
+            .provider_data
+            .local_accounts
+            .keys()
+            .next()
+            .expect("there are local accounts");
+
+        let last_block_number = fixture.provider_data.last_block_number();
+        let block_spec = BlockSpec::Number(last_block_number);
+
+        let balance = fixture.provider_data.balance(account, Some(&block_spec))?;
+
+        assert_eq!(balance, one_ether());
+
+        Ok(())
     }
 
     #[tokio::test]
