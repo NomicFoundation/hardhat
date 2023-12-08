@@ -88,6 +88,22 @@ pub enum MinerTransactionError<SE> {
         /// The transaction gas limit
         transaction_gas_limit: u64,
     },
+    /// Sender does not have enough funds to send transaction.
+    #[error("Sender doesn't have enough funds to send tx. The max upfront cost is: {max_upfront_cost} and the sender's balance is: {sender_balance}.")]
+    InsufficientFunds {
+        /// The maximum upfront cost of the transaction
+        max_upfront_cost: U256,
+        /// The sender's balance
+        sender_balance: U256,
+    },
+    /// Transaction nonce is too low.
+    #[error("Transaction nonce too low. Expected nonce to be at least {sender_nonce} but got {transaction_nonce}.")]
+    NonceTooLow {
+        /// Transaction's nonce.
+        transaction_nonce: u64,
+        /// Sender's nonce.
+        sender_nonce: u64,
+    },
     /// Transaction already exists in the mempool.
     #[error("Known transaction: 0x{transaction_hash:x}")]
     TransactionAlreadyExists {
@@ -254,6 +270,23 @@ impl MemPool {
         if self.hash_to_transaction.contains_key(transaction.hash()) {
             return Err(MinerTransactionError::TransactionAlreadyExists {
                 transaction_hash: *transaction.hash(),
+            });
+        }
+
+        let sender = state.basic(*transaction.caller())?.unwrap_or_default();
+        if transaction.nonce() < sender.nonce {
+            return Err(MinerTransactionError::NonceTooLow {
+                transaction_nonce: transaction.nonce(),
+                sender_nonce: sender.nonce,
+            });
+        }
+
+        // We need to validate funds at this stage to avoid DOS
+        let max_upfront_cost = transaction.transaction().upfront_cost();
+        if max_upfront_cost > sender.balance {
+            return Err(MinerTransactionError::InsufficientFunds {
+                max_upfront_cost,
+                sender_balance: sender.balance,
             });
         }
 

@@ -44,7 +44,10 @@ pub enum Eip1898BlockSpec {
 
 impl Display for Eip1898BlockSpec {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> Result<(), fmt::Error> {
-        formatter.write_str(&serde_json::to_string(self).map_err(|_error| fmt::Error)?)
+        match self {
+            Eip1898BlockSpec::Hash { block_hash, .. } => block_hash.fmt(formatter),
+            Eip1898BlockSpec::Number { block_number } => block_number.fmt(formatter),
+        }
     }
 }
 

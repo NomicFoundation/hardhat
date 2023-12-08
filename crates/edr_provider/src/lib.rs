@@ -4,6 +4,7 @@ mod error;
 mod filter;
 mod interval;
 mod logger;
+mod pending;
 mod requests;
 mod snapshot;
 /// Test utilities
