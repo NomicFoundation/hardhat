@@ -33,8 +33,7 @@ use edr_evm::{
     },
     Account, AccountInfo, BlobExcessGasAndPrice, Block, BlockEnv, Bytecode, CfgEnv,
     ExecutionResult, HashMap, HashSet, MemPool, MineBlockResult, MineBlockResultAndState,
-    MineOrdering, PendingTransaction, RandomHashGenerator, StorageSlot, SyncBlock,
-    TransactionCreationError, KECCAK_EMPTY,
+    MineOrdering, PendingTransaction, RandomHashGenerator, StorageSlot, SyncBlock, KECCAK_EMPTY,
 };
 use indexmap::IndexMap;
 use rpc_hardhat::ForkMetadata;
@@ -42,8 +41,8 @@ use tokio::runtime;
 
 use self::account::{create_accounts, InitialAccounts};
 use crate::{
-    error::TransactionFailure, filter::Filter, logger::Logger, snapshot::Snapshot, ProviderConfig,
-    ProviderError,
+    error::TransactionFailure, filter::Filter, logger::Logger, pending::BlockchainWithPending,
+    snapshot::Snapshot, ProviderConfig, ProviderError,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -168,7 +167,7 @@ impl ProviderData {
     ) -> Result<U256, ProviderError> {
         self.execute_in_block_context::<Result<U256, ProviderError>>(
             block_spec,
-            move |_block, state| {
+            move |_blockchain, _block, state| {
                 Ok(state
                     .basic(address)?
                     .map_or(U256::ZERO, |account| account.balance))
@@ -221,7 +220,10 @@ impl ProviderData {
             BlockSpec::Number(block_number) => Some(
                 self.blockchain
                     .block_by_number(*block_number)?
-                    .ok_or_else(|| ProviderError::InvalidBlockNumberOrHash(block_spec.clone()))?,
+                    .ok_or_else(|| ProviderError::InvalidBlockNumberOrHash {
+                        block_spec: block_spec.clone(),
+                        latest_block_number: self.blockchain.last_block_number(),
+                    })?,
             ),
             BlockSpec::Tag(BlockTag::Earliest) => Some(
                 self.blockchain
@@ -245,15 +247,19 @@ impl ProviderData {
             BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
                 block_hash,
                 require_canonical: _,
-            }) => Some(
-                self.blockchain
-                    .block_by_hash(block_hash)?
-                    .ok_or_else(|| ProviderError::InvalidBlockNumberOrHash(block_spec.clone()))?,
-            ),
+            }) => Some(self.blockchain.block_by_hash(block_hash)?.ok_or_else(|| {
+                ProviderError::InvalidBlockNumberOrHash {
+                    block_spec: block_spec.clone(),
+                    latest_block_number: self.blockchain.last_block_number(),
+                }
+            })?),
             BlockSpec::Eip1898(Eip1898BlockSpec::Number { block_number }) => Some(
                 self.blockchain
                     .block_by_number(*block_number)?
-                    .ok_or_else(|| ProviderError::InvalidBlockNumberOrHash(block_spec.clone()))?,
+                    .ok_or_else(|| ProviderError::InvalidBlockNumberOrHash {
+                        block_spec: block_spec.clone(),
+                        latest_block_number: self.blockchain.last_block_number(),
+                    })?,
             ),
         };
 
@@ -282,7 +288,7 @@ impl ProviderData {
         address: Address,
         block_spec: Option<&BlockSpec>,
     ) -> Result<Bytes, ProviderError> {
-        self.execute_in_block_context(block_spec, move |_block, state| {
+        self.execute_in_block_context(block_spec, move |_blockchain, _block, state| {
             let code = state
                 .basic(address)?
                 .map_or(Ok(Bytes::new()), |account_info| {
@@ -327,7 +333,7 @@ impl ProviderData {
     ) -> Result<U256, ProviderError> {
         self.execute_in_block_context::<Result<U256, ProviderError>>(
             block_spec,
-            move |_block, state| Ok(state.storage(address, index)?),
+            move |_blockchain, _block, state| Ok(state.storage(address, index)?),
         )?
     }
 
@@ -338,7 +344,7 @@ impl ProviderData {
     ) -> Result<u64, ProviderError> {
         self.execute_in_block_context::<Result<u64, ProviderError>>(
             block_spec,
-            move |_block, state| {
+            move |_blockchain, _block, state| {
                 let nonce = state
                     .basic(address)?
                     .map_or(0, |account_info| account_info.nonce);
@@ -502,6 +508,36 @@ impl ProviderData {
         }
     }
 
+    pub fn nonce(
+        &self,
+        address: &Address,
+        block_spec: Option<&BlockSpec>,
+        state_overrides: &StateOverrides,
+    ) -> Result<u64, ProviderError> {
+        state_overrides
+            .account_override(address)
+            .and_then(|account_override| account_override.nonce)
+            .map_or_else(
+                || {
+                    if matches!(block_spec, Some(BlockSpec::Tag(BlockTag::Pending))) {
+                        self.account_next_nonce(address)
+                            .map_err(ProviderError::State)
+                    } else {
+                        self.execute_in_block_context(
+                            block_spec,
+                            move |_blockchain, _block, state| {
+                                let nonce =
+                                    state.basic(*address)?.map_or(0, |account| account.nonce);
+
+                                Ok(nonce)
+                            },
+                        )?
+                    }
+                },
+                Ok,
+            )
+    }
+
     pub fn pending_transactions(&self) -> impl Iterator<Item = &PendingTransaction> {
         self.mem_pool.transactions()
     }
@@ -564,9 +600,10 @@ impl ProviderData {
         state_overrides: &StateOverrides,
     ) -> Result<Bytes, ProviderError> {
         let cfg = self.create_evm_config();
+        let transaction_hash = *transaction.hash();
         let transaction = transaction.into();
 
-        self.execute_in_block_context(block_spec, |block, state| {
+        self.execute_in_block_context(block_spec, |blockchain, block, state| {
             let header = block.header();
             let block = BlockEnv {
                 number: U256::from(header.number),
@@ -587,7 +624,7 @@ impl ProviderData {
             };
 
             let result = guaranteed_dry_run(
-                &*self.blockchain,
+                blockchain,
                 &state,
                 state_overrides,
                 cfg,
@@ -597,12 +634,16 @@ impl ProviderData {
             )
             .map_err(ProviderError::RunTransaction)?;
 
-            Ok(result.result.into_output().unwrap_or_default())
+            match result.result {
+                ExecutionResult::Success { output, .. } => Ok(output.into_data()),
+                ExecutionResult::Revert { output, .. } => {
+                    Err(TransactionFailure::revert(output, transaction_hash).into())
+                }
+                ExecutionResult::Halt { reason, .. } => {
+                    Err(TransactionFailure::halt(reason, transaction_hash).into())
+                }
+            }
         })?
-    }
-
-    pub fn state(&self) -> &dyn StateRef<Error = StateError> {
-        &self.state
     }
 
     pub fn transaction_receipt(
@@ -624,21 +665,22 @@ impl ProviderData {
         Ok(())
     }
 
+    // TransactionCreationError::NonceTooLow {
+    //     transaction_nonce, ..
+    // } => ProviderError::AutoMineNonceTooLow {
+    //     expected: next_nonce,
+    //     actual: transaction_nonce,
+    // }
+
     pub fn send_transaction(
         &mut self,
         transaction_request: TransactionRequestAndSender,
     ) -> Result<B256, ProviderError> {
-        let signed_transaction = if self.is_auto_mining {
-            let sender = transaction_request.sender;
-            self.validate_auto_mine_transaction(
-                self.sign_transaction_request(transaction_request),
-                &sender,
-            )
-        } else {
-            self.sign_transaction_request(transaction_request)
-        }?;
+        let signed_transaction = self.sign_transaction_request(transaction_request)?;
 
         let snapshot_id = if self.is_auto_mining {
+            self.validate_auto_mine_transaction(&signed_transaction)?;
+
             Some(self.make_snapshot())
         } else {
             None
@@ -707,7 +749,7 @@ impl ProviderData {
         let signed_transaction: SignedTransaction = rlp::decode(raw_transaction)?;
 
         let pending_transaction =
-            PendingTransaction::new(&self.state, self.blockchain.spec_id(), signed_transaction)?;
+            PendingTransaction::new(self.blockchain.spec_id(), signed_transaction)?;
 
         self.add_pending_transaction(pending_transaction)
     }
@@ -979,14 +1021,37 @@ impl ProviderData {
         &self,
         block_spec: Option<&BlockSpec>,
         function: impl FnOnce(
+            &dyn SyncBlockchain<BlockchainError, StateError>,
             Arc<dyn SyncBlock<Error = BlockchainError>>,
             Box<dyn SyncState<StateError>>,
         ) -> T,
     ) -> Result<T, ProviderError> {
-        let context = self.context_by_block_spec(block_spec)?;
+        let (context, blockchain) = if let Some(context) = self.context_by_block_spec(block_spec)? {
+            (context, None)
+        } else {
+            let result = self.mine_pending_block()?;
+
+            let blockchain =
+                BlockchainWithPending::new(&*self.blockchain, result.block, result.state_diff);
+
+            let block = blockchain
+                .last_block()
+                .expect("The pending block is the last block");
+
+            let context = BlockContext {
+                block,
+                state: result.state,
+            };
+
+            (context, Some(blockchain))
+        };
+
+        let blockchain = blockchain
+            .as_ref()
+            .map_or(&*self.blockchain, |blockchain| blockchain);
 
         // Execute function in the requested block context.
-        let result = function(context.block, context.state);
+        let result = function(blockchain, context.block, context.state);
 
         Ok(result)
     }
@@ -1095,7 +1160,6 @@ impl ProviderData {
             let signed_transaction = request.fake_sign(&sender);
 
             Ok(PendingTransaction::with_caller(
-                &*self.state,
                 self.blockchain.spec_id(),
                 signed_transaction,
                 sender,
@@ -1108,7 +1172,6 @@ impl ProviderData {
 
             let signed_transaction = request.sign(secret_key)?;
             Ok(PendingTransaction::new(
-                &*self.state,
                 self.blockchain.spec_id(),
                 signed_transaction,
             )?)
@@ -1118,17 +1181,13 @@ impl ProviderData {
     fn context_by_block_spec(
         &self,
         block_spec: Option<&BlockSpec>,
-    ) -> Result<BlockContext, ProviderError> {
+    ) -> Result<Option<BlockContext>, ProviderError> {
         let block = if let Some(block_spec) = block_spec {
             if let Some(block) = self.block_by_block_spec(block_spec)? {
                 block
             } else {
                 // Block spec is pending
-                let result = self.mine_pending_block()?;
-                return Ok(BlockContext {
-                    block: Arc::new(result.block),
-                    state: result.state,
-                });
+                return Ok(None);
             }
         } else {
             self.blockchain.last_block()?
@@ -1140,31 +1199,17 @@ impl ProviderData {
             .blockchain
             .state_at_block_number(block_header.number, self.irregular_state.state_overrides())?;
 
-        Ok(BlockContext {
+        Ok(Some(BlockContext {
             block,
             state: contextual_state,
-        })
+        }))
     }
 
     fn validate_auto_mine_transaction(
         &self,
-        transaction_result: Result<PendingTransaction, ProviderError>,
-        caller: &Address,
-    ) -> Result<PendingTransaction, ProviderError> {
-        let next_nonce = self.account_next_nonce(caller)?;
-
-        let transaction = transaction_result.map_err(|error| match error {
-            ProviderError::TransactionCreationError(tx_creation_error) => match tx_creation_error {
-                TransactionCreationError::NonceTooLow {
-                    transaction_nonce, ..
-                } => ProviderError::AutoMineNonceTooLow {
-                    expected: next_nonce,
-                    actual: transaction_nonce,
-                },
-                _ => ProviderError::TransactionCreationError(tx_creation_error),
-            },
-            _ => error,
-        })?;
+        transaction: &PendingTransaction,
+    ) -> Result<(), ProviderError> {
+        let next_nonce = self.account_next_nonce(transaction.caller())?;
 
         match transaction.nonce().cmp(&next_nonce) {
             Ordering::Less => {
@@ -1213,7 +1258,7 @@ impl ProviderData {
             }
         }
 
-        Ok(transaction)
+        Ok(())
     }
 }
 

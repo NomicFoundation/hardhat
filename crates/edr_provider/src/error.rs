@@ -40,8 +40,13 @@ pub enum ProviderError {
     #[error(transparent)]
     Blockchain(#[from] BlockchainError),
     /// Block number or hash doesn't exist in blockchain
-    #[error("Block number or block hash doesn't exist: '{0}'")]
-    InvalidBlockNumberOrHash(BlockSpec),
+    #[error(
+        "Received invalid block tag {block_spec}. Latest block number is {latest_block_number}"
+    )]
+    InvalidBlockNumberOrHash {
+        block_spec: BlockSpec,
+        latest_block_number: u64,
+    },
     /// The block tag is not allowed in pre-merge hardforks.
     /// https://github.com/NomicFoundation/hardhat/blob/b84baf2d9f5d3ea897c06e0ecd5e7084780d8b6c/packages/hardhat-core/src/internal/hardhat-network/provider/modules/eth.ts#L1820
     #[error("The '{block_spec}' block tag is not allowed in pre-merge hardforks. You are using the '{spec:?}' hardfork.")]
@@ -104,7 +109,7 @@ pub enum ProviderError {
     TimestampEqualsPrevious { proposed: u64 },
     /// An error occurred while creating a pending transaction.
     #[error(transparent)]
-    TransactionCreationError(#[from] TransactionCreationError<StateError>),
+    TransactionCreationError(#[from] TransactionCreationError),
     /// `eth_sendTransaction` failed and
     /// [`ProviderConfig::bail_on_call_failure`] was enabled
     #[error(transparent)]
@@ -134,7 +139,7 @@ impl From<ProviderError> for jsonrpc::Error {
             ProviderError::AutoMineNonceTooLow { .. } => (-32000, None),
             ProviderError::AutoMinePriorityFeeTooLow { .. } => (-32000, None),
             ProviderError::Blockchain(_) => (-32000, None),
-            ProviderError::InvalidBlockNumberOrHash(_) => (-32000, None),
+            ProviderError::InvalidBlockNumberOrHash { .. } => (-32000, None),
             ProviderError::InvalidBlockTag { .. } => (-32000, None),
             ProviderError::InvalidChainId { .. } => (-32000, None),
             ProviderError::InvalidFilterSubscriptionType { .. } => (-32000, None),

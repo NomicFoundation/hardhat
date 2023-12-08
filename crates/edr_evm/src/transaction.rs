@@ -50,18 +50,10 @@ where
 
 /// An error that occurred while trying to construct a [`PendingTransaction`].
 #[derive(Debug, thiserror::Error)]
-pub enum TransactionCreationError<SE> {
+pub enum TransactionCreationError {
     /// Creating contract without any data.
     #[error("Contract creation without any data provided")]
     ContractMissingData,
-    /// Sender does not have enough funds to send transaction.
-    #[error("Sender doesn't have enough funds to send tx. The max upfront cost is: {max_upfront_cost} and the sender's balance is: {sender_balance}.")]
-    InsufficientFunds {
-        /// The maximum upfront cost of the transaction
-        max_upfront_cost: U256,
-        /// The sender's balance
-        sender_balance: U256,
-    },
     /// Transaction gas limit is insufficient to afford initial gas cost.
     #[error("Transaction requires at least {initial_gas_cost} gas but got {gas_limit}")]
     InsufficientGas {
@@ -70,18 +62,7 @@ pub enum TransactionCreationError<SE> {
         /// The gas limit of the transaction
         gas_limit: U256,
     },
-    /// Transaction nonce is too low.
-    #[error("Transaction nonce too low. Expected nonce to be at least {sender_nonce} but got {transaction_nonce}.")]
-    NonceTooLow {
-        /// Transaction's nonce.
-        transaction_nonce: u64,
-        /// Sender's nonce.
-        sender_nonce: u64,
-    },
     /// An error involving the transaction's signature.
     #[error(transparent)]
     Signature(SignatureError),
-    /// State error.
-    #[error(transparent)]
-    State(#[from] SE),
 }

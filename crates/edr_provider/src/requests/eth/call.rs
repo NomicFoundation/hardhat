@@ -4,13 +4,9 @@ use edr_eth::{
     transaction::{Eip1559TransactionRequest, Eip155TransactionRequest, TransactionRequest},
     Bytes, SpecId, U256,
 };
-use edr_evm::{
-    db::StateRef,
-    state::{StateOverrides, StateRefOverrider},
-    PendingTransaction,
-};
+use edr_evm::{state::StateOverrides, PendingTransaction};
 
-use crate::{data::ProviderData, ProviderError};
+use crate::{data::ProviderData, requests::validation::validate_transaction_spec, ProviderError};
 
 pub fn handle_call_request(
     data: &ProviderData,
@@ -18,13 +14,12 @@ pub fn handle_call_request(
     block_spec: Option<BlockSpec>,
     state_overrides: Option<StateOverrideOptions>,
 ) -> Result<ZeroXPrefixedBytes, ProviderError> {
-    // Does validation need overriden state?
-    validate_call_request(&request)?;
+    validate_call_request(data, &request)?;
 
     let state_overrides =
         state_overrides.map_or(Ok(StateOverrides::default()), StateOverrides::try_from)?;
 
-    let transaction = resolve_call_request(data, request, &state_overrides)?;
+    let transaction = resolve_call_request(data, request, block_spec.as_ref(), &state_overrides)?;
     data.run_call(transaction, block_spec.as_ref(), &state_overrides)
         .map(ZeroXPrefixedBytes::from)
 }
@@ -32,6 +27,7 @@ pub fn handle_call_request(
 fn resolve_call_request(
     data: &ProviderData,
     request: CallRequest,
+    block_spec: Option<&BlockSpec>,
     state_overrides: &StateOverrides,
 ) -> Result<PendingTransaction, ProviderError> {
     let CallRequest {
@@ -48,14 +44,10 @@ fn resolve_call_request(
 
     let chain_id = data.chain_id();
     let from = from.unwrap_or_else(|| data.default_caller());
-    let input = input.map_or(Bytes::new(), Bytes::from);
     let gas_limit = gas.unwrap_or_else(|| data.block_gas_limit());
+    let input = input.map_or(Bytes::new(), Bytes::from);
+    let nonce = data.nonce(&from, block_spec, state_overrides)?;
     let value = value.unwrap_or(U256::ZERO);
-
-    let state_overrider = StateRefOverrider::new(state_overrides, data.state());
-    let nonce = state_overrider
-        .basic(from)?
-        .map_or(0, |account_info| account_info.nonce);
 
     let transaction = if data.spec_id() < SpecId::LONDON || gas_price.is_some() {
         TransactionRequest::Eip155(Eip155TransactionRequest {
@@ -70,7 +62,10 @@ fn resolve_call_request(
         })
     } else {
         // Question: Is there a reason we don't support EIP-2930 calls?
-        let max_fee_per_gas = max_fee_per_gas.unwrap_or(U256::ZERO);
+        let max_fee_per_gas = max_fee_per_gas
+            .or(max_priority_fee_per_gas)
+            .unwrap_or(U256::ZERO);
+
         let max_priority_fee_per_gas = max_priority_fee_per_gas.unwrap_or(U256::ZERO);
 
         TransactionRequest::Eip1559(Eip1559TransactionRequest {
@@ -87,12 +82,10 @@ fn resolve_call_request(
     };
 
     let transaction = transaction.fake_sign(&from);
-    PendingTransaction::with_caller(&state_overrider, data.spec_id(), transaction, from)
+    PendingTransaction::with_caller(data.spec_id(), transaction, from)
         .map_err(ProviderError::TransactionCreationError)
 }
 
-fn validate_call_request(_request: &CallRequest) -> Result<(), ProviderError> {
-    // TODO
-
-    Ok(())
+fn validate_call_request(data: &ProviderData, request: &CallRequest) -> Result<(), ProviderError> {
+    validate_transaction_spec(data.spec_id(), request.into())
 }

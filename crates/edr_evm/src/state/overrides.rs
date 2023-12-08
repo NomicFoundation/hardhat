@@ -80,7 +80,7 @@ impl AccountOverride {
 #[derive(Debug, thiserror::Error)]
 pub enum AccountOverrideConversionError {
     /// Storage override options are mutually exclusive.
-    #[error("The properties `storage` and `storageDiff` cannot be used simultaneously when configuring the state override set passed to the eth_call method.")]
+    #[error("The properties 'state' and 'stateDiff' cannot be used simultaneously when configuring the state override set passed to the eth_call method.")]
     StorageOverrideConflict,
 }
 
@@ -160,6 +160,11 @@ impl StateOverrides {
                 original
             },
         )
+    }
+
+    /// Retrieves the account override for the provided address, if any exists.
+    pub fn account_override(&self, address: &Address) -> Option<&AccountOverride> {
+        self.account_overrides.get(address)
     }
 
     /// Retrieves the storage information for the provided address and index,

@@ -24,7 +24,7 @@ use crate::{
     blockchain::SyncBlockchain,
     evm::{build_evm, run_transaction, SyncInspector},
     state::{AccountModifierFn, StateDiff, SyncState},
-    PendingTransaction, TransactionCreationError,
+    PendingTransaction,
 };
 
 /// An error caused during construction of a block builder.
@@ -44,16 +44,20 @@ pub enum BlockTransactionError<BE, SE> {
     /// Transaction has higher gas limit than is remaining in block
     #[error("Transaction has a higher gas limit than the remaining gas in the block")]
     ExceedsBlockGasLimit,
+    /// Sender does not have enough funds to send transaction.
+    #[error("Sender doesn't have enough funds to send tx. The max upfront cost is: {max_upfront_cost} and the sender's balance is: {sender_balance}.")]
+    InsufficientFunds {
+        /// The maximum upfront cost of the transaction
+        max_upfront_cost: U256,
+        /// The sender's balance
+        sender_balance: U256,
+    },
     /// Corrupt transaction data
     #[error("Invalid transaction: {0:?}")]
     InvalidTransaction(InvalidTransaction),
     /// State errors
     #[error(transparent)]
     State(SE),
-    /// An error that occurred while trying to construct a
-    /// [`PendingTransaction`].
-    #[error(transparent)]
-    TransactionCreation(TransactionCreationError<SE>),
 }
 
 impl<BE, SE> From<EVMError<DatabaseComponentError<SE, BE>>> for BlockTransactionError<BE, SE>
@@ -65,10 +69,10 @@ where
         match error {
             EVMError::Transaction(e) => match e {
                 InvalidTransaction::LackOfFundForMaxFee { fee, balance } => {
-                    Self::TransactionCreation(TransactionCreationError::InsufficientFunds {
+                    Self::InsufficientFunds {
                         max_upfront_cost: U256::from(fee),
                         sender_balance: balance,
-                    })
+                    }
                 }
                 _ => Self::InvalidTransaction(e),
             },

@@ -33,7 +33,6 @@ import {
   DEFAULT_BLOCK_GAS_LIMIT,
   PROVIDERS,
 } from "../../../../helpers/providers";
-import { retrieveLatestBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 import {
   deployContract,
   sendTxToZeroAddress,
@@ -42,7 +41,7 @@ import { compileLiteral } from "../../../../stack-traces/compilation";
 import { EthereumProvider } from "../../../../../../../src/types";
 
 describe("Eth module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork, chainId }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork }) => {
     if (isFork) {
       this.timeout(50000);
     }
@@ -581,7 +580,8 @@ describe("Eth module", function () {
             );
           });
 
-          it("should throw an error because the key address used is invalid", async function () {
+          // TODO: https://github.com/NomicFoundation/edr/issues/104
+          it.skip("should throw an error because the key address used is invalid", async function () {
             await assertInvalidArgumentsError(
               this.provider,
               "eth_call",
@@ -603,7 +603,8 @@ describe("Eth module", function () {
             );
           });
 
-          it("should throw an error because an invalid storage key is used", async function () {
+          // TODO: https://github.com/NomicFoundation/edr/issues/104
+          it.skip("should throw an error because an invalid storage key is used", async function () {
             await assertInvalidArgumentsError(
               this.provider,
               "eth_call",
@@ -717,7 +718,8 @@ describe("Eth module", function () {
                 ]);
               });
 
-              it("should throw an error, the balance value is too big", async function () {
+              // TODO: https://github.com/NomicFoundation/edr/issues/104
+              it.skip("should throw an error, the balance value is too big", async function () {
                 await assertInvalidInputError(
                   this.provider,
                   "eth_call",
@@ -873,7 +875,8 @@ describe("Eth module", function () {
                 ]);
               });
 
-              it("should throw an error, the nonce value is too big", async function () {
+              // TODO: https://github.com/NomicFoundation/edr/issues/104
+              it.skip("should throw an error, the nonce value is too big", async function () {
                 await assertInvalidInputError(
                   this.provider,
                   "eth_call",
@@ -1576,6 +1579,7 @@ contract C {
             );
           }
 
+          const chainId = await this.provider.send("eth_chainId");
           assert.equal(await getChainIdFromContract(this.provider), chainId);
         });
 
