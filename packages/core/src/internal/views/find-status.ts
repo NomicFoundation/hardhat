@@ -16,14 +16,16 @@ import { assertIgnitionInvariant } from "../utils/assertions";
 export function findStatus(
   deploymentState: DeploymentState
 ): Omit<ExecutionErrorDeploymentResult, "type"> {
+  const executionStates = Object.values(deploymentState.executionStates);
+
   return {
-    started: Object.values(deploymentState.executionStates)
+    started: executionStates
       .filter((ex) => ex.status === ExecutionStatus.STARTED)
       .map((ex) => ex.id),
-    successful: Object.values(deploymentState.executionStates)
+    successful: executionStates
       .filter((ex) => ex.status === ExecutionStatus.SUCCESS)
       .map((ex) => ex.id),
-    held: Object.values(deploymentState.executionStates)
+    held: executionStates
       .filter(canFail)
       .filter((ex) => ex.status === ExecutionStatus.HELD)
       .map((ex) => {
@@ -43,14 +45,14 @@ export function findStatus(
           reason: ex.result.reason,
         };
       }),
-    timedOut: Object.values(deploymentState.executionStates)
+    timedOut: executionStates
       .filter(canTimeout)
       .filter((ex) => ex.status === ExecutionStatus.TIMEOUT)
       .map((ex) => ({
         futureId: ex.id,
         networkInteractionId: ex.networkInteractions.at(-1)!.id,
       })),
-    failed: Object.values(deploymentState.executionStates)
+    failed: executionStates
       .filter(canFail)
       .filter((ex) => ex.status === ExecutionStatus.FAILED)
       .map((ex) => {
