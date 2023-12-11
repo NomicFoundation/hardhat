@@ -97,7 +97,7 @@ pub struct ProviderData {
     last_filter_id: U256,
     logger: Logger,
     impersonated_accounts: HashSet<Address>,
-    callbacks: Arc<dyn SendInspectorCallbacks>,
+    callbacks: Arc<dyn SyncInspectorCallbacks>,
 }
 
 pub trait InspectorCallbacks {
@@ -105,14 +105,14 @@ pub trait InspectorCallbacks {
     fn console(&self, call_input: Bytes);
 }
 
-pub trait SendInspectorCallbacks: InspectorCallbacks + Debug + Send + Sync {}
+pub trait SyncInspectorCallbacks: InspectorCallbacks + Debug + Send + Sync {}
 
-impl<T> SendInspectorCallbacks for T where T: InspectorCallbacks + Debug + Send + Sync {}
+impl<T> SyncInspectorCallbacks for T where T: InspectorCallbacks + Debug + Send + Sync {}
 
 impl ProviderData {
     pub async fn new(
         runtime: &runtime::Handle,
-        callbacks: Arc<dyn SendInspectorCallbacks>,
+        callbacks: Arc<dyn SyncInspectorCallbacks>,
         config: &ProviderConfig,
     ) -> Result<Self, CreationError> {
         let InitialAccounts {
@@ -1396,11 +1396,11 @@ lazy_static! {
 
 #[derive(Debug)]
 struct EvmInspector {
-    callbacks: Arc<dyn SendInspectorCallbacks>,
+    callbacks: Arc<dyn SyncInspectorCallbacks>,
 }
 
 impl EvmInspector {
-    fn new(callbacks: Arc<dyn SendInspectorCallbacks>) -> Self {
+    fn new(callbacks: Arc<dyn SyncInspectorCallbacks>) -> Self {
         Self { callbacks }
     }
 }
