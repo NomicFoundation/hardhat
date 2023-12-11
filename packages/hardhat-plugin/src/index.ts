@@ -355,36 +355,18 @@ ignitionScope
   });
 
 ignitionScope
-  .task("list")
-  .setDescription("List all deployments")
+  .task("deployments")
+  .setDescription("List all deployment IDs")
   .setAction(async (_, hre) => {
-    const { list } = await import("@nomicfoundation/ignition-core");
-
-    const { HardhatArtifactResolver } = await import(
-      "./hardhat-artifact-resolver"
-    );
-
-    const artifactResolver = new HardhatArtifactResolver(hre);
+    const { listDeployments } = await import("@nomicfoundation/ignition-core");
 
     const deploymentDir = path.join(hre.config.paths.ignition, "deployments");
 
     try {
-      const listResult = await list(deploymentDir, artifactResolver);
+      const deployments = await listDeployments(deploymentDir);
 
-      for (const [deploymentId, { chainId, ...deployment }] of Object.entries(
-        listResult
-      )) {
-        console.log(`Deployment ${deploymentId} (chainId: ${chainId}):\n`);
-
-        for (const [futureId, contract] of Object.entries(deployment)) {
-          console.log(`  Future ${futureId}:`);
-          console.log(`    contractName: ${contract.contractName}`);
-          console.log(`    sourceName: ${contract.sourceName}`);
-          console.log(`    address: ${contract.address}`);
-          console.log("");
-        }
-
-        console.log("");
+      for (const deploymentId of deployments) {
+        console.log(deploymentId);
       }
     } catch (e) {
       if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
