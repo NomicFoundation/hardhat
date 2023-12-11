@@ -30,8 +30,8 @@ pub fn dry_run<BlockchainErrorT, StateErrorT>(
     inspector: Option<&mut dyn SyncInspector<BlockchainErrorT, StateErrorT>>,
 ) -> Result<ResultAndState, TransactionError<BlockchainErrorT, StateErrorT>>
 where
-    BlockchainErrorT: Debug + Send + 'static,
-    StateErrorT: Debug + Send + 'static,
+    BlockchainErrorT: Debug + Send,
+    StateErrorT: Debug + Send,
 {
     if cfg.spec_id > SpecId::MERGE && block.prevrandao.is_none() {
         return Err(TransactionError::MissingPrevrandao);
@@ -68,8 +68,8 @@ pub fn guaranteed_dry_run<BlockchainErrorT, StateErrorT>(
     inspector: Option<&mut dyn SyncInspector<BlockchainErrorT, StateErrorT>>,
 ) -> Result<ResultAndState, TransactionError<BlockchainErrorT, StateErrorT>>
 where
-    BlockchainErrorT: Debug + Send + 'static,
-    StateErrorT: Debug + Send + 'static,
+    BlockchainErrorT: Debug + Send,
+    StateErrorT: Debug + Send,
 {
     cfg.disable_balance_check = true;
     dry_run(
@@ -94,8 +94,8 @@ pub fn run<BlockchainErrorT, StateErrorT>(
     inspector: Option<&mut dyn SyncInspector<BlockchainErrorT, StateErrorT>>,
 ) -> Result<ExecutionResult, TransactionError<BlockchainErrorT, StateErrorT>>
 where
-    BlockchainErrorT: Debug + Send + 'static,
-    StateErrorT: Debug + Send + 'static,
+    BlockchainErrorT: Debug + Send,
+    StateErrorT: Debug + Send,
 {
     let ResultAndState {
         result,

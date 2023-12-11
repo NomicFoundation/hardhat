@@ -91,8 +91,8 @@ pub fn mine_block<BlockchainErrorT, StateErrorT>(
     inspector: Option<Box<dyn SyncInspector<BlockchainErrorT, StateErrorT>>>,
 ) -> Result<MineBlockResultAndState<StateErrorT>, MineBlockError<BlockchainErrorT, StateErrorT>>
 where
-    BlockchainErrorT: Debug + Send + 'static,
-    StateErrorT: Debug + Send + 'static,
+    BlockchainErrorT: Debug + Send,
+    StateErrorT: Debug + Send,
 {
     let parent_block = blockchain
         .last_block()

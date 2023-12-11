@@ -28,8 +28,8 @@ pub fn debug_trace_transaction<BlockchainErrorT, StateErrorT>(
     transaction_hash: &B256,
 ) -> Result<DebugTraceResult, DebugTraceError<BlockchainErrorT, StateErrorT>>
 where
-    BlockchainErrorT: Debug + Send + 'static,
-    StateErrorT: Debug + Send + 'static,
+    BlockchainErrorT: Debug + Send,
+    StateErrorT: Debug + Send,
 {
     if evm_config.spec_id < SpecId::SPURIOUS_DRAGON {
         // Matching Hardhat Network behaviour: https://github.com/NomicFoundation/hardhat/blob/af7e4ce6a18601ec9cd6d4aa335fa7e24450e638/packages/hardhat-core/src/internal/hardhat-network/provider/vm/ethereumjs.ts#L427

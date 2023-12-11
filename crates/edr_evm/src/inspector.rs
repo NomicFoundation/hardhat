@@ -166,8 +166,8 @@ where
 
 impl<BlockchainErrorT, StateErrorT> InspectorContainer<BlockchainErrorT, StateErrorT>
 where
-    BlockchainErrorT: Debug + Send + 'static,
-    StateErrorT: Debug + Send + 'static,
+    BlockchainErrorT: Debug + Send,
+    StateErrorT: Debug + Send,
 {
     /// Constructs a new instance.
     pub fn new(
