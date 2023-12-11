@@ -138,7 +138,7 @@ function _resolveDefaultSender(
 
     if (!isDefaultSenderInAccounts) {
       throw new IgnitionError(ERRORS.VALIDATION.INVALID_DEFAULT_SENDER, {
-        givenDefaultSender,
+        defaultSender: givenDefaultSender,
       });
     }
 
