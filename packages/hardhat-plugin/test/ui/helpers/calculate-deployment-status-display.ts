@@ -37,11 +37,15 @@ describe("ui - calculate deployment status display", () => {
             id: "MyModule#Token",
             address: exampleAddress,
             contractName: "Token",
+            sourceName: "contracts/Token.sol",
+            abi: [],
           },
           "MyModule#AnotherToken": {
             id: "MyModule#AnotherToken",
             address: differentAddress,
             contractName: "AnotherToken",
+            sourceName: "contracts/AnotherToken.sol",
+            abi: [],
           },
         },
       };
@@ -130,11 +134,15 @@ describe("ui - calculate deployment status display", () => {
             id: "MyModule#Token",
             address: exampleAddress,
             contractName: "Token",
+            sourceName: "contracts/Token.sol",
+            abi: [],
           },
           "MyModule#AnotherToken": {
             id: "MyModule#AnotherToken",
             address: differentAddress,
             contractName: "AnotherToken",
+            sourceName: "contracts/AnotherToken.sol",
+            abi: [],
           },
         },
       };

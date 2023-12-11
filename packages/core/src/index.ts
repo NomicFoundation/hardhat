@@ -11,7 +11,6 @@ export * from "./types/artifact";
 export * from "./types/deploy";
 export * from "./types/errors";
 export * from "./types/execution-events";
-export * from "./types/list";
 export * from "./types/module";
 export * from "./types/module-builder";
 export * from "./types/provider";

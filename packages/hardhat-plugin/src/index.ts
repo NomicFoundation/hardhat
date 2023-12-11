@@ -334,15 +334,21 @@ ignitionScope
   .setAction(async ({ deploymentId }: { deploymentId: string }, hre) => {
     const { status } = await import("@nomicfoundation/ignition-core");
 
+    const { HardhatArtifactResolver } = await import(
+      "./hardhat-artifact-resolver"
+    );
+
     const deploymentDir = path.join(
       hre.config.paths.ignition,
       "deployments",
       deploymentId
     );
 
+    const artifactResolver = new HardhatArtifactResolver(hre);
+
     let statusResult: StatusResult;
     try {
-      statusResult = await status(deploymentDir);
+      statusResult = await status(deploymentDir, artifactResolver);
     } catch (e) {
       if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
         throw new NomicLabsHardhatPluginError("hardhat-ignition", e.message, e);
