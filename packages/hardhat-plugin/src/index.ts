@@ -355,6 +355,47 @@ ignitionScope
   });
 
 ignitionScope
+  .task("list")
+  .setDescription("List all deployments")
+  .setAction(async (_, hre) => {
+    const { list } = await import("@nomicfoundation/ignition-core");
+
+    const { HardhatArtifactResolver } = await import(
+      "./hardhat-artifact-resolver"
+    );
+
+    const artifactResolver = new HardhatArtifactResolver(hre);
+
+    const deploymentDir = path.join(hre.config.paths.ignition, "deployments");
+
+    try {
+      const listResult = await list(deploymentDir, artifactResolver);
+
+      for (const [deploymentId, { chainId, ...deployment }] of Object.entries(
+        listResult
+      )) {
+        console.log(`Deployment ${deploymentId} (chainId: ${chainId}):\n`);
+
+        for (const [futureId, contract] of Object.entries(deployment)) {
+          console.log(`  Future ${futureId}:`);
+          console.log(`    contractName: ${contract.contractName}`);
+          console.log(`    sourceName: ${contract.sourceName}`);
+          console.log(`    address: ${contract.address}`);
+          console.log("");
+        }
+
+        console.log("");
+      }
+    } catch (e) {
+      if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
+        throw new NomicLabsHardhatPluginError("hardhat-ignition", e.message, e);
+      }
+
+      throw e;
+    }
+  });
+
+ignitionScope
   .task("wipe")
   .addPositionalParam(
     "deploymentId",
