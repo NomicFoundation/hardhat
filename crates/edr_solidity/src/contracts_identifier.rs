@@ -35,19 +35,13 @@ impl EvmMessageTrace {
 }
 
 // TODO add cache
+#[derive(Default)]
 pub struct ContractsIdentifier<'a> {
     tree: RadixTree,
     bytecodes: HashMap<u64, &'a Bytecode>,
 }
 
 impl<'a> ContractsIdentifier<'a> {
-    pub fn new() -> Self {
-        Self {
-            tree: RadixTree::new(),
-            bytecodes: HashMap::new(),
-        }
-    }
-
     pub fn add_bytecode(&mut self, bytecode: &'a Bytecode) {
         // TODO reduce cloning
         self.tree.add_word(bytecode.normalized_code.clone());
@@ -87,12 +81,6 @@ impl<'a> ContractsIdentifier<'a> {
         // TODO: handle metadata hashes
 
         None
-    }
-}
-
-impl<'a> Default for ContractsIdentifier<'a> {
-    fn default() -> Self {
-        Self::new()
     }
 }
 

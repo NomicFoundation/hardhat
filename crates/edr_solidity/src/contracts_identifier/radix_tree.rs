@@ -158,18 +158,20 @@ pub struct RadixTree {
 }
 
 impl RadixTree {
-    pub fn new() -> RadixTree {
-        RadixTree {
-            root: RadixNode::new(Vec::new(), false, 0),
-        }
-    }
-
     pub fn add_word(&mut self, word: Vec<u8>) {
         self.root.add_word(word);
     }
 
     pub fn get_max_match(&self, word: &[u8]) -> (bool, usize, &RadixNode) {
         self.root.get_max_match(word)
+    }
+}
+
+impl Default for RadixTree {
+    fn default() -> Self {
+        RadixTree {
+            root: RadixNode::new(vec![], false, 0),
+        }
     }
 }
 
@@ -193,7 +195,7 @@ mod tests {
 
     #[test]
     fn test_radix_tree_empty() {
-        let tree = RadixTree::new();
+        let tree = RadixTree::default();
 
         // check that the root content is empty
         assert_eq!(tree.root.content.len(), 0);
@@ -210,7 +212,7 @@ mod tests {
 
     #[test]
     fn test_radix_tree_add_single_word() {
-        let mut tree = RadixTree::new();
+        let mut tree = RadixTree::default();
         tree.add_word(b"test".to_vec());
 
         assert_eq!(tree.root.child_nodes.len(), 1);
@@ -225,7 +227,7 @@ mod tests {
 
     #[test]
     fn test_radix_tree_add_same_word_twice() {
-        let mut tree = RadixTree::new();
+        let mut tree = RadixTree::default();
         tree.add_word(b"test".to_vec());
         tree.add_word(b"test".to_vec());
 
@@ -241,7 +243,7 @@ mod tests {
 
     #[test]
     fn test_radix_tree_add_word_same_prefix() {
-        let mut tree = RadixTree::new();
+        let mut tree = RadixTree::default();
         tree.add_word(b"test".to_vec());
         tree.add_word(b"test2".to_vec());
 
@@ -263,7 +265,7 @@ mod tests {
 
     #[test]
     fn test_radix_tree_add_word_prefix_existing_one() {
-        let mut tree = RadixTree::new();
+        let mut tree = RadixTree::default();
         tree.add_word(b"test".to_vec());
         tree.add_word(b"te".to_vec());
 
@@ -283,7 +285,7 @@ mod tests {
 
     #[test]
     fn test_radix_tree_add_word_with_shared_prefix_but_different_existing_ones() {
-        let mut tree = RadixTree::new();
+        let mut tree = RadixTree::default();
         tree.add_word(b"test".to_vec());
         tree.add_word(b"tast".to_vec());
 
@@ -309,7 +311,7 @@ mod tests {
 
     #[test]
     fn test_radix_tree_add_word_match_existing_nodes() {
-        let mut tree = RadixTree::new();
+        let mut tree = RadixTree::default();
         tree.add_word(b"test".to_vec());
         tree.add_word(b"tast".to_vec());
         tree.add_word(b"t".to_vec());
@@ -336,7 +338,7 @@ mod tests {
 
     #[test]
     fn test_radix_tree_get_max_match_default_first_node_empty_tree() {
-        let tree = RadixTree::new();
+        let tree = RadixTree::default();
         let (exact_match, length_matched, node) = tree.get_max_match(b"word");
 
         assert!(!exact_match);
@@ -346,7 +348,7 @@ mod tests {
 
     #[test]
     fn test_radix_tree_get_max_match_default_first_node_words_without_prefix() {
-        let mut tree = RadixTree::new();
+        let mut tree = RadixTree::default();
         tree.add_word(b"asdf".to_vec());
         let (exact_match, length_matched, node) = tree.get_max_match(b"word");
 
@@ -357,7 +359,7 @@ mod tests {
 
     #[test]
     fn test_radix_tree_get_max_match_default_first_node_prefix_smaller_than_content() {
-        let mut tree = RadixTree::new();
+        let mut tree = RadixTree::default();
         tree.add_word(b"asd".to_vec());
         let (exact_match, length_matched, node) = tree.get_max_match(b"as");
 
@@ -371,7 +373,7 @@ mod tests {
 
     #[test]
     fn test_radix_tree_get_max_match_default_first_node_words_present_after_some_nodes() {
-        let mut tree = RadixTree::new();
+        let mut tree = RadixTree::default();
         tree.add_word(b"a".to_vec());
         tree.add_word(b"as".to_vec());
         tree.add_word(b"asd".to_vec());
@@ -395,7 +397,7 @@ mod tests {
 
     #[test]
     fn test_radix_tree_get_max_match_default_first_node_word_longer_than_existing_nodes() {
-        let mut tree = RadixTree::new();
+        let mut tree = RadixTree::default();
         tree.add_word(b"a".to_vec());
         tree.add_word(b"as".to_vec());
         tree.add_word(b"asd".to_vec());
