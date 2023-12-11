@@ -29,7 +29,8 @@ impl RadixNode {
 
         let b = word[0];
 
-        // we temporarily remove the next node and then insert it back, possibly mutated and/or in a different position
+        // we temporarily remove the next node and then insert it back, possibly mutated
+        // and/or in a different position
         let next_node = self.child_nodes.remove(&b);
 
         match next_node {
@@ -89,7 +90,8 @@ impl RadixNode {
                     self.bytes_matched_before + self.content.len(),
                 );
 
-                // next_node should come after middle_node and its content and bytes_matched_before need to be adapted
+                // next_node should come after middle_node and its content and
+                // bytes_matched_before need to be adapted
                 next_node.content = next_node.content[prefix_length..].to_vec();
                 next_node.bytes_matched_before +=
                     middle_node.bytes_matched_before + middle_node.content.len();
@@ -118,7 +120,8 @@ impl RadixNode {
      * - a boolean indicating if the word was matched exactly
      * - the number of bytes matched
      * - the node that matched the word
-     * If the word is not matched exactly, the node will be the one that matched the longest prefix.
+     * If the word is not matched exactly, the node will be the one that
+     * matched the longest prefix.
      */
     fn get_max_match(&self, word: &[u8]) -> (bool, usize, &RadixNode) {
         let prefix_length = get_shared_prefix_length(word, &self.content);
