@@ -18,7 +18,7 @@ impl RadixNode {
         }
     }
 
-    pub fn get_content(&self) -> &Vec<u8> {
+    pub fn content(&self) -> &Vec<u8> {
         &self.content
     }
 

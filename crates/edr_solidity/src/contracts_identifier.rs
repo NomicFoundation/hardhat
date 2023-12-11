@@ -70,7 +70,7 @@ impl<'a> ContractsIdentifier<'a> {
         let (found, matched_bytes, node) = self.tree.get_max_match(normalized_code);
 
         if found {
-            let key = calculate_hash(node.get_content());
+            let key = calculate_hash(node.content());
 
             return self.bytecodes.get(&key).copied();
         }
