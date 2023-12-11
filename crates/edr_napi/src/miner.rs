@@ -56,8 +56,7 @@ pub async fn mine_block(
         let mut blockchain = blockchain.write();
         let mut state = state.write();
         let mut mem_pool = mem_pool.write();
-        
-        
+
         let result = edr_evm::mine_block(
             &*blockchain,
             state.clone(),
