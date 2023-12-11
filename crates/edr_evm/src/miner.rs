@@ -44,7 +44,7 @@ pub struct MineBlockResultAndState<StateErrorT> {
 }
 
 /// The type of ordering to use when selecting blocks to mine.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum MineOrdering {
     /// Insertion order
     Fifo,

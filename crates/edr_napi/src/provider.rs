@@ -24,7 +24,7 @@ impl Provider {
 
         let (deferred, promise) = env.create_deferred()?;
         runtime.clone().spawn(async move {
-            let result = edr_provider::Provider::new(&runtime, &config)
+            let result = edr_provider::Provider::new(runtime, config)
                 .await
                 .map_or_else(
                     |error| Err(napi::Error::new(Status::GenericFailure, error.to_string())),

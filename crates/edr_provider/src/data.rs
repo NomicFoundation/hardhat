@@ -37,7 +37,7 @@ use edr_evm::{
     TransactionCreationError, KECCAK_EMPTY,
 };
 use indexmap::IndexMap;
-use rpc_hardhat::ForkMetadata;
+use rpc_hardhat::{config::ForkConfig, ForkMetadata};
 use tokio::runtime;
 
 use self::account::{create_accounts, InitialAccounts};
@@ -71,11 +71,13 @@ struct BlockContext {
 }
 
 pub struct ProviderData {
+    runtime_handle: runtime::Handle,
+    initial_config: ProviderConfig,
+
     blockchain: Box<dyn SyncBlockchain<BlockchainError, StateError>>,
     state: Box<dyn SyncState<StateError>>,
     pub irregular_state: IrregularState,
     mem_pool: MemPool,
-    network_id: u64,
     beneficiary: Address,
     min_gas_price: U256,
     prev_randao_generator: RandomHashGenerator,
@@ -99,51 +101,71 @@ pub struct ProviderData {
 
 impl ProviderData {
     pub async fn new(
-        runtime: &runtime::Handle,
-        config: &ProviderConfig,
+        runtime_handle: runtime::Handle,
+        config: ProviderConfig,
     ) -> Result<Self, CreationError> {
         let InitialAccounts {
             local_accounts,
             genesis_accounts,
-        } = create_accounts(config);
+        } = create_accounts(&config);
 
         let BlockchainAndState {
             blockchain,
             fork_metadata,
             state,
             irregular_state,
-        } = create_blockchain_and_state(runtime, config, genesis_accounts).await?;
+        } = create_blockchain_and_state(runtime_handle.clone(), &config, genesis_accounts).await?;
 
         let prev_randao_generator = RandomHashGenerator::with_seed("randomMixHashSeed");
 
+        let allow_blocks_with_same_timestamp = config.allow_blocks_with_same_timestamp;
+        let allow_unlimited_contract_size = config.allow_unlimited_contract_size;
+        let beneficiary = config.coinbase;
+        let block_gas_limit = config.block_gas_limit;
+        let block_time_offset_seconds = block_time_offset_seconds(&config)?;
+        let is_auto_mining = config.mining.auto_mine;
+
         Ok(Self {
+            runtime_handle,
+            initial_config: config,
+
             blockchain,
             state,
             irregular_state,
-            mem_pool: MemPool::new(config.block_gas_limit),
-            network_id: config.network_id,
-            beneficiary: config.coinbase,
+            mem_pool: MemPool::new(block_gas_limit),
+            beneficiary,
             // TODO: Add config option (https://github.com/NomicFoundation/edr/issues/111)
             // Matches Hardhat default
             min_gas_price: U256::ZERO,
             prev_randao_generator,
-            block_time_offset_seconds: block_time_offset_seconds(config)?,
+            block_time_offset_seconds,
             fork_metadata,
             instance_id: B256::random(),
-            is_auto_mining: config.mining.auto_mine,
+            is_auto_mining,
             next_block_base_fee_per_gas: None,
             next_block_timestamp: None,
             // Start with 1 to mimic Ganache
             next_snapshot_id: 1,
             snapshots: BTreeMap::new(),
-            allow_blocks_with_same_timestamp: config.allow_blocks_with_same_timestamp,
-            allow_unlimited_contract_size: config.allow_unlimited_contract_size,
+            allow_blocks_with_same_timestamp,
+            allow_unlimited_contract_size,
             local_accounts,
             filters: HashMap::default(),
             last_filter_id: U256::ZERO,
             logger: Logger::new(false),
             impersonated_accounts: HashSet::new(),
         })
+    }
+
+    pub async fn reset(&mut self, fork_config: Option<ForkConfig>) -> Result<(), CreationError> {
+        let mut config = self.initial_config.clone();
+        config.fork = fork_config;
+
+        let mut reseted = Self::new(self.runtime_handle.clone(), config).await?;
+
+        std::mem::swap(self, &mut reseted);
+
+        Ok(())
     }
 
     /// Retrieves the last pending nonce of the account corresponding to the
@@ -453,7 +475,7 @@ impl ProviderData {
     }
 
     pub fn network_id(&self) -> String {
-        self.network_id.to_string()
+        self.initial_config.network_id.to_string()
     }
 
     pub fn new_pending_transaction_filter(&mut self) -> U256 {
@@ -599,6 +621,10 @@ impl ProviderData {
 
             Ok(result.result.into_output().unwrap_or_default())
         })?
+    }
+
+    pub fn runtime(&self) -> runtime::Handle {
+        self.runtime_handle.clone()
     }
 
     pub fn state(&self) -> &dyn StateRef<Error = StateError> {
@@ -1234,7 +1260,7 @@ struct BlockchainAndState {
 }
 
 async fn create_blockchain_and_state(
-    runtime: &runtime::Handle,
+    runtime: runtime::Handle,
     config: &ProviderConfig,
     mut genesis_accounts: HashMap<Address, Account>,
 ) -> Result<BlockchainAndState, CreationError> {
@@ -1248,7 +1274,7 @@ async fn create_blockchain_and_state(
         let rpc_client = RpcClient::new(&fork_config.json_rpc_url, config.cache_dir.clone());
 
         let blockchain = ForkedBlockchain::new(
-            runtime.clone(),
+            runtime,
             config.hardfork,
             rpc_client,
             fork_config.block_number,
@@ -1376,11 +1402,14 @@ pub struct BlockDataForTransaction {
 mod tests {
     use anyhow::Context;
     use edr_eth::transaction::{Eip155TransactionRequest, TransactionKind, TransactionRequest};
+    use edr_test_utils::env::get_alchemy_url;
     use tempfile::TempDir;
 
     use super::*;
     use crate::{
-        test_utils::{create_test_config_with_impersonated_accounts_and_fork, one_ether},
+        test_utils::{
+            create_test_config_with_impersonated_accounts_and_fork, one_ether, FORK_BLOCK_NUMBER,
+        },
         ProviderConfig,
     };
 
@@ -1412,7 +1441,7 @@ mod tests {
             );
 
             let runtime = runtime::Handle::try_current()?;
-            let mut provider_data = ProviderData::new(&runtime, &config).await?;
+            let mut provider_data = ProviderData::new(runtime, config.clone()).await?;
             provider_data
                 .impersonated_accounts
                 .insert(impersonated_account);
@@ -1793,6 +1822,53 @@ mod tests {
             transaction_result.signed_transaction.hash(),
             &transaction_hash
         );
+
+        Ok(())
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
+    async fn reset_local_to_forking() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new().await?;
+
+        let fork_config = Some(ForkConfig {
+            json_rpc_url: get_alchemy_url(),
+            // Random recent block for better cache consistency
+            block_number: Some(FORK_BLOCK_NUMBER),
+            http_headers: None,
+        });
+
+        let block_spec = BlockSpec::Number(FORK_BLOCK_NUMBER);
+
+        assert_eq!(fixture.provider_data.last_block_number(), 0);
+
+        fixture.provider_data.reset(fork_config).await?;
+
+        // We're fetching a specific block instead of the last block number for the
+        // forked blockchain, because the last block number query cannot be
+        // cached.
+        assert!(fixture
+            .provider_data
+            .block_by_block_spec(&block_spec)?
+            .is_some());
+
+        Ok(())
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
+    async fn reset_forking_to_local() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new_forked().await?;
+
+        // We're fetching a specific block instead of the last block number for the
+        // forked blockchain, because the last block number query cannot be
+        // cached.
+        assert!(fixture
+            .provider_data
+            .block_by_block_spec(&BlockSpec::Number(FORK_BLOCK_NUMBER))?
+            .is_some());
+
+        fixture.provider_data.reset(None).await?;
+
+        assert_eq!(fixture.provider_data.last_block_number(), 0);
 
         Ok(())
     }
