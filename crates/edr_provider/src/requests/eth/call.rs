@@ -52,8 +52,7 @@ fn resolve_call_request(
     let transaction = if data.spec_id() < SpecId::LONDON || gas_price.is_some() {
         TransactionRequest::Eip155(Eip155TransactionRequest {
             nonce,
-            // Question: Why is this always zero? Shouldn't it be the gas price?
-            gas_price: U256::ZERO,
+            gas_price: gas_price.unwrap_or(U256::ZERO),
             gas_limit,
             kind: to.into(),
             value,
