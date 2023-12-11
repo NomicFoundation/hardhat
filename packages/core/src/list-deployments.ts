@@ -1,4 +1,4 @@
-import { readdir } from "fs-extra";
+import { readdir, pathExists } from "fs-extra";
 
 /**
  * Return a list of all deployments in the deployment directory.
@@ -10,5 +10,9 @@ import { readdir } from "fs-extra";
 export async function listDeployments(
   deploymentDir: string
 ): Promise<string[]> {
+  if (!(await pathExists(deploymentDir))) {
+    return [];
+  }
+
   return readdir(deploymentDir);
 }
