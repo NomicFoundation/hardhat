@@ -71,6 +71,10 @@ ignitionScope
     "A relative path to a JSON file to use for the module parameters"
   )
   .addOptionalParam("deploymentId", "Set the id of the deployment")
+  .addOptionalParam(
+    "defaultSender",
+    "Set the default sender for the deployment"
+  )
   .addFlag("verify", "Verify the deployment on Etherscan")
   .setDescription("Deploy a module to the specified network")
   .setAction(
@@ -79,11 +83,13 @@ ignitionScope
         modulePath,
         parameters: parametersInput,
         deploymentId: givenDeploymentId,
+        defaultSender,
         verify,
       }: {
         modulePath: string;
         parameters?: string;
         deploymentId: string | undefined;
+        defaultSender: string | undefined;
         verify: boolean;
       },
       hre
@@ -177,6 +183,7 @@ ignitionScope
           ignitionModule: userModule,
           deploymentParameters: parameters ?? {},
           accounts,
+          defaultSender,
         });
 
         if (result.type === "SUCCESSFUL_DEPLOYMENT" && verify) {
