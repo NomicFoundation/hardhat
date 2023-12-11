@@ -1,4 +1,4 @@
-use std::{fmt::Debug, sync::Arc};
+use std::fmt::Debug;
 
 use edr_eth::Bytes;
 use edr_evm::{CallInputs, EVMData, Gas, Inspector, InstructionResult};
@@ -15,17 +15,17 @@ pub trait SyncInspectorCallbacks: InspectorCallbacks + Debug + Send + Sync {}
 impl<T> SyncInspectorCallbacks for T where T: InspectorCallbacks + Debug + Send + Sync {}
 
 #[derive(Debug)]
-pub(super) struct EvmInspector {
-    callbacks: Arc<dyn SyncInspectorCallbacks>,
+pub(super) struct EvmInspector<'callbacks> {
+    callbacks: &'callbacks dyn SyncInspectorCallbacks,
 }
 
-impl EvmInspector {
-    pub fn new(callbacks: Arc<dyn SyncInspectorCallbacks>) -> Self {
+impl<'callbacks> EvmInspector<'callbacks> {
+    pub fn new(callbacks: &'callbacks dyn SyncInspectorCallbacks) -> Self {
         Self { callbacks }
     }
 }
 
-impl<DatabaseErrorT> Inspector<DatabaseErrorT> for EvmInspector {
+impl<'callbacks, DatabaseErrorT> Inspector<DatabaseErrorT> for EvmInspector<'callbacks> {
     fn call(
         &mut self,
         _data: &mut dyn EVMData<DatabaseErrorT>,
@@ -45,6 +45,8 @@ impl<DatabaseErrorT> Inspector<DatabaseErrorT> for EvmInspector {
 
 #[cfg(test)]
 pub(crate) mod tests {
+    use std::sync::Arc;
+
     use anyhow::Context;
     use edr_eth::{
         transaction::{
@@ -60,7 +62,7 @@ pub(crate) mod tests {
 
     #[derive(Debug, Default)]
     pub struct InspectorCallbacksStub {
-        pub console_log_calls: Mutex<Vec<Bytes>>,
+        pub console_log_calls: Arc<Mutex<Vec<Bytes>>>,
     }
 
     impl InspectorCallbacks for InspectorCallbacksStub {

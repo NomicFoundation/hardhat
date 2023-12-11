@@ -65,7 +65,7 @@ impl Provider {
     /// Constructs a new instance.
     pub async fn new(
         runtime: &runtime::Handle,
-        callbacks: Arc<dyn SyncInspectorCallbacks>,
+        callbacks: Box<dyn SyncInspectorCallbacks>,
         config: &ProviderConfig,
     ) -> Result<Self, CreationError> {
         let data = ProviderData::new(runtime, callbacks, config).await?;

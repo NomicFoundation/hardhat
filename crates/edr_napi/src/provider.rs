@@ -30,7 +30,7 @@ impl Provider {
         let config = edr_provider::ProviderConfig::try_from(config)?;
         let runtime = runtime::Handle::current();
 
-        let callbacks = Arc::new(InspectorCallback::new(&env, console_log_callback)?);
+        let callbacks = Box::new(InspectorCallback::new(&env, console_log_callback)?);
 
         let (deferred, promise) = env.create_deferred()?;
         runtime.clone().spawn(async move {

@@ -50,13 +50,14 @@ pub async fn mine_block(
     let blockchain = (*blockchain).clone();
     let mem_pool = (*mem_pool).clone();
     let state = (*state).clone();
-    let inspector = tracer.map(Tracer::as_dyn_inspector);
+    let mut tracer = tracer.map(Tracer::as_dyn_inspector);
 
     runtime::Handle::current().spawn_blocking(move || {
         let mut blockchain = blockchain.write();
         let mut state = state.write();
         let mut mem_pool = mem_pool.write();
-
+        
+        
         let result = edr_evm::mine_block(
             &*blockchain,
             state.clone(),
@@ -69,7 +70,13 @@ pub async fn mine_block(
             reward,
             base_fee,
             prevrandao,
-            inspector
+            // WORKAROUND: limiting the scope of the mutable borrow of `tracer` to this
+            // block
+            if let Some(tracer) = &mut tracer {
+                Some(tracer.as_mut())
+            } else {
+                None
+            },
         )
             .map_err(
             |e| napi::Error::new(Status::GenericFailure,

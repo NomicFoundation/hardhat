@@ -88,7 +88,7 @@ pub fn mine_block<BlockchainErrorT, StateErrorT>(
     reward: U256,
     base_fee: Option<U256>,
     prevrandao: Option<B256>,
-    inspector: Option<Box<dyn SyncInspector<BlockchainErrorT, StateErrorT>>>,
+    inspector: Option<&mut dyn SyncInspector<BlockchainErrorT, StateErrorT>>,
 ) -> Result<MineBlockResultAndState<StateErrorT>, MineBlockError<BlockchainErrorT, StateErrorT>>
 where
     BlockchainErrorT: Debug + Send,

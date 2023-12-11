@@ -100,13 +100,13 @@ pub struct ProviderData {
     last_filter_id: U256,
     logger: Logger,
     impersonated_accounts: HashSet<Address>,
-    callbacks: Arc<dyn SyncInspectorCallbacks>,
+    callbacks: Box<dyn SyncInspectorCallbacks>,
 }
 
 impl ProviderData {
     pub async fn new(
         runtime: &runtime::Handle,
-        callbacks: Arc<dyn SyncInspectorCallbacks>,
+        callbacks: Box<dyn SyncInspectorCallbacks>,
         config: &ProviderConfig,
     ) -> Result<Self, CreationError> {
         let InitialAccounts {
@@ -594,7 +594,7 @@ impl ProviderData {
                     .map(|BlobGas { excess_gas, .. }| BlobExcessGasAndPrice::new(*excess_gas)),
             };
 
-            let mut inspector = self.callback_inspector();
+            let mut inspector = self.evm_inspector();
 
             let result = guaranteed_dry_run(
                 &*self.blockchain,
@@ -973,8 +973,8 @@ impl ProviderData {
         Ok(transaction_hash)
     }
 
-    fn callback_inspector(&self) -> Box<EvmInspector> {
-        Box::new(EvmInspector::new(self.callbacks.clone()))
+    fn evm_inspector(&self) -> EvmInspector<'_> {
+        EvmInspector::new(&*self.callbacks)
     }
 
     fn create_evm_config(&self) -> CfgEnv {
@@ -1016,6 +1016,8 @@ impl ProviderData {
 
         let evm_config = self.create_evm_config();
 
+        let mut inspector = self.evm_inspector();
+
         let result = mine_block(
             &*self.blockchain,
             self.state.clone(),
@@ -1029,7 +1031,7 @@ impl ProviderData {
             reward,
             self.next_block_base_fee_per_gas()?,
             prevrandao,
-            Some(self.callback_inspector()),
+            Some(&mut inspector),
         )?;
 
         Ok(result)
@@ -1396,6 +1398,7 @@ lazy_static! {
 mod tests {
     use anyhow::Context;
     use edr_eth::transaction::{Eip155TransactionRequest, TransactionKind, TransactionRequest};
+    use parking_lot::Mutex;
     use tempfile::TempDir;
 
     use super::*;
@@ -1413,7 +1416,7 @@ mod tests {
         config: ProviderConfig,
         provider_data: ProviderData,
         impersonated_account: Address,
-        callbacks: Arc<InspectorCallbacksStub>,
+        console_log_calls: Arc<Mutex<Vec<Bytes>>>,
     }
 
     impl ProviderTestFixture {
@@ -1435,10 +1438,11 @@ mod tests {
                 forked,
             );
 
-            let callbacks = Arc::new(InspectorCallbacksStub::default());
+            let callbacks = Box::new(InspectorCallbacksStub::default());
+            let console_log_calls = callbacks.console_log_calls.clone();
 
             let runtime = runtime::Handle::try_current()?;
-            let mut provider_data = ProviderData::new(&runtime, callbacks.clone(), &config).await?;
+            let mut provider_data = ProviderData::new(&runtime, callbacks, &config).await?;
             provider_data
                 .impersonated_accounts
                 .insert(impersonated_account);
@@ -1448,12 +1452,12 @@ mod tests {
                 config,
                 provider_data,
                 impersonated_account,
-                callbacks,
+                console_log_calls,
             })
         }
 
         fn console_log_calls(&self) -> Vec<Bytes> {
-            self.callbacks.console_log_calls.lock().clone()
+            self.console_log_calls.lock().clone()
         }
 
         fn dummy_transaction_request(&self, nonce: Option<u64>) -> TransactionRequestAndSender {
