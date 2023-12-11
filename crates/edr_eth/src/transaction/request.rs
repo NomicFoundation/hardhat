@@ -113,6 +113,7 @@ impl TransactionRequest {
 }
 
 /// A transaction request and the sender's address.
+#[derive(Debug, Clone)]
 pub struct TransactionRequestAndSender {
     /// The transaction request.
     pub request: TransactionRequest,

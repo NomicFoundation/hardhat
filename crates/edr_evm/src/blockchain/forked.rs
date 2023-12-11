@@ -57,7 +57,8 @@ pub struct ForkedBlockchain {
     remote: RemoteBlockchain<Arc<dyn SyncBlock<Error = BlockchainError>>, true>,
     state_root_generator: Arc<Mutex<RandomHashGenerator>>,
     fork_block_number: u64,
-    chain_id: u64,
+    chain_id_override: Option<u64>,
+    remote_chain_id: u64,
     network_id: u64,
     spec_id: SpecId,
     hardfork_activations: Option<HardforkActivations>,
@@ -68,6 +69,7 @@ impl ForkedBlockchain {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     pub async fn new(
         runtime: runtime::Handle,
+        chain_id_override: Option<u64>,
         spec_id: SpecId,
         rpc_client: RpcClient,
         fork_block_number: Option<u64>,
@@ -145,8 +147,9 @@ impl ForkedBlockchain {
             local_storage: ReservableSparseBlockchainStorage::empty(fork_block_number),
             remote: RemoteBlockchain::new(rpc_client, runtime),
             state_root_generator,
+            chain_id_override,
             fork_block_number,
-            chain_id,
+            remote_chain_id: chain_id,
             network_id,
             spec_id,
             hardfork_activations,
@@ -248,7 +251,7 @@ impl Blockchain for ForkedBlockchain {
     }
 
     fn chain_id(&self) -> u64 {
-        self.chain_id
+        self.chain_id_override.unwrap_or(self.remote_chain_id)
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
