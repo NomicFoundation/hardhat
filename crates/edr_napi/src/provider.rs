@@ -33,17 +33,15 @@ impl Provider {
         let callbacks = Box::new(InspectorCallback::new(&env, console_log_callback)?);
 
         let (deferred, promise) = env.create_deferred()?;
-        runtime.clone().spawn(async move {
-            let result = edr_provider::Provider::new(&runtime, callbacks, &config)
-                .await
-                .map_or_else(
-                    |error| Err(napi::Error::new(Status::GenericFailure, error.to_string())),
-                    |provider| {
-                        Ok(Provider {
-                            provider: Arc::new(provider),
-                        })
-                    },
-                );
+        runtime.clone().spawn_blocking(move || {
+            let result = edr_provider::Provider::new(runtime, callbacks, config).map_or_else(
+                |error| Err(napi::Error::new(Status::GenericFailure, error.to_string())),
+                |provider| {
+                    Ok(Provider {
+                        provider: Arc::new(provider),
+                    })
+                },
+            );
 
             deferred.resolve(|_env| result);
         });
@@ -74,7 +72,7 @@ impl Provider {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct InspectorCallback {
     console_log_callback: ThreadsafeFunction<Bytes>,
 }

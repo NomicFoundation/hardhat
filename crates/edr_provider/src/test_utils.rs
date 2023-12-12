@@ -14,6 +14,8 @@ use crate::config::MiningConfig;
 pub const TEST_SECRET_KEY: &str =
     "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 
+pub const FORK_BLOCK_NUMBER: u64 = 18_725_000;
+
 /// Constructs a test config with a single account with 1 ether
 pub fn create_test_config(cache_dir: PathBuf) -> ProviderConfig {
     create_test_config_with_impersonated_accounts_and_fork(cache_dir, vec![], false)
@@ -45,7 +47,7 @@ pub fn create_test_config_with_impersonated_accounts_and_fork(
         Some(ForkConfig {
             json_rpc_url: get_alchemy_url(),
             // Random recent block for better cache consistency
-            block_number: Some(18_725_000),
+            block_number: Some(FORK_BLOCK_NUMBER),
             http_headers: None,
         })
     } else {
@@ -65,7 +67,7 @@ pub fn create_test_config_with_impersonated_accounts_and_fork(
         }],
         genesis_accounts,
         block_gas_limit: 30_000_000,
-        chain_id: 1,
+        chain_id: 123,
         coinbase: Address::from_low_u64_ne(1),
         hardfork: SpecId::LATEST,
         initial_base_fee_per_gas: Some(U256::from(1000000000)),

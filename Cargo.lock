@@ -1038,6 +1038,7 @@ dependencies = [
  "alloy-sol-types",
  "anyhow",
  "cargo_toml",
+ "dyn-clone",
  "edr_eth",
  "edr_evm",
  "edr_rpc_hardhat",

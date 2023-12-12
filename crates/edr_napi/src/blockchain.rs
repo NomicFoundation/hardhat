@@ -165,6 +165,7 @@ impl Blockchain {
                 .clone()
                 .block_on(edr_evm::blockchain::ForkedBlockchain::new(
                     runtime,
+                    None,
                     spec_id,
                     rpc_client,
                     fork_block_number,
