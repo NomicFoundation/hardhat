@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 alloy-sol-types = { version = "0.5.1", default-features = false, features = ["std"]}
+dyn-clone = { version = "1.0.13", default-features = false }
 edr_eth = { version = "0.2.0-dev", path = "../edr_eth" }
 edr_evm = { version = "0.2.0-dev", path = "../edr_evm" }
 edr_test_utils = { version = "0.2.0-dev", path = "../edr_test_utils" }

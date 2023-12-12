@@ -77,10 +77,7 @@ struct BlockContext {
 
 pub struct ProviderData {
     runtime_handle: runtime::Handle,
-    // This is an option to allow resetting the provider efficiently by taking the value and
-    // replacing it with `None`. It's an invariant of this type that it is never `None` except when
-    // resetting it.
-    initial_config: Option<ProviderConfig>,
+    initial_config: ProviderConfig,
 
     blockchain: Box<dyn SyncBlockchain<BlockchainError, StateError>>,
     state: Box<dyn SyncState<StateError>>,
@@ -105,11 +102,7 @@ pub struct ProviderData {
     last_filter_id: U256,
     logger: Logger,
     impersonated_accounts: HashSet<Address>,
-    // This is an option to allow resetting the provider without having to make
-    // `SyncInspectorCallbacks` cloneable with the `dyn-sync` crate, because adding a standard
-    // library `Clone` bound to it makes `SyncInspectorCallbacks` not object-safe.
-    // It's an invariant of this type that it is never `None` except when resetting it.
-    callbacks: Option<Box<dyn SyncInspectorCallbacks>>,
+    callbacks: Box<dyn SyncInspectorCallbacks>,
 }
 
 impl ProviderData {
@@ -141,7 +134,7 @@ impl ProviderData {
 
         Ok(Self {
             runtime_handle,
-            initial_config: Some(config),
+            initial_config: config,
 
             blockchain,
             state,
@@ -168,15 +161,15 @@ impl ProviderData {
             last_filter_id: U256::ZERO,
             logger: Logger::new(false),
             impersonated_accounts: HashSet::new(),
-            callbacks: Some(callbacks),
+            callbacks,
         })
     }
 
     pub async fn reset(&mut self, fork_config: Option<ForkConfig>) -> Result<(), CreationError> {
-        let mut config = self.initial_config.take().expect("initial_config exists");
+        let mut config = self.initial_config.clone();
         config.fork = fork_config;
 
-        let callbacks = self.callbacks.take().expect("callbacks exist");
+        let callbacks = self.callbacks.clone();
 
         // `tokio::runtime::Handle` is reference counted, so it's efficiently cloneable.
         let mut reset_instance = Self::new(self.runtime_handle.clone(), callbacks, config).await?;
@@ -493,7 +486,7 @@ impl ProviderData {
     }
 
     pub fn network_id(&self) -> String {
-        self.initial_config().network_id.to_string()
+        self.initial_config.network_id.to_string()
     }
 
     pub fn new_pending_transaction_filter(&mut self) -> U256 {
@@ -1010,11 +1003,7 @@ impl ProviderData {
     }
 
     fn evm_inspector(&self) -> EvmInspector<'_> {
-        EvmInspector::new(self.callbacks())
-    }
-
-    fn callbacks(&self) -> &dyn SyncInspectorCallbacks {
-        self.callbacks.as_deref().expect("callbacks exist")
+        EvmInspector::new(&*self.callbacks)
     }
 
     fn create_evm_config(&self) -> CfgEnv {
@@ -1043,10 +1032,6 @@ impl ProviderData {
         let result = function(context.block, context.state);
 
         Ok(result)
-    }
-
-    fn initial_config(&self) -> &ProviderConfig {
-        self.initial_config.as_ref().expect("initial_config exists")
     }
 
     /// Mine a block at a specific timestamp

@@ -74,7 +74,7 @@ impl Provider {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct InspectorCallback {
     console_log_callback: ThreadsafeFunction<Bytes>,
 }

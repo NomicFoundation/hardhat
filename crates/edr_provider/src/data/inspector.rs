@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 
+use dyn_clone::DynClone;
 use edr_eth::Bytes;
 use edr_evm::{CallInputs, EVMData, Gas, Inspector, InstructionResult};
 
@@ -10,9 +11,15 @@ pub trait InspectorCallbacks {
     fn console(&self, call_input: Bytes);
 }
 
-pub trait SyncInspectorCallbacks: InspectorCallbacks + Debug + Send + Sync {}
+pub trait SyncInspectorCallbacks: InspectorCallbacks + Debug + DynClone + Send + Sync {}
 
-impl<T> SyncInspectorCallbacks for T where T: InspectorCallbacks + Debug + Send + Sync {}
+impl<T> SyncInspectorCallbacks for T where T: InspectorCallbacks + Debug + DynClone + Send + Sync {}
+
+impl Clone for Box<dyn SyncInspectorCallbacks> {
+    fn clone(&self) -> Self {
+        dyn_clone::clone_box(&**self)
+    }
+}
 
 #[derive(Debug)]
 pub(super) struct EvmInspector<'callbacks> {
@@ -60,7 +67,7 @@ pub(crate) mod tests {
 
     use crate::data::{InspectorCallbacks, ProviderData};
 
-    #[derive(Debug, Default)]
+    #[derive(Clone, Debug, Default)]
     pub struct InspectorCallbacksStub {
         pub console_log_calls: Arc<Mutex<Vec<Bytes>>>,
     }
