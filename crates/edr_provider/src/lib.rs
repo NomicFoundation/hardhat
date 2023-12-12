@@ -63,7 +63,7 @@ pub struct Provider {
 
 impl Provider {
     /// Constructs a new instance.
-    pub async fn new(
+    pub fn new(
         runtime: runtime::Handle,
         callbacks: Box<dyn SyncInspectorCallbacks>,
         config: ProviderConfig,
