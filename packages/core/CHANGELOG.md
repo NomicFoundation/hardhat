@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.13.0 - 2023-12-13
+
+### Added
+
+- Enhance types around artifacts and ABIs to better support `Viem` type inference ([#612](https://github.com/NomicFoundation/hardhat-ignition/pull/612))
+
+### Fixed
+
+- Fix bug with default sender account not being recognised due to case sensitivity ([#640](https://github.com/NomicFoundation/hardhat-ignition/pull/640))
+
 ## 0.12.0 - 2023-12-05
 
 ### Added

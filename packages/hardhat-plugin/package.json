@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ignition",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "license": "MIT",
   "author": "Nomic Foundation",
   "homepage": "https://hardhat.org",
@@ -66,8 +66,8 @@
     "hardhat": "^2.18.0"
   },
   "dependencies": {
-    "@nomicfoundation/ignition-core": "^0.12.0",
-    "@nomicfoundation/ignition-ui": "^0.12.0",
+    "@nomicfoundation/ignition-core": "^0.13.0",
+    "@nomicfoundation/ignition-ui": "^0.13.0",
     "chalk": "^4.0.0",
     "debug": "^4.3.2",
     "fs-extra": "^10.0.0",

@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.13.0 - 2023-12-13
+
+### Added
+
+- Add support for setting the default sender account from tests and scripts ([#639](https://github.com/NomicFoundation/hardhat-ignition/issues/639))
+- Add support for setting the default sender from the cli ([#620](https://github.com/NomicFoundation/hardhat-ignition/issues/620))
+
+### Changed
+
+- Split out `ethers` support from `@nomicfoundation/hardhat-plugin`, to allow opting for either **ethers** or **Viem** in tests and scripts. If you were using `hre.ignition.deploy(...)` in tests or scripts you will need to install, and require in your Hardhat config, the `@nomicfoundation/hardhat-plugin-ethers` package. For more details on our [Viem support see our guide](https://hardhat.org/ignition/docs/guides/viem). ([#612](https://github.com/NomicFoundation/hardhat-ignition/pull/612))
+
 ## 0.12.0 - 2023-12-05
 
 ### Added
