@@ -7,8 +7,7 @@ pub fn handle_reset(
     data: &mut ProviderData,
     config: Option<ResetProviderConfig>,
 ) -> Result<bool, ProviderError> {
-    let runtime = data.runtime();
-    tokio::task::block_in_place(|| runtime.block_on(data.reset(config.and_then(|c| c.forking))))?;
+    data.reset(config.and_then(|c| c.forking))?;
     Ok(true)
 }
 

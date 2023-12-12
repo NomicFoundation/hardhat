@@ -68,7 +68,7 @@ impl Provider {
         callbacks: Box<dyn SyncInspectorCallbacks>,
         config: ProviderConfig,
     ) -> Result<Self, CreationError> {
-        let data = ProviderData::new(runtime.clone(), callbacks, config.clone()).await?;
+        let data = ProviderData::new(runtime.clone(), callbacks, config.clone())?;
         let data = Arc::new(Mutex::new(data));
 
         let interval_miner = config

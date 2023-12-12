@@ -106,7 +106,7 @@ pub struct ProviderData {
 }
 
 impl ProviderData {
-    pub async fn new(
+    pub fn new(
         runtime_handle: runtime::Handle,
         callbacks: Box<dyn SyncInspectorCallbacks>,
         config: ProviderConfig,
@@ -121,7 +121,7 @@ impl ProviderData {
             fork_metadata,
             state,
             irregular_state,
-        } = create_blockchain_and_state(runtime_handle.clone(), &config, genesis_accounts).await?;
+        } = create_blockchain_and_state(runtime_handle.clone(), &config, genesis_accounts)?;
 
         let prev_randao_generator = RandomHashGenerator::with_seed("randomMixHashSeed");
 
@@ -165,14 +165,12 @@ impl ProviderData {
         })
     }
 
-    pub async fn reset(&mut self, fork_config: Option<ForkConfig>) -> Result<(), CreationError> {
+    pub fn reset(&mut self, fork_config: Option<ForkConfig>) -> Result<(), CreationError> {
         let mut config = self.initial_config.clone();
         config.fork = fork_config;
 
-        let callbacks = self.callbacks.clone();
-
-        // `tokio::runtime::Handle` is reference counted, so it's efficiently cloneable.
-        let mut reset_instance = Self::new(self.runtime_handle.clone(), callbacks, config).await?;
+        let mut reset_instance =
+            Self::new(self.runtime_handle.clone(), self.callbacks.clone(), config)?;
 
         std::mem::swap(self, &mut reset_instance);
 
@@ -634,10 +632,6 @@ impl ProviderData {
 
             Ok(result.result.into_output().unwrap_or_default())
         })?
-    }
-
-    pub fn runtime(&self) -> runtime::Handle {
-        self.runtime_handle.clone()
     }
 
     pub fn state(&self) -> &dyn StateRef<Error = StateError> {
@@ -1278,7 +1272,7 @@ struct BlockchainAndState {
     irregular_state: IrregularState,
 }
 
-async fn create_blockchain_and_state(
+fn create_blockchain_and_state(
     runtime: runtime::Handle,
     config: &ProviderConfig,
     mut genesis_accounts: HashMap<Address, Account>,
@@ -1292,17 +1286,18 @@ async fn create_blockchain_and_state(
 
         let rpc_client = RpcClient::new(&fork_config.json_rpc_url, config.cache_dir.clone());
 
-        let blockchain = ForkedBlockchain::new(
-            runtime.clone(),
-            Some(config.chain_id),
-            config.hardfork,
-            rpc_client,
-            fork_config.block_number,
-            state_root_generator.clone(),
-            // TODO: make hardfork activations configurable (https://github.com/NomicFoundation/edr/issues/111)
-            HashMap::new(),
-        )
-        .await?;
+        let blockchain = tokio::task::block_in_place(|| {
+            runtime.block_on(ForkedBlockchain::new(
+                runtime.clone(),
+                Some(config.chain_id),
+                config.hardfork,
+                rpc_client,
+                fork_config.block_number,
+                state_root_generator.clone(),
+                // TODO: make hardfork activations configurable (https://github.com/NomicFoundation/edr/issues/111)
+                HashMap::new(),
+            ))
+        })?;
 
         let fork_block_number = blockchain.last_block_number();
 
@@ -1310,12 +1305,12 @@ async fn create_blockchain_and_state(
             let rpc_client = RpcClient::new(&fork_config.json_rpc_url, config.cache_dir.clone());
 
             let genesis_addresses = genesis_accounts.keys().cloned().collect::<Vec<_>>();
-            let genesis_account_infos = rpc_client
-                .get_account_infos(
+            let genesis_account_infos = tokio::task::block_in_place(|| {
+                runtime.block_on(rpc_client.get_account_infos(
                     &genesis_addresses,
                     Some(BlockSpec::Number(fork_block_number)),
-                )
-                .await?;
+                ))
+            })?;
 
             // Make sure that the nonce and the code of genesis accounts matches the fork
             // state as we only want to overwrite the balance.
@@ -1475,7 +1470,7 @@ mod tests {
             let console_log_calls = callbacks.console_log_calls.clone();
 
             let runtime = runtime::Handle::try_current()?;
-            let mut provider_data = ProviderData::new(runtime, callbacks, config.clone()).await?;
+            let mut provider_data = ProviderData::new(runtime, callbacks, config.clone())?;
             provider_data
                 .impersonated_accounts
                 .insert(impersonated_account);
@@ -1944,7 +1939,7 @@ mod tests {
 
         assert_eq!(fixture.provider_data.last_block_number(), 0);
 
-        fixture.provider_data.reset(fork_config).await?;
+        fixture.provider_data.reset(fork_config)?;
 
         // We're fetching a specific block instead of the last block number for the
         // forked blockchain, because the last block number query cannot be
@@ -1969,7 +1964,7 @@ mod tests {
             .block_by_block_spec(&BlockSpec::Number(FORK_BLOCK_NUMBER))?
             .is_some());
 
-        fixture.provider_data.reset(None).await?;
+        fixture.provider_data.reset(None)?;
 
         assert_eq!(fixture.provider_data.last_block_number(), 0);
 
