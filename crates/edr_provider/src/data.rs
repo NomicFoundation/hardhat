@@ -77,7 +77,10 @@ struct BlockContext {
 
 pub struct ProviderData {
     runtime_handle: runtime::Handle,
-    initial_config: ProviderConfig,
+    // This is an option to allow resetting the provider efficiently by taking the value and
+    // replacing it with `None`. It's an invariant of this type that it is never `None` except when
+    // resetting it.
+    initial_config: Option<ProviderConfig>,
 
     blockchain: Box<dyn SyncBlockchain<BlockchainError, StateError>>,
     state: Box<dyn SyncState<StateError>>,
@@ -102,14 +105,18 @@ pub struct ProviderData {
     last_filter_id: U256,
     logger: Logger,
     impersonated_accounts: HashSet<Address>,
-    callbacks: Box<dyn SyncInspectorCallbacks>,
+    // This is an option to allow resetting the provider without having to make
+    // `SyncInspectorCallbacks` cloneable with the `dyn-sync` crate, because adding a standard
+    // library `Clone` bound to it makes `SyncInspectorCallbacks` not object-safe.
+    // It's an invariant of this type that it is never `None` except when resetting it.
+    callbacks: Option<Box<dyn SyncInspectorCallbacks>>,
 }
 
 impl ProviderData {
     pub async fn new(
         runtime_handle: runtime::Handle,
         callbacks: Box<dyn SyncInspectorCallbacks>,
-        config: &ProviderConfig,
+        config: ProviderConfig,
     ) -> Result<Self, CreationError> {
         let InitialAccounts {
             local_accounts,
@@ -134,7 +141,7 @@ impl ProviderData {
 
         Ok(Self {
             runtime_handle,
-            initial_config: config,
+            initial_config: Some(config),
 
             blockchain,
             state,
@@ -161,15 +168,18 @@ impl ProviderData {
             last_filter_id: U256::ZERO,
             logger: Logger::new(false),
             impersonated_accounts: HashSet::new(),
-            callbacks,
+            callbacks: Some(callbacks),
         })
     }
 
     pub async fn reset(&mut self, fork_config: Option<ForkConfig>) -> Result<(), CreationError> {
-        let mut config = self.initial_config.clone();
+        let mut config = std::mem::take(&mut self.initial_config).expect("initial_config exists");
         config.fork = fork_config;
 
-        let mut reset_instance = Self::new(self.runtime_handle.clone(), config).await?;
+        let callbacks = std::mem::take(&mut self.callbacks).expect("callbacks exist");
+
+        // `tokio::runtime::Handle` is reference counted, so it's efficiently cloneable.
+        let mut reset_instance = Self::new(self.runtime_handle.clone(), callbacks, config).await?;
 
         std::mem::swap(self, &mut reset_instance);
 
@@ -483,7 +493,7 @@ impl ProviderData {
     }
 
     pub fn network_id(&self) -> String {
-        self.initial_config.network_id.to_string()
+        self.initial_config().network_id.to_string()
     }
 
     pub fn new_pending_transaction_filter(&mut self) -> U256 {
@@ -1000,7 +1010,11 @@ impl ProviderData {
     }
 
     fn evm_inspector(&self) -> EvmInspector<'_> {
-        EvmInspector::new(&*self.callbacks)
+        EvmInspector::new(self.callbacks())
+    }
+
+    fn callbacks(&self) -> &dyn SyncInspectorCallbacks {
+        self.callbacks.as_deref().expect("callbacks exist")
     }
 
     fn create_evm_config(&self) -> CfgEnv {
@@ -1029,6 +1043,10 @@ impl ProviderData {
         let result = function(context.block, context.state);
 
         Ok(result)
+    }
+
+    fn initial_config(&self) -> &ProviderConfig {
+        self.initial_config.as_ref().expect("initial_config exists")
     }
 
     /// Mine a block at a specific timestamp
