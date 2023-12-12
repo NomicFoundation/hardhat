@@ -91,6 +91,7 @@ impl From<ThreadsafeFunctionCallMode> for sys::napi_threadsafe_function_call_mod
 ///   ctx.env.get_undefined()
 /// }
 /// ```
+#[derive(Debug)]
 pub struct ThreadsafeFunction<T: 'static> {
     raw_tsfn: sys::napi_threadsafe_function,
     aborted: Arc<AtomicBool>,
