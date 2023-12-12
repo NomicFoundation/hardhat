@@ -28,6 +28,7 @@ import {
 import { isErrorResponse } from "../../core/providers/http";
 import { getHardforkName } from "../../util/hardforks";
 import { Mutex } from "../../vendor/await-semaphore";
+import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/constants";
 
 import { MiningTimer } from "./MiningTimer";
@@ -421,38 +422,45 @@ class EdrProviderWrapper extends EventEmitter implements EIP1193Provider {
       };
     }
 
-    const provider = await Provider.withConfig({
-      bailOnCallFailure: config.throwOnCallFailures,
-      bailOnTransactionFailure: config.throwOnTransactionFailures,
-      chainId: BigInt(config.chainId),
-      cacheDir: config.forkCachePath,
-      coinbase: Buffer.from(coinbase.slice(2), "hex"),
-      fork,
-      hardfork: ethereumsjsHardforkToEdrSpecId(
-        getHardforkName(config.hardfork)
-      ),
-      networkId: BigInt(config.chainId),
-      blockGasLimit: BigInt(config.blockGasLimit),
-      genesisAccounts: config.genesisAccounts.map((account) => {
-        return {
-          secretKey: account.privateKey,
-          balance: BigInt(account.balance),
-        };
-      }),
-      allowUnlimitedContractSize: config.allowUnlimitedContractSize,
-      allowBlocksWithSameTimestamp:
-        config.allowBlocksWithSameTimestamp ?? false,
-      initialBaseFeePerGas: BigInt(
-        config.initialBaseFeePerGas ?? 1_000_000_000
-      ),
-      mining: {
-        autoMine: config.automine,
-        interval: ethereumjsIntervalMiningConfigToEdr(config.intervalMining),
-        memPool: {
-          order: ethereumjsMempoolOrderToEdrMineOrdering(config.mempoolOrder),
+    const provider = await Provider.withConfig(
+      {
+        bailOnCallFailure: config.throwOnCallFailures,
+        bailOnTransactionFailure: config.throwOnTransactionFailures,
+        chainId: BigInt(config.chainId),
+        cacheDir: config.forkCachePath,
+        coinbase: Buffer.from(coinbase.slice(2), "hex"),
+        fork,
+        hardfork: ethereumsjsHardforkToEdrSpecId(
+          getHardforkName(config.hardfork)
+        ),
+        networkId: BigInt(config.chainId),
+        blockGasLimit: BigInt(config.blockGasLimit),
+        genesisAccounts: config.genesisAccounts.map((account) => {
+          return {
+            secretKey: account.privateKey,
+            balance: BigInt(account.balance),
+          };
+        }),
+        allowUnlimitedContractSize: config.allowUnlimitedContractSize,
+        allowBlocksWithSameTimestamp:
+          config.allowBlocksWithSameTimestamp ?? false,
+        initialBaseFeePerGas: BigInt(
+          config.initialBaseFeePerGas ?? 1_000_000_000
+        ),
+        mining: {
+          autoMine: config.automine,
+          interval: ethereumjsIntervalMiningConfigToEdr(config.intervalMining),
+          memPool: {
+            order: ethereumjsMempoolOrderToEdrMineOrdering(config.mempoolOrder),
+          },
         },
       },
-    });
+      (message: Buffer) => {
+        const consoleLogger = new ConsoleLogger();
+
+        consoleLogger.log(message);
+      }
+    );
 
     return new EdrProviderWrapper(provider);
   }

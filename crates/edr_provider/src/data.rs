@@ -1,8 +1,10 @@
 mod account;
+mod inspector;
 
 use std::{
     cmp::Ordering,
     collections::BTreeMap,
+    fmt::Debug,
     sync::Arc,
     time::{Instant, SystemTime, UNIX_EPOCH},
 };
@@ -37,6 +39,9 @@ use edr_evm::{
     TransactionCreationError, KECCAK_EMPTY,
 };
 use indexmap::IndexMap;
+use inspector::EvmInspector;
+pub use inspector::{InspectorCallbacks, SyncInspectorCallbacks};
+use lazy_static::lazy_static;
 use rpc_hardhat::{config::ForkConfig, ForkMetadata};
 use tokio::runtime;
 
@@ -97,12 +102,14 @@ pub struct ProviderData {
     last_filter_id: U256,
     logger: Logger,
     impersonated_accounts: HashSet<Address>,
+    callbacks: Box<dyn SyncInspectorCallbacks>,
 }
 
 impl ProviderData {
     pub async fn new(
         runtime_handle: runtime::Handle,
-        config: ProviderConfig,
+        callbacks: Box<dyn SyncInspectorCallbacks>,
+        config: &ProviderConfig,
     ) -> Result<Self, CreationError> {
         let InitialAccounts {
             local_accounts,
@@ -154,6 +161,7 @@ impl ProviderData {
             last_filter_id: U256::ZERO,
             logger: Logger::new(false),
             impersonated_accounts: HashSet::new(),
+            callbacks,
         })
     }
 
@@ -608,6 +616,8 @@ impl ProviderData {
                     .map(|BlobGas { excess_gas, .. }| BlobExcessGasAndPrice::new(*excess_gas)),
             };
 
+            let mut inspector = self.evm_inspector();
+
             let result = guaranteed_dry_run(
                 &*self.blockchain,
                 &state,
@@ -615,7 +625,7 @@ impl ProviderData {
                 cfg,
                 transaction,
                 block,
-                None,
+                Some(&mut inspector),
             )
             .map_err(ProviderError::RunTransaction)?;
 
@@ -989,6 +999,10 @@ impl ProviderData {
         Ok(transaction_hash)
     }
 
+    fn evm_inspector(&self) -> EvmInspector<'_> {
+        EvmInspector::new(&*self.callbacks)
+    }
+
     fn create_evm_config(&self) -> CfgEnv {
         let mut evm_config = CfgEnv::default();
         evm_config.chain_id = self.blockchain.chain_id();
@@ -1028,6 +1042,8 @@ impl ProviderData {
 
         let evm_config = self.create_evm_config();
 
+        let mut inspector = self.evm_inspector();
+
         let result = mine_block(
             &*self.blockchain,
             self.state.clone(),
@@ -1041,7 +1057,7 @@ impl ProviderData {
             reward,
             self.next_block_base_fee_per_gas()?,
             prevrandao,
-            None,
+            Some(&mut inspector),
         )?;
 
         Ok(result)
@@ -1398,15 +1414,25 @@ pub struct BlockDataForTransaction {
     pub transaction_index: u64,
 }
 
+lazy_static! {
+    static ref CONSOLE_ADDRESS: Address = "0x000000000000000000636F6e736F6c652e6c6f67"
+        .parse()
+        .expect("static ok");
+}
+
 #[cfg(test)]
 mod tests {
     use anyhow::Context;
     use edr_eth::transaction::{Eip155TransactionRequest, TransactionKind, TransactionRequest};
     use edr_test_utils::env::get_alchemy_url;
+    use parking_lot::Mutex;
     use tempfile::TempDir;
 
     use super::*;
     use crate::{
+        data::inspector::tests::{
+            deploy_console_log_contract, ConsoleLogTransaction, InspectorCallbacksStub,
+        },
         test_utils::{
             create_test_config_with_impersonated_accounts_and_fork, one_ether, FORK_BLOCK_NUMBER,
         },
@@ -1419,6 +1445,7 @@ mod tests {
         config: ProviderConfig,
         provider_data: ProviderData,
         impersonated_account: Address,
+        console_log_calls: Arc<Mutex<Vec<Bytes>>>,
     }
 
     impl ProviderTestFixture {
@@ -1440,8 +1467,11 @@ mod tests {
                 forked,
             );
 
+            let callbacks = Box::<InspectorCallbacksStub>::default();
+            let console_log_calls = callbacks.console_log_calls.clone();
+
             let runtime = runtime::Handle::try_current()?;
-            let mut provider_data = ProviderData::new(runtime, config.clone()).await?;
+            let mut provider_data = ProviderData::new(runtime, callbacks, config.clone()).await?;
             provider_data
                 .impersonated_accounts
                 .insert(impersonated_account);
@@ -1451,7 +1481,12 @@ mod tests {
                 config,
                 provider_data,
                 impersonated_account,
+                console_log_calls,
             })
+        }
+
+        fn console_log_calls(&self) -> Vec<Bytes> {
+            self.console_log_calls.lock().clone()
         }
 
         fn dummy_transaction_request(&self, nonce: Option<u64>) -> TransactionRequestAndSender {
@@ -1465,25 +1500,30 @@ mod tests {
                 chain_id: 1,
             });
 
-            let sender = *self
+            TransactionRequestAndSender {
+                request,
+                sender: self.first_local_account(),
+            }
+        }
+
+        fn first_local_account(&self) -> Address {
+            *self
                 .provider_data
                 .local_accounts
                 .keys()
                 .next()
-                .expect("there are local accounts");
-
-            TransactionRequestAndSender { request, sender }
-        }
-
-        fn signed_dummy_transaction(&self) -> anyhow::Result<PendingTransaction> {
-            let transaction = self.dummy_transaction_request(None);
-            Ok(self.provider_data.sign_transaction_request(transaction)?)
+                .expect("there are local accounts")
         }
 
         fn impersonated_dummy_transaction(&self) -> anyhow::Result<PendingTransaction> {
             let mut transaction = self.dummy_transaction_request(None);
             transaction.sender = self.impersonated_account;
 
+            Ok(self.provider_data.sign_transaction_request(transaction)?)
+        }
+
+        fn signed_dummy_transaction(&self) -> anyhow::Result<PendingTransaction> {
+            let transaction = self.dummy_transaction_request(None);
             Ok(self.provider_data.sign_transaction_request(transaction)?)
         }
     }
@@ -1662,6 +1702,55 @@ mod tests {
 
         let chain_id = fixture.provider_data.chain_id();
         assert_eq!(chain_id, fixture.config.chain_id);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn console_log_mine_block() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new().await?;
+        let ConsoleLogTransaction {
+            transaction,
+            expected_call_data,
+        } = deploy_console_log_contract(&mut fixture.provider_data)?;
+
+        assert_eq!(fixture.console_log_calls().len(), 0);
+
+        fixture.provider_data.set_auto_mining(false);
+        fixture.provider_data.send_transaction(transaction)?;
+        let (block_timestamp, _) = fixture.provider_data.next_block_timestamp(None)?;
+        let prevrandao = fixture.provider_data.prev_randao_generator.next_value();
+        fixture
+            .provider_data
+            .mine_block(block_timestamp, Some(prevrandao))?;
+
+        let console_log_calls = fixture.console_log_calls();
+        assert_eq!(console_log_calls.len(), 1);
+        assert_eq!(console_log_calls[0], expected_call_data);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn console_log_run_call() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new().await?;
+        let ConsoleLogTransaction {
+            transaction,
+            expected_call_data,
+        } = deploy_console_log_contract(&mut fixture.provider_data)?;
+
+        assert_eq!(fixture.console_log_calls().len(), 0);
+
+        let pending_transaction = fixture
+            .provider_data
+            .sign_transaction_request(transaction)?;
+        fixture
+            .provider_data
+            .run_call(pending_transaction, None, &StateOverrides::default())?;
+
+        let console_log_calls = fixture.console_log_calls();
+        assert_eq!(console_log_calls.len(), 1);
+        assert_eq!(console_log_calls[0], expected_call_data);
 
         Ok(())
     }

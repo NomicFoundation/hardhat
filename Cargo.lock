@@ -1044,6 +1044,7 @@ dependencies = [
  "edr_test_utils",
  "indexmap 2.0.2",
  "k256",
+ "lazy_static",
  "log",
  "parking_lot 0.12.1",
  "rand",
