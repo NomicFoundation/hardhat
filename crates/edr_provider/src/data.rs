@@ -161,9 +161,9 @@ impl ProviderData {
         let mut config = self.initial_config.clone();
         config.fork = fork_config;
 
-        let mut reseted = Self::new(self.runtime_handle.clone(), config).await?;
+        let mut reset_instance = Self::new(self.runtime_handle.clone(), config).await?;
 
-        std::mem::swap(self, &mut reseted);
+        std::mem::swap(self, &mut reset_instance);
 
         Ok(())
     }
