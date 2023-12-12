@@ -75,7 +75,7 @@ Only **one** Hardhat Ignition package should be imported within your Hardhat con
 
 The `@nomicfoundation/hardhat-plugin-viem` plugin adds an `ignition` object to the [Hardhat Runtime Environment](../../../hardhat-runner/docs/advanced/hardhat-runtime-environment.md).
 
-The `ignition` object exposes a `deploy` method, which takes an Ignition module, deploys it against the current network (in tests this will be the in-memory Hardhat network), and returns the results of the module as typed Viem contract instances.
+The `ignition` object exposes a `deploy` method, which takes an Ignition module, deploys it against the current network, like Hardhat Network, and returns the results of the module as typed Viem contract instances.
 
 The `deploy` method takes the Module as its first argument:
 
