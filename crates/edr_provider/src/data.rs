@@ -173,10 +173,10 @@ impl ProviderData {
     }
 
     pub async fn reset(&mut self, fork_config: Option<ForkConfig>) -> Result<(), CreationError> {
-        let mut config = std::mem::take(&mut self.initial_config).expect("initial_config exists");
+        let mut config = self.initial_config.take().expect("initial_config exists");
         config.fork = fork_config;
 
-        let callbacks = std::mem::take(&mut self.callbacks).expect("callbacks exist");
+        let callbacks = self.callbacks.take().expect("callbacks exist");
 
         // `tokio::runtime::Handle` is reference counted, so it's efficiently cloneable.
         let mut reset_instance = Self::new(self.runtime_handle.clone(), callbacks, config).await?;
