@@ -142,7 +142,7 @@ const result = await hre.ignition.deploy(ApolloModule, {
 });
 ```
 
----
+## Hardhat Ignition and Hardhat Viem
 
 Hardhat Ignition leverages the [hardhat-viem](https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-viem) plugin for its type generation support, and inherits the same approach to [managing types and version stability](https://hardhat.org/hardhat-runner/docs/advanced/using-viem#managing-types-and-version-stability).
 
