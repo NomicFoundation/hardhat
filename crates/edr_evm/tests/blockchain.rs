@@ -35,6 +35,7 @@ async fn create_forked_dummy_blockchain() -> Box<dyn SyncBlockchain<BlockchainEr
     Box::new(
         ForkedBlockchain::new(
             tokio::runtime::Handle::current().clone(),
+            None,
             SpecId::LATEST,
             rpc_client,
             None,

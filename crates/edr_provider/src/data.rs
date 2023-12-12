@@ -1308,7 +1308,8 @@ async fn create_blockchain_and_state(
         let rpc_client = RpcClient::new(&fork_config.json_rpc_url, config.cache_dir.clone());
 
         let blockchain = ForkedBlockchain::new(
-            runtime,
+            runtime.clone(),
+            Some(config.chain_id),
             config.hardfork,
             rpc_client,
             fork_config.block_number,
@@ -1515,7 +1516,7 @@ mod tests {
                 value: U256::from(1),
                 input: Bytes::default(),
                 nonce: nonce.unwrap_or(0),
-                chain_id: 1,
+                chain_id: self.config.chain_id,
             });
 
             TransactionRequestAndSender {
@@ -1717,6 +1718,16 @@ mod tests {
     #[tokio::test]
     async fn chain_id() -> anyhow::Result<()> {
         let fixture = ProviderTestFixture::new().await?;
+
+        let chain_id = fixture.provider_data.chain_id();
+        assert_eq!(chain_id, fixture.config.chain_id);
+
+        Ok(())
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
+    async fn chain_id_fork_mode() -> anyhow::Result<()> {
+        let fixture = ProviderTestFixture::new_forked().await?;
 
         let chain_id = fixture.provider_data.chain_id();
         assert_eq!(chain_id, fixture.config.chain_id);

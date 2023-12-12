@@ -54,6 +54,7 @@ import {
   ethereumjsMempoolOrderToEdrMineOrdering,
   ethereumsjsHardforkToEdrSpecId,
 } from "./utils/convertToEdr";
+import { makeCommon } from "./utils/makeCommon";
 
 const log = debug("hardhat:core:hardhat-network:provider");
 
@@ -90,6 +91,33 @@ interface HardhatNetworkProviderConfig {
   forkConfig?: ForkConfig;
   forkCachePath?: string;
   enableTransientStorage: boolean;
+}
+
+function getNodeConfig(
+  config: HardhatNetworkProviderConfig,
+  tracingConfig?: TracingConfig
+): NodeConfig {
+  return {
+    automine: config.automine,
+    blockGasLimit: config.blockGasLimit,
+    minGasPrice: config.minGasPrice,
+    genesisAccounts: config.genesisAccounts,
+    allowUnlimitedContractSize: config.allowUnlimitedContractSize,
+    tracingConfig,
+    initialBaseFeePerGas: config.initialBaseFeePerGas,
+    mempoolOrder: config.mempoolOrder,
+    hardfork: config.hardfork,
+    chainId: config.chainId,
+    networkId: config.networkId,
+    initialDate: config.initialDate,
+    forkConfig: config.forkConfig,
+    forkCachePath:
+      config.forkConfig !== undefined ? config.forkCachePath : undefined,
+    coinbase: config.coinbase ?? DEFAULT_COINBASE,
+    chains: config.chains,
+    allowBlocksWithSameTimestamp: config.allowBlocksWithSameTimestamp,
+    enableTransientStorage: config.enableTransientStorage,
+  };
 }
 
 class HardhatNetworkProvider extends EventEmitter implements EIP1193Provider {
@@ -239,31 +267,12 @@ class HardhatNetworkProvider extends EventEmitter implements EIP1193Provider {
       return;
     }
 
-    const config: NodeConfig = {
-      automine: this._config.automine,
-      blockGasLimit: this._config.blockGasLimit,
-      minGasPrice: this._config.minGasPrice,
-      genesisAccounts: this._config.genesisAccounts,
-      allowUnlimitedContractSize: this._config.allowUnlimitedContractSize,
-      tracingConfig: await this._makeTracingConfig(),
-      initialBaseFeePerGas: this._config.initialBaseFeePerGas,
-      mempoolOrder: this._config.mempoolOrder,
-      hardfork: this._config.hardfork,
-      chainId: this._config.chainId,
-      networkId: this._config.networkId,
-      initialDate: this._config.initialDate,
-      forkConfig: this._config.forkConfig,
-      forkCachePath:
-        this._config.forkConfig !== undefined
-          ? this._config.forkCachePath
-          : undefined,
-      coinbase: this._config.coinbase ?? DEFAULT_COINBASE,
-      chains: this._config.chains,
-      allowBlocksWithSameTimestamp: this._config.allowBlocksWithSameTimestamp,
-      enableTransientStorage: this._config.enableTransientStorage,
-    };
+    const nodeConfig = getNodeConfig(
+      this._config,
+      await this._makeTracingConfig()
+    );
 
-    const [common, node] = await HardhatNode.create(config);
+    const [common, node] = await HardhatNode.create(nodeConfig);
 
     this._common = common;
     this._node = node;
@@ -400,7 +409,12 @@ class HardhatNetworkProvider extends EventEmitter implements EIP1193Provider {
   }
 }
 
-class EdrProviderWrapper extends EventEmitter implements EIP1193Provider {
+export class EdrProviderWrapper
+  extends EventEmitter
+  implements EIP1193Provider
+{
+  // The common configuration for EthereumJS VM is not used by EDR, but tests expect it as part of the provider.
+  private _common: Common;
   private _provider: EdrProviderT;
 
   public static async create(
@@ -462,12 +476,15 @@ class EdrProviderWrapper extends EventEmitter implements EIP1193Provider {
       }
     );
 
-    return new EdrProviderWrapper(provider);
+    const common = makeCommon(getNodeConfig(config));
+
+    return new EdrProviderWrapper(provider, common);
   }
 
-  private constructor(provider: EdrProviderT) {
+  private constructor(provider: EdrProviderT, common: Common) {
     super();
 
+    this._common = common;
     this._provider = provider;
   }
 
