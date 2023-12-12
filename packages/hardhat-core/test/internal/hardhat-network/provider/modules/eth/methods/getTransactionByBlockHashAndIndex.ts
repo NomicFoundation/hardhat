@@ -27,7 +27,6 @@ import {
   DEFAULT_ACCOUNTS_ADDRESSES,
   PROVIDERS,
 } from "../../../../helpers/providers";
-import { retrieveLatestBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 import { sendTransactionFromTxParams } from "../../../../helpers/transactions";
 
 describe("Eth module", function () {
