@@ -1439,8 +1439,9 @@ mod tests {
     };
 
     struct ProviderTestFixture {
-        // We need to keep the tempdir alive for the duration of the test
+        // We need to keep the tempdir and runtime alive for the duration of the test
         _cache_dir: TempDir,
+        _runtime: runtime::Runtime,
         config: ProviderConfig,
         provider_data: ProviderData,
         impersonated_account: Address,
@@ -1448,15 +1449,15 @@ mod tests {
     }
 
     impl ProviderTestFixture {
-        pub(crate) async fn new() -> anyhow::Result<Self> {
-            Self::new_with_config(false).await
+        pub(crate) fn new() -> anyhow::Result<Self> {
+            Self::new_with_config(false)
         }
 
-        pub(crate) async fn new_forked() -> anyhow::Result<Self> {
-            Self::new_with_config(true).await
+        pub(crate) fn new_forked() -> anyhow::Result<Self> {
+            Self::new_with_config(true)
         }
 
-        async fn new_with_config(forked: bool) -> anyhow::Result<Self> {
+        fn new_with_config(forked: bool) -> anyhow::Result<Self> {
             let cache_dir = TempDir::new()?;
 
             let impersonated_account = Address::random();
@@ -1469,14 +1470,21 @@ mod tests {
             let callbacks = Box::<InspectorCallbacksStub>::default();
             let console_log_calls = callbacks.console_log_calls.clone();
 
-            let runtime = runtime::Handle::try_current()?;
-            let mut provider_data = ProviderData::new(runtime, callbacks, config.clone())?;
+            let runtime = runtime::Builder::new_multi_thread()
+                .worker_threads(1)
+                .enable_all()
+                .thread_name("provider-data-test")
+                .build()?;
+
+            let mut provider_data =
+                ProviderData::new(runtime.handle().clone(), callbacks, config.clone())?;
             provider_data
                 .impersonated_accounts
                 .insert(impersonated_account);
 
             Ok(Self {
                 _cache_dir: cache_dir,
+                _runtime: runtime,
                 config,
                 provider_data,
                 impersonated_account,
@@ -1527,9 +1535,9 @@ mod tests {
         }
     }
 
-    #[tokio::test]
-    async fn test_local_account_balance() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new().await?;
+    #[test]
+    fn test_local_account_balance() -> anyhow::Result<()> {
+        let fixture = ProviderTestFixture::new()?;
 
         let account = *fixture
             .provider_data
@@ -1548,9 +1556,9 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
-    async fn test_local_account_balance_forked() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new_forked().await?;
+    #[test]
+    fn test_local_account_balance_forked() -> anyhow::Result<()> {
+        let fixture = ProviderTestFixture::new_forked()?;
 
         let account = *fixture
             .provider_data
@@ -1569,9 +1577,9 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test]
-    async fn test_sign_transaction_request() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new().await?;
+    #[test]
+    fn test_sign_transaction_request() -> anyhow::Result<()> {
+        let fixture = ProviderTestFixture::new()?;
 
         let transaction = fixture.signed_dummy_transaction()?;
         let recovered_address = transaction.recover()?;
@@ -1584,9 +1592,9 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test]
-    async fn test_sign_transaction_request_impersonated_account() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new().await?;
+    #[test]
+    fn test_sign_transaction_request_impersonated_account() -> anyhow::Result<()> {
+        let fixture = ProviderTestFixture::new()?;
 
         let transaction = fixture.impersonated_dummy_transaction()?;
 
@@ -1625,25 +1633,25 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test]
-    async fn add_pending_transaction() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new().await?;
+    #[test]
+    fn add_pending_transaction() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new()?;
         let transaction = fixture.signed_dummy_transaction()?;
 
         test_add_pending_transaction(&mut fixture, transaction)
     }
 
-    #[tokio::test]
-    async fn add_pending_transaction_from_impersonated_account() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new().await?;
+    #[test]
+    fn add_pending_transaction_from_impersonated_account() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new()?;
         let transaction = fixture.impersonated_dummy_transaction()?;
 
         test_add_pending_transaction(&mut fixture, transaction)
     }
 
-    #[tokio::test]
-    async fn block_by_block_spec_earliest() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new().await?;
+    #[test]
+    fn block_by_block_spec_earliest() -> anyhow::Result<()> {
+        let fixture = ProviderTestFixture::new()?;
 
         let block_spec = BlockSpec::Tag(BlockTag::Earliest);
 
@@ -1657,9 +1665,9 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test]
-    async fn block_by_block_spec_finalized_safe_latest() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new().await?;
+    #[test]
+    fn block_by_block_spec_finalized_safe_latest() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new()?;
 
         // Mine a block to make sure we're not getting the genesis block
         fixture.provider_data.mine_and_commit_block(None)?;
@@ -1682,9 +1690,9 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test]
-    async fn block_by_block_spec_pending() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new().await?;
+    #[test]
+    fn block_by_block_spec_pending() -> anyhow::Result<()> {
+        let fixture = ProviderTestFixture::new()?;
 
         let block_spec = BlockSpec::Tag(BlockTag::Pending);
 
@@ -1695,9 +1703,9 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test]
-    async fn chain_id() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new().await?;
+    #[test]
+    fn chain_id() -> anyhow::Result<()> {
+        let fixture = ProviderTestFixture::new()?;
 
         let chain_id = fixture.provider_data.chain_id();
         assert_eq!(chain_id, fixture.config.chain_id);
@@ -1705,9 +1713,9 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
-    async fn chain_id_fork_mode() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new_forked().await?;
+    #[test]
+    fn chain_id_fork_mode() -> anyhow::Result<()> {
+        let fixture = ProviderTestFixture::new_forked()?;
 
         let chain_id = fixture.provider_data.chain_id();
         assert_eq!(chain_id, fixture.config.chain_id);
@@ -1715,9 +1723,9 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test]
-    async fn console_log_mine_block() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new().await?;
+    #[test]
+    fn console_log_mine_block() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new()?;
         let ConsoleLogTransaction {
             transaction,
             expected_call_data,
@@ -1740,9 +1748,9 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test]
-    async fn console_log_run_call() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new().await?;
+    #[test]
+    fn console_log_run_call() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new()?;
         let ConsoleLogTransaction {
             transaction,
             expected_call_data,
@@ -1764,9 +1772,9 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test]
-    async fn next_filter_id() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new().await?;
+    #[test]
+    fn next_filter_id() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new()?;
 
         let mut prev_filter_id = fixture.provider_data.last_filter_id;
         for _ in 0..10 {
@@ -1778,9 +1786,9 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test]
-    async fn set_balance_updates_mem_pool() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new().await?;
+    #[test]
+    fn set_balance_updates_mem_pool() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new()?;
 
         let transaction = {
             let mut request = fixture.dummy_transaction_request(None);
@@ -1810,9 +1818,9 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test]
-    async fn set_nonce_updates_mem_pool() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new().await?;
+    #[test]
+    fn set_nonce_updates_mem_pool() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new()?;
 
         // Artificially raise the nonce, to ensure the transaction is not rejected
         fixture
@@ -1858,9 +1866,9 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test]
-    async fn transaction_by_invalid_hash() -> anyhow::Result<()> {
-        let fixture = ProviderTestFixture::new().await?;
+    #[test]
+    fn transaction_by_invalid_hash() -> anyhow::Result<()> {
+        let fixture = ProviderTestFixture::new()?;
 
         let non_existing_tx = fixture.provider_data.transaction_by_hash(&B256::zero())?;
 
@@ -1869,9 +1877,9 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test]
-    async fn pending_transaction_by_hash() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new().await?;
+    #[test]
+    fn pending_transaction_by_hash() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new()?;
 
         let transaction_request = fixture.signed_dummy_transaction()?;
         let transaction_hash = fixture
@@ -1891,9 +1899,9 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test]
-    async fn transaction_by_hash() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new().await?;
+    #[test]
+    fn transaction_by_hash() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new()?;
 
         let transaction_request = fixture.signed_dummy_transaction()?;
         let transaction_hash = fixture
@@ -1924,9 +1932,9 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
-    async fn reset_local_to_forking() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new().await?;
+    #[test]
+    fn reset_local_to_forking() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new()?;
 
         let fork_config = Some(ForkConfig {
             json_rpc_url: get_alchemy_url(),
@@ -1952,9 +1960,9 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
-    async fn reset_forking_to_local() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new_forked().await?;
+    #[test]
+    fn reset_forking_to_local() -> anyhow::Result<()> {
+        let mut fixture = ProviderTestFixture::new_forked()?;
 
         // We're fetching a specific block instead of the last block number for the
         // forked blockchain, because the last block number query cannot be
