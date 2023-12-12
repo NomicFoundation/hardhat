@@ -57,8 +57,9 @@ pub struct ForkedBlockchain {
     remote: RemoteBlockchain<Arc<dyn SyncBlock<Error = BlockchainError>>, true>,
     state_root_generator: Arc<Mutex<RandomHashGenerator>>,
     fork_block_number: u64,
-    chain_id_override: Option<u64>,
-    remote_chain_id: u64,
+    /// The chan id of the forked blockchain is either the local chain id
+    /// override or the chain id of the remote blockchain.
+    chain_id: u64,
     network_id: u64,
     spec_id: SpecId,
     hardfork_activations: Option<HardforkActivations>,
@@ -76,18 +77,18 @@ impl ForkedBlockchain {
         state_root_generator: Arc<Mutex<RandomHashGenerator>>,
         hardfork_activation_overrides: HashMap<u64, HardforkActivations>,
     ) -> Result<Self, CreationError> {
-        let (chain_id, network_id, latest_block_number) = tokio::join!(
+        let (remote_chain_id, network_id, latest_block_number) = tokio::join!(
             rpc_client.chain_id(),
             rpc_client.network_id(),
             rpc_client.block_number()
         );
 
-        let chain_id = chain_id?;
+        let remote_chain_id = remote_chain_id?;
         let network_id = network_id?;
         let latest_block_number = latest_block_number?;
 
         let safe_block_number = largest_safe_block_number(LargestSafeBlockNumberArgs {
-            chain_id,
+            chain_id: remote_chain_id,
             latest_block_number,
         });
 
@@ -101,7 +102,7 @@ impl ForkedBlockchain {
 
             if fork_block_number > safe_block_number {
                 let num_confirmations = latest_block_number - fork_block_number + 1;
-                let required_confirmations = safe_block_depth(chain_id) + 1;
+                let required_confirmations = safe_block_depth(remote_chain_id) + 1;
                 let missing_confirmations = required_confirmations - num_confirmations;
 
                 log::warn!("You are forking from block {fork_block_number} which has less than {required_confirmations} confirmations, and will affect Hardhat Network's performance. Please use block number {safe_block_number} or wait for the block to get {missing_confirmations} more confirmations.");
@@ -113,8 +114,8 @@ impl ForkedBlockchain {
         };
 
         let hardfork_activations = hardfork_activation_overrides
-            .get(&chain_id)
-            .or_else(|| chain_hardfork_activations(chain_id))
+            .get(&remote_chain_id)
+            .or_else(|| chain_hardfork_activations(remote_chain_id))
             .cloned()
             .and_then(|hardfork_activations| {
                 // Ignore empty hardfork activations
@@ -133,7 +134,7 @@ impl ForkedBlockchain {
         {
             if hardfork < SpecId::SPURIOUS_DRAGON {
                 return Err(CreationError::InvalidHardfork {
-                    chain_name: chain_name(chain_id)
+                    chain_name: chain_name(remote_chain_id)
                         .map_or_else(|| "unknown".to_string(), ToString::to_string),
                     fork_block_number,
                     hardfork,
@@ -147,9 +148,8 @@ impl ForkedBlockchain {
             local_storage: ReservableSparseBlockchainStorage::empty(fork_block_number),
             remote: RemoteBlockchain::new(rpc_client, runtime),
             state_root_generator,
-            chain_id_override,
+            chain_id: chain_id_override.unwrap_or(remote_chain_id),
             fork_block_number,
-            remote_chain_id: chain_id,
             network_id,
             spec_id,
             hardfork_activations,
@@ -251,7 +251,7 @@ impl Blockchain for ForkedBlockchain {
     }
 
     fn chain_id(&self) -> u64 {
-        self.chain_id_override.unwrap_or(self.remote_chain_id)
+        self.chain_id
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
