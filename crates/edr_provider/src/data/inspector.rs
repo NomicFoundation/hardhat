@@ -108,7 +108,7 @@ pub(crate) mod tests {
             input: byte_code.into(),
             nonce: 0,
             max_priority_fee_per_gas: U256::from(42_000_000_000_u64),
-            chain_id: 1,
+            chain_id: provider_data.chain_id(),
             max_fee_per_gas: U256::from(42_000_000_000_u64),
             access_list: vec![],
         });
@@ -143,7 +143,7 @@ pub(crate) mod tests {
             input: call_data.into(),
             nonce: 1,
             max_priority_fee_per_gas: U256::from(42_000_000_000_u64),
-            chain_id: 1,
+            chain_id: provider_data.chain_id(),
             max_fee_per_gas: U256::from(42_000_000_000_u64),
             access_list: vec![],
         });
