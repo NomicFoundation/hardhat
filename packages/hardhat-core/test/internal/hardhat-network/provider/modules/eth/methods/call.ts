@@ -41,7 +41,7 @@ import { compileLiteral } from "../../../../stack-traces/compilation";
 import { EthereumProvider } from "../../../../../../../src/types";
 
 describe("Eth module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork, chainId }) => {
     if (isFork) {
       this.timeout(50000);
     }
@@ -1579,7 +1579,6 @@ contract C {
             );
           }
 
-          const chainId = await this.provider.send("eth_chainId");
           assert.equal(await getChainIdFromContract(this.provider), chainId);
         });
 
