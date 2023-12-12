@@ -297,6 +297,43 @@ impl ProviderData {
         Ok(result)
     }
 
+    /// Retrieves the block number for the provided block spec, if it exists.
+    fn block_number_by_block_spec(
+        &self,
+        block_spec: &BlockSpec,
+    ) -> Result<Option<u64>, ProviderError> {
+        let block_number = match block_spec {
+            BlockSpec::Number(number) => Some(*number),
+            BlockSpec::Tag(BlockTag::Earliest) => Some(0),
+            BlockSpec::Tag(BlockTag::Finalized | BlockTag::Safe) => {
+                if self.spec_id() >= SpecId::MERGE {
+                    Some(self.blockchain.last_block_number())
+                } else {
+                    return Err(ProviderError::InvalidBlockTag {
+                        block_spec: block_spec.clone(),
+                        spec: self.spec_id(),
+                    });
+                }
+            }
+            BlockSpec::Tag(BlockTag::Latest) => Some(self.blockchain.last_block_number()),
+            BlockSpec::Tag(BlockTag::Pending) => None,
+            BlockSpec::Eip1898(Eip1898BlockSpec::Hash { block_hash, .. }) => {
+                self.blockchain.block_by_hash(block_hash)?.map_or_else(
+                    || {
+                        Err(ProviderError::InvalidBlockNumberOrHash {
+                            block_spec: block_spec.clone(),
+                            latest_block_number: self.blockchain.last_block_number(),
+                        })
+                    },
+                    |block| Ok(Some(block.header().number)),
+                )?
+            }
+            BlockSpec::Eip1898(Eip1898BlockSpec::Number { block_number }) => Some(*block_number),
+        };
+
+        Ok(block_number)
+    }
+
     pub fn block_by_hash(
         &self,
         block_hash: &B256,
@@ -630,7 +667,7 @@ impl ProviderData {
         block_spec: Option<&BlockSpec>,
         state_overrides: &StateOverrides,
     ) -> Result<Bytes, ProviderError> {
-        let cfg = self.create_evm_config();
+        let cfg = self.create_evm_config(block_spec)?;
         let transaction_hash = *transaction.hash();
         let transaction = transaction.into();
 
@@ -697,13 +734,6 @@ impl ProviderData {
 
         Ok(())
     }
-
-    // TransactionCreationError::NonceTooLow {
-    //     transaction_nonce, ..
-    // } => ProviderError::AutoMineNonceTooLow {
-    //     expected: next_nonce,
-    //     actual: transaction_nonce,
-    // }
 
     pub fn send_transaction(
         &mut self,
@@ -1037,21 +1067,32 @@ impl ProviderData {
 
         Ok(transaction_hash)
     }
-
     fn evm_inspector(&self) -> EvmInspector<'_> {
         EvmInspector::new(&*self.callbacks)
     }
 
-    fn create_evm_config(&self) -> CfgEnv {
+    fn create_evm_config(&self, block_spec: Option<&BlockSpec>) -> Result<CfgEnv, ProviderError> {
+        let block_number = block_spec
+            .map(|block_spec| self.block_number_by_block_spec(block_spec))
+            .transpose()?
+            .flatten();
+
+        let spec_id = if let Some(block_number) = block_number {
+            self.blockchain.spec_at_block_number(block_number)?
+        } else {
+            self.blockchain.spec_id()
+        };
+
         let mut evm_config = CfgEnv::default();
         evm_config.chain_id = self.blockchain.chain_id();
-        evm_config.spec_id = self.blockchain.spec_id();
+        evm_config.spec_id = spec_id;
         evm_config.limit_contract_code_size = if self.allow_unlimited_contract_size {
             Some(usize::MAX)
         } else {
             None
         };
-        evm_config
+
+        Ok(evm_config)
     }
 
     fn execute_in_block_context<T>(
@@ -1102,7 +1143,7 @@ impl ProviderData {
         // TODO: https://github.com/NomicFoundation/edr/issues/156
         let reward = U256::ZERO;
 
-        let evm_config = self.create_evm_config();
+        let evm_config = self.create_evm_config(None)?;
 
         let mut inspector = self.evm_inspector();
 

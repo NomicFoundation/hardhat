@@ -14,6 +14,10 @@ use edr_evm::{
 ///
 /// Panics if a state override is provided to `state_at_block_number` for the
 /// pending block; or if the `BlockchainMut` methods are called.
+///
+/// WORKAROUND: This struct needs to implement all sub-traits of
+/// [`SyncBlockchain`] because we cannot upcast the trait at its usage site
+/// <https://github.com/NomicFoundation/edr/issues/244>
 #[derive(Debug)]
 pub(crate) struct BlockchainWithPending<'blockchain> {
     blockchain: &'blockchain dyn SyncBlockchain<BlockchainError, StateError>,

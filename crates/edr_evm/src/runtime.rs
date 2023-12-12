@@ -24,7 +24,7 @@ pub fn dry_run<BlockchainErrorT, StateErrorT>(
     blockchain: &dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
     state: &dyn SyncState<StateErrorT>,
     state_overrides: &StateOverrides,
-    mut cfg: CfgEnv,
+    cfg: CfgEnv,
     transaction: TxEnv,
     block: BlockEnv,
     inspector: Option<&mut dyn SyncInspector<BlockchainErrorT, StateErrorT>>,
@@ -37,21 +37,12 @@ where
         return Err(TransactionError::MissingPrevrandao);
     }
 
-    let block_number = block
-        .number
-        .try_into()
-        .expect("Block numbers cannot be larger than u64::MAX");
-
-    if transaction.gas_priority_fee.is_some()
-        && blockchain.spec_at_block_number(block_number)? < SpecId::LONDON
-    {
+    if transaction.gas_priority_fee.is_some() && cfg.spec_id < SpecId::LONDON {
         return Err(TransactionError::Eip1559Unsupported);
     }
 
     let state_overrider = StateRefOverrider::new(state_overrides, &state);
 
-    cfg.disable_balance_check = true;
-    cfg.disable_block_gas_limit = true;
     let evm = build_evm(blockchain, &state_overrider, cfg, transaction, block);
 
     run_transaction(evm, inspector).map_err(TransactionError::from)
@@ -74,6 +65,7 @@ where
     StateErrorT: Debug + Send,
 {
     cfg.disable_balance_check = true;
+    cfg.disable_block_gas_limit = true;
     dry_run(
         blockchain,
         state,
