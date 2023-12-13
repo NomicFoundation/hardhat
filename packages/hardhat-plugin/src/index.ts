@@ -145,19 +145,21 @@ ignitionScope
           : path.join(hre.config.paths.ignition, "deployments", deploymentId);
 
       if (chainId !== 31337) {
-        const prompt = await Prompt({
-          type: "confirm",
-          name: "networkConfirmation",
-          message: `Confirm deploy to network ${hre.network.name} (${chainId})?`,
-          initial: false,
-        });
+        if (process.env.HARDHAT_IGNITION_CONFIRM_DEPLOYMENT === undefined) {
+          const prompt = await Prompt({
+            type: "confirm",
+            name: "networkConfirmation",
+            message: `Confirm deploy to network ${hre.network.name} (${chainId})?`,
+            initial: false,
+          });
 
-        if (prompt.networkConfirmation !== true) {
-          console.log("Deploy cancelled");
-          return;
+          if (prompt.networkConfirmation !== true) {
+            console.log("Deploy cancelled");
+            return;
+          }
         }
 
-        if (reset) {
+        if (reset && process.env.HARDHAT_IGNITION_CONFIRM_RESET === undefined) {
           const resetPrompt = await Prompt({
             type: "confirm",
             name: "resetConfirmation",

@@ -9,6 +9,7 @@ describe("chainId reconciliation", function () {
 
   it("should halt when running a deployment on a different chain", async function () {
     this.hre.network.name = "something-else";
+    process.env.HARDHAT_IGNITION_CONFIRM_DEPLOYMENT = "true";
 
     await assert.isRejected(
       this.hre.run(
@@ -17,7 +18,9 @@ describe("chainId reconciliation", function () {
           modulePath: "./ignition/modules/LockModule.js",
         }
       ),
-      /The deployment's chain cannot be changed between runs. The deployment was previously run against the chain 123, but the current network is the chain 31337./
+      /The deployment's chain cannot be changed between runs. The deployment was previously run against the chain 123, but the current network is the chain 1337./
     );
+
+    delete process.env.HARDHAT_IGNITION_CONFIRM_DEPLOYMENT;
   });
 });

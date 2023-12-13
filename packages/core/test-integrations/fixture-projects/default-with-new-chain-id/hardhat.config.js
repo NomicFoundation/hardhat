@@ -11,4 +11,10 @@ module.exports = {
       },
     },
   },
+  networks: {
+    hardhat: {
+      // We use a different chain id to avoid triggering the auto-wipe for fixtures
+      chainId: 1337,
+    },
+  },
 };
