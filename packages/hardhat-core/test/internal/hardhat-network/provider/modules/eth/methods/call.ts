@@ -41,7 +41,6 @@ import {
 import { compileLiteral } from "../../../../stack-traces/compilation";
 import { EthereumProvider } from "../../../../../../../src/types";
 import {
-  InternalError,
   InvalidArgumentsError,
   InvalidInputError,
 } from "../../../../../../../src/internal/core/providers/errors";
