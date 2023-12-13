@@ -2,6 +2,12 @@
 
 If you want to test that your deployment was correctly defined, or if you want to use your Ignition Modules to simplify your test setup, continue reading this guide.
 
+:::tip
+
+If you prefer to use **Viem** instead of **ethers**, check out the [Viem guide](../../../ignition/docs/guides/viem.md) for more details.
+
+:::
+
 ## The Ignition object
 
 Requiring Hardhat Ignition within your Hardhat config will automatically add an `ignition` object to the [Hardhat Runtime Environment](../../../hardhat-runner/docs/advanced/hardhat-runtime-environment.md).
