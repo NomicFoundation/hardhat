@@ -182,7 +182,7 @@ The `solidity` config is an optional field that can be one of the following:
 
   - `version`: The solc version to use.
 
-  - `settings`: An object with the same schema as the `settings` entry in the [Input JSON](https://solidity.readthedocs.io/en/v0.7.4/using-the-compiler.html#input-description).
+  - `settings`: An object with the same schema as the `settings` entry in the [Input JSON](https://docs.soliditylang.org/en/latest/using-the-compiler.html#input-description).
 
 - An object which describes multiple compilers and their respective configurations. It contains the following:
 
