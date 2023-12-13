@@ -680,7 +680,7 @@ impl ProviderData {
                 gas_limit: U256::from(header.gas_limit),
                 basefee: U256::from(0),
                 difficulty: header.difficulty,
-                prevrandao: if self.spec_id() >= SpecId::MERGE {
+                prevrandao: if cfg.spec_id >= SpecId::MERGE {
                     Some(header.mix_hash)
                 } else {
                     None
