@@ -18,6 +18,28 @@ pub enum StorageOverride {
     Full(HashMap<U256, U256>),
 }
 
+impl StorageOverride {
+    /// Constructs a new storage override from the provided diff.
+    pub fn from_diff(diff: HashMap<B256, U256>) -> Self {
+        let diff = diff
+            .into_iter()
+            .map(|(key, value)| (U256::from_be_bytes(key.0), value))
+            .collect();
+
+        Self::Diff(diff)
+    }
+
+    /// Constructs a new storage override from the provided full set.
+    pub fn from_full(full: HashMap<B256, U256>) -> Self {
+        let full = full
+            .into_iter()
+            .map(|(key, value)| (U256::from_be_bytes(key.0), value))
+            .collect();
+
+        Self::Full(full)
+    }
+}
+
 /// Values for overriding account information.
 #[derive(Clone, Debug)]
 pub struct AccountOverride {
@@ -100,10 +122,10 @@ impl TryFrom<AccountOverrideOptions> for AccountOverride {
             if storage_diff.is_some() {
                 return Err(AccountOverrideConversionError::StorageOverrideConflict);
             } else {
-                Some(StorageOverride::Full(storage))
+                Some(StorageOverride::from_full(storage))
             }
         } else {
-            storage_diff.map(StorageOverride::Diff)
+            storage_diff.map(StorageOverride::from_diff)
         };
 
         Ok(Self {

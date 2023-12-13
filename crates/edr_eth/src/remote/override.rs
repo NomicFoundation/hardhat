@@ -1,6 +1,9 @@
-use revm_primitives::{Address, HashMap, U256};
+use revm_primitives::{Address, HashMap, B256, U256};
 
-use crate::{serde::ZeroXPrefixedBytes, state::Storage};
+use crate::serde::ZeroXPrefixedBytes;
+
+/// Type representing a set of overrides for storage information.
+pub type StorageOverride = HashMap<B256, U256>;
 
 /// Options for overriding account information.
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -19,10 +22,10 @@ pub struct AccountOverrideOptions {
     pub code: Option<ZeroXPrefixedBytes>,
     /// Account storage override. Mutually exclusive with `storage_diff`.
     #[serde(rename = "state")]
-    pub storage: Option<Storage>,
+    pub storage: Option<StorageOverride>,
     /// Account storage diff override. Mutually exclusive with `storage`.
     #[serde(rename = "stateDiff")]
-    pub storage_diff: Option<Storage>,
+    pub storage_diff: Option<StorageOverride>,
 }
 
 /// Type representing a full set of overrides for account information.
