@@ -5,7 +5,14 @@ import {
   IgnitionError,
   StatusResult,
 } from "@nomicfoundation/ignition-core";
-import { readFile, readdirSync, rm } from "fs-extra";
+import {
+  readdirSync,
+  rm,
+  pathExists,
+  writeJSON,
+  ensureDir,
+  readFile,
+} from "fs-extra";
 import { extendConfig, extendEnvironment, scope } from "hardhat/config";
 import {
   HardhatPluginError,
@@ -163,6 +170,32 @@ ignitionScope
             return;
           }
         }
+      } else if (deploymentDir !== undefined) {
+        // since we're on hardhat-network
+        // check for a previous run of this deploymentId and compare instanceIds
+        // if they're different, wipe deployment state
+        const instanceFilePath = path.join(
+          path.dirname(deploymentDir),
+          ".hardhat-network-instances.json"
+        );
+        const instanceFileExists = await pathExists(instanceFilePath);
+
+        const instanceFile: {
+          [deploymentId: string]: string;
+        } = instanceFileExists ? require(instanceFilePath) : {};
+
+        const metadata = (await hre.network.provider.request({
+          method: "hardhat_metadata",
+        })) as { instanceId: string };
+
+        if (instanceFile[deploymentId] !== metadata.instanceId) {
+          await rm(deploymentDir, { recursive: true, force: true });
+        }
+
+        // save current instanceId to instanceFile for future runs
+        instanceFile[deploymentId] = metadata.instanceId;
+        await ensureDir(path.dirname(instanceFilePath));
+        await writeJSON(instanceFilePath, instanceFile, { spaces: 2 });
       }
 
       if (reset) {
