@@ -33,8 +33,8 @@ pub enum TransactionError<BE, SE> {
 
 impl<BE, SE> From<EVMError<DatabaseComponentError<SE, BE>>> for TransactionError<BE, SE>
 where
-    BE: Debug + Send + 'static,
-    SE: Debug + Send + 'static,
+    BE: Debug + Send,
+    SE: Debug + Send,
 {
     fn from(error: EVMError<DatabaseComponentError<SE, BE>>) -> Self {
         match error {

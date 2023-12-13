@@ -3,7 +3,9 @@ use std::clone::Clone;
 use std::sync::Arc;
 
 use criterion::{BatchSize, BenchmarkId, Criterion};
-use edr_eth::{remote::PreEip1898BlockSpec, Address, Bytes, U256};
+#[cfg(all(test, feature = "test-remote"))]
+use edr_eth::remote::PreEip1898BlockSpec;
+use edr_eth::{Address, Bytes, U256};
 #[cfg(all(test, feature = "test-remote"))]
 use edr_evm::state::ForkState;
 use edr_evm::state::{StateError, SyncState, TrieState};

@@ -16,6 +16,7 @@ import {
   assertAddressBalance,
   assertInvalidArgumentsError,
   assertInvalidInputError,
+  assertProviderError,
 } from "../../../../helpers/assertions";
 import {
   EXAMPLE_BLOCKHASH_CONTRACT,
@@ -39,6 +40,10 @@ import {
 } from "../../../../helpers/transactions";
 import { compileLiteral } from "../../../../stack-traces/compilation";
 import { EthereumProvider } from "../../../../../../../src/types";
+import {
+  InvalidArgumentsError,
+  InvalidInputError,
+} from "../../../../../../../src/internal/core/providers/errors";
 
 describe("Eth module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -580,8 +585,9 @@ describe("Eth module", function () {
             );
           });
 
-          // TODO: https://github.com/NomicFoundation/edr/issues/104
-          it.skip("should throw an error because the key address used is invalid", async function () {
+          const isEdr = process.env.HARDHAT_EXPERIMENTAL_VM_MODE === "edr";
+
+          it("should throw an error because the key address used is invalid", async function () {
             await assertInvalidArgumentsError(
               this.provider,
               "eth_call",
@@ -599,7 +605,10 @@ describe("Eth module", function () {
                   },
                 },
               ],
-              `Errors encountered in param 2: Invalid value "0xce9efd622e568b3a21b19532c77fc76c93c34b" supplied to : { [K in address]: stateOverrideOptions } | undefined/0xce9efd622e568b3a21b19532c77fc76c93c34b: address`
+              // TODO: https://github.com/NomicFoundation/edr/issues/104
+              isEdr
+                ? undefined
+                : `Errors encountered in param 2: Invalid value "0xce9efd622e568b3a21b19532c77fc76c93c34b" supplied to : { [K in address]: stateOverrideOptions } | undefined/0xce9efd622e568b3a21b19532c77fc76c93c34b: address`
             );
           });
 
@@ -625,7 +634,10 @@ describe("Eth module", function () {
                   },
                 },
               ],
-              `Errors encountered in param 2: Invalid value "0x00000000000000000000000000000000000000000000000000000000000002" supplied to : { [K in address]: stateOverrideOptions } | undefined/0xce9efd622e568b3a21b19532c77fc76c93c34bd4: stateOverrideOptions/stateDiff: { [K in Storage slot hex string]: Storage slot } | undefined/0x00000000000000000000000000000000000000000000000000000000000002: Storage slot hex string`
+              // TODO: https://github.com/NomicFoundation/edr/issues/104
+              isEdr
+                ? undefined
+                : `Errors encountered in param 2: Invalid value "0x00000000000000000000000000000000000000000000000000000000000002" supplied to : { [K in address]: stateOverrideOptions } | undefined/0xce9efd622e568b3a21b19532c77fc76c93c34bd4: stateOverrideOptions/stateDiff: { [K in Storage slot hex string]: Storage slot } | undefined/0x00000000000000000000000000000000000000000000000000000000000002: Storage slot hex string`
             );
           });
 
@@ -718,9 +730,10 @@ describe("Eth module", function () {
                 ]);
               });
 
-              // TODO: https://github.com/NomicFoundation/edr/issues/104
-              it.skip("should throw an error, the balance value is too big", async function () {
-                await assertInvalidInputError(
+              it("should throw an error, the balance value is too big", async function () {
+                // TODO: https://github.com/NomicFoundation/edr/issues/104
+                // await assertInvalidInputError(
+                await assertProviderError(
                   this.provider,
                   "eth_call",
                   [
@@ -737,7 +750,10 @@ describe("Eth module", function () {
                       },
                     },
                   ],
-                  "The 'balance' property should occupy a maximum of 32 bytes (balance=115792089237316195423570985008687907853269984665640564039457584007913129639936)."
+                  isEdr
+                    ? undefined
+                    : "The 'balance' property should occupy a maximum of 32 bytes (balance=115792089237316195423570985008687907853269984665640564039457584007913129639936).",
+                  isEdr ? InvalidArgumentsError.CODE : InvalidInputError.CODE
                 );
               });
             });
@@ -875,9 +891,10 @@ describe("Eth module", function () {
                 ]);
               });
 
-              // TODO: https://github.com/NomicFoundation/edr/issues/104
-              it.skip("should throw an error, the nonce value is too big", async function () {
-                await assertInvalidInputError(
+              it("should throw an error, the nonce value is too big", async function () {
+                // TODO: https://github.com/NomicFoundation/edr/issues/104
+                // await assertInvalidInputError(
+                await assertProviderError(
                   this.provider,
                   "eth_call",
                   [
@@ -894,7 +911,10 @@ describe("Eth module", function () {
                       },
                     },
                   ],
-                  "The 'nonce' property should occupy a maximum of 8 bytes (nonce=18446744073709551616)."
+                  isEdr
+                    ? undefined
+                    : "The 'nonce' property should occupy a maximum of 8 bytes (nonce=18446744073709551616).",
+                  isEdr ? InvalidArgumentsError.CODE : InvalidInputError.CODE
                 );
               });
             });

@@ -33,14 +33,25 @@ pub async fn dry_run(
     let cfg = CfgEnv::try_from(cfg)?;
     let transaction = TxEnv::try_from(transaction)?;
     let block = BlockEnv::try_from(block)?;
+    let mut tracer = tracer.map(Tracer::as_dyn_inspector);
 
-    let mut container = InspectorContainer::new(with_trace, tracer.map(Tracer::as_dyn_inspector));
     let blockchain = (*blockchain).clone();
     let state = (*state).clone();
     let state_overrides = state_overrides.as_inner().clone();
 
     runtime::Handle::current()
         .spawn_blocking(move || {
+            // WORKAROUND: limiting the scope of the mutable borrow of `tracer` to this
+            // block
+            let mut container = InspectorContainer::new(
+                with_trace,
+                if let Some(tracer) = &mut tracer {
+                    Some(tracer.as_mut())
+                } else {
+                    None
+                },
+            );
+
             let ResultAndState { result, state } = edr_evm::dry_run(
                 &*blockchain.read(),
                 &*state.read(),
@@ -77,14 +88,25 @@ pub async fn guaranteed_dry_run(
     let cfg = CfgEnv::try_from(cfg)?;
     let transaction = TxEnv::try_from(transaction)?;
     let block = BlockEnv::try_from(block)?;
+    let mut tracer = tracer.map(Tracer::as_dyn_inspector);
 
-    let mut container = InspectorContainer::new(with_trace, tracer.map(Tracer::as_dyn_inspector));
     let blockchain = (*blockchain).clone();
     let state = (*state).clone();
     let state_overrides = state_overrides.as_inner().clone();
 
     runtime::Handle::current()
         .spawn_blocking(move || {
+            // WORKAROUND: limiting the scope of the mutable borrow of `tracer` to this
+            // block
+            let mut container = InspectorContainer::new(
+                with_trace,
+                if let Some(tracer) = &mut tracer {
+                    Some(tracer.as_mut())
+                } else {
+                    None
+                },
+            );
+
             let ResultAndState { result, state } = edr_evm::guaranteed_dry_run(
                 &*blockchain.read(),
                 &*state.read(),
@@ -118,12 +140,20 @@ pub async fn run(
     let cfg = CfgEnv::try_from(cfg)?;
     let transaction = TxEnv::try_from(transaction)?;
     let block = BlockEnv::try_from(block)?;
+    let mut tracer = tracer.map(Tracer::as_dyn_inspector);
 
-    let mut container = InspectorContainer::new(with_trace, tracer.map(Tracer::as_dyn_inspector));
     let blockchain = (*blockchain).clone();
     let state = (*state).clone();
 
     runtime::Handle::current().spawn_blocking(move || {
+        // WORKAROUND: limiting the scope of the mutable borrow of `tracer` to this
+        // block
+        let mut container = InspectorContainer::new(with_trace, if let Some(tracer) = &mut tracer {
+            Some(tracer.as_mut())
+        } else {
+            None
+        });
+
         let result = edr_evm::run(
             &*blockchain.read(),
             &mut *state.write(),

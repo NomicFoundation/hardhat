@@ -62,8 +62,8 @@ pub enum BlockTransactionError<BE, SE> {
 
 impl<BE, SE> From<EVMError<DatabaseComponentError<SE, BE>>> for BlockTransactionError<BE, SE>
 where
-    BE: Debug + Send + 'static,
-    SE: Debug + Send + 'static,
+    BE: Debug + Send,
+    SE: Debug + Send,
 {
     fn from(error: EVMError<DatabaseComponentError<SE, BE>>) -> Self {
         match error {
@@ -184,8 +184,8 @@ impl BlockBuilder {
         inspector: Option<&mut dyn SyncInspector<BlockchainErrorT, StateErrorT>>,
     ) -> Result<ExecutionResult, BlockTransactionError<BlockchainErrorT, StateErrorT>>
     where
-        BlockchainErrorT: Debug + Send + 'static,
-        StateErrorT: Debug + Send + 'static,
+        BlockchainErrorT: Debug + Send,
+        StateErrorT: Debug + Send,
     {
         //  transaction's gas limit cannot be greater than the remaining gas in the
         // block

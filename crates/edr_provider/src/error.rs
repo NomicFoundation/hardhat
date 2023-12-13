@@ -13,6 +13,8 @@ use edr_evm::{
     TransactionError,
 };
 
+use crate::data::CreationError;
+
 #[derive(Debug, thiserror::Error)]
 pub enum ProviderError {
     /// Account override conversion error.
@@ -39,6 +41,8 @@ pub enum ProviderError {
     /// Blockchain error
     #[error(transparent)]
     Blockchain(#[from] BlockchainError),
+    #[error(transparent)]
+    Creation(#[from] CreationError),
     /// Block number or hash doesn't exist in blockchain
     #[error(
         "Received invalid block tag {block_spec}. Latest block number is {latest_block_number}"
@@ -139,6 +143,7 @@ impl From<ProviderError> for jsonrpc::Error {
             ProviderError::AutoMineNonceTooLow { .. } => (-32000, None),
             ProviderError::AutoMinePriorityFeeTooLow { .. } => (-32000, None),
             ProviderError::Blockchain(_) => (-32000, None),
+            ProviderError::Creation(_) => (-32000, None),
             ProviderError::InvalidBlockNumberOrHash { .. } => (-32000, None),
             ProviderError::InvalidBlockTag { .. } => (-32000, None),
             ProviderError::InvalidChainId { .. } => (-32000, None),

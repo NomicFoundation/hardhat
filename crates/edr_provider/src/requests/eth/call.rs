@@ -60,7 +60,6 @@ fn resolve_call_request(
             chain_id,
         })
     } else {
-        // Question: Is there a reason we don't support EIP-2930 calls?
         let max_fee_per_gas = max_fee_per_gas
             .or(max_priority_fee_per_gas)
             .unwrap_or(U256::ZERO);
