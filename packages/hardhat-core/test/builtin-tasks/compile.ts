@@ -19,8 +19,8 @@ import {
   getAllFilesMatchingSync,
   getRealPathSync,
 } from "../../src/internal/util/fs-utils";
-import { SUPPORTED_SOLIDITY_VERSION_RANGE } from "../../src/internal/hardhat-network/stack-traces/constants";
 import { HardhatContext } from "../../src/internal/context";
+import { getLatestSupportedVersion } from "../internal/hardhat-network/stack-traces/compilers-list";
 
 function assertFileExists(pathToFile: string) {
   assert.isTrue(
@@ -59,10 +59,7 @@ describe("compile task", function () {
       const userConfigSolcVersion =
         HardhatContext.getHardhatContext().environment?.userConfig.solidity;
 
-      const lastSolcVersion = SUPPORTED_SOLIDITY_VERSION_RANGE.replace(
-        "<=",
-        ""
-      );
+      const lastSolcVersion = getLatestSupportedVersion();
 
       assert.equal(
         userConfigSolcVersion,
