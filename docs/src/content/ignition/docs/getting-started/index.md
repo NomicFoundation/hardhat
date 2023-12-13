@@ -75,7 +75,7 @@ Finally, add this to your config file to [enable the plugin](../../../hardhat-ru
 :::tab{value="TypeScript"}
 
 ```typescript
-import "@nomicfoundation/hardhat-ignition";
+import "@nomicfoundation/hardhat-ignition-ethers";
 ```
 
 :::
@@ -83,7 +83,7 @@ import "@nomicfoundation/hardhat-ignition";
 :::tab{value="JavaScript"}
 
 ```javascript
-require("@nomicfoundation/hardhat-ignition");
+require("@nomicfoundation/hardhat-ignition-ethers");
 ```
 
 :::
