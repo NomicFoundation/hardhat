@@ -2,6 +2,7 @@
 pub mod eth;
 /// Hardhat RPC request types
 pub mod hardhat;
+mod validation;
 
 pub use edr_eth::remote::{client::Request as RpcRequest, methods::MethodInvocation as EthRequest};
 

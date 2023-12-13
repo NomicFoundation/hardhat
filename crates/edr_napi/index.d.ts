@@ -789,7 +789,7 @@ export class OrderedTransaction {
 }
 export class PendingTransaction {
   /** Tries to construct a new [`PendingTransaction`]. */
-  static create(stateManager: State, specId: SpecId, transaction: LegacySignedTransaction | Eip2930SignedTransaction | Eip1559SignedTransaction | Eip4844SignedTransaction, caller?: Buffer | undefined | null): Promise<PendingTransaction>
+  static create(specId: SpecId, transaction: LegacySignedTransaction | Eip2930SignedTransaction | Eip1559SignedTransaction | Eip4844SignedTransaction, caller?: Buffer | undefined | null): Promise<PendingTransaction>
   get caller(): Buffer
   get transaction(): LegacySignedTransaction | Eip2930SignedTransaction | Eip1559SignedTransaction | Eip4844SignedTransaction
 }

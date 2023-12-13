@@ -538,7 +538,6 @@ export class EdrAdapter implements VMAdapter {
     for (const tx of block.transactions) {
       const caller = tx.getSenderAddress().toBuffer();
       const pendingTx = await PendingTransaction.create(
-        this._state.asInner(),
         evmConfig.specId!,
         ethereumjsTransactionToEdrSignedTransaction(tx),
         caller

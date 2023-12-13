@@ -12,7 +12,7 @@ use super::signed::{
     Eip1559SignedTransaction, Eip2930SignedTransaction, Eip4844SignedTransaction,
     LegacySignedTransaction,
 };
-use crate::{cast::TryCast, config::SpecId, state::State};
+use crate::{cast::TryCast, config::SpecId};
 
 #[napi]
 pub struct PendingTransaction {
@@ -33,7 +33,6 @@ impl PendingTransaction {
     #[napi(ts_return_type = "Promise<PendingTransaction>")]
     pub fn create(
         env: Env,
-        state_manager: &State,
         spec_id: SpecId,
         transaction: Either4<
             LegacySignedTransaction,
@@ -46,18 +45,14 @@ impl PendingTransaction {
         let transaction: edr_eth::transaction::SignedTransaction = transaction.try_cast()?;
         let spec_id: edr_evm::SpecId = spec_id.into();
 
-        let state = (*state_manager).clone();
-
         let (deferred, promise) = env.create_deferred()?;
         runtime::Handle::current().spawn_blocking(move || {
-            let state = state.read();
-
             let result = if let Some(caller) = caller {
                 let caller = Address::from_slice(&caller);
 
-                edr_evm::PendingTransaction::with_caller(&*state, spec_id, transaction, caller)
+                edr_evm::PendingTransaction::with_caller(spec_id, transaction, caller)
             } else {
-                edr_evm::PendingTransaction::new(&*state, spec_id, transaction)
+                edr_evm::PendingTransaction::new(spec_id, transaction)
             }
             .map_or_else(
                 |e| Err(napi::Error::new(napi::Status::InvalidArg, e.to_string())),

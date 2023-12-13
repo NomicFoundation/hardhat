@@ -37,14 +37,7 @@ where
         return Err(TransactionError::MissingPrevrandao);
     }
 
-    let block_number = block
-        .number
-        .try_into()
-        .expect("Block numbers cannot be larger than u64::MAX");
-
-    if transaction.gas_priority_fee.is_some()
-        && blockchain.spec_at_block_number(block_number)? < SpecId::LONDON
-    {
+    if transaction.gas_priority_fee.is_some() && cfg.spec_id < SpecId::LONDON {
         return Err(TransactionError::Eip1559Unsupported);
     }
 
@@ -72,6 +65,7 @@ where
     StateErrorT: Debug + Send,
 {
     cfg.disable_balance_check = true;
+    cfg.disable_block_gas_limit = true;
     dry_run(
         blockchain,
         state,

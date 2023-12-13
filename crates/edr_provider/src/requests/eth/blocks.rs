@@ -94,7 +94,7 @@ fn block_by_number(
                 total_difficulty: Some(total_difficulty),
             }))
         }
-        Err(ProviderError::InvalidBlockNumberOrHash(_)) => Ok(None),
+        Err(ProviderError::InvalidBlockNumberOrHash { .. }) => Ok(None),
         Err(err) => Err(err),
     }
 }
