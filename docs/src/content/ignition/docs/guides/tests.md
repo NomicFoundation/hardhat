@@ -60,3 +60,17 @@ it("should set the start count to 0 by default", async function () {
   return { counter };
 });
 ```
+
+## Sending transactions with a different account
+
+The `ignition.deploy` method will default to using the first account in Hardhat network's `accounts` array as the sender for all transactions.
+
+You can change this by passing a `defaultSender` within the options object as a second argument to the `deploy` method:
+
+```typescript
+const [first, second] = await hre.ethers.getSigners();
+
+const result = await hre.ignition.deploy(CounterModule, {
+  defaultSender: second.address,
+});
+```
