@@ -19,6 +19,8 @@ import {
   getAllFilesMatchingSync,
   getRealPathSync,
 } from "../../src/internal/util/fs-utils";
+import { SUPPORTED_SOLIDITY_VERSION_RANGE } from "../../src/internal/hardhat-network/stack-traces/constants";
+import { HardhatContext } from "../../src/internal/context";
 
 function assertFileExists(pathToFile: string) {
   assert.isTrue(
@@ -45,6 +47,44 @@ describe("compile task", function () {
       (f) => f.endsWith(".json")
     );
   }
+
+  describe("compile with latest solc version", function () {
+    // The 'hardhat.config.js' and 'A.sol' files need to be updated each time a new solc version is released
+
+    useFixtureProject("compilation-latest-solc-version");
+    useEnvironment();
+
+    it("should have the last version of solc in the 'hardhat.config.js' and 'A.sol' files", async function () {
+      // Test to check that the last version of solc is being tested
+      const userConfigSolcVersion =
+        HardhatContext.getHardhatContext().environment?.userConfig.solidity;
+
+      const lastSolcVersion = SUPPORTED_SOLIDITY_VERSION_RANGE.replace(
+        "<=",
+        ""
+      );
+
+      assert.equal(
+        userConfigSolcVersion,
+        lastSolcVersion,
+        `The version of solc in the user config is not the last one. Expected '${lastSolcVersion}' but got '${userConfigSolcVersion}'. Did you forget to update the test?`
+      );
+    });
+
+    it("should compile and emit artifacts using the latest solc version", async function () {
+      await this.env.run("compile");
+
+      assertFileExists(path.join("artifacts", "contracts", "A.sol", "A.json"));
+      assertBuildInfoExists(
+        path.join("artifacts", "contracts", "A.sol", "A.dbg.json")
+      );
+
+      const buildInfos = getBuildInfos();
+      assert.lengthOf(buildInfos, 1);
+
+      assertValidJson(buildInfos[0]);
+    });
+  });
 
   describe("project with single file", function () {
     useFixtureProject("compilation-single-file");
