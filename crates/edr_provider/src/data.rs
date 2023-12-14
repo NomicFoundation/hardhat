@@ -733,13 +733,6 @@ impl ProviderData {
         Ok(())
     }
 
-    // TransactionCreationError::NonceTooLow {
-    //     transaction_nonce, ..
-    // } => ProviderError::AutoMineNonceTooLow {
-    //     expected: next_nonce,
-    //     actual: transaction_nonce,
-    // }
-
     pub fn send_transaction(
         &mut self,
         transaction_request: TransactionRequestAndSender,
