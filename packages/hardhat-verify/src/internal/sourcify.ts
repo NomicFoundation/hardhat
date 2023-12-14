@@ -14,14 +14,14 @@ import { ValidationResponse } from "./utilities";
 export class Sourcify {
   public apiUrl: string = "https://sourcify.dev/server";
   public browserUrl: string = "https://repo.sourcify.dev";
-  private chainId: number;
+  private _chainId: number;
 
   constructor(chainId: number, apiUrl?: string, browserUrl?: string) {
-    this.chainId = chainId;
-    if (apiUrl) {
+    this._chainId = chainId;
+    if (apiUrl !== undefined) {
       this.apiUrl = apiUrl;
     }
-    if (browserUrl) {
+    if (browserUrl !== undefined) {
       this.browserUrl = browserUrl;
     }
   }
@@ -30,7 +30,7 @@ export class Sourcify {
   public async isVerified(address: string) {
     const parameters = new URLSearchParams({
       addresses: address,
-      chainIds: `${this.chainId}`,
+      chainIds: `${this._chainId}`,
     });
 
     const url = new URL(`${this.apiUrl}/check-all-by-addresses`);
@@ -94,7 +94,7 @@ export class Sourcify {
     const parameters: any = {
       address,
       files,
-      chain: `${this.chainId}`,
+      chain: `${this._chainId}`,
     };
 
     if (chosenContract !== undefined) {
@@ -139,7 +139,7 @@ export class Sourcify {
       contractStatus === ContractStatus.PERFECT
         ? "full_match"
         : "partial_match";
-    return `${this.browserUrl}/contracts/${matchType}/${this.chainId}/${address}/`;
+    return `${this.browserUrl}/contracts/${matchType}/${this._chainId}/${address}/`;
   }
 }
 
