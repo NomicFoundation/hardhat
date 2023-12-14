@@ -77,6 +77,7 @@ pub fn create_test_config_with_impersonated_accounts_and_fork(
         }),
         initial_date: Some(SystemTime::now()),
         initial_parent_beacon_block_root: Some(KECCAK_NULL_RLP),
+        min_gas_price: U256::ZERO,
         mining: MiningConfig::default(),
         network_id: 123,
         cache_dir,

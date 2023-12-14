@@ -438,8 +438,12 @@ export class EdrProviderWrapper
 
     const provider = await Provider.withConfig(
       {
+        allowBlocksWithSameTimestamp:
+          config.allowBlocksWithSameTimestamp ?? false,
+        allowUnlimitedContractSize: config.allowUnlimitedContractSize,
         bailOnCallFailure: config.throwOnCallFailures,
         bailOnTransactionFailure: config.throwOnTransactionFailures,
+        blockGasLimit: BigInt(config.blockGasLimit),
         chainId: BigInt(config.chainId),
         cacheDir: config.forkCachePath,
         coinbase: Buffer.from(coinbase.slice(2), "hex"),
@@ -447,20 +451,16 @@ export class EdrProviderWrapper
         hardfork: ethereumsjsHardforkToEdrSpecId(
           getHardforkName(config.hardfork)
         ),
-        networkId: BigInt(config.chainId),
-        blockGasLimit: BigInt(config.blockGasLimit),
         genesisAccounts: config.genesisAccounts.map((account) => {
           return {
             secretKey: account.privateKey,
             balance: BigInt(account.balance),
           };
         }),
-        allowUnlimitedContractSize: config.allowUnlimitedContractSize,
-        allowBlocksWithSameTimestamp:
-          config.allowBlocksWithSameTimestamp ?? false,
         initialBaseFeePerGas: BigInt(
           config.initialBaseFeePerGas ?? 1_000_000_000
         ),
+        minGasPrice: config.minGasPrice,
         mining: {
           autoMine: config.automine,
           interval: ethereumjsIntervalMiningConfigToEdr(config.intervalMining),
@@ -468,6 +468,7 @@ export class EdrProviderWrapper
             order: ethereumjsMempoolOrderToEdrMineOrdering(config.mempoolOrder),
           },
         },
+        networkId: BigInt(config.chainId),
       },
       (message: Buffer) => {
         const consoleLogger = new ConsoleLogger();

@@ -24,7 +24,7 @@ pub fn dry_run<BlockchainErrorT, StateErrorT>(
     blockchain: &dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
     state: &dyn SyncState<StateErrorT>,
     state_overrides: &StateOverrides,
-    mut cfg: CfgEnv,
+    cfg: CfgEnv,
     transaction: TxEnv,
     block: BlockEnv,
     inspector: Option<&mut dyn SyncInspector<BlockchainErrorT, StateErrorT>>,
@@ -43,8 +43,6 @@ where
 
     let state_overrider = StateRefOverrider::new(state_overrides, &state);
 
-    cfg.disable_balance_check = true;
-    cfg.disable_block_gas_limit = true;
     let evm = build_evm(blockchain, &state_overrider, cfg, transaction, block);
 
     run_transaction(evm, inspector).map_err(TransactionError::from)

@@ -82,6 +82,8 @@ pub struct ProviderConfig {
     /// The initial parent beacon block root of the blockchain. Required for
     /// EIP-4788
     pub initial_parent_beacon_block_root: Option<Buffer>,
+    /// The minimum gas price of the next block.
+    pub min_gas_price: BigInt,
     /// The configuration for the miner
     pub mining: MiningConfig,
     /// The network ID of the blockchain
@@ -183,6 +185,7 @@ impl TryFrom<ProviderConfig> for edr_provider::ProviderConfig {
                 .map(TryCast::try_cast)
                 .transpose()?,
             mining: value.mining.try_into()?,
+            min_gas_price: value.min_gas_price.try_cast()?,
             network_id: value.network_id.try_cast()?,
         })
     }

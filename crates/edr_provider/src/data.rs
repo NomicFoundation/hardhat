@@ -130,19 +130,17 @@ impl ProviderData {
         let block_gas_limit = config.block_gas_limit;
         let block_time_offset_seconds = block_time_offset_seconds(&config)?;
         let is_auto_mining = config.mining.auto_mine;
+        let min_gas_price = config.min_gas_price;
 
         Ok(Self {
             runtime_handle,
             initial_config: config,
-
             blockchain,
             state,
             irregular_state,
             mem_pool: MemPool::new(block_gas_limit),
             beneficiary,
-            // TODO: Add config option (https://github.com/NomicFoundation/edr/issues/111)
-            // Matches Hardhat default
-            min_gas_price: U256::ZERO,
+            min_gas_price,
             prev_randao_generator,
             block_time_offset_seconds,
             fork_metadata,
@@ -734,13 +732,6 @@ impl ProviderData {
 
         Ok(())
     }
-
-    // TransactionCreationError::NonceTooLow {
-    //     transaction_nonce, ..
-    // } => ProviderError::AutoMineNonceTooLow {
-    //     expected: next_nonce,
-    //     actual: transaction_nonce,
-    // }
 
     pub fn send_transaction(
         &mut self,
