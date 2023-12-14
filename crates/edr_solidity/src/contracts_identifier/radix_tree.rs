@@ -1,5 +1,4 @@
 use std::collections::BTreeMap;
-
 use revm_primitives::Bytes;
 
 #[derive(Debug)]
@@ -66,6 +65,7 @@ impl RadixNode {
                         return;
                     }
 
+                    
                     next_node.add_word(word.slice(prefix_length..));
                     self.child_nodes.insert(b, next_node);
 
@@ -166,8 +166,9 @@ impl RadixNode {
         let suffixes = std::iter::once(self.content.clone())
             .filter(|_x| self.is_present)
             .chain(child_nodes.flat_map(|node| {
-                node.descendant_suffixes()
-                    .map(|suffix| [self.content.clone(), suffix].concat().into())
+                node.descendant_suffixes().map(|suffix| {
+                    [self.content.clone(), suffix].concat().into()
+                })
             }));
 
         Box::new(suffixes)
