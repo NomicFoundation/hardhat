@@ -831,6 +831,9 @@ dependencies = [
 [[package]]
 name = "edr_solidity"
 version = "0.2.0-dev"
+dependencies = [
+ "revm-primitives",
+]
 
 [[package]]
 name = "edr_test_utils"

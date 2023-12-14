@@ -2,3 +2,6 @@
 name = "edr_solidity"
 version = "0.2.0-dev"
 edition = "2021"
+
+[dependencies]
+revm-primitives = { git = "https://github.com/Wodann/revm", rev = "93d8ebe", version = "1.1", default-features = false }
