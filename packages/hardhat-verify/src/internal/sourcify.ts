@@ -14,8 +14,17 @@ import { ValidationResponse } from "./utilities";
 export class Sourcify {
   public apiUrl: string = "https://sourcify.dev/server";
   public browserUrl: string = "https://repo.sourcify.dev";
+  private chainId: number;
 
-  constructor(public chainId: number) {}
+  constructor(chainId: number, apiUrl?: string, browserUrl?: string) {
+    this.chainId = chainId;
+    if (apiUrl) {
+      this.apiUrl = apiUrl;
+    }
+    if (browserUrl) {
+      this.browserUrl = browserUrl;
+    }
+  }
 
   // https://sourcify.dev/server/api-docs/#/Repository/get_check_all_by_addresses
   public async isVerified(address: string) {
