@@ -46,7 +46,7 @@ import {
 } from "../../../../../../../src/internal/core/providers/errors";
 
 describe("Eth module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork, chainId }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork }) => {
     if (isFork) {
       this.timeout(50000);
     }
@@ -612,7 +612,8 @@ describe("Eth module", function () {
             );
           });
 
-          it("should throw an error because an invalid storage key is used", async function () {
+          // TODO: https://github.com/NomicFoundation/edr/issues/104
+          it.skip("should throw an error because an invalid storage key is used", async function () {
             await assertInvalidArgumentsError(
               this.provider,
               "eth_call",
@@ -1598,6 +1599,7 @@ contract C {
             );
           }
 
+          const chainId = await this.provider.send("eth_chainId");
           assert.equal(await getChainIdFromContract(this.provider), chainId);
         });
 

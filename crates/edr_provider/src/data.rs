@@ -735,6 +735,13 @@ impl ProviderData {
         Ok(())
     }
 
+    // TransactionCreationError::NonceTooLow {
+    //     transaction_nonce, ..
+    // } => ProviderError::AutoMineNonceTooLow {
+    //     expected: next_nonce,
+    //     actual: transaction_nonce,
+    // }
+
     pub fn send_transaction(
         &mut self,
         transaction_request: TransactionRequestAndSender,
@@ -1020,6 +1027,7 @@ impl ProviderData {
             Some(TransactionAndBlock {
                 signed_transaction,
                 block_data: None,
+                is_pending: true,
             })
         } else if let Some(block) = self.blockchain.block_by_transaction_hash(hash)? {
             let tx_index_u64 = self
@@ -1042,6 +1050,7 @@ impl ProviderData {
                     block,
                     transaction_index: tx_index_u64,
                 }),
+                is_pending: false,
             })
         } else {
             None
@@ -1490,6 +1499,8 @@ pub struct TransactionAndBlock {
     pub signed_transaction: SignedTransaction,
     /// Block data in which the transaction is found if it has been mined.
     pub block_data: Option<BlockDataForTransaction>,
+    /// Whether the transaction is pending
+    pub is_pending: bool,
 }
 
 /// Block metadata for a transaction.

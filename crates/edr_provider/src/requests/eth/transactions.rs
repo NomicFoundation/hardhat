@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use edr_eth::{
-    block::Header,
     receipt::BlockReceipt,
     remote,
     remote::PreEip1898BlockSpec,
@@ -31,7 +30,7 @@ pub fn handle_get_transaction_by_block_hash_and_index(
     let index = rpc_index_to_usize(&index)?;
 
     data.block_by_hash(&block_hash)?
-        .and_then(|block| transaction_from_block(block, index))
+        .and_then(|block| transaction_from_block(block, index, false))
         .map(|tx| transaction_to_rpc_result(tx, data.spec_id()))
         .transpose()
 }
@@ -44,18 +43,18 @@ pub fn handle_get_transaction_by_block_spec_and_index(
     let index = rpc_index_to_usize(&index)?;
 
     match data.block_by_block_spec(&block_spec.into()) {
-        Ok(Some(block)) => Some(block),
+        Ok(Some(block)) => Some((block, false)),
         // Pending block requested
         Ok(None) => {
             let result = data.mine_pending_block()?;
             let block: Arc<dyn SyncBlock<Error = BlockchainError>> = Arc::new(result.block);
-            Some(block)
+            Some((block, true))
         }
         // Matching Hardhat behavior in returning None for invalid block hash or number.
         Err(ProviderError::InvalidBlockNumberOrHash { .. }) => None,
         Err(err) => return Err(err),
     }
-    .and_then(|block| transaction_from_block(block, index))
+    .and_then(|(block, is_pending)| transaction_from_block(block, index, is_pending))
     .map(|tx| transaction_to_rpc_result(tx, data.spec_id()))
     .transpose()
 }
@@ -69,6 +68,7 @@ pub fn handle_pending_transactions(
             let transaction_and_block = TransactionAndBlock {
                 signed_transaction: pending_transaction.transaction().clone(),
                 block_data: None,
+                is_pending: true,
             };
             transaction_to_rpc_result(transaction_and_block, spec_id)
         })
@@ -100,6 +100,7 @@ pub fn handle_get_transaction_receipt(
 fn transaction_from_block(
     block: Arc<dyn SyncBlock<Error = BlockchainError>>,
     transaction_index: usize,
+    is_pending: bool,
 ) -> Option<TransactionAndBlock> {
     block
         .transactions()
@@ -110,6 +111,7 @@ fn transaction_from_block(
                 block: block.clone(),
                 transaction_index: transaction_index.try_into().expect("usize fits into u64"),
             }),
+            is_pending,
         })
 }
 
@@ -145,6 +147,7 @@ pub fn transaction_to_rpc_result(
     let TransactionAndBlock {
         signed_transaction,
         block_data,
+        is_pending,
     } = transaction_and_block;
     let block = block_data.as_ref().map(|b| &b.block);
     let header = block.map(|b| b.header());
@@ -176,13 +179,26 @@ pub fn transaction_to_rpc_result(
     };
 
     let signature = signed_transaction.signature();
+    let (block_hash, block_number) = if is_pending {
+        (None, None)
+    } else {
+        header
+            .map(|header| (header.hash(), U256::from(header.number)))
+            .unzip()
+    };
+
+    let transaction_index = if is_pending {
+        None
+    } else {
+        block_data.as_ref().map(|bd| bd.transaction_index)
+    };
 
     Ok(remote::eth::Transaction {
         hash: *signed_transaction.hash(),
         nonce: signed_transaction.nonce(),
-        block_hash: header.map(Header::hash),
-        block_number: header.map(|h| U256::from(h.number)),
-        transaction_index: block_data.as_ref().map(|bd| bd.transaction_index),
+        block_hash,
+        block_number,
+        transaction_index,
         from: signed_transaction.recover()?,
         to: signed_transaction.to(),
         value: signed_transaction.value(),
