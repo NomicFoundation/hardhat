@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+
 use revm_primitives::Bytes;
 
 #[derive(Debug)]
@@ -42,85 +43,81 @@ impl RadixNode {
         // and/or in a different position
         let next_node = self.child_nodes.remove(&b);
 
-        match next_node {
-            None => {
-                let bytes_matched_before = self.bytes_matched_before + self.content.len();
+        if let Some(mut next_node) = next_node {
+            let prefix_length = get_shared_prefix_length(&word, &next_node.content);
 
-                let node = RadixNode::new(word, true, bytes_matched_before);
+            // We know it's at least 1
+            assert!(prefix_length > 0);
 
-                self.child_nodes.insert(b, node);
-            }
-            Some(mut next_node) => {
-                let prefix_length = get_shared_prefix_length(&word, &next_node.content);
-
-                // We know it's at least 1
-                assert!(prefix_length > 0);
-
-                // Check if the next node's label is included in the word
-                if prefix_length == next_node.content.len() {
-                    // Check if the next node matches the word exactly
-                    if prefix_length == word.len() {
-                        next_node.is_present = true;
-                        self.child_nodes.insert(b, next_node);
-                        return;
-                    }
-
-                    
-                    next_node.add_word(word.slice(prefix_length..));
-                    self.child_nodes.insert(b, next_node);
-
-                    return;
-                }
-
-                // If the content includes what's left of the word and some extra
+            // Check if the next node's label is included in the word
+            if prefix_length == next_node.content.len() {
+                // Check if the next node matches the word exactly
                 if prefix_length == word.len() {
-                    // nextNode includes the current word and some extra, so we insert a
-                    // new node with the word
-                    let mut node =
-                        RadixNode::new(word, true, self.bytes_matched_before + self.content.len());
-
-                    // the new node points to next_node
-                    next_node.content = next_node.content.slice(prefix_length..);
-                    next_node.bytes_matched_before += node.content.len();
-                    node.child_nodes.insert(next_node.content[0], next_node);
-
-                    // the current node now points to the new node
-                    self.child_nodes.insert(b, node);
-
+                    next_node.is_present = true;
+                    self.child_nodes.insert(b, next_node);
                     return;
                 }
 
-                // The content includes some part of the word, but not all of it
-                // insert a new in-between node between current node and it's child, that
-                // will have children for the old child and a new node for the given word.
-                let mut middle_node = RadixNode::new(
-                    word.slice(..prefix_length),
-                    false,
-                    self.bytes_matched_before + self.content.len(),
-                );
+                next_node.add_word(word.slice(prefix_length..));
+                self.child_nodes.insert(b, next_node);
 
-                // next_node should come after middle_node and its content and
-                // bytes_matched_before need to be adapted
-                next_node.content = next_node.content.slice(prefix_length..);
-                next_node.bytes_matched_before +=
-                    middle_node.bytes_matched_before + middle_node.content.len();
-                middle_node
-                    .child_nodes
-                    .insert(next_node.content[0], next_node);
-
-                // create a new node for the word
-                let new_node = RadixNode::new(
-                    word.slice(prefix_length..),
-                    true,
-                    middle_node.bytes_matched_before + middle_node.content.len(),
-                );
-                middle_node
-                    .child_nodes
-                    .insert(word[prefix_length], new_node);
-
-                // set the middle_node as current_node's child
-                self.child_nodes.insert(b, middle_node);
+                return;
             }
+
+            // If the content includes what's left of the word and some extra
+            if prefix_length == word.len() {
+                // nextNode includes the current word and some extra, so we insert a
+                // new node with the word
+                let mut node =
+                    RadixNode::new(word, true, self.bytes_matched_before + self.content.len());
+
+                // the new node points to next_node
+                next_node.content = next_node.content.slice(prefix_length..);
+                next_node.bytes_matched_before += node.content.len();
+                node.child_nodes.insert(next_node.content[0], next_node);
+
+                // the current node now points to the new node
+                self.child_nodes.insert(b, node);
+
+                return;
+            }
+
+            // The content includes some part of the word, but not all of it
+            // insert a new in-between node between current node and it's child, that
+            // will have children for the old child and a new node for the given word.
+            let mut middle_node = RadixNode::new(
+                word.slice(..prefix_length),
+                false,
+                self.bytes_matched_before + self.content.len(),
+            );
+
+            // next_node should come after middle_node and its content and
+            // bytes_matched_before need to be adapted
+            next_node.content = next_node.content.slice(prefix_length..);
+            next_node.bytes_matched_before +=
+                middle_node.bytes_matched_before + middle_node.content.len();
+            middle_node
+                .child_nodes
+                .insert(next_node.content[0], next_node);
+
+            // create a new node for the word
+            let new_node = RadixNode::new(
+                word.slice(prefix_length..),
+                true,
+                middle_node.bytes_matched_before + middle_node.content.len(),
+            );
+            middle_node
+                .child_nodes
+                .insert(word[prefix_length], new_node);
+
+            // set the middle_node as current_node's child
+            self.child_nodes.insert(b, middle_node);
+        } else {
+            let bytes_matched_before = self.bytes_matched_before + self.content.len();
+
+            let node = RadixNode::new(word, true, bytes_matched_before);
+
+            self.child_nodes.insert(b, node);
         }
     }
 
@@ -166,9 +163,8 @@ impl RadixNode {
         let suffixes = std::iter::once(self.content.clone())
             .filter(|_x| self.is_present)
             .chain(child_nodes.flat_map(|node| {
-                node.descendant_suffixes().map(|suffix| {
-                    [self.content.clone(), suffix].concat().into()
-                })
+                node.descendant_suffixes()
+                    .map(|suffix| [self.content.clone(), suffix].concat().into())
             }));
 
         Box::new(suffixes)
