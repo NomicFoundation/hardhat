@@ -31,6 +31,7 @@ import { Mutex } from "../../vendor/await-semaphore";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/constants";
 
+import { getPackageJson } from "../../util/packageInfo";
 import { MiningTimer } from "./MiningTimer";
 import { DebugModule } from "./modules/debug";
 import { EthModule } from "./modules/eth";
@@ -509,8 +510,20 @@ export class EdrProviderWrapper
       throw error;
     }
 
+    // Override EDR version string with Hardhat version string with EDR backend,
+    // e.g. `HardhatNetwork/2.19.0/@nomicfoundation/edr/0.2.0-dev`
+    if (args.method === "web3_clientVersion") {
+      return clientVersion(response.result);
+    }
+
     return response.result;
   }
+}
+
+async function clientVersion(edrClientVersion: string): Promise<string> {
+  const hardhatPackage = await getPackageJson();
+  const edrVersion = edrClientVersion.split("/")[1];
+  return `HardhatNetwork/${hardhatPackage.version}/@nomicfoundation/edr/${edrVersion}`;
 }
 
 export async function createHardhatNetworkProvider(
