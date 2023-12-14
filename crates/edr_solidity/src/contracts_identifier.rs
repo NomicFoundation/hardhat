@@ -6,10 +6,11 @@ use std::{
 };
 
 use radix_tree::RadixTree;
+use revm::interpreter::opcode;
 use revm_primitives::Bytes;
 
 use self::radix_tree::RadixNode;
-use crate::opcodes::{get_opcode_length, Opcode};
+use crate::opcodes::get_opcode_length;
 
 #[derive(Debug, PartialEq)]
 pub enum BytecodeType {
@@ -245,7 +246,7 @@ fn normalize_library_runtime_bytecode_if_necessary(bytecode: Bytes) -> Bytes {
     // also zeroed-out in the compiler output.
 
     if let Some(first_opcode) = bytecode.first() {
-        if *first_opcode == Opcode::Push20 as u8 {
+        if *first_opcode == opcode::PUSH20 {
             return zero_out_addresses(&bytecode, &[1]);
         }
     }
@@ -265,7 +266,7 @@ fn is_matching_metadata(code: &[u8], last_byte: usize) -> bool {
         let opcode = code[byte];
 
         // Solidity always emits REVERT INVALID right before the metadata
-        if opcode == Opcode::Revert as u8 && code[byte + 1] == Opcode::Invalid as u8 {
+        if opcode == opcode::REVERT && code[byte + 1] == opcode::INVALID {
             return true;
         }
 

@@ -832,6 +832,7 @@ dependencies = [
 name = "edr_solidity"
 version = "0.2.0-dev"
 dependencies = [
+ "revm",
  "revm-primitives",
 ]
 
