@@ -81,7 +81,7 @@ impl<'a> ContractsIdentifier<'a> {
         self.search_bytecode_in_radix_tree(&trace, &normalized_code, true, None)
     }
 
-    pub fn search_bytecode_in_radix_tree(
+    fn search_bytecode_in_radix_tree(
         &self,
         trace: &EvmMessageTrace,
         code: &Bytes,
@@ -191,6 +191,7 @@ impl<'a> ContractsIdentifier<'a> {
             let last_suffix = self.tree.root().descendant_suffixes().last();
 
             if let Some(last_suffix) = last_suffix {
+                // TODO: this should be the last one in chronological insertion order
                 let mut descendant = code.to_vec()[..node.bytes_matched_before()].to_vec();
                 descendant.extend(last_suffix);
 
@@ -270,7 +271,7 @@ fn is_matching_metadata(code: &[u8], last_byte: usize) -> bool {
             return true;
         }
 
-        byte += get_opcode_length(opcode.into());
+        byte += get_opcode_length(opcode);
     }
 
     false

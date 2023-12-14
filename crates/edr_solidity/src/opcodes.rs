@@ -1,7 +1,7 @@
 use revm::interpreter::opcode;
 
 fn is_push(opcode: u8) -> bool {
-    opcode >= opcode::PUSH1 && opcode <= opcode::PUSH32
+    (opcode::PUSH1..=opcode::PUSH32).contains(&opcode)
 }
 
 fn get_push_length(opcode: u8) -> usize {
