@@ -6,6 +6,7 @@ use std::{
 };
 
 use radix_tree::RadixTree;
+use revm_primitives::Bytes;
 
 use self::radix_tree::RadixNode;
 use crate::opcodes::{get_opcode_length, Opcode};
@@ -25,7 +26,7 @@ pub struct ImmutableReference {
 // bytecode and trace stubs
 #[derive(Debug, PartialEq)]
 pub struct Bytecode {
-    normalized_code: Vec<u8>,
+    normalized_code: Bytes,
     bytecode_type: BytecodeType,
     library_offsets: Vec<usize>,
     immutable_references: Vec<ImmutableReference>,
@@ -38,11 +39,11 @@ impl Bytecode {
 }
 
 pub struct CreateMessageTrace {
-    code: Vec<u8>,
+    code: Bytes,
 }
 
 pub struct CallMessageTrace {
-    code: Vec<u8>,
+    code: Bytes,
 }
 
 pub enum EvmMessageTrace {
@@ -51,7 +52,7 @@ pub enum EvmMessageTrace {
 }
 
 impl EvmMessageTrace {
-    fn code(&self) -> &Vec<u8> {
+    fn code(&self) -> &Bytes {
         match self {
             EvmMessageTrace::Create(create_message_trace) => &create_message_trace.code,
             EvmMessageTrace::Call(call_message_trace) => &call_message_trace.code,
@@ -68,7 +69,6 @@ pub struct ContractsIdentifier<'a> {
 
 impl<'a> ContractsIdentifier<'a> {
     pub fn add_bytecode(&mut self, bytecode: &'a Bytecode) {
-        // TODO reduce cloning
         self.tree.add_word(bytecode.normalized_code.clone());
         self.bytecodes
             .insert(calculate_hash(&bytecode.normalized_code), bytecode);
@@ -83,7 +83,7 @@ impl<'a> ContractsIdentifier<'a> {
     pub fn search_bytecode_in_radix_tree(
         &self,
         trace: &EvmMessageTrace,
-        code: &[u8],
+        code: &Bytes,
         normalize_libraries: bool,
         radix_node: Option<&RadixNode>,
     ) -> Option<&Bytecode> {
@@ -201,7 +201,7 @@ impl<'a> ContractsIdentifier<'a> {
     }
 }
 
-fn zero_out_addresses(code: &[u8], offsets: &[usize]) -> Vec<u8> {
+fn zero_out_addresses(code: &Bytes, offsets: &[usize]) -> Bytes {
     let references = offsets
         .iter()
         .map(|offset| ImmutableReference {
@@ -213,7 +213,7 @@ fn zero_out_addresses(code: &[u8], offsets: &[usize]) -> Vec<u8> {
     zero_out_slices(code, &references)
 }
 
-fn zero_out_slices(code: &[u8], immutable_references: &[ImmutableReference]) -> Vec<u8> {
+fn zero_out_slices(code: &Bytes, immutable_references: &[ImmutableReference]) -> Bytes {
     let mut result = code.to_vec();
 
     for reference in immutable_references {
@@ -226,7 +226,7 @@ fn zero_out_slices(code: &[u8], immutable_references: &[ImmutableReference]) -> 
         }
     }
 
-    result
+    result.into()
 }
 
 fn is_create_trace(trace: &EvmMessageTrace) -> bool {
@@ -236,7 +236,7 @@ fn is_create_trace(trace: &EvmMessageTrace) -> bool {
     }
 }
 
-fn normalize_library_runtime_bytecode_if_necessary(bytecode: Vec<u8>) -> Vec<u8> {
+fn normalize_library_runtime_bytecode_if_necessary(bytecode: Bytes) -> Bytes {
     // Libraries' protection normalization:
     // Solidity 0.4.20 introduced a protection to prevent libraries from being
     // called directly. This is done by modifying the code on deployment, and
@@ -281,15 +281,15 @@ mod tests {
 
     use super::*;
 
-    fn create_test_call_trace(code: Vec<u8>) -> EvmMessageTrace {
+    fn create_test_call_trace(code: Bytes) -> EvmMessageTrace {
         EvmMessageTrace::Call(CallMessageTrace { code })
     }
 
-    fn create_test_create_trace(code: Vec<u8>) -> EvmMessageTrace {
+    fn create_test_create_trace(code: Bytes) -> EvmMessageTrace {
         EvmMessageTrace::Create(CreateMessageTrace { code })
     }
 
-    fn create_test_bytecode(normalized_code: Vec<u8>) -> Bytecode {
+    fn create_test_bytecode(normalized_code: Bytes) -> Bytecode {
         Bytecode {
             normalized_code,
             bytecode_type: BytecodeType::Runtime,
@@ -299,7 +299,7 @@ mod tests {
     }
 
     fn create_test_bytecode_with_libraries_and_immutable_references(
-        normalized_code: Vec<u8>,
+        normalized_code: Bytes,
         library_offsets: Vec<usize>,
         immutable_references: Vec<ImmutableReference>,
     ) -> Bytecode {
@@ -311,7 +311,7 @@ mod tests {
         }
     }
 
-    fn create_test_deployment_bytecode(normalized_code: Vec<u8>) -> Bytecode {
+    fn create_test_deployment_bytecode(normalized_code: Bytes) -> Bytecode {
         Bytecode {
             normalized_code,
             bytecode_type: BytecodeType::Deployment,
@@ -325,12 +325,12 @@ mod tests {
         let contracts_identifier = ContractsIdentifier::default();
 
         // should not find any bytecode for a call trace
-        let call_trace = create_test_call_trace(vec![1, 2, 3, 4, 5]);
+        let call_trace = create_test_call_trace(vec![1, 2, 3, 4, 5].into());
         let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
         assert_eq!(contract, None);
 
         // sould not find any bytecode for a create trace
-        let create_trace = create_test_create_trace(vec![1, 2, 3, 4, 5]);
+        let create_trace = create_test_create_trace(vec![1, 2, 3, 4, 5].into());
         let contract = contracts_identifier.get_bytecode_from_message_trace(create_trace);
         assert_eq!(contract, None);
     }
@@ -339,16 +339,16 @@ mod tests {
     fn test_contracts_identifier_single_matching_bytecode() {
         let mut contracts_identifier = ContractsIdentifier::default();
 
-        let bytecode = create_test_bytecode(vec![1, 2, 3, 4, 5]);
+        let bytecode = create_test_bytecode(vec![1, 2, 3, 4, 5].into());
         contracts_identifier.add_bytecode(&bytecode);
 
         // should find a bytecode that matches exactly
-        let call_trace = create_test_call_trace(vec![1, 2, 3, 4, 5]);
+        let call_trace = create_test_call_trace(vec![1, 2, 3, 4, 5].into());
         let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
         assert_eq!(contract, Some(&bytecode));
 
         // should not find a bytecode that doesn't match
-        let call_trace = create_test_call_trace(vec![1, 2, 3, 4, 6]);
+        let call_trace = create_test_call_trace(vec![1, 2, 3, 4, 6].into());
         let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
         assert_eq!(contract, None);
     }
@@ -357,23 +357,23 @@ mod tests {
     fn test_contracts_identifier_multiple_matches_same_prefix() {
         let mut contracts_identifier = ContractsIdentifier::default();
 
-        let bytecode1 = create_test_bytecode(vec![1, 2, 3, 4, 5]);
-        let bytecode2 = create_test_bytecode(vec![1, 2, 3, 4, 5, 6, 7, 8]);
+        let bytecode1 = create_test_bytecode(vec![1, 2, 3, 4, 5].into());
+        let bytecode2 = create_test_bytecode(vec![1, 2, 3, 4, 5, 6, 7, 8].into());
         contracts_identifier.add_bytecode(&bytecode1);
         contracts_identifier.add_bytecode(&bytecode2);
 
         // should find the exact match
-        let call_trace = create_test_call_trace(vec![1, 2, 3, 4, 5]);
+        let call_trace = create_test_call_trace(vec![1, 2, 3, 4, 5].into());
         let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
         assert_eq!(contract, Some(&bytecode1));
 
         // should find the exact match
-        let call_trace = create_test_call_trace(vec![1, 2, 3, 4, 5, 6, 7, 8]);
+        let call_trace = create_test_call_trace(vec![1, 2, 3, 4, 5, 6, 7, 8].into());
         let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
         assert_eq!(contract, Some(&bytecode2));
 
         // should not find a bytecode that doesn't match
-        let call_trace = create_test_call_trace(vec![0, 1, 2, 3, 4, 5, 6, 7, 8]);
+        let call_trace = create_test_call_trace(vec![0, 1, 2, 3, 4, 5, 6, 7, 8].into());
         let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
         assert_eq!(contract, None);
     }
@@ -383,13 +383,13 @@ mod tests {
         let mut contracts_identifier = ContractsIdentifier::default();
 
         // add two bytecodes that share a prefix
-        let bytecode1 = create_test_bytecode(vec![1, 2, 3, 4, 5]);
-        let bytecode2 = create_test_bytecode(vec![1, 2, 3, 6, 7]);
+        let bytecode1 = create_test_bytecode(vec![1, 2, 3, 4, 5].into());
+        let bytecode2 = create_test_bytecode(vec![1, 2, 3, 6, 7].into());
         contracts_identifier.add_bytecode(&bytecode1);
         contracts_identifier.add_bytecode(&bytecode2);
 
         // search a trace that matches the common prefix
-        let call_trace = create_test_call_trace(vec![1, 2, 3]);
+        let call_trace = create_test_call_trace(vec![1, 2, 3].into());
         let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
         assert_eq!(contract, None);
     }
@@ -398,30 +398,30 @@ mod tests {
     fn test_contracts_identifier_trace_matches_deployment_bytecode_prefix() {
         let mut contracts_identifier = ContractsIdentifier::default();
 
-        let bytecode = create_test_deployment_bytecode(vec![1, 2, 3, 4, 5]);
+        let bytecode = create_test_deployment_bytecode(vec![1, 2, 3, 4, 5].into());
         contracts_identifier.add_bytecode(&bytecode);
 
         // a create trace that matches the a deployment bytecode plus some extra stuff
         // (constructor args)
-        let create_trace = create_test_create_trace(vec![1, 2, 3, 4, 5, 10, 11]);
+        let create_trace = create_test_create_trace(vec![1, 2, 3, 4, 5, 10, 11].into());
         let contract = contracts_identifier.get_bytecode_from_message_trace(create_trace);
         assert_eq!(contract, Some(&bytecode));
 
         // the same bytecode, but for a call trace, should not match
-        let call_trace = create_test_call_trace(vec![1, 2, 3, 4, 5, 10, 11]);
+        let call_trace = create_test_call_trace(vec![1, 2, 3, 4, 5, 10, 11].into());
         let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
         assert_eq!(contract, None);
 
         // the same scenario but with a runtime bytecode shouldn't result in matches
         let mut contracts_identifier = ContractsIdentifier::default();
-        let bytecode = create_test_bytecode(vec![1, 2, 3, 4, 5]);
+        let bytecode = create_test_bytecode(vec![1, 2, 3, 4, 5].into());
         contracts_identifier.add_bytecode(&bytecode);
 
-        let create_trace = create_test_create_trace(vec![1, 2, 3, 4, 5, 10, 11]);
+        let create_trace = create_test_create_trace(vec![1, 2, 3, 4, 5, 10, 11].into());
         let contract = contracts_identifier.get_bytecode_from_message_trace(create_trace);
         assert_eq!(contract, None);
 
-        let call_trace = create_test_call_trace(vec![1, 2, 3, 4, 5, 10, 11]);
+        let call_trace = create_test_call_trace(vec![1, 2, 3, 4, 5, 10, 11].into());
         let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
         assert_eq!(contract, None);
     }
@@ -439,7 +439,7 @@ mod tests {
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 // 40 ------------------------------------------------------------------------------
                 21, 22, 23, 24, 25,
-            ],
+            ].into(),
             vec![20],
             vec![],
         );
@@ -455,7 +455,7 @@ mod tests {
             118, 119, 120,
             // 40 ----------------------------------------------------------------------------------
             21, 22, 23, 24, 25,
-        ]);
+        ].into());
         let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
         assert_eq!(contract, Some(&bytecode));
     }
@@ -473,7 +473,7 @@ mod tests {
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 // 30 ------------------------------------------------------------------------------
                 21, 22, 23, 24, 25,
-            ],
+            ].into(),
             vec![],
             vec![ImmutableReference {
                 offset: 20,
@@ -491,7 +491,7 @@ mod tests {
             101, 102, 103, 104, 105, 106, 107, 108, 109, 110,
             // 30 ----------------------------------------------------------------------------------
             21, 22, 23, 24, 25,
-        ]);
+        ].into());
         let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
         assert_eq!(contract, Some(&bytecode));
     }
@@ -514,7 +514,7 @@ mod tests {
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 // 55 ------------------------------------------------------------------------------
                 26, 27, 28, 29, 30,
-            ],
+            ].into(),
             vec![35],
             vec![ImmutableReference {
                 offset: 20,
@@ -538,7 +538,7 @@ mod tests {
             218, 219, 220,
             // 55 ----------------------------------------------------------------------------------
             26, 27, 28, 29, 30,
-        ]);
+        ].into());
         let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
         assert_eq!(contract, Some(&bytecode));
     }
@@ -572,7 +572,7 @@ mod tests {
                 0, 0,
                 // 115 -----------------------------------------------------------------------------
                 36, 37, 38, 39, 40,
-            ],
+            ].into(),
             vec![35, 60],
             vec![
                 ImmutableReference {
@@ -614,7 +614,7 @@ mod tests {
             128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140,
             // 115 ---------------------------------------------------------------------------------
             36, 37, 38, 39, 40,
-        ]);
+        ].into());
         let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
         assert_eq!(contract, Some(&bytecode));
     }
@@ -627,14 +627,14 @@ mod tests {
             1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
             // metadata ----------------------------------------------------------------------------
             0xfd, 0xfe, 11, 12, 13, 14, 15,
-        ]);
+        ].into());
         contracts_identifier.add_bytecode(&bytecode);
 
         let call_trace = create_test_call_trace(vec![
             1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
             // metadata ----------------------------------------------------------------------------
             0xfd, 0xfe, 21, 22, 23,
-        ]);
+        ].into());
 
         let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
         assert_eq!(contract, Some(&bytecode));
@@ -653,7 +653,7 @@ mod tests {
             // rest of the code
             // --------------------------------------------------------------------
             1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-        ]);
+        ].into());
         contracts_identifier.add_bytecode(&bytecode);
 
         let call_trace = create_test_call_trace(vec![
@@ -665,7 +665,7 @@ mod tests {
             // rest of the code
             // --------------------------------------------------------------------
             1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-        ]);
+        ].into());
 
         let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
         assert_eq!(contract, Some(&bytecode));
