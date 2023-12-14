@@ -4,6 +4,7 @@ mod error;
 mod filter;
 mod interval;
 mod logger;
+mod pending;
 mod requests;
 mod snapshot;
 /// Test utilities
@@ -15,12 +16,15 @@ use std::sync::Arc;
 use parking_lot::Mutex;
 use tokio::runtime;
 
-pub use self::{config::*, error::ProviderError, requests::ProviderRequest};
+pub use self::{
+    config::*, data::InspectorCallbacks, error::ProviderError, requests::ProviderRequest,
+};
 use self::{
     data::{CreationError, ProviderData},
     interval::IntervalMiner,
     requests::{eth, hardhat, EthRequest, Request},
 };
+use crate::data::SyncInspectorCallbacks;
 
 /// A JSON-RPC provider for Ethereum.
 ///
@@ -60,11 +64,12 @@ pub struct Provider {
 
 impl Provider {
     /// Constructs a new instance.
-    pub async fn new(
-        runtime: &runtime::Handle,
-        config: &ProviderConfig,
+    pub fn new(
+        runtime: runtime::Handle,
+        callbacks: Box<dyn SyncInspectorCallbacks>,
+        config: ProviderConfig,
     ) -> Result<Self, CreationError> {
-        let data = ProviderData::new(runtime, config).await?;
+        let data = ProviderData::new(runtime.clone(), callbacks, config.clone())?;
         let data = Arc::new(Mutex::new(data));
 
         let interval_miner = config
@@ -282,7 +287,9 @@ fn handle_hardhat_request(
             hardhat::handle_metadata_request(data).and_then(to_json)
         }
         rpc_hardhat::Request::Mine(_, _) => Err(ProviderError::Unimplemented("Mine".to_string())),
-        rpc_hardhat::Request::Reset(_) => Err(ProviderError::Unimplemented("Reset".to_string())),
+        rpc_hardhat::Request::Reset(config) => {
+            hardhat::handle_reset(data, config).and_then(to_json)
+        }
         rpc_hardhat::Request::SetBalance(address, balance) => {
             hardhat::handle_set_balance(data, address, balance).and_then(to_json)
         }

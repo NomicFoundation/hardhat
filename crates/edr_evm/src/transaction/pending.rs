@@ -8,7 +8,6 @@ use edr_eth::{
     Address, U256,
 };
 use revm::{
-    db::StateRef,
     interpreter::gas::initial_tx_gas,
     primitives::{
         BerlinSpec, ByzantiumSpec, CreateScheme, FrontierSpec, HomesteadSpec, IstanbulSpec,
@@ -29,26 +28,24 @@ pub struct PendingTransaction {
 impl PendingTransaction {
     /// Create a [`PendingTransaction`] by attempting to validate and recover
     /// the caller address of the provided transaction.
-    pub fn new<S: StateRef + ?Sized>(
-        state: &S,
+    pub fn new(
         spec_id: SpecId,
         transaction: SignedTransaction,
-    ) -> Result<Self, TransactionCreationError<S::Error>> {
+    ) -> Result<Self, TransactionCreationError> {
         let caller = transaction
             .recover()
             .map_err(TransactionCreationError::Signature)?;
 
-        Self::with_caller(state, spec_id, transaction, caller)
+        Self::with_caller(spec_id, transaction, caller)
     }
 
     /// Creates a [`PendingTransaction`] with the provided transaction and
     /// caller address.
-    pub fn with_caller<S: StateRef + ?Sized>(
-        state: &S,
+    pub fn with_caller(
         spec_id: SpecId,
         transaction: SignedTransaction,
         caller: Address,
-    ) -> Result<Self, TransactionCreationError<S::Error>> {
+    ) -> Result<Self, TransactionCreationError> {
         if transaction.kind() == TransactionKind::Create && transaction.data().is_empty() {
             return Err(TransactionCreationError::ContractMissingData);
         }
@@ -58,25 +55,6 @@ impl PendingTransaction {
             return Err(TransactionCreationError::InsufficientGas {
                 initial_gas_cost: U256::from(initial_cost),
                 gas_limit: U256::from(transaction.gas_limit()),
-            });
-        }
-
-        let sender = state.basic(caller)?.unwrap_or_default();
-
-        // We need to validate funds at this stage to avoid DOS
-        let max_upfront_cost = transaction.upfront_cost();
-        if max_upfront_cost > sender.balance {
-            return Err(TransactionCreationError::InsufficientFunds {
-                max_upfront_cost,
-                sender_balance: sender.balance,
-            });
-        }
-
-        let transaction_nonce = transaction.nonce();
-        if transaction_nonce < sender.nonce {
-            return Err(TransactionCreationError::NonceTooLow {
-                transaction_nonce,
-                sender_nonce: sender.nonce,
             });
         }
 

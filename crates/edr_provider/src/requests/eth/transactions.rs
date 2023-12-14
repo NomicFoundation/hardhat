@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use edr_eth::{
-    block::Header,
     receipt::BlockReceipt,
     remote,
     remote::PreEip1898BlockSpec,
@@ -17,6 +16,7 @@ use edr_evm::{blockchain::BlockchainError, SyncBlock};
 
 use crate::{
     data::{BlockDataForTransaction, ProviderData, TransactionAndBlock},
+    requests::validation::validate_transaction_spec,
     ProviderError,
 };
 
@@ -30,7 +30,7 @@ pub fn handle_get_transaction_by_block_hash_and_index(
     let index = rpc_index_to_usize(&index)?;
 
     data.block_by_hash(&block_hash)?
-        .and_then(|block| transaction_from_block(block, index))
+        .and_then(|block| transaction_from_block(block, index, false))
         .map(|tx| transaction_to_rpc_result(tx, data.spec_id()))
         .transpose()
 }
@@ -43,18 +43,18 @@ pub fn handle_get_transaction_by_block_spec_and_index(
     let index = rpc_index_to_usize(&index)?;
 
     match data.block_by_block_spec(&block_spec.into()) {
-        Ok(Some(block)) => Some(block),
+        Ok(Some(block)) => Some((block, false)),
         // Pending block requested
         Ok(None) => {
             let result = data.mine_pending_block()?;
             let block: Arc<dyn SyncBlock<Error = BlockchainError>> = Arc::new(result.block);
-            Some(block)
+            Some((block, true))
         }
         // Matching Hardhat behavior in returning None for invalid block hash or number.
-        Err(ProviderError::InvalidBlockNumberOrHash(_)) => None,
+        Err(ProviderError::InvalidBlockNumberOrHash { .. }) => None,
         Err(err) => return Err(err),
     }
-    .and_then(|block| transaction_from_block(block, index))
+    .and_then(|(block, is_pending)| transaction_from_block(block, index, is_pending))
     .map(|tx| transaction_to_rpc_result(tx, data.spec_id()))
     .transpose()
 }
@@ -68,6 +68,7 @@ pub fn handle_pending_transactions(
             let transaction_and_block = TransactionAndBlock {
                 signed_transaction: pending_transaction.transaction().clone(),
                 block_data: None,
+                is_pending: true,
             };
             transaction_to_rpc_result(transaction_and_block, spec_id)
         })
@@ -99,6 +100,7 @@ pub fn handle_get_transaction_receipt(
 fn transaction_from_block(
     block: Arc<dyn SyncBlock<Error = BlockchainError>>,
     transaction_index: usize,
+    is_pending: bool,
 ) -> Option<TransactionAndBlock> {
     block
         .transactions()
@@ -109,6 +111,7 @@ fn transaction_from_block(
                 block: block.clone(),
                 transaction_index: transaction_index.try_into().expect("usize fits into u64"),
             }),
+            is_pending,
         })
 }
 
@@ -144,6 +147,7 @@ pub fn transaction_to_rpc_result(
     let TransactionAndBlock {
         signed_transaction,
         block_data,
+        is_pending,
     } = transaction_and_block;
     let block = block_data.as_ref().map(|b| &b.block);
     let header = block.map(|b| b.header());
@@ -175,13 +179,26 @@ pub fn transaction_to_rpc_result(
     };
 
     let signature = signed_transaction.signature();
+    let (block_hash, block_number) = if is_pending {
+        (None, None)
+    } else {
+        header
+            .map(|header| (header.hash(), U256::from(header.number)))
+            .unzip()
+    };
+
+    let transaction_index = if is_pending {
+        None
+    } else {
+        block_data.as_ref().map(|bd| bd.transaction_index)
+    };
 
     Ok(remote::eth::Transaction {
         hash: *signed_transaction.hash(),
         nonce: signed_transaction.nonce(),
-        block_hash: header.map(Header::hash),
-        block_number: header.map(|h| U256::from(h.number)),
-        transaction_index: block_data.as_ref().map(|bd| bd.transaction_index),
+        block_hash,
+        block_number,
+        transaction_index,
         from: signed_transaction.recover()?,
         to: signed_transaction.to(),
         value: signed_transaction.value(),
@@ -352,64 +369,15 @@ fn validate_send_transaction_request(
     data: &ProviderData,
     request: &EthTransactionRequest,
 ) -> Result<(), ProviderError> {
-    let EthTransactionRequest {
-        gas_price,
-        max_fee_per_gas,
-        max_priority_fee_per_gas,
-        chain_id,
-        access_list,
-        ..
-    } = request;
-
-    if let Some(chain_id) = chain_id {
+    if let Some(chain_id) = request.chain_id {
         let expected = data.chain_id();
-        if *chain_id != expected {
+        if chain_id != expected {
             return Err(ProviderError::InvalidChainId {
                 expected,
-                actual: *chain_id,
+                actual: chain_id,
             });
         }
     }
 
-    let spec_id = data.spec_id();
-    if spec_id < SpecId::LONDON && (max_fee_per_gas.is_some() || max_priority_fee_per_gas.is_some())
-    {
-        return Err(ProviderError::UnmetHardfork {
-            actual: spec_id,
-            minimum: SpecId::LONDON,
-        });
-    }
-
-    if spec_id < SpecId::BERLIN && access_list.is_some() {
-        return Err(ProviderError::UnmetHardfork {
-            actual: spec_id,
-            minimum: SpecId::BERLIN,
-        });
-    }
-
-    if gas_price.is_some() {
-        if max_fee_per_gas.is_some() {
-            return Err(ProviderError::InvalidTransactionInput(
-                "Cannot send both gasPrice and maxFeePerGas params".to_string(),
-            ));
-        }
-
-        if max_priority_fee_per_gas.is_some() {
-            return Err(ProviderError::InvalidTransactionInput(
-                "Cannot send both gasPrice and maxPriorityFeePerGas".to_string(),
-            ));
-        }
-    }
-
-    if let Some(max_fee_per_gas) = max_fee_per_gas {
-        if let Some(max_priority_fee_per_gas) = max_priority_fee_per_gas {
-            if max_priority_fee_per_gas > max_fee_per_gas {
-                return Err(ProviderError::InvalidTransactionInput(format!(
-                    "maxPriorityFeePerGas ({max_priority_fee_per_gas}) is bigger than maxFeePerGas ({max_fee_per_gas})"),
-                ));
-            }
-        }
-    }
-
-    Ok(())
+    validate_transaction_spec(data.spec_id(), request.into())
 }

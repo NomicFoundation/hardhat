@@ -54,7 +54,6 @@ export class EdrMemPool implements MemPoolAdapter {
 
     try {
       const pendingTransaction = await PendingTransaction.create(
-        this._stateManager.asInner(),
         this._specId,
         edrTx,
         caller

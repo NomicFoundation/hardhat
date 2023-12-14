@@ -684,7 +684,7 @@ export class MineBlockResult {
 /** A JSON-RPC provider for Ethereum. */
 export class Provider {
   /**Constructs a new provider with the provided configuration. */
-  static withConfig(config: ProviderConfig): Promise<Provider>
+  static withConfig(config: ProviderConfig, consoleLogCallback: (message: Buffer) => void): Promise<Provider>
   /**Handles a JSON-RPC request and returns a JSON-RPC response. */
   handleRequest(jsonRequest: string): Promise<string>
 }
@@ -791,7 +791,7 @@ export class OrderedTransaction {
 }
 export class PendingTransaction {
   /** Tries to construct a new [`PendingTransaction`]. */
-  static create(stateManager: State, specId: SpecId, transaction: LegacySignedTransaction | Eip2930SignedTransaction | Eip1559SignedTransaction | Eip4844SignedTransaction, caller?: Buffer | undefined | null): Promise<PendingTransaction>
+  static create(specId: SpecId, transaction: LegacySignedTransaction | Eip2930SignedTransaction | Eip1559SignedTransaction | Eip4844SignedTransaction, caller?: Buffer | undefined | null): Promise<PendingTransaction>
   get caller(): Buffer
   get transaction(): LegacySignedTransaction | Eip2930SignedTransaction | Eip1559SignedTransaction | Eip4844SignedTransaction
 }

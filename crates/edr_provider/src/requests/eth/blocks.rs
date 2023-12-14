@@ -94,7 +94,7 @@ fn block_by_number(
                 total_difficulty: Some(total_difficulty),
             }))
         }
-        Err(ProviderError::InvalidBlockNumberOrHash(_)) => Ok(None),
+        Err(ProviderError::InvalidBlockNumberOrHash { .. }) => Ok(None),
         Err(err) => Err(err),
     }
 }
@@ -118,6 +118,7 @@ fn block_to_rpc_output(
                     block: block.clone(),
                     transaction_index: i.try_into().expect("usize fits into u64"),
                 }),
+                is_pending: false,
             })
             .map(|tx| {
                 transaction_to_rpc_result(tx, data.spec_id()).map(HashOrTransaction::Transaction)
