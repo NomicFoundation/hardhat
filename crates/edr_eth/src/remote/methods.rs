@@ -162,7 +162,8 @@ pub enum MethodInvocation {
     #[serde(rename = "eth_getStorageAt")]
     GetStorageAt(
         Address,
-        /// position
+        /// Storage slot index
+        #[serde(deserialize_with = "crate::serde::storage_index::deserialize")]
         U256,
         #[serde(
             skip_serializing_if = "Option::is_none",
@@ -327,7 +328,26 @@ pub struct GetLogsInput {
 
 #[cfg(test)]
 mod tests {
+    use serde_json::json;
+
     use super::*;
+
+    #[test]
+    fn eth_get_storage_at() {
+        let request = json!({
+            "method": "eth_getStorageAt",
+            "params": [
+                "0x0101010101010101010101010101010101010101",
+                "0x00000000000000000000000000000000000000000000000000000000000000000",
+            ],
+        });
+
+        let expected_error_message = "Storage slot argument must have a length of at most 66 (\"0x\" + 32 bytes), but '0x00000000000000000000000000000000000000000000000000000000000000000' has a length of 67'";
+
+        let result = serde_json::from_value::<MethodInvocation>(request).map_err(|e| e.to_string());
+
+        assert!(matches!(result, Err(message) if message == expected_error_message));
+    }
 
     #[test]
     #[should_panic(expected = "string \\\"deadbeef\\\" does not have a '0x' prefix")]

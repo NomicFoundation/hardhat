@@ -216,6 +216,64 @@ pub mod sequence {
     }
 }
 
+/// Helper module for deserializing an at most 32-byte hexadecimal storage
+/// index for `eth_getStorageAt` that may or may not have a 0x prefix.
+pub mod storage_index {
+    use serde::{Deserialize, Deserializer};
+
+    use crate::U256;
+
+    /// Helper function for deserializing an at most 32-byte hexadecimal storage
+    /// index that may or may not have a 0x prefix.
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<U256, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value: String = Deserialize::deserialize(deserializer).map_err(|err| {
+            serde::de::Error::custom(format!(
+                "Storage slot argument must be a string, got '{err:?}'"
+            ))
+        })?;
+
+        if value.is_empty() {
+            return Err(serde::de::Error::custom(
+                "Storage slot argument cannot be an empty string".to_string(),
+            ));
+        }
+
+        let is_zero_x_prefixed = value.starts_with("0x");
+        let expected_length = if is_zero_x_prefixed {
+            2 * 32 + 2
+        } else {
+            2 * 32
+        };
+
+        if value.len() > expected_length {
+            return Err(serde::de::Error::custom(format!(
+                    "Storage slot argument must have a length of at most 66 (\"0x\" + 32 bytes), but '{value}' has a length of {}'",
+                    value.len()
+                )));
+        }
+
+        let result = if is_zero_x_prefixed {
+            U256::from_str_radix(&value[2..], 16).map_err(|_err| invalid_hex::<D>(&value))?
+        } else {
+            U256::from_str_radix(&value, 16).map_err(|_err| invalid_hex::<D>(&value))?
+        };
+
+        Ok(result)
+    }
+
+    fn invalid_hex<'de, D>(value: &str) -> D::Error
+    where
+        D: Deserializer<'de>,
+    {
+        serde::de::Error::custom(format!(
+            "Storage slot argument must be a valid hexadecimal, got '{value}'"
+        ))
+    }
+}
+
 /// Helper module for (de)serializing [`std::primitive::u64`]s from and into
 /// `0x`-prefixed hexadecimal strings.
 pub mod u64 {
