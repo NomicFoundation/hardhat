@@ -25,6 +25,7 @@ tokio = { version = "1.21.2", default-features = false, features = ["macros"] }
 
 [dev-dependencies]
 anyhow = "1.0.75"
+revm-primitives = { git = "https://github.com/Wodann/revm", rev = "93d8ebe", version = "1.1", default-features = false }
 tempfile = "3.7.1"
 
 [build-dependencies]
