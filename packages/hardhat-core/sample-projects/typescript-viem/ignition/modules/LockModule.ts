@@ -1,6 +1,7 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+import { parseEther } from "viem";
 
-const ONE_GWEI: bigint = 1_000_000_000n;
+const ONE_GWEI: bigint = parseEther("0.001");
 
 const LockModule = buildModule("LockModule", (m) => {
   const unlockTime = m.getParameter("unlockTime");

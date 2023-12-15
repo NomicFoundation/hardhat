@@ -4,7 +4,7 @@ import {
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { ethers, ignition } from "hardhat";
 
 import LockModule from "../ignition/modules/LockModule";
 
@@ -14,7 +14,7 @@ describe("Lock", function () {
   // and reset Hardhat Network to that snapshot in every test.
   async function deployOneYearLockFixture() {
     const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-    const ONE_GWEI = 1_000_000_000;
+    const ONE_GWEI = 1_000_000_000n;
 
     const lockedAmount = ONE_GWEI;
     const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
@@ -23,7 +23,7 @@ describe("Lock", function () {
     const [owner, otherAccount] = await ethers.getSigners();
 
     const { lock } = await ignition.deploy(LockModule, {
-      parameters: { Lock: { lockedAmount, unlockTime } },
+      parameters: { LockModule: { lockedAmount, unlockTime } },
     });
 
     return { lock, unlockTime, lockedAmount, owner, otherAccount };

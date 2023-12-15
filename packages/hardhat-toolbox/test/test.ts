@@ -19,15 +19,18 @@ describe("hardhat-toolbox", function () {
   describe("hardhat-gas-reporter-config", function () {
     useEnvironment("with-gas-reporter-config");
 
-    it("Should not crash while loading the HRE", async function () {
-      assert.isDefined(this.env);
+    it("Should not crash while loading the HRE", function () {
+      assert.isTrue(
+        this.env !== undefined && this.env !== null,
+        "The environment should be loaded"
+      );
     });
   });
 
   describe("typechain config", function () {
     useEnvironment("typechain-config");
 
-    it("should disable typechain overrides for js projects", async function () {
+    it("should disable typechain overrides for js projects", function () {
       assert.isTrue(this.env.config.typechain.dontOverrideCompile);
     });
   });
