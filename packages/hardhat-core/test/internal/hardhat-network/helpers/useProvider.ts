@@ -28,6 +28,7 @@ import {
 } from "./providers";
 import { sleep } from "./sleep";
 import { spawnEdrProvider } from "./spawnEdrProvider";
+import { isEdrProvider } from "./isEdrProvider";
 
 declare module "mocha" {
   interface Context {
@@ -105,9 +106,11 @@ export function useProvider({
       },
       this.logger
     );
-    this.provider = new BackwardsCompatibilityProviderAdapter(
+
+    const provider = new BackwardsCompatibilityProviderAdapter(
       this.hardhatNetworkProvider
     );
+    this.provider = provider;
 
     if (useJsonRpc) {
       this.server = new JsonRpcServer({
@@ -137,6 +140,10 @@ export function useProvider({
 
       await isReady;
     }
+
+    this.isEdr = () => {
+      return this.edrProcess !== undefined || isEdrProvider(provider);
+    };
   });
 
   afterEach("Remove provider", async function () {

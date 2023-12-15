@@ -1,9 +1,9 @@
 /* eslint-disable dot-notation,@typescript-eslint/dot-notation */
 import { Common } from "@nomicfoundation/ethereumjs-common";
-import { EdrProviderWrapper } from "../../../../src/internal/hardhat-network/provider/provider";
+import { isEdrProvider } from "./isEdrProvider";
 
 export async function retrieveCommon(provider: any): Promise<Common> {
-  if (provider instanceof EdrProviderWrapper) {
+  if (isEdrProvider(provider)) {
     return provider["_common"];
   }
 
