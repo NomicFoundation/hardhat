@@ -13,6 +13,16 @@ pub enum RequestMethod {
     /// eth_blockNumber
     #[serde(rename = "eth_blockNumber", with = "crate::serde::empty_params")]
     BlockNumber(()),
+    /// eth_feeHistory
+    #[serde(rename = "eth_feeHistory")]
+    FeeHistory(
+        /// block count
+        U256,
+        /// newest block
+        BlockSpec,
+        /// reward percentiles
+        Vec<f64>,
+    ),
     /// eth_chainId
     #[serde(rename = "eth_chainId", with = "crate::serde::empty_params")]
     ChainId(()),

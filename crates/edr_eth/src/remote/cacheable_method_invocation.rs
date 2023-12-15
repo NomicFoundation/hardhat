@@ -191,7 +191,7 @@ impl<'a> TryFrom<&'a RequestMethod> for CacheableRequestMethod<'a> {
             RequestMethod::NetVersion(_) => Ok(CacheableRequestMethod::NetVersion),
 
             // Explicit to make sure if a new method is added, it is not forgotten here.
-            RequestMethod::BlockNumber(_) => {
+            RequestMethod::BlockNumber(_) | RequestMethod::FeeHistory(_, _, _) => {
                 Err(MethodNotCacheableError::RequestMethod(value.clone()))
             }
         }
