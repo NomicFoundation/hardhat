@@ -6,14 +6,12 @@ The "mainnet" Ethereum network deals with real money, but there are separate "te
 
 At the software level, deploying to a testnet is the same as deploying to mainnet. The only difference is which network you connect to. Let's look into what the code to deploy your contracts using [Hardhat Ignition](/ignition) would look like.
 
-In Hardhat Ignition, deployments are defined through Ignition Modules. These modules serve as abstractions, helping you outline and describe the system that you want to deploy. Each Ignition Module encapsulates a group of smart contract instances and operations within your system.
+In Hardhat Ignition, deployments are defined through Ignition Modules. These modules are abstractions to describe a deployment; that is, JavaScript functions that specify what you want to deploy.
 
-You can think of Ignition Modules as being conceptually similar to JavaScript modules. In JavaScript, you create a module to group definitions of functions, classes, and values, and then you export some of them. In Hardhat Ignition, you create a module where you group definitions of smart contract instances and operations, and you export some of those contracts.
-
-Let's create a new directory `ignition` inside the project root's directory, then, create a directory named `modules` inside of the `ignition` directory. Paste the following into a `TokenModule.js` file in that directory:
+Ignition modules are expected to be within the `./ignition/modules` directory. Let's create a new directory `ignition` inside the project root's directory, then, create a directory named `modules` inside of the `ignition` directory. Paste the following into a `TokenModule.js` file in that directory:
 
 ```js
-const { buildModule } = require("@nomicfoundation/hardhat-toolbox");
+const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 
 const TokenModule = buildModule("TokenModule", (m) => {
   const token = m.contract("Token");
@@ -148,6 +146,6 @@ If everything went well, you should see the deployed contract address.
 
 :::tip
 
-For more information on Hardhat Ignition, check out the [Ignition documentation](/ignition).
+For more information on Hardhat Ignition, including how to verify deployments via Etherscan, check out the [Ignition documentation](/ignition).
 
 :::

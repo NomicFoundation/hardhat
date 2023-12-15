@@ -1,7 +1,6 @@
 section-type: plugins
 section-title: Plugins
 order:
-  - "@nomicfoundation/hardhat-ignition"
   - "@nomicfoundation/hardhat-toolbox"
   - "@nomicfoundation/hardhat-toolbox-viem"
   - "@nomicfoundation/hardhat-chai-matchers"
