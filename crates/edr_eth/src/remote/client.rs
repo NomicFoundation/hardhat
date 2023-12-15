@@ -22,11 +22,7 @@ use sha3::{digest::FixedOutput, Digest, Sha3_256};
 use tokio::sync::{OnceCell, RwLock};
 use uuid::Uuid;
 
-use super::{
-    eth, jsonrpc,
-    methods::{GetLogsInput, MethodInvocation},
-    BlockSpec, PreEip1898BlockSpec,
-};
+use super::{eth, jsonrpc, request_methods::RequestMethod, BlockSpec, PreEip1898BlockSpec};
 use crate::{
     block::{block_time, is_safe_block_number, IsSafeBlockNumberArgs},
     log::FilterLog,
@@ -36,6 +32,7 @@ use crate::{
             try_read_cache_key, try_write_cache_key, CacheKeyForSymbolicBlockTag,
             CacheKeyForUncheckedBlockNumber, ReadCacheKey, ResolvedSymbolicTag, WriteCacheKey,
         },
+        eth::GetLogsInput,
         jsonrpc::Id,
     },
     serde::ZeroXPrefixedBytes,
@@ -89,10 +86,10 @@ pub enum RpcClientError {
     },
 
     /// A response is missing from a batch request.
-    #[error("Missing response for method: '{method_invocation:?}' for request id: '{id:?}' in batch request")]
+    #[error("Missing response for method: '{method:?}' for request id: '{id:?}' in batch request")]
     MissingResponse {
         /// The method invocation for which the response is missing.
-        method_invocation: MethodInvocation,
+        method: Box<RequestMethod>,
         /// The id of the request iwth the missing response
         id: Id,
         /// The response text
@@ -135,15 +132,15 @@ pub enum CacheError {
     Json(#[from] serde_json::Error),
 }
 
-/// a JSON-RPC method invocation request
+/// A JSON-RPC request
 #[derive(Deserialize, Serialize)]
-pub struct Request<MethodInvocation> {
+pub struct Request<RequestMethod> {
     /// JSON-RPC version
     #[serde(rename = "jsonrpc")]
     pub version: jsonrpc::Version,
     /// the method to invoke, with its parameters
     #[serde(flatten)]
-    pub method: MethodInvocation,
+    pub method: RequestMethod,
     /// the request ID, to be correlated via the response's ID
     pub id: Id,
 }
@@ -327,11 +324,11 @@ impl RpcClient {
 
     async fn resolve_write_key<T>(
         &self,
-        method_invocation: &MethodInvocation,
+        method: &RequestMethod,
         result: T,
         resolve_block_number: impl Fn(T) -> Option<u64>,
     ) -> Result<Option<String>, RpcClientError> {
-        let write_cache_key = try_write_cache_key(method_invocation);
+        let write_cache_key = try_write_cache_key(method);
 
         if let Some(cache_key) = write_cache_key {
             match cache_key {
@@ -351,12 +348,12 @@ impl RpcClient {
 
     async fn try_write_response_to_cache<T: Serialize>(
         &self,
-        method_invocation: &MethodInvocation,
+        method: &RequestMethod,
         result: &T,
         resolve_block_number: impl Fn(&T) -> Option<u64>,
     ) -> Result<(), RpcClientError> {
         if let Some(cache_key) = self
-            .resolve_write_key(method_invocation, result, resolve_block_number)
+            .resolve_write_key(method, result, resolve_block_number)
             .await?
         {
             self.write_response_to_cache(&cache_key, result).await?;
@@ -453,14 +450,14 @@ impl RpcClient {
 
     fn serialize_request(
         &self,
-        input: &MethodInvocation,
+        input: &RequestMethod,
     ) -> Result<SerializedRequest, RpcClientError> {
         let id = Id::Num(self.next_id.fetch_add(1, Ordering::Relaxed));
         Self::serialize_request_with_id(input, id)
     }
 
     fn serialize_request_with_id(
-        method: &MethodInvocation,
+        method: &RequestMethod,
         id: Id,
     ) -> Result<SerializedRequest, RpcClientError> {
         let request = serde_json::to_value(Request {
@@ -475,19 +472,19 @@ impl RpcClient {
 
     async fn call<T: DeserializeOwned + Serialize>(
         &self,
-        method_invocation: MethodInvocation,
+        method: RequestMethod,
     ) -> Result<T, RpcClientError> {
-        self.call_with_resolver(method_invocation, |_| None).await
+        self.call_with_resolver(method, |_| None).await
     }
 
     async fn call_with_resolver<T: DeserializeOwned + Serialize>(
         &self,
-        method_invocation: MethodInvocation,
+        method: RequestMethod,
         resolve_block_number: impl Fn(&T) -> Option<u64>,
     ) -> Result<T, RpcClientError> {
-        let read_cache_key = try_read_cache_key(&method_invocation);
+        let read_cache_key = try_read_cache_key(&method);
 
-        let request = self.serialize_request(&method_invocation)?;
+        let request = self.serialize_request(&method)?;
 
         if let Some(cached_response) = self.try_from_cache(read_cache_key.as_ref()).await? {
             match cached_response.parse().await {
@@ -514,7 +511,7 @@ impl RpcClient {
             .await
             .and_then(|response| Self::extract_result(request, response))?;
 
-        self.try_write_response_to_cache(&method_invocation, &result, &resolve_block_number)
+        self.try_write_response_to_cache(&method, &result, &resolve_block_number)
             .await?;
 
         Ok(result)
@@ -524,9 +521,9 @@ impl RpcClient {
     // functions as the cached path calls `eth_chainId` without caching.
     async fn call_without_cache<T: DeserializeOwned>(
         &self,
-        method_invocation: MethodInvocation,
+        method: RequestMethod,
     ) -> Result<T, RpcClientError> {
-        let request = self.serialize_request(&method_invocation)?;
+        let request = self.serialize_request(&method)?;
 
         self.send_request_body(&request)
             .await
@@ -536,23 +533,19 @@ impl RpcClient {
     /// Returns the results of the given method invocations.
     async fn batch_call(
         &self,
-        method_invocations: &[MethodInvocation],
+        methods: &[RequestMethod],
     ) -> Result<VecDeque<ResponseValue>, RpcClientError> {
-        self.batch_call_with_resolver(method_invocations, |_| None)
-            .await
+        self.batch_call_with_resolver(methods, |_| None).await
     }
 
     async fn batch_call_with_resolver(
         &self,
-        method_invocations: &[MethodInvocation],
+        methods: &[RequestMethod],
         resolve_block_number: impl Fn(&serde_json::Value) -> Option<u64>,
     ) -> Result<VecDeque<ResponseValue>, RpcClientError> {
-        let ids = self.get_ids(method_invocations.len() as u64);
+        let ids = self.get_ids(methods.len() as u64);
 
-        let cache_keys = method_invocations
-            .iter()
-            .map(try_read_cache_key)
-            .collect::<Vec<_>>();
+        let cache_keys = methods.iter().map(try_read_cache_key).collect::<Vec<_>>();
 
         let mut results: Vec<Option<ResponseValue>> = Vec::with_capacity(cache_keys.len());
 
@@ -562,11 +555,9 @@ impl RpcClient {
 
         let mut requests: Vec<SerializedRequest> = Vec::new();
         let mut id_to_index = HashMap::<&Id, usize>::new();
-        for (index, (id, method_invocation, cache_response)) in
-            izip!(&ids, method_invocations, &results).enumerate()
-        {
+        for (index, (id, method, cache_response)) in izip!(&ids, methods, &results).enumerate() {
             if cache_response.is_none() {
-                let request = Self::serialize_request_with_id(method_invocation, id.clone())?;
+                let request = Self::serialize_request_with_id(method, id.clone())?;
                 requests.push(request);
                 id_to_index.insert(id, index);
             }
@@ -597,12 +588,8 @@ impl RpcClient {
                         request: request_body.to_json_string(),
                     })?;
 
-            self.try_write_response_to_cache(
-                &method_invocations[index],
-                &result,
-                &resolve_block_number,
-            )
-            .await?;
+            self.try_write_response_to_cache(&methods[index], &result, &resolve_block_number)
+                .await?;
 
             results[index] = Some(ResponseValue::Remote(result));
         }
@@ -612,7 +599,7 @@ impl RpcClient {
             .enumerate()
             .map(|(index, result)| {
                 result.ok_or_else(|| RpcClientError::MissingResponse {
-                    method_invocation: method_invocations[index].clone(),
+                    method: Box::new(methods[index].clone()),
                     id: ids[index].clone(),
                     response: remote_response.clone(),
                 })
@@ -623,7 +610,7 @@ impl RpcClient {
     /// Calls `eth_blockNumber` and returns the block number.
     pub async fn block_number(&self) -> Result<u64, RpcClientError> {
         let block_number = self
-            .call_without_cache::<U64>(MethodInvocation::BlockNumber(()))
+            .call_without_cache::<U64>(RequestMethod::BlockNumber(()))
             .await?
             .as_limbs()[0];
 
@@ -654,7 +641,7 @@ impl RpcClient {
         let chain_id = *self
             .chain_id
             .get_or_try_init(|| async {
-                self.call_without_cache::<U64>(MethodInvocation::ChainId(()))
+                self.call_without_cache::<U64>(RequestMethod::ChainId(()))
                     .await
                     .map(|chain_id| chain_id.as_limbs()[0])
             })
@@ -682,13 +669,13 @@ impl RpcClient {
         addresses: &[Address],
         block: Option<BlockSpec>,
     ) -> Result<Vec<AccountInfo>, RpcClientError> {
-        let inputs: Vec<MethodInvocation> = addresses
+        let inputs: Vec<RequestMethod> = addresses
             .iter()
             .flat_map(|address| {
                 [
-                    MethodInvocation::GetBalance(*address, block.clone()),
-                    MethodInvocation::GetTransactionCount(*address, block.clone()),
-                    MethodInvocation::GetCode(*address, block.clone()),
+                    RequestMethod::GetBalance(*address, block.clone()),
+                    RequestMethod::GetTransactionCount(*address, block.clone()),
+                    RequestMethod::GetCode(*address, block.clone()),
                 ]
             })
             .collect();
@@ -723,8 +710,7 @@ impl RpcClient {
         &self,
         hash: &B256,
     ) -> Result<Option<eth::Block<B256>>, RpcClientError> {
-        self.call(MethodInvocation::GetBlockByHash(*hash, false))
-            .await
+        self.call(RequestMethod::GetBlockByHash(*hash, false)).await
     }
 
     /// Calls `eth_getBlockByHash` and returns the transaction's data.
@@ -732,8 +718,7 @@ impl RpcClient {
         &self,
         hash: &B256,
     ) -> Result<Option<eth::Block<eth::Transaction>>, RpcClientError> {
-        self.call(MethodInvocation::GetBlockByHash(*hash, true))
-            .await
+        self.call(RequestMethod::GetBlockByHash(*hash, true)).await
     }
 
     /// Calls `eth_getBlockByNumber` and returns the transaction's hash.
@@ -742,7 +727,7 @@ impl RpcClient {
         spec: PreEip1898BlockSpec,
     ) -> Result<Option<eth::Block<B256>>, RpcClientError> {
         self.call_with_resolver(
-            MethodInvocation::GetBlockByNumber(spec, false),
+            RequestMethod::GetBlockByNumber(spec, false),
             |block: &Option<eth::Block<B256>>| block.as_ref().and_then(|block| block.number),
         )
         .await
@@ -754,7 +739,7 @@ impl RpcClient {
         spec: PreEip1898BlockSpec,
     ) -> Result<eth::Block<eth::Transaction>, RpcClientError> {
         self.call_with_resolver(
-            MethodInvocation::GetBlockByNumber(spec, true),
+            RequestMethod::GetBlockByNumber(spec, true),
             |block: &eth::Block<eth::Transaction>| block.number,
         )
         .await
@@ -767,7 +752,7 @@ impl RpcClient {
         to_block: BlockSpec,
         address: &Address,
     ) -> Result<Vec<FilterLog>, RpcClientError> {
-        self.call(MethodInvocation::GetLogs(GetLogsInput {
+        self.call(RequestMethod::GetLogs(GetLogsInput {
             from_block,
             to_block,
             address: *address,
@@ -780,7 +765,7 @@ impl RpcClient {
         &self,
         tx_hash: &B256,
     ) -> Result<Option<eth::Transaction>, RpcClientError> {
-        self.call(MethodInvocation::GetTransactionByHash(*tx_hash))
+        self.call(RequestMethod::GetTransactionByHash(*tx_hash))
             .await
     }
 
@@ -790,7 +775,7 @@ impl RpcClient {
         address: &Address,
         block: Option<BlockSpec>,
     ) -> Result<U256, RpcClientError> {
-        self.call(MethodInvocation::GetTransactionCount(*address, block))
+        self.call(RequestMethod::GetTransactionCount(*address, block))
             .await
     }
 
@@ -799,7 +784,7 @@ impl RpcClient {
         &self,
         tx_hash: &B256,
     ) -> Result<Option<BlockReceipt>, RpcClientError> {
-        self.call(MethodInvocation::GetTransactionReceipt(*tx_hash))
+        self.call(RequestMethod::GetTransactionReceipt(*tx_hash))
             .await
     }
 
@@ -808,9 +793,9 @@ impl RpcClient {
         &self,
         hashes: impl IntoIterator<Item = &B256>,
     ) -> Result<Option<Vec<BlockReceipt>>, RpcClientError> {
-        let requests: Vec<MethodInvocation> = hashes
+        let requests: Vec<RequestMethod> = hashes
             .into_iter()
-            .map(|transaction_hash| MethodInvocation::GetTransactionReceipt(*transaction_hash))
+            .map(|transaction_hash| RequestMethod::GetTransactionReceipt(*transaction_hash))
             .collect();
 
         let responses = self.batch_call(&requests).await?;
@@ -832,13 +817,13 @@ impl RpcClient {
         position: U256,
         block: Option<BlockSpec>,
     ) -> Result<Option<U256>, RpcClientError> {
-        self.call(MethodInvocation::GetStorageAt(*address, position, block))
+        self.call(RequestMethod::GetStorageAt(*address, position, block))
             .await
     }
 
     /// Calls `net_version`.
     pub async fn network_id(&self) -> Result<u64, RpcClientError> {
-        self.call::<U64>(MethodInvocation::NetVersion(()))
+        self.call::<U64>(RequestMethod::NetVersion(()))
             .await
             .map(|network_id| network_id.as_limbs()[0])
     }
@@ -1114,7 +1099,7 @@ mod tests {
                 .expect("failed to parse hash from string");
 
         let error = TestRpcClient::new(&server.url())
-            .call::<Option<eth::Transaction>>(MethodInvocation::GetTransactionByHash(hash))
+            .call::<Option<eth::Transaction>>(RequestMethod::GetTransactionByHash(hash))
             .await
             .expect_err("should have failed to due to a HTTP status error");
 
@@ -1177,7 +1162,7 @@ mod tests {
             .expect("failed to parse hash from string");
 
             let error = TestRpcClient::new(alchemy_url)
-                .call::<Option<eth::Transaction>>(MethodInvocation::GetTransactionByHash(hash))
+                .call::<Option<eth::Transaction>>(RequestMethod::GetTransactionByHash(hash))
                 .await
                 .expect_err("should have failed to interpret response as a Transaction");
 
@@ -1198,7 +1183,7 @@ mod tests {
             .expect("failed to parse hash from string");
 
             let error = TestRpcClient::new(alchemy_url)
-                .call::<Option<eth::Transaction>>(MethodInvocation::GetTransactionByHash(hash))
+                .call::<Option<eth::Transaction>>(RequestMethod::GetTransactionByHash(hash))
                 .await
                 .expect_err("should have failed to connect due to a garbage domain name");
 

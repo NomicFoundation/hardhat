@@ -10,6 +10,7 @@ pub mod jsonrpc;
 /// RPC methods
 pub mod methods;
 mod r#override;
+mod request_methods;
 
 use std::{
     fmt,

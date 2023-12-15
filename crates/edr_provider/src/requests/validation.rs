@@ -1,5 +1,5 @@
 use edr_eth::{
-    access_list::AccessListItem, remote::methods::CallRequest, transaction::EthTransactionRequest,
+    access_list::AccessListItem, remote::eth::CallRequest, transaction::EthTransactionRequest,
     SpecId, U256,
 };
 

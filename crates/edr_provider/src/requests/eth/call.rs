@@ -1,5 +1,5 @@
 use edr_eth::{
-    remote::{methods::CallRequest, BlockSpec, StateOverrideOptions},
+    remote::{eth::CallRequest, BlockSpec, StateOverrideOptions},
     serde::ZeroXPrefixedBytes,
     transaction::{Eip1559TransactionRequest, Eip155TransactionRequest, TransactionRequest},
     Bytes, SpecId, U256,
