@@ -22,9 +22,9 @@ jobs:
           node-version: 16
           cache: "pnpm"
       - name: Remove packages that can't be compiled with TypeScript v4
-        run: rm -fr packages/hardhat-viem packages/hardhat-toolbox-viem packages/hardhat-web3-v4
+        run: rm -fr packages/hardhat-viem packages/hardhat-toolbox-viem packages/hardhat-toolbox packages/hardhat-web3-v4
       - name: Remove packages that can't be compiled with TypeScript v4 from the build script
-        run: sed -i 's/packages\/\(hardhat-viem\|hardhat-toolbox-viem\|hardhat-web3-v4\) *//g' package.json
+        run: sed -i 's/packages\/\(hardhat-viem\|hardhat-toolbox\|hardhat-toolbox-viem\|hardhat-web3-v4\) *//g' package.json
       - name: Install typescript v4 in all packages
         run: |
           sed -i 's/"typescript": "~5.0.0"/"typescript": "^4.0.0"/' package.json packages/*/package.json && pnpm install --no-frozen-lockfile

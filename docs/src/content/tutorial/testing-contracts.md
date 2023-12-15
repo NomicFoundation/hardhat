@@ -14,7 +14,7 @@ Let's start with the code below. We'll explain it next, but for now paste this i
 
 ```js
 const { expect } = require("chai");
-const { buildModule } = require("@nomicfoundation/hardhat-toolbox");
+const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 
 // We define a module in the test file here, but you can also `require` it.
 const TokenModule = buildModule("TokenModule", (m) => {

@@ -13,7 +13,7 @@ You can think of Ignition Modules as being conceptually similar to JavaScript mo
 Let's create a new directory `ignition` inside the project root's directory, then, create a directory named `modules` inside of the `ignition` directory. Paste the following into a `TokenModule.js` file in that directory:
 
 ```js
-const { buildModule } = require("@nomicfoundation/hardhat-toolbox");
+const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 
 const TokenModule = buildModule("TokenModule", (m) => {
   const token = m.contract("Token");

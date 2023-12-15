@@ -42,7 +42,8 @@ drwxr-xr-x    3 fzeoli  staff      96 Jul 30 15:27 test
 
 Inside `scripts/` you will find `deploy.js`. Read through its comments to have a better idea of what it does.
 
-<<< @/../packages/hardhat-core/sample-projects/javascript/scripts/deploy.js
+<!-- FIX: What needs to be swapped in for this? -->
+<!-- <<< @/../packages/hardhat-core/sample-projects/javascript/scripts/deploy.js -->
 
 Now run the script:
 

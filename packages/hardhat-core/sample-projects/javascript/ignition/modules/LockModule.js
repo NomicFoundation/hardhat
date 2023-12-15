@@ -1,5 +1,5 @@
 // ./ignition/LockModule.js
-const { buildModule } = require("@nomicfoundation/hardhat-toolbox");
+const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 
 const currentTimestampInSeconds = Math.round(new Date(2023, 0, 1) / 1000);
 const TEN_YEAR_IN_SECS = 10 * 365 * 24 * 60 * 60;

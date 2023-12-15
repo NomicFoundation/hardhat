@@ -67,7 +67,7 @@ describe("Lock", function () {
 ```js
 const { expect } = require("chai");
 const hre = require("hardhat");
-const { buildModule } = require("@nomicfoundation/hardhat-toolbox");
+const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 const { time } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 
 // We define a module in the test file here, but you can also `require` it.
