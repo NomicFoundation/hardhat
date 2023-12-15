@@ -2,9 +2,12 @@
 pub mod eth;
 /// Hardhat RPC request types
 pub mod hardhat;
+mod methods;
 mod validation;
 
-pub use edr_eth::remote::{client::Request as RpcRequest, methods::MethodInvocation as EthRequest};
+pub use edr_eth::remote::client::Request as RpcRequest;
+
+pub use crate::requests::methods::{MethodInvocation, OneUsizeOrTwo, U64OrUsize};
 
 ///
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -22,7 +25,7 @@ pub enum ProviderRequest {
 #[allow(clippy::large_enum_variant)]
 pub enum Request {
     /// an eth_* method invocation
-    Eth(EthRequest),
+    Eth(MethodInvocation),
     /// a hardhat_* method invocation
     Hardhat(rpc_hardhat::Request),
 }

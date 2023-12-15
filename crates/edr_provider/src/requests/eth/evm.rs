@@ -1,7 +1,7 @@
-use edr_eth::{remote::methods::U64OrUsize, U64};
+use edr_eth::U64;
 use edr_evm::{blockchain::BlockchainError, MineBlockResult};
 
-use crate::{data::ProviderData, ProviderError};
+use crate::{data::ProviderData, requests::methods::U64OrUsize, ProviderError};
 
 pub fn handle_increase_time_request(
     data: &mut ProviderData,

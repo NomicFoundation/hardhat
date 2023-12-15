@@ -4,12 +4,12 @@ use edr_eth::{
         filter::{
             FilterBlockTarget, FilterOptions, LogOutput, OneOrMoreAddresses, SubscriptionType,
         },
-        methods::{MethodInvocation, OneUsizeOrTwo, U64OrUsize},
         BlockSpec, BlockTag, PreEip1898BlockSpec,
     },
     transaction::EthTransactionRequest,
     Address, B256, U256, U64,
 };
+use edr_provider::{MethodInvocation, OneUsizeOrTwo, U64OrUsize};
 use edr_test_utils::{
     help_test_method_invocation_serde, help_test_method_invocation_serde_with_expected,
 };
