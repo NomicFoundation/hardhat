@@ -1,5 +1,6 @@
 use std::ops::Deref;
 
+use alloy_rlp::BufMut;
 use revm_primitives::B256;
 
 use super::TransactionReceipt;
@@ -27,17 +28,20 @@ impl Deref for BlockReceipt {
     }
 }
 
-impl rlp::Encodable for BlockReceipt {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        s.append(&self.inner);
+impl alloy_rlp::Encodable for BlockReceipt {
+    fn encode(&self, out: &mut dyn BufMut) {
+        self.inner.encode(out);
+    }
+
+    fn length(&self) -> usize {
+        self.inner.length()
     }
 }
 
 #[cfg(test)]
 mod test {
     use assert_json_diff::assert_json_eq;
-    use ethbloom::Bloom;
-    use revm_primitives::{Address, U256};
+    use revm_primitives::{alloy_primitives::Bloom, Address, U256};
     use serde_json::json;
 
     use super::*;

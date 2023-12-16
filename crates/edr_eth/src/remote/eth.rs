@@ -15,7 +15,7 @@ use crate::{
     access_list::AccessListItem,
     signature::Signature,
     transaction::{
-        EIP155SignedTransaction, Eip1559SignedTransaction, Eip2930SignedTransaction,
+        Eip1559SignedTransaction, Eip155SignedTransaction, Eip2930SignedTransaction,
         Eip4844SignedTransaction, LegacySignedTransaction, SignedTransaction, TransactionKind,
     },
     withdrawal::Withdrawal,
@@ -50,7 +50,6 @@ pub struct Transaction {
     /// gas provided by the sender
     pub gas: U256,
     /// the data sent along with the transaction
-    #[serde(with = "crate::serde::bytes")]
     pub input: Bytes,
     /// ECDSA recovery id
     #[serde(with = "crate::serde::u64")]
@@ -169,7 +168,7 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
                         hash: OnceLock::from(value.hash),
                     })
                 } else {
-                    SignedTransaction::PostEip155Legacy(EIP155SignedTransaction {
+                    SignedTransaction::PostEip155Legacy(Eip155SignedTransaction {
                         nonce: value.nonce,
                         gas_price: value.gas_price,
                         gas_limit: value.gas.to(),
@@ -305,7 +304,6 @@ pub struct Block<TX> {
     #[serde(with = "crate::serde::u64")]
     pub gas_limit: u64,
     /// the "extra data" field of this block
-    #[serde(with = "crate::serde::bytes")]
     pub extra_data: Bytes,
     /// the bloom filter for the logs of the block
     pub logs_bloom: Bloom,

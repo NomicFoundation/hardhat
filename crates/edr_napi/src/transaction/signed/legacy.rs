@@ -25,7 +25,7 @@ pub struct LegacySignedTransaction {
 impl LegacySignedTransaction {
     pub fn from_eip155(
         env: &Env,
-        transaction: &edr_eth::transaction::EIP155SignedTransaction,
+        transaction: &edr_eth::transaction::Eip155SignedTransaction,
     ) -> napi::Result<Self> {
         let input = transaction.input.clone();
         let input = unsafe {
@@ -100,7 +100,7 @@ impl LegacySignedTransaction {
     }
 }
 
-impl TryFrom<LegacySignedTransaction> for edr_eth::transaction::EIP155SignedTransaction {
+impl TryFrom<LegacySignedTransaction> for edr_eth::transaction::Eip155SignedTransaction {
     type Error = napi::Error;
 
     fn try_from(value: LegacySignedTransaction) -> Result<Self, Self::Error> {

@@ -15,9 +15,9 @@ pub(super) fn make_fake_signature<const V: usize>(sender: &Address) -> Signature
     // fake signatures in debug logs.
 
     // We interpret the hash as a big endian U256 value.
-    let r = U256::try_from_be_slice(sender.as_bytes())
+    let r = U256::try_from_be_slice(sender.as_slice())
         .expect("address is 20 bytes which fits into U256");
-    let s = U256::try_from_be_slice(sender.as_bytes())
+    let s = U256::try_from_be_slice(sender.as_slice())
         .expect("address is 20 bytes which fits into U256");
 
     // Recovery id for fake signatures is unsupported, so we always set it to the
@@ -36,7 +36,7 @@ pub(super) mod tests {
             fn hash_with_fake_signature_same_sender() {
                 let transaction_request = dummy_request();
 
-                let sender = Address::from(1);
+                let sender = Address::from(revm_primitives::ruint::aliases::U160::from(1));
 
                 let signed_transaction_one = transaction_request.clone().fake_sign(&sender);
                 let signed_transaction_two = transaction_request.fake_sign(&sender);
@@ -51,8 +51,8 @@ pub(super) mod tests {
             fn hash_with_fake_signature_different_senders() {
                 let transaction_request = dummy_request();
 
-                let sender_one = Address::from(1);
-                let sender_two = Address::from(2);
+                let sender_one = Address::from(revm_primitives::ruint::aliases::U160::from(1));
+                let sender_two = Address::from(revm_primitives::ruint::aliases::U160::from(2));
 
                 let signed_transaction_one = transaction_request.clone().fake_sign(&sender_one);
                 let signed_transaction_two = transaction_request.fake_sign(&sender_two);

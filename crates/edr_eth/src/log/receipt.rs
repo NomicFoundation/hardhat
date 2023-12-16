@@ -1,5 +1,6 @@
 use std::ops::Deref;
 
+use alloy_rlp::BufMut;
 use revm_primitives::B256;
 
 use super::Log;
@@ -24,9 +25,13 @@ impl Deref for ReceiptLog {
     }
 }
 
-impl rlp::Encodable for ReceiptLog {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        s.append(&self.inner);
+impl alloy_rlp::Encodable for ReceiptLog {
+    fn encode(&self, out: &mut dyn BufMut) {
+        self.inner.encode(out);
+    }
+
+    fn length(&self) -> usize {
+        self.inner.length()
     }
 }
 

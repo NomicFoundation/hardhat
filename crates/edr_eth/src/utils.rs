@@ -10,17 +10,15 @@
 // - https://github.com/gakonst/ethers-rs/blob/cba6f071aedafb766e82e4c2f469ed5e4638337d/LICENSE-MIT
 // For the original context see: https://github.com/gakonst/ethers-rs/blob/cba6f071aedafb766e82e4c2f469ed5e4638337d/ethers-core/src/utils/hash.rs
 
+use alloy_rlp::{BufMut, Encodable};
 use revm_primitives::keccak256;
-use rlp::Encodable;
 
 use crate::B256;
 
-/// RLP-encodes the provided value, prepends it with the provided ID, and
-/// appends it to the provided [`rlp::RlpStream`].
-pub fn enveloped<T: Encodable>(id: u8, v: &T, s: &mut rlp::RlpStream) {
-    let encoded = rlp::encode(v);
-    let enveloped = envelop_bytes(id, &encoded);
-    s.append_raw(&enveloped, 1);
+/// RLP-encodes the provided value and prepends it with the provided ID.
+pub fn enveloped<T: Encodable>(id: u8, v: &T, out: &mut dyn BufMut) {
+    out.put_u8(id);
+    v.encode(out);
 }
 
 /// Prepends the provided (RLP-encoded) bytes with the provided ID.

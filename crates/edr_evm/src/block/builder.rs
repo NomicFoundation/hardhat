@@ -352,7 +352,7 @@ impl BlockBuilder {
         self.header.receipts_root = ordered_trie_root(
             self.receipts
                 .iter()
-                .map(|receipt| rlp::encode(&**receipt).freeze()),
+                .map(|receipt| alloy_rlp::encode(&**receipt).freeze()),
         );
 
         if let Some(timestamp) = timestamp {

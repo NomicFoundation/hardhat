@@ -1,5 +1,6 @@
 use std::sync::OnceLock;
 
+use alloy_rlp::RlpEncodable;
 use k256::SecretKey;
 use revm_primitives::{keccak256, Address, Bytes, B256, U256};
 
@@ -11,8 +12,9 @@ use crate::{
     },
 };
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, RlpEncodable)]
 pub struct LegacyTransactionRequest {
+    // The order of these fields determines encoding order.
     pub nonce: u64,
     pub gas_price: U256,
     pub gas_limit: u64,
@@ -24,7 +26,7 @@ pub struct LegacyTransactionRequest {
 impl LegacyTransactionRequest {
     /// Computes the hash of the transaction.
     pub fn hash(&self) -> B256 {
-        keccak256(&rlp::encode(self))
+        keccak256(&alloy_rlp::encode(self))
     }
 
     /// Signs the transaction with the provided secret key.
@@ -75,18 +77,6 @@ impl From<&LegacySignedTransaction> for LegacyTransactionRequest {
     }
 }
 
-impl rlp::Encodable for LegacyTransactionRequest {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        s.begin_list(6);
-        s.append(&self.nonce);
-        s.append(&self.gas_price);
-        s.append(&self.gas_limit);
-        s.append(&self.kind);
-        s.append(&self.value);
-        s.append(&self.input.as_ref());
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
@@ -117,7 +107,7 @@ mod tests {
 
         let request = dummy_request();
 
-        let encoded = rlp::encode(&request);
+        let encoded = alloy_rlp::encode(&request);
         assert_eq!(expected, encoded.to_vec());
     }
 

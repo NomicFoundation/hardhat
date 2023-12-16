@@ -1,5 +1,7 @@
 use std::ops::Deref;
 
+use alloy_rlp::BufMut;
+
 use crate::log::FullBlockLog;
 
 /// A log that's returned through a filter query.
@@ -22,9 +24,13 @@ impl Deref for FilterLog {
     }
 }
 
-impl rlp::Encodable for FilterLog {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        s.append(&self.inner);
+impl alloy_rlp::Encodable for FilterLog {
+    fn encode(&self, out: &mut dyn BufMut) {
+        self.inner.encode(out);
+    }
+
+    fn length(&self) -> usize {
+        self.inner.length()
     }
 }
 

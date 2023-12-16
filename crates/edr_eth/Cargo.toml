@@ -4,7 +4,7 @@ version = "0.2.0-dev"
 edition = "2021"
 
 [dependencies]
-ethbloom = { version = "0.13.0", default-features = false, features = ["rlp"] }
+alloy-rlp = { version = "0.3", default-features = false, features = ["derive"] }
 futures = {version = "0.3.28", default-features = false}
 hash-db = { version = "0.15.2", default-features = false }
 hash256-std-hasher = { version = "0.15.2", default-features = false }
@@ -13,15 +13,13 @@ hyper = {version = "0.14.27", default-features = false}
 itertools = { version = "0.10.5", default-features = false, features = ["use_alloc"] }
 k256 = { version = "0.13.1", default-features = false, features = ["arithmetic", "ecdsa", "pkcs8",] }
 log = { version = "0.4.17", default-features = false }
-primitive-types = { version = "0.11.1", default-features = false, features = ["rlp"] }
 reqwest = { version = "0.11", features = ["blocking", "json"] }
 # We need the git versions pending the release of `RetryableStrategy`
 # https://github.com/TrueLayer/reqwest-middleware/blob/main/reqwest-retry/CHANGELOG.md#unreleased
 reqwest-middleware = { git = "https://github.com/TrueLayer/reqwest-middleware", rev = "a54319a", default-features = false }
 reqwest-retry = { git = "https://github.com/TrueLayer/reqwest-middleware", rev = "a54319a", default-features = false }
-revm-primitives = { git = "https://github.com/Wodann/revm", rev = "93d8ebe", version = "1.1", default-features = false }
-# revm-primitives = { path = "../../../revm/crates/primitives", version = "1.1", default-features = false }
-rlp = { version = "0.5.2", default-features = false, features = ["derive"] }
+# revm-primitives = { git = "https://github.com/Wodann/revm", rev = "93d8ebe", version = "1.1", default-features = false }
+revm-primitives = { path = "../../../revm/crates/primitives", version = "1.3", default-features = false }
 serde = { version = "1.0.147", default-features = false, features = ["derive"], optional = true }
 serde_json = { version = "1.0.89", optional = true }
 sha3 = { version = "0.10.8", default-features = false }
@@ -44,6 +42,6 @@ walkdir = { version = "2.3.3", default-features =  false }
 
 [features]
 default = ["std"]
-serde = ["dep:serde", "ethbloom/serialize", "primitive-types/serde", "revm-primitives/serde", "serde_json"]
-std = ["ethbloom/std", "futures/std", "hash256-std-hasher/std", "hash-db/std", "hex/std", "itertools/use_std", "k256/std", "k256/precomputed-tables", "primitive-types/std", "revm-primitives/std", "rlp/std", "serde?/std", "sha3/std", "triehash/std", "uuid/std"]
+serde = ["dep:serde", "revm-primitives/serde", "serde_json"]
+std = ["futures/std", "hash256-std-hasher/std", "hash-db/std", "hex/std", "itertools/use_std", "k256/std", "k256/precomputed-tables", "revm-primitives/std", "serde?/std", "sha3/std", "triehash/std", "uuid/std"]
 test-remote = ["serde"]

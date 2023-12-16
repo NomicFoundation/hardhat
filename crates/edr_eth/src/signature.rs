@@ -8,6 +8,7 @@ use core::fmt;
 #[cfg(feature = "std")]
 use std::str::FromStr;
 
+use alloy_rlp::BufMut;
 use k256::{
     ecdsa::{
         signature::hazmat::PrehashSigner, RecoveryId, Signature as ECDSASignature, SigningKey,
@@ -105,7 +106,7 @@ pub enum RecoveryMessage {
     Hash(B256),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Copy, Hash)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 /// An ECDSA signature
 pub struct Signature {
@@ -221,35 +222,35 @@ impl Signature {
     pub fn to_vec(&self) -> Vec<u8> {
         self.into()
     }
+}
 
-    /// Decodes a signature from RLP bytes, assuming no RLP header
-    #[cfg(feature = "fastrlp")]
-    pub(crate) fn decode_signature(buf: &mut &[u8]) -> Result<Self, open_fastrlp::DecodeError> {
-        let v = u64::decode(buf)?;
-        Ok(Self {
+// We need a custom implementation to avoid the struct being treated as an RLP
+// list.
+impl alloy_rlp::Decodable for Signature {
+    fn decode(buf: &mut &[u8]) -> alloy_rlp::Result<Self> {
+        let decode = Self {
+            // The order of these fields determines decoding order.
+            v: u64::decode(buf)?,
             r: U256::decode(buf)?,
             s: U256::decode(buf)?,
-            v,
-        })
+        };
+
+        Ok(decode)
     }
 }
 
-#[cfg(feature = "fastrlp")]
-impl open_fastrlp::Decodable for Signature {
-    fn decode(buf: &mut &[u8]) -> Result<Self, open_fastrlp::DecodeError> {
-        Self::decode_signature(buf)
-    }
-}
-
-#[cfg(feature = "fastrlp")]
-impl open_fastrlp::Encodable for Signature {
-    fn length(&self) -> usize {
-        self.r.length() + self.s.length() + self.v.length()
-    }
-    fn encode(&self, out: &mut dyn bytes::BufMut) {
+// We need a custom implementation to avoid the struct being treated as an RLP
+// list.
+impl alloy_rlp::Encodable for Signature {
+    fn encode(&self, out: &mut dyn BufMut) {
+        // The order of these fields determines decoding order.
         self.v.encode(out);
         self.r.encode(out);
         self.s.encode(out);
+    }
+
+    fn length(&self) -> usize {
+        self.r.length() + self.s.length() + self.v.length()
     }
 }
 
@@ -359,7 +360,7 @@ impl From<String> for RecoveryMessage {
 
 impl From<[u8; 32]> for RecoveryMessage {
     fn from(hash: [u8; 32]) -> Self {
-        B256(hash).into()
+        B256::from(hash).into()
     }
 }
 

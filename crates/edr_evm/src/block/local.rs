@@ -52,11 +52,11 @@ impl LocalBlock {
         let ommer_hashes = ommers.iter().map(Header::hash).collect::<Vec<_>>();
         let ommers_hash = keccak256(&rlp::encode_list(&ommers)[..]);
         let transactions_root =
-            trie::ordered_trie_root(transactions.iter().map(|r| rlp::encode(r).freeze()));
+            trie::ordered_trie_root(transactions.iter().map(|r| alloy_rlp::encode(r).freeze()));
 
         if let Some(withdrawals) = withdrawals.as_ref() {
             partial_header.withdrawals_root = Some(trie::ordered_trie_root(
-                withdrawals.iter().map(|r| rlp::encode(r).freeze()),
+                withdrawals.iter().map(|r| alloy_rlp::encode(r).freeze()),
             ));
         }
 
@@ -108,7 +108,7 @@ impl Block for LocalBlock {
     }
 
     fn rlp_size(&self) -> u64 {
-        rlp::encode(self)
+        alloy_rlp::encode(self)
             .len()
             .try_into()
             .expect("usize fits into u64")

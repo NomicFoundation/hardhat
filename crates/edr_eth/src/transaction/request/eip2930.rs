@@ -1,7 +1,8 @@
 use std::sync::OnceLock;
 
+use alloy_rlp::RlpEncodable;
 use k256::SecretKey;
-use revm_primitives::{keccak256, ruint::aliases::U64, Address, Bytes, B256, U256};
+use revm_primitives::{keccak256, Address, Bytes, B256, U256};
 
 use crate::{
     access_list::AccessListItem,
@@ -13,12 +14,9 @@ use crate::{
     utils::envelop_bytes,
 };
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-#[cfg_attr(
-    feature = "fastrlp",
-    derive(open_fastrlp::RlpEncodable, open_fastrlp::RlpDecodable)
-)]
+#[derive(Clone, Debug, PartialEq, Eq, RlpEncodable)]
 pub struct Eip2930TransactionRequest {
+    // The order of these fields determines encoding order.
     pub chain_id: u64,
     pub nonce: u64,
     pub gas_price: U256,
@@ -32,7 +30,7 @@ pub struct Eip2930TransactionRequest {
 impl Eip2930TransactionRequest {
     /// Computes the hash of the transaction.
     pub fn hash(&self) -> B256 {
-        let encoded = rlp::encode(self);
+        let encoded = alloy_rlp::encode(self);
 
         keccak256(&envelop_bytes(1, &encoded))
     }
@@ -95,20 +93,6 @@ impl From<&Eip2930SignedTransaction> for Eip2930TransactionRequest {
     }
 }
 
-impl rlp::Encodable for Eip2930TransactionRequest {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        s.begin_list(8);
-        s.append(&U64::from(self.chain_id));
-        s.append(&U64::from(self.nonce));
-        s.append(&self.gas_price);
-        s.append(&self.gas_limit);
-        s.append(&self.kind);
-        s.append(&self.value);
-        s.append(&self.input.as_ref());
-        s.append_list(&self.access_list);
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
@@ -130,8 +114,8 @@ mod tests {
             value: U256::from(4),
             input: Bytes::from(input),
             access_list: vec![AccessListItem {
-                address: Address::zero(),
-                storage_keys: vec![B256::zero(), B256::from(U256::from(1))],
+                address: Address::ZERO,
+                storage_keys: vec![B256::ZERO, B256::from(U256::from(1))],
             }],
         }
     }
@@ -147,7 +131,7 @@ mod tests {
 
         let request = dummy_request();
 
-        let encoded = rlp::encode(&request);
+        let encoded = alloy_rlp::encode(&request);
         assert_eq!(expected, encoded.to_vec());
     }
 

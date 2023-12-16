@@ -34,10 +34,10 @@ pub mod trie;
 pub mod utils;
 pub mod withdrawal;
 
-pub use ethbloom::Bloom;
 pub use revm_primitives::{
+    alloy_primitives::Bloom,
     ruint::aliases::{B512, B64, U64},
-    AccountInfo, Address, Bytes, HashMap, SpecId, B160, B256, U256,
+    AccountInfo, Address, Bytes, HashMap, SpecId, B256, U256,
 };
 
 /// A secret key

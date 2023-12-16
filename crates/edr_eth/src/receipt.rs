@@ -9,8 +9,8 @@
 mod block;
 mod transaction;
 
-use ethbloom::Bloom;
-use revm_primitives::B256;
+use alloy_rlp::{Buf, BufMut, Decodable, Encodable};
+use revm_primitives::{alloy_primitives::Bloom, B256};
 
 pub use self::{block::BlockReceipt, transaction::TransactionReceipt};
 
@@ -92,6 +92,27 @@ impl<LogT> TypedReceipt<LogT> {
             TypedReceiptData::Eip1559 { .. } => 2u64,
             TypedReceiptData::Eip4844 { .. } => 3u64,
         }
+    }
+}
+
+impl<LogT> TypedReceipt<LogT>
+where
+    LogT: Encodable,
+{
+    fn rlp_payload_length(&self) -> usize {
+        let data_length = match &self.data {
+            TypedReceiptData::PreEip658Legacy { state_root } => state_root.length(),
+            TypedReceiptData::PostEip658Legacy { status } => status.length(),
+            // Post-EIP-2930 receipts have an id byte
+            TypedReceiptData::Eip2930 { status }
+            | TypedReceiptData::Eip1559 { status }
+            | TypedReceiptData::Eip4844 { status } => 1 + status.length(),
+        };
+
+        data_length
+            + self.cumulative_gas_used.length()
+            + self.logs_bloom.length()
+            + self.logs.length()
     }
 }
 
@@ -235,130 +256,156 @@ where
     }
 }
 
-impl<LogT> rlp::Decodable for TypedReceipt<LogT>
+impl<LogT> Decodable for TypedReceipt<LogT>
 where
-    LogT: rlp::Decodable,
+    LogT: Decodable,
 {
-    fn decode(rlp: &rlp::Rlp<'_>) -> Result<Self, rlp::DecoderError> {
+    fn decode(buf: &mut &[u8]) -> alloy_rlp::Result<Self> {
         fn decode_inner<LogT>(
-            rlp: &rlp::Rlp<'_>,
+            buf: &mut &[u8],
             id: Option<u8>,
-        ) -> Result<TypedReceipt<LogT>, rlp::DecoderError>
+        ) -> Result<TypedReceipt<LogT>, alloy_rlp::Error>
         where
-            LogT: rlp::Decodable,
+            LogT: Decodable,
         {
             fn normalize_status(status: u8) -> u8 {
                 u8::from(status == 1)
             }
 
-            Ok(TypedReceipt {
-                cumulative_gas_used: rlp.val_at(1)?,
-                logs_bloom: rlp.val_at(2)?,
-                logs: rlp.list_at(3)?,
+            let alloy_rlp::Header {
+                list,
+                payload_length,
+            } = alloy_rlp::Header::decode(buf)?;
+
+            if !list {
+                return Err(alloy_rlp::Error::UnexpectedString);
+            }
+
+            let started_len = buf.len();
+            if started_len < payload_length {
+                return Err(alloy_rlp::Error::InputTooShort);
+            }
+
+            let receipt = TypedReceipt {
+                cumulative_gas_used: u64::decode(buf)?,
+                logs_bloom: Bloom::decode(buf)?,
+                logs: Vec::<LogT>::decode(buf)?,
                 data: match id {
                     None | Some(0) => {
-                        if let Ok(status) = rlp.val_at(0) {
+                        if let Ok(status) = u8::decode(buf) {
                             TypedReceiptData::PostEip658Legacy {
                                 status: normalize_status(status),
                             }
                         } else {
-                            let state_root = rlp.val_at::<Vec<u8>>(0)?;
                             TypedReceiptData::PreEip658Legacy {
-                                state_root: B256::from_slice(&state_root),
+                                state_root: B256::decode(buf)?,
                             }
                         }
                     }
                     Some(1) => TypedReceiptData::Eip2930 {
-                        status: normalize_status(rlp.val_at(0)?),
+                        status: normalize_status(u8::decode(buf)?),
                     },
                     Some(2) => TypedReceiptData::Eip1559 {
-                        status: normalize_status(rlp.val_at(0)?),
+                        status: normalize_status(u8::decode(buf)?),
                     },
-                    _ => return Err(rlp::DecoderError::Custom("Unsupported receipt type")),
+                    _ => return Err(alloy_rlp::Error::Custom("Unknown receipt type")),
                 },
-            })
+            };
+
+            let consumed = started_len - buf.len();
+            if consumed != payload_length {
+                return Err(alloy_rlp::Error::ListLengthMismatch {
+                    expected: payload_length,
+                    got: consumed,
+                });
+            }
+
+            Ok(receipt)
         }
 
-        let slice = rlp.as_raw();
-
-        let first = *slice
-            .first()
-            .ok_or(rlp::DecoderError::Custom("empty receipt"))?;
-
-        if rlp.is_list() {
-            return decode_inner(rlp, None);
+        fn is_list(byte: u8) -> bool {
+            byte >= 0xc0
         }
 
-        let s = slice
-            .get(1..)
-            .ok_or(rlp::DecoderError::Custom("no receipt content"))?;
+        let first = *buf.first().ok_or(alloy_rlp::Error::InputTooShort)?;
+        let id = if is_list(first) {
+            None
+        } else {
+            // Consume the first byte
+            buf.advance(1);
 
-        let rlp = rlp::Rlp::new(s);
+            match first {
+                0x01 => Some(1u8),
+                0x02 => Some(2u8),
+                0x03 => Some(3u8),
+                _ => return Err(alloy_rlp::Error::Custom("unknown receipt type")),
+            }
+        };
 
-        if first == 0x01 {
-            return decode_inner(&rlp, Some(1));
-        }
-
-        if first == 0x02 {
-            return decode_inner(&rlp, Some(2));
-        }
-
-        Err(rlp::DecoderError::Custom("unknown receipt type"))
+        decode_inner(buf, id)
     }
 }
 
-impl<LogT> rlp::Encodable for TypedReceipt<LogT>
+impl<LogT> Encodable for TypedReceipt<LogT>
 where
-    LogT: rlp::Encodable,
+    LogT: Encodable,
 {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
+    fn encode(&self, out: &mut dyn BufMut) {
         let id = match &self.data {
             TypedReceiptData::PreEip658Legacy { .. }
             | TypedReceiptData::PostEip658Legacy { .. } => None,
-            TypedReceiptData::Eip2930 { .. } => Some(1),
-            TypedReceiptData::Eip1559 { .. } => Some(2),
-            TypedReceiptData::Eip4844 { .. } => Some(3),
+            TypedReceiptData::Eip2930 { .. } => Some(1u8),
+            TypedReceiptData::Eip1559 { .. } => Some(2u8),
+            TypedReceiptData::Eip4844 { .. } => Some(3u8),
         };
 
         if let Some(id) = id {
-            s.append_raw(&[id], 1);
+            id.encode(out);
         }
 
-        s.begin_list(4);
+        alloy_rlp::Header {
+            list: true,
+            payload_length: self.rlp_payload_length(),
+        }
+        .encode(out);
 
         match &self.data {
             TypedReceiptData::PreEip658Legacy { state_root } => {
-                s.append(&state_root.as_bytes());
+                state_root.encode(out);
             }
             TypedReceiptData::PostEip658Legacy { status }
             | TypedReceiptData::Eip2930 { status }
             | TypedReceiptData::Eip1559 { status }
             | TypedReceiptData::Eip4844 { status } => {
                 if *status == 0 {
-                    s.append_empty_data();
+                    [].encode(out);
                 } else {
-                    s.append(&1u8);
+                    1u8.encode(out);
                 }
             }
         }
 
-        s.append(&self.cumulative_gas_used);
-        s.append(&self.logs_bloom);
-        s.append_list(&self.logs);
+        self.cumulative_gas_used.encode(out);
+        self.logs_bloom.encode(out);
+        self.logs.encode(out);
+    }
+
+    fn length(&self) -> usize {
+        let payload_length = self.rlp_payload_length();
+        payload_length + alloy_rlp::length_of_length(payload_length)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use revm_primitives::{Address, Bytes};
+    use revm_primitives::{Address, Bytes, Log};
 
     use super::*;
-    use crate::log::Log;
 
     fn dummy_receipts() -> Vec<TypedReceipt<Log>> {
         [
             TypedReceiptData::PreEip658Legacy {
-                state_root: B256::random(),
+                state_root: B256::ZERO,
             },
             TypedReceiptData::PostEip658Legacy { status: 1 },
             TypedReceiptData::Eip2930 { status: 1 },
@@ -367,15 +414,15 @@ mod tests {
         .into_iter()
         .map(|data| TypedReceipt {
             cumulative_gas_used: 0xffff,
-            logs_bloom: Bloom::random(),
+            logs_bloom: Bloom::ZERO,
             logs: vec![
                 Log {
-                    address: Address::random(),
-                    topics: vec![B256::random(), B256::random()],
+                    address: Address::ZERO,
+                    topics: vec![B256::ZERO, B256::ZERO],
                     data: Bytes::new(),
                 },
                 Log {
-                    address: Address::random(),
+                    address: Address::ZERO,
                     topics: Vec::new(),
                     data: Bytes::from_static(b"test"),
                 },
@@ -390,8 +437,11 @@ mod tests {
         let receipts = dummy_receipts();
 
         for receipt in receipts {
-            let encoded = rlp::encode(&receipt);
-            assert_eq!(rlp::decode::<TypedReceipt<Log>>(&encoded).unwrap(), receipt);
+            let encoded = alloy_rlp::encode(&receipt);
+            assert_eq!(
+                TypedReceipt::<Log>::decode(&mut encoded.as_slice()).unwrap(),
+                receipt
+            );
         }
     }
 
@@ -445,9 +495,9 @@ mod tests {
                             // Generated by Hardhat
                             let expected = hex::decode($encoding).unwrap();
 
-                            assert_eq!(rlp::encode(&receipt).to_vec(), expected);
+                            assert_eq!(alloy_rlp::encode(&receipt).to_vec(), expected);
 
-                            let decoded: TypedReceipt<Log> = rlp::decode(&expected).unwrap();
+                            let decoded = TypedReceipt::<Log>::decode(&mut expected.as_slice()).unwrap();
                             let receipt = TypedReceipt {
                                 data: receipt.inner.inner.data,
                                 cumulative_gas_used: receipt.inner.inner.cumulative_gas_used,

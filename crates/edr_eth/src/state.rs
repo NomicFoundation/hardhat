@@ -14,7 +14,7 @@ where
     I: IntoIterator<Item = (&'a Address, &'a BasicAccount)>,
 {
     sec_trie_root(state.into_iter().map(|(address, account)| {
-        let account = rlp::encode(account);
+        let account = alloy_rlp::encode(account);
         (address, account)
     }))
 }
@@ -25,7 +25,7 @@ where
     I: IntoIterator<Item = (&'a U256, &'a U256)>,
 {
     sec_trie_root(storage.into_iter().map(|(index, value)| {
-        let value = rlp::encode(value);
+        let value = alloy_rlp::encode(value);
         (index.to_be_bytes::<32>(), value)
     }))
 }

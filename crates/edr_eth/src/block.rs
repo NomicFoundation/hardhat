@@ -10,12 +10,8 @@ mod reorg;
 
 use std::sync::OnceLock;
 
-use revm_primitives::{
-    calc_excess_blob_gas, keccak256,
-    ruint::aliases::{U160, U64},
-    SpecId,
-};
-use rlp::Decodable;
+use alloy_rlp::{BufMut, RlpDecodable, RlpEncodable};
+use revm_primitives::{calc_excess_blob_gas, keccak256, SpecId};
 
 use self::difficulty::calculate_ethash_canonical_difficulty;
 pub use self::{
@@ -34,10 +30,6 @@ use crate::{
 
 /// Ethereum block
 #[derive(Clone, Debug, Eq)]
-#[cfg_attr(
-    feature = "fastrlp",
-    derive(open_fastrlp::RlpEncodable, open_fastrlp::RlpDecodable)
-)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Block {
     /// The block's header
@@ -62,13 +54,13 @@ impl Block {
         ommers: Vec<Header>,
         withdrawals: Option<Vec<Withdrawal>>,
     ) -> Self {
-        let ommers_hash = keccak256(&rlp::encode_list(&ommers)[..]);
+        let ommers_hash = keccak256(&alloy_rlp::encode(&ommers));
         let transactions_root =
-            trie::ordered_trie_root(transactions.iter().map(|r| rlp::encode(r).freeze()));
+            trie::ordered_trie_root(transactions.iter().map(|r| alloy_rlp::encode(r).freeze()));
 
         if let Some(withdrawals) = withdrawals.as_ref() {
             partial_header.withdrawals_root = Some(trie::ordered_trie_root(
-                withdrawals.iter().map(|r| rlp::encode(r).freeze()),
+                withdrawals.iter().map(|r| alloy_rlp::encode(r).freeze()),
             ));
         }
 
@@ -97,9 +89,10 @@ impl PartialEq for Block {
 }
 
 /// ethereum block header
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, RlpDecodable, RlpEncodable)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[rlp(trailing)]
 pub struct Header {
     /// The parent block's hash
     pub parent_hash: B256,
@@ -130,8 +123,8 @@ pub struct Header {
     /// The block's mix hash
     pub mix_hash: B256,
     /// The block's nonce
-    #[cfg_attr(feature = "serde", serde(with = "B64Def"))]
-    pub nonce: B64,
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
+    pub nonce: u64,
     /// BaseFee was added by EIP-1559 and is ignored in legacy headers.
     pub base_fee_per_gas: Option<U256>,
     /// WithdrawalsHash was added by EIP-4895 and is ignored in legacy headers.
@@ -142,18 +135,6 @@ pub struct Header {
     /// The hash tree root of the parent beacon block for the given execution
     /// block (EIP-4788).
     pub parent_beacon_block_root: Option<B256>,
-}
-
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(remote = "B64")]
-#[cfg(feature = "serde")]
-struct B64Def(#[serde(getter = "B64::as_uint")] revm_primitives::ruint::aliases::U64);
-
-#[cfg(feature = "serde")]
-impl From<B64Def> for B64 {
-    fn from(def: B64Def) -> Self {
-        def.0.into()
-    }
 }
 
 /// Information about the blob gas used in a block.
@@ -169,6 +150,32 @@ pub struct BlobGas {
     /// value, blocks with below-target blob gas consumption decrease it
     /// (bounded at 0).
     pub excess_gas: u64,
+}
+
+// We need a custom implementation to avoid the struct being treated as an RLP
+// list.
+impl alloy_rlp::Decodable for BlobGas {
+    fn decode(buf: &mut &[u8]) -> alloy_rlp::Result<Self> {
+        let blob_gas = Self {
+            gas_used: u64::decode(buf)?,
+            excess_gas: u64::decode(buf)?,
+        };
+
+        Ok(blob_gas)
+    }
+}
+
+// We need a custom implementation to avoid the struct being treated as an RLP
+// list.
+impl alloy_rlp::Encodable for BlobGas {
+    fn encode(&self, out: &mut dyn BufMut) {
+        self.gas_used.encode(out);
+        self.excess_gas.encode(out);
+    }
+
+    fn length(&self) -> usize {
+        self.gas_used.length() + self.excess_gas.length()
+    }
 }
 
 impl Header {
@@ -200,114 +207,8 @@ impl Header {
 
     /// Calculates the block's hash.
     pub fn hash(&self) -> B256 {
-        let encoded = rlp::encode(self);
+        let encoded = alloy_rlp::encode(self);
         keccak256(&encoded)
-    }
-}
-
-impl rlp::Encodable for Header {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        let mut num_fields = 15;
-        if self.base_fee_per_gas.is_some() {
-            num_fields += 1;
-        }
-        if self.withdrawals_root.is_some() {
-            num_fields += 1;
-        }
-        if self.blob_gas.is_some() {
-            num_fields += 2;
-        }
-        if self.parent_beacon_block_root.is_some() {
-            num_fields += 1;
-        }
-
-        s.begin_list(num_fields);
-        s.append(&self.parent_hash.as_bytes());
-        s.append(&self.ommers_hash.as_bytes());
-        s.append(&self.beneficiary.as_bytes());
-        s.append(&self.state_root.as_bytes());
-        s.append(&self.transactions_root.as_bytes());
-        s.append(&self.receipts_root.as_bytes());
-        s.append(&self.logs_bloom);
-        s.append(&self.difficulty);
-        s.append(&self.number);
-        s.append(&self.gas_limit);
-        s.append(&self.gas_used);
-        s.append(&self.timestamp);
-        s.append(&self.extra_data);
-        s.append(&self.mix_hash.as_bytes());
-        s.append(&self.nonce.to_le_bytes::<8>().as_ref());
-        if let Some(ref base_fee) = self.base_fee_per_gas {
-            s.append(base_fee);
-        }
-        if let Some(ref root) = self.withdrawals_root {
-            s.append(&root.as_bytes());
-        }
-        if let Some(BlobGas {
-            ref gas_used,
-            ref excess_gas,
-        }) = self.blob_gas
-        {
-            s.append(&U64::from_limbs([*gas_used]));
-            s.append(&U64::from_limbs([*excess_gas]));
-        }
-        if let Some(ref root) = self.parent_beacon_block_root {
-            s.append(&root.as_bytes());
-        }
-    }
-}
-
-impl rlp::Decodable for Header {
-    fn decode(rlp: &rlp::Rlp<'_>) -> Result<Self, rlp::DecoderError> {
-        let result = Header {
-            parent_hash: B256::from(rlp.val_at::<U256>(0)?.to_be_bytes()),
-            ommers_hash: B256::from(rlp.val_at::<U256>(1)?.to_be_bytes()),
-            beneficiary: Address::from(rlp.val_at::<U160>(2)?.to_be_bytes()),
-            state_root: B256::from(rlp.val_at::<U256>(3)?.to_be_bytes()),
-            transactions_root: B256::from(rlp.val_at::<U256>(4)?.to_be_bytes()),
-            receipts_root: B256::from(rlp.val_at::<U256>(5)?.to_be_bytes()),
-            logs_bloom: rlp.val_at(6)?,
-            difficulty: rlp.val_at(7)?,
-            number: rlp.val_at(8)?,
-            gas_limit: rlp.val_at(9)?,
-            gas_used: rlp.val_at(10)?,
-            timestamp: rlp.val_at(11)?,
-            extra_data: rlp.val_at::<Vec<u8>>(12)?.into(),
-            mix_hash: B256::from(rlp.val_at::<U256>(13)?.to_be_bytes()),
-            nonce: B64::try_from_le_slice(&rlp.val_at::<Vec<u8>>(14)?)
-                .ok_or(rlp::DecoderError::Custom("Invalid nonce byte length"))?,
-            base_fee_per_gas: if let Ok(base_fee) = rlp.at(15) {
-                Some(<U256 as Decodable>::decode(&base_fee)?)
-            } else {
-                None
-            },
-            withdrawals_root: if let Ok(root) = rlp.at(16) {
-                Some(B256::from(
-                    <U256 as Decodable>::decode(&root)?.to_be_bytes(),
-                ))
-            } else {
-                None
-            },
-            blob_gas: if let Ok((gas_used, excess_gas)) = rlp
-                .at(17)
-                .and_then(|gas_used| rlp.at(18).map(|excess_gas| (gas_used, excess_gas)))
-            {
-                Some(BlobGas {
-                    gas_used: <U64 as Decodable>::decode(&gas_used)?.as_limbs()[0],
-                    excess_gas: <U64 as Decodable>::decode(&excess_gas)?.as_limbs()[0],
-                })
-            } else {
-                None
-            },
-            parent_beacon_block_root: if let Ok(root) = rlp.at(19) {
-                Some(B256::from(
-                    <U256 as Decodable>::decode(&root)?.to_be_bytes(),
-                ))
-            } else {
-                None
-            },
-        };
-        Ok(result)
     }
 }
 
@@ -520,14 +421,14 @@ mod tests {
             parent_beacon_block_root: None,
         };
 
-        let encoded = rlp::encode(&header);
-        let decoded: Header = rlp::decode(encoded.as_ref()).unwrap();
+        let encoded = alloy_rlp::encode(&header);
+        let decoded = Header::decode(encoded.as_ref()).unwrap();
         assert_eq!(header, decoded);
 
         header.base_fee_per_gas = Some(U256::from(12345));
 
-        let encoded = rlp::encode(&header);
-        let decoded: Header = rlp::decode(encoded.as_ref()).unwrap();
+        let encoded = alloy_rlp::encode(&header);
+        let decoded = Header::decode(encoded.as_ref()).unwrap();
         assert_eq!(header, decoded);
     }
 
@@ -557,7 +458,7 @@ mod tests {
             blob_gas: None,
             parent_beacon_block_root: None,
         };
-        let encoded = rlp::encode(&header);
+        let encoded = alloy_rlp::encode(&header);
         assert_eq!(encoded, &expected);
     }
 
@@ -632,7 +533,7 @@ mod tests {
             blob_gas: None,
             parent_beacon_block_root: None,
         };
-        let decoded: Header = rlp::decode(&data).unwrap();
+        let decoded = Header::decode(&data).unwrap();
         assert_eq!(decoded, expected);
     }
 
@@ -681,7 +582,7 @@ mod tests {
             withdrawals_root: Some(KECCAK_NULL_RLP),
         };
 
-        let encoded = rlp::encode(&header);
+        let encoded = alloy_rlp::encode(&header);
         assert_eq!(encoded, expected_encoding);
         assert_eq!(header.hash(), expected_hash);
     }

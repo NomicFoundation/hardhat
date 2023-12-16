@@ -10,11 +10,7 @@ mod request;
 mod signed;
 
 pub use self::{detailed::DetailedTransaction, kind::TransactionKind, request::*, signed::*};
-#[cfg(feature = "serde")]
-use crate::serde::ZeroXPrefixedBytes;
-#[cfg(not(feature = "serde"))]
-use crate::Bytes;
-use crate::{access_list::AccessListItem, Address, U256};
+use crate::{access_list::AccessListItem, Address, Bytes, U256};
 
 /// Represents _all_ transaction requests received from RPC
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
@@ -42,9 +38,6 @@ pub struct EthTransactionRequest {
     /// value of th tx in wei
     pub value: Option<U256>,
     /// Any additional data sent
-    #[cfg(feature = "serde")]
-    pub data: Option<ZeroXPrefixedBytes>,
-    #[cfg(not(feature = "serde"))]
     pub data: Option<Bytes>,
     /// Transaction nonce
     #[cfg_attr(feature = "serde", serde(default, with = "crate::serde::optional_u64"))]
@@ -58,39 +51,4 @@ pub struct EthTransactionRequest {
     /// EIP-2718 type
     #[cfg_attr(feature = "serde", serde(default, rename = "type"))]
     pub transaction_type: Option<U256>,
-}
-
-#[cfg(feature = "fastrlp")]
-impl open_fastrlp::Encodable for TransactionKind {
-    fn length(&self) -> usize {
-        match self {
-            TransactionKind::Call(to) => to.length(),
-            TransactionKind::Create => ([]).length(),
-        }
-    }
-    fn encode(&self, out: &mut dyn open_fastrlp::BufMut) {
-        match self {
-            TransactionKind::Call(to) => to.encode(out),
-            TransactionKind::Create => ([]).encode(out),
-        }
-    }
-}
-
-#[cfg(feature = "fastrlp")]
-impl open_fastrlp::Decodable for TransactionKind {
-    fn decode(buf: &mut &[u8]) -> Result<Self, open_fastrlp::DecodeError> {
-        use bytes::Buf;
-
-        if let Some(&first) = buf.first() {
-            if first == 0x80 {
-                buf.advance(1);
-                Ok(TransactionKind::Create)
-            } else {
-                let addr = <Address as open_fastrlp::Decodable>::decode(buf)?;
-                Ok(TransactionKind::Call(addr))
-            }
-        } else {
-            Err(open_fastrlp::DecodeError::InputTooShort)
-        }
-    }
 }

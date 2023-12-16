@@ -1,5 +1,6 @@
 use std::ops::Deref;
 
+use alloy_rlp::BufMut;
 use revm_primitives::B256;
 
 use super::receipt::ReceiptLog;
@@ -45,18 +46,29 @@ impl Deref for FullBlockLog {
     }
 }
 
-impl rlp::Encodable for FullBlockLog {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        s.append(&self.inner);
+impl alloy_rlp::Encodable for BlockLog {
+    fn encode(&self, out: &mut dyn BufMut) {
+        match self {
+            BlockLog::Partial(log) => log.encode(out),
+            BlockLog::Full(log) => log.encode(out),
+        }
+    }
+
+    fn length(&self) -> usize {
+        match self {
+            BlockLog::Partial(log) => log.length(),
+            BlockLog::Full(log) => log.length(),
+        }
     }
 }
 
-impl rlp::Encodable for BlockLog {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        s.append(match self {
-            BlockLog::Partial(log) => log,
-            BlockLog::Full(log) => log,
-        });
+impl alloy_rlp::Encodable for FullBlockLog {
+    fn encode(&self, out: &mut dyn BufMut) {
+        self.inner.encode(out);
+    }
+
+    fn length(&self) -> usize {
+        self.inner.length()
     }
 }
 

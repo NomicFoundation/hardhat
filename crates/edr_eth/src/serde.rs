@@ -1,89 +1,8 @@
 //! Helper utilities for serde
 
-use std::ops::Deref;
-
-use revm_primitives::bytes::Bytes;
 use serde::{
     de::DeserializeOwned, ser::SerializeSeq, Deserialize, Deserializer, Serialize, Serializer,
 };
-
-/// Type for specifying a byte string that will have a 0x prefix when serialized
-/// and deserialized
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct ZeroXPrefixedBytes {
-    inner: Bytes,
-}
-
-impl Deref for ZeroXPrefixedBytes {
-    type Target = Bytes;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
-impl From<Bytes> for ZeroXPrefixedBytes {
-    fn from(b: Bytes) -> Self {
-        ZeroXPrefixedBytes { inner: b }
-    }
-}
-
-impl From<ZeroXPrefixedBytes> for Bytes {
-    fn from(z: ZeroXPrefixedBytes) -> Self {
-        z.inner
-    }
-}
-
-impl<'a> Deserialize<'a> for ZeroXPrefixedBytes {
-    fn deserialize<D>(deserializer: D) -> Result<ZeroXPrefixedBytes, D::Error>
-    where
-        D: Deserializer<'a>,
-    {
-        struct ZeroXPrefixedBytesVisitor;
-        impl<'a> serde::de::Visitor<'a> for ZeroXPrefixedBytesVisitor {
-            type Value = ZeroXPrefixedBytes;
-
-            fn expecting(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-                formatter.write_str("a 0x-prefixed string of hex digits")
-            }
-
-            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-            where
-                E: serde::de::Error,
-            {
-                if &value[0..=1] == "0x" {
-                    Ok(Bytes::from(
-                        hex::decode(&value[2..])
-                            .unwrap_or_else(|_| panic!("failed to decode hex string \"{value}\"")),
-                    )
-                    .into())
-                } else {
-                    Err(serde::de::Error::custom(format!(
-                        "string \"{value}\" does not have a '0x' prefix"
-                    )))
-                }
-            }
-        }
-
-        deserializer.deserialize_identifier(ZeroXPrefixedBytesVisitor)
-    }
-}
-
-impl Serialize for ZeroXPrefixedBytes {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let encoded = hex::encode(&self.inner);
-        serializer.serialize_str(&format!(
-            "0x{}",
-            match encoded.as_str() {
-                "00" => "",
-                other => other,
-            }
-        ))
-    }
-}
 
 /// for use with serde's `serialize_with` on an optional single value that
 /// should be serialized as a sequence
@@ -111,40 +30,6 @@ where
         Ok(None)
     } else {
         Ok(Some(s[0].clone()))
-    }
-}
-
-/// Helper module for (de)serializing bytes into hexadecimal strings. This is
-/// necessary because the default bytes serialization considers a string as
-/// bytes.
-pub mod bytes {
-    use super::{Bytes, Deserialize, Deserializer, Serializer};
-
-    /// Helper function for deserializing [`Bytes`] from a `0x`-prefixed
-    /// hexadecimal string.
-    pub fn deserialize<'de, DeserializerT>(d: DeserializerT) -> Result<Bytes, DeserializerT::Error>
-    where
-        DeserializerT: Deserializer<'de>,
-    {
-        let value = String::deserialize(d)?;
-        if let Some(remaining) = value.strip_prefix("0x") {
-            hex::decode(remaining)
-        } else {
-            hex::decode(&value)
-        }
-        .map(Into::into)
-        .map_err(|e| serde::de::Error::custom(e.to_string()))
-    }
-
-    /// Helper function for serializing [`Bytes`] into a hexadecimal string.
-    pub fn serialize<SerializerT>(
-        value: &Bytes,
-        s: SerializerT,
-    ) -> Result<SerializerT::Ok, SerializerT::Error>
-    where
-        SerializerT: Serializer,
-    {
-        s.serialize_str(&format!("0x{}", hex::encode(value.as_ref())))
     }
 }
 
@@ -321,8 +206,6 @@ mod tests {
         u64: u64,
         #[serde(with = "optional_u64")]
         optional_u64: Option<u64>,
-        #[serde(with = "bytes")]
-        bytes: Bytes,
     }
 
     impl TestStructSerde {
@@ -332,8 +215,6 @@ mod tests {
                 // 2 bytes (too large for u8)
                 "u64": "0x1234",
                 "optional_u64": "0x1234",
-                // 33 bytes (too large for u256)
-                "bytes": "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
             })
         }
     }

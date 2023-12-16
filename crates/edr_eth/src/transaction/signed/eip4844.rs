@@ -1,5 +1,6 @@
 use std::sync::OnceLock;
 
+use alloy_rlp::{RlpDecodable, RlpEncodable};
 use revm_primitives::{
     keccak256,
     ruint::aliases::{U160, U64},
@@ -13,32 +14,30 @@ use crate::{
     utils::envelop_bytes,
 };
 
-#[derive(Clone, Debug, Eq)]
-#[cfg_attr(
-    feature = "fastrlp",
-    derive(open_fastrlp::RlpEncodable, open_fastrlp::RlpDecodable)
-)]
+#[derive(Clone, Debug, Eq, RlpDecodable, RlpEncodable)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Eip4844SignedTransaction {
+    // The order of these fields determines de-/encoding order.
     #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
     pub chain_id: u64,
     #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
     pub nonce: u64,
     pub max_priority_fee_per_gas: U256,
     pub max_fee_per_gas: U256,
-    pub max_fee_per_blob_gas: U256,
     #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
     pub gas_limit: u64,
     pub to: Address,
     pub value: U256,
-    #[cfg_attr(feature = "serde", serde(with = "crate::serde::bytes"))]
     pub input: Bytes,
     pub access_list: AccessList,
+    pub max_fee_per_blob_gas: U256,
     pub blob_hashes: Vec<B256>,
     pub odd_y_parity: bool,
     pub r: U256,
     pub s: U256,
     /// Cached transaction hash
+    #[rlp(default)]
+    #[rlp(skip)]
     #[cfg_attr(feature = "serde", serde(skip))]
     pub hash: OnceLock<B256>,
 }
@@ -50,7 +49,7 @@ impl Eip4844SignedTransaction {
 
     pub fn hash(&self) -> &B256 {
         self.hash.get_or_init(|| {
-            let encoded = rlp::encode(self);
+            let encoded = alloy_rlp::encode(self);
             let enveloped = envelop_bytes(3, &encoded);
 
             keccak256(&enveloped)
@@ -85,65 +84,6 @@ impl PartialEq for Eip4844SignedTransaction {
             && self.odd_y_parity == other.odd_y_parity
             && self.r == other.r
             && self.s == other.s
-    }
-}
-
-impl rlp::Encodable for Eip4844SignedTransaction {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        s.begin_list(14);
-        s.append(&U64::from(self.chain_id));
-        s.append(&U64::from(self.nonce));
-        s.append(&self.max_priority_fee_per_gas);
-        s.append(&self.max_fee_per_gas);
-        s.append(&self.gas_limit);
-        s.append(&self.to.as_bytes());
-        s.append(&self.value);
-        s.append(&self.input.as_ref());
-        s.append(&self.access_list);
-        s.append(&self.max_fee_per_blob_gas);
-
-        let blob_hashes = self
-            .blob_hashes
-            .iter()
-            .map(B256::as_bytes)
-            .collect::<Vec<_>>();
-
-        s.append_list::<&[u8], &[u8]>(blob_hashes.as_slice());
-        s.append(&self.odd_y_parity);
-        s.append(&self.r);
-        s.append(&self.s);
-    }
-}
-
-impl rlp::Decodable for Eip4844SignedTransaction {
-    fn decode(rlp: &rlp::Rlp<'_>) -> Result<Self, rlp::DecoderError> {
-        if rlp.item_count()? != 14 {
-            return Err(rlp::DecoderError::RlpIncorrectListLen);
-        }
-
-        Ok(Self {
-            chain_id: rlp.val_at(0)?,
-            nonce: rlp.val_at(1)?,
-            max_priority_fee_per_gas: rlp.val_at(2)?,
-            max_fee_per_gas: rlp.val_at(3)?,
-            gas_limit: rlp.val_at(4)?,
-            to: Address::from(rlp.val_at::<U160>(5)?.to_be_bytes()),
-            value: rlp.val_at(6)?,
-            input: rlp.val_at::<Vec<u8>>(7)?.into(),
-            access_list: rlp.val_at(8)?,
-            max_fee_per_blob_gas: rlp.val_at(9)?,
-            blob_hashes: {
-                let blob_hashes = rlp.list_at::<U256>(10)?;
-                blob_hashes
-                    .into_iter()
-                    .map(|hash| B256::from(hash.to_be_bytes()))
-                    .collect()
-            },
-            odd_y_parity: rlp.val_at(11)?,
-            r: rlp.val_at(12)?,
-            s: rlp.val_at(13)?,
-            hash: OnceLock::new(),
-        })
     }
 }
 
@@ -189,7 +129,7 @@ mod tests {
                 .unwrap();
 
         let signed = dummy_transaction();
-        let encoded = rlp::encode(&signed);
+        let encoded = alloy_rlp::encode(&signed);
         assert_eq!(expected, encoded);
     }
 

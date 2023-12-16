@@ -38,7 +38,6 @@ use crate::{
         },
         jsonrpc::Id,
     },
-    serde::ZeroXPrefixedBytes,
 };
 
 const RPC_CACHE_DIR: &str = "rpc_cache";
@@ -698,7 +697,7 @@ impl RpcClient {
         for (balance, nonce, code) in responses.into_iter().tuples() {
             let balance = balance.parse::<U256>().await?;
             let nonce: u64 = nonce.parse::<U256>().await?.to();
-            let code: Bytes = code.parse::<ZeroXPrefixedBytes>().await?.into();
+            let code = code.parse::<Bytes>().await?;
             let code = if code.is_empty() {
                 None
             } else {

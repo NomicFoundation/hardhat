@@ -1,6 +1,7 @@
 use std::sync::OnceLock;
 
-use revm_primitives::{keccak256, ruint::aliases::U64, Address, Bytes, B256, U256};
+use alloy_rlp::{RlpDecodable, RlpEncodable};
+use revm_primitives::{keccak256, Address, Bytes, B256, U256};
 
 use crate::{
     access_list::AccessList,
@@ -9,13 +10,10 @@ use crate::{
     utils::envelop_bytes,
 };
 
-#[derive(Clone, Debug, Eq)]
-#[cfg_attr(
-    feature = "fastrlp",
-    derive(open_fastrlp::RlpEncodable, open_fastrlp::RlpDecodable)
-)]
+#[derive(Clone, Debug, Eq, RlpDecodable, RlpEncodable)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Eip2930SignedTransaction {
+    // The order of these fields determines de-/encoding order.
     #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
     pub chain_id: u64,
     #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
@@ -25,13 +23,14 @@ pub struct Eip2930SignedTransaction {
     pub gas_limit: u64,
     pub kind: TransactionKind,
     pub value: U256,
-    #[cfg_attr(feature = "serde", serde(with = "crate::serde::bytes"))]
     pub input: Bytes,
     pub access_list: AccessList,
     pub odd_y_parity: bool,
     pub r: U256,
     pub s: U256,
     /// Cached transaction hash
+    #[rlp(default)]
+    #[rlp(skip)]
     #[cfg_attr(feature = "serde", serde(skip))]
     pub hash: OnceLock<B256>,
 }
@@ -39,7 +38,7 @@ pub struct Eip2930SignedTransaction {
 impl Eip2930SignedTransaction {
     pub fn hash(&self) -> &B256 {
         self.hash.get_or_init(|| {
-            let encoded = rlp::encode(self);
+            let encoded = alloy_rlp::encode(self);
             let enveloped = envelop_bytes(1, &encoded);
 
             keccak256(&enveloped)
@@ -74,50 +73,11 @@ impl PartialEq for Eip2930SignedTransaction {
     }
 }
 
-impl rlp::Encodable for Eip2930SignedTransaction {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        s.begin_list(11);
-        s.append(&U64::from(self.chain_id));
-        s.append(&U64::from(self.nonce));
-        s.append(&self.gas_price);
-        s.append(&self.gas_limit);
-        s.append(&self.kind);
-        s.append(&self.value);
-        s.append(&self.input.as_ref());
-        s.append(&self.access_list);
-        s.append(&self.odd_y_parity);
-        s.append(&self.r);
-        s.append(&self.s);
-    }
-}
-
-impl rlp::Decodable for Eip2930SignedTransaction {
-    fn decode(rlp: &rlp::Rlp<'_>) -> Result<Self, rlp::DecoderError> {
-        if rlp.item_count()? != 11 {
-            return Err(rlp::DecoderError::RlpIncorrectListLen);
-        }
-
-        Ok(Self {
-            chain_id: rlp.val_at::<U64>(0)?.as_limbs()[0],
-            nonce: rlp.val_at::<U64>(1)?.as_limbs()[0],
-            gas_price: rlp.val_at(2)?,
-            gas_limit: rlp.val_at(3)?,
-            kind: rlp.val_at(4)?,
-            value: rlp.val_at(5)?,
-            input: rlp.val_at::<Vec<u8>>(6)?.into(),
-            access_list: rlp.val_at(7)?,
-            odd_y_parity: rlp.val_at(8)?,
-            r: rlp.val_at(9)?,
-            s: rlp.val_at(10)?,
-            hash: OnceLock::new(),
-        })
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
 
+    use alloy_rlp::Decodable;
     use k256::SecretKey;
     use revm_primitives::Address;
 
@@ -136,8 +96,8 @@ mod tests {
             value: U256::from(4),
             input: Bytes::from(input),
             access_list: vec![AccessListItem {
-                address: Address::zero(),
-                storage_keys: vec![B256::zero(), B256::from(U256::from(1))],
+                address: Address::ZERO,
+                storage_keys: vec![B256::ZERO, B256::from(U256::from(1))],
             }],
         }
     }
@@ -157,7 +117,7 @@ mod tests {
         let request = dummy_request();
         let signed = request.sign(&dummy_secret_key()).unwrap();
 
-        let encoded = rlp::encode(&signed);
+        let encoded = alloy_rlp::encode(&signed);
         assert_eq!(expected, encoded.to_vec());
     }
 
@@ -180,7 +140,10 @@ mod tests {
         let request = dummy_request();
         let signed = request.sign(&dummy_secret_key()).unwrap();
 
-        let encoded = rlp::encode(&signed);
-        assert_eq!(signed, rlp::decode(&encoded).unwrap());
+        let encoded = alloy_rlp::encode(&signed);
+        assert_eq!(
+            signed,
+            Eip2930SignedTransaction::decode(&mut encoded.as_slice()).unwrap()
+        );
     }
 }

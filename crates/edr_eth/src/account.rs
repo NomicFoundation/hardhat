@@ -6,17 +6,14 @@
 
 //! Ethereum account types
 
+use alloy_rlp::{RlpDecodable, RlpEncodable};
 pub use revm_primitives::KECCAK_EMPTY;
 use revm_primitives::{ruint, AccountInfo};
 
 use crate::{trie::KECCAK_NULL_RLP, B256, U256};
 
 /// Basic account type.
-#[derive(Debug, Clone, PartialEq, Eq)]
-#[cfg_attr(
-    feature = "fastrlp",
-    derive(open_fastrlp::RlpEncodable, open_fastrlp::RlpDecodable)
-)]
+#[derive(Debug, Clone, PartialEq, Eq, RlpDecodable, RlpEncodable)]
 pub struct BasicAccount {
     /// Nonce of the account.
     pub nonce: u64,
@@ -58,27 +55,5 @@ impl From<(&AccountInfo, B256)> for BasicAccount {
             storage_root,
             code_hash: account_info.code_hash,
         }
-    }
-}
-
-impl rlp::Encodable for BasicAccount {
-    fn rlp_append(&self, stream: &mut rlp::RlpStream) {
-        stream.begin_list(4);
-        stream.append(&self.nonce);
-        stream.append(&self.balance);
-        stream.append(&ruint::aliases::B256::from_be_bytes(self.storage_root.0));
-        stream.append(&ruint::aliases::B256::from_be_bytes(self.code_hash.0));
-    }
-}
-
-impl rlp::Decodable for BasicAccount {
-    fn decode(rlp: &rlp::Rlp<'_>) -> Result<Self, rlp::DecoderError> {
-        let result = BasicAccount {
-            nonce: rlp.val_at(0)?,
-            balance: rlp.val_at(1)?,
-            storage_root: B256::from(rlp.val_at::<U256>(2)?.to_be_bytes()),
-            code_hash: B256::from(rlp.val_at::<U256>(3)?.to_be_bytes()),
-        };
-        Ok(result)
     }
 }
