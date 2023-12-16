@@ -69,8 +69,8 @@ subtask(TASK_VERIFY_SOURCIFY)
 
     const sourcify = new Sourcify(
       currentChainId,
-      config.sourcify.apiUrl,
-      config.sourcify.browserUrl
+      config.sourcify.apiUrl!,
+      config.sourcify.browserUrl!
     );
 
     const status = await sourcify.isVerified(address);

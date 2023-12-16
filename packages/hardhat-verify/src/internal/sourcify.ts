@@ -12,19 +12,11 @@ import { ContractStatus } from "./sourcify.types";
 import { ValidationResponse } from "./utilities";
 
 export class Sourcify {
-  public apiUrl: string = "https://sourcify.dev/server";
-  public browserUrl: string = "https://repo.sourcify.dev";
-  public chainId: number;
-
-  constructor(chainId: number, apiUrl?: string, browserUrl?: string) {
-    this.chainId = chainId;
-    if (apiUrl !== undefined) {
-      this.apiUrl = apiUrl;
-    }
-    if (browserUrl !== undefined) {
-      this.browserUrl = browserUrl;
-    }
-  }
+  constructor(
+    public chainId: number,
+    public apiUrl: string,
+    public browserUrl: string
+  ) {}
 
   // https://sourcify.dev/server/api-docs/#/Repository/get_check_all_by_addresses
   public async isVerified(address: string) {

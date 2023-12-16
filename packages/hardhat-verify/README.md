@@ -285,7 +285,11 @@ Both Etherscan and Sourcify classes can be imported from the plugin for direct u
   ```js
   import { Sourcify } from "@nomicfoundation/hardhat-verify/sourcify";
 
-  const instance = new Sourcify(1); // Set chainId
+  const instance = new Sourcify(
+    1,
+    "https://sourcify.dev/server",
+    "https://repo.sourcify.dev"
+  ); // Set chainId
 
   if (!instance.isVerified("0x123abc...")) {
     const sourcifyResponse = await instance.verify("0x123abc...", {
