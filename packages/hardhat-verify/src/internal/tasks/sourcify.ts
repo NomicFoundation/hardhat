@@ -14,6 +14,7 @@ import {
   CompilerVersionsMismatchError,
   ContractVerificationFailedError,
   HardhatNetworkNotSupportedError,
+  HardhatVerifyError,
   InvalidAddressError,
   InvalidContractNameError,
   MissingAddressError,
@@ -67,11 +68,17 @@ subtask(TASK_VERIFY_SOURCIFY)
       16
     );
 
-    const sourcify = new Sourcify(
-      currentChainId,
-      config.sourcify.apiUrl!,
-      config.sourcify.browserUrl!
-    );
+    const { apiUrl, browserUrl } = config.sourcify;
+
+    if (apiUrl === undefined) {
+      throw new HardhatVerifyError("Sourcify `apiUrl` is not defined");
+    }
+
+    if (browserUrl === undefined) {
+      throw new HardhatVerifyError("Sourcify `browserUrl` is not defined");
+    }
+
+    const sourcify = new Sourcify(currentChainId, apiUrl, browserUrl);
 
     const status = await sourcify.isVerified(address);
     if (status !== false) {
