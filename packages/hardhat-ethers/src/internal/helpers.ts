@@ -1,19 +1,15 @@
 import type { ethers as EthersT } from "ethers";
 import type { HardhatEthersSigner } from "../signers";
-import type {
-  DeployContractOptions,
-  FactoryOptions,
+import type { DeployContractOptions, FactoryOptions } from "../types";
+
+import {
+  Artifact,
+  HardhatRuntimeEnvironment,
   Libraries,
-} from "../types";
-
-import { Artifact, HardhatRuntimeEnvironment } from "hardhat/types";
+  Link,
+} from "hardhat/types";
+import { linkBytecode } from "hardhat/utils/link-bytecode";
 import { HardhatEthersError } from "./errors";
-
-interface Link {
-  sourceName: string;
-  libraryName: string;
-  address: string;
-}
 
 function isArtifact(artifact: any): artifact is Artifact {
   const {
@@ -417,21 +413,4 @@ export async function getContractAtFromArtifact(
   }
 
   return contract;
-}
-
-function linkBytecode(artifact: Artifact, libraries: Link[]): string {
-  let bytecode = artifact.bytecode;
-
-  // TODO: measure performance impact
-  for (const { sourceName, libraryName, address } of libraries) {
-    const linkReferences = artifact.linkReferences[sourceName][libraryName];
-    for (const { start, length } of linkReferences) {
-      bytecode =
-        bytecode.substr(0, 2 + start * 2) +
-        address.substr(2) +
-        bytecode.substr(2 + (start + length) * 2);
-    }
-  }
-
-  return bytecode;
 }
