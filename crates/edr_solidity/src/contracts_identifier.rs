@@ -58,7 +58,7 @@ impl EvmMessageTrace {
     }
 }
 
-// TODO add cache
+// TODO add a caching layer: https://github.com/NomicFoundation/edr/issues/257
 #[derive(Default)]
 pub struct ContractsIdentifier<'a> {
     tree: RadixTree,
@@ -185,7 +185,7 @@ impl<'a> ContractsIdentifier<'a> {
             let last_suffix = self.tree.root().descendant_suffixes().last();
 
             if let Some(last_suffix) = last_suffix {
-                // TODO: this should be the last one in chronological insertion order
+                // TODO: this should be the last one in chronological insertion order: https://github.com/NomicFoundation/edr/issues/258
                 let descendant: Bytes = [&code[..node.bytes_matched_before()], &last_suffix]
                     .concat()
                     .into();
