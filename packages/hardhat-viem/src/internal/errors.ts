@@ -1,4 +1,5 @@
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+import { Link } from "hardhat/types/libraries";
 
 export class HardhatViemError extends NomicLabsHardhatPluginError {
   constructor(message: string, parent?: Error) {
@@ -71,6 +72,68 @@ export class DeployContractError extends HardhatViemError {
   constructor(txHash: string, blockNumber: bigint) {
     super(
       `The deployment transaction '${txHash}' was mined in block '${blockNumber}' but its receipt doesn't contain a contract address`
+    );
+  }
+}
+
+export class AmbigousLibraryNameError extends HardhatViemError {
+  constructor(
+    contractName: string,
+    libraryName: string,
+    matchingLibraries: string[]
+  ) {
+    super(
+      `The library name "${libraryName}" is ambiguous for the contract "${contractName}".
+It may resolve to one of the following libraries:
+${matchingLibraries.map((fqn) => `\n\t* ${fqn}`).join(",")}
+
+To fix this, choose one of these fully qualified library names and replace where appropriate.`
+    );
+  }
+}
+
+export class OverlappingLibraryNamesError extends HardhatViemError {
+  constructor(sourceName: string, libraryName: string) {
+    super(
+      `The library name "${libraryName}" and "${sourceName}:${libraryName}" are both linking to the same library. Please use one of them, or If they are not the same library, use fully qualified names instead.`
+    );
+  }
+}
+
+export class UnnecessaryLibraryLinkError extends HardhatViemError {
+  constructor(contractName: string, libraryName: string) {
+    super(
+      `The library name "${libraryName}" was linked but it's not referenced by the "${contractName}" contract.`
+    );
+  }
+}
+
+export class MissingLibraryAddressError extends HardhatViemError {
+  constructor(
+    contractName: string,
+    missingLibraries: Array<Pick<Link, "sourceName" | "libraryName">>
+  ) {
+    super(
+      `The libraries needed are:
+${missingLibraries
+  .map(({ sourceName, libraryName }) => `\t* "${sourceName}:${libraryName}"`)
+  .join(",\n")}
+Please deploy them first and link them while deploying "${contractName}"`
+    );
+  }
+}
+
+export class InvalidLibraryAddressError extends HardhatViemError {
+  constructor(contractName: string, invalidLibraryAddresses: Link[]) {
+    super(
+      `The following libraries were linked to invalid addresses;
+${invalidLibraryAddresses
+  .map(
+    ({ sourceName, libraryName, address }) =>
+      `\t"${sourceName}:${libraryName}" => ${address}`
+  )
+  .join(", ")}
+Please validate addresses provided to "${contractName}" contract.`
     );
   }
 }

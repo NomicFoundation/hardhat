@@ -1,6 +1,7 @@
 import type {
   EthereumProvider,
   HardhatRuntimeEnvironment,
+  Libraries,
 } from "hardhat/types";
 import type { Abi, Address, Hex } from "viem";
 import type {
@@ -13,6 +14,7 @@ import type {
   WalletClient,
 } from "../types";
 
+import { resolveBytecodeWithLinkedLibraries } from "./bytecode";
 import { getPublicClient, getWalletClients } from "./clients";
 import {
   DefaultWalletClientNotFoundError,
@@ -21,24 +23,46 @@ import {
   InvalidConfirmationsError,
 } from "./errors";
 
+async function innerGetContractAbiAndBytecode(
+  artifacts: HardhatRuntimeEnvironment["artifacts"],
+  contractName: string,
+  libraries: Libraries<Address>
+) {
+  const artifact = await artifacts.readArtifact(contractName);
+  const bytecode = await resolveBytecodeWithLinkedLibraries(
+    artifact,
+    libraries
+  );
+
+  return {
+    abi: artifact.abi,
+    bytecode: bytecode as Hex,
+  };
+}
+
 export async function deployContract(
   { artifacts, network }: HardhatRuntimeEnvironment,
   contractName: string,
   constructorArgs: any[] = [],
   config: DeployContractConfig = {}
 ): Promise<GetContractReturnType> {
-  const { client, confirmations, ...deployContractParameters } = config;
-  const [publicClient, walletClient, contractArtifact] = await Promise.all([
+  const {
+    client,
+    confirmations,
+    libraries = {},
+    ...deployContractParameters
+  } = config;
+  const [publicClient, walletClient, { abi, bytecode }] = await Promise.all([
     client?.public ?? getPublicClient(network.provider),
     client?.wallet ?? getDefaultWalletClient(network.provider, network.name),
-    artifacts.readArtifact(contractName),
+    innerGetContractAbiAndBytecode(artifacts, contractName, libraries),
   ]);
 
   return innerDeployContract(
     publicClient,
     walletClient,
-    contractArtifact.abi,
-    contractArtifact.bytecode as Hex,
+    abi,
+    bytecode,
     constructorArgs,
     deployContractParameters,
     confirmations
@@ -114,18 +138,18 @@ export async function sendDeploymentTransaction(
   contract: GetContractReturnType;
   deploymentTransaction: GetTransactionReturnType;
 }> {
-  const { client, ...deployContractParameters } = config;
-  const [publicClient, walletClient, contractArtifact] = await Promise.all([
+  const { client, libraries = {}, ...deployContractParameters } = config;
+  const [publicClient, walletClient, { abi, bytecode }] = await Promise.all([
     client?.public ?? getPublicClient(network.provider),
     client?.wallet ?? getDefaultWalletClient(network.provider, network.name),
-    artifacts.readArtifact(contractName),
+    innerGetContractAbiAndBytecode(artifacts, contractName, libraries),
   ]);
 
   return innerSendDeploymentTransaction(
     publicClient,
     walletClient,
-    contractArtifact.abi,
-    contractArtifact.bytecode as Hex,
+    abi,
+    bytecode,
     constructorArgs,
     deployContractParameters
   );
