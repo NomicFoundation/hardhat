@@ -56,8 +56,7 @@ describe("compile task", function () {
 
     it("should have the last version of solc in the 'hardhat.config.js' and 'A.sol' files", async function () {
       // Test to check that the last version of solc is being tested
-      const userConfigSolcVersion =
-        HardhatContext.getHardhatContext().environment?.userConfig.solidity;
+      const userConfigSolcVersion = this.env.userConfig.solidity;
 
       const lastSolcVersion = getLatestSupportedVersion();
 
