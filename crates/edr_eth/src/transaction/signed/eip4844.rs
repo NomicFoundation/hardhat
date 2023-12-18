@@ -1,17 +1,14 @@
 use std::sync::OnceLock;
 
 use alloy_rlp::{RlpDecodable, RlpEncodable};
-use revm_primitives::{
-    keccak256,
-    ruint::aliases::{U160, U64},
-    Address, Bytes, B256, U256,
-};
+use revm_primitives::{keccak256, Bytes, B256, U256};
 
 use crate::{
     access_list::AccessList,
     signature::{Signature, SignatureError},
     transaction::Eip4844TransactionRequest,
     utils::envelop_bytes,
+    Address,
 };
 
 #[derive(Clone, Debug, Eq, RlpDecodable, RlpEncodable)]
@@ -52,7 +49,7 @@ impl Eip4844SignedTransaction {
             let encoded = alloy_rlp::encode(self);
             let enveloped = envelop_bytes(3, &encoded);
 
-            keccak256(&enveloped)
+            keccak256(enveloped)
         })
     }
 
@@ -90,8 +87,6 @@ impl PartialEq for Eip4844SignedTransaction {
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
-
-    use revm_primitives::Address;
 
     use super::*;
 

@@ -1,4 +1,4 @@
-use alloy_rlp::{BufMut, Encodable};
+use alloy_rlp::{Buf, BufMut};
 use revm_primitives::Address;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -31,6 +31,8 @@ impl From<Option<Address>> for TransactionKind {
 impl alloy_rlp::Decodable for TransactionKind {
     fn decode(buf: &mut &[u8]) -> alloy_rlp::Result<Self> {
         if !buf.is_empty() && buf[0] == alloy_rlp::EMPTY_STRING_CODE {
+            buf.advance(1);
+
             Ok(Self::Create)
         } else {
             Address::decode(buf).map(Self::Call)
@@ -42,14 +44,14 @@ impl alloy_rlp::Encodable for TransactionKind {
     fn length(&self) -> usize {
         match self {
             TransactionKind::Call(address) => address.length(),
-            TransactionKind::Create => [].length(),
+            TransactionKind::Create => 1,
         }
     }
 
     fn encode(&self, out: &mut dyn BufMut) {
         match self {
             TransactionKind::Call(address) => address.encode(out),
-            TransactionKind::Create => [].encode(out),
+            TransactionKind::Create => out.put_u8(alloy_rlp::EMPTY_STRING_CODE),
         }
     }
 }

@@ -4,8 +4,7 @@ mod eip2930;
 mod eip4844;
 mod legacy;
 
-use alloy_rlp::{BufMut, Decodable};
-use revm_primitives::{Address, Bytes, B256, U256};
+use alloy_rlp::{Buf, BufMut, Decodable};
 
 pub use self::{
     eip155::Eip155SignedTransaction, eip1559::Eip1559SignedTransaction,
@@ -17,6 +16,7 @@ use crate::{
     access_list::AccessList,
     signature::{Signature, SignatureError},
     utils::enveloped,
+    Address, Bytes, B256, U256,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -259,19 +259,31 @@ impl Decodable for SignedTransaction {
             byte >= 0xc0
         }
 
-        let first = buf.first().ok_or_else(|| alloy_rlp::Error::InputTooShort)?;
+        let first = buf.first().ok_or(alloy_rlp::Error::InputTooShort)?;
 
-        match first {
-            0x01 => Ok(SignedTransaction::Eip2930(
-                Eip2930SignedTransaction::decode(buf)?,
-            )),
-            0x02 => Ok(SignedTransaction::Eip1559(
-                Eip1559SignedTransaction::decode(buf)?,
-            )),
-            0x03 => Ok(SignedTransaction::Eip4844(
-                Eip4844SignedTransaction::decode(buf)?,
-            )),
-            byte if is_list(*byte) => {
+        match *first {
+            0x01 => {
+                buf.advance(1);
+
+                Ok(SignedTransaction::Eip2930(
+                    Eip2930SignedTransaction::decode(buf)?,
+                ))
+            }
+            0x02 => {
+                buf.advance(1);
+
+                Ok(SignedTransaction::Eip1559(
+                    Eip1559SignedTransaction::decode(buf)?,
+                ))
+            }
+            0x03 => {
+                buf.advance(1);
+
+                Ok(SignedTransaction::Eip4844(
+                    Eip4844SignedTransaction::decode(buf)?,
+                ))
+            }
+            byte if is_list(byte) => {
                 let tx = LegacySignedTransaction::decode(buf)?;
                 if tx.signature.v >= 35 {
                     Ok(SignedTransaction::PostEip155Legacy(tx.into()))
@@ -377,10 +389,28 @@ mod tests {
         );
     }
 
-    #[test]
-    fn test_signed_transaction_encoding_round_trip() {
-        let transactions = [
-            SignedTransaction::PreEip155Legacy(LegacySignedTransaction {
+    macro_rules! impl_test_signed_transaction_encoding_round_trip {
+        ($(
+            $name:ident => $transaction:expr,
+        )+) => {
+            $(
+                paste::item! {
+                    #[test]
+                    fn [<signed_transaction_encoding_round_trip_ $name>]() {
+                        let transaction = $transaction;
+
+                        let encoded = alloy_rlp::encode(&transaction);
+                        let decoded = SignedTransaction::decode(&mut encoded.as_slice()).unwrap();
+
+                        assert_eq!(decoded, transaction);
+                    }
+                }
+            )+
+        };
+    }
+
+    impl_test_signed_transaction_encoding_round_trip! {
+            pre_eip155 => SignedTransaction::PreEip155Legacy(LegacySignedTransaction {
                 nonce: 0,
                 gas_price: U256::from(1),
                 gas_limit: 2,
@@ -394,7 +424,7 @@ mod tests {
                 },
                 hash: OnceLock::new(),
             }),
-            SignedTransaction::PostEip155Legacy(Eip155SignedTransaction {
+            post_eip155 => SignedTransaction::PostEip155Legacy(Eip155SignedTransaction {
                 nonce: 0,
                 gas_price: U256::from(1),
                 gas_limit: 2,
@@ -408,7 +438,7 @@ mod tests {
                 },
                 hash: OnceLock::new(),
             }),
-            SignedTransaction::Eip2930(Eip2930SignedTransaction {
+            eip2930 => SignedTransaction::Eip2930(Eip2930SignedTransaction {
                 chain_id: 1,
                 nonce: 0,
                 gas_price: U256::from(1),
@@ -422,7 +452,7 @@ mod tests {
                 access_list: vec![].into(),
                 hash: OnceLock::new(),
             }),
-            SignedTransaction::Eip1559(Eip1559SignedTransaction {
+            eip1559 => SignedTransaction::Eip1559(Eip1559SignedTransaction {
                 chain_id: 1,
                 nonce: 0,
                 max_priority_fee_per_gas: U256::from(1),
@@ -437,7 +467,7 @@ mod tests {
                 s: U256::default(),
                 hash: OnceLock::new(),
             }),
-            SignedTransaction::Eip4844(Eip4844SignedTransaction {
+            eip4844 => SignedTransaction::Eip4844(Eip4844SignedTransaction {
                 chain_id: 1,
                 nonce: 0,
                 max_priority_fee_per_gas: U256::from(1),
@@ -454,14 +484,6 @@ mod tests {
                 s: U256::default(),
                 hash: OnceLock::new(),
             }),
-        ];
-
-        for transaction in transactions {
-            let encoded = alloy_rlp::encode(&transaction);
-            let decoded = SignedTransaction::decode(&mut encoded.as_slice()).unwrap();
-
-            assert_eq!(decoded, transaction);
-        }
     }
 
     #[test]

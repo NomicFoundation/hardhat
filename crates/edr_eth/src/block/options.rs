@@ -1,4 +1,4 @@
-use crate::{Address, Bloom, Bytes, B256, B64, U256};
+use crate::{Address, Bloom, Bytes, B256, U256};
 
 /// Data of a block header
 #[derive(Debug, Default)]

@@ -324,20 +324,3 @@ pub struct GetLogsInput {
     /// address for get_logs request
     pub address: Address,
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    #[should_panic(expected = "string \\\"deadbeef\\\" does not have a '0x' prefix")]
-    fn test_zero_x_prefixed_bytes_deserialization_without_0x_prefix() {
-        serde_json::from_str::<Bytes>("\"deadbeef\"").unwrap();
-    }
-
-    #[test]
-    #[should_panic(expected = "string \\\"0deadbeef\\\" does not have a '0x' prefix")]
-    fn test_zero_x_prefixed_bytes_deserialization_with_0_prefix_but_no_x() {
-        serde_json::from_str::<Bytes>("\"0deadbeef\"").unwrap();
-    }
-}

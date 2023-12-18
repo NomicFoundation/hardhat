@@ -20,7 +20,7 @@ pub use self::{
     client::{RpcClient, RpcClientError},
     r#override::*,
 };
-use crate::{B256, U256};
+use crate::B256;
 
 /// for representing block specifications per EIP-1898
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -167,6 +167,7 @@ impl_block_tags!(PreEip1898BlockSpec);
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::U256;
 
     fn help_test_block_spec_serde(block_spec: BlockSpec) {
         let json = serde_json::json!(block_spec).to_string();
