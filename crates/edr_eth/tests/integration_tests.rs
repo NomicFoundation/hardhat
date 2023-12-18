@@ -1,10 +1,10 @@
 use edr_eth::{
     remote::{
-        eth::eip712,
+        eth::{eip712, CallRequest, GetLogsInput},
         filter::{
             FilterBlockTarget, FilterOptions, LogOutput, OneOrMoreAddresses, SubscriptionType,
         },
-        methods::{CallRequest, GetLogsInput, MethodInvocation, OneUsizeOrTwo, U64OrUsize},
+        methods::{MethodInvocation, OneUsizeOrTwo, U64OrUsize},
         BlockSpec, BlockTag, PreEip1898BlockSpec,
     },
     transaction::EthTransactionRequest,
