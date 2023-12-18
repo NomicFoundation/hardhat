@@ -101,8 +101,9 @@ const customRedirects = [
   },
   {
     source: "/solidity-survey-2023",
-    destination: "https://cryptpad.fr/form/#/2/form/view/pV-DdryeJoYUWvW+gXsFaMNynEY7t5mUsgeD1urgwSE",
-    permanent: false
+    destination:
+      "https://cryptpad.fr/form/#/2/form/view/pV-DdryeJoYUWvW+gXsFaMNynEY7t5mUsgeD1urgwSE",
+    permanent: false,
   },
   {
     source: "/solc-viair",
