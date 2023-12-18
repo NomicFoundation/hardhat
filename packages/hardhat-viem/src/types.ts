@@ -1,5 +1,6 @@
 import type * as viemT from "viem";
 import type { ArtifactsMap } from "hardhat/types/artifacts";
+import type { Libraries } from "hardhat/types/libraries";
 
 export type PublicClient = viemT.PublicClient<viemT.Transport, viemT.Chain>;
 export type WalletClient = viemT.WalletClient<
@@ -38,9 +39,12 @@ export interface SendTransactionConfig {
 
 export interface DeployContractConfig extends SendTransactionConfig {
   confirmations?: number;
+  libraries?: Libraries<viemT.Address>;
 }
 
-export type SendDeploymentTransactionConfig = SendTransactionConfig;
+export interface SendDeploymentTransactionConfig extends SendTransactionConfig {
+  libraries?: Libraries<viemT.Address>;
+}
 
 export interface GetContractAtConfig {
   client?: KeyedClient;
