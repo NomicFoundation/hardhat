@@ -145,7 +145,7 @@ pub fn genesis_accounts(
 /// Mimics activation of precompiles
 pub fn add_precompiles(accounts: &mut HashMap<Address, AccountInfo>) {
     for idx in 1..=8 {
-        let mut address = Address::zero();
+        let mut address = Address::ZERO;
         address.0[19] = idx;
         accounts.insert(address, AccountInfo::default());
     }

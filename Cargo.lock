@@ -54,8 +54,11 @@ dependencies = [
  "cfg-if",
  "const-hex",
  "derive_more",
+ "getrandom",
  "hex-literal",
  "itoa",
+ "proptest",
+ "rand",
  "ruint",
  "serde",
  "tiny-keccak",
@@ -63,9 +66,9 @@ dependencies = [
 
 [[package]]
 name = "alloy-primitives"
-version = "0.5.2"
+version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08ca2c09d5911548a5cb620382ea0e1af99d3c898ce0efecbbd274a4676cf53e"
+checksum = "6c0e5e60ff0e0c34c553822dabcfe0f5fece5a8c52f08a915be8c737de4b03fa"
 dependencies = [
  "alloy-rlp",
  "bytes",
@@ -128,7 +131,7 @@ version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f81aa34725607be118c395d62c1d8d97c8a343dd1ada5370ed508ed5232eab6a"
 dependencies = [
- "alloy-primitives 0.5.2",
+ "alloy-primitives 0.5.3",
  "alloy-sol-macro",
  "const-hex",
  "serde",
@@ -976,6 +979,7 @@ version = "0.2.0-dev"
 name = "edr_eth"
 version = "0.2.0-dev"
 dependencies = [
+ "alloy-primitives 0.4.2",
  "alloy-rlp",
  "anyhow",
  "assert-json-diff",

@@ -10,7 +10,7 @@ mod reorg;
 
 use std::sync::OnceLock;
 
-use alloy_rlp::{BufMut, RlpDecodable, RlpEncodable};
+use alloy_rlp::{BufMut, Decodable, RlpDecodable, RlpEncodable};
 use revm_primitives::{calc_excess_blob_gas, keccak256, SpecId};
 
 use self::difficulty::calculate_ethash_canonical_difficulty;
@@ -25,7 +25,7 @@ use crate::{
     transaction::SignedTransaction,
     trie::{self, KECCAK_NULL_RLP},
     withdrawal::Withdrawal,
-    Address, Bloom, Bytes, B256, B64, U256,
+    Address, Bloom, Bytes, B256, U256,
 };
 
 /// Ethereum block
@@ -56,11 +56,11 @@ impl Block {
     ) -> Self {
         let ommers_hash = keccak256(&alloy_rlp::encode(&ommers));
         let transactions_root =
-            trie::ordered_trie_root(transactions.iter().map(|r| alloy_rlp::encode(r).freeze()));
+            trie::ordered_trie_root(transactions.iter().map(|r| alloy_rlp::encode(r)));
 
         if let Some(withdrawals) = withdrawals.as_ref() {
             partial_header.withdrawals_root = Some(trie::ordered_trie_root(
-                withdrawals.iter().map(|r| alloy_rlp::encode(r).freeze()),
+                withdrawals.iter().map(|r| alloy_rlp::encode(r)),
             ));
         }
 
@@ -154,7 +154,7 @@ pub struct BlobGas {
 
 // We need a custom implementation to avoid the struct being treated as an RLP
 // list.
-impl alloy_rlp::Decodable for BlobGas {
+impl Decodable for BlobGas {
     fn decode(buf: &mut &[u8]) -> alloy_rlp::Result<Self> {
         let blob_gas = Self {
             gas_used: u64::decode(buf)?,
@@ -240,7 +240,7 @@ pub struct PartialHeader {
     /// The block's mix hash
     pub mix_hash: B256,
     /// The block's nonce
-    pub nonce: B64,
+    pub nonce: u64,
     /// BaseFee was added by EIP-1559 and is ignored in legacy headers.
     pub base_fee: Option<U256>,
     /// WithdrawalsHash was added by EIP-4895 and is ignored in legacy headers.
@@ -269,7 +269,7 @@ impl PartialHeader {
             if let Some(parent) = parent {
                 parent.hash()
             } else {
-                B256::zero()
+                B256::ZERO
             }
         });
 
@@ -329,7 +329,7 @@ impl PartialHeader {
             },
             parent_beacon_block_root: options.parent_beacon_block_root.or_else(|| {
                 if spec_id >= SpecId::CANCUN {
-                    Some(B256::zero())
+                    Some(B256::ZERO)
                 } else {
                     None
                 }
@@ -355,7 +355,7 @@ impl Default for PartialHeader {
             timestamp: u64::default(),
             extra_data: Bytes::default(),
             mix_hash: B256::default(),
-            nonce: B64::default(),
+            nonce: u64::default(),
             base_fee: None,
             withdrawals_root: None,
             blob_gas: None,
@@ -392,8 +392,6 @@ impl From<Header> for PartialHeader {
 mod tests {
     use std::str::FromStr;
 
-    use revm_primitives::ruint::aliases::U64;
-
     use super::*;
     use crate::trie::KECCAK_RLP_EMPTY_ARRAY;
 
@@ -414,7 +412,7 @@ mod tests {
             timestamp: 0,
             extra_data: Bytes::default(),
             mix_hash: B256::default(),
-            nonce: B64::from_limbs([99u64.to_be()]),
+            nonce: 99,
             base_fee_per_gas: None,
             withdrawals_root: None,
             blob_gas: None,
@@ -422,13 +420,13 @@ mod tests {
         };
 
         let encoded = alloy_rlp::encode(&header);
-        let decoded = Header::decode(encoded.as_ref()).unwrap();
+        let decoded = Header::decode(&mut encoded.as_slice()).unwrap();
         assert_eq!(header, decoded);
 
         header.base_fee_per_gas = Some(U256::from(12345));
 
         let encoded = alloy_rlp::encode(&header);
-        let decoded = Header::decode(encoded.as_ref()).unwrap();
+        let decoded = Header::decode(&mut encoded.as_slice()).unwrap();
         assert_eq!(header, decoded);
     }
 
@@ -438,28 +436,28 @@ mod tests {
         let expected = hex::decode("f901f9a00000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000940000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000b90100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008208ae820d0582115c8215b3821a0a827788a00000000000000000000000000000000000000000000000000000000000000000880000000000000000").unwrap();
 
         let header = Header {
-            parent_hash: B256::zero(),
-            ommers_hash: B256::zero(),
-            beneficiary: Address::zero(),
-            state_root: B256::zero(),
-            transactions_root: B256::zero(),
-            receipts_root: B256::zero(),
-            logs_bloom: Bloom::zero(),
+            parent_hash: B256::ZERO,
+            ommers_hash: B256::ZERO,
+            beneficiary: Address::ZERO,
+            state_root: B256::ZERO,
+            transactions_root: B256::ZERO,
+            receipts_root: B256::ZERO,
+            logs_bloom: Bloom::ZERO,
             difficulty: U256::from(0x8aeu64),
             number: 0xd05u64,
             gas_limit: 0x115cu64,
             gas_used: 0x15b3u64,
             timestamp: 0x1a0au64,
             extra_data: hex::decode("7788").unwrap().into(),
-            mix_hash: B256::zero(),
-            nonce: B64::ZERO,
+            mix_hash: B256::ZERO,
+            nonce: 0,
             base_fee_per_gas: None,
             withdrawals_root: None,
             blob_gas: None,
             parent_beacon_block_root: None,
         };
         let encoded = alloy_rlp::encode(&header);
-        assert_eq!(encoded, &expected);
+        assert_eq!(encoded, expected);
     }
 
     #[test]
@@ -490,15 +488,15 @@ mod tests {
                 "0x29b0562f7140574dd0d50dee8a271b22e1a0a7b78fca58f7c60370d8317ba2a9",
             )
             .unwrap(),
-            logs_bloom: Bloom::zero(),
+            logs_bloom: Bloom::ZERO,
             difficulty: U256::from(0x020000u64),
             number: 0x01,
             gas_limit: 0x016345785d8a0000,
             gas_used: 0x015534,
             timestamp: 0x079e,
             extra_data: hex::decode("42").unwrap().into(),
-            mix_hash: B256::zero(),
-            nonce: B64::from(U64::ZERO),
+            mix_hash: B256::ZERO,
+            nonce: 0,
             base_fee_per_gas: Some(U256::from(0x036bu64)),
             withdrawals_root: None,
             blob_gas: None,
@@ -513,27 +511,27 @@ mod tests {
         let data = hex::decode("f901f9a00000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000940000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000b90100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008208ae820d0582115c8215b3821a0a827788a00000000000000000000000000000000000000000000000000000000000000000880000000000000000").unwrap();
 
         let expected = Header {
-            parent_hash: B256::zero(),
-            ommers_hash: B256::zero(),
-            beneficiary: Address::zero(),
-            state_root: B256::zero(),
-            transactions_root: B256::zero(),
-            receipts_root: B256::zero(),
-            logs_bloom: Bloom::zero(),
+            parent_hash: B256::ZERO,
+            ommers_hash: B256::ZERO,
+            beneficiary: Address::ZERO,
+            state_root: B256::ZERO,
+            transactions_root: B256::ZERO,
+            receipts_root: B256::ZERO,
+            logs_bloom: Bloom::ZERO,
             difficulty: U256::from(0x8aeu64),
             number: 0xd05u64,
             gas_limit: 0x115cu64,
             gas_used: 0x15b3u64,
             timestamp: 0x1a0au64,
             extra_data: hex::decode("7788").unwrap().into(),
-            mix_hash: B256::zero(),
-            nonce: B64::ZERO,
+            mix_hash: B256::ZERO,
+            nonce: 0,
             base_fee_per_gas: None,
             withdrawals_root: None,
             blob_gas: None,
             parent_beacon_block_root: None,
         };
-        let decoded = Header::decode(&data).unwrap();
+        let decoded = Header::decode(&mut data.as_slice()).unwrap();
         assert_eq!(decoded, expected);
     }
 
@@ -551,16 +549,16 @@ mod tests {
                 gas_used: 0x080000u64,
                 excess_gas: 0x220000u64,
             }),
-            logs_bloom: Bloom::zero(),
+            logs_bloom: Bloom::ZERO,
             beneficiary: Address::from_str("0x2adc25665018aa1fe0e6bc666dac8fc2697ff9ba").unwrap(),
             difficulty: U256::ZERO,
             extra_data: Bytes::default(),
             gas_limit: 0x016345785d8a0000u64,
             gas_used: 0x5208u64,
-            mix_hash: B256::zero(),
-            nonce: B64::ZERO,
+            mix_hash: B256::ZERO,
+            nonce: 0,
             number: 0x01u64,
-            parent_beacon_block_root: Some(B256::zero()),
+            parent_beacon_block_root: Some(B256::ZERO),
             parent_hash: B256::from_str(
                 "0x258811d02512e87e09253a948330eff05da06b7656143a211fa3687901217f57",
             )

@@ -58,7 +58,7 @@ mod tests {
         let mut state = State::default();
 
         for idx in 1..=8u8 {
-            let mut address = Address::zero();
+            let mut address = Address::ZERO;
             address.0[19] = idx;
             state.insert(address, BasicAccount::default());
         }

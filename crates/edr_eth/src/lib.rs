@@ -34,11 +34,11 @@ pub mod trie;
 pub mod utils;
 pub mod withdrawal;
 
-pub use revm_primitives::{
-    alloy_primitives::Bloom,
+pub use alloy_primitives::{
     ruint::aliases::{B512, B64, U64},
-    AccountInfo, Address, Bytes, HashMap, SpecId, B256, U256,
+    Address, Bloom, Bytes, B256, U256,
 };
+pub use revm_primitives::{AccountInfo, HashMap, Log, SpecId};
 
 /// A secret key
 pub type Secret = B256;

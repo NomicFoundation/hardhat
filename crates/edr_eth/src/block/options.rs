@@ -26,7 +26,7 @@ pub struct BlockOptions {
     /// The block's mix hash
     pub mix_hash: Option<B256>,
     /// The block's nonce
-    pub nonce: Option<B64>,
+    pub nonce: Option<u64>,
     /// The block's base gas fee
     pub base_fee: Option<U256>,
     /// The block's withdrawals root

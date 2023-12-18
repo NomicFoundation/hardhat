@@ -272,9 +272,9 @@ impl Decodable for SignedTransaction {
                 Eip4844SignedTransaction::decode(buf)?,
             )),
             byte if is_list(*byte) => {
-                let tx = Eip155SignedTransaction::decode(buf)?;
+                let tx = LegacySignedTransaction::decode(buf)?;
                 if tx.signature.v >= 35 {
-                    Ok(SignedTransaction::PostEip155Legacy(tx))
+                    Ok(SignedTransaction::PostEip155Legacy(tx.into()))
                 } else {
                     Ok(SignedTransaction::PreEip155Legacy(tx))
                 }
@@ -362,7 +362,7 @@ mod tests {
             assert_eq!(
                 *to,
                 "0x095e7baea6a6c7c4c2dfeb977efac326af552d87"
-                    .parse()
+                    .parse::<Address>()
                     .unwrap()
             );
         } else {
@@ -372,7 +372,7 @@ mod tests {
         assert_eq!(
             tx.recover().unwrap(),
             "0x0f65fe9276bc9a24ae7083ae28e2660ef72df99e"
-                .parse()
+                .parse::<Address>()
                 .unwrap()
         );
     }
@@ -423,7 +423,7 @@ mod tests {
                 hash: OnceLock::new(),
             }),
             SignedTransaction::Eip1559(Eip1559SignedTransaction {
-                chain_id: 1u64,
+                chain_id: 1,
                 nonce: 0,
                 max_priority_fee_per_gas: U256::from(1),
                 max_fee_per_gas: U256::from(2),
@@ -438,7 +438,7 @@ mod tests {
                 hash: OnceLock::new(),
             }),
             SignedTransaction::Eip4844(Eip4844SignedTransaction {
-                chain_id: 1u64,
+                chain_id: 1,
                 nonce: 0,
                 max_priority_fee_per_gas: U256::from(1),
                 max_fee_per_gas: U256::from(2),
@@ -458,7 +458,7 @@ mod tests {
 
         for transaction in transactions {
             let encoded = alloy_rlp::encode(&transaction);
-            let decoded = SignedTransaction::decode(&encoded).unwrap();
+            let decoded = SignedTransaction::decode(&mut encoded.as_slice()).unwrap();
 
             assert_eq!(decoded, transaction);
         }
@@ -491,7 +491,10 @@ mod tests {
             },
             hash: OnceLock::new(),
         });
-        assert_eq!(expected, SignedTransaction::decode(&bytes_first).unwrap());
+        assert_eq!(
+            expected,
+            SignedTransaction::decode(&mut bytes_first.as_slice()).unwrap()
+        );
 
         let bytes_second = hex::decode("f86b01843b9aca00830186a094d3e8763675e4c425df46cc3b5c0f6cbdac3960468702769bb01b2a00802ba0e24d8bd32ad906d6f8b8d7741e08d1959df021698b19ee232feba15361587d0aa05406ad177223213df262cb66ccbb2f46bfdccfdfbbb5ffdda9e2c02d977631da").unwrap();
         let expected = SignedTransaction::PostEip155Legacy(Eip155SignedTransaction {
@@ -516,7 +519,10 @@ mod tests {
             },
             hash: OnceLock::new(),
         });
-        assert_eq!(expected, SignedTransaction::decode(&bytes_second).unwrap());
+        assert_eq!(
+            expected,
+            SignedTransaction::decode(&mut bytes_second.as_slice()).unwrap()
+        );
 
         let bytes_third = hex::decode("f86b0384773594008398968094d3e8763675e4c425df46cc3b5c0f6cbdac39604687038d7ea4c68000802ba0ce6834447c0a4193c40382e6c57ae33b241379c5418caac9cdc18d786fd12071a03ca3ae86580e94550d7c071e3a02eadb5a77830947c9225165cf9100901bee88").unwrap();
         let expected = SignedTransaction::PostEip155Legacy(Eip155SignedTransaction {
@@ -541,7 +547,10 @@ mod tests {
             },
             hash: OnceLock::new(),
         });
-        assert_eq!(expected, SignedTransaction::decode(&bytes_third).unwrap());
+        assert_eq!(
+            expected,
+            SignedTransaction::decode(&mut bytes_third.as_slice()).unwrap()
+        );
 
         let bytes_fourth = hex::decode("02f872041a8459682f008459682f0d8252089461815774383099e24810ab832a5b2a5425c154d58829a2241af62c000080c001a059e6b67f48fb32e7e570dfb11e042b5ad2e55e3ce3ce9cd989c7e06e07feeafda0016b83f4f980694ed2eee4d10667242b1f40dc406901b34125b008d334d47469").unwrap();
         let expected = SignedTransaction::Eip1559(Eip1559SignedTransaction {
@@ -563,7 +572,10 @@ mod tests {
                 .unwrap(),
             hash: OnceLock::new(),
         });
-        assert_eq!(expected, SignedTransaction::decode(&bytes_fourth).unwrap());
+        assert_eq!(
+            expected,
+            SignedTransaction::decode(&mut bytes_fourth.as_slice()).unwrap()
+        );
 
         let bytes_fifth = hex::decode("f8650f84832156008287fb94cf7f9e66af820a19257a2108375b180b0ec491678204d2802ca035b7bfeb9ad9ece2cbafaaf8e202e706b4cfaeb233f46198f00b44d4a566a981a0612638fb29427ca33b9a3be2a0a561beecfe0269655be160d35e72d366a6a860").unwrap();
         let expected = SignedTransaction::PostEip155Legacy(Eip155SignedTransaction {
@@ -588,7 +600,10 @@ mod tests {
             },
             hash: OnceLock::new(),
         });
-        assert_eq!(expected, SignedTransaction::decode(&bytes_fifth).unwrap());
+        assert_eq!(
+            expected,
+            SignedTransaction::decode(&mut bytes_fifth.as_slice()).unwrap()
+        );
     }
 
     // <https://github.com/gakonst/ethers-rs/issues/1732>
@@ -597,7 +612,7 @@ mod tests {
         let raw_tx = "f9015482078b8505d21dba0083022ef1947a250d5630b4cf539739df2c5dacb4c659f2488d880c46549a521b13d8b8e47ff36ab50000000000000000000000000000000000000000000066ab5a608bd00a23f2fe000000000000000000000000000000000000000000000000000000000000008000000000000000000000000048c04ed5691981c42154c6167398f95e8f38a7ff00000000000000000000000000000000000000000000000000000000632ceac70000000000000000000000000000000000000000000000000000000000000002000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc20000000000000000000000006c6ee5e31d828de241282b9606c8e98ea48526e225a0c9077369501641a92ef7399ff81c21639ed4fd8fc69cb793cfa1dbfab342e10aa0615facb2f1bcf3274a354cfe384a38d0cc008a11c2dd23a69111bc6930ba27a8";
 
         let tx: SignedTransaction =
-            SignedTransaction::decode(&hex::decode(raw_tx).unwrap()).unwrap();
+            SignedTransaction::decode(&mut hex::decode(raw_tx).unwrap().as_slice()).unwrap();
         let recovered = tx.recover().unwrap();
         let expected: Address = "0xa12e1462d0ced572f396f58b6e2d03894cd7c8a4"
             .parse()

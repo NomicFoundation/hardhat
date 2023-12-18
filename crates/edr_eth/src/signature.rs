@@ -145,9 +145,9 @@ impl Signature {
         )
         .map_err(SignatureError::ECDSAError)?;
 
-        let r = U256::try_from_be_slice(&Into::<FieldBytes>::into(signature.r()))
+        let r = U256::try_from_be_slice(Into::<FieldBytes>::into(signature.r()).as_slice())
             .expect("Must be valid");
-        let s = U256::try_from_be_slice(&Into::<FieldBytes>::into(signature.s()))
+        let s = U256::try_from_be_slice(Into::<FieldBytes>::into(signature.s()).as_slice())
             .expect("Must be valid");
         let v = 27 + u64::from(Into::<u8>::into(recovery_id));
 
@@ -188,7 +188,7 @@ impl Signature {
         let (signature, recovery_id) = self.as_signature()?;
 
         let verifying_key =
-            VerifyingKey::recover_from_prehash(message_hash.as_bytes(), &signature, recovery_id)
+            VerifyingKey::recover_from_prehash(message_hash.as_slice(), &signature, recovery_id)
                 .map_err(SignatureError::ECDSAError)?;
 
         Ok(public_key_to_address(verifying_key.into()))

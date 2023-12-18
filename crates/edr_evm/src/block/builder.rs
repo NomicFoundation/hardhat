@@ -233,7 +233,7 @@ impl BlockBuilder {
 
         let logs: Vec<Log> = result.logs().into_iter().map(Log::from).collect();
         let logs_bloom = {
-            let mut bloom = Bloom::zero();
+            let mut bloom = Bloom::ZERO;
             for log in &logs {
                 log.add_to_bloom(&mut bloom);
             }
@@ -342,7 +342,7 @@ impl BlockBuilder {
             .expect("Must be able to calculate state root");
 
         self.header.logs_bloom = {
-            let mut logs_bloom = Bloom::zero();
+            let mut logs_bloom = Bloom::ZERO;
             self.receipts.iter().for_each(|receipt| {
                 logs_bloom.accrue_bloom(receipt.logs_bloom());
             });

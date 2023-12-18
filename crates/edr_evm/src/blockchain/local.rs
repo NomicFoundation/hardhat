@@ -100,7 +100,7 @@ impl LocalBlockchain {
             mix_hash: if spec_id >= SpecId::MERGE {
                 prevrandao.ok_or(CreationError::MissingPrevrandao)?
             } else {
-                B256::zero()
+                B256::ZERO
             },
             nonce: if spec_id >= SpecId::MERGE {
                 B64::ZERO

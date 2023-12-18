@@ -10,9 +10,9 @@ mod block;
 mod transaction;
 
 use alloy_rlp::{Buf, BufMut, Decodable, Encodable};
-use revm_primitives::{alloy_primitives::Bloom, B256};
 
 pub use self::{block::BlockReceipt, transaction::TransactionReceipt};
+use crate::{Bloom, B256};
 
 /// Typed receipt that's generated after execution of a transaction.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -398,14 +398,13 @@ where
 
 #[cfg(test)]
 mod tests {
-    use revm_primitives::{Address, Bytes, Log};
-
     use super::*;
+    use crate::{Address, Bytes, Log};
 
     fn dummy_receipts() -> Vec<TypedReceipt<Log>> {
         [
             TypedReceiptData::PreEip658Legacy {
-                state_root: B256::ZERO,
+                state_root: B256::random(),
             },
             TypedReceiptData::PostEip658Legacy { status: 1 },
             TypedReceiptData::Eip2930 { status: 1 },
@@ -414,15 +413,15 @@ mod tests {
         .into_iter()
         .map(|data| TypedReceipt {
             cumulative_gas_used: 0xffff,
-            logs_bloom: Bloom::ZERO,
+            logs_bloom: Bloom::random(),
             logs: vec![
                 Log {
-                    address: Address::ZERO,
-                    topics: vec![B256::ZERO, B256::ZERO],
+                    address: Address::random(),
+                    topics: vec![B256::random(), B256::random()],
                     data: Bytes::new(),
                 },
                 Log {
-                    address: Address::ZERO,
+                    address: Address::random(),
                     topics: Vec::new(),
                     data: Bytes::from_static(b"test"),
                 },

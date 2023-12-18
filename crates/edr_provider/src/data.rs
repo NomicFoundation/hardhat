@@ -215,7 +215,7 @@ impl ProviderData {
             .keys()
             .next()
             .copied()
-            .unwrap_or(Address::zero())
+            .unwrap_or(Address::ZERO)
     }
 
     /// Returns the metadata of the forked blockchain, if it exists.
@@ -1586,7 +1586,7 @@ mod tests {
 
         fn dummy_transaction_request(&self, nonce: Option<u64>) -> TransactionRequestAndSender {
             let request = TransactionRequest::Eip155(Eip155TransactionRequest {
-                kind: TransactionKind::Call(Address::zero()),
+                kind: TransactionKind::Call(Address::ZERO),
                 gas_limit: 100_000,
                 gas_price: U256::from(42_000_000_000_u64),
                 value: U256::from(1),
@@ -1958,7 +1958,7 @@ mod tests {
     fn transaction_by_invalid_hash() -> anyhow::Result<()> {
         let fixture = ProviderTestFixture::new()?;
 
-        let non_existing_tx = fixture.provider_data.transaction_by_hash(&B256::zero())?;
+        let non_existing_tx = fixture.provider_data.transaction_by_hash(&B256::ZERO)?;
 
         assert!(non_existing_tx.is_none());
 

@@ -3,6 +3,7 @@ use std::sync::OnceLock;
 use alloy_rlp::{RlpDecodable, RlpEncodable};
 use revm_primitives::{keccak256, Address, Bytes, B256, U256};
 
+use super::LegacySignedTransaction;
 use crate::{
     signature::{Signature, SignatureError},
     transaction::{kind::TransactionKind, request::Eip155TransactionRequest},
@@ -42,6 +43,21 @@ impl Eip155SignedTransaction {
 
     pub fn chain_id(&self) -> u64 {
         (self.signature.v - 35) / 2
+    }
+}
+
+impl From<LegacySignedTransaction> for Eip155SignedTransaction {
+    fn from(tx: LegacySignedTransaction) -> Self {
+        Self {
+            nonce: tx.nonce,
+            gas_price: tx.gas_price,
+            gas_limit: tx.gas_limit,
+            kind: tx.kind,
+            value: tx.value,
+            input: tx.input,
+            signature: tx.signature,
+            hash: tx.hash,
+        }
     }
 }
 
