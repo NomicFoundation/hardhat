@@ -186,6 +186,10 @@ To verify a contract using Sourcify, you need to add to your Hardhat config:
 ```js
 sourcify: {
   enabled: true,
+  // Optional: specify a different Sourcify server
+  apiUrl: "https://sourcify.dev/server",
+  // Optional: specify a different Sourcify repository
+  browserUrl: "https://repo.sourcify.dev",
 }
 ```
 
