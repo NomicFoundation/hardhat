@@ -10,7 +10,7 @@ use radix_tree::RadixTree;
 use revm::interpreter::opcode;
 
 use self::radix_tree::RadixNode;
-use crate::opcodes::get_opcode_length;
+use crate::opcodes::opcode_length;
 
 #[derive(Debug, PartialEq)]
 pub enum BytecodeType {
@@ -75,7 +75,7 @@ impl<'a> ContractsIdentifier<'a> {
             .insert(calculate_hash(&bytecode.normalized_code), bytecode);
     }
 
-    pub fn get_bytecode_from_message_trace(&self, trace: EvmMessageTrace) -> Option<&Bytecode> {
+    pub fn bytecode_by_message_trace(&self, trace: EvmMessageTrace) -> Option<&Bytecode> {
         let normalized_code = normalize_library_runtime_bytecode_if_necessary(trace.code().clone());
 
         self.search_bytecode_in_radix_tree(&trace, &normalized_code, true, None)
@@ -271,7 +271,7 @@ fn is_matching_metadata(code: &[u8], last_byte: usize) -> bool {
             return true;
         }
 
-        byte += get_opcode_length(opcode);
+        byte += opcode_length(opcode);
     }
 
     false
@@ -328,12 +328,12 @@ mod tests {
 
         // should not find any bytecode for a call trace
         let call_trace = create_test_call_trace(vec![1, 2, 3, 4, 5].into());
-        let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
+        let contract = contracts_identifier.bytecode_by_message_trace(call_trace);
         assert_eq!(contract, None);
 
         // sould not find any bytecode for a create trace
         let create_trace = create_test_create_trace(vec![1, 2, 3, 4, 5].into());
-        let contract = contracts_identifier.get_bytecode_from_message_trace(create_trace);
+        let contract = contracts_identifier.bytecode_by_message_trace(create_trace);
         assert_eq!(contract, None);
     }
 
@@ -346,12 +346,12 @@ mod tests {
 
         // should find a bytecode that matches exactly
         let call_trace = create_test_call_trace(vec![1, 2, 3, 4, 5].into());
-        let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
+        let contract = contracts_identifier.bytecode_by_message_trace(call_trace);
         assert_eq!(contract, Some(&bytecode));
 
         // should not find a bytecode that doesn't match
         let call_trace = create_test_call_trace(vec![1, 2, 3, 4, 6].into());
-        let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
+        let contract = contracts_identifier.bytecode_by_message_trace(call_trace);
         assert_eq!(contract, None);
     }
 
@@ -366,17 +366,17 @@ mod tests {
 
         // should find the exact match
         let call_trace = create_test_call_trace(vec![1, 2, 3, 4, 5].into());
-        let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
+        let contract = contracts_identifier.bytecode_by_message_trace(call_trace);
         assert_eq!(contract, Some(&bytecode1));
 
         // should find the exact match
         let call_trace = create_test_call_trace(vec![1, 2, 3, 4, 5, 6, 7, 8].into());
-        let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
+        let contract = contracts_identifier.bytecode_by_message_trace(call_trace);
         assert_eq!(contract, Some(&bytecode2));
 
         // should not find a bytecode that doesn't match
         let call_trace = create_test_call_trace(vec![0, 1, 2, 3, 4, 5, 6, 7, 8].into());
-        let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
+        let contract = contracts_identifier.bytecode_by_message_trace(call_trace);
         assert_eq!(contract, None);
     }
 
@@ -392,7 +392,7 @@ mod tests {
 
         // search a trace that matches the common prefix
         let call_trace = create_test_call_trace(vec![1, 2, 3].into());
-        let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
+        let contract = contracts_identifier.bytecode_by_message_trace(call_trace);
         assert_eq!(contract, None);
     }
 
@@ -406,12 +406,12 @@ mod tests {
         // a create trace that matches the a deployment bytecode plus some extra stuff
         // (constructor args)
         let create_trace = create_test_create_trace(vec![1, 2, 3, 4, 5, 10, 11].into());
-        let contract = contracts_identifier.get_bytecode_from_message_trace(create_trace);
+        let contract = contracts_identifier.bytecode_by_message_trace(create_trace);
         assert_eq!(contract, Some(&bytecode));
 
         // the same bytecode, but for a call trace, should not match
         let call_trace = create_test_call_trace(vec![1, 2, 3, 4, 5, 10, 11].into());
-        let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
+        let contract = contracts_identifier.bytecode_by_message_trace(call_trace);
         assert_eq!(contract, None);
 
         // the same scenario but with a runtime bytecode shouldn't result in matches
@@ -420,11 +420,11 @@ mod tests {
         contracts_identifier.add_bytecode(&bytecode);
 
         let create_trace = create_test_create_trace(vec![1, 2, 3, 4, 5, 10, 11].into());
-        let contract = contracts_identifier.get_bytecode_from_message_trace(create_trace);
+        let contract = contracts_identifier.bytecode_by_message_trace(create_trace);
         assert_eq!(contract, None);
 
         let call_trace = create_test_call_trace(vec![1, 2, 3, 4, 5, 10, 11].into());
-        let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
+        let contract = contracts_identifier.bytecode_by_message_trace(call_trace);
         assert_eq!(contract, None);
     }
 
@@ -462,7 +462,7 @@ mod tests {
             ]
             .into(),
         );
-        let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
+        let contract = contracts_identifier.bytecode_by_message_trace(call_trace);
         assert_eq!(contract, Some(&bytecode));
     }
 
@@ -502,7 +502,7 @@ mod tests {
             ]
             .into(),
         );
-        let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
+        let contract = contracts_identifier.bytecode_by_message_trace(call_trace);
         assert_eq!(contract, Some(&bytecode));
     }
 
@@ -553,7 +553,7 @@ mod tests {
             ]
             .into(),
         );
-        let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
+        let contract = contracts_identifier.bytecode_by_message_trace(call_trace);
         assert_eq!(contract, Some(&bytecode));
     }
 
@@ -633,7 +633,7 @@ mod tests {
             ]
             .into(),
         );
-        let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
+        let contract = contracts_identifier.bytecode_by_message_trace(call_trace);
         assert_eq!(contract, Some(&bytecode));
     }
 
@@ -660,7 +660,7 @@ mod tests {
             .into(),
         );
 
-        let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
+        let contract = contracts_identifier.bytecode_by_message_trace(call_trace);
         assert_eq!(contract, Some(&bytecode));
     }
 
@@ -697,7 +697,7 @@ mod tests {
             .into(),
         );
 
-        let contract = contracts_identifier.get_bytecode_from_message_trace(call_trace);
+        let contract = contracts_identifier.bytecode_by_message_trace(call_trace);
         assert_eq!(contract, Some(&bytecode));
     }
 }
