@@ -47,7 +47,7 @@ impl RadixNode {
             let prefix_length = get_shared_prefix_length(&word, &next_node.content);
 
             // We know it's at least 1
-            assert!(prefix_length > 0);
+            debug_assert!(prefix_length > 0);
 
             // Check if the next node's label is included in the word
             if prefix_length == next_node.content.len() {
