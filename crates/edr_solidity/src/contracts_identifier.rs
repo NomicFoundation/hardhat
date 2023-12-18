@@ -1,9 +1,6 @@
 mod radix_tree;
 
-use std::{
-    collections::{hash_map::DefaultHasher, HashMap},
-    hash::{Hash, Hasher},
-};
+use std::collections::HashMap;
 
 use edr_eth::Bytes;
 use radix_tree::RadixTree;
@@ -65,14 +62,13 @@ impl EvmMessageTrace {
 #[derive(Default)]
 pub struct ContractsIdentifier<'a> {
     tree: RadixTree,
-    bytecodes: HashMap<u64, &'a Bytecode>,
+    bytecodes: HashMap<&'a Bytes, &'a Bytecode>,
 }
 
 impl<'a> ContractsIdentifier<'a> {
     pub fn add_bytecode(&mut self, bytecode: &'a Bytecode) {
         self.tree.add_word(bytecode.normalized_code.clone());
-        self.bytecodes
-            .insert(calculate_hash(&bytecode.normalized_code), bytecode);
+        self.bytecodes.insert(&bytecode.normalized_code, bytecode);
     }
 
     pub fn bytecode_by_message_trace(&self, trace: EvmMessageTrace) -> Option<&Bytecode> {
@@ -93,9 +89,7 @@ impl<'a> ContractsIdentifier<'a> {
         let (found, matched_bytes, node) = radix_node.get_max_match(code);
 
         if found {
-            let key = calculate_hash(&code);
-
-            return self.bytecodes.get(&key).copied();
+            return self.bytecodes.get(&code).copied();
         }
 
         // The entire vector is present as a prefix, but not exactly
@@ -128,12 +122,11 @@ impl<'a> ContractsIdentifier<'a> {
             && node.is_present()
         {
             // concatenate the normalized code and the node content
-            let mut matched_bytecode = code.to_vec();
-            matched_bytecode.drain(node.bytes_matched_before()..);
-            matched_bytecode.extend(node.content());
+            let matched_bytecode: Bytes = [&code[..node.bytes_matched_before()], node.content()]
+                .concat()
+                .into();
 
-            let key = calculate_hash(&matched_bytecode);
-            let bytecode = self.bytecodes.get(&key).copied();
+            let bytecode = self.bytecodes.get(&matched_bytecode).copied();
 
             if let Some(bytecode) = bytecode {
                 if bytecode.is_deployment() {
@@ -144,10 +137,11 @@ impl<'a> ContractsIdentifier<'a> {
 
         if normalize_libraries {
             for suffix in node.descendant_suffixes() {
-                let mut descendant = code.to_vec()[..node.bytes_matched_before()].to_vec();
-                descendant.extend(suffix);
+                let descendant: Bytes = [&code[..node.bytes_matched_before()], &suffix]
+                    .concat()
+                    .into();
 
-                let bytecode_with_libraries = self.bytecodes.get(&calculate_hash(&descendant));
+                let bytecode_with_libraries = self.bytecodes.get(&descendant);
 
                 if bytecode_with_libraries.is_none() {
                     continue;
@@ -192,10 +186,11 @@ impl<'a> ContractsIdentifier<'a> {
 
             if let Some(last_suffix) = last_suffix {
                 // TODO: this should be the last one in chronological insertion order
-                let mut descendant = code.to_vec()[..node.bytes_matched_before()].to_vec();
-                descendant.extend(last_suffix);
+                let descendant: Bytes = [&code[..node.bytes_matched_before()], &last_suffix]
+                    .concat()
+                    .into();
 
-                return self.bytecodes.get(&calculate_hash(&descendant)).copied();
+                return self.bytecodes.get(&descendant).copied();
             }
         }
 
@@ -253,12 +248,6 @@ fn normalize_library_runtime_bytecode_if_necessary(bytecode: Bytes) -> Bytes {
     }
 
     bytecode
-}
-
-fn calculate_hash<T: Hash>(t: &T) -> u64 {
-    let mut s = DefaultHasher::new();
-    t.hash(&mut s);
-    s.finish()
 }
 
 fn is_matching_metadata(code: &[u8], last_byte: usize) -> bool {
