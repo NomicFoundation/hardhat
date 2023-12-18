@@ -18,10 +18,6 @@ const main = async () => {
       fixtureProjectName
     );
 
-    if (fs.existsSync(path.join(fixtureProjectDir, "./artifacts"))) {
-      return;
-    }
-
     process.chdir(fixtureProjectDir);
 
     const hre = require("hardhat");
