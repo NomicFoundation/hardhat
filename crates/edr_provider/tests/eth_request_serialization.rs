@@ -1,3 +1,5 @@
+mod common;
+
 use edr_eth::{
     remote::{
         eth::{eip712, CallRequest, GetLogsInput},
@@ -10,10 +12,11 @@ use edr_eth::{
     Address, B256, U256, U64,
 };
 use edr_provider::{MethodInvocation, OneUsizeOrTwo, U64OrUsize};
-use edr_test_utils::{
+use revm_primitives::{Bytes, HashMap};
+
+use crate::common::{
     help_test_method_invocation_serde, help_test_method_invocation_serde_with_expected,
 };
-use revm_primitives::{Bytes, HashMap};
 
 #[test]
 fn test_serde_eth_accounts() {
