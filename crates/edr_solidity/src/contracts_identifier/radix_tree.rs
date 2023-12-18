@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use revm_primitives::Bytes;
+use edr_eth::Bytes;
 
 #[derive(Debug)]
 pub struct RadixNode {
@@ -210,7 +210,7 @@ fn get_shared_prefix_length(a: &[u8], b: &[u8]) -> usize {
 
 #[cfg(test)]
 mod tests {
-    use revm_primitives::hex_literal::hex;
+    use edr_eth::hex_literal::hex;
 
     use super::*;
 

@@ -36,6 +36,7 @@ pub mod withdrawal;
 
 pub use ethbloom::Bloom;
 pub use revm_primitives::{
+    hex_literal,
     ruint::aliases::{B512, B64, U64},
     AccountInfo, Address, Bytes, HashMap, SpecId, B160, B256, U256,
 };

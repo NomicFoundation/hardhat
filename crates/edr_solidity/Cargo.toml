@@ -4,5 +4,5 @@ version = "0.2.0-dev"
 edition = "2021"
 
 [dependencies]
+edr_eth = { version = "0.2.0-dev", path = "../edr_eth" }
 revm = { git = "https://github.com/Wodann/revm", rev = "93d8ebe", version = "3.3", default-features = false, features = ["dev", "serde", "std"] }
-revm-primitives = { git = "https://github.com/Wodann/revm", rev = "93d8ebe", version = "1.1", default-features = false }

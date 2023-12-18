@@ -5,9 +5,9 @@ use std::{
     hash::{Hash, Hasher},
 };
 
+use edr_eth::Bytes;
 use radix_tree::RadixTree;
 use revm::interpreter::opcode;
-use revm_primitives::Bytes;
 
 use self::radix_tree::RadixNode;
 use crate::opcodes::get_opcode_length;
