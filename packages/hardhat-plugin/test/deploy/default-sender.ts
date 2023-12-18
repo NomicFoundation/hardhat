@@ -20,7 +20,7 @@ describe("default sender", function () {
     );
   });
 
-  it.skip("should allow setting default sender via cli", async function () {
+  it("should allow setting default sender via cli", async function () {
     const secondAccountAddress = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
 
     await this.hre.run(

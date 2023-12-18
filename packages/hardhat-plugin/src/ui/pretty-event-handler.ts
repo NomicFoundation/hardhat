@@ -33,6 +33,7 @@ import {
   TransactionSendEvent,
   WipeApplyEvent,
 } from "@nomicfoundation/ignition-core";
+import readline from "readline";
 
 import { calculateBatchDisplay } from "./helpers/calculate-batch-display";
 import { calculateDeployingModulePanel } from "./helpers/calculate-deploying-module-panel";
@@ -452,12 +453,12 @@ export class PrettyEventHandler implements ExecutionEventListener {
   }
 
   private _clearCurrentLine(): void {
-    process.stdout.clearLine(0);
-    process.stdout.cursorTo(0);
+    readline.clearLine(process.stdout, 0);
+    readline.cursorTo(process.stdout, 0);
   }
 
   private _clearUpToHeight(height: number) {
-    process.stdout.moveCursor(0, -height);
-    process.stdout.clearScreenDown();
+    readline.moveCursor(process.stdout, 0, -height);
+    readline.clearScreenDown(process.stdout);
   }
 }
