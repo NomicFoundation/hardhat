@@ -1,4 +1,6 @@
-use edr_eth::{remote::BlockSpec, serde::ZeroXPrefixedBytes, Address, U256};
+use edr_eth::{
+    remote::BlockSpec, serde::ZeroXPrefixedBytes, utils::u256_to_hex_word, Address, U256,
+};
 
 use crate::{data::ProviderData, ProviderError};
 
@@ -24,6 +26,7 @@ pub fn handle_get_storage_at_request(
     address: Address,
     index: U256,
     block_spec: Option<BlockSpec>,
-) -> Result<U256, ProviderError> {
-    data.get_storage_at(address, index, block_spec.as_ref())
+) -> Result<String, ProviderError> {
+    let storage = data.get_storage_at(address, index, block_spec.as_ref())?;
+    Ok(u256_to_hex_word(&storage))
 }
