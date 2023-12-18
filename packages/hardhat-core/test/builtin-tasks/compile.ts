@@ -19,7 +19,6 @@ import {
   getAllFilesMatchingSync,
   getRealPathSync,
 } from "../../src/internal/util/fs-utils";
-import { HardhatContext } from "../../src/internal/context";
 import { getLatestSupportedVersion } from "../internal/hardhat-network/stack-traces/compilers-list";
 
 function assertFileExists(pathToFile: string) {
