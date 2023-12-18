@@ -195,17 +195,11 @@ impl Default for RadixTree {
 }
 
 fn get_shared_prefix_length(a: &[u8], b: &[u8]) -> usize {
-    let max_index = std::cmp::min(a.len(), b.len());
-
-    let mut i = 0;
-    while i < max_index {
-        if a[i] != b[i] {
-            return i;
-        }
-        i += 1;
-    }
-
-    i
+    a.iter()
+        .zip(b.iter())
+        .enumerate()
+        .find(|(_, (a, b))| a != b)
+        .map_or_else(|| a.len().min(b.len()), |(idx, _)| idx)
 }
 
 #[cfg(test)]
