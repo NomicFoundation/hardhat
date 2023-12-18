@@ -7,8 +7,6 @@ pub mod eth;
 pub mod filter;
 /// data types specific to JSON-RPC but not specific to Ethereum.
 pub mod jsonrpc;
-/// RPC methods
-pub mod methods;
 mod r#override;
 mod request_methods;
 

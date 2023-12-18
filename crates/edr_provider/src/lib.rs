@@ -17,12 +17,15 @@ use parking_lot::Mutex;
 use tokio::runtime;
 
 pub use self::{
-    config::*, data::InspectorCallbacks, error::ProviderError, requests::ProviderRequest,
+    config::*,
+    data::InspectorCallbacks,
+    error::ProviderError,
+    requests::{MethodInvocation, OneUsizeOrTwo, ProviderRequest, U64OrUsize},
 };
 use self::{
     data::{CreationError, ProviderData},
     interval::IntervalMiner,
-    requests::{eth, hardhat, EthRequest, Request},
+    requests::{eth, hardhat, MethodInvocation as EthRequest, Request},
 };
 use crate::data::SyncInspectorCallbacks;
 
