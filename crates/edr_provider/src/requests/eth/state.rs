@@ -36,7 +36,7 @@ pub(crate) fn deserialize_storage_index<'de, D>(deserializer: D) -> Result<U256,
 where
     D: Deserializer<'de>,
 {
-    let value: String = Deserialize::deserialize(deserializer).map_err(|err| {
+    let value = String::deserialize(deserializer).map_err(|err| {
         if let Some(value) = extract_value_from_serde_json_error(err.to_string().as_str()) {
             serde::de::Error::custom(format!(
                 "Storage slot argument must be a string, got '{value}'"
