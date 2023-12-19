@@ -266,6 +266,38 @@ export const builtinChains: ChainConfig[] = [
       browserURL: "https://explorer.pops.one",
     },
   },
+  {
+    network: "oklink-eth",
+    chainId: 1,
+    urls: {
+      apiURL: "https://www.oklink.com/api/explorer/v1/contract/verify/async/api/eth",
+      browserURL: "https://www.oklink.com/eth",
+    },
+  },
+  {
+    network: "oklink-polygon",
+    chainId: 137,
+    urls: {
+      apiURL: "https://www.oklink.com/api/explorer/v1/contract/verify/async/api/polygon",
+      browserURL: "https://www.oklink.com/polygon",
+    },
+  },
+  {
+    network: "oklink-x1Test",
+    chainId: 195,
+    urls: {
+      apiURL: "https://www.oklink.com/api/explorer/v1/contract/verify/async/api/x1_test",
+      browserURL: "https://www.oklink.com/x1-test",
+    },
+  },
+  {
+    network: "oklink-polygonZKEVM",
+    chainId: 1101,
+    urls: {
+      apiURL: "https://www.oklink.com/api/explorer/v1/contract/verify/async/api/polygon_zkevm",
+      browserURL: "https://www.oklink.com/polygon-zkevm",
+    },
+  },
   // We are not adding new networks to the core of hardhat-verify anymore.
   // Please read this to learn how to manually add support for custom networks:
   // https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-verify#adding-support-for-other-networks
