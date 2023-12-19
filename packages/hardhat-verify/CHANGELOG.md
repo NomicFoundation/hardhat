@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 2.0.3
+
+### Patch Changes
+
+- e77f1d8a0: Add apiUrl and browserUrl to Sourcify configuration.
+
 ## 2.0.2
 
 ### Patch Changes

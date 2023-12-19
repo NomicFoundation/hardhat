@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-viem
 
+## 1.0.2
+
+### Patch Changes
+
+- b521c2a05: Add configurable public client to getContractAt, deployContract and sendDeploymentTransaction
+
 ## 1.0.1
 
 ### Patch Changes
