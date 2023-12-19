@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ignition-ethers",
-  "version": "0.13.0",
+  "version": "0.13.1",
   "license": "MIT",
   "author": "Nomic Foundation",
   "homepage": "https://hardhat.org",
@@ -47,8 +47,8 @@
   },
   "peerDependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.4",
-    "@nomicfoundation/hardhat-ignition": "^0.13.0",
-    "@nomicfoundation/ignition-core": "^0.13.0",
+    "@nomicfoundation/hardhat-ignition": "^0.13.1",
+    "@nomicfoundation/ignition-core": "^0.13.1",
     "ethers": "^6.7.0",
     "hardhat": "^2.18.0"
   }
