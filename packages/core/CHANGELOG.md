@@ -6,11 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## 0.13.1 - 2023-12-19
 
-### Added
-
-- Repo now supports .devcontainer for VSCode ([#657](https://github.com/NomicFoundation/hardhat-ignition/pull/657))
-- New flag `--reset` for `ignition deploy` to wipe the existing deployment state before running ([#651](https://github.com/NomicFoundation/hardhat-ignition/pull/651))
-
 ### Fixed
 
 - Fix bug with `process.stdout` being used in a non-tty context ([#654](https://github.com/NomicFoundation/hardhat-ignition/pull/654))
