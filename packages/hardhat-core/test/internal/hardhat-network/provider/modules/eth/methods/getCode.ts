@@ -15,7 +15,6 @@ import {
   DEFAULT_BLOCK_GAS_LIMIT,
   PROVIDERS,
 } from "../../../../helpers/providers";
-import { retrieveLatestBlockNumber } from "../../../../helpers/retrieveForkBlockNumber";
 import { deployContract } from "../../../../helpers/transactions";
 
 const PRECOMPILES_COUNT = 8;
