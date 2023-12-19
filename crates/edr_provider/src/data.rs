@@ -41,13 +41,17 @@ use indexmap::IndexMap;
 use inspector::EvmInspector;
 pub use inspector::{InspectorCallbacks, SyncInspectorCallbacks};
 use lazy_static::lazy_static;
-use rpc_hardhat::{config::ForkConfig, ForkMetadata};
 use tokio::runtime;
 
 use self::account::{create_accounts, InitialAccounts};
 use crate::{
-    error::TransactionFailure, filter::Filter, logger::Logger, pending::BlockchainWithPending,
-    snapshot::Snapshot, ProviderConfig, ProviderError,
+    error::TransactionFailure,
+    filter::Filter,
+    logger::Logger,
+    pending::BlockchainWithPending,
+    requests::hardhat::rpc_types::{ForkConfig, ForkMetadata},
+    snapshot::Snapshot,
+    ProviderConfig, ProviderError,
 };
 
 #[derive(Debug, thiserror::Error)]
