@@ -363,7 +363,7 @@ impl ProviderData {
                 .basic(address)?
                 .map_or(Ok(Bytes::new()), |account_info| {
                     state.code_by_hash(account_info.code_hash).map(|bytecode| {
-                        // The `Bytecode` REVM struct pad the bytecode with 33 bytes of 0s for the
+                        // The `Bytecode` REVM struct pads the bytecode with 33 bytes of 0s for the
                         // `Checked` and `Analysed` variants. Remove that padding before we return
                         // the bytecode. `Bytecode::len` returns the original length.
                         let original_length = bytecode.len();
