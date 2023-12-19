@@ -100,9 +100,9 @@ const customRedirects = [
     permanent: false,
   },
   {
-    source: "/solidity-survey-2022",
+    source: "/solidity-survey-2023",
     destination:
-      "https://cryptpad.fr/form/#/2/form/view/HuPIRv4gvziSV0dPV1SJncKzYJXTVc8LGCaMfLUoj2c/",
+      "https://cryptpad.fr/form/#/2/form/view/pV-DdryeJoYUWvW+gXsFaMNynEY7t5mUsgeD1urgwSE",
     permanent: false,
   },
   {
