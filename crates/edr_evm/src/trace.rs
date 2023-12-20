@@ -226,7 +226,7 @@ where
         &mut self,
         data: &mut dyn EVMData<E>,
         inputs: &mut CreateInputs,
-    ) -> (InstructionResult, Option<edr_eth::B160>, Gas, Bytes) {
+    ) -> (InstructionResult, Option<Address>, Gas, Bytes) {
         self.validate_before_message();
 
         self.pending_before = Some(BeforeMessage {
@@ -253,10 +253,10 @@ where
         data: &mut dyn EVMData<E>,
         _inputs: &CreateInputs,
         ret: InstructionResult,
-        address: Option<edr_eth::B160>,
+        address: Option<Address>,
         remaining_gas: Gas,
         out: Bytes,
-    ) -> (InstructionResult, Option<edr_eth::B160>, Gas, Bytes) {
+    ) -> (InstructionResult, Option<Address>, Gas, Bytes) {
         self.validate_before_message();
 
         let safe_ret =

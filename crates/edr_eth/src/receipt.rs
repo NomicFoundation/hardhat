@@ -422,7 +422,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Address, Bytes, Log};
+    use crate::{log::Log, Address, Bytes};
 
     macro_rules! impl_typed_receipt_tests {
         ($(

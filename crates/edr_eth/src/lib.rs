@@ -18,6 +18,8 @@ pub mod receipt;
 /// Remote node interaction
 #[cfg(feature = "serde")]
 pub mod remote;
+/// RLP types and functions
+pub mod rlp;
 #[cfg(feature = "serde")]
 pub mod serde;
 /// Ethereum signature types
@@ -35,7 +37,7 @@ pub mod utils;
 pub mod withdrawal;
 
 pub use alloy_primitives::{Address, Bloom, BloomInput, Bytes, B256, B512, B64, U256, U64};
-pub use revm_primitives::{AccountInfo, HashMap, Log, SpecId};
+pub use revm_primitives::{AccountInfo, HashMap, SpecId};
 
 /// A secret key
 pub type Secret = B256;

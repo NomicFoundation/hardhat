@@ -4,6 +4,7 @@ use edr_eth::{
     block::{self, Header, PartialHeader},
     log::{FilterLog, FullBlockLog, Log, ReceiptLog},
     receipt::{BlockReceipt, TransactionReceipt, TypedReceipt},
+    rlp,
     transaction::{DetailedTransaction, SignedTransaction},
     trie,
     withdrawal::Withdrawal,
@@ -50,13 +51,13 @@ impl LocalBlock {
         withdrawals: Option<Vec<Withdrawal>>,
     ) -> Self {
         let ommer_hashes = ommers.iter().map(Header::hash).collect::<Vec<_>>();
-        let ommers_hash = keccak256(&rlp::encode_list(&ommers)[..]);
+        let ommers_hash = keccak256(rlp::encode(&ommers));
         let transactions_root =
-            trie::ordered_trie_root(transactions.iter().map(|r| alloy_rlp::encode(r).freeze()));
+            trie::ordered_trie_root(transactions.iter().map(|r| rlp::encode(r)));
 
         if let Some(withdrawals) = withdrawals.as_ref() {
             partial_header.withdrawals_root = Some(trie::ordered_trie_root(
-                withdrawals.iter().map(|r| alloy_rlp::encode(r).freeze()),
+                withdrawals.iter().map(|r| rlp::encode(r)),
             ));
         }
 
@@ -108,7 +109,7 @@ impl Block for LocalBlock {
     }
 
     fn rlp_size(&self) -> u64 {
-        alloy_rlp::encode(self)
+        rlp::encode(self)
             .len()
             .try_into()
             .expect("usize fits into u64")

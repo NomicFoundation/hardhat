@@ -5,7 +5,7 @@ use revm::{
     inspectors::GasInspector,
     interpreter::{opcode, CallInputs, CreateInputs, Gas, InstructionResult, Interpreter, Stack},
     primitives::{
-        hex, Address, BlockEnv, Bytes, CfgEnv, ExecutionResult, ResultAndState, SpecId, B160, U256,
+        hex, Address, BlockEnv, Bytes, CfgEnv, ExecutionResult, ResultAndState, SpecId, U256,
     },
     EVMData, Inspector, JournalEntry,
 };
@@ -187,11 +187,8 @@ pub struct DebugTraceLogItem {
 #[derive(Debug)]
 pub struct TracerEip3155 {
     config: DebugTraceConfig,
-
     logs: Vec<DebugTraceLogItem>,
-
     gas_inspector: GasInspector,
-
     contract_address: Address,
     gas_remaining: u64,
     memory: Vec<u8>,
@@ -211,7 +208,7 @@ impl TracerEip3155 {
             config,
             logs: Vec::default(),
             gas_inspector: GasInspector::default(),
-            contract_address: B160::default(),
+            contract_address: Address::default(),
             stack: Stack::new(),
             pc: 0,
             opcode: 0,
@@ -253,7 +250,7 @@ impl TracerEip3155 {
                 if let Some(JournalEntry::StorageChange { address, key, .. }) = last_entry {
                     let value = journaled_state.state[address].storage[key].present_value();
                     let contract_storage = self.storage.entry(self.contract_address).or_default();
-                    contract_storage.insert(to_hex_word(key), to_hex_word(&value));
+                    contract_storage.insert(to_hex_word(&key), to_hex_word(&value));
                 }
             }
             Some(
@@ -390,7 +387,7 @@ impl<DatabaseErrorT> Inspector<DatabaseErrorT> for TracerEip3155 {
         &mut self,
         data: &mut dyn EVMData<DatabaseErrorT>,
         _inputs: &mut CreateInputs,
-    ) -> (InstructionResult, Option<B160>, Gas, Bytes) {
+    ) -> (InstructionResult, Option<Address>, Gas, Bytes) {
         self.record_log(data);
         (
             InstructionResult::Continue,
@@ -405,10 +402,10 @@ impl<DatabaseErrorT> Inspector<DatabaseErrorT> for TracerEip3155 {
         data: &mut dyn EVMData<DatabaseErrorT>,
         inputs: &CreateInputs,
         ret: InstructionResult,
-        address: Option<B160>,
+        address: Option<Address>,
         remaining_gas: Gas,
         out: Bytes,
-    ) -> (InstructionResult, Option<B160>, Gas, Bytes) {
+    ) -> (InstructionResult, Option<Address>, Gas, Bytes) {
         self.gas_inspector
             .create_end(data, inputs, ret, address, remaining_gas, out.clone());
         self.skip = true;

@@ -2,7 +2,7 @@ use std::ops::Deref;
 
 use alloy_rlp::BufMut;
 
-use crate::{Log, B256};
+use crate::{log::Log, B256};
 
 /// A log that's part of a transaction receipt.
 #[derive(Clone, Debug, PartialEq, Eq)]

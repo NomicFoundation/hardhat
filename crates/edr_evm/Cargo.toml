@@ -22,7 +22,6 @@ edr_defaults = { version = "0.2.0-dev", path = "../edr_defaults" }
 edr_eth = { version = "0.2.0-dev", path = "../edr_eth", features = ["serde"] }
 # revm = { git = "https://github.com/Wodann/revm", rev = "93d8ebe", version = "3.3", default-features = false, features = ["dev", "serde", "std"] }
 revm = { path = "../../../revm/crates/revm", version = "3.5", default-features = false, features = ["dev", "serde", "std"] }
-rlp = { version = "0.5.2", default-features = false }
 serde = { version = "1.0.158", default-features = false, features = ["std"] }
 serde_json = { version = "1.0.94", default-features = false, features = ["std"] }
 thiserror = { version = "1.0.38", default-features = false }

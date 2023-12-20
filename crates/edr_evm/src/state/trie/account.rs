@@ -1,7 +1,11 @@
 use std::{collections::BTreeMap, fmt::Debug, sync::Arc};
 
 use cita_trie::{MemoryDB, PatriciaTrie, Trie as CitaTrie};
-use edr_eth::{account::BasicAccount, Address, B160, B256, U256};
+use edr_eth::{
+    account::BasicAccount,
+    rlp::{self, Decodable},
+    Address, B256, U256,
+};
 use hasher::{Hasher, HasherKeccak};
 use revm::primitives::{Account, AccountInfo, HashMap};
 
@@ -103,7 +107,7 @@ impl AccountTrie {
 
                         let hashed_address = HasherKeccak::new().digest(address.as_bytes());
                         state_trie
-                            .insert(hashed_address, alloy_rlp::encode(&account).to_vec())
+                            .insert(hashed_address, rlp::encode(&account))
                             .unwrap();
                     } else {
                         Self::remove_account_in(address, &mut state_trie, &mut storage_trie_dbs);
@@ -141,7 +145,7 @@ impl AccountTrie {
         state_trie
             .get(&hashed_address)
             .unwrap()
-            .map(|encoded_account| rlp::decode::<BasicAccount>(&encoded_account).unwrap())
+            .map(|encoded_account| BasicAccount::decode(&mut encoded_account.as_slice()).unwrap())
     }
 
     /// Retrieves the storage storage corresponding to the account at the
@@ -161,13 +165,13 @@ impl AccountTrie {
                 storage_trie
                     .get(&hashed_index)
                     .unwrap()
-                    .map(|decode_value| rlp::decode::<U256>(&decode_value).unwrap())
+                    .map(|decode_value| U256::decode(&mut decode_value.as_slice()).unwrap())
             })
     }
 
     /// Commits changes to the state.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
-    pub fn commit(&mut self, changes: &HashMap<B160, Account>) {
+    pub fn commit(&mut self, changes: &HashMap<Address, Account>) {
         let mut state_trie = Trie::from(
             self.state_trie_db.clone(),
             Arc::new(HasherKeccak::new()),
@@ -269,7 +273,7 @@ impl AccountTrie {
 
         let hashed_address = HasherKeccak::new().digest(address.as_bytes());
         state_trie
-            .insert(hashed_address, alloy_rlp::encode(&account).to_vec())
+            .insert(hashed_address, rlp::encode(&account))
             .unwrap();
     }
 
@@ -344,7 +348,7 @@ impl AccountTrie {
                     .unwrap()
                     .unwrap_or_else(|| panic!("Account with address '{address}' and hashed address '{hashed_address:?}' must exist in state, if a storage trie is stored for it"));
 
-                let account: BasicAccount = rlp::decode(&account).unwrap();
+                let account = BasicAccount::decode(&mut account.as_slice()).unwrap();
 
                 if account == BasicAccount::default() {
                     None
@@ -359,7 +363,7 @@ impl AccountTrie {
                     let storage = storage_trie
                         .iter()
                         .map(|(hashed_index, encoded_value)| {
-                            let value: U256 = rlp::decode(&encoded_value).unwrap();
+                            let value = U256::decode(&mut encoded_value.as_slice()).unwrap();
                             assert_eq!(hashed_index.len(), 32);
                             (B256::from_slice(&hashed_index), value)
                         })
@@ -432,14 +436,14 @@ impl AccountTrie {
                 ..BasicAccount::default()
             },
             |account| {
-                let mut account: BasicAccount = rlp::decode(&account).unwrap();
+                let mut account = BasicAccount::decode(&mut account.as_slice()).unwrap();
                 account.storage_root = *storage_root;
                 account
             },
         );
 
         state_trie
-            .insert(hashed_address, alloy_rlp::encode(&account).to_vec())
+            .insert(hashed_address, rlp::encode(account).to_vec())
             .unwrap();
 
         self.state_root = B256::from_slice(&state_trie.root().unwrap());
@@ -460,7 +464,7 @@ impl AccountTrie {
         let old_value = storage_trie
             .get(&hashed_index)
             .unwrap()
-            .map(|decode_value| rlp::decode::<U256>(&decode_value).unwrap());
+            .map(|decode_value| U256::decode(&mut decode_value.as_slice()).unwrap());
 
         if *value == U256::ZERO {
             if old_value.is_some() {
@@ -468,7 +472,7 @@ impl AccountTrie {
             }
         } else {
             storage_trie
-                .insert(hashed_index, alloy_rlp::encode(value).to_vec())
+                .insert(hashed_index, rlp::encode(value))
                 .unwrap();
         }
 
