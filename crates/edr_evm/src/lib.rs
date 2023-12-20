@@ -20,7 +20,6 @@ pub use crate::{
         debug_trace_transaction, execution_result_to_debug_result, DebugTraceConfig,
         DebugTraceLogItem, DebugTraceResult, TracerEip3155,
     },
-    evm::SyncInspector,
     inspector::*,
     mempool::{MemPool, MinerTransactionError, OrderedTransaction},
     miner::*,

@@ -7,7 +7,7 @@ use revm::{
     primitives::{
         hex, Address, BlockEnv, Bytes, CfgEnv, ExecutionResult, ResultAndState, SpecId, U256,
     },
-    EVMData, Inspector, JournalEntry,
+    Database, EVMData, Inspector, JournalEntry,
 };
 
 use crate::{
@@ -220,8 +220,11 @@ impl TracerEip3155 {
         }
     }
 
-    fn record_log<DatabaseErrorT>(&mut self, data: &mut dyn EVMData<DatabaseErrorT>) {
-        let depth = data.journaled_state().depth();
+    fn record_log<DB>(&mut self, data: &mut EVMData<'_, DB>)
+    where
+        DB: Database,
+    {
+        let depth = data.journaled_state.depth();
 
         let stack = if self.config.disable_stack {
             None
@@ -245,10 +248,9 @@ impl TracerEip3155 {
             None
         } else {
             if matches!(self.opcode, opcode::SLOAD | opcode::SSTORE) {
-                let journaled_state = data.journaled_state();
-                let last_entry = journaled_state.journal.last().and_then(|v| v.last());
+                let last_entry = data.journaled_state.journal.last().and_then(|v| v.last());
                 if let Some(JournalEntry::StorageChange { address, key, .. }) = last_entry {
-                    let value = journaled_state.state[address].storage[key].present_value();
+                    let value = data.journaled_state.state[address].storage[key].present_value();
                     let contract_storage = self.storage.entry(self.contract_address).or_default();
                     contract_storage.insert(to_hex_word(&key), to_hex_word(&value));
                 }
@@ -305,21 +307,20 @@ impl TracerEip3155 {
     }
 }
 
-impl<DatabaseErrorT> Inspector<DatabaseErrorT> for TracerEip3155 {
+impl<DB> Inspector<DB> for TracerEip3155
+where
+    DB: Database,
+{
     fn initialize_interp(
         &mut self,
         interp: &mut Interpreter,
-        data: &mut dyn EVMData<DatabaseErrorT>,
+        data: &mut EVMData<'_, DB>,
     ) -> InstructionResult {
         self.gas_inspector.initialize_interp(interp, data);
         InstructionResult::Continue
     }
 
-    fn step(
-        &mut self,
-        interp: &mut Interpreter,
-        data: &mut dyn EVMData<DatabaseErrorT>,
-    ) -> InstructionResult {
+    fn step(&mut self, interp: &mut Interpreter, data: &mut EVMData<'_, DB>) -> InstructionResult {
         self.contract_address = interp.contract.address;
 
         self.gas_inspector.step(interp, data);
@@ -345,7 +346,7 @@ impl<DatabaseErrorT> Inspector<DatabaseErrorT> for TracerEip3155 {
     fn step_end(
         &mut self,
         interp: &mut Interpreter,
-        data: &mut dyn EVMData<DatabaseErrorT>,
+        data: &mut EVMData<'_, DB>,
         eval: InstructionResult,
     ) -> InstructionResult {
         self.gas_inspector.step_end(interp, data, eval);
@@ -362,7 +363,7 @@ impl<DatabaseErrorT> Inspector<DatabaseErrorT> for TracerEip3155 {
 
     fn call(
         &mut self,
-        data: &mut dyn EVMData<DatabaseErrorT>,
+        data: &mut EVMData<'_, DB>,
         _inputs: &mut CallInputs,
     ) -> (InstructionResult, Gas, Bytes) {
         self.record_log(data);
@@ -371,7 +372,7 @@ impl<DatabaseErrorT> Inspector<DatabaseErrorT> for TracerEip3155 {
 
     fn call_end(
         &mut self,
-        data: &mut dyn EVMData<DatabaseErrorT>,
+        data: &mut EVMData<'_, DB>,
         inputs: &CallInputs,
         remaining_gas: Gas,
         ret: InstructionResult,
@@ -385,7 +386,7 @@ impl<DatabaseErrorT> Inspector<DatabaseErrorT> for TracerEip3155 {
 
     fn create(
         &mut self,
-        data: &mut dyn EVMData<DatabaseErrorT>,
+        data: &mut EVMData<'_, DB>,
         _inputs: &mut CreateInputs,
     ) -> (InstructionResult, Option<Address>, Gas, Bytes) {
         self.record_log(data);
@@ -399,7 +400,7 @@ impl<DatabaseErrorT> Inspector<DatabaseErrorT> for TracerEip3155 {
 
     fn create_end(
         &mut self,
-        data: &mut dyn EVMData<DatabaseErrorT>,
+        data: &mut EVMData<'_, DB>,
         inputs: &CreateInputs,
         ret: InstructionResult,
         address: Option<Address>,

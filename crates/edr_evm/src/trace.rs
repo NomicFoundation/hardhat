@@ -7,7 +7,7 @@ use revm::{
         InstructionResult, Interpreter,
     },
     primitives::{Bytecode, ExecutionResult, Output},
-    EVMData, Inspector,
+    Database, EVMData, Inspector,
 };
 
 /// Stack tracing message
@@ -117,19 +117,20 @@ impl TraceCollector {
     }
 }
 
-impl<E> Inspector<E> for TraceCollector
+impl<DB> Inspector<DB> for TraceCollector
 where
-    E: Debug,
+    DB: Database,
+    DB::Error: Debug,
 {
     fn call(
         &mut self,
-        data: &mut dyn EVMData<E>,
+        data: &mut EVMData<'_, DB>,
         inputs: &mut CallInputs,
     ) -> (InstructionResult, Gas, edr_eth::Bytes) {
         self.validate_before_message();
 
         let code = data
-            .journaled_state()
+            .journaled_state
             .state
             .get(&inputs.contract)
             .map(|account| account.info.clone())
@@ -137,27 +138,23 @@ where
                 if let Some(code) = account_info.code.take() {
                     code
                 } else {
-                    data.database()
-                        .code_by_hash(account_info.code_hash)
-                        .unwrap()
+                    data.db.code_by_hash(account_info.code_hash).unwrap()
                 }
             })
             .unwrap_or_else(|| {
-                data.database().basic(inputs.contract).unwrap().map_or(
+                data.db.basic(inputs.contract).unwrap().map_or(
                     // If an invalid contract address was provided, return empty code
                     Bytecode::new(),
                     |account_info| {
                         account_info.code.unwrap_or_else(|| {
-                            data.database()
-                                .code_by_hash(account_info.code_hash)
-                                .unwrap()
+                            data.db.code_by_hash(account_info.code_hash).unwrap()
                         })
                     },
                 )
             });
 
         self.pending_before = Some(BeforeMessage {
-            depth: data.journaled_state().depth,
+            depth: data.journaled_state.depth,
             caller: inputs.context.caller,
             to: Some(inputs.context.address),
             gas_limit: inputs.gas_limit,
@@ -172,7 +169,7 @@ where
 
     fn call_end(
         &mut self,
-        data: &mut dyn EVMData<E>,
+        data: &mut EVMData<'_, DB>,
         _inputs: &CallInputs,
         remaining_gas: Gas,
         ret: InstructionResult,
@@ -202,7 +199,7 @@ where
                 reason,
                 gas_used: remaining_gas.spend(),
                 gas_refunded: remaining_gas.refunded() as u64,
-                logs: data.journaled_state().logs.clone(),
+                logs: data.journaled_state.logs.clone(),
                 output: Output::Call(out.clone()),
             },
             SuccessOrHalt::Revert => ExecutionResult::Revert {
@@ -224,13 +221,13 @@ where
 
     fn create(
         &mut self,
-        data: &mut dyn EVMData<E>,
+        data: &mut EVMData<'_, DB>,
         inputs: &mut CreateInputs,
     ) -> (InstructionResult, Option<Address>, Gas, Bytes) {
         self.validate_before_message();
 
         self.pending_before = Some(BeforeMessage {
-            depth: data.journaled_state().depth,
+            depth: data.journaled_state.depth,
             caller: inputs.caller,
             to: None,
             gas_limit: inputs.gas_limit,
@@ -250,7 +247,7 @@ where
 
     fn create_end(
         &mut self,
-        data: &mut dyn EVMData<E>,
+        data: &mut EVMData<'_, DB>,
         _inputs: &CreateInputs,
         ret: InstructionResult,
         address: Option<Address>,
@@ -271,7 +268,7 @@ where
                 reason,
                 gas_used: remaining_gas.spend(),
                 gas_refunded: remaining_gas.refunded() as u64,
-                logs: data.journaled_state().logs.clone(),
+                logs: data.journaled_state.logs.clone(),
                 output: Output::Create(out.clone(), address),
             },
             SuccessOrHalt::Revert => ExecutionResult::Revert {
@@ -291,7 +288,7 @@ where
         (ret, address, remaining_gas, out)
     }
 
-    fn step(&mut self, interp: &mut Interpreter, data: &mut dyn EVMData<E>) -> InstructionResult {
+    fn step(&mut self, interp: &mut Interpreter, data: &mut EVMData<'_, DB>) -> InstructionResult {
         // Skip the step
         let skip_step = self.pending_before.as_ref().map_or(false, |message| {
             message.code.is_some() && interp.current_opcode() == opcode::STOP
@@ -301,7 +298,7 @@ where
 
         if !skip_step {
             self.trace.add_step(
-                data.journaled_state().depth(),
+                data.journaled_state.depth(),
                 interp.program_counter(),
                 interp.current_opcode(),
                 interp.stack.data().last().cloned(),

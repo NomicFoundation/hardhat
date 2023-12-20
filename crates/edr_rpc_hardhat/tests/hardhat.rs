@@ -43,9 +43,9 @@ fn serde_hardhat_compiler() {
 
 #[test]
 fn serde_hardhat_drop_transaction() {
-    help_test_method_invocation_serde(edr_rpc_hardhat::Request::DropTransaction(
-        B256::from_low_u64_ne(1),
-    ));
+    help_test_method_invocation_serde(edr_rpc_hardhat::Request::DropTransaction(B256::from(
+        U256::from(1),
+    )));
 }
 
 #[test]
@@ -61,7 +61,7 @@ fn serde_hardhat_get_stack_trace_failures_count() {
 #[test]
 fn serde_hardhat_impersonate_account() {
     help_test_method_invocation_serde(edr_rpc_hardhat::Request::ImpersonateAccount(
-        Address::from_low_u64_ne(1),
+        Address::random(),
     ));
 }
 
@@ -102,7 +102,7 @@ fn serde_hardhat_reset() {
 #[test]
 fn serde_hardhat_set_balance() {
     help_test_method_invocation_serde(edr_rpc_hardhat::Request::SetBalance(
-        Address::from_low_u64_ne(1),
+        Address::random(),
         U256::ZERO,
     ));
 }
@@ -110,16 +110,14 @@ fn serde_hardhat_set_balance() {
 #[test]
 fn serde_hardhat_set_code() {
     help_test_method_invocation_serde(edr_rpc_hardhat::Request::SetCode(
-        Address::from_low_u64_ne(1),
-        Bytes::from(&b"whatever"[..]).into(),
+        Address::random(),
+        Bytes::from(&b"whatever"[..]),
     ));
 }
 
 #[test]
 fn serde_hardhat_set_coinbase() {
-    help_test_method_invocation_serde(edr_rpc_hardhat::Request::SetCoinbase(
-        Address::from_low_u64_ne(1),
-    ));
+    help_test_method_invocation_serde(edr_rpc_hardhat::Request::SetCoinbase(Address::random()));
 }
 
 #[test]
@@ -141,10 +139,7 @@ fn serde_hardhat_set_next_block_base_fee_per_gas() {
 
 #[test]
 fn serde_hardhat_set_nonce() {
-    help_test_method_invocation_serde(edr_rpc_hardhat::Request::SetNonce(
-        Address::from_low_u64_ne(1),
-        1u64,
-    ));
+    help_test_method_invocation_serde(edr_rpc_hardhat::Request::SetNonce(Address::random(), 1u64));
 }
 
 #[test]
@@ -155,7 +150,7 @@ fn serde_hardhat_set_prev_randao() {
 #[test]
 fn serde_hardhat_set_storage_at() {
     help_test_method_invocation_serde(edr_rpc_hardhat::Request::SetStorageAt(
-        Address::from_low_u64_ne(1),
+        Address::random(),
         U256::ZERO,
         U256::ZERO,
     ));
@@ -164,6 +159,6 @@ fn serde_hardhat_set_storage_at() {
 #[test]
 fn serde_hardhat_stop_impersonating_account() {
     help_test_method_invocation_serde(edr_rpc_hardhat::Request::StopImpersonatingAccount(
-        Address::from_low_u64_ne(1),
+        Address::random(),
     ));
 }

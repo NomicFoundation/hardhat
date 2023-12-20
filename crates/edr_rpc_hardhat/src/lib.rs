@@ -5,7 +5,7 @@ pub mod compiler;
 pub mod config;
 mod metadata;
 
-use edr_eth::{serde::ZeroXPrefixedBytes, Address, B256, U256};
+use edr_eth::{Address, Bytes, B256, U256};
 
 pub use self::metadata::{ForkMetadata, Metadata};
 use self::{
@@ -72,7 +72,7 @@ pub enum Request {
     SetBalance(Address, U256),
     /// hardhat_setCode
     #[serde(rename = "hardhat_setCode")]
-    SetCode(Address, ZeroXPrefixedBytes),
+    SetCode(Address, Bytes),
     /// hardhat_setCoinbase
     #[serde(rename = "hardhat_setCoinbase", with = "edr_eth::serde::sequence")]
     SetCoinbase(Address),

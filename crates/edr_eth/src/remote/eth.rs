@@ -19,7 +19,7 @@ use crate::{
         Eip4844SignedTransaction, LegacySignedTransaction, SignedTransaction, TransactionKind,
     },
     withdrawal::Withdrawal,
-    Address, Bloom, Bytes, B256, U256,
+    Address, Bloom, Bytes, B256, B64, U256,
 };
 
 /// transaction
@@ -327,8 +327,7 @@ pub struct Block<TX> {
     /// mix hash
     pub mix_hash: B256,
     /// hash of the generated proof-of-work. null when its pending block.
-    #[serde(with = "crate::serde::optional_u64")]
-    pub nonce: Option<u64>,
+    pub nonce: Option<B64>,
     /// base fee per gas
     pub base_fee_per_gas: Option<U256>,
     /// the address of the beneficiary to whom the mining rewards were given

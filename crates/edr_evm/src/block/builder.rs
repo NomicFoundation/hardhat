@@ -5,7 +5,7 @@ use std::{
 
 use edr_eth::{
     block::{BlobGas, BlockOptions, Header, PartialHeader},
-    log::Log,
+    log::{add_log_to_bloom, Log},
     receipt::{TransactionReceipt, TypedReceipt, TypedReceiptData},
     rlp,
     transaction::SignedTransaction,
@@ -13,19 +13,20 @@ use edr_eth::{
     Address, Bloom, U256,
 };
 use revm::{
-    db::DatabaseComponentError,
+    db::{DatabaseComponentError, WrapDatabaseRef},
     primitives::{
         AccountInfo, BlobExcessGasAndPrice, BlockEnv, CfgEnv, EVMError, ExecutionResult,
         InvalidHeader, InvalidTransaction, Output, ResultAndState, SpecId,
     },
+    Inspector,
 };
 
 use super::local::LocalBlock;
 use crate::{
     blockchain::SyncBlockchain,
-    evm::{build_evm, run_transaction, SyncInspector},
+    evm::{build_evm, run_transaction},
     state::{AccountModifierFn, StateDiff, SyncState},
-    PendingTransaction,
+    PendingTransaction, SyncDatabase,
 };
 
 /// An error caused during construction of a block builder.
@@ -182,7 +183,11 @@ impl BlockBuilder {
         blockchain: &dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
         state: &mut dyn SyncState<StateErrorT>,
         transaction: PendingTransaction,
-        inspector: Option<&mut dyn SyncInspector<BlockchainErrorT, StateErrorT>>,
+        inspector: Option<
+            &mut dyn Inspector<
+                WrapDatabaseRef<&SyncDatabase<'_, '_, BlockchainErrorT, StateErrorT>>,
+            >,
+        >,
     ) -> Result<ExecutionResult, BlockTransactionError<BlockchainErrorT, StateErrorT>>
     where
         BlockchainErrorT: Debug + Send,
@@ -236,7 +241,7 @@ impl BlockBuilder {
         let logs_bloom = {
             let mut bloom = Bloom::ZERO;
             for log in &logs {
-                log.add_to_bloom(&mut bloom);
+                add_log_to_bloom(log, &mut bloom);
             }
             bloom
         };
@@ -350,11 +355,8 @@ impl BlockBuilder {
             logs_bloom
         };
 
-        self.header.receipts_root = ordered_trie_root(
-            self.receipts
-                .iter()
-                .map(|receipt| rlp::encode(&**receipt).freeze()),
-        );
+        self.header.receipts_root =
+            ordered_trie_root(self.receipts.iter().map(|receipt| rlp::encode(&**receipt)));
 
         if let Some(timestamp) = timestamp {
             self.header.timestamp = timestamp;
