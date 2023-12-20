@@ -206,7 +206,7 @@ pub enum MethodInvocation {
     SendTransaction(EthTransactionRequest),
     /// eth_sign
     #[serde(rename = "eth_sign", alias = "personal_sign")]
-    Sign(Address, ZeroXPrefixedBytes),
+    Sign(ZeroXPrefixedBytes, Address),
     /// eth_signTypedData_v4
     #[serde(rename = "eth_signTypedData_v4")]
     SignTypedDataV4(Address, eip712::Message),
