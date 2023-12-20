@@ -335,7 +335,10 @@ pub struct Block<TX> {
     /// mix hash
     pub mix_hash: B256,
     /// hash of the generated proof-of-work. null when its pending block.
-    #[serde(with = "crate::serde::optional_u64")]
+    #[serde(
+        serialize_with = "crate::serde::optional_u64::serialize_padded",
+        deserialize_with = "crate::serde::optional_u64::deserialize"
+    )]
     pub nonce: Option<u64>,
     /// base fee per gas
     pub base_fee_per_gas: Option<U256>,
