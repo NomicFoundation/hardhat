@@ -34,13 +34,16 @@ where
 }
 
 #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-pub fn run_transaction<BE, SE>(
-    evm: revm::EVM<SyncDatabase<'_, '_, BE, SE>>,
-    inspector: Option<&mut dyn Inspector<WrapDatabaseRef<&SyncDatabase<'_, '_, BE, SE>>>>,
+pub fn run_transaction<'evm, 'inspector, BE, SE>(
+    evm: revm::EVM<SyncDatabase<'evm, 'evm, BE, SE>>,
+    inspector: Option<
+        &'inspector mut dyn Inspector<WrapDatabaseRef<&'evm SyncDatabase<'evm, 'evm, BE, SE>>>,
+    >,
 ) -> Result<ResultAndState, EVMError<DatabaseComponentError<SE, BE>>>
 where
     BE: Debug + Send,
     SE: Debug + Send,
+    'evm: 'inspector,
 {
     if let Some(inspector) = inspector {
         evm.inspect_ref(inspector)

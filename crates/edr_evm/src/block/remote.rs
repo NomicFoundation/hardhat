@@ -9,7 +9,7 @@ use edr_eth::{
     },
     transaction::SignedTransaction,
     withdrawal::Withdrawal,
-    Address, B256, B64,
+    Address, B256,
 };
 use tokio::runtime;
 

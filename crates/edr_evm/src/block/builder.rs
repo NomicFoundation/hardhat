@@ -7,7 +7,6 @@ use edr_eth::{
     block::{BlobGas, BlockOptions, Header, PartialHeader},
     log::{add_log_to_bloom, Log},
     receipt::{TransactionReceipt, TypedReceipt, TypedReceiptData},
-    rlp,
     transaction::SignedTransaction,
     trie::ordered_trie_root,
     Address, Bloom, U256,
@@ -355,8 +354,11 @@ impl BlockBuilder {
             logs_bloom
         };
 
-        self.header.receipts_root =
-            ordered_trie_root(self.receipts.iter().map(|receipt| rlp::encode(&**receipt)));
+        self.header.receipts_root = ordered_trie_root(
+            self.receipts
+                .iter()
+                .map(|receipt| alloy_rlp::encode(&**receipt)),
+        );
 
         if let Some(timestamp) = timestamp {
             self.header.timestamp = timestamp;

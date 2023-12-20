@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
+use alloy_rlp::RlpEncodable;
 use edr_eth::{
     block::{self, Header, PartialHeader},
     log::{FilterLog, FullBlockLog, Log, ReceiptLog},
     receipt::{BlockReceipt, TransactionReceipt, TypedReceipt},
-    rlp,
     transaction::{DetailedTransaction, SignedTransaction},
     trie,
     withdrawal::Withdrawal,
@@ -16,15 +16,20 @@ use revm::primitives::keccak256;
 use crate::{blockchain::BlockchainError, Block, SyncBlock};
 
 /// A locally mined block, which contains complete information.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, RlpEncodable)]
+#[rlp(trailing)]
 pub struct LocalBlock {
     header: block::Header,
     transactions: Vec<SignedTransaction>,
+    #[rlp(skip)]
     transaction_callers: Vec<Address>,
+    #[rlp(skip)]
     transaction_receipts: Vec<Arc<BlockReceipt>>,
     ommers: Vec<block::Header>,
+    #[rlp(skip)]
     ommer_hashes: Vec<B256>,
     withdrawals: Option<Vec<Withdrawal>>,
+    #[rlp(skip)]
     hash: B256,
 }
 
@@ -51,13 +56,13 @@ impl LocalBlock {
         withdrawals: Option<Vec<Withdrawal>>,
     ) -> Self {
         let ommer_hashes = ommers.iter().map(Header::hash).collect::<Vec<_>>();
-        let ommers_hash = keccak256(rlp::encode(&ommers));
+        let ommers_hash = keccak256(alloy_rlp::encode(&ommers));
         let transactions_root =
-            trie::ordered_trie_root(transactions.iter().map(|r| rlp::encode(r)));
+            trie::ordered_trie_root(transactions.iter().map(|r| alloy_rlp::encode(r)));
 
         if let Some(withdrawals) = withdrawals.as_ref() {
             partial_header.withdrawals_root = Some(trie::ordered_trie_root(
-                withdrawals.iter().map(|r| rlp::encode(r)),
+                withdrawals.iter().map(|r| alloy_rlp::encode(r)),
             ));
         }
 
@@ -109,7 +114,7 @@ impl Block for LocalBlock {
     }
 
     fn rlp_size(&self) -> u64 {
-        rlp::encode(self)
+        alloy_rlp::encode(self)
             .len()
             .try_into()
             .expect("usize fits into u64")
@@ -133,25 +138,6 @@ impl Block for LocalBlock {
 
     fn withdrawals(&self) -> Option<&[Withdrawal]> {
         self.withdrawals.as_deref()
-    }
-}
-
-impl rlp::Encodable for LocalBlock {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        let mut num_fields = 3;
-        if self.withdrawals.is_some() {
-            num_fields += 1;
-        }
-
-        s.begin_list(num_fields);
-
-        s.append(&self.header);
-        s.append_list(&self.transactions);
-        s.append_list(&self.ommers);
-
-        if let Some(withdrawals) = self.withdrawals.as_ref() {
-            s.append_list(withdrawals);
-        }
     }
 }
 

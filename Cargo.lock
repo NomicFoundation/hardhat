@@ -1015,6 +1015,7 @@ dependencies = [
 name = "edr_evm"
 version = "0.2.0-dev"
 dependencies = [
+ "alloy-rlp",
  "async-rwlock",
  "auto_impl",
  "cita_trie",

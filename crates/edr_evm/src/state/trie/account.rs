@@ -1,11 +1,8 @@
 use std::{collections::BTreeMap, fmt::Debug, sync::Arc};
 
+use alloy_rlp::Decodable;
 use cita_trie::{MemoryDB, PatriciaTrie, Trie as CitaTrie};
-use edr_eth::{
-    account::BasicAccount,
-    rlp::{self, Decodable},
-    Address, B256, U256,
-};
+use edr_eth::{account::BasicAccount, Address, B256, U256};
 use hasher::{Hasher, HasherKeccak};
 use revm::primitives::{Account, AccountInfo, HashMap};
 
@@ -107,7 +104,7 @@ impl AccountTrie {
 
                         let hashed_address = HasherKeccak::new().digest(address.as_slice());
                         state_trie
-                            .insert(hashed_address, rlp::encode(&account))
+                            .insert(hashed_address, alloy_rlp::encode(&account))
                             .unwrap();
                     } else {
                         Self::remove_account_in(address, &mut state_trie, &mut storage_trie_dbs);
@@ -273,7 +270,7 @@ impl AccountTrie {
 
         let hashed_address = HasherKeccak::new().digest(address.as_slice());
         state_trie
-            .insert(hashed_address, rlp::encode(&account))
+            .insert(hashed_address, alloy_rlp::encode(&account))
             .unwrap();
     }
 
@@ -443,7 +440,7 @@ impl AccountTrie {
         );
 
         state_trie
-            .insert(hashed_address, rlp::encode(account).to_vec())
+            .insert(hashed_address, alloy_rlp::encode(account).to_vec())
             .unwrap();
 
         self.state_root = B256::from_slice(&state_trie.root().unwrap());
@@ -472,7 +469,7 @@ impl AccountTrie {
             }
         } else {
             storage_trie
-                .insert(hashed_index, rlp::encode(value))
+                .insert(hashed_index, alloy_rlp::encode(value))
                 .unwrap();
         }
 
