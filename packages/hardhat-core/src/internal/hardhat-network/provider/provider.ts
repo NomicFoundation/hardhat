@@ -469,7 +469,7 @@ export class EdrProviderWrapper
             order: ethereumjsMempoolOrderToEdrMineOrdering(config.mempoolOrder),
           },
         },
-        networkId: BigInt(config.chainId),
+        networkId: BigInt(config.networkId),
       },
       (message: Buffer) => {
         const consoleLogger = new ConsoleLogger();
