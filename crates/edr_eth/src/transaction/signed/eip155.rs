@@ -1,12 +1,13 @@
 use std::sync::OnceLock;
 
+use alloy_primitives::keccak256;
 use alloy_rlp::{RlpDecodable, RlpEncodable};
-use revm_primitives::{keccak256, Address, Bytes, B256, U256};
 
 use super::LegacySignedTransaction;
 use crate::{
     signature::{Signature, SignatureError},
     transaction::{kind::TransactionKind, request::Eip155TransactionRequest},
+    Address, Bytes, B256, U256,
 };
 
 #[derive(Clone, Debug, Eq, RlpDecodable, RlpEncodable)]
@@ -31,8 +32,7 @@ pub struct Eip155SignedTransaction {
 
 impl Eip155SignedTransaction {
     pub fn hash(&self) -> &B256 {
-        self.hash
-            .get_or_init(|| keccak256(&alloy_rlp::encode(self)))
+        self.hash.get_or_init(|| keccak256(alloy_rlp::encode(self)))
     }
 
     /// Recovers the Ethereum address which was used to sign the transaction.
@@ -79,7 +79,6 @@ mod tests {
 
     use alloy_rlp::Decodable;
     use k256::SecretKey;
-    use revm_primitives::Address;
 
     use super::*;
     use crate::signature::secret_key_from_str;
@@ -114,7 +113,7 @@ mod tests {
         let signed = request.sign(&dummy_secret_key()).unwrap();
 
         let encoded = alloy_rlp::encode(&signed);
-        assert_eq!(expected, encoded.to_vec());
+        assert_eq!(expected, encoded);
     }
 
     #[test]

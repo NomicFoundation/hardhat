@@ -11,7 +11,7 @@ mod reorg;
 use std::sync::OnceLock;
 
 use alloy_rlp::{BufMut, Decodable, RlpDecodable, RlpEncodable};
-use revm_primitives::{calc_excess_blob_gas, keccak256, SpecId};
+use revm_primitives::{calc_excess_blob_gas, keccak256};
 
 use self::difficulty::calculate_ethash_canonical_difficulty;
 pub use self::{
@@ -25,7 +25,7 @@ use crate::{
     transaction::SignedTransaction,
     trie::{self, KECCAK_NULL_RLP},
     withdrawal::Withdrawal,
-    Address, Bloom, Bytes, B256, U256,
+    Address, Bloom, Bytes, SpecId, B256, B64, U256,
 };
 
 /// Ethereum block
@@ -54,13 +54,12 @@ impl Block {
         ommers: Vec<Header>,
         withdrawals: Option<Vec<Withdrawal>>,
     ) -> Self {
-        let ommers_hash = keccak256(&alloy_rlp::encode(&ommers));
-        let transactions_root =
-            trie::ordered_trie_root(transactions.iter().map(|r| alloy_rlp::encode(r)));
+        let ommers_hash = keccak256(alloy_rlp::encode(&ommers));
+        let transactions_root = trie::ordered_trie_root(transactions.iter().map(alloy_rlp::encode));
 
         if let Some(withdrawals) = withdrawals.as_ref() {
             partial_header.withdrawals_root = Some(trie::ordered_trie_root(
-                withdrawals.iter().map(|r| alloy_rlp::encode(r)),
+                withdrawals.iter().map(alloy_rlp::encode),
             ));
         }
 
@@ -123,8 +122,8 @@ pub struct Header {
     /// The block's mix hash
     pub mix_hash: B256,
     /// The block's nonce
-    #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
-    pub nonce: u64,
+    // #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
+    pub nonce: B64,
     /// BaseFee was added by EIP-1559 and is ignored in legacy headers.
     pub base_fee_per_gas: Option<U256>,
     /// WithdrawalsHash was added by EIP-4895 and is ignored in legacy headers.
@@ -197,7 +196,7 @@ impl Header {
             timestamp: partial_header.timestamp,
             extra_data: partial_header.extra_data,
             mix_hash: partial_header.mix_hash,
-            nonce: partial_header.nonce,
+            nonce: B64::from(partial_header.nonce),
             base_fee_per_gas: partial_header.base_fee,
             withdrawals_root: partial_header.withdrawals_root,
             blob_gas: partial_header.blob_gas,
@@ -208,7 +207,7 @@ impl Header {
     /// Calculates the block's hash.
     pub fn hash(&self) -> B256 {
         let encoded = alloy_rlp::encode(self);
-        keccak256(&encoded)
+        keccak256(encoded)
     }
 }
 
@@ -240,7 +239,7 @@ pub struct PartialHeader {
     /// The block's mix hash
     pub mix_hash: B256,
     /// The block's nonce
-    pub nonce: u64,
+    pub nonce: B64,
     /// BaseFee was added by EIP-1559 and is ignored in legacy headers.
     pub base_fee: Option<U256>,
     /// WithdrawalsHash was added by EIP-4895 and is ignored in legacy headers.
@@ -355,7 +354,7 @@ impl Default for PartialHeader {
             timestamp: u64::default(),
             extra_data: Bytes::default(),
             mix_hash: B256::default(),
-            nonce: u64::default(),
+            nonce: B64::default(),
             base_fee: None,
             withdrawals_root: None,
             blob_gas: None,
@@ -412,7 +411,7 @@ mod tests {
             timestamp: 0,
             extra_data: Bytes::default(),
             mix_hash: B256::default(),
-            nonce: 99,
+            nonce: B64::from(99u64),
             base_fee_per_gas: None,
             withdrawals_root: None,
             blob_gas: None,
@@ -450,7 +449,7 @@ mod tests {
             timestamp: 0x1a0au64,
             extra_data: hex::decode("7788").unwrap().into(),
             mix_hash: B256::ZERO,
-            nonce: 0,
+            nonce: B64::ZERO,
             base_fee_per_gas: None,
             withdrawals_root: None,
             blob_gas: None,
@@ -496,7 +495,7 @@ mod tests {
             timestamp: 0x079e,
             extra_data: hex::decode("42").unwrap().into(),
             mix_hash: B256::ZERO,
-            nonce: 0,
+            nonce: B64::ZERO,
             base_fee_per_gas: Some(U256::from(0x036bu64)),
             withdrawals_root: None,
             blob_gas: None,
@@ -525,7 +524,7 @@ mod tests {
             timestamp: 0x1a0au64,
             extra_data: hex::decode("7788").unwrap().into(),
             mix_hash: B256::ZERO,
-            nonce: 0,
+            nonce: B64::ZERO,
             base_fee_per_gas: None,
             withdrawals_root: None,
             blob_gas: None,
@@ -556,7 +555,7 @@ mod tests {
             gas_limit: 0x016345785d8a0000u64,
             gas_used: 0x5208u64,
             mix_hash: B256::ZERO,
-            nonce: 0,
+            nonce: B64::ZERO,
             number: 0x01u64,
             parent_beacon_block_root: Some(B256::ZERO),
             parent_hash: B256::from_str(

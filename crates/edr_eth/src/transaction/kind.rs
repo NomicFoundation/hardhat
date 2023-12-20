@@ -1,5 +1,6 @@
 use alloy_rlp::{Buf, BufMut};
-use revm_primitives::Address;
+
+use crate::Address;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

@@ -14,9 +14,7 @@ use reqwest_middleware::{ClientBuilder as HttpClientBuilder, ClientWithMiddlewar
 use reqwest_retry::{
     policies::ExponentialBackoff, RetryTransientMiddleware, Retryable, RetryableStrategy,
 };
-use revm_primitives::{
-    ruint::aliases::U64, AccountInfo, Address, Bytecode, Bytes, B256, KECCAK_EMPTY, U256,
-};
+use revm_primitives::{Bytecode, KECCAK_EMPTY};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use sha3::{digest::FixedOutput, Digest, Sha3_256};
 use tokio::sync::{OnceCell, RwLock};
@@ -38,6 +36,7 @@ use crate::{
         },
         jsonrpc::Id,
     },
+    AccountInfo, Address, Bytes, B256, U256, U64,
 };
 
 const RPC_CACHE_DIR: &str = "rpc_cache";

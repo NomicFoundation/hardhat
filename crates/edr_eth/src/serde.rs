@@ -104,9 +104,8 @@ pub mod sequence {
 /// Helper module for (de)serializing [`std::primitive::u64`]s from and into
 /// `0x`-prefixed hexadecimal strings.
 pub mod u64 {
-    use revm_primitives::ruint::aliases::U64;
-
     use super::{Deserialize, Deserializer, Serialize, Serializer};
+    use crate::U64;
 
     /// Helper function for deserializing a [`std::primitive::u64`] from a
     /// `0x`-prefixed hexadecimal string.
@@ -131,9 +130,8 @@ pub mod u64 {
 /// Helper module for (de)serializing an [`Option<std::primitive::u64>`] from a
 /// `0x`-prefixed hexadecimal string.
 pub mod optional_u64 {
-    use revm_primitives::ruint::aliases::U64;
-
     use super::{Deserialize, Deserializer, Serialize, Serializer};
+    use crate::U64;
 
     /// Helper function for deserializing an [`Option<std::primitive::u64>`]
     /// from a `0x`-prefixed hexadecimal string.
@@ -163,7 +161,7 @@ pub mod optional_u64 {
 /// Helper module for (de)serializing [`std::primitive::u8`]s from and into
 /// `0x`-prefixed hexadecimal strings.
 pub mod u8 {
-    use revm_primitives::ruint::aliases::U8;
+    use alloy_primitives::U8;
 
     use super::{Deserialize, Deserializer, Serialize, Serializer};
 

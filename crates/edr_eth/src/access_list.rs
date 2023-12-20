@@ -5,9 +5,8 @@
 // For the original context see: https://github.com/gakonst/ethers-rs/blob/3d9c3290d42b77c510e5b5d0b6f7a2f72913bfff/ethers-core/src/types/transaction/eip2930.rs
 
 use alloy_rlp::{RlpDecodable, RlpDecodableWrapper, RlpEncodable, RlpEncodableWrapper};
-use revm_primitives::B256;
 
-use crate::{Address, U256};
+use crate::{Address, B256, U256};
 
 /// Access list
 // NB: Need to use `RlpEncodableWrapper` else we get an extra [] in the output

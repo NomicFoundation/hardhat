@@ -352,9 +352,8 @@ impl From<Eip4844SignedTransaction> for SignedTransaction {
 mod tests {
     use std::sync::OnceLock;
 
-    use revm_primitives::Bytes;
-
     use super::*;
+    use crate::Bytes;
 
     #[test]
     fn can_recover_sender() {

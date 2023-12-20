@@ -1,8 +1,8 @@
 use std::sync::OnceLock;
 
+use alloy_primitives::keccak256;
 use alloy_rlp::{RlpDecodable, RlpEncodable};
 use k256::SecretKey;
-use revm_primitives::{keccak256, Address, Bytes, B256, U256};
 
 use crate::{
     access_list::AccessListItem,
@@ -12,6 +12,7 @@ use crate::{
         signed::Eip1559SignedTransaction,
     },
     utils::envelop_bytes,
+    Address, Bytes, B256, U256,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq, RlpDecodable, RlpEncodable)]
@@ -33,7 +34,7 @@ impl Eip1559TransactionRequest {
     pub fn hash(&self) -> B256 {
         let encoded = alloy_rlp::encode(self);
 
-        keccak256(&envelop_bytes(2, &encoded))
+        keccak256(envelop_bytes(2, &encoded))
     }
 
     pub fn sign(self, secret_key: &SecretKey) -> Result<Eip1559SignedTransaction, SignatureError> {
@@ -99,8 +100,6 @@ impl From<&Eip1559SignedTransaction> for Eip1559TransactionRequest {
 pub(crate) mod tests {
     use std::str::FromStr;
 
-    use revm_primitives::Address;
-
     use super::*;
     use crate::transaction::request::fake_signature::tests::test_fake_sign_properties;
 
@@ -135,7 +134,7 @@ pub(crate) mod tests {
         let request = dummy_request();
 
         let encoded = alloy_rlp::encode(&request);
-        assert_eq!(expected, encoded.to_vec());
+        assert_eq!(expected, encoded);
     }
 
     #[test]
@@ -156,7 +155,7 @@ pub(crate) mod tests {
         };
 
         let encoded = alloy_rlp::encode(&empty);
-        assert_eq!(expected, encoded.to_vec());
+        assert_eq!(expected, encoded);
     }
 
     #[test]

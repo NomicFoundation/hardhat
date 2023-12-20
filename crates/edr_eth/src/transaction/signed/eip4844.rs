@@ -1,14 +1,14 @@
 use std::sync::OnceLock;
 
+use alloy_primitives::keccak256;
 use alloy_rlp::{RlpDecodable, RlpEncodable};
-use revm_primitives::{keccak256, Bytes, B256, U256};
 
 use crate::{
     access_list::AccessList,
     signature::{Signature, SignatureError},
     transaction::Eip4844TransactionRequest,
     utils::envelop_bytes,
-    Address,
+    Address, Bytes, B256, U256,
 };
 
 #[derive(Clone, Debug, Eq, RlpDecodable, RlpEncodable)]

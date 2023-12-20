@@ -102,11 +102,10 @@ where
     fn rlp_payload_length(&self) -> usize {
         let data_length = match &self.data {
             TypedReceiptData::PreEip658Legacy { state_root } => state_root.length(),
-            TypedReceiptData::PostEip658Legacy { status } => status.length(),
-            // Post-EIP-2930 receipts have an id byte
-            TypedReceiptData::Eip2930 { status }
-            | TypedReceiptData::Eip1559 { status }
-            | TypedReceiptData::Eip4844 { status } => 1 + status.length(),
+            TypedReceiptData::PostEip658Legacy { .. }
+            | TypedReceiptData::Eip2930 { .. }
+            | TypedReceiptData::Eip1559 { .. }
+            | TypedReceiptData::Eip4844 { .. } => 1,
         };
 
         data_length
@@ -161,8 +160,9 @@ where
             where
                 MapAccessT: serde::de::MapAccess<'deserializer>,
             {
-                use revm_primitives::ruint::aliases::U64;
                 use serde::de::Error;
+
+                use crate::U64;
 
                 // These are `String` to support deserializing from `serde_json::Value`
                 let mut transaction_type: Option<String> = None;
@@ -272,10 +272,14 @@ where
                 u8::from(status == 1)
             }
 
+            println!("1");
+
             let alloy_rlp::Header {
                 list,
                 payload_length,
             } = alloy_rlp::Header::decode(buf)?;
+
+            println!("2");
 
             if !list {
                 return Err(alloy_rlp::Error::UnexpectedString);
@@ -286,30 +290,40 @@ where
                 return Err(alloy_rlp::Error::InputTooShort);
             }
 
+            let data = match id {
+                None | Some(0) => {
+                    // Use a temporary buffer to decode the header, avoiding the original buffer
+                    // from being advanced
+                    let header = {
+                        let mut temp_buf = *buf;
+                        alloy_rlp::Header::decode(&mut temp_buf)?
+                    };
+
+                    if header.payload_length == 1 {
+                        let status = u8::decode(buf)?;
+                        TypedReceiptData::PostEip658Legacy {
+                            status: normalize_status(status),
+                        }
+                    } else {
+                        TypedReceiptData::PreEip658Legacy {
+                            state_root: B256::decode(buf)?,
+                        }
+                    }
+                }
+                Some(1) => TypedReceiptData::Eip2930 {
+                    status: normalize_status(u8::decode(buf)?),
+                },
+                Some(2) => TypedReceiptData::Eip1559 {
+                    status: normalize_status(u8::decode(buf)?),
+                },
+                _ => return Err(alloy_rlp::Error::Custom("Unknown receipt type")),
+            };
+
             let receipt = TypedReceipt {
                 cumulative_gas_used: u64::decode(buf)?,
                 logs_bloom: Bloom::decode(buf)?,
                 logs: Vec::<LogT>::decode(buf)?,
-                data: match id {
-                    None | Some(0) => {
-                        if let Ok(status) = u8::decode(buf) {
-                            TypedReceiptData::PostEip658Legacy {
-                                status: normalize_status(status),
-                            }
-                        } else {
-                            TypedReceiptData::PreEip658Legacy {
-                                state_root: B256::decode(buf)?,
-                            }
-                        }
-                    }
-                    Some(1) => TypedReceiptData::Eip2930 {
-                        status: normalize_status(u8::decode(buf)?),
-                    },
-                    Some(2) => TypedReceiptData::Eip1559 {
-                        status: normalize_status(u8::decode(buf)?),
-                    },
-                    _ => return Err(alloy_rlp::Error::Custom("Unknown receipt type")),
-                },
+                data,
             };
 
             let consumed = started_len - buf.len();
@@ -360,7 +374,7 @@ where
         };
 
         if let Some(id) = id {
-            id.encode(out);
+            out.put_u8(id);
         }
 
         alloy_rlp::Header {
@@ -378,9 +392,9 @@ where
             | TypedReceiptData::Eip1559 { status }
             | TypedReceiptData::Eip4844 { status } => {
                 if *status == 0 {
-                    [].encode(out);
+                    out.put_u8(alloy_rlp::EMPTY_STRING_CODE);
                 } else {
-                    1u8.encode(out);
+                    out.put_u8(1);
                 }
             }
         }
@@ -391,8 +405,17 @@ where
     }
 
     fn length(&self) -> usize {
+        // Post-EIP-2930 receipts have an id byte
+        let index_length = match self.data {
+            TypedReceiptData::PreEip658Legacy { .. }
+            | TypedReceiptData::PostEip658Legacy { .. } => 0,
+            TypedReceiptData::Eip2930 { .. }
+            | TypedReceiptData::Eip1559 { .. }
+            | TypedReceiptData::Eip4844 { .. } => 1,
+        };
+
         let payload_length = self.rlp_payload_length();
-        payload_length + alloy_rlp::length_of_length(payload_length)
+        index_length + payload_length + alloy_rlp::length_of_length(payload_length)
     }
 }
 
@@ -401,65 +424,66 @@ mod tests {
     use super::*;
     use crate::{Address, Bytes, Log};
 
-    fn dummy_receipts() -> Vec<TypedReceipt<Log>> {
-        [
-            TypedReceiptData::PreEip658Legacy {
-                state_root: B256::random(),
-            },
-            TypedReceiptData::PostEip658Legacy { status: 1 },
-            TypedReceiptData::Eip2930 { status: 1 },
-            TypedReceiptData::Eip1559 { status: 0 },
-        ]
-        .into_iter()
-        .map(|data| TypedReceipt {
-            cumulative_gas_used: 0xffff,
-            logs_bloom: Bloom::random(),
-            logs: vec![
-                Log {
-                    address: Address::random(),
-                    topics: vec![B256::random(), B256::random()],
-                    data: Bytes::new(),
-                },
-                Log {
-                    address: Address::random(),
-                    topics: Vec::new(),
-                    data: Bytes::from_static(b"test"),
-                },
-            ],
-            data,
-        })
-        .collect()
+    macro_rules! impl_typed_receipt_tests {
+        ($(
+            $name:ident => $receipt_data:expr,
+        )+) => {
+            $(
+                paste::item! {
+                    fn [<typed_receipt_dummy_ $name>]() -> TypedReceipt<Log> {
+                        TypedReceipt {
+                            cumulative_gas_used: 0xffff,
+                            logs_bloom: Bloom::random(),
+                            logs: vec![
+                                Log {
+                                    address: Address::random(),
+                                    topics: vec![B256::random(), B256::random()],
+                                    data: Bytes::new(),
+                                },
+                                Log {
+                                    address: Address::random(),
+                                    topics: Vec::new(),
+                                    data: Bytes::from_static(b"test"),
+                                },
+                            ],
+                            data: $receipt_data,
+                        }
+                    }
+
+                    #[test]
+                    fn [<typed_receipt_rlp_encoding_ $name>]() {
+                        let receipt = [<typed_receipt_dummy_ $name>]();
+                        let encoded = alloy_rlp::encode(&receipt);
+                        assert_eq!(TypedReceipt::<Log>::decode(&mut encoded.as_slice()).unwrap(), receipt);
+                    }
+
+                    #[test]
+                    fn [<typed_receipt_serde_ $name>]() {
+                        let receipt = [<typed_receipt_dummy_ $name>]();
+
+                        let serialized = serde_json::to_string(&receipt).unwrap();
+                        let deserialized: TypedReceipt<Log> = serde_json::from_str(&serialized).unwrap();
+                        assert_eq!(receipt, deserialized);
+
+                        // This is necessary to ensure that the deser implementation doesn't expect a
+                        // &str where a String can be passed.
+                        let serialized = serde_json::to_value(&receipt).unwrap();
+                        let deserialized: TypedReceipt<Log> = serde_json::from_value(serialized).unwrap();
+
+                        assert_eq!(receipt, deserialized);
+                    }
+                }
+            )+
+        };
     }
 
-    #[test]
-    fn test_typed_receipt_rlp() {
-        let receipts = dummy_receipts();
-
-        for receipt in receipts {
-            let encoded = alloy_rlp::encode(&receipt);
-            assert_eq!(
-                TypedReceipt::<Log>::decode(&mut encoded.as_slice()).unwrap(),
-                receipt
-            );
-        }
-    }
-
-    #[test]
-    fn test_typed_receipt_serde() {
-        let receipts = dummy_receipts();
-
-        for receipt in receipts {
-            let serialized = serde_json::to_string(&receipt).unwrap();
-            let deserialized: TypedReceipt<Log> = serde_json::from_str(&serialized).unwrap();
-            assert_eq!(receipt, deserialized);
-
-            // This is necessary to ensure that the deser implementation doesn't expect a
-            // &str where a String can be passed.
-            let serialized = serde_json::to_value(&receipt).unwrap();
-            let deserialized: TypedReceipt<Log> = serde_json::from_value(serialized).unwrap();
-
-            assert_eq!(receipt, deserialized);
-        }
+    impl_typed_receipt_tests! {
+        pre_eip658 => TypedReceiptData::PreEip658Legacy {
+            state_root: B256::random(),
+        },
+        post_eip658 => TypedReceiptData::PostEip658Legacy { status: 1 },
+        eip2930 => TypedReceiptData::Eip2930 { status: 1 },
+        eip1559 => TypedReceiptData::Eip1559 { status: 0 },
     }
 
     #[cfg(feature = "test-remote")]
@@ -475,10 +499,9 @@ mod tests {
                         #[tokio::test]
                         async fn [<test_receipt_rlp_encoding_ $name>]() {
                             use edr_test_utils::env::get_alchemy_url;
-                            use revm_primitives::B256;
                             use tempfile::TempDir;
 
-                            use crate::remote::RpcClient;
+                            use crate::{remote::RpcClient, B256};
 
                             let tempdir = TempDir::new().unwrap();
                             let client = RpcClient::new(&get_alchemy_url(), tempdir.path().into());

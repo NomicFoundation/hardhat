@@ -1,7 +1,8 @@
 //! Ethereum withdrawal type
 
 use alloy_rlp::{RlpDecodable, RlpEncodable};
-use revm_primitives::{Address, U256};
+
+use crate::{Address, U256};
 
 /// Ethereum withdrawal
 #[derive(Clone, Debug, PartialEq, Eq, RlpDecodable, RlpEncodable)]

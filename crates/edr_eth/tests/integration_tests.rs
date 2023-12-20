@@ -9,12 +9,11 @@ use edr_eth::{
         BlockSpec, BlockTag, PreEip1898BlockSpec,
     },
     transaction::EthTransactionRequest,
-    Address, B256, U256, U64,
+    Address, Bytes, HashMap, B256, U256, U64,
 };
 use edr_test_utils::{
     help_test_method_invocation_serde, help_test_method_invocation_serde_with_expected,
 };
-use revm_primitives::{Bytes, HashMap};
 
 #[test]
 fn test_serde_eth_accounts() {

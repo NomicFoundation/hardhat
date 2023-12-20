@@ -1,4 +1,3 @@
-use revm_primitives::{Address, B256};
 use sha3::{digest::FixedOutput, Digest, Sha3_256};
 
 use crate::{
@@ -7,7 +6,7 @@ use crate::{
         methods::{GetLogsInput, MethodInvocation},
         BlockSpec, BlockTag, Eip1898BlockSpec, PreEip1898BlockSpec,
     },
-    U256,
+    Address, B256, U256,
 };
 
 pub(super) fn try_read_cache_key(method_invocation: &MethodInvocation) -> Option<ReadCacheKey> {

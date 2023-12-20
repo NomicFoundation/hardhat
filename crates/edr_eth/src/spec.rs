@@ -1,6 +1,6 @@
 use std::sync::OnceLock;
 
-use revm_primitives::{HashMap, SpecId};
+use crate::{HashMap, SpecId};
 
 /// A struct that stores the hardforks for a chain.
 #[derive(Clone, Debug)]

@@ -1,5 +1,3 @@
-use revm_primitives::{ruint::aliases::U64, Bytes};
-
 use super::StateOverrideOptions;
 use crate::{
     access_list::AccessListItem,
@@ -10,7 +8,7 @@ use crate::{
     },
     serde::{optional_single_to_sequence, sequence_to_optional_single},
     transaction::EthTransactionRequest,
-    Address, B256, U256,
+    Address, Bytes, B256, U256, U64,
 };
 
 /// for specifying input to methods requiring a transaction object, like

@@ -2,7 +2,7 @@ use std::sync::OnceLock;
 
 use alloy_rlp::{BufMut, Encodable};
 use k256::SecretKey;
-use revm_primitives::{keccak256, Address, Bytes, B256, U256};
+use revm_primitives::keccak256;
 
 use crate::{
     signature::{Signature, SignatureError},
@@ -10,6 +10,7 @@ use crate::{
         kind::TransactionKind, request::fake_signature::make_fake_signature,
         signed::Eip155SignedTransaction,
     },
+    Address, Bytes, B256, U256,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -27,7 +28,7 @@ pub struct Eip155TransactionRequest {
 impl Eip155TransactionRequest {
     /// Computes the hash of the transaction.
     pub fn hash(&self) -> B256 {
-        keccak256(&alloy_rlp::encode(self))
+        keccak256(alloy_rlp::encode(self))
     }
 
     /// Signs the transaction with the provided secret key.
@@ -130,8 +131,6 @@ impl Encodable for Eip155TransactionRequest {
 mod tests {
     use std::str::FromStr;
 
-    use revm_primitives::Address;
-
     use super::*;
     use crate::transaction::request::fake_signature::tests::test_fake_sign_properties;
 
@@ -159,7 +158,7 @@ mod tests {
         let request = dummy_request();
 
         let encoded = alloy_rlp::encode(&request);
-        assert_eq!(expected, encoded.to_vec());
+        assert_eq!(expected, encoded);
     }
 
     #[test]

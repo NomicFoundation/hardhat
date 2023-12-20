@@ -1,9 +1,9 @@
 use std::ops::Deref;
 
 use alloy_rlp::BufMut;
-use revm_primitives::{alloy_primitives::Bloom, Address, B256, U256};
 
 use super::TypedReceipt;
+use crate::{Address, Bloom, B256, U256};
 
 /// Type for a receipt that's created when processing a transaction.
 #[derive(Clone, Debug, PartialEq, Eq)]

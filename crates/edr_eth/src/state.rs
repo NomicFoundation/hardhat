@@ -1,6 +1,4 @@
-use revm_primitives::HashMap;
-
-use crate::{account::BasicAccount, trie::sec_trie_root, Address, B256, U256};
+use crate::{account::BasicAccount, trie::sec_trie_root, Address, HashMap, B256, U256};
 
 /// State mapping of addresses to accounts.
 pub type State = HashMap<Address, BasicAccount>;

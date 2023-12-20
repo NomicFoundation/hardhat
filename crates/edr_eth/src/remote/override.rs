@@ -1,4 +1,4 @@
-use revm_primitives::{Address, Bytes, HashMap, B256, U256};
+use crate::{Address, Bytes, HashMap, B256, U256};
 
 /// Type representing a set of overrides for storage information.
 pub type StorageOverride = HashMap<B256, U256>;

@@ -1,13 +1,14 @@
 use std::sync::OnceLock;
 
+use alloy_primitives::keccak256;
 use alloy_rlp::{RlpDecodable, RlpEncodable};
-use revm_primitives::{keccak256, Address, Bytes, B256, U256};
 
 use crate::{
     access_list::AccessList,
     signature::{Signature, SignatureError},
     transaction::{kind::TransactionKind, request::Eip1559TransactionRequest},
     utils::envelop_bytes,
+    Address, Bytes, B256, U256,
 };
 
 #[derive(Clone, Debug, Eq, RlpDecodable, RlpEncodable)]
@@ -42,7 +43,7 @@ impl Eip1559SignedTransaction {
             let encoded = alloy_rlp::encode(self);
             let enveloped = envelop_bytes(2, &encoded);
 
-            keccak256(&enveloped)
+            keccak256(enveloped)
         })
     }
 
@@ -81,7 +82,6 @@ mod tests {
 
     use alloy_rlp::Decodable;
     use k256::SecretKey;
-    use revm_primitives::Address;
 
     use super::*;
     use crate::{
@@ -126,7 +126,7 @@ mod tests {
         let signed = request.sign(&dummy_secret_key()).unwrap();
 
         let encoded = alloy_rlp::encode(&signed);
-        assert_eq!(expected, encoded.to_vec());
+        assert_eq!(expected, encoded);
     }
 
     #[test]

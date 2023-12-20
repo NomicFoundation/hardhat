@@ -7,10 +7,9 @@
 //! Ethereum account types
 
 use alloy_rlp::{RlpDecodable, RlpEncodable};
-use revm_primitives::AccountInfo;
 pub use revm_primitives::KECCAK_EMPTY;
 
-use crate::{trie::KECCAK_NULL_RLP, B256, U256};
+use crate::{trie::KECCAK_NULL_RLP, AccountInfo, B256, U256};
 
 /// Basic account type.
 #[derive(Debug, Clone, PartialEq, Eq, RlpDecodable, RlpEncodable)]

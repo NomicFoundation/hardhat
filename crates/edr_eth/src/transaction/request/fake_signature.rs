@@ -1,6 +1,4 @@
-use revm_primitives::U256;
-
-use crate::{signature::Signature, Address};
+use crate::{signature::Signature, Address, U256};
 
 // Must match the Hardhat implementation to make sure that transaction hashes
 // and by extension block hashes match for identical input.

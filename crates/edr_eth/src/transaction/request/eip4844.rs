@@ -1,14 +1,15 @@
 use std::sync::OnceLock;
 
+use alloy_primitives::keccak256;
 use alloy_rlp::RlpEncodable;
 use k256::SecretKey;
-use revm_primitives::{keccak256, Address, Bytes, B256, U256};
 
 use crate::{
     access_list::AccessListItem,
     signature::{Signature, SignatureError},
     transaction::{request::fake_signature::make_fake_signature, Eip4844SignedTransaction},
     utils::envelop_bytes,
+    Address, Bytes, B256, U256,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq, RlpEncodable)]
@@ -32,7 +33,7 @@ impl Eip4844TransactionRequest {
     pub fn hash(&self) -> B256 {
         let encoded = alloy_rlp::encode(self);
 
-        keccak256(&envelop_bytes(2, &encoded))
+        keccak256(envelop_bytes(2, &encoded))
     }
 
     pub fn sign(self, private_key: &SecretKey) -> Result<Eip4844SignedTransaction, SignatureError> {
@@ -103,8 +104,6 @@ impl From<&Eip4844SignedTransaction> for Eip4844TransactionRequest {
 #[cfg(test)]
 pub(crate) mod tests {
     use std::str::FromStr;
-
-    use revm_primitives::Address;
 
     use super::*;
     use crate::transaction::request::fake_signature::tests::test_fake_sign_properties;

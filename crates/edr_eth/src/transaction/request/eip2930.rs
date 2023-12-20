@@ -1,8 +1,8 @@
 use std::sync::OnceLock;
 
+use alloy_primitives::keccak256;
 use alloy_rlp::RlpEncodable;
 use k256::SecretKey;
-use revm_primitives::{keccak256, Address, Bytes, B256, U256};
 
 use crate::{
     access_list::AccessListItem,
@@ -12,6 +12,7 @@ use crate::{
         signed::Eip2930SignedTransaction,
     },
     utils::envelop_bytes,
+    Address, Bytes, B256, U256,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq, RlpEncodable)]
@@ -32,7 +33,7 @@ impl Eip2930TransactionRequest {
     pub fn hash(&self) -> B256 {
         let encoded = alloy_rlp::encode(self);
 
-        keccak256(&envelop_bytes(1, &encoded))
+        keccak256(envelop_bytes(1, &encoded))
     }
 
     /// Signs the transaction with the provided secret key.
@@ -97,8 +98,6 @@ impl From<&Eip2930SignedTransaction> for Eip2930TransactionRequest {
 mod tests {
     use std::str::FromStr;
 
-    use revm_primitives::Address;
-
     use super::*;
     use crate::transaction::request::fake_signature::tests::test_fake_sign_properties;
 
@@ -132,7 +131,7 @@ mod tests {
         let request = dummy_request();
 
         let encoded = alloy_rlp::encode(&request);
-        assert_eq!(expected, encoded.to_vec());
+        assert_eq!(expected, encoded);
     }
 
     #[test]

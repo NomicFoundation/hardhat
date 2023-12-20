@@ -1,4 +1,4 @@
-use crate::{Address, Bloom, Bytes, B256, U256};
+use crate::{Address, Bloom, Bytes, B256, B64, U256};
 
 /// Data of a block header
 #[derive(Debug, Default)]
@@ -26,7 +26,7 @@ pub struct BlockOptions {
     /// The block's mix hash
     pub mix_hash: Option<B256>,
     /// The block's nonce
-    pub nonce: Option<u64>,
+    pub nonce: Option<B64>,
     /// The block's base gas fee
     pub base_fee: Option<U256>,
     /// The block's withdrawals root

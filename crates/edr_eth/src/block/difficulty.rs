@@ -1,6 +1,4 @@
-use revm_primitives::SpecId;
-
-use crate::{block::Header, trie::KECCAK_RLP_EMPTY_ARRAY, U256};
+use crate::{block::Header, trie::KECCAK_RLP_EMPTY_ARRAY, SpecId, U256};
 
 fn bomb_delay(spec_id: SpecId) -> u64 {
     match spec_id {
