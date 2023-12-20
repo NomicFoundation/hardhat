@@ -134,8 +134,7 @@ pub enum MethodInvocation {
     #[serde(rename = "eth_getStorageAt")]
     GetStorageAt(
         Address,
-        /// position
-        U256,
+        #[serde(deserialize_with = "crate::requests::eth::deserialize_storage_index")] U256,
         #[serde(
             skip_serializing_if = "Option::is_none",
             default = "optional_block_spec::latest"
