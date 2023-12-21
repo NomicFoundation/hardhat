@@ -1477,7 +1477,7 @@ fn create_blockchain_and_state(
             state,
             irregular_state,
             // For local blockchain the initial base fee per gas config option is incorporated as
-            // part the genesis block.
+            // part of the genesis block.
             next_block_base_fee_per_gas: None,
         })
     }
