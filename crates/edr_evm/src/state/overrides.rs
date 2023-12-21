@@ -1,4 +1,8 @@
-use edr_eth::{account::KECCAK_EMPTY, Address, B256, U256};
+use edr_eth::{
+    account::KECCAK_EMPTY,
+    remote::{AccountOverrideOptions, StateOverrideOptions},
+    Address, B256, U256,
+};
 use revm::{
     db::StateRef,
     primitives::{AccountInfo, Bytecode, HashMap},
@@ -12,6 +16,28 @@ pub enum StorageOverride {
     Diff(HashMap<U256, U256>),
     /// A full set of storage overrides.
     Full(HashMap<U256, U256>),
+}
+
+impl StorageOverride {
+    /// Constructs a new storage override from the provided diff.
+    pub fn from_diff(diff: HashMap<B256, U256>) -> Self {
+        let diff = diff
+            .into_iter()
+            .map(|(key, value)| (U256::from_be_bytes(key.0), value))
+            .collect();
+
+        Self::Diff(diff)
+    }
+
+    /// Constructs a new storage override from the provided full set.
+    pub fn from_full(full: HashMap<B256, U256>) -> Self {
+        let full = full
+            .into_iter()
+            .map(|(key, value)| (U256::from_be_bytes(key.0), value))
+            .collect();
+
+        Self::Full(full)
+    }
 }
 
 /// Values for overriding account information.
@@ -71,6 +97,46 @@ impl AccountOverride {
     }
 }
 
+/// Error that occurs when converting account override options into an account
+/// override.
+#[derive(Debug, thiserror::Error)]
+pub enum AccountOverrideConversionError {
+    /// Storage override options are mutually exclusive.
+    #[error("The properties 'state' and 'stateDiff' cannot be used simultaneously when configuring the state override set passed to the eth_call method.")]
+    StorageOverrideConflict,
+}
+
+impl TryFrom<AccountOverrideOptions> for AccountOverride {
+    type Error = AccountOverrideConversionError;
+
+    fn try_from(value: AccountOverrideOptions) -> Result<Self, Self::Error> {
+        let AccountOverrideOptions {
+            balance,
+            nonce,
+            code,
+            storage,
+            storage_diff,
+        } = value;
+
+        let storage = if let Some(storage) = storage {
+            if storage_diff.is_some() {
+                return Err(AccountOverrideConversionError::StorageOverrideConflict);
+            } else {
+                Some(StorageOverride::from_full(storage))
+            }
+        } else {
+            storage_diff.map(StorageOverride::from_diff)
+        };
+
+        Ok(Self {
+            balance,
+            nonce,
+            code: code.map(|bytes| Bytecode::new_raw(bytes.into())),
+            storage,
+        })
+    }
+}
+
 /// A set of overrides for state information.
 #[derive(Clone, Debug, Default)]
 pub struct StateOverrides {
@@ -118,6 +184,11 @@ impl StateOverrides {
         )
     }
 
+    /// Retrieves the account override for the provided address, if any exists.
+    pub fn account_override(&self, address: &Address) -> Option<&AccountOverride> {
+        self.account_overrides.get(address)
+    }
+
     /// Retrieves the storage information for the provided address and index,
     /// applying any overrides.
     pub fn account_storage_at<StateError>(
@@ -155,6 +226,23 @@ impl StateOverrides {
         } else {
             state.code_by_hash(hash)
         }
+    }
+}
+
+impl TryFrom<StateOverrideOptions> for StateOverrides {
+    type Error = AccountOverrideConversionError;
+
+    fn try_from(value: StateOverrideOptions) -> Result<Self, Self::Error> {
+        let account_overrides = value
+            .into_iter()
+            .map(|(address, options)| {
+                let account_override = AccountOverride::try_from(options)?;
+
+                Ok((address, account_override))
+            })
+            .collect::<Result<_, _>>()?;
+
+        Ok(Self::new(account_overrides))
     }
 }
 

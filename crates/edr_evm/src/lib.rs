@@ -43,7 +43,8 @@ pub(crate) mod collections;
 mod debug_trace;
 pub(crate) mod evm;
 mod inspector;
-mod mempool;
+/// Types for managing Ethereum mem pool
+pub mod mempool;
 mod miner;
 pub(crate) mod random;
 mod runtime;

@@ -18,6 +18,16 @@ impl TransactionKind {
     }
 }
 
+impl From<Option<Address>> for TransactionKind {
+    fn from(value: Option<Address>) -> Self {
+        if let Some(address) = value {
+            TransactionKind::Call(address)
+        } else {
+            TransactionKind::Create
+        }
+    }
+}
+
 impl rlp::Encodable for TransactionKind {
     fn rlp_append(&self, s: &mut RlpStream) {
         match self {

@@ -1,7 +1,10 @@
 use edr_eth::{Address, SpecId, B256, U256};
-use rpc_hardhat::Metadata;
 
-use crate::{data::ProviderData, requests::eth::client_version, ProviderError};
+use crate::{
+    data::ProviderData,
+    requests::{eth::client_version, hardhat::rpc_types::Metadata},
+    ProviderError,
+};
 
 pub fn handle_get_automine_request(data: &ProviderData) -> Result<bool, ProviderError> {
     Ok(data.is_auto_mining())
@@ -23,6 +26,15 @@ pub fn handle_set_coinbase_request(
     coinbase: Address,
 ) -> Result<bool, ProviderError> {
     data.set_coinbase(coinbase);
+
+    Ok(true)
+}
+
+pub fn handle_set_min_gas_price(
+    data: &mut ProviderData,
+    min_gas_price: U256,
+) -> Result<bool, ProviderError> {
+    data.set_min_gas_price(min_gas_price)?;
 
     Ok(true)
 }

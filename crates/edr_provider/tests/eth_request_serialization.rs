@@ -1,19 +1,22 @@
+mod common;
+
 use edr_eth::{
     remote::{
-        eth::eip712,
+        eth::{eip712, CallRequest, GetLogsInput},
         filter::{
             FilterBlockTarget, FilterOptions, LogOutput, OneOrMoreAddresses, SubscriptionType,
         },
-        methods::{GetLogsInput, MethodInvocation, OneUsizeOrTwo, TransactionInput, U64OrUsize},
         BlockSpec, BlockTag, PreEip1898BlockSpec,
     },
     transaction::EthTransactionRequest,
     Address, B256, U256, U64,
 };
-use edr_test_utils::{
+use edr_provider::{MethodInvocation, OneUsizeOrTwo, U64OrUsize};
+use revm_primitives::{Bytes, HashMap};
+
+use crate::common::{
     help_test_method_invocation_serde, help_test_method_invocation_serde_with_expected,
 };
-use revm_primitives::{Bytes, HashMap};
 
 #[test]
 fn test_serde_eth_accounts() {
@@ -27,21 +30,25 @@ fn test_serde_eth_block_number() {
 
 #[test]
 fn test_serde_eth_call() {
-    let tx = TransactionInput {
+    let tx = CallRequest {
         from: Some(Address::from_low_u64_ne(1)),
         to: Some(Address::from_low_u64_ne(2)),
-        gas: Some(U256::from(3)),
+        gas: Some(3),
         gas_price: Some(U256::from(4)),
+        max_fee_per_gas: None,
+        max_priority_fee_per_gas: None,
         value: Some(U256::from(123568919)),
         data: Some(Bytes::from(&b"whatever"[..]).into()),
+        access_list: None,
     };
     help_test_method_invocation_serde(MethodInvocation::Call(
         tx.clone(),
         Some(BlockSpec::latest()),
+        None,
     ));
     help_test_method_invocation_serde_with_expected(
-        MethodInvocation::Call(tx.clone(), None),
-        MethodInvocation::Call(tx, Some(BlockSpec::latest())),
+        MethodInvocation::Call(tx.clone(), None, None),
+        MethodInvocation::Call(tx, Some(BlockSpec::latest()), None),
     );
 }
 
@@ -57,13 +64,16 @@ fn test_serde_eth_coinbase() {
 
 #[test]
 fn test_serde_eth_estimate_gas() {
-    let tx = TransactionInput {
+    let tx = CallRequest {
         from: Some(Address::from_low_u64_ne(1)),
         to: Some(Address::from_low_u64_ne(2)),
-        gas: Some(U256::from(3)),
+        gas: Some(3),
         gas_price: Some(U256::from(4)),
+        max_fee_per_gas: None,
+        max_priority_fee_per_gas: None,
         value: Some(U256::from(123568919)),
         data: Some(Bytes::from(&b"whatever"[..]).into()),
+        access_list: None,
     };
     help_test_method_invocation_serde(MethodInvocation::EstimateGas(
         tx.clone(),
@@ -305,8 +315,9 @@ fn test_serde_eth_send_transaction() {
         gas_price: Some(U256::from(4)),
         max_fee_per_gas: None,
         value: Some(U256::from(123568919)),
-        data: Some(Bytes::from(&b"whatever"[..])),
+        data: Some(Bytes::from(&b"whatever"[..]).into()),
         nonce: None,
+        chain_id: None,
         access_list: None,
         max_priority_fee_per_gas: None,
         transaction_type: None,
@@ -316,8 +327,8 @@ fn test_serde_eth_send_transaction() {
 #[test]
 fn test_serde_eth_sign() {
     help_test_method_invocation_serde(MethodInvocation::Sign(
-        Address::from_low_u64_ne(1),
         Bytes::from(&b"whatever"[..]).into(),
+        Address::from_low_u64_ne(1),
     ));
 }
 
@@ -483,8 +494,8 @@ fn test_net_peer_count() {
 #[test]
 fn test_personal_sign() {
     let call = MethodInvocation::Sign(
-        Address::from_low_u64_ne(1),
         Bytes::from(&b"whatever"[..]).into(),
+        Address::from_low_u64_ne(1),
     );
 
     let serialized = serde_json::json!(call)

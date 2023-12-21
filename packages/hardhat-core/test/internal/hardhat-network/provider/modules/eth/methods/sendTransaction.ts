@@ -41,7 +41,7 @@ import {
 import { EthereumProvider } from "../../../../../../../src/types";
 
 describe("Eth module", function () {
-  PROVIDERS.forEach(({ name, useProvider, isFork, isJsonRpc, chainId }) => {
+  PROVIDERS.forEach(({ name, useProvider, isFork, isJsonRpc }) => {
     if (isFork) {
       this.timeout(50000);
     }
@@ -1107,6 +1107,8 @@ describe("Eth module", function () {
               receipt.logs[0].data.replace(/0x0*/, "0x")
             );
           }
+
+          const chainId = await this.provider.send("eth_chainId");
 
           // assert:
           assert.equal(await getChainIdFromContract(this.provider), chainId);

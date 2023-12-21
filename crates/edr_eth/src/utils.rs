@@ -13,7 +13,7 @@
 use revm_primitives::keccak256;
 use rlp::Encodable;
 
-use crate::B256;
+use crate::{B256, U256};
 
 /// RLP-encodes the provided value, prepends it with the provided ID, and
 /// appends it to the provided [`rlp::RlpStream`].
@@ -49,4 +49,32 @@ where
     eth_message.extend_from_slice(message);
 
     keccak256(&eth_message)
+}
+
+/// Convert a U256 to String as a 32-byte 0x prefixed hex string.
+pub fn u256_to_hex_word(word: &U256) -> String {
+    if word == &U256::ZERO {
+        // For 0 zero, the #066x formatter doesn't add padding.
+        format!("0x{}", "0".repeat(64))
+    } else {
+        // 66 = 64 hex chars + 0x prefix
+        format!("{word:#066x}")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_u256_to_hex_word() {
+        assert_eq!(
+            u256_to_hex_word(&U256::ZERO),
+            "0x0000000000000000000000000000000000000000000000000000000000000000"
+        );
+        assert_eq!(
+            u256_to_hex_word(&U256::from(1)),
+            "0x0000000000000000000000000000000000000000000000000000000000000001"
+        );
+    }
 }

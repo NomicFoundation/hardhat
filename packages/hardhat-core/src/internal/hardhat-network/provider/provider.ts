@@ -25,10 +25,13 @@ import {
   MethodNotSupportedError,
   ProviderError,
 } from "../../core/providers/errors";
+import { isErrorResponse } from "../../core/providers/http";
 import { getHardforkName } from "../../util/hardforks";
 import { Mutex } from "../../vendor/await-semaphore";
+import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/constants";
 
+import { getPackageJson } from "../../util/packageInfo";
 import { MiningTimer } from "./MiningTimer";
 import { DebugModule } from "./modules/debug";
 import { EthModule } from "./modules/eth";
@@ -52,6 +55,7 @@ import {
   ethereumjsMempoolOrderToEdrMineOrdering,
   ethereumsjsHardforkToEdrSpecId,
 } from "./utils/convertToEdr";
+import { makeCommon } from "./utils/makeCommon";
 
 const log = debug("hardhat:core:hardhat-network:provider");
 
@@ -88,6 +92,33 @@ interface HardhatNetworkProviderConfig {
   forkConfig?: ForkConfig;
   forkCachePath?: string;
   enableTransientStorage: boolean;
+}
+
+function getNodeConfig(
+  config: HardhatNetworkProviderConfig,
+  tracingConfig?: TracingConfig
+): NodeConfig {
+  return {
+    automine: config.automine,
+    blockGasLimit: config.blockGasLimit,
+    minGasPrice: config.minGasPrice,
+    genesisAccounts: config.genesisAccounts,
+    allowUnlimitedContractSize: config.allowUnlimitedContractSize,
+    tracingConfig,
+    initialBaseFeePerGas: config.initialBaseFeePerGas,
+    mempoolOrder: config.mempoolOrder,
+    hardfork: config.hardfork,
+    chainId: config.chainId,
+    networkId: config.networkId,
+    initialDate: config.initialDate,
+    forkConfig: config.forkConfig,
+    forkCachePath:
+      config.forkConfig !== undefined ? config.forkCachePath : undefined,
+    coinbase: config.coinbase ?? DEFAULT_COINBASE,
+    chains: config.chains,
+    allowBlocksWithSameTimestamp: config.allowBlocksWithSameTimestamp,
+    enableTransientStorage: config.enableTransientStorage,
+  };
 }
 
 class HardhatNetworkProvider extends EventEmitter implements EIP1193Provider {
@@ -237,31 +268,12 @@ class HardhatNetworkProvider extends EventEmitter implements EIP1193Provider {
       return;
     }
 
-    const config: NodeConfig = {
-      automine: this._config.automine,
-      blockGasLimit: this._config.blockGasLimit,
-      minGasPrice: this._config.minGasPrice,
-      genesisAccounts: this._config.genesisAccounts,
-      allowUnlimitedContractSize: this._config.allowUnlimitedContractSize,
-      tracingConfig: await this._makeTracingConfig(),
-      initialBaseFeePerGas: this._config.initialBaseFeePerGas,
-      mempoolOrder: this._config.mempoolOrder,
-      hardfork: this._config.hardfork,
-      chainId: this._config.chainId,
-      networkId: this._config.networkId,
-      initialDate: this._config.initialDate,
-      forkConfig: this._config.forkConfig,
-      forkCachePath:
-        this._config.forkConfig !== undefined
-          ? this._config.forkCachePath
-          : undefined,
-      coinbase: this._config.coinbase ?? DEFAULT_COINBASE,
-      chains: this._config.chains,
-      allowBlocksWithSameTimestamp: this._config.allowBlocksWithSameTimestamp,
-      enableTransientStorage: this._config.enableTransientStorage,
-    };
+    const nodeConfig = getNodeConfig(
+      this._config,
+      await this._makeTracingConfig()
+    );
 
-    const [common, node] = await HardhatNode.create(config);
+    const [common, node] = await HardhatNode.create(nodeConfig);
 
     this._common = common;
     this._node = node;
@@ -398,7 +410,12 @@ class HardhatNetworkProvider extends EventEmitter implements EIP1193Provider {
   }
 }
 
-class EdrProviderWrapper extends EventEmitter implements EIP1193Provider {
+export class EdrProviderWrapper
+  extends EventEmitter
+  implements EIP1193Provider
+{
+  // The common configuration for EthereumJS VM is not used by EDR, but tests expect it as part of the provider.
+  private _common: Common;
   private _provider: EdrProviderT;
 
   public static async create(
@@ -409,42 +426,67 @@ class EdrProviderWrapper extends EventEmitter implements EIP1193Provider {
 
     const coinbase = config.coinbase ?? DEFAULT_COINBASE;
 
-    const provider = await Provider.withConfig({
-      chainId: BigInt(config.chainId),
-      cacheDir: config.forkCachePath,
-      coinbase: Buffer.from(coinbase.slice(2), "hex"),
-      hardfork: ethereumsjsHardforkToEdrSpecId(
-        getHardforkName(config.hardfork)
-      ),
-      networkId: BigInt(config.chainId),
-      blockGasLimit: BigInt(config.blockGasLimit),
-      genesisAccounts: config.genesisAccounts.map((account) => {
-        return {
-          secretKey: account.privateKey,
-          balance: BigInt(account.balance),
-        };
-      }),
-      allowUnlimitedContractSize: config.allowUnlimitedContractSize,
-      allowBlocksWithSameTimestamp:
-        config.allowBlocksWithSameTimestamp ?? false,
-      initialBaseFeePerGas: BigInt(
-        config.initialBaseFeePerGas ?? 1_000_000_000
-      ),
-      mining: {
-        autoMine: config.automine,
-        interval: ethereumjsIntervalMiningConfigToEdr(config.intervalMining),
-        memPool: {
-          order: ethereumjsMempoolOrderToEdrMineOrdering(config.mempoolOrder),
-        },
-      },
-    });
+    let fork;
+    if (config.forkConfig !== undefined) {
+      fork = {
+        jsonRpcUrl: config.forkConfig.jsonRpcUrl,
+        blockNumber:
+          config.forkConfig.blockNumber !== undefined
+            ? BigInt(config.forkConfig.blockNumber)
+            : undefined,
+      };
+    }
 
-    return new EdrProviderWrapper(provider);
+    const provider = await Provider.withConfig(
+      {
+        allowBlocksWithSameTimestamp:
+          config.allowBlocksWithSameTimestamp ?? false,
+        allowUnlimitedContractSize: config.allowUnlimitedContractSize,
+        bailOnCallFailure: config.throwOnCallFailures,
+        bailOnTransactionFailure: config.throwOnTransactionFailures,
+        blockGasLimit: BigInt(config.blockGasLimit),
+        chainId: BigInt(config.chainId),
+        cacheDir: config.forkCachePath,
+        coinbase: Buffer.from(coinbase.slice(2), "hex"),
+        fork,
+        hardfork: ethereumsjsHardforkToEdrSpecId(
+          getHardforkName(config.hardfork)
+        ),
+        genesisAccounts: config.genesisAccounts.map((account) => {
+          return {
+            secretKey: account.privateKey,
+            balance: BigInt(account.balance),
+          };
+        }),
+        initialBaseFeePerGas: BigInt(
+          config.initialBaseFeePerGas ?? 1_000_000_000
+        ),
+        minGasPrice: config.minGasPrice,
+        mining: {
+          autoMine: config.automine,
+          interval: ethereumjsIntervalMiningConfigToEdr(config.intervalMining),
+          memPool: {
+            order: ethereumjsMempoolOrderToEdrMineOrdering(config.mempoolOrder),
+          },
+        },
+        networkId: BigInt(config.networkId),
+      },
+      (message: Buffer) => {
+        const consoleLogger = new ConsoleLogger();
+
+        consoleLogger.log(message);
+      }
+    );
+
+    const common = makeCommon(getNodeConfig(config));
+
+    return new EdrProviderWrapper(provider, common);
   }
 
-  private constructor(provider: EdrProviderT) {
+  private constructor(provider: EdrProviderT, common: Common) {
     super();
 
+    this._common = common;
     this._provider = provider;
   }
 
@@ -454,9 +496,35 @@ class EdrProviderWrapper extends EventEmitter implements EIP1193Provider {
       params: args.params ?? [],
     });
 
-    const response = await this._provider.handleRequest(stringifiedArgs);
-    return JSON.parse(response);
+    const response = JSON.parse(
+      await this._provider.handleRequest(stringifiedArgs)
+    );
+
+    if (isErrorResponse(response)) {
+      const error = new ProviderError(
+        response.error.message,
+        response.error.code
+      );
+      error.data = response.error.data;
+
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      throw error;
+    }
+
+    // Override EDR version string with Hardhat version string with EDR backend,
+    // e.g. `HardhatNetwork/2.19.0/@nomicfoundation/edr/0.2.0-dev`
+    if (args.method === "web3_clientVersion") {
+      return clientVersion(response.result);
+    }
+
+    return response.result;
   }
+}
+
+async function clientVersion(edrClientVersion: string): Promise<string> {
+  const hardhatPackage = await getPackageJson();
+  const edrVersion = edrClientVersion.split("/")[1];
+  return `HardhatNetwork/${hardhatPackage.version}/@nomicfoundation/edr/${edrVersion}`;
 }
 
 export async function createHardhatNetworkProvider(

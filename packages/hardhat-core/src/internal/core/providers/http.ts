@@ -21,7 +21,9 @@ import { shouldUseProxy } from "../../util/proxy";
 
 import { ProviderError } from "./errors";
 
-function isErrorResponse(response: any): response is FailedJsonRpcResponse {
+export function isErrorResponse(
+  response: any
+): response is FailedJsonRpcResponse {
   return typeof response.error !== "undefined";
 }
 

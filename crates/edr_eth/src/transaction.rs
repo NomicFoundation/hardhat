@@ -10,7 +10,11 @@ mod request;
 mod signed;
 
 pub use self::{detailed::DetailedTransaction, kind::TransactionKind, request::*, signed::*};
-use crate::{access_list::AccessListItem, Address, Bytes, U256};
+#[cfg(feature = "serde")]
+use crate::serde::ZeroXPrefixedBytes;
+#[cfg(not(feature = "serde"))]
+use crate::Bytes;
+use crate::{access_list::AccessListItem, Address, U256};
 
 /// Represents _all_ transaction requests received from RPC
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
@@ -21,6 +25,7 @@ pub struct EthTransactionRequest {
     /// from address
     pub from: Address,
     /// to address
+    #[cfg_attr(feature = "serde", serde(default))]
     pub to: Option<Address>,
     /// legacy, gas Price
     #[cfg_attr(feature = "serde", serde(default))]
@@ -32,86 +37,27 @@ pub struct EthTransactionRequest {
     #[cfg_attr(feature = "serde", serde(default))]
     pub max_priority_fee_per_gas: Option<U256>,
     /// gas
+    #[cfg_attr(feature = "serde", serde(default, with = "crate::serde::optional_u64"))]
     pub gas: Option<u64>,
     /// value of th tx in wei
     pub value: Option<U256>,
     /// Any additional data sent
+    #[cfg(feature = "serde")]
+    pub data: Option<ZeroXPrefixedBytes>,
+    #[cfg(not(feature = "serde"))]
     pub data: Option<Bytes>,
     /// Transaction nonce
+    #[cfg_attr(feature = "serde", serde(default, with = "crate::serde::optional_u64"))]
     pub nonce: Option<u64>,
+    /// Chain ID
+    #[cfg_attr(feature = "serde", serde(default, with = "crate::serde::optional_u64"))]
+    pub chain_id: Option<u64>,
     /// warm storage access pre-payment
     #[cfg_attr(feature = "serde", serde(default))]
     pub access_list: Option<Vec<AccessListItem>>,
     /// EIP-2718 type
-    #[cfg_attr(feature = "serde", serde(rename = "type"))]
+    #[cfg_attr(feature = "serde", serde(default, rename = "type"))]
     pub transaction_type: Option<U256>,
-}
-
-impl EthTransactionRequest {
-    /// Converts the request into a [`TransactionRequest`].
-    pub fn into_typed_request(self) -> Option<TransactionRequest> {
-        let EthTransactionRequest {
-            to,
-            gas_price,
-            max_fee_per_gas,
-            max_priority_fee_per_gas,
-            gas,
-            value,
-            data,
-            nonce,
-            mut access_list,
-            ..
-        } = self;
-        match (gas_price, max_fee_per_gas, access_list.take()) {
-            // legacy transaction
-            (Some(_), None, None) => Some(TransactionRequest::Legacy(LegacyTransactionRequest {
-                nonce: nonce.unwrap_or(0),
-                gas_price: gas_price.unwrap_or_default(),
-                gas_limit: gas.unwrap_or_default(),
-                value: value.unwrap_or(U256::ZERO),
-                input: data.unwrap_or_default(),
-                kind: match to {
-                    Some(to) => TransactionKind::Call(to),
-                    None => TransactionKind::Create,
-                },
-            })),
-            // EIP2930
-            (_, None, Some(access_list)) => {
-                Some(TransactionRequest::EIP2930(EIP2930TransactionRequest {
-                    nonce: nonce.unwrap_or(0),
-                    gas_price: gas_price.unwrap_or_default(),
-                    gas_limit: gas.unwrap_or_default(),
-                    value: value.unwrap_or(U256::ZERO),
-                    input: data.unwrap_or_default(),
-                    kind: match to {
-                        Some(to) => TransactionKind::Call(to),
-                        None => TransactionKind::Create,
-                    },
-                    chain_id: 0,
-                    access_list,
-                }))
-            }
-            // EIP1559
-            (None, Some(_), access_list) | (None, None, access_list @ None) => {
-                // Empty fields fall back to the canonical transaction schema.
-                Some(TransactionRequest::EIP1559(EIP1559TransactionRequest {
-                    nonce: nonce.unwrap_or(0),
-                    max_fee_per_gas: max_fee_per_gas.unwrap_or_default(),
-                    max_priority_fee_per_gas: max_priority_fee_per_gas.unwrap_or(U256::ZERO),
-                    gas_limit: gas.unwrap_or_default(),
-                    value: value.unwrap_or(U256::ZERO),
-                    input: data.unwrap_or_default(),
-                    kind: match to {
-                        Some(to) => TransactionKind::Call(to),
-                        None => TransactionKind::Create,
-                    },
-                    chain_id: 0,
-                    access_list: access_list.unwrap_or_default(),
-                }))
-            }
-            _ => None,
-        }
-    }
 }
 
 #[cfg(feature = "fastrlp")]

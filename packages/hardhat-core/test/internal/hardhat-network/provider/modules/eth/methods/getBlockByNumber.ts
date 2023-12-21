@@ -157,8 +157,8 @@ describe("Eth module", function () {
         );
 
         async function testTotalDifficultyFork(this: Context) {
-          const forkBlockNumber: number = await this.provider.send(
-            "eth_blockNumber"
+          const forkBlockNumber: number = rpcQuantityToNumber(
+            await this.provider.send("eth_blockNumber")
           );
 
           const forkBlock: RpcBlockOutput = await this.provider.send(

@@ -53,6 +53,10 @@ pub struct ProviderConfig {
     pub allow_blocks_with_same_timestamp: bool,
     /// Whether to allow unlimited contract size
     pub allow_unlimited_contract_size: bool,
+    /// Whether to return an `Err` when `eth_call` fails
+    pub bail_on_call_failure: bool,
+    /// Whether to return an `Err` when a `eth_sendTransaction` fails
+    pub bail_on_transaction_failure: bool,
     /// The gas limit of each block
     pub block_gas_limit: BigInt,
     /// The directory to cache remote JSON-RPC responses
@@ -78,13 +82,15 @@ pub struct ProviderConfig {
     /// The initial parent beacon block root of the blockchain. Required for
     /// EIP-4788
     pub initial_parent_beacon_block_root: Option<Buffer>,
+    /// The minimum gas price of the next block.
+    pub min_gas_price: BigInt,
     /// The configuration for the miner
     pub mining: MiningConfig,
     /// The network ID of the blockchain
     pub network_id: BigInt,
 }
 
-impl TryFrom<ForkConfig> for edr_rpc_hardhat::config::ForkConfig {
+impl TryFrom<ForkConfig> for edr_provider::hardhat_rpc_types::ForkConfig {
     type Error = napi::Error;
 
     fn try_from(value: ForkConfig) -> Result<Self, Self::Error> {
@@ -149,6 +155,8 @@ impl TryFrom<ProviderConfig> for edr_provider::ProviderConfig {
                 .collect::<napi::Result<Vec<_>>>()?,
             allow_blocks_with_same_timestamp: value.allow_blocks_with_same_timestamp,
             allow_unlimited_contract_size: value.allow_unlimited_contract_size,
+            bail_on_call_failure: value.bail_on_call_failure,
+            bail_on_transaction_failure: value.bail_on_transaction_failure,
             block_gas_limit: value.block_gas_limit.try_cast()?,
             cache_dir: PathBuf::from(
                 value
@@ -177,6 +185,7 @@ impl TryFrom<ProviderConfig> for edr_provider::ProviderConfig {
                 .map(TryCast::try_cast)
                 .transpose()?,
             mining: value.mining.try_into()?,
+            min_gas_price: value.min_gas_price.try_cast()?,
             network_id: value.network_id.try_cast()?,
         })
     }

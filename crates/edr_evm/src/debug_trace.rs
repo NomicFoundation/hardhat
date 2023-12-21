@@ -1,6 +1,6 @@
 use std::{collections::HashMap, fmt::Debug};
 
-use edr_eth::{signature::SignatureError, B256};
+use edr_eth::{signature::SignatureError, utils::u256_to_hex_word, B256};
 use revm::{
     inspectors::GasInspector,
     interpreter::{opcode, CallInputs, CreateInputs, Gas, InstructionResult, Interpreter, Stack},
@@ -28,8 +28,8 @@ pub fn debug_trace_transaction<BlockchainErrorT, StateErrorT>(
     transaction_hash: &B256,
 ) -> Result<DebugTraceResult, DebugTraceError<BlockchainErrorT, StateErrorT>>
 where
-    BlockchainErrorT: Debug + Send + 'static,
-    StateErrorT: Debug + Send + 'static,
+    BlockchainErrorT: Debug + Send,
+    StateErrorT: Debug + Send,
 {
     if evm_config.spec_id < SpecId::SPURIOUS_DRAGON {
         // Matching Hardhat Network behaviour: https://github.com/NomicFoundation/hardhat/blob/af7e4ce6a18601ec9cd6d4aa335fa7e24450e638/packages/hardhat-core/src/internal/hardhat-network/provider/vm/ethereumjs.ts#L427
@@ -233,7 +233,7 @@ impl TracerEip3155 {
                 self.stack
                     .data()
                     .iter()
-                    .map(to_hex_word)
+                    .map(u256_to_hex_word)
                     .collect::<Vec<String>>(),
             )
         };
@@ -253,7 +253,7 @@ impl TracerEip3155 {
                 if let Some(JournalEntry::StorageChange { address, key, .. }) = last_entry {
                     let value = journaled_state.state[address].storage[key].present_value();
                     let contract_storage = self.storage.entry(self.contract_address).or_default();
-                    contract_storage.insert(to_hex_word(key), to_hex_word(&value));
+                    contract_storage.insert(u256_to_hex_word(key), u256_to_hex_word(&value));
                 }
             }
             Some(
@@ -413,32 +413,5 @@ impl<DatabaseErrorT> Inspector<DatabaseErrorT> for TracerEip3155 {
             .create_end(data, inputs, ret, address, remaining_gas, out.clone());
         self.skip = true;
         (ret, address, remaining_gas, out)
-    }
-}
-
-fn to_hex_word(word: &U256) -> String {
-    if word == &U256::ZERO {
-        // For 0 zero, the #066x formatter doesn't add padding.
-        format!("0x{}", "0".repeat(64))
-    } else {
-        // 66 = 64 hex chars + 0x prefix
-        format!("{word:#066x}")
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_to_hex_word() {
-        assert_eq!(
-            to_hex_word(&U256::ZERO),
-            "0x0000000000000000000000000000000000000000000000000000000000000000"
-        );
-        assert_eq!(
-            to_hex_word(&U256::from(1)),
-            "0x0000000000000000000000000000000000000000000000000000000000000001"
-        );
     }
 }

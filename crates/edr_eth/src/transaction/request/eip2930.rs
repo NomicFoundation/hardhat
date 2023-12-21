@@ -18,7 +18,7 @@ use crate::{
     feature = "fastrlp",
     derive(open_fastrlp::RlpEncodable, open_fastrlp::RlpDecodable)
 )]
-pub struct EIP2930TransactionRequest {
+pub struct Eip2930TransactionRequest {
     pub chain_id: u64,
     pub nonce: u64,
     pub gas_price: U256,
@@ -29,7 +29,7 @@ pub struct EIP2930TransactionRequest {
     pub access_list: Vec<AccessListItem>,
 }
 
-impl EIP2930TransactionRequest {
+impl Eip2930TransactionRequest {
     /// Computes the hash of the transaction.
     pub fn hash(&self) -> B256 {
         let encoded = rlp::encode(self);
@@ -80,7 +80,7 @@ impl EIP2930TransactionRequest {
     }
 }
 
-impl From<&Eip2930SignedTransaction> for EIP2930TransactionRequest {
+impl From<&Eip2930SignedTransaction> for Eip2930TransactionRequest {
     fn from(tx: &Eip2930SignedTransaction) -> Self {
         Self {
             chain_id: tx.chain_id,
@@ -95,7 +95,7 @@ impl From<&Eip2930SignedTransaction> for EIP2930TransactionRequest {
     }
 }
 
-impl rlp::Encodable for EIP2930TransactionRequest {
+impl rlp::Encodable for Eip2930TransactionRequest {
     fn rlp_append(&self, s: &mut rlp::RlpStream) {
         s.begin_list(8);
         s.append(&U64::from(self.chain_id));
@@ -118,10 +118,10 @@ mod tests {
     use super::*;
     use crate::transaction::request::fake_signature::tests::test_fake_sign_properties;
 
-    fn dummy_request() -> EIP2930TransactionRequest {
+    fn dummy_request() -> Eip2930TransactionRequest {
         let to = Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e").unwrap();
         let input = hex::decode("1234").unwrap();
-        EIP2930TransactionRequest {
+        Eip2930TransactionRequest {
             chain_id: 1,
             nonce: 1,
             gas_price: U256::from(2),
@@ -167,7 +167,7 @@ mod tests {
 
     #[test]
     fn test_fake_sign_test_vector() -> anyhow::Result<()> {
-        let transaction = EIP2930TransactionRequest {
+        let transaction = Eip2930TransactionRequest {
             chain_id: 123,
             nonce: 0,
             gas_price: U256::from(1),

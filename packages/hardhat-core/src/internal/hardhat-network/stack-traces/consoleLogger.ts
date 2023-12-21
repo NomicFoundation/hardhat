@@ -125,6 +125,38 @@ export class ConsoleLogger {
     }
   }
 
+  /**
+   * Temporary code to print console.sol messages that come from EDR
+   */
+  public log(message: Buffer): void {
+    const sig = bufferToInt(message.slice(0, 4));
+    const parameters = message.slice(4);
+
+    const types = this._consoleLogs[sig];
+    if (types === undefined) {
+      return;
+    }
+
+    const consoleLogs = [this._decode(parameters, types)];
+
+    this._replaceNumberFormatSpecifiers(consoleLogs);
+
+    for (const log of consoleLogs) {
+      if (log === undefined) {
+        console.log("");
+        return;
+      }
+
+      // special case for console.log()
+      if (log.length === 0) {
+        console.log("");
+        return;
+      }
+
+      console.log(util.format(log[0], ...log.slice(1)));
+    }
+  }
+
   private _maybeConsoleLog(call: CallMessageTrace): ConsoleLogs | undefined {
     const sig = bufferToInt(call.calldata.slice(0, 4));
     const parameters = call.calldata.slice(4);

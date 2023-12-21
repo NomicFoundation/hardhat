@@ -74,12 +74,7 @@ export class EdrBlockBuilder implements BlockBuilderAdapter {
     );
 
     const edrResult = await this._blockBuilder.addTransaction(
-      await PendingTransaction.create(
-        this._blockState,
-        specId,
-        edrTx,
-        tx.getSenderAddress().buf
-      ),
+      await PendingTransaction.create(specId, edrTx, tx.getSenderAddress().buf),
       true
     );
 

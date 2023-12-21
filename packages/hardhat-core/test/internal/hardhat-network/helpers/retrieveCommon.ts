@@ -1,8 +1,12 @@
 /* eslint-disable dot-notation,@typescript-eslint/dot-notation */
 import { Common } from "@nomicfoundation/ethereumjs-common";
+import { isEdrProvider } from "./isEdrProvider";
 
-// EDR-TODO: this should be adapted or removed
 export async function retrieveCommon(provider: any): Promise<Common> {
+  if (isEdrProvider(provider)) {
+    return provider["_common"];
+  }
+
   if (provider["_node"] === undefined) {
     await provider["_init"]();
   }

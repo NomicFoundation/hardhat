@@ -4,27 +4,27 @@ use sha3::{digest::FixedOutput, Digest, Sha3_256};
 use crate::{
     block::{is_safe_block_number, IsSafeBlockNumberArgs},
     remote::{
-        methods::{GetLogsInput, MethodInvocation},
-        BlockSpec, BlockTag, Eip1898BlockSpec, PreEip1898BlockSpec,
+        eth::GetLogsInput, request_methods::RequestMethod, BlockSpec, BlockTag, Eip1898BlockSpec,
+        PreEip1898BlockSpec,
     },
     U256,
 };
 
-pub(super) fn try_read_cache_key(method_invocation: &MethodInvocation) -> Option<ReadCacheKey> {
-    CacheableMethodInvocation::try_from(method_invocation)
+pub(super) fn try_read_cache_key(method: &RequestMethod) -> Option<ReadCacheKey> {
+    CacheableRequestMethod::try_from(method)
         .ok()
-        .and_then(CacheableMethodInvocation::read_cache_key)
+        .and_then(CacheableRequestMethod::read_cache_key)
 }
 
-pub(super) fn try_write_cache_key(method_invocation: &MethodInvocation) -> Option<WriteCacheKey> {
-    CacheableMethodInvocation::try_from(method_invocation)
+pub(super) fn try_write_cache_key(method: &RequestMethod) -> Option<WriteCacheKey> {
+    CacheableRequestMethod::try_from(method)
         .ok()
-        .and_then(CacheableMethodInvocation::write_cache_key)
+        .and_then(CacheableRequestMethod::write_cache_key)
 }
 
-/// Potentially cacheable Ethereum JSON-RPC method invocation.
+/// Potentially cacheable Ethereum JSON-RPC methods.
 #[derive(Clone, Debug)]
-enum CacheableMethodInvocation<'a> {
+enum CacheableRequestMethod<'a> {
     /// eth_chainId
     ChainId,
     /// eth_getBalance
@@ -46,10 +46,6 @@ enum CacheableMethodInvocation<'a> {
         /// include transaction data
         include_tx_data: bool,
     },
-    /// eth_getBlockTransactionCountByHash
-    GetBlockTransactionCountByHash { block_hash: &'a B256 },
-    /// eth_getBlockTransactionCountByNumber
-    GetBlockTransactionCountByNumber { block_spec: CacheableBlockSpec<'a> },
     /// eth_getCode
     GetCode {
         address: &'a Address,
@@ -62,16 +58,6 @@ enum CacheableMethodInvocation<'a> {
         address: &'a Address,
         position: &'a U256,
         block_spec: CacheableBlockSpec<'a>,
-    },
-    /// eth_getTransactionByBlockHashAndIndex
-    GetTransactionByBlockHashAndIndex {
-        block_hash: &'a B256,
-        index: &'a U256,
-    },
-    /// eth_getTransactionByBlockNumberAndIndex
-    GetTransactionByBlockNumberAndIndex {
-        block_spec: CacheableBlockSpec<'a>,
-        index: &'a U256,
     },
     /// eth_getTransactionByHash
     GetTransactionByHash { transaction_hash: &'a B256 },
@@ -86,193 +72,127 @@ enum CacheableMethodInvocation<'a> {
     NetVersion,
 }
 
-impl<'a> CacheableMethodInvocation<'a> {
+impl<'a> CacheableRequestMethod<'a> {
     fn read_cache_key(self) -> Option<ReadCacheKey> {
-        let cache_key = Hasher::new().hash_method_invocation(&self).ok()?.finalize();
+        let cache_key = Hasher::new().hash_method(&self).ok()?.finalize();
         Some(ReadCacheKey(cache_key))
     }
 
     #[allow(clippy::match_same_arms)]
     fn write_cache_key(self) -> Option<WriteCacheKey> {
-        match Hasher::new().hash_method_invocation(&self) {
+        match Hasher::new().hash_method(&self) {
             Err(SymbolicBlogTagError) => WriteCacheKey::needs_block_number(self),
             Ok(hasher) => match self {
-                CacheableMethodInvocation::ChainId => Some(WriteCacheKey::finalize(hasher)),
-                CacheableMethodInvocation::GetBalance {
+                CacheableRequestMethod::ChainId => Some(WriteCacheKey::finalize(hasher)),
+                CacheableRequestMethod::GetBalance {
                     address: _,
                     block_spec,
                 } => WriteCacheKey::needs_safety_check(hasher, block_spec),
-                CacheableMethodInvocation::GetBlockByNumber {
+                CacheableRequestMethod::GetBlockByNumber {
                     block_spec,
                     include_tx_data: _,
                 } => WriteCacheKey::needs_safety_check(hasher, block_spec),
-                CacheableMethodInvocation::GetBlockByHash {
+                CacheableRequestMethod::GetBlockByHash {
                     block_hash: _,
                     include_tx_data: _,
                 } => Some(WriteCacheKey::finalize(hasher)),
-                CacheableMethodInvocation::GetBlockTransactionCountByHash { block_hash: _ } => {
-                    Some(WriteCacheKey::finalize(hasher))
-                }
-                CacheableMethodInvocation::GetBlockTransactionCountByNumber { block_spec } => {
-                    WriteCacheKey::needs_safety_check(hasher, block_spec)
-                }
-                CacheableMethodInvocation::GetCode {
+                CacheableRequestMethod::GetCode {
                     address: _,
                     block_spec,
                 } => WriteCacheKey::needs_safety_check(hasher, block_spec),
-                CacheableMethodInvocation::GetLogs {
+                CacheableRequestMethod::GetLogs {
                     params,
                     // TODO should we check that to < from?
                 } => WriteCacheKey::needs_safety_check(hasher, params.to_block),
-                CacheableMethodInvocation::GetStorageAt {
+                CacheableRequestMethod::GetStorageAt {
                     address: _,
                     position: _,
                     block_spec,
                 } => WriteCacheKey::needs_safety_check(hasher, block_spec),
-                CacheableMethodInvocation::GetTransactionByBlockHashAndIndex {
-                    block_hash: _,
-                    index: _,
-                } => Some(WriteCacheKey::finalize(hasher)),
-                CacheableMethodInvocation::GetTransactionByBlockNumberAndIndex {
-                    block_spec: _,
-                    index: _,
-                } => Some(WriteCacheKey::finalize(hasher)),
-                CacheableMethodInvocation::GetTransactionByHash {
+                CacheableRequestMethod::GetTransactionByHash {
                     transaction_hash: _,
                 } => Some(WriteCacheKey::finalize(hasher)),
-                CacheableMethodInvocation::GetTransactionCount {
+                CacheableRequestMethod::GetTransactionCount {
                     address: _,
                     block_spec,
                 } => WriteCacheKey::needs_safety_check(hasher, block_spec),
-                CacheableMethodInvocation::GetTransactionReceipt {
+                CacheableRequestMethod::GetTransactionReceipt {
                     transaction_hash: _,
                 } => Some(WriteCacheKey::finalize(hasher)),
-                CacheableMethodInvocation::NetVersion => Some(WriteCacheKey::finalize(hasher)),
+                CacheableRequestMethod::NetVersion => Some(WriteCacheKey::finalize(hasher)),
             },
         }
     }
 }
 
-/// Error type for [`CacheableMethodInvocation::try_from`].
+/// Error type for [`CacheableRequestMethod::try_from`].
 #[derive(thiserror::Error, Debug)]
 enum MethodNotCacheableError {
     #[error(transparent)]
     BlockSpec(#[from] BlockSpecNotCacheableError),
     #[error("Method is not cacheable: {0:?}")]
-    MethodInvocation(MethodInvocation),
+    RequestMethod(RequestMethod),
     #[error("Get logs input is not cacheable: {0:?}")]
     GetLogsInput(#[from] GetLogsInputNotCacheableError),
     #[error(transparent)]
     PreEip18989BlockSpec(#[from] PreEip1898BlockSpecNotCacheableError),
 }
 
-impl<'a> TryFrom<&'a MethodInvocation> for CacheableMethodInvocation<'a> {
+impl<'a> TryFrom<&'a RequestMethod> for CacheableRequestMethod<'a> {
     type Error = MethodNotCacheableError;
 
-    fn try_from(value: &'a MethodInvocation) -> Result<Self, Self::Error> {
+    fn try_from(value: &'a RequestMethod) -> Result<Self, Self::Error> {
         match value {
-            MethodInvocation::ChainId(_) => Ok(CacheableMethodInvocation::ChainId),
-            MethodInvocation::GetBalance(address, block_spec) => {
-                Ok(CacheableMethodInvocation::GetBalance {
+            RequestMethod::ChainId(_) => Ok(CacheableRequestMethod::ChainId),
+            RequestMethod::GetBalance(address, block_spec) => {
+                Ok(CacheableRequestMethod::GetBalance {
                     address,
                     block_spec: block_spec.try_into()?,
                 })
             }
-            MethodInvocation::GetBlockByNumber(block_spec, include_tx_data) => {
-                Ok(CacheableMethodInvocation::GetBlockByNumber {
+            RequestMethod::GetBlockByNumber(block_spec, include_tx_data) => {
+                Ok(CacheableRequestMethod::GetBlockByNumber {
                     block_spec: block_spec.try_into()?,
                     include_tx_data: *include_tx_data,
                 })
             }
-            MethodInvocation::GetBlockByHash(block_hash, include_tx_data) => {
-                Ok(CacheableMethodInvocation::GetBlockByHash {
+            RequestMethod::GetBlockByHash(block_hash, include_tx_data) => {
+                Ok(CacheableRequestMethod::GetBlockByHash {
                     block_hash,
                     include_tx_data: *include_tx_data,
                 })
             }
-            MethodInvocation::GetBlockTransactionCountByHash(block_hash) => {
-                Ok(CacheableMethodInvocation::GetBlockTransactionCountByHash { block_hash })
-            }
-            MethodInvocation::GetBlockTransactionCountByNumber(block_spec) => Ok(
-                CacheableMethodInvocation::GetBlockTransactionCountByNumber {
-                    block_spec: block_spec.try_into()?,
-                },
-            ),
-            MethodInvocation::GetCode(address, block_spec) => {
-                Ok(CacheableMethodInvocation::GetCode {
-                    address,
-                    block_spec: block_spec.try_into()?,
-                })
-            }
-            MethodInvocation::GetLogs(params) => Ok(CacheableMethodInvocation::GetLogs {
+            RequestMethod::GetCode(address, block_spec) => Ok(CacheableRequestMethod::GetCode {
+                address,
+                block_spec: block_spec.try_into()?,
+            }),
+            RequestMethod::GetLogs(params) => Ok(CacheableRequestMethod::GetLogs {
                 params: params.try_into()?,
             }),
-            MethodInvocation::GetStorageAt(address, position, block_spec) => {
-                Ok(CacheableMethodInvocation::GetStorageAt {
+            RequestMethod::GetStorageAt(address, position, block_spec) => {
+                Ok(CacheableRequestMethod::GetStorageAt {
                     address,
                     position,
                     block_spec: block_spec.try_into()?,
                 })
             }
-            MethodInvocation::GetTransactionByBlockHashAndIndex(block_hash, index) => Ok(
-                CacheableMethodInvocation::GetTransactionByBlockHashAndIndex { block_hash, index },
-            ),
-            MethodInvocation::GetTransactionByBlockNumberAndIndex(block_spec, index) => Ok(
-                CacheableMethodInvocation::GetTransactionByBlockNumberAndIndex {
-                    block_spec: block_spec.try_into()?,
-                    index,
-                },
-            ),
-            MethodInvocation::GetTransactionByHash(transaction_hash) => {
-                Ok(CacheableMethodInvocation::GetTransactionByHash { transaction_hash })
+            RequestMethod::GetTransactionByHash(transaction_hash) => {
+                Ok(CacheableRequestMethod::GetTransactionByHash { transaction_hash })
             }
-            MethodInvocation::GetTransactionCount(address, block_spec) => {
-                Ok(CacheableMethodInvocation::GetTransactionCount {
+            RequestMethod::GetTransactionCount(address, block_spec) => {
+                Ok(CacheableRequestMethod::GetTransactionCount {
                     address,
                     block_spec: block_spec.try_into()?,
                 })
             }
-            MethodInvocation::GetTransactionReceipt(transaction_hash) => {
-                Ok(CacheableMethodInvocation::GetTransactionReceipt { transaction_hash })
+            RequestMethod::GetTransactionReceipt(transaction_hash) => {
+                Ok(CacheableRequestMethod::GetTransactionReceipt { transaction_hash })
             }
-            MethodInvocation::NetVersion(_) => Ok(CacheableMethodInvocation::NetVersion),
+            RequestMethod::NetVersion(_) => Ok(CacheableRequestMethod::NetVersion),
 
             // Explicit to make sure if a new method is added, it is not forgotten here.
-            MethodInvocation::Accounts(_)
-            | MethodInvocation::BlockNumber(_)
-            | MethodInvocation::Call(_, _)
-            | MethodInvocation::Coinbase(_)
-            | MethodInvocation::EstimateGas(_, _)
-            | MethodInvocation::FeeHistory(_, _, _)
-            | MethodInvocation::GasPrice(_)
-            | MethodInvocation::GetFilterChanges(_)
-            | MethodInvocation::GetFilterLogs(_)
-            | MethodInvocation::Mining(_)
-            | MethodInvocation::NetListening(_)
-            | MethodInvocation::NetPeerCount(_)
-            | MethodInvocation::NewBlockFilter(_)
-            | MethodInvocation::NewFilter(_)
-            | MethodInvocation::NewPendingTransactionFilter(_)
-            | MethodInvocation::PendingTransactions(_)
-            | MethodInvocation::SendRawTransaction(_)
-            | MethodInvocation::SendTransaction(_)
-            | MethodInvocation::Sign(_, _)
-            | MethodInvocation::SignTypedDataV4(_, _)
-            | MethodInvocation::Subscribe(_)
-            | MethodInvocation::Syncing(_)
-            | MethodInvocation::UninstallFilter(_)
-            | MethodInvocation::Unsubscribe(_)
-            | MethodInvocation::Web3ClientVersion(_)
-            | MethodInvocation::Web3Sha3(_)
-            | MethodInvocation::EvmIncreaseTime(_)
-            | MethodInvocation::EvmMine(_)
-            | MethodInvocation::EvmRevert(_)
-            | MethodInvocation::EvmSetAutomine(_)
-            | MethodInvocation::EvmSetBlockGasLimit(_)
-            | MethodInvocation::EvmSetIntervalMining(_)
-            | MethodInvocation::EvmSetNextBlockTimestamp(_)
-            | MethodInvocation::EvmSnapshot(_) => {
-                Err(MethodNotCacheableError::MethodInvocation(value.clone()))
+            RequestMethod::BlockNumber(_) | RequestMethod::FeeHistory(_, _, _) => {
+                Err(MethodNotCacheableError::RequestMethod(value.clone()))
             }
         }
     }
@@ -435,9 +355,9 @@ impl WriteCacheKey {
         }
     }
 
-    fn needs_block_number(method_invocation: CacheableMethodInvocation<'_>) -> Option<Self> {
+    fn needs_block_number(method: CacheableRequestMethod<'_>) -> Option<Self> {
         Some(Self::NeedsBlockNumber(CacheKeyForSymbolicBlockTag {
-            method_invocation: MethodWithResolvableSymbolicBlockSpec::new(method_invocation)?,
+            method: MethodWithResolvableSymbolicBlockSpec::new(method)?,
         }))
     }
 }
@@ -477,7 +397,7 @@ pub(super) enum ResolvedSymbolicTag {
 
 #[derive(Debug, Clone)]
 pub(super) struct CacheKeyForSymbolicBlockTag {
-    method_invocation: MethodWithResolvableSymbolicBlockSpec,
+    method: MethodWithResolvableSymbolicBlockSpec,
 }
 
 impl CacheKeyForSymbolicBlockTag {
@@ -486,26 +406,24 @@ impl CacheKeyForSymbolicBlockTag {
     pub(super) fn resolve_symbolic_tag(self, block_number: u64) -> Option<ResolvedSymbolicTag> {
         let resolved_block_spec = CacheableBlockSpec::Number { block_number };
 
-        let resolved_method_invocation = match self.method_invocation {
+        let resolved_method = match self.method {
             MethodWithResolvableSymbolicBlockSpec::GetBlockByNumber {
                 include_tx_data, ..
-            } => CacheableMethodInvocation::GetBlockByNumber {
+            } => CacheableRequestMethod::GetBlockByNumber {
                 block_spec: resolved_block_spec,
                 include_tx_data,
             },
         };
 
-        resolved_method_invocation
-            .write_cache_key()
-            .map(|key| match key {
-                WriteCacheKey::NeedsSafetyCheck(cache_key) => {
-                    ResolvedSymbolicTag::NeedsSafetyCheck(cache_key)
-                }
-                WriteCacheKey::Resolved(cache_key) => ResolvedSymbolicTag::Resolved(cache_key),
-                WriteCacheKey::NeedsBlockNumber(_) => {
-                    unreachable!("resolved block spec should not need block number")
-                }
-            })
+        resolved_method.write_cache_key().map(|key| match key {
+            WriteCacheKey::NeedsSafetyCheck(cache_key) => {
+                ResolvedSymbolicTag::NeedsSafetyCheck(cache_key)
+            }
+            WriteCacheKey::Resolved(cache_key) => ResolvedSymbolicTag::Resolved(cache_key),
+            WriteCacheKey::NeedsBlockNumber(_) => {
+                unreachable!("resolved block spec should not need block number")
+            }
+        })
     }
 }
 
@@ -517,9 +435,9 @@ pub(super) enum MethodWithResolvableSymbolicBlockSpec {
 }
 
 impl<'a> MethodWithResolvableSymbolicBlockSpec {
-    fn new(method_invocation: CacheableMethodInvocation<'a>) -> Option<Self> {
-        match method_invocation {
-            CacheableMethodInvocation::GetBlockByNumber {
+    fn new(method: CacheableRequestMethod<'a>) -> Option<Self> {
+        match method {
+            CacheableRequestMethod::GetBlockByNumber {
                 include_tx_data,
                 block_spec: _,
             } => Some(Self::GetBlockByNumber { include_tx_data }),
@@ -651,40 +569,34 @@ impl Hasher {
         Ok(this)
     }
 
-    // Allow to keep same structure as other MethodInvocation and other methods.
+    // Allow to keep same structure as other RequestMethod and other methods.
     #[allow(clippy::match_same_arms)]
-    fn hash_method_invocation(
+    fn hash_method(
         self,
-        method: &CacheableMethodInvocation<'_>,
+        method: &CacheableRequestMethod<'_>,
     ) -> Result<Self, SymbolicBlogTagError> {
         let this = self.hash_u8(method.cache_key_variant());
 
         let this = match method {
-            CacheableMethodInvocation::ChainId => this,
-            CacheableMethodInvocation::GetBalance {
+            CacheableRequestMethod::ChainId => this,
+            CacheableRequestMethod::GetBalance {
                 address,
                 block_spec,
             } => this.hash_address(address).hash_block_spec(block_spec)?,
-            CacheableMethodInvocation::GetBlockByNumber {
+            CacheableRequestMethod::GetBlockByNumber {
                 block_spec,
                 include_tx_data,
             } => this.hash_block_spec(block_spec)?.hash_bool(include_tx_data),
-            CacheableMethodInvocation::GetBlockByHash {
+            CacheableRequestMethod::GetBlockByHash {
                 block_hash,
                 include_tx_data,
             } => this.hash_b256(block_hash).hash_bool(include_tx_data),
-            CacheableMethodInvocation::GetBlockTransactionCountByHash { block_hash } => {
-                this.hash_b256(block_hash)
-            }
-            CacheableMethodInvocation::GetBlockTransactionCountByNumber { block_spec } => {
-                this.hash_block_spec(block_spec)?
-            }
-            CacheableMethodInvocation::GetCode {
+            CacheableRequestMethod::GetCode {
                 address,
                 block_spec,
             } => this.hash_address(address).hash_block_spec(block_spec)?,
-            CacheableMethodInvocation::GetLogs { params } => this.hash_get_logs_input(params)?,
-            CacheableMethodInvocation::GetStorageAt {
+            CacheableRequestMethod::GetLogs { params } => this.hash_get_logs_input(params)?,
+            CacheableRequestMethod::GetStorageAt {
                 address,
                 position,
                 block_spec,
@@ -692,24 +604,17 @@ impl Hasher {
                 .hash_address(address)
                 .hash_u256(position)
                 .hash_block_spec(block_spec)?,
-            CacheableMethodInvocation::GetTransactionByBlockHashAndIndex { block_hash, index } => {
-                this.hash_b256(block_hash).hash_u256(index)
-            }
-            CacheableMethodInvocation::GetTransactionByBlockNumberAndIndex {
-                block_spec,
-                index,
-            } => this.hash_block_spec(block_spec)?.hash_u256(index),
-            CacheableMethodInvocation::GetTransactionByHash { transaction_hash } => {
+            CacheableRequestMethod::GetTransactionByHash { transaction_hash } => {
                 this.hash_b256(transaction_hash)
             }
-            CacheableMethodInvocation::GetTransactionCount {
+            CacheableRequestMethod::GetTransactionCount {
                 address,
                 block_spec,
             } => this.hash_address(address).hash_block_spec(block_spec)?,
-            CacheableMethodInvocation::GetTransactionReceipt { transaction_hash } => {
+            CacheableRequestMethod::GetTransactionReceipt { transaction_hash } => {
                 this.hash_b256(transaction_hash)
             }
-            CacheableMethodInvocation::NetVersion => this,
+            CacheableRequestMethod::NetVersion => this,
         };
 
         Ok(this)
@@ -740,24 +645,26 @@ impl<T> CacheKeyVariant for Option<T> {
     }
 }
 
-impl<'a> CacheKeyVariant for &'a CacheableMethodInvocation<'a> {
+impl<'a> CacheKeyVariant for &'a CacheableRequestMethod<'a> {
     fn cache_key_variant(&self) -> u8 {
         match self {
-            CacheableMethodInvocation::ChainId => 0,
-            CacheableMethodInvocation::GetBalance { .. } => 1,
-            CacheableMethodInvocation::GetBlockByNumber { .. } => 2,
-            CacheableMethodInvocation::GetBlockByHash { .. } => 3,
-            CacheableMethodInvocation::GetBlockTransactionCountByHash { .. } => 4,
-            CacheableMethodInvocation::GetBlockTransactionCountByNumber { .. } => 5,
-            CacheableMethodInvocation::GetCode { .. } => 6,
-            CacheableMethodInvocation::GetLogs { .. } => 7,
-            CacheableMethodInvocation::GetStorageAt { .. } => 8,
-            CacheableMethodInvocation::GetTransactionByBlockHashAndIndex { .. } => 9,
-            CacheableMethodInvocation::GetTransactionByBlockNumberAndIndex { .. } => 10,
-            CacheableMethodInvocation::GetTransactionByHash { .. } => 11,
-            CacheableMethodInvocation::GetTransactionCount { .. } => 12,
-            CacheableMethodInvocation::GetTransactionReceipt { .. } => 13,
-            CacheableMethodInvocation::NetVersion => 14,
+            CacheableRequestMethod::ChainId => 0,
+            CacheableRequestMethod::GetBalance { .. } => 1,
+            CacheableRequestMethod::GetBlockByNumber { .. } => 2,
+            CacheableRequestMethod::GetBlockByHash { .. } => 3,
+            // These methods have been removed as they're not currently in use by the RPC client.
+            // If they're added back, they should keep their old variant number.
+            // CacheableRequestMethod::GetBlockTransactionCountByHash { .. } => 4,
+            // CacheableRequestMethod::GetBlockTransactionCountByNumber { .. } => 5,
+            CacheableRequestMethod::GetCode { .. } => 6,
+            CacheableRequestMethod::GetLogs { .. } => 7,
+            CacheableRequestMethod::GetStorageAt { .. } => 8,
+            // CacheableRequestMethod::GetTransactionByBlockHashAndIndex { .. } => 9,
+            // CacheableRequestMethod::GetTransactionByBlockNumberAndIndex { .. } => 10,
+            CacheableRequestMethod::GetTransactionByHash { .. } => 11,
+            CacheableRequestMethod::GetTransactionCount { .. } => 12,
+            CacheableRequestMethod::GetTransactionReceipt { .. } => 13,
+            CacheableRequestMethod::NetVersion => 14,
         }
     }
 }
@@ -834,10 +741,8 @@ mod test {
 
     #[test]
     fn test_no_arguments_keys_not_equal() {
-        let key_one = CacheableMethodInvocation::ChainId.read_cache_key().unwrap();
-        let key_two = CacheableMethodInvocation::NetVersion
-            .read_cache_key()
-            .unwrap();
+        let key_one = CacheableRequestMethod::ChainId.read_cache_key().unwrap();
+        let key_two = CacheableRequestMethod::NetVersion.read_cache_key().unwrap();
 
         assert_ne!(key_one, key_two);
     }
@@ -845,12 +750,12 @@ mod test {
     #[test]
     fn test_same_arguments_keys_not_equal() {
         let value = B256::default();
-        let key_one = CacheableMethodInvocation::GetTransactionByHash {
+        let key_one = CacheableRequestMethod::GetTransactionByHash {
             transaction_hash: &value,
         }
         .read_cache_key()
         .unwrap();
-        let key_two = CacheableMethodInvocation::GetTransactionReceipt {
+        let key_two = CacheableRequestMethod::GetTransactionReceipt {
             transaction_hash: &value,
         }
         .read_cache_key()
@@ -864,7 +769,7 @@ mod test {
         let address = Address::default();
         let position = U256::default();
 
-        let key_one = CacheableMethodInvocation::GetStorageAt {
+        let key_one = CacheableRequestMethod::GetStorageAt {
             address: &address,
             position: &position,
             block_spec: CacheableBlockSpec::Hash {
@@ -875,7 +780,7 @@ mod test {
         .read_cache_key()
         .unwrap();
 
-        let key_two = CacheableMethodInvocation::GetStorageAt {
+        let key_two = CacheableRequestMethod::GetStorageAt {
             address: &address,
             position: &position,
             block_spec: CacheableBlockSpec::Number {
@@ -895,7 +800,7 @@ mod test {
         let block_number = u64::default();
         let block_spec = CacheableBlockSpec::Number { block_number };
 
-        let key_one = CacheableMethodInvocation::GetStorageAt {
+        let key_one = CacheableRequestMethod::GetStorageAt {
             address: &address,
             position: &position,
             block_spec: block_spec.clone(),
@@ -903,7 +808,7 @@ mod test {
         .read_cache_key()
         .unwrap();
 
-        let key_two = CacheableMethodInvocation::GetStorageAt {
+        let key_two = CacheableRequestMethod::GetStorageAt {
             address: &address,
             position: &position,
             block_spec,

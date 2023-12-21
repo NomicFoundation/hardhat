@@ -4,7 +4,7 @@ use revm_primitives::{keccak256, Address, Bytes, B256, U256};
 
 use crate::{
     signature::{Signature, SignatureError},
-    transaction::{kind::TransactionKind, request::EIP155TransactionRequest},
+    transaction::{kind::TransactionKind, request::Eip155TransactionRequest},
 };
 
 #[derive(Clone, Debug, Eq)]
@@ -37,7 +37,7 @@ impl EIP155SignedTransaction {
     /// Recovers the Ethereum address which was used to sign the transaction.
     pub fn recover(&self) -> Result<Address, SignatureError> {
         self.signature
-            .recover(EIP155TransactionRequest::from(self).hash())
+            .recover(Eip155TransactionRequest::from(self).hash())
     }
 
     pub fn chain_id(&self) -> u64 {
@@ -105,10 +105,10 @@ mod tests {
     use super::*;
     use crate::signature::secret_key_from_str;
 
-    fn dummy_request() -> EIP155TransactionRequest {
+    fn dummy_request() -> Eip155TransactionRequest {
         let to = Address::from_str("0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e").unwrap();
         let input = hex::decode("1234").unwrap();
-        EIP155TransactionRequest {
+        Eip155TransactionRequest {
             nonce: 1,
             gas_price: U256::from(2),
             gas_limit: 3,
