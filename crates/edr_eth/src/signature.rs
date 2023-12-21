@@ -18,7 +18,9 @@ use k256::{
 };
 use sha3::{Digest, Keccak256};
 
-use crate::{utils::hash_message, Address, B256, U256};
+#[cfg(feature = "serde")]
+use crate::serde::ZeroXPrefixedBytes;
+use crate::{utils::hash_message, Address, Bytes, B256, U256};
 
 /// Converts a [`PublicKey`] to an [`Address`].
 pub fn public_key_to_address(public_key: PublicKey) -> Address {
@@ -330,6 +332,19 @@ impl From<&Signature> for Vec<u8> {
 impl From<Signature> for Vec<u8> {
     fn from(src: Signature) -> Vec<u8> {
         <[u8; 65]>::from(&src).to_vec()
+    }
+}
+
+impl From<&Signature> for Bytes {
+    fn from(src: &Signature) -> Self {
+        Bytes::from(Vec::<u8>::from(src))
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<&Signature> for ZeroXPrefixedBytes {
+    fn from(src: &Signature) -> Self {
+        ZeroXPrefixedBytes::from(Bytes::from(src))
     }
 }
 
