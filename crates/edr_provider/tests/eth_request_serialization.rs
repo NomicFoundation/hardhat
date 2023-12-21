@@ -327,8 +327,8 @@ fn test_serde_eth_send_transaction() {
 #[test]
 fn test_serde_eth_sign() {
     help_test_method_invocation_serde(MethodInvocation::Sign(
-        Address::from_low_u64_ne(1),
         Bytes::from(&b"whatever"[..]).into(),
+        Address::from_low_u64_ne(1),
     ));
 }
 
@@ -494,8 +494,8 @@ fn test_net_peer_count() {
 #[test]
 fn test_personal_sign() {
     let call = MethodInvocation::Sign(
-        Address::from_low_u64_ne(1),
         Bytes::from(&b"whatever"[..]).into(),
+        Address::from_low_u64_ne(1),
     );
 
     let serialized = serde_json::json!(call)
