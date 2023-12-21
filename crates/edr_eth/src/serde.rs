@@ -249,7 +249,6 @@ pub mod optional_u64 {
     use revm_primitives::ruint::aliases::U64;
 
     use super::{Deserialize, Deserializer, Serialize, Serializer};
-    use crate::utils::u64_to_padded_hex;
 
     /// Helper function for deserializing an [`Option<std::primitive::u64>`]
     /// from a `0x`-prefixed hexadecimal string.
@@ -273,19 +272,6 @@ pub mod optional_u64 {
         SerializerT: Serializer,
     {
         Serialize::serialize(&value.map(U64::from), s)
-    }
-
-    /// Helper function for serializing a [`Option<std::primitive::u64>`] into a
-    /// `0x`-prefixed hexadecimal string padded to 8 bytes.
-    pub fn serialize_padded<SerializerT>(
-        value: &Option<u64>,
-        s: SerializerT,
-    ) -> Result<SerializerT::Ok, SerializerT::Error>
-    where
-        SerializerT: Serializer,
-    {
-        let value = value.map(U64::from).map(u64_to_padded_hex);
-        Serialize::serialize(&value, s)
     }
 }
 
@@ -335,11 +321,6 @@ mod tests {
         u64: u64,
         #[serde(with = "optional_u64")]
         optional_u64: Option<u64>,
-        #[serde(
-            serialize_with = "optional_u64::serialize",
-            deserialize_with = "optional_u64::deserialize"
-        )]
-        optional_u64_padded: Option<u64>,
         #[serde(with = "bytes")]
         bytes: Bytes,
     }
@@ -367,14 +348,5 @@ mod tests {
         let deserialized = serde_json::from_str(&serialized).unwrap();
 
         assert_eq!(test_struct, deserialized);
-    }
-
-    #[test]
-    fn test_padded() {
-        let mut writer = Vec::new();
-        let mut serializer = serde_json::Serializer::new(&mut writer);
-        optional_u64::serialize_padded(&Some(1), &mut serializer).unwrap();
-        let result = String::from_utf8(writer).unwrap();
-        assert_eq!(result, "\"0x0000000000000001\"");
     }
 }
