@@ -7,10 +7,7 @@ import { assertHardhatInvariant, HardhatError } from "../core/errors";
 import { ERRORS } from "../core/errors-list";
 import { getRecommendedGitIgnore } from "../core/project-structure";
 import { getAllFilesMatching } from "../util/fs-utils";
-import {
-  hasConsentedTelemetry,
-  writeTelemetryConsent,
-} from "../util/global-dir";
+import { hasConsentedTelemetry } from "../util/global-dir";
 import { fromEntries } from "../util/lang";
 import {
   getPackageJson,
@@ -20,11 +17,11 @@ import {
 import { pluralize } from "../util/strings";
 import {
   confirmRecommendedDepsInstallation,
-  confirmTelemetryConsent,
   confirmProjectCreation,
 } from "./prompt";
 import { emoji } from "./emoji";
 import { Dependencies, PackageManager } from "./types";
+import { requestTelemetryConsent } from "./analytics";
 
 enum Action {
   CREATE_JAVASCRIPT_PROJECT_ACTION = "Create a JavaScript project",
@@ -465,11 +462,7 @@ export async function createProject() {
     process.env.HARDHAT_DISABLE_TELEMETRY_PROMPT !== "true" &&
     hasConsentedTelemetry() === undefined
   ) {
-    const telemetryConsent = await confirmTelemetryConsent();
-
-    if (telemetryConsent !== undefined) {
-      writeTelemetryConsent(telemetryConsent);
-    }
+    await requestTelemetryConsent();
   }
 
   await copySampleProject(projectRoot, action, isEsm);
