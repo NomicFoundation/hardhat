@@ -267,8 +267,6 @@ export class AutomaticGasPriceProvider extends ProviderWrapper {
           maxPriorityFeePerGas = rpcQuantityToBigInt(
             suggestedMaxPriorityFeePerGas
           );
-
-
         } catch {
           // if eth_maxPriorityFeePerGas does not exist, use 1 wei
           maxPriorityFeePerGas = 1n;
