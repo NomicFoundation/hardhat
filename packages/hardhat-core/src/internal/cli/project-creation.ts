@@ -15,6 +15,7 @@ import {
   PackageJson,
 } from "../util/packageInfo";
 import { pluralize } from "../util/strings";
+import { isRunningOnCiServer } from "../util/ci-detection";
 import {
   confirmRecommendedDepsInstallation,
   confirmProjectCreation,
@@ -460,6 +461,7 @@ export async function createProject() {
 
   if (
     process.env.HARDHAT_DISABLE_TELEMETRY_PROMPT !== "true" &&
+    !isRunningOnCiServer() &&
     hasConsentedTelemetry() === undefined
   ) {
     await requestTelemetryConsent();
