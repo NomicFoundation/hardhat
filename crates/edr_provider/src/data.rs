@@ -124,6 +124,7 @@ impl ProviderData {
             fork_metadata,
             state,
             irregular_state,
+            next_block_base_fee_per_gas,
         } = create_blockchain_and_state(runtime_handle.clone(), &config, genesis_accounts)?;
 
         let prev_randao_generator = RandomHashGenerator::with_seed("randomMixHashSeed");
@@ -150,7 +151,7 @@ impl ProviderData {
             fork_metadata,
             instance_id: B256::random(),
             is_auto_mining,
-            next_block_base_fee_per_gas: None,
+            next_block_base_fee_per_gas,
             next_block_timestamp: None,
             // Start with 1 to mimic Ganache
             next_snapshot_id: 1,
@@ -558,10 +559,7 @@ impl ProviderData {
                 || {
                     let last_block = self.last_block()?;
 
-                    let base_fee = last_block
-                        .header()
-                        .base_fee_per_gas
-                        .unwrap_or_else(|| calculate_next_base_fee(last_block.header()));
+                    let base_fee = calculate_next_base_fee(last_block.header());
 
                     Ok(base_fee)
                 },
@@ -1363,6 +1361,7 @@ struct BlockchainAndState {
     fork_metadata: Option<ForkMetadata>,
     state: Box<dyn SyncState<StateError>>,
     irregular_state: IrregularState,
+    next_block_base_fee_per_gas: Option<U256>,
 }
 
 fn create_blockchain_and_state(
@@ -1450,6 +1449,9 @@ fn create_blockchain_and_state(
             blockchain: Box::new(blockchain),
             state: Box::new(state),
             irregular_state,
+            // There is no genesis block in a forked blockchain, so we incorporate the initial base
+            // fee per gas as the next base fee value.
+            next_block_base_fee_per_gas: config.initial_base_fee_per_gas,
         })
     } else {
         let blockchain = LocalBlockchain::new(
@@ -1477,6 +1479,9 @@ fn create_blockchain_and_state(
             blockchain: Box::new(blockchain),
             state,
             irregular_state,
+            // For local blockchain the initial base fee per gas config option is incorporated as
+            // part of the genesis block.
+            next_block_base_fee_per_gas: None,
         })
     }
 }

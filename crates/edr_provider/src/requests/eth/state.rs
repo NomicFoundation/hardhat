@@ -1,5 +1,5 @@
 use edr_eth::{
-    remote::BlockSpec, serde::ZeroXPrefixedBytes, utils::u256_to_hex_word, Address, U256,
+    remote::BlockSpec, serde::ZeroXPrefixedBytes, utils::u256_to_padded_hex, Address, U256,
 };
 use serde::{Deserialize, Deserializer};
 
@@ -29,7 +29,7 @@ pub fn handle_get_storage_at_request(
     block_spec: Option<BlockSpec>,
 ) -> Result<String, ProviderError> {
     let storage = data.get_storage_at(address, index, block_spec.as_ref())?;
-    Ok(u256_to_hex_word(&storage))
+    Ok(u256_to_padded_hex(&storage))
 }
 
 pub(crate) fn deserialize_storage_index<'de, D>(deserializer: D) -> Result<U256, D::Error>

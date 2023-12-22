@@ -1,6 +1,6 @@
 use std::{collections::HashMap, fmt::Debug};
 
-use edr_eth::{signature::SignatureError, utils::u256_to_hex_word, B256};
+use edr_eth::{signature::SignatureError, utils::u256_to_padded_hex, B256};
 use revm::{
     inspectors::GasInspector,
     interpreter::{opcode, CallInputs, CreateInputs, Gas, InstructionResult, Interpreter, Stack},
@@ -233,7 +233,7 @@ impl TracerEip3155 {
                 self.stack
                     .data()
                     .iter()
-                    .map(u256_to_hex_word)
+                    .map(u256_to_padded_hex)
                     .collect::<Vec<String>>(),
             )
         };
@@ -253,7 +253,7 @@ impl TracerEip3155 {
                 if let Some(JournalEntry::StorageChange { address, key, .. }) = last_entry {
                     let value = journaled_state.state[address].storage[key].present_value();
                     let contract_storage = self.storage.entry(self.contract_address).or_default();
-                    contract_storage.insert(u256_to_hex_word(key), u256_to_hex_word(&value));
+                    contract_storage.insert(u256_to_padded_hex(key), u256_to_padded_hex(&value));
                 }
             }
             Some(
