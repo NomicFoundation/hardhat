@@ -270,14 +270,16 @@ export async function requestTelemetryConsent() {
     "report-telemetry-consent.js"
   );
 
-  spawn(
+  const subprocess = spawn(
     process.execPath,
-    [reportTelemetryConsentPath, telemetryConsent === true ? "yes" : "no"],
+    [reportTelemetryConsentPath, telemetryConsent ? "yes" : "no"],
     {
       detached: true,
       stdio: "ignore",
     }
   );
+
+  subprocess.unref();
 
   return telemetryConsent;
 }
