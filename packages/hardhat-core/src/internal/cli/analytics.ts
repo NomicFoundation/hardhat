@@ -257,9 +257,11 @@ async function getHardhatVersion(): Promise<string> {
 export async function requestTelemetryConsent() {
   const telemetryConsent = await confirmTelemetryConsent();
 
-  if (telemetryConsent !== undefined) {
-    writeTelemetryConsent(telemetryConsent);
+  if (telemetryConsent === undefined) {
+    return;
   }
+
+  writeTelemetryConsent(telemetryConsent);
 
   const reportTelemetryConsentPath = join(
     __dirname,
