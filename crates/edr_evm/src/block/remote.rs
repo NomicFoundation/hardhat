@@ -9,7 +9,7 @@ use edr_eth::{
     },
     transaction::SignedTransaction,
     withdrawal::Withdrawal,
-    Address, B256,
+    Address, B256, B64,
 };
 use tokio::runtime;
 
@@ -79,7 +79,7 @@ impl RemoteBlock {
             timestamp: block.timestamp,
             extra_data: block.extra_data,
             mix_hash: block.mix_hash,
-            nonce: block.nonce.ok_or(CreationError::MissingNonce)?,
+            nonce: B64::from_limbs([block.nonce.ok_or(CreationError::MissingNonce)?.to_be()]),
             base_fee_per_gas: block.base_fee_per_gas,
             withdrawals_root: block.withdrawals_root,
             blob_gas: block.blob_gas_used.and_then(|gas_used| {

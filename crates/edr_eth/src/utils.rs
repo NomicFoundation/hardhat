@@ -13,7 +13,7 @@
 use revm_primitives::keccak256;
 use rlp::Encodable;
 
-use crate::{B256, U256};
+use crate::{B256, U256, U64};
 
 /// RLP-encodes the provided value, prepends it with the provided ID, and
 /// appends it to the provided [`rlp::RlpStream`].
@@ -62,6 +62,17 @@ pub fn u256_to_padded_hex(word: &U256) -> String {
     }
 }
 
+/// Convert a U64 to String as an 8-byte 0x prefixed hex string.
+pub fn u64_to_padded_hex(word: U64) -> String {
+    if word == U64::ZERO {
+        // For 0 zero, the #066x formatter doesn't add padding.
+        format!("0x{}", "0".repeat(16))
+    } else {
+        // 18 = 16 hex chars + 0x prefix
+        format!("{word:#018x}")
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -76,5 +87,11 @@ mod tests {
             u256_to_padded_hex(&U256::from(1)),
             "0x0000000000000000000000000000000000000000000000000000000000000001"
         );
+    }
+
+    #[test]
+    fn test_u64_to_padded_hex() {
+        assert_eq!(u64_to_padded_hex(U64::ZERO), "0x0000000000000000");
+        assert_eq!(u64_to_padded_hex(U64::from(1)), "0x0000000000000001");
     }
 }
