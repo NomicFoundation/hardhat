@@ -148,7 +148,8 @@ describe(".to.emit (contract events)", () => {
       describe("with an address argument", function () {
         const addressable = ethers.Wallet.createRandom();
         const { address } = addressable;
-        const { address: otherAddress } = ethers.Wallet.createRandom();
+        const otherAddressable = ethers.Wallet.createRandom();
+        const { address: otherAddress } = otherAddressable;
 
         it("Should match the argument", async function () {
           await expect(contract.emitAddress(addressable))
@@ -162,7 +163,18 @@ describe(".to.emit (contract events)", () => {
             .withArgs(addressable);
         });
 
-        it("Should fail when the input argument doesn't match the event argument", async function () {
+        it("Should fail when the input argument doesn't match the addressable event argument", async function () {
+          await expect(
+            expect(contract.emitAddress(addressable))
+              .to.emit(contract, "WithAddressArg")
+              .withArgs(otherAddressable)
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            `expected '${address}' to equal '${otherAddress}'`
+          );
+        });
+
+        it("Should fail when the input argument doesn't match the address event argument", async function () {
           await expect(
             expect(contract.emitAddress(addressable))
               .to.emit(contract, "WithAddressArg")
