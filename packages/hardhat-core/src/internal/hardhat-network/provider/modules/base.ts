@@ -88,13 +88,22 @@ export class Base {
   public async rpcCallRequestToNodeCallParams(
     rpcCall: RpcCallRequest
   ): Promise<CallParams> {
+    let data: Buffer;
+    if (rpcCall.input !== undefined) {
+      data = rpcCall.input;
+    } else if (rpcCall.data !== undefined) {
+      data = rpcCall.data;
+    } else {
+      data = toBuffer([]);
+    }
+
     return {
       to: rpcCall.to,
       from:
         rpcCall.from !== undefined
           ? rpcCall.from
           : await this._getDefaultCallFrom(),
-      data: rpcCall.data !== undefined ? rpcCall.data : toBuffer([]),
+      data,
       gasLimit:
         rpcCall.gas !== undefined ? rpcCall.gas : this._node.getBlockGasLimit(),
       value: rpcCall.value !== undefined ? rpcCall.value : 0n,

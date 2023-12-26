@@ -62,9 +62,16 @@ export async function sendTransactionFromTxParams(
   provider: EthereumProvider,
   txParams: TransactionParams
 ) {
+  let data: Buffer = toBuffer([]);
+  if (txParams.input !== undefined) {
+    data = txParams.input;
+  } else if (txParams.data !== undefined) {
+    data = txParams.data;
+  }
+
   const rpcTxParams: RpcTransactionRequestInput = {
     from: bufferToHex(txParams.from),
-    data: bufferToHex(txParams.data),
+    data: bufferToHex(data),
     nonce: numberToRpcQuantity(txParams.nonce),
     value: numberToRpcQuantity(txParams.value),
     gas: numberToRpcQuantity(txParams.gasLimit),

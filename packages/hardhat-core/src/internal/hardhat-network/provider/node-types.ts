@@ -89,7 +89,8 @@ interface BaseTransactionParams {
   from: Buffer;
   gasLimit: bigint;
   value: bigint;
-  data: Buffer;
+  data?: Buffer;
+  input?: Buffer;
   nonce: bigint;
 }
 

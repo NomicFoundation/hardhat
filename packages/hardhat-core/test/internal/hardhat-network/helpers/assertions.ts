@@ -220,7 +220,11 @@ function assertTransaction(
   assert.equal(tx.from, bufferToHex(txParams.from));
   assertQuantity(tx.gas, txParams.gasLimit);
   assert.equal(tx.hash, txHash);
-  assert.equal(tx.input, bufferToHex(txParams.data));
+  assert.isTrue(txParams.data !== undefined || txParams.input !== undefined);
+  assert.equal(
+    tx.input,
+    bufferToHex(txParams.data !== undefined ? txParams.data : txParams.input!)
+  );
   assertQuantity(tx.nonce, txParams.nonce);
   assert.equal(
     tx.to,

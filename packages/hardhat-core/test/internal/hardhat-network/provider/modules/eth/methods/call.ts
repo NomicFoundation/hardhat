@@ -91,6 +91,39 @@ describe("Eth module", function () {
             );
           });
 
+          it("Should accept an input param instead of a data param", async function () {
+            const contractAddress = await deployContract(
+              this.provider,
+              `0x${EXAMPLE_CONTRACT.bytecode.object}`
+            );
+
+            const result = await this.provider.send("eth_call", [
+              { to: contractAddress, input: EXAMPLE_CONTRACT.selectors.i },
+            ]);
+
+            assert.equal(
+              result,
+              "0x0000000000000000000000000000000000000000000000000000000000000000"
+            );
+
+            await this.provider.send("eth_sendTransaction", [
+              {
+                to: contractAddress,
+                from: DEFAULT_ACCOUNTS_ADDRESSES[0],
+                input: `${EXAMPLE_CONTRACT.selectors.modifiesState}000000000000000000000000000000000000000000000000000000000000000a`,
+              },
+            ]);
+
+            const result2 = await this.provider.send("eth_call", [
+              { to: contractAddress, input: EXAMPLE_CONTRACT.selectors.i },
+            ]);
+
+            assert.equal(
+              result2,
+              "0x000000000000000000000000000000000000000000000000000000000000000a"
+            );
+          });
+
           it("Should return the value returned by the contract using an unknown account as from", async function () {
             const from = "0x1234567890123456789012345678901234567890";
 

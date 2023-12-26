@@ -14,6 +14,7 @@ export const rpcTransactionRequest = t.type(
     value: optionalOrNullable(rpcQuantity),
     nonce: optionalOrNullable(rpcQuantity),
     data: optionalOrNullable(rpcData),
+    input: optionalOrNullable(rpcData),
     accessList: optionalOrNullable(rpcAccessList),
     chainId: optionalOrNullable(rpcQuantity),
     maxFeePerGas: optionalOrNullable(rpcQuantity),

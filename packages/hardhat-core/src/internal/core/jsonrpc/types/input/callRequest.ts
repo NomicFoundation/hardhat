@@ -20,6 +20,7 @@ export const rpcCallRequest = t.type(
     gasPrice: optionalOrNullable(rpcQuantity),
     value: optionalOrNullable(rpcQuantity),
     data: optionalOrNullable(rpcData),
+    input: optionalOrNullable(rpcData),
     accessList: optionalOrNullable(rpcAccessList),
     maxFeePerGas: optionalOrNullable(rpcQuantity),
     maxPriorityFeePerGas: optionalOrNullable(rpcQuantity),
