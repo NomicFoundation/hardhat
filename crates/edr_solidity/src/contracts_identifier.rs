@@ -9,19 +9,23 @@ use revm::interpreter::opcode;
 use self::radix_tree::RadixNode;
 use crate::opcodes::opcode_length;
 
+/// Temporary stub
 #[derive(Debug, PartialEq)]
 pub enum BytecodeType {
+    /// Temporary stub
     Runtime,
+    /// Temporary stub
     Deployment,
 }
 
+/// Temporary stub
 #[derive(Debug, PartialEq)]
 pub struct ImmutableReference {
     offset: usize,
     length: usize,
 }
 
-// bytecode and trace stubs
+/// Temporary stub
 #[derive(Debug, PartialEq)]
 pub struct Bytecode {
     normalized_code: Bytes,
@@ -31,21 +35,27 @@ pub struct Bytecode {
 }
 
 impl Bytecode {
+    /// Temporary stub
     pub fn is_deployment(&self) -> bool {
         self.bytecode_type == BytecodeType::Deployment
     }
 }
 
+/// Temporary stub
 pub struct CreateMessageTrace {
     code: Bytes,
 }
 
+/// Temporary stub
 pub struct CallMessageTrace {
     code: Bytes,
 }
 
+/// Temporary stub
 pub enum EvmMessageTrace {
+    /// Temporary stub
     Create(CreateMessageTrace),
+    /// Temporary stub
     Call(CallMessageTrace),
 }
 
@@ -58,6 +68,7 @@ impl EvmMessageTrace {
     }
 }
 
+/// Map of bytecodes to known contracts
 // TODO add a caching layer: https://github.com/NomicFoundation/edr/issues/257
 #[derive(Default)]
 pub struct ContractsIdentifier<'a> {
@@ -66,11 +77,13 @@ pub struct ContractsIdentifier<'a> {
 }
 
 impl<'a> ContractsIdentifier<'a> {
+    /// Add a known bytecode
     pub fn add_bytecode(&mut self, bytecode: &'a Bytecode) {
         self.tree.add_word(bytecode.normalized_code.clone());
         self.bytecodes.insert(&bytecode.normalized_code, bytecode);
     }
 
+    /// Get a bytecode by its normalized code
     pub fn bytecode_by_message_trace(&self, trace: EvmMessageTrace) -> Option<&Bytecode> {
         let normalized_code = normalize_library_runtime_bytecode_if_necessary(trace.code().clone());
 
