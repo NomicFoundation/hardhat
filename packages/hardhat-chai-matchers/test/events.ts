@@ -145,6 +145,58 @@ describe(".to.emit (contract events)", () => {
         });
       });
 
+      describe("with an address argument", function () {
+        const addressable = ethers.Wallet.createRandom();
+        const { address } = addressable;
+        const otherAddressable = ethers.Wallet.createRandom();
+        const { address: otherAddress } = otherAddressable;
+
+        it("Should match the argument", async function () {
+          await expect(contract.emitAddress(addressable))
+            .to.emit(contract, "WithAddressArg")
+            .withArgs(address);
+        });
+
+        it("Should match addressable arguments", async function () {
+          await expect(contract.emitAddress(addressable))
+            .to.emit(contract, "WithAddressArg")
+            .withArgs(addressable);
+        });
+
+        it("Should fail when the input argument doesn't match the addressable event argument", async function () {
+          await expect(
+            expect(contract.emitAddress(addressable))
+              .to.emit(contract, "WithAddressArg")
+              .withArgs(otherAddressable)
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            `expected '${address}' to equal '${otherAddress}'`
+          );
+        });
+
+        it("Should fail when the input argument doesn't match the address event argument", async function () {
+          await expect(
+            expect(contract.emitAddress(addressable))
+              .to.emit(contract, "WithAddressArg")
+              .withArgs(otherAddress)
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            `expected '${address}' to equal '${otherAddress}'`
+          );
+        });
+
+        it("Should fail when too many arguments are given", async function () {
+          await expect(
+            expect(contract.emitAddress(addressable))
+              .to.emit(contract, "WithAddressArg")
+              .withArgs(address, otherAddress)
+          ).to.be.eventually.rejectedWith(
+            AssertionError,
+            'Expected "WithAddressArg" event to have 2 argument(s), but it has 1'
+          );
+        });
+      });
+
       const string1 = "string1";
       const string1Bytes = ethers.hexlify(ethers.toUtf8Bytes(string1));
       const string2 = "string2";
