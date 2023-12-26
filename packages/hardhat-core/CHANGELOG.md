@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.19.4
+
+### Patch Changes
+
+- 7aea77e49: Report telemetry consent response to Google Analytics
+
 ## 2.19.3
 
 ### Patch Changes
