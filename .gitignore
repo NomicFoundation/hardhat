@@ -16,10 +16,6 @@ workspace.code-workspace
 # Logs
 logs
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
@@ -58,20 +54,14 @@ jspm_packages/
 # TypeScript v1 declaration files
 typings/
 
-# Optional npm cache directory
-.npm
-
 # Optional eslint cache
 .eslintcache
 
 # Optional REPL history
 .node_repl_history
 
-# Output of 'npm pack'
+# Output of 'pnpm pack'
 *.tgz
-
-# Yarn Integrity file
-.yarn-integrity
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -113,3 +103,4 @@ Cargo.lock
 
 # VSCode settings
 .vscode/
+*.code-workspace

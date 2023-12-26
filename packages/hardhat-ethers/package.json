@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ethers",
-  "version": "3.0.4",
+  "version": "3.0.5",
   "description": "Hardhat plugin for ethers",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-ethers",
   "repository": "github:nomicfoundation/hardhat",
@@ -16,14 +16,14 @@
     "ethers.js"
   ],
   "scripts": {
-    "lint": "yarn prettier --check && yarn eslint",
-    "lint:fix": "yarn prettier --write && yarn eslint --fix",
+    "lint": "pnpm prettier --check && pnpm eslint",
+    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
-    "pretest": "cd ../.. && yarn build",
+    "pretest": "cd ../.. && pnpm build",
     "test": "mocha --recursive \"test/**/*.ts\"",
     "build": "tsc --build .",
-    "prepublishOnly": "yarn build",
+    "prepublishOnly": "pnpm build",
     "clean": "rimraf dist internal types *.{d.ts,js}{,.map} build-test tsconfig.tsbuildinfo"
   },
   "files": [
@@ -43,8 +43,11 @@
     "lodash.isequal": "^4.5.0"
   },
   "devDependencies": {
+    "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
+    "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^7.1.3",
+    "@types/debug": "^4.1.4",
     "@types/lodash.isequal": "^4.5.6",
     "@types/mocha": ">=9.1.0",
     "@types/node": "^16.0.0",
@@ -60,7 +63,7 @@
     "eslint-plugin-no-only-tests": "3.0.0",
     "eslint-plugin-prettier": "3.4.0",
     "ethers": "^6.1.0",
-    "hardhat": "^2.0.0",
+    "hardhat": "workspace:^2.0.0",
     "mocha": "^10.0.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",

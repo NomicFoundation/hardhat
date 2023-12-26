@@ -15,15 +15,15 @@
     "testing"
   ],
   "scripts": {
-    "lint": "yarn prettier --check && yarn eslint",
-    "lint:fix": "yarn prettier --write && yarn eslint --fix",
+    "lint": "pnpm prettier --check && pnpm eslint",
+    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
-    "pretest": "cd ../.. && yarn build",
+    "pretest": "cd ../.. && pnpm build",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
-    "test:ci": "yarn test && node scripts/check-subpath-exports.js",
+    "test:ci": "pnpm test && node scripts/check-subpath-exports.js",
     "build": "tsc --build .",
-    "prepublishOnly": "yarn build",
+    "prepublishOnly": "pnpm build",
     "clean": "rimraf dist internal types *.{d.ts,js}{,.map} build-test tsconfig.tsbuildinfo"
   },
   "files": [
@@ -38,7 +38,10 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-ethers": "^3.0.0",
+    "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
+    "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
+    "@nomicfoundation/hardhat-chai-matchers": "workspace:*",
+    "@nomicfoundation/hardhat-ethers": "workspace:^3.0.0",
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.2.0",
     "@types/mocha": ">=9.1.0",
@@ -55,7 +58,7 @@
     "eslint-plugin-prettier": "3.4.0",
     "ethers": "^6.1.0",
     "get-port": "^5.1.1",
-    "hardhat": "^2.9.4",
+    "hardhat": "workspace:^2.9.4",
     "mocha": "^10.0.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",

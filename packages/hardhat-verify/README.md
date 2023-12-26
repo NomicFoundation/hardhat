@@ -4,24 +4,9 @@
 
 [Hardhat](https://hardhat.org) plugin to verify the source of code of deployed contracts.
 
-1. [What](#what)
-2. [Installation](#installation)
-3. [Tasks](#tasks)
-4. [Environment extensions](#environment-extensions)
-5. [Usage](#usage)
-   1. [Complex arguments](#complex-arguments)
-   2. [Libraries with undetectable addresses](#libraries-with-undetectable-addresses)
-   3. [Multiple API keys and alternative block explorers](#multiple-api-keys-and-alternative-block-explorers)
-   4. [Adding support for other networks](#adding-support-for-other-networks)
-   5. [Using programmatically](#using-programmatically)
-      1. [Providing libraries from a script or task](#providing-libraries-from-a-script-or-task)
-      2. [Advanced Usage: Using the Etherscan class from another plugin](#advanced-usage-using-the-etherscan-class-from-another-plugin)
-6. [How it works](#how-it-works)
-7. [Known limitations](#known-limitations)
-
 ## What
 
-This plugin helps you verify the source code for your Solidity contracts. At the moment, it supports [Etherscan](https://etherscan.io)-based explorers and explorers compatible with its API like [Blockscout](https://www.blockscout.com/).
+This plugin helps you verify the source code for your Solidity contracts. At the moment, it supports [Etherscan](https://etherscan.io)-based explorers, explorers compatible with its API like [Blockscout](https://www.blockscout.com/) and [Sourcify](https://sourcify.dev/).
 
 It's smart and it tries to do as much as possible to facilitate the process:
 
@@ -50,7 +35,7 @@ import "@nomicfoundation/hardhat-verify";
 
 ## Tasks
 
-This plugin provides the `verify` task, which allows you to verify contracts through Etherscan's service.
+This plugin provides the `verify` task, which allows you to verify contracts through Sourcify and Etherscan's service.
 
 ## Environment extensions
 
@@ -58,7 +43,7 @@ This plugin does not extend the environment.
 
 ## Usage
 
-You need to add the following Etherscan config to your `hardhat.config.js` file:
+You need to add the following Etherscan and Sourcify configs to your `hardhat.config.js` file:
 
 ```js
 module.exports = {
@@ -69,6 +54,11 @@ module.exports = {
     // Your API key for Etherscan
     // Obtain one at https://etherscan.io/
     apiKey: "YOUR_ETHERSCAN_API_KEY"
+  },
+  sourcify: {
+    // Disabled by default
+    // Doesn't need an API key
+    enabled: true
   }
 };
 ```
@@ -189,6 +179,36 @@ Keep in mind that the name you are giving to the network in `customChains` is th
 
 To see which custom chains are supported, run `npx hardhat verify --list-networks`.
 
+### Verifying on Sourcify
+
+To verify a contract using Sourcify, you need to add to your Hardhat config:
+
+```js
+sourcify: {
+  enabled: true,
+  // Optional: specify a different Sourcify server
+  apiUrl: "https://sourcify.dev/server",
+  // Optional: specify a different Sourcify repository
+  browserUrl: "https://repo.sourcify.dev",
+}
+```
+
+and then run the `verify` task, passing the address of the contract and the network where it's deployed:
+
+```bash
+npx hardhat verify --network mainnet DEPLOYED_CONTRACT_ADDRESS
+```
+
+**Note:** Constructor arguments are not required for Sourcify verification, but you'll need to provide them if you also have Etherscan verification enabled.
+
+To disable Sourcify verification and suppress related messages, set `enabled` to `false`:
+
+```js
+sourcify: {
+  enabled: false,
+}
+```
+
 ### Using programmatically
 
 To call the verification task from within a Hardhat task or script, use the `"verify:verify"` subtask. Assuming the same contract as [above](#complex-arguments), you can run the subtask like this:
@@ -223,44 +243,72 @@ hre.run("verify:verify", {
 }
 ```
 
-#### Advanced Usage: Using the Etherscan class from another plugin
+#### Advanced Usage: Using the Etherscan and Sourcify classes from another plugin
 
-The Etherscan class used for contract verification can be imported from the plugin, allowing its direct usage:
+Both Etherscan and Sourcify classes can be imported from the plugin for direct use.
 
-```js
-import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
+- **Etherscan Class Usage**
 
-const instance = new Etherscan(
-  "abc123def123", // Etherscan API key
-  "https://api.etherscan.io/api", // Etherscan API URL
-  "https://etherscan.io" // Etherscan browser URL
-);
+  ```js
+  import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
 
-if (!instance.isVerified("0x123abc...")) {
-  const { message: guid } = await instance.verify(
-    // Contract address
-    "0x123abc...",
-    // Contract source code
-    '{"language":"Solidity","sources":{"contracts/Sample.sol":{"content":"// SPDX-Lic..."}},"settings":{ ... }}',
-    // Contract name
-    "contracts/Sample.sol:MyContract",
-    // Compiler version
-    "v0.8.19+commit.7dd6d404",
-    // Encoded constructor arguments
-    "0000000000000000000000000000000000000000000000000000000000000032"
+  const instance = new Etherscan(
+    "abc123def123", // Etherscan API key
+    "https://api.etherscan.io/api", // Etherscan API URL
+    "https://etherscan.io" // Etherscan browser URL
   );
 
-  await sleep(1000);
-  const verificationStatus = await instance.getVerificationStatus(guid);
-
-  if (verificationStatus.isSuccess()) {
-    const contractURL = instance.getContractUrl("0x123abc...");
-    console.log(
-      `Successfully verified contract "MyContract" on Etherscan: ${contractURL}`
+  if (!instance.isVerified("0x123abc...")) {
+    const { message: guid } = await instance.verify(
+      // Contract address
+      "0x123abc...",
+      // Contract source code
+      '{"language":"Solidity","sources":{"contracts/Sample.sol":{"content":"// SPDX-Lic..."}},"settings":{ ... }}',
+      // Contract name
+      "contracts/Sample.sol:MyContract",
+      // Compiler version
+      "v0.8.19+commit.7dd6d404",
+      // Encoded constructor arguments
+      "0000000000000000000000000000000000000000000000000000000000000032"
     );
+
+    await sleep(1000);
+    const verificationStatus = await instance.getVerificationStatus(guid);
+
+    if (verificationStatus.isSuccess()) {
+      const contractURL = instance.getContractUrl("0x123abc...");
+      console.log(
+        `Successfully verified contract "MyContract" on Etherscan: ${contractURL}`
+      );
+    }
   }
-}
-```
+  ```
+
+- **Sourcify Class Usage**
+
+  ```js
+  import { Sourcify } from "@nomicfoundation/hardhat-verify/sourcify";
+
+  const instance = new Sourcify(
+    1,
+    "https://sourcify.dev/server",
+    "https://repo.sourcify.dev"
+  ); // Set chainId
+
+  if (!instance.isVerified("0x123abc...")) {
+    const sourcifyResponse = await instance.verify("0x123abc...", {
+      "metadata.json": "{...}",
+      "otherFile.sol": "...",
+    });
+    if (sourcifyResponse.isOk()) {
+      const contractURL = instance.getContractUrl(
+        "0x123abc...",
+        sourcifyResponse.status
+      );
+      console.log(`Successfully verified contract on Sourcify: ${contractURL}`);
+    }
+  }
+  ```
 
 ## How it works
 

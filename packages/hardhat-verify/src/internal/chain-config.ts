@@ -107,6 +107,14 @@ export const builtinChains: ChainConfig[] = [
     },
   },
   {
+    network: "polygonZkEVM",
+    chainId: 1101,
+    urls: {
+      apiURL: "https://api-zkevm.polygonscan.com/api",
+      browserURL: "https://zkevm.polygonscan.com",
+    },
+  },
+  {
     network: "moonbeam",
     chainId: 1284,
     urls: {
@@ -131,6 +139,14 @@ export const builtinChains: ChainConfig[] = [
     },
   },
   {
+    network: "polygonZkEVMTestnet",
+    chainId: 1442,
+    urls: {
+      apiURL: "https://api-testnet-zkevm.polygonscan.com/api",
+      browserURL: "https://testnet-zkevm.polygonscan.com",
+    },
+  },
+  {
     network: "ftmTestnet",
     chainId: 4002,
     urls: {
@@ -150,8 +166,8 @@ export const builtinChains: ChainConfig[] = [
     network: "chiado",
     chainId: 10200,
     urls: {
-      apiURL: "https://blockscout.chiadochain.net/api",
-      browserURL: "https://blockscout.chiadochain.net",
+      apiURL: "https://gnosis-chiado.blockscout.com/api",
+      browserURL: "https://gnosis-chiado.blockscout.com",
     },
   },
   {

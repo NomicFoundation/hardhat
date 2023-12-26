@@ -11,6 +11,13 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
 const linariaConfig = withLinaria({
   async redirects() {
     return [
+      // We moved the privacy policy to /static to make the next rule
+      // simpler, so we need to redirect it before it, instead of in a customRedirect
+      {
+        source: "/privacy-policy",
+        destination: "/static/privacy-policy.html",
+        permanent: false,
+      },
       {
         /**
          * NOTE: this removes '.html' extensions from URLs
@@ -19,10 +26,9 @@ const linariaConfig = withLinaria({
          *
          * We need this to keep the links of the previous version workable.
          *
-         * The only exception is the privacy-policy.html file, which we host in
-         * public/
+         * We host some static html files in /static/ though.
          */
-        source: "/:slug((?!privacy-policy).*).html",
+        source: "/:slug((?!static\\/).*).html",
         destination: "/:slug*",
         permanent: true,
       },

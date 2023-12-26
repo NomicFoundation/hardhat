@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-vyper
 
+## 3.0.5
+
+### Patch Changes
+
+- 2f73386b1: Fixed a problem with the Vyper compilers downloader
+
 ## 3.0.4
 
 ### Patch Changes

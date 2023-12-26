@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "2.18.0",
+  "version": "2.19.3",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "homepage": "https://hardhat.org",
@@ -23,17 +23,17 @@
     "hardhat": "internal/cli/bootstrap.js"
   },
   "scripts": {
-    "lint": "yarn prettier --check && yarn eslint",
-    "lint:fix": "yarn prettier --write && yarn eslint --fix",
+    "lint": "pnpm prettier --check && pnpm eslint",
+    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
     "eslint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
-    "pretest": "cd ../.. && yarn build",
+    "pretest": "cd ../.. && pnpm build",
     "test": "mocha --recursive \"test/**/*.ts\"",
     "test:except-tracing": "mocha --recursive \"test/**/*.ts\" --invert --grep \"Stack traces\"",
     "test:tracing": "mocha --recursive \"test/internal/hardhat-network/{helpers,stack-traces}/**/*.ts\"",
     "test:forking": "mocha --recursive \"test/internal/hardhat-network/{helpers,jsonrpc,provider}/**/*.ts\"",
     "build": "tsc --build .",
-    "prepublishOnly": "yarn build",
+    "prepublishOnly": "pnpm build",
     "clean": "rimraf builtin-tasks internal types utils *.d.ts *.map *.js build-test tsconfig.tsbuildinfo test/internal/hardhat-network/provider/.hardhat_node_test_cache test/internal/hardhat-network/stack-traces/test-files/artifacts"
   },
   "files": [
@@ -54,8 +54,8 @@
     "console.sol"
   ],
   "devDependencies": {
-    "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "^1.0.0",
-    "@nomicfoundation/eslint-plugin-slow-imports": "^1.0.0",
+    "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
+    "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
     "@types/async-eventemitter": "^0.2.1",
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.2.0",

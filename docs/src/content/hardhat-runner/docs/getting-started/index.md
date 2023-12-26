@@ -85,6 +85,7 @@ $ npx hardhat init
 ? What do you want to do? …
 ❯ Create a JavaScript project
   Create a TypeScript project
+  Create a TypeScript project (with Viem)
   Create an empty hardhat.config.js
   Quit
 ```
@@ -237,6 +238,12 @@ Compiled 2 Solidity files successfully
 ::::
 
 ### Deploying your contracts
+
+:::tip
+
+Try [Hardhat Ignition](/ignition) for your deployments! Our new declarative system for deploying smart contracts without getting caught up in execution details.
+
+:::
 
 Next, to deploy the contract we will use a Hardhat script.
 

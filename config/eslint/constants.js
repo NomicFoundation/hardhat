@@ -16,5 +16,7 @@ module.exports.slowImportsCommonIgnoredModules = [
   "hardhat/builtin-tasks/task-names",
   "hardhat/internal/core/errors",
   "hardhat/internal/core/providers/util",
+  "hardhat/internal/util/fs-utils",
   "hardhat/utils/contract-names",
+  "hardhat/utils/source-names",
 ];

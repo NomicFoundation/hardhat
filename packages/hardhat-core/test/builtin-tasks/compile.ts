@@ -2,7 +2,7 @@ import { assert, expect } from "chai";
 import ci from "ci-info";
 import * as fsExtra from "fs-extra";
 import * as path from "path";
-
+import sinon from "sinon";
 import {
   TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS,
   TASK_COMPILE_SOLIDITY_READ_FILE,
@@ -19,6 +19,7 @@ import {
   getAllFilesMatchingSync,
   getRealPathSync,
 } from "../../src/internal/util/fs-utils";
+import { getLatestSupportedVersion } from "../internal/hardhat-network/stack-traces/compilers-list";
 
 function assertFileExists(pathToFile: string) {
   assert.isTrue(
@@ -45,6 +46,40 @@ describe("compile task", function () {
       (f) => f.endsWith(".json")
     );
   }
+
+  describe("compile with latest solc version", function () {
+    // The 'hardhat.config.js' and 'A.sol' files need to be updated each time a new solc version is released
+
+    useFixtureProject("compilation-latest-solc-version");
+    useEnvironment();
+
+    it("should have the last version of solc in the 'hardhat.config.js' and 'A.sol' files", async function () {
+      // Test to check that the last version of solc is being tested
+      const userConfigSolcVersion = this.env.userConfig.solidity;
+
+      const lastSolcVersion = getLatestSupportedVersion();
+
+      assert.equal(
+        userConfigSolcVersion,
+        lastSolcVersion,
+        `The version of solc in the user config is not the last one. Expected '${lastSolcVersion}' but got '${userConfigSolcVersion}'. Did you forget to update the test?`
+      );
+    });
+
+    it("should compile and emit artifacts using the latest solc version", async function () {
+      await this.env.run("compile");
+
+      assertFileExists(path.join("artifacts", "contracts", "A.sol", "A.json"));
+      assertBuildInfoExists(
+        path.join("artifacts", "contracts", "A.sol", "A.dbg.json")
+      );
+
+      const buildInfos = getBuildInfos();
+      assert.lengthOf(buildInfos, 1);
+
+      assertValidJson(buildInfos[0]);
+    });
+  });
 
   describe("project with single file", function () {
     useFixtureProject("compilation-single-file");
@@ -138,6 +173,25 @@ describe("compile task", function () {
       assert.lengthOf(buildInfos, 2);
       assertValidJson(buildInfos[0]);
       assertValidJson(buildInfos[1]);
+    });
+  });
+
+  describe("project with multiple different evm versions", function () {
+    useFixtureProject("compilation-multiple-files-different-evm-versions");
+    useEnvironment();
+
+    it("should compile and show a message listing all the evm versions used", async function () {
+      const spyFunctionConsoleLog = sinon.stub(console, "log");
+
+      await this.env.run("compile");
+
+      assert(
+        spyFunctionConsoleLog.calledWith(
+          "Compiled 4 Solidity files successfully (evm targets: paris, petersburg, shanghai, unknown evm version for solc version 0.4.11)."
+        )
+      );
+
+      spyFunctionConsoleLog.restore();
     });
   });
 

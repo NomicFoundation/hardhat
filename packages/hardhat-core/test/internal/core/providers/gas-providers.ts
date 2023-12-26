@@ -256,6 +256,98 @@ describe("AutomaticGasPriceProvider", () => {
       });
     });
 
+    describe("When the eth_feeHistory result causes maxPriorityFeePerGas to be 0 and eth_maxPriorityFeePerGas doesn't exist", function () {
+      const latestBaseFeeInMockedProvider = 80;
+
+      beforeEach(function () {
+        mockedProvider.setReturnValue("eth_feeHistory", {
+          baseFeePerGas: [
+            numberToRpcQuantity(latestBaseFeeInMockedProvider),
+            numberToRpcQuantity(
+              Math.floor((latestBaseFeeInMockedProvider * 9) / 8)
+            ),
+          ],
+          reward: [["0x0"]],
+        });
+
+        mockedProvider.setReturnValue("eth_getBlockByNumber", {
+          baseFeePerGas: "0x1",
+        });
+      });
+
+      it("should use a non-zero maxPriorityFeePerGas", async function () {
+        await provider.request({
+          method: "eth_sendTransaction",
+          params: [
+            {
+              from: "0x0000000000000000000000000000000000000011",
+              to: "0x0000000000000000000000000000000000000011",
+              value: 1,
+            },
+          ],
+        });
+
+        const expectedBaseFee = Math.floor(
+          latestBaseFeeInMockedProvider *
+            (9 / 8) **
+              Number(
+                AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE
+              )
+        );
+
+        const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
+        assert.equal(tx.maxFeePerGas, expectedBaseFee);
+        assert.equal(tx.maxPriorityFeePerGas, "0x1");
+      });
+    });
+
+    describe("When the eth_feeHistory result causes maxPriorityFeePerGas to be 0 and eth_maxPriorityFeePerGas exists", function () {
+      const latestBaseFeeInMockedProvider = 80;
+
+      beforeEach(function () {
+        mockedProvider.setReturnValue("eth_feeHistory", {
+          baseFeePerGas: [
+            numberToRpcQuantity(latestBaseFeeInMockedProvider),
+            numberToRpcQuantity(
+              Math.floor((latestBaseFeeInMockedProvider * 9) / 8)
+            ),
+          ],
+          reward: [["0x0"]],
+        });
+
+        mockedProvider.setReturnValue("eth_getBlockByNumber", {
+          baseFeePerGas: "0x1",
+        });
+
+        mockedProvider.setReturnValue("eth_maxPriorityFeePerGas", "0x12");
+      });
+
+      it("should use the the result of eth_maxPriorityFeePerGas as maxPriorityFeePerGas", async function () {
+        await provider.request({
+          method: "eth_sendTransaction",
+          params: [
+            {
+              from: "0x0000000000000000000000000000000000000011",
+              to: "0x0000000000000000000000000000000000000011",
+              value: 1,
+            },
+          ],
+        });
+
+        const expectedBaseFee = Math.floor(
+          latestBaseFeeInMockedProvider *
+            (9 / 8) **
+              Number(
+                AutomaticGasPriceProvider.EIP1559_BASE_FEE_MAX_FULL_BLOCKS_PREFERENCE
+              )
+        );
+
+        const [tx] = mockedProvider.getLatestParams("eth_sendTransaction");
+        assert.equal(tx.maxFeePerGas, expectedBaseFee);
+        assert.equal(tx.maxPriorityFeePerGas, "0x12");
+      });
+    });
+
     describe("When eth_feeHistory is available and EIP1559 is not supported", function () {
       const latestBaseFeeInMockedProvider = 80;
 

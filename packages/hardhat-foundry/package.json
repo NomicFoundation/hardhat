@@ -16,14 +16,14 @@
     "foundry"
   ],
   "scripts": {
-    "lint": "yarn prettier --check && yarn eslint",
-    "lint:fix": "yarn prettier --write && yarn eslint --fix",
+    "lint": "pnpm prettier --check && pnpm eslint",
+    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
     "eslint": "eslint 'src/**/*.ts'",
     "prettier": "prettier \"**/*.{js,md,json}\"",
-    "pretest": "cd ../.. && yarn build",
+    "pretest": "cd ../.. && pnpm build",
     "test": "mocha --recursive \"test/**/*.ts\" --exit",
     "build": "tsc --build .",
-    "prepublishOnly": "yarn build",
+    "prepublishOnly": "pnpm build",
     "clean": "rimraf dist"
   },
   "files": [
@@ -36,6 +36,8 @@
     "chalk": "^2.4.2"
   },
   "devDependencies": {
+    "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
+    "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
     "@types/chai": "^4.2.0",
     "@types/mocha": ">=9.1.0",
     "@types/node": "^16.0.0",
@@ -46,7 +48,7 @@
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-import": "2.27.5",
     "eslint-plugin-prettier": "3.4.0",
-    "hardhat": "^2.17.2",
+    "hardhat": "workspace:^2.17.2",
     "mocha": "^10.0.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",

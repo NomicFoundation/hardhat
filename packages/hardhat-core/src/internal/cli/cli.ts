@@ -1,7 +1,6 @@
 import chalk from "chalk";
 import debug from "debug";
 import "source-map-support/register";
-
 import {
   TASK_COMPILE,
   TASK_HELP,
@@ -43,13 +42,14 @@ import { saveFlamegraph } from "../core/flamegraph";
 import { Analytics } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
-import { createProject } from "./project-creation";
+import { createProject, showSoliditySurveyMessage } from "./project-creation";
 import { confirmHHVSCodeInstallation, confirmTelemetryConsent } from "./prompt";
 import {
   InstallationState,
   installHardhatVSCode,
   isHardhatVSCodeInstalled,
 } from "./hardhat-vscode-installation";
+import { handleVars } from "./vars";
 
 const log = debug("hardhat:core:cli");
 
@@ -212,6 +212,10 @@ async function main() {
 
     const ctx = HardhatContext.createHardhatContext();
 
+    if (scopeOrTaskName === "vars" && allUnparsedCLAs.length > 1) {
+      process.exit(await handleVars(allUnparsedCLAs, hardhatArguments.config));
+    }
+
     const { resolvedConfig, userConfig } = loadConfigAndTasks(
       hardhatArguments,
       {
@@ -257,7 +261,10 @@ async function main() {
       Reporter.setEnabled(true);
     }
 
-    const [abortAnalytics, hitPromise] = await analytics.sendTaskHit();
+    const [abortAnalytics, hitPromise] = await analytics.sendTaskHit(
+      scopeName,
+      taskName
+    );
 
     let taskArguments: TaskArguments;
 
@@ -351,6 +358,16 @@ async function main() {
     ) {
       await suggestInstallingHardhatVscode();
 
+      // we show the solidity survey message if the tests failed and only
+      // 1/3 of the time
+      if (
+        process.exitCode !== 0 &&
+        Math.random() < 0.3333 &&
+        process.env.HARDHAT_HIDE_SOLIDITY_SURVEY_MESSAGE !== "true"
+      ) {
+        showSoliditySurveyMessage();
+      }
+
       // we show the viaIR warning only if the tests failed
       if (process.exitCode !== 0) {
         showViaIRWarning(resolvedConfig);
@@ -428,7 +445,9 @@ async function createNewProject() {
   if (
     process.stdout.isTTY === true ||
     process.env.HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS !== undefined ||
-    process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !== undefined
+    process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !== undefined ||
+    process.env.HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS !==
+      undefined
   ) {
     await createProject();
     return;

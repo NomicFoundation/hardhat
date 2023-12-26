@@ -2,11 +2,14 @@ section-type: plugins
 section-title: Plugins
 order:
   - "@nomicfoundation/hardhat-toolbox"
+  - "@nomicfoundation/hardhat-toolbox-viem"
   - "@nomicfoundation/hardhat-chai-matchers"
   - "@nomicfoundation/hardhat-ethers"
+  - "@nomicfoundation/hardhat-viem"
   - "@nomicfoundation/hardhat-verify"
   - "@nomicfoundation/hardhat-foundry"
   - "@nomicfoundation/hardhat-ledger"
+  - "@nomicfoundation/hardhat-web3-v4"
   - "@nomiclabs/hardhat-vyper"
   - "@nomiclabs/hardhat-solhint"
   - "@nomiclabs/hardhat-solpp"

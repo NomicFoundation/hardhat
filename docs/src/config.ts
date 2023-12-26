@@ -13,9 +13,8 @@ import NetworkIcon from "./assets/tools/network";
 import RunnerIconDark from "./assets/tools/runner-dark";
 import NetworkIconDark from "./assets/tools/network-dark";
 import SolidityIconDark from "./assets/tools/solidity-dark";
-// TODO: Re-enable Ignition section
-// import IgnitionIcon from "./assets/tools/ignition";
-// import IgnitionIconDark from "./assets/tools/ignition-dark";
+import IgnitionIcon from "./assets/tools/ignition";
+import IgnitionIconDark from "./assets/tools/ignition-dark";
 
 export const SOCIALS_LINKS = {
   [SocialsEnum.GITHUB]: "https://github.com/NomicFoundation/hardhat",
@@ -23,13 +22,14 @@ export const SOCIALS_LINKS = {
   [SocialsEnum.DISCORD]: "/discord",
 };
 
-export const BANNER_LINK = "https://nomic.foundation/hiring";
+export const BANNER_LINK =
+  "https://cryptpad.fr/form/#/2/form/view/pV-DdryeJoYUWvW+gXsFaMNynEY7t5mUsgeD1urgwSE";
 
 export const PRIVACY_POLICY_PATH = "/privacy-policy.html";
 
 export const bannerContent = {
-  text: "Join the Hardhat team! Nomic Foundation is hiring",
-  shortText: "Join the Hardhat team! We are hiring",
+  text: "Please take a few minutes to complete the 2023 Solidity Survey",
+  shortText: "Complete the 2023 Solidity Survey here",
   href: BANNER_LINK,
 };
 
@@ -65,14 +65,13 @@ export const menuItemsList: MenuItemType[] = [
         icon: RunnerIcon,
         iconDark: RunnerIconDark,
       },
-      // TODO: Re-enable Ignition section
-      // {
-      //   prefix: "Hardhat",
-      //   label: "Ignition",
-      //   href: "/?tool=IGNITION#tools",
-      //   icon: IgnitionIcon,
-      //   iconDark: IgnitionIconDark,
-      // },
+      {
+        prefix: "Hardhat",
+        label: "Ignition",
+        href: "/ignition",
+        icon: IgnitionIcon,
+        iconDark: IgnitionIconDark,
+      },
       {
         prefix: "Hardhat",
         label: "Network",
@@ -105,8 +104,7 @@ export const menuItemsList: MenuItemType[] = [
 
 export enum Tools {
   RUNNER = "RUNNER",
-  // TODO: Re-enable Ignition section
-  // IGNITION = "IGNITION",
+  IGNITION = "IGNITION",
   NETWORK = "NETWORK",
   SOLIDITY = "SOLIDITY",
 }

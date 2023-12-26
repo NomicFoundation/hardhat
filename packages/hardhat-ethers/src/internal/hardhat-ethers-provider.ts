@@ -597,6 +597,15 @@ export class HardhatEthersProvider implements ethers.Provider {
       return this.getBlockNumber().then((b) => toQuantity(b + blockTag));
     }
 
+    if (typeof blockTag === "bigint") {
+      if (blockTag >= 0n) {
+        return toQuantity(blockTag);
+      }
+      return this.getBlockNumber().then((b) =>
+        toQuantity(b + Number(blockTag))
+      );
+    }
+
     throw new HardhatEthersError(`Invalid blockTag: ${blockTag}`);
   }
 

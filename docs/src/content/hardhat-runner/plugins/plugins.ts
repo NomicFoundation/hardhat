@@ -226,7 +226,14 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/symfoni/",
     description:
       "A Hardhat plugin that generates a React hook component from your smart contracts. Hot reloaded into your React app. Deployed or not deployed. And everything typed and initialized.",
-    tags: ["Ethers", "React", "Deploy", "Typechain", "Frontend", "Web3modal"],
+    tags: [
+      "Ethers.js",
+      "React",
+      "Deploy",
+      "Typechain",
+      "Frontend",
+      "Web3modal",
+    ],
   },
   {
     name: "hardhat-etherscan-abi",
@@ -838,6 +845,24 @@ const communityPlugins: IPlugin[] = [
     description: "Hardhat plugin to deeply compare smart contracts",
     tags: ["Storage Layout", "Bytecode", "Diff", "Compare"],
   },
+  {
+    name: "hardhat-logger",
+    author: "kruglay",
+    npmPackage: "hardhat-logger",
+    authorUrl: "https://github.com/kruglay/hardhat-logger",
+    description:
+      "Show transaction params before hardhat send transaction to network",
+    tags: ["log", "logger", "transaction"],
+  },
+  {
+    name: "hardhat-contract-signatures",
+    author: "Axel Loupias",
+    npmPackage: "hardhat-contract-signatures",
+    authorUrl: "https://github.com/AxelLoupias",
+    description:
+      "Display different signatures that have the methods, events and errors of your contracts by console",
+    tags: ["functions", "errors", "events", "tooling", "selectorss"],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [
@@ -845,8 +870,17 @@ const officialPlugins: IPlugin[] = [
     name: "@nomicfoundation/hardhat-toolbox",
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",
-    description: "Nomic Foundation's recommended bundle of Hardhat plugins",
-    tags: ["Hardhat", "Setup"],
+    description:
+      "Nomic Foundation's recommended bundle of Hardhat plugins (ethers based)",
+    tags: ["Hardhat", "Setup", "Ethers.js"],
+  },
+  {
+    name: "@nomicfoundation/hardhat-toolbox-viem",
+    author: "Nomic Foundation",
+    authorUrl: "https://twitter.com/NomicFoundation",
+    description:
+      "Nomic Foundation's recommended bundle of Hardhat plugins (viem based)",
+    tags: ["Hardhat", "Setup", "viem"],
   },
   {
     name: "@nomicfoundation/hardhat-chai-matchers",
@@ -861,6 +895,13 @@ const officialPlugins: IPlugin[] = [
     authorUrl: "https://twitter.com/NomicFoundation",
     description: "Injects ethers.js into the Hardhat Runtime Environment",
     tags: ["Ethers.js", "Testing", "Tasks", "Scripts"],
+  },
+  {
+    name: "@nomicfoundation/hardhat-viem",
+    author: "Nomic Foundation",
+    authorUrl: "https://twitter.com/NomicFoundation",
+    description: "Makes it easier to use viem in a Hardhat project",
+    tags: ["viem", "Testing", "Tasks", "Scripts"],
   },
   {
     name: "@nomicfoundation/hardhat-verify",
@@ -919,6 +960,14 @@ const officialPlugins: IPlugin[] = [
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",
     description: "Injects Web3 1.x into the Hardhat Runtime Environment",
+    tags: ["Web3.js", "Testing", "Tasks", "Scripts"],
+  },
+  {
+    name: "@nomicfoundation/hardhat-web3-v4",
+    author: "ChainSafe and Nomic Foundation",
+    npmPackage: "@nomicfoundation/hardhat-web3-v4",
+    authorUrl: "https://twitter.com/ChainSafeth",
+    description: "Injects Web3 4.x into the Hardhat Runtime Environment",
     tags: ["Web3.js", "Testing", "Tasks", "Scripts"],
   },
   {

@@ -1,6 +1,5 @@
 import chalk from "chalk";
 import fsExtra from "fs-extra";
-import os from "os";
 import path from "path";
 
 import { HARDHAT_NAME } from "../constants";
@@ -30,33 +29,49 @@ import { Dependencies, PackageManager } from "./types";
 enum Action {
   CREATE_JAVASCRIPT_PROJECT_ACTION = "Create a JavaScript project",
   CREATE_TYPESCRIPT_PROJECT_ACTION = "Create a TypeScript project",
+  CREATE_TYPESCRIPT_VIEM_PROJECT_ACTION = "Create a TypeScript project (with Viem)",
   CREATE_EMPTY_HARDHAT_CONFIG_ACTION = "Create an empty hardhat.config.js",
   QUIT_ACTION = "Quit",
 }
 
 type SampleProjectTypeCreationAction =
   | Action.CREATE_JAVASCRIPT_PROJECT_ACTION
-  | Action.CREATE_TYPESCRIPT_PROJECT_ACTION;
+  | Action.CREATE_TYPESCRIPT_PROJECT_ACTION
+  | Action.CREATE_TYPESCRIPT_VIEM_PROJECT_ACTION;
 
 const HARDHAT_PACKAGE_NAME = "hardhat";
 
-const PROJECT_DEPENDENCIES: Dependencies = {
-  "@nomicfoundation/hardhat-toolbox": "^3.0.0",
+const PROJECT_DEPENDENCIES: Dependencies = {};
+
+const ETHERS_PROJECT_DEPENDENCIES: Dependencies = {
+  "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+};
+
+const VIEM_PROJECT_DEPENDENCIES: Dependencies = {
+  "@nomicfoundation/hardhat-toolbox-viem": "^2.0.0",
 };
 
 const PEER_DEPENDENCIES: Dependencies = {
   hardhat: "^2.14.0",
   "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
-  "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
-  "@nomicfoundation/hardhat-ethers": "^3.0.0",
-  "@nomicfoundation/hardhat-verify": "^1.0.0",
+  "@nomicfoundation/hardhat-verify": "^2.0.0",
   chai: "^4.2.0",
-  ethers: "^6.4.0",
   "hardhat-gas-reporter": "^1.0.8",
   "solidity-coverage": "^0.8.0",
-  "@typechain/hardhat": "^8.0.0",
-  typechain: "^8.1.0",
-  "@typechain/ethers-v6": "^0.4.0",
+};
+
+const ETHERS_PEER_DEPENDENCIES: Dependencies = {
+  "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
+  "@nomicfoundation/hardhat-ethers": "^3.0.0",
+  ethers: "^6.4.0",
+  "@typechain/hardhat": "^9.0.0",
+  typechain: "^8.3.0",
+  "@typechain/ethers-v6": "^0.5.0",
+};
+
+const VIEM_PEER_DEPENDENCIES: Dependencies = {
+  "@nomicfoundation/hardhat-viem": "^1.0.0",
+  viem: "^1.15.1",
 };
 
 const TYPESCRIPT_DEPENDENCIES: Dependencies = {};
@@ -67,6 +82,15 @@ const TYPESCRIPT_PEER_DEPENDENCIES: Dependencies = {
   "@types/node": ">=16.0.0",
   "ts-node": ">=8.0.0",
   typescript: ">=4.5.0",
+};
+
+const TYPESCRIPT_ETHERS_PEER_DEPENDENCIES: Dependencies = {
+  typescript: ">=4.5.0",
+};
+
+const TYPESCRIPT_VIEM_PEER_DEPENDENCIES: Dependencies = {
+  "@types/chai-as-promised": "^7.1.6",
+  typescript: "~5.0.4",
 };
 
 // generated with the "colossal" font
@@ -130,6 +154,8 @@ async function copySampleProject(
         false,
         "Shouldn't try to create a TypeScript project in an ESM based project"
       );
+    } else if (projectType === Action.CREATE_TYPESCRIPT_VIEM_PROJECT_ACTION) {
+      sampleProjectName = "typescript-viem";
     } else {
       sampleProjectName = "typescript";
     }
@@ -252,6 +278,11 @@ async function getAction(isEsm: boolean): Promise<Action> {
     process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !== undefined
   ) {
     return Action.CREATE_TYPESCRIPT_PROJECT_ACTION;
+  } else if (
+    process.env.HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS !==
+    undefined
+  ) {
+    return Action.CREATE_TYPESCRIPT_VIEM_PROJECT_ACTION;
   }
 
   const { default: enquirer } = await import("enquirer");
@@ -262,26 +293,36 @@ async function getAction(isEsm: boolean): Promise<Action> {
         type: "select",
         message: "What do you want to do?",
         initial: 0,
-        choices: Object.values(Action).map((a: Action) => {
-          let message: string;
-          if (isEsm) {
-            if (a === Action.CREATE_EMPTY_HARDHAT_CONFIG_ACTION) {
-              message = a.replace(".js", ".cjs");
-            } else if (a === Action.CREATE_TYPESCRIPT_PROJECT_ACTION) {
-              message = `${a} (not available for ESM projects)`;
+        choices: Object.values(Action)
+          .filter((a: Action) => {
+            if (isEsm && a === Action.CREATE_TYPESCRIPT_VIEM_PROJECT_ACTION) {
+              // we omit the viem option for ESM projects to avoid showing
+              // two disabled options
+              return false;
+            }
+
+            return true;
+          })
+          .map((a: Action) => {
+            let message: string;
+            if (isEsm) {
+              if (a === Action.CREATE_EMPTY_HARDHAT_CONFIG_ACTION) {
+                message = a.replace(".js", ".cjs");
+              } else if (a === Action.CREATE_TYPESCRIPT_PROJECT_ACTION) {
+                message = `${a} (not available for ESM projects)`;
+              } else {
+                message = a;
+              }
             } else {
               message = a;
             }
-          } else {
-            message = a;
-          }
 
-          return {
-            name: a,
-            message,
-            value: a,
-          };
-        }),
+            return {
+              name: a,
+              message,
+              value: a,
+            };
+          }),
       },
     ]);
 
@@ -319,6 +360,20 @@ function showStarOnGitHubMessage() {
   );
   console.log();
   console.log(chalk.cyan("     https://github.com/NomicFoundation/hardhat"));
+}
+
+export function showSoliditySurveyMessage() {
+  if (new Date() > new Date("2024-01-07 23:39")) {
+    // the survey has finished
+    return;
+  }
+
+  console.log();
+  console.log(
+    chalk.cyan(
+      "Please take a moment to complete the 2023 Solidity Survey: https://hardhat.org/solidity-survey-2023"
+    )
+  );
 }
 
 export async function createProject() {
@@ -366,6 +421,7 @@ export async function createProject() {
 
     console.log();
     showStarOnGitHubMessage();
+    showSoliditySurveyMessage();
 
     return;
   }
@@ -377,7 +433,9 @@ export async function createProject() {
 
   const useDefaultPromptResponses =
     process.env.HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS !== undefined ||
-    process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !== undefined;
+    process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !== undefined ||
+    process.env.HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS !==
+      undefined;
 
   if (useDefaultPromptResponses) {
     responses = {
@@ -469,15 +527,11 @@ export async function createProject() {
   console.log("See the README.md file for some example tasks you can run");
   console.log();
   showStarOnGitHubMessage();
+  showSoliditySurveyMessage();
 }
 
 async function canInstallRecommendedDeps() {
-  return (
-    (await fsExtra.pathExists("package.json")) &&
-    // TODO: Figure out why this doesn't work on Win
-    // cf. https://github.com/nomiclabs/hardhat/issues/1698
-    os.type() !== "Windows_NT"
-  );
+  return fsExtra.pathExists("package.json");
 }
 
 function isInstalled(dep: string) {
@@ -520,7 +574,7 @@ async function installRecommendedDependencies(dependencies: Dependencies) {
   console.log("");
 
   // The reason we don't quote the dependencies here is because they are going
-  // to be used in child_process.sapwn, which doesn't require escaping string,
+  // to be used in child_process.spawn, which doesn't require escaping string,
   // and can actually fail if you do.
   const installCmd = await getRecommendedDependenciesInstallationCommand(
     dependencies,
@@ -539,6 +593,7 @@ async function installDependencies(
 
   const childProcess = spawn(packageManager, args, {
     stdio: "inherit",
+    shell: true,
   });
 
   return new Promise((resolve, reject) => {
@@ -588,12 +643,13 @@ async function getDependencies(
     !(await doesNpmAutoInstallPeerDependencies());
 
   const shouldInstallTypescriptDependencies =
-    projectType === Action.CREATE_TYPESCRIPT_PROJECT_ACTION;
+    projectType === Action.CREATE_TYPESCRIPT_PROJECT_ACTION ||
+    projectType === Action.CREATE_TYPESCRIPT_VIEM_PROJECT_ACTION;
 
   const shouldInstallTypescriptPeerDependencies =
     shouldInstallTypescriptDependencies && shouldInstallPeerDependencies;
 
-  return {
+  const commonDependencies: Dependencies = {
     [HARDHAT_PACKAGE_NAME]: `^${(await getPackageJson()).version}`,
     ...PROJECT_DEPENDENCIES,
     ...(shouldInstallPeerDependencies ? PEER_DEPENDENCIES : {}),
@@ -601,5 +657,34 @@ async function getDependencies(
     ...(shouldInstallTypescriptPeerDependencies
       ? TYPESCRIPT_PEER_DEPENDENCIES
       : {}),
+  };
+
+  // At the moment, the default toolbox is the ethers based toolbox
+  const shouldInstallDefaultToolbox =
+    projectType !== Action.CREATE_TYPESCRIPT_VIEM_PROJECT_ACTION;
+
+  const ethersToolboxDependencies: Dependencies = {
+    ...ETHERS_PROJECT_DEPENDENCIES,
+    ...(shouldInstallPeerDependencies ? ETHERS_PEER_DEPENDENCIES : {}),
+    ...(shouldInstallTypescriptPeerDependencies
+      ? TYPESCRIPT_ETHERS_PEER_DEPENDENCIES
+      : {}),
+  };
+
+  const viemToolboxDependencies: Dependencies = {
+    ...VIEM_PROJECT_DEPENDENCIES,
+    ...(shouldInstallPeerDependencies ? VIEM_PEER_DEPENDENCIES : {}),
+    ...(shouldInstallTypescriptPeerDependencies
+      ? TYPESCRIPT_VIEM_PEER_DEPENDENCIES
+      : {}),
+  };
+
+  const toolboxDependencies: Dependencies = shouldInstallDefaultToolbox
+    ? ethersToolboxDependencies
+    : viemToolboxDependencies;
+
+  return {
+    ...commonDependencies,
+    ...toolboxDependencies,
   };
 }

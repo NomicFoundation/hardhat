@@ -127,8 +127,10 @@ export class CompilerDownloader {
   }
 
   private _findVersionRelease(version: string): CompilerRelease | undefined {
-    return this.compilersList.find((release) =>
-      semver.eq(release.tag_name, version)
+    return this.compilersList.find(
+      (release) =>
+        semver.valid(release.tag_name) !== null &&
+        semver.eq(release.tag_name, version)
     );
   }
 

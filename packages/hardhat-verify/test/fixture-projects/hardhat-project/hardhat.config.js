@@ -28,4 +28,13 @@ module.exports = {
       },
     ],
   },
+  sourcify: {
+    enabled: false,
+    customChains: [
+      {
+        network: "hardhat",
+        chainId: 31337,
+      },
+    ],
+  },
 };

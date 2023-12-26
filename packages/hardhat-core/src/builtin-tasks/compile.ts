@@ -40,6 +40,7 @@ import { getFullyQualifiedName } from "../utils/contract-names";
 import { localPathToSourceName } from "../utils/source-names";
 
 import { getAllFilesMatching } from "../internal/util/fs-utils";
+import { getEvmVersionFromSolcVersion } from "../internal/solidity/compiler/solc-info";
 import {
   TASK_COMPILE,
   TASK_COMPILE_GET_COMPILATION_TASKS,
@@ -81,14 +82,9 @@ import {
   SolidityFilesCache,
 } from "./utils/solidity-files-cache";
 
-type ArtifactsEmittedPerFile = Array<{
-  file: taskTypes.ResolvedFile;
-  artifactsEmitted: string[];
-}>;
-
 type ArtifactsEmittedPerJob = Array<{
   compilationJob: CompilationJob;
-  artifactsEmittedPerFile: ArtifactsEmittedPerFile;
+  artifactsEmittedPerFile: taskTypes.ArtifactsEmittedPerFile;
 }>;
 
 function isConsoleLogError(error: any): boolean {
@@ -584,25 +580,25 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
         compilersCache
       );
 
-      const isCompilerDownloaded = await downloader.isCompilerDownloaded(
-        solcVersion
+      await downloader.downloadCompiler(
+        solcVersion,
+        // callback called before compiler download
+        async (isCompilerDownloaded: boolean) => {
+          await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START, {
+            solcVersion,
+            isCompilerDownloaded,
+            quiet,
+          });
+        },
+        // callback called after compiler download
+        async (isCompilerDownloaded: boolean) => {
+          await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END, {
+            solcVersion,
+            isCompilerDownloaded,
+            quiet,
+          });
+        }
       );
-
-      if (!isCompilerDownloaded) {
-        await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START, {
-          solcVersion,
-          isCompilerDownloaded,
-          quiet,
-        });
-
-        await downloader.downloadCompiler(solcVersion);
-
-        await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END, {
-          solcVersion,
-          isCompilerDownloaded,
-          quiet,
-        });
-      }
 
       const compiler = await downloader.getCompiler(solcVersion);
 
@@ -619,24 +615,25 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD)
         compilersCache
       );
 
-      const isWasmCompilerDownloader =
-        await wasmDownloader.isCompilerDownloaded(solcVersion);
-
-      if (!isWasmCompilerDownloader) {
-        await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START, {
-          solcVersion,
-          isCompilerDownloaded,
-          quiet,
-        });
-
-        await wasmDownloader.downloadCompiler(solcVersion);
-
-        await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END, {
-          solcVersion,
-          isCompilerDownloaded,
-          quiet,
-        });
-      }
+      await wasmDownloader.downloadCompiler(
+        solcVersion,
+        async (isCompilerDownloaded: boolean) => {
+          // callback called before compiler download
+          await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START, {
+            solcVersion,
+            isCompilerDownloaded,
+            quiet,
+          });
+        },
+        // callback called after compiler download
+        async (isCompilerDownloaded: boolean) => {
+          await run(TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_END, {
+            solcVersion,
+            isCompilerDownloaded,
+            quiet,
+          });
+        }
+      );
 
       const wasmCompiler = await wasmDownloader.getCompiler(solcVersion);
 
@@ -853,7 +850,7 @@ subtask(TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS)
       },
       { artifacts, run }
     ): Promise<{
-      artifactsEmittedPerFile: ArtifactsEmittedPerFile;
+      artifactsEmittedPerFile: taskTypes.ArtifactsEmittedPerFile;
     }> => {
       const pathToBuildInfo = await artifacts.saveBuildInfo(
         compilationJob.getSolcConfig().version,
@@ -862,7 +859,7 @@ subtask(TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS)
         output
       );
 
-      const artifactsEmittedPerFile: ArtifactsEmittedPerFile =
+      const artifactsEmittedPerFile: taskTypes.ArtifactsEmittedPerFile =
         await Promise.all(
           compilationJob
             .getResolvedFiles()
@@ -990,7 +987,7 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOB)
       },
       { run }
     ): Promise<{
-      artifactsEmittedPerFile: ArtifactsEmittedPerFile;
+      artifactsEmittedPerFile: taskTypes.ArtifactsEmittedPerFile;
       compilationJob: taskTypes.CompilationJob;
       input: CompilerInput;
       output: CompilerOutput;
@@ -1291,15 +1288,43 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT)
   .setAction(
     async ({ compilationJobs }: { compilationJobs: CompilationJob[] }) => {
       let count = 0;
+      const evmVersions = new Set<string>();
+      const unknownEvmVersions = new Set<string>();
+
       for (const job of compilationJobs) {
         count += job
           .getResolvedFiles()
           .filter((file) => job.emitsArtifacts(file)).length;
+
+        const solcVersion = job.getSolcConfig().version;
+        const evmTarget =
+          job.getSolcConfig().settings?.evmVersion ??
+          getEvmVersionFromSolcVersion(solcVersion);
+
+        if (evmTarget !== undefined) {
+          evmVersions.add(evmTarget);
+        } else {
+          unknownEvmVersions.add(
+            `unknown evm version for solc version ${solcVersion}`
+          );
+        }
       }
+
+      const targetVersionsList = Array.from(evmVersions)
+        // Alphabetically sort evm versions. The unknown ones are added at the end
+        .sort()
+        .concat(Array.from(unknownEvmVersions).sort());
 
       if (count > 0) {
         console.log(
-          `Compiled ${count} Solidity ${pluralize(count, "file")} successfully`
+          `Compiled ${count} Solidity ${pluralize(
+            count,
+            "file"
+          )} successfully (evm ${pluralize(
+            targetVersionsList.length,
+            "target",
+            "targets"
+          )}: ${targetVersionsList.join(", ")}).`
         );
       }
     }

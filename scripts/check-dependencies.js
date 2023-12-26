@@ -14,16 +14,8 @@ const IGNORE_SAME_VERSION_FOR_PACKAGES = {
     "@nomiclabs/hardhat-truffle5",
   ],
   ethers: ["@nomicfoundation/hardhat-verify"],
-  ["@types/node"]: ["docs"],
-  ["@typescript-eslint/eslint-plugin"]: ["docs"],
-  ["@typescript-eslint/parser"]: ["docs"],
-  eslint: ["docs"],
-  ["eslint-config-prettier"]: ["docs"],
-  ["eslint-plugin-prettier"]: ["docs"],
-  ["glob"]: ["docs"],
-  ["undici"]: ["docs"],
-  ["ts-node"]: ["docs", "hardhat"],
-  ["typescript"]: ["docs", "hardhat"],
+  ["ts-node"]: ["hardhat"],
+  ["typescript"]: ["hardhat"],
 };
 
 const IGNORE_PEER_DEPENDENCIES_CHECK_FOR_PACKAGES = {
@@ -64,10 +56,20 @@ function checkPeerDepedencies(packageJson) {
       continue;
     }
 
-    if (
-      packageJson.peerDependencies[dependency] !==
-      packageJson.devDependencies[dependency]
-    ) {
+    const peerDep = packageJson.peerDependencies[dependency];
+    if (peerDep.startsWith("workspace:")) {
+      console.error(
+        `${packageJson.name} uses the workspace protocol for ${dependency}, which is a peer dependency`
+      );
+
+      success = false;
+    }
+
+    const devDep = packageJson.devDependencies[dependency].replace(
+      /^workspace:/,
+      ""
+    );
+    if (peerDep !== devDep) {
       console.error(
         `${packageJson.name} has different versions of ${dependency} as peerDependency and devDependency`
       );
@@ -84,7 +86,8 @@ function addDependencies(packageName, dependenciesToAdd, allDependenciesMap) {
     return;
   }
 
-  for (const [name, spec] of Object.entries(dependenciesToAdd)) {
+  for (const [name, specWithWorspace] of Object.entries(dependenciesToAdd)) {
+    const spec = specWithWorspace.replace(/^workspace:/, "");
     if (IGNORE_SAME_VERSION_FROM_ALL.includes(name)) {
       continue;
     }
@@ -147,12 +150,12 @@ function mergeDependenciesMap(dependencyMaps) {
 function getAllPackageJsonPaths() {
   const packageNames = fs.readdirSync(path.join(__dirname, "..", "packages"));
 
-  const packageJsons = packageNames.map((p) =>
-    path.join(__dirname, "..", "packages", p, "package.json")
-  );
+  const packageJsons = packageNames
+    // ignore hh-etherscan and hh-waffle because they only have a readme
+    .filter((p) => !["hardhat-etherscan", "hardhat-waffle"].includes(p))
+    .map((p) => path.join(__dirname, "..", "packages", p, "package.json"));
 
   packageJsons.push(path.join(__dirname, "..", "package.json"));
-  packageJsons.push(path.join(__dirname, "..", "docs", "package.json"));
 
   return packageJsons;
 }
@@ -168,8 +171,11 @@ function main() {
 
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
 
-    // temporarily ignore hardhat-toolbox
-    if (packageJson.name === "@nomicfoundation/hardhat-toolbox") {
+    // temporarily ignore hardhat toolboxs
+    if (
+      packageJson.name === "@nomicfoundation/hardhat-toolbox" ||
+      packageJson.name === "@nomicfoundation/hardhat-toolbox-viem"
+    ) {
       continue;
     }
 

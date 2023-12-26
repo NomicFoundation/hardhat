@@ -27,6 +27,10 @@ Hardhat Runner is the main component you interact with when using Hardhat. It's 
 
 Hardhat comes built-in with Hardhat Network, a local Ethereum network node designed for development. It allows you to deploy your contracts, run your tests and debug your code, all within the confines of your local machine. [Learn more.](/hardhat-network)
 
+### Hardhat Ignition
+
+Hardhat Ignition is a declarative deployment system that enables you to deploy your smart contracts without navigating the mechanics of the deployment process. [Learn more.](/ignition)
+
 ### Hardhat for Visual Studio Code
 
 Hardhat for Visual Studio Code is a VS Code extension that adds language support for Solidity and provides editor integration for Hardhat projects. [Learn more.](/hardhat-vscode)
