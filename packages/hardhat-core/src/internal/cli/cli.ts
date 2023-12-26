@@ -34,16 +34,15 @@ import {
   hasConsentedTelemetry,
   hasPromptedForHHVSCode,
   writePromptedForHHVSCode,
-  writeTelemetryConsent,
 } from "../util/global-dir";
 import { getPackageJson } from "../util/packageInfo";
 
 import { saveFlamegraph } from "../core/flamegraph";
-import { Analytics } from "./analytics";
+import { Analytics, requestTelemetryConsent } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
 import { createProject, showSoliditySurveyMessage } from "./project-creation";
-import { confirmHHVSCodeInstallation, confirmTelemetryConsent } from "./prompt";
+import { confirmHHVSCodeInstallation } from "./prompt";
 import {
   InstallationState,
   installHardhatVSCode,
@@ -247,11 +246,7 @@ async function main() {
       process.stdout.isTTY === true &&
       process.env.HARDHAT_DISABLE_TELEMETRY_PROMPT !== "true"
     ) {
-      telemetryConsent = await confirmTelemetryConsent();
-
-      if (telemetryConsent !== undefined) {
-        writeTelemetryConsent(telemetryConsent);
-      }
+      telemetryConsent = await requestTelemetryConsent();
     }
 
     const analytics = await Analytics.getInstance(telemetryConsent);
