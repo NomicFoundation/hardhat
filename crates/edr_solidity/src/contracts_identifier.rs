@@ -265,15 +265,14 @@ fn normalize_library_runtime_bytecode_if_necessary(bytecode: Bytes) -> Bytes {
 
 fn is_matching_metadata(code: &[u8], last_byte: usize) -> bool {
     let mut byte = 0;
-    while byte < last_byte {
-        let opcode = code[byte];
 
+    while let (Some(opcode), Some(next_opcode)) = (code.get(byte), code.get(byte + 1)) {
         // Solidity always emits REVERT INVALID right before the metadata
-        if opcode == opcode::REVERT && code[byte + 1] == opcode::INVALID {
+        if *opcode == opcode::REVERT && *next_opcode == opcode::INVALID {
             return true;
         }
 
-        byte += opcode_length(opcode);
+        byte += opcode_length(*opcode);
     }
 
     false
