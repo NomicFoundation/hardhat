@@ -1,7 +1,6 @@
 use edr_eth::{Address, Bytes, U256};
-use rpc_hardhat::config::ResetProviderConfig;
 
-use crate::{data::ProviderData, ProviderError};
+use crate::{data::ProviderData, requests::hardhat::rpc_types::ResetProviderConfig, ProviderError};
 
 pub fn handle_reset(
     data: &mut ProviderData,

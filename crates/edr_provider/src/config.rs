@@ -3,7 +3,8 @@ use std::{path::PathBuf, time::SystemTime};
 use edr_eth::{block::BlobGas, AccountInfo, Address, HashMap, SpecId, B256, U256};
 use edr_evm::MineOrdering;
 use rand::Rng;
-use rpc_hardhat::config::ForkConfig;
+
+use crate::requests::hardhat::rpc_types::ForkConfig;
 
 /// Configuration for interval mining.
 #[derive(Debug, Clone)]

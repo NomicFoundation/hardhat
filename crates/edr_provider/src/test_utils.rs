@@ -6,10 +6,9 @@ use edr_eth::{
 };
 use edr_evm::{alloy_primitives::U160, KECCAK_EMPTY};
 use edr_test_utils::env::get_alchemy_url;
-use rpc_hardhat::config::ForkConfig;
 
 use super::*;
-use crate::config::MiningConfig;
+use crate::{config::MiningConfig, requests::hardhat::rpc_types::ForkConfig};
 
 pub const TEST_SECRET_KEY: &str =
     "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";

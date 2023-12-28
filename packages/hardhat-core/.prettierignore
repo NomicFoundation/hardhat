@@ -11,6 +11,7 @@
 /*.js.map
 /test/fixture-projects/**/artifacts
 /test/fixture-projects/**/cache
+edr-cache
 /test/internal/hardhat-network/provider/.hardhat_node_test_cache
 /test/internal/hardhat-network/stack-traces/compilers
 /test/internal/hardhat-network/stack-traces/test-files/**/artifacts

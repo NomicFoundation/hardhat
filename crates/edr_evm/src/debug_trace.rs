@@ -1,6 +1,6 @@
 use std::{collections::HashMap, fmt::Debug};
 
-use edr_eth::{signature::SignatureError, B256};
+use edr_eth::{signature::SignatureError, utils::u256_to_padded_hex, B256};
 use revm::{
     inspectors::GasInspector,
     interpreter::{opcode, CallInputs, CreateInputs, Gas, InstructionResult, Interpreter, Stack},
@@ -230,7 +230,7 @@ impl TracerEip3155 {
                 self.stack
                     .data()
                     .iter()
-                    .map(to_hex_word)
+                    .map(u256_to_padded_hex)
                     .collect::<Vec<String>>(),
             )
         };
@@ -249,7 +249,7 @@ impl TracerEip3155 {
                 if let Some(JournalEntry::StorageChange { address, key, .. }) = last_entry {
                     let value = data.journaled_state.state[address].storage[key].present_value();
                     let contract_storage = self.storage.entry(self.contract_address).or_default();
-                    contract_storage.insert(to_hex_word(key), to_hex_word(&value));
+                    contract_storage.insert(u256_to_padded_hex(key), u256_to_padded_hex(&value));
                 }
             }
             Some(
@@ -409,32 +409,5 @@ impl<DatabaseErrorT> Inspector<DatabaseErrorT> for TracerEip3155 {
             .create_end(data, inputs, ret, address, remaining_gas, out.clone());
         self.skip = true;
         (ret, address, remaining_gas, out)
-    }
-}
-
-fn to_hex_word(word: &U256) -> String {
-    if word == &U256::ZERO {
-        // For 0 zero, the #066x formatter doesn't add padding.
-        format!("0x{}", "0".repeat(64))
-    } else {
-        // 66 = 64 hex chars + 0x prefix
-        format!("{word:#066x}")
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_to_hex_word() {
-        assert_eq!(
-            to_hex_word(&U256::ZERO),
-            "0x0000000000000000000000000000000000000000000000000000000000000000"
-        );
-        assert_eq!(
-            to_hex_word(&U256::from(1)),
-            "0x0000000000000000000000000000000000000000000000000000000000000001"
-        );
     }
 }

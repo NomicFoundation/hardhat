@@ -1051,7 +1051,6 @@ dependencies = [
  "edr_eth",
  "edr_evm",
  "edr_provider",
- "edr_rpc_hardhat",
  "k256",
  "napi",
  "napi-build",
@@ -1074,7 +1073,6 @@ dependencies = [
  "dyn-clone",
  "edr_eth",
  "edr_evm",
- "edr_rpc_hardhat",
  "edr_test_utils",
  "indexmap 2.0.2",
  "k256",
@@ -1089,18 +1087,6 @@ dependencies = [
  "thiserror",
  "tokio",
  "toml 0.5.11",
-]
-
-[[package]]
-name = "edr_rpc_hardhat"
-version = "0.2.0-dev"
-dependencies = [
- "anyhow",
- "edr_eth",
- "edr_test_utils",
- "serde",
- "serde_json",
- "tempfile",
 ]
 
 [[package]]

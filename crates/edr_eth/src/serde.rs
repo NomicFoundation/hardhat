@@ -216,6 +216,7 @@ mod tests {
             })
         }
     }
+
     #[test]
     fn test_serde() {
         let json = TestStructSerde::json();

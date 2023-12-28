@@ -90,7 +90,7 @@ pub struct ProviderConfig {
     pub network_id: BigInt,
 }
 
-impl TryFrom<ForkConfig> for edr_rpc_hardhat::config::ForkConfig {
+impl TryFrom<ForkConfig> for edr_provider::hardhat_rpc_types::ForkConfig {
     type Error = napi::Error;
 
     fn try_from(value: ForkConfig) -> Result<Self, Self::Error> {
