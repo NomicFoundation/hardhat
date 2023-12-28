@@ -44,7 +44,7 @@ impl RadixNode {
         let next_node = self.child_nodes.remove(&b);
 
         if let Some(mut next_node) = next_node {
-            let prefix_length = get_shared_prefix_length(&word, &next_node.content);
+            let prefix_length = longest_prefix_length(&word, &next_node.content);
 
             // We know it's at least 1
             debug_assert!(prefix_length > 0);
@@ -129,8 +129,8 @@ impl RadixNode {
      * If the word is not matched exactly, the node will be the one that
      * matched the longest prefix.
      */
-    pub fn get_max_match(&self, word: &[u8]) -> (bool, usize, &RadixNode) {
-        let prefix_length = get_shared_prefix_length(word, &self.content);
+    pub fn longest_match(&self, word: &[u8]) -> (bool, usize, &RadixNode) {
+        let prefix_length = longest_prefix_length(word, &self.content);
 
         let matched = prefix_length + self.bytes_matched_before;
 
@@ -153,7 +153,7 @@ impl RadixNode {
 
         match next_node {
             None => (false, matched, &self),
-            Some(next_node) => next_node.get_max_match(&word[prefix_length..]),
+            Some(next_node) => next_node.longest_match(&word[prefix_length..]),
         }
     }
 
@@ -194,7 +194,7 @@ impl Default for RadixTree {
     }
 }
 
-fn get_shared_prefix_length(a: &[u8], b: &[u8]) -> usize {
+fn longest_prefix_length(a: &[u8], b: &[u8]) -> usize {
     a.iter()
         .zip(b.iter())
         .enumerate()
@@ -354,7 +354,7 @@ mod tests {
     #[test]
     fn test_radix_tree_get_max_match_default_first_node_empty_tree() {
         let tree = RadixTree::default();
-        let (exact_match, length_matched, node) = tree.root.get_max_match(&Bytes::from("word"));
+        let (exact_match, length_matched, node) = tree.root.longest_match(&Bytes::from("word"));
 
         assert!(!exact_match);
         assert_eq!(length_matched, 0);
@@ -365,7 +365,7 @@ mod tests {
     fn test_radix_tree_get_max_match_default_first_node_words_without_prefix() {
         let mut tree = RadixTree::default();
         tree.add_word(Bytes::from("asdf"));
-        let (exact_match, length_matched, node) = tree.root.get_max_match(&Bytes::from("word"));
+        let (exact_match, length_matched, node) = tree.root.longest_match(&Bytes::from("word"));
 
         assert!(!exact_match);
         assert_eq!(length_matched, 0);
@@ -376,7 +376,7 @@ mod tests {
     fn test_radix_tree_get_max_match_default_first_node_prefix_smaller_than_content() {
         let mut tree = RadixTree::default();
         tree.add_word(Bytes::from("asd"));
-        let (exact_match, length_matched, node) = tree.root.get_max_match(&Bytes::from("as"));
+        let (exact_match, length_matched, node) = tree.root.longest_match(&Bytes::from("as"));
 
         assert!(!exact_match);
         assert_eq!(length_matched, 2);
@@ -392,7 +392,7 @@ mod tests {
         tree.add_word(Bytes::from("a"));
         tree.add_word(Bytes::from("as"));
         tree.add_word(Bytes::from("asd"));
-        let (exact_match, length_matched, node) = tree.root.get_max_match(&Bytes::from("asd"));
+        let (exact_match, length_matched, node) = tree.root.longest_match(&Bytes::from("asd"));
 
         assert!(exact_match);
         assert_eq!(length_matched, 3);
@@ -416,7 +416,7 @@ mod tests {
         tree.add_word(Bytes::from("a"));
         tree.add_word(Bytes::from("as"));
         tree.add_word(Bytes::from("asd"));
-        let (exact_match, length_matched, node) = tree.root.get_max_match(&Bytes::from("asdf"));
+        let (exact_match, length_matched, node) = tree.root.longest_match(&Bytes::from("asdf"));
 
         assert!(!exact_match);
         assert_eq!(length_matched, 3);
@@ -526,9 +526,9 @@ mod tests {
         tree.add_word(bytecode3.clone());
         tree.add_word(bytecode4.clone());
 
-        assert!(tree.root.get_max_match(&bytecode1).0);
-        assert!(tree.root.get_max_match(&bytecode2).0);
-        assert!(tree.root.get_max_match(&bytecode3).0);
-        assert!(tree.root.get_max_match(&bytecode4).0);
+        assert!(tree.root.longest_match(&bytecode1).0);
+        assert!(tree.root.longest_match(&bytecode2).0);
+        assert!(tree.root.longest_match(&bytecode3).0);
+        assert!(tree.root.longest_match(&bytecode4).0);
     }
 }

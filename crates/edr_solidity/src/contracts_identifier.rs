@@ -99,7 +99,7 @@ impl<'a> ContractsIdentifier<'a> {
     ) -> Option<&Bytecode> {
         let radix_node = radix_node.unwrap_or(self.tree.root());
 
-        let (found, matched_bytes, node) = radix_node.get_max_match(code);
+        let (found, matched_bytes, node) = radix_node.longest_match(code);
 
         if found {
             return self.bytecodes.get(&code).copied();
