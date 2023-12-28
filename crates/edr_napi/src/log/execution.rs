@@ -19,7 +19,7 @@ impl ExecutionLog {
         let topics = log
             .topics
             .iter()
-            .map(|topic| Buffer::from(topic.as_bytes()))
+            .map(|topic| Buffer::from(topic.as_slice()))
             .collect();
 
         let data = log.data.clone();
@@ -36,7 +36,7 @@ impl ExecutionLog {
         .map(JsBufferValue::into_raw)?;
 
         Ok(Self {
-            address: Buffer::from(log.address.as_bytes()),
+            address: Buffer::from(log.address.as_slice()),
             topics,
             data,
         })

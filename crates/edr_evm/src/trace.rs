@@ -7,7 +7,7 @@ use revm::{
         InstructionResult, Interpreter,
     },
     primitives::{Bytecode, ExecutionResult, Output},
-    Database, EVMData, Inspector,
+    EVMData, Inspector,
 };
 
 /// Stack tracing message
@@ -117,18 +117,19 @@ impl TraceCollector {
     }
 }
 
-impl<DB> Inspector<DB> for TraceCollector
+impl<DatabaseErrorT> Inspector<DatabaseErrorT> for TraceCollector
 where
-    DB: Database,
-    DB::Error: Debug,
+    DatabaseErrorT: Debug,
 {
     fn call(
         &mut self,
-        data: &mut EVMData<'_, DB>,
+        data: &mut EVMData<'_, DatabaseErrorT>,
         inputs: &mut CallInputs,
     ) -> (InstructionResult, Gas, edr_eth::Bytes) {
         self.validate_before_message();
 
+        // This needs to be split into two functions to avoid borrow checker issues
+        #[allow(clippy::map_unwrap_or)]
         let code = data
             .journaled_state
             .state
@@ -169,7 +170,7 @@ where
 
     fn call_end(
         &mut self,
-        data: &mut EVMData<'_, DB>,
+        data: &mut EVMData<'_, DatabaseErrorT>,
         _inputs: &CallInputs,
         remaining_gas: Gas,
         ret: InstructionResult,
@@ -221,7 +222,7 @@ where
 
     fn create(
         &mut self,
-        data: &mut EVMData<'_, DB>,
+        data: &mut EVMData<'_, DatabaseErrorT>,
         inputs: &mut CreateInputs,
     ) -> (InstructionResult, Option<Address>, Gas, Bytes) {
         self.validate_before_message();
@@ -247,7 +248,7 @@ where
 
     fn create_end(
         &mut self,
-        data: &mut EVMData<'_, DB>,
+        data: &mut EVMData<'_, DatabaseErrorT>,
         _inputs: &CreateInputs,
         ret: InstructionResult,
         address: Option<Address>,
@@ -288,7 +289,11 @@ where
         (ret, address, remaining_gas, out)
     }
 
-    fn step(&mut self, interp: &mut Interpreter, data: &mut EVMData<'_, DB>) -> InstructionResult {
+    fn step(
+        &mut self,
+        interp: &mut Interpreter,
+        data: &mut EVMData<'_, DatabaseErrorT>,
+    ) -> InstructionResult {
         // Skip the step
         let skip_step = self.pending_before.as_ref().map_or(false, |message| {
             message.code.is_some() && interp.current_opcode() == opcode::STOP

@@ -12,20 +12,19 @@ use edr_eth::{
     Address, Bloom, U256,
 };
 use revm::{
-    db::{DatabaseComponentError, WrapDatabaseRef},
+    db::DatabaseComponentError,
     primitives::{
         AccountInfo, BlobExcessGasAndPrice, BlockEnv, CfgEnv, EVMError, ExecutionResult,
         InvalidHeader, InvalidTransaction, Output, ResultAndState, SpecId,
     },
-    Inspector,
 };
 
 use super::local::LocalBlock;
 use crate::{
     blockchain::SyncBlockchain,
-    evm::{build_evm, run_transaction},
+    evm::{build_evm, run_transaction, SyncInspector},
     state::{AccountModifierFn, StateDiff, SyncState},
-    PendingTransaction, SyncDatabase,
+    PendingTransaction,
 };
 
 /// An error caused during construction of a block builder.
@@ -182,11 +181,7 @@ impl BlockBuilder {
         blockchain: &dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
         state: &mut dyn SyncState<StateErrorT>,
         transaction: PendingTransaction,
-        inspector: Option<
-            &mut dyn Inspector<
-                WrapDatabaseRef<&SyncDatabase<'_, '_, BlockchainErrorT, StateErrorT>>,
-            >,
-        >,
+        inspector: Option<&mut dyn SyncInspector<BlockchainErrorT, StateErrorT>>,
     ) -> Result<ExecutionResult, BlockTransactionError<BlockchainErrorT, StateErrorT>>
     where
         BlockchainErrorT: Debug + Send,

@@ -58,7 +58,7 @@ impl From<AccountInfo> for Account {
             let code = account_info.code.unwrap();
 
             Some(Bytecode {
-                hash: Buffer::from(account_info.code_hash.as_bytes()),
+                hash: Buffer::from(account_info.code_hash.as_slice()),
                 code: Buffer::from(code.original_bytes().as_ref()),
             })
         };

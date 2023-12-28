@@ -8,7 +8,10 @@ use edr_eth::remote::PreEip1898BlockSpec;
 use edr_eth::{Address, Bytes, U256};
 #[cfg(all(test, feature = "test-remote"))]
 use edr_evm::state::ForkState;
-use edr_evm::state::{StateError, SyncState, TrieState};
+use edr_evm::{
+    alloy_primitives::U160,
+    state::{StateError, SyncState, TrieState},
+};
 use revm::primitives::{AccountInfo, Bytecode, KECCAK_EMPTY};
 use tempfile::TempDir;
 #[cfg(all(test, feature = "test-remote"))]
@@ -90,8 +93,8 @@ impl EdrStates {
 
         for state in states.iter_mut() {
             for account_number in 1..=number_of_accounts {
-                let address = Address::from_low_u64_ne(account_number);
-                let code = Bytecode::new_raw(Bytes::copy_from_slice(address.as_bytes()));
+                let address = Address::from(U160::from(account_number));
+                let code = Bytecode::new_raw(Bytes::copy_from_slice(address.as_slice()));
                 let code_hash = code.hash_slow();
 
                 state

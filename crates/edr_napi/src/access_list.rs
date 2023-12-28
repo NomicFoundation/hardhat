@@ -14,7 +14,7 @@ pub struct AccessListItem {
 impl From<&edr_eth::access_list::AccessListItem> for AccessListItem {
     fn from(item: &edr_eth::access_list::AccessListItem) -> Self {
         Self {
-            address: Buffer::from(item.address.as_bytes()),
+            address: Buffer::from(item.address.as_slice()),
             storage_keys: item
                 .storage_keys
                 .iter()

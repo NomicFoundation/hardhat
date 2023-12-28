@@ -1,14 +1,13 @@
 use std::fmt::Debug;
 
 use revm::{
-    db::{DatabaseComponents, StateRef, WrapDatabaseRef},
+    db::{DatabaseComponents, StateRef},
     primitives::{BlockEnv, CfgEnv, ExecutionResult, ResultAndState, SpecId, TxEnv},
-    Inspector,
 };
 
 use crate::{
     blockchain::SyncBlockchain,
-    evm::{build_evm, run_transaction},
+    evm::{build_evm, run_transaction, SyncInspector},
     state::{StateOverrides, StateRefOverrider, SyncState},
     transaction::TransactionError,
 };
@@ -28,9 +27,7 @@ pub fn dry_run<BlockchainErrorT, StateErrorT>(
     cfg: CfgEnv,
     transaction: TxEnv,
     block: BlockEnv,
-    inspector: Option<
-        &mut dyn Inspector<WrapDatabaseRef<&SyncDatabase<'_, '_, BlockchainErrorT, StateErrorT>>>,
-    >,
+    inspector: Option<&mut dyn SyncInspector<BlockchainErrorT, StateErrorT>>,
 ) -> Result<ResultAndState, TransactionError<BlockchainErrorT, StateErrorT>>
 where
     BlockchainErrorT: Debug + Send,
@@ -61,9 +58,7 @@ pub fn guaranteed_dry_run<BlockchainErrorT, StateErrorT>(
     mut cfg: CfgEnv,
     transaction: TxEnv,
     block: BlockEnv,
-    inspector: Option<
-        &mut dyn Inspector<WrapDatabaseRef<&SyncDatabase<'_, '_, BlockchainErrorT, StateErrorT>>>,
-    >,
+    inspector: Option<&mut dyn SyncInspector<BlockchainErrorT, StateErrorT>>,
 ) -> Result<ResultAndState, TransactionError<BlockchainErrorT, StateErrorT>>
 where
     BlockchainErrorT: Debug + Send,
@@ -90,9 +85,7 @@ pub fn run<BlockchainErrorT, StateErrorT>(
     cfg: CfgEnv,
     transaction: TxEnv,
     block: BlockEnv,
-    inspector: Option<
-        &mut dyn Inspector<WrapDatabaseRef<&SyncDatabase<'_, '_, BlockchainErrorT, StateErrorT>>>,
-    >,
+    inspector: Option<&mut dyn SyncInspector<BlockchainErrorT, StateErrorT>>,
 ) -> Result<ExecutionResult, TransactionError<BlockchainErrorT, StateErrorT>>
 where
     BlockchainErrorT: Debug + Send,

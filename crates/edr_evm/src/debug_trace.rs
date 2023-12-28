@@ -7,7 +7,7 @@ use revm::{
     primitives::{
         hex, Address, BlockEnv, Bytes, CfgEnv, ExecutionResult, ResultAndState, SpecId, U256,
     },
-    Database, EVMData, Inspector, JournalEntry,
+    EVMData, Inspector, JournalEntry,
 };
 
 use crate::{
@@ -220,10 +220,7 @@ impl TracerEip3155 {
         }
     }
 
-    fn record_log<DB>(&mut self, data: &mut EVMData<'_, DB>)
-    where
-        DB: Database,
-    {
+    fn record_log<DatabaseErrorT>(&mut self, data: &mut EVMData<'_, DatabaseErrorT>) {
         let depth = data.journaled_state.depth();
 
         let stack = if self.config.disable_stack {
@@ -252,7 +249,7 @@ impl TracerEip3155 {
                 if let Some(JournalEntry::StorageChange { address, key, .. }) = last_entry {
                     let value = data.journaled_state.state[address].storage[key].present_value();
                     let contract_storage = self.storage.entry(self.contract_address).or_default();
-                    contract_storage.insert(to_hex_word(&key), to_hex_word(&value));
+                    contract_storage.insert(to_hex_word(key), to_hex_word(&value));
                 }
             }
             Some(
@@ -307,20 +304,21 @@ impl TracerEip3155 {
     }
 }
 
-impl<DB> Inspector<DB> for TracerEip3155
-where
-    DB: Database,
-{
+impl<DatabaseErrorT> Inspector<DatabaseErrorT> for TracerEip3155 {
     fn initialize_interp(
         &mut self,
         interp: &mut Interpreter,
-        data: &mut EVMData<'_, DB>,
+        data: &mut EVMData<'_, DatabaseErrorT>,
     ) -> InstructionResult {
         self.gas_inspector.initialize_interp(interp, data);
         InstructionResult::Continue
     }
 
-    fn step(&mut self, interp: &mut Interpreter, data: &mut EVMData<'_, DB>) -> InstructionResult {
+    fn step(
+        &mut self,
+        interp: &mut Interpreter,
+        data: &mut EVMData<'_, DatabaseErrorT>,
+    ) -> InstructionResult {
         self.contract_address = interp.contract.address;
 
         self.gas_inspector.step(interp, data);
@@ -346,7 +344,7 @@ where
     fn step_end(
         &mut self,
         interp: &mut Interpreter,
-        data: &mut EVMData<'_, DB>,
+        data: &mut EVMData<'_, DatabaseErrorT>,
         eval: InstructionResult,
     ) -> InstructionResult {
         self.gas_inspector.step_end(interp, data, eval);
@@ -363,7 +361,7 @@ where
 
     fn call(
         &mut self,
-        data: &mut EVMData<'_, DB>,
+        data: &mut EVMData<'_, DatabaseErrorT>,
         _inputs: &mut CallInputs,
     ) -> (InstructionResult, Gas, Bytes) {
         self.record_log(data);
@@ -372,7 +370,7 @@ where
 
     fn call_end(
         &mut self,
-        data: &mut EVMData<'_, DB>,
+        data: &mut EVMData<'_, DatabaseErrorT>,
         inputs: &CallInputs,
         remaining_gas: Gas,
         ret: InstructionResult,
@@ -386,7 +384,7 @@ where
 
     fn create(
         &mut self,
-        data: &mut EVMData<'_, DB>,
+        data: &mut EVMData<'_, DatabaseErrorT>,
         _inputs: &mut CreateInputs,
     ) -> (InstructionResult, Option<Address>, Gas, Bytes) {
         self.record_log(data);
@@ -400,7 +398,7 @@ where
 
     fn create_end(
         &mut self,
-        data: &mut EVMData<'_, DB>,
+        data: &mut EVMData<'_, DatabaseErrorT>,
         inputs: &CreateInputs,
         ret: InstructionResult,
         address: Option<Address>,

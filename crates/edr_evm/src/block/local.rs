@@ -57,12 +57,11 @@ impl LocalBlock {
     ) -> Self {
         let ommer_hashes = ommers.iter().map(Header::hash).collect::<Vec<_>>();
         let ommers_hash = keccak256(alloy_rlp::encode(&ommers));
-        let transactions_root =
-            trie::ordered_trie_root(transactions.iter().map(|r| alloy_rlp::encode(r)));
+        let transactions_root = trie::ordered_trie_root(transactions.iter().map(alloy_rlp::encode));
 
         if let Some(withdrawals) = withdrawals.as_ref() {
             partial_header.withdrawals_root = Some(trie::ordered_trie_root(
-                withdrawals.iter().map(|r| alloy_rlp::encode(r)),
+                withdrawals.iter().map(alloy_rlp::encode),
             ));
         }
 

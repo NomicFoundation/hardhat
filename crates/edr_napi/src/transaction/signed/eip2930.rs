@@ -54,7 +54,7 @@ impl Eip2930SignedTransaction {
             },
             gas_limit: BigInt::from(transaction.gas_limit),
             to: if let TransactionKind::Call(to) = transaction.kind {
-                Some(Buffer::from(to.as_bytes()))
+                Some(Buffer::from(to.as_slice()))
             } else {
                 None
             },

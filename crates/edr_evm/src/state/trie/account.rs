@@ -270,7 +270,7 @@ impl AccountTrie {
 
         let hashed_address = HasherKeccak::new().digest(address.as_slice());
         state_trie
-            .insert(hashed_address, alloy_rlp::encode(&account))
+            .insert(hashed_address, alloy_rlp::encode(account))
             .unwrap();
     }
 
@@ -440,7 +440,7 @@ impl AccountTrie {
         );
 
         state_trie
-            .insert(hashed_address, alloy_rlp::encode(account).to_vec())
+            .insert(hashed_address, alloy_rlp::encode(account))
             .unwrap();
 
         self.state_root = B256::from_slice(&state_trie.root().unwrap());

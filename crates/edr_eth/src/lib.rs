@@ -18,6 +18,8 @@ pub mod receipt;
 /// Remote node interaction
 #[cfg(feature = "serde")]
 pub mod remote;
+/// RLP traits and functions
+pub mod rlp;
 #[cfg(feature = "serde")]
 pub mod serde;
 /// Ethereum signature types

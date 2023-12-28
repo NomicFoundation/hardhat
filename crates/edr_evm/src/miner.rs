@@ -4,21 +4,18 @@ use edr_eth::{
     block::{BlockOptions, Header},
     Address, B256, B64, U256,
 };
-use revm::{
-    db::WrapDatabaseRef,
-    primitives::{CfgEnv, ExecutionResult, InvalidTransaction, SpecId},
-    Inspector,
-};
+use revm::primitives::{CfgEnv, ExecutionResult, InvalidTransaction, SpecId};
 
 use crate::{
     block::BlockBuilderCreationError,
     blockchain::SyncBlockchain,
+    evm::SyncInspector,
     inspector::InspectorContainer,
     mempool::OrderedTransaction,
     state::{StateDiff, SyncState},
     trace::Trace,
     BlockBuilder, BlockTransactionError, BuildBlockResult, LocalBlock, MemPool, PendingTransaction,
-    SyncBlock, SyncDatabase,
+    SyncBlock,
 };
 
 /// The result of mining a block, after having been committed to the blockchain.
@@ -92,9 +89,7 @@ pub fn mine_block<BlockchainErrorT, StateErrorT>(
     reward: U256,
     base_fee: Option<U256>,
     prevrandao: Option<B256>,
-    inspector: Option<
-        &mut dyn Inspector<WrapDatabaseRef<&SyncDatabase<'_, '_, BlockchainErrorT, StateErrorT>>>,
-    >,
+    inspector: Option<&mut dyn SyncInspector<BlockchainErrorT, StateErrorT>>,
 ) -> Result<MineBlockResultAndState<StateErrorT>, MineBlockError<BlockchainErrorT, StateErrorT>>
 where
     BlockchainErrorT: Debug + Send,

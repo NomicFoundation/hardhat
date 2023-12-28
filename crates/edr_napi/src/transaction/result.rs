@@ -226,7 +226,7 @@ impl ExecutionResult {
                                     )
                                 }
                                 .map(JsBufferValue::into_raw)?,
-                                address: address.map(|address| Buffer::from(address.as_bytes())),
+                                address: address.map(|address| Buffer::from(address.as_slice())),
                             })
                         }
                     },

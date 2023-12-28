@@ -35,7 +35,7 @@ impl<'callbacks> EvmInspector<'callbacks> {
 impl<'callbacks, DatabaseErrorT> Inspector<DatabaseErrorT> for EvmInspector<'callbacks> {
     fn call(
         &mut self,
-        _data: &mut dyn EVMData<DatabaseErrorT>,
+        _data: &mut EVMData<'_, DatabaseErrorT>,
         inputs: &mut CallInputs,
     ) -> (InstructionResult, Gas, Bytes) {
         if inputs.contract == *CONSOLE_ADDRESS {

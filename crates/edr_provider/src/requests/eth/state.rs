@@ -1,4 +1,4 @@
-use edr_eth::{remote::BlockSpec, serde::ZeroXPrefixedBytes, Address, U256};
+use edr_eth::{remote::BlockSpec, Address, Bytes, U256};
 
 use crate::{data::ProviderData, ProviderError};
 
@@ -14,9 +14,8 @@ pub fn handle_get_code_request(
     data: &ProviderData,
     address: Address,
     block_spec: Option<BlockSpec>,
-) -> Result<ZeroXPrefixedBytes, ProviderError> {
+) -> Result<Bytes, ProviderError> {
     data.get_code(address, block_spec.as_ref())
-        .map(ZeroXPrefixedBytes::from)
 }
 
 pub fn handle_get_storage_at_request(
