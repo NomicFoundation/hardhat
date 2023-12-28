@@ -357,14 +357,19 @@ mod tests {
 
     #[test]
     fn can_recover_sender() {
-        let bytes = hex::decode("f85f800182520894095e7baea6a6c7c4c2dfeb977efac326af552d870a801ba048b55bfa915ac795c431978d8a6a992b628d557da5ff759b307d495a36649353a0efffd310ac743f371de3b9f7f9cb56c0b28ad43601b4ab949f53faa07bd2c804").unwrap();
+        // Generated based on
+        // "f85f800182520894095e7baea6a6c7c4c2dfeb977efac326af552d870a801ba048b55bfa915ac795c431978d8a6a992b628d557da5ff759b307d495a36649353a0efffd310ac743f371de3b9f7f9cb56c0b28ad43601b4ab949f53faa07bd2c804"
+        // but with a normalized signature
+        let bytes = hex::decode("f85f800182520894095e7baea6a6c7c4c2dfeb977efac326af552d870a801ca048b55bfa915ac795c431978d8a6a992b628d557da5ff759b307d495a36649353a010002cef538bc0c8e21c46080634a93e082408b0ad93f4a7207e63ec5463793d").unwrap();
 
         let tx = SignedTransaction::decode(&mut bytes.as_slice())
             .expect("decoding TypedTransaction failed");
+
         let tx = match tx {
             SignedTransaction::PreEip155Legacy(tx) => tx,
             _ => panic!("Invalid typed transaction"),
         };
+
         assert_eq!(tx.input, Bytes::new());
         assert_eq!(tx.gas_price, U256::from(0x01u64));
         assert_eq!(tx.gas_limit, 0x5208u64);
