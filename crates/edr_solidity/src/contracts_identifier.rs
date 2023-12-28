@@ -194,7 +194,7 @@ impl<'a> ContractsIdentifier<'a> {
         // The reason this works is that there's no chance that Solidity includes an
         // entire bytecode (i.e. with metadata), as a prefix of another one.
 
-        if is_matching_metadata(code, matched_bytes) {
+        if is_matching_metadata(code) {
             let last_suffix = self.tree.root().descendant_suffixes().last();
 
             if let Some(last_suffix) = last_suffix {
@@ -263,7 +263,7 @@ fn normalize_library_runtime_bytecode_if_necessary(bytecode: Bytes) -> Bytes {
     bytecode
 }
 
-fn is_matching_metadata(code: &[u8], last_byte: usize) -> bool {
+fn is_matching_metadata(code: &[u8]) -> bool {
     let mut byte = 0;
 
     while let (Some(opcode), Some(next_opcode)) = (code.get(byte), code.get(byte + 1)) {
