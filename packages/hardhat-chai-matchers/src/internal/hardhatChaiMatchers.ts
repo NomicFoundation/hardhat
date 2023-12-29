@@ -1,3 +1,4 @@
+import { supportAddressable } from "./addressable";
 import { supportBigNumber } from "./bigNumber";
 import { supportEmit } from "./emit";
 import { supportHexEqual } from "./hexEqual";
@@ -18,6 +19,7 @@ export function hardhatChaiMatchers(
   chai: Chai.ChaiStatic,
   chaiUtils: Chai.ChaiUtils
 ) {
+  supportAddressable(chai.Assertion, chaiUtils);
   supportBigNumber(chai.Assertion, chaiUtils);
   supportEmit(chai.Assertion, chaiUtils);
   supportHexEqual(chai.Assertion);
