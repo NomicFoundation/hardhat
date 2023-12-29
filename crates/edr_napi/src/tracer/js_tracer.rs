@@ -414,13 +414,15 @@ where
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn call(
         &mut self,
-        data: &mut dyn EVMData<E>,
+        data: &mut EVMData<'_, E>,
         inputs: &mut CallInputs,
     ) -> (InstructionResult, Gas, edr_eth::Bytes) {
         self.validate_before_message();
 
+        // This needs to be split into two functions to avoid borrow checker issues
+        #[allow(clippy::map_unwrap_or)]
         let code = data
-            .journaled_state()
+            .journaled_state
             .state
             .get(&inputs.context.code_address)
             .cloned()
@@ -428,26 +430,22 @@ where
                 if let Some(code) = &account.info.code {
                     code.clone()
                 } else {
-                    data.database()
-                        .code_by_hash(account.info.code_hash)
-                        .unwrap()
+                    data.db.code_by_hash(account.info.code_hash).unwrap()
                 }
             })
             .unwrap_or_else(|| {
-                data.database()
-                    .basic(inputs.context.code_address)
-                    .unwrap()
-                    .map_or(Bytecode::new(), |account_info| {
+                data.db.basic(inputs.context.code_address).unwrap().map_or(
+                    Bytecode::new(),
+                    |account_info| {
                         account_info.code.unwrap_or_else(|| {
-                            data.database()
-                                .code_by_hash(account_info.code_hash)
-                                .unwrap()
+                            data.db.code_by_hash(account_info.code_hash).unwrap()
                         })
-                    })
+                    },
+                )
             });
 
         self.pending_before = Some(BeforeMessage {
-            depth: data.journaled_state().depth,
+            depth: data.journaled_state.depth,
             caller: inputs.context.caller,
             to: Some(inputs.context.address),
             gas_limit: inputs.gas_limit,
@@ -463,7 +461,7 @@ where
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn call_end(
         &mut self,
-        data: &mut dyn EVMData<E>,
+        data: &mut EVMData<'_, E>,
         _inputs: &CallInputs,
         remaining_gas: Gas,
         ret: InstructionResult,
@@ -493,7 +491,7 @@ where
                 reason,
                 gas_used: remaining_gas.spend(),
                 gas_refunded: remaining_gas.refunded() as u64,
-                logs: data.journaled_state().logs.clone(),
+                logs: data.journaled_state.logs.clone(),
                 output: edr_evm::Output::Call(out.clone()),
             },
             SuccessOrHalt::Revert => edr_evm::ExecutionResult::Revert {

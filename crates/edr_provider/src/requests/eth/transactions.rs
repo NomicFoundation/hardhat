@@ -4,7 +4,6 @@ use edr_eth::{
     receipt::BlockReceipt,
     remote,
     remote::PreEip1898BlockSpec,
-    serde::ZeroXPrefixedBytes,
     transaction::{
         Eip1559TransactionRequest, Eip155TransactionRequest, Eip2930TransactionRequest,
         EthTransactionRequest, SignedTransaction, TransactionKind, TransactionRequest,
@@ -235,7 +234,7 @@ pub fn handle_send_transaction_request(
 
 pub fn handle_send_raw_transaction_request(
     data: &mut ProviderData,
-    raw_transaction: ZeroXPrefixedBytes,
+    raw_transaction: Bytes,
 ) -> Result<B256, ProviderError> {
     data.send_raw_transaction(raw_transaction.as_ref())
 }

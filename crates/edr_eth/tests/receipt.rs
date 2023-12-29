@@ -36,7 +36,7 @@ mod remote {
                         let receipts_root = ordered_trie_root(
                             receipts
                                 .into_iter()
-                                .map(|receipt| rlp::encode(&**receipt).freeze()),
+                                .map(|receipt| alloy_rlp::encode(&**receipt)),
                         );
 
                         assert_eq!(block.receipts_root, receipts_root);

@@ -1,8 +1,9 @@
 use std::ops::Deref;
 
-use revm_primitives::B256;
+use alloy_rlp::BufMut;
 
 use super::receipt::ReceiptLog;
+use crate::B256;
 
 /// A log that's returned by a block query.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -45,18 +46,29 @@ impl Deref for FullBlockLog {
     }
 }
 
-impl rlp::Encodable for FullBlockLog {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        s.append(&self.inner);
+impl alloy_rlp::Encodable for BlockLog {
+    fn encode(&self, out: &mut dyn BufMut) {
+        match self {
+            BlockLog::Partial(log) => log.encode(out),
+            BlockLog::Full(log) => log.encode(out),
+        }
+    }
+
+    fn length(&self) -> usize {
+        match self {
+            BlockLog::Partial(log) => log.length(),
+            BlockLog::Full(log) => log.length(),
+        }
     }
 }
 
-impl rlp::Encodable for BlockLog {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        s.append(match self {
-            BlockLog::Partial(log) => log,
-            BlockLog::Full(log) => log,
-        });
+impl alloy_rlp::Encodable for FullBlockLog {
+    fn encode(&self, out: &mut dyn BufMut) {
+        self.inner.encode(out);
+    }
+
+    fn length(&self) -> usize {
+        self.inner.length()
     }
 }
 
@@ -64,10 +76,8 @@ impl rlp::Encodable for BlockLog {
 mod tests {
     use std::str::FromStr;
 
-    use revm_primitives::{Address, Bytes};
-
     use super::*;
-    use crate::log::Log;
+    use crate::{log::Log, Address, Bytes};
 
     #[test]
     fn test_block_log_full_serde() {

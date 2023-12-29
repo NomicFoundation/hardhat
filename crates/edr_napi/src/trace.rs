@@ -79,8 +79,8 @@ impl TracingMessage {
         })?;
 
         Ok(TracingMessage {
-            caller: Buffer::from(message.caller.as_bytes()),
-            to: message.to.map(|to| Buffer::from(to.as_bytes())),
+            caller: Buffer::from(message.caller.as_slice()),
+            to: message.to.map(|to| Buffer::from(to.as_slice())),
             gas_limit: BigInt::from(message.gas_limit),
             depth: message.depth as u8,
             data,

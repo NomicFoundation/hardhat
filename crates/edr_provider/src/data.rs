@@ -16,7 +16,7 @@ use edr_eth::{
         filter::{FilteredEvents, LogOutput, SubscriptionType},
         BlockSpec, BlockTag, Eip1898BlockSpec, RpcClient, RpcClientError,
     },
-    serde::ZeroXPrefixedBytes,
+    rlp::Decodable,
     signature::Signature,
     transaction::{SignedTransaction, TransactionRequestAndSender},
     Address, Bytes, SpecId, B256, U256,
@@ -220,7 +220,7 @@ impl ProviderData {
             .keys()
             .next()
             .copied()
-            .unwrap_or(Address::zero())
+            .unwrap_or(Address::ZERO)
     }
 
     /// Returns the metadata of the forked blockchain, if it exists.
@@ -811,8 +811,11 @@ impl ProviderData {
         Ok(tx_hash)
     }
 
-    pub fn send_raw_transaction(&mut self, raw_transaction: &[u8]) -> Result<B256, ProviderError> {
-        let signed_transaction: SignedTransaction = rlp::decode(raw_transaction)?;
+    pub fn send_raw_transaction(
+        &mut self,
+        mut raw_transaction: &[u8],
+    ) -> Result<B256, ProviderError> {
+        let signed_transaction = SignedTransaction::decode(&mut raw_transaction)?;
 
         let pending_transaction =
             PendingTransaction::new(self.blockchain.spec_id(), signed_transaction)?;
@@ -986,13 +989,9 @@ impl ProviderData {
         Ok(())
     }
 
-    pub fn sign(
-        &self,
-        address: &Address,
-        message: ZeroXPrefixedBytes,
-    ) -> Result<Signature, ProviderError> {
+    pub fn sign(&self, address: &Address, message: Bytes) -> Result<Signature, ProviderError> {
         match self.local_accounts.get(address) {
-            Some(secret_key) => Ok(Signature::new(&Bytes::from(message)[..], secret_key)?),
+            Some(secret_key) => Ok(Signature::new(&message[..], secret_key)?),
             None => Err(ProviderError::UnknownAddress { address: *address }),
         }
     }
@@ -1598,7 +1597,7 @@ mod tests {
 
         fn dummy_transaction_request(&self, nonce: Option<u64>) -> TransactionRequestAndSender {
             let request = TransactionRequest::Eip155(Eip155TransactionRequest {
-                kind: TransactionKind::Call(Address::zero()),
+                kind: TransactionKind::Call(Address::ZERO),
                 gas_limit: 100_000,
                 gas_price: U256::from(42_000_000_000_u64),
                 value: U256::from(1),
@@ -1970,7 +1969,7 @@ mod tests {
     fn transaction_by_invalid_hash() -> anyhow::Result<()> {
         let fixture = ProviderTestFixture::new()?;
 
-        let non_existing_tx = fixture.provider_data.transaction_by_hash(&B256::zero())?;
+        let non_existing_tx = fixture.provider_data.transaction_by_hash(&B256::ZERO)?;
 
         assert!(non_existing_tx.is_none());
 

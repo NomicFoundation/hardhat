@@ -1,6 +1,6 @@
 // adapted from https://github.com/openethereum/parity-ethereum/blob/v2.7.2-stable/util/EIP-712/src/eip712.rs
 
-use revm_primitives::{Address, HashMap, B256, U256};
+use crate::{Address, HashMap, B256, U256};
 
 /// field type
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq)]

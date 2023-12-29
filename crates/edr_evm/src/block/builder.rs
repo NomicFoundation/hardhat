@@ -5,7 +5,7 @@ use std::{
 
 use edr_eth::{
     block::{BlobGas, BlockOptions, Header, PartialHeader},
-    log::Log,
+    log::{add_log_to_bloom, Log},
     receipt::{TransactionReceipt, TypedReceipt, TypedReceiptData},
     transaction::SignedTransaction,
     trie::ordered_trie_root,
@@ -233,9 +233,9 @@ impl BlockBuilder {
 
         let logs: Vec<Log> = result.logs().into_iter().map(Log::from).collect();
         let logs_bloom = {
-            let mut bloom = Bloom::zero();
+            let mut bloom = Bloom::ZERO;
             for log in &logs {
-                log.add_to_bloom(&mut bloom);
+                add_log_to_bloom(log, &mut bloom);
             }
             bloom
         };
@@ -342,7 +342,7 @@ impl BlockBuilder {
             .expect("Must be able to calculate state root");
 
         self.header.logs_bloom = {
-            let mut logs_bloom = Bloom::zero();
+            let mut logs_bloom = Bloom::ZERO;
             self.receipts.iter().for_each(|receipt| {
                 logs_bloom.accrue_bloom(receipt.logs_bloom());
             });
@@ -352,7 +352,7 @@ impl BlockBuilder {
         self.header.receipts_root = ordered_trie_root(
             self.receipts
                 .iter()
-                .map(|receipt| rlp::encode(&**receipt).freeze()),
+                .map(|receipt| alloy_rlp::encode(&**receipt)),
         );
 
         if let Some(timestamp) = timestamp {

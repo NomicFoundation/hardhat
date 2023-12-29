@@ -300,6 +300,7 @@ impl_block_tags!(PreEip1898BlockSpec);
 
 #[cfg(test)]
 mod tests {
+    use alloy_primitives::U256;
     use serde_json::json;
 
     use super::*;
@@ -320,11 +321,11 @@ mod tests {
         help_test_block_spec_serde(BlockSpec::Tag(BlockTag::Pending));
         help_test_block_spec_serde(BlockSpec::Tag(BlockTag::Safe));
         help_test_block_spec_serde(BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
-            block_hash: B256::from_low_u64_ne(1),
+            block_hash: B256::from(U256::from(1)),
             require_canonical: Some(true),
         }));
         help_test_block_spec_serde(BlockSpec::Eip1898(Eip1898BlockSpec::Hash {
-            block_hash: B256::from_low_u64_ne(1),
+            block_hash: B256::from(U256::from(1)),
             require_canonical: None,
         }));
         help_test_block_spec_serde(BlockSpec::Eip1898(Eip1898BlockSpec::Number {
@@ -342,7 +343,7 @@ mod tests {
     #[test]
     fn test_eip_1898_block_hash_serialization_skips_canonical_none() {
         let block_spec = Eip1898BlockSpec::Hash {
-            block_hash: B256::from_low_u64_ne(1),
+            block_hash: B256::from(U256::from(1)),
             require_canonical: None,
         };
         let serialize = serde_json::to_string(&block_spec).unwrap();

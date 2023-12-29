@@ -1,6 +1,5 @@
 use edr_eth::{
     remote::{eth::CallRequest, BlockSpec, StateOverrideOptions},
-    serde::ZeroXPrefixedBytes,
     transaction::{Eip1559TransactionRequest, Eip155TransactionRequest, TransactionRequest},
     Bytes, SpecId, U256,
 };
@@ -13,7 +12,7 @@ pub fn handle_call_request(
     request: CallRequest,
     block_spec: Option<BlockSpec>,
     state_overrides: Option<StateOverrideOptions>,
-) -> Result<ZeroXPrefixedBytes, ProviderError> {
+) -> Result<Bytes, ProviderError> {
     validate_call_request(data, &request)?;
 
     let state_overrides =
@@ -21,7 +20,6 @@ pub fn handle_call_request(
 
     let transaction = resolve_call_request(data, request, block_spec.as_ref(), &state_overrides)?;
     data.run_call(transaction, block_spec.as_ref(), &state_overrides)
-        .map(ZeroXPrefixedBytes::from)
 }
 
 fn resolve_call_request(

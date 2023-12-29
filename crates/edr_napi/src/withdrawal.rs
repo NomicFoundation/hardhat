@@ -21,7 +21,7 @@ impl From<edr_eth::withdrawal::Withdrawal> for Withdrawal {
         Self {
             index: BigInt::from(withdrawal.index),
             validator_index: BigInt::from(withdrawal.validator_index),
-            address: Buffer::from(withdrawal.address.as_bytes()),
+            address: Buffer::from(withdrawal.address.as_slice()),
             amount: BigInt {
                 sign_bit: false,
                 words: withdrawal.amount.as_limbs().to_vec(),

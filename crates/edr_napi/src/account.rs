@@ -58,7 +58,7 @@ impl From<AccountInfo> for Account {
             let code = account_info.code.unwrap();
 
             Some(Bytecode {
-                hash: Buffer::from(account_info.code_hash.as_bytes()),
+                hash: Buffer::from(account_info.code_hash.as_slice()),
                 code: Buffer::from(code.original_bytes().as_ref()),
             })
         };
@@ -145,7 +145,7 @@ pub fn genesis_accounts(
 /// Mimics activation of precompiles
 pub fn add_precompiles(accounts: &mut HashMap<Address, AccountInfo>) {
     for idx in 1..=8 {
-        let mut address = Address::zero();
+        let mut address = Address::ZERO;
         address.0[19] = idx;
         accounts.insert(address, AccountInfo::default());
     }

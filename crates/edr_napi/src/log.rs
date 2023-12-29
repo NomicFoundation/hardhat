@@ -51,9 +51,9 @@ impl Log {
     #[napi(getter)]
     pub fn address(&self) -> Buffer {
         Buffer::from(match &self.inner {
-            LogType::Execution(log) => log.address.as_bytes(),
-            LogType::Filter(log) => log.address.as_bytes(),
-            LogType::Full(log) => log.address.as_bytes(),
+            LogType::Execution(log) => log.address.as_slice(),
+            LogType::Filter(log) => log.address.as_slice(),
+            LogType::Full(log) => log.address.as_slice(),
         })
     }
 
@@ -62,8 +62,8 @@ impl Log {
     pub fn block_hash(&self) -> Option<Buffer> {
         match &self.inner {
             LogType::Execution(_) => None,
-            LogType::Filter(log) => Some(Buffer::from(log.block_hash.as_bytes())),
-            LogType::Full(log) => Some(Buffer::from(log.block_hash.as_bytes())),
+            LogType::Filter(log) => Some(Buffer::from(log.block_hash.as_slice())),
+            LogType::Full(log) => Some(Buffer::from(log.block_hash.as_slice())),
         }
     }
 
@@ -125,7 +125,7 @@ impl Log {
             LogType::Full(log) => &log.topics,
         }
         .iter()
-        .map(|topic| Buffer::from(topic.as_bytes()))
+        .map(|topic| Buffer::from(topic.as_slice()))
         .collect()
     }
 
@@ -134,8 +134,8 @@ impl Log {
     pub fn transaction_hash(&self) -> Option<Buffer> {
         match &self.inner {
             LogType::Execution(_) => None,
-            LogType::Filter(log) => Some(Buffer::from(log.transaction_hash.as_bytes())),
-            LogType::Full(log) => Some(Buffer::from(log.transaction_hash.as_bytes())),
+            LogType::Filter(log) => Some(Buffer::from(log.transaction_hash.as_slice())),
+            LogType::Full(log) => Some(Buffer::from(log.transaction_hash.as_slice())),
         }
     }
 

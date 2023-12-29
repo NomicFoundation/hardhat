@@ -6,14 +6,13 @@ mod fake_signature;
 mod legacy;
 
 use k256::SecretKey;
-use revm_primitives::U256;
 
 pub use self::{
     eip155::Eip155TransactionRequest, eip1559::Eip1559TransactionRequest,
     eip2930::Eip2930TransactionRequest, eip4844::Eip4844TransactionRequest,
     legacy::LegacyTransactionRequest,
 };
-use crate::{signature::SignatureError, transaction::SignedTransaction, Address};
+use crate::{signature::SignatureError, transaction::SignedTransaction, Address, U256};
 
 /// Container type for various Ethereum transaction requests
 ///

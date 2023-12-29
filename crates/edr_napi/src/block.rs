@@ -148,16 +148,7 @@ impl TryFrom<BlockOptions> for edr_eth::block::BlockOptions {
                 .extra_data
                 .map(|extra_data| Bytes::copy_from_slice(&extra_data)),
             mix_hash: value.mix_hash.map(TryCast::<B256>::try_cast).transpose()?,
-            nonce: value.nonce.map_or(Ok(None), |nonce| {
-                B64::try_from_le_slice(&nonce)
-                    .ok_or_else(|| {
-                        napi::Error::new(
-                            Status::InvalidArg,
-                            "Expected nonce to contain no more than 8 bytes",
-                        )
-                    })
-                    .map(Option::Some)
-            })?,
+            nonce: value.nonce.map(TryCast::<B64>::try_cast).transpose()?,
             base_fee: value
                 .base_fee
                 .map_or(Ok(None), |basefee| basefee.try_cast().map(Some))?,
@@ -236,13 +227,13 @@ impl BlockHeader {
         .map(JsBufferValue::into_raw)?;
 
         Ok(Self {
-            parent_hash: Buffer::from(header.parent_hash.as_bytes()),
-            ommers_hash: Buffer::from(header.ommers_hash.as_bytes()),
-            beneficiary: Buffer::from(header.beneficiary.as_bytes()),
-            state_root: Buffer::from(header.state_root.as_bytes()),
-            transactions_root: Buffer::from(header.transactions_root.as_bytes()),
-            receipts_root: Buffer::from(header.receipts_root.as_bytes()),
-            logs_bloom: Buffer::from(header.logs_bloom.as_bytes()),
+            parent_hash: Buffer::from(header.parent_hash.as_slice()),
+            ommers_hash: Buffer::from(header.ommers_hash.as_slice()),
+            beneficiary: Buffer::from(header.beneficiary.as_slice()),
+            state_root: Buffer::from(header.state_root.as_slice()),
+            transactions_root: Buffer::from(header.transactions_root.as_slice()),
+            receipts_root: Buffer::from(header.receipts_root.as_slice()),
+            logs_bloom: Buffer::from(header.logs_bloom.as_slice()),
             difficulty: BigInt {
                 sign_bit: false,
                 words: header.difficulty.as_limbs().to_vec(),
@@ -252,15 +243,15 @@ impl BlockHeader {
             gas_used: BigInt::from(header.gas_used),
             timestamp: BigInt::from(header.timestamp),
             extra_data,
-            mix_hash: Buffer::from(header.mix_hash.as_bytes()),
-            nonce: Buffer::from(header.nonce.as_le_bytes().as_ref()),
+            mix_hash: Buffer::from(header.mix_hash.as_slice()),
+            nonce: Buffer::from(header.nonce.as_slice()),
             base_fee_per_gas: header.base_fee_per_gas.map(|fee| BigInt {
                 sign_bit: false,
                 words: fee.as_limbs().to_vec(),
             }),
             withdrawals_root: header
                 .withdrawals_root
-                .map(|root| Buffer::from(root.as_bytes())),
+                .map(|root| Buffer::from(root.as_slice())),
             blob_gas: header.blob_gas.as_ref().map(|blob_gas| BlobGas {
                 gas_used: BigInt::from(blob_gas.gas_used),
                 excess_gas: BigInt::from(blob_gas.excess_gas),
@@ -268,7 +259,7 @@ impl BlockHeader {
             parent_beacon_block_root: header
                 .parent_beacon_block_root
                 .as_ref()
-                .map(|root| Buffer::from(root.as_bytes())),
+                .map(|root| Buffer::from(root.as_slice())),
         })
     }
 }
@@ -293,12 +284,7 @@ impl TryFrom<BlockHeader> for edr_eth::block::Header {
             timestamp: value.timestamp.try_cast()?,
             extra_data: Bytes::copy_from_slice(value.extra_data.into_value()?.as_ref()),
             mix_hash: TryCast::<B256>::try_cast(value.mix_hash)?,
-            nonce: B64::try_from_le_slice(&value.nonce).ok_or_else(|| {
-                napi::Error::new(
-                    Status::InvalidArg,
-                    "Expected nonce to contain no more than 8 bytes",
-                )
-            })?,
+            nonce: TryCast::<B64>::try_cast(value.nonce)?,
             base_fee_per_gas: value
                 .base_fee_per_gas
                 .map_or(Ok(None), |fee| fee.try_cast().map(Some))?,
@@ -346,7 +332,7 @@ impl Block {
     #[doc = "Retrieves the block's hash, potentially calculating it in the process."]
     #[napi]
     pub fn hash(&self) -> Buffer {
-        Buffer::from(self.inner.hash().as_bytes())
+        Buffer::from(self.inner.hash().as_slice())
     }
 
     #[doc = "Retrieves the block's header."]
@@ -401,7 +387,7 @@ impl Block {
         self.inner
             .transaction_callers()
             .iter()
-            .map(|caller| Buffer::from(caller.as_bytes()))
+            .map(|caller| Buffer::from(caller.as_slice()))
             .collect()
     }
 

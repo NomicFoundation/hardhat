@@ -1,6 +1,7 @@
 mod common;
 
 use edr_eth::{Address, Bytes, B256, U256};
+use edr_evm::alloy_primitives::U160;
 use edr_provider::{
     hardhat_rpc_types::{CompilerInput, CompilerOutput, ForkConfig, ResetProviderConfig},
     MethodInvocation,
@@ -45,7 +46,7 @@ fn serde_hardhat_compiler() {
 
 #[test]
 fn serde_hardhat_drop_transaction() {
-    help_test_method_invocation_serde(MethodInvocation::DropTransaction(B256::from_low_u64_ne(1)));
+    help_test_method_invocation_serde(MethodInvocation::DropTransaction(B256::from(U256::from(1))));
 }
 
 #[test]
@@ -60,9 +61,9 @@ fn serde_hardhat_get_stack_trace_failures_count() {
 
 #[test]
 fn serde_hardhat_impersonate_account() {
-    help_test_method_invocation_serde(MethodInvocation::ImpersonateAccount(
-        Address::from_low_u64_ne(1),
-    ));
+    help_test_method_invocation_serde(MethodInvocation::ImpersonateAccount(Address::from(
+        U160::from(1),
+    )));
 }
 
 #[test]
@@ -102,7 +103,7 @@ fn serde_hardhat_reset() {
 #[test]
 fn serde_hardhat_set_balance() {
     help_test_method_invocation_serde(MethodInvocation::SetBalance(
-        Address::from_low_u64_ne(1),
+        Address::from(U160::from(1)),
         U256::ZERO,
     ));
 }
@@ -110,14 +111,14 @@ fn serde_hardhat_set_balance() {
 #[test]
 fn serde_hardhat_set_code() {
     help_test_method_invocation_serde(MethodInvocation::SetCode(
-        Address::from_low_u64_ne(1),
-        Bytes::from(&b"whatever"[..]).into(),
+        Address::from(U160::from(1)),
+        Bytes::from(&b"whatever"[..]),
     ));
 }
 
 #[test]
 fn serde_hardhat_set_coinbase() {
-    help_test_method_invocation_serde(MethodInvocation::SetCoinbase(Address::from_low_u64_ne(1)));
+    help_test_method_invocation_serde(MethodInvocation::SetCoinbase(Address::random()));
 }
 
 #[test]
@@ -137,10 +138,7 @@ fn serde_hardhat_set_next_block_base_fee_per_gas() {
 
 #[test]
 fn serde_hardhat_set_nonce() {
-    help_test_method_invocation_serde(MethodInvocation::SetNonce(
-        Address::from_low_u64_ne(1),
-        1u64,
-    ));
+    help_test_method_invocation_serde(MethodInvocation::SetNonce(Address::random(), 1u64));
 }
 
 #[test]
@@ -151,7 +149,7 @@ fn serde_hardhat_set_prev_randao() {
 #[test]
 fn serde_hardhat_set_storage_at() {
     help_test_method_invocation_serde(MethodInvocation::SetStorageAt(
-        Address::from_low_u64_ne(1),
+        Address::random(),
         U256::ZERO,
         U256::ZERO,
     ));
@@ -159,7 +157,7 @@ fn serde_hardhat_set_storage_at() {
 
 #[test]
 fn serde_hardhat_stop_impersonating_account() {
-    help_test_method_invocation_serde(MethodInvocation::StopImpersonatingAccount(
-        Address::from_low_u64_ne(1),
-    ));
+    help_test_method_invocation_serde(
+        MethodInvocation::StopImpersonatingAccount(Address::random()),
+    );
 }

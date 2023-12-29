@@ -8,8 +8,8 @@ use revm::{
 };
 
 use crate::{
+    evm::SyncInspector,
     trace::{Trace, TraceCollector},
-    SyncInspector,
 };
 
 // TODO: Improve this design by introducing a InspectorMut trait
@@ -58,20 +58,20 @@ where
     fn initialize_interp(
         &mut self,
         interp: &mut Interpreter,
-        data: &mut dyn EVMData<E>,
+        data: &mut EVMData<'_, E>,
     ) -> InstructionResult {
         self.immutable.initialize_interp(interp, data);
         self.mutable.initialize_interp(interp, data)
     }
 
-    fn step(&mut self, interp: &mut Interpreter, data: &mut dyn EVMData<E>) -> InstructionResult {
+    fn step(&mut self, interp: &mut Interpreter, data: &mut EVMData<'_, E>) -> InstructionResult {
         self.immutable.step(interp, data);
         self.mutable.step(interp, data)
     }
 
     fn log(
         &mut self,
-        evm_data: &mut dyn EVMData<E>,
+        evm_data: &mut EVMData<'_, E>,
         address: &Address,
         topics: &[B256],
         data: &Bytes,
@@ -83,7 +83,7 @@ where
     fn step_end(
         &mut self,
         interp: &mut Interpreter,
-        data: &mut dyn EVMData<E>,
+        data: &mut EVMData<'_, E>,
         eval: InstructionResult,
     ) -> InstructionResult {
         self.immutable.step_end(interp, data, eval);
@@ -92,7 +92,7 @@ where
 
     fn call(
         &mut self,
-        data: &mut dyn EVMData<E>,
+        data: &mut EVMData<'_, E>,
         inputs: &mut CallInputs,
     ) -> (InstructionResult, Gas, Bytes) {
         self.immutable.call(data, inputs);
@@ -101,7 +101,7 @@ where
 
     fn call_end(
         &mut self,
-        data: &mut dyn EVMData<E>,
+        data: &mut EVMData<'_, E>,
         inputs: &CallInputs,
         remaining_gas: Gas,
         ret: InstructionResult,
@@ -114,7 +114,7 @@ where
 
     fn create(
         &mut self,
-        data: &mut dyn EVMData<E>,
+        data: &mut EVMData<'_, E>,
         inputs: &mut CreateInputs,
     ) -> (InstructionResult, Option<Address>, Gas, Bytes) {
         self.immutable.create(data, inputs);
@@ -123,7 +123,7 @@ where
 
     fn create_end(
         &mut self,
-        data: &mut dyn EVMData<E>,
+        data: &mut EVMData<'_, E>,
         inputs: &CreateInputs,
         ret: InstructionResult,
         address: Option<Address>,

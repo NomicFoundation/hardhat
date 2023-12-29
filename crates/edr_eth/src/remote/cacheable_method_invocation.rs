@@ -1,4 +1,3 @@
-use revm_primitives::{Address, B256};
 use sha3::{digest::FixedOutput, Digest, Sha3_256};
 
 use crate::{
@@ -7,7 +6,7 @@ use crate::{
         eth::GetLogsInput, request_methods::RequestMethod, BlockSpec, BlockTag, Eip1898BlockSpec,
         PreEip1898BlockSpec,
     },
-    U256,
+    Address, B256, U256,
 };
 
 pub(super) fn try_read_cache_key(method: &RequestMethod) -> Option<ReadCacheKey> {
@@ -510,7 +509,7 @@ impl Hasher {
     }
 
     fn hash_address(self, address: &Address) -> Self {
-        self.hash_bytes(address.as_bytes())
+        self.hash_bytes(address)
     }
 
     fn hash_u64(self, value: u64) -> Self {
@@ -522,7 +521,7 @@ impl Hasher {
     }
 
     fn hash_b256(self, value: &B256) -> Self {
-        self.hash_bytes(value.as_bytes())
+        self.hash_bytes(value)
     }
 
     fn hash_block_spec(
@@ -565,7 +564,7 @@ impl Hasher {
         let this = self
             .hash_block_spec(from_block)?
             .hash_block_spec(to_block)?
-            .hash_bytes(address.as_bytes());
+            .hash_bytes(address);
         Ok(this)
     }
 

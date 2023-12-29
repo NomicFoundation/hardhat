@@ -63,7 +63,7 @@ impl Eip4844SignedTransaction {
                 words: transaction.max_fee_per_blob_gas.as_limbs().to_vec(),
             },
             gas_limit: BigInt::from(transaction.gas_limit),
-            to: Buffer::from(transaction.to.as_bytes()),
+            to: Buffer::from(transaction.to.as_slice()),
             value: BigInt {
                 sign_bit: false,
                 words: transaction.value.as_limbs().to_vec(),
@@ -78,7 +78,7 @@ impl Eip4844SignedTransaction {
             blob_hashes: transaction
                 .blob_hashes
                 .iter()
-                .map(|hash| Buffer::from(hash.as_bytes()))
+                .map(|hash| Buffer::from(hash.as_slice()))
                 .collect(),
             odd_y_parity: transaction.odd_y_parity,
             r: BigInt {

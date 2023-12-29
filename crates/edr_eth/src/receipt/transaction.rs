@@ -1,9 +1,9 @@
 use std::ops::Deref;
 
-use ethbloom::Bloom;
-use revm_primitives::{Address, B256, U256};
+use alloy_rlp::BufMut;
 
 use super::TypedReceipt;
+use crate::{Address, Bloom, B256, U256};
 
 /// Type for a receipt that's created when processing a transaction.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -73,12 +73,16 @@ impl<L> Deref for TransactionReceipt<L> {
     }
 }
 
-impl<L> rlp::Encodable for TransactionReceipt<L>
+impl<LogT> alloy_rlp::Encodable for TransactionReceipt<LogT>
 where
-    L: rlp::Encodable,
+    LogT: alloy_rlp::Encodable,
 {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        s.append(&self.inner);
+    fn encode(&self, out: &mut dyn BufMut) {
+        self.inner.encode(out);
+    }
+
+    fn length(&self) -> usize {
+        self.inner.length()
     }
 }
 

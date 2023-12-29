@@ -3,7 +3,7 @@ use std::{num::TryFromIntError, time::SystemTimeError};
 use alloy_sol_types::{ContractError, SolInterface};
 use edr_eth::{
     remote::{filter::SubscriptionType, jsonrpc, BlockSpec},
-    Address, Bytes, SpecId, B256, U256,
+    rlp, Address, Bytes, SpecId, B256, U256,
 };
 use edr_evm::{
     blockchain::BlockchainError,
@@ -82,7 +82,7 @@ pub enum ProviderError {
     MinerTransactionError(#[from] MinerTransactionError<StateError>),
     /// Rlp decode error
     #[error(transparent)]
-    RlpDecodeError(#[from] rlp::DecoderError),
+    RlpError(#[from] rlp::Error),
     /// Unsupported RPC version
     #[error("unsupported JSON-RPC version: {0:?}")]
     RpcVersion(jsonrpc::Version),
@@ -153,7 +153,7 @@ impl From<ProviderError> for jsonrpc::Error {
             ProviderError::MemPoolUpdate(_) => (-32000, None),
             ProviderError::MineBlock(_) => (-32000, None),
             ProviderError::MinerTransactionError(_) => (-32000, None),
-            ProviderError::RlpDecodeError(_) => (-32000, None),
+            ProviderError::RlpError(_) => (-32000, None),
             ProviderError::RpcVersion(_) => (-32000, None),
             ProviderError::RunTransaction(_) => (-32000, None),
             ProviderError::Serialization(_) => (-32000, None),

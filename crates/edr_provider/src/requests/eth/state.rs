@@ -1,6 +1,4 @@
-use edr_eth::{
-    remote::BlockSpec, serde::ZeroXPrefixedBytes, utils::u256_to_padded_hex, Address, U256,
-};
+use edr_eth::{remote::BlockSpec, utils::u256_to_padded_hex, Address, Bytes, U256};
 use serde::{Deserialize, Deserializer};
 
 use crate::{data::ProviderData, ProviderError};
@@ -17,9 +15,8 @@ pub fn handle_get_code_request(
     data: &ProviderData,
     address: Address,
     block_spec: Option<BlockSpec>,
-) -> Result<ZeroXPrefixedBytes, ProviderError> {
+) -> Result<Bytes, ProviderError> {
     data.get_code(address, block_spec.as_ref())
-        .map(ZeroXPrefixedBytes::from)
 }
 
 pub fn handle_get_storage_at_request(

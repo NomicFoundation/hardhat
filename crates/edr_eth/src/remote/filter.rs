@@ -1,8 +1,6 @@
 use std::mem::take;
 
-use revm_primitives::Bytes;
-
-use crate::{remote::BlockSpec, Address, B256, U256};
+use crate::{remote::BlockSpec, Address, Bytes, B256, U256};
 
 /// used to specify addresses for [`FilterOptions`]
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]

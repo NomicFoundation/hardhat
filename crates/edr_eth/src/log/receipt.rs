@@ -1,8 +1,8 @@
 use std::ops::Deref;
 
-use revm_primitives::B256;
+use alloy_rlp::BufMut;
 
-use super::Log;
+use crate::{log::Log, B256};
 
 /// A log that's part of a transaction receipt.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -24,9 +24,13 @@ impl Deref for ReceiptLog {
     }
 }
 
-impl rlp::Encodable for ReceiptLog {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        s.append(&self.inner);
+impl alloy_rlp::Encodable for ReceiptLog {
+    fn encode(&self, out: &mut dyn BufMut) {
+        self.inner.encode(out);
+    }
+
+    fn length(&self) -> usize {
+        self.inner.length()
     }
 }
 
@@ -34,10 +38,8 @@ impl rlp::Encodable for ReceiptLog {
 mod tests {
     use std::str::FromStr;
 
-    use revm_primitives::{Address, Bytes};
-
     use super::*;
-    use crate::log::Log;
+    use crate::{log::Log, Address, Bytes};
 
     #[test]
     fn test_receipt_log_serde() {
