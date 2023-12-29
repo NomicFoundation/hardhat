@@ -154,8 +154,6 @@ pub struct ConfigOptions {
     pub spec_id: Option<SpecId>,
     /// The contract code size limit for EIP-170
     pub limit_contract_code_size: Option<BigInt>,
-    /// The initcode code size limit for EIP-31860
-    pub limit_initcode_size: Option<BigInt>,
     /// Disables block limit validation
     pub disable_block_gas_limit: Option<bool>,
     /// Disables EIP-3607, which rejects transactions from sender with deployed
@@ -177,10 +175,6 @@ impl TryFrom<ConfigOptions> for CfgEnv {
 
         let limit_contract_code_size = value
             .limit_contract_code_size
-            .map(TryCast::<usize>::try_cast)
-            .transpose()?;
-        let _limit_initcode_size = value
-            .limit_initcode_size
             .map(TryCast::<usize>::try_cast)
             .transpose()?;
 

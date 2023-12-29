@@ -160,8 +160,6 @@ export interface ConfigOptions {
   specId?: SpecId
   /** The contract code size limit for EIP-170 */
   limitContractCodeSize?: bigint
-  /** The initcode code size limit for EIP-31860 */
-  limitInitcodeSize?: bigint
   /** Disables block limit validation */
   disableBlockGasLimit?: boolean
   /**
