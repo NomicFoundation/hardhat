@@ -1095,6 +1095,7 @@ impl ProviderData {
         } else {
             None
         };
+        evm_config.disable_eip3607 = true;
 
         Ok(evm_config)
     }

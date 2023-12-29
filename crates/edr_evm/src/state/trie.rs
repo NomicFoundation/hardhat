@@ -134,21 +134,14 @@ impl StateDebug for TrieState {
         default_account_fn: &dyn Fn() -> Result<AccountInfo, Self::Error>,
     ) -> Result<AccountInfo, Self::Error> {
         let mut account_info = match self.accounts.account(&address) {
-            Some(account) => {
-                let mut account_info = AccountInfo::from(account);
-
-                // Fill the bytecode
-                if account_info.code_hash != KECCAK_EMPTY {
-                    account_info.code = Some(
-                        self.code_by_hash(account_info.code_hash)
-                            .expect("Code must exist"),
-                    );
-                }
-
-                account_info
-            }
+            Some(account) => AccountInfo::from(account),
             None => default_account_fn()?,
         };
+
+        // Fill the bytecode
+        if account_info.code_hash != KECCAK_EMPTY {
+            account_info.code = Some(self.code_by_hash(account_info.code_hash)?);
+        }
 
         let old_code_hash = account_info.code_hash;
 
@@ -158,9 +151,7 @@ impl StateDebug for TrieState {
             &mut account_info.code,
         );
 
-        // Strip the bytecode
-        let new_code = account_info.code.take();
-
+        let new_code = account_info.code.clone();
         let new_code_hash = new_code.as_ref().map_or(KECCAK_EMPTY, Bytecode::hash_slow);
         account_info.code_hash = new_code_hash;
 
