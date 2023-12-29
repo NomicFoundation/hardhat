@@ -2,7 +2,7 @@ use std::ops::Deref;
 
 use edr_eth::{
     transaction::{
-        EIP155SignedTransaction, Eip1559SignedTransaction, Eip2930SignedTransaction,
+        Eip1559SignedTransaction, Eip155SignedTransaction, Eip2930SignedTransaction,
         Eip4844SignedTransaction, LegacySignedTransaction, SignedTransaction, TransactionKind,
     },
     Address, U256,
@@ -183,7 +183,7 @@ impl From<PendingTransaction> for TxEnv {
                 input,
                 ..
             })
-            | SignedTransaction::PostEip155Legacy(EIP155SignedTransaction {
+            | SignedTransaction::PostEip155Legacy(Eip155SignedTransaction {
                 nonce,
                 gas_price,
                 gas_limit,

@@ -1,9 +1,9 @@
 use std::ops::Deref;
 
-use revm_primitives::B256;
+use alloy_rlp::BufMut;
 
 use super::TransactionReceipt;
-use crate::log::FilterLog;
+use crate::{log::FilterLog, B256};
 
 /// Type for a receipt that's included in a block.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -27,21 +27,26 @@ impl Deref for BlockReceipt {
     }
 }
 
-impl rlp::Encodable for BlockReceipt {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        s.append(&self.inner);
+impl alloy_rlp::Encodable for BlockReceipt {
+    fn encode(&self, out: &mut dyn BufMut) {
+        self.inner.encode(out);
+    }
+
+    fn length(&self) -> usize {
+        self.inner.length()
     }
 }
 
 #[cfg(test)]
 mod test {
     use assert_json_diff::assert_json_eq;
-    use ethbloom::Bloom;
-    use revm_primitives::{Address, U256};
     use serde_json::json;
 
     use super::*;
-    use crate::receipt::{TypedReceipt, TypedReceiptData};
+    use crate::{
+        receipt::{TypedReceipt, TypedReceiptData},
+        Address, Bloom, U256,
+    };
 
     #[test]
     fn test_block_receipt_serde() {

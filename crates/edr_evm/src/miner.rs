@@ -9,12 +9,13 @@ use revm::primitives::{CfgEnv, ExecutionResult, InvalidTransaction, SpecId};
 use crate::{
     block::BlockBuilderCreationError,
     blockchain::SyncBlockchain,
+    evm::SyncInspector,
     inspector::InspectorContainer,
     mempool::OrderedTransaction,
     state::{StateDiff, SyncState},
     trace::Trace,
     BlockBuilder, BlockTransactionError, BuildBlockResult, LocalBlock, MemPool, PendingTransaction,
-    SyncBlock, SyncInspector,
+    SyncBlock,
 };
 
 /// The result of mining a block, after having been committed to the blockchain.
@@ -121,7 +122,7 @@ where
             nonce: Some(if cfg.spec_id >= SpecId::MERGE {
                 B64::ZERO
             } else {
-                B64::from_limbs([66u64.to_be()])
+                B64::from(66u64)
             }),
             base_fee,
             ..Default::default()

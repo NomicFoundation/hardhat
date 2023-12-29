@@ -83,8 +83,12 @@ fn bench_database_commit(c: &mut Criterion) {
                     debug_assert!(committed.balance == json.balance.unwrap());
                     debug_assert!(committed.nonce == json.nonce.unwrap());
                     if let Some(json_code) = json.code.clone().map(Bytecode::new_raw) {
-                        debug_assert!(
-                            state.code_by_hash(committed.code_hash).unwrap() == json_code
+                        debug_assert_eq!(
+                            state
+                                .code_by_hash(committed.code_hash)
+                                .unwrap()
+                                .original_bytes(),
+                            json_code.original_bytes()
                         );
                     } else {
                         debug_assert!(committed.code.is_none());

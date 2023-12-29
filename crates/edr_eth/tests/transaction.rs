@@ -11,10 +11,9 @@ mod alchemy {
                         use edr_eth::{
                             remote::{RpcClient, PreEip1898BlockSpec},
                             transaction::SignedTransaction,
-                            Address
+                            Address, B256
                         };
                         use edr_test_utils::env::get_alchemy_url;
-                        use revm_primitives::{B256};
                         use tempfile::TempDir;
 
                         let tempdir = TempDir::new().unwrap();

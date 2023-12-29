@@ -16,7 +16,7 @@ use edr_eth::{
         filter::{FilteredEvents, LogOutput, SubscriptionType},
         BlockSpec, BlockTag, Eip1898BlockSpec, RpcClient, RpcClientError,
     },
-    serde::ZeroXPrefixedBytes,
+    rlp::Decodable,
     signature::Signature,
     transaction::{SignedTransaction, TransactionRequestAndSender},
     Address, Bytes, SpecId, B256, U256,
@@ -124,6 +124,7 @@ impl ProviderData {
             fork_metadata,
             state,
             irregular_state,
+            next_block_base_fee_per_gas,
         } = create_blockchain_and_state(runtime_handle.clone(), &config, genesis_accounts)?;
 
         let prev_randao_generator = RandomHashGenerator::with_seed("randomMixHashSeed");
@@ -150,7 +151,7 @@ impl ProviderData {
             fork_metadata,
             instance_id: B256::random(),
             is_auto_mining,
-            next_block_base_fee_per_gas: None,
+            next_block_base_fee_per_gas,
             next_block_timestamp: None,
             // Start with 1 to mimic Ganache
             next_snapshot_id: 1,
@@ -219,7 +220,7 @@ impl ProviderData {
             .keys()
             .next()
             .copied()
-            .unwrap_or(Address::zero())
+            .unwrap_or(Address::ZERO)
     }
 
     /// Returns the metadata of the forked blockchain, if it exists.
@@ -558,10 +559,7 @@ impl ProviderData {
                 || {
                     let last_block = self.last_block()?;
 
-                    let base_fee = last_block
-                        .header()
-                        .base_fee_per_gas
-                        .unwrap_or_else(|| calculate_next_base_fee(last_block.header()));
+                    let base_fee = calculate_next_base_fee(last_block.header());
 
                     Ok(base_fee)
                 },
@@ -813,8 +811,11 @@ impl ProviderData {
         Ok(tx_hash)
     }
 
-    pub fn send_raw_transaction(&mut self, raw_transaction: &[u8]) -> Result<B256, ProviderError> {
-        let signed_transaction: SignedTransaction = rlp::decode(raw_transaction)?;
+    pub fn send_raw_transaction(
+        &mut self,
+        mut raw_transaction: &[u8],
+    ) -> Result<B256, ProviderError> {
+        let signed_transaction = SignedTransaction::decode(&mut raw_transaction)?;
 
         let pending_transaction =
             PendingTransaction::new(self.blockchain.spec_id(), signed_transaction)?;
@@ -988,13 +989,9 @@ impl ProviderData {
         Ok(())
     }
 
-    pub fn sign(
-        &self,
-        address: &Address,
-        message: ZeroXPrefixedBytes,
-    ) -> Result<Signature, ProviderError> {
+    pub fn sign(&self, address: &Address, message: Bytes) -> Result<Signature, ProviderError> {
         match self.local_accounts.get(address) {
-            Some(secret_key) => Ok(Signature::new(&Bytes::from(message)[..], secret_key)?),
+            Some(secret_key) => Ok(Signature::new(&message[..], secret_key)?),
             None => Err(ProviderError::UnknownAddress { address: *address }),
         }
     }
@@ -1363,6 +1360,7 @@ struct BlockchainAndState {
     fork_metadata: Option<ForkMetadata>,
     state: Box<dyn SyncState<StateError>>,
     irregular_state: IrregularState,
+    next_block_base_fee_per_gas: Option<U256>,
 }
 
 fn create_blockchain_and_state(
@@ -1450,6 +1448,9 @@ fn create_blockchain_and_state(
             blockchain: Box::new(blockchain),
             state: Box::new(state),
             irregular_state,
+            // There is no genesis block in a forked blockchain, so we incorporate the initial base
+            // fee per gas as the next base fee value.
+            next_block_base_fee_per_gas: config.initial_base_fee_per_gas,
         })
     } else {
         let blockchain = LocalBlockchain::new(
@@ -1477,6 +1478,9 @@ fn create_blockchain_and_state(
             blockchain: Box::new(blockchain),
             state,
             irregular_state,
+            // For local blockchain the initial base fee per gas config option is incorporated as
+            // part of the genesis block.
+            next_block_base_fee_per_gas: None,
         })
     }
 }
@@ -1593,7 +1597,7 @@ mod tests {
 
         fn dummy_transaction_request(&self, nonce: Option<u64>) -> TransactionRequestAndSender {
             let request = TransactionRequest::Eip155(Eip155TransactionRequest {
-                kind: TransactionKind::Call(Address::zero()),
+                kind: TransactionKind::Call(Address::ZERO),
                 gas_limit: 100_000,
                 gas_price: U256::from(42_000_000_000_u64),
                 value: U256::from(1),
@@ -1965,7 +1969,7 @@ mod tests {
     fn transaction_by_invalid_hash() -> anyhow::Result<()> {
         let fixture = ProviderTestFixture::new()?;
 
-        let non_existing_tx = fixture.provider_data.transaction_by_hash(&B256::zero())?;
+        let non_existing_tx = fixture.provider_data.transaction_by_hash(&B256::ZERO)?;
 
         assert!(non_existing_tx.is_none());
 

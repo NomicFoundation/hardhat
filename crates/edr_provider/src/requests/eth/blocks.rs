@@ -151,7 +151,7 @@ fn block_to_rpc_output(
         transactions,
         size: block.rlp_size(),
         mix_hash: header.mix_hash,
-        nonce: Some(header.nonce.as_limbs()[0]),
+        nonce: Some(header.nonce),
         base_fee_per_gas: header.base_fee_per_gas,
         miner: Some(header.beneficiary),
         withdrawals: block

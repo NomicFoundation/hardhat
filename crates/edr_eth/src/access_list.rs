@@ -4,23 +4,14 @@
 // - https://github.com/gakonst/ethers-rs/blob/cba6f071aedafb766e82e4c2f469ed5e4638337d/LICENSE-MIT
 // For the original context see: https://github.com/gakonst/ethers-rs/blob/3d9c3290d42b77c510e5b5d0b6f7a2f72913bfff/ethers-core/src/types/transaction/eip2930.rs
 
-use revm_primitives::{
-    ruint::{self, aliases::U160},
-    B256,
-};
+use alloy_rlp::{RlpDecodable, RlpDecodableWrapper, RlpEncodable, RlpEncodableWrapper};
 
-use crate::{Address, U256};
+use crate::{Address, B256, U256};
 
 /// Access list
 // NB: Need to use `RlpEncodableWrapper` else we get an extra [] in the output
 // https://github.com/gakonst/ethers-rs/pull/353#discussion_r680683869
-#[derive(
-    Debug, Default, Clone, PartialEq, Eq, Hash, rlp::RlpEncodableWrapper, rlp::RlpDecodableWrapper,
-)]
-#[cfg_attr(
-    feature = "fastrlp",
-    derive(open_fastrlp::RlpEncodableWrapper, open_fastrlp::RlpDecodableWrapper)
-)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Hash, RlpDecodableWrapper, RlpEncodableWrapper)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct AccessList(pub Vec<AccessListItem>);
 
@@ -37,11 +28,7 @@ impl From<AccessList> for Vec<AccessListItem> {
 }
 
 /// Access list item
-#[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
-#[cfg_attr(
-    feature = "fastrlp",
-    derive(open_fastrlp::RlpEncodable, open_fastrlp::RlpDecodable)
-)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Hash, RlpDecodable, RlpEncodable)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct AccessListItem {
@@ -49,37 +36,6 @@ pub struct AccessListItem {
     pub address: Address,
     /// Accessed storage keys
     pub storage_keys: Vec<B256>,
-}
-
-impl rlp::Encodable for AccessListItem {
-    fn rlp_append(&self, stream: &mut rlp::RlpStream) {
-        stream.begin_list(2);
-        stream.append(&self.address.as_bytes());
-
-        let storage_keys = self
-            .storage_keys
-            .iter()
-            .map(|key| ruint::aliases::B256::from_be_bytes(key.0))
-            .collect::<Vec<_>>();
-
-        stream.append_list(&storage_keys);
-    }
-}
-
-impl rlp::Decodable for AccessListItem {
-    fn decode(rlp: &rlp::Rlp<'_>) -> Result<Self, rlp::DecoderError> {
-        let result = AccessListItem {
-            address: Address::from(rlp.val_at::<U160>(0)?.to_be_bytes()),
-            storage_keys: {
-                let storage_keys = rlp.list_at::<U256>(1)?;
-                storage_keys
-                    .into_iter()
-                    .map(|key| B256::from(key.to_be_bytes()))
-                    .collect()
-            },
-        };
-        Ok(result)
-    }
 }
 
 impl From<AccessListItem> for (Address, Vec<U256>) {

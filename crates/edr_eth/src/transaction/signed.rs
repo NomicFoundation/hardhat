@@ -4,10 +4,10 @@ mod eip2930;
 mod eip4844;
 mod legacy;
 
-use revm_primitives::{Address, Bytes, B256, U256};
+use alloy_rlp::{Buf, BufMut, Decodable};
 
 pub use self::{
-    eip155::EIP155SignedTransaction, eip1559::Eip1559SignedTransaction,
+    eip155::Eip155SignedTransaction, eip1559::Eip1559SignedTransaction,
     eip2930::Eip2930SignedTransaction, eip4844::Eip4844SignedTransaction,
     legacy::LegacySignedTransaction,
 };
@@ -16,6 +16,7 @@ use crate::{
     access_list::AccessList,
     signature::{Signature, SignatureError},
     utils::enveloped,
+    Address, Bytes, B256, U256,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -24,7 +25,7 @@ pub enum SignedTransaction {
     /// Legacy transaction type
     PreEip155Legacy(LegacySignedTransaction),
     /// EIP-155 transaction
-    PostEip155Legacy(EIP155SignedTransaction),
+    PostEip155Legacy(Eip155SignedTransaction),
     /// EIP-2930 transaction
     Eip2930(Eip2930SignedTransaction),
     /// EIP-1559 transaction
@@ -252,47 +253,67 @@ impl SignedTransaction {
     }
 }
 
-impl rlp::Encodable for SignedTransaction {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        match self {
-            SignedTransaction::PreEip155Legacy(tx) => tx.rlp_append(s),
-            SignedTransaction::PostEip155Legacy(tx) => tx.rlp_append(s),
-            SignedTransaction::Eip2930(tx) => enveloped(1, tx, s),
-            SignedTransaction::Eip1559(tx) => enveloped(2, tx, s),
-            SignedTransaction::Eip4844(tx) => enveloped(3, tx, s),
+impl Decodable for SignedTransaction {
+    fn decode(buf: &mut &[u8]) -> alloy_rlp::Result<Self> {
+        fn is_list(byte: u8) -> bool {
+            byte >= 0xc0
+        }
+
+        let first = buf.first().ok_or(alloy_rlp::Error::InputTooShort)?;
+
+        match *first {
+            0x01 => {
+                buf.advance(1);
+
+                Ok(SignedTransaction::Eip2930(
+                    Eip2930SignedTransaction::decode(buf)?,
+                ))
+            }
+            0x02 => {
+                buf.advance(1);
+
+                Ok(SignedTransaction::Eip1559(
+                    Eip1559SignedTransaction::decode(buf)?,
+                ))
+            }
+            0x03 => {
+                buf.advance(1);
+
+                Ok(SignedTransaction::Eip4844(
+                    Eip4844SignedTransaction::decode(buf)?,
+                ))
+            }
+            byte if is_list(byte) => {
+                let tx = LegacySignedTransaction::decode(buf)?;
+                if tx.signature.v >= 35 {
+                    Ok(SignedTransaction::PostEip155Legacy(tx.into()))
+                } else {
+                    Ok(SignedTransaction::PreEip155Legacy(tx))
+                }
+            }
+            _ => Err(alloy_rlp::Error::Custom("invalid tx type")),
         }
     }
 }
 
-impl rlp::Decodable for SignedTransaction {
-    fn decode(rlp: &rlp::Rlp<'_>) -> Result<Self, rlp::DecoderError> {
-        let data = rlp.as_raw();
-
-        let first = *data
-            .first()
-            .ok_or(rlp::DecoderError::Custom("empty slice"))?;
-
-        let s = data
-            .get(1..)
-            .ok_or(rlp::DecoderError::Custom("no tx body"))?;
-
-        if rlp.is_list() {
-            let v: u64 = rlp.val_at(6)?;
-            if v >= 35 {
-                return Ok(SignedTransaction::PostEip155Legacy(rlp.as_val()?));
-            } else {
-                return Ok(SignedTransaction::PreEip155Legacy(rlp.as_val()?));
-            }
+impl alloy_rlp::Encodable for SignedTransaction {
+    fn encode(&self, out: &mut dyn BufMut) {
+        match self {
+            SignedTransaction::PreEip155Legacy(tx) => tx.encode(out),
+            SignedTransaction::PostEip155Legacy(tx) => tx.encode(out),
+            SignedTransaction::Eip2930(tx) => enveloped(1, tx, out),
+            SignedTransaction::Eip1559(tx) => enveloped(2, tx, out),
+            SignedTransaction::Eip4844(tx) => enveloped(3, tx, out),
         }
+    }
 
-        if first == 0x01 {
-            rlp::decode(s).map(SignedTransaction::Eip2930)
-        } else if first == 0x02 {
-            rlp::decode(s).map(SignedTransaction::Eip1559)
-        } else if first == 0x03 {
-            rlp::decode(s).map(SignedTransaction::Eip4844)
-        } else {
-            Err(rlp::DecoderError::Custom("invalid tx type"))
+    fn length(&self) -> usize {
+        match self {
+            SignedTransaction::PreEip155Legacy(tx) => tx.length(),
+            SignedTransaction::PostEip155Legacy(tx) => tx.length(),
+            SignedTransaction::Eip2930(tx) => tx.length() + 1,
+            SignedTransaction::Eip1559(tx) => tx.length() + 1,
+            SignedTransaction::Eip4844(tx) => tx.length() + 1,
         }
     }
 }
@@ -303,8 +324,8 @@ impl From<LegacySignedTransaction> for SignedTransaction {
     }
 }
 
-impl From<EIP155SignedTransaction> for SignedTransaction {
-    fn from(transaction: EIP155SignedTransaction) -> Self {
+impl From<Eip155SignedTransaction> for SignedTransaction {
+    fn from(transaction: Eip155SignedTransaction) -> Self {
         Self::PostEip155Legacy(transaction)
     }
 }
@@ -331,19 +352,24 @@ impl From<Eip4844SignedTransaction> for SignedTransaction {
 mod tests {
     use std::sync::OnceLock;
 
-    use revm_primitives::Bytes;
-
     use super::*;
+    use crate::Bytes;
 
     #[test]
     fn can_recover_sender() {
-        let bytes = hex::decode("f85f800182520894095e7baea6a6c7c4c2dfeb977efac326af552d870a801ba048b55bfa915ac795c431978d8a6a992b628d557da5ff759b307d495a36649353a0efffd310ac743f371de3b9f7f9cb56c0b28ad43601b4ab949f53faa07bd2c804").unwrap();
+        // Generated based on
+        // "f85f800182520894095e7baea6a6c7c4c2dfeb977efac326af552d870a801ba048b55bfa915ac795c431978d8a6a992b628d557da5ff759b307d495a36649353a0efffd310ac743f371de3b9f7f9cb56c0b28ad43601b4ab949f53faa07bd2c804"
+        // but with a normalized signature
+        let bytes = hex::decode("f85f800182520894095e7baea6a6c7c4c2dfeb977efac326af552d870a801ca048b55bfa915ac795c431978d8a6a992b628d557da5ff759b307d495a36649353a010002cef538bc0c8e21c46080634a93e082408b0ad93f4a7207e63ec5463793d").unwrap();
 
-        let tx: SignedTransaction = rlp::decode(&bytes).expect("decoding TypedTransaction failed");
+        let tx = SignedTransaction::decode(&mut bytes.as_slice())
+            .expect("decoding TypedTransaction failed");
+
         let tx = match tx {
             SignedTransaction::PreEip155Legacy(tx) => tx,
             _ => panic!("Invalid typed transaction"),
         };
+
         assert_eq!(tx.input, Bytes::new());
         assert_eq!(tx.gas_price, U256::from(0x01u64));
         assert_eq!(tx.gas_limit, 0x5208u64);
@@ -352,7 +378,7 @@ mod tests {
             assert_eq!(
                 *to,
                 "0x095e7baea6a6c7c4c2dfeb977efac326af552d87"
-                    .parse()
+                    .parse::<Address>()
                     .unwrap()
             );
         } else {
@@ -362,15 +388,33 @@ mod tests {
         assert_eq!(
             tx.recover().unwrap(),
             "0x0f65fe9276bc9a24ae7083ae28e2660ef72df99e"
-                .parse()
+                .parse::<Address>()
                 .unwrap()
         );
     }
 
-    #[test]
-    fn test_signed_transaction_encoding_round_trip() {
-        let transactions = [
-            SignedTransaction::PreEip155Legacy(LegacySignedTransaction {
+    macro_rules! impl_test_signed_transaction_encoding_round_trip {
+        ($(
+            $name:ident => $transaction:expr,
+        )+) => {
+            $(
+                paste::item! {
+                    #[test]
+                    fn [<signed_transaction_encoding_round_trip_ $name>]() {
+                        let transaction = $transaction;
+
+                        let encoded = alloy_rlp::encode(&transaction);
+                        let decoded = SignedTransaction::decode(&mut encoded.as_slice()).unwrap();
+
+                        assert_eq!(decoded, transaction);
+                    }
+                }
+            )+
+        };
+    }
+
+    impl_test_signed_transaction_encoding_round_trip! {
+            pre_eip155 => SignedTransaction::PreEip155Legacy(LegacySignedTransaction {
                 nonce: 0,
                 gas_price: U256::from(1),
                 gas_limit: 2,
@@ -384,7 +428,7 @@ mod tests {
                 },
                 hash: OnceLock::new(),
             }),
-            SignedTransaction::PostEip155Legacy(EIP155SignedTransaction {
+            post_eip155 => SignedTransaction::PostEip155Legacy(Eip155SignedTransaction {
                 nonce: 0,
                 gas_price: U256::from(1),
                 gas_limit: 2,
@@ -398,7 +442,7 @@ mod tests {
                 },
                 hash: OnceLock::new(),
             }),
-            SignedTransaction::Eip2930(Eip2930SignedTransaction {
+            eip2930 => SignedTransaction::Eip2930(Eip2930SignedTransaction {
                 chain_id: 1,
                 nonce: 0,
                 gas_price: U256::from(1),
@@ -412,8 +456,8 @@ mod tests {
                 access_list: vec![].into(),
                 hash: OnceLock::new(),
             }),
-            SignedTransaction::Eip1559(Eip1559SignedTransaction {
-                chain_id: 1u64,
+            eip1559 => SignedTransaction::Eip1559(Eip1559SignedTransaction {
+                chain_id: 1,
                 nonce: 0,
                 max_priority_fee_per_gas: U256::from(1),
                 max_fee_per_gas: U256::from(2),
@@ -427,8 +471,8 @@ mod tests {
                 s: U256::default(),
                 hash: OnceLock::new(),
             }),
-            SignedTransaction::Eip4844(Eip4844SignedTransaction {
-                chain_id: 1u64,
+            eip4844 => SignedTransaction::Eip4844(Eip4844SignedTransaction {
+                chain_id: 1,
                 nonce: 0,
                 max_priority_fee_per_gas: U256::from(1),
                 max_fee_per_gas: U256::from(2),
@@ -444,14 +488,6 @@ mod tests {
                 s: U256::default(),
                 hash: OnceLock::new(),
             }),
-        ];
-
-        for transaction in transactions {
-            let encoded = rlp::encode(&transaction);
-            let decoded: SignedTransaction = rlp::decode(&encoded).unwrap();
-
-            assert_eq!(decoded, transaction);
-        }
     }
 
     #[test]
@@ -459,7 +495,7 @@ mod tests {
         use std::str::FromStr;
 
         let bytes_first = hex::decode("f86b02843b9aca00830186a094d3e8763675e4c425df46cc3b5c0f6cbdac39604687038d7ea4c68000802ba00eb96ca19e8a77102767a41fc85a36afd5c61ccb09911cec5d3e86e193d9c5aea03a456401896b1b6055311536bf00a718568c744d8c1f9df59879e8350220ca18").unwrap();
-        let expected = SignedTransaction::PostEip155Legacy(EIP155SignedTransaction {
+        let expected = SignedTransaction::PostEip155Legacy(Eip155SignedTransaction {
             nonce: 2u64,
             gas_price: U256::from(1000000000u64),
             gas_limit: 100000,
@@ -481,10 +517,13 @@ mod tests {
             },
             hash: OnceLock::new(),
         });
-        assert_eq!(expected, rlp::decode(&bytes_first).unwrap());
+        assert_eq!(
+            expected,
+            SignedTransaction::decode(&mut bytes_first.as_slice()).unwrap()
+        );
 
         let bytes_second = hex::decode("f86b01843b9aca00830186a094d3e8763675e4c425df46cc3b5c0f6cbdac3960468702769bb01b2a00802ba0e24d8bd32ad906d6f8b8d7741e08d1959df021698b19ee232feba15361587d0aa05406ad177223213df262cb66ccbb2f46bfdccfdfbbb5ffdda9e2c02d977631da").unwrap();
-        let expected = SignedTransaction::PostEip155Legacy(EIP155SignedTransaction {
+        let expected = SignedTransaction::PostEip155Legacy(Eip155SignedTransaction {
             nonce: 1,
             gas_price: U256::from(1000000000u64),
             gas_limit: 100000,
@@ -506,10 +545,13 @@ mod tests {
             },
             hash: OnceLock::new(),
         });
-        assert_eq!(expected, rlp::decode(&bytes_second).unwrap());
+        assert_eq!(
+            expected,
+            SignedTransaction::decode(&mut bytes_second.as_slice()).unwrap()
+        );
 
         let bytes_third = hex::decode("f86b0384773594008398968094d3e8763675e4c425df46cc3b5c0f6cbdac39604687038d7ea4c68000802ba0ce6834447c0a4193c40382e6c57ae33b241379c5418caac9cdc18d786fd12071a03ca3ae86580e94550d7c071e3a02eadb5a77830947c9225165cf9100901bee88").unwrap();
-        let expected = SignedTransaction::PostEip155Legacy(EIP155SignedTransaction {
+        let expected = SignedTransaction::PostEip155Legacy(Eip155SignedTransaction {
             nonce: 3,
             gas_price: U256::from(2000000000u64),
             gas_limit: 10000000,
@@ -531,7 +573,10 @@ mod tests {
             },
             hash: OnceLock::new(),
         });
-        assert_eq!(expected, rlp::decode(&bytes_third).unwrap());
+        assert_eq!(
+            expected,
+            SignedTransaction::decode(&mut bytes_third.as_slice()).unwrap()
+        );
 
         let bytes_fourth = hex::decode("02f872041a8459682f008459682f0d8252089461815774383099e24810ab832a5b2a5425c154d58829a2241af62c000080c001a059e6b67f48fb32e7e570dfb11e042b5ad2e55e3ce3ce9cd989c7e06e07feeafda0016b83f4f980694ed2eee4d10667242b1f40dc406901b34125b008d334d47469").unwrap();
         let expected = SignedTransaction::Eip1559(Eip1559SignedTransaction {
@@ -553,10 +598,13 @@ mod tests {
                 .unwrap(),
             hash: OnceLock::new(),
         });
-        assert_eq!(expected, rlp::decode(&bytes_fourth).unwrap());
+        assert_eq!(
+            expected,
+            SignedTransaction::decode(&mut bytes_fourth.as_slice()).unwrap()
+        );
 
         let bytes_fifth = hex::decode("f8650f84832156008287fb94cf7f9e66af820a19257a2108375b180b0ec491678204d2802ca035b7bfeb9ad9ece2cbafaaf8e202e706b4cfaeb233f46198f00b44d4a566a981a0612638fb29427ca33b9a3be2a0a561beecfe0269655be160d35e72d366a6a860").unwrap();
-        let expected = SignedTransaction::PostEip155Legacy(EIP155SignedTransaction {
+        let expected = SignedTransaction::PostEip155Legacy(Eip155SignedTransaction {
             nonce: 15u64,
             gas_price: U256::from(2200000000u64),
             gas_limit: 34811,
@@ -578,7 +626,10 @@ mod tests {
             },
             hash: OnceLock::new(),
         });
-        assert_eq!(expected, rlp::decode(&bytes_fifth).unwrap());
+        assert_eq!(
+            expected,
+            SignedTransaction::decode(&mut bytes_fifth.as_slice()).unwrap()
+        );
     }
 
     // <https://github.com/gakonst/ethers-rs/issues/1732>
@@ -586,7 +637,8 @@ mod tests {
     fn test_recover_legacy_tx() {
         let raw_tx = "f9015482078b8505d21dba0083022ef1947a250d5630b4cf539739df2c5dacb4c659f2488d880c46549a521b13d8b8e47ff36ab50000000000000000000000000000000000000000000066ab5a608bd00a23f2fe000000000000000000000000000000000000000000000000000000000000008000000000000000000000000048c04ed5691981c42154c6167398f95e8f38a7ff00000000000000000000000000000000000000000000000000000000632ceac70000000000000000000000000000000000000000000000000000000000000002000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc20000000000000000000000006c6ee5e31d828de241282b9606c8e98ea48526e225a0c9077369501641a92ef7399ff81c21639ed4fd8fc69cb793cfa1dbfab342e10aa0615facb2f1bcf3274a354cfe384a38d0cc008a11c2dd23a69111bc6930ba27a8";
 
-        let tx: SignedTransaction = rlp::decode(&hex::decode(raw_tx).unwrap()).unwrap();
+        let tx: SignedTransaction =
+            SignedTransaction::decode(&mut hex::decode(raw_tx).unwrap().as_slice()).unwrap();
         let recovered = tx.recover().unwrap();
         let expected: Address = "0xa12e1462d0ced572f396f58b6e2d03894cd7c8a4"
             .parse()

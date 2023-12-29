@@ -458,9 +458,10 @@ export class EdrProviderWrapper
             balance: BigInt(account.balance),
           };
         }),
-        initialBaseFeePerGas: BigInt(
-          config.initialBaseFeePerGas ?? 1_000_000_000
-        ),
+        initialBaseFeePerGas:
+          config.initialBaseFeePerGas !== undefined
+            ? BigInt(config.initialBaseFeePerGas!)
+            : undefined,
         minGasPrice: config.minGasPrice,
         mining: {
           autoMine: config.automine,

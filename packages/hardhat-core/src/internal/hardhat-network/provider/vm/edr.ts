@@ -87,7 +87,6 @@ export class EdrAdapter implements VMAdapter {
     private readonly _state: EdrStateManager,
     private readonly _common: Common,
     private readonly _limitContractCodeSize: bigint | undefined,
-    private readonly _limitInitcodeSize: bigint | undefined,
     private readonly _enableTransientStorage: boolean
   ) {
     this._vmTracer = new VMTracer(_common, false);
@@ -132,7 +131,6 @@ export class EdrAdapter implements VMAdapter {
       // Enable Cancun if transient storage is enabled
       specId: this._enableTransientStorage ? SpecId.Cancun : specId,
       limitContractCodeSize: this._limitContractCodeSize,
-      limitInitcodeSize: this._limitInitcodeSize,
       disableBlockGasLimit: true,
       disableEip3607: true,
     };

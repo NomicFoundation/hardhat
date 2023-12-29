@@ -1,6 +1,4 @@
-use revm_primitives::HashMap;
-
-use crate::{account::BasicAccount, trie::sec_trie_root, Address, B256, U256};
+use crate::{account::BasicAccount, trie::sec_trie_root, Address, HashMap, B256, U256};
 
 /// State mapping of addresses to accounts.
 pub type State = HashMap<Address, BasicAccount>;
@@ -14,7 +12,7 @@ where
     I: IntoIterator<Item = (&'a Address, &'a BasicAccount)>,
 {
     sec_trie_root(state.into_iter().map(|(address, account)| {
-        let account = rlp::encode(account);
+        let account = alloy_rlp::encode(account);
         (address, account)
     }))
 }
@@ -25,7 +23,7 @@ where
     I: IntoIterator<Item = (&'a U256, &'a U256)>,
 {
     sec_trie_root(storage.into_iter().map(|(index, value)| {
-        let value = rlp::encode(value);
+        let value = alloy_rlp::encode(value);
         (index.to_be_bytes::<32>(), value)
     }))
 }
@@ -58,7 +56,7 @@ mod tests {
         let mut state = State::default();
 
         for idx in 1..=8u8 {
-            let mut address = Address::zero();
+            let mut address = Address::ZERO;
             address.0[19] = idx;
             state.insert(address, BasicAccount::default());
         }

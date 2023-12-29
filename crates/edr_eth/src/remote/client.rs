@@ -14,9 +14,7 @@ use reqwest_middleware::{ClientBuilder as HttpClientBuilder, ClientWithMiddlewar
 use reqwest_retry::{
     policies::ExponentialBackoff, RetryTransientMiddleware, Retryable, RetryableStrategy,
 };
-use revm_primitives::{
-    ruint::aliases::U64, AccountInfo, Address, Bytecode, Bytes, B256, KECCAK_EMPTY, U256,
-};
+use revm_primitives::{Bytecode, KECCAK_EMPTY};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use sha3::{digest::FixedOutput, Digest, Sha3_256};
 use tokio::sync::{OnceCell, RwLock};
@@ -35,7 +33,7 @@ use crate::{
         eth::GetLogsInput,
         jsonrpc::Id,
     },
-    serde::ZeroXPrefixedBytes,
+    AccountInfo, Address, Bytes, B256, U256, U64,
 };
 
 const RPC_CACHE_DIR: &str = "rpc_cache";
@@ -685,7 +683,7 @@ impl RpcClient {
         for (balance, nonce, code) in responses.into_iter().tuples() {
             let balance = balance.parse::<U256>().await?;
             let nonce: u64 = nonce.parse::<U256>().await?.to();
-            let code: Bytes = code.parse::<ZeroXPrefixedBytes>().await?.into();
+            let code = code.parse::<Bytes>().await?;
             let code = if code.is_empty() {
                 None
             } else {

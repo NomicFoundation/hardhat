@@ -4,7 +4,7 @@ use edr_eth::{
     block::BlobGas, signature::secret_key_from_str, trie::KECCAK_NULL_RLP, AccountInfo, Address,
     SpecId, U256,
 };
-use edr_evm::KECCAK_EMPTY;
+use edr_evm::{alloy_primitives::U160, KECCAK_EMPTY};
 use edr_test_utils::env::get_alchemy_url;
 
 use super::*;
@@ -67,7 +67,7 @@ pub fn create_test_config_with_impersonated_accounts_and_fork(
         genesis_accounts,
         block_gas_limit: 30_000_000,
         chain_id: 123,
-        coinbase: Address::from_low_u64_ne(1),
+        coinbase: Address::from(U160::from(1)),
         hardfork: SpecId::LATEST,
         initial_base_fee_per_gas: Some(U256::from(1000000000)),
         initial_blob_gas: Some(BlobGas {

@@ -29,7 +29,7 @@ impl Receipt {
     #[doc = "Returns the hash of the block the receipt is included in."]
     #[napi(getter)]
     pub fn block_hash(&self) -> Buffer {
-        Buffer::from(self.block_hash.as_bytes())
+        Buffer::from(self.block_hash.as_slice())
     }
 
     #[doc = "Returns the number of the block the receipt is included in."]
@@ -41,20 +41,20 @@ impl Receipt {
     #[doc = "Return the address of the transaction's receiver, if any."]
     #[napi(getter)]
     pub fn callee(&self) -> Option<Buffer> {
-        self.to.map(|address| Buffer::from(address.as_bytes()))
+        self.to.map(|address| Buffer::from(address.as_slice()))
     }
 
     #[doc = "Returns the address of the transaction's sender."]
     #[napi(getter)]
     pub fn caller(&self) -> Buffer {
-        Buffer::from(self.from.as_bytes())
+        Buffer::from(self.from.as_slice())
     }
 
     #[doc = "Returns the address of a created contract, if any."]
     #[napi(getter)]
     pub fn contract_address(&self) -> Option<Buffer> {
         self.contract_address
-            .map(|address| Buffer::from(address.as_bytes()))
+            .map(|address| Buffer::from(address.as_slice()))
     }
 
     #[doc = "Returns the cumulative gas used after this transaction was executed."]
@@ -80,7 +80,7 @@ impl Receipt {
     #[doc = "Returns the bloom filter of the receipt's logs."]
     #[napi(getter)]
     pub fn logs_bloom(&self) -> Buffer {
-        Buffer::from(self.logs_bloom.as_bytes())
+        Buffer::from(self.logs_bloom.as_slice())
     }
 
     #[doc = "Returns the effective gas price of the receipt's transaction."]
@@ -98,7 +98,7 @@ impl Receipt {
     pub fn state_root(&self) -> Option<Buffer> {
         self.inner
             .state_root()
-            .map(|root| Buffer::from(root.as_bytes()))
+            .map(|root| Buffer::from(root.as_slice()))
     }
 
     #[doc = "Returns the status code of the receipt, if any."]
@@ -117,7 +117,7 @@ impl Receipt {
     #[doc = "Returns the hash of the receipt's transaction."]
     #[napi(getter)]
     pub fn transaction_hash(&self) -> Buffer {
-        Buffer::from(self.transaction_hash.as_bytes())
+        Buffer::from(self.transaction_hash.as_slice())
     }
 
     #[doc = "Returns the index of the receipt's transaction in the block."]

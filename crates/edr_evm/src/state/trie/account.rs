@@ -1,7 +1,8 @@
 use std::{collections::BTreeMap, fmt::Debug, sync::Arc};
 
+use alloy_rlp::Decodable;
 use cita_trie::{MemoryDB, PatriciaTrie, Trie as CitaTrie};
-use edr_eth::{account::BasicAccount, Address, B160, B256, U256};
+use edr_eth::{account::BasicAccount, Address, B256, U256};
 use hasher::{Hasher, HasherKeccak};
 use revm::primitives::{Account, AccountInfo, HashMap};
 
@@ -88,7 +89,7 @@ impl AccountTrie {
                             let mut storage_trie = Trie::from(
                                 storage_trie_db.clone(),
                                 Arc::new(HasherKeccak::new()),
-                                storage_root.as_bytes(),
+                                storage_root.as_slice(),
                             )
                             .expect("Invalid storage root");
 
@@ -101,9 +102,9 @@ impl AccountTrie {
 
                         account.storage_root = *storage_root;
 
-                        let hashed_address = HasherKeccak::new().digest(address.as_bytes());
+                        let hashed_address = HasherKeccak::new().digest(address.as_slice());
                         state_trie
-                            .insert(hashed_address, rlp::encode(&account).to_vec())
+                            .insert(hashed_address, alloy_rlp::encode(&account))
                             .unwrap();
                     } else {
                         Self::remove_account_in(address, &mut state_trie, &mut storage_trie_dbs);
@@ -128,7 +129,7 @@ impl AccountTrie {
         let state_trie = Trie::from(
             self.state_trie_db.clone(),
             Arc::new(HasherKeccak::new()),
-            self.state_root.as_bytes(),
+            self.state_root.as_slice(),
         )
         .expect("Invalid state root");
 
@@ -136,12 +137,12 @@ impl AccountTrie {
     }
 
     fn account_in(address: &Address, state_trie: &Trie) -> Option<BasicAccount> {
-        let hashed_address = HasherKeccak::new().digest(address.as_bytes());
+        let hashed_address = HasherKeccak::new().digest(address.as_slice());
 
         state_trie
             .get(&hashed_address)
             .unwrap()
-            .map(|encoded_account| rlp::decode::<BasicAccount>(&encoded_account).unwrap())
+            .map(|encoded_account| BasicAccount::decode(&mut encoded_account.as_slice()).unwrap())
     }
 
     /// Retrieves the storage storage corresponding to the account at the
@@ -153,7 +154,7 @@ impl AccountTrie {
                 let storage_trie = Trie::from(
                     storage_trie_db.clone(),
                     Arc::new(HasherKeccak::new()),
-                    storage_root.as_bytes(),
+                    storage_root.as_slice(),
                 )
                 .expect("Invalid storage root");
 
@@ -161,17 +162,17 @@ impl AccountTrie {
                 storage_trie
                     .get(&hashed_index)
                     .unwrap()
-                    .map(|decode_value| rlp::decode::<U256>(&decode_value).unwrap())
+                    .map(|decode_value| U256::decode(&mut decode_value.as_slice()).unwrap())
             })
     }
 
     /// Commits changes to the state.
     #[cfg_attr(feature = "tracing", tracing::instrument)]
-    pub fn commit(&mut self, changes: &HashMap<B160, Account>) {
+    pub fn commit(&mut self, changes: &HashMap<Address, Account>) {
         let mut state_trie = Trie::from(
             self.state_trie_db.clone(),
             Arc::new(HasherKeccak::new()),
-            self.state_root.as_bytes(),
+            self.state_root.as_slice(),
         )
         .expect("Invalid state root");
 
@@ -206,7 +207,7 @@ impl AccountTrie {
                         let mut storage_trie = Trie::from(
                             storage_trie_db.clone(),
                             Arc::new(HasherKeccak::new()),
-                            storage_root.as_bytes(),
+                            storage_root.as_slice(),
                         )
                         .expect("Invalid storage root");
 
@@ -235,7 +236,7 @@ impl AccountTrie {
         let mut state_trie = Trie::from(
             self.state_trie_db.clone(),
             Arc::new(HasherKeccak::new()),
-            self.state_root.as_bytes(),
+            self.state_root.as_slice(),
         )
         .expect("Invalid state root");
 
@@ -267,9 +268,9 @@ impl AccountTrie {
     ) {
         let account = BasicAccount::from((account_info, storage_root));
 
-        let hashed_address = HasherKeccak::new().digest(address.as_bytes());
+        let hashed_address = HasherKeccak::new().digest(address.as_slice());
         state_trie
-            .insert(hashed_address, rlp::encode(&account).to_vec())
+            .insert(hashed_address, alloy_rlp::encode(account))
             .unwrap();
     }
 
@@ -279,7 +280,7 @@ impl AccountTrie {
         let mut state_trie = Trie::from(
             self.state_trie_db.clone(),
             Arc::new(HasherKeccak::new()),
-            self.state_root.as_bytes(),
+            self.state_root.as_slice(),
         )
         .expect("Invalid state root");
 
@@ -301,7 +302,7 @@ impl AccountTrie {
         let account = Self::account_in(address, state_trie);
 
         if account.is_some() {
-            let hashed_address = HasherKeccak::new().digest(address.as_bytes());
+            let hashed_address = HasherKeccak::new().digest(address.as_slice());
             state_trie.remove(&hashed_address).unwrap();
 
             storage_trie_dbs.remove(address);
@@ -330,7 +331,7 @@ impl AccountTrie {
         let state_trie = Trie::from(
             self.state_trie_db.clone(),
             Arc::new(HasherKeccak::new()),
-            self.state_root.as_bytes(),
+            self.state_root.as_slice(),
         )
         .expect("Invalid state root");
 
@@ -338,13 +339,13 @@ impl AccountTrie {
             .storage_trie_dbs
             .iter()
             .filter_map(|(address, (storage_trie_db, storage_root))| {
-                let hashed_address = HasherKeccak::new().digest(address.as_bytes());
+                let hashed_address = HasherKeccak::new().digest(address.as_slice());
                 let account = state_trie
                     .get(&hashed_address)
                     .unwrap()
                     .unwrap_or_else(|| panic!("Account with address '{address}' and hashed address '{hashed_address:?}' must exist in state, if a storage trie is stored for it"));
 
-                let account: BasicAccount = rlp::decode(&account).unwrap();
+                let account = BasicAccount::decode(&mut account.as_slice()).unwrap();
 
                 if account == BasicAccount::default() {
                     None
@@ -352,14 +353,14 @@ impl AccountTrie {
                     let storage_trie = Trie::from(
                         storage_trie_db.clone(),
                         Arc::new(HasherKeccak::new()),
-                        storage_root.as_bytes(),
+                        storage_root.as_slice(),
                     )
                     .expect("Invalid storage root");
 
                     let storage = storage_trie
                         .iter()
                         .map(|(hashed_index, encoded_value)| {
-                            let value: U256 = rlp::decode(&encoded_value).unwrap();
+                            let value = U256::decode(&mut encoded_value.as_slice()).unwrap();
                             assert_eq!(hashed_index.len(), 32);
                             (B256::from_slice(&hashed_index), value)
                         })
@@ -407,7 +408,7 @@ impl AccountTrie {
             let mut storage_trie = Trie::from(
                 storage_trie_db.clone(),
                 Arc::new(HasherKeccak::new()),
-                storage_root.as_bytes(),
+                storage_root.as_slice(),
             )
             .expect("Invalid storage root");
 
@@ -421,25 +422,25 @@ impl AccountTrie {
         let mut state_trie = Trie::from(
             self.state_trie_db.clone(),
             Arc::new(HasherKeccak::new()),
-            self.state_root.as_bytes(),
+            self.state_root.as_slice(),
         )
         .expect("Invalid state root");
 
-        let hashed_address = HasherKeccak::new().digest(address.as_bytes());
+        let hashed_address = HasherKeccak::new().digest(address.as_slice());
         let account = state_trie.get(&hashed_address).unwrap().map_or(
             BasicAccount {
                 storage_root: *storage_root,
                 ..BasicAccount::default()
             },
             |account| {
-                let mut account: BasicAccount = rlp::decode(&account).unwrap();
+                let mut account = BasicAccount::decode(&mut account.as_slice()).unwrap();
                 account.storage_root = *storage_root;
                 account
             },
         );
 
         state_trie
-            .insert(hashed_address, rlp::encode(&account).to_vec())
+            .insert(hashed_address, alloy_rlp::encode(account))
             .unwrap();
 
         self.state_root = B256::from_slice(&state_trie.root().unwrap());
@@ -460,7 +461,7 @@ impl AccountTrie {
         let old_value = storage_trie
             .get(&hashed_index)
             .unwrap()
-            .map(|decode_value| rlp::decode::<U256>(&decode_value).unwrap());
+            .map(|decode_value| U256::decode(&mut decode_value.as_slice()).unwrap());
 
         if *value == U256::ZERO {
             if old_value.is_some() {
@@ -468,7 +469,7 @@ impl AccountTrie {
             }
         } else {
             storage_trie
-                .insert(hashed_index, rlp::encode(value).to_vec())
+                .insert(hashed_index, alloy_rlp::encode(value))
                 .unwrap();
         }
 
@@ -544,7 +545,7 @@ mod tests {
 
         // Mimic precompiles activation
         for idx in 1..=8 {
-            let mut address = Address::zero();
+            let mut address = Address::ZERO;
             address.0[19] = idx;
             accounts.insert(address, AccountInfo::default());
         }

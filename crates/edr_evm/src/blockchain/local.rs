@@ -25,9 +25,6 @@ use crate::{
 /// An error that occurs upon creation of a [`LocalBlockchain`].
 #[derive(Debug, thiserror::Error)]
 pub enum CreationError {
-    /// Missing base fee per gas for post-London blockchain
-    #[error("Missing base fee per gas for post-London blockchain")]
-    MissingBaseFee,
     /// Missing blob gas information for post-Cancun blockchain
     #[error("Missing blob gas information for post-Cancun blockchain")]
     MissingBlobGas,
@@ -100,15 +97,16 @@ impl LocalBlockchain {
             mix_hash: if spec_id >= SpecId::MERGE {
                 prevrandao.ok_or(CreationError::MissingPrevrandao)?
             } else {
-                B256::zero()
+                B256::ZERO
             },
             nonce: if spec_id >= SpecId::MERGE {
                 B64::ZERO
             } else {
-                B64::from_limbs([66u64.to_be()])
+                B64::from(66u64)
             },
             base_fee: if spec_id >= SpecId::LONDON {
-                Some(base_fee.ok_or(CreationError::MissingBaseFee)?)
+                // Initial base fee from https://eips.ethereum.org/EIPS/eip-1559
+                Some(base_fee.unwrap_or(U256::from(1_000_000_000)))
             } else {
                 None
             },

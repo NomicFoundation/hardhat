@@ -21,11 +21,11 @@ use crate::{
     access_list::AccessListItem,
     signature::Signature,
     transaction::{
-        EIP155SignedTransaction, Eip1559SignedTransaction, Eip2930SignedTransaction,
+        Eip1559SignedTransaction, Eip155SignedTransaction, Eip2930SignedTransaction,
         Eip4844SignedTransaction, LegacySignedTransaction, SignedTransaction, TransactionKind,
     },
     withdrawal::Withdrawal,
-    Address, Bloom, Bytes, B256, U256,
+    Address, Bloom, Bytes, B256, B64, U256,
 };
 
 /// transaction
@@ -56,7 +56,6 @@ pub struct Transaction {
     /// gas provided by the sender
     pub gas: U256,
     /// the data sent along with the transaction
-    #[serde(with = "crate::serde::bytes")]
     pub input: Bytes,
     /// ECDSA recovery id
     #[serde(with = "crate::serde::u64")]
@@ -175,7 +174,7 @@ impl TryFrom<Transaction> for (SignedTransaction, Address) {
                         hash: OnceLock::from(value.hash),
                     })
                 } else {
-                    SignedTransaction::PostEip155Legacy(EIP155SignedTransaction {
+                    SignedTransaction::PostEip155Legacy(Eip155SignedTransaction {
                         nonce: value.nonce,
                         gas_price: value.gas_price,
                         gas_limit: value.gas.to(),
@@ -311,7 +310,6 @@ pub struct Block<TX> {
     #[serde(with = "crate::serde::u64")]
     pub gas_limit: u64,
     /// the "extra data" field of this block
-    #[serde(with = "crate::serde::bytes")]
     pub extra_data: Bytes,
     /// the bloom filter for the logs of the block
     pub logs_bloom: Bloom,
@@ -335,8 +333,7 @@ pub struct Block<TX> {
     /// mix hash
     pub mix_hash: B256,
     /// hash of the generated proof-of-work. null when its pending block.
-    #[serde(with = "crate::serde::optional_u64")]
-    pub nonce: Option<u64>,
+    pub nonce: Option<B64>,
     /// base fee per gas
     pub base_fee_per_gas: Option<U256>,
     /// the address of the beneficiary to whom the mining rewards were given

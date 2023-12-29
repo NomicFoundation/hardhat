@@ -4,11 +4,10 @@ use edr_eth::{
         filter::{FilterOptions, SubscriptionType},
         BlockSpec, PreEip1898BlockSpec, StateOverrideOptions,
     },
-    serde::{optional_single_to_sequence, sequence_to_optional_single, ZeroXPrefixedBytes},
+    serde::{optional_single_to_sequence, sequence_to_optional_single},
     transaction::EthTransactionRequest,
-    Address, B256, U256,
+    Address, Bytes, B256, U256, U64,
 };
-use revm_primitives::ruint::aliases::U64;
 
 use crate::requests::hardhat::rpc_types::{CompilerInput, CompilerOutput, ResetProviderConfig};
 
@@ -200,13 +199,13 @@ pub enum MethodInvocation {
     PendingTransactions(()),
     /// eth_sendRawTransaction
     #[serde(rename = "eth_sendRawTransaction", with = "edr_eth::serde::sequence")]
-    SendRawTransaction(ZeroXPrefixedBytes),
+    SendRawTransaction(Bytes),
     /// eth_sendTransaction
     #[serde(rename = "eth_sendTransaction", with = "edr_eth::serde::sequence")]
     SendTransaction(EthTransactionRequest),
     /// eth_sign
     #[serde(rename = "eth_sign", alias = "personal_sign")]
-    Sign(ZeroXPrefixedBytes, Address),
+    Sign(Bytes, Address),
     /// eth_signTypedData_v4
     #[serde(rename = "eth_signTypedData_v4")]
     SignTypedDataV4(Address, eip712::Message),
@@ -227,7 +226,7 @@ pub enum MethodInvocation {
     Web3ClientVersion(()),
     /// web3_sha3
     #[serde(rename = "web3_sha3", with = "edr_eth::serde::sequence")]
-    Web3Sha3(ZeroXPrefixedBytes),
+    Web3Sha3(Bytes),
     /// evm_increaseTime
     #[serde(rename = "evm_increaseTime", with = "edr_eth::serde::sequence")]
     EvmIncreaseTime(U64OrUsize),
@@ -314,7 +313,7 @@ pub enum MethodInvocation {
     SetBalance(Address, U256),
     /// hardhat_setCode
     #[serde(rename = "hardhat_setCode")]
-    SetCode(Address, ZeroXPrefixedBytes),
+    SetCode(Address, Bytes),
     /// hardhat_setCoinbase
     #[serde(rename = "hardhat_setCoinbase", with = "edr_eth::serde::sequence")]
     SetCoinbase(Address),
@@ -376,22 +375,5 @@ impl From<U64OrUsize> for u64 {
             U64OrUsize::U64(u) => u.as_limbs()[0],
             U64OrUsize::Usize(u) => u as u64,
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    #[should_panic(expected = "string \\\"deadbeef\\\" does not have a '0x' prefix")]
-    fn test_zero_x_prefixed_bytes_deserialization_without_0x_prefix() {
-        serde_json::from_str::<ZeroXPrefixedBytes>("\"deadbeef\"").unwrap();
-    }
-
-    #[test]
-    #[should_panic(expected = "string \\\"0deadbeef\\\" does not have a '0x' prefix")]
-    fn test_zero_x_prefixed_bytes_deserialization_with_0_prefix_but_no_x() {
-        serde_json::from_str::<ZeroXPrefixedBytes>("\"0deadbeef\"").unwrap();
     }
 }

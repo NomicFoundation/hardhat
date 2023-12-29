@@ -1,40 +1,39 @@
 use std::sync::OnceLock;
 
+use alloy_primitives::keccak256;
+use alloy_rlp::RlpEncodable;
 use k256::SecretKey;
-use revm_primitives::{keccak256, Address, Bytes, B256, U256};
 
 use crate::{
     access_list::AccessListItem,
     signature::{Signature, SignatureError},
     transaction::{request::fake_signature::make_fake_signature, Eip4844SignedTransaction},
     utils::envelop_bytes,
+    Address, Bytes, B256, U256,
 };
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-#[cfg_attr(
-    feature = "fastrlp",
-    derive(open_fastrlp::RlpEncodable, open_fastrlp::RlpDecodable)
-)]
+#[derive(Clone, Debug, PartialEq, Eq, RlpEncodable)]
 pub struct Eip4844TransactionRequest {
+    // The order of these fields determines encoding order.
     pub chain_id: u64,
     pub nonce: u64,
     pub max_priority_fee_per_gas: U256,
     pub max_fee_per_gas: U256,
-    pub max_fee_per_blob_gas: U256,
     pub gas_limit: u64,
     pub to: Address,
     pub value: U256,
     pub input: Bytes,
     pub access_list: Vec<AccessListItem>,
+    pub max_fee_per_blob_gas: U256,
     pub blob_hashes: Vec<B256>,
 }
 
 impl Eip4844TransactionRequest {
     /// Computes the hash of the transaction.
     pub fn hash(&self) -> B256 {
-        let encoded = rlp::encode(self);
+        let encoded = alloy_rlp::encode(self);
 
-        keccak256(&envelop_bytes(2, &encoded))
+        keccak256(envelop_bytes(2, &encoded))
     }
 
     pub fn sign(self, private_key: &SecretKey) -> Result<Eip4844SignedTransaction, SignatureError> {
@@ -102,35 +101,9 @@ impl From<&Eip4844SignedTransaction> for Eip4844TransactionRequest {
     }
 }
 
-impl rlp::Encodable for Eip4844TransactionRequest {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        s.begin_list(11);
-        s.append(&self.chain_id);
-        s.append(&self.nonce);
-        s.append(&self.max_priority_fee_per_gas);
-        s.append(&self.max_fee_per_gas);
-        s.append(&self.gas_limit);
-        s.append(&self.to.as_bytes());
-        s.append(&self.value);
-        s.append(&self.input.as_ref());
-        s.append_list(&self.access_list);
-        s.append(&self.max_fee_per_blob_gas);
-
-        let blob_hashes = self
-            .blob_hashes
-            .iter()
-            .map(B256::as_bytes)
-            .collect::<Vec<_>>();
-
-        s.append_list::<&[u8], &[u8]>(blob_hashes.as_slice());
-    }
-}
-
 #[cfg(test)]
 pub(crate) mod tests {
     use std::str::FromStr;
-
-    use revm_primitives::Address;
 
     use super::*;
     use crate::transaction::request::fake_signature::tests::test_fake_sign_properties;

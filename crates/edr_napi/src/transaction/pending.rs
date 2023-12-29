@@ -67,7 +67,7 @@ impl PendingTransaction {
 
     #[napi(getter)]
     pub fn caller(&self) -> Buffer {
-        Buffer::from(self.inner.caller().as_bytes())
+        Buffer::from(self.inner.caller().as_slice())
     }
 
     #[napi(getter)]

@@ -1,5 +1,6 @@
-use revm_primitives::{ruint::aliases::U160, Address};
-use rlp::{DecoderError, Rlp, RlpStream};
+use alloy_rlp::{Buf, BufMut};
+
+use crate::Address;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -28,30 +29,30 @@ impl From<Option<Address>> for TransactionKind {
     }
 }
 
-impl rlp::Encodable for TransactionKind {
-    fn rlp_append(&self, s: &mut RlpStream) {
-        match self {
-            TransactionKind::Call(address) => {
-                s.encoder().encode_value(&address[..]);
-            }
-            TransactionKind::Create => s.encoder().encode_value(&[]),
+impl alloy_rlp::Decodable for TransactionKind {
+    fn decode(buf: &mut &[u8]) -> alloy_rlp::Result<Self> {
+        if !buf.is_empty() && buf[0] == alloy_rlp::EMPTY_STRING_CODE {
+            buf.advance(1);
+
+            Ok(Self::Create)
+        } else {
+            Address::decode(buf).map(Self::Call)
         }
     }
 }
 
-impl rlp::Decodable for TransactionKind {
-    fn decode(rlp: &Rlp<'_>) -> Result<Self, DecoderError> {
-        if rlp.is_empty() {
-            if rlp.is_data() {
-                Ok(TransactionKind::Create)
-            } else {
-                Err(DecoderError::RlpExpectedToBeData)
-            }
-        } else {
-            Ok(TransactionKind::Call({
-                let address = rlp.as_val::<U160>()?.to_be_bytes();
-                Address::from(address)
-            }))
+impl alloy_rlp::Encodable for TransactionKind {
+    fn length(&self) -> usize {
+        match self {
+            TransactionKind::Call(address) => address.length(),
+            TransactionKind::Create => 1,
+        }
+    }
+
+    fn encode(&self, out: &mut dyn BufMut) {
+        match self {
+            TransactionKind::Call(address) => address.encode(out),
+            TransactionKind::Create => out.put_u8(alloy_rlp::EMPTY_STRING_CODE),
         }
     }
 }

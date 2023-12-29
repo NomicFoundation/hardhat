@@ -1,6 +1,6 @@
 mod account;
 
-use edr_eth::{account::KECCAK_EMPTY, Address, B160, B256, U256};
+use edr_eth::{account::KECCAK_EMPTY, Address, B256, U256};
 use revm::{
     db::StateRef,
     primitives::{Account, AccountInfo, Bytecode, HashMap},
@@ -70,7 +70,7 @@ impl StateRef for TrieState {
             .ok_or(StateError::InvalidCodeHash(code_hash))
     }
 
-    fn storage(&self, address: B160, index: U256) -> Result<U256, Self::Error> {
+    fn storage(&self, address: Address, index: U256) -> Result<U256, Self::Error> {
         Ok(self
             .accounts
             .account_storage_slot(&address, &index)
@@ -79,7 +79,7 @@ impl StateRef for TrieState {
 }
 
 impl DatabaseCommit for TrieState {
-    fn commit(&mut self, mut changes: HashMap<B160, Account>) {
+    fn commit(&mut self, mut changes: HashMap<Address, Account>) {
         changes.iter_mut().for_each(|(address, account)| {
             if account.is_selfdestructed() {
                 self.remove_code(&account.info.code_hash);

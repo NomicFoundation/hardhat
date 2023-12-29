@@ -1,18 +1,21 @@
 use std::sync::OnceLock;
 
+use alloy_rlp::{BufMut, Encodable};
 use k256::SecretKey;
-use revm_primitives::{keccak256, ruint::aliases::U64, Address, Bytes, B256, U256};
+use revm_primitives::keccak256;
 
 use crate::{
     signature::{Signature, SignatureError},
     transaction::{
         kind::TransactionKind, request::fake_signature::make_fake_signature,
-        signed::EIP155SignedTransaction,
+        signed::Eip155SignedTransaction,
     },
+    Address, Bytes, B256, U256,
 };
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Eip155TransactionRequest {
+    // The order of these fields determines encoding order.
     pub nonce: u64,
     pub gas_price: U256,
     pub gas_limit: u64,
@@ -25,17 +28,17 @@ pub struct Eip155TransactionRequest {
 impl Eip155TransactionRequest {
     /// Computes the hash of the transaction.
     pub fn hash(&self) -> B256 {
-        keccak256(&rlp::encode(self))
+        keccak256(alloy_rlp::encode(self))
     }
 
     /// Signs the transaction with the provided secret key.
-    pub fn sign(self, secret_key: &SecretKey) -> Result<EIP155SignedTransaction, SignatureError> {
+    pub fn sign(self, secret_key: &SecretKey) -> Result<Eip155SignedTransaction, SignatureError> {
         let hash = self.hash();
 
         let mut signature = Signature::new(hash, secret_key)?;
         signature.v += self.v_value_adjustment();
 
-        Ok(EIP155SignedTransaction {
+        Ok(Eip155SignedTransaction {
             nonce: self.nonce,
             gas_price: self.gas_price,
             gas_limit: self.gas_limit,
@@ -48,11 +51,11 @@ impl Eip155TransactionRequest {
     }
 
     /// Creates a fake signature for an impersonated account.
-    pub fn fake_sign(self, address: &Address) -> EIP155SignedTransaction {
+    pub fn fake_sign(self, address: &Address) -> Eip155SignedTransaction {
         let mut signature = make_fake_signature::<0>(address);
         signature.v += self.v_value_adjustment();
 
-        EIP155SignedTransaction {
+        Eip155SignedTransaction {
             nonce: self.nonce,
             gas_price: self.gas_price,
             gas_limit: self.gas_limit,
@@ -64,6 +67,17 @@ impl Eip155TransactionRequest {
         }
     }
 
+    fn rlp_payload_length(&self) -> usize {
+        self.nonce.length()
+            + self.gas_price.length()
+            + self.gas_limit.length()
+            + self.kind.length()
+            + self.value.length()
+            + self.input.length()
+            + self.chain_id.length()
+            + 2
+    }
+
     fn v_value_adjustment(&self) -> u64 {
         // `CHAIN_ID * 2 + 35` comes from EIP-155 and we subtract the Bitcoin magic
         // number 27, because `Signature::new` adds that.
@@ -71,8 +85,8 @@ impl Eip155TransactionRequest {
     }
 }
 
-impl From<&EIP155SignedTransaction> for Eip155TransactionRequest {
-    fn from(tx: &EIP155SignedTransaction) -> Self {
+impl From<&Eip155SignedTransaction> for Eip155TransactionRequest {
+    fn from(tx: &Eip155SignedTransaction) -> Self {
         let chain_id = tx.chain_id();
         Self {
             nonce: tx.nonce,
@@ -86,26 +100,36 @@ impl From<&EIP155SignedTransaction> for Eip155TransactionRequest {
     }
 }
 
-impl rlp::Encodable for Eip155TransactionRequest {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        s.begin_list(9);
-        s.append(&self.nonce);
-        s.append(&self.gas_price);
-        s.append(&self.gas_limit);
-        s.append(&self.kind);
-        s.append(&self.value);
-        s.append(&self.input.as_ref());
-        s.append(&U64::from(self.chain_id));
-        s.append(&0u8);
-        s.append(&0u8);
+impl Encodable for Eip155TransactionRequest {
+    fn length(&self) -> usize {
+        let payload_length = self.rlp_payload_length();
+        payload_length + alloy_rlp::length_of_length(payload_length)
+    }
+
+    fn encode(&self, out: &mut dyn BufMut) {
+        alloy_rlp::Header {
+            list: true,
+            payload_length: self.rlp_payload_length(),
+        }
+        .encode(out);
+
+        self.nonce.encode(out);
+        self.gas_price.encode(out);
+        self.gas_limit.encode(out);
+        self.kind.encode(out);
+        self.value.encode(out);
+        self.input.encode(out);
+        self.chain_id.encode(out);
+        // Appending these two values requires a custom implementation of
+        // `Encodable`
+        0u8.encode(out);
+        0u8.encode(out);
     }
 }
 
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
-
-    use revm_primitives::Address;
 
     use super::*;
     use crate::transaction::request::fake_signature::tests::test_fake_sign_properties;
@@ -133,8 +157,8 @@ mod tests {
 
         let request = dummy_request();
 
-        let encoded = rlp::encode(&request);
-        assert_eq!(expected, encoded.to_vec());
+        let encoded = alloy_rlp::encode(&request);
+        assert_eq!(expected, encoded);
     }
 
     #[test]

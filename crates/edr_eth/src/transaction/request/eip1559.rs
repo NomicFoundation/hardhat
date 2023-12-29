@@ -1,7 +1,8 @@
 use std::sync::OnceLock;
 
+use alloy_primitives::keccak256;
+use alloy_rlp::{RlpDecodable, RlpEncodable};
 use k256::SecretKey;
-use revm_primitives::{keccak256, Address, Bytes, B256, U256};
 
 use crate::{
     access_list::AccessListItem,
@@ -11,14 +12,12 @@ use crate::{
         signed::Eip1559SignedTransaction,
     },
     utils::envelop_bytes,
+    Address, Bytes, B256, U256,
 };
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-#[cfg_attr(
-    feature = "fastrlp",
-    derive(open_fastrlp::RlpEncodable, open_fastrlp::RlpDecodable)
-)]
+#[derive(Clone, Debug, PartialEq, Eq, RlpDecodable, RlpEncodable)]
 pub struct Eip1559TransactionRequest {
+    // The order of these fields determines encoding order.
     pub chain_id: u64,
     pub nonce: u64,
     pub max_priority_fee_per_gas: U256,
@@ -33,9 +32,9 @@ pub struct Eip1559TransactionRequest {
 impl Eip1559TransactionRequest {
     /// Computes the hash of the transaction.
     pub fn hash(&self) -> B256 {
-        let encoded = rlp::encode(self);
+        let encoded = alloy_rlp::encode(self);
 
-        keccak256(&envelop_bytes(2, &encoded))
+        keccak256(envelop_bytes(2, &encoded))
     }
 
     pub fn sign(self, secret_key: &SecretKey) -> Result<Eip1559SignedTransaction, SignatureError> {
@@ -97,26 +96,9 @@ impl From<&Eip1559SignedTransaction> for Eip1559TransactionRequest {
     }
 }
 
-impl rlp::Encodable for Eip1559TransactionRequest {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
-        s.begin_list(9);
-        s.append(&self.chain_id);
-        s.append(&self.nonce);
-        s.append(&self.max_priority_fee_per_gas);
-        s.append(&self.max_fee_per_gas);
-        s.append(&self.gas_limit);
-        s.append(&self.kind);
-        s.append(&self.value);
-        s.append(&self.input.as_ref());
-        s.append_list(&self.access_list);
-    }
-}
-
 #[cfg(test)]
 pub(crate) mod tests {
     use std::str::FromStr;
-
-    use revm_primitives::Address;
 
     use super::*;
     use crate::transaction::request::fake_signature::tests::test_fake_sign_properties;
@@ -134,8 +116,8 @@ pub(crate) mod tests {
             value: U256::from(4),
             input: Bytes::from(input),
             access_list: vec![AccessListItem {
-                address: Address::zero(),
-                storage_keys: vec![B256::zero(), B256::from(U256::from(1))],
+                address: Address::ZERO,
+                storage_keys: vec![B256::ZERO, B256::from(U256::from(1))],
             }],
         }
     }
@@ -151,8 +133,8 @@ pub(crate) mod tests {
 
         let request = dummy_request();
 
-        let encoded = rlp::encode(&request);
-        assert_eq!(expected, encoded.to_vec());
+        let encoded = alloy_rlp::encode(&request);
+        assert_eq!(expected, encoded);
     }
 
     #[test]
@@ -172,8 +154,8 @@ pub(crate) mod tests {
             access_list: vec![],
         };
 
-        let encoded = rlp::encode(&empty);
-        assert_eq!(expected, encoded.to_vec());
+        let encoded = alloy_rlp::encode(&empty);
+        assert_eq!(expected, encoded);
     }
 
     #[test]

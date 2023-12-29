@@ -198,10 +198,6 @@ export class EdrEthContext implements EthContextAdapter {
       config.allowUnlimitedContractSize === true
         ? UNLIMITED_CONTRACT_SIZE_VALUE
         : undefined;
-    const limitInitcodeSize =
-      config.allowUnlimitedContractSize === true
-        ? UNLIMITED_CONTRACT_SIZE_VALUE
-        : undefined;
 
     const vm = new EdrAdapter(
       blockchain.asInner(),
@@ -209,7 +205,6 @@ export class EdrEthContext implements EthContextAdapter {
       state,
       common,
       limitContractCodeSize,
-      limitInitcodeSize,
       config.enableTransientStorage
     );
 

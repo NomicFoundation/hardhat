@@ -1,6 +1,7 @@
+use alloy_primitives::Bytes;
 use revm_primitives::Address;
 
-use crate::{access_list::AccessListItem, serde::ZeroXPrefixedBytes, U256};
+use crate::{access_list::AccessListItem, U256};
 
 /// For specifying input to methods requiring a transaction object, like
 /// `eth_call` and `eth_estimateGas`
@@ -24,7 +25,7 @@ pub struct CallRequest {
     /// transaction value
     pub value: Option<U256>,
     /// transaction data
-    pub data: Option<ZeroXPrefixedBytes>,
+    pub data: Option<Bytes>,
     /// warm storage access pre-payment
     pub access_list: Option<Vec<AccessListItem>>,
 }
