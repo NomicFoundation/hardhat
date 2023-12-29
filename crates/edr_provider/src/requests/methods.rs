@@ -306,7 +306,11 @@ pub enum MethodInvocation {
         Option<u64>,
     ),
     /// hardhat_reset
-    #[serde(rename = "hardhat_reset", with = "edr_eth::serde::sequence")]
+    #[serde(
+        rename = "hardhat_reset",
+        serialize_with = "optional_single_to_sequence",
+        deserialize_with = "sequence_to_optional_single"
+    )]
     Reset(Option<ResetProviderConfig>),
     /// hardhat_setBalance
     #[serde(rename = "hardhat_setBalance")]
