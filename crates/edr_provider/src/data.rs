@@ -990,7 +990,16 @@ impl ProviderData {
         let old_value = self.state.set_account_storage_slot(address, index, value)?;
 
         let slot = StorageSlot::new_changed(old_value, value);
-        let account_info = self.state.basic(address)?;
+        let account_info = self.state.basic(address).and_then(|mut account_info| {
+            // Retrieve the code if it's not empty. This is needed for the irregular state.
+            if let Some(account_info) = &mut account_info {
+                if account_info.code_hash != KECCAK_EMPTY {
+                    account_info.code = Some(self.state.code_by_hash(account_info.code_hash)?);
+                }
+            }
+
+            Ok(account_info)
+        })?;
 
         let block_number = self.blockchain.last_block_number();
         let state_root = self.state.state_root()?;
