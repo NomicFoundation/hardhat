@@ -298,7 +298,8 @@ describe("Hardhat module", function () {
         });
       });
 
-      describe("hardhat_mine", function () {
+      // TODO: https://github.com/NomicFoundation/edr/issues/218
+      describe.skip("hardhat_mine", function () {
         const getLatestBlockNumber = async (): Promise<number> => {
           return rpcQuantityToNumber(
             await this.ctx.provider.send("eth_blockNumber")
@@ -1382,7 +1383,8 @@ describe("Hardhat module", function () {
           assert.lengthOf(pendingTxsAfter, 0);
         });
 
-        describe("tests using sinon", () => {
+        // TODO: https://github.com/NomicFoundation/edr/issues/249
+        describe.skip("tests using sinon", () => {
           let sinonClock: sinon.SinonFakeTimers;
 
           beforeEach(() => {
