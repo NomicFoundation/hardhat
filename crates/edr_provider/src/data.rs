@@ -81,7 +81,6 @@ struct BlockContext {
 pub struct ProviderData {
     runtime_handle: runtime::Handle,
     initial_config: ProviderConfig,
-
     blockchain: Box<dyn SyncBlockchain<BlockchainError, StateError>>,
     state: Box<dyn SyncState<StateError>>,
     pub irregular_state: IrregularState,
@@ -937,6 +936,22 @@ impl ProviderData {
     }
 
     pub fn set_nonce(&mut self, address: Address, nonce: u64) -> Result<(), ProviderError> {
+        if mempool::has_transactions(&self.mem_pool) {
+            return Err(ProviderError::SetAccountNonceWithPendingTransactions);
+        }
+
+        let previous_nonce = self
+            .state
+            .basic(address)?
+            .map_or(0, |account| account.nonce);
+
+        if nonce < previous_nonce {
+            return Err(ProviderError::SetAccountNonceLowerThanCurrent {
+                previous: previous_nonce,
+                proposed: nonce,
+            });
+        }
+
         let account_info = self.state.modify_account(
             address,
             AccountModifierFn::new(Box::new(move |_, account_nonce, _| *account_nonce = nonce)),
@@ -1914,54 +1929,6 @@ mod tests {
             .mem_pool
             .transaction_by_hash(&transaction_hash)
             .is_none());
-
-        Ok(())
-    }
-
-    #[test]
-    fn set_nonce_updates_mem_pool() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new()?;
-
-        // Artificially raise the nonce, to ensure the transaction is not rejected
-        fixture
-            .provider_data
-            .set_nonce(fixture.impersonated_account, 1)?;
-
-        let transaction = {
-            let mut request = fixture.dummy_transaction_request(Some(1));
-            request.sender = fixture.impersonated_account;
-
-            fixture.provider_data.sign_transaction_request(request)?
-        };
-
-        let transaction_hash = fixture.provider_data.add_pending_transaction(transaction)?;
-
-        assert!(fixture
-            .provider_data
-            .mem_pool
-            .transaction_by_hash(&transaction_hash)
-            .is_some());
-
-        // The transaction is a pending transaction, as the nonce is the same as the
-        // account
-        assert!(fixture.provider_data.mem_pool.has_pending_transactions());
-        assert!(!fixture.provider_data.mem_pool.has_future_transactions());
-
-        // Lower the nonce, to ensure the transaction is not rejected
-        fixture
-            .provider_data
-            .set_nonce(fixture.impersonated_account, 0)?;
-
-        assert!(fixture
-            .provider_data
-            .mem_pool
-            .transaction_by_hash(&transaction_hash)
-            .is_some());
-
-        // The pending transaction now is a future transaction, as there is not enough
-        // balance
-        assert!(!fixture.provider_data.mem_pool.has_pending_transactions());
-        assert!(fixture.provider_data.mem_pool.has_future_transactions());
 
         Ok(())
     }

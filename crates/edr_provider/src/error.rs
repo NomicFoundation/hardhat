@@ -96,6 +96,11 @@ pub enum ProviderError {
     /// Serialization error
     #[error("Failed to serialize response: {0}")]
     Serialization(serde_json::Error),
+    #[error("New nonce ({proposed}) must not be smaller than the existing nonce ({previous})")]
+    SetAccountNonceLowerThanCurrent { previous: u64, proposed: u64 },
+    /// Cannot set account nonce when the mem pool is not empty
+    #[error("Cannot set account nonce when the transaction pool is not empty")]
+    SetAccountNonceWithPendingTransactions,
     /// An error occurred while recovering a signature.
     #[error(transparent)]
     Signature(#[from] edr_eth::signature::SignatureError),
@@ -157,6 +162,8 @@ impl From<ProviderError> for jsonrpc::Error {
             ProviderError::RpcVersion(_) => (-32000, None),
             ProviderError::RunTransaction(_) => (-32000, None),
             ProviderError::Serialization(_) => (-32000, None),
+            ProviderError::SetAccountNonceLowerThanCurrent { .. } => (-32000, None),
+            ProviderError::SetAccountNonceWithPendingTransactions => (-32603, None),
             ProviderError::SetMinGasPriceUnsupported => (-32000, None),
             ProviderError::Signature(_) => (-32000, None),
             ProviderError::State(_) => (-32000, None),
