@@ -3,7 +3,7 @@ use std::{num::TryFromIntError, time::SystemTimeError};
 use alloy_sol_types::{ContractError, SolInterface};
 use edr_eth::{
     remote::{filter::SubscriptionType, jsonrpc, BlockSpec},
-    rlp, Address, Bytes, SpecId, B256, U256,
+    Address, Bytes, SpecId, B256, U256,
 };
 use edr_evm::{
     blockchain::BlockchainError,
@@ -43,6 +43,8 @@ pub enum ProviderError {
     Blockchain(#[from] BlockchainError),
     #[error(transparent)]
     Creation(#[from] CreationError),
+    #[error("{0}")]
+    InvalidArgument(String),
     /// Block number or hash doesn't exist in blockchain
     #[error(
         "Received invalid block tag {block_spec}. Latest block number is {latest_block_number}"
@@ -71,6 +73,8 @@ pub enum ProviderError {
     /// Invalid transaction request
     #[error("{0}")]
     InvalidTransactionInput(String),
+    #[error("Invalid transaction type {0}.")]
+    InvalidTransactionType(u8),
     /// An error occurred while updating the mem pool.
     #[error(transparent)]
     MemPoolUpdate(StateError),
@@ -80,9 +84,6 @@ pub enum ProviderError {
     /// An error occurred while adding a pending transaction to the mem pool.
     #[error(transparent)]
     MinerTransactionError(#[from] MinerTransactionError<StateError>),
-    /// Rlp decode error
-    #[error(transparent)]
-    RlpError(#[from] rlp::Error),
     /// Unsupported RPC version
     #[error("unsupported JSON-RPC version: {0:?}")]
     RpcVersion(jsonrpc::Version),
@@ -144,16 +145,17 @@ impl From<ProviderError> for jsonrpc::Error {
             ProviderError::AutoMinePriorityFeeTooLow { .. } => (-32000, None),
             ProviderError::Blockchain(_) => (-32000, None),
             ProviderError::Creation(_) => (-32000, None),
+            ProviderError::InvalidArgument(_) => (-32602, None),
             ProviderError::InvalidBlockNumberOrHash { .. } => (-32000, None),
-            ProviderError::InvalidBlockTag { .. } => (-32000, None),
-            ProviderError::InvalidChainId { .. } => (-32000, None),
-            ProviderError::InvalidFilterSubscriptionType { .. } => (-32000, None),
-            ProviderError::InvalidTransactionIndex(_) => (-32000, None),
-            ProviderError::InvalidTransactionInput(_) => (-32000, None),
+            ProviderError::InvalidBlockTag { .. } => (-32602, None),
+            ProviderError::InvalidChainId { .. } => (-32602, None),
+            ProviderError::InvalidFilterSubscriptionType { .. } => (-32602, None),
+            ProviderError::InvalidTransactionIndex(_) => (-32602, None),
+            ProviderError::InvalidTransactionInput(_) => (-32602, None),
+            ProviderError::InvalidTransactionType(_) => (-32602, None),
             ProviderError::MemPoolUpdate(_) => (-32000, None),
             ProviderError::MineBlock(_) => (-32000, None),
-            ProviderError::MinerTransactionError(_) => (-32000, None),
-            ProviderError::RlpError(_) => (-32000, None),
+            ProviderError::MinerTransactionError(_) => (-32602, None),
             ProviderError::RpcVersion(_) => (-32000, None),
             ProviderError::RunTransaction(_) => (-32000, None),
             ProviderError::Serialization(_) => (-32000, None),

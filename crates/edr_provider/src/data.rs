@@ -16,7 +16,6 @@ use edr_eth::{
         filter::{FilteredEvents, LogOutput, SubscriptionType},
         BlockSpec, BlockTag, Eip1898BlockSpec, RpcClient, RpcClientError,
     },
-    rlp::Decodable,
     signature::Signature,
     transaction::{SignedTransaction, TransactionRequestAndSender},
     Address, Bytes, SpecId, B256, U256,
@@ -738,12 +737,10 @@ impl ProviderData {
         Ok(())
     }
 
-    pub fn send_transaction(
+    pub fn send_raw_transaction(
         &mut self,
-        transaction_request: TransactionRequestAndSender,
+        signed_transaction: PendingTransaction,
     ) -> Result<B256, ProviderError> {
-        let signed_transaction = self.sign_transaction_request(transaction_request)?;
-
         let snapshot_id = if self.is_auto_mining {
             self.validate_auto_mine_transaction(&signed_transaction)?;
 
@@ -811,16 +808,12 @@ impl ProviderData {
         Ok(tx_hash)
     }
 
-    pub fn send_raw_transaction(
+    pub fn send_transaction(
         &mut self,
-        mut raw_transaction: &[u8],
+        transaction_request: TransactionRequestAndSender,
     ) -> Result<B256, ProviderError> {
-        let signed_transaction = SignedTransaction::decode(&mut raw_transaction)?;
-
-        let pending_transaction =
-            PendingTransaction::new(self.blockchain.spec_id(), signed_transaction)?;
-
-        self.add_pending_transaction(pending_transaction)
+        let signed_transaction = self.sign_transaction_request(transaction_request)?;
+        self.send_raw_transaction(signed_transaction)
     }
 
     /// Sets whether the miner should mine automatically.

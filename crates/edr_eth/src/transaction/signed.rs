@@ -19,6 +19,8 @@ use crate::{
     Address, Bytes, B256, U256,
 };
 
+const INVALID_TX_TYPE_ERROR_MESSAGE: &str = "invalid tx type";
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum SignedTransaction {
@@ -178,6 +180,11 @@ impl SignedTransaction {
     }
 
     /// Returns whether this is an EIP-1559 transaction
+    pub fn is_eip155(&self) -> bool {
+        matches!(self, SignedTransaction::PostEip155Legacy(_))
+    }
+
+    /// Returns whether this is an EIP-1559 transaction
     pub fn is_eip1559(&self) -> bool {
         matches!(self, SignedTransaction::Eip1559(_))
     }
@@ -251,6 +258,10 @@ impl SignedTransaction {
             SignedTransaction::Eip4844(_) => 3,
         }
     }
+
+    pub fn is_invalid_transaction_type_error(message: &str) -> bool {
+        message == INVALID_TX_TYPE_ERROR_MESSAGE
+    }
 }
 
 impl Decodable for SignedTransaction {
@@ -291,7 +302,7 @@ impl Decodable for SignedTransaction {
                     Ok(SignedTransaction::PreEip155Legacy(tx))
                 }
             }
-            _ => Err(alloy_rlp::Error::Custom("invalid tx type")),
+            _ => Err(alloy_rlp::Error::Custom(INVALID_TX_TYPE_ERROR_MESSAGE)),
         }
     }
 }
