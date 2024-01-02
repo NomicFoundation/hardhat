@@ -295,8 +295,8 @@ impl Provider {
             MethodInvocation::AddCompilationResult(_, _, _) => Err(ProviderError::Unimplemented(
                 "AddCompilationResult".to_string(),
             )),
-            MethodInvocation::DropTransaction(_) => {
-                Err(ProviderError::Unimplemented("DropTransaction".to_string()))
+            MethodInvocation::DropTransaction(transaction_hash) => {
+                hardhat::handle_drop_transaction(data, transaction_hash).and_then(to_json)
             }
             MethodInvocation::GetAutomine(()) => {
                 hardhat::handle_get_automine_request(data).and_then(to_json)

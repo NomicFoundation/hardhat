@@ -35,7 +35,8 @@ use edr_evm::{
     },
     Account, AccountInfo, BlobExcessGasAndPrice, Block, BlockEnv, Bytecode, CfgEnv,
     ExecutionResult, HashMap, HashSet, MemPool, MineBlockResult, MineBlockResultAndState,
-    MineOrdering, PendingTransaction, RandomHashGenerator, StorageSlot, SyncBlock, KECCAK_EMPTY,
+    MineOrdering, OrderedTransaction, PendingTransaction, RandomHashGenerator, StorageSlot,
+    SyncBlock, KECCAK_EMPTY,
 };
 use indexmap::IndexMap;
 use inspector::EvmInspector;
@@ -618,6 +619,15 @@ impl ProviderData {
 
     pub fn remove_subscription(&mut self, filter_id: &U256) -> bool {
         self.remove_filter_impl::</* IS_SUBSCRIPTION */ true>(filter_id)
+    }
+
+    /// Removes the transaction with the provided hash from the mem pool, if it
+    /// exists.
+    pub fn remove_pending_transaction(
+        &mut self,
+        transaction_hash: &B256,
+    ) -> Option<OrderedTransaction> {
+        self.mem_pool.remove_transaction(transaction_hash)
     }
 
     pub fn revert_to_snapshot(&mut self, snapshot_id: u64) -> bool {

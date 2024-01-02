@@ -56,8 +56,11 @@ pub enum ProviderError {
     #[error("The '{block_spec}' block tag is not allowed in pre-merge hardforks. You are using the '{spec:?}' hardfork.")]
     InvalidBlockTag { block_spec: BlockSpec, spec: SpecId },
     /// Invalid chain ID
-    #[error("Invalid chainId ${actual} provided, expected ${expected} instead.")]
+    #[error("Invalid chainId {actual} provided, expected ${expected} instead.")]
     InvalidChainId { expected: u64, actual: u64 },
+    /// The transaction with the provided hash was already mined.
+    #[error("Transaction {0} cannot be dropped because it's already mined")]
+    InvalidDropTransactionHash(B256),
     /// Invalid filter subscription type
     #[error("Subscription {filter_id} is not a {expected:?} subscription, but a {actual:?} subscription")]
     InvalidFilterSubscriptionType {
@@ -152,6 +155,7 @@ impl From<ProviderError> for jsonrpc::Error {
             ProviderError::InvalidBlockNumberOrHash { .. } => (-32000, None),
             ProviderError::InvalidBlockTag { .. } => (-32000, None),
             ProviderError::InvalidChainId { .. } => (-32000, None),
+            ProviderError::InvalidDropTransactionHash(_) => (-32602, None),
             ProviderError::InvalidFilterSubscriptionType { .. } => (-32000, None),
             ProviderError::InvalidTransactionIndex(_) => (-32000, None),
             ProviderError::InvalidTransactionInput(_) => (-32000, None),
