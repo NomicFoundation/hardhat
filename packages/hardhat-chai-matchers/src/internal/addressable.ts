@@ -26,7 +26,7 @@ function override(
 // so we are looking for a sync way of getting the address. If an address was recovered, it is returned as a string,
 // otherwise undefined is returned.
 function tryGetAddressSync(value: any): string | undefined {
-  value = Typed.dereference(value, 'address');
+  value = Typed.dereference(value, "address");
   if (isAddress(value)) {
     return value;
   } else if (isAddressable(value)) {

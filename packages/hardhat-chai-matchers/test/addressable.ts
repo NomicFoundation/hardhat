@@ -14,9 +14,9 @@ describe("Addressable matcher", () => {
   const otherSigner = ethers.Wallet.createRandom();
   const otherAddress = otherSigner.address;
   const otherContract = new ethers.Contract(otherAddress, []);
-  const otherTypedAddress = ethers.Typed.address(address);
-  const otherTypedSigner = ethers.Typed.address(signer);
-  const otherTypedContract = ethers.Typed.address(contract);
+  const otherTypedAddress = ethers.Typed.address(otherAddress);
+  const otherTypedSigner = ethers.Typed.address(otherSigner);
+  const otherTypedContract = ethers.Typed.address(otherContract);
 
   const elements = [
     { name: "address", object: address, class: address },
@@ -27,10 +27,22 @@ describe("Addressable matcher", () => {
     { name: "typed contract", object: typedContract, class: address },
     { name: "other address", object: otherAddress, class: otherAddress },
     { name: "other signer", object: otherSigner, class: otherAddress },
-    { name: "other contract", object: otherContract, class: otherAddress },
-    { name: "other typed address", object: otherTypedAddress, class: otherAddress },
-    { name: "other typed signer", object: otherTypedSigner, class: otherAddress },
-    { name: "other typed contract", object: otherTypedContract, class: otherAddress },
+    { name: " other contract", object: otherContract, class: otherAddress },
+    {
+      name: "other typed address",
+      object: otherTypedAddress,
+      class: otherAddress,
+    },
+    {
+      name: "other typed signer",
+      object: otherTypedSigner,
+      class: otherAddress,
+    },
+    {
+      name: "other typed contract",
+      object: otherTypedContract,
+      class: otherAddress,
+    },
   ];
 
   for (const el1 of elements)
