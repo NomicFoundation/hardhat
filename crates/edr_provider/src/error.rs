@@ -104,6 +104,10 @@ pub enum ProviderError {
     /// Cannot set account nonce when the mem pool is not empty
     #[error("Cannot set account nonce when the transaction pool is not empty")]
     SetAccountNonceWithPendingTransactions,
+    /// The `hardhat_setNextBlockBaseFeePerGas` method is not supported due to
+    /// an older hardfork.
+    #[error("hardhat_setNextBlockBaseFeePerGas is disabled because EIP-1559 is not active")]
+    SetNextBlockBaseFeePerGasUnsupported { spec_id: SpecId },
     /// An error occurred while recovering a signature.
     #[error(transparent)]
     Signature(#[from] edr_eth::signature::SignatureError),
@@ -169,6 +173,7 @@ impl From<ProviderError> for jsonrpc::Error {
             ProviderError::SetAccountNonceLowerThanCurrent { .. } => (-32000, None),
             ProviderError::SetAccountNonceWithPendingTransactions => (-32603, None),
             ProviderError::SetMinGasPriceUnsupported => (-32000, None),
+            ProviderError::SetNextBlockBaseFeePerGasUnsupported { .. } => (-32000, None),
             ProviderError::Signature(_) => (-32000, None),
             ProviderError::State(_) => (-32000, None),
             ProviderError::SystemTime(_) => (-32000, None),

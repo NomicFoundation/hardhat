@@ -998,8 +998,18 @@ impl ProviderData {
     }
 
     /// Sets the next block's base fee per gas.
-    pub fn set_next_block_base_fee_per_gas(&mut self, base_fee_per_gas: U256) {
+    pub fn set_next_block_base_fee_per_gas(
+        &mut self,
+        base_fee_per_gas: U256,
+    ) -> Result<(), ProviderError> {
+        let spec_id = self.spec_id();
+        if spec_id < SpecId::LONDON {
+            return Err(ProviderError::SetNextBlockBaseFeePerGasUnsupported { spec_id });
+        }
+
         self.next_block_base_fee_per_gas = Some(base_fee_per_gas);
+
+        Ok(())
     }
 
     /// Set the next block timestamp.
