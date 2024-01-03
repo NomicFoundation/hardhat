@@ -133,7 +133,7 @@ pub enum MethodInvocation {
     #[serde(rename = "eth_getStorageAt")]
     GetStorageAt(
         #[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address,
-        #[serde(deserialize_with = "crate::requests::serde::deserialize_storage_index")] U256,
+        #[serde(deserialize_with = "crate::requests::serde::deserialize_storage_slot")] U256,
         #[serde(
             skip_serializing_if = "Option::is_none",
             default = "optional_block_spec::latest"
@@ -367,7 +367,7 @@ pub enum MethodInvocation {
     #[serde(rename = "hardhat_setStorageAt")]
     SetStorageAt(
         #[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address,
-        U256,
+        #[serde(deserialize_with = "crate::requests::serde::deserialize_storage_key")] U256,
         U256,
     ),
     /// hardhat_stopImpersonatingAccount

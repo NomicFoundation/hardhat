@@ -18,6 +18,7 @@ import {
   assertInternalError,
   assertInvalidArgumentsError,
   assertInvalidInputError,
+  assertProviderError,
 } from "../../helpers/assertions";
 import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
 import { setCWD } from "../../helpers/cwd";
@@ -37,6 +38,10 @@ import {
 import { HardhatMetadata } from "../../../../../src/internal/core/jsonrpc/types/output/metadata";
 import { useFixtureProject } from "../../../../helpers/project";
 import { useEnvironment } from "../../../../helpers/environment";
+import {
+  InvalidArgumentsError,
+  InvalidInputError,
+} from "../../../../../src/internal/core/providers/errors";
 
 describe("Hardhat module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -2176,7 +2181,7 @@ describe("Hardhat module", function () {
 
         it("should reject a storage key that is greater than 32 bytes", async function () {
           const MAX_WORD_VALUE = 2n ** 256n;
-          await assertInvalidInputError(
+          await assertProviderError(
             this.provider,
             "hardhat_setStorageAt",
             [
@@ -2184,7 +2189,13 @@ describe("Hardhat module", function () {
               numberToRpcQuantity(MAX_WORD_VALUE + 1n),
               "0xff",
             ],
-            "Storage key must not be greater than or equal to 2^256. Received 115792089237316195423570985008687907853269984665640564039457584007913129639937."
+            // TODO: https://github.com/NomicFoundation/edr/issues/104
+            `Storage key must not be greater than or equal to 2^256. Received ${
+              isEdr
+                ? "0x10000000000000000000000000000000000000000000000000000000000000001"
+                : "115792089237316195423570985008687907853269984665640564039457584007913129639937"
+            }.`,
+            isEdr ? InvalidArgumentsError.CODE : InvalidInputError.CODE
           );
         });
 

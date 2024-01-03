@@ -129,8 +129,44 @@ where
     )
 }
 
+/// Helper function for deserializing the JSON-RPC quantity type, specialized
+/// for a storage key.
+pub(crate) fn deserialize_storage_key<'de, DeserializerT>(
+    deserializer: DeserializerT,
+) -> Result<U256, DeserializerT::Error>
+where
+    DeserializerT: Deserializer<'de>,
+{
+    let value = String::deserialize(deserializer).map_err(|error| {
+        if let Some(value) = extract_value_from_serde_json_error(error.to_string().as_str()) {
+            serde::de::Error::custom(format!(
+                "This method only supports strings but input was: {value}"
+            ))
+        } else {
+            serde::de::Error::custom(format!(
+                "Failed to deserialize quantity argument into string with error: '{error}'"
+            ))
+        }
+    })?;
+
+    let error_message =
+        || serde::de::Error::custom(format!("invalid value \"{value}\" supplied to : QUANTITY"));
+
+    if !value.starts_with("0x") {
+        return Err(error_message());
+    }
+
+    if value.len() > 66 {
+        return Err(serde::de::Error::custom(format!(
+            "Storage key must not be greater than or equal to 2^256. Received {value}."
+        )));
+    }
+
+    U256::from_str(&value).map_err(|_error| error_message())
+}
+
 /// Helper function for deserializing the JSON-RPC storage slot type.
-pub(crate) fn deserialize_storage_index<'de, D>(deserializer: D) -> Result<U256, D::Error>
+pub(crate) fn deserialize_storage_slot<'de, D>(deserializer: D) -> Result<U256, D::Error>
 where
     D: Deserializer<'de>,
 {
