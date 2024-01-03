@@ -1033,8 +1033,15 @@ impl ProviderData {
     }
 
     /// Sets the next block's prevrandao.
-    pub fn set_next_prev_randao(&mut self, prev_randao: B256) {
+    pub fn set_next_prev_randao(&mut self, prev_randao: B256) -> Result<(), ProviderError> {
+        let spec_id = self.spec_id();
+        if spec_id < SpecId::MERGE {
+            return Err(ProviderError::SetNextPrevRandaoUnsupported { spec_id });
+        }
+
         self.prev_randao_generator.set_next(prev_randao);
+
+        Ok(())
     }
 
     pub fn set_nonce(&mut self, address: Address, nonce: u64) -> Result<(), ProviderError> {

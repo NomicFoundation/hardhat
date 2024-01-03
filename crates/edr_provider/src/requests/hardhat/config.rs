@@ -1,4 +1,4 @@
-use edr_eth::{Address, SpecId, B256, U256};
+use edr_eth::{Address, B256, U256};
 
 use crate::{
     data::ProviderData,
@@ -52,15 +52,7 @@ pub fn handle_set_prev_randao_request(
     data: &mut ProviderData,
     prev_randao: B256,
 ) -> Result<bool, ProviderError> {
-    let spec_id = data.spec_id();
-    if spec_id < SpecId::MERGE {
-        return Err(ProviderError::UnmetHardfork {
-            actual: spec_id,
-            minimum: SpecId::MERGE,
-        });
-    }
-
-    data.set_next_prev_randao(prev_randao);
+    data.set_next_prev_randao(prev_randao)?;
 
     Ok(true)
 }

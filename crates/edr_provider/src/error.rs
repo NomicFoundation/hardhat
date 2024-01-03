@@ -108,6 +108,10 @@ pub enum ProviderError {
     /// an older hardfork.
     #[error("hardhat_setNextBlockBaseFeePerGas is disabled because EIP-1559 is not active")]
     SetNextBlockBaseFeePerGasUnsupported { spec_id: SpecId },
+    /// The `hardhat_setPrevRandao` method is not supported due to an older
+    /// hardfork.
+    #[error("hardhat_setPrevRandao is only available in post-merge hardforks, the current hardfork is {spec_id:?}")]
+    SetNextPrevRandaoUnsupported { spec_id: SpecId },
     /// An error occurred while recovering a signature.
     #[error(transparent)]
     Signature(#[from] edr_eth::signature::SignatureError),
@@ -174,6 +178,7 @@ impl From<ProviderError> for jsonrpc::Error {
             ProviderError::SetAccountNonceWithPendingTransactions => (-32603, None),
             ProviderError::SetMinGasPriceUnsupported => (-32000, None),
             ProviderError::SetNextBlockBaseFeePerGasUnsupported { .. } => (-32000, None),
+            ProviderError::SetNextPrevRandaoUnsupported { .. } => (-32000, None),
             ProviderError::Signature(_) => (-32000, None),
             ProviderError::State(_) => (-32000, None),
             ProviderError::SystemTime(_) => (-32000, None),
