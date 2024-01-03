@@ -230,11 +230,16 @@ describe("Eth module", function () {
               keepAliveMaxTimeout: 10,
             });
 
-            // EDR-TODO: this should be adapted or removed
+            // TODO: Find out a better way to obtain the common here
+            const provider: any = this.hardhatNetworkProvider;
+
+            if ("_init" in provider) {
+              // eslint-disable-next-line dot-notation,@typescript-eslint/dot-notation
+              await provider["_init"]();
+            }
+
             // eslint-disable-next-line dot-notation,@typescript-eslint/dot-notation
-            await (this.hardhatNetworkProvider as any)["_init"]();
-            // eslint-disable-next-line dot-notation,@typescript-eslint/dot-notation
-            common = (this.hardhatNetworkProvider as any)["_common"]!;
+            common = provider["_common"];
           });
 
           const pk = Buffer.from(

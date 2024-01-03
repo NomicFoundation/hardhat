@@ -4,6 +4,7 @@ use edr_eth::{
     receipt::BlockReceipt,
     remote,
     remote::PreEip1898BlockSpec,
+    rlp::Decodable,
     transaction::{
         Eip1559TransactionRequest, Eip155TransactionRequest, Eip2930TransactionRequest,
         EthTransactionRequest, SignedTransaction, TransactionKind, TransactionRequest,
@@ -11,7 +12,7 @@ use edr_eth::{
     },
     Bytes, SpecId, B256, U256,
 };
-use edr_evm::{blockchain::BlockchainError, SyncBlock};
+use edr_evm::{blockchain::BlockchainError, PendingTransaction, SyncBlock};
 
 use crate::{
     data::{BlockDataForTransaction, ProviderData, TransactionAndBlock},
@@ -236,7 +237,51 @@ pub fn handle_send_raw_transaction_request(
     data: &mut ProviderData,
     raw_transaction: Bytes,
 ) -> Result<B256, ProviderError> {
-    data.send_raw_transaction(raw_transaction.as_ref())
+    let mut raw_transaction: &[u8] = raw_transaction.as_ref();
+    let signed_transaction =
+        SignedTransaction::decode(&mut raw_transaction).map_err(|err| match err {
+            edr_eth::rlp::Error::Custom(message) if SignedTransaction::is_invalid_transaction_type_error(message) => {
+                let type_id = *raw_transaction.first().expect("We already validated that the transaction is not empty if it's an invalid transaction type error.");
+                ProviderError::InvalidTransactionType(type_id)
+            }
+            err => ProviderError::InvalidArgument(err.to_string()),
+        })?;
+
+    // Validate signature
+    let _ = signed_transaction
+        .recover()
+        .map_err(|_err| ProviderError::InvalidArgument("Invalid Signature".into()))?;
+
+    if let Some(tx_chain_id) = signed_transaction.chain_id() {
+        let expected = data.chain_id();
+        if tx_chain_id != expected {
+            let message = if signed_transaction.is_eip155() {
+                "Trying to send an incompatible EIP-155 transaction, signed for another chain."
+                    .to_string()
+            } else {
+                format!("Trying to send a raw transaction with an invalid chainId. The expected chainId is {expected}")
+            };
+            return Err(ProviderError::InvalidArgument(message));
+        }
+    }
+
+    validate_transaction_spec(data.spec_id(), (&signed_transaction).into()).map_err(
+        |err| match err {
+            ProviderError::UnmetHardfork { minimum, .. } => {
+                ProviderError::InvalidArgument(format!(
+                    "\
+Trying to send an EIP-1559 transaction but they are not supported by the current hard fork.\
+\
+You can use them by running Hardhat Network with 'hardfork' {minimum:?} or later."
+                ))
+            }
+            err => err,
+        },
+    )?;
+
+    let pending_transaction = PendingTransaction::new(data.spec_id(), signed_transaction)?;
+
+    data.send_raw_transaction(pending_transaction)
 }
 
 fn resolve_transaction_request(
