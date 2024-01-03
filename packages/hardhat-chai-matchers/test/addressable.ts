@@ -27,7 +27,7 @@ describe("Addressable matcher", () => {
     { name: "typed contract", object: typedContract, class: address },
     { name: "other address", object: otherAddress, class: otherAddress },
     { name: "other signer", object: otherSigner, class: otherAddress },
-    { name: " other contract", object: otherContract, class: otherAddress },
+    { name: "other contract", object: otherContract, class: otherAddress },
     {
       name: "other typed address",
       object: otherTypedAddress,
