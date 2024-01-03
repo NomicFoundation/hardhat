@@ -241,7 +241,8 @@ pub fn handle_send_raw_transaction_request(
     let signed_transaction =
         SignedTransaction::decode(&mut raw_transaction).map_err(|err| match err {
             edr_eth::rlp::Error::Custom(message) if SignedTransaction::is_invalid_transaction_type_error(message) => {
-                ProviderError::InvalidTransactionType(*raw_transaction.first().expect("We already validated that the transaction is not empty if it's an invalid transaction type error."))
+                let type_id = *raw_transaction.first().expect("We already validated that the transaction is not empty if it's an invalid transaction type error.");
+                ProviderError::InvalidTransactionType(type_id)
             }
             err => ProviderError::InvalidArgument(err.to_string()),
         })?;
