@@ -354,7 +354,11 @@ pub enum MethodInvocation {
     #[serde(rename = "hardhat_setNonce")]
     SetNonce(
         #[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address,
-        #[serde(with = "edr_eth::serde::u64")] u64,
+        #[serde(
+            deserialize_with = "crate::requests::serde::deserialize_nonce",
+            serialize_with = "edr_eth::serde::u64::serialize"
+        )]
+        u64,
     ),
     /// hardhat_setPrevRandao
     #[serde(rename = "hardhat_setPrevRandao", with = "edr_eth::serde::sequence")]
