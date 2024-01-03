@@ -76,7 +76,7 @@ pub enum MethodInvocation {
     /// eth_getBalance
     #[serde(rename = "eth_getBalance")]
     GetBalance(
-        Address,
+        #[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address,
         #[serde(
             skip_serializing_if = "Option::is_none",
             default = "optional_block_spec::latest"
@@ -113,7 +113,7 @@ pub enum MethodInvocation {
     /// eth_getCode
     #[serde(rename = "eth_getCode")]
     GetCode(
-        Address,
+        #[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address,
         #[serde(
             skip_serializing_if = "Option::is_none",
             default = "optional_block_spec::latest"
@@ -132,8 +132,8 @@ pub enum MethodInvocation {
     /// eth_getStorageAt
     #[serde(rename = "eth_getStorageAt")]
     GetStorageAt(
-        Address,
-        #[serde(deserialize_with = "crate::requests::eth::deserialize_storage_index")] U256,
+        #[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address,
+        #[serde(deserialize_with = "crate::requests::serde::deserialize_storage_index")] U256,
         #[serde(
             skip_serializing_if = "Option::is_none",
             default = "optional_block_spec::latest"
@@ -154,7 +154,7 @@ pub enum MethodInvocation {
     /// eth_getTransactionCount
     #[serde(rename = "eth_getTransactionCount")]
     GetTransactionCount(
-        Address,
+        #[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address,
         #[serde(
             skip_serializing_if = "Option::is_none",
             default = "optional_block_spec::latest"
@@ -205,10 +205,16 @@ pub enum MethodInvocation {
     SendTransaction(EthTransactionRequest),
     /// eth_sign
     #[serde(rename = "eth_sign", alias = "personal_sign")]
-    Sign(Bytes, Address),
+    Sign(
+        Bytes,
+        #[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address,
+    ),
     /// eth_signTypedData_v4
     #[serde(rename = "eth_signTypedData_v4")]
-    SignTypedDataV4(Address, eip712::Message),
+    SignTypedDataV4(
+        #[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address,
+        eip712::Message,
+    ),
     /// eth_subscribe
     #[serde(rename = "eth_subscribe", with = "edr_eth::serde::sequence")]
     Subscribe(Vec<SubscriptionType>),
@@ -284,7 +290,9 @@ pub enum MethodInvocation {
         rename = "hardhat_impersonateAccount",
         with = "edr_eth::serde::sequence"
     )]
-    ImpersonateAccount(Address),
+    ImpersonateAccount(
+        #[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address,
+    ),
     /// hardhat_intervalMine
     #[serde(rename = "hardhat_intervalMine", with = "edr_eth::serde::empty_params")]
     IntervalMine(()),
@@ -314,13 +322,19 @@ pub enum MethodInvocation {
     Reset(Option<ResetProviderConfig>),
     /// hardhat_setBalance
     #[serde(rename = "hardhat_setBalance")]
-    SetBalance(Address, U256),
+    SetBalance(
+        #[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address,
+        U256,
+    ),
     /// hardhat_setCode
     #[serde(rename = "hardhat_setCode")]
-    SetCode(Address, Bytes),
+    SetCode(
+        #[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address,
+        Bytes,
+    ),
     /// hardhat_setCoinbase
     #[serde(rename = "hardhat_setCoinbase", with = "edr_eth::serde::sequence")]
-    SetCoinbase(Address),
+    SetCoinbase(#[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address),
     /// hardhat_setLoggingEnabled
     #[serde(
         rename = "hardhat_setLoggingEnabled",
@@ -338,19 +352,28 @@ pub enum MethodInvocation {
     SetNextBlockBaseFeePerGas(U256),
     /// hardhat_setNonce
     #[serde(rename = "hardhat_setNonce")]
-    SetNonce(Address, #[serde(with = "edr_eth::serde::u64")] u64),
+    SetNonce(
+        #[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address,
+        #[serde(with = "edr_eth::serde::u64")] u64,
+    ),
     /// hardhat_setPrevRandao
     #[serde(rename = "hardhat_setPrevRandao", with = "edr_eth::serde::sequence")]
     SetPrevRandao(B256),
     /// hardhat_setStorageAt
     #[serde(rename = "hardhat_setStorageAt")]
-    SetStorageAt(Address, U256, U256),
+    SetStorageAt(
+        #[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address,
+        U256,
+        U256,
+    ),
     /// hardhat_stopImpersonatingAccount
     #[serde(
         rename = "hardhat_stopImpersonatingAccount",
         with = "edr_eth::serde::sequence"
     )]
-    StopImpersonatingAccount(Address),
+    StopImpersonatingAccount(
+        #[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address,
+    ),
 }
 
 /// an input that can be either a single usize or an array of two usize values

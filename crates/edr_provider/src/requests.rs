@@ -3,15 +3,16 @@ pub mod eth;
 /// Hardhat RPC request types
 pub mod hardhat;
 mod methods;
+mod serde;
 mod validation;
 
 use std::fmt;
 
-pub use edr_eth::remote::client::Request as RpcRequest;
-use serde::{
+use ::serde::{
     de::{self, MapAccess, SeqAccess, Visitor},
     Deserialize, Deserializer,
 };
+pub use edr_eth::remote::client::Request as RpcRequest;
 
 pub use crate::requests::methods::{MethodInvocation, OneUsizeOrTwo, U64OrUsize};
 
