@@ -324,7 +324,7 @@ pub enum MethodInvocation {
     #[serde(rename = "hardhat_setBalance")]
     SetBalance(
         #[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address,
-        U256,
+        #[serde(deserialize_with = "crate::requests::serde::deserialize_quantity")] U256,
     ),
     /// hardhat_setCode
     #[serde(rename = "hardhat_setCode")]
