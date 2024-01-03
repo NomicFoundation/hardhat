@@ -8,7 +8,7 @@ use edr_evm::{
 
 pub struct Snapshot {
     pub block_number: u64,
-    pub block_time_offset_seconds: u64,
+    pub block_time_offset_seconds: i64,
     pub coinbase: Address,
     pub irregular_state: IrregularState,
     pub mem_pool: MemPool,

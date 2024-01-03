@@ -64,7 +64,7 @@ pub enum CreationError {
     #[error(transparent)]
     ForkedBlockchainCreation(#[from] ForkedCreationError),
     /// Invalid initial date
-    #[error("The initial date configuration value {0:?} is in the future")]
+    #[error("The initial date configuration value {0:?} is before the UNIX epoch")]
     InvalidInitialDate(SystemTime),
     /// An error that occurred while constructing a local blockchain.
     #[error(transparent)]
@@ -89,7 +89,7 @@ pub struct ProviderData {
     beneficiary: Address,
     min_gas_price: U256,
     prev_randao_generator: RandomHashGenerator,
-    block_time_offset_seconds: u64,
+    block_time_offset_seconds: i64,
     fork_metadata: Option<ForkMetadata>,
     instance_id: B256,
     is_auto_mining: bool,
@@ -432,8 +432,8 @@ impl ProviderData {
         self.impersonated_accounts.insert(address);
     }
 
-    pub fn increase_block_time(&mut self, increment: u64) -> u64 {
-        self.block_time_offset_seconds += increment;
+    pub fn increase_block_time(&mut self, increment: u64) -> i64 {
+        self.block_time_offset_seconds += i64::try_from(increment).expect("increment too large");
         self.block_time_offset_seconds
     }
 
@@ -734,8 +734,8 @@ impl ProviderData {
             // We compute a new offset such that:
             // now + new_offset == snapshot_date + old_offset
             let duration_since_snapshot = Instant::now().duration_since(time);
-            self.block_time_offset_seconds =
-                block_time_offset_seconds + duration_since_snapshot.as_secs();
+            self.block_time_offset_seconds = block_time_offset_seconds
+                + i64::try_from(duration_since_snapshot.as_secs()).expect("duration too large");
 
             self.beneficiary = coinbase;
             self.blockchain
@@ -1304,11 +1304,14 @@ impl ProviderData {
     fn next_block_timestamp(
         &self,
         timestamp: Option<u64>,
-    ) -> Result<(u64, Option<u64>), ProviderError> {
+    ) -> Result<(u64, Option<i64>), ProviderError> {
         let latest_block = self.blockchain.last_block()?;
         let latest_block_header = latest_block.header();
 
-        let current_timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+        let current_timestamp =
+            i64::try_from(SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs())
+                .expect("timestamp too large");
+
         let (mut block_timestamp, new_offset) = if let Some(timestamp) = timestamp {
             timestamp.checked_sub(latest_block_header.timestamp).ok_or(
                 ProviderError::TimestampLowerThanPrevious {
@@ -1316,14 +1319,19 @@ impl ProviderData {
                     previous: latest_block_header.timestamp,
                 },
             )?;
-            (timestamp, Some(timestamp - current_timestamp))
+
+            let offset = i64::try_from(timestamp).expect("timestamp too large") - current_timestamp;
+            (timestamp, Some(offset))
         } else if let Some(next_block_timestamp) = self.next_block_timestamp {
-            (
-                next_block_timestamp,
-                Some(next_block_timestamp - current_timestamp),
-            )
+            let offset = i64::try_from(next_block_timestamp).expect("timestamp too large")
+                - current_timestamp;
+
+            (next_block_timestamp, Some(offset))
         } else {
-            (current_timestamp + self.block_time_offset_seconds, None)
+            let next_timestamp = u64::try_from(current_timestamp + self.block_time_offset_seconds)
+                .expect("timestamp must be positive");
+
+            (next_timestamp, None)
         };
 
         let timestamp_needs_increase = block_timestamp == latest_block_header.timestamp
@@ -1463,12 +1471,25 @@ impl ProviderData {
     }
 }
 
-fn block_time_offset_seconds(config: &ProviderConfig) -> Result<u64, CreationError> {
+fn block_time_offset_seconds(config: &ProviderConfig) -> Result<i64, CreationError> {
     config.initial_date.map_or(Ok(0), |initial_date| {
-        Ok(SystemTime::now()
-            .duration_since(initial_date)
-            .map_err(|_e| CreationError::InvalidInitialDate(initial_date))?
-            .as_secs())
+        let initial_timestamp = i64::try_from(
+            initial_date
+                .duration_since(UNIX_EPOCH)
+                .map_err(|_e| CreationError::InvalidInitialDate(initial_date))?
+                .as_secs(),
+        )
+        .expect("initial date must be representable as i64");
+
+        let current_timestamp = i64::try_from(
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .expect("current time must be after UNIX epoch")
+                .as_secs(),
+        )
+        .expect("Current timestamp must be representable as i64");
+
+        Ok(initial_timestamp - current_timestamp)
     })
 }
 
@@ -1477,7 +1498,7 @@ struct BlockchainAndState {
     fork_metadata: Option<ForkMetadata>,
     state: Box<dyn SyncState<StateError>>,
     irregular_state: IrregularState,
-    block_time_offset_seconds: u64,
+    block_time_offset_seconds: i64,
     next_block_base_fee_per_gas: Option<U256>,
 }
 
@@ -1554,18 +1575,24 @@ fn create_blockchain_and_state(
             .expect("Fork state must exist");
 
         let block_time_offset_seconds = {
-            let fork_block_timestamp = blockchain
-                .last_block()
-                .map_err(CreationError::Blockchain)?
-                .header()
-                .timestamp;
+            let fork_block_timestamp = i64::try_from(
+                blockchain
+                    .last_block()
+                    .map_err(CreationError::Blockchain)?
+                    .header()
+                    .timestamp,
+            )
+            .expect("Fork block timestamp must be representable as i64");
 
-            let current_timestamp = SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .expect("current time must be after UNIX epoch")
-                .as_secs();
+            let current_timestamp = i64::try_from(
+                SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .expect("current time must be after UNIX epoch")
+                    .as_secs(),
+            )
+            .expect("Current timestamp must be representable as i64");
 
-            current_timestamp.saturating_sub(fork_block_timestamp)
+            fork_block_timestamp - current_timestamp
         };
 
         Ok(BlockchainAndState {
