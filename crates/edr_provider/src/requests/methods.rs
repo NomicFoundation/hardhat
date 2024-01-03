@@ -330,7 +330,7 @@ pub enum MethodInvocation {
     #[serde(rename = "hardhat_setCode")]
     SetCode(
         #[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address,
-        Bytes,
+        #[serde(deserialize_with = "crate::requests::serde::deserialize_data")] Bytes,
     ),
     /// hardhat_setCoinbase
     #[serde(rename = "hardhat_setCoinbase", with = "edr_eth::serde::sequence")]
