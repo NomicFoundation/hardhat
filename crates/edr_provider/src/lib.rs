@@ -313,7 +313,9 @@ impl Provider {
             MethodInvocation::Metadata(()) => {
                 hardhat::handle_metadata_request(data).and_then(to_json)
             }
-            MethodInvocation::Mine(_, _) => Err(ProviderError::Unimplemented("Mine".to_string())),
+            MethodInvocation::Mine(number_of_blocks, interval) => {
+                hardhat::handle_mine(data, number_of_blocks, interval).and_then(to_json)
+            }
             MethodInvocation::Reset(config) => {
                 hardhat::handle_reset(data, config).and_then(to_json)
             }

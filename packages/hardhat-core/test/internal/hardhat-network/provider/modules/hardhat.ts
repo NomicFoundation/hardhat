@@ -298,8 +298,7 @@ describe("Hardhat module", function () {
         });
       });
 
-      // TODO: https://github.com/NomicFoundation/edr/issues/218
-      describe.skip("hardhat_mine", function () {
+      describe("hardhat_mine", function () {
         const getLatestBlockNumber = async (): Promise<number> => {
           return rpcQuantityToNumber(
             await this.ctx.provider.send("eth_blockNumber")

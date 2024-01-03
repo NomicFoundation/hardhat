@@ -124,6 +124,7 @@ impl ProviderData {
             fork_metadata,
             state,
             irregular_state,
+            block_time_offset_seconds,
             next_block_base_fee_per_gas,
         } = create_blockchain_and_state(runtime_handle.clone(), &config, genesis_accounts)?;
 
@@ -133,7 +134,6 @@ impl ProviderData {
         let allow_unlimited_contract_size = config.allow_unlimited_contract_size;
         let beneficiary = config.coinbase;
         let block_gas_limit = config.block_gas_limit;
-        let block_time_offset_seconds = block_time_offset_seconds(&config)?;
         let is_auto_mining = config.mining.auto_mine;
         let min_gas_price = config.min_gas_price;
 
@@ -530,6 +530,88 @@ impl ProviderData {
             transaction_results: result.transaction_results,
             transaction_traces: result.transaction_traces,
         })
+    }
+
+    /// Mines `number_of_blocks` blocks with the provided `interval` between
+    /// them.
+    pub fn mine_and_commit_blocks(
+        &mut self,
+        number_of_blocks: u64,
+        interval: u64,
+    ) -> Result<Vec<MineBlockResult<BlockchainError>>, ProviderError> {
+        // There should be at least 2 blocks left for the reservation to work,
+        // because we always mine a block after it. But here we use a bigger
+        // number to err on the side of safety.
+        const MINIMUM_RESERVABLE_BLOCKS: u64 = 6;
+
+        if number_of_blocks == 0 {
+            return Ok(Vec::new());
+        }
+
+        let mine_block_with_interval = |data: &mut ProviderData,
+                                        mined_blocks: &mut Vec<
+            MineBlockResult<BlockchainError>,
+        >|
+         -> Result<(), ProviderError> {
+            let previous_timestamp = mined_blocks
+                .last()
+                .expect("at least one block was mined")
+                .block
+                .header()
+                .timestamp;
+
+            let mined_block = data.mine_and_commit_block(Some(previous_timestamp + interval))?;
+            mined_blocks.push(mined_block);
+
+            Ok(())
+        };
+
+        // Limit the pre-allocated capacity based on the minimum reservable number of
+        // blocks to avoid too large allocations.
+        let mut mined_blocks = Vec::with_capacity(
+            usize::try_from(number_of_blocks.min(2 * MINIMUM_RESERVABLE_BLOCKS))
+                .expect("number of blocks exceeds {u64::MAX}"),
+        );
+
+        // we always mine the first block, and we don't apply the interval for it
+        mined_blocks.push(self.mine_and_commit_block(None)?);
+
+        while u64::try_from(mined_blocks.len()).expect("usize cannot be larger than u128")
+            < number_of_blocks
+            && self.mem_pool.has_pending_transactions()
+        {
+            mine_block_with_interval(self, &mut mined_blocks)?;
+        }
+
+        // If there is at least one remaining block, we mine one. This way, we
+        // guarantee that there's an empty block immediately before and after the
+        // reservation. This makes the logging easier to get right.
+        if u64::try_from(mined_blocks.len()).expect("usize cannot be larger than u128")
+            < number_of_blocks
+        {
+            mine_block_with_interval(self, &mut mined_blocks)?;
+        }
+
+        let remaining_blocks = number_of_blocks
+            - u64::try_from(mined_blocks.len()).expect("usize cannot be larger than u128");
+
+        if remaining_blocks < MINIMUM_RESERVABLE_BLOCKS {
+            for _ in 0..remaining_blocks {
+                mine_block_with_interval(self, &mut mined_blocks)?;
+            }
+        } else {
+            self.blockchain
+                .reserve_blocks(remaining_blocks - 1, interval)?;
+
+            let previous_timestamp = self.blockchain.last_block()?.header().timestamp;
+
+            let mined_block = self.mine_and_commit_block(Some(previous_timestamp + interval))?;
+            mined_blocks.push(mined_block);
+        }
+
+        mined_blocks.shrink_to_fit();
+
+        Ok(mined_blocks)
     }
 
     pub fn network_id(&self) -> String {
@@ -1395,6 +1477,7 @@ struct BlockchainAndState {
     fork_metadata: Option<ForkMetadata>,
     state: Box<dyn SyncState<StateError>>,
     irregular_state: IrregularState,
+    block_time_offset_seconds: u64,
     next_block_base_fee_per_gas: Option<U256>,
 }
 
@@ -1470,6 +1553,21 @@ fn create_blockchain_and_state(
             .state_at_block_number(fork_block_number, irregular_state.state_overrides())
             .expect("Fork state must exist");
 
+        let block_time_offset_seconds = {
+            let fork_block_timestamp = blockchain
+                .last_block()
+                .map_err(CreationError::Blockchain)?
+                .header()
+                .timestamp;
+
+            let current_timestamp = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .expect("current time must be after UNIX epoch")
+                .as_secs();
+
+            current_timestamp.saturating_sub(fork_block_timestamp)
+        };
+
         Ok(BlockchainAndState {
             fork_metadata: Some(ForkMetadata {
                 chain_id: blockchain.chain_id(),
@@ -1483,6 +1581,7 @@ fn create_blockchain_and_state(
             blockchain: Box::new(blockchain),
             state: Box::new(state),
             irregular_state,
+            block_time_offset_seconds,
             // There is no genesis block in a forked blockchain, so we incorporate the initial base
             // fee per gas as the next base fee value.
             next_block_base_fee_per_gas: config.initial_base_fee_per_gas,
@@ -1508,11 +1607,14 @@ fn create_blockchain_and_state(
             .state_at_block_number(0, irregular_state.state_overrides())
             .expect("Genesis state must exist");
 
+        let block_time_offset_seconds = block_time_offset_seconds(config)?;
+
         Ok(BlockchainAndState {
             fork_metadata: None,
             blockchain: Box::new(blockchain),
             state,
             irregular_state,
+            block_time_offset_seconds,
             // For local blockchain the initial base fee per gas config option is incorporated as
             // part of the genesis block.
             next_block_base_fee_per_gas: None,
