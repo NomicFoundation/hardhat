@@ -188,6 +188,10 @@ impl ProviderData {
         self.local_accounts.keys()
     }
 
+    pub fn allow_unlimited_initcode_size(&self) -> bool {
+        self.allow_unlimited_contract_size
+    }
+
     /// Returns whether the miner is mining automatically.
     pub fn is_auto_mining(&self) -> bool {
         self.is_auto_mining

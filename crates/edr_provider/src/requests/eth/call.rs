@@ -5,7 +5,9 @@ use edr_eth::{
 };
 use edr_evm::{state::StateOverrides, PendingTransaction};
 
-use crate::{data::ProviderData, requests::validation::validate_transaction_spec, ProviderError};
+use crate::{
+    data::ProviderData, requests::validation::validate_transaction_and_call_request, ProviderError,
+};
 
 pub fn handle_call_request(
     data: &ProviderData,
@@ -13,7 +15,7 @@ pub fn handle_call_request(
     block_spec: Option<BlockSpec>,
     state_overrides: Option<StateOverrideOptions>,
 ) -> Result<Bytes, ProviderError> {
-    validate_call_request(data, &request)?;
+    validate_transaction_and_call_request(data.spec_id(), &request)?;
 
     let state_overrides =
         state_overrides.map_or(Ok(StateOverrides::default()), StateOverrides::try_from)?;
@@ -80,8 +82,4 @@ fn resolve_call_request(
     let transaction = transaction.fake_sign(&from);
     PendingTransaction::with_caller(data.spec_id(), transaction, from)
         .map_err(ProviderError::TransactionCreationError)
-}
-
-fn validate_call_request(data: &ProviderData, request: &CallRequest) -> Result<(), ProviderError> {
-    validate_transaction_spec(data.spec_id(), request.into())
 }

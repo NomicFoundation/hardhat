@@ -137,8 +137,8 @@ fn handle_single_request(
         }
         MethodInvocation::ChainId(()) => eth::handle_chain_id_request(data).and_then(to_json),
         MethodInvocation::Coinbase(()) => eth::handle_coinbase_request(data).and_then(to_json),
-        MethodInvocation::EstimateGas(_, _) => {
-            Err(ProviderError::Unimplemented("EstimateGas".to_string()))
+        MethodInvocation::EstimateGas(call_request, block_spec) => {
+            eth::handle_estimate_gas(data, call_request, block_spec).and_then(to_json)
         }
         MethodInvocation::FeeHistory(_, _, _) => {
             Err(ProviderError::Unimplemented("FeeHistory".to_string()))

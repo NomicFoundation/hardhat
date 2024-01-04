@@ -48,12 +48,15 @@ describe("Eth module - hardfork dependant tests", function () {
     importedUseProvider({ hardfork, allowUnlimitedContractSize });
     beforeEach(async function () {
       // TODO: Find out a better way to obtain the common here
+      let provider: any = this.hardhatNetworkProvider;
 
-      // EDR-TODO: this should be adapted or removed
+      if ("_init" in provider) {
+        // eslint-disable-next-line dot-notation,@typescript-eslint/dot-notation
+        await provider["_init"]();
+      }
+
       // eslint-disable-next-line dot-notation,@typescript-eslint/dot-notation
-      await (this.hardhatNetworkProvider as any)["_init"]();
-      // eslint-disable-next-line dot-notation,@typescript-eslint/dot-notation
-      this.common = (this.hardhatNetworkProvider as any)["_common"];
+      this.common = provider["_common"];
     });
   }
 
@@ -663,6 +666,8 @@ describe("Eth module - hardfork dependant tests", function () {
             "eth_getTransactionReceipt",
             [tx]
           );
+
+          console.log(receipt);
 
           assert.isDefined(receipt.status);
           assert.isUndefined(receipt.root);

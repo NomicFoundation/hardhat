@@ -35,6 +35,12 @@ pub struct AccessListItem {
     /// Accessed address
     pub address: Address,
     /// Accessed storage keys
+    // In JSON, we have to accept null as well for storage key, but we don't want to to change the
+    // type to Option<Vec<_>> as that's invalid in RLP.
+    #[cfg_attr(
+        feature = "serde",
+        serde(deserialize_with = "crate::serde::optional_to_default")
+    )]
     pub storage_keys: Vec<B256>,
 }
 
@@ -54,5 +60,22 @@ impl From<AccessListItem> for (Address, Vec<U256>) {
 impl From<AccessList> for Vec<(Address, Vec<U256>)> {
     fn from(value: AccessList) -> Self {
         value.0.into_iter().map(AccessListItem::into).collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    use super::*;
+
+    #[test]
+    fn access_list_item() {
+        let item_json = json!( {
+          "address": "0x1234567890123456789012345678901234567890",
+          "storageKeys": null,
+        });
+
+        let item: AccessListItem = serde_json::from_value(item_json).unwrap();
     }
 }

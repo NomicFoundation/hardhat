@@ -16,7 +16,10 @@ use edr_evm::{blockchain::BlockchainError, PendingTransaction, SyncBlock};
 
 use crate::{
     data::{BlockDataForTransaction, ProviderData, TransactionAndBlock},
-    requests::validation::validate_transaction_spec,
+    requests::validation::{
+        validate_eip3860_max_initcode_size, validate_transaction_and_call_request,
+        validate_transaction_spec,
+    },
     ProviderError,
 };
 
@@ -247,37 +250,7 @@ pub fn handle_send_raw_transaction_request(
             err => ProviderError::InvalidArgument(err.to_string()),
         })?;
 
-    // Validate signature
-    let _ = signed_transaction
-        .recover()
-        .map_err(|_err| ProviderError::InvalidArgument("Invalid Signature".into()))?;
-
-    if let Some(tx_chain_id) = signed_transaction.chain_id() {
-        let expected = data.chain_id();
-        if tx_chain_id != expected {
-            let message = if signed_transaction.is_eip155() {
-                "Trying to send an incompatible EIP-155 transaction, signed for another chain."
-                    .to_string()
-            } else {
-                format!("Trying to send a raw transaction with an invalid chainId. The expected chainId is {expected}")
-            };
-            return Err(ProviderError::InvalidArgument(message));
-        }
-    }
-
-    validate_transaction_spec(data.spec_id(), (&signed_transaction).into()).map_err(
-        |err| match err {
-            ProviderError::UnmetHardfork { minimum, .. } => {
-                ProviderError::InvalidArgument(format!(
-                    "\
-Trying to send an EIP-1559 transaction but they are not supported by the current hard fork.\
-\
-You can use them by running Hardhat Network with 'hardfork' {minimum:?} or later."
-                ))
-            }
-            err => err,
-        },
-    )?;
+    validate_send_raw_transaction_request(data, &signed_transaction)?;
 
     let pending_transaction = PendingTransaction::new(data.spec_id(), signed_transaction)?;
 
@@ -423,5 +396,60 @@ fn validate_send_transaction_request(
         }
     }
 
-    validate_transaction_spec(data.spec_id(), request.into())
+    if let Some(request_data) = &request.data {
+        validate_eip3860_max_initcode_size(
+            data.spec_id(),
+            data.allow_unlimited_initcode_size(),
+            &request.to,
+            request_data,
+        )?;
+    }
+
+    validate_transaction_and_call_request(data.spec_id(), request)
+}
+
+fn validate_send_raw_transaction_request(
+    data: &ProviderData,
+    signed_transaction: &SignedTransaction,
+) -> Result<(), ProviderError> {
+    // Validate signature
+    let _ = signed_transaction
+        .recover()
+        .map_err(|_err| ProviderError::InvalidArgument("Invalid Signature".into()))?;
+
+    if let Some(tx_chain_id) = signed_transaction.chain_id() {
+        let expected = data.chain_id();
+        if tx_chain_id != expected {
+            let message = if signed_transaction.is_eip155() {
+                "Trying to send an incompatible EIP-155 transaction, signed for another chain."
+                    .to_string()
+            } else {
+                format!("Trying to send a raw transaction with an invalid chainId. The expected chainId is {expected}")
+            };
+            return Err(ProviderError::InvalidArgument(message));
+        }
+    }
+
+    validate_transaction_spec(data.spec_id(), signed_transaction.into()).map_err(
+        |err| match err {
+            ProviderError::UnsupportedEIP1559Parameters {
+                minimum_hardfork, ..
+            } => ProviderError::InvalidArgument(format!(
+                "\
+Trying to send an EIP-1559 transaction but they are not supported by the current hard fork.\
+\
+You can use them by running Hardhat Network with 'hardfork' {minimum_hardfork:?} or later."
+            )),
+            err => err,
+        },
+    )?;
+
+    validate_eip3860_max_initcode_size(
+        data.spec_id(),
+        data.allow_unlimited_initcode_size(),
+        &signed_transaction.to(),
+        signed_transaction.data(),
+    )?;
+
+    validate_transaction_and_call_request(data.spec_id(), signed_transaction)
 }

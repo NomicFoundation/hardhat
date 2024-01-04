@@ -33,6 +33,17 @@ where
     }
 }
 
+/// For use with serde's `deserialize_with` on a sequence that should be
+/// deserialized as a single but optional value.
+pub fn optional_to_default<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+where
+    D: Deserializer<'de>,
+    T: Deserialize<'de> + Default,
+{
+    let s: Option<T> = Deserialize::deserialize(deserializer)?;
+    Ok(s.unwrap_or_default())
+}
+
 /// Helper module for optionally (de)serializing `[]` into `()`.
 pub mod empty_params {
     use super::{Deserialize, Deserializer, Serialize, SerializeSeq, Serializer};
