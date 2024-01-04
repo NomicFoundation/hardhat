@@ -219,7 +219,7 @@ describe("Hardhat module", function () {
                 {
                   from: address,
                   to: "0x0000000000000000000000000000000000000000",
-                  gas: 5_000_000,
+                  gas: numberToRpcQuantity(5_000_000),
                   ...txData,
                 },
               ]);
