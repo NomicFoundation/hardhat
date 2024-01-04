@@ -1637,6 +1637,26 @@ fn create_blockchain_and_state(
             None
         };
 
+        let next_block_base_fee_per_gas = if config.hardfork >= SpecId::LONDON {
+            if let Some(base_fee) = config.initial_base_fee_per_gas {
+                Some(base_fee)
+            } else {
+                let previous_base_fee = blockchain
+                    .last_block()
+                    .map_err(CreationError::Blockchain)?
+                    .header()
+                    .base_fee_per_gas;
+
+                if previous_base_fee.is_none() {
+                    Some(U256::from(DEFAULT_INITIAL_BASE_FEE_PER_GAS))
+                } else {
+                    None
+                }
+            }
+        } else {
+            None
+        };
+
         Ok(BlockchainAndState {
             fork_metadata: Some(ForkMetadata {
                 chain_id: blockchain.chain_id(),
