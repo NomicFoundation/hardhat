@@ -1,5 +1,7 @@
 use edr_eth::{
-    access_list::AccessListItem, remote::eth::CallRequest, transaction::EthTransactionRequest,
+    access_list::AccessListItem,
+    remote::eth::CallRequest,
+    transaction::{EthTransactionRequest, SignedTransaction},
     SpecId, U256,
 };
 
@@ -7,19 +9,19 @@ use crate::ProviderError;
 
 /// Data used for validating a transaction complies with a [`SpecId`].
 pub struct SpecValidationData<'data> {
-    pub gas_price: &'data Option<U256>,
-    pub max_fee_per_gas: &'data Option<U256>,
-    pub max_priority_fee_per_gas: &'data Option<U256>,
-    pub access_list: &'data Option<Vec<AccessListItem>>,
+    pub gas_price: Option<&'data U256>,
+    pub max_fee_per_gas: Option<&'data U256>,
+    pub max_priority_fee_per_gas: Option<&'data U256>,
+    pub access_list: Option<&'data Vec<AccessListItem>>,
 }
 
 impl<'data> From<&'data EthTransactionRequest> for SpecValidationData<'data> {
     fn from(value: &'data EthTransactionRequest) -> Self {
         Self {
-            gas_price: &value.gas_price,
-            max_fee_per_gas: &value.max_fee_per_gas,
-            max_priority_fee_per_gas: &value.max_priority_fee_per_gas,
-            access_list: &value.access_list,
+            gas_price: value.gas_price.as_ref(),
+            max_fee_per_gas: value.max_fee_per_gas.as_ref(),
+            max_priority_fee_per_gas: value.max_priority_fee_per_gas.as_ref(),
+            access_list: value.access_list.as_ref(),
         }
     }
 }
@@ -27,10 +29,47 @@ impl<'data> From<&'data EthTransactionRequest> for SpecValidationData<'data> {
 impl<'data> From<&'data CallRequest> for SpecValidationData<'data> {
     fn from(value: &'data CallRequest) -> Self {
         Self {
-            gas_price: &value.gas_price,
-            max_fee_per_gas: &value.max_fee_per_gas,
-            max_priority_fee_per_gas: &value.max_priority_fee_per_gas,
-            access_list: &value.access_list,
+            gas_price: value.gas_price.as_ref(),
+            max_fee_per_gas: value.max_fee_per_gas.as_ref(),
+            max_priority_fee_per_gas: value.max_priority_fee_per_gas.as_ref(),
+            access_list: value.access_list.as_ref(),
+        }
+    }
+}
+
+impl<'data> From<&'data SignedTransaction> for SpecValidationData<'data> {
+    fn from(value: &'data SignedTransaction) -> Self {
+        match value {
+            SignedTransaction::PreEip155Legacy(tx) => Self {
+                gas_price: Some(&tx.gas_price),
+                max_fee_per_gas: None,
+                max_priority_fee_per_gas: None,
+                access_list: None,
+            },
+            SignedTransaction::PostEip155Legacy(tx) => Self {
+                gas_price: Some(&tx.gas_price),
+                max_fee_per_gas: None,
+                max_priority_fee_per_gas: None,
+                access_list: None,
+            },
+            SignedTransaction::Eip2930(tx) => Self {
+                gas_price: Some(&tx.gas_price),
+                max_fee_per_gas: None,
+                max_priority_fee_per_gas: None,
+                access_list: Some(tx.access_list.0.as_ref()),
+            },
+            SignedTransaction::Eip1559(tx) => Self {
+                gas_price: None,
+                max_fee_per_gas: Some(&tx.max_fee_per_gas),
+                max_priority_fee_per_gas: Some(&tx.max_priority_fee_per_gas),
+                access_list: Some(tx.access_list.0.as_ref()),
+            },
+            SignedTransaction::Eip4844(tx) => Self {
+                gas_price: None,
+                max_fee_per_gas: Some(&tx.max_fee_per_gas),
+                max_priority_fee_per_gas: Some(&tx.max_priority_fee_per_gas),
+                access_list: Some(tx.access_list.0.as_ref()),
+            },
         }
     }
 }
