@@ -62,8 +62,7 @@ fn serde_hardhat_get_stack_trace_failures_count() {
 #[test]
 fn serde_hardhat_impersonate_account() {
     help_test_method_invocation_serde(MethodInvocation::ImpersonateAccount(
-        Address::from(U160::from(1)),
-        (),
+        Address::from(U160::from(1)).into(),
     ));
 }
 
@@ -159,7 +158,6 @@ fn serde_hardhat_set_storage_at() {
 #[test]
 fn serde_hardhat_stop_impersonating_account() {
     help_test_method_invocation_serde(MethodInvocation::StopImpersonatingAccount(
-        Address::random(),
-        (),
+        Address::random().into(),
     ));
 }

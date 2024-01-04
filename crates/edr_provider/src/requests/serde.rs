@@ -1,7 +1,36 @@
-use std::str::FromStr;
+use std::{
+    ops::{Deref, DerefMut},
+    str::FromStr,
+};
 
 use edr_eth::{Address, Bytes, U256, U64};
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize};
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[repr(transparent)]
+pub struct RpcAddress(#[serde(deserialize_with = "deserialize_address")] pub Address);
+
+impl Deref for RpcAddress {
+    type Target = Address;
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for RpcAddress {
+    #[inline]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl From<Address> for RpcAddress {
+    fn from(address: Address) -> Self {
+        Self(address)
+    }
+}
 
 /// Helper function for deserializing the JSON-RPC address type.
 pub(crate) fn deserialize_address<'de, DeserializerT>(

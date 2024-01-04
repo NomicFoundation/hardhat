@@ -9,6 +9,7 @@ use edr_eth::{
     Address, Bytes, B256, U256, U64,
 };
 
+use super::serde::RpcAddress;
 use crate::requests::hardhat::rpc_types::{CompilerInput, CompilerOutput, ResetProviderConfig};
 
 mod optional_block_spec {
@@ -286,11 +287,11 @@ pub enum MethodInvocation {
     )]
     GetStackTraceFailuresCount(()),
     /// hardhat_impersonateAccount
-    #[serde(rename = "hardhat_impersonateAccount")]
-    ImpersonateAccount(
-        #[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address,
-        (),
-    ),
+    #[serde(
+        rename = "hardhat_impersonateAccount",
+        with = "edr_eth::serde::sequence"
+    )]
+    ImpersonateAccount(RpcAddress),
     /// hardhat_intervalMine
     #[serde(rename = "hardhat_intervalMine", with = "edr_eth::serde::empty_params")]
     IntervalMine(()),
@@ -369,11 +370,11 @@ pub enum MethodInvocation {
         #[serde(deserialize_with = "crate::requests::serde::deserialize_storage_value")] U256,
     ),
     /// hardhat_stopImpersonatingAccount
-    #[serde(rename = "hardhat_stopImpersonatingAccount")]
-    StopImpersonatingAccount(
-        #[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address,
-        (),
-    ),
+    #[serde(
+        rename = "hardhat_stopImpersonatingAccount",
+        with = "edr_eth::serde::sequence"
+    )]
+    StopImpersonatingAccount(RpcAddress),
 }
 
 /// an input that can be either a single usize or an array of two usize values
