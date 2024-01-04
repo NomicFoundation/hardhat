@@ -150,9 +150,7 @@ impl Provider {
             MethodInvocation::FeeHistory(_, _, _) => {
                 Err(ProviderError::Unimplemented("FeeHistory".to_string()))
             }
-            MethodInvocation::GasPrice(()) => {
-                Err(ProviderError::Unimplemented("GasPrice".to_string()))
-            }
+            MethodInvocation::GasPrice(()) => eth::handle_gas_price(data).and_then(to_json),
             MethodInvocation::GetBalance(address, block_spec) => {
                 eth::handle_get_balance_request(data, address, block_spec).and_then(to_json)
             }

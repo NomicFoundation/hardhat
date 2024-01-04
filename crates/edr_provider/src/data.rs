@@ -54,6 +54,8 @@ use crate::{
     ProviderConfig, ProviderError,
 };
 
+const DEFAULT_INITIAL_BASE_FEE_PER_GAS: u64 = 1_000_000_000;
+
 #[derive(Debug, thiserror::Error)]
 pub enum CreationError {
     /// A blockchain error
@@ -351,6 +353,18 @@ impl ProviderData {
 
     pub fn coinbase(&self) -> Address {
         self.beneficiary
+    }
+
+    pub fn gas_price(&self) -> Result<U256, ProviderError> {
+        const PRE_EIP_1559_GAS_PRICE: u64 = 8_000_000_000;
+        const SUGGESTED_PRIORITY_FEE_PER_GAS: u64 = 1_000_000_000;
+
+        if let Some(next_block_gas_fee_per_gas) = self.next_block_base_fee_per_gas()? {
+            Ok(next_block_gas_fee_per_gas + U256::from(SUGGESTED_PRIORITY_FEE_PER_GAS))
+        } else {
+            // We return a hardcoded value for networks without EIP-1559
+            Ok(U256::from(PRE_EIP_1559_GAS_PRICE))
+        }
     }
 
     pub fn get_code(
@@ -1289,7 +1303,7 @@ impl ProviderData {
             // TODO: make this configurable (https://github.com/NomicFoundation/edr/issues/111)
             MineOrdering::Fifo,
             reward,
-            self.next_block_base_fee_per_gas()?,
+            self.next_block_base_fee_per_gas,
             prevrandao,
             Some(&mut inspector),
         )?;
@@ -1603,6 +1617,26 @@ fn create_blockchain_and_state(
                 .expect("Elapsed time since fork block must be representable as i64")
         };
 
+        let next_block_base_fee_per_gas = if config.hardfork >= SpecId::LONDON {
+            if let Some(base_fee) = config.initial_base_fee_per_gas {
+                Some(base_fee)
+            } else {
+                let previous_base_fee = blockchain
+                    .last_block()
+                    .map_err(CreationError::Blockchain)?
+                    .header()
+                    .base_fee_per_gas;
+
+                if previous_base_fee.is_none() {
+                    Some(U256::from(DEFAULT_INITIAL_BASE_FEE_PER_GAS))
+                } else {
+                    None
+                }
+            }
+        } else {
+            None
+        };
+
         Ok(BlockchainAndState {
             fork_metadata: Some(ForkMetadata {
                 chain_id: blockchain.chain_id(),
@@ -1617,9 +1651,7 @@ fn create_blockchain_and_state(
             state: Box::new(state),
             irregular_state,
             block_time_offset_seconds,
-            // There is no genesis block in a forked blockchain, so we incorporate the initial base
-            // fee per gas as the next base fee value.
-            next_block_base_fee_per_gas: config.initial_base_fee_per_gas,
+            next_block_base_fee_per_gas,
         })
     } else {
         let blockchain = LocalBlockchain::new(
