@@ -304,7 +304,7 @@ impl Provider {
             MethodInvocation::GetStackTraceFailuresCount(()) => Err(ProviderError::Unimplemented(
                 "GetStackTraceFailuresCount".to_string(),
             )),
-            MethodInvocation::ImpersonateAccount(address) => {
+            MethodInvocation::ImpersonateAccount(address, ()) => {
                 hardhat::handle_impersonate_account_request(data, address).and_then(to_json)
             }
             MethodInvocation::IntervalMine(()) => {
@@ -347,7 +347,7 @@ impl Provider {
             MethodInvocation::SetStorageAt(address, index, value) => {
                 hardhat::handle_set_storage_at(data, address, index, value).and_then(to_json)
             }
-            MethodInvocation::StopImpersonatingAccount(address) => {
+            MethodInvocation::StopImpersonatingAccount(address, ()) => {
                 hardhat::handle_stop_impersonating_account_request(data, address).and_then(to_json)
             }
         }

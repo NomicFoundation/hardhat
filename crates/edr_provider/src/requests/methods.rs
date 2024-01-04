@@ -286,12 +286,10 @@ pub enum MethodInvocation {
     )]
     GetStackTraceFailuresCount(()),
     /// hardhat_impersonateAccount
-    #[serde(
-        rename = "hardhat_impersonateAccount",
-        with = "edr_eth::serde::sequence"
-    )]
+    #[serde(rename = "hardhat_impersonateAccount")]
     ImpersonateAccount(
         #[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address,
+        (),
     ),
     /// hardhat_intervalMine
     #[serde(rename = "hardhat_intervalMine", with = "edr_eth::serde::empty_params")]
@@ -368,15 +366,13 @@ pub enum MethodInvocation {
     SetStorageAt(
         #[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address,
         #[serde(deserialize_with = "crate::requests::serde::deserialize_storage_key")] U256,
-        U256,
+        #[serde(deserialize_with = "crate::requests::serde::deserialize_storage_value")] U256,
     ),
     /// hardhat_stopImpersonatingAccount
-    #[serde(
-        rename = "hardhat_stopImpersonatingAccount",
-        with = "edr_eth::serde::sequence"
-    )]
+    #[serde(rename = "hardhat_stopImpersonatingAccount")]
     StopImpersonatingAccount(
         #[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address,
+        (),
     ),
 }
 

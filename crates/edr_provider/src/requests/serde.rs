@@ -29,6 +29,10 @@ where
         return Err(error_message());
     }
 
+    if value.len() != 42 {
+        return Err(error_message());
+    }
+
     Address::from_str(&value).map_err(|_error| error_message())
 }
 
@@ -210,6 +214,45 @@ where
     };
 
     Ok(result)
+}
+
+/// Helper function for deserializing the JSON-RPC data type, specialized
+/// for a storage value.
+pub(crate) fn deserialize_storage_value<'de, DeserializerT>(
+    deserializer: DeserializerT,
+) -> Result<U256, DeserializerT::Error>
+where
+    DeserializerT: Deserializer<'de>,
+{
+    let value = String::deserialize(deserializer).map_err(|error| {
+        if let Some(value) = extract_value_from_serde_json_error(error.to_string().as_str()) {
+            serde::de::Error::custom(format!(
+                "This method only supports strings but input was: {value}"
+            ))
+        } else {
+            serde::de::Error::custom(format!(
+                "Failed to deserialize quantity argument into string with error: '{error}'"
+            ))
+        }
+    })?;
+
+    let error_message =
+        || serde::de::Error::custom(format!("invalid value \"{value}\" supplied to : DATA"));
+
+    if !value.starts_with("0x") {
+        return Err(error_message());
+    }
+
+    // Remove 2 characters for the "0x" prefix and divide by 2 because each byte is
+    // represented by 2 hex characters.
+    let length = (value.len() - 2) / 2;
+    if length != 32 {
+        return Err(serde::de::Error::custom(format!(
+            "Storage value must be exactly 32 bytes long. Received {value}, which is {length} bytes long."
+        )));
+    }
+
+    U256::from_str(&value).map_err(|_error| error_message())
 }
 
 fn invalid_hex<'de, D>(value: &str) -> D::Error

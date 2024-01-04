@@ -2201,7 +2201,7 @@ describe("Hardhat module", function () {
 
         for (const badInputLength of [1, 2, 31, 33, 64]) {
           it(`should reject a value that is ${badInputLength} (not exactly 32) bytes long`, async function () {
-            await assertInvalidInputError(
+            await assertProviderError(
               this.provider,
               "hardhat_setStorageAt",
               [
@@ -2211,7 +2211,9 @@ describe("Hardhat module", function () {
               ],
               `Storage value must be exactly 32 bytes long. Received 0x${"ff".repeat(
                 badInputLength
-              )}, which is ${badInputLength} bytes long.`
+              )}, which is ${badInputLength} bytes long.`,
+              // TODO: https://github.com/NomicFoundation/edr/issues/104
+              isEdr ? InvalidArgumentsError.CODE : InvalidInputError.CODE
             );
           });
         }
