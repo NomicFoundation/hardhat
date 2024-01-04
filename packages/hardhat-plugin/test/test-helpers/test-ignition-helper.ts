@@ -5,6 +5,7 @@ import {
   DeployConfig,
   DeploymentParameters,
   DeploymentResultType,
+  DeploymentStrategyType,
   EIP1193Provider,
   Future,
   IgnitionModule,
@@ -65,11 +66,11 @@ export class TestIgnitionHelper {
     {
       parameters = {},
       config: perDeployConfig = {},
-      strategy = "basic",
+      strategy = DeploymentStrategyType.BASIC,
     }: {
       parameters?: DeploymentParameters;
       config?: Partial<DeployConfig>;
-      strategy?: "basic" | "create2";
+      strategy?: DeploymentStrategyType;
     } = {
       parameters: {},
       config: {},

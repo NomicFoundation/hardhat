@@ -2,6 +2,7 @@ import "@nomicfoundation/hardhat-verify";
 import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
 import {
   DeploymentParameters,
+  DeploymentStrategyType,
   IgnitionError,
   StatusResult,
 } from "@nomicfoundation/ignition-core";
@@ -89,7 +90,7 @@ ignitionScope
         defaultSender,
         reset,
         verify,
-        strategy: strategyName,
+        strategy,
       }: {
         modulePath: string;
         parameters?: string;
@@ -97,7 +98,7 @@ ignitionScope
         defaultSender: string | undefined;
         reset: boolean;
         verify: boolean;
-        strategy: "basic" | "create2";
+        strategy: string;
       },
       hre
     ) => {
@@ -111,12 +112,7 @@ ignitionScope
       const { loadModule } = await import("./utils/load-module");
       const { PrettyEventHandler } = await import("./ui/pretty-event-handler");
 
-      if (strategyName !== "basic" && strategyName !== "create2") {
-        throw new NomicLabsHardhatPluginError(
-          "hardhat-ignition",
-          "Invalid strategy name, must be either 'basic' or 'create2'"
-        );
-      }
+      const strategyName = resolveStrategyName(strategy);
 
       if (verify) {
         if (
@@ -519,5 +515,19 @@ function resolveParametersString(paramString: string): DeploymentParameters {
 
     console.warn(`Could not parse JSON parameters`);
     process.exit(1);
+  }
+}
+
+function resolveStrategyName(strategy: string): DeploymentStrategyType {
+  switch (strategy) {
+    case "basic":
+      return DeploymentStrategyType.BASIC;
+    case "create2":
+      return DeploymentStrategyType.CREATE2;
+    default:
+      throw new NomicLabsHardhatPluginError(
+        "hardhat-ignition",
+        "Invalid strategy name, must be either 'basic' or 'create2'"
+      );
   }
 }

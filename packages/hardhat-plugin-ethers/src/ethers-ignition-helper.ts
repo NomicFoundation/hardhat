@@ -6,6 +6,7 @@ import {
   DeployConfig,
   DeploymentParameters,
   DeploymentResultType,
+  DeploymentStrategyType,
   EIP1193Provider,
   Future,
   IgnitionModule,
@@ -74,17 +75,17 @@ export class EthersIgnitionHelper {
       parameters = {},
       config: perDeployConfig = {},
       defaultSender = undefined,
-      strategy = "basic",
+      strategy = DeploymentStrategyType.BASIC,
     }: {
       parameters?: DeploymentParameters;
       config?: Partial<DeployConfig>;
       defaultSender?: string;
-      strategy?: "basic" | "create2";
+      strategy?: DeploymentStrategyType;
     } = {
       parameters: {},
       config: {},
       defaultSender: undefined,
-      strategy: "basic",
+      strategy: DeploymentStrategyType.BASIC,
     }
   ): Promise<
     IgnitionModuleResultsTToEthersContracts<

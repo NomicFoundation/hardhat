@@ -208,3 +208,20 @@ export interface SuccessfulDeploymentResult {
 export interface DeploymentParameters {
   [moduleId: string]: ModuleParameters;
 }
+
+/**
+ * An enumeration of the different types of deployment strategies.
+ *
+ * @beta
+ */
+export enum DeploymentStrategyType {
+  /**
+   * The basic deployment strategy.
+   */
+  BASIC = "basic",
+
+  /**
+   * The create2 deployment strategy.
+   */
+  CREATE2 = "create2",
+}

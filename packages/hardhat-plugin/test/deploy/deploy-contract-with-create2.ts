@@ -1,5 +1,8 @@
 /* eslint-disable import/no-unused-modules */
-import { buildModule } from "@nomicfoundation/ignition-core";
+import {
+  DeploymentStrategyType,
+  buildModule,
+} from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { mineBlock } from "../test-helpers/mine-block";
@@ -23,7 +26,7 @@ describe("execution - deploy contract with create2", function () {
     });
 
     const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
-      strategy: "create2",
+      strategy: DeploymentStrategyType.CREATE2,
     });
 
     await waitForPendingTxs(this.hre, 1, deployPromise);

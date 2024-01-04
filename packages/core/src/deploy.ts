@@ -20,6 +20,7 @@ import {
   DeployConfig,
   DeploymentParameters,
   DeploymentResult,
+  DeploymentStrategyType,
 } from "./types/deploy";
 import {
   ExecutionEventListener,
@@ -47,7 +48,7 @@ export async function deploy<
   deploymentParameters,
   accounts,
   defaultSender: givenDefaultSender,
-  strategy = "basic",
+  strategy = DeploymentStrategyType.BASIC,
 }: {
   config?: Partial<DeployConfig>;
   artifactResolver: ArtifactResolver;
@@ -62,7 +63,7 @@ export async function deploy<
   deploymentParameters: DeploymentParameters;
   accounts: string[];
   defaultSender?: string;
-  strategy?: "basic" | "create2";
+  strategy?: DeploymentStrategyType;
 }): Promise<DeploymentResult> {
   if (executionEventListener !== undefined) {
     executionEventListener.setModuleId({
@@ -153,16 +154,16 @@ function _resolveDefaultSender(
 }
 
 function setupStrategy(
-  strategyName: "basic" | "create2",
+  strategyName: DeploymentStrategyType,
   deploymentLoader: DeploymentLoader,
   provider: EIP1193Provider
 ) {
   switch (strategyName) {
-    case "basic":
+    case DeploymentStrategyType.BASIC:
       return new BasicExecutionStrategy((artifactId) =>
         deploymentLoader.loadArtifact(artifactId)
       );
-    case "create2":
+    case DeploymentStrategyType.CREATE2:
       return new Create2ExecutionStrategy(provider, (artifactId) =>
         deploymentLoader.loadArtifact(artifactId)
       );
