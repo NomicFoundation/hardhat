@@ -33,7 +33,7 @@ describe("execution - deploy contract with create2", function () {
 
     assert.equal(
       result.foo.address,
-      "0x41DA93903Ad107d382fc63d30289477255280AA7"
+      "0x4b7DcD8BCc106E5Cd7e89837A24BF27cca252C39"
     );
 
     assert.equal(await result.foo.read.x(), Number(1));

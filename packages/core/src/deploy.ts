@@ -98,12 +98,7 @@ export async function deploy<
 
   const jsonRpcClient = new EIP1193JsonRpcClient(provider);
 
-  const executionStrategy = setupStrategy(
-    strategy,
-    deploymentLoader,
-    provider,
-    accounts
-  );
+  const executionStrategy = setupStrategy(strategy, deploymentLoader, provider);
 
   const isAutominedNetwork = await checkAutominedNetwork(provider);
 
@@ -160,8 +155,7 @@ function _resolveDefaultSender(
 function setupStrategy(
   strategyName: "basic" | "create2",
   deploymentLoader: DeploymentLoader,
-  provider: EIP1193Provider,
-  accounts: string[]
+  provider: EIP1193Provider
 ) {
   switch (strategyName) {
     case "basic":
@@ -169,7 +163,7 @@ function setupStrategy(
         deploymentLoader.loadArtifact(artifactId)
       );
     case "create2":
-      return new Create2ExecutionStrategy(provider, accounts, (artifactId) =>
+      return new Create2ExecutionStrategy(provider, (artifactId) =>
         deploymentLoader.loadArtifact(artifactId)
       );
   }
