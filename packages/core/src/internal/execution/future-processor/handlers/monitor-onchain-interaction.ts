@@ -1,3 +1,5 @@
+import setupDebug from "debug";
+
 import { IgnitionError } from "../../../../errors";
 import { ERRORS } from "../../../../errors-list";
 import { assertIgnitionInvariant } from "../../../utils/assertions";
@@ -8,13 +10,24 @@ import {
   DeploymentExecutionState,
   SendDataExecutionState,
 } from "../../types/execution-state";
+import { Transaction } from "../../types/jsonrpc";
 import {
   JournalMessageType,
   OnchainInteractionBumpFeesMessage,
   OnchainInteractionTimeoutMessage,
   TransactionConfirmMessage,
 } from "../../types/messages";
-import { NetworkInteractionType } from "../../types/network-interaction";
+import {
+  NetworkInteractionType,
+  OnchainInteraction,
+} from "../../types/network-interaction";
+
+const debug = setupDebug("hardhat-ignition:onchain-interaction-monitor");
+
+export interface GetTransactionRetryConfig {
+  maxRetries: number;
+  retryInterval: number;
+}
 
 /**
  * Checks the transactions of the latest network interaction of the execution state,
@@ -51,7 +64,11 @@ export async function monitorOnchainInteraction(
   transactionTrackingTimer: TransactionTrackingTimer,
   requiredConfirmations: number,
   millisecondBeforeBumpingFees: number,
-  maxFeeBumps: number
+  maxFeeBumps: number,
+  getTransactionRetryConfig: GetTransactionRetryConfig = {
+    maxRetries: 10,
+    retryInterval: 1000,
+  }
 ): Promise<
   | TransactionConfirmMessage
   | OnchainInteractionBumpFeesMessage
@@ -75,13 +92,12 @@ export async function monitorOnchainInteraction(
     `No transaction found in OnchainInteraction ${exState.id}/${lastNetworkInteraction.id} when trying to check its transactions`
   );
 
-  const transactions = await Promise.all(
-    lastNetworkInteraction.transactions.map((tx) =>
-      jsonRpcClient.getTransaction(tx.hash)
-    )
+  const transaction = await _getTransactionWithRetry(
+    jsonRpcClient,
+    lastNetworkInteraction,
+    getTransactionRetryConfig,
+    exState.id
   );
-
-  const transaction = transactions.find((tx) => tx !== undefined);
 
   // We do not try to recover from dopped transactions mid-execution
   if (transaction === undefined) {
@@ -140,4 +156,46 @@ export async function monitorOnchainInteraction(
     futureId: exState.id,
     networkInteractionId: lastNetworkInteraction.id,
   };
+}
+
+async function _getTransactionWithRetry(
+  jsonRpcClient: JsonRpcClient,
+  onchainInteraction: OnchainInteraction,
+  retryConfig: GetTransactionRetryConfig,
+  futureId: string
+): Promise<Transaction | undefined> {
+  let transaction: Transaction | undefined;
+
+  // Small retry loop for up to X seconds to handle blockchain nodes
+  // that are slow to propagate transactions.
+  // See https://github.com/NomicFoundation/hardhat-ignition/issues/665
+  for (let i = 0; i < retryConfig.maxRetries; i++) {
+    debug(
+      `Retrieving transaction for interaction ${futureId}/${
+        onchainInteraction.id
+      } from mempool (attempt ${i + 1}/${retryConfig.maxRetries})`
+    );
+
+    const transactions = await Promise.all(
+      onchainInteraction.transactions.map((tx) =>
+        jsonRpcClient.getTransaction(tx.hash)
+      )
+    );
+
+    transaction = transactions.find((tx) => tx !== undefined);
+
+    if (transaction !== undefined) {
+      break;
+    }
+
+    debug(
+      `Transaction lookup for ${futureId}/${onchainInteraction.id} not found in mempool, waiting ${retryConfig.retryInterval} seconds before retrying`
+    );
+
+    await new Promise((resolve) =>
+      setTimeout(resolve, retryConfig.retryInterval)
+    );
+  }
+
+  return transaction;
 }

@@ -1,23 +1,37 @@
 import { assert } from "chai";
 
+import {
+  GetTransactionRetryConfig,
+  monitorOnchainInteraction,
+} from "../../../../src/internal/execution/future-processor/handlers/monitor-onchain-interaction";
 import { runStaticCall } from "../../../../src/internal/execution/future-processor/helpers/network-interaction-execution";
 import {
-  JsonRpcClient,
+  Block,
   CallParams,
   EstimateGasParams,
+  JsonRpcClient,
   TransactionParams,
-  Block,
 } from "../../../../src/internal/execution/jsonrpc-client";
+import { TransactionTrackingTimer } from "../../../../src/internal/execution/transaction-tracking-timer";
+import {
+  DeploymentExecutionState,
+  ExecutionSateType,
+  ExecutionStatus,
+} from "../../../../src/internal/execution/types/execution-state";
 import {
   NetworkFees,
   RawStaticCallResult,
   Transaction,
   TransactionReceipt,
+  TransactionReceiptStatus,
 } from "../../../../src/internal/execution/types/jsonrpc";
+import { JournalMessageType } from "../../../../src/internal/execution/types/messages";
 import {
   NetworkInteractionType,
   StaticCall,
 } from "../../../../src/internal/execution/types/network-interaction";
+import { FutureType } from "../../../../src/types/module";
+import { exampleAccounts } from "../../../helpers";
 
 class StubJsonRpcClient implements JsonRpcClient {
   public async getChainId(): Promise<number> {
@@ -31,6 +45,7 @@ class StubJsonRpcClient implements JsonRpcClient {
   public async getLatestBlock(): Promise<Block> {
     throw new Error("Mock not implemented.");
   }
+
   public async getBalance(
     _address: string,
     _blockTag: "latest" | "pending"
@@ -122,6 +137,133 @@ describe("Network interactions", () => {
     });
   });
 
+  describe("monitorOnchainInteraction", () => {
+    const requiredConfirmations = 1;
+    const millisecondBeforeBumpingFees = 1;
+    const maxFeeBumps = 1;
+
+    const testGetTransactionRetryConfig: GetTransactionRetryConfig = {
+      maxRetries: 10,
+      retryInterval: 1,
+    };
+
+    let mockClient: MockGetTransactionJsonRpcClient;
+    let fakeTransactionTrackingTimer: FakeTransactionTrackingTimer;
+
+    const exampleDeploymentExecutionState: DeploymentExecutionState = {
+      id: "test",
+      type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+      futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
+      strategy: "basic",
+      status: ExecutionStatus.STARTED,
+      dependencies: new Set<string>(),
+      artifactId: "./artifact.json",
+      contractName: "Contract1",
+      value: 0n,
+      constructorArgs: [],
+      libraries: {},
+      from: exampleAccounts[0],
+      networkInteractions: [],
+    };
+
+    beforeEach(() => {
+      mockClient = new MockGetTransactionJsonRpcClient();
+      fakeTransactionTrackingTimer = new FakeTransactionTrackingTimer();
+    });
+
+    it("Should succeed even if transaction takes time to propagate to the mempool", async () => {
+      const deploymentExecutionState: DeploymentExecutionState = {
+        ...exampleDeploymentExecutionState,
+        networkInteractions: [
+          {
+            id: 1,
+            type: NetworkInteractionType.ONCHAIN_INTERACTION,
+            to: exampleAccounts[1],
+            value: 0n,
+            data: "0x",
+            shouldBeResent: true,
+            transactions: [
+              {
+                hash: "0x1234",
+                fees: {
+                  maxFeePerGas: 0n,
+                  maxPriorityFeePerGas: 0n,
+                },
+              },
+            ],
+          },
+        ],
+      };
+
+      mockClient.callToFindResult = 4;
+      mockClient.result = {
+        hash: "0x1234",
+        fees: {
+          maxFeePerGas: 0n,
+          maxPriorityFeePerGas: 0n,
+        },
+      };
+
+      const message = await monitorOnchainInteraction(
+        deploymentExecutionState,
+        mockClient,
+        fakeTransactionTrackingTimer,
+        requiredConfirmations,
+        millisecondBeforeBumpingFees,
+        maxFeeBumps,
+        testGetTransactionRetryConfig
+      );
+
+      if (message === undefined) {
+        return assert.fail("No message returned from monitoring");
+      }
+
+      assert.isDefined(message);
+      assert.equal(message.type, JournalMessageType.TRANSACTION_CONFIRM);
+      assert.equal(message.futureId, deploymentExecutionState.id);
+    });
+
+    it("Should error when no transaction in the mempool even after awaiting propagation", async () => {
+      const deploymentExecutionState: DeploymentExecutionState = {
+        ...exampleDeploymentExecutionState,
+        networkInteractions: [
+          {
+            id: 1,
+            type: NetworkInteractionType.ONCHAIN_INTERACTION,
+            to: exampleAccounts[1],
+            value: 0n,
+            data: "0x",
+            shouldBeResent: true,
+            transactions: [
+              {
+                hash: "0x1234",
+                fees: {
+                  maxFeePerGas: 0n,
+                  maxPriorityFeePerGas: 0n,
+                },
+              },
+            ],
+          },
+        ],
+      };
+
+      await assert.isRejected(
+        monitorOnchainInteraction(
+          deploymentExecutionState,
+          mockClient,
+          fakeTransactionTrackingTimer,
+          requiredConfirmations,
+          millisecondBeforeBumpingFees,
+          maxFeeBumps,
+          testGetTransactionRetryConfig
+        ),
+        /IGN401: Error while executing test: all the transactions of its network interaction 1 were dropped\. Please try rerunning Hardhat Ignition\./
+      );
+
+      assert.equal(mockClient.calls, 10);
+    });
+  });
+
   describe("sendTransactionForOnchainInteraction", () => {
     describe("First transaction", () => {
       it("Should allocate a nonce for the onchain interaction's sender", async () => {
@@ -180,3 +322,46 @@ describe("Network interactions", () => {
     });
   });
 });
+
+class MockGetTransactionJsonRpcClient extends StubJsonRpcClient {
+  public calls: number = 0;
+  public callToFindResult: number = Number.MAX_SAFE_INTEGER;
+  public result: Omit<Transaction, "receipt"> | undefined = undefined;
+
+  public async getTransaction(
+    _txHash: string
+  ): Promise<Omit<Transaction, "receipt"> | undefined> {
+    if (this.calls === this.callToFindResult) {
+      return this.result;
+    }
+
+    this.calls += 1;
+
+    return undefined;
+  }
+
+  public async getLatestBlock(): Promise<Block> {
+    return {
+      hash: "0xblockhas",
+      number: 34,
+    };
+  }
+
+  public async getTransactionReceipt(
+    _txHash: string
+  ): Promise<TransactionReceipt | undefined> {
+    return {
+      blockHash: "0xblockhash",
+      blockNumber: 34,
+      contractAddress: "0xcontractaddress",
+      logs: [],
+      status: TransactionReceiptStatus.SUCCESS,
+    };
+  }
+}
+
+class FakeTransactionTrackingTimer extends TransactionTrackingTimer {
+  public getTransactionTrackingTime(_txHash: string): number {
+    return 0;
+  }
+}
