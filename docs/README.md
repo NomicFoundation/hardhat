@@ -200,7 +200,7 @@ Landing pages don't support themes.
 
 ## Creating new landings
 
-Landing pages contains special "blocks" see src/components/landingBlocks. To create a new landing page start from copying `/pages/index.tsx` and `src/content/home.ts`. You can create another page by reodering existing blocks and passing another content to them. If necessary create new landing blocks.
+Landing pages contains special "blocks" see src/components/landingBlocks. To create a new landing page start from copying `/pages/index.tsx` and `src/content/home.ts`. You can create another page by reordering existing blocks and passing another content to them. If necessary create new landing blocks.
 
 ## CI/CD
 
