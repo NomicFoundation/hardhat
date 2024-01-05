@@ -22,6 +22,7 @@ const exampleState: UiState = {
   isResumed: false,
   maxFeeBumps: 0,
   gasBumps: {},
+  strategy: null,
 };
 
 describe("ui - calculate batch display", () => {

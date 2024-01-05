@@ -18,7 +18,9 @@ export function calculateDeployingModulePanel(state: UiState): string {
   }
 
   deployingMessage += `${chalk.bold(
-    `Deploying [ ${state.moduleName ?? "unknown"} ]`
+    `Deploying [ ${state.moduleName ?? "unknown"} ] with strategy < ${
+      state.strategy ?? "unknown"
+    } >`
   )}
 `;
 

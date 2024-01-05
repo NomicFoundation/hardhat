@@ -70,6 +70,11 @@ export async function deploy<
       type: ExecutionEventType.SET_MODULE_ID,
       moduleName: ignitionModule.id,
     });
+
+    executionEventListener.setStrategy({
+      type: ExecutionEventType.SET_STRATEGY,
+      strategy,
+    });
   }
 
   const validationResult = await validate(

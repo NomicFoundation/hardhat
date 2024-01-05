@@ -26,6 +26,7 @@ import {
   SendDataExecutionStateCompleteEvent,
   SendDataExecutionStateInitializeEvent,
   SetModuleIdEvent,
+  SetStrategyEvent,
   StaticCallCompleteEvent,
   StaticCallExecutionStateCompleteEvent,
   StaticCallExecutionStateInitializeEvent,
@@ -65,6 +66,7 @@ export class PrettyEventHandler implements ExecutionEventListener {
     isResumed: null,
     maxFeeBumps: 0,
     gasBumps: {},
+    strategy: null,
   };
 
   constructor(private _deploymentParams: DeploymentParameters = {}) {}
@@ -297,6 +299,13 @@ export class PrettyEventHandler implements ExecutionEventListener {
     this.state = {
       ...this.state,
       moduleName: event.moduleName,
+    };
+  }
+
+  public setStrategy(event: SetStrategyEvent): void {
+    this.state = {
+      ...this.state,
+      strategy: event.strategy,
     };
   }
 

@@ -1,4 +1,4 @@
-import { DeploymentResult } from "./deploy";
+import { DeploymentResult, DeploymentStrategyType } from "./deploy";
 
 /**
  * Events emitted by the execution engine to allow tracking
@@ -31,7 +31,8 @@ export type ExecutionEvent =
   | DeploymentStartEvent
   | ReconciliationWarningsEvent
   | BeginNextBatchEvent
-  | SetModuleIdEvent;
+  | SetModuleIdEvent
+  | SetStrategyEvent;
 
 /**
  * The types of diagnostic events emitted during a deploy.
@@ -66,6 +67,7 @@ export enum ExecutionEventType {
   BEGIN_NEXT_BATCH = "BEGIN_NEXT_BATCH",
   DEPLOYMENT_COMPLETE = "DEPLOYMENT_COMPLETE",
   SET_MODULE_ID = "SET_MODULE_ID",
+  SET_STRATEGY = "SET_STRATEGY",
 }
 
 /**
@@ -367,6 +369,16 @@ export interface SetModuleIdEvent {
 }
 
 /**
+ * An event indicating the type of strategy being used.
+ *
+ * @beta
+ */
+export interface SetStrategyEvent {
+  type: ExecutionEventType.SET_STRATEGY;
+  strategy: DeploymentStrategyType;
+}
+
+/**
  * The types of network interactions that can be requested by a future.
  *
  * @beta
@@ -461,6 +473,7 @@ export interface ExecutionEventTypeMap {
   [ExecutionEventType.BEGIN_NEXT_BATCH]: BeginNextBatchEvent;
   [ExecutionEventType.DEPLOYMENT_COMPLETE]: DeploymentCompleteEvent;
   [ExecutionEventType.SET_MODULE_ID]: SetModuleIdEvent;
+  [ExecutionEventType.SET_STRATEGY]: SetStrategyEvent;
 }
 
 /**

@@ -1,3 +1,4 @@
+import { DeploymentStrategyType } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 import chalk from "chalk";
 import path from "path";
@@ -20,13 +21,14 @@ describe("ui - calculate starting message display", () => {
     isResumed: null,
     maxFeeBumps: 0,
     gasBumps: {},
+    strategy: DeploymentStrategyType.BASIC,
   };
 
   it("should display the deploying module message", () => {
     const expectedText = testFormat(`
     Hardhat Ignition 🚀
 
-    ${chalk.bold(`Deploying [ ExampleModule ]`)}
+    ${chalk.bold(`Deploying [ ExampleModule ] with strategy < basic >`)}
     `);
 
     const actualText = calculateDeployingModulePanel(exampleState);
@@ -38,7 +40,7 @@ describe("ui - calculate starting message display", () => {
     const expectedText = testFormat(`
     Hardhat Ignition 🚀
 
-    ${chalk.bold(`Deploying [ ExampleModule ]`)}
+    ${chalk.bold(`Deploying [ ExampleModule ] with strategy < basic >`)}
 
     ${chalk.yellow(
       "Warning - previously executed futures are not in the module:"
@@ -66,7 +68,7 @@ describe("ui - calculate starting message display", () => {
 
     ${chalk.bold(`Resuming existing deployment from /users/example`)}
 
-    ${chalk.bold(`Deploying [ ExampleModule ]`)}
+    ${chalk.bold(`Deploying [ ExampleModule ] with strategy < basic >`)}
     `);
 
     const actualText = calculateDeployingModulePanel({
@@ -85,7 +87,7 @@ describe("ui - calculate starting message display", () => {
       `Resuming existing deployment from .${path.sep}ignition${path.sep}deployments${path.sep}foo`
     )}
 
-    ${chalk.bold(`Deploying [ ExampleModule ]`)}
+    ${chalk.bold(`Deploying [ ExampleModule ] with strategy < basic >`)}
     `);
 
     const actualText = calculateDeployingModulePanel({

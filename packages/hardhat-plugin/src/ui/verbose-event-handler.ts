@@ -23,6 +23,7 @@ import {
   SendDataExecutionStateCompleteEvent,
   SendDataExecutionStateInitializeEvent,
   SetModuleIdEvent,
+  SetStrategyEvent,
   StaticCallCompleteEvent,
   StaticCallExecutionStateCompleteEvent,
   StaticCallExecutionStateInitializeEvent,
@@ -263,6 +264,10 @@ export class VerboseEventHandler implements ExecutionEventListener {
 
   public setModuleId(event: SetModuleIdEvent): void {
     console.log(`Starting validation for module: ${event.moduleName}`);
+  }
+
+  public setStrategy(event: SetStrategyEvent): void {
+    console.log(`Starting execution with strategy: ${event.strategy}`);
   }
 
   public runStart(_event: RunStartEvent): void {
