@@ -22,8 +22,8 @@ pub use self::{
     data::InspectorCallbacks,
     error::ProviderError,
     requests::{
-        hardhat::rpc_types as hardhat_rpc_types, MethodInvocation, OneUsizeOrTwo, ProviderRequest,
-        U64OrUsize,
+        deserialization_error_code, hardhat::rpc_types as hardhat_rpc_types, MethodInvocation,
+        OneUsizeOrTwo, ProviderRequest, U64OrUsize,
     },
 };
 use self::{

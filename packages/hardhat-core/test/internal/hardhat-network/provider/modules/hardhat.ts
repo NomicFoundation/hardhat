@@ -18,7 +18,6 @@ import {
   assertInternalError,
   assertInvalidArgumentsError,
   assertInvalidInputError,
-  assertProviderError,
 } from "../../helpers/assertions";
 import { EMPTY_ACCOUNT_ADDRESS } from "../../helpers/constants";
 import { setCWD } from "../../helpers/cwd";
@@ -38,10 +37,7 @@ import {
 import { HardhatMetadata } from "../../../../../src/internal/core/jsonrpc/types/output/metadata";
 import { useFixtureProject } from "../../../../helpers/project";
 import { useEnvironment } from "../../../../helpers/environment";
-import {
-  InvalidArgumentsError,
-  InvalidInputError,
-} from "../../../../../src/internal/core/providers/errors";
+import { InvalidInputError } from "../../../../../src/internal/core/providers/errors";
 
 describe("Hardhat module", function () {
   PROVIDERS.forEach(({ name, useProvider, isFork }) => {
@@ -2181,7 +2177,7 @@ describe("Hardhat module", function () {
 
         it("should reject a storage key that is greater than 32 bytes", async function () {
           const MAX_WORD_VALUE = 2n ** 256n;
-          await assertProviderError(
+          await assertInvalidInputError(
             this.provider,
             "hardhat_setStorageAt",
             [
@@ -2189,14 +2185,13 @@ describe("Hardhat module", function () {
               numberToRpcQuantity(MAX_WORD_VALUE + 1n),
               "0xff",
             ],
-            `Storage key must not be greater than or equal to 2^256. Received 0x10000000000000000000000000000000000000000000000000000000000000001.`,
-            isEdr ? InvalidArgumentsError.CODE : InvalidInputError.CODE
+            `Storage key must not be greater than or equal to 2^256. Received 0x10000000000000000000000000000000000000000000000000000000000000001.`
           );
         });
 
         for (const badInputLength of [1, 2, 31, 33, 64]) {
           it(`should reject a value that is ${badInputLength} (not exactly 32) bytes long`, async function () {
-            await assertProviderError(
+            await assertInvalidInputError(
               this.provider,
               "hardhat_setStorageAt",
               [
@@ -2206,9 +2201,7 @@ describe("Hardhat module", function () {
               ],
               `Storage value must be exactly 32 bytes long. Received 0x${"ff".repeat(
                 badInputLength
-              )}, which is ${badInputLength} bytes long.`,
-              // TODO: https://github.com/NomicFoundation/edr/issues/104
-              isEdr ? InvalidArgumentsError.CODE : InvalidInputError.CODE
+              )}, which is ${badInputLength} bytes long.`
             );
           });
         }

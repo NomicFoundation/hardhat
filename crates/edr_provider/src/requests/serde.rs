@@ -32,6 +32,22 @@ impl From<Address> for RpcAddress {
     }
 }
 
+const STORAGE_KEY_TOO_LARGE_ERROR_MESSAGE: &str =
+    "Storage key must not be greater than or equal to 2^256.";
+const STORAGE_VALUE_INVALID_LENGTH_ERROR_MESSAGE: &str =
+    "Storage value must be exactly 32 bytes long.";
+
+/// Helper function for determining the error code based on the error message.
+pub fn deserialization_error_code(error_message: &str) -> i16 {
+    if error_message.starts_with(STORAGE_KEY_TOO_LARGE_ERROR_MESSAGE)
+        || error_message.starts_with(STORAGE_VALUE_INVALID_LENGTH_ERROR_MESSAGE)
+    {
+        -32000
+    } else {
+        -32602
+    }
+}
+
 /// Helper function for deserializing the JSON-RPC address type.
 pub(crate) fn deserialize_address<'de, DeserializerT>(
     deserializer: DeserializerT,
@@ -191,7 +207,7 @@ where
 
     if value.len() > 66 {
         return Err(serde::de::Error::custom(format!(
-            "Storage key must not be greater than or equal to 2^256. Received {value}."
+            "{STORAGE_KEY_TOO_LARGE_ERROR_MESSAGE} Received {value}."
         )));
     }
 
@@ -277,7 +293,7 @@ where
     let length = (value.len() - 2) / 2;
     if length != 32 {
         return Err(serde::de::Error::custom(format!(
-            "Storage value must be exactly 32 bytes long. Received {value}, which is {length} bytes long."
+            "{STORAGE_VALUE_INVALID_LENGTH_ERROR_MESSAGE} Received {value}, which is {length} bytes long."
         )));
     }
 

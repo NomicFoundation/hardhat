@@ -14,7 +14,10 @@ use ::serde::{
 };
 pub use edr_eth::remote::client::Request as RpcRequest;
 
-pub use crate::requests::methods::{MethodInvocation, OneUsizeOrTwo, U64OrUsize};
+pub use crate::requests::{
+    methods::{MethodInvocation, OneUsizeOrTwo, U64OrUsize},
+    serde::deserialization_error_code,
+};
 
 /// JSON-RPC request for the provider.
 #[derive(Clone, Debug)]
