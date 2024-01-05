@@ -6,7 +6,7 @@ use std::{
     collections::BTreeMap,
     fmt::Debug,
     sync::Arc,
-    time::{Instant, SystemTime, UNIX_EPOCH},
+    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
 use edr_eth::{
@@ -1585,24 +1585,22 @@ fn create_blockchain_and_state(
             .expect("Fork state must exist");
 
         let block_time_offset_seconds = {
-            let fork_block_timestamp = i64::try_from(
-                blockchain
-                    .last_block()
-                    .map_err(CreationError::Blockchain)?
-                    .header()
-                    .timestamp,
-            )
-            .expect("Fork block timestamp must be representable as i64");
+            let fork_block_timestamp = UNIX_EPOCH
+                + Duration::from_secs(
+                    blockchain
+                        .last_block()
+                        .map_err(CreationError::Blockchain)?
+                        .header()
+                        .timestamp,
+                );
 
-            let current_timestamp = i64::try_from(
-                SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .expect("current time must be after UNIX epoch")
-                    .as_secs(),
-            )
-            .expect("Current timestamp must be representable as i64");
+            let elapsed_time = SystemTime::now()
+                .duration_since(fork_block_timestamp)
+                .expect("current time must be after fork block")
+                .as_secs();
 
-            fork_block_timestamp - current_timestamp
+            i64::try_from(elapsed_time)
+                .expect("Elapsed time since fork block must be representable as i64")
         };
 
         Ok(BlockchainAndState {
