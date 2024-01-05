@@ -204,7 +204,7 @@ impl Provider {
             MethodInvocation::GetTransactionReceipt(transaction_hash) => {
                 eth::handle_get_transaction_receipt(data, transaction_hash).and_then(to_json)
             }
-            MethodInvocation::Mining(()) => Err(ProviderError::Unimplemented("Mining".to_string())),
+            MethodInvocation::Mining(()) => eth::handle_mining().and_then(to_json),
             MethodInvocation::NetListening(()) => {
                 eth::handle_net_listening_request().and_then(to_json)
             }
@@ -241,9 +241,7 @@ impl Provider {
             MethodInvocation::Subscribe(_) => {
                 Err(ProviderError::Unimplemented("Subscribe".to_string()))
             }
-            MethodInvocation::Syncing(()) => {
-                Err(ProviderError::Unimplemented("Syncing".to_string()))
-            }
+            MethodInvocation::Syncing(()) => eth::handle_syncing().and_then(to_json),
             MethodInvocation::UninstallFilter(filter_id) => {
                 eth::handle_uninstall_filter_request(data, filter_id).and_then(to_json)
             }

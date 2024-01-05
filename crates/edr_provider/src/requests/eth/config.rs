@@ -10,6 +10,10 @@ pub fn handle_coinbase_request(data: &ProviderData) -> Result<Address, ProviderE
     Ok(data.coinbase())
 }
 
+pub fn handle_mining() -> Result<bool, ProviderError> {
+    Ok(false)
+}
+
 pub fn handle_net_listening_request() -> Result<bool, ProviderError> {
     Ok(true)
 }
@@ -20,4 +24,8 @@ pub fn handle_net_peer_count_request() -> Result<U64, ProviderError> {
 
 pub fn handle_net_version_request(data: &ProviderData) -> Result<String, ProviderError> {
     Ok(data.network_id())
+}
+
+pub fn handle_syncing() -> Result<bool, ProviderError> {
+    Ok(false)
 }
