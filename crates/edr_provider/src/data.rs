@@ -1599,7 +1599,7 @@ fn create_blockchain_and_state(
                 .expect("current time must be after fork block")
                 .as_secs();
 
-            i64::try_from(elapsed_time)
+            -i64::try_from(elapsed_time)
                 .expect("Elapsed time since fork block must be representable as i64")
         };
 
