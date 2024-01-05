@@ -76,6 +76,6 @@ mod tests {
           "storageKeys": null,
         });
 
-        let item: AccessListItem = serde_json::from_value(item_json).unwrap();
+        let _item: AccessListItem = serde_json::from_value(item_json).unwrap();
     }
 }

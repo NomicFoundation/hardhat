@@ -1333,6 +1333,7 @@ describe("Eth module - hardfork dependant tests", function () {
         // pseudo-randomly generated from a fixed seed
         assert.equal(
           latestBlock.mixHash,
+          // First value with seed "randomMixHashSeed"
           "0x53c5ae3ce8eefbfad3aca77e5f4e1b19a949b04e2e5ce7a24fbb64422f14f0bf"
         );
 
@@ -1346,6 +1347,7 @@ describe("Eth module - hardfork dependant tests", function () {
 
         assert.equal(
           latestBlock.mixHash,
+          // Second value with seed "randomMixHashSeed"
           "0xf4fbfa6c8463f342eb58838d8c6b0661faf22e7076a518bf4deaddbf3fa8a112"
         );
       });

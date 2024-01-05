@@ -8,7 +8,7 @@ use edr_evm::{blockchain::BlockchainError, SyncBlock};
 
 use crate::{
     data::{BlockAndTotalDifficulty, BlockDataForTransaction, ProviderData, TransactionAndBlock},
-    requests::eth::transaction_to_rpc_result,
+    requests::{eth::transaction_to_rpc_result, validation::validate_post_merge_block_tags},
     ProviderError,
 };
 
@@ -27,7 +27,14 @@ pub fn handle_get_block_by_hash_request(
     data.block_by_hash(&block_hash)?
         .map(|block| {
             let total_difficulty = data.total_difficulty_by_hash(block.hash())?;
-            block_to_rpc_output(data, block, total_difficulty, transaction_detail_flag)
+            let pending = false;
+            block_to_rpc_output(
+                data,
+                block,
+                pending,
+                total_difficulty,
+                transaction_detail_flag,
+            )
         })
         .transpose()
 }
@@ -41,9 +48,16 @@ pub fn handle_get_block_by_number_request(
         .map(
             |BlockAndTotalDifficulty {
                  block,
+                 pending,
                  total_difficulty,
              }| {
-                block_to_rpc_output(data, block, total_difficulty, transaction_detail_flag)
+                block_to_rpc_output(
+                    data,
+                    block,
+                    pending,
+                    total_difficulty,
+                    transaction_detail_flag,
+                )
             },
         )
         .transpose()
@@ -70,11 +84,14 @@ fn block_by_number(
     data: &ProviderData,
     block_spec: &BlockSpec,
 ) -> Result<Option<BlockAndTotalDifficulty>, ProviderError> {
+    validate_post_merge_block_tags(data.spec_id(), block_spec)?;
+
     match data.block_by_block_spec(block_spec) {
         Ok(Some(block)) => {
             let total_difficulty = data.total_difficulty_by_hash(block.hash())?;
             Ok(Some(BlockAndTotalDifficulty {
                 block,
+                pending: false,
                 total_difficulty,
             }))
         }
@@ -91,6 +108,7 @@ fn block_by_number(
 
             Ok(Some(BlockAndTotalDifficulty {
                 block,
+                pending: true,
                 total_difficulty: Some(total_difficulty),
             }))
         }
@@ -102,6 +120,7 @@ fn block_by_number(
 fn block_to_rpc_output(
     data: &ProviderData,
     block: Arc<dyn SyncBlock<Error = BlockchainError>>,
+    pending: bool,
     total_difficulty: Option<U256>,
     transaction_detail_flag: bool,
 ) -> Result<eth::Block<HashOrTransaction>, ProviderError> {
@@ -132,6 +151,10 @@ fn block_to_rpc_output(
             .collect()
     };
 
+    let mix_hash = if pending { None } else { Some(header.mix_hash) };
+    let nonce = if pending { None } else { Some(header.nonce) };
+    let number = if pending { None } else { Some(header.number) };
+
     Ok(eth::Block {
         hash: Some(*block.hash()),
         parent_hash: header.parent_hash,
@@ -139,7 +162,7 @@ fn block_to_rpc_output(
         state_root: header.state_root,
         transactions_root: header.transactions_root,
         receipts_root: header.receipts_root,
-        number: Some(header.number),
+        number,
         gas_used: header.gas_used,
         gas_limit: header.gas_limit,
         extra_data: header.extra_data.clone(),
@@ -150,8 +173,8 @@ fn block_to_rpc_output(
         uncles: block.ommer_hashes().to_vec(),
         transactions,
         size: block.rlp_size(),
-        mix_hash: header.mix_hash,
-        nonce: Some(header.nonce),
+        mix_hash,
+        nonce,
         base_fee_per_gas: header.base_fee_per_gas,
         miner: Some(header.beneficiary),
         withdrawals: block

@@ -17,8 +17,8 @@ use edr_evm::{blockchain::BlockchainError, PendingTransaction, SyncBlock};
 use crate::{
     data::{BlockDataForTransaction, ProviderData, TransactionAndBlock},
     requests::validation::{
-        validate_eip3860_max_initcode_size, validate_transaction_and_call_request,
-        validate_transaction_spec,
+        validate_eip3860_max_initcode_size, validate_post_merge_block_tags,
+        validate_transaction_and_call_request, validate_transaction_spec,
     },
     ProviderError,
 };
@@ -43,6 +43,8 @@ pub fn handle_get_transaction_by_block_spec_and_index(
     block_spec: PreEip1898BlockSpec,
     index: U256,
 ) -> Result<Option<remote::eth::Transaction>, ProviderError> {
+    validate_post_merge_block_tags(data.spec_id(), &block_spec)?;
+
     let index = rpc_index_to_usize(&index)?;
 
     match data.block_by_block_spec(&block_spec.into()) {

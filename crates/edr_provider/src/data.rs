@@ -123,10 +123,9 @@ impl ProviderData {
             fork_metadata,
             state,
             irregular_state,
+            prev_randao_generator: mix_hash_generator,
             next_block_base_fee_per_gas,
         } = create_blockchain_and_state(runtime_handle.clone(), &config, genesis_accounts)?;
-
-        let prev_randao_generator = RandomHashGenerator::with_seed("randomMixHashSeed");
 
         let allow_blocks_with_same_timestamp = config.allow_blocks_with_same_timestamp;
         let allow_unlimited_contract_size = config.allow_unlimited_contract_size;
@@ -145,7 +144,7 @@ impl ProviderData {
             mem_pool: MemPool::new(block_gas_limit),
             beneficiary,
             min_gas_price,
-            prev_randao_generator,
+            prev_randao_generator: mix_hash_generator,
             block_time_offset_seconds,
             fork_metadata,
             instance_id: B256::random(),
@@ -1170,11 +1169,9 @@ impl ProviderData {
     /// Mines a pending block, without modifying any values.
     pub fn mine_pending_block(&self) -> Result<MineBlockResultAndState<StateError>, ProviderError> {
         let (block_timestamp, _new_offset) = self.next_block_timestamp(None)?;
-        let prevrandao = if self.blockchain.spec_id() >= SpecId::MERGE {
-            Some(self.prev_randao_generator.seed())
-        } else {
-            None
-        };
+
+        // Mining a pending block shouldn't affect the mix hash.
+        let prevrandao = None;
 
         self.mine_block(block_timestamp, prevrandao)
     }
@@ -1357,6 +1354,7 @@ struct BlockchainAndState {
     fork_metadata: Option<ForkMetadata>,
     state: Box<dyn SyncState<StateError>>,
     irregular_state: IrregularState,
+    prev_randao_generator: RandomHashGenerator,
     next_block_base_fee_per_gas: Option<U256>,
 }
 
@@ -1367,9 +1365,11 @@ fn create_blockchain_and_state(
 ) -> Result<BlockchainAndState, CreationError> {
     let mut irregular_state = IrregularState::default();
 
+    let mut prev_randao_generator = RandomHashGenerator::with_seed(edr_defaults::MIX_HASH_SEED);
+
     if let Some(fork_config) = &config.fork {
         let state_root_generator = Arc::new(parking_lot::Mutex::new(
-            RandomHashGenerator::with_seed("seed"),
+            RandomHashGenerator::with_seed(edr_defaults::MIX_HASH_SEED),
         ));
 
         let rpc_client = RpcClient::new(&fork_config.json_rpc_url, config.cache_dir.clone());
@@ -1445,6 +1445,7 @@ fn create_blockchain_and_state(
             blockchain: Box::new(blockchain),
             state: Box::new(state),
             irregular_state,
+            prev_randao_generator,
             // There is no genesis block in a forked blockchain, so we incorporate the initial base
             // fee per gas as the next base fee value.
             next_block_base_fee_per_gas: config.initial_base_fee_per_gas,
@@ -1460,7 +1461,7 @@ fn create_blockchain_and_state(
                     .expect("initial date must be after UNIX epoch")
                     .as_secs()
             }),
-            Some(RandomHashGenerator::with_seed("seed").next_value()),
+            Some(prev_randao_generator.next_value()),
             config.initial_base_fee_per_gas,
             config.initial_blob_gas.clone(),
             config.initial_parent_beacon_block_root,
@@ -1475,6 +1476,7 @@ fn create_blockchain_and_state(
             blockchain: Box::new(blockchain),
             state,
             irregular_state,
+            prev_randao_generator,
             // For local blockchain the initial base fee per gas config option is incorporated as
             // part of the genesis block.
             next_block_base_fee_per_gas: None,
@@ -1487,6 +1489,8 @@ fn create_blockchain_and_state(
 pub struct BlockAndTotalDifficulty {
     /// The block
     pub block: Arc<dyn SyncBlock<Error = BlockchainError>>,
+    /// Whether the block is a pending block.
+    pub pending: bool,
     /// The total difficulty with the block
     pub total_difficulty: Option<U256>,
 }

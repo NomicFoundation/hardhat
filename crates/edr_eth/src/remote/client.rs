@@ -753,7 +753,7 @@ impl RpcClient {
         self.call(RequestMethod::GetLogs(GetLogsInput {
             from_block,
             to_block,
-            address: *address,
+            address: Some(*address),
         }))
         .await
     }

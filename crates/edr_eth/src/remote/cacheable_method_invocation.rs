@@ -300,7 +300,7 @@ struct CacheableGetLogsInput<'a> {
     /// The to block argument
     to_block: CacheableBlockSpec<'a>,
     /// The address
-    address: &'a Address,
+    address: &'a Option<Address>,
 }
 
 /// Error type for [`CacheableBlockSpec::try_from`].
@@ -564,8 +564,11 @@ impl Hasher {
         let this = self
             .hash_block_spec(from_block)?
             .hash_block_spec(to_block)?
-            .hash_bytes(address);
-        Ok(this)
+            .hash_u8(address.cache_key_variant());
+        match address {
+            Some(address) => Ok(this.hash_address(address)),
+            None => Ok(this),
+        }
     }
 
     // Allow to keep same structure as other RequestMethod and other methods.
@@ -715,7 +718,7 @@ mod test {
     fn test_get_logs_input_from_to_matters() {
         let from = CacheableBlockSpec::Number { block_number: 1 };
         let to = CacheableBlockSpec::Number { block_number: 2 };
-        let address = Address::default();
+        let address = Some(Address::default());
 
         let hash_one = Hasher::new()
             .hash_get_logs_input(&CacheableGetLogsInput {

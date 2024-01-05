@@ -339,10 +339,9 @@ pub struct Block<TX> {
     /// the length of the RLP encoding of this block in bytes
     #[serde(with = "crate::serde::u64")]
     pub size: u64,
-    /// mix hash
-    pub mix_hash: B256,
+    /// Mix hash. None when it's a pending block.
+    pub mix_hash: Option<B256>,
     /// hash of the generated proof-of-work. null when its pending block.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub nonce: Option<B64>,
     /// base fee per gas
     #[serde(skip_serializing_if = "Option::is_none")]

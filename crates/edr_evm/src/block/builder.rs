@@ -272,8 +272,6 @@ impl BlockBuilder {
                                     .state_root()
                                     .expect("Must be able to calculate state root"),
                             }
-                        } else if self.cfg.spec_id < SpecId::BERLIN {
-                            todo!()
                         } else {
                             TypedReceiptData::PostEip658Legacy { status }
                         }

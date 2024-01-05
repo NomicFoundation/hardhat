@@ -9,8 +9,8 @@ use edr_evm::{
     blockchain::BlockchainError,
     hex,
     state::{AccountOverrideConversionError, StateError},
-    BlockTransactionError, Halt, InvalidTransaction, MineBlockError, MinerTransactionError,
-    OutOfGasError, TransactionCreationError, TransactionError,
+    Halt, MineBlockError, MinerTransactionError, OutOfGasError, TransactionCreationError,
+    TransactionError,
 };
 
 use crate::data::CreationError;
@@ -67,6 +67,8 @@ pub enum ProviderError {
         expected: SubscriptionType,
         actual: SubscriptionType,
     },
+    #[error("{0}")]
+    InvalidInput(String),
     /// Invalid transaction index
     #[error("Transaction index '{0}' is too large")]
     InvalidTransactionIndex(U256),
@@ -145,7 +147,6 @@ pub enum ProviderError {
 
 impl From<ProviderError> for jsonrpc::Error {
     fn from(value: ProviderError) -> Self {
-        dbg!(&value);
         #[allow(clippy::match_same_arms)]
         let (code, data) = match &value {
             ProviderError::AccountOverrideConversionError(_) => (-32000, None),
@@ -161,6 +162,7 @@ impl From<ProviderError> for jsonrpc::Error {
             ProviderError::InvalidBlockTag { .. } => (-32602, None),
             ProviderError::InvalidChainId { .. } => (-32602, None),
             ProviderError::InvalidFilterSubscriptionType { .. } => (-32602, None),
+            ProviderError::InvalidInput(_) => (-32000, None),
             ProviderError::InvalidTransactionIndex(_) => (-32602, None),
             ProviderError::InvalidTransactionInput(_) => (-32000, None),
             ProviderError::InvalidTransactionType(_) => (-32602, None),
