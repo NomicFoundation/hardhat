@@ -3,9 +3,7 @@ mod common;
 use edr_eth::{
     remote::{
         eth::{eip712, CallRequest, GetLogsInput},
-        filter::{
-            FilterBlockTarget, FilterOptions, LogOutput, OneOrMoreAddresses, SubscriptionType,
-        },
+        filter::{FilterCriteriaOptions, LogOutput, OneOrMore, SubscriptionType},
         BlockSpec, BlockTag, PreEip1898BlockSpec,
     },
     transaction::EthTransactionRequest,
@@ -279,13 +277,12 @@ fn test_serde_eth_new_block_filter() {
 
 #[test]
 fn test_serde_eth_new_filter() {
-    help_test_method_invocation_serde(MethodInvocation::NewFilter(FilterOptions {
-        block_target: Some(FilterBlockTarget::Range {
-            from: Some(BlockSpec::Number(1000)),
-            to: Some(BlockSpec::latest()),
-        }),
-        addresses: Some(OneOrMoreAddresses::One(Address::from(U160::from(1)))),
-        topics: Some(vec![B256::from(U256::from(1))]),
+    help_test_method_invocation_serde(MethodInvocation::NewFilter(FilterCriteriaOptions {
+        from_block: Some(BlockSpec::Number(1000)),
+        to_block: Some(BlockSpec::latest()),
+        block_hash: None,
+        addresses: Some(OneOrMore::One(Address::from(U160::from(1)))),
+        topics: OneOrMore::One(Some(B256::from(U256::from(1)))),
     }));
 }
 
@@ -409,18 +406,9 @@ fn test_serde_log_output() {
 }
 
 #[test]
-fn test_serde_filter_block_target() {
-    help_test_serde_value(FilterBlockTarget::Hash(B256::from(U256::from(1))));
-    help_test_serde_value(FilterBlockTarget::Range {
-        from: Some(BlockSpec::latest()),
-        to: Some(BlockSpec::latest()),
-    });
-}
-
-#[test]
 fn test_serde_one_or_more_addresses() {
-    help_test_serde_value(OneOrMoreAddresses::One(Address::from(U160::from(1))));
-    help_test_serde_value(OneOrMoreAddresses::Many(vec![
+    help_test_serde_value(OneOrMore::One(Address::from(U160::from(1))));
+    help_test_serde_value(OneOrMore::Many(vec![
         Address::from(U160::from(1)),
         Address::from(U160::from(1)),
     ]));

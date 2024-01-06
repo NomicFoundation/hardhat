@@ -46,7 +46,7 @@ use tokio::runtime;
 use self::account::{create_accounts, InitialAccounts};
 use crate::{
     error::TransactionFailure,
-    filter::Filter,
+    filter::{Filter, FilterCriteria, FilterData},
     logger::Logger,
     pending::BlockchainWithPending,
     requests::hardhat::rpc_types::{ForkConfig, ForkMetadata},
@@ -241,6 +241,44 @@ impl ProviderData {
         self.blockchain.last_block_number()
     }
 
+    /// Adds a filter for new blocks to the provider.
+    pub fn add_block_filter<const IS_SUBSCRIPTION: bool>(&mut self) -> Result<U256, ProviderError> {
+        let block_hash = *self.last_block()?.hash();
+
+        let filter_id = self.next_filter_id();
+        self.filters.insert(
+            filter_id,
+            Filter::new_block_filter(block_hash, IS_SUBSCRIPTION),
+        );
+
+        Ok(filter_id)
+    }
+
+    /// Adds a filter for new logs to the provider.
+    pub fn add_log_filter<const IS_SUBSCRIPTION: bool>(
+        &mut self,
+        criteria: FilterCriteria,
+    ) -> Result<U256, ProviderError> {
+        let logs = todo!();
+
+        let filter_id = self.next_filter_id();
+        self.filters.insert(
+            filter_id,
+            Filter::new_log_filter(criteria, logs, IS_SUBSCRIPTION),
+        );
+        Ok(filter_id)
+    }
+
+    /// Adds a filter for new pending transactions to the provider.
+    pub fn add_pending_transaction_filter<const IS_SUBSCRIPTION: bool>(&mut self) -> U256 {
+        let filter_id = self.next_filter_id();
+        self.filters.insert(
+            filter_id,
+            Filter::new_pending_transaction_filter(IS_SUBSCRIPTION),
+        );
+        filter_id
+    }
+
     /// Fetch a block by block spec.
     /// Returns `None` if the block spec is `pending`.
     /// Returns `ProviderError::InvalidBlockSpec` error if the block spec is a
@@ -405,7 +443,7 @@ impl ProviderData {
                     Err(ProviderError::InvalidFilterSubscriptionType {
                         filter_id: *filter_id,
                         expected: SubscriptionType::Logs,
-                        actual: filter.events.subscription_type(),
+                        actual: filter.data.subscription_type(),
                     })
                 }
             })
@@ -629,18 +667,6 @@ impl ProviderData {
 
     pub fn network_id(&self) -> String {
         self.initial_config.network_id.to_string()
-    }
-
-    pub fn new_pending_transaction_filter(&mut self) -> U256 {
-        let filter_id = self.next_filter_id();
-        self.filters.insert(
-            filter_id,
-            Filter::new(
-                FilteredEvents::NewPendingTransactions(Vec::new()),
-                /* is_subscription */ false,
-            ),
-        );
-        filter_id
     }
 
     /// Calculates the next block's base fee per gas.
@@ -1204,8 +1230,12 @@ impl ProviderData {
         self.mem_pool.add_transaction(&self.state, transaction)?;
 
         for filter in self.filters.values_mut() {
-            if let FilteredEvents::NewPendingTransactions(events) = &mut filter.events {
+            if let FilterData::NewPendingTransactions(events) = &mut filter.data {
                 events.push(transaction_hash);
+
+                if filter.is_subscription {
+                    // TODO: call callback _emitEthEvent
+                }
             }
         }
 
@@ -1637,26 +1667,6 @@ fn create_blockchain_and_state(
             None
         };
 
-        let next_block_base_fee_per_gas = if config.hardfork >= SpecId::LONDON {
-            if let Some(base_fee) = config.initial_base_fee_per_gas {
-                Some(base_fee)
-            } else {
-                let previous_base_fee = blockchain
-                    .last_block()
-                    .map_err(CreationError::Blockchain)?
-                    .header()
-                    .base_fee_per_gas;
-
-                if previous_base_fee.is_none() {
-                    Some(U256::from(DEFAULT_INITIAL_BASE_FEE_PER_GAS))
-                } else {
-                    None
-                }
-            }
-        } else {
-            None
-        };
-
         Ok(BlockchainAndState {
             fork_metadata: Some(ForkMetadata {
                 chain_id: blockchain.chain_id(),
@@ -1930,7 +1940,9 @@ mod tests {
         fixture: &mut ProviderTestFixture,
         transaction: PendingTransaction,
     ) -> anyhow::Result<()> {
-        let filter_id = fixture.provider_data.new_pending_transaction_filter();
+        let filter_id = fixture
+            .provider_data
+            .add_pending_transaction_filter::<false>();
 
         let transaction_hash = fixture.provider_data.add_pending_transaction(transaction)?;
 

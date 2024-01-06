@@ -2,40 +2,30 @@ use std::mem::take;
 
 use crate::{remote::BlockSpec, Address, Bytes, B256, U256};
 
-/// used to specify addresses for [`FilterOptions`]
+/// A type that can be used to pass either one or many objects to a JSON-RPC
+/// request
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
-pub enum OneOrMoreAddresses {
-    /// one address
-    One(Address),
-    /// a collection of addresses
-    Many(Vec<Address>),
-}
-
-/// used to specify the target block(s) for [`FilterOptions`]
-#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
-pub enum FilterBlockTarget {
-    /// a range of blocks
-    Range {
-        /// beginning of the range
-        from: Option<BlockSpec>,
-        /// end of the range
-        to: Option<BlockSpec>,
-    },
-    /// a single block, specified by its hash
-    Hash(B256),
+pub enum OneOrMore<T> {
+    /// one object
+    One(T),
+    /// a collection of objects
+    Many(Vec<T>),
 }
 
 /// for specifying the inputs to `eth_newFilter`
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct FilterOptions {
-    /// block target
-    #[serde(flatten)]
-    pub block_target: Option<FilterBlockTarget>,
+pub struct FilterCriteriaOptions {
+    /// beginning of a range of blocks
+    pub from_block: Option<BlockSpec>,
+    /// end of a range of blocks
+    pub to_block: Option<BlockSpec>,
+    /// a single block, specified by its hash
+    pub block_hash: Option<B256>,
     /// addresses
-    pub addresses: Option<OneOrMoreAddresses>,
+    pub addresses: Option<OneOrMore<Address>>,
     /// topics
-    pub topics: Option<Vec<B256>>,
+    pub topics: OneOrMore<Option<B256>>,
 }
 
 /// represents the output of `eth_getFilterLogs` and `eth_getFilterChanges` when

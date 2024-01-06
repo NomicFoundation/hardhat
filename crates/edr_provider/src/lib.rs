@@ -215,10 +215,10 @@ impl Provider {
                 eth::handle_net_version_request(data).and_then(to_json)
             }
             MethodInvocation::NewBlockFilter(()) => {
-                Err(ProviderError::Unimplemented("NewBlockFilter".to_string()))
+                eth::handle_new_block_filter_request(data).and_then(to_json)
             }
-            MethodInvocation::NewFilter(_) => {
-                Err(ProviderError::Unimplemented("NewFilter".to_string()))
+            MethodInvocation::NewFilter(criteria) => {
+                eth::handle_new_log_filter_request(data, criteria).and_then(to_json)
             }
             MethodInvocation::NewPendingTransactionFilter(()) => {
                 eth::handle_new_pending_transaction_filter_request(data).and_then(to_json)
