@@ -79,4 +79,8 @@ describe("Addressable matcher", () => {
         }
       });
     }
+
+  it("should accept other typed objects", async function () {
+    expect(2).to.equal(ethers.Typed.uint256(2));
+  });
 });
