@@ -1,4 +1,5 @@
-import { isAddress, isAddressable, Typed } from "ethers";
+import { isAddress, isAddressable } from "ethers";
+import { tryDereference } from "./typed";
 
 export function supportAddressable(
   Assertion: Chai.AssertionStatic,
@@ -26,7 +27,7 @@ function override(
 // so we are looking for a sync way of getting the address. If an address was recovered, it is returned as a string,
 // otherwise undefined is returned.
 function tryGetAddressSync(value: any): string | undefined {
-  value = Typed.dereference(value, "address");
+  value = tryDereference(value, "address");
   if (isAddress(value)) {
     return value;
   } else if (isAddressable(value)) {

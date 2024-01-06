@@ -81,6 +81,8 @@ describe("Addressable matcher", () => {
     }
 
   it("should accept other typed objects", async function () {
-    expect(2).to.equal(ethers.Typed.uint256(2));
+    expect(() => {
+      expect(2).to.equal(ethers.Typed.uint256(2));
+    }).to.throw("expected 2 to equal");
   });
 });
