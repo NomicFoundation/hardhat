@@ -26,7 +26,7 @@ For our first test we’ll deploy the `Lock` contract and assert that the unlock
 
 ```tsx
 import { expect } from "chai";
-import hre from "hardhat";
+import {ethers} from "hardhat";
 import { time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
 describe("Lock", function () {
