@@ -705,7 +705,7 @@ export class Receipt {
   /**Returns the bloom filter of the receipt's logs. */
   get logsBloom(): Buffer
   /**Returns the effective gas price of the receipt's transaction. */
-  get effectiveGasPrice(): bigint
+  get effectiveGasPrice(): bigint | null
   /**
    *Returns the state root of the receipt, if any.
    *Only available for pre-Byzantium receipts. For Byzantium receipts, use `status` instead.

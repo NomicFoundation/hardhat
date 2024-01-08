@@ -667,8 +667,6 @@ describe("Eth module - hardfork dependant tests", function () {
             [tx]
           );
 
-          console.log(receipt);
-
           assert.isDefined(receipt.status);
           assert.isUndefined(receipt.root);
           assert.isUndefined(receipt.type);

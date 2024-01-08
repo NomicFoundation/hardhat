@@ -130,7 +130,7 @@ impl LocalBlockchain {
 
         Ok(unsafe {
             Self::with_genesis_block_unchecked(
-                LocalBlock::empty(partial_header),
+                LocalBlock::empty(spec_id, partial_header),
                 genesis_diff,
                 chain_id,
                 spec_id,

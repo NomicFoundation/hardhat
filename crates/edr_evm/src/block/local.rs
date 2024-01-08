@@ -13,7 +13,7 @@ use edr_eth::{
 use itertools::izip;
 use revm::primitives::keccak256;
 
-use crate::{blockchain::BlockchainError, Block, SyncBlock};
+use crate::{blockchain::BlockchainError, Block, SpecId, SyncBlock};
 
 /// A locally mined block, which contains complete information.
 #[derive(Clone, Debug, PartialEq, Eq, RlpEncodable)]
@@ -35,14 +35,20 @@ pub struct LocalBlock {
 
 impl LocalBlock {
     /// Constructs an empty block, i.e. no transactions.
-    pub fn empty(partial_header: PartialHeader) -> Self {
+    pub fn empty(spec_id: SpecId, partial_header: PartialHeader) -> Self {
+        let withdrawals = if spec_id >= SpecId::SHANGHAI {
+            Some(Vec::default())
+        } else {
+            None
+        };
+
         Self::new(
             partial_header,
             Vec::new(),
             Vec::new(),
             Vec::new(),
             Vec::new(),
-            None,
+            withdrawals,
         )
     }
 
@@ -182,6 +188,7 @@ fn transaction_to_block_receipts(
                             })
                             .collect(),
                         data: receipt.inner.data,
+                        spec_id: receipt.inner.spec_id,
                     },
                     transaction_hash: receipt.transaction_hash,
                     transaction_index,
