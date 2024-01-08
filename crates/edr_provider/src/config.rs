@@ -4,7 +4,7 @@ use edr_eth::{block::BlobGas, AccountInfo, Address, HashMap, SpecId, B256, U256}
 use edr_evm::MineOrdering;
 use rand::Rng;
 
-use crate::requests::hardhat::rpc_types::ForkConfig;
+use crate::{requests::hardhat::rpc_types::ForkConfig, OneUsizeOrTwo};
 
 /// Configuration for interval mining.
 #[derive(Debug, Clone)]
@@ -19,6 +19,18 @@ impl IntervalConfig {
         match self {
             IntervalConfig::Fixed(interval) => *interval,
             IntervalConfig::Range { min, max } => rand::thread_rng().gen_range(*min..=*max),
+        }
+    }
+}
+
+impl From<OneUsizeOrTwo> for IntervalConfig {
+    fn from(value: OneUsizeOrTwo) -> Self {
+        match value {
+            OneUsizeOrTwo::One(value) => Self::Fixed(value as u64),
+            OneUsizeOrTwo::Two([min, max]) => Self::Range {
+                min: min as u64,
+                max: max as u64,
+            },
         }
     }
 }

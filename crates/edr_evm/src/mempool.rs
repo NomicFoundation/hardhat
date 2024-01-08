@@ -540,6 +540,11 @@ pub fn account_next_nonce<StateT: StateRef + ?Sized>(
     )
 }
 
+/// Whether the mempool has any transactions.
+pub fn has_transactions(mem_pool: &MemPool) -> bool {
+    mem_pool.has_future_transactions() || mem_pool.has_pending_transactions()
+}
+
 fn validate_replacement_transaction<StateError>(
     old_transaction: &PendingTransaction,
     new_transaction: &PendingTransaction,

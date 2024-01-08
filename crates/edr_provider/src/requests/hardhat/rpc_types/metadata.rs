@@ -21,6 +21,7 @@ pub struct Metadata {
     pub latest_block_hash: B256,
     /// This field is only present when Hardhat Network is forking another
     /// chain.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub forked_network: Option<ForkMetadata>,
 }
 

@@ -17,3 +17,20 @@ pub fn handle_interval_mine_request(data: &mut ProviderData) -> Result<bool, Pro
 
     Ok(true)
 }
+
+pub fn handle_mine(
+    data: &mut ProviderData,
+    number_of_blocks: Option<u64>,
+    interval: Option<u64>,
+) -> Result<bool, ProviderError> {
+    let number_of_blocks = number_of_blocks.unwrap_or(1);
+    let interval = interval.unwrap_or(1);
+
+    let mined_block_results = data.mine_and_commit_blocks(number_of_blocks, interval)?;
+
+    for (_idx, _result) in mined_block_results.into_iter().enumerate() {
+        // TODO: https://github.com/NomicFoundation/edr/issues/259
+    }
+
+    Ok(true)
+}

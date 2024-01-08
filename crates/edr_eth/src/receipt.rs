@@ -272,14 +272,10 @@ where
                 u8::from(status == 1)
             }
 
-            println!("1");
-
             let alloy_rlp::Header {
                 list,
                 payload_length,
             } = alloy_rlp::Header::decode(buf)?;
-
-            println!("2");
 
             if !list {
                 return Err(alloy_rlp::Error::UnexpectedString);

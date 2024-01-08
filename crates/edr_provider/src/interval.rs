@@ -25,7 +25,7 @@ impl IntervalMiner {
         data: Arc<Mutex<ProviderData>>,
     ) -> Self {
         let (cancellation_sender, mut cancellation_receiver) = oneshot::channel();
-        let background_task = tokio::spawn(async move {
+        let background_task = runtime.spawn(async move {
             loop {
                 let delay = config.generate_interval();
 
