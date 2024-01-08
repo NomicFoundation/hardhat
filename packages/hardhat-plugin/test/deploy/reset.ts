@@ -1,6 +1,7 @@
 import { status } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
+import { HardhatArtifactResolver } from "../../src/hardhat-artifact-resolver";
 import { useFileIgnitionProject } from "../test-helpers/use-ignition-project";
 
 describe("reset flag", function () {
@@ -27,7 +28,8 @@ describe("reset flag", function () {
       }
     );
 
-    const result = await status(this.deploymentDir!);
+    const artifactResolver = new HardhatArtifactResolver(this.hre);
+    const result = await status(this.deploymentDir!, artifactResolver);
 
     // ResetModule#B will only be in the success list if the second
     // run ran without any reconciliation errors - so the retry
