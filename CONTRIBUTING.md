@@ -4,7 +4,7 @@ This document contains some tips on how to collaborate in this project.
 
 ## Filing an issue
 
-If you find a bug or want to propose a new feature, please open an issue. Pull requests are welcome, but we recommend you discuss it in an issue first, especially for big changes. This will increase the odds that we can accept your PR.
+If you find a bug or want to propose a new feature, please [open an issue](https://github.com/nomicfoundation/hardhat-ignition/issues/new). Pull requests are welcome, but we recommend you discuss it in an issue first, especially for big changes. This will increase the odds that we can accept your PR.
 
 ## Project Structure
 
@@ -60,11 +60,25 @@ npm run lint
 
 ## Clean
 
-If typescript or testing gets into a weird state, `clean` will remove ephemeral folders (i.e. `./dist`, `./coverage` etc) and clear the typescript build info cache, allowing you to start from clean:
+If typescript or testing gets into a weird state, `clean` will remove ephemeral folders (i.e. `./dist`, `./coverage` etc) and clear the typescript build info cache, allowing you to start from a clean slate:
 
 ```shell
 npm run clean
 ```
+
+## Branching
+
+We work on two branches, [main](https://github.com/nomicfoundation/hardhat-ignition/tree/main) and [development](https://github.com/nomicfoundation/hardhat-ignition/tree/development).
+
+The development branch is the default branch. It's where we merge all pull requests and is the branch that all contributing PRs should be based on.
+
+The main branch is meant to be kept in sync with the latest released version of each package. It's where we publish new releases from, and should only be merged into when a new release is being made.
+
+### Documentation
+
+Ignition's documentation lives inside the [main Hardhat repo](https://github.com/nomicfoundation/hardhat/tree/main). If your change requires a documentation change, please submit a separate PR to the Hardhat repo, following their contributing guidelines, and link to it from your PR.
+
+If you are working purely on the documentation, not as a result of a technical change, you should submit a PR to the Hardhat repo directly.
 
 ## Publish
 
