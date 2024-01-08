@@ -1,6 +1,10 @@
-use edr_eth::{Address, U64};
+use edr_eth::{Address, U256, U64};
 
 use crate::{data::ProviderData, ProviderError};
+
+pub fn handle_gas_price(data: &ProviderData) -> Result<U256, ProviderError> {
+    data.gas_price()
+}
 
 pub fn handle_coinbase_request(data: &ProviderData) -> Result<Address, ProviderError> {
     Ok(data.coinbase())
