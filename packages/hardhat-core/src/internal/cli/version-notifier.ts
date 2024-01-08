@@ -1,15 +1,16 @@
 import type { request as RequestT } from "undici";
 
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import semver from "semver";
 
 import { getCacheDir } from "../util/global-dir";
+import { getHardhatVersion } from "../util/packageInfo";
 
 const GITHUB_API_URL = "https://api.github.com";
-const GITHUB_OWNER = "schaable"; // CHANGEME: "NomicFoundation";
-const GITHUB_REPO = "fake-hh"; // CHANGEME: "hardhat";
-const V3_RELEASE_TAG = "fake-hh@1.0.0"; // CHANGEME: "hardhat@3.0.0";
+const GITHUB_OWNER = "NomicFoundation";
+const GITHUB_REPO = "hardhat";
+const V3_RELEASE_TAG = "hardhat@3.0.0";
 const V3_RELEASE_VERSION_NOTIFIER_ASSET_NAME = "version-notifier-message.txt";
 const V3_RELEASE_MAX_TIMES_SHOWN = 5;
 
@@ -47,11 +48,7 @@ export async function showNewVersionNotification() {
     return;
   }
 
-  const projectVersion = await getProjectHardhatVersion();
-
-  if (projectVersion === null) {
-    return;
-  }
+  const hardhatVersion = getHardhatVersion();
 
   const releases = await getReleases();
 
@@ -65,7 +62,7 @@ export async function showNewVersionNotification() {
     return (
       packageName === GITHUB_REPO &&
       semver.valid(packageVersion) !== null &&
-      semver.major(packageVersion) === 0 // CHANGEME: 2
+      semver.major(packageVersion) === 2
     );
   });
 
@@ -79,7 +76,7 @@ export async function showNewVersionNotification() {
   if (latestV2Release !== undefined) {
     const releaseVersion = semver.valid(latestV2Release.tag_name.split("@")[1]);
 
-    if (releaseVersion !== null && semver.gt(releaseVersion, projectVersion)) {
+    if (releaseVersion !== null && semver.gt(releaseVersion, hardhatVersion)) {
       console.log(
         `There's a new version of ${GITHUB_REPO} available: ${releaseVersion}! Run "npm i ${GITHUB_REPO}@${releaseVersion}" to update.\n`
       );
@@ -89,7 +86,7 @@ export async function showNewVersionNotification() {
   if (v3Release !== undefined) {
     const releaseVersion = semver.valid(v3Release.tag_name.split("@")[1]);
 
-    if (releaseVersion !== null && semver.gt(releaseVersion, projectVersion)) {
+    if (releaseVersion !== null) {
       if (cache.v3TimesShown < V3_RELEASE_MAX_TIMES_SHOWN) {
         cache.v3ReleaseMessage =
           cache.v3ReleaseMessage ?? (await getV3ReleaseMessage(v3Release));
@@ -141,26 +138,6 @@ async function writeCache(cache: VersionNotifierCache) {
   } catch (error) {
     // We don't care if it fails
   }
-}
-
-async function getProjectHardhatVersion(): Promise<string | null> {
-  const packageJsonPath = resolve(__dirname, "../../../..", "package.json");
-  let packageJson: {
-    dependencies?: Record<string, string>;
-    devDependencies?: Record<string, string>;
-  } = {};
-  try {
-    packageJson = JSON.parse(await readFile(packageJsonPath, "utf-8"));
-  } catch (error) {
-    return null;
-  }
-
-  const versionRange =
-    packageJson?.dependencies?.["fake-hh"] ??
-    packageJson?.devDependencies?.["fake-hh"];
-  // CHANGEME: packageJson?.dependencies?.hardhat ?? packageJson?.devDependencies?.hardhat;
-
-  return semver.valid(semver.coerce(versionRange));
 }
 
 async function getReleases(): Promise<Release[]> {
