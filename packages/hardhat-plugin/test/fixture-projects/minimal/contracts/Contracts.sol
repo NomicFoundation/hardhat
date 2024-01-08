@@ -58,8 +58,16 @@ contract StaticCallValue {
 contract EventArgValue {
   event EventValue(uint256 value);
 
+  bool public argWasValidated;
+
   constructor() {
     emit EventValue(42);
+  }
+
+  function validateEmitted(uint256 arg) public {
+    argWasValidated = true;
+
+    require(arg == 42, "arg is wrong");
   }
 }
 
@@ -211,6 +219,10 @@ contract SendDataEmitter {
   bool public wasEmitted;
 
   receive() external payable {
+    emit SendDataEvent(true);
+  }
+
+  function emitEvent() public {
     emit SendDataEvent(true);
   }
 

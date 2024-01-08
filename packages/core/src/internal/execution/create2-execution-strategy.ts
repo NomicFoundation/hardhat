@@ -158,7 +158,7 @@ export class Create2ExecutionStrategy implements ExecutionStrategy {
       // check if someone else has deployed CreateX on this chain
       const result = await this._provider.request({
         method: "eth_getCode",
-        params: [existingDeployedAddress],
+        params: [CREATE_X_ADDRESS],
       });
 
       assertIgnitionInvariant(
@@ -166,7 +166,7 @@ export class Create2ExecutionStrategy implements ExecutionStrategy {
         "CreateX not deployed on current network"
       );
 
-      this._createXAddress = existingDeployedAddress;
+      this._createXAddress = CREATE_X_ADDRESS;
 
       return;
     }
