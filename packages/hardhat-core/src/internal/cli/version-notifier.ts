@@ -2,6 +2,7 @@ import type { request as RequestT } from "undici";
 
 import boxen from "boxen";
 import chalk from "chalk";
+import fsExtra from "fs-extra";
 import { join } from "node:path";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import semver from "semver";
@@ -15,6 +16,7 @@ const GITHUB_REPO = "hardhat";
 const V3_RELEASE_TAG = "hardhat@3.0.0";
 const V3_RELEASE_VERSION_NOTIFIER_ASSET_NAME = "version-notifier-message.txt";
 const V3_RELEASE_MAX_TIMES_SHOWN = 5;
+const CURRENT_HARDHAT_MAJOR_VERSION = 2;
 
 const boxenOptions = {
   padding: 1,
@@ -60,57 +62,80 @@ export async function showNewVersionNotification() {
 
   const releases = await getReleases();
 
-  const latestV2Release = releases.find((release) => {
-    if (release.draft || release.prerelease) {
-      return false;
-    }
+  const sortedV2Versions = releases
+    // filter and map releases to versions
+    .flatMap((release) => {
+      const [packageName, rawPackageVersion] = release.tag_name.split("@");
 
-    const [packageName, packageVersion] = release.tag_name.split("@");
+      const packageVersion = semver.valid(rawPackageVersion);
 
-    return (
-      packageName === GITHUB_REPO &&
-      semver.valid(packageVersion) !== null &&
-      semver.major(packageVersion) === 2
-    );
-  });
+      // filter out a release if:
+      // - it's not a hardhat-core release
+      // - it's a draft or a prerelease
+      // - the version is invalid
+      // - the major version is not the current major
+      if (
+        packageName !== GITHUB_REPO ||
+        release.draft ||
+        release.prerelease ||
+        packageVersion === null ||
+        semver.major(packageVersion) !== CURRENT_HARDHAT_MAJOR_VERSION
+      ) {
+        return [];
+      }
+
+      return [packageVersion];
+    })
+    // sort in descending order by version
+    .sort((releaseAVersion, releaseBVersion) => {
+      return semver.rcompare(releaseAVersion, releaseBVersion);
+    });
+
+  const latestV2Version: string | undefined = sortedV2Versions[0];
 
   const v3Release = cache.v3Release ?? (await getV3Release());
 
-  if (latestV2Release === undefined && v3Release === undefined) {
+  if (latestV2Version === undefined && v3Release === undefined) {
     // this should never happen unless the github api is down
     return;
   }
 
-  if (latestV2Release !== undefined) {
-    const releaseVersion = semver.valid(latestV2Release.tag_name.split("@")[1]);
-
-    if (releaseVersion !== null && semver.gt(releaseVersion, hardhatVersion)) {
-      console.log(
-        boxen(
-          `New Hardhat release available! ${chalk.red(
-            hardhatVersion
-          )} -> ${chalk.green(releaseVersion)}.
-
-Changelog: https://hardhat.org/release/${releaseVersion}
-
-Run "npm install hardhat@latest" to update.`,
-          boxenOptions
-        )
-      );
+  if (
+    latestV2Version !== undefined &&
+    semver.gt(latestV2Version, hardhatVersion)
+  ) {
+    let installationCommand = "npm install";
+    if (await fsExtra.pathExists("yarn.lock")) {
+      installationCommand = "yarn add";
+    } else if (await fsExtra.pathExists("pnpm-lock.yaml")) {
+      installationCommand = "pnpm install";
     }
+
+    console.log(
+      boxen(
+        `New Hardhat release available! ${chalk.red(
+          hardhatVersion
+        )} -> ${chalk.green(latestV2Version)}.
+
+Changelog: https://hardhat.org/release/${latestV2Version}
+
+Run "${installationCommand} hardhat@latest" to update.`,
+        boxenOptions
+      )
+    );
   }
 
-  if (v3Release !== undefined) {
+  if (
+    v3Release !== undefined &&
+    cache.v3TimesShown < V3_RELEASE_MAX_TIMES_SHOWN
+  ) {
     const releaseVersion = semver.valid(v3Release.tag_name.split("@")[1]);
 
     if (releaseVersion !== null) {
-      if (cache.v3TimesShown < V3_RELEASE_MAX_TIMES_SHOWN) {
-        cache.v3ReleaseMessage =
-          cache.v3ReleaseMessage ?? (await getV3ReleaseMessage(v3Release));
-        if (cache.v3ReleaseMessage !== undefined) {
-          console.log(boxen(cache.v3ReleaseMessage, boxenOptions));
-          cache.v3TimesShown++;
-        }
+      cache.v3ReleaseMessage ??= await getV3ReleaseMessage(v3Release);
+      if (cache.v3ReleaseMessage !== undefined) {
+        console.log(boxen(cache.v3ReleaseMessage, boxenOptions));
+        cache.v3TimesShown++;
       }
     }
   }
@@ -179,11 +204,6 @@ async function getReleases(): Promise<Release[]> {
   } catch (error: any) {
     // We don't care if it fails
   }
-
-  releases.sort(
-    (a, b) =>
-      new Date(b.published_at).getTime() - new Date(a.published_at).getTime()
-  );
 
   return releases;
 }
