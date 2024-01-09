@@ -49,7 +49,6 @@ import {
   isHardhatVSCodeInstalled,
 } from "./hardhat-vscode-installation";
 import { handleVars } from "./vars";
-import { showNewVersionNotification } from "./version-notifier";
 
 const log = debug("hardhat:core:cli");
 
@@ -372,6 +371,9 @@ async function main() {
       // we notify of new versions only if the tests failed
       if (process.exitCode !== 0) {
         try {
+          const { showNewVersionNotification } = await import(
+            "./version-notifier"
+          );
           await showNewVersionNotification();
         } catch {
           // ignore possible version notifier errors
