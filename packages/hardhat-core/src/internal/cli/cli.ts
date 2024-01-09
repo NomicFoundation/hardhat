@@ -371,7 +371,11 @@ async function main() {
 
       // we notify of new versions only if the tests failed
       if (process.exitCode !== 0) {
-        await showNewVersionNotification();
+        try {
+          await showNewVersionNotification();
+        } catch {
+          // ignore possible version notifier errors
+        }
       }
     }
 
