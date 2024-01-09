@@ -8,6 +8,7 @@ import {
 } from "../../../../types";
 import {
   bufferToRpcData,
+  numberToRpcQuantity,
   rpcAddress,
   rpcData,
   rpcHash,
@@ -329,7 +330,9 @@ export class HardhatModule {
     const MAX_WORD_VALUE = 2n ** 256n;
     if (positionIndex >= MAX_WORD_VALUE) {
       throw new InvalidInputError(
-        `Storage key must not be greater than or equal to 2^256. Received ${positionIndex.toString()}.`
+        `Storage key must not be greater than or equal to 2^256. Received ${numberToRpcQuantity(
+          positionIndex
+        )}.`
       );
     }
 

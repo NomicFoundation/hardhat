@@ -6,7 +6,7 @@ use std::{
     collections::BTreeMap,
     fmt::Debug,
     sync::Arc,
-    time::{Instant, SystemTime, UNIX_EPOCH},
+    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
 use edr_eth::{
@@ -34,7 +34,8 @@ use edr_evm::{
     },
     Account, AccountInfo, BlobExcessGasAndPrice, Block, BlockEnv, Bytecode, CfgEnv,
     ExecutionResult, HashMap, HashSet, MemPool, MineBlockResult, MineBlockResultAndState,
-    MineOrdering, PendingTransaction, RandomHashGenerator, StorageSlot, SyncBlock, KECCAK_EMPTY,
+    MineOrdering, OrderedTransaction, PendingTransaction, RandomHashGenerator, StorageSlot,
+    SyncBlock, KECCAK_EMPTY,
 };
 use indexmap::IndexMap;
 use inspector::EvmInspector;
@@ -53,6 +54,8 @@ use crate::{
     ProviderConfig, ProviderError,
 };
 
+const DEFAULT_INITIAL_BASE_FEE_PER_GAS: u64 = 1_000_000_000;
+
 #[derive(Debug, thiserror::Error)]
 pub enum CreationError {
     /// A blockchain error
@@ -62,7 +65,7 @@ pub enum CreationError {
     #[error(transparent)]
     ForkedBlockchainCreation(#[from] ForkedCreationError),
     /// Invalid initial date
-    #[error("The initial date configuration value {0:?} is in the future")]
+    #[error("The initial date configuration value {0:?} is before the UNIX epoch")]
     InvalidInitialDate(SystemTime),
     /// An error that occurred while constructing a local blockchain.
     #[error(transparent)]
@@ -80,7 +83,6 @@ struct BlockContext {
 pub struct ProviderData {
     runtime_handle: runtime::Handle,
     initial_config: ProviderConfig,
-
     blockchain: Box<dyn SyncBlockchain<BlockchainError, StateError>>,
     state: Box<dyn SyncState<StateError>>,
     pub irregular_state: IrregularState,
@@ -88,7 +90,7 @@ pub struct ProviderData {
     beneficiary: Address,
     min_gas_price: U256,
     prev_randao_generator: RandomHashGenerator,
-    block_time_offset_seconds: u64,
+    block_time_offset_seconds: i64,
     fork_metadata: Option<ForkMetadata>,
     instance_id: B256,
     is_auto_mining: bool,
@@ -123,7 +125,8 @@ impl ProviderData {
             fork_metadata,
             state,
             irregular_state,
-            prev_randao_generator: mix_hash_generator,
+            prev_randao_generator,
+            block_time_offset_seconds,
             next_block_base_fee_per_gas,
         } = create_blockchain_and_state(runtime_handle.clone(), &config, genesis_accounts)?;
 
@@ -131,7 +134,6 @@ impl ProviderData {
         let allow_unlimited_contract_size = config.allow_unlimited_contract_size;
         let beneficiary = config.coinbase;
         let block_gas_limit = config.block_gas_limit;
-        let block_time_offset_seconds = block_time_offset_seconds(&config)?;
         let is_auto_mining = config.mining.auto_mine;
         let min_gas_price = config.min_gas_price;
 
@@ -144,7 +146,7 @@ impl ProviderData {
             mem_pool: MemPool::new(block_gas_limit),
             beneficiary,
             min_gas_price,
-            prev_randao_generator: mix_hash_generator,
+            prev_randao_generator,
             block_time_offset_seconds,
             fork_metadata,
             instance_id: B256::random(),
@@ -356,6 +358,18 @@ impl ProviderData {
         self.beneficiary
     }
 
+    pub fn gas_price(&self) -> Result<U256, ProviderError> {
+        const PRE_EIP_1559_GAS_PRICE: u64 = 8_000_000_000;
+        const SUGGESTED_PRIORITY_FEE_PER_GAS: u64 = 1_000_000_000;
+
+        if let Some(next_block_gas_fee_per_gas) = self.next_block_base_fee_per_gas()? {
+            Ok(next_block_gas_fee_per_gas + U256::from(SUGGESTED_PRIORITY_FEE_PER_GAS))
+        } else {
+            // We return a hardcoded value for networks without EIP-1559
+            Ok(U256::from(PRE_EIP_1559_GAS_PRICE))
+        }
+    }
+
     pub fn get_code(
         &self,
         address: Address,
@@ -434,8 +448,8 @@ impl ProviderData {
         self.impersonated_accounts.insert(address);
     }
 
-    pub fn increase_block_time(&mut self, increment: u64) -> u64 {
-        self.block_time_offset_seconds += increment;
+    pub fn increase_block_time(&mut self, increment: u64) -> i64 {
+        self.block_time_offset_seconds += i64::try_from(increment).expect("increment too large");
         self.block_time_offset_seconds
     }
 
@@ -534,6 +548,88 @@ impl ProviderData {
         })
     }
 
+    /// Mines `number_of_blocks` blocks with the provided `interval` between
+    /// them.
+    pub fn mine_and_commit_blocks(
+        &mut self,
+        number_of_blocks: u64,
+        interval: u64,
+    ) -> Result<Vec<MineBlockResult<BlockchainError>>, ProviderError> {
+        // There should be at least 2 blocks left for the reservation to work,
+        // because we always mine a block after it. But here we use a bigger
+        // number to err on the side of safety.
+        const MINIMUM_RESERVABLE_BLOCKS: u64 = 6;
+
+        if number_of_blocks == 0 {
+            return Ok(Vec::new());
+        }
+
+        let mine_block_with_interval = |data: &mut ProviderData,
+                                        mined_blocks: &mut Vec<
+            MineBlockResult<BlockchainError>,
+        >|
+         -> Result<(), ProviderError> {
+            let previous_timestamp = mined_blocks
+                .last()
+                .expect("at least one block was mined")
+                .block
+                .header()
+                .timestamp;
+
+            let mined_block = data.mine_and_commit_block(Some(previous_timestamp + interval))?;
+            mined_blocks.push(mined_block);
+
+            Ok(())
+        };
+
+        // Limit the pre-allocated capacity based on the minimum reservable number of
+        // blocks to avoid too large allocations.
+        let mut mined_blocks = Vec::with_capacity(
+            usize::try_from(number_of_blocks.min(2 * MINIMUM_RESERVABLE_BLOCKS))
+                .expect("number of blocks exceeds {u64::MAX}"),
+        );
+
+        // we always mine the first block, and we don't apply the interval for it
+        mined_blocks.push(self.mine_and_commit_block(None)?);
+
+        while u64::try_from(mined_blocks.len()).expect("usize cannot be larger than u128")
+            < number_of_blocks
+            && self.mem_pool.has_pending_transactions()
+        {
+            mine_block_with_interval(self, &mut mined_blocks)?;
+        }
+
+        // If there is at least one remaining block, we mine one. This way, we
+        // guarantee that there's an empty block immediately before and after the
+        // reservation. This makes the logging easier to get right.
+        if u64::try_from(mined_blocks.len()).expect("usize cannot be larger than u128")
+            < number_of_blocks
+        {
+            mine_block_with_interval(self, &mut mined_blocks)?;
+        }
+
+        let remaining_blocks = number_of_blocks
+            - u64::try_from(mined_blocks.len()).expect("usize cannot be larger than u128");
+
+        if remaining_blocks < MINIMUM_RESERVABLE_BLOCKS {
+            for _ in 0..remaining_blocks {
+                mine_block_with_interval(self, &mut mined_blocks)?;
+            }
+        } else {
+            self.blockchain
+                .reserve_blocks(remaining_blocks - 1, interval)?;
+
+            let previous_timestamp = self.blockchain.last_block()?.header().timestamp;
+
+            let mined_block = self.mine_and_commit_block(Some(previous_timestamp + interval))?;
+            mined_blocks.push(mined_block);
+        }
+
+        mined_blocks.shrink_to_fit();
+
+        Ok(mined_blocks)
+    }
+
     pub fn network_id(&self) -> String {
         self.initial_config.network_id.to_string()
     }
@@ -623,6 +719,15 @@ impl ProviderData {
         self.remove_filter_impl::</* IS_SUBSCRIPTION */ true>(filter_id)
     }
 
+    /// Removes the transaction with the provided hash from the mem pool, if it
+    /// exists.
+    pub fn remove_pending_transaction(
+        &mut self,
+        transaction_hash: &B256,
+    ) -> Option<OrderedTransaction> {
+        self.mem_pool.remove_transaction(transaction_hash)
+    }
+
     pub fn revert_to_snapshot(&mut self, snapshot_id: u64) -> bool {
         // Ensure that, if the snapshot exists, we also remove all subsequent snapshots,
         // as they can only be used once in Ganache.
@@ -645,8 +750,8 @@ impl ProviderData {
             // We compute a new offset such that:
             // now + new_offset == snapshot_date + old_offset
             let duration_since_snapshot = Instant::now().duration_since(time);
-            self.block_time_offset_seconds =
-                block_time_offset_seconds + duration_since_snapshot.as_secs();
+            self.block_time_offset_seconds = block_time_offset_seconds
+                + i64::try_from(duration_since_snapshot.as_secs()).expect("duration too large");
 
             self.beneficiary = coinbase;
             self.blockchain
@@ -903,8 +1008,18 @@ impl ProviderData {
     }
 
     /// Sets the next block's base fee per gas.
-    pub fn set_next_block_base_fee_per_gas(&mut self, base_fee_per_gas: U256) {
+    pub fn set_next_block_base_fee_per_gas(
+        &mut self,
+        base_fee_per_gas: U256,
+    ) -> Result<(), ProviderError> {
+        let spec_id = self.spec_id();
+        if spec_id < SpecId::LONDON {
+            return Err(ProviderError::SetNextBlockBaseFeePerGasUnsupported { spec_id });
+        }
+
         self.next_block_base_fee_per_gas = Some(base_fee_per_gas);
+
+        Ok(())
     }
 
     /// Set the next block timestamp.
@@ -928,11 +1043,34 @@ impl ProviderData {
     }
 
     /// Sets the next block's prevrandao.
-    pub fn set_next_prev_randao(&mut self, prev_randao: B256) {
+    pub fn set_next_prev_randao(&mut self, prev_randao: B256) -> Result<(), ProviderError> {
+        let spec_id = self.spec_id();
+        if spec_id < SpecId::MERGE {
+            return Err(ProviderError::SetNextPrevRandaoUnsupported { spec_id });
+        }
+
         self.prev_randao_generator.set_next(prev_randao);
+
+        Ok(())
     }
 
     pub fn set_nonce(&mut self, address: Address, nonce: u64) -> Result<(), ProviderError> {
+        if mempool::has_transactions(&self.mem_pool) {
+            return Err(ProviderError::SetAccountNonceWithPendingTransactions);
+        }
+
+        let previous_nonce = self
+            .state
+            .basic(address)?
+            .map_or(0, |account| account.nonce);
+
+        if nonce < previous_nonce {
+            return Err(ProviderError::SetAccountNonceLowerThanCurrent {
+                previous: previous_nonce,
+                proposed: nonce,
+            });
+        }
+
         let account_info = self.state.modify_account(
             address,
             AccountModifierFn::new(Box::new(move |_, account_nonce, _| *account_nonce = nonce)),
@@ -971,7 +1109,16 @@ impl ProviderData {
         let old_value = self.state.set_account_storage_slot(address, index, value)?;
 
         let slot = StorageSlot::new_changed(old_value, value);
-        let account_info = self.state.basic(address)?;
+        let account_info = self.state.basic(address).and_then(|mut account_info| {
+            // Retrieve the code if it's not empty. This is needed for the irregular state.
+            if let Some(account_info) = &mut account_info {
+                if account_info.code_hash != KECCAK_EMPTY {
+                    account_info.code = Some(self.state.code_by_hash(account_info.code_hash)?);
+                }
+            }
+
+            Ok(account_info)
+        })?;
 
         let block_number = self.blockchain.last_block_number();
         let state_root = self.state.state_root()?;
@@ -1091,6 +1238,7 @@ impl ProviderData {
         } else {
             None
         };
+        evm_config.disable_eip3607 = true;
 
         Ok(evm_config)
     }
@@ -1158,7 +1306,7 @@ impl ProviderData {
             // TODO: make this configurable (https://github.com/NomicFoundation/edr/issues/111)
             MineOrdering::Fifo,
             reward,
-            self.next_block_base_fee_per_gas()?,
+            self.next_block_base_fee_per_gas,
             prevrandao,
             Some(&mut inspector),
         )?;
@@ -1181,11 +1329,14 @@ impl ProviderData {
     fn next_block_timestamp(
         &self,
         timestamp: Option<u64>,
-    ) -> Result<(u64, Option<u64>), ProviderError> {
+    ) -> Result<(u64, Option<i64>), ProviderError> {
         let latest_block = self.blockchain.last_block()?;
         let latest_block_header = latest_block.header();
 
-        let current_timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+        let current_timestamp =
+            i64::try_from(SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs())
+                .expect("timestamp too large");
+
         let (mut block_timestamp, new_offset) = if let Some(timestamp) = timestamp {
             timestamp.checked_sub(latest_block_header.timestamp).ok_or(
                 ProviderError::TimestampLowerThanPrevious {
@@ -1193,14 +1344,19 @@ impl ProviderData {
                     previous: latest_block_header.timestamp,
                 },
             )?;
-            (timestamp, Some(timestamp - current_timestamp))
+
+            let offset = i64::try_from(timestamp).expect("timestamp too large") - current_timestamp;
+            (timestamp, Some(offset))
         } else if let Some(next_block_timestamp) = self.next_block_timestamp {
-            (
-                next_block_timestamp,
-                Some(next_block_timestamp - current_timestamp),
-            )
+            let offset = i64::try_from(next_block_timestamp).expect("timestamp too large")
+                - current_timestamp;
+
+            (next_block_timestamp, Some(offset))
         } else {
-            (current_timestamp + self.block_time_offset_seconds, None)
+            let next_timestamp = u64::try_from(current_timestamp + self.block_time_offset_seconds)
+                .expect("timestamp must be positive");
+
+            (next_timestamp, None)
         };
 
         let timestamp_needs_increase = block_timestamp == latest_block_header.timestamp
@@ -1340,12 +1496,25 @@ impl ProviderData {
     }
 }
 
-fn block_time_offset_seconds(config: &ProviderConfig) -> Result<u64, CreationError> {
+fn block_time_offset_seconds(config: &ProviderConfig) -> Result<i64, CreationError> {
     config.initial_date.map_or(Ok(0), |initial_date| {
-        Ok(SystemTime::now()
-            .duration_since(initial_date)
-            .map_err(|_e| CreationError::InvalidInitialDate(initial_date))?
-            .as_secs())
+        let initial_timestamp = i64::try_from(
+            initial_date
+                .duration_since(UNIX_EPOCH)
+                .map_err(|_e| CreationError::InvalidInitialDate(initial_date))?
+                .as_secs(),
+        )
+        .expect("initial date must be representable as i64");
+
+        let current_timestamp = i64::try_from(
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .expect("current time must be after UNIX epoch")
+                .as_secs(),
+        )
+        .expect("Current timestamp must be representable as i64");
+
+        Ok(initial_timestamp - current_timestamp)
     })
 }
 
@@ -1355,6 +1524,7 @@ struct BlockchainAndState {
     state: Box<dyn SyncState<StateError>>,
     irregular_state: IrregularState,
     prev_randao_generator: RandomHashGenerator,
+    block_time_offset_seconds: i64,
     next_block_base_fee_per_gas: Option<U256>,
 }
 
@@ -1432,6 +1602,45 @@ fn create_blockchain_and_state(
             .state_at_block_number(fork_block_number, irregular_state.state_overrides())
             .expect("Fork state must exist");
 
+        let block_time_offset_seconds = {
+            let fork_block_timestamp = UNIX_EPOCH
+                + Duration::from_secs(
+                    blockchain
+                        .last_block()
+                        .map_err(CreationError::Blockchain)?
+                        .header()
+                        .timestamp,
+                );
+
+            let elapsed_time = SystemTime::now()
+                .duration_since(fork_block_timestamp)
+                .expect("current time must be after fork block")
+                .as_secs();
+
+            -i64::try_from(elapsed_time)
+                .expect("Elapsed time since fork block must be representable as i64")
+        };
+
+        let next_block_base_fee_per_gas = if config.hardfork >= SpecId::LONDON {
+            if let Some(base_fee) = config.initial_base_fee_per_gas {
+                Some(base_fee)
+            } else {
+                let previous_base_fee = blockchain
+                    .last_block()
+                    .map_err(CreationError::Blockchain)?
+                    .header()
+                    .base_fee_per_gas;
+
+                if previous_base_fee.is_none() {
+                    Some(U256::from(DEFAULT_INITIAL_BASE_FEE_PER_GAS))
+                } else {
+                    None
+                }
+            }
+        } else {
+            None
+        };
+
         Ok(BlockchainAndState {
             fork_metadata: Some(ForkMetadata {
                 chain_id: blockchain.chain_id(),
@@ -1446,9 +1655,8 @@ fn create_blockchain_and_state(
             state: Box::new(state),
             irregular_state,
             prev_randao_generator,
-            // There is no genesis block in a forked blockchain, so we incorporate the initial base
-            // fee per gas as the next base fee value.
-            next_block_base_fee_per_gas: config.initial_base_fee_per_gas,
+            block_time_offset_seconds,
+            next_block_base_fee_per_gas,
         })
     } else {
         let blockchain = LocalBlockchain::new(
@@ -1471,11 +1679,14 @@ fn create_blockchain_and_state(
             .state_at_block_number(0, irregular_state.state_overrides())
             .expect("Genesis state must exist");
 
+        let block_time_offset_seconds = block_time_offset_seconds(config)?;
+
         Ok(BlockchainAndState {
             fork_metadata: None,
             blockchain: Box::new(blockchain),
             state,
             irregular_state,
+            block_time_offset_seconds,
             prev_randao_generator,
             // For local blockchain the initial base fee per gas config option is incorporated as
             // part of the genesis block.
@@ -1914,54 +2125,6 @@ mod tests {
             .mem_pool
             .transaction_by_hash(&transaction_hash)
             .is_none());
-
-        Ok(())
-    }
-
-    #[test]
-    fn set_nonce_updates_mem_pool() -> anyhow::Result<()> {
-        let mut fixture = ProviderTestFixture::new()?;
-
-        // Artificially raise the nonce, to ensure the transaction is not rejected
-        fixture
-            .provider_data
-            .set_nonce(fixture.impersonated_account, 1)?;
-
-        let transaction = {
-            let mut request = fixture.dummy_transaction_request(Some(1));
-            request.sender = fixture.impersonated_account;
-
-            fixture.provider_data.sign_transaction_request(request)?
-        };
-
-        let transaction_hash = fixture.provider_data.add_pending_transaction(transaction)?;
-
-        assert!(fixture
-            .provider_data
-            .mem_pool
-            .transaction_by_hash(&transaction_hash)
-            .is_some());
-
-        // The transaction is a pending transaction, as the nonce is the same as the
-        // account
-        assert!(fixture.provider_data.mem_pool.has_pending_transactions());
-        assert!(!fixture.provider_data.mem_pool.has_future_transactions());
-
-        // Lower the nonce, to ensure the transaction is not rejected
-        fixture
-            .provider_data
-            .set_nonce(fixture.impersonated_account, 0)?;
-
-        assert!(fixture
-            .provider_data
-            .mem_pool
-            .transaction_by_hash(&transaction_hash)
-            .is_some());
-
-        // The pending transaction now is a future transaction, as there is not enough
-        // balance
-        assert!(!fixture.provider_data.mem_pool.has_pending_transactions());
-        assert!(fixture.provider_data.mem_pool.has_future_transactions());
 
         Ok(())
     }

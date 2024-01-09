@@ -484,7 +484,8 @@ export function edrReceiptToEthereumJS(
     // Only shown if the local hardfork is at least London, or if the remote is EIP-1559
     effectiveGasPrice:
       hardforkGte(hardfork, HardforkName.LONDON) || receipt.type >= 2n
-        ? bigIntToHex(receipt.effectiveGasPrice)
+        ? // Effective gas price is defined if hardfork is London or if the transaction is EIP-1559
+          bigIntToHex(receipt.effectiveGasPrice!)
         : undefined,
   };
 }

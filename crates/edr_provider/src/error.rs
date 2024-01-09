@@ -58,8 +58,11 @@ pub enum ProviderError {
     #[error("The '{block_spec}' block tag is not allowed in pre-merge hardforks. You are using the '{spec:?}' hardfork.")]
     InvalidBlockTag { block_spec: BlockSpec, spec: SpecId },
     /// Invalid chain ID
-    #[error("Invalid chainId ${actual} provided, expected ${expected} instead.")]
+    #[error("Invalid chainId {actual} provided, expected ${expected} instead.")]
     InvalidChainId { expected: u64, actual: u64 },
+    /// The transaction with the provided hash was already mined.
+    #[error("Transaction {0} cannot be dropped because it's already mined")]
+    InvalidDropTransactionHash(B256),
     /// Invalid filter subscription type
     #[error("Subscription {filter_id} is not a {expected:?} subscription, but a {actual:?} subscription")]
     InvalidFilterSubscriptionType {
@@ -99,6 +102,19 @@ pub enum ProviderError {
     /// Serialization error
     #[error("Failed to serialize response: {0}")]
     Serialization(serde_json::Error),
+    #[error("New nonce ({proposed}) must not be smaller than the existing nonce ({previous})")]
+    SetAccountNonceLowerThanCurrent { previous: u64, proposed: u64 },
+    /// Cannot set account nonce when the mem pool is not empty
+    #[error("Cannot set account nonce when the transaction pool is not empty")]
+    SetAccountNonceWithPendingTransactions,
+    /// The `hardhat_setNextBlockBaseFeePerGas` method is not supported due to
+    /// an older hardfork.
+    #[error("hardhat_setNextBlockBaseFeePerGas is disabled because EIP-1559 is not active")]
+    SetNextBlockBaseFeePerGasUnsupported { spec_id: SpecId },
+    /// The `hardhat_setPrevRandao` method is not supported due to an older
+    /// hardfork.
+    #[error("hardhat_setPrevRandao is only available in post-merge hardforks, the current hardfork is {spec_id:?}")]
+    SetNextPrevRandaoUnsupported { spec_id: SpecId },
     /// An error occurred while recovering a signature.
     #[error(transparent)]
     Signature(#[from] edr_eth::signature::SignatureError),
@@ -161,6 +177,7 @@ impl From<ProviderError> for jsonrpc::Error {
             ProviderError::InvalidBlockNumberOrHash { .. } => (-32000, None),
             ProviderError::InvalidBlockTag { .. } => (-32602, None),
             ProviderError::InvalidChainId { .. } => (-32602, None),
+            ProviderError::InvalidDropTransactionHash(_) => (-32602, None),
             ProviderError::InvalidFilterSubscriptionType { .. } => (-32602, None),
             ProviderError::InvalidInput(_) => (-32000, None),
             ProviderError::InvalidTransactionIndex(_) => (-32602, None),
@@ -172,7 +189,11 @@ impl From<ProviderError> for jsonrpc::Error {
             ProviderError::RpcVersion(_) => (-32000, None),
             ProviderError::RunTransaction(_) => (-32000, None),
             ProviderError::Serialization(_) => (-32000, None),
+            ProviderError::SetAccountNonceLowerThanCurrent { .. } => (-32000, None),
+            ProviderError::SetAccountNonceWithPendingTransactions => (-32603, None),
             ProviderError::SetMinGasPriceUnsupported => (-32000, None),
+            ProviderError::SetNextBlockBaseFeePerGasUnsupported { .. } => (-32000, None),
+            ProviderError::SetNextPrevRandaoUnsupported { .. } => (-32000, None),
             ProviderError::Signature(_) => (-32000, None),
             ProviderError::State(_) => (-32000, None),
             ProviderError::SystemTime(_) => (-32000, None),

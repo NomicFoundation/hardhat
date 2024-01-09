@@ -48,7 +48,7 @@ describe("Eth module - hardfork dependant tests", function () {
     importedUseProvider({ hardfork, allowUnlimitedContractSize });
     beforeEach(async function () {
       // TODO: Find out a better way to obtain the common here
-      let provider: any = this.hardhatNetworkProvider;
+      const provider: any = this.hardhatNetworkProvider;
 
       if ("_init" in provider) {
         // eslint-disable-next-line dot-notation,@typescript-eslint/dot-notation

@@ -40,6 +40,6 @@ pub fn help_test_method_invocation_serde_with_expected<MethodInvocation>(
     });
 
     let call_decoded: MethodInvocation = serde_json::from_str(&json)
-        .unwrap_or_else(|_| panic!("should have successfully deserialized json {json}"));
+        .unwrap_or_else(|error| panic!("failed to deserialized json {json} due to error: {error}"));
     assert_eq!(expected, call_decoded);
 }
