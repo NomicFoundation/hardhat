@@ -238,7 +238,7 @@ pub fn logs<BlockT: Block + Clone>(
     from_block: u64,
     to_block: u64,
     addresses: &HashSet<Address>,
-    topics_filter: &Vec<Option<Vec<B256>>>,
+    topics_filter: &[Option<Vec<B256>>],
 ) -> Result<Vec<edr_eth::log::FilterLog>, BlockT::Error> {
     let mut logs = Vec::new();
     let addresses: HashSet<Address> = addresses.iter().copied().collect();

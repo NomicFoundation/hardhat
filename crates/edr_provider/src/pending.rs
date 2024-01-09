@@ -107,7 +107,7 @@ impl<'blockchain> Blockchain for BlockchainWithPending<'blockchain> {
         _from_block: u64,
         _to_block: u64,
         _addresses: &edr_evm::HashSet<edr_eth::Address>,
-        _normalized_topics: &Vec<Option<Vec<B256>>>,
+        _normalized_topics: &[Option<Vec<B256>>],
     ) -> Result<Vec<edr_eth::log::FilterLog>, Self::BlockchainError> {
         panic!("Retrieving logs from a pending blockchain is not supported.");
     }

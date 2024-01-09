@@ -283,7 +283,7 @@ impl Blockchain for ForkedBlockchain {
         from_block: u64,
         to_block: u64,
         addresses: &HashSet<Address>,
-        normalized_topics: &Vec<Option<Vec<B256>>>,
+        normalized_topics: &[Option<Vec<B256>>],
     ) -> Result<Vec<FilterLog>, Self::BlockchainError> {
         if from_block <= self.fork_block_number {
             let (to_block, mut local_logs) = if to_block <= self.fork_block_number {

@@ -25,7 +25,7 @@ pub fn matches_address_filter(log_address: &Address, address_filter: &HashSet<Ad
 }
 
 /// Whether the log topics match the topics filter.
-pub fn matches_topics_filter(log_topics: &[B256], topics_filter: &Vec<Option<Vec<B256>>>) -> bool {
+pub fn matches_topics_filter(log_topics: &[B256], topics_filter: &[Option<Vec<B256>>]) -> bool {
     if topics_filter.len() > log_topics.len() {
         return false;
     }

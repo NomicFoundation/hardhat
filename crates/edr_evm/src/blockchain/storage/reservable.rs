@@ -95,7 +95,7 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
         from_block: u64,
         to_block: u64,
         addresses: &HashSet<Address>,
-        normalized_topics: &Vec<Option<Vec<B256>>>,
+        normalized_topics: &[Option<Vec<B256>>],
     ) -> Result<Vec<edr_eth::log::FilterLog>, BlockT::Error> {
         let storage = self.storage.read();
         sparse::logs(&storage, from_block, to_block, addresses, normalized_topics)

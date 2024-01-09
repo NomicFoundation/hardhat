@@ -113,7 +113,7 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
         from_block: BlockSpec,
         to_block: BlockSpec,
         addresses: &HashSet<Address>,
-        normalized_topics: &Vec<Option<Vec<B256>>>,
+        normalized_topics: &[Option<Vec<B256>>],
     ) -> Result<Vec<FilterLog>, RpcClientError> {
         self.client
             .get_logs(
@@ -121,10 +121,11 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
                 to_block,
                 if addresses.len() > 1 {
                     Some(OneOrMore::Many(addresses.iter().copied().collect()))
-                } else if let Some(address) = addresses.iter().next() {
-                    Some(OneOrMore::One(*address))
                 } else {
-                    None
+                    addresses
+                        .iter()
+                        .next()
+                        .map(|address| OneOrMore::One(*address))
                 },
                 if normalized_topics.is_empty() {
                     None
@@ -135,11 +136,9 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
                             .map(|topics| {
                                 topics.as_ref().and_then(|topics| {
                                     if topics.len() > 1 {
-                                        Some(OneOrMore::Many(topics.to_vec()))
-                                    } else if let Some(topic) = topics.first() {
-                                        Some(OneOrMore::One(*topic))
+                                        Some(OneOrMore::Many(topics.clone()))
                                     } else {
-                                        None
+                                        topics.first().map(|topic| OneOrMore::One(*topic))
                                     }
                                 })
                             })
