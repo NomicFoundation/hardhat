@@ -2,7 +2,7 @@ use std::mem::take;
 
 use revm_primitives::HashSet;
 
-use crate::{remote::BlockSpec, Address, Bytes, B256};
+use crate::{log::FilterLog, remote::BlockSpec, Address, Bytes, B256};
 
 /// A type that can be used to pass either one or many objects to a JSON-RPC
 /// request
@@ -71,6 +71,22 @@ pub struct LogOutput {
     /// Deposit(address,bytes32,uint256)), except you declared the event
     /// with the anonymous specifier.)
     pub topics: Vec<B256>,
+}
+
+impl From<&FilterLog> for LogOutput {
+    fn from(value: &FilterLog) -> Self {
+        Self {
+            removed: value.removed,
+            log_index: Some(value.inner.log_index),
+            transaction_index: Some(value.inner.transaction_index),
+            transaction_hash: Some(value.inner.transaction_hash),
+            block_hash: Some(value.block_hash),
+            block_number: Some(value.inner.block_number),
+            address: value.inner.address,
+            data: value.inner.data.clone(),
+            topics: value.inner.topics.clone(),
+        }
+    }
 }
 
 /// represents the output of `eth_getFilterChanges`
