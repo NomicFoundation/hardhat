@@ -21,7 +21,11 @@ use tokio::sync::{OnceCell, RwLock};
 use uuid::Uuid;
 
 use super::{
-    eth, filter::OneOrMore, jsonrpc, request_methods::RequestMethod, BlockSpec, PreEip1898BlockSpec,
+    eth,
+    filter::{LogFilterOptions, OneOrMore},
+    jsonrpc,
+    request_methods::RequestMethod,
+    BlockSpec, PreEip1898BlockSpec,
 };
 use crate::{
     block::{block_time, is_safe_block_number, IsSafeBlockNumberArgs},
@@ -32,7 +36,6 @@ use crate::{
             try_read_cache_key, try_write_cache_key, CacheKeyForSymbolicBlockTag,
             CacheKeyForUncheckedBlockNumber, ReadCacheKey, ResolvedSymbolicTag, WriteCacheKey,
         },
-        eth::GetLogsInput,
         jsonrpc::Id,
     },
     AccountInfo, Address, Bytes, B256, U256, U64,
@@ -745,17 +748,18 @@ impl RpcClient {
         .await
     }
 
-    /// Calls `eth_getLogs`.
-    pub async fn get_logs(
+    /// Calls `eth_getLogs` using a starting and ending block (inclusive).
+    pub async fn get_logs_by_range(
         &self,
         from_block: BlockSpec,
         to_block: BlockSpec,
         address: Option<OneOrMore<Address>>,
         topics: Option<Vec<Option<OneOrMore<B256>>>>,
     ) -> Result<Vec<FilterLog>, RpcClientError> {
-        self.call(RequestMethod::GetLogs(GetLogsInput {
-            from_block,
-            to_block,
+        self.call(RequestMethod::GetLogs(LogFilterOptions {
+            from_block: Some(from_block),
+            to_block: Some(to_block),
+            block_hash: None,
             address,
             topics,
         }))
@@ -1508,7 +1512,7 @@ mod tests {
         async fn get_logs_some() {
             let alchemy_url = get_alchemy_url();
             let logs = TestRpcClient::new(&alchemy_url)
-                .get_logs(
+                .get_logs_by_range(
                     BlockSpec::Number(10496585),
                     BlockSpec::Number(10496585),
                     Some(OneOrMore::One(
@@ -1529,7 +1533,7 @@ mod tests {
         async fn get_logs_future_from_block() {
             let alchemy_url = get_alchemy_url();
             let error = TestRpcClient::new(&alchemy_url)
-                .get_logs(
+                .get_logs_by_range(
                     BlockSpec::Number(MAX_BLOCK_NUMBER),
                     BlockSpec::Number(MAX_BLOCK_NUMBER),
                     Some(OneOrMore::One(
@@ -1554,7 +1558,7 @@ mod tests {
         async fn get_logs_future_to_block() {
             let alchemy_url = get_alchemy_url();
             let logs = TestRpcClient::new(&alchemy_url)
-                .get_logs(
+                .get_logs_by_range(
                     BlockSpec::Number(10496585),
                     BlockSpec::Number(MAX_BLOCK_NUMBER),
                     Some(OneOrMore::One(

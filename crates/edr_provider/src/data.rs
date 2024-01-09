@@ -11,6 +11,7 @@ use std::{
 
 use edr_eth::{
     block::BlobGas,
+    log::FilterLog,
     receipt::BlockReceipt,
     remote::{
         filter::{FilteredEvents, LogOutput, SubscriptionType},
@@ -531,6 +532,19 @@ impl ProviderData {
 
     pub fn logger(&self) -> &Logger {
         &self.logger
+    }
+
+    pub fn logs(&self, filter: LogFilter) -> Result<Vec<FilterLog>, ProviderError> {
+        self.blockchain
+            .logs(
+                filter.from_block,
+                filter
+                    .to_block
+                    .unwrap_or(self.blockchain.last_block_number()),
+                &filter.addresses,
+                &filter.normalized_topics,
+            )
+            .map_err(ProviderError::Blockchain)
     }
 
     pub fn make_snapshot(&mut self) -> u64 {

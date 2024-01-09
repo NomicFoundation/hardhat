@@ -1,7 +1,7 @@
 use edr_eth::{
     remote::{
-        eth::{eip712, CallRequest, GetLogsInput},
-        filter::{FilterCriteriaOptions, SubscriptionType},
+        eth::{eip712, CallRequest},
+        filter::{LogFilterOptions, SubscriptionType},
         BlockSpec, PreEip1898BlockSpec, StateOverrideOptions,
     },
     serde::{optional_single_to_sequence, sequence_to_optional_single},
@@ -129,7 +129,7 @@ pub enum MethodInvocation {
     GetFilterLogs(U256),
     /// eth_getLogs
     #[serde(rename = "eth_getLogs", with = "edr_eth::serde::sequence")]
-    GetLogs(GetLogsInput),
+    GetLogs(LogFilterOptions),
     /// eth_getStorageAt
     #[serde(rename = "eth_getStorageAt")]
     GetStorageAt(
@@ -185,7 +185,7 @@ pub enum MethodInvocation {
     NewBlockFilter(()),
     /// eth_newFilter
     #[serde(rename = "eth_newFilter", with = "edr_eth::serde::sequence")]
-    NewFilter(FilterCriteriaOptions),
+    NewFilter(LogFilterOptions),
     /// eth_newPendingTransactionFilter
     #[serde(
         rename = "eth_newPendingTransactionFilter",

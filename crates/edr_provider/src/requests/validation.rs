@@ -1,6 +1,6 @@
 use edr_eth::{
     access_list::AccessListItem,
-    remote::eth::CallRequest,
+    remote::{eth::CallRequest, BlockSpec, BlockTag, PreEip1898BlockSpec},
     transaction::{EthTransactionRequest, SignedTransaction},
     SpecId, U256,
 };
@@ -124,5 +124,46 @@ pub fn validate_transaction_spec(
         }
     }
 
+    Ok(())
+}
+
+pub enum ValidationBlockSpec<'a> {
+    PreEip1898(&'a PreEip1898BlockSpec),
+    PostEip1898(&'a BlockSpec),
+}
+
+impl<'a> From<&'a PreEip1898BlockSpec> for ValidationBlockSpec<'a> {
+    fn from(value: &'a PreEip1898BlockSpec) -> Self {
+        Self::PreEip1898(value)
+    }
+}
+
+impl<'a> From<&'a BlockSpec> for ValidationBlockSpec<'a> {
+    fn from(value: &'a BlockSpec) -> Self {
+        Self::PostEip1898(value)
+    }
+}
+
+pub fn validate_post_merge_block_tags<'a>(
+    hardfork: SpecId,
+    block_spec: impl Into<ValidationBlockSpec<'a>>,
+) -> Result<(), ProviderError> {
+    let block_spec: ValidationBlockSpec<'a> = block_spec.into();
+
+    if hardfork < SpecId::MERGE {
+        match block_spec {
+            ValidationBlockSpec::PreEip1898(PreEip1898BlockSpec::Tag(
+                tag @ (BlockTag::Safe | BlockTag::Finalized),
+            ))
+            | ValidationBlockSpec::PostEip1898(BlockSpec::Tag(
+                tag @ (BlockTag::Safe | BlockTag::Finalized),
+            )) => {
+                return Err(ProviderError::InvalidArgument(format!(
+                    "The '{tag}' block tag is not allowed in pre-merge hardforks. You are using the '{hardfork:?}' hardfork."
+                )));
+            }
+            _ => (),
+        }
+    }
     Ok(())
 }

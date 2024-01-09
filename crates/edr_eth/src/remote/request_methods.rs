@@ -1,7 +1,7 @@
 use revm_primitives::{Address, B256};
 
 use crate::{
-    remote::{eth::GetLogsInput, BlockSpec, PreEip1898BlockSpec},
+    remote::{filter::LogFilterOptions, BlockSpec, PreEip1898BlockSpec},
     U256,
 };
 
@@ -63,7 +63,7 @@ pub enum RequestMethod {
     ),
     /// eth_getLogs
     #[serde(rename = "eth_getLogs", with = "crate::serde::sequence")]
-    GetLogs(GetLogsInput),
+    GetLogs(LogFilterOptions),
     /// eth_getStorageAt
     #[serde(rename = "eth_getStorageAt")]
     GetStorageAt(

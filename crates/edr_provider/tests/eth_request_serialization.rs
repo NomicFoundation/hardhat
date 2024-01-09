@@ -2,8 +2,8 @@ mod common;
 
 use edr_eth::{
     remote::{
-        eth::{eip712, CallRequest, GetLogsInput},
-        filter::{FilterCriteriaOptions, LogOutput, OneOrMore, SubscriptionType},
+        eth::{eip712, CallRequest},
+        filter::{LogFilterOptions, LogOutput, OneOrMore, SubscriptionType},
         BlockSpec, BlockTag, PreEip1898BlockSpec,
     },
     transaction::EthTransactionRequest,
@@ -186,9 +186,10 @@ fn test_serde_eth_get_filter_logs() {
 
 #[test]
 fn test_serde_eth_get_logs_by_block_numbers() {
-    help_test_method_invocation_serde(MethodInvocation::GetLogs(GetLogsInput {
-        from_block: BlockSpec::Number(100),
-        to_block: BlockSpec::Number(102),
+    help_test_method_invocation_serde(MethodInvocation::GetLogs(LogFilterOptions {
+        from_block: Some(BlockSpec::Number(100)),
+        to_block: Some(BlockSpec::Number(102)),
+        block_hash: None,
         address: Some(OneOrMore::One(Address::from(U160::from(1)))),
         topics: None,
     }));
@@ -196,9 +197,21 @@ fn test_serde_eth_get_logs_by_block_numbers() {
 
 #[test]
 fn test_serde_eth_get_logs_by_block_tags() {
-    help_test_method_invocation_serde(MethodInvocation::GetLogs(GetLogsInput {
-        from_block: BlockSpec::Tag(BlockTag::Safe),
-        to_block: BlockSpec::latest(),
+    help_test_method_invocation_serde(MethodInvocation::GetLogs(LogFilterOptions {
+        from_block: Some(BlockSpec::Tag(BlockTag::Safe)),
+        to_block: Some(BlockSpec::latest()),
+        block_hash: None,
+        address: Some(OneOrMore::One(Address::from(U160::from(1)))),
+        topics: Some(vec![Some(OneOrMore::One(B256::from(U256::from(1))))]),
+    }));
+}
+
+#[test]
+fn test_serde_eth_get_logs_by_block_hash() {
+    help_test_method_invocation_serde(MethodInvocation::GetLogs(LogFilterOptions {
+        from_block: None,
+        to_block: None,
+        block_hash: Some(B256::from(U256::from(1))),
         address: Some(OneOrMore::One(Address::from(U160::from(1)))),
         topics: Some(vec![Some(OneOrMore::One(B256::from(U256::from(1))))]),
     }));
@@ -279,7 +292,7 @@ fn test_serde_eth_new_block_filter() {
 
 #[test]
 fn test_serde_eth_new_filter() {
-    help_test_method_invocation_serde(MethodInvocation::NewFilter(FilterCriteriaOptions {
+    help_test_method_invocation_serde(MethodInvocation::NewFilter(LogFilterOptions {
         from_block: Some(BlockSpec::Number(1000)),
         to_block: Some(BlockSpec::latest()),
         block_hash: None,

@@ -179,8 +179,8 @@ impl Provider {
             MethodInvocation::GetFilterLogs(filter_id) => {
                 eth::handle_get_filter_logs_request(data, filter_id).and_then(to_json)
             }
-            MethodInvocation::GetLogs(_) => {
-                Err(ProviderError::Unimplemented("GetLogs".to_string()))
+            MethodInvocation::GetLogs(filter_options) => {
+                eth::handle_get_logs_request(data, filter_options).and_then(to_json)
             }
             MethodInvocation::GetStorageAt(address, index, block_spec) => {
                 eth::handle_get_storage_at_request(data, address, index, block_spec)

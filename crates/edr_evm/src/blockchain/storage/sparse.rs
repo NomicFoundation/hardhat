@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use edr_eth::{
     receipt::BlockReceipt,
-    remote::eth::{matches_address_filter, matches_topics_filter},
+    remote::filter::{matches_address_filter, matches_topics_filter},
     Address, B256, U256,
 };
 use revm::primitives::{HashMap, HashSet};

@@ -2,14 +2,17 @@ use std::iter;
 
 use edr_eth::{
     remote::{
-        filter::{FilterCriteriaOptions, FilteredEvents, LogOutput, OneOrMore},
+        filter::{FilteredEvents, LogFilterOptions, LogOutput, OneOrMore},
         BlockSpec, BlockTag, Eip1898BlockSpec,
     },
     SpecId, U256,
 };
 use edr_evm::HashSet;
 
-use crate::{data::ProviderData, filter::LogFilter, ProviderError};
+use crate::{
+    data::ProviderData, filter::LogFilter, requests::validation::validate_post_merge_block_tags,
+    ProviderError,
+};
 
 pub fn handle_get_filter_changes_request(
     data: &mut ProviderData,
@@ -25,13 +28,37 @@ pub fn handle_get_filter_logs_request(
     data.get_filter_logs(&filter_id)
 }
 
+pub fn handle_get_logs_request(
+    data: &ProviderData,
+    filter_options: LogFilterOptions,
+) -> Result<Vec<LogOutput>, ProviderError> {
+    // Hardhat integration tests expect validation in this order.
+    if let Some(from_block) = &filter_options.from_block {
+        validate_post_merge_block_tags(data.spec_id(), from_block)?;
+    }
+    if let Some(to_block) = &filter_options.to_block {
+        validate_post_merge_block_tags(data.spec_id(), to_block)?;
+    }
+
+    if data.spec_id() < SpecId::MERGE {
+        return Err(ProviderError::InvalidInput(
+            "eth_getLogs is disabled. It only works with the Berlin hardfork or a later one."
+                .into(),
+        ));
+    }
+
+    let filter = validate_filter_criteria::<true>(data, filter_options)?;
+    data.logs(filter)
+        .map(|logs| logs.iter().map(LogOutput::from).collect())
+}
+
 pub fn handle_new_block_filter_request(data: &mut ProviderData) -> Result<U256, ProviderError> {
     data.add_block_filter::<false>()
 }
 
 pub fn handle_new_log_filter_request(
     data: &mut ProviderData,
-    filter_criteria: FilterCriteriaOptions,
+    filter_criteria: LogFilterOptions,
 ) -> Result<U256, ProviderError> {
     let filter_criteria = validate_filter_criteria::<false>(data, filter_criteria)?;
     data.add_log_filter::<false>(filter_criteria)
@@ -59,7 +86,7 @@ pub fn handle_unsubscribe_request(
 
 fn validate_filter_criteria<const SHOULD_RESOLVE_LATEST: bool>(
     data: &ProviderData,
-    filter: FilterCriteriaOptions,
+    filter: LogFilterOptions,
 ) -> Result<LogFilter, ProviderError> {
     fn normalize_block_spec(
         data: &ProviderData,

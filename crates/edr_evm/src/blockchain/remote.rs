@@ -116,7 +116,7 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
         normalized_topics: &[Option<Vec<B256>>],
     ) -> Result<Vec<FilterLog>, RpcClientError> {
         self.client
-            .get_logs(
+            .get_logs_by_range(
                 from_block,
                 to_block,
                 if addresses.len() > 1 {
