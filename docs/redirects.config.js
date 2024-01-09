@@ -311,7 +311,8 @@ const customRedirects = [
   },
   {
     source: "/release/:version",
-    destination: "https://github.com/NomicFoundation/hardhat/releases/tag/hardhat%40:version",
+    destination:
+      "https://github.com/NomicFoundation/hardhat/releases/tag/hardhat%40:version",
     permanent: false,
   },
   ...loadErrorRedirects(),
