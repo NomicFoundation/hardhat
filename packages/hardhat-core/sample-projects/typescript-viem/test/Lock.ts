@@ -6,6 +6,8 @@ import { expect } from "chai";
 import hre from "hardhat";
 import { getAddress, parseGwei } from "viem";
 
+import LockModule from "../ignition/modules/LockModule";
+
 describe("Lock", function () {
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
@@ -19,8 +21,8 @@ describe("Lock", function () {
     // Contracts are deployed using the first signer/account by default
     const [owner, otherAccount] = await hre.viem.getWalletClients();
 
-    const lock = await hre.viem.deployContract("Lock", [unlockTime], {
-      value: lockedAmount,
+    const { lock } = await hre.ignition.deploy(LockModule, {
+      parameters: { Lock: { lockedAmount, unlockTime } },
     });
 
     const publicClient = await hre.viem.getPublicClient();
@@ -45,7 +47,9 @@ describe("Lock", function () {
     it("Should set the right owner", async function () {
       const { lock, owner } = await loadFixture(deployOneYearLockFixture);
 
-      expect(await lock.read.owner()).to.equal(getAddress(owner.account.address));
+      expect(await lock.read.owner()).to.equal(
+        getAddress(owner.account.address)
+      );
     });
 
     it("Should receive and store the funds to lock", async function () {
@@ -123,7 +127,7 @@ describe("Lock", function () {
         await publicClient.waitForTransactionReceipt({ hash });
 
         // get the withdrawal events in the latest block
-        const withdrawalEvents = await lock.getEvents.Withdrawal()
+        const withdrawalEvents = await lock.getEvents.Withdrawal();
         expect(withdrawalEvents).to.have.lengthOf(1);
         expect(withdrawalEvents[0].args.amount).to.equal(lockedAmount);
       });
