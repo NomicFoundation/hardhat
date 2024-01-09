@@ -11,10 +11,13 @@ mod transaction;
 
 use alloy_rlp::{Buf, BufMut, Decodable, Encodable};
 use revm_primitives::SpecId;
+#[cfg(feature = "serde")]
 use serde::{ser::SerializeStruct, Serialize, Serializer};
 
 pub use self::{block::BlockReceipt, transaction::TransactionReceipt};
-use crate::{Bloom, B256, U64};
+#[cfg(feature = "serde")]
+use crate::U64;
+use crate::{Bloom, B256};
 
 /// Typed receipt that's generated after execution of a transaction.
 #[derive(Clone, Debug)]
@@ -47,6 +50,7 @@ impl<LogT: PartialEq> PartialEq for TypedReceipt<LogT> {
 
 impl<LogT: Eq> Eq for TypedReceipt<LogT> {}
 
+#[cfg(feature = "serde")]
 impl<LogT: serde::Serialize> Serialize for TypedReceipt<LogT> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
