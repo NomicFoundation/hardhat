@@ -1,6 +1,10 @@
 use std::sync::Arc;
 
-use edr_eth::{receipt::BlockReceipt, remote::eth::matches_topics_filter, Address, B256, U256};
+use edr_eth::{
+    receipt::BlockReceipt,
+    remote::eth::{matches_address_filter, matches_topics_filter},
+    Address, B256, U256,
+};
 use revm::primitives::{HashMap, HashSet};
 
 use super::InsertError;
@@ -244,7 +248,7 @@ pub fn logs<BlockT: Block + Clone>(
             let receipts = block.transaction_receipts()?;
             for receipt in receipts {
                 let filtered_logs = receipt.logs.iter().filter(|log| {
-                    addresses.contains(&log.address)
+                    matches_address_filter(&log.address, &addresses)
                         && matches_topics_filter(&log.topics, topics_filter)
                 });
 

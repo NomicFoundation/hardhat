@@ -1,3 +1,5 @@
+use revm_primitives::HashSet;
+
 use crate::{
     remote::{filter::OneOrMore, BlockSpec},
     Address, B256,
@@ -15,6 +17,11 @@ pub struct GetLogsInput {
     pub address: Option<OneOrMore<Address>>,
     /// topics
     pub topics: Option<Vec<Option<OneOrMore<B256>>>>,
+}
+
+/// Whether the log address matches the address filter.
+pub fn matches_address_filter(log_address: &Address, address_filter: &HashSet<Address>) -> bool {
+    address_filter.is_empty() || address_filter.contains(log_address)
 }
 
 /// Whether the log topics match the topics filter.

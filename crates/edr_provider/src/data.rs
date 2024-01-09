@@ -586,7 +586,6 @@ impl ProviderData {
             .update(&result.state)
             .map_err(ProviderError::MemPoolUpdate)?;
 
-        // TODO: Support subscriptions
         for filter in self.filters.values_mut() {
             match &mut filter.data {
                 FilterData::Logs { criteria, logs } => {
@@ -594,17 +593,28 @@ impl ProviderData {
                     if bloom_contains_log_filter(bloom, criteria) {
                         let receipts = block.transaction_receipts()?;
                         let new_logs = receipts.iter().flat_map(|receipt| receipt.logs());
-                        let mut new_logs = filter_logs(new_logs, criteria);
 
-                        logs.append(&mut new_logs);
+                        let mut filtered_logs = filter_logs(new_logs, criteria);
+                        if filter.is_subscription {
+                            // TODO: emit "ethEvent" callback per log
+                        } else {
+                            logs.append(&mut filtered_logs);
+                        }
                     }
                 }
                 FilterData::NewHeads(block_hashes) => {
-                    block_hashes.push(*block.hash());
+                    if filter.is_subscription {
+                        // TODO: emit "ethEvent" callback
+                    } else {
+                        block_hashes.push(*block.hash());
+                    }
                 }
                 FilterData::NewPendingTransactions(_) => (),
             }
         }
+
+        // Remove outdated filters
+        self.filters.retain(|_, filter| !filter.has_expired());
 
         self.state = result.state;
 

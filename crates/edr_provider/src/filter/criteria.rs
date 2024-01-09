@@ -1,6 +1,9 @@
 use edr_eth::{
     log::FilterLog,
-    remote::{eth::matches_topics_filter, filter::LogOutput},
+    remote::{
+        eth::{matches_address_filter, matches_topics_filter},
+        filter::LogOutput,
+    },
     Address, Bloom, BloomInput, B256,
 };
 use edr_evm::HashSet;
@@ -41,7 +44,7 @@ pub fn filter_logs<'i>(
             && filter
                 .to_block
                 .map_or(true, |to_block| log.block_number <= to_block)
-            && filter.addresses.contains(&log.address)
+            && matches_address_filter(&log.address, &filter.addresses)
             && matches_topics_filter(&log.topics, &filter.normalized_topics)
     })
     .map(LogOutput::from)

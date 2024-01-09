@@ -49,6 +49,11 @@ impl Filter {
         }
     }
 
+    /// Whether the filter has expired.
+    pub fn has_expired(&self) -> bool {
+        Instant::now() > self.deadline
+    }
+
     /// Take events from the filter
     pub fn take_events(&mut self) -> FilteredEvents {
         self.deadline = new_filter_deadline();

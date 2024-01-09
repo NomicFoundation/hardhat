@@ -32,6 +32,7 @@ pub struct FilterCriteriaOptions {
 /// represents the output of `eth_getFilterLogs` and `eth_getFilterChanges` when
 /// used with a log filter
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct LogOutput {
     /// true when the log was removed, due to a chain reorganization. false if
     /// it's a valid log
