@@ -1,5 +1,7 @@
 import type { request as RequestT } from "undici";
 
+import boxen from "boxen";
+import chalk from "chalk";
 import { join } from "node:path";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import semver from "semver";
@@ -14,6 +16,12 @@ const V3_RELEASE_TAG = "hardhat@3.0.0";
 const V3_RELEASE_VERSION_NOTIFIER_ASSET_NAME = "version-notifier-message.txt";
 const V3_RELEASE_MAX_TIMES_SHOWN = 5;
 
+const boxenOptions = {
+  padding: 1,
+  borderStyle: "round",
+  borderColor: "yellow",
+} as const;
+
 interface VersionNotifierCache {
   lastCheck: string | 0;
   v3TimesShown: number;
@@ -21,21 +29,21 @@ interface VersionNotifierCache {
   v3ReleaseMessage?: string;
 }
 
+/* eslint-disable @typescript-eslint/naming-convention */
 interface Release {
   name: string;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   tag_name: string;
   draft: boolean;
   prerelease: boolean;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   published_at: string;
+  html_url: string;
   assets: Array<{
     name: string;
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     browser_download_url: string;
   }>;
   body: string; // release notes
 }
+/* eslint-enable @typescript-eslint/naming-convention */
 
 export async function showNewVersionNotification() {
   const cache = await readCache();
@@ -78,7 +86,16 @@ export async function showNewVersionNotification() {
 
     if (releaseVersion !== null && semver.gt(releaseVersion, hardhatVersion)) {
       console.log(
-        `There's a new version of ${GITHUB_REPO} available: ${releaseVersion}! Run "npm i ${GITHUB_REPO}@${releaseVersion}" to update.\n`
+        boxen(
+          `New Hardhat release available! ${chalk.red(
+            hardhatVersion
+          )} -> ${chalk.green(releaseVersion)}.
+
+Changelog: https://hardhat.org/release/${releaseVersion}
+
+Run "npm install hardhat@latest" to update.`,
+          boxenOptions
+        )
       );
     }
   }
@@ -91,7 +108,7 @@ export async function showNewVersionNotification() {
         cache.v3ReleaseMessage =
           cache.v3ReleaseMessage ?? (await getV3ReleaseMessage(v3Release));
         if (cache.v3ReleaseMessage !== undefined) {
-          console.log(cache.v3ReleaseMessage);
+          console.log(boxen(cache.v3ReleaseMessage, boxenOptions));
           cache.v3TimesShown++;
         }
       }
