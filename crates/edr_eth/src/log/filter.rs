@@ -2,7 +2,7 @@ use std::ops::Deref;
 
 use alloy_rlp::BufMut;
 
-use crate::log::FullBlockLog;
+use crate::{log::FullBlockLog, remote::filter::LogOutput};
 
 /// A log that's returned through a filter query.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -21,6 +21,22 @@ impl Deref for FilterLog {
 
     fn deref(&self) -> &Self::Target {
         &self.inner
+    }
+}
+
+impl From<&FilterLog> for LogOutput {
+    fn from(value: &FilterLog) -> Self {
+        Self {
+            removed: value.removed,
+            log_index: Some(value.inner.log_index),
+            transaction_index: Some(value.inner.transaction_index),
+            transaction_hash: Some(value.inner.transaction_hash),
+            block_hash: Some(value.block_hash),
+            block_number: Some(value.inner.block_number),
+            address: value.inner.address,
+            data: value.inner.data.clone(),
+            topics: value.inner.topics.clone(),
+        }
     }
 }
 

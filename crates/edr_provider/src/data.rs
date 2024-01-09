@@ -46,7 +46,7 @@ use tokio::runtime;
 use self::account::{create_accounts, InitialAccounts};
 use crate::{
     error::TransactionFailure,
-    filter::{Filter, FilterCriteria, FilterData},
+    filter::{bloom_contains_log_filter, filter_logs, Filter, FilterData, LogFilter},
     logger::Logger,
     pending::BlockchainWithPending,
     requests::hardhat::rpc_types::{ForkConfig, ForkMetadata},
@@ -257,9 +257,21 @@ impl ProviderData {
     /// Adds a filter for new logs to the provider.
     pub fn add_log_filter<const IS_SUBSCRIPTION: bool>(
         &mut self,
-        criteria: FilterCriteria,
+        criteria: LogFilter,
     ) -> Result<U256, ProviderError> {
-        let logs = todo!();
+        let logs = self
+            .blockchain
+            .logs(
+                criteria.from_block,
+                criteria
+                    .to_block
+                    .unwrap_or(self.blockchain.last_block_number()),
+                &criteria.addresses,
+                &criteria.normalized_topics,
+            )?
+            .iter()
+            .map(LogOutput::from)
+            .collect();
 
         let filter_id = self.next_filter_id();
         self.filters.insert(
@@ -573,6 +585,26 @@ impl ProviderData {
         self.mem_pool
             .update(&result.state)
             .map_err(ProviderError::MemPoolUpdate)?;
+
+        // TODO: Support subscriptions
+        for filter in self.filters.values_mut() {
+            match &mut filter.data {
+                FilterData::Logs { criteria, logs } => {
+                    let bloom = &block.header().logs_bloom;
+                    if bloom_contains_log_filter(bloom, criteria) {
+                        let receipts = block.transaction_receipts()?;
+                        let new_logs = receipts.iter().flat_map(|receipt| receipt.logs());
+                        let mut new_logs = filter_logs(new_logs, criteria);
+
+                        logs.append(&mut new_logs);
+                    }
+                }
+                FilterData::NewHeads(block_hashes) => {
+                    block_hashes.push(*block.hash());
+                }
+                FilterData::NewPendingTransactions(_) => (),
+            }
+        }
 
         self.state = result.state;
 

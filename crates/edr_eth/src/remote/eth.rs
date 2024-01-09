@@ -14,9 +14,7 @@ mod get_logs;
 
 use std::{fmt::Debug, sync::OnceLock};
 
-pub use call_request::CallRequest;
-pub use get_logs::GetLogsInput;
-
+pub use self::{call_request::CallRequest, get_logs::*};
 use crate::{
     access_list::AccessListItem,
     signature::Signature,

@@ -10,7 +10,7 @@ use edr_eth::{
     B256,
 };
 
-pub use self::criteria::FilterCriteria;
+pub use self::criteria::*;
 
 pub struct Filter {
     pub data: FilterData,
@@ -26,7 +26,7 @@ impl Filter {
 
     /// Constructs a new log filter.
     pub fn new_log_filter(
-        criteria: FilterCriteria,
+        criteria: LogFilter,
         logs: Vec<LogOutput>,
         is_subscription: bool,
     ) -> Self {
@@ -72,7 +72,7 @@ impl Filter {
 pub enum FilterData {
     /// logs
     Logs {
-        criteria: FilterCriteria,
+        criteria: LogFilter,
         logs: Vec<LogOutput>,
     },
     /// new block heads

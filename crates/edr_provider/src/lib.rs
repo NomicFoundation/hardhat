@@ -217,8 +217,8 @@ impl Provider {
             MethodInvocation::NewBlockFilter(()) => {
                 eth::handle_new_block_filter_request(data).and_then(to_json)
             }
-            MethodInvocation::NewFilter(criteria) => {
-                eth::handle_new_log_filter_request(data, criteria).and_then(to_json)
+            MethodInvocation::NewFilter(options) => {
+                eth::handle_new_log_filter_request(data, options).and_then(to_json)
             }
             MethodInvocation::NewPendingTransactionFilter(()) => {
                 eth::handle_new_pending_transaction_filter_request(data).and_then(to_json)

@@ -187,18 +187,20 @@ fn test_serde_eth_get_filter_logs() {
 #[test]
 fn test_serde_eth_get_logs_by_block_numbers() {
     help_test_method_invocation_serde(MethodInvocation::GetLogs(GetLogsInput {
-        address: Address::from(U160::from(1)),
         from_block: BlockSpec::Number(100),
         to_block: BlockSpec::Number(102),
+        address: Some(OneOrMore::One(Address::from(U160::from(1)))),
+        topics: None,
     }));
 }
 
 #[test]
 fn test_serde_eth_get_logs_by_block_tags() {
     help_test_method_invocation_serde(MethodInvocation::GetLogs(GetLogsInput {
-        address: Address::from(U160::from(1)),
         from_block: BlockSpec::Tag(BlockTag::Safe),
         to_block: BlockSpec::latest(),
+        address: Some(OneOrMore::One(Address::from(U160::from(1)))),
+        topics: Some(vec![Some(OneOrMore::One(B256::from(U256::from(1))))]),
     }));
 }
 
@@ -281,8 +283,8 @@ fn test_serde_eth_new_filter() {
         from_block: Some(BlockSpec::Number(1000)),
         to_block: Some(BlockSpec::latest()),
         block_hash: None,
-        addresses: Some(OneOrMore::One(Address::from(U160::from(1)))),
-        topics: OneOrMore::One(Some(B256::from(U256::from(1)))),
+        address: Some(OneOrMore::One(Address::from(U160::from(1)))),
+        topics: Some(vec![Some(OneOrMore::One(B256::from(U256::from(1))))]),
     }));
 }
 
@@ -394,11 +396,11 @@ where
 fn test_serde_log_output() {
     help_test_serde_value(LogOutput {
         removed: false,
-        log_index: Some(U256::ZERO),
+        log_index: Some(0),
         transaction_index: Some(99),
         transaction_hash: Some(B256::from(U256::from(1))),
         block_hash: Some(B256::from(U256::from(2))),
-        block_number: Some(U256::ZERO),
+        block_number: Some(0),
         address: Address::from(U160::from(1)),
         data: Bytes::from_static(b"whatever"),
         topics: vec![B256::from(U256::from(3)), B256::from(U256::from(3))],

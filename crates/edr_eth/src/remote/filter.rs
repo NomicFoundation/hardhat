@@ -1,10 +1,11 @@
 use std::mem::take;
 
-use crate::{remote::BlockSpec, Address, Bytes, B256, U256};
+use crate::{remote::BlockSpec, Address, Bytes, B256};
 
 /// A type that can be used to pass either one or many objects to a JSON-RPC
 /// request
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
 pub enum OneOrMore<T> {
     /// one object
     One(T),
@@ -22,10 +23,10 @@ pub struct FilterCriteriaOptions {
     pub to_block: Option<BlockSpec>,
     /// a single block, specified by its hash
     pub block_hash: Option<B256>,
-    /// addresses
-    pub addresses: Option<OneOrMore<Address>>,
+    /// address
+    pub address: Option<OneOrMore<Address>>,
     /// topics
-    pub topics: OneOrMore<Option<B256>>,
+    pub topics: Option<Vec<Option<OneOrMore<B256>>>>,
 }
 
 /// represents the output of `eth_getFilterLogs` and `eth_getFilterChanges` when
@@ -37,9 +38,11 @@ pub struct LogOutput {
     pub removed: bool,
     /// integer of the log index position in the block. None when its pending
     /// log.
-    pub log_index: Option<U256>,
+    #[serde(with = "crate::serde::optional_u64")]
+    pub log_index: Option<u64>,
     /// integer of the transactions index position log was created from. None
     /// when its pending log.
+    #[serde(with = "crate::serde::optional_u64")]
     pub transaction_index: Option<u64>,
     /// hash of the transactions this log was created from. None when its
     /// pending log.
@@ -49,7 +52,8 @@ pub struct LogOutput {
     pub block_hash: Option<B256>,
     /// the block number where this log was in. null when its pending. None when
     /// its pending log.
-    pub block_number: Option<U256>,
+    #[serde(with = "crate::serde::optional_u64")]
+    pub block_number: Option<u64>,
     /// address from which this log originated.
     pub address: Address,
     /// contains one or more 32 Bytes non-indexed arguments of the log.

@@ -2,15 +2,16 @@ use std::{collections::BTreeMap, num::NonZeroU64, sync::Arc};
 
 use edr_eth::{
     block::{largest_safe_block_number, safe_block_depth, LargestSafeBlockNumberArgs},
+    log::FilterLog,
     receipt::BlockReceipt,
-    remote::{RpcClient, RpcClientError},
+    remote::{BlockSpec, RpcClient, RpcClientError},
     spec::{chain_hardfork_activations, chain_name, HardforkActivations},
-    B256, U256,
+    Address, B256, U256,
 };
 use parking_lot::Mutex;
 use revm::{
     db::BlockHashRef,
-    primitives::{HashMap, SpecId},
+    primitives::{HashMap, HashSet, SpecId},
 };
 use tokio::runtime;
 
@@ -275,6 +276,45 @@ impl Blockchain for ForkedBlockchain {
 
     fn last_block_number(&self) -> u64 {
         self.local_storage.last_block_number()
+    }
+
+    fn logs(
+        &self,
+        from_block: u64,
+        to_block: u64,
+        addresses: &HashSet<Address>,
+        normalized_topics: &Vec<Option<Vec<B256>>>,
+    ) -> Result<Vec<FilterLog>, Self::BlockchainError> {
+        if from_block <= self.fork_block_number {
+            let (to_block, mut local_logs) = if to_block <= self.fork_block_number {
+                (to_block, Vec::new())
+            } else {
+                (
+                    self.fork_block_number,
+                    self.local_storage.logs(
+                        self.fork_block_number + 1,
+                        to_block,
+                        addresses,
+                        normalized_topics,
+                    )?,
+                )
+            };
+
+            let mut remote_logs = tokio::task::block_in_place(move || {
+                self.runtime().block_on(self.remote.logs(
+                    BlockSpec::Number(from_block),
+                    BlockSpec::Number(to_block),
+                    addresses,
+                    normalized_topics,
+                ))
+            })?;
+
+            remote_logs.append(&mut local_logs);
+            Ok(remote_logs)
+        } else {
+            self.local_storage
+                .logs(from_block, to_block, addresses, normalized_topics)
+        }
     }
 
     fn network_id(&self) -> u64 {

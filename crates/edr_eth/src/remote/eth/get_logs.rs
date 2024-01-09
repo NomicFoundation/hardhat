@@ -1,15 +1,38 @@
-use revm_primitives::Address;
-
-use crate::remote::BlockSpec;
+use crate::{
+    remote::{filter::OneOrMore, BlockSpec},
+    Address, B256,
+};
 
 /// for specifying the inputs to `eth_getLogs`
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GetLogsInput {
-    /// starting block for get_logs request
+    /// starting block
     pub from_block: BlockSpec,
-    /// ending block for get_logs request
+    /// ending block
     pub to_block: BlockSpec,
-    /// address for get_logs request
-    pub address: Address,
+    /// addresses
+    pub address: Option<OneOrMore<Address>>,
+    /// topics
+    pub topics: Option<Vec<Option<OneOrMore<B256>>>>,
+}
+
+/// Whether the log topics match the topics filter.
+pub fn matches_topics_filter(log_topics: &[B256], topics_filter: &Vec<Option<Vec<B256>>>) -> bool {
+    if topics_filter.len() > log_topics.len() {
+        return false;
+    }
+
+    topics_filter
+        .iter()
+        .zip(log_topics.iter())
+        .all(|(normalized_topics, log_topic)| {
+            normalized_topics
+                .as_ref()
+                .map_or(true, |normalized_topics| {
+                    normalized_topics
+                        .iter()
+                        .any(|normalized_topic| *normalized_topic == *log_topic)
+                })
+        })
 }

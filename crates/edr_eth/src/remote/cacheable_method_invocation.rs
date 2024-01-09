@@ -1,5 +1,6 @@
 use sha3::{digest::FixedOutput, Digest, Sha3_256};
 
+use super::filter::OneOrMore;
 use crate::{
     block::{is_safe_block_number, IsSafeBlockNumberArgs},
     remote::{
@@ -300,7 +301,9 @@ struct CacheableGetLogsInput<'a> {
     /// The to block argument
     to_block: CacheableBlockSpec<'a>,
     /// The address
-    address: &'a Address,
+    address: Vec<&'a Address>,
+    /// The topics
+    topics: Vec<Option<Vec<&'a B256>>>,
 }
 
 /// Error type for [`CacheableBlockSpec::try_from`].
@@ -316,7 +319,24 @@ impl<'a> TryFrom<&'a GetLogsInput> for CacheableGetLogsInput<'a> {
         Ok(Self {
             from_block: (&value.from_block).try_into().map_err(map_err)?,
             to_block: (&value.to_block).try_into().map_err(map_err)?,
-            address: &value.address,
+            address: value
+                .address
+                .as_ref()
+                .map_or(Vec::new(), |address| match address {
+                    OneOrMore::One(address) => vec![address],
+                    OneOrMore::Many(addresses) => addresses.iter().collect(),
+                }),
+            topics: value.topics.as_ref().map_or(Vec::new(), |topics| {
+                topics
+                    .iter()
+                    .map(|options| {
+                        options.as_ref().map(|options| match options {
+                            OneOrMore::One(topic) => vec![topic],
+                            OneOrMore::Many(topics) => topics.iter().collect(),
+                        })
+                    })
+                    .collect()
+            }),
         })
     }
 }
@@ -559,12 +579,29 @@ impl Hasher {
             from_block,
             to_block,
             address,
+            topics,
         } = params;
 
-        let this = self
+        let mut this = self
             .hash_block_spec(from_block)?
             .hash_block_spec(to_block)?
-            .hash_bytes(address);
+            .hash_u64(address.len() as u64);
+
+        for address in address {
+            this = this.hash_address(address);
+        }
+
+        this = this.hash_u64(topics.len() as u64);
+        for options in topics {
+            this = this.hash_u8(options.cache_key_variant());
+            if let Some(options) = options {
+                this = this.hash_u64(options.len() as u64);
+                for option in options {
+                    this = this.hash_b256(option);
+                }
+            }
+        }
+
         Ok(this)
     }
 
@@ -721,7 +758,8 @@ mod test {
             .hash_get_logs_input(&CacheableGetLogsInput {
                 from_block: from.clone(),
                 to_block: to.clone(),
-                address: &address,
+                address: vec![&address],
+                topics: Vec::new(),
             })
             .unwrap()
             .finalize();
@@ -730,7 +768,8 @@ mod test {
             .hash_get_logs_input(&CacheableGetLogsInput {
                 from_block: to,
                 to_block: from,
-                address: &address,
+                address: vec![&address],
+                topics: Vec::new(),
             })
             .unwrap()
             .finalize();

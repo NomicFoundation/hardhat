@@ -1,12 +1,12 @@
 use std::{num::NonZeroU64, sync::Arc};
 
 use edr_eth::{
-    block::PartialHeader, receipt::BlockReceipt, trie::KECCAK_NULL_RLP, SpecId, B256, U256,
+    block::PartialHeader, receipt::BlockReceipt, trie::KECCAK_NULL_RLP, Address, SpecId, B256, U256,
 };
 use parking_lot::{RwLock, RwLockUpgradableReadGuard, RwLockWriteGuard};
-use revm::primitives::HashMap;
+use revm::primitives::{HashMap, HashSet};
 
-use super::SparseBlockchainStorage;
+use super::{sparse, SparseBlockchainStorage};
 use crate::{state::StateDiff, Block, LocalBlock};
 
 /// A reservation for a sequence of blocks that have not yet been inserted into
@@ -87,6 +87,18 @@ impl<BlockT: Block + Clone> ReservableSparseBlockchainStorage<BlockT> {
     /// Retrieves the last block number.
     pub fn last_block_number(&self) -> u64 {
         self.last_block_number
+    }
+
+    /// Retrieves the logs that match the provided filter.
+    pub fn logs(
+        &self,
+        from_block: u64,
+        to_block: u64,
+        addresses: &HashSet<Address>,
+        normalized_topics: &Vec<Option<Vec<B256>>>,
+    ) -> Result<Vec<edr_eth::log::FilterLog>, BlockT::Error> {
+        let storage = self.storage.read();
+        sparse::logs(&storage, from_block, to_block, addresses, normalized_topics)
     }
 
     /// Retrieves the sequence of diffs from the genesis state to the state of

@@ -102,6 +102,16 @@ impl<'blockchain> Blockchain for BlockchainWithPending<'blockchain> {
         self.pending_block.header().number
     }
 
+    fn logs(
+        &self,
+        _from_block: u64,
+        _to_block: u64,
+        _addresses: &edr_evm::HashSet<edr_eth::Address>,
+        _normalized_topics: &Vec<Option<Vec<B256>>>,
+    ) -> Result<Vec<edr_eth::log::FilterLog>, Self::BlockchainError> {
+        panic!("Retrieving logs from a pending blockchain is not supported.");
+    }
+
     fn network_id(&self) -> u64 {
         self.blockchain.network_id()
     }

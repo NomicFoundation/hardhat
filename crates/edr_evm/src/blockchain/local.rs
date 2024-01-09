@@ -8,10 +8,15 @@ use std::{
 
 use edr_eth::{
     block::{BlobGas, PartialHeader},
+    log::FilterLog,
     trie::KECCAK_NULL_RLP,
-    Bytes, B256, B64, U256,
+    Address, Bytes, B256, B64, U256,
 };
-use revm::{db::BlockHashRef, primitives::SpecId, DatabaseCommit};
+use revm::{
+    db::BlockHashRef,
+    primitives::{HashSet, SpecId},
+    DatabaseCommit,
+};
 
 use super::{
     compute_state_at_block, storage::ReservableSparseBlockchainStorage, validate_next_block,
@@ -246,6 +251,17 @@ impl Blockchain for LocalBlockchain {
 
     fn last_block_number(&self) -> u64 {
         self.storage.last_block_number()
+    }
+
+    fn logs(
+        &self,
+        from_block: u64,
+        to_block: u64,
+        addresses: &HashSet<Address>,
+        normalized_topics: &Vec<Option<Vec<B256>>>,
+    ) -> Result<Vec<FilterLog>, Self::BlockchainError> {
+        self.storage
+            .logs(from_block, to_block, addresses, normalized_topics)
     }
 
     fn network_id(&self) -> u64 {

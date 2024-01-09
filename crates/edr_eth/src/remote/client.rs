@@ -20,7 +20,9 @@ use sha3::{digest::FixedOutput, Digest, Sha3_256};
 use tokio::sync::{OnceCell, RwLock};
 use uuid::Uuid;
 
-use super::{eth, jsonrpc, request_methods::RequestMethod, BlockSpec, PreEip1898BlockSpec};
+use super::{
+    eth, filter::OneOrMore, jsonrpc, request_methods::RequestMethod, BlockSpec, PreEip1898BlockSpec,
+};
 use crate::{
     block::{block_time, is_safe_block_number, IsSafeBlockNumberArgs},
     log::FilterLog,
@@ -748,12 +750,14 @@ impl RpcClient {
         &self,
         from_block: BlockSpec,
         to_block: BlockSpec,
-        address: &Address,
+        address: Option<OneOrMore<Address>>,
+        topics: Option<Vec<Option<OneOrMore<B256>>>>,
     ) -> Result<Vec<FilterLog>, RpcClientError> {
         self.call(RequestMethod::GetLogs(GetLogsInput {
             from_block,
             to_block,
-            address: *address,
+            address,
+            topics,
         }))
         .await
     }
@@ -1507,8 +1511,11 @@ mod tests {
                 .get_logs(
                     BlockSpec::Number(10496585),
                     BlockSpec::Number(10496585),
-                    &Address::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
-                        .expect("failed to parse data"),
+                    Some(OneOrMore::One(
+                        Address::from_str("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
+                            .expect("failed to parse data"),
+                    )),
+                    None,
                 )
                 .await
                 .expect("failed to get logs");
@@ -1525,8 +1532,11 @@ mod tests {
                 .get_logs(
                     BlockSpec::Number(MAX_BLOCK_NUMBER),
                     BlockSpec::Number(MAX_BLOCK_NUMBER),
-                    &Address::from_str("0xffffffffffffffffffffffffffffffffffffffff")
-                        .expect("failed to parse data"),
+                    Some(OneOrMore::One(
+                        Address::from_str("0xffffffffffffffffffffffffffffffffffffffff")
+                            .expect("failed to parse data"),
+                    )),
+                    None,
                 )
                 .await
                 .expect_err("should have failed to get logs");
@@ -1547,8 +1557,11 @@ mod tests {
                 .get_logs(
                     BlockSpec::Number(10496585),
                     BlockSpec::Number(MAX_BLOCK_NUMBER),
-                    &Address::from_str("0xffffffffffffffffffffffffffffffffffffffff")
-                        .expect("failed to parse data"),
+                    Some(OneOrMore::One(
+                        Address::from_str("0xffffffffffffffffffffffffffffffffffffffff")
+                            .expect("failed to parse data"),
+                    )),
+                    None,
                 )
                 .await
                 .expect("should have succeeded");

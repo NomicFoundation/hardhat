@@ -356,8 +356,7 @@ describe("Forked provider", function () {
         });
       });
 
-      // TODO: https://github.com/NomicFoundation/edr/issues/114
-      describe.skip("eth_getLogs", () => {
+      describe("eth_getLogs", () => {
         it("can get remote logs", async function () {
           const logs = await this.provider.send("eth_getLogs", [
             {
