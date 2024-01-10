@@ -49,7 +49,7 @@ describe("Addressable matcher", () => {
     for (const el2 of elements) {
       const expectEqual = el1.class === el2.class;
 
-      describe(`expect "${el1.name}" to equal "${el1.name}"`, () => {
+      describe(`expect "${el1.name}" to equal "${el2.name}"`, () => {
         if (expectEqual) {
           it("should not revert", () => {
             expect(el1.object).to.equal(el2.object);
