@@ -251,7 +251,7 @@ impl BlockBuilder {
             None
         };
 
-        let effective_gas_price = if blockchain.spec_id() > SpecId::LONDON {
+        let effective_gas_price = if blockchain.spec_id() >= SpecId::LONDON {
             let gas_price = transaction.gas_price();
             Some(
                 if let SignedTransaction::Eip1559(transaction) = &*transaction {

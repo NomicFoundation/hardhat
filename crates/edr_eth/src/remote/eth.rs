@@ -38,17 +38,12 @@ pub struct Transaction {
     #[serde(with = "crate::serde::u64")]
     pub nonce: u64,
     /// hash of the block where this transaction was in
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub block_hash: Option<B256>,
     /// block number where this transaction was in
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub block_number: Option<U256>,
     /// integer of the transactions index position in the block. null when its
     /// pending
-    #[serde(
-        skip_serializing_if = "Option::is_none",
-        with = "crate::serde::optional_u64"
-    )]
+    #[serde(with = "crate::serde::optional_u64")]
     pub transaction_index: Option<u64>,
     /// address of the sender
     pub from: Address,
