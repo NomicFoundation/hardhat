@@ -39,7 +39,9 @@ async fn create_forked_dummy_blockchain() -> Box<dyn SyncBlockchain<BlockchainEr
             SpecId::LATEST,
             rpc_client,
             None,
-            Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed"))),
+            Arc::new(Mutex::new(RandomHashGenerator::with_seed(
+                edr_defaults::STATE_ROOT_HASH_SEED,
+            ))),
             HashMap::new(),
         )
         .await

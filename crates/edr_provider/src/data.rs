@@ -1539,7 +1539,7 @@ fn create_blockchain_and_state(
 
     if let Some(fork_config) = &config.fork {
         let state_root_generator = Arc::new(parking_lot::Mutex::new(
-            RandomHashGenerator::with_seed(edr_defaults::MIX_HASH_SEED),
+            RandomHashGenerator::with_seed(edr_defaults::STATE_ROOT_HASH_SEED),
         ));
 
         let rpc_client = RpcClient::new(&fork_config.json_rpc_url, config.cache_dir.clone());
