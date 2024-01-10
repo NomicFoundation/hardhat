@@ -42,7 +42,7 @@ use indexmap::IndexMap;
 use inspector::EvmInspector;
 pub use inspector::{InspectorCallbacks, SyncInspectorCallbacks};
 use lazy_static::lazy_static;
-use tokio::runtime;
+use tokio::{runtime, sync::broadcast};
 
 use self::account::{create_accounts, InitialAccounts};
 use crate::{
@@ -52,7 +52,7 @@ use crate::{
     pending::BlockchainWithPending,
     requests::hardhat::rpc_types::{ForkConfig, ForkMetadata},
     snapshot::Snapshot,
-    ProviderConfig, ProviderError,
+    ProviderConfig, ProviderError, SubscriptionEvent, SubscriptionEventData,
 };
 
 const DEFAULT_INITIAL_BASE_FEE_PER_GAS: u64 = 1_000_000_000;
@@ -108,12 +108,14 @@ pub struct ProviderData {
     logger: Logger,
     impersonated_accounts: HashSet<Address>,
     callbacks: Box<dyn SyncInspectorCallbacks>,
+    subscription_event_sender: broadcast::Sender<SubscriptionEvent>,
 }
 
 impl ProviderData {
     pub fn new(
         runtime_handle: runtime::Handle,
         callbacks: Box<dyn SyncInspectorCallbacks>,
+        subscription_event_sender: broadcast::Sender<SubscriptionEvent>,
         config: ProviderConfig,
     ) -> Result<Self, CreationError> {
         let InitialAccounts {
@@ -166,6 +168,7 @@ impl ProviderData {
             logger: Logger::new(false),
             impersonated_accounts: HashSet::new(),
             callbacks,
+            subscription_event_sender,
         })
     }
 
@@ -173,8 +176,12 @@ impl ProviderData {
         let mut config = self.initial_config.clone();
         config.fork = fork_config;
 
-        let mut reset_instance =
-            Self::new(self.runtime_handle.clone(), self.callbacks.clone(), config)?;
+        let mut reset_instance = Self::new(
+            self.runtime_handle.clone(),
+            self.callbacks.clone(),
+            self.subscription_event_sender.clone(),
+            config,
+        )?;
 
         std::mem::swap(self, &mut reset_instance);
 
@@ -591,6 +598,8 @@ impl ProviderData {
         // Reset next block time stamp
         self.next_block_timestamp.take();
 
+        let local_block = result.block.clone();
+
         let block = self
             .blockchain
             .insert_block(result.block, result.state_diff)
@@ -600,7 +609,7 @@ impl ProviderData {
             .update(&result.state)
             .map_err(ProviderError::MemPoolUpdate)?;
 
-        for filter in self.filters.values_mut() {
+        for (filter_id, filter) in self.filters.iter_mut() {
             match &mut filter.data {
                 FilterData::Logs { criteria, logs } => {
                     let bloom = &block.header().logs_bloom;
@@ -610,7 +619,11 @@ impl ProviderData {
 
                         let mut filtered_logs = filter_logs(new_logs, criteria);
                         if filter.is_subscription {
-                            // TODO: emit "ethEvent" callback per log
+                            // We ignore the result, as an error just means that no one is listening
+                            let _result = self.subscription_event_sender.send(SubscriptionEvent {
+                                filter_id: *filter_id,
+                                result: SubscriptionEventData::Logs(filtered_logs.clone()),
+                            });
                         } else {
                             logs.append(&mut filtered_logs);
                         }
@@ -618,7 +631,11 @@ impl ProviderData {
                 }
                 FilterData::NewHeads(block_hashes) => {
                     if filter.is_subscription {
-                        // TODO: emit "ethEvent" callback
+                        // We ignore the result, as an error just means that no one is listening
+                        let _result = self.subscription_event_sender.send(SubscriptionEvent {
+                            filter_id: *filter_id,
+                            result: SubscriptionEventData::NewHeads(local_block.clone()),
+                        });
                     } else {
                         block_hashes.push(*block.hash());
                     }
@@ -1285,12 +1302,16 @@ impl ProviderData {
         // Handles validation
         self.mem_pool.add_transaction(&self.state, transaction)?;
 
-        for filter in self.filters.values_mut() {
+        for (filter_id, filter) in self.filters.iter_mut() {
             if let FilterData::NewPendingTransactions(events) = &mut filter.data {
-                events.push(transaction_hash);
-
                 if filter.is_subscription {
-                    // TODO: call callback _emitEthEvent
+                    // We ignore the result, as an error just means that no one is listening
+                    let _result = self.subscription_event_sender.send(SubscriptionEvent {
+                        filter_id: *filter_id,
+                        result: SubscriptionEventData::NewPendingTransactions(transaction_hash),
+                    });
+                } else {
+                    events.push(transaction_hash);
                 }
             }
         }
@@ -1859,14 +1880,20 @@ mod tests {
             let callbacks = Box::<InspectorCallbacksStub>::default();
             let console_log_calls = callbacks.console_log_calls.clone();
 
+            let (subscription_event_sender, _subscription_event_reader) = broadcast::channel(16);
+
             let runtime = runtime::Builder::new_multi_thread()
                 .worker_threads(1)
                 .enable_all()
                 .thread_name("provider-data-test")
                 .build()?;
 
-            let mut provider_data =
-                ProviderData::new(runtime.handle().clone(), callbacks, config.clone())?;
+            let mut provider_data = ProviderData::new(
+                runtime.handle().clone(),
+                callbacks,
+                subscription_event_sender,
+                config.clone(),
+            )?;
             provider_data
                 .impersonated_accounts
                 .insert(impersonated_account);

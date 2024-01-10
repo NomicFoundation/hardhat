@@ -217,8 +217,11 @@ pub enum MethodInvocation {
         eip712::Message,
     ),
     /// eth_subscribe
-    #[serde(rename = "eth_subscribe", with = "edr_eth::serde::sequence")]
-    Subscribe(Vec<SubscriptionType>),
+    #[serde(rename = "eth_subscribe")]
+    Subscribe(
+        SubscriptionType,
+        #[serde(default, skip_serializing_if = "Option::is_none")] Option<LogFilterOptions>,
+    ),
     /// eth_syncing
     #[serde(rename = "eth_syncing", with = "edr_eth::serde::empty_params")]
     Syncing(()),

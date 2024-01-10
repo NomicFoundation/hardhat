@@ -7,6 +7,7 @@ mod logger;
 mod pending;
 mod requests;
 mod snapshot;
+mod subscribe;
 /// Test utilities
 #[cfg(test)]
 pub mod test_utils;
@@ -15,7 +16,7 @@ use std::sync::Arc;
 
 use parking_lot::Mutex;
 use requests::eth::handle_set_interval_mining;
-use tokio::runtime;
+use tokio::{runtime, sync::broadcast};
 
 pub use self::{
     config::*,
@@ -25,6 +26,7 @@ pub use self::{
         deserialization_error_code, hardhat::rpc_types as hardhat_rpc_types, MethodInvocation,
         OneUsizeOrTwo, ProviderRequest, U64OrUsize,
     },
+    subscribe::*,
 };
 use self::{
     data::{CreationError, ProviderData},
@@ -75,9 +77,15 @@ impl Provider {
     pub fn new(
         runtime: runtime::Handle,
         callbacks: Box<dyn SyncInspectorCallbacks>,
+        subscription_event_sender: broadcast::Sender<SubscriptionEvent>,
         config: ProviderConfig,
     ) -> Result<Self, CreationError> {
-        let data = ProviderData::new(runtime.clone(), callbacks, config.clone())?;
+        let data = ProviderData::new(
+            runtime.clone(),
+            callbacks,
+            subscription_event_sender,
+            config.clone(),
+        )?;
         let data = Arc::new(Mutex::new(data));
 
         let interval_miner = config
@@ -238,8 +246,9 @@ impl Provider {
             MethodInvocation::SignTypedDataV4(_, _) => {
                 Err(ProviderError::Unimplemented("SignTypedDataV4".to_string()))
             }
-            MethodInvocation::Subscribe(_) => {
-                Err(ProviderError::Unimplemented("Subscribe".to_string()))
+            MethodInvocation::Subscribe(subscription_type, filter_options) => {
+                eth::handle_subscribe_request(data, subscription_type, filter_options)
+                    .and_then(to_json)
             }
             MethodInvocation::Syncing(()) => eth::handle_syncing().and_then(to_json),
             MethodInvocation::UninstallFilter(filter_id) => {

@@ -2,7 +2,7 @@ use std::iter;
 
 use edr_eth::{
     remote::{
-        filter::{FilteredEvents, LogFilterOptions, LogOutput, OneOrMore},
+        filter::{FilteredEvents, LogFilterOptions, LogOutput, OneOrMore, SubscriptionType},
         BlockSpec, BlockTag, Eip1898BlockSpec,
     },
     SpecId, U256,
@@ -68,6 +68,26 @@ pub fn handle_new_pending_transaction_filter_request(
     data: &mut ProviderData,
 ) -> Result<U256, ProviderError> {
     Ok(data.add_pending_transaction_filter::<false>())
+}
+
+pub fn handle_subscribe_request(
+    data: &mut ProviderData,
+    subscription_type: SubscriptionType,
+    filter_criteria: Option<LogFilterOptions>,
+) -> Result<U256, ProviderError> {
+    match subscription_type {
+        SubscriptionType::Logs => {
+            let filter_criteria = filter_criteria.ok_or_else(|| {
+                ProviderError::InvalidArgument("Missing params argument".to_string())
+            })?;
+            let filter_criteria = validate_filter_criteria::<false>(data, filter_criteria)?;
+            data.add_log_filter::<true>(filter_criteria)
+        }
+        SubscriptionType::NewHeads => data.add_block_filter::<true>(),
+        SubscriptionType::NewPendingTransactions => {
+            Ok(data.add_pending_transaction_filter::<true>())
+        }
+    }
 }
 
 pub fn handle_uninstall_filter_request(

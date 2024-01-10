@@ -3,7 +3,7 @@ mod common;
 use edr_eth::{
     remote::{
         eth::{eip712, CallRequest},
-        filter::{LogFilterOptions, LogOutput, OneOrMore, SubscriptionType},
+        filter::{LogFilterOptions, LogOutput, OneOrMore},
         BlockSpec, BlockTag, PreEip1898BlockSpec,
     },
     transaction::EthTransactionRequest,
@@ -369,13 +369,40 @@ fn test_serde_eth_sign_typed_data_v4() {
     ));
 }
 
-#[test]
-fn test_serde_eth_subscribe() {
-    help_test_method_invocation_serde(MethodInvocation::Subscribe(vec![
-        SubscriptionType::Logs,
-        SubscriptionType::NewPendingTransactions,
-        SubscriptionType::NewHeads,
-    ]));
+macro_rules! impl_serde_eth_subscribe_tests {
+    ($(
+        $name:ident => $variant:expr,
+    )+) => {
+        $(
+            paste::item! {
+                #[test]
+                fn [<test_serde_eth_subscribe_ $name _without_filter>]() {
+                    use edr_eth::remote::filter::SubscriptionType;
+
+                    help_test_method_invocation_serde(MethodInvocation::Subscribe($variant, None));
+                }
+
+                #[test]
+                fn [<test_serde_eth_subscribe_ $name _with_filter>]() {
+                    use edr_eth::remote::filter::SubscriptionType;
+
+                    help_test_method_invocation_serde(MethodInvocation::Subscribe($variant, Some(LogFilterOptions {
+                        from_block: Some(BlockSpec::Number(1000)),
+                        to_block: Some(BlockSpec::latest()),
+                        block_hash: None,
+                        address: Some(OneOrMore::One(Address::from(U160::from(1)))),
+                        topics: Some(vec![Some(OneOrMore::One(B256::from(U256::from(1))))]),
+                    })));
+                }
+            }
+        )+
+    };
+}
+
+impl_serde_eth_subscribe_tests! {
+    logs => SubscriptionType::Logs,
+    new_pending_transactions => SubscriptionType::NewPendingTransactions,
+    new_heads => SubscriptionType::NewHeads,
 }
 
 #[test]

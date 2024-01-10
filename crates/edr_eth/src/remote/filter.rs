@@ -91,6 +91,7 @@ impl From<&FilterLog> for LogOutput {
 
 /// represents the output of `eth_getFilterChanges`
 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
 pub enum FilteredEvents {
     /// logs
     Logs(Vec<LogOutput>),
