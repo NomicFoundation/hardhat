@@ -748,7 +748,7 @@ const communityPlugins: IPlugin[] = [
     tags: ["transaction", "gasPrice", "retry", "helper"],
   },
   {
-    name: "hardhat-fireblocks",
+    name: "@fireblocks/hardhat-fireblocks",
     author: "Fireblocks",
     authorUrl: "https://github.com/fireblocks",
     description: "Hardhat plugin for integrating with Fireblocks",
