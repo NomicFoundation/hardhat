@@ -5,7 +5,7 @@ use edr_evm::{
     blockchain::{Blockchain, BlockchainError, BlockchainMut, SyncBlockchain},
     db::BlockHashRef,
     state::{StateDiff, StateError, StateOverride, SyncState},
-    LocalBlock, SyncBlock,
+    BlockAndTotalDifficulty, LocalBlock, SyncBlock,
 };
 
 /// A blockchain with a pending block.
@@ -193,7 +193,7 @@ impl<'blockchain> BlockchainMut for BlockchainWithPending<'blockchain> {
         &mut self,
         _block: LocalBlock,
         _state_diff: StateDiff,
-    ) -> Result<Arc<dyn SyncBlock<Error = Self::Error>>, Self::Error> {
+    ) -> Result<BlockAndTotalDifficulty<Self::Error>, Self::Error> {
         panic!("Inserting blocks into a pending blockchain is not supported.");
     }
 

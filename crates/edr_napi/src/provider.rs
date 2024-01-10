@@ -4,15 +4,13 @@ use std::sync::Arc;
 
 use edr_eth::{remote::jsonrpc, Bytes};
 use edr_provider::{deserialization_error_code, InspectorCallbacks};
-use napi::{
-    tokio::{runtime, sync::broadcast},
-    Env, JsFunction, JsObject, NapiRaw, Status,
-};
+use napi::{tokio::runtime, Env, JsFunction, JsObject, NapiRaw, Status};
 use napi_derive::napi;
 
 use self::config::ProviderConfig;
-use crate::threadsafe_function::{
-    ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode,
+use crate::{
+    subscribe::SubscriberCallback,
+    threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
 };
 
 /// A JSON-RPC provider for Ethereum.
@@ -29,18 +27,19 @@ impl Provider {
         env: Env,
         config: ProviderConfig,
         #[napi(ts_arg_type = "(message: Buffer) => void")] console_log_callback: JsFunction,
+        #[napi(ts_arg_type = "(event: SubscriptionEvent) => void")] subscriber_callback: JsFunction,
     ) -> napi::Result<JsObject> {
         let config = edr_provider::ProviderConfig::try_from(config)?;
         let runtime = runtime::Handle::current();
 
         let callbacks = Box::new(InspectorCallback::new(&env, console_log_callback)?);
-
-        let (subscription_event_sender, subscription_event_reader) = broadcast::channel(16);
+        let subscriber_callback = SubscriberCallback::new(&env, subscriber_callback)?;
+        let subscriber_callback = Box::new(move |event| subscriber_callback.call(event));
 
         let (deferred, promise) = env.create_deferred()?;
         runtime.clone().spawn_blocking(move || {
             let result =
-                edr_provider::Provider::new(runtime, callbacks, subscription_event_sender, config)
+                edr_provider::Provider::new(runtime, callbacks, subscriber_callback, config)
                     .map_or_else(
                         |error| Err(napi::Error::new(Status::GenericFailure, error.to_string())),
                         |provider| {

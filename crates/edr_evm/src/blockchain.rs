@@ -23,7 +23,7 @@ pub use self::{
 };
 use crate::{
     state::{StateDiff, StateOverride, SyncState},
-    Block, LocalBlock, SyncBlock,
+    Block, BlockAndTotalDifficulty, LocalBlock, SyncBlock,
 };
 
 /// Combinatorial error for the blockchain API.
@@ -172,7 +172,7 @@ pub trait BlockchainMut {
         &mut self,
         block: LocalBlock,
         state_diff: StateDiff,
-    ) -> Result<Arc<dyn SyncBlock<Error = Self::Error>>, Self::Error>;
+    ) -> Result<BlockAndTotalDifficulty<Self::Error>, Self::Error>;
 
     /// Reserves the provided number of blocks, starting from the next block
     /// number.

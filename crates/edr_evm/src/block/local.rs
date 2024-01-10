@@ -5,7 +5,6 @@ use edr_eth::{
     block::{self, Header, PartialHeader},
     log::{FilterLog, FullBlockLog, Log, ReceiptLog},
     receipt::{BlockReceipt, TransactionReceipt, TypedReceipt},
-    remote::eth,
     transaction::{DetailedTransaction, SignedTransaction},
     trie,
     withdrawal::Withdrawal,

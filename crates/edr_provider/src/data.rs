@@ -42,7 +42,7 @@ use indexmap::IndexMap;
 use inspector::EvmInspector;
 pub use inspector::{InspectorCallbacks, SyncInspectorCallbacks};
 use lazy_static::lazy_static;
-use tokio::{runtime, sync::broadcast};
+use tokio::runtime;
 
 use self::account::{create_accounts, InitialAccounts};
 use crate::{
@@ -53,6 +53,7 @@ use crate::{
     requests::hardhat::rpc_types::{ForkConfig, ForkMetadata},
     snapshot::Snapshot,
     ProviderConfig, ProviderError, SubscriptionEvent, SubscriptionEventData,
+    SyncSubscriberCallback,
 };
 
 const DEFAULT_INITIAL_BASE_FEE_PER_GAS: u64 = 1_000_000_000;
@@ -108,14 +109,14 @@ pub struct ProviderData {
     logger: Logger,
     impersonated_accounts: HashSet<Address>,
     callbacks: Box<dyn SyncInspectorCallbacks>,
-    subscription_event_sender: broadcast::Sender<SubscriptionEvent>,
+    subscriber_callback: Box<dyn SyncSubscriberCallback>,
 }
 
 impl ProviderData {
     pub fn new(
         runtime_handle: runtime::Handle,
         callbacks: Box<dyn SyncInspectorCallbacks>,
-        subscription_event_sender: broadcast::Sender<SubscriptionEvent>,
+        subscriber_callback: Box<dyn SyncSubscriberCallback>,
         config: ProviderConfig,
     ) -> Result<Self, CreationError> {
         let InitialAccounts {
@@ -168,7 +169,7 @@ impl ProviderData {
             logger: Logger::new(false),
             impersonated_accounts: HashSet::new(),
             callbacks,
-            subscription_event_sender,
+            subscriber_callback,
         })
     }
 
@@ -179,7 +180,7 @@ impl ProviderData {
         let mut reset_instance = Self::new(
             self.runtime_handle.clone(),
             self.callbacks.clone(),
-            self.subscription_event_sender.clone(),
+            self.subscriber_callback.clone(),
             config,
         )?;
 
@@ -598,9 +599,7 @@ impl ProviderData {
         // Reset next block time stamp
         self.next_block_timestamp.take();
 
-        let local_block = result.block.clone();
-
-        let block = self
+        let block_and_total_difficulty = self
             .blockchain
             .insert_block(result.block, result.state_diff)
             .map_err(ProviderError::Blockchain)?;
@@ -609,6 +608,7 @@ impl ProviderData {
             .update(&result.state)
             .map_err(ProviderError::MemPoolUpdate)?;
 
+        let block = &block_and_total_difficulty.block;
         for (filter_id, filter) in self.filters.iter_mut() {
             match &mut filter.data {
                 FilterData::Logs { criteria, logs } => {
@@ -619,8 +619,7 @@ impl ProviderData {
 
                         let mut filtered_logs = filter_logs(new_logs, criteria);
                         if filter.is_subscription {
-                            // We ignore the result, as an error just means that no one is listening
-                            let _result = self.subscription_event_sender.send(SubscriptionEvent {
+                            (self.subscriber_callback)(SubscriptionEvent {
                                 filter_id: *filter_id,
                                 result: SubscriptionEventData::Logs(filtered_logs.clone()),
                             });
@@ -631,10 +630,11 @@ impl ProviderData {
                 }
                 FilterData::NewHeads(block_hashes) => {
                     if filter.is_subscription {
-                        // We ignore the result, as an error just means that no one is listening
-                        let _result = self.subscription_event_sender.send(SubscriptionEvent {
+                        (self.subscriber_callback)(SubscriptionEvent {
                             filter_id: *filter_id,
-                            result: SubscriptionEventData::NewHeads(local_block.clone()),
+                            result: SubscriptionEventData::NewHeads(
+                                block_and_total_difficulty.clone(),
+                            ),
                         });
                     } else {
                         block_hashes.push(*block.hash());
@@ -650,7 +650,7 @@ impl ProviderData {
         self.state = result.state;
 
         Ok(MineBlockResult {
-            block,
+            block: block_and_total_difficulty.block,
             transaction_results: result.transaction_results,
             transaction_traces: result.transaction_traces,
         })
@@ -1305,8 +1305,7 @@ impl ProviderData {
         for (filter_id, filter) in self.filters.iter_mut() {
             if let FilterData::NewPendingTransactions(events) = &mut filter.data {
                 if filter.is_subscription {
-                    // We ignore the result, as an error just means that no one is listening
-                    let _result = self.subscription_event_sender.send(SubscriptionEvent {
+                    (self.subscriber_callback)(SubscriptionEvent {
                         filter_id: *filter_id,
                         result: SubscriptionEventData::NewPendingTransactions(transaction_hash),
                     });
@@ -1796,15 +1795,6 @@ fn create_blockchain_and_state(
     }
 }
 
-/// The result returned by requesting a block by number.
-#[derive(Debug, Clone)]
-pub struct BlockAndTotalDifficulty {
-    /// The block
-    pub block: Arc<dyn SyncBlock<Error = BlockchainError>>,
-    /// The total difficulty with the block
-    pub total_difficulty: Option<U256>,
-}
-
 /// The result returned by requesting a transaction.
 #[derive(Debug, Clone)]
 pub struct TransactionAndBlock {
@@ -1880,7 +1870,7 @@ mod tests {
             let callbacks = Box::<InspectorCallbacksStub>::default();
             let console_log_calls = callbacks.console_log_calls.clone();
 
-            let (subscription_event_sender, _subscription_event_reader) = broadcast::channel(16);
+            let subscription_callback = Box::new(|_| ());
 
             let runtime = runtime::Builder::new_multi_thread()
                 .worker_threads(1)
@@ -1891,7 +1881,7 @@ mod tests {
             let mut provider_data = ProviderData::new(
                 runtime.handle().clone(),
                 callbacks,
-                subscription_event_sender,
+                subscription_callback,
                 config.clone(),
             )?;
             provider_data

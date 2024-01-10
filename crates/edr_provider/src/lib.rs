@@ -16,7 +16,7 @@ use std::sync::Arc;
 
 use parking_lot::Mutex;
 use requests::eth::handle_set_interval_mining;
-use tokio::{runtime, sync::broadcast};
+use tokio::runtime;
 
 pub use self::{
     config::*,
@@ -77,13 +77,13 @@ impl Provider {
     pub fn new(
         runtime: runtime::Handle,
         callbacks: Box<dyn SyncInspectorCallbacks>,
-        subscription_event_sender: broadcast::Sender<SubscriptionEvent>,
+        subscriber_callback: Box<dyn SyncSubscriberCallback>,
         config: ProviderConfig,
     ) -> Result<Self, CreationError> {
         let data = ProviderData::new(
             runtime.clone(),
             callbacks,
-            subscription_event_sender,
+            subscriber_callback,
             config.clone(),
         )?;
         let data = Arc::new(Mutex::new(data));

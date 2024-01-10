@@ -24,7 +24,7 @@ use super::{
 };
 use crate::{
     state::{StateDebug, StateDiff, StateError, StateOverride, SyncState, TrieState},
-    Block, LocalBlock, SyncBlock,
+    Block, BlockAndTotalDifficulty, LocalBlock, SyncBlock,
 };
 
 /// An error that occurs upon creation of a [`LocalBlockchain`].
@@ -319,7 +319,7 @@ impl BlockchainMut for LocalBlockchain {
         &mut self,
         block: LocalBlock,
         state_diff: StateDiff,
-    ) -> Result<Arc<dyn SyncBlock<Error = Self::Error>>, Self::Error> {
+    ) -> Result<BlockAndTotalDifficulty<Self::Error>, Self::Error> {
         let last_block = self.last_block()?;
 
         validate_next_block(self.spec_id, &last_block, &block)?;
@@ -338,7 +338,10 @@ impl BlockchainMut for LocalBlockchain {
                 .insert_block_unchecked(block, state_diff, total_difficulty)
         };
 
-        Ok(block.clone())
+        Ok(BlockAndTotalDifficulty {
+            block: block.clone(),
+            total_difficulty: Some(total_difficulty),
+        })
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]

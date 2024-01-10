@@ -322,6 +322,10 @@ export interface AccountOverride {
   storage?: Array<StorageSlotChange>
   storageDiff?: Array<StorageSlotChange>
 }
+export interface SubscriptionEvent {
+  filterId: bigint
+  result: any
+}
 export interface TracingMessage {
   /** Sender address */
   readonly caller: Buffer
@@ -682,7 +686,7 @@ export class MineBlockResult {
 /** A JSON-RPC provider for Ethereum. */
 export class Provider {
   /**Constructs a new provider with the provided configuration. */
-  static withConfig(config: ProviderConfig, consoleLogCallback: (message: Buffer) => void): Promise<Provider>
+  static withConfig(config: ProviderConfig, consoleLogCallback: (message: Buffer) => void, subscriberCallback: (event: SubscriptionEvent) => void): Promise<Provider>
   /**Handles a JSON-RPC request and returns a JSON-RPC response. */
   handleRequest(jsonRequest: string): Promise<string>
 }

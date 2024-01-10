@@ -2,12 +2,12 @@ use std::sync::Arc;
 
 use edr_eth::{
     remote::{eth, BlockSpec, PreEip1898BlockSpec},
-    B256, U256, U64,
+    SpecId, B256, U256, U64,
 };
-use edr_evm::{blockchain::BlockchainError, SyncBlock};
+use edr_evm::{blockchain::BlockchainError, BlockAndTotalDifficulty, SyncBlock};
 
 use crate::{
-    data::{BlockAndTotalDifficulty, BlockDataForTransaction, ProviderData, TransactionAndBlock},
+    data::{BlockDataForTransaction, ProviderData, TransactionAndBlock},
     requests::eth::transaction_to_rpc_result,
     ProviderError,
 };
@@ -27,7 +27,12 @@ pub fn handle_get_block_by_hash_request(
     data.block_by_hash(&block_hash)?
         .map(|block| {
             let total_difficulty = data.total_difficulty_by_hash(block.hash())?;
-            block_to_rpc_output(data, block, total_difficulty, transaction_detail_flag)
+            block_to_rpc_output(
+                data.spec_id(),
+                block,
+                total_difficulty,
+                transaction_detail_flag,
+            )
         })
         .transpose()
 }
@@ -43,7 +48,12 @@ pub fn handle_get_block_by_number_request(
                  block,
                  total_difficulty,
              }| {
-                block_to_rpc_output(data, block, total_difficulty, transaction_detail_flag)
+                block_to_rpc_output(
+                    data.spec_id(),
+                    block,
+                    total_difficulty,
+                    transaction_detail_flag,
+                )
             },
         )
         .transpose()
@@ -69,7 +79,7 @@ pub fn handle_get_block_transaction_count_by_block_number(
 fn block_by_number(
     data: &ProviderData,
     block_spec: &BlockSpec,
-) -> Result<Option<BlockAndTotalDifficulty>, ProviderError> {
+) -> Result<Option<BlockAndTotalDifficulty<BlockchainError>>, ProviderError> {
     match data.block_by_block_spec(block_spec) {
         Ok(Some(block)) => {
             let total_difficulty = data.total_difficulty_by_hash(block.hash())?;
@@ -100,7 +110,7 @@ fn block_by_number(
 }
 
 fn block_to_rpc_output(
-    data: &ProviderData,
+    spec_id: SpecId,
     block: Arc<dyn SyncBlock<Error = BlockchainError>>,
     total_difficulty: Option<U256>,
     transaction_detail_flag: bool,
@@ -120,9 +130,7 @@ fn block_to_rpc_output(
                 }),
                 is_pending: false,
             })
-            .map(|tx| {
-                transaction_to_rpc_result(tx, data.spec_id()).map(HashOrTransaction::Transaction)
-            })
+            .map(|tx| transaction_to_rpc_result(tx, spec_id).map(HashOrTransaction::Transaction))
             .collect::<Result<_, _>>()?
     } else {
         block
