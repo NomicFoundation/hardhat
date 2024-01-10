@@ -28,7 +28,7 @@ function override(
 // otherwise undefined is returned.
 function tryGetAddressSync(value: any): string | undefined {
   value = tryDereference(value, "address");
-  if(isAddressable(value)) {
+  if (isAddressable(value)) {
     value = (value as any).address ?? (value as any).target;
   }
   if (isAddress(value)) {
