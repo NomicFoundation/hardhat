@@ -144,11 +144,12 @@ impl Provider {
             }
             MethodInvocation::ChainId(()) => eth::handle_chain_id_request(data).and_then(to_json),
             MethodInvocation::Coinbase(()) => eth::handle_coinbase_request(data).and_then(to_json),
-            MethodInvocation::EstimateGas(_, _) => {
-                Err(ProviderError::Unimplemented("EstimateGas".to_string()))
+            MethodInvocation::EstimateGas(call_request, block_spec) => {
+                eth::handle_estimate_gas(data, call_request, block_spec).and_then(to_json)
             }
-            MethodInvocation::FeeHistory(_, _, _) => {
-                Err(ProviderError::Unimplemented("FeeHistory".to_string()))
+            MethodInvocation::FeeHistory(block_count, block_spec, reward_percentiles) => {
+                eth::handle_fee_history(data, block_count, block_spec, reward_percentiles)
+                    .and_then(to_json)
             }
             MethodInvocation::GasPrice(()) => eth::handle_gas_price(data).and_then(to_json),
             MethodInvocation::GetBalance(address, block_spec) => {
@@ -179,9 +180,7 @@ impl Provider {
             MethodInvocation::GetFilterLogs(filter_id) => {
                 eth::handle_get_filter_logs_request(data, filter_id).and_then(to_json)
             }
-            MethodInvocation::GetLogs(_) => {
-                Err(ProviderError::Unimplemented("GetLogs".to_string()))
-            }
+            MethodInvocation::GetLogs(input) => eth::handle_get_logs(data, input).and_then(to_json),
             MethodInvocation::GetStorageAt(address, index, block_spec) => {
                 eth::handle_get_storage_at_request(data, address, index, block_spec)
                     .and_then(to_json)

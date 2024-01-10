@@ -70,6 +70,8 @@ pub enum ProviderError {
         expected: SubscriptionType,
         actual: SubscriptionType,
     },
+    #[error("{0}")]
+    InvalidInput(String),
     /// Invalid transaction index
     #[error("Transaction index '{0}' is too large")]
     InvalidTransactionIndex(U256),
@@ -147,6 +149,16 @@ pub enum ProviderError {
     /// Minimum required hardfork not met
     #[error("Feature is only available in post-{minimum:?} hardforks, the current hardfork is {actual:?}")]
     UnmetHardfork { actual: SpecId, minimum: SpecId },
+    #[error("The transaction contains an access list parameter, but this is not supported by the current hardfork: {current_hardfork:?}")]
+    UnsupportedAccessListParameter {
+        current_hardfork: SpecId,
+        minimum_hardfork: SpecId,
+    },
+    #[error("The transaction contains EIP-1559 parameters, but they are not supported by the current hardfork: {current_hardfork:?}")]
+    UnsupportedEIP1559Parameters {
+        current_hardfork: SpecId,
+        minimum_hardfork: SpecId,
+    },
 }
 
 impl From<ProviderError> for jsonrpc::Error {
@@ -167,6 +179,7 @@ impl From<ProviderError> for jsonrpc::Error {
             ProviderError::InvalidChainId { .. } => (-32602, None),
             ProviderError::InvalidDropTransactionHash(_) => (-32602, None),
             ProviderError::InvalidFilterSubscriptionType { .. } => (-32602, None),
+            ProviderError::InvalidInput(_) => (-32000, None),
             ProviderError::InvalidTransactionIndex(_) => (-32602, None),
             ProviderError::InvalidTransactionInput(_) => (-32000, None),
             ProviderError::InvalidTransactionType(_) => (-32602, None),
@@ -197,6 +210,8 @@ impl From<ProviderError> for jsonrpc::Error {
             ProviderError::Unimplemented(_) => (-32000, None),
             ProviderError::UnknownAddress { .. } => (-32000, None),
             ProviderError::UnmetHardfork { .. } => (-32602, None),
+            ProviderError::UnsupportedAccessListParameter { .. } => (-32602, None),
+            ProviderError::UnsupportedEIP1559Parameters { .. } => (-32602, None),
         };
 
         Self {

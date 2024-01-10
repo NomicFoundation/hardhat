@@ -40,6 +40,7 @@ impl alloy_rlp::Encodable for BlockReceipt {
 #[cfg(test)]
 mod test {
     use assert_json_diff::assert_json_eq;
+    use revm_primitives::SpecId;
     use serde_json::json;
 
     use super::*;
@@ -57,6 +58,7 @@ mod test {
                     logs_bloom: Bloom::default(),
                     logs: vec![],
                     data: TypedReceiptData::Eip1559 { status: 1 },
+                    spec_id: SpecId::LATEST,
                 },
                 transaction_hash: B256::default(),
                 transaction_index: 5,
@@ -64,7 +66,7 @@ mod test {
                 to: Some(Address::default()),
                 contract_address: None,
                 gas_used: U256::from(1),
-                effective_gas_price: U256::from(1),
+                effective_gas_price: Some(U256::from(1)),
             },
             block_hash: B256::default(),
             block_number: 1,

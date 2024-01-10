@@ -68,7 +68,9 @@ impl EdrStates {
             ForkState::new(
                 runtime.handle().clone(),
                 rpc_client,
-                Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed"))),
+                Arc::new(Mutex::new(RandomHashGenerator::with_seed(
+                    edr_defaults::STATE_ROOT_HASH_SEED,
+                ))),
                 fork_block_number,
                 block.state_root,
             )

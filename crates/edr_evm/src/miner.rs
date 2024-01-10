@@ -114,11 +114,7 @@ where
             number: Some(parent_header.number + 1),
             gas_limit: Some(mem_pool.block_gas_limit()),
             timestamp: Some(timestamp),
-            mix_hash: if cfg.spec_id >= SpecId::MERGE {
-                Some(prevrandao.ok_or(MineBlockError::MissingPrevrandao)?)
-            } else {
-                None
-            },
+            mix_hash: prevrandao,
             nonce: Some(if cfg.spec_id >= SpecId::MERGE {
                 B64::ZERO
             } else {

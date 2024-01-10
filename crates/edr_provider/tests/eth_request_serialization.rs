@@ -90,7 +90,7 @@ fn test_serde_eth_fee_history() {
     help_test_method_invocation_serde(MethodInvocation::FeeHistory(
         U256::from(3),
         BlockSpec::Number(100),
-        vec![0.5_f64, 10_f64, 80_f64, 90_f64, 99.5_f64],
+        Some(vec![0.5_f64, 10_f64, 80_f64, 90_f64, 99.5_f64]),
     ));
 }
 
@@ -189,7 +189,7 @@ fn test_serde_eth_get_filter_logs() {
 #[test]
 fn test_serde_eth_get_logs_by_block_numbers() {
     help_test_method_invocation_serde(MethodInvocation::GetLogs(GetLogsInput {
-        address: Address::from(U160::from(1)),
+        address: Some(Address::from(U160::from(1))),
         from_block: BlockSpec::Number(100),
         to_block: BlockSpec::Number(102),
     }));
@@ -198,7 +198,7 @@ fn test_serde_eth_get_logs_by_block_numbers() {
 #[test]
 fn test_serde_eth_get_logs_by_block_tags() {
     help_test_method_invocation_serde(MethodInvocation::GetLogs(GetLogsInput {
-        address: Address::from(U160::from(1)),
+        address: Some(Address::from(U160::from(1))),
         from_block: BlockSpec::Tag(BlockTag::Safe),
         to_block: BlockSpec::latest(),
     }));

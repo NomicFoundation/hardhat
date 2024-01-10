@@ -3,8 +3,11 @@
 mod ordering;
 mod result;
 
-use edr_eth::{Address, B256, U256};
-use edr_evm::{BlockTransactionError, CfgEnv, InvalidTransaction, MineBlockError};
+use edr_eth::{Address, SpecId, B256, U256};
+use edr_evm::{
+    blockchain::BlockchainError, state::StateError, BlockTransactionError, CfgEnv,
+    InvalidTransaction, MineBlockError,
+};
 use napi::{
     bindgen_prelude::{BigInt, Buffer},
     tokio::runtime,
@@ -46,6 +49,12 @@ pub async fn mine_block(
     let base_fee: Option<U256> =
         base_fee.map_or(Ok(None), |base_fee| BigInt::try_cast(base_fee).map(Some))?;
     let prevrandao: Option<B256> = prevrandao.map(TryCast::<B256>::try_cast).transpose()?;
+    if config.spec_id >= SpecId::MERGE && prevrandao.is_none() {
+        return Err(napi::Error::new(
+            Status::GenericFailure,
+            MineBlockError::<BlockchainError, StateError>::MissingPrevrandao.to_string(),
+        ));
+    };
 
     let blockchain = (*blockchain).clone();
     let mem_pool = (*mem_pool).clone();

@@ -27,11 +27,12 @@ pub struct TransactionReceipt<L> {
     pub contract_address: Option<Address>,
     /// Gas used by this transaction alone.
     pub gas_used: U256,
-    /// The actual value per gas deducted from the senders account. Before
-    /// EIP-1559, this is equal to the transaction's gas price. After, it is
-    /// equal to baseFeePerGas + min(maxFeePerGas - baseFeePerGas,
-    /// maxPriorityFeePerGas).
-    pub effective_gas_price: U256,
+    /// The actual value per gas deducted from the senders account, which is
+    /// equal to equal to baseFeePerGas + min(maxFeePerGas - baseFeePerGas,
+    /// maxPriorityFeePerGas) after EIP-1559. Following Hardhat, only present if
+    /// the hardfork is at least London.
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub effective_gas_price: Option<U256>,
 }
 
 impl<L> TransactionReceipt<L> {
@@ -88,6 +89,8 @@ where
 
 #[cfg(test)]
 mod test {
+    use revm_primitives::SpecId;
+
     use super::*;
     use crate::receipt::TypedReceiptData;
 
@@ -99,6 +102,7 @@ mod test {
                 logs_bloom: Bloom::default(),
                 logs: vec![],
                 data: TypedReceiptData::Eip1559 { status: 1 },
+                spec_id: SpecId::LATEST,
             },
             transaction_hash: B256::default(),
             transaction_index: 5,
@@ -106,7 +110,7 @@ mod test {
             to: None,
             contract_address: Some(Address::default()),
             gas_used: U256::from(100),
-            effective_gas_price: U256::from(100),
+            effective_gas_price: Some(U256::from(100)),
         };
 
         let serialized = serde_json::to_string(&receipt).unwrap();

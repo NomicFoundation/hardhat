@@ -11,5 +11,5 @@ pub struct GetLogsInput {
     /// ending block for get_logs request
     pub to_block: BlockSpec,
     /// address for get_logs request
-    pub address: Address,
+    pub address: Option<Address>,
 }
