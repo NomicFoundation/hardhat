@@ -1,11 +1,14 @@
 use edr_eth::{
     remote::{eth::CallRequest, BlockSpec, StateOverrideOptions},
-    transaction::{Eip1559TransactionRequest, Eip155TransactionRequest, TransactionRequest},
+    transaction::{
+        Eip1559TransactionRequest, Eip155TransactionRequest, Eip2930TransactionRequest,
+        TransactionRequest,
+    },
     Bytes, SpecId, U256,
 };
 use edr_evm::{state::StateOverrides, PendingTransaction};
 
-use crate::{data::ProviderData, requests::validation::validate_transaction_spec, ProviderError};
+use crate::{data::ProviderData, requests::validation::validate_call_request, ProviderError};
 
 pub fn handle_call_request(
     data: &ProviderData,
@@ -13,7 +16,7 @@ pub fn handle_call_request(
     block_spec: Option<BlockSpec>,
     state_overrides: Option<StateOverrideOptions>,
 ) -> Result<Bytes, ProviderError> {
-    validate_call_request(data, &request)?;
+    validate_call_request(data.spec_id(), &request, &block_spec)?;
 
     let state_overrides =
         state_overrides.map_or(Ok(StateOverrides::default()), StateOverrides::try_from)?;
@@ -48,15 +51,29 @@ fn resolve_call_request(
     let value = value.unwrap_or(U256::ZERO);
 
     let transaction = if data.spec_id() < SpecId::LONDON || gas_price.is_some() {
-        TransactionRequest::Eip155(Eip155TransactionRequest {
-            nonce,
-            gas_price: gas_price.unwrap_or(U256::ZERO),
-            gas_limit,
-            kind: to.into(),
-            value,
-            input,
-            chain_id,
-        })
+        match access_list {
+            Some(access_list) if data.spec_id() >= SpecId::BERLIN => {
+                TransactionRequest::Eip2930(Eip2930TransactionRequest {
+                    nonce,
+                    gas_price: gas_price.unwrap_or(U256::ZERO),
+                    gas_limit,
+                    value,
+                    input,
+                    kind: to.into(),
+                    chain_id,
+                    access_list,
+                })
+            }
+            _ => TransactionRequest::Eip155(Eip155TransactionRequest {
+                nonce,
+                gas_price: gas_price.unwrap_or(U256::ZERO),
+                gas_limit,
+                kind: to.into(),
+                value,
+                input,
+                chain_id,
+            }),
+        }
     } else {
         let max_fee_per_gas = max_fee_per_gas
             .or(max_priority_fee_per_gas)
@@ -80,8 +97,4 @@ fn resolve_call_request(
     let transaction = transaction.fake_sign(&from);
     PendingTransaction::with_caller(data.spec_id(), transaction, from)
         .map_err(ProviderError::TransactionCreationError)
-}
-
-fn validate_call_request(data: &ProviderData, request: &CallRequest) -> Result<(), ProviderError> {
-    validate_transaction_spec(data.spec_id(), request.into())
 }

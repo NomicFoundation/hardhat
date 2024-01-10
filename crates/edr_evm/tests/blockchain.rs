@@ -39,7 +39,9 @@ async fn create_forked_dummy_blockchain() -> Box<dyn SyncBlockchain<BlockchainEr
             SpecId::LATEST,
             rpc_client,
             None,
-            Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed"))),
+            Arc::new(Mutex::new(RandomHashGenerator::with_seed(
+                edr_defaults::STATE_ROOT_HASH_SEED,
+            ))),
             HashMap::new(),
         )
         .await
@@ -91,7 +93,7 @@ fn create_dummy_block_with_number(
         .expect("Failed to retrieve last block")
         .hash();
 
-    create_dummy_block_with_hash(number, parent_hash)
+    create_dummy_block_with_hash(blockchain.spec_id(), number, parent_hash)
 }
 
 fn create_dummy_block_with_difficulty(
@@ -104,26 +106,32 @@ fn create_dummy_block_with_difficulty(
         .expect("Failed to retrieve last block")
         .hash();
 
-    create_dummy_block_with_header(PartialHeader {
-        number,
-        parent_hash,
-        difficulty: U256::from(difficulty),
-        withdrawals_root: Some(KECCAK_NULL_RLP),
-        ..PartialHeader::default()
-    })
+    create_dummy_block_with_header(
+        blockchain.spec_id(),
+        PartialHeader {
+            number,
+            parent_hash,
+            difficulty: U256::from(difficulty),
+            withdrawals_root: Some(KECCAK_NULL_RLP),
+            ..PartialHeader::default()
+        },
+    )
 }
 
-fn create_dummy_block_with_hash(number: u64, parent_hash: B256) -> LocalBlock {
-    create_dummy_block_with_header(PartialHeader {
-        parent_hash,
-        number,
-        withdrawals_root: Some(KECCAK_NULL_RLP),
-        ..PartialHeader::default()
-    })
+fn create_dummy_block_with_hash(spec_id: SpecId, number: u64, parent_hash: B256) -> LocalBlock {
+    create_dummy_block_with_header(
+        spec_id,
+        PartialHeader {
+            parent_hash,
+            number,
+            withdrawals_root: Some(KECCAK_NULL_RLP),
+            ..PartialHeader::default()
+        },
+    )
 }
 
-fn create_dummy_block_with_header(partial_header: PartialHeader) -> LocalBlock {
-    LocalBlock::empty(partial_header)
+fn create_dummy_block_with_header(spec_id: SpecId, partial_header: PartialHeader) -> LocalBlock {
+    LocalBlock::empty(spec_id, partial_header)
 }
 
 fn create_dummy_transaction() -> SignedTransaction {
@@ -303,7 +311,11 @@ async fn insert_block_invalid_parent_hash() {
         const INVALID_BLOCK_HASH: B256 = B256::ZERO;
         let next_block_number = blockchain.last_block_number() + 1;
 
-        let one = create_dummy_block_with_hash(next_block_number, INVALID_BLOCK_HASH);
+        let one = create_dummy_block_with_hash(
+            blockchain.spec_id(),
+            next_block_number,
+            INVALID_BLOCK_HASH,
+        );
         let error = blockchain
             .insert_block(one, StateDiff::default())
             .expect_err("Should fail to insert block");

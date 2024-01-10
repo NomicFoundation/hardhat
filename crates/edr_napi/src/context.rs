@@ -82,7 +82,9 @@ impl Context {
         tracing::subscriber::set_global_default(subscriber)
             .expect("Could not set global default tracing subscriber");
 
-        let state_root_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed("seed")));
+        let state_root_generator = Arc::new(Mutex::new(RandomHashGenerator::with_seed(
+            edr_defaults::STATE_ROOT_HASH_SEED,
+        )));
 
         Ok(Self {
             state_root_generator,

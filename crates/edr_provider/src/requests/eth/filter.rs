@@ -112,20 +112,20 @@ fn validate_filter_criteria<const SHOULD_RESOLVE_LATEST: bool>(
         data: &ProviderData,
         block_spec: Option<BlockSpec>,
     ) -> Result<Option<u64>, ProviderError> {
+        if let Some(block_spec) = &block_spec {
+            validate_post_merge_block_tags(data.spec_id(), block_spec)?;
+        }
+
         let block_number = match block_spec {
             Some(
                 BlockSpec::Number(block_number)
                 | BlockSpec::Eip1898(Eip1898BlockSpec::Number { block_number }),
             ) => Some(block_number),
             Some(BlockSpec::Tag(BlockTag::Earliest)) => Some(0),
-            Some(BlockSpec::Tag(BlockTag::Latest | BlockTag::Pending)) | None => None,
-            Some(BlockSpec::Tag(block_tag @ (BlockTag::Safe | BlockTag::Finalized))) => {
-                if data.spec_id() < SpecId::MERGE {
-                    return Err(ProviderError::InvalidArgument(format!("The {block_tag} block tag is not allowed in pre-merge hardforks. You are using the {:?} hardfork.", data.spec_id())));
-                }
-
-                None
-            }
+            Some(BlockSpec::Tag(
+                BlockTag::Latest | BlockTag::Pending | BlockTag::Safe | BlockTag::Finalized,
+            ))
+            | None => None,
             Some(BlockSpec::Eip1898(Eip1898BlockSpec::Hash { block_hash, .. })) => {
                 let block =
                     data.block_by_hash(&block_hash)?

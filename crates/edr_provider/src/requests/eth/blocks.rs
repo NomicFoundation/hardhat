@@ -4,11 +4,11 @@ use edr_eth::{
     remote::{eth, BlockSpec, PreEip1898BlockSpec},
     SpecId, B256, U256, U64,
 };
-use edr_evm::{blockchain::BlockchainError, BlockAndTotalDifficulty, SyncBlock};
+use edr_evm::{blockchain::BlockchainError, SyncBlock};
 
 use crate::{
     data::{BlockDataForTransaction, ProviderData, TransactionAndBlock},
-    requests::eth::transaction_to_rpc_result,
+    requests::{eth::transaction_to_rpc_result, validation::validate_post_merge_block_tags},
     ProviderError,
 };
 
@@ -27,9 +27,11 @@ pub fn handle_get_block_by_hash_request(
     data.block_by_hash(&block_hash)?
         .map(|block| {
             let total_difficulty = data.total_difficulty_by_hash(block.hash())?;
+            let pending = false;
             block_to_rpc_output(
                 data.spec_id(),
                 block,
+                pending,
                 total_difficulty,
                 transaction_detail_flag,
             )
@@ -44,13 +46,15 @@ pub fn handle_get_block_by_number_request(
 ) -> Result<Option<eth::Block<HashOrTransaction>>, ProviderError> {
     block_by_number(data, &block_spec.into())?
         .map(
-            |BlockAndTotalDifficulty {
+            |BlockByNumberResult {
                  block,
+                 pending,
                  total_difficulty,
              }| {
                 block_to_rpc_output(
                     data.spec_id(),
                     block,
+                    pending,
                     total_difficulty,
                     transaction_detail_flag,
                 )
@@ -73,18 +77,32 @@ pub fn handle_get_block_transaction_count_by_block_number(
     block_spec: PreEip1898BlockSpec,
 ) -> Result<Option<U64>, ProviderError> {
     Ok(block_by_number(data, &block_spec.into())?
-        .map(|BlockAndTotalDifficulty { block, .. }| U64::from(block.transactions().len())))
+        .map(|BlockByNumberResult { block, .. }| U64::from(block.transactions().len())))
+}
+
+/// The result returned by requesting a block by number.
+#[derive(Debug, Clone)]
+struct BlockByNumberResult {
+    /// The block
+    pub block: Arc<dyn SyncBlock<Error = BlockchainError>>,
+    /// Whether the block is a pending block.
+    pub pending: bool,
+    /// The total difficulty with the block
+    pub total_difficulty: Option<U256>,
 }
 
 fn block_by_number(
     data: &ProviderData,
     block_spec: &BlockSpec,
-) -> Result<Option<BlockAndTotalDifficulty<BlockchainError>>, ProviderError> {
+) -> Result<Option<BlockByNumberResult>, ProviderError> {
+    validate_post_merge_block_tags(data.spec_id(), block_spec)?;
+
     match data.block_by_block_spec(block_spec) {
         Ok(Some(block)) => {
             let total_difficulty = data.total_difficulty_by_hash(block.hash())?;
-            Ok(Some(BlockAndTotalDifficulty {
+            Ok(Some(BlockByNumberResult {
                 block,
+                pending: false,
                 total_difficulty,
             }))
         }
@@ -99,8 +117,9 @@ fn block_by_number(
                 .expect("last block has total difficulty");
             let total_difficulty = previous_total_difficulty + block.header().difficulty;
 
-            Ok(Some(BlockAndTotalDifficulty {
+            Ok(Some(BlockByNumberResult {
                 block,
+                pending: true,
                 total_difficulty: Some(total_difficulty),
             }))
         }
@@ -112,6 +131,7 @@ fn block_by_number(
 fn block_to_rpc_output(
     spec_id: SpecId,
     block: Arc<dyn SyncBlock<Error = BlockchainError>>,
+    pending: bool,
     total_difficulty: Option<U256>,
     transaction_detail_flag: bool,
 ) -> Result<eth::Block<HashOrTransaction>, ProviderError> {
@@ -140,6 +160,10 @@ fn block_to_rpc_output(
             .collect()
     };
 
+    let mix_hash = if pending { None } else { Some(header.mix_hash) };
+    let nonce = if pending { None } else { Some(header.nonce) };
+    let number = if pending { None } else { Some(header.number) };
+
     Ok(eth::Block {
         hash: Some(*block.hash()),
         parent_hash: header.parent_hash,
@@ -147,7 +171,7 @@ fn block_to_rpc_output(
         state_root: header.state_root,
         transactions_root: header.transactions_root,
         receipts_root: header.receipts_root,
-        number: Some(header.number),
+        number,
         gas_used: header.gas_used,
         gas_limit: header.gas_limit,
         extra_data: header.extra_data.clone(),
@@ -158,8 +182,8 @@ fn block_to_rpc_output(
         uncles: block.ommer_hashes().to_vec(),
         transactions,
         size: block.rlp_size(),
-        mix_hash: header.mix_hash,
-        nonce: Some(header.nonce),
+        mix_hash,
+        nonce,
         base_fee_per_gas: header.base_fee_per_gas,
         miner: Some(header.beneficiary),
         withdrawals: block

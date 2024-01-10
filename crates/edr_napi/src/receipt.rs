@@ -85,11 +85,11 @@ impl Receipt {
 
     #[doc = "Returns the effective gas price of the receipt's transaction."]
     #[napi(getter)]
-    pub fn effective_gas_price(&self) -> BigInt {
-        BigInt {
+    pub fn effective_gas_price(&self) -> Option<BigInt> {
+        self.effective_gas_price.map(|price| BigInt {
             sign_bit: false,
-            words: self.effective_gas_price.as_limbs().to_vec(),
-        }
+            words: price.as_limbs().to_vec(),
+        })
     }
 
     #[doc = "Returns the state root of the receipt, if any."]

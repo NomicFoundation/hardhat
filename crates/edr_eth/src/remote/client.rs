@@ -1727,7 +1727,7 @@ mod tests {
             assert_eq!(receipt.cumulative_gas_used(), 0x56c81b);
             assert_eq!(
                 receipt.effective_gas_price,
-                U256::from_str_radix("1e449a99b8", 16).expect("couldn't parse data")
+                Some(U256::from_str_radix("1e449a99b8", 16).expect("couldn't parse data"))
             );
             assert_eq!(
                 receipt.from,

@@ -251,11 +251,18 @@ impl BlockBuilder {
             None
         };
 
-        let gas_price = transaction.gas_price();
-        let effective_gas_price = if let SignedTransaction::Eip1559(transaction) = &*transaction {
-            block.basefee + (gas_price - block.basefee).min(transaction.max_priority_fee_per_gas)
+        let effective_gas_price = if blockchain.spec_id() >= SpecId::LONDON {
+            let gas_price = transaction.gas_price();
+            Some(
+                if let SignedTransaction::Eip1559(transaction) = &*transaction {
+                    block.basefee
+                        + (gas_price - block.basefee).min(transaction.max_priority_fee_per_gas)
+                } else {
+                    gas_price
+                },
+            )
         } else {
-            gas_price
+            None
         };
 
         let receipt = TransactionReceipt {
@@ -280,6 +287,7 @@ impl BlockBuilder {
                     SignedTransaction::Eip1559(_) => TypedReceiptData::Eip1559 { status },
                     SignedTransaction::Eip4844(_) => TypedReceiptData::Eip4844 { status },
                 },
+                spec_id: self.cfg.spec_id,
             },
             transaction_hash: *transaction.hash(),
             transaction_index: self.transactions.len() as u64,

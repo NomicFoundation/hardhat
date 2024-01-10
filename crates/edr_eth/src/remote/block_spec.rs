@@ -138,7 +138,7 @@ impl Display for Eip1898BlockSpec {
 }
 
 /// possible block tags as defined by the Ethereum JSON-RPC specification
-#[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum BlockTag {
     /// earliest
     #[serde(rename = "earliest")]

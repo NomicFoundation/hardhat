@@ -72,7 +72,11 @@ pub struct Transaction {
     /// ECDSA signature s
     pub s: U256,
     /// chain ID
-    #[serde(default, with = "crate::serde::optional_u64")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "crate::serde::optional_u64"
+    )]
     pub chain_id: Option<u64>,
     /// integer of the transaction type, 0x0 for legacy transactions, 0x1 for
     /// access list types, 0x2 for dynamic fees
@@ -84,21 +88,21 @@ pub struct Transaction {
     )]
     pub transaction_type: Option<u64>,
     /// access list
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub access_list: Option<Vec<AccessListItem>>,
     /// max fee per gas
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub max_fee_per_gas: Option<U256>,
     /// max priority fee per gas
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub max_priority_fee_per_gas: Option<U256>,
     /// The maximum total fee per gas the sender is willing to pay for blob gas
     /// in wei (EIP-4844)
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub max_fee_per_blob_gas: Option<U256>,
     /// List of versioned blob hashes associated with the transaction's EIP-4844
     /// data blobs.
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub blob_versioned_hashes: Option<Vec<B256>>,
 }
 
@@ -327,24 +331,36 @@ pub struct Block<TX> {
     /// the length of the RLP encoding of this block in bytes
     #[serde(with = "crate::serde::u64")]
     pub size: u64,
-    /// mix hash
-    pub mix_hash: B256,
+    /// Mix hash. None when it's a pending block.
+    pub mix_hash: Option<B256>,
     /// hash of the generated proof-of-work. null when its pending block.
     pub nonce: Option<B64>,
     /// base fee per gas
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub base_fee_per_gas: Option<U256>,
     /// the address of the beneficiary to whom the mining rewards were given
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub miner: Option<Address>,
     /// withdrawals
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub withdrawals: Option<Vec<Withdrawal>>,
     /// withdrawals root
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub withdrawals_root: Option<B256>,
     /// The total amount of gas used by the transactions.
-    #[serde(default, with = "crate::serde::optional_u64")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "crate::serde::optional_u64"
+    )]
     pub blob_gas_used: Option<u64>,
     /// A running total of blob gas consumed in excess of the target, prior to
     /// the block.
-    #[serde(default, with = "crate::serde::optional_u64")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "crate::serde::optional_u64"
+    )]
     pub excess_blob_gas: Option<u64>,
     /// Root of the parent beacon block
     pub parent_beacon_block_root: Option<B256>,

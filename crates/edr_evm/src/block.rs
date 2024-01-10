@@ -98,7 +98,7 @@ impl<BlockchainErrorT> From<BlockAndTotalDifficulty<BlockchainErrorT>> for eth::
             uncles: value.block.ommer_hashes().to_vec(),
             transactions,
             size: value.block.rlp_size(),
-            mix_hash: header.mix_hash,
+            mix_hash: Some(header.mix_hash),
             nonce: Some(header.nonce),
             base_fee_per_gas: header.base_fee_per_gas,
             miner: Some(header.beneficiary),

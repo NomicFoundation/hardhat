@@ -20,6 +20,7 @@ import {
   HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
 } from "../../constants";
 import {
+  InvalidArgumentsError,
   InvalidInputError,
   MethodNotFoundError,
   MethodNotSupportedError,
@@ -516,10 +517,12 @@ export class EdrProviderWrapper
     );
 
     if (isErrorResponse(response)) {
-      const error = new ProviderError(
-        response.error.message,
-        response.error.code
-      );
+      let error;
+      if (response.error.code === InvalidArgumentsError.CODE) {
+        error = new InvalidArgumentsError(response.error.message);
+      } else {
+        error = new ProviderError(response.error.message, response.error.code);
+      }
       error.data = response.error.data;
 
       // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error

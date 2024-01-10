@@ -30,3 +30,9 @@ pub const CACHE_DIR: &str = "./edr-cache";
 /// Maximum concurrent requests to a remote blockchain node to avoid getting
 /// rate limited.
 pub const MAX_CONCURRENT_REQUESTS: usize = 5;
+
+/// Seed value for the generator of mix hashes.
+pub const MIX_HASH_SEED: &str = "randomMixHashSeed";
+
+/// Seed value for the generator of state root hashes.
+pub const STATE_ROOT_HASH_SEED: &str = "seed";

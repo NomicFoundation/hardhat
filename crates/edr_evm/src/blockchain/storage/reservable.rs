@@ -305,18 +305,21 @@ impl<BlockT: Block + Clone + From<LocalBlock>> ReservableSparseBlockchainStorage
                     block_number,
                 );
 
-                let block = LocalBlock::empty(PartialHeader {
-                    number: block_number,
-                    state_root: reservation.previous_state_root,
-                    base_fee: reservation.previous_base_fee_per_gas,
-                    timestamp,
-                    withdrawals_root: if reservation.spec_id >= SpecId::SHANGHAI {
-                        Some(KECCAK_NULL_RLP)
-                    } else {
-                        None
+                let block = LocalBlock::empty(
+                    reservation.spec_id,
+                    PartialHeader {
+                        number: block_number,
+                        state_root: reservation.previous_state_root,
+                        base_fee: reservation.previous_base_fee_per_gas,
+                        timestamp,
+                        withdrawals_root: if reservation.spec_id >= SpecId::SHANGHAI {
+                            Some(KECCAK_NULL_RLP)
+                        } else {
+                            None
+                        },
+                        ..PartialHeader::default()
                     },
-                    ..PartialHeader::default()
-                });
+                );
 
                 let mut storage = RwLockUpgradableReadGuard::upgrade(storage);
 
