@@ -445,8 +445,8 @@ export class EdrProviderWrapper
       };
     }
 
-    // To accomodate construction ordering, we need an adapter to listen to
-    // events from the provider's subscriber callback
+    // To accomodate construction ordering, we need an adapter to forward events
+    // from the EdrProvider callback to the wrapper's listener
     const eventAdapter = new EdrProviderEventAdapter();
 
     const provider = await Provider.withConfig(
