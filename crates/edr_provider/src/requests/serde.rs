@@ -36,16 +36,56 @@ const STORAGE_KEY_TOO_LARGE_ERROR_MESSAGE: &str =
     "Storage key must not be greater than or equal to 2^256.";
 const STORAGE_VALUE_INVALID_LENGTH_ERROR_MESSAGE: &str =
     "Storage value must be exactly 32 bytes long.";
+const UNSUPPORTED_METHOD: &str = "unknown variant";
 
-/// Helper function for determining the error code based on the error message.
-pub fn deserialization_error_code(error_message: &str) -> i16 {
-    if error_message.starts_with(STORAGE_KEY_TOO_LARGE_ERROR_MESSAGE)
-        || error_message.starts_with(STORAGE_VALUE_INVALID_LENGTH_ERROR_MESSAGE)
-    {
-        -32000
-    } else {
-        -32602
+pub enum InvalidRequestReason<'a> {
+    UnsupportedMethod { method_name: &'a str },
+    InvalidStorageKey { error_message: &'a str },
+    InvalidStorageValue { error_message: &'a str },
+    InvalidJson { error_message: &'a str },
+}
+
+impl<'a> InvalidRequestReason<'a> {
+    pub fn new(json_request: &'a str, error_message: &'a str) -> Self {
+        if error_message.starts_with(STORAGE_KEY_TOO_LARGE_ERROR_MESSAGE) {
+            return InvalidRequestReason::InvalidStorageKey { error_message };
+        } else if error_message.starts_with(STORAGE_VALUE_INVALID_LENGTH_ERROR_MESSAGE) {
+            return InvalidRequestReason::InvalidStorageValue { error_message };
+        } else if error_message.starts_with(UNSUPPORTED_METHOD) {
+            if let Ok(request) = serde_json::from_str::<UnsupportedRequest<'a>>(json_request) {
+                return InvalidRequestReason::UnsupportedMethod {
+                    method_name: request.method,
+                };
+            }
+        }
+
+        InvalidRequestReason::InvalidJson { error_message }
     }
+
+    pub fn error_code(&self) -> i16 {
+        match self {
+            InvalidRequestReason::UnsupportedMethod { .. } => -32004,
+            InvalidRequestReason::InvalidStorageKey { .. }
+            | InvalidRequestReason::InvalidStorageValue { .. } => -32000,
+            InvalidRequestReason::InvalidJson { .. } => -32602,
+        }
+    }
+
+    pub fn error_message(&self) -> String {
+        match self {
+            InvalidRequestReason::UnsupportedMethod { method_name } => {
+                format!("Method {method_name} is not supported")
+            }
+            InvalidRequestReason::InvalidStorageKey { error_message }
+            | InvalidRequestReason::InvalidStorageValue { error_message }
+            | InvalidRequestReason::InvalidJson { error_message } => (*error_message).into(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Deserialize)]
+struct UnsupportedRequest<'a> {
+    method: &'a str,
 }
 
 /// Helper function for deserializing the JSON-RPC address type.
