@@ -11,6 +11,7 @@ describe("ui - calculate deployment status display", () => {
   const differentAddress = "0x0011223344556677889900112233445566778899";
 
   const exampleStatusResult = {
+    chainId: 1,
     started: [],
     timedOut: [],
     held: [],
@@ -22,7 +23,7 @@ describe("ui - calculate deployment status display", () => {
   describe("successful deployment", () => {
     it("should render a sucessful deployment", () => {
       const expectedText = testFormat(`
-        Deployment deployment-01 was successful
+        Deployment deployment-01 (chainId: 1) was successful
 
         ${chalk.bold("Deployed Addresses")}
 
@@ -60,7 +61,7 @@ describe("ui - calculate deployment status display", () => {
 
     it("should render a sucessful deployment with no deploys", () => {
       const expectedText = testFormat(`
-        Deployment deployment-01 was successful
+        Deployment deployment-01 (chainId: 1) was successful
 
         ${chalk.italic("No contracts were deployed")}`);
 
@@ -82,7 +83,7 @@ describe("ui - calculate deployment status display", () => {
   describe("failed deployment", () => {
     it("should render an execution failure with multiple of each problem type", () => {
       const expectedText = testFormat(`
-        Deployment deployment-01 failed
+        Deployment deployment-01 (chainId: 1) failed
 
         Futures timed out with transactions unconfirmed after maximum fee bumps:
          - MyModule:MyContract1
@@ -99,6 +100,7 @@ describe("ui - calculate deployment status display", () => {
          - MyModule:AnotherContract2: Server timed out`);
 
       const statusResult: StatusResult = {
+        chainId: 1,
         started: [],
         timedOut: [
           { futureId: "MyModule:MyContract1", networkInteractionId: 1 },
@@ -159,7 +161,7 @@ describe("ui - calculate deployment status display", () => {
   describe("deployment with started but unfinished futures (e.g. simulation errors)", () => {
     it("should render a sucessful deployment", () => {
       const expectedText = testFormat(`
-        Deployment deployment-01 has futures that have started but not completed
+        Deployment deployment-01 (chainId: 1) has futures that have started but not completed
 
          - MyModule#Token
          - MyModule#AnotherToken

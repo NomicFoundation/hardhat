@@ -52,6 +52,7 @@ export async function status(
 
   const statusResult: StatusResult = {
     ...futureStatuses,
+    chainId: deploymentState.chainId,
     contracts,
   };
 

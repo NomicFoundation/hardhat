@@ -21,7 +21,7 @@ export function calculateDeploymentStatusDisplay(
 }
 
 function _calculateSuccess(deploymentId: string, statusResult: StatusResult) {
-  let successText = `Deployment ${deploymentId} was successful\n\n`;
+  let successText = `Deployment ${deploymentId} (chainId: ${statusResult.chainId}) was successful\n\n`;
 
   if (Object.values(statusResult.contracts).length === 0) {
     successText += chalk.italic("No contracts were deployed");
@@ -40,7 +40,7 @@ function _calculateStartedButUnfinished(
   deploymentId: string,
   statusResult: StatusResult
 ) {
-  let startedText = `Deployment ${deploymentId} has futures that have started but not completed\n\n`;
+  let startedText = `Deployment ${deploymentId} (chainId: ${statusResult.chainId}) has futures that have started but not completed\n\n`;
 
   startedText += Object.values(statusResult.started)
     .map((futureId) => ` - ${futureId}`)
@@ -52,7 +52,7 @@ function _calculateStartedButUnfinished(
 }
 
 function _calculateFailed(deploymentId: string, statusResult: StatusResult) {
-  let failedExecutionText = `Deployment ${deploymentId} failed\n`;
+  let failedExecutionText = `Deployment ${deploymentId} (chainId: ${statusResult.chainId}) failed\n`;
 
   const sections: string[] = [];
 

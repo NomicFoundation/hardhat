@@ -13,6 +13,7 @@ describe("status", () => {
       held: [],
       timedOut: [],
       failed: [],
+      chainId: 1,
       contracts: {
         "LockModule#Lock": {
           id: "LockModule#Lock",
