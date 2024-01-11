@@ -2,10 +2,12 @@ use std::sync::Arc;
 
 use async_rwlock::{RwLock, RwLockUpgradableReadGuard};
 use edr_eth::{
+    log::FilterLog,
     receipt::BlockReceipt,
-    remote::{self, PreEip1898BlockSpec, RpcClient, RpcClientError},
-    B256, U256,
+    remote::{self, filter::OneOrMore, BlockSpec, PreEip1898BlockSpec, RpcClient, RpcClientError},
+    Address, B256, U256,
 };
+use revm::primitives::HashSet;
 use tokio::runtime;
 
 use super::storage::SparseBlockchainStorage;
@@ -104,6 +106,47 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
     /// Retrieves the instance's RPC client.
     pub fn client(&self) -> &Arc<RpcClient> {
         &self.client
+    }
+
+    pub async fn logs(
+        &self,
+        from_block: BlockSpec,
+        to_block: BlockSpec,
+        addresses: &HashSet<Address>,
+        normalized_topics: &[Option<Vec<B256>>],
+    ) -> Result<Vec<FilterLog>, RpcClientError> {
+        self.client
+            .get_logs_by_range(
+                from_block,
+                to_block,
+                if addresses.len() > 1 {
+                    Some(OneOrMore::Many(addresses.iter().copied().collect()))
+                } else {
+                    addresses
+                        .iter()
+                        .next()
+                        .map(|address| OneOrMore::One(*address))
+                },
+                if normalized_topics.is_empty() {
+                    None
+                } else {
+                    Some(
+                        normalized_topics
+                            .iter()
+                            .map(|topics| {
+                                topics.as_ref().and_then(|topics| {
+                                    if topics.len() > 1 {
+                                        Some(OneOrMore::Many(topics.clone()))
+                                    } else {
+                                        topics.first().map(|topic| OneOrMore::One(*topic))
+                                    }
+                                })
+                            })
+                            .collect(),
+                    )
+                },
+            )
+            .await
     }
 
     /// Retrieves the receipt of the transaction with the provided hash, if it

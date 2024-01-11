@@ -1,10 +1,10 @@
 use sha3::{digest::FixedOutput, Digest, Sha3_256};
 
+use super::filter::{LogFilterOptions, OneOrMore};
 use crate::{
     block::{is_safe_block_number, IsSafeBlockNumberArgs},
     remote::{
-        eth::GetLogsInput, request_methods::RequestMethod, BlockSpec, BlockTag, Eip1898BlockSpec,
-        PreEip1898BlockSpec,
+        request_methods::RequestMethod, BlockSpec, BlockTag, Eip1898BlockSpec, PreEip1898BlockSpec,
     },
     Address, B256, U256,
 };
@@ -51,7 +51,9 @@ enum CacheableRequestMethod<'a> {
         block_spec: CacheableBlockSpec<'a>,
     },
     /// eth_getLogs
-    GetLogs { params: CacheableGetLogsInput<'a> },
+    GetLogs {
+        params: CacheableLogFilterOptions<'a>,
+    },
     /// eth_getStorageAt
     GetStorageAt {
         address: &'a Address,
@@ -100,9 +102,8 @@ impl<'a> CacheableRequestMethod<'a> {
                     block_spec,
                 } => WriteCacheKey::needs_safety_check(hasher, block_spec),
                 CacheableRequestMethod::GetLogs {
-                    params,
-                    // TODO should we check that to < from?
-                } => WriteCacheKey::needs_safety_check(hasher, params.to_block),
+                    params: CacheableLogFilterOptions { range, .. },
+                } => WriteCacheKey::needs_range_check(hasher, range),
                 CacheableRequestMethod::GetStorageAt {
                     address: _,
                     position: _,
@@ -132,7 +133,7 @@ enum MethodNotCacheableError {
     #[error("Method is not cacheable: {0:?}")]
     RequestMethod(RequestMethod),
     #[error("Get logs input is not cacheable: {0:?}")]
-    GetLogsInput(#[from] GetLogsInputNotCacheableError),
+    GetLogsInput(#[from] LogFilterOptionsNotCacheableError),
     #[error(transparent)]
     PreEip18989BlockSpec(#[from] PreEip1898BlockSpecNotCacheableError),
 }
@@ -292,31 +293,88 @@ impl<'a> TryFrom<&'a PreEip1898BlockSpec> for CacheableBlockSpec<'a> {
     }
 }
 
+/// A cacheable range input for the `eth_getLogs` method.
+#[derive(Clone, Debug)]
+enum CacheableLogFilterRange<'a> {
+    /// The `block_hash` argument
+    Hash(&'a B256),
+    Range {
+        /// The `from_block` argument
+        from_block: CacheableBlockSpec<'a>,
+        /// The `to_block` argument
+        to_block: CacheableBlockSpec<'a>,
+    },
+}
+
+impl<'a> TryFrom<&'a LogFilterOptions> for CacheableLogFilterRange<'a> {
+    type Error = LogFilterOptionsNotCacheableError;
+
+    fn try_from(value: &'a LogFilterOptions) -> Result<Self, Self::Error> {
+        let map_err = |_| LogFilterOptionsNotCacheableError(value.clone());
+
+        if let Some(from_block) = &value.from_block {
+            if let Some(to_block) = &value.to_block {
+                if value.block_hash.is_none() {
+                    let range = Self::Range {
+                        from_block: from_block.try_into().map_err(map_err)?,
+                        to_block: to_block.try_into().map_err(map_err)?,
+                    };
+
+                    return Ok(range);
+                }
+            }
+        } else if let Some(block_hash) = &value.block_hash {
+            if value.from_block.is_none() {
+                return Ok(Self::Hash(block_hash));
+            }
+        }
+
+        Err(LogFilterOptionsNotCacheableError(value.clone()))
+    }
+}
+
 /// A cacheable input for the `eth_getLogs` method.
 #[derive(Clone, Debug)]
-struct CacheableGetLogsInput<'a> {
-    /// The from block argument
-    from_block: CacheableBlockSpec<'a>,
-    /// The to block argument
-    to_block: CacheableBlockSpec<'a>,
+struct CacheableLogFilterOptions<'a> {
+    /// The  range
+    range: CacheableLogFilterRange<'a>,
     /// The address
-    address: &'a Option<Address>,
+    address: Vec<&'a Address>,
+    /// The topics
+    topics: Vec<Option<Vec<&'a B256>>>,
 }
 
 /// Error type for [`CacheableBlockSpec::try_from`].
 #[derive(thiserror::Error, Debug)]
 #[error("Method is not cacheable: {0:?}")]
-struct GetLogsInputNotCacheableError(GetLogsInput);
+struct LogFilterOptionsNotCacheableError(LogFilterOptions);
 
-impl<'a> TryFrom<&'a GetLogsInput> for CacheableGetLogsInput<'a> {
-    type Error = GetLogsInputNotCacheableError;
+impl<'a> TryFrom<&'a LogFilterOptions> for CacheableLogFilterOptions<'a> {
+    type Error = LogFilterOptionsNotCacheableError;
 
-    fn try_from(value: &'a GetLogsInput) -> Result<Self, Self::Error> {
-        let map_err = |_| GetLogsInputNotCacheableError(value.clone());
+    fn try_from(value: &'a LogFilterOptions) -> Result<Self, Self::Error> {
+        let range = CacheableLogFilterRange::try_from(value)?;
+
         Ok(Self {
-            from_block: (&value.from_block).try_into().map_err(map_err)?,
-            to_block: (&value.to_block).try_into().map_err(map_err)?,
-            address: &value.address,
+            range,
+            address: value
+                .address
+                .as_ref()
+                .map_or(Vec::new(), |address| match address {
+                    OneOrMore::One(address) => vec![address],
+                    OneOrMore::Many(addresses) => addresses.iter().collect(),
+                }),
+            topics: value.topics.as_ref().map_or(Vec::new(), |topics| {
+                topics
+                    .iter()
+                    .map(|options| {
+                        options.as_ref().map(|options| match options {
+                            OneOrMore::One(topic) => vec![topic],
+                            OneOrMore::Many(topics) => topics.iter().collect(),
+                        })
+                    })
+                    .collect()
+            }),
         })
     }
 }
@@ -337,6 +395,16 @@ pub(super) enum WriteCacheKey {
 impl WriteCacheKey {
     fn finalize(hasher: Hasher) -> Self {
         Self::Resolved(hasher.finalize())
+    }
+
+    fn needs_range_check(hasher: Hasher, range: CacheableLogFilterRange<'_>) -> Option<Self> {
+        match range {
+            CacheableLogFilterRange::Hash(_) => Some(Self::finalize(hasher)),
+            CacheableLogFilterRange::Range { to_block, .. } => {
+                // TODO should we check that to < from?
+                Self::needs_safety_check(hasher, to_block)
+            }
+        }
     }
 
     fn needs_safety_check(hasher: Hasher, block_spec: CacheableBlockSpec<'_>) -> Option<Self> {
@@ -550,24 +618,53 @@ impl Hasher {
         }
     }
 
-    fn hash_get_logs_input(
+    fn hash_log_filter_options(
         self,
-        params: &CacheableGetLogsInput<'_>,
+        params: &CacheableLogFilterOptions<'_>,
     ) -> Result<Self, SymbolicBlogTagError> {
         // Destructuring to make sure we get a compiler error here if the fields change.
-        let CacheableGetLogsInput {
-            from_block,
-            to_block,
+        let CacheableLogFilterOptions {
+            range,
             address,
+            topics,
         } = params;
 
-        let this = self
-            .hash_block_spec(from_block)?
-            .hash_block_spec(to_block)?
-            .hash_u8(address.cache_key_variant());
-        match address {
-            Some(address) => Ok(this.hash_address(address)),
-            None => Ok(this),
+        let mut this = self
+            .hash_log_filter_range(range)?
+            .hash_u64(address.len() as u64);
+
+        for address in address {
+            this = this.hash_address(address);
+        }
+
+        this = this.hash_u64(topics.len() as u64);
+        for options in topics {
+            this = this.hash_u8(options.cache_key_variant());
+            if let Some(options) = options {
+                this = this.hash_u64(options.len() as u64);
+                for option in options {
+                    this = this.hash_b256(option);
+                }
+            }
+        }
+
+        Ok(this)
+    }
+
+    fn hash_log_filter_range(
+        self,
+        params: &CacheableLogFilterRange<'_>,
+    ) -> Result<Self, SymbolicBlogTagError> {
+        let this = self.hash_u8(params.cache_key_variant());
+
+        match params {
+            CacheableLogFilterRange::Hash(block_hash) => Ok(this.hash_b256(block_hash)),
+            CacheableLogFilterRange::Range {
+                from_block,
+                to_block,
+            } => Ok(this
+                .hash_block_spec(from_block)?
+                .hash_block_spec(to_block)?),
         }
     }
 
@@ -597,7 +694,7 @@ impl Hasher {
                 address,
                 block_spec,
             } => this.hash_address(address).hash_block_spec(block_spec)?,
-            CacheableRequestMethod::GetLogs { params } => this.hash_get_logs_input(params)?,
+            CacheableRequestMethod::GetLogs { params } => this.hash_log_filter_options(params)?,
             CacheableRequestMethod::GetStorageAt {
                 address,
                 position,
@@ -683,6 +780,15 @@ impl<'a> CacheKeyVariant for CacheableBlockSpec<'a> {
     }
 }
 
+impl<'a> CacheKeyVariant for CacheableLogFilterRange<'a> {
+    fn cache_key_variant(&self) -> u8 {
+        match self {
+            CacheableLogFilterRange::Hash(_) => 0,
+            CacheableLogFilterRange::Range { .. } => 1,
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -718,22 +824,28 @@ mod test {
     fn test_get_logs_input_from_to_matters() {
         let from = CacheableBlockSpec::Number { block_number: 1 };
         let to = CacheableBlockSpec::Number { block_number: 2 };
-        let address = Some(Address::default());
+        let address = Address::default();
 
         let hash_one = Hasher::new()
-            .hash_get_logs_input(&CacheableGetLogsInput {
-                from_block: from.clone(),
-                to_block: to.clone(),
-                address: &address,
+            .hash_log_filter_options(&CacheableLogFilterOptions {
+                range: CacheableLogFilterRange::Range {
+                    from_block: from.clone(),
+                    to_block: to.clone(),
+                },
+                address: vec![&address],
+                topics: Vec::new(),
             })
             .unwrap()
             .finalize();
 
         let hash_two = Hasher::new()
-            .hash_get_logs_input(&CacheableGetLogsInput {
-                from_block: to,
-                to_block: from,
-                address: &address,
+            .hash_log_filter_options(&CacheableLogFilterOptions {
+                range: CacheableLogFilterRange::Range {
+                    from_block: to,
+                    to_block: from,
+                },
+                address: vec![&address],
+                topics: Vec::new(),
             })
             .unwrap()
             .finalize();

@@ -107,7 +107,7 @@ pub async fn mine_block(
         *state = result.state;
 
         Ok(MineBlockResult::from(edr_evm::MineBlockResult {
-            block,
+            block: block.block,
             transaction_results: result.transaction_results,
             transaction_traces: result.transaction_traces,
         }))

@@ -203,6 +203,20 @@ impl<'a> From<&'a BlockSpec> for ValidationBlockSpec<'a> {
     }
 }
 
+impl<'a> From<ValidationBlockSpec<'a>> for BlockSpec {
+    fn from(value: ValidationBlockSpec<'a>) -> Self {
+        match value {
+            ValidationBlockSpec::PreEip1898(PreEip1898BlockSpec::Number(block_number)) => {
+                BlockSpec::Number(*block_number)
+            }
+            ValidationBlockSpec::PreEip1898(PreEip1898BlockSpec::Tag(block_tag)) => {
+                BlockSpec::Tag(*block_tag)
+            }
+            ValidationBlockSpec::PostEip1898(block_spec) => block_spec.clone(),
+        }
+    }
+}
+
 pub fn validate_post_merge_block_tags<'a>(
     hardfork: SpecId,
     block_spec: impl Into<ValidationBlockSpec<'a>>,
@@ -217,9 +231,10 @@ pub fn validate_post_merge_block_tags<'a>(
             | ValidationBlockSpec::PostEip1898(BlockSpec::Tag(
                 tag @ (BlockTag::Safe | BlockTag::Finalized),
             )) => {
-                return Err(ProviderError::InvalidArgument(format!(
-                    "The '{tag}' block tag is not allowed in pre-merge hardforks. You are using the '{hardfork:?}' hardfork."
-                )));
+                return Err(ProviderError::InvalidBlockTag {
+                    block_tag: *tag,
+                    spec: hardfork,
+                });
             }
             _ => (),
         }

@@ -7,9 +7,14 @@ pub mod storage;
 use std::{collections::BTreeMap, fmt::Debug, ops::Bound::Included, sync::Arc};
 
 use edr_eth::{
-    receipt::BlockReceipt, remote::RpcClientError, spec::HardforkActivations, B256, U256,
+    log::FilterLog, receipt::BlockReceipt, remote::RpcClientError, spec::HardforkActivations,
+    Address, B256, U256,
 };
-use revm::{db::BlockHashRef, primitives::SpecId, DatabaseCommit};
+use revm::{
+    db::BlockHashRef,
+    primitives::{HashSet, SpecId},
+    DatabaseCommit,
+};
 
 use self::storage::ReservableSparseBlockchainStorage;
 pub use self::{
@@ -18,7 +23,7 @@ pub use self::{
 };
 use crate::{
     state::{StateDiff, StateOverride, SyncState},
-    Block, LocalBlock, SyncBlock,
+    Block, BlockAndTotalDifficulty, LocalBlock, SyncBlock,
 };
 
 /// Combinatorial error for the blockchain API.
@@ -114,6 +119,15 @@ pub trait Blockchain {
     /// Retrieves the last block number in the blockchain.
     fn last_block_number(&self) -> u64;
 
+    /// Retrieves the logs that match the provided filter.
+    fn logs(
+        &self,
+        from_block: u64,
+        to_block: u64,
+        addresses: &HashSet<Address>,
+        normalized_topics: &[Option<Vec<B256>>],
+    ) -> Result<Vec<FilterLog>, Self::BlockchainError>;
+
     /// Retrieves the network ID of the blockchain.
     fn network_id(&self) -> u64;
 
@@ -158,7 +172,7 @@ pub trait BlockchainMut {
         &mut self,
         block: LocalBlock,
         state_diff: StateDiff,
-    ) -> Result<Arc<dyn SyncBlock<Error = Self::Error>>, Self::Error>;
+    ) -> Result<BlockAndTotalDifficulty<Self::Error>, Self::Error>;
 
     /// Reserves the provided number of blocks, starting from the next block
     /// number.

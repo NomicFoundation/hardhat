@@ -7,6 +7,7 @@ mod logger;
 mod pending;
 mod requests;
 mod snapshot;
+mod subscribe;
 /// Test utilities
 #[cfg(test)]
 pub mod test_utils;
@@ -25,6 +26,7 @@ pub use self::{
         deserialization_error_code, hardhat::rpc_types as hardhat_rpc_types, MethodInvocation,
         OneUsizeOrTwo, ProviderRequest, U64OrUsize,
     },
+    subscribe::*,
 };
 use self::{
     data::{CreationError, ProviderData},
@@ -75,9 +77,15 @@ impl Provider {
     pub fn new(
         runtime: runtime::Handle,
         callbacks: Box<dyn SyncInspectorCallbacks>,
+        subscriber_callback: Box<dyn SyncSubscriberCallback>,
         config: ProviderConfig,
     ) -> Result<Self, CreationError> {
-        let data = ProviderData::new(runtime.clone(), callbacks, config.clone())?;
+        let data = ProviderData::new(
+            runtime.clone(),
+            callbacks,
+            subscriber_callback,
+            config.clone(),
+        )?;
         let data = Arc::new(Mutex::new(data));
 
         let interval_miner = config
@@ -180,7 +188,9 @@ impl Provider {
             MethodInvocation::GetFilterLogs(filter_id) => {
                 eth::handle_get_filter_logs_request(data, filter_id).and_then(to_json)
             }
-            MethodInvocation::GetLogs(input) => eth::handle_get_logs(data, input).and_then(to_json),
+            MethodInvocation::GetLogs(filter_options) => {
+                eth::handle_get_logs_request(data, filter_options).and_then(to_json)
+            }
             MethodInvocation::GetStorageAt(address, index, block_spec) => {
                 eth::handle_get_storage_at_request(data, address, index, block_spec)
                     .and_then(to_json)
@@ -214,10 +224,10 @@ impl Provider {
                 eth::handle_net_version_request(data).and_then(to_json)
             }
             MethodInvocation::NewBlockFilter(()) => {
-                Err(ProviderError::Unimplemented("NewBlockFilter".to_string()))
+                eth::handle_new_block_filter_request(data).and_then(to_json)
             }
-            MethodInvocation::NewFilter(_) => {
-                Err(ProviderError::Unimplemented("NewFilter".to_string()))
+            MethodInvocation::NewFilter(options) => {
+                eth::handle_new_log_filter_request(data, options).and_then(to_json)
             }
             MethodInvocation::NewPendingTransactionFilter(()) => {
                 eth::handle_new_pending_transaction_filter_request(data).and_then(to_json)
@@ -237,8 +247,9 @@ impl Provider {
             MethodInvocation::SignTypedDataV4(_, _) => {
                 Err(ProviderError::Unimplemented("SignTypedDataV4".to_string()))
             }
-            MethodInvocation::Subscribe(_) => {
-                Err(ProviderError::Unimplemented("Subscribe".to_string()))
+            MethodInvocation::Subscribe(subscription_type, filter_options) => {
+                eth::handle_subscribe_request(data, subscription_type, filter_options)
+                    .and_then(to_json)
             }
             MethodInvocation::Syncing(()) => eth::handle_syncing().and_then(to_json),
             MethodInvocation::UninstallFilter(filter_id) => {
