@@ -139,7 +139,7 @@ export class ConsoleLogger {
 
     const consoleLogs = [this._decode(parameters, types)];
 
-    for (let log of consoleLogs) {
+    for (const log of consoleLogs) {
       this._replaceNumberFormatSpecifiers(log);
     }
 
