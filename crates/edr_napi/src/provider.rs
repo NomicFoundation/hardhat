@@ -3,7 +3,7 @@ mod config;
 use std::sync::Arc;
 
 use edr_eth::{remote::jsonrpc, Bytes};
-use edr_provider::{deserialization_error_code, InspectorCallbacks};
+use edr_provider::{InspectorCallbacks, InvalidRequestReason};
 use napi::{tokio::runtime, Env, JsFunction, JsObject, NapiRaw, Status};
 use napi_derive::napi;
 
@@ -61,15 +61,17 @@ impl Provider {
         let request = match serde_json::from_str(&json_request) {
             Ok(request) => request,
             Err(error) => {
-                let data = serde_json::from_str(&json_request).ok();
                 let message = error.to_string();
-                let error = jsonrpc::Error {
-                    code: deserialization_error_code(&message),
-                    message,
-                    data,
-                };
+                let reason = InvalidRequestReason::new(&json_request, &message);
+                let data = serde_json::from_str(&json_request).ok();
 
-                let response = jsonrpc::ResponseData::<()>::Error { error };
+                let response = jsonrpc::ResponseData::<()>::Error {
+                    error: jsonrpc::Error {
+                        code: reason.error_code(),
+                        message: reason.error_message(),
+                        data,
+                    },
+                };
 
                 return serde_json::to_string(&response).map_err(|error| {
                     napi::Error::new(

@@ -16,7 +16,7 @@ pub use edr_eth::remote::client::Request as RpcRequest;
 
 pub use crate::requests::{
     methods::{MethodInvocation, OneUsizeOrTwo, U64OrUsize},
-    serde::deserialization_error_code,
+    serde::InvalidRequestReason,
 };
 
 /// JSON-RPC request for the provider.

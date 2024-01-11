@@ -23,7 +23,7 @@ pub use self::{
     data::InspectorCallbacks,
     error::ProviderError,
     requests::{
-        deserialization_error_code, hardhat::rpc_types as hardhat_rpc_types, MethodInvocation,
+        hardhat::rpc_types as hardhat_rpc_types, InvalidRequestReason, MethodInvocation,
         OneUsizeOrTwo, ProviderRequest, U64OrUsize,
     },
     subscribe::*,
