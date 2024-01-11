@@ -438,6 +438,11 @@ export class EdrProviderWrapper
       };
     }
 
+    const initialDate =
+      config.initialDate !== undefined
+        ? BigInt(Math.floor(config.initialDate.getTime() / 1000))
+        : undefined;
+
     const provider = await Provider.withConfig(
       {
         allowBlocksWithSameTimestamp:
@@ -459,6 +464,7 @@ export class EdrProviderWrapper
             balance: BigInt(account.balance),
           };
         }),
+        initialDate,
         initialBaseFeePerGas:
           config.initialBaseFeePerGas !== undefined
             ? BigInt(config.initialBaseFeePerGas!)
