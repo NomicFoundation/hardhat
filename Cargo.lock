@@ -1094,6 +1094,7 @@ dependencies = [
  "lazy_static",
  "log",
  "parking_lot 0.12.1",
+ "paste",
  "rand",
  "serde",
  "serde_json",

@@ -10,13 +10,10 @@
 mod call_request;
 /// Input types for EIP-712 message signing
 pub mod eip712;
-mod get_logs;
 
 use std::{fmt::Debug, sync::OnceLock};
 
-pub use call_request::CallRequest;
-pub use get_logs::GetLogsInput;
-
+pub use self::call_request::CallRequest;
 use crate::{
     access_list::AccessListItem,
     signature::Signature,

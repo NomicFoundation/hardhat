@@ -18,6 +18,7 @@ mod receipt;
 pub mod runtime;
 mod signature;
 mod state;
+mod subscribe;
 mod sync;
 mod threadsafe_function;
 mod trace;

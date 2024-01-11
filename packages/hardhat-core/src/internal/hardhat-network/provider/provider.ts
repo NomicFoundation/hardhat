@@ -1,4 +1,4 @@
-import type { Provider as EdrProviderT } from "@ignored/edr";
+import type { Provider as EdrProviderT, SubscriptionEvent } from "@ignored/edr";
 import type {
   Artifacts,
   BoundExperimentalHardhatNetworkMessageTraceHook,
@@ -411,13 +411,20 @@ class HardhatNetworkProvider extends EventEmitter implements EIP1193Provider {
   }
 }
 
+class EdrProviderEventAdapter extends EventEmitter {}
+
 export class EdrProviderWrapper
   extends EventEmitter
   implements EIP1193Provider
 {
-  // The common configuration for EthereumJS VM is not used by EDR, but tests expect it as part of the provider.
-  private _common: Common;
-  private _provider: EdrProviderT;
+  private constructor(
+    private readonly _provider: EdrProviderT,
+    private readonly _eventAdapter: EdrProviderEventAdapter,
+    // The common configuration for EthereumJS VM is not used by EDR, but tests expect it as part of the provider.
+    private readonly _common: Common
+  ) {
+    super();
+  }
 
   public static async create(
     config: HardhatNetworkProviderConfig
@@ -437,6 +444,10 @@ export class EdrProviderWrapper
             : undefined,
       };
     }
+
+    // To accomodate construction ordering, we need an adapter to forward events
+    // from the EdrProvider callback to the wrapper's listener
+    const eventAdapter = new EdrProviderEventAdapter();
 
     const provider = await Provider.withConfig(
       {
@@ -477,19 +488,22 @@ export class EdrProviderWrapper
         const consoleLogger = new ConsoleLogger();
 
         consoleLogger.log(message);
+      },
+      (event: SubscriptionEvent) => {
+        eventAdapter.emit("ethEvent", event);
       }
     );
 
     const common = makeCommon(getNodeConfig(config));
+    const wrapper = new EdrProviderWrapper(provider, eventAdapter, common);
 
-    return new EdrProviderWrapper(provider, common);
-  }
+    // Pass through all events from the provider
+    eventAdapter.addListener(
+      "ethEvent",
+      wrapper._ethEventListener.bind(wrapper)
+    );
 
-  private constructor(provider: EdrProviderT, common: Common) {
-    super();
-
-    this._common = common;
-    this._provider = provider;
+    return wrapper;
   }
 
   public async request(args: RequestArguments): Promise<unknown> {
@@ -522,6 +536,32 @@ export class EdrProviderWrapper
     }
 
     return response.result;
+  }
+
+  private _ethEventListener(event: SubscriptionEvent) {
+    const subscription = `0x${event.filterId.toString(16)}`;
+    const result = event.result;
+    this._emitLegacySubscriptionEvent(subscription, result);
+    this._emitEip1193SubscriptionEvent(subscription, result);
+  }
+
+  private _emitLegacySubscriptionEvent(subscription: string, result: any) {
+    this.emit("notification", {
+      subscription,
+      result,
+    });
+  }
+
+  private _emitEip1193SubscriptionEvent(subscription: string, result: unknown) {
+    const message: EthSubscription = {
+      type: "eth_subscription",
+      data: {
+        subscription,
+        result,
+      },
+    };
+
+    this.emit("message", message);
   }
 }
 

@@ -2,12 +2,12 @@ use std::sync::Arc;
 
 use edr_eth::{
     remote::{eth, BlockSpec, PreEip1898BlockSpec},
-    B256, U256, U64,
+    SpecId, B256, U256, U64,
 };
 use edr_evm::{blockchain::BlockchainError, SyncBlock};
 
 use crate::{
-    data::{BlockAndTotalDifficulty, BlockDataForTransaction, ProviderData, TransactionAndBlock},
+    data::{BlockDataForTransaction, ProviderData, TransactionAndBlock},
     requests::{eth::transaction_to_rpc_result, validation::validate_post_merge_block_tags},
     ProviderError,
 };
@@ -29,7 +29,7 @@ pub fn handle_get_block_by_hash_request(
             let total_difficulty = data.total_difficulty_by_hash(block.hash())?;
             let pending = false;
             block_to_rpc_output(
-                data,
+                data.spec_id(),
                 block,
                 pending,
                 total_difficulty,
@@ -46,13 +46,13 @@ pub fn handle_get_block_by_number_request(
 ) -> Result<Option<eth::Block<HashOrTransaction>>, ProviderError> {
     block_by_number(data, &block_spec.into())?
         .map(
-            |BlockAndTotalDifficulty {
+            |BlockByNumberResult {
                  block,
                  pending,
                  total_difficulty,
              }| {
                 block_to_rpc_output(
-                    data,
+                    data.spec_id(),
                     block,
                     pending,
                     total_difficulty,
@@ -77,19 +77,30 @@ pub fn handle_get_block_transaction_count_by_block_number(
     block_spec: PreEip1898BlockSpec,
 ) -> Result<Option<U64>, ProviderError> {
     Ok(block_by_number(data, &block_spec.into())?
-        .map(|BlockAndTotalDifficulty { block, .. }| U64::from(block.transactions().len())))
+        .map(|BlockByNumberResult { block, .. }| U64::from(block.transactions().len())))
+}
+
+/// The result returned by requesting a block by number.
+#[derive(Debug, Clone)]
+struct BlockByNumberResult {
+    /// The block
+    pub block: Arc<dyn SyncBlock<Error = BlockchainError>>,
+    /// Whether the block is a pending block.
+    pub pending: bool,
+    /// The total difficulty with the block
+    pub total_difficulty: Option<U256>,
 }
 
 fn block_by_number(
     data: &ProviderData,
     block_spec: &BlockSpec,
-) -> Result<Option<BlockAndTotalDifficulty>, ProviderError> {
+) -> Result<Option<BlockByNumberResult>, ProviderError> {
     validate_post_merge_block_tags(data.spec_id(), block_spec)?;
 
     match data.block_by_block_spec(block_spec) {
         Ok(Some(block)) => {
             let total_difficulty = data.total_difficulty_by_hash(block.hash())?;
-            Ok(Some(BlockAndTotalDifficulty {
+            Ok(Some(BlockByNumberResult {
                 block,
                 pending: false,
                 total_difficulty,
@@ -106,7 +117,7 @@ fn block_by_number(
                 .expect("last block has total difficulty");
             let total_difficulty = previous_total_difficulty + block.header().difficulty;
 
-            Ok(Some(BlockAndTotalDifficulty {
+            Ok(Some(BlockByNumberResult {
                 block,
                 pending: true,
                 total_difficulty: Some(total_difficulty),
@@ -118,7 +129,7 @@ fn block_by_number(
 }
 
 fn block_to_rpc_output(
-    data: &ProviderData,
+    spec_id: SpecId,
     block: Arc<dyn SyncBlock<Error = BlockchainError>>,
     pending: bool,
     total_difficulty: Option<U256>,
@@ -139,9 +150,7 @@ fn block_to_rpc_output(
                 }),
                 is_pending: false,
             })
-            .map(|tx| {
-                transaction_to_rpc_result(tx, data.spec_id()).map(HashOrTransaction::Transaction)
-            })
+            .map(|tx| transaction_to_rpc_result(tx, spec_id).map(HashOrTransaction::Transaction))
             .collect::<Result<_, _>>()?
     } else {
         block

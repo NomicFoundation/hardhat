@@ -24,6 +24,7 @@ tokio = { version = "1.21.2", default-features = false, features = ["macros"] }
 [dev-dependencies]
 anyhow = "1.0.75"
 edr_test_utils = { version = "0.2.0-dev", path = "../edr_test_utils" }
+paste = { version = "1.0.14", default-features = false }
 tempfile = "3.7.1"
 
 [build-dependencies]

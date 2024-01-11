@@ -2,7 +2,7 @@ use std::{num::TryFromIntError, time::SystemTimeError};
 
 use alloy_sol_types::{ContractError, SolInterface};
 use edr_eth::{
-    remote::{filter::SubscriptionType, jsonrpc, BlockSpec},
+    remote::{filter::SubscriptionType, jsonrpc, BlockSpec, BlockTag},
     Address, Bytes, SpecId, B256, U256,
 };
 use edr_evm::{
@@ -55,8 +55,8 @@ pub enum ProviderError {
     },
     /// The block tag is not allowed in pre-merge hardforks.
     /// https://github.com/NomicFoundation/hardhat/blob/b84baf2d9f5d3ea897c06e0ecd5e7084780d8b6c/packages/hardhat-core/src/internal/hardhat-network/provider/modules/eth.ts#L1820
-    #[error("The '{block_spec}' block tag is not allowed in pre-merge hardforks. You are using the '{spec:?}' hardfork.")]
-    InvalidBlockTag { block_spec: BlockSpec, spec: SpecId },
+    #[error("The '{block_tag}' block tag is not allowed in pre-merge hardforks. You are using the '{spec:?}' hardfork.")]
+    InvalidBlockTag { block_tag: BlockTag, spec: SpecId },
     /// Invalid chain ID
     #[error("Invalid chainId {actual} provided, expected ${expected} instead.")]
     InvalidChainId { expected: u64, actual: u64 },

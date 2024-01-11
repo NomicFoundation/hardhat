@@ -1,7 +1,11 @@
 use std::sync::Arc;
 
-use edr_eth::{receipt::BlockReceipt, B256, U256};
-use revm::primitives::HashMap;
+use edr_eth::{
+    receipt::BlockReceipt,
+    remote::filter::{matches_address_filter, matches_topics_filter},
+    Address, B256, U256,
+};
+use revm::primitives::{HashMap, HashSet};
 
 use super::InsertError;
 use crate::Block;
@@ -226,4 +230,32 @@ impl<BlockT: Block + Clone> Default for SparseBlockchainStorage<BlockT> {
             transaction_hash_to_receipt: HashMap::default(),
         }
     }
+}
+
+/// Retrieves the logs that match the provided filter.
+pub fn logs<BlockT: Block + Clone>(
+    storage: &SparseBlockchainStorage<BlockT>,
+    from_block: u64,
+    to_block: u64,
+    addresses: &HashSet<Address>,
+    topics_filter: &[Option<Vec<B256>>],
+) -> Result<Vec<edr_eth::log::FilterLog>, BlockT::Error> {
+    let mut logs = Vec::new();
+    let addresses: HashSet<Address> = addresses.iter().copied().collect();
+
+    for block_number in from_block..=to_block {
+        if let Some(block) = storage.block_by_number(block_number) {
+            let receipts = block.transaction_receipts()?;
+            for receipt in receipts {
+                let filtered_logs = receipt.logs.iter().filter(|log| {
+                    matches_address_filter(&log.address, &addresses)
+                        && matches_topics_filter(&log.topics, topics_filter)
+                });
+
+                logs.extend(filtered_logs.cloned());
+            }
+        }
+    }
+
+    Ok(logs)
 }

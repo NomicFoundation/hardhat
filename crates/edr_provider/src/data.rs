@@ -11,6 +11,7 @@ use std::{
 
 use edr_eth::{
     block::BlobGas,
+    log::FilterLog,
     receipt::BlockReceipt,
     remote::{
         filter::{FilteredEvents, LogOutput, SubscriptionType},
@@ -46,12 +47,13 @@ use tokio::runtime;
 use self::account::{create_accounts, InitialAccounts};
 use crate::{
     error::TransactionFailure,
-    filter::Filter,
+    filter::{bloom_contains_log_filter, filter_logs, Filter, FilterData, LogFilter},
     logger::Logger,
     pending::BlockchainWithPending,
     requests::hardhat::rpc_types::{ForkConfig, ForkMetadata},
     snapshot::Snapshot,
-    ProviderConfig, ProviderError,
+    ProviderConfig, ProviderError, SubscriptionEvent, SubscriptionEventData,
+    SyncSubscriberCallback,
 };
 
 const DEFAULT_INITIAL_BASE_FEE_PER_GAS: u64 = 1_000_000_000;
@@ -107,12 +109,14 @@ pub struct ProviderData {
     logger: Logger,
     impersonated_accounts: HashSet<Address>,
     callbacks: Box<dyn SyncInspectorCallbacks>,
+    subscriber_callback: Box<dyn SyncSubscriberCallback>,
 }
 
 impl ProviderData {
     pub fn new(
         runtime_handle: runtime::Handle,
         callbacks: Box<dyn SyncInspectorCallbacks>,
+        subscriber_callback: Box<dyn SyncSubscriberCallback>,
         config: ProviderConfig,
     ) -> Result<Self, CreationError> {
         let InitialAccounts {
@@ -164,6 +168,7 @@ impl ProviderData {
             logger: Logger::new(false),
             impersonated_accounts: HashSet::new(),
             callbacks,
+            subscriber_callback,
         })
     }
 
@@ -171,8 +176,12 @@ impl ProviderData {
         let mut config = self.initial_config.clone();
         config.fork = fork_config;
 
-        let mut reset_instance =
-            Self::new(self.runtime_handle.clone(), self.callbacks.clone(), config)?;
+        let mut reset_instance = Self::new(
+            self.runtime_handle.clone(),
+            self.callbacks.clone(),
+            self.subscriber_callback.clone(),
+            config,
+        )?;
 
         std::mem::swap(self, &mut reset_instance);
 
@@ -244,6 +253,56 @@ impl ProviderData {
         self.blockchain.last_block_number()
     }
 
+    /// Adds a filter for new blocks to the provider.
+    pub fn add_block_filter<const IS_SUBSCRIPTION: bool>(&mut self) -> Result<U256, ProviderError> {
+        let block_hash = *self.last_block()?.hash();
+
+        let filter_id = self.next_filter_id();
+        self.filters.insert(
+            filter_id,
+            Filter::new_block_filter(block_hash, IS_SUBSCRIPTION),
+        );
+
+        Ok(filter_id)
+    }
+
+    /// Adds a filter for new logs to the provider.
+    pub fn add_log_filter<const IS_SUBSCRIPTION: bool>(
+        &mut self,
+        criteria: LogFilter,
+    ) -> Result<U256, ProviderError> {
+        let logs = self
+            .blockchain
+            .logs(
+                criteria.from_block,
+                criteria
+                    .to_block
+                    .unwrap_or(self.blockchain.last_block_number()),
+                &criteria.addresses,
+                &criteria.normalized_topics,
+            )?
+            .iter()
+            .map(LogOutput::from)
+            .collect();
+
+        let filter_id = self.next_filter_id();
+        self.filters.insert(
+            filter_id,
+            Filter::new_log_filter(criteria, logs, IS_SUBSCRIPTION),
+        );
+        Ok(filter_id)
+    }
+
+    /// Adds a filter for new pending transactions to the provider.
+    pub fn add_pending_transaction_filter<const IS_SUBSCRIPTION: bool>(&mut self) -> U256 {
+        let filter_id = self.next_filter_id();
+        self.filters.insert(
+            filter_id,
+            Filter::new_pending_transaction_filter(IS_SUBSCRIPTION),
+        );
+        filter_id
+    }
+
     /// Fetch a block by block spec.
     /// Returns `None` if the block spec is `pending`.
     /// Returns `ProviderError::InvalidBlockSpec` error if the block spec is a
@@ -270,12 +329,12 @@ impl ProviderData {
             ),
             // Matching Hardhat behaviour by returning the last block for finalized and safe.
             // https://github.com/NomicFoundation/hardhat/blob/b84baf2d9f5d3ea897c06e0ecd5e7084780d8b6c/packages/hardhat-core/src/internal/hardhat-network/provider/modules/eth.ts#L1395
-            BlockSpec::Tag(BlockTag::Finalized | BlockTag::Safe) => {
+            BlockSpec::Tag(tag @ (BlockTag::Finalized | BlockTag::Safe)) => {
                 if self.spec_id() >= SpecId::MERGE {
                     Some(self.blockchain.last_block()?)
                 } else {
                     return Err(ProviderError::InvalidBlockTag {
-                        block_spec: block_spec.clone(),
+                        block_tag: *tag,
                         spec: self.spec_id(),
                     });
                 }
@@ -312,12 +371,12 @@ impl ProviderData {
         let block_number = match block_spec {
             BlockSpec::Number(number) => Some(*number),
             BlockSpec::Tag(BlockTag::Earliest) => Some(0),
-            BlockSpec::Tag(BlockTag::Finalized | BlockTag::Safe) => {
+            BlockSpec::Tag(tag @ (BlockTag::Finalized | BlockTag::Safe)) => {
                 if self.spec_id() >= SpecId::MERGE {
                     Some(self.blockchain.last_block_number())
                 } else {
                     return Err(ProviderError::InvalidBlockTag {
-                        block_spec: block_spec.clone(),
+                        block_tag: *tag,
                         spec: self.spec_id(),
                     });
                 }
@@ -408,7 +467,7 @@ impl ProviderData {
                     Err(ProviderError::InvalidFilterSubscriptionType {
                         filter_id: *filter_id,
                         expected: SubscriptionType::Logs,
-                        actual: filter.events.subscription_type(),
+                        actual: filter.data.subscription_type(),
                     })
                 }
             })
@@ -486,6 +545,19 @@ impl ProviderData {
         &self.logger
     }
 
+    pub fn logs(&self, filter: LogFilter) -> Result<Vec<FilterLog>, ProviderError> {
+        self.blockchain
+            .logs(
+                filter.from_block,
+                filter
+                    .to_block
+                    .unwrap_or(self.blockchain.last_block_number()),
+                &filter.addresses,
+                &filter.normalized_topics,
+            )
+            .map_err(ProviderError::Blockchain)
+    }
+
     pub fn make_snapshot(&mut self) -> u64 {
         let id = self.next_snapshot_id;
         self.next_snapshot_id += 1;
@@ -530,7 +602,7 @@ impl ProviderData {
         // Reset next block time stamp
         self.next_block_timestamp.take();
 
-        let block = self
+        let block_and_total_difficulty = self
             .blockchain
             .insert_block(result.block, result.state_diff)
             .map_err(ProviderError::Blockchain)?;
@@ -539,10 +611,49 @@ impl ProviderData {
             .update(&result.state)
             .map_err(ProviderError::MemPoolUpdate)?;
 
+        let block = &block_and_total_difficulty.block;
+        for (filter_id, filter) in self.filters.iter_mut() {
+            match &mut filter.data {
+                FilterData::Logs { criteria, logs } => {
+                    let bloom = &block.header().logs_bloom;
+                    if bloom_contains_log_filter(bloom, criteria) {
+                        let receipts = block.transaction_receipts()?;
+                        let new_logs = receipts.iter().flat_map(|receipt| receipt.logs());
+
+                        let mut filtered_logs = filter_logs(new_logs, criteria);
+                        if filter.is_subscription {
+                            (self.subscriber_callback)(SubscriptionEvent {
+                                filter_id: *filter_id,
+                                result: SubscriptionEventData::Logs(filtered_logs.clone()),
+                            });
+                        } else {
+                            logs.append(&mut filtered_logs);
+                        }
+                    }
+                }
+                FilterData::NewHeads(block_hashes) => {
+                    if filter.is_subscription {
+                        (self.subscriber_callback)(SubscriptionEvent {
+                            filter_id: *filter_id,
+                            result: SubscriptionEventData::NewHeads(
+                                block_and_total_difficulty.clone(),
+                            ),
+                        });
+                    } else {
+                        block_hashes.push(*block.hash());
+                    }
+                }
+                FilterData::NewPendingTransactions(_) => (),
+            }
+        }
+
+        // Remove outdated filters
+        self.filters.retain(|_, filter| !filter.has_expired());
+
         self.state = result.state;
 
         Ok(MineBlockResult {
-            block,
+            block: block_and_total_difficulty.block,
             transaction_results: result.transaction_results,
             transaction_traces: result.transaction_traces,
         })
@@ -632,18 +743,6 @@ impl ProviderData {
 
     pub fn network_id(&self) -> String {
         self.initial_config.network_id.to_string()
-    }
-
-    pub fn new_pending_transaction_filter(&mut self) -> U256 {
-        let filter_id = self.next_filter_id();
-        self.filters.insert(
-            filter_id,
-            Filter::new(
-                FilteredEvents::NewPendingTransactions(Vec::new()),
-                /* is_subscription */ false,
-            ),
-        );
-        filter_id
     }
 
     /// Calculates the next block's base fee per gas.
@@ -1206,9 +1305,16 @@ impl ProviderData {
         // Handles validation
         self.mem_pool.add_transaction(&self.state, transaction)?;
 
-        for filter in self.filters.values_mut() {
-            if let FilteredEvents::NewPendingTransactions(events) = &mut filter.events {
-                events.push(transaction_hash);
+        for (filter_id, filter) in self.filters.iter_mut() {
+            if let FilterData::NewPendingTransactions(events) = &mut filter.data {
+                if filter.is_subscription {
+                    (self.subscriber_callback)(SubscriptionEvent {
+                        filter_id: *filter_id,
+                        result: SubscriptionEventData::NewPendingTransactions(transaction_hash),
+                    });
+                } else {
+                    events.push(transaction_hash);
+                }
             }
         }
 
@@ -1695,17 +1801,6 @@ fn create_blockchain_and_state(
     }
 }
 
-/// The result returned by requesting a block by number.
-#[derive(Debug, Clone)]
-pub struct BlockAndTotalDifficulty {
-    /// The block
-    pub block: Arc<dyn SyncBlock<Error = BlockchainError>>,
-    /// Whether the block is a pending block.
-    pub pending: bool,
-    /// The total difficulty with the block
-    pub total_difficulty: Option<U256>,
-}
-
 /// The result returned by requesting a transaction.
 #[derive(Debug, Clone)]
 pub struct TransactionAndBlock {
@@ -1781,14 +1876,20 @@ mod tests {
             let callbacks = Box::<InspectorCallbacksStub>::default();
             let console_log_calls = callbacks.console_log_calls.clone();
 
+            let subscription_callback = Box::new(|_| ());
+
             let runtime = runtime::Builder::new_multi_thread()
                 .worker_threads(1)
                 .enable_all()
                 .thread_name("provider-data-test")
                 .build()?;
 
-            let mut provider_data =
-                ProviderData::new(runtime.handle().clone(), callbacks, config.clone())?;
+            let mut provider_data = ProviderData::new(
+                runtime.handle().clone(),
+                callbacks,
+                subscription_callback,
+                config.clone(),
+            )?;
             provider_data
                 .impersonated_accounts
                 .insert(impersonated_account);
@@ -1918,7 +2019,9 @@ mod tests {
         fixture: &mut ProviderTestFixture,
         transaction: PendingTransaction,
     ) -> anyhow::Result<()> {
-        let filter_id = fixture.provider_data.new_pending_transaction_filter();
+        let filter_id = fixture
+            .provider_data
+            .add_pending_transaction_filter::<false>();
 
         let transaction_hash = fixture.provider_data.add_pending_transaction(transaction)?;
 

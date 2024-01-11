@@ -5,7 +5,7 @@ use edr_evm::{
     blockchain::{Blockchain, BlockchainError, BlockchainMut, SyncBlockchain},
     db::BlockHashRef,
     state::{StateDiff, StateError, StateOverride, SyncState},
-    LocalBlock, SyncBlock,
+    BlockAndTotalDifficulty, LocalBlock, SyncBlock,
 };
 
 /// A blockchain with a pending block.
@@ -102,6 +102,16 @@ impl<'blockchain> Blockchain for BlockchainWithPending<'blockchain> {
         self.pending_block.header().number
     }
 
+    fn logs(
+        &self,
+        _from_block: u64,
+        _to_block: u64,
+        _addresses: &edr_evm::HashSet<edr_eth::Address>,
+        _normalized_topics: &[Option<Vec<B256>>],
+    ) -> Result<Vec<edr_eth::log::FilterLog>, Self::BlockchainError> {
+        panic!("Retrieving logs from a pending blockchain is not supported.");
+    }
+
     fn network_id(&self) -> u64 {
         self.blockchain.network_id()
     }
@@ -183,7 +193,7 @@ impl<'blockchain> BlockchainMut for BlockchainWithPending<'blockchain> {
         &mut self,
         _block: LocalBlock,
         _state_diff: StateDiff,
-    ) -> Result<Arc<dyn SyncBlock<Error = Self::Error>>, Self::Error> {
+    ) -> Result<BlockAndTotalDifficulty<Self::Error>, Self::Error> {
         panic!("Inserting blocks into a pending blockchain is not supported.");
     }
 

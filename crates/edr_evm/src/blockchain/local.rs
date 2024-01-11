@@ -8,10 +8,15 @@ use std::{
 
 use edr_eth::{
     block::{BlobGas, PartialHeader},
+    log::FilterLog,
     trie::KECCAK_NULL_RLP,
-    Bytes, B256, B64, U256,
+    Address, Bytes, B256, B64, U256,
 };
-use revm::{db::BlockHashRef, primitives::SpecId, DatabaseCommit};
+use revm::{
+    db::BlockHashRef,
+    primitives::{HashSet, SpecId},
+    DatabaseCommit,
+};
 
 use super::{
     compute_state_at_block, storage::ReservableSparseBlockchainStorage, validate_next_block,
@@ -19,7 +24,7 @@ use super::{
 };
 use crate::{
     state::{StateDebug, StateDiff, StateError, StateOverride, SyncState, TrieState},
-    Block, LocalBlock, SyncBlock,
+    Block, BlockAndTotalDifficulty, LocalBlock, SyncBlock,
 };
 
 /// An error that occurs upon creation of a [`LocalBlockchain`].
@@ -248,6 +253,17 @@ impl Blockchain for LocalBlockchain {
         self.storage.last_block_number()
     }
 
+    fn logs(
+        &self,
+        from_block: u64,
+        to_block: u64,
+        addresses: &HashSet<Address>,
+        normalized_topics: &[Option<Vec<B256>>],
+    ) -> Result<Vec<FilterLog>, Self::BlockchainError> {
+        self.storage
+            .logs(from_block, to_block, addresses, normalized_topics)
+    }
+
     fn network_id(&self) -> u64 {
         self.chain_id
     }
@@ -303,7 +319,7 @@ impl BlockchainMut for LocalBlockchain {
         &mut self,
         block: LocalBlock,
         state_diff: StateDiff,
-    ) -> Result<Arc<dyn SyncBlock<Error = Self::Error>>, Self::Error> {
+    ) -> Result<BlockAndTotalDifficulty<Self::Error>, Self::Error> {
         let last_block = self.last_block()?;
 
         validate_next_block(self.spec_id, &last_block, &block)?;
@@ -322,7 +338,10 @@ impl BlockchainMut for LocalBlockchain {
                 .insert_block_unchecked(block, state_diff, total_difficulty)
         };
 
-        Ok(block.clone())
+        Ok(BlockAndTotalDifficulty {
+            block: block.clone(),
+            total_difficulty: Some(total_difficulty),
+        })
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]

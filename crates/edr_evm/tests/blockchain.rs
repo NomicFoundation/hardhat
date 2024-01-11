@@ -172,7 +172,10 @@ async fn get_last_block() {
             .insert_block(next_block, StateDiff::default())
             .expect("Failed to insert block");
 
-        assert_eq!(blockchain.last_block().unwrap().hash(), expected.hash());
+        assert_eq!(
+            blockchain.last_block().unwrap().hash(),
+            expected.block.hash()
+        );
     }
 }
 
@@ -189,11 +192,11 @@ async fn get_block_by_hash_some() {
 
         assert_eq!(
             blockchain
-                .block_by_hash(expected.hash())
+                .block_by_hash(expected.block.hash())
                 .unwrap()
                 .unwrap()
                 .hash(),
-            expected.hash()
+            expected.block.hash()
         );
     }
 }
@@ -221,11 +224,11 @@ async fn get_block_by_number_some() {
 
         assert_eq!(
             blockchain
-                .block_by_number(expected.header().number)
+                .block_by_number(expected.block.header().number)
                 .unwrap()
                 .unwrap()
                 .hash(),
-            expected.hash(),
+            expected.block.hash(),
         );
     }
 }
@@ -258,19 +261,19 @@ async fn insert_block_multiple() {
 
         assert_eq!(
             blockchain
-                .block_by_number(one.header().number)
+                .block_by_number(one.block.header().number)
                 .unwrap()
                 .unwrap()
                 .hash(),
-            one.hash()
+            one.block.hash()
         );
         assert_eq!(
             blockchain
-                .block_by_number(two.header().number)
+                .block_by_number(two.block.header().number)
                 .unwrap()
                 .unwrap()
                 .hash(),
-            two.hash()
+            two.block.hash()
         );
     }
 }
@@ -358,17 +361,23 @@ async fn revert_to_block() {
 
         // Blocks 1 and 2 are gone
         assert!(blockchain
-            .block_by_number(one.header().number)
+            .block_by_number(one.block.header().number)
             .unwrap()
             .is_none());
 
         assert!(blockchain
-            .block_by_number(two.header().number)
+            .block_by_number(two.block.header().number)
             .unwrap()
             .is_none());
 
-        assert!(blockchain.block_by_hash(one.hash()).unwrap().is_none());
-        assert!(blockchain.block_by_hash(two.hash()).unwrap().is_none());
+        assert!(blockchain
+            .block_by_hash(one.block.hash())
+            .unwrap()
+            .is_none());
+        assert!(blockchain
+            .block_by_hash(two.block.hash())
+            .unwrap()
+            .is_none());
     }
 }
 
@@ -420,26 +429,38 @@ async fn block_total_difficulty_by_hash() {
             .expect("total difficulty must exist");
 
         assert_eq!(
-            blockchain.total_difficulty_by_hash(one.hash()).unwrap(),
-            Some(last_block_difficulty + one.header().difficulty)
+            blockchain
+                .total_difficulty_by_hash(one.block.hash())
+                .unwrap(),
+            Some(last_block_difficulty + one.block.header().difficulty)
         );
 
         assert_eq!(
-            blockchain.total_difficulty_by_hash(two.hash()).unwrap(),
-            Some(last_block_difficulty + one.header().difficulty + two.header().difficulty)
+            blockchain
+                .total_difficulty_by_hash(two.block.hash())
+                .unwrap(),
+            Some(
+                last_block_difficulty
+                    + one.block.header().difficulty
+                    + two.block.header().difficulty
+            )
         );
 
-        blockchain.revert_to_block(one.header().number).unwrap();
+        blockchain
+            .revert_to_block(one.block.header().number)
+            .unwrap();
 
         // Block 1 has a total difficulty
         assert_eq!(
-            blockchain.total_difficulty_by_hash(one.hash()).unwrap(),
-            Some(last_block_difficulty + one.header().difficulty)
+            blockchain
+                .total_difficulty_by_hash(one.block.hash())
+                .unwrap(),
+            Some(last_block_difficulty + one.block.header().difficulty)
         );
 
         // Block 2 no longer stores a total difficulty
         assert!(blockchain
-            .total_difficulty_by_hash(two.hash())
+            .total_difficulty_by_hash(two.block.hash())
             .unwrap()
             .is_none());
     }
