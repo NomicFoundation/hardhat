@@ -9,6 +9,8 @@ async function main() {
   assert(taskNames.includes("verify"));
   assert(taskNames.includes("coverage"));
   assert(taskNames.includes("typechain"));
+  // TODO: bring back
+  // assert(taskNames.includes("ignition"));
 }
 
 main()

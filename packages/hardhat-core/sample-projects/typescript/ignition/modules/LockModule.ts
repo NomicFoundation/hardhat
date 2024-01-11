@@ -1,4 +1,4 @@
-import { buildModule } from "@nomicfoundation/hardhat-toolbox";
+import { buildModule } from "@nomicfoundation/ignition/modules";
 
 const currentTimestampInSeconds = Math.round(
   new Date(2023, 0, 1).valueOf() / 1000
