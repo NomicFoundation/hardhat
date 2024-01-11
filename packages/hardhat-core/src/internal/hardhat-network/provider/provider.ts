@@ -444,7 +444,7 @@ export class EdrProviderWrapper
             : undefined,
       };
     }
-    
+
     const initialDate =
       config.initialDate !== undefined
         ? BigInt(Math.floor(config.initialDate.getTime() / 1000))
