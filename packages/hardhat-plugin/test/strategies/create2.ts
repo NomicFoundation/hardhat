@@ -119,7 +119,7 @@ describe("create2", function () {
 
         assert.equal(
           result.foo.address,
-          "0xFF5085c5C29fA69357643d371E42341A35B78d8e"
+          "0xAfF5D98121a6dc830E77cf0DE34ec13d736baBFd"
         );
 
         assert.equal(this.hre.network.config.chainId, 31337);

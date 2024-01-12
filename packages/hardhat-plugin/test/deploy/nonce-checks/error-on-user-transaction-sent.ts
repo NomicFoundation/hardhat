@@ -71,7 +71,7 @@ describe("execution - error on user transaction sent", () => {
         const fooAddress = await deployPromise;
         assert.equal(
           fooAddress,
-          "0x4bda2fa32866d86ef74f8cb2e50640b0a7ce00d9ee6c103cc2b66a2a8885e432"
+          "0xb7c46c5649eb7605fe06c888cdbd6aa9239a24d24cd57cebf6fb1f8b56c0987f"
         );
       }),
       "IGN405: The next nonce for 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc should be 1, but is 2. Please make sure not to send transactions from 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc while running this deployment and try again."

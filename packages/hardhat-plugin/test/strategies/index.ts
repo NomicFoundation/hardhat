@@ -63,6 +63,7 @@ describe("strategies", function () {
       it("should call a contract function", async function () {
         const moduleDefinition = buildModule("FooModule", (m) => {
           const foo = m.contract("Foo");
+
           m.call(foo, "inc");
 
           return { foo };
@@ -90,6 +91,7 @@ describe("strategies", function () {
 
           const arg = m.readEventArgument(foo, "EventValue", "value");
 
+          // will revert if the event argument is not equal to 42
           m.call(foo, "validateEmitted", [arg]);
 
           return { foo };
@@ -121,6 +123,7 @@ describe("strategies", function () {
             emitter: foo,
           });
 
+          // will revert if the event argument is not equal to 42
           m.call(foo, "validateEmitted", [arg]);
 
           return { foo };

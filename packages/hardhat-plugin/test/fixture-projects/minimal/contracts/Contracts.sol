@@ -214,21 +214,21 @@ contract CaptureComplexObjectContract {
 }
 
 contract SendDataEmitter {
-  event SendDataEvent(bool arg);
+  event SendDataEvent(uint256 arg);
 
   bool public wasEmitted;
 
   receive() external payable {
-    emit SendDataEvent(true);
+    emit SendDataEvent(42);
   }
 
   function emitEvent() public {
-    emit SendDataEvent(true);
+    emit SendDataEvent(42);
   }
 
-  function validateEmitted(bool arg) public {
+  function validateEmitted(uint256 arg) public {
     wasEmitted = true;
 
-    require(arg == true, "arg is wrong");
+    require(arg == 42, "arg is wrong");
   }
 }
