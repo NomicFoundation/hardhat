@@ -28,14 +28,16 @@ describe("create2", function () {
     describe("on known network list", function () {
       useEphemeralIgnitionProject("create2-known-chain-id");
 
+      beforeEach(async function () {
+        await deployCreateXFactory(this.hre);
+      });
+
       [
         "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
         "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
         "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
       ].forEach((accountAddress) => {
         it(`should deploy a contract from account <${accountAddress}> using the createX factory to the expected address`, async function () {
-          await deployCreateXFactory(this.hre);
-
           const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
             strategy: DeploymentStrategyType.CREATE2,
             defaultSender: accountAddress,
@@ -51,6 +53,51 @@ describe("create2", function () {
           assert.equal(this.hre.network.config.chainId, 1);
           assert.equal(await result.foo.read.x(), Number(1));
         });
+      });
+
+      it(`should support endowing eth to the deployed contract`, async function () {
+        const deployPromise = this.hre.ignition.deploy(
+          buildModule("ValueModule", (m) => {
+            const foo = m.contract("Foo", [], {
+              value: 1_000_000_000n,
+            });
+
+            return { foo };
+          }),
+          {
+            strategy: DeploymentStrategyType.CREATE2,
+          }
+        );
+
+        await waitForPendingTxs(this.hre, 1, deployPromise);
+        await mineBlock(this.hre);
+
+        const result = await deployPromise;
+
+        const balance = await this.hre.network.provider.request({
+          method: "eth_getBalance",
+          params: [result.foo.address, "latest"],
+        });
+
+        assert.equal(balance, 1_000_000_000n);
+      });
+
+      it(`should throw if you attempt to endow when the constructor isn't payable`, async function () {
+        await assert.isRejected(
+          this.hre.ignition.deploy(
+            buildModule("ValueModule", (m) => {
+              const foo = m.contract("Unpayable", [], {
+                value: 1_000_000_000n,
+              });
+
+              return { foo };
+            }),
+            {
+              strategy: DeploymentStrategyType.CREATE2,
+            }
+          ),
+          /Simulating the transaction failed with error: Reverted with custom error FailedContractCreation/
+        );
       });
     });
 

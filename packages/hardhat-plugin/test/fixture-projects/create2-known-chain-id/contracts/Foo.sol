@@ -6,6 +6,8 @@ contract Foo {
   bool public isFoo = true;
   uint256 public x = 1;
 
+  constructor() payable {}
+
   function inc() public {
     x++;
   }
