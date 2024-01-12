@@ -26,8 +26,6 @@ import {
   DEFAULT_MEMPOOL_CONFIG,
   DEFAULT_USE_JSON_RPC,
 } from "./providers";
-import { sleep } from "./sleep";
-import { spawnEdrProvider } from "./spawnEdrProvider";
 import { isEdrProvider } from "./isEdrProvider";
 
 declare module "mocha" {
@@ -42,7 +40,6 @@ declare module "mocha" {
 
 export interface UseProviderOptions {
   useJsonRpc?: boolean;
-  edrBinary?: string;
   loggerEnabled?: boolean;
   forkConfig?: ForkConfig;
   mining?: HardhatNetworkMiningConfig;
@@ -62,7 +59,6 @@ export interface UseProviderOptions {
 
 export function useProvider({
   useJsonRpc = DEFAULT_USE_JSON_RPC,
-  edrBinary = undefined,
   loggerEnabled = true,
   forkConfig,
   mining = DEFAULT_MINING_CONFIG,
@@ -125,24 +121,8 @@ export function useProvider({
       );
     }
 
-    if (edrBinary !== undefined) {
-      const { childProcess, isReady, httpProvider } = spawnEdrProvider(
-        edrBinary,
-        { coinbase, chainId, networkId }
-      );
-
-      this.edrProcess = childProcess;
-
-      // wait for the server to initialize:
-      await sleep(250);
-
-      this.provider = new BackwardsCompatibilityProviderAdapter(httpProvider);
-
-      await isReady;
-    }
-
     this.isEdr = () => {
-      return this.edrProcess !== undefined || isEdrProvider(provider);
+      return isEdrProvider(provider);
     };
   });
 
@@ -168,10 +148,6 @@ export function useProvider({
 
       delete this.server;
       delete this.serverInfo;
-    }
-
-    if (this.edrProcess !== undefined) {
-      this.edrProcess.kill();
     }
   });
 }
