@@ -191,7 +191,7 @@ describe("INTEGRATION: Reverted with panic", function () {
           method: "panicAssert",
           failedAssert: (x) =>
             expect(x).to.be.revertedWithPanic(
-              PANIC_CODES.ARITHMETIC_UNDER_OR_OVERFLOW
+              PANIC_CODES.ARITHMETIC_OVERFLOW
             ),
           failedAssertReason:
             "Expected transaction to be reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block), but it reverted with panic code 0x01 (Assertion error)",
