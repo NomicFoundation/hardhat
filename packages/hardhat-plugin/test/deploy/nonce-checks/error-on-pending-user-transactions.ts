@@ -34,7 +34,7 @@ describe("execution - error on pending user transactions", () => {
       };
     });
 
-    const FooArtifact = require("../../fixture-projects/minimal/artifacts/contracts/Contracts.sol/Foo.json");
+    const FooArtifact = this.hre.artifacts.readArtifactSync("Foo");
 
     // Before deploy, put a valid transaction into the mempool for accounts[2]
     const [, , signer2] = (await this.hre.network.provider.request({
@@ -48,7 +48,7 @@ describe("execution - error on pending user transactions", () => {
 
     const deployPromise = walletClient.deployContract({
       abi: FooArtifact.abi,
-      bytecode: FooArtifact.bytecode,
+      bytecode: FooArtifact.bytecode as `0x${string}`,
       args: [],
       account: signer2 as `0x${string}`,
     });
@@ -71,7 +71,7 @@ describe("execution - error on pending user transactions", () => {
     const outsideFoo = await deployPromise;
     assert.equal(
       outsideFoo,
-      "0x6fc05e1e8096486e2d1915422156881dae8cfab3b6b3c3b10d601ede86064728"
+      "0x3d0ac80b8daf180b4d03e0ff107caa7089b5494cdbd81ba9d7619cc4d710caae"
     );
   });
 });

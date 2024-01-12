@@ -44,7 +44,7 @@ describe("execution - error on user transaction sent", () => {
         // wait for foo1 to be submitted
         await c.waitForPendingTxs(1);
 
-        const FooArtifact = require("../../fixture-projects/minimal/artifacts/contracts/Contracts.sol/Foo.json");
+        const FooArtifact = this.hre.artifacts.readArtifactSync("Foo");
 
         // Submit user interference transaction to mempool (note a fresh
         // nonce is used, so no replacement)
@@ -59,7 +59,7 @@ describe("execution - error on user transaction sent", () => {
 
         const deployPromise = walletClient.deployContract({
           abi: FooArtifact.abi,
-          bytecode: FooArtifact.bytecode,
+          bytecode: FooArtifact.bytecode as `0x${string}`,
           args: [],
           account: signer2 as `0x${string}`,
           gasPrice: 500_000_000_000n,
@@ -71,7 +71,7 @@ describe("execution - error on user transaction sent", () => {
         const fooAddress = await deployPromise;
         assert.equal(
           fooAddress,
-          "0xb7c46c5649eb7605fe06c888cdbd6aa9239a24d24cd57cebf6fb1f8b56c0987f"
+          "0x9154ff20c97a7ebf9d2ebbb3f8b7e24bf99caee050a24c50f1162492c0b6af79"
         );
       }),
       "IGN405: The next nonce for 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc should be 1, but is 2. Please make sure not to send transactions from 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc while running this deployment and try again."

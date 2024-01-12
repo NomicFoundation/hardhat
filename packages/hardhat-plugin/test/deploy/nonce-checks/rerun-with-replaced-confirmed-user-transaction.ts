@@ -54,7 +54,7 @@ describe("execution - rerun with replaced confirmed user transaction", () => {
       }
     );
 
-    const FooArtifact = require("../../fixture-projects/minimal/artifacts/contracts/Contracts.sol/Foo.json");
+    const FooArtifact = this.hre.artifacts.readArtifactSync("Foo");
 
     // Submit a user interfering deploy transaction
     // to the mempool reusing nonce 2
@@ -69,7 +69,7 @@ describe("execution - rerun with replaced confirmed user transaction", () => {
 
     const deployPromise = walletClient.deployContract({
       abi: FooArtifact.abi,
-      bytecode: FooArtifact.bytecode,
+      bytecode: FooArtifact.bytecode as `0x${string}`,
       args: [],
       account: signer2 as `0x${string}`,
       gasPrice: parseEther("500", "gwei"),

@@ -50,7 +50,7 @@ describe("execution - error on rerun with replaced pending user transaction", ()
       }
     );
 
-    const FooArtifact = require("../../fixture-projects/minimal/artifacts/contracts/Contracts.sol/Foo.json");
+    const FooArtifact = this.hre.artifacts.readArtifactSync("Foo");
 
     // Send user interefering deploy transaction, between runs
     // so it is in mempool, overriding the existing nonce 2
@@ -66,7 +66,7 @@ describe("execution - error on rerun with replaced pending user transaction", ()
 
     void walletClient.deployContract({
       abi: FooArtifact.abi,
-      bytecode: FooArtifact.bytecode,
+      bytecode: FooArtifact.bytecode as `0x${string}`,
       args: [],
       account: signer2 as `0x${string}`,
       gasPrice: parseEther("500", "gwei"),

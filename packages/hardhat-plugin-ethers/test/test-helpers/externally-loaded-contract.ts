@@ -24,7 +24,7 @@
 export const externallyLoadedContractArtifact = {
   _format: "hh-sol-artifact-1",
   contractName: "ExternallyLoadedContract",
-  sourceName: "contracts/Contracts.sol",
+  sourceName: "contracts/Foo.sol",
   abi: [
     {
       inputs: [

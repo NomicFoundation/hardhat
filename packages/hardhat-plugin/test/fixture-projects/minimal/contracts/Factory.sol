@@ -2,7 +2,7 @@
 pragma solidity >=0.7.0 <0.9.0;
 pragma experimental ABIEncoderV2;
 
-import "./Contracts.sol";
+import "./Foo.sol";
 
 contract FooFactory {
   event Deployed(address indexed fooAddress);
