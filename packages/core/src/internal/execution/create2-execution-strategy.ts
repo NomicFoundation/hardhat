@@ -147,6 +147,11 @@ export class Create2ExecutionStrategy implements ExecutionStrategy {
             "CreateX deployment should have an address"
           );
 
+          assertIgnitionInvariant(
+            receipt.contractAddress === CREATE_X_ADDRESS,
+            `CreateX deployment should have the expected address ${CREATE_X_ADDRESS}, instead it is ${receipt.contractAddress}`
+          );
+
           this._createXAddress = receipt.contractAddress;
           return;
         }

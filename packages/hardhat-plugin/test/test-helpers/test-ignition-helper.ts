@@ -67,10 +67,12 @@ export class TestIgnitionHelper {
       parameters = {},
       config: perDeployConfig = {},
       strategy = DeploymentStrategyType.BASIC,
+      defaultSender = undefined,
     }: {
       parameters?: DeploymentParameters;
       config?: Partial<DeployConfig>;
       strategy?: DeploymentStrategyType;
+      defaultSender?: string;
     } = {
       parameters: {},
       config: {},
@@ -97,6 +99,7 @@ export class TestIgnitionHelper {
       ignitionModule,
       deploymentParameters: parameters,
       accounts,
+      defaultSender,
       strategy,
     });
 
