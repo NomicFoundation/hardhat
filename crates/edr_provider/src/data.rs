@@ -48,7 +48,7 @@ use self::account::{create_accounts, InitialAccounts};
 use crate::{
     error::TransactionFailure,
     filter::{bloom_contains_log_filter, filter_logs, Filter, FilterData, LogFilter},
-    logger::Logger,
+    logger::SyncLogger,
     pending::BlockchainWithPending,
     requests::hardhat::rpc_types::{ForkConfig, ForkMetadata},
     snapshot::Snapshot,
@@ -106,7 +106,7 @@ pub struct ProviderData {
     local_accounts: IndexMap<Address, k256::SecretKey>,
     filters: HashMap<U256, Filter>,
     last_filter_id: U256,
-    logger: Logger,
+    logger: Box<dyn SyncLogger<BlockchainError = BlockchainError>>,
     impersonated_accounts: HashSet<Address>,
     callbacks: Box<dyn SyncInspectorCallbacks>,
     subscriber_callback: Box<dyn SyncSubscriberCallback>,
@@ -116,6 +116,7 @@ impl ProviderData {
     pub fn new(
         runtime_handle: runtime::Handle,
         callbacks: Box<dyn SyncInspectorCallbacks>,
+        logger: Box<dyn SyncLogger<BlockchainError = BlockchainError>>,
         subscriber_callback: Box<dyn SyncSubscriberCallback>,
         config: ProviderConfig,
     ) -> Result<Self, CreationError> {
@@ -165,7 +166,7 @@ impl ProviderData {
             local_accounts,
             filters: HashMap::default(),
             last_filter_id: U256::ZERO,
-            logger: Logger::new(false),
+            logger,
             impersonated_accounts: HashSet::new(),
             callbacks,
             subscriber_callback,
@@ -179,6 +180,7 @@ impl ProviderData {
         let mut reset_instance = Self::new(
             self.runtime_handle.clone(),
             self.callbacks.clone(),
+            self.logger.clone(),
             self.subscriber_callback.clone(),
             config,
         )?;
@@ -519,30 +521,31 @@ impl ProviderData {
     pub fn interval_mine(&mut self) -> Result<bool, ProviderError> {
         let result = self.mine_and_commit_block(None)?;
 
-        let header = result.block.header();
-        let is_empty = result.block.transactions().is_empty();
-        if is_empty {
-            self.logger.print_interval_mined_block_number(
-                header.number,
-                is_empty,
-                header.base_fee_per_gas,
-            );
-        } else {
-            log::error!("TODO: interval_mine: log mined block");
+        // TODO: Logging
+        // let header = result.block.header();
+        // let is_empty = result.block.transactions().is_empty();
+        // if is_empty {
+        //     self.logger.print_interval_mined_block_number(
+        //         header.number,
+        //         is_empty,
+        //         header.base_fee_per_gas,
+        //     );
+        // } else {
+        //     log::error!("TODO: interval_mine: log mined block");
 
-            self.logger
-                .print_interval_mined_block_number(header.number, is_empty, None);
+        //     self.logger
+        //         .print_interval_mined_block_number(header.number, is_empty, None);
 
-            if self.logger.print_logs() {
-                self.logger.print_empty_line();
-            }
-        }
+        //     if self.logger.print_logs() {
+        //         self.logger.print_empty_line();
+        //     }
+        // }
 
         Ok(true)
     }
 
-    pub fn logger(&self) -> &Logger {
-        &self.logger
+    pub fn logger_mut(&mut self) -> &mut dyn SyncLogger<BlockchainError = BlockchainError> {
+        &mut *self.logger
     }
 
     pub fn logs(&self, filter: LogFilter) -> Result<Vec<FilterLog>, ProviderError> {
@@ -652,11 +655,15 @@ impl ProviderData {
 
         self.state = result.state;
 
-        Ok(MineBlockResult {
+        let result = MineBlockResult {
             block: block_and_total_difficulty.block,
             transaction_results: result.transaction_results,
             transaction_traces: result.transaction_traces,
-        })
+        };
+
+        self.logger.on_block_mined(&result);
+
+        Ok(result)
     }
 
     /// Mines `number_of_blocks` blocks with the provided `interval` between
@@ -948,6 +955,8 @@ impl ProviderData {
         &mut self,
         signed_transaction: PendingTransaction,
     ) -> Result<B256, ProviderError> {
+        self.logger.on_send_transaction(&signed_transaction);
+
         let snapshot_id = if self.is_auto_mining {
             self.validate_auto_mine_transaction(&signed_transaction)?;
 
@@ -1838,6 +1847,7 @@ mod tests {
         data::inspector::tests::{
             deploy_console_log_contract, ConsoleLogTransaction, InspectorCallbacksStub,
         },
+        logger::NoopLogger,
         test_utils::{
             create_test_config_with_impersonated_accounts_and_fork, one_ether, FORK_BLOCK_NUMBER,
         },
@@ -1887,6 +1897,7 @@ mod tests {
             let mut provider_data = ProviderData::new(
                 runtime.handle().clone(),
                 callbacks,
+                Box::new(NoopLogger::new(false)),
                 subscription_callback,
                 config.clone(),
             )?;

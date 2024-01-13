@@ -14,6 +14,8 @@ pub mod test_utils;
 
 use std::sync::Arc;
 
+use edr_evm::blockchain::BlockchainError;
+use logger::SyncLogger;
 use parking_lot::Mutex;
 use requests::eth::handle_set_interval_mining;
 use tokio::runtime;
@@ -22,6 +24,7 @@ pub use self::{
     config::*,
     data::InspectorCallbacks,
     error::ProviderError,
+    logger::Logger,
     requests::{
         hardhat::rpc_types as hardhat_rpc_types, InvalidRequestReason, MethodInvocation,
         OneUsizeOrTwo, ProviderRequest, U64OrUsize,
@@ -77,12 +80,14 @@ impl Provider {
     pub fn new(
         runtime: runtime::Handle,
         callbacks: Box<dyn SyncInspectorCallbacks>,
+        logger: Box<dyn SyncLogger<BlockchainError = BlockchainError>>,
         subscriber_callback: Box<dyn SyncSubscriberCallback>,
         config: ProviderConfig,
     ) -> Result<Self, CreationError> {
         let data = ProviderData::new(
             runtime.clone(),
             callbacks,
+            logger,
             subscriber_callback,
             config.clone(),
         )?;
