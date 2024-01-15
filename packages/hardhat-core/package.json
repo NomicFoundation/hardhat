@@ -115,6 +115,7 @@
     "adm-zip": "^0.4.16",
     "aggregate-error": "^3.0.0",
     "ansi-escapes": "^4.3.0",
+    "boxen": "^5.1.2",
     "chalk": "^2.4.2",
     "chokidar": "^3.4.0",
     "ci-info": "^2.0.0",

@@ -309,6 +309,12 @@ const customRedirects = [
     destination: "/hardhat-runner/plugins/nomicfoundation-hardhat-ethers",
     permanent: false,
   },
+  {
+    source: "/release/:version",
+    destination:
+      "https://github.com/NomicFoundation/hardhat/releases/tag/hardhat%40:version",
+    permanent: false,
+  },
   ...loadErrorRedirects(),
 ];
 

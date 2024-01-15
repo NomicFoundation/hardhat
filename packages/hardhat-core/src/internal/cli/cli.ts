@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import debug from "debug";
 import "source-map-support/register";
+
 import {
   TASK_COMPILE,
   TASK_HELP,
@@ -36,7 +37,6 @@ import {
   writePromptedForHHVSCode,
 } from "../util/global-dir";
 import { getPackageJson } from "../util/packageInfo";
-
 import { saveFlamegraph } from "../core/flamegraph";
 import { Analytics, requestTelemetryConsent } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
@@ -366,6 +366,18 @@ async function main() {
       // we show the viaIR warning only if the tests failed
       if (process.exitCode !== 0) {
         showViaIRWarning(resolvedConfig);
+      }
+
+      // we notify of new versions only if the tests failed
+      if (process.exitCode !== 0) {
+        try {
+          const { showNewVersionNotification } = await import(
+            "./version-notifier"
+          );
+          await showNewVersionNotification();
+        } catch {
+          // ignore possible version notifier errors
+        }
       }
     }
 
