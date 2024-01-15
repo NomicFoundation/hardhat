@@ -281,9 +281,13 @@ describe("Eth module", function () {
               });
 
               afterEach(function () {
-                if (spy) {
-                  spy.restore();
+                if (
+                  process.env.HARDHAT_EXPERIMENTAL_VM_MODE === "edr" ||
+                  process.env.HARDHAT_EXPERIMENTAL_VM_MODE === "dual"
+                ) {
+                  return;
                 }
+                spy.restore();
               });
 
               it("Should use a gasPrice if provided", async function () {
