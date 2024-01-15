@@ -60,7 +60,7 @@ npm install --save-dev chai@4 @nomiclabs/hardhat-waffle
 :::tab{value="npm 6"}
 
 ```
-npm install --save-dev chai@4 @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs/hardhat-ethers ethers
+npm install --save-dev chai@4 @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs/hardhat-ethers ethers@5
 ```
 
 :::
@@ -68,7 +68,7 @@ npm install --save-dev chai@4 @nomiclabs/hardhat-waffle ethereum-waffle @nomicla
 :::tab{value="yarn"}
 
 ```
-yarn add --dev chai@4 @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs/hardhat-ethers ethers
+yarn add --dev chai@4 @nomiclabs/hardhat-waffle ethereum-waffle @nomiclabs/hardhat-ethers ethers@5
 ```
 
 :::
