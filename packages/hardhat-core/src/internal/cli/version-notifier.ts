@@ -1,5 +1,3 @@
-import type { request as RequestT } from "undici";
-
 import boxen from "boxen";
 import chalk from "chalk";
 import fsExtra from "fs-extra";
