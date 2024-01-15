@@ -183,7 +183,7 @@ async function writeCache(cache: VersionNotifierCache) {
 }
 
 async function getReleases(): Promise<Release[]> {
-  const { request } = (await import("undici")) as { request: typeof RequestT };
+  const { request } = await import("undici");
   let releases: Release[] = [];
 
   try {
@@ -209,7 +209,7 @@ async function getReleases(): Promise<Release[]> {
 }
 
 async function getV3Release(): Promise<Release | undefined> {
-  const { request } = (await import("undici")) as { request: typeof RequestT };
+  const { request } = await import("undici");
   let v3Release: Release | undefined;
 
   try {
@@ -241,7 +241,7 @@ async function getV3Release(): Promise<Release | undefined> {
 async function getV3ReleaseMessage(
   v3Release: Release
 ): Promise<string | undefined> {
-  const { request } = (await import("undici")) as { request: typeof RequestT };
+  const { request } = await import("undici");
 
   const versionNotifierAsset = v3Release.assets.find(
     ({ name }) => name === V3_RELEASE_VERSION_NOTIFIER_ASSET_NAME
