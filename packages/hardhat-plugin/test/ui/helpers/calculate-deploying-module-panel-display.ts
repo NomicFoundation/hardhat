@@ -28,10 +28,25 @@ describe("ui - calculate starting message display", () => {
     const expectedText = testFormat(`
     Hardhat Ignition 🚀
 
-    ${chalk.bold(`Deploying [ ExampleModule ] with strategy < basic >`)}
+    ${chalk.bold(`Deploying [ ExampleModule ]`)}
     `);
 
     const actualText = calculateDeployingModulePanel(exampleState);
+
+    assert.equal(actualText, expectedText);
+  });
+
+  it("should include the strategy if it is something other than basic", () => {
+    const expectedText = testFormat(`
+    Hardhat Ignition 🚀
+
+    ${chalk.bold(`Deploying [ ExampleModule ] with strategy create2`)}
+    `);
+
+    const actualText = calculateDeployingModulePanel({
+      ...exampleState,
+      strategy: DeploymentStrategyType.CREATE2,
+    });
 
     assert.equal(actualText, expectedText);
   });
@@ -40,7 +55,7 @@ describe("ui - calculate starting message display", () => {
     const expectedText = testFormat(`
     Hardhat Ignition 🚀
 
-    ${chalk.bold(`Deploying [ ExampleModule ] with strategy < basic >`)}
+    ${chalk.bold(`Deploying [ ExampleModule ]`)}
 
     ${chalk.yellow(
       "Warning - previously executed futures are not in the module:"
@@ -68,7 +83,7 @@ describe("ui - calculate starting message display", () => {
 
     ${chalk.bold(`Resuming existing deployment from /users/example`)}
 
-    ${chalk.bold(`Deploying [ ExampleModule ] with strategy < basic >`)}
+    ${chalk.bold(`Deploying [ ExampleModule ]`)}
     `);
 
     const actualText = calculateDeployingModulePanel({
@@ -87,7 +102,7 @@ describe("ui - calculate starting message display", () => {
       `Resuming existing deployment from .${path.sep}ignition${path.sep}deployments${path.sep}foo`
     )}
 
-    ${chalk.bold(`Deploying [ ExampleModule ] with strategy < basic >`)}
+    ${chalk.bold(`Deploying [ ExampleModule ]`)}
     `);
 
     const actualText = calculateDeployingModulePanel({
