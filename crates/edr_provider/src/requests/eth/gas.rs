@@ -1,6 +1,6 @@
 use edr_eth::{
     remote::{eth::CallRequest, BlockSpec},
-    SpecId, U256,
+    SpecId, U256, U64,
 };
 use edr_evm::state::StateOverrides;
 
@@ -17,7 +17,7 @@ pub fn handle_estimate_gas(
     data: &ProviderData,
     call_request: CallRequest,
     block_spec: Option<BlockSpec>,
-) -> Result<U256, ProviderError> {
+) -> Result<U64, ProviderError> {
     validate_call_request(data.spec_id(), &call_request, &block_spec)?;
 
     // Matching Hardhat behavior in defaulting to "pending" instead of "latest" for
@@ -33,7 +33,7 @@ pub fn handle_estimate_gas(
 
     let gas_limit = data.estimate_gas(transaction, &block_spec)?;
 
-    Ok(U256::from(gas_limit))
+    Ok(U64::from(gas_limit))
 }
 
 pub fn handle_fee_history(
