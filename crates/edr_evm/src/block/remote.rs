@@ -3,17 +3,16 @@ use std::sync::{Arc, OnceLock};
 use edr_eth::{
     block::{BlobGas, Header},
     receipt::BlockReceipt,
-    remote::{
-        eth::{self, TransactionConversionError},
-        RpcClient,
-    },
-    transaction::SignedTransaction,
+    remote::{eth, RpcClient},
     withdrawal::Withdrawal,
-    Address, B256,
+    B256,
 };
 use tokio::runtime;
 
-use crate::{blockchain::BlockchainError, Block, SyncBlock};
+use crate::{
+    blockchain::BlockchainError, Block, ExecutableTransaction, SyncBlock,
+    TransactionConversionError,
+};
 
 /// Error that occurs when trying to convert the JSON-RPC `Block` type.
 #[derive(Debug, thiserror::Error)]
@@ -42,9 +41,7 @@ pub enum CreationError {
 #[derive(Clone, Debug)]
 pub struct RemoteBlock {
     header: Header,
-    transactions: Vec<SignedTransaction>,
-    /// The caller addresses of the block's transactions
-    callers: Vec<Address>,
+    transactions: Vec<ExecutableTransaction>,
     /// The receipts of the block's transactions
     receipts: OnceLock<Vec<Arc<BlockReceipt>>>,
     /// The hashes of the block's ommers
@@ -94,19 +91,17 @@ impl RemoteBlock {
             parent_beacon_block_root: block.parent_beacon_block_root,
         };
 
-        let (transactions, callers): (Vec<SignedTransaction>, Vec<Address>) =
-            itertools::process_results(
-                block.transactions.into_iter().map(TryInto::try_into),
-                #[allow(clippy::redundant_closure_for_method_calls)]
-                |iter| iter.unzip(),
-            )?;
+        let transactions = block
+            .transactions
+            .into_iter()
+            .map(ExecutableTransaction::try_from)
+            .collect::<Result<Vec<_>, _>>()?;
 
         let hash = block.hash.ok_or(CreationError::MissingHash)?;
 
         Ok(Self {
             header,
             transactions,
-            callers,
             receipts: OnceLock::new(),
             ommer_hashes: block.uncles,
             withdrawals: block.withdrawals,
@@ -137,12 +132,8 @@ impl Block for RemoteBlock {
         self.size
     }
 
-    fn transactions(&self) -> &[SignedTransaction] {
+    fn transactions(&self) -> &[ExecutableTransaction] {
         &self.transactions
-    }
-
-    fn transaction_callers(&self) -> &[Address] {
-        &self.callers
     }
 
     fn transaction_receipts(&self) -> Result<Vec<Arc<BlockReceipt>>, Self::Error> {
@@ -153,7 +144,9 @@ impl Block for RemoteBlock {
         let receipts: Vec<Arc<BlockReceipt>> = tokio::task::block_in_place(|| {
             self.runtime.block_on(
                 self.rpc_client.get_transaction_receipts(
-                    self.transactions.iter().map(SignedTransaction::hash),
+                    self.transactions
+                        .iter()
+                        .map(|transaction| transaction.hash()),
                 ),
             )
         })?

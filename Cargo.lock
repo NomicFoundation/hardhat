@@ -1046,6 +1046,7 @@ dependencies = [
  "log",
  "once_cell",
  "parking_lot 0.12.1",
+ "paste",
  "revm 3.5.0",
  "serde",
  "serde_json",

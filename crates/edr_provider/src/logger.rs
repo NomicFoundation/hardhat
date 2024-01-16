@@ -4,14 +4,19 @@
 use std::marker::PhantomData;
 
 use dyn_clone::DynClone;
-use edr_evm::{MineBlockResult, PendingTransaction};
+use edr_evm::{ExecutableTransaction, MineBlockResult};
 
 pub trait Logger {
     type BlockchainError;
 
+    /// Whether the logger is enabled.
     fn is_enabled(&self) -> bool;
 
+    /// Sets whether the logger is enabled.
     fn set_is_enabled(&mut self, is_enabled: bool);
+
+    /// Flushes all collected notifications.
+    fn flush(&mut self);
 
     fn on_block_auto_mined(&mut self, result: &MineBlockResult<Self::BlockchainError>);
 
@@ -22,7 +27,7 @@ pub trait Logger {
 
     fn on_hardhat_mined(&mut self, results: Vec<MineBlockResult<Self::BlockchainError>>);
 
-    fn on_send_transaction(&mut self, transaction: &PendingTransaction);
+    fn on_send_transaction(&mut self, transaction: &ExecutableTransaction);
 
     // /// Whethers the logger is printing logs to the CLI.
     // fn is_printing(&self) -> bool;
@@ -153,11 +158,13 @@ impl<BlockchainErrorT> Logger for NoopLogger<BlockchainErrorT> {
         self.is_enabled = is_enabled;
     }
 
+    fn flush(&mut self) {}
+
     fn on_block_auto_mined(&mut self, _result: &MineBlockResult<Self::BlockchainError>) {}
 
     fn on_interval_mined(&mut self, _result: &MineBlockResult<Self::BlockchainError>) {}
 
     fn on_hardhat_mined(&mut self, _results: Vec<MineBlockResult<Self::BlockchainError>>) {}
 
-    fn on_send_transaction(&mut self, _transaction: &PendingTransaction) {}
+    fn on_send_transaction(&mut self, _transaction: &ExecutableTransaction) {}
 }

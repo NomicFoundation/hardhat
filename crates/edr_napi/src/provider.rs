@@ -9,6 +9,7 @@ use napi_derive::napi;
 
 use self::config::ProviderConfig;
 use crate::{
+    logger::{CallbackLogger, Logger, LoggerConfig},
     subscribe::SubscriberCallback,
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
 };
@@ -27,13 +28,14 @@ impl Provider {
         env: Env,
         config: ProviderConfig,
         #[napi(ts_arg_type = "(message: Buffer) => void")] console_log_callback: JsFunction,
+        logger_config: LoggerConfig,
         #[napi(ts_arg_type = "(event: SubscriptionEvent) => void")] subscriber_callback: JsFunction,
     ) -> napi::Result<JsObject> {
         let config = edr_provider::ProviderConfig::try_from(config)?;
         let runtime = runtime::Handle::current();
 
         let inspector_callbacks = Box::new(InspectorCallback::new(&env, console_log_callback)?);
-
+        let logger = Box::new(Logger::new(CallbackLogger::new(&env, logger_config)?));
         let subscriber_callback = SubscriberCallback::new(&env, subscriber_callback)?;
         let subscriber_callback = Box::new(move |event| subscriber_callback.call(event));
 
@@ -42,6 +44,7 @@ impl Provider {
             let result = edr_provider::Provider::new(
                 runtime,
                 inspector_callbacks,
+                logger,
                 subscriber_callback,
                 config,
             )

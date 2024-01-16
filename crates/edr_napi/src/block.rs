@@ -361,7 +361,7 @@ impl Block {
         self.inner
             .transactions()
             .iter()
-            .map(|transaction| match transaction {
+            .map(|transaction| match transaction.as_inner() {
                 edr_eth::transaction::SignedTransaction::PreEip155Legacy(transaction) => {
                     LegacySignedTransaction::from_legacy(&env, transaction).map(Either4::A)
                 }
@@ -385,9 +385,9 @@ impl Block {
     #[napi(getter)]
     pub fn callers(&self) -> Vec<Buffer> {
         self.inner
-            .transaction_callers()
+            .transactions()
             .iter()
-            .map(|caller| Buffer::from(caller.as_slice()))
+            .map(|transaction| Buffer::from(transaction.caller().as_slice()))
             .collect()
     }
 

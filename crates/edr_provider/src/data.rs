@@ -34,8 +34,8 @@ use edr_evm::{
         SyncState,
     },
     Account, AccountInfo, BlobExcessGasAndPrice, Block, BlockEnv, Bytecode, CfgEnv,
-    ExecutionResult, HashMap, HashSet, MemPool, MineBlockResult, MineBlockResultAndState,
-    MineOrdering, OrderedTransaction, PendingTransaction, RandomHashGenerator, StorageSlot,
+    ExecutableTransaction, ExecutionResult, HashMap, HashSet, MemPool, MineBlockResult,
+    MineBlockResultAndState, MineOrdering, OrderedTransaction, RandomHashGenerator, StorageSlot,
     SyncBlock, KECCAK_EMPTY,
 };
 use indexmap::IndexMap;
@@ -793,7 +793,7 @@ impl ProviderData {
             )
     }
 
-    pub fn pending_transactions(&self) -> impl Iterator<Item = &PendingTransaction> {
+    pub fn pending_transactions(&self) -> impl Iterator<Item = &ExecutableTransaction> {
         self.mem_pool.transactions()
     }
 
@@ -859,7 +859,7 @@ impl ProviderData {
 
     pub fn run_call(
         &self,
-        transaction: PendingTransaction,
+        transaction: ExecutableTransaction,
         block_spec: Option<&BlockSpec>,
         state_overrides: &StateOverrides,
     ) -> Result<Bytes, ProviderError> {
@@ -933,7 +933,7 @@ impl ProviderData {
 
     pub fn send_raw_transaction(
         &mut self,
-        signed_transaction: PendingTransaction,
+        signed_transaction: ExecutableTransaction,
     ) -> Result<B256, ProviderError> {
         self.logger.on_send_transaction(&signed_transaction);
 
@@ -1252,7 +1252,7 @@ impl ProviderData {
         hash: &B256,
     ) -> Result<Option<TransactionAndBlock>, ProviderError> {
         let transaction = if let Some(tx) = self.mem_pool.transaction_by_hash(hash) {
-            let signed_transaction = tx.pending().transaction().clone();
+            let signed_transaction = tx.pending().as_inner().clone();
 
             Some(TransactionAndBlock {
                 signed_transaction,
@@ -1272,6 +1272,7 @@ impl ProviderData {
                 .transactions()
                 .get(tx_index)
                 .expect("Transaction index must be valid, since it's from the receipt.")
+                .as_inner()
                 .clone();
 
             Some(TransactionAndBlock {
@@ -1291,7 +1292,7 @@ impl ProviderData {
 
     fn add_pending_transaction(
         &mut self,
-        transaction: PendingTransaction,
+        transaction: ExecutableTransaction,
     ) -> Result<B256, ProviderError> {
         let transaction_hash = *transaction.hash();
 
@@ -1486,13 +1487,13 @@ impl ProviderData {
     fn sign_transaction_request(
         &self,
         transaction_request: TransactionRequestAndSender,
-    ) -> Result<PendingTransaction, ProviderError> {
+    ) -> Result<ExecutableTransaction, ProviderError> {
         let TransactionRequestAndSender { request, sender } = transaction_request;
 
         if self.impersonated_accounts.contains(&sender) {
             let signed_transaction = request.fake_sign(&sender);
 
-            Ok(PendingTransaction::with_caller(
+            Ok(ExecutableTransaction::with_caller(
                 self.blockchain.spec_id(),
                 signed_transaction,
                 sender,
@@ -1504,7 +1505,7 @@ impl ProviderData {
                 .ok_or(ProviderError::UnknownAddress { address: sender })?;
 
             let signed_transaction = request.sign(secret_key)?;
-            Ok(PendingTransaction::new(
+            Ok(ExecutableTransaction::new(
                 self.blockchain.spec_id(),
                 signed_transaction,
             )?)
@@ -1540,7 +1541,7 @@ impl ProviderData {
 
     fn validate_auto_mine_transaction(
         &self,
-        transaction: &PendingTransaction,
+        transaction: &ExecutableTransaction,
     ) -> Result<(), ProviderError> {
         let next_nonce = self.account_next_nonce(transaction.caller())?;
 
@@ -1929,14 +1930,14 @@ mod tests {
                 .expect("there are local accounts")
         }
 
-        fn impersonated_dummy_transaction(&self) -> anyhow::Result<PendingTransaction> {
+        fn impersonated_dummy_transaction(&self) -> anyhow::Result<ExecutableTransaction> {
             let mut transaction = self.dummy_transaction_request(None);
             transaction.sender = self.impersonated_account;
 
             Ok(self.provider_data.sign_transaction_request(transaction)?)
         }
 
-        fn signed_dummy_transaction(&self) -> anyhow::Result<PendingTransaction> {
+        fn signed_dummy_transaction(&self) -> anyhow::Result<ExecutableTransaction> {
             let transaction = self.dummy_transaction_request(None);
             Ok(self.provider_data.sign_transaction_request(transaction)?)
         }
@@ -2012,7 +2013,7 @@ mod tests {
 
     fn test_add_pending_transaction(
         fixture: &mut ProviderTestFixture,
-        transaction: PendingTransaction,
+        transaction: ExecutableTransaction,
     ) -> anyhow::Result<()> {
         let filter_id = fixture
             .provider_data

@@ -5,24 +5,24 @@ use edr_eth::{
     block::{self, Header, PartialHeader},
     log::{FilterLog, FullBlockLog, Log, ReceiptLog},
     receipt::{BlockReceipt, TransactionReceipt, TypedReceipt},
-    transaction::{DetailedTransaction, SignedTransaction},
     trie,
     withdrawal::Withdrawal,
-    Address, B256,
+    B256,
 };
 use itertools::izip;
 use revm::primitives::keccak256;
 
-use crate::{blockchain::BlockchainError, Block, SpecId, SyncBlock};
+use crate::{
+    blockchain::BlockchainError, Block, DetailedTransaction, ExecutableTransaction, SpecId,
+    SyncBlock,
+};
 
 /// A locally mined block, which contains complete information.
 #[derive(Clone, Debug, PartialEq, Eq, RlpEncodable)]
 #[rlp(trailing)]
 pub struct LocalBlock {
     header: block::Header,
-    transactions: Vec<SignedTransaction>,
-    #[rlp(skip)]
-    transaction_callers: Vec<Address>,
+    transactions: Vec<ExecutableTransaction>,
     #[rlp(skip)]
     transaction_receipts: Vec<Arc<BlockReceipt>>,
     ommers: Vec<block::Header>,
@@ -47,7 +47,6 @@ impl LocalBlock {
             Vec::new(),
             Vec::new(),
             Vec::new(),
-            Vec::new(),
             withdrawals,
         )
     }
@@ -55,8 +54,7 @@ impl LocalBlock {
     /// Constructs a new instance with the provided data.
     pub fn new(
         mut partial_header: PartialHeader,
-        transactions: Vec<SignedTransaction>,
-        transaction_callers: Vec<Address>,
+        transactions: Vec<ExecutableTransaction>,
         transaction_receipts: Vec<TransactionReceipt<Log>>,
         ommers: Vec<Header>,
         withdrawals: Option<Vec<Withdrawal>>,
@@ -80,7 +78,6 @@ impl LocalBlock {
         Self {
             header,
             transactions,
-            transaction_callers,
             transaction_receipts,
             ommers,
             ommer_hashes,
@@ -96,14 +93,12 @@ impl LocalBlock {
 
     /// Retrieves the block's transactions.
     pub fn detailed_transactions(&self) -> impl Iterator<Item = DetailedTransaction<'_>> {
-        izip!(
-            self.transactions.iter(),
-            self.transaction_callers.iter(),
-            self.transaction_receipts.iter()
+        izip!(self.transactions.iter(), self.transaction_receipts.iter()).map(
+            |(transaction, receipt)| DetailedTransaction {
+                transaction,
+                receipt,
+            },
         )
-        .map(|(transaction, caller, receipt)| {
-            DetailedTransaction::new(transaction, caller, receipt)
-        })
     }
 }
 
@@ -125,12 +120,8 @@ impl Block for LocalBlock {
             .expect("usize fits into u64")
     }
 
-    fn transactions(&self) -> &[SignedTransaction] {
+    fn transactions(&self) -> &[ExecutableTransaction] {
         &self.transactions
-    }
-
-    fn transaction_callers(&self) -> &[Address] {
-        &self.transaction_callers
     }
 
     fn transaction_receipts(&self) -> Result<Vec<Arc<BlockReceipt>>, Self::Error> {

@@ -145,7 +145,7 @@ impl Provider {
     ) -> Result<serde_json::Value, ProviderError> {
         // TODO: Remove the lint override once all methods have been implemented
         #[allow(clippy::match_same_arms)]
-        match request {
+        let result = match request {
             // eth_* method
             MethodInvocation::Accounts(()) => eth::handle_accounts_request(data).and_then(to_json),
             MethodInvocation::BlockNumber(()) => {
@@ -361,7 +361,12 @@ impl Provider {
             MethodInvocation::StopImpersonatingAccount(address) => {
                 hardhat::handle_stop_impersonating_account_request(data, *address).and_then(to_json)
             }
-        }
+        };
+
+        // Flush the logger after handling the request
+        data.logger_mut().flush();
+
+        result
     }
 }
 

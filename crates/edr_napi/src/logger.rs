@@ -1,40 +1,53 @@
 use std::fmt::Display;
 
-use edr_eth::{block, B256, U256};
+use edr_eth::{B256, U256};
 use edr_evm::{
-    blockchain::BlockchainError, trace::TraceMessage, Bytecode, PendingTransaction, SyncBlock,
+    blockchain::BlockchainError, trace::TraceMessage, Bytecode, ExecutableTransaction, SyncBlock,
 };
 use itertools::izip;
 use napi::{Env, JsFunction, NapiRaw};
+use napi_derive::napi;
 
 use crate::threadsafe_function::{
     ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode,
 };
 
+#[napi(object)]
+pub struct LoggerConfig {
+    /// Whether to enable the logger.
+    pub enable: bool,
+    #[napi(ts_type = "(message: string) => void")]
+    pub log_line_callback: JsFunction,
+    #[napi(ts_type = "(title: string, message: string) => void")]
+    pub log_line_with_title_callback: JsFunction,
+    #[napi(ts_type = "(message: string) => void")]
+    pub print_line_callback: JsFunction,
+    #[napi(ts_type = "(enabled: boolean) => void")]
+    pub set_is_enabled_callback: JsFunction,
+    #[napi(ts_type = "(message: string) => void")]
+    pub replace_last_log_line_callback: JsFunction,
+    #[napi(ts_type = "(message: string) => void")]
+    pub replace_last_print_line_callback: JsFunction,
+}
+
 #[derive(Clone)]
-pub struct LoggerCallbacks {
-    empty_interval_mined_blocks_range_start: Option<u64>,
+pub struct CallbackLogger {
     indentation: usize,
     is_enabled: bool,
     log_line_fn: ThreadsafeFunction<String>,
     log_line_with_title_fn: ThreadsafeFunction<(String, String)>,
     print_line_fn: ThreadsafeFunction<String>,
+    set_is_enabled_fn: ThreadsafeFunction<bool>,
     replace_last_log_line_fn: ThreadsafeFunction<String>,
     replace_last_print_line_fn: ThreadsafeFunction<String>,
 }
 
-impl LoggerCallbacks {
-    pub fn new(
-        env: &Env,
-        log_line_callback: JsFunction,
-        print_line_callback: JsFunction,
-        replace_last_log_line_callback: JsFunction,
-        replace_last_print_line_callback: JsFunction,
-    ) -> napi::Result<Self> {
+impl CallbackLogger {
+    pub fn new(env: &Env, config: LoggerConfig) -> napi::Result<Self> {
         let log_line_fn = ThreadsafeFunction::create(
             env.raw(),
             // SAFETY: The callback is guaranteed to be valid for the lifetime of the inspector.
-            unsafe { log_line_callback.raw() },
+            unsafe { config.log_line_callback.raw() },
             0,
             |ctx: ThreadSafeCallContext<String>| {
                 // String
@@ -47,7 +60,7 @@ impl LoggerCallbacks {
         let log_line_with_title_fn = ThreadsafeFunction::create(
             env.raw(),
             // SAFETY: The callback is guaranteed to be valid for the lifetime of the inspector.
-            unsafe { log_line_callback.raw() },
+            unsafe { config.log_line_callback.raw() },
             0,
             |ctx: ThreadSafeCallContext<(String, String)>| {
                 // [String, String]
@@ -68,7 +81,7 @@ impl LoggerCallbacks {
         let print_line_fn = ThreadsafeFunction::create(
             env.raw(),
             // SAFETY: The callback is guaranteed to be valid for the lifetime of the inspector.
-            unsafe { print_line_callback.raw() },
+            unsafe { config.print_line_callback.raw() },
             0,
             |ctx: ThreadSafeCallContext<String>| {
                 // String
@@ -78,10 +91,23 @@ impl LoggerCallbacks {
                 Ok(())
             },
         )?;
+        let set_is_enabled_fn = ThreadsafeFunction::create(
+            env.raw(),
+            // SAFETY: The callback is guaranteed to be valid for the lifetime of the inspector.
+            unsafe { config.set_is_enabled_callback.raw() },
+            0,
+            |ctx: ThreadSafeCallContext<bool>| {
+                // bool
+                let boolean = ctx.env.get_boolean(ctx.value)?;
+
+                ctx.callback.call(None, &[boolean])?;
+                Ok(())
+            },
+        )?;
         let replace_last_log_line_fn = ThreadsafeFunction::create(
             env.raw(),
             // SAFETY: The callback is guaranteed to be valid for the lifetime of the inspector.
-            unsafe { replace_last_log_line_callback.raw() },
+            unsafe { config.replace_last_log_line_callback.raw() },
             0,
             |ctx: ThreadSafeCallContext<String>| {
                 // String
@@ -94,7 +120,7 @@ impl LoggerCallbacks {
         let replace_last_print_line_fn = ThreadsafeFunction::create(
             env.raw(),
             // SAFETY: The callback is guaranteed to be valid for the lifetime of the inspector.
-            unsafe { replace_last_print_line_callback.raw() },
+            unsafe { config.replace_last_print_line_callback.raw() },
             0,
             |ctx: ThreadSafeCallContext<String>| {
                 // String
@@ -105,12 +131,12 @@ impl LoggerCallbacks {
             },
         )?;
         Ok(Self {
-            empty_interval_mined_blocks_range_start: None,
             indentation: 0,
-            is_enabled: false,
+            is_enabled: config.enable,
             log_line_fn,
             log_line_with_title_fn,
             print_line_fn,
+            set_is_enabled_fn,
             replace_last_log_line_fn,
             replace_last_print_line_fn,
         })
@@ -122,16 +148,20 @@ impl LoggerCallbacks {
 
     fn set_is_enabled(&mut self, is_enabled: bool) {
         self.is_enabled = is_enabled;
+
+        self.set_is_enabled_fn
+            .call(is_enabled, ThreadsafeFunctionCallMode::Blocking);
     }
 
-    fn format(&self, message: impl Into<String>) -> String {
-        let message = message.into();
-
-        if message.is_empty() {
-            message
-        } else {
-            message
-        }
+    fn format(message: impl Into<String>) -> String {
+        // let message = message.into();
+        //
+        // if message.is_empty() {
+        //     message
+        // } else {
+        //     message
+        // }
+        message.into()
     }
 
     fn indented(&mut self, display_fn: impl FnOnce(&mut Self)) {
@@ -141,37 +171,19 @@ impl LoggerCallbacks {
     }
 
     fn log(&mut self, message: impl Into<String>) {
-        let formatted = self.format(message);
+        let formatted = Self::format(message);
 
         self.log_line_fn
             .call(formatted, ThreadsafeFunctionCallMode::Blocking);
     }
 
     fn log_auto_mined_block_results(
-        &self,
+        &mut self,
         results: Vec<edr_evm::MineBlockResult<BlockchainError>>,
         sent_transaction_hash: &B256,
     ) {
         for result in results {
-            let contracts = result
-                .transaction_traces
-                .iter()
-                .map(|trace| {
-                    if let Some(code) = trace.messages.first().and_then(|message| {
-                        if let TraceMessage::Before(before) = message {
-                            before.code.as_ref()
-                        } else {
-                            None
-                        }
-                    }) {
-                        code.clone()
-                    } else {
-                        Bytecode::new()
-                    }
-                })
-                .collect::<Vec<_>>();
-
-            self.log_block_from_auto_mine(result, contracts, sent_transaction_hash);
+            self.log_block_from_auto_mine(result, sent_transaction_hash);
         }
     }
 
@@ -184,7 +196,6 @@ impl LoggerCallbacks {
     fn log_block_from_auto_mine(
         &mut self,
         result: edr_evm::MineBlockResult<BlockchainError>,
-        contracts: Vec<edr_evm::Bytecode>,
         transaction_hash_to_highlight: &edr_eth::B256,
     ) {
         let edr_evm::MineBlockResult {
@@ -196,8 +207,24 @@ impl LoggerCallbacks {
         let transactions = block.transactions();
         let num_transactions = transactions.len();
 
+        let contracts = transaction_traces
+            .iter()
+            .map(|trace| {
+                if let Some(code) = trace.messages.first().and_then(|message| {
+                    if let TraceMessage::Before(before) = message {
+                        before.code.as_ref()
+                    } else {
+                        None
+                    }
+                }) {
+                    code.clone()
+                } else {
+                    Bytecode::new()
+                }
+            })
+            .collect::<Vec<_>>();
+
         debug_assert_eq!(num_transactions, transaction_results.len());
-        debug_assert_eq!(num_transactions, transaction_traces.len());
         debug_assert_eq!(num_transactions, contracts.len());
 
         let block_header = block.header();
@@ -208,11 +235,10 @@ impl LoggerCallbacks {
             logger.indented(|logger| {
                 logger.log_base_fee(block_header.base_fee_per_gas.as_ref());
 
-                for (idx, transaction, result, trace, code) in izip!(
+                for (idx, transaction, result, code) in izip!(
                     0..num_transactions,
                     transactions,
                     transaction_results,
-                    transaction_traces,
                     contracts
                 ) {
                     let should_highlight_hash =
@@ -254,7 +280,7 @@ impl LoggerCallbacks {
     /// Logs a transaction that's part of a block.
     fn log_block_transaction(
         &mut self,
-        transaction: &edr_evm::PendingTransaction,
+        transaction: &edr_evm::ExecutableTransaction,
         code: &edr_evm::Bytecode,
         gas_used: u64,
         should_highlight_hash: bool,
@@ -269,7 +295,7 @@ impl LoggerCallbacks {
 
         self.indented(|logger| {
             logger.log_contract_and_function_name(code);
-            logger.log_with_title("From", transaction.sender());
+            logger.log_with_title("From", transaction.caller());
             if let Some(to) = transaction.to() {
                 logger.log_with_title("To", to);
             }
@@ -292,7 +318,7 @@ impl LoggerCallbacks {
         // TODO: Add console log messages
     }
 
-    fn log_contract_and_function_name(&mut self, code: &edr_evm::Bytecode) {
+    fn log_contract_and_function_name(&mut self, _code: &edr_evm::Bytecode) {
         // TODO: Add amalgamated stack trace
     }
 
@@ -315,7 +341,7 @@ impl LoggerCallbacks {
 
     fn log_empty_line_between_transactions(&mut self, idx: usize, num_transactions: usize) {
         if num_transactions > 1 && idx < num_transactions - 1 {
-            self.log_empty_line()
+            self.log_empty_line();
         }
     }
 
@@ -347,8 +373,7 @@ impl LoggerCallbacks {
         let transactions = block.transactions();
         let num_transactions = transactions.len();
 
-        let contracts = result
-            .transaction_traces
+        let contracts = transaction_traces
             .iter()
             .map(|trace| {
                 if let Some(code) = trace.messages.first().and_then(|message| {
@@ -366,7 +391,6 @@ impl LoggerCallbacks {
             .collect::<Vec<_>>();
 
         debug_assert_eq!(num_transactions, transaction_results.len());
-        debug_assert_eq!(num_transactions, transaction_traces.len());
         debug_assert_eq!(num_transactions, contracts.len());
 
         let block_header = block.header();
@@ -377,11 +401,10 @@ impl LoggerCallbacks {
             logger.indented(|logger| {
                 logger.log_base_fee(block_header.base_fee_per_gas.as_ref());
 
-                for (idx, transaction, result, trace, code) in izip!(
+                for (idx, transaction, result, code) in izip!(
                     0..num_transactions,
                     transactions,
                     transaction_results,
-                    transaction_traces,
                     contracts
                 ) {
                     logger.log_block_transaction(transaction, &code, result.gas_used(), false);
@@ -404,8 +427,7 @@ impl LoggerCallbacks {
         let transactions = block.transactions();
         let num_transactions = transactions.len();
 
-        let contracts = result
-            .transaction_traces
+        let contracts = transaction_traces
             .iter()
             .map(|trace| {
                 if let Some(code) = trace.messages.first().and_then(|message| {
@@ -423,7 +445,6 @@ impl LoggerCallbacks {
             .collect::<Vec<_>>();
 
         debug_assert_eq!(num_transactions, transaction_results.len());
-        debug_assert_eq!(num_transactions, transaction_traces.len());
         debug_assert_eq!(num_transactions, contracts.len());
 
         self.indented(|logger| {
@@ -438,11 +459,10 @@ impl LoggerCallbacks {
                     logger.indented(|logger| {
                         logger.log_base_fee(block.header().base_fee_per_gas.as_ref());
 
-                        for (idx, transaction, result, trace, code) in izip!(
+                        for (idx, transaction, result, code) in izip!(
                             0..num_transactions,
                             transactions,
                             transaction_results,
-                            transaction_traces,
                             contracts
                         ) {
                             logger.log_block_transaction(
@@ -461,10 +481,10 @@ impl LoggerCallbacks {
     }
 
     /// Logs a warning about multiple blocks being mined.
-    fn log_multiple_blocks_warning(&self) {
+    fn log_multiple_blocks_warning(&mut self) {
         self.indented(|logger| {
             logger
-                .log("There were other pending transactions. More than one block had to be mined:")
+                .log("There were other pending transactions. More than one block had to be mined:");
         });
         self.log_empty_line();
     }
@@ -472,7 +492,7 @@ impl LoggerCallbacks {
     /// Logs a warning about multiple transactions being mined.
     fn log_multiple_transactions_warning(&mut self) {
         self.indented(|logger| {
-            logger.log("There were other pending transactions mined in the same block:")
+            logger.log("There were other pending transactions mined in the same block:");
         });
         self.log_empty_line();
     }
@@ -489,7 +509,7 @@ impl LoggerCallbacks {
     fn log_single_transaction_mining_result(
         &mut self,
         result: &edr_evm::MineBlockResult<BlockchainError>,
-        transaction: &PendingTransaction,
+        transaction: &ExecutableTransaction,
     ) {
         let trace = result
             .transaction_traces
@@ -516,7 +536,7 @@ impl LoggerCallbacks {
             let transaction_hash = transaction.hash();
             logger.log_with_title("Transaction", transaction_hash);
 
-            logger.log_with_title("From", transaction.sender());
+            logger.log_with_title("From", transaction.caller());
             if let Some(to) = transaction.to() {
                 logger.log_with_title("To", to);
             }
@@ -540,7 +560,7 @@ impl LoggerCallbacks {
             logger.log_console_log_messages();
 
             // TODO: Log error
-        })
+        });
     }
 
     fn print(&mut self, message: impl Into<String>) {
@@ -548,7 +568,7 @@ impl LoggerCallbacks {
             return;
         }
 
-        let formatted = self.format(message);
+        let formatted = Self::format(message);
 
         self.print_line_fn
             .call(formatted, ThreadsafeFunctionCallMode::Blocking);
@@ -558,17 +578,8 @@ impl LoggerCallbacks {
         self.print("");
     }
 
-    /// Prints the block number of an interval-mined block.
-    fn print_interval_mined_block_number(
-        &mut self,
-        block_number: u64,
-        is_empty: bool,
-        base_fee_per_gas: Option<U256>,
-    ) {
-    }
-
     fn replace_last_log_line(&mut self, message: impl Into<String>) {
-        let formatted = self.format(message);
+        let formatted = Self::format(message);
 
         self.replace_last_log_line_fn
             .call(formatted, ThreadsafeFunctionCallMode::Blocking);
@@ -579,13 +590,14 @@ impl LoggerCallbacks {
             return;
         }
 
-        let formatted = self.format(message);
+        let formatted = Self::format(message);
 
         self.replace_last_print_line_fn
             .call(formatted, ThreadsafeFunctionCallMode::Blocking);
     }
 }
 
+#[derive(Clone)]
 pub enum RequestLogging {
     IntervalMined {
         mining_result: edr_evm::MineBlockResult<BlockchainError>,
@@ -596,10 +608,11 @@ pub enum RequestLogging {
     /// Set when `eth_sendTransaction` or `eth_sendRawTransaction` is called.
     SendTransaction {
         mining_results: Vec<edr_evm::MineBlockResult<BlockchainError>>,
-        transaction: edr_evm::PendingTransaction,
+        transaction: edr_evm::ExecutableTransaction,
     },
 }
 
+#[derive(Clone)]
 pub enum LoggingState {
     HardhatMinining {
         empty_blocks_range_start: Option<u64>,
@@ -638,40 +651,19 @@ impl Default for LoggingState {
     }
 }
 
+#[derive(Clone)]
 pub struct Logger {
-    callbacks: LoggerCallbacks,
+    callbacks: CallbackLogger,
     request_logging: Option<RequestLogging>,
     state: LoggingState,
 }
 
 impl Logger {
-    pub fn new(callbacks: LoggerCallbacks) -> Self {
+    pub fn new(callbacks: CallbackLogger) -> Self {
         Self {
             callbacks,
             request_logging: None,
             state: LoggingState::default(),
-        }
-    }
-
-    /// Logs any collected notifications to the console.
-    pub fn flush(&mut self) {
-        let state = std::mem::take(&mut self.state);
-
-        if let Some(request_logging) = self.request_logging.take() {
-            match request_logging {
-                RequestLogging::IntervalMined { mining_result } => {
-                    self.log_interval_mined(mining_result, state.into_interval_mining());
-                }
-                RequestLogging::HardhatMined { mining_results } => {
-                    self.log_hardhat_mined(mining_results, state.into_hardhat_mining());
-                }
-                RequestLogging::SendTransaction {
-                    mining_results,
-                    transaction,
-                } => {
-                    self.log_send_transaction(mining_results, transaction);
-                }
-            }
         }
     }
 
@@ -680,6 +672,7 @@ impl Logger {
         mining_results: Vec<edr_evm::MineBlockResult<BlockchainError>>,
         empty_blocks_range_start: Option<u64>,
     ) {
+        let num_results = mining_results.len();
         for (idx, mining_result) in mining_results.into_iter().enumerate() {
             if mining_result.block.transactions().is_empty() {
                 self.callbacks
@@ -694,7 +687,7 @@ impl Logger {
             } else {
                 self.callbacks.log_mined_block(mining_result);
 
-                if idx < mining_results.len() - 1 {
+                if idx < num_results - 1 {
                     self.callbacks.log_empty_line();
                 }
             }
@@ -740,7 +733,7 @@ impl Logger {
     fn log_send_transaction(
         &mut self,
         mining_results: Vec<edr_evm::MineBlockResult<BlockchainError>>,
-        transaction: edr_evm::PendingTransaction,
+        transaction: edr_evm::ExecutableTransaction,
     ) {
         if !mining_results.is_empty() {
             if mining_results.len() > 1 {
@@ -755,7 +748,7 @@ impl Logger {
                         .log_auto_mined_block_results(mining_results, transaction.hash());
                 } else if let Some(transaction) = transactions.first() {
                     self.callbacks
-                        .log_single_transaction_mining_result(&result, transaction)
+                        .log_single_transaction_mining_result(result, transaction);
                 }
             }
         }
@@ -771,6 +764,27 @@ impl edr_provider::Logger for Logger {
 
     fn set_is_enabled(&mut self, is_enabled: bool) {
         self.callbacks.set_is_enabled(is_enabled);
+    }
+
+    fn flush(&mut self) {
+        let state = std::mem::take(&mut self.state);
+
+        if let Some(request_logging) = self.request_logging.take() {
+            match request_logging {
+                RequestLogging::IntervalMined { mining_result } => {
+                    self.log_interval_mined(mining_result, state.into_interval_mining());
+                }
+                RequestLogging::HardhatMined { mining_results } => {
+                    self.log_hardhat_mined(mining_results, state.into_hardhat_mining());
+                }
+                RequestLogging::SendTransaction {
+                    mining_results,
+                    transaction,
+                } => {
+                    self.log_send_transaction(mining_results, transaction);
+                }
+            }
+        }
     }
 
     fn on_block_auto_mined(&mut self, result: &edr_evm::MineBlockResult<Self::BlockchainError>) {
@@ -793,9 +807,14 @@ impl edr_provider::Logger for Logger {
         });
     }
 
-    fn on_hardhat_mined(&mut self, results: &[MineBlockResult<Self::BlockchainError>]) {}
+    fn on_hardhat_mined(
+        &mut self,
+        mining_results: Vec<edr_evm::MineBlockResult<Self::BlockchainError>>,
+    ) {
+        self.request_logging = Some(RequestLogging::HardhatMined { mining_results });
+    }
 
-    fn on_send_transaction(&mut self, transaction: &edr_evm::PendingTransaction) {
+    fn on_send_transaction(&mut self, transaction: &edr_evm::ExecutableTransaction) {
         self.request_logging = Some(RequestLogging::SendTransaction {
             mining_results: Vec::new(),
             transaction: transaction.clone(),
@@ -806,12 +825,16 @@ impl edr_provider::Logger for Logger {
 fn wei_to_human_readable(wei: U256) -> String {
     if wei == U256::ZERO {
         "0 ETH".to_string()
-    } else if wei < U256::from(100_000) {
+    } else if wei < U256::from(100_000u64) {
         format!("{wei} wei")
-    } else if wei < U256::from(100_000_000_000_000) {
-        to_decimal_string(wei, 9) + " gwei"
+    } else if wei < U256::from(100_000_000_000_000u64) {
+        let mut decimal = to_decimal_string(wei, 9);
+        decimal.push_str(" gwei");
+        decimal
     } else {
-        to_decimal_string(wei, 18) + " ETH"
+        let mut decimal = to_decimal_string(wei, 18);
+        decimal.push_str(" ETH");
+        decimal
     }
 }
 

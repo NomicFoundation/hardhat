@@ -24,7 +24,7 @@ use crate::{
     blockchain::SyncBlockchain,
     evm::{build_evm, run_transaction, SyncInspector},
     state::{AccountModifierFn, StateDiff, SyncState},
-    PendingTransaction,
+    ExecutableTransaction,
 };
 
 /// An error caused during construction of a block builder.
@@ -97,8 +97,7 @@ pub struct BuildBlockResult {
 pub struct BlockBuilder {
     cfg: CfgEnv,
     header: PartialHeader,
-    callers: Vec<Address>,
-    transactions: Vec<SignedTransaction>,
+    transactions: Vec<ExecutableTransaction>,
     state_diff: StateDiff,
     receipts: Vec<TransactionReceipt<Log>>,
     parent_gas_limit: Option<u64>,
@@ -143,7 +142,6 @@ impl BlockBuilder {
         Ok(Self {
             cfg,
             header,
-            callers: Vec::new(),
             transactions: Vec::new(),
             state_diff: StateDiff::default(),
             receipts: Vec::new(),
@@ -180,7 +178,7 @@ impl BlockBuilder {
         &mut self,
         blockchain: &dyn SyncBlockchain<BlockchainErrorT, StateErrorT>,
         state: &mut dyn SyncState<StateErrorT>,
-        transaction: PendingTransaction,
+        transaction: ExecutableTransaction,
         inspector: Option<&mut dyn SyncInspector<BlockchainErrorT, StateErrorT>>,
     ) -> Result<ExecutionResult, BlockTransactionError<BlockchainErrorT, StateErrorT>>
     where
@@ -299,9 +297,6 @@ impl BlockBuilder {
         };
         self.receipts.push(receipt);
 
-        let (transaction, caller) = transaction.into_inner();
-
-        self.callers.push(caller);
         self.transactions.push(transaction);
 
         Ok(result)
@@ -376,7 +371,6 @@ impl BlockBuilder {
         let block = LocalBlock::new(
             self.header,
             self.transactions,
-            self.callers,
             self.receipts,
             Vec::new(),
             None,

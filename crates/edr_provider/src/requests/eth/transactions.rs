@@ -12,7 +12,7 @@ use edr_eth::{
     },
     Bytes, SpecId, B256, U256,
 };
-use edr_evm::{blockchain::BlockchainError, PendingTransaction, SyncBlock};
+use edr_evm::{blockchain::BlockchainError, ExecutableTransaction, SyncBlock};
 
 use crate::{
     data::{BlockDataForTransaction, ProviderData, TransactionAndBlock},
@@ -71,7 +71,7 @@ pub fn handle_pending_transactions(
     data.pending_transactions()
         .map(|pending_transaction| {
             let transaction_and_block = TransactionAndBlock {
-                signed_transaction: pending_transaction.transaction().clone(),
+                signed_transaction: pending_transaction.as_inner().clone(),
                 block_data: None,
                 is_pending: true,
             };
@@ -111,7 +111,7 @@ fn transaction_from_block(
         .transactions()
         .get(transaction_index)
         .map(|transaction| TransactionAndBlock {
-            signed_transaction: transaction.clone(),
+            signed_transaction: transaction.as_inner().clone(),
             block_data: Some(BlockDataForTransaction {
                 block: block.clone(),
                 transaction_index: transaction_index.try_into().expect("usize fits into u64"),
@@ -254,7 +254,7 @@ pub fn handle_send_raw_transaction_request(
 
     validate_send_raw_transaction_request(data, &signed_transaction)?;
 
-    let pending_transaction = PendingTransaction::new(data.spec_id(), signed_transaction)?;
+    let pending_transaction = ExecutableTransaction::new(data.spec_id(), signed_transaction)?;
 
     data.send_raw_transaction(pending_transaction)
 }

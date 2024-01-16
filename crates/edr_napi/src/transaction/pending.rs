@@ -16,11 +16,11 @@ use crate::{cast::TryCast, config::SpecId};
 
 #[napi]
 pub struct PendingTransaction {
-    inner: edr_evm::PendingTransaction,
+    inner: edr_evm::ExecutableTransaction,
 }
 
-impl From<edr_evm::PendingTransaction> for PendingTransaction {
-    fn from(value: edr_evm::PendingTransaction) -> Self {
+impl From<edr_evm::ExecutableTransaction> for PendingTransaction {
+    fn from(value: edr_evm::ExecutableTransaction) -> Self {
         Self { inner: value }
     }
 }
@@ -50,9 +50,9 @@ impl PendingTransaction {
             let result = if let Some(caller) = caller {
                 let caller = Address::from_slice(&caller);
 
-                edr_evm::PendingTransaction::with_caller(spec_id, transaction, caller)
+                edr_evm::ExecutableTransaction::with_caller(spec_id, transaction, caller)
             } else {
-                edr_evm::PendingTransaction::new(spec_id, transaction)
+                edr_evm::ExecutableTransaction::new(spec_id, transaction)
             }
             .map_or_else(
                 |e| Err(napi::Error::new(napi::Status::InvalidArg, e.to_string())),
@@ -105,7 +105,7 @@ impl PendingTransaction {
 }
 
 impl Deref for PendingTransaction {
-    type Target = edr_evm::PendingTransaction;
+    type Target = edr_evm::ExecutableTransaction;
 
     fn deref(&self) -> &Self::Target {
         &self.inner

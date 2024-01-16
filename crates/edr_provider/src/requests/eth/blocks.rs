@@ -143,7 +143,7 @@ fn block_to_rpc_output(
             .iter()
             .enumerate()
             .map(|(i, tx)| TransactionAndBlock {
-                signed_transaction: tx.clone(),
+                signed_transaction: tx.as_inner().clone(),
                 block_data: Some(BlockDataForTransaction {
                     block: block.clone(),
                     transaction_index: i.try_into().expect("usize fits into u64"),

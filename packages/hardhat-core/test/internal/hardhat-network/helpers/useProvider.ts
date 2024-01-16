@@ -75,7 +75,8 @@ export function useProvider({
   chains = defaultHardhatNetworkParams.chains,
 }: UseProviderOptions = {}) {
   beforeEach("Initialize provider", async function () {
-    this.logger = new FakeModulesLogger(loggerEnabled);
+    this.logger = new FakeModulesLogger();
+
     this.hardhatNetworkProvider = await createHardhatNetworkProvider(
       {
         hardfork,
@@ -100,7 +101,11 @@ export function useProvider({
         allowBlocksWithSameTimestamp,
         enableTransientStorage: false,
       },
-      this.logger
+      {
+        enabled: loggerEnabled,
+        printLineFn: this.logger.printLineFn(),
+        replaceLastLineFn: this.logger.replaceLastLineFn(),
+      }
     );
 
     const provider = new BackwardsCompatibilityProviderAdapter(

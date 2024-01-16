@@ -212,6 +212,16 @@ export interface ExecutionLog {
   topics: Array<Buffer>
   data: Buffer
 }
+export interface LoggerConfig {
+  /** Whether to enable the logger. */
+  enable: boolean
+  logLineCallback: (message: string) => void
+  logLineWithTitleCallback: (title: string, message: string) => void
+  printLineCallback: (message: string) => void
+  setIsEnabledCallback: (enabled: boolean) => void
+  replaceLastLogLineCallback: (message: string) => void
+  replaceLastPrintLineCallback: (message: string) => void
+}
 /**The type of ordering to use when selecting blocks to mine. */
 export const enum MineOrdering {
   /**Insertion order */
@@ -686,7 +696,7 @@ export class MineBlockResult {
 /** A JSON-RPC provider for Ethereum. */
 export class Provider {
   /**Constructs a new provider with the provided configuration. */
-  static withConfig(config: ProviderConfig, consoleLogCallback: (message: Buffer) => void, subscriberCallback: (event: SubscriptionEvent) => void): Promise<Provider>
+  static withConfig(config: ProviderConfig, consoleLogCallback: (message: Buffer) => void, loggerConfig: LoggerConfig, subscriberCallback: (event: SubscriptionEvent) => void): Promise<Provider>
   /**Handles a JSON-RPC request and returns a JSON-RPC response. */
   handleRequest(jsonRequest: string): Promise<string>
 }

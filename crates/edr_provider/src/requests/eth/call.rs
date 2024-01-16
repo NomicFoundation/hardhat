@@ -6,7 +6,7 @@ use edr_eth::{
     },
     Bytes, SpecId, U256,
 };
-use edr_evm::{state::StateOverrides, PendingTransaction};
+use edr_evm::{state::StateOverrides, ExecutableTransaction};
 
 use crate::{data::ProviderData, requests::validation::validate_call_request, ProviderError};
 
@@ -30,7 +30,7 @@ fn resolve_call_request(
     request: CallRequest,
     block_spec: Option<&BlockSpec>,
     state_overrides: &StateOverrides,
-) -> Result<PendingTransaction, ProviderError> {
+) -> Result<ExecutableTransaction, ProviderError> {
     let CallRequest {
         from,
         to,
@@ -95,6 +95,6 @@ fn resolve_call_request(
     };
 
     let transaction = transaction.fake_sign(&from);
-    PendingTransaction::with_caller(data.spec_id(), transaction, from)
+    ExecutableTransaction::with_caller(data.spec_id(), transaction, from)
         .map_err(ProviderError::TransactionCreationError)
 }

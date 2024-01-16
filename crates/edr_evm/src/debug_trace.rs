@@ -11,7 +11,7 @@ use revm::{
 };
 
 use crate::{
-    blockchain::SyncBlockchain, evm::build_evm, state::SyncState, PendingTransaction,
+    blockchain::SyncBlockchain, evm::build_evm, state::SyncState, ExecutableTransaction,
     TransactionError,
 };
 
@@ -24,7 +24,7 @@ pub fn debug_trace_transaction<BlockchainErrorT, StateErrorT>(
     evm_config: CfgEnv,
     trace_config: DebugTraceConfig,
     block_env: BlockEnv,
-    transactions: Vec<PendingTransaction>,
+    transactions: Vec<ExecutableTransaction>,
     transaction_hash: &B256,
 ) -> Result<DebugTraceResult, DebugTraceError<BlockchainErrorT, StateErrorT>>
 where

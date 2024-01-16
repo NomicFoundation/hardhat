@@ -4,12 +4,11 @@
 
 //! transaction related data
 
-mod detailed;
 mod kind;
 mod request;
 mod signed;
 
-pub use self::{detailed::DetailedTransaction, kind::TransactionKind, request::*, signed::*};
+pub use self::{kind::TransactionKind, request::*, signed::*};
 use crate::{access_list::AccessListItem, Address, Bytes, U256};
 
 /// Represents _all_ transaction requests received from RPC
