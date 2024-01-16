@@ -267,6 +267,13 @@ describe("Eth module", function () {
               let spy: SinonSpy;
 
               beforeEach(function () {
+                if (
+                  process.env.HARDHAT_EXPERIMENTAL_VM_MODE === "edr" ||
+                  process.env.HARDHAT_EXPERIMENTAL_VM_MODE === "dual"
+                ) {
+                  this.skip();
+                }
+
                 spy = sinon.spy(
                   HardhatNode.prototype as any,
                   "_runTxAndRevertMutations"
@@ -274,6 +281,12 @@ describe("Eth module", function () {
               });
 
               afterEach(function () {
+                if (
+                  process.env.HARDHAT_EXPERIMENTAL_VM_MODE === "edr" ||
+                  process.env.HARDHAT_EXPERIMENTAL_VM_MODE === "dual"
+                ) {
+                  return;
+                }
                 spy.restore();
               });
 
