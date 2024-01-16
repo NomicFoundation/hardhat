@@ -25,7 +25,7 @@ pub fn handle_call_request(
     data.run_call(transaction, block_spec.as_ref(), &state_overrides)
 }
 
-fn resolve_call_request(
+pub(crate) fn resolve_call_request(
     data: &ProviderData,
     request: CallRequest,
     block_spec: Option<&BlockSpec>,

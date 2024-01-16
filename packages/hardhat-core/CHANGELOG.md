@@ -1,5 +1,35 @@
 # hardhat
 
+## 2.19.4
+
+### Patch Changes
+
+- 7aea77e49: Report telemetry consent response to Google Analytics
+
+## 2.19.3
+
+### Patch Changes
+
+- 3f282db50: Added support for solc 0.8.23
+- fa2f0fba7: Added a temporary message about the 2023 Solidtiy Developer Survey
+
+## 2.19.2
+
+### Patch Changes
+
+- b475fc49c: Modified the artifacts cleanup logic to avoid removing a `package.json` file under the artifacts directory
+- c3aad2c55: Added support for scopes in hh autocomplete.
+- 4bc6a2726: Added experimental support for using ESM modules with TypeScript
+
+## 2.19.1
+
+### Patch Changes
+
+- 23665f399: Upgraded toolboxes versions used in project initialization
+- 106235cb0: Fixed an issue in low-traffic chains that resulted in txs using a `maxPriorityFeePerGas` of 0
+- c52a5d653: Added logic to avoid downloading the same compiler version multiple times
+- b46ccf46d: Updated the `.gitignore` files generated during project initialization to use relative paths
+
 ## 2.19.0
 
 ### Minor Changes

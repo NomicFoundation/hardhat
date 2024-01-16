@@ -391,7 +391,7 @@ class SolidityCallSite implements NodeJS.CallSite {
   }
 
   public getScriptNameOrSourceURL() {
-    return null;
+    return "";
   }
 
   public getThis() {
@@ -424,5 +424,21 @@ class SolidityCallSite implements NodeJS.CallSite {
 
   public isToplevel() {
     return false;
+  }
+
+  public getScriptHash(): string {
+    return "";
+  }
+
+  public getEnclosingColumnNumber(): number {
+    return 0;
+  }
+
+  public getEnclosingLineNumber(): number {
+    return 0;
+  }
+
+  public toString(): string {
+    return "[SolidityCallSite]";
   }
 }

@@ -139,7 +139,9 @@ export class ConsoleLogger {
 
     const consoleLogs = [this._decode(parameters, types)];
 
-    this._replaceNumberFormatSpecifiers(consoleLogs);
+    for (const log of consoleLogs) {
+      this._replaceNumberFormatSpecifiers(log);
+    }
 
     for (const log of consoleLogs) {
       if (log === undefined) {

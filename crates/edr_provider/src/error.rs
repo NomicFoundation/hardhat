@@ -164,59 +164,73 @@ pub enum ProviderError {
 impl From<ProviderError> for jsonrpc::Error {
     fn from(value: ProviderError) -> Self {
         #[allow(clippy::match_same_arms)]
-        let (code, data) = match &value {
-            ProviderError::AccountOverrideConversionError(_) => (-32000, None),
-            ProviderError::AutoMineGasPriceTooLow { .. } => (-32000, None),
-            ProviderError::AutoMineMaxFeeTooLow { .. } => (-32000, None),
-            ProviderError::AutoMineNonceTooHigh { .. } => (-32000, None),
-            ProviderError::AutoMineNonceTooLow { .. } => (-32000, None),
-            ProviderError::AutoMinePriorityFeeTooLow { .. } => (-32000, None),
-            ProviderError::Blockchain(_) => (-32000, None),
-            ProviderError::Creation(_) => (-32000, None),
-            ProviderError::InvalidArgument(_) => (-32602, None),
-            ProviderError::InvalidBlockNumberOrHash { .. } => (-32000, None),
-            ProviderError::InvalidBlockTag { .. } => (-32602, None),
-            ProviderError::InvalidChainId { .. } => (-32602, None),
-            ProviderError::InvalidDropTransactionHash(_) => (-32602, None),
-            ProviderError::InvalidFilterSubscriptionType { .. } => (-32602, None),
-            ProviderError::InvalidInput(_) => (-32000, None),
-            ProviderError::InvalidTransactionIndex(_) => (-32602, None),
-            ProviderError::InvalidTransactionInput(_) => (-32000, None),
-            ProviderError::InvalidTransactionType(_) => (-32602, None),
-            ProviderError::MemPoolUpdate(_) => (-32000, None),
-            ProviderError::MineBlock(_) => (-32000, None),
-            ProviderError::MinerTransactionError(_) => (-32000, None),
-            ProviderError::RpcVersion(_) => (-32000, None),
-            ProviderError::RunTransaction(_) => (-32000, None),
-            ProviderError::Serialization(_) => (-32000, None),
-            ProviderError::SetAccountNonceLowerThanCurrent { .. } => (-32000, None),
-            ProviderError::SetAccountNonceWithPendingTransactions => (-32603, None),
-            ProviderError::SetMinGasPriceUnsupported => (-32000, None),
-            ProviderError::SetNextBlockBaseFeePerGasUnsupported { .. } => (-32000, None),
-            ProviderError::SetNextPrevRandaoUnsupported { .. } => (-32000, None),
-            ProviderError::Signature(_) => (-32000, None),
-            ProviderError::State(_) => (-32000, None),
-            ProviderError::SystemTime(_) => (-32000, None),
-            ProviderError::TimestampLowerThanPrevious { .. } => (-32000, None),
-            ProviderError::TimestampEqualsPrevious { .. } => (-32000, None),
-            ProviderError::TransactionFailed(transaction_failure) => (
-                -32000,
-                Some(
-                    serde_json::to_value(transaction_failure).expect("transaction_failure to json"),
-                ),
+        let code = match &value {
+            ProviderError::AccountOverrideConversionError(_) => -32000,
+            ProviderError::AutoMineGasPriceTooLow { .. } => -32000,
+            ProviderError::AutoMineMaxFeeTooLow { .. } => -32000,
+            ProviderError::AutoMineNonceTooHigh { .. } => -32000,
+            ProviderError::AutoMineNonceTooLow { .. } => -32000,
+            ProviderError::AutoMinePriorityFeeTooLow { .. } => -32000,
+            ProviderError::Blockchain(_) => -32000,
+            ProviderError::Creation(_) => -32000,
+            ProviderError::InvalidArgument(_) => -32602,
+            ProviderError::InvalidBlockNumberOrHash { .. } => -32000,
+            ProviderError::InvalidBlockTag { .. } => -32602,
+            ProviderError::InvalidChainId { .. } => -32602,
+            ProviderError::InvalidDropTransactionHash(_) => -32602,
+            ProviderError::InvalidFilterSubscriptionType { .. } => -32602,
+            ProviderError::InvalidInput(_) => -32000,
+            ProviderError::InvalidTransactionIndex(_) => -32602,
+            ProviderError::InvalidTransactionInput(_) => -32000,
+            ProviderError::InvalidTransactionType(_) => -32602,
+            ProviderError::MemPoolUpdate(_) => -32000,
+            ProviderError::MineBlock(_) => -32000,
+            ProviderError::MinerTransactionError(_) => -32000,
+            ProviderError::RpcVersion(_) => -32000,
+            ProviderError::RunTransaction(_) => -32000,
+            ProviderError::Serialization(_) => -32000,
+            ProviderError::SetAccountNonceLowerThanCurrent { .. } => -32000,
+            ProviderError::SetAccountNonceWithPendingTransactions => -32603,
+            ProviderError::SetMinGasPriceUnsupported => -32000,
+            ProviderError::SetNextBlockBaseFeePerGasUnsupported { .. } => -32000,
+            ProviderError::SetNextPrevRandaoUnsupported { .. } => -32000,
+            ProviderError::Signature(_) => -32000,
+            ProviderError::State(_) => -32000,
+            ProviderError::SystemTime(_) => -32000,
+            ProviderError::TimestampLowerThanPrevious { .. } => -32000,
+            ProviderError::TimestampEqualsPrevious { .. } => -32000,
+            ProviderError::TransactionFailed(_) => -32000,
+            ProviderError::TransactionCreationError(_) => -32000,
+            ProviderError::TryFromIntError(_) => -32000,
+            ProviderError::Unimplemented(_) => -32000,
+            ProviderError::UnknownAddress { .. } => -32000,
+            ProviderError::UnmetHardfork { .. } => -32602,
+            ProviderError::UnsupportedAccessListParameter { .. } => -32602,
+            ProviderError::UnsupportedEIP1559Parameters { .. } => -32602,
+        };
+
+        let data = match &value {
+            ProviderError::TransactionFailed(transaction_failure) => Some(
+                serde_json::to_value(transaction_failure).expect("transaction_failure to json"),
             ),
-            ProviderError::TransactionCreationError(_) => (-32000, None),
-            ProviderError::TryFromIntError(_) => (-32000, None),
-            ProviderError::Unimplemented(_) => (-32000, None),
-            ProviderError::UnknownAddress { .. } => (-32000, None),
-            ProviderError::UnmetHardfork { .. } => (-32602, None),
-            ProviderError::UnsupportedAccessListParameter { .. } => (-32602, None),
-            ProviderError::UnsupportedEIP1559Parameters { .. } => (-32602, None),
+            _ => None,
+        };
+
+        let message = match &value {
+            ProviderError::TransactionFailed(inner)
+                if matches!(
+                    inner.reason,
+                    TransactionFailureReason::Inner(Halt::CreateContractSizeLimit)
+                ) =>
+            {
+                "Transaction reverted: trying to deploy a contract whose code is too large".into()
+            }
+            _ => value.to_string(),
         };
 
         Self {
             code,
-            message: value.to_string(),
+            message,
             data,
         }
     }

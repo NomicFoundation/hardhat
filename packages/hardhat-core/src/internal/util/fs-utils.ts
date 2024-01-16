@@ -65,7 +65,7 @@ export function getRealPathSync(absolutePath: string): string {
  *
  * @param absolutePathToDir A directory. If it doesn't exist `[]` is returned.
  * @param matches A function to filter files (not directories)
- * @returns An An array of absolute paths. Each file has its true case, except
+ * @returns An array of absolute paths. Each file has its true case, except
  *  for the initial absolutePathToDir part, which preserves the given casing.
  *  No order is guaranteed.
  */

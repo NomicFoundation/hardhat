@@ -14,7 +14,7 @@ const linariaConfig = withLinaria({
       // We moved the privacy policy to /static to make the next rule
       // simpler, so we need to redirect it before it, instead of in a customRedirect
       {
-        source: "/privacy-policy.html",
+        source: "/privacy-policy",
         destination: "/static/privacy-policy.html",
         permanent: false,
       },

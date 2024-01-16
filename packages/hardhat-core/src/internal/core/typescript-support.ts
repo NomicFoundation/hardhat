@@ -13,14 +13,14 @@ let cachedIsTypescriptSupported: boolean | undefined;
  */
 export function willRunWithTypescript(configPath?: string): boolean {
   const config = resolveConfigPath(configPath);
-  return isTypescriptFile(config);
+  return isNonEsmTypescriptFile(config);
 }
 
 /**
  * Returns true if an Hardhat is already running with typescript.
  */
 export function isRunningWithTypescript(config: HardhatConfig): boolean {
-  return isTypescriptFile(config.paths.configFile);
+  return isNonEsmTypescriptFile(config.paths.configFile);
 }
 
 export function isTypescriptSupported() {
@@ -80,6 +80,14 @@ export function loadTsNode(
   require(tsNodeRequirement);
 }
 
-function isTypescriptFile(path: string): boolean {
-  return path.endsWith(".ts");
+function isNonEsmTypescriptFile(path: string): boolean {
+  return /\.(ts|cts)$/i.test(path);
+}
+
+export function isTypescriptFile(path: string): boolean {
+  return /\.(ts|cts|mts)$/i.test(path);
+}
+
+export function isJavascriptFile(path: string): boolean {
+  return /\.(js|cjs|mjs)$/i.test(path);
 }

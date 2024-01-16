@@ -168,6 +168,8 @@ describe("Extend config", () => {
       const userConfig: HardhatUserConfig = {};
       const expected: SourcifyConfig = {
         enabled: false,
+        apiUrl: "https://sourcify.dev/server",
+        browserUrl: "https://repo.sourcify.dev",
       };
       sourcifyConfigExtender(hardhatConfig, userConfig);
 

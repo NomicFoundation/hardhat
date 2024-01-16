@@ -576,6 +576,11 @@ export class EdrProviderWrapper
       };
     }
 
+    const initialDate =
+      config.initialDate !== undefined
+        ? BigInt(Math.floor(config.initialDate.getTime() / 1000))
+        : undefined;
+
     // To accomodate construction ordering, we need an adapter to forward events
     // from the EdrProvider callback to the wrapper's listener
     const eventAdapter = new EdrProviderEventAdapter();
@@ -601,6 +606,7 @@ export class EdrProviderWrapper
             balance: BigInt(account.balance),
           };
         }),
+        initialDate,
         initialBaseFeePerGas:
           config.initialBaseFeePerGas !== undefined
             ? BigInt(config.initialBaseFeePerGas!)

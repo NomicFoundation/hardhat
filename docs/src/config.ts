@@ -22,13 +22,14 @@ export const SOCIALS_LINKS = {
   [SocialsEnum.DISCORD]: "/discord",
 };
 
-export const BANNER_LINK = "https://nomic.foundation/hiring";
+export const BANNER_LINK =
+  "https://cryptpad.fr/form/#/2/form/view/pV-DdryeJoYUWvW+gXsFaMNynEY7t5mUsgeD1urgwSE";
 
 export const PRIVACY_POLICY_PATH = "/privacy-policy.html";
 
 export const bannerContent = {
-  text: "Join the Hardhat team! Nomic Foundation is hiring",
-  shortText: "Join the Hardhat team! We are hiring",
+  text: "Please take a few minutes to complete the 2023 Solidity Survey",
+  shortText: "Complete the 2023 Solidity Survey here",
   href: BANNER_LINK,
 };
 

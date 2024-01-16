@@ -1,4 +1,6 @@
 mod account;
+mod call;
+mod gas;
 mod inspector;
 
 use std::{
@@ -10,7 +12,6 @@ use std::{
 };
 
 use edr_eth::{
-    block::BlobGas,
     log::FilterLog,
     receipt::BlockReceipt,
     remote::{
@@ -28,15 +29,14 @@ use edr_evm::{
     },
     calculate_next_base_fee,
     db::StateRef,
-    guaranteed_dry_run, mempool, mine_block,
+    mempool, mine_block,
     state::{
         AccountModifierFn, IrregularState, StateDiff, StateError, StateOverride, StateOverrides,
         SyncState,
     },
-    Account, AccountInfo, BlobExcessGasAndPrice, Block, BlockEnv, Bytecode, CfgEnv,
-    ExecutableTransaction, ExecutionResult, HashMap, HashSet, MemPool, MineBlockResult,
-    MineBlockResultAndState, MineOrdering, OrderedTransaction, RandomHashGenerator, StorageSlot,
-    SyncBlock, KECCAK_EMPTY,
+    Account, AccountInfo, Block, Bytecode, CfgEnv, ExecutableTransaction, ExecutionResult, HashMap,
+    HashSet, MemPool, MineBlockResult, MineBlockResultAndState, MineOrdering, OrderedTransaction,
+    RandomHashGenerator, StorageSlot, SyncBlock, TxEnv, KECCAK_EMPTY,
 };
 use indexmap::IndexMap;
 use inspector::EvmInspector;
@@ -46,6 +46,10 @@ use tokio::runtime;
 
 use self::account::{create_accounts, InitialAccounts};
 use crate::{
+    data::{
+        call::RunCallArgs,
+        gas::{BinarySearchEstimationArgs, CheckGasLimitArgs},
+    },
     error::TransactionFailure,
     filter::{bloom_contains_log_filter, filter_logs, Filter, FilterData, LogFilter},
     logger::SyncLogger,
@@ -417,6 +421,79 @@ impl ProviderData {
 
     pub fn coinbase(&self) -> Address {
         self.beneficiary
+    }
+
+    /// Estimate the gas cost of a transaction. Matches Hardhat behavior.
+    pub fn estimate_gas(
+        &self,
+        transaction: ExecutableTransaction,
+        block_spec: &BlockSpec,
+    ) -> Result<u64, ProviderError> {
+        let cfg_env = self.create_evm_config(Some(block_spec))?;
+        // Minimum gas cost that is required for transaction to be included in
+        // a block
+        let minimum_cost = transaction.initial_cost(self.spec_id());
+        let transaction_hash = *transaction.hash();
+        let tx_env: TxEnv = transaction.into();
+
+        let state_overrides = StateOverrides::default();
+
+        self.execute_in_block_context(Some(block_spec), |blockchain, block, state| {
+            let header = block.header();
+
+            // Measure the gas used by the transaction with optional limit from call request
+            // defaulting to block limit. Report errors from initial call as if from
+            // `eth_call`.
+            let (mut initial_estimation, _) = call::run_call_and_handle_errors(
+                RunCallArgs {
+                    blockchain,
+                    header,
+                    state: &state,
+                    state_overrides: &state_overrides,
+                    cfg_env: cfg_env.clone(),
+                    tx_env: tx_env.clone(),
+                    inspector: None,
+                },
+                &transaction_hash,
+            )?;
+
+            // Ensure that the initial estimation is at least the minimum cost + 1.
+            if initial_estimation <= minimum_cost {
+                initial_estimation = minimum_cost + 1;
+            }
+
+            // Test if the transaction would be successful with the initial estimation
+            let result = gas::check_gas_limit(CheckGasLimitArgs {
+                blockchain,
+                header,
+                state: &state,
+                state_overrides: &state_overrides,
+                cfg_env: cfg_env.clone(),
+                tx_env: tx_env.clone(),
+                transaction_hash: &transaction_hash,
+                gas_limit: initial_estimation,
+            })?;
+
+            // Return the initial estimation if it was successful
+            if result {
+                return Ok(initial_estimation);
+            }
+
+            // Correct the initial estimation if the transaction failed with the actually
+            // used gas limit. This can happen if the execution logic is based
+            // on the available gas.
+            gas::binary_search_estimation(BinarySearchEstimationArgs {
+                blockchain,
+                header,
+                state: &state,
+                state_overrides: &state_overrides,
+                cfg_env: cfg_env.clone(),
+                tx_env: tx_env.clone(),
+                transaction_hash: &transaction_hash,
+                lower_bound: initial_estimation,
+                upper_bound: header.gas_limit,
+            })
+        })?
     }
 
     pub fn gas_price(&self) -> Result<U256, ProviderError> {
@@ -863,52 +940,27 @@ impl ProviderData {
         block_spec: Option<&BlockSpec>,
         state_overrides: &StateOverrides,
     ) -> Result<Bytes, ProviderError> {
-        let cfg = self.create_evm_config(block_spec)?;
+        let cfg_env = self.create_evm_config(block_spec)?;
         let transaction_hash = *transaction.hash();
-        let transaction = transaction.into();
+        let tx_env = transaction.into();
 
         self.execute_in_block_context(block_spec, |blockchain, block, state| {
-            let header = block.header();
-            let block = BlockEnv {
-                number: U256::from(header.number),
-                coinbase: header.beneficiary,
-                timestamp: U256::from(header.timestamp),
-                gas_limit: U256::from(header.gas_limit),
-                basefee: U256::from(0),
-                difficulty: header.difficulty,
-                prevrandao: if cfg.spec_id >= SpecId::MERGE {
-                    Some(header.mix_hash)
-                } else {
-                    None
-                },
-                blob_excess_gas_and_price: header
-                    .blob_gas
-                    .as_ref()
-                    .map(|BlobGas { excess_gas, .. }| BlobExcessGasAndPrice::new(*excess_gas)),
-            };
-
             let mut inspector = self.evm_inspector();
 
-            let result = guaranteed_dry_run(
-                blockchain,
-                &state,
-                state_overrides,
-                cfg,
-                transaction,
-                block,
-                Some(&mut inspector),
-            )
-            .map_err(ProviderError::RunTransaction)?;
+            let (_, output) = call::run_call_and_handle_errors(
+                RunCallArgs {
+                    blockchain,
+                    header: block.header(),
+                    state: &state,
+                    state_overrides,
+                    cfg_env,
+                    tx_env,
+                    inspector: Some(&mut inspector),
+                },
+                &transaction_hash,
+            )?;
 
-            match result.result {
-                ExecutionResult::Success { output, .. } => Ok(output.into_data()),
-                ExecutionResult::Revert { output, .. } => {
-                    Err(TransactionFailure::revert(output, transaction_hash).into())
-                }
-                ExecutionResult::Halt { reason, .. } => {
-                    Err(TransactionFailure::halt(reason, transaction_hash).into())
-                }
-            }
+            Ok(output)
         })?
     }
 
