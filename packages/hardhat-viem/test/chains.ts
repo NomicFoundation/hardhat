@@ -135,5 +135,31 @@ Please report this issue if you're using Hardhat or Foundry.`
 Please report this issue if you're using Hardhat or Foundry.`
       );
     });
+
+    it("should return a hardhat chain with the custom chainId", async function () {
+      const provider: EthereumProvider = new EthereumMockedProvider();
+      const sendStub = sinon.stub(provider, "send");
+      sendStub.withArgs("eth_chainId").returns(Promise.resolve("0x3039")); // 12345 in hex
+      sendStub.withArgs("hardhat_metadata").returns(Promise.resolve({}));
+      sendStub.withArgs("anvil_nodeInfo").throws();
+
+      const chain = await getChain(provider);
+
+      expect(chain.id).to.equal(12345);
+      expect(chain.name).to.equal("Hardhat");
+    });
+
+    it("should return a foundry chain with the custom chainId", async function () {
+      const provider: EthereumProvider = new EthereumMockedProvider();
+      const sendStub = sinon.stub(provider, "send");
+      sendStub.withArgs("eth_chainId").returns(Promise.resolve("0x3039")); // 12345 in hex
+      sendStub.withArgs("anvil_nodeInfo").returns(Promise.resolve({}));
+      sendStub.withArgs("hardhat_metadata").throws();
+
+      const chain = await getChain(provider);
+
+      expect(chain.id).to.equal(12345);
+      expect(chain.name).to.equal("Foundry");
+    });
   });
 });

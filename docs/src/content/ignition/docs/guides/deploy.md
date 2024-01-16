@@ -3,7 +3,7 @@
 To execute your deployments, you need to use the `ignition deploy` task. It takes a path to a module file as an argument:
 
 ```sh
-npx hardhat igntion deploy ignition/modules/MyModule.js
+npx hardhat ignition deploy ignition/modules/MyModule.js
 ```
 
 Hardhat Ignition will load the Ignition Module exported by the file you provided, and deploy it.

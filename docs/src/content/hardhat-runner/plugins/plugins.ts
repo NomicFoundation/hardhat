@@ -963,6 +963,14 @@ const officialPlugins: IPlugin[] = [
     tags: ["Web3.js", "Testing", "Tasks", "Scripts"],
   },
   {
+    name: "@nomicfoundation/hardhat-web3-v4",
+    author: "ChainSafe and Nomic Foundation",
+    npmPackage: "@nomicfoundation/hardhat-web3-v4",
+    authorUrl: "https://twitter.com/ChainSafeth",
+    description: "Injects Web3 4.x into the Hardhat Runtime Environment",
+    tags: ["Web3.js", "Testing", "Tasks", "Scripts"],
+  },
+  {
     name: "@nomiclabs/hardhat-truffle5",
     author: "Nomic Foundation",
     authorUrl: "https://twitter.com/NomicFoundation",

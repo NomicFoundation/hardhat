@@ -3,6 +3,7 @@ import {
   BaseContractMethod,
   ContractTransactionResponse,
   BigNumberish,
+  AddressLike,
 } from "ethers";
 
 export type MatchersContract = BaseContract & {
@@ -72,6 +73,11 @@ export type EventsContract = BaseContract & {
   >;
   emitInt: BaseContractMethod<
     [BigNumberish],
+    void,
+    ContractTransactionResponse
+  >;
+  emitAddress: BaseContractMethod<
+    [AddressLike],
     void,
     ContractTransactionResponse
   >;

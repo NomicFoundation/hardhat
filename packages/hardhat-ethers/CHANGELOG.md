@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-ethers
 
+## 3.0.5
+
+### Patch Changes
+
+- ebe5a5fe3: Added support for passing bigints as block tags
+
 ## 3.0.4
 
 ### Patch Changes

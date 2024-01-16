@@ -30,9 +30,15 @@ export async function getChain(provider: EthereumProvider): Promise<Chain> {
 
   if (matchingChains.length === 0) {
     if (await isHardhatNetwork(provider)) {
-      return chains.hardhat;
+      return {
+        ...chains.hardhat,
+        id: chainId,
+      };
     } else if (await isFoundryNetwork(provider)) {
-      return chains.foundry;
+      return {
+        ...chains.foundry,
+        id: chainId,
+      };
     } else {
       throw new NetworkNotFoundError(chainId);
     }

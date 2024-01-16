@@ -29,11 +29,12 @@ export async function deployContract(
 ): Promise<GetContractReturnType> {
   const {
     walletClient: configWalletClient,
+    publicClient: configPublicClient,
     confirmations,
     ...deployContractParameters
   } = config;
   const [publicClient, walletClient, contractArtifact] = await Promise.all([
-    getPublicClient(network.provider),
+    configPublicClient ?? getPublicClient(network.provider),
     configWalletClient ??
       getDefaultWalletClient(network.provider, network.name),
     artifacts.readArtifact(contractName),
@@ -119,10 +120,13 @@ export async function sendDeploymentTransaction(
   contract: GetContractReturnType;
   deploymentTransaction: GetTransactionReturnType;
 }> {
-  const { walletClient: configWalletClient, ...deployContractParameters } =
-    config;
+  const {
+    walletClient: configWalletClient,
+    publicClient: configPublicClient,
+    ...deployContractParameters
+  } = config;
   const [publicClient, walletClient, contractArtifact] = await Promise.all([
-    getPublicClient(network.provider),
+    configPublicClient ?? getPublicClient(network.provider),
     configWalletClient ??
       getDefaultWalletClient(network.provider, network.name),
     artifacts.readArtifact(contractName),
@@ -198,7 +202,7 @@ export async function getContractAt(
   config: GetContractAtConfig = {}
 ): Promise<GetContractReturnType> {
   const [publicClient, walletClient, contractArtifact] = await Promise.all([
-    getPublicClient(network.provider),
+    config.publicClient ?? getPublicClient(network.provider),
     config.walletClient ??
       getDefaultWalletClient(network.provider, network.name),
     artifacts.readArtifact(contractName),

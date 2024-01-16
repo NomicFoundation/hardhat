@@ -13,7 +13,7 @@ function panicErrorCodeToReason(errorCode: bigint): string | undefined {
     case 0x1n:
       return "Assertion error";
     case 0x11n:
-      return "Arithmetic operation underflowed or overflowed outside of an unchecked block";
+      return "Arithmetic operation overflowed outside of an unchecked block";
     case 0x12n:
       return "Division or modulo division by zero";
     case 0x21n:
