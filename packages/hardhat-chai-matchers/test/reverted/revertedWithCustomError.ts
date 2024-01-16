@@ -361,32 +361,37 @@ describe("INTEGRATION: Reverted with custom error", function () {
         );
       });
 
-      it("should work with predicates", async function () {
-        await expect(matchers.revertWithCustomErrorWithUint(1))
-          .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
-          .withArgs(anyValue);
-
-        await expect(
-          expect(matchers.revertWithCustomErrorWithUint(1))
+      describe("Should handle argument predicates", function () {
+        it("Should pass when a predicate argument returns true", async function () {
+          await expect(matchers.revertWithCustomErrorWithUint(1))
             .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
-            .withArgs(() => false)
-        ).to.be.rejectedWith(
-          AssertionError,
-          "The predicate for custom error argument with index 0 returned false"
-        );
+            .withArgs(anyValue);
+          await expect(matchers.revertWithCustomErrorWithUint(1))
+            .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
+            .withArgs(anyUint);
+        });
 
-        await expect(matchers.revertWithCustomErrorWithUint(1))
-          .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
-          .withArgs(anyUint);
+        it("Should fail when a predicate argument returns false", async function () {
+          await expect(
+            expect(matchers.revertWithCustomErrorWithUint(1))
+              .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
+              .withArgs(() => false)
+          ).to.be.rejectedWith(
+            AssertionError,
+            "The predicate for the 1st custom error argument returned false"
+          );
+        });
 
-        await expect(
-          expect(matchers.revertWithCustomErrorWithInt(-1))
-            .to.be.revertedWithCustomError(matchers, "CustomErrorWithInt")
-            .withArgs(anyUint)
-        ).to.be.rejectedWith(
-          AssertionError,
-          "The predicate for custom error argument with index 0 threw an AssertionError: anyUint expected its argument to be an unsigned integer, but it was negative, with value -1"
-        );
+        it("Should fail when a predicate argument throws an error", async function () {
+          await expect(
+            expect(matchers.revertWithCustomErrorWithInt(-1))
+              .to.be.revertedWithCustomError(matchers, "CustomErrorWithInt")
+              .withArgs(anyUint)
+          ).to.be.rejectedWith(
+            AssertionError,
+            "The predicate for the 1st custom error argument threw when called: anyUint expected its argument to be an unsigned integer, but it was negative, with value -1"
+          );
+        });
       });
     });
 

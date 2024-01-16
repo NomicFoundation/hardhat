@@ -1,6 +1,5 @@
 import type EthersT from "ethers";
 
-import { AssertionError } from "chai";
 import ordinal from "ordinal";
 
 import {
@@ -221,25 +220,25 @@ export async function revertedWithCustomErrorWithArgs(
   for (const [i, actualArg] of actualArgs.entries()) {
     const expectedArg = expectedArgs[i];
     if (typeof expectedArg === "function") {
-      const errorPrefix = `The predicate for custom error argument with index ${i}`;
+      const errorPrefix = `The predicate for the ${ordinal(
+        i + 1
+      )} custom error argument`;
       try {
+        if (expectedArg(actualArg) === true) continue;
+      } catch (e: any) {
         assert(
-          expectedArg(actualArg),
-          `${errorPrefix} returned false`
+          false,
+          `${errorPrefix} threw when called: ${e.message}`
           // no need for a negated message, since we disallow mixing .not. with
           // .withArgs
         );
-      } catch (e) {
-        if (e instanceof AssertionError) {
-          assert(
-            false,
-            `${errorPrefix} threw an AssertionError: ${e.message}`
-            // no need for a negated message, since we disallow mixing .not. with
-            // .withArgs
-          );
-        }
-        throw e;
       }
+      assert(
+        false,
+        `${errorPrefix} returned false`
+        // no need for a negated message, since we disallow mixing .not. with
+        // .withArgs
+      );
     } else if (Array.isArray(expectedArg)) {
       const expectedLength = expectedArg.length;
       const actualLength = actualArg.length;

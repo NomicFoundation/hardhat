@@ -172,23 +172,21 @@ function assertArgsArraysEqual(
         index + 1
       )} event argument`;
       try {
+        if (expectedArgs[index](actualArgs[index]) === true) continue;
+      } catch (e: any) {
         assert(
-          expectedArgs[index](actualArgs[index]),
-          `${errorPrefix} returned false`
+          false,
+          `${errorPrefix} threw when called: ${e.message}`
           // no need for a negated message, since we disallow mixing .not. with
           // .withArgs
         );
-      } catch (e) {
-        if (e instanceof AssertionError) {
-          assert(
-            false,
-            `${errorPrefix} threw an AssertionError: ${e.message}`
-            // no need for a negated message, since we disallow mixing .not. with
-            // .withArgs
-          );
-        }
-        throw e;
       }
+      assert(
+        false,
+        `${errorPrefix} returned false`
+        // no need for a negated message, since we disallow mixing .not. with
+        // .withArgs
+      );
     } else if (expectedArgs[index] instanceof Uint8Array) {
       new Assertion(actualArgs[index], undefined, ssfi, true).equal(
         ethers.hexlify(expectedArgs[index])

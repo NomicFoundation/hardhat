@@ -560,7 +560,7 @@ describe(".to.emit (contract events)", () => {
                   .withArgs(anyUint)
               ).to.be.rejectedWith(
                 AssertionError,
-                "The predicate for the 1st event argument threw an AssertionError: anyUint expected its argument to be an integer, but its type was 'string'"
+                "The predicate for the 1st event argument threw when called: anyUint expected its argument to be an integer, but its type was 'string'"
               );
             });
 
@@ -571,7 +571,7 @@ describe(".to.emit (contract events)", () => {
                   .withArgs(anyUint)
               ).to.be.rejectedWith(
                 AssertionError,
-                "The predicate for the 1st event argument threw an AssertionError: anyUint expected its argument to be an unsigned integer, but it was negative, with value -1"
+                "The predicate for the 1st event argument threw when called: anyUint expected its argument to be an unsigned integer, but it was negative, with value -1"
               );
             });
           });
