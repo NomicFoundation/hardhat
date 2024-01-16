@@ -45,6 +45,14 @@ export class ViemIgnitionHelper {
     this._deploymentDir = deploymentDir;
   }
 
+  /**
+   * Deploys the given Ignition module and returns the results of the module
+   * as Viem contract instances.
+   *
+   * @param ignitionModule - The Ignition module to deploy.
+   * @param options - The options to use for the deployment.
+   * @returns Viem contract instances for each contract returned by the module.
+   */
   public async deploy<
     ModuleIdT extends string,
     ContractNameT extends string,

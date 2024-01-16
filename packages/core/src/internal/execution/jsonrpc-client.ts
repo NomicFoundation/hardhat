@@ -78,7 +78,8 @@ export interface JsonRpcClient {
    * Returns the balance of an account.
    *
    * @param address The account's address.
-   * @param blockTag Weather if we should fetch the latest block balance or the pending balance.
+   * @param blockTag Whether we should fetch the latest block balance or the
+   * pending balance.
    */
   getBalance: (
     address: string,
@@ -88,7 +89,8 @@ export interface JsonRpcClient {
   /**
    * Performs an `eth_call` JSON-RPC request, and returns the result or an error
    * object with the return data and a boolean indicating if the request failed
-   * with an error message that telling that the call failed with a custom error.
+   * with an error message that telling that the call failed with a custom
+   * error.
    *
    * @param callParams The params for the call.
    * @param blockTag The block tag to use for the call.
@@ -121,7 +123,8 @@ export interface JsonRpcClient {
    * Returns the transaction count of an account.
    *
    * @param address The account's address.
-   * @param blockTag The block to use for the count. If "pending", the mempool is taken into account.
+   * @param blockTag The block to use for the count. If "pending", the mempool
+   * is taken into account.
    */
   getTransactionCount: (
     address: string,

@@ -155,7 +155,7 @@ export type StaticCallStrategyGenerator = AsyncGenerator<
  *
  * Execution strategies are also use to resume a partial execution, hence, they must be
  * prepared to receive the results of their requests immediately. This affects to the
- * process of requestsing `OnchainInteraction`s, which differs weather if the request
+ * process of requestsing `OnchainInteraction`s, which differs whether if the request
  * has already being resolved or not. See below for more details.
  *
  * There are two types of request, which follow a different protocol:
