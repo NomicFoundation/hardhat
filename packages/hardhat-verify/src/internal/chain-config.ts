@@ -166,8 +166,8 @@ export const builtinChains: ChainConfig[] = [
     network: "chiado",
     chainId: 10200,
     urls: {
-      apiURL: "https://blockscout.chiadochain.net/api",
-      browserURL: "https://blockscout.chiadochain.net",
+      apiURL: "https://gnosis-chiado.blockscout.com/api",
+      browserURL: "https://gnosis-chiado.blockscout.com",
     },
   },
   {

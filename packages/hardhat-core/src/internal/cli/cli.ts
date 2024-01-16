@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import debug from "debug";
 import "source-map-support/register";
+
 import {
   TASK_COMPILE,
   TASK_HELP,
@@ -34,16 +35,14 @@ import {
   hasConsentedTelemetry,
   hasPromptedForHHVSCode,
   writePromptedForHHVSCode,
-  writeTelemetryConsent,
 } from "../util/global-dir";
 import { getPackageJson } from "../util/packageInfo";
-
 import { saveFlamegraph } from "../core/flamegraph";
-import { Analytics } from "./analytics";
+import { Analytics, requestTelemetryConsent } from "./analytics";
 import { ArgumentsParser } from "./ArgumentsParser";
 import { enableEmoji } from "./emoji";
-import { createProject } from "./project-creation";
-import { confirmHHVSCodeInstallation, confirmTelemetryConsent } from "./prompt";
+import { createProject, showSoliditySurveyMessage } from "./project-creation";
+import { confirmHHVSCodeInstallation } from "./prompt";
 import {
   InstallationState,
   installHardhatVSCode,
@@ -247,11 +246,7 @@ async function main() {
       process.stdout.isTTY === true &&
       process.env.HARDHAT_DISABLE_TELEMETRY_PROMPT !== "true"
     ) {
-      telemetryConsent = await confirmTelemetryConsent();
-
-      if (telemetryConsent !== undefined) {
-        writeTelemetryConsent(telemetryConsent);
-      }
+      telemetryConsent = await requestTelemetryConsent();
     }
 
     const analytics = await Analytics.getInstance(telemetryConsent);
@@ -358,9 +353,31 @@ async function main() {
     ) {
       await suggestInstallingHardhatVscode();
 
+      // we show the solidity survey message if the tests failed and only
+      // 1/3 of the time
+      if (
+        process.exitCode !== 0 &&
+        Math.random() < 0.3333 &&
+        process.env.HARDHAT_HIDE_SOLIDITY_SURVEY_MESSAGE !== "true"
+      ) {
+        showSoliditySurveyMessage();
+      }
+
       // we show the viaIR warning only if the tests failed
       if (process.exitCode !== 0) {
         showViaIRWarning(resolvedConfig);
+      }
+
+      // we notify of new versions only if the tests failed
+      if (process.exitCode !== 0) {
+        try {
+          const { showNewVersionNotification } = await import(
+            "./version-notifier"
+          );
+          await showNewVersionNotification();
+        } catch {
+          // ignore possible version notifier errors
+        }
       }
     }
 
@@ -435,7 +452,9 @@ async function createNewProject() {
   if (
     process.stdout.isTTY === true ||
     process.env.HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS !== undefined ||
-    process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !== undefined
+    process.env.HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS !== undefined ||
+    process.env.HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS !==
+      undefined
   ) {
     await createProject();
     return;

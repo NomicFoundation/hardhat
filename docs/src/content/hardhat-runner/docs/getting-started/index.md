@@ -85,6 +85,7 @@ $ npx hardhat init
 ? What do you want to do? …
 ❯ Create a JavaScript project
   Create a TypeScript project
+  Create a TypeScript project (with Viem)
   Create an empty hardhat.config.js
   Quit
 ```
@@ -272,7 +273,7 @@ You can run it using `npx hardhat run`:
 
 ```
 $ npx hardhat run scripts/deploy.ts
-Lock with 1 ETH deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
+Lock with 0.001ETH deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 ```
 
 :::
@@ -281,7 +282,7 @@ Lock with 1 ETH deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 
 ```
 $ npx hardhat run scripts/deploy.js
-Lock with 1 ETH deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
+Lock with 0.001ETH deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 ```
 
 :::

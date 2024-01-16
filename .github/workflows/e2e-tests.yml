@@ -1,0 +1,34 @@
+name: E2E tests
+
+on:
+  push:
+    branches:
+      - "**"
+
+jobs:
+  run-e2e:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    name: Run E2E tests on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 18
+      - name: Run fixture-projects script
+        run: |
+          cd e2e
+          chmod +x run-fixture-projects.sh
+          ./run-fixture-projects.sh
+        shell: bash
+      - name: Run test-project-initialization script
+        run: |
+          cd e2e
+          chmod +x test-project-initialization.sh
+          ./test-project-initialization.sh
+        shell: bash

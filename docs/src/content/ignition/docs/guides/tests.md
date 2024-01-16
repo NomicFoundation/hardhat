@@ -2,6 +2,12 @@
 
 If you want to test that your deployment was correctly defined, or if you want to use your Ignition Modules to simplify your test setup, continue reading this guide.
 
+:::tip
+
+If you prefer to use **Viem** instead of **ethers**, check out the [Viem guide](../../../ignition/docs/guides/viem.md) for more details.
+
+:::
+
 ## The Ignition object
 
 Requiring Hardhat Ignition within your Hardhat config will automatically add an `ignition` object to the [Hardhat Runtime Environment](../../../hardhat-runner/docs/advanced/hardhat-runtime-environment.md).
@@ -58,5 +64,19 @@ it("should set the start count to 0 by default", async function () {
   const counter = await loadFixture(deployCounterModuleFixture);
 
   return { counter };
+});
+```
+
+## Sending transactions with a different account
+
+The `ignition.deploy` method will default to using the first account in Hardhat network's `accounts` array as the sender for all transactions.
+
+You can change this by passing a `defaultSender` within the options object as a second argument to the `deploy` method:
+
+```typescript
+const [first, second] = await hre.ethers.getSigners();
+
+const result = await hre.ignition.deploy(CounterModule, {
+  defaultSender: second.address,
 });
 ```

@@ -1,3 +1,4 @@
+import type EthersT from "ethers";
 import { AssertionError } from "chai";
 
 import { isBigNumber, normalizeToBigInt } from "hardhat/common";
@@ -54,15 +55,20 @@ export function supportWithArgs(
   Assertion.addMethod("withArgs", function (this: any, ...expectedArgs: any[]) {
     const { emitCalled } = validateInput.call(this, chaiUtils);
 
-    const promise = this.then === undefined ? Promise.resolve() : this;
+    const { isAddressable } = require("ethers") as typeof EthersT;
 
-    const onSuccess = () => {
+    // Resolve arguments to their canonical form:
+    // - Addressable → address
+    const resolveArgument = (arg: any) =>
+      isAddressable(arg) ? arg.getAddress() : arg;
+
+    const onSuccess = (resolvedExpectedArgs: any[]) => {
       if (emitCalled) {
         return emitWithArgs(
           this,
           Assertion,
           chaiUtils,
-          expectedArgs,
+          resolvedExpectedArgs,
           onSuccess
         );
       } else {
@@ -70,16 +76,18 @@ export function supportWithArgs(
           this,
           Assertion,
           chaiUtils,
-          expectedArgs,
+          resolvedExpectedArgs,
           onSuccess
         );
       }
     };
 
-    const derivedPromise = promise.then(onSuccess);
+    const promise = (this.then === undefined ? Promise.resolve() : this)
+      .then(() => Promise.all(expectedArgs.map(resolveArgument)))
+      .then(onSuccess);
 
-    this.then = derivedPromise.then.bind(derivedPromise);
-    this.catch = derivedPromise.catch.bind(derivedPromise);
+    this.then = promise.then.bind(promise);
+    this.catch = promise.catch.bind(promise);
     return this;
   });
 }

@@ -1,5 +1,24 @@
 # @nomicfoundation/hardhat-verify
 
+## 2.0.3
+
+### Patch Changes
+
+- e77f1d8a0: Add apiUrl and browserUrl to Sourcify configuration.
+
+## 2.0.2
+
+### Patch Changes
+
+- 5cab65fb7: Updated chiado urls to avoid redirect
+
+## 2.0.1
+
+### Patch Changes
+
+- c2155fb26: Added polygonZkEVM and polygonZkEVMTestnet
+- c7d87c41a: Fixed case-sensitive address comparison for detecting verified contracts
+
 ## 2.0.0
 
 ### Major Changes

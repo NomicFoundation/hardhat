@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-chai-matchers
 
+## 2.0.3
+
+### Patch Changes
+
+- dff8302aa: Added support for `Addressable` objects in `.withArgs` and `.equals` (thanks @Amxx!)
+
 ## 2.0.2
 
 ### Patch Changes
