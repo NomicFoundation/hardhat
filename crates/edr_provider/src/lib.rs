@@ -339,9 +339,9 @@ impl Provider {
             MethodInvocation::SetCoinbase(coinbase) => {
                 hardhat::handle_set_coinbase_request(data, coinbase).and_then(to_json)
             }
-            MethodInvocation::SetLoggingEnabled(_) => Err(ProviderError::Unimplemented(
-                "SetLoggingEnabled".to_string(),
-            )),
+            MethodInvocation::SetLoggingEnabled(is_enabled) => {
+                hardhat::handle_set_logging_enabled_request(data, is_enabled).and_then(to_json)
+            }
             MethodInvocation::SetMinGasPrice(min_gas_price) => {
                 hardhat::handle_set_min_gas_price(data, min_gas_price).and_then(to_json)
             }

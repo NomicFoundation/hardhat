@@ -521,25 +521,7 @@ impl ProviderData {
     pub fn interval_mine(&mut self) -> Result<bool, ProviderError> {
         let result = self.mine_and_commit_block(None)?;
 
-        // TODO: Logging
-        // let header = result.block.header();
-        // let is_empty = result.block.transactions().is_empty();
-        // if is_empty {
-        //     self.logger.print_interval_mined_block_number(
-        //         header.number,
-        //         is_empty,
-        //         header.base_fee_per_gas,
-        //     );
-        // } else {
-        //     log::error!("TODO: interval_mine: log mined block");
-
-        //     self.logger
-        //         .print_interval_mined_block_number(header.number, is_empty, None);
-
-        //     if self.logger.print_logs() {
-        //         self.logger.print_empty_line();
-        //     }
-        // }
+        self.logger.on_interval_mined(&result);
 
         Ok(true)
     }
@@ -660,8 +642,6 @@ impl ProviderData {
             transaction_results: result.transaction_results,
             transaction_traces: result.transaction_traces,
         };
-
-        self.logger.on_block_mined(&result);
 
         Ok(result)
     }
@@ -983,6 +963,8 @@ impl ProviderData {
                     error
                 })?;
 
+                self.logger.on_block_auto_mined(&result);
+
                 let transaction_result = result.block.transactions().iter().enumerate().find_map(
                     |(idx, transaction)| {
                         if *transaction.hash() == tx_hash {
@@ -999,11 +981,13 @@ impl ProviderData {
             };
 
             while self.mem_pool.has_pending_transactions() {
-                self.mine_and_commit_block(None).map_err(|error| {
+                let result = self.mine_and_commit_block(None).map_err(|error| {
                     self.revert_to_snapshot(snapshot_id);
 
                     error
                 })?;
+
+                self.logger.on_block_auto_mined(&result);
             }
 
             self.snapshots.remove(&snapshot_id);

@@ -4,18 +4,23 @@
 use std::marker::PhantomData;
 
 use dyn_clone::DynClone;
-use edr_eth::{
-    transaction::{SignedTransaction, TransactionRequest},
-    B256, U256,
-};
-use edr_evm::{trace::Trace, Bytecode, MineBlockResult, PendingTransaction, SyncBlock};
-
-use crate::ProviderError;
+use edr_evm::{MineBlockResult, PendingTransaction};
 
 pub trait Logger {
     type BlockchainError;
 
-    fn on_block_mined(&mut self, result: &MineBlockResult<Self::BlockchainError>);
+    fn is_enabled(&self) -> bool;
+
+    fn set_is_enabled(&mut self, is_enabled: bool);
+
+    fn on_block_auto_mined(&mut self, result: &MineBlockResult<Self::BlockchainError>);
+
+    fn on_interval_mined(
+        &mut self,
+        mining_result: &edr_evm::MineBlockResult<Self::BlockchainError>,
+    );
+
+    fn on_hardhat_mined(&mut self, results: Vec<MineBlockResult<Self::BlockchainError>>);
 
     fn on_send_transaction(&mut self, transaction: &PendingTransaction);
 
@@ -34,13 +39,6 @@ pub trait Logger {
     // fn log_mined_block(
     //     &mut self,
     //     result: MineBlockResult<Self::BlockchainError>,
-    //     contracts: Vec<Bytecode>,
-    // );
-
-    // /// Logs the result of interval mining a block.
-    // fn log_interval_mined_block(
-    //     &mut self,
-    //     result: &MineBlockResult<Self::BlockchainError>,
     //     contracts: Vec<Bytecode>,
     // );
 
@@ -106,14 +104,6 @@ pub trait Logger {
     // /// Prints all accumulated logs. Returns whether there were any logs.
     // fn print_logs(&self) -> bool;
 
-    // /// Prints the block number of an interval-mined block.
-    // fn print_interval_mined_block_number(
-    //     &self,
-    //     block_number: u64,
-    //     is_empty: bool,
-    //     base_fee_per_gas: Option<U256>,
-    // );
-
     // /// Prints an empty line.
     // fn print_empty_line(&self);
 }
@@ -155,7 +145,19 @@ impl<BlockchainErrorT> Clone for NoopLogger<BlockchainErrorT> {
 impl<BlockchainErrorT> Logger for NoopLogger<BlockchainErrorT> {
     type BlockchainError = BlockchainErrorT;
 
-    fn on_block_mined(&mut self, result: &MineBlockResult<Self::BlockchainError>) {}
+    fn is_enabled(&self) -> bool {
+        self.is_enabled
+    }
 
-    fn on_send_transaction(&mut self, transaction: &PendingTransaction) {}
+    fn set_is_enabled(&mut self, is_enabled: bool) {
+        self.is_enabled = is_enabled;
+    }
+
+    fn on_block_auto_mined(&mut self, _result: &MineBlockResult<Self::BlockchainError>) {}
+
+    fn on_interval_mined(&mut self, _result: &MineBlockResult<Self::BlockchainError>) {}
+
+    fn on_hardhat_mined(&mut self, _results: Vec<MineBlockResult<Self::BlockchainError>>) {}
+
+    fn on_send_transaction(&mut self, _transaction: &PendingTransaction) {}
 }

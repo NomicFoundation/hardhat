@@ -29,6 +29,16 @@ pub struct MineBlockResult<BlockchainErrorT> {
     pub transaction_traces: Vec<Trace>,
 }
 
+impl<BlockchainErrorT> Clone for MineBlockResult<BlockchainErrorT> {
+    fn clone(&self) -> Self {
+        Self {
+            block: self.block.clone(),
+            transaction_results: self.transaction_results.clone(),
+            transaction_traces: self.transaction_traces.clone(),
+        }
+    }
+}
+
 /// The result of mining a block, including the state. This result needs to be
 /// inserted into the blockchain to be persistent.
 pub struct MineBlockResultAndState<StateErrorT> {

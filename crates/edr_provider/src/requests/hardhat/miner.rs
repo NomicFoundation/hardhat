@@ -2,18 +2,8 @@ use crate::{data::ProviderData, ProviderError};
 
 pub fn handle_interval_mine_request(data: &mut ProviderData) -> Result<bool, ProviderError> {
     let mine_block_result = data.mine_and_commit_block(None)?;
-    // if mine_block_result.block.transactions().is_empty() {
-    //     data.logger_mut()
-    //         .log_interval_mined_block(&mine_block_result, Vec::new());
-    // } else {
-    //     let header = mine_block_result.block.header();
 
-    //     data.logger_mut().print_interval_mined_block_number(
-    //         header.number,
-    //         false,
-    //         header.base_fee_per_gas,
-    //     );
-    // }
+    data.logger_mut().on_interval_mined(&mine_block_result);
 
     Ok(true)
 }
@@ -28,9 +18,7 @@ pub fn handle_mine(
 
     let mined_block_results = data.mine_and_commit_blocks(number_of_blocks, interval)?;
 
-    for (_idx, _result) in mined_block_results.into_iter().enumerate() {
-        // TODO: https://github.com/NomicFoundation/edr/issues/259
-    }
+    data.logger_mut().on_hardhat_mined(mined_block_results);
 
     Ok(true)
 }

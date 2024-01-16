@@ -32,22 +32,27 @@ impl Provider {
         let config = edr_provider::ProviderConfig::try_from(config)?;
         let runtime = runtime::Handle::current();
 
-        let callbacks = Box::new(InspectorCallback::new(&env, console_log_callback)?);
+        let inspector_callbacks = Box::new(InspectorCallback::new(&env, console_log_callback)?);
+
         let subscriber_callback = SubscriberCallback::new(&env, subscriber_callback)?;
         let subscriber_callback = Box::new(move |event| subscriber_callback.call(event));
 
         let (deferred, promise) = env.create_deferred()?;
         runtime.clone().spawn_blocking(move || {
-            let result =
-                edr_provider::Provider::new(runtime, callbacks, subscriber_callback, config)
-                    .map_or_else(
-                        |error| Err(napi::Error::new(Status::GenericFailure, error.to_string())),
-                        |provider| {
-                            Ok(Provider {
-                                provider: Arc::new(provider),
-                            })
-                        },
-                    );
+            let result = edr_provider::Provider::new(
+                runtime,
+                inspector_callbacks,
+                subscriber_callback,
+                config,
+            )
+            .map_or_else(
+                |error| Err(napi::Error::new(Status::GenericFailure, error.to_string())),
+                |provider| {
+                    Ok(Provider {
+                        provider: Arc::new(provider),
+                    })
+                },
+            );
 
             deferred.resolve(|_env| result);
         });

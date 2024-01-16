@@ -11,7 +11,7 @@ use revm::{
 };
 
 /// Stack tracing message
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum TraceMessage {
     /// Event that occurs before a call or create message.
     Before(BeforeMessage),
@@ -43,7 +43,7 @@ pub struct BeforeMessage {
 }
 
 /// A trace for an EVM call.
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Trace {
     // /// The individual steps of the call
     // pub steps: Vec<Step>,
@@ -54,7 +54,7 @@ pub struct Trace {
 }
 
 /// A single EVM step.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Step {
     /// The program counter
     pub pc: u64,
