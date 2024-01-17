@@ -38,65 +38,6 @@ const CREATE_X_ADDRESS = "0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed";
 const CREATE_X_DEPLOYED_BYTECODE_HASH =
   "0xbd8a7ea8cfca7b4e5f5041d7d4b17bc317c5ce42cfbc42066a00cf26b43eb53f";
 
-const _existingDeployedAddresses: { [key: number]: string } = {
-  1: CREATE_X_ADDRESS,
-  10: CREATE_X_ADDRESS,
-  25: CREATE_X_ADDRESS,
-  42: CREATE_X_ADDRESS,
-  56: CREATE_X_ADDRESS,
-  97: CREATE_X_ADDRESS,
-  100: CREATE_X_ADDRESS,
-  122: CREATE_X_ADDRESS,
-  123: CREATE_X_ADDRESS,
-  137: CREATE_X_ADDRESS,
-  169: CREATE_X_ADDRESS,
-  250: CREATE_X_ADDRESS,
-  288: CREATE_X_ADDRESS,
-  314: CREATE_X_ADDRESS,
-  338: CREATE_X_ADDRESS,
-  999: CREATE_X_ADDRESS,
-  1101: CREATE_X_ADDRESS,
-  1284: CREATE_X_ADDRESS,
-  1285: CREATE_X_ADDRESS,
-  1287: CREATE_X_ADDRESS,
-  1442: CREATE_X_ADDRESS,
-  2888: CREATE_X_ADDRESS,
-  4002: CREATE_X_ADDRESS,
-  4201: CREATE_X_ADDRESS,
-  5000: CREATE_X_ADDRESS,
-  5001: CREATE_X_ADDRESS,
-  7700: CREATE_X_ADDRESS,
-  7701: CREATE_X_ADDRESS,
-  8453: CREATE_X_ADDRESS,
-  9000: CREATE_X_ADDRESS,
-  9001: CREATE_X_ADDRESS,
-  10200: CREATE_X_ADDRESS,
-  17000: CREATE_X_ADDRESS,
-  42161: CREATE_X_ADDRESS,
-  42170: CREATE_X_ADDRESS,
-  42220: CREATE_X_ADDRESS,
-  43113: CREATE_X_ADDRESS,
-  43114: CREATE_X_ADDRESS,
-  44787: CREATE_X_ADDRESS,
-  59140: CREATE_X_ADDRESS,
-  59144: CREATE_X_ADDRESS,
-  80001: CREATE_X_ADDRESS,
-  84532: CREATE_X_ADDRESS,
-  314159: CREATE_X_ADDRESS,
-  421614: CREATE_X_ADDRESS,
-  534351: CREATE_X_ADDRESS,
-  534352: CREATE_X_ADDRESS,
-  3441005: CREATE_X_ADDRESS,
-  7777777: CREATE_X_ADDRESS,
-  11155111: CREATE_X_ADDRESS,
-  11155420: CREATE_X_ADDRESS,
-  68840142: CREATE_X_ADDRESS,
-  1313161554: CREATE_X_ADDRESS,
-  1313161555: CREATE_X_ADDRESS,
-  1666600000: CREATE_X_ADDRESS,
-  1666700000: CREATE_X_ADDRESS,
-};
-
 /**
  * The most basic execution strategy, which sends a single transaction
  * for each deployment, call, and send data, and a single static call
@@ -115,51 +56,8 @@ export class Create2ExecutionStrategy implements ExecutionStrategy {
     const client = new EIP1193JsonRpcClient(this._provider);
     const chainId = await client.getChainId();
 
-    const existingDeployedAddress = _existingDeployedAddresses[chainId];
-
-    // if there is an existing deployment, nothing more needs done
-    if (existingDeployedAddress !== undefined) {
-      this._createXAddress = existingDeployedAddress;
-
-      return;
-    } else if (chainId === 31337) {
-      // No createX factory found because we're on a local hardhat node
-      // deploy one using presigned tx from CreateX
-      await this._provider.request({
-        method: "hardhat_setBalance",
-        params: [
-          "0xeD456e05CaAb11d66C4c797dD6c1D6f9A7F352b5",
-          "0x58D15E176280000",
-        ],
-      });
-
-      const txHash = (await this._provider.request({
-        method: "eth_sendRawTransaction",
-        params: [presignedTx],
-      })) as string;
-
-      assertIgnitionInvariant(txHash !== "0x", "CreateX deployment failed");
-
-      while (true) {
-        const receipt = await client.getTransactionReceipt(txHash);
-
-        if (receipt !== undefined) {
-          assertIgnitionInvariant(
-            receipt?.contractAddress !== undefined,
-            "CreateX deployment should have an address"
-          );
-
-          assertIgnitionInvariant(
-            receipt.contractAddress === CREATE_X_ADDRESS,
-            `CreateX deployment should have the expected address ${CREATE_X_ADDRESS}, instead it is ${receipt.contractAddress}`
-          );
-
-          this._createXAddress = receipt.contractAddress;
-          return;
-        }
-
-        await new Promise((res) => setTimeout(res, 200));
-      }
+    if (chainId === 31337) {
+      await this._deployCreateXFactory(client);
     } else {
       // No createX factory found, but we're not on a local chain
       // check if someone else has deployed CreateX on this chain
@@ -350,5 +248,45 @@ export class Create2ExecutionStrategy implements ExecutionStrategy {
         decodedResultOrError
       ),
     };
+  }
+
+  private async _deployCreateXFactory(client: EIP1193JsonRpcClient) {
+    // No createX factory found because we're on a local hardhat node
+    // deploy one using presigned tx from CreateX
+    await this._provider.request({
+      method: "hardhat_setBalance",
+      params: [
+        "0xeD456e05CaAb11d66C4c797dD6c1D6f9A7F352b5",
+        "0x58D15E176280000",
+      ],
+    });
+
+    const txHash = (await this._provider.request({
+      method: "eth_sendRawTransaction",
+      params: [presignedTx],
+    })) as string;
+
+    assertIgnitionInvariant(txHash !== "0x", "CreateX deployment failed");
+
+    while (true) {
+      const receipt = await client.getTransactionReceipt(txHash);
+
+      if (receipt !== undefined) {
+        assertIgnitionInvariant(
+          receipt?.contractAddress !== undefined,
+          "CreateX deployment should have an address"
+        );
+
+        assertIgnitionInvariant(
+          receipt.contractAddress === CREATE_X_ADDRESS,
+          `CreateX deployment should have the expected address ${CREATE_X_ADDRESS}, instead it is ${receipt.contractAddress}`
+        );
+
+        this._createXAddress = receipt.contractAddress;
+        return;
+      }
+
+      await new Promise((res) => setTimeout(res, 200));
+    }
   }
 }
