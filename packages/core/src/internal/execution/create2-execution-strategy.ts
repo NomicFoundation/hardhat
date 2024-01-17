@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 
+import { NomicIgnitionPluginError } from "../../errors";
 import { EIP1193Provider } from "../../types/provider";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
@@ -57,26 +58,28 @@ export class Create2ExecutionStrategy implements ExecutionStrategy {
   }
 
   public async init(): Promise<void> {
-    const chainId = await this.client.getChainId();
+    // No createX factory found, but we're not on a local chain
+    // check if someone else has deployed CreateX on this chain
+    const result = await this.client.getCode(CREATE_X_ADDRESS);
 
-    if (chainId === 31337) {
-      await this._deployCreateXFactory(this.client);
-    } else {
-      // No createX factory found, but we're not on a local chain
-      // check if someone else has deployed CreateX on this chain
-      const result = await this.client.getCode(CREATE_X_ADDRESS);
-
-      assertIgnitionInvariant(
-        result !== "0x",
-        "CreateX not deployed on current network"
-      );
-
+    if (result !== "0x") {
       assertIgnitionInvariant(
         ethers.keccak256(result) === CREATE_X_DEPLOYED_BYTECODE_HASH,
         "Deployed CreateX bytecode does not match expected bytecode"
       );
 
       return;
+    }
+
+    const chainId = await this.client.getChainId();
+
+    if (chainId === 31337) {
+      await this._deployCreateXFactory(this.client);
+    } else {
+      throw new NomicIgnitionPluginError(
+        "create2",
+        `CreateX not deployed on current network ${chainId}`
+      );
     }
   }
 

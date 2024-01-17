@@ -12,9 +12,11 @@ import { mineBlock } from "../test-helpers/mine-block";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project";
 import { waitForPendingTxs } from "../test-helpers/wait-for-pending-txs";
 
-describe.only("create2", function () {
+describe("create2", function () {
   const EXPECTED_FOO_CREATE2_ADDRESS =
     "0xc95c2ba05118C1b0D2e9DEC8802c358483F87FBA";
+  const EXPECTED_BAR_CREATE2_ADDRESS =
+    "0x3175cBAd3Ab8afCDf7f90c2Acf7fD3E11304310B";
 
   const moduleDefinition = buildModule("FooModule", (m) => {
     // Use a known bytecode to ensure the same address is generated
@@ -104,7 +106,7 @@ describe.only("create2", function () {
     describe("hardhat network", function () {
       useEphemeralIgnitionProject("minimal");
 
-      it.skip("should deploy use an existing create2 factory to deploy the given contract", async function () {
+      it("should deploy use an existing create2 factory to deploy the given contract", async function () {
         // Run create2 once deploying the factory
         const firstDeployPromise = this.hre.ignition.deploy(moduleDefinition, {
           strategy: DeploymentStrategyType.CREATE2,
@@ -132,7 +134,10 @@ describe.only("create2", function () {
 
         const secondDeployResult = await secondDeployPromise;
 
-        assert.equal(secondDeployResult.bar.address, "0x0123");
+        assert.equal(
+          secondDeployResult.bar.address,
+          EXPECTED_BAR_CREATE2_ADDRESS
+        );
         assert(await secondDeployResult.bar.read.isBar());
       });
     });
@@ -168,7 +173,7 @@ describe.only("create2", function () {
           this.hre.ignition.deploy(moduleDefinition, {
             strategy: DeploymentStrategyType.CREATE2,
           }),
-          /IGN1: Internal Hardhat Ignition invariant was violated: CreateX not deployed on current network/
+          /CreateX not deployed on current network 88888/
         );
       });
     });
