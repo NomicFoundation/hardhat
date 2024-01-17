@@ -37,6 +37,8 @@ import { NetworkInteractionType } from "./types/network-interaction";
 const CREATE_X_ADDRESS = "0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed";
 const CREATE_X_DEPLOYED_BYTECODE_HASH =
   "0xbd8a7ea8cfca7b4e5f5041d7d4b17bc317c5ce42cfbc42066a00cf26b43eb53f";
+const CREATE_X_PRESIGNED_DEPLOYER_ADDRESS =
+  "0xeD456e05CaAb11d66C4c797dD6c1D6f9A7F352b5";
 
 /**
  * The most basic execution strategy, which sends a single transaction
@@ -247,16 +249,17 @@ export class Create2ExecutionStrategy implements ExecutionStrategy {
     };
   }
 
+  /**
+   * Within the context of a local development Hardhat chain, deploy
+   * the CreateX factory contract using a presigned transaction.
+   */
   private async _deployCreateXFactory(client: EIP1193JsonRpcClient) {
     // No createX factory found because we're on a local hardhat node
     // deploy one using presigned tx from CreateX
-    await this._provider.request({
-      method: "hardhat_setBalance",
-      params: [
-        "0xeD456e05CaAb11d66C4c797dD6c1D6f9A7F352b5",
-        "0x58D15E176280000",
-      ],
-    });
+    await client.setBalance(
+      CREATE_X_PRESIGNED_DEPLOYER_ADDRESS,
+      400000000000000000n
+    );
 
     const txHash = (await this._provider.request({
       method: "eth_sendRawTransaction",

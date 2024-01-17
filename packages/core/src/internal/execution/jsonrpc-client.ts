@@ -87,6 +87,16 @@ export interface JsonRpcClient {
   ) => Promise<bigint>;
 
   /**
+   * Update the balance of the account. Only relevant for local development
+   * chains.
+   *
+   * @param address The account's address.
+   * @param balance The balance to set the account to.
+   * @returns Whether the update was applied.
+   */
+  setBalance: (address: string, balance: bigint) => Promise<boolean>;
+
+  /**
    * Performs an `eth_call` JSON-RPC request, and returns the result or an error
    * object with the return data and a boolean indicating if the request failed
    * with an error message that telling that the call failed with a custom
@@ -248,6 +258,23 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
     assertResponseType("eth_getBalance", balance, typeof balance === "string");
 
     return jsonRpcQuantityToBigInt(balance);
+  }
+
+  public async setBalance(address: string, balance: bigint): Promise<boolean> {
+    const balanceHex = bigIntToJsonRpcQuantity(balance);
+
+    const returnedBalance = await this._provider.request({
+      method: "hardhat_setBalance",
+      params: [address, balanceHex],
+    });
+
+    assertResponseType(
+      "hardhat_setBalance",
+      returnedBalance,
+      typeof returnedBalance === "boolean"
+    );
+
+    return returnedBalance;
   }
 
   public async call(

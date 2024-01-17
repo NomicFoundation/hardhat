@@ -53,6 +53,13 @@ class StubJsonRpcClient implements JsonRpcClient {
     throw new Error("Mock not implemented.");
   }
 
+  public async setBalance(
+    _address: string,
+    _balance: bigint
+  ): Promise<boolean> {
+    throw new Error("Mock not implemented.");
+  }
+
   public async call(
     _callParams: CallParams,
     _blockTag: "latest" | "pending"

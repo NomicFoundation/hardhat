@@ -125,6 +125,10 @@ class MockJsonRpcClient implements JsonRpcClient {
     throw new Error("Method not implemented.");
   }
 
+  public setBalance(_address: string, _balance: bigint): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+
   public async call(
     _callParams: CallParams,
     _blockTag: "latest" | "pending"
