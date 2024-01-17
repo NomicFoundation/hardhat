@@ -85,6 +85,85 @@ describe("strategies", function () {
         assert.equal(await result.foo.read.x(), Number(2));
       });
 
+      it("should static call a contract function", async function () {
+        const moduleDefinition = buildModule("FooModule", (m) => {
+          const foo = m.contract("Foo");
+
+          const firstInc = m.call(foo, "inc", [], { id: "inc1" });
+          const secondInc = m.call(foo, "inc", [], {
+            id: "inc2",
+            after: [firstInc],
+          });
+
+          const counter = m.staticCall(foo, "x", [], 0, {
+            id: "inc3",
+            after: [secondInc],
+          });
+
+          m.call(foo, "incByPositiveNumber", [counter]);
+
+          return { foo };
+        });
+
+        const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
+          strategy: strategyNameToType(strategy),
+        });
+
+        await waitForPendingTxs(this.hre, 1, deployPromise);
+        await mineBlock(this.hre);
+        await waitForPendingTxs(this.hre, 1, deployPromise);
+        await mineBlock(this.hre);
+        await waitForPendingTxs(this.hre, 1, deployPromise);
+        await mineBlock(this.hre);
+        await waitForPendingTxs(this.hre, 1, deployPromise);
+        await mineBlock(this.hre);
+
+        const result = await deployPromise;
+
+        assert.isDefined(result.foo.address);
+
+        assert.equal(await result.foo.read.x(), Number(6));
+      });
+
+      it("should support using existing contracts", async function () {
+        const moduleDefinition = buildModule("FooModule", (m) => {
+          const foo = m.contract("Foo");
+
+          return { foo };
+        });
+
+        const deployPromise = this.hre.ignition.deploy(moduleDefinition);
+
+        await waitForPendingTxs(this.hre, 1, deployPromise);
+        await mineBlock(this.hre);
+
+        const result = await deployPromise;
+
+        const fooAddress = result.foo.address;
+
+        const contractAtDefinition = buildModule("ContractAtModule", (m) => {
+          const contractAtFoo = m.contractAt("Foo", fooAddress);
+
+          m.call(contractAtFoo, "inc");
+
+          return { contractAtFoo };
+        });
+
+        const contractAtPromise = this.hre.ignition.deploy(
+          contractAtDefinition,
+          {
+            strategy: strategyNameToType(strategy),
+          }
+        );
+
+        await waitForPendingTxs(this.hre, 1, contractAtPromise);
+        await mineBlock(this.hre);
+
+        const contractAtResult = await contractAtPromise;
+
+        assert.equal(await contractAtResult.contractAtFoo.read.x(), Number(2));
+      });
+
       it("should read an event emitted from a constructor", async function () {
         const moduleDefinition = buildModule("FooModule", (m) => {
           const foo = m.contract("EventArgValue");
