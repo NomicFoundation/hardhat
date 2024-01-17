@@ -26,8 +26,8 @@ describe("create2", function () {
     return { foo };
   });
 
-  describe("preexisting createX contract", function () {
-    describe("non hardhat network", function () {
+  describe("non-hardhat network", function () {
+    describe("preexisting createX contract", function () {
       useEphemeralIgnitionProject("create2-exists-chain");
 
       beforeEach(async function () {
@@ -103,68 +103,7 @@ describe("create2", function () {
       });
     });
 
-    describe("hardhat network", function () {
-      useEphemeralIgnitionProject("minimal");
-
-      it("should deploy use an existing create2 factory to deploy the given contract", async function () {
-        // Run create2 once deploying the factory
-        const firstDeployPromise = this.hre.ignition.deploy(moduleDefinition, {
-          strategy: DeploymentStrategyType.CREATE2,
-        });
-
-        await waitForPendingTxs(this.hre, 1, firstDeployPromise);
-        await mineBlock(this.hre);
-
-        await firstDeployPromise;
-
-        // Run a second deploy, this time leveraging the existing create2 factory
-        const secondDeployPromise = this.hre.ignition.deploy(
-          buildModule("Second", (m) => {
-            const bar = m.contract("Bar");
-
-            return { bar };
-          }),
-          {
-            strategy: DeploymentStrategyType.CREATE2,
-          }
-        );
-
-        await waitForPendingTxs(this.hre, 1, secondDeployPromise);
-        await mineBlock(this.hre);
-
-        const secondDeployResult = await secondDeployPromise;
-
-        assert.equal(
-          secondDeployResult.bar.address,
-          EXPECTED_BAR_CREATE2_ADDRESS
-        );
-        assert(await secondDeployResult.bar.read.isBar());
-      });
-    });
-  });
-
-  describe("no preexisting createX contract", function () {
-    describe("hardhat network", function () {
-      useEphemeralIgnitionProject("minimal");
-
-      it("should deploy a create2 factory then use it to deploy the given contract", async function () {
-        const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
-          strategy: DeploymentStrategyType.CREATE2,
-        });
-
-        await waitForPendingTxs(this.hre, 1, deployPromise);
-        await mineBlock(this.hre);
-
-        const result = await deployPromise;
-
-        assert.equal(result.foo.address, EXPECTED_FOO_CREATE2_ADDRESS);
-
-        assert.equal(this.hre.network.config.chainId, 31337);
-        assert.equal(await result.foo.read.x(), Number(1));
-      });
-    });
-
-    describe("non hardhat network", function () {
+    describe("no preexisting createX contract", function () {
       useEphemeralIgnitionProject("create2-not-exists-chain");
 
       it("should throw when no createX contract exists on the network", async function () {
@@ -176,6 +115,61 @@ describe("create2", function () {
           /CreateX not deployed on current network 88888/
         );
       });
+    });
+  });
+
+  describe("hardhat network", function () {
+    useEphemeralIgnitionProject("minimal");
+
+    it("should deploy a createX factory then use it to deploy the given contract", async function () {
+      const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
+        strategy: DeploymentStrategyType.CREATE2,
+      });
+
+      await waitForPendingTxs(this.hre, 1, deployPromise);
+      await mineBlock(this.hre);
+
+      const result = await deployPromise;
+
+      assert.equal(result.foo.address, EXPECTED_FOO_CREATE2_ADDRESS);
+
+      assert.equal(this.hre.network.config.chainId, 31337);
+      assert.equal(await result.foo.read.x(), Number(1));
+    });
+
+    it("should use an existing createX factory to deploy the given contract", async function () {
+      // Run create2 once deploying the factory
+      const firstDeployPromise = this.hre.ignition.deploy(moduleDefinition, {
+        strategy: DeploymentStrategyType.CREATE2,
+      });
+
+      await waitForPendingTxs(this.hre, 1, firstDeployPromise);
+      await mineBlock(this.hre);
+
+      await firstDeployPromise;
+
+      // Run a second deploy, this time leveraging the existing create2 factory
+      const secondDeployPromise = this.hre.ignition.deploy(
+        buildModule("Second", (m) => {
+          const bar = m.contract("Bar");
+
+          return { bar };
+        }),
+        {
+          strategy: DeploymentStrategyType.CREATE2,
+        }
+      );
+
+      await waitForPendingTxs(this.hre, 1, secondDeployPromise);
+      await mineBlock(this.hre);
+
+      const secondDeployResult = await secondDeployPromise;
+
+      assert.equal(
+        secondDeployResult.bar.address,
+        EXPECTED_BAR_CREATE2_ADDRESS
+      );
+      assert(await secondDeployResult.bar.read.isBar());
     });
   });
 });
