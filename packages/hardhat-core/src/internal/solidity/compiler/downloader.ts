@@ -174,6 +174,14 @@ export class CompilerDownloader implements ICompilerDownloader {
         try {
           await this._downloadCompilerList();
         } catch (e: any) {
+          console.log(
+            "---------------------------------------------------------------------------"
+          );
+          console.log(e);
+          console.log(
+            "---------------------------------------------------------------------------"
+          );
+
           throw new HardhatError(
             ERRORS.SOLC.VERSION_LIST_DOWNLOAD_FAILED,
             {},
