@@ -101,6 +101,10 @@ class StubJsonRpcClient implements JsonRpcClient {
   ): Promise<TransactionReceipt | undefined> {
     throw new Error("Mock not implemented.");
   }
+
+  public async getCode(_address: string): Promise<string> {
+    throw new Error("Method not implemented.");
+  }
 }
 
 describe("Network interactions", () => {

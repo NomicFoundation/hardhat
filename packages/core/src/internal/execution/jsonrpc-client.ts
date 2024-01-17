@@ -168,6 +168,17 @@ export interface JsonRpcClient {
   getTransactionReceipt: (
     txHash: string
   ) => Promise<TransactionReceipt | undefined>;
+
+  /**
+   * Returns the deployed bytecode of the contract at the given address.
+   *
+   * If the address is not a contract or it does not have bytecode the returned
+   * result will be "0x".
+   *
+   * @param address the address of the contract
+   * @returns the deployed bytecode of the contract
+   */
+  getCode: (address: string) => Promise<string>;
 }
 
 /**
@@ -603,6 +614,17 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
       status,
       logs: formatReceiptLogs(method, response),
     };
+  }
+
+  public async getCode(address: string): Promise<string> {
+    const result = await this._provider.request({
+      method: "eth_getCode",
+      params: [address],
+    });
+
+    assertResponseType("eth_getCode", result, typeof result === "string");
+
+    return result;
   }
 }
 

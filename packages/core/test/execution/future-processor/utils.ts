@@ -184,4 +184,8 @@ class MockJsonRpcClient implements JsonRpcClient {
 
     return this._transactions[txHash];
   }
+
+  public async getCode(_address: string): Promise<string> {
+    throw new Error("Method not implemented.");
+  }
 }

@@ -47,28 +47,27 @@ const CREATE_X_PRESIGNED_DEPLOYER_ADDRESS =
  */
 export class Create2ExecutionStrategy implements ExecutionStrategy {
   public readonly name: string = "create2";
+  private readonly client: EIP1193JsonRpcClient;
 
   constructor(
-    private readonly _provider: EIP1193Provider,
+    provider: EIP1193Provider,
     private readonly _loadArtifact: LoadArtifactFunction
-  ) {}
+  ) {
+    this.client = new EIP1193JsonRpcClient(provider);
+  }
 
   public async init(): Promise<void> {
-    const client = new EIP1193JsonRpcClient(this._provider);
-    const chainId = await client.getChainId();
+    const chainId = await this.client.getChainId();
 
     if (chainId === 31337) {
-      await this._deployCreateXFactory(client);
+      await this._deployCreateXFactory(this.client);
     } else {
       // No createX factory found, but we're not on a local chain
       // check if someone else has deployed CreateX on this chain
-      const result = await this._provider.request({
-        method: "eth_getCode",
-        params: [CREATE_X_ADDRESS],
-      });
+      const result = await this.client.getCode(CREATE_X_ADDRESS);
 
       assertIgnitionInvariant(
-        typeof result === "string" && result !== "0x",
+        result !== "0x",
         "CreateX not deployed on current network"
       );
 
