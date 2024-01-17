@@ -20,6 +20,7 @@ serde_json = { version = "1.0.89" }
 sha3 = { version = "0.10.6", default-features = false }
 thiserror = { version = "1.0.37", default-features = false }
 tokio = { version = "1.21.2", default-features = false, features = ["macros"] }
+itertools = "0.11.0"
 
 [dev-dependencies]
 anyhow = "1.0.75"

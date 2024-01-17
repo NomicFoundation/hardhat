@@ -294,7 +294,7 @@ impl BlockBuilder {
             from: *transaction.caller(),
             to: transaction.to(),
             contract_address,
-            gas_used: U256::from(result.gas_used()),
+            gas_used: result.gas_used(),
             effective_gas_price,
         };
         self.receipts.push(receipt);

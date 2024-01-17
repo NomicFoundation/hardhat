@@ -26,7 +26,8 @@ pub struct TransactionReceipt<L> {
     /// creation, otherwise `None`.
     pub contract_address: Option<Address>,
     /// Gas used by this transaction alone.
-    pub gas_used: U256,
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::u64"))]
+    pub gas_used: u64,
     /// The actual value per gas deducted from the senders account, which is
     /// equal to equal to baseFeePerGas + min(maxFeePerGas - baseFeePerGas,
     /// maxPriorityFeePerGas) after EIP-1559. Following Hardhat, only present if
@@ -109,7 +110,7 @@ mod test {
             from: Address::default(),
             to: None,
             contract_address: Some(Address::default()),
-            gas_used: U256::from(100),
+            gas_used: 100,
             effective_gas_price: Some(U256::from(100)),
         };
 

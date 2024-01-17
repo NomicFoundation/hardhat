@@ -1,11 +1,12 @@
 use std::cmp;
 
-use edr_eth::{block::Header, B256};
+use edr_eth::{block::Header, reward_percentile::RewardPercentile, B256, U256};
 use edr_evm::{
     blockchain::{BlockchainError, SyncBlockchain},
     state::{StateError, StateOverrides, SyncState},
-    CfgEnv, ExecutionResult, Halt, ResultAndState, TxEnv,
+    CfgEnv, ExecutionResult, Halt, ResultAndState, SyncBlock, TxEnv,
 };
+use itertools::Itertools;
 
 use crate::{
     data::{call, call::RunCallArgs},
@@ -143,4 +144,69 @@ fn min_difference(lower_bound: u64) -> u64 {
     } else {
         200
     }
+}
+
+/// Compute miner rewards for percentiles.
+pub(super) fn compute_rewards(
+    block: &dyn SyncBlock<Error = BlockchainError>,
+    reward_percentiles: &[RewardPercentile],
+) -> Result<Vec<U256>, ProviderError> {
+    if block.transactions().is_empty() {
+        return Ok(reward_percentiles.iter().map(|_| U256::ZERO).collect());
+    }
+
+    let base_fee_per_gas = block.header().base_fee_per_gas.unwrap_or_default();
+
+    let gas_used_and_effective_reward = block
+        .transaction_receipts()?
+        .iter()
+        .enumerate()
+        .map(|(i, receipt)| {
+            let transaction = &block.transactions()[i];
+
+            let gas_used = receipt.gas_used;
+            // gas price pre EIP-1559 and max fee per gas post EIP-1559
+            let gas_price = transaction.gas_price();
+
+            let effective_reward =
+                if let Some(max_priority_fee_per_gas) = transaction.max_priority_fee_per_gas() {
+                    cmp::min(max_priority_fee_per_gas, gas_price - base_fee_per_gas)
+                } else {
+                    gas_price.saturating_sub(base_fee_per_gas)
+                };
+
+            (gas_used, effective_reward)
+        })
+        .sorted_by(|(_, reward_first), (_, reward_second)| reward_first.cmp(reward_second))
+        .collect::<Vec<(_, _)>>();
+
+    // Ethereum block gas limit is 30 million, so it's safe to cast to f64.
+    let gas_limit = block.header().gas_limit as f64;
+
+    Ok(reward_percentiles
+        .iter()
+        .map(|percentile| {
+            let mut gas_used = 0;
+            let target_gas = ((percentile.as_ref() / 100.0) * gas_limit) as u64;
+
+            for (gas_used_by_tx, effective_reward) in &gas_used_and_effective_reward {
+                gas_used += gas_used_by_tx;
+                if target_gas <= gas_used {
+                    return *effective_reward;
+                }
+            }
+
+            gas_used_and_effective_reward
+                .last()
+                .map_or(U256::ZERO, |(_, reward)| *reward)
+        })
+        .collect())
+}
+
+/// Gas used to gas limit ratio
+pub(super) fn gas_used_ratio(gas_used: u64, gas_limit: u64) -> f64 {
+    // Ported from Hardhat
+    // https://github.com/NomicFoundation/hardhat/blob/0c547784952d6409e157b03ae69ba456b03cf6ee/packages/hardhat-core/src/internal/hardhat-network/provider/node.ts#L1359
+    const FLOATS_PRECISION: f64 = 100_000.0;
+    gas_used as f64 * FLOATS_PRECISION / gas_limit as f64 / FLOATS_PRECISION
 }

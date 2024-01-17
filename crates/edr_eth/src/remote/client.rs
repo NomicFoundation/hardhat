@@ -36,8 +36,10 @@ use crate::{
             try_read_cache_key, try_write_cache_key, CacheKeyForSymbolicBlockTag,
             CacheKeyForUncheckedBlockNumber, ReadCacheKey, ResolvedSymbolicTag, WriteCacheKey,
         },
+        eth::FeeHistoryResult,
         jsonrpc::Id,
     },
+    reward_percentile::RewardPercentile,
     AccountInfo, Address, Bytes, B256, U256, U64,
 };
 
@@ -650,6 +652,21 @@ impl RpcClient {
             })
             .await?;
         Ok(chain_id)
+    }
+
+    /// Calls `eth_feeHistory` and returns the fee history.
+    pub async fn fee_history(
+        &self,
+        block_count: u64,
+        newest_block: BlockSpec,
+        reward_percentiles: Option<Vec<RewardPercentile>>,
+    ) -> Result<FeeHistoryResult, RpcClientError> {
+        self.call(RequestMethod::FeeHistory(
+            U256::from(block_count),
+            newest_block,
+            reward_percentiles,
+        ))
+        .await
     }
 
     /// Submit a consolidated batch of RPC method invocations in order to obtain
@@ -1736,7 +1753,7 @@ mod tests {
             );
             assert_eq!(
                 receipt.gas_used,
-                U256::from_str_radix("a0f9", 16).expect("couldn't parse data")
+                u64::from_str_radix("a0f9", 16).expect("couldn't parse data")
             );
             assert_eq!(receipt.logs().len(), 1);
             assert_eq!(receipt.state_root(), None);

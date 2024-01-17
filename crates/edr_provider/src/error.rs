@@ -2,7 +2,7 @@ use std::{num::TryFromIntError, time::SystemTimeError};
 
 use alloy_sol_types::{ContractError, SolInterface};
 use edr_eth::{
-    remote::{filter::SubscriptionType, jsonrpc, BlockSpec, BlockTag},
+    remote::{filter::SubscriptionType, jsonrpc, BlockSpec, BlockTag, RpcClientError},
     Address, Bytes, SpecId, B256, U256,
 };
 use edr_evm::{
@@ -89,6 +89,9 @@ pub enum ProviderError {
     /// An error occurred while adding a pending transaction to the mem pool.
     #[error(transparent)]
     MinerTransactionError(#[from] MinerTransactionError<StateError>),
+    /// Rpc client error
+    #[error(transparent)]
+    RpcClientError(#[from] RpcClientError),
     /// Unsupported RPC version
     #[error("unsupported JSON-RPC version: {0:?}")]
     RpcVersion(jsonrpc::Version),
@@ -186,6 +189,8 @@ impl From<ProviderError> for jsonrpc::Error {
             ProviderError::MemPoolUpdate(_) => -32000,
             ProviderError::MineBlock(_) => -32000,
             ProviderError::MinerTransactionError(_) => -32000,
+            // Internal error code
+            ProviderError::RpcClientError(_) => -32603,
             ProviderError::RpcVersion(_) => -32000,
             ProviderError::RunTransaction(_) => -32000,
             ProviderError::Serialization(_) => -32000,
