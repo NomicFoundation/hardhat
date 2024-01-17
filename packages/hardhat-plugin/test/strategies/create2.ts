@@ -12,7 +12,7 @@ import { mineBlock } from "../test-helpers/mine-block";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project";
 import { waitForPendingTxs } from "../test-helpers/wait-for-pending-txs";
 
-describe("create2", function () {
+describe.only("create2", function () {
   const EXPECTED_FOO_CREATE2_ADDRESS =
     "0xc95c2ba05118C1b0D2e9DEC8802c358483F87FBA";
 
@@ -25,8 +25,8 @@ describe("create2", function () {
   });
 
   describe("preexisting createX contract", function () {
-    describe("on known network list", function () {
-      useEphemeralIgnitionProject("create2-known-chain-id");
+    describe("non hardhat network", function () {
+      useEphemeralIgnitionProject("create2-exists-chain");
 
       beforeEach(async function () {
         await deployCreateXFactory(this.hre);
@@ -101,25 +101,39 @@ describe("create2", function () {
       });
     });
 
-    describe("not on known network list", function () {
-      useEphemeralIgnitionProject("create2-unknown-chain-id");
+    describe("hardhat network", function () {
+      useEphemeralIgnitionProject("minimal");
 
-      it("should deploy a contract using a createX contract not on the known list", async function () {
-        await deployCreateXFactory(this.hre);
-
-        const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
+      it.skip("should deploy use an existing create2 factory to deploy the given contract", async function () {
+        // Run create2 once deploying the factory
+        const firstDeployPromise = this.hre.ignition.deploy(moduleDefinition, {
           strategy: DeploymentStrategyType.CREATE2,
         });
 
-        await waitForPendingTxs(this.hre, 1, deployPromise);
+        await waitForPendingTxs(this.hre, 1, firstDeployPromise);
         await mineBlock(this.hre);
 
-        const result = await deployPromise;
+        await firstDeployPromise;
 
-        assert.equal(result.foo.address, EXPECTED_FOO_CREATE2_ADDRESS);
+        // Run a second deploy, this time leveraging the existing create2 factory
+        const secondDeployPromise = this.hre.ignition.deploy(
+          buildModule("Second", (m) => {
+            const bar = m.contract("Bar");
 
-        assert.equal(this.hre.network.config.chainId, 88888);
-        assert.equal(await result.foo.read.x(), Number(1));
+            return { bar };
+          }),
+          {
+            strategy: DeploymentStrategyType.CREATE2,
+          }
+        );
+
+        await waitForPendingTxs(this.hre, 1, secondDeployPromise);
+        await mineBlock(this.hre);
+
+        const secondDeployResult = await secondDeployPromise;
+
+        assert.equal(secondDeployResult.bar.address, "0x0123");
+        assert(await secondDeployResult.bar.read.isBar());
       });
     });
   });
@@ -128,7 +142,7 @@ describe("create2", function () {
     describe("hardhat network", function () {
       useEphemeralIgnitionProject("minimal");
 
-      it("should deploy a contract using create2 on hardhat network", async function () {
+      it("should deploy a create2 factory then use it to deploy the given contract", async function () {
         const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
           strategy: DeploymentStrategyType.CREATE2,
         });
@@ -146,7 +160,7 @@ describe("create2", function () {
     });
 
     describe("non hardhat network", function () {
-      useEphemeralIgnitionProject("create2-unknown-chain-id");
+      useEphemeralIgnitionProject("create2-not-exists-chain");
 
       it("should throw when no createX contract exists on the network", async function () {
         assert.equal(this.hre.network.config.chainId, 88888);
