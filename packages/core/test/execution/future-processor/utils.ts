@@ -152,6 +152,10 @@ class MockJsonRpcClient implements JsonRpcClient {
     return this._sendTransaction(transactionParams);
   }
 
+  public async sendRawTransaction(_presignedTx: string): Promise<string> {
+    throw new Error("Method not implemented.");
+  }
+
   public getTransactionCount(
     _address: string,
     _blockTag: number | "latest" | "pending"

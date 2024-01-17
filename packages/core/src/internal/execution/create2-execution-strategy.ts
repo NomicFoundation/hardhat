@@ -261,10 +261,7 @@ export class Create2ExecutionStrategy implements ExecutionStrategy {
       400000000000000000n
     );
 
-    const txHash = (await this._provider.request({
-      method: "eth_sendRawTransaction",
-      params: [presignedTx],
-    })) as string;
+    const txHash = await client.sendRawTransaction(presignedTx);
 
     assertIgnitionInvariant(txHash !== "0x", "CreateX deployment failed");
 

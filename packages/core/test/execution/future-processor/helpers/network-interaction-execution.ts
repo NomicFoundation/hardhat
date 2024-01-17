@@ -79,6 +79,10 @@ class StubJsonRpcClient implements JsonRpcClient {
     throw new Error("Mock not implemented.");
   }
 
+  public async sendRawTransaction(_presignedTx: string): Promise<string> {
+    throw new Error("Method not implemented.");
+  }
+
   public async getTransactionCount(
     _address: string,
     _blockTag: number | "latest" | "pending"

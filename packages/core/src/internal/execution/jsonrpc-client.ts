@@ -130,6 +130,15 @@ export interface JsonRpcClient {
   sendTransaction: (transactionParams: TransactionParams) => Promise<string>;
 
   /**
+   * Sends a presigned raw transaction to the Ethereum network and returns
+   * its hash, if the transaction is valid and accepted in the node's mempool.
+   *
+   * @param presignedTx the presigned transaction to send
+   * @returns the hash of the transaction.
+   */
+  sendRawTransaction: (presignedTx: string) => Promise<string>;
+
+  /**
    * Returns the transaction count of an account.
    *
    * @param address The account's address.
@@ -416,6 +425,21 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
 
       throw error;
     }
+  }
+
+  public async sendRawTransaction(presignedTx: string): Promise<string> {
+    const response = await this._provider.request({
+      method: "eth_sendRawTransaction",
+      params: [presignedTx],
+    });
+
+    assertResponseType(
+      "eth_sendRawTransaction",
+      response,
+      typeof response === "string"
+    );
+
+    return response;
   }
 
   public async getTransactionCount(
