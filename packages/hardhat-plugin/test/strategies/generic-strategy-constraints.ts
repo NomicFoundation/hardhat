@@ -10,7 +10,7 @@ import { waitForPendingTxs } from "../test-helpers/wait-for-pending-txs";
 
 const strategies = ["basic", "create2"];
 
-describe("strategies", function () {
+describe("strategies - generic constraints", function () {
   strategies.forEach((strategy) => {
     describe(strategy, function () {
       useEphemeralIgnitionProject("minimal");
