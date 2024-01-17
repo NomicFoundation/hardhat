@@ -45,7 +45,6 @@ const CREATE_X_DEPLOYED_BYTECODE_HASH =
  */
 export class Create2ExecutionStrategy implements ExecutionStrategy {
   public readonly name: string = "create2";
-  private _createXAddress: string = CREATE_X_ADDRESS;
 
   constructor(
     private readonly _provider: EIP1193Provider,
@@ -76,8 +75,6 @@ export class Create2ExecutionStrategy implements ExecutionStrategy {
         "Deployed CreateX bytecode does not match expected bytecode"
       );
 
-      this._createXAddress = CREATE_X_ADDRESS;
-
       return;
     }
   }
@@ -99,7 +96,7 @@ export class Create2ExecutionStrategy implements ExecutionStrategy {
       {
         id: 1,
         type: NetworkInteractionType.ONCHAIN_INTERACTION,
-        to: this._createXAddress,
+        to: CREATE_X_ADDRESS,
         data: encodeArtifactFunctionCall(
           createxArtifact,
           "deployCreate2(bytes32,bytes)",
@@ -127,7 +124,7 @@ export class Create2ExecutionStrategy implements ExecutionStrategy {
     const deployedAddress = getEventArgumentFromReceipt(
       transactionOrResult.transaction.receipt,
       createxArtifact,
-      this._createXAddress,
+      CREATE_X_ADDRESS,
       "ContractCreation",
       0,
       "newContract"
@@ -282,7 +279,6 @@ export class Create2ExecutionStrategy implements ExecutionStrategy {
           `CreateX deployment should have the expected address ${CREATE_X_ADDRESS}, instead it is ${receipt.contractAddress}`
         );
 
-        this._createXAddress = receipt.contractAddress;
         return;
       }
 
