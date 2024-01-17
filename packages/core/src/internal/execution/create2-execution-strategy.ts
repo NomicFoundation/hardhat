@@ -35,6 +35,8 @@ import { NetworkInteractionType } from "./types/network-interaction";
 
 // v0.1.0
 const CREATE_X_ADDRESS = "0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed";
+const CREATE_X_DEPLOYED_BYTECODE_HASH =
+  "0xbd8a7ea8cfca7b4e5f5041d7d4b17bc317c5ce42cfbc42066a00cf26b43eb53f";
 
 const _existingDeployedAddresses: { [key: number]: string } = {
   1: CREATE_X_ADDRESS,
@@ -167,8 +169,13 @@ export class Create2ExecutionStrategy implements ExecutionStrategy {
       });
 
       assertIgnitionInvariant(
-        result !== "0x",
+        typeof result === "string" && result !== "0x",
         "CreateX not deployed on current network"
+      );
+
+      assertIgnitionInvariant(
+        ethers.keccak256(result) === CREATE_X_DEPLOYED_BYTECODE_HASH,
+        "Deployed CreateX bytecode does not match expected bytecode"
       );
 
       this._createXAddress = CREATE_X_ADDRESS;
