@@ -166,13 +166,15 @@ function assertArgsArraysEqual(
     actualArgs.length === expectedArgs.length,
     `Expected "${eventName}" event to have ${expectedArgs.length} argument(s), but it has ${actualArgs.length}`
   );
-  for (let index = 0; index < expectedArgs.length; index++) {
-    if (typeof expectedArgs[index] === "function") {
+  for (const index in expectedArgs) {
+    const expectedArg = expectedArgs[index];
+    const actualArg = actualArgs[index];
+    if (typeof expectedArg === "function") {
       const errorPrefix = `The predicate for the ${ordinal(
-        index + 1
+        parseInt(index) + 1
       )} event argument`;
       try {
-        if (expectedArgs[index](actualArgs[index]) === true) continue;
+        if (expectedArg(actualArg) === true) continue;
       } catch (e: any) {
         assert(
           false,
@@ -187,55 +189,55 @@ function assertArgsArraysEqual(
         // no need for a negated message, since we disallow mixing .not. with
         // .withArgs
       );
-    } else if (expectedArgs[index] instanceof Uint8Array) {
-      new Assertion(actualArgs[index], undefined, ssfi, true).equal(
-        ethers.hexlify(expectedArgs[index])
+    } else if (expectedArg instanceof Uint8Array) {
+      new Assertion(actualArg, undefined, ssfi, true).equal(
+        ethers.hexlify(expectedArg)
       );
     } else if (
-      expectedArgs[index]?.length !== undefined &&
-      typeof expectedArgs[index] !== "string"
+      expectedArg?.length !== undefined &&
+      typeof expectedArg !== "string"
     ) {
-      const expectedLength = expectedArgs[index].length;
-      const actualLength = actualArgs[index].length;
+      const expectedLength = expectedArg.length;
+      const actualLength = actualArg.length;
       assert(
         expectedLength === actualLength,
         `Expected the ${ordinal(
-          index + 1
+          parseInt(index) + 1
         )} argument of the "${eventName}" event to have ${expectedLength} ${
           expectedLength === 1 ? "element" : "elements"
         }, but it has ${actualLength}`
       );
 
-      for (let j = 0; j < expectedArgs[index].length; j++) {
-        new Assertion(actualArgs[index][j], undefined, ssfi, true).equal(
-          expectedArgs[index][j]
+      for (let j = 0; j < expectedArg.length; j++) {
+        new Assertion(actualArg[j], undefined, ssfi, true).equal(
+          expectedArg[j]
         );
       }
     } else {
       if (
-        actualArgs[index].hash !== undefined &&
-        actualArgs[index]._isIndexed === true
+        actualArg.hash !== undefined &&
+        actualArg._isIndexed === true
       ) {
         new Assertion(
-          actualArgs[index].hash,
+          actualArg.hash,
           undefined,
           ssfi,
           true
         ).to.not.equal(
-          expectedArgs[index],
+          expectedArg,
           "The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion should be the actual event argument (the pre-image of the hash). You provided the hash itself. Please supply the actual event argument (the pre-image of the hash) instead."
         );
-        const expectedArgBytes = ethers.isHexString(expectedArgs[index])
-          ? ethers.getBytes(expectedArgs[index])
-          : ethers.toUtf8Bytes(expectedArgs[index]);
+        const expectedArgBytes = ethers.isHexString(expectedArg)
+          ? ethers.getBytes(expectedArg)
+          : ethers.toUtf8Bytes(expectedArg);
         const expectedHash = ethers.keccak256(expectedArgBytes);
-        new Assertion(actualArgs[index].hash, undefined, ssfi, true).to.equal(
+        new Assertion(actualArg.hash, undefined, ssfi, true).to.equal(
           expectedHash,
           `The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion was hashed to produce ${expectedHash}. The actual hash and the expected hash did not match`
         );
       } else {
-        new Assertion(actualArgs[index], undefined, ssfi, true).equal(
-          expectedArgs[index]
+        new Assertion(actualArg, undefined, ssfi, true).equal(
+          expectedArg
         );
       }
     }
