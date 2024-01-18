@@ -1,6 +1,6 @@
 use edr_eth::{
     remote::{
-        eth::{eip712, CallRequest},
+        eth::CallRequest,
         filter::{LogFilterOptions, SubscriptionType},
         BlockSpec, PreEip1898BlockSpec, StateOverrideOptions,
     },
@@ -8,6 +8,7 @@ use edr_eth::{
     transaction::EthTransactionRequest,
     Address, Bytes, B256, U256, U64,
 };
+use ethers_core::types::transaction::eip712::TypedData;
 
 use super::serde::RpcAddress;
 use crate::requests::hardhat::rpc_types::{CompilerInput, CompilerOutput, ResetProviderConfig};
@@ -215,7 +216,7 @@ pub enum MethodInvocation {
     #[serde(rename = "eth_signTypedData_v4")]
     SignTypedDataV4(
         #[serde(deserialize_with = "crate::requests::serde::deserialize_address")] Address,
-        eip712::Message,
+        #[serde(deserialize_with = "crate::requests::serde::deserialize_typed_data")] TypedData,
     ),
     /// eth_subscribe
     #[serde(rename = "eth_subscribe")]
