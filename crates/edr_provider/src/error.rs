@@ -12,6 +12,7 @@ use edr_evm::{
     Halt, MineBlockError, MinerTransactionError, OutOfGasError, TransactionCreationError,
     TransactionError,
 };
+use ethers_core::types::transaction::eip712::Eip712Error;
 
 use crate::data::CreationError;
 
@@ -43,6 +44,8 @@ pub enum ProviderError {
     Blockchain(#[from] BlockchainError),
     #[error(transparent)]
     Creation(#[from] CreationError),
+    #[error(transparent)]
+    Eip712Error(#[from] Eip712Error),
     #[error("{0}")]
     InvalidArgument(String),
     /// Block number or hash doesn't exist in blockchain
@@ -173,6 +176,7 @@ impl From<ProviderError> for jsonrpc::Error {
             ProviderError::AutoMinePriorityFeeTooLow { .. } => -32000,
             ProviderError::Blockchain(_) => -32000,
             ProviderError::Creation(_) => -32000,
+            ProviderError::Eip712Error(_) => -32000,
             ProviderError::InvalidArgument(_) => -32602,
             ProviderError::InvalidBlockNumberOrHash { .. } => -32000,
             ProviderError::InvalidBlockTag { .. } => -32602,

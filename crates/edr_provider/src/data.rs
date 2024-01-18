@@ -18,7 +18,7 @@ use edr_eth::{
         filter::{FilteredEvents, LogOutput, SubscriptionType},
         BlockSpec, BlockTag, Eip1898BlockSpec, RpcClient, RpcClientError,
     },
-    signature::Signature,
+    signature::{RecoveryMessage, Signature},
     transaction::{SignedTransaction, TransactionRequestAndSender},
     Address, Bytes, SpecId, B256, U256,
 };
@@ -38,6 +38,7 @@ use edr_evm::{
     MineBlockResult, MineBlockResultAndState, MineOrdering, OrderedTransaction, PendingTransaction,
     RandomHashGenerator, StorageSlot, SyncBlock, TxEnv, KECCAK_EMPTY,
 };
+use ethers_core::types::transaction::eip712::{Eip712, TypedData};
 use indexmap::IndexMap;
 use inspector::EvmInspector;
 pub use inspector::{InspectorCallbacks, SyncInspectorCallbacks};
@@ -1290,6 +1291,20 @@ impl ProviderData {
         }
     }
 
+    pub fn sign_typed_data_v4(
+        &self,
+        address: &Address,
+        message: &TypedData,
+    ) -> Result<Signature, ProviderError> {
+        match self.local_accounts.get(address) {
+            Some(secret_key) => {
+                let hash: B256 = message.encode_eip712()?.into();
+                Ok(Signature::new(RecoveryMessage::Hash(hash), secret_key)?)
+            }
+            None => Err(ProviderError::UnknownAddress { address: *address }),
+        }
+    }
+
     pub fn spec_id(&self) -> SpecId {
         self.blockchain.spec_id()
     }
@@ -1881,8 +1896,10 @@ lazy_static! {
 mod tests {
     use anyhow::Context;
     use edr_eth::transaction::{Eip155TransactionRequest, TransactionKind, TransactionRequest};
+    use edr_evm::hex;
     use edr_test_utils::env::get_alchemy_url;
     use parking_lot::Mutex;
+    use serde_json::json;
     use tempfile::TempDir;
 
     use super::*;
@@ -2393,6 +2410,65 @@ mod tests {
         fixture.provider_data.reset(None)?;
 
         assert_eq!(fixture.provider_data.last_block_number(), 0);
+
+        Ok(())
+    }
+
+    #[test]
+    fn sign_typed_data_v4() -> anyhow::Result<()> {
+        let fixture = ProviderTestFixture::new()?;
+
+        // This test was taken from the `eth_signTypedData` example from the
+        // EIP-712 specification via Hardhat.
+        // <https://eips.ethereum.org/EIPS/eip-712#eth_signtypeddata>
+
+        let address: Address = "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826".parse()?;
+        let message = json!({
+          "types": {
+            "EIP712Domain": [
+              { "name": "name", "type": "string" },
+              { "name": "version", "type": "string" },
+              { "name": "chainId", "type": "uint256" },
+              { "name": "verifyingContract", "type": "address" },
+            ],
+            "Person": [
+              { "name": "name", "type": "string" },
+              { "name": "wallet", "type": "address" },
+            ],
+            "Mail": [
+              { "name": "from", "type": "Person" },
+              { "name": "to", "type": "Person" },
+              { "name": "contents", "type": "string" },
+            ],
+          },
+          "primaryType": "Mail",
+          "domain": {
+            "name": "Ether Mail",
+            "version": "1",
+            "chainId": 1,
+            "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+          },
+          "message": {
+            "from": {
+              "name": "Cow",
+              "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+            },
+            "to": {
+              "name": "Bob",
+              "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+            },
+            "contents": "Hello, Bob!",
+          },
+        });
+        let message: TypedData = serde_json::from_value(message)?;
+
+        let signature = fixture
+            .provider_data
+            .sign_typed_data_v4(&address, &message)?;
+
+        let expected_signature = "0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d07299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b915621c";
+
+        assert_eq!(hex::decode(expected_signature)?, signature.to_vec(),);
 
         Ok(())
     }
