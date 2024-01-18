@@ -126,7 +126,7 @@ export class VMTracer {
 
         trace = createTrace;
       } else {
-        const toAsBigInt = bufferToBigInt(message.to.toBuffer());
+        const toAsBigInt = bufferToBigInt(message.to.toBytes());
 
         if (toAsBigInt > 0 && toAsBigInt <= this._maxPrecompileNumber) {
           const precompileTrace: PrecompileMessageTrace = {
@@ -150,11 +150,11 @@ export class VMTracer {
             steps: [],
             value: message.value,
             returnData: DUMMY_RETURN_DATA,
-            address: message.to.toBuffer(),
+            address: message.to.toBytes(),
             numberOfSubtraces: 0,
             depth: message.depth,
             gasUsed: DUMMY_GAS_USED,
-            codeAddress: codeAddress.toBuffer(),
+            codeAddress: codeAddress.toBytes(),
           };
 
           trace = callTrace;
@@ -227,7 +227,7 @@ export class VMTracer {
       trace.gasUsed = result.execResult.executionGasUsed;
 
       if (isCreateTrace(trace)) {
-        trace.deployedContract = result?.createdAddress?.toBuffer();
+        trace.deployedContract = result?.createdAddress?.toBytes();
       }
 
       if (this._messageTraces.length > 1) {

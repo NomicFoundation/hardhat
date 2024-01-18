@@ -16,7 +16,7 @@ import {
   hashPersonalMessage,
   privateToAddress,
   setLengthLeft,
-  toBuffer,
+  toBytes,
   bufferToBigInt,
 } from "@nomicfoundation/ethereumjs-util";
 import {
@@ -1005,7 +1005,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   public async getTransactionReceipt(
     hash: Buffer | string
   ): Promise<RpcReceiptOutput | undefined> {
-    const hashBuffer = hash instanceof Buffer ? hash : toBuffer(hash);
+    const hashBuffer = hash instanceof Buffer ? hash : toBytes(hash);
     const receipt = await this._blockchain.getTransactionReceipt(hashBuffer);
     return receipt ?? undefined;
   }
@@ -1949,7 +1949,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
   }
 
   private _initLocalAccounts(genesisAccounts: GenesisAccount[]) {
-    const privateKeys = genesisAccounts.map((acc) => toBuffer(acc.privateKey));
+    const privateKeys = genesisAccounts.map((acc) => toBytes(acc.privateKey));
     for (const pk of privateKeys) {
       this._localAccounts.set(bufferToHex(privateToAddress(pk)), pk);
     }
@@ -2386,7 +2386,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     for (const [addrToOverride, stateOverrideOptions] of Object.entries(
       stateOverrideSet
     )) {
-      const address = new Address(toBuffer(addrToOverride));
+      const address = new Address(toBytes(addrToOverride));
 
       const { balance, nonce, code, state, stateDiff } = stateOverrideOptions;
 
@@ -2452,7 +2452,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
     for (const [storageKey, value] of Object.entries(newState)) {
       await this._stateManager.putContractStorage(
         address,
-        toBuffer(storageKey),
+        toBytes(storageKey),
         setLengthLeft(bigIntToBuffer(value), 32)
       );
     }

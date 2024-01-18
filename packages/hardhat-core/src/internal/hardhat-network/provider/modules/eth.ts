@@ -5,7 +5,12 @@ import {
   TransactionFactory,
   TypedTransaction,
 } from "@nomicfoundation/ethereumjs-tx";
-import { Address, equalsBytes, toBuffer, toRpcSig } from "@nomicfoundation/ethereumjs-util";
+import {
+  Address,
+  equalsBytes,
+  toBytes,
+  toRpcSig,
+} from "@nomicfoundation/ethereumjs-util";
 import * as t from "io-ts";
 import cloneDeep from "lodash/cloneDeep";
 import { BoundExperimentalHardhatNetworkMessageTraceHook } from "../../../../types";
@@ -973,7 +978,7 @@ export class EthModule extends Base {
         disableMaxInitCodeSizeCheck: true,
       });
 
-      this._validateEip3860MaxInitCodeSize(tx.to?.toBuffer(), tx.data);
+      this._validateEip3860MaxInitCodeSize(tx.to?.toBytes(), tx.data);
     } catch (error) {
       // This section of the code is incredibly dependant of TransactionFactory.fromSerializedData
       // AccessListEIP2930Transaction.fromSerializedTx and Transaction.fromSerializedTx
@@ -1266,7 +1271,7 @@ export class EthModule extends Base {
       gasLimit:
         rpcTx.gas !== undefined ? rpcTx.gas : this._node.getBlockGasLimit(),
       value: rpcTx.value !== undefined ? rpcTx.value : 0n,
-      data: rpcTx.data !== undefined ? rpcTx.data : toBuffer([]),
+      data: rpcTx.data !== undefined ? rpcTx.data : toBytes([]),
       nonce:
         rpcTx.nonce !== undefined
           ? rpcTx.nonce
@@ -1703,7 +1708,7 @@ You can use them by running Hardhat Network with 'hardfork' ${EIP155_MIN_HARDFOR
   }
 
   private _validateEip3860MaxInitCodeSize(
-    to: Buffer | undefined,
+    to: Uint8Array | undefined,
     data: Buffer
   ) {
     if (!this._common.gteHardfork(EIP3860_MIN_HARDFORK)) {

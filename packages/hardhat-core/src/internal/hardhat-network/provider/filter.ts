@@ -1,4 +1,4 @@
-import { bytesToHex as bufferToHex, toBuffer } from "@nomicfoundation/ethereumjs-util";
+import { bytesToHex as bufferToHex, toBytes } from "@nomicfoundation/ethereumjs-util";
 import { Bloom } from "@nomicfoundation/ethereumjs-vm";
 
 import { RpcLogOutput } from "./output";
@@ -84,7 +84,7 @@ export function filterLogs(
 
     if (
       criteria.addresses.length !== 0 &&
-      !includes(criteria.addresses, toBuffer(log.address))
+      !includes(criteria.addresses, toBytes(log.address))
     ) {
       continue;
     }

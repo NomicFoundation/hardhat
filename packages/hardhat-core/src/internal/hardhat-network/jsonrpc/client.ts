@@ -136,7 +136,7 @@ export class JsonRpcClient {
     );
   }
 
-  public async getTransactionCount(address: Buffer, blockNumber: bigint) {
+  public async getTransactionCount(address: Uint8Array, blockNumber: bigint) {
     return this._perform(
       "eth_getTransactionCount",
       [bufferToHex(address), numberToRpcQuantity(blockNumber)],

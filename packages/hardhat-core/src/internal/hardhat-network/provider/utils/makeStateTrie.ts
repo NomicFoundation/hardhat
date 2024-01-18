@@ -14,7 +14,7 @@ export async function makeStateTrie(genesisAccounts: GenesisAccount[]) {
 
   for (const acc of genesisAccounts) {
     const { address, account } = makeAccount(acc);
-    await stateTrie.put(address.toBuffer(), account.serialize());
+    await stateTrie.put(address.toBytes(), account.serialize());
   }
 
   // Mimic precompiles activation

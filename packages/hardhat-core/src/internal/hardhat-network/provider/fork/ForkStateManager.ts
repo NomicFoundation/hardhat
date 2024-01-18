@@ -7,7 +7,7 @@ import {
   bytesToHex as bufferToHex,
   equalsBytes,
   KECCAK256_NULL,
-  toBuffer,
+  toBytes,
   unpadBuffer,
 } from "@nomicfoundation/ethereumjs-util";
 import { Map as ImmutableMap, Record as ImmutableRecord } from "immutable";
@@ -71,7 +71,7 @@ export class ForkStateManager implements StateManager {
       accounts.push(account);
 
       const noncePromise = this._jsonRpcClient.getTransactionCount(
-        account.address.toBuffer(),
+        account.address.toBytes(),
         this._forkBlockNumber
       );
       noncesPromises.push(noncePromise);
@@ -114,13 +114,13 @@ export class ForkStateManager implements StateManager {
     const localCode = localAccount?.get("code");
 
     let nonce: Buffer | bigint | undefined =
-      localNonce !== undefined ? toBuffer(localNonce) : undefined;
+      localNonce !== undefined ? toBytes(localNonce) : undefined;
 
     let balance: Buffer | bigint | undefined =
-      localBalance !== undefined ? toBuffer(localBalance) : undefined;
+      localBalance !== undefined ? toBytes(localBalance) : undefined;
 
     let code: Buffer | undefined =
-      localCode !== undefined ? toBuffer(localCode) : undefined;
+      localCode !== undefined ? toBytes(localCode) : undefined;
 
     if (balance === undefined || nonce === undefined || code === undefined) {
       const accountData = await this._jsonRpcClient.getAccountData(
@@ -166,7 +166,7 @@ export class ForkStateManager implements StateManager {
   public async getContractCode(address: Address): Promise<Buffer> {
     const localCode = this._state.get(address.toString())?.get("code");
     if (localCode !== undefined) {
-      return toBuffer(localCode);
+      return toBytes(localCode);
     }
 
     const accountData = await this._jsonRpcClient.getAccountData(
@@ -190,12 +190,12 @@ export class ForkStateManager implements StateManager {
     const localValue = account?.get("storage").get(bufferToHex(key));
 
     if (localValue !== undefined) {
-      return toBuffer(localValue);
+      return toBytes(localValue);
     }
 
     const slotCleared = localValue === null;
     if (contractStorageCleared || slotCleared) {
-      return toBuffer([]);
+      return toBytes([]);
     }
 
     const remoteValue = await this._jsonRpcClient.getStorageAt(
@@ -267,7 +267,7 @@ export class ForkStateManager implements StateManager {
     if (checkpointedRoot === undefined) {
       throw notCheckpointedError("revert");
     }
-    await this.setStateRoot(toBuffer(checkpointedRoot));
+    await this.setStateRoot(toBytes(checkpointedRoot));
   }
 
   public async getStateRoot(): Promise<Buffer> {
@@ -275,7 +275,7 @@ export class ForkStateManager implements StateManager {
       this._stateRoot = randomHash();
       this._stateRootToState.set(this._stateRoot, this._state);
     }
-    return toBuffer(this._stateRoot);
+    return toBytes(this._stateRoot);
   }
 
   public async setStateRoot(stateRoot: Buffer): Promise<void> {
@@ -330,7 +330,7 @@ export class ForkStateManager implements StateManager {
     }
 
     if (blockNumber === this._forkBlockNumber) {
-      this._setStateRoot(toBuffer(this._initialStateRoot));
+      this._setStateRoot(toBytes(this._initialStateRoot));
       return;
     }
     if (blockNumber > this._forkBlockNumber) {
@@ -379,7 +379,7 @@ export class ForkStateManager implements StateManager {
     address: Address,
     key: Buffer
   ): Promise<Buffer> {
-    const storageKey = encodeStorageKey(address.toBuffer(), key);
+    const storageKey = encodeStorageKey(Buffer.from(address.toBytes()), key);
     const cachedValue = this._originalStorageCache.get(storageKey);
     if (cachedValue !== undefined) {
       return cachedValue;

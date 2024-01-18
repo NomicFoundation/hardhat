@@ -7,7 +7,7 @@ import {
   Address,
   bufferToBigInt,
   setLengthLeft,
-  toBuffer,
+  toBytes,
 } from "@nomicfoundation/ethereumjs-util";
 
 import { assertHardhatInvariant } from "../../core/errors";
@@ -521,7 +521,7 @@ export class VMDebugTracer {
   ): Promise<bigint> {
     // The available gas is reduced when the address is cold
     if (this._vm._common.gteHardfork("berlin")) {
-      const isWarmed = this._vm.eei.isWarmedAddress(address.toBuffer());
+      const isWarmed = this._vm.eei.isWarmedAddress(address.toBytes());
 
       const coldCost =
         this._vm._common.param("gasPrices", "coldaccountaccess") -
@@ -601,7 +601,7 @@ export class VMDebugTracer {
       .slice(-count)
       .reverse()
       .map((value) => `0x${value}`)
-      .map(toBuffer);
+      .map(toBytes);
   }
 
   private _memoryFee(words: bigint): bigint {

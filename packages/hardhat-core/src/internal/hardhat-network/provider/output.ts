@@ -184,7 +184,7 @@ export function getRpcBlock(
     transactionsRoot: bufferToRpcData(block.header.transactionsTrie),
     stateRoot: bufferToRpcData(block.header.stateRoot),
     receiptsRoot: bufferToRpcData(block.header.receiptTrie),
-    miner: bufferToRpcData(block.header.coinbase.toBuffer()),
+    miner: bufferToRpcData(block.header.coinbase.toBytes()),
     difficulty: numberToRpcQuantity(block.header.difficulty),
     totalDifficulty: numberToRpcQuantity(totalDifficulty),
     extraData: bufferToRpcData(block.header.extraData),
@@ -204,7 +204,7 @@ export function getRpcBlock(
     output.withdrawals = block.withdrawals?.map((withdrawal) => ({
       index: numberToRpcQuantity(withdrawal.index),
       validatorIndex: numberToRpcQuantity(withdrawal.validatorIndex),
-      address: bufferToRpcData(withdrawal.address.toBuffer()),
+      address: bufferToRpcData(withdrawal.address.toBytes()),
       amount: numberToRpcQuantity(withdrawal.amount),
     }));
 
@@ -245,12 +245,12 @@ export function getRpcTransaction(
     blockHash: block === "pending" ? null : bufferToRpcData(block.hash()),
     blockNumber:
       block === "pending" ? null : numberToRpcQuantity(block.header.number),
-    from: bufferToRpcData(tx.getSenderAddress().toBuffer()),
+    from: bufferToRpcData(tx.getSenderAddress().toBytes()),
     gas: numberToRpcQuantity(tx.gasLimit),
     hash: bufferToRpcData(tx.hash()),
     input: bufferToRpcData(tx.data),
     nonce: numberToRpcQuantity(tx.nonce),
-    to: tx.to === undefined ? null : bufferToRpcData(tx.to.toBuffer()),
+    to: tx.to === undefined ? null : bufferToRpcData(tx.to.toBytes()),
     transactionIndex: index !== undefined ? numberToRpcQuantity(index) : null,
     value: numberToRpcQuantity(tx.value),
     v: numberToRpcQuantity(tx.v),
@@ -329,13 +329,13 @@ export function getRpcReceiptOutputsFromLocalBlockExecution(
       transactionIndex: numberToRpcQuantity(i),
       blockHash: bufferToRpcData(block.hash()),
       blockNumber: numberToRpcQuantity(block.header.number),
-      from: bufferToRpcData(tx.getSenderAddress().toBuffer()),
-      to: tx.to === undefined ? null : bufferToRpcData(tx.to.toBuffer()),
+      from: bufferToRpcData(tx.getSenderAddress().toBytes()),
+      to: tx.to === undefined ? null : bufferToRpcData(tx.to.toBytes()),
       cumulativeGasUsed: numberToRpcQuantity(receipt.cumulativeBlockGasUsed),
       gasUsed: numberToRpcQuantity(totalGasSpent),
       contractAddress:
         createdAddress !== undefined
-          ? bufferToRpcData(createdAddress.toBuffer())
+          ? bufferToRpcData(createdAddress.toBytes())
           : null,
       logs,
       logsBloom: bufferToRpcData(receipt.bitvector),

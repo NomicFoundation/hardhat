@@ -219,8 +219,8 @@ export class ModulesLogger {
 
       this._logWithTitle("Transaction", txHash);
 
-      this._logTxFrom(tx.getSenderAddress().toBuffer());
-      this._logTxTo(tx.to?.toBuffer(), txTrace.trace);
+      this._logTxFrom(Buffer.from(tx.getSenderAddress().toBytes()));
+      this._logTxTo(tx.to?.toBytes(), txTrace.trace);
       this._logTxValue(tx.value);
       this._logWithTitle("Gas used", `${txGasUsed} of ${tx.gasLimit}`);
 
@@ -254,8 +254,8 @@ export class ModulesLogger {
 
       this._logWithTitle("Transaction", txHash);
 
-      this._logTxFrom(tx.getSenderAddress().toBuffer());
-      this._logTxTo(tx.to?.toBuffer(), txTrace.trace);
+      this._logTxFrom(tx.getSenderAddress().toBytes());
+      this._logTxTo(tx.to?.toBytes(), txTrace.trace);
       this._logTxValue(tx.value);
       this._logWithTitle("Gas used", `${txGasUsed} of ${tx.gasLimit}`);
 
@@ -589,8 +589,8 @@ export class ModulesLogger {
 
     this._indent(() => {
       this._logContractAndFunctionName(txTrace.trace, code);
-      this._logTxFrom(tx.getSenderAddress().toBuffer());
-      this._logTxTo(tx.to?.toBuffer(), txTrace.trace);
+      this._logTxFrom(tx.getSenderAddress().toBytes());
+      this._logTxTo(tx.to?.toBytes(), txTrace.trace);
       this._logTxValue(tx.value);
       this._logWithTitle("Gas used", `${txGasUsed} of ${tx.gasLimit}`);
 
@@ -724,7 +724,7 @@ export class ModulesLogger {
     this._methodCollapsedCount = 0;
   }
 
-  private _logTxTo(to: Buffer | undefined, trace?: MessageTrace) {
+  private _logTxTo(to: Uint8Array | undefined, trace?: MessageTrace) {
     if (trace !== undefined && isCreateTrace(trace)) {
       return;
     }
@@ -743,7 +743,7 @@ export class ModulesLogger {
     this._logWithTitle("Value", weiToHumanReadableString(value));
   }
 
-  private _logTxFrom(from: Buffer) {
+  private _logTxFrom(from: Uint8Array) {
     this._logWithTitle("From", bufferToHex(from));
   }
 

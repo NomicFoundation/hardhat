@@ -54,7 +54,7 @@ function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
   const {
     bytesToHex: bufferToHex,
     privateToAddress,
-    toBuffer,
+    toBytes,
     toChecksumAddress,
   } = require("@nomicfoundation/ethereumjs-util") as typeof EthereumjsUtilT;
 
@@ -73,7 +73,7 @@ function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
 
   for (const [index, account] of accounts.entries()) {
     const address = toChecksumAddress(
-      bufferToHex(privateToAddress(toBuffer(account.privateKey)))
+      bufferToHex(privateToAddress(toBytes(account.privateKey)))
     );
 
     const balance = (BigInt(account.balance) / 10n ** 18n).toString(10);
@@ -81,7 +81,7 @@ function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
     let entry = `Account #${index}: ${address} (${balance} ETH)`;
 
     if (isDefaultConfig) {
-      const privateKey = bufferToHex(toBuffer(account.privateKey));
+      const privateKey = bufferToHex(toBytes(account.privateKey));
       entry += `
 Private Key: ${privateKey}`;
     }

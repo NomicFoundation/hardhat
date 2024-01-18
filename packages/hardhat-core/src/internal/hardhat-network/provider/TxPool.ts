@@ -8,7 +8,7 @@ import {
   Address,
   bytesToHex as bufferToHex,
   equalsBytes,
-  toBuffer,
+  toBytes,
 } from "@nomicfoundation/ethereumjs-util";
 import { List as ImmutableList, Record as ImmutableRecord } from "immutable";
 
@@ -57,7 +57,7 @@ export function deserializeTransaction(
   let data;
   if (fakeFrom !== undefined) {
     const sender = Address.fromString(fakeFrom);
-    const serialization = toBuffer(rlpSerialization);
+    const serialization = toBytes(rlpSerialization);
 
     if (tx.get("txType") === 1) {
       data =
@@ -80,7 +80,7 @@ export function deserializeTransaction(
       );
     }
   } else {
-    data = TransactionFactory.fromSerializedData(toBuffer(rlpSerialization), {
+    data = TransactionFactory.fromSerializedData(toBytes(rlpSerialization), {
       common,
       disableMaxInitCodeSizeCheck: true,
     });

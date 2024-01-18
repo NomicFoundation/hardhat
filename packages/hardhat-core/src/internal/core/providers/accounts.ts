@@ -47,7 +47,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       ecsign,
       hashPersonalMessage,
       toRpcSig,
-      toBuffer,
+      toBytes,
       bytesToHex: bufferToHex,
     } = await import("@nomicfoundation/ethereumjs-util");
 
@@ -70,7 +70,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
           }
 
           const privateKey = this._getPrivateKeyForAddress(address);
-          const messageHash = hashPersonalMessage(toBuffer(data));
+          const messageHash = hashPersonalMessage(toBytes(data));
           const signature = ecsign(messageHash, privateKey);
           return toRpcSig(signature.v, signature.r, signature.s);
         }
@@ -89,7 +89,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
           }
 
           const privateKey = this._getPrivateKeyForAddress(address);
-          const messageHash = hashPersonalMessage(toBuffer(data));
+          const messageHash = hashPersonalMessage(toBytes(data));
           const signature = ecsign(messageHash, privateKey);
           return toRpcSig(signature.v, signature.r, signature.s);
         }
@@ -195,12 +195,12 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
   private _initializePrivateKeys(localAccountsHexPrivateKeys: string[]) {
     const {
       bytesToHex: bufferToHex,
-      toBuffer,
+      toBytes,
       privateToAddress,
     } = require("@nomicfoundation/ethereumjs-util");
 
     const privateKeys: Buffer[] = localAccountsHexPrivateKeys.map((h) =>
-      toBuffer(h)
+      toBytes(h)
     );
 
     for (const pk of privateKeys) {
@@ -210,7 +210,9 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
   }
 
   private _getPrivateKeyForAddress(address: Buffer): Buffer {
-    const { bytesToHex: bufferToHex } = require("@nomicfoundation/ethereumjs-util");
+    const {
+      bytesToHex: bufferToHex,
+    } = require("@nomicfoundation/ethereumjs-util");
     const pk = this._addressToPrivateKey.get(bufferToHex(address));
     if (pk === undefined) {
       throw new HardhatError(ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, {
@@ -230,7 +232,9 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
   }
 
   private async _getNonce(address: Buffer): Promise<bigint> {
-    const { bytesToHex: bufferToHex } = await import("@nomicfoundation/ethereumjs-util");
+    const { bytesToHex: bufferToHex } = await import(
+      "@nomicfoundation/ethereumjs-util"
+    );
 
     const response = (await this._wrappedProvider.request({
       method: "eth_getTransactionCount",
@@ -316,7 +320,9 @@ export class HDWalletProvider extends LocalAccountsProvider {
       passphrase
     );
 
-    const { bytesToHex: bufferToHex } = require("@nomicfoundation/ethereumjs-util");
+    const {
+      bytesToHex: bufferToHex,
+    } = require("@nomicfoundation/ethereumjs-util");
     const privateKeysAsHex = privateKeys.map((pk) => bufferToHex(pk));
     super(provider, privateKeysAsHex);
   }
