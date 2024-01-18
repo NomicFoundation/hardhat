@@ -123,19 +123,43 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
       return jsonRpcRequest;
     });
 
-    const jsonRpcResponses = await this._fetchJsonRpcResponse(requests);
+    let jsonRpcResponses;
+    let retryNumber = 0;
+    const seconds = 1;
+    let needsToRetry = false;
 
-    for (const response of jsonRpcResponses) {
-      if (isErrorResponse(response)) {
-        const error = new ProviderError(
-          response.error.message,
-          response.error.code,
-          stackSavingError
-        );
-        error.data = response.error.data;
-        // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
-        throw error;
+    do {
+      if (retryNumber > 0) {
+        await new Promise((resolve) => setTimeout(resolve, 1000 * seconds));
       }
+      jsonRpcResponses = await this._fetchJsonRpcResponse(requests);
+      needsToRetry = false;
+
+      for (const response of jsonRpcResponses) {
+        if (isErrorResponse(response)) {
+          const error = new ProviderError(
+            response.error.message,
+            response.error.code,
+            stackSavingError
+          );
+          error.data = response.error.data;
+
+          if (response.error.code === 429) {
+            needsToRetry = true;
+          } else {
+            // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+            throw error;
+          }
+        }
+      }
+    } while (needsToRetry && this._shouldRetry(++retryNumber, seconds));
+    if (needsToRetry) {
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      throw new ProviderError(
+        `Too Many Requests error received from ${this._url}`,
+        429, // Limit exceeded according to EIP1474
+        stackSavingError
+      );
     }
 
     // We already know that it has this type, but TS can't infer it.

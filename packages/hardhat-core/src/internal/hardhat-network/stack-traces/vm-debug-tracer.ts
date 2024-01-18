@@ -10,12 +10,12 @@ import {
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
 
+import { EventEmitter } from "events";
 import { assertHardhatInvariant } from "../../core/errors";
 import { RpcDebugTracingConfig } from "../../core/jsonrpc/types/input/debugTraceTransaction";
 import { InvalidInputError } from "../../core/providers/errors";
 import { RpcDebugTraceOutput, RpcStructLog } from "../provider/output";
 import * as BigIntUtils from "../../util/bigint";
-
 /* eslint-disable @nomicfoundation/hardhat-internal-rules/only-hardhat-error */
 
 interface StructLog {
@@ -49,6 +49,7 @@ function isStructLog(
 
 const EMPTY_MEMORY_WORD = "0".repeat(64);
 
+export const structLogsEmitter = new EventEmitter();
 export class VMDebugTracer {
   private _lastTrace?: RpcDebugTraceOutput;
   private _config: RpcDebugTracingConfig;
@@ -168,7 +169,8 @@ export class VMDebugTracer {
       );
 
       const structLog = await this._stepToStructLog(step);
-      this._messages[this._messages.length - 1].structLogs.push(structLog);
+      structLogsEmitter.emit("structLog", structLog);
+      // this._messages[this._messages.length - 1].structLogs.push(structLog);
     } catch (e: any) {
       // errors thrown in event handlers are lost, so we save this error to
       // re-throw it in the `trace` function
@@ -192,42 +194,23 @@ export class VMDebugTracer {
   }
 
   private async _afterTxHandler(result: AfterTxEvent, next: any) {
-    const { default: flattenDeep } = await import("lodash/flattenDeep");
-    const topLevelMessage = this._messages[0];
+    // const { default: flattenDeep } = await import("lodash/flattenDeep");
+    // const topLevelMessage = this._messages[0];
 
-    const nestedStructLogs = await this._messageToNestedStructLogs(
-      topLevelMessage,
-      topLevelMessage.to
-    );
+    // const nestedStructLogs = await this._messageToNestedStructLogs(
+    //   topLevelMessage,
+    //   topLevelMessage.to
+    // );
 
-    const rpcStructLogs: RpcStructLog[] = flattenDeep(nestedStructLogs).map(
-      (structLog) => {
-        const rpcStructLog: RpcStructLog = structLog;
-
-        // geth doesn't return this value
-        delete rpcStructLog.memSize;
-
-        if (this._config?.disableMemory === true) {
-          delete rpcStructLog.memory;
-        }
-        if (this._config?.disableStack === true) {
-          delete rpcStructLog.stack;
-        }
-        if (this._config?.disableStorage === true) {
-          delete rpcStructLog.storage;
-        }
-
-        return rpcStructLog;
-      }
-    );
-
+    const rpcStructLogs: RpcStructLog[] = [];
+    // TODO!
     // geth does this for some reason
-    if (
-      rpcStructLogs.length > 0 &&
-      result.execResult.exceptionError?.error === "out of gas"
-    ) {
-      rpcStructLogs[rpcStructLogs.length - 1].error = {};
-    }
+    // if (
+    //   rpcStructLogs.length > 0 &&
+    //   result.execResult.exceptionError?.error === "out of gas"
+    // ) {
+    //   rpcStructLogs[rpcStructLogs.length - 1].error = {};
+    // }
 
     this._lastTrace = {
       gas: Number(result.totalGasSpent),
