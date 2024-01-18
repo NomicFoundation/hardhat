@@ -1,6 +1,6 @@
 import {
   bufferToBigInt,
-  bufferToHex,
+  bytesToHex as bufferToHex,
   bufferToInt,
   fromSigned,
 } from "@nomicfoundation/ethereumjs-util";

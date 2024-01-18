@@ -10,8 +10,9 @@ import {
   Address,
   ECDSASignature,
   bigIntToBuffer,
-  bufferToHex,
+  bytesToHex as bufferToHex,
   ecsign,
+  equalsBytes,
   hashPersonalMessage,
   privateToAddress,
   setLengthLeft,
@@ -1460,7 +1461,7 @@ Hardhat Network's forking functionality only works with blocks from at least spu
         }
 
         const txHash = txWithCommon.hash();
-        if (txHash.equals(hash)) {
+        if (equalsBytes(txHash, hash)) {
           const vmDebugTracer = new VMDebugTracer(vm);
           return vmDebugTracer.trace(async () => {
             await vm.runTx({

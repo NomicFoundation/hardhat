@@ -51,8 +51,12 @@ function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
     !Array.isArray(networkConfig.accounts) &&
     networkConfig.accounts.mnemonic === HARDHAT_NETWORK_MNEMONIC;
 
-  const { bufferToHex, privateToAddress, toBuffer, toChecksumAddress } =
-    require("@nomicfoundation/ethereumjs-util") as typeof EthereumjsUtilT;
+  const {
+    bytesToHex: bufferToHex,
+    privateToAddress,
+    toBuffer,
+    toChecksumAddress,
+  } = require("@nomicfoundation/ethereumjs-util") as typeof EthereumjsUtilT;
 
   console.log("Accounts");
   console.log("========");

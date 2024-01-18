@@ -5,7 +5,7 @@ import {
   TransactionFactory,
   TypedTransaction,
 } from "@nomicfoundation/ethereumjs-tx";
-import { Address, toBuffer, toRpcSig } from "@nomicfoundation/ethereumjs-util";
+import { Address, equalsBytes, toBuffer, toRpcSig } from "@nomicfoundation/ethereumjs-util";
 import * as t from "io-ts";
 import cloneDeep from "lodash/cloneDeep";
 import { BoundExperimentalHardhatNetworkMessageTraceHook } from "../../../../types";
@@ -819,7 +819,7 @@ export class EthModule extends Base {
     }
 
     const index = block.transactions.findIndex((btx) =>
-      btx.hash().equals(hash)
+      equalsBytes(btx.hash(), hash)
     );
     const tx = block.transactions[index];
     if (tx === undefined) {
@@ -1611,7 +1611,7 @@ export class EthModule extends Base {
       const transactions = result.block.transactions;
       for (let i = 0; i < transactions.length; i++) {
         const blockTx = transactions[i];
-        if (blockTx.hash().equals(tx.hash())) {
+        if (equalsBytes(blockTx.hash(), tx.hash())) {
           return [result, i];
         }
       }

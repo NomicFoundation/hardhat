@@ -4,7 +4,8 @@ import {
   bigIntToHex,
   bufferToBigInt,
   Address,
-  bufferToHex,
+  bytesToHex as bufferToHex,
+  equalsBytes,
   KECCAK256_NULL,
   toBuffer,
   unpadBuffer,
@@ -304,7 +305,7 @@ export class ForkStateManager implements StateManager {
     return (
       account.nonce === 0n &&
       account.balance === 0n &&
-      account.codeHash.equals(KECCAK256_NULL)
+      equalsBytes(account.codeHash, KECCAK256_NULL)
     );
   }
 
@@ -401,7 +402,7 @@ export class ForkStateManager implements StateManager {
 
     // Code is set to empty string here to prevent unnecessary
     // JsonRpcClient.getCode calls in getAccount method
-    if (account.codeHash.equals(KECCAK256_NULL)) {
+    if (equalsBytes(account.codeHash, KECCAK256_NULL)) {
       localAccount = localAccount.set("code", "0x");
     }
     this._state = this._state.set(hexAddress, localAccount);

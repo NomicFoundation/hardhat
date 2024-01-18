@@ -1,7 +1,7 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
-import { zeros } from "@nomicfoundation/ethereumjs-util";
+import { equalsBytes, zeros } from "@nomicfoundation/ethereumjs-util";
 
 import { BlockchainBase } from "./BlockchainBase";
 import { FilterParams } from "./node-types";
@@ -99,10 +99,10 @@ export class HardhatBlockchain
     }
 
     if (
-      (blockNumber === 0n && !parentHash.equals(zeros(32))) ||
+      (blockNumber === 0n && !equalsBytes(parentHash, zeros(32))) ||
       (blockNumber > 0 &&
         parent !== undefined &&
-        !parentHash.equals(parent.hash()))
+        !equalsBytes(parentHash, parent.hash()))
     ) {
       throw new Error("Invalid parent hash");
     }

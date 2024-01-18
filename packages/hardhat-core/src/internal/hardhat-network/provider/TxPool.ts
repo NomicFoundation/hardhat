@@ -6,7 +6,8 @@ import {
 import { StateManager } from "@nomicfoundation/ethereumjs-statemanager";
 import {
   Address,
-  bufferToHex,
+  bytesToHex as bufferToHex,
+  equalsBytes,
   toBuffer,
 } from "@nomicfoundation/ethereumjs-util";
 import { List as ImmutableList, Record as ImmutableRecord } from "immutable";
@@ -495,7 +496,7 @@ export class TxPool {
     txList: SenderTransactions | undefined
   ) {
     const existingTx = txList?.find((etx) =>
-      this._deserializeTransaction(etx).data.hash().equals(tx.hash())
+      equalsBytes(this._deserializeTransaction(etx).data.hash(), tx.hash())
     );
     return existingTx !== undefined;
   }

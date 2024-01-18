@@ -32,7 +32,7 @@ export class RandomBufferGenerator {
 }
 
 export const randomHash = () => {
-  const { bufferToHex } =
+  const { bytesToHex: bufferToHex } =
     require("@nomicfoundation/ethereumjs-util") as typeof EthereumjsUtilT;
   return bufferToHex(randomHashBuffer());
 };
@@ -49,7 +49,7 @@ export const randomAddress = () => {
 };
 
 export const randomAddressString = () => {
-  const { bufferToHex } =
+  const { bytesToHex: bufferToHex } =
     require("@nomicfoundation/ethereumjs-util") as typeof EthereumjsUtilT;
   return bufferToHex(randomAddressBuffer());
 };

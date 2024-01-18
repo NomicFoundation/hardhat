@@ -1,6 +1,9 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
-import { bufferToHex } from "@nomicfoundation/ethereumjs-util";
+import {
+  bytesToHex as bufferToHex,
+  equalsBytes,
+} from "@nomicfoundation/ethereumjs-util";
 import ansiEscapes from "ansi-escapes";
 import chalk, { Chalk } from "chalk";
 import util from "util";
@@ -113,7 +116,7 @@ export class ModulesLogger {
           const txTrace = traces[i];
           const code = codes[i];
 
-          const highlightTxHash = tx.hash().equals(txHashToHighlight);
+          const highlightTxHash = equalsBytes(tx.hash(), txHashToHighlight);
 
           this._logTxInsideBlock(tx, txTrace, code, txGasUsed, {
             highlightTxHash,

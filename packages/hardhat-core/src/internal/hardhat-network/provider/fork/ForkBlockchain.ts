@@ -1,7 +1,7 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import { TypedTransaction } from "@nomicfoundation/ethereumjs-tx";
-import { Address } from "@nomicfoundation/ethereumjs-util";
+import { Address, equalsBytes } from "@nomicfoundation/ethereumjs-util";
 
 import { FeeMarketEIP1559TxData } from "@nomicfoundation/ethereumjs-tx/dist/types";
 import { RpcBlockWithTransactions } from "../../../core/jsonrpc/types/output/block";
@@ -87,7 +87,7 @@ export class ForkBlockchain
     // Thus, we avoid this check for the first block after the fork.
     if (blockNumber > this._forkBlockNumber + 1n) {
       const parent = await this.getLatestBlock();
-      if (!block.header.parentHash.equals(parent.hash())) {
+      if (!equalsBytes(block.header.parentHash, parent.hash())) {
         throw new Error("Invalid parent hash");
       }
     }
@@ -118,7 +118,10 @@ export class ForkBlockchain
   public deleteLaterBlocks(block: Block): void {
     const blockNumber = block.header.number;
     const savedBlock = this._data.getBlockByNumber(blockNumber);
-    if (savedBlock === undefined || !savedBlock.hash().equals(block.hash())) {
+    if (
+      savedBlock === undefined ||
+      !equalsBytes(savedBlock.hash(), block.hash())
+    ) {
       throw new Error("Invalid block");
     }
 

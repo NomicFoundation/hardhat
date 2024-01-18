@@ -43,8 +43,13 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
   }
 
   public async request(args: RequestArguments): Promise<unknown> {
-    const { ecsign, hashPersonalMessage, toRpcSig, toBuffer, bufferToHex } =
-      await import("@nomicfoundation/ethereumjs-util");
+    const {
+      ecsign,
+      hashPersonalMessage,
+      toRpcSig,
+      toBuffer,
+      bytesToHex: bufferToHex,
+    } = await import("@nomicfoundation/ethereumjs-util");
 
     if (
       args.method === "eth_accounts" ||
@@ -189,7 +194,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
 
   private _initializePrivateKeys(localAccountsHexPrivateKeys: string[]) {
     const {
-      bufferToHex,
+      bytesToHex: bufferToHex,
       toBuffer,
       privateToAddress,
     } = require("@nomicfoundation/ethereumjs-util");
@@ -205,7 +210,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
   }
 
   private _getPrivateKeyForAddress(address: Buffer): Buffer {
-    const { bufferToHex } = require("@nomicfoundation/ethereumjs-util");
+    const { bytesToHex: bufferToHex } = require("@nomicfoundation/ethereumjs-util");
     const pk = this._addressToPrivateKey.get(bufferToHex(address));
     if (pk === undefined) {
       throw new HardhatError(ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, {
@@ -225,7 +230,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
   }
 
   private async _getNonce(address: Buffer): Promise<bigint> {
-    const { bufferToHex } = await import("@nomicfoundation/ethereumjs-util");
+    const { bytesToHex: bufferToHex } = await import("@nomicfoundation/ethereumjs-util");
 
     const response = (await this._wrappedProvider.request({
       method: "eth_getTransactionCount",
@@ -311,7 +316,7 @@ export class HDWalletProvider extends LocalAccountsProvider {
       passphrase
     );
 
-    const { bufferToHex } = require("@nomicfoundation/ethereumjs-util");
+    const { bytesToHex: bufferToHex } = require("@nomicfoundation/ethereumjs-util");
     const privateKeysAsHex = privateKeys.map((pk) => bufferToHex(pk));
     super(provider, privateKeysAsHex);
   }

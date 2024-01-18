@@ -1,6 +1,6 @@
 import { Block } from "@nomicfoundation/ethereumjs-block";
 import {
-  bufferToHex,
+  bytesToHex as bufferToHex,
   toBuffer,
   zeroAddress,
 } from "@nomicfoundation/ethereumjs-util";
