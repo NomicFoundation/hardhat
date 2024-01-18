@@ -58,10 +58,10 @@ export class Create2ExecutionStrategy implements ExecutionStrategy {
   }
 
   public async init(): Promise<void> {
-    // No createX factory found, but we're not on a local chain
-    // check if someone else has deployed CreateX on this chain
+    // Check if CreateX is deployed on the current network
     const result = await this.client.getCode(CREATE_X_ADDRESS);
 
+    // If CreateX factory is deployed (and bytecode matches) then nothing to do
     if (result !== "0x") {
       assertIgnitionInvariant(
         ethers.keccak256(result) === CREATE_X_DEPLOYED_BYTECODE_HASH,
@@ -73,14 +73,16 @@ export class Create2ExecutionStrategy implements ExecutionStrategy {
 
     const chainId = await this.client.getChainId();
 
-    if (chainId === 31337) {
-      await this._deployCreateXFactory(this.client);
-    } else {
+    // Otherwise if we're not on a local hardhat node, throw an error
+    if (chainId !== 31337) {
       throw new NomicIgnitionPluginError(
         "create2",
         `CreateX not deployed on current network ${chainId}`
       );
     }
+
+    // On a local hardhat node, deploy the CreateX factory
+    await this._deployCreateXFactory(this.client);
   }
 
   public async *executeDeployment(
@@ -256,8 +258,8 @@ export class Create2ExecutionStrategy implements ExecutionStrategy {
    * the CreateX factory contract using a presigned transaction.
    */
   private async _deployCreateXFactory(client: EIP1193JsonRpcClient) {
-    // No createX factory found because we're on a local hardhat node
-    // deploy one using presigned tx from CreateX
+    // The account that will deploy the CreateX factory needs to be funded
+    // first
     await client.setBalance(
       CREATE_X_PRESIGNED_DEPLOYER_ADDRESS,
       400000000000000000n
