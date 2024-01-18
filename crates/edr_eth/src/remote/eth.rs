@@ -8,6 +8,8 @@
 
 /// Input type for `eth_call` and `eth_estimateGas`
 mod call_request;
+/// Input types for EIP-712 message signing
+pub mod eip712;
 
 use std::{fmt::Debug, sync::OnceLock};
 

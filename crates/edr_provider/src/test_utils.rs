@@ -13,10 +13,6 @@ use crate::{config::MiningConfig, requests::hardhat::rpc_types::ForkConfig};
 pub const TEST_SECRET_KEY: &str =
     "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 
-// Address 0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826
-pub const TEST_SECRET_KEY_SIGN_TYPED_DATA_V4: &str =
-    "0xc85ef7d79691fe79573b1a7064c19c1a9819ebdbd1faaab1a8ec92344438aaf4";
-
 pub const FORK_BLOCK_NUMBER: u64 = 18_725_000;
 
 /// Constructs a test config with a single account with 1 ether
@@ -63,18 +59,11 @@ pub fn create_test_config_with_impersonated_accounts_and_fork(
         bail_on_call_failure: false,
         bail_on_transaction_failure: false,
         fork,
-        accounts: vec![
-            AccountConfig {
-                secret_key: secret_key_from_str(TEST_SECRET_KEY)
-                    .expect("should construct secret key from string"),
-                balance: one_ether(),
-            },
-            AccountConfig {
-                secret_key: secret_key_from_str(TEST_SECRET_KEY_SIGN_TYPED_DATA_V4)
-                    .expect("should construct secret key from string"),
-                balance: one_ether(),
-            },
-        ],
+        accounts: vec![AccountConfig {
+            secret_key: secret_key_from_str(TEST_SECRET_KEY)
+                .expect("should construct secret key from string"),
+            balance: one_ether(),
+        }],
         genesis_accounts,
         block_gas_limit: 30_000_000,
         chain_id: 123,

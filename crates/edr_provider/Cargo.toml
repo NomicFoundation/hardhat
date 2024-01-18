@@ -9,7 +9,6 @@ dyn-clone = { version = "1.0.13", default-features = false }
 edr_defaults = { version = "0.2.0-dev", path = "../edr_defaults" }
 edr_eth = { version = "0.2.0-dev", path = "../edr_eth" }
 edr_evm = { version = "0.2.0-dev", path = "../edr_evm" }
-ethers-core = {  version = "2.0.12" , features = ["eip712"]}
 indexmap = { version = "2.0.0", default-features = false, features = ["std"] }
 k256 = { version = "0.13.1", default-features = false, features = ["arithmetic", "ecdsa", "pkcs8", "precomputed-tables", "std"] }
 lazy_static = { version = "1.4.0", default-features = false }

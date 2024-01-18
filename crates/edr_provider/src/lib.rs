@@ -244,8 +244,8 @@ impl Provider {
             MethodInvocation::Sign(message, address) => {
                 eth::handle_sign_request(data, message, address).and_then(to_json)
             }
-            MethodInvocation::SignTypedDataV4(address, message) => {
-                eth::handle_sign_typed_data_v4(data, address, message).and_then(to_json)
+            MethodInvocation::SignTypedDataV4(_, _) => {
+                Err(ProviderError::Unimplemented("SignTypedDataV4".to_string()))
             }
             MethodInvocation::Subscribe(subscription_type, filter_options) => {
                 eth::handle_subscribe_request(data, subscription_type, filter_options)

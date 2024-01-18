@@ -2,12 +2,12 @@ mod common;
 
 use edr_eth::{
     remote::{
-        eth::CallRequest,
+        eth::{eip712, CallRequest},
         filter::{LogFilterOptions, LogOutput, OneOrMore},
         BlockSpec, BlockTag, PreEip1898BlockSpec,
     },
     transaction::EthTransactionRequest,
-    Address, Bytes, B256, U256, U64,
+    Address, Bytes, HashMap, B256, U256, U64,
 };
 use edr_evm::alloy_primitives::U160;
 use edr_provider::{MethodInvocation, OneUsizeOrTwo, U64OrUsize};
@@ -341,6 +341,31 @@ fn test_serde_eth_sign() {
     help_test_method_invocation_serde(MethodInvocation::Sign(
         Bytes::from(&b"whatever"[..]),
         Address::from(U160::from(1)),
+    ));
+}
+
+#[test]
+fn test_serde_eth_sign_typed_data_v4() {
+    help_test_method_invocation_serde(MethodInvocation::SignTypedDataV4(
+        Address::from(U160::from(1)),
+        eip712::Message {
+            types: HashMap::from([(
+                String::from("typeA"),
+                vec![eip712::FieldType {
+                    name: String::from("A"),
+                    type_: String::from("whatever"),
+                }],
+            )]),
+            primary_type: String::from("whatever"),
+            message: serde_json::Value::from(String::from("a message body")),
+            domain: eip712::Domain {
+                name: Some(String::from("my domain")),
+                version: Some(String::from("1.0.0")),
+                chain_id: Some(U256::from(1)),
+                verifying_contract: Some(Address::from(U160::from(1))),
+                salt: Some(B256::from(U256::from(1))),
+            },
+        },
     ));
 }
 
