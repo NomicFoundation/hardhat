@@ -1,7 +1,7 @@
 import setupDebug from "debug";
 
 import { IgnitionError } from "../../../../errors";
-import { ERRORS } from "../../../../errors-list";
+import { ERRORS } from "../../../errors-list";
 import { assertIgnitionInvariant } from "../../../utils/assertions";
 import { JsonRpcClient } from "../../jsonrpc-client";
 import { TransactionTrackingTimer } from "../../transaction-tracking-timer";

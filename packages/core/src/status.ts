@@ -1,6 +1,6 @@
 import { IgnitionError } from "./errors";
-import { ERRORS } from "./errors-list";
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader";
+import { ERRORS } from "./internal/errors-list";
 import { loadDeploymentState } from "./internal/execution/deployment-state-helpers";
 import { findDeployedContracts } from "./internal/views/find-deployed-contracts";
 import { findStatus } from "./internal/views/find-status";

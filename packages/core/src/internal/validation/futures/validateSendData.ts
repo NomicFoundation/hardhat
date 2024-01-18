@@ -1,5 +1,4 @@
 import { IgnitionError } from "../../../errors";
-import { ERRORS } from "../../../errors-list";
 import {
   isAccountRuntimeValue,
   isModuleParameterRuntimeValue,
@@ -7,6 +6,7 @@ import {
 import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deploy";
 import { SendDataFuture } from "../../../types/module";
+import { ERRORS } from "../../errors-list";
 import { validateAccountRuntimeValue } from "../utils";
 
 export async function validateSendData(

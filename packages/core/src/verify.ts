@@ -1,7 +1,7 @@
 import { IgnitionError } from "./errors";
-import { ERRORS } from "./errors-list";
 import { builtinChains } from "./internal/chain-config";
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader";
+import { ERRORS } from "./internal/errors-list";
 import { encodeDeploymentArguments } from "./internal/execution/abi";
 import { loadDeploymentState } from "./internal/execution/deployment-state-helpers";
 import { DeploymentState } from "./internal/execution/types/deployment-state";

@@ -1,5 +1,4 @@
 import { IgnitionError } from "./errors";
-import { ERRORS } from "./errors-list";
 import {
   DEFAULT_AUTOMINE_REQUIRED_CONFIRMATIONS,
   defaultConfig,
@@ -7,6 +6,7 @@ import {
 import { Deployer } from "./internal/deployer";
 import { EphemeralDeploymentLoader } from "./internal/deployment-loader/ephemeral-deployment-loader";
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader";
+import { ERRORS } from "./internal/errors-list";
 import { BasicExecutionStrategy } from "./internal/execution/basic-execution-strategy";
 import { EIP1193JsonRpcClient } from "./internal/execution/jsonrpc-client";
 import { equalAddresses } from "./internal/execution/utils/address";

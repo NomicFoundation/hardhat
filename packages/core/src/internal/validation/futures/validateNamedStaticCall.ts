@@ -1,5 +1,4 @@
 import { IgnitionError } from "../../../errors";
-import { ERRORS } from "../../../errors-list";
 import {
   isAccountRuntimeValue,
   isArtifactType,
@@ -8,6 +7,7 @@ import {
 import { ArtifactResolver } from "../../../types/artifact";
 import { DeploymentParameters } from "../../../types/deploy";
 import { StaticCallFuture } from "../../../types/module";
+import { ERRORS } from "../../errors-list";
 import {
   validateArtifactFunction,
   validateFunctionArgumentParamType,

@@ -1,6 +1,6 @@
 import { IgnitionError } from "../../errors";
-import { ERRORS } from "../../errors-list";
 import { EIP1193Provider } from "../../types/provider";
+import { ERRORS } from "../errors-list";
 
 import {
   NetworkFees,

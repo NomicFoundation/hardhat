@@ -1,11 +1,11 @@
 import { IgnitionError } from "../../errors";
-import { ERRORS } from "../../errors-list";
 import { isFuture, isRuntimeValue } from "../../type-guards";
 import {
   AccountRuntimeValue,
   ArgumentType,
   RuntimeValue,
 } from "../../types/module";
+import { ERRORS } from "../errors-list";
 
 export function validateAccountRuntimeValue(
   arv: AccountRuntimeValue,

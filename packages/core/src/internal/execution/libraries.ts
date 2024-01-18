@@ -14,8 +14,8 @@
  */
 
 import { IgnitionError } from "../../errors";
-import { ERRORS } from "../../errors-list";
 import { Artifact } from "../../types/artifact";
+import { ERRORS } from "../errors-list";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
 /**

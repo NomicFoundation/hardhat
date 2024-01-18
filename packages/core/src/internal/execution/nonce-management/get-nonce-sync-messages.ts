@@ -1,7 +1,6 @@
 import uniq from "lodash/uniq";
 
 import { IgnitionError } from "../../../errors";
-import { ERRORS } from "../../../errors-list";
 import {
   isArtifactContractAtFuture,
   isNamedContractAtFuture,
@@ -12,6 +11,7 @@ import {
   IgnitionModule,
   IgnitionModuleResult,
 } from "../../../types/module";
+import { ERRORS } from "../../errors-list";
 import { getFuturesFromModule } from "../../utils/get-futures-from-module";
 import { getPendingOnchainInteraction } from "../../views/execution-state/get-pending-onchain-interaction";
 import { resolveFutureFrom } from "../future-processor/helpers/future-resolvers";

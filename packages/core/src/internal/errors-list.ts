@@ -1,16 +1,6 @@
-export const ERROR_PREFIX = "IGN";
+import { ErrorDescriptor } from "../types/errors";
 
-/**
- * ErrorDescriptor is a type that describes an error.
- * It's used to generate error codes and messages.
- *
- * @beta
- */
-export interface ErrorDescriptor {
-  number: number;
-  // Message can use templates. See applyErrorMessageTemplate
-  message: string;
-}
+export const ERROR_PREFIX = "IGN";
 
 export function getErrorCode(error: ErrorDescriptor): string {
   return `${ERROR_PREFIX}${error.number}`;
