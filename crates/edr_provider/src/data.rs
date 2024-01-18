@@ -591,7 +591,19 @@ impl ProviderData {
             }
         }
 
-        for block_number in oldest_block_number..=last_block_number {
+        let first_local_block = if range_includes_remote_blocks {
+            cmp::min(
+                self.fork_metadata
+                    .as_ref()
+                    .expect("we checked that there is a fork")
+                    .fork_block_number,
+                last_block_number,
+            ) + 1
+        } else {
+            oldest_block_number
+        };
+
+        for block_number in first_local_block..=last_block_number {
             if block_number < pending_block_number {
                 let block = self
                     .blockchain
@@ -626,7 +638,9 @@ impl ProviderData {
                         .push(gas_used_ratio(header.gas_used, header.gas_limit));
 
                     if let Some((ref mut reward, percentiles)) = reward_and_percentile.as_mut() {
-                        reward.push(compute_rewards(block, percentiles)?);
+                        // We don't compute this for the pending block, as there's no
+                        // effective miner fee yet.
+                        reward.push(percentiles.iter().map(|_| U256::ZERO).collect());
                     }
                 }
             } else if block_number == pending_block_number + 1 {
