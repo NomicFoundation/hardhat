@@ -8,7 +8,7 @@ import { promisify } from "util";
 import { download } from "../../util/download";
 import { assertHardhatInvariant, HardhatError } from "../../core/errors";
 import { ERRORS } from "../../core/errors-list";
-import { MultiProcessMutex, Mutex } from "../../vendor/await-semaphore";
+import { MultiProcessMutex } from "../../vendor/await-semaphore";
 
 const log = debug("hardhat:core:solidity:downloader");
 
@@ -126,7 +126,10 @@ export class CompilerDownloader implements ICompilerDownloader {
   }
 
   public static defaultCompilerListCachePeriod = 3_600_00;
-  private readonly _multiProcessMutex = new MultiProcessMutex();
+  private readonly _compilerDownloadMultiProcessMutex = new MultiProcessMutex(
+    "compiler-download",
+    20000
+  );
 
   /**
    * Use CompilerDownloader.getConcurrencySafeDownloader instead
@@ -159,7 +162,7 @@ export class CompilerDownloader implements ICompilerDownloader {
     // This is because the mutex blocks access until a compiler has been fully downloaded, preventing any new process
     // from checking whether that version of the compiler exists. Without mutex it might incorrectly
     // return false, indicating that the compiler isn't present, even though it is currently being downloaded.
-    await this._multiProcessMutex.use(async () => {
+    await this._compilerDownloadMultiProcessMutex.use(async () => {
       const isCompilerDownloaded = await this.isCompilerDownloaded(version);
 
       if (isCompilerDownloaded === true) {
