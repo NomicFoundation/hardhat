@@ -69,12 +69,10 @@ export class Mutex extends Semaphore {
 }
 
 export class MultiProcessMutex {
-  private _log: debug.Debugger;
-  private _mutexFilePath: string;
-  private _timeoutInMs: number;
-  private _defaultTimeoutInMs = 20000;
-  private _safeMarginInMs = 2000;
-  private _mutexReleaseWaitingTimeInMs = 500;
+  // Logic explanation: the fs.writeFile function, when used with the wx+ flag, performs an atomic operation to create a file.
+  // If multiple processes try to create the same file simultaneously, only one will succeed.
+  // This logic can be utilized to implement a mutex.
+  // For more info check the Nomic Notion page (internal link).
   // Timeout logic explanation:
   // When the function passed to the mutex is executed, it must not take longer than _defaultTimeoutInMs.
   // If it exceeds this duration, the function is terminated, and the mutex is released.
@@ -82,6 +80,12 @@ export class MultiProcessMutex {
   // by checking the elapsed time since the mutex was acquired. This approach helps to avoid deadlock scenarios.
   // The _safeMarginInMs is employed here to ensure that waiting processes do not prematurely terminate the current mutex holder
   // before it reports an error for exceeding the allowed execution time.
+  private _log: debug.Debugger;
+  private _mutexFilePath: string;
+  private _timeoutInMs: number;
+  private _defaultTimeoutInMs = 20000;
+  private _safeMarginInMs = 2000;
+  private _mutexReleaseWaitingTimeInMs = 500;
 
   constructor(mutexName: string, timeoutInMs?: number) {
     this._log = debug("hardhat:await-semaphore:multi-process-mutex");
@@ -93,10 +97,6 @@ export class MultiProcessMutex {
   }
 
   public async use<T>(f: () => Promise<T>): Promise<T> {
-    // Logic explanation: the fs.writeFile function, when used with the wx+ flag, performs an atomic operation to create a file.
-    // If multiple processes try to create the same file simultaneously, only one will succeed.
-    // This logic can be utilized to implement a mutex.
-    // For more info check the Nomic Notion page (internal link)
     this._log(
       `Starting mutex process withy mutex file '${this._mutexFilePath}'`
     );
@@ -114,11 +114,10 @@ export class MultiProcessMutex {
           `Current mutex file is too old, removing it at path '${this._mutexFilePath}'`
         );
         this._deleteMutexFile();
-        continue;
+      } else {
+        // wait
+        await this._waitMs();
       }
-
-      // wait
-      await this._waitMs();
     }
   }
 
@@ -144,7 +143,7 @@ export class MultiProcessMutex {
 
     // Set a timeout to ensure that the function does not take longer than the allowed time
     let timeoutHandle: NodeJS.Timeout;
-    const timeoutPromise = new Promise<never>((_, reject) => {
+    const timeoutChecker = new Promise<never>((_, reject) => {
       timeoutHandle = setTimeout(() => {
         reject(
           new Error(
@@ -157,9 +156,9 @@ export class MultiProcessMutex {
     try {
       // Execute the function passed to the mutex, no other function will be able to run at the same time.
       // If the function will take more than the timeout, it will be terminated with an error and the mutex will be released.
-      // Promise.race is used to race the timeoutPromise against the execution of fn().
+      // Promise.race is used to race the timeoutChecker against the execution of fn().
       // Whichever completes first will be the outcome of Promise.race.
-      return await Promise.race([f(), timeoutPromise]).then((result) => {
+      return await Promise.race([f(), timeoutChecker]).then((result) => {
         clearTimeout(timeoutHandle);
 
         // Release the mutex
