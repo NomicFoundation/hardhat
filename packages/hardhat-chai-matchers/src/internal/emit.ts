@@ -225,7 +225,7 @@ function assertArgsArraysEqual(
           true
         ).to.not.equal(
           expectedArgs[index],
-          "The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion should be the actual event argument (the pre-image of the hash). You provided the hash itself. Please supply the the actual event argument (the pre-image of the hash) instead."
+          "The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion should be the actual event argument (the pre-image of the hash). You provided the hash itself. Please supply the actual event argument (the pre-image of the hash) instead."
         );
         const expectedArgBytes = ethers.isHexString(expectedArgs[index])
           ? ethers.getBytes(expectedArgs[index])

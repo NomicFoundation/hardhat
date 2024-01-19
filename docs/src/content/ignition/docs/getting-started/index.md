@@ -32,6 +32,12 @@ To install Hardhat Ignition in an existing Hardhat project, you will need:
 
 You can also follow [Hardhat's Quick Start guide](../../../hardhat-runner/docs/getting-started/index.md) to create a new project from scratch to follow this guide.
 
+:::tip
+
+If you prefer to use **Viem** instead of **ethers**, check out the [Viem guide](../../../ignition/docs/guides/viem.md) for installation instructions.
+
+:::
+
 Once you have a Hardhat project ready, open a terminal in its root directory, and run:
 
 ::::tabsgroup{options="npm 7+,npm 6,yarn"}
@@ -39,7 +45,7 @@ Once you have a Hardhat project ready, open a terminal in its root directory, an
 :::tab{value="npm 7+"}
 
 ```sh
-npm install --save-dev @nomicfoundation/hardhat-ignition
+npm install --save-dev @nomicfoundation/hardhat-ignition-ethers
 ```
 
 :::
@@ -47,7 +53,7 @@ npm install --save-dev @nomicfoundation/hardhat-ignition
 :::tab{value="npm 6"}
 
 ```sh
-npm install --save-dev @nomicfoundation/hardhat-ignition
+npm install --save-dev @nomicfoundation/hardhat-ignition-ethers @nomicfoundation/hardhat-ethers @nomicfoundation/hardhat-ignition @nomicfoundation/hardhat-verify @nomicfoundation/ignition-core ethers
 ```
 
 :::
@@ -55,7 +61,7 @@ npm install --save-dev @nomicfoundation/hardhat-ignition
 :::tab{value=yarn}
 
 ```sh
-yarn add --dev @nomicfoundation/hardhat-ignition
+yarn add --dev @nomicfoundation/hardhat-ignition-ethers @nomicfoundation/hardhat-ethers @nomicfoundation/hardhat-ignition @nomicfoundation/hardhat-verify @nomicfoundation/ignition-core ethers
 ```
 
 :::
@@ -69,7 +75,7 @@ Finally, add this to your config file to [enable the plugin](../../../hardhat-ru
 :::tab{value="TypeScript"}
 
 ```typescript
-import "@nomicfoundation/hardhat-ignition";
+import "@nomicfoundation/hardhat-ignition-ethers";
 ```
 
 :::
@@ -77,7 +83,7 @@ import "@nomicfoundation/hardhat-ignition";
 :::tab{value="JavaScript"}
 
 ```javascript
-require("@nomicfoundation/hardhat-ignition");
+require("@nomicfoundation/hardhat-ignition-ethers");
 ```
 
 :::

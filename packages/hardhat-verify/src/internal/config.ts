@@ -37,6 +37,8 @@ export function sourcifyConfigExtender(
 ): void {
   const defaultSourcifyConfig: SourcifyConfig = {
     enabled: false,
+    apiUrl: "https://sourcify.dev/server",
+    browserUrl: "https://repo.sourcify.dev",
   };
   const cloneDeep = require("lodash.clonedeep") as typeof LodashCloneDeepT;
   const userSourcifyConfig = cloneDeep(userConfig.sourcify);

@@ -15,6 +15,8 @@ export interface EtherscanConfig {
 
 export interface SourcifyConfig {
   enabled: boolean;
+  apiUrl?: string;
+  browserUrl?: string;
 }
 
 export type ApiKey = string | Record<string, string>;
