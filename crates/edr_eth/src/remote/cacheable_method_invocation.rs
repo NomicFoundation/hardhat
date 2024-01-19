@@ -6,6 +6,7 @@ use crate::{
     remote::{
         request_methods::RequestMethod, BlockSpec, BlockTag, Eip1898BlockSpec, PreEip1898BlockSpec,
     },
+    reward_percentile::RewardPercentile,
     Address, B256, U256,
 };
 
@@ -26,6 +27,11 @@ pub(super) fn try_write_cache_key(method: &RequestMethod) -> Option<WriteCacheKe
 enum CacheableRequestMethod<'a> {
     /// eth_chainId
     ChainId,
+    FeeHistory {
+        block_count: &'a U256,
+        newest_block: CacheableBlockSpec<'a>,
+        reward_percentiles: &'a Option<Vec<RewardPercentile>>,
+    },
     /// eth_getBalance
     GetBalance {
         address: &'a Address,
@@ -85,6 +91,11 @@ impl<'a> CacheableRequestMethod<'a> {
             Err(SymbolicBlogTagError) => WriteCacheKey::needs_block_number(self),
             Ok(hasher) => match self {
                 CacheableRequestMethod::ChainId => Some(WriteCacheKey::finalize(hasher)),
+                CacheableRequestMethod::FeeHistory {
+                    block_count: _,
+                    newest_block,
+                    reward_percentiles: _,
+                } => WriteCacheKey::needs_safety_check(hasher, newest_block),
                 CacheableRequestMethod::GetBalance {
                     address: _,
                     block_spec,
@@ -144,6 +155,13 @@ impl<'a> TryFrom<&'a RequestMethod> for CacheableRequestMethod<'a> {
     fn try_from(value: &'a RequestMethod) -> Result<Self, Self::Error> {
         match value {
             RequestMethod::ChainId(_) => Ok(CacheableRequestMethod::ChainId),
+            RequestMethod::FeeHistory(block_count, newest_block, reward_percentiles) => {
+                Ok(CacheableRequestMethod::FeeHistory {
+                    block_count,
+                    newest_block: newest_block.try_into()?,
+                    reward_percentiles,
+                })
+            }
             RequestMethod::GetBalance(address, block_spec) => {
                 Ok(CacheableRequestMethod::GetBalance {
                     address,
@@ -191,7 +209,7 @@ impl<'a> TryFrom<&'a RequestMethod> for CacheableRequestMethod<'a> {
             RequestMethod::NetVersion(_) => Ok(CacheableRequestMethod::NetVersion),
 
             // Explicit to make sure if a new method is added, it is not forgotten here.
-            RequestMethod::BlockNumber(_) | RequestMethod::FeeHistory(_, _, _) => {
+            RequestMethod::BlockNumber(_) => {
                 Err(MethodNotCacheableError::RequestMethod(value.clone()))
             }
         }
@@ -678,6 +696,20 @@ impl Hasher {
 
         let this = match method {
             CacheableRequestMethod::ChainId => this,
+            CacheableRequestMethod::FeeHistory {
+                block_count,
+                newest_block,
+                reward_percentiles,
+            } => {
+                let this = this
+                    .hash_u256(block_count)
+                    .hash_block_spec(newest_block)?
+                    .hash_u8(reward_percentiles.cache_key_variant());
+                match reward_percentiles {
+                    Some(reward_percentiles) => this.hash_reward_percentiles(reward_percentiles),
+                    None => this,
+                }
+            }
             CacheableRequestMethod::GetBalance {
                 address,
                 block_spec,
@@ -717,6 +749,21 @@ impl Hasher {
         };
 
         Ok(this)
+    }
+
+    fn hash_reward_percentile(self, value: &RewardPercentile) -> Self {
+        const RESOLUTION: f64 = 100.0;
+        // `RewardPercentile` is an f64 in range [0, 100], so this is guaranteed not to
+        // overflow.
+        self.hash_u64((value.as_ref() * RESOLUTION).floor() as u64)
+    }
+
+    fn hash_reward_percentiles(self, value: &[RewardPercentile]) -> Self {
+        let mut this = self.hash_u64(value.len() as u64);
+        for v in value {
+            this = this.hash_reward_percentile(v);
+        }
+        this
     }
 
     fn finalize(self) -> String {
@@ -764,6 +811,7 @@ impl<'a> CacheKeyVariant for &'a CacheableRequestMethod<'a> {
             CacheableRequestMethod::GetTransactionCount { .. } => 12,
             CacheableRequestMethod::GetTransactionReceipt { .. } => 13,
             CacheableRequestMethod::NetVersion => 14,
+            CacheableRequestMethod::FeeHistory { .. } => 15,
         }
     }
 }

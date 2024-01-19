@@ -155,8 +155,8 @@ impl Provider {
             MethodInvocation::EstimateGas(call_request, block_spec) => {
                 eth::handle_estimate_gas(data, call_request, block_spec).and_then(to_json)
             }
-            MethodInvocation::FeeHistory(block_count, block_spec, reward_percentiles) => {
-                eth::handle_fee_history(data, block_count, block_spec, reward_percentiles)
+            MethodInvocation::FeeHistory(block_count, newest_block, reward_percentiles) => {
+                eth::handle_fee_history(data, block_count, newest_block, reward_percentiles)
                     .and_then(to_json)
             }
             MethodInvocation::GasPrice(()) => eth::handle_gas_price(data).and_then(to_json),

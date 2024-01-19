@@ -4,6 +4,7 @@ mod gas;
 mod inspector;
 
 use std::{
+    cmp,
     cmp::Ordering,
     collections::BTreeMap,
     fmt::Debug,
@@ -15,9 +16,11 @@ use edr_eth::{
     log::FilterLog,
     receipt::BlockReceipt,
     remote::{
+        eth::FeeHistoryResult,
         filter::{FilteredEvents, LogOutput, SubscriptionType},
         BlockSpec, BlockTag, Eip1898BlockSpec, RpcClient, RpcClientError,
     },
+    reward_percentile::RewardPercentile,
     signature::{RecoveryMessage, Signature},
     transaction::{SignedTransaction, TransactionRequestAndSender},
     Address, Bytes, SpecId, B256, U256,
@@ -39,6 +42,7 @@ use edr_evm::{
     RandomHashGenerator, StorageSlot, SyncBlock, TxEnv, KECCAK_EMPTY,
 };
 use ethers_core::types::transaction::eip712::{Eip712, TypedData};
+use gas::gas_used_ratio;
 use indexmap::IndexMap;
 use inspector::EvmInspector;
 pub use inspector::{InspectorCallbacks, SyncInspectorCallbacks};
@@ -49,7 +53,7 @@ use self::account::{create_accounts, InitialAccounts};
 use crate::{
     data::{
         call::RunCallArgs,
-        gas::{BinarySearchEstimationArgs, CheckGasLimitArgs},
+        gas::{compute_rewards, BinarySearchEstimationArgs, CheckGasLimitArgs},
     },
     error::TransactionFailure,
     filter::{bloom_contains_log_filter, filter_logs, Filter, FilterData, LogFilter},
@@ -99,6 +103,9 @@ pub struct ProviderData {
     prev_randao_generator: RandomHashGenerator,
     block_time_offset_seconds: i64,
     fork_metadata: Option<ForkMetadata>,
+    // Must be set if the provider is created with a fork config.
+    // Hack to get around the type erasure with the dyn blockchain trait.
+    rpc_client: Option<RpcClient>,
     instance_id: B256,
     is_auto_mining: bool,
     next_block_base_fee_per_gas: Option<U256>,
@@ -132,6 +139,7 @@ impl ProviderData {
         let BlockchainAndState {
             blockchain,
             fork_metadata,
+            rpc_client,
             state,
             irregular_state,
             prev_randao_generator,
@@ -158,6 +166,7 @@ impl ProviderData {
             prev_randao_generator,
             block_time_offset_seconds,
             fork_metadata,
+            rpc_client,
             instance_id: B256::random(),
             is_auto_mining,
             next_block_base_fee_per_gas,
@@ -493,6 +502,161 @@ impl ProviderData {
                 upper_bound: header.gas_limit,
             })
         })?
+    }
+
+    // Matches Hardhat implementation
+    pub fn fee_history(
+        &self,
+        block_count: u64,
+        newest_block_spec: &BlockSpec,
+        percentiles: Option<Vec<RewardPercentile>>,
+    ) -> Result<FeeHistoryResult, ProviderError> {
+        if self.spec_id() < SpecId::LONDON {
+            return Err(ProviderError::UnmetHardfork {
+                actual: self.spec_id(),
+                minimum: SpecId::LONDON,
+            });
+        }
+
+        let latest_block_number = self.last_block_number();
+        let pending_block_number = latest_block_number + 1;
+        let newest_block_number = self
+            .block_by_block_spec(newest_block_spec)?
+            // None if pending block
+            .map_or(pending_block_number, |block| block.header().number);
+        let oldest_block_number = if newest_block_number < block_count {
+            0
+        } else {
+            newest_block_number - block_count + 1
+        };
+        let last_block_number = newest_block_number + 1;
+
+        let pending_block = if last_block_number >= pending_block_number {
+            let MineBlockResultAndState { block, .. } = self.mine_pending_block()?;
+            Some(block)
+        } else {
+            None
+        };
+
+        let mut result = FeeHistoryResult::new(oldest_block_number);
+
+        let mut reward_and_percentile = percentiles.and_then(|percentiles| {
+            if percentiles.is_empty() {
+                None
+            } else {
+                Some((Vec::default(), percentiles))
+            }
+        });
+
+        let range_includes_remote_blocks = self.fork_metadata.as_ref().map_or(false, |metadata| {
+            oldest_block_number <= metadata.fork_block_number
+        });
+
+        if range_includes_remote_blocks {
+            let last_remote_block = cmp::min(
+                self.fork_metadata
+                    .as_ref()
+                    .expect("we checked that there is a fork")
+                    .fork_block_number,
+                last_block_number,
+            );
+            let remote_block_count = last_remote_block - oldest_block_number + 1;
+
+            let rpc_client = self
+                .rpc_client
+                .as_ref()
+                .expect("we checked that there is a fork");
+            let FeeHistoryResult {
+                oldest_block: _,
+                base_fee_per_gas,
+                gas_used_ratio,
+                reward: remote_reward,
+            } = tokio::task::block_in_place(|| {
+                self.runtime_handle.block_on(
+                    rpc_client.fee_history(
+                        remote_block_count,
+                        newest_block_spec.clone(),
+                        reward_and_percentile
+                            .as_ref()
+                            .map(|(_, percentiles)| percentiles.clone()),
+                    ),
+                )
+            })?;
+
+            result.base_fee_per_gas = base_fee_per_gas;
+            result.gas_used_ratio = gas_used_ratio;
+            if let Some((ref mut reward, _)) = reward_and_percentile.as_mut() {
+                if let Some(remote_reward) = remote_reward {
+                    *reward = remote_reward;
+                }
+            }
+        }
+
+        let first_local_block = if range_includes_remote_blocks {
+            cmp::min(
+                self.fork_metadata
+                    .as_ref()
+                    .expect("we checked that there is a fork")
+                    .fork_block_number,
+                last_block_number,
+            ) + 1
+        } else {
+            oldest_block_number
+        };
+
+        for block_number in first_local_block..=last_block_number {
+            if block_number < pending_block_number {
+                let block = self
+                    .blockchain
+                    .block_by_number(block_number)?
+                    .expect("Block must exist as i is at most the last block number");
+
+                let header = block.header();
+                result
+                    .base_fee_per_gas
+                    .push(header.base_fee_per_gas.unwrap_or(U256::ZERO));
+
+                if block_number < last_block_number {
+                    result
+                        .gas_used_ratio
+                        .push(gas_used_ratio(header.gas_used, header.gas_limit));
+
+                    if let Some((ref mut reward, percentiles)) = reward_and_percentile.as_mut() {
+                        reward.push(compute_rewards(&block, percentiles)?);
+                    }
+                }
+            } else if block_number == pending_block_number {
+                let next_block_base_fee_per_gas = self
+                    .next_block_base_fee_per_gas()?
+                    .expect("We checked that EIP-1559 is active");
+                result.base_fee_per_gas.push(next_block_base_fee_per_gas);
+
+                if block_number < last_block_number {
+                    let block = pending_block.as_ref().expect("We mined the pending block");
+                    let header = block.header();
+                    result
+                        .gas_used_ratio
+                        .push(gas_used_ratio(header.gas_used, header.gas_limit));
+
+                    if let Some((ref mut reward, percentiles)) = reward_and_percentile.as_mut() {
+                        // We don't compute this for the pending block, as there's no
+                        // effective miner fee yet.
+                        reward.push(percentiles.iter().map(|_| U256::ZERO).collect());
+                    }
+                }
+            } else if block_number == pending_block_number + 1 {
+                let block = pending_block.as_ref().expect("We mined the pending block");
+                result
+                    .base_fee_per_gas
+                    .push(calculate_next_base_fee(block.header()));
+            }
+        }
+
+        if let Some((reward, _)) = reward_and_percentile {
+            result.reward = Some(reward);
+        }
+
+        Ok(result)
     }
 
     pub fn gas_price(&self) -> Result<U256, ProviderError> {
@@ -1694,6 +1858,7 @@ fn block_time_offset_seconds(config: &ProviderConfig) -> Result<i64, CreationErr
 struct BlockchainAndState {
     blockchain: Box<dyn SyncBlockchain<BlockchainError, StateError>>,
     fork_metadata: Option<ForkMetadata>,
+    rpc_client: Option<RpcClient>,
     state: Box<dyn SyncState<StateError>>,
     irregular_state: IrregularState,
     prev_randao_generator: RandomHashGenerator,
@@ -1715,14 +1880,12 @@ fn create_blockchain_and_state(
             RandomHashGenerator::with_seed(edr_defaults::STATE_ROOT_HASH_SEED),
         ));
 
-        let rpc_client = RpcClient::new(&fork_config.json_rpc_url, config.cache_dir.clone());
-
         let blockchain = tokio::task::block_in_place(|| {
             runtime.block_on(ForkedBlockchain::new(
                 runtime.clone(),
                 Some(config.chain_id),
                 config.hardfork,
-                rpc_client,
+                RpcClient::new(&fork_config.json_rpc_url, config.cache_dir.clone()),
                 fork_config.block_number,
                 state_root_generator.clone(),
                 // TODO: make hardfork activations configurable (https://github.com/NomicFoundation/edr/issues/111)
@@ -1732,9 +1895,9 @@ fn create_blockchain_and_state(
 
         let fork_block_number = blockchain.last_block_number();
 
-        if !genesis_accounts.is_empty() {
-            let rpc_client = RpcClient::new(&fork_config.json_rpc_url, config.cache_dir.clone());
+        let rpc_client = RpcClient::new(&fork_config.json_rpc_url, config.cache_dir.clone());
 
+        if !genesis_accounts.is_empty() {
             let genesis_addresses = genesis_accounts.keys().cloned().collect::<Vec<_>>();
             let genesis_account_infos = tokio::task::block_in_place(|| {
                 runtime.block_on(rpc_client.get_account_infos(
@@ -1824,6 +1987,7 @@ fn create_blockchain_and_state(
                     .expect("Fork block must exist")
                     .hash(),
             }),
+            rpc_client: Some(rpc_client),
             blockchain: Box::new(blockchain),
             state: Box::new(state),
             irregular_state,
@@ -1856,6 +2020,7 @@ fn create_blockchain_and_state(
 
         Ok(BlockchainAndState {
             fork_metadata: None,
+            rpc_client: None,
             blockchain: Box::new(blockchain),
             state,
             irregular_state,

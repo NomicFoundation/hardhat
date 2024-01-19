@@ -65,7 +65,7 @@ mod test {
                 from: Address::default(),
                 to: Some(Address::default()),
                 contract_address: None,
-                gas_used: U256::from(1),
+                gas_used: 1,
                 effective_gas_price: Some(U256::from(1)),
             },
             block_hash: B256::default(),

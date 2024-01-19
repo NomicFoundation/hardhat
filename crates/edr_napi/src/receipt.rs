@@ -66,10 +66,7 @@ impl Receipt {
     #[doc = "Returns the gas used by the receipt's transaction."]
     #[napi(getter)]
     pub fn gas_used(&self) -> BigInt {
-        BigInt {
-            sign_bit: false,
-            words: self.gas_used.as_limbs().to_vec(),
-        }
+        BigInt::from(self.gas_used)
     }
 
     #[napi(getter)]

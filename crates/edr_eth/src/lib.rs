@@ -18,6 +18,8 @@ pub mod receipt;
 /// Remote node interaction
 #[cfg(feature = "serde")]
 pub mod remote;
+/// Ethereum gas related types
+pub mod reward_percentile;
 /// RLP traits and functions
 pub mod rlp;
 #[cfg(feature = "serde")]

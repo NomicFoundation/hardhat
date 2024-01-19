@@ -2,6 +2,7 @@ use revm_primitives::{Address, B256};
 
 use crate::{
     remote::{filter::LogFilterOptions, BlockSpec, PreEip1898BlockSpec},
+    reward_percentile::RewardPercentile,
     U256,
 };
 
@@ -21,7 +22,8 @@ pub enum RequestMethod {
         /// newest block
         BlockSpec,
         /// reward percentiles
-        Vec<f64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        Option<Vec<RewardPercentile>>,
     ),
     /// eth_chainId
     #[serde(rename = "eth_chainId", with = "crate::serde::empty_params")]
