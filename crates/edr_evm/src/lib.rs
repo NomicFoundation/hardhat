@@ -49,3 +49,11 @@ mod miner;
 pub(crate) mod random;
 mod runtime;
 mod transaction;
+
+/// Types for managing Ethereum precompiles
+pub mod precompile {
+    pub use revm::{
+        is_precompile,
+        precompile::{Precompiles, SpecId},
+    };
+}

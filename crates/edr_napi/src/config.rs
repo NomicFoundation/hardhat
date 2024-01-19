@@ -1,7 +1,7 @@
 use std::ops::Deref;
 
 use edr_evm::CfgEnv;
-use napi::bindgen_prelude::{BigInt, FromNapiValue, ToNapiValue};
+use napi::bindgen_prelude::BigInt;
 use napi_derive::napi;
 
 use crate::cast::TryCast;

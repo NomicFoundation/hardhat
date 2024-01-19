@@ -1,4 +1,3 @@
-use napi::bindgen_prelude::{FromNapiValue, ToNapiValue};
 use napi_derive::napi;
 
 #[napi(string_enum)]

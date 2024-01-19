@@ -25,11 +25,17 @@ import {
   MethodNotFoundError,
   MethodNotSupportedError,
   ProviderError,
+  TransactionExecutionError,
 } from "../../core/providers/errors";
 import { isErrorResponse } from "../../core/providers/http";
 import { getHardforkName } from "../../util/hardforks";
 import { Mutex } from "../../vendor/await-semaphore";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
+import { ContractsIdentifier } from "../stack-traces/contracts-identifier";
+import {
+  VmTraceDecoder,
+  initializeVmTraceDecoder,
+} from "../stack-traces/vm-trace-decoder";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/constants";
 
 import { getPackageJson } from "../../util/packageInfo";
@@ -62,6 +68,7 @@ import {
   ethereumsjsHardforkToEdrSpecId,
 } from "./utils/convertToEdr";
 import { makeCommon } from "./utils/makeCommon";
+import { SolidityTracer } from "../stack-traces/solidityTracer";
 
 const log = debug("hardhat:core:hardhat-network:provider");
 
@@ -276,7 +283,7 @@ class HardhatNetworkProvider extends EventEmitter implements EIP1193Provider {
 
     const nodeConfig = getNodeConfig(
       this._config,
-      await this._makeTracingConfig()
+      await makeTracingConfig(this._artifacts)
     );
 
     const [common, node] = await HardhatNode.create(nodeConfig);
@@ -317,38 +324,6 @@ class HardhatNetworkProvider extends EventEmitter implements EIP1193Provider {
     this._personalModule = new PersonalModule(node);
 
     this._forwardNodeEvents(node);
-  }
-
-  private async _makeTracingConfig(): Promise<TracingConfig | undefined> {
-    if (this._artifacts !== undefined) {
-      const buildInfos = [];
-
-      const buildInfoFiles = await this._artifacts.getBuildInfoPaths();
-
-      try {
-        for (const buildInfoFile of buildInfoFiles) {
-          const buildInfo = await fsExtra.readJson(buildInfoFile);
-          if (semver.gte(buildInfo.solcVersion, FIRST_SOLC_VERSION_SUPPORTED)) {
-            buildInfos.push(buildInfo);
-          }
-        }
-
-        return {
-          buildInfos,
-        };
-      } catch (error) {
-        console.warn(
-          chalk.yellow(
-            "Stack traces engine could not be initialized. Run Hardhat with --verbose to learn more."
-          )
-        );
-
-        log(
-          "Solidity stack traces disabled: Failed to read solc's input and output files. Please report this to help us improve Hardhat.\n",
-          error
-        );
-      }
-    }
   }
 
   private _makeMiningTimer(): MiningTimer {
@@ -445,6 +420,8 @@ class EdrLogger {
   public logLineWithTitle(title: string, line: string) {
     this._stopCollapsingMethod();
 
+    // We always use the max title length we've seen. Otherwise the value move
+    // a lot with each tx/call.
     if (title.length > this._titleLength) {
       this._titleLength = title.length;
     }
@@ -511,6 +488,8 @@ class EdrLogger {
         return line;
       }
 
+      // Provider logs JSON-RPC provider automine enabled without pending txs eth_sendRawTransaction should print a successful transaction
+
       const title = `${line[0]}:`;
       return `${title.padEnd(this._titleLength + 1)} ${line[1]}`;
     });
@@ -545,20 +524,32 @@ export class EdrProviderWrapper
   extends EventEmitter
   implements EIP1193Provider
 {
+  private _consoleLogs = new Array<Buffer>();
+  private readonly _vmTraceDecoder: VmTraceDecoder;
+
   private constructor(
     private readonly _provider: EdrProviderT,
     private readonly _eventAdapter: EdrProviderEventAdapter,
     private readonly _edrLogger: EdrLogger,
     // The common configuration for EthereumJS VM is not used by EDR, but tests expect it as part of the provider.
-    private readonly _common: Common
+    private readonly _common: Common,
+    tracingConfig?: TracingConfig
   ) {
     super();
+
+    const contractsIdentifier = new ContractsIdentifier();
+    this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
+
+    if (tracingConfig !== undefined) {
+      initializeVmTraceDecoder(this._vmTraceDecoder, tracingConfig);
+    }
   }
 
   public static async create(
     config: HardhatNetworkProviderConfig,
     logger: EdrLogger,
-    loggerEnabled: boolean
+    loggerEnabled: boolean,
+    artifacts?: Artifacts
   ): Promise<EdrProviderWrapper> {
     const { Provider } =
       require("@ignored/edr") as typeof import("@ignored/edr");
@@ -645,7 +636,8 @@ export class EdrProviderWrapper
       provider,
       eventAdapter,
       logger,
-      common
+      common,
+      await makeTracingConfig(artifacts)
     );
 
     // Pass through all events from the provider
@@ -667,6 +659,14 @@ export class EdrProviderWrapper
       await this._provider.handleRequest(stringifiedArgs)
     );
 
+    // Swap out the logs
+    const logs = this._consoleLogs;
+    this._consoleLogs = new Array();
+
+    // Decode the logs, if any
+    const consoleLogger = new ConsoleLogger();
+    const consoleLogMessages = consoleLogger.getDecodedLogs(logs);
+
     const shouldLog =
       this._edrLogger.isEnabled() && !PRIVATE_RPC_METHODS.has(args.method);
 
@@ -676,18 +676,20 @@ export class EdrProviderWrapper
         // this._edrLogger.printMethodNotSupported(args.method);
         this._edrLogger.printLogs();
 
-        this._edrLogger.printLine("");
-        this._edrLogger.printLine(`  ${response.error.message}`);
+        if (response.error.code !== TransactionExecutionError.CODE) {
+          this._edrLogger.printLine("");
+          this._edrLogger.printLine(`  ${response.error.message}`);
 
-        const isEIP155Error =
-          response.error.code === InvalidInputError.CODE &&
-          response.error.message.includes("EIP155");
+          const isEIP155Error =
+            response.error.code === InvalidInputError.CODE &&
+            response.error.message.includes("EIP155");
 
-        if (isEIP155Error) {
-          const message =
-            "  If you are using MetaMask, you can learn how to fix this error here: https://hardhat.org/metamask-issue";
+          if (isEIP155Error) {
+            const message =
+              "  If you are using MetaMask, you can learn how to fix this error here: https://hardhat.org/metamask-issue";
 
-          this._edrLogger.printLine(chalk.yellow(message));
+            this._edrLogger.printLine(chalk.yellow(message));
+          }
         }
 
         this._edrLogger.printLine("");
@@ -775,7 +777,8 @@ export async function createHardhatNetworkProvider(
     eip1193Provider = await EdrProviderWrapper.create(
       hardhatNetworkProviderConfig,
       logger,
-      loggerConfig.enabled
+      loggerConfig.enabled,
+      artifacts
     );
   } else if (vmModeEnvVar === "ethereumjs" || vmModeEnvVar === "dual") {
     const logger = new ModulesLogger(
@@ -798,4 +801,38 @@ export async function createHardhatNetworkProvider(
   }
 
   return eip1193Provider;
+}
+
+async function makeTracingConfig(
+  artifacts: Artifacts | undefined
+): Promise<TracingConfig | undefined> {
+  if (artifacts !== undefined) {
+    const buildInfos = [];
+
+    const buildInfoFiles = await artifacts.getBuildInfoPaths();
+
+    try {
+      for (const buildInfoFile of buildInfoFiles) {
+        const buildInfo = await fsExtra.readJson(buildInfoFile);
+        if (semver.gte(buildInfo.solcVersion, FIRST_SOLC_VERSION_SUPPORTED)) {
+          buildInfos.push(buildInfo);
+        }
+      }
+
+      return {
+        buildInfos,
+      };
+    } catch (error) {
+      console.warn(
+        chalk.yellow(
+          "Stack traces engine could not be initialized. Run Hardhat with --verbose to learn more."
+        )
+      );
+
+      log(
+        "Solidity stack traces disabled: Failed to read solc's input and output files. Please report this to help us improve Hardhat.\n",
+        error
+      );
+    }
+  }
 }

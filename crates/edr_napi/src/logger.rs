@@ -2,15 +2,14 @@ use std::fmt::Display;
 
 use edr_eth::{B256, U256};
 use edr_evm::{
-    blockchain::BlockchainError, trace::TraceMessage, Bytecode, ExecutableTransaction, SyncBlock,
+    blockchain::BlockchainError,
+    precompile::{self, Precompiles},
+    trace::TraceMessage,
+    ExecutableTransaction, ExecutionResult, SyncBlock,
 };
 use itertools::izip;
-use napi::{Env, JsFunction, NapiRaw};
+use napi::{threadsafe_function::ThreadsafeFunctionCallMode, JsFunction};
 use napi_derive::napi;
-
-use crate::threadsafe_function::{
-    ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode,
-};
 
 #[napi(object)]
 pub struct LoggerConfig {
@@ -28,588 +27,6 @@ pub struct LoggerConfig {
     pub replace_last_log_line_callback: JsFunction,
     #[napi(ts_type = "(message: string) => void")]
     pub replace_last_print_line_callback: JsFunction,
-}
-
-#[derive(Clone)]
-pub struct CallbackLogger {
-    indentation: usize,
-    is_enabled: bool,
-    log_line_fn: ThreadsafeFunction<String>,
-    log_line_with_title_fn: ThreadsafeFunction<(String, String)>,
-    print_line_fn: ThreadsafeFunction<String>,
-    set_is_enabled_fn: ThreadsafeFunction<bool>,
-    replace_last_log_line_fn: ThreadsafeFunction<String>,
-    replace_last_print_line_fn: ThreadsafeFunction<String>,
-}
-
-impl CallbackLogger {
-    pub fn new(env: &Env, config: LoggerConfig) -> napi::Result<Self> {
-        let log_line_fn = ThreadsafeFunction::create(
-            env.raw(),
-            // SAFETY: The callback is guaranteed to be valid for the lifetime of the inspector.
-            unsafe { config.log_line_callback.raw() },
-            0,
-            |ctx: ThreadSafeCallContext<String>| {
-                // String
-                let string = ctx.env.create_string_from_std(ctx.value)?;
-
-                ctx.callback.call(None, &[string])?;
-                Ok(())
-            },
-        )?;
-        let log_line_with_title_fn = ThreadsafeFunction::create(
-            env.raw(),
-            // SAFETY: The callback is guaranteed to be valid for the lifetime of the inspector.
-            unsafe { config.log_line_callback.raw() },
-            0,
-            |ctx: ThreadSafeCallContext<(String, String)>| {
-                // [String, String]
-                let mut array = ctx.env.create_array_with_length(2)?;
-
-                ctx.env
-                    .create_string_from_std(ctx.value.0)
-                    .and_then(|title| array.set_element(0, title))?;
-
-                ctx.env
-                    .create_string_from_std(ctx.value.1)
-                    .and_then(|message| array.set_element(1, message))?;
-
-                ctx.callback.call(None, &[array])?;
-                Ok(())
-            },
-        )?;
-        let print_line_fn = ThreadsafeFunction::create(
-            env.raw(),
-            // SAFETY: The callback is guaranteed to be valid for the lifetime of the inspector.
-            unsafe { config.print_line_callback.raw() },
-            0,
-            |ctx: ThreadSafeCallContext<String>| {
-                // String
-                let string = ctx.env.create_string_from_std(ctx.value)?;
-
-                ctx.callback.call(None, &[string])?;
-                Ok(())
-            },
-        )?;
-        let set_is_enabled_fn = ThreadsafeFunction::create(
-            env.raw(),
-            // SAFETY: The callback is guaranteed to be valid for the lifetime of the inspector.
-            unsafe { config.set_is_enabled_callback.raw() },
-            0,
-            |ctx: ThreadSafeCallContext<bool>| {
-                // bool
-                let boolean = ctx.env.get_boolean(ctx.value)?;
-
-                ctx.callback.call(None, &[boolean])?;
-                Ok(())
-            },
-        )?;
-        let replace_last_log_line_fn = ThreadsafeFunction::create(
-            env.raw(),
-            // SAFETY: The callback is guaranteed to be valid for the lifetime of the inspector.
-            unsafe { config.replace_last_log_line_callback.raw() },
-            0,
-            |ctx: ThreadSafeCallContext<String>| {
-                // String
-                let string = ctx.env.create_string_from_std(ctx.value)?;
-
-                ctx.callback.call(None, &[string])?;
-                Ok(())
-            },
-        )?;
-        let replace_last_print_line_fn = ThreadsafeFunction::create(
-            env.raw(),
-            // SAFETY: The callback is guaranteed to be valid for the lifetime of the inspector.
-            unsafe { config.replace_last_print_line_callback.raw() },
-            0,
-            |ctx: ThreadSafeCallContext<String>| {
-                // String
-                let string = ctx.env.create_string_from_std(ctx.value)?;
-
-                ctx.callback.call(None, &[string])?;
-                Ok(())
-            },
-        )?;
-        Ok(Self {
-            indentation: 0,
-            is_enabled: config.enable,
-            log_line_fn,
-            log_line_with_title_fn,
-            print_line_fn,
-            set_is_enabled_fn,
-            replace_last_log_line_fn,
-            replace_last_print_line_fn,
-        })
-    }
-
-    fn is_enabled(&self) -> bool {
-        self.is_enabled
-    }
-
-    fn set_is_enabled(&mut self, is_enabled: bool) {
-        self.is_enabled = is_enabled;
-
-        self.set_is_enabled_fn
-            .call(is_enabled, ThreadsafeFunctionCallMode::Blocking);
-    }
-
-    fn format(message: impl Into<String>) -> String {
-        // let message = message.into();
-        //
-        // if message.is_empty() {
-        //     message
-        // } else {
-        //     message
-        // }
-        message.into()
-    }
-
-    fn indented(&mut self, display_fn: impl FnOnce(&mut Self)) {
-        self.indentation += 2;
-        display_fn(self);
-        self.indentation -= 2;
-    }
-
-    fn log(&mut self, message: impl Into<String>) {
-        let formatted = Self::format(message);
-
-        self.log_line_fn
-            .call(formatted, ThreadsafeFunctionCallMode::Blocking);
-    }
-
-    fn log_auto_mined_block_results(
-        &mut self,
-        results: Vec<edr_evm::MineBlockResult<BlockchainError>>,
-        sent_transaction_hash: &B256,
-    ) {
-        for result in results {
-            self.log_block_from_auto_mine(result, sent_transaction_hash);
-        }
-    }
-
-    fn log_base_fee(&mut self, base_fee: Option<&U256>) {
-        if let Some(base_fee) = base_fee {
-            self.log(format!("Base fee: {base_fee}"));
-        }
-    }
-
-    fn log_block_from_auto_mine(
-        &mut self,
-        result: edr_evm::MineBlockResult<BlockchainError>,
-        transaction_hash_to_highlight: &edr_eth::B256,
-    ) {
-        let edr_evm::MineBlockResult {
-            block,
-            transaction_results,
-            transaction_traces,
-        } = result;
-
-        let transactions = block.transactions();
-        let num_transactions = transactions.len();
-
-        let contracts = transaction_traces
-            .iter()
-            .map(|trace| {
-                if let Some(code) = trace.messages.first().and_then(|message| {
-                    if let TraceMessage::Before(before) = message {
-                        before.code.as_ref()
-                    } else {
-                        None
-                    }
-                }) {
-                    code.clone()
-                } else {
-                    Bytecode::new()
-                }
-            })
-            .collect::<Vec<_>>();
-
-        debug_assert_eq!(num_transactions, transaction_results.len());
-        debug_assert_eq!(num_transactions, contracts.len());
-
-        let block_header = block.header();
-
-        self.indented(|logger| {
-            logger.log_block_id(&block);
-
-            logger.indented(|logger| {
-                logger.log_base_fee(block_header.base_fee_per_gas.as_ref());
-
-                for (idx, transaction, result, code) in izip!(
-                    0..num_transactions,
-                    transactions,
-                    transaction_results,
-                    contracts
-                ) {
-                    let should_highlight_hash =
-                        *transaction.hash() == *transaction_hash_to_highlight;
-                    logger.log_block_transaction(
-                        transaction,
-                        &code,
-                        result.gas_used(),
-                        should_highlight_hash,
-                    );
-
-                    logger.log_empty_line_between_transactions(idx, num_transactions);
-                }
-            });
-        });
-
-        self.log_empty_line();
-    }
-
-    fn log_block_hash(&mut self, block: &dyn SyncBlock<Error = BlockchainError>) {
-        let block_hash = block.hash();
-
-        self.log(format!("Block hash: {block_hash}"));
-    }
-
-    fn log_block_id(&mut self, block: &dyn SyncBlock<Error = BlockchainError>) {
-        let block_number = block.header().number;
-        let block_hash = block.hash();
-
-        self.log(format!("Block #{block_number}: {block_hash}"));
-    }
-
-    fn log_block_number(&mut self, block: &dyn SyncBlock<Error = BlockchainError>) {
-        let block_number = block.header().number;
-
-        self.log(format!("Block #{block_number}:"));
-    }
-
-    /// Logs a transaction that's part of a block.
-    fn log_block_transaction(
-        &mut self,
-        transaction: &edr_evm::ExecutableTransaction,
-        code: &edr_evm::Bytecode,
-        gas_used: u64,
-        should_highlight_hash: bool,
-    ) {
-        let transaction_hash = transaction.hash();
-        if should_highlight_hash {
-            self.log_with_title("Transaction", transaction_hash);
-        } else {
-            // TODO: Make bold
-            self.log_with_title("Transaction", format!("bold {transaction_hash}",));
-        }
-
-        self.indented(|logger| {
-            logger.log_contract_and_function_name(code);
-            logger.log_with_title("From", transaction.caller());
-            if let Some(to) = transaction.to() {
-                logger.log_with_title("To", to);
-            }
-            logger.log_with_title("Value", wei_to_human_readable(transaction.value()));
-            logger.log_with_title(
-                "Gas used",
-                format!(
-                    "{gas_used} of {gas_limit}",
-                    gas_limit = transaction.gas_limit()
-                ),
-            );
-
-            logger.log_console_log_messages();
-
-            // TODO: Error logging, if present
-        });
-    }
-
-    fn log_console_log_messages(&mut self) {
-        // TODO: Add console log messages
-    }
-
-    fn log_contract_and_function_name(&mut self, _code: &edr_evm::Bytecode) {
-        // TODO: Add amalgamated stack trace
-    }
-
-    fn log_empty_block(&mut self, block: &dyn SyncBlock<Error = BlockchainError>) {
-        let block_header = block.header();
-        let block_number = block_header.number;
-
-        let base_fee = if let Some(base_fee) = block_header.base_fee_per_gas.as_ref() {
-            format!(" with base fee: {base_fee}")
-        } else {
-            String::new()
-        };
-
-        self.log(format!("Mined empty block #{block_number}{base_fee}",));
-    }
-
-    fn log_empty_line(&mut self) {
-        self.log("");
-    }
-
-    fn log_empty_line_between_transactions(&mut self, idx: usize, num_transactions: usize) {
-        if num_transactions > 1 && idx < num_transactions - 1 {
-            self.log_empty_line();
-        }
-    }
-
-    fn log_hardhat_mined_empty_block(
-        &mut self,
-        block: &dyn SyncBlock<Error = BlockchainError>,
-        empty_blocks_range_start: Option<u64>,
-    ) {
-        self.indented(|logger| {
-            if let Some(empty_blocks_range_start) = empty_blocks_range_start {
-                logger.replace_last_log_line(format!(
-                    "Mined empty block range #{empty_blocks_range_start} to #{block_number}",
-                    block_number = block.header().number
-                ));
-            } else {
-                logger.log_empty_block(block);
-            }
-        });
-    }
-
-    /// Logs the result of interval mining a block.
-    fn log_interval_mined_block(&mut self, result: edr_evm::MineBlockResult<BlockchainError>) {
-        let edr_evm::MineBlockResult {
-            block,
-            transaction_results,
-            transaction_traces,
-        } = result;
-
-        let transactions = block.transactions();
-        let num_transactions = transactions.len();
-
-        let contracts = transaction_traces
-            .iter()
-            .map(|trace| {
-                if let Some(code) = trace.messages.first().and_then(|message| {
-                    if let TraceMessage::Before(before) = message {
-                        before.code.as_ref()
-                    } else {
-                        None
-                    }
-                }) {
-                    code.clone()
-                } else {
-                    Bytecode::new()
-                }
-            })
-            .collect::<Vec<_>>();
-
-        debug_assert_eq!(num_transactions, transaction_results.len());
-        debug_assert_eq!(num_transactions, contracts.len());
-
-        let block_header = block.header();
-
-        self.indented(|logger| {
-            logger.log_block_hash(&block);
-
-            logger.indented(|logger| {
-                logger.log_base_fee(block_header.base_fee_per_gas.as_ref());
-
-                for (idx, transaction, result, code) in izip!(
-                    0..num_transactions,
-                    transactions,
-                    transaction_results,
-                    contracts
-                ) {
-                    logger.log_block_transaction(transaction, &code, result.gas_used(), false);
-
-                    logger.log_empty_line_between_transactions(idx, num_transactions);
-                }
-            });
-        });
-
-        self.log_empty_line();
-    }
-
-    fn log_mined_block(&mut self, result: edr_evm::MineBlockResult<BlockchainError>) {
-        let edr_evm::MineBlockResult {
-            block,
-            transaction_results,
-            transaction_traces,
-        } = result;
-
-        let transactions = block.transactions();
-        let num_transactions = transactions.len();
-
-        let contracts = transaction_traces
-            .iter()
-            .map(|trace| {
-                if let Some(code) = trace.messages.first().and_then(|message| {
-                    if let TraceMessage::Before(before) = message {
-                        before.code.as_ref()
-                    } else {
-                        None
-                    }
-                }) {
-                    code.clone()
-                } else {
-                    Bytecode::new()
-                }
-            })
-            .collect::<Vec<_>>();
-
-        debug_assert_eq!(num_transactions, transaction_results.len());
-        debug_assert_eq!(num_transactions, contracts.len());
-
-        self.indented(|logger| {
-            if transactions.is_empty() {
-                logger.log_empty_block(&block);
-            } else {
-                logger.log_block_number(&block);
-
-                logger.indented(|logger| {
-                    logger.log_block_hash(&block);
-
-                    logger.indented(|logger| {
-                        logger.log_base_fee(block.header().base_fee_per_gas.as_ref());
-
-                        for (idx, transaction, result, code) in izip!(
-                            0..num_transactions,
-                            transactions,
-                            transaction_results,
-                            contracts
-                        ) {
-                            logger.log_block_transaction(
-                                transaction,
-                                &code,
-                                result.gas_used(),
-                                false,
-                            );
-
-                            logger.log_empty_line_between_transactions(idx, num_transactions);
-                        }
-                    });
-                });
-            }
-        });
-    }
-
-    /// Logs a warning about multiple blocks being mined.
-    fn log_multiple_blocks_warning(&mut self) {
-        self.indented(|logger| {
-            logger
-                .log("There were other pending transactions. More than one block had to be mined:");
-        });
-        self.log_empty_line();
-    }
-
-    /// Logs a warning about multiple transactions being mined.
-    fn log_multiple_transactions_warning(&mut self) {
-        self.indented(|logger| {
-            logger.log("There were other pending transactions mined in the same block:");
-        });
-        self.log_empty_line();
-    }
-
-    fn log_with_title(&mut self, title: impl Into<String>, message: impl Display) {
-        // repeat whitespace self.indentation times and concatenate with title
-        let title = format!("{:indent$}{}", "", title.into(), indent = self.indentation);
-        let message = format!("{message}");
-
-        self.log_line_with_title_fn
-            .call((title, message), ThreadsafeFunctionCallMode::Blocking);
-    }
-
-    fn log_single_transaction_mining_result(
-        &mut self,
-        result: &edr_evm::MineBlockResult<BlockchainError>,
-        transaction: &ExecutableTransaction,
-    ) {
-        let trace = result
-            .transaction_traces
-            .first()
-            .expect("A transaction exists, so the trace must exist as well.");
-
-        let default_code = Bytecode::new();
-
-        let code = trace
-            .messages
-            .first()
-            .and_then(|message| {
-                if let TraceMessage::Before(before) = message {
-                    before.code.as_ref()
-                } else {
-                    None
-                }
-            })
-            .unwrap_or(&default_code);
-
-        self.indented(|logger| {
-            logger.log_contract_and_function_name(code);
-
-            let transaction_hash = transaction.hash();
-            logger.log_with_title("Transaction", transaction_hash);
-
-            logger.log_with_title("From", transaction.caller());
-            if let Some(to) = transaction.to() {
-                logger.log_with_title("To", to);
-            }
-            logger.log_with_title("Value", wei_to_human_readable(transaction.value()));
-            logger.log_with_title(
-                "Gas used",
-                format!(
-                    "{gas_used} of {gas_limit}",
-                    gas_used = result
-                        .transaction_results
-                        .first()
-                        .expect("A transaction exists, so the result must exist as well.")
-                        .gas_used(),
-                    gas_limit = transaction.gas_limit()
-                ),
-            );
-
-            let block_number = result.block.header().number;
-            logger.log_with_title(format!("Block #{block_number}"), result.block.hash());
-
-            logger.log_console_log_messages();
-
-            // TODO: Log error
-        });
-    }
-
-    fn print(&mut self, message: impl Into<String>) {
-        if !self.is_enabled {
-            return;
-        }
-
-        let formatted = Self::format(message);
-
-        self.print_line_fn
-            .call(formatted, ThreadsafeFunctionCallMode::Blocking);
-    }
-
-    fn print_empty_line(&mut self) {
-        self.print("");
-    }
-
-    fn replace_last_log_line(&mut self, message: impl Into<String>) {
-        let formatted = Self::format(message);
-
-        self.replace_last_log_line_fn
-            .call(formatted, ThreadsafeFunctionCallMode::Blocking);
-    }
-
-    fn replace_last_print_line(&mut self, message: impl Into<String>) {
-        if !self.is_enabled {
-            return;
-        }
-
-        let formatted = Self::format(message);
-
-        self.replace_last_print_line_fn
-            .call(formatted, ThreadsafeFunctionCallMode::Blocking);
-    }
-}
-
-#[derive(Clone)]
-pub enum RequestLogging {
-    IntervalMined {
-        mining_result: edr_evm::MineBlockResult<BlockchainError>,
-    },
-    HardhatMined {
-        mining_results: Vec<edr_evm::MineBlockResult<BlockchainError>>,
-    },
-    /// Set when `eth_sendTransaction` or `eth_sendRawTransaction` is called.
-    SendTransaction {
-        mining_results: Vec<edr_evm::MineBlockResult<BlockchainError>>,
-        transaction: edr_evm::ExecutableTransaction,
-    },
 }
 
 #[derive(Clone)]
@@ -652,31 +69,43 @@ impl Default for LoggingState {
 }
 
 #[derive(Clone)]
-pub struct Logger {
-    callbacks: CallbackLogger,
-    request_logging: Option<RequestLogging>,
-    state: LoggingState,
+enum LogLine {
+    Single(String),
+    WithTitle(String, String),
 }
 
-impl Logger {
-    pub fn new(callbacks: CallbackLogger) -> Self {
+#[derive(Clone)]
+pub struct LogCollector {
+    indentation: usize,
+    is_enabled: bool,
+    logs: Vec<LogLine>,
+    request_logging: Option<RequestLogging>,
+    state: LoggingState,
+    title_length: usize,
+}
+
+impl LogCollector {
+    pub fn new(is_enabled: bool) -> Self {
         Self {
-            callbacks,
+            indentation: 0,
+            is_enabled,
+            logs: Vec::new(),
             request_logging: None,
             state: LoggingState::default(),
+            title_length: 0,
         }
     }
 
     fn log_hardhat_mined(
         &mut self,
-        mining_results: Vec<edr_evm::MineBlockResult<BlockchainError>>,
+        spec_id: edr_eth::SpecId,
+        mining_results: Vec<edr_provider::DebugMineBlockResult<BlockchainError>>,
         empty_blocks_range_start: Option<u64>,
     ) {
         let num_results = mining_results.len();
         for (idx, mining_result) in mining_results.into_iter().enumerate() {
             if mining_result.block.transactions().is_empty() {
-                self.callbacks
-                    .log_hardhat_mined_empty_block(&mining_result.block, empty_blocks_range_start);
+                self.log_hardhat_mined_empty_block(&mining_result.block, empty_blocks_range_start);
 
                 let block_number = mining_result.block.header().number;
                 self.state = LoggingState::HardhatMinining {
@@ -685,10 +114,10 @@ impl Logger {
                     ),
                 };
             } else {
-                self.callbacks.log_mined_block(mining_result);
+                self.log_mined_block(spec_id, mining_result);
 
                 if idx < num_results - 1 {
-                    self.callbacks.log_empty_line();
+                    self.log_empty_line();
                 }
             }
         }
@@ -696,7 +125,8 @@ impl Logger {
 
     fn log_interval_mined(
         &mut self,
-        mining_result: edr_evm::MineBlockResult<BlockchainError>,
+        spec_id: edr_eth::SpecId,
+        mining_result: edr_provider::DebugMineBlockResult<BlockchainError>,
         empty_blocks_range_start: Option<u64>,
     ) {
         let block_header = mining_result.block.header();
@@ -704,7 +134,7 @@ impl Logger {
 
         if mining_result.block.transactions().is_empty() {
             if let Some(empty_blocks_range_start) = empty_blocks_range_start {
-                self.callbacks.replace_last_print_line(format!(
+                self.replace_last_print_line(format!(
                     "Mined empty block range #{empty_blocks_range_start} to #{block_number}"
                 ));
             } else {
@@ -714,8 +144,7 @@ impl Logger {
                     String::new()
                 };
 
-                self.callbacks
-                    .print(format!("Mined empty block #{block_number}{base_fee}"));
+                self.print(format!("Mined empty block #{block_number}{base_fee}"));
             }
 
             self.state = LoggingState::IntervalMining {
@@ -724,46 +153,567 @@ impl Logger {
                 ),
             };
         } else {
-            self.callbacks.log_interval_mined_block(mining_result);
-            self.callbacks.print(format!("Mined block #{block_number}"));
-            self.callbacks.print_empty_line();
+            self.log_interval_mined_block(spec_id, mining_result);
+            self.print(format!("Mined block #{block_number}"));
+            self.print_empty_line();
         }
     }
 
     fn log_send_transaction(
         &mut self,
-        mining_results: Vec<edr_evm::MineBlockResult<BlockchainError>>,
+        spec_id: edr_eth::SpecId,
+        mining_results: Vec<edr_provider::DebugMineBlockResult<BlockchainError>>,
         transaction: edr_evm::ExecutableTransaction,
     ) {
         if !mining_results.is_empty() {
             if mining_results.len() > 1 {
-                self.callbacks.log_multiple_blocks_warning();
-                self.callbacks
-                    .log_auto_mined_block_results(mining_results, transaction.hash());
+                self.log_multiple_blocks_warning();
+                self.log_auto_mined_block_results(spec_id, mining_results, transaction.hash());
             } else if let Some(result) = mining_results.first() {
                 let transactions = result.block.transactions();
                 if transactions.len() > 1 {
-                    self.callbacks.log_multiple_transactions_warning();
-                    self.callbacks
-                        .log_auto_mined_block_results(mining_results, transaction.hash());
+                    self.log_multiple_transactions_warning();
+                    self.log_auto_mined_block_results(spec_id, mining_results, transaction.hash());
                 } else if let Some(transaction) = transactions.first() {
-                    self.callbacks
-                        .log_single_transaction_mining_result(result, transaction);
+                    self.log_single_transaction_mining_result(spec_id, result, transaction);
                 }
             }
         }
     }
+
+    fn format(&self, message: impl Into<String>) -> String {
+        let message = message.into();
+
+        if message.is_empty() {
+            message
+        } else {
+            message
+                .split('\n')
+                .map(|line| format!("{:indent$}{line}", "", indent = self.indentation))
+                .collect::<Vec<_>>()
+                .join("\n")
+        }
+    }
+
+    fn indented(&mut self, display_fn: impl FnOnce(&mut Self)) {
+        self.indentation += 2;
+        display_fn(self);
+        self.indentation -= 2;
+    }
+
+    fn log(&mut self, message: impl Into<String>) {
+        let formatted = self.format(message);
+
+        self.logs.push(LogLine::Single(formatted));
+    }
+
+    fn log_auto_mined_block_results(
+        &mut self,
+        spec_id: edr_eth::SpecId,
+        results: Vec<edr_provider::DebugMineBlockResult<BlockchainError>>,
+        sent_transaction_hash: &B256,
+    ) {
+        for result in results {
+            self.log_block_from_auto_mine(spec_id, result, sent_transaction_hash);
+        }
+    }
+
+    fn log_base_fee(&mut self, base_fee: Option<&U256>) {
+        if let Some(base_fee) = base_fee {
+            self.log(format!("Base fee: {base_fee}"));
+        }
+    }
+
+    fn log_block_from_auto_mine(
+        &mut self,
+        spec_id: edr_eth::SpecId,
+        result: edr_provider::DebugMineBlockResult<BlockchainError>,
+        transaction_hash_to_highlight: &edr_eth::B256,
+    ) {
+        let edr_provider::DebugMineBlockResult {
+            block,
+            transaction_results,
+            transaction_traces,
+            console_log_inputs,
+        } = result;
+
+        let transactions = block.transactions();
+        let num_transactions = transactions.len();
+
+        debug_assert_eq!(num_transactions, transaction_results.len());
+        debug_assert_eq!(num_transactions, transaction_traces.len());
+
+        let block_header = block.header();
+
+        self.indented(|logger| {
+            logger.log_block_id(&block);
+
+            logger.indented(|logger| {
+                logger.log_base_fee(block_header.base_fee_per_gas.as_ref());
+
+                for (idx, transaction, result, trace) in izip!(
+                    0..num_transactions,
+                    transactions,
+                    transaction_results,
+                    transaction_traces
+                ) {
+                    let should_highlight_hash =
+                        *transaction.hash() == *transaction_hash_to_highlight;
+                    logger.log_block_transaction(
+                        spec_id,
+                        transaction,
+                        &result,
+                        &trace,
+                        console_log_inputs,
+                        should_highlight_hash,
+                    );
+
+                    logger.log_empty_line_between_transactions(idx, num_transactions);
+                }
+            });
+        });
+
+        self.log_empty_line();
+    }
+
+    fn log_block_hash(&mut self, block: &dyn SyncBlock<Error = BlockchainError>) {
+        let block_hash = block.hash();
+
+        self.log(format!("Block hash: {block_hash}"));
+    }
+
+    fn log_block_id(&mut self, block: &dyn SyncBlock<Error = BlockchainError>) {
+        let block_number = block.header().number;
+        let block_hash = block.hash();
+
+        self.log(format!("Block #{block_number}: {block_hash}"));
+    }
+
+    fn log_block_number(&mut self, block: &dyn SyncBlock<Error = BlockchainError>) {
+        let block_number = block.header().number;
+
+        self.log(format!("Block #{block_number}:"));
+    }
+
+    /// Logs a transaction that's part of a block.
+    fn log_block_transaction(
+        &mut self,
+        spec_id: edr_eth::SpecId,
+        transaction: &edr_evm::ExecutableTransaction,
+        result: &edr_evm::ExecutionResult,
+        trace: &edr_evm::trace::Trace,
+        console_log_inputs: &[String],
+        should_highlight_hash: bool,
+    ) {
+        let transaction_hash = transaction.hash();
+        if should_highlight_hash {
+            self.log_with_title("Transaction", transaction_hash.to_string());
+        } else {
+            // TODO: Make bold
+            self.log_with_title(
+                "Transaction",
+                format!(
+                    "bold
+{transaction_hash}",
+                ),
+            );
+        }
+
+        self.indented(|logger| {
+            logger.log_contract_and_function_name::<false>(spec_id, trace);
+            logger.log_with_title("From", format!("0x{:x}", transaction.caller()));
+            if let Some(to) = transaction.to() {
+                logger.log_with_title("To", format!("0x{to:x}"));
+            }
+            logger.log_with_title("Value", wei_to_human_readable(transaction.value()));
+            logger.log_with_title(
+                "Gas used",
+                format!(
+                    "{gas_used} of {gas_limit}",
+                    gas_used = result.gas_used(),
+                    gas_limit = transaction.gas_limit()
+                ),
+            );
+
+            logger.log_console_log_messages(console_log_inputs);
+
+            if let ExecutionResult::Halt { reason, .. } = &result {
+                logger.log_empty_line();
+                logger.log(format!("{reason:?}"));
+            }
+        });
+    }
+
+    fn log_console_log_messages(&mut self, console_log_inputs: &[String]) {
+        // This is a special case, as we always want to print the console.log messages.
+        // The difference is how. If we have a logger, we should use that, so that logs
+        // are printed in order. If we don't, we just print the messages here.
+        if self.is_enabled {
+            if !console_log_inputs.is_empty() {
+                self.log_empty_line();
+                self.log("console.log:");
+
+                self.indented(|logger| {
+                    for input in console_log_inputs {
+                        logger.log(input);
+                    }
+                });
+            }
+        } else {
+            for input in console_log_inputs {
+                self.print(input);
+            }
+        }
+    }
+
+    fn log_contract_and_function_name<const PRINT_INVALID_CONTRACT_WARNING: bool>(
+        &mut self,
+        spec_id: edr_eth::SpecId,
+        trace: &edr_evm::trace::Trace,
+    ) {
+        const UNRECOGNIZED_CONTRACT_NAME: &str = "<UnrecognizedContract>";
+
+        if let Some(TraceMessage::Before(before_message)) = trace.messages.first() {
+            if let Some(to) = before_message.to {
+                let is_precompile = {
+                    let num_precompiles =
+                        Precompiles::new(precompile::SpecId::from_spec_id(spec_id)).len();
+                    precompile::is_precompile(to, num_precompiles)
+                };
+
+                if is_precompile {
+                    let precompile = u16::from_be_bytes([to[18], to[19]]);
+                    self.log_with_title(
+                        "Precompile call",
+                        format!("<PrecompileContract {precompile}>"),
+                    );
+                } else {
+                    let is_code_empty = before_message
+                        .code
+                        .as_ref()
+                        .map_or(true, edr_evm::Bytecode::is_empty);
+
+                    if is_code_empty {
+                        if PRINT_INVALID_CONTRACT_WARNING {
+                            self.log(
+                                "WARNING: Calling an account which is
+not a contract",
+                            );
+                        }
+                    } else {
+                        self.log_with_title(
+                            "Contract call",
+                        // TODO: Check whether the contract code model is set
+                        // if let Some(contract) =
+                        //      self.contract_model.get(&code) {
+                                "<TODO: contract.name#functionName>"
+                     // } else {
+                        //     UNRECOGNIZED_CONTRACT_NAME
+                        //}
+                    );
+                    }
+                }
+            } else {
+                self.log_with_title(
+                    "Contract deployment",
+                    // TODO: This should use the contract code model
+                    if let Some(_code) = before_message.code.as_ref() {
+                        "<TODO: contract.name>"
+                    } else {
+                        UNRECOGNIZED_CONTRACT_NAME
+                    },
+                );
+
+                if let Some(code_address) = &before_message.code_address {
+                    if let Some(TraceMessage::After(after_message)) = trace.messages.last() {
+                        if after_message.is_success() {
+                            self.log_with_title("Contract address", format!("0x{code_address:x}"));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fn log_empty_block(&mut self, block: &dyn SyncBlock<Error = BlockchainError>) {
+        let block_header = block.header();
+        let block_number = block_header.number;
+
+        let base_fee = if let Some(base_fee) = block_header.base_fee_per_gas.as_ref() {
+            format!(
+                " with base fee:
+{base_fee}"
+            )
+        } else {
+            String::new()
+        };
+
+        self.log(format!("Mined empty block #{block_number}{base_fee}",));
+    }
+
+    fn log_empty_line(&mut self) {
+        self.log("");
+    }
+
+    fn log_empty_line_between_transactions(&mut self, idx: usize, num_transactions: usize) {
+        if num_transactions > 1 && idx < num_transactions - 1 {
+            self.log_empty_line();
+        }
+    }
+
+    fn log_hardhat_mined_empty_block(
+        &mut self,
+        block: &dyn SyncBlock<Error = BlockchainError>,
+        empty_blocks_range_start: Option<u64>,
+    ) {
+        self.indented(|logger| {
+            if let Some(empty_blocks_range_start) = empty_blocks_range_start {
+                logger.replace_last_log_line(format!(
+                    "Mined empty block range #{empty_blocks_range_start} to
+#{block_number}",
+                    block_number = block.header().number
+                ));
+            } else {
+                logger.log_empty_block(block);
+            }
+        });
+    }
+
+    /// Logs the result of interval mining a block.
+    fn log_interval_mined_block(
+        &mut self,
+        spec_id: edr_eth::SpecId,
+        result: edr_provider::DebugMineBlockResult<BlockchainError>,
+    ) {
+        let edr_provider::DebugMineBlockResult {
+            block,
+            transaction_results,
+            transaction_traces,
+            console_log_inputs,
+        } = result;
+
+        let transactions = block.transactions();
+        let num_transactions = transactions.len();
+
+        debug_assert_eq!(num_transactions, transaction_results.len());
+        debug_assert_eq!(num_transactions, transaction_traces.len());
+
+        let block_header = block.header();
+
+        self.indented(|logger| {
+            logger.log_block_hash(&block);
+
+            logger.indented(|logger| {
+                logger.log_base_fee(block_header.base_fee_per_gas.as_ref());
+
+                for (idx, transaction, result, trace) in izip!(
+                    0..num_transactions,
+                    transactions,
+                    transaction_results,
+                    transaction_traces
+                ) {
+                    logger.log_block_transaction(
+                        spec_id,
+                        transaction,
+                        &result,
+                        &trace,
+                        console_log_inputs,
+                        false,
+                    );
+
+                    logger.log_empty_line_between_transactions(idx, num_transactions);
+                }
+            });
+        });
+
+        self.log_empty_line();
+    }
+
+    fn log_mined_block(
+        &mut self,
+        spec_id: edr_eth::SpecId,
+        result: edr_provider::DebugMineBlockResult<BlockchainError>,
+    ) {
+        let edr_provider::DebugMineBlockResult {
+            block,
+            transaction_results,
+            transaction_traces,
+            console_log_inputs,
+        } = result;
+
+        let transactions = block.transactions();
+        let num_transactions = transactions.len();
+
+        debug_assert_eq!(num_transactions, transaction_results.len());
+        debug_assert_eq!(num_transactions, transaction_traces.len());
+
+        self.indented(|logger| {
+            if transactions.is_empty() {
+                logger.log_empty_block(&block);
+            } else {
+                logger.log_block_number(&block);
+
+                logger.indented(|logger| {
+                    logger.log_block_hash(&block);
+
+                    logger.indented(|logger| {
+                        logger.log_base_fee(block.header().base_fee_per_gas.as_ref());
+
+                        for (idx, transaction, result, trace) in izip!(
+                            0..num_transactions,
+                            transactions,
+                            transaction_results,
+                            transaction_traces
+                        ) {
+                            logger.log_block_transaction(
+                                spec_id,
+                                transaction,
+                                &result,
+                                &trace,
+                                console_log_inputs,
+                                false,
+                            );
+
+                            logger.log_empty_line_between_transactions(idx, num_transactions);
+                        }
+                    });
+                });
+            }
+        });
+    }
+
+    /// Logs a warning about multiple blocks being mined.
+    fn log_multiple_blocks_warning(&mut self) {
+        self.indented(|logger| {
+            logger.log(
+                "There were other pending transactions. More than one
+block had to be mined:",
+            );
+        });
+        self.log_empty_line();
+    }
+
+    /// Logs a warning about multiple transactions being mined.
+    fn log_multiple_transactions_warning(&mut self) {
+        self.indented(|logger| {
+            logger.log(
+                "There were other pending transactions mined in the
+same block:",
+            );
+        });
+        self.log_empty_line();
+    }
+
+    fn log_with_title(&mut self, title: impl Into<String>, message: impl Display) {
+        // repeat whitespace self.indentation times and concatenate with title
+        let title = format!("{:indent$}{}", "", title.into(), indent = self.indentation);
+        if title.len() > self.title_length {
+            self.title_length = title.len();
+        }
+
+        let message = format!("{message}");
+        self.logs.push(LogLine::WithTitle(title, message));
+    }
+
+    fn log_single_transaction_mining_result(
+        &mut self,
+        spec_id: edr_eth::SpecId,
+        result: &edr_provider::DebugMineBlockResult<BlockchainError>,
+        transaction: &ExecutableTransaction,
+    ) {
+        let trace = result.transaction_traces.first().expect(
+            "A transaction exists, so the trace must exist as
+well.",
+        );
+
+        let transaction_result = result.transaction_results.first().expect(
+            "A transaction exists, so the result must exist as
+well.",
+        );
+
+        self.indented(|logger| {
+            println!("pre-contract");
+            logger.log_contract_and_function_name::<false>(spec_id, trace);
+
+            let transaction_hash = transaction.hash();
+            logger.log_with_title("Transaction", transaction_hash);
+
+            logger.log_with_title("From", format!("0x{:x}", transaction.caller()));
+            if let Some(to) = transaction.to() {
+                logger.log_with_title("To", format!("0x{to:x}"));
+            }
+            logger.log_with_title("Value", wei_to_human_readable(transaction.value()));
+            logger.log_with_title(
+                "Gas used",
+                format!(
+                    "{gas_used} of {gas_limit}",
+                    gas_used = transaction_result.gas_used(),
+                    gas_limit = transaction.gas_limit()
+                ),
+            );
+
+            let block_number = result.block.header().number;
+            logger.log_with_title(format!("Block #{block_number}"), result.block.hash());
+
+            // TODO: Get converted strings from Hardhat
+            logger.log_console_log_messages(&result.console_log_inputs);
+
+            println!("pre-error");
+            if let ExecutionResult::Halt { reason, .. } = &transaction_result {
+                logger.log_empty_line();
+                logger.log(format!("{reason:?}"));
+            }
+        });
+    }
+
+    fn print(&mut self, message: impl Into<String>) {
+        if !self.is_enabled {
+            return;
+        }
+
+        let formatted = self.format(message);
+
+        let status = self
+            .print_line_fn
+            .call(formatted, ThreadsafeFunctionCallMode::Blocking);
+
+        assert_eq!(status, napi::Status::Ok);
+    }
+
+    fn print_empty_line(&mut self) {
+        self.print("");
+    }
+
+    fn replace_last_log_line(&mut self, message: impl Into<String>) {
+        let formatted = self.format(message);
+
+        *self.logs.last_mut().expect("There must be a log line") = LogLine::Single(formatted);
+    }
+
+    fn replace_last_print_line(&mut self, message: impl Into<String>) {
+        if !self.is_enabled {
+            return;
+        }
+
+        let formatted = self.format(message);
+
+        let status = self
+            .replace_last_print_line_fn
+            .call(formatted, ThreadsafeFunctionCallMode::Blocking);
+
+        assert_eq!(status, napi::Status::Ok);
+    }
 }
 
-impl edr_provider::Logger for Logger {
+impl edr_provider::Logger for LogCollector {
     type BlockchainError = BlockchainError;
 
     fn is_enabled(&self) -> bool {
-        self.callbacks.is_enabled()
+        self.is_enabled
     }
 
     fn set_is_enabled(&mut self, is_enabled: bool) {
-        self.callbacks.set_is_enabled(is_enabled);
+        self.is_enabled = is_enabled;
     }
 
     fn flush(&mut self) {
@@ -771,23 +721,33 @@ impl edr_provider::Logger for Logger {
 
         if let Some(request_logging) = self.request_logging.take() {
             match request_logging {
-                RequestLogging::IntervalMined { mining_result } => {
-                    self.log_interval_mined(mining_result, state.into_interval_mining());
+                RequestLogging::IntervalMined {
+                    spec_id,
+                    mining_result,
+                } => {
+                    self.log_interval_mined(spec_id, mining_result, state.into_interval_mining());
                 }
-                RequestLogging::HardhatMined { mining_results } => {
-                    self.log_hardhat_mined(mining_results, state.into_hardhat_mining());
+                RequestLogging::HardhatMined {
+                    spec_id,
+                    mining_results,
+                } => {
+                    self.log_hardhat_mined(spec_id, mining_results, state.into_hardhat_mining());
                 }
                 RequestLogging::SendTransaction {
+                    spec_id,
                     mining_results,
                     transaction,
                 } => {
-                    self.log_send_transaction(mining_results, transaction);
+                    self.log_send_transaction(spec_id, mining_results, transaction);
                 }
             }
         }
     }
 
-    fn on_block_auto_mined(&mut self, result: &edr_evm::MineBlockResult<Self::BlockchainError>) {
+    fn on_block_auto_mined(
+        &mut self,
+        result: &edr_provider::DebugMineBlockResult<Self::BlockchainError>,
+    ) {
         let mining_results = match self.request_logging.as_mut() {
             Some(RequestLogging::SendTransaction { mining_results, .. }) => mining_results,
             _ => {
@@ -800,26 +760,65 @@ impl edr_provider::Logger for Logger {
 
     fn on_interval_mined(
         &mut self,
-        mining_result: &edr_evm::MineBlockResult<Self::BlockchainError>,
+        spec_id: edr_eth::SpecId,
+        mining_result: &edr_provider::DebugMineBlockResult<Self::BlockchainError>,
     ) {
         self.request_logging = Some(RequestLogging::IntervalMined {
             mining_result: mining_result.clone(),
+            spec_id,
         });
     }
 
     fn on_hardhat_mined(
         &mut self,
-        mining_results: Vec<edr_evm::MineBlockResult<Self::BlockchainError>>,
+        spec_id: edr_eth::SpecId,
+        mining_results: Vec<edr_provider::DebugMineBlockResult<Self::BlockchainError>>,
     ) {
-        self.request_logging = Some(RequestLogging::HardhatMined { mining_results });
+        self.request_logging = Some(RequestLogging::HardhatMined {
+            mining_results,
+            spec_id,
+        });
     }
 
-    fn on_send_transaction(&mut self, transaction: &edr_evm::ExecutableTransaction) {
+    fn on_send_transaction(
+        &mut self,
+        spec_id: edr_eth::SpecId,
+        transaction: &edr_evm::ExecutableTransaction,
+    ) {
         self.request_logging = Some(RequestLogging::SendTransaction {
             mining_results: Vec::new(),
+            spec_id,
             transaction: transaction.clone(),
         });
     }
+
+    fn previous_request_logs(&self) -> Vec<String> {
+        // TODO
+        Vec::new()
+    }
+
+    fn previous_request_raw_traces(&self) -> Option<Vec<edr_evm::trace::Trace>> {
+        // TODO
+        None
+    }
+}
+
+#[derive(Clone)]
+pub enum RequestLogging {
+    IntervalMined {
+        mining_result: edr_provider::DebugMineBlockResult<BlockchainError>,
+        spec_id: edr_eth::SpecId,
+    },
+    HardhatMined {
+        mining_results: Vec<edr_provider::DebugMineBlockResult<BlockchainError>>,
+        spec_id: edr_eth::SpecId,
+    },
+    /// Set when `eth_sendTransaction` or `eth_sendRawTransaction` is called.
+    SendTransaction {
+        mining_results: Vec<edr_provider::DebugMineBlockResult<BlockchainError>>,
+        spec_id: edr_eth::SpecId,
+        transaction: edr_evm::ExecutableTransaction,
+    },
 }
 
 fn wei_to_human_readable(wei: U256) -> String {

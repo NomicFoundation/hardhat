@@ -1,5 +1,6 @@
 mod config;
 mod data;
+mod debug;
 mod error;
 mod filter;
 mod interval;
@@ -14,7 +15,7 @@ pub mod test_utils;
 
 use std::sync::Arc;
 
-use edr_evm::blockchain::BlockchainError;
+use edr_evm::{blockchain::BlockchainError, trace::Trace};
 use logger::SyncLogger;
 use parking_lot::Mutex;
 use requests::eth::handle_set_interval_mining;
@@ -22,7 +23,7 @@ use tokio::runtime;
 
 pub use self::{
     config::*,
-    data::InspectorCallbacks,
+    debug::DebugMineBlockResult,
     error::ProviderError,
     logger::Logger,
     requests::{
@@ -36,7 +37,6 @@ use self::{
     interval::IntervalMiner,
     requests::{eth, hardhat},
 };
-use crate::data::SyncInspectorCallbacks;
 
 /// A JSON-RPC provider for Ethereum.
 ///
@@ -79,18 +79,11 @@ impl Provider {
     /// Constructs a new instance.
     pub fn new(
         runtime: runtime::Handle,
-        callbacks: Box<dyn SyncInspectorCallbacks>,
         logger: Box<dyn SyncLogger<BlockchainError = BlockchainError>>,
         subscriber_callback: Box<dyn SyncSubscriberCallback>,
         config: ProviderConfig,
     ) -> Result<Self, CreationError> {
-        let data = ProviderData::new(
-            runtime.clone(),
-            callbacks,
-            logger,
-            subscriber_callback,
-            config.clone(),
-        )?;
+        let data = ProviderData::new(runtime.clone(), logger, subscriber_callback, config.clone())?;
         let data = Arc::new(Mutex::new(data));
 
         let interval_miner = config
@@ -123,6 +116,16 @@ impl Provider {
         }
     }
 
+    pub fn previous_request_logs(&self) -> Vec<String> {
+        let data = self.data.lock();
+        data.logger().previous_request_logs()
+    }
+
+    pub fn previous_request_raw_traces(&self) -> Option<Vec<Trace>> {
+        let data = self.data.lock();
+        data.logger().previous_request_raw_traces()
+    }
+
     /// Handles a batch of JSON requests for an execution provider.
     fn handle_batch_request(
         &self,
@@ -143,6 +146,9 @@ impl Provider {
         data: &mut ProviderData,
         request: MethodInvocation,
     ) -> Result<serde_json::Value, ProviderError> {
+        // Flush the logger before handling a new request
+        data.logger_mut().flush();
+
         // TODO: Remove the lint override once all methods have been implemented
         #[allow(clippy::match_same_arms)]
         let result = match request {
@@ -362,9 +368,6 @@ impl Provider {
                 hardhat::handle_stop_impersonating_account_request(data, *address).and_then(to_json)
             }
         };
-
-        // Flush the logger after handling the request
-        data.logger_mut().flush();
 
         result
     }

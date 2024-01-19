@@ -1,11 +1,7 @@
 use crate::{data::ProviderData, ProviderError};
 
 pub fn handle_interval_mine_request(data: &mut ProviderData) -> Result<bool, ProviderError> {
-    let mine_block_result = data.mine_and_commit_block(None)?;
-
-    data.logger_mut().on_interval_mined(&mine_block_result);
-
-    Ok(true)
+    data.interval_mine()
 }
 
 pub fn handle_mine(
@@ -18,7 +14,9 @@ pub fn handle_mine(
 
     let mined_block_results = data.mine_and_commit_blocks(number_of_blocks, interval)?;
 
-    data.logger_mut().on_hardhat_mined(mined_block_results);
+    let spec_id = data.spec_id();
+    data.logger_mut()
+        .on_hardhat_mined(spec_id, mined_block_results);
 
     Ok(true)
 }

@@ -39,7 +39,6 @@ import {
   TransactionExecutionError,
 } from "../../core/providers/errors";
 import { HardhatMetadata } from "../../core/jsonrpc/types/output/metadata";
-import { Reporter } from "../../sentry/reporter";
 import { getDifferenceInSeconds } from "../../util/date";
 import {
   getHardforkName,
@@ -61,7 +60,10 @@ import {
 } from "../stack-traces/solidity-errors";
 import { SolidityStackTrace } from "../stack-traces/solidity-stack-trace";
 import { SolidityTracer } from "../stack-traces/solidityTracer";
-import { VmTraceDecoder } from "../stack-traces/vm-trace-decoder";
+import {
+  initializeVmTraceDecoder,
+  VmTraceDecoder,
+} from "../stack-traces/vm-trace-decoder";
 
 import "./ethereumjs-workarounds";
 import { rpcQuantityToBigInt } from "../../core/jsonrpc/types/base-types";
@@ -268,37 +270,8 @@ export class HardhatNode extends EventEmitter {
 
     this._vm = getMinimalEthereumJsVm(this._context);
 
-    if (tracingConfig === undefined || tracingConfig.buildInfos === undefined) {
-      return;
-    }
-
-    try {
-      for (const buildInfo of tracingConfig.buildInfos) {
-        const bytecodes = createModelsAndDecodeBytecodes(
-          buildInfo.solcVersion,
-          buildInfo.input,
-          buildInfo.output
-        );
-
-        for (const bytecode of bytecodes) {
-          this._vmTraceDecoder.addBytecode(bytecode);
-        }
-      }
-    } catch (error) {
-      console.warn(
-        chalk.yellow(
-          "The Hardhat Network tracing engine could not be initialized. Run Hardhat with --verbose to learn more."
-        )
-      );
-
-      log(
-        "Hardhat Network tracing disabled: ContractsIdentifier failed to be initialized. Please report this to help us improve Hardhat.\n",
-        error
-      );
-
-      if (error instanceof Error) {
-        Reporter.reportError(error);
-      }
+    if (tracingConfig !== undefined) {
+      initializeVmTraceDecoder(this._vmTraceDecoder, tracingConfig);
     }
   }
 
@@ -653,40 +626,29 @@ export class HardhatNode extends EventEmitter {
       this._runTxAndRevertMutations(tx, blockNumberOrPending)
     );
 
-    const traceResult = this._context.vm().getLastTraceAndClear();
-    let vmTrace = traceResult.trace;
-    const vmTracerError = traceResult.error;
-
-    if (vmTrace !== undefined) {
-      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
-    }
-
-    const consoleLogMessages = await this._getConsoleLogMessages(
-      vmTrace,
-      vmTracerError
+    const trace = await this._finalizeTrace(
+      result,
+      this._context.vm().getLastTraceAndClear()
     );
 
     // This is only considered if the call to _runTxAndRevertMutations doesn't
     // manage errors
-    if (result.exit.isError()) {
+    if (trace.error !== undefined) {
       return {
+        ...trace,
         estimation: await this.getBlockGasLimit(),
-        trace: vmTrace,
-        error: await this._manageErrors(result, vmTrace, vmTracerError),
-        consoleLogMessages,
       };
     }
 
     const initialEstimation = result.gasUsed;
 
     return {
+      ...trace,
       estimation: await this._correctInitialEstimation(
         blockNumberOrPending,
         txParams,
         initialEstimation
       ),
-      trace: vmTrace,
-      consoleLogMessages,
     };
   }
 

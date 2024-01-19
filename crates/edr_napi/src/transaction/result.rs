@@ -3,7 +3,7 @@ use std::mem;
 use edr_eth::Address;
 use edr_evm::Bytes;
 use napi::{
-    bindgen_prelude::{BigInt, Buffer, Either3, FromNapiValue, ToNapiValue},
+    bindgen_prelude::{BigInt, Buffer, Either3},
     Either, Env, JsBuffer, JsBufferValue,
 };
 use napi_derive::napi;
@@ -347,24 +347,24 @@ impl TransactionResult {
         env: Env,
     ) -> napi::Result<Option<Vec<Either3<TracingMessage, TracingStep, TracingMessageResult>>>> {
         self.trace.as_ref().map_or(Ok(None), |trace| {
-            trace
-                .messages
-                .iter()
-                .map(|message| match message {
-                    edr_evm::trace::TraceMessage::Before(message) => {
-                        TracingMessage::new(&env, message).map(Either3::A)
-                    }
-                    edr_evm::trace::TraceMessage::Step(step) => {
-                        Ok(Either3::B(TracingStep::new(step)))
-                    }
-                    edr_evm::trace::TraceMessage::After(result) => {
-                        ExecutionResult::new(&env, result).map(|execution_result| {
-                            Either3::C(TracingMessageResult { execution_result })
-                        })
-                    }
-                })
-                .collect::<napi::Result<_>>()
-                .map(Some)
+            map_trace_messages(&env, &trace.messages).map(Some)
         })
     }
+}
+
+pub(crate) fn map_trace_messages(
+    env: &Env,
+    messages: &[edr_evm::trace::TraceMessage],
+) -> napi::Result<Vec<Either3<TracingMessage, TracingStep, TracingMessageResult>>> {
+    messages
+        .iter()
+        .map(|message| match message {
+            edr_evm::trace::TraceMessage::Before(message) => {
+                TracingMessage::new(&env, message).map(Either3::A)
+            }
+            edr_evm::trace::TraceMessage::Step(step) => Ok(Either3::B(TracingStep::new(step))),
+            edr_evm::trace::TraceMessage::After(result) => ExecutionResult::new(&env, result)
+                .map(|execution_result| Either3::C(TracingMessageResult { execution_result })),
+        })
+        .collect::<napi::Result<_>>()
 }

@@ -1,10 +1,10 @@
 // TODO: Remove once stubs have been implemented.
 #![allow(dead_code, clippy::unused_self)]
 
-use std::marker::PhantomData;
-
 use dyn_clone::DynClone;
-use edr_evm::{ExecutableTransaction, MineBlockResult};
+use edr_evm::{trace::Trace, ExecutableTransaction};
+
+use crate::debug::DebugMineBlockResult;
 
 pub trait Logger {
     type BlockchainError;
@@ -18,16 +18,42 @@ pub trait Logger {
     /// Flushes all collected notifications.
     fn flush(&mut self);
 
-    fn on_block_auto_mined(&mut self, result: &MineBlockResult<Self::BlockchainError>);
+    fn on_block_auto_mined(&mut self, result: &DebugMineBlockResult<Self::BlockchainError>) {
+        let _result = result;
+    }
 
     fn on_interval_mined(
         &mut self,
-        mining_result: &edr_evm::MineBlockResult<Self::BlockchainError>,
-    );
+        spec_id: edr_eth::SpecId,
+        result: &DebugMineBlockResult<Self::BlockchainError>,
+    ) {
+        let _spec_id = spec_id;
+        let _result = result;
+    }
 
-    fn on_hardhat_mined(&mut self, results: Vec<MineBlockResult<Self::BlockchainError>>);
+    fn on_hardhat_mined(
+        &mut self,
+        spec_id: edr_eth::SpecId,
+        results: Vec<DebugMineBlockResult<Self::BlockchainError>>,
+    ) {
+        let _spec_id = spec_id;
+        let _results = results;
+    }
 
-    fn on_send_transaction(&mut self, transaction: &ExecutableTransaction);
+    fn on_send_transaction(
+        &mut self,
+        spec_id: edr_eth::SpecId,
+        transaction: &ExecutableTransaction,
+    ) {
+        let _spec_id = spec_id;
+        let _transaction = transaction;
+    }
+
+    /// Returns the logs of the previous request.
+    fn previous_request_logs(&self) -> Vec<String>;
+
+    /// Returns the raw traces of the previous request, if any.
+    fn previous_request_raw_traces(&self) -> Option<Vec<Trace>>;
 
     // /// Whethers the logger is printing logs to the CLI.
     // fn is_printing(&self) -> bool;
@@ -121,50 +147,4 @@ impl<BlockchainErrorT> Clone for Box<dyn SyncLogger<BlockchainError = Blockchain
     fn clone(&self) -> Self {
         dyn_clone::clone_box(&**self)
     }
-}
-
-pub struct NoopLogger<BlockchainErrorT> {
-    is_enabled: bool,
-    _blockchain_error: PhantomData<BlockchainErrorT>,
-}
-
-impl<BlockchainErrorT> NoopLogger<BlockchainErrorT> {
-    /// Constructs a new `NoopLogger`.
-    pub fn new(is_enabled: bool) -> Self {
-        Self {
-            is_enabled,
-            _blockchain_error: PhantomData,
-        }
-    }
-}
-
-impl<BlockchainErrorT> Clone for NoopLogger<BlockchainErrorT> {
-    fn clone(&self) -> Self {
-        Self {
-            is_enabled: self.is_enabled,
-            _blockchain_error: PhantomData,
-        }
-    }
-}
-
-impl<BlockchainErrorT> Logger for NoopLogger<BlockchainErrorT> {
-    type BlockchainError = BlockchainErrorT;
-
-    fn is_enabled(&self) -> bool {
-        self.is_enabled
-    }
-
-    fn set_is_enabled(&mut self, is_enabled: bool) {
-        self.is_enabled = is_enabled;
-    }
-
-    fn flush(&mut self) {}
-
-    fn on_block_auto_mined(&mut self, _result: &MineBlockResult<Self::BlockchainError>) {}
-
-    fn on_interval_mined(&mut self, _result: &MineBlockResult<Self::BlockchainError>) {}
-
-    fn on_hardhat_mined(&mut self, _results: Vec<MineBlockResult<Self::BlockchainError>>) {}
-
-    fn on_send_transaction(&mut self, _transaction: &ExecutableTransaction) {}
 }

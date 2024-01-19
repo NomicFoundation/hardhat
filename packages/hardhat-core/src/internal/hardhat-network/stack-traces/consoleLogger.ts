@@ -48,7 +48,6 @@ import {
   Uint256Ty,
 } from "./logger";
 import {
-  CallMessageTrace,
   EvmMessageTrace,
   isCallTrace,
   isEvmStep,
@@ -77,18 +76,9 @@ export class ConsoleLogger {
   }
 
   public getLogMessages(maybeDecodedMessageTrace: MessageTrace): string[] {
-    return this.getExecutionLogs(maybeDecodedMessageTrace).map((log) => {
-      if (log === undefined) {
-        return "";
-      }
-
-      // special case for console.log()
-      if (log.length === 0) {
-        return "";
-      }
-
-      return util.format(log[0], ...log.slice(1));
-    });
+    return this.getExecutionLogs(maybeDecodedMessageTrace).map(
+      consoleLogToString
+    );
   }
 
   public getExecutionLogs(
@@ -113,7 +103,7 @@ export class ConsoleLogger {
         isCallTrace(messageTrace) &&
         bufferToHex(messageTrace.address) === CONSOLE_ADDRESS.toLowerCase()
       ) {
-        const log = this._maybeConsoleLog(messageTrace);
+        const log = this._maybeConsoleLog(messageTrace.calldata);
         if (log !== undefined) {
           logs.push(log);
         }
@@ -128,40 +118,35 @@ export class ConsoleLogger {
   /**
    * Temporary code to print console.sol messages that come from EDR
    */
-  public log(message: Buffer): void {
-    const sig = bufferToInt(message.slice(0, 4));
-    const parameters = message.slice(4);
+  public getDecodedLogs(messages: Buffer[]): string[] {
+    const logs: string[] = [];
 
-    const types = this._consoleLogs[sig];
-    if (types === undefined) {
-      return;
-    }
-
-    const consoleLogs = [this._decode(parameters, types)];
-
-    for (const log of consoleLogs) {
-      this._replaceNumberFormatSpecifiers(log);
-    }
-
-    for (const log of consoleLogs) {
-      if (log === undefined) {
-        console.log("");
-        return;
+    for (const message of messages) {
+      const log = this._maybeConsoleLog(message);
+      if (log !== undefined) {
+        logs.push(consoleLogToString(log));
       }
-
-      // special case for console.log()
-      if (log.length === 0) {
-        console.log("");
-        return;
-      }
-
-      console.log(util.format(log[0], ...log.slice(1)));
     }
+
+    return logs;
+
+    // if (consoleLogs === undefined) {
+    //   console.log("");
+    //   return;
+    // }
+
+    // // special case for console.log()
+    // if (consoleLogs.length === 0) {
+    //   console.log("");
+    //   return;
+    // }
+
+    // console.log(util.format(consoleLogs[0], ...consoleLogs.slice(1)));
   }
 
-  private _maybeConsoleLog(call: CallMessageTrace): ConsoleLogs | undefined {
-    const sig = bufferToInt(call.calldata.slice(0, 4));
-    const parameters = call.calldata.slice(4);
+  private _maybeConsoleLog(calldata: Buffer): ConsoleLogs | undefined {
+    const sig = bufferToInt(calldata.slice(0, 4));
+    const parameters = calldata.slice(4);
 
     const types = this._consoleLogs[sig];
     if (types === undefined) {
@@ -309,4 +294,17 @@ export class ConsoleLogger {
       }
     });
   }
+}
+
+function consoleLogToString(log: ConsoleLogs): string {
+  if (log === undefined) {
+    return "";
+  }
+
+  // special case for console.log()
+  if (log.length === 0) {
+    return "";
+  }
+
+  return util.format(log[0], ...log.slice(1));
 }

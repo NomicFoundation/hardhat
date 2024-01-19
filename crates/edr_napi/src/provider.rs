@@ -1,17 +1,22 @@
 mod config;
 
+use core::fmt::{self, Debug};
 use std::sync::Arc;
 
 use edr_eth::{remote::jsonrpc, Bytes};
-use edr_provider::{InspectorCallbacks, InvalidRequestReason};
-use napi::{tokio::runtime, Env, JsFunction, JsObject, NapiRaw, Status};
+use edr_provider::InvalidRequestReason;
+use napi::{
+    threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction},
+    tokio::runtime,
+    Env, JsFunction, JsObject, Status,
+};
 use napi_derive::napi;
 
 use self::config::ProviderConfig;
 use crate::{
-    logger::{CallbackLogger, Logger, LoggerConfig},
+    logger::{LogCollector, LoggerConfig},
     subscribe::SubscriberCallback,
-    threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
+    transaction::result::map_trace_messages,
 };
 
 /// A JSON-RPC provider for Ethereum.
@@ -34,28 +39,21 @@ impl Provider {
         let config = edr_provider::ProviderConfig::try_from(config)?;
         let runtime = runtime::Handle::current();
 
-        let inspector_callbacks = Box::new(InspectorCallback::new(&env, console_log_callback)?);
-        let logger = Box::new(Logger::new(CallbackLogger::new(&env, logger_config)?));
-        let subscriber_callback = SubscriberCallback::new(&env, subscriber_callback)?;
+        let logger = Box::new(LogCollector::new(logger_config.enable));
+        let subscriber_callback = SubscriberCallback::new(&env, &subscriber_callback)?;
         let subscriber_callback = Box::new(move |event| subscriber_callback.call(event));
 
         let (deferred, promise) = env.create_deferred()?;
         runtime.clone().spawn_blocking(move || {
-            let result = edr_provider::Provider::new(
-                runtime,
-                inspector_callbacks,
-                logger,
-                subscriber_callback,
-                config,
-            )
-            .map_or_else(
-                |error| Err(napi::Error::new(Status::GenericFailure, error.to_string())),
-                |provider| {
-                    Ok(Provider {
-                        provider: Arc::new(provider),
-                    })
-                },
-            );
+            let result = edr_provider::Provider::new(runtime, logger, subscriber_callback, config)
+                .map_or_else(
+                    |error| Err(napi::Error::new(Status::GenericFailure, error.to_string())),
+                    |provider| {
+                        Ok(Provider {
+                            provider: Arc::new(provider),
+                        })
+                    },
+                );
 
             deferred.resolve(|_env| result);
         });
@@ -101,27 +99,60 @@ impl Provider {
         serde_json::to_string(&response)
             .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
     }
+
+    #[napi]
+    pub async fn get_previous_request_logs(&self) -> napi::Result<Vec<String>> {
+        let provider = self.provider.clone();
+
+        runtime::Handle::current()
+            .spawn_blocking(move || provider.previous_request_logs())
+            .await
+            .map_err(|e| napi::Error::new(Status::GenericFailure, e.to_string()))
+    }
+
+    #[napi(
+        ts_return_type = "Promise<Array<Array<TracingMessage | TracingStep | TracingMessageResult>> | null>"
+    )]
+    pub fn get_previous_request_raw_traces(&self, env: Env) -> napi::Result<JsObject> {
+        let provider = self.provider.clone();
+
+        let (deferred, promise) = env.create_deferred()?;
+        let traces = runtime::Handle::current().spawn_blocking(move || {
+            let traces = provider.previous_request_raw_traces();
+
+            deferred.resolve(|env| {
+                traces
+                    .map(|traces| {
+                        traces
+                            .into_iter()
+                            .map(|trace| map_trace_messages(&env, &trace.messages))
+                            .collect::<napi::Result<Vec<_>>>()
+                    })
+                    .transpose()
+            });
+        });
+
+        Ok(promise)
+    }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 struct InspectorCallback {
     console_log_callback: ThreadsafeFunction<Bytes>,
 }
 
 impl InspectorCallback {
-    fn new(env: &Env, console_log_callback_js: JsFunction) -> napi::Result<Self> {
-        let console_log_callback = ThreadsafeFunction::create(
-            env.raw(),
-            // SAFETY: The callback is guaranteed to be valid for the lifetime of the inspector.
-            unsafe { console_log_callback_js.raw() },
+    fn new(env: &Env, console_log_callback_js: &JsFunction) -> napi::Result<Self> {
+        let console_log_callback = env.create_threadsafe_function(
+            console_log_callback_js,
             0,
             |ctx: ThreadSafeCallContext<Bytes>| {
                 let call_input = ctx
                     .env
                     .create_buffer_with_data(ctx.value.to_vec())?
                     .into_raw();
-                ctx.callback.call(None, &[call_input])?;
-                Ok(())
+
+                Ok(vec![call_input])
             },
         )?;
 
@@ -131,11 +162,17 @@ impl InspectorCallback {
     }
 }
 
-impl InspectorCallbacks for InspectorCallback {
-    fn console(&self, call_input: Bytes) {
-        // This is blocking because it's important that the console log messages are
-        // passed on in the order they're received.
-        self.console_log_callback
-            .call(call_input, ThreadsafeFunctionCallMode::Blocking);
+impl Debug for InspectorCallback {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("InspectorCallback").finish()
     }
 }
+
+// impl InspectorCallbacks for InspectorCallback {
+//     fn console(&self, call_input: Bytes) {
+//         // This is blocking because it's important that the console log
+// messages are         // passed on in the order they're received.
+//         self.console_log_callback
+//             .call(Ok(call_input), ThreadsafeFunctionCallMode::Blocking);
+//     }
+// }

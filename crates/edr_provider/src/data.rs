@@ -35,21 +35,23 @@ use edr_evm::{
         SyncState,
     },
     Account, AccountInfo, Block, Bytecode, CfgEnv, ExecutableTransaction, ExecutionResult, HashMap,
-    HashSet, MemPool, MineBlockResult, MineBlockResultAndState, MineOrdering, OrderedTransaction,
-    RandomHashGenerator, StorageSlot, SyncBlock, TxEnv, KECCAK_EMPTY,
+    HashSet, MemPool, MineOrdering, OrderedTransaction, RandomHashGenerator, StorageSlot,
+    SyncBlock, TxEnv, KECCAK_EMPTY,
 };
 use indexmap::IndexMap;
-use inspector::EvmInspector;
-pub use inspector::{InspectorCallbacks, SyncInspectorCallbacks};
 use lazy_static::lazy_static;
 use tokio::runtime;
 
-use self::account::{create_accounts, InitialAccounts};
+use self::{
+    account::{create_accounts, InitialAccounts},
+    inspector::EvmInspector,
+};
 use crate::{
     data::{
         call::RunCallArgs,
         gas::{BinarySearchEstimationArgs, CheckGasLimitArgs},
     },
+    debug::{DebugMineBlockResult, DebugMineBlockResultAndState},
     error::TransactionFailure,
     filter::{bloom_contains_log_filter, filter_logs, Filter, FilterData, LogFilter},
     logger::SyncLogger,
@@ -112,14 +114,12 @@ pub struct ProviderData {
     last_filter_id: U256,
     logger: Box<dyn SyncLogger<BlockchainError = BlockchainError>>,
     impersonated_accounts: HashSet<Address>,
-    callbacks: Box<dyn SyncInspectorCallbacks>,
     subscriber_callback: Box<dyn SyncSubscriberCallback>,
 }
 
 impl ProviderData {
     pub fn new(
         runtime_handle: runtime::Handle,
-        callbacks: Box<dyn SyncInspectorCallbacks>,
         logger: Box<dyn SyncLogger<BlockchainError = BlockchainError>>,
         subscriber_callback: Box<dyn SyncSubscriberCallback>,
         config: ProviderConfig,
@@ -172,7 +172,6 @@ impl ProviderData {
             last_filter_id: U256::ZERO,
             logger,
             impersonated_accounts: HashSet::new(),
-            callbacks,
             subscriber_callback,
         })
     }
@@ -183,7 +182,6 @@ impl ProviderData {
 
         let mut reset_instance = Self::new(
             self.runtime_handle.clone(),
-            self.callbacks.clone(),
             self.logger.clone(),
             self.subscriber_callback.clone(),
             config,
@@ -598,9 +596,13 @@ impl ProviderData {
     pub fn interval_mine(&mut self) -> Result<bool, ProviderError> {
         let result = self.mine_and_commit_block(None)?;
 
-        self.logger.on_interval_mined(&result);
+        self.logger.on_interval_mined(self.spec_id(), &result);
 
         Ok(true)
+    }
+
+    pub fn logger(&self) -> &dyn SyncLogger<BlockchainError = BlockchainError> {
+        self.logger.as_ref()
     }
 
     pub fn logger_mut(&mut self) -> &mut dyn SyncLogger<BlockchainError = BlockchainError> {
@@ -644,7 +646,7 @@ impl ProviderData {
     pub fn mine_and_commit_block(
         &mut self,
         timestamp: Option<u64>,
-    ) -> Result<MineBlockResult<BlockchainError>, ProviderError> {
+    ) -> Result<DebugMineBlockResult<BlockchainError>, ProviderError> {
         let (block_timestamp, new_offset) = self.next_block_timestamp(timestamp)?;
         let prevrandao = if self.blockchain.spec_id() >= SpecId::MERGE {
             Some(self.prev_randao_generator.next_value())
@@ -714,10 +716,11 @@ impl ProviderData {
 
         self.state = result.state;
 
-        let result = MineBlockResult {
+        let result = DebugMineBlockResult {
             block: block_and_total_difficulty.block,
             transaction_results: result.transaction_results,
             transaction_traces: result.transaction_traces,
+            console_log_inputs: result.console_log_inputs,
         };
 
         Ok(result)
@@ -729,7 +732,7 @@ impl ProviderData {
         &mut self,
         number_of_blocks: u64,
         interval: u64,
-    ) -> Result<Vec<MineBlockResult<BlockchainError>>, ProviderError> {
+    ) -> Result<Vec<DebugMineBlockResult<BlockchainError>>, ProviderError> {
         // There should be at least 2 blocks left for the reservation to work,
         // because we always mine a block after it. But here we use a bigger
         // number to err on the side of safety.
@@ -741,7 +744,7 @@ impl ProviderData {
 
         let mine_block_with_interval = |data: &mut ProviderData,
                                         mined_blocks: &mut Vec<
-            MineBlockResult<BlockchainError>,
+            DebugMineBlockResult<BlockchainError>,
         >|
          -> Result<(), ProviderError> {
             let previous_timestamp = mined_blocks
@@ -945,7 +948,7 @@ impl ProviderData {
         let tx_env = transaction.into();
 
         self.execute_in_block_context(block_spec, |blockchain, block, state| {
-            let mut inspector = self.evm_inspector();
+            let mut inspector = EvmInspector::default();
 
             let (_, output) = call::run_call_and_handle_errors(
                 RunCallArgs {
@@ -987,7 +990,8 @@ impl ProviderData {
         &mut self,
         signed_transaction: ExecutableTransaction,
     ) -> Result<B256, ProviderError> {
-        self.logger.on_send_transaction(&signed_transaction);
+        self.logger
+            .on_send_transaction(self.spec_id(), &signed_transaction);
 
         let snapshot_id = if self.is_auto_mining {
             self.validate_auto_mine_transaction(&signed_transaction)?;
@@ -1366,9 +1370,6 @@ impl ProviderData {
 
         Ok(transaction_hash)
     }
-    fn evm_inspector(&self) -> EvmInspector<'_> {
-        EvmInspector::new(&*self.callbacks)
-    }
 
     fn create_evm_config(&self, block_spec: Option<&BlockSpec>) -> Result<CfgEnv, ProviderError> {
         let block_number = block_spec
@@ -1439,13 +1440,13 @@ impl ProviderData {
         &self,
         timestamp: u64,
         prevrandao: Option<B256>,
-    ) -> Result<MineBlockResultAndState<StateError>, ProviderError> {
+    ) -> Result<DebugMineBlockResultAndState<StateError>, ProviderError> {
         // TODO: https://github.com/NomicFoundation/edr/issues/156
         let reward = U256::ZERO;
 
         let evm_config = self.create_evm_config(None)?;
 
-        let mut inspector = self.evm_inspector();
+        let mut inspector = EvmInspector::default();
 
         let result = mine_block(
             &*self.blockchain,
@@ -1463,11 +1464,16 @@ impl ProviderData {
             Some(&mut inspector),
         )?;
 
-        Ok(result)
+        Ok(DebugMineBlockResultAndState::new(
+            result,
+            inspector.into_console_log_encoded_messages(),
+        ))
     }
 
     /// Mines a pending block, without modifying any values.
-    pub fn mine_pending_block(&self) -> Result<MineBlockResultAndState<StateError>, ProviderError> {
+    pub fn mine_pending_block(
+        &self,
+    ) -> Result<DebugMineBlockResultAndState<StateError>, ProviderError> {
         let (block_timestamp, _new_offset) = self.next_block_timestamp(None)?;
 
         // Mining a pending block shouldn't affect the mix hash.
@@ -1881,24 +1887,48 @@ mod tests {
 
     use super::*;
     use crate::{
-        data::inspector::tests::{
-            deploy_console_log_contract, ConsoleLogTransaction, InspectorCallbacksStub,
-        },
-        logger::NoopLogger,
+        data::inspector::tests::{deploy_console_log_contract, ConsoleLogTransaction},
         test_utils::{
             create_test_config_with_impersonated_accounts_and_fork, one_ether, FORK_BLOCK_NUMBER,
         },
-        ProviderConfig,
+        Logger, ProviderConfig,
     };
+
+    #[derive(Clone, Default)]
+    struct DebugLogger {
+        console_log_inputs: Arc<Mutex<Vec<Bytes>>>,
+    }
+
+    impl Logger for DebugLogger {
+        type BlockchainError = BlockchainError;
+
+        fn is_enabled(&self) -> bool {
+            true
+        }
+
+        fn set_is_enabled(&mut self, _is_enabled: bool) {}
+
+        fn flush(&mut self) {
+            self.console_log_inputs.lock().clear();
+        }
+
+        fn previous_request_logs(&self) -> Vec<String> {
+            Vec::new()
+        }
+
+        fn previous_request_raw_traces(&self) -> Option<Vec<edr_evm::trace::Trace>> {
+            None
+        }
+    }
 
     struct ProviderTestFixture {
         // We need to keep the tempdir and runtime alive for the duration of the test
         _cache_dir: TempDir,
         _runtime: runtime::Runtime,
         config: ProviderConfig,
+        console_log_inputs: Arc<Mutex<Vec<Bytes>>>,
         provider_data: ProviderData,
         impersonated_account: Address,
-        console_log_calls: Arc<Mutex<Vec<Bytes>>>,
     }
 
     impl ProviderTestFixture {
@@ -1920,8 +1950,8 @@ mod tests {
                 forked,
             );
 
-            let callbacks = Box::<InspectorCallbacksStub>::default();
-            let console_log_calls = callbacks.console_log_calls.clone();
+            let logger = Box::<DebugLogger>::default();
+            let console_log_inputs = logger.console_log_inputs.clone();
 
             let subscription_callback = Box::new(|_| ());
 
@@ -1933,8 +1963,7 @@ mod tests {
 
             let mut provider_data = ProviderData::new(
                 runtime.handle().clone(),
-                callbacks,
-                Box::new(NoopLogger::new(false)),
+                logger,
                 subscription_callback,
                 config.clone(),
             )?;
@@ -1946,14 +1975,14 @@ mod tests {
                 _cache_dir: cache_dir,
                 _runtime: runtime,
                 config,
+                console_log_inputs,
                 provider_data,
                 impersonated_account,
-                console_log_calls,
             })
         }
 
         fn console_log_calls(&self) -> Vec<Bytes> {
-            self.console_log_calls.lock().clone()
+            self.console_log_inputs.lock().clone()
         }
 
         fn dummy_transaction_request(&self, nonce: Option<u64>) -> TransactionRequestAndSender {
@@ -2199,11 +2228,11 @@ mod tests {
         fixture.provider_data.send_transaction(transaction)?;
         let (block_timestamp, _) = fixture.provider_data.next_block_timestamp(None)?;
         let prevrandao = fixture.provider_data.prev_randao_generator.next_value();
-        fixture
+        let result = fixture
             .provider_data
             .mine_block(block_timestamp, Some(prevrandao))?;
 
-        let console_log_calls = fixture.console_log_calls();
+        let console_log_calls = result.console_log_inputs;
         assert_eq!(console_log_calls.len(), 1);
         assert_eq!(console_log_calls[0], expected_call_data);
 
