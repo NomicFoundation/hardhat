@@ -292,7 +292,7 @@ impl std::fmt::Display for TransactionFailure {
                     "VM Exception while processing transaction: invalid opcode"
                 )
             }
-            TransactionFailureReason::OutOfGas(_error) => write!(f, "out of gas"),
+            TransactionFailureReason::OutOfGas(_error) => write!(f, "Transaction ran out of gas"),
             TransactionFailureReason::Revert(output) => write!(f, "{}", revert_error(output)),
         }
     }
