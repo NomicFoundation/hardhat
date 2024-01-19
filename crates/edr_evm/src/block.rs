@@ -13,7 +13,7 @@ use edr_eth::{
 pub use self::{
     builder::{BlockBuilder, BlockBuilderCreationError, BlockTransactionError, BuildBlockResult},
     local::LocalBlock,
-    remote::RemoteBlock,
+    remote::{CreationError as RemoteBlockCreationError, RemoteBlock},
 };
 
 /// Trait for implementations of an Ethereum block.
