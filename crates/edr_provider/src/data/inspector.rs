@@ -23,6 +23,7 @@ impl<DatabaseErrorT> Inspector<DatabaseErrorT> for EvmInspector {
         inputs: &mut CallInputs,
     ) -> (InstructionResult, Gas, Bytes) {
         if inputs.contract == *CONSOLE_ADDRESS {
+            println!("test");
             self.console_log_encoded_messages.push(inputs.input.clone());
         }
 
@@ -89,10 +90,15 @@ pub(crate) mod tests {
             .next()
             .context("should have accounts")?;
 
-        let deploy_tx_hash = provider_data.send_transaction(TransactionRequestAndSender {
-            request: deploy_tx,
-            sender,
-        })?;
+        let signed_transaction =
+            provider_data.sign_transaction_request(TransactionRequestAndSender {
+                request: deploy_tx,
+                sender,
+            })?;
+
+        let deploy_tx_hash = provider_data
+            .send_transaction(signed_transaction)?
+            .transaction_hash;
 
         let deploy_receipt = provider_data
             .transaction_receipt(&deploy_tx_hash)?

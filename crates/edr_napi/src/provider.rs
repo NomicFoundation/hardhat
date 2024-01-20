@@ -1,20 +1,15 @@
 mod config;
 
-use core::fmt::{self, Debug};
 use std::sync::Arc;
 
-use edr_eth::{remote::jsonrpc, Bytes};
+use edr_eth::remote::jsonrpc;
 use edr_provider::InvalidRequestReason;
-use napi::{
-    threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction},
-    tokio::runtime,
-    Env, JsFunction, JsObject, Status,
-};
+use napi::{tokio::runtime, Env, JsFunction, JsObject, Status};
 use napi_derive::napi;
 
 use self::config::ProviderConfig;
 use crate::{
-    logger::{LogCollector, LoggerConfig},
+    logger::{Logger, LoggerConfig},
     subscribe::SubscriberCallback,
     transaction::result::map_trace_messages,
 };
@@ -32,14 +27,13 @@ impl Provider {
     pub fn with_config(
         env: Env,
         config: ProviderConfig,
-        #[napi(ts_arg_type = "(message: Buffer) => void")] console_log_callback: JsFunction,
         logger_config: LoggerConfig,
         #[napi(ts_arg_type = "(event: SubscriptionEvent) => void")] subscriber_callback: JsFunction,
     ) -> napi::Result<JsObject> {
         let config = edr_provider::ProviderConfig::try_from(config)?;
         let runtime = runtime::Handle::current();
 
-        let logger = Box::new(LogCollector::new(logger_config.enable));
+        let logger = Box::new(Logger::new(&env, logger_config)?);
         let subscriber_callback = SubscriberCallback::new(&env, &subscriber_callback)?;
         let subscriber_callback = Box::new(move |event| subscriber_callback.call(event));
 
@@ -135,44 +129,3 @@ impl Provider {
         Ok(promise)
     }
 }
-
-#[derive(Clone)]
-struct InspectorCallback {
-    console_log_callback: ThreadsafeFunction<Bytes>,
-}
-
-impl InspectorCallback {
-    fn new(env: &Env, console_log_callback_js: &JsFunction) -> napi::Result<Self> {
-        let console_log_callback = env.create_threadsafe_function(
-            console_log_callback_js,
-            0,
-            |ctx: ThreadSafeCallContext<Bytes>| {
-                let call_input = ctx
-                    .env
-                    .create_buffer_with_data(ctx.value.to_vec())?
-                    .into_raw();
-
-                Ok(vec![call_input])
-            },
-        )?;
-
-        Ok(Self {
-            console_log_callback,
-        })
-    }
-}
-
-impl Debug for InspectorCallback {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("InspectorCallback").finish()
-    }
-}
-
-// impl InspectorCallbacks for InspectorCallback {
-//     fn console(&self, call_input: Bytes) {
-//         // This is blocking because it's important that the console log
-// messages are         // passed on in the order they're received.
-//         self.console_log_callback
-//             .call(Ok(call_input), ThreadsafeFunctionCallMode::Blocking);
-//     }
-// }

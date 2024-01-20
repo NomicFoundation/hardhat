@@ -95,3 +95,11 @@ impl TryCast<U256> for BigInt {
         Ok(U256::from_limbs(self.words.try_into().unwrap()))
     }
 }
+
+impl<T> TryCast<T> for T {
+    type Error = napi::Error;
+
+    fn try_cast(self) -> std::result::Result<T, Self::Error> {
+        Ok(self)
+    }
+}

@@ -23,6 +23,7 @@ use tokio::runtime;
 
 pub use self::{
     config::*,
+    data::CallResult,
     debug::DebugMineBlockResult,
     error::ProviderError,
     logger::Logger,
@@ -146,9 +147,6 @@ impl Provider {
         data: &mut ProviderData,
         request: MethodInvocation,
     ) -> Result<serde_json::Value, ProviderError> {
-        // Flush the logger before handling a new request
-        data.logger_mut().flush();
-
         // TODO: Remove the lint override once all methods have been implemented
         #[allow(clippy::match_same_arms)]
         let result = match request {

@@ -11,7 +11,7 @@ use edr_evm::{state::StateOverrides, ExecutableTransaction};
 use crate::{data::ProviderData, requests::validation::validate_call_request, ProviderError};
 
 pub fn handle_call_request(
-    data: &ProviderData,
+    data: &mut ProviderData,
     request: CallRequest,
     block_spec: Option<BlockSpec>,
     state_overrides: Option<StateOverrideOptions>,
@@ -22,7 +22,12 @@ pub fn handle_call_request(
         state_overrides.map_or(Ok(StateOverrides::default()), StateOverrides::try_from)?;
 
     let transaction = resolve_call_request(data, request, block_spec.as_ref(), &state_overrides)?;
-    data.run_call(transaction, block_spec.as_ref(), &state_overrides)
+    let result = data.run_call(transaction.clone(), block_spec.as_ref(), &state_overrides)?;
+
+    let spec_id = data.spec_id();
+    data.logger_mut().on_call(spec_id, &transaction, &result);
+
+    Ok(result.output)
 }
 
 pub(crate) fn resolve_call_request(

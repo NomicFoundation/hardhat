@@ -15,7 +15,7 @@ use edr_eth::{
 use edr_evm::{blockchain::BlockchainError, ExecutableTransaction, SyncBlock};
 
 use crate::{
-    data::{BlockDataForTransaction, ProviderData, TransactionAndBlock},
+    data::{BlockDataForTransaction, ProviderData, SendTransactionResult, TransactionAndBlock},
     requests::validation::{
         validate_eip3860_max_initcode_size, validate_post_merge_block_tags,
         validate_transaction_and_call_request, validate_transaction_spec,
@@ -234,8 +234,9 @@ pub fn handle_send_transaction_request(
     validate_send_transaction_request(data, &transaction_request)?;
 
     let transaction_request = resolve_transaction_request(data, transaction_request)?;
+    let signed_transaction = data.sign_transaction_request(transaction_request)?;
 
-    data.send_transaction(transaction_request)
+    send_raw_transaction_and_log(data, signed_transaction)
 }
 
 pub fn handle_send_raw_transaction_request(
@@ -256,7 +257,7 @@ pub fn handle_send_raw_transaction_request(
 
     let pending_transaction = ExecutableTransaction::new(data.spec_id(), signed_transaction)?;
 
-    data.send_raw_transaction(pending_transaction)
+    send_raw_transaction_and_log(data, pending_transaction)
 }
 
 fn resolve_transaction_request(
@@ -382,6 +383,22 @@ fn resolve_transaction_request(
         request,
         sender: from,
     })
+}
+
+fn send_raw_transaction_and_log(
+    data: &mut ProviderData,
+    signed_transaction: ExecutableTransaction,
+) -> Result<B256, ProviderError> {
+    let SendTransactionResult {
+        transaction_hash,
+        mining_results,
+    } = data.send_transaction(signed_transaction.clone())?;
+
+    let spec_id = data.spec_id();
+    data.logger_mut()
+        .on_send_transaction(spec_id, &signed_transaction, mining_results);
+
+    Ok(transaction_hash)
 }
 
 fn validate_send_transaction_request(

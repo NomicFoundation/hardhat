@@ -34,9 +34,10 @@ use edr_evm::{
         AccountModifierFn, IrregularState, StateDiff, StateError, StateOverride, StateOverrides,
         SyncState,
     },
-    Account, AccountInfo, Block, Bytecode, CfgEnv, ExecutableTransaction, ExecutionResult, HashMap,
-    HashSet, MemPool, MineOrdering, OrderedTransaction, RandomHashGenerator, StorageSlot,
-    SyncBlock, TxEnv, KECCAK_EMPTY,
+    trace::{Trace, TraceCollector},
+    Account, AccountInfo, Block, Bytecode, CfgEnv, DualInspector, ExecutableTransaction,
+    ExecutionResult, HashMap, HashSet, MemPool, MineOrdering, OrderedTransaction,
+    RandomHashGenerator, StorageSlot, SyncBlock, TxEnv, KECCAK_EMPTY,
 };
 use indexmap::IndexMap;
 use lazy_static::lazy_static;
@@ -63,6 +64,20 @@ use crate::{
 };
 
 const DEFAULT_INITIAL_BASE_FEE_PER_GAS: u64 = 1_000_000_000;
+
+/// The result of executing an `eth_call`.
+#[derive(Clone)]
+pub struct CallResult {
+    pub console_log_inputs: Vec<Bytes>,
+    pub gas_used: u64,
+    pub output: Bytes,
+    pub trace: Trace,
+}
+
+pub struct SendTransactionResult {
+    pub transaction_hash: B256,
+    pub mining_results: Vec<DebugMineBlockResult<BlockchainError>>,
+}
 
 #[derive(Debug, thiserror::Error)]
 pub enum CreationError {
@@ -942,15 +957,16 @@ impl ProviderData {
         transaction: ExecutableTransaction,
         block_spec: Option<&BlockSpec>,
         state_overrides: &StateOverrides,
-    ) -> Result<Bytes, ProviderError> {
+    ) -> Result<CallResult, ProviderError> {
         let cfg_env = self.create_evm_config(block_spec)?;
         let transaction_hash = *transaction.hash();
         let tx_env = transaction.into();
 
         self.execute_in_block_context(block_spec, |blockchain, block, state| {
-            let mut inspector = EvmInspector::default();
+            let mut inspector =
+                DualInspector::new(EvmInspector::default(), TraceCollector::default());
 
-            let (_, output) = call::run_call_and_handle_errors(
+            let (gas_used, output) = call::run_call_and_handle_errors(
                 RunCallArgs {
                     blockchain,
                     header: block.header(),
@@ -963,7 +979,14 @@ impl ProviderData {
                 &transaction_hash,
             )?;
 
-            Ok(output)
+            let (debug_inspector, tracer) = inspector.into_parts();
+
+            Ok(CallResult {
+                console_log_inputs: debug_inspector.into_console_log_encoded_messages(),
+                gas_used,
+                output,
+                trace: tracer.into_trace(),
+            })
         })?
     }
 
@@ -986,13 +1009,10 @@ impl ProviderData {
         Ok(())
     }
 
-    pub fn send_raw_transaction(
+    pub fn send_transaction(
         &mut self,
         signed_transaction: ExecutableTransaction,
-    ) -> Result<B256, ProviderError> {
-        self.logger
-            .on_send_transaction(self.spec_id(), &signed_transaction);
-
+    ) -> Result<SendTransactionResult, ProviderError> {
         let snapshot_id = if self.is_auto_mining {
             self.validate_auto_mine_transaction(&signed_transaction)?;
 
@@ -1001,16 +1021,17 @@ impl ProviderData {
             None
         };
 
-        let tx_hash = self
-            .add_pending_transaction(signed_transaction)
-            .map_err(|error| {
-                if let Some(snapshot_id) = snapshot_id {
-                    self.revert_to_snapshot(snapshot_id);
-                }
+        let transaction_hash =
+            self.add_pending_transaction(signed_transaction)
+                .map_err(|error| {
+                    if let Some(snapshot_id) = snapshot_id {
+                        self.revert_to_snapshot(snapshot_id);
+                    }
 
-                error
-            })?;
+                    error
+                })?;
 
+        let mut mining_results = Vec::new();
         if let Some(snapshot_id) = snapshot_id {
             let transaction_result = loop {
                 let result = self.mine_and_commit_block(None).map_err(|error| {
@@ -1019,17 +1040,17 @@ impl ProviderData {
                     error
                 })?;
 
-                self.logger.on_block_auto_mined(&result);
-
                 let transaction_result = result.block.transactions().iter().enumerate().find_map(
                     |(idx, transaction)| {
-                        if *transaction.hash() == tx_hash {
+                        if *transaction.hash() == transaction_hash {
                             Some(result.transaction_results[idx].clone())
                         } else {
                             None
                         }
                     },
                 );
+
+                mining_results.push(result);
 
                 if let Some(transaction_result) = transaction_result {
                     break transaction_result;
@@ -1043,7 +1064,7 @@ impl ProviderData {
                     error
                 })?;
 
-                self.logger.on_block_auto_mined(&result);
+                mining_results.push(result);
             }
 
             self.snapshots.remove(&snapshot_id);
@@ -1051,25 +1072,20 @@ impl ProviderData {
             match transaction_result {
                 ExecutionResult::Success { .. } => (),
                 ExecutionResult::Revert { output, .. } => {
-                    return Err(TransactionFailure::revert(output, tx_hash).into());
+                    return Err(TransactionFailure::revert(output, transaction_hash).into());
                 }
                 ExecutionResult::Halt { reason, .. } => {
                     self.revert_to_snapshot(snapshot_id);
 
-                    return Err(TransactionFailure::halt(reason, tx_hash).into());
+                    return Err(TransactionFailure::halt(reason, transaction_hash).into());
                 }
             }
         }
 
-        Ok(tx_hash)
-    }
-
-    pub fn send_transaction(
-        &mut self,
-        transaction_request: TransactionRequestAndSender,
-    ) -> Result<B256, ProviderError> {
-        let signed_transaction = self.sign_transaction_request(transaction_request)?;
-        self.send_raw_transaction(signed_transaction)
+        Ok(SendTransactionResult {
+            transaction_hash,
+            mining_results,
+        })
     }
 
     /// Sets whether the miner should mine automatically.
@@ -1542,7 +1558,7 @@ impl ProviderData {
         }
     }
 
-    fn sign_transaction_request(
+    pub fn sign_transaction_request(
         &self,
         transaction_request: TransactionRequestAndSender,
     ) -> Result<ExecutableTransaction, ProviderError> {
@@ -1908,10 +1924,6 @@ mod tests {
 
         fn set_is_enabled(&mut self, _is_enabled: bool) {}
 
-        fn flush(&mut self) {
-            self.console_log_inputs.lock().clear();
-        }
-
         fn previous_request_logs(&self) -> Vec<String> {
             Vec::new()
         }
@@ -2224,8 +2236,12 @@ mod tests {
 
         assert_eq!(fixture.console_log_calls().len(), 0);
 
+        let signed_transaction = fixture
+            .provider_data
+            .sign_transaction_request(transaction)?;
+
         fixture.provider_data.set_auto_mining(false);
-        fixture.provider_data.send_transaction(transaction)?;
+        fixture.provider_data.send_transaction(signed_transaction)?;
         let (block_timestamp, _) = fixture.provider_data.next_block_timestamp(None)?;
         let prevrandao = fixture.provider_data.prev_randao_generator.next_value();
         let result = fixture
@@ -2252,11 +2268,14 @@ mod tests {
         let pending_transaction = fixture
             .provider_data
             .sign_transaction_request(transaction)?;
-        fixture
-            .provider_data
-            .run_call(pending_transaction, None, &StateOverrides::default())?;
 
-        let console_log_calls = fixture.console_log_calls();
+        let result = fixture.provider_data.run_call(
+            pending_transaction,
+            None,
+            &StateOverrides::default(),
+        )?;
+
+        let console_log_calls = result.console_log_inputs;
         assert_eq!(console_log_calls.len(), 1);
         assert_eq!(console_log_calls[0], expected_call_data);
 

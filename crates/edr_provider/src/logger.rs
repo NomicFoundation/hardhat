@@ -4,7 +4,7 @@
 use dyn_clone::DynClone;
 use edr_evm::{trace::Trace, ExecutableTransaction};
 
-use crate::debug::DebugMineBlockResult;
+use crate::{data::CallResult, debug::DebugMineBlockResult};
 
 pub trait Logger {
     type BlockchainError;
@@ -15,10 +15,14 @@ pub trait Logger {
     /// Sets whether the logger is enabled.
     fn set_is_enabled(&mut self, is_enabled: bool);
 
-    /// Flushes all collected notifications.
-    fn flush(&mut self);
-
-    fn on_block_auto_mined(&mut self, result: &DebugMineBlockResult<Self::BlockchainError>) {
+    fn on_call(
+        &mut self,
+        spec_id: edr_eth::SpecId,
+        transaction: &ExecutableTransaction,
+        result: &CallResult,
+    ) {
+        let _spec_id = spec_id;
+        let _transaction = transaction;
         let _result = result;
     }
 
@@ -44,9 +48,11 @@ pub trait Logger {
         &mut self,
         spec_id: edr_eth::SpecId,
         transaction: &ExecutableTransaction,
+        mining_results: Vec<DebugMineBlockResult<Self::BlockchainError>>,
     ) {
         let _spec_id = spec_id;
         let _transaction = transaction;
+        let _mining_results = mining_results;
     }
 
     /// Returns the logs of the previous request.

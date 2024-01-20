@@ -1,6 +1,9 @@
-use std::fmt::Display;
+use std::{
+    fmt::Display,
+    sync::mpsc::{channel, Sender},
+};
 
-use edr_eth::{B256, U256};
+use edr_eth::{rlp::Encodable, Bytes, B256, U256};
 use edr_evm::{
     blockchain::BlockchainError,
     precompile::{self, Precompiles},
@@ -8,25 +11,27 @@ use edr_evm::{
     ExecutableTransaction, ExecutionResult, SyncBlock,
 };
 use itertools::izip;
-use napi::{threadsafe_function::ThreadsafeFunctionCallMode, JsFunction};
+use napi::{Env, JsFunction, NapiRaw, Status};
 use napi_derive::napi;
+
+use crate::{
+    sync::{await_promise, handle_error},
+    threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
+};
+
+struct DecodeConsoleLogInputsCall {
+    inputs: Vec<Bytes>,
+    sender: Sender<napi::Result<Vec<String>>>,
+}
 
 #[napi(object)]
 pub struct LoggerConfig {
     /// Whether to enable the logger.
     pub enable: bool,
-    #[napi(ts_type = "(message: string) => void")]
-    pub log_line_callback: JsFunction,
-    #[napi(ts_type = "(title: string, message: string) => void")]
-    pub log_line_with_title_callback: JsFunction,
-    #[napi(ts_type = "(message: string) => void")]
+    #[napi(ts_type = "(inputs: Buffer[]) => string[]")]
+    pub decode_console_log_inputs_callback: JsFunction,
+    #[napi(ts_type = "(message: string, replace: boolean) => void")]
     pub print_line_callback: JsFunction,
-    #[napi(ts_type = "(enabled: boolean) => void")]
-    pub set_is_enabled_callback: JsFunction,
-    #[napi(ts_type = "(message: string) => void")]
-    pub replace_last_log_line_callback: JsFunction,
-    #[napi(ts_type = "(message: string) => void")]
-    pub replace_last_print_line_callback: JsFunction,
 }
 
 #[derive(Clone)]
@@ -75,33 +80,202 @@ enum LogLine {
 }
 
 #[derive(Clone)]
-pub struct LogCollector {
+pub struct Logger {
+    collector: LogCollector,
+}
+
+impl Logger {
+    pub fn new(env: &Env, config: LoggerConfig) -> napi::Result<Self> {
+        Ok(Self {
+            collector: LogCollector::new(env, config)?,
+        })
+    }
+}
+
+impl edr_provider::Logger for Logger {
+    type BlockchainError = BlockchainError;
+
+    fn is_enabled(&self) -> bool {
+        self.collector.is_enabled
+    }
+
+    fn set_is_enabled(&mut self, is_enabled: bool) {
+        self.collector.is_enabled = is_enabled;
+    }
+
+    fn on_call(
+        &mut self,
+        spec_id: edr_eth::SpecId,
+        transaction: &ExecutableTransaction,
+        result: &edr_provider::CallResult,
+    ) {
+        self.collector.on_call(spec_id, transaction, result);
+    }
+
+    fn on_interval_mined(
+        &mut self,
+        spec_id: edr_eth::SpecId,
+        mining_result: &edr_provider::DebugMineBlockResult<Self::BlockchainError>,
+    ) {
+        self.collector.on_interval_mined(spec_id, mining_result);
+    }
+
+    fn on_hardhat_mined(
+        &mut self,
+        spec_id: edr_eth::SpecId,
+        mining_results: Vec<edr_provider::DebugMineBlockResult<Self::BlockchainError>>,
+    ) {
+        self.collector.on_hardhat_mined(spec_id, mining_results);
+    }
+
+    fn on_send_transaction(
+        &mut self,
+        spec_id: edr_eth::SpecId,
+        transaction: &edr_evm::ExecutableTransaction,
+        mining_results: Vec<edr_provider::DebugMineBlockResult<Self::BlockchainError>>,
+    ) {
+        self.collector
+            .on_send_transaction(spec_id, transaction, mining_results);
+    }
+
+    fn previous_request_logs(&self) -> Vec<String> {
+        // TODO
+        Vec::new()
+    }
+
+    fn previous_request_raw_traces(&self) -> Option<Vec<edr_evm::trace::Trace>> {
+        // TODO
+        None
+    }
+}
+
+#[derive(Clone)]
+struct LogCollector {
     indentation: usize,
     is_enabled: bool,
+    decode_console_log_inputs_fn: ThreadsafeFunction<DecodeConsoleLogInputsCall>,
     logs: Vec<LogLine>,
-    request_logging: Option<RequestLogging>,
+    print_line_fn: ThreadsafeFunction<(String, bool)>,
     state: LoggingState,
     title_length: usize,
 }
 
 impl LogCollector {
-    pub fn new(is_enabled: bool) -> Self {
-        Self {
+    pub fn new(env: &Env, config: LoggerConfig) -> napi::Result<Self> {
+        let decode_console_log_inputs_fn = ThreadsafeFunction::create(
+            env.raw(),
+            // SAFETY: The callback is guaranteed to be valid for the lifetime of the tracer.
+            unsafe { config.decode_console_log_inputs_callback.raw() },
+            0,
+            |ctx: ThreadSafeCallContext<DecodeConsoleLogInputsCall>| {
+                // Bytes[]
+                let inputs = ctx
+                    .env
+                    .create_array_with_length(ctx.value.inputs.length())
+                    .and_then(|mut inputs| {
+                        for (idx, input) in ctx.value.inputs.into_iter().enumerate() {
+                            unsafe {
+                                ctx.env.create_buffer_with_borrowed_data(
+                                    input.as_ptr(),
+                                    input.len(),
+                                    input,
+                                    |input: Bytes, _env| {
+                                        std::mem::drop(input);
+                                    },
+                                )
+                            }
+                            .and_then(|input| inputs.set_element(idx as u32, input.into_raw()))?;
+                        }
+
+                        Ok(inputs)
+                    })?;
+
+                let sender = ctx.value.sender.clone();
+
+                let promise = ctx.callback.call(None, &[inputs])?;
+                let result =
+                    await_promise::<Vec<String>, Vec<String>>(ctx.env, promise, ctx.value.sender);
+
+                handle_error(sender, result)
+            },
+        )?;
+
+        let print_line_fn = ThreadsafeFunction::create(
+            env.raw(),
+            // SAFETY: The callback is guaranteed to be valid for the lifetime of the tracer.
+            unsafe { config.print_line_callback.raw() },
+            0,
+            |ctx: ThreadSafeCallContext<(String, bool)>| {
+                // String
+                let message = ctx.env.create_string_from_std(ctx.value.0)?;
+
+                // bool
+                let replace = ctx.env.get_boolean(ctx.value.1)?;
+
+                ctx.callback
+                    .call(None, &[message.into_unknown(), replace.into_unknown()])?;
+                Ok(())
+            },
+        )?;
+
+        Ok(Self {
+            decode_console_log_inputs_fn,
             indentation: 0,
-            is_enabled,
+            is_enabled: config.enable,
             logs: Vec::new(),
-            request_logging: None,
+            print_line_fn,
             state: LoggingState::default(),
             title_length: 0,
-        }
+        })
     }
 
-    fn log_hardhat_mined(
+    fn on_call(
+        &mut self,
+        spec_id: edr_eth::SpecId,
+        transaction: &ExecutableTransaction,
+        result: &edr_provider::CallResult,
+    ) {
+        let edr_provider::CallResult {
+            console_log_inputs,
+            gas_used,
+            output,
+            trace,
+        } = result;
+
+        self.indented(|logger| {
+            logger.log_contract_and_function_name::<true>(spec_id, &trace);
+
+            logger.log_with_title("From", format!("0x{:x}", transaction.caller()));
+            if let Some(to) = transaction.to() {
+                logger.log_with_title("To", format!("0x{to:x}"));
+            }
+            logger.log_with_title("Value", wei_to_human_readable(transaction.value()));
+            logger.log_with_title(
+                "Gas used",
+                format!(
+                    "{gas_used} of {gas_limit}",
+                    gas_limit = transaction.gas_limit()
+                ),
+            );
+
+            logger.log_console_log_messages(console_log_inputs);
+
+            // TODO: Log error
+            // if let ExecutionResult::Halt { reason, .. } = result {
+            //     logger.log_empty_line();
+            //     logger.log(format!("{reason:?}"));
+            // }
+        });
+    }
+
+    fn on_hardhat_mined(
         &mut self,
         spec_id: edr_eth::SpecId,
         mining_results: Vec<edr_provider::DebugMineBlockResult<BlockchainError>>,
-        empty_blocks_range_start: Option<u64>,
     ) {
+        let state = std::mem::take(&mut self.state);
+        let empty_blocks_range_start = state.into_hardhat_mining();
+
         let num_results = mining_results.len();
         for (idx, mining_result) in mining_results.into_iter().enumerate() {
             if mining_result.block.transactions().is_empty() {
@@ -123,18 +297,20 @@ impl LogCollector {
         }
     }
 
-    fn log_interval_mined(
+    fn on_interval_mined(
         &mut self,
         spec_id: edr_eth::SpecId,
-        mining_result: edr_provider::DebugMineBlockResult<BlockchainError>,
-        empty_blocks_range_start: Option<u64>,
+        mining_result: &edr_provider::DebugMineBlockResult<BlockchainError>,
     ) {
+        let state = std::mem::take(&mut self.state);
+        let empty_blocks_range_start = state.into_interval_mining();
+
         let block_header = mining_result.block.header();
         let block_number = block_header.number;
 
         if mining_result.block.transactions().is_empty() {
             if let Some(empty_blocks_range_start) = empty_blocks_range_start {
-                self.replace_last_print_line(format!(
+                self.print::<true>(format!(
                     "Mined empty block range #{empty_blocks_range_start} to #{block_number}"
                 ));
             } else {
@@ -144,7 +320,7 @@ impl LogCollector {
                     String::new()
                 };
 
-                self.print(format!("Mined empty block #{block_number}{base_fee}"));
+                self.print::<false>(format!("Mined empty block #{block_number}{base_fee}"));
             }
 
             self.state = LoggingState::IntervalMining {
@@ -154,16 +330,16 @@ impl LogCollector {
             };
         } else {
             self.log_interval_mined_block(spec_id, mining_result);
-            self.print(format!("Mined block #{block_number}"));
+            self.print::<false>(format!("Mined block #{block_number}"));
             self.print_empty_line();
         }
     }
 
-    fn log_send_transaction(
+    fn on_send_transaction(
         &mut self,
         spec_id: edr_eth::SpecId,
+        transaction: &edr_evm::ExecutableTransaction,
         mining_results: Vec<edr_provider::DebugMineBlockResult<BlockchainError>>,
-        transaction: edr_evm::ExecutableTransaction,
     ) {
         if !mining_results.is_empty() {
             if mining_results.len() > 1 {
@@ -264,7 +440,7 @@ impl LogCollector {
                         transaction,
                         &result,
                         &trace,
-                        console_log_inputs,
+                        &console_log_inputs,
                         should_highlight_hash,
                     );
 
@@ -302,7 +478,7 @@ impl LogCollector {
         transaction: &edr_evm::ExecutableTransaction,
         result: &edr_evm::ExecutionResult,
         trace: &edr_evm::trace::Trace,
-        console_log_inputs: &[String],
+        console_log_inputs: &[Bytes],
         should_highlight_hash: bool,
     ) {
         let transaction_hash = transaction.hash();
@@ -344,7 +520,22 @@ impl LogCollector {
         });
     }
 
-    fn log_console_log_messages(&mut self, console_log_inputs: &[String]) {
+    fn log_console_log_messages(&mut self, console_log_inputs: &[Bytes]) {
+        let (sender, receiver) = channel();
+
+        let status = self.decode_console_log_inputs_fn.call(
+            DecodeConsoleLogInputsCall {
+                inputs: console_log_inputs.to_vec(),
+                sender,
+            },
+            ThreadsafeFunctionCallMode::Blocking,
+        );
+        assert_eq!(status, Status::Ok);
+
+        let console_log_inputs = receiver
+            .recv()
+            .unwrap()
+            .expect("Failed call to decode_console_log_inputs");
         // This is a special case, as we always want to print the console.log messages.
         // The difference is how. If we have a logger, we should use that, so that logs
         // are printed in order. If we don't, we just print the messages here.
@@ -361,7 +552,7 @@ impl LogCollector {
             }
         } else {
             for input in console_log_inputs {
-                self.print(input);
+                self.print::<false>(input);
             }
         }
     }
@@ -483,7 +674,7 @@ not a contract",
     fn log_interval_mined_block(
         &mut self,
         spec_id: edr_eth::SpecId,
-        result: edr_provider::DebugMineBlockResult<BlockchainError>,
+        result: &edr_provider::DebugMineBlockResult<BlockchainError>,
     ) {
         let edr_provider::DebugMineBlockResult {
             block,
@@ -501,7 +692,7 @@ not a contract",
         let block_header = block.header();
 
         self.indented(|logger| {
-            logger.log_block_hash(&block);
+            logger.log_block_hash(block);
 
             logger.indented(|logger| {
                 logger.log_base_fee(block_header.base_fee_per_gas.as_ref());
@@ -515,8 +706,8 @@ not a contract",
                     logger.log_block_transaction(
                         spec_id,
                         transaction,
-                        &result,
-                        &trace,
+                        result,
+                        trace,
                         console_log_inputs,
                         false,
                     );
@@ -570,7 +761,7 @@ not a contract",
                                 transaction,
                                 &result,
                                 &trace,
-                                console_log_inputs,
+                                &console_log_inputs,
                                 false,
                             );
 
@@ -632,7 +823,6 @@ well.",
         );
 
         self.indented(|logger| {
-            println!("pre-contract");
             logger.log_contract_and_function_name::<false>(spec_id, trace);
 
             let transaction_hash = transaction.hash();
@@ -658,7 +848,6 @@ well.",
             // TODO: Get converted strings from Hardhat
             logger.log_console_log_messages(&result.console_log_inputs);
 
-            println!("pre-error");
             if let ExecutionResult::Halt { reason, .. } = &transaction_result {
                 logger.log_empty_line();
                 logger.log(format!("{reason:?}"));
@@ -666,7 +855,7 @@ well.",
         });
     }
 
-    fn print(&mut self, message: impl Into<String>) {
+    fn print<const REPLACE: bool>(&mut self, message: impl Into<String>) {
         if !self.is_enabled {
             return;
         }
@@ -675,13 +864,13 @@ well.",
 
         let status = self
             .print_line_fn
-            .call(formatted, ThreadsafeFunctionCallMode::Blocking);
+            .call((formatted, REPLACE), ThreadsafeFunctionCallMode::Blocking);
 
         assert_eq!(status, napi::Status::Ok);
     }
 
     fn print_empty_line(&mut self) {
-        self.print("");
+        self.print::<false>("");
     }
 
     fn replace_last_log_line(&mut self, message: impl Into<String>) {
@@ -689,136 +878,6 @@ well.",
 
         *self.logs.last_mut().expect("There must be a log line") = LogLine::Single(formatted);
     }
-
-    fn replace_last_print_line(&mut self, message: impl Into<String>) {
-        if !self.is_enabled {
-            return;
-        }
-
-        let formatted = self.format(message);
-
-        let status = self
-            .replace_last_print_line_fn
-            .call(formatted, ThreadsafeFunctionCallMode::Blocking);
-
-        assert_eq!(status, napi::Status::Ok);
-    }
-}
-
-impl edr_provider::Logger for LogCollector {
-    type BlockchainError = BlockchainError;
-
-    fn is_enabled(&self) -> bool {
-        self.is_enabled
-    }
-
-    fn set_is_enabled(&mut self, is_enabled: bool) {
-        self.is_enabled = is_enabled;
-    }
-
-    fn flush(&mut self) {
-        let state = std::mem::take(&mut self.state);
-
-        if let Some(request_logging) = self.request_logging.take() {
-            match request_logging {
-                RequestLogging::IntervalMined {
-                    spec_id,
-                    mining_result,
-                } => {
-                    self.log_interval_mined(spec_id, mining_result, state.into_interval_mining());
-                }
-                RequestLogging::HardhatMined {
-                    spec_id,
-                    mining_results,
-                } => {
-                    self.log_hardhat_mined(spec_id, mining_results, state.into_hardhat_mining());
-                }
-                RequestLogging::SendTransaction {
-                    spec_id,
-                    mining_results,
-                    transaction,
-                } => {
-                    self.log_send_transaction(spec_id, mining_results, transaction);
-                }
-            }
-        }
-    }
-
-    fn on_block_auto_mined(
-        &mut self,
-        result: &edr_provider::DebugMineBlockResult<Self::BlockchainError>,
-    ) {
-        let mining_results = match self.request_logging.as_mut() {
-            Some(RequestLogging::SendTransaction { mining_results, .. }) => mining_results,
-            _ => {
-                unreachable!("on_block_auto_mined should only be called after on_send_transaction")
-            }
-        };
-
-        mining_results.push(result.clone());
-    }
-
-    fn on_interval_mined(
-        &mut self,
-        spec_id: edr_eth::SpecId,
-        mining_result: &edr_provider::DebugMineBlockResult<Self::BlockchainError>,
-    ) {
-        self.request_logging = Some(RequestLogging::IntervalMined {
-            mining_result: mining_result.clone(),
-            spec_id,
-        });
-    }
-
-    fn on_hardhat_mined(
-        &mut self,
-        spec_id: edr_eth::SpecId,
-        mining_results: Vec<edr_provider::DebugMineBlockResult<Self::BlockchainError>>,
-    ) {
-        self.request_logging = Some(RequestLogging::HardhatMined {
-            mining_results,
-            spec_id,
-        });
-    }
-
-    fn on_send_transaction(
-        &mut self,
-        spec_id: edr_eth::SpecId,
-        transaction: &edr_evm::ExecutableTransaction,
-    ) {
-        self.request_logging = Some(RequestLogging::SendTransaction {
-            mining_results: Vec::new(),
-            spec_id,
-            transaction: transaction.clone(),
-        });
-    }
-
-    fn previous_request_logs(&self) -> Vec<String> {
-        // TODO
-        Vec::new()
-    }
-
-    fn previous_request_raw_traces(&self) -> Option<Vec<edr_evm::trace::Trace>> {
-        // TODO
-        None
-    }
-}
-
-#[derive(Clone)]
-pub enum RequestLogging {
-    IntervalMined {
-        mining_result: edr_provider::DebugMineBlockResult<BlockchainError>,
-        spec_id: edr_eth::SpecId,
-    },
-    HardhatMined {
-        mining_results: Vec<edr_provider::DebugMineBlockResult<BlockchainError>>,
-        spec_id: edr_eth::SpecId,
-    },
-    /// Set when `eth_sendTransaction` or `eth_sendRawTransaction` is called.
-    SendTransaction {
-        mining_results: Vec<edr_provider::DebugMineBlockResult<BlockchainError>>,
-        spec_id: edr_eth::SpecId,
-        transaction: edr_evm::ExecutableTransaction,
-    },
 }
 
 fn wei_to_human_readable(wei: U256) -> String {
