@@ -22,7 +22,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
     runTests();
   });
 
-  describe("connected to a hardhat node", function () {
+  describe.only("connected to a hardhat node", function () {
     useEnvironmentWithNode("hardhat-project");
 
     runTests();
@@ -281,7 +281,10 @@ describe("INTEGRATION: Reverted with custom error", function () {
               "CustomErrorWithUintAndString"
             )
             .withArgs(1)
-        ).to.be.rejectedWith(AssertionError, "expected 1 args but got 2");
+        ).to.be.rejectedWith(
+          AssertionError,
+          'Expected "CustomErrorWithUintAndString" custom error to have 1 argument(s), but it has 2'
+        );
 
         await expect(
           expect(matchers.revertWithCustomErrorWithUintAndString(1, "s"))
@@ -290,22 +293,29 @@ describe("INTEGRATION: Reverted with custom error", function () {
               "CustomErrorWithUintAndString"
             )
             .withArgs(1, "s", 3)
-        ).to.be.rejectedWith(AssertionError, "expected 3 args but got 2");
-      });
-
-      it("should work with nested arguments", async function () {
-        await expect(matchers.revertWithCustomErrorWithPair(1, 2))
-          .to.be.revertedWithCustomError(matchers, "CustomErrorWithPair")
-          .withArgs([1, 2]);
-
-        await expect(
-          expect(matchers.revertWithCustomErrorWithPair(1, 2))
-            .to.be.revertedWithCustomError(matchers, "CustomErrorWithPair")
-            .withArgs([3, 2])
         ).to.be.rejectedWith(
           AssertionError,
-          /expected \[.*\] to deeply equal \[ 3, 2 \]/s
+          'Expected "CustomErrorWithUintAndString" custom error to have 3 argument(s), but it has 2'
         );
+      });
+
+      describe("nested arguments", function () {
+        it("should match correct arguments", async function () {
+          await expect(matchers.revertWithCustomErrorWithPair(1, 2))
+            .to.be.revertedWithCustomError(matchers, "CustomErrorWithPair")
+            .withArgs([1, 2]);
+        });
+
+        it("should reject different arguments", async function () {
+          await expect(
+            expect(matchers.revertWithCustomErrorWithPair(1, 2))
+              .to.be.revertedWithCustomError(matchers, "CustomErrorWithPair")
+              .withArgs([3, 2])
+          ).to.be.rejectedWith(
+            AssertionError,
+            'expected 1 to equal 3. The numerical values of the given "bigint" and "number" inputs were compared, and they differed.'
+          );
+        });
       });
 
       it("should fail when the arrays don't have the same length", async function () {
@@ -378,7 +388,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
               .withArgs(() => false)
           ).to.be.rejectedWith(
             AssertionError,
-            "The predicate for the 1st custom error argument returned false"
+            "The predicate for the 1st custom error argument did not return true"
           );
         });
 

@@ -1,5 +1,5 @@
 import type EthersT from "ethers";
-import type { Contract, Transaction } from "ethers";
+import type { Contract, Interface, Transaction } from "ethers";
 import type { AssertWithSsfi, Ssfi } from "../utils";
 
 import { AssertionError } from "chai";
@@ -8,19 +8,14 @@ import util from "util";
 import { buildAssert } from "../utils";
 import { ASSERTION_ABORTED, EMIT_MATCHER } from "./constants";
 import { HardhatChaiMatchersAssertionError } from "./errors";
-import { assertIsNotNull, preventAsyncMatcherChaining } from "./utils";
+import {
+  assertArgsArraysEqual,
+  assertIsNotNull,
+  preventAsyncMatcherChaining,
+} from "./utils";
 
 type EventFragment = EthersT.EventFragment;
 type Provider = EthersT.Provider;
-type AssertArgsArraysEqual = (
-  context: any,
-  Assertion: Chai.AssertionStatic,
-  chaiUtils: Chai.ChaiUtils,
-  expectedArgs: any[],
-  log: any,
-  assert: AssertWithSsfi,
-  ssfi: Ssfi
-) => void;
 
 export const EMIT_CALLED = "emitAssertionCalled";
 
@@ -137,8 +132,7 @@ export async function emitWithArgs(
   Assertion: Chai.AssertionStatic,
   chaiUtils: Chai.ChaiUtils,
   expectedArgs: any[],
-  ssfi: Ssfi,
-  assertArgsArraysEqual: AssertArgsArraysEqual
+  ssfi: Ssfi
 ) {
   const negated = false; // .withArgs cannot be negated
   const assert = buildAssert(negated, ssfi);
@@ -150,8 +144,7 @@ export async function emitWithArgs(
     expectedArgs,
     context.logs,
     assert,
-    ssfi,
-    assertArgsArraysEqual
+    ssfi
   );
 }
 
@@ -162,30 +155,41 @@ const tryAssertArgsArraysEqual = (
   expectedArgs: any[],
   logs: any[],
   assert: AssertWithSsfi,
-  ssfi: Ssfi,
-  assertArgsArraysEqual: AssertArgsArraysEqual
+  ssfi: Ssfi
 ) => {
-  if (logs.length === 1)
+  const eventName = chaiUtils.flag(context, "eventName");
+  if (logs.length === 1) {
+    const parsedLog = (
+      chaiUtils.flag(context, "contract").interface as Interface
+    ).parseLog(logs[0]);
+    assertIsNotNull(parsedLog, "parsedLog");
+
     return assertArgsArraysEqual(
-      context,
       Assertion,
-      chaiUtils,
       expectedArgs,
-      logs[0],
+      parsedLog.args,
+      "event",
+      eventName,
       assert,
       ssfi
     );
+  }
   for (const index in logs) {
     if (index === undefined) {
       break;
     } else {
       try {
+        const parsedLog = (
+          chaiUtils.flag(context, "contract").interface as Interface
+        ).parseLog(logs[index]);
+        assertIsNotNull(parsedLog, "parsedLog");
+
         assertArgsArraysEqual(
-          context,
           Assertion,
-          chaiUtils,
           expectedArgs,
-          logs[index],
+          parsedLog.args,
+          "event",
+          eventName,
           assert,
           ssfi
         );
@@ -193,7 +197,7 @@ const tryAssertArgsArraysEqual = (
       } catch {}
     }
   }
-  const eventName = chaiUtils.flag(context, "eventName");
+
   assert(
     false,
     `The specified arguments (${util.inspect(

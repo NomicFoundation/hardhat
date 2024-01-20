@@ -1,12 +1,14 @@
 import type EthersT from "ethers";
 
-import ordinal from "ordinal";
-
 import {
   ASSERTION_ABORTED,
   REVERTED_WITH_CUSTOM_ERROR_MATCHER,
 } from "../constants";
-import { assertIsNotNull, preventAsyncMatcherChaining } from "../utils";
+import {
+  assertArgsArraysEqual,
+  assertIsNotNull,
+  preventAsyncMatcherChaining,
+} from "../utils";
 import { buildAssert, Ssfi } from "../../utils";
 import {
   decodeReturnData,
@@ -186,7 +188,7 @@ function validateInput(
 export async function revertedWithCustomErrorWithArgs(
   context: any,
   Assertion: Chai.AssertionStatic,
-  _utils: Chai.ChaiUtils,
+  chaiUtils: Chai.ChaiUtils,
   expectedArgs: any[],
   ssfi: Ssfi
 ) {
@@ -212,47 +214,13 @@ export async function revertedWithCustomErrorWithArgs(
     contractInterface.decodeErrorResult(errorFragment, returnData)
   );
 
-  new Assertion(actualArgs).to.have.same.length(
-    expectedArgs.length,
-    `expected ${expectedArgs.length} args but got ${actualArgs.length}`
+  assertArgsArraysEqual(
+    Assertion,
+    expectedArgs,
+    actualArgs,
+    "custom error",
+    customError.name,
+    assert,
+    ssfi
   );
-
-  for (const [i, actualArg] of actualArgs.entries()) {
-    const expectedArg = expectedArgs[i];
-    if (typeof expectedArg === "function") {
-      const errorPrefix = `The predicate for the ${ordinal(
-        i + 1
-      )} custom error argument`;
-      try {
-        if (expectedArg(actualArg) === true) continue;
-      } catch (e: any) {
-        assert(
-          false,
-          `${errorPrefix} threw when called: ${e.message}`
-          // no need for a negated message, since we disallow mixing .not. with
-          // .withArgs
-        );
-      }
-      assert(
-        false,
-        `${errorPrefix} returned false`
-        // no need for a negated message, since we disallow mixing .not. with
-        // .withArgs
-      );
-    } else if (Array.isArray(expectedArg)) {
-      const expectedLength = expectedArg.length;
-      const actualLength = actualArg.length;
-      assert(
-        expectedLength === actualLength,
-        `Expected the ${ordinal(i + 1)} argument of the "${
-          customError.name
-        }" custom error to have ${expectedLength} ${
-          expectedLength === 1 ? "element" : "elements"
-        }, but it has ${actualLength}`
-      );
-      new Assertion(actualArg).to.deep.equal(expectedArg);
-    } else {
-      new Assertion(actualArg).to.equal(expectedArg);
-    }
-  }
 }
