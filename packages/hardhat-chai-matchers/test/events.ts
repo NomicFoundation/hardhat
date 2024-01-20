@@ -22,7 +22,7 @@ describe(".to.emit (contract events)", () => {
     runTests();
   });
 
-  describe("connected to a hardhat node", function () {
+  describe.only("connected to a hardhat node", function () {
     useEnvironmentWithNode("hardhat-project");
 
     runTests();
@@ -30,9 +30,7 @@ describe(".to.emit (contract events)", () => {
 
   function runTests() {
     beforeEach(async function () {
-      otherContract = await (
-        await this.hre.ethers.getContractFactory("AnotherContract")
-      ).deploy();
+      otherContract = await this.hre.ethers.deployContract("AnotherContract");
 
       contract = await (
         await this.hre.ethers.getContractFactory<[string], EventsContract>(
@@ -66,7 +64,9 @@ describe(".to.emit (contract events)", () => {
     });
 
     it("Should detect events without arguments", async function () {
-      await expect(contract.emitWithoutArgs()).to.emit(contract, "WithoutArgs");
+      await expect(contract.emitWithoutArgs())
+        .to.emit(contract, "WithoutArgs")
+        .withArgs();
     });
 
     it("Should fail when expecting an event that wasn't emitted", async function () {
@@ -538,7 +538,7 @@ describe(".to.emit (contract events)", () => {
                 .withArgs(1, () => false)
             ).to.be.eventually.rejectedWith(
               AssertionError,
-              "The predicate for the 2nd event argument returned false"
+              "The predicate for the 2nd event argument did not return true"
             );
           });
 

@@ -166,12 +166,11 @@ function assertArgsArraysEqual(
     actualArgs.length === expectedArgs.length,
     `Expected "${eventName}" event to have ${expectedArgs.length} argument(s), but it has ${actualArgs.length}`
   );
-  for (const index in expectedArgs) {
-    const expectedArg = expectedArgs[index];
+  for (const [index, expectedArg] of expectedArgs.entries()) {
     const actualArg = actualArgs[index];
     if (typeof expectedArg === "function") {
       const errorPrefix = `The predicate for the ${ordinal(
-        parseInt(index) + 1
+        index + 1
       )} event argument`;
       try {
         if (expectedArg(actualArg) === true) continue;
@@ -185,7 +184,7 @@ function assertArgsArraysEqual(
       }
       assert(
         false,
-        `${errorPrefix} returned false`
+        `${errorPrefix} did not return true `
         // no need for a negated message, since we disallow mixing .not. with
         // .withArgs
       );
@@ -202,7 +201,7 @@ function assertArgsArraysEqual(
       assert(
         expectedLength === actualLength,
         `Expected the ${ordinal(
-          parseInt(index) + 1
+          index + 1
         )} argument of the "${eventName}" event to have ${expectedLength} ${
           expectedLength === 1 ? "element" : "elements"
         }, but it has ${actualLength}`
@@ -214,16 +213,8 @@ function assertArgsArraysEqual(
         );
       }
     } else {
-      if (
-        actualArg.hash !== undefined &&
-        actualArg._isIndexed === true
-      ) {
-        new Assertion(
-          actualArg.hash,
-          undefined,
-          ssfi,
-          true
-        ).to.not.equal(
+      if (actualArg.hash !== undefined && actualArg._isIndexed === true) {
+        new Assertion(actualArg.hash, undefined, ssfi, true).to.not.equal(
           expectedArg,
           "The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion should be the actual event argument (the pre-image of the hash). You provided the hash itself. Please supply the actual event argument (the pre-image of the hash) instead."
         );
@@ -236,9 +227,7 @@ function assertArgsArraysEqual(
           `The actual value was an indexed and hashed value of the event argument. The expected value provided to the assertion was hashed to produce ${expectedHash}. The actual hash and the expected hash did not match`
         );
       } else {
-        new Assertion(actualArg, undefined, ssfi, true).equal(
-          expectedArg
-        );
+        new Assertion(actualArg, undefined, ssfi, true).equal(expectedArg);
       }
     }
   }
