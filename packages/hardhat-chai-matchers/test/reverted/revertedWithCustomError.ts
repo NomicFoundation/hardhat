@@ -22,7 +22,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
     runTests();
   });
 
-  describe.only("connected to a hardhat node", function () {
+  describe("connected to a hardhat node", function () {
     useEnvironmentWithNode("hardhat-project");
 
     runTests();

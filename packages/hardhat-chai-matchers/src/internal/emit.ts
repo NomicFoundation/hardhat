@@ -168,8 +168,7 @@ const tryAssertArgsArraysEqual = (
       Assertion,
       expectedArgs,
       parsedLog.args,
-      "event",
-      eventName,
+      `"${eventName}" event`,
       assert,
       ssfi
     );
@@ -188,8 +187,7 @@ const tryAssertArgsArraysEqual = (
           Assertion,
           expectedArgs,
           parsedLog.args,
-          "event",
-          eventName,
+          `"${eventName}" event`,
           assert,
           ssfi
         );
