@@ -1,6 +1,5 @@
 import type EthersT from "ethers";
 import ordinal from "ordinal";
-import { AssertionError } from "chai";
 import { AssertWithSsfi, Ssfi } from "../utils";
 import { PREVIOUS_MATCHER_NAME } from "./constants";
 import {
@@ -62,7 +61,6 @@ export function assertArgsArraysEqual(
       ssfi
     );
   } catch (err: any) {
-    // throw new AssertionError("Fix this");
     err.message = `Error in ${tag}: ${err.message}`;
     throw err;
   }

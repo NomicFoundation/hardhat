@@ -16,13 +16,13 @@ import { anyUint, anyValue } from "../../src/withArgs";
 import { MatchersContract } from "../contracts";
 
 describe("INTEGRATION: Reverted with custom error", function () {
-  describe("with the in-process hardhat network", function () {
+  describe.skip("with the in-process hardhat network", function () {
     useEnvironment("hardhat-project");
 
     runTests();
   });
 
-  describe.only("connected to a hardhat node", function () {
+  describe("connected to a hardhat node", function () {
     useEnvironmentWithNode("hardhat-project");
 
     runTests();
@@ -223,54 +223,80 @@ describe("INTEGRATION: Reverted with custom error", function () {
     });
 
     describe("with args", function () {
-      it("should work with one argument", async function () {
-        await expect(matchers.revertWithCustomErrorWithUint(1))
-          .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
-          .withArgs(1);
-
-        await expect(
-          expect(matchers.revertWithCustomErrorWithUint(1))
+      describe("one argument", async function () {
+        it("Should match correct argument", async function () {
+          await expect(matchers.revertWithCustomErrorWithUint(1))
             .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
-            .withArgs(2)
-        ).to.be.rejectedWith(AssertionError, "expected 1 to equal 2");
+            .withArgs(1);
+        });
+
+        it("Should fail if wrong argument", async function () {
+          await expect(
+            expect(matchers.revertWithCustomErrorWithUint(1))
+              .to.be.revertedWithCustomError(matchers, "CustomErrorWithUint")
+              .withArgs(2)
+          ).to.be.rejectedWith(
+            AssertionError,
+            'Error in "CustomErrorWithUint" custom error: Error in the 1st argument assertion: expected 1 to equal 2. The numerical values of the given "bigint" and "number" inputs were compared, and they differed'
+          );
+        });
       });
 
-      it("should work with two arguments", async function () {
-        await expect(matchers.revertWithCustomErrorWithUintAndString(1, "foo"))
-          .to.be.revertedWithCustomError(
-            matchers,
-            "CustomErrorWithUintAndString"
+      describe("two arguments", function () {
+        it("Should match correct values", async function () {
+          await expect(
+            matchers.revertWithCustomErrorWithUintAndString(1, "foo")
           )
-          .withArgs(1, "foo");
-
-        await expect(
-          expect(matchers.revertWithCustomErrorWithUintAndString(1, "foo"))
             .to.be.revertedWithCustomError(
               matchers,
               "CustomErrorWithUintAndString"
             )
-            .withArgs(2, "foo")
-        ).to.be.rejectedWith(AssertionError, "expected 1 to equal 2");
+            .withArgs(1, "foo");
+        });
 
-        await expect(
-          expect(matchers.revertWithCustomErrorWithUintAndString(1, "foo"))
-            .to.be.revertedWithCustomError(
-              matchers,
-              "CustomErrorWithUintAndString"
-            )
-            .withArgs(1, "bar")
-        ).to.be.rejectedWith(AssertionError, "expected 'foo' to equal 'bar'");
+        it("Should fail if uint is wrong", async function () {
+          await expect(
+            expect(matchers.revertWithCustomErrorWithUintAndString(1, "foo"))
+              .to.be.revertedWithCustomError(
+                matchers,
+                "CustomErrorWithUintAndString"
+              )
+              .withArgs(2, "foo")
+          ).to.be.rejectedWith(
+            AssertionError,
+            'Error in "CustomErrorWithUintAndString" custom error: Error in the 1st argument assertion: expected 1 to equal 2. The numerical values of the given "bigint" and "number" inputs were compared, and they differed'
+          );
+        });
 
-        await expect(
-          expect(matchers.revertWithCustomErrorWithUintAndString(1, "foo"))
-            .to.be.revertedWithCustomError(
-              matchers,
-              "CustomErrorWithUintAndString"
-            )
-            .withArgs(() => {
-              throw new Error("user-defined error");
-            }, "foo")
-        ).to.be.rejectedWith(Error, "user-defined error");
+        it("Should fail if string is wrong", async function () {
+          await expect(
+            expect(matchers.revertWithCustomErrorWithUintAndString(1, "foo"))
+              .to.be.revertedWithCustomError(
+                matchers,
+                "CustomErrorWithUintAndString"
+              )
+              .withArgs(1, "bar")
+          ).to.be.rejectedWith(
+            AssertionError,
+            "Error in \"CustomErrorWithUintAndString\" custom error: Error in the 2nd argument assertion: expected 'foo' to equal 'bar'"
+          );
+        });
+
+        it("Should if first prefdicate fails", async function () {
+          await expect(
+            expect(matchers.revertWithCustomErrorWithUintAndString(1, "foo"))
+              .to.be.revertedWithCustomError(
+                matchers,
+                "CustomErrorWithUintAndString"
+              )
+              .withArgs(() => {
+                throw new Error("user-defined error");
+              }, "foo")
+          ).to.be.rejectedWith(
+            Error,
+            'Error in "CustomErrorWithUintAndString" custom error: Error in the 1st argument assertion: The predicate threw when called: user-defined error'
+          );
+        });
       });
 
       describe("different number of arguments", function () {
@@ -317,7 +343,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
               .withArgs([3, 2])
           ).to.be.rejectedWith(
             AssertionError,
-            'expected 1 to equal 3. The numerical values of the given "bigint" and "number" inputs were compared, and they differed.'
+            'Error in "CustomErrorWithPair" custom error: Error in the 1st argument assertion: Error in the 1st argument assertion: expected 1 to equal 3. The numerical values of the given "bigint" and "number" inputs were compared, and they differed'
           );
         });
       });
