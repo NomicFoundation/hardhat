@@ -64,9 +64,7 @@ describe(".to.emit (contract events)", () => {
     });
 
     it("Should detect events without arguments", async function () {
-      await expect(contract.emitWithoutArgs())
-        .to.emit(contract, "WithoutArgs")
-        .withArgs();
+      await expect(contract.emitWithoutArgs()).to.emit(contract, "WithoutArgs");
     });
 
     it("Should fail when expecting an event that wasn't emitted", async function () {
@@ -113,6 +111,12 @@ describe(".to.emit (contract events)", () => {
           Error,
           "withArgs can only be used in combination with a previous .emit or .revertedWithCustomError assertion"
         );
+      });
+
+      it("Should verify zero arguments", async function () {
+        await expect(contract.emitWithoutArgs())
+          .to.emit(contract, "WithoutArgs")
+          .withArgs();
       });
 
       describe("with a uint argument", function () {
@@ -389,6 +393,41 @@ describe(".to.emit (contract events)", () => {
             AssertionError,
             `Error in "WithUintArray" event: Error in the 1st argument assertion: Error in the 1st argument assertion: expected 1 to equal 3. The numerical values of the given "bigint" and "number" inputs were compared, and they differed`
           );
+        });
+
+        describe("nested predicate", async function () {
+          it("Should succeed when predicate passes", async function () {
+            await expect(contract.emitUintArray(1, 2))
+              .to.emit(contract, "WithUintArray")
+              .withArgs([anyValue, 2]);
+          });
+
+          it("Should fail when predicate returns false", async function () {
+            await expect(
+              expect(contract.emitUintArray(1, 2))
+                .to.emit(contract, "WithUintArray")
+                .withArgs([() => false, 4])
+            ).to.be.eventually.rejectedWith(
+              AssertionError,
+              `Error in "WithUintArray" event: Error in the 1st argument assertion: Error in the 1st argument assertion: The predicate did not return true`
+            );
+          });
+
+          it("Should fail when predicate reverts", async function () {
+            await expect(
+              expect(contract.emitUintArray(1, 2))
+                .to.emit(contract, "WithUintArray")
+                .withArgs([
+                  () => {
+                    throw new Error("user error");
+                  },
+                  4,
+                ])
+            ).to.be.eventually.rejectedWith(
+              AssertionError,
+              `Error in "WithUintArray" event: Error in the 1st argument assertion: Error in the 1st argument assertion: The predicate threw when called: user error`
+            );
+          });
         });
 
         describe("arrays different length", function () {
