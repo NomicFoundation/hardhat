@@ -22,7 +22,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
     runTests();
   });
 
-  describe("connected to a hardhat node", function () {
+  describe.only("connected to a hardhat node", function () {
     useEnvironmentWithNode("hardhat-project");
 
     runTests();
@@ -273,30 +273,34 @@ describe("INTEGRATION: Reverted with custom error", function () {
         ).to.be.rejectedWith(Error, "user-defined error");
       });
 
-      it("should check the length of the args", async function () {
-        await expect(
-          expect(matchers.revertWithCustomErrorWithUintAndString(1, "s"))
-            .to.be.revertedWithCustomError(
-              matchers,
-              "CustomErrorWithUintAndString"
-            )
-            .withArgs(1)
-        ).to.be.rejectedWith(
-          AssertionError,
-          'Expected "CustomErrorWithUintAndString" custom error to have 1 argument(s), but it has 2'
-        );
+      describe("different number of arguments", function () {
+        it("Should reject if expected less arguments", async function () {
+          await expect(
+            expect(matchers.revertWithCustomErrorWithUintAndString(1, "s"))
+              .to.be.revertedWithCustomError(
+                matchers,
+                "CustomErrorWithUintAndString"
+              )
+              .withArgs(1)
+          ).to.be.rejectedWith(
+            AssertionError,
+            'Error in "CustomErrorWithUintAndString" custom error: Expected arguments array to have length 1, but it has 2'
+          );
+        });
 
-        await expect(
-          expect(matchers.revertWithCustomErrorWithUintAndString(1, "s"))
-            .to.be.revertedWithCustomError(
-              matchers,
-              "CustomErrorWithUintAndString"
-            )
-            .withArgs(1, "s", 3)
-        ).to.be.rejectedWith(
-          AssertionError,
-          'Expected "CustomErrorWithUintAndString" custom error to have 3 argument(s), but it has 2'
-        );
+        it("Should reject if expected more arguments", async function () {
+          await expect(
+            expect(matchers.revertWithCustomErrorWithUintAndString(1, "s"))
+              .to.be.revertedWithCustomError(
+                matchers,
+                "CustomErrorWithUintAndString"
+              )
+              .withArgs(1, "s", 3)
+          ).to.be.rejectedWith(
+            AssertionError,
+            'Error in "CustomErrorWithUintAndString" custom error: Expected arguments array to have length 3, but it has 2'
+          );
+        });
       });
 
       describe("nested arguments", function () {
@@ -318,24 +322,28 @@ describe("INTEGRATION: Reverted with custom error", function () {
         });
       });
 
-      it("should fail when the arrays don't have the same length", async function () {
-        await expect(
-          expect(matchers.revertWithCustomErrorWithPair(1, 2))
-            .to.be.revertedWithCustomError(matchers, "CustomErrorWithPair")
-            .withArgs([1])
-        ).to.be.rejectedWith(
-          AssertionError,
-          'Expected the 1st argument of the "CustomErrorWithPair" custom error to have 1 element, but it has 2'
-        );
+      describe("array of different lengths", async function () {
+        it("Should fail if the expected array is bigger", async function () {
+          await expect(
+            expect(matchers.revertWithCustomErrorWithPair(1, 2))
+              .to.be.revertedWithCustomError(matchers, "CustomErrorWithPair")
+              .withArgs([1])
+          ).to.be.rejectedWith(
+            AssertionError,
+            'Error in "CustomErrorWithPair" custom error: Error in the 1st argument assertion: Expected arguments array to have length 1, but it has 2'
+          );
+        });
 
-        await expect(
-          expect(matchers.revertWithCustomErrorWithPair(1, 2))
-            .to.be.revertedWithCustomError(matchers, "CustomErrorWithPair")
-            .withArgs([1, 2, 3])
-        ).to.be.rejectedWith(
-          AssertionError,
-          'Expected the 1st argument of the "CustomErrorWithPair" custom error to have 3 elements, but it has 2'
-        );
+        it("Should fail if the expected array is smaller", async function () {
+          await expect(
+            expect(matchers.revertWithCustomErrorWithPair(1, 2))
+              .to.be.revertedWithCustomError(matchers, "CustomErrorWithPair")
+              .withArgs([1, 2, 3])
+          ).to.be.rejectedWith(
+            AssertionError,
+            'Error in "CustomErrorWithPair" custom error: Error in the 1st argument assertion: Expected arguments array to have length 3, but it has 2'
+          );
+        });
       });
 
       it("Should fail when used with .not.", async function () {
@@ -388,7 +396,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
               .withArgs(() => false)
           ).to.be.rejectedWith(
             AssertionError,
-            "The predicate for the 1st custom error argument did not return true"
+            'Error in "CustomErrorWithUint" custom error: Error in the 1st argument assertion: The predicate did not return true'
           );
         });
 
@@ -399,7 +407,7 @@ describe("INTEGRATION: Reverted with custom error", function () {
               .withArgs(anyUint)
           ).to.be.rejectedWith(
             AssertionError,
-            "The predicate for the 1st custom error argument threw when called: anyUint expected its argument to be an unsigned integer, but it was negative, with value -1"
+            'Error in "CustomErrorWithInt" custom error: Error in the 1st argument assertion: The predicate threw when called: anyUint expected its argument to be an unsigned integer, but it was negative, with value -1'
           );
         });
       });

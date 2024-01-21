@@ -22,7 +22,7 @@ describe(".to.emit (contract events)", () => {
     runTests();
   });
 
-  describe.only("connected to a hardhat node", function () {
+  describe("connected to a hardhat node", function () {
     useEnvironmentWithNode("hardhat-project");
 
     runTests();
