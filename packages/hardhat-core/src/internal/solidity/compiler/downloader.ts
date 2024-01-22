@@ -126,10 +126,7 @@ export class CompilerDownloader implements ICompilerDownloader {
   }
 
   public static defaultCompilerListCachePeriod = 3_600_00;
-  private readonly _compilerDownloadMultiProcessMutex = new MultiProcessMutex(
-    "compiler-download",
-    20000
-  );
+  private readonly _mutex = new MultiProcessMutex("compiler-download");
 
   /**
    * Use CompilerDownloader.getConcurrencySafeDownloader instead
@@ -162,7 +159,7 @@ export class CompilerDownloader implements ICompilerDownloader {
     // This is because the mutex blocks access until a compiler has been fully downloaded, preventing any new process
     // from checking whether that version of the compiler exists. Without mutex it might incorrectly
     // return false, indicating that the compiler isn't present, even though it is currently being downloaded.
-    await this._compilerDownloadMultiProcessMutex.use(async () => {
+    await this._mutex.use(async () => {
       const isCompilerDownloaded = await this.isCompilerDownloaded(version);
 
       if (isCompilerDownloaded === true) {
