@@ -16,7 +16,7 @@ pub fn handle_mine(
 
     let spec_id = data.spec_id();
     data.logger_mut()
-        .on_hardhat_mined(spec_id, mined_block_results);
+        .log_hardhat_mined(spec_id, mined_block_results);
 
     Ok(true)
 }

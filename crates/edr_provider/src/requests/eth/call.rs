@@ -25,7 +25,7 @@ pub fn handle_call_request(
     let result = data.run_call(transaction.clone(), block_spec.as_ref(), &state_overrides)?;
 
     let spec_id = data.spec_id();
-    data.logger_mut().on_call(spec_id, &transaction, &result);
+    data.logger_mut().log_call(spec_id, &transaction, &result);
 
     Ok(result.output)
 }

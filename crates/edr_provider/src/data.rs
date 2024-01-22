@@ -611,7 +611,7 @@ impl ProviderData {
     pub fn interval_mine(&mut self) -> Result<bool, ProviderError> {
         let result = self.mine_and_commit_block(None)?;
 
-        self.logger.on_interval_mined(self.spec_id(), &result);
+        self.logger.log_interval_mined(self.spec_id(), &result);
 
         Ok(true)
     }
@@ -1014,6 +1014,7 @@ impl ProviderData {
         signed_transaction: ExecutableTransaction,
     ) -> Result<SendTransactionResult, ProviderError> {
         let snapshot_id = if self.is_auto_mining {
+            println!("automine");
             self.validate_auto_mine_transaction(&signed_transaction)?;
 
             Some(self.make_snapshot())
@@ -1035,6 +1036,7 @@ impl ProviderData {
         if let Some(snapshot_id) = snapshot_id {
             let transaction_result = loop {
                 let result = self.mine_and_commit_block(None).map_err(|error| {
+                    println!("error: {error:?}");
                     self.revert_to_snapshot(snapshot_id);
 
                     error
@@ -1081,6 +1083,8 @@ impl ProviderData {
                 }
             }
         }
+
+        println!("results: {mining_results:?}");
 
         Ok(SendTransactionResult {
             transaction_hash,
@@ -1931,6 +1935,8 @@ mod tests {
         fn previous_request_raw_traces(&self) -> Option<Vec<edr_evm::trace::Trace>> {
             None
         }
+
+        fn print_method_logs(&mut self, _method: &str, _error: Option<&ProviderError>) {}
     }
 
     struct ProviderTestFixture {

@@ -15,7 +15,8 @@ pub mod test_utils;
 
 use std::sync::Arc;
 
-use edr_evm::{blockchain::BlockchainError, trace::Trace};
+use edr_evm::{blockchain::BlockchainError, trace::Trace, HashSet};
+use lazy_static::lazy_static;
 use logger::SyncLogger;
 use parking_lot::Mutex;
 use requests::eth::handle_set_interval_mining;
@@ -38,6 +39,18 @@ use self::{
     interval::IntervalMiner,
     requests::{eth, hardhat},
 };
+
+lazy_static! {
+    pub static ref PRIVATE_RPC_METHODS: HashSet<&'static str> = {
+        [
+            "hardhat_getStackTraceFailuresCount",
+            "hardhat_setIntervalMine",
+            "hardhat_setLoggingEnabled",
+        ]
+        .into_iter()
+        .collect()
+    };
+}
 
 /// A JSON-RPC provider for Ethereum.
 ///
@@ -108,13 +121,16 @@ impl Provider {
     ) -> Result<serde_json::Value, ProviderError> {
         let mut data = self.data.lock();
 
-        // TODO: resolve deserialization defaults using data
-        // Will require changes to `ProviderRequest` to receive `json_serde::Value`
-
         match request {
             ProviderRequest::Single(request) => self.handle_single_request(&mut data, request),
             ProviderRequest::Batch(requests) => self.handle_batch_request(&mut data, requests),
         }
+    }
+
+    pub fn log_failed_deserialization(&self, method_name: &str, error: &ProviderError) {
+        let mut data = self.data.lock();
+        data.logger_mut()
+            .print_method_logs(method_name, Some(error));
     }
 
     pub fn previous_request_logs(&self) -> Vec<String> {
@@ -147,6 +163,17 @@ impl Provider {
         data: &mut ProviderData,
         request: MethodInvocation,
     ) -> Result<serde_json::Value, ProviderError> {
+        let method_name = if data.logger_mut().is_enabled() {
+            let method_name = request.to_string();
+            if PRIVATE_RPC_METHODS.contains(method_name.as_str()) {
+                None
+            } else {
+                Some(method_name)
+            }
+        } else {
+            None
+        };
+
         // TODO: Remove the lint override once all methods have been implemented
         #[allow(clippy::match_same_arms)]
         let result = match request {
@@ -366,6 +393,11 @@ impl Provider {
                 hardhat::handle_stop_impersonating_account_request(data, *address).and_then(to_json)
             }
         };
+
+        if let Some(method_name) = method_name {
+            data.logger_mut()
+                .print_method_logs(method_name.as_str(), result.as_ref().err());
+        }
 
         result
     }

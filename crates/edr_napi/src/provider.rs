@@ -58,13 +58,27 @@ impl Provider {
     #[doc = "Handles a JSON-RPC request and returns a JSON-RPC response."]
     #[napi]
     pub async fn handle_request(&self, json_request: String) -> napi::Result<String> {
+        let provider = self.provider.clone();
         let request = match serde_json::from_str(&json_request) {
             Ok(request) => request,
             Err(error) => {
                 let message = error.to_string();
                 let reason = InvalidRequestReason::new(&json_request, &message);
-                let data = serde_json::from_str(&json_request).ok();
 
+                // HACK: We need to log failed deserialization attempts when they concern input
+                // validation.
+                if let Some((method_name, provider_error)) = reason.provider_error() {
+                    runtime::Handle::current()
+                        .spawn_blocking(move || {
+                            provider.log_failed_deserialization(&method_name, &provider_error);
+                        })
+                        .await
+                        .map_err(|error| {
+                            napi::Error::new(Status::GenericFailure, error.to_string())
+                        })?;
+                }
+
+                let data = serde_json::from_str(&json_request).ok();
                 let response = jsonrpc::ResponseData::<()>::Error {
                     error: jsonrpc::Error {
                         code: reason.error_code(),
@@ -82,7 +96,6 @@ impl Provider {
             }
         };
 
-        let provider = self.provider.clone();
         let response = runtime::Handle::current()
             .spawn_blocking(move || provider.handle_request(request))
             .await
@@ -111,7 +124,7 @@ impl Provider {
         let provider = self.provider.clone();
 
         let (deferred, promise) = env.create_deferred()?;
-        let traces = runtime::Handle::current().spawn_blocking(move || {
+        let _traces = runtime::Handle::current().spawn_blocking(move || {
             let traces = provider.previous_request_raw_traces();
 
             deferred.resolve(|env| {

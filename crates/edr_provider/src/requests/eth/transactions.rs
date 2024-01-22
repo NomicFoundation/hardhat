@@ -396,7 +396,7 @@ fn send_raw_transaction_and_log(
 
     let spec_id = data.spec_id();
     data.logger_mut()
-        .on_send_transaction(spec_id, &signed_transaction, mining_results);
+        .log_send_transaction(spec_id, &signed_transaction, mining_results);
 
     Ok(transaction_hash)
 }

@@ -10,6 +10,7 @@ use edr_evm::{
     trace::TraceMessage,
     ExecutableTransaction, ExecutionResult, SyncBlock,
 };
+use edr_provider::ProviderError;
 use itertools::izip;
 use napi::{Env, JsFunction, NapiRaw, Status};
 use napi_derive::napi;
@@ -36,6 +37,7 @@ pub struct LoggerConfig {
 
 #[derive(Clone)]
 pub enum LoggingState {
+    CollapsingMethod(CollapsedMethod),
     HardhatMinining {
         empty_blocks_range_start: Option<u64>,
     },
@@ -103,39 +105,39 @@ impl edr_provider::Logger for Logger {
         self.collector.is_enabled = is_enabled;
     }
 
-    fn on_call(
+    fn log_call(
         &mut self,
         spec_id: edr_eth::SpecId,
         transaction: &ExecutableTransaction,
         result: &edr_provider::CallResult,
     ) {
-        self.collector.on_call(spec_id, transaction, result);
+        self.collector.log_call(spec_id, transaction, result);
     }
 
-    fn on_interval_mined(
+    fn log_interval_mined(
         &mut self,
         spec_id: edr_eth::SpecId,
         mining_result: &edr_provider::DebugMineBlockResult<Self::BlockchainError>,
     ) {
-        self.collector.on_interval_mined(spec_id, mining_result);
+        self.collector.log_interval_mined(spec_id, mining_result);
     }
 
-    fn on_hardhat_mined(
+    fn log_hardhat_mined(
         &mut self,
         spec_id: edr_eth::SpecId,
         mining_results: Vec<edr_provider::DebugMineBlockResult<Self::BlockchainError>>,
     ) {
-        self.collector.on_hardhat_mined(spec_id, mining_results);
+        self.collector.log_hardhat_mined(spec_id, mining_results);
     }
 
-    fn on_send_transaction(
+    fn log_send_transaction(
         &mut self,
         spec_id: edr_eth::SpecId,
         transaction: &edr_evm::ExecutableTransaction,
         mining_results: Vec<edr_provider::DebugMineBlockResult<Self::BlockchainError>>,
     ) {
         self.collector
-            .on_send_transaction(spec_id, transaction, mining_results);
+            .log_send_transaction(spec_id, transaction, mining_results);
     }
 
     fn previous_request_logs(&self) -> Vec<String> {
@@ -147,6 +149,52 @@ impl edr_provider::Logger for Logger {
         // TODO
         None
     }
+
+    fn print_method_logs(&mut self, method: &str, error: Option<&ProviderError>) {
+        if let Some(error) = error {
+            if matches!(error, ProviderError::UnsupportedMethod { .. }) {
+                println!("red1");
+                // TODO: Make red
+                self.collector.print::<false>(error.to_string());
+            } else {
+                println!("red2");
+                // TOOD: Make red
+                self.collector.print::<false>(method);
+                self.collector.print_logs();
+
+                if !matches!(error, ProviderError::TransactionFailed(_)) {
+                    self.collector.print_empty_line();
+
+                    let error_message = error.to_string();
+                    self.collector.indented(|logger| {
+                        logger.print::<false>(&error_message);
+                    });
+
+                    let is_eip_155_error = matches!(error, ProviderError::InvalidInput(_))
+                        && error_message.contains("EIP1555");
+                    if is_eip_155_error {
+                        self.collector.indented(|logger| {
+                            // TODO: Make yellow
+                            logger.print::<false>("If you are using MetaMask, you can learn how to fix this error here: https://hardhat.org/metamask-issue");
+                        });
+                    }
+                }
+
+                self.collector.print_empty_line();
+            }
+        } else {
+            self.collector.print_method(method);
+
+            println!("green");
+            self.collector.print_logs();
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct CollapsedMethod {
+    count: usize,
+    method: String,
 }
 
 #[derive(Clone)]
@@ -229,7 +277,7 @@ impl LogCollector {
         })
     }
 
-    fn on_call(
+    fn log_call(
         &mut self,
         spec_id: edr_eth::SpecId,
         transaction: &ExecutableTransaction,
@@ -238,12 +286,14 @@ impl LogCollector {
         let edr_provider::CallResult {
             console_log_inputs,
             gas_used,
-            output,
+            output: _output,
             trace,
         } = result;
 
+        self.state = LoggingState::Empty;
+
         self.indented(|logger| {
-            logger.log_contract_and_function_name::<true>(spec_id, &trace);
+            logger.log_contract_and_function_name::<true>(spec_id, trace);
 
             logger.log_with_title("From", format!("0x{:x}", transaction.caller()));
             if let Some(to) = transaction.to() {
@@ -268,7 +318,7 @@ impl LogCollector {
         });
     }
 
-    fn on_hardhat_mined(
+    fn log_hardhat_mined(
         &mut self,
         spec_id: edr_eth::SpecId,
         mining_results: Vec<edr_provider::DebugMineBlockResult<BlockchainError>>,
@@ -297,7 +347,7 @@ impl LogCollector {
         }
     }
 
-    fn on_interval_mined(
+    fn log_interval_mined(
         &mut self,
         spec_id: edr_eth::SpecId,
         mining_result: &edr_provider::DebugMineBlockResult<BlockchainError>,
@@ -335,22 +385,27 @@ impl LogCollector {
         }
     }
 
-    fn on_send_transaction(
+    fn log_send_transaction(
         &mut self,
         spec_id: edr_eth::SpecId,
         transaction: &edr_evm::ExecutableTransaction,
         mining_results: Vec<edr_provider::DebugMineBlockResult<BlockchainError>>,
     ) {
         if !mining_results.is_empty() {
+            self.state = LoggingState::Empty;
+
             if mining_results.len() > 1 {
+                println!("1");
                 self.log_multiple_blocks_warning();
                 self.log_auto_mined_block_results(spec_id, mining_results, transaction.hash());
             } else if let Some(result) = mining_results.first() {
                 let transactions = result.block.transactions();
                 if transactions.len() > 1 {
+                    println!("2");
                     self.log_multiple_transactions_warning();
                     self.log_auto_mined_block_results(spec_id, mining_results, transaction.hash());
                 } else if let Some(transaction) = transactions.first() {
+                    println!("3");
                     self.log_single_transaction_mining_result(spec_id, result, transaction);
                 }
             }
@@ -871,6 +926,56 @@ well.",
 
     fn print_empty_line(&mut self) {
         self.print::<false>("");
+    }
+
+    fn print_logs(&mut self) -> bool {
+        let logs = std::mem::take(&mut self.logs);
+        if logs.is_empty() {
+            println!("empty");
+            return false;
+        }
+
+        for log in logs {
+            let line = match log {
+                LogLine::Single(message) => message,
+                LogLine::WithTitle(title, message) => {
+                    format!("{title:indent$} {message}", indent = self.title_length + 1)
+                }
+            };
+
+            self.print::<false>(line);
+        }
+
+        true
+    }
+
+    fn print_method(&mut self, method: &str) {
+        if let Some(collapsed_method) = self.collapsed_method(method) {
+            collapsed_method.count += 1;
+
+            // TODO: Make green
+            let line = format!("{method} ({count})", count = collapsed_method.count);
+            self.print::<true>(line);
+        } else {
+            self.state = LoggingState::CollapsingMethod(CollapsedMethod {
+                count: 1,
+                method: method.to_string(),
+            });
+
+            // TODO: Make green
+            self.print::<false>(method);
+        }
+    }
+
+    /// Retrieves the collapsed method with the provided name, if it exists.
+    fn collapsed_method(&mut self, method: &str) -> Option<&mut CollapsedMethod> {
+        if let LoggingState::CollapsingMethod(collapsed_method) = &mut self.state {
+            if collapsed_method.method == method {
+                return Some(collapsed_method);
+            }
+        }
+
+        None
     }
 
     fn replace_last_log_line(&mut self, message: impl Into<String>) {

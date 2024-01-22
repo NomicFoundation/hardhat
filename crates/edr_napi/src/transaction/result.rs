@@ -360,10 +360,10 @@ pub(crate) fn map_trace_messages(
         .iter()
         .map(|message| match message {
             edr_evm::trace::TraceMessage::Before(message) => {
-                TracingMessage::new(&env, message).map(Either3::A)
+                TracingMessage::new(env, message).map(Either3::A)
             }
             edr_evm::trace::TraceMessage::Step(step) => Ok(Either3::B(TracingStep::new(step))),
-            edr_evm::trace::TraceMessage::After(result) => ExecutionResult::new(&env, result)
+            edr_evm::trace::TraceMessage::After(result) => ExecutionResult::new(env, result)
                 .map(|execution_result| Either3::C(TracingMessageResult { execution_result })),
         })
         .collect::<napi::Result<_>>()

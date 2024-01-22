@@ -4,7 +4,7 @@
 use dyn_clone::DynClone;
 use edr_evm::{trace::Trace, ExecutableTransaction};
 
-use crate::{data::CallResult, debug::DebugMineBlockResult};
+use crate::{data::CallResult, debug::DebugMineBlockResult, ProviderError};
 
 pub trait Logger {
     type BlockchainError;
@@ -15,7 +15,7 @@ pub trait Logger {
     /// Sets whether the logger is enabled.
     fn set_is_enabled(&mut self, is_enabled: bool);
 
-    fn on_call(
+    fn log_call(
         &mut self,
         spec_id: edr_eth::SpecId,
         transaction: &ExecutableTransaction,
@@ -26,7 +26,7 @@ pub trait Logger {
         let _result = result;
     }
 
-    fn on_interval_mined(
+    fn log_interval_mined(
         &mut self,
         spec_id: edr_eth::SpecId,
         result: &DebugMineBlockResult<Self::BlockchainError>,
@@ -35,7 +35,7 @@ pub trait Logger {
         let _result = result;
     }
 
-    fn on_hardhat_mined(
+    fn log_hardhat_mined(
         &mut self,
         spec_id: edr_eth::SpecId,
         results: Vec<DebugMineBlockResult<Self::BlockchainError>>,
@@ -44,7 +44,7 @@ pub trait Logger {
         let _results = results;
     }
 
-    fn on_send_transaction(
+    fn log_send_transaction(
         &mut self,
         spec_id: edr_eth::SpecId,
         transaction: &ExecutableTransaction,
@@ -60,6 +60,12 @@ pub trait Logger {
 
     /// Returns the raw traces of the previous request, if any.
     fn previous_request_raw_traces(&self) -> Option<Vec<Trace>>;
+
+    /// Prints the collected logs, which correspond to the method with the
+    /// provided name.
+    ///
+    /// Adds an empty line at the end.
+    fn print_method_logs(&mut self, method: &str, error: Option<&ProviderError>);
 
     // /// Whethers the logger is printing logs to the CLI.
     // fn is_printing(&self) -> bool;

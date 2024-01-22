@@ -25,7 +25,6 @@ import {
   MethodNotFoundError,
   MethodNotSupportedError,
   ProviderError,
-  TransactionExecutionError,
 } from "../../core/providers/errors";
 import { isErrorResponse } from "../../core/providers/http";
 import { getHardforkName } from "../../util/hardforks";
@@ -68,7 +67,6 @@ import {
   ethereumsjsHardforkToEdrSpecId,
 } from "./utils/convertToEdr";
 import { makeCommon } from "./utils/makeCommon";
-import { SolidityTracer } from "../stack-traces/solidityTracer";
 
 const log = debug("hardhat:core:hardhat-network:provider");
 
@@ -391,146 +389,17 @@ class HardhatNetworkProvider extends EventEmitter implements EIP1193Provider {
   }
 }
 
-class EdrLogger {
-  private _logs: Array<string | [string, string]> = [];
-  private _methodBeingCollapsed?: string;
-  private _methodCollapsedCount: number = 0;
-  private _titleLength = 0;
-
-  constructor(
-    private _isEnabled: boolean,
-    private readonly _printLine = printLine,
-    private readonly _replaceLastLine = replaceLastLine
-  ) {}
-
-  public isEnabled(): boolean {
-    return this._isEnabled;
-  }
-
-  public setIsEnabled(enabled: boolean) {
-    this._isEnabled = enabled;
-  }
-
-  public logLine(line: string) {
-    this._stopCollapsingMethod();
-
-    this._logs.push(line);
-  }
-
-  public logLineWithTitle(title: string, line: string) {
-    this._stopCollapsingMethod();
-
-    // We always use the max title length we've seen. Otherwise the value move
-    // a lot with each tx/call.
-    if (title.length > this._titleLength) {
-      this._titleLength = title.length;
-    }
-
-    this._logs.push([title, line]);
-  }
-
-  public printMethod(method: string) {
-    if (this._shouldCollapseMethod(method)) {
-      this._methodCollapsedCount += 1;
-
-      // Directly call the private method to avoid collapsing the method
-      this._replaceLastLine(
-        chalk.green(`${method} (${this._methodCollapsedCount})`)
-      );
-    } else {
-      this._startCollapsingMethod(method);
-
-      // Directly call the private method to avoid collapsing the method
-      this._printLine(chalk.green(method));
-    }
-  }
-
-  public printMethodNotSupported(method: string) {
-    this.printLine(chalk.red(`${method} - Method not supported`));
-  }
-
-  public printLine(line: string) {
-    this._stopCollapsingMethod();
-
-    this._printLine(line);
-  }
-
-  public printLogs(): boolean {
-    const logs = this._getLogs();
-    if (logs.length === 0) {
-      return false;
-    }
-
-    for (const line of logs) {
-      this.printLine(line);
-    }
-
-    this._logs = [];
-
-    return true;
-  }
-
-  public replaceLastLogLine(line: string) {
-    this._stopCollapsingMethod();
-
-    this._logs[this._logs.length - 1] = line;
-  }
-
-  public replaceLastPrintLine(line: string) {
-    this._stopCollapsingMethod();
-
-    this._replaceLastLine(line);
-  }
-
-  private _getLogs(): string[] {
-    return this._logs.map((line) => {
-      if (typeof line === "string") {
-        return line;
-      }
-
-      // Provider logs JSON-RPC provider automine enabled without pending txs eth_sendRawTransaction should print a successful transaction
-
-      const title = `${line[0]}:`;
-      return `${title.padEnd(this._titleLength + 1)} ${line[1]}`;
-    });
-  }
-
-  private _hasLogs(): boolean {
-    return this._logs.length > 0;
-  }
-
-  private _shouldCollapseMethod(method: string) {
-    return (
-      method === this._methodBeingCollapsed &&
-      !this._hasLogs() &&
-      this._methodCollapsedCount > 0
-    );
-  }
-
-  private _startCollapsingMethod(method: string) {
-    this._methodBeingCollapsed = method;
-    this._methodCollapsedCount = 1;
-  }
-
-  private _stopCollapsingMethod() {
-    this._methodBeingCollapsed = undefined;
-    this._methodCollapsedCount = 0;
-  }
-}
-
 class EdrProviderEventAdapter extends EventEmitter {}
 
 export class EdrProviderWrapper
   extends EventEmitter
   implements EIP1193Provider
 {
-  private _consoleLogs = new Array<Buffer>();
   private readonly _vmTraceDecoder: VmTraceDecoder;
 
   private constructor(
     private readonly _provider: EdrProviderT,
     private readonly _eventAdapter: EdrProviderEventAdapter,
-    private readonly _edrLogger: EdrLogger,
     // The common configuration for EthereumJS VM is not used by EDR, but tests expect it as part of the provider.
     private readonly _common: Common,
     tracingConfig?: TracingConfig
@@ -547,8 +416,7 @@ export class EdrProviderWrapper
 
   public static async create(
     config: HardhatNetworkProviderConfig,
-    logger: EdrLogger,
-    loggerEnabled: boolean,
+    loggerConfig: LoggerConfig,
     artifacts?: Artifacts
   ): Promise<EdrProviderWrapper> {
     const { Provider } =
@@ -575,6 +443,9 @@ export class EdrProviderWrapper
     // To accomodate construction ordering, we need an adapter to forward events
     // from the EdrProvider callback to the wrapper's listener
     const eventAdapter = new EdrProviderEventAdapter();
+
+    const printLineFn = loggerConfig.printLineFn ?? printLine;
+    const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
 
     const provider = await Provider.withConfig(
       {
@@ -612,19 +483,19 @@ export class EdrProviderWrapper
         },
         networkId: BigInt(config.networkId),
       },
-      (message: Buffer) => {
-        const consoleLogger = new ConsoleLogger();
-
-        consoleLogger.log(message);
-      },
       {
-        enable: loggerEnabled,
-        logLineCallback: logger.logLine.bind(logger),
-        logLineWithTitleCallback: logger.logLineWithTitle.bind(logger),
-        printLineCallback: logger.printLine.bind(logger),
-        setIsEnabledCallback: logger.setIsEnabled.bind(logger),
-        replaceLastLogLineCallback: logger.replaceLastLogLine.bind(logger),
-        replaceLastPrintLineCallback: logger.replaceLastPrintLine.bind(logger),
+        enable: loggerConfig.enabled,
+        decodeConsoleLogInputsCallback: (inputs: Buffer[]) => {
+          const consoleLogger = new ConsoleLogger();
+          return consoleLogger.getDecodedLogs(inputs);
+        },
+        printLineCallback: (message: string, replace: boolean) => {
+          if (replace) {
+            replaceLastLineFn(message);
+          } else {
+            printLineFn(message);
+          }
+        },
       },
       (event: SubscriptionEvent) => {
         eventAdapter.emit("ethEvent", event);
@@ -635,7 +506,6 @@ export class EdrProviderWrapper
     const wrapper = new EdrProviderWrapper(
       provider,
       eventAdapter,
-      logger,
       common,
       await makeTracingConfig(artifacts)
     );
@@ -659,42 +529,7 @@ export class EdrProviderWrapper
       await this._provider.handleRequest(stringifiedArgs)
     );
 
-    // Swap out the logs
-    const logs = this._consoleLogs;
-    this._consoleLogs = new Array();
-
-    // Decode the logs, if any
-    const consoleLogger = new ConsoleLogger();
-    const consoleLogMessages = consoleLogger.getDecodedLogs(logs);
-
-    const shouldLog =
-      this._edrLogger.isEnabled() && !PRIVATE_RPC_METHODS.has(args.method);
-
     if (isErrorResponse(response)) {
-      if (shouldLog) {
-        // TODO: Filter for method not found
-        // this._edrLogger.printMethodNotSupported(args.method);
-        this._edrLogger.printLogs();
-
-        if (response.error.code !== TransactionExecutionError.CODE) {
-          this._edrLogger.printLine("");
-          this._edrLogger.printLine(`  ${response.error.message}`);
-
-          const isEIP155Error =
-            response.error.code === InvalidInputError.CODE &&
-            response.error.message.includes("EIP155");
-
-          if (isEIP155Error) {
-            const message =
-              "  If you are using MetaMask, you can learn how to fix this error here: https://hardhat.org/metamask-issue";
-
-            this._edrLogger.printLine(chalk.yellow(message));
-          }
-        }
-
-        this._edrLogger.printLine("");
-      }
-
       let error;
       if (response.error.code === InvalidArgumentsError.CODE) {
         error = new InvalidArgumentsError(response.error.message);
@@ -705,15 +540,6 @@ export class EdrProviderWrapper
 
       // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
       throw error;
-    } else {
-      if (shouldLog && args.method !== "hardhat_setIntervalMine") {
-        this._edrLogger.printMethod(args.method);
-
-        const printedSomething = this._edrLogger.printLogs();
-        if (printedSomething) {
-          this._edrLogger.printLine("");
-        }
-      }
     }
 
     // Override EDR version string with Hardhat version string with EDR backend,
@@ -768,29 +594,20 @@ export async function createHardhatNetworkProvider(
   const vmModeEnvVar = process.env.HARDHAT_EXPERIMENTAL_VM_MODE ?? "ethereumjs";
 
   if (vmModeEnvVar === "edr") {
-    const logger = new EdrLogger(
-      loggerConfig.enabled,
-      loggerConfig.printLineFn,
-      loggerConfig.replaceLastLineFn
-    );
-
     eip1193Provider = await EdrProviderWrapper.create(
       hardhatNetworkProviderConfig,
-      logger,
-      loggerConfig.enabled,
+      loggerConfig,
       artifacts
     );
   } else if (vmModeEnvVar === "ethereumjs" || vmModeEnvVar === "dual") {
-    const logger = new ModulesLogger(
-      loggerConfig.enabled,
-      loggerConfig.printLineFn,
-      loggerConfig.replaceLastLineFn
-    );
-
     // Dual mode will internally use the ethereumjs and EDR adapters
     eip1193Provider = new HardhatNetworkProvider(
       hardhatNetworkProviderConfig,
-      logger,
+      new ModulesLogger(
+        loggerConfig.enabled,
+        loggerConfig.printLineFn,
+        loggerConfig.replaceLastLineFn
+      ),
       artifacts
     );
   } else {

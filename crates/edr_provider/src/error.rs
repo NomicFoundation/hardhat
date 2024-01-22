@@ -159,6 +159,8 @@ pub enum ProviderError {
         current_hardfork: SpecId,
         minimum_hardfork: SpecId,
     },
+    #[error("{method_name} - Method not supported")]
+    UnsupportedMethod { method_name: String },
 }
 
 impl From<ProviderError> for jsonrpc::Error {
@@ -207,6 +209,7 @@ impl From<ProviderError> for jsonrpc::Error {
             ProviderError::UnmetHardfork { .. } => -32602,
             ProviderError::UnsupportedAccessListParameter { .. } => -32602,
             ProviderError::UnsupportedEIP1559Parameters { .. } => -32602,
+            ProviderError::UnsupportedMethod { .. } => -32004,
         };
 
         let data = match &value {
