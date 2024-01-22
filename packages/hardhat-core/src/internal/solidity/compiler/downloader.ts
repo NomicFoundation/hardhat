@@ -8,7 +8,7 @@ import { promisify } from "util";
 import { download } from "../../util/download";
 import { assertHardhatInvariant, HardhatError } from "../../core/errors";
 import { ERRORS } from "../../core/errors-list";
-import { MultiProcessMutex } from "../../vendor/await-semaphore";
+import { MultiProcessMutex } from "../../util/multi-process-mutex";
 
 const log = debug("hardhat:core:solidity:downloader");
 
