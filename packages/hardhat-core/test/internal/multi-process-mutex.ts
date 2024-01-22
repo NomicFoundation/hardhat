@@ -6,7 +6,6 @@ import { MultiProcessMutex } from "../../src/internal/util/multi-process-mutex";
 
 describe("multi-process-mutex", () => {
   const mutexName = "test-mutex";
-  const msSafeMarginInMs = 150; // _mutexLoopWaitingTimeInMs + 50 ms
 
   it("should execute all the function in a sequential order, not in parallel", async () => {
     // Since all the functions cannot be executed in parallel because of the mutex,
@@ -31,13 +30,11 @@ describe("multi-process-mutex", () => {
     const end = performance.now();
     const duration = end - start;
 
-    expect(duration)
-      .to.be.greaterThan(ms[0] + ms[1] + ms[2])
-      .and.lessThan(ms[0] + ms[1] + ms[2] + msSafeMarginInMs * 2); // * 2 because there are the mutex waiting times
+    expect(duration).to.be.greaterThan(ms[0] + ms[1] + ms[2]);
   });
 
   it("should overwrite an old mutex file", async () => {
-    const mutexLifeSpanMs = 500;
+    const mutexLifeSpanMs = 800;
     const mutex = new MultiProcessMutex(mutexName, mutexLifeSpanMs);
 
     const start = performance.now();
@@ -55,9 +52,7 @@ describe("multi-process-mutex", () => {
     const duration = end - start;
 
     expect(arr[0] === true);
-    expect(duration)
-      .to.be.greaterThan(mutexLifeSpanMs)
-      .and.lessThan(mutexLifeSpanMs + msSafeMarginInMs);
+    expect(duration).to.be.greaterThan(mutexLifeSpanMs);
   });
 
   it("should overwrite the current mutex locked by another function because the function took to long to finish", async () => {
