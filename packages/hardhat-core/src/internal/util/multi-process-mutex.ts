@@ -14,27 +14,24 @@ import os from "node:os";
 // However, there's a possibility that processB might take ownership because the mutex creation file is outdated, even though processA is still running
 // For more info check the Nomic Notion page (internal link).
 
+const log = debug("hardhat:util:multi-process-mutex");
+const DEFAULT_MAX_MUTEX_LIFESPAN_IN_MS = 60000;
+const MUTEX_LOOP_WAITING_TIME_IN_MS = 100;
+
 export class MultiProcessMutex {
-  private _log: debug.Debugger;
   private _mutexFilePath: string;
   private _mutexLifespanInMs: number;
-  private _defaultMaxMutexLifespanInMs = 60000;
-  private _mutexLoopWaitingTimeInMs = 100;
 
-  constructor(mutexName: string, _maxMutexLifespanInMs?: number) {
-    this._log = debug("hardhat:await-semaphore:multi-process-mutex");
-
-    this._log(`Creating mutex with name '${mutexName}'`);
+  constructor(mutexName: string, maxMutexLifespanInMs?: number) {
+    log(`Creating mutex with name '${mutexName}'`);
 
     this._mutexFilePath = path.join(os.tmpdir(), `${mutexName}.txt`);
     this._mutexLifespanInMs =
-      _maxMutexLifespanInMs ?? this._defaultMaxMutexLifespanInMs;
+      maxMutexLifespanInMs ?? DEFAULT_MAX_MUTEX_LIFESPAN_IN_MS;
   }
 
   public async use<T>(f: () => Promise<T>): Promise<T> {
-    this._log(
-      `Starting mutex process withy mutex file '${this._mutexFilePath}'`
-    );
+    log(`Starting mutex process withy mutex file '${this._mutexFilePath}'`);
 
     while (true) {
       if (await this._tryToAcquireMutex()) {
@@ -45,7 +42,7 @@ export class MultiProcessMutex {
       // Mutex not acquired
       if (this._isMutexFileTooOld()) {
         // If the mutex file is too old, it likely indicates a stale lock, so the file should be removed
-        this._log(
+        log(
           `Current mutex file is too old, removing it at path '${this._mutexFilePath}'`
         );
         this._deleteMutexFile();
@@ -74,16 +71,16 @@ export class MultiProcessMutex {
   private async _executeFunctionAndReleaseMutex<T>(
     f: () => Promise<T>
   ): Promise<T> {
-    this._log(`Mutex acquired at path '${this._mutexFilePath}'`);
+    log(`Mutex acquired at path '${this._mutexFilePath}'`);
 
     try {
       const res = await f();
 
       // Release the mutex
-      this._log(`Mutex released at path '${this._mutexFilePath}'`);
+      log(`Mutex released at path '${this._mutexFilePath}'`);
       this._deleteMutexFile();
 
-      this._log(`Mutex released at path '${this._mutexFilePath}'`);
+      log(`Mutex released at path '${this._mutexFilePath}'`);
 
       return res;
     } catch (error: any) {
@@ -116,7 +113,7 @@ export class MultiProcessMutex {
 
   private _deleteMutexFile() {
     try {
-      this._log(`Deleting mutex file at path '${this._mutexFilePath}'`);
+      log(`Deleting mutex file at path '${this._mutexFilePath}'`);
       fs.unlinkSync(this._mutexFilePath);
     } catch (error: any) {
       if (error.code === "ENOENT") {
@@ -130,7 +127,7 @@ export class MultiProcessMutex {
 
   private async _waitMs() {
     return new Promise((resolve) =>
-      setTimeout(resolve, this._mutexLoopWaitingTimeInMs)
+      setTimeout(resolve, MUTEX_LOOP_WAITING_TIME_IN_MS)
     );
   }
 }
