@@ -3,7 +3,7 @@ use std::{
     sync::mpsc::{channel, Sender},
 };
 
-use edr_eth::{rlp::Encodable, Bytes, B256, U256};
+use edr_eth::{Bytes, B256, U256};
 use edr_evm::{
     blockchain::BlockchainError,
     precompile::{self, Precompiles},
@@ -153,11 +153,9 @@ impl edr_provider::Logger for Logger {
     fn print_method_logs(&mut self, method: &str, error: Option<&ProviderError>) {
         if let Some(error) = error {
             if matches!(error, ProviderError::UnsupportedMethod { .. }) {
-                println!("red1");
                 // TODO: Make red
                 self.collector.print::<false>(error.to_string());
             } else {
-                println!("red2");
                 // TOOD: Make red
                 self.collector.print::<false>(method);
                 self.collector.print_logs();
@@ -185,7 +183,6 @@ impl edr_provider::Logger for Logger {
         } else {
             self.collector.print_method(method);
 
-            println!("green");
             self.collector.print_logs();
         }
     }
@@ -219,7 +216,7 @@ impl LogCollector {
                 // Bytes[]
                 let inputs = ctx
                     .env
-                    .create_array_with_length(ctx.value.inputs.length())
+                    .create_array_with_length(ctx.value.inputs.len())
                     .and_then(|mut inputs| {
                         for (idx, input) in ctx.value.inputs.into_iter().enumerate() {
                             unsafe {
@@ -395,17 +392,35 @@ impl LogCollector {
             self.state = LoggingState::Empty;
 
             if mining_results.len() > 1 {
-                println!("1");
                 self.log_multiple_blocks_warning();
                 self.log_auto_mined_block_results(spec_id, mining_results, transaction.hash());
             } else if let Some(result) = mining_results.first() {
                 let transactions = result.block.transactions();
                 if transactions.len() > 1 {
-                    println!("2");
+                    let sent_transaction_result = mining_results
+                        .iter()
+                        .find(|result| {
+                            result.block.transactions().iter().any(|block_transaction| {
+                                *block_transaction.hash() == *transaction.hash()
+                            })
+                        })
+                        .cloned()
+                        .expect("Transaction result not found");
+
                     self.log_multiple_transactions_warning();
                     self.log_auto_mined_block_results(spec_id, mining_results, transaction.hash());
+
+                    self.indented(|logger| {
+                        logger.log("Currently sent transaction:");
+                        logger.log("");
+                    });
+
+                    self.log_single_transaction_mining_result(
+                        spec_id,
+                        &sent_transaction_result,
+                        transaction,
+                    );
                 } else if let Some(transaction) = transactions.first() {
-                    println!("3");
                     self.log_single_transaction_mining_result(spec_id, result, transaction);
                 }
             }
@@ -931,7 +946,6 @@ well.",
     fn print_logs(&mut self) -> bool {
         let logs = std::mem::take(&mut self.logs);
         if logs.is_empty() {
-            println!("empty");
             return false;
         }
 

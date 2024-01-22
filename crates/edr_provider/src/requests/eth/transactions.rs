@@ -390,7 +390,7 @@ fn send_raw_transaction_and_log(
     signed_transaction: ExecutableTransaction,
 ) -> Result<B256, ProviderError> {
     let SendTransactionResult {
-        transaction_hash,
+        sent_transaction_result,
         mining_results,
     } = data.send_transaction(signed_transaction.clone())?;
 
@@ -398,6 +398,7 @@ fn send_raw_transaction_and_log(
     data.logger_mut()
         .log_send_transaction(spec_id, &signed_transaction, mining_results);
 
+    let transaction_hash = sent_transaction_result?;
     Ok(transaction_hash)
 }
 

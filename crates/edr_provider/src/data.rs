@@ -80,7 +80,7 @@ pub struct CallResult {
 }
 
 pub struct SendTransactionResult {
-    pub transaction_hash: B256,
+    pub sent_transaction_result: Result<B256, TransactionFailure>,
     pub mining_results: Vec<DebugMineBlockResult<BlockchainError>>,
 }
 
@@ -1179,7 +1179,6 @@ impl ProviderData {
         signed_transaction: ExecutableTransaction,
     ) -> Result<SendTransactionResult, ProviderError> {
         let snapshot_id = if self.is_auto_mining {
-            println!("automine");
             self.validate_auto_mine_transaction(&signed_transaction)?;
 
             Some(self.make_snapshot())
@@ -1198,7 +1197,7 @@ impl ProviderData {
                 })?;
 
         let mut mining_results = Vec::new();
-        if let Some(snapshot_id) = snapshot_id {
+        let sent_transaction_result = if let Some(snapshot_id) = snapshot_id {
             let transaction_result = loop {
                 let result = self.mine_and_commit_block(None).map_err(|error| {
                     println!("error: {error:?}");
@@ -1237,22 +1236,22 @@ impl ProviderData {
             self.snapshots.remove(&snapshot_id);
 
             match transaction_result {
-                ExecutionResult::Success { .. } => (),
+                ExecutionResult::Success { .. } => Ok(transaction_hash),
                 ExecutionResult::Revert { output, .. } => {
-                    return Err(TransactionFailure::revert(output, transaction_hash).into());
+                    Err(TransactionFailure::revert(output, transaction_hash))
                 }
                 ExecutionResult::Halt { reason, .. } => {
                     self.revert_to_snapshot(snapshot_id);
 
-                    return Err(TransactionFailure::halt(reason, transaction_hash).into());
+                    Err(TransactionFailure::halt(reason, transaction_hash))
                 }
             }
-        }
-
-        println!("results: {mining_results:?}");
+        } else {
+            Ok(transaction_hash)
+        };
 
         Ok(SendTransactionResult {
-            transaction_hash,
+            sent_transaction_result,
             mining_results,
         })
     }
