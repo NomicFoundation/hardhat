@@ -10,7 +10,7 @@ use edr_eth::{block, receipt::BlockReceipt, remote::eth, withdrawal::Withdrawal,
 pub use self::{
     builder::{BlockBuilder, BlockBuilderCreationError, BlockTransactionError, BuildBlockResult},
     local::LocalBlock,
-    remote::RemoteBlock,
+    remote::{CreationError as RemoteBlockCreationError, RemoteBlock},
 };
 use crate::ExecutableTransaction;
 

@@ -10,8 +10,8 @@ use edr_eth::{
 use tokio::runtime;
 
 use crate::{
-    blockchain::BlockchainError, Block, ExecutableTransaction, SyncBlock,
-    TransactionConversionError,
+    blockchain::{BlockchainError, ForkedBlockchainError},
+    Block, ExecutableTransaction, SyncBlock, TransactionConversionError,
 };
 
 /// Error that occurs when trying to convert the JSON-RPC `Block` type.
@@ -149,15 +149,18 @@ impl Block for RemoteBlock {
                         .map(|transaction| transaction.hash()),
                 ),
             )
+        })
+        .map_err(ForkedBlockchainError::RpcClient)?
+        .ok_or_else(|| ForkedBlockchainError::MissingReceipts {
+            block_hash: *self.hash(),
         })?
-        .expect("All receipts of the block should exist")
         .into_iter()
         .map(Arc::new)
         .collect();
 
         self.receipts
             .set(receipts.clone())
-            .expect("Receipts should not be set");
+            .expect("We checked that receipts are not set");
 
         Ok(receipts)
     }

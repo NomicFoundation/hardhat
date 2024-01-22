@@ -2,7 +2,7 @@ use std::{num::TryFromIntError, time::SystemTimeError};
 
 use alloy_sol_types::{ContractError, SolInterface};
 use edr_eth::{
-    remote::{filter::SubscriptionType, jsonrpc, BlockSpec, BlockTag},
+    remote::{filter::SubscriptionType, jsonrpc, BlockSpec, BlockTag, RpcClientError},
     Address, Bytes, SpecId, B256, U256,
 };
 use edr_evm::{
@@ -12,6 +12,7 @@ use edr_evm::{
     Halt, MineBlockError, MinerTransactionError, OutOfGasError, TransactionCreationError,
     TransactionError,
 };
+use ethers_core::types::transaction::eip712::Eip712Error;
 
 use crate::data::CreationError;
 
@@ -43,6 +44,8 @@ pub enum ProviderError {
     Blockchain(#[from] BlockchainError),
     #[error(transparent)]
     Creation(#[from] CreationError),
+    #[error(transparent)]
+    Eip712Error(#[from] Eip712Error),
     #[error("{0}")]
     InvalidArgument(String),
     /// Block number or hash doesn't exist in blockchain
@@ -89,6 +92,9 @@ pub enum ProviderError {
     /// An error occurred while adding a pending transaction to the mem pool.
     #[error(transparent)]
     MinerTransactionError(#[from] MinerTransactionError<StateError>),
+    /// Rpc client error
+    #[error(transparent)]
+    RpcClientError(#[from] RpcClientError),
     /// Unsupported RPC version
     #[error("unsupported JSON-RPC version: {0:?}")]
     RpcVersion(jsonrpc::Version),
@@ -175,6 +181,7 @@ impl From<ProviderError> for jsonrpc::Error {
             ProviderError::AutoMinePriorityFeeTooLow { .. } => -32000,
             ProviderError::Blockchain(_) => -32000,
             ProviderError::Creation(_) => -32000,
+            ProviderError::Eip712Error(_) => -32000,
             ProviderError::InvalidArgument(_) => -32602,
             ProviderError::InvalidBlockNumberOrHash { .. } => -32000,
             ProviderError::InvalidBlockTag { .. } => -32602,
@@ -188,6 +195,8 @@ impl From<ProviderError> for jsonrpc::Error {
             ProviderError::MemPoolUpdate(_) => -32000,
             ProviderError::MineBlock(_) => -32000,
             ProviderError::MinerTransactionError(_) => -32000,
+            // Internal error code
+            ProviderError::RpcClientError(_) => -32603,
             ProviderError::RpcVersion(_) => -32000,
             ProviderError::RunTransaction(_) => -32000,
             ProviderError::Serialization(_) => -32000,
@@ -286,7 +295,7 @@ impl std::fmt::Display for TransactionFailure {
                     "VM Exception while processing transaction: invalid opcode"
                 )
             }
-            TransactionFailureReason::OutOfGas(_error) => write!(f, "out of gas"),
+            TransactionFailureReason::OutOfGas(_error) => write!(f, "Transaction ran out of gas"),
             TransactionFailureReason::Revert(output) => write!(f, "{}", revert_error(output)),
         }
     }
