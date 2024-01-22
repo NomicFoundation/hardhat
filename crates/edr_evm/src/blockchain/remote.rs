@@ -4,14 +4,14 @@ use async_rwlock::{RwLock, RwLockUpgradableReadGuard};
 use edr_eth::{
     log::FilterLog,
     receipt::BlockReceipt,
-    remote::{self, filter::OneOrMore, BlockSpec, PreEip1898BlockSpec, RpcClient, RpcClientError},
+    remote::{self, filter::OneOrMore, BlockSpec, PreEip1898BlockSpec, RpcClient},
     Address, B256, U256,
 };
 use revm::primitives::HashSet;
 use tokio::runtime;
 
 use super::storage::SparseBlockchainStorage;
-use crate::{Block, RemoteBlock};
+use crate::{blockchain::ForkedBlockchainError, Block, RemoteBlock};
 
 #[derive(Debug)]
 pub struct RemoteBlockchain<BlockT: Block + Clone, const FORCE_CACHING: bool> {
@@ -34,7 +34,10 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
 
     /// Retrieves the block with the provided hash, if it exists.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub async fn block_by_hash(&self, hash: &B256) -> Result<Option<BlockT>, RpcClientError> {
+    pub async fn block_by_hash(
+        &self,
+        hash: &B256,
+    ) -> Result<Option<BlockT>, ForkedBlockchainError> {
         let cache = self.cache.upgradable_read().await;
 
         if let Some(block) = cache.block_by_hash(hash).cloned() {
@@ -56,7 +59,7 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
 
     /// Retrieves the block with the provided number, if it exists.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
-    pub async fn block_by_number(&self, number: u64) -> Result<BlockT, RpcClientError> {
+    pub async fn block_by_number(&self, number: u64) -> Result<BlockT, ForkedBlockchainError> {
         let cache = self.cache.upgradable_read().await;
 
         if let Some(block) = cache.block_by_number(number).cloned() {
@@ -77,7 +80,7 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
     pub async fn block_by_transaction_hash(
         &self,
         transaction_hash: &B256,
-    ) -> Result<Option<BlockT>, RpcClientError> {
+    ) -> Result<Option<BlockT>, ForkedBlockchainError> {
         // This block ensure that the read lock is dropped
         {
             if let Some(block) = self
@@ -114,7 +117,7 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
         to_block: BlockSpec,
         addresses: &HashSet<Address>,
         normalized_topics: &[Option<Vec<B256>>],
-    ) -> Result<Vec<FilterLog>, RpcClientError> {
+    ) -> Result<Vec<FilterLog>, ForkedBlockchainError> {
         self.client
             .get_logs_by_range(
                 from_block,
@@ -147,6 +150,7 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
                 },
             )
             .await
+            .map_err(ForkedBlockchainError::RpcClient)
     }
 
     /// Retrieves the receipt of the transaction with the provided hash, if it
@@ -155,7 +159,7 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
     pub async fn receipt_by_transaction_hash(
         &self,
         transaction_hash: &B256,
-    ) -> Result<Option<Arc<BlockReceipt>>, RpcClientError> {
+    ) -> Result<Option<Arc<BlockReceipt>>, ForkedBlockchainError> {
         let cache = self.cache.upgradable_read().await;
 
         if let Some(receipt) = cache.receipt_by_transaction_hash(transaction_hash) {
@@ -185,7 +189,7 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
     pub async fn total_difficulty_by_hash(
         &self,
         hash: &B256,
-    ) -> Result<Option<U256>, RpcClientError> {
+    ) -> Result<Option<U256>, ForkedBlockchainError> {
         let cache = self.cache.upgradable_read().await;
 
         if let Some(difficulty) = cache.total_difficulty_by_hash(hash).cloned() {
@@ -213,13 +217,12 @@ impl<BlockT: Block + Clone + From<RemoteBlock>, const FORCE_CACHING: bool>
         &self,
         cache: RwLockUpgradableReadGuard<'_, SparseBlockchainStorage<BlockT>>,
         block: remote::eth::Block<remote::eth::Transaction>,
-    ) -> Result<BlockT, RpcClientError> {
+    ) -> Result<BlockT, ForkedBlockchainError> {
         let total_difficulty = block
             .total_difficulty
             .expect("Must be present as this is not a pending block");
 
-        let block = RemoteBlock::new(block, self.client.clone(), self.runtime.clone())
-            .expect("Conversion must succeed, as we're not retrieving a pending block");
+        let block = RemoteBlock::new(block, self.client.clone(), self.runtime.clone())?;
 
         let is_cacheable = FORCE_CACHING
             || self

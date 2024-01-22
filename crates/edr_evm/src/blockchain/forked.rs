@@ -21,7 +21,8 @@ use super::{
 };
 use crate::{
     state::{ForkState, StateDiff, StateError, StateOverride, SyncState},
-    Block, BlockAndTotalDifficulty, LocalBlock, RandomHashGenerator, SyncBlock,
+    Block, BlockAndTotalDifficulty, LocalBlock, RandomHashGenerator, RemoteBlockCreationError,
+    SyncBlock,
 };
 
 /// An error that occurs upon creation of a [`ForkedBlockchain`].
@@ -29,7 +30,7 @@ use crate::{
 pub enum CreationError {
     /// JSON-RPC error
     #[error(transparent)]
-    JsonRpcError(#[from] RpcClientError),
+    RpcClientError(#[from] RpcClientError),
     /// The requested block number does not exist
     #[error("Trying to initialize a provider with block {fork_block_number} but the current block is {latest_block_number}")]
     InvalidBlockNumber {
@@ -47,6 +48,26 @@ pub enum CreationError {
         chain_name: String,
         /// Detected hardfork
         hardfork: SpecId,
+    },
+}
+
+/// Error type for [`RemoteBlockchain`].
+#[derive(Debug, thiserror::Error)]
+pub enum ForkedBlockchainError {
+    /// Remote block creation error
+    #[error(transparent)]
+    BlockCreation(#[from] RemoteBlockCreationError),
+    /// Remote blocks cannot be deleted
+    #[error("Cannot delete remote block.")]
+    CannotDeleteRemote,
+    /// Rpc client error
+    #[error(transparent)]
+    RpcClient(#[from] RpcClientError),
+    /// Missing transaction receipts for a remote block
+    #[error("Missing receipts for block {block_hash}")]
+    MissingReceipts {
+        /// The block hash
+        block_hash: B256,
     },
 }
 
@@ -174,10 +195,7 @@ impl BlockHashRef for ForkedBlockchain {
             tokio::task::block_in_place(move || {
                 self.runtime().block_on(self.remote.block_by_number(number))
             })
-            .map_or_else(
-                |e| Err(BlockchainError::JsonRpcError(e)),
-                |block| Ok(*block.hash()),
-            )
+            .map(|block| Ok(*block.hash()))?
         } else {
             self.local_storage
                 .block_by_number(number)
@@ -202,11 +220,9 @@ impl Blockchain for ForkedBlockchain {
         if let Some(block) = self.local_storage.block_by_hash(hash) {
             Ok(Some(block))
         } else {
-            tokio::task::block_in_place(move || {
-                self.runtime()
-                    .block_on(self.remote.block_by_hash(hash))
-                    .map_err(BlockchainError::JsonRpcError)
-            })
+            Ok(tokio::task::block_in_place(move || {
+                self.runtime().block_on(self.remote.block_by_hash(hash))
+            })?)
         }
     }
 
@@ -221,10 +237,7 @@ impl Blockchain for ForkedBlockchain {
             tokio::task::block_in_place(move || {
                 self.runtime().block_on(self.remote.block_by_number(number))
             })
-            .map_or_else(
-                |e| Err(BlockchainError::JsonRpcError(e)),
-                |block| Ok(Some(block)),
-            )
+            .map(|block| Ok(Some(block)))?
         } else {
             Ok(self.local_storage.block_by_number(number))
         }
@@ -243,11 +256,10 @@ impl Blockchain for ForkedBlockchain {
         {
             Ok(Some(block))
         } else {
-            tokio::task::block_in_place(move || {
+            Ok(tokio::task::block_in_place(move || {
                 self.runtime()
                     .block_on(self.remote.block_by_transaction_hash(transaction_hash))
-            })
-            .map_err(BlockchainError::JsonRpcError)
+            })?)
         }
     }
 
@@ -264,13 +276,12 @@ impl Blockchain for ForkedBlockchain {
             Ok(self
                 .local_storage
                 .block_by_number(last_block_number)
-                .expect("Block must exist"))
+                .expect("Block must exist since block number is less than the last block number"))
         } else {
-            tokio::task::block_in_place(move || {
+            Ok(tokio::task::block_in_place(move || {
                 self.runtime()
                     .block_on(self.remote.block_by_number(self.fork_block_number))
-            })
-            .map_err(BlockchainError::JsonRpcError)
+            })?)
         }
     }
 
@@ -332,11 +343,10 @@ impl Blockchain for ForkedBlockchain {
         {
             Ok(Some(receipt))
         } else {
-            tokio::task::block_in_place(move || {
+            Ok(tokio::task::block_in_place(move || {
                 self.runtime()
                     .block_on(self.remote.receipt_by_transaction_hash(transaction_hash))
-            })
-            .map_err(BlockchainError::JsonRpcError)
+            })?)
         }
     }
 
@@ -351,24 +361,22 @@ impl Blockchain for ForkedBlockchain {
                 self.runtime()
                     .block_on(self.remote.block_by_number(block_number))
             })
-            .map_or_else(
-                |e| Err(BlockchainError::JsonRpcError(e)),
-                |block| {
-                    if let Some(hardfork_activations) = &self.hardfork_activations {
-                        hardfork_activations
-                            .hardfork_at_block_number(block.header().number)
-                            .ok_or(BlockchainError::UnknownBlockSpec {
-                                block_number,
-                                hardfork_activations: hardfork_activations.clone(),
-                            })
-                    } else {
-                        Err(BlockchainError::MissingHardforkActivations {
+            .map_err(BlockchainError::Forked)
+            .and_then(|block| {
+                if let Some(hardfork_activations) = &self.hardfork_activations {
+                    hardfork_activations
+                        .hardfork_at_block_number(block.header().number)
+                        .ok_or(BlockchainError::UnknownBlockSpec {
                             block_number,
-                            fork_block_number: self.fork_block_number,
+                            hardfork_activations: hardfork_activations.clone(),
                         })
-                    }
-                },
-            )
+                } else {
+                    Err(BlockchainError::MissingHardforkActivations {
+                        block_number,
+                        fork_block_number: self.fork_block_number,
+                    })
+                }
+            })
         } else {
             Ok(self.spec_id)
         }
@@ -392,7 +400,9 @@ impl Blockchain for ForkedBlockchain {
             state_override.state_root
         } else {
             self.block_by_number(block_number)?
-                .expect("The block is validated to exist")
+                .expect(
+                    "Block must exist since block number is less than equal the last block number.",
+                )
                 .header()
                 .state_root
         };
@@ -434,11 +444,10 @@ impl Blockchain for ForkedBlockchain {
         if let Some(difficulty) = self.local_storage.total_difficulty_by_hash(hash) {
             Ok(Some(difficulty))
         } else {
-            tokio::task::block_in_place(move || {
+            Ok(tokio::task::block_in_place(move || {
                 self.runtime()
                     .block_on(self.remote.total_difficulty_by_hash(hash))
-            })
-            .map_err(BlockchainError::JsonRpcError)
+            })?)
         }
     }
 }
@@ -505,7 +514,7 @@ impl BlockchainMut for ForkedBlockchain {
     #[cfg_attr(feature = "tracing", tracing::instrument(skip_all))]
     fn revert_to_block(&mut self, block_number: u64) -> Result<(), Self::Error> {
         match block_number.cmp(&self.fork_block_number) {
-            std::cmp::Ordering::Less => Err(BlockchainError::CannotDeleteRemote),
+            std::cmp::Ordering::Less => Err(ForkedBlockchainError::CannotDeleteRemote.into()),
             std::cmp::Ordering::Equal => {
                 self.local_storage =
                     ReservableSparseBlockchainStorage::empty(self.fork_block_number);

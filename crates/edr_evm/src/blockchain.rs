@@ -7,8 +7,7 @@ pub mod storage;
 use std::{collections::BTreeMap, fmt::Debug, ops::Bound::Included, sync::Arc};
 
 use edr_eth::{
-    log::FilterLog, receipt::BlockReceipt, remote::RpcClientError, spec::HardforkActivations,
-    Address, B256, U256,
+    log::FilterLog, receipt::BlockReceipt, spec::HardforkActivations, Address, B256, U256,
 };
 use revm::{
     db::BlockHashRef,
@@ -18,7 +17,7 @@ use revm::{
 
 use self::storage::ReservableSparseBlockchainStorage;
 pub use self::{
-    forked::{CreationError as ForkedCreationError, ForkedBlockchain},
+    forked::{CreationError as ForkedCreationError, ForkedBlockchain, ForkedBlockchainError},
     local::{CreationError as LocalCreationError, LocalBlockchain},
 };
 use crate::{
@@ -32,9 +31,9 @@ pub enum BlockchainError {
     /// Block number exceeds storage capacity (usize::MAX)
     #[error("Block number exceeds storage capacity.")]
     BlockNumberTooLarge,
-    /// Remote blocks cannot be deleted
-    #[error("Cannot delete remote block.")]
-    CannotDeleteRemote,
+    /// Forked blockchain error
+    #[error(transparent)]
+    Forked(#[from] ForkedBlockchainError),
     /// Invalid block number
     #[error("Invalid block number: {actual}. Expected: {expected}.")]
     InvalidBlockNumber {
@@ -51,9 +50,6 @@ pub enum BlockchainError {
         /// Expected parent hash
         expected: B256,
     },
-    /// JSON-RPC error
-    #[error(transparent)]
-    JsonRpcError(#[from] RpcClientError),
     /// Missing hardfork activation history
     #[error("No known hardfork for execution on historical block {block_number} (relative to fork block number {fork_block_number}). The node was not configured with a hardfork activation history.")]
     MissingHardforkActivations {
