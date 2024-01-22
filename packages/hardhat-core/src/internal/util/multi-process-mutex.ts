@@ -10,7 +10,7 @@ import os from "node:os";
 // ATTENTION: in the current implementation, there's still a risk of two processes running simultaneously.
 // For example, if processA has locked the mutex and is running, processB will wait.
 // During this wait, processB continuously checks the elapsed time since the mutex lock file was created.
-// If an excessive amount of time has passed, processB will assume ownership of the mutex to avoid deadlocks.
+// If an excessive amount of time has passed, processB will assume ownership of the mutex to avoid stale locks.
 // However, there's a possibility that processB might take ownership because the mutex creation file is outdated, even though processA is still running
 // For more info check the Nomic Notion page (internal link).
 
@@ -18,8 +18,8 @@ export class MultiProcessMutex {
   private _log: debug.Debugger;
   private _mutexFilePath: string;
   private _timeoutInMs: number;
-  private _defaultTimeoutInMs = 20000;
-  private _mutexReleaseWaitingTimeInMs = 500;
+  private _defaultTimeoutInMs = 60000;
+  private _mutexReleaseWaitingTimeInMs = 100;
 
   constructor(mutexName: string, timeoutInMs?: number) {
     this._log = debug("hardhat:await-semaphore:multi-process-mutex");
@@ -43,7 +43,7 @@ export class MultiProcessMutex {
 
       // Mutex not acquired
       if (this._isMutexFileTooOld()) {
-        // If the mutex file is too old, it likely indicates a deadlock, so the file should be removed
+        // If the mutex file is too old, it likely indicates a stale lock, so the file should be removed
         this._log(
           `Current mutex file is too old, removing it at path '${this._mutexFilePath}'`
         );
@@ -85,7 +85,7 @@ export class MultiProcessMutex {
 
       return await res;
     } catch (error: any) {
-      // Catch any error to avoid dead locks.
+      // Catch any error to avoid stale locks.
       // Remove the mutex file and re-throw the error
       this._deleteMutexFile();
       throw error;
