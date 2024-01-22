@@ -17,20 +17,21 @@ import os from "node:os";
 export class MultiProcessMutex {
   private _log: debug.Debugger;
   private _mutexFilePath: string;
-  private _timeoutInMs: number;
-  private _defaultTimeoutInMs = 60000;
-  private _mutexReleaseWaitingTimeInMs = 100;
+  private _mutexLifespanInMs: number;
+  private _defaultMaxMutexLifespanInMs = 60000;
+  private _mutexLoopWaitingTimeInMs = 100;
 
-  constructor(mutexName: string, timeoutInMs?: number) {
+  constructor(mutexName: string, _maxMutexLifespanInMs?: number) {
     this._log = debug("hardhat:await-semaphore:multi-process-mutex");
 
     this._log(`Creating mutex with name '${mutexName}'`);
 
     this._mutexFilePath = path.join(os.tmpdir(), `${mutexName}.txt`);
-    this._timeoutInMs = timeoutInMs ?? this._defaultTimeoutInMs;
+    this._mutexLifespanInMs =
+      _maxMutexLifespanInMs ?? this._defaultMaxMutexLifespanInMs;
   }
 
-  public async use<T>(f: (...valuesToReplace: any) => Promise<T>): Promise<T> {
+  public async use<T>(f: () => Promise<T>): Promise<T> {
     this._log(
       `Starting mutex process withy mutex file '${this._mutexFilePath}'`
     );
@@ -76,14 +77,15 @@ export class MultiProcessMutex {
     this._log(`Mutex acquired at path '${this._mutexFilePath}'`);
 
     try {
-      const res = f();
+      const res = await f();
 
       // Release the mutex
+      this._log(`Mutex released at path '${this._mutexFilePath}'`);
       this._deleteMutexFile();
 
       this._log(`Mutex released at path '${this._mutexFilePath}'`);
 
-      return await res;
+      return res;
     } catch (error: any) {
       // Catch any error to avoid stale locks.
       // Remove the mutex file and re-throw the error
@@ -93,8 +95,6 @@ export class MultiProcessMutex {
   }
 
   private _isMutexFileTooOld(): boolean {
-    const now = new Date();
-
     let fileStat;
     try {
       fileStat = fs.statSync(this._mutexFilePath);
@@ -107,10 +107,11 @@ export class MultiProcessMutex {
       throw error;
     }
 
+    const now = new Date();
     const fileDate = new Date(fileStat.ctime);
     const diff = now.getTime() - fileDate.getTime();
 
-    return diff > this._timeoutInMs;
+    return diff > this._mutexLifespanInMs;
   }
 
   private _deleteMutexFile() {
@@ -129,7 +130,7 @@ export class MultiProcessMutex {
 
   private async _waitMs() {
     return new Promise((resolve) =>
-      setTimeout(resolve, this._mutexReleaseWaitingTimeInMs)
+      setTimeout(resolve, this._mutexLoopWaitingTimeInMs)
     );
   }
 }
