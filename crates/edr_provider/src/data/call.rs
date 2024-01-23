@@ -67,18 +67,20 @@ pub(super) fn run_call(args: RunCallArgs<'_>) -> Result<ResultAndState, Provider
 pub(super) fn run_call_and_handle_errors(
     run_call_args: RunCallArgs<'_>,
     transaction_hash: &B256,
-) -> Result<(u64, Bytes), ProviderError> {
+) -> Result<Result<(u64, Bytes), TransactionFailure>, ProviderError> {
     let result = run_call(run_call_args)?;
 
-    match result.result {
+    let execution_result = match result.result {
         ExecutionResult::Success {
             gas_used, output, ..
         } => Ok((gas_used, output.into_data())),
         ExecutionResult::Revert { output, .. } => {
-            Err(TransactionFailure::revert(output, *transaction_hash).into())
+            Err(TransactionFailure::revert(output, *transaction_hash))
         }
         ExecutionResult::Halt { reason, .. } => {
-            Err(TransactionFailure::halt(reason, *transaction_hash).into())
+            Err(TransactionFailure::halt(reason, *transaction_hash))
         }
-    }
+    };
+
+    Ok(execution_result)
 }

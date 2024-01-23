@@ -395,19 +395,15 @@ export class EdrProviderWrapper
   extends EventEmitter
   implements EIP1193Provider
 {
-  private readonly _vmTraceDecoder: VmTraceDecoder;
-
   private constructor(
     private readonly _provider: EdrProviderT,
     private readonly _eventAdapter: EdrProviderEventAdapter,
+    private readonly _vmTraceDecoder: VmTraceDecoder,
     // The common configuration for EthereumJS VM is not used by EDR, but tests expect it as part of the provider.
     private readonly _common: Common,
     tracingConfig?: TracingConfig
   ) {
     super();
-
-    const contractsIdentifier = new ContractsIdentifier();
-    this._vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
 
     if (tracingConfig !== undefined) {
       initializeVmTraceDecoder(this._vmTraceDecoder, tracingConfig);
@@ -446,6 +442,9 @@ export class EdrProviderWrapper
 
     const printLineFn = loggerConfig.printLineFn ?? printLine;
     const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
+
+    const contractsIdentifier = new ContractsIdentifier();
+    const vmTraceDecoder = new VmTraceDecoder(contractsIdentifier);
 
     const provider = await Provider.withConfig(
       {
@@ -489,6 +488,15 @@ export class EdrProviderWrapper
           const consoleLogger = new ConsoleLogger();
           return consoleLogger.getDecodedLogs(inputs);
         },
+        getContractAndFunctionNameCallback: (
+          code: Buffer,
+          calldata?: Buffer
+        ) => {
+          return vmTraceDecoder.getContractAndFunctionNamesForCall(
+            code,
+            calldata
+          );
+        },
         printLineCallback: (message: string, replace: boolean) => {
           if (replace) {
             replaceLastLineFn(message);
@@ -506,6 +514,7 @@ export class EdrProviderWrapper
     const wrapper = new EdrProviderWrapper(
       provider,
       eventAdapter,
+      vmTraceDecoder,
       common,
       await makeTracingConfig(artifacts)
     );

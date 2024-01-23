@@ -74,9 +74,14 @@ const DEFAULT_INITIAL_BASE_FEE_PER_GAS: u64 = 1_000_000_000;
 #[derive(Clone)]
 pub struct CallResult {
     pub console_log_inputs: Vec<Bytes>,
-    pub gas_used: u64,
-    pub output: Bytes,
+    pub execution_result: Result<(u64, Bytes), TransactionFailure>,
     pub trace: Trace,
+}
+
+pub struct EstimateGasFailure {
+    pub console_log_inputs: Vec<Bytes>,
+    pub trace: Trace,
+    pub transaction_failure: TransactionFailure,
 }
 
 pub struct SendTransactionResult {
@@ -451,7 +456,7 @@ impl ProviderData {
         &self,
         transaction: ExecutableTransaction,
         block_spec: &BlockSpec,
-    ) -> Result<u64, ProviderError> {
+    ) -> Result<Result<u64, EstimateGasFailure>, ProviderError> {
         let cfg_env = self.create_evm_config(Some(block_spec))?;
         // Minimum gas cost that is required for transaction to be included in
         // a block
@@ -462,12 +467,15 @@ impl ProviderData {
         let state_overrides = StateOverrides::default();
 
         self.execute_in_block_context(Some(block_spec), |blockchain, block, state| {
+            let mut inspector =
+                DualInspector::new(EvmInspector::default(), TraceCollector::default());
+
             let header = block.header();
 
             // Measure the gas used by the transaction with optional limit from call request
             // defaulting to block limit. Report errors from initial call as if from
             // `eth_call`.
-            let (mut initial_estimation, _) = call::run_call_and_handle_errors(
+            let result = call::run_call_and_handle_errors(
                 RunCallArgs {
                     blockchain,
                     header,
@@ -475,10 +483,23 @@ impl ProviderData {
                     state_overrides: &state_overrides,
                     cfg_env: cfg_env.clone(),
                     tx_env: tx_env.clone(),
-                    inspector: None,
+                    inspector: Some(&mut inspector),
                 },
                 &transaction_hash,
             )?;
+
+            let (debug_inspector, tracer) = inspector.into_parts();
+
+            let (mut initial_estimation, _) = match result {
+                Ok(result) => result,
+                Err(transaction_failure) => {
+                    return Ok(Err(EstimateGasFailure {
+                        console_log_inputs: debug_inspector.into_console_log_encoded_messages(),
+                        trace: tracer.into_trace(),
+                        transaction_failure,
+                    }))
+                }
+            };
 
             // Ensure that the initial estimation is at least the minimum cost + 1.
             if initial_estimation <= minimum_cost {
@@ -499,13 +520,13 @@ impl ProviderData {
 
             // Return the initial estimation if it was successful
             if result {
-                return Ok(initial_estimation);
+                return Ok(Ok(initial_estimation));
             }
 
             // Correct the initial estimation if the transaction failed with the actually
             // used gas limit. This can happen if the execution logic is based
             // on the available gas.
-            gas::binary_search_estimation(BinarySearchEstimationArgs {
+            let estimation = gas::binary_search_estimation(BinarySearchEstimationArgs {
                 blockchain,
                 header,
                 state: &state,
@@ -515,7 +536,9 @@ impl ProviderData {
                 transaction_hash: &transaction_hash,
                 lower_bound: initial_estimation,
                 upper_bound: header.gas_limit,
-            })
+            })?;
+
+            Ok(Ok(estimation))
         })?
     }
 
@@ -1131,7 +1154,7 @@ impl ProviderData {
             let mut inspector =
                 DualInspector::new(EvmInspector::default(), TraceCollector::default());
 
-            let (gas_used, output) = call::run_call_and_handle_errors(
+            let execution_result = call::run_call_and_handle_errors(
                 RunCallArgs {
                     blockchain,
                     header: block.header(),
@@ -1148,8 +1171,7 @@ impl ProviderData {
 
             Ok(CallResult {
                 console_log_inputs: debug_inspector.into_console_log_encoded_messages(),
-                gas_used,
-                output,
+                execution_result,
                 trace: tracer.into_trace(),
             })
         })?

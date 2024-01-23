@@ -24,9 +24,9 @@ use tokio::runtime;
 
 pub use self::{
     config::*,
-    data::CallResult,
+    data::{CallResult, EstimateGasFailure},
     debug::DebugMineBlockResult,
-    error::ProviderError,
+    error::{ProviderError, TransactionFailure, TransactionFailureReason},
     logger::Logger,
     requests::{
         hardhat::rpc_types as hardhat_rpc_types, InvalidRequestReason, MethodInvocation,
@@ -44,7 +44,6 @@ lazy_static! {
     pub static ref PRIVATE_RPC_METHODS: HashSet<&'static str> = {
         [
             "hardhat_getStackTraceFailuresCount",
-            "hardhat_setIntervalMine",
             "hardhat_setLoggingEnabled",
         ]
         .into_iter()
@@ -395,8 +394,11 @@ impl Provider {
         };
 
         if let Some(method_name) = method_name {
-            data.logger_mut()
-                .print_method_logs(method_name.as_str(), result.as_ref().err());
+            // Only print errors for `hardhat_intervalMine`
+            if method_name != "hardhat_intervalMine" || result.is_err() {
+                data.logger_mut()
+                    .print_method_logs(method_name.as_str(), result.as_ref().err());
+            }
         }
 
         result

@@ -18,7 +18,7 @@ use crate::{
 };
 
 pub fn handle_estimate_gas(
-    data: &ProviderData,
+    data: &mut ProviderData,
     call_request: CallRequest,
     block_spec: Option<BlockSpec>,
 ) -> Result<U64, ProviderError> {
@@ -35,7 +35,15 @@ pub fn handle_estimate_gas(
         &StateOverrides::default(),
     )?;
 
-    let gas_limit = data.estimate_gas(transaction, &block_spec)?;
+    let result = data.estimate_gas(transaction.clone(), &block_spec)?;
+
+    if let Err(failure) = &result {
+        let spec_id = data.spec_id();
+        data.logger_mut()
+            .log_estimate_gas_failure(spec_id, &transaction, failure);
+    }
+
+    let gas_limit = result.map_err(|failure| failure.transaction_failure)?;
 
     Ok(U64::from(gas_limit))
 }

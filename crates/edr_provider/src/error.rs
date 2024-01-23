@@ -9,8 +9,8 @@ use edr_evm::{
     blockchain::BlockchainError,
     hex,
     state::{AccountOverrideConversionError, StateError},
-    Halt, MineBlockError, MinerTransactionError, OutOfGasError, TransactionCreationError,
-    TransactionError,
+    ExecutionResult, Halt, MineBlockError, MinerTransactionError, OutOfGasError,
+    TransactionCreationError, TransactionError,
 };
 use ethers_core::types::transaction::eip712::Eip712Error;
 
@@ -250,7 +250,7 @@ impl From<ProviderError> for jsonrpc::Error {
 
 /// Wrapper around [`revm_primitives::Halt`] to convert error messages to match
 /// Hardhat.
-#[derive(Debug, thiserror::Error, serde::Serialize)]
+#[derive(Clone, Debug, thiserror::Error, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionFailure {
     pub reason: TransactionFailureReason,
@@ -259,6 +259,19 @@ pub struct TransactionFailure {
 }
 
 impl TransactionFailure {
+    pub fn from_execution_result(
+        execution_result: &ExecutionResult,
+        transaction_hash: &B256,
+    ) -> Option<Self> {
+        match execution_result {
+            ExecutionResult::Success { .. } => None,
+            ExecutionResult::Revert { output, .. } => {
+                Some(Self::revert(output.clone(), *transaction_hash))
+            }
+            ExecutionResult::Halt { reason, .. } => Some(Self::halt(*reason, *transaction_hash)),
+        }
+    }
+
     pub fn revert(output: Bytes, transaction_hash: B256) -> Self {
         let data = format!("0x{}", hex::encode(output.as_ref()));
         Self {
@@ -301,7 +314,7 @@ impl std::fmt::Display for TransactionFailure {
     }
 }
 
-#[derive(Debug, serde::Serialize)]
+#[derive(Clone, Debug, serde::Serialize)]
 pub enum TransactionFailureReason {
     Inner(Halt),
     OpcodeNotFound,

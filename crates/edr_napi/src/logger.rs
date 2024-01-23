@@ -9,7 +9,7 @@ use edr_evm::{
     blockchain::BlockchainError,
     precompile::{self, Precompiles},
     trace::TraceMessage,
-    ExecutableTransaction, ExecutionResult, Halt, SyncBlock,
+    ExecutableTransaction, ExecutionResult, SyncBlock,
 };
 use edr_provider::ProviderError;
 use itertools::izip;
@@ -17,13 +17,37 @@ use napi::{Env, JsFunction, NapiRaw, Status};
 use napi_derive::napi;
 
 use crate::{
+    cast::TryCast,
     sync::{await_promise, handle_error},
     threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ThreadsafeFunctionCallMode},
 };
 
+#[napi(object)]
+pub struct ContractAndFunctionName {
+    /// The contract name.
+    pub contract_name: String,
+    /// The function name. Only present for calls.
+    pub function_name: Option<String>,
+}
+
+impl TryCast<(String, Option<String>)> for ContractAndFunctionName {
+    type Error = napi::Error;
+
+    fn try_cast(self) -> std::result::Result<(String, Option<String>), Self::Error> {
+        Ok((self.contract_name, self.function_name))
+    }
+}
+
 struct DecodeConsoleLogInputsCall {
     inputs: Vec<Bytes>,
     sender: Sender<napi::Result<Vec<String>>>,
+}
+
+struct ContractAndFunctionNameCall {
+    code: Bytes,
+    /// Only present for calls.
+    calldata: Option<Bytes>,
+    sender: Sender<napi::Result<(String, Option<String>)>>,
 }
 
 #[napi(object)]
@@ -32,6 +56,8 @@ pub struct LoggerConfig {
     pub enable: bool,
     #[napi(ts_type = "(inputs: Buffer[]) => string[]")]
     pub decode_console_log_inputs_callback: JsFunction,
+    #[napi(ts_type = "(code: Buffer, calldata?: Buffer) => ContractAndFunctionName")]
+    pub get_contract_and_function_name_callback: JsFunction,
     #[napi(ts_type = "(message: string, replace: boolean) => void")]
     pub print_line_callback: JsFunction,
 }
@@ -113,6 +139,16 @@ impl edr_provider::Logger for Logger {
         result: &edr_provider::CallResult,
     ) {
         self.collector.log_call(spec_id, transaction, result);
+    }
+
+    fn log_estimate_gas_failure(
+        &mut self,
+        spec_id: edr_eth::SpecId,
+        transaction: &ExecutableTransaction,
+        failure: &edr_provider::EstimateGasFailure,
+    ) {
+        self.collector
+            .log_estimate_gas(spec_id, transaction, failure);
     }
 
     fn log_interval_mined(
@@ -202,9 +238,10 @@ pub struct CollapsedMethod {
 
 #[derive(Clone)]
 struct LogCollector {
+    decode_console_log_inputs_fn: ThreadsafeFunction<DecodeConsoleLogInputsCall>,
+    get_contract_and_function_name_fn: ThreadsafeFunction<ContractAndFunctionNameCall>,
     indentation: usize,
     is_enabled: bool,
-    decode_console_log_inputs_fn: ThreadsafeFunction<DecodeConsoleLogInputsCall>,
     logs: Vec<LogLine>,
     print_line_fn: ThreadsafeFunction<(String, bool)>,
     state: LoggingState,
@@ -251,6 +288,56 @@ impl LogCollector {
             },
         )?;
 
+        let get_contract_and_function_name_fn = ThreadsafeFunction::create(
+            env.raw(),
+            // SAFETY: The callback is guaranteed to be valid for the lifetime of the tracer.
+            unsafe { config.get_contract_and_function_name_callback.raw() },
+            0,
+            |ctx: ThreadSafeCallContext<ContractAndFunctionNameCall>| {
+                // Buffer
+                let code = ctx.value.code;
+                let code = unsafe {
+                    ctx.env.create_buffer_with_borrowed_data(
+                        code.as_ptr(),
+                        code.len(),
+                        code,
+                        |code: Bytes, _env| {
+                            std::mem::drop(code);
+                        },
+                    )
+                }?
+                .into_unknown();
+
+                // Option<Buffer>
+                let calldata = if let Some(calldata) = ctx.value.calldata {
+                    unsafe {
+                        ctx.env.create_buffer_with_borrowed_data(
+                            calldata.as_ptr(),
+                            calldata.len(),
+                            calldata,
+                            |calldata: Bytes, _env| {
+                                std::mem::drop(calldata);
+                            },
+                        )
+                    }?
+                    .into_unknown()
+                } else {
+                    ctx.env.get_undefined()?.into_unknown()
+                };
+
+                let sender = ctx.value.sender.clone();
+
+                let promise = ctx.callback.call(None, &[code, calldata])?;
+                let result = await_promise::<ContractAndFunctionName, (String, Option<String>)>(
+                    ctx.env,
+                    promise,
+                    ctx.value.sender,
+                );
+
+                handle_error(sender, result)
+            },
+        )?;
+
         let print_line_fn = ThreadsafeFunction::create(
             env.raw(),
             // SAFETY: The callback is guaranteed to be valid for the lifetime of the tracer.
@@ -271,6 +358,7 @@ impl LogCollector {
 
         Ok(Self {
             decode_console_log_inputs_fn,
+            get_contract_and_function_name_fn,
             indentation: 0,
             is_enabled: config.enable,
             logs: Vec::new(),
@@ -280,7 +368,7 @@ impl LogCollector {
         })
     }
 
-    fn log_call(
+    pub fn log_call(
         &mut self,
         spec_id: edr_eth::SpecId,
         transaction: &ExecutableTransaction,
@@ -288,8 +376,7 @@ impl LogCollector {
     ) {
         let edr_provider::CallResult {
             console_log_inputs,
-            gas_used,
-            output: _output,
+            execution_result,
             trace,
         } = result;
 
@@ -302,26 +389,64 @@ impl LogCollector {
             if let Some(to) = transaction.to() {
                 logger.log_with_title("To", format!("0x{to:x}"));
             }
-            logger.log_with_title("Value", wei_to_human_readable(transaction.value()));
-            logger.log_with_title(
-                "Gas used",
-                format!(
-                    "{gas_used} of {gas_limit}",
-                    gas_limit = transaction.gas_limit()
-                ),
-            );
+            if transaction.value() > U256::ZERO {
+                logger.log_with_title("Value", wei_to_human_readable(transaction.value()));
+            }
 
             logger.log_console_log_messages(console_log_inputs);
 
-            // TODO: Log error
-            // if let ExecutionResult::Halt { reason, .. } = result {
-            //     logger.log_empty_line();
-            //     logger.log(format!("{reason:?}"));
-            // }
+            if let Err(transaction_failure) = execution_result {
+                logger.log_transaction_failure(transaction_failure);
+            }
         });
     }
 
-    fn log_mined_blocks(
+    pub fn log_estimate_gas(
+        &mut self,
+        spec_id: edr_eth::SpecId,
+        transaction: &ExecutableTransaction,
+        result: &edr_provider::EstimateGasFailure,
+    ) {
+        let edr_provider::EstimateGasFailure {
+            console_log_inputs,
+            trace,
+            transaction_failure,
+        } = result;
+
+        self.state = LoggingState::Empty;
+
+        self.indented(|logger| {
+            logger.log_contract_and_function_name::<true>(spec_id, trace);
+
+            logger.log_with_title("From", format!("0x{:x}", transaction.caller()));
+            if let Some(to) = transaction.to() {
+                logger.log_with_title("To", format!("0x{to:x}"));
+            }
+            logger.log_with_title("Value", wei_to_human_readable(transaction.value()));
+
+            logger.log_console_log_messages(console_log_inputs);
+
+            logger.log_transaction_failure(transaction_failure);
+        });
+    }
+
+    fn log_transaction_failure(&mut self, failure: &edr_provider::TransactionFailure) {
+        let is_revert_error = matches!(
+            failure.reason,
+            edr_provider::TransactionFailureReason::Revert(_)
+        );
+
+        let error_type = if is_revert_error {
+            "Error"
+        } else {
+            "TransactionExecutionError"
+        };
+
+        self.log_empty_line();
+        self.log(format!("{error_type}: {failure}"));
+    }
+
+    pub fn log_mined_blocks(
         &mut self,
         spec_id: edr_eth::SpecId,
         mining_results: Vec<edr_provider::DebugMineBlockResult<BlockchainError>>,
@@ -350,7 +475,7 @@ impl LogCollector {
         }
     }
 
-    fn log_interval_mined(
+    pub fn log_interval_mined(
         &mut self,
         spec_id: edr_eth::SpecId,
         mining_result: &edr_provider::DebugMineBlockResult<BlockchainError>,
@@ -383,12 +508,17 @@ impl LogCollector {
             };
         } else {
             self.log_interval_mined_block(spec_id, mining_result);
+
             self.print::<false>(format!("Mined block #{block_number}"));
-            self.print_empty_line();
+
+            let printed = self.print_logs();
+            if printed {
+                self.print_empty_line();
+            }
         }
     }
 
-    fn log_send_transaction(
+    pub fn log_send_transaction(
         &mut self,
         spec_id: edr_eth::SpecId,
         transaction: &edr_evm::ExecutableTransaction,
@@ -397,40 +527,71 @@ impl LogCollector {
         if !mining_results.is_empty() {
             self.state = LoggingState::Empty;
 
+            let (sent_block_result, sent_transaction_result, sent_trace) = mining_results
+                .iter()
+                .find_map(|result| {
+                    izip!(
+                        result.block.transactions(),
+                        result.transaction_results.iter(),
+                        result.transaction_traces.iter()
+                    )
+                    .find(|(block_transaction, _, _)| {
+                        *block_transaction.hash() == *transaction.hash()
+                    })
+                    .map(|(_, transaction_result, trace)| (result, transaction_result, trace))
+                })
+                .expect("Transaction result not found");
+
             if mining_results.len() > 1 {
                 self.log_multiple_blocks_warning();
-                self.log_auto_mined_block_results(spec_id, mining_results, transaction.hash());
+                self.log_auto_mined_block_results(spec_id, &mining_results, transaction.hash());
+                self.log_currently_sent_transaction(
+                    spec_id,
+                    sent_block_result,
+                    transaction,
+                    sent_transaction_result,
+                    sent_trace,
+                );
             } else if let Some(result) = mining_results.first() {
                 let transactions = result.block.transactions();
                 if transactions.len() > 1 {
-                    let sent_transaction_result = mining_results
-                        .iter()
-                        .find(|result| {
-                            result.block.transactions().iter().any(|block_transaction| {
-                                *block_transaction.hash() == *transaction.hash()
-                            })
-                        })
-                        .cloned()
-                        .expect("Transaction result not found");
-
                     self.log_multiple_transactions_warning();
-                    self.log_auto_mined_block_results(spec_id, mining_results, transaction.hash());
-
-                    self.indented(|logger| {
-                        logger.log("Currently sent transaction:");
-                        logger.log("");
-                    });
-
-                    self.log_single_transaction_mining_result(
+                    self.log_auto_mined_block_results(spec_id, &mining_results, transaction.hash());
+                    self.log_currently_sent_transaction(
                         spec_id,
-                        &sent_transaction_result,
+                        sent_block_result,
                         transaction,
+                        sent_transaction_result,
+                        sent_trace,
                     );
                 } else if let Some(transaction) = transactions.first() {
                     self.log_single_transaction_mining_result(spec_id, result, transaction);
                 }
             }
         }
+    }
+
+    fn contract_and_function_name(
+        &self,
+        code: Bytes,
+        calldata: Option<Bytes>,
+    ) -> (String, Option<String>) {
+        let (sender, receiver) = channel();
+
+        let status = self.get_contract_and_function_name_fn.call(
+            ContractAndFunctionNameCall {
+                code,
+                calldata,
+                sender,
+            },
+            ThreadsafeFunctionCallMode::Blocking,
+        );
+        assert_eq!(status, Status::Ok);
+
+        receiver
+            .recv()
+            .unwrap()
+            .expect("Failed call to get_contract_and_function_name")
     }
 
     fn format(&self, message: impl ToString) -> String {
@@ -462,7 +623,7 @@ impl LogCollector {
     fn log_auto_mined_block_results(
         &mut self,
         spec_id: edr_eth::SpecId,
-        results: Vec<edr_provider::DebugMineBlockResult<BlockchainError>>,
+        results: &[edr_provider::DebugMineBlockResult<BlockchainError>],
         sent_transaction_hash: &B256,
     ) {
         for result in results {
@@ -479,7 +640,7 @@ impl LogCollector {
     fn log_block_from_auto_mine(
         &mut self,
         spec_id: edr_eth::SpecId,
-        result: edr_provider::DebugMineBlockResult<BlockchainError>,
+        result: &edr_provider::DebugMineBlockResult<BlockchainError>,
         transaction_hash_to_highlight: &edr_eth::B256,
     ) {
         let edr_provider::DebugMineBlockResult {
@@ -498,7 +659,7 @@ impl LogCollector {
         let block_header = block.header();
 
         self.indented(|logger| {
-            logger.log_block_id(&block);
+            logger.log_block_id(block);
 
             logger.indented(|logger| {
                 logger.log_base_fee(block_header.base_fee_per_gas.as_ref());
@@ -514,9 +675,9 @@ impl LogCollector {
                     logger.log_block_transaction(
                         spec_id,
                         transaction,
-                        &result,
-                        &trace,
-                        &console_log_inputs,
+                        result,
+                        trace,
+                        console_log_inputs,
                         should_highlight_hash,
                     );
 
@@ -585,9 +746,11 @@ impl LogCollector {
 
             logger.log_console_log_messages(console_log_inputs);
 
-            if let ExecutionResult::Halt { reason, .. } = &result {
-                logger.log_empty_line();
-                logger.log(format!("{reason:?}"));
+            let transaction_failure =
+                edr_provider::TransactionFailure::from_execution_result(result, transaction_hash);
+
+            if let Some(transaction_failure) = transaction_failure {
+                logger.log_transaction_failure(&transaction_failure);
             }
         });
     }
@@ -634,10 +797,9 @@ impl LogCollector {
         spec_id: edr_eth::SpecId,
         trace: &edr_evm::trace::Trace,
     ) {
-        const UNRECOGNIZED_CONTRACT_NAME: &str = "<UnrecognizedContract>";
-
         if let Some(TraceMessage::Before(before_message)) = trace.messages.first() {
             if let Some(to) = before_message.to {
+                // Call
                 let is_precompile = {
                     let num_precompiles =
                         Precompiles::new(precompile::SpecId::from_spec_id(spec_id)).len();
@@ -661,34 +823,49 @@ impl LogCollector {
                             self.log("WARNING: Calling an account which is not a contract");
                         }
                     } else {
+                        let (contract_name, function_name) = self.contract_and_function_name(
+                            before_message
+                                .code
+                                .as_ref()
+                                .map(edr_evm::Bytecode::original_bytes)
+                                .expect("Call must be defined"),
+                            Some(before_message.data.clone()),
+                        );
+
+                        let function_name = function_name.expect("Function name must be defined");
                         self.log_with_title(
                             "Contract call",
-                        // TODO: Check whether the contract code model is set
-                        // if let Some(contract) =
-                        //      self.contract_model.get(&code) {
-                                "<TODO: contract.name#functionName>"
-                     // } else {
-                        //     UNRECOGNIZED_CONTRACT_NAME
-                        //}
-                    );
+                            if function_name.is_empty() {
+                                contract_name
+                            } else {
+                                format!("{contract_name}#{function_name}")
+                            },
+                        );
                     }
                 }
             } else {
-                self.log_with_title(
-                    "Contract deployment",
-                    // TODO: This should use the contract code model
-                    if let Some(_code) = before_message.code.as_ref() {
-                        "<TODO: contract.name>"
-                    } else {
-                        UNRECOGNIZED_CONTRACT_NAME
-                    },
-                );
+                let result = if let Some(TraceMessage::After(result)) = trace.messages.last() {
+                    result
+                } else {
+                    unreachable!("Before messages must have an after message")
+                };
 
-                if let Some(code_address) = &before_message.code_address {
-                    if let Some(TraceMessage::After(after_message)) = trace.messages.last() {
-                        if after_message.is_success() {
-                            self.log_with_title("Contract address", format!("0x{code_address:x}"));
+                // Create
+                let (contract_name, _) =
+                    self.contract_and_function_name(before_message.data.clone(), None);
+
+                self.log_with_title("Contract deployment", contract_name);
+
+                if let ExecutionResult::Success { output, .. } = result {
+                    if let edr_evm::Output::Create(_, address) = output {
+                        if let Some(deployed_address) = address {
+                            self.log_with_title(
+                                "Contract address",
+                                format!("0x{deployed_address:x}"),
+                            );
                         }
+                    } else {
+                        unreachable!("Create calls must return a Create output")
                     }
                 }
             }
@@ -716,16 +893,6 @@ impl LogCollector {
         if num_transactions > 1 && idx < num_transactions - 1 {
             self.log_empty_line();
         }
-    }
-
-    fn log_halt_reason(&mut self, reason: &Halt) {
-        let reason = if matches!(reason, Halt::OutOfGas(_)) {
-            "Transaction ran out of gas".to_string()
-        } else {
-            format!("{reason:?}")
-        };
-
-        self.log(format!("TransactionExecutionError: {reason}"));
     }
 
     fn log_hardhat_mined_empty_block(
@@ -791,8 +958,6 @@ impl LogCollector {
                 }
             });
         });
-
-        self.log_empty_line();
     }
 
     fn log_hardhat_mined_block(
@@ -876,6 +1041,28 @@ impl LogCollector {
         self.logs.push(LogLine::WithTitle(title, message));
     }
 
+    fn log_currently_sent_transaction(
+        &mut self,
+        spec_id: edr_eth::SpecId,
+        block_result: &edr_provider::DebugMineBlockResult<BlockchainError>,
+        transaction: &ExecutableTransaction,
+        transaction_result: &edr_evm::ExecutionResult,
+        trace: &edr_evm::trace::Trace,
+    ) {
+        self.indented(|logger| {
+            logger.log("Currently sent transaction:");
+            logger.log("");
+        });
+
+        self.log_transaction(
+            spec_id,
+            block_result,
+            transaction,
+            transaction_result,
+            trace,
+        );
+    }
+
     fn log_single_transaction_mining_result(
         &mut self,
         spec_id: edr_eth::SpecId,
@@ -892,6 +1079,17 @@ impl LogCollector {
             .first()
             .expect("A transaction exists, so the result must exist as well.");
 
+        self.log_transaction(spec_id, result, transaction, transaction_result, trace);
+    }
+
+    fn log_transaction(
+        &mut self,
+        spec_id: edr_eth::SpecId,
+        block_result: &edr_provider::DebugMineBlockResult<BlockchainError>,
+        transaction: &ExecutableTransaction,
+        transaction_result: &edr_evm::ExecutionResult,
+        trace: &edr_evm::trace::Trace,
+    ) {
         self.indented(|logger| {
             logger.log_contract_and_function_name::<false>(spec_id, trace);
 
@@ -912,14 +1110,18 @@ impl LogCollector {
                 ),
             );
 
-            let block_number = result.block.header().number;
-            logger.log_with_title(format!("Block #{block_number}"), result.block.hash());
+            let block_number = block_result.block.header().number;
+            logger.log_with_title(format!("Block #{block_number}"), block_result.block.hash());
 
-            logger.log_console_log_messages(&result.console_log_inputs);
+            logger.log_console_log_messages(&block_result.console_log_inputs);
 
-            if let ExecutionResult::Halt { reason, .. } = &transaction_result {
-                logger.log_empty_line();
-                logger.log_halt_reason(reason);
+            let transaction_failure = edr_provider::TransactionFailure::from_execution_result(
+                transaction_result,
+                transaction_hash,
+            );
+
+            if let Some(transaction_failure) = transaction_failure {
+                logger.log_transaction_failure(&transaction_failure);
             }
         });
     }

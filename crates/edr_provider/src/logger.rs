@@ -4,7 +4,11 @@
 use dyn_clone::DynClone;
 use edr_evm::{trace::Trace, ExecutableTransaction};
 
-use crate::{data::CallResult, debug::DebugMineBlockResult, ProviderError};
+use crate::{
+    data::{CallResult, EstimateGasFailure},
+    debug::DebugMineBlockResult,
+    ProviderError,
+};
 
 pub trait Logger {
     type BlockchainError;
@@ -24,6 +28,17 @@ pub trait Logger {
         let _spec_id = spec_id;
         let _transaction = transaction;
         let _result = result;
+    }
+
+    fn log_estimate_gas_failure(
+        &mut self,
+        spec_id: edr_eth::SpecId,
+        transaction: &ExecutableTransaction,
+        result: &EstimateGasFailure,
+    ) {
+        let _spec_id = spec_id;
+        let _transaction = transaction;
+        let _failure = result;
     }
 
     fn log_interval_mined(

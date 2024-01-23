@@ -27,7 +27,9 @@ pub fn handle_call_request(
     let spec_id = data.spec_id();
     data.logger_mut().log_call(spec_id, &transaction, &result);
 
-    Ok(result.output)
+    let (_gas_used, output) = result.execution_result?;
+
+    Ok(output)
 }
 
 pub(crate) fn resolve_call_request(
