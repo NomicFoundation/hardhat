@@ -1,4 +1,4 @@
-# !/usr/bin/env bash
+#!/usr/bin/env bash
 
 #
 # NOTE: you can pass the name of a single fixture-projects folder to this script to execute a single test project.
