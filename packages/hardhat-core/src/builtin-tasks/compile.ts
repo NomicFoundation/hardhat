@@ -675,8 +675,16 @@ subtask(TASK_COMPILE_SOLIDITY_RUN_SOLC)
   .addParam("input", undefined, undefined, types.any)
   .addParam("solcPath", undefined, undefined, types.string)
   .setAction(
-    async ({ input, solcPath }: { input: CompilerInput; solcPath: string }) => {
-      const compiler = new NativeCompiler(solcPath);
+    async ({
+      input,
+      solcPath,
+      solcVersion,
+    }: {
+      input: CompilerInput;
+      solcPath: string;
+      solcVersion?: string;
+    }) => {
+      const compiler = new NativeCompiler(solcPath, solcVersion);
 
       return compiler.compile(input);
     }
@@ -737,9 +745,12 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_SOLC)
           solcJsPath: solcBuild.compilerPath,
         });
       } else {
+        console.log(`---------------------solcVersion: ${solcVersion}`);
+
         output = await run(TASK_COMPILE_SOLIDITY_RUN_SOLC, {
           input,
           solcPath: solcBuild.compilerPath,
+          solcVersion,
         });
       }
 

@@ -1,5 +1,7 @@
 import { execFile } from "child_process";
 import * as fs from "fs";
+import os from "node:os";
+import path from "node:path";
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HardhatError } from "../../core/errors";
 import { ERRORS } from "../../core/errors-list";
@@ -68,14 +70,41 @@ export class Compiler implements ICompiler {
 }
 
 export class NativeCompiler implements ICompiler {
-  constructor(private _pathToSolc: string) {}
+  constructor(private _pathToSolc: string, private _solcVersion?: string) {}
 
   public async compile(input: CompilerInput) {
+    const args = ["--standard-json"];
+    const versionRegex = /^\d{1,2}\.\d{1,2}\.\d{1,2}$/;
+
+    // Logic to make sure that solc default import callback is not being used.
+    // If solcVersion is not defined or <= 0.6.8, do not add extra args.
+    if (this._solcVersion !== undefined) {
+      if (!versionRegex.test(this._solcVersion)) {
+        throw new HardhatError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
+          value: this._solcVersion,
+          name: "_solcVersion",
+          type: "string",
+        });
+      }
+
+      const parts = this._solcVersion.split(".").map(Number);
+      if ((parts[1] === 8 && parts[2] >= 22) || parts[1] > 8) {
+        // version >= 0.8.22
+        args.push("--no-import-callback");
+      } else if ((parts[1] === 6 && parts[2] >= 9) || parts[1] > 6) {
+        // version >= 0.6.9
+        const tmpFolder = path.join(os.tmpdir(), "hardhat-solc");
+        fs.mkdirSync(tmpFolder, { recursive: true });
+        args.push(`--base-path`);
+        args.push(tmpFolder);
+      }
+    }
+
     const output: string = await new Promise((resolve, reject) => {
       try {
         const process = execFile(
           this._pathToSolc,
-          [`--standard-json`],
+          args,
           {
             maxBuffer: 1024 * 1024 * 500,
           },
