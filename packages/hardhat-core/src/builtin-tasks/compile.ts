@@ -745,8 +745,6 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_SOLC)
           solcJsPath: solcBuild.compilerPath,
         });
       } else {
-        console.log(`---------------------solcVersion: ${solcVersion}`);
-
         output = await run(TASK_COMPILE_SOLIDITY_RUN_SOLC, {
           input,
           solcPath: solcBuild.compilerPath,
