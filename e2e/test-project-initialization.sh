@@ -31,8 +31,12 @@ echo "[e2e] Built $HARDHAT_TGZ_FILE"
 cd - >/dev/null
 
 # create a temporary directory to run the tests
-TESTS_DIR=projects-initialization-tests-$(date +%Y-%m-%d-%H-%M-%S)
+TMP_DIR=$(mktemp -d)
+TESTS_DIR="${TMP_DIR}/projects-initialization-tests-$(date +%Y-%m-%d-%H-%M-%S)"
 mkdir $TESTS_DIR
+
+# store the path to hardhat-core so it can be used in the tmp folder
+HARDHAT_CORE_FOLDER_PATH="$(pwd)/../packages/hardhat-core"
 
 echo "[e2e] Starting e2e initialization tests in $TESTS_DIR\n\n"
 
@@ -52,7 +56,7 @@ for pkg_manager in $pkg_managers; do
   mkdir ${TESTS_DIR}/${pkg_manager}-javascript-cjs
   cd ${TESTS_DIR}/${pkg_manager}-javascript-cjs
   create_package_json
-  $pkg_manager add ../../../packages/hardhat-core/$HARDHAT_TGZ_FILE >/dev/null 2>&1
+  $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
   HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS=true npx hardhat init
   npx hardhat compile
   npx hardhat test
@@ -65,7 +69,7 @@ for pkg_manager in $pkg_managers; do
   create_package_json
   jq '. += {"type": "module"}' package.json >esm-package.json
   mv esm-package.json package.json
-  $pkg_manager add ../../../packages/hardhat-core/$HARDHAT_TGZ_FILE >/dev/null 2>&1
+  $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
   HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS=true npx hardhat init
   npx hardhat compile
   npx hardhat test
@@ -76,7 +80,7 @@ for pkg_manager in $pkg_managers; do
   mkdir ${TESTS_DIR}/${pkg_manager}-typescript-cjs
   cd ${TESTS_DIR}/${pkg_manager}-typescript-cjs
   create_package_json
-  $pkg_manager add ../../../packages/hardhat-core/$HARDHAT_TGZ_FILE >/dev/null 2>&1
+  $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
   HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS=true npx hardhat init
   npx hardhat compile
   npx hardhat test
@@ -89,7 +93,7 @@ for pkg_manager in $pkg_managers; do
   create_package_json
   jq '. += {"type": "module"}' package.json >esm-package.json
   mv esm-package.json package.json
-  $pkg_manager add ../../../packages/hardhat-core/$HARDHAT_TGZ_FILE >/dev/null 2>&1
+  $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
   if HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS=true npx hardhat init; then
     echo "[e2e] Initialization should have failed"
     exit 1
@@ -103,7 +107,7 @@ for pkg_manager in $pkg_managers; do
   mkdir ${TESTS_DIR}/${pkg_manager}-typescript-viem-cjs
   cd ${TESTS_DIR}/${pkg_manager}-typescript-viem-cjs
   create_package_json
-  $pkg_manager add ../../../packages/hardhat-core/$HARDHAT_TGZ_FILE >/dev/null 2>&1
+  $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
   HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS=true npx hardhat init
   npx hardhat compile
   npx hardhat test
@@ -116,7 +120,7 @@ for pkg_manager in $pkg_managers; do
   create_package_json
   jq '. += {"type": "module"}' package.json >esm-package.json
   mv esm-package.json package.json
-  $pkg_manager add ../../../packages/hardhat-core/$HARDHAT_TGZ_FILE >/dev/null 2>&1
+  $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
   if HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS=true npx hardhat init; then
     echo "[e2e] Initialization should have failed"
     exit 1
