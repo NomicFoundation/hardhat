@@ -15,6 +15,7 @@ import {
 } from "../helpers/providers";
 import { deployContract } from "../helpers/transactions";
 import { useHelpers } from "../helpers/useHelpers";
+import { ansiColor } from "./utils/color";
 
 // eslint-disable  prefer-template
 
@@ -41,7 +42,7 @@ describe("Provider logs", function () {
             await this.provider.send("eth_blockNumber");
 
             assert.deepEqual(this.logger.lines, [
-              chalk.green("eth_blockNumber"),
+              ansiColor("eth_blockNumber", chalk.green),
             ]);
           });
 
@@ -58,13 +59,13 @@ describe("Provider logs", function () {
             await this.provider.send("eth_blockNumber");
 
             assert.deepEqual(this.logger.lines, [
-              chalk.green("eth_blockNumber (2)"),
+              ansiColor("eth_blockNumber (2)", chalk.green),
             ]);
 
             await this.provider.send("eth_blockNumber");
 
             assert.deepEqual(this.logger.lines, [
-              chalk.green("eth_blockNumber (3)"),
+              ansiColor("eth_blockNumber (3)", chalk.green),
             ]);
           });
 
@@ -73,16 +74,16 @@ describe("Provider logs", function () {
             await this.provider.send("eth_blockNumber");
 
             assert.deepEqual(this.logger.lines, [
-              chalk.green("eth_blockNumber (2)"),
+              ansiColor("eth_blockNumber (2)", chalk.green),
             ]);
 
             await this.provider.send("eth_accounts");
             await this.provider.send("eth_blockNumber");
 
             assert.deepEqual(this.logger.lines, [
-              chalk.green("eth_blockNumber (2)"),
-              chalk.green("eth_accounts"),
-              chalk.green("eth_blockNumber"),
+              ansiColor("eth_blockNumber (2)", chalk.green),
+              ansiColor("eth_accounts", chalk.green),
+              ansiColor("eth_blockNumber", chalk.green),
             ]);
           });
 
@@ -91,16 +92,19 @@ describe("Provider logs", function () {
             await this.provider.send("eth_blockNumber");
 
             assert.deepEqual(this.logger.lines, [
-              chalk.green("eth_blockNumber (2)"),
+              ansiColor("eth_blockNumber (2)", chalk.green),
             ]);
 
             await this.provider.send("eth_nonExistentMethod").catch(() => {});
             await this.provider.send("eth_blockNumber");
 
             assert.deepEqual(this.logger.lines, [
-              chalk.green("eth_blockNumber (2)"),
-              chalk.red("eth_nonExistentMethod - Method not supported"),
-              chalk.green("eth_blockNumber"),
+              ansiColor("eth_blockNumber (2)", chalk.green),
+              ansiColor(
+                "eth_nonExistentMethod - Method not supported",
+                chalk.red
+              ),
+              ansiColor("eth_blockNumber", chalk.green),
             ]);
           });
         });
@@ -112,7 +116,7 @@ describe("Provider logs", function () {
             assert.lengthOf(this.logger.lines, 8);
             assert.equal(
               this.logger.lines[0],
-              chalk.green("eth_sendTransaction")
+              ansiColor("eth_sendTransaction", chalk.green)
             );
             // prettier-ignore
             {
@@ -133,9 +137,10 @@ describe("Provider logs", function () {
             }).catch(() => {}); // ignore failure
 
             assert.lengthOf(this.logger.lines, 11);
+
             assert.equal(
               this.logger.lines[0],
-              chalk.red("eth_sendTransaction")
+              ansiColor("eth_sendTransaction", chalk.red)
             );
             // prettier-ignore
             {
@@ -164,7 +169,7 @@ describe("Provider logs", function () {
             assert.lengthOf(this.logger.lines, 9);
             assert.equal(
               this.logger.lines[0],
-              chalk.green("eth_sendTransaction")
+              ansiColor("eth_sendTransaction", chalk.green)
             );
             // prettier-ignore
             {
@@ -193,7 +198,7 @@ describe("Provider logs", function () {
             assert.lengthOf(this.logger.lines, 8);
             assert.equal(
               this.logger.lines[0],
-              chalk.green("eth_sendRawTransaction")
+              ansiColor("eth_sendRawTransaction", chalk.green)
             );
             // prettier-ignore
             {
@@ -225,7 +230,7 @@ describe("Provider logs", function () {
             assert.lengthOf(this.logger.lines, 11);
             assert.equal(
               this.logger.lines[0],
-              chalk.red("eth_sendRawTransaction")
+              ansiColor("eth_sendRawTransaction", chalk.red)
             );
             // prettier-ignore
             {
@@ -261,7 +266,10 @@ describe("Provider logs", function () {
             ]);
 
             assert.lengthOf(this.logger.lines, 5);
-            assert.equal(this.logger.lines[0], chalk.green("eth_call"));
+            assert.equal(
+              this.logger.lines[0],
+              ansiColor("eth_call", chalk.green)
+            );
             // prettier-ignore
             {
               assert.match(this.logger.lines[1], /^  Contract call:       <UnrecognizedContract>$/);
@@ -291,7 +299,10 @@ describe("Provider logs", function () {
               .catch(() => {});
 
             assert.lengthOf(this.logger.lines, 8);
-            assert.equal(this.logger.lines[0], chalk.red("eth_call"));
+            assert.equal(
+              this.logger.lines[0],
+              ansiColor("eth_call", chalk.red)
+            );
             // prettier-ignore
             {
               assert.match(this.logger.lines[1], /^  Contract call:       <UnrecognizedContract>$/);
@@ -314,7 +325,10 @@ describe("Provider logs", function () {
             ]);
 
             assert.lengthOf(this.logger.lines, 5);
-            assert.equal(this.logger.lines[0], chalk.green("eth_call"));
+            assert.equal(
+              this.logger.lines[0],
+              ansiColor("eth_call", chalk.green)
+            );
             // prettier-ignore
             {
               assert.match(this.logger.lines[1], /^  WARNING: Calling an account which is not a contract$/);
@@ -343,7 +357,10 @@ describe("Provider logs", function () {
             ]);
 
             assert.lengthOf(this.logger.lines, 1);
-            assert.equal(this.logger.lines[0], chalk.green("eth_estimateGas"));
+            assert.equal(
+              this.logger.lines[0],
+              ansiColor("eth_estimateGas", chalk.green)
+            );
           });
 
           it("should print extra details when the gas estimation fails", async function () {
@@ -366,7 +383,10 @@ describe("Provider logs", function () {
               .catch(() => {});
 
             assert.lengthOf(this.logger.lines, 8);
-            assert.equal(this.logger.lines[0], chalk.red("eth_estimateGas"));
+            assert.equal(
+              this.logger.lines[0],
+              ansiColor("eth_estimateGas", chalk.red)
+            );
             // prettier-ignore
             {
               assert.match(this.logger.lines[1], /^  Contract call:       <UnrecognizedContract>$/);
@@ -404,7 +424,7 @@ describe("Provider logs", function () {
 
           // prettier-ignore
           {
-            assert.equal(this.logger.lines[0 ], chalk.green("eth_sendTransaction"));
+            assert.equal(this.logger.lines[0 ], ansiColor("eth_sendTransaction", chalk.green));
             assert.match(this.logger.lines[1 ], /^  There were other pending transactions mined in the same block:$/);
             assert.equal(this.logger.lines[2 ], "");
             assert.match(this.logger.lines[3 ], /^  Block #\d+:\s+0x[0-9a-f]{64}$/);
@@ -451,7 +471,7 @@ describe("Provider logs", function () {
           assert.lengthOf(this.logger.lines, 26);
           assert.equal(
             this.logger.lines[0],
-            chalk.green("eth_sendTransaction")
+            ansiColor("eth_sendTransaction", chalk.green)
           );
           // prettier-ignore
           {
@@ -500,7 +520,7 @@ describe("Provider logs", function () {
           assert.lengthOf(this.logger.lines, 40);
           assert.equal(
             this.logger.lines[0],
-            chalk.green("eth_sendTransaction")
+            ansiColor("eth_sendTransaction", chalk.green)
           );
           // prettier-ignore
           {
@@ -563,7 +583,7 @@ describe("Provider logs", function () {
           assert.lengthOf(this.logger.lines, 40);
           assert.equal(
             this.logger.lines[0],
-            chalk.green("eth_sendTransaction")
+            ansiColor("eth_sendTransaction", chalk.green)
           );
           // prettier-ignore
           {
@@ -631,7 +651,10 @@ describe("Provider logs", function () {
           }).catch(() => {});
 
           assert.lengthOf(this.logger.lines, 32);
-          assert.equal(this.logger.lines[0], chalk.red("eth_sendTransaction"));
+          assert.equal(
+            this.logger.lines[0],
+            ansiColor("eth_sendTransaction", chalk.red)
+          );
           // prettier-ignore
           {
             assert.equal(this.logger.lines[ 1], "  There were other pending transactions mined in the same block:");
@@ -707,7 +730,7 @@ describe("Provider logs", function () {
           // prettier-ignore
           {
             assert.match(this.logger.lines[0], /Mined empty block range #\d+ to #\d+/);
-            assert.equal(this.logger.lines[1], chalk.green("eth_blockNumber"));
+            assert.equal(this.logger.lines[1], ansiColor("eth_blockNumber", chalk.green));
             assert.match(this.logger.lines[2], /Mined empty block #\d+ with base fee \d+$/);
           }
         });
@@ -822,7 +845,7 @@ describe("Provider logs", function () {
 
           // prettier-ignore
           {
-            assert.equal(this.logger.lines[0], chalk.green("evm_mine"));
+            assert.equal(this.logger.lines[0], ansiColor("evm_mine", chalk.green));
             assert.match(this.logger.lines[1], /  Mined empty block #\d+ with base fee \d+$/);
             assert.equal(this.logger.lines[2], "");
           }
@@ -835,10 +858,10 @@ describe("Provider logs", function () {
           assert.lengthOf(this.logger.lines, 6);
           // prettier-ignore
           {
-            assert.equal(this.logger.lines[0], chalk.green("evm_mine"));
+            assert.equal(this.logger.lines[0], ansiColor("evm_mine", chalk.green));
             assert.match(this.logger.lines[1], /  Mined empty block #\d+ with base fee \d+$/);
             assert.equal(this.logger.lines[2], "");
-            assert.equal(this.logger.lines[3], chalk.green("evm_mine"));
+            assert.equal(this.logger.lines[3], ansiColor("evm_mine", chalk.green));
             assert.match(this.logger.lines[4], /  Mined empty block #\d+ with base fee \d+$/);
             assert.equal(this.logger.lines[5], "");
           }
@@ -852,7 +875,10 @@ describe("Provider logs", function () {
           await this.provider.send("evm_mine", []);
 
           assert.lengthOf(this.logger.lines, 10);
-          assert.equal(this.logger.lines[0], chalk.green("evm_mine"));
+          assert.equal(
+            this.logger.lines[0],
+            ansiColor("evm_mine", chalk.green)
+          );
           // prettier-ignore
           {
             assert.match(this.logger.lines[1], /^  Mined block #\d+$/);
@@ -876,7 +902,10 @@ describe("Provider logs", function () {
           await this.provider.send("evm_mine", []);
 
           assert.lengthOf(this.logger.lines, 16);
-          assert.equal(this.logger.lines[0], chalk.green("evm_mine"));
+          assert.equal(
+            this.logger.lines[0],
+            ansiColor("evm_mine", chalk.green)
+          );
           // prettier-ignore
           {
             assert.match(this.logger.lines[1 ], /^  Mined block #\d+$/);
@@ -920,7 +949,10 @@ describe("Provider logs", function () {
 
           assert.lengthOf(this.logger.lines, 19);
 
-          assert.equal(this.logger.lines[0], chalk.green("evm_mine"));
+          assert.equal(
+            this.logger.lines[0],
+            ansiColor("evm_mine", chalk.green)
+          );
           // prettier-ignore
           {
             assert.match(this.logger.lines[1 ], /^  Mined block #\d+$/);
@@ -958,7 +990,7 @@ describe("Provider logs", function () {
 
           // prettier-ignore
           {
-            assert.equal(this.logger.lines[0], chalk.green("hardhat_mine"));
+            assert.equal(this.logger.lines[0], ansiColor("hardhat_mine", chalk.green));
             assert.match(this.logger.lines[1], /  Mined empty block #\d+ with base fee \d+$/);
             assert.equal(this.logger.lines[2], "");
           }
@@ -971,10 +1003,10 @@ describe("Provider logs", function () {
           assert.lengthOf(this.logger.lines, 6);
           // prettier-ignore
           {
-            assert.equal(this.logger.lines[0], chalk.green("hardhat_mine"));
+            assert.equal(this.logger.lines[0], ansiColor("hardhat_mine", chalk.green));
             assert.match(this.logger.lines[1], /  Mined empty block #\d+ with base fee \d+$/);
             assert.equal(this.logger.lines[2], "");
-            assert.equal(this.logger.lines[3], chalk.green("hardhat_mine"));
+            assert.equal(this.logger.lines[3], ansiColor("hardhat_mine", chalk.green));
             assert.match(this.logger.lines[4], /  Mined empty block #\d+ with base fee \d+$/);
             assert.equal(this.logger.lines[5], "");
           }
@@ -988,7 +1020,10 @@ describe("Provider logs", function () {
           await this.provider.send("hardhat_mine", []);
 
           assert.lengthOf(this.logger.lines, 10);
-          assert.equal(this.logger.lines[0], chalk.green("hardhat_mine"));
+          assert.equal(
+            this.logger.lines[0],
+            ansiColor("hardhat_mine", chalk.green)
+          );
           // prettier-ignore
           {
             assert.match(this.logger.lines[1], /^  Mined block #\d+$/);
@@ -1012,7 +1047,10 @@ describe("Provider logs", function () {
           await this.provider.send("hardhat_mine", []);
 
           assert.lengthOf(this.logger.lines, 16);
-          assert.equal(this.logger.lines[0], chalk.green("hardhat_mine"));
+          assert.equal(
+            this.logger.lines[0],
+            ansiColor("hardhat_mine", chalk.green)
+          );
           // prettier-ignore
           {
             assert.match(this.logger.lines[1 ], /^  Mined block #\d+$/);
@@ -1056,7 +1094,10 @@ describe("Provider logs", function () {
 
           assert.lengthOf(this.logger.lines, 19);
 
-          assert.equal(this.logger.lines[0], chalk.green("hardhat_mine"));
+          assert.equal(
+            this.logger.lines[0],
+            ansiColor("hardhat_mine", chalk.green)
+          );
           // prettier-ignore
           {
             assert.match(this.logger.lines[1 ], /^  Mined block #\d+$/);
@@ -1085,7 +1126,10 @@ describe("Provider logs", function () {
 
           assert.lengthOf(this.logger.lines, 3);
 
-          assert.equal(this.logger.lines[0], chalk.green("hardhat_mine"));
+          assert.equal(
+            this.logger.lines[0],
+            ansiColor("hardhat_mine", chalk.green)
+          );
           assert.match(
             this.logger.lines[1],
             /  Mined empty block range #\d+ to #\d+/
@@ -1101,7 +1145,10 @@ describe("Provider logs", function () {
           await this.provider.send("hardhat_mine", ["0xA"]);
 
           assert.lengthOf(this.logger.lines, 12);
-          assert.equal(this.logger.lines[0], chalk.green("hardhat_mine"));
+          assert.equal(
+            this.logger.lines[0],
+            ansiColor("hardhat_mine", chalk.green)
+          );
           // prettier-ignore
           {
             assert.match(this.logger.lines[1], /^  Mined block #\d+$/);
@@ -1131,7 +1178,10 @@ describe("Provider logs", function () {
           await this.provider.send("hardhat_mine", ["0xA"]);
 
           assert.lengthOf(this.logger.lines, 27);
-          assert.equal(this.logger.lines[0], chalk.green("hardhat_mine"));
+          assert.equal(
+            this.logger.lines[0],
+            ansiColor("hardhat_mine", chalk.green)
+          );
           // prettier-ignore
           {
             assert.match(this.logger.lines[1], /^  Mined block #\d+$/);

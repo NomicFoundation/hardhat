@@ -3,12 +3,13 @@ use std::{
     sync::mpsc::{channel, Sender},
 };
 
+use ansi_term::{Color, Style};
 use edr_eth::{Bytes, B256, U256};
 use edr_evm::{
     blockchain::BlockchainError,
     precompile::{self, Precompiles},
     trace::TraceMessage,
-    ExecutableTransaction, ExecutionResult, SyncBlock,
+    ExecutableTransaction, ExecutionResult, Halt, SyncBlock,
 };
 use edr_provider::ProviderError;
 use itertools::izip;
@@ -153,11 +154,10 @@ impl edr_provider::Logger for Logger {
     fn print_method_logs(&mut self, method: &str, error: Option<&ProviderError>) {
         if let Some(error) = error {
             if matches!(error, ProviderError::UnsupportedMethod { .. }) {
-                // TODO: Make red
-                self.collector.print::<false>(error.to_string());
+                self.collector
+                    .print::<false>(Color::Red.paint(error.to_string()));
             } else {
-                // TOOD: Make red
-                self.collector.print::<false>(method);
+                self.collector.print::<false>(Color::Red.paint(method));
                 self.collector.print_logs();
 
                 if !matches!(error, ProviderError::TransactionFailed(_)) {
@@ -172,8 +172,9 @@ impl edr_provider::Logger for Logger {
                         && error_message.contains("EIP1555");
                     if is_eip_155_error {
                         self.collector.indented(|logger| {
-                            // TODO: Make yellow
-                            logger.print::<false>("If you are using MetaMask, you can learn how to fix this error here: https://hardhat.org/metamask-issue");
+                            logger.print::<false>(Color::Yellow.paint(
+                                "If you are using MetaMask, you can learn how to fix this error here: https://hardhat.org/metamask-issue"
+                            ));
                         });
                     }
                 }
@@ -183,7 +184,10 @@ impl edr_provider::Logger for Logger {
         } else {
             self.collector.print_method(method);
 
-            self.collector.print_logs();
+            let printed = self.collector.print_logs();
+            if printed {
+                self.collector.print_empty_line();
+            }
         }
     }
 }
@@ -320,11 +324,11 @@ impl LogCollector {
         spec_id: edr_eth::SpecId,
         mining_results: Vec<edr_provider::DebugMineBlockResult<BlockchainError>>,
     ) {
-        let state = std::mem::take(&mut self.state);
-        let empty_blocks_range_start = state.into_hardhat_mining();
-
         let num_results = mining_results.len();
         for (idx, mining_result) in mining_results.into_iter().enumerate() {
+            let state = std::mem::take(&mut self.state);
+            let empty_blocks_range_start = state.into_hardhat_mining();
+
             if mining_result.block.transactions().is_empty() {
                 self.log_hardhat_mined_empty_block(&mining_result.block, empty_blocks_range_start);
 
@@ -335,7 +339,7 @@ impl LogCollector {
                     ),
                 };
             } else {
-                self.log_mined_block(spec_id, mining_result);
+                self.log_hardhat_mined_block(spec_id, mining_result);
 
                 if idx < num_results - 1 {
                     self.log_empty_line();
@@ -349,20 +353,20 @@ impl LogCollector {
         spec_id: edr_eth::SpecId,
         mining_result: &edr_provider::DebugMineBlockResult<BlockchainError>,
     ) {
-        let state = std::mem::take(&mut self.state);
-        let empty_blocks_range_start = state.into_interval_mining();
-
         let block_header = mining_result.block.header();
         let block_number = block_header.number;
 
         if mining_result.block.transactions().is_empty() {
+            let state = std::mem::take(&mut self.state);
+            let empty_blocks_range_start = state.into_interval_mining();
+
             if let Some(empty_blocks_range_start) = empty_blocks_range_start {
                 self.print::<true>(format!(
                     "Mined empty block range #{empty_blocks_range_start} to #{block_number}"
                 ));
             } else {
                 let base_fee = if let Some(base_fee) = block_header.base_fee_per_gas.as_ref() {
-                    format!(" with base fee: {base_fee}")
+                    format!(" with base fee {base_fee}")
                 } else {
                     String::new()
                 };
@@ -427,8 +431,8 @@ impl LogCollector {
         }
     }
 
-    fn format(&self, message: impl Into<String>) -> String {
-        let message = message.into();
+    fn format(&self, message: impl ToString) -> String {
+        let message = message.to_string();
 
         if message.is_empty() {
             message
@@ -447,7 +451,7 @@ impl LogCollector {
         self.indentation -= 2;
     }
 
-    fn log(&mut self, message: impl Into<String>) {
+    fn log(&mut self, message: impl ToString) {
         let formatted = self.format(message);
 
         self.logs.push(LogLine::Single(formatted));
@@ -525,7 +529,7 @@ impl LogCollector {
     fn log_block_hash(&mut self, block: &dyn SyncBlock<Error = BlockchainError>) {
         let block_hash = block.hash();
 
-        self.log(format!("Block hash: {block_hash}"));
+        self.log(format!("Block: {block_hash}"));
     }
 
     fn log_block_id(&mut self, block: &dyn SyncBlock<Error = BlockchainError>) {
@@ -538,7 +542,7 @@ impl LogCollector {
     fn log_block_number(&mut self, block: &dyn SyncBlock<Error = BlockchainError>) {
         let block_number = block.header().number;
 
-        self.log(format!("Block #{block_number}:"));
+        self.log(format!("Mined block #{block_number}"));
     }
 
     /// Logs a transaction that's part of a block.
@@ -553,16 +557,12 @@ impl LogCollector {
     ) {
         let transaction_hash = transaction.hash();
         if should_highlight_hash {
-            self.log_with_title("Transaction", transaction_hash.to_string());
-        } else {
-            // TODO: Make bold
             self.log_with_title(
                 "Transaction",
-                format!(
-                    "bold
-{transaction_hash}",
-                ),
+                Style::new().bold().paint(transaction_hash.to_string()),
             );
+        } else {
+            self.log_with_title("Transaction", transaction_hash.to_string());
         }
 
         self.indented(|logger| {
@@ -656,10 +656,7 @@ impl LogCollector {
 
                     if is_code_empty {
                         if PRINT_INVALID_CONTRACT_WARNING {
-                            self.log(
-                                "WARNING: Calling an account which is
-not a contract",
-                            );
+                            self.log("WARNING: Calling an account which is not a contract");
                         }
                     } else {
                         self.log_with_title(
@@ -701,10 +698,7 @@ not a contract",
         let block_number = block_header.number;
 
         let base_fee = if let Some(base_fee) = block_header.base_fee_per_gas.as_ref() {
-            format!(
-                " with base fee:
-{base_fee}"
-            )
+            format!(" with base fee {base_fee}")
         } else {
             String::new()
         };
@@ -722,6 +716,16 @@ not a contract",
         }
     }
 
+    fn log_halt_reason(&mut self, reason: &Halt) {
+        let reason = if matches!(reason, Halt::OutOfGas(_)) {
+            "Transaction ran out of gas".to_string()
+        } else {
+            format!("{reason:?}")
+        };
+
+        self.log(format!("TransactionExecutionError: {reason}"));
+    }
+
     fn log_hardhat_mined_empty_block(
         &mut self,
         block: &dyn SyncBlock<Error = BlockchainError>,
@@ -730,8 +734,7 @@ not a contract",
         self.indented(|logger| {
             if let Some(empty_blocks_range_start) = empty_blocks_range_start {
                 logger.replace_last_log_line(format!(
-                    "Mined empty block range #{empty_blocks_range_start} to
-#{block_number}",
+                    "Mined empty block range #{empty_blocks_range_start} to #{block_number}",
                     block_number = block.header().number
                 ));
             } else {
@@ -790,7 +793,7 @@ not a contract",
         self.log_empty_line();
     }
 
-    fn log_mined_block(
+    fn log_hardhat_mined_block(
         &mut self,
         spec_id: edr_eth::SpecId,
         result: edr_provider::DebugMineBlockResult<BlockchainError>,
@@ -846,10 +849,8 @@ not a contract",
     /// Logs a warning about multiple blocks being mined.
     fn log_multiple_blocks_warning(&mut self) {
         self.indented(|logger| {
-            logger.log(
-                "There were other pending transactions. More than one
-block had to be mined:",
-            );
+            logger
+                .log("There were other pending transactions. More than one block had to be mined:");
         });
         self.log_empty_line();
     }
@@ -857,10 +858,7 @@ block had to be mined:",
     /// Logs a warning about multiple transactions being mined.
     fn log_multiple_transactions_warning(&mut self) {
         self.indented(|logger| {
-            logger.log(
-                "There were other pending transactions mined in the
-same block:",
-            );
+            logger.log("There were other pending transactions mined in the same block:");
         });
         self.log_empty_line();
     }
@@ -882,15 +880,15 @@ same block:",
         result: &edr_provider::DebugMineBlockResult<BlockchainError>,
         transaction: &ExecutableTransaction,
     ) {
-        let trace = result.transaction_traces.first().expect(
-            "A transaction exists, so the trace must exist as
-well.",
-        );
+        let trace = result
+            .transaction_traces
+            .first()
+            .expect("A transaction exists, so the trace must exist as well.");
 
-        let transaction_result = result.transaction_results.first().expect(
-            "A transaction exists, so the result must exist as
-well.",
-        );
+        let transaction_result = result
+            .transaction_results
+            .first()
+            .expect("A transaction exists, so the result must exist as well.");
 
         self.indented(|logger| {
             logger.log_contract_and_function_name::<false>(spec_id, trace);
@@ -915,17 +913,16 @@ well.",
             let block_number = result.block.header().number;
             logger.log_with_title(format!("Block #{block_number}"), result.block.hash());
 
-            // TODO: Get converted strings from Hardhat
             logger.log_console_log_messages(&result.console_log_inputs);
 
             if let ExecutionResult::Halt { reason, .. } = &transaction_result {
                 logger.log_empty_line();
-                logger.log(format!("{reason:?}"));
+                logger.log_halt_reason(reason);
             }
         });
     }
 
-    fn print<const REPLACE: bool>(&mut self, message: impl Into<String>) {
+    fn print<const REPLACE: bool>(&mut self, message: impl ToString) {
         if !self.is_enabled {
             return;
         }
@@ -953,6 +950,7 @@ well.",
             let line = match log {
                 LogLine::Single(message) => message,
                 LogLine::WithTitle(title, message) => {
+                    let title = format!("{title}:");
                     format!("{title:indent$} {message}", indent = self.title_length + 1)
                 }
             };
@@ -967,17 +965,15 @@ well.",
         if let Some(collapsed_method) = self.collapsed_method(method) {
             collapsed_method.count += 1;
 
-            // TODO: Make green
             let line = format!("{method} ({count})", count = collapsed_method.count);
-            self.print::<true>(line);
+            self.print::<true>(Color::Green.paint(line));
         } else {
             self.state = LoggingState::CollapsingMethod(CollapsedMethod {
                 count: 1,
                 method: method.to_string(),
             });
 
-            // TODO: Make green
-            self.print::<false>(method);
+            self.print::<false>(Color::Green.paint(method));
         }
     }
 
@@ -992,7 +988,7 @@ well.",
         None
     }
 
-    fn replace_last_log_line(&mut self, message: impl Into<String>) {
+    fn replace_last_log_line(&mut self, message: impl ToString) {
         let formatted = self.format(message);
 
         *self.logs.last_mut().expect("There must be a log line") = LogLine::Single(formatted);
