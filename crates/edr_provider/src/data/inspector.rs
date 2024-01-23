@@ -23,7 +23,6 @@ impl<DatabaseErrorT> Inspector<DatabaseErrorT> for EvmInspector {
         inputs: &mut CallInputs,
     ) -> (InstructionResult, Gas, Bytes) {
         if inputs.contract == *CONSOLE_ADDRESS {
-            println!("test");
             self.console_log_encoded_messages.push(inputs.input.clone());
         }
 

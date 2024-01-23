@@ -787,7 +787,11 @@ impl LogCollector {
             }
         } else {
             for input in console_log_inputs {
-                self.print::<false>(input);
+                let status = self
+                    .print_line_fn
+                    .call((input, false), ThreadsafeFunctionCallMode::Blocking);
+
+                assert_eq!(status, napi::Status::Ok);
             }
         }
     }
