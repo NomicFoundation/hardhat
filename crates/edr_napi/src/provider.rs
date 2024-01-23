@@ -34,7 +34,7 @@ impl Provider {
         let runtime = runtime::Handle::current();
 
         let logger = Box::new(Logger::new(&env, logger_config)?);
-        let subscriber_callback = SubscriberCallback::new(&env, &subscriber_callback)?;
+        let subscriber_callback = SubscriberCallback::new(&env, subscriber_callback)?;
         let subscriber_callback = Box::new(move |event| subscriber_callback.call(event));
 
         let (deferred, promise) = env.create_deferred()?;
