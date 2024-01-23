@@ -2,6 +2,7 @@ import { execFile } from "child_process";
 import * as fs from "fs";
 import os from "node:os";
 import path from "node:path";
+import * as semver from "semver";
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HardhatError } from "../../core/errors";
 import { ERRORS } from "../../core/errors-list";
@@ -74,12 +75,11 @@ export class NativeCompiler implements ICompiler {
 
   public async compile(input: CompilerInput) {
     const args = ["--standard-json"];
-    const versionRegex = /^\d{1,2}\.\d{1,2}\.\d{1,2}$/;
 
     // Logic to make sure that solc default import callback is not being used.
     // If solcVersion is not defined or <= 0.6.8, do not add extra args.
     if (this._solcVersion !== undefined) {
-      if (!versionRegex.test(this._solcVersion)) {
+      if (semver.parse(this._solcVersion) === null) {
         throw new HardhatError(ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE, {
           value: this._solcVersion,
           name: "_solcVersion",
@@ -87,11 +87,10 @@ export class NativeCompiler implements ICompiler {
         });
       }
 
-      const parts = this._solcVersion.split(".").map(Number);
-      if ((parts[1] === 8 && parts[2] >= 22) || parts[1] > 8) {
+      if (semver.gte(this._solcVersion, "0.8.22")) {
         // version >= 0.8.22
         args.push("--no-import-callback");
-      } else if ((parts[1] === 6 && parts[2] >= 9) || parts[1] > 6) {
+      } else if (semver.gte(this._solcVersion, "0.6.9")) {
         // version >= 0.6.9
         const tmpFolder = path.join(os.tmpdir(), "hardhat-solc");
         fs.mkdirSync(tmpFolder, { recursive: true });
