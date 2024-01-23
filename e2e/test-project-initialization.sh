@@ -49,7 +49,12 @@ for pkg_manager in $pkg_managers; do
 done
 
 for pkg_manager in $pkg_managers; do
-  echo "\n\n[e2e] Running tests with package manager: $pkg_manager"
+  pkg_runner=$pkg_manager
+  if [ "$pkg_manager" = "npm" ]; then
+    pkg_runner="npx"
+  fi
+
+  echo "\n\n[e2e] Running tests with package manager '$pkg_manager' and package runner '$pkg_runner'"
 
   # pkg_manager, javascript, cjs
   echo "[e2e] Testing: $pkg_manager, javascript, cjs"
@@ -57,9 +62,9 @@ for pkg_manager in $pkg_managers; do
   cd ${TESTS_DIR}/${pkg_manager}-javascript-cjs
   create_package_json
   $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
-  HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS=true npx hardhat init
-  npx hardhat compile
-  npx hardhat test
+  HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS=true $pkg_runner hardhat init
+  $pkg_runner hardhat compile
+  $pkg_runner hardhat test
   cd -
 
   # pkg_manager, javascript, esm
@@ -70,9 +75,9 @@ for pkg_manager in $pkg_managers; do
   jq '. += {"type": "module"}' package.json >esm-package.json
   mv esm-package.json package.json
   $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
-  HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS=true npx hardhat init
-  npx hardhat compile
-  npx hardhat test
+  HARDHAT_CREATE_JAVASCRIPT_PROJECT_WITH_DEFAULTS=true $pkg_runner hardhat init
+  $pkg_runner hardhat compile
+  $pkg_runner hardhat test
   cd -
 
   # pkg_manager, typescript, cjs
@@ -81,9 +86,9 @@ for pkg_manager in $pkg_managers; do
   cd ${TESTS_DIR}/${pkg_manager}-typescript-cjs
   create_package_json
   $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
-  HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS=true npx hardhat init
-  npx hardhat compile
-  npx hardhat test
+  HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS=true $pkg_runner hardhat init
+  $pkg_runner hardhat compile
+  $pkg_runner hardhat test
   cd -
 
   # pkg_manager, typescript, esm
@@ -94,7 +99,7 @@ for pkg_manager in $pkg_managers; do
   jq '. += {"type": "module"}' package.json >esm-package.json
   mv esm-package.json package.json
   $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
-  if HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS=true npx hardhat init; then
+  if HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS=true $pkg_runner hardhat init; then
     echo "[e2e] Initialization should have failed"
     exit 1
   else
@@ -108,9 +113,9 @@ for pkg_manager in $pkg_managers; do
   cd ${TESTS_DIR}/${pkg_manager}-typescript-viem-cjs
   create_package_json
   $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
-  HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS=true npx hardhat init
-  npx hardhat compile
-  npx hardhat test
+  HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS=true $pkg_runner hardhat init
+  $pkg_runner hardhat compile
+  $pkg_runner hardhat test
   cd -
 
   # pkg_manager, typescript-viem, esm
@@ -121,7 +126,7 @@ for pkg_manager in $pkg_managers; do
   jq '. += {"type": "module"}' package.json >esm-package.json
   mv esm-package.json package.json
   $pkg_manager add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
-  if HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS=true npx hardhat init; then
+  if HARDHAT_CREATE_TYPESCRIPT_VIEM_PROJECT_WITH_DEFAULTS=true $pkg_runner hardhat init; then
     echo "[e2e] Initialization should have failed"
     exit 1
   else
